@@ -289,16 +289,26 @@ typedef struct {
   limnLook *look; int lookNum;
   airArray *lookArr;
 
-  int vertSpace,     /* which space limnVert->coord is in */
-    doEdges,         /* if non-zero, build edges as faces are added */
-    incr;            /* increment to use with airArrays */
+  int vertSpace,           /* which space limnVert->coord is in */
+    setVertexRGBAFromLook, /* when possible, copy vertex RGB values
+                              from limnLook of part (not face) */
+    doEdges,               /* if non-zero, build edges as faces are added */
+    incr;                  /* increment to use with airArrays */
 } limnObject;
 
 typedef struct {
   /* ------- input ------- */
   const Nrrd *nvol;             /* the volume we're operating on */
-  int reverse;                  /* reverse sense of inside/outside */
+  int lowerInside;              /* lower values are logically inside
+                                   isosurfaces, not outside */
+  double transform[16];         /* map vertices through this transform;
+                                   defaults to identity.  This is apt to come
+                                   from gageShape->ItoW, but having  this as
+                                   a separate field allows limn to avoid
+                                   dependence on gage */
   /* ------ internal ----- */
+  int reverse;                  /* reverse sense of inside/outside (based on
+                                   lowerInside and determinant of transform) */
   double (*lup)(const void *, size_t);  /* for getting values out of nvol */
   int spanSize;                 /* resolution of span space along edge */
   Nrrd *nspanHist;              /* image of span space */
@@ -559,10 +569,12 @@ TEEM_API int limnSplineSample(Nrrd *nout, limnSpline *spline,
 /* contour.c */
 TEEM_API limn3DContourContext *limn3DContourContextNew(void);
 TEEM_API limn3DContourContext *limn3DContourContextNix(limn3DContourContext *);
-TEEM_API int limn3DContourReverseSet(limn3DContourContext *lctx,
-                                     int reverse);
 TEEM_API int limn3DContourVolumeSet(limn3DContourContext *lctx,
                                     const Nrrd *nvol);
+TEEM_API int limn3DContourLowerInsideSet(limn3DContourContext *lctx,
+                                         int lowerInside);
+TEEM_API int limn3DContourTransformSet(limn3DContourContext *lctx,
+                                       const double mat[16]);
 TEEM_API int limn3DContourExtract(limn3DContourContext *lctx,
                                   limnObject *cont, double isovalue);
 

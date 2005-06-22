@@ -357,6 +357,8 @@ limn3DContourContextNew(void) {
   lctx = (limn3DContourContext *)calloc(1, sizeof(limn3DContourContext));
   if (lctx) {
     lctx->nvol = NULL;
+    lctx->lowerInside = AIR_FALSE;
+    ELL_4M_IDENTITY_SET(lctx->transform);
     lctx->reverse = AIR_FALSE;
     lctx->lup = NULL;
     lctx->spanSize = 300;
@@ -388,15 +390,45 @@ limn3DContourContextNix(limn3DContourContext *lctx) {
 }
 
 int
-limn3DContourReverseSet(limn3DContourContext *lctx,
-                        int reverse) {
-  char me[]="limn3DContourReverseSet", err[AIR_STRLEN_MED];
-  
+_limn3DContourReverse(limn3DContourContext *lctx) {
+  double det, rot[9];
+
+  ELL_34M_EXTRACT(rot, lctx->transform);
+  det = ELL_3M_DET(rot);
+  return (!!lctx->lowerInside) ^ (det < 0);
+}
+
+int
+limn3DContourLowerInsideSet(limn3DContourContext *lctx,
+                            int lowerInside) {
+  char me[]="limn3DContourLowerInsideSet", err[AIR_STRLEN_MED];
+
   if (!lctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  lctx->reverse = reverse;
+  lctx->lowerInside = lowerInside;
+  lctx->reverse = _limn3DContourReverse(lctx);
+  return 0;
+}
+
+int
+limn3DContourTransformSet(limn3DContourContext *lctx,
+                          const double mat[16]) {
+  char me[]="limn3DContourTransformSet", err[AIR_STRLEN_MED];
+  double det;
+
+  if (!( lctx && mat )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  det = ELL_4M_DET(mat);
+  if (!det) {
+    sprintf(err, "%s: transform had zero determinant", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  ELL_4M_COPY(lctx->transform, mat);
+  lctx->reverse = _limn3DContourReverse(lctx);
   return 0;
 }
 
@@ -614,7 +646,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
     }
     /* triangulate slice */
     for (yi=0; yi<sy-1; yi++) {
-      double vval[8], vert[3], ww;
+      double vval[8], vert[3], tvertA[4], tvertB[4], ww;
       unsigned char vcase;
       int ti, vi, ei, vi0, vi1, ecase, *tcase, vii[3];
       for (xi=0; xi<sx-1; xi++) {
@@ -650,10 +682,13 @@ limn3DContourExtract(limn3DContourContext *lctx,
             vi1 = e2v[ei][1];
             ww = vval[vi0]/(vval[vi0] - vval[vi1]);
             ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
+            ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
+            ELL_4MV_MUL(tvertB, lctx->transform, tvertA);
+            ELL_4V_HOMOG(tvertB, tvertB);
             lctx->vidx[vidx[ei] + 5*si] = limnObjectVertexAdd(cont, partIdx,
-                                                              vert[0] + xi, 
-                                                              vert[1] + yi, 
-                                                              vert[2] + zi);
+                                                              tvertB[0],
+                                                              tvertB[1],
+                                                              tvertB[2]);
             lctx->vertNum++;
             /*
             fprintf(stderr, "%s: vert %d (edge %d) of (%d,%d,%d) "

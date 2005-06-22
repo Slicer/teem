@@ -63,6 +63,7 @@ limnObjectNew(int incr, int doEdges) {
   limnObjectLookAdd(obj);
 
   obj->vertSpace = limnSpaceUnknown;
+  obj->setVertexRGBAFromLook = AIR_FALSE;
   obj->doEdges = doEdges;
   obj->incr = incr;
     
@@ -159,7 +160,14 @@ limnObjectVertexAdd(limnObject *obj, int partIdx,
   part->vertIdx[vertIdxIdx] = vertIdx;
   ELL_4V_SET(vert->world, x, y, z, 1);
   ELL_4V_SET(vert->coord, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_4V_SET(vert->rgba, 1, 1, 1, 1);
+  /* HEY: this is kind of lame: this information is set in 
+     a rather sneaky way, and the setVertexRGBAFromLook is
+     pretty clearly a hack */
+  if (obj->setVertexRGBAFromLook) {
+    ELL_4V_COPY(vert->rgba, obj->look[part->lookIdx].rgba);
+  } else {
+    ELL_4V_SET(vert->rgba, 1, 1, 1, 1);
+  }
   /* ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN); */
   /* ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN); */
   ELL_4V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -249,6 +257,8 @@ limnObjectFaceAdd(limnObject *obj, int partIdx,
   }
   ELL_3V_SET(face->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(face->screenNormal, AIR_NAN, AIR_NAN, AIR_NAN);
+  /* HEY: its potentially confusing that obj->setVertexRGBAFromLook only
+     has an effect with whole parts, and not individual faces */
   face->lookIdx = lookIdx;
   face->partIdx = partIdx;
   face->visible = AIR_FALSE;
