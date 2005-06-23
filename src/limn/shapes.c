@@ -271,8 +271,8 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
 
 int
 limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
-                         float A, float B, 
-                         int thetaRes, int phiRes) {
+                            float A, float B, 
+                            int thetaRes, int phiRes) {
   int partIdx, vII0, nti, ti, pi, vII[4], pl;
   float x, y, z, t, p;
   
