@@ -254,9 +254,9 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
       return 1;
     }
   }
-  shape->spacing[0] = xs;
-  shape->spacing[1] = ys;
-  shape->spacing[2] = zs; 
+  shape->spacing[0] = AIR_ABS(xs);
+  shape->spacing[1] = AIR_ABS(ys);
+  shape->spacing[2] = AIR_ABS(zs);
   
   /* ------ set spacing-dependent filter weight scalings */
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
