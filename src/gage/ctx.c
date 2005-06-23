@@ -579,7 +579,6 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
                int indexSpace, int clamp) {
   int ret, center, *size;
   gage_t xi, yi, zi;
-  double *hlen;
 
   size = ctx->shape->size;
   center = ctx->shape->center;
@@ -589,10 +588,14 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
     zi = z;
   } else {
     /* have to convert from world to index */
-    hlen = ctx->shape->volHalfLen;
-    xi = NRRD_IDX(center, -hlen[0], hlen[0], size[0], x);
-    yi = NRRD_IDX(center, -hlen[1], hlen[1], size[1], y);
-    zi = NRRD_IDX(center, -hlen[2], hlen[2], size[2], z);
+    /* HEY: this has to be tested/debugged */
+    gage_t wcoord[4], icoord[4];
+    ELL_4V_SET(wcoord, x, y, z, 1);
+    ELL_4MV_MUL(icoord, ctx->shape->WtoI, wcoord);
+    ELL_4V_HOMOG(icoord, icoord);
+    xi = icoord[0];
+    yi = icoord[1];
+    zi = icoord[2];
   }
   if (clamp) {
     if (nrrdCenterNode == center) {
