@@ -45,6 +45,7 @@ limnObjectNew(int incr, int doEdges) {
   obj->face = NULL;
   obj->faceSort = NULL;
   obj->part = NULL;
+  obj->partPool = NULL;
   obj->look = NULL;
 
   /* create all various airArrays */
@@ -56,6 +57,8 @@ limnObjectNew(int incr, int doEdges) {
                              sizeof(limnFace), incr);
   obj->partArr = airArrayNew((void**)&(obj->part), &(obj->partNum),
                              sizeof(limnPart*), incr);
+  obj->partPoolArr = airArrayNew((void**)&(obj->partPool), &(obj->partPoolNum),
+                                 sizeof(limnPart*), incr);
   obj->lookArr = airArrayNew((void**)&(obj->look), &(obj->lookNum),
                              sizeof(limnLook), incr);
 
@@ -68,6 +71,28 @@ limnObjectNew(int incr, int doEdges) {
   obj->incr = incr;
     
   return obj;
+}
+
+limnPart *
+_limnObjectPartNew(int incr) {
+  limnPart *part;
+
+  part = (limnPart*)calloc(1, sizeof(limnPart));
+  if (part) {
+    part->vertIdx = NULL;
+    part->edgeIdx = NULL;
+    part->faceIdx = NULL;
+    part->vertIdxArr = airArrayNew((void**)&(part->vertIdx),
+                                   &(part->vertIdxNum),
+                                   sizeof(int), incr);
+    part->edgeIdxArr = airArrayNew((void**)&(part->edgeIdx),
+                                   &(part->edgeIdxNum),
+                                   sizeof(int), incr);
+    part->faceIdxArr = airArrayNew((void**)&(part->faceIdx),
+                                   &(part->faceIdxNum),
+                                   sizeof(int), incr);
+  }
+  return part;
 }
 
 limnPart *
@@ -100,11 +125,14 @@ limnObjectNix(limnObject *obj) {
     _limnObjectPartNix(obj->part[partIdx]);
   }
   airArrayNuke(obj->partArr);
+  for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
+    _limnObjectPartNix(obj->partPool[partIdx]);
+  }
+  airArrayNuke(obj->partPoolArr);
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     _limnObjectFaceEmpty(obj->face + faceIdx);
   }
   airArrayNuke(obj->faceArr);
-
   airArrayNuke(obj->vertArr);
   airArrayNuke(obj->edgeArr);
   airFree(obj->faceSort);
@@ -113,26 +141,82 @@ limnObjectNix(limnObject *obj) {
   return NULL;
 }
 
+void
+limnObjectEmpty(limnObject *obj) {
+  int partIdx, faceIdx;
+
+  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    _limnObjectPartNix(obj->part[partIdx]);
+  }
+  airArrayLenSet(obj->partArr, 0);
+  for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
+    _limnObjectPartNix(obj->partPool[partIdx]);
+  }
+  airArrayLenSet(obj->partPoolArr, 0);
+  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    _limnObjectFaceEmpty(obj->face + faceIdx);
+  }
+  airArrayLenSet(obj->faceArr, 0);
+  airArrayLenSet(obj->vertArr, 0);
+  airArrayLenSet(obj->edgeArr, 0);
+  airFree(obj->faceSort);
+  /* leaves (default) look 0 */
+  airArrayLenSet(obj->lookArr, 1);
+
+  /* don't touch state flags */
+
+  return;
+}
+
+/*
+******** limnObjectPreSet
+**
+** an attempt at pre-allocating everything that will be needed in a
+** limnObject, so that there will be no calloc/memcpy overhead associated
+** with growing any of the airArrays inside
+*/
+int
+limnObjectPreSet(limnObject *obj, int partNum, int lookNum,
+                 int vertPerPart, int edgePerPart, int facePerPart) {
+  limnPart *part;
+  int partIdx;
+
+  limnObjectEmpty(obj);
+  airArrayLenPreSet(obj->vertArr, partNum*vertPerPart);
+  airArrayLenPreSet(obj->edgeArr, partNum*edgePerPart);
+  airArrayLenPreSet(obj->faceArr, partNum*facePerPart);
+  airArrayLenPreSet(obj->lookArr, lookNum);
+  airArrayLenPreSet(obj->partArr, partNum);
+
+  airArrayLenSet(obj->partPoolArr, partNum);
+  for (partIdx=0; partIdx<partNum; partIdx++) {
+    part = obj->partPool[partIdx] = _limnObjectPartNew(obj->incr);
+    airArrayLenPreSet(part->vertIdxArr, vertPerPart);
+    airArrayLenPreSet(part->edgeIdxArr, edgePerPart);
+    airArrayLenPreSet(part->faceIdxArr, facePerPart);
+  }
+  
+  return 0;
+}
+
 int
 limnObjectPartAdd(limnObject *obj) {
   int partIdx;
   limnPart *part;
 
   partIdx = airArrayLenIncr(obj->partArr, 1);
-  part = obj->part[partIdx] = (limnPart*)calloc(1, sizeof(limnPart));
-  
-  part->vertIdx = NULL;
-  part->edgeIdx = NULL;
-  part->faceIdx = NULL;
-  part->vertIdxArr = airArrayNew((void**)&(part->vertIdx), &(part->vertIdxNum),
-                                 sizeof(int), obj->incr);
-  part->edgeIdxArr = airArrayNew((void**)&(part->edgeIdx), &(part->edgeIdxNum),
-                                 sizeof(int), obj->incr);
-  part->faceIdxArr = airArrayNew((void**)&(part->faceIdx), &(part->faceIdxNum),
-                                 sizeof(int), obj->incr);
+  if (obj->partPoolNum > 0) {
+    part = obj->part[partIdx] = obj->partPool[obj->partPoolNum - 1];
+    airArrayLenIncr(obj->partPoolArr, -1);
+    airArrayLenSet(part->vertIdxArr, 0);
+    airArrayLenSet(part->edgeIdxArr, 0);
+    airArrayLenSet(part->faceIdxArr, 0);
+  } else {
+    /* there are no available parts in the pool */
+    part = obj->part[partIdx] = _limnObjectPartNew(obj->incr);
+  }
   part->lookIdx = 0;  
   part->depth = AIR_NAN;
-  
   return partIdx;
 }
 

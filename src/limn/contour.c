@@ -51,7 +51,7 @@
 **   2  /       |  /   
 **   | 1        | /    
 **   |/         |/     
-**  (0)----0---(.)     
+**  (X)----0---(.)     
 */
 
 int
@@ -436,7 +436,7 @@ int
 limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
   char me[]="limn3DContourVolumeSet", err[AIR_STRLEN_MED];
   int minI, maxI, *spanHist, sx, sy, sz, ss, si, xi, yi, zi, vi;
-  double val, min, max, (*lup)(const void *v, size_t I);
+  double tmp, min, max, (*lup)(const void *v, size_t I);
   void *data;
 
   if (!( lctx && nvol )) {
@@ -470,7 +470,7 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
     airFree(lctx->vidx);
     airFree(lctx->val);
     lctx->vidx = (int *)calloc(5*lctx->sx*lctx->sy, sizeof(int));
-    lctx->val = (double *)calloc(2*lctx->sx*lctx->sy, sizeof(double));
+    lctx->val = (double *)calloc(4*(lctx->sx+2)*(lctx->sy+2), sizeof(double));
   }
   /* compute span space histogram */
   ss = lctx->spanSize;
@@ -487,43 +487,83 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
     for (yi=0; yi<sy-1; yi++) {
       for (xi=0; xi<sx-1; xi++) {
         vi = xi + sx*(yi + sy*zi);
-        val = lctx->lup(data, vi + 0 + 0*sx + 0*sx*sy);
-        min = max = val;
-        val = lctx->lup(data, vi + 1 + 0*sx + 0*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 0 + 1*sx + 0*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 1 + 1*sx + 0*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 0 + 0*sx + 1*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 1 + 0*sx + 1*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 0 + 1*sx + 1*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
-        val = lctx->lup(data, vi + 1 + 1*sx + 1*sx*sy);
-        min = AIR_MIN(min, val);
-        max = AIR_MAX(max, val);
+        tmp = lctx->lup(data, vi + 0 + 0*sx + 0*sx*sy);
+        min = max = tmp;
+        tmp = lctx->lup(data, vi + 1 + 0*sx + 0*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 0 + 1*sx + 0*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 1 + 1*sx + 0*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 0 + 0*sx + 1*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 1 + 0*sx + 1*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 0 + 1*sx + 1*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
+        tmp = lctx->lup(data, vi + 1 + 1*sx + 1*sx*sy);
+        min = AIR_MIN(min, tmp);
+        max = AIR_MAX(max, tmp);
         AIR_INDEX(lctx->range->min, min, lctx->range->max, ss, minI);
         AIR_INDEX(lctx->range->min, max, lctx->range->max, ss, maxI);
         spanHist[minI + ss*maxI]++;
       }
     }
   }
+
   return 0;
 }
+
+#define VAL(xx, yy, zz)  (val[4*( (xx) + (yy)*(sx+2) + spi) + (zz+1)])
+void
+_limn3DContourVoxelGrads(double vgrad[8][3], double *val,
+                         int sx, int spi) {
+  ELL_3V_SET(vgrad[0],
+             VAL( 1,  0,  0) - VAL(-1,  0,  0),
+             VAL( 0,  1,  0) - VAL( 0, -1,  0),
+             VAL( 0,  0,  1) - VAL( 0,  0, -1));
+  ELL_3V_SET(vgrad[1],
+             VAL( 2,  0,  0) - VAL( 0,  0,  0),
+             VAL( 1,  1,  0) - VAL( 1, -1,  0),
+             VAL( 1,  0,  1) - VAL( 1,  0, -1));
+  ELL_3V_SET(vgrad[2],
+             VAL( 1,  1,  0) - VAL(-1,  1,  0),
+             VAL( 0,  2,  0) - VAL( 0,  0,  0),
+             VAL( 0,  1,  1) - VAL( 0,  1, -1));
+  ELL_3V_SET(vgrad[3],
+             VAL( 2,  1,  0) - VAL( 0,  1,  0),
+             VAL( 1,  2,  0) - VAL( 1,  0,  0),
+             VAL( 1,  1,  1) - VAL( 1,  1, -1));
+  ELL_3V_SET(vgrad[4],
+             VAL( 1,  0,  1) - VAL(-1,  0,  1),
+             VAL( 0,  1,  1) - VAL( 0, -1,  1),
+             VAL( 0,  0,  2) - VAL( 0,  0,  0));
+  ELL_3V_SET(vgrad[5],
+             VAL( 2,  0,  1) - VAL( 0,  0,  1),
+             VAL( 1,  1,  1) - VAL( 1, -1,  1),
+             VAL( 1,  0,  2) - VAL( 1,  0,  0));
+  ELL_3V_SET(vgrad[6],
+             VAL( 1,  1,  1) - VAL(-1,  1,  1),
+             VAL( 0,  2,  1) - VAL( 0,  0,  1),
+             VAL( 0,  1,  2) - VAL( 0,  1,  0));
+  ELL_3V_SET(vgrad[7],
+             VAL( 2,  1,  1) - VAL( 0,  1,  1),
+             VAL( 1,  2,  1) - VAL( 1,  0,  1),
+             VAL( 1,  1,  2) - VAL( 1,  1,  0));
+}
+#undef VAL
 
 int
 limn3DContourExtract(limn3DContourContext *lctx,
                      limnObject *cont, double isovalue) {
   char me[]="limn3DContourExtract", err[AIR_STRLEN_MED];
-  int sx, sy, sz, xi, yi, zi, si, partIdx, vidx[12],
+  int sx, sy, sz, xi, yi, zi, zpi, si, spi, partIdx, vidx[12],
     minI, maxI, valI, ss, *spanHist,
     estVoxNum, estFaceNum, estVertNum;
   double (*lup)(const void *, size_t);
@@ -575,6 +615,17 @@ limn3DContourExtract(limn3DContourContext *lctx,
   lctx->faceNum = 0;
   lctx->time = airTime();
 
+  /* set up dual transform for normals */
+  if (lctx->findNormals) {
+    double matA[9], matB[9];
+    ELL_34M_EXTRACT(matA, lctx->transform);
+    ell_3m_inv_d(matB, matA);
+    ELL_3M_TRANSPOSE(lctx->normalTransform, matB);
+    if (!lctx->lowerInside) {
+      ELL_3M_SCALE(lctx->normalTransform, -1, lctx->normalTransform);
+    }
+  }
+
   /* copy local variables */
   sx = lctx->sx;
   sy = lctx->sy;
@@ -592,8 +643,8 @@ limn3DContourExtract(limn3DContourContext *lctx,
       estVoxNum += spanHist[minI + ss*maxI];
     }
   }
-  estFaceNum = estVoxNum*2.03;
-  estVertNum = estVoxNum*1.03;
+  estFaceNum = estVoxNum*2.15;
+  estVertNum = estVoxNum*1.15;
   
   /* start new part, and preset length of face and vert arrays */
   partIdx = limnObjectPartAdd(cont);
@@ -604,14 +655,27 @@ limn3DContourExtract(limn3DContourContext *lctx,
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
+      spi = (xi+1) + (sx+2)*(yi+1);
       lctx->vidx[0 + 5*si] = -1;
       lctx->vidx[1 + 5*si] = -1;
       lctx->vidx[2 + 5*si] = -1;
       lctx->vidx[3 + 5*si] = -1;
       lctx->vidx[4 + 5*si] = -1;
-      lctx->val[0 + 2*si] = AIR_NAN;
-      lctx->val[1 + 2*si] = lup(data, si + sx*sy*0) - isovalue;
+      lctx->val[0 + 4*spi] = AIR_NAN;
+      lctx->val[1 + 4*spi] = lup(data, si + sx*sy*0) - isovalue;
+      lctx->val[2 + 4*spi] = lctx->val[1 + 4*spi];
+      lctx->val[3 + 4*spi] = lup(data, si + sx*sy*1) - isovalue;
     }
+    ELL_4V_COPY(lctx->val + 4*(0    + (sx+2)*(yi+1)),
+                lctx->val + 4*(1    + (sx+2)*(yi+1)));
+    ELL_4V_COPY(lctx->val + 4*(sx+1 + (sx+2)*(yi+1)),
+                lctx->val + 4*(sx   + (sx+2)*(yi+1)));
+  }
+  for (xi=0; xi<sx+2; xi++) {
+    ELL_4V_COPY(lctx->val + 4*(xi + (sx+2)*0),
+                lctx->val + 4*(xi + (sx+2)*1));
+    ELL_4V_COPY(lctx->val + 4*(xi + (sx+2)*(sy+1)),
+                lctx->val + 4*(xi + (sx+2)*sy));
   }
 
   /* set up vidx */
@@ -631,36 +695,41 @@ limn3DContourExtract(limn3DContourContext *lctx,
 
   /* go through all slices */
   for (zi=0; zi<sz-1; zi++) {
+    zpi = AIR_MIN(sz-1, zi+2);
     /* shuffle up per-slice info */
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         si = xi + sx*yi;
+        spi = (xi+1) + (sx+2)*(yi+1);
         lctx->vidx[0 + 5*si] = lctx->vidx[3 + 5*si];
         lctx->vidx[1 + 5*si] = lctx->vidx[4 + 5*si];
         lctx->vidx[2 + 5*si] = -1;
         lctx->vidx[3 + 5*si] = -1;
         lctx->vidx[4 + 5*si] = -1;
-        lctx->val[0 + 2*si] = lctx->val[1 + 2*si];
-        lctx->val[1 + 2*si] = lup(data, si + sx*sy*(zi+1)) - isovalue;
+        lctx->val[0 + 4*spi] = lctx->val[1 + 4*spi];
+        lctx->val[1 + 4*spi] = lctx->val[2 + 4*spi];
+        lctx->val[2 + 4*spi] = lctx->val[3 + 4*spi];
+        lctx->val[3 + 4*spi] = lup(data, si + sx*sy*zpi) - isovalue;
       }
     }
     /* triangulate slice */
     for (yi=0; yi<sy-1; yi++) {
-      double vval[8], vert[3], tvertA[4], tvertB[4], ww;
+      double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
       unsigned char vcase;
       int ti, vi, ei, vi0, vi1, ecase, *tcase, vii[3];
       for (xi=0; xi<sx-1; xi++) {
         si = xi + sx*yi;
+        spi = (xi+1) + (sx+2)*(yi+1);
         /* learn voxel values */
-        /*                     X   Y            Z */
-        vval[0] = lctx->val[2*(0 + 0*sx + si) + 0];
-        vval[1] = lctx->val[2*(1 + 0*sx + si) + 0];
-        vval[2] = lctx->val[2*(0 + 1*sx + si) + 0];
-        vval[3] = lctx->val[2*(1 + 1*sx + si) + 0];
-        vval[4] = lctx->val[2*(0 + 0*sx + si) + 1];
-        vval[5] = lctx->val[2*(1 + 0*sx + si) + 1];
-        vval[6] = lctx->val[2*(0 + 1*sx + si) + 1];
-        vval[7] = lctx->val[2*(1 + 1*sx + si) + 1];
+        /*                     X   Y                 Z */
+        vval[0] = lctx->val[4*(0 + 0*(sx+2) + spi) + 1];
+        vval[1] = lctx->val[4*(1 + 0*(sx+2) + spi) + 1];
+        vval[2] = lctx->val[4*(0 + 1*(sx+2) + spi) + 1];
+        vval[3] = lctx->val[4*(1 + 1*(sx+2) + spi) + 1];
+        vval[4] = lctx->val[4*(0 + 0*(sx+2) + spi) + 2];
+        vval[5] = lctx->val[4*(1 + 0*(sx+2) + spi) + 2];
+        vval[6] = lctx->val[4*(0 + 1*(sx+2) + spi) + 2];
+        vval[7] = lctx->val[4*(1 + 1*(sx+2) + spi) + 2];
         /* determine voxel and edge case */
         vcase = 0;
         for (vi=0; vi<8; vi++) {
@@ -670,12 +739,19 @@ limn3DContourExtract(limn3DContourContext *lctx,
           /* no triangles added here */
           continue;
         }
+        /* set voxel corner gradients */
+        if (lctx->findNormals) {
+          _limn3DContourVoxelGrads(vgrad, lctx->val, sx, spi);
+        }
         lctx->voxNum++;
         ecase = _limn3DContourEdge[vcase];
         /* create new vertices as needed */
         for (ei=0; ei<12; ei++) {
           if ((ecase & (1 << ei))
               && -1 == lctx->vidx[vidx[ei] + 5*si]) {
+            int ovi;
+            limnVertex *vtx;
+            double tvec[3], grad[3], tlen;
             /* this edge is needed for triangulation,
                and, we haven't already created a vertex for it */
             vi0 = e2v[ei][0];
@@ -685,10 +761,16 @@ limn3DContourExtract(limn3DContourContext *lctx,
             ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
             ELL_4MV_MUL(tvertB, lctx->transform, tvertA);
             ELL_4V_HOMOG(tvertB, tvertB);
-            lctx->vidx[vidx[ei] + 5*si] = limnObjectVertexAdd(cont, partIdx,
-                                                              tvertB[0],
-                                                              tvertB[1],
-                                                              tvertB[2]);
+            ovi = lctx->vidx[vidx[ei] + 5*si] =
+              limnObjectVertexAdd(cont, partIdx,
+                                  tvertB[0], tvertB[1], tvertB[2]);
+            if (lctx->findNormals) {
+              ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
+              ELL_3MV_MUL(tvec, lctx->normalTransform, grad);
+              vtx = cont->vert + ovi;
+              ELL_3V_NORM(vtx->worldNormal, tvec, tlen);
+              vtx->worldNormal[3] = 0;
+            }
             lctx->vertNum++;
             /*
             fprintf(stderr, "%s: vert %d (edge %d) of (%d,%d,%d) "

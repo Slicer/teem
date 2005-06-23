@@ -285,6 +285,9 @@ typedef struct {
   
   limnPart **part; int partNum;  /* double indirection, see above */
   airArray *partArr;
+
+  limnPart **partPool; int partPoolNum;
+  airArray *partPoolArr;
   
   limnLook *look; int lookNum;
   airArray *lookArr;
@@ -299,16 +302,19 @@ typedef struct {
 typedef struct {
   /* ------- input ------- */
   const Nrrd *nvol;             /* the volume we're operating on */
-  int lowerInside;              /* lower values are logically inside
+  int lowerInside,              /* lower values are logically inside
                                    isosurfaces, not outside */
+    findNormals;                /* find normals for isosurface vertices with
+                                   forward and central differencing */
   double transform[16];         /* map vertices through this transform;
                                    defaults to identity.  This is apt to come
-                                   from gageShape->ItoW, but having  this as
+                                   from gageShape->ItoW, but having this as
                                    a separate field allows limn to avoid
                                    dependence on gage */
   /* ------ internal ----- */
   int reverse;                  /* reverse sense of inside/outside (based on
                                    lowerInside and determinant of transform) */
+  double normalTransform[9];    /* how to transform normals */
   double (*lup)(const void *, size_t);  /* for getting values out of nvol */
   int spanSize;                 /* resolution of span space along edge */
   Nrrd *nspanHist;              /* image of span space */
@@ -317,8 +323,9 @@ typedef struct {
   int *vidx;                    /* 5 * sx * sy array of vertex index
                                    offsets, to support re-using of vertices
                                    across voxels and slices */
-  double *val;                  /* 2 * sx * sy array as value cache (note
-                                   that Z has become fastest axis) */
+  double *val;                  /* 4 * (sx+2) * (sy+2) array as value cache,
+                                   with Z as fastest axis, and one sample
+                                   of padding on all sides */
   /* ------ output ----- */
   int voxNum, vertNum, faceNum; /* number of voxels contributing to latest
                                    isosurface, and number of vertices and
@@ -482,6 +489,11 @@ TEEM_API int limnCameraPathMake(limnCamera *cam, int numFrames,
 TEEM_API int limnObjectLookAdd(limnObject *obj);
 TEEM_API limnObject *limnObjectNew(int incr, int doEdges);
 TEEM_API limnObject *limnObjectNix(limnObject *obj);
+TEEM_API void limnObjectEmpty(limnObject *obj);
+TEEM_API int limnObjectPreSet(limnObject *obj,
+                              int partNum, int lookNum,
+                              int vertPerPart, int edgePerPart,
+                              int facePerPart);
 TEEM_API int limnObjectPartAdd(limnObject *obj);
 TEEM_API int limnObjectVertexNumPreSet(limnObject *obj, int partIdx, 
                                        int vertNum);
