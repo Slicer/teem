@@ -711,6 +711,16 @@ limn3DContourExtract(limn3DContourContext *lctx,
         lctx->val[2 + 4*spi] = lctx->val[3 + 4*spi];
         lctx->val[3 + 4*spi] = lup(data, si + sx*sy*zpi) - isovalue;
       }
+      ELL_4V_COPY(lctx->val + 4*(0    + (sx+2)*(yi+1)),
+                  lctx->val + 4*(1    + (sx+2)*(yi+1)));
+      ELL_4V_COPY(lctx->val + 4*(sx+1 + (sx+2)*(yi+1)),
+                  lctx->val + 4*(sx   + (sx+2)*(yi+1)));
+    }
+    for (xi=0; xi<sx+2; xi++) {
+      ELL_4V_COPY(lctx->val + 4*(xi + (sx+2)*0),
+                  lctx->val + 4*(xi + (sx+2)*1));
+      ELL_4V_COPY(lctx->val + 4*(xi + (sx+2)*(sy+1)),
+                  lctx->val + 4*(xi + (sx+2)*sy));
     }
     /* triangulate slice */
     for (yi=0; yi<sy-1; yi++) {
