@@ -142,22 +142,21 @@ airArrayLenPreSet(airArray *a, int newlen) {
   if (newlen == 0) {
     /* there is no pre-set length, turn off noReallocWhenSmaller */
     a->noReallocWhenSmaller = AIR_FALSE;
-    return 0;
-  }
-
-  newsize = (newlen-1)/a->incr + 1;
-  if (newsize > a->size) {
-    newdata = calloc(newsize*a->incr, a->unit);
-    if (!newdata) {
-      return 1;
+  } else {
+    newsize = (newlen-1)/a->incr + 1;
+    if (newsize > a->size) {
+      newdata = calloc(newsize*a->incr, a->unit);
+      if (!newdata) {
+        return 1;
+      }
+      memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
+                                       newsize*a->incr*a->unit));
+      free(a->data);
+      _airSetData(a, newdata);
+      a->size = newsize;
     }
-    memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
-                                     newsize*a->incr*a->unit));
-    free(a->data);
-    _airSetData(a, newdata);
-    a->size = newsize;
+    a->noReallocWhenSmaller = AIR_TRUE;
   }
-  a->noReallocWhenSmaller = AIR_TRUE;
 
   return 0;
 }
@@ -299,4 +298,3 @@ airArrayNix(airArray *a) {
   }
   return NULL;
 }
-
