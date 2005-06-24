@@ -40,7 +40,7 @@ int tenVerbose = 0;
 ** useBiff controls if biff is used to describe the problem
 */
 int
-tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff) {
+tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
   char me[]="tenTensorCheck", err[256];
   
   if (!nin) {
@@ -73,7 +73,7 @@ tenTensorCheck(Nrrd *nin, int wantType, int want4D, int useBiff) {
 }
 
 int
-tenExpand(Nrrd *nout, Nrrd *nin, double scale, double thresh) {
+tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   char me[]="tenExpand", err[AIR_STRLEN_MED];
   size_t N, I;
   int sx, sy, sz;
@@ -123,7 +123,7 @@ tenExpand(Nrrd *nout, Nrrd *nin, double scale, double thresh) {
 }
 
 int
-tenShrink(Nrrd *tseven, Nrrd *nconf, Nrrd *tnine) {
+tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   char me[]="tenShrink", err[AIR_STRLEN_MED];
   int sx, sy, sz;
   float *seven, *conf, *nine;
@@ -352,7 +352,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
 ** eigenvectors
 */
 int
-tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
+tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   char me[]="tenTensorMake", err[AIR_STRLEN_MED];
   int sx, sy, sz;
   size_t I, N;
@@ -439,7 +439,7 @@ tenMake(Nrrd *nout, Nrrd *nconf, Nrrd *neval, Nrrd *nevec) {
 }
 
 int
-tenSlice(Nrrd *nout, Nrrd *nten, int axis, int pos, int dim) {
+tenSlice(Nrrd *nout, const Nrrd *nten, int axis, int pos, int dim) {
   Nrrd *nslice, *ncoeff[4];
   int ci[4];
   char me[]="tenSlice", err[AIR_STRLEN_MED];

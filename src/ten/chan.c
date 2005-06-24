@@ -22,6 +22,201 @@
 #include "privateTen.h"
 
 /*
+******** tenDWMRIKeyValueParse
+**
+** Parses through key-value pairs in the NRRD header to determine the
+** list of diffusion-sensitizing gradient directions, or B-matrices
+** (depending to what was found), according the NAMIC conventions.
+** This requires, among other things, that ndwi be have exactly one axis
+** with kind nrrdKindList, which is taken to be the DWI axis.
+**
+** Either *ngradP or *nbmatP is set to a newly- allocated nrrd
+** containing this information, and the other one is set to NULL
+** Also, the (scalar) b-value is stored in *bP
+*/
+int
+tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
+                      double *bP, const Nrrd *ndwi) {
+  char me[]="tenDWMRIKeyValueParse", err[AIR_STRLEN_MED],
+    modalityKey[] = "modality",
+    modalityVal[] = "DWMRI",
+    bvalueKey[] = "DWMRI_b-value",
+    gradKeyFmt[] = "DWMRI_gradient_%04d", tmpKey[AIR_STRLEN_MED],
+    bmatKeyFmt[] = "DWMRI_B-matrix_%04d",
+    nexKeyFmt[] = "DWMRI_NEX_%04d",
+    *keyFmt, key[AIR_STRLEN_MED], *val;
+  int axi, dwiAxis, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
+    nexNum, nexIdx;
+  Nrrd *ninfo;
+  double *info, normMax, norm;
+
+  if (!( ngradP && nbmatP && bP && ndwi )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+
+  /* check modality */
+  val = nrrdKeyValueGet(ndwi, modalityKey);
+  if (!val) {
+    sprintf(err, "%s: didn't have \"%s\" key", me, modalityKey);
+    biffAdd(TEN, err); return 1;
+  }
+  if (strcmp(val, modalityVal)) {
+    sprintf(err, "%s: \"%s\" value was \"%s\", not \"%s\"", me,
+            modalityKey, val, modalityVal);
+    biffAdd(TEN, err); return 1;
+  }
+  val = airFree(val);
+  
+  /* learn b-value */
+  val = nrrdKeyValueGet(ndwi, bvalueKey);
+  if (!val) {
+    sprintf(err, "%s: didn't have \"%s\" key", me, bvalueKey);
+    biffAdd(TEN, err); return 1;
+  }
+  if (1 != sscanf(val, "%lg", bP)) {
+    sprintf(err, "%s: couldn't parse float from value \"%s\" "
+            "for key \"%s\"", me,
+            val, bvalueKey);
+    biffAdd(TEN, err); return 1;
+  }
+  val = airFree(val);
+
+  /* find single DWI axis, set dwiNum to its size */
+  dwiAxis = -1;
+  for (axi=0; axi<ndwi->dim; axi++) {
+    if (nrrdKindList == ndwi->axis[axi].kind) {
+      if (-1 != dwiAxis) {
+        sprintf(err, "%s: already saw %s kind on axis %d", me, 
+                airEnumStr(nrrdKind, nrrdKindList), dwiAxis);
+        biffAdd(TEN, err); return 1;
+      }
+      dwiAxis = axi;
+    }
+  }
+  if (-1 == dwiAxis) {
+    sprintf(err, "%s: did not see \"%s\" kind on any axis", me,
+            airEnumStr(nrrdKind, nrrdKindList));
+    biffAdd(TEN, err); return 1;
+  }
+  dwiNum = ndwi->axis[dwiAxis].size;
+
+  /* figure out if we're parsing gradients or b-matrices */
+  sprintf(tmpKey, gradKeyFmt, 0);
+  val = nrrdKeyValueGet(ndwi, tmpKey);
+  if (val) {
+    valNum = 3;
+  } else {
+    valNum = 6;
+    sprintf(key, bmatKeyFmt, 0);
+    val = nrrdKeyValueGet(ndwi, key);
+    if (!val) {
+      sprintf(err, "%s: saw neither \"%s\" nor \"%s\" key", me,
+              tmpKey, key);
+      biffAdd(TEN, err); return 1;
+    }
+  }
+  val = airFree(val);
+
+  /* set up parsing and allocate one of output nrrds */
+  if (3 == valNum) {
+    keyFmt = gradKeyFmt;
+    ninfo = *ngradP = nrrdNew();
+    *nbmatP = NULL;
+  } else {
+    keyFmt = bmatKeyFmt;
+    *ngradP = NULL;
+    ninfo = *nbmatP = nrrdNew();
+  }
+  if (nrrdAlloc(ninfo, nrrdTypeDouble, 2, valNum, dwiNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  info = (double *)(ninfo->data);
+
+  /* parse values in ninfo */
+  for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
+    sprintf(key, keyFmt, dwiIdx);
+    val = nrrdKeyValueGet(ndwi, key);
+    if (!val) {
+      sprintf(err, "%s: didn't see \"%s\" key", me, key);
+      biffAdd(TEN, err); return 1;
+    }
+    parsedNum = airParseStrD(info, val, " ", valNum);
+    if (valNum != parsedNum) {
+      sprintf(err, "%s: couldn't parse %d floats in value \"%s\" "
+              "for key \"%s\" (only got %d)",
+              me, valNum, val, key, parsedNum);
+      biffAdd(TEN, err); return 1;
+    }
+    val = airFree(val);
+    sprintf(key, nexKeyFmt, dwiIdx);
+    val = nrrdKeyValueGet(ndwi, key);
+    if (!val) {
+      /* there is no NEX indicated */
+      nexNum = 1;
+    } else {
+      if (1 != sscanf(val, "%d", &nexNum)) {
+        sprintf(err, "%s: couldn't parse integer in value \"%s\" "
+                "for key \"%s\"", me, val, key);
+        biffAdd(TEN, err); return 1;
+      }
+      val = airFree(val);
+      if (!( nexNum >= 1 )) {
+        sprintf(err, "%s: NEX (%d) for DWI %d not >= 1", me, nexNum, dwiIdx);
+        biffAdd(TEN, err); return 1;
+      }
+      if (!( dwiIdx + nexNum < dwiNum )) {
+        sprintf(err, "%s: NEX %d for DWI %d implies %d DWI > real # DWI %d",
+                me, nexNum, dwiIdx, dwiIdx + nexNum + 1, dwiNum);
+        biffAdd(TEN, err); return 1;
+      }
+      for (nexIdx=1; nexIdx<nexNum; nexIdx++) {
+        sprintf(key, keyFmt, dwiIdx+nexIdx);
+        val = nrrdKeyValueGet(ndwi, key);
+        if (val) {
+          val = airFree(val);
+          sprintf(err, "%s: shouldn't have key \"%s\" with NEX %d for DWI %d",
+                  me, key, nexNum, dwiIdx);
+          biffAdd(TEN, err); return 1;
+        }
+        for (valIdx=0; valIdx<valNum; valIdx++) {
+          info[valIdx + valNum*nexIdx] = info[valIdx];
+        }
+      }
+      dwiIdx += nexNum-1;
+    }
+    info += valNum*nexNum;
+  }
+
+  /* normalize so that maximal norm is 1.0 */
+  normMax = 0;
+  info = (double *)(ninfo->data);
+  for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
+    if (3 == valNum) {
+      norm = ELL_3V_LEN(info);
+    } else {
+      norm = sqrt(info[0]*info[0] + 2*info[1]*info[1] + 2*info[2]*info[2]
+                                  +   info[3]*info[3] + 2*info[4]*info[4]
+                                                      +   info[5]*info[5]);
+    }
+    normMax = AIR_MAX(normMax, norm);
+    info += valNum;
+  }
+  info = (double *)(ninfo->data);
+  for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
+    if (3 == valNum) {
+      ELL_3V_SCALE(info, 1.0/normMax, info);
+    } else {
+      ELL_6V_SCALE(info, 1.0/normMax, info);
+    }
+    info += valNum;
+  }
+  
+  return 0;
+}
+
+/*
 ******** tenBMatrixCalc
 **
 ** given a list of gradient directions (arbitrary type), contructs the
@@ -37,7 +232,7 @@
 ** NOTE 2: The off-diagonal elements are NOT pre-multiplied by two.
 */
 int
-tenBMatrixCalc(Nrrd *nbmat, Nrrd *_ngrad) {
+tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   char me[]="tenBMatrixCalc", err[AIR_STRLEN_MED];
   Nrrd *ngrad;
   double *bmat, *G;
@@ -77,7 +272,7 @@ tenBMatrixCalc(Nrrd *nbmat, Nrrd *_ngrad) {
 **
 */
 int
-tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
+tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
   char me[]="tenEMatrixCalc", err[AIR_STRLEN_MED];
   Nrrd *nbmat, *ntmp;
   airArray *mop;
@@ -136,15 +331,18 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 ** !! requires being passed a pre-allocated double array "vbuf" which is
 ** !! used for intermediate calculations (details below)
 **
+** DD is always the length of the dwi[] array
+**
 ** -------------- IF knownB0 -------------------------
 ** input:
 ** dwi[0] is the B0 image, dwi[1]..dwi[DD-1] are the (DD-1) DWI values,
 ** emat is the (DD-1)-by-6 estimation matrix, which is the pseudo-inverse
 ** of the B-matrix (after the off-diagonals have been multiplied by 2).
-** vbuf[] is allocated for DD-1 doubles
+** vbuf[] is allocated for (at least) DD-1 doubles (D is fine)
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
+** if B0P, then *B0P is set to the B0 value used in calcs: max(b0,1)
 ** -------------- IF !knownB0 -------------------------
 ** input:
 ** dwi[0]..dwi[DD-1] are the DD DWI values, emat is the DD-by-7 estimation
@@ -157,7 +355,8 @@ tenEMatrixCalc(Nrrd *nemat, Nrrd *_nbmat, int knownB0) {
 ** ----------------------------------------------------
 */
 void
-tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
+tenEstimateLinearSingle_f(float *ten, float *B0P,               /* output */
+                          const float *dwi, const double *emat, /* input ... */
                           double *vbuf, int DD, int knownB0,
                           float thresh, float soft, float b) {
   double logB0, tmp, mean;
@@ -175,13 +374,17 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
       tmp = AIR_MAX(dwi[ii], 1);
       mean += tmp;
       vbuf[ii-1] = (logB0 - log(tmp))/b;
-      if (tenVerbose) {
+      /* if (tenVerbose) {
         fprintf(stderr, "vbuf[%d] = %f\n", ii-1, vbuf[ii-1]);
-      }
+      } */
     }
     mean /= DD-1;
-    ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
-                        0, 1);
+    if (soft) {
+      ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
+                          0, 1);
+    } else {
+      ten[0] = mean > thresh;
+    }
     for (jj=0; jj<6; jj++) {
       tmp = 0;
       for (ii=0; ii<DD-1; ii++) {
@@ -198,9 +401,13 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
       vbuf[ii] = -log(tmp)/b;
     }
     mean /= DD;
-    ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
-                        0, 1);
-    for (jj=0; jj<=6; jj++) {
+    if (soft) {
+      ten[0] = AIR_AFFINE(-1, airErf((mean - thresh)/(soft + 0.000001)), 1,
+                          0, 1);
+    } else {
+      ten[0] = mean > thresh;
+    }
+    for (jj=0; jj<7; jj++) {
       tmp = 0;
       for (ii=0; ii<DD; ii++) {
         tmp += emat[ii + DD*jj]*vbuf[ii];
@@ -228,8 +435,8 @@ tenEstimateLinearSingle_f(float *ten, float *B0P, float *dwi, double *emat,
 */
 int
 tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-                    Nrrd **_ndwi, int dwiLen, 
-                    Nrrd *_nbmat, int knownB0, 
+                    const Nrrd *const *_ndwi, int dwiLen, 
+                    const Nrrd *_nbmat, int knownB0, 
                     double thresh, double soft, double b) {
   char me[]="tenEstimateLinear3D", err[AIR_STRLEN_MED];
   Nrrd *ndwi;
@@ -275,7 +482,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 */
 int
 tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-                    Nrrd *ndwi, Nrrd *_nbmat, int knownB0,
+                    const Nrrd *ndwi, const Nrrd *_nbmat, int knownB0,
                     double thresh, double soft, double b) {
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
@@ -403,9 +610,9 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
     for (d=0; d<DD; d++) {
       dwi1[d] = lup(ndwi->data, d + DD*II);
-      if (tenVerbose) {
+      /* if (tenVerbose) {
         fprintf(stderr, "%s: input dwi1[%d] = %g\n", me, d, dwi1[d]);
-      }
+      } */
     }
     tenEstimateLinearSingle_f(ten, &_B0, dwi1, emat, 
                               vbuf, DD, knownB0, 
@@ -413,10 +620,10 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (nB0P) {
       *B0 = _B0;
     }
-    if (tenVerbose) {
+    /* if (tenVerbose) {
       fprintf(stderr, "%s: output ten = (%g) %g,%g,%g  %g,%g  %g\n", me,
               ten[0], ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
-    }
+    } */ 
     if (nterrP) {
       te = 0;
       if (knownB0) {
@@ -433,7 +640,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
           d1 = AIR_MAX(dwi1[d], 1);
           /* tenSimulateOne_f always puts the B0 in the beginning of
              the dwi vector, but in this case we didn't have it in
-             the input dwi vecctor */
+             the input dwi vector */
           d2 = AIR_MAX(dwi2[d+1], 1);
           te += (d1 - d2)*(d1 - d2);
         }
@@ -478,33 +685,35 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 */
 void
 tenSimulateOne_f(float *dwi,
-                 float B0, float *ten, double *bmat, int DD, float b) {
+                 float B0, const float *ten, const double *bmat,
+                 int DD, float b) {
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
   int ii, jj;
   
   dwi[0] = B0;
-  if (tenVerbose) {
+  /* if (tenVerbose) {
     fprintf(stderr, "ten = %g,%g,%g  %g,%g  %g\n", 
             ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
-  }
+  } */
   for (ii=0; ii<DD-1; ii++) {
     vv = 0;
     for (jj=0; jj<6; jj++) {
       vv += matwght[jj]*bmat[jj + 6*ii]*ten[jj+1];
     }
     dwi[ii+1] = AIR_MAX(B0, 1)*exp(-b*vv);
-    if (tenVerbose) {
+    /* if (tenVerbose) {
       fprintf(stderr, "v[%d] = %g --> dwi = %g\n", ii, vv, dwi[ii+1]);
-    }
+    } */
   }
   
   return;
 }
 
 int
-tenSimulate(Nrrd *ndwi, Nrrd *nT2, Nrrd *nten, Nrrd *_nbmat, double b) {
+tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
+            const Nrrd *_nbmat, double b) {
   char me[]="tenSimulate", err[AIR_STRLEN_MED];
   size_t II;
   Nrrd *nbmat;

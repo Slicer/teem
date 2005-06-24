@@ -67,7 +67,8 @@ tenGlyphParmNix(tenGlyphParm *parm) {
 }
 
 int
-tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
+tenGlyphParmCheck(tenGlyphParm *parm,
+                  const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
   char me[]="tenGlyphParmCheck", err[AIR_STRLEN_MED];
   int duh, tenSize[3];
 
@@ -166,15 +167,17 @@ tenGlyphParmCheck(tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
 
 int
 tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
-            tenGlyphParm *parm, Nrrd *nten, Nrrd *npos, Nrrd *nslc) {
+            tenGlyphParm *parm,
+            const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
   char me[]="tenGlyphGen", err[AIR_STRLEN_MED];
   gageShape *shape;
   airArray *mop;
   double pI[3], pW[3];
   float cl, cp, *tdata, evec[9], rotEvec[9], eval[3], *cvec,
-    aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], mB[16],
+    aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], msFr[9], tmpvec[3], mB[16],
     R, G, B, qA, qB, glyphAniso, sliceGray;
-  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs, duh;
+  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs, duh,
+    svRGBAfl=AIR_FALSE;
   limnLook *look; int lookIdx;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
@@ -248,6 +251,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   }
   if (glyphsLimn) {
     /* create limnLooks for diffuse and ambient-only shading */
+    /* ??? */
+    /* hack: save old value of setVertexRGBAFromLook, and set to true */
+    svRGBAfl = glyphsLimn->setVertexRGBAFromLook;
+    glyphsLimn->setVertexRGBAFromLook = AIR_TRUE;
   }
   if (glyphsEcho) {
     list = echoObjectNew(glyphsEcho, echoTypeList);
@@ -256,6 +263,26 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     numGlyphs = nten->axis[1].size;
   } else {
     numGlyphs = shape->size[0] * shape->size[1] * shape->size[2];
+  }
+  /* find measurement frame transform */
+  if (3 == nten->spaceDim 
+      && AIR_EXISTS(nten->measurementFrame[0][0])) {
+    /*     msFr        nten->measurementFrame
+    **   0  1  2      [0][0]   [1][0]   [2][0]
+    **   3  4  5      [0][1]   [1][1]   [2][1]
+    **   6  7  8      [0][2]   [1][2]   [2][2]
+    */
+    msFr[0] = nten->measurementFrame[0][0];
+    msFr[3] = nten->measurementFrame[0][1];
+    msFr[6] = nten->measurementFrame[0][2];
+    msFr[1] = nten->measurementFrame[1][0];
+    msFr[4] = nten->measurementFrame[1][1];
+    msFr[7] = nten->measurementFrame[1][2];
+    msFr[2] = nten->measurementFrame[2][0];
+    msFr[5] = nten->measurementFrame[2][1];
+    msFr[8] = nten->measurementFrame[2][2];
+  } else {
+    ELL_3M_IDENTITY_SET(msFr);
   }
   for (idx=0; idx<numGlyphs; idx++, _idx = idx) {
     tdata = (float*)(nten->data) + 7*idx;
@@ -277,12 +304,13 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       ELL_3V_COPY(pW, (float*)(npos->data) + 3*idx);
       if (!( AIR_EXISTS(pW[0]) && AIR_EXISTS(pW[1]) && AIR_EXISTS(pW[2]) )) {
         /* position doesn't exist- perhaps because its from the push
-           library, which kills points by setting their coords to nan */
+           library, which might kill points by setting coords to nan */
         continue;
       }
     } else {
       NRRD_COORD_GEN(pI, shape->size, 3, _idx);
-      gageShapeUnitItoW(shape, pW, pI);
+      /* this does take into account full orientation */
+      gageShapeItoW(shape, pW, pI);
       if (parm->nmask) {
         if (!( nrrdFLookup[parm->nmask->type](parm->nmask->data, idx)
                >= parm->maskThresh )) {
@@ -295,6 +323,14 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       }
     }
     tenEigensolve_f(eval, evec, tdata);
+    /* transform eigenvectors by measurement frame */
+    ELL_3MV_MUL(tmpvec, msFr, evec + 0); ELL_3V_COPY(evec + 0, tmpvec);
+    ELL_3MV_MUL(tmpvec, msFr, evec + 3); ELL_3V_COPY(evec + 3, tmpvec);
+    ELL_3MV_MUL(tmpvec, msFr, evec + 6); ELL_3V_COPY(evec + 6, tmpvec);
+    ELL_3V_CROSS(tmpvec, evec + 0, evec + 3);
+    if (0 > ELL_3V_DOT(tmpvec, evec + 6)) {
+      ELL_3V_SCALE(evec + 6, -1, evec + 6);
+    }
     ELL_3M_TRANSPOSE(rotEvec, evec);
     tenAnisoCalc_f(aniso, eval);
     if (parm->doSlice
@@ -330,6 +366,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         sliceGray = 1.0 - pow(sliceGray, -1.0/parm->sliceGamma);
       }
       /* make slice contribution */
+      /* HEY: this is *NOT* aware of shape->fromOrientation */
       if (glyphsLimn) {
         lookIdx = limnObjectLookAdd(glyphsLimn);
         look = glyphsLimn->look + lookIdx;
@@ -414,7 +451,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     ell_4m_post_mul_f(mA, mB);
     ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);  /* translate */
     ell_4m_post_mul_f(mA, mB);
-    
+
     /* set color (in R,G,B) */
     cvec = evec + 3*(AIR_CLAMP(0, parm->colEvec, 2));
     R = AIR_ABS(cvec[0]);                           /* standard mapping */
@@ -513,6 +550,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       echoInstanceSet(inst, eM, eglyph);
       echoListAdd(list, inst);
     }
+  }
+  if (glyphsLimn) {
+    glyphsLimn->setVertexRGBAFromLook = svRGBAfl;
   }
   if (glyphsEcho) {
     split = echoListSplit3(glyphsEcho, list, 10);

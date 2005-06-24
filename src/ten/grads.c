@@ -52,7 +52,7 @@ tenGradientParmNix(tenGradientParm *tgparm) {
 
 
 int
-tenGradientCheck(Nrrd *ngrad, int type, int minnum) {
+tenGradientCheck(const Nrrd *ngrad, int type, int minnum) {
   char me[]="tenGradientCheck", err[AIR_STRLEN_MED];
   
   if (nrrdCheck(ngrad)) {
@@ -117,7 +117,7 @@ tenGradientRandom(Nrrd *ngrad, int num, int srand) {
 ** direction, and then renormalizes
 */
 int
-tenGradientJitter(Nrrd *nout, Nrrd *nin, double dist) {
+tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
   char me[]="tenGradientJitter", err[AIR_STRLEN_MED];
   double *grad, perp0[3], perp1[3], len, theta, cc, ss;
   int gi;
@@ -262,7 +262,8 @@ _tenGradientParty(double *grad, int num) {
 }
 
 int
-tenGradientMeanMinimize(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
+tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
+                        tenGradientParm *tgparm) {
   char me[]="tenGradientMeanMinimize", err[AIR_STRLEN_MED];
   int num;
   double *grad, len, lastLen, improv;
@@ -301,7 +302,8 @@ tenGradientMeanMinimize(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
 ** selects a combination of directions with minimum vector sum.
 */
 int
-tenGradientDistribute(Nrrd *nout, Nrrd *nin, tenGradientParm *tgparm) {
+tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
+                      tenGradientParm *tgparm) {
   char me[]="tenGradientDistribute", err[AIR_STRLEN_MED], *serr,
     filename[AIR_STRLEN_SMALL];
   int gi, iter;

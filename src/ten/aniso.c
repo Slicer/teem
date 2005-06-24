@@ -168,7 +168,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
 }
 
 int
-tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
+tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   char me[]="tenAnisoVolume", err[AIR_STRLEN_MED];
   size_t N, I, copyI;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
@@ -182,7 +182,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
     sprintf(err, "%s: invalid aniso (%d)", me, aniso);
     biffAdd(TEN, err); return 1;
   }
-  thresh = AIR_CLAMP(0.0, thresh, 1.0);
+  confThresh = AIR_CLAMP(0.0, confThresh, 1.0);
 
   size[0] = sx = nin->axis[1].size;
   size[1] = sy = nin->axis[2].size;
@@ -197,7 +197,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
   for (I=0; I<=N-1; I++) {
     /* tenVerbose = (I == 911327); */
     tensor = in + I*7;
-    if (tensor[0] < thresh) {
+    if (tensor[0] < confThresh) {
       out[I] = 0.0;
       continue;
     }
@@ -229,7 +229,7 @@ tenAnisoVolume(Nrrd *nout, Nrrd *nin, int aniso, double thresh) {
 }
 
 int
-tenAnisoHistogram(Nrrd *nout, Nrrd *nin, int version, int res) {
+tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version, int res) {
   char me[]="tenAnisoHistogram", err[AIR_STRLEN_MED];
   size_t N, I;
   int csIdx, clIdx, cpIdx, xi, yi;

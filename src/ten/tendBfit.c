@@ -21,10 +21,6 @@
 #include "ten.h"
 #include "privateTen.h"
 
-int
-tenBVecNonLinearFit(Nrrd *nout, Nrrd *nin, 
-                    double *bb, double *ww, int iterMax, double eps);
-
 #define INFO "Non-linear least-squares fitting of b-value curves"
 char *_tend_bfitInfoL =
   (INFO

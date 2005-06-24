@@ -23,7 +23,7 @@
 #include "privateTen.h"
 
 int
-tenEvecRGB(Nrrd *nout, Nrrd *nin, int which, int aniso,
+tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
            double cthresh, double gamma,
            double bgGray, double isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
@@ -133,7 +133,8 @@ tenEvqOne(float vec[3], float scl) {
 }
 
 int
-tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
+tenEvqVolume(Nrrd *nout,
+             const Nrrd *nin, int which, int aniso, int scaleByAniso) {
   char me[]="tenEvqVolume", err[AIR_STRLEN_MED];
   int sx, sy, sz, map[3];
   short *qdata;
@@ -195,7 +196,7 @@ tenEvqVolume(Nrrd *nout, Nrrd *nin, int which, int aniso, int scaleByAniso) {
 }
 
 int
-tenBMatrixCheck(Nrrd *nbmat) {
+tenBMatrixCheck(const Nrrd *nbmat) {
   char me[]="tenBMatrixCheck", err[AIR_STRLEN_MED];
 
   if (nrrdCheck(nbmat)) {
@@ -203,7 +204,7 @@ tenBMatrixCheck(Nrrd *nbmat) {
     biffMove(TEN, err, NRRD); return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
-    sprintf(err, "%s: need a 6xN 2-D array (not a %dxN %d-D array)",
+    sprintf(err, "%s: need a 6xN 2-D array (not a %dx? %d-D array)",
             me, nbmat->axis[0].size, nbmat->dim);
     biffAdd(TEN, err); return 1;
   }
@@ -227,7 +228,7 @@ tenBMatrixCheck(Nrrd *nbmat) {
 ** narrower then stdev for brain
 */
 int
-_tenFindValley(double *valP, Nrrd *nhist, double tweak, int save) {
+_tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   char me[]="_tenFindValley", err[AIR_STRLEN_MED];
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;

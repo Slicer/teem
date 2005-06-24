@@ -40,10 +40,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd **nin, *nin4d, *nbmat, *ngrad, *nterr=NULL, *nB0=NULL, *nout;
-  char *outS, *terrS, *bmatS, *eb0S, key[AIR_STRLEN_MED], *val;
-  float *grad, thresh, soft, b, scale;
-  int wi, dwiax, want, ninLen, eret, knownB0, axmap[4];
+  Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
+  char *outS, *terrS, *bmatS, *eb0S;
+  float thresh, soft, b, scale;
+  int dwiax, ninLen, eret, knownB0, axmap[4];
 
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the tensor "
@@ -78,12 +78,12 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "the B-matrix are ordered. "
              "An unadorned plain text file is a great way to "
              "specify the B-matrix.\n  **OR**\n "
-             "Can say just \"kvp\" to try to learn B matrices from key/value "
-             "pair information in input images.");
+             "Can say just \"-B kvp\" to try to learn B matrices from "
+             "key/value pair information in input images.");
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
              "additional b scaling factor ");
   hestOptAdd(&hopt, "knownB0", "bool",
-             airTypeBool, 1, 1, &knownB0, NULL,
+             airTypeBool, 1, 1, &knownB0, "false",
              "Determines of the B=0 non-diffusion-weighted reference image "
              "is known, or if it has to be estimated along with the tensor "
              "elements.\n "
@@ -123,60 +123,45 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     nin4d = nin[0];
   } else {
     /* it IS coming from key/value pairs */
-    if (!knownB0) {
-      fprintf(stderr, "%s: sorry, B0 image is currently required for "
-              "key/value pair based calculation of B-matrix\n", me);
-      airMopError(mop); return 1;
-    }
+    Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
+    double bKVP;
     if (1 != ninLen) {
       fprintf(stderr, "%s: sorry, require single 4-D DWI volume for "
               "key/value pair based calculation of B-matrix\n", me);
       airMopError(mop); return 1;
     }
+    if (knownB0) {
+      fprintf(stderr, "%s: sorry, key/value-based DWI info currently "
+              "disallows knownB0\n", me);
+      airMopError(mop); return 1;
+    }
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP, nin[0])) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    b = bKVP;
+    if (ngradKVP) {
+      if (tenBMatrixCalc(nbmat, ngradKVP)) {
+        airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble finding B-matrix:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+    } else {
+      if (nrrdConvert(nbmat, nbmatKVP, nrrdTypeDouble)) {
+        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble converting B-matrix:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+    }
+    /* this will work because of the impositions of tenDWMRIKeyValueParse */
     dwiax = (nrrdKindList == nin[0]->axis[0].kind
              ? 0
              : (nrrdKindList == nin[0]->axis[1].kind
                 ? 1
                 : (nrrdKindList == nin[0]->axis[2].kind
                    ? 2
-                   : (nrrdKindList == nin[0]->axis[3].kind
-                      ? 3
-                      : -1))));
-    if (-1 == dwiax) {
-      fprintf(stderr, "%s: sorry require one axis of kind \"%s\" for "
-              "key/value pair based calculation of B-matrix\n", me,
-              airEnumStr(nrrdKind, nrrdKindList));
-      airMopError(mop); return 1;
-    }
-    want = nin[0]->axis[dwiax].size-1;
-    ngrad = nrrdNew();
-    airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdAlloc(ngrad, nrrdTypeFloat, 2, 3, want)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble allocating ngrad:\n%s\n", me, err);
-      airMopError(mop); return 1;
-    }
-    grad = (float*)(ngrad->data);
-    for (wi=1; wi<=want; wi++) {
-      sprintf(key, "DW_gradient_%03d", wi);
-      val = nrrdKeyValueGet(nin[0], key);
-      if (!val) {
-        fprintf(stderr, "%s: didn't see value for key \"%s\"\n", me, key);
-        airMopError(mop); return 1;
-      }
-      airMopAdd(mop, val, airFree, airMopAlways);
-      if (3 != sscanf(val, "%g %g %g", grad + 0, grad + 1, grad + 2)) {
-        fprintf(stderr, "%s: couldn't parse 3 floats in val \"%s\"\n",
-                me, val);
-        airMopError(mop); return 1;
-      }
-      grad += 3;
-    }
-    if (tenBMatrixCalc(nbmat, ngrad)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble finding B-matrix:\n%s\n", me, err);
-      airMopError(mop); return 1;
-    }
+                   : 3)));
     if (0 == dwiax) {
       nin4d = nin[0];
     } else {
@@ -188,18 +173,21 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopAdd(mop, nin4d, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdAxesPermute(nin4d, nin[0], axmap)) {
         airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble doing scaling:\n%s\n", me, err);
+        fprintf(stderr, "%s: trouble creating DWI volume:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
     }
   }
 
+  nterr = NULL;
+  nB0 = NULL;
   if (1 == ninLen) {
     eret = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
                                nin4d, nbmat, knownB0, thresh, soft, b);
   } else {
     eret = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               nin, ninLen, nbmat, knownB0, thresh, soft, b);
+                               (const Nrrd**)nin, ninLen, nbmat,
+                               knownB0, thresh, soft, b);
   }
   if (1 != scale) {
     if (tenSizeScale(nout, nout, scale)) {

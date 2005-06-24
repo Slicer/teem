@@ -55,7 +55,7 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 }
 
 int
-_tenEMBimodalInit(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
+_tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   char me[]="_tenEMBimodalInit", err[AIR_STRLEN_MED];
   int i, median;
   Nrrd *nhisto;
@@ -418,7 +418,7 @@ _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
 }
 
 int
-tenEMBimodal(tenEMBimodalParm *biparm, Nrrd *_nhisto) {
+tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   char me[]="tenEMBimodal", err[AIR_STRLEN_MED];
   int done, _iter;
   

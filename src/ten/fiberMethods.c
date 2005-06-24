@@ -55,7 +55,7 @@ _tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
 */
 
 tenFiberContext *
-tenFiberContextNew(Nrrd *dtvol) {
+tenFiberContextNew(const Nrrd *dtvol) {
   char me[]="tenFiberContextNew", err[AIR_STRLEN_MED];
   tenFiberContext *tfx;
 

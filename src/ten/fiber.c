@@ -27,7 +27,7 @@ int
 _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
   double iPos[3];
   
-  gageShapeUnitWtoI(tfx->gtx->shape, iPos, wPos);
+  gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
   return gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
 }
 
@@ -296,7 +296,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   if (tfx->useIndexSpace) {
     ret = gageProbe(tfx->gtx, seed[0], seed[0], seed[0]);
   } else {
-    gageShapeUnitWtoI(tfx->gtx->shape, tmp, seed);
+    gageShapeWtoI(tfx->gtx->shape, tmp, seed);
     ret = gageProbe(tfx->gtx, tmp[0], tmp[1], tmp[2]);
   }
   if (ret) {
@@ -342,9 +342,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     tfx->halfLen[tfx->dir] = 0;
     if (tfx->useIndexSpace) {
       ELL_3V_COPY(iPos, seed);
-      gageShapeUnitItoW(tfx->gtx->shape, tfx->wPos, iPos);
+      gageShapeItoW(tfx->gtx->shape, tfx->wPos, iPos);
     } else {
-      gageShapeUnitWtoI(tfx->gtx->shape, iPos, seed);
+      gageShapeWtoI(tfx->gtx->shape, iPos, seed);
       ELL_3V_COPY(tfx->wPos, seed);
     }
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
@@ -368,7 +368,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         break;
       }
       if (tfx->useIndexSpace) {
-        gageShapeUnitWtoI(tfx->gtx->shape, iPos, tfx->wPos);
+        gageShapeWtoI(tfx->gtx->shape, iPos, tfx->wPos);
         ELL_3V_COPY(currPoint, iPos);
       } else {
         ELL_3V_COPY(currPoint, tfx->wPos);

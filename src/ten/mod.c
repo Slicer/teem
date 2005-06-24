@@ -23,7 +23,7 @@
 #include "privateTen.h"
 
 int
-tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
+tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
                  double amount, double target) {
   char me[]="tenSizeNormalize", err[AIR_STRLEN_MED];
   float *tin, *tout, eval[3], evec[9], size, weight[3];
@@ -83,7 +83,7 @@ tenSizeNormalize(Nrrd *nout, Nrrd *nin, double _weight[3],
 }
 
 int
-tenSizeScale(Nrrd *nout, Nrrd *nin, double amount) {
+tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
   char me[]="tenSizeScale", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout;
@@ -128,7 +128,7 @@ tenSizeScale(Nrrd *nout, Nrrd *nin, double amount) {
 ** scales the "deviatoric" part of a tensor up or down
 */
 int
-tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
+tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
               int fixDet, int makePositive) {
   char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
   size_t I, N;
@@ -190,7 +190,7 @@ tenAnisoScale(Nrrd *nout, Nrrd *nin, double scale,
 ** enstates the given value as the lowest eigenvalue
 */
 int
-tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max) {
+tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
   char me[]="tenEigenvalueClamp", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
@@ -239,7 +239,7 @@ tenEigenvalueClamp(Nrrd *nout, Nrrd *nin, double min, double max) {
 ** raises the eigenvalues to some power
 */
 int
-tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo) {
+tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
   char me[]="tenEigenvaluePower", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
@@ -281,7 +281,7 @@ tenEigenvaluePower(Nrrd *nout, Nrrd *nin, double expo) {
 ** adds something to all eigenvalues
 */
 int
-tenEigenvalueAdd(Nrrd *nout, Nrrd *nin, double val) {
+tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
   char me[]="tenEigenvalueAdd", err[AIR_STRLEN_MED];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
