@@ -143,7 +143,7 @@ typedef struct {
                                        implies the value of spaceDim */
   int spaceDim;                     /* if non-zero, the dimension of the space
                                        in which the regular sampling grid
-                                       conceptually lies.  This is a seperate
+                                       conceptually lies.  This is a separate
                                        variable because this dimension can be
                                        different than the array dimension. 
                                        The non-zero-ness of this value is in 
@@ -649,6 +649,10 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
                                    double loPos, double hiPos);
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API int nrrdIndependentAxesGet(Nrrd *nrrd,
+                                    int axisIdx[NRRD_DIM_MAX]);
+TEEM_API int nrrdDependentAxesGet(Nrrd *nrrd,
+                                  int axisIdx[NRRD_DIM_MAX]);
 TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
                                   double *spacing,
                                   double vector[NRRD_SPACE_DIM_MAX]);
@@ -663,8 +667,9 @@ TEEM_API int nrrdSpaceKnown(const Nrrd *nrrd);
 TEEM_API void nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim);
 TEEM_API void nrrdSpaceOriginGet(const Nrrd *nrrd,
                                  double vector[NRRD_SPACE_DIM_MAX]);
-TEEM_API int nrrdOriginCalculate3D(const Nrrd *nrrd, int ax0, int ax1, int ax2,
-                                   int defaultCenter, double origin[3]);
+TEEM_API int nrrdOriginCalculate(const Nrrd *nrrd,
+                                 int *axisIdx, int axisIdxNum,
+                                 int defaultCenter, double *origin);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
                             const Nrrd *nin, const char *format,
                             ... /* printf-style arg list */ );
