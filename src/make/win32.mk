@@ -27,15 +27,51 @@ WIN32.DEST ?= ../win32/build
 WIN32.TOP ?= ..\\\\..\\\\
 WIN32.HEADERS ?= ../win32
 
-project: project.build
-unproject: project.clean
-def: def.build
+win32: win32.msvc71
+win32.clean: win32.msvc71.clean
+project: project.build.msvc71
+unproject: project.clean.msvc71
 
 sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
 flipSlash = $(WIN32.TOP)src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
 
-project.build: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build 
-project.clean: headers.clean
+# MS Visual Studio .NET 2003 project files
+
+project.build.msvc71: teem.vcproj.build bins.vcproj.build
+
+project.clean.msvc71: headers.clean
+	$(RM) $(WIN32.DEST)/*.vcproj
+
+teem.vcproj.build:
+	@echo -n "Creating teem.vcproj..."
+	@echo s/TEEMALLDOTC/$(patsubst %.o,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.c\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(foreach obj,$(sortedObjs),$(call flipSlash,$(obj))))/g > cmd.ed
+	@echo s/TEEMALLDOTH/$(patsubst %.h,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.h\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(foreach lib,$(LIBS),$(addprefix $(WIN32.TOP)src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\,$(WIN32.TOP)src\\\\$(lib))/g >> cmd.ed
+	@echo "s/ \,/\,/g" >> cmd.ed
+	@sed -f cmd.ed $(WIN32.DEST)/teem.vcproj.tmpl > $(WIN32.DEST)/teem.vcproj
+	@unix2dos $(WIN32.DEST)/teem.vcproj 2> /dev/null
+	@rm -rf cmd.ed
+	@echo "done"
+
+bins.vcproj.build: $(foreach bin,$(BINS),teembin.$(bin).vcproj.build)
+
+teembin.%.vcproj.build: BIN = $(patsubst teembin.%.vcproj.build,%,$@)
+teembin.%.vcproj.build:
+	@echo -n "Creating $(BIN).vcproj..."
+	@echo s/TEEMBINNAME/$(BIN)/g > cmd.ed
+	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\,$(WIN32.TOP)src\\\\$(lib))/g >> cmd.ed
+	@echo "s/ \,/\,/g" >> cmd.ed
+	@echo s/TEEMBINDOTC/\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"$(WIN32.TOP)src\\\\bin\\\\$(BIN).c\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n/g >> cmd.ed
+	@sed -f cmd.ed $(WIN32.DEST)/teembin.vcproj.tmpl > $(WIN32.DEST)/$(BIN).vcproj
+	@unix2dos $(WIN32.DEST)/$(BIN).vcproj 2> /dev/null
+	@rm -rf cmd.ed
+	@echo "done"
+
+# MS Visual Studio 6.0 project files
+
+project.build.msvc6: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build 
+
+project.clean.msvc6: headers.clean
 	$(RM) $(WIN32.DEST)/*.dsp $(WIN32.DEST)/*.dsw $(WIN32.DEST)/*.plg
 
 teem.dsp.build:
@@ -48,24 +84,6 @@ teem.dsp.build:
 	@sed -f cmd.ed $(WIN32.DEST)/teem_static.dsp.tmpl > $(WIN32.DEST)/teem_static.dsp
 	@unix2dos $(WIN32.DEST)/teem_shared.dsp 2> /dev/null
 	@unix2dos $(WIN32.DEST)/teem_static.dsp 2> /dev/null
-	@rm -rf cmd.ed
-	@echo "done"
-
-headers.copy:
-	@echo -n "Copying headers..."
-	@mkdir -p $(WIN32.HEADERS)/include/teem
-	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) $(WIN32.HEADERS)/include/teem
-	@echo "done"
-
-headers.clean:
-	$(RM) -r $(WIN32.HEADERS)/include/teem
-
-teem.dsw.build:
-	@echo -n "Creating teem.dsw..."
-	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\\nProject: \"$(bin)\"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n\ \ \ \ Begin Project Dependency\\n\ \ \ \ Project_Dep_Name teem_static\\n\ \ \ \ End Project Dependency\\n}}}\\n\\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n)/g > cmd.ed
-	@echo "s/ #/#/g" >> cmd.ed
-	@sed -f cmd.ed $(WIN32.DEST)/teem.dsw.tmpl > $(WIN32.DEST)/teem.dsw
-	@unix2dos $(WIN32.DEST)/teem.dsw 2> /dev/null
 	@rm -rf cmd.ed
 	@echo "done"
 
@@ -84,7 +102,29 @@ teembin.%.dsp.build:
 	@rm -rf cmd.ed
 	@echo "done"
 
-def.build: #$(WIN32.DEST)/teem.def
+teem.dsw.build:
+	@echo -n "Creating teem.dsw..."
+	@echo s/TEEMBINPROJECT/$(foreach bin,$(BINS),\\nProject: \"$(bin)\"=.\\\\$(bin).dsp - Package Owner=\<4\>\\n\\nPackage=\<5\>\\n{{{\\n}}}\\n\\nPackage=\<4\>\\n{{{\\n\ \ \ \ Begin Project Dependency\\n\ \ \ \ Project_Dep_Name teem_static\\n\ \ \ \ End Project Dependency\\n}}}\\n\\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\\n)/g > cmd.ed
+	@echo "s/ #/#/g" >> cmd.ed
+	@sed -f cmd.ed $(WIN32.DEST)/teem.dsw.tmpl > $(WIN32.DEST)/teem.dsw
+	@unix2dos $(WIN32.DEST)/teem.dsw 2> /dev/null
+	@rm -rf cmd.ed
+	@echo "done"
+
+# Headers
+
+headers.copy:
+	@echo -n "Copying headers..."
+	@mkdir -p $(WIN32.HEADERS)/include/teem
+	@$(CP) $(foreach lib,$(LIBS),$(addprefix $(lib)/,$($(lib).PUBLIC_HEADERS))) $(WIN32.HEADERS)/include/teem
+	@echo "done"
+
+headers.clean:
+	$(RM) -r $(WIN32.HEADERS)/include/teem
+
+# Definitions file (obsolete)
+
+def: #$(WIN32.DEST)/teem.def
 	@echo "Building teem.def is no longer necessary"
 	@echo "Don't forget to #define TEEM_STATIC when using the static version"
 
@@ -98,8 +138,31 @@ def.build: #$(WIN32.DEST)/teem.def
 #	@-msdev $(WIN32.DEST)/teem_shared.dsp /make "teem_shared - Win32 Release" /clean
 #	@echo "done"
 
-win32:
+# MS Visual Studio .NET 2003 build/clean
+
+win32.msvc71: teem.vcproj.win32 $(foreach bin,$(BINS),teembin.$(bin).vcproj.win32)
+win32.msvc71.clean: teem.vcproj.win32.clean $(foreach bin,$(BINS),teembin.$(bin).vcproj.win32.clean)
+
+teem.vcproj.win32:
+	@-devenv.com /build Release $(WIN32.DEST)/teem.vcproj
+	@-devenv.com /build StaticRelease $(WIN32.DEST)/teem.vcproj
+
+teembin.%.vcproj.win32: BIN = $(patsubst teembin.%.vcproj.win32,%,$@)
+teembin.%.vcproj.win32:
+	@-devenv.com /build StaticRelease $(WIN32.DEST)/$(BIN).vcproj
+
+teem.vcproj.win32.clean:
+	@-devenv.com /clean Release $(WIN32.DEST)/teem.vcproj
+	@-devenv.com /clean StaticRelease $(WIN32.DEST)/teem.vcproj
+
+teembin.%.vcproj.win32.clean: BIN = $(patsubst teembin.%.vcproj.win32.clean,%,$@)
+teembin.%.vcproj.win32.clean:
+	@-devenv.com /clean StaticRelease $(WIN32.DEST)/$(BIN).vcproj
+
+# MS Visual Studio 6.0 build/clean
+
+win32.msvc6:
 	@-msdev $(WIN32.DEST)/teem.dsw /make all /build
 
-win32.clean:
+win32.clean.msvc6:
 	@-msdev $(WIN32.DEST)/teem.dsw /make all /clean
