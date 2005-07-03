@@ -152,11 +152,15 @@ teembin.%.vcproj.win32:
 	@-devenv.com /build StaticRelease $(WIN32.DEST)/$(BIN).vcproj
 
 teem.vcproj.win32.clean:
+	$(RM) -r $(WIN32.DEST)/Release
+	$(RM) -r $(WIN32.DEST)/StaticRelease
 	@-devenv.com /clean Release $(WIN32.DEST)/teem.vcproj
 	@-devenv.com /clean StaticRelease $(WIN32.DEST)/teem.vcproj
 
 teembin.%.vcproj.win32.clean: BIN = $(patsubst teembin.%.vcproj.win32.clean,%,$@)
 teembin.%.vcproj.win32.clean:
+	$(RM) $(WIN32.DEST)/../lib/StaticRelease/$(BIN).lib
+	$(RM) $(WIN32.DEST)/../lib/StaticRelease/$(BIN).exp
 	@-devenv.com /clean StaticRelease $(WIN32.DEST)/$(BIN).vcproj
 
 # MS Visual Studio 6.0 build/clean
