@@ -117,13 +117,11 @@ extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff);
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
 extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
                             Nrrd *nrrd, int listDim);
-/* ---- BEGIN non-NrrdIO */
 extern void _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                                    double sclA, 
                                    const double vecA[NRRD_SPACE_DIM_MAX],
                                    double sclB, 
                                    const double vecB[NRRD_SPACE_DIM_MAX]);
-/* ---- END non-NrrdIO */
 extern void _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                                double scl, 
                                const double vec[NRRD_SPACE_DIM_MAX]);

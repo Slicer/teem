@@ -24,6 +24,53 @@
 #include <teem32bit.h>
 
 /*
+******** nrrdInvertPerm()
+**
+** given an array (p) which represents a permutation of n elements,
+** compute the inverse permutation ip.  The value of this function
+** is not its core functionality, but all the error checking it
+** provides.
+*/
+int
+nrrdInvertPerm(int *invp, const int *p, int n) {
+  char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
+  int problem, i;
+
+  if (!(invp && p && n > 0)) {
+    sprintf(err, "%s: got NULL pointer or non-positive n (%d)", me, n);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  /* use the given array "invp" as a temp buffer for validity checking */
+  memset(invp, 0, n*sizeof(int));
+  for (i=0; i<n; i++) {
+    if (!(AIR_IN_CL(0, p[i], n-1))) {
+      sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
+              me, i, p[i], n-1);
+      biffAdd(NRRD, err); return 1;
+    }
+    invp[p[i]]++;
+  }
+  problem = AIR_FALSE;
+  for (i=0; i<n; i++) {
+    if (1 != invp[i]) {
+      sprintf(err, "%s: element #%d mapped to %d times (should be once)",
+              me, i, invp[i]);
+      biffAdd(NRRD, err); problem = AIR_TRUE;
+    }
+  }
+  if (problem) {
+    return 1;
+  }
+
+  /* the skinny */
+  for (i=0; i<n; i++) 
+    invp[p[i]] = i;
+
+  return 0;
+}
+
+/*
 ******** nrrdAxesInsert
 **
 ** like reshape, but preserves axis information on old axes, and
@@ -75,56 +122,6 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
   /* all basic info has already been copied by nrrdCopy() above */
   return 0;
 }
-
-/* ---- BEGIN non-NrrdIO */
-
-/*
-******** nrrdInvertPerm()
-**
-** given an array (p) which represents a permutation of n elements,
-** compute the inverse permutation ip.  The value of this function
-** is not its core functionality, but all the error checking it
-** provides.
-*/
-int
-nrrdInvertPerm(int *invp, const int *p, int n) {
-  char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
-  int problem, i;
-
-  if (!(invp && p && n > 0)) {
-    sprintf(err, "%s: got NULL pointer or non-positive n (%d)", me, n);
-    biffAdd(NRRD, err); return 1;
-  }
-  
-  /* use the given array "invp" as a temp buffer for validity checking */
-  memset(invp, 0, n*sizeof(int));
-  for (i=0; i<n; i++) {
-    if (!(AIR_IN_CL(0, p[i], n-1))) {
-      sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
-              me, i, p[i], n-1);
-      biffAdd(NRRD, err); return 1;
-    }
-    invp[p[i]]++;
-  }
-  problem = AIR_FALSE;
-  for (i=0; i<n; i++) {
-    if (1 != invp[i]) {
-      sprintf(err, "%s: element #%d mapped to %d times (should be once)",
-              me, i, invp[i]);
-      biffAdd(NRRD, err); problem = AIR_TRUE;
-    }
-  }
-  if (problem) {
-    return 1;
-  }
-
-  /* the skinny */
-  for (i=0; i<n; i++) 
-    invp[p[i]] = i;
-
-  return 0;
-}
-
 
 /*
 ******** nrrdAxesPermute
@@ -274,43 +271,6 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
 }
 
 /*
-******** nrrdAxesSwap()
-**
-** for when you just want to switch the order of two axes, without
-** going through the trouble of creating the permutation array 
-** needed to call nrrdAxesPermute()
-*/
-int
-nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
-  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED];
-  int i, axes[NRRD_DIM_MAX];
-
-  if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (!(AIR_IN_CL(0, ax1, nin->dim-1) 
-        && AIR_IN_CL(0, ax2, nin->dim-1))) {
-    sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
-            me, ax1, ax2, nin->dim-1);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  for (i=0; i<nin->dim; i++) {
-    axes[i] = i;
-  }
-  axes[ax2] = ax1;
-  axes[ax1] = ax2;
-  if (nrrdAxesPermute(nout, nin, axes)
-      || nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* basic info already copied by nrrdAxesPermute */
-  return 0;
-}
-
-/*
 ******** nrrdShuffle
 **
 ** rearranges hyperslices of a nrrd along a given axis according to
@@ -422,6 +382,46 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
     biffAdd(NRRD, err); return 1;
   }
 
+  return 0;
+}
+
+/* ---- BEGIN non-NrrdIO */
+
+
+/*
+******** nrrdAxesSwap()
+**
+** for when you just want to switch the order of two axes, without
+** going through the trouble of creating the permutation array 
+** needed to call nrrdAxesPermute()
+*/
+int
+nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
+  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED];
+  int i, axes[NRRD_DIM_MAX];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(AIR_IN_CL(0, ax1, nin->dim-1) 
+        && AIR_IN_CL(0, ax2, nin->dim-1))) {
+    sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
+            me, ax1, ax2, nin->dim-1);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  for (i=0; i<nin->dim; i++) {
+    axes[i] = i;
+  }
+  axes[ax2] = ax1;
+  axes[ax1] = ax2;
+  if (nrrdAxesPermute(nout, nin, axes)
+      || nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* basic info already copied by nrrdAxesPermute */
   return 0;
 }
 

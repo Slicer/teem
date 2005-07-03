@@ -780,12 +780,12 @@ TEEM_API int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
 /******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
 TEEM_API int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
-/* ---- BEGIN non-NrrdIO */
 TEEM_API int nrrdInvertPerm(int *invp, const int *perm, int n);
 TEEM_API int nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes);
-TEEM_API int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2);
 TEEM_API int nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis,
                          const int *perm);
+/* ---- BEGIN non-NrrdIO */
+TEEM_API int nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2);
 TEEM_API int nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis);
 TEEM_API int nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin, 
                       int axis, int incrDim);
@@ -869,11 +869,13 @@ TEEM_API int nrrdApply1DSubstitution(Nrrd *nout,
 
 /******** sampling, slicing, cropping */
 /* subset.c */
+/* ---- END non-NrrdIO */
+TEEM_API int nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos);
+TEEM_API int nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max);
+/* ---- BEGIN non-NrrdIO */
 TEEM_API int nrrdSample_nva(void *val, const Nrrd *nin, const int *coord);
 TEEM_API int nrrdSample(void *val, const Nrrd *nin,
                         ... /* coord0, coord1, .., coord(dim-1) */ );
-TEEM_API int nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos);
-TEEM_API int nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max);
 TEEM_API int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, int crop);
 
 /******** padding */

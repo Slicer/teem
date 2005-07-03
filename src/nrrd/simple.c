@@ -277,8 +277,6 @@ nrrdOriginCalculate(const Nrrd *nrrd, int *axisIdx, int axisIdxNum,
   return nrrdOriginStatusOkay;
 }
 
-/* ---- BEGIN non-NrrdIO */
-
 void
 _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
@@ -292,8 +290,6 @@ _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
     sum[ii] = sclA*A + sclB*B;
   }
 }
-                       
-/* ---- END non-NrrdIO */
 
 void
 _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 

@@ -22,73 +22,6 @@
 #include "privateNrrd.h"
 
 /*
-******** nrrdSample_nva()
-**
-** given coordinates within a nrrd, copies the 
-** single element into given *val
-*/
-int
-nrrdSample_nva(void *val, const Nrrd *nrrd, const int *coord) {
-  char me[]="nrrdSample_nva", err[AIR_STRLEN_MED];
-  int typeSize, size[NRRD_DIM_MAX], d;
-  size_t I;
-  
-  if (!(nrrd && coord && val)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  
-  typeSize = nrrdElementSize(nrrd);
-  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
-  for (d=0; d<nrrd->dim; d++) {
-    if (!(AIR_IN_CL(0, coord[d], size[d]-1))) {
-      sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
-              me, coord[d], d, size[d]-1);
-      biffAdd(NRRD, err); return 1;
-    }
-  }
-
-  NRRD_INDEX_GEN(I, coord, size, nrrd->dim);
-
-  memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
-  return 0;
-}
-
-/*
-******** nrrdSample()
-**
-** var-args version of nrrdSample_nva()
-*/
-int
-nrrdSample(void *val, const Nrrd *nrrd, ...) {
-  char me[]="nrrdSample", err[AIR_STRLEN_MED];
-  int d, coord[NRRD_DIM_MAX];
-  va_list ap;
-  
-  if (!(nrrd && val)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  va_start(ap, nrrd);
-  for (d=0; d<nrrd->dim; d++) {
-    coord[d] = va_arg(ap, int);
-  }
-  va_end(ap);
-  
-  if (nrrdSample_nva(val, nrrd, coord)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  return 0;
-}
-
-/*
 ******** nrrdSlice()
 **
 ** slices a nrrd along a given axis, at a given position.
@@ -344,6 +277,75 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max) {
   return 0;
 }
 
+/* ---- BEGIN non-NrrdIO */
+
+/*
+******** nrrdSample_nva()
+**
+** given coordinates within a nrrd, copies the 
+** single element into given *val
+*/
+int
+nrrdSample_nva(void *val, const Nrrd *nrrd, const int *coord) {
+  char me[]="nrrdSample_nva", err[AIR_STRLEN_MED];
+  int typeSize, size[NRRD_DIM_MAX], d;
+  size_t I;
+  
+  if (!(nrrd && coord && val)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* this shouldn't actually be necessary ... */
+  if (!nrrdElementSize(nrrd)) {
+    sprintf(err, "%s: nrrd reports zero element size!", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  typeSize = nrrdElementSize(nrrd);
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
+  for (d=0; d<nrrd->dim; d++) {
+    if (!(AIR_IN_CL(0, coord[d], size[d]-1))) {
+      sprintf(err, "%s: coordinate %d on axis %d out of bounds (0 to %d)", 
+              me, coord[d], d, size[d]-1);
+      biffAdd(NRRD, err); return 1;
+    }
+  }
+
+  NRRD_INDEX_GEN(I, coord, size, nrrd->dim);
+
+  memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
+  return 0;
+}
+
+/*
+******** nrrdSample()
+**
+** var-args version of nrrdSample_nva()
+*/
+int
+nrrdSample(void *val, const Nrrd *nrrd, ...) {
+  char me[]="nrrdSample", err[AIR_STRLEN_MED];
+  int d, coord[NRRD_DIM_MAX];
+  va_list ap;
+  
+  if (!(nrrd && val)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  va_start(ap, nrrd);
+  for (d=0; d<nrrd->dim; d++) {
+    coord[d] = va_arg(ap, int);
+  }
+  va_end(ap);
+  
+  if (nrrdSample_nva(val, nrrd, coord)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
 /*
 ******** nrrdSimpleCrop()
 **
@@ -368,3 +370,4 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, int crop) {
   return 0;
 }
 
+/* ---- END non-NrrdIO */
