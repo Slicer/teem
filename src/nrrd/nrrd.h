@@ -866,10 +866,10 @@ TEEM_API int nrrdApply1DIrregMap(Nrrd *nout,
                                  int typeOut, int rescale);
 TEEM_API int nrrdApply1DSubstitution(Nrrd *nout,
                                      const Nrrd *nin, const Nrrd *nsubst);
+/* ---- END non-NrrdIO */
 
 /******** sampling, slicing, cropping */
 /* subset.c */
-/* ---- END non-NrrdIO */
 TEEM_API int nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos);
 TEEM_API int nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max);
 /* ---- BEGIN non-NrrdIO */
