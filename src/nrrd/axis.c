@@ -864,14 +864,15 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
 }
 
 /*
-******** nrrdIndependentAxesGet
+******** nrrdDomainAxesGet
 **
-** learns which are the independent (resample-able) axes of an image.
-** The return value is the number of independent axes, and that many
-** values are set in the given axisIdx[] array
+** learns which are the domain (resample-able) axes of an image, in
+** other words, the axes which correspond to independent variables.
+** The return value is the number of domain axes, and that many values
+** are set in the given axisIdx[] array
 */
 int
-nrrdIndependentAxesGet(Nrrd *nrrd, int axisIdx[NRRD_DIM_MAX]) {
+nrrdDomainAxesGet(Nrrd *nrrd, int axisIdx[NRRD_DIM_MAX]) {
   int indAxi, axi;
 
   if (!( nrrd && axisIdx )) {
@@ -889,14 +890,15 @@ nrrdIndependentAxesGet(Nrrd *nrrd, int axisIdx[NRRD_DIM_MAX]) {
 }
 
 /*
-******** nrrdDependentAxesGet
+******** nrrdRangeAxesGet
 **
-** learns which are the dependent (non-resample-able) axes of an image
-** The return value is the number of dependent axes, and that many
-** values are set in the given axisIdx[] array
+** learns which are the range (non-resample-able) axes of an image, in
+** other words, the axes which correspond to dependent variables.  The
+** return value is the number of dependent axes, and that many values
+** are set in the given axisIdx[] array
 */
 int
-nrrdDependentAxesGet(Nrrd *nrrd, int axisIdx[NRRD_DIM_MAX]) {
+nrrdRangeAxesGet(Nrrd *nrrd, int axisIdx[NRRD_DIM_MAX]) {
   int depAxi, axi;
 
   if (!( nrrd && axisIdx )) {

@@ -186,7 +186,7 @@ nrrdSpaceOriginSet(Nrrd *nrrd,
 ** sample centering (defaultCenter) has to be provided (use either
 ** nrrdCenterNode or nrrdCenterCell).  The axes that are used 
 ** for the origin calculation have to be given explicitly- but they
-** are likely the return of nrrdIndependentAxesGet
+** are likely the return of nrrdDomainAxesGet
 **
 ** The computed origin is put into the given vector (origin).  The return
 ** value takes on values from the nrrdOriginStatus* enum:
