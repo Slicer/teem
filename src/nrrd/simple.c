@@ -108,7 +108,7 @@ nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( spaceDim > 0 )) {
+  if (!( spaceDim > 0 && spaceDim <= NRRD_SPACE_DIM_MAX )) {
     sprintf(err, "%s: given spaceDim (%d) not valid", me, spaceDim);
     biffAdd(NRRD, err); return 1;
   }
