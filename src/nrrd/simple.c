@@ -118,44 +118,16 @@ nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim) {
 }
 
 /*
-******** nrrdSpaceKnown
-**
-** boolean test to see if given nrrd is said to live in some surrounding space 
-*/
-int
-nrrdSpaceKnown(const Nrrd *nrrd) {
-
-  return (nrrd && nrrd->spaceDim > 0);
-}
-
-/*
-******** nrrdSpaceGet
-**
-** retrieves the space and spaceDim from given nrrd.
-*/
-void
-nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim) {
-  
-  if (nrrd && space && spaceDim) {
-    *space = nrrd->space;
-    if (nrrdSpaceUnknown != *space) {
-      *spaceDim = nrrd->spaceDim;
-    } else {
-      *spaceDim = 0;
-    }
-  }
-  return;
-}
-
-/*
 ******** nrrdSpaceOriginGet
 **
-** retrieves the spaceOrigin (and spaceDim) from given nrrd
+** retrieves the spaceOrigin from given nrrd, and returns spaceDim
+** Indices 0 through spaceDim-1 are set in given vector[] to coords
+** of space origin, and all further indices are set to NaN
 */
-void
+int
 nrrdSpaceOriginGet(const Nrrd *nrrd,
                    double vector[NRRD_SPACE_DIM_MAX]) {
-  int sdi;
+  int sdi, ret;
 
   if (nrrd && vector) {
     for (sdi=0; sdi<nrrd->spaceDim; sdi++) {
@@ -164,8 +136,43 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
     for (sdi=nrrd->spaceDim; sdi<NRRD_SPACE_DIM_MAX; sdi++) {
       vector[sdi] = AIR_NAN;
     }
+    ret = nrrd->spaceDim;
+  } else {
+    ret = 0;
   }
-  return;
+  return ret;
+}
+
+/*
+******** nrrdSpaceOriginSet
+**
+** convenience function for setting spaceOrigin.
+** Note: space (or spaceDim) must be already set
+**
+** returns 1 if there were problems, 0 otherwise
+*/
+int
+nrrdSpaceOriginSet(Nrrd *nrrd,
+                   double vector[NRRD_SPACE_DIM_MAX]) {
+  char me[]="nrrdSpaceOriginSet", err[AIR_STRLEN_MED];
+  int sdi;
+
+  if (!( nrrd && vector )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( 0 < nrrd->spaceDim && nrrd->spaceDim <= NRRD_SPACE_DIM_MAX )) {
+    sprintf(err, "%s: set spaceDim %d not valid", me, nrrd->spaceDim);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  for (sdi=0; sdi<nrrd->spaceDim; sdi++) {
+    nrrd->spaceOrigin[sdi] = vector[sdi];
+  }
+  for (sdi=nrrd->spaceDim; sdi<NRRD_SPACE_DIM_MAX; sdi++) {
+    nrrd->spaceOrigin[sdi] = AIR_NAN;
+  }
+  return 0;
 }
 
 /*

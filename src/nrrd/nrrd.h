@@ -663,10 +663,11 @@ TEEM_API const char *nrrdBiffKey;
 TEEM_API int nrrdSpaceDimension(int space);
 TEEM_API int nrrdSpaceSet(Nrrd *nrrd, int space);
 TEEM_API int nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim);
-TEEM_API int nrrdSpaceKnown(const Nrrd *nrrd);
 TEEM_API void nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim);
-TEEM_API void nrrdSpaceOriginGet(const Nrrd *nrrd,
-                                 double vector[NRRD_SPACE_DIM_MAX]);
+TEEM_API int nrrdSpaceOriginGet(const Nrrd *nrrd,
+                                double vector[NRRD_SPACE_DIM_MAX]);
+TEEM_API int nrrdSpaceOriginSet(Nrrd *nrrd,
+                                double vector[NRRD_SPACE_DIM_MAX]);
 TEEM_API int nrrdOriginCalculate(const Nrrd *nrrd,
                                  int *axisIdx, int axisIdxNum,
                                  int defaultCenter, double *origin);
