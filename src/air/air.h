@@ -119,8 +119,8 @@ typedef struct {
 } airEnum;
 TEEM_API int airEnumUnknown(airEnum *enm);
 TEEM_API int airEnumValCheck(airEnum *enm, int val);
-TEEM_API char *airEnumStr(airEnum *enm, int val);
-TEEM_API char *airEnumDesc(airEnum *enm, int val);
+TEEM_API const char *airEnumStr(airEnum *enm, int val);
+TEEM_API const char *airEnumDesc(airEnum *enm, int val);
 TEEM_API int airEnumVal(airEnum *enm, const char *str);
 TEEM_API char *airEnumFmtDesc(airEnum *enm, int val, int canon,
                               const char *fmt);

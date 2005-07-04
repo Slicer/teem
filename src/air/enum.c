@@ -67,7 +67,7 @@ airEnumValCheck(airEnum *enm, int val) {
   return (0 == _airEnumIndex(enm, val));
 }
 
-char *
+const char *
 airEnumStr(airEnum *enm, int val) {
   int idx;
 
@@ -75,7 +75,7 @@ airEnumStr(airEnum *enm, int val) {
   return enm->str[idx];
 }
 
-char *
+const char *
 airEnumDesc(airEnum *enm, int val) {
   int idx;
 
@@ -142,7 +142,8 @@ airEnumVal(airEnum *enm, const char *str) {
 */
 char *
 airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt) {
-  char *buff, *_ident, *desc, ident[AIR_STRLEN_SMALL];
+  char *buff, *desc, ident[AIR_STRLEN_SMALL];
+  const char *_ident;
   int i;
   size_t len;
 
