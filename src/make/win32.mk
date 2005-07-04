@@ -37,7 +37,7 @@ flipSlash = $(WIN32.TOP)src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
 
 # MS Visual Studio .NET 2003 project files
 
-project.build.msvc71: teem.vcproj.build bins.vcproj.build
+project.build.msvc71: headers.copy teem.vcproj.build bins.vcproj.build
 
 project.clean.msvc71: headers.clean
 	$(RM) $(WIN32.DEST)/*.vcproj
