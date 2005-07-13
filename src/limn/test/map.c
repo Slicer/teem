@@ -24,7 +24,8 @@
 void
 cb(float rgb[3], float vec[3], void *blah) {
   float r, g, b;
-  
+
+  AIR_UNUSED(blah);
   ELL_3V_GET(r, g, b, vec);
   r = AIR_MAX(0, r);
   g = AIR_MAX(0, g);
@@ -40,6 +41,7 @@ main(int argc, char *argv[]) {
   Nrrd *map, *ppm;
   NrrdRange *range;
 
+  AIR_UNUSED(argc);
   me = argv[0];
 
   if (limnEnvMapFill(map=nrrdNew(), cb, limnQN16checker, NULL)) {

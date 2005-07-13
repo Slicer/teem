@@ -23,10 +23,10 @@
 
 int
 limnObjectDescribe(FILE *file, limnObject *obj) {
-  limnFace *face; int si, fii;
-  limnEdge *edge; int eii;
-  limnVertex *vert; int vii;
-  limnPart *part; int partIdx;
+  limnFace *face; unsigned int si, fii;
+  limnEdge *edge; unsigned int eii;
+  limnVertex *vert; unsigned int vii;
+  limnPart *part; unsigned int partIdx;
   limnLook *look;
   
   fprintf(file, "parts: %d\n", obj->partNum);
@@ -76,10 +76,10 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
 int
 limnObjectOFFWrite(FILE *file, limnObject *obj) {
   char me[]="limnObjectOFFWrite", err[AIR_STRLEN_MED];
-  int si;
-  limnVertex *vert; int vii;
-  limnFace *face; int fii;
-  limnPart *part; int partIdx;
+  unsigned int si;
+  limnVertex *vert; unsigned int vii;
+  limnFace *face; unsigned int fii;
+  limnPart *part; unsigned int partIdx;
   
   if (!( obj && file )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -143,11 +143,12 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   char me[]="limnObjectOFFRead", err[AIR_STRLEN_MED];
   double vert[6];
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
-  int lineCount, lookIdx, partIdx, idxTmp, lret, vertNum, vertGot,
-    faceNum, faceGot, got;
-  int ibuff[512]; /* HEY: bad Gordon */
-  float fbuff[512];  /* HEY: bad bad Gordon */
+  int lineCount, lookIdx, partIdx, idxTmp, faceNum, faceGot, got;
+  unsigned int vertGot,vertNum;
+  unsigned int ibuff[1024]; /* HEY: bad Gordon */
+  float fbuff[1024];  /* HEY: bad bad Gordon */
   float lastRGB[3]; int lastLook;
+  unsigned int lret;
   
   int *vertBase;
   airArray *vertBaseArr, *mop;
@@ -170,7 +171,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
     lineCount++;
-    got = airParseStrI(ibuff, line, AIR_WHITESPACE, 3);
+    got = airParseStrUI(ibuff, line, AIR_WHITESPACE, 3);
   } while (3 != got);
   vertNum = ibuff[0];
   faceNum = ibuff[1];
@@ -261,7 +262,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
               me, lineCount, line, faceGot, faceNum);
       biffAdd(LIMN, err); airMopError(mop); return 1;
     }
-    if (vertNum+1 != airParseStrI(ibuff, line, AIR_WHITESPACE, vertNum+1)) {
+    if (vertNum+1 != airParseStrUI(ibuff, line, AIR_WHITESPACE, vertNum+1)) {
       sprintf(err, "%s: (near line %d) couldn't parse %d ints from \"%s\" "
               "for face %d (of %d)",
               me, lineCount, vertNum+1, line, faceGot, faceNum);

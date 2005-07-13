@@ -45,7 +45,8 @@ limnSplineTypeSpecNew(int type, ...) {
 limnSplineTypeSpec *
 limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 
-  return airFree(spec);
+  airFree(spec);
+  return NULL;
 }
 
 /*
@@ -124,7 +125,8 @@ limnSpline *
 limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   char me[]="limnSplineNew", err[AIR_STRLEN_MED];
   limnSpline *spline;
-  int N, size;
+  size_t N;
+  unsigned int size;
   airArray *mop;
   Nrrd *nin;
   
@@ -152,7 +154,8 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     }
     size = limnSplineInfoSize[info];
     if (!( size == _ncpt->axis[0].size && 3 == _ncpt->axis[1].size )) {
-      sprintf(err, "%s: expected %dx3xN nrrd, not %dx%dxN", me,
+      sprintf(err, "%s: expected %ux3xN nrrd, not "
+              _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "xN", me,
               size, _ncpt->axis[0].size, _ncpt->axis[1].size);
       biffAdd(LIMN, err); return NULL;
     }
@@ -213,9 +216,9 @@ limnSpline *
 limnSplineNix(limnSpline *spline) {
 
   if (spline) {
-    spline->ncpt = nrrdNuke(spline->ncpt);
-    spline->time = airFree(spline->time);
-    spline = airFree(spline);
+    spline->ncpt = (Nrrd *)nrrdNuke(spline->ncpt);
+    spline->time = (double *)airFree(spline->time);
+    airFree(spline);
   }
   return NULL;
 }
@@ -240,7 +243,9 @@ limnSplineNix(limnSpline *spline) {
 int
 limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   char me[]="limnSplineNrrdCleverFix", err[AIR_STRLEN_MED];
-  int N, wantSize, min[3], max[3];
+  int min[3], max[3];
+  size_t N;
+  unsigned int wantSize;
   Nrrd *ntmpA, *ntmpB;
   airArray *mop;
 
@@ -273,7 +278,8 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   case 2:
     N = nin->axis[1].size;
     if (wantSize != nin->axis[0].size) {
-      sprintf(err, "%s: expected axis[0].size %d for info %s, but got %d", 
+      sprintf(err, "%s: expected axis[0].size %d for info %s, but got "
+              _AIR_SIZE_T_CNV, 
               me, wantSize, airEnumStr(limnSplineInfo, info),
               nin->axis[0].size);
       biffAdd(LIMN, err); airMopError(mop); return 1;
@@ -296,9 +302,10 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
       } else {
         /* the post- and pre- point information may be interlaced with the 
            main control point values */
-        if (1 != AIR_MOD(N, 3)) {
+        if (1 != AIR_MOD((int)N, 3)) {
           sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-                  "interlaced tangent information, not %d", me, N);
+                  "interlaced tangent information, not " _AIR_SIZE_T_CNV,
+                  me, N);
           biffAdd(LIMN, err); airMopError(mop); return 1;
         }
         ELL_2V_SET(min, 0, -1);
@@ -337,9 +344,10 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
       } else {
         /* the post- and pre- point information may be interlaced with the 
            main control point values */
-        if (1 != AIR_MOD(N, 3)) {
+        if (1 != AIR_MOD((int)N, 3)) {
           sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-                  "interlaced tangent information, not %d", me, N);
+                  "interlaced tangent information, not " _AIR_SIZE_T_CNV, 
+                  me, N);
           biffAdd(LIMN, err); airMopError(mop); return 1;
         }
         ELL_2V_SET(min, 0, -1);
@@ -410,7 +418,8 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
       biffAdd(LIMN, err); return 1;
     }
     if (!( spline->ncpt->axis[2].size == _ncpt->axis[0].size )) {
-      sprintf(err, "%s: have %d time points, but got %d", me,
+      sprintf(err, "%s: have " _AIR_SIZE_T_CNV " time points, but got "
+              _AIR_SIZE_T_CNV, me,
               spline->ncpt->axis[2].size, _ncpt->axis[0].size);
       biffAdd(LIMN, err); return 1;
     }

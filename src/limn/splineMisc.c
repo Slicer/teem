@@ -142,9 +142,9 @@ limnSplineInfo = &_limnSplineInfo;
 **
 ** gives the number of scalars per "value" for each splineInfo 
 */
-int
+unsigned int
 limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
-  -1, /* limnSplineInfoUnknown */
+  0,  /* limnSplineInfoUnknown */
   1,  /* limnSplineInfoScalar */
   2,  /* limnSplineInfo2Vector */
   3,  /* limnSplineInfo3Vector */

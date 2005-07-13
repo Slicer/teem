@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
-  limnLook *look; int lookIdx;
+  limnLook *look; unsigned int lookIdx;
   limnWindow *win;
   Nrrd *nmap;
   FILE *file;

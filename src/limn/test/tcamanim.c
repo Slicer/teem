@@ -27,10 +27,10 @@ char *info = ("Works with camanim.tcl to test camera path splines.");
 
 int
 _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
-                 int *numKeysP, FILE *fin) {
+                 unsigned int *numKeysP, FILE *fin) {
   char me[]="_limnReadCamanim", err[AIR_STRLEN_MED];
   char line[AIR_STRLEN_HUGE];
-  int ki;
+  unsigned int ki;
   double *tmp, *dwell, di, dn, df, fr[3], at[3], up[3], va;
   airArray *mop, *camA, *dwellA;
   
@@ -131,7 +131,8 @@ main(int argc, char *argv[]) {
   limnSplineTypeSpec *quatType, *posType, *distType, *viewType;
   double *time;
   FILE *fin, *fout;
-  int N, numKeys, imgSize[2], trackWhat;
+  int N, imgSize[2], trackWhat;
+  unsigned int numKeys;
 
   mop = airMopNew();
   

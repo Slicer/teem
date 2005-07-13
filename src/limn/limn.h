@@ -210,12 +210,12 @@ typedef struct {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct limnEdge_t {
-  int vertIdx[2], faceIdx[2], /* indices into object's master vert
-                                 and face arrays */
-    lookIdx,                  /* index into parent's look array */
-    partIdx;                  /* which part do we belong to */
-  int type,                   /* from the limnEdgeType enum */
-    once;                     /* flag used for certain kinds of rendering */
+  unsigned int vertIdx[2], /* indices into object's master vert array */
+    lookIdx,               /* index into parent's look array */
+    partIdx;               /* which part do we belong to */
+  int type,                /* from the limnEdgeType enum */
+    faceIdx[2],            /* indices into object's master face array */
+    once;                  /* flag used for certain kinds of rendering */
 } limnEdge;
 
 /*
@@ -226,12 +226,12 @@ typedef struct limnEdge_t {
 typedef struct limnFace_t {
   float worldNormal[3],
     screenNormal[3];
-  int *vertIdx,               /* regular array (*not* airArray) of vertex
+  unsigned int *vertIdx,      /* regular array (*not* airArray) of vertex
                                  indices in object's master vert array */
     *edgeIdx,                 /* likewise for edges */
-    sideNum;                  /* number of sides (allocated length of
+    sideNum,                  /* number of sides (allocated length of
                                  {vert,edge}Idx arrays */
-  int lookIdx,
+    lookIdx,
     partIdx;
   int visible;                /* non-zero if face currently visible */
   float depth;
@@ -243,11 +243,16 @@ typedef struct limnFace_t {
 ** one connected part of an object
 */
 typedef struct limnPart_t {
-  int *vertIdx, vertIdxNum; /* (air)arrays of indices in object's vert array */
+  /* (air)arrays of indices in object's vert array */
+  unsigned int *vertIdx, vertIdxNum; 
   airArray *vertIdxArr;
-  int *edgeIdx, edgeIdxNum; /* (air)arrays of indices in object's edge array */
+
+  /* (air)arrays of indices in object's edge array */
+  unsigned int *edgeIdx, edgeIdxNum;
   airArray *edgeIdxArr;
-  int *faceIdx, faceIdxNum; /* (air)arrays of indices in object's face array */
+
+  /* (air)arrays of indices in object's face array */
+  unsigned int *faceIdx, faceIdxNum;
   airArray *faceIdxArr;
   int lookIdx;
   float depth;
@@ -273,30 +278,30 @@ typedef struct limnPart_t {
 ** airArray is a fine way to create such confusion.
 */
 typedef struct {
-  limnVertex *vert; int vertNum;
+  limnVertex *vert; unsigned int vertNum;
   airArray *vertArr;
 
-  limnEdge *edge; int edgeNum;
+  limnEdge *edge; unsigned int edgeNum;
   airArray *edgeArr;
 
-  limnFace *face; int faceNum;
+  limnFace *face; unsigned int faceNum;
   airArray *faceArr;
   limnFace **faceSort;    /* pointers into "face", sorted by depth */
   
-  limnPart **part; int partNum;  /* double indirection, see above */
+  limnPart **part; unsigned int partNum;  /* double indirection, see above */
   airArray *partArr;
 
-  limnPart **partPool; int partPoolNum;
+  limnPart **partPool; unsigned int partPoolNum;
   airArray *partPoolArr;
   
-  limnLook *look; int lookNum;
+  limnLook *look; unsigned int lookNum;
   airArray *lookArr;
 
   int vertSpace,           /* which space limnVert->coord is in */
     setVertexRGBAFromLook, /* when possible, copy vertex RGB values
                               from limnLook of part (not face) */
-    doEdges,               /* if non-zero, build edges as faces are added */
-    incr;                  /* increment to use with airArrays */
+    doEdges;               /* if non-zero, build edges as faces are added */
+  unsigned incr;           /* increment to use with airArrays */
 } limnObject;
 
 typedef struct {
@@ -316,10 +321,10 @@ typedef struct {
                                    lowerInside and determinant of transform) */
   double normalTransform[9];    /* how to transform normals */
   double (*lup)(const void *, size_t);  /* for getting values out of nvol */
-  int spanSize;                 /* resolution of span space along edge */
   Nrrd *nspanHist;              /* image of span space */
   NrrdRange *range;             /* to store min and max of nvol */
-  int sx, sy, sz;               /* dimensions */
+  size_t sx, sy, sz,            /* dimensions */
+    spanSize;                   /* resolution of span space along edge */
   int *vidx;                    /* 5 * sx * sy array of vertex index
                                    offsets, to support re-using of vertices
                                    across voxels and slices */
@@ -327,7 +332,8 @@ typedef struct {
                                    with Z as fastest axis, and one sample
                                    of padding on all sides */
   /* ------ output ----- */
-  int voxNum, vertNum, faceNum; /* number of voxels contributing to latest
+  unsigned int
+    voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
                                    isosurface, and number of vertices and
                                    faces in that isosurface */
   double time;                  /* time for extraction */
@@ -491,21 +497,32 @@ TEEM_API limnObject *limnObjectNew(int incr, int doEdges);
 TEEM_API limnObject *limnObjectNix(limnObject *obj);
 TEEM_API void limnObjectEmpty(limnObject *obj);
 TEEM_API int limnObjectPreSet(limnObject *obj,
-                              int partNum, int lookNum,
-                              int vertPerPart, int edgePerPart,
-                              int facePerPart);
+                              unsigned int partNum,
+                              unsigned int lookNum,
+                              unsigned int vertPerPart,
+                              unsigned int edgePerPart,
+                              unsigned int facePerPart);
 TEEM_API int limnObjectPartAdd(limnObject *obj);
-TEEM_API int limnObjectVertexNumPreSet(limnObject *obj, int partIdx, 
-                                       int vertNum);
-TEEM_API int limnObjectVertexAdd(limnObject *obj, int partIdx,
+TEEM_API int limnObjectVertexNumPreSet(limnObject *obj,
+                                       unsigned int partIdx, 
+                                       unsigned int vertNum);
+TEEM_API int limnObjectVertexAdd(limnObject *obj,
+                                 unsigned int partIdx,
                                  float x, float y, float z);
-TEEM_API int limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-                               int faceIdx, int vertIdx0,
-                               int vertIdx1);
-TEEM_API int limnObjectFaceNumPreSet(limnObject *obj, int partIdx,
-                                     int faceNum);
-TEEM_API int limnObjectFaceAdd(limnObject *obj, int partIdx, int lookIdx,
-                               int sideNum, int *vertIdx);
+TEEM_API int limnObjectEdgeAdd(limnObject *obj,
+                               unsigned int partIdx,
+                               unsigned int lookIdx,
+                               unsigned int faceIdx,
+                               unsigned int vertIdx0,
+                               unsigned int vertIdx1);
+TEEM_API int limnObjectFaceNumPreSet(limnObject *obj,
+                                     unsigned int partIdx,
+                                     unsigned int faceNum);
+TEEM_API int limnObjectFaceAdd(limnObject *obj,
+                               unsigned int partIdx,
+                               unsigned int lookIdx,
+                               unsigned int sideNum, 
+                               unsigned int *vertIdx);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
@@ -513,18 +530,21 @@ TEEM_API int limnObjectOFFRead(limnObject *obj, FILE *file);
 TEEM_API int limnObjectOFFWrite(FILE *file, limnObject *obj);
 
 /* shapes.c */
-TEEM_API int limnObjectCubeAdd(limnObject *obj, int lookIdx);
-TEEM_API int limnObjectSquareAdd(limnObject *obj, int lookIdx);
-TEEM_API int limnObjectLoneEdgeAdd(limnObject *obj, int lookIdx);
-TEEM_API int limnObjectCylinderAdd(limnObject *obj, int lookIdx,
-                                   int axis,int res);
-TEEM_API int limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
-                                      int thetaRes, int phiRes);
-TEEM_API int limnObjectConeAdd(limnObject *obj, int lookIdx,
-                               int axis, int res);
-TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx,
-                                         int axis, float A, float B,
-                                         int thetaRes, int phiRes);
+TEEM_API int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);
+TEEM_API int limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx);
+TEEM_API int limnObjectLoneEdgeAdd(limnObject *obj, unsigned int lookIdx);
+TEEM_API int limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
+                                   unsigned int axis, unsigned int res);
+TEEM_API int limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
+                                      unsigned int axis,
+                                      unsigned int thetaRes,
+                                      unsigned int phiRes);
+TEEM_API int limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
+                               unsigned int axis, unsigned int res);
+TEEM_API int limnObjectPolarSuperquadAdd(limnObject *obj, unsigned int lookIdx,
+                                         unsigned int axis, float A, float B,
+                                         unsigned int thetaRes,
+                                         unsigned int phiRes);
 
 /* transform.c */
 TEEM_API int limnObjectWorldHomog(limnObject *obj);
@@ -532,7 +552,7 @@ TEEM_API int limnObjectFaceNormals(limnObject *obj, int space);
 TEEM_API int limnObjectVertexNormals(limnObject *obj);
 TEEM_API int limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
                                       limnWindow *win, int space);
-TEEM_API int limnObjectPartTransform(limnObject *obj, int partIdx,
+TEEM_API int limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
                                      float tx[16]);
 TEEM_API int limnObjectDepthSortParts(limnObject *obj);
 TEEM_API int limnObjectDepthSortFaces(limnObject *obj);
@@ -565,7 +585,7 @@ TEEM_API limnSpline *limnSplineParse(char *str);
 TEEM_API limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
 TEEM_API hestCB *limnHestSpline;
 TEEM_API hestCB *limnHestSplineTypeSpec;
-TEEM_API int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
+TEEM_API unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
 TEEM_API int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
 TEEM_API int limnSplineNumPoints(limnSpline *spline);
 TEEM_API double limnSplineMinT(limnSpline *spline);

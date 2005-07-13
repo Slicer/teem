@@ -80,8 +80,8 @@ _limnQN16simple_VtoQN_f(float *vec) {
     return 0;
   }
   w = 126.0/L;
-  xi = x*w;
-  yi = y*w;
+  xi = (int)(x*w);
+  yi = (int)(y*w);
   if (xi >= 64) {
     xi = 127 - xi;
     yi = 127 - yi;
@@ -127,8 +127,8 @@ _limnQN16border1_VtoQN_f(float *vec) {
   y /= L;
   u = x + y;
   v = x - y;
-  AIR_INDEX(-1, u, 1, 254, ui); ui++;
-  AIR_INDEX(-1, v, 1, 254, vi); vi++;
+  ui = airIndex(-1, u, 1, 254); ui++;
+  vi = airIndex(-1, v, 1, 254); vi++;
   zi = (ui ^ vi) & 0x01;
   if (!zi && z > 1.0/128.0) {
     ui -= (((ui >> 7) & 0x01) << 1) - 1;
@@ -189,16 +189,16 @@ _limnQN16border1_VtoQN_f(float *vec) {
   x /= L; \
   y /= L; \
   if (z > 0) { \
-    AIR_INDEX(-1.0, x, 1.0, ((1<<HNB)-1), xi); \
-    AIR_INDEX(-1.0 - 1.0/((1<<HNB)-1), y, 1.0 + 1.0/((1<<HNB)-1), \
-              (1<<HNB), yi); \
+    xi = airIndex(-1.0, x, 1.0, ((1<<HNB)-1)); \
+    yi = airIndex(-1.0 - 1.0/((1<<HNB)-1), y, 1.0 + 1.0/((1<<HNB)-1), \
+                  (1<<HNB)); \
     ui = xi + yi - ((1<<(HNB-1))-1); \
     vi = xi - yi + (1<<(HNB-1)); \
   } \
   else { \
-    AIR_INDEX(-1.0 - 1.0/((1<<HNB)-1), x, 1.0 + 1.0/((1<<HNB)-1), \
-              (1<<HNB), xi); \
-    AIR_INDEX(-1, y, 1, ((1<<HNB)-1), yi); \
+    xi = airIndex(-1.0 - 1.0/((1<<HNB)-1), x, 1.0 + 1.0/((1<<HNB)-1), \
+                  (1<<HNB)); \
+    yi = airIndex(-1, y, 1, ((1<<HNB)-1)); \
     ui = xi + yi - ((1<<(HNB-1))-1); \
     vi = xi - yi + ((1<<(HNB-1))-1); \
   } \
@@ -250,8 +250,8 @@ _limnQN16border1_VtoQN_f(float *vec) {
       y += z; \
     } \
   } \
-  AIR_INDEX(-1, x, 1, (1<<HNB), xi); \
-  AIR_INDEX(-1, y, 1, (1<<HNB), yi); \
+  xi = airIndex(-1, x, 1, (1<<HNB)); \
+  yi = airIndex(-1, y, 1, (1<<HNB)); \
   return (yi << HNB) | xi
 
 /* _16_CHECK_QtoV and _16_CHECK_VtoQ are not actually used */
@@ -281,14 +281,14 @@ _limnQN16border1_VtoQN_f(float *vec) {
   x /= L; \
   y /= L; \
   if (z > 0) { \
-    AIR_INDEX(-1.0, x, 1.0, 255, xi); \
-    AIR_INDEX(-1.0 - 1.0/255, y, 1.0 + 1.0/255, 256, yi); \
+    xi = airIndex(-1.0, x, 1.0, 255); \
+    yi = airIndex(-1.0 - 1.0/255, y, 1.0 + 1.0/255, 256); \
     ui = xi + yi - 127; \
     vi = xi - yi + 128; \
   } \
   else { \
-    AIR_INDEX(-1.0 - 1.0/255, x, 1.0 + 1.0/255, 256, xi); \
-    AIR_INDEX(-1, y, 1, 255, yi); \
+    xi = airIndex(-1.0 - 1.0/255, x, 1.0 + 1.0/255, 256); \
+    yi = airIndex(-1, y, 1, 255); \
     ui = xi + yi - 127; \
     vi = xi - yi + 127; \
   }
@@ -390,8 +390,8 @@ _limnQN16octa_VtoQN_d(double *vec) {
   y /= L; \
   u = x + y; \
   v = x - y; \
-  AIR_INDEX(-1, u, 1, (1<<HNB), ui); \
-  AIR_INDEX(-1, v, 1, (1<<HNB), vi); \
+  ui = airIndex(-1, u, 1, (1<<HNB)); \
+  vi = airIndex(-1, v, 1, (1<<HNB)); \
   zi = (z > 0); \
   return (zi << (2*HNB)) | (vi << HNB) | ui
 

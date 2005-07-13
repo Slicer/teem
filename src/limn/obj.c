@@ -119,7 +119,7 @@ _limnObjectFaceEmpty(limnFace *face) {
 
 limnObject *
 limnObjectNix(limnObject *obj) {
-  int partIdx, faceIdx;
+  unsigned int partIdx, faceIdx;
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     _limnObjectPartNix(obj->part[partIdx]);
@@ -143,7 +143,7 @@ limnObjectNix(limnObject *obj) {
 
 void
 limnObjectEmpty(limnObject *obj) {
-  int partIdx, faceIdx;
+  unsigned int partIdx, faceIdx;
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     _limnObjectPartNix(obj->part[partIdx]);
@@ -176,10 +176,11 @@ limnObjectEmpty(limnObject *obj) {
 ** with growing any of the airArrays inside
 */
 int
-limnObjectPreSet(limnObject *obj, int partNum, int lookNum,
-                 int vertPerPart, int edgePerPart, int facePerPart) {
+limnObjectPreSet(limnObject *obj, unsigned int partNum,
+                 unsigned int lookNum, unsigned int vertPerPart,
+                 unsigned int edgePerPart, unsigned int facePerPart) {
   limnPart *part;
-  int partIdx;
+  unsigned int partIdx;
 
   limnObjectEmpty(obj);
   airArrayLenPreSet(obj->vertArr, partNum*vertPerPart);
@@ -201,7 +202,7 @@ limnObjectPreSet(limnObject *obj, int partNum, int lookNum,
 
 int
 limnObjectPartAdd(limnObject *obj) {
-  int partIdx;
+  unsigned int partIdx;
   limnPart *part;
 
   partIdx = airArrayLenIncr(obj->partArr, 1);
@@ -221,7 +222,8 @@ limnObjectPartAdd(limnObject *obj) {
 }
 
 int
-limnObjectVertexNumPreSet(limnObject *obj, int partIdx, int vertNum) {
+limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx,
+                          unsigned int vertNum) {
   limnPart *part;  
 
   part = obj->part[partIdx];
@@ -231,7 +233,7 @@ limnObjectVertexNumPreSet(limnObject *obj, int partIdx, int vertNum) {
 }
 
 int
-limnObjectVertexAdd(limnObject *obj, int partIdx,
+limnObjectVertexAdd(limnObject *obj, unsigned int partIdx,
                     float x, float y, float z) {
   limnPart *part;
   limnVertex *vert;
@@ -260,9 +262,11 @@ limnObjectVertexAdd(limnObject *obj, int partIdx,
 }
 
 int
-limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
-                  int faceIdx, int vertIdx0, int vertIdx1) {
-  int tmp, edgeIdx=-42, edgeIdxIdx;
+limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx,
+                  unsigned int lookIdx, unsigned int faceIdx,
+                  unsigned int vertIdx0, unsigned int vertIdx1) {
+  int tmp, edgeIdx=-42;
+  unsigned int edgeIdxIdx;
   limnEdge *edge=NULL;
   limnPart *part;
   
@@ -303,7 +307,8 @@ limnObjectEdgeAdd(limnObject *obj, int partIdx, int lookIdx,
 }
 
 int
-limnObjectFaceNumPreSet(limnObject *obj, int partIdx, int faceNum) {
+limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx,
+                        unsigned int faceNum) {
   limnPart *part;  
 
   part = obj->part[partIdx];
@@ -313,11 +318,12 @@ limnObjectFaceNumPreSet(limnObject *obj, int partIdx, int faceNum) {
 }
 
 int
-limnObjectFaceAdd(limnObject *obj, int partIdx,
-                  int lookIdx, int sideNum, int *vertIdx) {
+limnObjectFaceAdd(limnObject *obj, unsigned int partIdx,
+                  unsigned int lookIdx, unsigned int sideNum,
+                  unsigned int *vertIdx) {
   limnFace *face;
   limnPart *part;
-  int faceIdx, faceIdxIdx, sideIdx;
+  unsigned int faceIdx, faceIdxIdx, sideIdx;
 
   part = obj->part[partIdx];
   faceIdx = airArrayLenIncr(obj->faceArr, 1);
@@ -325,10 +331,10 @@ limnObjectFaceAdd(limnObject *obj, int partIdx,
   faceIdxIdx = airArrayLenIncr(part->faceIdxArr, 1);
   part->faceIdx[faceIdxIdx] = faceIdx;
   
-  face->vertIdx = (int*)calloc(sideNum, sizeof(int));
+  face->vertIdx = (unsigned int*)calloc(sideNum, sizeof(unsigned int));
   face->sideNum = sideNum;
   if (obj->doEdges) {
-    face->edgeIdx = (int*)calloc(sideNum, sizeof(int));
+    face->edgeIdx = (unsigned int*)calloc(sideNum, sizeof(unsigned int));
   }
   for (sideIdx=0; sideIdx<sideNum; sideIdx++) {
     face->vertIdx[sideIdx] = vertIdx[sideIdx];
@@ -336,7 +342,7 @@ limnObjectFaceAdd(limnObject *obj, int partIdx,
       face->edgeIdx[sideIdx] = 
         limnObjectEdgeAdd(obj, partIdx, 0, faceIdx,
                           vertIdx[sideIdx],
-                          vertIdx[AIR_MOD(sideIdx+1, sideNum)]);
+                          vertIdx[AIR_MOD((int)sideIdx+1, (int)sideNum)]);
     }
   }
   ELL_3V_SET(face->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);

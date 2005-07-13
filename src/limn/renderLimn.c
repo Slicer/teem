@@ -49,7 +49,9 @@ limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
 
 void
 _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
-  
+
+  AIR_UNUSED(obj);
+  AIR_UNUSED(cam);
   fprintf(win->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(win->file, "%%%%Creator: limn\n");
   fprintf(win->file, "%%%%Pages: 1\n");
@@ -89,6 +91,8 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
 void
 _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 
+  AIR_UNUSED(obj);
+  AIR_UNUSED(cam);
   fprintf(win->file, "grestore\n");
   fprintf(win->file, "grestore\n");
   if (win->ps.showpage) {
@@ -100,13 +104,14 @@ _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 void
 _limnPSDrawFace(limnObject *obj, limnFace *face,
                 limnCamera *cam, Nrrd *nmap, limnWindow *win) {
-  int vii;
+  unsigned int vii;
   limnVertex *vert;
   limnLook *look;
   limnPart *part;
   int qn;
   float *map, R, G, B;
 
+  AIR_UNUSED(cam);
   look = obj->look + face->lookIdx;
   part = obj->part[face->partIdx];
   for (vii=0; vii<face->sideNum; vii++) {
@@ -119,7 +124,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   B = look->kads[0]*look->rgba[2];
   if (nmap) {
     qn = limnVtoQN_f[limnQN16octa](face->worldNormal);
-    map = nmap->data;
+    map = (float *)nmap->data;
     R += look->kads[1]*look->rgba[0]*map[0 + 3*qn];
     G += look->kads[1]*look->rgba[1]*map[1 + 3*qn];
     B += look->kads[1]*look->rgba[2]*map[2 + 3*qn];
@@ -146,6 +151,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
   limnVertex *vert0, *vert1;
   limnPart *part;
 
+  AIR_UNUSED(cam);
   part = obj->part[edge->partIdx];
   if (win->ps.lineWidth[edge->type]) {
     vert0 = obj->vert + edge->vertIdx[0];
@@ -174,10 +180,10 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   char me[]="limnObjectPSDraw", err[AIR_STRLEN_MED];
   int inside;
   float angle;
-  limnFace *face, *face0, *face1; int fii;
-  limnEdge *edge; int eii;
-  limnPart *part; int partIdx;
-  limnVertex *vert; int vii;
+  limnFace *face, *face0, *face1; unsigned int fii;
+  limnEdge *edge; unsigned int eii;
+  limnPart *part; unsigned int partIdx;
+  limnVertex *vert; unsigned int vii;
 
   if (limnSpaceDevice != obj->vertSpace) {
     sprintf(err, "%s: object's verts in %s (not %s) space", me,
@@ -299,8 +305,8 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   char me[]="limnObjectPSDrawConcave", err[AIR_STRLEN_MED];
   float angle;
   limnPart *part;
-  limnFace *face, *face0, *face1; int faceIdx;
-  limnEdge *edge; int edgeIdx, eii;
+  limnFace *face, *face0, *face1; unsigned int faceIdx;
+  limnEdge *edge; unsigned int edgeIdx, eii;
 
   if (limnSpaceDevice != obj->vertSpace) {
     sprintf(err, "%s: object's verts in %s (not %s) space", me,

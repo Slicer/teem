@@ -24,7 +24,7 @@
 int
 limnObjectWorldHomog(limnObject *obj) {
   char me[]="limnObjectWorldHomog", err[AIR_STRLEN_MED];
-  int vertIdx;
+  unsigned int vertIdx;
   limnVertex *vert;
   float h;
 
@@ -48,7 +48,7 @@ limnObjectWorldHomog(limnObject *obj) {
 int
 limnObjectFaceNormals(limnObject *obj, int space) {
   char me[]="limnObjectFaceNormals", err[AIR_STRLEN_MED];
-  int vii, faceIdx;
+  unsigned int vii, faceIdx;
   limnFace *face;
   limnPart *part;
   limnVertex *vert0, *vert1, *vert2;
@@ -67,8 +67,10 @@ limnObjectFaceNormals(limnObject *obj, int space) {
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
       vert0 = obj->vert + face->vertIdx[vii];
-      vert1 = obj->vert + face->vertIdx[AIR_MOD(vii+1, face->sideNum)];
-      vert2 = obj->vert + face->vertIdx[AIR_MOD(vii-1, face->sideNum)];
+      vert1 = (obj->vert 
+               + face->vertIdx[AIR_MOD((int)vii+1, (int)face->sideNum)]);
+      vert2 = (obj->vert 
+               + face->vertIdx[AIR_MOD((int)vii-1, (int)face->sideNum)]);
       if (limnSpaceWorld == space) {
         ELL_3V_SUB(vec1, vert1->world, vert0->world);
         ELL_3V_SUB(vec2, vert2->world, vert0->world);
@@ -104,7 +106,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
 int
 limnObjectVertexNormals(limnObject *obj) {
   /* char me[]="limnObjectVertexNormals", err[AIR_STRLEN_MED]; */
-  int vertIdx, vertIdxIdx, faceIdx;
+  unsigned int vertIdx, vertIdxIdx, faceIdx;
   limnVertex *vert;
   limnFace *face;
   double scl;
@@ -135,7 +137,7 @@ limnObjectVertexNormals(limnObject *obj) {
 
 int
 _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
-  int vertIdx;
+  unsigned int vertIdx;
   limnVertex *vert;
   float d;
 
@@ -157,7 +159,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
 int
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   char me[]="_limnObjectScreenTransform", err[AIR_STRLEN_MED];
-  int vertIdx;
+  unsigned int vertIdx;
   limnVertex *vert;
   float d;
 
@@ -188,7 +190,7 @@ int
 _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
                            limnWindow *win) {
   char me[]="_limnObjectDeviceTransform", err[AIR_STRLEN_MED];
-  int vertIdx;
+  unsigned int vertIdx;
   limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
   
@@ -253,8 +255,9 @@ limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
 }
 
 int
-limnObjectPartTransform(limnObject *obj, int partIdx, float xform[16]) {
-  int vertIdxIdx;
+limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
+                        float xform[16]) {
+  unsigned int vertIdxIdx;
   limnPart *part;
   limnVertex *vert;
   float tmp[4];
@@ -285,7 +288,7 @@ limnObjectDepthSortParts(limnObject *obj) {
   limnVertex *vert;
   limnFace *face;
   limnEdge *edge;
-  int partIdx, ii;
+  unsigned int partIdx, ii;
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     part = obj->part[partIdx];
@@ -330,7 +333,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   limnFace *face;
   limnVertex *vert;
   limnPart *part;
-  int faceIdx, vii;
+  unsigned int faceIdx, vii;
 
   obj->faceSort = (limnFace **)calloc(obj->faceNum, sizeof(limnFace *));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
@@ -354,8 +357,9 @@ limnObjectDepthSortFaces(limnObject *obj) {
 int
 limnObjectFaceReverse(limnObject *obj) {
   char me[]="limnObjectFaceReverse", err[AIR_STRLEN_MED];
-  limnFace *face; int faceIdx;
-  int *buff, sii;
+  limnFace *face;
+  unsigned int faceIdx, sii;
+  int *buff;
 
   if (!obj) {
     sprintf(err, "%s: got NULL pointer", me);

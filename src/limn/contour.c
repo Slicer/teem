@@ -382,8 +382,8 @@ limn3DContourContextNix(limn3DContourContext *lctx) {
   if (lctx) {
     lctx->nspanHist = nrrdNuke(lctx->nspanHist);
     lctx->range = nrrdRangeNix(lctx->range);
-    lctx->vidx = airFree(lctx->vidx);
-    lctx->val = airFree(lctx->val);
+    lctx->vidx = (int *)airFree(lctx->vidx);
+    lctx->val = (double *)airFree(lctx->val);
     airFree(lctx);
   }
   return NULL;
@@ -510,8 +510,8 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
         tmp = lctx->lup(data, vi + 1 + 1*sx + 1*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        AIR_INDEX(lctx->range->min, min, lctx->range->max, ss, minI);
-        AIR_INDEX(lctx->range->min, max, lctx->range->max, ss, maxI);
+        minI = airIndex(lctx->range->min, min, lctx->range->max, ss);
+        maxI = airIndex(lctx->range->min, max, lctx->range->max, ss);
         spanHist[minI + ss*maxI]++;
       }
     }
@@ -637,14 +637,14 @@ limn3DContourExtract(limn3DContourContext *lctx,
 
   /* estimate number of voxels, faces, and vertices involved */
   estVoxNum = 0;
-  AIR_INDEX(lctx->range->min, isovalue, lctx->range->max, ss, valI);
+  valI = airIndex(lctx->range->min, isovalue, lctx->range->max, ss);
   for (minI=0; minI<=valI; minI++) {
     for (maxI=valI; maxI<ss; maxI++) {
       estVoxNum += spanHist[minI + ss*maxI];
     }
   }
-  estFaceNum = estVoxNum*2.15;
-  estVertNum = estVoxNum*1.15;
+  estFaceNum = (int)(estVoxNum*2.15);
+  estVertNum = (int)(estVoxNum*1.15);
   
   /* start new part, and preset length of face and vert arrays */
   partIdx = limnObjectPartAdd(cont);
@@ -726,7 +726,8 @@ limn3DContourExtract(limn3DContourContext *lctx,
     for (yi=0; yi<sy-1; yi++) {
       double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
       unsigned char vcase;
-      int ti, vi, ei, vi0, vi1, ecase, *tcase, vii[3];
+      int ti, vi, ei, vi0, vi1, ecase, *tcase;
+      unsigned int vii[3];
       for (xi=0; xi<sx-1; xi++) {
         si = xi + sx*yi;
         spi = (xi+1) + (sx+2)*(yi+1);

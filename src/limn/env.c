@@ -80,8 +80,8 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(LIMN, err, NRRD); return 1;
   }
-  mapData = map->data;
-  for (qn=0; qn<=sx*sy-1; qn++) {
+  mapData = (float *)map->data;
+  for (qn=0; qn<sx*sy; qn++) {
     limnQNtoV_f[qnMethod](vec, qn);
     cb(mapData + 3*qn, vec, data);
   }
@@ -95,7 +95,7 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
   limnLight *lit;
   int i;
 
-  lit = _lit;
+  lit = (limnLight *)_lit;
   ELL_3V_NORM(vec, vec, norm);
   r = lit->amb[0];
   g = lit->amb[1];
@@ -136,7 +136,10 @@ limnEnvMapCheck(Nrrd *envMap) {
   if (!(3 == envMap->axis[0].size
         && 256 == envMap->axis[1].size
         && 256 == envMap->axis[2].size)) {
-    sprintf(err, "%s: dimension should be 3x256x256, not %dx%dx%d", me,
+    sprintf(err, "%s: dimension should be 3x256x256, not " 
+            _AIR_SIZE_T_CNV "x" 
+            _AIR_SIZE_T_CNV "x" 
+            _AIR_SIZE_T_CNV, me,
             envMap->axis[0].size, 
             envMap->axis[1].size, 
             envMap->axis[2].size);

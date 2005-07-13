@@ -30,6 +30,7 @@ main(int argc, char *argv[]) {
   Nrrd *map, *ppm;
   NrrdRange *range;
 
+  AIR_UNUSED(argc);
   me = argv[0];
 
   cam = limnCameraNew();

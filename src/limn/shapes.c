@@ -22,8 +22,8 @@
 #include "limn.h"
 
 int
-limnObjectCubeAdd(limnObject *obj, int lookIdx) {
-  int vII[4], vII0, partIdx;
+limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx) {
+  unsigned int vII[4], vII0, partIdx;
 
   partIdx = limnObjectPartAdd(obj);
   /* HEY: we have to set this first so that 
@@ -64,8 +64,8 @@ limnObjectCubeAdd(limnObject *obj, int lookIdx) {
 }
 
 int
-limnObjectSquareAdd(limnObject *obj, int lookIdx) {
-  int vII0, vII[4], partIdx;
+limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx) {
+  unsigned int vII0, vII[4], partIdx;
 
   partIdx = limnObjectPartAdd(obj);
   /* HEY: we have to set this first so that 
@@ -87,15 +87,16 @@ limnObjectSquareAdd(limnObject *obj, int lookIdx) {
 ** with axis "axis" (0:X, 1:Y, 2:Z), with discretization "res"
 */
 int
-limnObjectCylinderAdd(limnObject *obj, int lookIdx, int axis, int res) {
-  int partIdx, ii, jj, tmp, vII0=-1, *vII;
+limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
+                      unsigned int axis, unsigned int res) {
+  unsigned int partIdx, ii, jj, tmp, vII0=0, *vII;
   double theta;
   
   partIdx = limnObjectPartAdd(obj);
   /* HEY: we have to set this first so that 
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
-  vII = (int *)calloc(res, sizeof(int));
+  vII = (unsigned int *)calloc(res, sizeof(unsigned int));
 
   for (ii=0; ii<=res-1; ii++) {
     theta = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
@@ -140,11 +141,12 @@ limnObjectCylinderAdd(limnObject *obj, int lookIdx, int axis, int res) {
 }
 
 int
-limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
+limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
+                  unsigned int axis, unsigned int res) {
   double th;
-  int partIdx, tmp, vII0=-1, ii, jj, *vII;
+  unsigned int partIdx, tmp, vII0=0, ii, jj, *vII;
 
-  vII = (int *)calloc(res, sizeof(int));
+  vII = (unsigned int *)calloc(res, sizeof(unsigned int));
 
   partIdx = limnObjectPartAdd(obj);
   /* HEY: we have to set this first so that 
@@ -193,9 +195,10 @@ limnObjectConeAdd(limnObject *obj, int lookIdx, int axis, int res) {
 }
 
 int
-limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
-                         int thetaRes, int phiRes) {
-  int partIdx, vII0, nti, ti, pi, vII[4], pl;
+limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
+                         unsigned int axis, unsigned int thetaRes,
+                         unsigned int phiRes) {
+  unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
   float t, p;
   
   thetaRes = AIR_MAX(thetaRes, 3);
@@ -270,10 +273,11 @@ limnObjectPolarSphereAdd(limnObject *obj, int lookIdx, int axis,
 }
 
 int
-limnObjectPolarSuperquadAdd(limnObject *obj, int lookIdx, int axis,
+limnObjectPolarSuperquadAdd(limnObject *obj,
+                            unsigned int lookIdx, unsigned int axis,
                             float A, float B, 
-                            int thetaRes, int phiRes) {
-  int partIdx, vII0, nti, ti, pi, vII[4], pl;
+                            unsigned int thetaRes, unsigned int phiRes) {
+  unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
   float x, y, z, t, p;
   
   thetaRes = AIR_MAX(thetaRes, 3);

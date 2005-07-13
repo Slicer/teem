@@ -55,6 +55,7 @@ typedef struct {
 void
 plotPreamble(plotPS *pps, plotParm *pparm) {
 
+  AIR_UNUSED(pparm);
   pps->maxX = pps->psc*(pps->bbox[2] - pps->bbox[0]);
   pps->maxY = pps->psc*(pps->bbox[3] - pps->bbox[1]);
 
@@ -93,6 +94,7 @@ plotPreamble(plotPS *pps, plotParm *pparm) {
 void
 plotWidth(plotPS *pps, plotParm *pparm, double width) {
 
+  AIR_UNUSED(pparm);
   fprintf(pps->file, "%g W\n", pps->psc*width);
   return;
 }
@@ -100,6 +102,7 @@ plotWidth(plotPS *pps, plotParm *pparm, double width) {
 void
 plotGray(plotPS *pps, plotParm *pparm, double gray) {
 
+  AIR_UNUSED(pparm);
   fprintf(pps->file, "%g Gr\n", gray);
   return;
 }
@@ -108,6 +111,7 @@ void
 plotLine(plotPS *pps, plotParm *pparm,
          double x0, double y0, double x1, double y1) {
   
+  AIR_UNUSED(pparm);
   fprintf(pps->file, "%g %g M\n", PPS_X(x0), PPS_Y(y0));
   fprintf(pps->file, "%g %g L S\n", PPS_X(x1), PPS_Y(y1));
   return;
@@ -138,6 +142,7 @@ plotAxes(plotPS *pps, plotParm *pparm, Nrrd *ndata) {
   char buff[AIR_STRLEN_SMALL];
   int ti;
   
+  AIR_UNUSED(ndata);
   axX = AIR_AFFINE(pparm->dbox[0], pparm->axisOrig[0], pparm->dbox[2],
                    pps->bbox[0], pps->bbox[2]);
   axY = AIR_AFFINE(pparm->dbox[1], pparm->axisOrig[1], pparm->dbox[3],
@@ -275,6 +280,7 @@ plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
 void
 plotEpilog(plotPS *pps, plotParm *pparm) {
   
+  AIR_UNUSED(pparm);
   fprintf(pps->file, "grestore\n");
   fprintf(pps->file, "grestore\n");
   fprintf(pps->file, "%%%%Trailer\n");
