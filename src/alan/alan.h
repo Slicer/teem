@@ -96,11 +96,12 @@ typedef double alan_t;
 
 typedef struct alanContext_t {
   /* INPUT ----------------------------- */
+  unsigned int
+    dim,              /* either 2 or 3 */
+    size[3];          /* number of texels in X, Y, (Z) */
   int verbose,
     wrap,             /* do toroidal boundary wrapping */
     textureType,      /* what kind are we (from alanTextureType* enum) */
-    dim,              /* either 2 or 3 */
-    size[3],          /* number of texels in X, Y, (Z) */
     oversample,       /* oversampling of tensors to texels */
     homogAniso,       /* homogenous anisotropy approximation */
     numThreads,       /* # of threads, if airThreadCapable */

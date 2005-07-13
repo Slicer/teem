@@ -212,11 +212,11 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
   DIM_SET;
   switch (whichParm) {
   case alanParmVerbose:
-    parmI = parm;
+    parmI = !!parm;
     actx->verbose = parmI;
     break;
   case alanParmTextureType:
-    parmI = parm;
+    parmI = !!parm;
     switch(parmI) {
     case alanTextureTypeTuring:
       actx->initA = 4.0;
@@ -238,7 +238,7 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->textureType = parmI;
     break;
   case alanParmNumThreads:
-    parmI = parm;
+    parmI = !!parm;
     if (!airThreadCapable) {
       fprintf(stderr, "%s: WARNING: no multi-threading available, so 1 thread "
               "will be used, not %d\n", me, parmI);
@@ -247,23 +247,23 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->numThreads = parmI;
     break;
   case alanParmHomogAniso:
-    parmI = parm;
+    parmI = !!parm;
     actx->homogAniso = parmI;
     break;
   case alanParmSaveInterval:
-    parmI = parm;
+    parmI = !!parm;
     actx->saveInterval = parmI;
     break;
   case alanParmFrameInterval:
-    parmI = parm;
+    parmI = !!parm;
     actx->frameInterval = parmI;
     break;
   case alanParmMaxIteration:
-    parmI = parm;
+    parmI = !!parm;
     actx->maxIteration = parmI;
     break;
   case alanParmConstantFilename:
-    parmI = parm;
+    parmI = !!parm;
     actx->constFilename = parmI;
     break;
   case alanParmDeltaT:
@@ -303,7 +303,7 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->beta = parm;
     break;
   case alanParmWrapAround:
-    parmI = parm;
+    parmI = !!parm;
     actx->wrap = parmI;
     break;
   default:
