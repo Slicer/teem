@@ -134,7 +134,8 @@ baneInfoCheck (Nrrd *info, int wantDim) {
     biffAdd(BANE, err); return 1;
   }
   if (2 != info->axis[0].size) {
-    sprintf(err, "%s: 1st axis needs size 2 (not %d)", me, info->axis[0].size);
+    sprintf(err, "%s: 1st axis needs size 2 (not " _AIR_SIZE_T_CNV ")", 
+            me, info->axis[0].size);
     biffAdd(BANE, err); return 1;
   }
   return 0;
@@ -187,7 +188,8 @@ baneBcptsCheck (Nrrd *Bcpts) {
     biffAdd(BANE, err); return 1;
   }
   if (2 != Bcpts->axis[0].size) {
-    sprintf(err, "%s: axis#0 needs size 2 (not %d)", me, Bcpts->axis[0].size);
+    sprintf(err, "%s: axis#0 needs size 2 (not " _AIR_SIZE_T_CNV ")",
+            me, Bcpts->axis[0].size);
     biffAdd(BANE, err); return 1;
   }
   if (nrrdTypeFloat != Bcpts->type) {
@@ -195,7 +197,7 @@ baneBcptsCheck (Nrrd *Bcpts) {
     biffAdd(BANE, err); return 1;
   }
   len = Bcpts->axis[1].size;
-  data = Bcpts->data;
+  data = (float *)Bcpts->data;
   for (i=0; i<=len-2; i++) {
     if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {
       sprintf(err, "%s: value coord %d (%g) not <= coord %d (%g)", me,

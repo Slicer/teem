@@ -44,8 +44,8 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
   su = ntext->axis[1].size;
   sv = ntext->axis[2].size;
   if (parm->textureNN) {
-    AIR_INDEX(0.0, u, 1.0, su, ui);
-    AIR_INDEX(0.0, v, 1.0, sv, vi);
+    ui = airIndex(0.0, u, 1.0, su);
+    vi = airIndex(0.0, v, 1.0, sv);
     tdata00 = (unsigned char*)(ntext->data) + 4*(ui + su*vi);
     ELL_4V_SET(rgba,
                tdata00[0]/255.0, tdata00[1]/255.0,
@@ -53,8 +53,8 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
   } else {
     u = AIR_AFFINE(0.0, u, 1.0, 0.0, su-1);  u = AIR_CLAMP(0, u, su-1);
     v = AIR_AFFINE(0.0, v, 1.0, 0.0, sv-1);  v = AIR_CLAMP(0, v, sv-1);
-    u -= u == su-1;  ui = u;  uf = u - ui;
-    v -= v == sv-1;  vi = v;  vf = v - vi;
+    u -= (u == su-1);  ui = (int)u;  uf = u - ui;
+    v -= (v == sv-1);  vi = (int)v;  vf = v - vi;
     tdata00 = (unsigned char*)(ntext->data) + 4*(ui + su*vi);
     tdata01 = tdata00 + 4;
     tdata10 = tdata00 + 4*su;
@@ -98,7 +98,8 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
                    echoCol_t sp,
                    echoIntx *intx, echoScene *scene, echoRTParm *parm, 
                    echoThreadState *tstate) {
-  int Lidx, blocked;
+  unsigned int Lidx;
+  int blocked;
   echoRay shadRay;
   echoIntx shadIntx;
   echoPos_t Ldist, Ldir[3], Lpos[3], Ldot;
@@ -394,13 +395,19 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
 
 void
 _echoIntxColorLight(INTXCOLOR_ARGS) {
-  
+
+  AIR_UNUSED(scene);
+  AIR_UNUSED(tstate);
   echoIntxMaterialColor(rgba, intx, parm);
 }
 
 void
 _echoIntxColorUnknown(INTXCOLOR_ARGS) {
   
+  AIR_UNUSED(rgba);
+  AIR_UNUSED(intx);
+  AIR_UNUSED(scene);
+  AIR_UNUSED(parm);
   fprintf(stderr, "%s%s: can't color intx with object with unset material\n",
           _echoDot(tstate->depth), "_echoIntxColorNone");
 }

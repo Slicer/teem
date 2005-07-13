@@ -25,7 +25,8 @@ int
 main(int argc, char *argv[]) {
   int aret;
   char *me;
-  
+
+  AIR_UNUSED(argc);
   me = argv[0];
   aret = airSanity();
   if (airInsane_not == aret) {
@@ -35,10 +36,10 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
     fprintf(stderr, "AIR_32BIT == %d\n", AIR_32BIT);
-    fprintf(stderr, "sizeof(size_t) = " _AIR_SIZE_T_FMT 
-            "; sizeof(void*) = " _AIR_SIZE_T_FMT "\n",
+    fprintf(stderr, "sizeof(size_t) = " _AIR_SIZE_T_CNV 
+            "; sizeof(void*) = " _AIR_SIZE_T_CNV "\n",
             sizeof(size_t), sizeof(void*));
-    fprintf(stderr, "_AIR_SIZE_T_FMT = \"%s\"\n", _AIR_SIZE_T_FMT);
+    fprintf(stderr, "_AIR_SIZE_T_CNV = \"%s\"\n", _AIR_SIZE_T_CNV);
     return 0;
   }
   /* else */

@@ -51,12 +51,12 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   nrrdAxisInfoSet(tstate->njitt, nrrdAxisInfoLabel,
                   "x,y", "jittable", "sample");
 
-  tstate->permBuff = airFree(tstate->permBuff);
+  tstate->permBuff = (int *)airFree(tstate->permBuff);
   if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
-  tstate->chanBuff = airFree(tstate->chanBuff);
+  tstate->chanBuff = (echoCol_t *)airFree(tstate->chanBuff);
   if (!( tstate->chanBuff =
          (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
                             sizeof(echoCol_t)) )) {
@@ -64,7 +64,7 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
     biffAdd(ECHO, err); return 1;
   }
 
-  airSrand48_r(tstate->rst, parm->seedRand ? airTime() : threadIdx);
+  airSrand48_r(tstate->rst, parm->seedRand ? (int)airTime() : threadIdx);
   tstate->returnPtr = NULL;
   
   return 0;
@@ -81,7 +81,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
   int s, i, j, xi, yi, n, N, *perm;
 
   N = parm->numSamples;
-  n = sqrt(N);
+  n = (int)sqrt(N);
   w = 1.0/n;
   /* each row in perm[] is for one sample, for going through all jittables;
      each column is a different permutation of [0..parm->numSamples-1] */
@@ -176,7 +176,7 @@ echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
     break;
   case echoJitterGrid:
   case echoJitterJitter:
-    tmp = sqrt(parm->numSamples);
+    tmp = (int)sqrt(parm->numSamples);
     if (tmp*tmp != parm->numSamples) {
       sprintf(err, "%s: need a square # samples for %s jitter method (not %d)",
               me, airEnumStr(echoJitter, parm->jitterType), parm->numSamples);

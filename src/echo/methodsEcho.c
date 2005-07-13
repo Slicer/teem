@@ -19,6 +19,7 @@
 */
 
 #include "echo.h"
+#include "privateEcho.h"
 
 const char *
 echoBiffKey = "echo";
@@ -55,8 +56,7 @@ echoRTParmNew(void) {
 echoRTParm *
 echoRTParmNix(echoRTParm *parm) {
 
-  parm = airFree(parm);
-
+  airFree(parm);
   return NULL;
 }
 
@@ -81,7 +81,7 @@ echoGlobalStateNew(void) {
 echoGlobalState *
 echoGlobalStateNix(echoGlobalState *state) {
 
-  state = airFree(state);
+  airFree(state);
   /* mutex freed at end of echoRTRender() */
   return NULL;
 }
@@ -114,9 +114,9 @@ echoThreadStateNix(echoThreadState *state) {
     state->thread = airThreadNix(state->thread);
     nrrdNuke(state->njitt);
     nrrdNuke(state->nperm);
-    state->permBuff = airFree(state->permBuff);
-    state->chanBuff = airFree(state->chanBuff);
-    state = airFree(state);
+    state->permBuff = (int *)airFree(state->permBuff);
+    state->chanBuff = (echoCol_t *)airFree(state->chanBuff);
+    airFree(state);
   }
   return NULL;
 }
@@ -160,7 +160,7 @@ echoSceneNew(void) {
 
 void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
-  int idx;
+  unsigned int idx;
   
   for (idx=0; idx<scene->lightArr->len; idx++) {
     if (obj == scene->light[idx]) {
@@ -175,7 +175,7 @@ _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
 
 void
 _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
-  int idx;
+  unsigned int idx;
   
   for (idx=0; idx<scene->nrrdArr->len; idx++) {
     if (nrrd == scene->nrrd[idx]) {
@@ -197,7 +197,7 @@ echoSceneNix(echoScene *scene) {
     airArrayNuke(scene->lightArr);
     airArrayNuke(scene->nrrdArr);
     /* don't touch envmap nrrd */
-    scene = airFree(scene);
+    airFree(scene);
   }
   return NULL;
 }

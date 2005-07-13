@@ -28,6 +28,11 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
              double rayStartWorld[3], double rayStartIndex[3],
              double rayDirWorld[3], double rayDirIndex[3]) {
 
+  AIR_UNUSED(mrr);
+  AIR_UNUSED(rayStartWorld);
+  AIR_UNUSED(rayStartIndex);
+  AIR_UNUSED(rayDirIndex);
+
   mtt->ui = uIndex;
   mtt->vi = vIndex;
   mtt->rayStep = (muu->rayStep*rayLen /
@@ -289,6 +294,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   mite_t *imgData;
   double A;
   
+  AIR_UNUSED(mrr);
   mtt->samples += mtt->raySample;
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
   imgData = (mite_t*)muu->nout->data;
@@ -310,7 +316,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
       slen += strlen(mtt->stage[stageIdx].label) + 2;
     }
     slen += strlen("R,G,B,A,Z") + 1;
-    muu->ndebug->axis[0].label = calloc(slen, sizeof(char));
+    muu->ndebug->axis[0].label = (char *)calloc(slen, sizeof(char));
     for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
       strcat(muu->ndebug->axis[0].label, mtt->stage[stageIdx].label);
       strcat(muu->ndebug->axis[0].label, ",,");

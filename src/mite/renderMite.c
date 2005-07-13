@@ -29,8 +29,8 @@ _miteRenderNew(void) {
   if (mrr) {
     mrr->rmop = airMopNew();
     if (!mrr->rmop) {
-      mrr = airFree(mrr);
-      return mrr;
+      airFree(mrr);
+      return NULL;
     }
     mrr->ntxf = NULL;
     mrr->ntxfNum = 0;
@@ -55,7 +55,7 @@ _miteRenderNix(miteRender *mrr) {
   
   if (mrr) {
     airMopOkay(mrr->rmop);
-    mrr = airFree(mrr);
+    airFree(mrr);
   }
   return NULL;
 }
@@ -64,9 +64,10 @@ int
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
-  int E, T, thr, axi, pvlIdx;
+  int E, T, thr, pvlIdx;
   gageQuery queryScl, queryVec, queryTen;
   gageItemSpec isp;
+  unsigned int axi;
  
   if (!(mrrP && muu)) {
     sprintf(err, "%s: got NULL pointer", me);

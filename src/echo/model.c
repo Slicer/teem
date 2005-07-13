@@ -46,8 +46,8 @@ echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
   TRIMESH(trim)->numV = 2 + (phiRes-1)*theRes;
   TRIMESH(trim)->numF = (2 + 2*(phiRes-2))*theRes;
 
-  _pos = pos = calloc(3*TRIMESH(trim)->numV, sizeof(echoPos_t));
-  _vert = vert = calloc(3*TRIMESH(trim)->numF, sizeof(int));
+  _pos = pos = (echoPos_t *)calloc(3*TRIMESH(trim)->numV, sizeof(echoPos_t));
+  _vert = vert = (int *)calloc(3*TRIMESH(trim)->numF, sizeof(int));
 
   ELL_3V_SET(tmp, 0, 0, 1); _echoPosSet(pos, matx, tmp); pos += 3;
   for (phidx=1; phidx<phiRes; phidx++) {

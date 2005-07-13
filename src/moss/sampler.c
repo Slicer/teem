@@ -37,7 +37,7 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   smplr->image = image;
   smplr->flag[mossFlagImage] = AIR_TRUE;
   ncol = MOSS_NCOL(image);
-  smplr->bg = airFree(smplr->bg);
+  smplr->bg = (float *)airFree(smplr->bg);
   if (bg) {
     smplr->bg = (float*)calloc(ncol, sizeof(float));
     for (ci=0; ci<ncol; ci++) {
@@ -51,15 +51,15 @@ int
 mossSamplerKernelSet (mossSampler *smplr, 
                       const NrrdKernel *kernel, double *kparm) {
   char me[]="mossSamplerKernelSet", err[AIR_STRLEN_MED];
-  int i;
+  unsigned int ki;
 
   if (!(smplr && kernel && kparm)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(MOSS, err); return 1;
   }
   smplr->kernel = kernel;
-  for (i=0; i<kernel->numParm; i++) {
-    smplr->kparm[i] = kparm[i];
+  for (ki=0; ki<kernel->numParm; ki++) {
+    smplr->kparm[ki] = kparm[ki];
   }
   smplr->flag[mossFlagKernel] = AIR_TRUE;
   return 0;
@@ -126,8 +126,8 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   }
   sx = MOSS_SX(smplr->image);
   sy = MOSS_SY(smplr->image);
-  xi = floor(xPos); xf = xPos - xi;
-  yi = floor(yPos); yf = yPos - yi;
+  xi = (int)floor(xPos); xf = xPos - xi;
+  yi = (int)floor(yPos); yf = yPos - yi;
   fdiam = smplr->fdiam;
   frad = fdiam/2;
   for (i=0; i<fdiam; i++) {

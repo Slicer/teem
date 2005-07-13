@@ -153,8 +153,8 @@ gageKind
 _miteValGageKind = {
   "mite",
   &_miteVal,
-  -1,
-  -1,
+  0,
+  0,
   MITE_VAL_ITEM_MAX,
   _miteValTable,
   NULL,

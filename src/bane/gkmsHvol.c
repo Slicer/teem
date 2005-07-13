@@ -35,7 +35,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *perr, err[AIR_STRLEN_MED];
   Nrrd *nin, *nout;
   airArray *mop;
-  int pret, dim[3], lapl, i, j, perm[3] = {1,2,0}, slow, gz = AIR_FALSE;
+  int pret, dim[3], lapl, slow, gz = AIR_FALSE;
   double inc[3*(1+BANE_PARM_NUM)];
   baneHVolParm *hvp;
   NrrdIoState *nio;

@@ -44,7 +44,8 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
                          char **argv, char *err, hestParm *parm) {
   FILE *file;
   char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE], *pound;
-  int ai, len;
+  int ai;
+  unsigned int len;
 
   *argcP = 0;
   *nrfP = 0;
@@ -88,11 +89,12 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 ** copies from the user's argc,argv to our local copy.
 */
 int
-_hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
-                   char *err, hestParm *parm, airArray *pmop) {
+_hestResponseFiles(char **newArgv, char **oldArgv,
+                   hestParm *parm, airArray *pmop) {
   char line[AIR_STRLEN_HUGE], *pound;
-  int len, newArgc, oldArgc, incr, ai;
+  int newArgc, oldArgc, incr, ai;
   FILE *file;
+  unsigned int len;
   
   newArgc = oldArgc = 0;
   while(oldArgv[oldArgc]) {
@@ -127,8 +129,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv, int nrf,
                  line, incr);
         airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
         for (ai=0; ai<=incr-1; ai++) {
-          /* This time, we did allocate memory.  We can use airFree and
-             not airFreeP because these will not be reset before mopping */
+          /* This time, we did allocate memory.  */
           airMopAdd(pmop, newArgv[newArgc+ai], airFree, airMopAlways);
         }
         len = airOneLine(file, line, AIR_STRLEN_HUGE);
@@ -448,7 +449,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
     /* extract the args after the flag */
     if (appr[flag]) {
       airMopSub(pmop, prms[flag], airFree);
-      prms[flag] = airFree(prms[flag]);
+      prms[flag] = (char *)airFree(prms[flag]);
     }
     prms[flag] = _hestExtract(argcP, argv, a, nprm[flag]);
     airMopAdd(pmop, prms[flag], airFree, airMopAlways);
@@ -648,7 +649,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
-      tmpS = airFree(tmpS);
+      tmpS = (char *)airFree(tmpS);
       /* printf("!%s: nprm[%d] in default = %d\n", me, op, nprm[op]); */
       if (opt[op].min < _hestMax(opt[op].max)) {
         if (!( AIR_IN_CL(opt[op].min, nprm[op], _hestMax(opt[op].max))
@@ -683,11 +684,11 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
     _hestIdent(ident, opt+op, parm, AIR_TRUE);
     type = opt[op].type;
     size = (airTypeEnum == type
-            ? (int)sizeof(int)
+            ? sizeof(int)
             : (airTypeOther == type
-               ? (int)opt[op].CB->size
+               ? opt[op].CB->size
                : airTypeSize[type]));
-    cP = vP = opt[op].valueP;
+    cP = (char *)vP = opt[op].valueP;
     if (parm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", 
              me, op, numOpts-1, prms[op], ident, opt[op].kind, type,
@@ -707,7 +708,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       if (prms[op] && vP) {
         switch (type) {
         case airTypeEnum:
-          if (1 != airParseStrE(vP, prms[op], " ", 1, opt[op].enm)) {
+          if (1 != airParseStrE((int*)vP, prms[op], " ", 1, opt[op].enm)) {
             sprintf(err, "%scouldn\'t parse %s\"%s\" as %s for %s",
                     ME, udflt[op] ? "(default) " : "", prms[op],
                     opt[op].enm->name, ident);
@@ -734,7 +735,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           }
           break;
         case airTypeString:
-          if (1 != airParseStrS(vP, prms[op], " ", 1,
+          if (1 != airParseStrS((char **)vP, prms[op], " ", 1,
                                 parm->greedySingleString)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", 
                     ME, udflt[op] ? "(default) " : "", prms[op],
@@ -764,7 +765,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
         switch (type) {
         case airTypeEnum:
           if (opt[op].min !=   /* min == max */
-              airParseStrE(vP, prms[op], " ", opt[op].min, opt[op].enm)) {
+              (int)airParseStrE((int*)vP, prms[op], " ", 
+                                opt[op].min, opt[op].enm)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                     ME, udflt[op] ? "(default) " : "", prms[op],
                     opt[op].min, opt[op].enm->name,
@@ -805,7 +807,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           break;
         case airTypeString:
           if (opt[op].min !=   /* min == max */
-              airParseStr[type](vP, prms[op], " ", opt[op].min, AIR_FALSE)) {
+              (int)airParseStr[type](vP, prms[op], " ",
+                                     opt[op].min, AIR_FALSE)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                     ME, udflt[op] ? "(default) " : "", prms[op],
                     opt[op].min, airTypeStr[type], 
@@ -821,7 +824,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           break;
         default:
           if (opt[op].min !=   /* min == max */
-              airParseStr[type](vP, prms[op], " ", opt[op].min)) {
+              (int)airParseStr[type](vP, prms[op], " ", opt[op].min)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                     ME, udflt[op] ? "(default) " : "", prms[op],
                     opt[op].min, airTypeStr[type], 
@@ -837,7 +840,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
       if (prms[op] && vP) {
         switch (type) {
         case airTypeEnum:
-          if (1 != airParseStrE(vP, prms[op], " ", 1, opt[op].enm)) {
+          if (1 != airParseStrE((int *)vP, prms[op], " ", 1, opt[op].enm)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s",
                     ME, udflt[op] ? "(default) " : "", prms[op],
                     opt[op].enm->name, ident);
@@ -881,7 +884,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           opt[op].alloc = 1;
           if (opt[op].flag && 1 == _hestCase(opt, udflt, nprm, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
-            *((char**)vP) = airFree(*((char**)vP));
+            *((char**)vP) = (char *)airFree(*((char**)vP));
             opt[op].alloc = 0;
           }
           /* vP is the address of a char* (a char**), and what we
@@ -931,8 +934,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           case airTypeEnum:
             opt[op].alloc = 1;
             if (nprm[op] != 
-                airParseStrE(*((void**)vP), prms[op], " ", nprm[op], 
-                             opt[op].enm)) {
+                (int)airParseStrE((int *)*((void**)vP), prms[op],
+                                  " ", nprm[op], opt[op].enm)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                       ME, udflt[op] ? "(default) " : "", prms[op],
                       nprm[op], opt[op].enm->name,
@@ -941,7 +944,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
             }
             break;
           case airTypeOther:
-            cP = *((void**)vP);
+            cP = (char *)*((void**)vP);
             prmsCopy = airStrdup(prms[op]);
             opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
             for (p=0; p<=nprm[op]-1; p++) {
@@ -981,8 +984,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           case airTypeString:
             opt[op].alloc = 3;
             if (nprm[op] != 
-                airParseStrS(*((void**)vP), prms[op], " ", nprm[op],
-                             AIR_FALSE)) {
+                (int)airParseStrS((char **)*((void**)vP), prms[op],
+                                  " ", nprm[op], AIR_FALSE)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                       ME, udflt[op] ? "(default) " : "", prms[op],
                       nprm[op], airTypeStr[type], 
@@ -1001,7 +1004,8 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           default:
             opt[op].alloc = 1;
             if (nprm[op] != 
-                airParseStr[type](*((void**)vP), prms[op], " ", nprm[op])) {
+                (int)airParseStr[type](*((void**)vP), prms[op],
+                                       " ", nprm[op])) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                       ME, udflt[op] ? "(default) " : "", prms[op],
                       nprm[op], airTypeStr[type], 
@@ -1050,7 +1054,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
      ridiculous safety we have to find the biggest things which can appear
      in the string. */
   big = _hestErrStrlen(opt, _argc, _argv);
-  if (!(err = calloc(big, sizeof(char)))) {
+  if (!(err = (char *)calloc(big, sizeof(char)))) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
     exit(1);
@@ -1075,10 +1079,14 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 
   /* -------- Create all the local arrays used to save state during
      the processing of all the different options */
-  nprm = calloc(numOpts, sizeof(int));   airMopMem(mop, &nprm, airMopAlways);
-  appr = calloc(numOpts, sizeof(int));   airMopMem(mop, &appr, airMopAlways);
-  udflt = calloc(numOpts, sizeof(int));  airMopMem(mop, &udflt, airMopAlways);
-  prms = calloc(numOpts, sizeof(char*)); airMopMem(mop, &prms, airMopAlways);
+  nprm = (int *)calloc(numOpts, sizeof(int));
+  airMopMem(mop, &nprm, airMopAlways);
+  appr = (int *)calloc(numOpts, sizeof(int));
+  airMopMem(mop, &appr, airMopAlways);
+  udflt = (int *)calloc(numOpts, sizeof(int));
+  airMopMem(mop, &udflt, airMopAlways);
+  prms = (char **)calloc(numOpts, sizeof(char*));
+  airMopMem(mop, &prms, airMopAlways);
   for (a=0; a<=numOpts-1; a++) {
     prms[a] = NULL;
   }
@@ -1096,13 +1104,13 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
            me, nrf, argr, _argc, argc);
   }
-  argv = calloc(argc+1, sizeof(char*));
+  argv = (char **)calloc(argc+1, sizeof(char*));
   airMopMem(mop, &argv, airMopAlways);
 
   /* -------- process response files (if any) and set the remaining
      elements of argv */
   if (parm->verbosity) printf("%s: #### calling hestResponseFiles\n", me);
-  if (_hestResponseFiles(argv, _argv, nrf, err, parm, mop)) {
+  if (_hestResponseFiles(argv, _argv, parm, mop)) {
     airMopError(mop); return 1;
   }
   if (parm->verbosity) printf("%s: #### hestResponseFiles done!\n", me);
@@ -1178,6 +1186,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 void *
 hestParseFree(hestOpt *opt) {
   int op, i, numOpts;
+  unsigned int ui;
   void **vP;
   void ***vAP;
   char **str;
@@ -1189,10 +1198,10 @@ hestParseFree(hestOpt *opt) {
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n", 
            op, numOpts-1, opt[op].kind, opt[op].type, opt[op].alloc);
     */
-    vP = opt[op].valueP;
-    vAP = opt[op].valueP;
-    str = opt[op].valueP;
-    strP = opt[op].valueP;
+    vP = (void **)opt[op].valueP;
+    vAP = (void ***)opt[op].valueP;
+    str = (char **)opt[op].valueP;
+    strP = (char ***)opt[op].valueP;
     switch (opt[op].alloc) {
     case 0:
       /* nothing was allocated */
@@ -1216,7 +1225,7 @@ hestParseFree(hestOpt *opt) {
     case 2:
       if (airTypeString == opt[op].type) {
         for (i=0; i<=opt[op].min-1; i++) {
-          str[i] = airFree(str[i]);
+          str[i] = (char *)airFree(str[i]);
         }
       }
       else {
@@ -1227,16 +1236,16 @@ hestParseFree(hestOpt *opt) {
       break;
     case 3:
       if (airTypeString == opt[op].type) {
-        for (i=0; i<=*(opt[op].sawP)-1; i++) {
-          (*strP)[i] = airFree((*strP)[i]);
+        for (ui=0; ui<=*(opt[op].sawP)-1; ui++) {
+          (*strP)[ui] = (char *)airFree((*strP)[ui]);
         }
-        *strP = airFree(*strP);
+        *strP = (char **)airFree(*strP);
       }
       else {
-        for (i=0; i<=*(opt[op].sawP)-1; i++) {
-          (*vAP)[i] = opt[op].CB->destroy((*vAP)[i]);
+        for (ui=0; ui<=*(opt[op].sawP)-1; ui++) {
+          (*vAP)[ui] = opt[op].CB->destroy((*vAP)[ui]);
         }
-        *vAP = airFree(*vAP);
+        *vAP = (void **)airFree(*vAP);
       }
       break;
     }

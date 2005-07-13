@@ -49,16 +49,17 @@ _baneIncProcess_Stdv(baneInc *inc, double val) {
 
 void
 _baneIncProcess_HistFill(baneInc *inc, double val) {
-  int idx, *hist;
+  int *hist;
+  unsigned int idx;
 
-  AIR_INDEX(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
-            inc->nhist->axis[0].size, idx);
+  idx = airIndex(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
+                 inc->nhist->axis[0].size);
   /*
   fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
           inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
           inc->nhist->axis[0].size, idx);
   */
-  if (AIR_IN_CL(0, idx, inc->nhist->axis[0].size-1)) {
+  if (idx < inc->nhist->axis[0].size) {
     hist = (int*)inc->nhist->data;
     hist[idx]++;
   }
@@ -75,6 +76,8 @@ int
 _baneIncAnswer_Absolute(double *minP, double *maxP,
                         Nrrd *hist, double *incParm,
                         baneRange *range) {
+  AIR_UNUSED(hist);
+  AIR_UNUSED(range);
   *minP = incParm[0];
   *maxP = incParm[1];
   return 0;
@@ -128,7 +131,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
 
   /* integrate histogram and determine how many hits to exclude */
   sum = 0;
-  hist = nhist->data;
+  hist = (int *)nhist->data;
   histSize = nhist->axis[0].size;
   for (i=0; i<histSize; i++) {
     sum += hist[i];

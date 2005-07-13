@@ -27,6 +27,7 @@ main(int argc, char *argv[]) {
   char *me, *err;
   int enc, form;
 
+  AIR_UNUSED(argc);
   me = argv[0];
   if (!nrrdSanity()) {
     printf("%s: nrrd sanity check FAILED:\n%s\n", me, err = biffGet(NRRD));

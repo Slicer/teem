@@ -36,7 +36,7 @@ int qbertSaveAll = AIR_FALSE;  /* can be used to save output of every stage */
 ** than the desired output volume.
 */
 int
-qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
+qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
             NrrdKernelSpec *uk) {
   char me[]="qbertSizeUp", err[AIR_STRLEN_MED];
   int i, anyneed, need, padMin[3], padMax[3];
@@ -50,7 +50,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
   if (uk) {
     for (i=0; i<=2; i++) {
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = %d -> need = %d --> ", 
+      fprintf(stderr, "%s: sz[%d] = " _AIR_SIZE_T_CNV " -> need = %d --> ", 
               me, i, nin->axis[i].size, need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> %s resample\n", need, need ? "WILL" : "won't");
@@ -86,7 +86,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
   } else {
     for (i=0; i<=2; i++) {
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = %d -> need = %d --> ", 
+      fprintf(stderr, "%s: sz[%d] = " _AIR_SIZE_T_CNV " -> need = %d --> ", 
               me, i, nin->axis[i].size, need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> ", need);
@@ -121,11 +121,12 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, int *sz,
 ** resampling to get axis[i]'s size down to exactly sz[i]
 */
 int
-qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
+qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
               NrrdKernelSpec *dk) {
   char me[]="qbertSizeDown", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rsi;
-  int i, need;
+  int need;
+  unsigned int i;
   airArray *mop;
 
   mop = airMopNew();
@@ -150,7 +151,8 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
       rsi->min[i] = nin->axis[i].min;
       rsi->max[i] = nin->axis[i].max;
       nin->axis[i].center = nrrdCenterNode;
-      fprintf(stderr, "%s: downsampling axis %d from %d to %d samples\n", 
+      fprintf(stderr, "%s: downsampling axis %d from " _AIR_SIZE_T_CNV 
+              " to " _AIR_SIZE_T_CNV " samples\n", 
               me, i, nin->axis[i].size, rsi->samples[i]);
     }
     else {
@@ -186,13 +188,14 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, int *sz,
 int
 qbertProbe(Nrrd *nout, Nrrd *nin,
            NrrdKernelSpec *k00, NrrdKernelSpec *k11, NrrdKernelSpec *k22,
-           int doH, int *sz) {
+           int doH, unsigned int *sz) {
   char me[]="qbertProbe", err[AIR_STRLEN_MED], prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
   gage_t *val, *gmag, *scnd;
   float *vghF;
-  int E, i, j, k;
+  int E;
+  unsigned int i, j, k;
   airArray *mop;
   
   doH = !!doH;
@@ -238,7 +241,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
             me, doH ? "H" : "");
     biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
   }
-  vghF = nout->data;
+  vghF = (float *)nout->data;
   fprintf(stderr, "%s: probing ...       ", me); fflush(stderr);
   for (k=0; k<sz[2]; k++) {
     for (j=0; j<sz[1]; j++) {
@@ -273,12 +276,13 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
 */
 int
 qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
-                  int *sz, int bins,
+                  unsigned int *sz, int bins,
                   Nrrd *nvghF, Nrrd *nin) {
   char me[]="qbertMakeVghHists", err[AIR_STRLEN_MED];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   float *vghF;
-  int nval, doH, i, E, *vhist, *ghist, *hhist=NULL, vi, gi, hi;
+  unsigned int i;
+  int nval, doH, E, *vhist, *ghist, *hhist=NULL, vi, gi, hi;
 
   nval = nvghF->axis[0].size;
   doH = !!(nval == 3);
@@ -344,12 +348,12 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   }
   vghF = (float *)nvghF->data;
   for (i=0; i<sz[0]*sz[1]*sz[2]; i++) {
-    AIR_INDEX(minv, vghF[0], maxv, bins, vi); vi = AIR_CLAMP(0, vi, bins-1);
-    AIR_INDEX(ming, vghF[1], maxg, bins, gi);
+    vi = airIndexClamp(minv, vghF[0], maxv, bins);
+    gi = airIndex(ming, vghF[1], maxg, bins);
     vhist[vi]++;
     ghist[gi]++;
     if (doH) {
-      AIR_INDEX(minh, vghF[2], maxh, bins, hi);
+      hi = airIndex(minh, vghF[2], maxh, bins);
       hhist[hi]++;
     }
     vghF += nval;
@@ -371,11 +375,12 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 */
 int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
-             int *sz, float *perc,
+             unsigned int *sz, float *perc,
              Nrrd *nvghF) {
   char me[]="qbertMakeVgh", err[AIR_STRLEN_MED], cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
-  int lose, i, *vhist, *ghist, *hhist=NULL, bins, vi, gi, hi, nval, doH;
+  int lose, *vhist, *ghist, *hhist=NULL, bins, vi, gi, hi, nval, doH;
+  unsigned int i;
   unsigned char *vgh;
   float *vghF;
 
@@ -390,7 +395,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
     hhist = (int *)nhhist->data;
   }
 
-  lose = perc[0]*sz[0]*sz[1]*sz[2]/100;
+  lose = (int)(perc[0]*sz[0]*sz[1]*sz[2]/100);
   bins = nvhist->axis[0].size;
   i = bins-1;
   while (lose > 0) {
@@ -401,7 +406,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   }
   maxv = AIR_AFFINE(0, i, bins-1, minv, maxv);
 
-  lose = perc[1]*sz[0]*sz[1]*sz[2]/100;
+  lose = (int)(perc[1]*sz[0]*sz[1]*sz[2]/100);
   bins = nghist->axis[0].size;
   i = bins-1;
   while (lose > 0) {
@@ -411,7 +416,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   maxg = AIR_AFFINE(0, i, bins-1, ming, maxg);
 
   if (doH) {
-    lose = perc[2]*sz[0]*sz[1]*sz[2]/100;
+    lose = (int)(perc[2]*sz[0]*sz[1]*sz[2]/100);
     bins = nhhist->axis[0].size;
     i = 0;
     while (lose > 0) {
@@ -441,12 +446,12 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   vgh = (unsigned char*)nvgh->data;
   vghF = (float*)nvghF->data;
   for (i=0; i<sz[0]*sz[1]*sz[2]; i++) {
-    AIR_INDEX(minv, vghF[0], maxv, 254, vi);
+    vi = airIndex(minv, vghF[0], maxv, 254);
     vgh[0] = AIR_CLAMP(1, vi+1, 254);
-    AIR_INDEX(ming, vghF[1], maxg, 254, gi);
+    gi = airIndex(ming, vghF[1], maxg, 254);
     vgh[1] = AIR_CLAMP(1, gi+1, 254);
     if (doH) {
-      AIR_INDEX(minh, vghF[2], maxh, 168, hi);
+      hi = airIndex(minh, vghF[2], maxh, 168);
       vgh[2] = AIR_CLAMP(1, hi+1, 169);
     }
     vgh += nval;
@@ -477,7 +482,8 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   char me[]="qbertScat", err[AIR_STRLEN_MED];
   Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
-  int E, bins[2], clamp[2];
+  size_t bins[2];
+  int E, clamp[2];
   NrrdRange *range;
 
   bins[0] = bins[1] = size;
@@ -528,7 +534,8 @@ int
 main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
-  int E, i, sz[3], ups, notdoH, useFloat, scat;
+  int E, i, ups, notdoH, useFloat, scat;
+  unsigned int sz[3];
   NrrdKernelSpec *k00, *k11, *k22;
   double amin[4], amax[4], spacing[4];
   float vperc, gperc, hperc, perc[3];
@@ -556,7 +563,7 @@ main(int argc, char *argv[]) {
              "Keep the output volume in floating point, instead of "
              "(by default) quantizing down to 8-bits.  The "
              "\"-vp\", \"-gp\", and \"-hp\" options become moot.");
-  hestOptAdd(&hopt, "d", "dimX dimY dimZ", airTypeInt, 3, 3, sz, NULL,
+  hestOptAdd(&hopt, "d", "dimX dimY dimZ", airTypeUInt, 3, 3, sz, NULL,
              "dimensions of output volume");
   hestOptAdd(&hopt, "up", NULL, airTypeInt, 0, 0, &ups, NULL,
              "Instead of just padding axes up to dimensions given "

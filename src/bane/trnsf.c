@@ -60,7 +60,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     }
     info->axis[1].min = hvol->axis[2].min;
     info->axis[1].max = hvol->axis[2].max;
-    data1D = info->data;
+    data1D = (float *)info->data;
 
     /* sum up along 2nd deriv for each data value, grad mag */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1,
@@ -109,7 +109,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     info->axis[1].max = hvol->axis[2].max;
     info->axis[2].min = hvol->axis[0].min;
     info->axis[2].max = hvol->axis[0].max;
-    data2D = info->data;
+    data2D = (float *)info->data;
 
     /* first create h(v,g) */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1, measr, nrrdTypeDefault)) {
@@ -179,7 +179,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   }
   info1D->axis[1].min = info2D->axis[1].min;
   info1D->axis[1].max = info2D->axis[1].max;
-  data1D = info1D->data;
+  data1D = (float *)info1D->data;
 
   for (i=0; i<len; i++) {
     data1D[0 + 2*i] = nrrdFLookup[projG1->type](projG1->data, 1 + 2*i);
@@ -200,7 +200,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   float maxg, maxh, minh, *data;
   
   len = info1D->axis[1].size;
-  data = info1D->data;
+  data = (float *)info1D->data;
   maxg = -1;
   maxh = -1;
   minh = 1;
@@ -279,8 +279,8 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     }
     pos->axis[0].min = info->axis[1].min;
     pos->axis[0].max = info->axis[1].max;
-    posData = pos->data;
-    infoData = info->data;
+    posData = (float *)pos->data;
+    infoData = (float *)info->data;
     for (i=0; i<len; i++) {
       /* from pg. 55 of GK's MS */
       g = infoData[0+2*i];
@@ -304,7 +304,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     pos->axis[0].max = info->axis[1].max;
     pos->axis[1].min = info->axis[2].min;
     pos->axis[1].max = info->axis[2].max;
-    posData = pos->data;
+    posData = (float *)pos->data;
     for (gi=0; gi<sg; gi++) {
       g = AIR_AFFINE(0, gi, sg-1, info->axis[2].min, info->axis[2].max);
       for (vi=0; vi<sv; vi++) {
@@ -325,10 +325,10 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 }
 
 void
-_baneOpacCalcA(int lutLen, float *opacLut, 
-               int numCpts, float *xo,
+_baneOpacCalcA(unsigned int lutLen, float *opacLut, 
+               unsigned int numCpts, float *xo,
                float *pos) {
-  int i, j;
+  unsigned int i, j;
   float p;
 
   for (i=0; i<lutLen; i++) {
@@ -360,11 +360,11 @@ _baneOpacCalcA(int lutLen, float *opacLut,
 }
 
 void
-_baneOpacCalcB(int lutLen, float *opacLut, 
-               int numCpts, float *x, float *o,
+_baneOpacCalcB(unsigned int lutLen, float *opacLut, 
+               unsigned int numCpts, float *x, float *o,
                float *pos) {
   /* char me[]="_baneOpacCalcB"; */
-  int i, j;
+  unsigned int i, j;
   float p, op;
 
   /*
@@ -436,9 +436,9 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     }
     opac->axis[0].min = pos->axis[0].min;
     opac->axis[0].max = pos->axis[0].max;
-    odata = opac->data;
-    bdata = Bcpts->data;
-    pdata = pos->data;
+    odata = (float *)opac->data;
+    bdata = (float *)Bcpts->data;
+    pdata = (float *)pos->data;
     npts = Bcpts->axis[1].size;
     _baneOpacCalcA(len, odata, npts, bdata, pdata);
   }
@@ -452,9 +452,9 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     opac->axis[0].max = pos->axis[0].max;
     opac->axis[1].min = pos->axis[1].min;
     opac->axis[1].max = pos->axis[1].max;
-    odata = opac->data;
-    bdata = Bcpts->data;
-    pdata = pos->data;
+    odata = (float *)opac->data;
+    bdata = (float *)Bcpts->data;
+    pdata = (float *)pos->data;
     npts = Bcpts->axis[1].size;
     _baneOpacCalcA(sv*sg, odata, npts, bdata, pdata);
   }

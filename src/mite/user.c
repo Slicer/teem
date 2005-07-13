@@ -75,7 +75,7 @@ miteUserNix(miteUser *muu) {
 
   if (muu) {
     airMopOkay(muu->umop);
-    muu = airFree(muu);
+    airFree(muu);
   }
   return NULL;
 }
@@ -83,11 +83,12 @@ miteUserNix(miteUser *muu) {
 int
 _miteUserCheck(miteUser *muu) {
   char me[]="miteUserCheck", err[AIR_STRLEN_MED];
-  int T, axi, gotOpac;
+  int T, gotOpac;
   gageItemSpec isp;
   gageQuery queryScl, queryVec, queryTen, queryMite;
   miteShadeSpec *shpec;
   airArray *mop;
+  unsigned int axi;
   
   if (!muu) {
     sprintf(err, "%s: got NULL pointer", me);

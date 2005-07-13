@@ -63,7 +63,8 @@ main(int argc, char *argv[]) {
   char *me, *outS, *errS;
   double gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
-  int E, min[3], max[3], i, rI, gI, bI, sx, sy;
+  int E;
+  size_t min[3], max[3], sx, sy, pi;
   unsigned char *outUC, *bgUC;
   NrrdResampleInfo *rinfo;
 
@@ -172,9 +173,9 @@ main(int argc, char *argv[]) {
   contr = AIR_CLAMP(-1, contr, 1);
   cpow = tan(AIR_AFFINE(-1.000001, contr, 1.000001, 0, AIR_PI/2));
   outUC = (unsigned char*)nout->data;
-  bgUC = nbg ? nbg->data : NULL;
+  bgUC = nbg ? (unsigned char *)nbg->data : NULL;
   rgbaD = (double *)nrgbaD->data;
-  for (i=0; i<sx*sy; i++) {
+  for (pi=0; pi<sx*sy; pi++) {
     r = AIR_CLAMP(0, rgbaD[0], 1);
     g = AIR_CLAMP(0, rgbaD[1], 1);
     b = AIR_CLAMP(0, rgbaD[2], 1);
@@ -188,20 +189,17 @@ main(int argc, char *argv[]) {
     g = pow(g, 1.0/gamma);
     b = pow(b, 1.0/gamma);
     if (bgUC) {
-      r = a*r + (1-a)*bgUC[0 + 3*i]/255;
-      g = a*g + (1-a)*bgUC[1 + 3*i]/255;
-      b = a*b + (1-a)*bgUC[2 + 3*i]/255;
+      r = a*r + (1-a)*bgUC[0 + 3*pi]/255;
+      g = a*g + (1-a)*bgUC[1 + 3*pi]/255;
+      b = a*b + (1-a)*bgUC[2 + 3*pi]/255;
     } else {
       r = a*r + (1-a)*back[0];
       g = a*g + (1-a)*back[1];
       b = a*b + (1-a)*back[2];
     }
-    AIR_INDEX(0.0, r, 1.0, 256, rI);
-    AIR_INDEX(0.0, g, 1.0, 256, gI);
-    AIR_INDEX(0.0, b, 1.0, 256, bI);
-    outUC[0] = rI;
-    outUC[1] = gI;
-    outUC[2] = bI;
+    outUC[0] = airIndex(0.0, r, 1.0, 256);
+    outUC[1] = airIndex(0.0, g, 1.0, 256);
+    outUC[2] = airIndex(0.0, b, 1.0, 256);
     outUC += 3;
     rgbaD += 4;
   }

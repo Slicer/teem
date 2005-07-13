@@ -74,7 +74,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   SPLIT(split)->obj0 = list0;
   SPLIT(split)->obj1 = list1;
 
-  mids = malloc(2 * len * sizeof(double));
+  mids = (double *)malloc(2 * len * sizeof(double));
   for (i=0; i<len; i++) {
     o = LIST(list)->obj[i];
     echoBoundsGet(lo, hi, o);
@@ -136,7 +136,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   /* we can't delete the list object here, we just gut it so 
      that there's nothing substantial left of it */
   airArrayLenSet(LIST(list)->objArr, 0);
-  mids = airFree(mids);
+  mids = (double *)airFree(mids);
   return split;
 }
 

@@ -32,7 +32,8 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
   char me[]="fixproj", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd *ntmp[3], *nt;
-  int sz[3], ii, map[3], h[3], E, mi, rsz[3];
+  int sz[3], ii, map[3], h[3], E, mi;
+  size_t rsz[3];
   double vec[3][3], dot[3], sp[3], parm[NRRD_KERNEL_PARMS_NUM];
 
   mop = airMopNew();
@@ -107,9 +108,9 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     sp[ii] = ELL_3V_LEN(nvol->axis[map[ii]].spaceDirection);
   }
   mi = ELL_MIN3_IDX(sp[0], sp[1], sp[2]);
-  sz[0] *= sp[0]/sp[mi];
-  sz[1] *= sp[1]/sp[mi];
-  sz[2] *= sp[2]/sp[mi];
+  sz[0] = (int)(sz[0]*sp[0]/sp[mi]);
+  sz[1] = (int)(sz[1]*sp[1]/sp[mi]);
+  sz[2] = (int)(sz[2]*sp[2]/sp[mi]);
 
   parm[0] = 1;
   ELL_3V_SET(rsz, 3, sz[1], sz[2]);
@@ -182,7 +183,8 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   char me[]="doit", err[AIR_STRLEN_MED];
   Nrrd *nproj[3], *ntmp;
   airArray *mop;
-  int axis, srl, sap, ssi, min[3], E, margin, which;
+  int axis, srl, sap, ssi, E, margin, which;
+  size_t min[3];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);

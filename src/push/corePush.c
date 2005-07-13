@@ -25,8 +25,9 @@ int
 _pushProcessDummy(pushTask *task, int bin, 
                   const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
   char me[]="_pushProcessDummy";
-  int i, j;
+  unsigned int i, j;
 
+  AIR_UNUSED(parm);
   fprintf(stderr, "%s(%d): dummy processing bin %d (stage %d)\n", me,
           task->threadIdx, bin, task->pctx->stageIdx);
   j = 0;
@@ -51,7 +52,7 @@ _pushProcessDummy(pushTask *task, int bin,
 int
 _pushStageRun(pushTask *task, int stageIdx) {
   char me[]="_pushStageRun", err[AIR_STRLEN_MED];
-  int binIdx;
+  unsigned int binIdx;
   
   while (task->pctx->binIdx < task->pctx->numBin) {
     if (task->pctx->numThread > 1) {
@@ -127,7 +128,8 @@ _pushWorker(void *_task) {
 int
 _pushContextCheck(pushContext *pctx) {
   char me[]="_pushContextCheck", err[AIR_STRLEN_MED];
-  int sidx, nul;
+  unsigned int sidx;
+  int nul;
   
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -204,7 +206,7 @@ _pushContextCheck(pushContext *pctx) {
 int
 pushStart(pushContext *pctx) {
   char me[]="pushStart", err[AIR_STRLEN_MED];
-  int tidx;
+  unsigned int tidx;
 
   if (_pushContextCheck(pctx)) {
     sprintf(err, "%s: trouble", me);
@@ -258,7 +260,7 @@ pushStart(pushContext *pctx) {
 int
 pushIterate(pushContext *pctx) {
   char me[]="pushIterate", *_err, err[AIR_STRLEN_MED];
-  int ti, numThing;
+  unsigned int ti, numThing;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -333,7 +335,7 @@ pushRun(pushContext *pctx) {
   vel[1] = AIR_NAN;
   do {
     if (400 == pctx->iter) {
-      int bi, ti;
+      unsigned int bi, ti;
       pushBin *bin;
       for (bi=0; bi<pctx->numBin; bi++) {
         bin = pctx->bin + bi;
@@ -402,7 +404,7 @@ pushRun(pushContext *pctx) {
 int
 pushFinish(pushContext *pctx) {
   char me[]="pushFinish", err[AIR_STRLEN_MED];
-  int ii, tidx;
+  unsigned int ii, tidx;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -416,14 +418,15 @@ pushFinish(pushContext *pctx) {
   if (pctx->numThread > 1) {
     airThreadBarrierWait(pctx->stageBarrierA);
   }
-  for (tidx=pctx->numThread-1; tidx>=0; tidx--) {
-    if (tidx) {
-      airThreadJoin(pctx->task[tidx]->thread, &(pctx->task[tidx]->returnPtr));
+  for (tidx=pctx->numThread; tidx>0; tidx--) {
+    if (tidx-1) {
+      airThreadJoin(pctx->task[tidx-1]->thread,
+                    &(pctx->task[tidx-1]->returnPtr));
     }
-    pctx->task[tidx]->thread = airThreadNix(pctx->task[tidx]->thread);
-    pctx->task[tidx] = _pushTaskNix(pctx->task[tidx]);
+    pctx->task[tidx-1]->thread = airThreadNix(pctx->task[tidx-1]->thread);
+    pctx->task[tidx-1] = _pushTaskNix(pctx->task[tidx-1]);
   }
-  pctx->task = airFree(pctx->task);
+  pctx->task = (pushTask **)airFree(pctx->task);
 
   pctx->nten = nrrdNuke(pctx->nten);
   pctx->ninv = nrrdNuke(pctx->ninv);
@@ -433,7 +436,7 @@ pushFinish(pushContext *pctx) {
   for (ii=0; ii<pctx->numBin; ii++) {
     pushBinDone(pctx->bin + ii);
   }
-  pctx->bin = airFree(pctx->bin);
+  pctx->bin = (pushBin *)airFree(pctx->bin);
   pctx->binsEdge = pctx->numBin = 0;
 
   if (pctx->numThread > 1) {

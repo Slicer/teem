@@ -25,7 +25,7 @@
 void
 _baneAxisInit(baneAxis *axis) {
 
-  axis->res = -1;
+  axis->res = 0;
   axis->measr = NULL;
   axis->inc = NULL;
 }
@@ -42,7 +42,7 @@ baneHVolParmNew() {
   baneHVolParm *hvp;
   int i, j;
   
-  hvp = calloc(1, sizeof(baneHVolParm));
+  hvp = (baneHVolParm *)calloc(1, sizeof(baneHVolParm));
   if (hvp) {
     hvp->verbose = baneDefVerbose;
     hvp->makeMeasrVol = baneDefMakeMeasrVol;
@@ -65,10 +65,10 @@ baneHVolParmNew() {
 }
 
 void
-baneHVolParmAxisSet(baneHVolParm *hvp, int axisIdx,
-                    int res, baneMeasr *measr, baneInc *inc) {
+baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
+                    unsigned int res, baneMeasr *measr, baneInc *inc) {
 
-  if (hvp && AIR_IN_CL(0, axisIdx, 2)) {
+  if (hvp && axisIdx <= 2) {
     _baneAxisEmpty(hvp->axis + axisIdx);
     hvp->axis[axisIdx].res = res;
     hvp->axis[axisIdx].measr = baneMeasrCopy(measr);

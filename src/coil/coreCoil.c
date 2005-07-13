@@ -30,11 +30,11 @@
     iv3[diam-1] = tmp; \
     /* refill only newest one */ \
     xni = diam-1; \
-    xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
+    xvi = AIR_CLAMP(0, xni-(int)radius+x0, sizeX-1) - x0; \
     for (zni=0; zni<diam; zni++) { \
-      zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
+      zvi = AIR_CLAMP(0, zni-(int)radius+z0, sizeZ-1) - z0; \
       for (yni=0; yni<diam; yni++) { \
-        yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+        yvi = AIR_CLAMP(0, yni-(int)radius+y0, sizeY-1) - y0; \
         for (vi=0; vi<valLen; vi++) { \
           iv3[xni][vi + valLen*(yni + diam*zni)] =  \
             here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
@@ -44,11 +44,11 @@
   } else { \
     /* have to re-fill entire thing */ \
     for (zni=0; zni<diam; zni++) { \
-      zvi = AIR_CLAMP(0, zni-radius+z0, sizeZ-1) - z0; \
+      zvi = AIR_CLAMP(0, zni-(int)radius+z0, sizeZ-1) - z0; \
       for (yni=0; yni<diam; yni++) { \
-        yvi = AIR_CLAMP(0, yni-radius+y0, sizeY-1) - y0; \
+        yvi = AIR_CLAMP(0, yni-(int)radius+y0, sizeY-1) - y0; \
         for (xni=0; xni<diam; xni++) { \
-          xvi = AIR_CLAMP(0, xni-radius+x0, sizeX-1) - x0; \
+          xvi = AIR_CLAMP(0, xni-(int)radius+x0, sizeX-1) - x0; \
           for (vi=0; vi<valLen; vi++) { \
             iv3[xni][vi + valLen*(yni + diam*zni)] =  \
               here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
@@ -65,7 +65,7 @@
 ** this should be parameterized on both radius and valLen
 */
 void
-_coilIv3Fill_R_L(coil_t **iv3, coil_t *here, int radius, int valLen,
+_coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
                  int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int diam, vi,    /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
@@ -78,24 +78,30 @@ _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, int radius, int valLen,
 }
 
 void
-_coilIv3Fill_1_1(coil_t **iv3, coil_t *here, int radius, int valLen,
-             int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+_coilIv3Fill_1_1(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
+                 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
   coil_t *tmp;
+
+  AIR_UNUSED(radius);
+  AIR_UNUSED(valLen);
 
   _COIL_IV3_FILL(1, 3, 1);
   return;
 }
 
 void
-_coilIv3Fill_1_7(coil_t **iv3, coil_t *here, int radius, int valLen,
+_coilIv3Fill_1_7(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
              int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
   coil_t *tmp;
+
+  AIR_UNUSED(radius);
+  AIR_UNUSED(valLen);
 
   _COIL_IV3_FILL(1, 3, 7);
   return;
@@ -215,8 +221,8 @@ _coilTaskNix(coilTask *task) {
 
   if (task) {
     task->thread = airThreadNix(task->thread);
-    task->_iv3 = airFree(task->_iv3);
-    task->iv3 = airFree(task->iv3);
+    task->_iv3 = (coil_t *)airFree(task->_iv3);
+    task->iv3 = (coil_t **)airFree(task->iv3);
     free(task);
   }
   return NULL;
@@ -267,8 +273,9 @@ _coilWorker(void *_task) {
 int
 coilStart(coilContext *cctx) {
   char me[]="coilStart", err[AIR_STRLEN_MED];
-  int tidx, elIdx, valIdx, valLen;
+  int valIdx, valLen;
   coil_t (*lup)(const void*, size_t), *val;
+  unsigned tidx, elIdx;
 
   if (!cctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -386,7 +393,7 @@ coilIterate(coilContext *cctx, int numIterations) {
 int
 coilFinish(coilContext *cctx) {
   char me[]="coilFinish", err[AIR_STRLEN_MED];
-  int tidx;
+  unsigned int tidx;
 
   if (!cctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -407,7 +414,7 @@ coilFinish(coilContext *cctx) {
   }
   cctx->task[0]->thread = airThreadNix(cctx->task[0]->thread);
   cctx->task[0] = _coilTaskNix(cctx->task[0]);
-  cctx->task = airFree(cctx->task);
+  cctx->task = (coilTask **)airFree(cctx->task);
 
   if (cctx->numThreads > 1) {
     cctx->nextSliceMutex = airThreadMutexNix(cctx->nextSliceMutex);

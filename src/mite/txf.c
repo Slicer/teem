@@ -27,7 +27,7 @@
 #include "privateMite.h"
 
 char
-miteRangeChar[MITE_RANGE_NUM] = "ARGBEadsp";
+miteRangeChar[MITE_RANGE_NUM+1] = "ARGBEadsp";
 
 char
 _miteStageOpStr[][AIR_STRLEN_SMALL] = {
@@ -221,7 +221,8 @@ int
 miteNtxfCheck(const Nrrd *ntxf) {
   char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *rangeStr, *domStr;
   gageItemSpec isp;
-  int rii, axi, log2;
+  int log2;
+  unsigned int rii, axi;
 
   if (nrrdCheck(ntxf)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
@@ -247,12 +248,13 @@ miteNtxfCheck(const Nrrd *ntxf) {
     sprintf(err, "%s: axis[0]'s label doesn't specify txf range", me);
     biffAdd(MITE, err); return 1;
   }
-  if ((int)airStrlen(rangeStr) != ntxf->axis[0].size) {
-    sprintf(err, "%s: axis[0]'s size is %d, but label specifies %d values",
-            me, ntxf->axis[0].size, (int)airStrlen(rangeStr));
+  if (airStrlen(rangeStr) != ntxf->axis[0].size) {
+    sprintf(err, "%s: axis[0]'s size is " _AIR_SIZE_T_CNV 
+            ", but label specifies " _AIR_SIZE_T_CNV " values",
+            me, ntxf->axis[0].size, airStrlen(rangeStr));
     biffAdd(MITE, err); return 1;
   }
-  for (rii=0; rii<(int)airStrlen(rangeStr); rii++) {
+  for (rii=0; rii<airStrlen(rangeStr); rii++) {
     if (!strchr(miteRangeChar, rangeStr[rii])) {
       sprintf(err, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
               "transfer function range specifier (not in \"%s\")",
@@ -286,7 +288,8 @@ miteNtxfCheck(const Nrrd *ntxf) {
       /* has to be right length for one of the quantization schemes */
       log2 = airLog2(ntxf->axis[axi].size);
       if (-1 == log2) {
-        sprintf(err, "%s: txf axis size for %s must be power of 2 (not %d)",
+        sprintf(err, "%s: txf axis size for %s must be power of 2 (not "
+                _AIR_SIZE_T_CNV ")",
                 me, domStr, ntxf->axis[axi].size);
         biffAdd(MITE, err); return 1;
       } else {
@@ -449,7 +452,7 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
     if (!strchr(ntxf->axis[0].label, miteRangeChar[miteRangeAlpha]))
       continue;
     /* else this txf sets opacity */
-    data = ntxf->data;
+    data = (mite_t *)ntxf->data;
     rnum = ntxf->axis[0].size;
     nnum = nrrdElementNumber(ntxf)/rnum;
     for (ei=0; ei<nnum; ei++) {
@@ -563,7 +566,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
       if (di > 1) {
         stage->data = NULL;
       } else {
-        stage->data = ntxf->data;
+        stage->data = (mite_t *)ntxf->data;
         value = nrrdKeyValueGet(ntxf, "miteStageOp");
         if (value) {
           stage->op = airEnumVal(miteStageOp, value);
@@ -588,8 +591,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
           case 15: stage->qn = limnVtoQN_GT[limnQN15octa]; break;
           case 16: stage->qn = limnVtoQN_GT[limnQN16octa]; break;
           default:
-            sprintf(err, "%s: txf axis %d size %d not usable for vector "
-                    "txf domain variable %s", me,
+            sprintf(err, "%s: txf axis %d size " _AIR_SIZE_T_CNV 
+                    " not usable for vector txf domain variable %s", me,
                     di, ntxf->axis[di].size, ntxf->axis[di].label);
             biffAdd(MITE, err); return 1;
             break;
@@ -636,7 +639,7 @@ _miteStageRun(miteThread *mtt, miteUser *muu) {
       /* right now, we can't store vector-valued txf domain variables */
     } else {
       /* its a scalar txf domain variable */
-      AIR_INDEX(stage->min, *(stage->val), stage->max, stage->size, txfIdx);
+      txfIdx = airIndex(stage->min, *(stage->val), stage->max, stage->size);
       if (mtt->verbose) {
         dbg[0 + 2*stageIdx] = *(stage->val);
       }

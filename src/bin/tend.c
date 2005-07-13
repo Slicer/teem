@@ -78,7 +78,7 @@ main(int argc, char **argv) {
   if (tendCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = malloc(strlen(TEND) + strlen(argv[1]) + 2);
+    argv0 = (char *)calloc(strlen(TEND) + strlen(argv[1]) + 2, sizeof(char));
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", TEND, argv[1]);
 

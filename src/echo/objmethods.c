@@ -98,8 +98,8 @@ NEW_TMPL(TriMesh,
          obj->vert = NULL;
          )
 NIX_TMPL(TriMesh,
-         obj->pos = airFree(obj->pos);
-         obj->vert = airFree(obj->vert);
+         obj->pos = (echoPos_t *)airFree(obj->pos);
+         obj->vert = (int *)airFree(obj->vert);
          )
 
 NEW_TMPL(Isosurface,

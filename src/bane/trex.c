@@ -49,12 +49,12 @@ _baneTRexRead(char *fname) {
     return NULL;
   }
   if (TREX_LUTLEN != baneNpos->axis[0].size) {
-    fprintf(stderr, "%s: !!! need a length %d p(x) (not %d)\n", me, 
-            TREX_LUTLEN, baneNpos->axis[0].size); 
+    fprintf(stderr, "%s: !!! need a length %d p(x) (not " _AIR_SIZE_T_CNV
+            ")\n", me, TREX_LUTLEN, baneNpos->axis[0].size); 
     return NULL;
   }
 
-  return baneNpos->data;
+  return (float *)baneNpos->data;
 }
 
 void

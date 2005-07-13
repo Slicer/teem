@@ -74,7 +74,7 @@ typedef struct {
   void *valueP;         /* storage of parsed values */
   char *dflt,           /* default value written out as string */
     *info;              /* description to be printed with "glossary" info */
-  int *sawP;            /* used ONLY for multiple variable parameter options
+  unsigned int *sawP;   /* used ONLY for multiple variable parameter options
                            (min < max > 2): storage of # of parsed values */
   airEnum *enm;         /* used ONLY for airTypeEnum options */
   hestCB *CB;           /* used ONLY for airTypeOther options */
@@ -176,7 +176,8 @@ TEEM_API void hestOptAdd(hestOpt **optP,
                          char *flag, char *name,
                          int type, int min, int max,
                          void *valueP, const char *dflt, const char *info,
-                         ... /* int *sawP, airEnum *enm , hestCB *CB */);
+                         ... /* unsigned int *sawP, airEnum *enm, 
+                                hestCB *CB */);
 TEEM_API hestOpt *hestOptFree(hestOpt *opt);
 TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
 

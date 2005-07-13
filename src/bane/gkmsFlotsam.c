@@ -41,7 +41,7 @@ baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  inc = ptr;
+  inc = (double *)ptr;
   incParm = inc + 1;
   for (i=0; i<BANE_PARM_NUM; i++) {
     incParm[i] = AIR_NAN;
@@ -114,7 +114,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       airMopError(mop);
       return 1;
     }
-    bef = (*nrrdP)->data;
+    bef = (float *)((*nrrdP)->data);
     off = AIR_AFFINE(0.0, shape, 1.0, 0.0, width/2);
     /* positions */
     bef[0 + 2*0] = cent - 2*width;
@@ -180,7 +180,7 @@ baneGkmsParseGthresh(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  gthr = ptr;
+  gthr = (float *)ptr;
 
   if ('x' == str[0]) {
     if (1 != sscanf(str+1, "%f", gthr+1)) {

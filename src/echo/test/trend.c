@@ -843,7 +843,8 @@ main(int argc, char **argv) {
   airArray *mop;
   char *me, *err, *env;
   int E, tmp;
-  
+
+  AIR_UNUSED(argc);
   me = argv[0];
 
   mop = airMopNew();

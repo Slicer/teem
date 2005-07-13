@@ -1,5 +1,5 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Coordinated libraries for processing and visualizing scientific data
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -102,11 +102,11 @@ typedef struct pushThing_t {
   int ttaagg;
   pushPoint point;             /* information about single point, or a
                                   seed point, hard to say exactly */
-  int numVert;                 /* 1 for single point, else length of vert[] */
+  unsigned int numVert;        /* 1 for single point, else length of vert[] */
   pushPoint *vert;             /* dyn. alloc. array of tractlet vertices
                                   (*not* pointers to pushPoints), or, just
                                   the address of "point" for single point */
-  int seedIdx;                 /* which of the vertices is the seed point */
+  unsigned int seedIdx;        /* which of the vertices is the seed point */
   push_t len;                  /* 0 for point, else (world-space) length of
                                   tractlet */
 } pushThing;
@@ -125,10 +125,10 @@ typedef struct pushThing_t {
 ** points, bins do not own the points they contain.
 */
 typedef struct pushBin_t {
-  int numPoint;                /* # of points in this bin */
+  unsigned int numPoint;       /* # of points in this bin */
   pushPoint **point;           /* dyn. alloc. array of point pointers */
   airArray *pointArr;          /* airArray around pointPtr and numThing */
-  int numThing;                /* # of things in this bin */
+  unsigned int numThing;       /* # of things in this bin */
   pushThing **thing;           /* dyn. alloc. array of thing pointers */
   airArray *thingArr;          /* airArray around thingPtr and numThing */
   struct pushBin_t **neighbor; /* pre-computed NULL-terminated list of all
@@ -147,7 +147,7 @@ typedef struct pushTask_t {
     *cntAns;                   /* results of gage probing */
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */
-  int threadIdx,               /* which thread am I */
+  unsigned int threadIdx,      /* which thread am I */
     numThing;                  /* # things I let live this iteration */
   double sumVel,               /* sum of velocities of things in my bins */
     *vertBuff;                 /* buffer for tractlet vertices */
@@ -198,18 +198,18 @@ typedef struct pushContext_t {
     minMeanVel;                    /* stop if mean velocity drops below this */
   int seed,                        /* seed value for airSrand48 */
     tlFrenet,                      /* use Frenet frames for tractlet forces */
-    tlNumStep,                     /* max # points on each tractlet half */
+    singleBin,                     /* disable binning (for debugging) */
+    driftCorrect,                  /* prevent sliding near anisotropy edges */
+    verbose;                       /* blah blah blah */
+  unsigned int tlNumStep,          /* max # points on each tractlet half */
     binIncr,                       /* increment for per-bin thing airArray */
     numThing,                      /* number things to start simulation w/ */
     numThread,                     /* number of threads to use */
     numStage,                      /* number of stages */
     minIter,                       /* if non-zero, min number of iterations */
     maxIter,                       /* if non-zero, max number of iterations */
-    snap,                          /* if non-zero, interval between iterations
+    snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
-    singleBin,                     /* disable binning (for debugging) */
-    driftCorrect,                  /* prevent sliding near anisotropy edges */
-    verbose;                       /* blah blah blah */
   pushForce *force;                /* force function to use */
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11;                        /* for gradient of mask */
@@ -222,10 +222,10 @@ typedef struct pushContext_t {
   gageContext *gctx;               /* gage context around nten and nmask */
   gagePerVolume *tpvl, *ipvl;      /* gage pervolumes around nten and ninv */
   tenFiberContext *fctx;           /* tenFiber context around nten */
-  int dimIn,                       /* dimension (2 or 3) of input */
+  int finished;                    /* used to signal all threads to return */
+  unsigned int dimIn,              /* dimension (2 or 3) of input */
     binsEdge,                      /* # bins along edge of grid */
     numBin,                        /* total # bins in grid */
-    finished,                      /* used to signal all threads to return */
     stageIdx,                      /* stage currently undergoing processing */
     binIdx;                        /* *next* bin of points needing to be
                                       processed.  Stage is done when
@@ -243,7 +243,7 @@ typedef struct pushContext_t {
     *stageBarrierB;
   /* OUTPUT ---------------------------- */
   double time;                     /* how long it took to run */
-  int iter;                        /* how many iterations were needed */
+  unsigned int iter;               /* how many iterations were needed */
   Nrrd *noutPos,                   /* list of 2D or 3D positions */
     *noutTen;                      /* list of 2D or 3D masked tensors */
 } pushContext;
@@ -252,9 +252,9 @@ typedef struct pushContext_t {
 TEEM_API const char *pushBiffKey;
 
 /* methodsPush.c */
-TEEM_API pushThing *pushThingNew(int numVert);
+TEEM_API pushThing *pushThingNew(unsigned int numVert);
 TEEM_API pushThing *pushThingNix(pushThing *thg);
-TEEM_API void pushBinInit(pushBin *bin, int incr);
+TEEM_API void pushBinInit(pushBin *bin, unsigned int incr);
 TEEM_API void pushBinDone(pushBin *bin);
 TEEM_API pushContext *pushContextNew(void);
 TEEM_API pushContext *pushContextNix(pushContext *pctx);

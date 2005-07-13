@@ -26,7 +26,8 @@
 int
 _baneClipAnswer_Absolute(int *countP, Nrrd *hvol, double *clipParm) {
 
-  *countP = clipParm[0];
+  AIR_UNUSED(hvol);
+  *countP = (int)(clipParm[0]);
   return 0;
 }
 
@@ -35,14 +36,14 @@ _baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   int *hits, maxhits;
   size_t idx, num;
   
-  hits = hvol->data;
+  hits = (int *)hvol->data;
   maxhits = 0;
   num = nrrdElementNumber(hvol);
   for (idx=0; idx<num; idx++) {
     maxhits = AIR_MAX(maxhits, hits[idx]);
   }
 
-  *countP = maxhits*clipParm[0];
+  *countP = (int)(maxhits*clipParm[0]);
   return 0;
 }
 
@@ -57,14 +58,14 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return 1;
   }
-  hits = ncopy->data;
+  hits = (int *)ncopy->data;
   num = nrrdElementNumber(ncopy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   sum = 0;
   for (hi=0; hi<num; hi++) {
     sum += hits[hi];
   }
-  out = sum*clipParm[0]/100;
+  out = (size_t)(sum*clipParm[0]/100);
   outsofar = 0;
   hi = num-1;
   do {
@@ -88,7 +89,7 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
     sprintf(err, "%s: couldn't create copy of histovol", me);
     biffMove(BANE, err, NRRD); return 1;
   }
-  hits = copy->data;
+  hits = (int *)copy->data;
   num = nrrdElementNumber(copy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   tmp = AIR_CLAMP(0, (int)clipParm[0], (int)num-1);

@@ -91,7 +91,7 @@ _hooverExtraContext *
 _hooverExtraContextNew(hooverContext *ctx) {
   _hooverExtraContext *ec;
   
-  ec = calloc(1, sizeof(_hooverExtraContext));
+  ec = (_hooverExtraContext *)calloc(1, sizeof(_hooverExtraContext));
   if (ec) {
     _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
     ELL_3V_SCALE_ADD2(ec->rayZero,

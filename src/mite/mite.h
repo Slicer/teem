@@ -420,7 +420,7 @@ TEEM_API gageKind *miteValGageKind;
 
 /* txf.c */
 TEEM_API airEnum *miteStageOp;
-TEEM_API char miteRangeChar[MITE_RANGE_NUM];
+TEEM_API char miteRangeChar[MITE_RANGE_NUM+1];
 TEEM_API int miteVariableParse(gageItemSpec *isp, const char *label);
 TEEM_API void miteVariablePrint(char *buff, const gageItemSpec *isp);
 TEEM_API int miteNtxfCheck(const Nrrd *ntxf);

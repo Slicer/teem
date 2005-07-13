@@ -36,7 +36,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  kindP = ptr;
+  kindP = (gageKind **)ptr;
   airToLower(str);
   if (!strcmp("scalar", str)) {
     *kindP = gageKindScl;
@@ -125,7 +125,7 @@ mrendUserNix(mrendUser *uu) {
   
   if (uu) {
     airMopOkay(uu->mrmop);
-    uu = airFree(uu);
+    airFree(uu);
   }
   return NULL;
 }
@@ -231,7 +231,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   (*rrP)->nout->axis[1].min = uu->hctx->cam->vRange[0];
   (*rrP)->nout->axis[1].max = uu->hctx->cam->vRange[1];
   airMopAdd(uu->mrmop, (*rrP)->nout, (airMopper)nrrdNuke, airMopAlways);
-  (*rrP)->imgData = (*rrP)->nout->data;
+  (*rrP)->imgData = (float *)((*rrP)->nout->data);
   (*rrP)->sx = uu->hctx->imgSize[0];
   (*rrP)->sy = uu->hctx->imgSize[1];
   
@@ -300,11 +300,13 @@ mrendThreadBegin(mrendThread **ttP,
 
 int
 mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
-  
+
+  AIR_UNUSED(rr);
+  AIR_UNUSED(uu);
   if (tt->thrid) {
     tt->gctx = gageContextNix(tt->gctx);
   }
-  tt->val = airFree(tt->val);
+  tt->val = (float *)airFree(tt->val);
   
   return 0;
 }
@@ -321,7 +323,12 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
               double rayDirWorld[3],
               double rayDirIndex[3]) {
   int newLen;
-  
+
+  AIR_UNUSED(rr);
+  AIR_UNUSED(rayStartWorld);
+  AIR_UNUSED(rayStartIndex);
+  AIR_UNUSED(rayDirWorld);
+  AIR_UNUSED(rayDirIndex);
   tt->ui = uIndex;
   tt->vi = vIndex;
   if (!( -1 == uu->verbPixel[0] && -1 == uu->verbPixel[1] )) {
@@ -336,7 +343,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
                  (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
   newLen = AIR_ROUNDUP(rayLen/tt->rayStep) + 1;
   if (!tt->val || newLen > tt->valLen) {
-    tt->val = airFree(tt->val);
+    tt->val = (float *)airFree(tt->val);
     tt->valLen = newLen;
     tt->val = (float*)calloc(newLen, sizeof(float));
   }
@@ -353,7 +360,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 int
 mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   float answer;
-  
+
   if (tt->valNum) {
     nrrdMeasureLine[uu->measr](&answer,
                                nrrdTypeFloat,
@@ -378,7 +385,13 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
             double samplePosWorld[3],
             double samplePosIndex[3]) {
   char me[]="mrendSample", err[AIR_STRLEN_MED];
-  
+
+  AIR_UNUSED(rr);
+  AIR_UNUSED(uu);
+  AIR_UNUSED(num);
+  AIR_UNUSED(rayT);
+  AIR_UNUSED(samplePosWorld);
+
   if (inside) {
     if (gageProbe(tt->gctx,
                   samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {

@@ -247,7 +247,7 @@ typedef struct baneMeasr_t {
 ** of the histogram volume.
 */
 typedef struct {
-  int res;                            /* resolution = number of bins */
+  unsigned int res;                     /* resolution = number of bins */
   baneMeasr *measr;
   baneInc *inc;
 } baneAxis;
@@ -321,8 +321,9 @@ TEEM_API baneMeasr *baneMeasrNix(baneMeasr *measr);
    is only API for things that have to be allocated internally */
 TEEM_API baneHVolParm *baneHVolParmNew();
 TEEM_API void baneHVolParmGKMSInit(baneHVolParm *hvp);
-TEEM_API void baneHVolParmAxisSet(baneHVolParm *hvp, int axisIdx,
-                                  int res, baneMeasr *measr, baneInc *inc);
+TEEM_API void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
+                                  unsigned int res,
+                                  baneMeasr *measr, baneInc *inc);
 TEEM_API void baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip);
 TEEM_API baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
@@ -336,7 +337,7 @@ TEEM_API int baneBcptsCheck(Nrrd *Bcpts);
 /* hvol.c */
 TEEM_API void baneProbe(double val[3],
                         Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-                        int x, int y, int z);
+                        unsigned int x, unsigned int y, unsigned int z);
 TEEM_API int baneFindInclusion(double min[3], double max[3], 
                                Nrrd *nin, baneHVolParm *hvp, gageContext *ctx);
 TEEM_API int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
@@ -347,11 +348,11 @@ TEEM_API int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
 TEEM_API int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 TEEM_API int baneSigmaCalc(float *sP, Nrrd *info);
 TEEM_API int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
-TEEM_API void _baneOpacCalcA(int lutLen, float *opacLut, 
-                             int numCpts, float *xo,
+TEEM_API void _baneOpacCalcA(unsigned int lutLen, float *opacLut, 
+                             unsigned int numCpts, float *xo,
                              float *pos);
-TEEM_API void _baneOpacCalcB(int lutLen, float *opacLut, 
-                             int numCpts, float *x, float *o,
+TEEM_API void _baneOpacCalcB(unsigned int lutLen, float *opacLut, 
+                             unsigned int numCpts, float *x, float *o,
                              float *pos);
 TEEM_API int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 

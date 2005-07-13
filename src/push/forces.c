@@ -69,7 +69,11 @@ push_t
 _pushForceUnknownFunc(push_t haveDist, push_t restDist,
                       push_t scale, const push_t *parm) {
   char me[]="_pushForceUnknownFunc";
-  
+
+  AIR_UNUSED(haveDist);
+  AIR_UNUSED(restDist);
+  AIR_UNUSED(scale);
+  AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
 }
@@ -78,6 +82,9 @@ push_t
 _pushForceUnknownMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
   char me[]="_pushForceUnknownMaxDist";
 
+  AIR_UNUSED(maxEval);
+  AIR_UNUSED(scale);
+  AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
 }
@@ -130,6 +137,7 @@ _pushForceGaussFunc(push_t haveDist, push_t restDist,
                     push_t scale, const push_t *parm) {
   push_t sig, cut;
 
+  AIR_UNUSED(scale);
   sig = restDist/SQRTTHREE;
   cut = parm[0];
   return _DGAUSS(haveDist, sig, cut);
@@ -154,6 +162,7 @@ _pushForceChargeFunc(push_t haveDist, push_t restDist,
                      push_t scale, const push_t *parm) {
   push_t xx;
 
+  AIR_UNUSED(scale);
   xx = haveDist/restDist;
   return -parm[0]*(xx > parm[1] ? 0 : 1.0/(xx*xx));
 }
@@ -176,6 +185,7 @@ _pushForceCotanFunc(push_t haveDist, push_t restDist,
                     push_t scale, const push_t *parm) {
   push_t xx, ss;
 
+  AIR_UNUSED(scale);
   xx = haveDist/restDist;
   ss = sin(xx*AIR_PI/2.0);
   return parm[0]*(xx > 1 ? 0 : 1.0 - 1.0/(ss*ss));
@@ -184,6 +194,7 @@ _pushForceCotanFunc(push_t haveDist, push_t restDist,
 push_t
 _pushForceCotanMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
+  AIR_UNUSED(parm);
   return 2*scale*maxEval;
 }
 

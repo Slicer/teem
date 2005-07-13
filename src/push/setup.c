@@ -262,8 +262,8 @@ _pushTaskNix(pushTask *task) {
     if (task->threadIdx) {
       task->thread = airThreadNix(task->thread);
     }
-    task->vertBuff = airFree(task->vertBuff);
-    free(task);
+    task->vertBuff = (double *)airFree(task->vertBuff);
+    airFree(task);
   }
   return NULL;
 }
@@ -276,7 +276,7 @@ _pushTaskNix(pushTask *task) {
 int
 _pushTaskSetup(pushContext *pctx) {
   char me[]="_pushTaskSetup", err[AIR_STRLEN_MED];
-  int tidx;
+  unsigned int tidx;
 
   pctx->task = (pushTask **)calloc(pctx->numThread, sizeof(pushTask *));
   if (!(pctx->task)) {
@@ -304,7 +304,7 @@ int
 _pushBinSetup(pushContext *pctx) {
   char me[]="_pushBinSetup", err[AIR_STRLEN_MED];
   float eval[3], *tdata;
-  int ii, nn, count;
+  unsigned int ii, nn, count;
 
   /* ------------------------ find maxEval and set up binning */
   nn = nrrdElementNumber(pctx->nten)/7;
@@ -329,7 +329,7 @@ _pushBinSetup(pushContext *pctx) {
     pctx->binsEdge = 1;
     pctx->numBin = 1;
   } else {
-    pctx->binsEdge = floor((2.0 + 2*pctx->margin)/pctx->maxDist);
+    pctx->binsEdge = (int)floor((2.0 + 2*pctx->margin)/pctx->maxDist);
     fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%d\n",
             me, pctx->maxEval, pctx->maxDist, pctx->binsEdge);
     if (!(pctx->binsEdge >= 1)) {
@@ -365,7 +365,7 @@ int
 _pushThingSetup(pushContext *pctx) {
   char me[]="_pushThingSetup", err[AIR_STRLEN_MED];
   double (*lup)(const void *v, size_t I);
-  int *stn, pointIdx, baseIdx, thingIdx;
+  unsigned int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
 
   pctx->numThing = (pctx->nstn
@@ -374,7 +374,7 @@ _pushThingSetup(pushContext *pctx) {
                        ? pctx->npos->axis[1].size
                        : pctx->numThing));
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
-  stn = pctx->nstn ? (int*)pctx->nstn->data : NULL;
+  stn = pctx->nstn ? (unsigned int*)pctx->nstn->data : NULL;
   for (thingIdx=0; thingIdx<pctx->numThing; thingIdx++) {
     if (pctx->nstn) {
       baseIdx = stn[0 + 3*thingIdx];

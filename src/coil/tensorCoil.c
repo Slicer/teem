@@ -28,6 +28,14 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
                          coil_t rot1Grad[6],
                          coil_t rot2Grad[6],
                          coil_t tensor[7]) {
+
+  AIR_UNUSED(traceGrad);
+  AIR_UNUSED(varianceGrad);
+  AIR_UNUSED(skewGrad);
+  AIR_UNUSED(rot0Grad);
+  AIR_UNUSED(rot1Grad);
+  AIR_UNUSED(rot2Grad);
+  AIR_UNUSED(tensor);
   /*
   coil_t a, b, c, d, e, f;
 
@@ -45,6 +53,10 @@ void
 _coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3, 
                               double spacing[3],
                               double parm[COIL_PARMS_NUM]) {
+
+  AIR_UNUSED(iv3);
+  AIR_UNUSED(spacing);
+  AIR_UNUSED(parm);
   delta[0] = 0;
   delta[1] = 0;
   delta[2] = 0;

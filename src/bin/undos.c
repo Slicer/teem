@@ -43,7 +43,8 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   FILE *fin, *fout;
   char *data=NULL;
   airArray *dataArr;
-  int ci, car, numBad, willConvert;
+  unsigned int ci;
+  int car, numBad, willConvert;
 
   mop = airMopNew();
   if (!airStrlen(name)) {
@@ -86,7 +87,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   }
   do {
     ci = airArrayLenIncr(dataArr, 1);
-    if (-1 == ci) {
+    if (!dataArr->data) {
       if (!quiet) {
         fprintf(stderr, "%s: internal allocation error #2\n", me);
       }

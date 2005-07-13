@@ -78,10 +78,10 @@ tkwbSlideNew(char *title, char *image, char *text) {
 tkwbSlide *
 tkwbSlideNix(tkwbSlide *slide) {
 
-  slide->title = airFree(slide->title);
-  slide->image = airFree(slide->image);
-  slide->text = airFree(slide->text);
-  slide = airFree(slide);
+  slide->title = (char *)airFree(slide->title);
+  slide->image = (char *)airFree(slide->image);
+  slide->text = (char *)airFree(slide->text);
+  slide = (tkwbSlide *)airFree(slide);
   return NULL;
 }
 
@@ -89,15 +89,17 @@ int
 tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   char **all, line[AIR_STRLEN_HUGE];
   airArray *allArr;
-  int totalLen, lineIdx, lineLen, allLen;
+  unsigned int allLen;
+  unsigned int lineLen, lineIdx, totalLen;
 
   allArr = airArrayNew((void**)(&all), &allLen, sizeof(char*), tkwbArrayIncr);
   airArrayPointerCB(allArr, airNull, airFree);
   lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
   totalLen = 0;
   while (lineLen && (!( airStrlen(stop) && !strcmp(line, stop) )) ) {
-    lineIdx = airArrayLenIncr(allArr, 1);
-    all[lineIdx] = calloc(strlen(line) + strlen("\n") + 1, sizeof(char));
+    lineIdx = airArrayLenIncr(allArr, 1); /* HEY error checking */
+    all[lineIdx] = (char *)calloc(strlen(line) + strlen("\n") + 1,
+                                  sizeof(char));
     sprintf(all[lineIdx], "%s\n", line);
     totalLen += strlen(line) + 1;
     lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
@@ -145,7 +147,8 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
   char *title, *image, *text, stop[AIR_STRLEN_HUGE], line[AIR_STRLEN_HUGE];
-  int slideIdx=0, hitEOF, notReally, len;
+  int slideIdx=0, hitEOF, notReally;
+  unsigned int len;
   
   mop = airMopNew();
   if (!( file = airFopen(filename, stdin, "rb") )) {
@@ -165,7 +168,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   airMopAdd(mop, slideArr, (airMopper)airArrayNix, airMopAlways);
   hitEOF = notReally = AIR_FALSE;
   while (!hitEOF) {
-    slideIdx = airArrayLenIncr(slideArr, 1);
+    slideIdx = airArrayLenIncr(slideArr, 1); /* HEY error checking */
     len = airOneLine(file, line, AIR_STRLEN_HUGE);
     if (!len) {
       /* got EOF after a division marker, that's okay */
@@ -190,7 +193,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     biffAdd(TKWB, err); airMopError(mop); return 1;
   }
   if (!notReally) {
-    slideIdx = airArrayLenIncr(slideArr, 1);
+    slideIdx = airArrayLenIncr(slideArr, 1); /* HEY error checking */
   }
   slide[slideIdx] = NULL;
   
@@ -475,7 +478,8 @@ main(int argc, char *argv[]) {
   link[2] = nextLink;
   link[3] = lastLink;
   for (ti=0; ti<=TKWB_TAG_MAX; ti++) {
-    tag[ti] = calloc(strlen(pretag[ti]) + strlen("<!---->") + 1, sizeof(char));
+    tag[ti] = (char *)calloc(strlen(pretag[ti]) + strlen("<!---->") + 1,
+                             sizeof(char));
     airMopAdd(mop, tag[ti], airFree, airMopAlways);
     sprintf(tag[ti], "<!--%s-->", pretag[ti]);
   }

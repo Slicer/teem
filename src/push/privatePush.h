@@ -58,7 +58,8 @@ extern int _pushThingSetup(pushContext *pctx);
 
 /* action.c */
 extern push_t _pushThingPointCharge(pushContext *pctx, pushThing *thg);
-extern int _pushForceSample(pushContext *pctx, int sx, int sy);
+extern int _pushForceSample(pushContext *pctx,
+                            unsigned int sx, unsigned int sy);
 void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
 extern void _pushProbe(pushTask *task, pushPoint *point);
 extern int _pushInputProcess(pushContext *pctx);

@@ -26,7 +26,7 @@ hestParm *
 hestParmNew() {
   hestParm *parm;
   
-  parm = calloc(1, sizeof(hestParm));
+  parm = (hestParm *)calloc(1, sizeof(hestParm));
   if (parm) {
     parm->verbosity = hestVerbosity;
     parm->respFileEnable = hestRespFileEnable;
@@ -55,7 +55,7 @@ hestParmNew() {
 hestParm *
 hestParmFree(hestParm *parm) {
 
-  parm = airFree(parm);
+  airFree(parm);
   return NULL;
 }
 
@@ -101,11 +101,13 @@ hestOptAdd(hestOpt **optP,
     return;
 
   num = *optP ? _hestNumOpts(*optP) : 0;
-  if (!(ret = calloc(num+2, sizeof(hestOpt))))
+  if (!(ret = (hestOpt *)calloc(num+2, sizeof(hestOpt)))) {
     return;
+  }
 
-  if (num)
+  if (num) {
     memcpy(ret, *optP, num*sizeof(hestOpt));
+  }
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
   ret[num].type = type;
@@ -121,26 +123,27 @@ hestOptAdd(hestOpt **optP,
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
-    ret[num].sawP = va_arg(ap, int*);
+    ret[num].sawP = va_arg(ap, unsigned int*);
     va_end(ap);
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, int*));  /* skip sawP */
+    dummy = (void *)(va_arg(ap, unsigned int*)); /* skip sawP */
     ret[num].enm = va_arg(ap, airEnum*);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, int*));      /* skip sawP */
-    dummy = (void *)(va_arg(ap, airEnum*));  /* skip enm */
+    dummy = (void *)(va_arg(ap, unsigned int*)); /* skip sawP */
+    dummy = (void *)(va_arg(ap, airEnum*));      /* skip enm */
     ret[num].CB = va_arg(ap, hestCB*);
     va_end(ap);
   }
   _hestOptInit(&(ret[num+1]));
   ret[num+1].min = 1;
-  if (*optP)
+  if (*optP) {
     free(*optP);
+  }
   *optP = ret;
   dummy = dummy;
   return;
@@ -149,10 +152,10 @@ hestOptAdd(hestOpt **optP,
 void
 _hestOptFree(hestOpt *opt) {
   
-  opt->flag = airFree(opt->flag);
-  opt->name = airFree(opt->name);
-  opt->dflt = airFree(opt->dflt);
-  opt->info = airFree(opt->info);
+  opt->flag = (char *)airFree(opt->flag);
+  opt->name = (char *)airFree(opt->name);
+  opt->dflt = (char *)airFree(opt->dflt);
+  opt->info = (char *)airFree(opt->info);
   return;
 }
 
@@ -181,7 +184,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
   int big;
 
   big = _hestErrStrlen(opt, 0, NULL);
-  if (!(err = calloc(big, sizeof(char)))) {
+  if (!(err = (char *)calloc(big, sizeof(char)))) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
     exit(1);
@@ -388,7 +391,7 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
     }
   }
   len += np;
-  ret = calloc(len, sizeof(char));
+  ret = (char *)calloc(len, sizeof(char));
   strcpy(ret, "");
   for (n=0; n<=np-1; n++) {
     /* if a single element of argv has spaces in it, someone went

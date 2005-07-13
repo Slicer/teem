@@ -33,7 +33,7 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   }
   matP = (double **)ptr;
   mop = airMopNew();
-  *matP = calloc(6, sizeof(double));
+  *matP = (double *)calloc(6, sizeof(double));
   airMopMem(mop, matP, airMopOnError);
   str = airToLower(airStrdup(_str));
   airMopMem(mop, &str, airMopAlways);

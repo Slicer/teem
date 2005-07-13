@@ -25,7 +25,8 @@ int
 main(int argc, char *argv[]) {
   Nrrd *info;
   float sigma;
-  
+
+  AIR_UNUSED(argc);
   if (nrrdLoad(info=nrrdNew(), argv[1], NULL)) {
     fprintf(stderr, "trouble:\n%s\n", biffGet(BANE));
   }

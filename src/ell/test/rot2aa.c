@@ -30,7 +30,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   airArray *mop;
 
-  Nrrd *_nmat, *nmat, *naa;
+  Nrrd *_nmat, *nmat;
 
   me = argv[0];
   mop = airMopNew();

@@ -23,10 +23,10 @@
 #include "privatePush.h"
 
 pushThing *
-pushThingNew(int numVert) {
+pushThingNew(unsigned int numVert) {
   static int ttaagg=0; 
   pushThing *thg;
-  int idx;
+  unsigned int idx;
 
   if (!( numVert >= 1 )) {
     thg = NULL;
@@ -45,7 +45,7 @@ pushThingNew(int numVert) {
         }
       }
       thg->len = 0;
-      thg->seedIdx = -1;
+      thg->seedIdx = 0;
     }
   }
   return thg;
@@ -56,7 +56,7 @@ pushThingNix(pushThing *thg) {
   
   if (thg) {
     if (thg->vert != &(thg->point)) {
-      thg->vert = airFree(thg->vert);
+      thg->vert = (pushPoint *)airFree(thg->vert);
     }
     airFree(thg);
   }
@@ -64,7 +64,7 @@ pushThingNix(pushThing *thg) {
 }
 
 void
-pushBinInit(pushBin *bin, int incr) {
+pushBinInit(pushBin *bin, unsigned int incr) {
 
   bin->numThing = 0;
   bin->thing = NULL;
@@ -85,14 +85,14 @@ pushBinInit(pushBin *bin, int incr) {
 */
 void
 pushBinDone(pushBin *bin) {
-  int idx;
+  unsigned int idx;
 
   bin->pointArr = airArrayNuke(bin->pointArr);
   for (idx=0; idx<bin->numThing; idx++) {
     bin->thing[idx] = pushThingNix(bin->thing[idx]);
   }
   bin->thingArr = airArrayNuke(bin->thingArr);
-  bin->neighbor = airFree(bin->neighbor);
+  bin->neighbor = (pushBin **)airFree(bin->neighbor);
   return;
 }
 
@@ -100,7 +100,7 @@ pushBinDone(pushBin *bin) {
 pushContext *
 pushContextNew(void) {
   pushContext *pctx;
-  int si, pi;
+  unsigned int si, pi;
 
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {

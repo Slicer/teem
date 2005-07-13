@@ -43,6 +43,11 @@ int _echoVerbose = 0;
 int
 _echoRayIntx_Noop(RAYINTX_ARGS(Object)) {
 
+  AIR_UNUSED(intx);
+  AIR_UNUSED(ray);
+  AIR_UNUSED(obj);
+  AIR_UNUSED(parm);
+  AIR_UNUSED(tstate);
   return 0;
 }
 
@@ -124,6 +129,8 @@ int
 _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   echoPos_t t, A, B, C, r[3], dscr, pos[3], tmp;
 
+  AIR_UNUSED(parm);
+  AIR_UNUSED(tstate);
   ELL_3V_SUB(r, ray->from, obj->pos);
   A = ELL_3V_DOT(ray->dir, ray->dir);
   B = 2*ELL_3V_DOT(ray->dir, r);
@@ -175,6 +182,9 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   echoPos_t A, B, C, aa, bb, cc, dd, ee, ff, dscr, cylt1, cylt2, t, tmax,
     twot[2], cylp1, cylp2, pos[3], tmp;
   int tidx, radi0, radi1, twocap[2], cap;
+
+  AIR_UNUSED(parm);
+  AIR_UNUSED(tstate);
 
   if (!_echoRayIntx_CubeSolid(&t, &tmax,
                               -1-ECHO_EPSILON, 1+ECHO_EPSILON,
@@ -261,7 +271,7 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   }
   if (2 == tidx && twot[0] > twot[1]) {
     ELL_SWAP2(twot[0], twot[1], aa);
-    ELL_SWAP2(twocap[0], twocap[1], aa);
+    ELL_SWAP2(twocap[0], twocap[1], cap);
   }
   t = twot[0];
   cap = twocap[0];
@@ -300,6 +310,7 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   echoPos_t t;
   int ax, dir;
 
+  AIR_UNUSED(parm);
   if (!_echoRayIntx_CubeSurf(&t, &ax, &dir,
                              -1, 1,
                              -1, 1,
@@ -393,6 +404,7 @@ int
 _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1, tmp;
   
+  AIR_UNUSED(tstate);
   if (echoMatterLight == obj->matter
       && (ray->shadow || !parm->renderLights)) {
     return AIR_FALSE;
@@ -416,6 +428,8 @@ int
 _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3], tmp;
   
+  AIR_UNUSED(parm);
+  AIR_UNUSED(tstate);
   ELL_3V_SUB(edge0, obj->vert[1], obj->vert[0]);
   ELL_3V_SUB(edge1, obj->vert[2], obj->vert[0]);
   TRI_INTX(ray, obj->vert[0], edge0, edge1,
@@ -438,6 +452,7 @@ _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
   echoTriMesh *trim;
   int i, ret;
 
+  AIR_UNUSED(parm);
   trim = TRIMESH(obj);
   if (!_echoRayIntx_CubeSolid(&t, &tmax,
                               trim->min[0], trim->max[0],
@@ -582,7 +597,8 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
 
 int
 _echoRayIntx_List(RAYINTX_ARGS(List)) {
-  int i, ret;
+  unsigned int i;
+  int ret;
   echoObject *kid;
 
   ret = AIR_FALSE;
@@ -652,6 +668,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
 void
 _echoRayIntxUV_Noop(echoIntx *intx) {
 
+  AIR_UNUSED(intx);
 }
 
 /*
@@ -693,7 +710,8 @@ _echoRayIntxUV[ECHO_TYPE_NUM] = {
 int
 echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
             echoRTParm *parm, echoThreadState *tstate) {
-  int idx, ret;
+  unsigned int idx;
+  int ret;
   echoObject *kid;
   echoPos_t tmp;
 

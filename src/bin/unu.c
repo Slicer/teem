@@ -31,7 +31,7 @@ main(int argc, char **argv) {
 
   me = argv[0];
 
-  /* parse environmane variables first, in case they break nrrdDef*
+  /* parse environment variables first, in case they break nrrdDef*
      or nrrdState* variables in a way that nrrdSanity() should see */
   nrrdDefGetenv();
   nrrdStateGetenv();
@@ -90,7 +90,7 @@ main(int argc, char **argv) {
   if (unrrduCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = malloc(strlen(UNU) + strlen(argv[1]) + 2);
+    argv0 = (char *)calloc(strlen(UNU) + strlen(argv[1]) + 2, sizeof(char));
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", UNU, argv[1]);
 

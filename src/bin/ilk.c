@@ -37,7 +37,8 @@ main(int argc, char *argv[]) {
   mossSampler *msp;
   double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
     min[2], max[2];
-  int d, bound, matListLen, i, ax0, size[2], _bkgLen;
+  int d, bound, ax0, size[2];
+  unsigned int matListLen, _bkgLen, i;
   float *bkg, *_bkg, scale[4];
   
   me = argv[0];
@@ -118,7 +119,8 @@ main(int argc, char *argv[]) {
   }
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_NCOL(nin)) {
-      fprintf(stderr, "%s: got %d background colors, image has %d colors\n", 
+      fprintf(stderr, "%s: got %d background colors, image has "
+              _AIR_SIZE_T_CNV " colors\n", 
               me, _bkgLen, MOSS_NCOL(nin));
       airMopError(mop); return 1;
     } else {
@@ -152,11 +154,11 @@ main(int argc, char *argv[]) {
       break;
     case 1:
       /* scaling of input # samples */
-      size[d] = scale[1 + 2*d]*nin->axis[ax0+d].size;
+      size[d] = (int)(scale[1 + 2*d]*nin->axis[ax0+d].size);
       break;
     case 2:
       /* explicit # of samples */
-      size[d] = scale[1 + 2*d];
+      size[d] = (int)(scale[1 + 2*d]);
       break;
     }
   }
@@ -178,8 +180,9 @@ main(int argc, char *argv[]) {
   /* form complete transform */
   mossMatIdentitySet(mat);
   mossMatLeftMultiply(mat, origMat);
-  for (i=0; i<matListLen; i++)
+  for (i=0; i<matListLen; i++) {
     mossMatLeftMultiply(mat, matList[i]);
+  }
   mossMatLeftMultiply(mat, origInvMat);
 
   if (!AIR_EXISTS(nin->axis[ax0+0].min) || !AIR_EXISTS(nin->axis[ax0+0].max)) {

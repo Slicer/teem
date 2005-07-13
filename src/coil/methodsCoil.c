@@ -23,7 +23,7 @@
 int
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   char me[]="coilVolumeCheck", err[AIR_STRLEN_MED];
-  int baseDim;
+  unsigned int baseDim;
   
   if (!(nin && kind)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -67,10 +67,11 @@ coilContextNew() {
 int
 coilContextAllSet(coilContext *cctx, const Nrrd *nin,
                   const coilKind *kind, const coilMethod *method,
-                  int radius, int numThreads, int verbose,
+                  unsigned int radius, unsigned int numThreads, int verbose,
                   double parm[COIL_PARMS_NUM]) {
   char me[]="coilContextAllSet", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX], sx, sy, sz, someExist, allExist, baseDim, pi;
+  int someExist, allExist, baseDim, pi;
+  size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
   airArray *mop;
   
@@ -125,8 +126,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   sy = nin->axis[1 + baseDim].size;
   sz = nin->axis[2 + baseDim].size;
   if (sz < numThreads) {
-    fprintf(stderr, "%s: wanted %d threads but volume only has %d slices, "
-            "using %d threads instead\n", me, numThreads, sz, sz);
+    fprintf(stderr, "%s: wanted %d threads but volume only has "
+            _AIR_SIZE_T_CNV " slices, using " _AIR_SIZE_T_CNV 
+            " threads instead\n", me, numThreads, sz, sz);
     numThreads = sz;
   }
   ELL_3V_SET(cctx->size, sx, sy, sz);
@@ -212,7 +214,7 @@ coilContextNix(coilContext *cctx) {
   if (cctx) {
     /* thread machinery destroyed with coilFinish() */
     cctx->nvol = nrrdNuke(cctx->nvol);
-    cctx = airFree(cctx);
+    airFree(cctx);
   }
   return NULL;
 }

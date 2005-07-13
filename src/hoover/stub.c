@@ -23,6 +23,7 @@
 int
 hooverStubRenderBegin(void **rendInfoP, void *userInfo) {
 
+  AIR_UNUSED(userInfo);
   *rendInfoP = NULL;
   return 0;
 }
@@ -31,6 +32,9 @@ int
 hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
                       int whichThread) {
 
+  AIR_UNUSED(rendInfo);
+  AIR_UNUSED(userInfo);
+  AIR_UNUSED(whichThread);
   *threadInfoP = NULL;
   return 0;
 }
@@ -44,6 +48,17 @@ hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
                    double rayStartIndex[3],
                    double rayDirWorld[3],
                    double rayDirIndex[3]) {
+
+  AIR_UNUSED(threadInfo);
+  AIR_UNUSED(renderInfo);
+  AIR_UNUSED(userInfo);
+  AIR_UNUSED(uIndex);
+  AIR_UNUSED(vIndex);
+  AIR_UNUSED(rayLen);
+  AIR_UNUSED(rayStartWorld);
+  AIR_UNUSED(rayStartIndex);
+  AIR_UNUSED(rayDirWorld);
+  AIR_UNUSED(rayDirIndex);
   /*
   char me[]="hooverStubRayBegin";
   fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
@@ -63,6 +78,16 @@ hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
                  int inside,
                  double samplePosWorld[3],
                  double samplePosIndex[3]) {
+
+  AIR_UNUSED(threadInfo);
+  AIR_UNUSED(renderInfo);
+  AIR_UNUSED(userInfo);
+  AIR_UNUSED(num);
+  AIR_UNUSED(rayT);
+  AIR_UNUSED(inside);
+  AIR_UNUSED(samplePosWorld);
+  AIR_UNUSED(samplePosIndex);
+
   /*
   char me[]="hooverStubSample";
   fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
@@ -76,17 +101,28 @@ hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
 int
 hooverStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
+  AIR_UNUSED(threadInfo);
+  AIR_UNUSED(rendInfo);
+  AIR_UNUSED(userInfo);
+
   return 0;
 }
 
 int
 hooverStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
+  AIR_UNUSED(threadInfo);
+  AIR_UNUSED(rendInfo);
+  AIR_UNUSED(userInfo);
+
   return 0;
 }
 
 int
 hooverStubRenderEnd(void *rendInfo, void *userInfo) {
+
+  AIR_UNUSED(rendInfo);
+  AIR_UNUSED(userInfo);
 
   return 0;
 }

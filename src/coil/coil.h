@@ -21,11 +21,14 @@
 #ifndef COIL_HAS_BEEN_INCLUDED
 #define COIL_HAS_BEEN_INCLUDED
 
+/* NOTE: there are various types that should be unsigned instead of
+** signed; it may be a priority to fix this at a later date 
+*/
+
 #include <teem/air.h>
 #include <teem/biff.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
-#include <teem/gage.h>
 #include <teem/ten.h>
 
 #ifdef __cplusplus
@@ -122,7 +125,7 @@ enum {
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
-  int valLen;                       /* number of scalars per data point
+  unsigned int valLen;              /* number of scalars per data point
                                        1 for plain scalars (baseDim=0),
                                        or something else (baseDim=1) */
                                     /* all the available methods */
@@ -142,14 +145,14 @@ struct coilContext_t;
 typedef struct {
   struct coilContext_t *cctx;      /* parent's context */
   airThread *thread;               /* my thread */
-  int threadIdx;                   /* which thread am I */
+  unsigned int threadIdx;          /* which thread am I */
   coil_t *_iv3,                    /* underlying value cache */
     **iv3;                         /* short array of pointers into 2-D value
                                       caches, in which the order is based on
                                       the volume order:
                                       values, then Y, then Z */
                                    /* how to fill iv3 */
-  void (*iv3Fill)(coil_t **iv3, coil_t *here, int radius, int valLen,
+  void (*iv3Fill)(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
                   int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ);
   void *returnPtr;                 /* for airThreadJoin */
 } coilTask;
@@ -165,15 +168,19 @@ typedef struct coilContext_t {
                                       in nvol, below) */
   const coilKind *kind;            /* what kind of volume is nin */
   const coilMethod *method;        /* what method of filtering to use */
-  int radius,                      /* how big a neighborhood to look at when
+  unsigned int radius,             /* how big a neighborhood to look at when
                                       doing filtering (use 1 for 3x3x3 size) */
-    numThreads,                    /* number of threads to enlist */
-    verbose;                       /* blah blah blah */
+    numThreads;                    /* number of threads to enlist */
+  int verbose;                     /* blah blah blah */
   double parm[COIL_PARMS_NUM];     /* all the parameters used to control the 
                                       action of the filtering.  The timestep is
                                       probably the first value. */
   /* ---------- internal */
-  int size[3];                     /* size of volume */
+  size_t size[3],                  /* size of volume */
+    nextSlice;                     /* global indicator of next slice needing
+                                      to be processed, either in filter or
+                                      in update stage.  Stage is done when
+                                      nextSlice == size[2] */
   double spacing[3];               /* sample spacings we'll use- we perhaps 
                                       should be using a gageShape, but this is
                                       actually all we really need... */
@@ -181,10 +188,6 @@ typedef struct coilContext_t {
                                       filtering result, and (2nd) the update
                                       values from the current iteration */
   int finished,                    /* used to signal all threads to return */
-    nextSlice,                     /* global indicator of next slice needing
-                                      to be processed, either in filter or
-                                      in update stage.  Stage is done when
-                                      nextSlice == size[2] */
     todoFilter, todoUpdate;        /* flags to signal which is scheduled to
                                       come next, used as part of doling out
                                       slices to workers */
@@ -210,7 +213,8 @@ TEEM_API const coilKind *coilKindScalar;
 TEEM_API const coilKind *coilKindArray[COIL_KIND_TYPE_MAX+1];
 
 /* tensorCoil.c */
-TEEM_API const coilKind *coilKindTensor;
+TEEM_API const coilKind _coilKind7Tensor; /* no privateCoil.h */
+TEEM_API const coilKind *coilKind7Tensor;
 
 /* realmethods.c */
 TEEM_API const coilMethod *coilMethodTesting;
@@ -222,8 +226,8 @@ TEEM_API coilContext *coilContextNew();
 TEEM_API int coilVolumeCheck(const Nrrd *nin, const coilKind *kind);
 TEEM_API int coilContextAllSet(coilContext *cctx, const Nrrd *nin,
                                const coilKind *kind, const coilMethod *method,
-                               int radius, int numThreads, int verbose,
-                               double parm[COIL_PARMS_NUM]);
+                               unsigned int radius, unsigned int numThreads,
+                               int verbose, double parm[COIL_PARMS_NUM]);
 TEEM_API int coilOutputGet(Nrrd *nout, coilContext *cctx);
 TEEM_API coilContext *coilContextNix(coilContext *cctx);
 

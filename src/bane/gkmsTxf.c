@@ -89,7 +89,7 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
     sprintf(err, "%s: trouble creating opacity function nrrd", me);
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
-  data = nout->data;
+  data = (float *)nout->data;
   tvl = top[0] - width/2; 
   tvr = top[0] + width/2;
   mwidth /= 2;

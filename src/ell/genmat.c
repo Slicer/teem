@@ -75,7 +75,7 @@ int
 ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   char me[]="ell_Nm_mul", err[AIR_STRLEN_MED];
   double *A, *B, *AB, tmp;
-  int LL, MM, NN, ll, mm, nn;
+  size_t LL, MM, NN, ll, mm, nn;
   
   if (!( nAB && !ell_Nm_check(nA) && !ell_Nm_check(nB) )) {
     sprintf(err, "%s: NULL or invalid args", me);
@@ -89,7 +89,9 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   MM = nA->axis[0].size;
   NN = nB->axis[0].size;
   if (MM != nB->axis[1].size) {
-    sprintf(err, "%s: size mismatch: %d-by-%d times %d-by-%d",
+    sprintf(err, "%s: size mismatch: " 
+            _AIR_SIZE_T_CNV "-by-" _AIR_SIZE_T_CNV " times " 
+            _AIR_SIZE_T_CNV "-by-" _AIR_SIZE_T_CNV,
             me, LL, MM, nB->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }
@@ -119,9 +121,10 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 ** in-place LU decomposition
 */
 int
-_ell_LU_decomp (double *a, int *indx, int NN)  {
+_ell_LU_decomp (double *aa, size_t *indx, size_t NN)  {
   char me[]="_ell_LU_decomp", err[AIR_STRLEN_MED];
-  int ret=0, i, imax=0, j, k;
+  int ret=0;
+  size_t ii, imax=0, jj, kk;
   double big, sum, tmp;
   double *vv;
   
@@ -131,71 +134,75 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
   }
 
   /* find vv[i]: max of abs of everything in column i */
-  for (i=0; i<NN; i++) {
+  for (ii=0; ii<NN; ii++) {
     big = 0.0;
-    for (j=0; j<NN; j++) {
-      if ((tmp=AIR_ABS(a[i*NN + j])) > big) {
+    for (jj=0; jj<NN; jj++) {
+      if ((tmp=AIR_ABS(aa[ii*NN + jj])) > big) {
         big = tmp;
       }
     }
     if (!big) {
-      sprintf(err, "%s: singular matrix since column %d all zero", me, i);
+      sprintf(err, "%s: singular matrix since column " _AIR_SIZE_T_CNV 
+              " all zero", me, ii);
       biffAdd(ELL, err); ret = 1; goto seeya;
     }
-    vv[i] = big;
+    vv[ii] = big;
   }
 
-  for (j=0; j<NN; j++) {
-    /* for a[i][j] in lower triangle (below diagonal), subtract from a[i][j]
-       the dot product of all elements to its left with elements above it 
-       (starting at the top) */
-    for (i=0; i<j; i++) {
-      sum = a[i*NN + j];
-      for (k=0; k<i; k++)
-        sum -= a[i*NN + k]*a[k*NN + j];
-      a[i*NN + j] = sum;
+  for (jj=0; jj<NN; jj++) {
+    /* for aa[ii][jj] in lower triangle (below diagonal), subtract from 
+       aa[ii][jj] the dot product of all elements to its left with elements 
+       above it (starting at the top) */
+    for (ii=0; ii<jj; ii++) {
+      sum = aa[ii*NN + jj];
+      for (kk=0; kk<ii; kk++) {
+        sum -= aa[ii*NN + kk]*aa[kk*NN + jj];
+      }
+      aa[ii*NN + jj] = sum;
     }
     
-    /* for a[i][j] in upper triangle (including diagonal), subtract from 
-       a[i][j] the dot product of all elements above it with elements to
+    /* for aa[ii][jj] in upper triangle (including diagonal), subtract from 
+       aa[ii][jj] the dot product of all elements above it with elements to
        its left (starting from the left) */
     big = 0.0;
-    for (i=j; i<NN; i++) {
-      sum = a[i*NN + j];
-      for (k=0; k<j; k++)
-        sum -= a[i*NN + k]*a[k*NN + j];
-      a[i*NN + j] = sum;
-      /* imax column is one in which abs(a[i][j])/vv[i] */
-      if ((tmp = AIR_ABS(sum)/vv[i]) >= big) {
+    for (ii=jj; ii<NN; ii++) {
+      sum = aa[ii*NN + jj];
+      for (kk=0; kk<jj; kk++) {
+        sum -= aa[ii*NN + kk]*aa[kk*NN + jj];
+      }
+      aa[ii*NN + jj] = sum;
+      /* imax column is one in which abs(aa[i][j])/vv[i] */
+      if ((tmp = AIR_ABS(sum)/vv[ii]) >= big) {
         big = tmp;
-        imax = i;
+        imax = ii;
       }
     }
     
     /* unless we're on the imax column, swap this column the with imax column,
        and permute vv[] accordingly */
-    if (j != imax) {
+    if (jj != imax) {
       /* could record parity # of permutes here */
-      for (k=0; k<NN; k++) {
-        tmp = a[imax*NN + k];
-        a[imax*NN + k] = a[j*NN + k];
-        a[j*NN + k] = tmp;
+      for (kk=0; kk<NN; kk++) {
+        tmp = aa[imax*NN + kk];
+        aa[imax*NN + kk] = aa[jj*NN + kk];
+        aa[jj*NN + kk] = tmp;
       }
       tmp = vv[imax];
-      vv[imax] = vv[j];
-      vv[j] = tmp;
+      vv[imax] = vv[jj];
+      vv[jj] = tmp;
     }
      
-    indx[j] = imax;
+    indx[jj] = imax;
 
-    if (a[j*NN + j] == 0.0) 
-      a[j*NN + j] = ELL_EPS;
+    if (aa[jj*NN + jj] == 0.0) {
+      aa[jj*NN + jj] = ELL_EPS;
+    }
      
-    /* divide everything right of a[j][j] by a[j][j] */
-    if (j != NN) {
-      tmp = 1.0/a[j*NN + j];
-      for (i=j+1; i<NN; i++) {
-        a[i*NN + j] *= tmp;
+    /* divide everything right of a[jj][jj] by a[jj][jj] */
+    if (jj != NN) {
+      tmp = 1.0/aa[jj*NN + jj];
+      for (ii=jj+1; ii<NN; ii++) {
+        aa[ii*NN + jj] *= tmp;
       }
     }
   }
@@ -212,25 +219,27 @@ _ell_LU_decomp (double *a, int *indx, int NN)  {
 ** puts the result back into b
 */
 void
-_ell_LU_back_sub (double *a, int *indx, double *b, int NN) {
-  int i, j;
+_ell_LU_back_sub (double *aa, size_t *indx, double *bb, size_t NN) {
+  size_t ii, jj;
   double sum;
 
   /* Forward substitution, with lower triangular matrix */
-  for (i=0; i<NN; i++) {
-    sum = b[indx[i]];
-    b[indx[i]] = b[i];
-    for (j=0; j<i; j++)
-      sum -= a[i*NN + j]*b[j];
-    b[i] = sum;
+  for (ii=0; ii<NN; ii++) {
+    sum = bb[indx[ii]];
+    bb[indx[ii]] = bb[ii];
+    for (jj=0; jj<ii; jj++) {
+      sum -= aa[ii*NN + jj]*bb[jj];
+    }
+    bb[ii] = sum;
   }
  
   /* Backward substitution, with upper triangular matrix */
-  for (i=NN-1; i>=0; i--) {
-    sum = b[i];
-    for (j=i+1; j<NN; j++)
-      sum -= a[i*NN + j]*b[j];
-    b[i] = sum / a[i*NN + i];
+  for (ii=NN; ii>0; ii--) {
+    sum = bb[ii-1];
+    for (jj=ii; jj<NN; jj++) {
+      sum -= aa[(ii-1)*NN + jj]*bb[jj];
+    }
+    bb[ii-1] = sum / aa[(ii-1)*NN + (ii-1)];
   }
   return;
 }
@@ -245,15 +254,15 @@ _ell_LU_back_sub (double *a, int *indx, double *b, int NN) {
 ** the inverse.
 */
 int
-_ell_inv (double *inv, double *_mat, int NN) {
+_ell_inv (double *inv, double *_mat, size_t NN) {
   char me[]="_ell_inv", err[AIR_STRLEN_MED];
-  int i, j;
+  size_t ii, jj, *indx=NULL;
   double *col=NULL, *mat=NULL;
-  int *indx=NULL, ret=0;
+  int ret=0;
 
   if (!( (col = (double*)calloc(NN, sizeof(double))) &&
          (mat = (double*)calloc(NN*NN, sizeof(double))) &&
-         (indx = (int*)calloc(NN, sizeof(int))) )) {
+         (indx = (size_t*)calloc(NN, sizeof(size_t))) )) {
     sprintf(err, "%s: couldn't allocate all buffers", me);
     biffAdd(ELL, err); ret = 1; goto seeya;
   }
@@ -265,13 +274,13 @@ _ell_inv (double *inv, double *_mat, int NN) {
     biffAdd(ELL, err); ret = 1; goto seeya;
   }
   
-  for (j=0; j<NN; j++) {
+  for (jj=0; jj<NN; jj++) {
     memset(col, 0, NN*sizeof(double));
-    col[j] = 1.0;
+    col[jj] = 1.0;
     _ell_LU_back_sub(mat, indx, col, NN);
-    /* set column j of inv to result of backsub */
-    for (i=0; i<NN; i++) {
-      inv[i*NN + j] = col[i];
+    /* set column jj of inv to result of backsub */
+    for (ii=0; ii<NN; ii++) {
+      inv[ii*NN + jj] = col[ii];
     }
   }
  seeya:
@@ -290,7 +299,7 @@ int
 ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
   char me[]="ell_Nm_inv", err[AIR_STRLEN_MED];
   double *mat, *inv;
-  int NN;
+  size_t NN;
 
   if (!( ninv && !ell_Nm_check(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
@@ -299,7 +308,8 @@ ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
 
   NN = nmat->axis[0].size;
   if (!( NN == nmat->axis[1].size )) {
-    sprintf(err, "%s: need a square matrix, not %d-by-%d",
+    sprintf(err, "%s: need a square matrix, not " 
+            _AIR_SIZE_T_CNV "-by-" _AIR_SIZE_T_CNV,
             me, nmat->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }

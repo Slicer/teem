@@ -42,7 +42,8 @@ main(int argc, char *argv[]) {
   char *me, *outS, *errS, *debugS;
   airArray *mop;
   float amb[3], *linfo, *debug, *map, W[3], V[3], diff;
-  int li, ui, vi, qn, bits, method, doerr;
+  unsigned li, ui, vi;
+  int qn, bits, method, doerr;
   limnLight *light;
   limnCamera *cam;
   double u, v, r, w, V2W[9];
@@ -138,7 +139,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: problem making environment map:\n%s\n", me, errS);
     airMopError(mop); return 1;
   }
-  map = nmap->data;
+  map = (float *)nmap->data;
 
   if (nrrdSave(outS, nmap, NULL)) {
     fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
@@ -150,7 +151,7 @@ main(int argc, char *argv[]) {
     ndebug = nrrdNew();
     nrrdMaybeAlloc(ndebug, nrrdTypeFloat, 3, 3, 1024, 512);
     airMopAdd(mop, ndebug, (airMopper)nrrdNuke, airMopAlways);
-    debug = ndebug->data;
+    debug = (float *)ndebug->data;
     for (vi=0; vi<=511; vi++) {
       v = AIR_AFFINE(0, vi, 511, -0.999, 0.999);
       for (ui=0; ui<=511; ui++) {

@@ -24,6 +24,7 @@
 double
 _baneMeasr_StockAnswer(baneMeasr *measr, gage_t *san, double *parm) {
 
+  AIR_UNUSED(parm);
   return san[measr->offset0];
 }
 
@@ -33,6 +34,7 @@ baneMeasrNew(int type, double *parm) {
   baneMeasr *measr;
   int item;
 
+  AIR_UNUSED(parm);
   if (!( AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast) )) {
     sprintf(err, "%s: baneMeasr %d invalid", me, type);
     biffAdd(BANE, err); return NULL;

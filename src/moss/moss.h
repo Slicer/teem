@@ -21,6 +21,10 @@
 #ifndef MOSS_HAS_BEEN_INCLUDED
 #define MOSS_HAS_BEEN_INCLUDED
 
+/* NOTE: this library has not undergone the changes as other Teem
+   libraries in order to make sure that array lengths and indices
+   are stored in unsigned types */
+
 #include <math.h>
 
 #include <teem/air.h>

@@ -60,7 +60,7 @@ _baneGkmsDonNew(int invert) {
     sprintf("%s: can't create output", me);
     biffAdd(BANE, err); return NULL;
   }
-  data = ret->data;
+  data = (float *)ret->data;
   memcpy(data, _baneGkmsDonData, 4*23*sizeof(float));
   data[0 + 4*0] = AIR_NEG_INF;
   data[0 + 4*1] = AIR_NAN;
@@ -135,7 +135,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   sv = nposA->axis[0].size;
   sg = nposA->axis[1].size;
-  pos = nposA->data;
+  pos = (float *)nposA->data;
 
   /* find min, max, sml, smlI: histo-eq will warp values around such
      that min-->min and max-->max, but 0-->??.  So, find smallest
@@ -172,7 +172,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* warp position values that pos[smlI] gets mapped back to zero,
      and so that [newmin,newmax] is centered on zero */
-  pos = nposB->data;
+  pos = (float *)nposB->data;
   newsml = pos[smlI];
   if (min < -max) {
     newmin = min;

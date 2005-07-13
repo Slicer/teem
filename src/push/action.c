@@ -62,7 +62,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
 
 int
 _pushThingTotal(pushContext *pctx) {
-  int binIdx, numThing;
+  unsigned int binIdx, numThing;
 
   numThing = 0;
   for (binIdx=0; binIdx<pctx->numBin; binIdx++) {
@@ -73,7 +73,7 @@ _pushThingTotal(pushContext *pctx) {
 
 int
 _pushPointTotal(pushContext *pctx) {
-  int binIdx, thingIdx, numPoint;
+  unsigned int binIdx, thingIdx, numPoint;
   pushBin *bin;
 
   numPoint = 0;
@@ -90,8 +90,9 @@ int
 pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
               pushContext *pctx) {
   char me[]="pushOutputGet", err[AIR_STRLEN_MED];
-  int binIdx, pointRun, numPoint, thingRun, numThing,
-    pointIdx, thingIdx, *stnOut, E;
+  unsigned int binIdx, pointRun, numPoint, thingRun, numThing,
+    pointIdx, thingIdx, *stnOut;
+  int E;
   push_t *posOut, *tenOut;
   pushBin *bin;
   pushThing *thing;
@@ -109,7 +110,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
                         2 == pctx->dimIn ? 4 : 7, numPoint);
   }
   if (nStnOut) {
-    E |= nrrdMaybeAlloc(nStnOut, nrrdTypeInt, 2,
+    E |= nrrdMaybeAlloc(nStnOut, nrrdTypeUInt, 2,
                         3, numThing);
   }
   if (E) {
@@ -118,7 +119,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
   }
   posOut = nPosOut ? (push_t*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (push_t*)(nTenOut->data) : NULL;
-  stnOut = nStnOut ? (int*)(nStnOut->data) : NULL;
+  stnOut = nStnOut ? (unsigned int*)(nStnOut->data) : NULL;
 
   thingRun = 0;
   pointRun = 0;
@@ -289,10 +290,10 @@ _pushThingPointCharge(pushContext *pctx, pushThing *thg) {
 }
 
 int
-_pushForceSample(pushContext *pctx, int sx, int sy) {
+_pushForceSample(pushContext *pctx, unsigned int sx, unsigned int sy) {
   Nrrd *ntmp;
   double *data;
-  int xi, yi, hi;
+  unsigned int xi, yi, hi;
   push_t fsum[3], fvec[3];
   pushPoint _probe, *probe, *her;
   pushBin *bin, **neigh;
@@ -342,10 +343,11 @@ _pushForce(pushTask *task, int myBinIdx,
   pushBin *myBin, *herBin, **neighbor;
   pushPoint *myPoint, *herPoint;
   pushThing *myThing;
-  int myThingIdx, myPointIdx, herPointIdx, ci;
+  unsigned int myThingIdx, myPointIdx, herPointIdx, ci;
   push_t myCharge, herCharge,
     len, dir[3], drag, fvec[3];
 
+  AIR_UNUSED(parm);
   /* fprintf(stderr, "!%s: bingo 0 %d\n", me, myBinIdx); */
 
   myBin = task->pctx->bin + myBinIdx;
@@ -462,7 +464,7 @@ _pushForce(pushTask *task, int myBinIdx,
 int
 _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
   char me[]="_pushThingPointBe", err[AIR_STRLEN_MED];
-  int vertIdx;
+  unsigned int vertIdx;
 
   if (1 == thing->numVert) {
     /* its already a point, so no points have to be nullified
@@ -486,7 +488,7 @@ _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
     thing->vert = &(thing->point);
     thing->numVert = 1;
     thing->len = 0;
-    thing->seedIdx = -1;
+    thing->seedIdx = 0;
   }
   return 0;
 }
@@ -494,7 +496,8 @@ _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
 int
 _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
   char me[]="_pushThingTractletBe", err[AIR_STRLEN_MED];
-  int vertIdx, tret, startIdx, endIdx, numVert;
+  unsigned int vertIdx, startIdx, endIdx, numVert;
+  int tret;
   double seed[3], tmp;
 
   /* NOTE: the seed point velocity remains as the tractlet velocity */
@@ -612,34 +615,45 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
 
 void
 _pushPrintForce(pushContext *pctx, pushThing *thing) {
-  int vi, posI[3], frcI[3];
+  int posI[3], frcI[3];
   double pos[3], frc[3];
+  unsigned int vi;
 
-  ELL_3V_SCALE(posI, 1000000, thing->point.pos);
+#define TMP_3V_SCALE(v2, a, v1) \
+  ((v2)[0] = (int)((a)*(v1)[0]),       \
+   (v2)[1] = (int)((a)*(v1)[1]),       \
+   (v2)[2] = (int)((a)*(v1)[2]))
+
+  AIR_UNUSED(pctx);
+  TMP_3V_SCALE(posI, 1000000, thing->point.pos);
   ELL_3V_SCALE(pos, 1.0/1000000, posI);
-  ELL_3V_SCALE(frcI, 1000000, thing->point.frc);
+  TMP_3V_SCALE(frcI, 1000000, thing->point.frc);
   ELL_3V_SCALE(frc, 1.0/1000000, frcI);
   fprintf(stderr, "% 4d@(% 6.6f,% 6.6f)(% 6.6f,% 6.6f)",
           thing->ttaagg, pos[0], pos[1], frc[0], frc[1]);
   for (vi=0; vi<thing->numVert; vi++) {
-    ELL_3V_SCALE(frcI, 1000000, thing->vert[vi].frc);
+    TMP_3V_SCALE(frcI, 1000000, thing->vert[vi].frc);
     ELL_3V_SCALE(frc, 1.0/1000000, frcI);
     fprintf(stderr, "--(% 6.6f,% 6.6f)", frc[0], frc[1]);
   }
   fprintf(stderr, "\n");
+
+#undef TMP_3V_SCALE
 }
 
 int
 _pushUpdate(pushTask *task, int binIdx,
             const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
   char me[]="_pushUpdate", err[AIR_STRLEN_MED];
-  int thingIdx, vertIdx, inside, ret;
+  int ret, inside;
+  unsigned int thingIdx, vertIdx;
   double step, mass, *minPos, *maxPos;
   push_t fTNB[3], binorm[3], fvec[3];
   pushBin *bin;
   pushThing *thing;
   pushPoint *point, *seedPoint;
 
+  AIR_UNUSED(parm);
   step = task->pctx->step;
   bin = task->pctx->bin + binIdx;
   minPos = task->pctx->minPos;

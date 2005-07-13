@@ -47,7 +47,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  kindP = ptr;
+  kindP = (gageKind **)ptr;
   airToLower(str);
   if (!strcmp("scalar", str)) {
     *kindP = gageKindScl;
@@ -74,6 +74,7 @@ void
 printans(FILE *file, gage_t *ans, int len) {
   int a;
 
+  AIR_UNUSED(file);
   for (a=0; a<=len-1; a++) {
     if (a) {
       printf(", ");

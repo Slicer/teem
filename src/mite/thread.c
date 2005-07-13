@@ -71,9 +71,9 @@ miteThreadNew() {
 miteThread *
 miteThreadNix(miteThread *mtt) {
 
-  mtt->ansMiteVal = airFree(mtt->ansMiteVal);
-  mtt->directAnsMiteVal = airFree(mtt->directAnsMiteVal);
-  mtt = airFree(mtt);
+  mtt->ansMiteVal = (gage_t *)airFree(mtt->ansMiteVal);
+  mtt->directAnsMiteVal = (gage_t **)airFree(mtt->directAnsMiteVal);
+  airFree(mtt);
   return NULL;
 }
 
@@ -157,7 +157,10 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
 int 
 miteThreadEnd(miteThread *mtt, miteRender *mrr,
               miteUser *muu) {
-
+  
+  AIR_UNUSED(mtt);
+  AIR_UNUSED(mrr);
+  AIR_UNUSED(muu);
   return 0;
 }
 

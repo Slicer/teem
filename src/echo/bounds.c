@@ -24,7 +24,7 @@
 typedef void (*_echoBoundsGet_t)(echoPos_t lo[3], echoPos_t hi[3],
                                  echoObject *obj);
 
-_echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM];
+extern _echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM];
 
 #define BNDS_TMPL(TYPE, BODY)                                             \
 void                                                                      \
@@ -51,16 +51,19 @@ BNDS_TMPL(Sphere,
           )
 
 BNDS_TMPL(Cylinder,
+          AIR_UNUSED(obj);
           ELL_3V_SET(lo, -1, -1, -1);
           ELL_3V_SET(hi,  1,  1,  1);
           )
 
 BNDS_TMPL(Superquad,
+          AIR_UNUSED(obj);
           ELL_3V_SET(lo, -1, -1, -1);
           ELL_3V_SET(hi,  1,  1,  1);
           )
 
 BNDS_TMPL(Cube,
+          AIR_UNUSED(obj);
           ELL_3V_SET(lo, -1, -1, -1);
           ELL_3V_SET(hi,  1,  1,  1);
           )
@@ -96,6 +99,7 @@ BNDS_TMPL(TriMesh,
           )
      
 BNDS_TMPL(Isosurface,
+          AIR_UNUSED(obj);
           fprintf(stderr, "_echoIsosurface_bounds: unimplemented!\n");
           )
      
@@ -105,7 +109,7 @@ BNDS_TMPL(AABBox,
           )
 
 BNDS_TMPL(List,
-          int i;
+          unsigned int i;
           echoPos_t l[3];
           echoPos_t h[3];
           echoObject *o;
@@ -121,6 +125,7 @@ BNDS_TMPL(List,
           )
 
 BNDS_TMPL(Split,
+          AIR_UNUSED(obj);
           fprintf(stderr, "_echoSplit_bounds: unimplemented!\n");
           )
 

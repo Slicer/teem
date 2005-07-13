@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 #### (ell for macros)
 ####
-$(L).NEED = ten gage ell nrrd biff air
+$(L).NEED = ten ell nrrd biff air
 $(L).PUBLIC_HEADERS = coil.h
 $(L).PRIVATE_HEADERS = 
 $(L).OBJS = defaultsCoil.o enumsCoil.o scalarCoil.o tensorCoil.o \

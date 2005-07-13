@@ -57,16 +57,16 @@ main(int argc, char *argv[]) {
   
   nrrdConvert(nmat, nin, nrrdTypeDouble);
   if (3 == nmat->axis[0].size && 3 == nmat->axis[1].size) {
-    ell_3m_inv_d(m3, nmat->data);
+    ell_3m_inv_d(m3, (double *)nmat->data);
     fprintf(stderr, "%s: input:\n", me);
-    ell_3m_print_d(stderr, nmat->data);
+    ell_3m_print_d(stderr, (double *)nmat->data);
     fprintf(stderr, "%s: inverse:\n", me);
     ell_3m_print_d(stderr, m3);
   }
   if (4 == nmat->axis[0].size && 4 == nmat->axis[1].size) {
-    ell_4m_inv_d(m4, nmat->data);
+    ell_4m_inv_d(m4, (double *)nmat->data);
     fprintf(stderr, "%s: input:\n", me);
-    ell_4m_print_d(stderr, nmat->data);
+    ell_4m_print_d(stderr, (double *)nmat->data);
     fprintf(stderr, "%s: inverse:\n", me);
     ell_4m_print_d(stderr, m4);
   }

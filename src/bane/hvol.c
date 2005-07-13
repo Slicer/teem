@@ -58,7 +58,7 @@ _baneAxisCheck (baneAxis *ax) {
 void
 baneProbe(double val[3],
           Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-          int x, int y, int z) {
+          unsigned int x, unsigned int y, unsigned int z) {
   float *data=NULL;
 
   if (hvp->makeMeasrVol) {
@@ -344,7 +344,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     biffMove(BANE, err, NRRD); airMopError(mop); return 1;
   }
   airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
-  rhvdata = rawhvol->data;
+  rhvdata = (int *)rawhvol->data;
   included = 0;
   
   for (z=pad; z<sz-pad; z++) {
@@ -362,12 +362,13 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
           continue;
         }
         /* else this voxel will contribute to the histovol */
-        AIR_INDEX(min[0], val[0], max[0], shx, hx);
-        AIR_INDEX(min[1], val[1], max[1], shy, hy);
-        AIR_INDEX(min[2], val[2], max[2], shz, hz);
+        hx = airIndex(min[0], val[0], max[0], shx);
+        hy = airIndex(min[1], val[1], max[1], shy);
+        hz = airIndex(min[2], val[2], max[2], shz);
         hidx = hx + shx*(hy + shy*hz);
-        if (rhvdata[hidx] < INT_MAX)
+        if (rhvdata[hidx] < INT_MAX) {
           ++rhvdata[hidx];
+        }
         ++included;
       }
     }
@@ -412,7 +413,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   hvol->axis[0].center = nrrdCenterCell;
   hvol->axis[1].center = nrrdCenterCell;
   hvol->axis[2].center = nrrdCenterCell;
-  nhvdata = hvol->data;
+  nhvdata = (unsigned char *)hvol->data;
   for (hz=0; hz<shz; hz++) {
     for (hy=0; hy<shy; hy++) {
       if (hvp->verbose && !((hy+shy*hz)%200)) {
@@ -421,8 +422,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
       }
       for (hx=0; hx<shx; hx++) {
         hidx = hx + shx*(hy + shy*hz);
-        AIR_INDEX(0, rhvdata[hidx], clipVal, 256, hval);
-        hval = AIR_CLAMP(0, hval, 255);
+        hval = airIndexClamp(0, rhvdata[hidx], clipVal, 256);
         nhvdata[hidx] = hval;
       }
     }

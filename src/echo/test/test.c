@@ -33,6 +33,7 @@ main(int argc, char **argv) {
   int I;
   float R, G, B;
 
+  AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
   scene = echoSceneNew();

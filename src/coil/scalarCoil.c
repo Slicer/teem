@@ -47,6 +47,9 @@ void
 _coilKindScalarFilterTesting(coil_t *delta, coil_t **iv3, 
                              double spacing[3],
                              double parm[COIL_PARMS_NUM]) {
+  AIR_UNUSED(iv3);
+  AIR_UNUSED(spacing);
+  AIR_UNUSED(parm);
   delta[0] = 0;
 }
 
@@ -204,7 +207,13 @@ coilKindScalar = &_coilKindScalar;
 
 /* ------------------------------------------ */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern const coilKind _coilKind7Tensor;
+#ifdef __cplusplus
+}
+#endif
 
 const coilKind*
 coilKindArray[COIL_KIND_TYPE_MAX+1] = {

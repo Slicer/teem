@@ -47,7 +47,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  kindP = ptr;
+  kindP = (gageKind **)ptr;
   airToLower(str);
   if (!strcmp("scalar", str)) {
     *kindP = gageKindScl;
@@ -178,9 +178,9 @@ main(int argc, char *argv[]) {
   spx = SPACING(nin->axis[0+iBaseDim].spacing);
   spy = SPACING(nin->axis[1+iBaseDim].spacing);
   spz = SPACING(nin->axis[2+iBaseDim].spacing);
-  sox = scale[0]*six;
-  soy = scale[1]*siy;
-  soz = scale[2]*siz;
+  sox = (int)(scale[0]*six);
+  soy = (int)(scale[1]*siy);
+  soz = (int)(scale[2]*siz);
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);

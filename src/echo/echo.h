@@ -21,6 +21,10 @@
 #ifndef ECHO_HAS_BEEN_INCLUDED
 #define ECHO_HAS_BEEN_INCLUDED
 
+/* NOTE: this library has not undergone the changes as other Teem
+   libraries in order to make sure that array lengths and indices
+   are stored in unsigned types */
+
 #include <stdio.h>
 #include <math.h>
 
@@ -426,7 +430,8 @@ TEEM_API int echoObjectAdd(echoScene *scene, echoObject *obj);
 TEEM_API echoObject *echoObjectNix(echoObject *obj);
 
 /* model.c ---------------------------------------- */
-TEEM_API echoObject *echoRoughSphereNew(echoScene *scene, int theRes, int phiRes,
+TEEM_API echoObject *echoRoughSphereNew(echoScene *scene,
+                                        int theRes, int phiRes,
                                         echoPos_t *matx);
 
 /* bounds.c --------------------------------------- */
