@@ -33,11 +33,13 @@ unrrdu_axsplitMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, pret, size[2];
+  int pret;
+  size_t size[2];
+  unsigned int axis;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) to split at");
-  hestOptAdd(&opt, "s", "fast, slow sizes", airTypeInt, 2, 2, size, NULL,
+  hestOptAdd(&opt, "s", "fast, slow sizes", airTypeSize_t, 2, 2, size, NULL,
              "fast and slow axis sizes to produce as result of splitting "
              "given axis.");
   OPT_ADD_NIN(nin, "input nrrd");

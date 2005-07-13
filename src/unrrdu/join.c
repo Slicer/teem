@@ -40,7 +40,8 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, *label;
   Nrrd **nin;
   Nrrd *nout;
-  int ninLen, axis, incrDim, pret;
+  int incrDim, pret;
+  unsigned int ninLen, axis;
   double mm[2], spc;
   airArray *mop;
 
@@ -81,7 +82,7 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   if (strlen(label)) {
-    nout->axis[axis].label = airFree(nout->axis[axis].label);
+    nout->axis[axis].label = (char *)airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
   }
   if (AIR_EXISTS(mm[0])) {

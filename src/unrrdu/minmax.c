@@ -22,7 +22,13 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO "Print out min and max values in one or more nrrds"
 char *_unrrdu_minmaxInfoL =
@@ -46,10 +52,10 @@ unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
 
   range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(stderr, NULL, "min: %lg\n", range->min);
-  airSinglePrintf(stderr, NULL, "max: %lg\n", range->max);
+  airSinglePrintf(fout, NULL, "min: %lg\n", range->min);
+  airSinglePrintf(fout, NULL, "max: %lg\n", range->max);
   if (range->hasNonExist) {
-    fprintf(stderr, "# has non-existent values\n");
+    fprintf(fout, "# has non-existent values\n");
   }
 
   airMopOkay(mop);
@@ -61,7 +67,8 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret, ni, ninLen;
+  int pret; 
+  unsigned int ni, ninLen;
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,

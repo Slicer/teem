@@ -29,12 +29,13 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  int bins, type, pret;
+  int type, pret;
+  unsigned int bins;
   double min, max;
   NrrdRange *range;
   airArray *mop;
 
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b", "bins", airTypeUInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
   hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
              "how to weigh contributions to joint histogram.  By default "

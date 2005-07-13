@@ -30,7 +30,9 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nsub;
-  int *minOff, minLen, ax, pret, min[NRRD_DIM_MAX];
+  unsigned int ai, minLen;
+  int *minOff, pret;
+  size_t min[NRRD_DIM_MAX];
   airArray *mop;
 
   OPT_ADD_BOUND("min", minOff,
@@ -60,16 +62,16 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  for (ax=0; ax<=nin->dim-1; ax++) {
-    if (-1 == minOff[0 + 2*ax]) {
-      fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-              me, ax);
+  for (ai=0; ai<nin->dim; ai++) {
+    if (-1 == minOff[0 + 2*ai]) {
+      fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n",
+              me, ai);
       airMopError(mop);
       return 1;
     }
   }
-  for (ax=0; ax<=nin->dim-1; ax++) {
-    min[ax] = minOff[0 + 2*ax]*(nin->axis[ax].size-1) + minOff[1 + 2*ax];
+  for (ai=0; ai<=nin->dim-1; ai++) {
+    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
   }
 
   nout = nrrdNew();

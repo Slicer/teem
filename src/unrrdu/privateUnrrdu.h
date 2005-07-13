@@ -49,9 +49,9 @@ extern "C" {
 #define OPT_ADD_NOUT(var, desc) \
   hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &(var), "-", desc)
 
-/* int var */
+/* unsigned int var */
 #define OPT_ADD_AXIS(var, desc) \
-  hestOptAdd(&opt, "a", "axis", airTypeInt, 1, 1, &(var), NULL, desc)
+  hestOptAdd(&opt, "a", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
 
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \

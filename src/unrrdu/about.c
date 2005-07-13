@@ -83,6 +83,10 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char par8[] = "\t\t\t\t"
     "Feedback, questions, requests welcome: gk@bwh.harvard.edu.\n";
 
+  AIR_UNUSED(argc);
+  AIR_UNUSED(argv);
+  AIR_UNUSED(me);
+
   fprintf(stderr, "\n");
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   sprintf(fmt, "%%%ds\n",

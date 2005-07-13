@@ -32,7 +32,8 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *units;
   Nrrd *nin, *nout;
-  int axis, pret;
+  int pret;
+  unsigned int axis;
   double mm[2], spc;
   airArray *mop;
 
@@ -67,8 +68,8 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!AIR_IN_CL(0, axis, nin->dim-1)) {
-    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n", 
+  if (!( axis < nin->dim )) {
+    fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n", 
             me, axis, nin->dim-1);
     airMopError(mop);
     return 1;
@@ -83,11 +84,11 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   
   if (strlen(label)) {
-    nout->axis[axis].label = airFree(nout->axis[axis].label);
+    nout->axis[axis].label = (char *)airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
   }
   if (strlen(units)) {
-    nout->axis[axis].units = airFree(nout->axis[axis].units);
+    nout->axis[axis].units = (char *)airFree(nout->axis[axis].units);
     nout->axis[axis].units = airStrdup(units);
   }
   if (AIR_EXISTS(mm[0])) {

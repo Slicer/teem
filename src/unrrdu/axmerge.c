@@ -34,7 +34,8 @@ unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout[2];
-  int *axes, axesLen, pret, ii, jj, ni;
+  int *axes, pret, ni;
+  unsigned int ii, jj, axesLen;
   airArray *mop;
 
   hestOptAdd(&opt, "a", "ax0", airTypeInt, 1, -1, &axes, NULL,

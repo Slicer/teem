@@ -36,13 +36,14 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd **nin;
   Nrrd *nout, *nwght;
-  int type, d, ninLen, *bin, binLen, clamp[NRRD_DIM_MAX], pret,
-    minLen, maxLen;
+  size_t *bin;
+  int type, clamp[NRRD_DIM_MAX], pret;
+  unsigned int binLen, minLen, maxLen, ninLen, ai;
   airArray *mop;
   double *min, *max;
   NrrdRange **range;
 
-  hestOptAdd(&opt, "b", "bins0 bins1", airTypeInt, 2, -1, &bin, NULL,
+  hestOptAdd(&opt, "b", "bins0 bins1", airTypeSize_t, 2, -1, &bin, NULL,
              "bins<i> is the number of bins to use along axis i (of joint "
              "histogram), which represents the values of nin<i> ",
              &binLen);
@@ -84,9 +85,9 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   range = (NrrdRange **)calloc(ninLen, sizeof(NrrdRange*));
   airMopAdd(mop, range, airFree, airMopAlways);
-  for (d=0; d<ninLen; d++) {
-    range[d] = nrrdRangeNew(AIR_NAN, AIR_NAN);
-    airMopAdd(mop, range[d], (airMopper)nrrdRangeNix, airMopAlways);
+  for (ai=0; ai<ninLen; ai++) {
+    range[ai] = nrrdRangeNew(AIR_NAN, AIR_NAN);
+    airMopAdd(mop, range[ai], (airMopper)nrrdRangeNix, airMopAlways);
   }
   if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
     if (minLen != ninLen) {
@@ -94,8 +95,8 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
               minLen, ninLen);
       airMopError(mop); return 1;
     }
-    for (d=0; d<ninLen; d++) {
-      range[d]->min = min[d];
+    for (ai=0; ai<ninLen; ai++) {
+      range[ai]->min = min[ai];
     }
   }
   if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
@@ -104,12 +105,12 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
               maxLen, ninLen);
       airMopError(mop); return 1;
     }
-    for (d=0; d<ninLen; d++) {
-      range[d]->max = max[d];
+    for (ai=0; ai<ninLen; ai++) {
+      range[ai]->max = max[ai];
     }
   }
-  for (d=0; d<ninLen; d++) {
-    clamp[d] = 0;
+  for (ai=0; ai<ninLen; ai++) {
+    clamp[ai] = 0;
   }
 
   nout = nrrdNew();

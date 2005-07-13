@@ -33,7 +33,8 @@ unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd *nin, *nout;
-  int axis, pret;
+  int pret;
+  unsigned int axis;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) at which to insert the new axis");
@@ -59,7 +60,7 @@ unrrdu_axinsertMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   if (strlen(label)) {
-    nout->axis[axis].label = airFree(nout->axis[axis].label);
+    nout->axis[axis].label = (char *)airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
   }
 

@@ -40,13 +40,14 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
   NrrdRange *range=NULL;
-  int typeOut, rescale, aclLen, pret;
+  unsigned int aclLen;
+  int typeOut, rescale, pret;
   double min, max;
 
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
              "irregular map to map input nrrd through",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "l", "aclLen", airTypeInt, 1, 1, &aclLen, "0",
+  hestOptAdd(&opt, "l", "aclLen", airTypeUInt, 1, 1, &aclLen, "0",
              "length of accelerator array, used to try to speed-up "
              "task of finding between which pair of control points "
              "a given value lies.  Not terribly useful for small maps "

@@ -22,7 +22,13 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern void _nrrdGuessFormat(NrrdIoState *io, const char *filename);
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
 char *_unrrdu_saveInfoL =

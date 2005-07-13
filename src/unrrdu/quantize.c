@@ -35,7 +35,8 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int bits, pret;
+  int pret;
+  unsigned int bits;
   double min, max;
   NrrdRange *range;
   airArray *mop;

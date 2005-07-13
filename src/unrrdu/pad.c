@@ -29,8 +29,9 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int *minOff, minLen, *maxOff, maxLen, ax, bb, pret,
-    min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+  unsigned int ai;
+  int *minOff, minLen, *maxOff, maxLen, bb, pret;
+  ptrdiff_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   double padVal;
   airArray *mop;
 
@@ -63,31 +64,31 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( minLen == nin->dim && maxLen == nin->dim )) {
+  if (!( minLen == (int)nin->dim && maxLen == (int)nin->dim )) {
     fprintf(stderr,
             "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
             me, minLen, maxLen, nin->dim);
     airMopError(mop);
     return 1;
   }
-  for (ax=0; ax<=nin->dim-1; ax++) {
-    if (-1 == minOff[0 + 2*ax]) {
+  for (ai=0; ai<nin->dim; ai++) {
+    if (-1 == minOff[0 + 2*ai]) {
       fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-              me, ax);
+              me, ai);
       airMopError(mop);
       return 1;
     }
   }
-  for (ax=0; ax<=nin->dim-1; ax++) {
-    min[ax] = minOff[0 + 2*ax]*(nin->axis[ax].size-1) + minOff[1 + 2*ax];
-    if (-1 == maxOff[0 + 2*ax]) {
-      max[ax] = min[ax] + maxOff[1 + 2*ax];
+  for (ai=0; ai<nin->dim; ai++) {
+    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
+    if (-1 == maxOff[0 + 2*ai]) {
+      max[ai] = min[ai] + maxOff[1 + 2*ai];
     } else {
-      max[ax] = maxOff[0 + 2*ax]*(nin->axis[ax].size-1) + maxOff[1 + 2*ax];
+      max[ai] = maxOff[0 + 2*ai]*(nin->axis[ai].size-1) + maxOff[1 + 2*ai];
     }
     /*
-    fprintf(stderr, "%s: ax %2d: min = %4d, max = %4d\n",
-            me, ax, min[ax], max[ax]);
+    fprintf(stderr, "%s: ai %2d: min = %4d, max = %4d\n",
+            me, ai, min[ai], mai[ai]);
     */
   }
 

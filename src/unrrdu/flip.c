@@ -30,7 +30,8 @@ unrrdu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, pret;
+  int pret;
+  unsigned int axis;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to flip along");

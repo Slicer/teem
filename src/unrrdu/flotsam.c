@@ -113,7 +113,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  pos = ptr;
+  pos = (int*)ptr;
   if (!strcmp("M", str)) {
     pos[0] = 1;
     pos[1] = 0;
@@ -194,7 +194,7 @@ unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  typeP = ptr;
+  typeP = (int*)ptr;
   if (!strcmp("unknown", str)) {
     *typeP = nrrdTypeUnknown;
   } else if (!strcmp("default", str)) {
@@ -229,13 +229,13 @@ hestCB unrrduHestMaybeTypeCB = {
 int
 unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseBits";
-  int *bitsP;
+  unsigned int *bitsP;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  bitsP = ptr;
+  bitsP = (unsigned int*)ptr;
   if (1 != sscanf(str, "%d", bitsP)) {
     sprintf(err, "%s: can't parse \"%s\" as int", me, str);
     return 1;
@@ -274,7 +274,7 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  scale = ptr;
+  scale = (float *)ptr;
   if (!strcmp("=", str)) {
     scale[0] = 0.0;
     scale[1] = 0.0;
@@ -322,7 +322,7 @@ void *
 unrrduMaybeFclose(void *_file) {
   FILE *file;
   
-  file = _file;
+  file = (FILE *)_file;
   if (stdin != file) {
     file = airFclose(file);
   }
@@ -338,7 +338,7 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  fileP = ptr;
+  fileP = (FILE **)ptr;
   if (!( *fileP = airFopen(str, stdin, "rb") )) {
     sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
             me, str, strerror(errno));
@@ -376,7 +376,7 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  enc = ptr;
+  enc = (int *)ptr;
   /* these are the defaults, they may not get over-written */
   enc[1] = -1;
   enc[2] = nrrdZlibStrategyDefault;

@@ -33,7 +33,8 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err, *valS;
   Nrrd *nin, *nout, *nval=NULL;
   airArray *mop;
-  int type, conny, pret;
+  int type, pret;
+  unsigned int conny;
 
   hestOptAdd(&opt, "v", "filename", airTypeString, 1, 1, &valS, "",
              "Giving a filename here allows you to save out the values "
@@ -47,7 +48,7 @@ unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Using this option allows one to specify the integral type to "
              "be used.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "c", "connectivity", airTypeInt, 1, 1, &conny, NULL,
+  hestOptAdd(&opt, "c", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");

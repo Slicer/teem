@@ -22,7 +22,13 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int _nrrdOneLine(int *lenP, NrrdIoState *nio, FILE *file);
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO "Print header of one or more nrrd files"
 char *_unrrdu_headInfoL = 
@@ -85,7 +91,8 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *err, **inS;
   NrrdIoState *nio;
   airArray *mop;
-  int pret, ni, ninLen;
+  int pret;
+  unsigned int ni, ninLen;
 #ifdef _WIN32
   int c;
 #endif

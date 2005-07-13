@@ -36,7 +36,8 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nout, *nout2, *nval;
   airArray *mop;
-  int conny, pret, maxSize, dir, maxNeigh, revalue;
+  int pret, maxSize, dir, maxNeigh, revalue;
+  unsigned int conny;
 
   hestOptAdd(&opt, "d", "dir", airTypeInt, 1, 1, &dir, "0",
              "do value-driven merging.  Using (positive) \"1\" says that "
@@ -52,7 +53,7 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "to be be merged.  \"1\" allows only islands to be merged, "
              "\"2\" does merging with bigger of two neighbors, etc, while "
              "\"0\" says that number of neighbors is no constraint");
-  hestOptAdd(&opt, "c", "connectivity", airTypeInt, 1, 1, &conny, NULL,
+  hestOptAdd(&opt, "c", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");

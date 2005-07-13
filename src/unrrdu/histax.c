@@ -30,7 +30,8 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, type, bins, pret;
+  int type, bins, pret;
+  unsigned int axis;
   double min, max;
   airArray *mop;
   NrrdRange *range;

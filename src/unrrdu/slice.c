@@ -31,7 +31,8 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, _pos[2], pos, pret;
+  unsigned int axis;
+  int _pos[2], pos, pret;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
@@ -50,7 +51,7 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   USAGE(_unrrdu_sliceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-  if (!( AIR_IN_CL(0, axis, nin->dim-1) )) {
+  if (!( axis < nin->dim )) {
     fprintf(stderr, "%s: axis %d not in range [0,%d]\n", me, axis, nin->dim-1);
     return 1;
   }

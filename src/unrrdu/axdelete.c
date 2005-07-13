@@ -36,10 +36,12 @@ unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp;
-  int axis, pret;
+  int pret, _axis;
+  unsigned axis;
   airArray *mop;
 
-  OPT_ADD_AXIS(axis, "dimension (axis index) of the axis to remove");
+  hestOptAdd(&opt, "a", "axis", airTypeInt, 1, 1, &_axis, NULL, 
+             "dimension (axis index) of the axis to remove");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -53,7 +55,7 @@ unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (-1 == axis) {
+  if (-1 == _axis) {
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdCopy(nout, nin)) {
@@ -76,7 +78,7 @@ unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
            axis++);
     }
   } else {
-    if (nrrdAxesDelete(nout, nin, axis)) {
+    if (nrrdAxesDelete(nout, nin, _axis)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error deleting axis:\n%s", me, err);
       airMopError(mop); return 1;

@@ -22,7 +22,13 @@
 #include "privateUnrrdu.h"
 
 /* bad gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int _nrrdContainsPercentDAndMore(char *str);
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO "Save all slices along one axis into separate files"
 char *_unrrdu_diceInfoL = 
@@ -38,7 +44,9 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     fffname[AIR_STRLEN_MED],  /* format for filename */
     *ftmpl;                   /* format template */
   Nrrd *nin, *nout;
-  int pos, axis, top, pret, start, fit;
+  int top, pret, start, fit;
+  unsigned int axis;
+  size_t pos;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
@@ -70,8 +78,8 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
-    fprintf(stderr, "%s: given axis (%d) outside range [0,%d]\n",
+  if (!( axis < nin->dim )) {
+    fprintf(stderr, "%s: given axis (%u) outside range [0,%u]\n",
             me, axis, nin->dim-1);
     airMopError(mop);
     return 1;

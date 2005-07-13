@@ -36,7 +36,9 @@ unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, **_nmmap, *nmmap, *nout;
   airArray *mop;
   NrrdRange *range=NULL;
-  int typeOut, rescale, pret, mapAxis, _nmmapLen;
+  unsigned int mapAxis;
+  int typeOut, rescale, pret;
+  unsigned int _nmmapLen;
   double min, max;
 
   hestOptAdd(&opt, "m", "mmap", airTypeOther, 1, -1, &_nmmap, NULL,
@@ -87,7 +89,7 @@ unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
     nmmap = _nmmap[0];
     mapAxis = nmmap->dim - nin->dim - 1;
     /* its not our job to do real error checking ... */
-    mapAxis = AIR_CLAMP(0, mapAxis, nmmap->dim - 1);
+    mapAxis = AIR_MIN(mapAxis, nmmap->dim - 1);
   } else {
     /* we have to join together multiple nrrds to get the mmap */
     nmmap = nrrdNew();

@@ -39,14 +39,15 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, inverse, pret;
-  int *perm, *iperm, **whichperm, permLen;
+  unsigned int di, axis, permLen, *perm, *iperm, *whichperm;
+  size_t *realperm;
+  int inverse, pret;
   airArray *mop;
 
   /* so that long permutations can be read from file */
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&opt, "p", "slc0 slc1", airTypeInt, 1, -1, &perm, NULL,
+  hestOptAdd(&opt, "p", "slc0 slc1", airTypeSize_t, 1, -1, &perm, NULL,
              "new slice ordering", &permLen);
   hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &inverse, NULL,
              "use inverse of given permutation");
@@ -66,20 +67,21 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
   
   /* we have to do error checking on axis in order to do error
      checking on length of permutation */
-  if (!( AIR_IN_CL(0, axis, nin->dim-1) )) {
-    fprintf(stderr, "%s: axis %d not in valid range [%d,%d]\n", 
-            me, axis, 0, nin->dim-1);
+  if (!( axis < nin->dim )) {
+    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n", 
+            me, axis, nin->dim-1);
     airMopError(mop);
     return 1;
   }
   if (!( permLen == nin->axis[axis].size )) {
-    fprintf(stderr, "%s: permutation length (%d) != axis %d's size (%d)\n",
+    fprintf(stderr, "%s: permutation length (%u) != axis %d's size ("
+            _AIR_SIZE_T_CNV ")\n",
             me, permLen, axis, nin->axis[axis].size);
     airMopError(mop);
     return 1;
   }
   if (inverse) {
-    iperm = calloc(permLen, sizeof(int));
+    iperm = (unsigned int*)calloc(permLen, sizeof(unsigned int));
     airMopAdd(mop, iperm, airFree, airMopAlways);
     if (nrrdInvertPerm(iperm, perm, permLen)) {
       fprintf(stderr,
@@ -87,13 +89,17 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    whichperm = &iperm;
+    whichperm = iperm;
+  } else {
+    whichperm = perm;
   }
-  else {
-    whichperm = &perm;
+  
+  realperm = (size_t*)calloc(permLen, sizeof(size_t));
+  airMopAdd(mop, realperm, airFree, airMopAlways);
+  for (di=0; di<permLen; di++) {
+    realperm[di] = whichperm[di];
   }
-
-  if (nrrdShuffle(nout, nin, axis, *whichperm)) {
+  if (nrrdShuffle(nout, nin, axis, realperm)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error shuffling nrrd:\n%s", me, err);
     airMopError(mop);

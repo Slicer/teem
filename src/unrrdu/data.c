@@ -22,8 +22,14 @@
 #include "privateUnrrdu.h"
 
 /* bad bad bad Gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
 extern int _nrrdDataFNNumber(NrrdIoState *nio);
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO "Print data segment of a nrrd file"
 char *_unrrdu_dataInfoL = 

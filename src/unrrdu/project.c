@@ -36,7 +36,8 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int axis, measr, pret, type;
+  unsigned int axis;
+  int measr, pret, type;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to project along");

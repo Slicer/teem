@@ -40,7 +40,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int d, scaleLen, type, bb, pret, norenorm;
+  int type, bb, pret, norenorm;
+  unsigned int scaleLen, ai;
   airArray *mop;
   float *scale;
   double padVal;
@@ -114,33 +115,34 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
             me, scaleLen, nin->dim);
     return 1;
   }
-  for (d=0; d<=nin->dim-1; d++) {
+  for (ai=0; ai<nin->dim; ai++) {
     /* this may be over-written below */
-    info->kernel[d] = unuk->kernel;
-    switch((int)scale[0 + 2*d]) {
+    info->kernel[ai] = unuk->kernel;
+    switch((int)scale[0 + 2*ai]) {
     case 0:
       /* no resampling */
-      info->kernel[d] = NULL;
+      info->kernel[ai] = NULL;
       break;
     case 1:
       /* scaling of input # samples */
-      info->samples[d] = AIR_ROUNDUP(scale[1 + 2*d]*nin->axis[d].size);
+      info->samples[ai] = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
       break;
     case 2:
       /* explicit # of samples */
-      info->samples[d] = scale[1 + 2*d];
+      info->samples[ai] = (size_t)scale[1 + 2*ai];
       break;
     }
-    memcpy(info->parm[d], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
-    if (info->kernel[d] &&
-        (!( AIR_EXISTS(nin->axis[d].min) && AIR_EXISTS(nin->axis[d].max))) ) {
-       nrrdAxisInfoMinMaxSet(nin, d, 
-                             (nin->axis[d].center
-                              ? nin->axis[d].center 
+    memcpy(info->parm[ai], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+    if (info->kernel[ai] &&
+        (!( AIR_EXISTS(nin->axis[ai].min) 
+            && AIR_EXISTS(nin->axis[ai].max))) ) {
+       nrrdAxisInfoMinMaxSet(nin, ai, 
+                             (nin->axis[ai].center
+                              ? nin->axis[ai].center 
                               : nrrdDefCenter));
     }
-    info->min[d] = nin->axis[d].min;
-    info->max[d] = nin->axis[d].max;
+    info->min[ai] = nin->axis[ai].min;
+    info->max[ai] = nin->axis[ai].max;
   }
   info->boundary = bb;
   info->type = type;

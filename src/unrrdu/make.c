@@ -22,8 +22,18 @@
 #include "privateUnrrdu.h"
 
 /* bad Gordon */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
 extern int _nrrdContainsPercentDAndMore(char *str);
+#ifdef __cplusplus
+}
+#endif
+
+/* learned: some header file must declare private functions
+** within extern "C" so that others can link with them
+*/
 
 #define NO_STRING "."
 
@@ -65,11 +75,12 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *outData, *err, 
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  int *size, sizeLen, buflen, dataFileDim, bufLen,
-    nameLen, kvpLen, ii, spacingLen, thicknessLen, labelLen, unitsLen,
-    spunitsLen, headerOnly, pret, lineSkip, byteSkip, endian, type,
-    encodingType, gotSpacing, gotThickness, space, spaceDim, kindsLen,
-    centeringsLen, spaceSet;
+  int *size, buflen, bufLen,
+    headerOnly, pret, lineSkip, byteSkip, endian, type,
+    encodingType, gotSpacing, gotThickness, space, spaceDim, 
+    spaceSet;
+  unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen,
+    centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim;
   double *spacing, *thickness;
   airArray *mop;
   NrrdIoState *nio;
@@ -102,7 +113,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
              "number of samples along each axis (and implicit indicator "
              "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "fd", "fileDim", airTypeInt, 1, 1, &dataFileDim, "0",
+  hestOptAdd(&opt, "fd", "fileDim", airTypeUInt, 1, 1, &dataFileDim, "0",
              "When using *multiple* input data files (to \"-i\"), what is "
              "the dimension of the array data in each individual file. By "
              "default (not using this option), this dimension is assumed "
@@ -394,7 +405,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       buflen += airStrlen(" ") + airStrlen(kinds[ii]);
     }
     buflen += 1;
-    parseBuf = calloc(buflen, sizeof(char));
+    parseBuf = (char *)calloc(buflen, sizeof(char));
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<sizeLen; ii++) {
@@ -421,7 +432,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       buflen += airStrlen(" ") + airStrlen(centerings[ii]);
     }
     buflen += 1;
-    parseBuf = calloc(buflen, sizeof(char));
+    parseBuf = (char *)calloc(buflen, sizeof(char));
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<sizeLen; ii++) {
@@ -549,7 +560,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
       buflen += airStrlen(" ") + airStrlen("\"\"") + airStrlen(spunits[ii]);
     }
     buflen += 1;
-    parseBuf = calloc(buflen, sizeof(char));
+    parseBuf = (char *)calloc(buflen, sizeof(char));
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<nrrd->spaceDim; ii++) {

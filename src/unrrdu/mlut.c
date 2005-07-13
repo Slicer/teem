@@ -36,7 +36,8 @@ unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, **_nmlut, *nmlut, *nout;
   airArray *mop;
-  int typeOut, rescale, pret, mapAxis, _nmlutLen;
+  int typeOut, rescale, pret;
+  unsigned int _nmlutLen, mapAxis;
   double min, max;
   NrrdRange *range=NULL;
 
@@ -84,7 +85,7 @@ unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
     nmlut = _nmlut[0];
     mapAxis = nmlut->dim - nin->dim - 1;
     /* its not our job to do real error checking ... */
-    mapAxis = AIR_CLAMP(0, mapAxis, nmlut->dim - 1);
+    mapAxis = AIR_MIN(mapAxis, nmlut->dim - 1);
   } else {
     /* we have to join together multiple nrrds to get the mlut */
     nmlut = nrrdNew();

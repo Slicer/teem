@@ -36,7 +36,8 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
-  int bins, smart, pret;
+  int smart, pret;
+  unsigned int bins;
   airArray *mop;
   float amount;
 

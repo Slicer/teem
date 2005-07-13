@@ -39,18 +39,19 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp, **mnout;
-  int bins, radius, pad, pret, mode, chan, ni, nsize;
+  int pad, pret, mode, chan, ni, nsize;
+  unsigned int bins, radius;
   airArray *mop;
   float wght;
 
-  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, NULL,
+  hestOptAdd(&opt, "r", "radius", airTypeUInt, 1, 1, &radius, NULL,
              "how big a window to filter over. \"-r 1\" leads to a "
              "3x3 window in an image, and a 3x3x3 window in a volume");
   hestOptAdd(&opt, "mode", NULL, airTypeInt, 0, 0, &mode, NULL,
              "By default, median filtering is done.  Using this option "
              "enables mode filtering, in which the most common value is "
              "used as output");
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, "256",
+  hestOptAdd(&opt, "b", "bins", airTypeUInt, 1, 1, &bins, "256",
              "# of bins in histogram.  It is in your interest to minimize "
              "this number, since big histograms mean slower execution "
              "times.  8-bit data needs at most 256 bins.");
