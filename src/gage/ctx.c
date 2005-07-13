@@ -135,11 +135,11 @@ gageContextNix (gageContext *ctx) {
       /* no point in doing a detach, the whole context is going bye-bye */
     }
     ctx->shape = gageShapeNix(ctx->shape);
-    ctx->fw = airFree(ctx->fw);
-    ctx->fsl = airFree(ctx->fsl);
-    ctx->off = airFree(ctx->off);
+    ctx->fw = (gage_t *)airFree(ctx->fw);
+    ctx->fsl = (gage_t *)airFree(ctx->fsl);
+    ctx->off = (unsigned int *)airFree(ctx->off);
   }
-  ctx = airFree(ctx);
+  airFree(ctx);
   return NULL;
 }
 
@@ -250,9 +250,9 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
   
   switch (which) {
   case gageParmVerbose:
-    ctx->verbose = val;
+    ctx->verbose = (int)val;
     for (p=0; p<ctx->numPvl; p++) {
-      ctx->pvl[p]->verbose = val;
+      ctx->pvl[p]->verbose = (int)val;
     }
     break;
   case gageParmRenormalize:
@@ -284,7 +284,7 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmCurvNormalSide:
-    ctx->parm.curvNormalSide = val;
+    ctx->parm.curvNormalSide = (int)val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmKernelIntegralNearZero:
@@ -292,15 +292,15 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
     /* no flag to set, simply affects future calls to gageKernelSet() */
     break;
   case gageParmRequireAllSpacings:
-    ctx->parm.requireAllSpacings = val;
+    ctx->parm.requireAllSpacings = (int)val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmRequireEqualCenters:
-    ctx->parm.requireEqualCenters = val;
+    ctx->parm.requireEqualCenters = (int)val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmDefaultCenter:
-    ctx->parm.defaultCenter = val;
+    ctx->parm.defaultCenter = (int)val;
     /* no flag to set, I guess, although the value here effects the 
        action of _gageShapeSet when called by gagePerVolumeAttach ... */
     break;
@@ -431,8 +431,9 @@ void
 gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
   int _xx, _yy, _zz, xx, yy, zz, sx, sy, sz, lx, ly, lz,
-    hx, hy, hz, fr, fddd, cacheIdx, dataIdx, tup;
+    hx, hy, hz, fr, fddd, cacheIdx, dataIdx;
   char *data, *here;
+  unsigned int tup;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   sx = ctx->shape->size[0];

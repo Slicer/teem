@@ -43,7 +43,7 @@ extern "C" {
 
 /* shape.c */
 extern int _gageShapeSet(gageContext *ctx, gageShape *shape,
-                         const Nrrd *nin, int baseDim);
+                         const Nrrd *nin, unsigned int baseDim);
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);

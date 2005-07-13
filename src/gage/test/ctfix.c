@@ -35,7 +35,8 @@ main(int argc, char *argv[]) {
   char *err, done[13];
   Nrrd *nin, *_nsinfo, *nsinfo, *nout;
   NrrdKernelSpec *kern;
-  int E, sx, sy, sz, xi, yi, zi, si;
+  int E;
+  unsigned int sx, sy, sz, xi, yi, zi, si;
   gageContext *ctx;
   gagePerVolume *pvl;
   gage_t *answer;
@@ -127,8 +128,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: streak %d of %d       ",
             me, si+1, nsinfo->axis[1].size);
     fflush(stderr);
-    zi = sinfo[0 + 5*si];
-    if (!AIR_IN_CL(0, zi, sz-1)) {
+    zi = (int)(sinfo[0 + 5*si]);
+    if (!( zi < sz )) {
       fprintf(stderr, "%s: streak[%d] zi=%d outside valid range [0,%d]\n",
               me, si, zi, sz-1);
       airMopError(mop); return 1;

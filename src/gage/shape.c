@@ -68,7 +68,8 @@ gageShapeCopy (gageShape *shp) {
 gageShape *
 gageShapeNix (gageShape *shape) {
   
-  return airFree(shape);
+  airFree(shape);
+  return NULL;
 }
 
 /*
@@ -84,7 +85,7 @@ gageShapeNix (gageShape *shape) {
 */
 int
 _gageShapeSet (gageContext *ctx, gageShape *shape,
-               const Nrrd *nin, int baseDim) {
+               const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter, statCalc[3];
   const NrrdAxisInfo *ax[3];

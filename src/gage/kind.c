@@ -31,7 +31,8 @@
 int
 gageKindCheck(gageKind *kind) {
   char me[]="gageKindCheck", err[AIR_STRLEN_MED];
-  int ii, pitem, pindex, alen;
+  int pitem, pindex, alen;
+  int ii;
 
   if (!kind) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -81,7 +82,8 @@ gageKindCheck(gageKind *kind) {
         biffAdd(GAGE, err); return 1;
       }
       if (!( 0 <= pindex
-             && (pindex + alen <= kind->table[pitem].answerLength) )) {
+             && ((unsigned int)pindex + alen 
+                 <= kind->table[pitem].answerLength) )) {
         sprintf(err, "%s: item %d of kind \"%s\" wants index range [%d,%d] "
                 "of parent %d, which isn't in valid range [0,%d]",
                 me, ii, kind->name,

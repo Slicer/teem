@@ -126,6 +126,8 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
                      int padding, gagePerVolume *pvl) {
   Nrrd *npad;
   char me[]="_gageStandardPadder", err[AIR_STRLEN_MED];
+
+  AIR_UNUSED(pvl);
   int i, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;
 
   if (!(nin && kind)) {
@@ -184,6 +186,7 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
 void
 _gageStandardNixer (Nrrd *npad, gageKind *kind, gagePerVolume *pvl) {
 
+  AIR_UNUSED(kind);
   if (npad != pvl->nin) {
     nrrdNuke(npad);
   }
@@ -238,7 +241,7 @@ gageItemSpec *
 gageItemSpecNix(gageItemSpec *isp) {
 
   if (isp) {
-    isp = airFree(isp);
+    airFree(isp);
   }
   return NULL;
 }

@@ -175,8 +175,9 @@ enum {
 ** the scalar, vector, and tensor kinds)
 */
 typedef struct {
+  unsigned int 
+    answerLength;       /* how many gage_t's are needed to store the answer */
   int enumVal,          /* the item's enum value */
-    answerLength,       /* how many gage_t's are needed to store the answer */
     needDeriv,          /* what kind of derivative info is immediately needed
                            for this item (not recursively expanded). This is
                            NO LONGER a bitvector: values are 0, 1, 2, ... */
@@ -540,10 +541,10 @@ typedef struct gageKind_t {
   airEnum *enm;                     /* such as gageScl.  NB: the "unknown"
                                        value in the enum MUST be -1 (since
                                        queries are formed as bitflags) */
-  int baseDim,                      /* dimension that x,y,z axes start on
+  unsigned int baseDim,             /* dimension that x,y,z axes start on
                                        (0 for scalars, 1 for vectors) */
-    valLen,                         /* number of scalars per data point */
-    itemMax;                        /* such as GAGE_SCL_ITEM_MAX */
+    valLen;                         /* number of scalars per data point */
+  int itemMax;                      /* such as GAGE_SCL_ITEM_MAX */
   gageItemEntry *table;             /* array of gageItemEntry's, indexed
                                        by the item value */
   void (*iv3Print)(FILE *,          /* such as _gageSclIv3Print() */

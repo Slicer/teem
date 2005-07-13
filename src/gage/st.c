@@ -174,9 +174,9 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
   ik0->parm[0] = iScale/zs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
   diam = 2*rad + 1;
-  ixw = calloc(diam, sizeof(gage_t));
-  iyw = calloc(diam, sizeof(gage_t));
-  izw = calloc(diam, sizeof(gage_t));
+  ixw = (gage_t*)calloc(diam, sizeof(gage_t));
+  iyw = (gage_t*)calloc(diam, sizeof(gage_t));
+  izw = (gage_t*)calloc(diam, sizeof(gage_t));
   if (!(ixw && iyw && izw)) {
     sprintf(err, "%s: couldn't allocate grad vector or weight buffers", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
@@ -189,8 +189,8 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
      without having the cache hang directly off the gageContext, is that
      we're doing all the probing for one context in one shot- producing
      an entirely volume of structure tensors with one function call */
-  gradCache = calloc(3*GAGE_CACHE_LEN, sizeof(gage_t));
-  coordCache = calloc(3*GAGE_CACHE_LEN, sizeof(int));
+  gradCache = (gage_t*)calloc(3*GAGE_CACHE_LEN, sizeof(gage_t));
+  coordCache = (int*)calloc(3*GAGE_CACHE_LEN, sizeof(int));
   if (!(gradCache && coordCache)) {
     sprintf(err, "%s: couldn't allocate caches", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
@@ -223,7 +223,7 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, nout, (airMopper)nrrdEmpty, airMopOnError);
 
-  out = nout->data;
+  out = (gage_t *)nout->data;
   for (ozi=0; ozi<osz; ozi++) {
     fprintf(stderr, "%s: z = %d/%d\n", me, ozi+1, osz);
     for (oyi=0; oyi<osy; oyi++) {
@@ -231,13 +231,16 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
 
         sten[0] = sten[1] = sten[2] = sten[3] = sten[4] = sten[5] = 0;
         for (_izi=0; _izi<diam; _izi++) {
-          izi = AIR_CLAMP(0, _izi - rad + ozi*dsmp, nin->axis[2].size-1);
+          izi = AIR_CLAMP(0, _izi - rad + ozi*dsmp,
+                          (int)nin->axis[2].size-1);
           if (!izw[_izi]) continue;
           for (_iyi=0; _iyi<diam; _iyi++) {
-            iyi = AIR_CLAMP(0, _iyi - rad + oyi*dsmp, nin->axis[1].size-1);
+            iyi = AIR_CLAMP(0, _iyi - rad + oyi*dsmp,
+                            (int)nin->axis[1].size-1);
             if (!iyw[_iyi]) continue;
             for (_ixi=0; _ixi<diam; _ixi++) {
-              ixi = AIR_CLAMP(0, _ixi - rad + oxi*dsmp, nin->axis[0].size-1);
+              ixi = AIR_CLAMP(0, _ixi - rad + oxi*dsmp,
+                              (int)nin->axis[0].size-1);
               if (!ixw[_ixi]) continue;
               wght = ixw[_ixi]*iyw[_iyi]*izw[_izi];
               _gageCacheProbe(ctx, grad, coordCache, gradCache, ixi, iyi, izi);

@@ -142,15 +142,15 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
 ** does not use biff
 */
 gagePerVolume *
-gagePerVolumeNix (gagePerVolume *pvl) {
+gagePerVolumeNix(gagePerVolume *pvl) {
 
   if (pvl) {
-    pvl->iv3 = airFree(pvl->iv3);
-    pvl->iv2 = airFree(pvl->iv2);
-    pvl->iv1 = airFree(pvl->iv1);
-    pvl->answer = airFree(pvl->answer);
-    pvl->directAnswer = airFree(pvl->directAnswer);
-    pvl = airFree(pvl);
+    pvl->iv3 = (gage_t *)airFree(pvl->iv3);
+    pvl->iv2 = (gage_t *)airFree(pvl->iv2);
+    pvl->iv1 = (gage_t *)airFree(pvl->iv1);
+    pvl->answer = (gage_t *)airFree(pvl->answer);
+    pvl->directAnswer = (gage_t **)airFree(pvl->directAnswer);
+    airFree(pvl);
   }
   return NULL;
 }
@@ -162,9 +162,10 @@ gagePerVolumeNix (gagePerVolume *pvl) {
 **
 */
 gage_t *
-gageAnswerPointer (gageContext *ctx, gagePerVolume *pvl, int item) {
+gageAnswerPointer(gageContext *ctx, gagePerVolume *pvl, int item) {
   gage_t *ret;
 
+  AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
     ret = pvl->answer + gageKindAnswerOffset(pvl->kind, item);
   } else {
@@ -177,6 +178,7 @@ int
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageQueryReset", err[AIR_STRLEN_MED];
 
+  AIR_UNUSED(ctx);
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
@@ -200,11 +202,12 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
 ** including it in case its used in the future.
 */
 int
-gageQuerySet (gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
+gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   char me[]="gageQuerySet", err[AIR_STRLEN_MED];
   gageQuery lastQuery;
   int pi, ii;
   
+  AIR_UNUSED(ctx);
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
