@@ -21,122 +21,6 @@
 
 #include "air.h"
 
-double
-airAtod(const char *str) {
-  double val = 0.0;
-  
-  airSingleSscanf(str, "%lf", &val);
-  return val;
-}
-
-int
-airSingleSscanf(const char *str, const char *fmt, void *ptr) {
-  char *tmp;
-  double val;
-  int ret;
-  
-  if (!strcmp(fmt, "%e") || !strcmp(fmt, "%f") || !strcmp(fmt, "%g")
-      || !strcmp(fmt, "%le") || !strcmp(fmt, "%lf") || !strcmp(fmt, "%lg")) {
-    tmp = airStrdup(str);
-    if (!tmp) {
-      return 0;
-    }
-    airToLower(tmp);
-    if (strstr(tmp, "nan")) {
-      val = AIR_NAN;
-    }
-    else if (strstr(tmp, "-inf")) {
-      val = AIR_NEG_INF;
-    }
-    else if (strstr(tmp, "inf")) {
-      val = AIR_POS_INF;
-    }
-    else {
-      /* nothing special matched; pass it off to sscanf() */
-      ret = sscanf(str, fmt, ptr);
-      free(tmp);
-      return ret;
-    }
-    /* else we matched "nan", "-inf", or "inf", and set val accordingly */
-    if (!strncmp(fmt, "%l", 2)) {
-      /* we were given a double pointer */
-      *((double *)(ptr)) = val;
-    }
-    else {
-      /* we were given a float pointer */
-      *((float *)(ptr)) = val;
-    }
-    free(tmp);
-    return 1;
-  }
-  else {
-    /* this is neither a float nor double */
-    return sscanf(str, fmt, ptr);
-  }
-}
-
-#define _PARSE_STR_ARGS(type, format) type *out, const char *_s, \
-                                      const char *ct, int n, ...
-#define _PARSE_STR_BODY(type, format) \
-  int i; \
-  char *tmp, *s, *last; \
-  \
-  /* if we got NULL, there's nothing to do */ \
-  if (!(out && _s && ct)) \
-    return 0; \
-  \
-  /* copy the input so that we don't change it */ \
-  s = airStrdup(_s); \
-  \
-  /* keep calling airStrtok() until we have everything */ \
-  for (i=0; i<=n-1; i++) { \
-    tmp = airStrtok(i ? NULL : s, ct, &last); \
-    if (!tmp) { \
-      free(s); \
-      return i; \
-    } \
-    if (1 != airSingleSscanf(tmp, format, out+i)) { \
-      free(s); \
-      return i; \
-    } \
-  } \
-  free(s); \
-  return n; \
-
-/*
-******* airParse*()
-**
-** parse ints, floats, doubles, or single characters, from some
-** given string "s"; try to parse "n" of them, as delimited by
-** characters in "ct", and put the results in "out".
-**
-** Returns the number of things succesfully parsed- should be n; 
-** there's been an error if return is < n.
-**
-** int airParseStrB(int *out, const char *s, const char *ct, int n, ...)
-** int airParseStrI(int *out, const char *s, const char *ct, int n, ...)
-** int airParseStrF(float *out, const char *s, const char *ct, int n, ...)
-** int airParseStrD(double *out, const char *s, const char *ct, int n, ...)
-** int airParseStrC(char *out, const char *s, const char *ct, int n, ...)
-** int airParseStrS(char **out, const char *s, const char *ct, int n, ...)
-** int airParseStrE(int *out, const char *s, const char *ct, int n, ...)
-**
-** The embarrassing reason for the var-args ("...") is that I want the
-** type signature of all these functions to be the same, and I have a function
-** for parsing airEnums, in case the airEnum must be supplied as a final
-** argument.
-**
-** This uses air's thread-safe strtok() replacement: airStrtok()
-*/
-int
-airParseStrI(_PARSE_STR_ARGS(int, "%d"))     { _PARSE_STR_BODY(int, "%d") }
-
-int
-airParseStrF(_PARSE_STR_ARGS(float, "%f"))   { _PARSE_STR_BODY(float, "%f") }
-
-int
-airParseStrD(_PARSE_STR_ARGS(double, "%lf")) { _PARSE_STR_BODY(double, "%lf") }
-
 char
 _airBoolStr[][AIR_STRLEN_SMALL] = {
   "(unknown bool)",
@@ -186,9 +70,123 @@ _airBool = {
 airEnum *
 airBool = &_airBool;
 
+double
+airAtod(const char *str) {
+  double val = 0.0;
+  
+  airSingleSscanf(str, "%lf", &val);
+  return val;
+}
+
 int
-airParseStrB(int *out, const char *_s, const char *ct, int n, ...) {
-  int i;
+airSingleSscanf(const char *str, const char *fmt, void *ptr) {
+  char *tmp;
+  double val;
+  int ret;
+  
+  if (!strcmp(fmt, "%e") || !strcmp(fmt, "%f") || !strcmp(fmt, "%g")
+      || !strcmp(fmt, "%le") || !strcmp(fmt, "%lf") || !strcmp(fmt, "%lg")) {
+    tmp = airStrdup(str);
+    if (!tmp) {
+      return 0;
+    }
+    airToLower(tmp);
+    if (strstr(tmp, "nan")) {
+      val = AIR_NAN;
+    }
+    else if (strstr(tmp, "-inf")) {
+      val = AIR_NEG_INF;
+    }
+    else if (strstr(tmp, "inf")) {
+      val = AIR_POS_INF;
+    }
+    else {
+      /* nothing special matched; pass it off to sscanf() */
+      ret = sscanf(str, fmt, ptr);
+      free(tmp);
+      return ret;
+    }
+    /* else we matched "nan", "-inf", or "inf", and set val accordingly */
+    if (!strncmp(fmt, "%l", 2)) {
+      /* we were given a double pointer */
+      *((double *)(ptr)) = val;
+    }
+    else {
+      /* we were given a float pointer */
+      *((float *)(ptr)) = (float)val;
+    }
+    free(tmp);
+    return 1;
+  }
+  else {
+    /* this is neither a float nor double */
+    return sscanf(str, fmt, ptr);
+  }
+}
+
+#define _PARSE_STR_ARGS(type) type *out, const char *_s, \
+                              const char *ct, unsigned int n, ...
+#define _PARSE_STR_BODY(format) \
+  unsigned int i; \
+  char *tmp, *s, *last; \
+  \
+  /* if we got NULL, there's nothing to do */ \
+  if (!(out && _s && ct)) \
+    return 0; \
+  \
+  /* copy the input so that we don't change it */ \
+  s = airStrdup(_s); \
+  \
+  /* keep calling airStrtok() until we have everything */ \
+  for (i=0; i<n; i++) { \
+    tmp = airStrtok(i ? NULL : s, ct, &last); \
+    if (!tmp) { \
+      free(s); \
+      return i; \
+    } \
+    if (1 != airSingleSscanf(tmp, format, out+i)) { \
+      free(s); \
+      return i; \
+    } \
+  } \
+  free(s); \
+  return n; \
+
+/*
+******* airParse*()
+**
+** parse ints, floats, doubles, or single characters, from some
+** given string "s"; try to parse "n" of them, as delimited by
+** characters in "ct", and put the results in "out".
+**
+** Returns the number of things succesfully parsed- should be n; 
+** there's been an error if return is < n.
+**
+** The embarrassing reason for the var-args ("...") is that I want the
+** type signature of all these functions to be the same, and I have a function
+** for parsing airEnums, in case the airEnum must be supplied as a final
+** argument.
+**
+** This uses air's thread-safe strtok() replacement: airStrtok()
+*/
+unsigned int
+airParseStrI(_PARSE_STR_ARGS(int))           { _PARSE_STR_BODY("%d") }
+
+unsigned int
+airParseStrUI(_PARSE_STR_ARGS(unsigned int)) { _PARSE_STR_BODY("%u") }
+
+unsigned int
+airParseStrZ(_PARSE_STR_ARGS(size_t))     { _PARSE_STR_BODY(_AIR_SIZE_T_CNV) }
+
+unsigned int
+airParseStrF(_PARSE_STR_ARGS(float))         { _PARSE_STR_BODY("%f") }
+
+unsigned int
+airParseStrD(_PARSE_STR_ARGS(double))        { _PARSE_STR_BODY("%lf") }
+
+unsigned int
+airParseStrB(int *out, const char *_s, const char *ct, unsigned int n, ...) {
+  unsigned int i;
   char *tmp, *s, *last;
 
   /* if we got NULL, there's nothing to do */
@@ -199,7 +197,7 @@ airParseStrB(int *out, const char *_s, const char *ct, int n, ...) {
   s = airStrdup(_s);
 
   /* keep calling airStrtok() until we have everything */
-  for (i=0; i<=n-1; i++) {
+  for (i=0; i<n; i++) {
     tmp = airStrtok(i ? NULL : s, ct, &last);
     if (!tmp) {
       free(s);
@@ -215,9 +213,9 @@ airParseStrB(int *out, const char *_s, const char *ct, int n, ...) {
   return n;
 }
 
-int
-airParseStrC(char *out, const char *_s, const char *ct, int n, ...) {
-  int i;
+unsigned int
+airParseStrC(char *out, const char *_s, const char *ct, unsigned int n, ...) {
+  unsigned int i;
   char *tmp, *s, *last;
 
   /* if we got NULL, there's nothing to do */
@@ -228,7 +226,7 @@ airParseStrC(char *out, const char *_s, const char *ct, int n, ...) {
   s = airStrdup(_s);
 
   /* keep calling airStrtok() until we have everything */
-  for (i=0; i<=n-1; i++) {
+  for (i=0; i<n; i++) {
     tmp = airStrtok(i ? NULL : s, ct, &last);
     if (!tmp) {
       free(s);
@@ -240,9 +238,10 @@ airParseStrC(char *out, const char *_s, const char *ct, int n, ...) {
   return n;
 }
 
-int
-airParseStrS(char **out, const char *_s, const char *ct, int n, ...) {
-  int i, greedy;
+unsigned int
+airParseStrS(char **out, const char *_s, const char *ct, unsigned int n, ...) {
+  unsigned int i;
+  int greedy;
   char *tmp, *s, *last;
   airArray *mop;
   va_list ap;
@@ -262,7 +261,7 @@ airParseStrS(char **out, const char *_s, const char *ct, int n, ...) {
   airMopMem(mop, &s, airMopAlways);
 
   /* keep calling airStrtok() until we have everything */
-  for (i=0; i<=n-1; i++) {
+  for (i=0; i<n; i++) {
     /* if n == 1, then with greediness, the whole string is used,
        and without greediness, we use airStrtok() to get only
        the first part of it */
@@ -287,9 +286,9 @@ airParseStrS(char **out, const char *_s, const char *ct, int n, ...) {
   return n;
 }
 
-int
-airParseStrE(int *out, const char *_s, const char *ct, int n, ...) {
-  int i;
+unsigned int
+airParseStrE(int *out, const char *_s, const char *ct, unsigned int n, ...) {
+  unsigned int i;
   char *tmp, *s, *last;
   airArray *mop;
   va_list ap;
@@ -322,7 +321,7 @@ airParseStrE(int *out, const char *_s, const char *ct, int n, ...) {
     }
   } else {
     /* keep calling airStrtok() until we have everything */
-    for (i=0; i<=n-1; i++) {
+    for (i=0; i<n; i++) {
       tmp = airStrtok(i ? NULL : s, ct, &last);
       if (!tmp) {
         airMopError(mop);
@@ -339,17 +338,28 @@ airParseStrE(int *out, const char *_s, const char *ct, int n, ...) {
   return n;
 }
 
-int
+unsigned int
 (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
-                               const char *, int, ...) = {
+                               const char *, unsigned int, ...) = {
   NULL,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrB,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrI,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrF,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrD,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrC,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrS,
-  (int (*)(void *, const char *, const char *, int, ...))airParseStrE,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrB,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrI,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrUI,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrZ,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrF,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrD,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrC,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrS,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrE,
   NULL   /* no standard way of parsing type "other" */
 };
 

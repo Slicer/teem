@@ -64,7 +64,7 @@ main(int argc, char *argv[]) {
   do {
     maxed = 0;
     file = myopen(fileS);
-    line = malloc(size);
+    line = (char *)calloc(size, sizeof(char));
     printf(" ----------------- size = %d\n", size);
     do {
       ret = airOneLine(file, line, size);

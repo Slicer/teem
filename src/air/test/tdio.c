@@ -33,6 +33,7 @@ int
 main(int argc, char *argv[]) {
 #if TEEM_DIO == 0
 
+  AIR_UNUSED(argc);
   fprintf(stderr, "%s: no direct-io testing for you\n", argv[0]);
   return 1;
 #else 
@@ -80,7 +81,7 @@ main(int argc, char *argv[]) {
   size = (size_t)max*mult;
   data = airDioMalloc(size, fd);
   if (!data) {
-    fprintf(stderr, "%s: airDioMalloc(" _AIR_SIZE_T_FMT ") failed\n", me,
+    fprintf(stderr, "%s: airDioMalloc(" _AIR_SIZE_T_CNV ") failed\n", me,
             size);
     airMopError(mop); return 1;
   }

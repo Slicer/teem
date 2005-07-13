@@ -72,18 +72,19 @@ airThreadJoin(airThread *thread, void **retP) {
 
 airThread *
 airThreadNix(airThread *thread) {
-
-  return airFree(thread);
+  
+  airFree(thread);
+  return NULL;
 }
 
 airThreadMutex *
 airThreadMutexNew(void) {
   airThreadMutex *mutex;
-
+  
   mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
   if (mutex) {
     if (pthread_mutex_init(&(mutex->id), NULL)) {
-      mutex = airFree(mutex);
+      mutex = (airThreadMutex *)airFree(mutex);
     }
   }
   return mutex;
@@ -107,7 +108,7 @@ airThreadMutexNix(airThreadMutex *mutex) {
   if (mutex) {
     if (!pthread_mutex_destroy(&(mutex->id))) {
       /* there was no error */
-      mutex = airFree(mutex);
+      mutex = (airThreadMutex *)airFree(mutex);
     }
   }
   return mutex;
@@ -121,7 +122,7 @@ airThreadCondNew(void) {
   if (cond) {
     if (pthread_cond_init(&(cond->id), NULL)) {
       /* there was an error */
-      cond = airFree(cond);
+      cond = (airThreadCond *)airFree(cond);
     }
   }
   return cond;
@@ -151,7 +152,7 @@ airThreadCondNix(airThreadCond *cond) {
   if (cond) {
     if (!pthread_cond_destroy(&(cond->id))) {
       /* there was no error */
-      cond = airFree(cond);
+      cond = (airThreadCond *)airFree(cond);
     }
   }
   return cond;
@@ -540,11 +541,13 @@ airThreadBarrierNew(unsigned int numUsers) {
     barrier->numUsers = numUsers;
     barrier->numDone = 0;
     if (!(barrier->doneMutex = airThreadMutexNew())) {
-      return airFree(barrier);
+      airFree(barrier);
+      return NULL;
     }
     if (!(barrier->doneCond = airThreadCondNew())) {
       barrier->doneMutex = airThreadMutexNix(barrier->doneMutex);
-      return airFree(barrier);
+      airFree(barrier);
+      return NULL;
     }
   }
   return barrier;
@@ -570,5 +573,6 @@ airThreadBarrierNix(airThreadBarrier *barrier) {
   
   barrier->doneMutex = airThreadMutexNix(barrier->doneMutex);
   barrier->doneCond = airThreadCondNix(barrier->doneCond);
-  return airFree(barrier);
+  airFree(barrier);
+  return NULL;
 }

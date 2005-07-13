@@ -25,7 +25,7 @@ void *
 print(void *_iP) {
   int *iP;
   
-  iP = _iP;
+  iP = (int *)_iP;
   printf("%d\n", *iP);
   return NULL;
 }
@@ -37,6 +37,7 @@ main(int argc, char *argv[]) {
   airArray *mop;
   char *str, *me;
 
+  AIR_UNUSED(argc);
   me = argv[0];
   printf("%s: -------------------------------------\n", me);
 

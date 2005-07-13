@@ -29,6 +29,12 @@
 #include <stdarg.h>
 #include <float.h>
 
+#define TEEM_VERSION_MAJOR    1
+#define TEEM_VERSION_MINOR    9       /* 1 or 2 digits */
+#define TEEM_VERSION_RELEASE  0       /* 1 or 2 digits */
+#define TEEM_VERSION          10900
+#define TEEM_VERSION_STRING  "1.9.0"
+
 /* NrrdIO-hack-000 */
 
 #ifdef __cplusplus
@@ -45,16 +51,6 @@ extern "C" {
 #  endif
 #else /* TEEM_STATIC || UNIX */
 #  define TEEM_API extern
-#endif
-
-#if defined(_MSC_VER)
-/* get rid of some warnings on VC++ */
-#  pragma warning ( disable : 4244 )
-#  pragma warning ( disable : 4305 )
-#  pragma warning ( disable : 4309 )
-#  pragma warning ( disable : 4273 )
-#  pragma warning ( disable : 4756 )
-#  pragma warning ( disable : 4723 )
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
@@ -86,9 +82,10 @@ typedef unsigned long long airULLong;
 typedef struct {
   char name[AIR_STRLEN_SMALL];
                /* what are these things? */
-  int M;       /* If "val" is NULL, the the valid enum values are from 1 to M
-                  (represented by strings str[1] through str[M]), and the
-                  unknown/invalid value is 0.  If "val" is non-NULL, the
+  unsigned int M;
+               /* If "val" is NULL, the the valid enum values are from 1 
+                  to M (represented by strings str[1] through str[M]), and
+                  the unknown/invalid value is 0.  If "val" is non-NULL, the
                   valid enum values are from val[1] to val[M] (but again, 
                   represented by strings str[1] through str[M]), and the
                   unknown/invalid value is val[0].  In both cases, str[0]
@@ -147,7 +144,7 @@ typedef struct {
   void *data,         /* where the data is */
     **dataP;          /* (possibly NULL) address of user's data variable,
                          kept in sync with internal "data" variable */
-  int len,            /* length of array: # units for which there is
+  unsigned int len,   /* length of array: # units for which there is
                          considered to be data (which is <= total # units
                          allocated).  The # bytes which contain data is
                          len*unit.  Always updated (unlike "*lenP") */
@@ -181,14 +178,15 @@ typedef struct {
   void (*doneCB)(void *);  /* called on addresses of invalidated elements */
 
 } airArray;
-TEEM_API airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
+TEEM_API airArray *airArrayNew(void **dataP, unsigned int *lenP, size_t unit,
+                               unsigned int incr);
 TEEM_API void airArrayStructCB(airArray *a, void (*initCB)(void *),
                                void (*doneCB)(void *));
 TEEM_API void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
                                 void *(*freeCB)(void *));
-TEEM_API int airArrayLenSet(airArray *a, int newlen);
-TEEM_API int airArrayLenPreSet(airArray *a, int newlen);
-TEEM_API int airArrayLenIncr(airArray *a, int delta);
+TEEM_API void airArrayLenSet(airArray *a, unsigned int newlen);
+TEEM_API void airArrayLenPreSet(airArray *a, unsigned int newlen);
+TEEM_API unsigned int airArrayLenIncr(airArray *a, int delta);
 TEEM_API airArray *airArrayNix(airArray *a);
 TEEM_API airArray *airArrayNuke(airArray *a);
 
@@ -310,7 +308,7 @@ TEEM_API const airFloat airFloatSNaN;
 TEEM_API const airFloat airFloatPosInf;
 TEEM_API const airFloat airFloatNegInf;
 TEEM_API float airNaN(void);
-TEEM_API int airIsNaN(float f);
+TEEM_API int airIsNaN(double d);
 TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
 TEEM_API int airExists(double d);
@@ -341,53 +339,68 @@ TEEM_API double airDrand48();
 ** be used elsewhere in air later
 */
 enum {
-  airTypeUnknown,   /* 0 */
-  airTypeBool,      /* 1 */
-  airTypeInt,       /* 2 */
-  airTypeFloat,     /* 3 */
-  airTypeDouble,    /* 4 */
-  airTypeChar,      /* 5 */
-  airTypeString,    /* 6 */
-  airTypeEnum,      /* 7 */
-  airTypeOther,     /* 8 */
+  airTypeUnknown,   /*  0 */
+  airTypeBool,      /*  1 */
+  airTypeInt,       /*  2 */
+  airTypeUInt,      /*  3 */
+  airTypeSize_t,    /*  4 */
+  airTypeFloat,     /*  5 */
+  airTypeDouble,    /*  6 */
+  airTypeChar,      /*  7 */
+  airTypeString,    /*  8 */
+  airTypeEnum,      /*  9 */
+  airTypeOther,     /* 10 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   8
+#define AIR_TYPE_MAX   10
 /* parseAir.c */
 TEEM_API double airAtod(const char *str);
 TEEM_API int airSingleSscanf(const char *str, const char *fmt, void *ptr);
 TEEM_API airEnum *airBool;
-TEEM_API int airParseStrB(int *out, const char *s,
-                          const char *ct, int n, ... /* nothing used */);
-TEEM_API int airParseStrI(int *out, const char *s,
-                          const char *ct, int n, ... /* nothing used */);
-TEEM_API int airParseStrF(float *out, const char *s,
-                          const char *ct, int n, ... /* nothing used */);
-TEEM_API int airParseStrD(double *out, const char *s,
-                          const char *ct, int n, ... /* nothing used */);
-TEEM_API int airParseStrC(char *out, const char *s,
-                          const char *ct, int n, ... /* nothing used */);
-TEEM_API int airParseStrS(char **out, const char *s,
-                          const char *ct, int n, ... /* REQUIRED, even if n>1:
-                                                        int greedy */);
-TEEM_API int airParseStrE(int *out, const char *s,
-                          const char *ct, int n, ... /* REQ'ED: airEnum *e */);
-TEEM_API int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
-                                            const char *, int, ...);
+TEEM_API unsigned int airParseStrB(int *out, const char *s,
+                                   const char *ct, unsigned int n, 
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrI(int *out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrUI(unsigned int *out, const char *s,
+                                    const char *ct, unsigned int n,
+                                    ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrZ(size_t *out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrF(float *out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrD(double *out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrC(char *out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* (nothing used) */);
+TEEM_API unsigned int airParseStrS(char **out, const char *s,
+                                   const char *ct, unsigned int n,
+                                   ... /* REQUIRED even if n>1: int greedy */);
+TEEM_API unsigned int airParseStrE(int *out, const char *s,
+                                   const char *ct, unsigned int n, 
+                                   ... /* REQUIRED: airEnum *e */);
+TEEM_API unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
+                                                     const char *,
+                                                     unsigned int, ...);
 
 /* string.c */
 TEEM_API char *airStrdup(const char *s);
 TEEM_API size_t airStrlen(const char *s);
 TEEM_API int airStrtokQuoting;
 TEEM_API char *airStrtok(char *s, const char *ct, char **last);
-TEEM_API int airStrntok(const char *s, const char *ct);
+TEEM_API unsigned int airStrntok(const char *s, const char *ct);
 TEEM_API char *airStrtrans(char *s, char from, char to);
 TEEM_API int airEndsWith(const char *s, const char *suff);
 TEEM_API char *airUnescape(char *s);
 TEEM_API char *airOneLinify(char *s);
 TEEM_API char *airToLower(char *str);
 TEEM_API char *airToUpper(char *str);
-TEEM_API int airOneLine(FILE *file, char *line, int size);
+TEEM_API unsigned int airOneLine(FILE *file, char *line, int size);
 
 /* sane.c */
 /*
@@ -421,12 +434,19 @@ TEEM_API const char *airTeemReleaseDate;
 TEEM_API void *airNull(void);
 TEEM_API void *airSetNull(void **ptrP);
 TEEM_API void *airFree(void *ptr);
-TEEM_API void *airFreeP(void *_ptrP);
 TEEM_API FILE *airFopen(const char *name, FILE *std, const char *mode);
 TEEM_API FILE *airFclose(FILE *file);
 TEEM_API int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 TEEM_API const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
+TEEM_API unsigned int airIndex(double min, double val, double max,
+                               unsigned int N);
+TEEM_API unsigned int airIndexClamp(double min, double val, double max,
+                                    unsigned int N);
+TEEM_API airULLong airIndexULL(double min, double val, double max,
+                               airULLong N);
+TEEM_API airULLong airIndexClampULL(double min, double val, double max,
+                                    airULLong N);
 TEEM_API const char airMyFmt_size_t[];
 TEEM_API int airRandInt(int N);
 TEEM_API int airRandInt_r(airDrand48State *state, int N);
@@ -444,7 +464,7 @@ TEEM_API double airGaussian(double x, double mean, double stdv);
 TEEM_API void airNormalRand(double *z1, double *z2);
 TEEM_API void airNormalRand_r(double *z1, double *z2, airDrand48State *state);
 TEEM_API const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
-TEEM_API const int airTypeSize[AIR_TYPE_MAX+1];
+TEEM_API const size_t airTypeSize[AIR_TYPE_MAX+1];
 TEEM_API int airILoad(void *v, int t);
 TEEM_API float airFLoad(void *v, int t);
 TEEM_API double airDLoad(void *v, int t);
@@ -499,12 +519,11 @@ typedef struct {
   int when;          /* from the airMopWhen enum */
 } airMop;
 TEEM_API airArray *airMopNew(void);
-TEEM_API void airMopAdd(airArray *arr,
-                      void *ptr, airMopper mop, int when);
+TEEM_API void airMopAdd(airArray *arr, void *ptr, airMopper mop, int when);
 TEEM_API void airMopSub(airArray *arr, void *ptr, airMopper mop);
 TEEM_API void airMopMem(airArray *arr, void *_ptrP, int when);
 TEEM_API void airMopUnMem(airArray *arr, void *_ptrP);
-TEEM_API void airMopPrint(airArray *arr, void *_str, int when);
+TEEM_API void airMopPrint(airArray *arr, const void *_str, int when);
 TEEM_API void airMopDone(airArray *arr, int error);
 TEEM_API void airMopError(airArray *arr);
 TEEM_API void airMopOkay(airArray *arr);
@@ -515,6 +534,14 @@ TEEM_API void airMopDebug(airArray *arr);
 #define AIR_TRUE 1
 #define AIR_FALSE 0
 #define AIR_WHITESPACE " \t\n\r\v\f"       /* K+R pg. 157 */
+
+/*
+******** AIR_UNUSED
+**
+** one way of reconciling "warning: unused parameter" with
+** C's "error: parameter name omitted"
+*/
+#define AIR_UNUSED(x) (void)(x)
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
@@ -739,56 +766,6 @@ TEEM_API void airMopDebug(airArray *arr);
 ((double)(O)-(o))*((double)(x)) / ((double)(I)-(i)) )
 
 /*
-******** AIR_INDEX(i,x,I,L,t)
-**
-** READ CAREFULLY!!
-**
-** Utility for mapping a floating point x in given range [i,I] to the
-** index of an array with L elements, AND SAVES THE INDEX INTO GIVEN
-** VARIABLE t, WHICH MUST BE OF SOME INTEGER TYPE because this relies
-** on the implicit cast of an assignment to truncate away the
-** fractional part.  ALSO, t must be of a type large enough to hold
-** ONE GREATER than L.  So you can't pass a variable of type unsigned
-** char if L is 256
-**
-** DOES NOT DO BOUNDS CHECKING: given an x which is not inside [i,I],
-** this may produce an index not inside [0,L-1] (but it won't always
-** do so: the output being outside range [0,L-1] is not a reliable
-** test of the input being outside range [i, I]).  The mapping is
-** accomplished by dividing the range from i to I into L intervals,
-** all but the last of which is half-open; the last one is closed.
-** For example, the number line from 0 to 3 would be divided as
-** follows for a call with i = 0, I = 4, L = 4:
-**
-** index:       0    1    2    3 = L-1
-** intervals: [   )[   )[   )[    ]
-**            |----|----|----|----|
-** value:     0    1    2    3    4
-**
-** The main point of the diagram above is to show how I made the
-** arbitrary decision to orient the half-open interval, and which
-** end has the closed interval.
-**
-** Note that AIR_INDEX(0,3,4,4,t) and AIR_INDEX(0,4,4,4,t) both set t = 3
-**
-** The reason that this macro requires a argument for saving the
-** result is that this is the easiest way to avoid extra conditionals.
-** Otherwise, we'd have to do some check to see if x is close enough
-** to I so that the generated index would be L and not L-1.  "Close
-** enough" because due to precision problems you can have an x < I
-** such that (x-i)/(I-i) == 1, which was a bug with the previous version
-** of this macro.  It is far simpler to just do the index generation
-** and then do the sneaky check to see if the index is too large by 1.
-** We are relying on the fact that C _defines_ boolean true to be exactly 1.
-**
-** Note also that we are never explicity casting to one kind of int or
-** another-- the given t can be any integral type, including long long.
-*/
-#define AIR_INDEX(i,x,I,L,t) ( \
-(t) = (L) * ((double)(x)-(i)) / ((double)(I)-(i)), \
-(t) -= ((t) == (L)) )
-
-/*
 ******** AIR_ROUNDUP, AIR_ROUNDDOWN
 **
 ** rounds integers up or down; just wrappers around floor and ceil
@@ -797,31 +774,31 @@ TEEM_API void airMopDebug(airArray *arr);
 #define AIR_ROUNDDOWN(x) ((int)(ceil((x)-0.5)))
 
 /*
-******** _AIR_SIZE_T_FMT
+******** _AIR_SIZE_T_CNV
 **
-** This is the format string to use when printf/fprintf/sprintf-ing 
+** This is the conversion sequence to use when printf/fprintf/sprintf-ing 
 ** a value of type size_t.  In C99, "%z" serves this purpose.
 **
 ** This is not a useful macro for the world at large- only for teem
 ** source files.  Why: we need to leave this as a bare string, so that
 ** we can exploit C's implicit string concatenation in forming a
 ** format string.  Therefore, unlike the definition of AIR_ENDIAN,
-** AIR_DIO, etc, AIR_SIZE_T_FMT can NOT just refer to a const variable
+** AIR_DIO, etc, AIR_SIZE_T_CNV can NOT just refer to a const variable
 ** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
-** ALL source files which want to use AIR_SIZE_T_FMT, and to be
+** ALL source files which want to use AIR_SIZE_T_CNV, and to be
 ** conservative, that's all teem files.  The converse is, since there is
 ** no expectation that other projects which use teem will be defining
 ** TEEM_32BIT, this is not useful outside teem, thus the leading _.
 */
 #ifdef __APPLE__
-#  define _AIR_SIZE_T_FMT "%lu"
+#  define _AIR_SIZE_T_CNV "%lu"
 #else
 #  if TEEM_32BIT == 0
-#    define _AIR_SIZE_T_FMT "%lu"
+#    define _AIR_SIZE_T_CNV "%lu"
 #  elif TEEM_32BIT == 1
-#    define _AIR_SIZE_T_FMT "%u"
+#    define _AIR_SIZE_T_CNV "%u"
 #  else
-#    define _AIR_SIZE_T_FMT "(no _AIR_SIZE_T_FMT w/out TEEM_32BIT %*d)"
+#    define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
 #  endif
 #endif
 

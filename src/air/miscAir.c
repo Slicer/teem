@@ -35,12 +35,13 @@
 ******** airTeemReleaseDate
 **
 ** updated with each release to contain a string representation of 
-** the teem version number and release date.  Originated in version 1.5.
+** the teem version number and release date.  Originated in version 1.5;
+** use of TEEM_VERSION #defines started in 1.9
 */
 const char *
-airTeemVersion = "1.9";
+airTeemVersion = TEEM_VERSION_STRING;
 const char *
-airTeemReleaseDate = "20 July 2005";
+airTeemReleaseDate = "12 August 2005";
 
 /*
 ******** airNull()
@@ -79,21 +80,6 @@ airFree(void *ptr) {
   if (ptr) {
     free(ptr);
   }
-  return NULL;
-}
-
-/*
-******** airFreeP()
-**
-** calls airFree on the address pointed to by the argument
-*/
-void *
-airFreeP(void *_ptrP) {
-  void **ptrP;
-
-  ptrP = _ptrP;
-  if (ptrP)
-    airFree(*ptrP);
   return NULL;
 }
 
@@ -259,6 +245,98 @@ const char airMyFmt_size_t[] = "%lu";
 #endif
 
 /*
+******** AIR_INDEX(i,x,I,L,t)
+**
+** READ CAREFULLY!!
+**
+** Utility for mapping a floating point x in given range [i,I] to the
+** index of an array with L elements, AND SAVES THE INDEX INTO GIVEN
+** VARIABLE t, WHICH MUST BE OF SOME INTEGER TYPE because this relies
+** on the implicit cast of an assignment to truncate away the
+** fractional part.  ALSO, t must be of a type large enough to hold
+** ONE GREATER than L.  So you can't pass a variable of type unsigned
+** char if L is 256
+**
+** DOES NOT DO BOUNDS CHECKING: given an x which is not inside [i,I],
+** this may produce an index not inside [0,L-1] (but it won't always
+** do so: the output being outside range [0,L-1] is not a reliable
+** test of the input being outside range [i, I]).  The mapping is
+** accomplished by dividing the range from i to I into L intervals,
+** all but the last of which is half-open; the last one is closed.
+** For example, the number line from 0 to 3 would be divided as
+** follows for a call with i = 0, I = 4, L = 4:
+**
+** index:       0    1    2    3 = L-1
+** intervals: [   )[   )[   )[    ]
+**            |----|----|----|----|
+** value:     0    1    2    3    4
+**
+** The main point of the diagram above is to show how I made the
+** arbitrary decision to orient the half-open interval, and which
+** end has the closed interval.
+**
+** Note that AIR_INDEX(0,3,4,4,t) and AIR_INDEX(0,4,4,4,t) both set t = 3
+**
+** The reason that this macro requires a argument for saving the
+** result is that this is the easiest way to avoid extra conditionals.
+** Otherwise, we'd have to do some check to see if x is close enough
+** to I so that the generated index would be L and not L-1.  "Close
+** enough" because due to precision problems you can have an x < I
+** such that (x-i)/(I-i) == 1, which was a bug with the previous version
+** of this macro.  It is far simpler to just do the index generation
+** and then do the sneaky check to see if the index is too large by 1.
+** We are relying on the fact that C _defines_ boolean true to be exactly 1.
+**
+** Note also that we are never explicity casting to one kind of int or
+** another-- the given t can be any integral type, including long long.
+*/
+/*
+#define AIR_INDEX(i,x,I,L,t) ( \
+(t) = (L) * ((double)(x)-(i)) / ((double)(I)-(i)), \
+(t) -= ((t) == (L)) )
+*/
+/*
+******* airIndex
+**
+** replaces AIR_INDEX macro; see above
+*/
+unsigned int
+airIndex(double min, double val, double max, unsigned int N) {
+  unsigned int idx;
+
+  idx = (int)(N*(val - min)/(max - min));
+  idx -= (idx == N);
+  return idx;
+}
+
+unsigned int
+airIndexClamp(double min, double val, double max, unsigned int N) {
+  unsigned int idx;
+
+  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_MIN(idx, N-1);
+  return idx;
+}
+
+airULLong
+airIndexULL(double min, double val, double max, airULLong N) {
+  airULLong idx;
+
+  idx = (int)(N*(val - min)/(max - min));
+  idx -= (idx == N);
+  return idx;
+}
+
+airULLong
+airIndexClampULL(double min, double val, double max, airULLong N) {
+  airULLong idx;
+
+  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_MIN(idx, N-1);
+  return idx;
+}
+
+/*
 ******** airRandInt
 **
 ** returns a random integer in range [0, N-1]
@@ -267,8 +345,11 @@ int
 airRandInt(int N) {
   int i;
   
+  /*
   AIR_INDEX(0.0, airDrand48(), 1.0, N, i);
   i = AIR_CLAMP(0, i, N-1);
+  */
+  i = (int)(N*airDrand48());
   return i;
 }
 
@@ -276,8 +357,11 @@ int
 airRandInt_r(airDrand48State *state, int N) {
   int i;
   
+  /*
   AIR_INDEX(0.0, airDrand48_r(state), 1.0, N, i);
   i = AIR_CLAMP(0, i, N-1);
+  */
+  i = (int)(N*airDrand48_r(state));
   return i;
 }
 
@@ -294,8 +378,9 @@ airShuffle(int *buff, int N, int perm) {
   if (!(buff && N > 0))
     return;
     
-  for (i=0; i<N; i++)
+  for (i=0; i<N; i++) {
     buff[i] = i;
+  }
   if (perm) {
     for (i=0; i<N; i++) {
       swp = i + airRandInt(N - i);
@@ -313,8 +398,9 @@ airShuffle_r(airDrand48State *state, int *buff, int N, int perm) {
   if (!(buff && N > 0))
     return;
     
-  for (i=0; i<N; i++)
+  for (i=0; i<N; i++) {
     buff[i] = i;
+  }
   if (perm) {
     for (i=0; i<N; i++) {
       swp = i + airRandInt_r(state, N - i);
@@ -543,6 +629,8 @@ airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown)",
   "bool",
   "int",
+  "unsigned int",
+  "size_t",
   "float",
   "double",
   "char",
@@ -551,16 +639,18 @@ airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "other",
 };
 
-const int
+const size_t
 airTypeSize[AIR_TYPE_MAX+1] = {
   0,
-  (int)sizeof(int),
-  (int)sizeof(int),
-  (int)sizeof(float),
-  (int)sizeof(double),
-  (int)sizeof(char),
-  (int)sizeof(char*),
-  (int)sizeof(int),
+  sizeof(int),
+  sizeof(int),
+  sizeof(unsigned int),
+  sizeof(size_t),
+  sizeof(float),
+  sizeof(double),
+  sizeof(char),
+  sizeof(char*),
+  sizeof(int),
   0   /* we don't know anything about type "other" */
 };
 
@@ -570,8 +660,10 @@ airILoad(void *v, int t) {
   switch(t) {
   case airTypeBool:   return *((int*)v); break;
   case airTypeInt:    return *((int*)v); break;
-  case airTypeFloat:  return *((float*)v); break;
-  case airTypeDouble: return *((double*)v); break;
+  case airTypeUInt:   return *((unsigned int*)v); break;
+  case airTypeSize_t: return (int)*((size_t*)v); break;
+  case airTypeFloat:  return (int)*((float*)v); break;
+  case airTypeDouble: return (int)*((double*)v); break;
   case airTypeChar:   return *((char*)v); break;
   default: return 0; break;
   }
@@ -583,8 +675,10 @@ airIStore(void *v, int t, int i) {
   switch(t) {
   case airTypeBool:   return (*((int*)v) = !!i); break;
   case airTypeInt:    return (*((int*)v) = i); break;
-  case airTypeFloat:  return (*((float*)v) = i); break;
-  case airTypeDouble: return (*((double*)v) = i); break;
+  case airTypeUInt:   return (int)(*((unsigned int*)v) = i); break;
+  case airTypeSize_t: return (int)(*((size_t*)v) = i); break;
+  case airTypeFloat:  return (int)(*((float*)v) = i); break;
+  case airTypeDouble: return (int)(*((double*)v) = i); break;
   case airTypeChar:   return (*((char*)v) = i); break;
   default: return 0; break;
   }
@@ -596,6 +690,8 @@ airFLoad(void *v, int t) {
   switch(t) {
   case airTypeBool:   return *((int*)v); break;
   case airTypeInt:    return *((int*)v); break;
+  case airTypeUInt:   return *((unsigned int*)v); break;
+  case airTypeSize_t: return *((size_t*)v); break;
   case airTypeFloat:  return *((float*)v); break;
   case airTypeDouble: return *((double*)v); break;
   case airTypeChar:   return *((char*)v); break;
@@ -607,11 +703,14 @@ float
 airFStore(void *v, int t, float f) {
 
   switch(t) {
-  case airTypeBool:   return (*((int*)v) = f); break;
-  case airTypeInt:    return (*((int*)v) = f); break;
+  case airTypeBool:   return (float)(*((int*)v) = (int)f); break;
+  case airTypeInt:    return (float)(*((int*)v) = (int)f); break;
+  case airTypeUInt:   return (float)(*((unsigned int*)v) 
+                                     = (unsigned int)f); break;
+  case airTypeSize_t: return (float)(*((size_t*)v) = (size_t)f); break;
   case airTypeFloat:  return (*((float*)v) = f); break;
   case airTypeDouble: return (*((double*)v) = f); break;
-  case airTypeChar:   return (*((char*)v) = f); break;
+  case airTypeChar:   return (*((char*)v) = (char)f); break;
   default: return 0; break;
   }
 }
@@ -622,6 +721,8 @@ airDLoad(void *v, int t) {
   switch(t) {
   case airTypeBool:   return *((int*)v); break;
   case airTypeInt:    return *((int*)v); break;
+  case airTypeUInt:   return *((unsigned int*)v); break;
+  case airTypeSize_t: return *((size_t*)v); break;
   case airTypeFloat:  return *((float*)v); break;
   case airTypeDouble: return *((double*)v); break;
   case airTypeChar:   return *((char*)v); break;
@@ -633,11 +734,13 @@ double
 airDStore(void *v, int t, double d) {
 
   switch(t) {
-  case airTypeBool:   return (*((int*)v) = d); break;
-  case airTypeInt:    return (*((int*)v) = d); break;
+  case airTypeBool:   return (*((int*)v) = (int)d); break;
+  case airTypeInt:    return (*((int*)v) = (int)d); break;
+  case airTypeUInt:   return (*((unsigned int*)v) = (unsigned int)d); break;
+  case airTypeSize_t: return (*((size_t*)v) = (size_t)d); break;
   case airTypeFloat:  return (*((float*)v) = d); break;
   case airTypeDouble: return (*((double*)v) = d); break;
-  case airTypeChar:   return (*((char*)v) = d); break;
+  case airTypeChar:   return (*((char*)v) = (char)d); break;
   default: return 0; break;
   }
 }

@@ -29,10 +29,10 @@ main(int argc, char *argv[]) {
   float f, g, parsed_f;
   double d, parsed_d;
   char str[128];
-  
+
+  AIR_UNUSED(argc);
   me = argv[0];
 
-  c = AIR_NAN;
   g = 0.0;
   g = g/g;
   printf("0.0/0.0 = %f\n", g);
