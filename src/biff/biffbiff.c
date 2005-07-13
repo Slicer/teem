@@ -36,13 +36,13 @@ typedef struct {
   char key[BIFF_MAXKEYLEN+1]; /* the key */
   char **err;                 /* array of error strings; the err array itself
                                  is NOT null-terminated */
-  int num;                    /* length of "err" == # strings stored */
+  unsigned int num;           /* length of "err" == # strings stored */
   airArray *AA;               /* air array for err and num */
 } _biffEntry;
 
 _biffEntry **_biffErr=NULL;   /* master array of _biffEntry pointers */
-int _biffNum=0,               /* length of _biffErr == # keys maintained */
-  _biffIdx=-1;                /* hack: index of latest key found */
+unsigned int _biffNum=0;      /* length of _biffErr == # keys maintained */
+int _biffIdx=-1;              /* hack: index of latest key found */
 airArray *_biffAA=NULL;       /* air array of _biffErr and _biffNum */
 
 #define _BIFF_INCR 2
@@ -119,13 +119,14 @@ _biffFindKey(const char *key) {
   _biffEntry *ent;
 
   if (_biffNum) {
-    for (ii=0; ii<=_biffNum-1; ii++) {
+    for (ii=0; ii<(int)_biffNum; ii++) {
       /* printf("HEY: comparing key[%d]=\"%s\" to \"%s\"\n", 
          ii, _biffErr[i]->key, key); */
-      if (!strcmp(_biffErr[ii]->key, key))
+      if (!strcmp(_biffErr[ii]->key, key)) {
         break;
+      }
     }
-    if (ii == _biffNum) {
+    if (ii == (int)_biffNum) {
       ii = -1;
     }
   }
@@ -152,7 +153,7 @@ _biffNewEntry(const char *key) {
   char me[]="_biffInitEntry";
   _biffEntry *ent;
 
-  ent = calloc(1, sizeof(_biffEntry));
+  ent = (_biffEntry *)calloc(1, sizeof(_biffEntry));
   if (!ent) {
     fprintf(stderr, "%s: couldn't make entry for new key \"%s\"\n", me, key);
     exit(1);
@@ -198,7 +199,7 @@ _biffAddKey(const char *key) {
   _biffEntry *ent;
 
   /* find index of new key */
-  for (ii=0; ii<=_biffNum-1; ii++) {
+  for (ii=0; ii<(int)_biffNum; ii++) {
     if (strcmp(key, _biffErr[ii]->key) < 0) {
       /* we've hit the one which comes after the new key */
       break;
@@ -207,8 +208,9 @@ _biffAddKey(const char *key) {
   /* if the for loop was never broken, _biffNum is the correct new index */
   newIdx = ii;
   /* printf("HEY: index(new key \"%s\") = %d\n", key, ii); */
-  
-  if (-1 == airArrayLenIncr(_biffAA, 1)) {
+
+  airArrayLenIncr(_biffAA, 1);
+  if (!_biffAA->data) {
     fprintf(stderr, "%s: PANIC: couldn't accomodate one more key\n", me);
     exit(1);
   }
@@ -236,7 +238,8 @@ _biffAddErr(_biffEntry *e, const char *err) {
   int ii, len;
 
   /* printf("%s: HEY(before): err[%s]->num = %d\n", me, e->key, e->num); */
-  if (-1 == airArrayLenIncr(e->AA, 1)) {
+  airArrayLenIncr(e->AA, 1);
+  if (!e->AA->data) {
     fprintf(stderr, "%s: PANIC: couldn't add message for key %s\n",
             me, e->key);
     exit(1);
@@ -245,8 +248,9 @@ _biffAddErr(_biffEntry *e, const char *err) {
   buf = airStrdup(err);
   len = strlen(buf);
   for (ii=0; ii<=len-1; ii++) {
-    if (isspace(buf[ii]))
+    if (isspace(buf[ii])) {
       buf[ii] = ' ';
+    }
   }
   ii = len-1;
   while (isspace(buf[ii])) {
@@ -259,8 +263,8 @@ _biffAddErr(_biffEntry *e, const char *err) {
 }
 
 void
-_biffFindMaxAndSum(int *maxP, int *sumP, _biffEntry *ent) {
-  int ii, len;
+_biffFindMaxAndSum(unsigned int *maxP, unsigned int *sumP, _biffEntry *ent) {
+  unsigned int ii, len;
 
   if (!ent->num) {
     /* there's a key, but no error messages.  Odd. */
@@ -270,7 +274,7 @@ _biffFindMaxAndSum(int *maxP, int *sumP, _biffEntry *ent) {
   }
 
   *maxP = *sumP = 0;
-  for (ii=0; ii<=ent->num-1; ii++) {
+  for (ii=0; ii<ent->num; ii++) {
     len = strlen(ent->err[ii]) + strlen(ent->key) + strlen("[] \n");
     *sumP += len;
     *maxP = AIR_MAX(*maxP, len);
@@ -347,7 +351,7 @@ _biffGetStr(char *ret, char *buf, _biffEntry *ent) {
 */
 char *
 biffGet(const char *key) {
-  int max, sum;
+  unsigned int max, sum;
   char me[] = "biffGet", *ret, *buf;
   _biffEntry *ent;
 
@@ -381,7 +385,7 @@ biffGet(const char *key) {
 */
 int
 biffGetStrlen(const char *key) {
-  int max, sum;
+  unsigned int max, sum;
   char me[] = "biffGetStrlen";
   _biffEntry *ent;
 
@@ -406,7 +410,7 @@ biffGetStrlen(const char *key) {
 */
 void
 biffSetStr(char *str, const char *key) {
-  int max, sum;
+  unsigned int max, sum;
   char me[] = "biffSetStr", *buf;
   _biffEntry *ent;
 
@@ -479,7 +483,7 @@ biffDone(const char *key) {
   idx = _biffIdx;
 
   _biffNukeEntry(ent);
-  for (i=idx; i<=_biffNum-2; i++) {
+  for (i=idx; i<(int)_biffNum-1; i++) {
     _biffErr[i] = _biffErr[i+1];
   }
   airArrayLenIncr(_biffAA, -1);
@@ -489,7 +493,7 @@ biffDone(const char *key) {
 
 void
 biffMove(const char *destKey, const char *err, const char *srcKey) {
-  int i, len, max;
+  unsigned int ii, len, max;
   char me[] = "biffMove", *buf;
   _biffEntry *dest, *src;
 
@@ -514,8 +518,8 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
   }
 
   max = 0;
-  for (i=0; i<=src->num-1; i++) {
-    len = strlen(src->err[i]) + strlen(src->key) + 4;
+  for (ii=0; ii<src->num; ii++) {
+    len = strlen(src->err[ii]) + strlen(src->key) + 4;
     max = AIR_MAX(max, len);
   }
   buf = (char*)calloc(max+1, sizeof(char));
@@ -524,8 +528,8 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
     exit(1);
   }
 
-  for (i=0; i<=src->num-1; i++) {
-    sprintf(buf, "[%s] %s", srcKey, src->err[i]);
+  for (ii=0; ii<src->num; ii++) {
+    sprintf(buf, "[%s] %s", srcKey, src->err[ii]);
     /* printf("%s: HEY: moving \"%s\" to %s\n", me, buf, destKey); */
     _biffAddErr(dest, buf);
   }
