@@ -562,7 +562,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     biffAdd(NRRD, err);
     return 1;
   }
-  s->msg = airFree(s->msg);
+  s->msg = (char *)airFree(s->msg);
   if (s->stream.state != NULL) {
     if (s->mode == 'w') {
       error = deflateEnd(&(s->stream));
@@ -579,9 +579,9 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     sprintf(err, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
     biffAdd(NRRD, err);
   }
-  s->inbuf = airFree(s->inbuf);
-  s->outbuf = airFree(s->outbuf);
-  s = airFree(s);
+  s->inbuf = (Byte *)airFree(s->inbuf);
+  s->outbuf = (Byte *)airFree(s->outbuf);
+  s = (_NrrdGzStream *)airFree(s);
   return error != Z_OK;
 }
 
@@ -668,3 +668,12 @@ _nrrdGzGetLong(_NrrdGzStream *s) {
 }
 
 #endif /* TEEM_ZLIB */
+
+/*
+** random symbol to have in object file, even when Zlib not enabled 
+*/
+int
+_nrrdGzDummySymbol(void) {
+  return 42;
+}
+

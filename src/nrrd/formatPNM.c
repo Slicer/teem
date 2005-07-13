@@ -76,8 +76,8 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
-              me, nrrd->axis[0].size);
+      sprintf(err, "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV 
+              ", not 1 or 3", me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -102,8 +102,8 @@ int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNM_read", err[AIR_STRLEN_MED], *perr;
   const char *fs;
-  int color, got, want, len, ret, val[5], sx, sy, max, magic;
-  unsigned int i;
+  int color, got, want, ret, val[5], sx, sy, max, magic;
+  unsigned int i, llen;
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
@@ -155,11 +155,11 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   want = 3;
   while (got < want) {
     nio->pos = 0;
-    if (_nrrdOneLine(&len, nio, file)) {
+    if (_nrrdOneLine(&llen, nio, file)) {
       sprintf(err, "%s: failed to get line from PNM header", me);
       biffAdd(NRRD, err); return 1;
     }
-    if (!(0 < len)) {
+    if (!(0 < llen)) {
       sprintf(err, "%s: hit EOF in header with %d of %d ints parsed",
               me, got, want);
       biffAdd(NRRD, err); return 1;
@@ -173,7 +173,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       /* else this PNM comment is trying to tell us something */
       nio->pos = strlen(NRRD_PNM_COMMENT);
       nio->pos += strspn(nio->line + nio->pos, _nrrdFieldSep);
-      ret = _nrrdReadNrrdParseField(nrrd, nio, AIR_FALSE);
+      ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);
       if (!ret) {
         if (1 <= nrrdStateVerboseIO) {
           fprintf(stderr, "(%s: unparsable field \"%s\" --> plain comment)\n",
@@ -279,7 +279,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 int
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNM_write", err[AIR_STRLEN_MED];
-  int i, color, sx, sy, magic;
+  int color, sx, sy, magic, fi;
+  unsigned int ci;
   Nrrd *nrrd;
   airArray *mop;
   
@@ -308,13 +309,14 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   
   fprintf(file, "P%d\n", magic);
   fprintf(file, "%d %d\n", sx, sy);
-  for (i=1; i<=NRRD_FIELD_MAX; i++) {
-    if (_nrrdFieldValidInImage[i] && _nrrdFieldInteresting(nrrd, nio, i)) {
-      _nrrdFprintFieldInfo(file, NRRD_PNM_COMMENT, nrrd, nio, i);
+  for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
+    if (_nrrdFieldValidInImage[fi] 
+        && _nrrdFieldInteresting(nrrd, nio, fi)) {
+      _nrrdFprintFieldInfo(file, NRRD_PNM_COMMENT, nrrd, nio, fi);
     }
   }
-  for (i=0; i<nrrd->cmtArr->len; i++) {
-    fprintf(file, "# %s\n", nrrd->cmt[i]);
+  for (ci=0; ci<nrrd->cmtArr->len; ci++) {
+    fprintf(file, "# %s\n", nrrd->cmt[ci]);
   }
   fprintf(file, "255\n");
 

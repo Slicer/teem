@@ -74,7 +74,8 @@ _nrrdCC_settle (int *map, int len) {
 */
 int
 _nrrdCC_eclass (int *map, int len, airArray *eqvArr) {
-  int eqi, *eqv, j, k, t;
+  int *eqv, j, k, t;
+  unsigned eqi;
 
   eqv = (int*)(eqvArr->data);
   for (j=0; j<len; j++) {

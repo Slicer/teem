@@ -46,7 +46,8 @@
 
 double
 _nrrdZeroInt(const double *parm) {
-  
+
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -116,7 +117,7 @@ nrrdKernelZero = &_nrrdKernelZero;
 
 double
 _nrrdBoxInt(const double *parm) {
-  
+  AIR_UNUSED(parm);
   return 1.0;
 }
 
@@ -188,7 +189,7 @@ nrrdKernelBox = &_nrrdKernelBox;
 
 double
 _nrrdTentInt(const double *parm) {
-  
+  AIR_UNUSED(parm);
   return 1.0;
 }
 
@@ -260,7 +261,7 @@ nrrdKernelTent = &_nrrdKernelTent;
 
 double
 _nrrdFDInt(const double *parm) {
-  
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -333,7 +334,7 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
 
 double
 _nrrdCDInt(const double *parm) {
-  
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -407,7 +408,7 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
 
 double
 _nrrdBCInt(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 1.0;
 }
 
@@ -484,7 +485,7 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
 
 double
 _nrrdDBCInt(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -567,7 +568,7 @@ nrrdKernelBCCubicD = &_nrrdKernelDBC;
 
 double
 _nrrdDDBCInt(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -647,7 +648,7 @@ nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 double
 _nrrdA4Int(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 1.0;
 }
 
@@ -726,7 +727,7 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
 
 double
 _nrrdDA4Int(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -811,7 +812,7 @@ nrrdKernelAQuarticD = &_nrrdKernelDA4;
 
 double
 _nrrdDDA4Int(const double *parm) {
-
+  AIR_UNUSED(parm);
   return 0.0;
 }
 
@@ -966,7 +967,7 @@ nrrdKernelGaussian = &_nrrdKernelG;
 
 double
 _nrrdDGInt(const double *parm) {
-  
+  AIR_UNUSED(parm);
   return 0;
 }
 
@@ -1197,7 +1198,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
                 double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
-  int j, haveParm, needParm, tmfD, tmfC, tmfA;
+  int j, tmfD, tmfC, tmfA;
+  unsigned int haveParm, needParm;
   
   if (!(kernelP && parm && _str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1237,17 +1239,17 @@ nrrdKernelParse(const NrrdKernel **kernelP,
               "for TMF kernel", me, tmfStr[0], tmfStr[1], tmfStr[2]);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(-1, tmfD, nrrdKernelTMF_maxD)) {
+    if (!AIR_IN_CL(-1, tmfD, (int)nrrdKernelTMF_maxD)) {
       sprintf(err, "%s: derivative value %d outside range [-1,%d]",
               me, tmfD, nrrdKernelTMF_maxD);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(-1, tmfC, nrrdKernelTMF_maxC)) {
+    if (!AIR_IN_CL(-1, tmfC, (int)nrrdKernelTMF_maxC)) {
       sprintf(err, "%s: continuity value %d outside range [-1,%d]",
               me, tmfD, nrrdKernelTMF_maxC);
       biffAdd(NRRD, err); return 1;
     }
-    if (!AIR_IN_CL(1, tmfA, nrrdKernelTMF_maxA)) {
+    if (!AIR_IN_CL(1, tmfA, (int)nrrdKernelTMF_maxA)) {
       sprintf(err, "%s: accuracty value %d outside range [1,%d]",
               me, tmfD, nrrdKernelTMF_maxA);
       biffAdd(NRRD, err); return 1;

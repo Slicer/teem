@@ -32,6 +32,8 @@ main(int argc, char *argv[]) {
   Nrrd *nrrd;
   double diff, idx, idx2, idx3, idx4, lo, hi, pos, pos2, pos3, pos4;
 
+  AIR_UNUSED(argc);
+  AIR_UNUSED(argv);
   if (nrrdAlloc(nrrd=nrrdNew(), nrrdTypeFloat, 2, 4, 4)) {
     printf("trouble:\n%s\n", biffGet(NRRD));
     exit(1);
@@ -180,7 +182,7 @@ main(int argc, char *argv[]) {
 
   
   /* and now for random-ness */
-  airSrand48(airTime());
+  airSrand48((int)airTime());
   nrrd->axis[0].center = nrrdCenterNode;
   nrrd->axis[0].center = nrrdCenterCell;
   for (i=0; i<=1000000; i++) {
@@ -213,7 +215,7 @@ main(int argc, char *argv[]) {
       printf("pos, pos2 = %g, %g\n", pos, pos2);
       printf("idx, idx2 = %g, %g\n", idx, idx2);
       printf("pos3, pos4 = %g, %g\n", pos3, pos4);
-      printf("PANIC (%d) 3 %g\n", nrrd->axis[0].size, diff); exit(2); 
+      printf("PANIC (%d) 3 %g\n", (int)nrrd->axis[0].size, diff); exit(2); 
     }
   }
 

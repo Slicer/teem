@@ -5,6 +5,6 @@ as follows:
 
   ./fix1.pl tmFilters_raw.c \
     | ./fix2.pl \
+    | ./fix3.pl \
     | cat ../../preamble.c - \
     >! ../tmfKernel.c
-

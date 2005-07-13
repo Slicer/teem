@@ -48,7 +48,8 @@ nrrdRangeCopy(const NrrdRange *rin) {
 NrrdRange *
 nrrdRangeNix(NrrdRange *range) {
 
-  return airFree(range);
+  airFree(range);
+  return NULL;
 }
 
 void

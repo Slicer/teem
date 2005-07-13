@@ -141,8 +141,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 int
 nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   char me[] = "nrrdConvert", typeS[AIR_STRLEN_SMALL], err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX];
-  size_t num;
+  size_t num, size[NRRD_DIM_MAX];
 
   if (!( nin && nout 
          && !airEnumValCheck(nrrdType, nin->type)
@@ -234,12 +233,12 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
 ** value holder, which may mean needless loss of precision
 */
 int
-nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
+nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
+             unsigned int bits) {
   char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
   double valIn, minIn, maxIn, eps;
-  int valOut, type=nrrdTypeUnknown, size[NRRD_DIM_MAX];
-  airLLong valOutll;
-  size_t I, num;
+  int type=nrrdTypeUnknown;
+  size_t I, num, size[NRRD_DIM_MAX];
   unsigned char *outUC;
   unsigned short *outUS;
   unsigned int *outUI;
@@ -304,24 +303,21 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int bits) {
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
       valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      AIR_INDEX(minIn, valIn, maxIn+eps, 1 << 8, valOut);
-      outUC[I] = valOut;
+      outUC[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 8);
     }
     break;
   case 16:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
       valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      AIR_INDEX(minIn, valIn, maxIn+eps, 1 << 16, valOut);
-      outUS[I] = valOut;
+      outUS[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 16);
     }
     break;
   case 32:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
       valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      AIR_INDEX(minIn, valIn, maxIn+eps, AIR_ULLONG(1) << 32, valOutll);
-      outUI[I] = valOutll;
+      outUI[I] = airIndexULL(minIn, valIn, maxIn+eps, AIR_ULLONG(1) << 32);
     }
     break;
   }
@@ -377,8 +373,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   char me[]="nrrdUnquantize", func[]="unquantize", err[AIR_STRLEN_MED];
   float *outF;
   double *outD, minIn, numValIn, minOut, maxOut, valIn;
-  int size[NRRD_DIM_MAX];
-  size_t NN, II;
+  size_t NN, II, size[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -501,7 +496,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** the histogram that was used for calculation. Otherwise this
 ** histogram is deleted on return.
 **
-** This is all that is done normally, when "smart" is <= 0.  In
+** This is all that is done normally, when "smart" is == 0.  In
 ** "smart" mode (activated by setting "smart" to something greater
 ** than 0), the histogram is analyzed during its creation to detect if
 ** there are a few bins which keep getting hit with the same value
@@ -515,16 +510,17 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 */
 int
 nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
-            int bins, int smart, float amount) {
+            unsigned int bins, unsigned int smart, float amount) {
   char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
   Nrrd *nhist, *nmap;
   float *ycoord = NULL;
   double val, min, max, *last = NULL;
-  int i, idx, *respect = NULL, lort, hirt;
-  unsigned int *hist, *steady = NULL;
+  int *respect = NULL, lort;
+  unsigned int *hist, *steady = NULL, idx, hirt;
   size_t I, num;
   airArray *mop;
   NrrdRange *range;
+  unsigned bii;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -561,7 +557,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-    hist = nhist->data;
+    hist = (unsigned int*)nhist->data;
     min = nhist->axis[0].min;
     max = nhist->axis[0].max;
   } else {
@@ -573,12 +569,12 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-    hist = nhist->data;
+    hist = (unsigned int*)nhist->data;
     nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
-    respect = calloc(bins, sizeof(int));
-    steady = calloc(2*bins, sizeof(unsigned int));
-    last = calloc(bins, sizeof(double));
+    respect = (int*)calloc(bins, sizeof(int));
+    steady = (unsigned int*)calloc(2*bins, sizeof(unsigned int));
+    last = (double*)calloc(bins, sizeof(double));
     airMopMem(mop, &respect, airMopAlways);
     airMopMem(mop, &steady, airMopAlways);
     airMopMem(mop, &last, airMopAlways);
@@ -586,12 +582,12 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       sprintf(err, "%s: couldn't allocate smart arrays", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    /* steady[0 + 2*i] == how many times has bin i seen the same value
-       steady[1 + 2*i] == i (steady will be rearranged by qsort()) */
-    for (i=0; i<bins; i++) {
-      last[i] = AIR_NAN;
-      respect[i] = 1;
-      steady[1 + 2*i] = i;
+    /* steady[0 + 2*bii] == how many times has bin bii seen the same value
+       steady[1 + 2*bii] == bii (steady will be rearranged by qsort()) */
+    for (bii=0; bii<bins; bii++) {
+      last[bii] = AIR_NAN;
+      respect[bii] = 1;
+      steady[1 + 2*bii] = bii;
     }
     /* now create the histogram */
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
@@ -606,7 +602,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     for (I=0; I<num; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
-        AIR_INDEX(min, val, max, bins, idx);
+        idx = airIndex(min, val, max, bins);
         ++hist[idx];
         if (AIR_EXISTS(last[idx])) {
           steady[0 + 2*idx] = (last[idx] == val
@@ -616,22 +612,12 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
         last[idx] = val;
       }
     }
-    /*
-    for (i=0; i<bins; i++) {
-      printf("steady(%d) = %d\n", i, steady[0 + 2*i]);
-    }
-    */
     /* now sort the steady array */
     qsort(steady, bins, 2*sizeof(unsigned int), _nrrdHistoEqCompare);
-    /*
-    for (i=0; i<=20; i++) {
-      printf("sorted steady(%d/%d) = %d\n", i, steady[1+2*i], steady[0+2*i]);
-    }
-    */
     /* we ignore some of the bins according to "smart" arg */
-    for (i=0; i<smart; i++) {
-      respect[steady[1+2*i]] = 0;
-      /* printf("%s: disrespecting bin %d\n", me, steady[1+2*i]); */
+    for (bii=0; bii<smart; bii++) {
+      respect[steady[1+2*bii]] = 0;
+      /* printf("%s: disrespecting bin %d\n", me, steady[1+2*bii]); */
     }
   }
   if (nrrdMaybeAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
@@ -640,18 +626,18 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   }
   airMopAdd(mop, nmap, (airMopper)nrrdNuke,
             nmapP ? airMopOnError : airMopAlways);
+  ycoord = (float*)nmap->data;
   nmap->axis[0].min = min;
   nmap->axis[0].max = max;
-  ycoord = nmap->data;
 
   /* integrate the histogram then normalize it */
-  for (i=0; i<=bins; i++) {
-    if (i == 0) {
-      ycoord[i] = 0;
+  for (bii=0; bii<=bins; bii++) {
+    if (bii == 0) {
+      ycoord[bii] = 0;
     } else {
-      ycoord[i] = ycoord[i-1] + hist[i-1]*(smart 
-                                           ? respect[i-1] 
-                                           : 1);
+      ycoord[bii] = ycoord[bii-1] + hist[bii-1]*(smart 
+                                                 ? respect[bii-1] 
+                                                 : 1);
     }
   }
   /* if we've done smart, the integral will have little flat spots
@@ -663,16 +649,16 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
      regular map. */
   if (smart) {
     /* there are bins+1 control points, with indices 0 to bins.
-       We'll fix control points 1 to bins-1.  ycoord[i] is too low
-       if hist[i-1] was not respected (!respect[i-1]) */
-    for (i=1; i<=bins-1; i++) {
-      if (!respect[i-1]) {
+       We'll fix control points 1 to bins-1.  ycoord[bii] is too low
+       if hist[bii-1] was not respected (!respect[bii-1]) */
+    for (bii=1; bii<=bins-1; bii++) {
+      if (!respect[bii-1]) {
         /* lort and hirt will bracket the index of the bad control point
            with points corresponding either to respected bins or the
            endpoints of the histogram */
-        for (lort=i; lort>=1 && !respect[lort-1]; lort--);
-        for (hirt=i; hirt<=bins-1 && !respect[hirt-1]; hirt++);
-        ycoord[i] = AIR_AFFINE(lort, i, hirt, ycoord[lort], ycoord[hirt]);
+        for (lort=bii; lort>=1 && !respect[lort-1]; lort--);
+        for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++);
+        ycoord[bii] = AIR_AFFINE(lort, bii, hirt, ycoord[lort], ycoord[hirt]);
       }
     }
     /* the very last control point has to be handled differently */
@@ -682,10 +668,10 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   }
   /* rescale the histogram integration to span the original
      value range, and affect the influence of "amount" */
-  for (i=0; i<=bins; i++) {
-    ycoord[i] = AIR_AFFINE(0.0, ycoord[i], ycoord[bins], min, max);
-    ycoord[i] = AIR_AFFINE(0.0, amount, 1.0,
-                           AIR_AFFINE(0, i, bins, min, max), ycoord[i]);
+  for (bii=0; bii<=bins; bii++) {
+    ycoord[bii] = AIR_AFFINE(0.0, ycoord[bii], ycoord[bins], min, max);
+    ycoord[bii] = AIR_AFFINE(0.0, amount, 1.0,
+                             AIR_AFFINE(0, bii, bins, min, max), ycoord[bii]);
   }
 
   /* map the nrrd values through the normalized histogram integral */

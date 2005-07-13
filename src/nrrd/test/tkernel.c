@@ -50,8 +50,9 @@ main(int argc, char *argv[]) {
   int i, len;
 
   me = argv[0];
-  if (6 != argc)
+  if (6 != argc) {
     usage(me);
+  }
   kS = argv[1];
   minS = argv[2];
   stepS = argv[3];
@@ -80,10 +81,10 @@ main(int argc, char *argv[]) {
     len++;
   }
   /* allocate domain and range for both float and double */
-  if (!( (dom_d = calloc(len, sizeof(double))) &&
-         (ran_d = calloc(len, sizeof(double))) &&
-         (dom_f = calloc(len, sizeof(float))) &&
-         (ran_f = calloc(len, sizeof(float))) )) {
+  if (!( (dom_d = (double *)calloc(len, sizeof(double))) &&
+         (ran_d = (double *)calloc(len, sizeof(double))) &&
+         (dom_f = (float *)calloc(len, sizeof(float))) &&
+         (ran_f = (float *)calloc(len, sizeof(float))) )) {
     fprintf(stderr, "%s: PANIC: couldn't allocate buffers\n", me);
     exit(1);
   }

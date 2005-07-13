@@ -70,7 +70,7 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
 
-  data = nout->data;
+  data = (float *)nout->data;
   for (zi=0; zi<size[2]; zi++) {
     z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
     for (yi=0; yi<size[1]; yi++) {

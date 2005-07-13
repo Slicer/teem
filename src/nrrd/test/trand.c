@@ -28,11 +28,13 @@ main(int argc, char **argv) {
   Nrrd *nval, *nhist, *npgm;
   double *val;
   int i;
-  
-  nrrdAlloc(nval=nrrdNew(), nrrdTypeDouble, 1, BINS*BINS);
-  val = nval->data;
 
-  airSrand48(airTime());
+  AIR_UNUSED(argc);
+  AIR_UNUSED(argv);
+  nrrdAlloc(nval=nrrdNew(), nrrdTypeDouble, 1, BINS*BINS);
+  val = (double *)nval->data;
+
+  airSrand48((int)airTime());
   for (i=0; i<BINS*BINS; i++) {
     val[i] = airDrand48();
   }

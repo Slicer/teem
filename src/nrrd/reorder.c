@@ -32,30 +32,31 @@
 ** provides.
 */
 int
-nrrdInvertPerm(int *invp, const int *p, int n) {
+nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
   char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
-  int problem, i;
+  int problem;
+  unsigned int ii;
 
-  if (!(invp && p && n > 0)) {
-    sprintf(err, "%s: got NULL pointer or non-positive n (%d)", me, n);
+  if (!(invp && pp && nn > 0)) {
+    sprintf(err, "%s: got NULL pointer or non-positive nn (%d)", me, nn);
     biffAdd(NRRD, err); return 1;
   }
   
   /* use the given array "invp" as a temp buffer for validity checking */
-  memset(invp, 0, n*sizeof(int));
-  for (i=0; i<n; i++) {
-    if (!(AIR_IN_CL(0, p[i], n-1))) {
+  memset(invp, 0, nn*sizeof(int));
+  for (ii=0; ii<nn; ii++) {
+    if (!( pp[ii] <= nn-1)) {
       sprintf(err, "%s: permutation element #%d == %d out of bounds [0,%d]",
-              me, i, p[i], n-1);
+              me, ii, pp[ii], nn-1);
       biffAdd(NRRD, err); return 1;
     }
-    invp[p[i]]++;
+    invp[pp[ii]]++;
   }
   problem = AIR_FALSE;
-  for (i=0; i<n; i++) {
-    if (1 != invp[i]) {
+  for (ii=0; ii<nn; ii++) {
+    if (1 != invp[ii]) {
       sprintf(err, "%s: element #%d mapped to %d times (should be once)",
-              me, i, invp[i]);
+              me, ii, invp[ii]);
       biffAdd(NRRD, err); problem = AIR_TRUE;
     }
   }
@@ -64,8 +65,9 @@ nrrdInvertPerm(int *invp, const int *p, int n) {
   }
 
   /* the skinny */
-  for (i=0; i<n; i++) 
-    invp[p[i]] = i;
+  for (ii=0; ii<nn; ii++) {
+    invp[pp[ii]] = ii;
+  }
 
   return 0;
 }
@@ -78,17 +80,17 @@ nrrdInvertPerm(int *invp, const int *p, int n) {
 ** axis attributes are initialized as usual.
 */
 int
-nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
+nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
-  int d;
+  unsigned int ai;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_IN_CL(0, ax, nin->dim)) {
+  if (!( axis <= nin->dim )) {
     sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
-            me, ax, nin->dim);
+            me, axis, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
   if (NRRD_DIM_MAX == nin->dim) {
@@ -104,18 +106,18 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
     }
   }
   nout->dim = 1 + nin->dim;
-  for (d=nin->dim-1; d>=ax; d--) {
-    _nrrdAxisInfoCopy(&(nout->axis[d+1]), &(nin->axis[d]),
+  for (ai=nin->dim; ai>axis; ai--) {
+    _nrrdAxisInfoCopy(&(nout->axis[ai]), &(nin->axis[ai-1]),
                       NRRD_AXIS_INFO_NONE);
   }
   /* the ONLY thing we can say about the new axis is its size */
-  _nrrdAxisInfoInit(&(nout->axis[ax]));
+  _nrrdAxisInfoInit(&(nout->axis[axis]));
   if (!nrrdStateKindNoop) {
     /* except maybe the kind */
-    nout->axis[ax].kind = nrrdKindStub;
+    nout->axis[axis].kind = nrrdKindStub;
   }
-  nout->axis[ax].size = 1;
-  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+  nout->axis[axis].size = 1;
+  if (nrrdContentSet(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -143,27 +145,28 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
 ** not "where do I put this", from the standpoint of the input)
 */
 int
-nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
+nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
   char me[]="nrrdAxesPermute", func[]="permute", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
                                 moved contiguously from input to output,
                                 thought of as a "scanline" */
-    numLines;                /* how many "scanlines" there are to permute */
-  char *dataIn, *dataOut;
-  int 
+    numLines,                /* how many "scanlines" there are to permute */
     szIn[NRRD_DIM_MAX], *lszIn,
-    szOut[NRRD_DIM_MAX], *lszOut,
+    szOut[NRRD_DIM_MAX], *lszOut;
+  char *dataIn, *dataOut;
+  int axmap[NRRD_DIM_MAX];
+  unsigned int
     cIn[NRRD_DIM_MAX],
-    cOut[NRRD_DIM_MAX],
-    ip[NRRD_DIM_MAX+1],      /* inverse of permutation in "axes" */
-    laxes[NRRD_DIM_MAX+1],   /* copy of axes[], but shifted down by lowPax
-                                elements, to remove i such that i == axes[i] */
+    cOut[NRRD_DIM_MAX];
+  unsigned int
+    ai,                      /* running index along dimensions */
     lowPax,                  /* lowest axis which is "p"ermutated */
-    d,                       /* running index along dimensions */
-    dim,                     /* copy of nin->dim */
-    ldim;                    /* dim - lowPax */
+    ldim,                    /* nin->dim - lowPax */
+    ip[NRRD_DIM_MAX+1],      /* inverse of permutation in "axes" */
+    laxes[NRRD_DIM_MAX+1];   /* copy of axes[], but shifted down by lowPax
+                                elements, to remove i such that i == axes[i] */
   airArray *mop;
 
   mop = airMopNew();
@@ -182,10 +185,9 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   
-  dim = nin->dim;
-  for (d=0; d<dim && axes[d] == d; d++)
+  for (ai=0; ai<nin->dim && axes[ai] == ai; ai++)
     ;
-  lowPax = d;
+  lowPax = ai;
 
   /* allocate output by initial copy */
   if (nout != nin) {
@@ -203,31 +205,34 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     airMopAdd(mop, dataIn, airFree, airMopAlways);
     memcpy(dataIn, nin->data, nrrdElementNumber(nin)*nrrdElementSize(nin));
   }
-  if (lowPax < dim) {
-    /* if lowPax == dim, then we were given the identity permutation, so
+  if (lowPax < nin->dim) {
+    /* if lowPax == nin->dim, then we were given the identity permutation, so
        there's nothing to do other than the copy already done.  Otherwise,
-       here we are (actually, lowPax < dim-1) */
+       here we are (actually, lowPax < nin->dim-1) */
+    for (ai=0; ai<nin->dim; ai++) {
+      axmap[ai] = axes[ai];
+    }
     nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
-    if (nrrdAxisInfoCopy(nout, nin, axes, NRRD_AXIS_INFO_NONE)) {
+    if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     nrrdAxisInfoGet_nva(nout, nrrdAxisInfoSize, szOut);
     /* the skinny */
     lineSize = 1;
-    for (d=0; d<lowPax; d++) {
-      lineSize *= szIn[d];
+    for (ai=0; ai<lowPax; ai++) {
+      lineSize *= szIn[ai];
     }
     numLines = nrrdElementNumber(nin)/lineSize;
     lineSize *= nrrdElementSize(nin);
     lszIn = szIn + lowPax;
     lszOut = szOut + lowPax;
-    ldim = dim - lowPax;
+    ldim = nin->dim - lowPax;
     memset(laxes, 0, NRRD_DIM_MAX*sizeof(int));
-    for (d=0; d<ldim; d++) {
-      laxes[d] = axes[d+lowPax]-lowPax;
+    for (ai=0; ai<ldim; ai++) {
+      laxes[ai] = axes[ai+lowPax]-lowPax;
     }
-    dataOut = nout->data;
+    dataOut = (char *)nout->data;
     memset(cIn, 0, NRRD_DIM_MAX*sizeof(int));
     memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
     for (idxOut=0; idxOut<numLines; idxOut++) {
@@ -235,8 +240,8 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
          scanlines that we're copying, we are not even storing all the
          zeros in the coordinates prior to lowPax, and when we go to
          a linear index for the memcpy(), we multiply by lineSize */
-      for (d=0; d<ldim; d++) {
-        cIn[laxes[d]] = cOut[d];
+      for (ai=0; ai<ldim; ai++) {
+        cIn[laxes[ai]] = cOut[ai];
       }
       NRRD_INDEX_GEN(idxIn, cIn, lszIn, ldim);
       memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
@@ -244,8 +249,8 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
     }
     /* set content */
     strcpy(buff1, "");
-    for (d=0; d<dim; d++) {
-      sprintf(buff2, "%s%d", (d ? "," : ""), axes[d]);
+    for (ai=0; ai<nin->dim; ai++) {
+      sprintf(buff2, "%s%d", (ai ? "," : ""), axes[ai]);
       strcat(buff1, buff2);
     }
     if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
@@ -289,15 +294,16 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes) {
 ** array.
 */
 int
-nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
+nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
+            const size_t *perm) {
   char me[]="nrrdShuffle", func[]="shuffle", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
-  int size[NRRD_DIM_MAX], *lsize,
-    d, ldim, len,
+  unsigned int 
+    ai, ldim, len,
     cIn[NRRD_DIM_MAX+1],
     cOut[NRRD_DIM_MAX+1];
-  size_t idxIn, idxOut, lineSize, numLines;
-  unsigned char *dataIn, *dataOut;
+  size_t idxIn, idxOut, lineSize, numLines, size[NRRD_DIM_MAX], *lsize;
+  char *dataIn, *dataOut;
 
   if (!(nin && nout && perm)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -307,16 +313,16 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_IN_CL(0, axis, nin->dim-1)) {
+  if (!( axis < nin->dim )) {
     sprintf(err, "%s: axis %d outside valid range [0,%d]", 
             me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
   len = nin->axis[axis].size;
-  for (d=0; d<len; d++) {
-    if (!AIR_IN_CL(0, perm[d], len-1)) {
-      sprintf(err, "%s: perm[%d] (%d) outside valid range [0,%d]", me,
-              d, perm[d], len-1);
+  for (ai=0; ai<len; ai++) {
+    if (!( perm[ai] < len )) {
+      sprintf(err, "%s: perm[%d] (" _AIR_SIZE_T_CNV
+              ") outside valid range [0,%d]", me, ai, perm[ai], len-1);
       biffAdd(NRRD, err); return 1;
     }
   }
@@ -341,15 +347,15 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
   nout->axis[axis].kind = _nrrdKindAltered(nin->axis[axis].kind);
   /* the skinny */
   lineSize = 1;
-  for (d=0; d<axis; d++) {
-    lineSize *= nin->axis[d].size;
+  for (ai=0; ai<axis; ai++) {
+    lineSize *= nin->axis[ai].size;
   }
   numLines = nrrdElementNumber(nin)/lineSize;
   lineSize *= nrrdElementSize(nin);
   lsize = size + axis;
   ldim = nin->dim - axis;
-  dataIn = nin->data;
-  dataOut = nout->data;
+  dataIn = (char *)nin->data;
+  dataOut = (char *)nout->data;
   memset(cIn, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   memset(cOut, 0, (NRRD_DIM_MAX+1)*sizeof(int));
   for (idxOut=0; idxOut<numLines; idxOut++) {
@@ -362,8 +368,8 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
   }
   /* content */
   strcpy(buff1, "");
-  for (d=0; d<nin->dim; d++) {
-    sprintf(buff2, "%s%d", (d ? "," : ""), perm[d]);
+  for (ai=0; ai<nin->dim; ai++) {
+    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
     strcat(buff1, buff2);
   }
   if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
@@ -396,27 +402,26 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis, const int *perm) {
 ** needed to call nrrdAxesPermute()
 */
 int
-nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
+nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
   char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED];
-  int i, axes[NRRD_DIM_MAX];
+  unsigned int ai, axmap[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(AIR_IN_CL(0, ax1, nin->dim-1) 
-        && AIR_IN_CL(0, ax2, nin->dim-1))) {
+  if (!( ax1 < nin->dim && ax2 < nin->dim )) {
     sprintf(err, "%s: ax1 (%d) or ax2 (%d) out of bounds [0,%d]", 
             me, ax1, ax2, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
 
-  for (i=0; i<nin->dim; i++) {
-    axes[i] = i;
+  for (ai=0; ai<nin->dim; ai++) {
+    axmap[ai] = ai;
   }
-  axes[ax2] = ax1;
-  axes[ax1] = ax2;
-  if (nrrdAxesPermute(nout, nin, axes)
+  axmap[ax2] = ax1;
+  axmap[ax1] = ax2;
+  if (nrrdAxesPermute(nout, nin, axmap)
       || nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
@@ -433,9 +438,9 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, int ax1, int ax2) {
 ** of setting nout->axis[axis].min and .max)
 */
 int
-nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
+nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED];
-  int i, *perm;
+  size_t *perm, si;
   airArray *mop;
 
   mop = airMopNew();
@@ -443,18 +448,18 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  if (!(AIR_IN_CL(0, axis, nin->dim-1))) {
+  if (!(  axis < nin->dim )) {
     sprintf(err, "%s: given axis (%d) is outside valid range ([0,%d])", 
             me, axis, nin->dim-1);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  if (!(perm = calloc(nin->axis[axis].size, sizeof(int)))) {
+  if (!(perm = (size_t*)calloc(nin->axis[axis].size, sizeof(size_t)))) {
     sprintf(err, "%s: couldn't alloc permutation array", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, perm, airFree, airMopAlways);
-  for (i=0; i<nin->axis[axis].size; i++) {
-    perm[i] = nin->axis[axis].size-1-i;
+  for (si=0; si<nin->axis[axis].size; si++) {
+    perm[si] = nin->axis[axis].size-1-si;
   }
   /* nrrdBasicInfoCopy called by nrrdShuffle() */
   if (nrrdShuffle(nout, nin, axis, perm)
@@ -491,13 +496,13 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, int axis) {
 ** should be done? 
 */
 int
-nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
-         int axis, int incrDim) {
+nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
+         unsigned int axis, int incrDim) {
   char me[]="nrrdJoin", err[AIR_STRLEN_MED];
-  int mindim, maxdim, diffdim, outdim, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
-    i, d, outlen, permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX],
-    axmap[NRRD_DIM_MAX];
-  size_t outnum, chunksize;
+  unsigned int ni, ai, mindim, maxdim, outdim,
+    permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX];
+  int diffdim, axmap[NRRD_DIM_MAX];
+  size_t outlen, outnum, chunksize, size[NRRD_DIM_MAX];
   char *dataPerm;
   Nrrd *ntmpperm,    /* axis-permuted version of output */
     **ninperm;
@@ -512,19 +517,19 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
     sprintf(err, "%s: numNin (%d) must be >= 1", me, numNin);
     biffAdd(NRRD, err); return 1;
   }
-  for (i=0; i<numNin; i++) {
-    if (!(nin[i])) {
-      sprintf(err, "%s: input nrrd #%d NULL", me, i);
+  for (ni=0; ni<numNin; ni++) {
+    if (!(nin[ni])) {
+      sprintf(err, "%s: input nrrd #%d NULL", me, ni);
       biffAdd(NRRD, err); return 1;
     }
-    if (nout==nin[i]) {
-      sprintf(err, "%s: nout==nin[%d] disallowed", me, i);
+    if (nout==nin[ni]) {
+      sprintf(err, "%s: nout==nin[%d] disallowed", me, ni);
       biffAdd(NRRD, err); return 1;
     }
   }
 
   mop = airMopNew();
-  ninperm = calloc(numNin, sizeof(Nrrd *));
+  ninperm = (Nrrd **)calloc(numNin, sizeof(Nrrd *));
   if (!(ninperm)) {
     sprintf(err, "%s: couldn't calloc() temp nrrd array", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -532,9 +537,9 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
   airMopAdd(mop, ninperm, airFree, airMopAlways);
 
   maxdim = mindim = nin[0]->dim;
-  for (i=0; i<numNin; i++) {
-    mindim = AIR_MIN(mindim, nin[i]->dim);
-    maxdim = AIR_MAX(maxdim, nin[i]->dim);
+  for (ni=0; ni<numNin; ni++) {
+    mindim = AIR_MIN(mindim, nin[ni]->dim);
+    maxdim = AIR_MAX(maxdim, nin[ni]->dim);
   }
   diffdim = maxdim - mindim;
   if (diffdim > 1) {
@@ -581,58 +586,58 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
   }
   
   /* do tacit reshaping, and possibly permuting, as needed */
-  for (i=0; i<outdim; i++) {
-    permute[i] = (i < axis
-                  ? i 
-                  : (i < outdim-1
-                     ? i + 1
-                     : axis));
-    /* fprintf(stderr, "!%s: 1st permute[%d] = %d\n", me, i, permute[i]); */
+  for (ai=0; ai<outdim; ai++) {
+    permute[ai] = (ai < axis
+                   ? ai 
+                   : (ai < outdim-1
+                      ? ai + 1
+                      : axis));
+    /* fprintf(stderr, "!%s: 1st permute[%d] = %d\n", me, ai, permute[ai]); */
   }
-  for (i=0; i<numNin; i++) {
-    ninperm[i] = nrrdNew();
-    diffdim = outdim - nin[i]->dim;
-    /* fprintf(stderr, "!%s: i = %d ---> diffdim = %d\n", me, i, diffdim); */
+  for (ni=0; ni<numNin; ni++) {
+    ninperm[ni] = nrrdNew();
+    diffdim = outdim - nin[ni]->dim;
+    /* fprintf(stderr, "!%s: ni = %d ---> diffdim = %d\n", me, ni, diffdim); */
     if (diffdim) {
       /* we do a tacit reshaping, which actually includes
          a tacit permuting, so we don't have to call permute
          on the parts that don't actually need it */
       /* NB: we register nrrdNix, not nrrdNuke */
       /* fprintf(stderr, "!%s: %d: tacit reshape/permute\n", me, i); */
-      airMopAdd(mop, ninperm[i], (airMopper)nrrdNix, airMopAlways);
-      nrrdAxisInfoGet_nva(nin[i], nrrdAxisInfoSize, size);
-      for (d=nin[i]->dim-1; d>=mindim+1; d--) {
-        size[d] = size[d-1];
+      airMopAdd(mop, ninperm[ni], (airMopper)nrrdNix, airMopAlways);
+      nrrdAxisInfoGet_nva(nin[ni], nrrdAxisInfoSize, size);
+      for (ai=nin[ni]->dim-1; ai>=mindim+1; ai--) {
+        size[ai] = size[ai-1];
       }
       size[mindim] = 1;
       /* this may be done needlessly often */
-      for (d=0; d<=nin[i]->dim; d++) {
-        if (d < mindim) {
-          axmap[d] = d;
-        } else if (d > mindim) {
-          axmap[d] = d-1;
+      for (ai=0; ai<=nin[ni]->dim; ai++) {
+        if (ai < mindim) {
+          axmap[ai] = ai;
+        } else if (ai > mindim) {
+          axmap[ai] = ai-1;
         } else {
-          axmap[d] = -1;
+          axmap[ai] = -1;
         }
       }
       /* we don't have to actually call nrrdReshape(): we just nrrdWrap()
          the input data with the reshaped size array */
-      if (nrrdWrap_nva(ninperm[i], nin[i]->data, nin[i]->type,
-                   nin[i]->dim+1, size)) {
+      if (nrrdWrap_nva(ninperm[ni], nin[ni]->data, nin[ni]->type,
+                       nin[ni]->dim+1, size)) {
         sprintf(err, "%s: trouble creating intermediate version of nrrd %d",
-                me, i);
+                me, ni);
         biffAdd(NRRD, err); airMopError(mop); return 1;    
       }
-      nrrdAxisInfoCopy(ninperm[i], nin[i], axmap, 
+      nrrdAxisInfoCopy(ninperm[ni], nin[ni], axmap, 
                        (NRRD_AXIS_INFO_SIZE_BIT
                         /* HEY: this is being nixed because I can't think
                            of a sane way of keeping it consistent */
                         | NRRD_AXIS_INFO_SPACEDIRECTION_BIT));
     } else {
       /* on this part, we permute (no need for a reshape) */
-      airMopAdd(mop, ninperm[i], (airMopper)nrrdNuke, airMopAlways);
-      if (nrrdAxesPermute(ninperm[i], nin[i], permute)) {
-        sprintf(err, "%s: trouble permuting input part %d", me, i);
+      airMopAdd(mop, ninperm[ni], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdAxesPermute(ninperm[ni], nin[ni], permute)) {
+        sprintf(err, "%s: trouble permuting input part %d", me, ni);
         biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     }
@@ -641,45 +646,48 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
   /* make sure all parts are compatible in type and shape,
      determine length of final output along axis (outlen) */
   outlen = 0;
-  for (i=0; i<numNin; i++) {
-    if (ninperm[i]->type != ninperm[0]->type) {
+  for (ni=0; ni<numNin; ni++) {
+    if (ninperm[ni]->type != ninperm[0]->type) {
       sprintf(err, "%s: type (%s) of part %d unlike first's (%s)",
-              me, airEnumStr(nrrdType, ninperm[i]->type),
-              i, airEnumStr(nrrdType, ninperm[0]->type));
+              me, airEnumStr(nrrdType, ninperm[ni]->type),
+              ni, airEnumStr(nrrdType, ninperm[0]->type));
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     if (nrrdTypeBlock == ninperm[0]->type) {
-      if (ninperm[i]->blockSize != ninperm[0]->blockSize) {
-        sprintf(err, "%s: blockSize (%d) of part %d unlike first's (%d)",
-                me, ninperm[i]->blockSize, i, ninperm[0]->blockSize);
+      if (ninperm[ni]->blockSize != ninperm[0]->blockSize) {
+        sprintf(err, "%s: blockSize (" _AIR_SIZE_T_CNV 
+                ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
+                me, ninperm[ni]->blockSize, ni, ninperm[0]->blockSize);
         biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     }
-    if (!nrrdElementSize(ninperm[i])) {
-      sprintf(err, "%s: got wacky elements size (%d) for part %d",
-              me, nrrdElementSize(ninperm[i]), i);
+    if (!nrrdElementSize(ninperm[ni])) {
+      sprintf(err, "%s: got wacky elements size (" _AIR_SIZE_T_CNV 
+              ") for part %d", me, nrrdElementSize(ninperm[ni]), ni);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     
     /* fprintf(stderr, "!%s: part %03d shape: ", me, i); */
-    for (d=0; d<=outdim-2; d++) {
-      /* fprintf(stderr, "%03d ", ninperm[i]->axis[d].size); */
-      if (ninperm[i]->axis[d].size != ninperm[0]->axis[d].size) {
-        sprintf(err, "%s: axis %d size (%d) of part %d unlike first's (%d)",
-                me, d, ninperm[i]->axis[d].size, i, ninperm[0]->axis[d].size);
+    for (ai=0; ai<outdim-1; ai++) {
+      /* fprintf(stderr, "%03d ", ninperm[i]->axis[ai].size); */
+      if (ninperm[ni]->axis[ai].size != ninperm[0]->axis[ai].size) {
+        sprintf(err, "%s: axis %d size (" _AIR_SIZE_T_CNV 
+                ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
+                me, ai, ninperm[ni]->axis[ai].size,
+                ni, ninperm[0]->axis[ai].size);
         biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     }
-    /* fprintf(stderr, "%03d\n", ninperm[i]->axis[outdim-1].size); */
-    outlen += ninperm[i]->axis[outdim-1].size;
+    /* fprintf(stderr, "%03d\n", ninperm[ni]->axis[outdim-1].size); */
+    outlen += ninperm[ni]->axis[outdim-1].size;
   }
   /* fprintf(stderr, "!%s: outlen = %d\n", me, outlen); */
 
   /* allocate temporary nrrd and concat input into it */
   outnum = 1;
-  for (d=0; d<=outdim-2; d++) {
-    size[d] = ninperm[0]->axis[d].size;
-    outnum *= size[d];
+  for (ai=0; ai<=outdim-2; ai++) {
+    size[ai] = ninperm[0]->axis[ai].size;
+    outnum *= size[ai];
   }
   size[outdim-1] = outlen;
   outnum *= size[outdim-1];
@@ -689,20 +697,20 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, ntmpperm, (airMopper)nrrdNuke, airMopAlways);
-  dataPerm = ntmpperm->data;
-  for (i=0; i<numNin; i++) {
+  dataPerm = (char *)ntmpperm->data;
+  for (ni=0; ni<numNin; ni++) {
     /* here is where the actual joining happens */
-    chunksize = nrrdElementNumber(ninperm[i])*nrrdElementSize(ninperm[i]);
-    memcpy(dataPerm, ninperm[i]->data, chunksize);
+    chunksize = nrrdElementNumber(ninperm[ni])*nrrdElementSize(ninperm[ni]);
+    memcpy(dataPerm, ninperm[ni]->data, chunksize);
     dataPerm += chunksize;
   }
   
   /* copy other axis-specific fields from nin[0] to ntmpperm */
-  for (d=0; d<=outdim-2; d++) {
-    map[d] = d;
+  for (ai=0; ai<outdim-1; ai++) {
+    axmap[ai] = ai;
   }
-  map[outdim-1] = -1;
-  nrrdAxisInfoCopy(ntmpperm, ninperm[0], map, 
+  axmap[outdim-1] = -1;
+  nrrdAxisInfoCopy(ntmpperm, ninperm[0], axmap, 
                    (NRRD_AXIS_INFO_NONE
                     /* HEY: this is being nixed because I can't think
                        of a sane way of keeping it consistent */
@@ -730,17 +738,17 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, int numNin,
 */
 int
 nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
-              int ax, int sizeFast, int sizeSlow) {
+              unsigned int saxi, size_t sizeFast, size_t sizeSlow) {
   char me[]="nrrdAxesSplit", func[]="axsplit", err[AIR_STRLEN_MED];
-  int d;
+  unsigned int ai;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_IN_CL(0, ax, nin->dim)) {
+  if (!( saxi <= nin->dim-1 )) {
     sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
-            me, ax, nin->dim);
+            me, saxi, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
   if (NRRD_DIM_MAX == nin->dim) {
@@ -748,10 +756,11 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
             me, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(sizeFast*sizeSlow == nin->axis[ax].size)) {
-    sprintf(err, "%s: # samples along axis %d (%d) != product of "
-            "fast and slow sizes (%d * %d = %d)",
-            me, ax, nin->axis[ax].size,
+  if (!(sizeFast*sizeSlow == nin->axis[saxi].size)) {
+    sprintf(err, "%s: # samples along axis %d (" _AIR_SIZE_T_CNV
+            ") != product of fast and slow sizes (" _AIR_SIZE_T_CNV 
+            " * " _AIR_SIZE_T_CNV " = " _AIR_SIZE_T_CNV ")",
+            me, saxi, nin->axis[saxi].size,
             sizeFast, sizeSlow, sizeFast*sizeSlow);
     biffAdd(NRRD, err); return 1;
   }
@@ -763,16 +772,16 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
     }
   }
   nout->dim = 1 + nin->dim;
-  for (d=nin->dim-1; d>=ax+1; d--) {
-    _nrrdAxisInfoCopy(&(nout->axis[d+1]), &(nin->axis[d]),
+  for (ai=nin->dim-1; ai>=saxi+1; ai--) {
+    _nrrdAxisInfoCopy(&(nout->axis[ai+1]), &(nin->axis[ai]),
                       NRRD_AXIS_INFO_NONE);
   }
   /* the ONLY thing we can say about the new axes are their sizes */
-  _nrrdAxisInfoInit(&(nout->axis[ax]));
-  _nrrdAxisInfoInit(&(nout->axis[ax+1]));
-  nout->axis[ax].size = sizeFast;
-  nout->axis[ax+1].size = sizeSlow;
-  if (nrrdContentSet(nout, func, nin, "%d,%d,%d", ax, sizeFast, sizeSlow)) {
+  _nrrdAxisInfoInit(&(nout->axis[saxi]));
+  _nrrdAxisInfoInit(&(nout->axis[saxi+1]));
+  nout->axis[saxi].size = sizeFast;
+  nout->axis[saxi+1].size = sizeSlow;
+  if (nrrdContentSet(nout, func, nin, "%d,%d,%d", saxi, sizeFast, sizeSlow)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -787,26 +796,26 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
 ** this is only for removing a "stub" axis with length 1.
 */
 int
-nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
+nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
   char me[]="nrrdAxesDelete", func[]="axdelete", err[AIR_STRLEN_MED];
-  int d;
+  unsigned int ai;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_IN_CL(0, ax, nin->dim-1)) {
+  if (!( daxi < nin->dim )) {
     sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
-            me, ax, nin->dim-1);
+            me, daxi, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
   if (1 == nin->dim) {
     sprintf(err, "%s: given nrrd already at lowest dimension (1)", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (1 != nin->axis[ax].size) {
-    sprintf(err, "%s: size along axis %d is %d, not 1",
-            me, ax, nin->axis[ax].size);
+  if (1 != nin->axis[daxi].size) {
+    sprintf(err, "%s: size along axis %d is " _AIR_SIZE_T_CNV ", not 1",
+            me, daxi, nin->axis[daxi].size);
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
@@ -817,11 +826,11 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
     }
   }
   nout->dim = nin->dim - 1;
-  for (d=ax; d<=nin->dim-2; d++) {
-    _nrrdAxisInfoCopy(&(nout->axis[d]), &(nin->axis[d+1]),
+  for (ai=daxi; ai<nin->dim-1; ai++) {
+    _nrrdAxisInfoCopy(&(nout->axis[ai]), &(nin->axis[ai+1]),
                       NRRD_AXIS_INFO_NONE);
   }
-  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+  if (nrrdContentSet(nout, func, nin, "%d", daxi)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -836,17 +845,18 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, int ax) {
 ** merges axis ax and ax+1 into one 
 */
 int
-nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
+nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   char me[]="nrrdAxesMerge", func[]="axmerge", err[AIR_STRLEN_MED];
-  int d, sizeFast, sizeSlow;
+  unsigned int ai;
+  size_t sizeFast, sizeSlow;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!AIR_IN_CL(0, ax, nin->dim-2)) {
+  if (!( maxi < nin->dim-1 )) {
     sprintf(err, "%s: given axis (%d) outside valid range [0, %d]",
-            me, ax, nin->dim-2);
+            me, maxi, nin->dim-2);
     biffAdd(NRRD, err); return 1;
   }
   if (1 == nin->dim) {
@@ -860,17 +870,17 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  sizeFast = nin->axis[ax].size;
-  sizeSlow = nin->axis[ax+1].size;
+  sizeFast = nin->axis[maxi].size;
+  sizeSlow = nin->axis[maxi+1].size;
   nout->dim = nin->dim - 1;
-  for (d=ax+1; d<nout->dim; d++) {
-    _nrrdAxisInfoCopy(&(nout->axis[d]), &(nin->axis[d+1]),
+  for (ai=maxi+1; ai<nout->dim; ai++) {
+    _nrrdAxisInfoCopy(&(nout->axis[ai]), &(nin->axis[ai+1]),
                       NRRD_AXIS_INFO_NONE);
   }
   /* the ONLY thing we can say about the new axis is its size */
-  _nrrdAxisInfoInit(&(nout->axis[ax]));
-  nout->axis[ax].size = sizeFast*sizeSlow;
-  if (nrrdContentSet(nout, func, nin, "%d", ax)) {
+  _nrrdAxisInfoInit(&(nout->axis[maxi]));
+  nout->axis[maxi].size = sizeFast*sizeSlow;
+  if (nrrdContentSet(nout, func, nin, "%d", maxi)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -884,11 +894,12 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, int ax) {
 **
 */
 int
-nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
+nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
+                unsigned int dim, const size_t *size) {
   char me[]="nrrdReshape_nva", func[]="reshape", err[AIR_STRLEN_MED],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
-  int d;
+  unsigned int ai;
   
   if (!(nout && nin && size)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -899,17 +910,17 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
             me, dim, NRRD_DIM_MAX);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
+  if (_nrrdSizeCheck(size, dim, AIR_TRUE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
   numOut = 1;
-  for (d=0; d<dim; d++) {
-    numOut *= size[d];
+  for (ai=0; ai<dim; ai++) {
+    numOut *= size[ai];
   }
   if (numOut != nrrdElementNumber(nin)) {
-    sprintf(err, "%s: new sizes product (" _AIR_SIZE_T_FMT ") "
-            "!= # elements (" _AIR_SIZE_T_FMT ")",
+    sprintf(err, "%s: new sizes product (" _AIR_SIZE_T_CNV ") "
+            "!= # elements (" _AIR_SIZE_T_CNV ")",
             me, numOut, nrrdElementNumber(nin));
     biffAdd(NRRD, err); return 1;
   }
@@ -922,15 +933,15 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
     }
   }
   nout->dim = dim;
-  for (d=0; d<dim; d++) {
+  for (ai=0; ai<dim; ai++) {
     /* the ONLY thing we can say about the axes is the size */
-    _nrrdAxisInfoInit(&(nout->axis[d]));
-    nout->axis[d].size = size[d];
+    _nrrdAxisInfoInit(&(nout->axis[ai]));
+    nout->axis[ai].size = size[ai];
   }
 
   strcpy(buff1, "");
-  for (d=0; d<dim; d++) {
-    sprintf(buff2, "%s%d", (d ? "x" : ""), size[d]);
+  for (ai=0; ai<dim; ai++) {
+    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "x" : ""), size[ai]);
     strcat(buff1, buff2);
   }
   /* basic info copied by _nrrdCopy, but probably more than we 
@@ -948,9 +959,10 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, int dim, const int *size) {
 ** var-args version of nrrdReshape_nva()
 */
 int
-nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim, ...) {
+nrrdReshape(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
   char me[]="nrrdReshape", err[AIR_STRLEN_MED];
-  int d, size[NRRD_DIM_MAX];
+  unsigned int ai;
+  size_t size[NRRD_DIM_MAX];
   va_list ap;
 
   if (!(nout && nin)) {
@@ -963,8 +975,8 @@ nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim, ...) {
     biffAdd(NRRD, err); return 1;
   }
   va_start(ap, dim);
-  for (d=0; d<dim; d++) {
-    size[d] = va_arg(ap, int);
+  for (ai=0; ai<dim; ai++) {
+    size[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
   /* basic info copied (indirectly) by nrrdReshape_nva() */
@@ -986,7 +998,9 @@ nrrdReshape(Nrrd *nout, const Nrrd *nin, int dim, ...) {
 int
 nrrdBlock(Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdBlock", func[]="block", err[AIR_STRLEN_MED];
-  int d, numEl, map[NRRD_DIM_MAX], size[NRRD_DIM_MAX];
+  unsigned int ai;
+  size_t numEl, size[NRRD_DIM_MAX];
+  int map[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1012,9 +1026,9 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
   fprintf(stderr, "!%s: nout->blockSize = %d * %d = %d\n", me,
           numEl, nrrdElementSize(nin), nout->blockSize);
   */
-  for (d=0; d<=nin->dim-2; d++) {
-    map[d] = d+1;
-    size[d] = nin->axis[map[d]].size;
+  for (ai=0; ai<nin->dim-1; ai++) {
+    map[ai] = ai+1;
+    size[ai] = nin->axis[map[ai]].size;
   }
 
   /* nout->blockSize set above */
@@ -1054,7 +1068,9 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
 int
 nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   char me[]="nrrdUnblock", func[]="unblock", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX], d, map[NRRD_DIM_MAX], outElSz;
+  unsigned int dim;
+  size_t size[NRRD_DIM_MAX], outElSz;
+  int map[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1092,14 +1108,14 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   nout->type = type;
   outElSz = nrrdElementSize(nout);
   if (nin->blockSize % outElSz) {
-    sprintf(err, "%s: input blockSize (%d) not multiple of output "
-            "element size (%d)",
+    sprintf(err, "%s: input blockSize (" _AIR_SIZE_T_CNV 
+            ") not multiple of output element size (" _AIR_SIZE_T_CNV  ")",
             me, nin->blockSize, outElSz);
     biffAdd(NRRD, err); return 1;
   }
-  for (d=0; d<=nin->dim; d++) {
-    map[d] = !d ?  -1 : d-1;
-    size[d] = !d ? nin->blockSize / outElSz : nin->axis[map[d]].size;
+  for (dim=0; dim<=nin->dim; dim++) {
+    map[dim] = !dim ?  -1 : (int)dim-1;
+    size[dim] = !dim ? nin->blockSize / outElSz : nin->axis[map[dim]].size;
   }
   /* if nout->blockSize is needed, we've checked that its set */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim+1, size)) {
@@ -1147,19 +1163,19 @@ function.  Probably unu tile.
 ** fewer dimensions in the output nrrd than in the input nrrd.
 */
 int
-nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
-           int axSplit, int sizeFast, int sizeSlow) {
+nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
+           unsigned int axSplit, size_t sizeFast, size_t sizeSlow) {
   char me[]="nrrdTile2D", err[AIR_STRLEN_MED];
   int E,                     /* error flag */
     insAxis[2*NRRD_DIM_MAX], /* array for inserting the two axes resulting
                                 from the initial split amongst the other
                                 axes: inserted axes go in odd slots, 
                                 other axes go in even slots */
-    map[NRRD_DIM_MAX],       /* axis map for axis permute */
     mapIdx,                  /* index for filling map[] */
     merge[2],                /* two axes to be merged post-permute */
-    mergeIdx,                /* index for filling merge[] */
-    ii;                      /* loop variable */
+    mergeIdx;                /* index for filling merge[] */
+  unsigned int ii,
+    map[NRRD_DIM_MAX];       /* axis map for axis permute */
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1174,9 +1190,9 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
             me, axSplit, ax0, ax1);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_IN_CL(0, ax0, nin->dim-1)
-         && AIR_IN_CL(0, ax1, nin->dim-1)
-         && AIR_IN_CL(0, axSplit, nin->dim-1) )) {
+  if (!( ax0 < nin->dim
+         && ax1 < nin->dim
+         && axSplit < nin->dim )) {
     sprintf(err, "%s: axSplit, ax0, ax1 (%d,%d,%d) must be in range [0,%d]",
             me, axSplit, ax0, ax1, nin->dim-1);
     biffAdd(NRRD, err); return 1;
@@ -1262,10 +1278,12 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
 ** is in contrast to the axSplit (and ax0 and ax1) argument of nrrdTile2D
 ** which identifies axes in the original nrrd.
 */
-int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
-                 int axMerge, int sizeFast, int sizeSlow) {
+int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
+                 unsigned int ax0, unsigned int ax1,
+                 unsigned int axMerge, size_t sizeFast, size_t sizeSlow) {
   char me[]="nrrdUntile2D", err[AIR_STRLEN_MED];
-  int E, map[NRRD_DIM_MAX], ii, mapIdx;
+  int E;
+  unsigned int ii, mapIdx, map[NRRD_DIM_MAX];
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1276,24 +1294,25 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, int ax0, int ax1,
             me, ax0, ax1);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_IN_CL(0, ax0, nin->dim-1)
-         && AIR_IN_CL(0, ax1, nin->dim-1) )) {
+  if (!( ax0 < nin->dim && ax1 < nin->dim )) {
     sprintf(err, "%s: ax0, ax1 (%d,%d) must be in range [0,%d]",
             me, ax0, ax1, nin->dim-1);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( AIR_IN_CL(0, axMerge, nin->dim) )) {
+  if (!( axMerge <= nin->dim )) {
     sprintf(err, "%s: axMerge (%d) must be in range [0,%d]",
             me, axMerge, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
   if (nin->axis[ax0].size != sizeFast*(nin->axis[ax0].size/sizeFast)) {
-    sprintf(err, "%s: sizeFast (%d) doesn't divide into axis %d size (%d)",
+    sprintf(err, "%s: sizeFast (" _AIR_SIZE_T_CNV ") doesn't divide into "
+            "axis %d size (" _AIR_SIZE_T_CNV ")",
             me, sizeFast, ax0, nin->axis[ax0].size);
     biffAdd(NRRD, err); return 1;
   }
   if (nin->axis[ax1].size != sizeSlow*(nin->axis[ax1].size/sizeSlow)) {
-    sprintf(err, "%s: sizeSlow (%d) doesn't divide into axis %d size (%d)",
+    sprintf(err, "%s: sizeSlow (" _AIR_SIZE_T_CNV ") doesn't divide into "
+            "axis %d size (" _AIR_SIZE_T_CNV ")",
             me, sizeSlow, ax1, nin->axis[ax1].size);
     biffAdd(NRRD, err); return 1;
   }

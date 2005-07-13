@@ -89,9 +89,10 @@ _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
 int
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdReadVTK", err[AIR_STRLEN_MED], *three[3];
-  int len, sx, sy, sz, ret, N;
+  int sx, sy, sz, ret, N;
   double xm=0.0, ym=0.0, zm=0.0, xs=1.0, ys=1.0, zs=1.0;
   airArray *mop;
+  unsigned int llen;
 
   if (!_nrrdFormatVTK_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
@@ -101,9 +102,9 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 #define GETLINE(what) \
   do { \
-    ret = _nrrdOneLine(&len, nio, file); \
-  } while (!ret && (1 == len)); \
-  if (ret || !len) { \
+    ret = _nrrdOneLine(&llen, nio, file); \
+  } while (!ret && (1 == llen)); \
+  if (ret || !llen) { \
     sprintf(err, "%s: couldn't get " #what " line", me); \
     biffAdd(NRRD, err); return 1; \
   }
@@ -357,7 +358,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "ORIGIN %g %g %g\n", xm, ym, zm);
   fprintf(file, "SPACING %g %g %g\n", xs, ys, zs);
   fprintf(file, "POINT_DATA %d\n", sx*sy*sz);
-  airSrand48(airTime());
+  airSrand48((int)airTime());
   sprintf(name, "nrrd%05d", airRandInt(100000));
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);

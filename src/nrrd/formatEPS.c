@@ -39,7 +39,8 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   char me[]="_nrrdFormatEPS_fitsInto", err[AIR_STRLEN_MED];
   int ret;
-  
+
+  AIR_UNUSED(encoding);
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
     sprintf(err, "%s: got NULL nrrd (%p)", me, nrrd);
@@ -65,8 +66,8 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      sprintf(err, "%s: dim is 3, but 1st axis size is %d, not 1 or 3",
-              me, nrrd->axis[0].size);
+      sprintf(err, "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
+              ", not 1 or 3", me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -81,6 +82,7 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 int
 _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
+  AIR_UNUSED(nio);
   /* this is a write-only format */
   return AIR_FALSE;
 }
@@ -89,6 +91,9 @@ int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatEPS_read", err[AIR_STRLEN_MED];
 
+  AIR_UNUSED(file);
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(nio);
   sprintf(err, "%s: sorry, this is a write-only format", me);
   biffAdd(NRRD, err);
   return 1;

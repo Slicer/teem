@@ -94,7 +94,7 @@ extern "C" {
 */
 #define NRRD_COORD_UPDATE(coord, size, dim)    \
 do {                                           \
-  int d;                                       \
+  unsigned int d;                              \
   for (d=0;                                    \
        d < (dim)-1 && (coord)[d] == (size)[d]; \
        d++) {                                  \
@@ -110,7 +110,7 @@ do {                                           \
 */
 #define NRRD_COORD_INCR(coord, size, dim, idx) \
 do {                                           \
-  int d;                                       \
+  unsigned int d;                              \
   for (d=idx, (coord)[d]++;                    \
        d < (dim)-1 && (coord)[d] == (size)[d]; \
        d++) {                                  \
@@ -148,7 +148,7 @@ do {                                          \
 */
 #define NRRD_COORD_GEN(coord, size, dim, I)   \
 do {                                          \
-  int d;                                      \
+  unsigned int d;                             \
   for (d=0; d<=(dim)-1; d++) {                \
     (coord)[d] = I % (size)[d];               \
     I /= (size)[d];                           \

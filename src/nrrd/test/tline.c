@@ -20,7 +20,17 @@
 
 #include "../nrrd.h"
 
-extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
+/* learned: C++ name mangling means that you can't simply declare the
+   function as extern, you need to do the same extern "C" wrapping as
+   is done in the header file
+*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int _nrrdOneLine(unsigned int *lenP, NrrdIoState *io, FILE *file);
+#ifdef __cplusplus
+}
+#endif
 
 FILE *
 myopen(char *name) {
@@ -46,7 +56,7 @@ int
 main(int argc, char *argv[]) {
   char *me, *fileS;
   FILE *file;
-  int len;
+  unsigned int llen;
   NrrdIoState *io;
 
   me = argv[0];
@@ -62,14 +72,14 @@ main(int argc, char *argv[]) {
   }
   io = nrrdIoStateNew();
   do {
-    if (_nrrdOneLine(&len, io, file)) {
+    if (_nrrdOneLine(&llen, io, file)) {
       fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
       exit(1);
     }
-    if (len) {
-      printf("%2d   |%s|\n", len, io->line);
+    if (llen) {
+      printf("%2u   |%s|\n", llen, io->line);
     }
-  } while(len > 0);
+  } while(llen > 0);
   nrrdIoStateNix(io);
   myclose(file);
 

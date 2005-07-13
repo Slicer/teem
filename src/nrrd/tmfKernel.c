@@ -22,35 +22,49 @@
 
 double
 _nrrd_TMFBAD_Int(const double *parm) {
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
   return 0.0;
 }
 
 double
 _nrrd_TMFBAD_Sup(const double *parm) {
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
   return 0.0;
 }
 
 double
 _nrrd_TMFBAD_1_d(double x, const double *parm) {
+  AIR_UNUSED(x);
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
   return 0.0;
 }
 
 float
 _nrrd_TMFBAD_1_f(float x, const double *parm) {
+  AIR_UNUSED(x);
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
   return 0.0;
 }
 
 void
 _nrrd_TMFBAD_N_d(double *f, const double *x, size_t len, const double *parm) {
+  AIR_UNUSED(f);
+  AIR_UNUSED(x);
+  AIR_UNUSED(len);
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
 }
 
 void
 _nrrd_TMFBAD_N_f(float *f, const float *x, size_t len, const double *parm) {
+  AIR_UNUSED(f);
+  AIR_UNUSED(x);
+  AIR_UNUSED(len);
+  AIR_UNUSED(parm);
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
 }
 
@@ -761,16 +775,23 @@ nrrdKernel_TMFBAD = &_nrrdKernel_TMFBAD;
 
 /* ------------------------ TMF_dn_cn_1ef --------------------- */
 
-double _nrrd_TMF_dn_cn_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_cn_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_cn_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_cn_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_cn_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_1ef(parm[0], i, x);
 }
@@ -779,8 +800,9 @@ float
 _nrrd_TMF_dn_cn_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_1ef(parm[0], i, x);
 }
@@ -791,9 +813,10 @@ _nrrd_TMF_dn_cn_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_1ef(parm[0], i, t);
   }
@@ -805,9 +828,10 @@ _nrrd_TMF_dn_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_1ef(parm[0], i, t);
   }
@@ -824,16 +848,23 @@ _nrrdKernel_TMF_dn_cn_1ef = {
 
 /* ------------------------ TMF_dn_cn_2ef --------------------- */
 
-double _nrrd_TMF_dn_cn_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_cn_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_cn_2ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_cn_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_cn_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_2ef(parm[0], i, x);
 }
@@ -842,8 +873,9 @@ float
 _nrrd_TMF_dn_cn_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_2ef(parm[0], i, x);
 }
@@ -854,9 +886,10 @@ _nrrd_TMF_dn_cn_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_2ef(parm[0], i, t);
   }
@@ -868,9 +901,10 @@ _nrrd_TMF_dn_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_2ef(parm[0], i, t);
   }
@@ -887,16 +921,23 @@ _nrrdKernel_TMF_dn_cn_2ef = {
 
 /* ------------------------ TMF_dn_cn_3ef --------------------- */
 
-double _nrrd_TMF_dn_cn_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_cn_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_cn_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_cn_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_cn_3ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_3ef(parm[0], i, x);
 }
@@ -905,8 +946,9 @@ float
 _nrrd_TMF_dn_cn_3ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_3ef(parm[0], i, x);
 }
@@ -917,9 +959,10 @@ _nrrd_TMF_dn_cn_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_3ef(parm[0], i, t);
   }
@@ -931,9 +974,10 @@ _nrrd_TMF_dn_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_3ef(parm[0], i, t);
   }
@@ -950,16 +994,23 @@ _nrrdKernel_TMF_dn_cn_3ef = {
 
 /* ------------------------ TMF_dn_cn_4ef --------------------- */
 
-double _nrrd_TMF_dn_cn_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_cn_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_cn_4ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_cn_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_cn_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_4ef(parm[0], i, x);
 }
@@ -968,8 +1019,9 @@ float
 _nrrd_TMF_dn_cn_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_cn_4ef(parm[0], i, x);
 }
@@ -980,9 +1032,10 @@ _nrrd_TMF_dn_cn_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_4ef(parm[0], i, t);
   }
@@ -994,9 +1047,10 @@ _nrrd_TMF_dn_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_cn_4ef(parm[0], i, t);
   }
@@ -1013,16 +1067,23 @@ _nrrdKernel_TMF_dn_cn_4ef = {
 
 /* ------------------------ TMF_dn_c0_1ef --------------------- */
 
-double _nrrd_TMF_dn_c0_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c0_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c0_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_c0_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_c0_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_1ef(parm[0], i, x);
 }
@@ -1031,8 +1092,9 @@ float
 _nrrd_TMF_dn_c0_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_1ef(parm[0], i, x);
 }
@@ -1043,9 +1105,10 @@ _nrrd_TMF_dn_c0_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_1ef(parm[0], i, t);
   }
@@ -1057,9 +1120,10 @@ _nrrd_TMF_dn_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_1ef(parm[0], i, t);
   }
@@ -1076,16 +1140,23 @@ _nrrdKernel_TMF_dn_c0_1ef = {
 
 /* ------------------------ TMF_dn_c0_2ef --------------------- */
 
-double _nrrd_TMF_dn_c0_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c0_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c0_2ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_c0_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_c0_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_2ef(parm[0], i, x);
 }
@@ -1094,8 +1165,9 @@ float
 _nrrd_TMF_dn_c0_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_2ef(parm[0], i, x);
 }
@@ -1106,9 +1178,10 @@ _nrrd_TMF_dn_c0_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_2ef(parm[0], i, t);
   }
@@ -1120,9 +1193,10 @@ _nrrd_TMF_dn_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_2ef(parm[0], i, t);
   }
@@ -1139,16 +1213,23 @@ _nrrdKernel_TMF_dn_c0_2ef = {
 
 /* ------------------------ TMF_dn_c0_3ef --------------------- */
 
-double _nrrd_TMF_dn_c0_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c0_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c0_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c0_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c0_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_3ef(parm[0], i, x);
 }
@@ -1157,8 +1238,9 @@ float
 _nrrd_TMF_dn_c0_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_3ef(parm[0], i, x);
 }
@@ -1169,9 +1251,10 @@ _nrrd_TMF_dn_c0_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_3ef(parm[0], i, t);
   }
@@ -1183,9 +1266,10 @@ _nrrd_TMF_dn_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_3ef(parm[0], i, t);
   }
@@ -1202,16 +1286,23 @@ _nrrdKernel_TMF_dn_c0_3ef = {
 
 /* ------------------------ TMF_dn_c0_4ef --------------------- */
 
-double _nrrd_TMF_dn_c0_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c0_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c0_4ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c0_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c0_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_4ef(parm[0], i, x);
 }
@@ -1220,8 +1311,9 @@ float
 _nrrd_TMF_dn_c0_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c0_4ef(parm[0], i, x);
 }
@@ -1232,9 +1324,10 @@ _nrrd_TMF_dn_c0_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_4ef(parm[0], i, t);
   }
@@ -1246,9 +1339,10 @@ _nrrd_TMF_dn_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c0_4ef(parm[0], i, t);
   }
@@ -1265,16 +1359,23 @@ _nrrdKernel_TMF_dn_c0_4ef = {
 
 /* ------------------------ TMF_dn_c1_1ef --------------------- */
 
-double _nrrd_TMF_dn_c1_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c1_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c1_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_c1_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_c1_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_1ef(parm[0], i, x);
 }
@@ -1283,8 +1384,9 @@ float
 _nrrd_TMF_dn_c1_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_1ef(parm[0], i, x);
 }
@@ -1295,9 +1397,10 @@ _nrrd_TMF_dn_c1_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_1ef(parm[0], i, t);
   }
@@ -1309,9 +1412,10 @@ _nrrd_TMF_dn_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_1ef(parm[0], i, t);
   }
@@ -1328,16 +1432,23 @@ _nrrdKernel_TMF_dn_c1_1ef = {
 
 /* ------------------------ TMF_dn_c1_2ef --------------------- */
 
-double _nrrd_TMF_dn_c1_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c1_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c1_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c1_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c1_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_2ef(parm[0], i, x);
 }
@@ -1346,8 +1457,9 @@ float
 _nrrd_TMF_dn_c1_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_2ef(parm[0], i, x);
 }
@@ -1358,9 +1470,10 @@ _nrrd_TMF_dn_c1_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_2ef(parm[0], i, t);
   }
@@ -1372,9 +1485,10 @@ _nrrd_TMF_dn_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_2ef(parm[0], i, t);
   }
@@ -1391,16 +1505,23 @@ _nrrdKernel_TMF_dn_c1_2ef = {
 
 /* ------------------------ TMF_dn_c1_3ef --------------------- */
 
-double _nrrd_TMF_dn_c1_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c1_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c1_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c1_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c1_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_3ef(parm[0], i, x);
 }
@@ -1409,8 +1530,9 @@ float
 _nrrd_TMF_dn_c1_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_3ef(parm[0], i, x);
 }
@@ -1421,9 +1543,10 @@ _nrrd_TMF_dn_c1_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_3ef(parm[0], i, t);
   }
@@ -1435,9 +1558,10 @@ _nrrd_TMF_dn_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_3ef(parm[0], i, t);
   }
@@ -1454,16 +1578,23 @@ _nrrdKernel_TMF_dn_c1_3ef = {
 
 /* ------------------------ TMF_dn_c1_4ef --------------------- */
 
-double _nrrd_TMF_dn_c1_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c1_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c1_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_dn_c1_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_dn_c1_4ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_4ef(parm[0], i, x);
 }
@@ -1472,8 +1603,9 @@ float
 _nrrd_TMF_dn_c1_4ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c1_4ef(parm[0], i, x);
 }
@@ -1484,9 +1616,10 @@ _nrrd_TMF_dn_c1_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_4ef(parm[0], i, t);
   }
@@ -1498,9 +1631,10 @@ _nrrd_TMF_dn_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c1_4ef(parm[0], i, t);
   }
@@ -1517,16 +1651,23 @@ _nrrdKernel_TMF_dn_c1_4ef = {
 
 /* ------------------------ TMF_dn_c2_1ef --------------------- */
 
-double _nrrd_TMF_dn_c2_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c2_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c2_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_c2_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_c2_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_1ef(parm[0], i, x);
 }
@@ -1535,8 +1676,9 @@ float
 _nrrd_TMF_dn_c2_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_1ef(parm[0], i, x);
 }
@@ -1547,9 +1689,10 @@ _nrrd_TMF_dn_c2_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_1ef(parm[0], i, t);
   }
@@ -1561,9 +1704,10 @@ _nrrd_TMF_dn_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_1ef(parm[0], i, t);
   }
@@ -1580,16 +1724,23 @@ _nrrdKernel_TMF_dn_c2_1ef = {
 
 /* ------------------------ TMF_dn_c2_2ef --------------------- */
 
-double _nrrd_TMF_dn_c2_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c2_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c2_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c2_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c2_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_2ef(parm[0], i, x);
 }
@@ -1598,8 +1749,9 @@ float
 _nrrd_TMF_dn_c2_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_2ef(parm[0], i, x);
 }
@@ -1610,9 +1762,10 @@ _nrrd_TMF_dn_c2_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_2ef(parm[0], i, t);
   }
@@ -1624,9 +1777,10 @@ _nrrd_TMF_dn_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_2ef(parm[0], i, t);
   }
@@ -1643,16 +1797,23 @@ _nrrdKernel_TMF_dn_c2_2ef = {
 
 /* ------------------------ TMF_dn_c2_3ef --------------------- */
 
-double _nrrd_TMF_dn_c2_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c2_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c2_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c2_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c2_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_3ef(parm[0], i, x);
 }
@@ -1661,8 +1822,9 @@ float
 _nrrd_TMF_dn_c2_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_3ef(parm[0], i, x);
 }
@@ -1673,9 +1835,10 @@ _nrrd_TMF_dn_c2_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_3ef(parm[0], i, t);
   }
@@ -1687,9 +1850,10 @@ _nrrd_TMF_dn_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_3ef(parm[0], i, t);
   }
@@ -1706,16 +1870,23 @@ _nrrdKernel_TMF_dn_c2_3ef = {
 
 /* ------------------------ TMF_dn_c2_4ef --------------------- */
 
-double _nrrd_TMF_dn_c2_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c2_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c2_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_dn_c2_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_dn_c2_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_4ef(parm[0], i, x);
 }
@@ -1724,8 +1895,9 @@ float
 _nrrd_TMF_dn_c2_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c2_4ef(parm[0], i, x);
 }
@@ -1736,9 +1908,10 @@ _nrrd_TMF_dn_c2_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_4ef(parm[0], i, t);
   }
@@ -1750,9 +1923,10 @@ _nrrd_TMF_dn_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c2_4ef(parm[0], i, t);
   }
@@ -1769,16 +1943,23 @@ _nrrdKernel_TMF_dn_c2_4ef = {
 
 /* ------------------------ TMF_dn_c3_1ef --------------------- */
 
-double _nrrd_TMF_dn_c3_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c3_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c3_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_dn_c3_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_dn_c3_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_1ef(parm[0], i, x);
 }
@@ -1787,8 +1968,9 @@ float
 _nrrd_TMF_dn_c3_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_1ef(parm[0], i, x);
 }
@@ -1799,9 +1981,10 @@ _nrrd_TMF_dn_c3_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_1ef(parm[0], i, t);
   }
@@ -1813,9 +1996,10 @@ _nrrd_TMF_dn_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_1ef(parm[0], i, t);
   }
@@ -1832,16 +2016,23 @@ _nrrdKernel_TMF_dn_c3_1ef = {
 
 /* ------------------------ TMF_dn_c3_2ef --------------------- */
 
-double _nrrd_TMF_dn_c3_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c3_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c3_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c3_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c3_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_2ef(parm[0], i, x);
 }
@@ -1850,8 +2041,9 @@ float
 _nrrd_TMF_dn_c3_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_2ef(parm[0], i, x);
 }
@@ -1862,9 +2054,10 @@ _nrrd_TMF_dn_c3_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_2ef(parm[0], i, t);
   }
@@ -1876,9 +2069,10 @@ _nrrd_TMF_dn_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_2ef(parm[0], i, t);
   }
@@ -1895,16 +2089,23 @@ _nrrdKernel_TMF_dn_c3_2ef = {
 
 /* ------------------------ TMF_dn_c3_3ef --------------------- */
 
-double _nrrd_TMF_dn_c3_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c3_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c3_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_dn_c3_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_dn_c3_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_3ef(parm[0], i, x);
 }
@@ -1913,8 +2114,9 @@ float
 _nrrd_TMF_dn_c3_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_3ef(parm[0], i, x);
 }
@@ -1925,9 +2127,10 @@ _nrrd_TMF_dn_c3_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_3ef(parm[0], i, t);
   }
@@ -1939,9 +2142,10 @@ _nrrd_TMF_dn_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_3ef(parm[0], i, t);
   }
@@ -1958,16 +2162,23 @@ _nrrdKernel_TMF_dn_c3_3ef = {
 
 /* ------------------------ TMF_dn_c3_4ef --------------------- */
 
-double _nrrd_TMF_dn_c3_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_dn_c3_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_dn_c3_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_dn_c3_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_dn_c3_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_4ef(parm[0], i, x);
 }
@@ -1976,8 +2187,9 @@ float
 _nrrd_TMF_dn_c3_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_dn_c3_4ef(parm[0], i, x);
 }
@@ -1988,9 +2200,10 @@ _nrrd_TMF_dn_c3_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_4ef(parm[0], i, t);
   }
@@ -2002,9 +2215,10 @@ _nrrd_TMF_dn_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_dn_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_dn_c3_4ef(parm[0], i, t);
   }
@@ -2021,16 +2235,23 @@ _nrrdKernel_TMF_dn_c3_4ef = {
 
 /* ------------------------ TMF_d0_cn_1ef --------------------- */
 
-double _nrrd_TMF_d0_cn_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_cn_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_cn_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_cn_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_cn_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_1ef(parm[0], i, x);
 }
@@ -2039,8 +2260,9 @@ float
 _nrrd_TMF_d0_cn_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_1ef(parm[0], i, x);
 }
@@ -2051,9 +2273,10 @@ _nrrd_TMF_d0_cn_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_1ef(parm[0], i, t);
   }
@@ -2065,9 +2288,10 @@ _nrrd_TMF_d0_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_1ef(parm[0], i, t);
   }
@@ -2084,16 +2308,23 @@ _nrrdKernel_TMF_d0_cn_1ef = {
 
 /* ------------------------ TMF_d0_cn_2ef --------------------- */
 
-double _nrrd_TMF_d0_cn_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_cn_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_cn_2ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_cn_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_cn_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_2ef(parm[0], i, x);
 }
@@ -2102,8 +2333,9 @@ float
 _nrrd_TMF_d0_cn_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_2ef(parm[0], i, x);
 }
@@ -2114,9 +2346,10 @@ _nrrd_TMF_d0_cn_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_2ef(parm[0], i, t);
   }
@@ -2128,9 +2361,10 @@ _nrrd_TMF_d0_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_2ef(parm[0], i, t);
   }
@@ -2147,16 +2381,23 @@ _nrrdKernel_TMF_d0_cn_2ef = {
 
 /* ------------------------ TMF_d0_cn_3ef --------------------- */
 
-double _nrrd_TMF_d0_cn_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_cn_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_cn_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_cn_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_cn_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_3ef(parm[0], i, x);
 }
@@ -2165,8 +2406,9 @@ float
 _nrrd_TMF_d0_cn_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_3ef(parm[0], i, x);
 }
@@ -2177,9 +2419,10 @@ _nrrd_TMF_d0_cn_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_3ef(parm[0], i, t);
   }
@@ -2191,9 +2434,10 @@ _nrrd_TMF_d0_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_3ef(parm[0], i, t);
   }
@@ -2210,16 +2454,23 @@ _nrrdKernel_TMF_d0_cn_3ef = {
 
 /* ------------------------ TMF_d0_cn_4ef --------------------- */
 
-double _nrrd_TMF_d0_cn_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_cn_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_cn_4ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_cn_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_cn_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_4ef(parm[0], i, x);
 }
@@ -2228,8 +2479,9 @@ float
 _nrrd_TMF_d0_cn_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_cn_4ef(parm[0], i, x);
 }
@@ -2240,9 +2492,10 @@ _nrrd_TMF_d0_cn_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_4ef(parm[0], i, t);
   }
@@ -2254,9 +2507,10 @@ _nrrd_TMF_d0_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_cn_4ef(parm[0], i, t);
   }
@@ -2273,16 +2527,23 @@ _nrrdKernel_TMF_d0_cn_4ef = {
 
 /* ------------------------ TMF_d0_c0_1ef --------------------- */
 
-double _nrrd_TMF_d0_c0_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c0_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c0_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_c0_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_c0_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_1ef(parm[0], i, x);
 }
@@ -2291,8 +2552,9 @@ float
 _nrrd_TMF_d0_c0_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_1ef(parm[0], i, x);
 }
@@ -2303,9 +2565,10 @@ _nrrd_TMF_d0_c0_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_1ef(parm[0], i, t);
   }
@@ -2317,9 +2580,10 @@ _nrrd_TMF_d0_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_1ef(parm[0], i, t);
   }
@@ -2336,16 +2600,23 @@ _nrrdKernel_TMF_d0_c0_1ef = {
 
 /* ------------------------ TMF_d0_c0_2ef --------------------- */
 
-double _nrrd_TMF_d0_c0_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c0_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c0_2ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_c0_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_c0_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_2ef(parm[0], i, x);
 }
@@ -2354,8 +2625,9 @@ float
 _nrrd_TMF_d0_c0_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_2ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_2ef(parm[0], i, x);
 }
@@ -2366,9 +2638,10 @@ _nrrd_TMF_d0_c0_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_2ef(parm[0], i, t);
   }
@@ -2380,9 +2653,10 @@ _nrrd_TMF_d0_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_2ef(parm[0], i, t);
   }
@@ -2399,16 +2673,23 @@ _nrrdKernel_TMF_d0_c0_2ef = {
 
 /* ------------------------ TMF_d0_c0_3ef --------------------- */
 
-double _nrrd_TMF_d0_c0_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c0_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c0_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c0_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c0_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_3ef(parm[0], i, x);
 }
@@ -2417,8 +2698,9 @@ float
 _nrrd_TMF_d0_c0_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_3ef(parm[0], i, x);
 }
@@ -2429,9 +2711,10 @@ _nrrd_TMF_d0_c0_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_3ef(parm[0], i, t);
   }
@@ -2443,9 +2726,10 @@ _nrrd_TMF_d0_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_3ef(parm[0], i, t);
   }
@@ -2462,16 +2746,23 @@ _nrrdKernel_TMF_d0_c0_3ef = {
 
 /* ------------------------ TMF_d0_c0_4ef --------------------- */
 
-double _nrrd_TMF_d0_c0_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c0_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c0_4ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c0_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c0_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_4ef(parm[0], i, x);
 }
@@ -2480,8 +2771,9 @@ float
 _nrrd_TMF_d0_c0_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_4ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c0_4ef(parm[0], i, x);
 }
@@ -2492,9 +2784,10 @@ _nrrd_TMF_d0_c0_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_4ef(parm[0], i, t);
   }
@@ -2506,9 +2799,10 @@ _nrrd_TMF_d0_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c0_4ef(parm[0], i, t);
   }
@@ -2525,16 +2819,23 @@ _nrrdKernel_TMF_d0_c0_4ef = {
 
 /* ------------------------ TMF_d0_c1_1ef --------------------- */
 
-double _nrrd_TMF_d0_c1_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c1_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c1_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_c1_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_c1_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_1ef(parm[0], i, x);
 }
@@ -2543,8 +2844,9 @@ float
 _nrrd_TMF_d0_c1_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_1ef(parm[0], i, x);
 }
@@ -2555,9 +2857,10 @@ _nrrd_TMF_d0_c1_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_1ef(parm[0], i, t);
   }
@@ -2569,9 +2872,10 @@ _nrrd_TMF_d0_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_1ef(parm[0], i, t);
   }
@@ -2588,16 +2892,23 @@ _nrrdKernel_TMF_d0_c1_1ef = {
 
 /* ------------------------ TMF_d0_c1_2ef --------------------- */
 
-double _nrrd_TMF_d0_c1_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c1_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c1_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c1_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c1_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_2ef(parm[0], i, x);
 }
@@ -2606,8 +2917,9 @@ float
 _nrrd_TMF_d0_c1_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_2ef(parm[0], i, x);
 }
@@ -2618,9 +2930,10 @@ _nrrd_TMF_d0_c1_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_2ef(parm[0], i, t);
   }
@@ -2632,9 +2945,10 @@ _nrrd_TMF_d0_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_2ef(parm[0], i, t);
   }
@@ -2651,16 +2965,23 @@ _nrrdKernel_TMF_d0_c1_2ef = {
 
 /* ------------------------ TMF_d0_c1_3ef --------------------- */
 
-double _nrrd_TMF_d0_c1_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c1_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c1_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c1_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c1_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_3ef(parm[0], i, x);
 }
@@ -2669,8 +2990,9 @@ float
 _nrrd_TMF_d0_c1_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_3ef(parm[0], i, x);
 }
@@ -2681,9 +3003,10 @@ _nrrd_TMF_d0_c1_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_3ef(parm[0], i, t);
   }
@@ -2695,9 +3018,10 @@ _nrrd_TMF_d0_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_3ef(parm[0], i, t);
   }
@@ -2714,16 +3038,23 @@ _nrrdKernel_TMF_d0_c1_3ef = {
 
 /* ------------------------ TMF_d0_c1_4ef --------------------- */
 
-double _nrrd_TMF_d0_c1_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c1_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c1_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d0_c1_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d0_c1_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_4ef(parm[0], i, x);
 }
@@ -2732,8 +3063,9 @@ float
 _nrrd_TMF_d0_c1_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c1_4ef(parm[0], i, x);
 }
@@ -2744,9 +3076,10 @@ _nrrd_TMF_d0_c1_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_4ef(parm[0], i, t);
   }
@@ -2758,9 +3091,10 @@ _nrrd_TMF_d0_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c1_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c1_4ef(parm[0], i, t);
   }
@@ -2777,16 +3111,23 @@ _nrrdKernel_TMF_d0_c1_4ef = {
 
 /* ------------------------ TMF_d0_c2_1ef --------------------- */
 
-double _nrrd_TMF_d0_c2_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c2_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c2_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_c2_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_c2_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_1ef(parm[0], i, x);
 }
@@ -2795,8 +3136,9 @@ float
 _nrrd_TMF_d0_c2_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_1ef(parm[0], i, x);
 }
@@ -2807,9 +3149,10 @@ _nrrd_TMF_d0_c2_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_1ef(parm[0], i, t);
   }
@@ -2821,9 +3164,10 @@ _nrrd_TMF_d0_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_1ef(parm[0], i, t);
   }
@@ -2840,16 +3184,23 @@ _nrrdKernel_TMF_d0_c2_1ef = {
 
 /* ------------------------ TMF_d0_c2_2ef --------------------- */
 
-double _nrrd_TMF_d0_c2_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c2_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c2_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c2_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c2_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_2ef(parm[0], i, x);
 }
@@ -2858,8 +3209,9 @@ float
 _nrrd_TMF_d0_c2_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_2ef(parm[0], i, x);
 }
@@ -2870,9 +3222,10 @@ _nrrd_TMF_d0_c2_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_2ef(parm[0], i, t);
   }
@@ -2884,9 +3237,10 @@ _nrrd_TMF_d0_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_2ef(parm[0], i, t);
   }
@@ -2903,16 +3257,23 @@ _nrrdKernel_TMF_d0_c2_2ef = {
 
 /* ------------------------ TMF_d0_c2_3ef --------------------- */
 
-double _nrrd_TMF_d0_c2_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c2_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c2_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c2_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c2_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_3ef(parm[0], i, x);
 }
@@ -2921,8 +3282,9 @@ float
 _nrrd_TMF_d0_c2_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_3ef(parm[0], i, x);
 }
@@ -2933,9 +3295,10 @@ _nrrd_TMF_d0_c2_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_3ef(parm[0], i, t);
   }
@@ -2947,9 +3310,10 @@ _nrrd_TMF_d0_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_3ef(parm[0], i, t);
   }
@@ -2966,16 +3330,23 @@ _nrrdKernel_TMF_d0_c2_3ef = {
 
 /* ------------------------ TMF_d0_c2_4ef --------------------- */
 
-double _nrrd_TMF_d0_c2_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c2_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c2_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d0_c2_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d0_c2_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_4ef(parm[0], i, x);
 }
@@ -2984,8 +3355,9 @@ float
 _nrrd_TMF_d0_c2_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c2_4ef(parm[0], i, x);
 }
@@ -2996,9 +3368,10 @@ _nrrd_TMF_d0_c2_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_4ef(parm[0], i, t);
   }
@@ -3010,9 +3383,10 @@ _nrrd_TMF_d0_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c2_4ef(parm[0], i, t);
   }
@@ -3029,16 +3403,23 @@ _nrrdKernel_TMF_d0_c2_4ef = {
 
 /* ------------------------ TMF_d0_c3_1ef --------------------- */
 
-double _nrrd_TMF_d0_c3_1ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c3_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c3_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d0_c3_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d0_c3_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_1ef(parm[0], i, x);
 }
@@ -3047,8 +3428,9 @@ float
 _nrrd_TMF_d0_c3_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_1ef(parm[0], i, x);
 }
@@ -3059,9 +3441,10 @@ _nrrd_TMF_d0_c3_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_1ef(parm[0], i, t);
   }
@@ -3073,9 +3456,10 @@ _nrrd_TMF_d0_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_1ef(parm[0], i, t);
   }
@@ -3092,16 +3476,23 @@ _nrrdKernel_TMF_d0_c3_1ef = {
 
 /* ------------------------ TMF_d0_c3_2ef --------------------- */
 
-double _nrrd_TMF_d0_c3_2ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c3_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c3_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c3_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c3_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_2ef(parm[0], i, x);
 }
@@ -3110,8 +3501,9 @@ float
 _nrrd_TMF_d0_c3_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_2ef(parm[0], i, x);
 }
@@ -3122,9 +3514,10 @@ _nrrd_TMF_d0_c3_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_2ef(parm[0], i, t);
   }
@@ -3136,9 +3529,10 @@ _nrrd_TMF_d0_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_2ef(parm[0], i, t);
   }
@@ -3155,16 +3549,23 @@ _nrrdKernel_TMF_d0_c3_2ef = {
 
 /* ------------------------ TMF_d0_c3_3ef --------------------- */
 
-double _nrrd_TMF_d0_c3_3ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c3_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c3_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d0_c3_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d0_c3_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_3ef(parm[0], i, x);
 }
@@ -3173,8 +3574,9 @@ float
 _nrrd_TMF_d0_c3_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_3ef(parm[0], i, x);
 }
@@ -3185,9 +3587,10 @@ _nrrd_TMF_d0_c3_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_3ef(parm[0], i, t);
   }
@@ -3199,9 +3602,10 @@ _nrrd_TMF_d0_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_3ef(parm[0], i, t);
   }
@@ -3218,16 +3622,23 @@ _nrrdKernel_TMF_d0_c3_3ef = {
 
 /* ------------------------ TMF_d0_c3_4ef --------------------- */
 
-double _nrrd_TMF_d0_c3_4ef_Int(const double *parm) { return 1.0; }
+double _nrrd_TMF_d0_c3_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
 
-double _nrrd_TMF_d0_c3_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d0_c3_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d0_c3_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_4ef(parm[0], i, x);
 }
@@ -3236,8 +3647,9 @@ float
 _nrrd_TMF_d0_c3_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d0_c3_4ef(parm[0], i, x);
 }
@@ -3248,9 +3660,10 @@ _nrrd_TMF_d0_c3_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_4ef(parm[0], i, t);
   }
@@ -3262,9 +3675,10 @@ _nrrd_TMF_d0_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d0_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d0_c3_4ef(parm[0], i, t);
   }
@@ -3281,16 +3695,23 @@ _nrrdKernel_TMF_d0_c3_4ef = {
 
 /* ------------------------ TMF_d1_cn_1ef --------------------- */
 
-double _nrrd_TMF_d1_cn_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_cn_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_cn_1ef_Sup(const double *parm) { return 1; }
+double _nrrd_TMF_d1_cn_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1;
+}
 
 double
 _nrrd_TMF_d1_cn_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_1ef(parm[0], i, x);
 }
@@ -3299,8 +3720,9 @@ float
 _nrrd_TMF_d1_cn_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_1ef */
   x += 1;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_1ef(parm[0], i, x);
 }
@@ -3311,9 +3733,10 @@ _nrrd_TMF_d1_cn_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_1ef(parm[0], i, t);
   }
@@ -3325,9 +3748,10 @@ _nrrd_TMF_d1_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 1;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_1ef(parm[0], i, t);
   }
@@ -3344,16 +3768,23 @@ _nrrdKernel_TMF_d1_cn_1ef = {
 
 /* ------------------------ TMF_d1_cn_2ef --------------------- */
 
-double _nrrd_TMF_d1_cn_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_cn_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_cn_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_cn_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_cn_2ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_2ef(parm[0], i, x);
 }
@@ -3362,8 +3793,9 @@ float
 _nrrd_TMF_d1_cn_2ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_2ef(parm[0], i, x);
 }
@@ -3374,9 +3806,10 @@ _nrrd_TMF_d1_cn_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_2ef(parm[0], i, t);
   }
@@ -3388,9 +3821,10 @@ _nrrd_TMF_d1_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_2ef(parm[0], i, t);
   }
@@ -3407,16 +3841,23 @@ _nrrdKernel_TMF_d1_cn_2ef = {
 
 /* ------------------------ TMF_d1_cn_3ef --------------------- */
 
-double _nrrd_TMF_d1_cn_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_cn_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_cn_3ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_cn_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_cn_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_3ef(parm[0], i, x);
 }
@@ -3425,8 +3866,9 @@ float
 _nrrd_TMF_d1_cn_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_3ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_3ef(parm[0], i, x);
 }
@@ -3437,9 +3879,10 @@ _nrrd_TMF_d1_cn_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_3ef(parm[0], i, t);
   }
@@ -3451,9 +3894,10 @@ _nrrd_TMF_d1_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_cn_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_3ef(parm[0], i, t);
   }
@@ -3470,16 +3914,23 @@ _nrrdKernel_TMF_d1_cn_3ef = {
 
 /* ------------------------ TMF_d1_cn_4ef --------------------- */
 
-double _nrrd_TMF_d1_cn_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_cn_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_cn_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_cn_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_cn_4ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_4ef(parm[0], i, x);
 }
@@ -3488,8 +3939,9 @@ float
 _nrrd_TMF_d1_cn_4ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_cn_4ef(parm[0], i, x);
 }
@@ -3500,9 +3952,10 @@ _nrrd_TMF_d1_cn_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_4ef(parm[0], i, t);
   }
@@ -3514,9 +3967,10 @@ _nrrd_TMF_d1_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_cn_4ef(parm[0], i, t);
   }
@@ -3533,16 +3987,23 @@ _nrrdKernel_TMF_d1_cn_4ef = {
 
 /* ------------------------ TMF_d1_c0_1ef --------------------- */
 
-double _nrrd_TMF_d1_c0_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c0_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c0_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c0_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c0_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_1ef(parm[0], i, x);
 }
@@ -3551,8 +4012,9 @@ float
 _nrrd_TMF_d1_c0_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_1ef(parm[0], i, x);
 }
@@ -3563,9 +4025,10 @@ _nrrd_TMF_d1_c0_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_1ef(parm[0], i, t);
   }
@@ -3577,9 +4040,10 @@ _nrrd_TMF_d1_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_1ef(parm[0], i, t);
   }
@@ -3596,16 +4060,23 @@ _nrrdKernel_TMF_d1_c0_1ef = {
 
 /* ------------------------ TMF_d1_c0_2ef --------------------- */
 
-double _nrrd_TMF_d1_c0_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c0_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c0_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c0_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c0_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_2ef(parm[0], i, x);
 }
@@ -3614,8 +4085,9 @@ float
 _nrrd_TMF_d1_c0_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_2ef(parm[0], i, x);
 }
@@ -3626,9 +4098,10 @@ _nrrd_TMF_d1_c0_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_2ef(parm[0], i, t);
   }
@@ -3640,9 +4113,10 @@ _nrrd_TMF_d1_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_2ef(parm[0], i, t);
   }
@@ -3659,16 +4133,23 @@ _nrrdKernel_TMF_d1_c0_2ef = {
 
 /* ------------------------ TMF_d1_c0_3ef --------------------- */
 
-double _nrrd_TMF_d1_c0_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c0_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c0_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c0_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c0_3ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_3ef(parm[0], i, x);
 }
@@ -3677,8 +4158,9 @@ float
 _nrrd_TMF_d1_c0_3ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_3ef(parm[0], i, x);
 }
@@ -3689,9 +4171,10 @@ _nrrd_TMF_d1_c0_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_3ef(parm[0], i, t);
   }
@@ -3703,9 +4186,10 @@ _nrrd_TMF_d1_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_3ef(parm[0], i, t);
   }
@@ -3722,16 +4206,23 @@ _nrrdKernel_TMF_d1_c0_3ef = {
 
 /* ------------------------ TMF_d1_c0_4ef --------------------- */
 
-double _nrrd_TMF_d1_c0_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c0_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c0_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c0_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c0_4ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_4ef(parm[0], i, x);
 }
@@ -3740,8 +4231,9 @@ float
 _nrrd_TMF_d1_c0_4ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c0_4ef(parm[0], i, x);
 }
@@ -3752,9 +4244,10 @@ _nrrd_TMF_d1_c0_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_4ef(parm[0], i, t);
   }
@@ -3766,9 +4259,10 @@ _nrrd_TMF_d1_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c0_4ef(parm[0], i, t);
   }
@@ -3785,16 +4279,23 @@ _nrrdKernel_TMF_d1_c0_4ef = {
 
 /* ------------------------ TMF_d1_c1_1ef --------------------- */
 
-double _nrrd_TMF_d1_c1_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c1_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c1_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c1_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c1_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_1ef(parm[0], i, x);
 }
@@ -3803,8 +4304,9 @@ float
 _nrrd_TMF_d1_c1_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_1ef(parm[0], i, x);
 }
@@ -3815,9 +4317,10 @@ _nrrd_TMF_d1_c1_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_1ef(parm[0], i, t);
   }
@@ -3829,9 +4332,10 @@ _nrrd_TMF_d1_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_1ef(parm[0], i, t);
   }
@@ -3848,16 +4352,23 @@ _nrrdKernel_TMF_d1_c1_1ef = {
 
 /* ------------------------ TMF_d1_c1_2ef --------------------- */
 
-double _nrrd_TMF_d1_c1_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c1_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c1_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c1_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c1_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_2ef(parm[0], i, x);
 }
@@ -3866,8 +4377,9 @@ float
 _nrrd_TMF_d1_c1_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_2ef(parm[0], i, x);
 }
@@ -3878,9 +4390,10 @@ _nrrd_TMF_d1_c1_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_2ef(parm[0], i, t);
   }
@@ -3892,9 +4405,10 @@ _nrrd_TMF_d1_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_2ef(parm[0], i, t);
   }
@@ -3911,16 +4425,23 @@ _nrrdKernel_TMF_d1_c1_2ef = {
 
 /* ------------------------ TMF_d1_c1_3ef --------------------- */
 
-double _nrrd_TMF_d1_c1_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c1_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c1_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c1_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c1_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_3ef(parm[0], i, x);
 }
@@ -3929,8 +4450,9 @@ float
 _nrrd_TMF_d1_c1_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_3ef(parm[0], i, x);
 }
@@ -3941,9 +4463,10 @@ _nrrd_TMF_d1_c1_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_3ef(parm[0], i, t);
   }
@@ -3955,9 +4478,10 @@ _nrrd_TMF_d1_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_3ef(parm[0], i, t);
   }
@@ -3974,16 +4498,23 @@ _nrrdKernel_TMF_d1_c1_3ef = {
 
 /* ------------------------ TMF_d1_c1_4ef --------------------- */
 
-double _nrrd_TMF_d1_c1_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c1_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c1_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c1_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c1_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_4ef(parm[0], i, x);
 }
@@ -3992,8 +4523,9 @@ float
 _nrrd_TMF_d1_c1_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c1_4ef(parm[0], i, x);
 }
@@ -4004,9 +4536,10 @@ _nrrd_TMF_d1_c1_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_4ef(parm[0], i, t);
   }
@@ -4018,9 +4551,10 @@ _nrrd_TMF_d1_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c1_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c1_4ef(parm[0], i, t);
   }
@@ -4037,16 +4571,23 @@ _nrrdKernel_TMF_d1_c1_4ef = {
 
 /* ------------------------ TMF_d1_c2_1ef --------------------- */
 
-double _nrrd_TMF_d1_c2_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c2_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c2_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c2_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c2_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_1ef(parm[0], i, x);
 }
@@ -4055,8 +4596,9 @@ float
 _nrrd_TMF_d1_c2_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_1ef(parm[0], i, x);
 }
@@ -4067,9 +4609,10 @@ _nrrd_TMF_d1_c2_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_1ef(parm[0], i, t);
   }
@@ -4081,9 +4624,10 @@ _nrrd_TMF_d1_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_1ef(parm[0], i, t);
   }
@@ -4100,16 +4644,23 @@ _nrrdKernel_TMF_d1_c2_1ef = {
 
 /* ------------------------ TMF_d1_c2_2ef --------------------- */
 
-double _nrrd_TMF_d1_c2_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c2_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c2_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c2_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c2_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_2ef(parm[0], i, x);
 }
@@ -4118,8 +4669,9 @@ float
 _nrrd_TMF_d1_c2_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_2ef(parm[0], i, x);
 }
@@ -4130,9 +4682,10 @@ _nrrd_TMF_d1_c2_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_2ef(parm[0], i, t);
   }
@@ -4144,9 +4697,10 @@ _nrrd_TMF_d1_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_2ef(parm[0], i, t);
   }
@@ -4163,16 +4717,23 @@ _nrrdKernel_TMF_d1_c2_2ef = {
 
 /* ------------------------ TMF_d1_c2_3ef --------------------- */
 
-double _nrrd_TMF_d1_c2_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c2_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c2_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c2_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c2_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_3ef(parm[0], i, x);
 }
@@ -4181,8 +4742,9 @@ float
 _nrrd_TMF_d1_c2_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_3ef(parm[0], i, x);
 }
@@ -4193,9 +4755,10 @@ _nrrd_TMF_d1_c2_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_3ef(parm[0], i, t);
   }
@@ -4207,9 +4770,10 @@ _nrrd_TMF_d1_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_3ef(parm[0], i, t);
   }
@@ -4226,16 +4790,23 @@ _nrrdKernel_TMF_d1_c2_3ef = {
 
 /* ------------------------ TMF_d1_c2_4ef --------------------- */
 
-double _nrrd_TMF_d1_c2_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c2_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c2_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c2_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c2_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_4ef(parm[0], i, x);
 }
@@ -4244,8 +4815,9 @@ float
 _nrrd_TMF_d1_c2_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c2_4ef(parm[0], i, x);
 }
@@ -4256,9 +4828,10 @@ _nrrd_TMF_d1_c2_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_4ef(parm[0], i, t);
   }
@@ -4270,9 +4843,10 @@ _nrrd_TMF_d1_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c2_4ef(parm[0], i, t);
   }
@@ -4289,16 +4863,23 @@ _nrrdKernel_TMF_d1_c2_4ef = {
 
 /* ------------------------ TMF_d1_c3_1ef --------------------- */
 
-double _nrrd_TMF_d1_c3_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c3_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c3_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c3_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c3_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_1ef(parm[0], i, x);
 }
@@ -4307,8 +4888,9 @@ float
 _nrrd_TMF_d1_c3_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_1ef(parm[0], i, x);
 }
@@ -4319,9 +4901,10 @@ _nrrd_TMF_d1_c3_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_1ef(parm[0], i, t);
   }
@@ -4333,9 +4916,10 @@ _nrrd_TMF_d1_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_1ef(parm[0], i, t);
   }
@@ -4352,16 +4936,23 @@ _nrrdKernel_TMF_d1_c3_1ef = {
 
 /* ------------------------ TMF_d1_c3_2ef --------------------- */
 
-double _nrrd_TMF_d1_c3_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c3_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c3_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d1_c3_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d1_c3_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_2ef(parm[0], i, x);
 }
@@ -4370,8 +4961,9 @@ float
 _nrrd_TMF_d1_c3_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_2ef(parm[0], i, x);
 }
@@ -4382,9 +4974,10 @@ _nrrd_TMF_d1_c3_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_2ef(parm[0], i, t);
   }
@@ -4396,9 +4989,10 @@ _nrrd_TMF_d1_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_2ef(parm[0], i, t);
   }
@@ -4415,16 +5009,23 @@ _nrrdKernel_TMF_d1_c3_2ef = {
 
 /* ------------------------ TMF_d1_c3_3ef --------------------- */
 
-double _nrrd_TMF_d1_c3_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c3_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c3_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c3_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c3_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_3ef(parm[0], i, x);
 }
@@ -4433,8 +5034,9 @@ float
 _nrrd_TMF_d1_c3_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_3ef(parm[0], i, x);
 }
@@ -4445,9 +5047,10 @@ _nrrd_TMF_d1_c3_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_3ef(parm[0], i, t);
   }
@@ -4459,9 +5062,10 @@ _nrrd_TMF_d1_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_3ef(parm[0], i, t);
   }
@@ -4478,16 +5082,23 @@ _nrrdKernel_TMF_d1_c3_3ef = {
 
 /* ------------------------ TMF_d1_c3_4ef --------------------- */
 
-double _nrrd_TMF_d1_c3_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d1_c3_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d1_c3_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d1_c3_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d1_c3_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_4ef(parm[0], i, x);
 }
@@ -4496,8 +5107,9 @@ float
 _nrrd_TMF_d1_c3_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d1_c3_4ef(parm[0], i, x);
 }
@@ -4508,9 +5120,10 @@ _nrrd_TMF_d1_c3_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_4ef(parm[0], i, t);
   }
@@ -4522,9 +5135,10 @@ _nrrd_TMF_d1_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d1_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d1_c3_4ef(parm[0], i, t);
   }
@@ -4541,16 +5155,23 @@ _nrrdKernel_TMF_d1_c3_4ef = {
 
 /* ------------------------ TMF_d2_cn_1ef --------------------- */
 
-double _nrrd_TMF_d2_cn_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_cn_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_cn_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_cn_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_cn_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_1ef(parm[0], i, x);
 }
@@ -4559,8 +5180,9 @@ float
 _nrrd_TMF_d2_cn_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_1ef(parm[0], i, x);
 }
@@ -4571,9 +5193,10 @@ _nrrd_TMF_d2_cn_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_1ef(parm[0], i, t);
   }
@@ -4585,9 +5208,10 @@ _nrrd_TMF_d2_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_1ef(parm[0], i, t);
   }
@@ -4604,16 +5228,23 @@ _nrrdKernel_TMF_d2_cn_1ef = {
 
 /* ------------------------ TMF_d2_cn_2ef --------------------- */
 
-double _nrrd_TMF_d2_cn_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_cn_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_cn_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_cn_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_cn_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_2ef(parm[0], i, x);
 }
@@ -4622,8 +5253,9 @@ float
 _nrrd_TMF_d2_cn_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_2ef(parm[0], i, x);
 }
@@ -4634,9 +5266,10 @@ _nrrd_TMF_d2_cn_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_2ef(parm[0], i, t);
   }
@@ -4648,9 +5281,10 @@ _nrrd_TMF_d2_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_2ef(parm[0], i, t);
   }
@@ -4667,16 +5301,23 @@ _nrrdKernel_TMF_d2_cn_2ef = {
 
 /* ------------------------ TMF_d2_cn_3ef --------------------- */
 
-double _nrrd_TMF_d2_cn_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_cn_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_cn_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_cn_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_cn_3ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_3ef(parm[0], i, x);
 }
@@ -4685,8 +5326,9 @@ float
 _nrrd_TMF_d2_cn_3ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_3ef(parm[0], i, x);
 }
@@ -4697,9 +5339,10 @@ _nrrd_TMF_d2_cn_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_3ef(parm[0], i, t);
   }
@@ -4711,9 +5354,10 @@ _nrrd_TMF_d2_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_3ef(parm[0], i, t);
   }
@@ -4730,16 +5374,23 @@ _nrrdKernel_TMF_d2_cn_3ef = {
 
 /* ------------------------ TMF_d2_cn_4ef --------------------- */
 
-double _nrrd_TMF_d2_cn_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_cn_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_cn_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_cn_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_cn_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_4ef(parm[0], i, x);
 }
@@ -4748,8 +5399,9 @@ float
 _nrrd_TMF_d2_cn_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_cn_4ef(parm[0], i, x);
 }
@@ -4760,9 +5412,10 @@ _nrrd_TMF_d2_cn_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_4ef(parm[0], i, t);
   }
@@ -4774,9 +5427,10 @@ _nrrd_TMF_d2_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_cn_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_cn_4ef(parm[0], i, t);
   }
@@ -4793,16 +5447,23 @@ _nrrdKernel_TMF_d2_cn_4ef = {
 
 /* ------------------------ TMF_d2_c0_1ef --------------------- */
 
-double _nrrd_TMF_d2_c0_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c0_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c0_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_c0_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_c0_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_1ef(parm[0], i, x);
 }
@@ -4811,8 +5472,9 @@ float
 _nrrd_TMF_d2_c0_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_1ef(parm[0], i, x);
 }
@@ -4823,9 +5485,10 @@ _nrrd_TMF_d2_c0_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_1ef(parm[0], i, t);
   }
@@ -4837,9 +5500,10 @@ _nrrd_TMF_d2_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_1ef(parm[0], i, t);
   }
@@ -4856,16 +5520,23 @@ _nrrdKernel_TMF_d2_c0_1ef = {
 
 /* ------------------------ TMF_d2_c0_2ef --------------------- */
 
-double _nrrd_TMF_d2_c0_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c0_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c0_2ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_c0_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_c0_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_2ef(parm[0], i, x);
 }
@@ -4874,8 +5545,9 @@ float
 _nrrd_TMF_d2_c0_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_2ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_2ef(parm[0], i, x);
 }
@@ -4886,9 +5558,10 @@ _nrrd_TMF_d2_c0_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_2ef(parm[0], i, t);
   }
@@ -4900,9 +5573,10 @@ _nrrd_TMF_d2_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_2ef(parm[0], i, t);
   }
@@ -4919,16 +5593,23 @@ _nrrdKernel_TMF_d2_c0_2ef = {
 
 /* ------------------------ TMF_d2_c0_3ef --------------------- */
 
-double _nrrd_TMF_d2_c0_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c0_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c0_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c0_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c0_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_3ef(parm[0], i, x);
 }
@@ -4937,8 +5618,9 @@ float
 _nrrd_TMF_d2_c0_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_3ef(parm[0], i, x);
 }
@@ -4949,9 +5631,10 @@ _nrrd_TMF_d2_c0_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_3ef(parm[0], i, t);
   }
@@ -4963,9 +5646,10 @@ _nrrd_TMF_d2_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_3ef(parm[0], i, t);
   }
@@ -4982,16 +5666,23 @@ _nrrdKernel_TMF_d2_c0_3ef = {
 
 /* ------------------------ TMF_d2_c0_4ef --------------------- */
 
-double _nrrd_TMF_d2_c0_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c0_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c0_4ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c0_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c0_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_4ef(parm[0], i, x);
 }
@@ -5000,8 +5691,9 @@ float
 _nrrd_TMF_d2_c0_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_4ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c0_4ef(parm[0], i, x);
 }
@@ -5012,9 +5704,10 @@ _nrrd_TMF_d2_c0_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_4ef(parm[0], i, t);
   }
@@ -5026,9 +5719,10 @@ _nrrd_TMF_d2_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c0_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c0_4ef(parm[0], i, t);
   }
@@ -5045,16 +5739,23 @@ _nrrdKernel_TMF_d2_c0_4ef = {
 
 /* ------------------------ TMF_d2_c1_1ef --------------------- */
 
-double _nrrd_TMF_d2_c1_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c1_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c1_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_c1_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_c1_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_1ef(parm[0], i, x);
 }
@@ -5063,8 +5764,9 @@ float
 _nrrd_TMF_d2_c1_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_1ef(parm[0], i, x);
 }
@@ -5075,9 +5777,10 @@ _nrrd_TMF_d2_c1_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_1ef(parm[0], i, t);
   }
@@ -5089,9 +5792,10 @@ _nrrd_TMF_d2_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_1ef(parm[0], i, t);
   }
@@ -5108,16 +5812,23 @@ _nrrdKernel_TMF_d2_c1_1ef = {
 
 /* ------------------------ TMF_d2_c1_2ef --------------------- */
 
-double _nrrd_TMF_d2_c1_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c1_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c1_2ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c1_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c1_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_2ef(parm[0], i, x);
 }
@@ -5126,8 +5837,9 @@ float
 _nrrd_TMF_d2_c1_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_2ef(parm[0], i, x);
 }
@@ -5138,9 +5850,10 @@ _nrrd_TMF_d2_c1_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_2ef(parm[0], i, t);
   }
@@ -5152,9 +5865,10 @@ _nrrd_TMF_d2_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_2ef(parm[0], i, t);
   }
@@ -5171,16 +5885,23 @@ _nrrdKernel_TMF_d2_c1_2ef = {
 
 /* ------------------------ TMF_d2_c1_3ef --------------------- */
 
-double _nrrd_TMF_d2_c1_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c1_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c1_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c1_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c1_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_3ef(parm[0], i, x);
 }
@@ -5189,8 +5910,9 @@ float
 _nrrd_TMF_d2_c1_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_3ef(parm[0], i, x);
 }
@@ -5201,9 +5923,10 @@ _nrrd_TMF_d2_c1_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_3ef(parm[0], i, t);
   }
@@ -5215,9 +5938,10 @@ _nrrd_TMF_d2_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c1_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_3ef(parm[0], i, t);
   }
@@ -5234,16 +5958,23 @@ _nrrdKernel_TMF_d2_c1_3ef = {
 
 /* ------------------------ TMF_d2_c1_4ef --------------------- */
 
-double _nrrd_TMF_d2_c1_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c1_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c1_4ef_Sup(const double *parm) { return 4; }
+double _nrrd_TMF_d2_c1_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 4;
+}
 
 double
 _nrrd_TMF_d2_c1_4ef_1_d(double x, const double *parm) {
   int i;
 
+  
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_4ef(parm[0], i, x);
 }
@@ -5252,8 +5983,9 @@ float
 _nrrd_TMF_d2_c1_4ef_1_f(float x, const double *parm) {
   int i;
 
+  
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c1_4ef(parm[0], i, x);
 }
@@ -5264,9 +5996,10 @@ _nrrd_TMF_d2_c1_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_4ef(parm[0], i, t);
   }
@@ -5278,9 +6011,10 @@ _nrrd_TMF_d2_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c1_4ef(parm[0], i, t);
   }
@@ -5297,16 +6031,23 @@ _nrrdKernel_TMF_d2_c1_4ef = {
 
 /* ------------------------ TMF_d2_c2_1ef --------------------- */
 
-double _nrrd_TMF_d2_c2_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c2_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c2_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_c2_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_c2_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_1ef(parm[0], i, x);
 }
@@ -5315,8 +6056,9 @@ float
 _nrrd_TMF_d2_c2_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_1ef(parm[0], i, x);
 }
@@ -5327,9 +6069,10 @@ _nrrd_TMF_d2_c2_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_1ef(parm[0], i, t);
   }
@@ -5341,9 +6084,10 @@ _nrrd_TMF_d2_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_1ef(parm[0], i, t);
   }
@@ -5360,16 +6104,23 @@ _nrrdKernel_TMF_d2_c2_1ef = {
 
 /* ------------------------ TMF_d2_c2_2ef --------------------- */
 
-double _nrrd_TMF_d2_c2_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c2_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c2_2ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c2_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c2_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_2ef(parm[0], i, x);
 }
@@ -5378,8 +6129,9 @@ float
 _nrrd_TMF_d2_c2_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_2ef(parm[0], i, x);
 }
@@ -5390,9 +6142,10 @@ _nrrd_TMF_d2_c2_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_2ef(parm[0], i, t);
   }
@@ -5404,9 +6157,10 @@ _nrrd_TMF_d2_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_2ef(parm[0], i, t);
   }
@@ -5423,16 +6177,23 @@ _nrrdKernel_TMF_d2_c2_2ef = {
 
 /* ------------------------ TMF_d2_c2_3ef --------------------- */
 
-double _nrrd_TMF_d2_c2_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c2_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c2_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c2_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c2_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_3ef(parm[0], i, x);
 }
@@ -5441,8 +6202,9 @@ float
 _nrrd_TMF_d2_c2_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_3ef(parm[0], i, x);
 }
@@ -5453,9 +6215,10 @@ _nrrd_TMF_d2_c2_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_3ef(parm[0], i, t);
   }
@@ -5467,9 +6230,10 @@ _nrrd_TMF_d2_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_3ef(parm[0], i, t);
   }
@@ -5486,16 +6250,23 @@ _nrrdKernel_TMF_d2_c2_3ef = {
 
 /* ------------------------ TMF_d2_c2_4ef --------------------- */
 
-double _nrrd_TMF_d2_c2_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c2_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c2_4ef_Sup(const double *parm) { return 4; }
+double _nrrd_TMF_d2_c2_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 4;
+}
 
 double
 _nrrd_TMF_d2_c2_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_4ef */
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_4ef(parm[0], i, x);
 }
@@ -5504,8 +6275,9 @@ float
 _nrrd_TMF_d2_c2_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_4ef */
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c2_4ef(parm[0], i, x);
 }
@@ -5516,9 +6288,10 @@ _nrrd_TMF_d2_c2_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_4ef(parm[0], i, t);
   }
@@ -5530,9 +6303,10 @@ _nrrd_TMF_d2_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c2_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c2_4ef(parm[0], i, t);
   }
@@ -5549,16 +6323,23 @@ _nrrdKernel_TMF_d2_c2_4ef = {
 
 /* ------------------------ TMF_d2_c3_1ef --------------------- */
 
-double _nrrd_TMF_d2_c3_1ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c3_1ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c3_1ef_Sup(const double *parm) { return 2; }
+double _nrrd_TMF_d2_c3_1ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2;
+}
 
 double
 _nrrd_TMF_d2_c3_1ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_1ef(parm[0], i, x);
 }
@@ -5567,8 +6348,9 @@ float
 _nrrd_TMF_d2_c3_1ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_1ef */
   x += 2;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_1ef(parm[0], i, x);
 }
@@ -5579,9 +6361,10 @@ _nrrd_TMF_d2_c3_1ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_1ef(parm[0], i, t);
   }
@@ -5593,9 +6376,10 @@ _nrrd_TMF_d2_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_1ef */
   for (I=0; I<len; I++) {
     t = x[I] + 2;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_1ef(parm[0], i, t);
   }
@@ -5612,16 +6396,23 @@ _nrrdKernel_TMF_d2_c3_1ef = {
 
 /* ------------------------ TMF_d2_c3_2ef --------------------- */
 
-double _nrrd_TMF_d2_c3_2ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c3_2ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c3_2ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c3_2ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c3_2ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_2ef(parm[0], i, x);
 }
@@ -5630,8 +6421,9 @@ float
 _nrrd_TMF_d2_c3_2ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_2ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_2ef(parm[0], i, x);
 }
@@ -5642,9 +6434,10 @@ _nrrd_TMF_d2_c3_2ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_2ef(parm[0], i, t);
   }
@@ -5656,9 +6449,10 @@ _nrrd_TMF_d2_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_2ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_2ef(parm[0], i, t);
   }
@@ -5675,16 +6469,23 @@ _nrrdKernel_TMF_d2_c3_2ef = {
 
 /* ------------------------ TMF_d2_c3_3ef --------------------- */
 
-double _nrrd_TMF_d2_c3_3ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c3_3ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c3_3ef_Sup(const double *parm) { return 3; }
+double _nrrd_TMF_d2_c3_3ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3;
+}
 
 double
 _nrrd_TMF_d2_c3_3ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_3ef(parm[0], i, x);
 }
@@ -5693,8 +6494,9 @@ float
 _nrrd_TMF_d2_c3_3ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_3ef */
   x += 3;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_3ef(parm[0], i, x);
 }
@@ -5705,9 +6507,10 @@ _nrrd_TMF_d2_c3_3ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_3ef(parm[0], i, t);
   }
@@ -5719,9 +6522,10 @@ _nrrd_TMF_d2_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_3ef */
   for (I=0; I<len; I++) {
     t = x[I] + 3;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_3ef(parm[0], i, t);
   }
@@ -5738,16 +6542,23 @@ _nrrdKernel_TMF_d2_c3_3ef = {
 
 /* ------------------------ TMF_d2_c3_4ef --------------------- */
 
-double _nrrd_TMF_d2_c3_4ef_Int(const double *parm) { return 0.0; }
+double _nrrd_TMF_d2_c3_4ef_Int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
 
-double _nrrd_TMF_d2_c3_4ef_Sup(const double *parm) { return 4; }
+double _nrrd_TMF_d2_c3_4ef_Sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 4;
+}
 
 double
 _nrrd_TMF_d2_c3_4ef_1_d(double x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_4ef */
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_4ef(parm[0], i, x);
 }
@@ -5756,8 +6567,9 @@ float
 _nrrd_TMF_d2_c3_4ef_1_f(float x, const double *parm) {
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_4ef */
   x += 4;
-  i = (x<0) ? x-1 : x;
+  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
   x -= i;
   return TMF_d2_c3_4ef(parm[0], i, x);
 }
@@ -5768,9 +6580,10 @@ _nrrd_TMF_d2_c3_4ef_N_d(double *f, const double *x, size_t len, const double *pa
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_4ef(parm[0], i, t);
   }
@@ -5782,9 +6595,10 @@ _nrrd_TMF_d2_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   size_t I;
   int i;
 
+  AIR_UNUSED(parm); /* TMF_d2_c3_4ef */
   for (I=0; I<len; I++) {
     t = x[I] + 4;
-    i = (t<0) ? t-1 : t;
+    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
     t -= i;
     f[I] = TMF_d2_c3_4ef(parm[0], i, t);
   }
@@ -5951,6 +6765,6 @@ nrrdKernelTMF[4][5][5] = {
   },
 };
 
-int nrrdKernelTMF_maxD = 2;
-int nrrdKernelTMF_maxC = 3;
-int nrrdKernelTMF_maxA = 4;
+const unsigned int nrrdKernelTMF_maxD = 2;
+const unsigned int nrrdKernelTMF_maxC = 3;
+const unsigned int nrrdKernelTMF_maxA = 4;

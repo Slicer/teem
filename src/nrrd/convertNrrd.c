@@ -92,7 +92,7 @@ F(A, DB)
 ** get from scalars.
 */
 #define CONV_DEF(TA, TB) \
-void _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { while (N--) a[N]=b[N]; }
+void _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { while (N--) a[N]=(TA)b[N]; }
 
 /* 
 ** the individual converter's appearance in the array initialization,

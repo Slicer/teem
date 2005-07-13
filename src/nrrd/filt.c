@@ -51,10 +51,9 @@ _nrrdCM_mode(const float *hist, int bins) {
   return mi;
 }
 
-#define INDEX(nin, range, lup, idxIn, bins, val, idxOut) ( \
+#define INDEX(nin, range, lup, idxIn, bins, val) ( \
   val = (lup)((nin)->data, (idxIn)), \
-  AIR_INDEX((range)->min, (val), (range)->max, bins, (idxOut)), \
-  (idxOut) \
+  airIndex((range)->min, (val), (range)->max, bins) \
 )
 
 void
@@ -75,7 +74,7 @@ _nrrdCM_wtAlloc(int radius, float wght) {
   int diam, r;
   
   diam = 2*radius + 1;
-  wt = calloc(diam, sizeof(float));
+  wt = (float *)calloc(diam, sizeof(float));
   wt[radius] = 1.0;
   for (r=1; r<=radius; r++) {
     wt[radius+r] = pow(1.0/wght, r);
@@ -115,7 +114,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     half = diam/2 + 1;
     memset(hist, 0, bins*sizeof(float));
     for (X=0; X<diam; X++) {
-      hist[INDEX(nin, range, lup, X, bins, val, idx)]++;
+      hist[INDEX(nin, range, lup, X, bins, val)]++;
     }
     /* _nrrdCM_printhist(hist, bins, "after init"); */
     /* find median at each point using existing histogram */
@@ -127,8 +126,8 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       nrrdDInsert[nout->type](nout->data, X, val);
       /* probably update histogram for next iteration */
       if (X < (int)num-radius-1) {
-        hist[INDEX(nin, range, lup, X+radius+1, bins, val, idx)]++;
-        hist[INDEX(nin, range, lup, X-radius, bins, val, idx)]--;
+        hist[INDEX(nin, range, lup, X+radius+1, bins, val)]++;
+        hist[INDEX(nin, range, lup, X-radius, bins, val)]--;
       }
     }
   } else {
@@ -138,7 +137,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     for (X=radius; X<(int)num-radius; X++) {
       memset(hist, 0, bins*sizeof(float));
       for (I=-radius; I<=radius; I++) {
-        hist[INDEX(nin, range, lup, I+X, bins, val, idx)] += wt[I+radius];
+        hist[INDEX(nin, range, lup, I+X, bins, val)] += wt[I+radius];
       }
       idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
       val = NRRD_NODE_POS(range->min, range->max, bins, idx);
@@ -171,7 +170,7 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       X = radius;
       for (J=-radius; J<=radius; J++) {
         for (I=-radius; I<=radius; I++) {
-          hist[INDEX(nin, range, lup, X+I + sx*(J+Y), bins, val, idx)]++;
+          hist[INDEX(nin, range, lup, X+I + sx*(J+Y), bins, val)]++;
         }
       }
       /* _nrrdCM_printhist(hist, bins, "after init"); */
@@ -183,10 +182,8 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
         /* probably update histogram for next iteration */
         if (X < sx-radius-1) {
           for (J=-radius; J<=radius; J++) {
-            hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y), bins,
-                       val, idx)]++;
-            hist[INDEX(nin, range, lup, X-radius + sx*(J+Y), bins,
-                       val, idx)]--;
+            hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y), bins, val)]++;
+            hist[INDEX(nin, range, lup, X-radius + sx*(J+Y), bins, val)]--;
           }
         }
       }
@@ -201,7 +198,7 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
         for (J=-radius; J<=radius; J++) {
           for (I=-radius; I<=radius; I++) {
             hist[INDEX(nin, range, lup, I+X + sx*(J+Y),
-                       bins, val, idx)] += wt[I+radius]*wt[J+radius];
+                       bins, val)] += wt[I+radius]*wt[J+radius];
           }
         }
         idx = mode ? _nrrdCM_mode(hist, bins) : _nrrdCM_median(hist, half);
@@ -244,7 +241,7 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
           for (J=-radius; J<=radius; J++) {
             for (I=-radius; I<=radius; I++) {
               hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
-                         bins, val, idx)]++;
+                         bins, val)]++;
             }
           }
         }
@@ -258,9 +255,9 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
             for (K=-radius; K<=radius; K++) {
               for (J=-radius; J<=radius; J++) {
                 hist[INDEX(nin, range, lup, X+radius+1 + sx*(J+Y + sy*(K+Z)),
-                           bins, val, idx)]++;
+                           bins, val)]++;
                 hist[INDEX(nin, range, lup, X-radius + sx*(J+Y + sy*(K+Z)),
-                           bins, val, idx)]--;
+                           bins, val)]--;
               }
             }
           }
@@ -281,7 +278,7 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
             for (J=-radius; J<=radius; J++) {
               for (I=-radius; I<=radius; I++) {
                 hist[INDEX(nin, range, lup, I+X + sx*(J+Y + sy*(K+Z)),
-                           bins, val, idx)]
+                           bins, val)]
                   += wt[I+radius]*wt[J+radius]*wt[K+radius];
               }
             }
@@ -307,13 +304,13 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 int
 nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
                 int pad, int mode,
-                int radius, float wght, int bins) {
+                unsigned int radius, float wght, unsigned int bins) {
   char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
   NrrdRange *range;
   float *hist;
   Nrrd *nout, *nin;
   airArray *mop;
-  int minsize;
+  unsigned int minsize;
 
   if (!(_nin && _nout)) {
     sprintf(err, "%s: got NULL pointer", me);

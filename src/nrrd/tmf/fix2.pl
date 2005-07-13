@@ -6,30 +6,44 @@ print "\n\#include \"nrrd.h\"\n\n";
 # into ef == 0, which is undefined; ef must be >= 1
 print "double\n";
 print "_nrrd_TMFBAD_Int(const double *parm) {\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "double\n";
 print "_nrrd_TMFBAD_Sup(const double *parm) {\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "double\n";
 print "_nrrd_TMFBAD_1_d(double x, const double *parm) {\n";
+print "  AIR_UNUSED(x);\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "float\n";
 print "_nrrd_TMFBAD_1_f(float x, const double *parm) {\n";
+print "  AIR_UNUSED(x);\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "  return 0.0;\n";
 print "}\n\n";
 print "void\n";
 print "_nrrd_TMFBAD_N_d(double *f, const double *x, size_t len, const double *parm) {\n";
+print "  AIR_UNUSED(f);\n";
+print "  AIR_UNUSED(x);\n";
+print "  AIR_UNUSED(len);\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "}\n\n";
 print "void\n";
 print "_nrrd_TMFBAD_N_f(float *f, const float *x, size_t len, const double *parm) {\n";
+print "  AIR_UNUSED(f);\n";
+print "  AIR_UNUSED(x);\n";
+print "  AIR_UNUSED(len);\n";
+print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "}\n\n";
 print "NrrdKernel\n";
@@ -151,9 +165,9 @@ for ($_d=0; $_d<=3; $_d++) {
 }
 print "};\n\n";
 
-print "int nrrdKernelTMF_maxD = $maxD;\n";
-print "int nrrdKernelTMF_maxC = $maxC;\n";
-print "int nrrdKernelTMF_maxA = $maxA;\n";
+print "const unsigned int nrrdKernelTMF_maxD = $maxD;\n";
+print "const unsigned int nrrdKernelTMF_maxC = $maxC;\n";
+print "const unsigned int nrrdKernelTMF_maxA = $maxA;\n";
 
 sub blah {
     $kern = $_[0];
@@ -164,28 +178,32 @@ sub blah {
 	       ? $support{$needk{$kern}}
 	       : $support{$needk{$needk{$kern}}}));
     $integral = ("double "
-		 . "_nrrd_${kern}_Int\(const double *parm\) { "
+		 . "_nrrd_${kern}_Int\(const double *parm\) {\n"
+                 . "  AIR_UNUSED(parm);\n"
 		 . (($kern =~ m/_d0_/ || $kern =~ m/_dn_/)
-		    ? "return 1.0; "
-		    : "return 0.0; ")
+		    ? "  return 1.0;\n"
+		    : "  return 0.0;\n")
 		 . "}\n\n");
     $support = ("double "
-		. "_nrrd_${kern}_Sup\(const double *parm\) { "
-		. "return ${sup}; "
+		. "_nrrd_${kern}_Sup\(const double *parm\) {\n"
+                . "  AIR_UNUSED(parm);\n"
+		. "  return ${sup};\n"
 		. "}\n\n");
     $_1_d = ("double\n"
 	     . "_nrrd_${kern}_1_d\(double x, const double *parm\) {\n"
 	     . "  int i;\n\n"
+             . "  AIR_UNUSED(parm); /* ${kern} */\n"
 	     . "  x += $sup;\n"
-	     . "  i = (x<0) ? x-1 : x;\n"
+	     . "  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */\n"
 	     . "  x -= i;\n"
 	     . "  return ${kern}\(parm[0], i, x\);\n"
 	     . "}\n\n");
     $_1_f = ("float\n"
 	     . "_nrrd_${kern}_1_f\(float x, const double *parm\) {\n"
 	     . "  int i;\n\n"
+             . "  AIR_UNUSED(parm); /* ${kern} */\n"
 	     . "  x += $sup;\n"
-	     . "  i = (x<0) ? x-1 : x;\n"
+	     . "  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */\n"
 	     . "  x -= i;\n"
 	     . "  return ${kern}\(parm[0], i, x\);\n"
 	     . "}\n\n");
@@ -194,9 +212,10 @@ sub blah {
 	     . "  double t;\n"
 	     . "  size_t I;\n"
 	     . "  int i;\n\n"
+             . "  AIR_UNUSED(parm); /* ${kern} */\n"
 	     . "  for \(I=0; I<len; I++\) {\n"
 	     . "    t = x[I] + $sup;\n"
-	     . "    i = (t<0) ? t-1 : t;\n"
+	     . "    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */\n"
 	     . "    t -= i;\n"
 	     . "    f[I] = ${kern}\(parm[0], i, t\);\n"
 	     . "  }\n"
@@ -206,9 +225,10 @@ sub blah {
 	     . "  float t;\n"
 	     . "  size_t I;\n"
 	     . "  int i;\n\n"
+             . "  AIR_UNUSED(parm); /* ${kern} */\n"
 	     . "  for \(I=0; I<len; I++\) {\n"
 	     . "    t = x[I] + $sup;\n"
-	     . "    i = (t<0) ? t-1 : t;\n"
+	     . "    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */\n"
 	     . "    t -= i;\n"
 	     . "    f[I] = ${kern}\(parm[0], i, t\);\n"
 	     . "  }\n"

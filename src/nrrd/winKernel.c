@@ -25,6 +25,7 @@
 double
 _nrrdWindSincInt(const double *parm) {
 
+  AIR_UNUSED(parm);
   /* This isn't true, but there aren't good accurate, closed-form
      approximations for these integrals ... */
   return 1.0;
@@ -33,6 +34,7 @@ _nrrdWindSincInt(const double *parm) {
 double
 _nrrdDWindSincInt(const double *parm) {
 
+  AIR_UNUSED(parm);
   /* ... or their derivatives */
   return 0.0;
 }

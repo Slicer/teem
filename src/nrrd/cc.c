@@ -91,7 +91,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
 
 int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
-              const Nrrd *nin, int conny) {
+              const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
   double pvl[5], vl=0;
   int id, pid[5], (*lup)(const void *, size_t), *out;
@@ -163,7 +163,7 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
-              const Nrrd *nin, int conny) {
+              const Nrrd *nin, unsigned int conny) {
   /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED] ; */
   double pvl[14], vl=0;
   int id, pid[14], *out, (*lup)(const void *, size_t);
@@ -241,13 +241,17 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 }
 
 int
-_nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
-              const Nrrd *nin, int conny) {
+_nrrdCCFind_N(Nrrd *nout, int *numid, airArray *eqvArr,
+              const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_N", err[AIR_STRLEN_MED];
-
+  
+  AIR_UNUSED(nout);
+  AIR_UNUSED(numid);
+  AIR_UNUSED(eqvArr);
+  AIR_UNUSED(nin);
+  AIR_UNUSED(conny);
   sprintf(err, "%s: sorry, not implemented yet", me);
   biffAdd(NRRD, err); return 1;
-
 }
 
 /*
@@ -270,7 +274,8 @@ _nrrdCCFind_N(Nrrd *nfpid, int *maxid, airArray *eqvArr,
 ** as nin, so that nval->data[I] is the value in nin inside CC #I.
 */
 int
-nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
+nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
+           unsigned int conny) {
   char me[]="nrrdCCFind", func[]="ccfind", err[AIR_STRLEN_MED];
   Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
@@ -306,7 +311,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  if (!( AIR_IN_CL(1, conny, nin->dim) )) {
+  if (!( conny <= nin->dim )) {
     sprintf(err, "%s: connectivity value must be in [1..%d] for %d-D "
             "data (not %d)", me, nin->dim, nin->dim, conny);
     biffAdd(NRRD, err); return 1;
@@ -404,11 +409,15 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, int conny) {
 int
 _nrrdCCAdj_1(unsigned char *out, int numid, const Nrrd *nin) {
 
+  AIR_UNUSED(out);
+  AIR_UNUSED(numid);
+  AIR_UNUSED(nin);
   return 0;
 }
 
 int
-_nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
+_nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin,
+             unsigned int conny) {
   int (*lup)(const void *, size_t), x, y, sx, sy, id=0;
   double pid[5];
   
@@ -427,7 +436,7 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
         pid[3] = pid[4];
       }
       pid[4] = GETV_2(x+1, y-1);
-      id = GETV_2(x, y);
+      id = (int)GETV_2(x, y);
 #define TADJ(P) \
       if (pid[(P)] != 0.5 && id != pid[(P)]) { \
         out[id + numid*((int)pid[(P)])] = \
@@ -446,7 +455,8 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin, int conny) {
 }
 
 int
-_nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, int conny) {
+_nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
+             unsigned int conny) {
   int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id=0;
   double pid[14];
   
@@ -482,7 +492,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, int conny) {
         pid[ 7] = GETV_3(x+1, y-1, z-1);
         pid[10] = GETV_3(x+1,   y, z-1);
         pid[13] = GETV_3(x+1, y+1, z-1);
-        id = GETV_3(x, y, z);
+        id = (int)GETV_3(x, y, z);
         TADJ(1);
         TADJ(3);
         TADJ(9);
@@ -501,19 +511,22 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, int conny) {
 }
 
 int
-_nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin, int conny) {
+_nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
+             unsigned int conny) {
   char me[]="_nrrdCCAdj_N", err[AIR_STRLEN_MED];
-  
-  if (1) {
-    sprintf(err, "%s: sorry, not implemented", me);
-    biffAdd(NRRD, err); return 1;
-  }
+
+  AIR_UNUSED(out);
+  AIR_UNUSED(numid);
+  AIR_UNUSED(nin);
+  AIR_UNUSED(conny);
+  sprintf(err, "%s: sorry, not implemented", me);
+  biffAdd(NRRD, err); return 1;
 
   return 0;
 }
 
 int
-nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny) {
+nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   char me[]="nrrdCCAdjacency", func[]="ccadj", err[AIR_STRLEN_MED];
   int ret, maxid;
   unsigned char *out;
@@ -609,7 +622,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, int conny) {
 */
 int
 nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
-            int valDir, int maxSize, int maxNeighbor, int conny) {
+            int valDir, int maxSize, int maxNeighbor, unsigned int conny) {
   char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED], *valcnt;
   int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */

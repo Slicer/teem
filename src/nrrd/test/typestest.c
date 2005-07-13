@@ -29,9 +29,11 @@ main(int argc, char *argv[]) {
     str3[AIR_STRLEN_MED];
   */
 
+  AIR_UNUSED(argc);
+  AIR_UNUSED(argv);
   for (tt=nrrdTypeChar; tt<=nrrdTypeDouble; tt++) {
     printf(" ----- %s -----\n", airEnumStr(nrrdType, tt));
-    printf("nrrdTypeSize: %d\n", nrrdTypeSize[tt]);
+    printf("nrrdTypeSize: %d\n", (int)nrrdTypeSize[tt]);
     printf("nrrdTypeIsUnsigned: %d\n", nrrdTypeIsUnsigned[tt]);
     printf("nrrdTypeIsIntegral: %d\n", nrrdTypeIsIntegral[tt]);
     printf("nrrdTypeMin: % 31.15f\n", nrrdTypeMin[tt]);

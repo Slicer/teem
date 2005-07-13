@@ -101,13 +101,15 @@ main(int argc, char *argv[]) {
   for (xi=0; xi<sx; xi++) {
     for (yi=0; yi<sy; yi++) {
       rad = DIST(cent[0], cent[1], xi, yi);
-      if (!AIR_IN_OP(0, rad, rmax))
+      if (!AIR_IN_OP(0, rad, rmax)) {
         continue;
+      }
       val = lup(nin->data, xi + sx*yi);
-      if (!AIR_IN_OP(vmin, val, vmax))
+      if (!AIR_IN_OP(vmin, val, vmax)) {
         continue;
-      AIR_INDEX(0, rad, rmax, rbins, ridx);
-      AIR_INDEX(vmin, val, vmax, hbins, hidx);
+      }
+      ridx = airIndex(0, rad, rmax, rbins);
+      hidx = airIndex(vmin, val, vmax, hbins);
       hist[ridx + rbins*hidx] += 1;
     }
   }

@@ -19,6 +19,11 @@
 */
 
 #include "nrrd.h"
+#include "privateNrrd.h"
+
+/* learned: /usr/bin/c++ on mac (at least) won't actually put a 
+const int blah[] array in an object file if it hasn't been declared
+as "extern" */
 
 const char
 nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
@@ -39,7 +44,7 @@ nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 /*
 ** the setting of NRRD_TYPE_BIGGEST has to be in accordance with this
 */
-const int 
+const size_t
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {
   0,  /* unknown */
   1,  /* char */
@@ -99,32 +104,32 @@ nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
 */
 const double
 nrrdTypeMin[NRRD_TYPE_MAX+1] = {
-  0,               /* unknown */
-  SCHAR_MIN,       /* char */
-  0,               /* unsigned char */
-  SHRT_MIN,        /* short */
-  0,               /* unsigned short */
-  INT_MIN,         /* int */
-  0,               /* unsigned int */
-  NRRD_LLONG_MIN,  /* long long */
-  0,               /* unsigned long long */
-  0,               /* float */
-  0,               /* double */
-  0                /* punt */
+  0,                       /* unknown */
+  SCHAR_MIN,               /* char */
+  0,                       /* unsigned char */
+  SHRT_MIN,                /* short */
+  0,                       /* unsigned short */
+  INT_MIN,                 /* int */
+  0,                       /* unsigned int */
+  (double)NRRD_LLONG_MIN,  /* long long */
+  0,                       /* unsigned long long */
+  0,                       /* float */
+  0,                       /* double */
+  0                        /* punt */
 },
 nrrdTypeMax[NRRD_TYPE_MAX+1] = {
-  0,               /* unknown */
-  SCHAR_MAX,       /* char */
-  UCHAR_MAX,       /* unsigned char */
-  SHRT_MAX,        /* short */
-  USHRT_MAX,       /* unsigned short */
-  INT_MAX,         /* int */
-  UINT_MAX,        /* unsigned int */
-  NRRD_LLONG_MAX,  /* long long */
-  NRRD_ULLONG_MAX, /* unsigned long long */
-  0,               /* float */
-  0,               /* double */
-  0                /* punt */
+  0,                       /* unknown */
+  SCHAR_MAX,               /* char */
+  UCHAR_MAX,               /* unsigned char */
+  SHRT_MAX,                /* short */
+  USHRT_MAX,               /* unsigned short */
+  INT_MAX,                 /* int */
+  UINT_MAX,                /* unsigned int */
+  (double)NRRD_LLONG_MAX,  /* long long */
+  (double)NRRD_ULLONG_MAX, /* unsigned long long */
+  0,                       /* float */
+  0,                       /* double */
+  0                        /* punt */
 };
 
 /*

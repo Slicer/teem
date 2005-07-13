@@ -84,8 +84,8 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
            || 2 == nrrd->axis[0].size
            || 3 == nrrd->axis[0].size
            || 4 == nrrd->axis[0].size )) {
-      sprintf(err, "%s: 1st axis size is %d, not 1, 2, 3, or 4",
-              me, nrrd->axis[0].size);
+      sprintf(err, "%s: 1st axis size is " _AIR_SIZE_T_CNV 
+              ", not 1, 2, 3, or 4", me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -123,6 +123,7 @@ void
 _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 {
   char me[]="_nrrdWarningHandlerPNG", err[AIR_STRLEN_MED];
+  AIR_UNUSED(png);
   /* add the png warning message to biff */
   sprintf(err, "%s: PNG warning: %s", me, message);
   biffAdd(NRRD, err);
@@ -166,7 +167,8 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   png_uint_32 width, height, rowsize, hi;
   png_text* txt;
   int depth, type, i, channels, numtxt, ret;
-  int ntype, ndim, nsize[3];
+  int ntype, ndim;
+  size_t nsize[3];
 #endif /* TEEM_PNG */
 
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
@@ -225,6 +227,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   if (depth > 8 && airMyEndian == airEndianLittle)
     png_set_swap(png);
 #if 0
+  /* HEY GLK asks why is this commented out? */
   /* set up gamma correction */
   /* NOTE: screen_gamma is platform dependent,
      it can hardwired or set from a parameter/environment variable */
@@ -312,9 +315,9 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
          since in this case the text from which we parse a nrrd field
          descriptor did NOT come from a line of text as read by
          _nrrdOneLine */
-      nio->line = airFree(nio->line);
+      nio->line = (char *)airFree(nio->line);
       nio->line = airStrdup(txt[i].text);
-      ret = _nrrdReadNrrdParseField(nrrd, nio, AIR_FALSE);
+      ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);
       if (ret) {
         const char* fs = airEnumStr(nrrdField, ret);
         if (nrrdField_comment == ret) {
@@ -370,7 +373,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* finish reading */
   png_read_end(png, info);
   /* clean up */
-  row = airFree(row);
+  row = (png_byte**)airFree(row);
   png_destroy_read_struct(&png, &info, NULL);
 
   return 0;
@@ -385,7 +388,8 @@ int
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNG_write", err[AIR_STRLEN_MED];
 #if TEEM_PNG
-  int depth, type, i, numtxt, csize;
+  int fi, depth, type, csize;
+  unsigned int jj, numtxt;
   png_structp png;
   png_infop info;
   png_bytep *row;
@@ -449,8 +453,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       type = PNG_COLOR_TYPE_RGB_ALPHA;
       break;
       default:
-      sprintf(err, "%s: nrrd->axis[0].size (%d) not compatible with PNG",
-              me, nrrd->axis[0].size);
+      sprintf(err, "%s: nrrd->axis[0].size (" _AIR_SIZE_T_CNV 
+              ") not compatible with PNG", me, nrrd->axis[0].size);
       png_destroy_write_struct(&png, &info);
       biffAdd(NRRD, err); return 1;
       break;
@@ -469,18 +473,18 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* add nrrd fields to the text chunk */
   numtxt = 0;
   csize = 0;
-  for (i=1; i<=NRRD_FIELD_MAX; i++) {
-    if (_nrrdFieldValidInImage[i] && _nrrdFieldInteresting(nrrd, nio, i)) { 
+  for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
+    if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
       txt[numtxt].key = NRRD_PNG_FIELD_KEY;
       txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
-      _nrrdSprintFieldInfo(&(txt[numtxt].text), "", nrrd, nio, i);      
+      _nrrdSprintFieldInfo(&(txt[numtxt].text), "", nrrd, nio, fi);
       numtxt++;
     }
   }
   /* add nrrd key/value pairs to the chunk */
-  for (i=0; i<nrrdKeyValueSize(nrrd); i++) {
+  for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
     char *key, *value;
-    nrrdKeyValueIndex(nrrd, &key, &value, i);
+    nrrdKeyValueIndex(nrrd, &key, &value, jj);
     if (NULL != key && NULL != value) {
       txt[numtxt].key = key;
       txt[numtxt].text = value;
@@ -489,27 +493,29 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
   }
   /* add nrrd comments as a single text field */
-  if (nrrd->cmtArr->len > 0)
-  {
+  if (nrrd->cmtArr->len > 0) {
     txt[numtxt].key = NRRD_PNG_COMMENT_KEY;
     txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
-    for (i=0; i<nrrd->cmtArr->len; i++)
-      csize += airStrlen(nrrd->cmt[i]) + 1;
+    for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+      csize += airStrlen(nrrd->cmt[jj]) + 1;
+    }
     txt[numtxt].text = (png_charp)malloc(csize + 1);
     txt[numtxt].text[0] = 0;
-    for (i=0; i<nrrd->cmtArr->len; i++) {
-      strcat(txt[numtxt].text, nrrd->cmt[i]);
+    for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+      strcat(txt[numtxt].text, nrrd->cmt[jj]);
       strcat(txt[numtxt].text, "\n");
     }
     numtxt++;
   }
-  if (numtxt > 0)
+  if (numtxt > 0) {
     png_set_text(png, info, txt, numtxt);
+  }
   /* write header */
   png_write_info(png, info);
   /* fix endianness for 16 bit formats */
-  if (depth > 8 && airMyEndian == airEndianLittle)
+  if (depth > 8 && airMyEndian == airEndianLittle) {
     png_set_swap(png);
+  }
   /* set up row pointers */
   row = (png_bytep*)malloc(sizeof(png_bytep)*height);
   for (hi=0; hi<height; hi++) {
@@ -521,10 +527,10 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* finish writing */
   png_write_end(png, info);
   /* clean up */
-  for (i=0; i<numtxt; i++) {
-    txt[i].text = airFree(txt[i].text);
+  for (jj=0; jj<numtxt; jj++) {
+    txt[jj].text = (char *)airFree(txt[jj].text);
   }
-  row = airFree(row);
+  row = (png_byte**)airFree(row);
   png_destroy_write_struct(&png, &info);
 
   return 0;
