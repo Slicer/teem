@@ -91,7 +91,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  info = ptr;
+  info = (double *)ptr;
 
   mop = airMopNew();
   str = airStrdup(_str);

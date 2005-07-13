@@ -31,7 +31,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
                  float min[2], float max[2],
                  float gscale, float dotRad, float lineWidth, float cthresh,
                  int invert) {
-  int sx=0, sy=0, x, y, nt, ti, vi, *sdata;
+  size_t sx=0, sy=0, ti, nt;
+  int x, y, vi, *sdata;
   float aspect, minX, minY, maxX, maxY, px, py, spx, spy,
     conf, Dxx, Dxy, Dyy, *tdata, *pdata;
   

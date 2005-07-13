@@ -46,13 +46,14 @@ tenGradientParmNew(void) {
 
 tenGradientParm *
 tenGradientParmNix(tenGradientParm *tgparm) {
-
-  return airFree(tgparm);
+  
+  airFree(tgparm);
+  return NULL;
 }
 
 
 int
-tenGradientCheck(const Nrrd *ngrad, int type, int minnum) {
+tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
   char me[]="tenGradientCheck", err[AIR_STRLEN_MED];
   
   if (nrrdCheck(ngrad)) {
@@ -60,7 +61,8 @@ tenGradientCheck(const Nrrd *ngrad, int type, int minnum) {
     biffMove(TEN, err, NRRD); return 1;
   }
   if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
-    sprintf(err, "%s: need a 3xN 2-D array (not a %dx? %d-D array)",
+    sprintf(err, "%s: need a 3xN 2-D array (not a " _AIR_SIZE_T_CNV 
+            "x? %u-D array)",
             me, ngrad->axis[0].size, ngrad->dim);
     biffAdd(TEN, err); return 1;
   }
@@ -70,7 +72,8 @@ tenGradientCheck(const Nrrd *ngrad, int type, int minnum) {
     biffAdd(TEN, err); return 1;
   }
   if (!( minnum <= ngrad->axis[1].size )) {
-    sprintf(err, "%s: have only %d gradients, need at least %d",
+    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " gradients, "
+            "need at least %d",
             me, ngrad->axis[1].size, minnum);
     biffAdd(TEN, err); return 1;
   }
@@ -84,17 +87,17 @@ tenGradientCheck(const Nrrd *ngrad, int type, int minnum) {
 ** generates num random unit vectors of type double
 */
 int
-tenGradientRandom(Nrrd *ngrad, int num, int srand) {
+tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
   char me[]="tenGradientRandom", err[AIR_STRLEN_MED];
   double *grad, len;
-  int gi;
+  unsigned int gi;
   
   if (nrrdMaybeAlloc(ngrad, nrrdTypeDouble, 2, 3, num)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
   if (srand) {
-    airSrand48(airTime());
+    airSrand48((int)airTime());
   }
   grad = (double*)(ngrad->data);
   for (gi=0; gi<num; gi++) {
@@ -120,7 +123,7 @@ int
 tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
   char me[]="tenGradientJitter", err[AIR_STRLEN_MED];
   double *grad, perp0[3], perp1[3], len, theta, cc, ss;
-  int gi;
+  unsigned int gi;
 
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
     sprintf(err, "%s: trouble converting input to double", me);
@@ -306,7 +309,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                       tenGradientParm *tgparm) {
   char me[]="tenGradientDistribute", err[AIR_STRLEN_MED], *serr,
     filename[AIR_STRLEN_SMALL];
-  int gi, iter;
+  unsigned int gi, iter;
   airArray *mop;
   Nrrd *nvel, *npos, *nveltmp, *npostmp, *ndvdt, *ndpdt;
   double *grad, len, meanVelocity;
@@ -416,7 +419,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
 }
 
 int
-tenGradientGenerate(Nrrd *nout, int num, tenGradientParm *tgparm) {
+tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   char me[]="tenGradientGenerate", err[AIR_STRLEN_MED];
   Nrrd *nin;
   airArray *mop;

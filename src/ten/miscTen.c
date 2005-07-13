@@ -27,8 +27,9 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
            double cthresh, double gamma,
            double bgGray, double isoGray) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX];
-  float *tdata, *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1];
+  size_t size[NRRD_DIM_MAX];
+  const float *tdata;
+  float *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1];
   size_t II, NN;
 
   if (!(nout && nin)) {
@@ -55,8 +56,8 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
     biffMove(TEN, err, NRRD); return 1;
   }
   NN = nrrdElementNumber(nin)/7;
-  cdata = nout->data;
-  tdata = nin->data;
+  cdata = (float *)nout->data;
+  tdata = (float *)nin->data;
   for (II=0; II<NN; II++) {
     /* tenVerbose = (II == (50 + 64*(32 + 64*0))); */
     tenEigensolve_f(eval, evec, tdata);
@@ -110,7 +111,7 @@ tenEvqOne(float vec[3], float scl) {
   ELL_3V_SCALE(vec, 1/L1, vec);
   scl = AIR_CLAMP(0.0, scl, 1.0);
   scl = pow(scl, 0.75);
-  AIR_INDEX(0.0, scl, 1.0, 6, mi);
+  mi = airIndex(0.0, scl, 1.0, 6);
   if (mi) {
     switch (mi) {
     case 1: bins = 16; base = 1;                                 break;
@@ -122,8 +123,8 @@ tenEvqOne(float vec[3], float scl) {
       fprintf(stderr, "%s: PANIC: mi = %d\n", me, mi);
       exit(0);
     }
-    AIR_INDEX(-1, vec[0]+vec[1], 1, bins, vi);
-    AIR_INDEX(-1, vec[0]-vec[1], 1, bins, ui);
+    vi = airIndex(-1, vec[0]+vec[1], 1, bins);
+    ui = airIndex(-1, vec[0]-vec[1], 1, bins);
     ret = vi*bins + ui + base;
   }
   else {
@@ -138,7 +139,8 @@ tenEvqVolume(Nrrd *nout,
   char me[]="tenEvqVolume", err[AIR_STRLEN_MED];
   int sx, sy, sz, map[3];
   short *qdata;
-  float *tdata, eval[3], evec[9], c[TEN_ANISO_MAX+1], an;
+  const float *tdata;
+  float eval[3], evec[9], c[TEN_ANISO_MAX+1], an;
   size_t N, I;
 
   if (!(nout && nin)) {
@@ -167,8 +169,8 @@ tenEvqVolume(Nrrd *nout,
     biffMove(TEN, err, NRRD); return 1;
   }
   N = sx*sy*sz;
-  tdata = nin->data;
-  qdata = nout->data;
+  tdata = (float *)nin->data;
+  qdata = (short *)nout->data;
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tdata);
     if (scaleByAniso) {
@@ -204,12 +206,13 @@ tenBMatrixCheck(const Nrrd *nbmat) {
     biffMove(TEN, err, NRRD); return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
-    sprintf(err, "%s: need a 6xN 2-D array (not a %dx? %d-D array)",
+    sprintf(err, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
+            "x? %d-D array)",
             me, nbmat->axis[0].size, nbmat->dim);
     biffAdd(TEN, err); return 1;
   }
   if (!( 6 <= nbmat->axis[1].size )) {
-    sprintf(err, "%s: have only %d rows, need at least 6",
+    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " rows, need at least 6",
             me, nbmat->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
@@ -234,7 +237,7 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
   float *hist, *histD, *histDD;
   airArray *mop;
-  int maxbb, bb, bins;
+  size_t bins, maxbb, bb;
   NrrdRange *range;
 
   /*

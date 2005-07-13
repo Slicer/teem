@@ -49,13 +49,14 @@ _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
 
 
 int
-_tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
+_tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
                 int reference,
                 float bwX, float bwY, float DWthr,
                 const NrrdKernel *kern, double *kparm) {
   char me[]="_tenEpiRegCheck", err[AIR_STRLEN_MED];
-  int ni;
+  unsigned int ni;
 
+  AIR_UNUSED(DWthr);
   if (!( nout && ndwi && ngrad && kern && kparm )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
@@ -65,7 +66,8 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
     biffAdd(TEN, err); return 1;
   }
   if (dwiLen != ngrad->axis[1].size) {
-    sprintf(err, "%s: got %d DWIs, but %d gradient directions", me,
+    sprintf(err, "%s: got %u DWIs, but " _AIR_SIZE_T_CNV 
+            " gradient directions", me,
             dwiLen, ngrad->axis[1].size);
     biffAdd(TEN, err); return 1;
   }
@@ -88,7 +90,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, int dwiLen, Nrrd *ngrad,
             ndwi[0]->dim);
     biffAdd(TEN, err); return 1;
   }
-  if (!( AIR_IN_CL(-1, reference, dwiLen-1) )) {
+  if (!( AIR_IN_CL(-1, reference, (int)dwiLen-1) )) {
     sprintf(err, "%s: reference index %d not in valid range [-1,%d]", 
             me, reference, dwiLen-1);
     biffAdd(TEN, err); return 1;
@@ -214,7 +216,7 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
     }
     range = nrrdRangeNix(range);
   }
-  bins = AIR_MIN(1024, max - min + 1);
+  bins = AIR_MIN(1024, (int)(max - min + 1));
   ntmp->axis[0].min = min;
   ntmp->axis[0].max = max;
   for (ni=0; ni<ninLen; ni++) {
@@ -297,7 +299,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
 int
 _tenEpiRegBB(Nrrd *nval, Nrrd *nsize) {
   unsigned char *val;
-  int ci, *size, big;
+  int *size, big;
+  unsigned int ci;
 
   val = (unsigned char *)(nval->data);
   size = (int *)(nsize->data);
@@ -890,7 +893,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
   
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
-  supp = kern->support(kparm);
+  supp = (int)kern->support(kparm);
   ins = nrrdDInsert[nout->type];
   clamp = nrrdDClamp[nout->type];
 
@@ -900,7 +903,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
     wght = (float*)(nwght->data);
     for (yi=0; yi<sy; yi++) {
       pp = hh*(xi - cx) + ss*(yi - cy) + tt + cy;
-      pb = floor(pp);
+      pb = (int)floor(pp);
       pf = pp - pb;
       for (pi=-(supp-1); pi<=supp; pi++) {
         idx[pi+(supp-1)] = AIR_CLAMP(0, pb + pi, sy-1);
@@ -958,7 +961,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
   sz = nin[0]->axis[2].size;
   cx = sx/2.0;
   cy = sy/2.0;
-  supp = kern->support(kparm);
+  supp = (int)kern->support(kparm);
   if (nrrdMaybeAlloc(nwght, nrrdTypeFloat, 2, 2*supp, sy)
       || nrrdMaybeAlloc(nidx, nrrdTypeInt, 2, 2*supp, sy)) {
     sprintf(err, "%s: trouble allocating buffers", me);
@@ -997,7 +1000,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
 }
 
 int
-tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
+tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
                  int reference,
                  double bwX, double bwY, double fitFrac,
                  double DWthr, int doCC, 
@@ -1006,7 +1009,8 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, int ninLen, Nrrd *_ngrad,
   char me[]="tenEpiRegister3D", err[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nhst, *ngrad;
-  int i, hack1, hack2;
+  int hack1, hack2;
+  unsigned int i;
 
   hack1 = nrrdStateAlwaysSetContent;
   hack2 = nrrdStateDisableContent;

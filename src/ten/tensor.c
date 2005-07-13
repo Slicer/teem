@@ -66,7 +66,8 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
     if (useBiff) biffAdd(TEN, err); return 1;
   }
   if (!(7 == nin->axis[0].size)) {
-    sprintf(err, "%s: axis 0 has size %d, not 7", me, nin->axis[0].size);
+    sprintf(err, "%s: axis 0 has size " _AIR_SIZE_T_CNV ", not 7", 
+            me, nin->axis[0].size);
     if (useBiff) biffAdd(TEN, err); return 1;
   }
   return 0;
@@ -116,7 +117,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nout->axis[0].label = airFree(nout->axis[0].label);
+  nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("matrix");
 
   return 0;
@@ -125,7 +126,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
 int
 tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   char me[]="tenShrink", err[AIR_STRLEN_MED];
-  int sx, sy, sz;
+  size_t sx, sy, sz;
   float *seven, *conf, *nine;
   size_t I, N;
   
@@ -137,7 +138,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
          4 == tnine->dim &&
          9 == tnine->axis[0].size )) {
     sprintf(err, "%s: type not %s (was %s) or dim not 4 (was %d) "
-            "or first axis size not 9 (was %d)", me,
+            "or first axis size not 9 (was " _AIR_SIZE_T_CNV ")", me,
             airEnumStr(nrrdType, nrrdTypeFloat),
             airEnumStr(nrrdType, tnine->type),
             tnine->dim, tnine->axis[0].size);
@@ -164,9 +165,9 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
     sprintf(err, "%s: trouble allocating output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  seven = tseven->data;
-  conf = nconf ? nconf->data : NULL;
-  nine = tnine->data;
+  seven = (float *)tseven->data;
+  conf = nconf ? (float *)nconf->data : NULL;
+  nine = (float *)tnine->data;
   N = sx*sy*sz;
   for (I=0; I<N; I++) {
     TEN_M2T(seven, nine);
@@ -184,7 +185,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  tseven->axis[0].label = airFree(tseven->axis[0].label);
+  tseven->axis[0].label = (char *)airFree(tseven->axis[0].label);
   tseven->axis[0].label = airStrdup("tensor");
 
   return 0;
@@ -206,7 +207,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
 ** This does NOT use biff
 */
 int
-tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
+tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
   double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
   
@@ -262,7 +263,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], float t[7]) {
 }
 
 int
-tenEigensolve_d(double _eval[3], double evec[9], double t[7]) {
+tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   double m[9], eval[3], trc, iso[9];
   int ret;
   
@@ -354,7 +355,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
 int
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   char me[]="tenTensorMake", err[AIR_STRLEN_MED];
-  int sx, sy, sz;
+  size_t sx, sy, sz;
   size_t I, N;
   float *out, *conf, *eval, *evec;
   int map[4];
@@ -393,7 +394,10 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
          sx == neval->axis[1].size &&
          sy == neval->axis[2].size &&
          sz == neval->axis[3].size )) {
-    sprintf(err, "%s: second nrrd sizes wrong: (%d,%d,%d,%d) not (3,%d,%d,%d)",
+    sprintf(err, "%s: second nrrd sizes wrong: (" 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ") not (3," 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")",
             me, neval->axis[0].size, neval->axis[1].size,
             neval->axis[2].size, neval->axis[3].size,
             sx, sy, sz);
@@ -403,7 +407,10 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
          sx == nevec->axis[1].size &&
          sy == nevec->axis[2].size &&
          sz == nevec->axis[3].size )) {
-    sprintf(err, "%s: third nrrd sizes wrong: (%d,%d,%d,%d) not (9,%d,%d,%d)",
+    sprintf(err, "%s: third nrrd sizes wrong: (" 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ") not (9," 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")",
             me, nevec->axis[0].size, nevec->axis[1].size,
             nevec->axis[2].size, nevec->axis[3].size,
             sx, sy, sz);
@@ -432,14 +439,15 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nout->axis[0].label = airFree(nout->axis[0].label);
+  nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("tensor");
 
   return 0;
 }
 
 int
-tenSlice(Nrrd *nout, const Nrrd *nten, int axis, int pos, int dim) {
+tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
+         size_t pos, unsigned int dim) {
   Nrrd *nslice, *ncoeff[4];
   int ci[4];
   char me[]="tenSlice", err[AIR_STRLEN_MED];
@@ -457,12 +465,13 @@ tenSlice(Nrrd *nout, const Nrrd *nten, int axis, int pos, int dim) {
     sprintf(err, "%s: given dim (%d) not 2 or 3", me, dim);
     biffAdd(TEN, err); return 1;
   }
-  if (!(AIR_IN_CL(0, axis, 2))) {
-    sprintf(err, "%s: axis %d not in valid range [0,1,2]", me, axis);
+  if (!( axis <= 2 )) {
+    sprintf(err, "%s: axis %u not in valid range [0,1,2]", me, axis);
     biffAdd(TEN, err); return 1;
   }
-  if (!(AIR_IN_CL(0, pos, nten->axis[1+axis].size-1))) {
-    sprintf(err, "%s: slice position %d not in valid range [0..%d]", me,
+  if (!( pos < nten->axis[1+axis].size )) {
+    sprintf(err, "%s: slice position " _AIR_SIZE_T_CNV 
+            " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
             pos, nten->axis[1+axis].size-1);
     biffAdd(TEN, err); return 1;
   }

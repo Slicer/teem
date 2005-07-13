@@ -34,10 +34,8 @@ _ra2t(Nrrd *nten, double rad, double angle,
   sy = nten->axis[2].size;
   x = rad*sin(AIR_PI*angle/180);
   y = rad*cos(AIR_PI*angle/180);
-  AIR_INDEX(0.0, x, sqrt(3.0)/2.0, sx, xi);
-  xi = AIR_CLAMP(0, xi, sx-1);
-  AIR_INDEX(0.0, y, 0.5, sy, yi);
-  yi = AIR_CLAMP(0, yi, sy-1);
+  xi = airIndexClamp(0.0, x, sqrt(3.0)/2.0, sx);
+  yi = airIndexClamp(0.0, y, 0.5, sy);
   ELL_3V_SET(VV, 0, 3, 0);
   ELL_3V_SET(EE, 1.5, 1.5, 0);
   ELL_3V_SET(CC, 1, 1, 1);

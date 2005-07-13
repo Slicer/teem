@@ -88,8 +88,8 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   N = sx*sy*sz;
-  edata = nout->data;
-  tdata = nin->data;
+  edata = (float *)nout->data;
+  tdata = (float *)nin->data;
   if (1 == compLen) {
     ELL_3V_SET(map, 1, 2, 3);
     for (I=0; I<N; I++) {
@@ -119,7 +119,7 @@ tend_evalMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   if (1 != compLen) {
-    nout->axis[0].label = airFree(nout->axis[0].label);
+    nout->axis[0].label = (char *)airFree(nout->axis[0].label);
     nout->axis[0].kind = nrrdKindUnknown;
   }
 

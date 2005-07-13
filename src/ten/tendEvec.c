@@ -84,8 +84,8 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   N = sx*sy*sz;
-  edata = nout->data;
-  tdata = nin->data;
+  edata = (float *)nout->data;
+  tdata = (float *)nin->data;
   if (1 == compLen) {
     for (I=0; I<N; I++) {
       tenEigensolve_f(eval, evec, tdata);
@@ -116,7 +116,7 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  nout->axis[0].label = airFree(nout->axis[0].label);
+  nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].kind = nrrdKindUnknown;
 
   if (nrrdSave(outS, nout, NULL)) {

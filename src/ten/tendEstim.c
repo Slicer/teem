@@ -43,7 +43,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
   float thresh, soft, b, scale;
-  int dwiax, ninLen, eret, knownB0, axmap[4];
+  int dwiax, eret, knownB0;
+  unsigned int ninLen, axmap[4];
 
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the tensor "

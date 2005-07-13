@@ -39,7 +39,7 @@ char *_tend_glyphInfoL =
 
 int
 _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
-                   int *numCamsP, FILE *fin) {
+                   unsigned int *numCamsP, FILE *fin) {
   char me[]="_tendGlyphReadCams", err[AIR_STRLEN_MED];
   char line[AIR_STRLEN_HUGE];
   int ki;
@@ -111,8 +111,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3], buvne[5], shadow;
-  int ires[2], slice[2], nobg, hacknumcam, hackci,
-    hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
+  int ires[2], slice[2], nobg;
+  unsigned int hackci, hacknumcam;
+  size_t hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
   char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
   FILE *hackF;
   Nrrd *hacknpng, *hacknrgb;

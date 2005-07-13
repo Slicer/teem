@@ -25,7 +25,7 @@ tenGlyphParm *
 tenGlyphParmNew() {
   tenGlyphParm *parm;
 
-  parm = calloc(1, sizeof(tenGlyphParm));
+  parm = (tenGlyphParm *)calloc(1, sizeof(tenGlyphParm));
   if (parm) {
     parm->verbose = 0;
     parm->nmask = NULL;
@@ -50,8 +50,8 @@ tenGlyphParmNew() {
     ELL_4V_SET(parm->ADSP, 0, 1, 0, 30);
 
     parm->doSlice = AIR_FALSE;
-    parm->sliceAxis = -1;
-    parm->slicePos = -1;
+    parm->sliceAxis = 0;
+    parm->slicePos = 0;
     parm->sliceAnisoType = tenAnisoUnknown;
     parm->sliceOffset = 0.0;
     parm->sliceBias = 0.05;
@@ -63,14 +63,16 @@ tenGlyphParmNew() {
 tenGlyphParm *
 tenGlyphParmNix(tenGlyphParm *parm) {
 
-  return airFree(parm);
+  airFree(parm);
+  return NULL;
 }
 
 int
 tenGlyphParmCheck(tenGlyphParm *parm,
                   const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
   char me[]="tenGlyphParmCheck", err[AIR_STRLEN_MED];
-  int duh, tenSize[3];
+  int duh;
+  size_t tenSize[3];
 
   if (!(parm && nten)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -107,7 +109,8 @@ tenGlyphParmCheck(tenGlyphParm *parm,
            && parm->nmask->axis[0].size == nten->axis[1].size
            && parm->nmask->axis[1].size == nten->axis[2].size
            && parm->nmask->axis[2].size == nten->axis[3].size )) {
-      sprintf(err, "%s: mask isn't 3-D or doesn't have sizes (%d,%d,%d)", me,
+      sprintf(err, "%s: mask isn't 3-D or doesn't have sizes ("
+              _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", me,
               nten->axis[1].size, nten->axis[2].size, nten->axis[3].size);
       biffAdd(TEN, err); return 1;
     }
@@ -126,13 +129,13 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       sprintf(err, "%s: can't do slice with explicit coordinate list", me);
       biffAdd(TEN, err); return 1;
     }
-    if (!( AIR_IN_CL(0, parm->sliceAxis, 2) )) {
+    if (!( parm->sliceAxis <=2 )) {
       sprintf(err, "%s: slice axis %d invalid", me, parm->sliceAxis);
       biffAdd(TEN, err); return 1;
     }
-    if (!( AIR_IN_CL(0, parm->slicePos,
-                     nten->axis[1+parm->sliceAxis].size-1) )) {
-      sprintf(err, "%s: slice pos %d not in valid range [0..%d]", me,
+    if (!( parm->slicePos < nten->axis[1+parm->sliceAxis].size )) {
+      sprintf(err, "%s: slice pos " _AIR_SIZE_T_CNV 
+              " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
               parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
       biffAdd(TEN, err); return 1;
     }
@@ -149,7 +152,9 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       }
       if (!( tenSize[0] == nslc->axis[0].size
              && tenSize[1] == nslc->axis[1].size )) {
-        sprintf(err, "%s: axis %d slice of %dx%dx%d volume is not %dx%d", me,
+        sprintf(err, "%s: axis %u slice of " 
+                _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV 
+                " volume is not " _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV , me,
                 parm->sliceAxis, nten->axis[1].size, nten->axis[2].size,
                 nten->axis[3].size, nslc->axis[0].size, nslc->axis[1].size);
         biffAdd(TEN, err); return 1;
@@ -176,7 +181,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   float cl, cp, *tdata, evec[9], rotEvec[9], eval[3], *cvec,
     aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], msFr[9], tmpvec[3], mB[16],
     R, G, B, qA, qB, glyphAniso, sliceGray;
-  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs, duh,
+  unsigned int duh;
+  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs,
     svRGBAfl=AIR_FALSE;
   limnLook *look; int lookIdx;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
@@ -201,7 +207,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     }
     if (!( 2 == npos->dim && 3 == npos->axis[0].size
            && nten->axis[1].size == npos->axis[1].size )) {
-      sprintf(err, "%s: npos isn't 2-D 3-by-%d array", me, nten->axis[1].size);
+      sprintf(err, "%s: npos isn't 2-D 3-by-" _AIR_SIZE_T_CNV " array", 
+              me, nten->axis[1].size);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
     if (!( nrrdTypeFloat == nten->type && nrrdTypeFloat == npos->type )) {
@@ -339,12 +346,15 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       if (nslc) {
         /* we aren't masked by confidence, as anisotropy slice is */
         for (duh=0; duh<parm->sliceAxis; duh++) {
-          slcCoord[duh] = pI[duh];
+          slcCoord[duh] = (int)(pI[duh]);
         }
         for (duh=duh<parm->sliceAxis; duh<2; duh++) {
-          slcCoord[duh] = pI[duh+1];
+          slcCoord[duh] = (int)(pI[duh+1]);
         }
-        ELL_3V_COPY(slcCoord, pI);
+        /* HEY: GLK has no idea what's going here */
+        slcCoord[0] = (int)(pI[0]);
+        slcCoord[1] = (int)(pI[1]);
+        slcCoord[2] = (int)(pI[2]);
         sliceGray = 
           nrrdFLookup[nslc->type](nslc->data, slcCoord[0] 
                                   + nslc->axis[0].size*slcCoord[1]);

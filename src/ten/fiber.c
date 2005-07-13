@@ -166,12 +166,18 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
 void
 _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
   char me[]="_tenFiberStep_PureLine";
+  
+  AIR_UNUSED(tfx);
+  AIR_UNUSED(step);
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
 }
 
 void
 _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
   char me[]="_tenFiberStep_Zhukov";
+  
+  AIR_UNUSED(tfx);
+  AIR_UNUSED(step);
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
 }
 
@@ -251,8 +257,8 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 */
 int
 tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
-                 double *buff, int halfBuffLen,
-                 int *startIdxP, int *endIdxP,
+                 double *buff, unsigned int halfBuffLen,
+                 unsigned int *startIdxP, unsigned int *endIdxP,
                  double seed[3]) {
   char me[]="tenFiberTraceSet", err[AIR_STRLEN_MED];
   airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
@@ -266,7 +272,8 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     forwDir[3],
     *fiber;                  /* array of both forward and backward points, 
                                 when finished */
-  int i, ret, whyStop, buffIdx, fptsIdx, outIdx, oldStop;
+  int ret, whyStop, buffIdx, fptsIdx, outIdx, oldStop;
+  unsigned int i;
   airArray *mop;
 
   if (!(tfx)) {
@@ -289,7 +296,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 
   /* initialize the quantities which describe the fiber halves */
   tfx->halfLen[0] = tfx->halfLen[1] = 0.0;
-  tfx->numSteps[0] = tfx->numSteps[1] = 0.0;
+  tfx->numSteps[0] = tfx->numSteps[1] = 0;
   tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
 
   /* try probing once */
@@ -312,7 +319,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     if (nfiber) {
       nrrdEmpty(nfiber);
     } else {
-      *startIdxP = *endIdxP = -1;
+      *startIdxP = *endIdxP = 0;
     }
     return 0;
   } else {

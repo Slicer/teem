@@ -47,11 +47,12 @@ tenEMBimodalParm*
 tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
   if (biparm) {
-    biparm->histo = airFree(biparm->histo);
-    biparm->pp1 = airFree(biparm->pp1);
-    biparm->pp2 = airFree(biparm->pp2);
+    biparm->histo = (double *)airFree(biparm->histo);
+    biparm->pp1 = (double *)airFree(biparm->pp1);
+    biparm->pp2 = (double *)airFree(biparm->pp2);
   }
-  return airFree(biparm);
+  airFree(biparm);
+  return NULL;
 }
 
 int
@@ -100,7 +101,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     sprintf(err, "%s: got empty histogram? (median calculation failed)", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  median = medianD;
+  median = (int)medianD;
 
   biparm->pp1 = (double*)calloc(biparm->N, sizeof(double));
   biparm->pp2 = (double*)calloc(biparm->N, sizeof(double));

@@ -45,8 +45,9 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     bmatKeyFmt[] = "DWMRI_B-matrix_%04d",
     nexKeyFmt[] = "DWMRI_NEX_%04d",
     *keyFmt, key[AIR_STRLEN_MED], *val;
-  int axi, dwiAxis, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
+  int dwiAxis, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
     nexNum, nexIdx;
+  unsigned int axi;
   Nrrd *ninfo;
   double *info, normMax, norm;
 
@@ -66,7 +67,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
             modalityKey, val, modalityVal);
     biffAdd(TEN, err); return 1;
   }
-  val = airFree(val);
+  val = (char *)airFree(val);
   
   /* learn b-value */
   val = nrrdKeyValueGet(ndwi, bvalueKey);
@@ -80,7 +81,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
             val, bvalueKey);
     biffAdd(TEN, err); return 1;
   }
-  val = airFree(val);
+  val = (char *)airFree(val);
 
   /* find single DWI axis, set dwiNum to its size */
   dwiAxis = -1;
@@ -116,7 +117,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
       biffAdd(TEN, err); return 1;
     }
   }
-  val = airFree(val);
+  val = (char *)airFree(val);
 
   /* set up parsing and allocate one of output nrrds */
   if (3 == valNum) {
@@ -149,7 +150,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
               me, valNum, val, key, parsedNum);
       biffAdd(TEN, err); return 1;
     }
-    val = airFree(val);
+    val = (char *)airFree(val);
     sprintf(key, nexKeyFmt, dwiIdx);
     val = nrrdKeyValueGet(ndwi, key);
     if (!val) {
@@ -161,7 +162,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
                 "for key \"%s\"", me, val, key);
         biffAdd(TEN, err); return 1;
       }
-      val = airFree(val);
+      val = (char *)airFree(val);
       if (!( nexNum >= 1 )) {
         sprintf(err, "%s: NEX (%d) for DWI %d not >= 1", me, nexNum, dwiIdx);
         biffAdd(TEN, err); return 1;
@@ -175,7 +176,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
         sprintf(key, keyFmt, dwiIdx+nexIdx);
         val = nrrdKeyValueGet(ndwi, key);
         if (val) {
-          val = airFree(val);
+          val = (char *)airFree(val);
           sprintf(err, "%s: shouldn't have key \"%s\" with NEX %d for DWI %d",
                   me, key, nexNum, dwiIdx);
           biffAdd(TEN, err); return 1;
@@ -276,7 +277,8 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
   char me[]="tenEMatrixCalc", err[AIR_STRLEN_MED];
   Nrrd *nbmat, *ntmp;
   airArray *mop;
-  int ri, padmin[2], padmax[2];
+  int padmin[2], padmax[2];
+  unsigned int ri;
   double *bmat;
   
   if (!(nemat && _nbmat)) {
@@ -357,10 +359,10 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
 void
 tenEstimateLinearSingle_f(float *ten, float *B0P,               /* output */
                           const float *dwi, const double *emat, /* input ... */
-                          double *vbuf, int DD, int knownB0,
+                          double *vbuf, unsigned int DD, int knownB0,
                           float thresh, float soft, float b) {
   double logB0, tmp, mean;
-  int ii, jj;
+  unsigned int ii, jj;
   /* char me[]="tenEstimateLinearSingle_f"; */
 
   if (knownB0) {
@@ -435,7 +437,7 @@ tenEstimateLinearSingle_f(float *ten, float *B0P,               /* output */
 */
 int
 tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-                    const Nrrd *const *_ndwi, int dwiLen, 
+                    const Nrrd *const *_ndwi, unsigned int dwiLen, 
                     const Nrrd *_nbmat, int knownB0, 
                     double thresh, double soft, double b) {
   char me[]="tenEstimateLinear3D", err[AIR_STRLEN_MED];
@@ -487,7 +489,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
-  int E, DD, d, II, sx, sy, sz, cmin[4], cmax[4], amap[4];
+  size_t cmin[4], cmax[4];
+  int E, DD, d, II, sx, sy, sz, amap[4];
   float *ten, *dwi1, *dwi2, *terr, 
     _B0, *B0, (*lup)(const void *, size_t);
   double *emat, *bmat, *vbuf;
@@ -509,15 +512,15 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   if (knownB0) {
     if (!( ndwi->axis[0].size == 1 + _nbmat->axis[1].size )) {
-      sprintf(err, "%s: (knownB0 == true) # input images (%d) "
-              "!= 1 + # B matrix rows (1+%d)",
+      sprintf(err, "%s: (knownB0 == true) # input images (" _AIR_SIZE_T_CNV
+              ") != 1 + # B matrix rows (1+" _AIR_SIZE_T_CNV ")",
               me, ndwi->axis[0].size, _nbmat->axis[1].size);
       biffAdd(TEN, err); return 1;
     }
   } else {
     if (!( ndwi->axis[0].size == _nbmat->axis[1].size )) {
-      sprintf(err, "%s: (knownB0 == false) # dwi (%d) != "
-              "# B matrix rows (%d)",
+      sprintf(err, "%s: (knownB0 == false) # dwi (" _AIR_SIZE_T_CNV ") != "
+              "# B matrix rows (" _AIR_SIZE_T_CNV ")",
               me, ndwi->axis[0].size, _nbmat->axis[1].size);
       biffAdd(TEN, err); return 1;
     }
@@ -686,11 +689,11 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 void
 tenSimulateOne_f(float *dwi,
                  float B0, const float *ten, const double *bmat,
-                 int DD, float b) {
+                 unsigned int DD, float b) {
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
-  int ii, jj;
+  unsigned int ii, jj;
   
   dwi[0] = B0;
   /* if (tenVerbose) {
@@ -717,7 +720,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   char me[]="tenSimulate", err[AIR_STRLEN_MED];
   size_t II;
   Nrrd *nbmat;
-  int DD, sx, sy, sz;
+  size_t DD, sx, sy, sz;
   airArray *mop;
   double *bmat;
   float *dwi, *ten, (*lup)(const void *, size_t I);
@@ -743,8 +746,11 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
         && sx == nten->axis[1].size
         && sy == nten->axis[2].size
         && sz == nten->axis[3].size)) {
-    sprintf(err, "%s: dimensions of T2 volume (%d,%d,%d) don't match "
-            "tensor volume (%d,%d,%d)", me, sx, sy, sz, nten->axis[1].size,
+    sprintf(err, "%s: dimensions of T2 volume (" 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV 
+            ") don't match tensor volume (" 
+            _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", 
+            me, sx, sy, sz, nten->axis[1].size,
             nten->axis[2].size, nten->axis[3].size);
     biffAdd(TEN, err); return 1;
   }
@@ -922,7 +928,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
   sprintf(cmt, "%s: using thresh = %g, slope = %g, b = %g\n", 
           me, thresh, slope, b);
   nrrdCommentAdd(nout, cmt);
-  out = nout->data;
+  out = (float *)nout->data;
   for (I=0; I<(size_t)(sx*sy*sz); I++) {
     if (tenVerbose && !(I % (sx*sy))) {
       fprintf(stderr, "%s: z = %d of %d\n", me, ((int)I)/(sx*sy), sz-1);

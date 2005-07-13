@@ -133,9 +133,9 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     biffMove(TEN, err, NRRD); return 1;
   }
 
-  conf = nconf->data;
-  eval = neval->data;
-  evec = nevec->data;
+  conf = (float *)nconf->data;
+  eval = (float *)neval->data;
+  evec = (float *)nevec->data;
   for (zi=0; zi<size[2]; zi++) {
     z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
     for (yi=0; yi<size[1]; yi++) {

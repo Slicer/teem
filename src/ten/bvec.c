@@ -100,8 +100,8 @@ int
 tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
                     double *bb, double *ww, int iterMax, double eps) {
   char me[]="tenBVecNonLinearFit", err[AIR_STRLEN_MED];
-  int size[NRRD_DIM_MAX], map[NRRD_DIM_MAX], ii, vecI, vecNum, vecSize,
-    iter;
+  int map[NRRD_DIM_MAX], vecSize, iter;
+  size_t ii, size[NRRD_DIM_MAX], vecI, vecNum;
   char *vec;
   double *out, ss[AIR_STRLEN_SMALL], amp, dec, d_amp, d_dec, error, diff,
     (*vecLup)(const void *v, size_t I);
@@ -116,7 +116,8 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     biffAdd(TEN, err); return 1;
   }
   if (!( nin->axis[0].size < AIR_STRLEN_SMALL )) {
-    sprintf(err, "%s: sorry need nin->axis[0].size (%d) < %d", 
+    sprintf(err, "%s: sorry need nin->axis[0].size (" 
+            _AIR_SIZE_T_CNV ") < %d", 
             me, nin->axis[0].size, AIR_STRLEN_SMALL);
     biffAdd(TEN, err); return 1;
   }

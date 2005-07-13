@@ -37,7 +37,8 @@ tend_bfitMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nin, *nout;
   double *bb, *ww, *_ww, eps;
-  int ii, bbLen, _wwLen, iterMax;
+  unsigned int ii, bbLen, _wwLen;
+  int iterMax;
   char *outS;
 
   hparm->respFileEnable = AIR_TRUE;
@@ -64,13 +65,15 @@ tend_bfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!( bbLen == nin->axis[0].size )) {
-    fprintf(stderr, "%s: got %d b-values but axis 0 size is %d\n", me,
+    fprintf(stderr, "%s: got %d b-values but axis 0 size is " 
+            _AIR_SIZE_T_CNV "\n", me,
             bbLen, nin->axis[0].size);
     airMopError(mop); return 1;
   }
   if (AIR_EXISTS(_ww[0])) {
     if (!( _wwLen == nin->axis[0].size )) {
-      fprintf(stderr, "%s: got %d weights but axis 0 size is %d\n", me,
+      fprintf(stderr, "%s: got %d weights but axis 0 size is " 
+              _AIR_SIZE_T_CNV "\n", me,
               _wwLen, nin->axis[0].size);
       airMopError(mop); return 1;
     }

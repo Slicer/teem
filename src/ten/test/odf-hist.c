@@ -31,7 +31,8 @@ main(int argc, char *argv[]) {
 
   char *errS, *outS, *covarS;
   Nrrd *_nodf, *nvec, *nhist, *ncovar;
-  int bins, size[NRRD_DIM_MAX];
+  int bins;
+  size_t size[NRRD_DIM_MAX];
   float min;
   
   mop = airMopNew();
@@ -92,7 +93,7 @@ main(int argc, char *argv[]) {
 
   {
     /* we modify the lengths of the vectors here */
-    int NN, VV, ii, jj, kk, *anglut;
+    int NN, VV, ii, jj=0, kk, *anglut;
     float *odf, *hist, *covar, *vec, *vi, *vj, tmp, pvmin;
     double *mean;
     Nrrd *nodf, *nanglut;
@@ -135,7 +136,7 @@ main(int argc, char *argv[]) {
         tmp = ELL_3V_DOT(vi, vj);
         tmp = AIR_ABS(tmp);
         tmp = acos(tmp)/(AIR_PI/2.0);
-        AIR_INDEX(0.0, tmp, 1.0, bins, anglut[ii + VV*jj]);
+        anglut[ii + VV*jj] = airIndex(0.0, tmp, 1.0, bins);
       }
     }
 

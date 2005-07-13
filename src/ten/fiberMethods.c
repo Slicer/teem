@@ -63,7 +63,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
     sprintf(err, "%s: didn't get a tensor volume", me);
     biffAdd(TEN, err); return NULL;
   }
-  if (!( tfx = calloc(1, sizeof(tenFiberContext)) )) {
+  if (!( tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext)) )) {
     /* that is not good */
     return NULL;
   }

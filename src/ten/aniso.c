@@ -113,10 +113,10 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
 }
 
 int
-tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
+tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
   char me[]="tenAnisoMap", err[AIR_STRLEN_MED];
   float *out, c[TEN_ANISO_MAX+1], tmp;
-  int x, y;
+  unsigned int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
   float S = 1/3.0, L = 1, P = 1/2.0;  /* these make Westin's original
                                          (cl,cp,cs) align with the 
@@ -134,7 +134,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, int res, int whole, int nanout) {
     sprintf(err, "%s: ", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  out = nout->data;
+  out = (float *)nout->data;
   if (whole) {
     ELL_3V_SET(m0, 1, 0, 0);
     ELL_3V_SET(m1, 0, 1, 0);
@@ -192,8 +192,8 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  out = nout->data;
-  in = nin->data;
+  out = (float *)nout->data;
+  in = (float *)nin->data;
   for (I=0; I<=N-1; I++) {
     /* tenVerbose = (I == 911327); */
     tensor = in + I*7;
@@ -229,7 +229,8 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
 }
 
 int
-tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version, int res) {
+tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version,
+                  unsigned int res) {
   char me[]="tenAnisoHistogram", err[AIR_STRLEN_MED];
   size_t N, I;
   int csIdx, clIdx, cpIdx, xi, yi;
@@ -252,8 +253,8 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version, int res) {
     sprintf(err, "%s: ", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  out = nout->data;
-  tdata = nin->data;
+  out = (float *)nout->data;
+  tdata = (float *)nin->data;
   if (1 == version) {
     clIdx = tenAniso_Cl1;
     cpIdx = tenAniso_Cp1;
@@ -270,8 +271,8 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version, int res) {
     cl = c[clIdx];
     cp = c[cpIdx];
     cs = c[csIdx];
-    xi = cs*0 + cl*0 + cp*(res-1);
-    yi = cs*0 + cl*(res-1) + cp*(res-1);
+    xi = (int)(cs*0 + cl*0 + cp*(res-1));
+    yi = (int)(cs*0 + cl*(res-1) + cp*(res-1));
     out[xi + res*yi] += tdata[0];
     tdata += 7;
   }

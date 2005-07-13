@@ -44,7 +44,8 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   NrrdKernelSpec *ksp;
   Nrrd **nin, **nout3D, *nout4D, *ngrad;
-  int ref, ninLen, noverbose, progress, nocc, ni, baseNum;
+  unsigned int ni, ninLen;
+  int ref, noverbose, progress, nocc, baseNum;
   float bw[2], thr, fitFrac;
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,

@@ -93,7 +93,9 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
 void
 _tenGageIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
-  
+
+  AIR_UNUSED(ctx);
+  AIR_UNUSED(pvl);
   fprintf(file, "_tenGageIv3Print() not implemented\n");
 }
 
