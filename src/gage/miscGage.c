@@ -127,8 +127,9 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
   Nrrd *npad;
   char me[]="_gageStandardPadder", err[AIR_STRLEN_MED];
 
+  int i, amin[NRRD_DIM_MAX], amax[NRRD_DIM_MAX], baseDim;
+
   AIR_UNUSED(pvl);
-  int i, min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], baseDim;
 
   if (!(nin && kind)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -147,16 +148,16 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
   } else {
     npad = nrrdNew();
     for (i=0; i<baseDim; i++) {
-      min[i] = 0;
-      max[i] = nin->axis[i].size - 1;
+      amin[i] = 0;
+      amax[i] = nin->axis[i].size - 1;
     }
-    min[0 + baseDim] = -padding;
-    min[1 + baseDim] = -padding;
-    min[2 + baseDim] = -padding;
-    max[0 + baseDim] = nin->axis[0 + baseDim].size - 1 + padding;
-    max[1 + baseDim] = nin->axis[1 + baseDim].size - 1 + padding;
-    max[2 + baseDim] = nin->axis[2 + baseDim].size - 1 + padding;
-    if (nrrdPad(npad, nin, min, max, nrrdBoundaryBleed)) {
+    amin[0 + baseDim] = -padding;
+    amin[1 + baseDim] = -padding;
+    amin[2 + baseDim] = -padding;
+    amax[0 + baseDim] = nin->axis[0 + baseDim].size - 1 + padding;
+    amax[1 + baseDim] = nin->axis[1 + baseDim].size - 1 + padding;
+    amax[2 + baseDim] = nin->axis[2 + baseDim].size - 1 + padding;
+    if (nrrdPad(npad, nin, amin, amax, nrrdBoundaryBleed)) {
       sprintf(err, "%s: trouble padding input volume", me);
       biffMove(GAGE, err, NRRD); return NULL;
     }
