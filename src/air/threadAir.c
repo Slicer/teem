@@ -447,7 +447,8 @@ airThreadJoin(airThread *thread, void **retP) {
 airThread *
 airThreadNix(airThread *thread) {
 
-  return airFree(thread);
+  airFree(thread);
+  return NULL;
 }
 
 airThreadMutex *
@@ -480,8 +481,9 @@ airThreadMutexUnlock(airThreadMutex *mutex) {
 
 airThreadMutex *
 airThreadMutexNix(airThreadMutex *mutex) {
-  
-  return airFree(mutex);
+
+  airFree(mutex);
+  return NULL;
 }
 
 airThreadCond *
@@ -525,7 +527,8 @@ airThreadCondBroadcast(airThreadCond *cond) {
 airThreadCond *
 airThreadCondNix(airThreadCond *cond) {
 
-  return airFree(cond);
+  airFree(cond);
+  return NULL;
 }
 
 /* ------------------------------------------------------------------ */
