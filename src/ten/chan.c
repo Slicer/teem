@@ -277,7 +277,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
   char me[]="tenEMatrixCalc", err[AIR_STRLEN_MED];
   Nrrd *nbmat, *ntmp;
   airArray *mop;
-  int padmin[2], padmax[2];
+  ptrdiff_t padmin[2], padmax[2];
   unsigned int ri;
   double *bmat;
   
