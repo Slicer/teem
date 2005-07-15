@@ -90,7 +90,9 @@ baneFindInclusion(double min[3], double max[3],
     aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
   int sx, sy, sz, x, y, z, E, ai;
   baneInc *inc[3];
+  /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   Nrrd *hist[3];
+  */
   double val[3];
   
   /* conveniance copies */
@@ -161,12 +163,14 @@ baneFindInclusion(double min[3], double max[3],
   }
   if (hvp->verbose)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
+  /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass A; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
             hist[0]->axis[0].min, hist[0]->axis[0].max, 
             hist[1]->axis[0].min, hist[1]->axis[0].max, 
             hist[2]->axis[0].min, hist[2]->axis[0].max);
   }
+  */
 
   /* second stage of initialization, includes creating histograms */
   if (hvp->verbose) {
@@ -204,12 +208,14 @@ baneFindInclusion(double min[3], double max[3],
   }
   if (hvp->verbose)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
+  /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass B; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
             hist[0]->axis[0].min, hist[0]->axis[0].max, 
             hist[1]->axis[0].min, hist[1]->axis[0].max, 
             hist[2]->axis[0].min, hist[2]->axis[0].max);
   }
+  */
 
   /* now the real work of determining the inclusion */
   if (hvp->verbose) {
@@ -237,9 +243,11 @@ baneFindInclusion(double min[3], double max[3],
   if (hvp->verbose)
     fprintf(stderr, "done\n");
 
+  /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   nrrdNuke(hist[0]);
   nrrdNuke(hist[1]);
   nrrdNuke(hist[2]);
+  */
   return 0;
 }
 

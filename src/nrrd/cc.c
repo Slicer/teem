@@ -93,8 +93,10 @@ int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
-  double pvl[5], vl=0;
-  int id, pid[5], (*lup)(const void *, size_t), *out;
+  double vl=0, pvl[5]={AIR_NAN,AIR_NAN,AIR_NAN,AIR_NAN,AIR_NAN};
+  /* got warnings about pvl$3, pvl$4 may be used unintialized; 
+     this should foul things up if if that's true */
+  int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
   int p, x, y, sx, sy;
 
   id = 0; /* sssh! compiler warnings */
