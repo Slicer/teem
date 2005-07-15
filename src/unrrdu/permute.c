@@ -33,7 +33,8 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  unsigned int perm[NRRD_DIM_MAX], permLen;
+  unsigned int perm[NRRD_DIM_MAX];
+  unsigned int permLen;
   int pret;
   airArray *mop;
 
@@ -51,7 +52,10 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
+  
+  fprintf(stderr, "%s: perm = (%d %d %d) ... (%u %u %u) \n", me,
+          perm[0], perm[1], perm[2], 
+          perm[0], perm[1], perm[2]);
   if (!( permLen == nin->dim )) {
     fprintf(stderr,
             "%s: # axes in permutation (%d) != nrrd dim (%d)\n",
