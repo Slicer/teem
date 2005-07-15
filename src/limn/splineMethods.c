@@ -243,7 +243,7 @@ limnSplineNix(limnSpline *spline) {
 int
 limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   char me[]="limnSplineNrrdCleverFix", err[AIR_STRLEN_MED];
-  int min[3], max[3];
+  ptrdiff_t min[3], max[3];
   size_t N;
   unsigned int wantSize;
   Nrrd *ntmpA, *ntmpB;
