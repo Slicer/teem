@@ -688,7 +688,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
             : (airTypeOther == type
                ? opt[op].CB->size
                : airTypeSize[type]));
-    cP = (char *)vP = opt[op].valueP;
+    cP = (char *)(vP = opt[op].valueP);
     if (parm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", 
              me, op, numOpts-1, prms[op], ident, opt[op].kind, type,
