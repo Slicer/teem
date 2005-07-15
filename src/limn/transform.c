@@ -50,7 +50,6 @@ limnObjectFaceNormals(limnObject *obj, int space) {
   char me[]="limnObjectFaceNormals", err[AIR_STRLEN_MED];
   unsigned int vii, faceIdx;
   limnFace *face;
-  limnPart *part;
   limnVertex *vert0, *vert1, *vert2;
   float vec1[3], vec2[3], cross[3], nn[3], norm;
 
@@ -62,7 +61,6 @@ limnObjectFaceNormals(limnObject *obj, int space) {
   }
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part[face->partIdx];
     /* add up cross products at all vertices */
     ELL_3V_SET(nn, 0, 0, 0);
     for (vii=0; vii<face->sideNum; vii++) {
@@ -332,13 +330,11 @@ int
 limnObjectDepthSortFaces(limnObject *obj) {
   limnFace *face;
   limnVertex *vert;
-  limnPart *part;
   unsigned int faceIdx, vii;
 
   obj->faceSort = (limnFace **)calloc(obj->faceNum, sizeof(limnFace *));
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    part = obj->part[face->partIdx];
     face->depth = 0;
     for (vii=0; vii<face->sideNum; vii++) {
       vert = obj->vert + face->vertIdx[vii];

@@ -107,13 +107,11 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   unsigned int vii;
   limnVertex *vert;
   limnLook *look;
-  limnPart *part;
   int qn;
   float *map, R, G, B;
 
   AIR_UNUSED(cam);
   look = obj->look + face->lookIdx;
-  part = obj->part[face->partIdx];
   for (vii=0; vii<face->sideNum; vii++) {
     vert = obj->vert + face->vertIdx[vii];
     fprintf(win->file, "%g %g %s\n", 
@@ -149,10 +147,8 @@ void
 _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
                 limnCamera *cam, limnWindow *win) {
   limnVertex *vert0, *vert1;
-  limnPart *part;
 
   AIR_UNUSED(cam);
-  part = obj->part[edge->partIdx];
   if (win->ps.lineWidth[edge->type]) {
     vert0 = obj->vert + edge->vertIdx[0];
     vert1 = obj->vert + edge->vertIdx[1];
