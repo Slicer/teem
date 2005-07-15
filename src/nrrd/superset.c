@@ -421,7 +421,7 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
   }
   strcpy(buff1, "");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s[%d,%d]", (ai ? "x" : ""), min[ai], max[ai]);
+    sprintf(buff2, "%s[%ld,%ld]", (ai ? "x" : ""), min[ai], max[ai]); /* HEY AIR_PTRDIFF_T_CNV */
     strcat(buff1, buff2);
   }
   if (nrrdBoundaryPad == boundary) {
@@ -464,7 +464,7 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
 ** nrrdPad() instead of the other way around.
 */
 int
-nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const int *min, const int *max,
+nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
             int boundary, double padValue) {
   char me[]="nrrdPad_nva", err[AIR_STRLEN_MED];
   int E;
