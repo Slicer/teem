@@ -313,11 +313,11 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
             airEnumStr(nrrdBoundary, nrrdBoundaryPad));
     biffAdd(NRRD, err); return 1;
   }
+  va_start(ap, boundary);
   if (nrrdBoundaryPad == boundary) {
-    va_start(ap, boundary);
     padValue = va_arg(ap, double);
-    va_end(ap);
   }
+  va_end(ap);
   switch(boundary) {
   case nrrdBoundaryPad:
   case nrrdBoundaryBleed:
@@ -421,7 +421,8 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
   }
   strcpy(buff1, "");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s[%ld,%ld]", (ai ? "x" : ""), min[ai], max[ai]); /* HEY AIR_PTRDIFF_T_CNV */
+    sprintf(buff2, "%s[" _AIR_PTRDIFF_T_CNV "," _AIR_PTRDIFF_T_CNV "]", 
+            (ai ? "x" : ""), min[ai], max[ai]);
     strcat(buff1, buff2);
   }
   if (nrrdBoundaryPad == boundary) {
@@ -509,14 +510,14 @@ nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
     min[ai] = -pad;
     max[ai] = nin->axis[ai].size-1 + pad;
   }
+  va_start(ap, boundary);
   if (nrrdBoundaryPad == boundary) {
-    va_start(ap, boundary);
     padValue = va_arg(ap, double);
-    va_end(ap);
     ret = nrrdPad(nout, nin, min, max, boundary, padValue);
   } else {
     ret = nrrdPad(nout, nin, min, max, boundary);
   }
+  va_end(ap);
   if (ret) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
