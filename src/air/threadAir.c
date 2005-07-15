@@ -463,6 +463,7 @@ int
 airThreadMutexLock(airThreadMutex *mutex) {
   char me[]="airThreadMutexLock";
 
+  AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
   }
@@ -473,6 +474,7 @@ int
 airThreadMutexUnlock(airThreadMutex *mutex) {
   char me[]="airThreadMutexUnlock";
 
+  AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all mutex usage is a no-op!\n", me);
   }
@@ -498,6 +500,8 @@ int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
   char me[]="airThreadCondWait";
 
+  AIR_UNUSED(cond);
+  AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
@@ -508,6 +512,7 @@ int
 airThreadCondSignal(airThreadCond *cond) {
   char me[]="airThreadCondSignal";
 
+  AIR_UNUSED(cond);
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
@@ -518,6 +523,7 @@ int
 airThreadCondBroadcast(airThreadCond *cond) {
   char me[]="airThreadCondBroadcast";
 
+  AIR_UNUSED(cond);
   if (airThreadNoopWarning) {
     fprintf(stderr, "%s: WARNING: all cond usage is a no-op!\n", me);
   }
