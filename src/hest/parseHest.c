@@ -128,7 +128,7 @@ _hestResponseFiles(char **newArgv, char **oldArgv,
           printf("_hestResponseFiles: -1-> line: |%s|, incr=%d\n",
                  line, incr);
         airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
-        for (ai=0; ai<=incr-1; ai++) {
+        for (ai=0; ai<incr; ai++) {
           /* This time, we did allocate memory.  */
           airMopAdd(pmop, newArgv[newArgc+ai], airFree, airMopAlways);
         }
@@ -163,7 +163,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 
   numOpts = _hestNumOpts(opt);
   numvar = 0;
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     opt[op].kind = _hestKind(opt + op);
     if (!(AIR_IN_OP(airTypeUnknown, opt[op].type, airTypeLast))) {
       if (err)
@@ -347,16 +347,16 @@ _hestErrStrlen(hestOpt *opt, int argc, char **argv) {
   numOpts = _hestNumOpts(opt);
   other = AIR_FALSE;
   if (argv) {
-    for (a=0; a<=argc-1; a++) {
+    for (a=0; a<argc; a++) {
       ret = AIR_MAX(ret, (int)airStrlen(argv[a]));
     }
   }
-  for (a=0; a<=numOpts-1; a++) {
+  for (a=0; a<numOpts; a++) {
     ret = AIR_MAX(ret, (int)airStrlen(opt[a].flag));
     ret = AIR_MAX(ret, (int)airStrlen(opt[a].name));
     other |= opt[a].type == airTypeOther;
   }
-  for (a=airTypeUnknown+1; a<=airTypeLast-1; a++) {
+  for (a=airTypeUnknown+1; a<airTypeLast; a++) {
     ret = AIR_MAX(ret, (int)airStrlen(airTypeStr[a]));
   }
   if (other) {
@@ -393,7 +393,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
   a = 0;
   if (parm->verbosity) 
     printf("!%s: *argcP = %d\n", me, *argcP);
-  while (a<=*argcP-1) {
+  while (a<*argcP) {
     if (parm->verbosity) 
       printf("!%s: a = %d -> argv[a] = %s\n", me, a, argv[a]);
     flag = _hestWhichFlag(opt, argv[a], parm);
@@ -468,7 +468,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 
   /* make sure that flagged options without default were given */
   numOpts = _hestNumOpts(opt);
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     if (1 != opt[op].kind && opt[op].flag && !opt[op].dflt && !appr[op]) {
       sprintf(err, "%sdidn't get required %s",
               ME, _hestIdent(ident1, opt+op, parm, AIR_FALSE));
@@ -482,7 +482,7 @@ _hestExtractFlagged(char **prms, int *nprm, int *appr,
 int
 _hestNextUnflagged(int op, hestOpt *opt, int numOpts) {
 
-  for(; op<=numOpts-1; op++) {
+  for(; op<numOpts; op++) {
     if (!opt[op].flag)
       break;
   }
@@ -601,7 +601,7 @@ _hestDefaults(char **prms, int *udflt, int *nprm, int *appr,
   int op, numOpts;
 
   numOpts = _hestNumOpts(opt);
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     if (parm->verbosity) 
       printf("%s op=%d/%d: \"%s\" --> kind=%d, nprm=%d, appr=%d\n",
              me, op, numOpts-1, prms[op], opt[op].kind,
@@ -680,7 +680,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
   size_t size;
 
   numOpts = _hestNumOpts(opt);
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     _hestIdent(ident, opt+op, parm, AIR_TRUE);
     type = opt[op].type;
     size = (airTypeEnum == type
@@ -776,7 +776,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           break;
         case airTypeOther:
           prmsCopy = airStrdup(prms[op]);
-          for (p=0; p<=opt[op].min-1; p++) {
+          for (p=0; p<opt[op].min; p++) {
             tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
             strcpy(cberr, "");
             ret = opt[op].CB->parse(cP + p*size, tok, cberr);
@@ -797,7 +797,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           if (opt[op].CB->destroy) {
             /* vP is an array of void*s, we manage the individual void*s */
             opt[op].alloc = 2;
-            for (p=0; p<=opt[op].min-1; p++) {
+            for (p=0; p<opt[op].min; p++) {
               airMopAdd(pmop, ((void**)vP)+p, (airMopper)airSetNull,
                         airMopOnError);
               airMopAdd(pmop, *(((void**)vP)+p), opt[op].CB->destroy,
@@ -818,7 +818,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
           /* vP is an array of char*s, (a char**), and what we manage
              with airMop are the individual vP[p]. */
           opt[op].alloc = 2;
-          for (p=0; p<=opt[op].min-1; p++) {
+          for (p=0; p<opt[op].min; p++) {
             airMopMem(pmop, &(((char**)vP)[p]), airMopOnError);
           }
           break;
@@ -947,7 +947,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
             cP = (char *)*((void**)vP);
             prmsCopy = airStrdup(prms[op]);
             opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
-            for (p=0; p<=nprm[op]-1; p++) {
+            for (p=0; p<nprm[op]; p++) {
               tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
               /* hammerhead problems went away when this line
                  was replaced by the following one:
@@ -956,22 +956,23 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
               cberr[0] = 0;
               ret = opt[op].CB->parse(cP + p*size, tok, cberr);
               if (ret) {
-                if (strlen(cberr))
+                if (strlen(cberr)) {
                   sprintf(err,"%serror parsing \"%s\" (in \"%s\") as %s "
                           "for %s:\n%s", 
                           ME, tok, prms[op], opt[op].CB->type, ident, cberr);
 
-                else 
+                } else {
                   sprintf(err, "%serror parsing \"%s\" (in \"%s\") as %s "
                           "for %s: returned %d", 
                           ME, tok, prms[op], opt[op].CB->type, ident, ret);
+                }
                 free(prmsCopy);
                 return 1;
               }
             }
             free(prmsCopy);
             if (opt[op].CB->destroy) {
-              for (p=0; p<=nprm[op]-1; p++) {
+              for (p=0; p<nprm[op]; p++) {
                 /* avert your eyes.  vP is the address of an array of void*s.
                    We manage the void*s */
                 airMopAdd(pmop, (*((void***)vP))+p, (airMopper)airSetNull,
@@ -995,7 +996,7 @@ _hestSetValues(char **prms, int *udflt, int *nprm, int *appr,
             /* vP is the address of an array of char*s (a char ***), and
                what we manage with airMop is the individual (*vP)[p],
                as well as vP itself (above). */
-            for (p=0; p<=nprm[op]-1; p++) {
+            for (p=0; p<nprm[op]; p++) {
               airMopAdd(pmop, (*((char***)vP))[p], airFree, airMopOnError);
             }
             /* do the NULL-termination described above */
@@ -1087,7 +1088,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
   airMopMem(mop, &udflt, airMopAlways);
   prms = (char **)calloc(numOpts, sizeof(char*));
   airMopMem(mop, &prms, airMopAlways);
-  for (a=0; a<=numOpts-1; a++) {
+  for (a=0; a<numOpts; a++) {
     prms[a] = NULL;
   }
 
@@ -1193,7 +1194,7 @@ hestParseFree(hestOpt *opt) {
   char ***strP;
 
   numOpts = _hestNumOpts(opt);
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     /*
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n", 
            op, numOpts-1, opt[op].kind, opt[op].type, opt[op].alloc);
@@ -1224,25 +1225,25 @@ hestParseFree(hestOpt *opt) {
       break;
     case 2:
       if (airTypeString == opt[op].type) {
-        for (i=0; i<=opt[op].min-1; i++) {
+        for (i=0; i<opt[op].min; i++) {
           str[i] = (char *)airFree(str[i]);
         }
       }
       else {
-        for (i=0; i<=opt[op].min-1; i++) {
+        for (i=0; i<opt[op].min; i++) {
           vP[i] = opt[op].CB->destroy(vP[i]);
         }
       }
       break;
     case 3:
       if (airTypeString == opt[op].type) {
-        for (ui=0; ui<=*(opt[op].sawP)-1; ui++) {
+        for (ui=0; ui<*(opt[op].sawP); ui++) {
           (*strP)[ui] = (char *)airFree((*strP)[ui]);
         }
         *strP = (char **)airFree(*strP);
       }
       else {
-        for (ui=0; ui<=*(opt[op].sawP)-1; ui++) {
+        for (ui=0; ui<*(opt[op].sawP); ui++) {
           (*vAP)[ui] = opt[op].CB->destroy((*vAP)[ui]);
         }
         *vAP = (void **)airFree(*vAP);
