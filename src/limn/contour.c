@@ -458,7 +458,6 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
   }
 
   lctx->nvol = nvol;
-  lctx->lup = nrrdDLookup[nvol->type];
   /* set/allocate things related to volume dimensions */
   nrrdRangeSet(lctx->range, nvol, nrrdBlind8BitRangeFalse);
   if (!( lctx->sx == nvol->axis[0].size &&
@@ -487,27 +486,27 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
     for (yi=0; yi<sy-1; yi++) {
       for (xi=0; xi<sx-1; xi++) {
         vi = xi + sx*(yi + sy*zi);
-        tmp = lctx->lup(data, vi + 0 + 0*sx + 0*sx*sy);
+        tmp = lup(data, vi + 0 + 0*sx + 0*sx*sy);
         min = max = tmp;
-        tmp = lctx->lup(data, vi + 1 + 0*sx + 0*sx*sy);
+        tmp = lup(data, vi + 1 + 0*sx + 0*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 0 + 1*sx + 0*sx*sy);
+        tmp = lup(data, vi + 0 + 1*sx + 0*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 1 + 1*sx + 0*sx*sy);
+        tmp = lup(data, vi + 1 + 1*sx + 0*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 0 + 0*sx + 1*sx*sy);
+        tmp = lup(data, vi + 0 + 0*sx + 1*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 1 + 0*sx + 1*sx*sy);
+        tmp = lup(data, vi + 1 + 0*sx + 1*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 0 + 1*sx + 1*sx*sy);
+        tmp = lup(data, vi + 0 + 1*sx + 1*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
-        tmp = lctx->lup(data, vi + 1 + 1*sx + 1*sx*sy);
+        tmp = lup(data, vi + 1 + 1*sx + 1*sx*sy);
         min = AIR_MIN(min, tmp);
         max = AIR_MAX(max, tmp);
         minI = airIndex(lctx->range->min, min, lctx->range->max, ss);
