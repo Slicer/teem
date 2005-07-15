@@ -33,7 +33,7 @@ SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
 SHARED_INSTALL_NAME = -install_name
 
-ARCH_CFLAG = -W -Wall -Wno-unused-parameter
+ARCH_CFLAG = -W -Wall
 ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)

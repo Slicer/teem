@@ -32,17 +32,17 @@ TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
 ifeq ($(SUBARCH),ia64)
   TEEM_32BIT = 0
-  ARCH_CFLAG = -fPIC -W -Wall -Wno-unused-parameter
+  ARCH_CFLAG = -fPIC -W -Wall
   ARCH_LDFLAG =
 else
   ifeq ($(SUBARCH),amd64)
     TEEM_32BIT = 0
-    ARCH_CFLAG = -fPIC -W -Wall -Wno-unused-parameter
+    ARCH_CFLAG = -fPIC -W -Wall
     ARCH_LDFLAG =
   else
     ifeq ($(SUBARCH),32)
       TEEM_32BIT = 1
-      ARCH_CFLAG = -W -Wall -Wno-unused-parameter
+      ARCH_CFLAG = -W -Wall
       ARCH_LDFLAG = 
     else
       $(error linux sub-architecture "$(SUBARCH)" not recognized)
