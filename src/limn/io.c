@@ -147,7 +147,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
   unsigned int vertGot,vertNum;
   unsigned int ibuff[1024]; /* HEY: bad Gordon */
   float fbuff[1024];  /* HEY: bad bad Gordon */
-  float lastRGB[3]; int lastLook;
+  float lastRGB[3]={-1,-1,-1}; int lastLook;
   unsigned int lret;
   
   int *vertBase;

@@ -177,10 +177,10 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   gage_t *tenAns, *evalAns, *evecAns, *vecTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,
-    gradDdXYZ[21],
+    gradDdXYZ[21]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
     *gradCbS=NULL, *gradCbB=NULL, *gradCbQ=NULL, *gradCbR=NULL;
   double tmp0, tmp1, magTmp=0,
-    gradCbA[3], gradCbC[3],
+    gradCbA[3]={0,0,0}, gradCbC[3]={0,0,0},
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0,
     cbQQQ=0, cbQ=0, cbR=0, cbA=0, cbB=0, cbC=0, cbS=0;
 

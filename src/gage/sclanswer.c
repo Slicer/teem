@@ -24,9 +24,10 @@
 void
 _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
-  gage_t gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, sHess[9], curv=0;
+  gage_t gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, curv=0, 
+    sHess[9]={0,0,0,0,0,0,0,0,0};
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
-  gage_t len, gp1[3], gp2[3], *nPerp, nProj[9], ncTen[9];
+  gage_t len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9]={0,0,0,0,0,0,0,0,0};
   double T, N, D;
 #define FD_MEDIAN_MAX 16
   int fd, nidx, xi, yi, zi;

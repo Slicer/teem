@@ -68,7 +68,7 @@ limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
 int
 limnLightUpdate(limnLight *lit, limnCamera *cam) {
   char me[]="limnLightUpdate", err[AIR_STRLEN_MED];
-  float dir[3], _dir[3], uvn[9], norm;
+  float dir[3], _dir[3], uvn[9]={0,0,0,0,0,0,0,0,0}, norm;
   int i;
   
   if (cam) {
@@ -82,8 +82,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
     ELL_3V_COPY(_dir, lit->_dir[i]);
     if (cam && lit->vsp[i]) {
       ELL_3MV_MUL(dir, uvn, _dir);
-    }
-    else {
+    } else {
       ELL_3V_COPY(dir, _dir);
     }
     ELL_3V_NORM(dir, dir, norm);
