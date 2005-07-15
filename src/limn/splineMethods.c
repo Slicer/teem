@@ -33,12 +33,12 @@ limnSplineTypeSpecNew(int type, ...) {
   }
   spec = (limnSplineTypeSpec *)calloc(1, sizeof(limnSplineTypeSpec));
   spec->type = type;
+  va_start(ap, type);
   if (limnSplineTypeBC == type) {
-    va_start(ap, type);
     spec->B = va_arg(ap, double);
     spec->C = va_arg(ap, double);
-    va_end(ap);
   }
+  va_end(ap);
   return spec;
 }
 
