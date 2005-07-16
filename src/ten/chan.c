@@ -45,9 +45,9 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     bmatKeyFmt[] = "DWMRI_B-matrix_%04d",
     nexKeyFmt[] = "DWMRI_NEX_%04d",
     *keyFmt, key[AIR_STRLEN_MED], *val;
-  int dwiAxis, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
+  int dwiAxis;
+  unsigned int axi, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
     nexNum, nexIdx;
-  unsigned int axi;
   Nrrd *ninfo;
   double *info, normMax, norm;
 
