@@ -20,6 +20,22 @@
 
 #include "nrrd.h"
 
+ /* ************************************************* */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /*                                                   */
+ /*                                                   */
+ /*       THIS FILE AUTOMATICALLY GENERATED FROM      */
+ /*        PERL SCRIPTS IN THE tmf SUBDIRECTORY       */
+ /*         EDIT THOSE SCRIPTS, NOT THIS FILE!        */
+ /*                                                   */
+ /*                                                   */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */
+ /* ************************************************* */
+
 double
 _nrrd_TMFBAD_Int(const double *parm) {
   AIR_UNUSED(parm);
@@ -75,9 +91,6 @@ _nrrdKernel_TMFBAD = {
   _nrrd_TMFBAD_1_f, _nrrd_TMFBAD_N_f,
   _nrrd_TMFBAD_1_d, _nrrd_TMFBAD_N_d
 };
-NrrdKernel *const
-nrrdKernel_TMFBAD = &_nrrdKernel_TMFBAD;
-
 #define OVER_3 0.33333333
 #define OVER_6 0.16666666
 #define OVER_12 0.0833333333

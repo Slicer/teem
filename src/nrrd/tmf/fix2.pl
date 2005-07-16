@@ -2,6 +2,22 @@
 
 print "\n\#include \"nrrd.h\"\n\n";
 
+print " /* ************************************************* */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /*                                                   */\n";
+print " /*                                                   */\n";
+print " /*       THIS FILE AUTOMATICALLY GENERATED FROM      */\n";
+print " /*        PERL SCRIPTS IN THE tmf SUBDIRECTORY       */\n";
+print " /*         EDIT THOSE SCRIPTS, NOT THIS FILE!        */\n";
+print " /*                                                   */\n";
+print " /*                                                   */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /* !! WARNING !!! WARNING !!! WARNING !!! WARNING !! */\n";
+print " /* ************************************************* */\n\n";
+
 # generate a stub kernel for when the user incorrectly indexes
 # into ef == 0, which is undefined; ef must be >= 1
 print "double\n";
@@ -53,8 +69,6 @@ print "  1, _nrrd_TMFBAD_Sup, _nrrd_TMFBAD_Int,\n";
 print "  _nrrd_TMFBAD_1_f, _nrrd_TMFBAD_N_f,\n";
 print "  _nrrd_TMFBAD_1_d, _nrrd_TMFBAD_N_d\n";
 print "};\n";
-print "NrrdKernel *const\n";
-print "nrrdKernel_TMFBAD = &_nrrdKernel_TMFBAD;\n\n";
 
 %needk = ();
 %support = ();
