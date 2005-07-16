@@ -104,10 +104,8 @@ hestOptAdd(hestOpt **optP,
   if (!(ret = (hestOpt *)calloc(num+2, sizeof(hestOpt)))) {
     return;
   }
-
-  if (num) {
+  if (num)
     memcpy(ret, *optP, num*sizeof(hestOpt));
-  }
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
   ret[num].type = type;
@@ -128,22 +126,21 @@ hestOptAdd(hestOpt **optP,
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, unsigned int*)); /* skip sawP */
+    dummy = (void *)(va_arg(ap, unsigned int*));  /* skip sawP */
     ret[num].enm = va_arg(ap, airEnum*);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, unsigned int*)); /* skip sawP */
-    dummy = (void *)(va_arg(ap, airEnum*));      /* skip enm */
+    dummy = (void *)(va_arg(ap, unsigned int*));      /* skip sawP */
+    dummy = (void *)(va_arg(ap, airEnum*));  /* skip enm */
     ret[num].CB = va_arg(ap, hestCB*);
     va_end(ap);
   }
   _hestOptInit(&(ret[num+1]));
   ret[num+1].min = 1;
-  if (*optP) {
+  if (*optP)
     free(*optP);
-  }
   *optP = ret;
   dummy = dummy;
   return;
@@ -169,7 +166,7 @@ hestOptFree(hestOpt *opt) {
   num = _hestNumOpts(opt);
   if (opt[num].min) {
     /* we only try to free this if it looks like something we allocated */
-    for (op=0; op<=num-1; op++) {
+    for (op=0; op<num; op++) {
       _hestOptFree(opt+op);
     }
     free(opt);
@@ -242,8 +239,9 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
 int
 _hestMax(int max) {
   
-  if (-1 == max)
+  if (-1 == max) {
     max = INT_MAX;
+  }
   return max;
 }
 
@@ -252,25 +250,30 @@ _hestKind(hestOpt *opt) {
   int max;
   
   max = _hestMax(opt->max);
-  if (!( opt->min <= max ))
+  if (!( (int)opt->min <= max )) {    /* HEY scrutinize casts */
     /* invalid */
     return -1;
+  }
 
-  if (0 == opt->min && 0 == max)
+  if (0 == opt->min && 0 == max) {
     /* flag */
     return 1;
+  }
 
-  if (1 == opt->min && 1 == max)
+  if (1 == opt->min && 1 == max) {
     /* single fixed parameter */
     return 2;
+  }
 
-  if (2 <= opt->min && 2 <= max && opt->min == max)
+  if (2 <= opt->min && 2 <= max && (int)opt->min == max) {  /* HEY scrutinize casts */
     /* multiple fixed parameters */
     return 3;
+  }
   
-  if (0 == opt->min && 1 == max)
+  if (0 == opt->min && 1 == max) {
     /* single optional parameter */
     return 4;
+  }
 
   /* else multiple variable parameters */
   return 5;
@@ -281,7 +284,7 @@ _hestPrintArgv(int argc, char **argv) {
   int a;
 
   printf("argc=%d : ", argc);
-  for (a=0; a<=argc-1; a++) {
+  for (a=0; a<argc; a++) {
     printf("%s ", argv[a]);
   }
   printf("\n");
@@ -304,7 +307,7 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
   numOpts = _hestNumOpts(opt);
   if (parm->verbosity)
     printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
-  for (op=0; op<=numOpts-1; op++) {
+  for (op=0; op<numOpts; op++) {
     if (parm->verbosity)
       printf("_hestWhichFlag: op = %d\n", op);
     if (!opt[op].flag)
@@ -351,7 +354,7 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
 ** for kind 4 and kind 5 options.
 */
 int
-_hestCase(hestOpt *opt, int *udflt, int *nprm, int *appr, int op) {
+_hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
   
   if (opt[op].flag && !appr[op]) {
     return 0;
@@ -381,7 +384,7 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
     return NULL;
 
   len = 0;
-  for (n=0; n<=np-1; n++) {
+  for (n=0; n<np; n++) {
     if (a+n==*argcP) {
       return NULL;
     }
@@ -393,7 +396,7 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
   len += np;
   ret = (char *)calloc(len, sizeof(char));
   strcpy(ret, "");
-  for (n=0; n<=np-1; n++) {
+  for (n=0; n<np; n++) {
     /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv

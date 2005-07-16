@@ -56,7 +56,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
   if (O->min || max) {
     strcat(B, "<");
     strcat(B, O->name);
-    if (O->min < max && max > 1)
+    if ((int)(O->min) < max && max > 1)  /* HEY scrutinize casts */
       strcat(B, "\t...");
     strcat(B, ">");
   }
@@ -90,7 +90,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
   str = airStrdup(_str);
   nwrd = airStrntok(str, " ");
   pos = already;
-  for (wrd=0; wrd<=nwrd-1; wrd++) {
+  for (wrd=0; wrd<nwrd; wrd++) {
     /* we used airStrtok() to delimit words on spaces ... */
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
@@ -107,7 +107,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
         fprintf(f, " \\");
       }
       fprintf(f, "\n");
-      for (s=0; s<=indent-1; s++) {
+      for (s=0; s<indent; s++) {
         fprintf(f, " ");
       }
       fprintf(f, "%s", ws); 
@@ -180,7 +180,7 @@ hestMinNumArgs(hestOpt *opt) {
   }
   count = 0;
   numOpts = _hestNumOpts(opt);
-  for (i=0; i<=numOpts-1; i++) {
+  for (i=0; i<numOpts; i++) {
     if (!opt[i].dflt) {
       count += opt[i].min;
       if (!(0 == opt[i].min && 0 == opt[i].max)) {
@@ -226,7 +226,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
     sprintf(tmpS, " [%cfile\t...]", parm->respFileFlag);
     strcat(buff, tmpS);
   }
-  for (i=0; i<=numOpts-1; i++) {
+  for (i=0; i<numOpts; i++) {
     strcat(buff, " ");
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
       strcat(buff, "[");
@@ -260,7 +260,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   maxlen = 0;
   if (numOpts)
     fprintf(f, "\n");
-  for (i=0; i<=numOpts-1; i++) {
+  for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
@@ -268,18 +268,18 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);
     len = strlen(buff);
-    for (j=len; j<=maxlen-1; j++)
+    for (j=len; j<maxlen; j++)
       fprintf(f, " ");
     fprintf(f, "%s = ", buff);
     strcpy(buff, "response file(s) containing command-line arguments");
     _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
-  for (i=0; i<=numOpts-1; i++) {
+  for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
     airOneLinify(buff);
     len = strlen(buff);
-    for (j=len; j<=maxlen-1; j++)
+    for (j=len; j<maxlen; j++)
       fprintf(f, " ");
     fprintf(f, "%s = ", buff);
     /* we've now printed some spaces, and the flag, and " = ", all of which
@@ -308,11 +308,11 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
         strcat(buff, "optional\t");
       }
       else {
-        if (opt[i].min == _hestMax(opt[i].max) && _hestMax(opt[i].max) > 1) {
+        if ((int)opt[i].min == _hestMax(opt[i].max) && _hestMax(opt[i].max) > 1) { /* HEY scrutinize casts */
           sprintf(tmpS, "%d\t", _hestMax(opt[i].max));
           strcat(buff, tmpS);
         }
-        else if (opt[i].min < _hestMax(opt[i].max)) {
+        else if ((int)opt[i].min < _hestMax(opt[i].max)) { /* HEY scrutinize casts */
           if (-1 == opt[i].max) {
             sprintf(tmpS, "%d\tor\tmore\t", opt[i].min);
           }

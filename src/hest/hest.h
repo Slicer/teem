@@ -69,8 +69,9 @@ typedef struct {
 typedef struct {
   char *flag,           /* how the option is identified on the cmd line */
     *name;              /* simple description of option's parameter(s) */
-  int type,             /* type of option (from airType enum) */
-    min, max;           /* min and max # of parameters for option */
+  int type;             /* type of option (from airType enum) */
+  unsigned int min;
+  int max;              /* min and max # of parameters for option */
   void *valueP;         /* storage of parsed values */
   char *dflt,           /* default value written out as string */
     *info;              /* description to be printed with "glossary" info */
@@ -176,8 +177,7 @@ TEEM_API void hestOptAdd(hestOpt **optP,
                          char *flag, char *name,
                          int type, int min, int max,
                          void *valueP, const char *dflt, const char *info,
-                         ... /* unsigned int *sawP, airEnum *enm, 
-                                hestCB *CB */);
+                         ... /* int *sawP, airEnum *enm , hestCB *CB */);
 TEEM_API hestOpt *hestOptFree(hestOpt *opt);
 TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
 
