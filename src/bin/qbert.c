@@ -39,7 +39,8 @@ int
 qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
             NrrdKernelSpec *uk) {
   char me[]="qbertSizeUp", err[AIR_STRLEN_MED];
-  int i, anyneed, need, padMin[3], padMax[3];
+  int i, anyneed, need;
+  ptrdiff_t padMin[3], padMax[3];
   NrrdResampleInfo *rsi;
   airArray *mop;
 
@@ -92,7 +93,8 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       fprintf(stderr, "%d --> ", need);
       padMin[i] = 0 - (int)floor(need/2.0);
       padMax[i] = nin->axis[i].size - 1 + (int)ceil(need/2.0);
-      fprintf(stderr, "pad indices: [%d..%d]\n", padMin[i], padMax[i]);
+      fprintf(stderr, "pad indices: [" _AIR_PTRDIFF_T_CNV ".." _AIR_PTRDIFF_T_CNV "]\n",
+              padMin[i], padMax[i]);
     }
     if (anyneed) {
       fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
