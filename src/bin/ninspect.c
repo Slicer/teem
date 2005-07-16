@@ -181,7 +181,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
 int
 doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   char me[]="doit", err[AIR_STRLEN_MED];
-  Nrrd *nproj[3], *ntmp;
+  Nrrd *nproj[3];
   airArray *mop;
   int axis, srl, sap, ssi, E, margin, which;
   size_t min[3];
@@ -201,7 +201,6 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   airMopAdd(mop, nproj[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nproj[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nproj[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   /* how much space to put between and around the projections */
   margin = 6;
