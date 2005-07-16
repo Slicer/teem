@@ -41,6 +41,8 @@
 #include "nrrdEnums.h"
 /* ---- END non-NrrdIO */
 
+#include <stddef.h>      /* for ptrdiff_t */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
