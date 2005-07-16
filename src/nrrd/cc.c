@@ -66,7 +66,8 @@ void
 _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
   int *eqv;
   int eqi;
-  
+
+  /* HEY: would it speed things up at all to enforce j < k? */
   if (_nrrdCC_verb) {
     fprintf(stderr, "%s: ***(%d,%d)***: eqvArr->len = %d\n", "_nrrdCCEqvAdd",
             j, k, eqvArr->len);
@@ -89,13 +90,20 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
   return;
 }
 
+/*
+** layout of value (pvl) and index (pid) cache:
+** 
+**  2  3  4 --> X
+**  1  .  .     oddly, index 0 is never used
+**  .  .  .
+**  |
+**  v Y
+*/
 int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
-  double vl=0, pvl[5]={AIR_NAN,AIR_NAN,AIR_NAN,AIR_NAN,AIR_NAN};
-  /* got warnings about pvl$3, pvl$4 may be used unintialized; 
-     this should foul things up if if that's true */
+  double vl=0, pvl[5]={0,0,0,0,0};
   int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
   int p, x, y, sx, sy;
 
@@ -106,10 +114,10 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
   sy = nin->axis[1].size;
 #define GETV_2(x,y) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1)) \
                      ? lup(nin->data, (x) + sx*(y)) \
-                     : 0.5)
+                     : 0.5)  /* a value that can't come from an array of ints */
 #define GETI_2(x,y) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1)) \
                      ? out[(x) + sx*(y)] \
-                     : -1)
+                     : -1)   /* a CC index we never assigned */
 
   *numid = 0;
   for (y=0; y<sy; y++) {
@@ -134,9 +142,14 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
         id = pid[p=1];
       }
 #define TEST(P) \
-      if (vl == pvl[(P)]) {                                                   \
-        if (p) { if (pid[(P)] != id) { _nrrdCCEqvAdd(eqvArr, pid[(P)], id); } \
-        } else { id = pid[p=(P)]; }                                           \
+      if (vl == pvl[(P)]) {                         \
+        if (p) { /* we already had a value match */ \
+          if (id != pid[(P)]) {                     \
+            _nrrdCCEqvAdd(eqvArr, pid[(P)], id);    \
+          }                                         \
+        } else {                                    \
+          id = pid[p=(P)];                          \
+        }                                           \
       }
       TEST(3);
       if (2 == conny) {
@@ -163,6 +176,17 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
   return 0;
 }
 
+/*
+**
+**       5  6  7 --> X
+**       8  9 10
+**      11 12 13
+**      |
+**      v Y
+**    2  3  4
+**  / 1  .  .  again, 0 index never used, for reasons forgotten
+** Z  .  .  .
+*/
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
