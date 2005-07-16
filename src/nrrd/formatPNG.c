@@ -51,6 +51,8 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
 #if !TEEM_PNG  /* ------------------------------------------- */
 
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(encoding);
   sprintf(err, "%s: %s format not available in this teem build",
           me, nrrdFormatPNG->name);
   biffMaybeAdd(NRRD, err, useBiff); 
@@ -171,6 +173,8 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   size_t nsize[3];
 #endif /* TEEM_PNG */
 
+  AIR_UNUSED(file);
+  AIR_UNUSED(nrrd);
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
     sprintf(err, "%s: this doesn't look like a %s file", me, 
             nrrdFormatPNG->name);
@@ -535,6 +539,9 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   return 0;
 #else
+  AIR_UNUSED(file);
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(nio);
   sprintf(err, "%s: Sorry, this nrrd not compiled with PNG enabled", me);
   biffAdd(NRRD, err); return 1;
 #endif
