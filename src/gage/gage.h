@@ -173,12 +173,15 @@ enum {
 ** necessary information about each item supported by the kind, which 
 ** is defined at compile-time in a per-kind table (at least it is for
 ** the scalar, vector, and tensor kinds)
+**
+** NOTE!!! You can't re-arrange these variables, because of all the
+** compile-time definitions that are done to define a gageKind.
 */
 typedef struct {
+  int enumVal;          /* the item's enum value */
   unsigned int 
     answerLength;       /* how many gage_t's are needed to store the answer */
-  int enumVal,          /* the item's enum value */
-    needDeriv,          /* what kind of derivative info is immediately needed
+  int needDeriv,        /* what kind of derivative info is immediately needed
                            for this item (not recursively expanded). This is
                            NO LONGER a bitvector: values are 0, 1, 2, ... */
     prereq[GAGE_ITEM_PREREQ_NUM],
