@@ -34,7 +34,7 @@
 */
 gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
-  /* enum value        len,deriv,  prereqs,                                       parent item, index*/
+  /* enum value        len,deriv,  prereqs,                                      parent item, parent index*/
   {gageSclValue,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {gageSclGradVec,       3,  1,  {-1, -1, -1, -1, -1},                                    -1,  -1},
   {gageSclGradMag,       1,  1,  {gageSclGradVec, -1, -1, -1, -1},                        -1,  -1},
@@ -53,8 +53,8 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessEvec2,     3,  2,  {gageSclHessEvec, -1, -1, -1, -1},                       gageSclHessEvec,  6},
   {gageScl2ndDD,         1,  2,  {gageSclHessian, gageSclNormal, -1, -1, -1},             -1,  -1},
   {gageSclGeomTens,      9,  2,  {gageSclHessian, gageSclNPerp, gageSclGradMag, -1, -1},  -1,  -1},
-  {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
-  {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},      -1,  -1},
+  {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},       -1,  -1},
+  {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1},       -1,  -1},
   {gageSclTotalCurv,     1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
   {gageSclShapeTrace,    1,  2,  {gageSclGeomTens, -1, -1, -1, -1},                       -1,  -1},
   {gageSclShapeIndex,    1,  2,  {gageSclK1, gageSclK2, -1, -1, -1},                      -1,  -1},
