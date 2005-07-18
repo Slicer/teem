@@ -328,32 +328,34 @@ enum {
   miteValYi,            /*  3: "Yi", Y     "   , index   "   (gage_t[1]) */
   miteValZw,            /*  4: "Zw", Z     "   , world   "   (gage_t[1]) */
   miteValZi,            /*  5: "Zi", Z     "   , index   "   (gage_t[1]) */
-  miteValTw,            /*  6: "Tw", ray position (gage_t[1]) */
-  miteValTi,            /*  7: "Ti", ray index (ray sample #) (gage_t[1]) */
-  miteValView,          /*  8: "V", the view vector (gage_t[3]) */
-  miteValNormal,        /*  9: "N", the nominal surface normal, as measured
+  miteValRw,            /*  6: "Rw", dist to origin, world " (gage_t[1]) */
+  miteValRi,            /*  7: "Ri", dist to origin, index " (gage_t[1]) */
+  miteValTw,            /*  8: "Tw", ray position (gage_t[1]) */
+  miteValTi,            /*  9: "Ti", ray index (ray sample #) (gage_t[1]) */
+  miteValView,          /* 10: "V", the view vector (gage_t[3]) */
+  miteValNormal,        /* 11: "N", the nominal surface normal, as measured
                                by a scalar, vector, or tensor kind, and then
                                determined by the semantics of
                                muu->normalSide */
-  miteValNdotV,         /* 10: "NdotV", surface normal dotted w/ view vector
+  miteValNdotV,         /* 12: "NdotV", surface normal dotted w/ view vector
                                (towards eye) (gage_t[1]) */
-  miteValNdotL,         /* 11: "NdotL", surface normal dotted w/ light vector
+  miteValNdotL,         /* 13: "NdotL", surface normal dotted w/ light vector
                                (towards the light source) (gage_t[1]) */
-  miteValVrefN,         /* 12: "VrefN", view vector reflected across normal
+  miteValVrefN,         /* 14: "VrefN", view vector reflected across normal
                                (gage_t[3]) */
-  miteValGTdotV,        /* 13: "GTdotV", normal curvature in view direction,
+  miteValGTdotV,        /* 15: "GTdotV", normal curvature in view direction,
                                the contraction of the geometry tensor along
                                the view vector (gage_t[1]) */
-  miteValVdefT,         /* 14: "defT", view direction, deflected by tensor,
+  miteValVdefT,         /* 16: "defT", view direction, deflected by tensor,
                                then normalized (gage_t[3]) */
-  miteValVdefTdotV,     /* 15: "VdefTdotV", VdefT dotted back with V, not the
+  miteValVdefTdotV,     /* 17: "VdefTdotV", VdefT dotted back with V, not the
                                same as the tensor contraction along V,
                                (gage_t[1]) */
-  miteValWdotD,         /* 16: "WdotD", world space position dotted with
+  miteValWdotD,         /* 18: "WdotD", world space position dotted with
                                muu->vectorD */
   miteValLast
 };
-#define MITE_VAL_ITEM_MAX  16
+#define MITE_VAL_ITEM_MAX  18
 
 /*
 ******** miteThread
@@ -427,7 +429,6 @@ TEEM_API int miteNtxfCheck(const Nrrd *ntxf);
 TEEM_API void miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
                            gageQuery queryTen, gageQuery queryMite,
                            gageItemSpec *isp);
-
 
 /* user.c */
 TEEM_API miteUser *miteUserNew();

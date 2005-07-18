@@ -199,6 +199,8 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     mtt->directAnsMiteVal[miteValYi][0] = samplePosIndex[1];
     mtt->directAnsMiteVal[miteValZw][0] = samplePosWorld[2];
     mtt->directAnsMiteVal[miteValZi][0] = samplePosIndex[2];
+    mtt->directAnsMiteVal[miteValRw][0] = ELL_3V_LEN(samplePosWorld);
+    mtt->directAnsMiteVal[miteValRi][0] = ELL_3V_LEN(samplePosIndex);
     mtt->directAnsMiteVal[miteValTw][0] = rayT;
     mtt->directAnsMiteVal[miteValTi][0] = num;
     ELL_3V_COPY(mtt->directAnsMiteVal[miteValView], mtt->V);
@@ -237,10 +239,12 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     }
   }
   
+
   /* initialize txf range quantities, and apply all txfs */
   if (mtt->verbose) {
     muu->debugIdx = airArrayLenIncr(muu->debugArr, muu->ndebug->axis[0].size);
   }
+
   memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
   _miteStageRun(mtt, muu);
 
