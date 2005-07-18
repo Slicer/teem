@@ -106,7 +106,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     biffAdd(MITE, err); return 1;
   }
   if (0 == strlen(label)) {
-    /* nothing was specified; we try to indicate that by mimicing 
+    /* nothing was specified; we try to indicate that by mimicking 
        the return of gageItemSpecNew() */
     isp->item = -1;
     isp->kind = NULL;
@@ -280,8 +280,8 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (!( 1 == isp.kind->table[isp.item].answerLength ||
            3 == isp.kind->table[isp.item].answerLength )) {
-      sprintf(err, "%s: %s not a scalar or vector: can't be a txf "
-              "domain variable", me, domStr);
+      sprintf(err, "%s: %s not a scalar or vector (answerLength = %d): can't be a txf "
+              "domain variable", me, domStr, isp.kind->table[isp.item].answerLength);
       biffAdd(MITE, err); return 1;
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
@@ -449,8 +449,9 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   frac = muu->rayStep/muu->refStep;
   for (ni=0; ni<mrr->ntxfNum; ni++) {
     ntxf = mrr->ntxf[ni];
-    if (!strchr(ntxf->axis[0].label, miteRangeChar[miteRangeAlpha]))
+    if (!strchr(ntxf->axis[0].label, miteRangeChar[miteRangeAlpha])) {
       continue;
+    }
     /* else this txf sets opacity */
     data = (mite_t *)ntxf->data;
     rnum = ntxf->axis[0].size;
@@ -459,7 +460,7 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
       for (ri=0; ri<rnum; ri++) {
         if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
           alpha = data[ri + rnum*ei];
-          data[ri + rnum*ei] = 1 - pow(1 - alpha, frac);
+          data[ri + rnum*ei] = 1 - pow(AIR_MAX(0, 1-alpha), frac);
         }
       }
     }
@@ -639,16 +640,15 @@ _miteStageRun(miteThread *mtt, miteUser *muu) {
       /* right now, we can't store vector-valued txf domain variables */
     } else {
       /* its a scalar txf domain variable */
-      txfIdx = airIndex(stage->min, *(stage->val), stage->max, stage->size);
+      txfIdx = airIndexClamp(stage->min, *(stage->val), stage->max, stage->size);
       if (mtt->verbose) {
         dbg[0 + 2*stageIdx] = *(stage->val);
       }
     }
-    txfIdx = AIR_CLAMP(0, txfIdx, stage->size-1);
+    finalIdx = stage->size*finalIdx + txfIdx;
     if (mtt->verbose) {
       dbg[1 + 2*stageIdx] = txfIdx;
     }
-    finalIdx = stage->size*finalIdx + txfIdx;
     if (stage->data) {
       rangeData = stage->data + stage->rangeNum*finalIdx;
       for (rii=0; rii<stage->rangeNum; rii++) {
