@@ -143,7 +143,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
       sprintf(err, "%s: didn't see \"%s\" key", me, key);
       biffAdd(TEN, err); return 1;
     }
-    parsedNum = airParseStrD(info, val, " ", valNum);
+    parsedNum = airParseStrD(info, val, AIR_WHITESPACE, valNum);
     if (valNum != parsedNum) {
       sprintf(err, "%s: couldn't parse %d floats in value \"%s\" "
               "for key \"%s\" (only got %d)",
