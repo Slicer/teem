@@ -360,7 +360,6 @@ limn3DContourContextNew(void) {
     lctx->lowerInside = AIR_FALSE;
     ELL_4M_IDENTITY_SET(lctx->transform);
     lctx->reverse = AIR_FALSE;
-    lctx->lup = NULL;
     lctx->spanSize = 300;
     lctx->nspanHist = nrrdNew();
     nrrdMaybeAlloc(lctx->nspanHist, nrrdTypeInt, 2, 
@@ -480,7 +479,7 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
   sx = lctx->sx;
   sy = lctx->sy;
   sz = lctx->sz;
-  lup = lctx->lup;
+  lup = nrrdDLookup[nvol->type];
   data = nvol->data;
   for (zi=0; zi<sz-1; zi++) {
     for (yi=0; yi<sy-1; yi++) {
@@ -629,7 +628,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
   sx = lctx->sx;
   sy = lctx->sy;
   sz = lctx->sz;
-  lup = lctx->lup;
+  lup = nrrdDLookup[lctx->nvol->type];
   data = lctx->nvol->data;
   ss = lctx->spanSize;
   spanHist = (int*)(lctx->nspanHist->data);

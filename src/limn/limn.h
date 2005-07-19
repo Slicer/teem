@@ -320,7 +320,6 @@ typedef struct {
   int reverse;                  /* reverse sense of inside/outside (based on
                                    lowerInside and determinant of transform) */
   double normalTransform[9];    /* how to transform normals */
-  double (*lup)(const void *, size_t);  /* for getting values out of nvol */
   Nrrd *nspanHist;              /* image of span space */
   NrrdRange *range;             /* to store min and max of nvol */
   size_t sx, sy, sz,            /* dimensions */
