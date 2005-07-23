@@ -36,15 +36,16 @@ limnTrisurfNew(unsigned int vertNum,
     } else {
       tsf->vert = (limnVertex *)calloc(vertNum, sizeof(limnVertex));
       tsf->indx = (unsigned int *)calloc(indxNum, sizeof(unsigned int));
+      tsf->ptype = (unsigned char *)calloc(primNum, sizeof(unsigned char));
       tsf->vcnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
-      if (!( tsf->vert && tsf->indx && tsf->vcnt )) {
+      if (!( tsf->vert && tsf->indx && tsf->ptype && tsf->vcnt )) {
         /* allocation error. we leak. */
         return NULL;
       }
     }
     tsf->vertNum = vertNum;
     tsf->indxNum = indxNum;
-    tsf->vcntNum = primNum;
+    tsf->primNum = primNum;
   }
   return tsf;
 }
@@ -53,11 +54,12 @@ limnTrisurf *
 limnTrisurfCopy(const limnTrisurf *otsf) {
   limnTrisurf *ntsf;
 
-  ntsf = limnTrisurfNew(otsf->vertNum, otsf->indxNum, otsf->vcntNum);
+  ntsf = limnTrisurfNew(otsf->vertNum, otsf->indxNum, otsf->primNum);
   if (ntsf) {
     memcpy(ntsf->vert, otsf->vert, otsf->vertNum*sizeof(limnVertex));
     memcpy(ntsf->indx, otsf->indx, otsf->indxNum*sizeof(unsigned int));
-    memcpy(ntsf->vcnt, otsf->vcnt, otsf->vcntNum*sizeof(unsigned int));
+    memcpy(ntsf->ptype, otsf->ptype, otsf->primNum*sizeof(unsigned char));
+    memcpy(ntsf->vcnt, otsf->vcnt, otsf->primNum*sizeof(unsigned int));
   }
   return ntsf;
 }
@@ -68,6 +70,7 @@ limnTrisurfNix(limnTrisurf *tsf) {
   if (tsf) {
     airFree(tsf->vert);
     airFree(tsf->indx);
+    airFree(tsf->ptype);
     airFree(tsf->vcnt);
   }
   airFree(tsf);
@@ -81,12 +84,11 @@ limnTrisurfNix(limnTrisurf *tsf) {
 */
 limnTrisurf *
 limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
+  /* char me[]="limnTrisurfPolarSphereNew"; */
   limnTrisurf *tsf;
   unsigned int vertNum, indxNum, primNum, triNum, stripNum,
-    vertIdx, thetaIdx, nextThetaIdx, phiIdx, primIdx;
+    vertIdx, thetaIdx, phiIdx, primIdx;
   float theta, phi;
-
-  char me[]="limnTrisurfPolarSphereNew";
 
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
@@ -124,18 +126,13 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
   /* triangle fan at top */
   vertIdx = 0;
   primIdx = 0;
+  tsf->indx[vertIdx++] = 0;
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    nextThetaIdx = thetaIdx<thetaRes-1 ? thetaIdx+1 : 0;
-    /*
-    fprintf(stderr, "!%s: prim[%u] = vert[%u %u %u] = %u %u %u\n", me,
-            primIdx, vertIdx+0, vertIdx+1, vertIdx+2, 
-            0, thetaIdx + 1, nextThetaIdx + 1);
-    */
-    tsf->indx[vertIdx++] = 0;
     tsf->indx[vertIdx++] = thetaIdx + 1;
-    tsf->indx[vertIdx++] = nextThetaIdx + 1;
-    tsf->vcnt[primIdx++] = 3;
   }
+  tsf->indx[vertIdx++] = 1;
+  tsf->ptype[primIdx] = limnPrimitiveFan;
+  tsf->vcnt[primIdx++] = thetaRes + 2;
   /* tristrips around */
   for (phiIdx=1; phiIdx<phiRes-1; phiIdx++) {
     /*
@@ -159,23 +156,17 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
     */
     tsf->indx[vertIdx++] = (phiIdx-1)*thetaRes + 1;
     tsf->indx[vertIdx++] = phiIdx*thetaRes + 1;
+    tsf->ptype[primIdx] = limnPrimitiveStrip;
     tsf->vcnt[primIdx++] = 2*(thetaRes+1);
   }
   /* triangle fan at bottom */
+  tsf->indx[vertIdx++] = vertNum-1;
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    nextThetaIdx = thetaIdx<thetaRes-1 ? thetaIdx+1 : 0;
-    /*
-    fprintf(stderr, "!%s: prim[%u] = vert[%u %u %u] = %u %u %u\n", me,
-            primIdx, vertIdx+0, vertIdx+1, vertIdx+2,
-            thetaRes*(phiRes-2) + thetaIdx + 1,
-            thetaRes*(phiRes-2) + nextThetaIdx + 1,
-            vertNum-1);
-    */
-    tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaIdx + 1;
-    tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + nextThetaIdx + 1;
-    tsf->indx[vertIdx++] = vertNum-1;
-    tsf->vcnt[primIdx++] = 3;
+    tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes - thetaIdx;
   }
+  tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
+  tsf->ptype[primIdx] = limnPrimitiveFan;
+  tsf->vcnt[primIdx++] = thetaRes + 2;
 
   /* set normals and colors */
   for (vertIdx=0; vertIdx<tsf->vertNum; vertIdx++) {

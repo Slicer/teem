@@ -170,6 +170,15 @@ enum {
 };
 #define LIMN_SPACE_MAX  4
 
+enum {
+  limnPrimitiveUnknown,   /* 0 */
+  limnPrimitiveTriangle,  /* 1: triangle soup */
+  limnPrimitiveStrip,     /* 2: triangle strip */
+  limnPrimitiveFan,       /* 3: triangle fan */
+  limnPrimitiveLast
+};
+#define LIMN_PRIMITIVE_MAX   3
+
 /*
 ******** struct limnLook
 **
@@ -323,8 +332,9 @@ typedef struct {
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;
 
-  unsigned int vcntNum;  /* there are vcntNum primitives (tris or tristrips) */
-  unsigned int *vcnt;    /* primitive ii has vcnt[ii] vertices */
+  unsigned int primNum;  /* there are vcntNum primitives (tris or tristrips) */
+  unsigned char *ptype;  /* prim ii is a ptype[ii] (limnPrimitive *enum) */
+  unsigned int *vcnt;    /* prim ii has vcnt[ii] vertices */
 } limnTrisurf;
 
 typedef struct {
