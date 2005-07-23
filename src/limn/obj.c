@@ -120,24 +120,26 @@ _limnObjectFaceEmpty(limnFace *face) {
 limnObject *
 limnObjectNix(limnObject *obj) {
   unsigned int partIdx, faceIdx;
-
-  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
-    _limnObjectPartNix(obj->part[partIdx]);
+  
+  if (obj) {
+    for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+      _limnObjectPartNix(obj->part[partIdx]);
+    }
+    airArrayNuke(obj->partArr);
+    for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
+      _limnObjectPartNix(obj->partPool[partIdx]);
+    }
+    airArrayNuke(obj->partPoolArr);
+    for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+      _limnObjectFaceEmpty(obj->face + faceIdx);
+    }
+    airArrayNuke(obj->faceArr);
+    airArrayNuke(obj->vertArr);
+    airArrayNuke(obj->edgeArr);
+    airFree(obj->faceSort);
+    airArrayNuke(obj->lookArr);
+    airFree(obj);
   }
-  airArrayNuke(obj->partArr);
-  for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
-    _limnObjectPartNix(obj->partPool[partIdx]);
-  }
-  airArrayNuke(obj->partPoolArr);
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
-    _limnObjectFaceEmpty(obj->face + faceIdx);
-  }
-  airArrayNuke(obj->faceArr);
-  airArrayNuke(obj->vertArr);
-  airArrayNuke(obj->edgeArr);
-  airFree(obj->faceSort);
-  airArrayNuke(obj->lookArr);
-  free(obj);
   return NULL;
 }
 
@@ -256,7 +258,7 @@ limnObjectVertexAdd(limnObject *obj, unsigned int partIdx,
   }
   /* ELL_3V_SET(vert->view, AIR_NAN, AIR_NAN, AIR_NAN); */
   /* ELL_3V_SET(vert->screen, AIR_NAN, AIR_NAN, AIR_NAN); */
-  ELL_4V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_3V_SET(vert->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
 
   return vertIdx;
 }

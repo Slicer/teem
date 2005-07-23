@@ -778,7 +778,6 @@ limn3DContourExtract(limn3DContourContext *lctx,
               ELL_3MV_MUL(tvec, lctx->normalTransform, grad);
               vtx = cont->vert + ovi;
               ELL_3V_NORM(vtx->worldNormal, tvec, tlen);
-              vtx->worldNormal[3] = 0;
             }
             lctx->vertNum++;
             /*

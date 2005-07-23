@@ -37,9 +37,7 @@ limnObjectWorldHomog(limnObject *obj) {
     h = 1.0/vert->world[3];
     ELL_3V_SCALE(vert->world, h, vert->world);
     vert->world[3] = 1.0;
-    h = 1.0/vert->worldNormal[3];
-    ELL_3V_SCALE(vert->worldNormal, h, vert->worldNormal);
-    vert->worldNormal[3] = 1.0;
+    ELL_3V_NORM(vert->worldNormal, vert->worldNormal, h);
   }
   
   return 0;
@@ -105,31 +103,37 @@ int
 limnObjectVertexNormals(limnObject *obj) {
   /* char me[]="limnObjectVertexNormals", err[AIR_STRLEN_MED]; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
+  unsigned short *faceNum;
   limnVertex *vert;
   limnFace *face;
   double scl;
 
+  /* using the dynamically allocated faceNum array was required once
+     I did away with the fourth element of limnVertex worldNormal[] */
+  faceNum = (unsigned short*)calloc(obj->vertNum, sizeof(unsigned short));
+  /* HEY: no allocation error checking ? */
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    ELL_4V_SET(vert->worldNormal, 0, 0, 0, 0);
+    ELL_3V_SET(vert->worldNormal, 0, 0, 0);
   }
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     for (vertIdxIdx=0; vertIdxIdx<face->sideNum; vertIdxIdx++) {
       vert = obj->vert + face->vertIdx[vertIdxIdx];
       ELL_3V_INCR(vert->worldNormal, face->worldNormal);
-      vert->worldNormal[3] += 1;
+      ++faceNum[face->vertIdx[vertIdxIdx]];
     }
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    if (vert->worldNormal[3]) {
-      scl = 1.0/vert->worldNormal[3];
-      ELL_4V_SCALE(vert->worldNormal, scl, vert->worldNormal);
+    if (faceNum[vertIdx]) {
+      scl = 1.0/faceNum[vertIdx];
+      ELL_3V_SCALE(vert->worldNormal, scl, vert->worldNormal);
     } else {
-      ELL_4V_SET(vert->worldNormal, 0, 0, 0, 0);
+      ELL_3V_SET(vert->worldNormal, 0, 0, 0);
     }
   }
+  free(faceNum);
   return 0;
 }
 

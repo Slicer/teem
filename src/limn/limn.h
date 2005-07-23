@@ -199,7 +199,7 @@ typedef struct {
   float world[4],             /* world coordinates (homogeneous) */
     rgba[4],                  /* RGBA color */
     coord[4],                 /* coordinates in some space */
-    worldNormal[4];           /* vertex normal (world coords only) */
+    worldNormal[3];           /* vertex normal (world coords only) */
 } limnVertex;
 
 /*
@@ -303,6 +303,29 @@ typedef struct {
     doEdges;               /* if non-zero, build edges as faces are added */
   unsigned incr;           /* increment to use with airArrays */
 } limnObject;
+
+/*
+******** limnTrisurf
+**
+** A simpler beast for representing surfaces made of triangles
+**
+** There is no notion of "part" here; there may be multiple disconnected
+** pieces inside the trisurf, but there is no way of accessing just one
+** such piece.  Having separate parts is important for PostScript
+** rendering, but the limnTrisurf more OpenGL oriented.
+**
+** Experimenting with *not* having airArrays here...
+*/
+typedef struct {
+  unsigned int vertNum;  /* there are vertNum limnVertex's in vert[] */
+  limnVertex *vert;
+  
+  unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
+  unsigned int *indx;
+
+  unsigned int vcntNum;  /* there are vcntNum primitives (tris or tristrips) */
+  unsigned int *vcnt;    /* primitive ii has vcnt[ii] vertices */
+} limnTrisurf;
 
 typedef struct {
   /* ------- input ------- */
@@ -522,6 +545,15 @@ TEEM_API int limnObjectFaceAdd(limnObject *obj,
                                unsigned int lookIdx,
                                unsigned int sideNum, 
                                unsigned int *vertIdx);
+
+/* trisurf.c */
+TEEM_API limnTrisurf *limnTrisurfNew(unsigned int vertNum,
+                                     unsigned int indxNum,
+                                     unsigned int primNum);
+TEEM_API limnTrisurf *limnTrisurfCopy(const limnTrisurf *tsf);
+TEEM_API limnTrisurf *limnTrisurfNix(limnTrisurf *tsf);
+TEEM_API limnTrisurf *limnTrisurfPolarSphereNew(unsigned int thetaRes,
+                                                unsigned int phiRes);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
