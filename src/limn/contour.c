@@ -40,7 +40,7 @@
 */
 
 /*
-** the limn3DContourContext's vidx cache uses this numbering
+** the limnContour3DContext's vidx cache uses this numbering
 **      (.)--------(.) 
 **      /|         /|  
 **     4 |        / |  
@@ -55,7 +55,7 @@
 */
 
 int
-_limn3DContourEdge[256] = {
+_limnContour3DEdge[256] = {
   0x000, 0x013, 0x025, 0x036, 0x04A, 0x059, 0x06F, 0x07C,
   0x08C, 0x09F, 0x0A9, 0x0BA, 0x0C6, 0x0D5, 0x0E3, 0x0F0,
   0x310, 0x303, 0x335, 0x326, 0x35A, 0x349, 0x37F, 0x36C,
@@ -91,7 +91,7 @@ _limn3DContourEdge[256] = {
 };
 
 int
-_limn3DContourTriangle[256][19] = {
+_limnContour3DTriangle[256][19] = {
   {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
   { 0, 1, 4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
   { 0, 5, 2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
@@ -350,11 +350,11 @@ _limn3DContourTriangle[256][19] = {
   {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
 };
 
-limn3DContourContext *
-limn3DContourContextNew(void) {
-  limn3DContourContext *lctx;
+limnContour3DContext *
+limnContour3DContextNew(void) {
+  limnContour3DContext *lctx;
 
-  lctx = (limn3DContourContext *)calloc(1, sizeof(limn3DContourContext));
+  lctx = (limnContour3DContext *)calloc(1, sizeof(limnContour3DContext));
   if (lctx) {
     lctx->nvol = NULL;
     lctx->lowerInside = AIR_FALSE;
@@ -375,8 +375,8 @@ limn3DContourContextNew(void) {
   return lctx;
 }
 
-limn3DContourContext *
-limn3DContourContextNix(limn3DContourContext *lctx) {
+limnContour3DContext *
+limnContour3DContextNix(limnContour3DContext *lctx) {
 
   if (lctx) {
     lctx->nspanHist = nrrdNuke(lctx->nspanHist);
@@ -389,7 +389,7 @@ limn3DContourContextNix(limn3DContourContext *lctx) {
 }
 
 int
-_limn3DContourReverse(limn3DContourContext *lctx) {
+_limnContour3DReverse(limnContour3DContext *lctx) {
   double det, rot[9];
 
   ELL_34M_EXTRACT(rot, lctx->transform);
@@ -398,23 +398,23 @@ _limn3DContourReverse(limn3DContourContext *lctx) {
 }
 
 int
-limn3DContourLowerInsideSet(limn3DContourContext *lctx,
+limnContour3DLowerInsideSet(limnContour3DContext *lctx,
                             int lowerInside) {
-  char me[]="limn3DContourLowerInsideSet", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DLowerInsideSet", err[AIR_STRLEN_MED];
 
   if (!lctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
   lctx->lowerInside = lowerInside;
-  lctx->reverse = _limn3DContourReverse(lctx);
+  lctx->reverse = _limnContour3DReverse(lctx);
   return 0;
 }
 
 int
-limn3DContourTransformSet(limn3DContourContext *lctx,
+limnContour3DTransformSet(limnContour3DContext *lctx,
                           const double mat[16]) {
-  char me[]="limn3DContourTransformSet", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DTransformSet", err[AIR_STRLEN_MED];
   double det;
 
   if (!( lctx && mat )) {
@@ -427,13 +427,13 @@ limn3DContourTransformSet(limn3DContourContext *lctx,
     biffAdd(LIMN, err); return 1;
   }
   ELL_4M_COPY(lctx->transform, mat);
-  lctx->reverse = _limn3DContourReverse(lctx);
+  lctx->reverse = _limnContour3DReverse(lctx);
   return 0;
 }
 
 int
-limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
-  char me[]="limn3DContourVolumeSet", err[AIR_STRLEN_MED];
+limnContour3DVolumeSet(limnContour3DContext *lctx, const Nrrd *nvol) {
+  char me[]="limnContour3DVolumeSet", err[AIR_STRLEN_MED];
   int minI, maxI, *spanHist, sx, sy, sz, ss, si, xi, yi, zi, vi;
   double tmp, min, max, (*lup)(const void *v, size_t I);
   void *data;
@@ -520,7 +520,7 @@ limn3DContourVolumeSet(limn3DContourContext *lctx, const Nrrd *nvol) {
 
 #define VAL(xx, yy, zz)  (val[4*( (xx) + (yy)*(sx+2) + spi) + (zz+1)])
 void
-_limn3DContourVoxelGrads(double vgrad[8][3], double *val,
+_limnContour3DVoxelGrads(double vgrad[8][3], double *val,
                          int sx, int spi) {
   ELL_3V_SET(vgrad[0],
              VAL( 1,  0,  0) - VAL(-1,  0,  0),
@@ -558,9 +558,9 @@ _limn3DContourVoxelGrads(double vgrad[8][3], double *val,
 #undef VAL
 
 int
-limn3DContourExtract(limn3DContourContext *lctx,
+limnContour3DExtract(limnContour3DContext *lctx,
                      limnObject *cont, double isovalue) {
-  char me[]="limn3DContourExtract", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DExtract", err[AIR_STRLEN_MED];
   int sx, sy, sz, xi, yi, zi, zpi, si, spi, partIdx, vidx[12],
     minI, maxI, valI, ss, *spanHist,
     estVoxNum, estFaceNum, estVertNum;
@@ -750,10 +750,10 @@ limn3DContourExtract(limn3DContourContext *lctx,
         }
         /* set voxel corner gradients */
         if (lctx->findNormals) {
-          _limn3DContourVoxelGrads(vgrad, lctx->val, sx, spi);
+          _limnContour3DVoxelGrads(vgrad, lctx->val, sx, spi);
         }
         lctx->voxNum++;
-        ecase = _limn3DContourEdge[vcase];
+        ecase = _limnContour3DEdge[vcase];
         /* create new vertices as needed */
         for (ei=0; ei<12; ei++) {
           if ((ecase & (1 << ei))
@@ -790,7 +790,7 @@ limn3DContourExtract(limn3DContourContext *lctx,
         }
         /* add triangles */
         ti = 0;
-        tcase = _limn3DContourTriangle[vcase];
+        tcase = _limnContour3DTriangle[vcase];
         while (-1 != tcase[0 + 3*ti]) {
           ELL_3V_SET(vii,
                      lctx->vidx[vidx[tcase[0 + 3*ti]] + 5*si],
