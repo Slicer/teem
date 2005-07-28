@@ -171,13 +171,14 @@ enum {
 #define LIMN_SPACE_MAX  4
 
 enum {
-  limnPrimitiveUnknown,   /* 0 */
-  limnPrimitiveTriangle,  /* 1: triangle soup */
-  limnPrimitiveStrip,     /* 2: triangle strip */
-  limnPrimitiveFan,       /* 3: triangle fan */
+  limnPrimitiveUnknown,      /* 0 */
+  limnPrimitiveTriangles,    /* 1: triangle soup */
+  limnPrimitiveTriangleStrip,/* 2: triangle strip */
+  limnPrimitiveTriangleFan,  /* 3: triangle fan */
+  limnPrimitiveQuads,        /* 4: quad soup */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX   3
+#define LIMN_PRIMITIVE_MAX      4
 
 /*
 ******** struct limnLook
@@ -210,6 +211,17 @@ typedef struct {
     coord[4],                 /* coordinates in some space */
     worldNormal[3];           /* vertex normal (world coords only) */
 } limnVertex;
+
+/*
+******** struct limnVrt
+**
+** an abbreviated limnVertex
+*/
+typedef struct {
+  float xyzw[4],              /* homogeneous coordinates */
+    norm[3];                  /* normal */
+  unsigned char rgba[4];      /* RGBA color */
+} limnVrt;
 
 /*
 ******** struct limnEdge
@@ -314,28 +326,28 @@ typedef struct {
 } limnObject;
 
 /*
-******** limnTrisurf
+******** limnSurface
 **
-** A simpler beast for representing surfaces made of triangles
+** A simpler beast for representing polygonal surfaces
 **
 ** There is no notion of "part" here; there may be multiple disconnected
-** pieces inside the trisurf, but there is no way of accessing just one
+** pieces inside the surface, but there is no way of accessing just one
 ** such piece.  Having separate parts is important for PostScript
-** rendering, but the limnTrisurf more OpenGL oriented.
+** rendering, but the limnSurface more OpenGL oriented.
 **
 ** Experimenting with *not* having airArrays here...
 */
 typedef struct {
-  unsigned int vertNum;  /* there are vertNum limnVertex's in vert[] */
-  limnVertex *vert;
+  unsigned int vertNum;  /* there are vertNum limnVrts in vert[] */
+  limnVrt *vert;
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;
 
   unsigned int primNum;  /* there are vcntNum primitives (tris or tristrips) */
-  unsigned char *ptype;  /* prim ii is a ptype[ii] (limnPrimitive *enum) */
+  signed char *type;     /* prim ii is a type[ii] (limnPrimitive* enum) */
   unsigned int *vcnt;    /* prim ii has vcnt[ii] vertices */
-} limnTrisurf;
+} limnSurface;
 
 typedef struct {
   /* ------- input ------- */
@@ -369,7 +381,7 @@ typedef struct {
                                    isosurface, and number of vertices and
                                    faces in that isosurface */
   double time;                  /* time for extraction */
-} limn3DContourContext;
+} limnContour3DContext;
 
 /*
 ******** limnQN enum
@@ -556,14 +568,23 @@ TEEM_API int limnObjectFaceAdd(limnObject *obj,
                                unsigned int sideNum, 
                                unsigned int *vertIdx);
 
-/* trisurf.c */
-TEEM_API limnTrisurf *limnTrisurfNew(unsigned int vertNum,
-                                     unsigned int indxNum,
-                                     unsigned int primNum);
-TEEM_API limnTrisurf *limnTrisurfCopy(const limnTrisurf *tsf);
-TEEM_API limnTrisurf *limnTrisurfNix(limnTrisurf *tsf);
-TEEM_API limnTrisurf *limnTrisurfPolarSphereNew(unsigned int thetaRes,
-                                                unsigned int phiRes);
+/* surface.c */
+TEEM_API limnSurface *limnSurfaceNew(void);
+TEEM_API limnSurface *limnSurfaceNix(limnSurface *srf);
+TEEM_API int limnSurfaceAlloc(limnSurface *srf,
+                              unsigned int vertNum,
+                              unsigned int indxNum,
+                              unsigned int primNum);
+TEEM_API size_t limnSurfaceSize(limnSurface *srf);
+TEEM_API int limnSurfaceCopy(limnSurface *srfB, const limnSurface *srfA);
+TEEM_API int limnSurfaceCopyN(limnSurface *srfB, const limnSurface *srfA,
+                              unsigned int num);
+TEEM_API int limnSurfaceCube(limnSurface *srf, int sharpEdge);
+TEEM_API int limnSurfaceCylinder(limnSurface *srf,
+                                 unsigned int res, int sharpEdge);
+TEEM_API int limnSurfacePolarSphere(limnSurface *srf,
+                                    unsigned int thetaRes,
+                                    unsigned int phiRes);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);
@@ -640,15 +661,15 @@ TEEM_API int limnSplineSample(Nrrd *nout, limnSpline *spline,
                               double minT, int M, double maxT);
 
 /* contour.c */
-TEEM_API limn3DContourContext *limn3DContourContextNew(void);
-TEEM_API limn3DContourContext *limn3DContourContextNix(limn3DContourContext *);
-TEEM_API int limn3DContourVolumeSet(limn3DContourContext *lctx,
+TEEM_API limnContour3DContext *limnContour3DContextNew(void);
+TEEM_API limnContour3DContext *limnContour3DContextNix(limnContour3DContext *);
+TEEM_API int limnContour3DVolumeSet(limnContour3DContext *lctx,
                                     const Nrrd *nvol);
-TEEM_API int limn3DContourLowerInsideSet(limn3DContourContext *lctx,
+TEEM_API int limnContour3DLowerInsideSet(limnContour3DContext *lctx,
                                          int lowerInside);
-TEEM_API int limn3DContourTransformSet(limn3DContourContext *lctx,
+TEEM_API int limnContour3DTransformSet(limnContour3DContext *lctx,
                                        const double mat[16]);
-TEEM_API int limn3DContourExtract(limn3DContourContext *lctx,
+TEEM_API int limnContour3DExtract(limnContour3DContext *lctx,
                                   limnObject *cont, double isovalue);
 
 #ifdef __cplusplus

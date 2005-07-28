@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   limnObject *obj;
   Nrrd *nin;
   double isoval;
-  limn3DContourContext *lctx;
+  limnContour3DContext *lctx;
   FILE *file;
   
   me = argv[0];
@@ -54,11 +54,11 @@ main(int argc, char *argv[]) {
   file = airFopen(outS, stdout, "w");
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
-  lctx = limn3DContourContextNew();
-  airMopAdd(mop, lctx, (airMopper)limn3DContourContextNix, airMopAlways);
+  lctx = limnContour3DContextNew();
+  airMopAdd(mop, lctx, (airMopper)limnContour3DContextNix, airMopAlways);
 
-  if (limn3DContourVolumeSet(lctx, nin)
-      || limn3DContourExtract(lctx, obj, isoval)
+  if (limnContour3DVolumeSet(lctx, nin)
+      || limnContour3DExtract(lctx, obj, isoval)
       || limnObjectOFFWrite(file, obj)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

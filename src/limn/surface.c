@@ -21,233 +21,279 @@
 
 #include "limn.h"
 
-limnTrisurf *
-limnTrisurfNew(void) {
-  limnTrisurf *tsf;
+limnSurface *
+limnSurfaceNew(void) {
+  limnSurface *srf;
 
-  tsf = (limnTrisurf *)calloc(1, sizeof(limnTrisurf));
-  if (tsf) {
-    tsf->vert = NULL;
-    tsf->indx = NULL;
-    tsf->type = NULL;
-    tsf->vcnt = NULL;
-    tsf->vertNum = 0;
-    tsf->indxNum = 0;
-    tsf->primNum = 0;
+  srf = (limnSurface *)calloc(1, sizeof(limnSurface));
+  if (srf) {
+    srf->vert = NULL;
+    srf->indx = NULL;
+    srf->type = NULL;
+    srf->vcnt = NULL;
+    srf->vertNum = 0;
+    srf->indxNum = 0;
+    srf->primNum = 0;
   }
-  return tsf;
+  return srf;
+}
+
+limnSurface *
+limnSurfaceNix(limnSurface *srf) {
+
+  if (srf) {
+    airFree(srf->vert);
+    airFree(srf->indx);
+    airFree(srf->type);
+    airFree(srf->vcnt);
+  }
+  airFree(srf);
+  return NULL;
 }
 
 int
-limnTrisurfAlloc(limnTrisurf *tsf,
+limnSurfaceAlloc(limnSurface *srf,
                  unsigned int vertNum,
                  unsigned int indxNum,
                  unsigned int primNum) {
-  char me[]="limnTrisurfAlloc", err[AIR_STRLEN_MED];
+  char me[]="limnSurfaceAlloc", err[AIR_STRLEN_MED];
   
-  if (!tsf) {
+  if (!srf) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (vertNum != tsf->vertNum) {
-    tsf->vert = (limnVrt *)airFree(tsf->vert);
+  if (vertNum != srf->vertNum) {
+    srf->vert = (limnVrt *)airFree(srf->vert);
     if (vertNum) {
-      tsf->vert = (limnVrt *)calloc(vertNum, sizeof(limnVrt));
-      if (!tsf->vert) {
+      srf->vert = (limnVrt *)calloc(vertNum, sizeof(limnVrt));
+      if (!srf->vert) {
         sprintf(err, "%s: couldn't allocate %u vertices", me, vertNum);
         biffAdd(LIMN, err); return 1;
       }
     }
-    tsf->vertNum = vertNum;
+    srf->vertNum = vertNum;
   }
-  if (indxNum != tsf->indxNum) {
-    tsf->indx = (unsigned int *)airFree(tsf->indx);
+  if (indxNum != srf->indxNum) {
+    srf->indx = (unsigned int *)airFree(srf->indx);
     if (indxNum) {
-      tsf->indx = (unsigned int *)calloc(indxNum, sizeof(unsigned int));
-      if (!tsf->indx) {
+      srf->indx = (unsigned int *)calloc(indxNum, sizeof(unsigned int));
+      if (!srf->indx) {
         sprintf(err, "%s: couldn't allocate %u indices", me, indxNum);
         biffAdd(LIMN, err); return 1;
       }
     }
-    tsf->indxNum = indxNum;
+    srf->indxNum = indxNum;
   }
-  if (primNum != tsf->primNum) {
-    tsf->type = (signed char *)airFree(tsf->type);
-    tsf->vcnt = (unsigned int *)airFree(tsf->vcnt);
+  if (primNum != srf->primNum) {
+    srf->type = (signed char *)airFree(srf->type);
+    srf->vcnt = (unsigned int *)airFree(srf->vcnt);
     if (primNum) {
-      tsf->type = (signed char *)calloc(primNum, sizeof(signed char));
-      tsf->vcnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
-      if (!(tsf->type && tsf->vcnt)) {
+      srf->type = (signed char *)calloc(primNum, sizeof(signed char));
+      srf->vcnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
+      if (!(srf->type && srf->vcnt)) {
         sprintf(err, "%s: couldn't allocate %u primitives", me, primNum);
         biffAdd(LIMN, err); return 1;
       }
     }
-    tsf->primNum = primNum;
+    srf->primNum = primNum;
   }
   return 0;
 }
 
-limnTrisurf *
-limnTrisurfCopy(const limnTrisurf *otsf) {
-  limnTrisurf *ntsf;
+size_t
+limnSurfaceSize(limnSurface *srf) {
+  size_t ret = 0;
 
-  ntsf = limnTrisurfNew(otsf->vertNum, otsf->indxNum, otsf->primNum);
-  if (ntsf) {
-    memcpy(ntsf->vert, otsf->vert, otsf->vertNum*sizeof(limnVertex));
-    memcpy(ntsf->indx, otsf->indx, otsf->indxNum*sizeof(unsigned int));
-    memcpy(ntsf->ptype, otsf->ptype, otsf->primNum*sizeof(unsigned char));
-    memcpy(ntsf->vcnt, otsf->vcnt, otsf->primNum*sizeof(unsigned int));
+  if (srf) {
+    ret += srf->vertNum*sizeof(limnVrt);
+    ret += srf->indxNum*sizeof(unsigned int);
+    ret += srf->primNum*sizeof(signed char);
+    ret += srf->primNum*sizeof(unsigned int);
   }
-  return ntsf;
+  return ret;
 }
 
-limnTrisurf *
-limnTrisurfNix(limnTrisurf *tsf) {
+int
+limnSurfaceCopy(limnSurface *srfB, const limnSurface *srfA) {
+  char me[]="limnSurfaceCopy", err[AIR_STRLEN_MED];
 
-  if (tsf) {
-    airFree(tsf->vert);
-    airFree(tsf->indx);
-    airFree(tsf->ptype);
-    airFree(tsf->vcnt);
+  if (!( srfB && srfA )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
   }
-  airFree(tsf);
-  return NULL;
+  if (limnSurfaceAlloc(srfB, srfA->vertNum, srfA->indxNum, srfA->primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  memcpy(srfB->vert, srfA->vert, srfA->vertNum*sizeof(limnVrt));
+  memcpy(srfB->indx, srfA->indx, srfA->indxNum*sizeof(unsigned int));
+  memcpy(srfB->type, srfA->type, srfA->primNum*sizeof(signed char));
+  memcpy(srfB->vcnt, srfA->vcnt, srfA->primNum*sizeof(unsigned int));
+  return 0;
 }
 
-limnTrisurf *
-limnTrisurfCubeNew(int sharpEdge) {
+int
+limnSurfaceCopyN(limnSurface *srfB, const limnSurface *srfA,
+                 unsigned int num) {
+  char me[]="limnSurfaceCopyN", err[AIR_STRLEN_MED];
+  unsigned int ii, jj;
+
+  if (!( srfB && srfA )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (limnSurfaceAlloc(srfB, num*srfA->vertNum,
+                       num*srfA->indxNum, num*srfA->primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  for (ii=0; ii<num; ii++) {
+    memcpy(srfB->vert + ii*srfA->vertNum, srfA->vert,
+           srfA->vertNum*sizeof(limnVrt));
+    for (jj=0; jj<srfA->indxNum; jj++) {
+      (srfB->indx + ii*srfA->indxNum)[jj] = srfA->indx[jj] + ii*srfA->vertNum;
+    }
+    memcpy(srfB->type + ii*srfA->primNum, srfA->type,
+           srfA->primNum*sizeof(signed char));
+    memcpy(srfB->vcnt + ii*srfA->primNum, srfA->vcnt,
+           srfA->primNum*sizeof(unsigned int));
+  }
+  return 0;
+}
+
+int
+limnSurfaceCube(limnSurface *srf, int sharpEdge) {
+  char me[]="limnSurfaceCube", err[AIR_STRLEN_MED];
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  limnTrisurf *tsf=NULL;
   float cn;
 
   vertNum = sharpEdge ? 6*4 : 8;
   primNum = 1;
   indxNum = 6*4;
-  tsf = limnTrisurfNew(vertNum, indxNum, primNum);
-  if (!tsf) {
-    return NULL;
+  if (limnSurfaceAlloc(srf, vertNum, indxNum, primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(LIMN, err); return 1;
   }
-
+  
   vertIdx = 0;
   cnum = sharpEdge ? 3 : 1;
   cn = sqrt(3.0);
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,  -1,  -1,  -1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,  -1,  -1,  -1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,  -1,   1,  -1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,  -1,   1,  -1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,   1,   1,  -1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,   1,   1,  -1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,   1,  -1,  -1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,   1,  -1,  -1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,  -1,  -1,   1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,  -1,  -1,   1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,  -1,   1,   1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,  -1,   1,   1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,   1,   1,   1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,   1,   1,   1,  1); vertIdx++;
   }
   for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(tsf->vert[vertIdx].xyzw,   1,  -1,   1,  1); vertIdx++;
+    ELL_4V_SET(srf->vert[vertIdx].xyzw,   1,  -1,   1,  1); vertIdx++;
   }
 
   vertIdx = 0;
   if (sharpEdge) {
-    ELL_4V_SET(tsf->indx + vertIdx,  0,  3,  6,  9); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  2, 14, 16,  5); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  4, 17, 18,  8); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  7, 19, 21, 10); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  1, 11, 23, 13); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx, 12, 22, 20, 15); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  0,  3,  6,  9); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  2, 14, 16,  5); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  4, 17, 18,  8); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  7, 19, 21, 10); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  1, 11, 23, 13); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx, 12, 22, 20, 15); vertIdx += 4;
   } else {
-    ELL_4V_SET(tsf->indx + vertIdx,  0,  1,  2,  3); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  0,  4,  5,  1); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  1,  5,  6,  2); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  2,  6,  7,  3); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  0,  3,  7,  4); vertIdx += 4;
-    ELL_4V_SET(tsf->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  0,  1,  2,  3); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  0,  4,  5,  1); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  1,  5,  6,  2); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  2,  6,  7,  3); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  0,  3,  7,  4); vertIdx += 4;
+    ELL_4V_SET(srf->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
   }
 
   if (sharpEdge) {
-    ELL_3V_SET(tsf->vert[ 0].norm,  0,  0, -1);
-    ELL_3V_SET(tsf->vert[ 3].norm,  0,  0, -1);
-    ELL_3V_SET(tsf->vert[ 6].norm,  0,  0, -1);
-    ELL_3V_SET(tsf->vert[ 9].norm,  0,  0, -1);
-    ELL_3V_SET(tsf->vert[ 2].norm, -1,  0,  0);
-    ELL_3V_SET(tsf->vert[ 5].norm, -1,  0,  0);
-    ELL_3V_SET(tsf->vert[14].norm, -1,  0,  0);
-    ELL_3V_SET(tsf->vert[16].norm, -1,  0,  0);
-    ELL_3V_SET(tsf->vert[ 4].norm,  0,  1,  0);
-    ELL_3V_SET(tsf->vert[ 8].norm,  0,  1,  0);
-    ELL_3V_SET(tsf->vert[17].norm,  0,  1,  0);
-    ELL_3V_SET(tsf->vert[18].norm,  0,  1,  0);
-    ELL_3V_SET(tsf->vert[ 7].norm,  1,  0,  0);
-    ELL_3V_SET(tsf->vert[10].norm,  1,  0,  0);
-    ELL_3V_SET(tsf->vert[19].norm,  1,  0,  0);
-    ELL_3V_SET(tsf->vert[21].norm,  1,  0,  0);
-    ELL_3V_SET(tsf->vert[ 1].norm,  0, -1,  0);
-    ELL_3V_SET(tsf->vert[11].norm,  0, -1,  0);
-    ELL_3V_SET(tsf->vert[13].norm,  0, -1,  0);
-    ELL_3V_SET(tsf->vert[23].norm,  0, -1,  0);
-    ELL_3V_SET(tsf->vert[12].norm,  0,  0,  1);
-    ELL_3V_SET(tsf->vert[15].norm,  0,  0,  1);
-    ELL_3V_SET(tsf->vert[20].norm,  0,  0,  1);
-    ELL_3V_SET(tsf->vert[22].norm,  0,  0,  1);
+    ELL_3V_SET(srf->vert[ 0].norm,  0,  0, -1);
+    ELL_3V_SET(srf->vert[ 3].norm,  0,  0, -1);
+    ELL_3V_SET(srf->vert[ 6].norm,  0,  0, -1);
+    ELL_3V_SET(srf->vert[ 9].norm,  0,  0, -1);
+    ELL_3V_SET(srf->vert[ 2].norm, -1,  0,  0);
+    ELL_3V_SET(srf->vert[ 5].norm, -1,  0,  0);
+    ELL_3V_SET(srf->vert[14].norm, -1,  0,  0);
+    ELL_3V_SET(srf->vert[16].norm, -1,  0,  0);
+    ELL_3V_SET(srf->vert[ 4].norm,  0,  1,  0);
+    ELL_3V_SET(srf->vert[ 8].norm,  0,  1,  0);
+    ELL_3V_SET(srf->vert[17].norm,  0,  1,  0);
+    ELL_3V_SET(srf->vert[18].norm,  0,  1,  0);
+    ELL_3V_SET(srf->vert[ 7].norm,  1,  0,  0);
+    ELL_3V_SET(srf->vert[10].norm,  1,  0,  0);
+    ELL_3V_SET(srf->vert[19].norm,  1,  0,  0);
+    ELL_3V_SET(srf->vert[21].norm,  1,  0,  0);
+    ELL_3V_SET(srf->vert[ 1].norm,  0, -1,  0);
+    ELL_3V_SET(srf->vert[11].norm,  0, -1,  0);
+    ELL_3V_SET(srf->vert[13].norm,  0, -1,  0);
+    ELL_3V_SET(srf->vert[23].norm,  0, -1,  0);
+    ELL_3V_SET(srf->vert[12].norm,  0,  0,  1);
+    ELL_3V_SET(srf->vert[15].norm,  0,  0,  1);
+    ELL_3V_SET(srf->vert[20].norm,  0,  0,  1);
+    ELL_3V_SET(srf->vert[22].norm,  0,  0,  1);
   } else {
-    ELL_3V_SET(tsf->vert[0].norm, -cn, -cn, -cn);
-    ELL_3V_SET(tsf->vert[1].norm, -cn,  cn, -cn);
-    ELL_3V_SET(tsf->vert[2].norm,  cn,  cn, -cn);
-    ELL_3V_SET(tsf->vert[3].norm,  cn, -cn, -cn);
-    ELL_3V_SET(tsf->vert[4].norm, -cn, -cn,  cn);
-    ELL_3V_SET(tsf->vert[5].norm, -cn,  cn,  cn);
-    ELL_3V_SET(tsf->vert[6].norm,  cn,  cn,  cn);
-    ELL_3V_SET(tsf->vert[7].norm,  cn, -cn,  cn);
+    ELL_3V_SET(srf->vert[0].norm, -cn, -cn, -cn);
+    ELL_3V_SET(srf->vert[1].norm, -cn,  cn, -cn);
+    ELL_3V_SET(srf->vert[2].norm,  cn,  cn, -cn);
+    ELL_3V_SET(srf->vert[3].norm,  cn, -cn, -cn);
+    ELL_3V_SET(srf->vert[4].norm, -cn, -cn,  cn);
+    ELL_3V_SET(srf->vert[5].norm, -cn,  cn,  cn);
+    ELL_3V_SET(srf->vert[6].norm,  cn,  cn,  cn);
+    ELL_3V_SET(srf->vert[7].norm,  cn, -cn,  cn);
   }
 
-  tsf->ptype[0] = limnPrimitiveQuads;
-  tsf->vcnt[0] = indxNum;
+  srf->type[0] = limnPrimitiveQuads;
+  srf->vcnt[0] = indxNum;
   
   /* set colors */
-  for (vertIdx=0; vertIdx<tsf->vertNum; vertIdx++) {
-    ELL_4V_SET(tsf->vert[vertIdx].rgba, 255, 255, 255, 255);
+  for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
+    ELL_4V_SET(srf->vert[vertIdx].rgba, 255, 255, 255, 255);
   }
 
-  return tsf;
+  return 0;
 }
 
-limnTrisurf *
-limnTrisurfCylinderNew(unsigned int thetaRes, int sharpEdge) {
-  /* char me[]="limnTrisurfCylinderNew"; */
+int
+limnSurfaceCylinder(limnSurface *srf, unsigned int thetaRes, int sharpEdge) {
+  char me[]="limnSurfaceCylinderNew", err[AIR_STRLEN_MED];
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   float theta, cth, sth, sq2;
-  limnTrisurf *tsf;
-  
+
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
 
   vertNum = sharpEdge ? 4*thetaRes : 2*thetaRes;
   primNum = 3;
   indxNum = 2*thetaRes + 2*(thetaRes+1);  /* 2 fans + 1 strip */
-  tsf = limnTrisurfNew(vertNum, indxNum, primNum);
-  if (!tsf) {
-    return NULL;
+  if (limnSurfaceAlloc(srf, vertNum, indxNum, primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me); 
+    biffAdd(LIMN, err); return 1;
   }
   
   vertIdx = 0;
   for (blah=0; blah < (sharpEdge ? 2 : 1); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET(tsf->vert[vertIdx].xyzw, cos(theta), sin(theta), 1, 1);
+      ELL_4V_SET(srf->vert[vertIdx].xyzw, cos(theta), sin(theta), 1, 1);
       /*
       fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
-              tsf->vert[vertIdx].xyzw[0],
-              tsf->vert[vertIdx].xyzw[1],
-              tsf->vert[vertIdx].xyzw[2]);
+              srf->vert[vertIdx].xyzw[0],
+              srf->vert[vertIdx].xyzw[1],
+              srf->vert[vertIdx].xyzw[2]);
       */
       ++vertIdx;
     }
@@ -255,12 +301,12 @@ limnTrisurfCylinderNew(unsigned int thetaRes, int sharpEdge) {
   for (blah=0; blah < (sharpEdge ? 2 : 1); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET(tsf->vert[vertIdx].xyzw, cos(theta), sin(theta), -1, 1);
+      ELL_4V_SET(srf->vert[vertIdx].xyzw, cos(theta), sin(theta), -1, 1);
       /*
       fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
-              tsf->vert[vertIdx].xyzw[0],
-              tsf->vert[vertIdx].xyzw[1],
-              tsf->vert[vertIdx].xyzw[2]);
+              srf->vert[vertIdx].xyzw[0],
+              srf->vert[vertIdx].xyzw[1],
+              srf->vert[vertIdx].xyzw[2]);
       */
       ++vertIdx;
     }
@@ -271,29 +317,29 @@ limnTrisurfCylinderNew(unsigned int thetaRes, int sharpEdge) {
 
   /* fan on top */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    tsf->indx[vertIdx++] = thetaIdx;
+    srf->indx[vertIdx++] = thetaIdx;
   }
-  tsf->ptype[primIdx] = limnPrimitiveTriangleFan;
-  tsf->vcnt[primIdx] = thetaRes;
+  srf->type[primIdx] = limnPrimitiveTriangleFan;
+  srf->vcnt[primIdx] = thetaRes;
   primIdx++;
 
   /* single strip around */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    tsf->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes + thetaIdx;
-    tsf->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes + thetaIdx;
+    srf->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes + thetaIdx;
+    srf->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes + thetaIdx;
   }
-  tsf->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes;
-  tsf->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes;
-  tsf->ptype[primIdx] = limnPrimitiveTriangleStrip;
-  tsf->vcnt[primIdx] = 2*(thetaRes+1);
+  srf->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes;
+  srf->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes;
+  srf->type[primIdx] = limnPrimitiveTriangleStrip;
+  srf->vcnt[primIdx] = 2*(thetaRes+1);
   primIdx++;
 
   /* fan on bottom */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    tsf->indx[vertIdx++] = (sharpEdge ? 3 : 1)*thetaRes + thetaIdx;
+    srf->indx[vertIdx++] = (sharpEdge ? 3 : 1)*thetaRes + thetaIdx;
   }
-  tsf->ptype[primIdx] = limnPrimitiveTriangleFan;
-  tsf->vcnt[primIdx] = thetaRes;
+  srf->type[primIdx] = limnPrimitiveTriangleFan;
+  srf->vcnt[primIdx] = thetaRes;
   primIdx++;
 
   /* set normals */
@@ -303,38 +349,39 @@ limnTrisurfCylinderNew(unsigned int thetaRes, int sharpEdge) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       cth = cos(theta);
       sth = sin(theta);
-      ELL_3V_SET(tsf->vert[thetaIdx + 0*thetaRes].norm, 0, 0, 1);
-      ELL_3V_SET(tsf->vert[thetaIdx + 1*thetaRes].norm, cth, sth, 0);
-      ELL_3V_SET(tsf->vert[thetaIdx + 2*thetaRes].norm, cth, sth, 0);
-      ELL_3V_SET(tsf->vert[thetaIdx + 3*thetaRes].norm, 0, 0, -1);
+      ELL_3V_SET(srf->vert[thetaIdx + 0*thetaRes].norm, 0, 0, 1);
+      ELL_3V_SET(srf->vert[thetaIdx + 1*thetaRes].norm, cth, sth, 0);
+      ELL_3V_SET(srf->vert[thetaIdx + 2*thetaRes].norm, cth, sth, 0);
+      ELL_3V_SET(srf->vert[thetaIdx + 3*thetaRes].norm, 0, 0, -1);
     }
   } else {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       cth = sq2*cos(theta);
       sth = sq2*sin(theta);
-      ELL_3V_SET(tsf->vert[thetaIdx + 0*thetaRes].norm, cth, sth, sq2);
-      ELL_3V_SET(tsf->vert[thetaIdx + 1*thetaRes].norm, cth, sth, -sq2);
+      ELL_3V_SET(srf->vert[thetaIdx + 0*thetaRes].norm, cth, sth, sq2);
+      ELL_3V_SET(srf->vert[thetaIdx + 1*thetaRes].norm, cth, sth, -sq2);
     }
   }
 
   /* set colors */
-  for (vertIdx=0; vertIdx<tsf->vertNum; vertIdx++) {
-    ELL_4V_SET(tsf->vert[vertIdx].rgba, 255, 255, 255, 255);
+  for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
+    ELL_4V_SET(srf->vert[vertIdx].rgba, 255, 255, 255, 255);
   }
 
-  return tsf;
+  return 0;
 }
 
 
 /*
-******** limnTrisurfPolarSphereNew
+******** limnSurfacePolarSphere
 **
 ** makes a unit sphere, centered at the origin, parameterized around Z axis
 */
-limnTrisurf *
-limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
-  /* char me[]="limnTrisurfPolarSphereNew"; */
+int
+limnSurfacePolarSphere(limnSurface *srf,
+                       unsigned int thetaRes, unsigned int phiRes) {
+  char me[]="limnSurfacePolarSphere", err[AIR_STRLEN_MED];
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
   float theta, phi;
@@ -348,20 +395,19 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
   stripNum = phiRes-2;
   primNum = fanNum + stripNum;
   indxNum = (thetaRes+2)*fanNum + 2*(thetaRes+1)*stripNum;
-  limnTrisurf *tsf = limnTrisurfNew(vertNum, indxNum, primNum);
-  if (!tsf) {
-    return NULL;
+  if (limnSurfaceAlloc(srf, vertNum, indxNum, primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(LIMN, err); return 1;
   }
-  /* else allocation is successful and done */
 
   vertIdx = 0;
-  ELL_4V_SET(tsf->vert[vertIdx].xyzw, 0, 0, 1, 1);
+  ELL_4V_SET(srf->vert[vertIdx].xyzw, 0, 0, 1, 1);
   ++vertIdx;
   for (phiIdx=1; phiIdx<phiRes; phiIdx++) {
     phi = AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI);
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET(tsf->vert[vertIdx].xyzw,
+      ELL_4V_SET(srf->vert[vertIdx].xyzw,
                  sin(phi)*cos(theta),
                  sin(phi)*sin(theta),
                  cos(phi),
@@ -369,19 +415,19 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
       ++vertIdx;
     }
   }
-  ELL_4V_SET(tsf->vert[vertIdx].xyzw, 0, 0, -1, 1);
+  ELL_4V_SET(srf->vert[vertIdx].xyzw, 0, 0, -1, 1);
   ++vertIdx;
 
   /* triangle fan at top */
   vertIdx = 0;
   primIdx = 0;
-  tsf->indx[vertIdx++] = 0;
+  srf->indx[vertIdx++] = 0;
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    tsf->indx[vertIdx++] = thetaIdx + 1;
+    srf->indx[vertIdx++] = thetaIdx + 1;
   }
-  tsf->indx[vertIdx++] = 1;
-  tsf->ptype[primIdx] = limnPrimitiveTriangleFan;
-  tsf->vcnt[primIdx++] = thetaRes + 2;
+  srf->indx[vertIdx++] = 1;
+  srf->type[primIdx] = limnPrimitiveTriangleFan;
+  srf->vcnt[primIdx++] = thetaRes + 2;
 
   /* tristrips around */
   for (phiIdx=1; phiIdx<phiRes-1; phiIdx++) {
@@ -395,8 +441,8 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
               (phiIdx-1)*thetaRes + thetaIdx + 1,
               phiIdx*thetaRes + thetaIdx + 1);
       */
-      tsf->indx[vertIdx++] = (phiIdx-1)*thetaRes + thetaIdx + 1;
-      tsf->indx[vertIdx++] = phiIdx*thetaRes + thetaIdx + 1;
+      srf->indx[vertIdx++] = (phiIdx-1)*thetaRes + thetaIdx + 1;
+      srf->indx[vertIdx++] = phiIdx*thetaRes + thetaIdx + 1;
     }
     /*
     fprintf(stderr, " [%u %u] %u %u (%u verts)\n", 
@@ -404,27 +450,27 @@ limnTrisurfPolarSphereNew(unsigned int thetaRes, unsigned int phiRes) {
             (phiIdx-1)*thetaRes + 1,
             phiIdx*thetaRes + 1, 2*(thetaRes+1));
     */
-    tsf->indx[vertIdx++] = (phiIdx-1)*thetaRes + 1;
-    tsf->indx[vertIdx++] = phiIdx*thetaRes + 1;
-    tsf->ptype[primIdx] = limnPrimitiveTriangleStrip;
-    tsf->vcnt[primIdx++] = 2*(thetaRes+1);
+    srf->indx[vertIdx++] = (phiIdx-1)*thetaRes + 1;
+    srf->indx[vertIdx++] = phiIdx*thetaRes + 1;
+    srf->type[primIdx] = limnPrimitiveTriangleStrip;
+    srf->vcnt[primIdx++] = 2*(thetaRes+1);
   }
 
   /* triangle fan at bottom */
-  tsf->indx[vertIdx++] = vertNum-1;
+  srf->indx[vertIdx++] = vertNum-1;
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes - thetaIdx;
+    srf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes - thetaIdx;
   }
-  tsf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
-  tsf->ptype[primIdx] = limnPrimitiveTriangleFan;
-  tsf->vcnt[primIdx++] = thetaRes + 2;
+  srf->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
+  srf->type[primIdx] = limnPrimitiveTriangleFan;
+  srf->vcnt[primIdx++] = thetaRes + 2;
 
   /* set normals and colors */
-  for (vertIdx=0; vertIdx<tsf->vertNum; vertIdx++) {
-    ELL_3V_COPY(tsf->vert[vertIdx].norm, tsf->vert[vertIdx].xyzw);
-    ELL_4V_SET(tsf->vert[vertIdx].rgba, 255, 255, 255, 255);
+  for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
+    ELL_3V_COPY(srf->vert[vertIdx].norm, srf->vert[vertIdx].xyzw);
+    ELL_4V_SET(srf->vert[vertIdx].rgba, 255, 255, 255, 255);
   }
 
-  return tsf;
+  return 0;
 }
 
