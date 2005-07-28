@@ -38,9 +38,9 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nout;
   char *me, *outS;
   float angle;
-  double xs, ys, zs, y, z;
+  double xs, ys, zs, y, z, padval;
   gage_t *val;
-  int sx, sy, sz, E, xi, yi, zi;
+  int sx, sy, sz, E, xi, yi, zi, clamp;
   NrrdKernelSpec *gantric;
   void *out;
   double (*insert)(void *v, size_t I, double d);
@@ -71,6 +71,12 @@ main(int argc, char *argv[]) {
              "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
              "S and cut-off at C standard deviations",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "clamp", NULL, airTypeInt, 0, 0, &clamp, NULL,
+             "clamp sampling positions to inside original volume, "
+             "effectively does a bleed of the boundary values");
+  hestOptAdd(&hopt, "p", "pad value", airTypeDouble, 1, 1, &padval, "0.0",
+             "when NOT doing clampging (no \"-clamp\"), what value to the "
+             "boundary of the volume with");
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
              "output volume in nrrd format");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -124,9 +130,13 @@ main(int argc, char *argv[]) {
         
         y = (yi - sy/2.0)*ys;
         z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
-        z = AIR_CLAMP(0, z, sz-1);
-        gageProbe(ctx, xi, yi, z);
-        insert(out, xi + sx*(yi + sy*zi), *val);
+        if (clamp || AIR_IN_OP(0, z, sz-1)) {
+          z = AIR_CLAMP(0, z, sz-1);
+          gageProbe(ctx, xi, yi, z);
+          insert(out, xi + sx*(yi + sy*zi), *val);
+        } else {
+          insert(out, xi + sx*(yi + sy*zi), padval);
+        }
       }
     }
   }
