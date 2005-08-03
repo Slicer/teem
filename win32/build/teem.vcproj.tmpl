@@ -72,7 +72,6 @@
 				AdditionalIncludeDirectories="..\..\include,..\includeTEEMALLINC"
 				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,WIN32_LEAN_AND_MEAN,NOMINMAX,_USE_MATH_DEFINES,TEEM_ENDIAN=1234,TEEM_QNANHIBIT=1,TEEM_DIO=0,TEEM_32BIT=1,TEEM_ZLIB=1,TEEM_BZIP2=1,TEEM_PNG=1,TEEM_BIGBITFIELD=1,TEEM_BUILD"
 				CompileAs="0"
-				BasicRuntimeChecks="3"
 				SuppressStartupBanner="TRUE"
 				RuntimeLibrary="3"
 				DebugInformationFormat="3"/>
@@ -121,6 +120,7 @@
 				AdditionalIncludeDirectories="..\..\include,..\includeTEEMALLINC"
 				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,WIN32_LEAN_AND_MEAN,NOMINMAX,_USE_MATH_DEFINES,TEEM_ENDIAN=1234,TEEM_QNANHIBIT=1,TEEM_DIO=0,TEEM_32BIT=1,TEEM_ZLIB=1,TEEM_BZIP2=1,TEEM_PNG=1,TEEM_BIGBITFIELD=1,TEEM_BUILD"
 				RuntimeLibrary="2"
+				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
 				StringPooling="TRUE"
 				CompileAs="0"
 				SuppressStartupBanner="TRUE"/>
@@ -165,8 +165,8 @@
 				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,WIN32_LEAN_AND_MEAN,NOMINMAX,_USE_MATH_DEFINES,TEEM_ENDIAN=1234,TEEM_QNANHIBIT=1,TEEM_DIO=0,TEEM_32BIT=1,TEEM_ZLIB=1,TEEM_BZIP2=1,TEEM_PNG=1,TEEM_BIGBITFIELD=1,TEEM_BUILD"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"
-				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				ProgramDataBaseFileName="$(OutDir)/$(ProjectName).pdb"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
