@@ -633,6 +633,7 @@ TEEM_API int nrrdPGM(Nrrd *, size_t sx, size_t sy);
 
 /******** axis info related */
 /* axis.c */
+TEEM_API int nrrdKindIsDomain(int kind);
 TEEM_API unsigned int nrrdKindSize(int kind);
 TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
                               const int *axmap, int excludeBitflag);
