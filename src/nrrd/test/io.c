@@ -33,7 +33,7 @@ main(int argc, char **argv) {
   char *me, *err;
   Nrrd *nrrd;
   NrrdIoState *io;
-
+  unsigned int domNum, domAxi[NRRD_DIM_MAX], rngNum, rngAxi[NRRD_DIM_MAX], axi;
   double val[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX];
 
   me = argv[0];
@@ -50,6 +50,21 @@ main(int argc, char **argv) {
     free(err);
     exit(1);
   }
+
+  domNum = nrrdDomainAxesGet(nrrd, domAxi);
+  rngNum = nrrdRangeAxesGet(nrrd, rngAxi);
+  fprintf(stderr, "%s domain axes (%u):", me, domNum);
+  for (axi=0; axi<domNum; axi++) {
+    fprintf(stderr, " %u(%s)", domAxi[axi],
+            airEnumStr(nrrdKind, nrrd->axis[domAxi[axi]].kind));
+  }
+  fprintf(stderr, "\n");
+  fprintf(stderr, "%s range naxes (%u):", me, rngNum);
+  for (axi=0; axi<rngNum; axi++) {
+    fprintf(stderr, " %u(%s)", rngAxi[axi],
+            airEnumStr(nrrdKind, nrrd->axis[rngAxi[axi]].kind));
+  }
+  fprintf(stderr, "\n");
 
   fprintf(stderr, "0 --------------------------------------\n");
   nrrdDescribe(stderr, nrrd);
