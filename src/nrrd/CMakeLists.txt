@@ -1,0 +1,52 @@
+ADD_LIBRARY(nrrd
+  accessors.c
+  apply1D.c
+  arith.c
+  arraysNrrd.c
+  axis.c
+  cc.c
+  ccmethods.c
+  comment.c
+  convertNrrd.c
+  defaultsNrrd.c
+  encoding.c
+  encodingAscii.c
+  encodingBzip2.c
+  encodingGzip.c
+  encodingHex.c
+  encodingRaw.c
+  endianNrrd.c
+  enumsNrrd.c
+  filt.c
+  format.c
+  formatEPS.c
+  formatNRRD.c
+  formatPNG.c
+  formatPNM.c
+  formatText.c
+  formatVTK.c
+  gzio.c
+  hestNrrd.c
+  histogram.c
+  iter.c
+  kernel.c
+  keyvalue.c
+  map.c
+  measure.c
+  methodsNrrd.c
+  parseNrrd.c
+  range.c
+  read.c
+  reorder.c
+  resampleNrrd.c
+  simple.c
+  subset.c
+  superset.c
+  tmfKernel.c
+  winKernel.c
+  write.c
+)
+
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+
+TARGET_LINK_LIBRARIES(nrrd biff hest air)

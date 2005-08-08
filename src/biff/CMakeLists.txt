@@ -1,0 +1,7 @@
+ADD_LIBRARY(biff
+  biffbiff
+)
+
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+
+TARGET_LINK_LIBRARIES(biff air)  
