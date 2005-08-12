@@ -21,6 +21,9 @@
 #include <teemEndian.h>
 #include <teemQnanhibit.h>
 
+/* miscAir.c */
+extern double _airSanityHelper(double val);
+
 /*
 ** _airFloat, _airDouble
 **

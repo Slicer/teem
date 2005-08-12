@@ -19,11 +19,7 @@
 */
 
 #include "air.h"
-
-double
-_airSanityHelper(double val) {
-  return val*val*val;
-}
+#include "privateAir.h"
 
 /*
 ******** airSanity()
