@@ -22,12 +22,20 @@
 #include "ell.h"
 
 void
-ell_3m_mul_f(float m3[9], float m1[9], float m2[9]) {
+ell_3m_mul_f(float m3[9], float _m1[9], float _m2[9]) {
+  float m1[9], m2[9];
+
+  ELL_3M_COPY(m1, _m1);
+  ELL_3M_COPY(m2, _m2);
   ELL_3M_MUL(m3, m1, m2);
 }
 
 void
-ell_3m_mul_d(double m3[9], double m1[9], double m2[9]) {
+ell_3m_mul_d(double m3[9], double _m1[9], double _m2[9]) {
+  double m1[9], m2[9];
+
+  ELL_3M_COPY(m1, _m1);
+  ELL_3M_COPY(m2, _m2);
   ELL_3M_MUL(m3, m1, m2);
 }
 
