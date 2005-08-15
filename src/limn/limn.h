@@ -582,9 +582,15 @@ TEEM_API int limnSurfaceCopyN(limnSurface *srfB, const limnSurface *srfA,
 TEEM_API int limnSurfaceCube(limnSurface *srf, int sharpEdge);
 TEEM_API int limnSurfaceCylinder(limnSurface *srf,
                                  unsigned int res, int sharpEdge);
+TEEM_API int limnSurfaceSuperquadric(limnSurface *srf,
+                                     float A, float B,
+                                     unsigned int thetaRes,
+                                     unsigned int phiRes);
 TEEM_API int limnSurfacePolarSphere(limnSurface *srf,
                                     unsigned int thetaRes,
                                     unsigned int phiRes);
+TEEM_API void limnSurfaceTransform_f(limnSurface *srf, const float homat[16]);
+TEEM_API void limnSurfaceTransform_d(limnSurface *srf, const double homat[16]);
 
 /* io.c */
 TEEM_API int limnObjectDescribe(FILE *file, limnObject *obj);

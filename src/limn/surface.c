@@ -374,14 +374,15 @@ limnSurfaceCylinder(limnSurface *srf, unsigned int thetaRes, int sharpEdge) {
 
 
 /*
-******** limnSurfacePolarSphere
+******** limnSurfaceSuperquadric
 **
-** makes a unit sphere, centered at the origin, parameterized around Z axis
+** makes a superquadric parameterized around the Z axis
 */
 int
-limnSurfacePolarSphere(limnSurface *srf,
-                       unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnSurfacePolarSphere", err[AIR_STRLEN_MED];
+limnSurfaceSuperquadric(limnSurface *srf,
+                        float alpha, float beta,
+                        unsigned int thetaRes, unsigned int phiRes) {
+  char me[]="limnSurfaceSuperquadric", err[AIR_STRLEN_MED];
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
   float theta, phi;
@@ -389,6 +390,8 @@ limnSurfacePolarSphere(limnSurface *srf,
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
   phiRes = AIR_MAX(2, phiRes);
+  alpha = AIR_MAX(0.00001, alpha);
+  beta = AIR_MAX(0.00001, beta);
 
   vertNum = 2 + thetaRes*(phiRes-1);
   fanNum = 2;
@@ -402,20 +405,35 @@ limnSurfacePolarSphere(limnSurface *srf,
 
   vertIdx = 0;
   ELL_4V_SET(srf->vert[vertIdx].xyzw, 0, 0, 1, 1);
+  ELL_3V_SET(srf->vert[vertIdx].norm, 0, 0, 1);
   ++vertIdx;
   for (phiIdx=1; phiIdx<phiRes; phiIdx++) {
+    float cost, sint, cosp, sinp;
     phi = AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI);
+    cosp = cos(phi);
+    sinp = sin(phi);
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
+      cost = cos(theta);
+      sint = sin(theta);
       ELL_4V_SET(srf->vert[vertIdx].xyzw,
-                 sin(phi)*cos(theta),
-                 sin(phi)*sin(theta),
-                 cos(phi),
+                 airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
+                 airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
+                 airSgnPow(cosp,beta),
                  1.0);
+      if (1 == alpha && 1 == beta) {
+        ELL_3V_COPY(srf->vert[vertIdx].norm, srf->vert[vertIdx].xyzw);
+      } else {
+        ELL_3V_SET(srf->vert[vertIdx].norm,
+                   2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                   2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                   2*airSgnPow(cosp,2-beta)/beta);
+      }
       ++vertIdx;
     }
   }
   ELL_4V_SET(srf->vert[vertIdx].xyzw, 0, 0, -1, 1);
+  ELL_3V_SET(srf->vert[vertIdx].norm, 0, 0, -1);
   ++vertIdx;
 
   /* triangle fan at top */
@@ -465,12 +483,72 @@ limnSurfacePolarSphere(limnSurface *srf,
   srf->type[primIdx] = limnPrimitiveTriangleFan;
   srf->vcnt[primIdx++] = thetaRes + 2;
 
-  /* set normals and colors */
+  /* set colors to all white */
   for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
-    ELL_3V_COPY(srf->vert[vertIdx].norm, srf->vert[vertIdx].xyzw);
     ELL_4V_SET(srf->vert[vertIdx].rgba, 255, 255, 255, 255);
   }
 
   return 0;
 }
 
+/*
+******** limnSurfacePolarSphere
+**
+** makes a unit sphere, centered at the origin, parameterized around Z axis
+*/
+int
+limnSurfacePolarSphere(limnSurface *srf,
+                       unsigned int thetaRes, unsigned int phiRes) {
+  char me[]="limnSurfacePolarSphere", err[AIR_STRLEN_MED];
+
+  if (limnSurfaceSuperquadric(srf, 1.0, 1.0, thetaRes, phiRes)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(LIMN, err); return 1;
+  }                              
+  return 0;
+}
+
+/*
+******** limnSurfaceTransform_f, limnSurfaceTransform_d
+**
+** transforms a surface (vertex positions in limnVrt.xyzw and normals
+** in limnVrt.norm) by given homogenous transform
+*/
+void
+limnSurfaceTransform_f(limnSurface *srf, const float homat[16]) {
+  double hovec[4], mat[9], inv[9], norm[3], nmat[9];
+  unsigned int vertIdx;
+
+  if (srf && homat) {
+    ELL_34M_EXTRACT(mat, homat);
+    ell_3m_inv_d(inv, mat);
+    ELL_3M_TRANSPOSE(nmat, inv);
+    for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
+      ELL_4MV_MUL(hovec, homat, srf->vert[vertIdx].xyzw);
+      ELL_4V_COPY(srf->vert[vertIdx].xyzw, hovec);
+      ELL_3MV_MUL(norm, nmat, srf->vert[vertIdx].norm);
+      ELL_3V_COPY(srf->vert[vertIdx].norm, norm);
+    }
+  }
+  return;
+}
+
+/* !!! COPY AND PASTE !!! */
+void
+limnSurfaceTransform_d(limnSurface *srf, const double homat[16]) {
+  double hovec[4], mat[9], inv[9], norm[3], nmat[9];
+  unsigned int vertIdx;
+
+  if (srf && homat) {
+    ELL_34M_EXTRACT(mat, homat);
+    ell_3m_inv_d(inv, mat);
+    ELL_3M_TRANSPOSE(nmat, inv);
+    for (vertIdx=0; vertIdx<srf->vertNum; vertIdx++) {
+      ELL_4MV_MUL(hovec, homat, srf->vert[vertIdx].xyzw);
+      ELL_4V_COPY(srf->vert[vertIdx].xyzw, hovec);
+      ELL_3MV_MUL(norm, nmat, srf->vert[vertIdx].norm);
+      ELL_3V_COPY(srf->vert[vertIdx].norm, norm);
+    }
+  }
+  return;
+}
