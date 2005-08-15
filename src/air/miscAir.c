@@ -488,9 +488,11 @@ airTime() {
 double
 airSgnPow(double v, double p) {
 
-  return (v >= 0
-          ? pow(v, p)
-          : -pow(-v, p));
+  return (p == 1 
+          ? v
+          : (v >= 0
+             ? pow(v, p)
+             : -pow(-v, p)));
 }
 
 /*
