@@ -17,6 +17,6 @@ ADD_LIBRARY(limn
  transform.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
 
 TARGET_LINK_LIBRARIES(limn ell nrrd biff hest air)

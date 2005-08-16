@@ -5,5 +5,5 @@ ADD_EXECUTABLE(enhex
   enhex.c
 )  
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
 

@@ -13,7 +13,7 @@ ADD_LIBRARY(air
   threadAir.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
 
 INSTALL_TARGETS(/lib air)
 INSTALL_FILES(/include/teem/ ".h" air.h)

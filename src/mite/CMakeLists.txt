@@ -9,6 +9,6 @@ ADD_LIBRARY(mite
   user.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
 
 TARGET_LINK_LIBRARIES(mite ten hoover limn gage ell nrrd biff air)

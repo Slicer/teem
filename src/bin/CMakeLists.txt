@@ -1,3 +1,7 @@
+INCLUDE_DIRECTORIES(
+    ${TEEM_BINARY_DIR}/include/
+)
+
 ADD_EXECUTABLE(airSanity airSanity.c)
 TARGET_LINK_LIBRARIES(airSanity air)
 
