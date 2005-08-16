@@ -1,5 +1,6 @@
 ADD_LIBRARY(limn
  cam.c
+ contour.c
  defaultsLimn.c
  enumsLimn.c
  env.c
@@ -14,6 +15,7 @@ ADD_LIBRARY(limn
  splineEval.c
  splineMethods.c
  splineMisc.c
+ surface.c
  transform.c
 )
 
