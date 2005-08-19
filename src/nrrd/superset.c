@@ -247,6 +247,8 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
+
+  /* HEY: before Teem version 2.0 figure out nrrdKind stuff here */
   
   strcpy(buff1, "[");
   for (ai=0; ai<nin->dim; ai++) {
