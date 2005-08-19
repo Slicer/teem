@@ -847,7 +847,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       _nrrdSpaceVecScale(nout->axis[ai].spaceDirection,
                          1.0/ratios[ai], nin->axis[ai].spaceDirection);
       */
-      nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind);
+      nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_TRUE);
     } else {
       /* this axis remains untouched */
       nout->axis[ai].min = nin->axis[ai].min;

@@ -249,7 +249,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
                          nin, ai, min[ai], max[ai]);
-    nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind);
+    nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_FALSE);
   }
   strcpy(buff1, "");
   for (ai=0; ai<nin->dim; ai++) {

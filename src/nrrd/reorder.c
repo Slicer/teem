@@ -344,7 +344,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   /* the min and max along the shuffled axis are now meaningless */
   nout->axis[axis].min = nout->axis[axis].max = AIR_NAN;
-  nout->axis[axis].kind = _nrrdKindAltered(nin->axis[axis].kind);
+  nout->axis[axis].kind = _nrrdKindAltered(nin->axis[axis].kind, AIR_FALSE);
   /* the skinny */
   lineSize = 1;
   for (ai=0; ai<axis; ai++) {
