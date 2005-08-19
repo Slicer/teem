@@ -133,7 +133,7 @@ extern void _nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 
 
 /* axis.c */
-extern int _nrrdKindAltered(int kindIn);
+extern int _nrrdKindAltered(int kindIn, int resampling);
 extern void _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src,
                               int bitflag);
 extern void _nrrdAxisInfoInit(NrrdAxisInfo *axis);
