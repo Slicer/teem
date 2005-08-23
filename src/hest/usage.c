@@ -43,25 +43,28 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
         strcat(B, "--");
         strcat(B, sep+1);
       }
-    }
-    else {
+    } else {
       strcat(B, "-");
       strcat(B, O->flag);
     }
-    if (O->min || max)
+    if (O->min || max) {
       strcat(B, "\t");
+    }
   }
-  if (!O->min && max)
+  if (!O->min && max) {
     strcat(B, "[");
+  }
   if (O->min || max) {
     strcat(B, "<");
     strcat(B, O->name);
-    if ((int)(O->min) < max && max > 1)  /* HEY scrutinize casts */
+    if ((int)(O->min) < max && max > 1) { /* HEY scrutinize casts */
       strcat(B, "\t...");
+    }
     strcat(B, ">");
   }
-  if (!O->min && max)
+  if (!O->min && max) {
     strcat(B, "]");
+  }
 }
 
 /* early version of _hestSetBuff() function */
