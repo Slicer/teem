@@ -552,3 +552,25 @@ limnSurfaceTransform_d(limnSurface *srf, const double homat[16]) {
   }
   return;
 }
+
+unsigned int
+limnSurfacePolygonNumber(limnSurface *srf) {
+  unsigned int ret, primIdx;
+
+  ret = 0;
+  for (primIdx=0; primIdx<srf->primNum; primIdx++) {
+    switch(srf->type[primIdx]) {
+    case limnPrimitiveTriangles:
+      ret += srf->vcnt[primIdx]/3;
+      break;
+    case limnPrimitiveTriangleStrip:
+    case limnPrimitiveTriangleFan:
+      ret += srf->vcnt[primIdx] - 2;
+      break;
+    case limnPrimitiveQuads:
+      ret += srf->vcnt[primIdx]/4;
+      break;
+    }
+  }
+  return ret;
+}
