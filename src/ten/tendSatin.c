@@ -111,7 +111,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   char me[]="tend_satinGen", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
-  int xi, yi, zi, size[3];
+  size_t xi, yi, zi, size[3];
   float x, y, z, min[3], max[3];
 
   if (torus) {
