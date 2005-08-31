@@ -31,6 +31,8 @@ win32: win32.msvc71
 win32.clean: win32.msvc71.clean
 project: project.build.msvc71
 unproject: project.clean.msvc71
+project6: project.build.msvc6
+unproject6: project.clean.msvc6
 
 sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
 flipSlash = $(WIN32.TOP)src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
