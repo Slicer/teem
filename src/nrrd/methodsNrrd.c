@@ -459,8 +459,9 @@ nrrdNew (void) {
   Nrrd *nrrd;
   
   nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
-  if (!nrrd)
+  if (!nrrd) {
     return NULL;
+  }
 
   /* explicitly set pointers to NULL, since calloc isn't officially
      guaranteed to do that.  */
@@ -968,7 +969,7 @@ nrrdPPM (Nrrd *ppm, size_t sx, size_t sy) {
 */
 int
 nrrdPGM (Nrrd *pgm, size_t sx, size_t sy) {
-  char me[]="nrrdNewPGM", err[AIR_STRLEN_MED];
+  char me[]="nrrdPGM", err[AIR_STRLEN_MED];
 
   if (nrrdMaybeAlloc(pgm, nrrdTypeUChar, 2, sx, sy)) {
     sprintf(err, "%s: couldn't allocate " _AIR_SIZE_T_CNV
