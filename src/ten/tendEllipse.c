@@ -273,10 +273,11 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   if (nstn) {
-    if (!( nrrdTypeInt == nstn->type 
+    if (!( nrrdTypeUInt == nstn->type 
            && 2 == nstn->dim
            && 3 == nstn->axis[0].size )) {
-      fprintf(stderr, "%s: connectivity isn't 2-D 3-by-N array\n", me);
+      fprintf(stderr, "%s: connectivity isn't 2-D 3-by-N array of %ss\n",
+              me, airEnumStr(nrrdType, nrrdTypeInt));
       airMopError(mop); return 1;
     }
   }

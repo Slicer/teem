@@ -76,8 +76,7 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
 int
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   char me[]="tenExpand", err[AIR_STRLEN_MED];
-  size_t N, I;
-  int sx, sy, sz;
+  size_t N, I, sx, sy, sz;
   float *seven, *nine;
 
   if (!( nout && nin && AIR_EXISTS(thresh) )) {
@@ -126,9 +125,8 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
 int
 tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   char me[]="tenShrink", err[AIR_STRLEN_MED];
-  size_t sx, sy, sz;
+  size_t I, N, sx, sy, sz;
   float *seven, *conf, *nine;
-  size_t I, N;
   
   if (!(tseven && tnine)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -355,8 +353,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
 int
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   char me[]="tenTensorMake", err[AIR_STRLEN_MED];
-  size_t sx, sy, sz;
-  size_t I, N;
+  size_t I, N, sx, sy, sz;
   float *out, *conf, *eval, *evec;
   int map[4];
   /* float teval[3], tevec[9], tmp1[3], tmp2[3]; */

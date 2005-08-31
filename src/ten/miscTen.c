@@ -137,11 +137,11 @@ int
 tenEvqVolume(Nrrd *nout,
              const Nrrd *nin, int which, int aniso, int scaleByAniso) {
   char me[]="tenEvqVolume", err[AIR_STRLEN_MED];
-  int sx, sy, sz, map[3];
+  int map[3];
   short *qdata;
   const float *tdata;
   float eval[3], evec[9], c[TEN_ANISO_MAX+1], an;
-  size_t N, I;
+  size_t N, I, sx, sy, sz;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);

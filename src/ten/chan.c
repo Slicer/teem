@@ -489,8 +489,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
-  size_t cmin[4], cmax[4];
-  int E, DD, d, II, sx, sy, sz, amap[4];
+  size_t cmin[4], cmax[4], sx, sy, sz, II, d, DD;
+  int E, amap[4];
   float *ten, *dwi1, *dwi2, *terr, 
     _B0, *B0, (*lup)(const void *, size_t);
   double *emat, *bmat, *vbuf;
@@ -872,8 +872,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
               float thresh, float slope, float b) {
   char me[] = "tenCalcTensor", err[128], cmt[128];
   float *out, tens[7], chan[7];
-  int sx, sy, sz;
-  size_t I;
+  size_t I, sx, sy, sz;
   void (*calcten)(float tens[7], float chan[7], 
                   float thresh, float slope, float b);
   
@@ -931,7 +930,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
   out = (float *)nout->data;
   for (I=0; I<(size_t)(sx*sy*sz); I++) {
     if (tenVerbose && !(I % (sx*sy))) {
-      fprintf(stderr, "%s: z = %d of %d\n", me, ((int)I)/(sx*sy), sz-1);
+      fprintf(stderr, "%s: z = %d of %d\n", me, (int)(I/(sx*sy)), (int)sz-1);
     }
     chan[0] = nrrdFLookup[nin->type](nin->data, 0 + 7*I);
     chan[1] = nrrdFLookup[nin->type](nin->data, 1 + 7*I);

@@ -71,7 +71,7 @@ main(int argc, char *argv[]) {
   if (!( _nodf->axis[0].size == nvec->axis[1].size )) {
     fprintf(stderr, "%s mismatch of _nodf->axis[0].size (%d) vs. "
             "nvec->axis[1].size (%d)\n", me, 
-            _nodf->axis[0].size, nvec->axis[1].size);
+            (int)_nodf->axis[0].size, (int)nvec->axis[1].size);
     airMopError(mop); return 1;
   }
   nrrdAxisInfoGet_nva(_nodf, nrrdAxisInfoSize, size);

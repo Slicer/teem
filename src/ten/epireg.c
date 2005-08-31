@@ -112,12 +112,12 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
 ** to manage them
 */
 int
-_tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
+_tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
                float bwX, float bwY, int verb) {
   char me[]="_tenEpiRegBlur", err[AIR_STRLEN_MED];
   NrrdResampleInfo *rinfo;
   airArray *mop;
-  int ni, sx, sy, sz;
+  size_t ni, sx, sy, sz;
   double savemin[2], savemax[2];
 
   if (!( bwX || bwY )) {
@@ -126,10 +126,10 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
     }
     for (ni=0; ni<dwiLen; ni++) {
       if (verb) {
-        fprintf(stderr, "% 2d ", ni); fflush(stderr);
+        fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
       }
       if (nrrdCopy(nblur[ni], ndwi[ni])) {
-        sprintf(err, "%s: trouble copying ndwi[%d]", me, ni);
+        sprintf(err, "%s: trouble copying ndwi[%u]", me, (unsigned int)ni);
         biffMove(TEN, err, NRRD); return 1;
       }
     }
@@ -172,14 +172,14 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, int dwiLen,
   }
   for (ni=0; ni<dwiLen; ni++) {
     if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
+      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
     }
     savemin[0] = ndwi[ni]->axis[0].min; savemax[0] = ndwi[ni]->axis[0].max; 
     savemin[1] = ndwi[ni]->axis[1].min; savemax[1] = ndwi[ni]->axis[1].max;
     ndwi[ni]->axis[0].min = 0; ndwi[ni]->axis[0].max = sx-1;
     ndwi[ni]->axis[1].min = 0; ndwi[ni]->axis[1].max = sy-1;
     if (nrrdSpatialResample(nblur[ni], ndwi[ni], rinfo)) {
-      sprintf(err, "%s: trouble blurring ndwi[%d]", me, ni);
+      sprintf(err, "%s: trouble blurring ndwi[%u]", me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
     ndwi[ni]->axis[0].min = savemin[0]; ndwi[ni]->axis[0].max = savemax[0]; 
@@ -248,11 +248,11 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
 }
 
 int
-_tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
+_tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
                     double DWthr, int verb, int progress) {
   char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
   airArray *mop;
-  int I, sx, sy, sz, ni;
+  size_t I, sx, sy, sz, ni;
   float val;
   unsigned char *thr;
 
@@ -272,10 +272,10 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, int ninLen,
   sz = nblur[0]->axis[2].size;
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
+      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
     }
     if (nrrdMaybeAlloc(nthresh[ni], nrrdTypeUChar, 3, sx, sy, sz)) {
-      sprintf(err, "%s: trouble allocating threshold %d", me, ni);
+      sprintf(err, "%s: trouble allocating threshold %u", me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
     thr = (unsigned char *)(nthresh[ni]->data);
@@ -395,9 +395,10 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
 **   mean(x)  mean(y)  M_02    M_11    M_20
 */
 int
-_tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
+_tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
+                  int verb) {
   char me[]="_tenEpiRegMoments", err[AIR_STRLEN_MED];
-  int sx, sy, sz, xi, yi, zi, ni;
+  size_t sx, sy, sz, xi, yi, zi, ni;
   double N, mx, my, cx, cy, x, y, M02, M11, M20, *mom;
   float val;
   unsigned char *thr;
@@ -410,10 +411,10 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
   }
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
+      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
     }
     if (nrrdMaybeAlloc(nmom[ni], nrrdTypeDouble, 2, 5, sz)) {
-      sprintf(err, "%s: couldn't allocate nmom[%d]", me, ni);
+      sprintf(err, "%s: couldn't allocate nmom[%u]", me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); return 1;
     }
     nrrdAxisInfoSet(nmom[ni], nrrdAxisInfoLabel, "mx,my,h,s,t", "z");
@@ -432,8 +433,8 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, int ninLen, int verb) {
         }
       }
       if (N == sx*sy) {
-        sprintf(err, "%s: saw only non-zero pixels in nthresh[%d]; "
-                "DWI hreshold too low?", me, ni);
+        sprintf(err, "%s: saw only non-zero pixels in nthresh[%u]; "
+                "DWI hreshold too low?", me, (unsigned int)ni);
         biffAdd(TEN, err); return 1;
       }
       if (N) {
@@ -888,12 +889,14 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
                     const NrrdKernel *kern, double *kparm,
                     double hh, double ss, double tt, double cx, double cy) {
   float *wght, *in, pp, pf, tmp;
-  int *idx, supp, sx, sy, xi, yi, pb, pi;
+  int *idx;
+  unsigned int supp;
+  size_t sx, sy, xi, yi, pb, pi;
   double (*ins)(void *, size_t, double), (*clamp)(double);
   
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
-  supp = (int)kern->support(kparm);
+  supp = (unsigned int)kern->support(kparm);
   ins = nrrdDInsert[nout->type];
   clamp = nrrdDClamp[nout->type];
 
@@ -903,10 +906,10 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
     wght = (float*)(nwght->data);
     for (yi=0; yi<sy; yi++) {
       pp = hh*(xi - cx) + ss*(yi - cy) + tt + cy;
-      pb = (int)floor(pp);
+      pb = (size_t)floor(pp);
       pf = pp - pb;
       for (pi=-(supp-1); pi<=supp; pi++) {
-        idx[pi+(supp-1)] = AIR_CLAMP(0, pb + pi, sy-1);
+        idx[pi+(supp-1)] = AIR_MIN(pb + pi, sy-1);
         wght[pi+(supp-1)] = pi - pf;
       }
       idx += 2*supp;

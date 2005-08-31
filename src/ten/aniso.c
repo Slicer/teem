@@ -172,7 +172,8 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   char me[]="tenAnisoVolume", err[AIR_STRLEN_MED];
   size_t N, I, copyI;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
-  int sx, sy, sz, size[3], coord[3], map[NRRD_DIM_MAX];
+  int map[NRRD_DIM_MAX];
+  size_t sx, sy, sz, size[3], coord[3];
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
@@ -208,7 +209,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
       sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
               "%d = (%d,%d,%d)",
               me, eval[0], eval[1], eval[2], (int)I,
-              coord[0], coord[1], coord[2]);
+              (int)coord[0], (int)coord[1], (int)coord[2]);
       biffAdd(TEN, err); return 1;
     }
     tenAnisoCalc_f(c, eval);
