@@ -143,12 +143,14 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     b = bKVP;
     if (ngradKVP) {
+      airMopAdd(mop, ngradKVP, (airMopper)nrrdNuke, airMopAlways);
       if (tenBMatrixCalc(nbmat, ngradKVP)) {
         airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble finding B-matrix:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
     } else {
+      airMopAdd(mop, nbmatKVP, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdConvert(nbmat, nbmatKVP, nrrdTypeDouble)) {
         airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble converting B-matrix:\n%s\n", me, err);
@@ -189,6 +191,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     eret = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
                                (const Nrrd**)nin, ninLen, nbmat,
                                knownB0, thresh, soft, b);
+  }
+  if (nB0) {
+    /* it was allocated by tenEstimate*, we have to clean it up */
+    airMopAdd(mop, nB0, (airMopper)nrrdNuke, airMopAlways);
   }
   if (1 != scale) {
     if (tenSizeScale(nout, nout, scale)) {

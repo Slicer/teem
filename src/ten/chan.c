@@ -249,7 +249,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
       || nrrdMaybeAlloc(nbmat, nrrdTypeDouble, 2, 6, ngrad->axis[1].size)) {
     sprintf(err, "%s: trouble", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
 
   DD = ngrad->axis[1].size;
@@ -265,6 +265,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   }
   nbmat->axis[0].kind = nrrdKind3DSymMatrix;
   
+  airMopOkay(mop);
   return 0;
 }
 
