@@ -54,6 +54,9 @@ unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   airSinglePrintf(fout, NULL, "min: %lg\n", range->min);
   airSinglePrintf(fout, NULL, "max: %lg\n", range->max);
+  if (0 == range->min && 0 == range->max) {
+    fprintf(fout, "# min == max == 0.0 exactly\n");
+  }
   if (range->hasNonExist) {
     fprintf(fout, "# has non-existent values\n");
   }
