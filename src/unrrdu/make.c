@@ -75,7 +75,8 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *outData, *err, 
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  int *size, buflen, bufLen,
+  size_t *size;
+  int buflen, bufLen,
     headerOnly, pret, lineSkip, byteSkip, endian, type,
     encodingType, gotSpacing, gotThickness, space, spaceDim, 
     spaceSet;
@@ -110,7 +111,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "type of data (e.g. \"uchar\", \"int\", \"float\", "
              "\"double\", etc.)",
              NULL, nrrdType);
-  hestOptAdd(&opt, "s", "sz0 sz1", airTypeInt, 1, -1, &size, NULL,
+  hestOptAdd(&opt, "s", "sz0 sz1", airTypeSize_t, 1, -1, &size, NULL,
              "number of samples along each axis (and implicit indicator "
              "of dimension of nrrd)", &sizeLen);
   hestOptAdd(&opt, "fd", "fileDim", airTypeUInt, 1, 1, &dataFileDim, "0",
