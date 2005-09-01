@@ -735,8 +735,8 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
   ntmpperm->axis[outdim-1].size = outlen;
 
   /* do the permutation required to get output in right order */
-  nrrdInvertPerm(ipermute, permute, outdim);
-  if (nrrdAxesPermute(nout, ntmpperm, ipermute)) {
+  if (nrrdInvertPerm(ipermute, permute, outdim)
+      || nrrdAxesPermute(nout, ntmpperm, ipermute)) {
     sprintf(err, "%s: error permuting temporary nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
