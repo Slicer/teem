@@ -496,7 +496,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       }
       nrrdSwapEndian(nrrd);
       if (2 <= nrrdStateVerboseIO) {
-        fprintf(stderr, "done)");
+        fprintf(stderr, "done)\n");
         fflush(stderr);
       }
     }
