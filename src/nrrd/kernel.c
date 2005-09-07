@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,6 +30,7 @@
     nrrdKernelBlackman     2      scale    cut-off
         nrrdKernelZero     1      scale
          nrrdKernelBox     1      scale
+       nrrdKernelCheap     1      scale
         nrrdKernelTent     1      scale
     nrrdKernelForwDiff     1      scale
     nrrdKernelCentDiff     1      scale
@@ -182,6 +185,20 @@ _nrrdKernelBox = {
 };
 NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
+
+/* 
+** the intent of "cheap" can be signified by the (numeric) value of
+** the nrrdKernelCheap pointer, but internally it is entirely the 
+** same as the box filter
+*/
+NrrdKernel
+_nrrdKernelCheap = {
+  "box",
+  1, _nrrdBoxSup, _nrrdBoxInt,  
+  _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
+};
+NrrdKernel *const
+nrrdKernelCheap = &_nrrdKernelCheap;
 
 /* ------------------------------------------------------------ */
 
@@ -1133,6 +1150,7 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("z", str))          return nrrdKernelZero;
   if (!strcmp("box", str))        return nrrdKernelBox;
   if (!strcmp("b", str))          return nrrdKernelBox;
+  if (!strcmp("cheap", str))      return nrrdKernelCheap;
   if (!strcmp("tent", str))       return nrrdKernelTent;
   if (!strcmp("t", str))          return nrrdKernelTent;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
