@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -501,6 +503,57 @@ typedef struct {
 } NrrdResampleInfo;
 
 /*
+******** NrrdResamplePass struct
+**
+** specific to one pass of resampling process
+*/
+typedef struct {
+  size_t size;
+} NrrdResamplePass;
+
+/*
+******** NrrdResampleContext struct
+**
+** contains the parameters and state associated with resampling,
+** geared towards quickly resampling multiple different nrrds with the
+** same shape.
+*/
+typedef struct {
+  /* ----------- input ---------- */
+  const Nrrd *nin;         /* the nrrd being resampled */
+  const NrrdKernel 
+    *kernel[NRRD_DIM_MAX]; /* which kernel to use on each axis; use NULL to
+                              say no resampling whatsoever on this axis */
+  size_t samples[NRRD_DIM_MAX]; /* number of samples per axis */
+  double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
+    min[NRRD_DIM_MAX],
+    max[NRRD_DIM_MAX];     /* min[i] and max[i] are the range, in INDEX space,
+                              along which to resample axis i. */
+  int boundary,            /* value from the nrrdBoundary enum */
+    type,                  /* desired type of output, use nrrdTypeUnknown for
+                              "same as input" */
+    renormalize,           /* when downsampling with a kernel with non-zero
+                              integral, should we renormalize the weights to
+                              match the kernel integral so as to remove
+                              annoying ripple */
+    round,                 /* when copying from the last intermediate (floating
+                              point) result to the output nrrd, for integer
+                              outputs, do we round to the nearest integer
+                              first, before clamping and assigning.  Enabling
+                              this fixed the mystery of downsampling large
+                              constant regions of 255 (uchar), and ending up
+                              with 254 */
+    clamp;                  /* when copying from the last intermediate
+                               (floating point) result to the output nrrd,
+                               should we clamp the values to the range of
+                               values for the output type, a concern only for
+                               integer outputs */
+  double padValue;          /* if padding, what value to pad with */
+  /* ----------- internal ---------- */
+  NrrdResamplePass pass[NRRD_DIM_MAX];
+} NrrdResampleContext;
+
+/*
 ******** NrrdIter struct
 **
 ** To hold values: either a single value, or a whole nrrd of values.
@@ -982,6 +1035,36 @@ typedef double nrrdResample_t;
 #  define NRRD_RESAMPLE_FLOAT 0
 #endif
 
+/* resampleContext.c */
+TEEM_API NrrdResampleContext *nrrdResampleContextNew();
+TEEM_API NrrdResampleContext *nrrdResampleContextNix(NrrdResampleContext *);
+TEEM_API int nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin);
+TEEM_API int nrrdResampleKernelSet(NrrdResampleContext *rsmc,
+                                   unsigned int axIdx, 
+                                   const NrrdKernel *kern,
+                                   double parm[NRRD_KERNEL_PARMS_NUM]);
+TEEM_API int nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
+                                    unsigned int axIdx, 
+                                    size_t samples);
+TEEM_API int nrrdResampleRangeSet(NrrdResampleContext *rsmc,
+                                  unsigned int axIdx,
+                                  double min, double max);
+TEEM_API int nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
+                                      unsigned int axIdx);
+TEEM_API int nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
+                                     int boundary);
+TEEM_API int nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
+                                     double padValue);
+TEEM_API int nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
+                                    int type);
+TEEM_API int nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
+                                        int renormalize);
+TEEM_API int nrrdResampleRoundSet(NrrdResampleContext *rsmc,
+                                  int round);
+TEEM_API int nrrdResampleClampSet(NrrdResampleContext *rsmc,
+                                  int clamp);
+TEEM_API int nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout);
+
 /* resampleNrrd.c */
 TEEM_API int nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                                  const NrrdResampleInfo *info);
@@ -1027,6 +1110,7 @@ TEEM_API NrrdKernel
 TEEM_API NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
+  *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
   *const nrrdKernelTent,         /* tent filter (linear interpolation) */
   *const nrrdKernelForwDiff,     /* forward-difference-ish 1st deriv. */
   *const nrrdKernelCentDiff,     /* central-difference-ish 1st deriv. */
