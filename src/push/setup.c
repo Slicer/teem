@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -417,7 +419,8 @@ _pushThingSetup(pushContext *pctx) {
         thing->vert[0].pos[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
                                            pctx->minPos[1],
                                            pctx->maxPos[1]);
-        if (2 == pctx->dimIn) {
+        if (2 == pctx->dimIn
+            || (3 == pctx->dimIn && 1 == pctx->nin->axis[3].size)) {
           thing->vert[0].pos[2] = 0;
         } else {
           thing->vert[0].pos[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,

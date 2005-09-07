@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -212,7 +214,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
   mag = force->func(haveDist, restDist, pctx->scale, force->parm);
   ELL_3V_SCALE(fvec, mag, nU);
   
-  if (0 && pctx->verbose && ELL_3V_LEN(fvec)) {
+  if ((0 && pctx->verbose && ELL_3V_LEN(fvec))) {
     fprintf(stderr, "%s:  me --------------------- (of thing %d)\n", me,
             myPoint->thing->ttaagg);
     fprintf(stderr, "  myTen: (%g) %g %g %g   %g %g   %g\n",
@@ -379,7 +381,7 @@ _pushForce(pushTask *task, int myBinIdx,
         }
         herCharge = herPoint->charge;
         /*
-        task->pctx->verbose = (myPoint->thing->ttaagg == 29);
+        task->pctx->verbose = (myPoint->thing->ttaagg == 398);
         */
         if (_pushPairwiseForce(task->pctx, fvec, task->pctx->force,
                                myPoint, herPoint)) {
@@ -390,9 +392,10 @@ _pushForce(pushTask *task, int myBinIdx,
 
         ELL_3V_SCALE_INCR(myPoint->frc, myCharge*herCharge, fvec);
         if (!ELL_3V_EXISTS(myPoint->frc)) {
-          sprintf(err, "%s: point (thing %d) frc -> NaN from point (thing %d)",
+          sprintf(err, "%s: point (thing %d) frc -> NaN from point (thing %d)"
+                  " w/ fvec (%g,%g,%g)",
                   me, myPoint->thing->ttaagg,
-                  herPoint->thing->ttaagg);
+                  herPoint->thing->ttaagg, fvec[0], fvec[1], fvec[2]);
           biffAdd(PUSH, err); return 1;
         }
         if (task->pctx->verbose) {
@@ -710,6 +713,10 @@ _pushUpdate(pushTask *task, int binIdx,
               thing->point.vel[0], thing->point.vel[1]);
     }
     ELL_3V_SCALE_INCR(thing->point.pos, step, thing->point.vel);
+    if (2 == task->pctx->dimIn
+        || (3 == task->pctx->dimIn && 1 == task->pctx->nin->axis[3].size)) {
+      thing->point.pos[2] = 0;
+    }
     ELL_3V_SCALE_INCR(thing->point.vel, step/mass, thing->point.frc);
     if (task->pctx->verbose) {
       fprintf(stderr, "thing %d: pos(%f,%f); vel(%f,%f)\n",
