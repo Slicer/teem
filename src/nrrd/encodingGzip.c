@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,7 +39,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t bsize, total_read, block_size;
-  int i, error=0;
+  int i, error;
   unsigned int read;
   char *data;
   gzFile gzfin;
@@ -140,7 +142,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t bsize, total_written, block_size;
-  int fmt_i=0, error=0;
+  int fmt_i=0, error;
   char *data, fmt[4];
   gzFile gzfout;
   unsigned int wrote;
