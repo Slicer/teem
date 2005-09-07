@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -117,6 +119,7 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
     sprintf(err, "%s: can't resample to or from type %s", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
   }
   if (nrrdBoundaryUnknown == info->boundary) {
     sprintf(err, "%s: didn't set boundary behavior\n", me);
@@ -238,7 +241,7 @@ _nrrdResampleComputePermute(unsigned int permute[],
   for (pi=0; pi<*passes; pi++) {
     for (ai=0; ai<nin->dim; ai++) {
       ax[pi+1][permute[ai]] = ax[pi][ai];
-      if (ai == (unsigned int)*topRax) {  // HEY scrutinize casts
+      if (ai == (unsigned int)*topRax) {  /* HEY scrutinize casts */
         /* this is the axis which is getting resampled, 
            so the number of samples is potentially changing */
         sz[pi+1][permute[ai]] = (info->kernel[ax[pi][ai]]
@@ -647,7 +650,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
      because (strictly speaking) in every pass we are resampling
      the same axis, and axes with lower indices are constant length */
   strideIn = 1;
-  for (ai=0; ai<(unsigned int)topRax; ai++) { // HEY scrutinize casts
+  for (ai=0; ai<(unsigned int)topRax; ai++) { /* HEY scrutinize casts */
     strideIn *= nin->axis[ai].size;
   }
   /*
@@ -661,10 +664,10 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     */
     numLines = strideOut = 1;
     for (ai=0; ai<nin->dim; ai++) {
-      if (ai < (unsigned int)botRax) {   // HEY scrutinize cast
+      if (ai < (unsigned int)botRax) {   /* HEY scrutinize cast */
         strideOut *= sz[pi+1][ai];
       }
-      if (ai != (unsigned int)topRax) {  // HEY scrutinize cast
+      if (ai != (unsigned int)topRax) {  /* HEY scrutinize cast */
         numLines *= sz[pi][ai];
       }
     }
