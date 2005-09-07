@@ -1,12 +1,14 @@
 /*
-  Teem: Gordon Kindlmann's research software
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,7 +35,7 @@
 #define TEEM_VERSION_MINOR    9       /* 1 or 2 digits */
 #define TEEM_VERSION_RELEASE  0       /* 1 or 2 digits */
 #define TEEM_VERSION          10900   /* can be compared numerically */
-#define TEEM_VERSION_STRING  "1.9.0"  /* cannot be compared numerically */
+#define TEEM_VERSION_STRING  "1.9.0"  /* cannot be easily compared */
 
 /* NrrdIO-hack-000 */
 
