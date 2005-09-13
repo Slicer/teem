@@ -453,14 +453,15 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
 ******** nrrdFlip()
 **
 ** reverse the order of slices along the given axis.
-** Actually, just a wrapper around nrrdShuffle() (with the minor addition
-** of setting nout->axis[axis].min and .max)
+** Actually, just a wrapper around nrrdShuffle() (with some
+** extra setting of axis info)
 */
 int
 nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED];
   size_t *perm, si;
   airArray *mop;
+  unsigned int axisIdx;
 
   mop = airMopNew();
   if (!(nout && nin)) {
@@ -496,6 +497,11 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
      information has to be flipped to cancel the flipping of the the
      sample order, so that samples maintain location.  In the latter,
      the position information is copied verbatim from the original.  */
+  /* (Tue Sep 13 09:59:12 EDT 2005) answer: we keep the "location" of
+     the samples fixed, while changing their ordering.  This is the 
+     low-level thing to do, so for a nrrd function, its the right thing
+     to do.  You don't need a nrrd function to simply manipulate 
+     per-axis meta-information */
   nout->axis[axis].min = nin->axis[axis].max;
   nout->axis[axis].max = nin->axis[axis].min;
   /* HEY: Fri Jan 14 02:53:30 EST 2005: isn't spacing supposed to be
@@ -505,6 +511,16 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   nout->axis[axis].spacing = -nin->axis[axis].spacing;
   /* HEY: Fri Jan 14 02:53:30 EST 2005: but not thickness */
   nout->axis[axis].thickness = nin->axis[axis].thickness;
+  /* need to set general orientation info too */
+  for (axisIdx=0; axisIdx<NRRD_SPACE_DIM_MAX; axisIdx++) {
+    nout->axis[axis].spaceDirection[axisIdx] = 
+      -nin->axis[axis].spaceDirection[axisIdx];
+  }
+  _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                         1.0,
+                         nin->spaceOrigin,
+                         nin->axis[axis].size-1,
+                         nin->axis[axis].spaceDirection);
   airMopOkay(mop); 
   return 0;
 }
@@ -1411,5 +1427,44 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   }
   return 0;
 }
-                        
+
+/*
+******** nrrdOrientationAlign
+**
+** simplifies or removes image orientation by re-ordering axes so that
+** index-to-world transform is as close as possible to diagonal, and
+** then (optionally) removing the general orientation information and
+** replacing it with simple axis-aligned info
+*/
+int
+nrrdOrientationAlign(Nrrd *nout, Nrrd *nin,
+                     int permuteNonScalarFastest,
+                     int makeSpaceDirectionPositive,
+                     int convertToSpacings) {
+  char me[]="nrrdOrientationAlign", err[AIR_STRLEN_MED];
+  unsigned int domainAxisNum, domainAxisIdx[NRRD_DIM_MAX],
+    rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  if (!nin->spaceDim) {
+    /* nrrd has no notion of orientation; this is a no-op */
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: trouble copying", me);
+      biffAdd(NRRD, err); return 1;
+    }
+    return 0;
+  }
+
+  domainAxisNum = nrrdDomainAxesGet(nin, domainAxisIdx);
+  rangeAxisNum = nrrdRangeAxesGet(nin, rangeAxisIdx);
+  
+  
+  return 0;
+}
+
+
 /* ---- END non-NrrdIO */

@@ -871,6 +871,10 @@ TEEM_API int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
                           unsigned int ax0, unsigned int ax1,
                           unsigned int axMerge, size_t sizeFast,
                           size_t sizeSlow);
+TEEM_API int nrrdOrientationAlign(Nrrd *nout, Nrrd *nin,
+                                  int permuteNonScalarFastest,
+                                  int makeSpaceDirectionPositive,
+                                  int convertToSpacings);
 
 /******** things useful with hest */
 /* hestNrrd.c */
