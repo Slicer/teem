@@ -169,9 +169,9 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
         sprintf(err, "%s: NEX (%d) for DWI %d not >= 1", me, nexNum, dwiIdx);
         biffAdd(TEN, err); return 1;
       }
-      if (!( dwiIdx + nexNum < dwiNum )) {
+      if (!( dwiIdx + nexNum - 1 < dwiNum )) {
         sprintf(err, "%s: NEX %d for DWI %d implies %d DWI > real # DWI %d",
-                me, nexNum, dwiIdx, dwiIdx + nexNum + 1, dwiNum);
+                me, nexNum, dwiIdx, dwiIdx + nexNum, dwiNum);
         biffAdd(TEN, err); return 1;
       }
       for (nexIdx=1; nexIdx<nexNum; nexIdx++) {
