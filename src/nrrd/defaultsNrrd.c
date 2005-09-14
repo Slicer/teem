@@ -60,8 +60,8 @@ double nrrdDefSpacing = 1.0;
    like defaults, they are not thread-safe if different threads ever
    set them differently. */
 int nrrdStateVerboseIO = 1; /* NrrdIO-hack-003 */
-/* ---- BEGIN non-NrrdIO */
 int nrrdStateKeyValuePairsPropagate = AIR_FALSE;
+/* ---- BEGIN non-NrrdIO */
 int nrrdStateBlind8BitRange = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
