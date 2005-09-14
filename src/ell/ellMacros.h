@@ -294,6 +294,11 @@ extern "C" {
    ELL_3V_SET((m)+3,  0 ,  1 ,  0), \
    ELL_3V_SET((m)+6,  0 ,  0 ,  1))
 
+#define ELL_3M_EXISTS(m) \
+  (ELL_3V_EXISTS((m) + 0) \
+   && ELL_3V_EXISTS((m) + 3) \
+   && ELL_3V_EXISTS((m) + 6))
+
 #define ELL_3M_ZERO_SET(m) \
   (ELL_3V_SET((m)+0,  0 ,  0 ,  0), \
    ELL_3V_SET((m)+3,  0 ,  0 ,  0), \
