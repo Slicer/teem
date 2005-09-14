@@ -76,6 +76,71 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
 }
 
 int
+tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
+  char me[]="tenMeasurementFrameReduce", err[AIR_STRLEN_MED];
+  double MF[9], MFT[9], tenMeasr[9], tenWorld[9];
+  float *tdata;
+  size_t ii, nn;
+  unsigned int si, sj;
+  
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (3 != nin->spaceDim) {
+    sprintf(err, "%s: input nrrd needs 3-D (not %u-D) space dimension",
+            me, nin->spaceDim);
+    biffAdd(TEN, err); return 1;
+  }
+  /*
+   [0]  [1]  [2]     [0][0]   [1][0]   [2][0]
+   [3]  [4]  [5]  =  [0][1]   [1][1]   [2][1]
+   [6]  [7]  [8]     [0][2]   [1][2]   [2][2]
+  */
+  MF[0] = nin->measurementFrame[0][0];
+  MF[1] = nin->measurementFrame[1][0];
+  MF[2] = nin->measurementFrame[2][0];
+  MF[3] = nin->measurementFrame[0][1];
+  MF[4] = nin->measurementFrame[1][1];
+  MF[5] = nin->measurementFrame[2][1];
+  MF[6] = nin->measurementFrame[0][2];
+  MF[7] = nin->measurementFrame[1][2];
+  MF[8] = nin->measurementFrame[2][2];
+  if (!ELL_3M_EXISTS(MF)) {
+    sprintf(err, "%s: 3x3 measurement frame doesn't exist", me);
+    biffAdd(TEN, err); return 1;
+  }
+  ELL_3M_TRANSPOSE(MFT, MF);
+
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: trouble with initial copy", me);
+      biffAdd(TEN, err); return 1;
+    }
+  }
+  nn = nrrdElementNumber(nout)/nout->axis[0].size;
+  tdata = (float*)(nout->data);
+  for (ii=0; ii<nn; ii++) {
+    TEN_T2M(tenMeasr, tdata);
+    ell_3m_mul_d(tenWorld, MF, tenMeasr);
+    ell_3m_mul_d(tenWorld, tenWorld, MFT);
+    TEN_M2T(tdata, tenWorld);
+    tdata += 7;
+  }
+  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
+    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+      nout->measurementFrame[si][sj] = AIR_NAN;
+    }
+  }
+
+  return 0;
+}
+
+int
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   char me[]="tenExpand", err[AIR_STRLEN_MED];
   size_t N, I, sx, sy, sz;
@@ -118,8 +183,11 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
+  /* Tue Sep 13 18:36:45 EDT 2005: why did I do this?
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("matrix");
+  */
+  nout->axis[0].kind = nrrdKind3DMatrix;
 
   return 0;
 }

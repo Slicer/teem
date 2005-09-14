@@ -465,6 +465,7 @@ TEEM_API int tenGlyphGen(limnObject *glyphs, echoScene *scene,
 TEEM_API int tenVerbose;
 TEEM_API int tenTensorCheck(const Nrrd *nin,
                             int wantType, int want4D, int useBiff);
+TEEM_API int tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin);
 TEEM_API int tenExpand(Nrrd *tnine, const Nrrd *tseven,
                        double scale, double thresh);
 TEEM_API int tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine);
@@ -628,6 +629,7 @@ F(evaladd) \
 F(evec) \
 F(evecrgb) \
 F(evq) \
+F(unmf) \
 F(expand) \
 F(shrink) \
 F(bfit) \
