@@ -901,16 +901,17 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
 /*
 ******** nrrdDomainAxesGet
 **
-** learns which are the domain (resample-able) axes of an image, in
-** other words, the axes which correspond to independent variables.
-** The return value is the number of domain axes, and that many values
-** are set in the given axisIdx[] array
+** Based on the per-axis "kind" field, learns which are the domain
+** (resample-able) axes of an image, in other words, the axes which
+** correspond to independent variables.  The return value is the
+** number of domain axes, and that many values are set in the given
+** axisIdx[] array
 **
 ** NOTE: this takes a wild guess that an unset (nrrdKindUnknown) kind
 ** is a domain axis.
 */
 unsigned int
-nrrdDomainAxesGet(Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
+nrrdDomainAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
   unsigned int domAxi, axi;
 
   if (!( nrrd && axisIdx )) {
@@ -926,16 +927,38 @@ nrrdDomainAxesGet(Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
   return domAxi;
 }
 
+unsigned int
+nrrdSpatialAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
+  unsigned int spcAxi, axi, sai;
+  int good;
+
+  if (!( nrrd && axisIdx && nrrd->spaceDim)) {
+    return 0;
+  }
+  spcAxi = 0;
+  for (axi=0; axi<nrrd->dim; axi++) {
+    good = AIR_TRUE;
+    for (sai=0; sai<nrrd->spaceDim; sai++) {
+      good &= AIR_EXISTS(nrrd->axis[axi].spaceDirection[sai]);
+    }
+    if (good) {
+      axisIdx[spcAxi++] = axi;
+    }
+  }
+  return spcAxi;
+}
+
 /*
 ******** nrrdRangeAxesGet
 **
-** learns which are the range (non-resample-able) axes of an image, in
-** other words, the axes which correspond to dependent variables.  The
-** return value is the number of range axes; that number of values
-** are set in the given axisIdx[] array
+** Based on the per-axis "kind" field, learns which are the range
+** (non-resample-able) axes of an image, in other words, the axes
+** which correspond to dependent variables.  The return value is the
+** number of range axes; that number of values are set in the given
+** axisIdx[] array
 */
 unsigned int
-nrrdRangeAxesGet(Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
+nrrdRangeAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
   unsigned int domNum, domIdx[NRRD_DIM_MAX], rngAxi, axi, ii, isDom;
 
   if (!( nrrd && axisIdx )) {
@@ -953,6 +976,28 @@ nrrdRangeAxesGet(Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
     }
   }  
   return rngAxi;
+}
+
+unsigned int
+nrrdNonSpatialAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
+  unsigned int spcNum, spcIdx[NRRD_DIM_MAX], nspAxi, axi, ii, isSpc;
+
+  if (!( nrrd && axisIdx )) {
+    return 0;
+  }
+  /* HEY: copy and paste, should refactor with above */
+  spcNum = nrrdSpatialAxesGet(nrrd, spcIdx);
+  nspAxi = 0;
+  for (axi=0; axi<nrrd->dim; axi++) {
+    isSpc = AIR_FALSE;
+    for (ii=0; ii<spcNum; ii++) {   /* yes, inefficient */
+      isSpc |= axi == spcIdx[ii];
+    }
+    if (!isSpc) {
+      axisIdx[nspAxi++] = axi;
+    }
+  }  
+  return nspAxi;
 }
 
 
@@ -1040,3 +1085,45 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
   }
   return ret;
 }
+
+int
+nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
+                      int setMinsFromOrigin) {
+  char me[]="nrrdOrientationReduce", err[AIR_STRLEN_MED];
+  unsigned int spatialAxisNum, spatialAxisIdx[NRRD_DIM_MAX], saxii;
+  NrrdAxisInfo *axis;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL spacing", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      sprintf(err, "%s: trouble doing initial copying", me);
+      biffAdd(NRRD, err); return 1;
+    }
+
+  }
+  if (!nout->spaceDim) {
+    /* we're done! */
+    return 0;
+  }
+  spatialAxisNum = nrrdSpatialAxesGet(nout, spatialAxisIdx);
+  for (saxii=0; saxii<spatialAxisNum; saxii++) {
+    axis = nout->axis + spatialAxisIdx[saxii];
+    axis->spacing = _nrrdSpaceVecNorm(nout->spaceDim,
+                                      axis->spaceDirection);
+    _nrrdSpaceVecSetNaN(axis->spaceDirection);
+    if (setMinsFromOrigin) {
+      axis->min = (saxii < nout->spaceDim 
+                   ? nout->spaceOrigin[saxii]
+                   : AIR_NAN);
+    }
+  }
+  _nrrdSpaceVecSetNaN(nout->spaceOrigin);
+  nrrdSpaceSet(nout, nrrdSpaceUnknown);
+  
+  return 0;
+}
+

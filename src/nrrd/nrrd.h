@@ -707,13 +707,19 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, unsigned int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax,
                                     int defCenter);
-TEEM_API unsigned int nrrdDomainAxesGet(Nrrd *nrrd,
+TEEM_API unsigned int nrrdDomainAxesGet(const Nrrd *nrrd,
                                         unsigned int axisIdx[NRRD_DIM_MAX]);
-TEEM_API unsigned int nrrdRangeAxesGet(Nrrd *nrrd,
+TEEM_API unsigned int nrrdRangeAxesGet(const Nrrd *nrrd,
                                        unsigned int axisIdx[NRRD_DIM_MAX]);
+TEEM_API unsigned int nrrdSpatialAxesGet(const Nrrd *nrrd,
+                                         unsigned int axisIdx[NRRD_DIM_MAX]);
+TEEM_API unsigned int nrrdNonSpatialAxesGet(const Nrrd *nrrd,
+                                            unsigned int axIdx[NRRD_DIM_MAX]);
 TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
                                   double *spacing,
                                   double vector[NRRD_SPACE_DIM_MAX]);
+TEEM_API int nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
+                                   int setMinsFromOrigin);
 
 /******** simple things */
 /* simple.c */
@@ -871,10 +877,6 @@ TEEM_API int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
                           unsigned int ax0, unsigned int ax1,
                           unsigned int axMerge, size_t sizeFast,
                           size_t sizeSlow);
-TEEM_API int nrrdOrientationAlign(Nrrd *nout, Nrrd *nin,
-                                  int permuteNonScalarFastest,
-                                  int makeSpaceDirectionPositive,
-                                  int convertToSpacings);
 
 /******** things useful with hest */
 /* hestNrrd.c */

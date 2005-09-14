@@ -1428,43 +1428,5 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
-/*
-******** nrrdOrientationAlign
-**
-** simplifies or removes image orientation by re-ordering axes so that
-** index-to-world transform is as close as possible to diagonal, and
-** then (optionally) removing the general orientation information and
-** replacing it with simple axis-aligned info
-*/
-int
-nrrdOrientationAlign(Nrrd *nout, Nrrd *nin,
-                     int permuteNonScalarFastest,
-                     int makeSpaceDirectionPositive,
-                     int convertToSpacings) {
-  char me[]="nrrdOrientationAlign", err[AIR_STRLEN_MED];
-  unsigned int domainAxisNum, domainAxisIdx[NRRD_DIM_MAX],
-    rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
-
-  if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  if (!nin->spaceDim) {
-    /* nrrd has no notion of orientation; this is a no-op */
-    if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: trouble copying", me);
-      biffAdd(NRRD, err); return 1;
-    }
-    return 0;
-  }
-
-  domainAxisNum = nrrdDomainAxesGet(nin, domainAxisIdx);
-  rangeAxisNum = nrrdRangeAxesGet(nin, rangeAxisIdx);
-  
-  
-  return 0;
-}
-
 
 /* ---- END non-NrrdIO */
