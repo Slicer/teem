@@ -43,7 +43,7 @@
 const char *
 airTeemVersion = TEEM_VERSION_STRING;
 const char *
-airTeemReleaseDate = "26 August 2005";
+airTeemReleaseDate = "3 October 2005";
 
 double
 _airSanityHelper(double val) {
