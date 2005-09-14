@@ -217,7 +217,7 @@ _nrrdStrcatSpaceVector(char *str, int spaceDim,
     strcat(str, "(");
     for (dd=0; dd<spaceDim; dd++) {
       strcpy(buff, "");
-      airSinglePrintf(NULL, buff, "%lg", val[dd]);
+      airSinglePrintf(NULL, buff, "%f", val[dd]);
       strcat(str, buff);
       sprintf(buff, "%s", dd < spaceDim-1 ? "," : ")");
       strcat(str, buff);
@@ -474,7 +474,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[ii].spacing);
+      airSinglePrintf(NULL, buff, " %f", nrrd->axis[ii].spacing);
       strcat(*strP, buff);
     }
     break;
@@ -482,7 +482,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[ii].thickness);
+      airSinglePrintf(NULL, buff, " %f", nrrd->axis[ii].thickness);
       strcat(*strP, buff);
     }
     break;
@@ -490,7 +490,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[ii].min);
+      airSinglePrintf(NULL, buff, " %f", nrrd->axis[ii].min);
       strcat(*strP, buff);
     }
     break;
@@ -498,7 +498,7 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %lg", nrrd->axis[ii].max);
+      airSinglePrintf(NULL, buff, " %f", nrrd->axis[ii].max);
       strcat(*strP, buff);
     }
     break;
@@ -590,13 +590,13 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
   case nrrdField_old_min:
     *strP = (char *)calloc(fslen + 30, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
-    airSinglePrintf(NULL, buff, "%lg", nrrd->oldMin);
+    airSinglePrintf(NULL, buff, "%f", nrrd->oldMin);
     strcat(*strP, buff);
     break;
   case nrrdField_old_max:
     *strP = (char *)calloc(fslen + 30, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
-    airSinglePrintf(NULL, buff, "%lg", nrrd->oldMax);
+    airSinglePrintf(NULL, buff, "%f", nrrd->oldMax);
     strcat(*strP, buff);
     break;
   case nrrdField_endian:
