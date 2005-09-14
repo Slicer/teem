@@ -7,8 +7,8 @@
 # Usage is:
 #
 # cd src
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo}/*.c | perl names.pl | sort | wc -l
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo}/*.c | perl names.pl | sort | uniq | wc -l
+# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo,coil,push}/*.c | perl names.pl | sort | wc -l
+# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo,coil,push}/*.c | perl names.pl | sort | uniq | wc -l
 
 while (<>) {
     chomp;
