@@ -85,11 +85,9 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdSpaceUnknown != space) {
-    if (airEnumValCheck(nrrdSpace, space)) {
-      sprintf(err, "%s: given space (%d) not valid", me, space);
-      biffAdd(NRRD, err); return 1;
-    }
+  if (nrrdSpaceUnknown != space && airEnumValCheck(nrrdSpace, space)) {
+    sprintf(err, "%s: given space (%d) not valid", me, space);
+    biffAdd(NRRD, err); return 1;
   }
   nrrd->space = space;
   nrrd->spaceDim = nrrdSpaceDimension(space);
