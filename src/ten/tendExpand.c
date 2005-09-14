@@ -41,6 +41,7 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd *nin, *nout;
   char *outS;
+  int orientRed, orientRedWithOrigin, mfRed;
   float scale, thresh;
 
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
@@ -50,6 +51,15 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
              "how to scale values before saving as 9-value tensor.  Useful "
              "for visualization tools which assume certain characteristic "
              "ranges of eigenvalues");
+  hestOptAdd(&hopt, "unmf", NULL, airTypeInt, 0, 0, &mfRed, NULL,
+             "apply and remove the measurement frame, if it exists");
+  hestOptAdd(&hopt, "ro", NULL, airTypeInt, 0, 0, &orientRed, NULL,
+             "reduce general image orientation to axis-aligned spacings");
+  hestOptAdd(&hopt, "roo", NULL, airTypeInt, 0, 0,
+             &orientRedWithOrigin, NULL,
+             "reduce general image orientation to axis-aligned spacings, "
+             "while also making some effort to set axis mins from "
+             "space origin");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume, with 7 values per sample",
              NULL, NULL, nrrdHestNrrd);
@@ -64,10 +74,29 @@ tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  if (mfRed 
+      && 3 == nin->spaceDim 
+      && AIR_EXISTS(nin->measurementFrame[0][0])) {
+    if (tenMeasurementFrameReduce(nin, nin)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with measurement frame:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
   if (tenExpand(nout, nin, scale, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
     airMopError(mop); return 1;
+  }
+  if (orientRedWithOrigin || orientRed) {
+    if (nrrdOrientationReduce(nout, nout, 
+                              orientRedWithOrigin
+                              ? AIR_TRUE
+                              : AIR_FALSE)) {
+      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble unorienting:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
 
   if (nrrdSave(outS, nout, NULL)) {
