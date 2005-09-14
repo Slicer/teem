@@ -549,8 +549,6 @@ _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
   AIR_UNUSED(conny);
   sprintf(err, "%s: sorry, not implemented", me);
   biffAdd(NRRD, err); return 1;
-
-  return 0;
 }
 
 int
