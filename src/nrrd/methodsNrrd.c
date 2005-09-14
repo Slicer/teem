@@ -24,6 +24,8 @@
 #include "privateNrrd.h"
 #include <teem32bit.h>
 
+/*
+Wed Sep 14 05:55:40 EDT 2005: these are no longer used
 void
 nrrdPeripheralInit(Nrrd *nrrd) {
 
@@ -51,7 +53,8 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
                     | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT);
   return 0;
 }
-  
+*/
+
 /* ------------------------------------------------------------ */
 
 void

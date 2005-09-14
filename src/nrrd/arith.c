@@ -356,7 +356,9 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
                                    | NRRD_BASIC_INFO_DIMENSION_BIT
                                    | NRRD_BASIC_INFO_CONTENT_BIT
                                    | NRRD_BASIC_INFO_COMMENTS_BIT
-                                   | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+                                   | (nrrdStateKeyValuePairsPropagate
+                                      ? 0
+                                      : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)));
   }
   nrrdBasicInfoInit(nout,
                     NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
@@ -421,7 +423,9 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
                                 | NRRD_BASIC_INFO_DIMENSION_BIT
                                 | NRRD_BASIC_INFO_CONTENT_BIT
                                 | NRRD_BASIC_INFO_COMMENTS_BIT
-                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+                                | (nrrdStateKeyValuePairsPropagate
+                                   ? 0
+                                   : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)));
   nrrdBasicInfoInit(nout,
                     NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
                                            | NRRD_BASIC_INFO_OLDMAX_BIT));
@@ -560,7 +564,9 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
                                    | NRRD_BASIC_INFO_DIMENSION_BIT
                                    | NRRD_BASIC_INFO_CONTENT_BIT
                                    | NRRD_BASIC_INFO_COMMENTS_BIT
-                                   | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+                                   | (nrrdStateKeyValuePairsPropagate
+                                      ? 0
+                                      : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)));
   }
   nrrdBasicInfoInit(nout,
                     NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
@@ -633,7 +639,9 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
                                 | NRRD_BASIC_INFO_DIMENSION_BIT
                                 | NRRD_BASIC_INFO_CONTENT_BIT
                                 | NRRD_BASIC_INFO_COMMENTS_BIT
-                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+                                | (nrrdStateKeyValuePairsPropagate
+                                   ? 0
+                                   : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)));
   nrrdBasicInfoInit(nout,
                     NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
                                            | NRRD_BASIC_INFO_OLDMAX_BIT));

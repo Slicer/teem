@@ -128,7 +128,9 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
                         | NRRD_BASIC_INFO_DIMENSION_BIT
                         | NRRD_BASIC_INFO_CONTENT_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -308,7 +310,9 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
                         | NRRD_BASIC_INFO_DIMENSION_BIT
                         | NRRD_BASIC_INFO_CONTENT_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

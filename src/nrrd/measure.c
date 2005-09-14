@@ -1080,7 +1080,9 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
                         | NRRD_BASIC_INFO_DIMENSION_BIT
                         | NRRD_BASIC_INFO_CONTENT_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

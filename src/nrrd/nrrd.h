@@ -594,6 +594,7 @@ TEEM_API int nrrdDefCenter;
 TEEM_API double nrrdDefSpacing;
 TEEM_API int nrrdStateVerboseIO;
 /* ---- BEGIN non-NrrdIO */
+TEEM_API int nrrdStateKeyValuePairsPropagate;
 TEEM_API int nrrdStateBlind8BitRange;
 TEEM_API int nrrdStateMeasureType;
 TEEM_API int nrrdStateMeasureModeBins;

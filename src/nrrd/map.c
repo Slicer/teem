@@ -216,7 +216,9 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
                           | NRRD_BASIC_INFO_DIMENSION_BIT
                           | NRRD_BASIC_INFO_CONTENT_BIT
                           | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                          | (nrrdStateKeyValuePairsPropagate
+                             ? 0
+                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -341,7 +343,9 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                         | NRRD_BASIC_INFO_OLDMIN_BIT
                         | NRRD_BASIC_INFO_OLDMAX_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -456,7 +460,9 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
                         | NRRD_BASIC_INFO_OLDMIN_BIT
                         | NRRD_BASIC_INFO_OLDMAX_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -711,7 +717,9 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
                         | NRRD_BASIC_INFO_DIMENSION_BIT
                         | NRRD_BASIC_INFO_CONTENT_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT)) {
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

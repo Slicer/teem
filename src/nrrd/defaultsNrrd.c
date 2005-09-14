@@ -61,6 +61,7 @@ double nrrdDefSpacing = 1.0;
    set them differently. */
 int nrrdStateVerboseIO = 1; /* NrrdIO-hack-003 */
 /* ---- BEGIN non-NrrdIO */
+int nrrdStateKeyValuePairsPropagate = AIR_FALSE;
 int nrrdStateBlind8BitRange = AIR_TRUE;
 int nrrdStateMeasureType = nrrdTypeFloat;
 int nrrdStateMeasureModeBins = 1024;
@@ -114,6 +115,10 @@ nrrdStateGetenv(void) {
   if ((envS = getenv("NRRD_STATE_VERBOSE_IO"))
       && (1 == sscanf(envS, "%d", &valI))) {
     nrrdStateVerboseIO = valI;
+  }
+  if ((envS = getenv("NRRD_STATE_KEYVALUEPAIRS_PROPAGATE"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdStateKeyValuePairsPropagate = valI;
   }
   if ((envS = getenv("NRRD_STATE_BLIND_8_BIT_RANGE"))
       && (-1 != (valI = airEnumVal(airBool, envS)))) {
