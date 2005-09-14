@@ -155,16 +155,16 @@ airFclose(FILE *file) {
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
-  char *fmt;
-  float valF=0;
-  double valD=0;
+  char *fmt, buff[AIR_STRLEN_LARGE];
+  double val=0, gVal, fVal;
   int ret, isF, isD, cls;
   char *conv=NULL, *p0, *p1, *p2, *p3, *p4, *p5;
   va_list ap;
   
   va_start(ap, _fmt);
   fmt = airStrdup(_fmt);
-  
+
+  /* this is needlessly complicated; the "l" modifier is a no-op */
   p0 = strstr(fmt, "%e");
   p1 = strstr(fmt, "%f");
   p2 = strstr(fmt, "%g");
@@ -180,16 +180,10 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     conv = p3 ? p3 : (p4 ? p4 : p5);
   }
   if (isF || isD) {
-    if (isF) {
-      /* use "double" instead of "float" because var args are _always_
-         subject to old-style C type promotions: float promotes to double */
-      valF = (float)(va_arg(ap, double));
-      cls = airFPClass_f(valF);
-    }
-    else {
-      valD = va_arg(ap, double);
-      cls = airFPClass_d(valD);
-    }
+    /* use "double" instead of "float" because var args are _always_
+       subject to old-style C type promotions: float promotes to double */
+    val = va_arg(ap, double);
+    cls = airFPClass_d(val);
     switch (cls) {
     case airFP_SNAN:
     case airFP_QNAN:
@@ -219,12 +213,19 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
       ret = PRINT(file, str, fmt, "-inf");
       break;
     default:
-      if (isF) {
-        ret = PRINT(file, str, fmt, valF);
+      if (p2 || p5) {
+        /* got "%g" or "%lg", see if it would be better to "%f" */
+        sprintf(buff, "%f", val);
+        sscanf(buff, "%lf", &fVal);
+        sprintf(buff, "%g", val);
+        sscanf(buff, "%lf", &gVal);
+        if (fVal != gVal) {
+          /* %g let us down */
+          free(fmt);
+          fmt = airStrdup("%f");
+        }
       }
-      else {
-        ret = PRINT(file, str, fmt, valD);
-      }
+      ret = PRINT(file, str, fmt, val);
       break;
     }
   }
