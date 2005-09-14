@@ -116,6 +116,7 @@ F(permute) \
 F(swap) \
 F(shuffle) \
 F(flip) \
+F(unorient) \
 F(axinfo) \
 F(axinsert) \
 F(axsplit) \
