@@ -37,7 +37,7 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int pret;
+  int pret, blind8BitRange;
   unsigned int bits;
   double min, max;
   NrrdRange *range;
@@ -56,6 +56,11 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value to map to highest unsigned integral value. "
              "Defaults to highest value found in input nrrd.");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1,
+             &blind8BitRange, "true",
+             "if not using \"-min\" or \"-max\", whether or not to know "
+             "the range of 8-bit data blindly (uchar is always [0,255], "
+             "signed char is [-128,127])");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -71,12 +76,10 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* If the input nrrd never specified min and max, then they'll be
      AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
-     according to nrrdStateBlind8BitRange.  Thus, you may be
-     interested in using the NRRD_STATE_BLIND_8_BIT_RANGE
-     environment variable.  */
+     according to blind8BitRange */
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdQuantize(nout, nin, range, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error quantizing nrrd:\n%s", me, err);
