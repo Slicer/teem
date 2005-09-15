@@ -56,9 +56,9 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value to map to highest unsigned integral value. "
              "Defaults to highest value found in input nrrd.");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1,
-             &blind8BitRange, "true",
-             "if not using \"-min\" or \"-max\", whether or not to know "
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "if not using \"-min\" or \"-max\", whether to know "
              "the range of 8-bit data blindly (uchar is always [0,255], "
              "signed char is [-128,127])");
   OPT_ADD_NIN(nin, "input nrrd");

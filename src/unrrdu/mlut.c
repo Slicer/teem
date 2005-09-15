@@ -38,7 +38,7 @@ unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, **_nmlut, *nmlut, *nout;
   airArray *mop;
-  int typeOut, rescale, pret;
+  int typeOut, rescale, pret, blind8BitRange;
   unsigned int _nmlutLen, mapAxis;
   double min, max;
   NrrdRange *range=NULL;
@@ -62,6 +62,11 @@ unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
              "High end of input range. Defaults to highest value "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "Whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127]). "
+             "Explicitly setting this is useful only with rescaling (\"-r\")");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
              "specify the type (\"int\", \"float\", etc.) of the "
              "output nrrd. "
@@ -113,7 +118,7 @@ unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (rescale) {
     range = nrrdRangeNew(min, max);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+    nrrdRangeSafeSet(range, nin, blind8BitRange);
   }
 
   if (nrrdTypeDefault == typeOut) {

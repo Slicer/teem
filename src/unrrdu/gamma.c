@@ -37,7 +37,7 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   double min, max, gamma;
   airArray *mop;
-  int pret;
+  int pret, blind8BitRange;
   NrrdRange *range;
 
   hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
@@ -49,6 +49,10 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value to implicitly map to 1.0 prior to calling pow(). "
              "Defaults to highest value found in input nrrd.");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "Whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -64,7 +68,7 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdArithGamma(nout, nin, range, gamma)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing gamma:\n%s", me, err);

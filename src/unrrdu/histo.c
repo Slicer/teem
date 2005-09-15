@@ -31,7 +31,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  int type, pret;
+  int type, pret, blind8BitRange;
   unsigned int bins;
   double min, max;
   NrrdRange *range;
@@ -51,6 +51,10 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value at high end of histogram. Defaults to highest value "
              "found in input nrrd.");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "Whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_TYPE(type, "type to use for bins in output histogram", "uint");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -67,12 +71,10 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   
   /* If the input nrrd never specified min and max, then they'll be
      AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
-     according to nrrdStateBlind8BitRange.  Thus, you may be
-     interested in using the NRRD_STATE_BLIND_8_BIT_RANGE
-     environment variable.  */
+     according to blind8BitRange */
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdHisto(nout, nin, range, nwght, bins, type)) {
     err = biffGet(NRRD);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);

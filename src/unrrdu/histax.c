@@ -32,7 +32,7 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bins, pret;
+  int type, bins, pret, blind8BitRange;
   unsigned int axis;
   double min, max;
   airArray *mop;
@@ -48,6 +48,10 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value at high end of histogram. Defaults to highest value "
              "found in input nrrd.");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "Whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -63,7 +67,7 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing axis histogramming:\n%s", me, err);

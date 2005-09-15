@@ -47,7 +47,7 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
   NrrdRange *range=NULL;
-  int typeOut, rescale, pret;
+  int typeOut, rescale, pret, blind8BitRange;
   double min, max;
 
   hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
@@ -67,6 +67,13 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
              "High end of input range. Defaults to highest value "
              "found in input nrrd.  Explicitly setting this is useful "
+             "only with rescaling (\"-r\") or if the map domain is only "
+             "implicitly defined");
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             nrrdStateBlind8BitRange ? "true" : "false",
+             "Whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127]). "
+             "Explicitly setting this is useful "
              "only with rescaling (\"-r\") or if the map domain is only "
              "implicitly defined");
   hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
@@ -102,7 +109,7 @@ unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (rescale) {
     range = nrrdRangeNew(min, max);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+    nrrdRangeSafeSet(range, nin, blind8BitRange);
   }
 
   if (nrrdTypeDefault == typeOut) {

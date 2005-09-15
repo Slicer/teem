@@ -39,7 +39,7 @@ char *_unrrdu_minmaxInfoL =
  "and it also indicates if there are non-existant values.");
 
 int
-unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
+unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
   char err[AIR_STRLEN_MED];
   Nrrd *nrrd;
   NrrdRange *range;
@@ -52,7 +52,7 @@ unrrdu_minmaxDoit(char *me, char *inS, FILE *fout) {
     biffMove(me, err, NRRD); airMopError(mop); return 1;
   }
 
-  range = nrrdRangeNewSet(nrrd, nrrdBlind8BitRangeFalse);
+  range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   airSinglePrintf(fout, NULL, "min: %lg\n", range->min);
   airSinglePrintf(fout, NULL, "max: %lg\n", range->max);
@@ -72,10 +72,15 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret; 
+  int pret, blind8BitRange; 
   unsigned int ni, ninLen;
 
   mop = airMopNew();
+  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
+             "false", /* NOTE: not using nrrdStateBlind8BitRange here 
+                         for consistency with previous behavior */
+             "whether to know the range of 8-bit data blindly "
+             "(uchar is always [0,255], signed char is [-128,127])");
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
              "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -88,7 +93,7 @@ unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (ninLen > 1) {
       fprintf(stdout, "==> %s <==\n", inS[ni]);
     }
-    if (unrrdu_minmaxDoit(me, inS[ni], stdout)) {
+    if (unrrdu_minmaxDoit(me, inS[ni], blind8BitRange, stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with \"%s\":\n%s",
               me, inS[ni], err);
