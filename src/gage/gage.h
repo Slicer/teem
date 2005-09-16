@@ -463,7 +463,7 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   (q[0] | q[1] | q[2] | q[3] | q[4] | q[5] | q[6] | q[7])
 #define GAGE_QUERY_ITEM_TEST(q, i) (q[i/8] & (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
-#define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ^(1 << (i % 8)))
+#define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ~(1 << (i % 8)))
 
 /*
 ******** gageContext struct
