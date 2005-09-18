@@ -10,7 +10,7 @@ find . -name \*.h -exec grep -f tab.txt {} \; -print
 find . -name \*.txt -exec grep -f tab.txt {} \; -print
 rm -f tab.txt
 
--1) update airTeemVersion and airTeemReleaseDate in air/misc.c
+-1) update TEEM_VERSION stuff in air/air.h and airTeemReleaseDate in air/misc.c
 
 0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
@@ -45,7 +45,8 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
   | grep -v " alan" | grep -v " _alan" \
   | grep -v " coil" | grep -v " _coil" \
   | grep -v " ten" | grep -v " _ten" \
-  | grep -v " echo" | grep -v " _echo"
+  | grep -v " echo" | grep -v " _echo" \
+  | grep -v " push" | grep -v " _push"
   b) Make sure #defines in header files are properly prefixed:
   cd ../../include
   grep #define teem/*.h | grep -v _export \
@@ -66,7 +67,8 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
   | grep -v " ALAN" | grep -v " _ALAN" \
   | grep -v " COIL" | grep -v " _COIL" \
   | grep -v " ECHO" | grep -v " _ECHO" \
-  | grep -v " TEN" | grep -v " _TEN"
+  | grep -v " TEN" | grep -v " _TEN" \
+  | grep -v " PUSH" | grep -v " _PUSH"
 
 2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
