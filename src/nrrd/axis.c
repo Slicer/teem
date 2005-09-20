@@ -663,7 +663,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
 ** _nrrdCenter()
 **
 ** for nrrdCenterCell and nrrdCenterNode, return will be the same
-** as input.  Converts nrrdCenterUnknown into nrrdDefCenter,
+** as input.  Converts nrrdCenterUnknown into nrrdDefaultCenter,
 ** and then clamps to (nrrdCenterUnknown+1, nrrdCenterLast-1).
 **
 ** Thus, this ALWAYS returns nrrdCenterNode or nrrdCenterCell
@@ -673,7 +673,7 @@ int
 _nrrdCenter(int center) {
   
   center =  (nrrdCenterUnknown == center
-             ? nrrdDefCenter
+             ? nrrdDefaultCenter
              : center);
   center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
   return center;
@@ -855,7 +855,7 @@ nrrdAxisInfoSpacingSet(Nrrd *nrrd, unsigned int ax) {
   if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
     /* there's no actual basis on which to set the spacing information,
        but we have to set it something, so here goes ... */
-    nrrd->axis[ax].spacing = nrrdDefSpacing;
+    nrrd->axis[ax].spacing = nrrdDefaultSpacing;
     return;
   }
 
@@ -886,7 +886,7 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
   center = _nrrdCenter2(nrrd->axis[ax].center, defCenter);
   spacing = nrrd->axis[ax].spacing;
   if (!AIR_EXISTS(spacing))
-    spacing = nrrdDefSpacing;
+    spacing = nrrdDefaultSpacing;
   if (nrrdCenterCell == center) {
     nrrd->axis[ax].min = 0;
     nrrd->axis[ax].max = spacing*nrrd->axis[ax].size;
@@ -1114,14 +1114,12 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
     axis = nout->axis + spatialAxisIdx[saxii];
     axis->spacing = _nrrdSpaceVecNorm(nout->spaceDim,
                                       axis->spaceDirection);
-    _nrrdSpaceVecSetNaN(axis->spaceDirection);
     if (setMinsFromOrigin) {
       axis->min = (saxii < nout->spaceDim 
                    ? nout->spaceOrigin[saxii]
                    : AIR_NAN);
     }
   }
-  _nrrdSpaceVecSetNaN(nout->spaceOrigin);
   nrrdSpaceSet(nout, nrrdSpaceUnknown);
   
   return 0;
