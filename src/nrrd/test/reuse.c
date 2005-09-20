@@ -37,8 +37,9 @@ main(int argc, char **argv) {
   size_t size[NRRD_DIM_MAX];
 
   me = argv[0];
-  if (3 != argc)
+  if (3 != argc) {
     usage(me);
+  }
 
   nrrdStateVerboseIO = 10;
   
@@ -60,9 +61,9 @@ main(int argc, char **argv) {
 
   n2 = nrrdNew();
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
-  if (nrrdWrap(n2, nrrd->data, nrrd->type, nrrd->dim, size)
+  if (nrrdWrap_nva(n2, nrrd->data, nrrd->type, nrrd->dim, size)
       || nrrdAxesMerge(n2, nrrd, 0)) {
-    fprintf(stderr, "%s: trouble wrapping or merging\"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble wrapping or merging \"%s\":\n%s", 
             me, argv[2], err = biffGet(NRRD));
     free(err);
     exit(1);
