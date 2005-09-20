@@ -33,14 +33,13 @@ usage(char *me) {
 int
 main(int argc, char **argv) {
   char *me, *err;
-  Nrrd *nrrd;
-  NrrdIoState *io;
+  Nrrd *nrrd, *n2;
+  size_t size[NRRD_DIM_MAX];
 
   me = argv[0];
   if (3 != argc)
     usage(me);
 
-  io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
   
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
@@ -58,9 +57,20 @@ main(int argc, char **argv) {
     exit(1);
   }
   fprintf(stderr, "%s: data for \"%s\" at %p\n", me, argv[2], nrrd->data);
+
+  n2 = nrrdNew();
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
+  if (nrrdWrap(n2, nrrd->data, nrrd->type, nrrd->dim, size)
+      || nrrdAxesMerge(n2, nrrd, 0)) {
+    fprintf(stderr, "%s: trouble wrapping or merging\"%s\":\n%s", 
+            me, argv[2], err = biffGet(NRRD));
+    free(err);
+    exit(1);
+  }
+  fprintf(stderr, "%s: data for axmerge(\"%s\",0) at %p\n", me, argv[2], n2->data);
   
-  nrrdIoStateNix(io);
   nrrdNuke(nrrd);
+  nrrdNix(n2);
 
   exit(0);
 }
