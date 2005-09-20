@@ -42,12 +42,13 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm;
-  unsigned int scaleLen, ai;
+  int type, bb, pret, norenorm, newer, E, defaultCenter, verbose;
+  unsigned int scaleLen, ai, samplesOut;
   airArray *mop;
   float *scale;
   double padVal;
   NrrdResampleInfo *info;
+  NrrdResampleContext *rsmc;
   NrrdKernelSpec *unuk;
 
   mop = airMopNew();
@@ -103,6 +104,17 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "type to save OUTPUT as. By default (not using this option), "
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd(&opt, "new", NULL, airTypeInt, 0, 0, &newer, NULL,
+             "use the new nrrdResampleContext implementation");
+  hestOptAdd(&opt, "c", "center", airTypeEnum, 1, 1, &defaultCenter,
+             (nrrdCenterCell == nrrdDefaultCenter
+              ? "cell"
+              : "node"),
+             "with \"-new\", default centering of axes when input nrrd "
+             "axes don't have a known centering: \"cell\" or \"node\"", 
+             NULL, nrrdCenter);
+  hestOptAdd(&opt, "verbose", NULL, airTypeInt, 0, 0, &verbose, NULL,
+             "with \"-new\", turn on verbosity");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -112,54 +124,96 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   if (scaleLen != nin->dim) {
     fprintf(stderr, "%s: # sampling sizes (%d) != input nrrd dimension (%d)\n",
             me, scaleLen, nin->dim);
-    return 1;
-  }
-  for (ai=0; ai<nin->dim; ai++) {
-    /* this may be over-written below */
-    info->kernel[ai] = unuk->kernel;
-    switch((int)scale[0 + 2*ai]) {
-    case 0:
-      /* no resampling */
-      info->kernel[ai] = NULL;
-      break;
-    case 1:
-      /* scaling of input # samples */
-      info->samples[ai] = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
-      break;
-    case 2:
-      /* explicit # of samples */
-      info->samples[ai] = (size_t)scale[1 + 2*ai];
-      break;
-    }
-    memcpy(info->parm[ai], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
-    if (info->kernel[ai] &&
-        (!( AIR_EXISTS(nin->axis[ai].min) 
-            && AIR_EXISTS(nin->axis[ai].max))) ) {
-       nrrdAxisInfoMinMaxSet(nin, ai, 
-                             (nin->axis[ai].center
-                              ? nin->axis[ai].center 
-                              : nrrdDefCenter));
-    }
-    info->min[ai] = nin->axis[ai].min;
-    info->max[ai] = nin->axis[ai].max;
-  }
-  info->boundary = bb;
-  info->type = type;
-  info->padValue = padVal;
-  info->renormalize = !norenorm;
-
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  
-  if (nrrdSpatialResample(nout, nin, info)) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error resampling nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
+  if (newer) {
+    rsmc = nrrdResampleContextNew();
+    rsmc->verbose = verbose;
+    airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
+    E = AIR_FALSE;
+    if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell);
+    if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+    for (ai=0; ai<nin->dim; ai++) {
+      switch((int)scale[0 + 2*ai]) {
+      case 0:
+        /* no resampling */
+        if (!E) E |= nrrdResampleKernelSet(rsmc, ai, NULL, NULL);
+        break;
+      case 1:
+        /* scaling of input # samples */
+        if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
+        samplesOut = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
+        if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
+        break;
+      case 2:
+        /* explicit # of samples */
+        if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
+        samplesOut = (size_t)scale[1 + 2*ai];
+        if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
+        break;
+      }
+      if (!E) E |= nrrdResampleRangeFullSet(rsmc, ai);
+    }
+    if (!E) E |= nrrdResampleBoundarySet(rsmc, bb);
+    if (!E) E |= nrrdResampleTypeOutSet(rsmc, type);
+    if (!E) E |= nrrdResamplePadValueSet(rsmc, padVal);
+    if (!E) E |= nrrdResampleRenormalizeSet(rsmc, !norenorm);
+    if (!E) E |= nrrdResampleExecute(rsmc, nout);
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error resampling nrrd:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    for (ai=0; ai<nin->dim; ai++) {
+      /* this may be over-written below */
+      info->kernel[ai] = unuk->kernel;
+      switch((int)scale[0 + 2*ai]) {
+      case 0:
+        /* no resampling */
+        info->kernel[ai] = NULL;
+        break;
+      case 1:
+        /* scaling of input # samples */
+        info->samples[ai] = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
+        break;
+      case 2:
+        /* explicit # of samples */
+        info->samples[ai] = (size_t)scale[1 + 2*ai];
+        break;
+      }
+      memcpy(info->parm[ai], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+      if (info->kernel[ai] &&
+          (!( AIR_EXISTS(nin->axis[ai].min) 
+              && AIR_EXISTS(nin->axis[ai].max))) ) {
+        nrrdAxisInfoMinMaxSet(nin, ai, 
+                              (nin->axis[ai].center
+                               ? nin->axis[ai].center 
+                               : nrrdDefaultCenter));
+      }
+      info->min[ai] = nin->axis[ai].min;
+      info->max[ai] = nin->axis[ai].max;
+    }
+    info->boundary = bb;
+    info->type = type;
+    info->padValue = padVal;
+    info->renormalize = !norenorm;
+    if (nrrdSpatialResample(nout, nin, info)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error resampling nrrd:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  
 
   SAVE(out, nout, NULL);
 
