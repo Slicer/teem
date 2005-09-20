@@ -86,11 +86,11 @@ hooverContextCheck(hooverContext *ctx) {
   if (!sxe && !sye && !sze) {
     /* none of the incoming spacings existed, we'll go out on a limb
        and assume unit spacing */
-    ctx->volSpacing[0] = nrrdDefSpacing;
+    ctx->volSpacing[0] = nrrdDefaultSpacing;
     ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
     fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
             me, ctx->volSpacing[0]);
-    /* HEY : nrrdDefSpacing need not be the same as gageParm's 
+    /* HEY : nrrdDefaultSpacing need not be the same as gageParm's 
        defaultSpacing, but we don't know anything about gage here,
        so what else can we do? */
   } else if (sxe && sye && sze) {

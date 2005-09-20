@@ -33,9 +33,9 @@ main(int argc, char **argv) {
 
   me = argv[0];
 
-  /* parse environment variables first, in case they break nrrdDef*
+  /* parse environment variables first, in case they break nrrdDefault*
      or nrrdState* variables in a way that nrrdSanity() should see */
-  nrrdDefGetenv();
+  nrrdDefaultGetenv();
   nrrdStateGetenv();
 
   /* if user hasn't tried to set nrrdStateKindNoop by an environment

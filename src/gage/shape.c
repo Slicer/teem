@@ -246,7 +246,7 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
       }
     }
     /* there is no shape->defaultSpacing, we'll go out on a limb ... */
-    defSpacing = ctx ? ctx->parm.defaultSpacing : nrrdDefSpacing;
+    defSpacing = ctx ? ctx->parm.defaultSpacing : nrrdDefaultSpacing;
     xs = AIR_EXISTS(xs) ? xs : defSpacing;
     ys = AIR_EXISTS(ys) ? ys : defSpacing;
     zs = AIR_EXISTS(zs) ? zs : defSpacing;

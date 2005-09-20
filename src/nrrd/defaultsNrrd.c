@@ -33,27 +33,26 @@
 ** What IS a "default"?  A default is the assertion of a certain
 ** choice in situations where the user hasn't set it explicitly, but
 ** COULD.  The pad value in resampling is a good example: it is set by
-** a constructor to nrrdDefRsmpPadValue, but the user can also set it
+** a constructor to nrrdDefaultResamplePadValue, but the user can also set it
 ** explicitly.
 */
 
-const NrrdEncoding *nrrdDefWriteEncoding = &_nrrdEncodingRaw;
-int nrrdDefWriteBareText = AIR_TRUE;
-int nrrdDefWriteCharsPerLine = 75;
-int nrrdDefWriteValsPerLine = 8;
+const NrrdEncoding *nrrdDefaultWriteEncoding = &_nrrdEncodingRaw;
+int nrrdDefaultWriteBareText = AIR_TRUE;
+unsigned int nrrdDefaultWriteCharsPerLine = 75;
+unsigned int nrrdDefaultWriteValsPerLine = 8;
 /* ---- BEGIN non-NrrdIO */
-int nrrdDefRsmpBoundary = nrrdBoundaryBleed;
-int nrrdDefRsmpType = nrrdTypeDefault;
-double nrrdDefRsmpScale = 1.0;    /* these two should probably be the same */
-int nrrdDefRsmpRenormalize = AIR_TRUE;
-int nrrdDefRsmpRound = AIR_TRUE;
-int nrrdDefRsmpClamp = AIR_TRUE;
-int nrrdDefRsmpCheap = AIR_FALSE;
-double nrrdDefRsmpPadValue = 0.0;
-double nrrdDefKernelParm0 = 1.0; 
+int nrrdDefaultResampleBoundary = nrrdBoundaryBleed;
+int nrrdDefaultResampleType = nrrdTypeDefault;
+int nrrdDefaultResampleRenormalize = AIR_TRUE;
+int nrrdDefaultResampleRound = AIR_TRUE;
+int nrrdDefaultResampleClamp = AIR_TRUE;
+int nrrdDefaultResampleCheap = AIR_FALSE;
+double nrrdDefaultResamplePadValue = 0.0;
+double nrrdDefaultKernelParm0 = 1.0; 
 /* ---- END non-NrrdIO */
-int nrrdDefCenter = nrrdCenterCell;
-double nrrdDefSpacing = 1.0;
+int nrrdDefaultCenter = nrrdCenterCell;
+double nrrdDefaultSpacing = 1.0;
 
 /* these aren't really "defaults" because there's no other channel for
    specifying this information.  It is just global state.  Obviously,
@@ -72,7 +71,7 @@ int nrrdStateAlwaysSetContent = AIR_TRUE;
 int nrrdStateDisableContent = AIR_FALSE;
 char *nrrdStateUnknownContent = NRRD_UNKNOWN;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
-/* there is no sane reason to change this default initialization */
+/* there is no sane reason to change this initialization */
 int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 /* Making the default for this be AIR_TRUE means that nrrd is not only
    completely conservative about updating kind, but purposely stupid.
@@ -88,18 +87,71 @@ int nrrdStateKindNoop = AIR_FALSE;
 
 /* ---- BEGIN non-NrrdIO */
 void
-nrrdDefGetenv(void) {
+nrrdDefaultGetenv(void) {
   char *envS;
   int valI;
+  unsigned int valUI;
+  double valD;
   
-  if ((envS = getenv("NRRD_DEF_CENTER"))
-      && (valI = airEnumVal(nrrdCenter, envS))) {
-    nrrdDefCenter = valI;
-  }
-  if ((envS = getenv("NRRD_DEF_WRITE_BARE_TEXT"))
+  /* these two pre-date Def --> Default rename; 
+     old "_DEF_" string is recognized */
+  if (((envS = getenv("NRRD_DEF_WRITE_BARE_TEXT"))
+       || (envS = getenv("NRRD_DEFAULT_WRITE_BARE_TEXT")))
       && (valI = airEnumVal(airBool, envS))) {
-    nrrdDefWriteBareText = valI;
+    nrrdDefaultWriteBareText = valI;
   }
+  if (((envS = getenv("NRRD_DEF_CENTER"))
+       || (envS = getenv("NRRD_DEFAULT_CENTER")))
+      && (valI = airEnumVal(nrrdCenter, envS))) {
+    nrrdDefaultCenter = valI;
+  }
+
+  /* the introduction of these post-date the Def --> Default rename */
+  if ((envS = getenv("NRRD_DEFAULT_WRITE_CHARS_PER_LINE"))
+      && (1 == sscanf(envS, "%u", &valUI))) {
+    nrrdDefaultWriteCharsPerLine = valUI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_WRITE_VALS_PER_LINE"))
+      && (1 == sscanf(envS, "%u", &valUI))) {
+    nrrdDefaultWriteValsPerLine = valUI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_BOUNDARY"))
+      && (valI = airEnumVal(nrrdBoundary, envS))) {
+    nrrdDefaultResampleBoundary = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_TYPE"))
+      && (valI = airEnumVal(nrrdType, envS))) {
+    nrrdDefaultResampleType = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_RENORMALIZE"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdDefaultResampleRenormalize = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_ROUND"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdDefaultResampleRound = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_CLAMP"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdDefaultResampleClamp = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_CHEAP"))
+      && (-1 != (valI = airEnumVal(airBool, envS)))) {
+    nrrdDefaultResampleCheap = valI;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_PAD_VALUE"))
+      && (1 == sscanf(envS, "%lf", &valD))) {
+    nrrdDefaultResamplePadValue = valD;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_KERNEL_PARM0"))
+      && (1 == sscanf(envS, "%lf", &valD))) {
+    nrrdDefaultKernelParm0 = valD;
+  }
+  if ((envS = getenv("NRRD_DEFAULT_SPACING"))
+      && (1 == sscanf(envS, "%lf", &valD))) {
+    nrrdDefaultSpacing = valD;
+  }
+
   return;
 }
 
