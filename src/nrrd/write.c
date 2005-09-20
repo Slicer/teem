@@ -22,7 +22,6 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
-#include <teem32bit.h>
 
 /*
   #include <sys/types.h>
@@ -758,7 +757,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdEncodingUnknown == nio->encoding) {
-    nio->encoding = nrrdDefWriteEncoding;
+    nio->encoding = nrrdDefaultWriteEncoding;
   }
   if (!nio->encoding->available()) {
     sprintf(err, "%s: %s encoding not available in this teem build", 
