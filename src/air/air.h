@@ -46,7 +46,7 @@ extern "C" {
 /* define TEEM_API */
 /* NrrdIO-hack-001 */
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
 #    define TEEM_API extern __declspec(dllexport)
 #  else
 #    define TEEM_API extern __declspec(dllimport)
@@ -544,6 +544,14 @@ TEEM_API void airMopDebug(airArray *arr);
 ** C's "error: parameter name omitted"
 */
 #define AIR_UNUSED(x) (void)(x)
+
+/*
+******** AIR_CAST
+**
+** just a cast, but with the added ability to grep for it more easily,
+** since casts should probably always be revisited and reconsidered.
+*/
+#define AIR_CAST(t, v) ((t)(v))
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
