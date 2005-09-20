@@ -23,7 +23,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#include <teem32bit.h>
 #include <limits.h>
 
 const char *
@@ -75,22 +74,36 @@ nrrdSpaceDimension(int space) {
 /*
 ******** nrrdSpaceSet
 **
-** What to use to set space, when a value from nrrdSpace enum is known
+** What to use to set space, when a value from nrrdSpace enum is known,
+** or, to nullify all space-related information when passed nrrdSpaceUnknown
 */
 int
 nrrdSpaceSet(Nrrd *nrrd, int space) {
   char me[]="nrrdSpaceSet", err[AIR_STRLEN_MED];
+  unsigned axi, saxi;
   
   if (!nrrd) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdSpaceUnknown != space && airEnumValCheck(nrrdSpace, space)) {
-    sprintf(err, "%s: given space (%d) not valid", me, space);
-    biffAdd(NRRD, err); return 1;
+  if (nrrdSpaceUnknown == space) {
+    nrrd->space = nrrdSpaceUnknown;
+    nrrd->spaceDim = 0;
+    for (axi=0; axi<NRRD_DIM_MAX; axi++) {
+      _nrrdSpaceVecSetNaN(nrrd->axis[axi].spaceDirection);
+    }
+    for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
+      nrrd->spaceUnits[saxi] = airFree(nrrd->spaceUnits[saxi]);
+    }
+    _nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
+  } else {
+    if (airEnumValCheck(nrrdSpace, space)) {
+      sprintf(err, "%s: given space (%d) not valid", me, space);
+      biffAdd(NRRD, err); return 1;
+    }
+    nrrd->space = space;
+    nrrd->spaceDim = nrrdSpaceDimension(space);
   }
-  nrrd->space = space;
-  nrrd->spaceDim = nrrdSpaceDimension(space);
   return 0;
 }
 
@@ -1304,27 +1317,28 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (!nrrdDefWriteEncoding) {
-    sprintf(err, "%s: nrrdDefWriteEncoding is NULL", me);
+  if (!nrrdDefaultWriteEncoding) {
+    sprintf(err, "%s: nrrdDefaultWriteEncoding is NULL", me);
     biffAdd(NRRD, err); return 0;
   }
-  if (airEnumValCheck(nrrdCenter, nrrdDefCenter)) {
-    sprintf(err, "%s: nrrdDefCenter (%d) not in valid range [%d,%d]",
-            me, nrrdDefCenter,
+  if (airEnumValCheck(nrrdCenter, nrrdDefaultCenter)) {
+    sprintf(err, "%s: nrrdDefaultCenter (%d) not in valid range [%d,%d]",
+            me, nrrdDefaultCenter,
             nrrdCenterUnknown+1, nrrdCenterLast-1);
     biffAdd(NRRD, err); return 0;
   }
   /* ---- BEGIN non-NrrdIO */
-  if (!( nrrdTypeDefault == nrrdDefRsmpType
-         || !airEnumValCheck(nrrdType, nrrdDefRsmpType) )) {
-    sprintf(err, "%s: nrrdDefRsmpType (%d) not in valid range [%d,%d]",
-            me, nrrdDefRsmpType,
+  if (!( nrrdTypeDefault == nrrdDefaultResampleType
+         || !airEnumValCheck(nrrdType, nrrdDefaultResampleType) )) {
+    sprintf(err, "%s: nrrdDefaultResampleType (%d) not in valid range [%d,%d]",
+            me, nrrdDefaultResampleType,
             nrrdTypeUnknown, nrrdTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
-  if (airEnumValCheck(nrrdBoundary, nrrdDefRsmpBoundary)) {
-    sprintf(err, "%s: nrrdDefRsmpBoundary (%d) not in valid range [%d,%d]",
-            me, nrrdDefRsmpBoundary,
+  if (airEnumValCheck(nrrdBoundary, nrrdDefaultResampleBoundary)) {
+    sprintf(err, "%s: nrrdDefaultResampleBoundary (%d) "
+            "not in valid range [%d,%d]",
+            me, nrrdDefaultResampleBoundary,
             nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
     biffAdd(NRRD, err); return 0;
   }
