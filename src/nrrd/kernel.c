@@ -186,16 +186,68 @@ _nrrdKernelBox = {
 NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
 
-/* 
-** the intent of "cheap" can be signified by the (numeric) value of
-** the nrrdKernelCheap pointer, but internally it is entirely the 
-** same as the box filter
-*/
+/* ------------------------------------------------------------ */
+
+/* The point here is that post-kernel-evaluation, we need to see
+   which sample is closest to the origin, and this is one way of
+   enabling that */
+#define _CHEAP(x) AIR_ABS(x)
+
+double
+_nrrdCheapInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+double
+_nrrdCheapSup(const double *parm) {
+  double S;
+  
+  S = parm[0];
+  /* adding the 0.5 is to insure that weights computed within the
+     support really do catch all the non-zero values */
+  return S/2 + 0.5;
+}
+
+double
+_nrrdCheap1_d(double x, const double *parm) {
+
+  return _CHEAP(x)/parm[0];
+}
+
+float
+_nrrdCheap1_f(float x, const double *parm) {
+
+  return _CHEAP(x)/parm[0];
+}
+
+void
+_nrrdCheapN_d(double *f, const double *x, size_t len, const double *parm) {
+  double t;
+  size_t i;
+  
+  for (i=0; i<len; i++) {
+    t = x[i];
+    f[i] = _CHEAP(t)/parm[0];
+  }
+}
+
+void
+_nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
+  float t;
+  size_t i;
+  
+  for (i=0; i<len; i++) {
+    t = x[i];
+    f[i] = _CHEAP(t)/parm[0];
+  }
+}
+
 NrrdKernel
 _nrrdKernelCheap = {
   "box",
-  1, _nrrdBoxSup, _nrrdBoxInt,  
-  _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
+  1, _nrrdCheapSup, _nrrdCheapInt,  
+  _nrrdCheap1_f,  _nrrdCheapN_f,  _nrrdCheap1_d,  _nrrdCheapN_d
 };
 NrrdKernel *const
 nrrdKernelCheap = &_nrrdKernelCheap;
@@ -1332,7 +1384,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       for (j=haveParm; j>=1; j--) {
         parm[j] = parm[j-1];
       }
-      parm[0] = nrrdDefKernelParm0;
+      parm[0] = nrrdDefaultKernelParm0;
     } else {
       if (pstr) {
         sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
