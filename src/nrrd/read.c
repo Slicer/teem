@@ -28,8 +28,6 @@
 #include <bzlib.h>
 #endif
 
-#include <teem32bit.h>
-
 char _nrrdRelativePathFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
 char _nrrdNoSpaceVector[] = "none";
