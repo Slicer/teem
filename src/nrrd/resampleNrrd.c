@@ -23,8 +23,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#include <teem32bit.h>
-
 /*
   (this was written before airMopSub ... )
 learned: if you start using airMop stuff, and you register a free, but
@@ -86,7 +84,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
       info->parm[ai][p] = parm[p];
     /* set the min/max for this axis if not already set to something */
     if (!( AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max) ))
-      nrrdAxisInfoMinMaxSet(nin, ai, nrrdDefCenter);
+      nrrdAxisInfoMinMaxSet(nin, ai, nrrdDefaultCenter);
     info->min[ai] = nin->axis[ai].min;
     info->max[ai] = nin->axis[ai].max;
   }
@@ -591,7 +589,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
      (want to put it before 0 == passes branch)
      We have to assume some centering when doing resampling, and it would
      be stupid to not record it in the outgoing nrrd, since the value of
-     nrrdDefCenter could always change. */
+     nrrdDefaultCenter could always change. */
   for (ai=0; ai<nin->dim; ai++) {
     if (info->kernel[ai]) {
       nout->axis[ai].center = _nrrdCenter(nin->axis[ai].center);
