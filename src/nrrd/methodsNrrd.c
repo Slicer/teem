@@ -22,7 +22,6 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
-#include <teem32bit.h>
 
 /*
 Wed Sep 14 05:55:40 EDT 2005: these are no longer used
@@ -81,9 +80,9 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->byteSkip = 0;
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
-    nio->bareText = nrrdDefWriteBareText;
-    nio->charsPerLine = nrrdDefWriteCharsPerLine;
-    nio->valsPerLine = nrrdDefWriteValsPerLine;
+    nio->bareText = nrrdDefaultWriteBareText;
+    nio->charsPerLine = nrrdDefaultWriteCharsPerLine;
+    nio->valsPerLine = nrrdDefaultWriteValsPerLine;
     nio->skipData = AIR_FALSE;
     nio->keepNrrdDataFileOpen = AIR_FALSE;
     nio->zlibLevel = -1;
@@ -142,18 +141,18 @@ _nrrdResampleInfoInit (NrrdResampleInfo *info) {
   for (d=0; d<NRRD_DIM_MAX; d++) {
     info->kernel[d] = NULL;
     info->samples[d] = 0;
-    info->parm[d][0] = nrrdDefRsmpScale;
+    info->parm[d][0] = nrrdDefaultKernelParm0;
     for (i=1; i<NRRD_KERNEL_PARMS_NUM; i++)
       info->parm[d][i] = AIR_NAN;
     info->min[d] = info->max[d] = AIR_NAN;
   }
-  info->boundary = nrrdDefRsmpBoundary;
-  info->type = nrrdDefRsmpType;
-  info->renormalize = nrrdDefRsmpRenormalize;
-  info->round = nrrdDefRsmpRound;
-  info->clamp = nrrdDefRsmpClamp;
-  info->cheap = nrrdDefRsmpCheap;
-  info->padValue = nrrdDefRsmpPadValue;
+  info->boundary = nrrdDefaultResampleBoundary;
+  info->type = nrrdDefaultResampleType;
+  info->renormalize = nrrdDefaultResampleRenormalize;
+  info->round = nrrdDefaultResampleRound;
+  info->clamp = nrrdDefaultResampleClamp;
+  info->cheap = nrrdDefaultResampleCheap;
+  info->padValue = nrrdDefaultResamplePadValue;
 }
 
 NrrdResampleInfo *
