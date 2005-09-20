@@ -50,9 +50,6 @@ $(L).PRIVATE_HEADERS =
 $(L).OBJS = methodsDye.o convertDye.o
 $(L).TESTS = test/conv test/bow
 
-$(L).NEED_ENDIAN =
-$(L).NEED_QNANHIBIT =
-$(L).NEED_DIO =
 ####
 ####
 ####

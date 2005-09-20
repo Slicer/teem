@@ -49,9 +49,6 @@ $(L).PRIVATE_HEADERS =
 $(L).OBJS = methodsAlan.o enumsAlan.o coreAlan.o 
 $(L).TESTS = 
 
-$(L).NEED_ENDIAN =
-$(L).NEED_QNANHIBIT =
-$(L).NEED_DIO =
 ####
 ####
 ####
