@@ -503,13 +503,30 @@ typedef struct {
 } NrrdResampleInfo;
 
 /*
-******** NrrdResamplePass struct
+******** NrrdResampleAxis struct
 **
-** specific to one pass of resampling process
+** specific to one pass (one pass per axis) of resampling process
 */
 typedef struct {
-  size_t size;
-} NrrdResamplePass;
+  /* ----------- input ---------- */
+  const NrrdKernel *kernel;  /* which kernel to use on this axis; use NULL to
+                                say no resampling whatsoever on this axis */
+  double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
+  double min, max;           /* range in INDEX space of resampling */
+  size_t samples;            /* number ouput samples on this axis */
+  int center;                /* centering for this axis */
+  /* ----------- internal ---------- */
+  size_t sizeIn,             /* number input samples on this axis */
+    sizePerm[NRRD_DIM_MAX];  /* permutation of axis sizes for this pass */
+  unsigned int passIdx,      /* exactly which pass are we on */
+    axisPerm[NRRD_DIM_MAX];  /* permutation of axis indices for this pass */
+  double ratio;              /* > 1: upsampling; < 1: downsampling */
+  Nrrd *ntmp,                /* input this pass */
+    *nbuffer,                /* scanline buffer (includes extra sample at end
+                                for storing pad value) */
+    *nindex,                 /* row of input indices for each output sample */
+    *nweight;                /* row of input weights for each output sample */
+} NrrdResampleAxis;
 
 /*
 ******** NrrdResampleContext struct
@@ -520,37 +537,45 @@ typedef struct {
 */
 typedef struct {
   /* ----------- input ---------- */
-  const Nrrd *nin;         /* the nrrd being resampled */
-  const NrrdKernel 
-    *kernel[NRRD_DIM_MAX]; /* which kernel to use on each axis; use NULL to
-                              say no resampling whatsoever on this axis */
-  size_t samples[NRRD_DIM_MAX]; /* number of samples per axis */
-  double parm[NRRD_DIM_MAX][NRRD_KERNEL_PARMS_NUM], /* kernel arguments */
-    min[NRRD_DIM_MAX],
-    max[NRRD_DIM_MAX];     /* min[i] and max[i] are the range, in INDEX space,
-                              along which to resample axis i. */
-  int boundary,            /* value from the nrrdBoundary enum */
-    type,                  /* desired type of output, use nrrdTypeUnknown for
-                              "same as input" */
-    renormalize,           /* when downsampling with a kernel with non-zero
-                              integral, should we renormalize the weights to
-                              match the kernel integral so as to remove
-                              annoying ripple */
-    round,                 /* when copying from the last intermediate (floating
-                              point) result to the output nrrd, for integer
-                              outputs, do we round to the nearest integer
-                              first, before clamping and assigning.  Enabling
-                              this fixed the mystery of downsampling large
-                              constant regions of 255 (uchar), and ending up
-                              with 254 */
-    clamp;                  /* when copying from the last intermediate
+  const Nrrd *nin;          /* the nrrd being resampled */
+  int verbose,              /* blah blah blah */
+    boundary,               /* value from the nrrdBoundary enum */
+    typeOut,                /* desired type of output, use nrrdTypeDefault for
+                               "same as input" */
+    renormalize,            /* when downsampling with a kernel with non-zero
+                               integral, should we renormalize the weights to
+                               match the kernel integral so as to remove
+                               annoying ripple */
+    round,                  /* when copying from the last intermediate
                                (floating point) result to the output nrrd,
+                               for integer outputs, do we round to the nearest
+                               integer first, before clamping and assigning.
+                               Enabling this fixed the mystery of downsampling
+                               large constant regions of 255 (uchar), and
+                               ending up with 254 */
+    clamp,                   /* when copying from the last intermediate
+                                (floating point) result to the output nrrd,
                                should we clamp the values to the range of
-                               values for the output type, a concern only for
-                               integer outputs */
-  double padValue;          /* if padding, what value to pad with */
-  /* ----------- internal ---------- */
-  NrrdResamplePass pass[NRRD_DIM_MAX];
+                                values for the output type, a concern only for
+                                integer outputs */
+    defaultCenter;           /* lacking known centering on input axis, what
+                                centering to use when resampling */
+  double padValue;           /* if padding, what value to pad with */
+  /* ----------- input/internal ---------- */
+  unsigned int dim,          /* dimension of nin (saved here to help
+                                manage state in NrrdResampleAxis[]) */
+    passNum,                 /* number of passes needed */
+    topRax, botRax,          /* fastest, slowest axes undergoing resampling */
+    permute[NRRD_DIM_MAX+1], /* how each pass permutes axes */
+    passAxis[NRRD_DIM_MAX];  /* mapping from pass index to axis index */
+  NrrdResampleAxis
+    axis[NRRD_DIM_MAX+1];    /* axis[j] stores information for input to
+                                pass which is resampling nin->axis[j]; 
+                                axis[NRRD_DIM_MAX] stores info about the
+                                final output of all passes */
+  int *flag;                 /* flags for managing state */
+  /* ----------- output ---------- */
+  double time;               /* time required for resampling */
 } NrrdResampleContext;
 
 /*
@@ -573,25 +598,24 @@ typedef struct {
 
 /* ---- END non-NrrdIO */
 
-/******** defaults (nrrdDef..) and state (nrrdState..) */
+/******** defaults (nrrdDefault...) and state (nrrdState...) */
 /* defaultsNrrd.c */
-TEEM_API const NrrdEncoding *nrrdDefWriteEncoding;
-TEEM_API int nrrdDefWriteBareText;
-TEEM_API int nrrdDefWriteCharsPerLine;
-TEEM_API int nrrdDefWriteValsPerLine;
+TEEM_API const NrrdEncoding *nrrdDefaultWriteEncoding;
+TEEM_API int nrrdDefaultWriteBareText;
+TEEM_API unsigned int nrrdDefaultWriteCharsPerLine;
+TEEM_API unsigned int nrrdDefaultWriteValsPerLine;
 /* ---- BEGIN non-NrrdIO */
-TEEM_API int nrrdDefRsmpBoundary;
-TEEM_API int nrrdDefRsmpType;
-TEEM_API double nrrdDefRsmpScale;
-TEEM_API int nrrdDefRsmpRenormalize;
-TEEM_API int nrrdDefRsmpRound;
-TEEM_API int nrrdDefRsmpClamp;
-TEEM_API int nrrdDefRsmpCheap;
-TEEM_API double nrrdDefRsmpPadValue;
-TEEM_API double nrrdDefKernelParm0;
+TEEM_API int nrrdDefaultResampleBoundary;
+TEEM_API int nrrdDefaultResampleType;
+TEEM_API int nrrdDefaultResampleRenormalize;
+TEEM_API int nrrdDefaultResampleRound;
+TEEM_API int nrrdDefaultResampleClamp;
+TEEM_API int nrrdDefaultResampleCheap;
+TEEM_API double nrrdDefaultResamplePadValue;
+TEEM_API double nrrdDefaultKernelParm0;
 /* ---- END non-NrrdIO */
-TEEM_API int nrrdDefCenter;
-TEEM_API double nrrdDefSpacing;
+TEEM_API int nrrdDefaultCenter;
+TEEM_API double nrrdDefaultSpacing;
 TEEM_API int nrrdStateVerboseIO;
 TEEM_API int nrrdStateKeyValuePairsPropagate;
 /* ---- BEGIN non-NrrdIO */
@@ -608,7 +632,7 @@ TEEM_API int nrrdStateGrayscaleImage3D;
 TEEM_API int nrrdStateKeyValueReturnInternalPointers;
 TEEM_API int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
-TEEM_API void nrrdDefGetenv(void);
+TEEM_API void nrrdDefaultGetenv(void);
 TEEM_API void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */
 
@@ -1036,22 +1060,26 @@ TEEM_API int nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
 */
 #if 1
 typedef float nrrdResample_t;
+#  define nrrdResample_nt nrrdTypeFloat
 #  define NRRD_RESAMPLE_FLOAT 1
 #else
 typedef double nrrdResample_t;
+#  define nrrdResample_nt nrrdTypeDouble
 #  define NRRD_RESAMPLE_FLOAT 0
 #endif
 
 /* resampleContext.c */
 TEEM_API NrrdResampleContext *nrrdResampleContextNew();
 TEEM_API NrrdResampleContext *nrrdResampleContextNix(NrrdResampleContext *);
+TEEM_API int nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
+                                          int center);
 TEEM_API int nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin);
 TEEM_API int nrrdResampleKernelSet(NrrdResampleContext *rsmc,
                                    unsigned int axIdx, 
-                                   const NrrdKernel *kern,
-                                   double parm[NRRD_KERNEL_PARMS_NUM]);
+                                   const NrrdKernel *kernel,
+                                   double kparm[NRRD_KERNEL_PARMS_NUM]);
 TEEM_API int nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
-                                    unsigned int axIdx, 
+                                    unsigned int axIdx,
                                     size_t samples);
 TEEM_API int nrrdResampleRangeSet(NrrdResampleContext *rsmc,
                                   unsigned int axIdx,
@@ -1063,7 +1091,7 @@ TEEM_API int nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
 TEEM_API int nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
                                      double padValue);
 TEEM_API int nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
-                                    int type);
+                                    int typeOut);
 TEEM_API int nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
                                         int renormalize);
 TEEM_API int nrrdResampleRoundSet(NrrdResampleContext *rsmc,
