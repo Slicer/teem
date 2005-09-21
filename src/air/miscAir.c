@@ -226,7 +226,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
           if (p2) {
             memcpy(conv, "%f", 2);
           } else {
-            memcpy(conv, "%lf", 2);
+            memcpy(conv, "%lf", 3);
           }
         }
       }
