@@ -24,19 +24,33 @@
 #include "privateNrrd.h"
 
 /*
-** this is a largely a re-write of the functionality in 
+** This is a largely a re-write of the functionality in
 ** nrrdSpatialResample(), but with some improvements.  The big API
-** change is that everything happens in a nrrdResampleContext, and
-** no fields in this need to be directly set (except for rsmc->verbose).
-** Also, the range along the axis that is resampled is now defined in
-** terms of index space, instead of axis-aligned scaled index space
-** (what used to be called "world space", prior to general orientation).
+** change is that everything happens in a nrrdResampleContext, and no
+** fields in this need to be directly set (except for rsmc->verbose).
+**
+** The big behavior/API change is that the range along the axis that
+** is resampled is now defined in terms of index space, instead of
+** axis-aligned scaled index space (what used to be called "world
+** space", prior to general orientation).  This means that if you
+** want the whole range resampled, you use [-0.5,size-0.5] for cell-
+** centered, and [0,size-1] for node-centered.  One function helpful
+** dealing with this is nrrdResampleRangeFullSet().
+**
 ** Other improvements:
-** -- ability to more quickly resample a different nrrd with the same
-**    sizes and kernals as with a previous (useful state is preserved
-**    in the nrrdResampleContext)
-** -- correct handling general orientation (space directions)
-** -- correct handling of "cheap" downsampling 
+** -- ability to quickly resample a different nrrd with the same
+**    sizes and kernels as with a previous (all useful state and 
+**    allocations of intermediate resampling results is preserved
+**    in the nrrdResampleContext).  To resample a second nrrd, 
+**    you'd only need:
+**    nrrdResampleNrrdSet(rsmc, nin2);
+**    nrrdResampleExecute(rsmc, nout2);
+** -- correct handling general orientation (space directions and
+**    space origin).  This was impossible in the old resampler
+**    because of how its logic was hard-wired to the axis-aligned
+**    world space defined by the per-axis min and max.
+** -- correct handling of "cheap" downsampling, with the use of
+**    the new nrrdKernelCheap
 ** -- smaller memory footprint (smarter about freeing intermediate
 **    resampling results)
 */
