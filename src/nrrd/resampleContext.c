@@ -287,6 +287,18 @@ nrrdResampleRangeSet(NrrdResampleContext *rsmc,
   return 0;
 }
 
+void
+_nrrdResampleMinMaxFull(double *minP, double *maxP,
+                        int center, size_t size) {
+  if (nrrdCenterCell == center) {
+    *minP = -0.5;
+    *maxP = size - 0.5;
+  } else {
+    *minP = 0.0;
+    *maxP = size - 1.0;
+  }
+}
+
 int
 nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
                          unsigned int axIdx) {
@@ -303,14 +315,7 @@ nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
             : (rsmc->nin->axis[axIdx].center
                ? rsmc->nin->axis[axIdx].center
                : rsmc->defaultCenter));
-  /* same here */
-  if (nrrdCenterCell == center) {
-    min = -0.5;
-    max = rsmc->nin->axis[axIdx].size - 0.5;
-  } else {
-    min = 0.0;
-    max = rsmc->nin->axis[axIdx].size - 1;
-  }
+  _nrrdResampleMinMaxFull(&min, &max, center, rsmc->nin->axis[axIdx].size);
   if (!(rsmc->axis[axIdx].min == min
         && rsmc->axis[axIdx].max == max)) {
     rsmc->axis[axIdx].min = min;
@@ -1183,15 +1188,13 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
                ? rsmc->nin->type
                : rsmc->typeOut);
     doRound = rsmc->round && nrrdTypeIsIntegral[typeOut];
-    if (doRound) {
-      if (nrrdTypeInt == typeOut ||
-          nrrdTypeUInt == typeOut ||
-          nrrdTypeLLong == typeOut ||
-          nrrdTypeULLong == typeOut) {
-        fprintf(stderr, "%s: WARNING: possible erroneous output with "
-                "rounding of %s output type due to int-based implementation "
-                "of rounding\n", me, airEnumStr(nrrdType, typeOut));
-      }
+    if (doRound && (nrrdTypeInt == typeOut
+                    || nrrdTypeUInt == typeOut
+                    || nrrdTypeLLong == typeOut
+                    || nrrdTypeULLong == typeOut)) {
+      fprintf(stderr, "%s: WARNING: possible erroneous output with "
+              "rounding of %s output type due to int-based implementation "
+              "of rounding\n", me, airEnumStr(nrrdType, typeOut));
     }
 
 #if NRRD_RESAMPLE_FLOAT
@@ -1224,13 +1227,66 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
       biffAdd(NRRD, err); return 1;
     }
 
-    /* copy/alter per-axis info */
-
-    /* We *had* to assume a specific centering when doing resampling;
-       it would be unprincipled to not record it in the output */
+    /* start work of updating space origin */
+    _nrrdSpaceVecCopy(nout->spaceOrigin, rsmc->nin->spaceOrigin);
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       if (rsmc->axis[axIdx].kernel) {
+        /* this axis was resampled */
+        double minIdxFull, maxIdxFull,
+          zeroPos;  /* actually its in continuous index space ... */
+        _nrrdAxisInfoCopy(nout->axis + axIdx, rsmc->nin->axis + axIdx,
+                          (NRRD_AXIS_INFO_SIZE_BIT
+                           | NRRD_AXIS_INFO_SPACING_BIT
+                           | NRRD_AXIS_INFO_THICKNESS_BIT
+                           | NRRD_AXIS_INFO_MIN_BIT
+                           | NRRD_AXIS_INFO_MAX_BIT
+                           | NRRD_AXIS_INFO_SPACEDIRECTION_BIT
+                           | NRRD_AXIS_INFO_CENTER_BIT
+                           | NRRD_AXIS_INFO_KIND_BIT));
+        /* now set all the per-axis fields we just abstained from copying */
+        /* size was already set */
+        nout->axis[axIdx].spacing = (rsmc->nin->axis[axIdx].spacing
+                                     / rsmc->axis[axIdx].ratio);
+        /* for now, we don't attempt to modify thickness */
+        nout->axis[axIdx].thickness = AIR_NAN;
+        /* We had to assume a specific centering when doing resampling */
         nout->axis[axIdx].center = rsmc->axis[axIdx].center;
+        _nrrdResampleMinMaxFull(&minIdxFull, &maxIdxFull,
+                                rsmc->axis[axIdx].center,
+                                rsmc->nin->axis[axIdx].size);
+        nout->axis[axIdx].min = AIR_AFFINE(minIdxFull,
+                                           rsmc->axis[axIdx].min,
+                                           maxIdxFull,
+                                           rsmc->nin->axis[axIdx].min,
+                                           rsmc->nin->axis[axIdx].max);
+        nout->axis[axIdx].max = AIR_AFFINE(minIdxFull,
+                                           rsmc->axis[axIdx].max,
+                                           maxIdxFull,
+                                           rsmc->nin->axis[axIdx].min,
+                                           rsmc->nin->axis[axIdx].max);
+        _nrrdSpaceVecScale(nout->axis[axIdx].spaceDirection,
+                           1.0/rsmc->axis[axIdx].ratio,
+                           rsmc->nin->axis[axIdx].spaceDirection);
+        nout->axis[axIdx].kind = _nrrdKindAltered(rsmc->nin->axis[axIdx].kind,
+                                                  AIR_TRUE);
+        /* space origin may have translated along this axis;
+           only do this if the axis was already spatial */
+        if (AIR_EXISTS(rsmc->nin->axis[axIdx].spaceDirection[0])) {
+          zeroPos = NRRD_POS(nout->axis[axIdx].center,
+                             rsmc->axis[axIdx].min,
+                             rsmc->axis[axIdx].max,
+                             rsmc->axis[axIdx].samples,
+                             0);
+          _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                                 1.0, nout->spaceOrigin,
+                                 zeroPos,
+                                 rsmc->nin->axis[axIdx].spaceDirection);
+        }
+      } else {
+        /* no resampling; this axis totally unchanged */
+        _nrrdAxisInfoCopy(nout->axis + axIdx, rsmc->nin->axis + axIdx,
+                          NRRD_AXIS_INFO_NONE);
+        /* also: the space origin has not translated along this axis */
       }
     }
     if (nrrdBasicInfoCopy(nout, rsmc->nin,
@@ -1238,6 +1294,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
                           | NRRD_BASIC_INFO_TYPE_BIT
                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_SPACEORIGIN_BIT
                           | NRRD_BASIC_INFO_CONTENT_BIT
                           | NRRD_BASIC_INFO_COMMENTS_BIT
                           | (nrrdStateKeyValuePairsPropagate
@@ -1246,8 +1303,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-
-    /* HEY: origin may need updating */
+    
     
     rsmc->flag[flagClamp] = AIR_FALSE;
     rsmc->flag[flagRound] = AIR_FALSE;
