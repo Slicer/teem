@@ -628,8 +628,10 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       || rsmc->flag[flagVectorAllocate]) {
     if (rsmc->verbose) {
       for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
-        fprintf(stderr, "%s: axis %u: %s-centering\n", me, axIdx,
-                airEnumStr(nrrdCenter, rsmc->axis[axIdx].center));
+        if (rsmc->axis[axIdx].kernel) {
+          fprintf(stderr, "%s: axis %u: %s-centering\n", me, axIdx,
+                  airEnumStr(nrrdCenter, rsmc->axis[axIdx].center));
+        }
       }
     }
 
@@ -954,7 +956,7 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
 /* Copy input to output, but with the optional clamping and rounding */
 int
 _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
-                     int typeOut,
+                     int typeOut, int doRound,
                      nrrdResample_t (*lup)(const void *, size_t),
                      nrrdResample_t (*clamp)(nrrdResample_t),
                      nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
@@ -974,7 +976,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
   dataOut = nout->data;
   for (valIdx=0; valIdx<valNum; valIdx++) {
     val = lup(dataIn, valIdx);
-    if (rsmc->round) {
+    if (doRound) {
       val = AIR_ROUNDUP(val);
     }
     if (rsmc->clamp) {
@@ -988,7 +990,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
 
 int
 _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
-                  int typeOut,
+                  int typeOut, int doRound,
                   nrrdResample_t (*lup)(const void *, size_t),
                   nrrdResample_t (*clamp)(nrrdResample_t),
                   nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
@@ -1114,7 +1116,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
         if (passIdx < rsmc->passNum-1) {
           rsmpOut[smpIdx*strideOut + indexOut] = val;
         } else {
-          if (rsmc->round) {
+          if (doRound) {
             val = AIR_ROUNDUP(val);
           }
           if (rsmc->clamp) {
@@ -1167,7 +1169,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
     (*clamp)(double), (*ins)(void *, size_t, double);
 #endif
   unsigned int axIdx;
-  int typeOut;
+  int typeOut, doRound;
 
   if (rsmc->flag[flagClamp]
       || rsmc->flag[flagRound]
@@ -1180,6 +1182,18 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
     typeOut = (nrrdTypeDefault == rsmc->typeOut
                ? rsmc->nin->type
                : rsmc->typeOut);
+    doRound = rsmc->round && nrrdTypeIsIntegral[typeOut];
+    if (doRound) {
+      if (nrrdTypeInt == typeOut ||
+          nrrdTypeUInt == typeOut ||
+          nrrdTypeLLong == typeOut ||
+          nrrdTypeULLong == typeOut) {
+        fprintf(stderr, "%s: WARNING: possible erroneous output with "
+                "rounding of %s output type due to int-based implementation "
+                "of rounding\n", me, airEnumStr(nrrdType, typeOut));
+      }
+    }
+
 #if NRRD_RESAMPLE_FLOAT
     lup = nrrdFLookup[rsmc->nin->type];
     clamp = nrrdFClamp[typeOut];
@@ -1191,12 +1205,14 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
 #endif
 
     if (0 == rsmc->passNum) {
-      if (_nrrdResampleTrivial(rsmc, nout, typeOut, lup, clamp, ins)) {
+      if (_nrrdResampleTrivial(rsmc, nout, typeOut, doRound,
+                               lup, clamp, ins)) {
         sprintf(err, "%s: trouble", me);
         biffAdd(NRRD, err); return 1;
       }
     } else {
-      if (_nrrdResampleCore(rsmc, nout, typeOut, lup, clamp, ins)) {
+      if (_nrrdResampleCore(rsmc, nout, typeOut, doRound,
+                            lup, clamp, ins)) {
         sprintf(err, "%s: trouble", me);
         biffAdd(NRRD, err); return 1;
       }
