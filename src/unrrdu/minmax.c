@@ -54,8 +54,8 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
 
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(fout, NULL, "min: %lg\n", range->min);
-  airSinglePrintf(fout, NULL, "max: %lg\n", range->max);
+  airSinglePrintf(fout, NULL, "min: %g\n", range->min);
+  airSinglePrintf(fout, NULL, "max: %g\n", range->max);
   if (0 == range->min && 0 == range->max) {
     fprintf(fout, "# min == max == 0.0 exactly\n");
   }
