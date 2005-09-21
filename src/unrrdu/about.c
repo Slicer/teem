@@ -32,8 +32,11 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "\"unu\" is a command-line interface to much of the functionality "
     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
     "library in the \"Teem\" collection of libraries.  More information "
-    "about Teem is at "
-    "<http://teem.sourceforge.net>.\n";
+    "about Teem is at <http://teem.sourceforge.net>.\n";
+  char par7[] = "\t\t\t\t"
+    "Users are strongly encouraged to join the teem-users mailing list: "
+    "<http://lists.sourceforge.net/lists/listinfo/teem-users>. This is "
+    "the primary forum for feedback, questions, and feature requests.\n";
   char par2[] = "\t\t\t\t"
     "The utility of unu is mainly as a pre-processing tool for getting "
     "data into a type, encoding, format, or dimensions best suited for some "
@@ -79,11 +82,10 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "(or the {\\tt nrrd} library), "
     "part of the {\\tt Teem} toolkit available at "
     "{\\tt\t$<$http://teem.sourceforge.net$>$}\"\n ";
-  char par7[] = "\t\t\t\t"
-    "Users are strongly encouraged to join the teem-users mailing list:\n "
-    "http://lists.sourceforge.net/lists/listinfo/teem-users\n";
+  /*
   char par8[] = "\t\t\t\t"
     "Feedback, questions, requests welcome: gk@bwh.harvard.edu.\n";
+  */
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
@@ -102,13 +104,15 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
   fprintf(stderr, "\n");
 
   _hestPrintStr(stderr, 1, 0, 78, par1, AIR_FALSE);
+  _hestPrintStr(stderr, 1, 0, 78, par7, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par2, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par3, AIR_FALSE);
   _hestPrintStr(stderr, 2, 0, 78, par4, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par5, AIR_FALSE);
   _hestPrintStr(stderr, 1, 0, 78, par6, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par7, AIR_FALSE);
+  /*
   _hestPrintStr(stderr, 1, 0, 78, par8, AIR_FALSE);
+  */
 
   return 0;
 }
