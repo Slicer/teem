@@ -513,17 +513,19 @@ typedef struct {
                                 say no resampling whatsoever on this axis */
   double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
   double min, max;           /* range in INDEX space of resampling */
-  size_t samples;            /* number ouput samples on this axis */
+  size_t samples;            /* number output samples on this axis (sizeOut) */
   int center;                /* centering for this axis */
   /* ----------- internal ---------- */
   size_t sizeIn,             /* number input samples on this axis */
     sizePerm[NRRD_DIM_MAX];  /* permutation of axis sizes for this pass */
-  unsigned int passIdx,      /* exactly which pass are we on */
+  unsigned int axIdx,        /* what axis are we (redundant with other info) */
+    passIdx,                 /* exactly which pass are we on */
     axisPerm[NRRD_DIM_MAX];  /* permutation of axis indices for this pass */
   double ratio;              /* > 1: upsampling; < 1: downsampling */
-  Nrrd *ntmp,                /* input this pass */
-    *nbuffer,                /* scanline buffer (includes extra sample at end
-                                for storing pad value) */
+  Nrrd *nrsmp,               /* intermediate resampling result; input to 
+                                this pass */
+    *nline,                  /* input scanline buffer (includes extra sample 
+                                at end for storing pad value) */
     *nindex,                 /* row of input indices for each output sample */
     *nweight;                /* row of input weights for each output sample */
 } NrrdResampleAxis;

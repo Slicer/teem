@@ -23,6 +23,24 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+/*
+** this is a largely a re-write of the functionality in 
+** nrrdSpatialResample(), but with some improvements.  The big API
+** change is that everything happens in a nrrdResampleContext, and
+** no fields in this need to be directly set (except for rsmc->verbose).
+** Also, the range along the axis that is resampled is now defined in
+** terms of index space, instead of axis-aligned scaled index space
+** (what used to be called "world space", prior to general orientation).
+** Other improvements:
+** -- ability to more quickly resample a different nrrd with the same
+**    sizes and kernals as with a previous (useful state is preserved
+**    in the nrrdResampleContext)
+** -- correct handling general orientation (space directions)
+** -- correct handling of "cheap" downsampling 
+** -- smaller memory footprint (smarter about freeing intermediate
+**    resampling results)
+*/
+
 enum {
   flagUnknown,        /*  0 */
   flagDefaultCenter,  /*  1 */
@@ -34,18 +52,19 @@ enum {
   flagSamples,        /*  7 */
   flagRanges,         /*  8 */
   flagBoundary,       /*  9 */
-  flagBufferAllocate, /* 10 */
-  flagVectorAllocate, /* 11 */
-  flagPermutation,    /* 12 */
-  flagVectorFill,     /* 13 */
-  flagClamp,          /* 14 */
-  flagRound,          /* 15 */
-  flagTypeOut,        /* 16 */
-  flagPadValue,       /* 17 */
-  flagRenormalize,    /* 18 */
+  flagLineAllocate,   /* 10 */
+  flagLineFill,       /* 11 */
+  flagVectorAllocate, /* 12 */
+  flagPermutation,    /* 13 */
+  flagVectorFill,     /* 14 */
+  flagClamp,          /* 15 */
+  flagRound,          /* 16 */
+  flagTypeOut,        /* 17 */
+  flagPadValue,       /* 18 */
+  flagRenormalize,    /* 19 */
   flagLast
 };
-#define FLAG_MAX         18
+#define FLAG_MAX         19
 
 void
 nrrdResampleContextInit(NrrdResampleContext *rsmc) {
@@ -80,13 +99,15 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
       axis->samples = AIR_CAST(unsigned int, -1);
       axis->center = nrrdCenterUnknown;
       axis->sizeIn = AIR_CAST(unsigned int, -1);
+      axis->axIdx = axIdx;                         /* never changes */
+      axis->passIdx = AIR_CAST(unsigned int, -1);
       for (axJdx=0; axJdx<NRRD_DIM_MAX; axJdx++) {
         axis->sizePerm[axJdx] = AIR_CAST(size_t, -1);
         axis->axisPerm[axJdx] = AIR_CAST(unsigned int, -1);
       }
       axis->ratio = AIR_NAN;
-      axis->ntmp = NULL;
-      axis->nbuffer = nrrdNew();
+      axis->nrsmp = NULL;    /* these are nrrdNew()'d as needed */
+      axis->nline = nrrdNew();
       axis->nindex = nrrdNew();
       axis->nweight = nrrdNew();
     }
@@ -117,8 +138,8 @@ nrrdResampleContextNix(NrrdResampleContext *rsmc) {
 
   if (rsmc) {
     for (axIdx=0; axIdx<NRRD_DIM_MAX+1; axIdx++) {
-      nrrdNuke(rsmc->axis[axIdx].ntmp);  /* HEY don't nuke input */
-      nrrdNuke(rsmc->axis[axIdx].nbuffer);
+      /* nrsmp should have been cleaned up by _nrrdResampleOutputUpdate() */
+      nrrdNuke(rsmc->axis[axIdx].nline);
       nrrdNuke(rsmc->axis[axIdx].nindex);
       nrrdNuke(rsmc->axis[axIdx].nweight);
     }
@@ -205,7 +226,7 @@ nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
     biffAdd(NRRD, err); return 1; \
   } \
   if (!( axIdx < rsmc->nin->dim )) { \
-    sprintf(err, "%s: axis %u >= nin->dim %u\n", me, axIdx, rsmc->nin->dim); \
+    sprintf(err, "%s: axis %u >= nin->dim %u", me, axIdx, rsmc->nin->dim); \
     biffAdd(NRRD, err); return 1; \
   }
 
@@ -341,6 +362,24 @@ nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
 }
 
 int
+nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
+                           int renormalize) {
+  char me[]="nrrdResampleRenormalizeSet", err[AIR_STRLEN_MED];
+
+  if (!rsmc) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  if (rsmc->renormalize != renormalize) {
+    rsmc->renormalize = renormalize;
+    rsmc->flag[flagRenormalize] = AIR_TRUE;
+  }
+  
+  return 0;
+}
+
+int
 nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
                        int type) {
   char me[]="nrrdResampleTypeOutSet", err[AIR_STRLEN_MED];
@@ -362,24 +401,6 @@ nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
   if (rsmc->typeOut != type) {
     rsmc->typeOut = type;
     rsmc->flag[flagTypeOut] = AIR_TRUE;
-  }
-  
-  return 0;
-}
-
-int
-nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
-                           int renormalize) {
-  char me[]="nrrdResampleRenormalizeSet", err[AIR_STRLEN_MED];
-
-  if (!rsmc) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  if (rsmc->renormalize != renormalize) {
-    rsmc->renormalize = renormalize;
-    rsmc->flag[flagRenormalize] = AIR_TRUE;
   }
   
   return 0;
@@ -477,8 +498,8 @@ _nrrdResampleInputSizesUpdate(NrrdResampleContext *rsmc) {
 }
 
 int
-_nrrdResampleBufferAllocateUpdate(NrrdResampleContext *rsmc) {
-  char me[]="_nrrdResampleBufferAllocateUpdate", err[AIR_STRLEN_MED];
+_nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
+  char me[]="_nrrdResampleLineAllocateUpdate", err[AIR_STRLEN_MED];
   unsigned int axIdx;
   NrrdResampleAxis *axis;
 
@@ -486,18 +507,17 @@ _nrrdResampleBufferAllocateUpdate(NrrdResampleContext *rsmc) {
       || rsmc->flag[flagKernels]) {
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       axis = rsmc->axis + axIdx;
-      if (axis->kernel) {
-        nrrdEmpty(axis->nbuffer);
+      if (!axis->kernel) {
+        nrrdEmpty(axis->nline);
       } else {
-        if (nrrdMaybeAlloc(axis->nbuffer, nrrdResample_nt, 1,
+        if (nrrdMaybeAlloc(axis->nline, nrrdResample_nt, 1, 
                            1 + axis->sizeIn)) {
           sprintf(err, "%s: couldn't allocate scanline buffer", me);
           biffAdd(NRRD, err); return 1;
         }
       }
     }
-    rsmc->flag[flagInputSizes] = AIR_FALSE;
-    rsmc->flag[flagBufferAllocate] = AIR_TRUE;
+    rsmc->flag[flagLineAllocate] = AIR_TRUE;
   }
   return 0;
 }
@@ -520,12 +540,12 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       }
       /* check user-set parameters */
       if (!( AIR_EXISTS(axis->min) && AIR_EXISTS(axis->max) )) {
-        sprintf(err, "%s: don't have min, max set on axis %u\n", me, axIdx);
+        sprintf(err, "%s: don't have min, max set on axis %u", me, axIdx);
         biffAdd(NRRD, err); return 1;
       }
       for (kpIdx=0; kpIdx<axis->kernel->numParm; kpIdx++) {
         if (!AIR_EXISTS(axis->kparm[kpIdx])) {
-          sprintf(err, "%s: didn't set kernel parm %u on axis %u\n",
+          sprintf(err, "%s: didn't set kernel parm %u on axis %u",
                   me, kpIdx, axIdx);
           biffAdd(NRRD, err); return 1;
         }
@@ -533,7 +553,7 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       minSamples = (nrrdCenterCell == axis->center ? 1 : 2);
       if (!( axis->samples >= minSamples )) {
         sprintf(err, "%s: need at last %u samples for %s-centered sampling "
-                "along axis %u\n", me, minSamples,
+                "along axis %u", me, minSamples,
                 airEnumStr(nrrdCenter, axis->center), axIdx);
         biffAdd(NRRD, err); return 1;
       }
@@ -569,6 +589,30 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
 }
 
 int
+_nrrdResampleLineFillUpdate(NrrdResampleContext *rsmc) {
+  unsigned int axIdx;
+  NrrdResampleAxis *axis;
+  nrrdResample_t *line;
+
+  if (rsmc->flag[flagPadValue]
+      || rsmc->flag[flagLineAllocate]) {
+
+    for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+      axis = rsmc->axis + axIdx;
+      if (axis->kernel) {
+        line = (nrrdResample_t*)(axis->nline->data);
+        line[axis->sizeIn] = rsmc->padValue;
+      }
+    }
+    
+    rsmc->flag[flagPadValue] = AIR_FALSE;
+    rsmc->flag[flagLineAllocate] = AIR_FALSE;
+    rsmc->flag[flagLineFill] = AIR_TRUE;
+  }
+  return 0;
+}
+
+int
 _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
   char me[]="_nrrdResampleVectorFillUpdate", err[AIR_STRLEN_MED];
   unsigned int axIdx, dotIdx, dotLen, halfLen, smpIdx, kpIdx;
@@ -578,11 +622,17 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
   double kparm[NRRD_KERNEL_PARMS_NUM];
 
   if (rsmc->flag[flagRenormalize]
-      || rsmc->flag[flagPadValue]
       || rsmc->flag[flagBoundary]
       || rsmc->flag[flagInputCenters]
-      || rsmc->flag[flagBufferAllocate]
+      || rsmc->flag[flagInputSizes]
       || rsmc->flag[flagVectorAllocate]) {
+    if (rsmc->verbose) {
+      for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+        fprintf(stderr, "%s: axis %u: %s-centering\n", me, axIdx,
+                airEnumStr(nrrdCenter, rsmc->axis[axIdx].center));
+      }
+    }
+
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       axis = rsmc->axis + axIdx;
       if (!axis->kernel) {
@@ -760,10 +810,8 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       }
     }    
     rsmc->flag[flagRenormalize] = AIR_FALSE;
-    rsmc->flag[flagPadValue] = AIR_FALSE;
     rsmc->flag[flagBoundary] = AIR_FALSE;
     rsmc->flag[flagInputCenters] = AIR_FALSE;
-    rsmc->flag[flagBufferAllocate] = AIR_FALSE;
     rsmc->flag[flagVectorAllocate] = AIR_FALSE;
     rsmc->flag[flagVectorFill] = AIR_TRUE;
   }
@@ -903,71 +951,292 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
   return 0;
 }
 
+/* Copy input to output, but with the optional clamping and rounding */
 int
-_nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
-  char me[]="_nrrdResampleOutputUpdate", err[AIR_STRLEN_MED];
-  unsigned int axIdx;
+_nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
+                     int typeOut,
+                     nrrdResample_t (*lup)(const void *, size_t),
+                     nrrdResample_t (*clamp)(nrrdResample_t),
+                     nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
+  char me[]="_nrrdResampleTrivial", err[AIR_STRLEN_MED];
+  size_t size[NRRD_DIM_MAX], valNum, valIdx;
+  nrrdResample_t val;
+  const void *dataIn;
+  void *dataOut;
 
-  if (rsmc->flag[flagClamp]
-      || rsmc->flag[flagRound]
-      || rsmc->flag[flagTypeOut]
-      || rsmc->flag[flagVectorFill]
-      || rsmc->flag[flagPermutation]
-      || rsmc->flag[flagNrrd]) {
+  nrrdAxisInfoGet_nva(rsmc->nin, nrrdAxisInfoSize, size);
+  if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->nin->dim, size)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  valNum = nrrdElementNumber(rsmc->nin);
+  dataIn = rsmc->nin->data;
+  dataOut = nout->data;
+  for (valIdx=0; valIdx<valNum; valIdx++) {
+    val = lup(dataIn, valIdx);
+    if (rsmc->round) {
+      val = AIR_ROUNDUP(val);
+    }
+    if (rsmc->clamp) {
+      val = clamp(val);
+    }
+    ins(dataOut, valIdx, val);
+  }
 
-    if (0 == rsmc->passNum) {
-    /* actually, no resampling was desired.  Copy input to output,
-       but with the clamping that we normally do at the end of resampling */
-      size_t size[NRRD_DIM_MAX], numOut, I;
-      double val;
+  return 0;
+}
 
-      nrrdAxisInfoGet_nva(rsmc->nin, nrrdAxisInfoSize, size);
-      if (nrrdMaybeAlloc_nva(nout, rsmc->typeOut, rsmc->nin->dim, size)) {
-        sprintf(err, "%s: couldn't allocate output", me);
-        biffAdd(NRRD, err); return 1;
+int
+_nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
+                  int typeOut,
+                  nrrdResample_t (*lup)(const void *, size_t),
+                  nrrdResample_t (*clamp)(nrrdResample_t),
+                  nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
+  char me[]="_nrrdResampleCore", err[AIR_STRLEN_MED];
+  unsigned int axIdx, passIdx;
+  size_t strideIn, strideOut, lineNum, lineIdx,
+    coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
+  nrrdResample_t val, *line, *weight, *rsmpIn, *rsmpOut;
+  int *index;
+  const void *dataIn;
+  void *dataOut;
+  NrrdResampleAxis *axisIn, *axisOut;
+  airArray *mop;
+  
+  /* compute strideIn; this is constant across passes because all
+     passes resample topRax, and axes with lower indices have
+     constant length. */
+  strideIn = 1;
+  for (axIdx=0; axIdx<rsmc->topRax; axIdx++) {
+    strideIn *= rsmc->axis[axIdx].sizeIn;
+  }
+  
+  mop = airMopNew();
+  for (passIdx=0; passIdx<rsmc->passNum; passIdx++) {
+    if (rsmc->verbose) {
+      fprintf(stderr, "%s: -------------- pass %u/%u \n",
+              me, passIdx, rsmc->passNum);
+    }
+    
+    /* calculate pass-specific size, stride, and number info */
+    axisIn = rsmc->axis + rsmc->passAxis[passIdx];
+    axisOut = rsmc->axis + rsmc->passAxis[passIdx+1];
+    lineNum = strideOut = 1;
+    for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+      if (axIdx < rsmc->botRax) {
+        strideOut *= axisOut->sizePerm[axIdx];
       }
-      numOut = nrrdElementNumber(nout);
-      for (I=0; I<numOut; I++) {
-        val = nrrdDLookup[rsmc->nin->type](rsmc->nin->data, I);
-        val = nrrdDClamp[rsmc->typeOut](val);
-        nrrdDInsert[rsmc->typeOut](nout->data, I, val);
+      if (axIdx != rsmc->topRax) {
+        lineNum *= axisIn->sizePerm[axIdx];
       }
-      nrrdAxisInfoCopy(nout, rsmc->nin, NULL, NRRD_AXIS_INFO_NONE);
-      /* HEY: need to create textual representation of resampling parameters */
-      if (nrrdContentSet(nout, func, rsmc->nin, "")) {
-        sprintf(err, "%s:", me);
-        biffAdd(NRRD, err); return 1;
+    }
+    if (rsmc->verbose) {
+      fprintf(stderr, "%s(%u): lineNum = " _AIR_SIZE_T_CNV "\n",
+              me, passIdx, lineNum);
+      fprintf(stderr, "%s(%u): strideIn = " _AIR_SIZE_T_CNV 
+              ", stridOut = " _AIR_SIZE_T_CNV "\n", 
+              me, passIdx, strideIn, strideOut);
+    }
+    
+    /* allocate output for this pass */
+    if (passIdx<rsmc->passNum-1) {
+      axisOut->nrsmp = nrrdNew();
+      airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdMaybeAlloc_nva(axisOut->nrsmp, nrrdResample_nt, rsmc->dim,
+                             axisOut->sizePerm)) {
+        sprintf(err, "%s: trouble allocating output of pass %u", me,
+                passIdx);
+        biffAdd(NRRD, err); airMopError(mop); return 1;
       }
-      if (nrrdBasicInfoCopy(nout, rsmc->nin,
-                            NRRD_BASIC_INFO_DATA_BIT
-                            | NRRD_BASIC_INFO_TYPE_BIT
-                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                            | NRRD_BASIC_INFO_DIMENSION_BIT
-                            | NRRD_BASIC_INFO_CONTENT_BIT
-                            | NRRD_BASIC_INFO_COMMENTS_BIT
-                            | (nrrdStateKeyValuePairsPropagate
-                               ? 0
-                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-        sprintf(err, "%s:", me);
-        biffAdd(NRRD, err); return 1;
+      if (rsmc->verbose) {
+        fprintf(stderr, "%s: allocated pass %u output nrrd @ %p "
+                "(on axis %u)\n", me,
+                axisIn->passIdx, axisOut->nrsmp, axisOut->axIdx);
       }
     } else {
-      /* there is some real resample required */
-      
-      
+      if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
+        sprintf(err, "%s: trouble allocating final output", me);
+        biffAdd(NRRD, err); airMopError(mop); return 1;
+      }
+    }
 
-      /* We had to assume some centering when doing resampling; it would
-         be rather irresponsible to not record it in the output */
-      for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
-        if (rsmc->axis[axIdx].kernel) {
-          nout->axis[axIdx].center = rsmc->axis[axIdx].center;
+    /* set up data pointers */
+    if (0 == passIdx) {
+      rsmpIn = NULL;
+      dataIn = rsmc->nin->data;
+    } else {
+      rsmpIn = (nrrdResample_t *)(axisIn->nrsmp->data);
+      dataIn = NULL;
+    }
+    if (passIdx < rsmc->passNum-1) {
+      rsmpOut = (nrrdResample_t *)(axisOut->nrsmp->data);
+      dataOut = NULL;
+    } else {
+      rsmpOut = NULL;
+      dataOut = nout->data;
+    }
+    line = (nrrdResample_t *)(axisIn->nline->data);
+    index = (int *)(axisIn->nindex->data);
+    weight = (nrrdResample_t *)(axisIn->nweight->data);
+
+    /* the skinny */
+    for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+      coordIn[axIdx] = 0;
+      coordOut[axIdx] = 0;
+    }
+    for (lineIdx=0; lineIdx<lineNum; lineIdx++) {
+      size_t smpIdx, dotIdx, dotLen, indexIn, indexOut;
+      
+      /* calculate the (linear) indices of the beginnings of
+         the input and output scanlines */
+      NRRD_INDEX_GEN(indexIn, coordIn, axisIn->sizePerm, rsmc->dim);
+      NRRD_INDEX_GEN(indexOut, coordOut, axisOut->sizePerm, rsmc->dim);
+      
+      /* read input scanline into scanline buffer */
+      if (0 == passIdx) {
+        for (smpIdx=0; smpIdx<axisIn->sizeIn; smpIdx++) {
+          line[smpIdx] = lup(dataIn, smpIdx*strideIn + indexIn);
+        }
+      } else {
+        for (smpIdx=0; smpIdx<axisIn->sizeIn; smpIdx++) {
+          line[smpIdx] = rsmpIn[smpIdx*strideIn + indexIn];
+        }
+      }
+
+      /* do the bloody convolution and save the output value */
+      dotLen = axisIn->nweight->axis[0].size;
+      for (smpIdx=0; smpIdx<axisIn->samples; smpIdx++) {
+        val = 0.0;
+        for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
+          val += (line[index[dotIdx + dotLen*smpIdx]]
+                  * weight[dotIdx + dotLen*smpIdx]);
+        }
+        if (passIdx < rsmc->passNum-1) {
+          rsmpOut[smpIdx*strideOut + indexOut] = val;
+        } else {
+          if (rsmc->round) {
+            val = AIR_ROUNDUP(val);
+          }
+          if (rsmc->clamp) {
+            val = clamp(val);
+          }
+          ins(dataOut, smpIdx*strideOut + indexOut, val);
+        }
+      }
+      
+      /* as long as there's another line to be processed, increment the
+         coordinates for the scanline starts.  We don't use the usual
+         NRRD_COORD macros because we're subject to the unusual constraint
+         that coordIn[topRax] and coordOut[permute[topRax]] must stay == 0 */
+      if (lineIdx < lineNum-1) {
+        axIdx = rsmc->topRax ? 0 : 1;
+        coordIn[axIdx]++; 
+        coordOut[rsmc->permute[axIdx]]++;
+        while (coordIn[axIdx] == axisIn->sizePerm[axIdx]) {
+          coordIn[axIdx] = coordOut[rsmc->permute[axIdx]] = 0;
+          axIdx++;
+          axIdx += axIdx == rsmc->topRax;
+          coordIn[axIdx]++; 
+          coordOut[rsmc->permute[axIdx]]++;
         }
       }
     }
 
+    /* (maybe) free input to this pass, now that we're done with it */
+    if (axisIn->nrsmp) {
+      if (rsmc->verbose) {
+        fprintf(stderr, "%s: nrrdNuke(%p) pass %u input (on axis %u)\n",
+                me, axisIn->nrsmp, axisIn->passIdx, axisIn->axIdx);
+      }
+      axisIn->nrsmp = nrrdNuke(axisIn->nrsmp);
+      airMopSub(mop, axisIn->nrsmp, (airMopper)nrrdNuke);
+    }
+  } /* for passIdx */
+  
+  return 0;
+}
+
+int
+_nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
+  char me[]="_nrrdResampleOutputUpdate", err[AIR_STRLEN_MED];
+#if NRRD_RESAMPLE_FLOAT
+  float (*lup)(const void *, size_t),
+    (*clamp)(float), (*ins)(void *, size_t, float);
+#else
+  double (*lup)(const void *, size_t),
+    (*clamp)(double), (*ins)(void *, size_t, double);
+#endif
+  unsigned int axIdx;
+  int typeOut;
+
+  if (rsmc->flag[flagClamp]
+      || rsmc->flag[flagRound]
+      || rsmc->flag[flagTypeOut]
+      || rsmc->flag[flagLineFill]
+      || rsmc->flag[flagVectorFill]
+      || rsmc->flag[flagPermutation]
+      || rsmc->flag[flagNrrd]) {
+
+    typeOut = (nrrdTypeDefault == rsmc->typeOut
+               ? rsmc->nin->type
+               : rsmc->typeOut);
+#if NRRD_RESAMPLE_FLOAT
+    lup = nrrdFLookup[rsmc->nin->type];
+    clamp = nrrdFClamp[typeOut];
+    ins = nrrdFInsert[typeOut];
+#else
+    lup = nrrdDLookup[rsmc->nin->type];
+    clamp = nrrdDClamp[typeOut];
+    ins = nrrdDInsert[typeOut];
+#endif
+
+    if (0 == rsmc->passNum) {
+      if (_nrrdResampleTrivial(rsmc, nout, typeOut, lup, clamp, ins)) {
+        sprintf(err, "%s: trouble", me);
+        biffAdd(NRRD, err); return 1;
+      }
+    } else {
+      if (_nrrdResampleCore(rsmc, nout, typeOut, lup, clamp, ins)) {
+        sprintf(err, "%s: trouble", me);
+        biffAdd(NRRD, err); return 1;
+      }
+    }
+
+    /* HEY: need to create textual representation of resampling parameters */
+    if (nrrdContentSet(nout, func, rsmc->nin, "")) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+
+    /* copy/alter per-axis info */
+
+    /* We *had* to assume a specific centering when doing resampling;
+       it would be unprincipled to not record it in the output */
+    for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+      if (rsmc->axis[axIdx].kernel) {
+        nout->axis[axIdx].center = rsmc->axis[axIdx].center;
+      }
+    }
+    if (nrrdBasicInfoCopy(nout, rsmc->nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                             ? 0
+                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+
+    /* HEY: origin may need updating */
+    
     rsmc->flag[flagClamp] = AIR_FALSE;
     rsmc->flag[flagRound] = AIR_FALSE;
     rsmc->flag[flagTypeOut] = AIR_FALSE;
+    rsmc->flag[flagLineFill] = AIR_FALSE;
     rsmc->flag[flagVectorFill] = AIR_FALSE;
     rsmc->flag[flagPermutation] = AIR_FALSE;
     rsmc->flag[flagNrrd] = AIR_FALSE;
@@ -975,19 +1244,6 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
 
   return 0;
 }
-
-int
-_nrrdResampleContextCheck(NrrdResampleContext *rsmc) {
-  char me[]="_nrrdResampleContextCheck", err[AIR_STRLEN_MED];
-
-  if (nrrdBoundaryPad == rsmc->boundary && !AIR_EXISTS(rsmc->padValue)) {
-    sprintf(err, "%s: asked for boundary padding, but no pad value set\n", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  return 0;
-}
-
 
 int
 nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
@@ -999,13 +1255,19 @@ nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
     biffAdd(NRRD, err); return 1;
   }
 
+  /* any other error checking?  Do we need a _nrrdResampleContextCheck() ? */
+  if (nrrdBoundaryPad == rsmc->boundary && !AIR_EXISTS(rsmc->padValue)) {
+    sprintf(err, "%s: asked for boundary padding, but no pad value set", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
   time0 = airTime();
-  if (_nrrdResampleContextCheck(rsmc)
-      || _nrrdResampleInputDimensionUpdate(rsmc)
+  if (_nrrdResampleInputDimensionUpdate(rsmc)
       || _nrrdResampleInputCentersUpdate(rsmc)
       || _nrrdResampleInputSizesUpdate(rsmc)
-      || _nrrdResampleBufferAllocateUpdate(rsmc)
+      || _nrrdResampleLineAllocateUpdate(rsmc)
       || _nrrdResampleVectorAllocateUpdate(rsmc)
+      || _nrrdResampleLineFillUpdate(rsmc)
       || _nrrdResampleVectorFillUpdate(rsmc)
       || _nrrdResamplePermutationUpdate(rsmc)
       || _nrrdResampleOutputUpdate(rsmc, nout, func)) {
