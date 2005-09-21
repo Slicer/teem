@@ -173,6 +173,9 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   p5 = strstr(fmt, "%lg");
   isF = p0 || p1 || p2;
   isD = p3 || p4 || p5;
+  /* the code here says "isF" and "isD" as if it means "is float" or 
+     "is double".  It really should be "is2" or "is3", as in, 
+     "is 2-character conversion sequence, or "is 3-character..." */
   if (isF) {
     conv = p0 ? p0 : (p1 ? p1 : p2);
   }
@@ -191,8 +194,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     case airFP_NEG_INF:
       if (isF) {
         memcpy(conv, "%s", 2);
-      }
-      else {
+      } else {
         /* this sneakiness allows us to replace a 3-character conversion
            sequence for a double (such as %lg) with a 3-character conversion
            for a string, which we know has at most 4 characters */
@@ -214,22 +216,25 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
       break;
     default:
       if (p2 || p5) {
-        /* got "%g" or "%lg", see if it would be better to "%f" */
+        /* got "%g" or "%lg", see if it would be better to use "%f" */
         sprintf(buff, "%f", val);
         sscanf(buff, "%lf", &fVal);
         sprintf(buff, "%g", val);
         sscanf(buff, "%lf", &gVal);
         if (fVal != gVal) {
-          /* %g let us down */
-          free(fmt);
-          fmt = airStrdup("%f");
+          /* using %g (or %lg) lost precision!! Use %f (or %lf) instead */
+          if (p2) {
+            memcpy(conv, "%f", 2);
+          } else {
+            memcpy(conv, "%lf", 2);
+          }
         }
       }
       ret = PRINT(file, str, fmt, val);
       break;
     }
-  }
-  else {
+  } else {
+    /* conversion sequence is neither for float nor double */
     ret = file ? vfprintf(file, fmt, ap) : vsprintf(str, fmt, ap);
   }
   
