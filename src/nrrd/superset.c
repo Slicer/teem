@@ -452,9 +452,10 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* but we can set the origin more accurately */
-  if (AIR_EXISTS(nout->spaceOrigin[0])) {
-    for (ai=0; ai<nin->dim; ai++) {
+  /* copy origin, then shift it along the spatial axes */
+  _nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+  for (ai=0; ai<nin->dim; ai++) {
+    if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
       _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                              1.0, nout->spaceOrigin,
                              min[ai], nin->axis[ai].spaceDirection);

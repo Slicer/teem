@@ -300,16 +300,43 @@ nrrdOriginCalculate(const Nrrd *nrrd,
 }
 
 void
+_nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
+                  const double src[NRRD_SPACE_DIM_MAX]) {
+  int ii;
+
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    dst[ii] = src[ii];
+  }
+}
+
+/*
+** NOTE: since this was created until Wed Sep 21 13:34:17 EDT 2005,
+** _nrrdSpaceVecScaleAdd2 and _nrrdSpaceVecScale would treat a
+** non-existent vector coefficient as 0.0.  The reason for this had
+** to do with how the function is used.  For example, in nrrdCrop
+**
+**   _nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+**   for (ai=0; ai<nin->dim; ai++) {
+**      _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+**                             1.0, nout->spaceOrigin,
+**                             min[ai], nin->axis[ai].spaceDirection);
+**   }
+**
+** but the problem with this is that non-spatial axes end up clobbering
+** the existance of otherwise existing spaceOrigin and spaceDirections.
+** It was decided, however, that this logic should be outside the
+** arithmetic functions below, not inside.  NOTE: the old functionality
+** is stuck in ITK 2.2, via NrrdIO.
+*/
+
+void
 _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
                        double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
   int ii;
-  double A, B;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    A = AIR_EXISTS(vecA[ii]) ? vecA[ii] : 0;
-    B = AIR_EXISTS(vecB[ii]) ? vecB[ii] : 0;
-    sum[ii] = sclA*A + sclB*B;
+    sum[ii] = sclA*vecA[ii] + sclB*vecB[ii];
   }
 }
 
@@ -317,11 +344,9 @@ void
 _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                    double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
   int ii;
-  double v;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-    v = AIR_EXISTS(vec[ii]) ? vec[ii] : 0;
-    out[ii] = scl*v;
+    out[ii] = scl*vec[ii];
   }
 }
 

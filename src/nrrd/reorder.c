@@ -520,11 +520,16 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
     nout->axis[axis].spaceDirection[axisIdx] = 
       -nin->axis[axis].spaceDirection[axisIdx];
   }
-  _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                         1.0,
-                         nin->spaceOrigin,
-                         nin->axis[axis].size-1,
-                         nin->axis[axis].spaceDirection);
+  /* modify origin only if we flipped a spatial axis */
+  if (AIR_EXISTS(nin->axis[axis].spaceDirection[0])) {
+    _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                           1.0,
+                           nin->spaceOrigin,
+                           nin->axis[axis].size-1,
+                           nin->axis[axis].spaceDirection);
+  } else {
+    _nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+  }
   airMopOkay(mop); 
   return 0;
 }
