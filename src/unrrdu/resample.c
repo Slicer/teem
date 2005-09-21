@@ -42,7 +42,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm, newer, E, defaultCenter, verbose;
+  int type, bb, pret, norenorm, older, E, defaultCenter, verbose;
   unsigned int scaleLen, ai, samplesOut;
   airArray *mop;
   float *scale;
@@ -82,8 +82,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "nrn", NULL, airTypeInt, 0, 0, &norenorm, NULL,
              "don't do per-pass kernel weight renormalization. "
-             "Doing the renormalization is not a big performance hit "
-             "is necessary to avoid \"grating\" on non-integral "
+             "Doing the renormalization is not a big performance hit, and "
+             "is sometimes needed to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
   hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
@@ -104,14 +104,16 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "type to save OUTPUT as. By default (not using this option), "
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "new", NULL, airTypeInt, 0, 0, &newer, NULL,
-             "use the new nrrdResampleContext implementation");
+  hestOptAdd(&opt, "old", NULL, airTypeInt, 0, 0, &older, NULL,
+             "instead of using the new nrrdResampleContext implementation, "
+             "use the old nrrdSpatialResample implementation");
   hestOptAdd(&opt, "c", "center", airTypeEnum, 1, 1, &defaultCenter,
              (nrrdCenterCell == nrrdDefaultCenter
               ? "cell"
               : "node"),
-             "with \"-new\", default centering of axes when input nrrd "
-             "axes don't have a known centering: \"cell\" or \"node\"", 
+             "default centering of axes when input nrrd "
+             "axes don't have a known centering: \"cell\" or \"node\" "
+             "(not available with \"-old\")",
              NULL, nrrdCenter);
   hestOptAdd(&opt, "verbose", NULL, airTypeInt, 0, 0, &verbose, NULL,
              "with \"-new\", turn on verbosity");
@@ -133,7 +135,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (newer) {
+  if (!older) {
     rsmc = nrrdResampleContextNew();
     rsmc->verbose = verbose;
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
