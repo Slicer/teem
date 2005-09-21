@@ -52,7 +52,7 @@ extern "C" {
 #define NRRD nrrdBiffKey
 
 /*
-******** NrrdAxis struct
+******** NrrdAxisInfo struct
 **
 ** all the information which can sensibly be associated with
 ** one axis of a nrrd.  The only member which MUST be explicitly
