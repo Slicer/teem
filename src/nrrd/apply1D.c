@@ -79,8 +79,8 @@ _nrrdApply1DDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 ** and irregular maps.  The intent is that if this succeeds, then
 ** there is no need for any further error checking.
 **
-** The only thing this function DOES is allocate the output nrrd,
-** and set basic information.  The rest is just error checking.
+** The only thing this function DOES is allocate the output nrrd, and
+** set meta information.  The rest is just error checking.
 **
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
@@ -103,7 +103,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   char mverbStr[][AIR_STRLEN_SMALL]={"mlut",
                                      "mrmap",
                                      "mimap"}; /* wishful thinking */
-  int mapAxis, axisMap[NRRD_DIM_MAX];
+  int mapAxis, copyMapAxis0=AIR_FALSE, axisMap[NRRD_DIM_MAX];
   unsigned int ax, dim, entLen;
   size_t size[NRRD_DIM_MAX];
   double domMin, domMax;
@@ -136,6 +136,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                 me, nounStr[kind], nmap->dim);
         biffAdd(NRRD, err); return 1;
       }
+      copyMapAxis0 = (1 == mapAxis);
     } else {
       mapAxis = nmap->dim - nin->dim - 1;
       if (!(0 == mapAxis || 1 == mapAxis)) {
@@ -144,6 +145,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                 nin->dim + 1, nin->dim + 2, nmap->dim);
         biffAdd(NRRD, err); return 1;
       }
+      copyMapAxis0 = (1 == mapAxis);
       /* need to make sure the relevant sizes match */
       for (ax=0; ax<nin->dim; ax++) {
         if (nin->axis[ax].size != nmap->axis[mapAxis + 1 + ax].size) {
@@ -181,6 +183,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     }
     /* mapAxis has no meaning for irregular maps, but we'll pretend ... */
     mapAxis = nmap->axis[0].size == 2 ? 0 : 1;
+    copyMapAxis0 = AIR_TRUE;
     entLen = nmap->axis[0].size-1;
   }
   if (mapAxis + nin->dim > NRRD_DIM_MAX) {
@@ -227,6 +230,11 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     sprintf(err, "%s: trouble copying axis info", me);
     biffAdd(NRRD, err); return 1;
   }
+  if (copyMapAxis0) {
+    _nrrdAxisInfoCopy(nout->axis + 0, nmap->axis + 0,
+                      NRRD_AXIS_INFO_SIZE_BIT);
+  }
+
   mapcnt = _nrrdContentGet(nmap);
   if (nrrdContentSet(nout, multi ? mverbStr[kind] : verbStr[kind],
                      nin, "%s", mapcnt)) {
