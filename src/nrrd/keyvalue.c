@@ -241,8 +241,8 @@ _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
   }
   if (stringP) {
     /* 2*strlen() because at worst all characters will be escaped */
-    *stringP = (char *)malloc(strlen(prefix) + 2*strlen(key)
-                              + strlen(":=") + 2*strlen(value)
+    *stringP = (char *)malloc(airStrlen(prefix) + 2*airStrlen(key)
+                              + strlen(":=") + 2*airStrlen(value)
                               + strlen("\n") + 1);
     /* HEY error checking */
     strcpy(*stringP, "");

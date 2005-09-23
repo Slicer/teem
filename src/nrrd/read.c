@@ -106,6 +106,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
     needLen = _nrrdHeaderStringOneLineStrlen(nio);
     if (needLen+1 > nio->lineLen) {
       nio->lineLen = needLen+1;
+      airFree(nio->line);  /* lose previous allocated line */
       nio->line = (char*)malloc(nio->lineLen);
       if (!nio->line) {
         sprintf(err, "%s: couldn't alloc %d-char line\n", me, nio->lineLen);

@@ -619,12 +619,14 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
         _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
         if (strptr) {
           strcat(nio->headerStringWrite, strptr);
+          strcat(nio->headerStringWrite, "\n");
           strptr = airFree(strptr);
         }
       } else {
         _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
         if (strptr) {
           nio->headerStrlen += strlen(strptr);
+          nio->headerStrlen += strlen("\n");
           strptr = airFree(strptr);
         }
       }
@@ -636,13 +638,15 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     if (file) {
       fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
     } else if (nio->headerStringWrite) {
-      strptr = (char*)malloc(1 + strlen(" ") + strlen(nrrd->cmt[jj]) + 1);
+      strptr = (char*)malloc(1 + strlen(" ") 
+			     + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
       sprintf(strptr, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
       strcat(nio->headerStringWrite, strptr);
       free(strptr);
       strptr = NULL;
     } else {
-      nio->headerStrlen += 1 + strlen(" ") + strlen(nrrd->cmt[jj]) + 1;
+      nio->headerStrlen += (1 + strlen(" ") 
+			    + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
     }
   }
   for (jj=0; jj<nrrd->kvpArr->len; jj++) {

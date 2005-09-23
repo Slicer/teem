@@ -69,7 +69,8 @@ main(int argc, char **argv) {
     exit(1);
   }
   fprintf(stderr, "%s: |%s|\n", me, wstr);
-  
+
+  free(wstr);
   nrrdIoStateNix(nio);
   nrrdNuke(nrrd);
 
