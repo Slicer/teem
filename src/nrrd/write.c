@@ -29,7 +29,7 @@
 */
 
 int
-nrrdIoStateSet (NrrdIoState *nio, int parm, int value) {
+nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   char me[]="nrrdIoStateSet", err[AIR_STRLEN_MED];
   
   if (!nio) {
@@ -97,7 +97,7 @@ nrrdIoStateSet (NrrdIoState *nio, int parm, int value) {
 }
 
 int
-nrrdIoStateEncodingSet (NrrdIoState *nio, const NrrdEncoding *encoding) {
+nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
   char me[]="nrrdIoStateEncodingSet", err[AIR_STRLEN_MED];
 
   if (!( nio && encoding )) {
@@ -118,7 +118,7 @@ nrrdIoStateEncodingSet (NrrdIoState *nio, const NrrdEncoding *encoding) {
 }
 
 int
-nrrdIoStateFormatSet (NrrdIoState *nio, const NrrdFormat *format) {
+nrrdIoStateFormatSet(NrrdIoState *nio, const NrrdFormat *format) {
   char me[]="nrrdIoStateFormatSet", err[AIR_STRLEN_MED];
 
   if (!( nio && format )) {
@@ -141,7 +141,7 @@ nrrdIoStateFormatSet (NrrdIoState *nio, const NrrdFormat *format) {
 ** no biff
 */
 int
-nrrdIoStateGet (NrrdIoState *nio, int parm) {
+nrrdIoStateGet(NrrdIoState *nio, int parm) {
   char me[]="nrrdIoStateGet";
   int value;
   
@@ -192,7 +192,7 @@ nrrdIoStateGet (NrrdIoState *nio, int parm) {
 ** no biff
 */
 const NrrdEncoding *
-nrrdIoStateEncodingGet (NrrdIoState *nio) {
+nrrdIoStateEncodingGet(NrrdIoState *nio) {
 
   return nio ? nio->encoding : nrrdEncodingUnknown;
 }
@@ -201,7 +201,7 @@ nrrdIoStateEncodingGet (NrrdIoState *nio) {
 ** no biff
 */
 const NrrdFormat *
-nrrdIoStateFormatGet (NrrdIoState *nio) {
+nrrdIoStateFormatGet(NrrdIoState *nio) {
 
   return nio ? nio->format : nrrdFormatUnknown;
 }
@@ -228,7 +228,7 @@ _nrrdStrcatSpaceVector(char *str, int spaceDim,
 }
 
 int
-_nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
+_nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio, int field) {
   int ret;
   unsigned int ai;
   
@@ -401,8 +401,8 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
 ** value" is getting pretty tiresome...
 */
 void
-_nrrdSprintFieldInfo (char **strP, char *prefix,
-                      const Nrrd *nrrd, NrrdIoState *nio, int field) {
+_nrrdSprintFieldInfo(char **strP, char *prefix,
+                     const Nrrd *nrrd, NrrdIoState *nio, int field) {
   char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED], *fnb;
   double colvec[NRRD_SPACE_DIM_MAX];
   const char *fs;
@@ -736,8 +736,8 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
 ** a file.  Same caveats here: use _nrrdFieldInteresting
 */
 void
-_nrrdFprintFieldInfo (FILE *file, char *prefix,
-                      const Nrrd *nrrd, NrrdIoState *nio, int field) {
+_nrrdFprintFieldInfo(FILE *file, char *prefix,
+                     const Nrrd *nrrd, NrrdIoState *nio, int field) {
   char *line=NULL;
 
   _nrrdSprintFieldInfo(&line, prefix, nrrd, nio, field);
@@ -774,8 +774,8 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 ** we must set nio->format to something useful/non-trivial
 */
 int
-_nrrdFormatMaybeGuess (const Nrrd *nrrd, NrrdIoState *nio,
-                       const char *filename) {
+_nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
+                      const char *filename) {
   char me[]="_nrrdFormatMaybeGuess", err[AIR_STRLEN_MED], mesg[AIR_STRLEN_MED];
   int fi, guessed, available, fits;
 
@@ -850,8 +850,9 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
 ** must be given explicitly, and their appropriateness is explicitly tested
 */
 int
-nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
+nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
   char me[]="nrrdWrite", err[AIR_STRLEN_MED];
+  NrrdIoState *nio;
   airArray *mop;
 
   if (!(file && nrrd)) {
@@ -863,7 +864,9 @@ nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     biffAdd(NRRD, err); return 1;
   }
   mop = airMopNew();
-  if (!nio) {
+  if (_nio) {
+    nio = _nio;
+  } else {
     nio = nrrdIoStateNew();
     if (!nio) {
       sprintf(err, "%s: couldn't alloc local NrrdIoState", me);
@@ -904,7 +907,7 @@ nrrdWrite (FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 ** game, the data file is ALWAYS header relative.
 */
 int
-nrrdSave (const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
+nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="nrrdSave", err[AIR_STRLEN_MED];
   FILE *file;
   airArray *mop;

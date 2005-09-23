@@ -101,8 +101,8 @@ extern const NrrdEncoding _nrrdEncodingGzip;
 extern const NrrdEncoding _nrrdEncodingBzip2;
 
 /* read.c */
-extern int _nrrdOneLine (unsigned int *lenP, NrrdIoState *nio, FILE *file);
-extern int _nrrdCalloc (Nrrd *nrrd, NrrdIoState *nio, FILE *file);
+extern int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
+extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file);
 extern char _nrrdFieldSep[];
 
 /* arrays.c */
