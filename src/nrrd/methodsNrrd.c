@@ -64,6 +64,9 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->base = (char *)airFree(nio->base);
     nio->line = (char *)airFree(nio->line);
     nio->dataFNFormat = (char *)airFree(nio->dataFNFormat);
+    /* the way IO to/from strings works, I don't think this should be freed */
+    nio->headerStringRead = NULL;
+    nio->headerStringWrite = NULL;
     airArrayLenSet(nio->dataFNArr, 0);
     /* closing this is always someone else's responsibility */
     nio->headerFile = NULL;
@@ -77,6 +80,8 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->pos = 0;
     nio->endian = airEndianUnknown;
     nio->lineSkip = 0;
+    nio->headerStrlen = 0;
+    nio->headerStrpos = 0;
     nio->byteSkip = 0;
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
@@ -88,6 +93,7 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->zlibLevel = -1;
     nio->zlibStrategy = nrrdZlibStrategyDefault;
     nio->bzip2BlockSize = -1;
+    nio->learningHeaderStrlen = AIR_FALSE;
     nio->oldData = NULL;
     nio->oldDataSize = 0;
     nio->format = nrrdFormatUnknown;
@@ -107,6 +113,8 @@ nrrdIoStateNew (void) {
     nio->line = NULL;
     nio->dataFNFormat = NULL;
     nio->dataFN = NULL;
+    nio->headerStringRead = NULL;
+    nio->headerStringWrite = NULL;
     nio->dataFNArr = airArrayNew((void**)(&(nio->dataFN)), NULL, 
                                  sizeof(char *), NRRD_FILENAME_INCR);
     airArrayPointerCB(nio->dataFNArr, airNull, airFree);

@@ -292,11 +292,22 @@ typedef struct NrrdIoState_t {
                                style format string, not in the sense of a 
                                file format.  This may need header-relative
                                path processing. */
-    **dataFN;               /* ON READ + WRITE: array of data filenames. These
+    **dataFN,               /* ON READ + WRITE: array of data filenames. These
                                are not passed directly to fopen, they may need
                                header-relative path processing. Like the
                                cmtArr in the Nrrd, this array is not NULL-
                                terminated */
+    *headerStringWrite;     /* ON WRITE: string from to which the header can
+                               be written.  On write, it is assumed allocated
+                               for as long as it needs to be (probably via a
+                               first pass with learningHeaderStrlen). NOTE:
+                               It is the non-NULL-ity of this which signifies
+                               the intent to do string-based writing */
+  const char
+    *headerStringRead;      /* ON READ: like headerStringWrite, but for
+                               reading the header from.  NOTE: It is the
+                               non-NULL-ity of this which signifies the
+                               intent to do string-based reading */
   airArray *dataFNArr;      /* for managing the above */
 
   FILE *headerFile,         /* if non-NULL, the file from which the NRRD
@@ -321,11 +332,16 @@ typedef struct NrrdIoState_t {
                                something with the formatting, then
                                what is the max number of values to
                                write on a line */
-    lineSkip;               /* if dataFile non-NULL, the number of
+    lineSkip,               /* if dataFile non-NULL, the number of
                                lines in dataFile that should be
                                skipped over (so as to bypass another
                                form of ASCII header preceeding raw
                                data) */
+    headerStrlen,           /* ON WRITE, for NRRDs, if learningHeaderStrlen,
+                               the learned strlen of the header so far */
+    headerStrpos;           /* ON READ, for NRRDs, if headerStringRead is
+                               non-NULL, the current location of reading
+                               in the header */
   int dataFNMin,            /* used with dataFNFormat to identify ...*/
     dataFNMax,              /* ... all the multiple detached datafiles */
     dataFNStep,             /* how to step from max to min */
@@ -370,9 +386,12 @@ typedef struct NrrdIoState_t {
     zlibStrategy,           /* zlib compression strategy, can be one
                                of the nrrdZlibStrategy enums, default is
                                nrrdZlibStrategyDefault. */
-    bzip2BlockSize;         /* block size used for compression, 
+    bzip2BlockSize,         /* block size used for compression, 
                                roughly equivalent to better but slower
                                (1-9, -1 for default[9]). */
+    learningHeaderStrlen;   /* ON WRITE, for nrrds, learn and save the total
+                               length of header into headerStrlen. This is
+                               used to allocate a buffer for header */
   void *oldData;            /* ON READ: if non-NULL, pointer to space that 
                                has already been allocated for oldDataSize */
   size_t oldDataSize;       /* ON READ: size of mem pointed to by oldData */
@@ -830,6 +849,7 @@ TEEM_API int nrrdLineSkip(FILE *dataFile, NrrdIoState *nio);
 TEEM_API int nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio);
 TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio);
 TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *nio);
+TEEM_API int nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *nio);
 /* write.c */
 TEEM_API int nrrdIoStateSet(NrrdIoState *nio, int parm, int value);
 TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *nio,
