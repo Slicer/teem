@@ -61,9 +61,10 @@ $(L).OBJS = \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
 	formatVTK.o      formatText.o     formatEPS.o      \
 	keyvalue.o  resampleContext.o
-$(L).TESTS = test/tread test/trand test/ax test/io test/minmax test/tkernel \
-	test/typestest test/tline test/genvol test/quadvol test/convo test/kv \
-	test/reuse test/histrad
+$(L).TESTS = test/tread test/trand test/ax test/io test/strio \
+	test/minmax test/tkernel test/typestest test/tline test/genvol \
+	test/quadvol test/convo test/kv test/reuse test/histrad 
+$(L).TESTS = test/strio
 
 ####
 ####
