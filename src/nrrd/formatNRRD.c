@@ -522,7 +522,8 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatNRRD_write", err[AIR_STRLEN_MED], *tmp;
+  char me[]="_nrrdFormatNRRD_write", err[AIR_STRLEN_MED], 
+    strbuf[AIR_STRLEN_MED], *strptr, *tmp;
   int ii;
   unsigned int jj;
   airArray *mop;
@@ -532,6 +533,13 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   mop = airMopNew();
 
+  if (!(file
+        || nio->headerStringWrite
+        || nio->learningHeaderStrlen)) {
+    sprintf(err, "%s: have no file or string to write to, nor are "
+            "learning header string length", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
   if (nrrdTypeBlock == nrrd->type && nrrdEncodingAscii == nio->encoding) {
     sprintf(err, "%s: can't write nrrd type %s with %s encoding", me,
             airEnumStr(nrrdType, nrrdTypeBlock),
@@ -540,7 +548,8 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   /* record where the header is being written to for the sake of
-     nrrdIoStateDataFileIterNext() */
+     nrrdIoStateDataFileIterNext(). This may be NULL if
+     nio->headerStringWrite is non-NULL */
   nio->headerFile = file;
 
   /* we have to make sure that the data filename information is set
@@ -576,33 +585,94 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     jj = airArrayLenIncr(nio->dataFNArr, 1); /* HEY error checking */
     nio->dataFN[jj] = tmp;
   }
-  
-  fprintf(file, "%s%04d\n", MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
 
-  /* print out the advertisement about where to get the file format */
-  fprintf(file, "# %s\n", _nrrdFormatURLLine0);
-  fprintf(file, "# %s\n", _nrrdFormatURLLine1);
+  /* the magic is in fact the first thing to be written */
+  if (file) {
+    fprintf(file, "%s%04d\n", MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
+  } else if (nio->headerStringWrite) {
+    sprintf(nio->headerStringWrite, "%s%04d\n",
+            MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
+  } else {
+    nio->headerStrlen = strlen(MAGIC) + strlen("0000");
+  }
+
+  /* write the advertisement about where to get the file format */
+  if (file) {
+    fprintf(file, "# %s\n", _nrrdFormatURLLine0);
+    fprintf(file, "# %s\n", _nrrdFormatURLLine1);
+  } else if (nio->headerStringWrite) {
+    sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
+    strcat(nio->headerStringWrite, strbuf);
+    sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
+    strcat(nio->headerStringWrite, strbuf);
+  } else {
+    nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
+    nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
+  }
 
   /* this is where the majority of the header printing happens */
   for (ii=1; ii<=NRRD_FIELD_MAX; ii++) {
     if (_nrrdFieldInteresting(nrrd, nio, ii)) {
-      _nrrdFprintFieldInfo (file, "", nrrd, nio, ii);
+      if (file) {
+        _nrrdFprintFieldInfo (file, "", nrrd, nio, ii);
+      } else if (nio->headerStringWrite) {
+        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
+        if (strptr) {
+          strcat(nio->headerStringWrite, strptr);
+          strptr = airFree(strptr);
+        }
+      } else {
+        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
+        if (strptr) {
+          nio->headerStrlen += strlen(strptr);
+          strptr = airFree(strptr);
+        }
+      }
     }
   }
 
   /* comments and key/values handled differently */
   for (jj=0; jj<nrrd->cmtArr->len; jj++) {
-    fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
+    if (file) {
+      fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
+    } else if (nio->headerStringWrite) {
+      strptr = (char*)malloc(1 + strlen(" ") + strlen(nrrd->cmt[jj]) + 1);
+      sprintf(strptr, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
+      strcat(nio->headerStringWrite, strptr);
+      free(strptr);
+      strptr = NULL;
+    } else {
+      nio->headerStrlen += 1 + strlen(" ") + strlen(nrrd->cmt[jj]) + 1;
+    }
   }
   for (jj=0; jj<nrrd->kvpArr->len; jj++) {
-    _nrrdKeyValueFwrite(file, NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
+    if (file) {
+      _nrrdKeyValueWrite(file, NULL,
+                         NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
+    } else if (nio->headerStringWrite) {
+      _nrrdKeyValueWrite(NULL, &strptr,
+                         NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
+      if (strptr) {
+        strcat(nio->headerStringWrite, strptr);
+        strptr = airFree(strptr);
+      }
+    } else {
+      _nrrdKeyValueWrite(NULL, &strptr,
+                         NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
+      if (strptr) {
+        nio->headerStrlen += strlen(strptr);
+        strptr = airFree(strptr);
+      }
+    }
   }
 
-  if (!( nio->detachedHeader || _nrrdDataFNNumber(nio) > 1 )) {
-    fprintf(file, "\n");
+  if (file) {
+    if (!( nio->detachedHeader || _nrrdDataFNNumber(nio) > 1 )) {
+      fprintf(file, "\n");
+    }
   }
 
-  if (!nio->skipData) {
+  if (file && !nio->skipData) {
     nrrdIoStateDataFileIterBegin(nio);
     if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_FALSE)) {
       sprintf(err, "%s: couldn't write the first datafile", me);

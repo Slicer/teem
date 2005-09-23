@@ -403,7 +403,7 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
             "any recognized format", me, nio->line);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  if (nrrdFormatNRRD != nio->format && string) {
+  if (string && nrrdFormatNRRD != nio->format) {
     sprintf(err, "%s: sorry, can only read %s files from strings (not %s)",
             me, nrrdFormatNRRD->name, nio->format->name);
     biffAdd(NRRD, err); airMopError(mop); return 1;

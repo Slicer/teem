@@ -863,6 +863,8 @@ TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd,
                       NrrdIoState *nio);
 TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, 
                        NrrdIoState *nio);
+TEEM_API int nrrdStringWrite(char **stringP, const Nrrd *nrrd,
+                             NrrdIoState *nio);
 
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */

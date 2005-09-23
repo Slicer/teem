@@ -843,20 +843,26 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
 }
 
 /*
-******** nrrdWrite
+** _nrrdWrite
 **
-** Write a nrrd to given file, using the format and and encoding indicated
-** in nio.  There is no cleverness from this point on: all writing parameters
-** must be given explicitly, and their appropriateness is explicitly tested
+** Write a nrrd to given file or string (allocated by nrrd), using the
+** format and and encoding indicated in nio.  Cleverness should be
+** isolated and collected here: by the time nio->format->write() is
+** called, all writing parameters must be given explicitly, and their
+** appropriateness is explicitly tested
 */
 int
-nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
-  char me[]="nrrdWrite", err[AIR_STRLEN_MED];
+_nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
+  char me[]="_nrrdWrite", err[AIR_STRLEN_MED];
   NrrdIoState *nio;
   airArray *mop;
 
-  if (!(file && nrrd)) {
+  if (!((file || stringP) && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (file && stringP) {
+    sprintf(err, "%s: can't write to both file and string", me);
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdCheck(nrrd)) {
@@ -886,13 +892,72 @@ nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
-  /* call the writer appropriate for the format */
-  if (nio->format->write(file, nrrd, nio)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+  if (stringP) {
+    if (nrrdFormatNRRD != nio->format) {
+      sprintf(err, "%s: sorry, can only write %s files to strings (not %s)",
+              me, nrrdFormatNRRD->name, nio->format->name);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    /* we do this in two passes; first see how much room is needed
+       for the header, then allocate, then write the header */
+    nio->learningHeaderStrlen = AIR_TRUE;
+    if (nio->format->write(NULL, nrrd, nio)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    *stringP = (char*)malloc(nio->headerStrlen + 1);
+    if (!*stringP) {
+      sprintf(err, "%s: couldn't allocate header string (%u len )",
+              me, nio->headerStrlen);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    nio->learningHeaderStrlen = AIR_FALSE;
+    nio->headerStringWrite = *stringP;
+    if (nio->format->write(NULL, nrrd, nio)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+  } else {
+    /* call the writer appropriate for the format */
+    if (nio->format->write(file, nrrd, nio)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
   }
   
-  airMopOkay(mop); 
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** nrrdWrite
+**
+** wrapper around _nrrdWrite; writes to a FILE*
+*/
+int
+nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
+  char me[]="nrrdWrite", err[AIR_STRLEN_MED];
+
+  if (_nrrdWrite(file, NULL, nrrd, _nio)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+ 
+/*
+******** nrrdStringWrite
+**
+** wrapper around _nrrdWrite; *allocates* and writes to a string
+*/
+int
+nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
+  char me[]="nrrdStringWrite", err[AIR_STRLEN_MED];
+
+  if (_nrrdWrite(NULL, stringP, nrrd, _nio)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
   return 0;
 }
  

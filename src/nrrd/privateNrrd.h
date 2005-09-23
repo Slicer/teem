@@ -78,8 +78,8 @@ typedef union {
 } _nrrdAxisInfoGetPtrs;
 
 /* keyvalue.c */
-extern int _nrrdKeyValueFwrite(FILE *file, const char *prefix,
-                               const char *key, const char *value);
+extern int _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
+                              const char *key, const char *value);
 
 /* formatXXX.c */
 extern const char *_nrrdFormatURLLine0;
