@@ -55,7 +55,7 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(encoding);
-  sprintf(err, "%s: %s format not available in this teem build",
+  sprintf(err, "%s: %s format not available in this Teem build",
           me, nrrdFormatPNG->name);
   biffMaybeAdd(NRRD, err, useBiff); 
   return AIR_FALSE;
@@ -135,7 +135,7 @@ _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 }
 
 /* we need to use the file I/O callbacks on windows
-   to make sure we can mix VC6 libpng with VC7 teem */
+   to make sure we can mix VC6 libpng with VC7 Teem */
 #ifdef _WIN32
 static void
 _nrrdReadDataPNG (png_structp png, png_bytep data, png_size_t len)

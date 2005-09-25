@@ -27,5 +27,5 @@ hest.c:
 - clarified command-line flags for limn cam parameters
 
 test/light.c
-- fixed to comply with teem-1.4 limnCam, and with post-1.4
+- fixed to comply with Teem-1.4 limnCam, and with post-1.4
 changes described elsewhere

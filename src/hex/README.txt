@@ -13,8 +13,8 @@ To compile:
 
 I wrote these as freely distributable (non-copyleft) programs for
 doing the hex encoding which is an optional encoding in the nrrd
-library in teem.  The (convoluted) reason is that the only encodings
-that are *required* of non-teem nrrd readers and writers are raw and
+library in Teem.  The (convoluted) reason is that the only encodings
+that are *required* of non-Teem nrrd readers and writers are raw and
 ascii.  All other encodings should be able to be handled by
 stand-alone tools (such as gzip/gunzip for zlib compression, and
 bzip/bunzip2 for bzip compress).  Yet, a google search didn't reveal

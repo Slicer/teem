@@ -29,7 +29,7 @@ char *_baneGkms_txfInfoL =
    ". The triangles are in the 2D space of data value and gradient "
    "magnitude.  They can be tilted sideways and clipped at the bottom. "
    "This doesn't strictly speaking belong in \"gkms\" but there's no "
-   "other good place in teem.");
+   "other good place in Teem.");
 int
 baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;

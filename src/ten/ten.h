@@ -261,7 +261,7 @@ enum {
 **
 ** the different integration styles supported.  Obviously, this is more
 ** general purpose than fiber tracking, so this will be moved (elsewhere
-** in teem) as needed
+** in Teem) as needed
 */
 enum {
   tenFiberIntgUnknown,   /* 0: nobody knows */

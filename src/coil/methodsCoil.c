@@ -105,7 +105,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 
   /* warn if we can't do the multiple threads user wants */
   if (numThreads > 1 && !airThreadCapable && airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: this teem not thread capable: using 1 "
+    fprintf(stderr, "%s: WARNING: this Teem not thread capable: using 1 "
             "thread, not %d\n", me, numThreads);
     numThreads = 1;
   }

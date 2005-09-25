@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
              &(muu->hctx->numThreads), "1", 
              (airThreadCapable
               ? "number of threads hoover should use"
-              : "if pthreads where enabled in this teem build, this is how "
+              : "if pthreads where enabled in this Teem build, this is how "
               "you would control the number of threads hoover should use"));
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
              NULL, "file to write output nrrd to");
@@ -235,7 +235,7 @@ main(int argc, char *argv[]) {
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
   
   if (!airThreadCapable && 1 != muu->hctx->numThreads) {
-    fprintf(stderr, "%s: This teem not compiled with "
+    fprintf(stderr, "%s: This Teem not compiled with "
             "multi-threading support.\n", me);
     fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n",
             me, muu->hctx->numThreads);

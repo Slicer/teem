@@ -101,7 +101,7 @@ main(int argc, char *argv[]) {
              (airThreadCapable
               ? "number of threads to use in computation"
               : "number of \"threads\" to use in computation, which is "
-              "moot here because this teem build doesn't support "
+              "moot here because this Teem build doesn't support "
               "multi-threading. "));
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
              "filename for output of final converged (two-channel) texture");

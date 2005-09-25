@@ -106,7 +106,7 @@ shift values ("nmapP") in a form suitable for
 nrrdApply1DRegMap(); in fact that is what nrrdHistoEq() calls
 itself.  This way one mapping can be applied to other nrrds.
 - FILE FORMAT CHANGE: this was supposed to have been done
-for teem-1.4: default nrrd magic is "NRRD0001", instead of
+for Teem-1.4: default nrrd magic is "NRRD0001", instead of
 "NRRD00.01"
 - fixed comment typos and spacing
 
@@ -198,7 +198,7 @@ but if writeData is zero, you never write data, and the
 "data file:" field becomes interesting enough to print,
 giving the value of io->dataFN.
 - FILE FORMAT CHANGE: this was supposed to have been done
-for teem-1.4: normal nrrd magic is "NRRD0001", instead of
+for Teem-1.4: normal nrrd magic is "NRRD0001", instead of
 "NRRD00.01"
 - changes in writing of tables associated with allowing
 1D data in tables

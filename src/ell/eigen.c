@@ -327,7 +327,7 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
 ** is set to a corresponding eigenvector.  The eigenvectors are
 ** (evec+0)[], (evec+3)[], and (evec+6)[]
 **
-** NOTE: Even in the post-teem-1.7 switch from column-major to 
+** NOTE: Even in the post-Teem-1.7 switch from column-major to 
 ** row-major- its still the case that the eigenvectors are at
 ** evec+0, evec+3, evec+6: this means that they USED to be the
 ** "columns" of the matrix, and NOW they're the rows.  

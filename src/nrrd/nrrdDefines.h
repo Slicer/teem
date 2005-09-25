@@ -50,7 +50,7 @@ extern "C" {
                                       (that is more like 3), but is
                                       the max number of parms of any
                                       NrrdKernel used by anyone using
-                                      teem, such as in gage.
+                                      Teem, such as in gage.
                                       Enforcing one global max
                                       simplifies implementation. */
 

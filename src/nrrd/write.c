@@ -760,7 +760,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
     nio->encoding = nrrdDefaultWriteEncoding;
   }
   if (!nio->encoding->available()) {
-    sprintf(err, "%s: %s encoding not available in this teem build", 
+    sprintf(err, "%s: %s encoding not available in this Teem build", 
             me, nio->encoding->name);
     biffAdd(NRRD, err); return 1;
   }
@@ -806,7 +806,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
   if (!( available && fits )) {
     sprintf(mesg, "can not use %s format: %s", nio->format->name,
             (!available 
-             ? "not available in this teem build"
+             ? "not available in this Teem build"
              : "array doesn\'t fit"));
     if (guessed) {
       if (1 <= nrrdStateVerboseIO) {
@@ -835,7 +835,7 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
     nio->format = nrrdFormatNRRD;
   }
   if (!nio->format->available()) {
-    sprintf(err, "%s: %s format not available in this teem build", 
+    sprintf(err, "%s: %s format not available in this Teem build", 
             me, nio->format->name);
     biffAdd(NRRD, err); return 1;
   }

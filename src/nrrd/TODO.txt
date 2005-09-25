@@ -6,11 +6,6 @@ remove calls to nrrdPeripheral*: starting at apply1D.c
 line 398 histogram.c - finish that thought
 sampleUnits map to histogram axis with all things histo
 
-search + replace: teem -> Teem
-
-
-matlab reader/writer for raw and ascii encodings
-
 enable imagemagick-style format flagging on filenames ("PNM:-"),
 thereby obviating "unu save -f pnm" steps in pipes to standard out 
 
@@ -80,7 +75,7 @@ other encodings- base 85
 
 no other big things for nrrd planned...
 
------ teem 1.7 cut-off -----
+----- Teem 1.7 cut-off -----
 
 test suite
 

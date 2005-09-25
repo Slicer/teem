@@ -32,7 +32,7 @@
 /*
 ** learned: if you have globals, such as _nrrdCC_verb, which are 
 ** defined and declared here, but which are NOT initialized, then
-** C++ apps which are linking against teem will have problems!!!
+** C++ apps which are linking against Teem will have problems!!!
 ** This was first seen on the mac.
 */
 int _nrrdCC_EqvIncr = 128;

@@ -43,7 +43,7 @@ main(int argc, char **argv) {
             "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
             "and variable definitions\n");
-    fprintf(stderr, "  for teem.\n");
+    fprintf(stderr, "  for Teem.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
     fprintf(stderr, "\n");

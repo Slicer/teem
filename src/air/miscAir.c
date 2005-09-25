@@ -37,7 +37,7 @@
 ******** airTeemReleaseDate
 **
 ** updated with each release to contain a string representation of 
-** the teem version number and release date.  Originated in version 1.5;
+** the Teem version number and release date.  Originated in version 1.5;
 ** use of TEEM_VERSION #defines started in 1.9
 */
 const char *

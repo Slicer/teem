@@ -625,7 +625,7 @@ main(int argc, char *argv[]) {
   uu->hctx->renderEnd = (hooverRenderEnd_t *)mrendRenderEnd;
   
   if (!airThreadCapable && 1 != uu->hctx->numThreads) {
-    fprintf(stderr, "%s: This teem not compiled with "
+    fprintf(stderr, "%s: This Teem not compiled with "
             "multi-threading support.\n", me);
     fprintf(stderr, "%s: --> can't use %d threads; only using 1\n",
             me, uu->hctx->numThreads);

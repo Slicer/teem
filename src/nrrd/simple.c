@@ -1485,7 +1485,7 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  /* HEY: any other assumptions built into teem? */
+  /* HEY: any other assumptions built into Teem? */
 
   _nrrdSanity = 1;
   return 1;

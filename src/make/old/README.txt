@@ -5,7 +5,7 @@ User-set environment variables which effect global things:
 TEEM_ARCH: the architecture you're compiling with and for
   --> This is the only variable which MUST be set <--
 
-TEEM_ROOT: the top-level teem directory, under which are the
+TEEM_ROOT: the top-level Teem directory, under which are the
   directories where object, library, and include files will be
   installed.  If not set, the top-level directory is taken to be
   "../..", when inside the source directory for the individual

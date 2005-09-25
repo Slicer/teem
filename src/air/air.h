@@ -256,7 +256,7 @@ TEEM_API airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
 ** defined standard values for these, so everyone does it differently.
 ** 
-** This enum uses underscores (against teem convention) to help
+** This enum uses underscores (against Teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
 ** standard naming conventions
 */
@@ -559,7 +559,7 @@ TEEM_API void airMopDebug(airArray *arr);
 ** These reflect particulars of hardware which we're running on.
 ** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
 ** is that those are not by default defined for every source-file
-** compilation: the teem library has to define NEED_ENDIAN, NEED_DIO, etc,
+** compilation: the Teem library has to define NEED_ENDIAN, NEED_DIO, etc,
 ** and these in turn generate appropriate compile command-line flags
 ** by Common.mk. By having these defined here, they become available
 ** to anyone who simply links against the air library (and includes air.h),
@@ -790,16 +790,16 @@ TEEM_API void airMopDebug(airArray *arr);
 ** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
 ** respecitvely.
 **
-** This is not a useful macro for the world at large- only for teem
+** This is not a useful macro for the world at large- only for Teem
 ** source files.  Why: we need to leave this as a bare string, so that
 ** we can exploit C's implicit string concatenation in forming a
 ** format string.  Therefore, unlike the definition of AIR_ENDIAN,
-** AIR_DIO, etc, AIR_SIZE_T_CNV can NOT just refer to a const variable
+** AIR_DIO, etc, _AIR_SIZE_T_CNV can NOT just refer to a const variable
 ** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
-** ALL source files which want to use AIR_SIZE_T_CNV, and to be
-** conservative, that's all teem files.  The converse is, since there is
-** no expectation that other projects which use teem will be defining
-** TEEM_32BIT, this is not useful outside teem, thus the leading _.
+** ALL source files which want to use _AIR_SIZE_T_CNV, and to be
+** conservative, that's all Teem files.  The converse is, since there is
+** no expectation that other projects which use Teem will be defining
+** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
 */
 #ifdef __APPLE__
 #  define _AIR_SIZE_T_CNV "%lu"

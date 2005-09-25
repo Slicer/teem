@@ -465,7 +465,7 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
 ** intent was to allow interpolation with an arbitrary kernel, but
 ** that would be complicated to generalize to N-D.  Also, for the 
 ** foreseeable future, this function is to be used by nrrdHistoEq() and
-** nothing else in teem, so the need for higher-order filtering is not
+** nothing else in Teem, so the need for higher-order filtering is not
 ** accute.  Besides, it probably belongs in another library anyway.
 **
 ** On second thought, eliminating arbitrary interpolation makes the

@@ -267,7 +267,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
 **
 ** return is same as ell_3m_eigensolve_d, which is same as ell_cubic
 **
-** NOTE: Even in the post-teem-1.7 switch from column-major to 
+** NOTE: Even in the post-Teem-1.7 switch from column-major to 
 ** row-major- its still the case that the eigenvectors are at
 ** evec+0, evec+3, evec+6: this means that they USED to be the
 ** "columns" of the matrix, and NOW they're the rows.  

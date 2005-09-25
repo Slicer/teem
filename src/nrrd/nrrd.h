@@ -413,7 +413,7 @@ typedef struct NrrdIoState_t {
 ** (in which case the given min,max may not correspond to the actual
 ** min,max of the nrrd in question).
 **
-** This information has been removed from the Nrrd struct (as of teem1.6) 
+** This information has been removed from the Nrrd struct (as of Teem1.6) 
 ** and put into this seperate entity because:
 ** 1) when intended to be descriptive of a nrrd, it can't be guaranteed
 ** to be true across nrrd calls
@@ -438,7 +438,7 @@ typedef struct {
 ** It is a strong but very simplifying assumption that the parameter
 ** array ("parm") is always type double.  There is essentially no
 ** value in allowing flexibility between float and double, and much
-** teem code assumes that it will always be type double.
+** Teem code assumes that it will always be type double.
 */
 typedef struct {
   /* terse string representation of kernel function, irrespective of

@@ -87,7 +87,7 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  fprintf(file, "OFF # created by teem/limn\n");
+  fprintf(file, "OFF # created by Teem/limn\n");
   fprintf(file, "%d %d %d\n", obj->vertNum, obj->faceNum, obj->edgeNum);
 
   /* write vertices */

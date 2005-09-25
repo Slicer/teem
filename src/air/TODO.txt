@@ -2,7 +2,7 @@
 fix airSinglePrintf to not put a space before double-type special values
 ("%4s" hack has to go)
 
------ teem 1.6 cut-off -----
+----- Teem 1.6 cut-off -----
 
 complete fprintf/sprintf/printf stand-in
 complete fscanf/sscanf stand-in

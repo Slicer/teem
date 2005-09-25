@@ -5,7 +5,7 @@ User-set environment variables which effect global things:
 TEEM_ARCH: the architecture you're compiling with and for
   >>> This is the only environment variable which MUST be set <<<
 
-TEEM_ROOT: the top-level teem directory, under which are the
+TEEM_ROOT: the top-level "teem" directory, under which are the
   directories where object, library, and include files will be
   installed.  If not set, the top-level directory is taken to be
   "../..", when inside the source directory for the individual
@@ -16,7 +16,7 @@ TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be
   we link against static libraries, in order to produce
   stand-alone-ish binaries
 
-TEEM_DEV: if set to "true", then a larger set of teem libraries will be
+TEEM_DEV: if set to "true", then a larger set of Teem libraries will be
   build by the top-level make, more than just the standard stable ones.
 
 TEEM_PURIFY: if set to "true", run purify on all compiles and links
@@ -95,7 +95,7 @@ BINLIBS: all the libraries (-l<name> ...) against which $(BINS) and
   $(TEST_BINS) collectively depend, for example "-lnrrd -lbiff -lair"
   is used for unrrdu stuff.  Unfortunately, warning messages of the
   sort " ... not used for resolving any symbol" are to be expected due
-  to the current simplistic nature of the teem makefiles
+  to the current simplistic nature of the Teem makefiles
 
 IPATH, LDPATH: the "-I<dir>" and "-L<dir>" flags for the compiler and linker.
   Values set here will be suffixed by the common makefile
@@ -103,5 +103,5 @@ IPATH, LDPATH: the "-I<dir>" and "-L<dir>" flags for the compiler and linker.
 LDLIBS: when making shared libraries, it is sometimes necessary to
   link against other libraries.  $(LDLIBS) is the last argument to the
   $(LD) call which creates a shared library, and should be used like
-  $(BINLIBS). $(LPATH) can be set with the "-L<dir." flags non-teem
-  libraries, the teem library flags will be suffixed on.
+  $(BINLIBS). $(LPATH) can be set with the "-L<dir." flags non-Teem
+  libraries, the Teem library flags will be suffixed on.
