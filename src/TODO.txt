@@ -19,24 +19,15 @@ solved the problem...
 
 add BSD architecture that guy emailed me about
 
-** time to refactor nrrdSpatialResample:
-unu resample clobbers space directions!
-track down nrrdSpatialResample bug that J ran into
-unu cmedian -r 1 -b 329 -i unrrdu/test/P124DcmPre30lpSeries1InitialIM0100.png \
- | unu resample -s x0.25 x0.25 -k box -cheap \
- | unu histo -b 329 -o 2-histo.txt
-is generating wrong values with "setenv NRRD_DEF_CENTER cell", but not with node!
+--------- teem 1.9 cut-off
 
 unu: jhisto works with axis[0] elements when given a single nrrd
 
 gage: re-modularize to facilitate probing bricked data
 
 nrrd: add fft support
-nrrd: allow nrrd header I/O to and from strings
 nrrd: add support for VFF file format
 nrrd: add support for NIFTI-1 file format
-
---------- teem 1.9 cut-off
 
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
@@ -63,7 +54,6 @@ teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
 - try gkms hvol with three explicit ranges
 - remove excess NULL pointer checks between answer and answer wrapper
 - valgrind
-
 
 
 finish big changes
