@@ -168,6 +168,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!E) E |= nrrdResamplePadValueSet(rsmc, padVal);
     if (!E) E |= nrrdResampleRenormalizeSet(rsmc, !norenorm);
     if (!E) E |= nrrdResampleExecute(rsmc, nout);
+    fprintf(stderr, "!%s: time = %g\n", me, rsmc->time);
     if (E) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error resampling nrrd:\n%s", me, err);
