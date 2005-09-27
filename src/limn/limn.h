@@ -591,6 +591,8 @@ TEEM_API int limnSurfaceSuperquadric(limnSurface *srf,
 TEEM_API int limnSurfacePolarSphere(limnSurface *srf,
                                     unsigned int thetaRes,
                                     unsigned int phiRes);
+TEEM_API int limnSurfacePlane(limnSurface *srf,
+                              unsigned int uRes, unsigned int vRes);
 TEEM_API void limnSurfaceTransform_f(limnSurface *srf, const float homat[16]);
 TEEM_API void limnSurfaceTransform_d(limnSurface *srf, const double homat[16]);
 TEEM_API unsigned int limnSurfacePolygonNumber(limnSurface *srf);

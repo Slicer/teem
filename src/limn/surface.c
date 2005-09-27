@@ -510,6 +510,49 @@ limnSurfacePolarSphere(limnSurface *srf,
   return 0;
 }
 
+int
+limnSurfacePlane(limnSurface *srf, unsigned int uRes, unsigned int vRes) {
+  char me[]="limnSurfacePlane", err[AIR_STRLEN_MED];
+  unsigned int vertNum, indxNum, primNum, uIdx, vIdx, vertIdx, primIdx;
+  float uu, vv;
+
+  /* sanity */
+  uRes = AIR_MAX(2, uRes);
+  vRes = AIR_MAX(2, vRes);
+
+  vertNum = uRes*vRes;
+  primNum = vRes-1;
+  indxNum = primNum*2*uRes;
+  if (limnSurfaceAlloc(srf, vertNum, indxNum, primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me); 
+    biffAdd(LIMN, err); return 1;
+  }
+  
+  vertIdx = 0;
+  for (vIdx=0; vIdx<vRes; vIdx++) {
+    vv = AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0);
+    for (uIdx=0; uIdx<uRes; uIdx++) {
+      uu = AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0);
+      ELL_4V_SET(srf->vert[vertIdx].xyzw, uu, vv, 0.0, 1.0);
+      ELL_4V_SET(srf->vert[vertIdx].norm, 0.0, 0.0, 1.0, 0.0);
+      ELL_4V_SET(srf->vert[vertIdx].rgba, 255, 255, 255, 255);
+      ++vertIdx;
+    }
+  }
+
+  vertIdx = 0;
+  for (primIdx=0; primIdx<primNum; primIdx++) {
+    for (uIdx=0; uIdx<uRes; uIdx++) {
+      srf->indx[vertIdx++] = uIdx + uRes*(primIdx+1);
+      srf->indx[vertIdx++] = uIdx + uRes*(primIdx);
+    }    
+    srf->type[primIdx] = limnPrimitiveTriangleStrip;
+    srf->vcnt[primIdx] = 2*uRes;
+  }
+
+  return 0;
+}
+
 /*
 ******** limnSurfaceTransform_f, limnSurfaceTransform_d
 **
