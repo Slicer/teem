@@ -27,7 +27,7 @@
 ** don't ask
 */
 void
-_hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
+_hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
   int max, len;
 
@@ -36,12 +36,16 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showlong) {
     strcpy(copy, O->flag);
     if ((sep = strchr(copy, P->multiFlagSep))) {
       *sep = 0;
-      strcat(B, "-");
-      strcat(B, copy);
+      if (showshort) {
+        strcat(B, "-");
+        strcat(B, copy);
+      }
       if (showlong) {
-        len = strlen(B);
-        B[len] = P->multiFlagSep;
-        B[len+1] = '\0';
+        if (showshort) {
+          len = strlen(B);
+          B[len] = P->multiFlagSep;
+          B[len+1] = '\0';
+        }
         strcat(B, "--");
         strcat(B, sep+1);
       }
@@ -235,7 +239,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
     strcat(buff, " ");
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
       strcat(buff, "[");
-    _hestSetBuff(buff, opt + i, parm, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_TRUE);
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
       strcat(buff, "]");
   }
@@ -249,7 +253,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 void
 hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   int i, j, len, maxlen, numOpts;
-  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
+  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE], *sep;
   hestParm *parm;
 
   parm = !_parm ? hestParmNew() : _parm;
@@ -263,35 +267,51 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   numOpts = _hestNumOpts(opt);
 
   maxlen = 0;
-  if (numOpts)
+  if (numOpts) {
     fprintf(f, "\n");
+  }
   for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);
     len = strlen(buff);
-    for (j=len; j<maxlen; j++)
+    for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
+    }
     fprintf(f, "%s = ", buff);
     strcpy(buff, "response file(s) containing command-line arguments");
     _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
   for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, parm, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
     len = strlen(buff);
-    for (j=len; j<maxlen; j++)
+    for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
-    fprintf(f, "%s = ", buff);
-    /* we've now printed some spaces, and the flag, and " = ", all of which
-       should bring us to position   */
+    }
+    fprintf(f, "%s", buff);
     strcpy(buff, "");
-    if (opt[i].info)
+#if 1
+    if (opt[i].flag
+        && (sep = strchr(opt[i].flag, parm->multiFlagSep))) {
+      /* there is a long-form flag as well as short */
+      _hestSetBuff(buff, opt + i, parm, AIR_FALSE, AIR_TRUE);
+      strcat(buff, " = ");
+      fprintf(f, " , ");
+    } else {
+      /* there is only a short-form flag */
+      fprintf(f, " = ");
+    }
+#else
+    fprintf(f, " = ");
+#endif
+    if (opt[i].info) {
       strcat(buff, opt[i].info);
+    }
     if ((opt[i].min || _hestMax(opt[i].max))
         && (!( 2 == opt[i].kind
                && airTypeEnum == opt[i].type 
