@@ -59,13 +59,13 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "second, 0 otherwise",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be float or nrrd.",
+             "First input.  Can be a single value or a nrrd.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be float or nrrd.",
+             "Second input.  Can be a single value or a nrrd.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
-             "Third input.  Can be float or nrrd.",
+             "Third input.  Can be a single value or a nrrd.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all nrrd inputs to, prior to "
