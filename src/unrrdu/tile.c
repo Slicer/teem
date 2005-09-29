@@ -44,7 +44,7 @@ unrrdu_tileMain(int argc, char **argv, char *me, hestParm *hparm) {
   unsigned int axes[3];
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "ax0 ax1", airTypeUInt, 3, 3, axes, NULL,
+  hestOptAdd(&opt, "a,axis", "axSplit ax0 ax1", airTypeUInt, 3, 3, axes, NULL,
              "axSplit is divided and merged with ax0 and ax1");
   hestOptAdd(&opt, "s,size", "fast slow", airTypeSize_t, 2, 2, size, NULL,
              "fast and slow axis sizes to produce as result of splitting "
