@@ -4,7 +4,7 @@
                Copyright (c) 2005 Gordon Kindlmann
 
 Everyone is permitted to copy and distribute verbatim copies of this
-licence document, but changing it is not allowed.
+license document, but changing it is not allowed.
 
                   MINIMAL LIBRARY PUBLIC LICENSE
   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
