@@ -105,47 +105,52 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "extension) determined by the options below. The single "
              "constraint is that detached headers are incompatible with "
              "using stdin as the data source.");
-  hestOptAdd(&opt, "i", "file", airTypeString, 1, -1, &dataFileNames, "-",
+  hestOptAdd(&opt, "i,input", "file", airTypeString, 1, -1,
+             &dataFileNames, "-",
              "Filename(s) of data file(s); use \"-\" for stdin. *OR*, can "
              "use sprintf-style format for identifying a range of numbered "
              "files, see above for details.", &nameLen);
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &type, NULL,
+  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &type, NULL,
              "type of data (e.g. \"uchar\", \"int\", \"float\", "
              "\"double\", etc.)",
              NULL, nrrdType);
-  hestOptAdd(&opt, "s", "sz0 sz1", airTypeSize_t, 1, -1, &size, NULL,
+  hestOptAdd(&opt, "s,size", "sz0 sz1", airTypeSize_t, 1, -1, &size, NULL,
              "number of samples along each axis (and implicit indicator "
              "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "fd", "fileDim", airTypeUInt, 1, 1, &dataFileDim, "0",
+  hestOptAdd(&opt, "fd,filedim", "dim", airTypeUInt, 1, 1,
+             &dataFileDim, "0",
              "When using *multiple* input data files (to \"-i\"), what is "
              "the dimension of the array data in each individual file. By "
              "default (not using this option), this dimension is assumed "
              "to be one less than the whole data dimension. ");
-  hestOptAdd(&opt, "sp", "sp0 sp1", airTypeDouble, 1, -1, &spacing, "nan",
+  hestOptAdd(&opt, "sp,spacing", "sp0 sp1", airTypeDouble, 1, -1,
+             &spacing, "nan",
              "spacing between samples on each axis.  Use \"nan\" for "
              "any non-spatial axes (e.g. spacing between red, green, and blue "
              "along axis 0 of interleaved RGB image data)", &spacingLen);
-  hestOptAdd(&opt, "th", "th0 th1", airTypeDouble, 1, -1, &thickness, "nan",
+  hestOptAdd(&opt, "th,thickness", "th0 th1", airTypeDouble, 1, -1,
+             &thickness, "nan",
              "thickness of region represented by one sample along each axis. "
              "  As with spacing, use \"nan\" for "
              "any non-spatial axes.", &thicknessLen);
-  hestOptAdd(&opt, "k", "kind0 kind1", airTypeString, 1, -1, &kinds, "",
+  hestOptAdd(&opt, "k,kind", "k0 k1", airTypeString, 1, -1, &kinds, "",
              "what \"kind\" is each axis, from the nrrdKind airEnum "
              "(e.g. space, time, 3-vector, 3D-masked-symmetric-matrix, "
              "or \"none\" to signify no kind)", &kindsLen);
-  hestOptAdd(&opt, "cn", "cent0 cent1", airTypeString, 1, -1, &centerings, "",
+  hestOptAdd(&opt, "cn,centering", "c0 c1", airTypeString, 1, -1,
+             &centerings, "",
              "kind of centering (node or cell) for each axis, or "
              "\"none\" to signify no centering", &centeringsLen);
-  hestOptAdd(&opt, "l", "lb0 lb1", airTypeString, 1, -1, &label, "",
+  hestOptAdd(&opt, "l,label", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
-  hestOptAdd(&opt, "u", "un0 un1", airTypeString, 1, -1, &units, "",
+  hestOptAdd(&opt, "u,unit", "un0 un1", airTypeString, 1, -1, &units, "",
              "short strings giving units for each of the axes", &unitsLen);
-  hestOptAdd(&opt, "c", "content", airTypeString, 1, 1, &content, "",
+  hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
              "Specifies the content string of the nrrd, which is built upon "
              "by many nrrd function to record a history of operations");
-  hestOptAdd(&opt, "ls", "lineskip", airTypeInt, 1, 1, &lineSkip, "0",
+  hestOptAdd(&opt, "ls,lineskip", "num", airTypeInt, 1, 1, &lineSkip, "0",
              "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "bs", "byteskip", airTypeInt, 1, 1, &byteSkip, "0",
+  hestOptAdd(&opt, "bs,byteskip", "num", airTypeInt, 1, 1, &byteSkip, "0",
              "number of bytes to skip (after skipping ascii lines, if any) "
              "before reading data.  Can use \"-bs -1\" to skip a binary "
              "header of unknown length in raw-encoded data");
@@ -163,9 +168,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
     strcat(encInfo, 
            "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  hestOptAdd(&opt, "e", "encoding", airTypeEnum, 1, 1, &encodingType, "raw",
+  hestOptAdd(&opt, "e,encoding", "enc", airTypeEnum, 1, 1,
+             &encodingType, "raw",
              encInfo, NULL, nrrdEncodingType);
-  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &endian,
+  hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &endian,
              airEnumStr(airEndian, airMyEndian),
              "Endianness of data; relevent for any data with value "
              "representation bigger than 8 bits, with a non-ascii encoding: "
@@ -174,33 +180,35 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\"big\" for everyone else (most significant byte first). "
              "Defaults to endianness of this machine",
              NULL, airEndian);
-  hestOptAdd(&opt, "kv", "key/val", airTypeString, 1, -1, &kvp, "",
+  hestOptAdd(&opt, "kv,keyvalue", "key/val", airTypeString, 1, -1, &kvp, "",
              "key/value string pairs to be stored in nrrd.  Each key/value "
              "pair must be a single string (put it in \"\"s "
              "if the key or the value contain spaces).  The format of each "
              "pair is \"<key>:=<value>\", with no spaces before or after "
              "\":=\".", &kvpLen);
-  hestOptAdd(&opt, "spc", "space", airTypeString, 1, 1, &spcStr, "",
+  hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
              "conceptually lives, from the nrrdSpace airEnum, which in turn "
              "determines the dimension of the space.  Or, use an integer to "
              "give the dimension of a space that nrrdSpace doesn't know about "
              "By default (not using this option), the enclosing space is "
              "set as unknown.");
-  hestOptAdd(&opt, "orig", "origin", airTypeString, 1, 1, &_origStr, "",
+  hestOptAdd(&opt, "orig,origin", "origin", airTypeString, 1, 1, &_origStr, "",
              "(NOTE: must quote vector) the origin in space of the array: "
              "the location of the center "
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
              "vector is needed to stop interpretation from the shell");
-  hestOptAdd(&opt, "dirs", "dir0 dir1 ...", airTypeString, 1, 1, &_dirStr, "",
+  hestOptAdd(&opt, "dirs,directions", "v0 v1 ...", airTypeString, 1, 1,
+             &_dirStr, "",
              "(NOTE: must quote whole vector list) The \"space directions\": "
              "the vectors in space spanned by incrementing (by one) each "
              "axis index (the column vectors of the index-to-world "
              "matrix transform), OR, \"none\" for non-spatial axes. Give "
              "one vector per axis. (Quoting around whole vector list, not "
              "individually, is needed because of limitations in the parser)");
-  hestOptAdd(&opt, "mf", "col0 col1 ...", airTypeString, 1, 1, &_mframeStr, "",
+  hestOptAdd(&opt, "mf,measurementframe", "v0 v1 ...", airTypeString, 1, 1,
+             &_mframeStr, "",
              "(NOTE: must quote whole vector list). Each vector is a *column* "
              "vector of the matrix which transforms from coordinates in "
              "measurement frame (in which the coefficients of vectors and "
@@ -208,16 +216,17 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\"-spc\"). This is not a per-axis field: the column vectors "
              "comprise a D-by-D square matrix, where D is the dimension of "
              "world space.");
-  hestOptAdd(&opt, "spu", "spu0 spu1", airTypeString, 1, -1, &spunits, "",
+  hestOptAdd(&opt, "spu,spaceunit", "su0 su1", airTypeString, 1, -1,
+             &spunits, "",
              "short strings giving units with which the coefficients of the "
              "space origin and direction vectors are measured.", &spunitsLen);
-  hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &out, "-",
+  hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, 1, &out, "-",
              "output filename.  If \"-h\" has been used, the output file is "
              "always a detached header.  Otherwise, use extension "
              "\".nrrd\" to signal creation of self-contained nrrd, and "
              "\".nhdr\" to signal creating of a detached header with "
              "(single) data file.");
-  hestOptAdd(&opt, "od", "name", airTypeString, 1, 1, &outData, "",
+  hestOptAdd(&opt, "od,outputdata", "name", airTypeString, 1, 1, &outData, "",
              "when *not* using \"-h\" and saving to a \".nhdr\" file, using "
              "this option allows you to explicitly name the data file, "
              "instead of (by default, not using this option) having it be "

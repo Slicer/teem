@@ -46,22 +46,22 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
   int typeOut, rescale, pret, blind8BitRange;
   double min, max;
 
-  hestOptAdd(&opt, "m", "map", airTypeOther, 1, 1, &nmap, NULL,
+  hestOptAdd(&opt, "m,map", "map", airTypeOther, 1, 1, &nmap, NULL,
              "irregular map to map input nrrd through",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "l", "aclLen", airTypeUInt, 1, 1, &aclLen, "0",
+  hestOptAdd(&opt, "l,length", "aclLen", airTypeUInt, 1, 1, &aclLen, "0",
              "length of accelerator array, used to try to speed-up "
              "task of finding between which pair of control points "
              "a given value lies.  Not terribly useful for small maps "
              "(about 10 points or less).  Use 0 to turn accelorator off. ");
-  hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
+  hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
              "rescale the input values from the input range to the "
              "map domain");
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Low end of input range. Defaults to lowest value "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "High end of input range. Defaults to highest value "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
@@ -70,7 +70,7 @@ unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Whether to know the range of 8-bit data blindly "
              "(uchar is always [0,255], signed char is [-128,127]). "
              "Explicitly setting this is useful only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &typeOut, "default",
              "specify the type (\"int\", \"float\", etc.) of the "
              "output nrrd. "
              "By default (not using this option), the output type "

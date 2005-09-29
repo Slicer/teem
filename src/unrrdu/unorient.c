@@ -39,7 +39,7 @@ unrrdu_unorientMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* if we gave a default for this, then there it would fine to have 
      no command-line arguments whatsoever, and then the user would not
      know how to get the basic usage information */
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input nrrd "
              "(sorry, can't use usual default of \"-\" for stdin "
              "because of hest quirk)",

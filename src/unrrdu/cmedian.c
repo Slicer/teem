@@ -46,28 +46,28 @@ unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   float wght;
 
-  hestOptAdd(&opt, "r", "radius", airTypeUInt, 1, 1, &radius, NULL,
+  hestOptAdd(&opt, "r,radius", "radius", airTypeUInt, 1, 1, &radius, NULL,
              "how big a window to filter over. \"-r 1\" leads to a "
              "3x3 window in an image, and a 3x3x3 window in a volume");
   hestOptAdd(&opt, "mode", NULL, airTypeInt, 0, 0, &mode, NULL,
              "By default, median filtering is done.  Using this option "
              "enables mode filtering, in which the most common value is "
              "used as output");
-  hestOptAdd(&opt, "b", "bins", airTypeUInt, 1, 1, &bins, "256",
+  hestOptAdd(&opt, "b,bins", "num", airTypeUInt, 1, 1, &bins, "256",
              "# of bins in histogram.  It is in your interest to minimize "
              "this number, since big histograms mean slower execution "
              "times.  8-bit data needs at most 256 bins.");
-  hestOptAdd(&opt, "w", "weight", airTypeFloat, 1, 1, &wght, "1.0",
+  hestOptAdd(&opt, "w,weight", "weight", airTypeFloat, 1, 1, &wght, "1.0",
              "How much higher to preferentially weight samples that are "
              "closer to the center of the window.  \"1.0\" weight means that "
              "all samples are uniformly weighted over the window, which "
              "facilitates a simple speed-up. ");
-  hestOptAdd(&opt, "p", NULL, airTypeInt, 0, 0, &pad, NULL,
+  hestOptAdd(&opt, "p,pad", NULL, airTypeInt, 0, 0, &pad, NULL,
              "Pad the input (with boundary method \"bleed\"), "
              "and crop the output, so as to "
              "overcome our cheapness and correctly "
              "handle the border.  Obviously, this takes more memory.");
-  hestOptAdd(&opt, "c", NULL, airTypeInt, 0, 0, &chan, NULL,
+  hestOptAdd(&opt, "c,channel", NULL, airTypeInt, 0, 0, &chan, NULL,
              "Slice the input along axis 0, run filtering on all slices, "
              "and join the results back together.  This is the way you'd "
              "want to process color (multi-channel) images or volumes.");

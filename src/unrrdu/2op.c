@@ -65,7 +65,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
              "Second input.  Can be float or nrrd.",
              NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all INPUT nrrds to, prior to "
              "doing operation, useful for doing, for instance, the difference "
              "between two unsigned char nrrds.  This will also determine "

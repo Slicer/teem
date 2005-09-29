@@ -37,18 +37,18 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdRange *range;
   airArray *mop;
 
-  hestOptAdd(&opt, "b", "bins", airTypeUInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b,bins", "num", airTypeUInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
-  hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
+  hestOptAdd(&opt, "w,weight", "nweight", airTypeOther, 1, 1, &nwght, "",
              "how to weigh contributions to joint histogram.  By default "
              "(not using this option), the increment is one bin count per "
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Value at low end of histogram. Defaults to lowest value "
              "found in input nrrd.");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value at high end of histogram. Defaults to highest value "
              "found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,

@@ -44,16 +44,16 @@ extern "C" {
 */
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc) \
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
+  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
              NULL, NULL, nrrdHestNrrd)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc) \
-  hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &(var), "-", desc)
+  hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, 1, &(var), "-", desc)
 
 /* unsigned int var */
 #define OPT_ADD_AXIS(var, desc) \
-  hestOptAdd(&opt, "a", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
+  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
 
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, var, desc, saw) \
@@ -62,7 +62,7 @@ extern "C" {
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc, dflt) \
-  hestOptAdd(&opt, "t", "type", airTypeEnum, 1, 1, &(var), dflt, desc, \
+  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(var), dflt, desc, \
              NULL, nrrdType)
 
 /*

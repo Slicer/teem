@@ -67,7 +67,7 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
              "Third input.  Can be float or nrrd.",
              NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all nrrd inputs to, prior to "
              "doing operation.  This also determines output type. "
              "By default (not using this option), the types of the input "

@@ -36,12 +36,13 @@ unrrdu_unquantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   /* mandatory arg so that "unu unquantize" produces usage info */
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd",
+  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
+             "input nrrd",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &oldMin, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &oldMin, "nan",
              "Lowest value prior to quantization.  Defaults to "
              "nin->oldMin if it exists, otherwise 0.0");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &oldMax, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &oldMax, "nan",
              "Highest value prior to quantization.  Defaults to "
              "nin->oldMax if it exists, otherwise 1.0");
   hestOptAdd(&opt, "double", NULL, airTypeBool, 0, 0, &dbl, NULL,

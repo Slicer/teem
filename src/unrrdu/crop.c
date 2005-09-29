@@ -36,13 +36,13 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 
-  OPT_ADD_BOUND("min", minOff,
+  OPT_ADD_BOUND("min,minimum", minOff,
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box.  Besides "
+  OPT_ADD_BOUND("max,maximum", maxOff, "high corner of bounding box.  Besides "
                 "the specification styles described above, there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);

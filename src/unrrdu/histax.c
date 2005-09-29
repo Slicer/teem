@@ -39,13 +39,13 @@ unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdRange *range;
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b,bin", "bins", airTypeInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Value at low end of histogram. Defaults to lowest value "
              "found in input nrrd.");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value at high end of histogram. Defaults to highest value "
              "found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,

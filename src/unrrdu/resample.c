@@ -55,7 +55,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   info = nrrdResampleInfoNew();
   airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   hparm->elideSingleOtherDefault = AIR_FALSE;
-  hestOptAdd(&opt, "s", "sz0", airTypeOther, 1, -1, &scale, NULL,
+  hestOptAdd(&opt, "s,size", "sz0", airTypeOther, 1, -1, &scale, NULL,
              "For each axis, information about how many samples in output:\n "
              "\b\bo \"=\": leave this axis completely untouched: no "
              "resampling whatsoever\n "
@@ -65,7 +65,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "the number of samples unchanged\n "
              "\b\bo \"<int>\": exact number of output samples",
              &scaleLen, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&opt, "k", "kern", airTypeOther, 1, 1, &unuk, "cubic:0,0.5",
+  hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk,
+             "cubic:0,0.5",
              "The kernel to use for resampling.  Possibilities include:\n "
              "\b\bo \"box\": nearest neighbor interpolation\n "
              "\b\bo \"tent\": linear interpolation\n "
@@ -86,37 +87,39 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "is sometimes needed to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
-  hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
-             "when downsampling (reducing number of samples), don't "
-             "try to do correct filtering by scaling kernel to match "
-             "new (stretched) index space; keep it in old index space. "
-             "When used in conjunction with \"-k box\", this can implement "
-             "subsampling which chooses every Nth value. ");
-  hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
+  hestOptAdd(&opt, "b,boundary", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
              "\b\bo \"bleed\": extend border values outward\n "
              "\b\bo \"wrap\": wrap-around to other side", 
              NULL, nrrdBoundary);
-  hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
+  hestOptAdd(&opt, "v,value", "value", airTypeDouble, 1, 1, &padVal, "0.0",
              "for \"pad\" boundary behavior, pad with this value");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to save OUTPUT as. By default (not using this option), "
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   hestOptAdd(&opt, "old", NULL, airTypeInt, 0, 0, &older, NULL,
              "instead of using the new nrrdResampleContext implementation, "
              "use the old nrrdSpatialResample implementation");
-  hestOptAdd(&opt, "c", "center", airTypeEnum, 1, 1, &defaultCenter,
+  hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
+             "(only with \"-old\") "
+             "when downsampling (reducing number of samples), don't "
+             "try to do correct filtering by scaling kernel to match "
+             "new (stretched) index space; keep it in old index space. "
+             "When used in conjunction with \"-k box\", this can implement "
+             "subsampling which chooses every Nth value. ");
+  hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &defaultCenter,
              (nrrdCenterCell == nrrdDefaultCenter
               ? "cell"
               : "node"),
+             "(not available with \"-old\") "
              "default centering of axes when input nrrd "
-             "axes don't have a known centering: \"cell\" or \"node\" "
-             "(not available with \"-old\")",
+             "axes don't have a known centering: \"cell\" or \"node\" ",
              NULL, nrrdCenter);
   hestOptAdd(&opt, "verbose", NULL, airTypeInt, 0, 0, &verbose, NULL,
-             "with \"-new\", turn on verbosity");
+             "(not available with \"-old\") "
+             "turn on verbosity ");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

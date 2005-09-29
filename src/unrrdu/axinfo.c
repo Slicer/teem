@@ -40,13 +40,13 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) to modify");
-  hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
+  hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
              "label to associate with axis");
-  hestOptAdd(&opt, "u", "units", airTypeString, 1, 1, &units, "",
+  hestOptAdd(&opt, "u,units", "units", airTypeString, 1, 1, &units, "",
              "units of measurement");
-  hestOptAdd(&opt, "mm", "min max", airTypeDouble, 2, 2, mm, "nan nan",
+  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
              "min and max values along axis");
-  hestOptAdd(&opt, "sp", "spacing", airTypeDouble, 1, 1, &spc, "nan",
+  hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
              "spacing between samples along axis");
   /* HEY: this is currently a fundamental (but only rarely annoying)
      problem in hest.  Because there is functionally no difference
@@ -56,7 +56,7 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
      if its not used, DON'T DO ANYTHING".  The games of setting strings
      to "" and floats/doubles to NaN are ways of compensating for
      this.  However, there is no analogous trick for airEnums.
-  hestOptAdd(&opt, "c", "center", airTypeEnum, 1, 1, &cent, "unknown",
+  hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &cent, "unknown",
              "centering of axis: \"cell\" or \"node\"", 
              NULL, nrrdCenter);
   */

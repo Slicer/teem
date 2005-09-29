@@ -43,11 +43,11 @@ unrrdu_projectMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to project along");
-  hestOptAdd(&opt, "m", "measr", airTypeEnum, 1, 1, &measr, NULL,
+  hestOptAdd(&opt, "m,measure", "measr", airTypeEnum, 1, 1, &measr, NULL,
              "How to \"measure\" a scanline, by summarizing all its values "
              "with a single scalar. " NRRD_MEASURE_DESC,
              NULL, nrrdMeasure);
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to use for output. By default (not using this option), "
              "the output type is determined auto-magically",
              NULL, NULL, &unrrduHestMaybeTypeCB);

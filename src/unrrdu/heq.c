@@ -49,19 +49,19 @@ unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdDefWriteBareTable = AIR_FALSE;
   */
 
-  hestOptAdd(&opt, "b", "bins", airTypeInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b,bin", "bins", airTypeInt, 1, 1, &bins, NULL,
              "# bins to use in histogram that is created in order to "
              "calculate the mapping that achieves the equalization.");
-  hestOptAdd(&opt, "s", "bins", airTypeInt, 0, 1, &smart, "0",
+  hestOptAdd(&opt, "s,smart", "bins", airTypeInt, 0, 1, &smart, "0",
              "# bins in value histogram to ignore in calculating the mapping. "
              "Bins are ignored when they get more hits than other bins, and "
              "when the values that fall in them are constant.  This is an "
              "effective way to prevent large regions of background value "
              "from distorting the equalization mapping.");
-  hestOptAdd(&opt, "a", "amount", airTypeFloat, 1, 1, &amount, "1.0",
+  hestOptAdd(&opt, "a,amount", "amount", airTypeFloat, 1, 1, &amount, "1.0",
              "extent to which the histogram equalizing mapping should be "
              "applied; 0.0: no change, 1.0: full equalization");
-  hestOptAdd(&opt, "m", "filename", airTypeString, 1, 1, &mapS, "",
+  hestOptAdd(&opt, "m,map", "filename", airTypeString, 1, 1, &mapS, "",
              "The value mapping used to achieve histogram equalization is "
              "represented by a univariate regular map.  By giving a filename "
              "here, that map can be saved out and applied to other nrrds "

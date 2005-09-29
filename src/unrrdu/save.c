@@ -68,7 +68,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   strcat(fmtInfo,
          "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f", "format", airTypeEnum, 1, 1, &formatType, NULL,
+  hestOptAdd(&opt, "f,format", "form", airTypeEnum, 1, 1, &formatType, NULL,
              fmtInfo, NULL, nrrdFormatType);
   strcpy(encInfo,
          "encoding of data in file.  Not all encodings are supported in "
@@ -95,9 +95,9 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
            "\b\bo \"f\": specialized for filtered data\n "
            "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
-  hestOptAdd(&opt, "e", "encoding", airTypeOther, 1, 1, enc, "raw",
+  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw",
              encInfo, NULL, NULL, &unrrduHestEncodingCB);
-  hestOptAdd(&opt, "en", "endian", airTypeEnum, 1, 1, &(nio->endian),
+  hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
              airEnumStr(airEndian, airMyEndian),
              "Endianness to save data out as; \"little\" for Intel and "
              "friends; \"big\" for everyone else. "
@@ -105,7 +105,7 @@ unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, airEndian);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
-  hestOptAdd(&opt, "od", "name", airTypeString, 1, 1, &outData, "",
+  hestOptAdd(&opt, "od,ouputdata", "name", airTypeString, 1, 1, &outData, "",
              "when saving to a \".nhdr\" file, "
              "this option allows you to explicitly name the data file, "
              "instead of (by default, not using this option) having it be "

@@ -43,20 +43,20 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
   double min, max;
   NrrdRange *range=NULL;
 
-  hestOptAdd(&opt, "m", "lut", airTypeOther, 1, 1, &nlut, NULL,
+  hestOptAdd(&opt, "m,map", "lut", airTypeOther, 1, 1, &nlut, NULL,
              "lookup table to map input nrrd through",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &rescale, NULL,
+  hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
              "rescale the input values from the input range to the "
              "lut domain.  The lut domain is either explicitly "
              "defined by the axis min,max along axis 0 or 1, or, it "
              "is implicitly defined as zero to the length of that axis "
              "minus one.");
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Low end of input range. Defaults to lowest value "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "High end of input range. Defaults to highest value "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
@@ -65,7 +65,7 @@ unrrdu_lutMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Whether to know the range of 8-bit data blindly "
              "(uchar is always [0,255], signed char is [-128,127]). "
              "Explicitly setting this is useful only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &typeOut, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &typeOut, "default",
              "specify the type (\"int\", \"float\", etc.) of the "
              "output nrrd. "
              "By default (not using this option), the output type "

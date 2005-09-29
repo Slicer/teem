@@ -37,23 +37,24 @@ unrrdu_padMain(int argc, char **argv, char *me, hestParm *hparm) {
   double padVal;
   airArray *mop;
 
-  OPT_ADD_BOUND("min", minOff,
+  OPT_ADD_BOUND("min,minimum", minOff,
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  OPT_ADD_BOUND("max", maxOff, "high corner of bounding box.  Besides "
-                "the specification styles described above, there's also:\n "
+  OPT_ADD_BOUND("max,maximum", maxOff, "high corner of bounding box.  "
+                "Besides the specification styles described above, "
+                "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);
-  hestOptAdd(&opt, "b", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
+  hestOptAdd(&opt, "b,boundary", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
              "\b\bo \"bleed\": extend border values outward\n "
              "\b\bo \"wrap\": wrap-around to other side", 
              NULL, nrrdBoundary);
-  hestOptAdd(&opt, "v", "value", airTypeDouble, 1, 1, &padVal, "0.0",
+  hestOptAdd(&opt, "v,value", "val", airTypeDouble, 1, 1, &padVal, "0.0",
              "for \"pad\" boundary behavior, pad with this value");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

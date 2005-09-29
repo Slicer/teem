@@ -45,21 +45,23 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   double *min, *max;
   NrrdRange **range;
 
-  hestOptAdd(&opt, "b", "bins0 bins1", airTypeSize_t, 2, -1, &bin, NULL,
+  hestOptAdd(&opt, "b,bin", "bins0 bins1", airTypeSize_t, 2, -1, &bin, NULL,
              "bins<i> is the number of bins to use along axis i (of joint "
              "histogram), which represents the values of nin<i> ",
              &binLen);
-  hestOptAdd(&opt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
+  hestOptAdd(&opt, "w,weight", "nweight", airTypeOther, 1, 1, &nwght, "",
              "how to weigh contributions to joint histogram.  By default "
              "(not using this option), the increment is one bin count per "
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min", "min0 min1", airTypeDouble, 2, -1, &min, "nan nan",
+  hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, -1,
+             &min, "nan nan",
              "min<i> is the low range of values to be quantized along "
              "axis i; use \"nan\" to represent lowest value present ",
              &minLen);
-  hestOptAdd(&opt, "max", "max0 max1", airTypeDouble, 2, -1, &max, "nan nan",
+  hestOptAdd(&opt, "max,maximum", "max0 max1", airTypeDouble, 2, -1,
+             &max, "nan nan",
              "max<i> is the high range of values to be quantized along "
              "axis i; use \"nan\" to represent highest value present ",
              &maxLen);
@@ -67,7 +69,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
                "counts in the joint histogram).  Clamping is done on hit "
                "counts so that they never overflow a fixed-point type",
                "uint");
-  hestOptAdd(&opt, "i", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
+  hestOptAdd(&opt, "i,input", "nin0 nin1", airTypeOther, 2, -1, &nin, NULL,
              "All input nrrds",
              &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");

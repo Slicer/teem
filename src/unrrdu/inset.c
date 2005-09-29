@@ -37,14 +37,14 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
   size_t min[NRRD_DIM_MAX];
   airArray *mop;
 
-  OPT_ADD_BOUND("min", minOff,
+  OPT_ADD_BOUND("min,minimum", minOff,
                 "coordinates of where to locate sub-volume within "
                 "input nrrd.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  hestOptAdd(&opt, "s", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
+  hestOptAdd(&opt, "s,subset", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
              "sub-region nrrd.  This the data to be inset in \"nin\"",
              NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");

@@ -53,9 +53,9 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "s", "start", airTypeInt, 1, 1, &start, "0",
+  hestOptAdd(&opt, "s,start", "start", airTypeInt, 1, 1, &start, "0",
              "integer value to start numbering with");
-  hestOptAdd(&opt, "ff", "form", airTypeString, 1, 1, &ftmpl, "",
+  hestOptAdd(&opt, "ff,format", "form", airTypeString, 1, 1, &ftmpl, "",
              "a printf-style format to use for generating all "
              "filenames.  Use this to override the number of characters "
              "used to represent the slice position, or the file format "
@@ -63,7 +63,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
              "001.ppm, etc. By default (not using this option), slices "
              "are saved in NRRD format (or PNM or PNG where possible) "
              "with shortest possible filenames.");
-  hestOptAdd(&opt, "o", "prefix", airTypeString, 1, 1, &base, NULL,
+  hestOptAdd(&opt, "o,output", "prefix", airTypeString, 1, 1, &base, NULL,
              "output filename prefix (excluding info set via \"-ff\"), "
              "basically to set path of output files (so be sure to end "
              "with \"/\".");

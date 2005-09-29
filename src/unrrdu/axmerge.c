@@ -40,7 +40,7 @@ unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   unsigned int ii, jj, axesLen;
   airArray *mop;
 
-  hestOptAdd(&opt, "a", "ax0", airTypeInt, 1, -1, &axes, NULL,
+  hestOptAdd(&opt, "a,axis", "ax0", airTypeInt, 1, -1, &axes, NULL,
              "axis (or axes) to merge.  Each axis index identified is the "
              "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
              "means to merge axis 2 and axis 3 into axis 2.  If multiple "

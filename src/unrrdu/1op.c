@@ -48,9 +48,9 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"abs\": absolute value\n "
              "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
              "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
-             "\b\bo \"rand\": random number in [0.0,1.0), no relation to input",
+             "\b\bo \"rand\": random value in [0.0,1.0), no relation to input",
              NULL, nrrdUnaryOp);
-  hestOptAdd(&opt, "t", "type", airTypeOther, 1, 1, &type, "default",
+  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "convert input nrrd to this type prior to "
              "doing operation.  Useful when desired output is float "
              "(e.g., with log1p), but input is integral. By default "

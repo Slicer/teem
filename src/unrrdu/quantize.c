@@ -43,17 +43,17 @@ unrrdu_quantizeMain(int argc, char **argv, char *me, hestParm *hparm) {
   NrrdRange *range;
   airArray *mop;
 
-  hestOptAdd(&opt, "b", "bits", airTypeOther, 1, 1, &bits, NULL,
+  hestOptAdd(&opt, "b,bits", "bits", airTypeOther, 1, 1, &bits, NULL,
              "Number of bits to quantize down to; determines the type "
              "of the output nrrd:\n "
              "\b\bo \"8\": unsigned char\n "
              "\b\bo \"16\": unsigned short\n "
              "\b\bo \"32\": unsigned int",
              NULL, NULL, &unrrduHestBitsCB);
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Value to map to zero. Defaults to lowest value found in "
              "input nrrd.");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value to map to highest unsigned integral value. "
              "Defaults to highest value found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,

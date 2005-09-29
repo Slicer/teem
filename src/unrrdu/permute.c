@@ -39,7 +39,7 @@ unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   airArray *mop;
 
-  hestOptAdd(&opt, "p", "ax0 ax1", airTypeUInt, 1, -1, &perm, NULL,
+  hestOptAdd(&opt, "p,permute", "ax0 ax1", airTypeUInt, 1, -1, &perm, NULL,
              "new axis ordering", &permLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

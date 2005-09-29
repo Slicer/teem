@@ -41,21 +41,23 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, maxSize, dir, maxNeigh, revalue;
   unsigned int conny;
 
-  hestOptAdd(&opt, "d", "dir", airTypeInt, 1, 1, &dir, "0",
+  hestOptAdd(&opt, "d,directed", "dir", airTypeInt, 1, 1, &dir, "0",
              "do value-driven merging.  Using (positive) \"1\" says that "
              "dark islands get merged with bright surrounds, while \"-1\" "
              "says the opposite.  By default, merging can go either way. ");
-  hestOptAdd(&opt, "s", "max size", airTypeInt, 1, 1, &maxSize, "0",
+  hestOptAdd(&opt, "s,size", "max size", airTypeInt, 1, 1, &maxSize, "0",
              "a cap on the CC size that will be absorbed into its "
              "surround.  CCs larger than this are deemed too significant "
              "to mess with.  Or, use \"0\" to remove any such restriction "
              "on merging.");
-  hestOptAdd(&opt, "n", "max # neigh", airTypeInt, 1, 1, &maxNeigh, "1",
+  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1,
+             &maxNeigh, "1",
              "a cap on the number of neighbors that a CC may have if it is "
              "to be be merged.  \"1\" allows only islands to be merged, "
              "\"2\" does merging with bigger of two neighbors, etc, while "
              "\"0\" says that number of neighbors is no constraint");
-  hestOptAdd(&opt, "c", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
+  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1,
+             &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
@@ -64,7 +66,7 @@ unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "are re-assigned their original datavalues, as given by "
              "the \"-v\" option");
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "v", "values", airTypeOther, 1, 1, &nval, "",
+  hestOptAdd(&opt, "v,values", "values", airTypeOther, 1, 1, &nval, "",
              "result of using \"ccfind -v\", the record of which values "
              "were originally associated with each CC.  This is required "
              "for value-directed merging (with non-zero \"-d\" option), "

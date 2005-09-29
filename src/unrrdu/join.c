@@ -49,7 +49,7 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&opt, "i", "nin0", airTypeOther, 1, -1, &nin, NULL,
+  hestOptAdd(&opt, "i,input", "nin0", airTypeOther, 1, -1, &nin, NULL,
              "everything to be joined together",
              &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_AXIS(axis, "axis to join along");
@@ -59,11 +59,11 @@ unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
              "axis should be *inserted*, and the output dimension should "
              "be one greater than input dimension.  Without this flag, the "
              "nrrds are joined side-by-side, along an existing axis.");
-  hestOptAdd(&opt, "l", "label", airTypeString, 1, 1, &label, "",
+  hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
              "label to associate with join axis");
-  hestOptAdd(&opt, "mm", "min max", airTypeDouble, 2, 2, mm, "nan nan",
+  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
              "min and max values along join axis");
-  hestOptAdd(&opt, "sp", "spacing", airTypeDouble, 1, 1, &spc, "nan",
+  hestOptAdd(&opt, "sp,spacing", "spc", airTypeDouble, 1, 1, &spc, "nan",
              "spacing between samples along join axis");
   OPT_ADD_NOUT(out, "output nrrd");
 

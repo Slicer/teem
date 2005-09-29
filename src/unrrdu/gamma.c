@@ -40,13 +40,13 @@ unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret, blind8BitRange;
   NrrdRange *range;
 
-  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
+  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
              "Negative gammas invert values (like in xv). ");
-  hestOptAdd(&opt, "min", "value", airTypeDouble, 1, 1, &min, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Value to implicitly map to 0.0 prior to calling pow(). "
              "Defaults to lowest value found in input nrrd.");
-  hestOptAdd(&opt, "max", "value", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
              "Value to implicitly map to 1.0 prior to calling pow(). "
              "Defaults to highest value found in input nrrd.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,

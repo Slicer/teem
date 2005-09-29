@@ -42,7 +42,7 @@ unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
   unsigned axis;
   airArray *mop;
 
-  hestOptAdd(&opt, "a", "axis", airTypeInt, 1, 1, &_axis, NULL, 
+  hestOptAdd(&opt, "a,axis", "axis", airTypeInt, 1, 1, &_axis, NULL, 
              "dimension (axis index) of the axis to remove");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

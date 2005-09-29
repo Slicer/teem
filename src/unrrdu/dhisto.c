@@ -35,12 +35,13 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   double max;
 
-  hestOptAdd(&opt, "h", "height", airTypeInt, 1, 1, &size, NULL,
+  hestOptAdd(&opt, "h,height", "height", airTypeInt, 1, 1, &size, NULL,
              "height of output image (horizontal size is determined by "
              "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
              "do not show the log-scaled histogram with decade tick-marks");
-  hestOptAdd(&opt, "max", "max # hits", airTypeDouble, 1, 1, &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "max # hits", airTypeDouble, 1, 1,
+             &max, "nan",
              "constrain the top of the drawn histogram to be at this "
              "number of hits.  This will either scale the drawn histogram "
              "downward or clip its top, depending on whether the given max "
