@@ -32,6 +32,16 @@
 #include <teem/gage.h>
 #include <teem/ten.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define PUSH_EXPORT extern __declspec(dllexport)
+#  else
+#    define PUSH_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define PUSH_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -251,36 +261,36 @@ typedef struct pushContext_t {
 } pushContext;
 
 /* defaultsPush.c */
-TEEM_API const char *pushBiffKey;
+PUSH_EXPORT const char *pushBiffKey;
 
 /* methodsPush.c */
-TEEM_API pushThing *pushThingNew(unsigned int numVert);
-TEEM_API pushThing *pushThingNix(pushThing *thg);
-TEEM_API void pushBinInit(pushBin *bin, unsigned int incr);
-TEEM_API void pushBinDone(pushBin *bin);
-TEEM_API pushContext *pushContextNew(void);
-TEEM_API pushContext *pushContextNix(pushContext *pctx);
+PUSH_EXPORT pushThing *pushThingNew(unsigned int numVert);
+PUSH_EXPORT pushThing *pushThingNix(pushThing *thg);
+PUSH_EXPORT void pushBinInit(pushBin *bin, unsigned int incr);
+PUSH_EXPORT void pushBinDone(pushBin *bin);
+PUSH_EXPORT pushContext *pushContextNew(void);
+PUSH_EXPORT pushContext *pushContextNix(pushContext *pctx);
 
 /* forces.c */
-TEEM_API pushForce *pushForceParse(const char *str);
-TEEM_API pushForce *pushForceNix(pushForce *force);
-TEEM_API hestCB *pushHestForce;
+PUSH_EXPORT pushForce *pushForceParse(const char *str);
+PUSH_EXPORT pushForce *pushForceNix(pushForce *force);
+PUSH_EXPORT hestCB *pushHestForce;
 
 /* corePush.c */
-TEEM_API int pushStart(pushContext *pctx);
-TEEM_API int pushIterate(pushContext *pctx);
-TEEM_API int pushRun(pushContext *pctx);
-TEEM_API int pushFinish(pushContext *pctx);
+PUSH_EXPORT int pushStart(pushContext *pctx);
+PUSH_EXPORT int pushIterate(pushContext *pctx);
+PUSH_EXPORT int pushRun(pushContext *pctx);
+PUSH_EXPORT int pushFinish(pushContext *pctx);
 
 /* binning.c */
-TEEM_API int pushBinThingAdd(pushContext *pctx, pushThing *thing);
-TEEM_API int pushBinPointAdd(pushContext *pctx, pushPoint *point);
-TEEM_API void pushBinAllNeighborSet(pushContext *pctx);
-TEEM_API int pushRebin(pushContext *pctx);
+PUSH_EXPORT int pushBinThingAdd(pushContext *pctx, pushThing *thing);
+PUSH_EXPORT int pushBinPointAdd(pushContext *pctx, pushPoint *point);
+PUSH_EXPORT void pushBinAllNeighborSet(pushContext *pctx);
+PUSH_EXPORT int pushRebin(pushContext *pctx);
 
 /* action.c */
-TEEM_API int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut, 
-                           pushContext *pctx);
+PUSH_EXPORT int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut, 
+                              pushContext *pctx);
 
 #ifdef __cplusplus
 }

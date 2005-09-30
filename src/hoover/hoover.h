@@ -33,6 +33,16 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define HOOVER_EXPORT extern __declspec(dllexport)
+#  else
+#    define HOOVER_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define HOOVER_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -250,26 +260,27 @@ enum {
 };
 
 /* defaultsHoover.c */
-TEEM_API const char *hooverBiffKey;
-TEEM_API int hooverDefVolCentering;
-TEEM_API int hooverDefImgCentering;
+HOOVER_EXPORT const char *hooverBiffKey;
+HOOVER_EXPORT int hooverDefVolCentering;
+HOOVER_EXPORT int hooverDefImgCentering;
 
 /* methodsHoover.c */
-TEEM_API hooverContext *hooverContextNew();
-TEEM_API int hooverContextCheck(hooverContext *ctx);
-TEEM_API void hooverContextNix(hooverContext *ctx);
+HOOVER_EXPORT hooverContext *hooverContextNew();
+HOOVER_EXPORT int hooverContextCheck(hooverContext *ctx);
+HOOVER_EXPORT void hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
-TEEM_API int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
+HOOVER_EXPORT int hooverRender(hooverContext *ctx,
+                               int *errCodeP, int *errThreadP);
 
 /* stub.c */
-TEEM_API hooverRenderBegin_t hooverStubRenderBegin;
-TEEM_API hooverThreadBegin_t hooverStubThreadBegin;
-TEEM_API hooverRayBegin_t hooverStubRayBegin;
-TEEM_API hooverSample_t hooverStubSample;
-TEEM_API hooverRayEnd_t hooverStubRayEnd;
-TEEM_API hooverThreadEnd_t hooverStubThreadEnd;
-TEEM_API hooverRenderEnd_t hooverStubRenderEnd;
+HOOVER_EXPORT hooverRenderBegin_t hooverStubRenderBegin;
+HOOVER_EXPORT hooverThreadBegin_t hooverStubThreadBegin;
+HOOVER_EXPORT hooverRayBegin_t hooverStubRayBegin;
+HOOVER_EXPORT hooverSample_t hooverStubSample;
+HOOVER_EXPORT hooverRayEnd_t hooverStubRayEnd;
+HOOVER_EXPORT hooverThreadEnd_t hooverStubThreadEnd;
+HOOVER_EXPORT hooverRenderEnd_t hooverStubRenderEnd;
 
 #ifdef __cplusplus
 }

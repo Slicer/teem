@@ -34,6 +34,16 @@
 #include <teem/unrrdu.h>
 #include <teem/gage.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define BANE_EXPORT extern __declspec(dllexport)
+#  else
+#    define BANE_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define BANE_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -281,92 +291,94 @@ typedef struct {
 } baneHVolParm;
 
 /* defaultsBane.c */
-TEEM_API const char *baneBiffKey;
-TEEM_API int baneDefVerbose;
-TEEM_API int baneDefMakeMeasrVol;
-TEEM_API double baneDefIncLimit;
-TEEM_API int baneDefRenormalize;
-TEEM_API int baneDefPercHistBins;
-TEEM_API int baneStateHistEqBins;
-TEEM_API int baneStateHistEqSmart;
-TEEM_API int baneHack;
+BANE_EXPORT const char *baneBiffKey;
+BANE_EXPORT int baneDefVerbose;
+BANE_EXPORT int baneDefMakeMeasrVol;
+BANE_EXPORT double baneDefIncLimit;
+BANE_EXPORT int baneDefRenormalize;
+BANE_EXPORT int baneDefPercHistBins;
+BANE_EXPORT int baneStateHistEqBins;
+BANE_EXPORT int baneStateHistEqSmart;
+BANE_EXPORT int baneHack;
 
 /* rangeBane.c */
-TEEM_API baneRange *baneRangeNew(int type);
-TEEM_API baneRange *baneRangeCopy(baneRange *range);
-TEEM_API int baneRangeAnswer(baneRange *range,
-                             double *ominP, double *omaxP,
-                             double imin, double imax);
-TEEM_API baneRange *baneRangeNix(baneRange *range);
+BANE_EXPORT baneRange *baneRangeNew(int type);
+BANE_EXPORT baneRange *baneRangeCopy(baneRange *range);
+BANE_EXPORT int baneRangeAnswer(baneRange *range,
+                                double *ominP, double *omaxP,
+                                double imin, double imax);
+BANE_EXPORT baneRange *baneRangeNix(baneRange *range);
 
 /* inc.c */
-TEEM_API baneInc *baneIncNew(int type, baneRange *range, double *parm);
-TEEM_API void baneIncProcess(baneInc *inc, int passIdx, double val);
-TEEM_API int baneIncAnswer(baneInc *inc, double *minP, double *maxP);
-TEEM_API baneInc *baneIncCopy(baneInc *inc);
-TEEM_API baneInc *baneIncNix(baneInc *inc);
+BANE_EXPORT baneInc *baneIncNew(int type, baneRange *range, double *parm);
+BANE_EXPORT void baneIncProcess(baneInc *inc, int passIdx, double val);
+BANE_EXPORT int baneIncAnswer(baneInc *inc, double *minP, double *maxP);
+BANE_EXPORT baneInc *baneIncCopy(baneInc *inc);
+BANE_EXPORT baneInc *baneIncNix(baneInc *inc);
 
 /* clip.c */
-TEEM_API baneClip *baneClipNew(int type, double *parm);
-TEEM_API int baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol);
-TEEM_API baneClip *baneClipCopy(baneClip *clip);
-TEEM_API baneClip *baneClipNix(baneClip *clip);
+BANE_EXPORT baneClip *baneClipNew(int type, double *parm);
+BANE_EXPORT int baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol);
+BANE_EXPORT baneClip *baneClipCopy(baneClip *clip);
+BANE_EXPORT baneClip *baneClipNix(baneClip *clip);
 
 /* measr.c */
-TEEM_API baneMeasr *baneMeasrNew(int type, double *parm);
-TEEM_API double baneMeasrAnswer(baneMeasr *measr, gageContext *gctx);
-TEEM_API baneMeasr *baneMeasrCopy(baneMeasr *measr);
-TEEM_API baneMeasr *baneMeasrNix(baneMeasr *measr);
+BANE_EXPORT baneMeasr *baneMeasrNew(int type, double *parm);
+BANE_EXPORT double baneMeasrAnswer(baneMeasr *measr, gageContext *gctx);
+BANE_EXPORT baneMeasr *baneMeasrCopy(baneMeasr *measr);
+BANE_EXPORT baneMeasr *baneMeasrNix(baneMeasr *measr);
 
 /* methodsBane.c */
 /* NOTE: this is NOT a complete API, like gage has.  Currently there
    is only API for things that have to be allocated internally */
-TEEM_API baneHVolParm *baneHVolParmNew();
-TEEM_API void baneHVolParmGKMSInit(baneHVolParm *hvp);
-TEEM_API void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
-                                  unsigned int res,
-                                  baneMeasr *measr, baneInc *inc);
-TEEM_API void baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip);
-TEEM_API baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
+BANE_EXPORT baneHVolParm *baneHVolParmNew();
+BANE_EXPORT void baneHVolParmGKMSInit(baneHVolParm *hvp);
+BANE_EXPORT void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
+                                     unsigned int res,
+                                     baneMeasr *measr, baneInc *inc);
+BANE_EXPORT void baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip);
+BANE_EXPORT baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
 /* valid.c */
-TEEM_API int baneInputCheck(Nrrd *nin, baneHVolParm *hvp);
-TEEM_API int baneHVolCheck(Nrrd *hvol);
-TEEM_API int baneInfoCheck(Nrrd *info2D, int wantDim);
-TEEM_API int banePosCheck(Nrrd *pos, int wantDim);
-TEEM_API int baneBcptsCheck(Nrrd *Bcpts);
+BANE_EXPORT int baneInputCheck(Nrrd *nin, baneHVolParm *hvp);
+BANE_EXPORT int baneHVolCheck(Nrrd *hvol);
+BANE_EXPORT int baneInfoCheck(Nrrd *info2D, int wantDim);
+BANE_EXPORT int banePosCheck(Nrrd *pos, int wantDim);
+BANE_EXPORT int baneBcptsCheck(Nrrd *Bcpts);
 
 /* hvol.c */
-TEEM_API void baneProbe(double val[3],
-                        Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-                        unsigned int x, unsigned int y, unsigned int z);
-TEEM_API int baneFindInclusion(double min[3], double max[3], 
-                               Nrrd *nin, baneHVolParm *hvp, gageContext *ctx);
-TEEM_API int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
-TEEM_API Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
+BANE_EXPORT void baneProbe(double val[3],
+                           Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
+                           unsigned int x, unsigned int y, unsigned int z);
+BANE_EXPORT int baneFindInclusion(double min[3], double max[3], 
+                                  Nrrd *nin, baneHVolParm *hvp,
+                                  gageContext *ctx);
+BANE_EXPORT int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
+BANE_EXPORT Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
 
 /* trnsf.c */
-TEEM_API int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
-TEEM_API int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
-TEEM_API int baneSigmaCalc(float *sP, Nrrd *info);
-TEEM_API int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
-TEEM_API void _baneOpacCalcA(unsigned int lutLen, float *opacLut, 
-                             unsigned int numCpts, float *xo,
-                             float *pos);
-TEEM_API void _baneOpacCalcB(unsigned int lutLen, float *opacLut, 
-                             unsigned int numCpts, float *x, float *o,
-                             float *pos);
-TEEM_API int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
+BANE_EXPORT int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
+BANE_EXPORT int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
+BANE_EXPORT int baneSigmaCalc(float *sP, Nrrd *info);
+BANE_EXPORT int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
+BANE_EXPORT void _baneOpacCalcA(unsigned int lutLen, float *opacLut, 
+                                unsigned int numCpts, float *xo,
+                                float *pos);
+BANE_EXPORT void _baneOpacCalcB(unsigned int lutLen, float *opacLut, 
+                                unsigned int numCpts, float *x, float *o,
+                                float *pos);
+BANE_EXPORT int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */
-TEEM_API float *_baneTRexRead(char *fname);
-TEEM_API void _baneTRexDone();
+BANE_EXPORT float *_baneTRexRead(char *fname);
+BANE_EXPORT void _baneTRexDone();
 
 /* scat.c */
-TEEM_API int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
+BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol,
+                                    int histEq);
 
 /* gkms{Flotsam,Hvol,Scat,Pvg,Opac,Mite}.c */
-#define BANE_GKMS_DECLARE(C) TEEM_API unrrduCmd baneGkms_##C##Cmd;
+#define BANE_GKMS_DECLARE(C) BANE_EXPORT unrrduCmd baneGkms_##C##Cmd;
 #define BANE_GKMS_LIST(C) &baneGkms_##C##Cmd,
 #define BANE_GKMS_MAP(F) \
 F(hvol) \
@@ -377,12 +389,12 @@ F(opac) \
 F(mite) \
 F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
-TEEM_API airEnum *baneGkmsMeasr;
-TEEM_API unrrduCmd *baneGkmsCmdList[]; 
-TEEM_API void baneGkmsUsage(char *me, hestParm *hparm);
-TEEM_API hestCB *baneGkmsHestIncStrategy;
-TEEM_API hestCB *baneGkmsHestBEF;
-TEEM_API hestCB *baneGkmsHestGthresh;
+BANE_EXPORT airEnum *baneGkmsMeasr;
+BANE_EXPORT unrrduCmd *baneGkmsCmdList[]; 
+BANE_EXPORT void baneGkmsUsage(char *me, hestParm *hparm);
+BANE_EXPORT hestCB *baneGkmsHestIncStrategy;
+BANE_EXPORT hestCB *baneGkmsHestBEF;
+BANE_EXPORT hestCB *baneGkmsHestGthresh;
 
 #ifdef __cplusplus
 }

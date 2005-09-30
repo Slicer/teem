@@ -37,6 +37,16 @@
 
 #include "tenMacros.h"
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define TEN_EXPORT extern __declspec(dllexport)
+#  else
+#    define TEN_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define TEN_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -193,7 +203,7 @@ enum {
   tenGageTensorGradMag, /* 19: "tgm", actually a 3-vector of tensor 
                                gradient norms, one for each axis: GT[3] */
   tenGageTensorGradMagMag, /* 20: "tgmm", single scalar magnitude: GT[1] */
-
+  
   tenGageTraceGradVec,  /* 21: "trgv": gradient (vector) of trace: GT[3] */
   tenGageTraceGradMag,  /* 22: "trgm": gradient magnitude of trace: GT[1] */
   tenGageTraceNormal,   /* 23: "trn": normal of trace: GT[3] */
@@ -417,190 +427,192 @@ typedef struct {
 } tenGradientParm;
 
 /* defaultsTen.c */
-TEEM_API const char *tenBiffKey;
-TEEM_API const char tenDefFiberKernel[];
-TEEM_API double tenDefFiberStepSize;
-TEEM_API int tenDefFiberUseIndexSpace;
-TEEM_API int tenDefFiberMaxNumSteps;
-TEEM_API double tenDefFiberMaxHalfLen;
-TEEM_API int tenDefFiberAnisoType;
-TEEM_API double tenDefFiberAnisoThresh;
-TEEM_API int tenDefFiberIntg;
-TEEM_API double tenDefFiberWPunct;
+TEN_EXPORT const char *tenBiffKey;
+TEN_EXPORT const char tenDefFiberKernel[];
+TEN_EXPORT double tenDefFiberStepSize;
+TEN_EXPORT int tenDefFiberUseIndexSpace;
+TEN_EXPORT int tenDefFiberMaxNumSteps;
+TEN_EXPORT double tenDefFiberMaxHalfLen;
+TEN_EXPORT int tenDefFiberAnisoType;
+TEN_EXPORT double tenDefFiberAnisoThresh;
+TEN_EXPORT int tenDefFiberIntg;
+TEN_EXPORT double tenDefFiberWPunct;
 
 /* grads.c */
-TEEM_API tenGradientParm *tenGradientParmNew(void);
-TEEM_API tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
-TEEM_API int tenGradientCheck(const Nrrd *ngrad, int type,
-                              unsigned int minnum);
-TEEM_API int tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand);
-TEEM_API int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
-TEEM_API int tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
+TEN_EXPORT tenGradientParm *tenGradientParmNew(void);
+TEN_EXPORT tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
+TEN_EXPORT int tenGradientCheck(const Nrrd *ngrad, int type,
+                                unsigned int minnum);
+TEN_EXPORT int tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand);
+TEN_EXPORT int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
+TEN_EXPORT int tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
+                                       tenGradientParm *tgparm);
+TEN_EXPORT int tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                                      tenGradientParm *tgparm);
-TEEM_API int tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
+TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
                                    tenGradientParm *tgparm);
-TEEM_API int tenGradientGenerate(Nrrd *nout, unsigned int num,
-                                 tenGradientParm *tgparm);
 
 /* enumsTen.c */
-TEEM_API airEnum *tenAniso;
-TEEM_API airEnum _tenGage;
-TEEM_API airEnum *tenGage;
-TEEM_API airEnum *tenFiberType;
-TEEM_API airEnum *tenFiberStop;
-TEEM_API airEnum *tenGlyphType;
+TEN_EXPORT airEnum *tenAniso;
+TEN_EXPORT airEnum _tenGage;
+TEN_EXPORT airEnum *tenGage;
+TEN_EXPORT airEnum *tenFiberType;
+TEN_EXPORT airEnum *tenFiberStop;
+TEN_EXPORT airEnum *tenGlyphType;
 
 /* glyph.c */
-TEEM_API tenGlyphParm *tenGlyphParmNew();
-TEEM_API tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
-TEEM_API int tenGlyphParmCheck(tenGlyphParm *parm,
-                               const Nrrd *nten, const Nrrd *npos,
-                               const Nrrd *nslc);
-TEEM_API int tenGlyphGen(limnObject *glyphs, echoScene *scene,
-                         tenGlyphParm *parm,
-                         const Nrrd *nten, const Nrrd *npos,
-                         const Nrrd *nslc);
+TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
+TEN_EXPORT tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
+TEN_EXPORT int tenGlyphParmCheck(tenGlyphParm *parm,
+                                 const Nrrd *nten, const Nrrd *npos,
+                                 const Nrrd *nslc);
+TEN_EXPORT int tenGlyphGen(limnObject *glyphs, echoScene *scene,
+                           tenGlyphParm *parm,
+                           const Nrrd *nten, const Nrrd *npos,
+                           const Nrrd *nslc);
 
 /* tensor.c */
-TEEM_API int tenVerbose;
-TEEM_API int tenTensorCheck(const Nrrd *nin,
-                            int wantType, int want4D, int useBiff);
-TEEM_API int tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin);
-TEEM_API int tenExpand(Nrrd *tnine, const Nrrd *tseven,
-                       double scale, double thresh);
-TEEM_API int tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine);
-TEEM_API int tenEigensolve_f(float eval[3], float evec[9],
-                             const float ten[7]);
-TEEM_API int tenEigensolve_d(double eval[3], double evec[9],
-                             const double ten[7]);
-TEEM_API void tenMakeOne_f(float ten[7],
-                           float conf, float eval[3], float evec[9]);
-TEEM_API int tenMake(Nrrd *nout,
-                     const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec);
-TEEM_API int tenSlice(Nrrd *nout, const Nrrd *nten,
-                      unsigned int axis, size_t pos, unsigned int dim);
-TEEM_API void tenInvariantGradients_d(double mu1[7],
-                                      double mu2[7], double *mu2Norm,
-                                      double skw[7], double *skwNorm,
-                                      double ten[7]);
-TEEM_API void tenRotationTangents_d(double phi1[7],
-                                    double phi2[7],
-                                    double phi3[7],
-                                    double evec[9]);
-TEEM_API void tenInv_f(float inv[7], float ten[7]);
-TEEM_API void tenInv_d(double inv[7], double ten[7]);
+TEN_EXPORT int tenVerbose;
+TEN_EXPORT int tenTensorCheck(const Nrrd *nin,
+                              int wantType, int want4D, int useBiff);
+TEN_EXPORT int tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin);
+TEN_EXPORT int tenExpand(Nrrd *tnine, const Nrrd *tseven,
+                         double scale, double thresh);
+TEN_EXPORT int tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine);
+TEN_EXPORT int tenEigensolve_f(float eval[3], float evec[9],
+                               const float ten[7]);
+TEN_EXPORT int tenEigensolve_d(double eval[3], double evec[9],
+                               const double ten[7]);
+TEN_EXPORT void tenMakeOne_f(float ten[7],
+                             float conf, float eval[3], float evec[9]);
+TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
+                       const Nrrd *neval, const Nrrd *nevec);
+TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,
+                        unsigned int axis, size_t pos, unsigned int dim);
+TEN_EXPORT void tenInvariantGradients_d(double mu1[7],
+                                        double mu2[7], double *mu2Norm,
+                                        double skw[7], double *skwNorm,
+                                        double ten[7]);
+TEN_EXPORT void tenRotationTangents_d(double phi1[7],
+                                      double phi2[7],
+                                      double phi3[7],
+                                      double evec[9]);
+TEN_EXPORT void tenInv_f(float inv[7], float ten[7]);
+TEN_EXPORT void tenInv_d(double inv[7], double ten[7]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
-TEEM_API int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
-                                   double *bP, const Nrrd *ndwi);
-TEEM_API int tenBMatrixCalc(Nrrd *nbmat, const Nrrd *ngrad);
-TEEM_API int tenEMatrixCalc(Nrrd *nemat, const Nrrd *nbmat, int knownB0);
-TEEM_API void tenEstimateLinearSingle_f(float *ten, float *B0P,
-                                        const float *dwi, const double *emat,
-                                        double *vbuf, unsigned int DD,
-                                        int knownB0, float thresh,
-                                        float soft, float b);
-TEEM_API int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-                                 const Nrrd *const *ndwi, unsigned int dwiLen, 
-                                 const Nrrd *nbmat, int knownB0, 
-                                 double thresh, double soft, double b);
-TEEM_API int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
-                                 const Nrrd *ndwi, const Nrrd *_nbmat,
-                                 int knownB0,
-                                 double thresh, double soft, double b);
-TEEM_API void tenSimulateOne_f(float *dwi, float B0, const float *ten,
-                               const double *bmat, unsigned int DD, float b);
-TEEM_API int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
-                         const Nrrd *nbmat, double b);
+TEN_EXPORT int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
+                                     double *bP, const Nrrd *ndwi);
+TEN_EXPORT int tenBMatrixCalc(Nrrd *nbmat, const Nrrd *ngrad);
+TEN_EXPORT int tenEMatrixCalc(Nrrd *nemat, const Nrrd *nbmat, int knownB0);
+TEN_EXPORT void tenEstimateLinearSingle_f(float *ten, float *B0P,
+                                          const float *dwi, const double *emat,
+                                          double *vbuf, unsigned int DD,
+                                          int knownB0, float thresh,
+                                          float soft, float b);
+TEN_EXPORT int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
+                                   const Nrrd *const *ndwi,
+                                   unsigned int dwiLen, 
+                                   const Nrrd *nbmat, int knownB0, 
+                                   double thresh, double soft, double b);
+TEN_EXPORT int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
+                                   const Nrrd *ndwi, const Nrrd *_nbmat,
+                                   int knownB0,
+                                   double thresh, double soft, double b);
+TEN_EXPORT void tenSimulateOne_f(float *dwi, float B0, const float *ten,
+                                 const double *bmat, unsigned int DD, float b);
+TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
+                           const Nrrd *nbmat, double b);
 
 /* aniso.c */
-TEEM_API void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float eval[3]);
-TEEM_API int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
-                          int whole, int nanout);
-TEEM_API int tenAnisoVolume(Nrrd *nout, const Nrrd *nin,
-                            int aniso, double confThresh);
-TEEM_API int tenAnisoHistogram(Nrrd *nout, const Nrrd *nin,
-                               int version, unsigned int resolution);
+TEN_EXPORT void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float eval[3]);
+TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
+                            int whole, int nanout);
+TEN_EXPORT int tenAnisoVolume(Nrrd *nout, const Nrrd *nin,
+                              int aniso, double confThresh);
+TEN_EXPORT int tenAnisoHistogram(Nrrd *nout, const Nrrd *nin,
+                                 int version, unsigned int resolution);
 
 /* miscTen.c */
-TEEM_API int tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
-                        double cthresh, double gamma,
-                        double bgGray, double isoGray);
-TEEM_API short tenEvqOne_f(float vec[3], float scl);
-TEEM_API int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
-                          int aniso, int scaleByAniso);
-TEEM_API int tenBMatrixCheck(const Nrrd *nbmat);
-TEEM_API int _tenFindValley(double *valP, const Nrrd *nhist,
-                            double tweak, int save);
+TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
+                          double cthresh, double gamma,
+                          double bgGray, double isoGray);
+TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
+TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
+                            int aniso, int scaleByAniso);
+TEN_EXPORT int tenBMatrixCheck(const Nrrd *nbmat);
+TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
+                              double tweak, int save);
 
 /* fiberMethods.c */
-TEEM_API tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
-TEEM_API int tenFiberTypeSet(tenFiberContext *tfx, int type);
-TEEM_API int tenFiberKernelSet(tenFiberContext *tfx,
-                               const NrrdKernel *kern,
-                               double parm[NRRD_KERNEL_PARMS_NUM]);
-TEEM_API int tenFiberIntgSet(tenFiberContext *tfx, int intg);
-TEEM_API int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
-TEEM_API void tenFiberStopReset(tenFiberContext *tfx);
-TEEM_API int tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
-                                   double lerp, double thresh, double soft);
-TEEM_API int tenFiberAnisoSpeedReset(tenFiberContext *tfx);
-TEEM_API int tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
-TEEM_API int tenFiberUpdate(tenFiberContext *tfx);
-TEEM_API tenFiberContext *tenFiberContextCopy(tenFiberContext *tfx);
-TEEM_API tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
+TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
+TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
+TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
+                                 const NrrdKernel *kern,
+                                 double parm[NRRD_KERNEL_PARMS_NUM]);
+TEN_EXPORT int tenFiberIntgSet(tenFiberContext *tfx, int intg);
+TEN_EXPORT int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
+TEN_EXPORT void tenFiberStopReset(tenFiberContext *tfx);
+TEN_EXPORT int tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
+                                     double lerp, double thresh, double soft);
+TEN_EXPORT int tenFiberAnisoSpeedReset(tenFiberContext *tfx);
+TEN_EXPORT int tenFiberParmSet(tenFiberContext *tfx, int parm, double val);
+TEN_EXPORT int tenFiberUpdate(tenFiberContext *tfx);
+TEN_EXPORT tenFiberContext *tenFiberContextCopy(tenFiberContext *tfx);
+TEN_EXPORT tenFiberContext *tenFiberContextNix(tenFiberContext *tfx);
 
 /* fiber.c */
-TEEM_API int tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
-                              double *buff, unsigned int halfBuffLen,
-                              unsigned int *startIdxP, unsigned int *endIdxP,
-                              double seed[3]);
-TEEM_API int tenFiberTrace(tenFiberContext *tfx, Nrrd *fiber, double seed[3]);
+TEN_EXPORT int tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
+                                double *buff, unsigned int halfBuffLen,
+                                unsigned int *startIdxP, unsigned int *endIdxP,
+                                double seed[3]);
+TEN_EXPORT int tenFiberTrace(tenFiberContext *tfx,
+                             Nrrd *fiber, double seed[3]);
 
 /* epireg.c */
-TEEM_API int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
-                              unsigned int dwiLen, Nrrd *ngrad,
-                              int reference,
-                              double bwX, double bwY,
-                              double fitFrac, double DWthr,
-                              int doCC,
-                              const NrrdKernel *kern, double *kparm,
-                              int progress, int verbose);
-TEEM_API int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
-                              int reference,
-                              double bwX, double bwY,
-                              double fitFrac, double DWthr,
-                              int doCC, 
-                              const NrrdKernel *kern, double *kparm,
-                              int progress, int verbose);
+TEN_EXPORT int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
+                                unsigned int dwiLen, Nrrd *ngrad,
+                                int reference,
+                                double bwX, double bwY,
+                                double fitFrac, double DWthr,
+                                int doCC,
+                                const NrrdKernel *kern, double *kparm,
+                                int progress, int verbose);
+TEN_EXPORT int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
+                                int reference,
+                                double bwX, double bwY,
+                                double fitFrac, double DWthr,
+                                int doCC, 
+                                const NrrdKernel *kern, double *kparm,
+                                int progress, int verbose);
 
 /* mod.c */
-TEEM_API int tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double weight[3],
-                              double amount, double target);
-TEEM_API int tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount);
-TEEM_API int tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
-                           int fixDet, int makePositive);
-TEEM_API int tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo);
-TEEM_API int tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin,
-                                double min, double max);
-TEEM_API int tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val);
+TEN_EXPORT int tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double weight[3],
+                                double amount, double target);
+TEN_EXPORT int tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount);
+TEN_EXPORT int tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
+                             int fixDet, int makePositive);
+TEN_EXPORT int tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo);
+TEN_EXPORT int tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin,
+                                  double min, double max);
+TEN_EXPORT int tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val);
 
 /* bvec.c */
-TEEM_API int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
-                                 double *bb, double *ww,
-                                 int iterMax, double eps);
+TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
+                                   double *bb, double *ww,
+                                   int iterMax, double eps);
 
 /* tenGage.c */
-TEEM_API gageKind *tenGageKind;
+TEN_EXPORT gageKind *tenGageKind;
 
 /* bimod.c */
-TEEM_API tenEMBimodalParm* tenEMBimodalParmNew(void);
-TEEM_API tenEMBimodalParm* tenEMBimodalParmNix(tenEMBimodalParm *biparm);
-TEEM_API int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
+TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
+TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNix(tenEMBimodalParm *biparm);
+TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
 
 /* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
-#define TEND_DECLARE(C) TEEM_API unrrduCmd tend_##C##Cmd;
+#define TEND_DECLARE(C) TEN_EXPORT unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F) \
@@ -635,9 +647,9 @@ F(shrink) \
 F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
-TEEM_API unrrduCmd *tendCmdList[]; 
-TEEM_API void tendUsage(char *me, hestParm *hparm);
-TEEM_API hestCB *tendFiberStopCB;
+TEN_EXPORT unrrduCmd *tendCmdList[]; 
+TEN_EXPORT void tendUsage(char *me, hestParm *hparm);
+TEN_EXPORT hestCB *tendFiberStopCB;
 
 #ifdef __cplusplus
 }

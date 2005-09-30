@@ -36,6 +36,16 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define ECHO_EXPORT extern __declspec(dllexport)
+#  else
+#    define ECHO_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define ECHO_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -411,122 +421,124 @@ typedef struct {
 } echoIntx;
 
 /* enumsEcho.c ------------------------------------------ */
-TEEM_API airEnum *echoJitter;
-TEEM_API airEnum *echoType;
-TEEM_API airEnum *echoMatter;
+ECHO_EXPORT airEnum *echoJitter;
+ECHO_EXPORT airEnum *echoType;
+ECHO_EXPORT airEnum *echoMatter;
 
 /* methodsEcho.c --------------------------------------- */
-TEEM_API const char *echoBiffKey;
-TEEM_API echoRTParm *echoRTParmNew();
-TEEM_API echoRTParm *echoRTParmNix(echoRTParm *parm);
-TEEM_API echoGlobalState *echoGlobalStateNew();
-TEEM_API echoGlobalState *echoGlobalStateNix(echoGlobalState *state);
-TEEM_API echoThreadState *echoThreadStateNew();
-TEEM_API echoThreadState *echoThreadStateNix(echoThreadState *state);
-TEEM_API echoScene *echoSceneNew();
-TEEM_API echoScene *echoSceneNix(echoScene *scene);
+ECHO_EXPORT const char *echoBiffKey;
+ECHO_EXPORT echoRTParm *echoRTParmNew();
+ECHO_EXPORT echoRTParm *echoRTParmNix(echoRTParm *parm);
+ECHO_EXPORT echoGlobalState *echoGlobalStateNew();
+ECHO_EXPORT echoGlobalState *echoGlobalStateNix(echoGlobalState *state);
+ECHO_EXPORT echoThreadState *echoThreadStateNew();
+ECHO_EXPORT echoThreadState *echoThreadStateNix(echoThreadState *state);
+ECHO_EXPORT echoScene *echoSceneNew();
+ECHO_EXPORT echoScene *echoSceneNix(echoScene *scene);
 
 /* objmethods.c --------------------------------------- */
-TEEM_API echoObject *echoObjectNew(echoScene *scene, signed char type);
-TEEM_API int echoObjectAdd(echoScene *scene, echoObject *obj);
-TEEM_API echoObject *echoObjectNix(echoObject *obj);
+ECHO_EXPORT echoObject *echoObjectNew(echoScene *scene, signed char type);
+ECHO_EXPORT int echoObjectAdd(echoScene *scene, echoObject *obj);
+ECHO_EXPORT echoObject *echoObjectNix(echoObject *obj);
 
 /* model.c ---------------------------------------- */
-TEEM_API echoObject *echoRoughSphereNew(echoScene *scene,
-                                        int theRes, int phiRes,
-                                        echoPos_t *matx);
+ECHO_EXPORT echoObject *echoRoughSphereNew(echoScene *scene,
+                                           int theRes, int phiRes,
+                                           echoPos_t *matx);
 
 /* bounds.c --------------------------------------- */
-TEEM_API void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
+ECHO_EXPORT void echoBoundsGet(echoPos_t *lo, echoPos_t *hi, echoObject *obj);
 
 /* list.c --------------------------------------- */
-TEEM_API void echoListAdd(echoObject *parent, echoObject *child);
-TEEM_API echoObject *echoListSplit(echoScene *scene,
-                                   echoObject *list, int axis);
-TEEM_API echoObject *echoListSplit3(echoScene *scene,
-                                    echoObject *list, int depth);
+ECHO_EXPORT void echoListAdd(echoObject *parent, echoObject *child);
+ECHO_EXPORT echoObject *echoListSplit(echoScene *scene,
+                                      echoObject *list, int axis);
+ECHO_EXPORT echoObject *echoListSplit3(echoScene *scene,
+                                       echoObject *list, int depth);
 
 /* set.c --------------------------------------- */
-TEEM_API void echoSphereSet(echoObject *sphere,
-                            echoPos_t x, echoPos_t y,
-                            echoPos_t z, echoPos_t rad);
-TEEM_API void echoCylinderSet(echoObject *cylind,
-                              int axis);
-TEEM_API void echoSuperquadSet(echoObject *squad,
-                               int axis, echoPos_t A, echoPos_t B);
-TEEM_API void echoRectangleSet(echoObject *rect,
-                               echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-                               echoPos_t x0, echoPos_t y0, echoPos_t z0,
-                               echoPos_t x1, echoPos_t y1, echoPos_t z1);
-TEEM_API void echoTriangleSet(echoObject *tri,
-                              echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-                              echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-                              echoPos_t x2, echoPos_t y2, echoPos_t z2);
-TEEM_API void echoTriMeshSet(echoObject *trim,
-                             int numV, echoPos_t *pos,
-                             int numF, int *vert);
-TEEM_API void echoInstanceSet(echoObject *inst,
-                              echoPos_t *M, echoObject *obj);
+ECHO_EXPORT void echoSphereSet(echoObject *sphere,
+                               echoPos_t x, echoPos_t y,
+                               echoPos_t z, echoPos_t rad);
+ECHO_EXPORT void echoCylinderSet(echoObject *cylind,
+                                 int axis);
+ECHO_EXPORT void echoSuperquadSet(echoObject *squad,
+                                  int axis, echoPos_t A, echoPos_t B);
+ECHO_EXPORT void echoRectangleSet(echoObject *rect,
+                                  echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+                                  echoPos_t x0, echoPos_t y0, echoPos_t z0,
+                                  echoPos_t x1, echoPos_t y1, echoPos_t z1);
+ECHO_EXPORT void echoTriangleSet(echoObject *tri,
+                                 echoPos_t x0, echoPos_t y0, echoPos_t z0, 
+                                 echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+                                 echoPos_t x2, echoPos_t y2, echoPos_t z2);
+ECHO_EXPORT void echoTriMeshSet(echoObject *trim,
+                                int numV, echoPos_t *pos,
+                                int numF, int *vert);
+ECHO_EXPORT void echoInstanceSet(echoObject *inst,
+                                 echoPos_t *M, echoObject *obj);
 
 /* matter.c ------------------------------------------ */
-TEEM_API int echoObjectHasMatter[ECHO_TYPE_NUM];
-TEEM_API void echoColorSet(echoObject *obj,
-                           echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A);
-TEEM_API void echoMatterPhongSet(echoScene *scene, echoObject *obj,
-                                 echoCol_t ka, echoCol_t kd,
-                                 echoCol_t ks, echoCol_t sp);
-TEEM_API void echoMatterGlassSet(echoScene *scene, echoObject *obj,
-                                 echoCol_t index, echoCol_t ka,
-                                 echoCol_t kd, echoCol_t fuzzy);
-TEEM_API void echoMatterMetalSet(echoScene *scene, echoObject *obj,
-                                 echoCol_t R0, echoCol_t ka,
-                                 echoCol_t kd, echoCol_t fuzzy);
-TEEM_API void echoMatterLightSet(echoScene *scene, echoObject *obj,
-                                 echoCol_t power, echoCol_t unit);
-TEEM_API void echoMatterTextureSet(echoScene *scene, echoObject *obj,
-                                   Nrrd *ntext);
+ECHO_EXPORT int echoObjectHasMatter[ECHO_TYPE_NUM];
+ECHO_EXPORT void echoColorSet(echoObject *obj,
+                              echoCol_t R, echoCol_t G,
+                              echoCol_t B, echoCol_t A);
+ECHO_EXPORT void echoMatterPhongSet(echoScene *scene, echoObject *obj,
+                                    echoCol_t ka, echoCol_t kd,
+                                    echoCol_t ks, echoCol_t sp);
+ECHO_EXPORT void echoMatterGlassSet(echoScene *scene, echoObject *obj,
+                                    echoCol_t index, echoCol_t ka,
+                                    echoCol_t kd, echoCol_t fuzzy);
+ECHO_EXPORT void echoMatterMetalSet(echoScene *scene, echoObject *obj,
+                                    echoCol_t R0, echoCol_t ka,
+                                    echoCol_t kd, echoCol_t fuzzy);
+ECHO_EXPORT void echoMatterLightSet(echoScene *scene, echoObject *obj,
+                                    echoCol_t power, echoCol_t unit);
+ECHO_EXPORT void echoMatterTextureSet(echoScene *scene, echoObject *obj,
+                                      Nrrd *ntext);
 
 /* lightEcho.c ------------------------------------------- */
-TEEM_API void echoLightPosition(echoPos_t pos[3], echoObject *light,
+ECHO_EXPORT void echoLightPosition(echoPos_t pos[3], echoObject *light,
+                                   echoThreadState *tstate);
+ECHO_EXPORT void echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
+                                echoObject *light, echoRTParm *parm,
                                 echoThreadState *tstate);
-TEEM_API void echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
-                             echoObject *light, echoRTParm *parm,
-                             echoThreadState *tstate);
-TEEM_API void echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3],
-                               Nrrd *envmap);
+ECHO_EXPORT void echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3],
+                                  Nrrd *envmap);
 
 /* color.c ------------------------------------------- */
-TEEM_API void echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
-                                echoPos_t u, echoPos_t v, echoRTParm *parm);
-TEEM_API void echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx,
-                                    echoRTParm *parm);
-TEEM_API void echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3],
-                                 echoCol_t spec[3], echoCol_t sp,
-                                 echoIntx *intx, echoScene *scene,
-                                 echoRTParm *parm, echoThreadState *tstate);
-TEEM_API void echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz,
-                              echoThreadState *tstate);
+ECHO_EXPORT void echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
+                                   echoPos_t u, echoPos_t v, echoRTParm *parm);
+ECHO_EXPORT void echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx,
+                                       echoRTParm *parm);
+ECHO_EXPORT void echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3],
+                                    echoCol_t spec[3], echoCol_t sp,
+                                    echoIntx *intx, echoScene *scene,
+                                    echoRTParm *parm, echoThreadState *tstate);
+ECHO_EXPORT void echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz,
+                                 echoThreadState *tstate);
 
 /* intx.c ------------------------------------------- */
-TEEM_API int echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
-                         echoRTParm *parm, echoThreadState *tstate);
-TEEM_API void echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
-                            echoScene *scene, echoRTParm *parm,
-                            echoThreadState *tstate);
+ECHO_EXPORT int echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
+                            echoRTParm *parm, echoThreadState *tstate);
+ECHO_EXPORT void echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
+                               echoScene *scene, echoRTParm *parm,
+                               echoThreadState *tstate);
 
 /* renderEcho.c ---------------------------------------- */
-TEEM_API int echoThreadStateInit(int threadIdx, echoThreadState *tstate,
-                                 echoRTParm *parm, echoGlobalState *gstate);
-TEEM_API void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
-TEEM_API void echoRayColor(echoCol_t rgba[4], echoRay *ray,
-                           echoScene *scene, echoRTParm *parm,
-                           echoThreadState *tstate);
-TEEM_API void echoChannelAverage(echoCol_t *img,
-                               echoRTParm *parm, echoThreadState *tstate);
-TEEM_API int echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
-                               echoRTParm *parm, echoGlobalState *gstate);
-TEEM_API int echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
-                          echoRTParm *parm, echoGlobalState *gstate);
+ECHO_EXPORT int echoThreadStateInit(int threadIdx, echoThreadState *tstate,
+                                    echoRTParm *parm, echoGlobalState *gstate);
+ECHO_EXPORT void echoJitterCompute(echoRTParm *parm, echoThreadState *state);
+ECHO_EXPORT void echoRayColor(echoCol_t rgba[4], echoRay *ray,
+                              echoScene *scene, echoRTParm *parm,
+                              echoThreadState *tstate);
+ECHO_EXPORT void echoChannelAverage(echoCol_t *img,
+                                    echoRTParm *parm, echoThreadState *tstate);
+ECHO_EXPORT int echoRTRenderCheck(Nrrd *nraw, limnCamera *cam,
+                                  echoScene *scene, echoRTParm *parm,
+                                  echoGlobalState *gstate);
+ECHO_EXPORT int echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
+                             echoRTParm *parm, echoGlobalState *gstate);
 
 #ifdef __cplusplus
 }

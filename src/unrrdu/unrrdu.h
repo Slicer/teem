@@ -28,6 +28,16 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define UNRRDU_EXPORT extern __declspec(dllexport)
+#  else
+#    define UNRRDU_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define UNRRDU_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,7 +100,7 @@ typedef struct {
     2) listing the appropriate object in Makefile
     That's it.
 ********************************************************** */
-#define UNRRDU_DECLARE(C) TEEM_API unrrduCmd unrrdu_##C##Cmd;
+#define UNRRDU_DECLARE(C) UNRRDU_EXPORT unrrduCmd unrrdu_##C##Cmd;
 #define UNRRDU_LIST(C) &unrrdu_##C##Cmd,
 #define UNRRDU_MAP(F) \
 F(about) \
@@ -165,17 +175,17 @@ unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
 UNRRDU_MAP(UNRRDU_DECLARE)
 
 /* flotsam.c */
-TEEM_API const char *unrrduBiffKey;
-TEEM_API int unrrduDefNumColumns;
+UNRRDU_EXPORT const char *unrrduBiffKey;
+UNRRDU_EXPORT int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
-TEEM_API unrrduCmd *unrrduCmdList[]; 
-TEEM_API void unrrduUsage(const char *me, hestParm *hparm);
-TEEM_API hestCB unrrduHestPosCB;
-TEEM_API hestCB unrrduHestMaybeTypeCB;
-TEEM_API hestCB unrrduHestScaleCB;
-TEEM_API hestCB unrrduHestBitsCB;
-TEEM_API hestCB unrrduHestFileCB;
-TEEM_API hestCB unrrduHestEncodingCB;
+UNRRDU_EXPORT unrrduCmd *unrrduCmdList[]; 
+UNRRDU_EXPORT void unrrduUsage(const char *me, hestParm *hparm);
+UNRRDU_EXPORT hestCB unrrduHestPosCB;
+UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;
+UNRRDU_EXPORT hestCB unrrduHestScaleCB;
+UNRRDU_EXPORT hestCB unrrduHestBitsCB;
+UNRRDU_EXPORT hestCB unrrduHestFileCB;
+UNRRDU_EXPORT hestCB unrrduHestEncodingCB;
 
 
 #ifdef __cplusplus

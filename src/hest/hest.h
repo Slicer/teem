@@ -30,6 +30,16 @@
 
 #include <teem/air.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define HEST_EXPORT extern __declspec(dllexport)
+#  else
+#    define HEST_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define HEST_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -155,52 +165,52 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
-TEEM_API int hestVerbosity;
-TEEM_API int hestRespFileEnable;
-TEEM_API int hestElideSingleEnumType;
-TEEM_API int hestElideSingleOtherType;
-TEEM_API int hestElideSingleOtherDefault;
-TEEM_API int hestElideSingleNonExistFloatDefault;
-TEEM_API int hestElideMultipleNonExistFloatDefault;
-TEEM_API int hestElideSingleEmptyStringDefault;
-TEEM_API int hestElideMultipleEmptyStringDefault;
-TEEM_API int hestGreedySingleString;
-TEEM_API int hestCleverPluralizeOtherY;
-TEEM_API int hestColumns;
-TEEM_API char hestRespFileFlag;
-TEEM_API char hestRespFileComment;
-TEEM_API char hestVarParamStopFlag;
-TEEM_API char hestMultiFlagSep;
+HEST_EXPORT int hestVerbosity;
+HEST_EXPORT int hestRespFileEnable;
+HEST_EXPORT int hestElideSingleEnumType;
+HEST_EXPORT int hestElideSingleOtherType;
+HEST_EXPORT int hestElideSingleOtherDefault;
+HEST_EXPORT int hestElideSingleNonExistFloatDefault;
+HEST_EXPORT int hestElideMultipleNonExistFloatDefault;
+HEST_EXPORT int hestElideSingleEmptyStringDefault;
+HEST_EXPORT int hestElideMultipleEmptyStringDefault;
+HEST_EXPORT int hestGreedySingleString;
+HEST_EXPORT int hestCleverPluralizeOtherY;
+HEST_EXPORT int hestColumns;
+HEST_EXPORT char hestRespFileFlag;
+HEST_EXPORT char hestRespFileComment;
+HEST_EXPORT char hestVarParamStopFlag;
+HEST_EXPORT char hestMultiFlagSep;
 
 /* methodsHest.c */
-TEEM_API hestParm *hestParmNew(void);
-TEEM_API hestParm *hestParmFree(hestParm *parm);
-TEEM_API void hestOptAdd(hestOpt **optP, 
-                         char *flag, char *name,
-                         int type, int min, int max,
-                         void *valueP, const char *dflt, const char *info,
-                         ... /* int *sawP, airEnum *enm , hestCB *CB */);
-TEEM_API hestOpt *hestOptFree(hestOpt *opt);
-TEEM_API int hestOptCheck(hestOpt *opt, char **errP);
+HEST_EXPORT hestParm *hestParmNew(void);
+HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
+HEST_EXPORT void hestOptAdd(hestOpt **optP, 
+                            char *flag, char *name,
+                            int type, int min, int max,
+                            void *valueP, const char *dflt, const char *info,
+                            ... /* int *sawP, airEnum *enm , hestCB *CB */);
+HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
+HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
-TEEM_API int hestParse(hestOpt *opt, int argc, char **argv,
-                       char **errP, hestParm *parm);
-TEEM_API void *hestParseFree(hestOpt *opt);
-TEEM_API void hestParseOrDie(hestOpt *opt, int argc, char **argv,
-                             hestParm *parm,
-                             char *me, char *info,
-                             int doInfo, int doUsage, int doGlossary);
+HEST_EXPORT int hestParse(hestOpt *opt, int argc, char **argv,
+                          char **errP, hestParm *parm);
+HEST_EXPORT void *hestParseFree(hestOpt *opt);
+HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, char **argv,
+                                hestParm *parm,
+                                char *me, char *info,
+                                int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
-TEEM_API void _hestPrintStr(FILE *f, int indent, int already, int width,
-                            const char *_str, int bslash);
-TEEM_API int hestMinNumArgs(hestOpt *opt);
-TEEM_API void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
-                        hestParm *parm);
-TEEM_API void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
-TEEM_API void hestInfo(FILE *file, const char *argv0, const char *info,
-                       hestParm *parm);
+HEST_EXPORT void _hestPrintStr(FILE *f, int indent, int already, int width,
+                               const char *_str, int bslash);
+HEST_EXPORT int hestMinNumArgs(hestOpt *opt);
+HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
+                           hestParm *parm);
+HEST_EXPORT void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
+HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
+                          hestParm *parm);
 
 #ifdef __cplusplus
 }

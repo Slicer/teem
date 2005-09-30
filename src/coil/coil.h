@@ -33,6 +33,16 @@
 #include <teem/nrrd.h>
 #include <teem/ten.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define COIL_EXPORT extern __declspec(dllexport)
+#  else
+#    define COIL_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define COIL_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -203,40 +213,41 @@ typedef struct coilContext_t {
 } coilContext;
 
 /* defaultsCoil.c */
-TEEM_API const char *coilBiffKey;
-TEEM_API int coilDefaultRadius;
+COIL_EXPORT const char *coilBiffKey;
+COIL_EXPORT int coilDefaultRadius;
 
 /* enumsCoil.c */
-TEEM_API airEnum *coilMethodType;
-TEEM_API airEnum *coilKindType;
+COIL_EXPORT airEnum *coilMethodType;
+COIL_EXPORT airEnum *coilKindType;
 
 /* scalarCoil.c */
-TEEM_API const coilKind *coilKindScalar;
-TEEM_API const coilKind *coilKindArray[COIL_KIND_TYPE_MAX+1];
+COIL_EXPORT const coilKind *coilKindScalar;
+COIL_EXPORT const coilKind *coilKindArray[COIL_KIND_TYPE_MAX+1];
 
 /* tensorCoil.c */
-TEEM_API const coilKind _coilKind7Tensor; /* no privateCoil.h */
-TEEM_API const coilKind *coilKind7Tensor;
+COIL_EXPORT const coilKind _coilKind7Tensor; /* no privateCoil.h */
+COIL_EXPORT const coilKind *coilKind7Tensor;
 
 /* realmethods.c */
-TEEM_API const coilMethod *coilMethodTesting;
-TEEM_API const coilMethod *coilMethodIsotropic;
-TEEM_API const coilMethod *coilMethodArray[COIL_METHOD_TYPE_MAX+1];
+COIL_EXPORT const coilMethod *coilMethodTesting;
+COIL_EXPORT const coilMethod *coilMethodIsotropic;
+COIL_EXPORT const coilMethod *coilMethodArray[COIL_METHOD_TYPE_MAX+1];
 
 /* methodsCoil.c (sorry, confusing name!) */
-TEEM_API coilContext *coilContextNew();
-TEEM_API int coilVolumeCheck(const Nrrd *nin, const coilKind *kind);
-TEEM_API int coilContextAllSet(coilContext *cctx, const Nrrd *nin,
-                               const coilKind *kind, const coilMethod *method,
-                               unsigned int radius, unsigned int numThreads,
-                               int verbose, double parm[COIL_PARMS_NUM]);
-TEEM_API int coilOutputGet(Nrrd *nout, coilContext *cctx);
-TEEM_API coilContext *coilContextNix(coilContext *cctx);
+COIL_EXPORT coilContext *coilContextNew();
+COIL_EXPORT int coilVolumeCheck(const Nrrd *nin, const coilKind *kind);
+COIL_EXPORT int coilContextAllSet(coilContext *cctx, const Nrrd *nin,
+                                  const coilKind *kind,
+                                  const coilMethod *method,
+                                  unsigned int radius, unsigned int numThreads,
+                                  int verbose, double parm[COIL_PARMS_NUM]);
+COIL_EXPORT int coilOutputGet(Nrrd *nout, coilContext *cctx);
+COIL_EXPORT coilContext *coilContextNix(coilContext *cctx);
 
 /* coreCoil.c */
-TEEM_API int coilStart(coilContext *cctx);
-TEEM_API int coilIterate(coilContext *cctx, int numIterations);
-TEEM_API int coilFinish(coilContext *cctx);
+COIL_EXPORT int coilStart(coilContext *cctx);
+COIL_EXPORT int coilIterate(coilContext *cctx, int numIterations);
+COIL_EXPORT int coilFinish(coilContext *cctx);
 
 #ifdef __cplusplus
 }

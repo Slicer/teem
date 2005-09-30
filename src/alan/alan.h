@@ -31,6 +31,16 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define ALAN_EXPORT extern __declspec(dllexport)
+#  else
+#    define ALAN_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define ALAN_EXPORT extern
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -147,24 +157,25 @@ typedef struct alanContext_t {
 } alanContext;
 
 /* methodsAlan.c */
-TEEM_API const char *alanBiffKey;
-TEEM_API alanContext *alanContextNew();
-TEEM_API alanContext *alanContextNix(alanContext *actx);
-TEEM_API int alanDimensionSet(alanContext *actx, int dim);
-TEEM_API int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-TEEM_API int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
-TEEM_API int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
-TEEM_API int alanParmSet(alanContext *actx, int whichParm, double parm);
+ALAN_EXPORT const char *alanBiffKey;
+ALAN_EXPORT alanContext *alanContextNew();
+ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
+ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
+ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
+ALAN_EXPORT int alan3DSizeSet(alanContext *actx,
+                              int sizeX, int sizeY, int sizeZ);
+ALAN_EXPORT int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
+ALAN_EXPORT int alanParmSet(alanContext *actx, int whichParm, double parm);
 
 /* enumsAlan.c */
-TEEM_API airEnum *alanStop;
+ALAN_EXPORT airEnum *alanStop;
 
 /* coreAlan.c */
-TEEM_API int alanUpdate(alanContext *actx);
-TEEM_API int alanInit(alanContext *actx,
-                      const Nrrd *nlevInit, const Nrrd *nparmInit);
-TEEM_API int alanPriorityParm(alanContext *actx, const Nrrd *npri);
-TEEM_API int alanRun(alanContext *actx);
+ALAN_EXPORT int alanUpdate(alanContext *actx);
+ALAN_EXPORT int alanInit(alanContext *actx,
+                         const Nrrd *nlevInit, const Nrrd *nparmInit);
+ALAN_EXPORT int alanPriorityParm(alanContext *actx, const Nrrd *npri);
+ALAN_EXPORT int alanRun(alanContext *actx);
 
 #ifdef __cplusplus
 }

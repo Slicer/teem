@@ -30,6 +30,15 @@
 
 #include <teem/air.h>
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#    define BIFF_EXPORT extern __declspec(dllexport)
+#  else
+#    define BIFF_EXPORT extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define BIFF_EXPORT extern
+#endif
 /* ---- END non-NrrdIO */
 
 
@@ -40,17 +49,17 @@ extern "C" {
 #define BIFF_MAXKEYLEN 128  /* maximum allowed key length (not counting 
                                the null termination) */
 
-TEEM_API void biffAdd(const char *key, const char *err);
-TEEM_API void biffMaybeAdd(const char *key, const char *err, int useBiff);
-TEEM_API int biffCheck(const char *key);
-TEEM_API void biffDone(const char *key);
-TEEM_API void biffMove(const char *destKey, const char *err,
-                       const char *srcKey);
-TEEM_API char *biffGet(const char *key);
-TEEM_API int biffGetStrlen(const char *key);
-TEEM_API void biffSetStr(char *str, const char *key);
-TEEM_API char *biffGetDone(const char *key);
-TEEM_API void biffSetStrDone(char *str, const char *key);
+BIFF_EXPORT void biffAdd(const char *key, const char *err);
+BIFF_EXPORT void biffMaybeAdd(const char *key, const char *err, int useBiff);
+BIFF_EXPORT int biffCheck(const char *key);
+BIFF_EXPORT void biffDone(const char *key);
+BIFF_EXPORT void biffMove(const char *destKey, const char *err,
+                          const char *srcKey);
+BIFF_EXPORT char *biffGet(const char *key);
+BIFF_EXPORT int biffGetStrlen(const char *key);
+BIFF_EXPORT void biffSetStr(char *str, const char *key);
+BIFF_EXPORT char *biffGetDone(const char *key);
+BIFF_EXPORT void biffSetStrDone(char *str, const char *key);
 
 #ifdef __cplusplus
 }
