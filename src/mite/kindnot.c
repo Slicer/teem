@@ -138,26 +138,26 @@ miteVal = &_miteVal;
 */
 gageItemEntry
 _miteValTable[MITE_VAL_ITEM_MAX+1] = {
-  /* enum value        len,deriv,  prereqs,                                       parent item, index*/
-  {miteValXw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValXi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValYw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValYi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValZw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValZi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValRw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValRi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValTw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValTi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValView,          3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValNormal,        3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValNdotV,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValNdotL,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValVrefN,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValVdefT,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1},
-  {miteValWdotD,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,  -1}
+  /* enum value        len,deriv,  prereqs,                                       parent item, index, needData*/
+  {miteValXw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValXi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValYw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValYi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValZw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValZi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValRw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValRi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValTw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValTi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValView,          3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValNormal,        3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValNdotV,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValNdotL,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValVrefN,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValVdefT,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
+  {miteValWdotD,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0}
 };
 
 
