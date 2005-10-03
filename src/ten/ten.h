@@ -197,59 +197,70 @@ enum {
   tenGageEvec0,         /* 15: "evec0", major eigenvectors of tensor: GT[3] */
   tenGageEvec1,         /* 16: "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* 17: "evec2", minor eigenvectors of tensor: GT[3] */
+  tenGageRGBEvec0,      /* 18: "rgb0", RGB-coloring of evec0: GT[3] */
+  tenGageRGBEvec2,      /* 19: "rgb2", RGB-coloring of evec2: GT[3] */
 
-  tenGageTensorGrad,    /* 18: "tg", all tensor component gradients, starting
+  tenGageTensorGrad,    /* 20: "tg", all tensor component gradients, starting
                                with the confidence gradient: GT[21] */
-  tenGageTensorGradMag, /* 19: "tgm", actually a 3-vector of tensor 
+  tenGageTensorGradMag, /* 21: "tgm", actually a 3-vector of tensor 
                                gradient norms, one for each axis: GT[3] */
-  tenGageTensorGradMagMag, /* 20: "tgmm", single scalar magnitude: GT[1] */
+  tenGageTensorGradMagMag, /* 22: "tgmm", single scalar magnitude: GT[1] */
   
-  tenGageTraceGradVec,  /* 21: "trgv": gradient (vector) of trace: GT[3] */
-  tenGageTraceGradMag,  /* 22: "trgm": gradient magnitude of trace: GT[1] */
-  tenGageTraceNormal,   /* 23: "trn": normal of trace: GT[3] */
+  tenGageTraceGradVec,  /* 23: "trgv": gradient (vector) of trace: GT[3] */
+  tenGageTraceGradMag,  /* 24: "trgm": gradient magnitude of trace: GT[1] */
+  tenGageTraceNormal,   /* 25: "trn": normal of trace: GT[3] */
   
-  tenGageBGradVec,      /* 24: "bgv", gradient (vector) of B: GT[3] */
-  tenGageBGradMag,      /* 25: "bgm", gradient magnitude of B: GT[1] */
-  tenGageBNormal,       /* 26: "bn", normal of B: GT[3] */
+  tenGageBGradVec,      /* 26: "bgv", gradient (vector) of B: GT[3] */
+  tenGageBGradMag,      /* 27: "bgm", gradient magnitude of B: GT[1] */
+  tenGageBNormal,       /* 28: "bn", normal of B: GT[3] */
 
-  tenGageDetGradVec,    /* 27: "detgv", gradient (vector) of Det: GT[3] */
-  tenGageDetGradMag,    /* 28: "detgm", gradient magnitude of Det: GT[1] */
-  tenGageDetNormal,     /* 29: "detn", normal of Det: GT[3] */
+  tenGageDetGradVec,    /* 29: "detgv", gradient (vector) of Det: GT[3] */
+  tenGageDetGradMag,    /* 30: "detgm", gradient magnitude of Det: GT[1] */
+  tenGageDetNormal,     /* 31: "detn", normal of Det: GT[3] */
 
-  tenGageSGradVec,      /* 30: "sgv", gradient (vector) of S: GT[3] */
-  tenGageSGradMag,      /* 31: "sgm", gradient magnitude of S: GT[1] */
-  tenGageSNormal,       /* 32: "sn", normal of S: GT[3] */
+  tenGageSGradVec,      /* 32: "sgv", gradient (vector) of S: GT[3] */
+  tenGageSGradMag,      /* 33: "sgm", gradient magnitude of S: GT[1] */
+  tenGageSNormal,       /* 34: "sn", normal of S: GT[3] */
 
-  tenGageQGradVec,      /* 33: "qgv", gradient vector of Q: GT[3] */
-  tenGageQGradMag,      /* 34: "qgm", gradient magnitude of Q: GT[1] */
-  tenGageQNormal,       /* 35: "qn", normalized gradient of Q: GT[3] */
+  tenGageQGradVec,      /* 35: "qgv", gradient vector of Q: GT[3] */
+  tenGageQGradMag,      /* 36: "qgm", gradient magnitude of Q: GT[1] */
+  tenGageQNormal,       /* 37: "qn", normalized gradient of Q: GT[3] */
 
-  tenGageFAGradVec,     /* 36: "fagv", gradient vector of FA: GT[3] */
-  tenGageFAGradMag,     /* 37: "fagm", gradient magnitude of FA: GT[1] */
-  tenGageFANormal,      /* 38: "fan", normalized gradient of FA: GT[3] */
+  tenGageFAGradVec,     /* 38: "fagv", gradient vector of FA: GT[3] */
+  tenGageFAGradMag,     /* 39: "fagm", gradient magnitude of FA: GT[1] */
+  tenGageFANormal,      /* 40: "fan", normalized gradient of FA: GT[3] */
 
-  tenGageRGradVec,      /* 39: "rgv", gradient vector of Q: GT[3] */
-  tenGageRGradMag,      /* 40: "rgm", gradient magnitude of Q: GT[1] */
-  tenGageRNormal,       /* 41: "rn", normalized gradient of Q: GT[3] */
+  tenGageRGradVec,      /* 41: "rgv", gradient vector of Q: GT[3] */
+  tenGageRGradMag,      /* 42: "rgm", gradient magnitude of Q: GT[1] */
+  tenGageRNormal,       /* 43: "rn", normalized gradient of Q: GT[3] */
 
-  tenGageThetaGradVec,  /* 42: "thgv", gradient vector of Th: GT[3] */
-  tenGageThetaGradMag,  /* 43: "thgm", gradient magnitude of Th: GT[1] */
-  tenGageThetaNormal,   /* 44: "thn", normalized gradient of Th: GT[3] */
+  tenGageThetaGradVec,  /* 44: "thgv", gradient vector of Th: GT[3] */
+  tenGageThetaGradMag,  /* 45: "thgm", gradient magnitude of Th: GT[1] */
+  tenGageThetaNormal,   /* 46: "thn", normalized gradient of Th: GT[3] */
 
-  tenGageInvarGrads,    /* 45, "igs", projections of tensor gradient onto the
+  tenGageInvarGrads,    /* 47, "igs", projections of tensor gradient onto the
                                normalized shape gradients: eigenvalue 
                                mean, variance, skew, in that order: GT[9]  */
-  tenGageInvarGradMags, /* 46: "igms", vector magnitude of the spatial
+  tenGageInvarGradMags, /* 48: "igms", vector magnitude of the spatial
                                invariant gradients (above): GT[3] */
-  tenGageRotTans,       /* 47: "rts", projections of the tensor gradient onto
+  tenGageRotTans,       /* 49: "rts", projections of the tensor gradient onto
                                non-normalized rotation tangents: GT[9] */
-  tenGageRotTanMags,    /* 48: "rtms", mags of vectors above: GT[3] */
-  tenGageEvalGrads,     /* 49: "evgs", projections of tensor gradient onto
+  tenGageRotTanMags,    /* 50: "rtms", mags of vectors above: GT[3] */
+  tenGageEvalGrads,     /* 51: "evgs", projections of tensor gradient onto
                                gradients of eigenvalues: GT[9] */
-  tenGageAniso,         /* 50: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageAniso,         /* 52: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX  50
+#define TEN_GAGE_ITEM_MAX  52
+
+typedef struct {
+  int rgbAnisoVersion0, /* version of bary measure to use for rgb(evec0) */
+    rgbAnisoVersion2;   /* version of bary measure to use for rgb(evec2) */
+  double rgbCThresh,    /* confidence treshold */
+    rgbGamma,           /* pre-component gamma */
+    rgbBgGray,          /* gray-value for low confidence samples */
+    rgbIsoGray;         /* gray-value for isotropic samples */
+} tenGagePvlData;
 
 /*
 ******** tenFiberType* enum
@@ -605,6 +616,8 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 
 /* tenGage.c */
 TEN_EXPORT gageKind *tenGageKind;
+TEN_EXPORT tenGagePvlData *tenGagePvlDataNew(void);
+TEN_EXPORT tenGagePvlData *tenGagePvlDataNix(tenGagePvlData *pvld);
 
 /* bimod.c */
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
