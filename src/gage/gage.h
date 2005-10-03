@@ -278,45 +278,56 @@ enum {
 ** says how many scalars are associated with this value.
 */
 enum {
-  gageVecUnknown=-1, /* -1: nobody knows */
-  gageVecVector,     /*  0: "v", component-wise-intrpolated (CWI) vec: GT[3] */
-  gageVecVector0,    /*  1: "v0", vector[0]: GT[1] */
-  gageVecVector1,    /*  2: "v1", vector[0]: GT[1] */
-  gageVecVector2,    /*  3: "v2", vector[0]: GT[1] */
-  gageVecLength,     /*  4: "l", length of CWI vector: GT[1] */
-  gageVecNormalized, /*  5: "n", normalized CWI vector: GT[3] */
-  gageVecJacobian,   /*  6: "j", component-wise Jacobian: GT[9]
-                            0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
-                            1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
-                            2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
-  gageVecDivergence, /*  7: "d", divergence (based on Jacobian): GT[1] */
-  gageVecCurl,       /*  8: "c", curl (based on Jacobian): GT[3] */
-  gageVecCurlNorm,   /*  9: "cm", curl magnitude: GT[1] */
-  gageVecHelicity,   /* 10: "h", helicity: vec . curl: GT[1] */
-  gageVecNormHelicity,/*11: "nh", normalized helicity: GT[1] */
-  gageVecLambda2,    /* 12: "lmbda2", lambda2 criterion: GT[1] */
-  gageVecImaginaryPart,/* 13: "imag", imag. part of jacobian's eigenv: GT[1] */
-  gageVecHessian,    /* 14: "vh", second-order derivative: GT[27] 
-                            0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
-                            3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
-                            6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
-                            9:d2v_y/dxdx       [...]
-                                [...]
-                           24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz */
-  gageVecDivGradient,/* 15: "dg", divergence gradient: GT[3] */
-  gageVecCurlGradient,/*16: "cg", curl gradient: GT[9] */
-  gageVecCurlNormGrad,/*17: "cng", curl norm gradient: GT[3] */
-  gageVecNCurlNormGrad, /* 18: "ncng", normalized curl norm gradient: GT[3] */
-  gageVecHelGradient,/* 19: "hg", helicity gradient: GT[3] */
-  gageVecDirHelDeriv,/* 20: "dhd", directional derivative of helicity: GT[1] */ 
+  gageVecUnknown=-1,      /* -1: nobody knows */
+  gageVecVector,          /*  0: "v", component-wise-intrpolated
+                              (CWI) vec: GT[3] */
+  gageVecVector0,         /*  1: "v0", vector[0]: GT[1] */
+  gageVecVector1,         /*  2: "v1", vector[0]: GT[1] */
+  gageVecVector2,         /*  3: "v2", vector[0]: GT[1] */
+  gageVecLength,          /*  4: "l", length of CWI vector: GT[1] */
+  gageVecNormalized,      /*  5: "n", normalized CWI vector: GT[3] */
+  gageVecJacobian,        /*  6: "j", component-wise Jacobian: GT[9]
+                              0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
+                              1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
+                              2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
+  gageVecDivergence,      /*  7: "d", divergence (based on Jacobian): GT[1] */
+  gageVecCurl,            /*  8: "c", curl (based on Jacobian): GT[3] */
+  gageVecCurlNorm,        /*  9: "cm", curl magnitude: GT[1] */
+  gageVecHelicity,        /* 10: "h", helicity: vec . curl: GT[1] */
+  gageVecNormHelicity,    /* 11: "nh", normalized helicity: GT[1] */
+  gageVecLambda2,         /* 12: "lambda2", lambda2 criterion: GT[1] */
+  gageVecImaginaryPart,   /* 13: "imag", imag. part of jacobian's
+                             eigenv: GT[1] */
+  gageVecHessian,         /* 14: "vh", second-order derivative: GT[27] 
+                              0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
+                              3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
+                              6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
+                              9:d2v_y/dxdx       [...]
+                                 [...]
+                             24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz */
+  gageVecDivGradient,     /* 15: "dg", divergence gradient: GT[3] */
+  gageVecCurlGradient,    /* 16: "cg", curl gradient: GT[9] */
+  gageVecCurlNormGrad,    /* 17: "cng", curl norm gradient: GT[3] */
+  gageVecNCurlNormGrad,   /* 18: "ncng", normalized curl norm
+                             gradient: GT[3] */
+  gageVecHelGradient,     /* 19: "hg", helicity gradient: GT[3] */
+  gageVecDirHelDeriv,     /* 20: "dhd", directional derivative
+                             of helicity: GT[1] */ 
   gageVecProjHelGradient, /* 21: "phg", projected helicity gradient: GT[3] */
-  gageVecGradient0,  /* 22: "g0", gradient of 1st component of vector: GT[3] */
-  gageVecGradient1,  /* 23: "g1", gradient of 2nd component of vector: GT[3] */
-  gageVecGradient2,  /* 24: "g2", gradient of 3rd component of vector: GT[3] */
-  gageVecMultiGrad,  /* 25: "mg", sum of outer products of gradients: GT[9] */
-  gageVecMGFrob,     /* 26: "mgfrob", frob norm of multi-gradient: GT[1] */
-  gageVecMGEval,     /* 27: "mgeval", eigenvalues of multi-gradient: GT[3] */
-  gageVecMGEvec,     /* 28: "mgevec", eigenvectors of multi-gradient: GT[9] */
+  gageVecGradient0,       /* 22: "g0", gradient of 1st component
+                             of vector: GT[3] */
+  gageVecGradient1,       /* 23: "g1", gradient of 2nd component
+                             of vector: GT[3] */
+  gageVecGradient2,       /* 24: "g2", gradient of 3rd component
+                             of vector: GT[3] */
+  gageVecMultiGrad,       /* 25: "mg", sum of outer products
+                             of gradients: GT[9] */
+  gageVecMGFrob,          /* 26: "mgfrob", frob norm
+                             of multi-gradient: GT[1] */
+  gageVecMGEval,          /* 27: "mgeval", eigenvalues
+                             of multi-gradient: GT[3] */
+  gageVecMGEvec,          /* 28: "mgevec", eigenvectors
+                             of multi-gradient: GT[9] */
   gageVecLast
 };
 #define GAGE_VEC_ITEM_MAX     28
