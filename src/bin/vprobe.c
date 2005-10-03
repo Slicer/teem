@@ -200,6 +200,12 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
+  if (!E) {
+    if (tenGageKind == kind) {
+      pvl->data = AIR_CAST(void*, tenGagePvlDataNew());
+    }
+    airMopAdd(mop, pvl->data, (airMopper)tenGagePvlDataNix, airMopAlways);
+  }
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
