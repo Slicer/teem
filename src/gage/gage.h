@@ -206,8 +206,9 @@ typedef struct {
                            containing the smaller value for which we are
                            merely an alias
                            OR: -1 if there's no parent */
-    parentIndex;        /* where our value starts in parents value
+    parentIndex,        /* where our value starts in parents value
                            OR: -1 if there's no parent */
+    needData;           /* whether non-NULL gagePerVolume->data is needed */
 } gageItemEntry;
 
 /*
@@ -554,6 +555,8 @@ typedef struct gagePerVolume_t {
                                  nin->type and gage_t */
   gage_t *answer;             /* main buffer to hold all the answers */
   gage_t **directAnswer;      /* array of pointers into answer */
+  void *data;                 /* extra per-volume data and parameters
+                                 required for answering some items */
 } gagePerVolume;
 
 /*

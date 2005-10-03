@@ -30,7 +30,7 @@
 ** and the given parameter settings in the context
 */
 int
-gageVolumeCheck (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
+gageVolumeCheck(gageContext *ctx, const Nrrd *nin, gageKind *kind) {
   char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
   gageShape shape;
 
@@ -51,7 +51,7 @@ gageVolumeCheck (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
 ** uses biff primarily because of the error checking in gageVolumeCheck()
 */
 gagePerVolume *
-gagePerVolumeNew (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
+gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int ii;
@@ -101,7 +101,7 @@ gagePerVolumeNew (gageContext *ctx, const Nrrd *nin, gageKind *kind) {
 ** should only be called by gageContextCopy()
 */
 gagePerVolume *
-_gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
+_gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
   char me[]="gagePerVolumeCopy", err[AIR_STRLEN_MED];
   gagePerVolume *nvl;
   int ii;
@@ -113,10 +113,8 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
   }
   /* we should probably restrict ourselves to gage API calls, but given the
      constant state of gage construction, this seems much simpler.
-     Pointers are fixed below */
+     Pointers to per-pervolume-allocated arrays are fixed below */
   memcpy(nvl, pvl, sizeof(gagePerVolume));
-  /* the padded volume (nvl->npad) is the one that is shared between the 
-     original and copied pervolumes; that pointer has already been copied */
   nvl->iv3 = (gage_t *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->iv2 = (gage_t *)calloc(fd*fd*nvl->kind->valLen, sizeof(gage_t));
   nvl->iv1 = (gage_t *)calloc(fd*nvl->kind->valLen, sizeof(gage_t));
@@ -132,6 +130,7 @@ _gagePerVolumeCopy (gagePerVolume *pvl, int fd) {
   for (ii=0; ii<=pvl->kind->itemMax; ii++) {
     nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
   }
+  /* whatever the "data" was, it was copied by memcpy above */
   
   return nvl;
 }
@@ -238,6 +237,23 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     fprintf(stderr, "%s: expanded ", me);
     gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
+
+  /* doing this kind of error checking here is not really
+     the way gage should work-- it should be done at the 
+     time of gageUpdate()-- but the novelty of pvl->data
+     encourages putting new smarts at superficial levels
+     instead of deeper levels */
+  if (!pvl->data) {
+    for (ii=0; ii<=pvl->kind->itemMax; ii++) {
+      if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)
+          && pvl->kind->table[ii].needData) {
+        sprintf(err, "%s: item %d (%s) needs data, but pvl->data is NULL", 
+                me, ii, airEnumStr(pvl->kind->enm, ii));
+        biffAdd(GAGE, err); return 1;
+      }
+    }
+  }
+
   pvl->flag[gagePvlFlagQuery] = AIR_TRUE;
 
   return 0;
