@@ -128,7 +128,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: processing streaks ... \n", me);
   for (si=0; si<nsinfo->axis[1].size; si++) {
     fprintf(stderr, "%s: streak %d of %d       ",
-            me, si+1, nsinfo->axis[1].size);
+            me, si+1, AIR_CAST(int, nsinfo->axis[1].size));
     fflush(stderr);
     zi = (int)(sinfo[0 + 5*si]);
     if (!( zi < sz )) {
