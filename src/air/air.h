@@ -316,6 +316,8 @@ AIR_EXPORT int airExists(double d);
 
 /* ---- BEGIN non-NrrdIO */
 
+  /* Drand48 random number generator */
+
 typedef struct {
   airULLong a;          /* Factor in congruential formula.  */
   unsigned short c,     /* Additive const. in congruential formula. */
@@ -329,6 +331,27 @@ AIR_EXPORT void airSrand48_r(airDrand48State *state, int seed);
 AIR_EXPORT double airDrand48_r(airDrand48State *state);
 AIR_EXPORT void airSrand48(int seed);
 AIR_EXPORT double airDrand48();
+
+#define AIR_RANDMT_N 624
+typedef struct {
+  /* These need to be at least 32 bits */
+  unsigned int state[AIR_RANDMT_N]; /* internal state */
+  unsigned int *pNext;              /* next value to get from state */
+  int left;                         /* number of values left before
+                                       reload needed */
+} airRandMTState;
+/* randMT.c */
+AIR_EXPORT airRandMTState *airRandMTStateGlobal;
+AIR_EXPORT airRandMTState *airRandMTStateNew(int seed);
+AIR_EXPORT airRandMTState *airRandMTStateNix(airRandMTState *state);
+AIR_EXPORT void airSrandMT_r(airRandMTState *state, int seed);
+AIR_EXPORT double airDrandMT_r(airRandMTState *state);       /* [0,1] */
+AIR_EXPORT double airDrandMTExc_r(airRandMTState *state);    /* [0,1) */
+AIR_EXPORT double airDrandMTDblExc_r(airRandMTState *state); /* (0,1) */
+AIR_EXPORT unsigned int airUIrandMT_r(airRandMTState *state);
+AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
+AIR_EXPORT void airSrandMT(int seed);
+AIR_EXPORT double airDrandMT();
 
 /* ---- END non-NrrdIO */
 
