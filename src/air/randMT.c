@@ -21,7 +21,7 @@
 */
 /*
   This file is a modified version of the MersenneTwister.h source file
-  written by Richard J. Wagner.  The original copyright follows.
+  written by Richard J. Wagner.  The original copyright notice follows.
 
   Mersenne Twister random number generator -- a C++ class MTRand
   Based on code by Makoto Matsumoto, Takuji Nishimura, and Shawn Cokus
@@ -84,8 +84,9 @@
 #include "privateAir.h"
 
 #define AIR_RANDMT_M 397
+#define AIR_RANDMT_DEFAULT_SEED 42
 
-/* Inlined class member functions that I maded macros */
+/* Inlined class member functions that I made macros */
 #define HIBIT( u ) ((u) & 0x80000000UL)
 #define LOBIT( u ) ((u) & 0x00000001UL)
 #define LOBITS( u ) ((u) & 0x7fffffffUL)
@@ -93,17 +94,22 @@
 #define TWIST( m, s0, s1 ) \
   ((m) ^ (MIXBITS(s0,s1)>>1) ^ (-LOBIT(s1) & 0x9908b0dfUL))
 
-/* You can't initialize this from this point, so keep track of it via
-   the airRandMTStateGlobal_initialized variable. */
+/* It would be annoying to initialize _airRandMTStateGlobal at
+   compile-time, partly because pNext is the address of member field
+   (currently set by _airRandMTReload), and partly because we'd have
+   to explicitly write AIR_RANDMT_N == 624 values in the source code,
+   which would only make things opaque.  So, we use the flag
+   _airRandMTStateGlobal_initialized to initialize the global state on
+   its first use.  Users paranoid about the time to do this
+   initialization check, or who want to ensure thread safety, should
+   be using airRandMTStateNew and airDrandMT_r */
+
 airRandMTState _airRandMTStateGlobal;
 airRandMTState *airRandMTStateGlobal = &_airRandMTStateGlobal;
-/* We can initialize _airRandMTStateGlobal, because there pNext is a
-   pointer to some interal data structure.  This forces us to check to
-   see if the data structure has been initialized and do so if it
-   hasn't. */
-static int airRandMTStateGlobal_initialized = AIR_FALSE;
+static int _airRandMTStateGlobal_initialized = AIR_FALSE;
 
-static void _airRandMTInitialize(airRandMTState *rng, int seed) {
+static void
+_airRandMTInitialize(airRandMTState *rng, int seed) {
   /* Initialize generator state with seed See Knuth TAOCP Vol 2, 3rd
    Ed, p.106 for multiplier.  In previous versions, most significant
    bits (MSBs) of the seed affect only MSBs of the state array.
@@ -119,15 +125,18 @@ static void _airRandMTInitialize(airRandMTState *rng, int seed) {
   }
 }
 
-static void _airRandMTReload(airRandMTState *rng) {
+static void
+_airRandMTReload(airRandMTState *rng) {
   /* Generate N new values in state.  Made clearer and faster by
      Matthew Bellew (matthew.bellew@home.com) */
   register int i;
   register unsigned int *p = rng->state;
-  for( i = AIR_RANDMT_N - AIR_RANDMT_M; i--; ++p )
+  for (i=AIR_RANDMT_N - AIR_RANDMT_M; i--; ++p) {
     *p = TWIST( p[AIR_RANDMT_M], p[0], p[1] );
-  for( i = AIR_RANDMT_M; --i; ++p )
+  }
+  for (i=AIR_RANDMT_M; --i; ++p) {
     *p = TWIST( p[AIR_RANDMT_M-AIR_RANDMT_N], p[0], p[1] );
+  }
   *p = TWIST( p[AIR_RANDMT_M-AIR_RANDMT_N], p[0], rng->state[0] );
 
   rng->left = AIR_RANDMT_N;
@@ -138,7 +147,7 @@ airRandMTState *
 airRandMTStateNew(int seed) {
   airRandMTState* ret;
 
-  ret = (airRandMTState*)malloc(sizeof(airRandMTState));
+  ret = AIR_CAST(airRandMTState*, malloc(sizeof(airRandMTState)));
   airSrandMT_r(ret, seed);
   return ret;
 }
@@ -156,34 +165,16 @@ airSrandMT_r(airRandMTState *rng, int seed) {
   _airRandMTReload(rng);
 }
 
-/* This generates the closed interval [0,1] */
-double
-airDrandMT_r(airRandMTState *rng) {
-  double result = airUIrandMT_r(rng);
-  return result * (1.0/4294967295.0);
-}
-
-/* This generates the half open interval [0,1) */
-double
-airDrandMTExc_r(airRandMTState *rng) {
-  double result = airUIrandMT_r(rng);
-  return result * (1.0/4294967296.0);
-}
-
-/* This generates the open interval (0,1) */
-double
-airDrandMTDblExc_r(airRandMTState *rng) {
-  double result = airUIrandMT_r(rng);
-  return (result + 0.5) * (1.0/4294967296.0);
-}
-
+/* Pull a 32-bit integer from the generator state.  Every other access
+** function simply transforms the numbers extracted here.
+*/
 unsigned int
 airUIrandMT_r(airRandMTState *rng) {
-  /* Pull a 32-bit integer from the generator state.  Every other
-     access function simply transforms the numbers extracted here. */
   register unsigned int s1;
 
-  if( rng->left == 0 ) _airRandMTReload(rng);
+  if (rng->left == 0) {
+    _airRandMTReload(rng);
+  }
   --rng->left;
 
   s1 = *rng->pNext++;
@@ -191,6 +182,13 @@ airUIrandMT_r(airRandMTState *rng) {
   s1 ^= (s1 <<  7) & 0x9d2c5680UL;
   s1 ^= (s1 << 15) & 0xefc60000UL;
   return ( s1 ^ (s1 >> 18) );
+}
+
+/* This generates the closed interval [0,1] */
+double
+airDrandMT_r(airRandMTState *rng) {
+  double result = airUIrandMT_r(rng);
+  return result * (1.0/4294967295.0);
 }
 
 /* [0,1) w/ 53 bit precision (capacity of IEEE double precision) */
@@ -205,12 +203,14 @@ airDrandMT53_r(airRandMTState *rng) {
 void
 airSrandMT(int seed) {
   airSrandMT_r(airRandMTStateGlobal, seed);
-  airRandMTStateGlobal_initialized = AIR_TRUE;
+  _airRandMTStateGlobal_initialized = AIR_TRUE;
 }
 
 double
 airDrandMT() {
-  if (!airRandMTStateGlobal_initialized) airSrandMT(10);
+  if (!_airRandMTStateGlobal_initialized) {
+    airSrandMT(AIR_RANDMT_DEFAULT_SEED);
+  }
   return airDrandMT_r(airRandMTStateGlobal);
 }
 

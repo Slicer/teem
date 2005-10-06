@@ -346,8 +346,6 @@ AIR_EXPORT airRandMTState *airRandMTStateNew(int seed);
 AIR_EXPORT airRandMTState *airRandMTStateNix(airRandMTState *state);
 AIR_EXPORT void airSrandMT_r(airRandMTState *state, int seed);
 AIR_EXPORT double airDrandMT_r(airRandMTState *state);       /* [0,1] */
-AIR_EXPORT double airDrandMTExc_r(airRandMTState *state);    /* [0,1) */
-AIR_EXPORT double airDrandMTDblExc_r(airRandMTState *state); /* (0,1) */
 AIR_EXPORT unsigned int airUIrandMT_r(airRandMTState *state);
 AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
 AIR_EXPORT void airSrandMT(int seed);
