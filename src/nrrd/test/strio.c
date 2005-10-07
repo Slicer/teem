@@ -28,21 +28,21 @@ main(int argc, char **argv) {
   char *me, *err;
   Nrrd *nrrd;
   NrrdIoState *nio;
-  char hstr[] = ("NRRD0001\n"
-                 "# Complete NRRD file format specification at:\n"
-                 "# http://teem.sourceforge.net/nrrd/format.html\n"
-                 "# one comment\n"
-                 "# two comment\n"
-                 "# three comment\n"
-                 "type: float\n"
-                 "dimension: 2\n"
-                 "sizes: 91 114\n"
-                 "centerings: node node\n"
-                 "endian: big\n"
-                 "encoding: raw\n"
-                 "bingo:=bob\n"
-                 "foo:=super duper fancy bar with corona\n"
-                 /* "data file: tmp.raw\n" */);
+  char hstr[] = "NRRD0001\n"
+    "# Complete NRRD file format specification at:\n"
+    "# http://teem.sourceforge.net/nrrd/format.html\n"
+    "# one comment\n"
+    "# two comment\n"
+    "# three comment\n"
+    "type: float\n"
+    "dimension: 2\n"
+    "sizes: 91 114\n"
+    "centerings: node node\n"
+    "endian: big\n"
+    "encoding: raw\n"
+    "bingo:=bob\n"
+    "foo:=super duper fancy bar with corona\n"
+    /* "data file: tmp.raw\n" */;
   char *wstr;
   AIR_UNUSED(argc);
   me = argv[0];
