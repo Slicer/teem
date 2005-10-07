@@ -710,7 +710,7 @@ NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew();
 NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecCopy(NrrdKernelSpec *ksp);
 NRRD_EXPORT void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
-                                   double kparm[NRRD_KERNEL_PARMS_NUM]);
+                                   const double kparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT void nrrdKernelParmSet(const NrrdKernel **kP,
                                    double kparm[NRRD_KERNEL_PARMS_NUM],
                                    NrrdKernelSpec *ksp);
