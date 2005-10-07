@@ -1014,6 +1014,13 @@ NRRD_EXPORT int nrrdApply1DIrregMap(Nrrd *nout,
                                     int typeOut, int rescale);
 NRRD_EXPORT int nrrdApply1DSubstitution(Nrrd *nout,
                                         const Nrrd *nin, const Nrrd *nsubst);
+
+/* apply2D.c */
+NRRD_EXPORT int nrrdApply2DLut(Nrrd *nout, const Nrrd *nin,
+                               const NrrdRange *range0,
+                               const NrrdRange *range1,
+                               const Nrrd *nlut, int typeOut, int rescale);
+
 /* ---- END non-NrrdIO */
 
 /******** sampling, slicing, cropping */

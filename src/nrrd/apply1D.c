@@ -51,7 +51,7 @@ enum {
 };
 
 double
-_nrrdApply1DDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
+_nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
   
   AIR_UNUSED(ramps);
@@ -61,7 +61,7 @@ _nrrdApply1DDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
 }
 
 double
-_nrrdApply1DDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
+_nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
   
   ret = nmap->axis[mapAxis].max;
@@ -158,8 +158,8 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
         }
       }
     }
-    domMin = _nrrdApply1DDomainMin(nmap, AIR_FALSE, mapAxis);
-    domMax = _nrrdApply1DDomainMax(nmap, AIR_FALSE, mapAxis);
+    domMin = _nrrdApplyDomainMin(nmap, AIR_FALSE, mapAxis);
+    domMax = _nrrdApplyDomainMax(nmap, AIR_FALSE, mapAxis);
     if (!( domMin < domMax )) {
       sprintf(err, "%s: (axis %d) domain min (%g) not less than max (%g)", me,
               mapAxis, domMin, domMax);
@@ -287,9 +287,9 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   }
   mapData = (char *)nmap->data;        /* map data, as char* */
                                        /* low end of map domain */
-  domMin = _nrrdApply1DDomainMin(nmap, ramps, mapAxis);
+  domMin = _nrrdApplyDomainMin(nmap, ramps, mapAxis);
                                        /* high end of map domain */
-  domMax = _nrrdApply1DDomainMax(nmap, ramps, mapAxis);
+  domMax = _nrrdApplyDomainMax(nmap, ramps, mapAxis);
   mapLen = nmap->axis[mapAxis].size;   /* number of entries in map */
   mapLup = nrrdDLookup[nmap->type];    /* how to get doubles out of map */
   inData = (char *)nin->data;          /* input data, as char* */

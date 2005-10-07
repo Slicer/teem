@@ -48,7 +48,7 @@ $(L).NEED = biff hest air   # hest needed for callback declaration
 $(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
 $(L).PRIVATE_HEADERS = privateNrrd.h
 $(L).OBJS = \
-	accessors.o  arith.o     arraysNrrd.o   apply1D.o        \
+	accessors.o  arith.o     arraysNrrd.o   apply1D.o apply2D.o \
 	axis.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
 	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
 	hestNrrd.o   histogram.o iter.o         kernel.o         \
