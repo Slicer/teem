@@ -109,7 +109,7 @@ airRandMTState *airRandMTStateGlobal = &_airRandMTStateGlobal;
 static int _airRandMTStateGlobal_initialized = AIR_FALSE;
 
 static void
-_airRandMTInitialize(airRandMTState *rng, int seed) {
+_airRandMTInitialize(airRandMTState *rng, unsigned int seed) {
   /* Initialize generator state with seed See Knuth TAOCP Vol 2, 3rd
    Ed, p.106 for multiplier.  In previous versions, most significant
    bits (MSBs) of the seed affect only MSBs of the state array.
@@ -144,7 +144,7 @@ _airRandMTReload(airRandMTState *rng) {
 }
 
 airRandMTState *
-airRandMTStateNew(int seed) {
+airRandMTStateNew(unsigned int seed) {
   airRandMTState* ret;
 
   ret = AIR_CAST(airRandMTState*, malloc(sizeof(airRandMTState)));
@@ -159,7 +159,7 @@ airRandMTStateNix(airRandMTState *state) {
 }
 
 void
-airSrandMT_r(airRandMTState *rng, int seed) {
+airSrandMT_r(airRandMTState *rng, unsigned int seed) {
   /* Seed the generator with a simple uint32 */
   _airRandMTInitialize(rng, seed);
   _airRandMTReload(rng);
@@ -201,7 +201,7 @@ airDrandMT53_r(airRandMTState *rng) {
 }
 
 void
-airSrandMT(int seed) {
+airSrandMT(unsigned int seed) {
   airSrandMT_r(airRandMTStateGlobal, seed);
   _airRandMTStateGlobal_initialized = AIR_TRUE;
 }

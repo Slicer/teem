@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   }
 
   for (ii=0; ii<N; ii++) {
-    printf("%g\n", airDrand48());
+    printf("%g\n", airDrandMT());
   }
 
   exit(0);

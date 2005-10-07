@@ -316,39 +316,23 @@ AIR_EXPORT int airExists(double d);
 
 /* ---- BEGIN non-NrrdIO */
 
-  /* Drand48 random number generator */
-
-typedef struct {
-  airULLong a;          /* Factor in congruential formula.  */
-  unsigned short c,     /* Additive const. in congruential formula. */
-    x0, x1, x2;         /* Current state.  */
-} airDrand48State;
-/* rand48.c */
-AIR_EXPORT airDrand48State *airDrand48StateGlobal;
-AIR_EXPORT airDrand48State *airDrand48StateNew(int seed);
-AIR_EXPORT airDrand48State *airDrand48StateNix(airDrand48State *state);
-AIR_EXPORT void airSrand48_r(airDrand48State *state, int seed);
-AIR_EXPORT double airDrand48_r(airDrand48State *state);
-AIR_EXPORT void airSrand48(int seed);
-AIR_EXPORT double airDrand48();
-
 #define AIR_RANDMT_N 624
 typedef struct {
   /* These need to be at least 32 bits */
-  unsigned int state[AIR_RANDMT_N]; /* internal state */
-  unsigned int *pNext;              /* next value to get from state */
-  int left;                         /* number of values left before
+  unsigned int state[AIR_RANDMT_N], /* internal state */
+    *pNext,                         /* next value to get from state */
+    left;                           /* number of values left before
                                        reload needed */
 } airRandMTState;
 /* randMT.c */
 AIR_EXPORT airRandMTState *airRandMTStateGlobal;
-AIR_EXPORT airRandMTState *airRandMTStateNew(int seed);
+AIR_EXPORT airRandMTState *airRandMTStateNew(unsigned int seed);
 AIR_EXPORT airRandMTState *airRandMTStateNix(airRandMTState *state);
-AIR_EXPORT void airSrandMT_r(airRandMTState *state, int seed);
+AIR_EXPORT void airSrandMT_r(airRandMTState *state, unsigned int seed);
 AIR_EXPORT double airDrandMT_r(airRandMTState *state);       /* [0,1] */
 AIR_EXPORT unsigned int airUIrandMT_r(airRandMTState *state);
 AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
-AIR_EXPORT void airSrandMT(int seed);
+AIR_EXPORT void airSrandMT(unsigned int seed);
 AIR_EXPORT double airDrandMT();
 
 /* ---- END non-NrrdIO */
@@ -470,10 +454,11 @@ AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
 AIR_EXPORT const char airMyFmt_size_t[];
-AIR_EXPORT int airRandInt(int N);
-AIR_EXPORT int airRandInt_r(airDrand48State *state, int N);
-AIR_EXPORT void airShuffle(int *buff, int N, int perm);
-AIR_EXPORT void airShuffle_r(airDrand48State *state, int *buff, int N,
+AIR_EXPORT unsigned int airRandInt(unsigned int N);
+AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
+AIR_EXPORT void airShuffle(unsigned int *buff, unsigned int N, int perm);
+AIR_EXPORT void airShuffle_r(airRandMTState *state,
+                             unsigned int *buff, unsigned int N,
                              int perm);
 AIR_EXPORT char *airDoneStr(float start, float here, float end, char *str);
 AIR_EXPORT double airTime();
@@ -486,7 +471,7 @@ AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
 AIR_EXPORT void airNormalRand(double *z1, double *z2);
 AIR_EXPORT void airNormalRand_r(double *z1, double *z2,
-                                airDrand48State *state);
+                                airRandMTState *state);
 AIR_EXPORT const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 AIR_EXPORT const size_t airTypeSize[AIR_TYPE_MAX+1];
 AIR_EXPORT int airILoad(void *v, int t);

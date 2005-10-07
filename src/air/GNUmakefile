@@ -47,7 +47,7 @@ $(L).SEEN := true
 $(L).NEED =
 $(L).PUBLIC_HEADERS = air.h
 $(L).PRIVATE_HEADERS = privateAir.h
-$(L).OBJS = 754.o rand48.o randMT.o array.o miscAir.o parseAir.o	\
+$(L).OBJS = 754.o randMT.o array.o miscAir.o parseAir.o \
 	endianAir.o dio.o mop.o enum.o sane.o string.o threadAir.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp test/trand test/tdio

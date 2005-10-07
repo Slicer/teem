@@ -354,28 +354,16 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
 **
 ** returns a random integer in range [0, N-1]
 */
-int
-airRandInt(int N) {
-  int i;
+unsigned int
+airRandInt(unsigned int N) {
   
-  /*
-  AIR_INDEX(0.0, airDrand48(), 1.0, N, i);
-  i = AIR_CLAMP(0, i, N-1);
-  */
-  i = (int)(N*airDrand48());
-  return i;
+  return airIndex(0.0, airDrandMT(), 1.0, N);
 }
 
-int
-airRandInt_r(airDrand48State *state, int N) {
-  int i;
+unsigned int
+airRandInt_r(airRandMTState *state, unsigned int N) {
   
-  /*
-  AIR_INDEX(0.0, airDrand48_r(state), 1.0, N, i);
-  i = AIR_CLAMP(0, i, N-1);
-  */
-  i = (int)(N*airDrand48_r(state));
-  return i;
+  return airIndex(0.0, airDrandMT_r(state), 1.0, N);
 }
 
 /*
@@ -385,11 +373,12 @@ airRandInt_r(airDrand48State *state, int N) {
 ** otherwise, just fills buff with [0..N-1] in order
 */
 void
-airShuffle(int *buff, int N, int perm) {
-  int i, swp, tmp;
+airShuffle(unsigned int *buff, unsigned int N, int perm) {
+  unsigned i, swp, tmp;
 
-  if (!(buff && N > 0))
+  if (!(buff && N > 0)) {
     return;
+  }
     
   for (i=0; i<N; i++) {
     buff[i] = i;
@@ -405,12 +394,15 @@ airShuffle(int *buff, int N, int perm) {
 }
 
 void
-airShuffle_r(airDrand48State *state, int *buff, int N, int perm) {
-  int i, swp, tmp;
+airShuffle_r(airRandMTState *state,
+             unsigned int *buff, unsigned int N, int perm) {
+  unsigned int i, swp, tmp;
 
-  if (!(buff && N > 0))
+  /* HEY !!! COPY AND PASTE !!!! */
+  if (!(buff && N > 0)) {
     return;
-    
+  }
+
   for (i=0; i<N; i++) {
     buff[i] = i;
   }
@@ -422,6 +414,7 @@ airShuffle_r(airDrand48State *state, int *buff, int N, int perm) {
       buff[i] = tmp;
     }
   }
+  /* HEY !!! COPY AND PASTE !!!! */
 }
 
 /*
@@ -606,8 +599,8 @@ airNormalRand(double *z1, double *z2) {
   double w, x1, x2;
 
   do {
-    x1 = 2*airDrand48() - 1;
-    x2 = 2*airDrand48() - 1;
+    x1 = 2*airDrandMT() - 1;
+    x2 = 2*airDrandMT() - 1;
     w = x1*x1 + x2*x2;
   } while ( w >= 1 );
   w = sqrt((-2*log(w))/w);
@@ -621,12 +614,12 @@ airNormalRand(double *z1, double *z2) {
 }
 
 void
-airNormalRand_r(double *z1, double *z2, airDrand48State *state) {
+airNormalRand_r(double *z1, double *z2, airRandMTState *state) {
   double w, x1, x2;
 
   do {
-    x1 = 2*airDrand48_r(state) - 1;
-    x2 = 2*airDrand48_r(state) - 1;
+    x1 = 2*airDrandMT_r(state) - 1;
+    x2 = 2*airDrandMT_r(state) - 1;
     w = x1*x1 + x2*x2;
   } while ( w >= 1 );
   w = sqrt((-2*log(w))/w);
