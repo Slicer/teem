@@ -227,7 +227,7 @@ typedef struct {
 /*
 ******** struct limnVrt
 **
-** an abbreviated limnVertex
+** a very abbreviated limnVertex
 */
 typedef struct {
   float xyzw[4],              /* homogeneous coordinates */
@@ -330,7 +330,7 @@ typedef struct {
   limnLook *look; unsigned int lookNum;
   airArray *lookArr;
 
-  int vertSpace,           /* which space limnVert->coord is in */
+  int vertSpace,           /* which space limnVertex->coord is in */
     setVertexRGBAFromLook, /* when possible, copy vertex RGB values
                               from limnLook of part (not face) */
     doEdges;               /* if non-zero, build edges as faces are added */
@@ -338,14 +338,14 @@ typedef struct {
 } limnObject;
 
 /*
-******** limnSurface
+******** limnPolyData
 **
-** A simpler beast for representing polygonal surfaces
+** A simpler beast for representing polygonal surfaces and other things
 **
 ** There is no notion of "part" here; there may be multiple disconnected
 ** pieces inside the surface, but there is no way of accessing just one
 ** such piece.  Having separate parts is important for PostScript
-** rendering, but the limnSurface more OpenGL oriented.
+** rendering, but the limnPolyData more OpenGL oriented.
 **
 ** Experimenting with *not* having airArrays here...
 */
@@ -354,12 +354,13 @@ typedef struct {
   limnVrt *vert;
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
-  unsigned int *indx;
+  unsigned int *indx;    /* all indices (into vert[]) for all primitives,
+                            concatenated together into one array */
 
-  unsigned int primNum;  /* there are vcntNum primitives (tris or tristrips) */
+  unsigned int primNum;  /* there are primNum primitives (tris or tristrips) */
   signed char *type;     /* prim ii is a type[ii] (limnPrimitive* enum) */
   unsigned int *vcnt;    /* prim ii has vcnt[ii] vertices */
-} limnSurface;
+} limnPolyData;
 
 typedef struct {
   /* ------- input ------- */
@@ -581,34 +582,34 @@ LIMN_EXPORT int limnObjectFaceAdd(limnObject *obj,
                                   unsigned int sideNum, 
                                   unsigned int *vertIdx);
 
-/* surface.c */
-LIMN_EXPORT limnSurface *limnSurfaceNew(void);
-LIMN_EXPORT limnSurface *limnSurfaceNix(limnSurface *srf);
-LIMN_EXPORT int limnSurfaceAlloc(limnSurface *srf,
-                                 unsigned int vertNum,
-                                 unsigned int indxNum,
-                                 unsigned int primNum);
-LIMN_EXPORT size_t limnSurfaceSize(limnSurface *srf);
-LIMN_EXPORT int limnSurfaceCopy(limnSurface *srfB, const limnSurface *srfA);
-LIMN_EXPORT int limnSurfaceCopyN(limnSurface *srfB, const limnSurface *srfA,
-                                 unsigned int num);
-LIMN_EXPORT int limnSurfaceCube(limnSurface *srf, int sharpEdge);
-LIMN_EXPORT int limnSurfaceCylinder(limnSurface *srf,
-                                    unsigned int res, int sharpEdge);
-LIMN_EXPORT int limnSurfaceSuperquadric(limnSurface *srf,
-                                        float A, float B,
+/* polydata.c */
+LIMN_EXPORT limnPolyData *limnPolyDataNew(void);
+LIMN_EXPORT limnPolyData *limnPolyDataNix(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataAlloc(limnPolyData *pld,
+                                  unsigned int vertNum,
+                                  unsigned int indxNum,
+                                  unsigned int primNum);
+LIMN_EXPORT size_t limnPolyDataSize(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA);
+LIMN_EXPORT int limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
+                                  unsigned int num);
+LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld, int sharpEdge);
+LIMN_EXPORT int limnPolyDataCylinder(limnPolyData *pld,
+                                     unsigned int res, int sharpEdge);
+LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld,
+                                         float A, float B,
+                                         unsigned int thetaRes,
+                                         unsigned int phiRes);
+LIMN_EXPORT int limnPolyDataPolarSphere(limnPolyData *pld,
                                         unsigned int thetaRes,
                                         unsigned int phiRes);
-LIMN_EXPORT int limnSurfacePolarSphere(limnSurface *srf,
-                                       unsigned int thetaRes,
-                                       unsigned int phiRes);
-LIMN_EXPORT int limnSurfacePlane(limnSurface *srf,
-                                 unsigned int uRes, unsigned int vRes);
-LIMN_EXPORT void limnSurfaceTransform_f(limnSurface *srf,
-                                        const float homat[16]);
-LIMN_EXPORT void limnSurfaceTransform_d(limnSurface *srf,
-                                        const double homat[16]);
-LIMN_EXPORT unsigned int limnSurfacePolygonNumber(limnSurface *srf);
+LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
+                                  unsigned int uRes, unsigned int vRes);
+LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
+                                         const float homat[16]);
+LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
+                                         const double homat[16]);
+LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(limnPolyData *pld);
 
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);
