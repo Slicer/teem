@@ -87,7 +87,8 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 
   if (!( lenP && nio && (file || nio->headerStringRead))) {
     sprintf(err, "%s: got NULL pointer (%p, %p, %p/%p)", me,
-            lenP, nio, file, nio->headerStringRead);
+            AIR_CAST(void*, lenP), AIR_CAST(void*, nio),
+            AIR_CAST(void*, file), nio->headerStringRead);
     biffAdd(NRRD, err); return 1;
   }
   if (0 == nio->lineLen) {

@@ -258,7 +258,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       }
       continue;
     }
-    if (1 != sscanf(line, "%d", &vertNum)) {
+    if (1 != sscanf(line, "%u", &vertNum)) {
       sprintf(err, "%s: (near line %d) can't get first int "
               "(#verts) from \"%s\" for face %d (of %d)",
               me, lineCount, line, faceGot, faceNum);

@@ -49,7 +49,7 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-            me, nrrd, encoding);
+            me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }

@@ -1071,8 +1071,8 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       }
       if (rsmc->verbose) {
         fprintf(stderr, "%s: allocated pass %u output nrrd @ %p "
-                "(on axis %u)\n", me,
-                axisIn->passIdx, axisOut->nrsmp, axisOut->axIdx);
+                "(on axis %u)\n", me, axisIn->passIdx,
+                AIR_CAST(void*, axisOut->nrsmp), axisOut->axIdx);
       }
     } else {
       if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
@@ -1167,7 +1167,8 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     if (axisIn->nrsmp) {
       if (rsmc->verbose) {
         fprintf(stderr, "%s: nrrdNuke(%p) pass %u input (on axis %u)\n",
-                me, axisIn->nrsmp, axisIn->passIdx, axisIn->axIdx);
+                me, AIR_CAST(void*, axisIn->nrsmp), axisIn->passIdx,
+                axisIn->axIdx);
       }
       axisIn->nrsmp = nrrdNuke(axisIn->nrsmp);
       airMopSub(mop, axisIn->nrsmp, (airMopper)nrrdNuke);

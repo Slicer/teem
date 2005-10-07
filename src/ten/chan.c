@@ -159,7 +159,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
       /* there is no NEX indicated */
       nexNum = 1;
     } else {
-      if (1 != sscanf(val, "%d", &nexNum)) {
+      if (1 != sscanf(val, "%u", &nexNum)) {
         sprintf(err, "%s: couldn't parse integer in value \"%s\" "
                 "for key \"%s\"", me, val, key);
         biffAdd(TEN, err); return 1;

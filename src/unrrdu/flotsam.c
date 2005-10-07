@@ -238,7 +238,7 @@ unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   bitsP = (unsigned int*)ptr;
-  if (1 != sscanf(str, "%d", bitsP)) {
+  if (1 != sscanf(str, "%u", bitsP)) {
     sprintf(err, "%s: can't parse \"%s\" as int", me, str);
     return 1;
   }

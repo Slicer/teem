@@ -479,7 +479,7 @@ _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
       if (_pushBinPointNullify(task->pctx, NULL, thing->vert + vertIdx)) {
         sprintf(err, "%s(%d): couldn't nullify vertex %d of thing %p",
                 me, task->threadIdx,
-                vertIdx, thing);
+                vertIdx, AIR_CAST(void*, thing));
         biffAdd(PUSH, err); return 1;
       }
     }
@@ -536,7 +536,7 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
       if (_pushBinPointNullify(task->pctx, oldBin, &(thing->point))) {
         sprintf(err, "%s(%d): couldn't nullify former point %p of thing %p",
                 me, task->threadIdx,
-                &(thing->point), thing);
+                AIR_CAST(void*, &(thing->point)), AIR_CAST(void*, thing));
         biffAdd(PUSH, err); return 1;
       }
     } else {
@@ -545,8 +545,9 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
       for (vertIdx=0; vertIdx<thing->numVert; vertIdx++) {
         if (_pushBinPointNullify(task->pctx, NULL, thing->vert + vertIdx)) {
           sprintf(err, "%s(%d): couldn't nullify old vert %d %p of thing %p",
-                  me, task->threadIdx,
-                  vertIdx, thing->vert + vertIdx, thing);
+                  me, task->threadIdx, vertIdx,
+                  AIR_CAST(void*, thing->vert + vertIdx),
+                  AIR_CAST(void*, thing));
           biffAdd(PUSH, err); return 1;
         }
       }
@@ -740,7 +741,7 @@ _pushUpdate(pushTask *task, int binIdx,
               thing->point.frc[0],
               thing->point.frc[1],
               thing->point.frc[2],
-              thing->ttaagg, thing->numVert, thing, binIdx);
+              thing->ttaagg, thing->numVert, AIR_CAST(void*, thing), binIdx);
       biffAdd(PUSH, err); return 1;
     }
     task->numThing += 1;
@@ -764,7 +765,7 @@ _pushUpdate(pushTask *task, int binIdx,
     if (ret) {
       sprintf(err, "%s(%d): trouble updating thing %d %p of bin %d",
               me, task->threadIdx,
-              thing->ttaagg, thing, binIdx);
+              thing->ttaagg, AIR_CAST(void*, thing), binIdx);
       biffAdd(PUSH, err); return 1;
     }
   } /* for thingIdx */

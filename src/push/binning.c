@@ -115,7 +115,8 @@ _pushBinPointNullify(pushContext *pctx, pushBin *oldBin, pushPoint *point) {
 
   if (!( bin = oldBin ? oldBin : _pushBinLocate(pctx, point->pos) )) {
     sprintf(err, "%s: NULL bin for point %p (%g,%g,%g)", me,
-            point, point->pos[0], point->pos[1], point->pos[2]);
+            AIR_CAST(void*, point),
+            point->pos[0], point->pos[1], point->pos[2]);
     biffAdd(PUSH, err); return 1;
   }
   for (pointIdx=0; pointIdx<bin->numPoint; pointIdx++) {
@@ -125,7 +126,8 @@ _pushBinPointNullify(pushContext *pctx, pushBin *oldBin, pushPoint *point) {
   }
   if (pointIdx == bin->numPoint) {
     sprintf(err, "%s: point %p (%g,%g,%g) wasn't in its bin", me,
-            point, point->pos[0], point->pos[1], point->pos[2]);
+            AIR_CAST(void*, point),
+            point->pos[0], point->pos[1], point->pos[2]);
     biffAdd(PUSH, err); return 1;
   }
   bin->point[pointIdx] = NULL;
@@ -192,7 +194,8 @@ pushBinThingAdd(pushContext *pctx, pushThing *thing) {
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, thing->point.pos) )) {
-    sprintf(err, "%s: can't locate point of thing %p", me, thing);
+    sprintf(err, "%s: can't locate point of thing %p",
+            me, AIR_CAST(void*, thing));
     biffAdd(PUSH, err); return 1;
   }
   _pushBinThingAdd(pctx, bin, thing);
@@ -205,7 +208,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: can't locate point %p", me, point);
+    sprintf(err, "%s: can't locate point %p", me, AIR_CAST(void*, point));
     biffAdd(PUSH, err); return 1;
   }
   _pushBinPointAdd(pctx, bin, point);

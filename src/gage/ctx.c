@@ -456,7 +456,8 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
     dataIdx = lx + sx*(ly + sy*(lz));
     if (ctx->verbose) {
       fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
-              me, pvl->kind->valLen, pvl->nin, pvl->nin->data);
+              me, pvl->kind->valLen,
+              AIR_CAST(void*, pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
     if (ctx->verbose) {
@@ -466,7 +467,7 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
               ctx->point.xi, ctx->point.yi, ctx->point.zi,
               dataIdx);
       fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
-              me, here, pvl->iv3, ctx->off[0]);
+              me, here, AIR_CAST(void*, pvl->iv3), ctx->off[0]);
     }
     switch(pvl->kind->valLen) {
     case 1:
