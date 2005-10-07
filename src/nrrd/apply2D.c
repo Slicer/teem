@@ -44,7 +44,8 @@ enum {
 int
 _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *range0, const NrrdRange *range1,
-                  const Nrrd *nmap, int kind, int typeOut, int rescale) {
+                  const Nrrd *nmap, int kind, int typeOut,
+                  int rescale0, int rescale1) {
   char me[]="_nrrdApply2DSetUp", err[AIR_STRLEN_MED], *mapcnt;
   char nounStr[][AIR_STRLEN_SMALL]={"2D lut",
                                     "2D regular map"};
@@ -77,14 +78,17 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s: input dimension must be > 1 (not %u)", me, nin->dim);
     biffAdd(NRRD, err); return 1;
   }
-  if (rescale
-      && !(range0
-           && AIR_EXISTS(range0->min) 
-           && AIR_EXISTS(range0->max))
-      && !(range1
-           && AIR_EXISTS(range1->min) 
-           && AIR_EXISTS(range1->max))) {
-    sprintf(err, "%s: want rescaling but didn't get two ranges, or "
+  if (rescale0 && !(range0
+                    && AIR_EXISTS(range0->min) 
+                    && AIR_EXISTS(range0->max))) {
+    sprintf(err, "%s: want axis 0 rescaling but didn't get range, or "
+            "not both range->{min,max} exist", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (rescale1 && !(range1
+                    && AIR_EXISTS(range1->min) 
+                    && AIR_EXISTS(range1->max))) {
+    sprintf(err, "%s: want axis 1 rescaling but didn't get range, or "
             "not both range->{min,max} exist", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -201,7 +205,8 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
 int
 _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
                         const NrrdRange *range0, const NrrdRange *range1,
-                        const Nrrd *nmap, int ramps, int rescale) {
+                        const Nrrd *nmap, int ramps,
+                        int rescale0, int rescale1) {
   char me[]="_nrrdApply2DLutOrRegMap";
   char *inData, *outData, *mapData, *entData;
   size_t N, I;
@@ -248,8 +253,10 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
     for (I=0; I<N; I++) {
       val0 = inLoad(inData + 0*inSize);
       val1 = inLoad(inData + 1*inSize);
-      if (rescale) {
+      if (rescale0) {
         val0 = AIR_AFFINE(range0->min, val0, range0->max, domMin0, domMax0);
+      }
+      if (rescale1) {
         val1 = AIR_AFFINE(range1->min, val1, range1->max, domMin1, domMax1);
       }
       if (AIR_EXISTS(val0) && AIR_EXISTS(val1)) {
@@ -291,16 +298,21 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
 ** This allows lut length to be simply 1.
 */
 int
-nrrdApply2DLut(Nrrd *nout, const Nrrd *nin,
+nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
                const NrrdRange *_range0, const NrrdRange *_range1,
                const Nrrd *nlut,
-               int typeOut, int rescale) {
+               int typeOut, int rescale0, int rescale1) {
   char me[]="nrrdApply2DLut", err[AIR_STRLEN_MED];
   NrrdRange *range0, *range1;
   airArray *mop;
   
   if (!(nout && nlut && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (0 != domainAxis) {
+    sprintf(err, "%s: sorry, domainAxis must currently be 0 (not %u)", me,
+            domainAxis);
     biffAdd(NRRD, err); return 1;
   }
   mop = airMopNew();
@@ -319,9 +331,9 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, range0, (airMopper)nrrdRangeNix, airMopAlways);
   airMopAdd(mop, range1, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply2DSetUp(nout, nin, range0, range1,
-                        nlut, kindLut, typeOut, rescale)
+                        nlut, kindLut, typeOut, rescale0, rescale1)
       || _nrrdApply2DLutOrRegMap(nout, nin, range0, range1,
-                                 nlut, AIR_FALSE, rescale)) {
+                                 nlut, AIR_FALSE, rescale0, rescale1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

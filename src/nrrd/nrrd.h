@@ -1016,10 +1016,12 @@ NRRD_EXPORT int nrrdApply1DSubstitution(Nrrd *nout,
                                         const Nrrd *nin, const Nrrd *nsubst);
 
 /* apply2D.c */
-NRRD_EXPORT int nrrdApply2DLut(Nrrd *nout, const Nrrd *nin,
+NRRD_EXPORT int nrrdApply2DLut(Nrrd *nout,
+                               const Nrrd *nin, unsigned int domainAxis,
                                const NrrdRange *range0,
                                const NrrdRange *range1,
-                               const Nrrd *nlut, int typeOut, int rescale);
+                               const Nrrd *nlut, int typeOut,
+                               int rescale0, int rescale1);
 
 /* ---- END non-NrrdIO */
 
