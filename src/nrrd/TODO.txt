@@ -52,7 +52,7 @@ add one-line descriptions to function declarations in nrrd.h
 
 fftw integration!!
 
-2D luts/rmaps
+2D rmaps
 
 see if the use of airSinglePrintf in accessors.c, with %.8g or whatever,
 is really the right thing to do in the most general case
