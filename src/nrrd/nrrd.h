@@ -995,13 +995,13 @@ NRRD_EXPORT int nrrdApply1DLut(Nrrd *nout,
                                const Nrrd *nin, const NrrdRange *range,
                                const Nrrd *nlut, int typeOut, int rescale);
 NRRD_EXPORT int nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
-                                    const NrrdRange *_range, const Nrrd *nmlut,
+                                    const NrrdRange *range, const Nrrd *nmlut,
                                     int typeOut, int rescale);
 NRRD_EXPORT int nrrdApply1DRegMap(Nrrd *nout,
                                   const Nrrd *nin, const NrrdRange *range,
                                   const Nrrd *nmap, int typeOut, int rescale);
 NRRD_EXPORT int nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
-                                       const NrrdRange *_range,
+                                       const NrrdRange *range,
                                        const Nrrd *nmmap,
                                        int typeOut, int rescale);
 NRRD_EXPORT int nrrd1DIrregMapCheck(const Nrrd *nmap);
