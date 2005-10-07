@@ -28,6 +28,304 @@
 ** negligible
 */
 
+float  _tenAnisoEval_Cl1_f(const float  eval[3]) {
+  return (eval[0] - eval[1])/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+double _tenAnisoEval_Cl1_d(const double eval[3]) {
+  return (eval[0] - eval[1])/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+
+float  _tenAnisoEval_Cp1_f(const float  eval[3]) {
+  return 2*(eval[1] - eval[2])/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+double _tenAnisoEval_Cp1_d(const double eval[3]) {
+  return 2*(eval[1] - eval[2])/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+
+float  _tenAnisoEval_Ca1_f(const float  eval[3]) {
+  return (eval[0] + eval[1] - 2*eval[2])/(FLT_EPSILON
+                                          + eval[0] + eval[1] + eval[2]);
+}
+double _tenAnisoEval_Ca1_d(const double eval[3]) {
+  return (eval[0] + eval[1] - 2*eval[2])/(DBL_EPSILON
+                                          + eval[0] + eval[1] + eval[2]);
+}
+
+float  _tenAnisoEval_Cs1_f(const float  eval[3]) {
+  return 3*eval[2]/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+double _tenAnisoEval_Cs1_d(const double eval[3]) {
+  return 3*eval[2]/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+}
+
+float  _tenAnisoEval_Ct1_f(const float  eval[3]) {
+  float dem;
+  dem = eval[0] + eval[1] - 2*eval[2];
+  return dem ? 2*(eval[1] - eval[2])/dem : 0.0;
+}
+double _tenAnisoEval_Ct1_d(const double eval[3]) {
+  double dem;
+  dem = eval[0] + eval[1] - 2*eval[2];
+  return dem ? 2*(eval[1] - eval[2])/dem : 0.0;
+}
+
+float  _tenAnisoEval_Cl2_f(const float  eval[3]) {
+  return (eval[0] - eval[1])/(FLT_EPSILON + eval[0]);
+}
+double _tenAnisoEval_Cl2_d(const double eval[3]) {
+  return (eval[0] - eval[1])/(DBL_EPSILON + eval[0]);
+}
+
+float  _tenAnisoEval_Cp2_f(const float  eval[3]) {
+  return (eval[1] - eval[2])/(FLT_EPSILON + eval[0]);
+}
+double _tenAnisoEval_Cp2_d(const double eval[3]) {
+  return (eval[1] - eval[2])/(DBL_EPSILON + eval[0]);
+}
+
+float  _tenAnisoEval_Ca2_f(const float  eval[3]) {
+  return eval[0] - eval[2];
+}
+double _tenAnisoEval_Ca2_d(const double eval[3]) {
+  return eval[0] - eval[2];
+}
+
+float  _tenAnisoEval_Cs2_f(const float  eval[3]) {
+  return eval[2]/(FLT_EPSILON + eval[0]);
+}
+double _tenAnisoEval_Cs2_d(const double eval[3]) {
+  return eval[2]/(DBL_EPSILON + eval[0]);
+}
+
+float  _tenAnisoEval_Ct2_f(const float  eval[3]) {
+  float denom;
+  denom = eval[0] - eval[2];
+  return denom ? (eval[1] - eval[2])/denom : 0.0;
+}
+double _tenAnisoEval_Ct2_d(const double eval[3]) {
+  double denom;
+  denom = eval[0] - eval[2];
+  return denom ? (eval[1] - eval[2])/denom : 0.0;
+}
+
+#define SQRT6 2.44948974278317809819
+float  _tenAnisoEval_RA_f(const float  eval[3]) {
+  float mean, stdv;
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  stdv = sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
+              + (mean-eval[1])*(mean-eval[1]) 
+              + (mean-eval[2])*(mean-eval[2]));
+  return mean ? stdv/(mean*SQRT6) : 0.0;
+}
+double _tenAnisoEval_RA_d(const double eval[3]) {
+  float mean, stdv;
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  stdv = sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
+              + (mean-eval[1])*(mean-eval[1]) 
+              + (mean-eval[2])*(mean-eval[2]));
+  return mean ? stdv/(mean*SQRT6) : 0.0;
+}
+
+float  _tenAnisoEval_FA_f(const float  eval[3]) {
+  float denom, mean, stdv;
+  denom = 2.0*(eval[0]*eval[0] + eval[1]*eval[1] + eval[2]*eval[2]);
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  stdv = sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
+              + (mean-eval[1])*(mean-eval[1]) 
+              + (mean-eval[2])*(mean-eval[2]));
+  return denom ? stdv*sqrt(3.0/denom) : 0.0;
+}
+double _tenAnisoEval_FA_d(const double eval[3]) {
+  double denom, mean, stdv;
+  denom = 2.0*(eval[0]*eval[0] + eval[1]*eval[1] + eval[2]*eval[2]);
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  stdv = sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
+              + (mean-eval[1])*(mean-eval[1]) 
+              + (mean-eval[2])*(mean-eval[2]));
+  return denom ? stdv*sqrt(3.0/denom) : 0.0;
+}
+
+float  _tenAnisoEval_VF_f(const float  eval[3]) {
+  float mean;
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  return 1.0 - eval[0]*eval[1]*eval[2]/(mean*mean*mean);
+}
+double _tenAnisoEval_VF_d(const double eval[3]) {
+  double mean;
+  mean = (eval[0] + eval[1] + eval[2])/3;
+  return 1.0 - eval[0]*eval[1]*eval[2]/(mean*mean*mean);
+}
+
+float  _tenAnisoEval_B_f(const float  eval[3]) {
+  return eval[0]*eval[1] + eval[0]*eval[2] + eval[1]*eval[2];
+}
+double _tenAnisoEval_B_d(const double eval[3]) {
+  return eval[0]*eval[1] + eval[0]*eval[2] + eval[1]*eval[2];
+}
+
+float  _tenAnisoEval_Q_f(const float  eval[3]) {
+  float A, B, C;
+  A = -(eval[0] + eval[1] + eval[2]);
+  B = _tenAnisoEval_B_f(eval);
+  C = -eval[0]*eval[1]*eval[2];
+  return (A*A - 3.0*B)/9.0;
+}
+double _tenAnisoEval_Q_d(const double eval[3]) {
+  double A, B, C;
+  A = -(eval[0] + eval[1] + eval[2]);
+  B = _tenAnisoEval_B_d(eval);
+  C = -eval[0]*eval[1]*eval[2];
+  return (A*A - 3.0*B)/9.0;
+}
+
+float  _tenAnisoEval_R_f(const float  eval[3]) {
+  float A, B, C;
+  A = -(eval[0] + eval[1] + eval[2]);
+  B = _tenAnisoEval_B_f(eval);
+  C = -eval[0]*eval[1]*eval[2];
+  return (-2*A*A*A + 9*A*B - 27*C)/54;
+}
+double _tenAnisoEval_R_d(const double eval[3]) {
+  double A, B, C;
+  A = -(eval[0] + eval[1] + eval[2]);
+  B = _tenAnisoEval_B_d(eval);
+  C = -eval[0]*eval[1]*eval[2];
+  return (-2*A*A*A + 9*A*B - 27*C)/54;
+}
+
+float  _tenAnisoEval_S_f(const float  eval[3]) {
+  return eval[0]*eval[0] + eval[1]*eval[1] + eval[2]*eval[2];
+}
+double _tenAnisoEval_S_d(const double eval[3]) {
+  return eval[0]*eval[0] + eval[1]*eval[1] + eval[2]*eval[2];
+}
+
+float  _tenAnisoEval_Skew_f(const float  eval[3]) {
+  float Q;
+  Q = _tenAnisoEval_Q_f(eval);
+  return _tenAnisoEval_R_f(eval)/(FLT_EPSILON + sqrt(2*Q*Q*Q));
+}
+double _tenAnisoEval_Skew_d(const double eval[3]) {
+  double Q;
+  Q = _tenAnisoEval_Q_d(eval);
+  return _tenAnisoEval_R_d(eval)/(DBL_EPSILON + sqrt(2*Q*Q*Q));
+}
+
+float  _tenAnisoEval_Th_f(const float  eval[3]) {
+  return acos(sqrt(2)*_tenAnisoEval_Skew_f(eval))/3;
+}
+double _tenAnisoEval_Th_d(const double eval[3]) {
+  return acos(sqrt(2)*_tenAnisoEval_Skew_d(eval))/3;
+}
+
+float  _tenAnisoEval_Cz_f(const float  eval[3]) {
+  return ((eval[0] + eval[1])/(FLT_EPSILON + eval[2]) 
+          + (eval[1] + eval[2])/(FLT_EPSILON + eval[0]) 
+          + (eval[0] + eval[2])/(FLT_EPSILON + eval[1]))/6;
+}
+double _tenAnisoEval_Cz_d(const double eval[3]) {
+  return ((eval[0] + eval[1])/(DBL_EPSILON + eval[2]) 
+          + (eval[1] + eval[2])/(DBL_EPSILON + eval[0]) 
+          + (eval[0] + eval[2])/(DBL_EPSILON + eval[1]))/6;
+}
+
+float  _tenAnisoEval_Det_f(const float  eval[3]) {
+  return eval[0]*eval[1]*eval[2];
+}
+double _tenAnisoEval_Det_d(const double eval[3]) {
+  return eval[0]*eval[1]*eval[2];
+}
+
+float  _tenAnisoEval_Tr_f(const float  eval[3]) {
+  return eval[0] + eval[1] + eval[2];
+}
+double _tenAnisoEval_Tr_d(const double eval[3]) {
+  return eval[0] + eval[1] + eval[2];
+}
+
+float  _tenAnisoEval_eval0_f(const float  eval[3]) { return eval[0]; }
+double _tenAnisoEval_eval0_d(const double eval[3]) { return eval[0]; }
+
+float  _tenAnisoEval_eval1_f(const float  eval[3]) { return eval[1]; }
+double _tenAnisoEval_eval1_d(const double eval[3]) { return eval[1]; }
+
+float  _tenAnisoEval_eval2_f(const float  eval[3]) { return eval[2]; }
+double _tenAnisoEval_eval2_d(const double eval[3]) { return eval[2]; }
+
+float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
+  NULL,
+  _tenAnisoEval_Cl1_f,
+  _tenAnisoEval_Cp1_f,
+  _tenAnisoEval_Ca1_f,
+  _tenAnisoEval_Cs1_f,
+  _tenAnisoEval_Ct1_f,
+  _tenAnisoEval_Cl2_f,
+  _tenAnisoEval_Cp2_f,
+  _tenAnisoEval_Ca2_f,
+  _tenAnisoEval_Cs2_f,
+  _tenAnisoEval_Ct2_f,
+  _tenAnisoEval_RA_f,
+  _tenAnisoEval_FA_f,
+  _tenAnisoEval_VF_f,
+  _tenAnisoEval_B_f,
+  _tenAnisoEval_Q_f,
+  _tenAnisoEval_R_f,
+  _tenAnisoEval_S_f,
+  _tenAnisoEval_Skew_f,
+  _tenAnisoEval_Th_f,
+  _tenAnisoEval_Cz_f,
+  _tenAnisoEval_Det_f,
+  _tenAnisoEval_Tr_f,
+  _tenAnisoEval_eval0_f,
+  _tenAnisoEval_eval1_f,
+  _tenAnisoEval_eval2_f
+};
+   
+double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
+  NULL,
+  _tenAnisoEval_Cl1_d,
+  _tenAnisoEval_Cp1_d,
+  _tenAnisoEval_Ca1_d,
+  _tenAnisoEval_Cs1_d,
+  _tenAnisoEval_Ct1_d,
+  _tenAnisoEval_Cl2_d,
+  _tenAnisoEval_Cp2_d,
+  _tenAnisoEval_Ca2_d,
+  _tenAnisoEval_Cs2_d,
+  _tenAnisoEval_Ct2_d,
+  _tenAnisoEval_RA_d,
+  _tenAnisoEval_FA_d,
+  _tenAnisoEval_VF_d,
+  _tenAnisoEval_B_d,
+  _tenAnisoEval_Q_d,
+  _tenAnisoEval_R_d,
+  _tenAnisoEval_S_d,
+  _tenAnisoEval_Skew_d,
+  _tenAnisoEval_Th_d,
+  _tenAnisoEval_Cz_d,
+  _tenAnisoEval_Det_d,
+  _tenAnisoEval_Tr_d,
+  _tenAnisoEval_eval0_d,
+  _tenAnisoEval_eval1_d,
+  _tenAnisoEval_eval2_d
+};
+   
+float
+tenAnisoEval_f(const float  eval[3], int which) {
+
+  return (AIR_IN_OP(tenAnisoUnknown, which, tenAnisoLast)
+          ? _tenAnisoEval_f[which](eval)
+          : 0);
+}
+
+double
+tenAnisoEval_d(const double eval[3], int which) {
+
+  return (AIR_IN_OP(tenAnisoUnknown, which, tenAnisoLast)
+          ? _tenAnisoEval_d[which](eval)
+          : 0);
+}
+
 /*
 ******** tenAnisoCalc_f
 **
@@ -38,7 +336,7 @@
 ** This does NOT use biff.  
 */
 void
-tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
+tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   float e0, e1, e2, stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
 
   float A, B, C, R, Q;
@@ -108,9 +406,9 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], float e[3]) {
                     + (e0 + e2)/(FLT_EPSILON + e1))/6;
   c[tenAniso_Det] = e0*e1*e2;
   c[tenAniso_Tr] = e0 + e1 + e2;
-  c[TEN_ANISO_MAX-2] = e0;
-  c[TEN_ANISO_MAX-1] = e1;
-  c[TEN_ANISO_MAX-0] = e2;
+  c[tenAniso_eval0] = e0;
+  c[tenAniso_eval1] = e1;
+  c[tenAniso_eval2] = e2;
   return;
 }
 
@@ -268,7 +566,7 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version,
     csIdx = tenAniso_Cs2;
   }
   N = nrrdElementNumber(nin)/7;
-  for (I=0; I<=N-1; I++) {
+  for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tdata);
     tenAnisoCalc_f(c, eval);
     cl = c[clIdx];
@@ -282,3 +580,80 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version,
   
   return 0;
 }
+
+tenEvecRGBParm *
+tenEvecRGBParmNew() {
+  tenEvecRGBParm *rgbp;
+  
+  rgbp = AIR_CAST(tenEvecRGBParm *, calloc(1, sizeof(tenEvecRGBParm)));
+  if (rgbp) {
+    rgbp->aniso = tenAniso_Cl2;  /* assuming mapping evec0...  */
+    rgbp->confThresh = 0.5;
+    rgbp->gamma = 1.0;
+    rgbp->bgGray = 0.0;
+    rgbp->isoGray = 0.0;
+  }
+  return rgbp;
+}
+
+tenEvecRGBParm *
+tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
+  
+  if (rgbp) {
+    airFree(rgbp);
+  }
+  return NULL;
+}
+
+float
+_tenEvecRGBComp_f(float conf, float aniso, float comp,
+                  const tenEvecRGBParm *rgbp) {
+  float X;
+
+  X = AIR_ABS(comp);
+  X = pow(X, 1.0/rgbp->gamma);
+  X = AIR_LERP(aniso, rgbp->isoGray, X);
+  return conf > rgbp->confThresh ? X : rgbp->bgGray;
+}
+
+double
+_tenEvecRGBComp_d(double conf, double aniso, double comp,
+                  const tenEvecRGBParm *rgbp) {
+  double X;
+
+  X = AIR_ABS(comp);
+  X = pow(X, 1.0/rgbp->gamma);
+  X = AIR_LERP(aniso, rgbp->isoGray, X);
+  return conf > rgbp->confThresh ? X : rgbp->bgGray;
+}
+
+void
+tenEvecRGB_f(float RGB[3], float conf, const float eval[3], 
+             const float evec[3], const tenEvecRGBParm *rgbp) {
+  float aniso;
+
+  if (RGB && eval && rgbp) {
+    aniso = tenAnisoEval_f(eval, rgbp->aniso);
+    ELL_3V_SET(RGB,
+               _tenEvecRGBComp_f(conf, aniso, evec[0], rgbp),
+               _tenEvecRGBComp_f(conf, aniso, evec[1], rgbp),
+               _tenEvecRGBComp_f(conf, aniso, evec[2], rgbp));
+  }
+  return;
+}
+
+void
+tenEvecRGB_d(double RGB[3], double conf, const double eval[3], 
+             const double evec[3], const tenEvecRGBParm *rgbp) {
+  double aniso;
+
+  if (RGB && eval && rgbp) {
+    aniso = tenAnisoEval_d(eval, rgbp->aniso);
+    ELL_3V_SET(RGB,
+               _tenEvecRGBComp_d(conf, aniso, evec[0], rgbp),
+               _tenEvecRGBComp_d(conf, aniso, evec[1], rgbp),
+               _tenEvecRGBComp_d(conf, aniso, evec[2], rgbp));
+  }
+  return;
+}
+
