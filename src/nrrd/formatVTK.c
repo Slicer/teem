@@ -46,7 +46,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-            me, nrrd, encoding);
+            me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     biffMaybeAdd(NRRD, err, useBiff); 
     return AIR_FALSE;
   }
@@ -360,7 +360,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "ORIGIN %g %g %g\n", xm, ym, zm);
   fprintf(file, "SPACING %g %g %g\n", xs, ys, zs);
   fprintf(file, "POINT_DATA %d\n", sx*sy*sz);
-  airSrand48((int)airTime());
+  airSrandMT(AIR_CAST(unsigned int, airTime()));
   sprintf(name, "nrrd%05d", airRandInt(100000));
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);
