@@ -46,8 +46,6 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageEvec0,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                                                tenGageEvec,         0,    0},
   {tenGageEvec1,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                                                tenGageEvec,         3,    0},
   {tenGageEvec2,               3,  0,  {tenGageEvec, -1, -1, -1, -1},                                                tenGageEvec,         6,    0},
-  {tenGageRGBEvec0,            3,  0,  {tenGageTensor, tenGageEval, tenGageEvec0, -1, -1},                                    -1,        -1,    AIR_TRUE},
-  {tenGageRGBEvec2,            3,  0,  {tenGageTensor, tenGageEval, tenGageEvec2, -1, -1},                                    -1,        -1,    AIR_TRUE},
 
   {tenGageTensorGrad,         21,  1,  {-1, -1, -1, -1, -1},                                                                  -1,        -1,    0},
   {tenGageTensorGradMag,       3,  1,  {tenGageTensorGrad, -1, -1, -1, -1},                                                   -1,        -1,    0},
@@ -187,7 +185,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     gradCbA[3]={0,0,0}, gradCbC[3]={0,0,0},
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0,
     cbQQQ=0, cbQ=0, cbR=0, cbA=0, cbB=0, cbC=0, cbS=0;
-  tenGagePvlData *pvld;
 
 #if !GAGE_TYPE_FLOAT
   int ci;
@@ -260,58 +257,6 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 #else
     tenEigensolve_d(evalAns, NULL, tenAns);
 #endif
-  }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGBEvec0)) {
-    gage_t cc, R, G, B;
-    int which = 0;
-
-    pvld = AIR_CAST(tenGagePvlData *, pvl->data);
-    if (1 == pvld->rgbAnisoVersion0) {
-      cc = (evalAns[0] - evalAns[1])/(FLT_EPSILON
-                                      + evalAns[0] + evalAns[1] + evalAns[2]);
-    } else {
-      cc = (evalAns[0] - evalAns[1])/(FLT_EPSILON + evalAns[0]);
-    }
-    cc = AIR_CLAMP(0.0, cc, 1.0);
-    R = AIR_ABS(evecAns[0 + which*3]);
-    G = AIR_ABS(evecAns[1 + which*3]);
-    B = AIR_ABS(evecAns[2 + which*3]);
-    R = pow(R, 1.0/pvld->rgbGamma);
-    G = pow(G, 1.0/pvld->rgbGamma);
-    B = pow(B, 1.0/pvld->rgbGamma);
-    R = AIR_LERP(cc, pvld->rgbIsoGray, R);
-    G = AIR_LERP(cc, pvld->rgbIsoGray, G);
-    B = AIR_LERP(cc, pvld->rgbIsoGray, B);
-    R = tenAns[0] > pvld->rgbCThresh ? R : pvld->rgbBgGray;
-    G = tenAns[0] > pvld->rgbCThresh ? G : pvld->rgbBgGray;
-    B = tenAns[0] > pvld->rgbCThresh ? B : pvld->rgbBgGray;
-    ELL_3V_SET(pvl->directAnswer[tenGageRGBEvec0], R, G, B);
-  }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGBEvec2)) {
-    gage_t cc, R, G, B;
-    int which = 2;
-
-    pvld = AIR_CAST(tenGagePvlData *, pvl->data);
-    if (1 == pvld->rgbAnisoVersion2) {
-      cc = 2*(evalAns[1] - evalAns[2])/(FLT_EPSILON
-                                        + evalAns[0] + evalAns[1] + evalAns[2]);
-    } else {
-      cc = (evalAns[1] - evalAns[2])/(FLT_EPSILON + evalAns[0]);
-    }
-    cc = AIR_CLAMP(0.0, cc, 1.0);
-    R = AIR_ABS(evecAns[0 + which*3]);
-    G = AIR_ABS(evecAns[1 + which*3]);
-    B = AIR_ABS(evecAns[2 + which*3]);
-    R = pow(R, 1.0/pvld->rgbGamma);
-    G = pow(G, 1.0/pvld->rgbGamma);
-    B = pow(B, 1.0/pvld->rgbGamma);
-    R = AIR_LERP(cc, pvld->rgbIsoGray, R);
-    G = AIR_LERP(cc, pvld->rgbIsoGray, G);
-    B = AIR_LERP(cc, pvld->rgbIsoGray, B);
-    R = tenAns[0] > pvld->rgbCThresh ? R : pvld->rgbBgGray;
-    G = tenAns[0] > pvld->rgbCThresh ? G : pvld->rgbBgGray;
-    B = tenAns[0] > pvld->rgbCThresh ? B : pvld->rgbBgGray;
-    ELL_3V_SET(pvl->directAnswer[tenGageRGBEvec2], R, G, B);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
     /* done if doD1 */
@@ -575,28 +520,3 @@ _tenGageKind = {
 };
 gageKind *
 tenGageKind = &_tenGageKind;
-
-tenGagePvlData *
-tenGagePvlDataNew() {
-  tenGagePvlData *pvld;
-
-  pvld = AIR_CAST(tenGagePvlData *, calloc(1, sizeof(tenGagePvlData)));
-  if (pvld) {
-    pvld->rgbAnisoVersion0 = 2;
-    pvld->rgbAnisoVersion2 = 1;
-    pvld->rgbCThresh = 0.5;
-    pvld->rgbGamma = 1.0;
-    pvld->rgbBgGray = 0.0;
-    pvld->rgbIsoGray = 0.0;
-  }
-  return pvld;
-}
-
-tenGagePvlData *
-tenGagePvlDataNix(tenGagePvlData *pvld) {
-  
-  if (pvld) {
-    airFree(pvld);
-  }
-  return NULL;
-}

@@ -50,9 +50,9 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "Cz",
   "Det",
   "Tr",
-  "hack0",
-  "hack1",
-  "hack2"
+  "eval0",
+  "eval1",
+  "eval2"
 };
 
 airEnum
@@ -93,8 +93,6 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "evec0",
   "evec1",
   "evec2",
-  "rgb0",
-  "rgb2",
 
   "tensor grad",
   "tensor grad mag",
@@ -163,8 +161,6 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "eigenvector 0",
   "eigenvector 1",
   "eigenvector 2",
-  "RGB(evec0)",
-  "RGB(evec2)",
   "tensor gradients",
   "tensor gradients magnitudes",
   "tensor gradients magnitude magnitudes",
@@ -221,8 +217,6 @@ _tenGageVal[] = {
   tenGageEvec0,         /* "evec0", major eigenvectors of tensor: GT[3] */
   tenGageEvec1,         /* "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* "evec2", minor eigenvectors of tensor: GT[3] */
-  tenGageRGBEvec0,      /* "rgb0", RGB-coloring of evec0: GT[3] */
-  tenGageRGBEvec2,      /* "rgb2", RGB-coloring of evec0: GT[3] */
   tenGageTensorGrad,    /* "tg", all tensor component gradients: GT[21] */
   tenGageTensorGradMag,    /* "tgm" */
   tenGageTensorGradMagMag,    /* "tgmm" */
@@ -278,8 +272,6 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "evec0",
   "evec1",
   "evec2",
-  "rgb0", "evec0rgb", "rgbevec0",
-  "rgb2", "evec2rgb", "rgbevec2",
   "tg", "tensor grad",
   "tgm", "tensor grad mag",
   "tgmm", "tensor grad mag mag",
@@ -336,8 +328,6 @@ _tenGageValEqv[] = {
   tenGageEvec0,
   tenGageEvec1,
   tenGageEvec2,
-  tenGageRGBEvec0, tenGageRGBEvec0, tenGageRGBEvec0,
-  tenGageRGBEvec2, tenGageRGBEvec2, tenGageRGBEvec2,
   tenGageTensorGrad, tenGageTensorGrad,
   tenGageTensorGradMag, tenGageTensorGradMag,
   tenGageTensorGradMagMag, tenGageTensorGradMagMag,
