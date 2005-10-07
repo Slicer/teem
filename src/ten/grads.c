@@ -99,14 +99,14 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
     biffMove(TEN, err, NRRD); return 1;
   }
   if (srand) {
-    airSrand48((int)airTime());
+    airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
   grad = (double*)(ngrad->data);
   for (gi=0; gi<num; gi++) {
     do {
-      grad[0] = AIR_AFFINE(0, airDrand48(), 1, -1, 1);
-      grad[1] = AIR_AFFINE(0, airDrand48(), 1, -1, 1);
-      grad[2] = AIR_AFFINE(0, airDrand48(), 1, -1, 1);
+      grad[0] = AIR_AFFINE(0, airDrandMT(), 1, -1, 1);
+      grad[1] = AIR_AFFINE(0, airDrandMT(), 1, -1, 1);
+      grad[2] = AIR_AFFINE(0, airDrandMT(), 1, -1, 1);
       len = ELL_3V_LEN(grad);
     } while (len > 1 || !len);
     ELL_3V_SCALE(grad, 1.0/len, grad);
@@ -140,7 +140,7 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
     ELL_3V_NORM(grad, grad, len);
     ell_3v_perp_d(perp0, grad);
     ELL_3V_CROSS(perp1, perp0, grad);
-    theta = AIR_AFFINE(0, airDrand48(), 1, 0, 2*AIR_PI);
+    theta = AIR_AFFINE(0, airDrandMT(), 1, 0, 2*AIR_PI);
     cc = dist*cos(theta);
     ss = dist*sin(theta);
     ELL_3V_SCALE_ADD3(grad, 1.0, grad, cc, perp0, ss, perp1);

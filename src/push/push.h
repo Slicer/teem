@@ -208,12 +208,12 @@ typedef struct pushContext_t {
     margin,                        /* space allowed around [-1,1]^3 for pnts */
     tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
-  int seed,                        /* seed value for airSrand48 */
-    tlFrenet,                      /* use Frenet frames for tractlet forces */
+  int tlFrenet,                    /* use Frenet frames for tractlet forces */
     singleBin,                     /* disable binning (for debugging) */
     driftCorrect,                  /* prevent sliding near anisotropy edges */
     verbose;                       /* blah blah blah */
-  unsigned int tlNumStep,          /* max # points on each tractlet half */
+  unsigned int seed,               /* seed value for airSrand48 */
+    tlNumStep,                     /* max # points on each tractlet half */
     binIncr,                       /* increment for per-bin thing airArray */
     numThing,                      /* number things to start simulation w/ */
     numThread,                     /* number of threads to use */

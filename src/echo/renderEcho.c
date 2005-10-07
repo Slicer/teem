@@ -53,8 +53,9 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   nrrdAxisInfoSet(tstate->njitt, nrrdAxisInfoLabel,
                   "x,y", "jittable", "sample");
 
-  tstate->permBuff = (int *)airFree(tstate->permBuff);
-  if (!( tstate->permBuff = (int*)calloc(parm->numSamples, sizeof(int)) )) {
+  tstate->permBuff = AIR_CAST(unsigned int *, airFree(tstate->permBuff));
+  if (!(tstate->permBuff = AIR_CAST(unsigned int *,
+                                    calloc(parm->numSamples, sizeof(int))))) {
     sprintf(err, "%s: couldn't allocate permutation buffer", me);
     biffAdd(ECHO, err); return 1;
   }
@@ -66,7 +67,9 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
     biffAdd(ECHO, err); return 1;
   }
 
-  airSrand48_r(tstate->rst, parm->seedRand ? (int)airTime() : threadIdx);
+  airSrandMT_r(tstate->rst, AIR_CAST(unsigned int, (parm->seedRand
+                                                    ? airTime()
+                                                    : threadIdx)));
   tstate->returnPtr = NULL;
   
   return 0;
@@ -112,13 +115,13 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
         break;
       case echoJitterJitter:
         jitt[0 + 2*j] = (NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, xi)
-                         + w*(airDrand48_r(tstate->rst) - 0.5));
+                         + w*(airDrandMT_r(tstate->rst) - 0.5));
         jitt[1 + 2*j] = (NRRD_POS(nrrdCenterCell, -0.5, 0.5, n, yi)
-                         + w*(airDrand48_r(tstate->rst) - 0.5));
+                         + w*(airDrandMT_r(tstate->rst) - 0.5));
         break;
       case echoJitterRandom:
-        jitt[0 + 2*j] = airDrand48_r(tstate->rst) - 0.5;
-        jitt[1 + 2*j] = airDrand48_r(tstate->rst) - 0.5;
+        jitt[0 + 2*j] = airDrandMT_r(tstate->rst) - 0.5;
+        jitt[1 + 2*j] = airDrandMT_r(tstate->rst) - 0.5;
         break;
       }
     }
@@ -259,7 +262,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: hit a %d (%p) at (%g,%g,%g)\n"
             "%s    = %g along (%g,%g,%g)\n", _echoDot(tstate->depth), me,
-            intx.obj->type, intx.obj,
+            intx.obj->type, AIR_CAST(void*, intx.obj),
             intx.pos[0], intx.pos[1], intx.pos[2], _echoDot(tstate->depth),
             intx.t, ray->dir[0], ray->dir[1], ray->dir[2]);
   }

@@ -215,7 +215,7 @@ pushStart(pushContext *pctx) {
     biffAdd(PUSH, err); return 1;
   }
 
-  airSrand48(pctx->seed);
+  airSrandMT(pctx->seed);
   
   /* the ordering of things below is important: gage and fiber contexts
      have to be set up before they're copied by task setup */

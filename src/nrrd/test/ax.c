@@ -25,7 +25,7 @@
 #include "../nrrd.h"
 
 float frand(float min, float max) {
-  return (min + airDrand48() * (max - min));
+  return (min + airDrandMT() * (max - min));
 }
 
 int
@@ -184,7 +184,7 @@ main(int argc, char *argv[]) {
 
   
   /* and now for random-ness */
-  airSrand48((int)airTime());
+  airSrandMT((int)airTime());
   nrrd->axis[0].center = nrrdCenterNode;
   nrrd->axis[0].center = nrrdCenterCell;
   for (i=0; i<=1000000; i++) {

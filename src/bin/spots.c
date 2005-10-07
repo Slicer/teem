@@ -40,7 +40,8 @@ main(int argc, char *argv[]) {
 
   char *outS;
   alanContext *actx;
-  int *size, sizeLen, fi, si, wrap, nt, cfn, ha, maxi, srnd;
+  int *size, sizeLen, fi, si, wrap, nt, cfn, ha, maxi;
+  unsigned int srnd;
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
 
@@ -48,9 +49,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
              "size of texture, and also determines its dimension", 
              &sizeLen);
-  hestOptAdd(&hopt, "srand", "N", airTypeInt, 1, 1, &srnd, "42",
+  hestOptAdd(&hopt, "srand", "N", airTypeUInt, 1, 1, &srnd, "42",
              "number to seed random number generator with.  This uses "
-             "airDrand48(), so it should be portable.");
+             "airDrandMT(), so it should be portable.");
   hestOptAdd(&hopt, "i", "tensors", airTypeOther, 1, 1, &nten, "",
              "diffusion tensors to use for guiding the texture generation. "
              "If used, over-rides the \"-s\" option, both for setting "
@@ -130,7 +131,7 @@ main(int argc, char *argv[]) {
     }
   }
 
-  airSrand48(srnd);
+  airSrandMT(srnd);
   if (alanParmSet(actx, alanParmVerbose, 1)
       || alanParmSet(actx, alanParmTextureType, alanTextureTypeTuring)
       || alanParmSet(actx, alanParmK, 0.0125)

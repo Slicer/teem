@@ -152,7 +152,7 @@ double _nrrdUnaryOpSgn(double a) {
 double _nrrdUnaryOpExists(double a)     {return AIR_EXISTS(a);}
 double _nrrdUnaryOpRand(double a) {
   AIR_UNUSED(a);
-  return airDrand48();
+  return airDrandMT();
 }
 double _nrrdUnaryOpZero(double a) {
   AIR_UNUSED(a);  

@@ -103,7 +103,7 @@ echoThreadStateNew(void) {
     state->permBuff = NULL;
     state->jitt = NULL;
     state->chanBuff = NULL;
-    state->rst = airDrand48StateNew(0);
+    state->rst = airRandMTStateNew(0);
     state->returnPtr = NULL;
   }
   return state;
@@ -116,8 +116,8 @@ echoThreadStateNix(echoThreadState *state) {
     state->thread = airThreadNix(state->thread);
     nrrdNuke(state->njitt);
     nrrdNuke(state->nperm);
-    state->permBuff = (int *)airFree(state->permBuff);
-    state->chanBuff = (echoCol_t *)airFree(state->chanBuff);
+    state->permBuff = AIR_CAST(unsigned int *, airFree(state->permBuff));
+    state->chanBuff = AIR_CAST(echoCol_t *, airFree(state->chanBuff));
     airFree(state);
   }
   return NULL;

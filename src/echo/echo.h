@@ -96,7 +96,7 @@ typedef struct {
     maxRecDepth,       /* max recursion depth */
     renderLights,      /* render the area lights */
     renderBoxes,       /* faintly render bounding boxes */
-    seedRand,          /* call airSrand() (don't if repeatability wanted) */
+    seedRand,          /* call airSrandMT() (don't if repeatability wanted) */
     sqNRI,             /* how many iterations of newton-raphson we allow for
                           finding superquadric root (within tolorance sqTol) */
     numThreads;        /* number of threads to spawn per rendering */
@@ -144,11 +144,11 @@ typedef struct {
                            of echoPos_t's in domain [-1/2,1/2]; like the nperm
                            array, each row is comprised of the jitter vectors
                            (for all possible jittables) to use for 1 sample */
-  int *permBuff;        /* temp array for creating permutations */
+  unsigned int *permBuff; /* temp array for creating permutations */
   echoPos_t *jitt;      /* pointer into njitt, good for current sample */
   echoCol_t *chanBuff;  /* for storing ray color and other parameters for each
                            of the parm->numSamples rays in current pixel */
-  airDrand48State *rst; /* random number state */
+  airRandMTState *rst;  /* random number state */
   void *returnPtr;      /* for airThreadJoin */
 } echoThreadState;
 

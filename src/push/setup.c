@@ -413,17 +413,17 @@ _pushThingSetup(pushContext *pctx) {
     } else {
       thing = pushThingNew(1);
       do {
-        thing->vert[0].pos[0] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+        thing->vert[0].pos[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                            pctx->minPos[0],
                                            pctx->maxPos[0]);
-        thing->vert[0].pos[1] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+        thing->vert[0].pos[1] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                            pctx->minPos[1],
                                            pctx->maxPos[1]);
         if (2 == pctx->dimIn
             || (3 == pctx->dimIn && 1 == pctx->nin->axis[3].size)) {
           thing->vert[0].pos[2] = 0;
         } else {
-          thing->vert[0].pos[2] = AIR_AFFINE(0.0, airDrand48(), 1.0,
+          thing->vert[0].pos[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                              pctx->minPos[2],
                                              pctx->maxPos[2]);
         }
