@@ -23,7 +23,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Map nrrd through a biivariate lookup table"
+#define INFO "Map nrrd through a bivariate lookup table"
 char *_unrrdu_lut2InfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
