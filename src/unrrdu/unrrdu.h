@@ -149,6 +149,7 @@ F(subst) \
 F(rmap) \
 F(mrmap) \
 F(imap) \
+F(lut2) \
 F(ccfind) \
 F(ccadj) \
 F(ccmerge) \
