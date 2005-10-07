@@ -501,7 +501,7 @@ typedef struct gageContext_t {
   NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];  /* all the kernels we'll ever need */
   struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
                               /* the pervolumes attached to this context */
-  int numPvl;                 /* number of pervolumes currently attached */
+  int pvlNum;                 /* number of pervolumes currently attached */
   gageShape *shape;           /* sizes, spacings, centering, and other 
                                  geometric aspects of the volume */
   int flag[GAGE_CTX_FLAG_NUM];/* all the flags used by gageUpdate() used to

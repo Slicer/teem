@@ -28,7 +28,7 @@ _gagePvlFlagCheck (gageContext *ctx, int pvlFlag) {
   int i, ret;
   
   ret = AIR_FALSE;
-  for (i=0; i<ctx->numPvl; i++) {
+  for (i=0; i<ctx->pvlNum; i++) {
     ret |= ctx->pvl[i]->flag[pvlFlag];
   }
   return ret;
@@ -38,7 +38,7 @@ void
 _gagePvlFlagDown (gageContext *ctx, int pvlFlag) {
   int i;
   
-  for (i=0; i<ctx->numPvl; i++) {
+  for (i=0; i<ctx->pvlNum; i++) {
     ctx->pvl[i]->flag[pvlFlag] = AIR_FALSE;
   }
 }
@@ -60,7 +60,7 @@ _gagePvlNeedDUpdate (gageContext *ctx) {
   int pvlIdx, que, needD[3];
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  for (pvlIdx=0; pvlIdx<ctx->numPvl; pvlIdx++) {
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     if (pvl->flag[gagePvlFlagQuery]) {
       ELL_3V_SET(needD, 0, 0, 0);
@@ -97,7 +97,7 @@ _gageNeedDUpdate (gageContext *ctx) {
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   ELL_3V_SET(needD, 0, 0, 0);
-  for (pvlIdx=0; pvlIdx<ctx->numPvl; pvlIdx++) {
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     needD[0] |= pvl->needD[0];
     needD[1] |= pvl->needD[1];
@@ -234,7 +234,7 @@ _gageCacheSizeUpdate (gageContext *ctx) {
     sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
     biffAdd(GAGE, err); return 1;
   }
-  for (pvlIdx=0; pvlIdx<ctx->numPvl; pvlIdx++) {
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     pvl->iv3 = (gage_t *)airFree(pvl->iv3);
     pvl->iv2 = (gage_t *)airFree(pvl->iv2);
@@ -291,7 +291,7 @@ gageUpdate (gageContext *ctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (0 == ctx->numPvl) {
+  if (0 == ctx->pvlNum) {
     sprintf(err, "%s: context has no attached pervolumes", me);
     biffAdd(GAGE, err); return 1;
   }

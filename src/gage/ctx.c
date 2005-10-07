@@ -44,7 +44,7 @@ gageContextNew () {
     for (i=0; i<GAGE_PERVOLUME_NUM; i++) {
       ctx->pvl[i] = NULL;
     }
-    ctx->numPvl = 0;
+    ctx->pvlNum = 0;
     ctx->shape = gageShapeNew();
     for (i=0; i<GAGE_CTX_FLAG_NUM; i++) {
       ctx->flag[i] = AIR_FALSE;
@@ -90,7 +90,7 @@ gageContextCopy (gageContext *ctx) {
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     ntx->ksp[i] = nrrdKernelSpecCopy(ctx->ksp[i]);
   }
-  for (i=0; i<ntx->numPvl; i++) {
+  for (i=0; i<ntx->pvlNum; i++) {
     ntx->pvl[i] = _gagePerVolumeCopy(ctx->pvl[i], 2*ctx->radius);
     if (!ntx->pvl[i]) {
       sprintf(err, "%s: trouble copying pervolume %d", me, i);
@@ -132,7 +132,7 @@ gageContextNix (gageContext *ctx) {
 
   if (ctx) {
     gageKernelReset(ctx);
-    for (i=0; i<ctx->numPvl; i++) {
+    for (i=0; i<ctx->pvlNum; i++) {
       gagePerVolumeNix(ctx->pvl[i]);
       /* no point in doing a detach, the whole context is going bye-bye */
     }
@@ -253,7 +253,7 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
   switch (which) {
   case gageParmVerbose:
     ctx->verbose = (int)val;
-    for (p=0; p<ctx->numPvl; p++) {
+    for (p=0; p<ctx->pvlNum; p++) {
       ctx->pvl[p]->verbose = (int)val;
     }
     break;
@@ -322,7 +322,7 @@ gagePerVolumeIsAttached (gageContext *ctx, gagePerVolume *pvl) {
   int i, ret;
 
   ret = AIR_FALSE;
-  for (i=0; i<ctx->numPvl; i++) {
+  for (i=0; i<ctx->pvlNum; i++) {
     if (pvl == ctx->pvl[i]) {
       ret = AIR_TRUE;
     }
@@ -349,13 +349,13 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: given pervolume already attached", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (ctx->numPvl == GAGE_PERVOLUME_NUM) {
+  if (ctx->pvlNum == GAGE_PERVOLUME_NUM) {
     sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_NUM == %d "
             "pervolumes attached", me, GAGE_PERVOLUME_NUM);
     biffAdd(GAGE, err); return 1;
   }
 
-  if (0 == ctx->numPvl) {
+  if (0 == ctx->pvlNum) {
     /* the volume "shape" is context state that we set now, because unlike 
        everything else (handled by gageUpdate()), it does not effect
        the kind or amount of padding done */
@@ -380,7 +380,7 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
     gageShapeNix(shape); 
   }
   /* here we go */
-  ctx->pvl[ctx->numPvl++] = pvl;
+  ctx->pvl[ctx->pvlNum++] = pvl;
   pvl->verbose = ctx->verbose;
 
   return 0;
@@ -406,16 +406,16 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: given pervolume not currently attached", me);
     biffAdd(GAGE, err); return 1;
   }
-  for (i=0; i<ctx->numPvl; i++) {
+  for (i=0; i<ctx->pvlNum; i++) {
     if (pvl == ctx->pvl[i]) {
       idx = i;
     }
   }
-  for (i=idx+1; i<ctx->numPvl; i++) {
+  for (i=idx+1; i<ctx->pvlNum; i++) {
     ctx->pvl[i-1] = ctx->pvl[i];
   }
-  ctx->pvl[ctx->numPvl--] = NULL;
-  if (0 == ctx->numPvl) {
+  ctx->pvl[ctx->pvlNum--] = NULL;
+  if (0 == ctx->pvlNum) {
     /* leave things the way that they started */
     gageShapeReset(ctx->shape);
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
@@ -558,12 +558,12 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   if (!( xi == ctx->point.xi &&
          yi == ctx->point.yi &&
          zi == ctx->point.zi )) {
-    for (i=0; i<ctx->numPvl; i++) {
+    for (i=0; i<ctx->pvlNum; i++) {
       gageIv3Fill(ctx, ctx->pvl[i]);
     }
   }
   /* fprintf(stderr, "##%s: bingo 2\n", me); */
-  for (i=0; i<ctx->numPvl; i++) {
+  for (i=0; i<ctx->pvlNum; i++) {
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: pvl[%d]'s value cache at "
               "coords = %d,%d,%d:\n", me, i,

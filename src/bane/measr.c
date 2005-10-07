@@ -136,7 +136,7 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
   char me[]="baneMeasrAnswer";
   double ret;
   
-  if (measr && gctx && 1 == gctx->numPvl) {
+  if (measr && gctx && 1 == gctx->pvlNum) {
     ret = measr->answer(measr, gctx->pvl[0]->answer, measr->parm);
   } else {
     fprintf(stderr, "%s: something is terribly wrong\n", me);
