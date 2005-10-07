@@ -96,7 +96,7 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   me = argv[0];
   hparm = hestParmNew();
-  airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume", NULL, NULL, nrrdHestNrrd);
@@ -136,8 +136,8 @@ main(int argc, char *argv[]) {
              "output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
-  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+  airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);
+  airMopAdd(mop, hopt, AIR_CAST(airMopper, hestParseFree), airMopAlways);
 
   what = airEnumVal(kind->enm, whatS);
   if (-1 == what) {
@@ -158,7 +158,7 @@ main(int argc, char *argv[]) {
       return 1;
     }
     nmat = nrrdNew();
-    airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, nmat, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(nmat, _nmat, nrrdTypeDouble)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -190,22 +190,16 @@ main(int argc, char *argv[]) {
   /***
   **** Except for the gageProbe() call in the inner loop below,
   **** and the gageContextNix() call at the very end, all the gage
-  **** calls which set up the context and state are here.
+  **** calls which set up (and take down) the context and state are here.
   ***/
   ctx = gageContextNew();
-  airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
+  airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
   gageParmSet(ctx, gageParmVerbose, 1);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
-  if (!E) {
-    if (tenGageKind == kind) {
-      pvl->data = AIR_CAST(void*, tenGagePvlDataNew());
-    }
-    airMopAdd(mop, pvl->data, (airMopper)tenGagePvlDataNix, airMopAlways);
-  }
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
@@ -237,7 +231,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
     if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
   }
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
