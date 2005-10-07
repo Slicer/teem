@@ -25,21 +25,22 @@
 
 int
 _gagePvlFlagCheck (gageContext *ctx, int pvlFlag) {
-  int i, ret;
+  int ret;
+  unsigned int pvlIdx;
   
   ret = AIR_FALSE;
-  for (i=0; i<ctx->pvlNum; i++) {
-    ret |= ctx->pvl[i]->flag[pvlFlag];
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+    ret |= ctx->pvl[pvlIdx]->flag[pvlFlag];
   }
   return ret;
 }
 
 void
 _gagePvlFlagDown (gageContext *ctx, int pvlFlag) {
-  int i;
+  unsigned int pvlIdx;
   
-  for (i=0; i<ctx->pvlNum; i++) {
-    ctx->pvl[i]->flag[pvlFlag] = AIR_FALSE;
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+    ctx->pvl[pvlIdx]->flag[pvlFlag] = AIR_FALSE;
   }
 }
 
@@ -57,7 +58,8 @@ void
 _gagePvlNeedDUpdate (gageContext *ctx) {
   char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
-  int pvlIdx, que, needD[3];
+  int que, needD[3];
+  unsigned int pvlIdx;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
@@ -93,7 +95,8 @@ void
 _gageNeedDUpdate (gageContext *ctx) {
   char me[]="_gageNeedDUpdate";
   gagePerVolume *pvl;
-  int pvlIdx, needD[3];
+  int needD[3];
+  unsigned int pvlIdx;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   ELL_3V_SET(needD, 0, 0, 0);
@@ -219,8 +222,9 @@ _gageRadiusUpdate (gageContext *ctx) {
 int
 _gageCacheSizeUpdate (gageContext *ctx) {
   char me[]="_gageCacheSizeUpdate", err[AIR_STRLEN_MED];
-  int pvlIdx, fd;
+  int fd;
   gagePerVolume *pvl;
+  unsigned int pvlIdx;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   fd = 2*ctx->radius;

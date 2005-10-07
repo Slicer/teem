@@ -501,7 +501,7 @@ typedef struct gageContext_t {
   NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];  /* all the kernels we'll ever need */
   struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
                               /* the pervolumes attached to this context */
-  int pvlNum;                 /* number of pervolumes currently attached */
+  unsigned int pvlNum;        /* number of pervolumes currently attached */
   gageShape *shape;           /* sizes, spacings, centering, and other 
                                  geometric aspects of the volume */
   int flag[GAGE_CTX_FLAG_NUM];/* all the flags used by gageUpdate() used to
@@ -702,8 +702,8 @@ GAGE_EXPORT void gageParmSet(gageContext *ctx, int which, gage_t val);
 GAGE_EXPORT int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
-GAGE_EXPORT int gageKernelSet(gageContext *ctx,
-                              int which, const NrrdKernel *k, double *kparm);
+GAGE_EXPORT int gageKernelSet(gageContext *ctx, int which,
+                              const NrrdKernel *k, const double *kparm);
 GAGE_EXPORT void gageKernelReset(gageContext *ctx);
 GAGE_EXPORT int gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z);
 GAGE_EXPORT int gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,

@@ -77,6 +77,7 @@ gageContextCopy (gageContext *ctx) {
   char me[]="gageContextCopy", err[AIR_STRLEN_MED];
   gageContext *ntx;
   int fd, i;
+  unsigned int pvlIdx;
 
   ntx = (gageContext*)calloc(1, sizeof(gageContext));
   if (!ntx) {
@@ -90,10 +91,10 @@ gageContextCopy (gageContext *ctx) {
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
     ntx->ksp[i] = nrrdKernelSpecCopy(ctx->ksp[i]);
   }
-  for (i=0; i<ntx->pvlNum; i++) {
-    ntx->pvl[i] = _gagePerVolumeCopy(ctx->pvl[i], 2*ctx->radius);
-    if (!ntx->pvl[i]) {
-      sprintf(err, "%s: trouble copying pervolume %d", me, i);
+  for (pvlIdx=0; pvlIdx<ntx->pvlNum; pvlIdx++) {
+    ntx->pvl[pvlIdx] = _gagePerVolumeCopy(ctx->pvl[pvlIdx], 2*ctx->radius);
+    if (!ntx->pvl[pvlIdx]) {
+      sprintf(err, "%s: trouble copying pervolume %u", me, pvlIdx);
       biffAdd(GAGE, err); return NULL;
     }
   }
@@ -128,12 +129,12 @@ gageContextCopy (gageContext *ctx) {
 */
 gageContext *
 gageContextNix (gageContext *ctx) {
-  int i;
+  unsigned int pvlIdx;
 
   if (ctx) {
     gageKernelReset(ctx);
-    for (i=0; i<ctx->pvlNum; i++) {
-      gagePerVolumeNix(ctx->pvl[i]);
+    for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+      gagePerVolumeNix(ctx->pvl[pvlIdx]);
       /* no point in doing a detach, the whole context is going bye-bye */
     }
     ctx->shape = gageShapeNix(ctx->shape);
@@ -159,7 +160,7 @@ gageContextNix (gageContext *ctx) {
 */
 int
 gageKernelSet (gageContext *ctx, 
-               int which, const NrrdKernel *k, double *kparm) {
+               int which, const NrrdKernel *k, const double *kparm) {
   char me[]="gageKernelSet", err[AIR_STRLEN_MED];
   int numParm;
   double support, integral;
@@ -248,13 +249,13 @@ gageKernelReset (gageContext *ctx) {
 void
 gageParmSet (gageContext *ctx, int which, gage_t val) {
   char me[]="gageParmSet";
-  int p;
+  unsigned int pvlIdx;
   
   switch (which) {
   case gageParmVerbose:
-    ctx->verbose = (int)val;
-    for (p=0; p<ctx->pvlNum; p++) {
-      ctx->pvl[p]->verbose = (int)val;
+    ctx->verbose = AIR_CAST(int, val);
+    for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+      ctx->pvl[pvlIdx]->verbose = AIR_CAST(int, val);
     }
     break;
   case gageParmRenormalize:
@@ -286,7 +287,7 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmCurvNormalSide:
-    ctx->parm.curvNormalSide = (int)val;
+    ctx->parm.curvNormalSide = AIR_CAST(int, val);
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmKernelIntegralNearZero:
@@ -294,15 +295,15 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
     /* no flag to set, simply affects future calls to gageKernelSet() */
     break;
   case gageParmRequireAllSpacings:
-    ctx->parm.requireAllSpacings = (int)val;
+    ctx->parm.requireAllSpacings = AIR_CAST(int, val);
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmRequireEqualCenters:
-    ctx->parm.requireEqualCenters = (int)val;
+    ctx->parm.requireEqualCenters = AIR_CAST(int, val);
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmDefaultCenter:
-    ctx->parm.defaultCenter = (int)val;
+    ctx->parm.defaultCenter = AIR_CAST(int, val);
     /* no flag to set, I guess, although the value here effects the 
        action of _gageShapeSet when called by gagePerVolumeAttach ... */
     break;
@@ -319,11 +320,12 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
 */
 int
 gagePerVolumeIsAttached (gageContext *ctx, gagePerVolume *pvl) {
-  int i, ret;
+  int ret;
+  unsigned int pvlIdx;
 
   ret = AIR_FALSE;
-  for (i=0; i<ctx->pvlNum; i++) {
-    if (pvl == ctx->pvl[i]) {
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+    if (pvl == ctx->pvl[pvlIdx]) {
       ret = AIR_TRUE;
     }
   }
@@ -396,7 +398,7 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
 int
 gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gagePerVolumeDetach", err[AIR_STRLEN_MED];
-  int i, idx=0;
+  unsigned int pvlIdx, foundIdx=0;
 
   if (!( ctx && pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -406,13 +408,13 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: given pervolume not currently attached", me);
     biffAdd(GAGE, err); return 1;
   }
-  for (i=0; i<ctx->pvlNum; i++) {
-    if (pvl == ctx->pvl[i]) {
-      idx = i;
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+    if (pvl == ctx->pvl[pvlIdx]) {
+      foundIdx = pvlIdx;
     }
   }
-  for (i=idx+1; i<ctx->pvlNum; i++) {
-    ctx->pvl[i-1] = ctx->pvl[i];
+  for (pvlIdx=foundIdx+1; pvlIdx<ctx->pvlNum; pvlIdx++) {
+    ctx->pvl[pvlIdx-1] = ctx->pvl[pvlIdx];
   }
   ctx->pvl[ctx->pvlNum--] = NULL;
   if (0 == ctx->pvlNum) {
@@ -541,7 +543,8 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
 int
 gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="gageProbe";
-  int xi, yi, zi, i;
+  int xi, yi, zi;
+  unsigned int pvlIdx;
   
   /* fprintf(stderr, "##%s: bingo 0\n", me); */
   xi = ctx->point.xi;
@@ -558,20 +561,20 @@ gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   if (!( xi == ctx->point.xi &&
          yi == ctx->point.yi &&
          zi == ctx->point.zi )) {
-    for (i=0; i<ctx->pvlNum; i++) {
-      gageIv3Fill(ctx, ctx->pvl[i]);
+    for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+      gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
     }
   }
   /* fprintf(stderr, "##%s: bingo 2\n", me); */
-  for (i=0; i<ctx->pvlNum; i++) {
+  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: pvl[%d]'s value cache at "
-              "coords = %d,%d,%d:\n", me, i,
+      fprintf(stderr, "%s: pvl[%u]'s value cache at "
+              "coords = %d,%d,%d:\n", me, pvlIdx,
               ctx->point.xi, ctx->point.yi, ctx->point.zi);
-      ctx->pvl[i]->kind->iv3Print(stderr, ctx, ctx->pvl[i]);
+      ctx->pvl[pvlIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[pvlIdx]);
     }
-    ctx->pvl[i]->kind->filter(ctx, ctx->pvl[i]);
-    ctx->pvl[i]->kind->answer(ctx, ctx->pvl[i]);
+    ctx->pvl[pvlIdx]->kind->filter(ctx, ctx->pvl[pvlIdx]);
+    ctx->pvl[pvlIdx]->kind->answer(ctx, ctx->pvl[pvlIdx]);
   }
   
   /* fprintf(stderr, "##%s: bingo 5\n", me); */
