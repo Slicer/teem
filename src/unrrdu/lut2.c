@@ -47,14 +47,13 @@ unrrdu_lut2Main(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "m,map", "lut", airTypeOther, 1, 1, &nlut, NULL,
              "lookup table to map input nrrd through",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "r0,rescale0", NULL, airTypeInt, 0, 0, &(rescale[0]), NULL,
-             "rescale the first input value from the input range to the "
-             "lut domain.  The lut domain is either explicitly "
-             "defined by the axis min,max along axis 0 or 1, or, it "
-             "is implicitly defined as zero to the length of that axis "
+  hestOptAdd(&opt, "r,rescale", "bool bool", airTypeBool, 2, 2, rescale,
+             "false false",
+             "rescale one or both of the input values from the "
+             "input range to the lut domain.  The lut domain is either "
+             "explicitly defined by the axis min,max along axis 0 or 1, "
+             "or, it is implicitly defined as zero to the length of that axis "
              "minus one.");
-  hestOptAdd(&opt, "r1,rescale1", NULL, airTypeInt, 0, 0, &(rescale[1]), NULL,
-             "same as \"-r0\", but for second input value.");
   hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, 2, min,
              "nan nan",
              "Low ends of input range. Defaults to lowest values "
