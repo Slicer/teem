@@ -28,8 +28,7 @@
  * conjugate eigenvalues of a 3x3 non-symmetric matrix
  */ 
 double
-gage_imaginary_part_eigenvalues( gage_t *M )
-{
+gage_imaginary_part_eigenvalues( gage_t *M ) {
     double A, B, C, scale, frob, m[9], _eval[3];
     double beta, gamma;
     int roots;
@@ -96,7 +95,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
 };
 
 void
-_gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
+_gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecFilter";
   gage_t *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
@@ -147,7 +146,7 @@ _gageVecFilter (gageContext *ctx, gagePerVolume *pvl) {
 }
 
 void
-_gageVecAnswer (gageContext *ctx, gagePerVolume *pvl) {
+_gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double symm[9], asym[9], tran[9], eval[3], tmpVec[3], norm;
@@ -592,7 +591,7 @@ _gageVec = {
   _gageVecStrEqv, _gageVecValEqv,
   AIR_FALSE
 };
-airEnum *
+airEnum *const
 gageVec = &_gageVec;
 
 gageKind
@@ -607,6 +606,6 @@ _gageKindVec = {
   _gageVecFilter,
   _gageVecAnswer
 };
-gageKind *
+gageKind *const
 gageKindVec = &_gageKindVec;
 

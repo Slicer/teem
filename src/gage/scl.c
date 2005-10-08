@@ -277,7 +277,7 @@ _gageScl = {
   _gageSclStrEqv, _gageSclValEqv,
   AIR_FALSE
 };
-airEnum *
+airEnum *const
 gageScl = &_gageScl;
 
 gageKind
@@ -292,5 +292,5 @@ _gageKindScl = {
   _gageSclFilter,
   _gageSclAnswer
 };
-gageKind *
+gageKind *const
 gageKindScl = &_gageKindScl;

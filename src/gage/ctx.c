@@ -29,7 +29,7 @@
 ** doesn't use biff
 */
 gageContext *
-gageContextNew () {
+gageContextNew() {
   gageContext *ctx;
   int i;
   
@@ -73,7 +73,7 @@ gageContextNew () {
 ** copied context).
 */
 gageContext *
-gageContextCopy (gageContext *ctx) {
+gageContextCopy(gageContext *ctx) {
   char me[]="gageContextCopy", err[AIR_STRLEN_MED];
   gageContext *ntx;
   int fd, i;
@@ -128,7 +128,7 @@ gageContextCopy (gageContext *ctx) {
 ** does not use biff
 */
 gageContext *
-gageContextNix (gageContext *ctx) {
+gageContextNix(gageContext *ctx) {
   unsigned int pvlIdx;
 
   if (ctx) {
@@ -159,8 +159,8 @@ gageContextNix (gageContext *ctx) {
 ** Sets: ctx->k[which], ctx->kparm[which]
 */
 int
-gageKernelSet (gageContext *ctx, 
-               int which, const NrrdKernel *k, const double *kparm) {
+gageKernelSet(gageContext *ctx, 
+              int which, const NrrdKernel *k, const double *kparm) {
   char me[]="gageKernelSet", err[AIR_STRLEN_MED];
   int numParm;
   double support, integral;
@@ -226,7 +226,7 @@ gageKernelSet (gageContext *ctx,
 ** reset kernels and parameters.
 */
 void
-gageKernelReset (gageContext *ctx) {
+gageKernelReset(gageContext *ctx) {
   /* char me[]="gageKernelReset"; */
   int i;
 
@@ -247,7 +247,7 @@ gageKernelReset (gageContext *ctx) {
 ** consequences
 */
 void
-gageParmSet (gageContext *ctx, int which, gage_t val) {
+gageParmSet(gageContext *ctx, int which, gage_t val) {
   char me[]="gageParmSet";
   unsigned int pvlIdx;
   
@@ -319,7 +319,7 @@ gageParmSet (gageContext *ctx, int which, gage_t val) {
 **
 */
 int
-gagePerVolumeIsAttached (gageContext *ctx, gagePerVolume *pvl) {
+gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
   int ret;
   unsigned int pvlIdx;
 
@@ -339,7 +339,7 @@ gagePerVolumeIsAttached (gageContext *ctx, gagePerVolume *pvl) {
 ** very little work
 */
 int
-gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
+gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gagePerVolumeAttach", err[AIR_STRLEN_MED];
   gageShape *shape;
 
@@ -396,7 +396,7 @@ gagePerVolumeAttach (gageContext *ctx, gagePerVolume *pvl) {
 ** if this pervolume will no longer be used
 */
 int
-gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
+gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gagePerVolumeDetach", err[AIR_STRLEN_MED];
   unsigned int pvlIdx, foundIdx=0;
 
@@ -432,7 +432,7 @@ gagePerVolumeDetach (gageContext *ctx, gagePerVolume *pvl) {
 ** the probe location, fills the iv3 cache in the given pervolume
 */
 void
-gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
+gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
   int _xx, _yy, _zz, xx, yy, zz, sx, sy, sz, lx, ly, lz,
     hx, hy, hz, fr, fddd, cacheIdx, dataIdx;
@@ -541,7 +541,7 @@ gageIv3Fill (gageContext *ctx, gagePerVolume *pvl) {
 ** structs of the attached pervolumes
 */
 int
-gageProbe (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
+gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="gageProbe";
   int xi, yi, zi;
   unsigned int pvlIdx;

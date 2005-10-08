@@ -30,7 +30,8 @@
 ** and the given parameter settings in the context
 */
 int
-gageVolumeCheck(gageContext *ctx, const Nrrd *nin, gageKind *kind) {
+gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
+                const gageKind *kind) {
   char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
   gageShape shape;
 
@@ -51,7 +52,7 @@ gageVolumeCheck(gageContext *ctx, const Nrrd *nin, gageKind *kind) {
 ** uses biff primarily because of the error checking in gageVolumeCheck()
 */
 gagePerVolume *
-gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, gageKind *kind) {
+gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
   gagePerVolume *pvl;
   int ii;
@@ -163,7 +164,7 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 **
 */
 gage_t *
-gageAnswerPointer(gageContext *ctx, gagePerVolume *pvl, int item) {
+gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   gage_t *ret;
 
   AIR_UNUSED(ctx);

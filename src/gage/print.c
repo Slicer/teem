@@ -24,7 +24,7 @@
 #include "privateGage.h"
 
 void
-_gagePrint_off (FILE *file, gageContext *ctx) {
+_gagePrint_off(FILE *file, gageContext *ctx) {
   int i, fd;
   unsigned int *off;
 
@@ -89,7 +89,7 @@ _gagePrint_off (FILE *file, gageContext *ctx) {
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
 void
-_gagePrint_fslw (FILE *file, gageContext *ctx) {
+_gagePrint_fslw(FILE *file, gageContext *ctx) {
   int i, fd;
   gage_t *fslx, *fsly, *fslz, *fw,
     *fw000, *fw001, *fw002, 
@@ -167,7 +167,7 @@ _gagePrint_fslw (FILE *file, gageContext *ctx) {
 }
 
 void
-gageQueryPrint (FILE *file, gageKind *kind, gageQuery query) {
+gageQueryPrint(FILE *file, const gageKind *kind, gageQuery query) {
   int ii;
 
   fprintf(file, "%s query = ...\n", kind->name);

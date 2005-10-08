@@ -535,7 +535,7 @@ typedef struct gageContext_t {
 */
 typedef struct gagePerVolume_t {
   int verbose;                /* verbosity */
-  struct gageKind_t *kind;    /* what kind of volume is this pervolume for */
+  const struct gageKind_t *kind;  /* what kind of volume is this for */
   gageQuery query;            /* the query, recursively expanded */
   int needD[3];               /* which derivatives need to be calculated for
                                  the query (above) in this volume */
@@ -592,7 +592,7 @@ typedef struct gageKind_t {
 ** as a gageQuerySpec.  
 */
 typedef struct {
-  gageKind *kind;             /* the kind of the volume to measure */
+  const gageKind *kind;       /* the kind of the volume to measure */
   int item;                   /* the quantity to measure */
 } gageItemSpec;
 
@@ -625,12 +625,13 @@ GAGE_EXPORT gageItemSpec *gageItemSpecNew(void);
 GAGE_EXPORT gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
 
 /* kind.c */
-GAGE_EXPORT int gageKindCheck(gageKind *kind);
-GAGE_EXPORT int gageKindTotalAnswerLength(gageKind *kind);
-GAGE_EXPORT int gageKindAnswerOffset(gageKind *kind, int item);
+GAGE_EXPORT int gageKindCheck(const gageKind *kind);
+GAGE_EXPORT int gageKindTotalAnswerLength(const gageKind *kind);
+GAGE_EXPORT int gageKindAnswerOffset(const gageKind *kind, int item);
 
 /* print.c */
-GAGE_EXPORT void gageQueryPrint(FILE *file, gageKind *kind, gageQuery query);
+GAGE_EXPORT void gageQueryPrint(FILE *file, const gageKind *kind,
+                                gageQuery query);
 
 /* sclfilter.c */
 GAGE_EXPORT void gageScl3PFilter2(gage_t *iv3, gage_t *iv2, gage_t *iv1,
@@ -648,14 +649,14 @@ GAGE_EXPORT void gageScl3PFilterN(int fd,
                                   int doV, int doD1, int doD2);
 
 /* scl.c */
-GAGE_EXPORT airEnum *gageScl;
-GAGE_EXPORT gageKind *gageKindScl;
+GAGE_EXPORT airEnum *const gageScl;
+GAGE_EXPORT gageKind *const gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
-GAGE_EXPORT airEnum *gageVec;
-GAGE_EXPORT gageKind *gageKindVec;
+GAGE_EXPORT airEnum *const gageVec;
+GAGE_EXPORT gageKind *const gageKindVec;
 
 /* shape.c */
 GAGE_EXPORT void gageShapeReset(gageShape *shp);
@@ -678,14 +679,14 @@ GAGE_EXPORT int gageShapeEqual(gageShape *shp1, char *name1,
    what the first argument is, not what appears in the function name,
    but that's just a complete mess now */
 /* pvl.c */
-GAGE_EXPORT int gageVolumeCheck(gageContext *ctx, const Nrrd *nin,
-                                gageKind *kind);
+GAGE_EXPORT int gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
+                                const gageKind *kind);
 GAGE_EXPORT gagePerVolume *gagePerVolumeNew(gageContext *ctx,
                                             const Nrrd *nin,
-                                            gageKind *kind);
+                                            const gageKind *kind);
 GAGE_EXPORT gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-GAGE_EXPORT gage_t *gageAnswerPointer(gageContext *ctx, 
-                                      gagePerVolume *pvl, int item);
+GAGE_EXPORT gage_t *gageAnswerPointer(const gageContext *ctx, 
+                                      const gagePerVolume *pvl, int item);
 GAGE_EXPORT int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,
                              gageQuery query);
@@ -699,7 +700,8 @@ GAGE_EXPORT gageContext *gageContextNew();
 GAGE_EXPORT gageContext *gageContextCopy(gageContext *ctx);
 GAGE_EXPORT gageContext *gageContextNix(gageContext *ctx);
 GAGE_EXPORT void gageParmSet(gageContext *ctx, int which, gage_t val);
-GAGE_EXPORT int gagePerVolumeIsAttached(gageContext *ctx, gagePerVolume *pvl);
+GAGE_EXPORT int gagePerVolumeIsAttached(const gageContext *ctx,
+                                        const gagePerVolume *pvl);
 GAGE_EXPORT int gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageKernelSet(gageContext *ctx, int which,

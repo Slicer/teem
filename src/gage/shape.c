@@ -24,7 +24,7 @@
 #include "privateGage.h"
 
 void
-gageShapeReset (gageShape *shape) {
+gageShapeReset(gageShape *shape) {
   int i, ai;
   
   if (shape) {
@@ -46,7 +46,7 @@ gageShapeReset (gageShape *shape) {
 }
 
 gageShape *
-gageShapeNew () {
+gageShapeNew() {
   gageShape *shape;
   
   shape = (gageShape *)calloc(1, sizeof(gageShape));
@@ -57,7 +57,7 @@ gageShapeNew () {
 }
 
 gageShape *
-gageShapeCopy (gageShape *shp) {
+gageShapeCopy(gageShape *shp) {
   gageShape *nhp;
 
   if ((nhp = gageShapeNew())) {
@@ -68,7 +68,7 @@ gageShapeCopy (gageShape *shp) {
 }
 
 gageShape *
-gageShapeNix (gageShape *shape) {
+gageShapeNix(gageShape *shape) {
   
   airFree(shape);
   return NULL;
@@ -86,8 +86,8 @@ gageShapeNix (gageShape *shape) {
 ** This function has subsumed the old gageVolumeCheck.
 */
 int
-_gageShapeSet (gageContext *ctx, gageShape *shape,
-               const Nrrd *nin, unsigned int baseDim) {
+_gageShapeSet(const gageContext *ctx, gageShape *shape,
+              const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
   int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter, statCalc[3];
   const NrrdAxisInfo *ax[3];
@@ -364,7 +364,7 @@ _gageShapeSet (gageContext *ctx, gageShape *shape,
 }
 
 int
-gageShapeSet (gageShape *shape, const Nrrd *nin, int baseDim) {
+gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
   char me[]="gageShapeSet", err[AIR_STRLEN_MED];
 
   if (_gageShapeSet(NULL, shape, nin, baseDim)) {
@@ -375,7 +375,7 @@ gageShapeSet (gageShape *shape, const Nrrd *nin, int baseDim) {
 }
 
 void
-gageShapeUnitWtoI (gageShape *shape, double index[3], double world[3]) {
+gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
   int i;
   
   if (nrrdCenterNode == shape->center) {
@@ -392,7 +392,7 @@ gageShapeUnitWtoI (gageShape *shape, double index[3], double world[3]) {
 }
 
 void
-gageShapeWtoI (gageShape *shape, double _index[3], double _world[3]) {
+gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
   double index[4], world[4];
 
   ELL_3V_COPY(world, _world);
@@ -402,7 +402,7 @@ gageShapeWtoI (gageShape *shape, double _index[3], double _world[3]) {
 }
 
 void
-gageShapeUnitItoW (gageShape *shape, double world[3], double index[3]) {
+gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
   int i;
   
   if (nrrdCenterNode == shape->center) {
@@ -419,7 +419,7 @@ gageShapeUnitItoW (gageShape *shape, double world[3], double index[3]) {
 }
 
 void
-gageShapeItoW (gageShape *shape, double _world[3], double _index[3]) {
+gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
   double world[4], index[4];
 
   ELL_3V_COPY(index, _index);
@@ -429,8 +429,8 @@ gageShapeItoW (gageShape *shape, double _world[3], double _index[3]) {
 }
 
 int
-gageShapeEqual (gageShape *shape1, char *_name1,
-                gageShape *shape2, char *_name2) {
+gageShapeEqual(gageShape *shape1, char *_name1,
+               gageShape *shape2, char *_name2) {
   char me[]="_gageShapeEqual", err[AIR_STRLEN_MED],
     *name1, *name2, what[] = "???";
 

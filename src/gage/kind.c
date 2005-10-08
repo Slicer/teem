@@ -31,7 +31,7 @@
 ** theoretically this is good for dynamically-generated gageKinds as well.
 */
 int
-gageKindCheck(gageKind *kind) {
+gageKindCheck(const gageKind *kind) {
   char me[]="gageKindCheck", err[AIR_STRLEN_MED];
   int pitem, pindex, alen;
   int ii;
@@ -99,7 +99,7 @@ gageKindCheck(gageKind *kind) {
 }
 
 int
-gageKindTotalAnswerLength(gageKind *kind) {
+gageKindTotalAnswerLength(const gageKind *kind) {
   char me[]="gageKindTotalAnswerLength", *err;
   int ii, alen;
 
@@ -125,7 +125,7 @@ gageKindTotalAnswerLength(gageKind *kind) {
 ** I don't think this will work if there are sub-sub-items
 */
 int
-_gageKindAnswerOffset(gageKind *kind, int item) {
+_gageKindAnswerOffset(const gageKind *kind, int item) {
   int parent, ii;
 
   if (!item) {
@@ -152,7 +152,7 @@ _gageKindAnswerOffset(gageKind *kind, int item) {
 }
 
 int
-gageKindAnswerOffset(gageKind *kind, int item) {
+gageKindAnswerOffset(const gageKind *kind, int item) {
   char me[]="gageKindAnswerOffset", *err;  
   
   if (gageKindCheck(kind)) {

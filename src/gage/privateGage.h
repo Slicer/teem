@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 /* shape.c */
-extern int _gageShapeSet(gageContext *ctx, gageShape *shape,
+extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
                          const Nrrd *nin, unsigned int baseDim);
 
 /* pvl.c */
