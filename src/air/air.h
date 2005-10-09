@@ -115,12 +115,12 @@ typedef struct {
                   NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
-AIR_EXPORT int airEnumUnknown(airEnum *enm);
-AIR_EXPORT int airEnumValCheck(airEnum *enm, int val);
-AIR_EXPORT const char *airEnumStr(airEnum *enm, int val);
-AIR_EXPORT const char *airEnumDesc(airEnum *enm, int val);
-AIR_EXPORT int airEnumVal(airEnum *enm, const char *str);
-AIR_EXPORT char *airEnumFmtDesc(airEnum *enm, int val, int canon,
+AIR_EXPORT int airEnumUnknown(const airEnum *enm);
+AIR_EXPORT int airEnumValCheck(const airEnum *enm, int val);
+AIR_EXPORT const char *airEnumStr(const airEnum *enm, int val);
+AIR_EXPORT const char *airEnumDesc(const airEnum *enm, int val);
+AIR_EXPORT int airEnumVal(const airEnum *enm, const char *str);
+AIR_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 
 /*
