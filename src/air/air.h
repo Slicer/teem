@@ -137,7 +137,7 @@ enum {
   airEndianLast
 };
 /* endianAir.c */
-AIR_EXPORT airEnum *airEndian;
+AIR_EXPORT const airEnum *const airEndian;
 AIR_EXPORT const int airMyEndian;
 
 /* array.c: poor-man's dynamically resizable arrays */
@@ -362,7 +362,7 @@ enum {
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
-AIR_EXPORT airEnum *airBool;
+AIR_EXPORT const airEnum *const airBool;
 AIR_EXPORT unsigned int airParseStrB(int *out, const char *s,
                                      const char *ct, unsigned int n, 
                                      ... /* (nothing used) */);
