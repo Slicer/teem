@@ -151,6 +151,21 @@ _gageKindAnswerOffset(const gageKind *kind, int item) {
           + _gageKindAnswerOffset(kind, ii));
 }
 
+unsigned int
+gageKindAnswerLength(const gageKind *kind, int item) {
+  char me[]="gageKindAnswerLength", *err;
+
+  if (gageKindCheck(kind)) {
+    err = biffGetDone(GAGE); 
+    fprintf(stderr, "%s: PANIC:\n %s", me, err);
+    free(err); exit(1);
+  }
+
+  return (!airEnumValCheck(kind->enm, item)
+          ? kind->table[item].answerLength
+          : 0);
+}
+
 int
 gageKindAnswerOffset(const gageKind *kind, int item) {
   char me[]="gageKindAnswerOffset", *err;  

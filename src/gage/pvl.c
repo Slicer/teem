@@ -189,6 +189,18 @@ _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   return ret;
 }
 
+unsigned int
+gageAnswerLength(const gagePerVolume *pvl, int item) {
+  unsigned int ret;
+  
+  if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
+    ret = gageKindAnswerLength(pvl->kind, item);
+  } else {
+    ret = 0;
+  }
+  return ret;
+}
+
 int
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageQueryReset", err[AIR_STRLEN_MED];

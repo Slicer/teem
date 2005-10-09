@@ -627,6 +627,7 @@ GAGE_EXPORT gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
 /* kind.c */
 GAGE_EXPORT int gageKindCheck(const gageKind *kind);
 GAGE_EXPORT int gageKindTotalAnswerLength(const gageKind *kind);
+GAGE_EXPORT unsigned int gageKindAnswerLength(const gageKind *kind, int item);
 GAGE_EXPORT int gageKindAnswerOffset(const gageKind *kind, int item);
 
 /* print.c */
@@ -688,6 +689,8 @@ GAGE_EXPORT gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
 GAGE_EXPORT const gage_t *gageAnswerPointer(const gageContext *ctx, 
                                             const gagePerVolume *pvl,
                                             int item);
+GAGE_EXPORT unsigned int gageAnswerLength(const gagePerVolume *pvl,
+                                          int item);
 GAGE_EXPORT int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,
                              gageQuery query);
