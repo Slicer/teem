@@ -155,7 +155,7 @@ typedef struct pushBin_t {
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
-  gage_t *tenAns, *invAns,
+  const gage_t *tenAns, *invAns,
     *cntAns;                   /* results of gage probing */
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */

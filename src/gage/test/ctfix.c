@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   unsigned int sx, sy, sz, xi, yi, zi, si;
   gageContext *ctx;
   gagePerVolume *pvl;
-  gage_t *answer;
+  const gage_t *answer;
   double cent[2], r, srad, *sinfo, swidth, astart, angle, astop, corerad;
   double (*ins)(void *v, size_t I, double d);
 

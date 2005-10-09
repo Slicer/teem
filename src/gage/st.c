@@ -152,7 +152,7 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s: ", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
-  grad = gageAnswerPointer(ctx, pvl, gageSclGradVec);
+  grad = _gageAnswerPointer(ctx, pvl, gageSclGradVec);
   
   xs = nin->axis[0].spacing;
   ys = nin->axis[1].spacing;

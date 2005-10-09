@@ -49,6 +49,8 @@ extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
+extern gage_t *_gageAnswerPointer(const gageContext *ctx, 
+                                  gagePerVolume *pvl, int item);
 
 /* print.c */
 extern void _gagePrint_off(FILE *, gageContext *ctx);

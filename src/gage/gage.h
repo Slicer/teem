@@ -685,8 +685,9 @@ GAGE_EXPORT gagePerVolume *gagePerVolumeNew(gageContext *ctx,
                                             const Nrrd *nin,
                                             const gageKind *kind);
 GAGE_EXPORT gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
-GAGE_EXPORT gage_t *gageAnswerPointer(const gageContext *ctx, 
-                                      const gagePerVolume *pvl, int item);
+GAGE_EXPORT const gage_t *gageAnswerPointer(const gageContext *ctx, 
+                                            const gagePerVolume *pvl,
+                                            int item);
 GAGE_EXPORT int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,
                              gageQuery query);

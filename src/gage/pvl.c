@@ -163,8 +163,21 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 ** way of getting a pointer to a specific answer in a pervolume's ans array
 **
 */
-gage_t *
+const gage_t *
 gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
+  const gage_t *ret;
+
+  AIR_UNUSED(ctx);
+  if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
+    ret = pvl->answer + gageKindAnswerOffset(pvl->kind, item);
+  } else {
+    ret = NULL;
+  }
+  return ret;
+}
+
+gage_t *
+_gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   gage_t *ret;
 
   AIR_UNUSED(ctx);

@@ -188,6 +188,9 @@ typedef struct {
      = (5*A*B - 2*A*S - 27*C)/54 = thirdmoment({v1,v2,v3})/2
 ** P = arccos(R/sqrt(Q)^3)/3 = phase angle of cubic solution
 **
+** NOTE: currently tenGage knows *nothing* about nrrd->measurementFrame!
+** You probably want to call tenMeasurementFrameReduce() first.
+**
 ** Hey- the problem with adding the RGB eigenvector coloring to the
 ** capability of tenGage is that because this is visualization, you
 ** can't easily control whether the measurement frame is applied, if
@@ -396,7 +399,7 @@ typedef struct {
   int lastDirSet;       /* lastDir[] is usefully set */
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
-  gage_t *dten,         /* gageAnswerPointer(pvl, tenGageTensor) */
+  const gage_t *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
     *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
     *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
     *aniso;             /* gageAnswerPointer(pvl, tenGageAniso) */
