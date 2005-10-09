@@ -34,7 +34,7 @@
 ** nrrdKernelForwDiff) is a good example of this.
 */
 void
-_gageFslSet (gageContext *ctx) {
+_gageFslSet(gageContext *ctx) {
   int fr, i;
   gage_t *fslx, *fsly, *fslz;
   gage_t xf, yf, zf;
@@ -75,7 +75,7 @@ _gageFslSet (gageContext *ctx) {
 ** integral of the kernel
 */
 void
-_gageFwValueRenormalize (gageContext *ctx, int wch) {
+_gageFwValueRenormalize(gageContext *ctx, int wch) {
   gage_t integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
   int i, fd;
 
@@ -104,7 +104,7 @@ _gageFwValueRenormalize (gageContext *ctx, int wch) {
 ** sign of individual weights must be preserved
 */
 void
-_gageFwDerivRenormalize (gageContext *ctx, int wch) {
+_gageFwDerivRenormalize(gageContext *ctx, int wch) {
   char me[]="_gageFwDerivRenormalize";
   gage_t negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
@@ -140,7 +140,7 @@ _gageFwDerivRenormalize (gageContext *ctx, int wch) {
 }
 
 void
-_gageFwSet (gageContext *ctx) {
+_gageFwSet(gageContext *ctx) {
   char me[]="_gageFwSet";
   int i, j, fd;
   gage_t *fwX, *fwY, *fwZ;
@@ -222,7 +222,7 @@ _gageFwSet (gageContext *ctx) {
 ** gageErrNum=0 and sprints message into gageErrStr.
 */
 int
-_gageLocationSet (gageContext *ctx, gage_t x, gage_t y, gage_t z) {
+_gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
   int top[3],      /* "top" x, y, z: highest valid index in volume */
     xi, yi, zi;    /* computed integral positions in volume */

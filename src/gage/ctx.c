@@ -584,11 +584,10 @@ gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
 int
 gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
                int indexSpace, int clamp) {
-  int ret, center, *size;
+  int ret, *size;
   gage_t xi, yi, zi;
 
   size = ctx->shape->size;
-  center = ctx->shape->center;
   if (indexSpace) {
     xi = x;
     yi = y;
@@ -605,7 +604,7 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
     zi = icoord[2];
   }
   if (clamp) {
-    if (nrrdCenterNode == center) {
+    if (nrrdCenterNode == ctx->shape->center) {
       xi = AIR_CLAMP(0, xi, size[0]-1);
       yi = AIR_CLAMP(0, yi, size[1]-1);
       zi = AIR_CLAMP(0, zi, size[2]-1);
