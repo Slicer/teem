@@ -24,7 +24,7 @@
 #include "privateGage.h"
 
 int
-_gagePvlFlagCheck (gageContext *ctx, int pvlFlag) {
+_gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
   int ret;
   unsigned int pvlIdx;
   
@@ -36,7 +36,7 @@ _gagePvlFlagCheck (gageContext *ctx, int pvlFlag) {
 }
 
 void
-_gagePvlFlagDown (gageContext *ctx, int pvlFlag) {
+_gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
   unsigned int pvlIdx;
   
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
@@ -55,7 +55,7 @@ _gagePvlFlagDown (gageContext *ctx, int pvlFlag) {
 ** for each pvl: pvl's query --> pvl's needD
 */
 void
-_gagePvlNeedDUpdate (gageContext *ctx) {
+_gagePvlNeedDUpdate(gageContext *ctx) {
   char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
   int que, needD[3];
@@ -92,7 +92,7 @@ _gagePvlNeedDUpdate (gageContext *ctx) {
 ** all pvls' needD --> ctx's needD
 */
 void
-_gageNeedDUpdate (gageContext *ctx) {
+_gageNeedDUpdate(gageContext *ctx) {
   char me[]="_gageNeedDUpdate";
   gagePerVolume *pvl;
   int needD[3];
@@ -123,7 +123,7 @@ _gageNeedDUpdate (gageContext *ctx) {
 ** ctx's needD & k3pack --> needK
 */
 void
-_gageNeedKUpdate (gageContext *ctx) {
+_gageNeedKUpdate(gageContext *ctx) {
   char me[]="_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_NUM], change;
   
@@ -176,7 +176,7 @@ _gageNeedKUpdate (gageContext *ctx) {
 **
 */
 int
-_gageRadiusUpdate (gageContext *ctx) {
+_gageRadiusUpdate(gageContext *ctx) {
   char me[]="_gageRadiusUpdate", err[AIR_STRLEN_MED];
   int kernIdx, radius;
   double maxRad, rad;
@@ -220,7 +220,7 @@ _gageRadiusUpdate (gageContext *ctx) {
 }
 
 int
-_gageCacheSizeUpdate (gageContext *ctx) {
+_gageCacheSizeUpdate(gageContext *ctx) {
   char me[]="_gageCacheSizeUpdate", err[AIR_STRLEN_MED];
   int fd;
   gagePerVolume *pvl;
@@ -258,7 +258,7 @@ _gageCacheSizeUpdate (gageContext *ctx) {
 }
 
 void
-_gageOffValueUpdate (gageContext *ctx) {
+_gageOffValueUpdate(gageContext *ctx) {
   char me[]="_gageOffValueUpdate";
   int fd, i, j, k, sx, sy;
 
@@ -287,7 +287,7 @@ _gageOffValueUpdate (gageContext *ctx) {
 ** call just before probing begins.
 */
 int
-gageUpdate (gageContext *ctx) {
+gageUpdate(gageContext *ctx) {
   char me[]="gageUpdate", err[AIR_STRLEN_MED];
   int i;
 
@@ -346,7 +346,9 @@ gageUpdate (gageContext *ctx) {
     }
   }
   if (ctx->flag[gageCtxFlagRadius]
-      || ctx->flag[gageCtxFlagShape]) {
+      || ctx->flag[gageCtxFlagShape]
+      /* see above; following flags that triggered _gageCacheSizeUpdate(ctx) */
+      || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)) {
     _gageOffValueUpdate(ctx);
     ctx->flag[gageCtxFlagShape] = AIR_FALSE;
   }
