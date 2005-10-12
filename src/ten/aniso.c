@@ -592,6 +592,8 @@ tenEvecRGBParmNew() {
     rgbp->gamma = 1.0;
     rgbp->bgGray = 0.0;
     rgbp->isoGray = 0.0;
+    rgbp->typeOut = nrrdTypeFloat;
+    rgbp->genAlpha = AIR_FALSE;
   }
   return rgbp;
 }
@@ -603,6 +605,26 @@ tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
     airFree(rgbp);
   }
   return NULL;
+}
+
+int
+tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp) {
+  char me[]="tenEvecRGBParmCheck", err[AIR_STRLEN_MED];
+
+  if (!rgbp) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenAniso, rgbp->aniso)) {
+    sprintf(err, "%s: anisotropy metric %d not valid", me, rgbp->aniso);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdTypeDefault != rgbp->typeOut
+      && airEnumValCheck(nrrdType, rgbp->typeOut)) {
+    sprintf(err, "%s: output type (%d) not valid", me, rgbp->typeOut);
+    biffAdd(TEN, err); return 1;
+  }
+  return 0;
 }
 
 float
@@ -628,8 +650,8 @@ _tenEvecRGBComp_d(double conf, double aniso, double comp,
 }
 
 void
-tenEvecRGB_f(float RGB[3], float conf, const float eval[3], 
-             const float evec[3], const tenEvecRGBParm *rgbp) {
+tenEvecRGBSingle_f(float RGB[3], float conf, const float eval[3], 
+                   const float evec[3], const tenEvecRGBParm *rgbp) {
   float aniso;
 
   if (RGB && eval && rgbp) {
@@ -643,8 +665,8 @@ tenEvecRGB_f(float RGB[3], float conf, const float eval[3],
 }
 
 void
-tenEvecRGB_d(double RGB[3], double conf, const double eval[3], 
-             const double evec[3], const tenEvecRGBParm *rgbp) {
+tenEvecRGBSingle_d(double RGB[3], double conf, const double eval[3], 
+                   const double evec[3], const tenEvecRGBParm *rgbp) {
   double aniso;
 
   if (RGB && eval && rgbp) {

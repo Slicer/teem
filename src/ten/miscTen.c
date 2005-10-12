@@ -25,15 +25,17 @@
 #include "privateTen.h"
 
 int
-tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
-           double cthresh, double gamma,
-           double bgGray, double isoGray) {
+tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, 
+           const tenEvecRGBParm *rgbp) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   size_t size[NRRD_DIM_MAX];
-  const float *tdata;
-  float *cdata, eval[3], evec[9], R, G, B, an[TEN_ANISO_MAX+1];
+  float (*lup)(const void *, size_t), (*ins)(void *, size_t, float);
+  float ten[7], eval[3], evec[9], RGB[3];
   size_t II, NN;
-
+  unsigned char *odataUC;
+  unsigned short *odataUS;
+  unsigned int *odataUI;
+  
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
@@ -42,48 +44,64 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
     sprintf(err, "%s: eigenvector index %d not in range [0..2]", me, which);
     biffAdd(TEN, err); return 1;
   }
-  if (airEnumValCheck(tenAniso, aniso)) {
-    sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
+  if (tenEvecRGBParmCheck(rgbp)) {
+    sprintf(err, "%s: RGB parm trouble", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a valid DT volume", me);
+  if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
+    sprintf(err, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 (not "
+            _AIR_SIZE_T_CNV ")", me, nin->dim, nin->axis[0].size);
     biffAdd(TEN, err); return 1;
   }
 
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-  size[0] = 3;
-  if (nrrdMaybeAlloc_nva(nout, nrrdTypeFloat, nin->dim, size)) {
+  size[0] = rgbp->genAlpha ? 4 : 3;
+  if (nrrdMaybeAlloc_nva(nout, (nrrdTypeDefault == rgbp->typeOut
+                                ? nin->type 
+                                : rgbp->typeOut), nin->dim, size)) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  odataUC = AIR_CAST(unsigned char *, nout->data);
+  odataUS = AIR_CAST(unsigned short *, nout->data);
+  odataUI = AIR_CAST(unsigned int *, nout->data);
+
   NN = nrrdElementNumber(nin)/7;
-  cdata = (float *)nout->data;
-  tdata = (float *)nin->data;
+  lup = nrrdFLookup[nin->type];
+  ins = nrrdFInsert[nout->type];
   for (II=0; II<NN; II++) {
-    /* tenVerbose = (II == (50 + 64*(32 + 64*0))); */
-    tenEigensolve_f(eval, evec, tdata);
-    tenAnisoCalc_f(an, eval);
-    R = AIR_ABS(evec[0 + 3*which]);
-    G = AIR_ABS(evec[1 + 3*which]);
-    B = AIR_ABS(evec[2 + 3*which]);
-    /*
-    if (tenVerbose) {
-      fprintf(stderr, "!%s: --> RGB = %g %g %g\n", me, R, G, B);
+    TEN_T_SET(ten, lup(nin->data, 0 + 7*II),
+              lup(nin->data, 1 + 7*II), lup(nin->data, 2 + 7*II),
+              lup(nin->data, 3 + 7*II), lup(nin->data, 4 + 7*II),
+              lup(nin->data, 5 + 7*II), lup(nin->data, 6 + 7*II));
+    tenEigensolve_f(eval, evec, ten);
+    tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3*which, rgbp);
+    switch (nout->type) {
+    case nrrdTypeUChar:
+      odataUC[0 + size[0]*II] = airIndexClamp(0.0, RGB[0], 1.0, 256);
+      odataUC[1 + size[0]*II] = airIndexClamp(0.0, RGB[1], 1.0, 256);
+      odataUC[2 + size[0]*II] = airIndexClamp(0.0, RGB[2], 1.0, 256);
+      if (rgbp->genAlpha) {
+        odataUC[3 + size[0]*II] = 255;
+      }
+      break;
+    case nrrdTypeUShort:
+      odataUS[0 + size[0]*II] = airIndexClamp(0.0, RGB[0], 1.0, 65536);
+      odataUS[1 + size[0]*II] = airIndexClamp(0.0, RGB[1], 1.0, 65536);
+      odataUS[2 + size[0]*II] = airIndexClamp(0.0, RGB[2], 1.0, 65536);
+      if (rgbp->genAlpha) {
+        odataUS[3 + size[0]*II] = 65535;
+      }
+      break;
+    default:
+      ins(nout->data, 0 + size[0]*II, RGB[0]);
+      ins(nout->data, 1 + size[0]*II, RGB[1]);
+      ins(nout->data, 2 + size[0]*II, RGB[2]);
+      if (rgbp->genAlpha) {
+        ins(nout->data, 3 + size[0]*II, 1.0);
+      }
+      break;
     }
-    */
-    R = pow(R, 1.0/gamma);
-    G = pow(G, 1.0/gamma);
-    B = pow(B, 1.0/gamma);
-    R = AIR_LERP(an[aniso], isoGray, R);
-    G = AIR_LERP(an[aniso], isoGray, G);
-    B = AIR_LERP(an[aniso], isoGray, B);
-    R = tdata[0] > cthresh ? R : bgGray;
-    G = tdata[0] > cthresh ? G : bgGray;
-    B = tdata[0] > cthresh ? B : bgGray;
-    ELL_3V_SET(cdata, R, G, B);
-    cdata += 3;
-    tdata += 7;
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
     sprintf(err, "%s: couldn't copy axis info", me);

@@ -216,7 +216,7 @@ enum {
   tenGageQ,             /*  6: "q", (S - B)/9: GT[1] */
   tenGageFA,            /*  7: "fa", fractional anisotropy: GT[1] */
   tenGageR,             /*  8: "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
-  tenGageTheta,         /*  9: "th", arccos(R/sqrt(Q^3))/3: GT[1] */
+  tenGageTheta,         /*  9: "th", arccos(R/sqrt(Q^3))/AIR_PI: GT[1] */
 
   tenGageEval,          /* 10: "eval", all eigenvalues of tensor : GT[3] */
   tenGageEval0,         /* 11: "eval0", major eigenvalue of tensor : GT[1] */
@@ -296,6 +296,13 @@ typedef struct {
     gamma,           /* pre-component gamma */
     bgGray,          /* gray-value for low confidence samples */
     isoGray;         /* gray-value for isotropic samples */
+  int typeOut,       /* when output type is flexible, and if this is
+                        nrrdTypeUChar or nrrdTypeUShort, then output will
+                        be quantized to those types (range [0,255] and
+                        [0,65535] respectively); otherwise values are
+                        copied directly to output */
+    genAlpha;        /* when output value set is flexible, create RGBA
+                        values instead of just RGB */
 } tenEvecRGBParm;
 
 /*
@@ -586,15 +593,17 @@ TEN_EXPORT int tenAnisoHistogram(Nrrd *nout, const Nrrd *nin,
                                  int version, unsigned int resolution);
 TEN_EXPORT tenEvecRGBParm *tenEvecRGBParmNew(void);
 TEN_EXPORT tenEvecRGBParm *tenEvecRGBParmNix(tenEvecRGBParm *rgbp);
-TEN_EXPORT void tenEvecRGB_f(float RGB[3], float conf, const float eval[3],
-                             const float evec[3], const tenEvecRGBParm *rgbp);
-TEN_EXPORT void tenEvecRGB_d(double RGB[3], double conf, const double eval[3],
-                             const double evec[3], const tenEvecRGBParm *rgbp);
+TEN_EXPORT int tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp);
+TEN_EXPORT void tenEvecRGBSingle_f(float RGB[3], float conf,
+                                   const float eval[3], const float evec[3],
+                                   const tenEvecRGBParm *rgbp);
+TEN_EXPORT void tenEvecRGBSingle_d(double RGB[3], double conf,
+                                   const double eval[3], const double evec[3],
+                                   const tenEvecRGBParm *rgbp);
 
 /* miscTen.c */
-TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, int aniso,
-                          double cthresh, double gamma,
-                          double bgGray, double isoGray);
+TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which,
+                          const tenEvecRGBParm *rgbp);
 TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
                             int aniso, int scaleByAniso);
