@@ -86,7 +86,7 @@ main(int argc, char *argv[]) {
   float x, y, z, scale[3];
   int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
-  gage_t *answer;
+  const gage_t *answer;
   Nrrd *nin, *nout, *_nmat, *nmat;
   gageContext *ctx;
   gagePerVolume *pvl;

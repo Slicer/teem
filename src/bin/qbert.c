@@ -196,7 +196,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   char me[]="qbertProbe", err[AIR_STRLEN_MED], prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
-  gage_t *val, *gmag, *scnd;
+  const gage_t *val, *gmag, *scnd;
   float *vghF;
   int E;
   unsigned int i, j, k;

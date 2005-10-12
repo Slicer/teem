@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   char *me, *outS;
   float angle;
   double xs, ys, zs, y, z, padval;
-  gage_t *val;
+  const gage_t *val;
   int sx, sy, sz, E, xi, yi, zi, clamp;
   NrrdKernelSpec *gantric;
   void *out;

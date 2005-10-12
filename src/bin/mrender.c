@@ -171,19 +171,19 @@ typedef struct mrendRender_t {
 } mrendRender;
 
 typedef struct mrendThread_t {
-  float *val,        /* array of ray samples */
-    rayLen,          /* length of ray segment between near and far */
-    rayStep;         /* ray step needed FOR THIS RAY, to acheive sampling on
-                        planes (same scaling of uu->rayStep) */
-  int thrid,         /* thread ID */
-    valLen,          /* allocated size of val */
-    valNum,          /* number of values set in val (index of next value) */
-    ui, vi,          /* image coords */
-    numSamples,      /* total number of samples this thread has done */
-    verbose;         /* blah blah blah blah */
-  gageContext *gctx; /* thread-specific gage context (or copy of uu->gctx0
-                        for the first thread) */
-  gage_t *answer;    /* pointer to the SINGLE answer we care about */
+  float *val,           /* array of ray samples */
+    rayLen,             /* length of ray segment between near and far */
+    rayStep;            /* ray step needed FOR THIS RAY, to acheive sampling on
+                           planes (same scaling of uu->rayStep) */
+  int thrid,            /* thread ID */
+    valLen,             /* allocated size of val */
+    valNum,             /* number of values set in val (index of next value) */
+    ui, vi,             /* image coords */
+    numSamples,         /* total number of samples this thread has done */
+    verbose;            /* blah blah blah blah */
+  gageContext *gctx;    /* thread-specific gage context (or copy of uu->gctx0
+                           for the first thread) */
+  const gage_t *answer; /* pointer to the SINGLE answer we care about */
 } mrendThread;
 
 int

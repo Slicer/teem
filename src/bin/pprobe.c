@@ -73,7 +73,7 @@ hestCB probeKindHestCB = {
 }; 
 
 void
-printans(FILE *file, gage_t *ans, int len) {
+printans(FILE *file, const gage_t *ans, int len) {
   int a;
 
   AIR_UNUSED(file);
@@ -97,7 +97,7 @@ main(int argc, char *argv[]) {
   NrrdKernelSpec *k00, *k11, *k22;
   float pos[3];
   int what, ansLen, E=0, iBaseDim, renorm;
-  gage_t *answer, *answer2;
+  const gage_t *answer, *answer2;
   Nrrd *nin;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
