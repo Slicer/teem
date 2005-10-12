@@ -468,8 +468,11 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
               me, sx, sy, sz, 2*fr,
               ctx->point.xi, ctx->point.yi, ctx->point.zi,
               dataIdx);
-      fprintf(stderr, "%s: here = %p; iv3 = %p; off[0] = %d\n",
-              me, here, AIR_CAST(void*, pvl->iv3), ctx->off[0]);
+      fprintf(stderr, "%s: here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
+              "%d,%d,%d,%d,%d,%d,%d,%d\n",
+              me, here, AIR_CAST(void*, pvl->iv3),
+              ctx->off[0], ctx->off[1], ctx->off[2], ctx->off[3],
+              ctx->off[4], ctx->off[5], ctx->off[6], ctx->off[7]);
     }
     switch(pvl->kind->valLen) {
     case 1:
