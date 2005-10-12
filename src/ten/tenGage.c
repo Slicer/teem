@@ -240,7 +240,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     cbQQQ = cbQ*cbQ*cbQ;
     tmp0 = cbR/(epsilon + sqrt(cbQQQ));
     tmp0 = AIR_CLAMP(-1.0, tmp0, 1.0);
-    pvl->directAnswer[tenGageTheta][0] = acos(tmp0)/3;
+    pvl->directAnswer[tenGageTheta][0] = acos(tmp0)/AIR_PI;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvec)) {
     /* we do the longer process to get eigenvectors, and in the process
