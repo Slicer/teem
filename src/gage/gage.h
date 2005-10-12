@@ -353,7 +353,8 @@ typedef struct gageShape_t {
                                  has no centering set. *NOTE* this is the 
                                  only "input" field in the gageShape, all the
                                  rest are set by _gageShapeSet */
-    size[3],                  /* raster dimensions of volume */
+    size[3],                  /* raster dimensions of volume 
+                                 HEY ??? shouldn't this be unsigned int ??? */
     center,                   /* the sample centering of the volume(s)- this
                                  determines the extent of the locations
                                  that may be probed */
