@@ -307,7 +307,8 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
   airArray *mop;
   
   if (!(nout && nlut && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
+    sprintf(err, "%s: got NULL pointer (%p,%p,%p)", me,
+            AIR_CAST(void*,nout), AIR_CAST(void*,nlut), AIR_CAST(void*,nin));
     biffAdd(NRRD, err); return 1;
   }
   if (0 != domainAxis) {
