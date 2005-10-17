@@ -317,7 +317,7 @@ unsigned int
 airIndex(double min, double val, double max, unsigned int N) {
   unsigned int idx;
 
-  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
   idx -= (idx == N);
   return idx;
 }
@@ -326,7 +326,7 @@ unsigned int
 airIndexClamp(double min, double val, double max, unsigned int N) {
   unsigned int idx;
 
-  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
   idx = AIR_MIN(idx, N-1);
   return idx;
 }
@@ -335,7 +335,7 @@ airULLong
 airIndexULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 
-  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
   idx -= (idx == N);
   return idx;
 }
@@ -344,7 +344,7 @@ airULLong
 airIndexClampULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 
-  idx = (int)(N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
   idx = AIR_MIN(idx, N-1);
   return idx;
 }
