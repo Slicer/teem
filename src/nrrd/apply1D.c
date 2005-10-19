@@ -273,6 +273,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 int
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, 
                         const Nrrd *nmap, int ramps, int rescale, int multi) {
+  /* char me[]="_nrrdApply1DLutOrRegMap"; */
   char *inData, *outData, *mapData, *entData0, *entData1;
   size_t N, I;
   double (*inLoad)(const void *v), (*mapLup)(const void *v, size_t I),
@@ -304,36 +305,50 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   entSize = entLen*nrrdElementSize(nmap); /* size of entry in map */
 
   N = nrrdElementNumber(nin);       /* the number of values to be mapped */
-  /* _VV = 1; */
   if (ramps) {
     /* regular map */
     for (I=0; I<N; I++) {
-      /* if (_VV && !(I % 100)) fprintf(stderr, "I = %d\n", (int)I); */
+      /* ...
+      if (!(I % 100)) fprintf(stderr, "I = %d\n", (int)I);
+      ... */
       val = inLoad(inData);
-      /* if (_VV) fprintf(stderr, "##%s: val = \na% 31.15f --> ", me, val); */
+      /* ...
+      fprintf(stderr, "##%s: val = \na% 31.15f --> ", me, val);
+      ... */
       if (rescale) {
         val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
-        /* if (_VV) fprintf(stderr, "\nb% 31.15f --> ", val); */
+        /* ...
+        fprintf(stderr, "\nb% 31.15f (min,max = %g,%g)--> ", val,
+                range->min, range->max);
+        ... */
       }
-      /* if (_VV) fprintf(stderr, "\nc% 31.15f --> clamp(%g,%g), %d --> ",
-         val, domMin, domMax, mapLen); */
+      /* ...
+      fprintf(stderr, "\nc% 31.15f --> clamp(%g,%g), %d --> ",
+              val, domMin, domMax, mapLen);
+      ... */
       if (AIR_EXISTS(val)) {
         val = AIR_CLAMP(domMin, val, domMax);
         mapIdxFrac = AIR_AFFINE(domMin, val, domMax, 0, mapLen-1);
-        /* if (_VV) fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
-           mapIdxFrac); */
+        /* ...
+        fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
+                mapIdxFrac);
+        ... */
         mapIdx = (unsigned int)mapIdxFrac;
         mapIdx -= mapIdx == mapLen-1;
         mapIdxFrac -= mapIdx;
-        /* if (_VV) { fprintf(stderr, "%s: (%d,\ne% 31.15f) --> ",
-           me, mapIdx, mapIdxFrac); */
+        /* ...
+        fprintf(stderr, "%s: (%d,\ne% 31.15f) --> \n",
+                me, mapIdx, mapIdxFrac); 
+        ... */
         entData0 = mapData + mapIdx*entSize;
         entData1 = mapData + (mapIdx+1)*entSize;
         for (i=0; i<entLen; i++) {
           val = ((1-mapIdxFrac)*mapLup(entData0, i) + 
                  mapIdxFrac*mapLup(entData1, i));
           outInsert(outData, i, val);
-          /* if (_VV) fprintf(stderr, "\nf% 31.15f\n", val); */
+          /* ...
+          fprintf(stderr, "f% 31.15f\n", val); 
+          ... */
         }
       } else {
         /* copy non-existant values from input to output */
@@ -472,6 +487,11 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
 ** existance of this function a little less motivated, given that it
 ** is a special case of nrrdApply1DIrregMap().  It should be faster,
 ** though, because there is no index search.
+**
+** NOTE: comments in the preceding paragraphs were made in ancient times-
+** this function is the basis of the very popular "unu rmap", and this
+** function's existance is indeed perfectly well motivated, regardless
+** of the lack of arbitrary reconstruction.
 **
 ** If the lut nrrd is 1-D, then the output is a scalar nrrd with the
 ** same dimension as the input.  If the lut nrrd is 2-D, then each
@@ -939,8 +959,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
         mapIdx = 0;
         mapIdxFrac = 0.0;
       }
-    }
-    else {
+    } else {
       /* we have an existant value */
       if (rescale) {
         val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
