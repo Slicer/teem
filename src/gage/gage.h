@@ -353,13 +353,12 @@ typedef struct gageShape_t {
                                  has no centering set. *NOTE* this is the 
                                  only "input" field in the gageShape, all the
                                  rest are set by _gageShapeSet */
-    size[3],                  /* raster dimensions of volume 
-                                 HEY ??? shouldn't this be unsigned int ??? */
     center,                   /* the sample centering of the volume(s)- this
                                  determines the extent of the locations
                                  that may be probed */
     fromOrientation;          /* non-zero iff the spaceDirections and
                                  spaceOrigin information was used */
+  unsigned int size[3];       /* raster dimensions of volume */
   gage_t spacing[3],          /* spacings for each axis */
     fwScale[GAGE_KERNEL_NUM][3];
                               /* how to rescale weights for each of the
@@ -569,8 +568,10 @@ typedef struct gagePerVolume_t {
 typedef struct gageKind_t {
   char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
   airEnum *enm;                     /* such as gageScl.  NB: the "unknown"
-                                       value in the enum MUST be -1 (since
-                                       queries are formed as bitflags) */
+                                       value in the enum MUST be -1.  At one
+                                       point, this was because queries were
+                                       formed as bitflags of item values, but
+                                       now its just historical precedent ... */
   unsigned int baseDim,             /* dimension that x,y,z axes start on
                                        (0 for scalars, 1 for vectors) */
     valLen;                         /* number of scalars per data point */
@@ -623,6 +624,7 @@ GAGE_EXPORT airEnum *gageKernel;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
 GAGE_EXPORT void gagePointReset(gagePoint *point);
 GAGE_EXPORT gageItemSpec *gageItemSpecNew(void);
+GAGE_EXPORT void gageItemSpecInit(gageItemSpec *isp);
 GAGE_EXPORT gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
 
 /* kind.c */
@@ -630,6 +632,7 @@ GAGE_EXPORT int gageKindCheck(const gageKind *kind);
 GAGE_EXPORT int gageKindTotalAnswerLength(const gageKind *kind);
 GAGE_EXPORT unsigned int gageKindAnswerLength(const gageKind *kind, int item);
 GAGE_EXPORT int gageKindAnswerOffset(const gageKind *kind, int item);
+GAGE_EXPORT int gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd);
 
 /* print.c */
 GAGE_EXPORT void gageQueryPrint(FILE *file, const gageKind *kind,
@@ -690,7 +693,8 @@ GAGE_EXPORT gagePerVolume *gagePerVolumeNix(gagePerVolume *pvl);
 GAGE_EXPORT const gage_t *gageAnswerPointer(const gageContext *ctx, 
                                             const gagePerVolume *pvl,
                                             int item);
-GAGE_EXPORT unsigned int gageAnswerLength(const gagePerVolume *pvl,
+GAGE_EXPORT unsigned int gageAnswerLength(const gageContext *ctx,
+                                          const gagePerVolume *pvl,
                                           int item);
 GAGE_EXPORT int gageQueryReset(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageQuerySet(gageContext *ctx, gagePerVolume *pvl,

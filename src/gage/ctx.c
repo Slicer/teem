@@ -434,8 +434,9 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 void
 gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
-  int _xx, _yy, _zz, xx, yy, zz, sx, sy, sz, lx, ly, lz,
+  int _xx, _yy, _zz, xx, yy, zz, lx, ly, lz,
     hx, hy, hz, fr, fddd, cacheIdx, dataIdx;
+  unsigned int sx, sy, sz;
   char *data, *here;
   unsigned int tup;
 
@@ -452,8 +453,10 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   hz = lz + 2*fr - 1;
   fddd = 2*fr*2*fr*2*fr;
   data = (char*)pvl->nin->data;
-  if (lx >= 0 && ly >= 0 && lz >= 0 &&
-      hx < sx && hy < sy && hz < sz) {
+  if (lx >= 0 && ly >= 0 && lz >= 0 
+      && hx < AIR_CAST(int, sx)
+      && hy < AIR_CAST(int, sy)
+      && hz < AIR_CAST(int, sz)) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
     if (ctx->verbose) {
@@ -463,7 +466,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
     if (ctx->verbose) {
-      fprintf(stderr, "%s: size = (%d,%d,%d);\n"
+      fprintf(stderr, "%s: size = (%u,%u,%u);\n"
               "  fd = %d; coord = (%d,%d,%d) --> dataIdx = %d\n",
               me, sx, sy, sz, 2*fr,
               ctx->point.xi, ctx->point.yi, ctx->point.zi,
@@ -516,11 +519,11 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
        within the volume- more care has to be taken */
     cacheIdx = 0;
     for (_zz=lz; _zz<=hz; _zz++) {
-      zz = AIR_CLAMP(0, _zz, sz-1);
+      zz = AIR_CLAMP(0, _zz, AIR_CAST(int, sz-1));
       for (_yy=ly; _yy<=hy; _yy++) {
-        yy = AIR_CLAMP(0, _yy, sy-1);
+        yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
-          xx = AIR_CLAMP(0, _xx, sx-1);
+          xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
           for (tup=0; tup<pvl->kind->valLen; tup++) {
@@ -587,7 +590,8 @@ gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
 int
 gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
                int indexSpace, int clamp) {
-  int ret, *size;
+  int ret;
+  unsigned int *size;
   gage_t xi, yi, zi;
 
   size = ctx->shape->size;

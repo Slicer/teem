@@ -28,6 +28,10 @@
 **
 ** checks whether a given volume is valid for the given kind
 ** and the given parameter settings in the context
+**
+** Note that ctx is simply passed to _gageShapeSet(), with no NULL-ity
+** test- which is fine- it just means that the check is not specific
+** to the parameters that can be set in the gageContext.
 */
 int
 gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
@@ -176,6 +180,7 @@ gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   return ret;
 }
 
+/* non-const version of the above */
 gage_t *
 _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   gage_t *ret;
@@ -190,9 +195,10 @@ _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
 }
 
 unsigned int
-gageAnswerLength(const gagePerVolume *pvl, int item) {
+gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   unsigned int ret;
   
+  AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
     ret = gageKindAnswerLength(pvl->kind, item);
   } else {

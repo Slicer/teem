@@ -29,7 +29,7 @@ gageShapeReset(gageShape *shape) {
   
   if (shape) {
     shape->defaultCenter = gageDefDefaultCenter;
-    ELL_3V_SET(shape->size, -1, -1, -1);
+    ELL_3V_SET(shape->size, 0, 0, 0);
     shape->center = nrrdCenterUnknown;
     shape->fromOrientation = AIR_FALSE;
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -83,13 +83,16 @@ gageShapeNix(gageShape *shape) {
 ** ctx is NULL, gageShapeSet was called, in which case we go with lax
 ** behavior (nothing "required")
 **
-** This function has subsumed the old gageVolumeCheck.
+** This function has subsumed the old gageVolumeCheck, and hence has 
+** become this weird beast- part error checker and part (gageShape)
+** initializer.  Oh well...
 */
 int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
-  int i, ai, minsize, cx, cy, cz, sx, sy, sz, num[3], defCenter, statCalc[3];
+  int i, ai, cx, cy, cz, defCenter, statCalc[3];
+  unsigned int minsize, sx, sy, sz, num[3];
   const NrrdAxisInfo *ax[3];
   double maxLen, xs, ys, zs, defSpacing,
     vecA[4], vecB[3], vecC[3], vecD[4],
@@ -112,7 +115,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     return 1;
   }
   if (!(nin->dim == 3 + baseDim)) {
-    sprintf(err, "%s: nrrd should be %d-D, not %d-D",
+    sprintf(err, "%s: nrrd should be %u-D, not %u-D",
             me, 3 + baseDim, nin->dim);
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
@@ -218,7 +221,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   minsize = (nrrdCenterCell == shape->center ? 1 : 2);
   /* HEY: perhaps this should be relaxed if we have full orientation info */
   if (!(sx >= minsize && sy >= minsize && sz >= minsize )) {
-    sprintf(err, "%s: sizes (%d,%d,%d) must all be >= %d "
+    sprintf(err, "%s: sizes (%u,%u,%u) must all be >= %u "
             "(min number of %s-centered samples)", me, 
             sx, sy, sz, minsize, airEnumStr(nrrdCenter, shape->center));
     biffAdd(GAGE, err); gageShapeReset(shape);
@@ -452,7 +455,7 @@ gageShapeEqual(gageShape *shape1, char *_name1,
     if (!( shape1->size[0] == shape2->size[0] &&
            shape1->size[1] == shape2->size[1] &&
            shape1->size[2] == shape2->size[2] )) {
-      sprintf(err, "%s: dimensions of %s (%d,%d,%d) != %s's (%d,%d,%d)", me,
+      sprintf(err, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
               name1, 
               shape1->size[0], shape1->size[1], shape1->size[2],
               name2,

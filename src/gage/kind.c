@@ -179,3 +179,42 @@ gageKindAnswerOffset(const gageKind *kind, int item) {
   return _gageKindAnswerOffset(kind, item);
 }
 
+/*
+** so that you can see if a given volume will work as the given kind
+*/
+int
+gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
+  char me[]="gageKindVolumeCheck", err[AIR_STRLEN_MED];
+
+  if (!(kind && nrrd)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (nrrdCheck(nrrd)) {
+    sprintf(err, "%s: problem with nrrd", me);
+    biffMove(GAGE, err, NRRD); return 1;
+  }
+  if (!(nrrd->dim == 3 + kind->baseDim)) {
+    sprintf(err, "%s: nrrd should be %u-D, not %u-D",
+            me, 3 + kind->baseDim, nrrd->dim);
+    biffAdd(GAGE, err); return 1;
+  }
+  if (nrrdTypeBlock == nrrd->type) {
+    sprintf(err, "%s: can't handle %s-type volumes", me,
+            airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(GAGE, err); return 1;
+  }
+  if (1 == kind->baseDim && (kind->valLen != nrrd->axis[0].size)) {
+    sprintf(err, "%s: kind requires %u axis 0 values, not " 
+            _AIR_SIZE_T_CNV, me, kind->valLen, nrrd->axis[0].size);
+    biffAdd(GAGE, err); return 1;
+  }
+  /* this eventually calls _gageShapeSet(), which, for purely historical
+     reasons, does the brunt of the error checking, some of which is almost
+     certainly redundant with checks above ... */
+  if (gageVolumeCheck(NULL, nrrd, kind)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  return 0;
+}

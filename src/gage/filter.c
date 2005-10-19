@@ -224,8 +224,8 @@ _gageFwSet(gageContext *ctx) {
 int
 _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   char me[]="_gageProbeLocationSet";
-  int top[3],      /* "top" x, y, z: highest valid index in volume */
-    xi, yi, zi;    /* computed integral positions in volume */
+  unsigned int top[3],  /* "top" x, y, z: highest valid index in volume */
+    xi, yi, zi;         /* computed integral positions in volume */
   gage_t xf, yf, zf, min, max[3];
 
   top[0] = ctx->shape->size[0] - 1;
@@ -253,9 +253,9 @@ _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
     gageErrNum = 0;
     return 1;
   }
-  xi = (int)(x+1) - 1; xf = x - xi;
-  yi = (int)(y+1) - 1; yf = y - yi;
-  zi = (int)(z+1) - 1; zf = z - zi;
+  xi = AIR_CAST(unsigned int, x+1) - 1; xf = x - xi;
+  yi = AIR_CAST(unsigned int, y+1) - 1; yf = y - yi;
+  zi = AIR_CAST(unsigned int, z+1) - 1; zf = z - zi;
 
   ctx->point.xi = xi;
   ctx->point.yi = yi;

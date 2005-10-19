@@ -260,7 +260,8 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 void
 _gageOffValueUpdate(gageContext *ctx) {
   char me[]="_gageOffValueUpdate";
-  int fd, i, j, k, sx, sy;
+  int fd, i, j, k;
+  unsigned int sx, sy;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
 
