@@ -93,7 +93,8 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
       _nrrdSpaceVecSetNaN(nrrd->axis[axi].spaceDirection);
     }
     for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
-      nrrd->spaceUnits[saxi] = airFree(nrrd->spaceUnits[saxi]);
+      airFree(nrrd->spaceUnits[saxi]);
+      nrrd->spaceUnits[saxi] = NULL;
     }
     _nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
   } else {

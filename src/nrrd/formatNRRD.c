@@ -620,14 +620,16 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
         if (strptr) {
           strcat(nio->headerStringWrite, strptr);
           strcat(nio->headerStringWrite, "\n");
-          strptr = airFree(strptr);
+          free(strptr);
+          strptr = NULL;
         }
       } else {
         _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
         if (strptr) {
           nio->headerStrlen += strlen(strptr);
           nio->headerStrlen += strlen("\n");
-          strptr = airFree(strptr);
+          free(strptr);
+          strptr = NULL;
         }
       }
     }
@@ -658,14 +660,16 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
                          NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
       if (strptr) {
         strcat(nio->headerStringWrite, strptr);
-        strptr = airFree(strptr);
+        free(strptr);
+        strptr = NULL;
       }
     } else {
       _nrrdKeyValueWrite(NULL, &strptr,
                          NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
       if (strptr) {
         nio->headerStrlen += strlen(strptr);
-        strptr = airFree(strptr);
+        free(strptr);
+        strptr = NULL;
       }
     }
   }
