@@ -305,6 +305,7 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
   char me[]="nrrdApply2DLut", err[AIR_STRLEN_MED];
   NrrdRange *range0, *range1;
   airArray *mop;
+  Nrrd *nin0, *nin1;
   
   if (!(nout && nlut && nin)) {
     sprintf(err, "%s: got NULL pointer (%p,%p,%p)", me,
@@ -319,13 +320,23 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
   mop = airMopNew();
   if (_range0) {
     range0 = nrrdRangeCopy(_range0);
-    nrrdRangeSafeSet(range0, nin, nrrdBlind8BitRangeState);
+    airMopAdd(mop, nin0 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdSlice(nin0, nin, 0, 0)) {
+      sprintf(err, "%s: trouble learning range 0", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    nrrdRangeSafeSet(range0, nin0, nrrdBlind8BitRangeState);
   } else {
     range0 = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   if (_range1) {
     range1 = nrrdRangeCopy(_range1);
-    nrrdRangeSafeSet(range1, nin, nrrdBlind8BitRangeState);
+    airMopAdd(mop, nin1 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdSlice(nin1, nin, 0, 1)) {
+      sprintf(err, "%s: trouble learning range 1", me);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    nrrdRangeSafeSet(range1, nin1, nrrdBlind8BitRangeState);
   } else {
     range1 = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
