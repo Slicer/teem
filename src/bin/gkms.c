@@ -81,7 +81,7 @@ main(int argc, char **argv) {
   if (baneGkmsCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = malloc(strlen(GKMS) + strlen(argv[1]) + 2);
+    argv0 = AIR_CAST(char*, malloc(strlen(GKMS) + strlen(argv[1]) + 2));
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", GKMS, argv[1]);
 
