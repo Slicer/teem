@@ -32,9 +32,9 @@ char *_unrrdu_axinfoInfoL =
 int
 unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label, *units;
+  char *out, *err, *label, *units, *centerStr;
   Nrrd *nin, *nout;
-  int pret;
+  int pret, center;
   unsigned int axis;
   double mm[2], spc;
   airArray *mop;
@@ -60,6 +60,11 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
              "centering of axis: \"cell\" or \"node\"", 
              NULL, nrrdCenter);
   */
+  /* but this hack will do for now */
+  hestOptAdd(&opt, "c,center", "center", airTypeString, 1, 1, &centerStr, "",
+             "axis centering: \"cell\" or \"node\".  Not using this option "
+             "leaves the centering as it is on input");
+
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -107,6 +112,15 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
     nout->axis[axis].center = cent;
   }
   */
+  if (airStrlen(centerStr)) {
+    if (!(center = airEnumVal(nrrdCenter, centerStr))) {
+      fprintf(stderr, "%s: couldn't parse \"%s\" as %s", me,
+              centerStr, nrrdCenter->name);
+      airMopError(mop);
+      return 1;
+    }
+    nout->axis[axis].center = center;
+  }
 
   SAVE(out, nout, NULL);
 
