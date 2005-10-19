@@ -36,7 +36,6 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   tenEvecRGBParm *rgbp;
-  int which;
   Nrrd *nin, *nout;
   char *outS;
 
@@ -46,7 +45,7 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
   rgbp = tenEvecRGBParmNew();
   airMopAdd(mop, rgbp, AIR_CAST(airMopper, tenEvecRGBParmNix), airMopAlways);
   
-  hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &which, NULL,
+  hestOptAdd(&hopt, "c", "evec index", airTypeUInt, 1, 1, &(rgbp->which), NULL,
              "which eigenvector will be colored. \"0\" for the "
              "principal, \"1\" for the middle, \"2\" for the minor");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(rgbp->aniso), NULL,
@@ -73,7 +72,7 @@ tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (tenEvecRGB(nout, nin, which, rgbp)) {
+  if (tenEvecRGB(nout, nin, rgbp)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing colormapping:\n%s\n", me, err);
     airMopError(mop); return 1;

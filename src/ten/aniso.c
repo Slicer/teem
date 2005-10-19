@@ -29,33 +29,47 @@
 */
 
 float  _tenAnisoEval_Cl1_f(const float  eval[3]) {
-  return (eval[0] - eval[1])/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+  float sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return (eval[0] - eval[1])/(FLT_EPSILON + sum);
 }
 double _tenAnisoEval_Cl1_d(const double eval[3]) {
-  return (eval[0] - eval[1])/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+  double sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return (eval[0] - eval[1])/(DBL_EPSILON + sum);
 }
 
 float  _tenAnisoEval_Cp1_f(const float  eval[3]) {
-  return 2*(eval[1] - eval[2])/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+  float sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return 2*(eval[1] - eval[2])/(FLT_EPSILON + sum);
 }
 double _tenAnisoEval_Cp1_d(const double eval[3]) {
-  return 2*(eval[1] - eval[2])/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+  double sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return 2*(eval[1] - eval[2])/(DBL_EPSILON + sum);
 }
 
 float  _tenAnisoEval_Ca1_f(const float  eval[3]) {
-  return (eval[0] + eval[1] - 2*eval[2])/(FLT_EPSILON
-                                          + eval[0] + eval[1] + eval[2]);
+  float sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return (eval[0] + eval[1] - 2*eval[2])/(FLT_EPSILON + sum);
 }
 double _tenAnisoEval_Ca1_d(const double eval[3]) {
-  return (eval[0] + eval[1] - 2*eval[2])/(DBL_EPSILON
-                                          + eval[0] + eval[1] + eval[2]);
+  double sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return (eval[0] + eval[1] - 2*eval[2])/(DBL_EPSILON + sum);
 }
 
 float  _tenAnisoEval_Cs1_f(const float  eval[3]) {
-  return 3*eval[2]/(FLT_EPSILON + eval[0] + eval[1] + eval[2]);
+  float sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return 3*eval[2]/(FLT_EPSILON + sum);
 }
 double _tenAnisoEval_Cs1_d(const double eval[3]) {
-  return 3*eval[2]/(DBL_EPSILON + eval[0] + eval[1] + eval[2]);
+  double sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  return 3*eval[2]/(DBL_EPSILON + sum);
 }
 
 float  _tenAnisoEval_Ct1_f(const float  eval[3]) {
@@ -70,31 +84,39 @@ double _tenAnisoEval_Ct1_d(const double eval[3]) {
 }
 
 float  _tenAnisoEval_Cl2_f(const float  eval[3]) {
-  return (eval[0] - eval[1])/(FLT_EPSILON + eval[0]);
+  float eval0 = AIR_MAX(0, eval[0]);
+  return (eval[0] - eval[1])/(FLT_EPSILON + eval0);
 }
 double _tenAnisoEval_Cl2_d(const double eval[3]) {
-  return (eval[0] - eval[1])/(DBL_EPSILON + eval[0]);
+  double eval0 = AIR_MAX(0, eval[0]);
+  return (eval[0] - eval[1])/(DBL_EPSILON + eval0);
 }
 
 float  _tenAnisoEval_Cp2_f(const float  eval[3]) {
-  return (eval[1] - eval[2])/(FLT_EPSILON + eval[0]);
+  float eval0 = AIR_MAX(0, eval[0]);
+  return (eval[1] - eval[2])/(FLT_EPSILON + eval0);
 }
 double _tenAnisoEval_Cp2_d(const double eval[3]) {
-  return (eval[1] - eval[2])/(DBL_EPSILON + eval[0]);
+  double eval0 = AIR_MAX(0, eval[0]);
+  return (eval[1] - eval[2])/(DBL_EPSILON + eval0);
 }
 
 float  _tenAnisoEval_Ca2_f(const float  eval[3]) {
-  return eval[0] - eval[2];
+  float eval0 = AIR_MAX(0, eval[0]);
+  return (eval[0] - eval[2])/(FLT_EPSILON + eval0);
 }
 double _tenAnisoEval_Ca2_d(const double eval[3]) {
-  return eval[0] - eval[2];
+  double eval0 = AIR_MAX(0, eval[0]);
+  return (eval[0] - eval[2])/(DBL_EPSILON + eval0);
 }
 
 float  _tenAnisoEval_Cs2_f(const float  eval[3]) {
-  return eval[2]/(FLT_EPSILON + eval[0]);
+  float eval0 = AIR_MAX(0, eval[0]);
+  return eval[2]/(FLT_EPSILON + eval0);
 }
 double _tenAnisoEval_Cs2_d(const double eval[3]) {
-  return eval[2]/(DBL_EPSILON + eval[0]);
+  double eval0 = AIR_MAX(0, eval[0]);
+  return eval[2]/(DBL_EPSILON + eval0);
 }
 
 float  _tenAnisoEval_Ct2_f(const float  eval[3]) {
@@ -311,18 +333,18 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
 };
    
 float
-tenAnisoEval_f(const float  eval[3], int which) {
+tenAnisoEval_f(const float  eval[3], int aniso) {
 
-  return (AIR_IN_OP(tenAnisoUnknown, which, tenAnisoLast)
-          ? _tenAnisoEval_f[which](eval)
+  return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast)
+          ? _tenAnisoEval_f[aniso](eval)
           : 0);
 }
 
 double
-tenAnisoEval_d(const double eval[3], int which) {
+tenAnisoEval_d(const double eval[3], int aniso) {
 
-  return (AIR_IN_OP(tenAnisoUnknown, which, tenAnisoLast)
-          ? _tenAnisoEval_d[which](eval)
+  return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast)
+          ? _tenAnisoEval_d[aniso](eval)
           : 0);
 }
 
@@ -587,7 +609,8 @@ tenEvecRGBParmNew() {
   
   rgbp = AIR_CAST(tenEvecRGBParm *, calloc(1, sizeof(tenEvecRGBParm)));
   if (rgbp) {
-    rgbp->aniso = tenAniso_Cl2;  /* assuming mapping evec0...  */
+    rgbp->which = 0;
+    rgbp->aniso = tenAniso_Cl2;
     rgbp->confThresh = 0.5;
     rgbp->gamma = 1.0;
     rgbp->bgGray = 0.0;
@@ -613,6 +636,10 @@ tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp) {
 
   if (!rgbp) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( rgbp->which <= 2 )) {
+    sprintf(err, "%s: which must be 0, 1, or 2 (not %u)", me, rgbp->which);
     biffAdd(TEN, err); return 1;
   }
   if (airEnumValCheck(tenAniso, rgbp->aniso)) {

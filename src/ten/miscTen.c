@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 int
-tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which, 
+tenEvecRGB(Nrrd *nout, const Nrrd *nin,
            const tenEvecRGBParm *rgbp) {
   char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
   size_t size[NRRD_DIM_MAX];
@@ -37,11 +37,8 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which,
   unsigned int *odataUI;
   
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!(AIR_IN_CL(0, which, 2))) {
-    sprintf(err, "%s: eigenvector index %d not in range [0..2]", me, which);
+    sprintf(err, "%s: got NULL pointer (%p,%p)",
+            me, AIR_CAST(void *, nout), AIR_CAST(void *, nin));
     biffAdd(TEN, err); return 1;
   }
   if (tenEvecRGBParmCheck(rgbp)) {
@@ -75,7 +72,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which,
               lup(nin->data, 3 + 7*II), lup(nin->data, 4 + 7*II),
               lup(nin->data, 5 + 7*II), lup(nin->data, 6 + 7*II));
     tenEigensolve_f(eval, evec, ten);
-    tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3*which, rgbp);
+    tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3*(rgbp->which), rgbp);
     switch (nout->type) {
     case nrrdTypeUChar:
       odataUC[0 + size[0]*II] = airIndexClamp(0.0, RGB[0], 1.0, 256);

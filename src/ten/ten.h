@@ -275,10 +275,13 @@ enum {
   tenGageRotTanMags,    /* 48: "rtms", mags of vectors above: GT[3] */
   tenGageEvalGrads,     /* 49: "evgs", projections of tensor gradient onto
                                gradients of eigenvalues: GT[9] */
-  tenGageAniso,         /* 50: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageCl2,           /* 50: same as tenAniso_Cl2 */
+  tenGageCp2,           /* 51: same as tenAniso_Cp2 */
+  tenGageCa2,           /* 52: same as tenAniso_Ca2 */
+  tenGageAniso,         /* 53: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX  50
+#define TEN_GAGE_ITEM_MAX  53
 
 /*
 ******** tenEvecRGBParm struct
@@ -291,18 +294,21 @@ enum {
 ** the associated methods were clumsy and redundant.
 */
 typedef struct {
-  int aniso;         /* which anisotropy metric modulates saturation */
-  double confThresh, /* confidence threshold */
-    gamma,           /* pre-component gamma */
-    bgGray,          /* gray-value for low confidence samples */
-    isoGray;         /* gray-value for isotropic samples */
-  int typeOut,       /* when output type is flexible, and if this is
-                        nrrdTypeUChar or nrrdTypeUShort, then output will
-                        be quantized to those types (range [0,255] and
-                        [0,65535] respectively); otherwise values are
-                        copied directly to output */
-    genAlpha;        /* when output value set is flexible, create RGBA
-                        values instead of just RGB */
+  unsigned int which; /* when the eigenvector hasn't already been computed,
+                         which eigenvector to map:
+                         0 for linear, 2 or planar, 1 for orthotropic */
+  int aniso;          /* which anisotropy metric modulates saturation */
+  double confThresh,  /* confidence threshold */
+    gamma,            /* pre-component gamma */
+    bgGray,           /* gray-value for low confidence samples */
+    isoGray;          /* gray-value for isotropic samples */
+  int typeOut,        /* when output type is flexible, and if this is
+                         nrrdTypeUChar or nrrdTypeUShort, then output will
+                         be quantized to those types (range [0,255] and
+                         [0,65535] respectively); otherwise values are
+                         copied directly to output */
+    genAlpha;         /* when output value set is flexible, create RGBA
+                         values instead of just RGB */
 } tenEvecRGBParm;
 
 /*
@@ -581,9 +587,9 @@ TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
 
 /* aniso.c */
 TEN_EXPORT float (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float eval[3]);
-TEN_EXPORT float tenAnisoEval_f(const float eval[3], int which);
+TEN_EXPORT float tenAnisoEval_f(const float eval[3], int aniso);
 TEN_EXPORT double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]);
-TEN_EXPORT double tenAnisoEval_d(const double eval[3], int which);
+TEN_EXPORT double tenAnisoEval_d(const double eval[3], int aniso);
 TEN_EXPORT void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float eval[3]);
 TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
                             int whole, int nanout);
@@ -602,7 +608,7 @@ TEN_EXPORT void tenEvecRGBSingle_d(double RGB[3], double conf,
                                    const tenEvecRGBParm *rgbp);
 
 /* miscTen.c */
-TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin, int which,
+TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin,
                           const tenEvecRGBParm *rgbp);
 TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,

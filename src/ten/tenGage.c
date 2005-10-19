@@ -90,6 +90,9 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
   {tenGageEvalGrads,           9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                                     -1,        -1,    0},
 
+  {tenGageCl2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
+  {tenGageCp2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
+  {tenGageCa2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
   {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                                    -1,        -1,    0}
 };
 
@@ -199,7 +202,6 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
                        tensor + J, tgrad + J*3, NULL, \
                        pvl->needD[0], pvl->needD[1], AIR_FALSE)
     /* HEY: this sucks: want trilinear interpolation of confidence */
-    /* HEY: maybe not, see note above */
     DOIT_N(0); DOIT_N(1); DOIT_N(2); DOIT_N(3);
     DOIT_N(4); DOIT_N(5); DOIT_N(6); 
     break;
@@ -232,6 +234,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   evecAns = pvl->directAnswer[tenGageEvec];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensor)) {
     /* done if doV */
+    tenAns[0] = AIR_CLAMP(0.0, tenAns[0], 1.0);
     dtA = tenAns[1];
     dtB = tenAns[2];
     dtC = tenAns[3];
@@ -526,6 +529,39 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenGageRotTanMags][0] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 0*3);
     pvl->directAnswer[tenGageRotTanMags][1] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 1*3);
     pvl->directAnswer[tenGageRotTanMags][2] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 2*3);
+  }
+  /* --- C{l,p,a}2 --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl2)) {
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Cl2);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Cl2);
+#endif
+    pvl->directAnswer[tenGageCl2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp2)) {
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Cp2);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_C2);
+#endif
+    pvl->directAnswer[tenGageCp2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa2)) {
+    if (ctx->verbose) {
+      fprintf(stderr, "!%s(%d): evalAns = %g %g %g", "blah", __LINE__,
+              evalAns[0], evalAns[1], evalAns[2]);
+    }
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Ca2);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Ca2);
+#endif
+    pvl->directAnswer[tenGageCa2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+    if (ctx->verbose) {
+      fprintf(stderr, " --> %g --> %g\n", tmp0,
+              pvl->directAnswer[tenGageCa2][0]);
+    }
   }
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
