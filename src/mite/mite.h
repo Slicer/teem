@@ -33,7 +33,7 @@
 #include <teem/ten.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(mite_EXPORTS) || defined(teem_EXPORTS)
+#  if defined(TEEM_BUILD) || defined(mite_EXPORTS) || defined(teem_EXPORTS)
 #    define MITE_EXPORT extern __declspec(dllexport)
 #  else
 #    define MITE_EXPORT extern __declspec(dllimport)

@@ -45,7 +45,7 @@ extern "C" {
 
 /* NrrdIO-hack-001 */
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(air_EXPORTS) || defined(teem_EXPORTS)
+#  if defined(TEEM_BUILD) || defined(air_EXPORTS) || defined(teem_EXPORTS)
 #    define AIR_EXPORT extern __declspec(dllexport)
 #  else
 #    define AIR_EXPORT extern __declspec(dllimport)

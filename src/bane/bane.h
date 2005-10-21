@@ -35,7 +35,7 @@
 #include <teem/gage.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(bane_EXPORTS) || defined(teem_EXPORTS)
+#  if defined(TEEM_BUILD) || defined(bane_EXPORTS) || defined(teem_EXPORTS)
 #    define BANE_EXPORT extern __declspec(dllexport)
 #  else
 #    define BANE_EXPORT extern __declspec(dllimport)

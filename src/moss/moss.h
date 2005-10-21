@@ -36,7 +36,7 @@
 #include <teem/nrrd.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(moss_EXPORTS) || defined(teem_EXPORTS)
+#  if defined(TEEM_BUILD) || defined(moss_EXPORTS) || defined(teem_EXPORTS)
 #    define MOSS_EXPORT extern __declspec(dllexport)
 #  else
 #    define MOSS_EXPORT extern __declspec(dllimport)
