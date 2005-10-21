@@ -1,50 +1,51 @@
 ADD_LIBRARY(ten
-aniso.c
-bimod.c
-bvec.c
-chan.c
-defaultsTen.c
-enumsTen.c
-epireg.c
-fiber.c
-fiberMethods.c
-glyph.c
-grads.c
-miscTen.c
-mod.c
-tenGage.c
-tendAnhist.c
-tendAnplot.c
-tendAnscale.c
-tendAnvol.c
-tendBfit.c
-tendBmat.c
-tendCalc.c
-tendEllipse.c
-tendEpireg.c
-tendEstim.c
-tendEval.c
-tendEvaladd.c
-tendEvalclamp.c
-tendEvalpow.c
-tendEvec.c
-tendEvecrgb.c
-tendEvq.c
-tendExpand.c
-tendFiber.c
-tendFlotsam.c
-tendGlyph.c
-tendGrads.c
-tendHelix.c
-tendMake.c
-tendNorm.c
-tendPoint.c
-tendSatin.c
-tendShrink.c
-tendSim.c
-tendSlice.c
-tendSten.c
-tensor.c
+  aniso.c
+  bimod.c
+  bvec.c
+  chan.c
+  defaultsTen.c
+  enumsTen.c
+  epireg.c
+  fiber.c
+  fiberMethods.c
+  glyph.c
+  grads.c
+  miscTen.c
+  mod.c
+  tendAnhist.c
+  tendAnplot.c
+  tendAnscale.c
+  tendAnvol.c
+  tendBfit.c
+  tendBmat.c
+  tendCalc.c
+  tendEllipse.c
+  tendEpireg.c
+  tendEstim.c
+  tendEval.c
+  tendEvaladd.c
+  tendEvalclamp.c
+  tendEvalpow.c
+  tendEvec.c
+  tendEvecrgb.c
+  tendEvq.c
+  tendExpand.c
+  tendFiber.c
+  tendFlotsam.c
+  tendGlyph.c
+  tendGrads.c
+  tendHelix.c
+  tendMake.c
+  tendNorm.c
+  tendPoint.c
+  tendSatin.c
+  tendShrink.c
+  tendSim.c
+  tendSlice.c
+  tendSten.c
+  tendUnmf.c
+  tenGage.c
+  tensor.c
 )
 
 INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)

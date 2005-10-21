@@ -1,6 +1,7 @@
 ADD_LIBRARY(nrrd
   accessors.c
   apply1D.c
+  apply2D.c
   arith.c
   arraysNrrd.c
   axis.c
@@ -38,6 +39,7 @@ ADD_LIBRARY(nrrd
   range.c
   read.c
   reorder.c
+  resampleContext.c
   resampleNrrd.c
   simple.c
   subset.c

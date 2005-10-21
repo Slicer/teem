@@ -7,7 +7,7 @@ ADD_LIBRARY(air
   miscAir.c
   mop.c 
   parseAir.c
-  rand48.c
+  randMT.c
   sane.c
   string.c
   threadAir.c

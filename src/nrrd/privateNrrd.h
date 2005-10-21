@@ -101,7 +101,6 @@ extern const NrrdEncoding _nrrdEncodingGzip;
 extern const NrrdEncoding _nrrdEncodingBzip2;
 
 /* read.c */
-extern int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
 extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file);
 extern char _nrrdFieldSep[];
 
@@ -175,8 +174,6 @@ extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 /* ---- END non-NrrdIO */
 
 /* parseNrrd.c */
-extern int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
-extern int _nrrdContainsPercentDAndMore(char *str);
 extern int _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff);
 extern unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
 

@@ -1,5 +1,5 @@
 # This is the root Teem CMakeLists file.
-CMAKE_MINIMUM_REQUIRED(VERSION 1.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
 PROJECT(TEEM)
 #INCLUDE_REGULAR_EXPRESSION("^([Nn]rrd|itk|vtk|vnl|vcl|vxl|f2c|netlib|ce|itpack|DICOM|meta|png|dbh|tif|jpeg|zlib|gdcm).*$")
 #SOURCE_GROUP("XML Files" REGULAR_EXPRESSION "[.]xml$")
@@ -71,19 +71,17 @@ ENDIF(QNANHIBIT_VALUE)
 # TEEM build configuration options.
 OPTION(BUILD_SHARED_LIBS "Build Teem with shared libraries." OFF)
 SET(TEEM_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+IF(NOT TEEM_BUILD_SHARED_LIBS)
+  ADD_DEFINITIONS(-DTEEM_STATIC)
+ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
 #Set Teem define for share library
 
 
-#Options for thirh party stuff: zlib, png
+#Options for third party stuff: zlib, png
 
 
 #-----------------------------------------------------------------------------
 #Include Teem Defines
-
-#Turn on TEEM_BUILD so that the proper dll export def's are 
-# used on windows builds.
-ADD_DEFINITIONS(-DTEEM_BUILD=0)
-
 # Set compiler flags for endian-ness.
 IF(CMAKE_WORDS_BIGENDIAN)
   ADD_DEFINITIONS(-DTEEM_ENDIAN=4321)
@@ -124,6 +122,37 @@ ENDIF(QNANHIBIT)
 #ENDIF(USE_DIRECTIO)
 
 
+FOREACH(header_file
+  air/air.h
+  hest/hest.h
+  biff/biff.h
+  echo/echo.h
+  nrrd/nrrd.h
+  ten/ten.h
+  ten/tenMacros.h
+  dye/dye.h
+  hoover/hoover.h
+  moss/moss.h
+  alan/alan.h
+  gage/gage.h
+  ell/ell.h
+  ell/ellMacros.h
+  unrrdu/unrrdu.h
+  bane/bane.h
+  limn/limn.h
+  mite/mite.h
+  nrrd/nrrdDefines.h
+  nrrd/nrrdMacros.h
+  nrrd/nrrdEnums.h
+)
+  MESSAGE(STATUS "Copy header file: ${header_file}")
+  GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
+  CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
+    "${CMAKE_CURRENT_BINARY_DIR}/Include/teem/${file_no_path}" COPYONLY IMMEDIATE)
+ENDFOREACH(header_file)
+
+  
+
 #-----------------------------------------------------------------------------
 # Dispatch the build into the proper subdirectories.
 SUBDIRS(src)
@@ -131,6 +160,7 @@ SUBDIRS(src)
 #---
 # Include directory 
 INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 
 #---
 # Install directory
@@ -143,3 +173,10 @@ ELSE("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 1.7)
           "This version of CMake is too old to build this version of Teem.  "
           "Please upgrade to CMake 1.8.")
 ENDIF("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 1.7)
+
+OPTION(BUILD_TESTING "Enable this to perform testing of TEEM" OFF)
+IF(BUILD_TESTING)
+  SET(DART_ROOT "" CACHE INTERNAL "" FORCE)
+  INCLUDE(Dart)
+  ENABLE_TESTING()
+ENDIF(BUILD_TESTING)

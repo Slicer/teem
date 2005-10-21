@@ -32,7 +32,7 @@
 #include <teem/nrrd.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#  if defined(alan_EXPORTS) || defined(teem_EXPORTS)
 #    define ALAN_EXPORT extern __declspec(dllexport)
 #  else
 #    define ALAN_EXPORT extern __declspec(dllimport)

@@ -15,7 +15,6 @@ ADD_LIBRARY(limn
  splineEval.c
  splineMethods.c
  splineMisc.c
- surface.c
  transform.c
 )
 

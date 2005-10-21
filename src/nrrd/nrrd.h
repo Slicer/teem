@@ -44,7 +44,7 @@
 #include "nrrdEnums.h"
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#  if defined(nrrd_EXPORTS) || defined(teem_EXPORTS)
 #    define NRRD_EXPORT extern __declspec(dllexport)
 #  else
 #    define NRRD_EXPORT extern __declspec(dllimport)
@@ -1226,6 +1226,10 @@ NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
 NRRD_EXPORT int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
+NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
+NRRD_EXPORT int _nrrdContainsPercentDAndMore(char *str);
+NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
+NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
 
 /* ---- END non-NrrdIO */
 

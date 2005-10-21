@@ -34,7 +34,7 @@
 #include <teem/nrrd.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#  if defined(limn_EXPORTS) || defined(teem_EXPORTS)
 #    define LIMN_EXPORT extern __declspec(dllexport)
 #  else
 #    define LIMN_EXPORT extern __declspec(dllimport)

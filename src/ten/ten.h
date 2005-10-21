@@ -38,7 +38,7 @@
 #include "tenMacros.h"
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
+#  if defined(ten_EXPORTS) || defined(teem_EXPORTS)
 #    define TEN_EXPORT extern __declspec(dllexport)
 #  else
 #    define TEN_EXPORT extern __declspec(dllimport)
