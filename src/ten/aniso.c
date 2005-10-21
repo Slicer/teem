@@ -186,17 +186,15 @@ double _tenAnisoEval_B_d(const double eval[3]) {
 }
 
 float  _tenAnisoEval_Q_f(const float  eval[3]) {
-  float A, B, C;
+  float A, B;
   A = -(eval[0] + eval[1] + eval[2]);
   B = _tenAnisoEval_B_f(eval);
-  C = -eval[0]*eval[1]*eval[2];
   return (A*A - 3.0*B)/9.0;
 }
 double _tenAnisoEval_Q_d(const double eval[3]) {
-  double A, B, C;
+  double A, B;
   A = -(eval[0] + eval[1] + eval[2]);
   B = _tenAnisoEval_B_d(eval);
-  C = -eval[0]*eval[1]*eval[2];
   return (A*A - 3.0*B)/9.0;
 }
 

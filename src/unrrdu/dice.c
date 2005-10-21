@@ -23,15 +23,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad gordon */
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern int _nrrdContainsPercentDAndMore(char *str);
-#ifdef __cplusplus
-}
-#endif
-
 #define INFO "Save all slices along one axis into separate files"
 char *_unrrdu_diceInfoL = 
 (INFO

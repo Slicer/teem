@@ -253,7 +253,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 void
 hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   int i, j, len, maxlen, numOpts;
-  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE], *sep;
+  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
   parm = !_parm ? hestParmNew() : _parm;
@@ -296,8 +296,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     fprintf(f, "%s", buff);
     strcpy(buff, "");
 #if 1
-    if (opt[i].flag
-        && (sep = strchr(opt[i].flag, parm->multiFlagSep))) {
+    if (opt[i].flag && strchr(opt[i].flag, parm->multiFlagSep)) {
       /* there is a long-form flag as well as short */
       _hestSetBuff(buff, opt + i, parm, AIR_FALSE, AIR_TRUE);
       strcat(buff, " = ");

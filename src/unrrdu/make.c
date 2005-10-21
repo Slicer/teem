@@ -23,16 +23,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad Gordon */
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
-extern int _nrrdContainsPercentDAndMore(char *str);
-#ifdef __cplusplus
-}
-#endif
-
 /* learned: some header file must declare private functions
 ** within extern "C" so that others can link with them
 */

@@ -34,7 +34,6 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   size_t II, NN;
   unsigned char *odataUC;
   unsigned short *odataUS;
-  unsigned int *odataUI;
   
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer (%p,%p)",
@@ -61,7 +60,6 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   }
   odataUC = AIR_CAST(unsigned char *, nout->data);
   odataUS = AIR_CAST(unsigned short *, nout->data);
-  odataUI = AIR_CAST(unsigned int *, nout->data);
 
   NN = nrrdElementNumber(nin)/7;
   lup = nrrdFLookup[nin->type];

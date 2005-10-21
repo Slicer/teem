@@ -23,15 +23,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad bad bad Gordon */
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern int _nrrdOneLine(int *lenP, NrrdIoState *nio, FILE *file);
-#ifdef __cplusplus
-}
-#endif
-
 #define INFO "Print header of one or more nrrd files"
 char *_unrrdu_headInfoL = 
 (INFO  ".  The value of this is simply to print the contents of nrrd "
@@ -44,7 +35,7 @@ int
 unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   char err[AIR_STRLEN_MED];
   airArray *mop;
-  int len;
+  unsigned int len;
   FILE *fin;
 
   mop = airMopNew();

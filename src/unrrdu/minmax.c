@@ -23,15 +23,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* bad bad bad Gordon */
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern int _nrrdOneLine(int *lenP, NrrdIoState *io, FILE *file);
-#ifdef __cplusplus
-}
-#endif
-
 #define INFO "Print out min and max values in one or more nrrds"
 char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
