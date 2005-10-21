@@ -19,7 +19,9 @@
 #
 #
 
-TEEM_SHEXT = dylib
+# this was causing some troubles, will wait until GNU 
+# configure/libtool solution is implemented ...
+# TEEM_SHEXT = dylib
 
 AR = libtool
 ARFLAGS = -static -o
