@@ -543,7 +543,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
 #if GAGE_TYPE_FLOAT
     tmp0 = tenAnisoEval_f(evalAns, tenAniso_Cp2);
 #else
-    tmp0 = tenAnisoEval_d(evalAns, tenAniso_C2);
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Cp2);
 #endif
     pvl->directAnswer[tenGageCp2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
   }
