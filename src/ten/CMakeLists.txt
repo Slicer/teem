@@ -18,7 +18,6 @@ ADD_LIBRARY(ten
   tendAnvol.c
   tendBfit.c
   tendBmat.c
-  tendCalc.c
   tendEllipse.c
   tendEpireg.c
   tendEstim.c
