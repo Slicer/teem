@@ -8,6 +8,4 @@ ADD_LIBRARY(coil
   tensorCoil.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-
 TARGET_LINK_LIBRARIES(coil ten gage ell nrrd biff air)

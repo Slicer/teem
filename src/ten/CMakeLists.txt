@@ -47,6 +47,4 @@ ADD_LIBRARY(ten
   tensor.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-
 TARGET_LINK_LIBRARIES(ten echo limn gage dye unrrdu ell nrrd biff air)

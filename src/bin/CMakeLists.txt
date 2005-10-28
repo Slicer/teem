@@ -1,7 +1,3 @@
-INCLUDE_DIRECTORIES(
-    ${TEEM_BINARY_DIR}/include/
-)
-
 IF(UNIX)
    SET(MATH_LIB -lm)
 ELSE(UNIX)

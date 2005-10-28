@@ -49,6 +49,4 @@ ADD_LIBRARY(nrrd
   write.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-
 TARGET_LINK_LIBRARIES(nrrd biff hest air)

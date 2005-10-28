@@ -20,14 +20,7 @@ ADD_LIBRARY(bane
   valid.c
 )
 
-SET(DEPEND_LIBRARIES gage unrrdu nrrd biff air)
 
-FOREACH(lib ${DEPEND_LIBRARIES})
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/src/${lib})
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-ENDFOREACH(lib)
-
-
-TARGET_LINK_LIBRARIES(bane ${DEPEND_LIBRARIES})
+TARGET_LINK_LIBRARIES(bane gage unrrdu nrrd biff air)
 INSTALL_TARGETS(/lib bane)
 INSTALL_FILES(/include/teem ".h" bane.h)

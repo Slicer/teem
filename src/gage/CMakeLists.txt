@@ -17,6 +17,4 @@ ADD_LIBRARY(gage
   vecprint.c
 )
 
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-
 TARGET_LINK_LIBRARIES(gage ell nrrd biff air)

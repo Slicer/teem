@@ -8,7 +8,4 @@ ADD_LIBRARY(ell
   vecEll.c
 )
 
-
-INCLUDE_DIRECTORIES(${TEEM_SOURCE_DIR}/include/ ${TEEM_BINARY_DIR}/include/)
-
 TARGET_LINK_LIBRARIES(ell nrrd biff air)
