@@ -334,8 +334,15 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
 airULLong
 airIndexULL(double min, double val, double max, airULLong N) {
   airULLong idx;
-
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+  /* compile error on Win32-vs60: "error C2520: conversion from
+     unsigned __int64 to double not implemented, use signed __int64 ... */
+  airULLong sidx;
+  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, sidx);
+#else
   idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
+#endif
   idx -= (idx == N);
   return idx;
 }
@@ -343,8 +350,13 @@ airIndexULL(double min, double val, double max, airULLong N) {
 airULLong
 airIndexClampULL(double min, double val, double max, airULLong N) {
   airULLong idx;
-
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+  airULLong sidx;
+  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, sidx);
+#else
   idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
+#endif
   idx = AIR_MIN(idx, N-1);
   return idx;
 }
