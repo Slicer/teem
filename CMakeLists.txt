@@ -1,20 +1,6 @@
 # This is the root Teem CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
 PROJECT(TEEM)
-#INCLUDE_REGULAR_EXPRESSION("^([Nn]rrd|itk|vtk|vnl|vcl|vxl|f2c|netlib|ce|itpack|DICOM|meta|png|dbh|tif|jpeg|zlib|gdcm).*$")
-#SOURCE_GROUP("XML Files" REGULAR_EXPRESSION "[.]xml$")
-
-# Don't build anything unless the version of CMake is high enough.
-# The matching ELSE/ENDIF should be the last lines in the file.
-IF("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 1.7)
-
-# If CMake is the version we're expecting, don't show the
-# CMAKE_BACKWARDS_COMPATIBILITY option.
-IF("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" MATCHES "^1\\.8$")
-  MARK_AS_ADVANCED(FORCE CMAKE_BACKWARDS_COMPATIBILITY)
-ELSE("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" MATCHES "^1\\.8$")
-  MARK_AS_ADVANCED(CLEAR CMAKE_BACKWARDS_COMPATIBILITY)
-ENDIF("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" MATCHES "^1\\.8$")
 
 #-----------------------------------------------------------------------------
 # TEEM version number.  An even minor number corresponds to releases.
@@ -33,14 +19,12 @@ INCLUDE (${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityCXX.cmake)
 
 #-----------------------------------------------------------------------------
 # Output directories.
-SET (LIBRARY_OUTPUT_PATH ${TEEM_BINARY_DIR}/lib CACHE INTERNAL "Single output directory for building all libraries.")
+SET (LIBRARY_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
 SET (EXECUTABLE_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
-#SET (INCLUDE_OUTPUT_PATH ${TEEM_BINARY_DIR}/include CACHE INTERNAL "Single
 #output directory for installing all include files.")
-MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH INCLUDE_OUTPUT_PATH)
+MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(TEEM_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
 SET(TEEM_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
-#SET(TEEM_INCLUDE_PATH "${INCLUDE_OUTPUT_PATH}")
 SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 
 
@@ -53,17 +37,17 @@ FILE(MAKE_DIRECTORY ${TEEM_BINARY_DIR}/include/teem)
 INCLUDE(${TEEM_SOURCE_DIR}/CMake/CheckBigBitfield.cmake)
 CHECK_BIG_BITFIELD(BIGBITFIELD_VALUE ${TEEM_SOURCE_DIR}/CMake)
 IF(BIGBITFIELD_VALUE)
-   SET(BIGBITFIELD 1 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
+  SET(BIGBITFIELD 1 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
 ELSE(BIGBITFIELD_VALUE)
-   SET(BIGBITFIELD 0 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
+  SET(BIGBITFIELD 0 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
 ENDIF(BIGBITFIELD_VALUE)
 
 INCLUDE(${TEEM_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
 TEST_QNANHIBIT(QNANHIBIT_VALUE ${TEEM_SOURCE_DIR}/CMake)
 IF(QNANHIBIT_VALUE)
-   SET(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+  SET(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
 ELSE(QNANHIBIT_VALUE)
-   SET(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+  SET(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
 ENDIF(QNANHIBIT_VALUE)
 
 
@@ -74,11 +58,6 @@ SET(TEEM_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 IF(NOT TEEM_BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DTEEM_STATIC)
 ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
-#Set Teem define for share library
-
-
-#Options for third party stuff: zlib, png
-
 
 #-----------------------------------------------------------------------------
 #Include Teem Defines
@@ -118,71 +97,56 @@ ENDIF(QNANHIBIT)
 #IF(USE_DIRECTIO)
 #  ADD_DEFINITIONS(-DTEEM_DIO=1)
 #ELSE(USE_DIRECTIO)
-  ADD_DEFINITIONS(-DTEEM_DIO=0)
+ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
 
 FOREACH(header_file
-  air/air.h
-  hest/hest.h
-  biff/biff.h
-  echo/echo.h
-  nrrd/nrrd.h
-  ten/ten.h
-  ten/tenMacros.h
-  dye/dye.h
-  hoover/hoover.h
-  moss/moss.h
-  alan/alan.h
-  gage/gage.h
-  ell/ell.h
-  ell/ellMacros.h
-  unrrdu/unrrdu.h
-  bane/bane.h
-  limn/limn.h
-  mite/mite.h
-  nrrd/nrrdDefines.h
-  nrrd/nrrdMacros.h
-  nrrd/nrrdEnums.h
-)
+    air/air.h
+    hest/hest.h
+    biff/biff.h
+    echo/echo.h
+    nrrd/nrrd.h
+    ten/ten.h
+    ten/tenMacros.h
+    dye/dye.h
+    hoover/hoover.h
+    moss/moss.h
+    alan/alan.h
+    gage/gage.h
+    ell/ell.h
+    ell/ellMacros.h
+    unrrdu/unrrdu.h
+    bane/bane.h
+    limn/limn.h
+    mite/mite.h
+    nrrd/nrrdDefines.h
+    nrrd/nrrdMacros.h
+    nrrd/nrrdEnums.h
+    )
   MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
   CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
     "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
 ENDFOREACH(header_file)
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/include/teemEndian.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teemEndian.h" COPYONLY IMMEDIATE)
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/include/teemQnanhibit.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teemQnanhibit.h" COPYONLY IMMEDIATE)
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/include/teemDio.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teemDio.h" COPYONLY IMMEDIATE)
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/include/teem32bit.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teem32bit.h" COPYONLY IMMEDIATE)
-CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/include/teemPng.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teemPng.h" COPYONLY IMMEDIATE)
-
-  
-
-#-----------------------------------------------------------------------------
-# Dispatch the build into the proper subdirectories.
-SUBDIRS(src)
 
 #---
 # Include directory 
-INCLUDE_DIRECTORIES(${TEEM_BINARY_DIR}/include/)
+INCLUDE_DIRECTORIES(
+  "${TEEM_SOURCE_DIR}/include/"
+  "${TEEM_BINARY_DIR}/include/"
+  )
 
 #---
 # Install directory
 SET (CMAKE_INSTALL_PREFIX "${TEEM_BINARY_DIR}")
 
-# If the version of CMake was too old, complain and build nothing.
-# These should be the last lines in this file.
-ELSE("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 1.7)
-  MESSAGE(SEND_ERROR
-          "This version of CMake is too old to build this version of Teem.  "
-          "Please upgrade to CMake 1.8.")
-ENDIF("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" GREATER 1.7)
+#-----------------------------------------------------------------------------
+# Dispatch the build into the proper subdirectories.
+SUBDIRS(src)
 
+#-----------------------------------------------------------------------------
+# For testing
 OPTION(BUILD_TESTING "Enable this to perform testing of TEEM" OFF)
 IF(BUILD_TESTING)
   INCLUDE(Dart)
