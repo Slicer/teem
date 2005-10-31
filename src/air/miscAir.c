@@ -337,7 +337,7 @@ airIndexULL(double min, double val, double max, airULLong N) {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   /* compile error on Win32-vs60: "error C2520: conversion from
      unsigned __int64 to double not implemented, use signed __int64 ... */
-  airULLong sidx;
+  airLLong sidx;
   sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
@@ -351,7 +351,7 @@ airULLong
 airIndexClampULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
-  airULLong sidx;
+  airLLong sidx;
   sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
