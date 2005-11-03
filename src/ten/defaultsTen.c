@@ -42,7 +42,7 @@ double
 tenDefFiberMaxHalfLen = 3;
 
 int
-tenDefFiberAnisoType = tenAniso_FA;
+tenDefFiberAnisoStopType = tenAniso_Cl2;
 
 double
 tenDefFiberAnisoThresh = 0.5;
