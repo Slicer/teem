@@ -508,6 +508,19 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   }
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("tensor");
+  if (nrrdBasicInfoCopy(nout, nconf,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    sprintf(err, "%s:", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
 
   return 0;
 }
