@@ -53,42 +53,44 @@ _nrrdWindSincSup(const double *parm) {
 #define POW2(S) ((S)*(S))
 #define POW3(S) ((S)*(S)*(S))
 
-#define WS_1_F(name, mac, spow)              \
-float                                        \
-_nrrd##name##_1_f(float x, const double *parm) {   \
-  float R, S;                                \
-                                             \
-  S = parm[0]; R = parm[1];                  \
-  x /= S;                                    \
-  return mac(x, R)/spow(S);                  \
+#define WS_1_F(name, mac, spow)                               \
+float                                                         \
+_nrrd##name##_1_f(float x, const double *parm) {              \
+  float R, S;                                                 \
+                                                              \
+  S = AIR_CAST(float, parm[0]); R = AIR_CAST(float, parm[1]); \
+  x /= S;                                                     \
+  return mac(x, R)/spow(S);                                   \
 }
 
 #define WS_N_F(name, mac, spow)                                     \
 void                                                                \
-_nrrd##name##_N_f(float *f, const float *x, size_t len, const double *parm) {   \
+_nrrd##name##_N_f(float *f, const float *x, size_t len,             \
+                  const double *parm) {                             \
   float S, R, t;                                                    \
   size_t i;                                                         \
                                                                     \
-  S = parm[0]; R = parm[1];                                         \
+  S = AIR_CAST(float, parm[0]); R = AIR_CAST(float, parm[1]);       \
   for (i=0; i<len; i++) {                                           \
     t = x[i]/S;                                                     \
     f[i] = mac(t, R)/spow(S);                                       \
   }                                                                 \
 }
 
-#define WS_1_D(name, mac, spow)             \
-double                                      \
+#define WS_1_D(name, mac, spow)                   \
+double                                            \
 _nrrd##name##_1_d(double x, const double *parm) { \
-  double R, S;                              \
-                                            \
-  S = parm[0]; R = parm[1];                 \
-  x /= S;                                   \
-  return mac(x, R)/spow(S);                 \
+  double R, S;                                    \
+                                                  \
+  S = parm[0]; R = parm[1];                       \
+  x /= S;                                         \
+  return mac(x, R)/spow(S);                       \
 }
 
 #define WS_N_D(name, mac, spow)                                     \
 void                                                                \
-_nrrd##name##_N_d(double *f, const double *x, size_t len, const double *parm) { \
+_nrrd##name##_N_d(double *f, const double *x, size_t len,           \
+                  const double *parm) {                             \
   double S, R, t;                                                   \
   size_t i;                                                         \
                                                                     \

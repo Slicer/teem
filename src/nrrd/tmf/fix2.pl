@@ -219,7 +219,7 @@ sub blah {
 	     . "  x += $sup;\n"
 	     . "  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */\n"
 	     . "  x -= i;\n"
-	     . "  return ${kern}\(parm[0], i, x\);\n"
+	     . "  return AIR_CAST(float, ${kern}\(parm[0], i, x\));\n"
 	     . "}\n\n");
     $_N_d = ("void\n"
 	     . "_nrrd_${kern}_N_d(double *f, const double *x, size_t len, const double *parm) {\n"
@@ -244,7 +244,7 @@ sub blah {
 	     . "    t = x[I] + $sup;\n"
 	     . "    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */\n"
 	     . "    t -= i;\n"
-	     . "    f[I] = ${kern}\(parm[0], i, t\);\n"
+	     . "    f[I] = AIR_CAST(float, ${kern}\(parm[0], i, t\));\n"
 	     . "  }\n"
 	     . "}\n\n");
     $kdef = ("NrrdKernel\n"

@@ -465,7 +465,7 @@ AIR_EXPORT double airTime();
 AIR_EXPORT double airCbrt(double);
 AIR_EXPORT double airSgnPow(double, double);
 AIR_EXPORT int airSgn(double);
-AIR_EXPORT int airLog2(float n);
+AIR_EXPORT int airLog2(double n);
 AIR_EXPORT void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);

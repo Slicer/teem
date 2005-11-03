@@ -515,14 +515,14 @@ airSgnPow(double v, double p) {
 ** or -1 otherwise
 */
 int 
-airLog2(float n) {
+airLog2(double n) {
 
-  if (!AIR_EXISTS(n))
-    return -1;
-  if (n == 1.0)
-    return 0;
-  if (n < 2)
-    return -1;
+  if (!AIR_EXISTS(n)) {
+    return -1;  }
+  if (n == 1.0) {
+    return 0;  }
+  if (n < 2) {
+    return -1;  }
   return 1 + airLog2(n/2.0);
 }
 
@@ -708,12 +708,12 @@ float
 airFLoad(void *v, int t) {
 
   switch(t) {
-  case airTypeBool:   return *((int*)v); break;
-  case airTypeInt:    return *((int*)v); break;
-  case airTypeUInt:   return *((unsigned int*)v); break;
-  case airTypeSize_t: return *((size_t*)v); break;
+  case airTypeBool:   return AIR_CAST(float, *((int*)v)); break;
+  case airTypeInt:    return AIR_CAST(float, *((int*)v)); break;
+  case airTypeUInt:   return AIR_CAST(float, *((unsigned int*)v)); break;
+  case airTypeSize_t: return AIR_CAST(float, *((size_t*)v)); break;
   case airTypeFloat:  return *((float*)v); break;
-  case airTypeDouble: return *((double*)v); break;
+  case airTypeDouble: return AIR_CAST(float, *((double*)v)); break;
   case airTypeChar:   return *((char*)v); break;
   default: return 0; break;
   }
@@ -723,15 +723,30 @@ float
 airFStore(void *v, int t, float f) {
 
   switch(t) {
-  case airTypeBool:   return (float)(*((int*)v) = (int)f); break;
-  case airTypeInt:    return (float)(*((int*)v) = (int)f); break;
-  case airTypeUInt:   return (float)(*((unsigned int*)v) 
-                                     = (unsigned int)f); break;
-  case airTypeSize_t: return (float)(*((size_t*)v) = (size_t)f); break;
-  case airTypeFloat:  return (*((float*)v) = f); break;
-  case airTypeDouble: return (*((double*)v) = (double)f); break;
-  case airTypeChar:   return (*((char*)v) = (char)f); break;
-  default: return 0; break;
+  case airTypeBool:
+    return AIR_CAST(float, *((int*)v) = (int)f);
+    break;
+  case airTypeInt:
+    return AIR_CAST(float, *((int*)v) = (int)f);
+    break;
+  case airTypeUInt:
+    return AIR_CAST(float, *((unsigned int*)v) = (unsigned int)f);
+    break;
+  case airTypeSize_t:
+    return AIR_CAST(float, *((size_t*)v) = (size_t)f);
+    break;
+  case airTypeFloat: 
+    return (*((float*)v) = f);
+    break;
+  case airTypeDouble:
+    return AIR_CAST(float, (*((double*)v) = (double)f));
+    break;
+  case airTypeChar:
+    return (*((char*)v) = (char)f);
+    break;
+  default:
+    return 0;
+    break;
   }
 }
 
