@@ -90,6 +90,9 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
   {tenGageEvalGrads,           9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec, -1},                                     -1,        -1,    0},
 
+  {tenGageCl1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
+  {tenGageCp1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
+  {tenGageCa1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
   {tenGageCl2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
   {tenGageCp2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
   {tenGageCa2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1},                         -1,        -1,    0},
@@ -530,6 +533,31 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenGageRotTanMags][1] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 1*3);
     pvl->directAnswer[tenGageRotTanMags][2] = ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 2*3);
   }
+  /* --- C{l,p,a}1 --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1)) {
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Cl1);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Cl1);
+#endif
+    pvl->directAnswer[tenGageCl1][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1)) {
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Cp1);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_C1);
+#endif
+    pvl->directAnswer[tenGageCp1][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1)) {
+#if GAGE_TYPE_FLOAT
+    tmp0 = tenAnisoEval_f(evalAns, tenAniso_Ca1);
+#else
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Ca1);
+#endif
+    pvl->directAnswer[tenGageCa1][0] = AIR_CLAMP(0.0, tmp0, 1.0);
+  }
   /* --- C{l,p,a}2 --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl2)) {
 #if GAGE_TYPE_FLOAT
@@ -548,20 +576,12 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenGageCp2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa2)) {
-    if (ctx->verbose) {
-      fprintf(stderr, "!%s(%d): evalAns = %g %g %g", "blah", __LINE__,
-              evalAns[0], evalAns[1], evalAns[2]);
-    }
 #if GAGE_TYPE_FLOAT
     tmp0 = tenAnisoEval_f(evalAns, tenAniso_Ca2);
 #else
     tmp0 = tenAnisoEval_d(evalAns, tenAniso_Ca2);
 #endif
     pvl->directAnswer[tenGageCa2][0] = AIR_CLAMP(0.0, tmp0, 1.0);
-    if (ctx->verbose) {
-      fprintf(stderr, " --> %g --> %g\n", tmp0,
-              pvl->directAnswer[tenGageCa2][0]);
-    }
   }
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {

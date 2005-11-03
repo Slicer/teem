@@ -137,6 +137,9 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
 
   "eigenvalue gradients",
 
+  "Cl1",
+  "Cp1",
+  "Ca1",
   "Cl2",
   "Cp2",
   "Ca2",
@@ -197,9 +200,12 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "rotation tangents",
   "rotation tangent mags",
   "eigenvalue gradients",
-  "linear anisotropy",
-  "planar anisotropy",
-  "linear+planar anisotropy",
+  "linear anisotropy (1)",
+  "planar anisotropy (1)",
+  "linear+planar anisotropy (1)",
+  "linear anisotropy (2)",
+  "planar anisotropy (2)",
+  "linear+planar anisotropy (2)",
   "anisotropies"
 };
 
@@ -256,6 +262,9 @@ _tenGageVal[] = {
   tenGageRotTans,       /* "rts" */
   tenGageRotTanMags,    /* "rtms" */
   tenGageEvalGrads,     /* "evgs" */
+  tenGageCl1,
+  tenGageCp1,
+  tenGageCa1,
   tenGageCl2,
   tenGageCp2,
   tenGageCa2,
@@ -314,6 +323,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "rts", "rotation tangents",
   "rtms", "rotation tangent mags",
   "evgs", "eigenvalue gradients",
+  "cl1",
+  "cp1",
+  "ca1",
   "cl2",
   "cp2",
   "ca2",
@@ -373,6 +385,9 @@ _tenGageValEqv[] = {
   tenGageRotTans, tenGageRotTans,
   tenGageRotTanMags, tenGageRotTanMags,
   tenGageEvalGrads, tenGageEvalGrads,
+  tenGageCl1,
+  tenGageCp1,
+  tenGageCa1,
   tenGageCl2,
   tenGageCp2,
   tenGageCa2,
