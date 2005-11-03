@@ -37,15 +37,24 @@ tend_anhistMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int version, res;
-  Nrrd *nin, *nout;
+  int version, res, right;
+  Nrrd *nin, *nout, *nwght;
   char *outS;
 
   hestOptAdd(&hopt, "v", "westin version", airTypeInt, 1, 1, &version, "1",
              "Which version of Westin's anisotropy metric triple "
              "to use, either \"1\" or \"2\"");
+  hestOptAdd(&hopt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
+             "how to weigh contributions to histogram.  By default "
+             "(not using this option), the increment is one bin count per "
+             "sample, but by giving a nrrd, the value in the nrrd at the "
+             "corresponding location will be the bin count increment ",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
              "resolution of anisotropy plot");
+  hestOptAdd(&hopt, "right", NULL, airTypeInt, 0, 0, &right, NULL,
+             "sample a right-triangle-shaped region, instead of "
+             "a roughly equilateral triangle. ");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
@@ -60,7 +69,7 @@ tend_anhistMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenAnisoHistogram(nout, nin, version, res)) {
+  if (tenAnisoHistogram(nout, nin, nwght, right, version, res)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
     airMopError(mop); return 1;
