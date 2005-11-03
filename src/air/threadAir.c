@@ -203,7 +203,12 @@ airThreadNew(void) {
   return thread;
 }
 
-int WINAPI _airThreadWin32Body(void *_thread) {
+#if defined(__BORLANDC__)
+unsigned long
+#else
+int
+#endif /* defined(__BORLANDC__) */
+WINAPI _airThreadWin32Body(void *_thread) {
   airThread *thread;
 
   thread = (airThread *)_thread;
