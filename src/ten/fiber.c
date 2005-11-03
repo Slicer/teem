@@ -44,22 +44,22 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
             "with a larger value for TEN_FIBER_NUM_STEPS_MAX\n", me);
     return tenFiberStopNumSteps;
   }
-  if (1 & (tfx->stop >> tenFiberStopConfidence)) {
+  if (tfx->stop & (1 << tenFiberStopConfidence)) {
     if (tfx->dten[0] < tfx->confThresh) {
       return tenFiberStopConfidence;
     }
   }
-  if (1 & (tfx->stop >> tenFiberStopAniso)) {
-    if (tfx->aniso[tfx->anisoType] < tfx->anisoThresh) {
+  if (tfx->stop & (1 << tenFiberStopAniso)) {
+    if (*(tfx->anisoStop) < tfx->anisoThresh) {
       return tenFiberStopAniso;
     }
   }
-  if (1 & (tfx->stop >> tenFiberStopNumSteps)) {
+  if (tfx->stop & (1 << tenFiberStopNumSteps)) {
     if (tfx->numSteps[tfx->dir] > tfx->maxNumSteps) {
       return tenFiberStopNumSteps;
     }
   }
-  if (1 & (tfx->stop >> tenFiberStopLength)) {
+  if (tfx->stop & (1 << tenFiberStopLength)) {
     if (tfx->halfLen[tfx->dir] >= tfx->maxHalfLen) {
       return tenFiberStopLength;
     }
@@ -128,8 +128,8 @@ _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
   
   ELL_3V_COPY(step, tfx->evec + 3*0);
   _tenFiberAlign(tfx, step);
-  if (tfx->anisoSpeed) {
-    _tenFiberAnisoSpeed(step, tfx->aniso[tfx->anisoSpeed],
+  if (tfx->anisoSpeedType) {
+    _tenFiberAnisoSpeed(step, *(tfx->anisoSpeed),
                         tfx->anisoSpeedFunc);
   }
 }
@@ -159,8 +159,8 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
                     (1-cl)*tfx->wPunct, vout);
   /* _tenFiberAlign(tfx, step); */
   ELL_3V_NORM(step, step, len);
-  if (tfx->anisoSpeed) {
-    _tenFiberAnisoSpeed(step, tfx->aniso[tfx->anisoSpeed],
+  if (tfx->anisoSpeedType) {
+    _tenFiberAnisoSpeed(step, *(tfx->anisoSpeed),
                         tfx->anisoSpeedFunc);
   }
 }
@@ -303,7 +303,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 
   /* try probing once */
   if (tfx->useIndexSpace) {
-    ret = gageProbe(tfx->gtx, seed[0], seed[0], seed[0]);
+    ret = gageProbe(tfx->gtx, seed[0], seed[1], seed[2]);
   } else {
     gageShapeWtoI(tfx->gtx->shape, tmp, seed);
     ret = gageProbe(tfx->gtx, tmp[0], tmp[1], tmp[2]);
@@ -325,6 +325,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     }
     return 0;
   } else {
+    /* did not immediately halt */
     tfx->whyNowhere = tenFiberStopUnknown;
   }
 

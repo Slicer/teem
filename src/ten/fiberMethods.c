@@ -86,9 +86,11 @@ tenFiberContextNew(const Nrrd *dtvol) {
     sprintf(err, "%s: couldn't set default kernel", me);
     biffAdd(TEN, err); return NULL;
   }
+  /* looks to GK like GK says that must set fiber type and 
+     some stop criterion */
   tfx->fiberType = tenFiberTypeUnknown;
   tfx->intg = tenDefFiberIntg;
-  tfx->anisoType = tenDefFiberAnisoType;
+  tfx->anisoStopType = tenDefFiberAnisoStopType;
   tfx->anisoSpeed = tenAnisoUnknown;
   tfx->stop = 0;
   tfx->anisoThresh = tenDefFiberAnisoThresh;
@@ -109,7 +111,10 @@ tenFiberContextNew(const Nrrd *dtvol) {
   tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
   tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
   tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
-  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso);
+  tfx->anisoStop = NULL;
+  tfx->anisoSpeed = NULL;
+  /* no more; set below 
+  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso); */
   return tfx;
 }
 
@@ -166,13 +171,14 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
 ** tenFiberStopSet(tfx, tenFiberStopLength, double maxHalfLen)
 ** tenFiberStopSet(tfx, tenFiberStopAniso, int anisoType, double anisoThresh)
 ** tenFiberStopSet(tfx, tenFiberStopNumSteps, int numSteps)
-** tenFiberStopSet(tfx, tenFiberStopConfidence, float conf)
+** tenFiberStopSet(tfx, tenFiberStopConfidence, double conf)
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   char me[]="tenFiberStopSet", err[AIR_STRLEN_MED];
   va_list ap;
   int ret=0;
+  int anisoGage;
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -181,17 +187,50 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   va_start(ap, stop);
   switch(stop) {
   case tenFiberStopAniso:
-    tfx->anisoType = va_arg(ap, int);
+    tfx->anisoStopType = va_arg(ap, int);
     tfx->anisoThresh = va_arg(ap, double);
-    if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoType, tenAnisoLast))) {
-      sprintf(err, "%s: given aniso type %d not valid", me, tfx->anisoType);
+    if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStopType, tenAnisoLast))) {
+      sprintf(err, "%s: given aniso stop type %d not valid", me,
+              tfx->anisoStopType);
       biffAdd(TEN, err); ret = 1; goto end;
     }
     if (!(AIR_EXISTS(tfx->anisoThresh))) {
       sprintf(err, "%s: given aniso threshold doesn't exist", me);
       biffAdd(TEN, err); ret = 1; goto end;
     }
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
+    switch(tfx->anisoStopType) {
+    case tenAniso_FA:
+      anisoGage = tenGageFA;
+      break;
+    case tenAniso_Cl1:
+      anisoGage = tenGageCl1;
+      break;
+    case tenAniso_Cp1:
+      anisoGage = tenGageCp1;
+      break;
+    case tenAniso_Ca1:
+      anisoGage = tenGageCa1;
+      break;
+    case tenAniso_Cl2:
+      anisoGage = tenGageCl2;
+      break;
+    case tenAniso_Cp2:
+      anisoGage = tenGageCp2;
+      break;
+    case tenAniso_Ca2:
+      anisoGage = tenGageCa2;
+      break;
+    default:
+      sprintf(err, "%s: sorry, currently don't have fast %s computation "
+              "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
+      biffAdd(TEN, err); ret = 1; goto end;
+      break;
+    }
+    /* NOTE: we are no longer computing ALL anisotropy measures ...
+       GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso); 
+    */
+    GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
+    tfx->anisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
     break;
   case tenFiberStopLength:
     tfx->maxHalfLen = va_arg(ap, double);
@@ -224,11 +263,29 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     sprintf(err, "%s: stop criterion %d not recognized", me, stop);
     biffAdd(TEN, err); ret = 1; goto end;
   }
-  tfx->stop |= (1 << stop);
+  tfx->stop = tfx->stop | (1 << stop);
 
  end:
   va_end(ap);
   return ret;
+}
+
+void
+tenFiberStopOn(tenFiberContext *tfx, int stop) {
+
+  if (tfx && !airEnumValCheck(tenFiberStop, stop)) {
+    tfx->stop = tfx->stop | (1 << stop);
+  }
+  return;
+}
+
+void
+tenFiberStopOff(tenFiberContext *tfx, int stop) {
+
+  if (tfx && !airEnumValCheck(tenFiberStop, stop)) {
+    tfx->stop = tfx->stop & ~(1 << stop);
+  }
+  return;
 }
 
 void
@@ -244,6 +301,7 @@ int
 tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
                       double lerp, double thresh, double soft) {
   char me[]="tenFiberAnisoSpeedSet", err[AIR_STRLEN_MED];
+  int anisoGage;
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -253,7 +311,37 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     sprintf(err, "%s: aniso %d not valid", me, aniso);
     biffAdd(TEN, err); return 1;
   }
-  tfx->anisoSpeed = aniso;
+  switch(aniso) {
+  case tenAniso_FA:
+    anisoGage = tenGageFA;
+    break;
+  case tenAniso_Cl1:
+    anisoGage = tenGageCl1;
+    break;
+  case tenAniso_Cp1:
+    anisoGage = tenGageCp1;
+    break;
+  case tenAniso_Ca1:
+    anisoGage = tenGageCa1;
+    break;
+  case tenAniso_Cl2:
+    anisoGage = tenGageCl2;
+    break;
+  case tenAniso_Cp2:
+    anisoGage = tenGageCp2;
+    break;
+  case tenAniso_Ca2:
+    anisoGage = tenGageCa2;
+    break;
+  default:
+    sprintf(err, "%s: sorry, currently don't have fast %s computation "
+            "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
+    biffAdd(TEN, err); return 1;
+    break;
+  }
+  tfx->anisoSpeedType = aniso;
+  GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
+  tfx->anisoSpeed = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
   tfx->anisoSpeedFunc[0] = lerp;
   tfx->anisoSpeedFunc[1] = thresh;
   tfx->anisoSpeedFunc[2] = soft;
@@ -269,14 +357,16 @@ tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  tfx->anisoSpeed = tenAnisoUnknown;
+  tfx->anisoSpeedType = tenAnisoUnknown;
+  /* HEY: GAGE_QUERY_ITEM_OFF something? */
+  tfx->anisoSpeed = NULL;
   return 0;
 }
 
 int
 tenFiberKernelSet(tenFiberContext *tfx,
                   const NrrdKernel *kern,
-                  double parm[NRRD_KERNEL_PARMS_NUM]) {
+                  const double parm[NRRD_KERNEL_PARMS_NUM]) {
   char me[]="tenFiberKernelSet", err[AIR_STRLEN_MED];
 
   if (!(tfx && kern)) {
@@ -388,7 +478,11 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
   tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
   tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
-  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso);
+  tfx->anisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, tfx->anisoStopType);
+  tfx->anisoSpeed = (tfx->anisoSpeedType
+                     ? gageAnswerPointer(tfx->gtx, tfx->pvl,
+                                         tfx->anisoSpeedType)
+                     : NULL);
   return tfx;
 }
 
