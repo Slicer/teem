@@ -550,33 +550,58 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
 }
 
 int
-tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version,
-                  unsigned int res) {
+tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
+                  int right, int version, unsigned int res) {
   char me[]="tenAnisoHistogram", err[AIR_STRLEN_MED];
   size_t N, I;
   int csIdx, clIdx, cpIdx, xi, yi;
   float *tdata, *out, eval[3], evec[9], c[TEN_ANISO_MAX+1],
-    cs, cl, cp;
+    cs, cl, cp, (*wlup)(const void *data, size_t idx), weight;
+  unsigned int yres;
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
     biffAdd(TEN, err); return 1;
   }
+  if (nwght) {
+    if (nrrdCheck(nwght)) {
+      sprintf(err, "%s: trouble with weighting nrrd", me);
+      biffMove(TEN, err, NRRD); return 1;
+    }
+    if (nrrdElementNumber(nwght)
+        != nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix) ) {
+      sprintf(err, "%s: # elements in weight nrrd (" _AIR_SIZE_T_CNV 
+              ") != # tensors (" _AIR_SIZE_T_CNV ")", me,
+              nrrdElementNumber(nwght),
+              nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix));
+      biffAdd(TEN, err); return 1;
+    }
+  }
   if (!( 1 == version || 2 == version )) {
     sprintf(err, "%s: version (%d) wasn't 1 or 2", me, version);
     biffAdd(TEN, err); return 1;
   }
-  if (!(res > 2)) {
+  if (!(res > 10)) {
     sprintf(err, "%s: resolution (%d) invalid", me, res);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 2, res, res)) {
+  if (right) {
+    yres = AIR_CAST(unsigned int, AIR_CAST(double, res)/sqrt(3));
+  } else {
+    yres = res;
+  }
+  if (nwght) {
+    wlup = nrrdFLookup[nwght->type];
+  } else {
+    wlup = NULL;
+  }
+  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 2, res, yres)) {
     sprintf(err, "%s: ", me);
     biffMove(TEN, err, NRRD); return 1;
   }
   out = (float *)nout->data;
   tdata = (float *)nin->data;
-  if (1 == version) {
+  if (right || 1 == version) {
     clIdx = tenAniso_Cl1;
     cpIdx = tenAniso_Cp1;
     csIdx = tenAniso_Cs1;
@@ -585,17 +610,23 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, int version,
     cpIdx = tenAniso_Cp2;
     csIdx = tenAniso_Cs2;
   }
-  N = nrrdElementNumber(nin)/7;
+  N = nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix);
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tdata);
     tenAnisoCalc_f(c, eval);
     cl = c[clIdx];
     cp = c[cpIdx];
     cs = c[csIdx];
-    xi = (int)(cs*0 + cl*0 + cp*(res-1));
-    yi = (int)(cs*0 + cl*(res-1) + cp*(res-1));
-    out[xi + res*yi] += tdata[0];
-    tdata += 7;
+    if (right) {
+      xi = AIR_CAST(unsigned int, cs*0 + cl*(res-1) + cp*0);
+      yi = AIR_CAST(unsigned int, cs*0 + cl*(yres-1) + cp*(yres-1));
+    } else {
+      xi = AIR_CAST(unsigned int, cs*0 + cl*0 + cp*(res-1));
+      yi = AIR_CAST(unsigned int, cs*0 + cl*(res-1) + cp*(res-1));
+    }
+    weight = wlup ? wlup(nwght->data, I) : 1.0;
+    out[xi + res*yi] += tdata[0]*weight;
+    tdata += nrrdKindSize(nrrdKind3DMaskedSymMatrix);
   }
   
   return 0;
@@ -610,9 +641,11 @@ tenEvecRGBParmNew() {
     rgbp->which = 0;
     rgbp->aniso = tenAniso_Cl2;
     rgbp->confThresh = 0.5;
+    rgbp->anisoGamma = 1.0;
     rgbp->gamma = 1.0;
     rgbp->bgGray = 0.0;
     rgbp->isoGray = 0.0;
+    rgbp->maxSat = 1.0;
     rgbp->typeOut = nrrdTypeFloat;
     rgbp->genAlpha = AIR_FALSE;
   }
@@ -659,7 +692,7 @@ _tenEvecRGBComp_f(float conf, float aniso, float comp,
 
   X = AIR_ABS(comp);
   X = pow(X, 1.0/rgbp->gamma);
-  X = AIR_LERP(aniso, rgbp->isoGray, X);
+  X = AIR_LERP(rgbp->maxSat*aniso, rgbp->isoGray, X);
   return conf > rgbp->confThresh ? X : rgbp->bgGray;
 }
 
@@ -670,7 +703,7 @@ _tenEvecRGBComp_d(double conf, double aniso, double comp,
 
   X = AIR_ABS(comp);
   X = pow(X, 1.0/rgbp->gamma);
-  X = AIR_LERP(aniso, rgbp->isoGray, X);
+  X = AIR_LERP(rgbp->maxSat*aniso, rgbp->isoGray, X);
   return conf > rgbp->confThresh ? X : rgbp->bgGray;
 }
 
@@ -681,6 +714,7 @@ tenEvecRGBSingle_f(float RGB[3], float conf, const float eval[3],
 
   if (RGB && eval && rgbp) {
     aniso = tenAnisoEval_f(eval, rgbp->aniso);
+    aniso = pow(aniso, 1.0/rgbp->anisoGamma);
     ELL_3V_SET(RGB,
                _tenEvecRGBComp_f(conf, aniso, evec[0], rgbp),
                _tenEvecRGBComp_f(conf, aniso, evec[1], rgbp),
@@ -696,6 +730,7 @@ tenEvecRGBSingle_d(double RGB[3], double conf, const double eval[3],
 
   if (RGB && eval && rgbp) {
     aniso = tenAnisoEval_d(eval, rgbp->aniso);
+    aniso = pow(aniso, 1.0/rgbp->anisoGamma);
     ELL_3V_SET(RGB,
                _tenEvecRGBComp_d(conf, aniso, evec[0], rgbp),
                _tenEvecRGBComp_d(conf, aniso, evec[1], rgbp),
