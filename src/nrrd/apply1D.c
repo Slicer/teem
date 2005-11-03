@@ -242,11 +242,18 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     biffAdd(NRRD, err); free(mapcnt); return 1;
   }
   free(mapcnt); 
-  nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
-                           | NRRD_BASIC_INFO_TYPE_BIT
-                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                           | NRRD_BASIC_INFO_DIMENSION_BIT
-                           | NRRD_BASIC_INFO_CONTENT_BIT));
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
   return 0;
 }
 
