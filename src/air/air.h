@@ -460,7 +460,7 @@ AIR_EXPORT void airShuffle(unsigned int *buff, unsigned int N, int perm);
 AIR_EXPORT void airShuffle_r(airRandMTState *state,
                              unsigned int *buff, unsigned int N,
                              int perm);
-AIR_EXPORT char *airDoneStr(float start, float here, float end, char *str);
+AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
 AIR_EXPORT double airTime();
 AIR_EXPORT double airCbrt(double);
 AIR_EXPORT double airSgnPow(double, double);

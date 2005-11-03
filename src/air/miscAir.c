@@ -440,7 +440,7 @@ airShuffle_r(airRandMTState *state,
 ** into, and it had better be allocated for at least 6+6+1 = 13 chars.
 */
 char *
-airDoneStr(float start, float here, float end, char *str) {
+airDoneStr(double start, double here, double end, char *str) {
   int perc=0;
 
   if (str) {

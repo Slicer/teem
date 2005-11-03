@@ -75,7 +75,7 @@ float
 _nrrdZero1_f(float x, const double *parm) {
   float S;
 
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   x = AIR_ABS(x)/S;
   return _ZERO(x)/S;
 }
@@ -98,7 +98,7 @@ _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _ZERO(t)/S;
@@ -147,9 +147,9 @@ float
 _nrrdBox1_f(float x, const double *parm) {
   float S;
 
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   x = AIR_ABS(x)/S;
-  return _BOX(x)/S;
+  return AIR_CAST(float, _BOX(x)/S);
 }
 
 void
@@ -170,10 +170,10 @@ _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = _BOX(t)/S;
+    f[i] = AIR_CAST(float, _BOX(t)/S);
   }
 }
 
@@ -218,7 +218,7 @@ _nrrdCheap1_d(double x, const double *parm) {
 float
 _nrrdCheap1_f(float x, const double *parm) {
 
-  return _CHEAP(x)/parm[0];
+  return AIR_CAST(float, _CHEAP(x)/parm[0]);
 }
 
 void
@@ -239,7 +239,7 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     t = x[i];
-    f[i] = _CHEAP(t)/parm[0];
+    f[i] = AIR_CAST(float, _CHEAP(t)/parm[0]);
   }
 }
 
@@ -283,7 +283,7 @@ float
 _nrrdTent1_f(float x, const double *parm) {
   float S;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   x = AIR_ABS(x)/S;
   return _TENT(x)/S;
 }
@@ -306,7 +306,7 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _TENT(t)/S;
@@ -355,7 +355,7 @@ float
 _nrrdFD1_f(float x, const double *parm) {
   float S;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   x /= S;
   return _FORDIF(x)/(S*S);
 }
@@ -378,7 +378,7 @@ _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _FORDIF(t)/(S*S);
@@ -428,7 +428,7 @@ float
 _nrrdCD1_f(float x, const double *parm) {
   float S;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   x /= S;
   return _CENDIF(x)/(S*S);
 }
@@ -451,10 +451,10 @@ _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
   
-  S = parm[0];
+  S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = _CENDIF(t)/(S*S);
+    f[i] = AIR_CAST(float, _CENDIF(t)/(S*S));
   }
 }
 
@@ -503,7 +503,7 @@ float
 _nrrdBC1_f(float x, const double *parm) {
   float B, C, S;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   x = AIR_ABS(x)/S;
   return _BCCUBIC(x, B, C)/S;
 }
@@ -527,7 +527,7 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -583,7 +583,7 @@ _nrrdDBC1_f(float x, const double *parm) {
   float B, C, S;
   int sgn = 1;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
   return sgn*_DBCCUBIC(x, B, C)/(S*S);
@@ -610,7 +610,7 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -663,7 +663,7 @@ float
 _nrrdDDBC1_f(float x, const double *parm) {
   float B, C, S;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   x = AIR_ABS(x)/S;
   return _DDBCCUBIC(x, B, C)/(S*S*S);
 }
@@ -687,7 +687,7 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
   
-  S = parm[0]; B = parm[1]; C = parm[2]; 
+  S = AIR_CAST(float, parm[0]); B = AIR_CAST(float, parm[1]); C = AIR_CAST(float, parm[2]); 
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -743,7 +743,7 @@ float
 _nrrdA41_f(float x, const double *parm) {
   float A, S;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   x = AIR_ABS(x)/S;
   return _AQUARTIC(x, A)/S;
 }
@@ -767,7 +767,7 @@ _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -825,7 +825,7 @@ _nrrdDA41_f(float x, const double *parm) {
   float A, S;
   int sgn = 1;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
   return sgn*_DAQUARTIC(x, A)/(S*S);
@@ -852,7 +852,7 @@ _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -907,7 +907,7 @@ float
 _nrrdDDA41_f(float x, const double *parm) {
   float S, A;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   x = AIR_ABS(x)/S;
   return _DDAQUARTIC(x, A)/(S*S*S);
 }
@@ -931,7 +931,7 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
-  S = parm[0]; A = parm[1];
+  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -985,8 +985,8 @@ float
 _nrrdG1_f(float x, const double *parm) {
   float sig, cut;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   x = AIR_ABS(x);
   return _GAUSS(x, sig, cut);
 }
@@ -1010,8 +1010,8 @@ _nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
@@ -1065,8 +1065,8 @@ _nrrdDG1_f(float x, const double *parm) {
   float sig, cut;
   int sgn = 1;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   if (x < 0) { x = -x; sgn = -1; }
   return sgn*_DGAUSS(x, sig, cut);
 }
@@ -1092,8 +1092,8 @@ _nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -1149,8 +1149,8 @@ float
 _nrrdDDG1_f(float x, const double *parm) {
   float sig, cut;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   x = AIR_ABS(x);
   return _DDGAUSS(x, sig, cut);
 }
@@ -1174,8 +1174,8 @@ _nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
   
-  sig = parm[0];
-  cut = parm[1];
+  sig = AIR_CAST(float, parm[0]);
+  cut = AIR_CAST(float, parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);

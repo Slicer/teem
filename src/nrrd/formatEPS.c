@@ -106,7 +106,7 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatEPS_write", err[AIR_STRLEN_MED];
   int color, sx, sy;
   Nrrd *nrrd;
-  float aspect, minX, minY, maxX, maxY, scale;
+  double aspect, minX, minY, maxX, maxY, scale;
   airArray *mop;
   
   mop = airMopNew();
@@ -129,7 +129,7 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     sx = nrrd->axis[0].size;
     sy = nrrd->axis[1].size;
   }
-  aspect = sx/sy;
+  aspect = AIR_CAST(double, sx)/sy;
   if (aspect > 7.5/10) {
     /* image has a wider aspect ratio than safely printable page area */
     minX = 0.5;

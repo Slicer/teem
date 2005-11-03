@@ -636,9 +636,9 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
               "be >= 5 (not %d)", me, mapLen);
       biffAdd(NRRD, err); return 1;
     }
-    if (!( airFP_NEG_INF == airFPClass_f(mapLup(nmap->data, 0*entLen)) &&
-           airFP_QNAN    == airFPClass_f(mapLup(nmap->data, 1*entLen)) &&
-           airFP_POS_INF == airFPClass_f(mapLup(nmap->data, 2*entLen)) )) {
+    if (!( airFP_NEG_INF == airFPClass_d(mapLup(nmap->data, 0*entLen)) &&
+           airFP_QNAN    == airFPClass_d(mapLup(nmap->data, 1*entLen)) &&
+           airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2*entLen)) )) {
       sprintf(err, "%s: 1st entry's position non-existant, but position "
               "of 1st three entries not -inf, NaN, and +inf", me);
       biffAdd(NRRD, err); return 1;
@@ -937,7 +937,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
       /* got a non-existant value */
       if (baseI) {
         /* and we know how to deal with them */
-        switch (airFPClass_f(val)) {
+        switch (airFPClass_d(val)) {
         case airFP_NEG_INF:
           mapIdx = 0;
           break;
@@ -952,7 +952,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
           mapIdx = 0;
           fprintf(stderr, "%s: PANIC: non-existant value/class %g/%d "
                   "not handled\n",
-                  me, val, airFPClass_f(val));
+                  me, val, airFPClass_d(val));
           exit(1);
         }
         entData0 = (char*)(nmap->data) + mapIdx*entSize;
