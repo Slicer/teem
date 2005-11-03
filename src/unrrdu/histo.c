@@ -40,7 +40,7 @@ unrrdu_histoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "b,bins", "num", airTypeUInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
   hestOptAdd(&opt, "w,weight", "nweight", airTypeOther, 1, 1, &nwght, "",
-             "how to weigh contributions to joint histogram.  By default "
+             "how to weigh contributions to histogram.  By default "
              "(not using this option), the increment is one bin count per "
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
