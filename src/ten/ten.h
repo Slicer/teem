@@ -275,13 +275,16 @@ enum {
   tenGageRotTanMags,    /* 48: "rtms", mags of vectors above: GT[3] */
   tenGageEvalGrads,     /* 49: "evgs", projections of tensor gradient onto
                                gradients of eigenvalues: GT[9] */
-  tenGageCl2,           /* 50: same as tenAniso_Cl2 */
-  tenGageCp2,           /* 51: same as tenAniso_Cp2 */
-  tenGageCa2,           /* 52: same as tenAniso_Ca2 */
-  tenGageAniso,         /* 53: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageCl1,           /* 50: same as tenAniso_Cl1, but faster */
+  tenGageCp1,           /* 51: same as tenAniso_Cp1, but faster */
+  tenGageCa1,           /* 52: same as tenAniso_Ca1, but faster */
+  tenGageCl2,           /* 53: same as tenAniso_Cl2, but faster */
+  tenGageCp2,           /* 54: same as tenAniso_Cp2, but faster */
+  tenGageCa2,           /* 55: same as tenAniso_Ca2, but faster */
+  tenGageAniso,         /* 56: "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX  53
+#define TEN_GAGE_ITEM_MAX  56
 
 /*
 ******** tenEvecRGBParm struct
@@ -299,9 +302,11 @@ typedef struct {
                          0 for linear, 2 or planar, 1 for orthotropic */
   int aniso;          /* which anisotropy metric modulates saturation */
   double confThresh,  /* confidence threshold */
-    gamma,            /* pre-component gamma */
+    anisoGamma,       /* gamma on aniso, pre-mapping */
+    gamma,            /* per RGB component gamma, post-mapping */
     bgGray,           /* gray-value for low confidence samples */
-    isoGray;          /* gray-value for isotropic samples */
+    isoGray,          /* gray-value for isotropic samples */
+    maxSat;           /* maximum saturation */
   int typeOut,        /* when output type is flexible, and if this is
                          nrrdTypeUChar or nrrdTypeUShort, then output will
                          be quantized to those types (range [0,255] and
@@ -347,7 +352,8 @@ enum {
 ** the different reasons why fibers stop going (or never start)
 */
 enum {
-  tenFiberStopUnknown,    /* 0: nobody knows */
+  tenFiberStopUnknown,    /* 0: nobody knows,
+                             or, for whyNowhere: no, we did get somewhere */
   tenFiberStopAniso,      /* 1: specified aniso got below specified level */
   tenFiberStopLength,     /* 2: fiber length in world space got too long */
   tenFiberStopNumSteps,   /* 3: took too many steps along fiber */
@@ -390,8 +396,8 @@ typedef struct {
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
   int fiberType,        /* from tenFiberType* enum */
     intg,               /* from tenFiberIntg* enum */
-    anisoType,          /* which aniso we do a threshold on */
-    anisoSpeed,         /* base step size is function of this anisotropy */
+    anisoStopType,      /* which aniso we do a threshold on */
+    anisoSpeedType,     /* base step size is function of this anisotropy */
     stop,               /* BITFLAG for different reasons to stop a fiber */
     useIndexSpace;      /* output in index space, not world space */
   double anisoThresh,   /* anisotropy threshold */
@@ -415,7 +421,8 @@ typedef struct {
   const gage_t *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
     *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
     *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
-    *aniso;             /* gageAnswerPointer(pvl, tenGageAniso) */
+    *anisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
+    *anisoSpeed;        /* gageAnswerPointer(pvl, tenGage<anisoSpeed>) */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
   unsigned int numSteps[2]; /* how many samples are used for each fiber half */
@@ -493,7 +500,7 @@ TEN_EXPORT double tenDefFiberStepSize;
 TEN_EXPORT int tenDefFiberUseIndexSpace;
 TEN_EXPORT int tenDefFiberMaxNumSteps;
 TEN_EXPORT double tenDefFiberMaxHalfLen;
-TEN_EXPORT int tenDefFiberAnisoType;
+TEN_EXPORT int tenDefFiberAnisoStopType;
 TEN_EXPORT double tenDefFiberAnisoThresh;
 TEN_EXPORT int tenDefFiberIntg;
 TEN_EXPORT double tenDefFiberWPunct;
@@ -596,6 +603,7 @@ TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
 TEN_EXPORT int tenAnisoVolume(Nrrd *nout, const Nrrd *nin,
                               int aniso, double confThresh);
 TEN_EXPORT int tenAnisoHistogram(Nrrd *nout, const Nrrd *nin,
+                                 const Nrrd *nwght, int right,
                                  int version, unsigned int resolution);
 TEN_EXPORT tenEvecRGBParm *tenEvecRGBParmNew(void);
 TEN_EXPORT tenEvecRGBParm *tenEvecRGBParmNix(tenEvecRGBParm *rgbp);
@@ -622,9 +630,11 @@ TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
 TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const NrrdKernel *kern,
-                                 double parm[NRRD_KERNEL_PARMS_NUM]);
+                                 const double parm[NRRD_KERNEL_PARMS_NUM]);
 TEN_EXPORT int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 TEN_EXPORT int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
+TEN_EXPORT void tenFiberStopOn(tenFiberContext *tfx, int stop);
+TEN_EXPORT void tenFiberStopOff(tenFiberContext *tfx, int stop);
 TEN_EXPORT void tenFiberStopReset(tenFiberContext *tfx);
 TEN_EXPORT int tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
                                      double lerp, double thresh, double soft);
