@@ -116,13 +116,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, tenFiberIntgRK4);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
+  if (!E) E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace, AIR_TRUE);
   if (!E) E |= tenFiberUpdate(tfx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); exit(1);
   }
-
   if (tenFiberTrace(tfx, nout, start)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
