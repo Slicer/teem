@@ -188,9 +188,10 @@ enum {
   limnPrimitiveTriangleStrip,/* 2: triangle strip */
   limnPrimitiveTriangleFan,  /* 3: triangle fan */
   limnPrimitiveQuads,        /* 4: quad soup */
+  limnPrimitiveLineStrip,    /* 5: line strip */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX      4
+#define LIMN_PRIMITIVE_MAX      5
 
 /*
 ******** struct limnLook
@@ -342,10 +343,12 @@ typedef struct {
 **
 ** A simpler beast for representing polygonal surfaces and other things
 **
-** There is no notion of "part" here; there may be multiple disconnected
-** pieces inside the surface, but there is no way of accessing just one
-** such piece.  Having separate parts is important for PostScript
-** rendering, but the limnPolyData more OpenGL oriented.
+** There is no notion of "part" here; there may be multiple
+** disconnected pieces inside the surface, but there is no way of
+** accessing just one such piece (because this is organized in terms
+** of primitives, and each piece may be made of multiple primitives).
+** Having separate parts is important for PostScript rendering, but
+** the limnPolyData is more OpenGL oriented.
 **
 ** Experimenting with *not* having airArrays here...
 */
