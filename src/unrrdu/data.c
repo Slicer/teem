@@ -79,6 +79,11 @@ unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   car = fgetc(nio->dataFile);
+#ifdef _MSC_VER
+  /* needed because otherwise printing a carraige return will 
+     automatically also produce a newline */
+  _setmode(_fileno(stdout), _O_BINARY);
+#endif
   while (EOF != car) {
     fputc(car, stdout);
     car = fgetc(nio->dataFile);
