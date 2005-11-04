@@ -60,7 +60,7 @@ _nrrd##name##_1_f(float x, const double *parm) {              \
                                                               \
   S = AIR_CAST(float, parm[0]); R = AIR_CAST(float, parm[1]); \
   x /= S;                                                     \
-  return mac(x, R)/spow(S);                                   \
+  return AIR_CAST(float, mac(x, R)/spow(S));                  \
 }
 
 #define WS_N_F(name, mac, spow)                                     \
@@ -73,7 +73,7 @@ _nrrd##name##_N_f(float *f, const float *x, size_t len,             \
   S = AIR_CAST(float, parm[0]); R = AIR_CAST(float, parm[1]);       \
   for (i=0; i<len; i++) {                                           \
     t = x[i]/S;                                                     \
-    f[i] = mac(t, R)/spow(S);                                       \
+    f[i] = AIR_CAST(float, mac(t, R)/spow(S));                      \
   }                                                                 \
 }
 

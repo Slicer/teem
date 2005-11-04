@@ -577,11 +577,12 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
         biffAdd(NRRD, err); return 1;
       }
       /* compute support (spacingIn == 1.0 by definition) */
-      spacingOut = ((axis->max - axis->min) / (nrrdCenterCell == axis->center
-                                               ? axis->samples
-                                               : axis->samples - 1));
+      spacingOut = AIR_CAST(nrrdResample_t, ((axis->max - axis->min) 
+                                             / (nrrdCenterCell == axis->center
+                                                ? axis->samples
+                                                : axis->samples - 1)));
       axis->ratio = 1.0/spacingOut;
-      support = axis->kernel->support(axis->kparm);
+      support = AIR_CAST(nrrdResample_t, axis->kernel->support(axis->kparm));
       if (axis->ratio > 1) {
         /* if upsampling, we need only as many samples as needed for
            interpolation with the given kernel */
@@ -620,7 +621,7 @@ _nrrdResampleLineFillUpdate(NrrdResampleContext *rsmc) {
       axis = rsmc->axis + axIdx;
       if (axis->kernel) {
         line = (nrrdResample_t*)(axis->nline->data);
-        line[axis->sizeIn] = rsmc->padValue;
+        line[axis->sizeIn] = AIR_CAST(nrrdResample_t, rsmc->padValue);
       }
     }
     
@@ -667,11 +668,12 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       dotLen = axis->nweight->axis[0].size;
       halfLen = dotLen/2;
       for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
-        idx = (nrrdCenterCell == axis->center
-               ? AIR_AFFINE(-0.5, smpIdx, axis->samples-0.5,
-                            axis->min, axis->max)
-               : AIR_AFFINE(0.0, smpIdx, axis->samples-1.0,
-                            axis->min, axis->max));
+        idx = AIR_CAST(nrrdResample_t,
+                       (nrrdCenterCell == axis->center
+                        ? AIR_AFFINE(-0.5, smpIdx, axis->samples-0.5,
+                                     axis->min, axis->max)
+                        : AIR_AFFINE(0.0, smpIdx, axis->samples-1.0,
+                                     axis->min, axis->max)));
         base = (int)floor(idx) - halfLen + 1;
         for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
           tmp = indexData[dotIdx + dotLen*smpIdx] = base + dotIdx;
@@ -769,7 +771,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       }
 
       /* final fixes on weighting values */
-      integral = axis->kernel->integral(axis->kparm);
+      integral = AIR_CAST(nrrdResample_t, axis->kernel->integral(axis->kparm));
       if (nrrdBoundaryWeight == rsmc->boundary) {
         if (integral) {
           /* above, we set to axis->sizeIn all the indices that were out of 
@@ -810,7 +812,8 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
                    you use a very truncated Gaussian, then your over-all
                    image brightness goes down.  This seems very contrary
                    to the whole point of renormalization. */
-                weightData[dotIdx + dotLen*smpIdx] *= 1.0/wght;
+                weightData[dotIdx + dotLen*smpIdx] *= 
+                  AIR_CAST(nrrdResample_t, 1.0/wght);
               }
             }
           }
@@ -996,7 +999,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
   for (valIdx=0; valIdx<valNum; valIdx++) {
     val = lup(dataIn, valIdx);
     if (doRound) {
-      val = AIR_ROUNDUP(val);
+      val = AIR_CAST(nrrdResample_t, AIR_ROUNDUP(val));
     }
     if (rsmc->clamp) {
       val = clamp(val);
@@ -1136,7 +1139,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
           rsmpOut[smpIdx*strideOut + indexOut] = val;
         } else {
           if (doRound) {
-            val = AIR_ROUNDUP(val);
+            val = AIR_CAST(nrrdResample_t, AIR_ROUNDUP(val));
           }
           if (rsmc->clamp) {
             val = clamp(val);

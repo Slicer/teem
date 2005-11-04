@@ -321,7 +321,9 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
       valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUI[I] = airIndexULL(minIn, valIn, maxIn+eps, AIR_ULLONG(1) << 32);
+      outUI[I] = AIR_CAST(unsigned int,
+                          airIndexULL(minIn, valIn, maxIn+eps,
+                                      AIR_ULLONG(1) << 32));
     }
     break;
   }
@@ -432,7 +434,8 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   case nrrdTypeFloat:
     for (II=0; II<NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outF[II] = NRRD_CELL_POS(minOut, maxOut, numValIn, valIn);
+      outF[II] = AIR_CAST(nrrdResample_t,
+                          NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
     }
     break;
   case nrrdTypeDouble:
@@ -666,7 +669,9 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
            endpoints of the histogram */
         for (lort=bii; lort>=1 && !respect[lort-1]; lort--);
         for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++);
-        ycoord[bii] = AIR_AFFINE(lort, bii, hirt, ycoord[lort], ycoord[hirt]);
+        ycoord[bii] = AIR_CAST(nrrdResample_t,
+                               AIR_AFFINE(lort, bii, hirt,
+                                          ycoord[lort], ycoord[hirt]));
       }
     }
     /* the very last control point has to be handled differently */
@@ -677,9 +682,13 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   /* rescale the histogram integration to span the original
      value range, and affect the influence of "amount" */
   for (bii=0; bii<=bins; bii++) {
-    ycoord[bii] = AIR_AFFINE(0.0, ycoord[bii], ycoord[bins], min, max);
-    ycoord[bii] = AIR_AFFINE(0.0, amount, 1.0,
-                             AIR_AFFINE(0, bii, bins, min, max), ycoord[bii]);
+    ycoord[bii] = AIR_CAST(nrrdResample_t,
+                           AIR_AFFINE(0.0, ycoord[bii], ycoord[bins],
+                                      min, max));
+    ycoord[bii] = AIR_CAST(nrrdResample_t,
+                           AIR_AFFINE(0.0, amount, 1.0,
+                                      AIR_AFFINE(0, bii, bins, min, max),
+                                      ycoord[bii]));
   }
 
   /* map the nrrd values through the normalized histogram integral */

@@ -514,7 +514,7 @@ nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
     biffAdd(NRRD, err); return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
-    min[ai] = -pad;
+    min[ai] = -AIR_CAST(ptrdiff_t, pad);
     max[ai] = nin->axis[ai].size-1 + pad;
   }
   va_start(ap, boundary);
