@@ -603,9 +603,16 @@ LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld,
                                          float A, float B,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
+LIMN_EXPORT int limnPolyDataSpiralSuperquadric(limnPolyData *pld,
+                                               float A, float B,
+                                               unsigned int thetaRes,
+                                               unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataPolarSphere(limnPolyData *pld,
                                         unsigned int thetaRes,
                                         unsigned int phiRes);
+LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
+                                         unsigned int thetaRes,
+                                         unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int uRes, unsigned int vRes);
 LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,

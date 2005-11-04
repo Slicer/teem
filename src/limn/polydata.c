@@ -494,6 +494,89 @@ limnPolyDataSuperquadric(limnPolyData *pld,
 }
 
 /*
+******** limnPolyDataSpiralSuperquadric
+**
+** puts a superquadric into a single spiral triangle strip
+*/
+int
+limnPolyDataSpiralSuperquadric(limnPolyData *pld,
+                               float alpha, float beta,
+                               unsigned int thetaRes, unsigned int phiRes) {
+  char me[]="limnPolyDataSpiralSuperquadric", err[AIR_STRLEN_MED];
+  unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
+
+  /* sanity bounds */
+  thetaRes = AIR_MAX(3, thetaRes);
+  phiRes = AIR_MAX(2, phiRes);
+  alpha = AIR_MAX(0.00001, alpha);
+  beta = AIR_MAX(0.00001, beta);
+
+  vertNum = thetaRes*phiRes + 1;
+  indxNum = 2*(phiRes+1)*thetaRes;
+  if (limnPolyDataAlloc(pld, vertNum, indxNum, 1)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  vertIdx = 0;
+  for (phiIdx=0; phiIdx<phiRes; phiIdx++) {
+    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+      float cost, sint, cosp, sinp;
+      float phi = (AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI)
+                   + AIR_AFFINE(0, thetaIdx, thetaRes, 0, AIR_PI)/phiRes);
+      float theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0.0, 2*AIR_PI);
+      cosp = cos(phi);
+      sinp = sin(phi);
+      cost = cos(theta);
+      sint = sin(theta);
+      ELL_4V_SET(pld->vert[vertIdx].xyzw,
+                 airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
+                 airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
+                 airSgnPow(cosp,beta),
+                 1.0);
+      if (1 == alpha && 1 == beta) {
+        ELL_3V_COPY(pld->vert[vertIdx].norm, pld->vert[vertIdx].xyzw);
+      } else {
+        ELL_3V_SET(pld->vert[vertIdx].norm,
+                   2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                   2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                   2*airSgnPow(cosp,2-beta)/beta);
+      }
+      ++vertIdx;
+    }
+  }
+  ELL_4V_SET(pld->vert[vertIdx].xyzw, 0, 0, -1, 1);
+  ELL_3V_SET(pld->vert[vertIdx].norm, 0, 0, -1);
+  ++vertIdx;
+
+  /* single triangle strip */
+  pld->type[0] = limnPrimitiveTriangleStrip;
+  pld->vcnt[0] = indxNum;
+  vertIdx = 0;
+  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    pld->indx[vertIdx++] = 0;
+    pld->indx[vertIdx++] = thetaIdx;
+  }
+  for (phiIdx=0; phiIdx<phiRes-1; phiIdx++) {
+    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+      pld->indx[vertIdx++] = ((phiIdx + 0) * thetaRes) + thetaIdx;
+      pld->indx[vertIdx++] = ((phiIdx + 1) * thetaRes) + thetaIdx;
+    }
+  }
+  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    pld->indx[vertIdx++] = (phiRes - 1)*thetaRes + thetaIdx;
+    pld->indx[vertIdx++] = (phiRes - 0)*thetaRes;
+  }
+
+  /* set colors to all white */
+  for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    ELL_4V_SET(pld->vert[vertIdx].rgba, 255, 255, 255, 255);
+  }
+
+  return 0;
+}
+
+/*
 ******** limnPolyDataPolarSphere
 **
 ** makes a unit sphere, centered at the origin, parameterized around Z axis
@@ -504,6 +587,19 @@ limnPolyDataPolarSphere(limnPolyData *pld,
   char me[]="limnPolyDataPolarSphere", err[AIR_STRLEN_MED];
 
   if (limnPolyDataSuperquadric(pld, 1.0, 1.0, thetaRes, phiRes)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(LIMN, err); return 1;
+  }                              
+  return 0;
+}
+
+int
+limnPolyDataSpiralSphere(limnPolyData *pld,
+                         unsigned int thetaRes,
+                         unsigned int phiRes) {
+  char me[]="limnPolyDataSpiralSphere", err[AIR_STRLEN_MED];
+
+  if (limnPolyDataSpiralSuperquadric(pld, 1.0, 1.0, thetaRes, phiRes)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(LIMN, err); return 1;
   }                              
