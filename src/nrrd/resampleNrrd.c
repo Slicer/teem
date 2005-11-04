@@ -291,15 +291,17 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   center = _nrrdCenter(nin->axis[ai].center);
   sizeIn = nin->axis[ai].size;
   sizeOut = info->samples[ai];
-  minIn = nin->axis[ai].min;
-  maxIn = nin->axis[ai].max;
-  minOut = info->min[ai];
-  maxOut = info->max[ai];
+  minIn = AIR_CAST(nrrdResample_t, nin->axis[ai].min);
+  maxIn = AIR_CAST(nrrdResample_t, nin->axis[ai].max);
+  minOut = AIR_CAST(nrrdResample_t, info->min[ai]);
+  maxOut = AIR_CAST(nrrdResample_t, info->max[ai]);
   spcIn = NRRD_SPACING(center, minIn, maxIn, sizeIn);
   spcOut = NRRD_SPACING(center, minOut, maxOut, sizeOut);
   *ratioP = ratio = spcIn/spcOut;
-  support = info->kernel[ai]->support(info->parm[ai]);
-  integral = info->kernel[ai]->integral(info->parm[ai]);
+  support = AIR_CAST(nrrdResample_t,
+                     info->kernel[ai]->support(info->parm[ai]));
+  integral = AIR_CAST(nrrdResample_t,
+                      info->kernel[ai]->integral(info->parm[ai]));
   /*
   fprintf(stderr, 
           "!%s(%d): size{In,Out} = %d, %d, support = %f; ratio = %f\n", 
@@ -332,7 +334,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   /* calculate sample locations and do first pass on indices */
   halfLen = dotLen/2;
   for (i=0; i<sizeOut; i++) {
-    pos = NRRD_POS(center, minOut, maxOut, sizeOut, i);
+    pos = AIR_CAST(nrrdResample_t,
+                   NRRD_POS(center, minOut, maxOut, sizeOut, i));
     idxD = NRRD_IDX(center, minIn, maxIn, sizeIn, pos);
     base = (int)floor(idxD) - halfLen + 1;
     for (e=0; e<dotLen; e++) {
@@ -441,7 +444,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
                you use a very truncated Gaussian, then your over-all
                image brightness goes down.  This seems very contrary
                to the whole point of renormalization. */
-            weight[e + dotLen*i] *= 1.0/wght;
+            weight[e + dotLen*i] *= AIR_CAST(nrrdResample_t, 1.0/wght);
           }
         }
       }
@@ -727,7 +730,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
        to incorporate the pad values */
     inVec = (nrrdResample_t *)calloc(sizeIn+1, sizeof(nrrdResample_t));
     airMopAdd(mop, inVec, airFree, airMopAlways);
-    inVec[sizeIn] = info->padValue;
+    inVec[sizeIn] = AIR_CAST(nrrdResample_t, info->padValue);
 
     dotLen = _nrrdResampleMakeWeightIndex(&weight, &index, &ratio,
                                           nin, info, ai);
@@ -887,7 +890,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   for (I=0; I<numOut; I++) {
     tmpF = array[passes][I];
     if (doRound) {
-      tmpF = AIR_ROUNDUP(tmpF);
+      tmpF = AIR_CAST(nrrdResample_t, AIR_ROUNDUP(tmpF));
     }
     if (info->clamp) {
       tmpF = nrrdFClamp[typeOut](tmpF);
