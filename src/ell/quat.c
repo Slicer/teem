@@ -39,10 +39,12 @@
 */
 
 /*
-** note: this will always produce a unit length quaternion, 
-** by the ELL_4V_NORM at the end.  However, for proper rotation
-** matrices, that normalization should be far from a divide by zero,
-** so it should be stable.  It *IS* necessary, since it accomplishes
+** note: this will always produce a unit length quaternion, by the
+** ELL_4V_NORM(q, q, len) at the end (NOTE: actually that's been
+** expanded out to deal with warnings about precision loss with
+** double->float conversion).  However, for proper rotation matrices,
+** that normalization should be far from a divide by zero, so it
+** should be stable.  It *IS* necessary, since it accomplishes
 ** division by w, x, y, or z, whichever's squared magnitude is biggest
 */
 #define _ELL_M_TO_Q(type, i0, i1, i2, i3, i4, i5, i6, i7, i8)  \
@@ -76,7 +78,8 @@
     ELL_4V_SET(q,  wz,  xz,  yz, s[Z]);   \
     break;                                \
   }                                       \
-  ELL_4V_NORM(q, q, len)
+  len = AIR_CAST(type, ELL_4V_LEN(q));    \
+  ELL_4V_SCALE(q, 1.0/len, q)
 
 void
 ell_3m_to_q_f(float q[4], float m[9]) {
@@ -103,11 +106,14 @@ ell_4m_to_q_d(double q[4], double m[16]) {
 ** creation of a proper rotation matrix.  Without the normalization
 ** the coefficients in the matrix would be off by a factor of 
 ** w*w + x*x + y*y + z*z
+**
+** See NOTE below about the non-use of ELL_4V_NORM(u, q, w)
 */
 #define _ELL_Q_TO_3M(type)           \
   type u[4], w, x, y, z;             \
                                      \
-  ELL_4V_NORM(u, q, w);              \
+  w = AIR_CAST(type, ELL_3V_LEN(q)); \
+  ELL_4V_SCALE(u, 1.0/w, q);         \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_3V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
@@ -132,10 +138,16 @@ ell_q_to_3m_d(double m[9], double q[4]) {
   _ELL_Q_TO_3M(double);
 }
 
+/* 
+** HEY: the first two lines of this replace ELL_4V_NORM(u, q, w).  The
+** replacement was needed to avoid warnings about precision loss with
+** double->float converstion.  Macros are indeed problematic...
+*/
 #define _ELL_Q_TO_4M(type)           \
   type u[4], w, x, y, z;             \
                                      \
-  ELL_4V_NORM(u, q, w);              \
+  w = AIR_CAST(type, ELL_3V_LEN(q)); \
+  ELL_4V_SCALE(u, 1.0/w, q);         \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_4V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
@@ -173,8 +185,8 @@ ell_q_to_4m_d(double m[16], double q[4]) {
 #define _ELL_Q_TO_AA(type)                      \
   type len, angle;                              \
                                                 \
-  len = ELL_3V_LEN(q+1);                        \
-  angle = atan2(len, q[0]);                     \
+  len = AIR_CAST(type, ELL_3V_LEN(q+1));        \
+  angle = AIR_CAST(type, atan2(len, q[0]));     \
   if (len) {                                    \
     ELL_3V_SCALE(axis, 1.0/len, q+1);           \
     ELL_3V_NORM(axis, axis, len);               \
@@ -197,11 +209,13 @@ ell_q_to_aa_d(double axis[3], double q[4]) {
 ** note: assuming that axis is unit length, this produces a 
 ** a unit length quaternion
 */
-#define _ELL_AA_TO_Q(type)                                         \
-  float sa;                                                        \
-                                                                   \
-  sa = sin(angle/2);                                               \
-  ELL_4V_SET(q, cos(angle/2), sa*axis[0], sa*axis[1], sa*axis[2])
+#define _ELL_AA_TO_Q(type)                                             \
+  type sa;                                                             \
+                                                                       \
+  sa = AIR_CAST(type, sin(angle/2));                                   \
+  ELL_4V_SET(q,                                                        \
+             AIR_CAST(type, cos(angle/2)), AIR_CAST(type, sa*axis[0]), \
+             AIR_CAST(type, sa*axis[1]), AIR_CAST(type, sa*axis[2]))
 
 void 
 ell_aa_to_q_f(float q[4], float angle, float axis[3]) {
@@ -312,7 +326,7 @@ ell_q_div_f(float q3[4], float q1[4], float q2[4]) {
 
 void
 ell_q_div_d(double q3[4], double q1[4], double q2[4]) {
-  float N, q1i[4];
+  double N, q1i[4];
 
   ELL_Q_INV(q1i, q1, N);
   ELL_Q_MUL(q3, q1i, q2);
@@ -352,7 +366,7 @@ ell_q_log_d(double q2[4], double q1[4]) {
 #define _ELL_Q_EXP(type)                                                 \
   type ea, b, sb, axis[3], tmp;                                          \
                                                                          \
-  ea = exp(q1[0]);                                                       \
+  ea = AIR_CAST(type, exp(q1[0]));                                       \
   b = ELL_3V_LEN(q1+1);                                                  \
   if (b) {                                                               \
     ELL_3V_SCALE(axis, 1/b, q1+1);                                       \
@@ -361,7 +375,9 @@ ell_q_log_d(double q2[4], double q1[4]) {
     ELL_3V_SET(axis, 1, 0, 0);                                           \
   }                                                                      \
   sb = sin(b);                                                           \
-  ELL_4V_SET(q2, ea*cos(b), ea*sb*axis[0], ea*sb*axis[1], ea*sb*axis[2])
+  ELL_4V_SET(q2,                                                         \
+             AIR_CAST(type, ea*cos(b)), AIR_CAST(type, ea*sb*axis[0]),   \
+             AIR_CAST(type, ea*sb*axis[1]), AIR_CAST(type, ea*sb*axis[2]))
 
 void 
 ell_q_exp_f(float q2[4], float q1[4]) {
@@ -377,7 +393,7 @@ void
 ell_q_pow_f(float q2[4], float q1[4], float p) {
   float len, angle, axis[3];
 
-  len = pow(ELL_4V_LEN(q1), p);
+  len = AIR_CAST(float, pow(ELL_4V_LEN(q1), p));
   angle = ell_q_to_aa_f(axis, q1);
   ell_aa_to_q_f(q2, p*angle, axis);
   ELL_4V_SCALE(q2, len, q2);
@@ -431,7 +447,7 @@ ell_q_4v_rotate_f( float v2[4],  float q[4],  float v1[4]) {
 
 void 
 ell_q_4v_rotate_d(double v2[4], double q[4], double v1[4]) {
-  _ELL_Q3V_ROT(float);
+  _ELL_Q3V_ROT(double);
   v2[3] = v1[3];
 }
 

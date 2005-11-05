@@ -336,7 +336,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   for (i=0; i<sizeOut; i++) {
     pos = AIR_CAST(nrrdResample_t,
                    NRRD_POS(center, minOut, maxOut, sizeOut, i));
-    idxD = NRRD_IDX(center, minIn, maxIn, sizeIn, pos);
+    idxD = AIR_CAST(nrrdResample_t,
+                    NRRD_IDX(center, minIn, maxIn, sizeIn, pos));
     base = (int)floor(idxD) - halfLen + 1;
     for (e=0; e<dotLen; e++) {
       index[e + dotLen*i] = base + e;
