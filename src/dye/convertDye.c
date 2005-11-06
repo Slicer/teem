@@ -28,22 +28,22 @@
 ** each row below is really one column of the matrix 
 */
 float dyeRGBtoXYZMatx[9] = {
-  0.412453, 0.212671, 0.019334,
-  0.357580, 0.715160, 0.119193,
-  0.180423, 0.072169, 0.950227};
+  0.412453f, 0.212671f, 0.019334f,
+  0.357580f, 0.715160f, 0.119193f,
+  0.180423f, 0.072169f, 0.950227f};
 float dyeXYZtoRGBMatx[9] = {
-  3.240479,-0.969256, 0.055648,
-  -1.537150, 1.875992,-0.204043,
-  -0.498535, 0.041556, 1.057311};
+  3.240479f,-0.969256f, 0.055648f,
+  -1.537150f, 1.875992f,-0.204043f,
+  -0.498535f, 0.041556f, 1.057311f};
 
 /* summing the rows of the RGBtoXYZ matrix to get X_n, Y_n, Z_n */
-float dyeWhiteXYZ_n[3] = {0.950456, 1.0, 1.088754};
+float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
 
 /* the u'_n and v'_n which appear in the XYZ -> LUV conversion;
    u'_n = 4X_n / (X_n + 15Y_n + 3Z_n)
    v'_n = 9Y_n / (X_n + 15Y_n + 3Z_n)
 */ 
-float dyeWhiteuvp_n[2] = {0.197839, 0.468342};
+float dyeWhiteuvp_n[2] = {0.197839f, 0.468342f};
 
 void
 dyeRGBtoHSV(float *H, float *S, float *V,
