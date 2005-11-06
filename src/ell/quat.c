@@ -77,28 +77,33 @@
   case Z:                                 \
     ELL_4V_SET(q,  wz,  xz,  yz, s[Z]);   \
     break;                                \
-  }                                       \
-  len = AIR_CAST(type, ELL_4V_LEN(q));    \
-  ELL_4V_SCALE(q, 1.0/len, q)
+  }
 
+/* NOTE: macros finally become annoying to Gordon... */
 void
 ell_3m_to_q_f(float q[4], float m[9]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    3, 4, 5,    6, 7, 8);
+  len = AIR_CAST(float, ELL_4V_LEN(q));
+  ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
 void 
 ell_3m_to_q_d(double q[4], double m[9]) {
   _ELL_M_TO_Q(double, 0, 1, 2,    3, 4, 5,    6, 7, 8);
+  ELL_4V_NORM(q, q, len);
 }
 
 void 
 ell_4m_to_q_f(float q[4], float m[16]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    4, 5, 6,    8, 9, 10);
+  len = AIR_CAST(float, ELL_4V_LEN(q));
+  ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
 void 
 ell_4m_to_q_d(double q[4], double m[16]) {
   _ELL_M_TO_Q(double, 0, 1, 2,    4, 5, 6,    8, 9, 10);
+  ELL_4V_NORM(q, q, len);
 }
 
 /*
@@ -110,10 +115,6 @@ ell_4m_to_q_d(double q[4], double m[16]) {
 ** See NOTE below about the non-use of ELL_4V_NORM(u, q, w)
 */
 #define _ELL_Q_TO_3M(type)           \
-  type u[4], w, x, y, z;             \
-                                     \
-  w = AIR_CAST(type, ELL_3V_LEN(q)); \
-  ELL_4V_SCALE(u, 1.0/w, q);         \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_3V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
@@ -130,11 +131,16 @@ ell_4m_to_q_d(double q[4], double m[16]) {
 
 void 
 ell_q_to_3m_f(float m[9], float q[4]) {
+  float u[4], w, x, y, z;
+  w = AIR_CAST(float, ELL_3V_LEN(q));
+  ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_3M(float);
 }
 
 void 
 ell_q_to_3m_d(double m[9], double q[4]) {
+  double u[4], w, x, y, z;
+  ELL_4V_NORM(u, q, w);
   _ELL_Q_TO_3M(double);
 }
 
@@ -144,10 +150,6 @@ ell_q_to_3m_d(double m[9], double q[4]) {
 ** double->float converstion.  Macros are indeed problematic...
 */
 #define _ELL_Q_TO_4M(type)           \
-  type u[4], w, x, y, z;             \
-                                     \
-  w = AIR_CAST(type, ELL_3V_LEN(q)); \
-  ELL_4V_SCALE(u, 1.0/w, q);         \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_4V_SET(m+0,                    \
              w*w + x*x - y*y - z*z,  \
@@ -166,13 +168,19 @@ ell_q_to_3m_d(double m[9], double q[4]) {
              0);                     \
   ELL_4V_SET(m+12, 0, 0, 0, 1)
 
+/* NOTE: this is ugly, macros really are annoying ... */
 void 
 ell_q_to_4m_f(float m[16], float q[4]) {
+  float u[4], w, x, y, z;
+  w = AIR_CAST(float, ELL_3V_LEN(q));
+  ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_4M(float);
 }
 
 void 
 ell_q_to_4m_d(double m[16], double q[4]) {
+  double u[4], w, x, y, z;
+  ELL_4V_NORM(u, q, w);
   _ELL_Q_TO_4M(double);
 }
 
@@ -188,7 +196,7 @@ ell_q_to_4m_d(double m[16], double q[4]) {
   len = AIR_CAST(type, ELL_3V_LEN(q+1));        \
   angle = AIR_CAST(type, atan2(len, q[0]));     \
   if (len) {                                    \
-    ELL_3V_SCALE(axis, 1.0/len, q+1);           \
+    ELL_3V_SCALE(axis, 1.0f/len, q+1);          \
     ELL_3V_NORM(axis, axis, len);               \
   } else {                                      \
     ELL_3V_SET(axis, 1, 0, 0);                  \
@@ -346,8 +354,8 @@ void
 ell_q_log_f(float q2[4], float q1[4]) {
   float a, b, axis[3];
 
-  a = log(ELL_4V_LEN(q1));
-  b = ell_q_to_aa_f(axis, q1)/2;
+  a = AIR_CAST(float, log(ELL_4V_LEN(q1)));
+  b = ell_q_to_aa_f(axis, q1)/2.0f;
   ELL_4V_SET(q2, a, b*axis[0], b*axis[1], b*axis[2]);
 }
 
@@ -356,7 +364,7 @@ ell_q_log_d(double q2[4], double q1[4]) {
   double a, b, axis[3];
 
   a = log(ELL_4V_LEN(q1));
-  b = ell_q_to_aa_d(axis, q1)/2;
+  b = ell_q_to_aa_d(axis, q1)/2.0;
   ELL_4V_SET(q2, a, b*axis[0], b*axis[1], b*axis[2]);
 }
 
@@ -369,7 +377,7 @@ ell_q_log_d(double q2[4], double q1[4]) {
   ea = AIR_CAST(type, exp(q1[0]));                                       \
   b = ELL_3V_LEN(q1+1);                                                  \
   if (b) {                                                               \
-    ELL_3V_SCALE(axis, 1/b, q1+1);                                       \
+    ELL_3V_SCALE(axis, 1.0f/b, q1+1);                                    \
     ELL_3V_NORM(axis, axis, tmp);                                        \
   } else {                                                               \
     ELL_3V_SET(axis, 1, 0, 0);                                           \
