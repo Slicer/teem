@@ -86,9 +86,6 @@ unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int pret;
   unsigned int ni, ninLen;
-#ifdef _WIN32
-  int c;
-#endif
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
