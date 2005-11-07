@@ -3,9 +3,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
 PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
-# TEEM version number.  An even minor number corresponds to releases.
-SET(TEEM_VERSION_MAJOR "2")
-SET(TEEM_VERSION_MINOR "1")
+# TEEM version number.  Must reflect the values in teem/src/air.h
+SET(TEEM_VERSION_MAJOR "1")
+SET(TEEM_VERSION_MINOR "9")
 SET(TEEM_VERSION_PATCH "0")
 
 # Version string should not include patch level.  The major.minor is
