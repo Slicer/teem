@@ -141,7 +141,7 @@ dyeRGBtoHSL(float *H, float *S, float *L,
   min = AIR_MIN(R,G);
   min = AIR_MIN(min,B);
   
-  *L = lev = (max + min)/2.0;
+  *L = lev = (max + min)/2.0f;
   if (max == min) {
     *S = 0;
     *H = 0;  /* actually, undefined */
@@ -233,12 +233,12 @@ dyeXYZtoRGB(float *R, float *G, float *B,
 
 float
 dyeLcbrt(float t) {
-  return(t > 0.008856 ? airCbrt(t) : 7.787*t + 16.0/116.0);
+  return(t > 0.008856 ? airCbrt(t) : 7.787f*t + 16.0f/116.0f);
 }
 
 float
 dyeLcubed(float t) {
-  return(t > 0.206893 ? t*t*t : (t - 16.0/116.0)/7.787);
+  return(t > 0.206893 ? t*t*t : (t - 16.0f/116.0f)/7.787f);
 }
 
 void
@@ -249,9 +249,9 @@ dyeXYZtoLAB(float *L, float *A, float *B,
   Xnorm = X/dyeWhiteXYZ_n[0];
   Ynorm = Y/dyeWhiteXYZ_n[1];
   Znorm = Z/dyeWhiteXYZ_n[2];
-  *L = 116.0*dyeLcbrt(Ynorm) - 16.0;
-  *A = 500.0*(dyeLcbrt(Xnorm) - dyeLcbrt(Ynorm));
-  *B = 200.0*(dyeLcbrt(Ynorm) - dyeLcbrt(Znorm));
+  *L = 116.0f*dyeLcbrt(Ynorm) - 16.0f;
+  *A = 500.0f*(dyeLcbrt(Xnorm) - dyeLcbrt(Ynorm));
+  *B = 200.0f*(dyeLcbrt(Ynorm) - dyeLcbrt(Znorm));
 }
 
 void 
@@ -260,11 +260,11 @@ dyeXYZtoLUV(float *L, float *U, float *V,
   float Ynorm, up, vp;
 
   Ynorm = Y/dyeWhiteXYZ_n[1];
-  *L = 116.0*dyeLcbrt(Ynorm) - 16.0;
-  up = 4.0*X/(X + 15*Y + 3*Z);
-  vp = 9.0*Y/(X + 15*Y + 3*Z);
-  *U = 13.0*(*L)*(up - dyeWhiteuvp_n[0]);
-  *V = 13.0*(*L)*(vp - dyeWhiteuvp_n[1]);
+  *L = 116.0f*dyeLcbrt(Ynorm) - 16.0f;
+  up = 4.0f*X/(X + 15.0f*Y + 3.0f*Z);
+  vp = 9.0f*Y/(X + 15.0f*Y + 3.0f*Z);
+  *U = 13.0f*(*L)*(up - dyeWhiteuvp_n[0]);
+  *V = 13.0f*(*L)*(vp - dyeWhiteuvp_n[1]);
 }
 
 void 

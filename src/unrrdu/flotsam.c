@@ -278,8 +278,8 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   scale = (float *)ptr;
   if (!strcmp("=", str)) {
-    scale[0] = 0.0;
-    scale[1] = 0.0;
+    scale[0] = 0.0f;
+    scale[1] = 0.0f;
     return 0;
   }
 
@@ -289,15 +289,15 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
       return 1;
     }
-    scale[0] = 1.0;
+    scale[0] = 1.0f;
   }
   else {
     if (1 != sscanf(str, "%d", &num)) {
       sprintf(err, "%s: can't parse \"%s\" as int", me, str);
       return 1;
     }
-    scale[0] = 2.0;
-    scale[1] = num;
+    scale[0] = 2.0f;
+    scale[1] = AIR_CAST(float, num);
   }
   return 0;
 }

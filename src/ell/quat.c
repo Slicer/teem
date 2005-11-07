@@ -189,6 +189,9 @@ ell_q_to_4m_d(double m[16], double q[4]) {
 ** a unit-length quaternion.  The axis output, however,
 ** will always be unit length, even if the quaternion was
 ** purely real (rotation angle is zero)
+**
+** HEY: there are two instances here of non-use of ELL_3V_NORM
+** to avoid warnings about precision loss with type conversion
 */
 #define _ELL_Q_TO_AA(type)                      \
   type len, angle;                              \
@@ -197,7 +200,8 @@ ell_q_to_4m_d(double m[16], double q[4]) {
   angle = AIR_CAST(type, atan2(len, q[0]));     \
   if (len) {                                    \
     ELL_3V_SCALE(axis, 1.0f/len, q+1);          \
-    ELL_3V_NORM(axis, axis, len);               \
+    len = AIR_CAST(type, ELL_3V_LEN(axis));     \
+    ELL_3V_SCALE(axis, 1.0f/len, axis);         \
   } else {                                      \
     ELL_3V_SET(axis, 1, 0, 0);                  \
   }                                             \
@@ -370,22 +374,24 @@ ell_q_log_d(double q2[4], double q1[4]) {
 
 /*
 ** this is good for *ALL* quaternions, any length, including zero
+** NOTE: one non-use of ELL_3V_NORM to avoid warnings about
+** precision loss from type conversion
 */
-#define _ELL_Q_EXP(type)                                                 \
-  type ea, b, sb, axis[3], tmp;                                          \
-                                                                         \
-  ea = AIR_CAST(type, exp(q1[0]));                                       \
-  b = ELL_3V_LEN(q1+1);                                                  \
-  if (b) {                                                               \
-    ELL_3V_SCALE(axis, 1.0f/b, q1+1);                                    \
-    ELL_3V_NORM(axis, axis, tmp);                                        \
-  } else {                                                               \
-    ELL_3V_SET(axis, 1, 0, 0);                                           \
-  }                                                                      \
-  sb = sin(b);                                                           \
-  ELL_4V_SET(q2,                                                         \
-             AIR_CAST(type, ea*cos(b)), AIR_CAST(type, ea*sb*axis[0]),   \
-             AIR_CAST(type, ea*sb*axis[1]), AIR_CAST(type, ea*sb*axis[2]))
+#define _ELL_Q_EXP(type)                                     \
+  type ea, b, sb, axis[3], tmp;                              \
+                                                             \
+  ea = AIR_CAST(type, exp(q1[0]));                           \
+  b = AIR_CAST(type, ELL_3V_LEN(q1+1));                      \
+  if (b) {                                                   \
+    ELL_3V_SCALE(axis, 1.0f/b, q1+1);                        \
+    tmp = AIR_CAST(type, ELL_3V_LEN(axis));                  \
+    ELL_3V_SCALE(axis, 1.0f/tmp, axis);                      \
+  } else {                                                   \
+    ELL_3V_SET(axis, 1.0f, 0.0f, 0.0f);                      \
+  }                                                          \
+  sb = AIR_CAST(type, sin(b));                               \
+  ELL_4V_SET(q2, AIR_CAST(type, ea*cos(b)), ea*sb*axis[0],   \
+             ea*sb*axis[1], ea*sb*axis[2])
 
 void 
 ell_q_exp_f(float q2[4], float q1[4]) {

@@ -215,7 +215,7 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
       for (xi=0; xi<fdiam; xi++) {
         tmp += smplr->xFslw[xi]*smplr->ivc[xi + fdiam*(yi + fdiam*ci)];
       }
-      val[ci] += smplr->yFslw[yi]*tmp;
+      val[ci] += AIR_CAST(float, smplr->yFslw[yi]*tmp);
     }
   }  
   
