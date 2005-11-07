@@ -1,5 +1,7 @@
 gage: re-modularize to facilitate probing bricked data
 
+nrrd: look into Pade approximations for windowed sinc() kernels
+
 make system really botched: change the size of the tenFiberContext
 (added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
 make install; make; and you'll STILL get memory errors due to seeing 
@@ -141,4 +143,4 @@ Deschamps TVCG04: Fast Evolution of Image Manifolds and Application to Filtering
 ikits Vis03: A Constraint-based Technique for Haptic Volume Exploration
 fout Eurovis 05: High-Quality Rendering of Compressed Volume Data Formats
 callahan TVCG May/June 05: Hardware-Assisted Visibility Sorting for Unstructured Volume Rendering
-jorik vis05 fiber paper
+jorik blaas vis05 fiber paper
