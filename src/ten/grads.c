@@ -68,7 +68,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
             me, ngrad->axis[0].size, ngrad->dim);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdTypeUnknown != type && type != ngrad->type) {
+  if (nrrdTypeDefault != type && type != ngrad->type) {
     sprintf(err, "%s: requested type %s but got type %s", me,
             airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
     biffAdd(TEN, err); return 1;

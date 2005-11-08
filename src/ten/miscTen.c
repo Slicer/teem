@@ -213,7 +213,7 @@ tenEvqVolume(Nrrd *nout,
 }
 
 int
-tenBMatrixCheck(const Nrrd *nbmat) {
+tenBMatrixCheck(const Nrrd *nbmat, unsigned int minnum) {
   char me[]="tenBMatrixCheck", err[AIR_STRLEN_MED];
 
   if (nrrdCheck(nbmat)) {
@@ -226,9 +226,10 @@ tenBMatrixCheck(const Nrrd *nbmat) {
             me, nbmat->axis[0].size, nbmat->dim);
     biffAdd(TEN, err); return 1;
   }
-  if (!( 6 <= nbmat->axis[1].size )) {
-    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " rows, need at least 6",
-            me, nbmat->axis[1].size);
+  if (!( minnum <= nbmat->axis[1].size )) {
+    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " B-matrices, "
+            "need at least %d",
+            me, nbmat->axis[1].size, minnum);
     biffAdd(TEN, err); return 1;
   }
 

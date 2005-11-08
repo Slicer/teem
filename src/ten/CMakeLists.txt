@@ -12,6 +12,9 @@ ADD_LIBRARY(ten
   grads.c
   miscTen.c
   mod.c
+  tenGage.c
+  tenDWIGage.c
+  tensor.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c
@@ -43,8 +46,6 @@ ADD_LIBRARY(ten
   tendSlice.c
   tendSten.c
   tendUnmf.c
-  tenGage.c
-  tensor.c
 )
 
 TARGET_LINK_LIBRARIES(ten echo limn gage dye unrrdu ell nrrd biff air)

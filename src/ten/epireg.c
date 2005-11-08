@@ -63,7 +63,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenGradientCheck(ngrad, nrrdTypeUnknown, 6 /* <-- HEY: not sure */)) {
+  if (tenGradientCheck(ngrad, nrrdTypeDefault, 6 /* <-- HEY: not sure */)) {
     sprintf(err, "%s: problem with given gradient list", me);
     biffAdd(TEN, err); return 1;
   }

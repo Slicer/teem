@@ -287,6 +287,66 @@ enum {
 #define TEN_GAGE_ITEM_MAX  56
 
 /*
+******** tenDWIGage* enum
+**
+** all things that can be measured in the diffusion weighted images that
+** underly diffusion tensor imaging
+*/
+enum {
+  tenDWIGageUnknown = -1,       /* -1: nobody knows */
+
+  /*  0: "all", all the measured values, both baseline and diffusion
+      weighted: GT[N], where N is the number of DWIs */
+  tenDWIGageAll,
+
+  /*  1: "b0", the average measured non-DWI image value: GT[1] */
+  tenDWIGageB0,
+
+  /*  2: "mdwi", the average DWI image value, which is thresholded to
+      create the confidence mask: GT[1] */
+  tenDWIGageMeanDWIValue,
+
+  /*  3: "tlin", linear least squares fit of tensor value, including
+      confidence mask: GT[7] */
+  tenDWIGageTensorLinearFit,    
+
+  /*  4: "tlinerr", residual error of linear fit: GT[1] */
+  tenDWIGageTensorLinearFitError,
+
+  /*  5: "tnlin", non-linear least squares fit tensor value, including
+      confidence mask: GT[7] */
+  tenDWIGageTensorNonLinearFit,
+
+  /*  6: "tnlinerr", residual error of non-linear least squares fit: GT[1] */
+  tenDWIGageTensorNonLinearFitError,
+
+  /*  7: "t", one of the above fitted tensors, depending on settings: GT[7] */
+  tenDWIGageTensor,
+
+  /*  8: "terr", error of the above fitted tensors, depending on settings: GT[1] */
+  tenDWIGageTensorError,
+
+  /*  9: "c", first of seven tensor values: GT[1] */
+  tenDWIGageConfidence,
+  
+  tenDWIGageLast
+};
+#define TEN_DWI_GAGE_ITEM_MAX 9
+
+/*
+******** tenDWIGageFitType* enum
+**
+** the different ways of doing tensor fitting
+*/
+enum {
+  tenDWIGageFitTypeUnknown,    /* 0 */
+  tenDWIGageFitTypeLinear,     /* 1 */
+  tenDWIGageFitTypeNonLinear,  /* 2 */
+  tenDWIGageFitTypeLast
+};
+#define TEN_DWI_GAGE_FIT_TYPE_MAX 2
+
+/*
 ******** tenEvecRGBParm struct
 **
 ** dumb little bag for the parameters relating to how to do the
@@ -578,6 +638,11 @@ TEN_EXPORT void tenEstimateLinearSingle_f(float *ten, float *B0P,
                                           double *vbuf, unsigned int DD,
                                           int knownB0, float thresh,
                                           float soft, float b);
+TEN_EXPORT void tenEstimateLinearSingle_d(double *ten, double *B0P,
+                                          const double *dwi, const double*emat,
+                                          double *vbuf, unsigned int DD,
+                                          int knownB0, double thresh,
+                                          double soft, double b);
 TEN_EXPORT int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                    const Nrrd *const *ndwi,
                                    unsigned int dwiLen, 
@@ -621,7 +686,8 @@ TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin,
 TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
                             int aniso, int scaleByAniso);
-TEN_EXPORT int tenBMatrixCheck(const Nrrd *nbmat);
+TEN_EXPORT int tenBMatrixCheck(const Nrrd *nbmat,
+                               unsigned int minnum);
 TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
                               double tweak, int save);
 
@@ -687,6 +753,22 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 
 /* tenGage.c */
 TEN_EXPORT gageKind *tenGageKind;
+
+/* tenDWIGage.c */
+#define TEN_DWI_GAGE_KIND_NAME "dwi"
+TEN_EXPORT airEnum _tenDWIGage;
+TEN_EXPORT airEnum *tenDWIGage;
+TEN_EXPORT airEnum *tenDWIGageFitType;
+TEN_EXPORT gageKind *tenDWIGageKindNew();
+TEN_EXPORT gageKind *tenDWIGageKindNix(gageKind *dwiKind);
+TEN_EXPORT int tenDWIGageKindGradients(gageKind *dwiKind,
+                                       double bval, const Nrrd *ngrad);
+TEN_EXPORT int tenDWIGageKindBMatrices(gageKind *dwiKind,
+                                       double bval, const Nrrd *nbmat);
+TEN_EXPORT int tenDWIGageKindConfThreshold(gageKind *dwiKind,
+                                           double thresh, double soft);
+TEN_EXPORT int tenDefDWIGageFitType;
+TEN_EXPORT int tenDWIGageKindFitType(gageKind *dwiKind, int fitType);
 
 /* bimod.c */
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);

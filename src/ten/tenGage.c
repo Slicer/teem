@@ -608,7 +608,9 @@ _tenGageKind = {
   _tenGageTable,
   _tenGageIv3Print,
   _tenGageFilter,
-  _tenGageAnswer
+  _tenGageAnswer,
+  NULL, NULL, NULL,
+  NULL
 };
 gageKind *
 tenGageKind = &_tenGageKind;

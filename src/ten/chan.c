@@ -242,7 +242,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   int DD, dd;
   airArray *mop;
 
-  if (!(nbmat && _ngrad && !tenGradientCheck(_ngrad, nrrdTypeUnknown, 1))) {
+  if (!(nbmat && _ngrad && !tenGradientCheck(_ngrad, nrrdTypeDefault, 1))) {
     sprintf(err, "%s: got NULL pointer or invalid arg", me);
     biffAdd(TEN, err); return 1;
   }
@@ -288,7 +288,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenBMatrixCheck(_nbmat)) {
+  if (tenBMatrixCheck(_nbmat, 6)) {
     sprintf(err, "%s: problem with B matrix", me);
     biffAdd(TEN, err); return 1;
   }
@@ -329,7 +329,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
 }
 
 /*
-******** tenEstimateSingle_f
+******** tenEstimateLinearSingle_d
 **
 ** estimate one single tensor
 **
@@ -343,7 +343,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
 ** dwi[0] is the B0 image, dwi[1]..dwi[DD-1] are the (DD-1) DWI values,
 ** emat is the (DD-1)-by-6 estimation matrix, which is the pseudo-inverse
 ** of the B-matrix (after the off-diagonals have been multiplied by 2).
-** vbuf[] is allocated for (at least) DD-1 doubles (D is fine)
+** vbuf[] is allocated for (at least) DD-1 doubles (DD is fine)
 **
 ** output:
 ** ten[0]..ten[6] will be the confidence value followed by the tensor
@@ -360,13 +360,13 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
 ** ----------------------------------------------------
 */
 void
-tenEstimateLinearSingle_f(float *ten, float *B0P,               /* output */
-                          const float *dwi, const double *emat, /* input ... */
+tenEstimateLinearSingle_d(double *ten, double *B0P,              /* output */
+                          const double *dwi, const double *emat, /* input ... */
                           double *vbuf, unsigned int DD, int knownB0,
-                          float thresh, float soft, float b) {
+                          double thresh, double soft, double b) {
   double logB0, tmp, mean;
   unsigned int ii, jj;
-  /* char me[]="tenEstimateLinearSingle_f"; */
+  /* char me[]="tenEstimateLinearSingle_d"; */
 
   if (knownB0) {
     if (B0P) {
@@ -426,6 +426,36 @@ tenEstimateLinearSingle_f(float *ten, float *B0P,               /* output */
         }
       }
     }
+  }
+  return;
+}
+
+void
+tenEstimateLinearSingle_f(float *_ten, float *_B0P,              /* output */
+                          const float *_dwi, const double *emat, /* input ... */
+                          double *vbuf, unsigned int DD, int knownB0,
+                          float thresh, float soft, float b) {
+  char me[]="tenEstimateLinearSingle_f";
+#define DWI_NUM_MAX 256
+  double dwi[DWI_NUM_MAX], ten[7], B0;
+  unsigned int dwiIdx;
+  
+  /* HEY: this is somewhat inelegant ... */
+  if (DD > DWI_NUM_MAX) {
+    fprintf(stderr, "%s: PANIC: sorry, DD=%u > compile-time DWI_NUM_MAX=%u\n",
+            me, DD, DWI_NUM_MAX);
+    exit(1);
+  }
+  for (dwiIdx=0; dwiIdx<DD; dwiIdx++) {
+    dwi[dwiIdx] = _dwi[dwiIdx];
+  }
+  tenEstimateLinearSingle_d(ten, _B0P ? &B0 : NULL,
+                            dwi, emat,
+                            vbuf, DD, knownB0,
+                            thresh, soft, b);
+  TEN_T_COPY(_ten, ten);
+  if (_B0P) {
+    *_B0P = AIR_CAST(float, B0);
   }
   return;
 }
@@ -509,7 +539,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     sprintf(err, "%s: dwi should be 4-D array with axis 0 size >= 7", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenBMatrixCheck(_nbmat)) {
+  if (tenBMatrixCheck(_nbmat, 6)) {
     sprintf(err, "%s: problem with B matrix", me);
     biffAdd(TEN, err); return 1;
   }
@@ -730,7 +760,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   
   if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)
-      || tenBMatrixCheck(_nbmat)) {
+      || tenBMatrixCheck(_nbmat, 6)) {
     sprintf(err, "%s: got NULL pointer or invalid args", me);
     biffAdd(TEN, err); return 1;
   }
