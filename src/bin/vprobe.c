@@ -189,8 +189,10 @@ main(int argc, char *argv[]) {
     key = TEN;
     if (ngrad) {
       if (!E) E |= tenDWIGageKindGradients(kind, bval, ntmp);
+      if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
     } else {
       if (!E) E |= tenDWIGageKindBMatrices(kind, bval, ntmp);
+      if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
     }
     if (!E) E |= tenDWIGageKindFitType(kind, tenDWIGageFitTypeLinear);
     if (!E) E |= tenDWIGageKindConfThreshold(kind, 100, 0);
