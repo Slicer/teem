@@ -78,6 +78,7 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
 3) Create source-only tgz:
 (for anonymous checkout:
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/teem/ login
+<hit return>
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/teem/ co teem
 )
 setenv VERSION <<version>>
