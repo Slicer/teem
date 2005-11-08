@@ -36,10 +36,10 @@ version 1 of the License document.
 2. The exception is that you may combine or link a "work that uses the
 Library" (as defined by the LGPL) with the Library to produce a work
 containing portions of the Library in binary form, and distribute that
-work under terms of your choice, provided that you:
+work under terms of your choice, provided that:
 
-  a) Give prominent notice with each copy of the work that the Library
-  is used in it.
+  a) You give prominent notice with each copy of the work that the
+  Library is used in it.
 
   b) If the work during execution displays copyright notices, you must
   include the copyright notice for the Library among them.
