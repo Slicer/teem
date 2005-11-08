@@ -95,6 +95,14 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
     pvl->directAnswer[ii] = pvl->answer + gageKindAnswerOffset(kind, ii);
   }
   pvl->flag[gagePvlFlagVolume] = AIR_TRUE;
+  if (kind->pvlDataNew) {
+    if (!(pvl->data = kind->pvlDataNew(kind))) {
+      sprintf(err, "%s: double creating gagePerVolume data", me);
+      biffAdd(GAGE, err); return NULL;
+    }
+  } else {
+    pvl->data = NULL;
+  }
 
   return pvl;
 }
@@ -135,7 +143,14 @@ _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
   for (ii=0; ii<=pvl->kind->itemMax; ii++) {
     nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
   }
-  /* whatever the "data" was, it was copied by memcpy above */
+  if (pvl->kind->pvlDataCopy) {
+    if (!(nvl->data = pvl->kind->pvlDataCopy(pvl->kind, pvl->data))) {
+      sprintf(err, "%s: double copying gagePerVolume data", me);
+      biffAdd(GAGE, err); return NULL;
+    }
+  } else {
+    nvl->data = NULL;
+  }
   
   return nvl;
 }
@@ -151,6 +166,9 @@ gagePerVolume *
 gagePerVolumeNix(gagePerVolume *pvl) {
 
   if (pvl) {
+    if (pvl->kind->pvlDataNix) {
+      pvl->data = pvl->kind->pvlDataNix(pvl->kind, pvl->data);
+    }
     pvl->iv3 = (gage_t *)airFree(pvl->iv3);
     pvl->iv2 = (gage_t *)airFree(pvl->iv2);
     pvl->iv1 = (gage_t *)airFree(pvl->iv1);

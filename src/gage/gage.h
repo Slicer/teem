@@ -584,7 +584,15 @@ typedef struct gageKind_t {
     (*filter)(gageContext *,        /* such as _gageSclFilter() */
               gagePerVolume *),
     (*answer)(gageContext *,        /* such as _gageSclAnswer() */
-              gagePerVolume *);
+              gagePerVolume *),
+    /* for allocating, copying, and nixing the pervolume->data */
+    /* pvlDataNew and pvlDataCopy can use biff, but they must use the
+       GAGE key; pvlDataNix can not use biff */
+    *(*pvlDataNew)(const struct gageKind_t *),
+    *(*pvlDataCopy)(const struct gageKind_t *, const void *data),
+    *(*pvlDataNix)(const struct gageKind_t *, void *data);
+  void *data;                       /* extra information about the kind of 
+                                       volume that's being probed */
 } gageKind;
 
 /*
@@ -608,7 +616,7 @@ GAGE_EXPORT int gageDefCheckIntegrals;
 GAGE_EXPORT int gageDefK3Pack;
 GAGE_EXPORT gage_t gageDefDefaultSpacing;
 GAGE_EXPORT int gageDefCurvNormalSide;
-GAGE_EXPORT double gageDefKernelIntegralNearZero;
+GAGE_EXPORT gage_t gageDefKernelIntegralNearZero;
 GAGE_EXPORT int gageDefRequireAllSpacings;
 GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;

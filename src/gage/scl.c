@@ -290,7 +290,9 @@ _gageKindScl = {
   _gageSclTable,
   _gageSclIv3Print,
   _gageSclFilter,
-  _gageSclAnswer
+  _gageSclAnswer,
+  NULL, NULL, NULL,
+  NULL
 };
 gageKind *const
 gageKindScl = &_gageKindScl;

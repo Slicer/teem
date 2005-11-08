@@ -83,7 +83,8 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
   fwX = ctx->fw + 0 + fd*(0 + 3*wch);
   fwY = ctx->fw + 0 + fd*(1 + 3*wch);
   fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
-  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
+  integral = AIR_CAST(gage_t, ctx->ksp[wch]->kernel
+                      ->integral(ctx->ksp[wch]->parm));
   sumX = sumY = sumZ = 0;
   for (i=0; i<fd; i++) {
     sumX += fwX[i];
@@ -124,9 +125,9 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   /* fix is the sqrt() of factor by which the positive values
      are too big.  negative values are scaled up by fix;
      positive values are scaled down by fix */
-  fixX = sqrt(posX/negX);
-  fixY = sqrt(posY/negY);
-  fixZ = sqrt(posZ/negZ);
+  fixX = AIR_CAST(gage_t, sqrt(posX/negX));
+  fixY = AIR_CAST(gage_t, sqrt(posY/negY));
+  fixZ = AIR_CAST(gage_t, sqrt(posZ/negZ));
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
             me, (float)fixX, (float)fixY, (float)fixZ);
@@ -233,14 +234,14 @@ _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   top[2] = ctx->shape->size[2] - 1;
   if (nrrdCenterNode == ctx->shape->center) {
     min = 0;
-    max[0] = top[0];
-    max[1] = top[1];
-    max[2] = top[2];
+    max[0] = AIR_CAST(gage_t, top[0]);
+    max[1] = AIR_CAST(gage_t, top[1]);
+    max[2] = AIR_CAST(gage_t, top[2]);
   } else {
     min = -0.5;
-    max[0] = top[0] + 0.5;
-    max[1] = top[1] + 0.5;
-    max[2] = top[2] + 0.5;
+    max[0] = AIR_CAST(gage_t, top[0] + 0.5f);
+    max[1] = AIR_CAST(gage_t, top[1] + 0.5f);
+    max[2] = AIR_CAST(gage_t, top[2] + 0.5f);
   }
   if (!( AIR_IN_CL(min, x, max[0]) && 
          AIR_IN_CL(min, y, max[1]) && 

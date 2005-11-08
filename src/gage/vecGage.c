@@ -604,7 +604,9 @@ _gageKindVec = {
   _gageVecTable,
   _gageVecIv3Print,
   _gageVecFilter,
-  _gageVecAnswer
+  _gageVecAnswer,
+  NULL, NULL, NULL,
+  NULL
 };
 gageKind *const
 gageKindVec = &_gageKindVec;

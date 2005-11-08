@@ -30,10 +30,10 @@ int
 gageDefVerbose = 0;
 
 gage_t
-gageDefGradMagMin = 0.00001;
+gageDefGradMagMin = 0.00001f;
 
 gage_t
-gageDefGradMagCurvMin = 0.0;
+gageDefGradMagCurvMin = 0.0f;
 
 int
 gageDefRenormalize = AIR_FALSE;
@@ -45,13 +45,13 @@ int
 gageDefK3Pack = AIR_TRUE;
 
 gage_t
-gageDefDefaultSpacing = 1.0;
+gageDefDefaultSpacing = 1.0f;
 
 int
 gageDefCurvNormalSide = 1;
 
-double
-gageDefKernelIntegralNearZero = 0.0001;
+gage_t
+gageDefKernelIntegralNearZero = 0.0001f;
 
 int
 gageDefRequireAllSpacings = AIR_TRUE;

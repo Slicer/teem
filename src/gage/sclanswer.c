@@ -61,17 +61,17 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradMag)) {
     /* this is the true value of gradient magnitude */
-    gmag = pvl->directAnswer[gageSclGradMag][0] = sqrt(ELL_3V_DOT(gvec, gvec));
+    gmag = pvl->directAnswer[gageSclGradMag][0] = AIR_CAST(gage_t, sqrt(ELL_3V_DOT(gvec, gvec)));
   }
 
   /* NB: it would seem that gageParmGradMagMin is completely ignored ... */
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNormal)) {
     if (gmag) {
-      ELL_3V_SCALE(norm, 1.0/gmag, gvec);
+      ELL_3V_SCALE(norm, 1.0f/gmag, gvec);
       /* polishing ... 
       len = sqrt(ELL_3V_DOT(norm, norm));
-      ELL_3V_SCALE(norm, 1.0/len, norm);
+      ELL_3V_SCALE(norm, 1.0f/len, norm);
       */
     } else {
       ELL_3V_COPY(norm, gageZeroNormal);
@@ -102,15 +102,18 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessFrob)) {
-    pvl->directAnswer[gageSclHessFrob][0] = ELL_3M_FROB(hess);
+    pvl->directAnswer[gageSclHessFrob][0] = AIR_CAST(gage_t, ELL_3M_FROB(hess));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEval)) {
     ELL_3M_COPY(tmpMat, hess);
     /* HEY: look at the return value for root multiplicity? */
     /* NB: we have solve and then copy because of possible type
-       mismatch between double and gage_t */
+       mismatch between double and gage_t, AND, non-use of ELL_3V_COPY
+       because of warnings about precision loss from type conversion */
     ell_3m_eigensolve_d(heval, hevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(pvl->directAnswer[gageSclHessEval], heval);
+    pvl->directAnswer[gageSclHessEval][0] = AIR_CAST(gage_t, heval[0]);
+    pvl->directAnswer[gageSclHessEval][1] = AIR_CAST(gage_t, heval[1]);
+    pvl->directAnswer[gageSclHessEval][2] = AIR_CAST(gage_t, heval[2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
     ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
