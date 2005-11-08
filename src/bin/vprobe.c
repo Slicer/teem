@@ -57,23 +57,38 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     *kindP = gageKindVec;
   } else if (!strcmp("tensor", str)) {
     *kindP = tenGageKind;
+  } else if (!strcmp("dwi", str)) {
+    *kindP = tenDWIGageKindNew();
   } else {
-    sprintf(err, "%s: not \"scalar\", \"vector\", or \"tensor\"", me);
+    sprintf(err, "%s: not \"scalar\", \"vector\", \"tensor\", or \"dwi\"", me);
     return 1;
   }
 
   return 0;
 }
 
+void *
+probeParseKindDestroy(void *ptr) {
+  gageKind *kind;
+  
+  if (ptr) {
+    kind = AIR_CAST(gageKind *, ptr);
+    if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
+      tenDWIGageKindNix(kind);
+    }
+  }
+  return NULL;
+}
+
 hestCB probeKindHestCB = {
   sizeof(gageKind *),
   "kind",
   probeParseKind,
-  NULL
+  probeParseKindDestroy
 }; 
 
 char *probeInfo = ("Shows off the functionality of the gage library. "
-                   "Uses gageProbe() to query scalar or vector volumes "
+                   "Uses gageProbe() to query various kinds of volumes "
                    "to learn various measured or derived quantities. ");
 
 int
@@ -87,7 +102,11 @@ main(int argc, char *argv[]) {
   int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
   const gage_t *answer;
+  const char *key;
   Nrrd *nin, *nout, *_nmat, *nmat;
+  Nrrd *ngrad=NULL, *nbmat=NULL, *ntocrop, *ntmp;
+  size_t cropMin[2], cropMax[2];
+  double bval;
   gageContext *ctx;
   gagePerVolume *pvl;
   double t0, t1, gmc, mat[16], ipos[4], opos[4], spx, spy, spz;
@@ -101,7 +120,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+             "\"kind\" of volume (\"scalar\", \"vector\", "
+             "\"tensor\", or \"dwi\")",
              NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -148,6 +168,37 @@ main(int argc, char *argv[]) {
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
     return 1;
+  }
+
+  /* special set-up required for DWI kind */
+  if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
+    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, nin)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    ntocrop = ngrad ? ngrad : nbmat;
+    cropMin[0] = 0;
+    cropMin[1] = 1;
+    cropMax[0] = ntocrop->axis[0].size-1;
+    cropMax[1] = ntocrop->axis[1].size-1;
+    airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    E = 0;
+    key = NRRD;
+    if (!E) E |= nrrdCrop(ntmp, ntocrop, cropMin, cropMax);
+    key = TEN;
+    if (ngrad) {
+      if (!E) E |= tenDWIGageKindGradients(kind, bval, ntmp);
+    } else {
+      if (!E) E |= tenDWIGageKindBMatrices(kind, bval, ntmp);
+    }
+    if (!E) E |= tenDWIGageKindFitType(kind, tenDWIGageFitTypeLinear);
+    if (!E) E |= tenDWIGageKindConfThreshold(kind, 100, 0);
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(key), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting grad/bmat info:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
 
   if (_nmat) {
