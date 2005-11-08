@@ -171,6 +171,8 @@ _miteValGageKind = {
   _miteValTable,
   NULL,
   NULL,
+  NULL,
+  NULL, NULL, NULL,
   NULL
 };
 
