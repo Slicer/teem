@@ -641,14 +641,14 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
     } else if (nio->headerStringWrite) {
       strptr = (char*)malloc(1 + strlen(" ") 
-			     + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
+                             + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
       sprintf(strptr, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
       strcat(nio->headerStringWrite, strptr);
       free(strptr);
       strptr = NULL;
     } else {
       nio->headerStrlen += (1 + strlen(" ") 
-			    + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
+                            + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
     }
   }
   for (jj=0; jj<nrrd->kvpArr->len; jj++) {
