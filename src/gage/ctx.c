@@ -602,7 +602,7 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
   } else {
     /* have to convert from world to index */
     /* HEY: this has to be tested/debugged */
-    double wcoord[4], icoord[4];
+    double icoord[4]; gage_t wcoord[4];
     ELL_4V_SET(wcoord, x, y, z, 1);
     ELL_4MV_MUL(icoord, ctx->shape->WtoI, wcoord);
     ELL_4V_HOMOG(icoord, icoord);
@@ -612,13 +612,13 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
   }
   if (clamp) {
     if (nrrdCenterNode == ctx->shape->center) {
-      xi = AIR_CLAMP(0, xi, size[0]-1);
-      yi = AIR_CLAMP(0, yi, size[1]-1);
-      zi = AIR_CLAMP(0, zi, size[2]-1);
+      xi = AIR_CAST(gage_t, AIR_CLAMP(0, xi, size[0]-1));
+      yi = AIR_CAST(gage_t, AIR_CLAMP(0, yi, size[1]-1));
+      zi = AIR_CAST(gage_t, AIR_CLAMP(0, zi, size[2]-1));
     } else {
-      xi = AIR_CLAMP(-0.5f, xi, size[0]-0.5f);
-      yi = AIR_CLAMP(-0.5f, yi, size[1]-0.5f);
-      zi = AIR_CLAMP(-0.5f, zi, size[2]-0.5f);
+      xi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, xi, size[0]-0.5));
+      yi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, yi, size[1]-0.5));
+      zi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, zi, size[2]-0.5));
     }
   }
   ret = gageProbe(ctx, xi, yi, zi);
