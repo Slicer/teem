@@ -279,7 +279,8 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
            me, ansLen, sox, soy, soz);
     if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 4,
-                                ansLen, sox, soy, soz);
+                                (size_t)ansLen, 
+				(size_t)sox, (size_t)soy, (size_t)soz);
   } else {
     fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
     if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
