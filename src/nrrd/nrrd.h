@@ -352,8 +352,8 @@ typedef struct NrrdIoState_t {
     headerStrpos;           /* ON READ, for NRRDs, if headerStringRead is
                                non-NULL, the current location of reading
                                in the header */
-  int dataFNMin,            /* used with dataFNFormat to identify ...*/
-    dataFNMax,              /* ... all the multiple detached datafiles */
+  int dataFNMin,            /* used with dataFNFormat to identify .. */
+    dataFNMax,              /* .. all the multiple detached datafiles */
     dataFNStep,             /* how to step from max to min */
     dataFNIndex,            /* which of the data files are being read */
     pos,                    /* line[pos] is beginning of stuff which
@@ -629,7 +629,7 @@ typedef struct {
 
 /* ---- END non-NrrdIO */
 
-/******** defaults (nrrdDefault...) and state (nrrdState...) */
+/******** defaults (nrrdDefault..) and state (nrrdState..) */
 /* defaultsNrrd.c */
 NRRD_EXPORT const NrrdEncoding *nrrdDefaultWriteEncoding;
 NRRD_EXPORT int nrrdDefaultWriteBareText;
@@ -843,6 +843,7 @@ NRRD_EXPORT const NrrdFormat *const nrrdFormatEPS;
 NRRD_EXPORT const NrrdFormat *const nrrdFormatUnknown;
 NRRD_EXPORT const NrrdFormat *
   const nrrdFormatArray[NRRD_FORMAT_TYPE_MAX+1];
+
 /* encodingXXX.c */
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingRaw;
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingAscii;
@@ -853,6 +854,7 @@ NRRD_EXPORT const NrrdEncoding *const nrrdEncodingBzip2;
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingUnknown;
 NRRD_EXPORT const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
+
 /* parseNrrd.c */
 /* this needs the "FILE *file" first arg for the sole reason that
    parsing a "data file: " field which identifies a LIST must then
@@ -860,13 +862,19 @@ NRRD_EXPORT const NrrdEncoding *
 NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
                                                         NrrdIoState *nio,
                                                         int useBiff);
+NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
+NRRD_EXPORT int _nrrdContainsPercentDAndMore(char *str);
+NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
+
 /* read.c */
+NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
 NRRD_EXPORT int nrrdLineSkip(FILE *dataFile, NrrdIoState *nio);
 NRRD_EXPORT int nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio);
 NRRD_EXPORT int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio);
 NRRD_EXPORT int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *nio);
 NRRD_EXPORT int nrrdStringRead(Nrrd *nrrd, const char *string,
                                NrrdIoState *nio);
+
 /* write.c */
 NRRD_EXPORT int nrrdIoStateSet(NrrdIoState *nio, int parm, int value);
 NRRD_EXPORT int nrrdIoStateEncodingSet(NrrdIoState *nio,
@@ -1226,10 +1234,7 @@ NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
 NRRD_EXPORT int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
-NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
-NRRD_EXPORT int _nrrdContainsPercentDAndMore(char *str);
-NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
-NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
+
 
 /* ---- END non-NrrdIO */
 

@@ -175,7 +175,6 @@ extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
 
 /* parseNrrd.c */
 extern int _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff);
-extern unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
 
 /* methodsNrrd.c */
 extern void nrrdPeripheralInit(Nrrd *nrrd);
