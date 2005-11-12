@@ -34,13 +34,6 @@ FILE(MAKE_DIRECTORY ${TEEM_BINARY_DIR}/include/teem)
 #-----------------------------------------------------------------------------
 # Find platform-specific differences in the handling of IEEE floating point 
 # special values.
-INCLUDE(${TEEM_SOURCE_DIR}/CMake/CheckBigBitfield.cmake)
-CHECK_BIG_BITFIELD(BIGBITFIELD_VALUE ${TEEM_SOURCE_DIR}/CMake)
-IF(BIGBITFIELD_VALUE)
-  SET(BIGBITFIELD 1 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
-ELSE(BIGBITFIELD_VALUE)
-  SET(BIGBITFIELD 0 CACHE INTERNAL "System handles bit-fields larger than 32 bits.")
-ENDIF(BIGBITFIELD_VALUE)
 
 INCLUDE(${TEEM_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
 TEST_QNANHIBIT(QNANHIBIT_VALUE ${TEEM_SOURCE_DIR}/CMake)
@@ -76,13 +69,6 @@ ELSE(CMAKE_SIZEOF_VOID_P MATCHES 8)
   ADD_DEFINITIONS(-DTEEM_32BIT=1)
 ENDIF(CMAKE_SIZEOF_VOID_P MATCHES 8)
 
-# The BIGBITFIELD variable is configured by the root level CMakeLists.txt
-IF(BIGBITFIELD)
-  ADD_DEFINITIONS(-DTEEM_BIGBITFIELD=1)
-ELSE(BIGBITFIELD)
-  ADD_DEFINITIONS(-DTEEM_BIGBITFIELD=0)
-ENDIF(BIGBITFIELD)
-
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)
@@ -105,24 +91,24 @@ FOREACH(header_file
     air/air.h
     hest/hest.h
     biff/biff.h
-    echo/echo.h
     nrrd/nrrd.h
-    ten/ten.h
-    ten/tenMacros.h
-    dye/dye.h
-    hoover/hoover.h
-    moss/moss.h
-    alan/alan.h
-    gage/gage.h
-    ell/ell.h
-    ell/ellMacros.h
-    unrrdu/unrrdu.h
-    bane/bane.h
-    limn/limn.h
-    mite/mite.h
     nrrd/nrrdDefines.h
     nrrd/nrrdMacros.h
     nrrd/nrrdEnums.h
+    ell/ell.h
+    ell/ellMacros.h
+    unrrdu/unrrdu.h
+    dye/dye.h
+    alan/alan.h
+    limn/limn.h
+    gage/gage.h
+    moss/moss.h
+    echo/echo.h
+    bane/bane.h
+    ten/ten.h
+    ten/tenMacros.h
+    hoover/hoover.h
+    mite/mite.h
     )
   MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
