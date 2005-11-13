@@ -1279,7 +1279,7 @@ int
 nrrdKernelParse(const NrrdKernel **kernelP, 
                 double *parm, const char *_str) {
   char me[]="nrrdKernelParse", err[128], str[AIR_STRLEN_HUGE],
-    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[3];
+    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[4];
   int j, tmfD, tmfC, tmfA;
   unsigned int haveParm, needParm;
   
