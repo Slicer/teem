@@ -658,7 +658,7 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
      bone-headed, and is subject to change.  19 July 03: with the
      addition of the final "type" argument to nrrdProject, the
      bone-headedness has been alleviated somewhat, since you can pass
-     nrrTypeFloat or nrrdTypeDouble to get an accurate answer */
+     nrrdTypeFloat or nrrdTypeDouble to get an accurate answer */
   idxsum = 0;
   idxcount = 0;
   for (ii=0; ii<len; ii++) {
