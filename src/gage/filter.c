@@ -220,7 +220,7 @@ _gageFwSet(gageContext *ctx) {
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
-** gageErrNum=0 and sprints message into gageErrStr.
+** ctx->errNum=0 and sprints message into ctx->errStr.
 */
 int
 _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
@@ -246,12 +246,12 @@ _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
   if (!( AIR_IN_CL(min, x, max[0]) && 
          AIR_IN_CL(min, y, max[1]) && 
          AIR_IN_CL(min, z, max[2]) )) {
-    sprintf(gageErrStr, "%s: position (%g,%g,%g) outside (%s-centered) "
+    sprintf(ctx->errStr, "%s: position (%g,%g,%g) outside (%s-centered) "
             "bounds [%g,%g]x[%g,%g]x[%g,%g]",
             me, x, y, z,
             airEnumStr(nrrdCenter, ctx->shape->center),
             min, max[0], min, max[1], min, max[2]);
-    gageErrNum = 0;
+    ctx->errNum = 0;
     return 1;
   }
   xi = AIR_CAST(unsigned int, x+1) - 1; xf = x - xi;

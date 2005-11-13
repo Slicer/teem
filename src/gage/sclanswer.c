@@ -102,7 +102,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessFrob)) {
-    pvl->directAnswer[gageSclHessFrob][0] = AIR_CAST(gage_t, ELL_3M_FROB(hess));
+    pvl->directAnswer[gageSclHessFrob][0]
+      = AIR_CAST(gage_t, ELL_3M_FROB(hess));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEval)) {
     ELL_3M_COPY(tmpMat, hess);
@@ -116,11 +117,12 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageSclHessEval][2] = AIR_CAST(gage_t, heval[2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
-    ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
+    ELL_3M_COPY_T(pvl->directAnswer[gageSclHessEvec], gage_t, hevec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageScl2ndDD)) {
     ELL_3MV_MUL(tmpVec, hess, norm);
-    pvl->directAnswer[gageScl2ndDD][0] = ELL_3V_DOT(norm, tmpVec);
+    pvl->directAnswer[gageScl2ndDD][0] 
+      = AIR_CAST(gage_t, ELL_3V_DOT(norm, tmpVec));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGeomTens)) {
     if (gmag > ctx->parm.gradMagCurvMin) {
@@ -129,8 +131,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       
       /* gten = nPerp * sHess * nPerp */
-      ELL_3M_MUL(tmpMat, sHess, nPerp);
-      ELL_3M_MUL(gten, nPerp, tmpMat);
+      ELL_3M_MUL_T(tmpMat, gage_t, sHess, nPerp);
+      ELL_3M_MUL_T(gten, gage_t, nPerp, tmpMat);
 
       if (ctx->verbose) {
         fprintf(stderr, "%s: gten: \n", me);
@@ -153,7 +155,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclTotalCurv)) {
-    curv = pvl->directAnswer[gageSclTotalCurv][0] = ELL_3M_FROB(gten);
+    curv = pvl->directAnswer[gageSclTotalCurv][0] 
+      = AIR_CAST(gage_t, ELL_3M_FROB(gten));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeTrace)) {
     pvl->directAnswer[gageSclShapeTrace][0] = (curv
@@ -175,18 +178,18 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     */
     D = AIR_MAX(D, 0);
     D = sqrt(D);
-    k1[0] = 0.5*(T + D);
-    k2[0] = 0.5*(T - D);
+    k1[0] = AIR_CAST(gage_t, 0.5*(T + D));
+    k2[0] = AIR_CAST(gage_t, 0.5*(T - D));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclMeanCurv)) {
-    pvl->directAnswer[gageSclMeanCurv][0] = (*k1 + *k2)/2;
+    pvl->directAnswer[gageSclMeanCurv][0] = (*k1 + *k2)/2.0f;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclGaussCurv)) {
     pvl->directAnswer[gageSclGaussCurv][0] = (*k1)*(*k2);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeIndex)) {
     pvl->directAnswer[gageSclShapeIndex][0] = 
-      -(2/AIR_PI)*atan2(*k1 + *k2, *k1 - *k2);
+      AIR_CAST(gage_t, -(2/AIR_PI)*atan2(*k1 + *k2, *k1 - *k2));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir1)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,

@@ -525,6 +525,13 @@ typedef struct gageContext_t {
                                  the volume would have to be super-outrageous
                                  for that to be a problem */
   gagePoint point;            /* last probe location */
+
+  /* errStr and errNum are for describing errors that happen in  gageProbe():
+     using biff is too heavy-weight for this, and the idea is that no ill
+     should occur if the error is repeatedly ignored.
+     NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
+  char errStr[AIR_STRLEN_LARGE];
+  int errNum;
 } gageContext;
 
 /*
@@ -622,11 +629,6 @@ GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;
 
 /* miscGage.c */
-/* gageErrStr and gageErrNum are for describing errors that happen in
-   gageProbe(): using biff is too heavy-weight for this, and the idea is
-   that no ill should occur if the error is repeatedly ignored */
-GAGE_EXPORT char gageErrStr[AIR_STRLEN_LARGE];
-GAGE_EXPORT int gageErrNum;
 GAGE_EXPORT gage_t gageZeroNormal[3];
 GAGE_EXPORT airEnum *gageKernel;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
