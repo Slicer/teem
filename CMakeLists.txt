@@ -1,6 +1,6 @@
 # This is the root Teem CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
-PROJECT(TEEM)
+PROJECT(TEEM C)
 
 #-----------------------------------------------------------------------------
 # TEEM version number.  Must reflect the values in teem/src/air.h
@@ -15,7 +15,6 @@ SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}")
 #-----------------------------------------------------------------------------
 # Test for some required system information.
 INCLUDE (${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityC.cmake)
-INCLUDE (${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityCXX.cmake)
 
 #-----------------------------------------------------------------------------
 # Output directories.
@@ -25,7 +24,7 @@ SET (EXECUTABLE_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(TEEM_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
 SET(TEEM_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
-SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
+SET(C_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 
 
 FILE(MAKE_DIRECTORY ${TEEM_BINARY_DIR}/include)
@@ -86,6 +85,10 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
+SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
+	limn hoover alan echo ten
+	mite coil push)
+
 
 FOREACH(header_file
     air/air.h
@@ -109,6 +112,10 @@ FOREACH(header_file
     ten/tenMacros.h
     hoover/hoover.h
     mite/mite.h
+    nrrd/nrrdDefines.h
+    nrrd/nrrdMacros.h
+    nrrd/nrrdEnums.h
+    push/push.h
     )
   MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
@@ -138,3 +145,54 @@ IF(BUILD_TESTING)
   INCLUDE(Dart)
   ENABLE_TESTING()
 ENDIF(BUILD_TESTING)
+
+#-----------------------------------------------------------------------------
+# Help outside projects build TEEM projects.
+INCLUDE(CMakeExportBuildSettings)
+EXPORT_LIBRARY_DEPENDENCIES(${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake)
+CMAKE_EXPORT_BUILD_SETTINGS(${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake)
+
+SET(CFLAGS "${CMAKE_C_FLAGS}")
+SET(CC "${CMAKE_C_COMPILER}")
+
+# For build tree usage
+SET(TEEM_LIBRARY_DEPENDS_FILE ${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake)
+SET(TEEM_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH})
+SET(TEEM_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
+SET(TEEM_USE_FILE ${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake)
+SET(TEEM_INCLUDE_DIRS "${TEEM_BINARY_DIR}/include")
+SET(TEEM_BUILD_SETTINGS_FILE ${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake)
+SET(prefix "${TEEM_BINARY_DIR}")
+SET(exec_prefix "${prefix}")
+SET(exec_prefix_set "no")
+SET(bindir "${prefix}/bin")
+SET(includedir "${prefix}")
+SET(libdir "${prefix}/bin")
+SET(srcdir "${TEEM_SOURCE_DIR}")
+
+CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
+  "${TEEM_BINARY_DIR}/TEEMConfig.cmake" @ONLY IMMEDIATE)
+
+# For installed tree usage
+SET(TEEM_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMLibraryDepends.cmake)
+SET(TEEM_EXECUTABLE_DIRS "${CMAKE_INSTALL_PREFIX}/bin")
+SET(TEEM_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
+SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMUse.cmake")
+SET(TEEM_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMBuildSettings.cmake)
+SET(prefix "${CMAKE_INSTALL_PREFIX}")
+SET(exec_prefix "${prefix}")
+SET(exec_prefix_set "no")
+SET(bindir "${prefix}/bin")
+SET(includedir "${prefix}")
+SET(libdir "${prefix}/lib")
+SET(srcdir ".")
+
+CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
+  "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake" @ONLY IMMEDIATE)
+
+INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake")
+INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake")
+INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake")
+INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake")
+
