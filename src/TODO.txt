@@ -1,3 +1,10 @@
+for cmake:
+ - get some basic tests working (if only nrrdSanity)
+ - build pv on windows
+ - see if wild-card expansion works as expected on windows
+ - make cmd-line utilities link with static libs
+ - enable turning on zlib, bz2, threads, and png
+
 gage: re-modularize to facilitate probing bricked data
 
 nrrd: look into Pade approximations for windowed sinc() kernels
