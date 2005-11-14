@@ -73,6 +73,11 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
             airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
     biffAdd(TEN, err); return 1;
   }
+  if (nrrdTypeBlock == ngrad->type) {
+    sprintf(err, "%s: sorry, can't use %s type", me, 
+            airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(TEN, err); return 1;
+  }
   if (!( minnum <= ngrad->axis[1].size )) {
     sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " gradients, "
             "need at least %d",
