@@ -213,7 +213,7 @@ tenEvqVolume(Nrrd *nout,
 }
 
 int
-tenBMatrixCheck(const Nrrd *nbmat, unsigned int minnum) {
+tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
   char me[]="tenBMatrixCheck", err[AIR_STRLEN_MED];
 
   if (nrrdCheck(nbmat)) {
@@ -224,6 +224,16 @@ tenBMatrixCheck(const Nrrd *nbmat, unsigned int minnum) {
     sprintf(err, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
             "x? %d-D array)",
             me, nbmat->axis[0].size, nbmat->dim);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdTypeDefault != type && type != nbmat->type) {
+    sprintf(err, "%s: requested type %s but got type %s", me,
+            airEnumStr(nrrdType, type), airEnumStr(nrrdType, nbmat->type));
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdTypeBlock == nbmat->type) {
+    sprintf(err, "%s: sorry, can't use %s type", me, 
+            airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(TEN, err); return 1;
   }
   if (!( minnum <= nbmat->axis[1].size )) {

@@ -288,7 +288,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenBMatrixCheck(_nbmat, 6)) {
+  if (tenBMatrixCheck(_nbmat, nrrdTypeDefault, 6)) {
     sprintf(err, "%s: problem with B matrix", me);
     biffAdd(TEN, err); return 1;
   }
@@ -361,7 +361,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
 */
 void
 tenEstimateLinearSingle_d(double *ten, double *B0P,              /* output */
-                          const double *dwi, const double *emat, /* input ... */
+                          const double *dwi, const double *emat, /* input .. */
                           double *vbuf, unsigned int DD, int knownB0,
                           double thresh, double soft, double b) {
   double logB0, tmp, mean;
@@ -432,7 +432,7 @@ tenEstimateLinearSingle_d(double *ten, double *B0P,              /* output */
 
 void
 tenEstimateLinearSingle_f(float *_ten, float *_B0P,              /* output */
-                          const float *_dwi, const double *emat, /* input ... */
+                          const float *_dwi, const double *emat, /* input .. */
                           double *vbuf, unsigned int DD, int knownB0,
                           float thresh, float soft, float b) {
   char me[]="tenEstimateLinearSingle_f";
@@ -440,7 +440,7 @@ tenEstimateLinearSingle_f(float *_ten, float *_B0P,              /* output */
   double dwi[DWI_NUM_MAX], ten[7], B0;
   unsigned int dwiIdx;
   
-  /* HEY: this is somewhat inelegant ... */
+  /* HEY: this is somewhat inelegant .. */
   if (DD > DWI_NUM_MAX) {
     fprintf(stderr, "%s: PANIC: sorry, DD=%u > compile-time DWI_NUM_MAX=%u\n",
             me, DD, DWI_NUM_MAX);
@@ -539,7 +539,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     sprintf(err, "%s: dwi should be 4-D array with axis 0 size >= 7", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenBMatrixCheck(_nbmat, 6)) {
+  if (tenBMatrixCheck(_nbmat, nrrdTypeDefault, 6)) {
     sprintf(err, "%s: problem with B matrix", me);
     biffAdd(TEN, err); return 1;
   }
@@ -760,7 +760,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   
   if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)
-      || tenBMatrixCheck(_nbmat, 6)) {
+      || tenBMatrixCheck(_nbmat, nrrdTypeDefault, 6)) {
     sprintf(err, "%s: got NULL pointer or invalid args", me);
     biffAdd(TEN, err); return 1;
   }
@@ -823,7 +823,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
 
 
 
-/* old stuff, prior to tenEstimationMatrix ... */
+/* old stuff, prior to tenEstimationMatrix .. */
 
 
 /*
