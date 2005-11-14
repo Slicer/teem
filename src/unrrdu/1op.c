@@ -82,7 +82,8 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   } else {
     ntmp = nin;
   }
-  if (nrrdUnaryOpRand == op) {
+  if (nrrdUnaryOpRand == op
+      || nrrdUnaryOpNormalRand == op) {
     airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {

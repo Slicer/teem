@@ -154,6 +154,12 @@ double _nrrdUnaryOpRand(double a) {
   AIR_UNUSED(a);
   return airDrandMT();
 }
+double _nrrdUnaryOpNormalRand(double a) {
+  AIR_UNUSED(a);
+  double v;
+  airNormalRand(&v, NULL);
+  return v;
+}
 double _nrrdUnaryOpZero(double a) {
   AIR_UNUSED(a);  
   return 1.0;
@@ -189,6 +195,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpSgn,
   _nrrdUnaryOpExists,
   _nrrdUnaryOpRand,
+  _nrrdUnaryOpNormalRand,
   _nrrdUnaryOpZero,
   _nrrdUnaryOpOne
 };
@@ -226,27 +233,9 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
   N = nrrdElementNumber(nin);
   lookup = nrrdDLookup[nin->type];
   insert = nrrdDInsert[nin->type];
-  if (nrrdUnaryOpRand == op) {
-    /* odd one, we needn't do the input lookup */
-    for (I=0; I<N; I++) {
-      insert(nout->data, I, uop(0.0));
-    }
-  } else if (nrrdUnaryOpZero == op) {
-    /* another odd one */
-    for (I=0; I<N; I++) {
-      insert(nout->data, I, 0.0);
-    }
-  } else if (nrrdUnaryOpOne == op) {
-    /* another odd one */
-    for (I=0; I<N; I++) {
-      insert(nout->data, I, 1.0);
-    }
-  } else {
-    /* these are normal, we do need input lookup */
-    for (I=0; I<N; I++) {
-      val = lookup(nin->data, I);
-      insert(nout->data, I, uop(val));
-    }
+  for (I=0; I<N; I++) {
+    val = lookup(nin->data, I);
+    insert(nout->data, I, uop(val));
   }
   if (nrrdContentSet(nout, airEnumStr(nrrdUnaryOp, op), nin, "")) {
     sprintf(err, "%s:", me);
