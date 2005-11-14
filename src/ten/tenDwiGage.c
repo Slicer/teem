@@ -23,47 +23,6 @@
 #include "ten.h"
 #include "privateTen.h"
 
-char
-_tenDWIGageFitTypeStr[][AIR_STRLEN_SMALL] = {
-  "(unknown tenDWIGageFitType)",
-  "linear",
-  "nonlinear"
-};
-
-char
-_tenDWIGageFitTypeDesc[][AIR_STRLEN_MED] = {
-  "unknown tenDWIGageFitType",
-  "linear least-squares fit of log(DWI)",
-  "non-linear least-squares fit of DWI"
-};
-
-char
-_tenDWIGageFitTypeStrEqv[][AIR_STRLEN_SMALL] = {
-  "linear", "lin",
-  "non-linear", "nonlinear",
-    "nonlin", "nlin",
-  ""
-};
-
-int
-_tenDWIGageFitTypeValEqv[] = {
-  tenDWIGageFitTypeLinear, tenDWIGageFitTypeLinear,
-  tenDWIGageFitTypeNonLinear, tenDWIGageFitTypeNonLinear,
-    tenDWIGageFitTypeNonLinear, tenDWIGageFitTypeNonLinear
-};
-
-airEnum
-_tenDWIGageFitType = {
-  "tenDWIGageFitType",
-  TEN_DWI_GAGE_FIT_TYPE_MAX,
-  _tenDWIGageFitTypeStr, NULL,
-  _tenDWIGageFitTypeDesc,
-  _tenDWIGageFitTypeStrEqv, _tenDWIGageFitTypeValEqv,
-  AIR_FALSE
-};
-airEnum *
-tenDWIGageFitType= &_tenDWIGageFitType;
-
 /* --------------------------------------------------------------------- */
 
 char
@@ -72,27 +31,54 @@ _tenDWIGageStr[][AIR_STRLEN_SMALL] = {
   "all",
   "b0",
   "mdwi",
-  "tlin",
-  "tlinerr",
-  "tnlin",
-  "tnlinerr",
+  "tlls",
+  "tllserr",
+  "tllserrlog",
+  "tllslike",
+  "twls",
+  "twlserr",
+  "twlserrlog",
+  "twlslike",
+  "tnls",
+  "tnlserr",
+  "tnlserrlog",
+  "tnlslike",
+  "tmle",
+  "tmleerr",
+  "tmleerrlog",
+  "tmlelike",
   "t",
   "terr",
+  "terrlog",
+  "tlike",
   "c"
 };
 
 int
 _tenDWIGageVal[] = {
   tenDWIGageUnknown,
-  tenDWIGageAll,
   tenDWIGageB0,
   tenDWIGageMeanDWIValue,
-  tenDWIGageTensorLinearFit,
-  tenDWIGageTensorLinearFitError,
-  tenDWIGageTensorNonLinearFit,
-  tenDWIGageTensorNonLinearFitError,
+  tenDWIGageTensorLLS,
+  tenDWIGageTensorLLSError,
+  tenDWIGageTensorLLSErrorLog,
+  tenDWIGageTensorLLSLikelihood,
+  tenDWIGageTensorWLS,
+  tenDWIGageTensorWLSError,
+  tenDWIGageTensorWLSErrorLog,
+  tenDWIGageTensorWLSLikelihood,
+  tenDWIGageTensorNLS,
+  tenDWIGageTensorNLSError,
+  tenDWIGageTensorNLSErrorLog,
+  tenDWIGageTensorNLSLikelihood,
+  tenDWIGageTensorMLE,
+  tenDWIGageTensorMLEError,
+  tenDWIGageTensorMLEErrorLog,
+  tenDWIGageTensorMLELikelihood,
   tenDWIGageTensor,
   tenDWIGageTensorError,
+  tenDWIGageTensorErrorLog,
+  tenDWIGageTensorLikelihood,
   tenDWIGageConfidence
 };
 
@@ -110,42 +96,45 @@ tenDWIGage = &_tenDWIGage;
 
 /* --------------------------------------------------------------------- */
 
-int tenDefDWIGageFitType = tenDWIGageFitTypeLinear;
-
 typedef struct {
-  /* -------- input */
-  double bval;          /* the scalar b value */
-  /* NOTE: ngrad or bmat is used according to which one is non-NULL.
-     For both, axis[1].size is ONE LESS THAN the number of image values, 
-     because the first value is the B0 image */
-  const Nrrd *ngrad,    /* list of gradients */
-    *nbmat;             /* list of B matrices */
-  double dwiConfThresh, /* threshold value of mean DWI for confidence mask */
-    dwiConfSoft;
-  int fitType;          /* from tenDWIGageFitType enum */
-  /* -------- internal */
   unsigned int num;     /* number of total values (both baseline and DWI) */
-  Nrrd *nemat;          /* estimation matrix for linear least squares */
+  tenEstimateContext *tec;  /* HEY: NOT THREAD SAFE! */
 } tenDWIGageKindData;
-
-typedef struct {
-  double *vbuf;        /* kindData->num doubles; used in linear fitting */
-} tenDWIGagePvlData;
 
 gageItemEntry
 _tenDWIGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   /* enum value                      len,deriv,  prereqs,                                                                    parent item, parent index, needData*/
   /* the number of values is learned at run time */
-  {tenDWIGageAll,         6660 /* NOT! */,  0,  {-1, -1, -1, -1, -1},                                                                  -1,        -1,    AIR_TRUE},
-  {tenDWIGageB0,                       1,  0,  {tenDWIGageAll, -1, -1, -1, -1},                                            tenDWIGageAll,         0,    AIR_TRUE},
+  {tenDWIGageAll,        6660 /* NOT! */,  0,  {-1, -1, -1, -1, -1},                                                                  -1,        -1,    AIR_TRUE},
+  {tenDWIGageB0,                       1,  0,  {tenDWIGageAll, /* MAYBE NOT... */ -1, -1, -1, -1},                         tenDWIGageAll,         0,    AIR_TRUE},
   {tenDWIGageMeanDWIValue,             1,  0,  {tenDWIGageAll, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
-  {tenDWIGageTensorLinearFit,          7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
-  {tenDWIGageTensorLinearFitError,     1,  0,  {tenDWIGageTensorLinearFit, -1, -1, -1, -1},                                           -1,        -1,    AIR_TRUE},
-  {tenDWIGageTensorNonLinearFit,       7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
-  {tenDWIGageTensorNonLinearFitError,  1,  0,  {tenDWIGageTensorNonLinearFit, -1, -1, -1, -1},                                        -1,        -1,    AIR_TRUE},
-  /* these two are not sub-items: they are copies, as controlled by the kind->data */
+
+  {tenDWIGageTensorLLS,                7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorLLSError,           1,  0,  {tenDWIGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorLLSErrorLog,        1,  0,  {tenDWIGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorLLSLikelihood,      1,  0,  {tenDWIGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+
+  {tenDWIGageTensorWLS,                7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorWLSError,           1,  0,  {tenDWIGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorWLSErrorLog,        1,  0,  {tenDWIGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorWLSLikelihood,      1,  0,  {tenDWIGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+
+  {tenDWIGageTensorNLS,                7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorNLSError,           1,  0,  {tenDWIGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorNLSErrorLog,        1,  0,  {tenDWIGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorNLSLikelihood,      1,  0,  {tenDWIGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+
+  {tenDWIGageTensorMLE,                7,  0,  {tenDWIGageAll, tenDWIGageMeanDWIValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorMLEError,           1,  0,  {tenDWIGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorMLEErrorLog,        1,  0,  {tenDWIGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorMLELikelihood,      1,  0,  {tenDWIGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
+
+  /* these are NOT sub-items: they are copies, as controlled by the kind->data */
   {tenDWIGageTensor,                   7,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
   {tenDWIGageTensorError,              1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorErrorLog,           1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
+  {tenDWIGageTensorLikelihood,         1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
+
   {tenDWIGageConfidence,               1,  0,  {tenDWIGageTensor, -1, -1, -1, -1},                                      tenDWIGageTensor,         0,    AIR_TRUE}
 };
 
@@ -213,14 +202,16 @@ _tenDWIGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenDWIGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
+  AIR_UNUSED(ctx);
+  AIR_UNUSED(pvl);
+
+#if 0
   char me[]="_tenDWIGageAnswer";
   unsigned int dwiIdx;
   tenDWIGageKindData *kindData;
-  tenDWIGagePvlData *pvlData;
   gage_t *dwiAll, dwiMean=0;
 
   kindData = AIR_CAST(tenDWIGageKindData *, pvl->kind->data);
-  pvlData = AIR_CAST(tenDWIGagePvlData *, pvl->data);
 
   dwiAll = pvl->directAnswer[tenDWIGageAll];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDWIGageAll)) {
@@ -244,15 +235,15 @@ _tenDWIGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     dwiMean /= 1.0f/(kindData->num - 1);
     pvl->directAnswer[tenDWIGageMeanDWIValue][0] = dwiMean;
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDWIGageTensorLinearFit)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDWIGageTensorLLS)) {
 #if GAGE_TYPE_FLOAT
     tenEstimateLinearSingle_f
 #else
     tenEstimateLinearSingle_d
 #endif    
-      (pvl->directAnswer[tenDWIGageTensorLinearFit], NULL,
+      (pvl->directAnswer[tenDWIGageTensorLLS], NULL,
        dwiAll, AIR_CAST(double *, kindData->nemat->data),
-       pvlData->vbuf, kindData->num,
+       /* pvlData->vbuf */ NULL, kindData->num,
        AIR_TRUE, kindData->dwiConfThresh,
        kindData->dwiConfSoft, kindData->bval);
   }
@@ -265,10 +256,12 @@ _tenDWIGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   tenDWIGageConfidence
   */
   return;
+#endif
 }
 
 tenDWIGageKindData*
 tenDWIGageKindDataNew() {
+#if 0
   tenDWIGageKindData *ret;
 
   ret = AIR_CAST(tenDWIGageKindData *, malloc(sizeof(tenDWIGageKindData)));
@@ -283,22 +276,30 @@ tenDWIGageKindDataNew() {
     ret->nemat = nrrdNew();
   }
   return ret;
+#endif 0
+  return NULL;
 }
 
 tenDWIGageKindData*
 tenDWIGageKindDataNix(tenDWIGageKindData *kindData) {
 
+  AIR_UNUSED(kindData);
+#if 0  
   if (kindData) {
     nrrdNuke(kindData->nemat);
     airFree(kindData);
   }
+#endif
   return NULL;
 }
 
 int
 tenDWIGageKindCheck(const gageKind *kind) {
-  char me[]="tenDWIGageKindCheck", err[AIR_STRLEN_MED];
 
+  AIR_UNUSED(kind);
+#if 0
+  char me[]="tenDWIGageKindCheck", err[AIR_STRLEN_MED];
+  
   if (!kind) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
@@ -312,11 +313,15 @@ tenDWIGageKindCheck(const gageKind *kind) {
     sprintf(err, "%s: kind->data is NULL", me);
     biffAdd(TEN, err); return 1;
   }
+#endif
   return 0;
 }
 
 int
 _tenDWIGageKindReadyCheck(const gageKind *kind) {
+
+  AIR_UNUSED(kind);
+#if 0
   char me[]="_tenDWIGageKindReadyCheck", err[AIR_STRLEN_MED];
   tenDWIGageKindData *kindData;
 
@@ -342,11 +347,15 @@ _tenDWIGageKindReadyCheck(const gageKind *kind) {
     sprintf(err, "%s: fitType %d not valid", me, kindData->fitType);
     biffAdd(TEN, err); return 1;
   }
+#endif
   return 0;
 }
 
 void *
 _tenDWIGagePvlDataNew(const gageKind *kind) {
+
+  AIR_UNUSED(kind);
+#if 0
   char me[]="_tenDWIGagePvlDataNew", err[AIR_STRLEN_MED];
   tenDWIGagePvlData *pvlData;
   tenDWIGageKindData *kindData;
@@ -364,6 +373,8 @@ _tenDWIGagePvlDataNew(const gageKind *kind) {
                              calloc(kindData->num, sizeof(double)));
   }
   return AIR_CAST(void*, pvlData);
+#endif
+  return NULL;
 }
 
 void *
@@ -375,6 +386,10 @@ _tenDWIGagePvlDataCopy(const gageKind *kind, const void *pvlData) {
 
 void *
 _tenDWIGagePvlDataNix(const gageKind *kind, void *_pvlData) {
+
+  AIR_UNUSED(kind);
+  AIR_UNUSED(_pvlData);
+#if 0
   tenDWIGagePvlData *pvlData;
 
   AIR_UNUSED(kind);
@@ -383,6 +398,7 @@ _tenDWIGagePvlDataNix(const gageKind *kind, void *_pvlData) {
     airFree(pvlData->vbuf);
     airFree(pvlData);
   }
+#endif
   return NULL;
 }
 
@@ -445,97 +461,11 @@ _tenDWIGageKindNumSet(gageKind *kind, unsigned int num) {
 }
 
 int
-tenDWIGageKindGradients(gageKind *kind, double bval, const Nrrd *ngrad) {
-  char me[]="tenDWIGageKindGradients", err[AIR_STRLEN_MED];
-  tenDWIGageKindData *kindData;
-  Nrrd *nbmat;
-  airArray *mop;
-
-  if (tenDWIGageKindCheck(kind)) {
-    sprintf(err, "%s: trouble with given kind", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!AIR_EXISTS(bval)) {
-    sprintf(err, "%s: got non-existent bval", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (tenGradientCheck(ngrad, nrrdTypeDefault, 6)) {
-    sprintf(err, "%s: problem with gradient list", me);
-    biffAdd(TEN, err); return 1;
-  }
-
-  kindData = AIR_CAST(tenDWIGageKindData *, kind->data);
-  kindData->bval = bval;
-  kindData->ngrad = ngrad;
-  kindData->nbmat = NULL;
-  _tenDWIGageKindNumSet(kind, 1 + AIR_CAST(unsigned int, ngrad->axis[1].size));
-  mop = airMopNew();
-  nbmat = nrrdNew();
-  airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
-  if (tenBMatrixCalc(nbmat, kindData->ngrad)
-      || tenEMatrixCalc(kindData->nemat, nbmat, AIR_TRUE)) {
-    sprintf(err, "%s: trouble creating or inverting B-matrix", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
-  }
-  airMopOkay(mop);
-  
-  return 0;
-}
-
-int
-tenDWIGageKindBMatrices(gageKind *kind, double bval, const Nrrd *nbmat) {
-  char me[]="tenDWIGageKindBMatrices", err[AIR_STRLEN_MED];
-  tenDWIGageKindData *kindData;
-
-  if (tenDWIGageKindCheck(kind)) {
-    sprintf(err, "%s: trouble with given kind", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!AIR_EXISTS(bval)) {
-    sprintf(err, "%s: got non-existent bval", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (tenBMatrixCheck(nbmat, 6)) {
-    sprintf(err, "%s: problem with b-matrix list", me);
-    biffAdd(TEN, err); return 1;
-  }
-
-  kindData = AIR_CAST(tenDWIGageKindData *, kind->data);
-  kindData->bval = bval;
-  kindData->ngrad = NULL;
-  kindData->nbmat = nbmat;
-  _tenDWIGageKindNumSet(kind, 1 + AIR_CAST(unsigned int, nbmat->axis[1].size));
-  if (tenEMatrixCalc(kindData->nemat, kindData->nbmat, AIR_TRUE)) {
-    sprintf(err, "%s: trouble inverting B-matrix", me);
-    biffAdd(TEN, err); return 1;
-  }
-
-  return 0;
-}
-
-int
-tenDWIGageKindConfThreshold(gageKind *kind, double thresh, double soft) {
-  char me[]="tenDWIGageKindConfThreshold", err[AIR_STRLEN_MED];
-  tenDWIGageKindData *kindData;
-
-  if (tenDWIGageKindCheck(kind)) {
-    sprintf(err, "%s: trouble with given kind", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!( AIR_EXISTS(thresh) && AIR_EXISTS(soft) )) {
-    sprintf(err, "%s: got non-existent thresh or soft", me);
-    biffAdd(TEN, err); return 1;
-  }
-
-  kindData = AIR_CAST(tenDWIGageKindData *, kind->data);
-  kindData->dwiConfThresh = thresh;
-  kindData->dwiConfSoft = soft;
-
-  return 0;
-}
-
-int
 tenDWIGageKindFitType(gageKind *kind, int fitType) {
+
+  AIR_UNUSED(kind);
+  AIR_UNUSED(fitType);
+#if 0
   char me[]="tenDWIGageKindFitType", err[AIR_STRLEN_MED];
 
   if (tenDWIGageKindCheck(kind)) {
@@ -567,5 +497,6 @@ tenDWIGageKindFitType(gageKind *kind, int fitType) {
     break;
   }
 
+#endif
   return 0;
 }
