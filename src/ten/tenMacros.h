@@ -89,6 +89,15 @@ extern "C" {
    (d)[5] = (s)[5], \
    (d)[6] = (s)[6] )
 
+#define TEN_T_COPY_T(d, TYPE, s) ( \
+   (d)[0] = AIR_CAST(TYPE, (s)[0]), \
+   (d)[1] = AIR_CAST(TYPE, (s)[1]), \
+   (d)[2] = AIR_CAST(TYPE, (s)[2]), \
+   (d)[3] = AIR_CAST(TYPE, (s)[3]), \
+   (d)[4] = AIR_CAST(TYPE, (s)[4]), \
+   (d)[5] = AIR_CAST(TYPE, (s)[5]), \
+   (d)[6] = AIR_CAST(TYPE, (s)[6]) )
+
 #define TEN_T_DET(t) ( \
   (t)[1]*((t)[4]*(t)[6] - (t)[5]*(t)[5]) \
   + (t)[2]*((t)[5]*(t)[3] - (t)[2]*(t)[6]) \
