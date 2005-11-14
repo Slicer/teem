@@ -13,7 +13,7 @@ ADD_LIBRARY(ten
   miscTen.c
   mod.c
   tenGage.c
-  tenDWIGage.c
+  tenDwiGage.c
   tensor.c
   tendAnhist.c
   tendAnplot.c

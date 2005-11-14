@@ -45,9 +45,20 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
   float thresh, soft, b, scale;
-  int dwiax, eret, knownB0;
+  int dwiax, EE, knownB0, newstuff, estmeth;
   unsigned int ninLen, axmap[4];
 
+  Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
+  double bKVP;
+
+  tenEstimateContext *tec;
+
+  hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
+             "use the new tenEstimateContext functionality");
+  hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
+             "lls",
+             "estimation method to use",
+             NULL, tenEstimateMethod);
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the tensor "
              "estimation error: a value which measures how much error there "
@@ -126,17 +137,17 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     nin4d = nin[0];
   } else {
     /* it IS coming from key/value pairs */
-    Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
-    double bKVP;
     if (1 != ninLen) {
       fprintf(stderr, "%s: sorry, require single 4-D DWI volume for "
               "key/value pair based calculation of B-matrix\n", me);
       airMopError(mop); return 1;
     }
-    if (knownB0) {
-      fprintf(stderr, "%s: sorry, key/value-based DWI info currently "
-              "disallows knownB0\n", me);
-      airMopError(mop); return 1;
+    if (!newstuff) {
+      if (knownB0) {
+        fprintf(stderr, "%s: sorry, key/value-based DWI info currently "
+                "disallows knownB0\n", me);
+        airMopError(mop); return 1;
+      }
     }
     if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP, nin[0])) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -186,13 +197,52 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nterr = NULL;
   nB0 = NULL;
-  if (1 == ninLen) {
-    eret = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               nin4d, nbmat, knownB0, thresh, soft, b);
+  if (newstuff) {
+    if (!(ngradKVP || nbmatKVP)) {
+      fprintf(stderr, "%s: sorry, need B info from KVP for newstuff\n", me);
+      airMopError(mop); return 1;
+    }
+    if (!AIR_EXISTS(thresh)) {
+      fprintf(stderr, "%s: sorry, need \"-t\" thresh set for newstuff\n", me);
+      airMopError(mop); return 1;
+    }
+    tec = tenEstimateContextNew();
+    airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
+    EE = 0;
+    if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
+    if (!EE) EE |= tenEstimateValueMinSet(tec, 0.1);
+    if (ngradKVP) {
+      if (!EE) EE |= tenEstimateGradientsSet(tec, ngradKVP, bKVP, !knownB0);
+    } else {
+      if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmatKVP, bKVP, !knownB0);
+    }
+    if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
+    if (!EE) EE |= tenEstimateUpdate(tec);
+    if (!EE) EE |= tenEstimate1TensorVolume4D(tec, nout, &nB0,
+                                              airStrlen(terrS) 
+                                              ? &nterr 
+                                              : NULL, 
+                                              nin4d, nrrdTypeFloat);
+    if (EE) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting up estimation:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   } else {
-    eret = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
+    EE = 0;
+    if (1 == ninLen) {
+      EE = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
+                               nin4d, nbmat, knownB0, thresh, soft, b);
+    } else {
+      EE = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
                                (const Nrrd**)nin, ninLen, nbmat,
                                knownB0, thresh, soft, b);
+    }
+    if (EE) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
   if (nB0) {
     /* it was allocated by tenEstimate*, we have to clean it up */
@@ -204,11 +254,6 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: trouble doing scaling:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-  }
-  if (eret) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
   }
   if (nterr) {
     if (nrrdSave(terrS, nterr, NULL)) {

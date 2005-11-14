@@ -136,7 +136,7 @@ typedef struct {
      governed by edgeWidth[] */
   int glyphType, facetRes;
   float glyphScale, sqdSharp;
-  float edgeWidth[3];  /* 0: contour, 1: front crease, 2: front non-crease */
+  float edgeWidth[5];  /* 0: contour, 1: front crease, 2: front non-crease */
 
   /* glyphs are colored by eigenvector colEvec with the standard XYZ-RGB
      colormapping, with maximal saturation colMaxSat (use 0.0 to turn off
@@ -287,64 +287,97 @@ enum {
 #define TEN_GAGE_ITEM_MAX  56
 
 /*
-******** tenDWIGage* enum
+******** tenDwiGage* enum
 **
 ** all things that can be measured in the diffusion weighted images that
 ** underly diffusion tensor imaging
 */
 enum {
-  tenDWIGageUnknown = -1,       /* -1: nobody knows */
+  tenDwiGageUnknown = -1,       /* -1: nobody knows */
 
   /*  0: "all", all the measured values, both baseline and diffusion
       weighted: GT[N], where N is the number of DWIs */
-  tenDWIGageAll,
+  tenDwiGageAll,
 
-  /*  1: "b0", the average measured non-DWI image value: GT[1] */
-  tenDWIGageB0,
+  /*  1: "b0", the non-Dwi image value, either by direct measurement
+      or by estimation: GT[1] */
+  tenDwiGageB0,
 
-  /*  2: "mdwi", the average DWI image value, which is thresholded to
+  /*  2: "mdwi", the average Dwi image value, which is thresholded to
       create the confidence mask: GT[1] */
-  tenDWIGageMeanDWIValue,
+  tenDwiGageMeanDwiValue,
 
-  /*  3: "tlin", linear least squares fit of tensor value, including
-      confidence mask: GT[7] */
-  tenDWIGageTensorLinearFit,    
+  /*  3: "tlls": GT[7],
+      4: "tllserr": GT[1], 
+      5: "tllserrlog": GT[1], 
+      6: "tllslike": GT[1], 
+     linear least squares fit of tensor value to log(Dwi)s */
+  tenDwiGageTensorLLS,
+  tenDwiGageTensorLLSError,      /* sum-of-sqrd-diffs w/ Dwis */
+  tenDwiGageTensorLLSErrorLog,   /* sum-of-sqrd-diffs w/ log(Dwi)s */
+  tenDwiGageTensorLLSLikelihood,
 
-  /*  4: "tlinerr", residual error of linear fit: GT[1] */
-  tenDWIGageTensorLinearFitError,
+  /*  7: "twls": GT[7],
+      8: "twlserr": GT[1],
+      9: "twlserrlog": GT[1],
+     10: "twlslike": GT[1],
+     weighted least squares fit of tensor value to log(Dwi)s */
+  tenDwiGageTensorWLS,
+  tenDwiGageTensorWLSError,
+  tenDwiGageTensorWLSErrorLog,
+  tenDwiGageTensorWLSLikelihood,
 
-  /*  5: "tnlin", non-linear least squares fit tensor value, including
-      confidence mask: GT[7] */
-  tenDWIGageTensorNonLinearFit,
+  /* 11: "tnls": GT[7],
+     12: "tnlserr": GT[1],
+     13: "tnlserrlog": GT[1],
+     14: "tnlslike": GT[1],
+     non-linear least squares fit of tensor value to Dwis (not log) */
+  tenDwiGageTensorNLS,
+  tenDwiGageTensorNLSError,
+  tenDwiGageTensorNLSErrorLog,
+  tenDwiGageTensorNLSLikelihood,
 
-  /*  6: "tnlinerr", residual error of non-linear least squares fit: GT[1] */
-  tenDWIGageTensorNonLinearFitError,
+  /* 15: "tmle": GT[7],
+     16: "tmleerr": GT[1],
+     17: "tmleerrlog": GT[1],
+     18: "tmlelike": GT[1],
+     maximum-likelihood fit of tensor value to Dwis */
+  tenDwiGageTensorMLE,
+  tenDwiGageTensorMLEError,
+  tenDwiGageTensorMLEErrorLog,
+  tenDwiGageTensorMLELikelihood,
 
-  /*  7: "t", one of the above fitted tensors, depending on settings: GT[7] */
-  tenDWIGageTensor,
+  /* 19: "t": GT[7], 
+     20: "terr": GT[1],
+     21: "terrlog": GT[1],
+     22: "tlike": GT[1],
+     one of the above tensors and its errors, depending on settings */
+  tenDwiGageTensor,
+  tenDwiGageTensorErrorLog,
+  tenDwiGageTensorError,
+  tenDwiGageTensorLikelihood,
 
-  /*  8: "terr", error of the above fitted tensors, depending on settings: GT[1] */
-  tenDWIGageTensorError,
-
-  /*  9: "c", first of seven tensor values: GT[1] */
-  tenDWIGageConfidence,
+  /* 23: "c", first of seven tensor values: GT[1] */
+  tenDwiGageConfidence,
   
-  tenDWIGageLast
+  tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 9
+#define TEN_DWI_GAGE_ITEM_MAX 23
 
 /*
-******** tenDWIGageFitType* enum
+******** tenEstimateMethod* enum
 **
-** the different ways of doing tensor fitting
+** the different ways of doing model parameter estimation
 */
 enum {
-  tenDWIGageFitTypeUnknown,    /* 0 */
-  tenDWIGageFitTypeLinear,     /* 1 */
-  tenDWIGageFitTypeNonLinear,  /* 2 */
-  tenDWIGageFitTypeLast
+  tenEstimateMethodUnknown,  /* 0 */
+  tenEstimateMethodLLS,      /* 1 */
+  tenEstimateMethodWLS,      /* 2 */
+  tenEstimateMethodNLS,      /* 3 */
+  tenEstimateMethodMLE,      /* 4 */
+  tenEstimateMethodLast
 };
-#define TEN_DWI_GAGE_FIT_TYPE_MAX 2
+#define TEN_ESTIMATE_METHOD_MAX 4
 
 /*
 ******** tenEvecRGBParm struct
@@ -553,6 +586,68 @@ typedef struct {
   unsigned minIteration, maxIteration;
 } tenGradientParm;
 
+/*
+******** struct tenEstimateContext
+**
+** for handling estimation of diffusion models
+*/
+typedef struct {
+  /* input ----------- */
+  double bValue,           /* scalar b value */
+    valueMin,              /* smallest sensible for input Dwi value, 
+                              must be > 0.0 (for taking log) */
+    sigma,                 /* noise parameter */
+    dwiConfThresh,         /* mean Dwi threshold for confidence mask */
+    dwiConfSoft;           /* softness in confidence mask */
+                           /* NOTE: for both _ngrad and _nbmat,
+                              only one can be non-NULL, and axis[1].size
+                              is the total # values, both Dwi and non-Dwi */
+  const Nrrd *_ngrad,      /* caller's 3-by-allNum gradient list */
+    *_nbmat;               /* caller's 6-by-allNum B-matrix list,
+                              off-diagonals are *NOT* pre-multiplied by 2 */
+  const float *all_f;      /* caller's list of all values (length allNum) */
+  const double *all_d;     /* caller's list of all values (length allNum) */
+  int estimateMethod,      /* what kind of estimation to do */
+    estimateB0,            /* if non-zero, B0 should be estimated along with
+                              rest of model. Otherwise, B0 is found by simply
+                              taking average of non-Dwi images */
+    recordTime,            /* if non-zero, record estimation time */
+    recordErrorDwi,
+    recordErrorLogDwi,
+    recordLikelihood,
+    verbose;               /* blah blah blah */
+  /* internal -------- */
+  int flag[128];           /* flags for state management */
+  unsigned int allNum,     /* total number of images (Dwi and non-Dwi) */
+    dwiNum,                /* number of Dwis */
+    *dwiIdxMap;            /* mapping from all indices to dwi indices,
+                              allocated for allNum */
+  Nrrd *nbmat,             /* B-matrices for the Dwis (and NOT the non-Dwis),
+                              with off-diagonals (*YES*) pre-multiplied by 2,
+                              and with a 7th column of -1.0 if estimateB0 */
+    *nwght,                /* dwiNum x dwiNum matrix of weights */
+    *nemat;                /* pseudo-inverse of nbmat */
+  double *bmat, *wght,     /* n{bmat,wght}->data */
+    *all,                  /* (copy of) vector of input values,
+                              allocated for allNum */
+    *bnorm,                /* frob norm of B-matrix, allocated for allNum */
+    *vbuf,                 /* for storing intermediate values,
+                              allocated for allNum */
+    *dwi,                  /* the Dwi values, allocated for dwiNum */
+    time0;                 /* start time */
+  /* output ---------- */
+  double B0,               /* non-Dwi value, either known or estimated */
+    ten[7],                /* the estimated single tensor */
+    conf,                  /* the "confidence" mask value (i.e. ten[0]) */
+    mdwi,                  /* mean Dwi value (used for conf mask calc) */
+    time,                  /* time required for estimation */
+    errorDwi,              /* error in Dwi of estimate */
+    errorLogDwi,           /* error in log(Dwi) of estimate */
+    likelihood;            /* the maximized likelihood */
+  char errStr[AIR_STRLEN_LARGE];  /* light-weight error reporting */
+  int errNum;
+} tenEstimateContext;
+
 /* defaultsTen.c */
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
@@ -657,6 +752,36 @@ TEN_EXPORT void tenSimulateOne_f(float *dwi, float B0, const float *ten,
 TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
                            const Nrrd *nbmat, double b);
 
+/* estimate.c */
+TEN_EXPORT airEnum *tenEstimateMethod;
+TEN_EXPORT tenEstimateContext *tenEstimateContextNew();
+TEN_EXPORT void tenEstimateVerboseSet(tenEstimateContext *tec,
+                                      int verbose);
+TEN_EXPORT int tenEstimateMethodSet(tenEstimateContext *tec,
+                                    int estMethod);
+TEN_EXPORT int tenEstimateSigmaSet(tenEstimateContext *tec,
+                                   double sigma);
+TEN_EXPORT int tenEstimateValueMinSet(tenEstimateContext *tec,
+                                      double valueMin);
+TEN_EXPORT int tenEstimateGradientsSet(tenEstimateContext *tec,
+                                       const Nrrd *ngrad, 
+                                       double bValue, int estimateB0);
+TEN_EXPORT int tenEstimateBMatricesSet(tenEstimateContext *tec,
+                                       const Nrrd *nbmat,
+                                       double bValue, int estimteB0);
+TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
+                                       double thresh, double soft);
+TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
+TEN_EXPORT void tenEstimate1TensorSingle_f(tenEstimateContext *tec,
+                                           float ten[7], const float *all);
+TEN_EXPORT void tenEstimate1TensorSingle_d(tenEstimateContext *tec,
+                                           double ten[7], const double *all);
+TEN_EXPORT int tenEstimate1TensorVolume4D(tenEstimateContext *tec,
+                                          Nrrd *nten,
+                                          Nrrd **nB0P, Nrrd **nterrP,
+                                          const Nrrd *ndwi, int outType);
+TEN_EXPORT tenEstimateContext *tenEstimateContextNix(tenEstimateContext *tec);
+
 /* aniso.c */
 TEN_EXPORT float (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float eval[3]);
 TEN_EXPORT float tenAnisoEval_f(const float eval[3], int aniso);
@@ -687,7 +812,7 @@ TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
                             int aniso, int scaleByAniso);
 TEN_EXPORT int tenBMatrixCheck(const Nrrd *nbmat,
-                               unsigned int minnum);
+                               int type, unsigned int minnum);
 TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
                               double tweak, int save);
 
@@ -754,21 +879,19 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 /* tenGage.c */
 TEN_EXPORT gageKind *tenGageKind;
 
-/* tenDWIGage.c */
+/* tenDwiGage.c */
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
-TEN_EXPORT airEnum _tenDWIGage;
-TEN_EXPORT airEnum *tenDWIGage;
-TEN_EXPORT airEnum *tenDWIGageFitType;
-TEN_EXPORT gageKind *tenDWIGageKindNew();
-TEN_EXPORT gageKind *tenDWIGageKindNix(gageKind *dwiKind);
-TEN_EXPORT int tenDWIGageKindGradients(gageKind *dwiKind,
+TEN_EXPORT airEnum _tenDwiGage;
+TEN_EXPORT airEnum *tenDwiGage;
+TEN_EXPORT gageKind *tenDwiGageKindNew();
+TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);
+TEN_EXPORT int tenDwiGageKindGradients(gageKind *dwiKind,
                                        double bval, const Nrrd *ngrad);
-TEN_EXPORT int tenDWIGageKindBMatrices(gageKind *dwiKind,
+TEN_EXPORT int tenDwiGageKindBMatrices(gageKind *dwiKind,
                                        double bval, const Nrrd *nbmat);
-TEN_EXPORT int tenDWIGageKindConfThreshold(gageKind *dwiKind,
+TEN_EXPORT int tenDwiGageKindConfThreshold(gageKind *dwiKind,
                                            double thresh, double soft);
-TEN_EXPORT int tenDefDWIGageFitType;
-TEN_EXPORT int tenDWIGageKindFitType(gageKind *dwiKind, int fitType);
+TEN_EXPORT int tenDwiGageKindFitType(gageKind *dwiKind, int fitType);
 
 /* bimod.c */
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
