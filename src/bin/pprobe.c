@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
   /* test with original context */
   answer = gageAnswerPointer(ctx, ctx->pvl[0], what);
   if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
-    fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
+    fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, ctx->errStr, ctx->errNum);
     airMopError(mop);
     return 1;
   }
@@ -201,7 +201,8 @@ main(int argc, char *argv[]) {
     airMopAdd(mop, ctx2, (airMopper)gageContextNix, airMopAlways);
     answer2 = gageAnswerPointer(ctx, ctx2->pvl[0], what);
     if (gageProbe(ctx2, pos[0], pos[1], pos[2])) {
-      fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, gageErrStr, gageErrNum);
+      fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me,
+              ctx->errStr, ctx->errNum);
       airMopError(mop);
       return 1;
     }

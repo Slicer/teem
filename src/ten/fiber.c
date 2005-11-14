@@ -310,7 +310,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   }
   if (ret) {
     sprintf(err, "%s: first gageProbe failed: %s (%d)", 
-            me, gageErrStr, gageErrNum);
+            me, tfx->gtx->errStr, tfx->gtx->errNum);
     biffAdd(TEN, err); return 1;
   }
 

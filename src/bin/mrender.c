@@ -397,7 +397,8 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   if (inside) {
     if (gageProbe(tt->gctx,
                   samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
-      sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
+      sprintf(err, "%s: gage trouble: %s (%d)", me,
+              tt->gctx->errStr, tt->gctx->errNum);
       biffAdd(MREND, err);
       return AIR_NAN;
     }

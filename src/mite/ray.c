@@ -186,7 +186,8 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
      that might appear in the txf domain */
   if (gageProbe(mtt->gctx,
                 samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
-    sprintf(err, "%s: gage trouble: %s (%d)", me, gageErrStr, gageErrNum);
+    sprintf(err, "%s: gage trouble: %s (%d)", me,
+            mtt->gctx->errStr, mtt->gctx->errNum);
     biffAdd(MITE, err); return AIR_NAN;
   }
   
