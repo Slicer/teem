@@ -250,7 +250,7 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 ** data inside the nfiber is allocated, and the tract vertices are copied
 ** into it, having been stored in dynamically allocated airArrays
 **
-** OR: pass a NULL nfiber, and a buff allocated for 2*halfBuffLen + 1
+** OR: pass a NULL nfiber, and a buff allocated for 3*(2*halfBuffLen + 1)
 ** (note the "+ 1" !!!) doubles.  The fiber tracking on each half will stop
 ** at halfBuffLen points. The given seedpoint will be stored in
 ** buff[0,1,2 + 3*halfBuffLen].  The indices for the end of the first
