@@ -58,7 +58,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   } else if (!strcmp("tensor", str)) {
     *kindP = tenGageKind;
   } else if (!strcmp("dwi", str)) {
-    *kindP = tenDWIGageKindNew();
+    *kindP = tenDwiGageKindNew();
   } else {
     sprintf(err, "%s: not \"scalar\", \"vector\", \"tensor\", or \"dwi\"", me);
     return 1;
@@ -74,7 +74,7 @@ probeParseKindDestroy(void *ptr) {
   if (ptr) {
     kind = AIR_CAST(gageKind *, ptr);
     if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
-      tenDWIGageKindNix(kind);
+      tenDwiGageKindNix(kind);
     }
   }
   return NULL;
@@ -172,6 +172,7 @@ main(int argc, char *argv[]) {
 
   /* special set-up required for DWI kind */
   if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
+#if 0
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, nin)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
@@ -188,19 +189,30 @@ main(int argc, char *argv[]) {
     if (!E) E |= nrrdCrop(ntmp, ntocrop, cropMin, cropMax);
     key = TEN;
     if (ngrad) {
-      if (!E) E |= tenDWIGageKindGradients(kind, bval, ntmp);
+      if (!E) E |= tenDwiGageKindGradients(kind, bval, ntmp);
       if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
     } else {
-      if (!E) E |= tenDWIGageKindBMatrices(kind, bval, ntmp);
+      if (!E) E |= tenDwiGageKindBMatrices(kind, bval, ntmp);
       if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
     }
-    if (!E) E |= tenDWIGageKindFitType(kind, tenDWIGageFitTypeLinear);
-    if (!E) E |= tenDWIGageKindConfThreshold(kind, 100, 0);
+    if (!E) E |= tenDwiGageKindFitType(kind, tenDwiGageFitTypeLinear);
+    if (!E) E |= tenDwiGageKindConfThreshold(kind, 100, 0);
     if (E) {
       airMopAdd(mop, err = biffGetDone(key), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting grad/bmat info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+#else
+    AIR_UNUSED(key);
+    AIR_UNUSED(ngrad);
+    AIR_UNUSED(nbmat);
+    AIR_UNUSED(ntocrop);
+    AIR_UNUSED(ntmp);
+    AIR_UNUSED(cropMin);
+    AIR_UNUSED(cropMax);
+    AIR_UNUSED(bval);
+    fprintf(stderr, "%s: sorry, tenDwiGageKind currently broken\n", me);
+#endif
   }
 
   if (_nmat) {
@@ -326,7 +338,7 @@ main(int argc, char *argv[]) {
           fprintf(stderr, 
                   "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
                   me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
-                  gageErrStr, gageErrNum);
+                  ctx->errStr, ctx->errNum);
           airMopError(mop);
           return 1;
         }
