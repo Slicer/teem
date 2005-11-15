@@ -779,11 +779,11 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
         && sx == nten->axis[1].size
         && sy == nten->axis[2].size
         && sz == nten->axis[3].size)) {
-    sprintf(err, "%s: dimensions of T2 volume (" 
+    sprintf(err, "%s: dimensions of %u-D T2 volume (" 
             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV 
             ") don't match tensor volume (" 
             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", 
-            me, sx, sy, sz, nten->axis[1].size,
+            me, nT2->dim, sx, sy, sz, nten->axis[1].size,
             nten->axis[2].size, nten->axis[3].size);
     biffAdd(TEN, err); return 1;
   }

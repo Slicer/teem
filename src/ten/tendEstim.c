@@ -44,7 +44,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
-  float thresh, soft, b, scale;
+  float thresh, soft, bval, scale;
   int dwiax, EE, knownB0, newstuff, estmeth;
   unsigned int ninLen, axmap[4];
 
@@ -94,8 +94,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "specify the B-matrix.\n  **OR**\n "
              "Can say just \"-B kvp\" to try to learn B matrices from "
              "key/value pair information in input images.");
-  hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1",
-             "additional b scaling factor ");
+  hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &bval, "1.0",
+             "\"b\" diffusion-weighting factor");
   hestOptAdd(&hopt, "knownB0", "bool",
              airTypeBool, 1, 1, &knownB0, "false",
              "Determines of the B=0 non-diffusion-weighted reference image "
@@ -154,7 +154,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-    b = bKVP;
+    bval = bKVP;
     if (ngradKVP) {
       airMopAdd(mop, ngradKVP, (airMopper)nrrdNuke, airMopAlways);
       if (tenBMatrixCalc(nbmat, ngradKVP)) {
@@ -198,10 +198,6 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   nterr = NULL;
   nB0 = NULL;
   if (newstuff) {
-    if (!(ngradKVP || nbmatKVP)) {
-      fprintf(stderr, "%s: sorry, need B info from KVP for newstuff\n", me);
-      airMopError(mop); return 1;
-    }
     if (!AIR_EXISTS(thresh)) {
       fprintf(stderr, "%s: sorry, need \"-t\" thresh set for newstuff\n", me);
       airMopError(mop); return 1;
@@ -210,12 +206,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
     EE = 0;
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
-    if (!EE) EE |= tenEstimateValueMinSet(tec, 0.1);
-    if (ngradKVP) {
-      if (!EE) EE |= tenEstimateGradientsSet(tec, ngradKVP, bKVP, !knownB0);
-    } else {
-      if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmatKVP, bKVP, !knownB0);
-    }
+    if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
+    if (!EE) EE |= tenEstimateValueMinSet(tec, 0.0001);
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
     if (!EE) EE |= tenEstimate1TensorVolume4D(tec, nout, &nB0,
@@ -232,11 +224,11 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     EE = 0;
     if (1 == ninLen) {
       EE = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               nin4d, nbmat, knownB0, thresh, soft, b);
+                               nin4d, nbmat, knownB0, thresh, soft, bval);
     } else {
       EE = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
                                (const Nrrd**)nin, ninLen, nbmat,
-                               knownB0, thresh, soft, b);
+                               knownB0, thresh, soft, bval);
     }
     if (EE) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);

@@ -38,12 +38,18 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
+  tenEstimateContext *tec;
   airArray *mop;
 
+  int E, newstuff;
   Nrrd *nin, *nT2, *nbmat, *nout;
   char *outS;
-  float b;
+  float b, sigma;
 
+  hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
+             "use the new tenEstimateContext functionality");
+  hestOptAdd(&hopt, "s", "sigma", airTypeFloat, 1, 1, &sigma, "0.0",
+             "Rician noise parameter");
   hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
              "B matrix, one row per diffusion-weighted image", 
              NULL, NULL, nrrdHestNrrd);
@@ -66,10 +72,30 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
-  if (tenSimulate(nout, nT2, nin, nbmat, b)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble making DWI volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+  if (newstuff) {
+    tec = tenEstimateContextNew();
+    airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
+    E = 0;
+    if (!E) E |= tenEstimateMethodSet(tec, tenEstimateMethodLLS);
+    if (!E) E |= tenEstimateValueMinSet(tec, 0.0001);
+    if (!E) E |= tenEstimateBMatricesSet(tec, nbmat, b, AIR_TRUE);
+    if (!E) E |= tenEstimateThresholdSet(tec, 0, 0);
+    if (!E) E |= tenEstimateUpdate(tec);
+    if (!E) E |= tenEstimate1TensorSimulateVolume(tec, 
+                                                  nout, sigma, b, 
+                                                  nT2, nin,
+                                                  nrrdTypeFloat);
+    if (E) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble making DWI volume (new):\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  } else {
+    if (tenSimulate(nout, nT2, nin, nbmat, b)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble making DWI volume:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);

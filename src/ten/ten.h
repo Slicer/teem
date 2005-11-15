@@ -607,7 +607,9 @@ typedef struct {
                               off-diagonals are *NOT* pre-multiplied by 2 */
   const float *all_f;      /* caller's list of all values (length allNum) */
   const double *all_d;     /* caller's list of all values (length allNum) */
-  int estimateMethod,      /* what kind of estimation to do */
+  int simulate,            /* if non-zero, we're being used for simulation,
+                              not estimation: be tolerant of unset parms */
+    estimateMethod,        /* what kind of estimation to do */
     estimateB0,            /* if non-zero, B0 should be estimated along with
                               rest of model. Otherwise, B0 is found by simply
                               taking average of non-Dwi images */
@@ -627,8 +629,7 @@ typedef struct {
                               and with a 7th column of -1.0 if estimateB0 */
     *nwght,                /* dwiNum x dwiNum matrix of weights */
     *nemat;                /* pseudo-inverse of nbmat */
-  double *bmat, *wght,     /* n{bmat,wght}->data */
-    *all,                  /* (copy of) vector of input values,
+  double *all,             /* (copy of) vector of input values,
                               allocated for allNum */
     *bnorm,                /* frob norm of B-matrix, allocated for allNum */
     *vbuf,                 /* for storing intermediate values,
@@ -768,10 +769,26 @@ TEN_EXPORT int tenEstimateGradientsSet(tenEstimateContext *tec,
                                        double bValue, int estimateB0);
 TEN_EXPORT int tenEstimateBMatricesSet(tenEstimateContext *tec,
                                        const Nrrd *nbmat,
-                                       double bValue, int estimteB0);
+                                       double bValue, int estimateB0);
 TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
                                        double thresh, double soft);
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
+TEN_EXPORT void tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
+                                                   float *simval,
+                                                   float sigma, float bValue,
+                                                   float B0,
+                                                   const float _ten[7]);
+TEN_EXPORT void tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
+                                                   double *simval,
+                                                   double sigma, double bValue,
+                                                   double B0,
+                                                   const double ten[7]);
+TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
+                                                Nrrd *ndwi, 
+                                                double sigma, double bValue,
+                                                const Nrrd *nB0,
+                                                const Nrrd *nten,
+                                                int outType);
 TEN_EXPORT void tenEstimate1TensorSingle_f(tenEstimateContext *tec,
                                            float ten[7], const float *all);
 TEN_EXPORT void tenEstimate1TensorSingle_d(tenEstimateContext *tec,
