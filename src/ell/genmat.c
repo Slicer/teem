@@ -46,7 +46,7 @@ ell_Nm_check(Nrrd *mat) {
 }
 
 int
-ell_Nm_tran (Nrrd *ntrn, Nrrd *nmat) {
+ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
   char me[]="ell_Nm_tran", err[AIR_STRLEN_MED];
 
   if (!( ntrn && !ell_Nm_check(nmat) )) {
@@ -74,7 +74,7 @@ ell_Nm_tran (Nrrd *ntrn, Nrrd *nmat) {
 **                  L [A] . M [B]
 */
 int
-ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
+ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   char me[]="ell_Nm_mul", err[AIR_STRLEN_MED];
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
@@ -123,7 +123,7 @@ ell_Nm_mul (Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 ** in-place LU decomposition
 */
 int
-_ell_LU_decomp (double *aa, size_t *indx, size_t NN)  {
+_ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
   char me[]="_ell_LU_decomp", err[AIR_STRLEN_MED];
   int ret=0;
   size_t ii, imax=0, jj, kk;
@@ -221,7 +221,7 @@ _ell_LU_decomp (double *aa, size_t *indx, size_t NN)  {
 ** puts the result back into b
 */
 void
-_ell_LU_back_sub (double *aa, size_t *indx, double *bb, size_t NN) {
+_ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
   size_t ii, jj;
   double sum;
 
@@ -256,7 +256,7 @@ _ell_LU_back_sub (double *aa, size_t *indx, double *bb, size_t NN) {
 ** the inverse.
 */
 int
-_ell_inv (double *inv, double *_mat, size_t NN) {
+_ell_inv(double *inv, double *_mat, size_t NN) {
   char me[]="_ell_inv", err[AIR_STRLEN_MED];
   size_t ii, jj, *indx=NULL;
   double *col=NULL, *mat=NULL;
@@ -298,7 +298,7 @@ _ell_inv (double *inv, double *_mat, size_t NN) {
 ** values in nmat.
 */
 int
-ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
+ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
   char me[]="ell_Nm_inv", err[AIR_STRLEN_MED];
   double *mat, *inv;
   size_t NN;
@@ -339,7 +339,7 @@ ell_Nm_inv (Nrrd *ninv, Nrrd *nmat) {
 ** general solution
 */
 int
-ell_Nm_pseudo_inv (Nrrd *ninv, Nrrd *nA) {
+ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
   char me[]="ell_Nm_pseudo_inv", err[AIR_STRLEN_MED];
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
@@ -361,6 +361,40 @@ ell_Nm_pseudo_inv (Nrrd *ninv, Nrrd *nA) {
   
  seeya:
   nrrdNuke(nAt); nrrdNuke(nAtA); nrrdNuke(nAtAi);
+  return ret;
+}
+
+/*
+******** ell_Nm_wght_pseudo_inv()
+**
+** determines a weighted least squares solution via
+** P = (A^T * W * A)^(-1) * A^T * W
+*/
+int
+ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
+  char me[]="ell_Nm_wght_pseudo_inv", err[AIR_STRLEN_MED];
+  Nrrd *nAt, *nAtW, *nAtWA, *nAtWAi;
+  int ret=0;
+  
+  if (!( ninv && !ell_Nm_check(nA) && !ell_Nm_check(nW) )) {
+    sprintf(err, "%s: NULL or invalid args", me);
+    biffAdd(ELL, err); return 1;
+  }
+  nAt = nrrdNew();
+  nAtW = nrrdNew();
+  nAtWA = nrrdNew();
+  nAtWAi = nrrdNew();
+  if (ell_Nm_tran(nAt, nA)
+      || ell_Nm_mul(nAtW, nAt, nW)
+      || ell_Nm_mul(nAtWA, nAtW, nA)
+      || ell_Nm_inv(nAtWAi, nAtWA)
+      || ell_Nm_mul(ninv, nAtWAi, nAtW)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(ELL, err); ret = 1; goto seeya;
+  }
+  
+ seeya:
+  nrrdNuke(nAt); nrrdNuke(nAtW); nrrdNuke(nAtWA); nrrdNuke(nAtWAi);
   return ret;
 }
 
