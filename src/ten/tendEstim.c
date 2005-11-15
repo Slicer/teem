@@ -45,7 +45,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
   float thresh, soft, bval, scale;
-  int dwiax, EE, knownB0, newstuff, estmeth;
+  int dwiax, EE, knownB0, newstuff, estmeth, verbose;
   unsigned int ninLen, axmap[4];
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
@@ -55,6 +55,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
              "use the new tenEstimateContext functionality");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
+             "verbosity level");
   hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
              "lls",
              "estimation method to use",
@@ -203,11 +205,12 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     tec = tenEstimateContextNew();
+    tec->verbose = verbose;
     airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
     EE = 0;
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
-    if (!EE) EE |= tenEstimateValueMinSet(tec, 0.0001);
+    if (!EE) EE |= tenEstimateValueMinSet(tec, DBL_MIN);
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
     if (!EE) EE |= tenEstimate1TensorVolume4D(tec, nout, &nB0,

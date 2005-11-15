@@ -41,15 +41,17 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenEstimateContext *tec;
   airArray *mop;
 
-  int E, newstuff;
+  int E, newstuff, seed;
   Nrrd *nin, *nT2, *nbmat, *nout;
   char *outS;
   float b, sigma;
 
   hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
              "use the new tenEstimateContext functionality");
-  hestOptAdd(&hopt, "s", "sigma", airTypeFloat, 1, 1, &sigma, "0.0",
+  hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "0.0",
              "Rician noise parameter");
+  hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
+             "seed value for RNG which creates noise");
   hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, NULL,
              "B matrix, one row per diffusion-weighted image", 
              NULL, NULL, nrrdHestNrrd);
@@ -73,6 +75,7 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
   if (newstuff) {
+    airSrandMT(seed);
     tec = tenEstimateContextNew();
     airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
     E = 0;

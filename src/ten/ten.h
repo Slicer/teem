@@ -619,21 +619,21 @@ typedef struct {
     recordLikelihood,
     verbose;               /* blah blah blah */
   /* internal -------- */
+  /* a "dwi" in here is basically any value (diffusion-weighted or not)
+     that varies as a function of the model parameters being estimated */
   int flag[128];           /* flags for state management */
   unsigned int allNum,     /* total number of images (Dwi and non-Dwi) */
-    dwiNum,                /* number of Dwis */
-    *dwiIdxMap;            /* mapping from all indices to dwi indices,
-                              allocated for allNum */
-  Nrrd *nbmat,             /* B-matrices for the Dwis (and NOT the non-Dwis),
-                              with off-diagonals (*YES*) pre-multiplied by 2,
+    dwiNum;                /* number of Dwis */
+  Nrrd *nbmat,             /* B-matrices (dwiNum of them) for the Dwis, with
+                              off-diagonals (*YES*) pre-multiplied by 2,
                               and with a 7th column of -1.0 if estimateB0 */
     *nwght,                /* dwiNum x dwiNum matrix of weights */
     *nemat;                /* pseudo-inverse of nbmat */
   double *all,             /* (copy of) vector of input values,
                               allocated for allNum */
     *bnorm,                /* frob norm of B-matrix, allocated for allNum */
-    *vbuf,                 /* for storing intermediate values,
-                              allocated for allNum */
+    *allTmp, *dwiTmp,      /* for storing intermediate values,
+                              allocated for allNum and dwiNum respectively */
     *dwi,                  /* the Dwi values, allocated for dwiNum */
     time0;                 /* start time */
   /* output ---------- */
