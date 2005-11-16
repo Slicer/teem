@@ -108,8 +108,7 @@ _tenRician(double m /* measured */,
   double ret, scl;
   
   if (t > 0 && s > 0 && 
-      /*      ((t/s > 10) || (AIR_ABS(m - t)/s > 6 ))) { */
-      (t/s > 10)) {
+      ((t/s > 6) || (AIR_ABS(m-t)/s > 6))) {
     ret = exp(-(m - t)*(m - t)/(2*s*s))/(s*sqrt(2*AIR_PI));
   } else {
     scl = (m/s)*exp(-(m*m/s + t*t/s)/(2*s));
@@ -520,7 +519,7 @@ _tenEstimateDwiAllocUpdate(tenEstimateContext *tec) {
       sprintf(err, "%s: couldn't allocate dwi nrrds", me);
       biffMove(TEN, err, NRRD); return 1;
     }
-    nrrdSave("0-nbmat.txt", tec->nbmat, NULL);
+    /* nrrdSave("0-nbmat.txt", tec->nbmat, NULL); */
     tec->flag[flagDwiAlloc] = AIR_TRUE;
   }
   return 0;
@@ -621,8 +620,10 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
         biffMove(TEN, err, ELL); return 1;
       }
     }
+    /*
     nrrdSave("nbmat.txt", tec->nbmat, NULL);
     nrrdSave("nemat.txt", tec->nemat, NULL);
+    */
     
     tec->flag[flagDwiSet] = AIR_FALSE;
     tec->flag[flagWght] = AIR_FALSE;
@@ -962,16 +963,19 @@ void
 _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   char me[]="_tenEstimate1Tensor_WLS";
   unsigned int dwiIdx;
-  double *wght;
+  double *wght, dwi;
 
   wght = AIR_CAST(double *, tec->nwght->data);
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    wght[dwiIdx + tec->dwiNum*dwiIdx] = tec->dwi[dwiIdx]*tec->dwi[dwiIdx];
+    dwi = AIR_MAX(FLT_MIN, tec->dwi[dwiIdx]);
+    wght[dwiIdx + tec->dwiNum*dwiIdx] = dwi*dwi;
   }
+  /* nrrdSave("the-nbmat.txt", tec->nbmat, NULL); */
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
-    sprintf(tec->errStr, "%s: trouble pseudo-inverting %ux%u B-matrix", me,
-            AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-            AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
+    sprintf(tec->errStr, "%s: trouble wght-pseudo-inverting %ux%u B-matrix:\n"
+            "%s", me, AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
+            AIR_CAST(unsigned int, tec->nbmat->axis[0].size),
+            biffGet(ELL));
     tec->errNum = 1;
     return;
   }
@@ -1036,7 +1040,13 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
     sprintf(tec->errStr, "%s: never found a usable step size", me);
     tec->errNum = 1;
     */
+    /* HEY: for MLE sometimes it seems we nail the minima, 
+       in which case this isn't an error, maybe ? 
     tec->ten[0] = 0;
+    */
+    ELL_6V_COPY(tec->ten+1, currTen+1);
+    tec->B0 = currB0;
+    tec->ten[0] = 0.93;  /* a little reminder */
     return;
   }
 
@@ -1150,7 +1160,7 @@ _tenEstimate1Tensor_StepMLE(tenEstimateContext *tec, double stepTen[7],
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
     dwi = tec->dwi[dwiIdx];
     dot = ELL_6V_DOT(bmat, currTen+1);
-    barg = exp(-bval*dot)*(dwi/sigma)*(currB0/sigma);
+     barg = exp(-bval*dot)*(dwi/sigma)*(currB0/sigma);
     tmp = (exp(bval*dot)/sigma)*dwi/_tenBesselI0(barg);
     if (tec->verbose) {
       fprintf(stderr, "%s[%u]: dot = %g, barg = %g, tmp = %g\n", me, dwiIdx,
@@ -1296,9 +1306,9 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
     break;
   case tenEstimateMethodMLE:
     _tenEstimate1Tensor_MLE(tec);
-    /*
+
     tec->ten[0] = _tenEstimate1Tensor_BadnessMLE(tec, tec->B0, tec->ten);
-    */
+
     break;
   default:
     sprintf(tec->errStr, "%s: estimation method %d unknown!",
@@ -1458,8 +1468,18 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   NN = sizeX * sizeY * sizeZ;
   lup = nrrdDLookup[ndwi->type];
   ins = nrrdDInsert[outType];
+  /*
+  fprintf(stderr, "%s: ", me); 
+  fflush(stderr);
+  */
   for (II=0; II<NN; II++) {
-    tec->verbose = (0 == II);
+    /*
+    fprintf(stderr, " %u/%u", AIR_CAST(unsigned int, II),
+            AIR_CAST(unsigned int, NN));
+    fflush(stderr);
+    */
+    tec->verbose = (0 && 35 == II);
+
     for (dd=0; dd<tec->allNum; dd++) {
       all[dd] = lup(ndwi->data, dd + tec->allNum*II);
     }
