@@ -1483,7 +1483,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   fprintf(stderr, "%s:       ", me); 
   fflush(stderr);
   for (II=0; II<NN; II++) {
-    if (0 == II%50) {
+    if (0 == II%1000) {
       fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
     }
     tec->verbose = (0 && 35 == II);
