@@ -155,8 +155,8 @@ double _nrrdUnaryOpRand(double a) {
   return airDrandMT();
 }
 double _nrrdUnaryOpNormalRand(double a) {
-  AIR_UNUSED(a);
   double v;
+  AIR_UNUSED(a);
   airNormalRand(&v, NULL);
   return v;
 }
