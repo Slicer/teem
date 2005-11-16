@@ -993,7 +993,7 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   return;
 }
 
-void
+int
 _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
                             double (*stepCB)(tenEstimateContext *tec,
                                              double stepTen[7],
@@ -1010,7 +1010,11 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
   /* start with WLS fit since its probably closer than LLS */
   _tenEstimate1Tensor_WLS(tec);
   
-  badInit = badnessCB(tec, tec->B0, tec->ten); 
+  badInit = badnessCB(tec, tec->B0, tec->ten);
+  if (!AIR_EXISTS(badInit)) {
+    tec->ten[0] = 0;
+    return 1;
+  }
   if (tec->verbose) {
     fprintf(stderr, "\n%s: ________________________________________\n", me);
     fprintf(stderr, "%s: start: badInit = %g ---------------\n", me, badInit);
@@ -1020,7 +1024,7 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
 
   if (!AIR_EXISTS(stepB0)) {
     tec->ten[0] = 0;
-    return;
+    return 1;
   }
 
   stepSize = 0.1;
@@ -1047,7 +1051,7 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
     ELL_6V_COPY(tec->ten+1, currTen+1);
     tec->B0 = currB0;
     tec->ten[0] = 0.93;  /* a little reminder */
-    return;
+    return 0;
   }
 
   iter = 0;
@@ -1057,7 +1061,7 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
     stepB0 = stepCB(tec, stepTen, currB0, currTen);
     if (!AIR_EXISTS(stepB0)) {
       tec->ten[0] = 0;
-      return;
+      return 1;
     }
     TEN_T_COPY(lastTen, currTen);
     lastB0 = currB0;
@@ -1088,6 +1092,7 @@ _tenEstimate1Tensor_Descent(tenEstimateContext *tec,
   ELL_6V_COPY(tec->ten+1, currTen+1);
   tec->B0 = currB0;
 
+  return 0;
 }
                             
 double
@@ -1160,7 +1165,7 @@ _tenEstimate1Tensor_StepMLE(tenEstimateContext *tec, double stepTen[7],
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
     dwi = tec->dwi[dwiIdx];
     dot = ELL_6V_DOT(bmat, currTen+1);
-     barg = exp(-bval*dot)*(dwi/sigma)*(currB0/sigma);
+    barg = exp(-bval*dot)*(dwi/sigma)*(currB0/sigma);
     tmp = (exp(bval*dot)/sigma)*dwi/_tenBesselI0(barg);
     if (tec->verbose) {
       fprintf(stderr, "%s[%u]: dot = %g, barg = %g, tmp = %g\n", me, dwiIdx,
@@ -1255,7 +1260,7 @@ _tenEstimate1Tensor_BadnessMLE(tenEstimateContext *tec,
               rice, logrice);
       fprintf(stderr, "%s[%u]: loglike = %g DOES NOT EXIST\n", 
               me, dwiIdx, loglike);
-      exit(0);
+      return AIR_NAN;
     }
     bmat += tec->nbmat->axis[0].size;
   }
@@ -1271,8 +1276,14 @@ _tenEstimate1Tensor_MLE(tenEstimateContext *tec) {
   /* char me[]="_tenEstimate1Tensor_MLE"; */
 
   /* fprintf(stderr, "%s -----------------------------------\n", me); */
-  _tenEstimate1Tensor_Descent(tec, _tenEstimate1Tensor_StepMLE,
-                              _tenEstimate1Tensor_BadnessMLE);
+  if (_tenEstimate1Tensor_Descent(tec, _tenEstimate1Tensor_StepMLE,
+                                  _tenEstimate1Tensor_BadnessMLE)) {
+    TEN_T_SET(tec->ten, AIR_NAN, 
+              AIR_NAN, AIR_NAN, AIR_NAN, 
+              AIR_NAN, AIR_NAN, 
+              AIR_NAN);
+    tec->B0 = AIR_NAN;
+  }
 
   return;
 }
@@ -1306,9 +1317,9 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
     break;
   case tenEstimateMethodMLE:
     _tenEstimate1Tensor_MLE(tec);
-
+    /*
     tec->ten[0] = _tenEstimate1Tensor_BadnessMLE(tec, tec->B0, tec->ten);
-
+    */
     break;
   default:
     sprintf(tec->errStr, "%s: estimation method %d unknown!",
@@ -1370,6 +1381,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
                            Nrrd *nten, Nrrd **nB0P, Nrrd **nterrP,
                            const Nrrd *ndwi, int outType) {
   char me[]="tenEstimate1TensorVolume4D", err[AIR_STRLEN_MED];
+  char doneStr[20];
   size_t sizeTen, sizeX, sizeY, sizeZ, NN, II;
   double *all, ten[7], (*lup)(const void *, size_t),
     (*ins)(void *v, size_t I, double d);
@@ -1468,16 +1480,10 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   NN = sizeX * sizeY * sizeZ;
   lup = nrrdDLookup[ndwi->type];
   ins = nrrdDInsert[outType];
-  /*
-  fprintf(stderr, "%s: ", me); 
+  fprintf(stderr, "%s:       ", me); 
   fflush(stderr);
-  */
   for (II=0; II<NN; II++) {
-    /*
-    fprintf(stderr, " %u/%u", AIR_CAST(unsigned int, II),
-            AIR_CAST(unsigned int, NN));
-    fflush(stderr);
-    */
+    fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
     tec->verbose = (0 && 35 == II);
 
     for (dd=0; dd<tec->allNum; dd++) {
@@ -1511,6 +1517,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
       ins((*nterrP)->data, II, tec->errorDwi);
     }
   }
+  fprintf(stderr, "%s\n", airDoneStr(0, II, NN-1, doneStr));
 
   ELL_4V_SET(axmap, -1, 1, 2, 3);
   nrrdAxisInfoCopy(nten, ndwi, axmap, NRRD_AXIS_INFO_NONE);
