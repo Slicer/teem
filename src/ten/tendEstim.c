@@ -44,7 +44,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
-  float thresh, soft, bval, scale;
+  float thresh, soft, bval, scale, sigma;
   int dwiax, EE, knownB0, newstuff, estmeth, verbose;
   unsigned int ninLen, axmap[4];
 
@@ -55,6 +55,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
              "use the new tenEstimateContext functionality");
+  hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
+             "Rician noise parameter");
   hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
   hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
@@ -211,6 +213,15 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, DBL_MIN);
+    if (tenEstimateMethodMLE == estmeth) {
+      if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
+        fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
+                me, airEnumStr(tenEstimateMethod, tenEstimateMethodMLE),
+                sigma);
+        airMopError(mop); return 1;
+      }
+    }
+    if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
     if (!EE) EE |= tenEstimate1TensorVolume4D(tec, nout, &nB0,
