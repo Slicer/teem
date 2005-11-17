@@ -88,9 +88,9 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
   hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 
-             &(tgparm->minMeanImprovement), "0.00001",
+             &(tgparm->minMeanImprovement), "0.00005",
              "in the second phase of the algorithm, "
-             "when stochastically optimizing the balance of gradients, "
+             "when stochastically balancing the sign of the gradients, "
              "the (small) improvement in length of mean gradient "
              "which triggers termination (as further improvements "
              "are unlikely. ");

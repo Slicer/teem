@@ -224,14 +224,18 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
-    if (!EE) EE |= tenEstimate1TensorVolume4D(tec, nout, &nB0,
-                                              airStrlen(terrS) 
-                                              ? &nterr 
-                                              : NULL, 
-                                              nin4d, nrrdTypeFloat);
     if (EE) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting up estimation:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    if (tenEstimate1TensorVolume4D(tec, nout, &nB0,
+                                   airStrlen(terrS) 
+                                   ? &nterr 
+                                   : NULL, 
+                                   nin4d, nrrdTypeFloat)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
   } else {

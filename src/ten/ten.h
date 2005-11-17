@@ -617,7 +617,8 @@ typedef struct {
     recordErrorDwi,
     recordErrorLogDwi,
     recordLikelihood,
-    verbose;               /* blah blah blah */
+    verbose,               /* blah blah blah */
+    progress;
   /* internal -------- */
   /* a "dwi" in here is basically any value (diffusion-weighted or not)
      that varies as a function of the model parameters being estimated */
@@ -645,8 +646,6 @@ typedef struct {
     errorDwi,              /* error in Dwi of estimate */
     errorLogDwi,           /* error in log(Dwi) of estimate */
     likelihood;            /* the maximized likelihood */
-  char errStr[AIR_STRLEN_LARGE];  /* light-weight error reporting */
-  int errNum;
 } tenEstimateContext;
 
 /* defaultsTen.c */
@@ -773,26 +772,26 @@ TEN_EXPORT int tenEstimateBMatricesSet(tenEstimateContext *tec,
 TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
                                        double thresh, double soft);
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
-TEN_EXPORT void tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
-                                                   float *simval,
-                                                   float sigma, float bValue,
-                                                   float B0,
-                                                   const float _ten[7]);
-TEN_EXPORT void tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
-                                                   double *simval,
-                                                   double sigma, double bValue,
-                                                   double B0,
-                                                   const double ten[7]);
+TEN_EXPORT int tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
+                                                  float *simval,
+                                                  float sigma, float bValue,
+                                                  float B0,
+                                                  const float _ten[7]);
+TEN_EXPORT int tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
+                                                  double *simval,
+                                                  double sigma, double bValue,
+                                                  double B0,
+                                                  const double ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                                 Nrrd *ndwi, 
                                                 double sigma, double bValue,
                                                 const Nrrd *nB0,
                                                 const Nrrd *nten,
                                                 int outType);
-TEN_EXPORT void tenEstimate1TensorSingle_f(tenEstimateContext *tec,
-                                           float ten[7], const float *all);
-TEN_EXPORT void tenEstimate1TensorSingle_d(tenEstimateContext *tec,
-                                           double ten[7], const double *all);
+TEN_EXPORT int tenEstimate1TensorSingle_f(tenEstimateContext *tec,
+                                          float ten[7], const float *all);
+TEN_EXPORT int tenEstimate1TensorSingle_d(tenEstimateContext *tec,
+                                          double ten[7], const double *all);
 TEN_EXPORT int tenEstimate1TensorVolume4D(tenEstimateContext *tec,
                                           Nrrd *nten,
                                           Nrrd **nB0P, Nrrd **nterrP,
