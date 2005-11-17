@@ -6,6 +6,7 @@ ADD_LIBRARY(ten
   defaultsTen.c
   enumsTen.c
   epireg.c
+  estimate.c
   fiber.c
   fiberMethods.c
   glyph.c
