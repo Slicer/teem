@@ -46,6 +46,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "R",
   "S",
   "Skew",
+  "Mode",
   "Th",
   "Cz",
   "Det",

@@ -276,7 +276,7 @@ tenDwiGageKindDataNew() {
     ret->nemat = nrrdNew();
   }
   return ret;
-#endif 0
+#endif
   return NULL;
 }
 

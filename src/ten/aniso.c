@@ -231,6 +231,19 @@ double _tenAnisoEval_Skew_d(const double eval[3]) {
   return _tenAnisoEval_R_d(eval)/(DBL_EPSILON + sqrt(2*Q*Q*Q));
 }
 
+float  _tenAnisoEval_Mode_f(const float  e[3]) {
+  float n, d;
+  n = (e[0] + e[1] - 2*e[2])*(2*e[0] - e[1] - e[2])*(e[0] - 2*e[1] + e[2]);
+  d = sqrt(e[0]*e[0]+e[1]*e[1]+e[2]*e[2] - e[0]*e[1]-e[1]*e[2]-e[0]*e[2]);
+  return n/(FLT_EPSILON + 2*d*d*d);
+}
+double _tenAnisoEval_Mode_d(const double e[3]) {
+  double n, d;
+  n = (e[0] + e[1] - 2*e[2])*(2*e[0] - e[1] - e[2])*(e[0] - 2*e[1] + e[2]);
+  d = sqrt(e[0]*e[0]+e[1]*e[1]+e[2]*e[2] - e[0]*e[1]-e[1]*e[2]-e[0]*e[2]);
+  return n/(DBL_EPSILON + 2*d*d*d);
+}
+
 float  _tenAnisoEval_Th_f(const float  eval[3]) {
   return acos(sqrt(2)*_tenAnisoEval_Skew_f(eval))/3;
 }
@@ -292,6 +305,7 @@ float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
   _tenAnisoEval_R_f,
   _tenAnisoEval_S_f,
   _tenAnisoEval_Skew_f,
+  _tenAnisoEval_Mode_f,
   _tenAnisoEval_Th_f,
   _tenAnisoEval_Cz_f,
   _tenAnisoEval_Det_f,
@@ -321,6 +335,7 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   _tenAnisoEval_R_d,
   _tenAnisoEval_S_d,
   _tenAnisoEval_Skew_d,
+  _tenAnisoEval_Mode_d,
   _tenAnisoEval_Th_d,
   _tenAnisoEval_Cz_d,
   _tenAnisoEval_Det_d,
@@ -353,13 +368,16 @@ tenAnisoEval_d(const double eval[3], int aniso) {
 ** calculates the anisotropy coefficients of Westin et al.,
 ** as well as various others.
 **
+** NOTE: with time, so many metrics have ended up here that under
+** no cases should this be used in any kind of time-critical operations
+**
 ** This does NOT use biff.  
 */
 void
 tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   float e0, e1, e2, stdv, mean, sum, cl, cp, ca, ra, fa, vf, denom;
 
-  float A, B, C, R, Q;
+  float A, B, C, R, Q, N, D;
 
   if (!( e[0] >= e[1] && e[1] >= e[2] )) {
     fprintf(stderr, "tenAnisoCalc_f: eigen values not sorted: "
@@ -420,6 +438,9 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   R = c[tenAniso_R] = (-2*A*A*A + 9*A*B - 27*C)/54;
   c[tenAniso_S] = e0*e0 + e1*e1 + e2*e2;
   c[tenAniso_Skew] = R/(FLT_EPSILON + sqrt(2*Q*Q*Q));
+  N = (e0 + e1 - 2*e2)*(2*e0 - e1 - e2)*(e0 - 2*e1 + e2);
+  D = sqrt(e0*e0+e1*e1+e2*e2 - e0*e1-e1*e2-e0*e2);
+  c[tenAniso_Mode] = N/(FLT_EPSILON + 2*D*D*D);
   c[tenAniso_Th] = acos(AIR_CLAMP(-1, sqrt(2)*c[tenAniso_Skew], 1))/3;
   c[tenAniso_Cz] = ((e0 + e1)/(FLT_EPSILON + e2) 
                     + (e1 + e2)/(FLT_EPSILON + e0) 

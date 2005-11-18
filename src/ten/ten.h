@@ -68,35 +68,36 @@ extern "C" {
 ** enumsTen.c: tenAniso  
 */
 enum {
-  tenAnisoUnknown,    /*  0: nobody knows */
-  tenAniso_Cl1,       /*  1: Westin's linear (first version) */
-  tenAniso_Cp1,       /*  2: Westin's planar (first version) */
-  tenAniso_Ca1,       /*  3: Westin's linear + planar (first version) */
-  tenAniso_Cs1,       /*  4: Westin's spherical (first version) */
-  tenAniso_Ct1,       /*  5: gk's anisotropy type (first version) */
-  tenAniso_Cl2,       /*  6: Westin's linear (second version) */
-  tenAniso_Cp2,       /*  7: Westin's planar (second version) */
-  tenAniso_Ca2,       /*  8: Westin's linear + planar (second version) */
-  tenAniso_Cs2,       /*  9: Westin's spherical (second version) */
-  tenAniso_Ct2,       /* 10: gk's anisotropy type (second version) */
-  tenAniso_RA,        /* 11: Bass+Pier's relative anisotropy */
-  tenAniso_FA,        /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
-  tenAniso_VF,        /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_B,         /* 14: linear term in cubic characteristic polynomial */
-  tenAniso_Q,         /* 15: radius of root circle is 2*sqrt(Q) */
-  tenAniso_R,         /* 16: half of third moment of eigenvalues */
-  tenAniso_S,         /* 17: frobenius norm, squared */
-  tenAniso_Skew,      /* 18: R/sqrt(2*Q^3) */
-  tenAniso_Th,        /* 19: acos(sqrt(2)*skew)/3 */
-  tenAniso_Cz,        /* 20: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Det,       /* 21: plain old determinant */
-  tenAniso_Tr,        /* 22: plain old trace */
-  tenAniso_eval0,     /* 23: largest eigenvalue */
-  tenAniso_eval1,     /* 24: middle eigenvalue */
-  tenAniso_eval2,     /* 25: smallest eigenvalue */
+  tenAnisoUnknown, /*  0: nobody knows */
+  tenAniso_Cl1,    /*  1: Westin's linear (first version) */
+  tenAniso_Cp1,    /*  2: Westin's planar (first version) */
+  tenAniso_Ca1,    /*  3: Westin's linear + planar (first version) */
+  tenAniso_Cs1,    /*  4: Westin's spherical (first version) */
+  tenAniso_Ct1,    /*  5: gk's anisotropy type (first version) */
+  tenAniso_Cl2,    /*  6: Westin's linear (second version) */
+  tenAniso_Cp2,    /*  7: Westin's planar (second version) */
+  tenAniso_Ca2,    /*  8: Westin's linear + planar (second version) */
+  tenAniso_Cs2,    /*  9: Westin's spherical (second version) */
+  tenAniso_Ct2,    /* 10: gk's anisotropy type (second version) */
+  tenAniso_RA,     /* 11: Bass+Pier's relative anisotropy */
+  tenAniso_FA,     /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
+  tenAniso_VF,     /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
+  tenAniso_B,      /* 14: linear term in cubic characteristic polynomial */
+  tenAniso_Q,      /* 15: radius of root circle is 2*sqrt(Q) */
+  tenAniso_R,      /* 16: half of third moment of eigenvalues */
+  tenAniso_S,      /* 17: frobenius norm, squared */
+  tenAniso_Skew,   /* 18: R/sqrt(2*Q^3) */
+  tenAniso_Mode,   /* 19: 3*sqrt(6)*det(dev)/norm(dev) = sqrt(2)*skew */
+  tenAniso_Th,     /* 20: acos(sqrt(2)*skew)/3 */
+  tenAniso_Cz,     /* 21: Zhukov's invariant-based anisotropy metric */
+  tenAniso_Det,    /* 22: plain old determinant */
+  tenAniso_Tr,     /* 23: plain old trace */
+  tenAniso_eval0,  /* 24: largest eigenvalue */
+  tenAniso_eval1,  /* 25: middle eigenvalue */
+  tenAniso_eval2,  /* 26: smallest eigenvalue */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX    25
+#define TEN_ANISO_MAX 26
 
 /*
 ******** tenGlyphType* enum
