@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
   int xi, yi, zi, sz;
   float *tdata;
   double q[4];
-  double mD[9], mRF[9], mRI[9], mT[9], ca, len;
+  double mD[9], mRF[9], mRI[9], mT[9], eval[3], len;
   Nrrd *nten;
   size_t size[4];
   mop = airMopNew();
@@ -69,8 +69,8 @@ main(int argc, char *argv[]) {
   me = argv[0];
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &sz, "4",
              "number of samples along each edge of cube");
-  hestOptAdd(&hopt, "cl", "anisotropy", airTypeDouble, 1, 1, &ca, "0.8",
-             "anisotropy to use throughout volume");
+  hestOptAdd(&hopt, "eval", "l1 l2 l3", airTypeDouble, 3, 3, eval, "0.8 0.1 0.1",
+             "eigenvalues");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -105,7 +105,7 @@ main(int argc, char *argv[]) {
         ELL_3M_TRANSPOSE(mRI, mRF);
 
         ELL_3M_IDENTITY_SET(mD);
-        ELL_3M_DIAG_SET(mD, 1, 0.2, 0.2);
+        ELL_3M_DIAG_SET(mD, eval[0], eval[1], eval[2]);
         ELL_3M_IDENTITY_SET(mT);
         ell_3m_post_mul_d(mT, mRI);
         ell_3m_post_mul_d(mT, mD);
