@@ -630,7 +630,8 @@ typedef struct {
                               and with a 7th column of -1.0 if estimateB0 */
     *nwght,                /* dwiNum x dwiNum matrix of weights */
     *nemat;                /* pseudo-inverse of nbmat */
-  double *all,             /* (copy of) vector of input values,
+  double knownB0,          /* B0 known from DWI, only if !estimateB0 */
+    *all,                  /* (copy of) vector of input values,
                               allocated for allNum */
     *bnorm,                /* frob norm of B-matrix, allocated for allNum */
     *allTmp, *dwiTmp,      /* for storing intermediate values,
@@ -638,7 +639,7 @@ typedef struct {
     *dwi,                  /* the Dwi values, allocated for dwiNum */
     time0;                 /* start time */
   /* output ---------- */
-  double B0,               /* non-Dwi value, either known or estimated */
+  double estimatedB0,      /* estimated non-Dwi value, only if estimateB0 */
     ten[7],                /* the estimated single tensor */
     conf,                  /* the "confidence" mask value (i.e. ten[0]) */
     mdwi,                  /* mean Dwi value (used for conf mask calc) */
@@ -774,13 +775,11 @@ TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
 TEN_EXPORT int tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
                                                   float *simval,
-                                                  float sigma, float bValue,
-                                                  float B0,
+                                                  float sigma, float bValue, float B0,
                                                   const float _ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
                                                   double *simval,
-                                                  double sigma, double bValue,
-                                                  double B0,
+                                                  double sigma, double bValue, double B0,
                                                   const double ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                                 Nrrd *ndwi, 

@@ -252,7 +252,7 @@ enum {
 void
 _tenEstimateOutputInit(tenEstimateContext *tec) {
 
-  tec->B0 = AIR_NAN;
+  tec->estimatedB0 = AIR_NAN;
   TEN_T_SET(tec->ten, AIR_NAN,
             AIR_NAN, AIR_NAN, AIR_NAN,
             AIR_NAN, AIR_NAN,
@@ -298,6 +298,7 @@ tenEstimateContextNew() {
     tec->nbmat = nrrdNew();
     tec->nwght = nrrdNew();
     tec->nemat = nrrdNew();
+    tec->knownB0 = AIR_NAN;
     tec->all = NULL;
     tec->bnorm = NULL;
     tec->allTmp = NULL;
@@ -762,7 +763,7 @@ tenEstimateUpdate(tenEstimateContext *tec) {
 ** from given tec->all_f or tec->all_d (whichever is non-NULL), sets:
 ** tec->all[],
 ** tec->dwi[]
-** tec->B0, if !tec->estimateB0, 
+** tec->knownB0, if !tec->estimateB0, 
 ** tec->mdwi,
 ** tec->conf (from tec->mdwi)
 */
@@ -772,7 +773,9 @@ _tenEstimateValuesSet(tenEstimateContext *tec) {
   double normSum;
 
   if (!tec->estimateB0) {
-    tec->B0 = 0;
+    tec->knownB0 = 0;
+  } else {
+    tec->knownB0 = AIR_NAN;
   }
   normSum = 0;
   tec->mdwi = 0;
@@ -787,12 +790,12 @@ _tenEstimateValuesSet(tenEstimateContext *tec) {
     if (tec->estimateB0 || tec->bnorm[allIdx]) {
       tec->dwi[dwiIdx++] = tec->all[allIdx];
     } else {
-      tec->B0 += tec->all[allIdx];
+      tec->knownB0 += tec->all[allIdx];
       B0Num += 1;
     }
   }
   if (!tec->estimateB0) {
-    tec->B0 /= B0Num;
+    tec->knownB0 /= B0Num;
   }
   tec->mdwi /= normSum;
   if (tec->dwiConfSoft > 0) {
@@ -818,6 +821,7 @@ _tenEstimateErrorDwi(tenEstimateContext *tec) {
     diff = tec->dwi[dwiIdx] - tec->dwiTmp[dwiIdx];
     err += diff*diff;
   }
+  err /= tec->dwiNum;
   return err;
 }
 double
@@ -827,10 +831,10 @@ _tenEstimateErrorLogDwi(tenEstimateContext *tec) {
   
   err = 0;
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    diff = (log(AIR_MAX(tec->valueMin, tec->dwi[dwiIdx])) -
-            log(AIR_MAX(tec->valueMin, tec->dwiTmp[dwiIdx])));
+    diff = log(tec->dwi[dwiIdx]) - log(tec->dwiTmp[dwiIdx]);
     err += diff*diff;
   }
+  err /= tec->dwiNum;
   return err;
 }
 
@@ -838,35 +842,66 @@ _tenEstimateErrorLogDwi(tenEstimateContext *tec) {
 ** sets:
 ** tec->dwiTmp[]
 */
-void
+int
 _tenEstimate1TensorSimulateSingle(tenEstimateContext *tec,
                                   double sigma, double bValue, double B0,
                                   const double ten[7]) {
+  char me[]="_tenEstimate1TensorSimulateSingle", err[AIR_STRLEN_MED];
   unsigned int dwiIdx, jj;
   double nr, ni, vv;
   const double *bmat;
 
+  if (!( ten && ten )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( AIR_EXISTS(sigma) && sigma >= 0 
+         && AIR_EXISTS(bValue) && AIR_EXISTS(B0) )) {
+    sprintf(err, "%s: got bad args: sigma %g, bValue %g, B0 %g\n", me,
+            sigma, bValue, B0);
+    biffAdd(TEN, err); return 1;
+  }
+
   bmat = AIR_CAST(const double *, tec->nbmat->data);
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    if (!ten[0]) {
-      tec->dwiTmp[dwiIdx] = B0;
-    } else {
-      vv = 0;
-      for (jj=0; jj<6; jj++) {
-        vv += bmat[jj]*ten[1+jj];
-      }
-      vv = B0*exp(-bValue*vv);
-      if (sigma > 0) {
-        airNormalRand(&nr, &ni);
-        nr *= sigma;
-        ni *= sigma;
-        vv = sqrt((vv+nr)*(vv+nr) + ni*ni);
-      }
-      tec->dwiTmp[dwiIdx] = vv;
+    vv = 0;
+    for (jj=0; jj<6; jj++) {
+      vv += bmat[jj]*ten[1+jj];
     }
+    /*
+    fprintf(stderr, "!%s: sigma = %g, bValue = %g, B0 = %g\n", me,
+            sigma, bValue, B0);
+    fprintf(stderr, "!%s[%u]: bmat=(%g %g %g %g %g %g).ten=(%g %g %g %g %g %g)\n",
+            me, dwiIdx, 
+            bmat[0], bmat[1], bmat[2], bmat[3], bmat[4], bmat[5],
+            ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
+    fprintf(stderr, "!%s: %g * exp(- %g * %g) = %g * exp(%g) = %g * %g = ... \n", me,
+            B0, bValue, vv, B0, -bValue*vv, B0, exp(-bValue*vv));
+    */
+    /* need AIR_MAX(0, vv) because B:D might be negative */
+    vv = B0*exp(-bValue*AIR_MAX(0, vv));
+    /*
+    fprintf(stderr, "!%s: vv = %g\n", me, vv);
+    */
+    if (sigma > 0) {
+      airNormalRand(&nr, &ni);
+      nr *= sigma;
+      ni *= sigma;
+      vv = sqrt((vv+nr)*(vv+nr) + ni*ni);
+    }
+    tec->dwiTmp[dwiIdx] = vv;
+    if (!AIR_EXISTS(tec->dwiTmp[dwiIdx])) {
+      fprintf(stderr, "**********************************\n");
+      
+    }
+    /*
+      if (tec->verbose) {
+      fprintf(stderr, "%s: dwi[%u] = %g\n", me, dwiIdx, tec->dwiTmp[dwiIdx]);
+      }
+    */
     bmat += tec->nbmat->axis[0].size;
   }
-  return;
+  return 0;
 }
 
 int
@@ -884,7 +919,10 @@ tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
   }
 
   TEN_T_COPY_T(ten, double, _ten);
-  _tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten);
+  if (_tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(TEN, err); return 1;
+  }
   dwiIdx = 0;
   for (allIdx=0; allIdx<tec->allNum; allIdx++) {
     if (tec->estimateB0 || tec->bnorm[allIdx]) {
@@ -908,8 +946,17 @@ tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
+  if (!( AIR_EXISTS(sigma) && sigma >= 0 
+         && AIR_EXISTS(bValue) && AIR_EXISTS(B0) )) {
+    sprintf(err, "%s: got bad bargs sigma %g, bValue %g, B0 %g\n", me,
+            sigma, bValue, B0);
+    biffAdd(TEN, err); return 1;
+  }
 
-  _tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten);
+  if (_tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(TEN, err); return 1;
+  }
   dwiIdx = 0;
   for (allIdx=0; allIdx<tec->allNum; allIdx++) {
     if (tec->estimateB0 || tec->bnorm[allIdx]) {
@@ -1039,7 +1086,7 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
   if (tec->estimateB0) {
     for (ii=0; ii<tec->allNum; ii++) {
       tmp = AIR_MAX(tec->valueMin, tec->all[ii]);
-      tec->allTmp[ii] = -log(tmp)/tec->bValue;
+      tec->allTmp[ii] = -log(FLT_MIN + tmp)/(FLT_MIN + tec->bValue);
     }
     for (jj=0; jj<7; jj++) {
       tmp = 0;
@@ -1050,14 +1097,14 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
         tec->ten[1+jj] = tmp;
       } else {
         /* we're on seventh row, for finding B0 */
-        tec->B0 = exp(tec->bValue*tmp);
+        tec->estimatedB0 = exp(tec->bValue*tmp);
       }
     }
   } else {
-    logB0 = log(AIR_MAX(tec->valueMin, tec->B0));
+    logB0 = log(FLT_MIN + tec->knownB0);
     for (ii=0; ii<tec->dwiNum; ii++) {
       tmp = AIR_MAX(tec->valueMin, tec->dwi[ii]);
-      tec->dwiTmp[ii] = (logB0 - log(tmp))/tec->bValue;
+      tec->dwiTmp[ii] = (logB0 - log(FLT_MIN + tmp))/(FLT_MIN + tec->bValue);
     }
     for (jj=0; jj<6; jj++) {
       tmp = 0;
@@ -1083,8 +1130,8 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
 
   wght = AIR_CAST(double *, tec->nwght->data);
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    dwi = AIR_MAX(FLT_MIN, tec->dwi[dwiIdx]);
-    wght[dwiIdx + tec->dwiNum*dwiIdx] = dwi*dwi;
+    dwi = tec->dwi[dwiIdx];
+    wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
   }
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
     sprintf(err, "%s(1): trouble wght-pseudo-inverting %ux%u B-matrix", me,
@@ -1096,12 +1143,33 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   _tenEstimate1Tensor_LLS(tec);
 
   /* just one more iteration seems to make a big difference */
-  _tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, tec->B0, tec->ten);
+  /*
+  fprintf(stderr, "!%s: bValue = %g, B0 = %g, ten = %g %g %g   %g %g   %g\n", me,
+          tec->bValue, (tec->estimateB0 ? tec->estimatedB0 : tec->knownB0), 
+          tec->ten[1], tec->ten[2], tec->ten[3], 
+          tec->ten[4], tec->ten[5], tec->ten[6]);
+  */
+  if (_tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, 
+                                        (tec->estimateB0 ?
+                                         tec->estimatedB0 : tec->knownB0), tec->ten)) {
+    sprintf(err, "%s: trying to improve on first WLS", me);
+    biffAdd(TEN, err); return 1;
+  }
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    dwi = AIR_MAX(FLT_MIN, tec->dwiTmp[dwiIdx]);
-    wght[dwiIdx + tec->dwiNum*dwiIdx] = dwi*dwi;
+    dwi = tec->dwiTmp[dwiIdx];
+    if (!AIR_EXISTS(dwi)) {
+      sprintf(err, "%s: bad simulated dwi[%u] == %g", me, dwiIdx, dwi);
+      biffAdd(TEN, err); return 1;
+    }
+    wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
   }
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
+    fprintf(stderr, "%s: LLS ten = %g %g %g   %g %g   %g\n", me,
+            tec->ten[1], tec->ten[2], tec->ten[3],
+            tec->ten[4], tec->ten[5],
+            tec->ten[6]);
+    nrrdSave("nbmat.txt", tec->nbmat, NULL);
+    nrrdSave("nwght.txt", tec->nwght, NULL);
     sprintf(err, "%s(2): trouble wght-pseudo-inverting %ux%u B-matrix", me,
             AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
             AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
@@ -1114,33 +1182,33 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
 }
 
 int
-_tenEstimate1TensorStepper(tenEstimateContext *tec,
-                           double *stepB0P, double stepTen[7],
-                           double B0, double ten[7],
-                           double epsilon,
-                           int (*stepCB)(tenEstimateContext *tec,
-                                         double *stepB0P,  double stepTen[7],
-                                         double B0, double ten[7]),
-                           int (*badnessCB)(tenEstimateContext *tec,
-                                            double *badP,
-                                            double B0, double ten[7])) {
-  char me[]="_tenEstimate1TensorStepper", err[AIR_STRLEN_MED];
+_tenEstimate1TensorGradient(tenEstimateContext *tec,
+                            double *gradB0P, double gradTen[7],
+                            double B0, double ten[7],
+                            double epsilon,
+                            int (*gradientCB)(tenEstimateContext *tec,
+                                              double *gradB0P,  double gTen[7],
+                                              double B0, double ten[7]),
+                            int (*badnessCB)(tenEstimateContext *tec,
+                                             double *badP,
+                                             double B0, double ten[7])) {
+  char me[]="_tenEstimate1TensorGradper", err[AIR_STRLEN_MED];
   double forwTen[7], backTen[7], forwBad, backBad;
   unsigned int ti;
 
-  if (!( tec && stepB0P && stepTen && badnessCB && ten)) {
+  if (!( tec && gradB0P && gradTen && badnessCB && ten)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
 
-  if (stepCB) {
-    if (stepCB(tec, stepB0P, stepTen, B0, ten)) {
-      sprintf(err, "%s: problem with step callback", me);
+  if (gradientCB) {
+    if (gradientCB(tec, gradB0P, gradTen, B0, ten)) {
+      sprintf(err, "%s: problem with grad callback", me);
       biffAdd(TEN, err); return 1;
     }
   } else {
     /* we find gradient manually */
-    stepTen[0] = 0;
+    gradTen[0] = 0;
     for (ti=0; ti<6; ti++) {
       TEN_T_COPY(forwTen, ten);
       TEN_T_COPY(backTen, ten);
@@ -1151,10 +1219,7 @@ _tenEstimate1TensorStepper(tenEstimateContext *tec,
         sprintf(err, "%s: trouble at ti=%u", me, ti);
         biffAdd(TEN, err); return 1;
       }
-      stepTen[ti+1] = (forwBad - backBad)/(2*epsilon);
-      if (tec->verbose) {
-        fprintf(stderr, "%s: stepTen[%u] = %g\n", me, ti, stepTen[ti+1]);
-      }
+      gradTen[ti+1] = (forwBad - backBad)/(2*epsilon);
     }
   }
 
@@ -1163,70 +1228,81 @@ _tenEstimate1TensorStepper(tenEstimateContext *tec,
 
 int
 _tenEstimate1TensorDescent(tenEstimateContext *tec,
-                           int (*stepCB)(tenEstimateContext *tec,
-                                         double *stepB0,
-                                         double stepTen[7],
-                                         double B0,
-                                         double ten[7]),
+                           int (*gradientCB)(tenEstimateContext *tec,
+                                             double *gradB0,
+                                             double gradTen[7],
+                                             double B0,
+                                             double ten[7]),
                            int (*badnessCB)(tenEstimateContext *tec,
                                             double *badP,
                                             double B0,
                                             double ten[7])) {
   char me[]="_tenEstimate1TensorDescent", err[AIR_STRLEN_MED];
-  double currB0, lastB0, currTen[7], lastTen[7], stepB0, stepTen[7],
+  double currB0, lastB0, currTen[7], lastTen[7], gradB0, gradTen[7],
     epsilon, 
-    stepSize, badInit, bad, badDelta, stepMin = 0.00000000001, badLast;
+    stepSize, badInit, bad, badDelta, stepSizeMin = 0.00000000001, badLast;
   unsigned int iter, iterMax = 100000;
 
   /* start with WLS fit since its probably close */
   _tenEstimate1Tensor_WLS(tec);
+  if (tec->verbose) {
+    fprintf(stderr, "%s: WLS gave %g %g %g    %g %g    %g\n", me, 
+            tec->ten[1], tec->ten[2], tec->ten[3],
+            tec->ten[4], tec->ten[5], tec->ten[6]);
+  }
   
-  if (badnessCB(tec, &badInit, tec->B0, tec->ten)
+  if (badnessCB(tec, &badInit,
+                (tec->estimateB0 ? tec->estimatedB0 : tec->knownB0), tec->ten)
       || !AIR_EXISTS(badInit)) {
     sprintf(err, "%s: problem getting initial bad", me);
     biffAdd(TEN, err); return 1;
   }
-
   if (tec->verbose) {
     fprintf(stderr, "\n%s: ________________________________________\n", me);
     fprintf(stderr, "%s: start: badInit = %g ---------------\n", me, badInit);
   }
 
-  epsilon = 0.00001;
+  epsilon = 0.0000001;
  newepsilon:
-  if (_tenEstimate1TensorStepper(tec, &stepB0, stepTen,
-                                 tec->B0, tec->ten, epsilon,
-                                 stepCB, badnessCB)) {
-    sprintf(err, "%s: problem getting initial step", me);
+  if (_tenEstimate1TensorGradient(tec, &gradB0, gradTen,
+                                  (tec->estimateB0 ? tec->estimatedB0 : tec->knownB0),
+                                  tec->ten, epsilon,
+                                  gradientCB, badnessCB)) {
+    sprintf(err, "%s: problem getting initial gradient", me);
     biffAdd(TEN, err); return 1;
   }
-  if (!( AIR_EXISTS(stepB0) || 0 < TEN_T_NORM(stepTen) )) {
-    sprintf(err, "%s: got bad stepB0 %g or zero-norm tensor step", me, stepB0);
+  if (!( AIR_EXISTS(gradB0) || 0 <= TEN_T_NORM(gradTen) )) {
+    sprintf(err, "%s: got bad gradB0 %g or zero-norm tensor grad", me, gradB0);
     biffAdd(TEN, err); return 1;
   }
   if (tec->verbose) {
-    fprintf(stderr, "%s: stepTen = %g %g %g  %g %g   %g\n", me,
-            stepTen[1], stepTen[2], stepTen[3],
-            stepTen[4], stepTen[5], stepTen[6]);
+    fprintf(stderr, "%s: gradTen (%s) = %g %g %g  %g %g   %g\n", me,
+            gradientCB ? "analytic" : "cent-diff",
+            gradTen[1], gradTen[2], gradTen[3],
+            gradTen[4], gradTen[5], gradTen[6]);
   }
 
   stepSize = 0.1;
   do {
     stepSize /= 10;
-    TEN_T_SCALE_ADD2(currTen, 1.0, tec->ten, stepSize, stepTen);
-    currB0 = tec->B0 + stepSize*stepB0;
+    TEN_T_SCALE_ADD2(currTen, 1.0, tec->ten, -stepSize, gradTen);
+    if (tec->estimateB0) {
+      currB0 = tec->estimatedB0 + -stepSize*gradB0;
+    } else {
+      currB0 = tec->knownB0;
+    }
     if (badnessCB(tec, &bad, currB0, currTen)
         || !AIR_EXISTS(bad)) {
-      sprintf(err, "%s: problem getting badness for step", me);
+      sprintf(err, "%s: problem getting badness for stepSize", me);
       biffAdd(TEN, err); return 1;
     }
     if (tec->verbose) {
       fprintf(stderr, "%s: ************ stepSize = %g --> bad = %g\n",
               me, stepSize, bad);
     }
-  } while (bad > badInit && stepSize > stepMin);
+  } while (bad > badInit && stepSize > stepSizeMin);
 
-  if (stepSize <= stepMin) {
+  if (stepSize <= stepSizeMin) {
     if (epsilon > FLT_MIN) {
       epsilon /= 10;
       fprintf(stderr, "%s: re-trying initial step w/ eps %g\n", me, epsilon);
@@ -1246,19 +1322,21 @@ _tenEstimate1TensorDescent(tenEstimateContext *tec,
     TEN_T_COPY(lastTen, currTen);
     lastB0 = currB0;
     if (0 == (iter % 3)) {
-      if (_tenEstimate1TensorStepper(tec, &stepB0, stepTen,
-                                     currB0, currTen, 0.00001,
-                                     stepCB, badnessCB)
-          || !AIR_EXISTS(stepB0)) {
-        sprintf(err, "%s[%u]: problem getting iter step", me, iter);
+      if (_tenEstimate1TensorGradient(tec, &gradB0, gradTen,
+                                      currB0, currTen, stepSize/5,
+                                      gradientCB, badnessCB)
+          || !AIR_EXISTS(gradB0)) {
+        sprintf(err, "%s[%u]: problem getting iter grad", me, iter);
         biffAdd(TEN, err); return 1;
       }
     }
-    TEN_T_SCALE_INCR(currTen, stepSize, stepTen);
-    currB0 += stepSize*stepB0;
+    TEN_T_SCALE_INCR(currTen, -stepSize, gradTen);
+    if (tec->estimateB0) {
+      currB0 -= stepSize*gradB0;
+    }
     if (badnessCB(tec, &bad, currB0, currTen)
         || !AIR_EXISTS(bad)) {
-      sprintf(err, "%s[%u]: problem getting badness during step", me, iter);
+      sprintf(err, "%s[%u]: problem getting badness during grad", me, iter);
       biffAdd(TEN, err); return 1;
     }
     if (tec->verbose) {
@@ -1286,35 +1364,36 @@ _tenEstimate1TensorDescent(tenEstimateContext *tec,
   }
 
   ELL_6V_COPY(tec->ten+1, currTen+1);
-  tec->B0 = currB0;
+  tec->estimatedB0 = currB0;
 
   return 0;
 }
                             
 int
-_tenEstimate1Tensor_StepNLS(tenEstimateContext *tec, 
-                            double *stepB0P, double stepTen[7],
-                            double currB0, double currTen[7]) {
-  char me[]="_tenEstimate1Tensor_StepNLS", err[AIR_STRLEN_MED];
+_tenEstimate1Tensor_GradientNLS(tenEstimateContext *tec, 
+                                double *gradB0P, double gradTen[7],
+                                double currB0, double currTen[7]) {
+  char me[]="_tenEstimate1Tensor_GradientNLS", err[AIR_STRLEN_MED];
   double *bmat, dot, tmp, diff, scl;
   unsigned int dwiIdx;
 
-  if (!(tec && stepB0P && stepTen && currTen)) {
+  if (!(tec && gradB0P && gradTen && currTen)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  *stepB0P = 0;
-  TEN_T_SET(stepTen, 0,   0, 0, 0,    0, 0,   0);
+  *gradB0P = 0;
+  TEN_T_SET(gradTen, 0,   0, 0, 0,    0, 0,   0);
   bmat = AIR_CAST(double *, tec->nbmat->data);
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
     dot = ELL_6V_DOT(bmat, currTen+1);
     tmp = currB0*exp(-(tec->bValue)*dot);
     diff = tec->dwi[dwiIdx] - tmp;
-    scl = -2*diff*tmp*(tec->bValue);
-    ELL_6V_SCALE_INCR(stepTen+1, scl, bmat);
+    scl = 2*diff*tmp*(tec->bValue);
+    ELL_6V_SCALE_INCR(gradTen+1, scl, bmat);
     bmat += tec->nbmat->axis[0].size;
-    /* HEY: increment *stepB0P */
+    /* HEY: increment *gradB0P */
   }
+  ELL_6V_SCALE_INCR(gradTen+1, 1.0/tec->dwiNum, gradTen+1);
   return 0;
 }
 
@@ -1328,8 +1407,26 @@ _tenEstimate1Tensor_BadnessNLS(tenEstimateContext *tec,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err);  return 1;
   }
-  _tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, currB0, currTen);
+  if (_tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, currB0, currTen)) {
+    sprintf(err, "%s: ", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tec->verbose > 2) {
+    unsigned int di;
+    fprintf(stderr, "%s: simdwi =", me);
+    for (di=0; di<tec->dwiNum; di++) {
+      fprintf(stderr, " %g", tec->dwiTmp[di]);
+    }
+    fprintf(stderr, "\n");
+  }
   *retP = _tenEstimateErrorDwi(tec);
+  if (tec->verbose > 2) {
+    fprintf(stderr, "!%s: badness(%g, (%g) %g %g %g   %g %g  %g) = %g\n", 
+            me, currB0, currTen[0],
+            currTen[1], currTen[2], currTen[3],
+            currTen[4], currTen[5],
+            currTen[6], *retP);
+  }
   return 0;
 }
 
@@ -1337,8 +1434,10 @@ int
 _tenEstimate1Tensor_NLS(tenEstimateContext *tec) {
   char me[]="_tenEstimate1Tensor_NLS", err[AIR_STRLEN_MED];
 
-  if (_tenEstimate1TensorDescent(tec, /* _tenEstimate1Tensor_StepNLS, */
-                                 NULL,
+  if (_tenEstimate1TensorDescent(tec, 
+                                 NULL
+                                 /* _tenEstimate1Tensor_GradientNLS */
+                                 ,
                                  _tenEstimate1Tensor_BadnessNLS)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
@@ -1347,25 +1446,25 @@ _tenEstimate1Tensor_NLS(tenEstimateContext *tec) {
 }
 
 int
-_tenEstimate1Tensor_StepMLE(tenEstimateContext *tec,
-                            double *stepB0P, double stepTen[7],
-                            double currB0, double currTen[7]) {
-  char me[]="_tenEstimate1Tensor_StepMLE", err[AIR_STRLEN_MED];
+_tenEstimate1Tensor_GradientMLE(tenEstimateContext *tec,
+                                double *gradB0P, double gradTen[7],
+                                double currB0, double currTen[7]) {
+  char me[]="_tenEstimate1Tensor_GradientMLE", err[AIR_STRLEN_MED];
   double *bmat, dot, barg, tmp, scl, dwi, sigma, bval;
   unsigned int dwiIdx;
 
-  if (!(tec && stepB0P && stepTen && currTen)) {
+  if (!(tec && gradB0P && gradTen && currTen)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
   if (tec->verbose) {
-    fprintf(stderr, "%s step (currTen = %g %g %g   %g %g    %g)\n", me,
+    fprintf(stderr, "%s grad (currTen = %g %g %g   %g %g    %g)\n", me,
             currTen[1], currTen[2], currTen[3],
             currTen[4], currTen[5],
             currTen[6]);
   }
-  TEN_T_SET(stepTen, 0,   0, 0, 0,    0, 0,   0);
-  *stepB0P = 0;
+  TEN_T_SET(gradTen, 0,   0, 0, 0,    0, 0,   0);
+  *gradB0P = 0;
   sigma = tec->sigma;
   bval = tec->bValue;
   bmat = AIR_CAST(double *, tec->nbmat->data);
@@ -1387,35 +1486,36 @@ _tenEstimate1Tensor_StepMLE(tenEstimateContext *tec,
       fprintf(stderr, " ---- tmp = %g\n", tmp);
     }
     scl = tmp*exp(-2*bval*dot)*bval*currB0/sigma;
-    ELL_6V_SCALE_INCR(stepTen+1, scl, bmat);
+    ELL_6V_SCALE_INCR(gradTen+1, scl, bmat);
     if (tec->verbose) {
       fprintf(stderr, "%s[%u]: bmat = %g %g %g    %g %g     %g\n",
               me, dwiIdx,
               bmat[0], bmat[1], bmat[2], 
               bmat[3], bmat[4], 
               bmat[5]);
-      fprintf(stderr, "%s[%u]: scl = %g -> stepTen = %g %g %g    %g %g   %g\n",
+      fprintf(stderr, "%s[%u]: scl = %g -> gradTen = %g %g %g    %g %g   %g\n",
               me, dwiIdx, scl,
-              stepTen[1], stepTen[2], stepTen[3],
-              stepTen[4], stepTen[5],
-              stepTen[6]);
+              gradTen[1], gradTen[2], gradTen[3],
+              gradTen[4], gradTen[5],
+              gradTen[6]);
     }
     if (!AIR_EXISTS(scl)) {
-      TEN_T_SET(stepTen, AIR_NAN, 
+      TEN_T_SET(gradTen, AIR_NAN, 
                 AIR_NAN, AIR_NAN, AIR_NAN, 
                 AIR_NAN, AIR_NAN, AIR_NAN);
-      *stepB0P = AIR_NAN;
+      *gradB0P = AIR_NAN;
       sprintf(err, "%s: scl = %g, very sorry", me, scl);
       biffAdd(TEN, err); return 1;
     }
     bmat += tec->nbmat->axis[0].size;
-    /* HEY: increment stepB0 */
+    /* HEY: increment gradB0 */
   }
+  ELL_6V_SCALE_INCR(gradTen+1, 1.0/tec->dwiNum, gradTen+1);
   if (tec->verbose) {
-    fprintf(stderr, "%s: final stepTen = %g %g %g    %g %g   %g\n", me,
-            stepTen[1], stepTen[2], stepTen[3],
-            stepTen[4], stepTen[5],
-            stepTen[6]);
+    fprintf(stderr, "%s: final gradTen = %g %g %g    %g %g   %g\n", me,
+            gradTen[1], gradTen[2], gradTen[3],
+            gradTen[4], gradTen[5],
+            gradTen[6]);
   }
   return 0;
 }
@@ -1437,7 +1537,8 @@ _tenEstimate1Tensor_BadnessMLE(tenEstimateContext *tec,
     simdwi = currB0*exp(-(tec->bValue)*dot);
     mesdwi = tec->dwi[dwiIdx];
     if (!E) E |= _tenRician(&rice, mesdwi, simdwi, tec->sigma);
-    if (!E) logrice = log(AIR_MAX(0, rice) + FLT_MIN/100);
+    if (!E) E |= !AIR_EXISTS(rice);
+    if (!E) logrice = log(rice + DBL_MIN);
     if (!E) sum += logrice;
     if (!E) E |= !AIR_EXISTS(sum);
     if (!E) bmat += tec->nbmat->axis[0].size;
@@ -1464,7 +1565,7 @@ _tenEstimate1Tensor_BadnessMLE(tenEstimateContext *tec,
     *retP = AIR_NAN;
     return 1;
   }
-  *retP = -sum;
+  *retP = -sum/tec->dwiNum;
   return 0;
 }
 
@@ -1523,11 +1624,12 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
               AIR_NAN, AIR_NAN, AIR_NAN, 
               AIR_NAN, AIR_NAN, AIR_NAN);
     if (tec->estimateB0) {
-      tec->B0 = AIR_NAN;
+      tec->estimatedB0 = AIR_NAN;
     }
     sprintf(err, "%s: estimation failed", me);
     biffAdd(TEN, err); return 1;
   }
+  
 
   /* HEY: record fitting errors and likelihood! */
 
@@ -1546,10 +1648,12 @@ tenEstimate1TensorSingle_f(tenEstimateContext *tec,
 
   tec->all_f = all;
   tec->all_d = NULL;
+  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__, tec->knownB0, tec->estimatedB0);
   if (_tenEstimate1TensorSingle(tec)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }
+  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__, tec->knownB0, tec->estimatedB0);
   TEN_T_COPY_T(ten, float, tec->ten);
 
   return 0;
@@ -1588,7 +1692,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
                            const Nrrd *ndwi, int outType) {
   char me[]="tenEstimate1TensorVolume4D", err[AIR_STRLEN_MED];
   char doneStr[20];
-  size_t sizeTen, sizeX, sizeY, sizeZ, NN, II;
+  size_t sizeTen, sizeX, sizeY, sizeZ, NN, II, tick;
   double *all, ten[7], (*lup)(const void *, size_t),
     (*ins)(void *v, size_t I, double d);
   unsigned int dd;
@@ -1692,16 +1796,12 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     fprintf(stderr, "%s:       ", me); 
   }
   fflush(stderr);
+  tick = NN / 200;
   for (II=0; II<NN; II++) {
-    if (tec->progress) {
-      if (0 == II%200) {
-        fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
-      }
+    if (0 == II%tick) {
+      fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
     }
-    tec->verbose = (0 == II);
-    if (tenEstimateMethodMLE == tec->estimateMethod) {
-      fprintf(stderr, "!%s: II = %u\n", me, AIR_CAST(unsigned int, II));
-    }
+    tec->verbose = (218 == II);
 
     for (dd=0; dd<tec->allNum; dd++) {
       all[dd] = lup(ndwi->data, dd + tec->allNum*II);
@@ -1718,7 +1818,9 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     ins(nten->data, 5 + sizeTen*II, ten[5]);
     ins(nten->data, 6 + sizeTen*II, ten[6]);
     if (nB0P) {
-      ins((*nB0P)->data, II, tec->B0);
+      ins((*nB0P)->data, II, (tec->estimateB0 
+                              ? tec->estimatedB0
+                              : tec->knownB0));
     }
     if (nterrP) {
       ins((*nterrP)->data, II, tec->errorDwi);
