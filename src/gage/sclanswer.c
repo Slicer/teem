@@ -138,15 +138,15 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
         fprintf(stderr, "%s: gten: \n", me);
         ell_3m_PRINT(stderr, gten);
         ELL_3MV_MUL(tmpVec, gten, norm);
-        len = ELL_3V_LEN(tmpVec);
+        len = AIR_CAST(gage_t, ELL_3V_LEN(tmpVec));
         fprintf(stderr, "%s: should be small: %30.15f\n", me, (double)len);
         ell_3v_PERP(gp1, norm);
         ELL_3MV_MUL(tmpVec, gten, gp1);
-        len = ELL_3V_LEN(tmpVec);
+        len = AIR_CAST(gage_t, ELL_3V_LEN(tmpVec));
         fprintf(stderr, "%s: should be bigger: %30.15f\n", me, (double)len);
         ELL_3V_CROSS(gp2, gp1, norm);
         ELL_3MV_MUL(tmpVec, gten, gp2);
-        len = ELL_3V_LEN(tmpVec);
+        len = AIR_CAST(gage_t, ELL_3V_LEN(tmpVec));
         fprintf(stderr, "%s: should (also) be bigger: %30.15f\n",
                 me, (double)len);
       }
@@ -198,7 +198,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY(pvl->directAnswer[gageSclCurvDir1], tmpVec);
+    ELL_3V_COPY_T(pvl->directAnswer[gageSclCurvDir1], gage_t, tmpVec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir2)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
@@ -207,7 +207,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY(pvl->directAnswer[gageSclCurvDir2], tmpVec);
+    ELL_3V_COPY_T(pvl->directAnswer[gageSclCurvDir2], gage_t, tmpVec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclFlowlineCurv)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
@@ -215,11 +215,12 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
          nProj are all already set */
       /* ncTen = nPerp * sHess * nProj */
       ELL_3M_MUL(tmpMat, sHess, nProj);
-      ELL_3M_MUL(ncTen, nPerp, tmpMat);
+      ELL_3M_MUL_T(ncTen, gage_t, nPerp, tmpMat);
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    pvl->directAnswer[gageSclFlowlineCurv][0] = sqrt(ELL_3M_FROB(ncTen));
+    pvl->directAnswer[gageSclFlowlineCurv][0]
+      = AIR_CAST(gage_t, sqrt(ELL_3M_FROB(ncTen)));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclMedian)) {
     /* this item is currently a complete oddball in that it does not

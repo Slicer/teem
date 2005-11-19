@@ -28,10 +28,10 @@
 #define Z 2
 
 void
-gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                  gage_t *val, gage_t *gvec, gage_t *hess,
-                  int doV, int doD1, int doD2) {
+gageScl3PFilter2(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                 gage_t *val, gage_t *gvec, gage_t *hess,
+                 int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
        |     |  
@@ -134,10 +134,10 @@ gageScl3PFilter2 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 }
 
 void
-gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                  gage_t *val, gage_t *gvec, gage_t *hess,
-                  int doV, int doD1, int doD2) {
+gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                 gage_t *val, gage_t *gvec, gage_t *hess,
+                 int doV, int doD1, int doD2) {
 
   /* fw? + 4*?
        |     |  
@@ -301,11 +301,11 @@ gageScl3PFilter4 (gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 }
 
 void
-gageScl3PFilterN (int fd,
-                  gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                  gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                  gage_t *val, gage_t *gvec, gage_t *hess,
-                  int doV, int doD1, int doD2) {
+gageScl3PFilterN(int fd,
+                 gage_t *ivX, gage_t *ivY, gage_t *ivZ,
+                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
+                 gage_t *val, gage_t *gvec, gage_t *hess,
+                 int doV, int doD1, int doD2) {
   int i, j;
   gage_t T;
 
@@ -324,7 +324,7 @@ gageScl3PFilterN (int fd,
   */
 
 #define DOT_N(ANS, a, b) \
-  for (T=i=0; i<fd; i++) \
+  for (T=0.0f,i=0; i<fd; i++) \
     T += (a)[i]*(b)[i];  \
   ANS = T
 #define VL_N(ANS, i, axis) DOT_N(ANS, fw0 + (axis)*fd, iv##axis + i*fd)
@@ -397,7 +397,7 @@ gageScl3PFilterN (int fd,
 }
 
 void
-_gageSclFilter (gageContext *ctx, gagePerVolume *pvl) {
+_gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclFilter";
   int fd;
   gage_t *fw00, *fw11, *fw22;

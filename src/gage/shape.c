@@ -260,9 +260,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       return 1;
     }
   }
-  shape->spacing[0] = AIR_ABS(xs);
-  shape->spacing[1] = AIR_ABS(ys);
-  shape->spacing[2] = AIR_ABS(zs);
+  shape->spacing[0] = AIR_CAST(gage_t, AIR_ABS(xs));
+  shape->spacing[1] = AIR_CAST(gage_t, AIR_ABS(ys));
+  shape->spacing[2] = AIR_CAST(gage_t, AIR_ABS(zs));
   
   /* ------ set spacing-dependent filter weight scalings */
   for (i=0; i<GAGE_KERNEL_NUM; i++) {
@@ -278,13 +278,13 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     case gageKernel11:
     case gageKernel21:
       for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = 1.0/(shape->spacing[ai]);
+        shape->fwScale[i][ai] = 1.0f/(shape->spacing[ai]);
       }
       break;
     case gageKernel22:
       for (ai=0; ai<=2; ai++) {
         shape->fwScale[i][ai] = 
-          1.0/((shape->spacing[ai])*(shape->spacing[ai]));
+          1.0f/((shape->spacing[ai])*(shape->spacing[ai]));
       }
       break;
     }
@@ -314,10 +314,13 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
            AIR_EXISTS(orig[1]) && 
            AIR_EXISTS(orig[2]) )) {
       /* don't have origin, so set it to come from the middle of volume */
-      ELL_3V_SET(orig, 0.0, 0.0, 0.0);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[0]-1)*spcCalc[0]/2.0, vecCalc[0]);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[1]-1)*spcCalc[1]/2.0, vecCalc[1]);
-      ELL_3V_SCALE_INCR(orig, -(shape->size[2]-1)*spcCalc[2]/2.0, vecCalc[2]);
+      ELL_3V_SET(orig, 0.0f, 0.0f, 0.0f);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[0] - 1.0f)*spcCalc[0]/2.0f,
+                        vecCalc[0]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[1] - 1.0f)*spcCalc[1]/2.0f,
+                        vecCalc[1]);
+      ELL_3V_SCALE_INCR(orig, -(shape->size[2] - 1.0f)*spcCalc[2]/2.0f,
+                        vecCalc[2]);
     }
     vecD[3] = 0;
     ELL_3V_SCALE(vecD, spcCalc[0], vecCalc[0]);
