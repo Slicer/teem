@@ -514,16 +514,14 @@ _tenEstimateCheck(tenEstimateContext *tec) {
 int
 _tenEstimateNumUpdate(tenEstimateContext *tec) {
   char me[]="_tenEstimateNumUpdate", err[AIR_STRLEN_MED];
-  unsigned int newAllNum, newDwiNum, allIdx, size0;
+  unsigned int newAllNum, newDwiNum, allIdx;
   double (*lup)(const void *, size_t), gg[3], bb[6];
 
   if (tec->flag[flagBInfo]) {
     if (tec->_ngrad) {
-      size0 = AIR_CAST(unsigned int, tec->_ngrad->axis[0].size);
       newAllNum = AIR_CAST(unsigned int, tec->_ngrad->axis[1].size);
       lup = nrrdDLookup[tec->_ngrad->type];
     } else {
-      size0 = AIR_CAST(unsigned int, tec->_nbmat->axis[0].size);
       newAllNum = AIR_CAST(unsigned int, tec->_nbmat->axis[1].size);
       lup = nrrdDLookup[tec->_nbmat->type];
     }
