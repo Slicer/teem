@@ -194,6 +194,9 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMax, max);
 
   tend_helixDoit(nout, bnd, r, R, S, angle, ev);
+  nrrdAxisInfoSpacingSet(nout, 1);
+  nrrdAxisInfoSpacingSet(nout, 2);
+  nrrdAxisInfoSpacingSet(nout, 3);
 
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
