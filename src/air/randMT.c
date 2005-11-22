@@ -91,8 +91,9 @@
 #define LOBIT( u ) ((u) & 0x00000001UL)
 #define LOBITS( u ) ((u) & 0x7fffffffUL)
 #define MIXBITS( u, v ) (HIBIT(u) | LOBITS(v))
+#define TWOSCOMP( u ) (~(u)+1)
 #define TWIST( m, s0, s1 ) \
-  ((m) ^ (MIXBITS(s0,s1)>>1) ^ (-LOBIT(s1) & 0x9908b0dfUL))
+  ((m) ^ (MIXBITS(s0,s1)>>1) ^ (TWOSCOMP(LOBIT(s1)) & 0x9908b0dfUL))
 
 /* It would be annoying to initialize _airRandMTStateGlobal at
    compile-time, partly because pNext is the address of member field
