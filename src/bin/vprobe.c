@@ -102,11 +102,11 @@ main(int argc, char *argv[]) {
   int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
     six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
   const gage_t *answer;
-  const char *key;
+  const char *key=NULL;
   Nrrd *nin, *nout, *_nmat, *nmat;
-  Nrrd *ngrad=NULL, *nbmat=NULL, *ntocrop, *ntmp;
+  Nrrd *ngrad=NULL, *nbmat=NULL, *ntocrop=NULL, *ntmp=NULL;
   size_t cropMin[2], cropMax[2];
-  double bval;
+  double bval=0;
   gageContext *ctx;
   gagePerVolume *pvl;
   double t0, t1, gmc, mat[16], ipos[4], opos[4], spx, spy, spz;
