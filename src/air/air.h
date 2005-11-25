@@ -470,24 +470,9 @@ AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
 AIR_EXPORT const char airMyFmt_size_t[];
-AIR_EXPORT unsigned int airRandInt(unsigned int N);
-AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
-AIR_EXPORT void airShuffle(unsigned int *buff, unsigned int N, int perm);
-AIR_EXPORT void airShuffle_r(airRandMTState *state,
-                             unsigned int *buff, unsigned int N,
-                             int perm);
 AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
 AIR_EXPORT double airTime();
-AIR_EXPORT double airCbrt(double);
-AIR_EXPORT double airSgnPow(double, double);
-AIR_EXPORT int airSgn(double);
-AIR_EXPORT int airLog2(double n);
 AIR_EXPORT void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
-AIR_EXPORT double airErf(double x);
-AIR_EXPORT double airGaussian(double x, double mean, double stdv);
-AIR_EXPORT void airNormalRand(double *z1, double *z2);
-AIR_EXPORT void airNormalRand_r(double *z1, double *z2,
-                                airRandMTState *state);
 AIR_EXPORT const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 AIR_EXPORT const size_t airTypeSize[AIR_TYPE_MAX+1];
 AIR_EXPORT int airILoad(void *v, int t);
@@ -496,6 +481,27 @@ AIR_EXPORT double airDLoad(void *v, int t);
 AIR_EXPORT int airIStore(void *v, int t, int i);
 AIR_EXPORT float airFStore(void *v, int t, float f);
 AIR_EXPORT double airDStore(void *v, int t, double d);
+
+/* math.c */
+AIR_EXPORT void airNormalRand(double *z1, double *z2);
+AIR_EXPORT void airNormalRand_r(double *z1, double *z2,
+                                airRandMTState *state);
+AIR_EXPORT unsigned int airRandInt(unsigned int N);
+AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
+AIR_EXPORT void airShuffle(unsigned int *buff, unsigned int N, int perm);
+AIR_EXPORT void airShuffle_r(airRandMTState *state,
+                             unsigned int *buff, unsigned int N,
+                             int perm);
+AIR_EXPORT double airCbrt(double);
+AIR_EXPORT double airSgnPow(double, double);
+AIR_EXPORT int airSgn(double);
+AIR_EXPORT int airLog2(double n);
+AIR_EXPORT double airErf(double x);
+AIR_EXPORT double airGaussian(double x, double mean, double stdv);
+AIR_EXPORT double airBesselI0(double x);
+AIR_EXPORT double airBesselI1(double x);
+AIR_EXPORT double airLogBesselI0(double x);
+AIR_EXPORT double airBesselI1By0(double x);
 /* ---- END non-NrrdIO */
 
 /* dio.c */
