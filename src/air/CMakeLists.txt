@@ -9,6 +9,7 @@ ADD_LIBRARY(air
   parseAir.c
   randMT.c
   sane.c
+  math.c
   string.c
   threadAir.c
 )
