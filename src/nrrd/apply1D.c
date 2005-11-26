@@ -89,7 +89,7 @@ int
 _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, 
                   const Nrrd *nmap, int kind, int typeOut,
                   int rescale, int multi) {
-  char me[]="_nrrdApply1DSetUp", err[AIR_STRLEN_MED], *mapcnt;
+  char me[]="_nrrdApply1DSetUp", err[BIFF_STRLEN], *mapcnt;
   char nounStr[][AIR_STRLEN_SMALL]={"lut",
                                     "regular map",
                                     "irregular map"};
@@ -420,7 +420,7 @@ int
 nrrdApply1DLut(Nrrd *nout, const Nrrd *nin,
                const NrrdRange *_range, const Nrrd *nlut,
                int typeOut, int rescale) {
-  char me[]="nrrdApply1DLut", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply1DLut", err[BIFF_STRLEN];
   NrrdRange *range;
   airArray *mop;
   
@@ -451,7 +451,7 @@ int
 nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
                     const NrrdRange *_range, const Nrrd *nmlut,
                     int typeOut, int rescale) {
-  char me[]="nrrdApplyMulti1DLut", err[AIR_STRLEN_MED];
+  char me[]="nrrdApplyMulti1DLut", err[BIFF_STRLEN];
   NrrdRange *range;
   airArray *mop;
   
@@ -514,7 +514,7 @@ int
 nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *_range, const Nrrd *nmap,
                   int typeOut, int rescale) {
-  char me[]="nrrdApply1DRegMap", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply1DRegMap", err[BIFF_STRLEN];
   NrrdRange *range;
   airArray *mop;
 
@@ -545,7 +545,7 @@ int
 nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
                        const NrrdRange *_range, const Nrrd *nmmap,
                        int typeOut, int rescale) {
-  char me[]="nrrdApplyMulti1DRegMap", err[AIR_STRLEN_MED];
+  char me[]="nrrdApplyMulti1DRegMap", err[BIFF_STRLEN];
   NrrdRange *range;
   airArray *mop;
 
@@ -585,7 +585,7 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
 */
 int
 nrrd1DIrregMapCheck(const Nrrd *nmap) {
-  char me[]="nrrd1DIrregMapCheck", err[AIR_STRLEN_MED];
+  char me[]="nrrd1DIrregMapCheck", err[BIFF_STRLEN];
   double (*mapLup)(const void *v, size_t I);
   int i, entLen, mapLen, baseI;
   size_t min[2], max[2];
@@ -668,7 +668,7 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
 */
 int
 nrrd1DIrregAclCheck(const Nrrd *nacl) {
-  char me[]="nrrd1DIrregAclCheck", err[AIR_STRLEN_MED];
+  char me[]="nrrd1DIrregAclCheck", err[BIFF_STRLEN];
 
   if (!nacl) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -708,7 +708,7 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
 */
 double *
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
-  char me[]="_nrrd1DIrregMapDomain", err[AIR_STRLEN_MED];
+  char me[]="_nrrd1DIrregMapDomain", err[BIFF_STRLEN];
   int i, entLen, baseI, posLen;
   double *pos, (*mapLup)(const void *v, size_t I);
 
@@ -799,7 +799,7 @@ _nrrd1DIrregFindInterval(const double *pos, double p, int loI, int hiI) {
 */
 int
 nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
-  char me[]="nrrd1DIrregAclGenerate", err[AIR_STRLEN_MED];
+  char me[]="nrrd1DIrregAclGenerate", err[BIFF_STRLEN];
   int posLen;
   unsigned int ii;
   unsigned short *acl;
@@ -864,7 +864,7 @@ int
 nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                     const Nrrd *nmap, const Nrrd *nacl,
                     int typeOut, int rescale) {
-  char me[]="nrrdApply1DIrregMap", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply1DIrregMap", err[BIFF_STRLEN];
   size_t N, I;
   int i, *acl, entLen, posLen, aclLen, mapIdx, aclIdx,
     entSize, colSize, inSize, lo, hi, baseI;
@@ -1027,7 +1027,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 */
 int
 nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
-  char me[]="nrrdApply1DSubstitution", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply1DSubstitution", err[BIFF_STRLEN];
   double (*lup)(const void *, size_t);
   double (*ins)(void *, size_t, double);
   Nrrd *nsubst;

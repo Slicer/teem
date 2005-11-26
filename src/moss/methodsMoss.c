@@ -52,7 +52,7 @@ mossSamplerNew (void) {
 
 int
 mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
-  char me[]="_mossSamplerFill", err[AIR_STRLEN_MED];
+  char me[]="_mossSamplerFill", err[BIFF_STRLEN];
 
   if (!(smplr)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -101,7 +101,7 @@ mossSamplerNix (mossSampler *smplr) {
 
 int
 mossImageCheck (Nrrd *image) {
-  char me[]="mossImageCheck", err[AIR_STRLEN_MED];
+  char me[]="mossImageCheck", err[BIFF_STRLEN];
 
   if (nrrdCheck(image)) {
     sprintf(err, "%s: given nrrd invalid", me);
@@ -119,7 +119,7 @@ mossImageCheck (Nrrd *image) {
 
 int
 mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
-  char me[]="mossImageAlloc", err[AIR_STRLEN_MED];
+  char me[]="mossImageAlloc", err[BIFF_STRLEN];
   int ret;
 
   if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock)

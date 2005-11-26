@@ -455,7 +455,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
 
 int
 tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
-  char me[]="tenAnisoMap", err[AIR_STRLEN_MED];
+  char me[]="tenAnisoMap", err[BIFF_STRLEN];
   float *out, c[TEN_ANISO_MAX+1], tmp;
   unsigned int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
@@ -510,7 +510,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
 
 int
 tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
-  char me[]="tenAnisoVolume", err[AIR_STRLEN_MED];
+  char me[]="tenAnisoVolume", err[BIFF_STRLEN];
   size_t N, I, copyI;
   float *out, *in, *tensor, eval[3], evec[9], c[TEN_ANISO_MAX+1];
   int map[NRRD_DIM_MAX];
@@ -573,7 +573,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
 int
 tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
                   int right, int version, unsigned int res) {
-  char me[]="tenAnisoHistogram", err[AIR_STRLEN_MED];
+  char me[]="tenAnisoHistogram", err[BIFF_STRLEN];
   size_t N, I;
   int csIdx, clIdx, cpIdx, xi, yi;
   float *tdata, *out, eval[3], evec[9], c[TEN_ANISO_MAX+1],
@@ -684,7 +684,7 @@ tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
 
 int
 tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp) {
-  char me[]="tenEvecRGBParmCheck", err[AIR_STRLEN_MED];
+  char me[]="tenEvecRGBParmCheck", err[BIFF_STRLEN];
 
   if (!rgbp) {
     sprintf(err, "%s: got NULL pointer", me);

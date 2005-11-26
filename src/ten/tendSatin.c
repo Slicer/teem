@@ -110,7 +110,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
               float thick, float bnd, int torus) {
-  char me[]="tend_satinGen", err[AIR_STRLEN_MED], buff[AIR_STRLEN_SMALL];
+  char me[]="tend_satinGen", err[BIFF_STRLEN], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
   size_t xi, yi, zi, size[3];

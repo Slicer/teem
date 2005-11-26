@@ -90,7 +90,7 @@ gageShapeNix(gageShape *shape) {
 int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
-  char me[]="_gageShapeSet", err[AIR_STRLEN_MED];
+  char me[]="_gageShapeSet", err[BIFF_STRLEN];
   int i, ai, cx, cy, cz, defCenter, statCalc[3];
   unsigned int minsize, sx, sy, sz, num[3];
   const NrrdAxisInfo *ax[3];
@@ -371,7 +371,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
 int
 gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
-  char me[]="gageShapeSet", err[AIR_STRLEN_MED];
+  char me[]="gageShapeSet", err[BIFF_STRLEN];
 
   if (_gageShapeSet(NULL, shape, nin, baseDim)) {
     sprintf(err, "%s: trouble", me);
@@ -437,7 +437,7 @@ gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
 int
 gageShapeEqual(gageShape *shape1, char *_name1,
                gageShape *shape2, char *_name2) {
-  char me[]="_gageShapeEqual", err[AIR_STRLEN_MED],
+  char me[]="_gageShapeEqual", err[BIFF_STRLEN],
     *name1, *name2, what[] = "???";
 
   name1 = _name1 ? _name1 : what;

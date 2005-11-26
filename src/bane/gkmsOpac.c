@@ -32,7 +32,7 @@ char *_baneGkms_opacInfoL =
 int
 baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[AIR_STRLEN_MED], *befS;
+  char *outS, *perr, err[BIFF_STRLEN], *befS;
   Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;
   airArray *mop;
   int pret, radius, idim;

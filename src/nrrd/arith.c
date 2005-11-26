@@ -38,7 +38,7 @@
 int
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
                const NrrdRange *_range, double gamma) {
-  char me[]="nrrdArithGamma", func[]="gamma", err[AIR_STRLEN_MED];
+  char me[]="nrrdArithGamma", func[]="gamma", err[BIFF_STRLEN];
   double val, min, max;
   size_t I, num;
   NrrdRange *range;
@@ -202,7 +202,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
 
 int
 nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
-  char me[]="nrrdArithUnaryOp", err[AIR_STRLEN_MED];
+  char me[]="nrrdArithUnaryOp", err[BIFF_STRLEN];
   size_t N, I;
   int size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
@@ -306,7 +306,7 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 */
 int
 nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
-  char me[]="nrrdArithBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
+  char me[]="nrrdArithBinaryOp", err[BIFF_STRLEN], *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d),
     (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
@@ -378,7 +378,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
 
 int
 nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  char me[]="nrrdArithIterBinaryOp", err[AIR_STRLEN_MED], *contA, *contB;
+  char me[]="nrrdArithIterBinaryOp", err[BIFF_STRLEN], *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
   double (*insert)(void *v, size_t I, double d), 
@@ -517,7 +517,7 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 int
 nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, 
                    const Nrrd *ninB, const Nrrd *ninC) {
-  char me[]="nrrdArithTernaryOp", err[AIR_STRLEN_MED], *contA, *contB, *contC;
+  char me[]="nrrdArithTernaryOp", err[BIFF_STRLEN], *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d),
     (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
@@ -592,7 +592,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
 int
 nrrdArithIterTernaryOp(Nrrd *nout, int op,
                        NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  char me[]="nrrdArithIterTernaryOp", err[AIR_STRLEN_MED],
+  char me[]="nrrdArithIterTernaryOp", err[BIFF_STRLEN],
     *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;

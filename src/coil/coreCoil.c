@@ -274,7 +274,7 @@ _coilWorker(void *_task) {
 
 int
 coilStart(coilContext *cctx) {
-  char me[]="coilStart", err[AIR_STRLEN_MED];
+  char me[]="coilStart", err[BIFF_STRLEN];
   int valIdx, valLen;
   coil_t (*lup)(const void*, size_t), *val;
   unsigned tidx, elIdx;
@@ -348,7 +348,7 @@ coilStart(coilContext *cctx) {
 */
 int
 coilIterate(coilContext *cctx, int numIterations) {
-  char me[]="coilIterate", err[AIR_STRLEN_MED];
+  char me[]="coilIterate", err[BIFF_STRLEN];
   int iter;
   double time0, time1;
 
@@ -394,7 +394,7 @@ coilIterate(coilContext *cctx, int numIterations) {
 
 int
 coilFinish(coilContext *cctx) {
-  char me[]="coilFinish", err[AIR_STRLEN_MED];
+  char me[]="coilFinish", err[BIFF_STRLEN];
   unsigned int tidx;
 
   if (!cctx) {

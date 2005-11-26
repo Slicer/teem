@@ -27,7 +27,7 @@
 int
 tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
                  double amount, double target) {
-  char me[]="tenSizeNormalize", err[AIR_STRLEN_MED];
+  char me[]="tenSizeNormalize", err[BIFF_STRLEN];
   float *tin, *tout, eval[3], evec[9], size, weight[3];
   size_t N, I;
 
@@ -86,7 +86,7 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
 
 int
 tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
-  char me[]="tenSizeScale", err[AIR_STRLEN_MED];
+  char me[]="tenSizeScale", err[BIFF_STRLEN];
   size_t I, N;
   float *tin, *tout;
 
@@ -132,7 +132,7 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
 int
 tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
               int fixDet, int makePositive) {
-  char me[]="tenAnisoScale", err[AIR_STRLEN_MED];
+  char me[]="tenAnisoScale", err[BIFF_STRLEN];
   size_t I, N;
   float *tin, *tout, mean, eval[3], evec[9];
 
@@ -193,7 +193,7 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
 */
 int
 tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
-  char me[]="tenEigenvalueClamp", err[AIR_STRLEN_MED];
+  char me[]="tenEigenvalueClamp", err[BIFF_STRLEN];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
 
@@ -242,7 +242,7 @@ tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
 */
 int
 tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
-  char me[]="tenEigenvaluePower", err[AIR_STRLEN_MED];
+  char me[]="tenEigenvaluePower", err[BIFF_STRLEN];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
 
@@ -284,7 +284,7 @@ tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
 */
 int
 tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
-  char me[]="tenEigenvalueAdd", err[AIR_STRLEN_MED];
+  char me[]="tenEigenvalueAdd", err[BIFF_STRLEN];
   size_t I, N;
   float *tin, *tout, eval[3], evec[9];
 

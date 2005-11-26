@@ -95,7 +95,7 @@ int
 _baneIncAnswer_RangeRatio(double *minP, double *maxP, 
                           Nrrd *hist, double *incParm,
                           baneRange *range) {
-  char me[]="_baneIncAnwer_RangeRatio", err[AIR_STRLEN_MED];
+  char me[]="_baneIncAnwer_RangeRatio", err[BIFF_STRLEN];
   double mid;
   
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {
@@ -126,7 +126,7 @@ int
 _baneIncAnswer_Percentile(double *minP, double *maxP,
                           Nrrd *nhist, double *incParm,
                           baneRange *range) {
-  char me[]="_baneIncAnswer_Percentile", err[AIR_STRLEN_MED];
+  char me[]="_baneIncAnswer_Percentile", err[BIFF_STRLEN];
   int *hist, i, histSize, sum;
   float minIncr, maxIncr, out, outsofar, mid, minIdx, maxIdx;
   double min, max;
@@ -255,7 +255,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
 
 baneInc *
 baneIncNew(int type, baneRange *range, double *parm) {
-  char me[]="baneIncNew", err[AIR_STRLEN_MED];
+  char me[]="baneIncNew", err[BIFF_STRLEN];
   baneInc *inc;
 
   if (!(AIR_IN_OP(baneIncUnknown, type, baneIncLast))) {
@@ -357,7 +357,7 @@ baneIncProcess(baneInc *inc, int passIdx, double val) {
 
 int
 baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
-  char me[]="baneIncAnswer", err[AIR_STRLEN_MED];
+  char me[]="baneIncAnswer", err[BIFF_STRLEN];
 
   if (!( inc && minP && maxP )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -372,7 +372,7 @@ baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
 
 baneInc *
 baneIncCopy(baneInc *inc) {
-  char me[]="baneIncCopy", err[AIR_STRLEN_MED];
+  char me[]="baneIncCopy", err[BIFF_STRLEN];
   baneInc *ret = NULL;
   
   ret = baneIncNew(inc->type, inc->range, inc->parm);

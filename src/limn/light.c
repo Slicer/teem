@@ -69,7 +69,7 @@ limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
 */
 int
 limnLightUpdate(limnLight *lit, limnCamera *cam) {
-  char me[]="limnLightUpdate", err[AIR_STRLEN_MED];
+  char me[]="limnLightUpdate", err[BIFF_STRLEN];
   float dir[3], _dir[3], uvn[9]={0,0,0,0,0,0,0,0,0}, norm;
   int i;
   

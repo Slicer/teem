@@ -221,7 +221,7 @@ _nrrdFormatNRRD_nameLooksLike(const char *filename) {
 int
 _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
-  char me[]="_nrrdFormatNRRD_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatNRRD_fitsInto", err[BIFF_STRLEN];
 
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
@@ -260,7 +260,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
 */
 int
 _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
-  char me[]="_nrrdHeaderCheck", err[AIR_STRLEN_MED];
+  char me[]="_nrrdHeaderCheck", err[BIFF_STRLEN];
   int i;
 
   if (checkSeen) {
@@ -522,7 +522,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatNRRD_write", err[AIR_STRLEN_MED], 
+  char me[]="_nrrdFormatNRRD_write", err[BIFF_STRLEN], 
     strbuf[AIR_STRLEN_MED], *strptr, *tmp;
   int ii;
   unsigned int jj;

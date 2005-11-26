@@ -77,7 +77,7 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
 
 int
 tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
-  char me[]="tenMeasurementFrameReduce", err[AIR_STRLEN_MED];
+  char me[]="tenMeasurementFrameReduce", err[BIFF_STRLEN];
   double MF[9], MFT[9], tenMeasr[9], tenWorld[9];
   float *tdata;
   size_t ii, nn;
@@ -142,7 +142,7 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
 
 int
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
-  char me[]="tenExpand", err[AIR_STRLEN_MED];
+  char me[]="tenExpand", err[BIFF_STRLEN];
   size_t N, I, sx, sy, sz;
   float *seven, *nine;
 
@@ -194,7 +194,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
 
 int
 tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
-  char me[]="tenShrink", err[AIR_STRLEN_MED];
+  char me[]="tenShrink", err[BIFF_STRLEN];
   size_t I, N, sx, sy, sz;
   float *seven, *conf, *nine;
   
@@ -422,7 +422,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
 */
 int
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
-  char me[]="tenTensorMake", err[AIR_STRLEN_MED];
+  char me[]="tenTensorMake", err[BIFF_STRLEN];
   size_t I, N, sx, sy, sz;
   float *out, *conf, *eval, *evec;
   int map[4];
@@ -530,7 +530,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
          size_t pos, unsigned int dim) {
   Nrrd *nslice, *ncoeff[4];
   int ci[4];
-  char me[]="tenSlice", err[AIR_STRLEN_MED];
+  char me[]="tenSlice", err[BIFF_STRLEN];
   airArray *mop;
 
   if (!(nout && nten)) {

@@ -25,7 +25,7 @@
 
 limnSplineTypeSpec *
 limnSplineTypeSpecNew(int type, ...) {
-  char me[]="limnSplineTypeSpecNew", err[AIR_STRLEN_MED];
+  char me[]="limnSplineTypeSpecNew", err[BIFF_STRLEN];
   limnSplineTypeSpec *spec;
   va_list ap;
 
@@ -58,7 +58,7 @@ limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 */
 int
 _limnSplineTimeWarpSet(limnSpline *spline) {
-  char me[]="_limnSplineTimeWarpSet", err[AIR_STRLEN_MED];
+  char me[]="_limnSplineTimeWarpSet", err[BIFF_STRLEN];
   double *cpt, *time, ss;
   int ii, N;
 
@@ -125,7 +125,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 */
 limnSpline *
 limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
-  char me[]="limnSplineNew", err[AIR_STRLEN_MED];
+  char me[]="limnSplineNew", err[BIFF_STRLEN];
   limnSpline *spline;
   size_t N;
   unsigned int size;
@@ -244,7 +244,7 @@ limnSplineNix(limnSpline *spline) {
 */
 int
 limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
-  char me[]="limnSplineNrrdCleverFix", err[AIR_STRLEN_MED];
+  char me[]="limnSplineNrrdCleverFix", err[BIFF_STRLEN];
   ptrdiff_t min[3], max[3];
   size_t N;
   unsigned int wantSize;
@@ -377,7 +377,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
 
 limnSpline *
 limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
-  char me[]="limnSplineCleverNew", err[AIR_STRLEN_MED];
+  char me[]="limnSplineCleverNew", err[BIFF_STRLEN];
   limnSpline *spline;
   Nrrd *ntmp;
   airArray *mop;
@@ -403,7 +403,7 @@ limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
 
 int
 limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
-  char me[]="limnSplineUpdate", err[AIR_STRLEN_MED];
+  char me[]="limnSplineUpdate", err[BIFF_STRLEN];
   Nrrd *ntmp;
 
   if (!(spline && _ncpt)) {

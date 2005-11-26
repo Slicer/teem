@@ -972,7 +972,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
 int
 nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
             int measr, int type) {
-  char me[]="nrrdProject", func[]="project", err[AIR_STRLEN_MED];
+  char me[]="nrrdProject", func[]="project", err[BIFF_STRLEN];
   int iType, oType, axmap[NRRD_DIM_MAX];
   unsigned int ai, ei;
   size_t iElSz, oElSz, iSize[NRRD_DIM_MAX], oSize[NRRD_DIM_MAX], linLen,

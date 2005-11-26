@@ -122,7 +122,7 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
 
 int
 tkwbReadTemplate(char **tmplSP, char *filename) {
-  char me[]="tkwbReadTemplate", err[AIR_STRLEN_MED];
+  char me[]="tkwbReadTemplate", err[BIFF_STRLEN];
   FILE *file;
   airArray *mop;
   
@@ -144,7 +144,7 @@ tkwbReadTemplate(char **tmplSP, char *filename) {
 
 int
 tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
-  char me[]="tkwbReadSlides", err[AIR_STRLEN_MED];
+  char me[]="tkwbReadSlides", err[BIFF_STRLEN];
   FILE *file;
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
@@ -206,7 +206,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
 
 int
 tkwbExpandImageInfo(tkwbSlide **slide) {
-  char me[]="tkwbExpandImageInfo", err[AIR_STRLEN_MED], *image;
+  char me[]="tkwbExpandImageInfo", err[BIFF_STRLEN], *image;
   Nrrd *nimg;
   int si, sx, sy, len;
   airArray *mop;
@@ -242,7 +242,7 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
 
 int
 tkwbWriteStringToFile(char *filename, char *content) {
-  char me[]="tkwbWriteStringToFile", err[AIR_STRLEN_MED];
+  char me[]="tkwbWriteStringToFile", err[BIFF_STRLEN];
   FILE *file;
 
   if (!(file = fopen(filename, "wb"))) {
@@ -291,7 +291,7 @@ tkwbStringSubst(char **sP,  /* string to search in */
 
 int
 tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
-  char me[]="tkwbWriteIndex", err[AIR_STRLEN_MED],
+  char me[]="tkwbWriteIndex", err[BIFF_STRLEN],
     *repl, *index, tmp[AIR_STRLEN_MED];
   int replLen, si;
   airArray *mop;
@@ -334,7 +334,7 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
 int
 tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl, 
                 char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  char me[]="tkwbWriteSlides", err[AIR_STRLEN_MED];
+  char me[]="tkwbWriteSlides", err[BIFF_STRLEN];
   char *text, name[AIR_STRLEN_MED], frst[AIR_STRLEN_MED], prev[AIR_STRLEN_MED],
     next[AIR_STRLEN_MED], last[AIR_STRLEN_MED];
   int si;
@@ -373,7 +373,7 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
 int
 tkwbDoit(char *indexS, char *tmplS, char *scriptS,
          char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  char me[]="tkwbDoit", err[AIR_STRLEN_MED];
+  char me[]="tkwbDoit", err[BIFF_STRLEN];
   char *index, *tmpl;
   tkwbSlide **slide;
   airArray *mop;

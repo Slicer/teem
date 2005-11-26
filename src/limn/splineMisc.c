@@ -222,7 +222,7 @@ limnSplineBCSet(limnSpline *spline, double B, double C) {
 
 limnSplineTypeSpec *
 limnSplineTypeSpecParse(char *_str) {
-  char me[]="limnSplineTypeSpecParse", err[AIR_STRLEN_MED];
+  char me[]="limnSplineTypeSpecParse", err[BIFF_STRLEN];
   limnSplineTypeSpec *spec;
   int type;
   double B, C;
@@ -278,7 +278,7 @@ limnSplineTypeSpecParse(char *_str) {
 
 limnSpline *
 limnSplineParse(char *_str) {
-  char me[]="limnSplineParse", err[AIR_STRLEN_MED];
+  char me[]="limnSplineParse", err[BIFF_STRLEN];
   char *str, *col, *fnameS, *infoS, *typeS, *tmpS;
   int info;
   limnSpline *spline;

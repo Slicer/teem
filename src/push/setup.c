@@ -33,7 +33,7 @@
 */
 int
 _pushTensorFieldSetup(pushContext *pctx) {
-  char me[]="_pushTensorFieldSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushTensorFieldSetup", err[BIFF_STRLEN];
   Nrrd *seven[7], *two[2];
   NrrdRange *nrange;
   airArray *mop;
@@ -148,7 +148,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
 */
 int
 _pushGageSetup(pushContext *pctx) {
-  char me[]="_pushGageSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushGageSetup", err[BIFF_STRLEN];
   gagePerVolume *mpvl;
   int E;
 
@@ -191,7 +191,7 @@ _pushGageSetup(pushContext *pctx) {
 */
 int
 _pushFiberSetup(pushContext *pctx) {
-  char me[]="_pushFiberSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushFiberSetup", err[BIFF_STRLEN];
   int E;
 
   pctx->fctx = tenFiberContextNew(pctx->nten);
@@ -277,7 +277,7 @@ _pushTaskNix(pushTask *task) {
 */
 int
 _pushTaskSetup(pushContext *pctx) {
-  char me[]="_pushTaskSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushTaskSetup", err[BIFF_STRLEN];
   unsigned int tidx;
 
   pctx->task = (pushTask **)calloc(pctx->numThread, sizeof(pushTask *));
@@ -304,7 +304,7 @@ _pushTaskSetup(pushContext *pctx) {
 */
 int
 _pushBinSetup(pushContext *pctx) {
-  char me[]="_pushBinSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushBinSetup", err[BIFF_STRLEN];
   float eval[3], *tdata;
   unsigned int ii, nn, count;
 
@@ -365,7 +365,7 @@ _pushBinSetup(pushContext *pctx) {
 */
 int
 _pushThingSetup(pushContext *pctx) {
-  char me[]="_pushThingSetup", err[AIR_STRLEN_MED];
+  char me[]="_pushThingSetup", err[BIFF_STRLEN];
   double (*lup)(const void *v, size_t I);
   unsigned int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
@@ -450,7 +450,7 @@ _pushThingSetup(pushContext *pctx) {
   /*
   {
     Nrrd *nten, *npos, *nstn;
-    char me[]="dammit", err[AIR_STRLEN_MED], poutS[AIR_STRLEN_MED],
+    char me[]="dammit", err[BIFF_STRLEN], poutS[AIR_STRLEN_MED],
       toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
       nten = nrrdNew();
       npos = nrrdNew();

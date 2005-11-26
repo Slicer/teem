@@ -31,7 +31,7 @@
 
 int
 fixproj(Nrrd *nproj[3], Nrrd *nvol) {
-  char me[]="fixproj", err[AIR_STRLEN_MED];
+  char me[]="fixproj", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ntmp[3], *nt;
   int sz[3], ii, map[3], h[3], E, mi;
@@ -128,7 +128,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
 
 int
 ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
-  char me[]="ninspect_proj", err[AIR_STRLEN_MED];
+  char me[]="ninspect_proj", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ntmpA, *ntmpB, *nrgb[3];
   int bins;
@@ -182,7 +182,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
 
 int
 doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
-  char me[]="doit", err[AIR_STRLEN_MED];
+  char me[]="doit", err[BIFF_STRLEN];
   Nrrd *nproj[3];
   airArray *mop;
   int axis, srl, sap, ssi, E, margin, which;

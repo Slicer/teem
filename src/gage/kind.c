@@ -32,7 +32,7 @@
 */
 int
 gageKindCheck(const gageKind *kind) {
-  char me[]="gageKindCheck", err[AIR_STRLEN_MED];
+  char me[]="gageKindCheck", err[BIFF_STRLEN];
   int pitem, pindex, alen;
   int ii;
 
@@ -184,7 +184,7 @@ gageKindAnswerOffset(const gageKind *kind, int item) {
 */
 int
 gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
-  char me[]="gageKindVolumeCheck", err[AIR_STRLEN_MED];
+  char me[]="gageKindVolumeCheck", err[BIFF_STRLEN];
 
   if (!(kind && nrrd)) {
     sprintf(err, "%s: got NULL pointer", me);

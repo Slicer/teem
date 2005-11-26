@@ -1089,7 +1089,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
 int
 nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
                       int setMinsFromOrigin) {
-  char me[]="nrrdOrientationReduce", err[AIR_STRLEN_MED];
+  char me[]="nrrdOrientationReduce", err[BIFF_STRLEN];
   unsigned int spatialAxisNum, spatialAxisIdx[NRRD_DIM_MAX], saxii;
   NrrdAxisInfo *axis;
 

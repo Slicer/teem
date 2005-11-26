@@ -25,7 +25,7 @@
 
 int
 ell_Nm_check(Nrrd *mat) {
-  char me[]="ell_Nm_check", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_check", err[BIFF_STRLEN];
 
   if (nrrdCheck(mat)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);
@@ -47,7 +47,7 @@ ell_Nm_check(Nrrd *mat) {
 
 int
 ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
-  char me[]="ell_Nm_tran", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_tran", err[BIFF_STRLEN];
 
   if (!( ntrn && !ell_Nm_check(nmat) )) {
     sprintf(err, "%s: NULL or invalid args", me);
@@ -75,7 +75,7 @@ ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
 */
 int
 ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
-  char me[]="ell_Nm_mul", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_mul", err[BIFF_STRLEN];
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
   
@@ -124,7 +124,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 */
 int
 _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
-  char me[]="_ell_LU_decomp", err[AIR_STRLEN_MED];
+  char me[]="_ell_LU_decomp", err[BIFF_STRLEN];
   int ret=0;
   size_t ii, imax=0, jj, kk;
   double big, sum, tmp;
@@ -257,7 +257,7 @@ _ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
 */
 int
 _ell_inv(double *inv, double *_mat, size_t NN) {
-  char me[]="_ell_inv", err[AIR_STRLEN_MED];
+  char me[]="_ell_inv", err[BIFF_STRLEN];
   size_t ii, jj, *indx=NULL;
   double *col=NULL, *mat=NULL;
   int ret=0;
@@ -299,7 +299,7 @@ _ell_inv(double *inv, double *_mat, size_t NN) {
 */
 int
 ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
-  char me[]="ell_Nm_inv", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_inv", err[BIFF_STRLEN];
   double *mat, *inv;
   size_t NN;
 
@@ -340,7 +340,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
 */
 int
 ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
-  char me[]="ell_Nm_pseudo_inv", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_pseudo_inv", err[BIFF_STRLEN];
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
   
@@ -372,7 +372,7 @@ ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
 */
 int
 ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
-  char me[]="ell_Nm_wght_pseudo_inv", err[AIR_STRLEN_MED];
+  char me[]="ell_Nm_wght_pseudo_inv", err[BIFF_STRLEN];
   Nrrd *nAt, *nAtW, *nAtWA, *nAtWAi;
   int ret=0;
   

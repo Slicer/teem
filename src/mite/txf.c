@@ -99,7 +99,7 @@ miteStageOp = &_miteStageOp;
 */
 int
 miteVariableParse(gageItemSpec *isp, const char *label) {
-  char me[]="miteVariableParse", err[AIR_STRLEN_MED], *buff, *endparen,
+  char me[]="miteVariableParse", err[BIFF_STRLEN], *buff, *endparen,
     *kqstr, *col, *kstr, *qstr;
   airArray *mop;
   
@@ -221,7 +221,7 @@ miteVariablePrint(char *buff, const gageItemSpec *isp) {
 
 int
 miteNtxfCheck(const Nrrd *ntxf) {
-  char me[]="miteNtxfCheck", err[AIR_STRLEN_MED], *rangeStr, *domStr;
+  char me[]="miteNtxfCheck", err[BIFF_STRLEN], *rangeStr, *domStr;
   gageItemSpec isp;
   int log2;
   unsigned int rii, axi;
@@ -389,7 +389,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
 
 int
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
-  char me[]="_miteNtxfCopy", err[AIR_STRLEN_MED];
+  char me[]="_miteNtxfCopy", err[BIFF_STRLEN];
   int ni, E;
   
   mrr->ntxf = (Nrrd **)calloc(muu->ntxfNum, sizeof(Nrrd *));
@@ -439,7 +439,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
 
 int
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
-  char me[]="_miteNtxfAlphaAdjust", err[AIR_STRLEN_MED];
+  char me[]="_miteNtxfAlphaAdjust", err[BIFF_STRLEN];
   int ni, ei, ri, nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
@@ -534,7 +534,7 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 */
 int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
-  char me[]="_miteStageSet", err[AIR_STRLEN_MED], *value;
+  char me[]="_miteStageSet", err[BIFF_STRLEN], *value;
   int ni, di, stageIdx, rii, stageNum, log2;
   Nrrd *ntxf;
   miteStage *stage;

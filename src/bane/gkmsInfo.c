@@ -32,7 +32,7 @@ char *_baneGkms_infoInfoL =
 int
 baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[AIR_STRLEN_MED];
+  char *outS, *perr, err[BIFF_STRLEN];
   Nrrd *hvol, *nout;
   airArray *mop;
   int pret, one, measr;

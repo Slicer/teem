@@ -58,7 +58,7 @@ _tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
 
 tenFiberContext *
 tenFiberContextNew(const Nrrd *dtvol) {
-  char me[]="tenFiberContextNew", err[AIR_STRLEN_MED];
+  char me[]="tenFiberContextNew", err[BIFF_STRLEN];
   tenFiberContext *tfx;
 
   if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
@@ -120,7 +120,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
 
 int
 tenFiberTypeSet(tenFiberContext *tfx, int type) {
-  char me[]="tenFiberTypeSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberTypeSet", err[BIFF_STRLEN];
   int qse;
 
   if (!tfx) {
@@ -175,7 +175,7 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
-  char me[]="tenFiberStopSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberStopSet", err[BIFF_STRLEN];
   va_list ap;
   int ret=0;
   int anisoGage;
@@ -300,7 +300,7 @@ tenFiberStopReset(tenFiberContext *tfx) {
 int
 tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
                       double lerp, double thresh, double soft) {
-  char me[]="tenFiberAnisoSpeedSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberAnisoSpeedSet", err[BIFF_STRLEN];
   int anisoGage;
 
   if (!tfx) {
@@ -351,7 +351,7 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
 
 int
 tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
-  char me[]="tenFiberAnisoSpeedReset", err[AIR_STRLEN_MED];
+  char me[]="tenFiberAnisoSpeedReset", err[BIFF_STRLEN];
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -367,7 +367,7 @@ int
 tenFiberKernelSet(tenFiberContext *tfx,
                   const NrrdKernel *kern,
                   const double parm[NRRD_KERNEL_PARMS_NUM]) {
-  char me[]="tenFiberKernelSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberKernelSet", err[BIFF_STRLEN];
 
   if (!(tfx && kern)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -385,7 +385,7 @@ tenFiberKernelSet(tenFiberContext *tfx,
 
 int
 tenFiberIntgSet(tenFiberContext *tfx, int intg) {
-  char me[]="tenFiberIntTypeSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberIntTypeSet", err[BIFF_STRLEN];
 
   if (!(tfx)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -426,7 +426,7 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
 
 int
 tenFiberUpdate(tenFiberContext *tfx) {
-  char me[]="tenFiberUpdate", err[AIR_STRLEN_MED];
+  char me[]="tenFiberUpdate", err[BIFF_STRLEN];
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);

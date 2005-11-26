@@ -51,7 +51,7 @@ _baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
 
 int
 _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipAnswer_Percentile", err[AIR_STRLEN_MED];
+  char me[]="_baneClipAnswer_Percentile", err[BIFF_STRLEN];
   Nrrd *ncopy;
   int *hits, clip;
   size_t num, sum, out, outsofar, hi;
@@ -82,7 +82,7 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
 
 int
 _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipAnwer_TopN", err[AIR_STRLEN_MED];
+  char me[]="_baneClipAnwer_TopN", err[BIFF_STRLEN];
   Nrrd *copy;
   int *hits, tmp;
   size_t num;
@@ -103,7 +103,7 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
 
 baneClip *
 baneClipNew(int type, double *parm) {
-  char me[]="baneClipNew", err[AIR_STRLEN_MED];
+  char me[]="baneClipNew", err[BIFF_STRLEN];
   baneClip *clip;
 
   if (!( AIR_IN_OP(baneClipUnknown, type, baneClipLast) )) {
@@ -152,7 +152,7 @@ baneClipNew(int type, double *parm) {
 
 int
 baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
-  char me[]="baneClipAnswer", err[AIR_STRLEN_MED];
+  char me[]="baneClipAnswer", err[BIFF_STRLEN];
 
   if (!( countP && clip && hvol )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -167,7 +167,7 @@ baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
 
 baneClip *
 baneClipCopy(baneClip *clip) {
-  char me[]="baneClipCopy", err[AIR_STRLEN_MED];
+  char me[]="baneClipCopy", err[BIFF_STRLEN];
   baneClip *ret = NULL;
   
   ret = baneClipNew(clip->type, clip->parm);

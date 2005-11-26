@@ -101,7 +101,7 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
 int
 tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
                     double *bb, double *ww, int iterMax, double eps) {
-  char me[]="tenBVecNonLinearFit", err[AIR_STRLEN_MED];
+  char me[]="tenBVecNonLinearFit", err[BIFF_STRLEN];
   int map[NRRD_DIM_MAX], vecSize, iter;
   size_t ii, size[NRRD_DIM_MAX], vecI, vecNum;
   char *vec;

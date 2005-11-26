@@ -46,7 +46,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *range0, const NrrdRange *range1,
                   const Nrrd *nmap, int kind, int typeOut,
                   int rescale0, int rescale1) {
-  char me[]="_nrrdApply2DSetUp", err[AIR_STRLEN_MED], *mapcnt;
+  char me[]="_nrrdApply2DSetUp", err[BIFF_STRLEN], *mapcnt;
   char nounStr[][AIR_STRLEN_SMALL]={"2D lut",
                                     "2D regular map"};
   char verbStr[][AIR_STRLEN_SMALL]={"lut2",
@@ -302,7 +302,7 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
                const NrrdRange *_range0, const NrrdRange *_range1,
                const Nrrd *nlut,
                int typeOut, int rescale0, int rescale1) {
-  char me[]="nrrdApply2DLut", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply2DLut", err[BIFF_STRLEN];
   NrrdRange *range0, *range1;
   airArray *mop;
   Nrrd *nin0, *nin1;
@@ -363,7 +363,7 @@ int
 nrrdApply2DRegMap(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *_range0, const NrrdRange *_range1,
                   const Nrrd *nmap, int typeOut, int rescale) {
-  char me[]="nrrdApply2DRegMap", err[AIR_STRLEN_MED];
+  char me[]="nrrdApply2DRegMap", err[BIFF_STRLEN];
   NrrdRange *range;
   airArray *mop;
 

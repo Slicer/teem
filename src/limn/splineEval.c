@@ -341,7 +341,7 @@ limnSplineEvaluate(double *out, limnSpline *spline, double tt) {
 
 int
 limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
-  char me[]="limnSplineNrrdEvaluate", err[AIR_STRLEN_MED];
+  char me[]="limnSplineNrrdEvaluate", err[BIFF_STRLEN];
   double tt, *out, (*lup)(const void *, size_t);
   int odim, infoSize;
   size_t I, M, size[NRRD_DIM_MAX+1];
@@ -380,7 +380,7 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
 int
 limnSplineSample(Nrrd *nout, limnSpline *spline,
                  double minT, int M, double maxT) {
-  char me[]="limnSplineSample", err[AIR_STRLEN_MED];
+  char me[]="limnSplineSample", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ntt;
   double *tt;

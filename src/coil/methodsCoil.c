@@ -24,7 +24,7 @@
 
 int
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
-  char me[]="coilVolumeCheck", err[AIR_STRLEN_MED];
+  char me[]="coilVolumeCheck", err[BIFF_STRLEN];
   unsigned int baseDim;
   
   if (!(nin && kind)) {
@@ -71,7 +71,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
                   const coilKind *kind, const coilMethod *method,
                   unsigned int radius, unsigned int numThreads, int verbose,
                   double parm[COIL_PARMS_NUM]) {
-  char me[]="coilContextAllSet", err[AIR_STRLEN_MED];
+  char me[]="coilContextAllSet", err[BIFF_STRLEN];
   int someExist, allExist, baseDim, pi;
   size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
@@ -194,7 +194,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 */
 int
 coilOutputGet(Nrrd *nout, coilContext *cctx) {
-  char me[]="coilOutputGet", err[AIR_STRLEN_MED];
+  char me[]="coilOutputGet", err[BIFF_STRLEN];
   int baseDim;
 
   if (!(nout && cctx)) {

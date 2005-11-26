@@ -51,7 +51,7 @@ hooverContextNew() {
 
 int
 hooverContextCheck(hooverContext *ctx) {
-  char me[]="hooverContextCheck", err[AIR_STRLEN_MED];
+  char me[]="hooverContextCheck", err[BIFF_STRLEN];
   int sxe, sye, sze, minSize;
 
   if (!ctx) {

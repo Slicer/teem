@@ -40,7 +40,7 @@ _nrrdFormatText_nameLooksLike(const char *fname) {
 int
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
-  char me[]="_nrrdFormatText_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatText_fitsInto", err[BIFF_STRLEN];
   
   AIR_UNUSED(encoding);
   /* encoding ignored- always ascii */
@@ -73,7 +73,7 @@ typedef union {
 
 int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatText_read", err[AIR_STRLEN_MED], *errS;
+  char me[]="_nrrdFormatText_read", err[BIFF_STRLEN], *errS;
   const char *fs;
   unsigned int plen, llen;
   size_t line, sx, sy, size[NRRD_DIM_MAX];

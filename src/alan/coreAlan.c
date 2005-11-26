@@ -30,7 +30,7 @@
 
 int
 _alanCheck(alanContext *actx) {
-  char me[]="alanCheck", err[AIR_STRLEN_MED];
+  char me[]="alanCheck", err[BIFF_STRLEN];
 
   if (!actx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -59,7 +59,7 @@ _alanCheck(alanContext *actx) {
 
 int
 alanUpdate(alanContext *actx) {
-  char me[]="alanUpdate", err[AIR_STRLEN_MED];
+  char me[]="alanUpdate", err[BIFF_STRLEN];
   int ret;
 
   if (_alanCheck(actx)) {
@@ -96,7 +96,7 @@ alanUpdate(alanContext *actx) {
 
 int 
 alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
-  char me[]="alanInit", err[AIR_STRLEN_MED];
+  char me[]="alanInit", err[BIFF_STRLEN];
   alan_t *levInit=NULL, *lev0, *parmInit=NULL, *parm;
   size_t I, N;
 
@@ -455,7 +455,7 @@ _alanTuringWorker(void *_task) {
 
 int
 alanRun(alanContext *actx) {
-  char me[]="alanRun", err[AIR_STRLEN_MED];
+  char me[]="alanRun", err[BIFF_STRLEN];
   int tid, hack=AIR_FALSE;
   alanTask task[ALAN_THREAD_MAX];
 

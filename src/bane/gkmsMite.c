@@ -33,7 +33,7 @@ char *_baneGkms_miteInfoL =
 int
 baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *perr, err[AIR_STRLEN_MED];
+  char *out, *perr, err[BIFF_STRLEN];
   Nrrd *nin, *nout;
   airArray *mop;
   int pret, E;

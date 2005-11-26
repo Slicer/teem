@@ -77,7 +77,7 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
 
 int
 limnObjectOFFWrite(FILE *file, limnObject *obj) {
-  char me[]="limnObjectOFFWrite", err[AIR_STRLEN_MED];
+  char me[]="limnObjectOFFWrite", err[BIFF_STRLEN];
   unsigned int si;
   limnVertex *vert; unsigned int vii;
   limnFace *face; unsigned int fii;
@@ -142,7 +142,7 @@ typedef union {
 
 int
 limnObjectOFFRead(limnObject *obj, FILE *file) {
-  char me[]="limnObjectOFFRead", err[AIR_STRLEN_MED];
+  char me[]="limnObjectOFFRead", err[BIFF_STRLEN];
   double vert[6];
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
   int lineCount, lookIdx, partIdx, idxTmp, faceNum, faceGot, got;

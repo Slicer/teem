@@ -54,7 +54,7 @@ float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
 
 Nrrd *
 _baneGkmsDonNew(int invert) {
-  char me[]="_baneGkmsDonNew", err[AIR_STRLEN_MED];
+  char me[]="_baneGkmsDonNew", err[BIFF_STRLEN];
   Nrrd *ret;
   float *data;
 
@@ -88,7 +88,7 @@ char *_baneGkms_pvgInfoL =
 int
 baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[AIR_STRLEN_MED], *mapS;
+  char *outS, *perr, err[BIFF_STRLEN], *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
   NrrdIoState *nio;
   airArray *mop;

@@ -84,7 +84,7 @@ miteUserNix(miteUser *muu) {
 
 int
 _miteUserCheck(miteUser *muu) {
-  char me[]="miteUserCheck", err[AIR_STRLEN_MED];
+  char me[]="miteUserCheck", err[BIFF_STRLEN];
   int T, gotOpac;
   gageItemSpec isp;
   gageQuery queryScl, queryVec, queryTen, queryMite;

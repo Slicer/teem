@@ -402,7 +402,7 @@ _limnContour3DReverse(limnContour3DContext *lctx) {
 int
 limnContour3DLowerInsideSet(limnContour3DContext *lctx,
                             int lowerInside) {
-  char me[]="limnContour3DLowerInsideSet", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DLowerInsideSet", err[BIFF_STRLEN];
 
   if (!lctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -416,7 +416,7 @@ limnContour3DLowerInsideSet(limnContour3DContext *lctx,
 int
 limnContour3DTransformSet(limnContour3DContext *lctx,
                           const double mat[16]) {
-  char me[]="limnContour3DTransformSet", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DTransformSet", err[BIFF_STRLEN];
   double det;
 
   if (!( lctx && mat )) {
@@ -435,7 +435,7 @@ limnContour3DTransformSet(limnContour3DContext *lctx,
 
 int
 limnContour3DVolumeSet(limnContour3DContext *lctx, const Nrrd *nvol) {
-  char me[]="limnContour3DVolumeSet", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DVolumeSet", err[BIFF_STRLEN];
   int minI, maxI, *spanHist, sx, sy, sz, ss, si, xi, yi, zi, vi;
   double tmp, min, max, (*lup)(const void *v, size_t I);
   void *data;
@@ -562,7 +562,7 @@ _limnContour3DVoxelGrads(double vgrad[8][3], double *val,
 int
 limnContour3DExtract(limnContour3DContext *lctx,
                      limnObject *cont, double isovalue) {
-  char me[]="limnContour3DExtract", err[AIR_STRLEN_MED];
+  char me[]="limnContour3DExtract", err[BIFF_STRLEN];
   int sx, sy, sz, xi, yi, zi, zpi, si, spi, partIdx, vidx[12],
     minI, maxI, valI, ss, *spanHist,
     estVoxNum, estFaceNum, estVertNum;

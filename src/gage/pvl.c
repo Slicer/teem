@@ -36,7 +36,7 @@
 int
 gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
                 const gageKind *kind) {
-  char me[]="gageVolumeCheck", err[AIR_STRLEN_MED];
+  char me[]="gageVolumeCheck", err[BIFF_STRLEN];
   gageShape shape;
 
   gageShapeReset(&shape);
@@ -57,7 +57,7 @@ gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
 */
 gagePerVolume *
 gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
-  char me[]="gagePerVolumeNew", err[AIR_STRLEN_MED];
+  char me[]="gagePerVolumeNew", err[BIFF_STRLEN];
   gagePerVolume *pvl;
   int ii;
 
@@ -115,7 +115,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 */
 gagePerVolume *
 _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
-  char me[]="gagePerVolumeCopy", err[AIR_STRLEN_MED];
+  char me[]="gagePerVolumeCopy", err[BIFF_STRLEN];
   gagePerVolume *nvl;
   int ii;
   
@@ -227,7 +227,7 @@ gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 
 int
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gageQueryReset", err[AIR_STRLEN_MED];
+  char me[]="gageQueryReset", err[BIFF_STRLEN];
 
   AIR_UNUSED(ctx);
   if (!( pvl )) {
@@ -254,7 +254,7 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
 */
 int
 gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
-  char me[]="gageQuerySet", err[AIR_STRLEN_MED];
+  char me[]="gageQuerySet", err[BIFF_STRLEN];
   gageQuery lastQuery;
   int pi, ii;
   
@@ -311,7 +311,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
 
 int
 gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
-  char me[]="gageQueryAdd", err[AIR_STRLEN_MED];
+  char me[]="gageQueryAdd", err[BIFF_STRLEN];
 
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -329,7 +329,7 @@ gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
 
 int
 gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
-  char me[]="gageQueryItemOn", err[AIR_STRLEN_MED];
+  char me[]="gageQueryItemOn", err[BIFF_STRLEN];
 
   if (!( pvl )) {
     sprintf(err, "%s: got NULL pointer", me);

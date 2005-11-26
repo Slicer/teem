@@ -40,7 +40,7 @@ int qbertSaveAll = AIR_FALSE;  /* can be used to save output of every stage */
 int
 qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
             NrrdKernelSpec *uk) {
-  char me[]="qbertSizeUp", err[AIR_STRLEN_MED];
+  char me[]="qbertSizeUp", err[BIFF_STRLEN];
   int i, anyneed, need;
   ptrdiff_t padMin[3], padMax[3];
   NrrdResampleInfo *rsi;
@@ -127,7 +127,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
 int
 qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
               NrrdKernelSpec *dk) {
-  char me[]="qbertSizeDown", err[AIR_STRLEN_MED];
+  char me[]="qbertSizeDown", err[BIFF_STRLEN];
   NrrdResampleInfo *rsi;
   int need;
   unsigned int i;
@@ -193,7 +193,7 @@ int
 qbertProbe(Nrrd *nout, Nrrd *nin,
            NrrdKernelSpec *k00, NrrdKernelSpec *k11, NrrdKernelSpec *k22,
            int doH, unsigned int *sz) {
-  char me[]="qbertProbe", err[AIR_STRLEN_MED], prog[AIR_STRLEN_SMALL];
+  char me[]="qbertProbe", err[BIFF_STRLEN], prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
   const gage_t *val, *gmag, *scnd;
@@ -282,7 +282,7 @@ int
 qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
                   unsigned int *sz, int bins,
                   Nrrd *nvghF, Nrrd *nin) {
-  char me[]="qbertMakeVghHists", err[AIR_STRLEN_MED];
+  char me[]="qbertMakeVghHists", err[BIFF_STRLEN];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   float *vghF;
   unsigned int i;
@@ -381,7 +381,7 @@ int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
              unsigned int *sz, float *perc,
              Nrrd *nvghF) {
-  char me[]="qbertMakeVgh", err[AIR_STRLEN_MED], cmt[AIR_STRLEN_SMALL];
+  char me[]="qbertMakeVgh", err[BIFF_STRLEN], cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   int lose, *vhist, *ghist, *hhist=NULL, bins, vi, gi, hi, nval, doH;
   unsigned int i;
@@ -483,7 +483,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   
 int
 qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
-  char me[]="qbertScat", err[AIR_STRLEN_MED];
+  char me[]="qbertScat", err[BIFF_STRLEN];
   Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
   size_t bins[2];

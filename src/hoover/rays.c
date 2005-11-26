@@ -332,7 +332,7 @@ typedef union {
 */
 int
 hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
-  char me[]="hooverRender", err[AIR_STRLEN_MED];
+  char me[]="hooverRender", err[BIFF_STRLEN];
   _hooverExtraContext *ec;
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;

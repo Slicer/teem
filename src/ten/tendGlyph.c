@@ -42,7 +42,7 @@ char *_tend_glyphInfoL =
 int
 _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
                    unsigned int *numCamsP, FILE *fin) {
-  char me[]="_tendGlyphReadCams", err[AIR_STRLEN_MED];
+  char me[]="_tendGlyphReadCams", err[BIFF_STRLEN];
   char line[AIR_STRLEN_HUGE];
   int ki;
   double di, dn, df, fr[3], at[3], up[3], va, dwell;

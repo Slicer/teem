@@ -30,7 +30,7 @@
 
 int
 nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
-  char me[]="nrrdIoStateSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdIoStateSet", err[BIFF_STRLEN];
   
   if (!nio) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -98,7 +98,7 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
 
 int
 nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
-  char me[]="nrrdIoStateEncodingSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdIoStateEncodingSet", err[BIFF_STRLEN];
 
   if (!( nio && encoding )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -119,7 +119,7 @@ nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
 
 int
 nrrdIoStateFormatSet(NrrdIoState *nio, const NrrdFormat *format) {
-  char me[]="nrrdIoStateFormatSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdIoStateFormatSet", err[BIFF_STRLEN];
 
   if (!( nio && format )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -750,7 +750,7 @@ _nrrdFprintFieldInfo(FILE *file, char *prefix,
 
 int
 _nrrdEncodingMaybeSet(NrrdIoState *nio) {
-  char me[]="_nrrdEncodingMaybeSet", err[AIR_STRLEN_MED];
+  char me[]="_nrrdEncodingMaybeSet", err[BIFF_STRLEN];
 
   if (!nio->encoding) {
     sprintf(err, "%s: invalid (NULL) encoding", me);
@@ -776,7 +776,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 int
 _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
                       const char *filename) {
-  char me[]="_nrrdFormatMaybeGuess", err[AIR_STRLEN_MED], mesg[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatMaybeGuess", err[BIFF_STRLEN], mesg[AIR_STRLEN_MED];
   int fi, guessed, available, fits;
 
   if (!nio->format) {
@@ -825,7 +825,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
 
 int
 _nrrdFormatMaybeSet(NrrdIoState *nio) {
-  char me[]="_nrrdFormatMaybeSet", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatMaybeSet", err[BIFF_STRLEN];
 
   if (!nio->format) {
     sprintf(err, "%s: invalid (NULL) format", me);
@@ -853,7 +853,7 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
 */
 int
 _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
-  char me[]="_nrrdWrite", err[AIR_STRLEN_MED];
+  char me[]="_nrrdWrite", err[BIFF_STRLEN];
   NrrdIoState *nio;
   airArray *mop;
 
@@ -936,7 +936,7 @@ _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
 */
 int
 nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
-  char me[]="nrrdWrite", err[AIR_STRLEN_MED];
+  char me[]="nrrdWrite", err[BIFF_STRLEN];
 
   if (_nrrdWrite(file, NULL, nrrd, _nio)) {
     sprintf(err, "%s: trouble", me);
@@ -952,7 +952,7 @@ nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
 */
 int
 nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
-  char me[]="nrrdStringWrite", err[AIR_STRLEN_MED];
+  char me[]="nrrdStringWrite", err[BIFF_STRLEN];
 
   if (_nrrdWrite(NULL, stringP, nrrd, _nio)) {
     sprintf(err, "%s: trouble", me);
@@ -973,7 +973,7 @@ nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
 */
 int
 nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="nrrdSave", err[AIR_STRLEN_MED];
+  char me[]="nrrdSave", err[BIFF_STRLEN];
   FILE *file;
   airArray *mop;
 

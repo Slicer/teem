@@ -298,7 +298,7 @@ tenDwiGageKindCheck(const gageKind *kind) {
 
   AIR_UNUSED(kind);
 #if 0
-  char me[]="tenDwiGageKindCheck", err[AIR_STRLEN_MED];
+  char me[]="tenDwiGageKindCheck", err[BIFF_STRLEN];
   
   if (!kind) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -322,7 +322,7 @@ _tenDwiGageKindReadyCheck(const gageKind *kind) {
 
   AIR_UNUSED(kind);
 #if 0
-  char me[]="_tenDwiGageKindReadyCheck", err[AIR_STRLEN_MED];
+  char me[]="_tenDwiGageKindReadyCheck", err[BIFF_STRLEN];
   tenDwiGageKindData *kindData;
 
   if (tenDwiGageKindCheck(kind)) {
@@ -356,7 +356,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
 
   AIR_UNUSED(kind);
 #if 0
-  char me[]="_tenDwiGagePvlDataNew", err[AIR_STRLEN_MED];
+  char me[]="_tenDwiGagePvlDataNew", err[BIFF_STRLEN];
   tenDwiGagePvlData *pvlData;
   tenDwiGageKindData *kindData;
 
@@ -466,7 +466,7 @@ tenDwiGageKindFitType(gageKind *kind, int fitType) {
   AIR_UNUSED(kind);
   AIR_UNUSED(fitType);
 #if 0
-  char me[]="tenDwiGageKindFitType", err[AIR_STRLEN_MED];
+  char me[]="tenDwiGageKindFitType", err[BIFF_STRLEN];
 
   if (tenDwiGageKindCheck(kind)) {
     sprintf(err, "%s: trouble with given kind", me);

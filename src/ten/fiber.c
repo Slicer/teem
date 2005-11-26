@@ -262,7 +262,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
                  double *buff, unsigned int halfBuffLen,
                  unsigned int *startIdxP, unsigned int *endIdxP,
                  double seed[3]) {
-  char me[]="tenFiberTraceSet", err[AIR_STRLEN_MED];
+  char me[]="tenFiberTraceSet", err[BIFF_STRLEN];
   airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
                                 fiber points */
   double *fpts[2];           /* arrays storing forward and backward
@@ -441,7 +441,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 */
 int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
-  char me[]="tenFiberTrace", err[AIR_STRLEN_MED];
+  char me[]="tenFiberTrace", err[BIFF_STRLEN];
 
   if (tenFiberTraceSet(tfx, nfiber, NULL, 0, NULL, NULL, seed)) {
     sprintf(err, "%s: problem computing tract", me);

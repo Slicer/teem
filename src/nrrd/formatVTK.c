@@ -42,7 +42,7 @@ _nrrdFormatVTK_nameLooksLike(const char *fname) {
 int
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatVTK_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatVTK_fitsInto", err[BIFF_STRLEN];
   
   if (!( nrrd && encoding )) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
@@ -90,7 +90,7 @@ _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
 
 int
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdReadVTK", err[AIR_STRLEN_MED], *three[3];
+  char me[]="_nrrdReadVTK", err[BIFF_STRLEN], *three[3];
   int sx, sy, sz, ret, N;
   double xm=0.0, ym=0.0, zm=0.0, xs=1.0, ys=1.0, zs=1.0;
   airArray *mop;
@@ -272,7 +272,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 /* this strongly assumes that nrrdFitsInFormat() was true */
 int
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatVTK_write", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatVTK_write", err[BIFF_STRLEN];
   int i, sx, sy, sz, sax;
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];

@@ -145,7 +145,7 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
                      double xMin, double xMax,
                      double yMin, double yMax,
                      int xSize, int ySize) {
-  char me[]="mossLinearTransform", err[AIR_STRLEN_MED];
+  char me[]="mossLinearTransform", err[BIFF_STRLEN];
   int ncol, xi, yi, ci, ax0, xCent, yCent;
   float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
   double inv[6], xInPos, xOutPos, yInPos, yOutPos;

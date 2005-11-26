@@ -209,6 +209,9 @@ ELL_EXPORT int ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9],
 ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
                             double mat[9], int newton);
 
+/* bessy.c */
+
+
 #ifdef __cplusplus
 }
 #endif

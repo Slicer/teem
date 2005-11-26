@@ -53,7 +53,7 @@ _pushProcessDummy(pushTask *task, int bin,
 */
 int
 _pushStageRun(pushTask *task, int stageIdx) {
-  char me[]="_pushStageRun", err[AIR_STRLEN_MED];
+  char me[]="_pushStageRun", err[BIFF_STRLEN];
   unsigned int binIdx;
   
   while (task->pctx->binIdx < task->pctx->numBin) {
@@ -129,7 +129,7 @@ _pushWorker(void *_task) {
 
 int
 _pushContextCheck(pushContext *pctx) {
-  char me[]="_pushContextCheck", err[AIR_STRLEN_MED];
+  char me[]="_pushContextCheck", err[BIFF_STRLEN];
   unsigned int sidx;
   int nul;
   
@@ -207,7 +207,7 @@ _pushContextCheck(pushContext *pctx) {
 
 int
 pushStart(pushContext *pctx) {
-  char me[]="pushStart", err[AIR_STRLEN_MED];
+  char me[]="pushStart", err[BIFF_STRLEN];
   unsigned int tidx;
 
   if (_pushContextCheck(pctx)) {
@@ -261,7 +261,7 @@ pushStart(pushContext *pctx) {
 */
 int
 pushIterate(pushContext *pctx) {
-  char me[]="pushIterate", *_err, err[AIR_STRLEN_MED];
+  char me[]="pushIterate", *_err, err[BIFF_STRLEN];
   unsigned int ti, numThing;
 
   if (!pctx) {
@@ -326,7 +326,7 @@ pushIterate(pushContext *pctx) {
 
 int
 pushRun(pushContext *pctx) {
-  char me[]="pushRun", err[AIR_STRLEN_MED],
+  char me[]="pushRun", err[BIFF_STRLEN],
     poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
   Nrrd *npos, *nten, *nstn;
   double vel[2], meanVel=0;
@@ -405,7 +405,7 @@ pushRun(pushContext *pctx) {
 */
 int
 pushFinish(pushContext *pctx) {
-  char me[]="pushFinish", err[AIR_STRLEN_MED];
+  char me[]="pushFinish", err[BIFF_STRLEN];
   unsigned int ii, tidx;
 
   if (!pctx) {

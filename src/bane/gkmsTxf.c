@@ -33,7 +33,7 @@ char *_baneGkms_txfInfoL =
 int
 baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *perr, err[AIR_STRLEN_MED];
+  char *out, *perr, err[BIFF_STRLEN];
   Nrrd *nout;
   airArray *mop;
   int pret, E, res[2], vi, gi, step;

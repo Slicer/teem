@@ -119,7 +119,7 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
 
 int
 limnEnvMapCheck(Nrrd *envMap) {
-  char me[]="limnEnvMapCheck", err[AIR_STRLEN_MED];
+  char me[]="limnEnvMapCheck", err[BIFF_STRLEN];
 
   if (nrrdCheck(envMap)) {
     sprintf(err, "%s: basic nrrd validity check failed", me);

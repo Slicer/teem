@@ -86,7 +86,7 @@ _gageCacheProbe (gageContext *ctx, gage_t *grad,
 int
 gageStructureTensor (Nrrd *nout, const Nrrd *nin,
                      int dScale, int iScale, int dsmp) {
-  char me[]="gageStructureTensor", err[AIR_STRLEN_MED];
+  char me[]="gageStructureTensor", err[BIFF_STRLEN];
   NrrdKernelSpec *gk0, *gk1, *ik0;
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
     _ixi, _iyi, _izi, ixi, iyi, izi, wi, *coordCache;

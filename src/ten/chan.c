@@ -39,7 +39,7 @@
 int
 tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
                       double *bP, const Nrrd *ndwi) {
-  char me[]="tenDWMRIKeyValueParse", err[AIR_STRLEN_MED],
+  char me[]="tenDWMRIKeyValueParse", err[BIFF_STRLEN],
     modalityKey[] = "modality",
     modalityVal[] = "DWMRI",
     bvalueKey[] = "DWMRI_b-value",
@@ -236,7 +236,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
 */
 int
 tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
-  char me[]="tenBMatrixCalc", err[AIR_STRLEN_MED];
+  char me[]="tenBMatrixCalc", err[BIFF_STRLEN];
   Nrrd *ngrad;
   double *bmat, *G;
   int DD, dd;
@@ -277,7 +277,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
 */
 int
 tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
-  char me[]="tenEMatrixCalc", err[AIR_STRLEN_MED];
+  char me[]="tenEMatrixCalc", err[BIFF_STRLEN];
   Nrrd *nbmat, *ntmp;
   airArray *mop;
   ptrdiff_t padmin[2], padmax[2];
@@ -473,7 +473,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                     const Nrrd *const *_ndwi, unsigned int dwiLen, 
                     const Nrrd *_nbmat, int knownB0, 
                     double thresh, double soft, double b) {
-  char me[]="tenEstimateLinear3D", err[AIR_STRLEN_MED];
+  char me[]="tenEstimateLinear3D", err[BIFF_STRLEN];
   Nrrd *ndwi;
   airArray *mop;
   int amap[4] = {-1, 0, 1, 2};
@@ -519,7 +519,7 @@ int
 tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                     const Nrrd *ndwi, const Nrrd *_nbmat, int knownB0,
                     double thresh, double soft, double b) {
-  char me[]="tenEstimateLinear4D", err[AIR_STRLEN_MED];
+  char me[]="tenEstimateLinear4D", err[BIFF_STRLEN];
   Nrrd *nemat, *nbmat, *ncrop, *nhist;
   airArray *mop;
   size_t cmin[4], cmax[4], sx, sy, sz, II, d, DD;
@@ -750,7 +750,7 @@ tenSimulateOne_f(float *dwi,
 int
 tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
             const Nrrd *_nbmat, double b) {
-  char me[]="tenSimulate", err[AIR_STRLEN_MED];
+  char me[]="tenSimulate", err[BIFF_STRLEN];
   size_t II;
   Nrrd *nbmat;
   size_t DD, sx, sy, sz;

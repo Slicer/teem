@@ -31,7 +31,7 @@ char *_unrrdu_minmaxInfoL =
 
 int
 unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
-  char err[AIR_STRLEN_MED];
+  char err[BIFF_STRLEN];
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;

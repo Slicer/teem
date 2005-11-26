@@ -91,7 +91,7 @@ _pushPointTotal(pushContext *pctx) {
 int
 pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
               pushContext *pctx) {
-  char me[]="pushOutputGet", err[AIR_STRLEN_MED];
+  char me[]="pushOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, numPoint, thingRun, numThing,
     pointIdx, thingIdx, *stnOut;
   int E;
@@ -170,7 +170,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
 int
 _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
                    pushPoint *myPoint, pushPoint *herPoint) {
-  char me[]="_pushPairwiseForce", err[AIR_STRLEN_MED];
+  char me[]="_pushPairwiseForce", err[BIFF_STRLEN];
   push_t inv[7], dot;
   float haveDist, restDist, mm, fix, mag,
     D[3], nD[3], lenD, lenDsqr,
@@ -341,7 +341,7 @@ _pushForceSample(pushContext *pctx, unsigned int sx, unsigned int sy) {
 int
 _pushForce(pushTask *task, int myBinIdx,
            const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
-  char me[]="_pushForce", err[AIR_STRLEN_MED];
+  char me[]="_pushForce", err[BIFF_STRLEN];
   pushBin *myBin, *herBin, **neighbor;
   pushPoint *myPoint, *herPoint;
   pushThing *myThing;
@@ -466,7 +466,7 @@ _pushForce(pushTask *task, int myBinIdx,
 
 int
 _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
-  char me[]="_pushThingPointBe", err[AIR_STRLEN_MED];
+  char me[]="_pushThingPointBe", err[BIFF_STRLEN];
   unsigned int vertIdx;
 
   if (1 == thing->numVert) {
@@ -498,7 +498,7 @@ _pushThingPointBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
 
 int
 _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
-  char me[]="_pushThingTractletBe", err[AIR_STRLEN_MED];
+  char me[]="_pushThingTractletBe", err[BIFF_STRLEN];
   unsigned int vertIdx, startIdx, endIdx, numVert;
   int tret;
   double seed[3], tmp;
@@ -648,7 +648,7 @@ _pushPrintForce(pushContext *pctx, pushThing *thing) {
 int
 _pushUpdate(pushTask *task, int binIdx,
             const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
-  char me[]="_pushUpdate", err[AIR_STRLEN_MED];
+  char me[]="_pushUpdate", err[BIFF_STRLEN];
   int ret, inside;
   unsigned int thingIdx, vertIdx;
   double step, mass, *minPos, *maxPos;

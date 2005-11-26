@@ -25,7 +25,7 @@
 
 int
 limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
-  char me[]="limnObjectRender", err[AIR_STRLEN_MED];
+  char me[]="limnObjectRender", err[BIFF_STRLEN];
   int E;
   
   E = 0;
@@ -175,7 +175,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
 int
 limnObjectPSDraw(limnObject *obj, limnCamera *cam,
                  Nrrd *nmap, limnWindow *win) {
-  char me[]="limnObjectPSDraw", err[AIR_STRLEN_MED];
+  char me[]="limnObjectPSDraw", err[BIFF_STRLEN];
   int inside;
   float angle;
   limnFace *face, *face0, *face1; unsigned int fii;
@@ -300,7 +300,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 int
 limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
                      Nrrd *nmap, limnWindow *win) {
-  char me[]="limnObjectPSDrawConcave", err[AIR_STRLEN_MED];
+  char me[]="limnObjectPSDrawConcave", err[BIFF_STRLEN];
   float angle;
   limnPart *part;
   limnFace *face, *face0, *face1; unsigned int faceIdx;

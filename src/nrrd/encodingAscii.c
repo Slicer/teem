@@ -32,7 +32,7 @@ _nrrdEncodingAscii_available(void) {
 int
 _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingAscii_read", err[AIR_STRLEN_MED],
+  char me[]="_nrrdEncodingAscii_read", err[BIFF_STRLEN],
     numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
   size_t I;
   char *data;
@@ -80,7 +80,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
 int
 _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingAscii_write", err[AIR_STRLEN_MED],
+  char me[]="_nrrdEncodingAscii_write", err[BIFF_STRLEN],
     buff[AIR_STRLEN_MED];
   unsigned int bufflen, linelen;
   const char *data;

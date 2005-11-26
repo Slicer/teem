@@ -30,7 +30,7 @@
 */
 int
 _nrrdReadNrrdParseField (NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParseField", err[AIR_STRLEN_MED], *next,
+  char me[]="_nrrdReadNrrdParseField", err[BIFF_STRLEN], *next,
     *buff, *colon, *keysep;
   int ret, fld=nrrdField_unknown, noField, badField=AIR_FALSE;
   
@@ -120,7 +120,7 @@ _nrrdReadNrrdParse_nonfield (FILE *file, Nrrd *nrrd,
 int 
 _nrrdReadNrrdParse_comment (FILE *file, Nrrd *nrrd,
                             NrrdIoState *nio, int useBiff) { 
-  char me[]="_nrrdReadNrrdParse_comment", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_comment", err[BIFF_STRLEN];
   char *info;
   
   AIR_UNUSED(file);
@@ -136,7 +136,7 @@ _nrrdReadNrrdParse_comment (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_content (FILE *file, Nrrd *nrrd, 
                             NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_content", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_content", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -152,7 +152,7 @@ int
 _nrrdReadNrrdParse_number (FILE *file, Nrrd *nrrd,
                            NrrdIoState *nio, int useBiff) {
   /*
-  char me[]="_nrrdReadNrrdParse_number", err[AIR_STRLEN_MED]; 
+  char me[]="_nrrdReadNrrdParse_number", err[BIFF_STRLEN]; 
   char *info;
 
   info = nio->line + nio->pos;
@@ -183,7 +183,7 @@ _nrrdReadNrrdParse_number (FILE *file, Nrrd *nrrd,
 int 
 _nrrdReadNrrdParse_type (FILE *file, Nrrd *nrrd, 
                          NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_type", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_type", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -208,7 +208,7 @@ _nrrdReadNrrdParse_type (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_block_size (FILE *file, Nrrd *nrrd,
                                NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_block_size", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_block_size", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -222,7 +222,7 @@ _nrrdReadNrrdParse_block_size (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_dimension (FILE *file, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_dimension", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_dimension", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -262,7 +262,7 @@ _nrrdReadNrrdParse_dimension (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_sizes (FILE *file, Nrrd *nrrd, 
                           NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_sizes", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_sizes", err[BIFF_STRLEN];
   unsigned int ret;
   size_t val[NRRD_DIM_MAX];
   char *info;
@@ -289,7 +289,7 @@ _nrrdReadNrrdParse_sizes (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_spacings (FILE *file, Nrrd *nrrd, 
                              NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_spacings", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_spacings", err[BIFF_STRLEN];
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -316,7 +316,7 @@ _nrrdReadNrrdParse_spacings (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_thicknesses (FILE *file, Nrrd *nrrd, 
                                 NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_thicknesses", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_thicknesses", err[BIFF_STRLEN];
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -343,7 +343,7 @@ _nrrdReadNrrdParse_thicknesses (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_axis_mins (FILE *file, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_axis_mins", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_axis_mins", err[BIFF_STRLEN];
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -370,7 +370,7 @@ _nrrdReadNrrdParse_axis_mins (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_axis_maxs (FILE *file, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_axis_maxs", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_axis_maxs", err[BIFF_STRLEN];
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -397,7 +397,7 @@ _nrrdReadNrrdParse_axis_maxs (FILE *file, Nrrd *nrrd,
 int
 _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
                       char **hhP, unsigned int spaceDim, int useBiff) {
-  char me[]="_nrrdSpaceVectorParse", err[AIR_STRLEN_MED],
+  char me[]="_nrrdSpaceVectorParse", err[BIFF_STRLEN],
     *hh, *buff, sep[]=",)";
   airArray *mop;
   unsigned int ret, dd, length;
@@ -499,7 +499,7 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
 int
 _nrrdReadNrrdParse_space_directions (FILE *file, Nrrd *nrrd, 
                                      NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_space_directions", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_space_directions", err[BIFF_STRLEN];
   unsigned int dd;
   char *info;
 
@@ -531,7 +531,7 @@ _nrrdReadNrrdParse_space_directions (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_centers (FILE *file, Nrrd *nrrd, 
                             NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_centers", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_centers", err[BIFF_STRLEN];
   unsigned int ai;
   char *tok, *info, *last;
   airArray *mop;
@@ -578,7 +578,7 @@ _nrrdReadNrrdParse_centers (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_kinds (FILE *file, Nrrd *nrrd, 
                           NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_kinds", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_kinds", err[BIFF_STRLEN];
   unsigned int ai;
   char *info, *tok, *last;
   airArray *mop;
@@ -633,7 +633,7 @@ typedef union {
 
 char *
 _nrrdGetQuotedString(char **hP, int useBiff) {
-  char me[]="_nrrdGetQuotedString", err[AIR_STRLEN_MED], *h, *buff, *ret;
+  char me[]="_nrrdGetQuotedString", err[BIFF_STRLEN], *h, *buff, *ret;
   airArray *buffArr;
   int pos;
   _chpu uu;
@@ -693,7 +693,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
 int
 _nrrdReadNrrdParse_labels (FILE *file, Nrrd *nrrd, 
                            NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_labels", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_labels", err[BIFF_STRLEN];
   char *h;  /* this is the "here" pointer which gradually progresses
                through all the labels (for all axes) */
   unsigned int ai;
@@ -728,7 +728,7 @@ _nrrdReadNrrdParse_labels (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_units (FILE *file, Nrrd *nrrd, 
                           NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_units", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_units", err[BIFF_STRLEN];
   char *h;  /* this is the "here" pointer which gradually progresses
                through all the units (for all axes) */
   unsigned int ai;
@@ -794,7 +794,7 @@ _nrrdReadNrrdParse_max (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_old_min (FILE *file, Nrrd *nrrd, 
                             NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_old_min", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_old_min", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -810,7 +810,7 @@ _nrrdReadNrrdParse_old_min (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_old_max (FILE *file, Nrrd *nrrd, 
                             NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_old_max", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_old_max", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -826,7 +826,7 @@ _nrrdReadNrrdParse_old_max (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_endian (FILE *file, Nrrd *nrrd, 
                            NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_endian", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_endian", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -842,7 +842,7 @@ _nrrdReadNrrdParse_endian (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_encoding (FILE *file, Nrrd *nrrd, 
                              NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_encoding", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_encoding", err[BIFF_STRLEN];
   char *info;
   int etype;
 
@@ -861,7 +861,7 @@ _nrrdReadNrrdParse_encoding (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_line_skip (FILE *file, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_line_skip", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_line_skip", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -880,7 +880,7 @@ _nrrdReadNrrdParse_line_skip (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_byte_skip (FILE *file, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_byte_skip", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_byte_skip", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -897,7 +897,7 @@ _nrrdReadNrrdParse_byte_skip (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_keyvalue (FILE *file, Nrrd *nrrd, 
                              NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_keyvalue", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_keyvalue", err[BIFF_STRLEN];
   char *keysep, *line, *key, *value;
 
   AIR_UNUSED(file);
@@ -931,7 +931,7 @@ _nrrdReadNrrdParse_keyvalue (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_sample_units (FILE *file, Nrrd *nrrd, 
                                  NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_sample_units", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_sample_units", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -951,7 +951,7 @@ _nrrdReadNrrdParse_sample_units (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_space (FILE *file, Nrrd *nrrd, 
                           NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_space", err[AIR_STRLEN_MED], *info;
+  char me[]="_nrrdReadNrrdParse_space", err[BIFF_STRLEN], *info;
   int space;
 
   AIR_UNUSED(file);
@@ -979,7 +979,7 @@ _nrrdReadNrrdParse_space (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_space_dimension (FILE *file, Nrrd *nrrd, 
                                     NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_space_dimension", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_space_dimension", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -1000,7 +1000,7 @@ _nrrdReadNrrdParse_space_dimension (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_space_units (FILE *file, Nrrd *nrrd, 
                                 NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_space_units", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_space_units", err[BIFF_STRLEN];
   char *h;  /* this is the "here" pointer which gradually progresses
                through all the units (for all axes) */
   unsigned int ai;
@@ -1035,7 +1035,7 @@ _nrrdReadNrrdParse_space_units (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_space_origin (FILE *file, Nrrd *nrrd, 
                                  NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_space_origin", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_space_origin", err[BIFF_STRLEN];
   char *info;
 
   AIR_UNUSED(file);
@@ -1058,7 +1058,7 @@ _nrrdReadNrrdParse_space_origin (FILE *file, Nrrd *nrrd,
 int
 _nrrdReadNrrdParse_measurement_frame (FILE *file, Nrrd *nrrd, 
                                       NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_measurement_frame", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_measurement_frame", err[BIFF_STRLEN];
   double colvec[NRRD_SPACE_DIM_MAX];
   unsigned int dd, ii;
   char *info;
@@ -1151,7 +1151,7 @@ _nrrdDataFNNumber(NrrdIoState *nio) {
 
 int
 _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdDataFNCheck", err[AIR_STRLEN_MED];
+  char me[]="_nrrdDataFNCheck", err[BIFF_STRLEN];
   size_t pieceSize, pieceNum;
 
   if (nio->dataFileDim < nrrd->dim) {
@@ -1200,7 +1200,7 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
 int
 _nrrdReadNrrdParse_data_file (FILE *ffile, Nrrd *nrrd, 
                               NrrdIoState *nio, int useBiff) {
-  char me[]="_nrrdReadNrrdParse_data_file", err[AIR_STRLEN_MED];
+  char me[]="_nrrdReadNrrdParse_data_file", err[BIFF_STRLEN];
   char *info, *nums;
   unsigned int linelen;
   int tmp;

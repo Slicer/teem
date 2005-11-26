@@ -40,7 +40,7 @@
 int
 nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
           const Nrrd *nwght, size_t bins, int type) {
-  char me[]="nrrdHisto", func[]="histo", err[AIR_STRLEN_MED];
+  char me[]="nrrdHisto", func[]="histo", err[BIFF_STRLEN];
   size_t I, num, idx;
   airArray *mop;
   NrrdRange *range;
@@ -157,7 +157,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 int
 nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
               size_t sy, int showLog, double max) {
-  char me[]="nrrdHistoDraw", func[]="dhisto", err[AIR_STRLEN_MED],
+  char me[]="nrrdHistoDraw", func[]="dhisto", err[BIFF_STRLEN],
     cmt[AIR_STRLEN_MED];
   unsigned int k, sx, x, y, maxhitidx, E,
     numticks, *Y, *logY, tick, *ticks;
@@ -294,7 +294,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
 int
 nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, 
               unsigned int hax, size_t bins, int type) {
-  char me[]="nrrdHistoAxis", func[]="histax", err[AIR_STRLEN_MED];
+  char me[]="nrrdHistoAxis", func[]="histax", err[BIFF_STRLEN];
   int map[NRRD_DIM_MAX];
   unsigned int ai, hidx;
   size_t szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
@@ -408,7 +408,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                const NrrdRange *const *_range, unsigned int numNin,
                const Nrrd *nwght, const size_t *bins,
                int type, const int *clamp) {
-  char me[]="nrrdHistoJoint", func[]="jhisto", err[AIR_STRLEN_MED];
+  char me[]="nrrdHistoJoint", func[]="jhisto", err[BIFF_STRLEN];
   int coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
   double val, count, incr, (*lup)(const void *v, size_t I);
   size_t Iin, Iout, numEl;

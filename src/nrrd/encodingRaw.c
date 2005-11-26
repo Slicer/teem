@@ -32,7 +32,7 @@ _nrrdEncodingRaw_available(void) {
 int
 _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingRaw_read", err[AIR_STRLEN_MED];
+  char me[]="_nrrdEncodingRaw_read", err[BIFF_STRLEN];
   size_t ret, bsize;
   int fd, dio, car;
   long savePos;
@@ -94,7 +94,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
 int
 _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingRaw_write", err[AIR_STRLEN_MED];
+  char me[]="_nrrdEncodingRaw_write", err[BIFF_STRLEN];
   int fd, dio;
   size_t ret, bsize;
   

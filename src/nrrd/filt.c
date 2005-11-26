@@ -307,7 +307,7 @@ int
 nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
                 int pad, int mode,
                 unsigned int radius, float wght, unsigned int bins) {
-  char me[]="nrrdCheapMedian", func[]="cmedian", err[AIR_STRLEN_MED];
+  char me[]="nrrdCheapMedian", func[]="cmedian", err[BIFF_STRLEN];
   NrrdRange *range;
   float *hist;
   Nrrd *nout, *nin;

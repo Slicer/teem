@@ -40,7 +40,7 @@ int _nrrdCC_verb = 0;
 
 int
 _nrrdCCFind_1(Nrrd *nout, int *numid, const Nrrd *nin) {
-  /* char me[]="_nrrdCCFind_1", err[AIR_STRLEN_MED]; */
+  /* char me[]="_nrrdCCFind_1", err[BIFF_STRLEN]; */
   int id, lval, val, *out, (*lup)(const void *, size_t);
   int sx, I;
 
@@ -104,7 +104,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
 int
 _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
-  char me[]="_nrrdCCFind_2"  /* , err[AIR_STRLEN_MED]*/ ; 
+  char me[]="_nrrdCCFind_2"  /* , err[BIFF_STRLEN]*/ ; 
   double vl=0, pvl[5]={0,0,0,0,0};
   int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
   int p, x, y, sx, sy;
@@ -192,7 +192,7 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 int
 _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
-  /* char me[]="_nrrdCCFind_2", err[AIR_STRLEN_MED] ; */
+  /* char me[]="_nrrdCCFind_2", err[BIFF_STRLEN] ; */
   double pvl[14], vl=0;
   int id, pid[14], *out, (*lup)(const void *, size_t);
   int p, x, y, z, sx, sy, sz;  
@@ -271,7 +271,7 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 int
 _nrrdCCFind_N(Nrrd *nout, int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
-  char me[]="_nrrdCCFind_N", err[AIR_STRLEN_MED];
+  char me[]="_nrrdCCFind_N", err[BIFF_STRLEN];
   
   AIR_UNUSED(nout);
   AIR_UNUSED(numid);
@@ -304,7 +304,7 @@ _nrrdCCFind_N(Nrrd *nout, int *numid, airArray *eqvArr,
 int
 nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
            unsigned int conny) {
-  char me[]="nrrdCCFind", func[]="ccfind", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCFind", func[]="ccfind", err[BIFF_STRLEN];
   Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
   int ret, *map, *fpid, numid, maxid,
@@ -541,7 +541,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
 int
 _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
              unsigned int conny) {
-  char me[]="_nrrdCCAdj_N", err[AIR_STRLEN_MED];
+  char me[]="_nrrdCCAdj_N", err[BIFF_STRLEN];
 
   AIR_UNUSED(out);
   AIR_UNUSED(numid);
@@ -553,7 +553,7 @@ _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
 
 int
 nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
-  char me[]="nrrdCCAdjacency", func[]="ccadj", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCAdjacency", func[]="ccadj", err[BIFF_STRLEN];
   int ret, maxid;
   unsigned char *out;
 
@@ -649,7 +649,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
 int
 nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
             int valDir, int maxSize, int maxNeighbor, unsigned int conny) {
-  char me[]="nrrdCCMerge", func[]="ccmerge", err[AIR_STRLEN_MED], *valcnt;
+  char me[]="nrrdCCMerge", func[]="ccmerge", err[BIFF_STRLEN], *valcnt;
   int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
     *nn,  /* number of neighbors */
     *map, *val=NULL, *hit,
@@ -786,7 +786,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
 */
 int
 nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
-  char me[]="nrrdCCRevalue", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCRevalue", err[BIFF_STRLEN];
   size_t I, NN;
   int (*vlup)(const void *, size_t), (*ilup)(const void *, size_t),
     (*ins)(void *, size_t, int);
@@ -813,7 +813,7 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
 
 int
 nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
-  char me[]="nrrdCCSettle", func[]="ccsettle", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCSettle", func[]="ccsettle", err[BIFF_STRLEN];
   int numid, maxid, jd, id, *map,
     (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
   void *val=NULL;

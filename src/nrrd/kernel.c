@@ -1414,7 +1414,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
 
 int
 nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
-  char me[]="nrrdKernelSpecParse", err[AIR_STRLEN_MED];
+  char me[]="nrrdKernelSpecParse", err[BIFF_STRLEN];
   const NrrdKernel *kern;
   double kparm[NRRD_KERNEL_PARMS_NUM];
   

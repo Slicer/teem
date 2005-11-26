@@ -166,7 +166,7 @@ nrrdResampleContextNix(NrrdResampleContext *rsmc) {
 int
 nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
                              int center) {
-  char me[]="nrrdResampleDefaultCenterSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleDefaultCenterSet", err[BIFF_STRLEN];
 
   if (!( rsmc )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -188,7 +188,7 @@ nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
 
 int
 nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
-  char me[]="nrrdResampleNrrdSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleNrrdSet", err[BIFF_STRLEN];
   unsigned int axIdx, kpIdx;
 
   if (!( rsmc && nin )) {
@@ -248,7 +248,7 @@ int
 nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx, 
                       const NrrdKernel *kernel,
                       double kparm[NRRD_KERNEL_PARMS_NUM]) {
-  char me[]="nrrdResampleKernelSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleKernelSet", err[BIFF_STRLEN];
   unsigned int kpIdx;
   
   PER_AXIS_ERROR_CHECK;
@@ -268,7 +268,7 @@ int
 nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
                        unsigned int axIdx, 
                        size_t samples) {
-  char me[]="nrrdResampleSamplesSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleSamplesSet", err[BIFF_STRLEN];
 
   PER_AXIS_ERROR_CHECK;
 
@@ -284,7 +284,7 @@ int
 nrrdResampleRangeSet(NrrdResampleContext *rsmc,
                      unsigned int axIdx,
                      double min, double max) {
-  char me[]="nrrdResampleRangeSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleRangeSet", err[BIFF_STRLEN];
 
   PER_AXIS_ERROR_CHECK;
   if (!(AIR_EXISTS(min) && AIR_EXISTS(max) && min != max)) {
@@ -316,7 +316,7 @@ _nrrdResampleMinMaxFull(double *minP, double *maxP,
 int
 nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
                          unsigned int axIdx) {
-  char me[]="nrrdResampleRangeFullSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleRangeFullSet", err[BIFF_STRLEN];
   double min, max;
   int center;
   
@@ -343,7 +343,7 @@ nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
 int
 nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
                         int boundary) {
-  char me[]="nrrdResampleBoundarySet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleBoundarySet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -365,7 +365,7 @@ nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
 int
 nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
                         double padValue) {
-  char me[]="nrrdResamplePadValueSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResamplePadValueSet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -383,7 +383,7 @@ nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
 int
 nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
                            int renormalize) {
-  char me[]="nrrdResampleRenormalizeSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleRenormalizeSet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -401,7 +401,7 @@ nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
 int
 nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
                        int type) {
-  char me[]="nrrdResampleTypeOutSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleTypeOutSet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -428,7 +428,7 @@ nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
 int
 nrrdResampleRoundSet(NrrdResampleContext *rsmc,
                      int round) {
-  char me[]="nrrdResampleRoundSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleRoundSet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -446,7 +446,7 @@ nrrdResampleRoundSet(NrrdResampleContext *rsmc,
 int
 nrrdResampleClampSet(NrrdResampleContext *rsmc,
                      int clamp) {
-  char me[]="nrrdResampleClampSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleClampSet", err[BIFF_STRLEN];
 
   if (!rsmc) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -518,7 +518,7 @@ _nrrdResampleInputSizesUpdate(NrrdResampleContext *rsmc) {
 
 int
 _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
-  char me[]="_nrrdResampleLineAllocateUpdate", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleLineAllocateUpdate", err[BIFF_STRLEN];
   unsigned int axIdx;
   NrrdResampleAxis *axis;
 
@@ -543,7 +543,7 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
 
 int
 _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
-  char me[]="_nrrdResampleVectorAllocateUpdate", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleVectorAllocateUpdate", err[BIFF_STRLEN];
   unsigned int axIdx, kpIdx, dotLen, minSamples;
   nrrdResample_t spacingOut, support;
   NrrdResampleAxis *axis;
@@ -634,7 +634,7 @@ _nrrdResampleLineFillUpdate(NrrdResampleContext *rsmc) {
 
 int
 _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
-  char me[]="_nrrdResampleVectorFillUpdate", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleVectorFillUpdate", err[BIFF_STRLEN];
   unsigned int axIdx, dotIdx, dotLen, halfLen, smpIdx, kpIdx;
   int *indexData, tmp, base, rawIdx;
   nrrdResample_t *weightData, idx, integral;
@@ -982,7 +982,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
                      nrrdResample_t (*lup)(const void *, size_t),
                      nrrdResample_t (*clamp)(nrrdResample_t),
                      nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
-  char me[]="_nrrdResampleTrivial", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleTrivial", err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX], valNum, valIdx;
   nrrdResample_t val;
   const void *dataIn;
@@ -1016,7 +1016,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
                   nrrdResample_t (*lup)(const void *, size_t),
                   nrrdResample_t (*clamp)(nrrdResample_t),
                   nrrdResample_t (*ins)(void *, size_t, nrrdResample_t)) {
-  char me[]="_nrrdResampleCore", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleCore", err[BIFF_STRLEN];
   unsigned int axIdx, passIdx;
   size_t strideIn, strideOut, lineNum, lineIdx,
     coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
@@ -1183,7 +1183,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
 
 int
 _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
-  char me[]="_nrrdResampleOutputUpdate", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleOutputUpdate", err[BIFF_STRLEN];
 #if NRRD_RESAMPLE_FLOAT
   float (*lup)(const void *, size_t),
     (*clamp)(float), (*ins)(void *, size_t, float);
@@ -1337,7 +1337,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
 
 int
 nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
-  char me[]="nrrdResampleExecute", func[]="resample", err[AIR_STRLEN_MED];
+  char me[]="nrrdResampleExecute", func[]="resample", err[BIFF_STRLEN];
   double time0;
 
   if (!(rsmc && nout)) {

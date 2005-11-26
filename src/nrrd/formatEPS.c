@@ -39,7 +39,7 @@ _nrrdFormatEPS_nameLooksLike(const char *filename) {
 int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatEPS_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatEPS_fitsInto", err[BIFF_STRLEN];
   int ret;
 
   AIR_UNUSED(encoding);
@@ -91,7 +91,7 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
 int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatEPS_read", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatEPS_read", err[BIFF_STRLEN];
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
@@ -103,7 +103,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatEPS_write", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatEPS_write", err[BIFF_STRLEN];
   int color, sx, sy;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;

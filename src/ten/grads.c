@@ -56,7 +56,7 @@ tenGradientParmNix(tenGradientParm *tgparm) {
 
 int
 tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
-  char me[]="tenGradientCheck", err[AIR_STRLEN_MED];
+  char me[]="tenGradientCheck", err[BIFF_STRLEN];
   
   if (nrrdCheck(ngrad)) {
     sprintf(err, "%s: basic validity check failed", me);
@@ -95,7 +95,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
 */
 int
 tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
-  char me[]="tenGradientRandom", err[AIR_STRLEN_MED];
+  char me[]="tenGradientRandom", err[BIFF_STRLEN];
   double *grad, len;
   unsigned int gi;
   
@@ -128,7 +128,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
 */
 int
 tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
-  char me[]="tenGradientJitter", err[AIR_STRLEN_MED];
+  char me[]="tenGradientJitter", err[BIFF_STRLEN];
   double *grad, perp0[3], perp1[3], len, theta, cc, ss;
   unsigned int gi;
 
@@ -274,7 +274,7 @@ _tenGradientParty(double *grad, int num) {
 int
 tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
                         tenGradientParm *tgparm) {
-  char me[]="tenGradientMeanMinimize", err[AIR_STRLEN_MED];
+  char me[]="tenGradientMeanMinimize", err[BIFF_STRLEN];
   int num;
   double *grad, len, lastLen, improv;
 
@@ -314,7 +314,7 @@ tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
 int
 tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                       tenGradientParm *tgparm) {
-  char me[]="tenGradientDistribute", err[AIR_STRLEN_MED], *serr,
+  char me[]="tenGradientDistribute", err[BIFF_STRLEN], *serr,
     filename[AIR_STRLEN_SMALL];
   unsigned int gi, iter;
   airArray *mop;
@@ -427,7 +427,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
 
 int
 tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
-  char me[]="tenGradientGenerate", err[AIR_STRLEN_MED];
+  char me[]="tenGradientGenerate", err[BIFF_STRLEN];
   Nrrd *nin;
   airArray *mop;
 

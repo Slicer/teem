@@ -26,7 +26,7 @@
 int
 echoThreadStateInit(int threadIdx, echoThreadState *tstate,
                     echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoThreadStateInit", err[AIR_STRLEN_MED];
+  char me[]="echoThreadStateInit", err[BIFF_STRLEN];
 
   if (!(tstate && parm && gstate)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -140,7 +140,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 int
 echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
                   echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoRTRenderCheck", err[AIR_STRLEN_MED];
+  char me[]="echoRTRenderCheck", err[BIFF_STRLEN];
   int tmp;
 
   if (!(nraw && cam && scene && parm && gstate)) {
@@ -416,7 +416,7 @@ _echoRTRenderThreadBody(void *_arg) {
 int
 echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
              echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoRTRender", err[AIR_STRLEN_MED];
+  char me[]="echoRTRender", err[BIFF_STRLEN];
   int tid, ret;
   airArray *mop;
   echoThreadState *tstate[ECHO_THREAD_MAX];

@@ -127,7 +127,7 @@ Nrrd *
 _gageStandardPadder (Nrrd *nin, gageKind *kind, 
                      int padding, gagePerVolume *pvl) {
   Nrrd *npad;
-  char me[]="_gageStandardPadder", err[AIR_STRLEN_MED];
+  char me[]="_gageStandardPadder", err[BIFF_STRLEN];
 
   int i, baseDim;
   ptrdiff_t amin[NRRD_DIM_MAX], amax[NRRD_DIM_MAX];

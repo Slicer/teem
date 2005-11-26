@@ -32,7 +32,7 @@
 int
 nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
            unsigned int axis, size_t pos) {
-  char me[]="nrrdSplice", func[]="splice", err[AIR_STRLEN_MED];
+  char me[]="nrrdSplice", func[]="splice", err[BIFF_STRLEN];
   size_t 
     I, 
     rowLen,                  /* length of segment */
@@ -151,7 +151,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
 */
 int
 nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
-  char me[]="nrrdInset", func[] = "inset", err[AIR_STRLEN_MED],
+  char me[]="nrrdInset", func[] = "inset", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
   size_t I,
@@ -277,7 +277,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
 int
 nrrdPad(Nrrd *nout, const Nrrd *nin,
         const ptrdiff_t *min, const ptrdiff_t *max, int boundary, ...) {
-  char me[]="nrrdPad", func[]="pad", err[AIR_STRLEN_MED],
+  char me[]="nrrdPad", func[]="pad", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
   int outside;
@@ -474,7 +474,7 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
 int
 nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
             int boundary, double padValue) {
-  char me[]="nrrdPad_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdPad_nva", err[BIFF_STRLEN];
   int E;
 
   if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
@@ -502,7 +502,7 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *
 int
 nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
               int boundary, ...) {
-  char me[]="nrrdSimplePad", err[AIR_STRLEN_MED];
+  char me[]="nrrdSimplePad", err[BIFF_STRLEN];
   unsigned ai;
   int ret;
   ptrdiff_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
@@ -541,7 +541,7 @@ nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
 int
 nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
                   int boundary, double padValue) {
-  char me[]="nrrdSimplePad_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdSimplePad_nva", err[BIFF_STRLEN];
   int E;
 
   if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {

@@ -52,7 +52,7 @@ int
 nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
                    const NrrdKernel *kernel, const double *parm,
                    const size_t *samples, const double *scalings) {
-  char me[]="nrrdSimpleResample", err[AIR_STRLEN_MED];
+  char me[]="nrrdSimpleResample", err[BIFF_STRLEN];
   NrrdResampleInfo *info;
   int p, np, center;
   unsigned ai;
@@ -109,7 +109,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 */
 int
 _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
-  char me[] = "_nrrdResampleCheckInfo", err[AIR_STRLEN_MED];
+  char me[] = "_nrrdResampleCheckInfo", err[BIFF_STRLEN];
   const NrrdKernel *k;
   int center, p, np;
   unsigned int ai, minsmp;
@@ -274,7 +274,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
                              int **indexP, double *ratioP,
                              const Nrrd *nin, const NrrdResampleInfo *info,
                              unsigned int ai) {
-  char me[]="_nrrdResampleMakeWeightIndex", err[AIR_STRLEN_MED];
+  char me[]="_nrrdResampleMakeWeightIndex", err[BIFF_STRLEN];
   int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
   nrrdResample_t minIn, maxIn, minOut, maxOut, spcIn, spcOut,
     ratio, support, integral, pos, idxD, wght;
@@ -501,7 +501,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 int
 nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                     const NrrdResampleInfo *info) {
-  char me[]="nrrdSpatialResample", func[]="resample", err[AIR_STRLEN_MED];
+  char me[]="nrrdSpatialResample", func[]="resample", err[BIFF_STRLEN];
   nrrdResample_t
     *array[NRRD_DIM_MAX],      /* intermediate copies of the input data
                                   undergoing resampling; we don't need a full-

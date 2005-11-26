@@ -26,7 +26,7 @@
 int
 _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
                int len, char *desc) {
-  char me[]="_tenEpiRegSave", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegSave", err[BIFF_STRLEN];
   Nrrd *nout;
   airArray *mop;
 
@@ -55,7 +55,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
                 int reference,
                 float bwX, float bwY, float DWthr,
                 const NrrdKernel *kern, double *kparm) {
-  char me[]="_tenEpiRegCheck", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegCheck", err[BIFF_STRLEN];
   unsigned int ni;
 
   AIR_UNUSED(DWthr);
@@ -116,7 +116,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
 int
 _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
                float bwX, float bwY, int verb) {
-  char me[]="_tenEpiRegBlur", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegBlur", err[BIFF_STRLEN];
   NrrdResampleInfo *rinfo;
   airArray *mop;
   size_t ni, sx, sy, sz;
@@ -196,7 +196,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
 
 int
 _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
-  char me[]="_tenEpiRegFindThresh", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegFindThresh", err[BIFF_STRLEN];
   Nrrd *nhist, *ntmp;
   airArray *mop;
   int ni, bins, E;
@@ -252,7 +252,7 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
 int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
                     double DWthr, int verb, int progress) {
-  char me[]="_tenEpiRegThreshold", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegThreshold", err[BIFF_STRLEN];
   airArray *mop;
   size_t I, sx, sy, sz, ni;
   float val;
@@ -315,7 +315,7 @@ _tenEpiRegBB(Nrrd *nval, Nrrd *nsize) {
 
 int
 _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
-  char me[]="_tenEpiRegCC", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegCC", err[BIFF_STRLEN];
   Nrrd *nslc, *ncc, *nval, *nsize;
   airArray *mop;
   int ni, z, sz, big;
@@ -399,7 +399,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
 int
 _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
                   int verb) {
-  char me[]="_tenEpiRegMoments", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegMoments", err[BIFF_STRLEN];
   size_t sx, sy, sz, xi, yi, zi, ni;
   double N, mx, my, cx, cy, x, y, M02, M11, M20, *mom;
   float val;
@@ -497,7 +497,7 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
 */
 int
 _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
-  char me[]="_tenEpiRegPairXforms", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegPairXforms", err[BIFF_STRLEN];
   double *xfr, *A, *B, hh, ss, tt;
   int ai, bi, zi, sz;
   
@@ -533,7 +533,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 
 int
 _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
-  char me[]="_tenEpiRegEstimHST", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegEstimHST", err[BIFF_STRLEN];
   double *hst, *grad, *mat, *vec, *ans, *pxfr, *gA, *gB;
   int z, sz, A, B, npairs, ri;
   Nrrd **nmat, *nvec, **ninv, *nans;
@@ -722,7 +722,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 int
 _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
                  float goodFrac, int prog, int verb) {
-  char me[]="_tenEpiRegFitHST", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegFitHST", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ncc, *ntA, *ntB, *nsd, *nl2;
   int c, sz, zi, sh, hi;
@@ -944,7 +944,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
                Nrrd **nin, int ninLen,
                int reference, const NrrdKernel *kern, double *kparm,
                int verb) {
-  char me[]="_tenEpiRegWarp", err[AIR_STRLEN_MED];
+  char me[]="_tenEpiRegWarp", err[BIFF_STRLEN];
   Nrrd *ntmp, *nfin, *nslcA, *nslcB, *nwght, *nidx;
   airArray *mop;
   int sx, sy, sz, ni, zi, supp;
@@ -1011,7 +1011,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
                  double DWthr, int doCC, 
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
-  char me[]="tenEpiRegister3D", err[AIR_STRLEN_MED];
+  char me[]="tenEpiRegister3D", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd **nbuffA, **nbuffB, *npxfr, *nhst, *ngrad;
   int hack1, hack2;
@@ -1148,7 +1148,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
                  double DWthr, int doCC, 
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
-  char me[]="tenEpiRegister4D", err[AIR_STRLEN_MED];
+  char me[]="tenEpiRegister4D", err[BIFF_STRLEN];
   int ni, ninLen, amap[4]={-1, 1, 2, 3};
   Nrrd **nout, **nin;
   airArray *mop;

@@ -33,7 +33,7 @@
 */
 int
 nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
-  char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
+  char me[]="nrrdInvertPerm", err[BIFF_STRLEN];
   int problem;
   unsigned int ii;
 
@@ -81,7 +81,7 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
 */
 int
 nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
-  char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesInsert", func[]="axinsert", err[BIFF_STRLEN];
   unsigned int ai;
   
   if (!(nout && nin)) {
@@ -148,7 +148,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 */
 int
 nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
-  char me[]="nrrdAxesPermute", func[]="permute", err[AIR_STRLEN_MED],
+  char me[]="nrrdAxesPermute", func[]="permute", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
@@ -300,7 +300,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
 int
 nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
             const size_t *perm) {
-  char me[]="nrrdShuffle", func[]="shuffle", err[AIR_STRLEN_MED],
+  char me[]="nrrdShuffle", func[]="shuffle", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int 
     ai, ldim, len,
@@ -426,7 +426,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
 */
 int
 nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
-  char me[]="nrrdAxesSwap", func[]="swap", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesSwap", func[]="swap", err[BIFF_STRLEN];
   unsigned int ai, axmap[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
@@ -462,7 +462,7 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
 */
 int
 nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
-  char me[]="nrrdFlip", func[]="flip", err[AIR_STRLEN_MED];
+  char me[]="nrrdFlip", func[]="flip", err[BIFF_STRLEN];
   size_t *perm, si;
   airArray *mop;
   unsigned int axisIdx;
@@ -542,7 +542,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 int
 nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
          unsigned int axis, int incrDim) {
-  char me[]="nrrdJoin", err[AIR_STRLEN_MED];
+  char me[]="nrrdJoin", err[BIFF_STRLEN];
   unsigned int ni, ai, mindim, maxdim, outdim,
     permute[NRRD_DIM_MAX], ipermute[NRRD_DIM_MAX];
   int diffdim, axmap[NRRD_DIM_MAX];
@@ -783,7 +783,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
 int
 nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
               unsigned int saxi, size_t sizeFast, size_t sizeSlow) {
-  char me[]="nrrdAxesSplit", func[]="axsplit", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesSplit", func[]="axsplit", err[BIFF_STRLEN];
   unsigned int ai;
   
   if (!(nout && nin)) {
@@ -843,7 +843,7 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
 */
 int
 nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
-  char me[]="nrrdAxesDelete", func[]="axdelete", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesDelete", func[]="axdelete", err[BIFF_STRLEN];
   unsigned int ai;
   
   if (!(nout && nin)) {
@@ -894,7 +894,7 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
 */
 int
 nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
-  char me[]="nrrdAxesMerge", func[]="axmerge", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesMerge", func[]="axmerge", err[BIFF_STRLEN];
   unsigned int ai;
   size_t sizeFast, sizeSlow;
   
@@ -946,7 +946,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
 int
 nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
                 unsigned int dim, const size_t *size) {
-  char me[]="nrrdReshape_nva", func[]="reshape", err[AIR_STRLEN_MED],
+  char me[]="nrrdReshape_nva", func[]="reshape", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
   unsigned int ai;
@@ -1012,7 +1012,7 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
 */
 int
 nrrdReshape(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
-  char me[]="nrrdReshape", err[AIR_STRLEN_MED];
+  char me[]="nrrdReshape", err[BIFF_STRLEN];
   unsigned int ai;
   size_t size[NRRD_DIM_MAX];
   va_list ap;
@@ -1049,7 +1049,7 @@ nrrdReshape(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
 */
 int
 nrrdBlock(Nrrd *nout, const Nrrd *nin) {
-  char me[]="nrrdBlock", func[]="block", err[AIR_STRLEN_MED];
+  char me[]="nrrdBlock", func[]="block", err[BIFF_STRLEN];
   unsigned int ai;
   size_t numEl, size[NRRD_DIM_MAX];
   int map[NRRD_DIM_MAX];
@@ -1121,7 +1121,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
 */
 int
 nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
-  char me[]="nrrdUnblock", func[]="unblock", err[AIR_STRLEN_MED];
+  char me[]="nrrdUnblock", func[]="unblock", err[BIFF_STRLEN];
   unsigned int dim;
   size_t size[NRRD_DIM_MAX], outElSz;
   int map[NRRD_DIM_MAX];
@@ -1221,7 +1221,7 @@ function.  Probably unu tile.
 int
 nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
            unsigned int axSplit, size_t sizeFast, size_t sizeSlow) {
-  char me[]="nrrdTile2D", err[AIR_STRLEN_MED];
+  char me[]="nrrdTile2D", err[BIFF_STRLEN];
   int E,                     /* error flag */
     insAxis[2*NRRD_DIM_MAX], /* array for inserting the two axes resulting
                                 from the initial split amongst the other
@@ -1341,7 +1341,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
 int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
                  unsigned int ax0, unsigned int ax1,
                  unsigned int axMerge, size_t sizeFast, size_t sizeSlow) {
-  char me[]="nrrdUntile2D", err[AIR_STRLEN_MED];
+  char me[]="nrrdUntile2D", err[BIFF_STRLEN];
   int E;
   unsigned int ii, mapIdx, map[NRRD_DIM_MAX];
   

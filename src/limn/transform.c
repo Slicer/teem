@@ -25,7 +25,7 @@
 
 int
 limnObjectWorldHomog(limnObject *obj) {
-  char me[]="limnObjectWorldHomog", err[AIR_STRLEN_MED];
+  char me[]="limnObjectWorldHomog", err[BIFF_STRLEN];
   unsigned int vertIdx;
   limnVertex *vert;
   float h;
@@ -47,7 +47,7 @@ limnObjectWorldHomog(limnObject *obj) {
 
 int
 limnObjectFaceNormals(limnObject *obj, int space) {
-  char me[]="limnObjectFaceNormals", err[AIR_STRLEN_MED];
+  char me[]="limnObjectFaceNormals", err[BIFF_STRLEN];
   unsigned int vii, faceIdx;
   limnFace *face;
   limnVertex *vert0, *vert1, *vert2;
@@ -103,7 +103,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
 
 int
 limnObjectVertexNormals(limnObject *obj) {
-  /* char me[]="limnObjectVertexNormals", err[AIR_STRLEN_MED]; */
+  /* char me[]="limnObjectVertexNormals", err[BIFF_STRLEN]; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
   limnVertex *vert;
   limnFace *face;
@@ -150,7 +150,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
 
 int
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
-  char me[]="_limnObjectScreenTransform", err[AIR_STRLEN_MED];
+  char me[]="_limnObjectScreenTransform", err[BIFF_STRLEN];
   unsigned int vertIdx;
   limnVertex *vert;
   float d;
@@ -181,7 +181,7 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
 int
 _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
                            limnWindow *win) {
-  char me[]="_limnObjectDeviceTransform", err[AIR_STRLEN_MED];
+  char me[]="_limnObjectDeviceTransform", err[BIFF_STRLEN];
   unsigned int vertIdx;
   limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
@@ -219,7 +219,7 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
 int
 limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
                       limnWindow *win, int space) {
-  char me[]="limnObjectSpaceTransform", err[AIR_STRLEN_MED];
+  char me[]="limnObjectSpaceTransform", err[BIFF_STRLEN];
   int E=0;
 
   /* HEY: deal with cam->orthographic */
@@ -346,7 +346,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
 
 int
 limnObjectFaceReverse(limnObject *obj) {
-  char me[]="limnObjectFaceReverse", err[AIR_STRLEN_MED];
+  char me[]="limnObjectFaceReverse", err[BIFF_STRLEN];
   limnFace *face;
   unsigned int faceIdx, sii;
   int *buff;

@@ -33,7 +33,7 @@
 */
 int
 limnCameraUpdate(limnCamera *cam) {
-  char me[] = "limnCameraUpdate", err[AIR_STRLEN_MED];
+  char me[] = "limnCameraUpdate", err[BIFF_STRLEN];
   double len, bb[4], uu[4], vv[4], nn[4], TT[16], RR[16];
 
   if (!cam) {
@@ -132,7 +132,7 @@ limnCameraUpdate(limnCamera *cam) {
 */
 int
 limnCameraAspectSet(limnCamera *cam, int horz, int vert, int centering) {
-  char me[] = "limnCameraAspectSet", err[AIR_STRLEN_MED];
+  char me[] = "limnCameraAspectSet", err[BIFF_STRLEN];
 
   if (!cam) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -196,7 +196,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
                    limnSplineTypeSpec *posType,
                    limnSplineTypeSpec *distType,
                    limnSplineTypeSpec *viewType) {
-  char me[]="limnCameraPathMake", err[AIR_STRLEN_MED];
+  char me[]="limnCameraPathMake", err[BIFF_STRLEN];
   char which[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd *nquat, *nfrom, *natpt, *nupvc, *ndist, *nfova, *ntime, *nsample;

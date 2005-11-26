@@ -58,7 +58,7 @@ limnPolyDataAlloc(limnPolyData *pld,
                   unsigned int vertNum,
                   unsigned int indxNum,
                   unsigned int primNum) {
-  char me[]="limnPolyDataAlloc", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataAlloc", err[BIFF_STRLEN];
   
   if (!pld) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -117,7 +117,7 @@ limnPolyDataSize(limnPolyData *pld) {
 
 int
 limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
-  char me[]="limnPolyDataCopy", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataCopy", err[BIFF_STRLEN];
 
   if (!( pldB && pldA )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -137,7 +137,7 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
 int
 limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                   unsigned int num) {
-  char me[]="limnPolyDataCopyN", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataCopyN", err[BIFF_STRLEN];
   unsigned int ii, jj;
 
   if (!( pldB && pldA )) {
@@ -165,7 +165,7 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
 
 int
 limnPolyDataCube(limnPolyData *pld, int sharpEdge) {
-  char me[]="limnPolyDataCube", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataCube", err[BIFF_STRLEN];
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
   float cn;
 
@@ -271,7 +271,7 @@ limnPolyDataCube(limnPolyData *pld, int sharpEdge) {
 
 int
 limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
-  char me[]="limnPolyDataCylinderNew", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataCylinderNew", err[BIFF_STRLEN];
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   float theta, cth, sth, sq2;
 
@@ -384,7 +384,7 @@ int
 limnPolyDataSuperquadric(limnPolyData *pld,
                          float alpha, float beta,
                          unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSuperquadric", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataSuperquadric", err[BIFF_STRLEN];
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
   float theta, phi;
@@ -502,7 +502,7 @@ int
 limnPolyDataSpiralSuperquadric(limnPolyData *pld,
                                float alpha, float beta,
                                unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSuperquadric", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataSpiralSuperquadric", err[BIFF_STRLEN];
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
@@ -584,7 +584,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
 int
 limnPolyDataPolarSphere(limnPolyData *pld,
                         unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataPolarSphere", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataPolarSphere", err[BIFF_STRLEN];
 
   if (limnPolyDataSuperquadric(pld, 1.0, 1.0, thetaRes, phiRes)) {
     sprintf(err, "%s: trouble", me);
@@ -597,7 +597,7 @@ int
 limnPolyDataSpiralSphere(limnPolyData *pld,
                          unsigned int thetaRes,
                          unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSphere", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataSpiralSphere", err[BIFF_STRLEN];
 
   if (limnPolyDataSpiralSuperquadric(pld, 1.0, 1.0, thetaRes, phiRes)) {
     sprintf(err, "%s: trouble", me);
@@ -608,7 +608,7 @@ limnPolyDataSpiralSphere(limnPolyData *pld,
 
 int
 limnPolyDataPlane(limnPolyData *pld, unsigned int uRes, unsigned int vRes) {
-  char me[]="limnPolyDataPlane", err[AIR_STRLEN_MED];
+  char me[]="limnPolyDataPlane", err[BIFF_STRLEN];
   unsigned int vertNum, indxNum, primNum, uIdx, vIdx, vertIdx, primIdx;
   float uu, vv;
 

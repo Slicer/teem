@@ -49,7 +49,7 @@ _nrrdFormatPNG_nameLooksLike(const char *filename) {
 int
 _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatPNG_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatPNG_fitsInto", err[BIFF_STRLEN];
 
 #if !TEEM_PNG  /* ------------------------------------------- */
 
@@ -115,7 +115,7 @@ _nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 void
 _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 {
-  char me[]="_nrrdErrorHandlerPNG", err[AIR_STRLEN_MED];
+  char me[]="_nrrdErrorHandlerPNG", err[BIFF_STRLEN];
   /* add PNG error message to biff */
   sprintf(err, "%s: PNG error: %s", me, message);
   biffAdd(NRRD, err);
@@ -126,7 +126,7 @@ _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 void
 _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 {
-  char me[]="_nrrdWarningHandlerPNG", err[AIR_STRLEN_MED];
+  char me[]="_nrrdWarningHandlerPNG", err[BIFF_STRLEN];
   AIR_UNUSED(png);
   /* add the png warning message to biff */
   sprintf(err, "%s: PNG warning: %s", me, message);
@@ -163,7 +163,7 @@ _nrrdFlushDataPNG (png_structp png)
 
 int
 _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNG_read", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatPNG_read", err[BIFF_STRLEN];
 #if TEEM_PNG
   png_structp png;
   png_infop info;
@@ -392,7 +392,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNG_write", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatPNG_write", err[BIFF_STRLEN];
 #if TEEM_PNG
   int fi, depth, type, csize;
   unsigned int jj, numtxt;

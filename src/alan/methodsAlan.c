@@ -103,7 +103,7 @@ alanContextNix(alanContext *actx) {
 
 int
 alanDimensionSet(alanContext *actx, int dim) {
-  char me[]="alanDimensionSet", err[AIR_STRLEN_MED];
+  char me[]="alanDimensionSet", err[BIFF_STRLEN];
 
   GOT_NULL;
   if (!( dim == 2 || dim == 3 )) {
@@ -118,7 +118,7 @@ alanDimensionSet(alanContext *actx, int dim) {
 
 int
 alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
-  char me[]="alan2DSizeSet", err[AIR_STRLEN_MED];
+  char me[]="alan2DSizeSet", err[BIFF_STRLEN];
 
   GOT_NULL;
   DIM_SET;
@@ -138,7 +138,7 @@ alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
 
 int
 alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
-  char me[]="alan2DSizeSet", err[AIR_STRLEN_MED];
+  char me[]="alan2DSizeSet", err[BIFF_STRLEN];
 
   GOT_NULL;
   DIM_SET;
@@ -160,7 +160,7 @@ alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
 
 int
 alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
-  char me[]="alanTensorSet", err[AIR_STRLEN_MED];
+  char me[]="alanTensorSet", err[BIFF_STRLEN];
 
   if (!( actx && nten )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -207,7 +207,7 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
 
 int
 alanParmSet(alanContext *actx, int whichParm, double parm) {
-  char me[]="alanParmSet", err[AIR_STRLEN_MED];
+  char me[]="alanParmSet", err[BIFF_STRLEN];
   int parmI;
 
   GOT_NULL;

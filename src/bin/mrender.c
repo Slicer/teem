@@ -134,7 +134,7 @@ mrendUserNix(mrendUser *uu) {
 
 int
 mrendUserCheck(mrendUser *uu) {
-  char me[]="mrendUserCheck", err[AIR_STRLEN_MED];
+  char me[]="mrendUserCheck", err[BIFF_STRLEN];
   
   if (3 + uu->kind->baseDim != uu->nin->dim) {
     sprintf(err, "%s: input nrrd needs %d dimensions, not %d", 
@@ -188,7 +188,7 @@ typedef struct mrendThread_t {
 
 int
 mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
-  char me[]="mrendRenderBegin", err[AIR_STRLEN_MED];
+  char me[]="mrendRenderBegin", err[BIFF_STRLEN];
   gagePerVolume *pvl;
   int E, thr;
   
@@ -247,7 +247,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
 
 int
 mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
-  char me[]="mrendRenderEnd", err[AIR_STRLEN_MED];
+  char me[]="mrendRenderEnd", err[BIFF_STRLEN];
   int thr;
   
   /* add up # samples from all threads */
@@ -386,7 +386,7 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
             int inside,
             double samplePosWorld[3],
             double samplePosIndex[3]) {
-  char me[]="mrendSample", err[AIR_STRLEN_MED];
+  char me[]="mrendSample", err[BIFF_STRLEN];
 
   AIR_UNUSED(rr);
   AIR_UNUSED(uu);

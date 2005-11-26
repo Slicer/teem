@@ -64,7 +64,7 @@ _miteRenderNix(miteRender *mrr) {
 
 int 
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
-  char me[]="miteRenderBegin", err[AIR_STRLEN_MED];
+  char me[]="miteRenderBegin", err[BIFF_STRLEN];
   gagePerVolume *pvl;
   int E, T, thr, pvlIdx;
   gageQuery queryScl, queryVec, queryTen;

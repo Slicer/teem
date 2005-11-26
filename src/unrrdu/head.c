@@ -33,7 +33,7 @@ char *_unrrdu_headInfoL =
 
 int
 unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
-  char err[AIR_STRLEN_MED];
+  char err[BIFF_STRLEN];
   airArray *mop;
   unsigned int len;
   FILE *fin;

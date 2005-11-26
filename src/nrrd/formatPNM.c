@@ -44,7 +44,7 @@ _nrrdFormatPNM_nameLooksLike(const char *filename) {
 int
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatPNM_fitsInto", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatPNM_fitsInto", err[BIFF_STRLEN];
   int ret;
   
   if (!( nrrd && encoding )) {
@@ -102,7 +102,7 @@ _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
 
 int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNM_read", err[AIR_STRLEN_MED], *perr;
+  char me[]="_nrrdFormatPNM_read", err[BIFF_STRLEN], *perr;
   const char *fs;
   int color, got, want, ret, val[5], sx, sy, max, magic;
   unsigned int i, llen;
@@ -280,7 +280,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNM_write", err[AIR_STRLEN_MED];
+  char me[]="_nrrdFormatPNM_write", err[BIFF_STRLEN];
   int color, sx, sy, magic, fi;
   unsigned int ci;
   Nrrd *nrrd;

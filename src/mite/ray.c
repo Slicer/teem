@@ -156,7 +156,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
            int num, double rayT, int inside,
            double samplePosWorld[3],
            double samplePosIndex[3]) {
-  char me[]="miteSample", err[AIR_STRLEN_MED];
+  char me[]="miteSample", err[BIFF_STRLEN];
   mite_t R, G, B, A;
   gage_t *NN;
   double NdotV, kn[3], knd[3], ref[3], len, *dbg=NULL;

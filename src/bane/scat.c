@@ -27,7 +27,7 @@
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   Nrrd *gA, *hA, *gB, *hB;
-  char me[]="baneRawScatterplots", err[AIR_STRLEN_MED];
+  char me[]="baneRawScatterplots", err[BIFF_STRLEN];
   int E;
   
   if (!( nvg && nvh && hvol )) {

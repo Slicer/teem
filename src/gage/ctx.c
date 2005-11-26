@@ -74,7 +74,7 @@ gageContextNew() {
 */
 gageContext *
 gageContextCopy(gageContext *ctx) {
-  char me[]="gageContextCopy", err[AIR_STRLEN_MED];
+  char me[]="gageContextCopy", err[BIFF_STRLEN];
   gageContext *ntx;
   int fd, i;
   unsigned int pvlIdx;
@@ -161,7 +161,7 @@ gageContextNix(gageContext *ctx) {
 int
 gageKernelSet(gageContext *ctx, 
               int which, const NrrdKernel *k, const double *kparm) {
-  char me[]="gageKernelSet", err[AIR_STRLEN_MED];
+  char me[]="gageKernelSet", err[BIFF_STRLEN];
   int numParm;
   double support, integral;
 
@@ -340,7 +340,7 @@ gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
 */
 int
 gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gagePerVolumeAttach", err[AIR_STRLEN_MED];
+  char me[]="gagePerVolumeAttach", err[BIFF_STRLEN];
   gageShape *shape;
 
   if (!( ctx && pvl )) {
@@ -397,7 +397,7 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
 */
 int
 gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gagePerVolumeDetach", err[AIR_STRLEN_MED];
+  char me[]="gagePerVolumeDetach", err[BIFF_STRLEN];
   unsigned int pvlIdx, foundIdx=0;
 
   if (!( ctx && pvl )) {

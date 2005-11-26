@@ -25,7 +25,7 @@
 
 miteThread *
 miteThreadNew() {
-  char me[]="miteThreadNew", err[AIR_STRLEN_MED];
+  char me[]="miteThreadNew", err[BIFF_STRLEN];
   miteThread *mtt;
   int ii;
   
@@ -87,7 +87,7 @@ miteThreadNix(miteThread *mtt) {
 int 
 miteThreadBegin(miteThread **mttP, miteRender *mrr,
                 miteUser *muu, int whichThread) {
-  char me[]="miteThreadBegin", err[AIR_STRLEN_MED];
+  char me[]="miteThreadBegin", err[BIFF_STRLEN];
 
   /* all the miteThreads have already been allocated */
   (*mttP) = mrr->tt[whichThread];

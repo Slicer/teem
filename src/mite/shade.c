@@ -69,7 +69,7 @@ miteShadeSpecNix(miteShadeSpec *shpec) {
 */
 int
 miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
-  char me[]="miteShadeSpecParse", err[AIR_STRLEN_MED],
+  char me[]="miteShadeSpecParse", err[BIFF_STRLEN],
     *buff, *qstr, *tok, *state;
   airArray *mop;
   int ansLength;

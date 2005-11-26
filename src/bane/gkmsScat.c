@@ -33,7 +33,7 @@ char *_baneGkms_scatInfoL =
 int
 baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out[2], *perr, err[AIR_STRLEN_MED];
+  char *out[2], *perr, err[BIFF_STRLEN];
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;
   NrrdRange *vgRange, *vhRange;
   airArray *mop;

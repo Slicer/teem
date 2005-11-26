@@ -72,7 +72,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 
 int
 nrrdMinMaxCleverSet(Nrrd *nrrd) {
-  char me[]="nrrdMinMaxCleverSet", err[AIR_STRLEN_MED];
+  char me[]="nrrdMinMaxCleverSet", err[BIFF_STRLEN];
   double min, max;
 
   if (!nrrd) {
@@ -142,7 +142,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 */
 int
 nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
-  char me[] = "nrrdConvert", typeS[AIR_STRLEN_SMALL], err[AIR_STRLEN_MED];
+  char me[]="nrrdConvert", typeS[AIR_STRLEN_SMALL], err[BIFF_STRLEN];
   size_t num, size[NRRD_DIM_MAX];
 
   if (!( nin && nout 
@@ -239,7 +239,7 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
 int
 nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
              unsigned int bits) {
-  char me[] = "nrrdQuantize", func[]="quantize", err[AIR_STRLEN_MED];
+  char me[]="nrrdQuantize", func[]="quantize", err[BIFF_STRLEN];
   double valIn, minIn, maxIn, eps;
   int type=nrrdTypeUnknown;
   size_t I, num, size[NRRD_DIM_MAX];
@@ -378,7 +378,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 */
 int
 nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
-  char me[]="nrrdUnquantize", func[]="unquantize", err[AIR_STRLEN_MED];
+  char me[]="nrrdUnquantize", func[]="unquantize", err[BIFF_STRLEN];
   float *outF;
   double *outD, minIn, numValIn, minOut, maxOut, valIn;
   size_t NN, II, size[NRRD_DIM_MAX];
@@ -522,7 +522,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 int
 nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
             unsigned int bins, unsigned int smart, float amount) {
-  char me[]="nrrdHistoEq", func[]="heq", err[AIR_STRLEN_MED];
+  char me[]="nrrdHistoEq", func[]="heq", err[BIFF_STRLEN];
   Nrrd *nhist, *nmap;
   float *ycoord = NULL;
   double val, min, max, *last = NULL;

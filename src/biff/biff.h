@@ -46,6 +46,8 @@
 extern "C" {
 #endif
 
+#define BIFF_STRLEN (256+1) /* convenience for strlen of error messages */
+
 #define BIFF_MAXKEYLEN 128  /* maximum allowed key length (not counting 
                                the null termination) */
 

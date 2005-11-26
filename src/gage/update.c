@@ -177,7 +177,7 @@ _gageNeedKUpdate(gageContext *ctx) {
 */
 int
 _gageRadiusUpdate(gageContext *ctx) {
-  char me[]="_gageRadiusUpdate", err[AIR_STRLEN_MED];
+  char me[]="_gageRadiusUpdate", err[BIFF_STRLEN];
   int kernIdx, radius;
   double maxRad, rad;
   NrrdKernelSpec *ksp;
@@ -221,7 +221,7 @@ _gageRadiusUpdate(gageContext *ctx) {
 
 int
 _gageCacheSizeUpdate(gageContext *ctx) {
-  char me[]="_gageCacheSizeUpdate", err[AIR_STRLEN_MED];
+  char me[]="_gageCacheSizeUpdate", err[BIFF_STRLEN];
   int fd;
   gagePerVolume *pvl;
   unsigned int pvlIdx;
@@ -289,7 +289,7 @@ _gageOffValueUpdate(gageContext *ctx) {
 */
 int
 gageUpdate(gageContext *ctx) {
-  char me[]="gageUpdate", err[AIR_STRLEN_MED];
+  char me[]="gageUpdate", err[BIFF_STRLEN];
   int i;
 
   if (!( ctx )) {

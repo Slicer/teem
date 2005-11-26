@@ -26,7 +26,7 @@
 
 int
 baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneInputCheck", err[AIR_STRLEN_MED];
+  char me[]="baneInputCheck", err[BIFF_STRLEN];
   int i;
 
   if (nrrdCheck(nin)) {
@@ -64,7 +64,7 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
 
 int
 baneHVolCheck (Nrrd *hvol) {
-  char me[]="baneHVolCheck", err[AIR_STRLEN_MED];
+  char me[]="baneHVolCheck", err[BIFF_STRLEN];
 
   if (3 != hvol->dim) {
     sprintf(err, "%s: need dimension to be 3 (not %d)", me, hvol->dim);
@@ -107,7 +107,7 @@ baneHVolCheck (Nrrd *hvol) {
 
 int
 baneInfoCheck (Nrrd *info, int wantDim) {
-  char me[]="baneInfoCheck", err[AIR_STRLEN_MED];
+  char me[]="baneInfoCheck", err[BIFF_STRLEN];
   int gotDim;
 
   if (!info) {
@@ -145,7 +145,7 @@ baneInfoCheck (Nrrd *info, int wantDim) {
 
 int
 banePosCheck (Nrrd *pos, int wantDim) {
-  char me[]="banePosCheck", err[AIR_STRLEN_MED];
+  char me[]="banePosCheck", err[BIFF_STRLEN];
   int gotDim;
 
   if (!pos) {
@@ -181,7 +181,7 @@ banePosCheck (Nrrd *pos, int wantDim) {
 
 int
 baneBcptsCheck (Nrrd *Bcpts) {
-  char me[]="baneBcptsCheck", err[AIR_STRLEN_MED];
+  char me[]="baneBcptsCheck", err[BIFF_STRLEN];
   int i, len;
   float *data;
 

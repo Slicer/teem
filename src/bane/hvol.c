@@ -38,7 +38,7 @@
 
 int
 _baneAxisCheck (baneAxis *ax) {
-  char me[]="_baneAxisCheck", err[AIR_STRLEN_MED];
+  char me[]="_baneAxisCheck", err[BIFF_STRLEN];
   
   if (!(ax->res >= 2)) {
     sprintf(err, "%s: need resolution at least 2 (not %d)", me, ax->res);
@@ -88,7 +88,7 @@ baneProbe(double val[3],
 int
 baneFindInclusion(double min[3], double max[3], 
                   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
-  char me[]="baneFindInclusion", err[AIR_STRLEN_MED], prog[13],
+  char me[]="baneFindInclusion", err[BIFF_STRLEN], prog[13],
     aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
   int sx, sy, sz, x, y, z, E, ai;
   baneInc *inc[3];
@@ -255,7 +255,7 @@ baneFindInclusion(double min[3], double max[3],
 
 int
 baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneMakeHVol", err[AIR_STRLEN_MED], prog[13];
+  char me[]="baneMakeHVol", err[BIFF_STRLEN], prog[13];
   gageContext *ctx;
   gagePerVolume *pvl;
   int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
@@ -446,7 +446,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 
 Nrrd *
 baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
-  char me[]="baneGKMSHVol", err[AIR_STRLEN_MED];
+  char me[]="baneGKMSHVol", err[BIFF_STRLEN];
   baneHVolParm *hvp;
   Nrrd *hvol;
   
@@ -469,7 +469,7 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
 /*
 int
 baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
-  char me[]="baneApplyMeasr", err[AIR_STRLEN_MED];
+  char me[]="baneApplyMeasr", err[BIFF_STRLEN];
   int sx, sy, sz, x, y, z, marg;
   baneMeasrType msr;
   nrrdBigInt idx;

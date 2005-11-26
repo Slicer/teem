@@ -38,7 +38,7 @@
 */
 int
 nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
-  char me[]="nrrdSlice", func[]="slice", err[AIR_STRLEN_MED];
+  char me[]="nrrdSlice", func[]="slice", err[BIFF_STRLEN];
   size_t 
     I, 
     rowLen,                  /* length of segment */
@@ -156,7 +156,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
 */
 int
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
-  char me[]="nrrdCrop", func[] = "crop", err[AIR_STRLEN_MED],
+  char me[]="nrrdCrop", func[] = "crop", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
   size_t I,
@@ -344,7 +344,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 */
 int
 nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
-  char me[]="nrrdSample_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdSample_nva", err[BIFF_STRLEN];
   size_t I, size[NRRD_DIM_MAX], typeSize;
   unsigned int ai;
   
@@ -382,7 +382,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 */
 int
 nrrdSample(void *val, const Nrrd *nrrd, ...) {
-  char me[]="nrrdSample", err[AIR_STRLEN_MED];
+  char me[]="nrrdSample", err[BIFF_STRLEN];
   unsigned int ai;
   size_t coord[NRRD_DIM_MAX];
   va_list ap;
@@ -411,7 +411,7 @@ nrrdSample(void *val, const Nrrd *nrrd, ...) {
 */
 int
 nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
-  char me[]="nrrdSimpleCrop", err[AIR_STRLEN_MED];
+  char me[]="nrrdSimpleCrop", err[BIFF_STRLEN];
   unsigned int ai;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 

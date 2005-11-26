@@ -72,7 +72,7 @@ tenGlyphParmNix(tenGlyphParm *parm) {
 int
 tenGlyphParmCheck(tenGlyphParm *parm,
                   const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  char me[]="tenGlyphParmCheck", err[AIR_STRLEN_MED];
+  char me[]="tenGlyphParmCheck", err[BIFF_STRLEN];
   int duh;
   size_t tenSize[3];
 
@@ -176,7 +176,7 @@ int
 tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
             tenGlyphParm *parm,
             const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  char me[]="tenGlyphGen", err[AIR_STRLEN_MED];
+  char me[]="tenGlyphGen", err[BIFF_STRLEN];
   gageShape *shape;
   airArray *mop;
   double pI[3], pW[3];

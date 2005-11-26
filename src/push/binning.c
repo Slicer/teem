@@ -26,7 +26,7 @@
 /* returns NULL if position is outside simulation domain */
 pushBin *
 _pushBinLocate(pushContext *pctx, push_t *pos) {
-  char me[]="_pushBinLocate", err[AIR_STRLEN_MED];
+  char me[]="_pushBinLocate", err[BIFF_STRLEN];
   push_t min, max;
   int be, xi, yi, zi;
   pushBin *ret;
@@ -109,7 +109,7 @@ _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
 int
 _pushBinPointNullify(pushContext *pctx, pushBin *oldBin, pushPoint *point) {
-  char me[]="_pushBinPointNullify", err[AIR_STRLEN_MED];
+  char me[]="_pushBinPointNullify", err[BIFF_STRLEN];
   pushBin *bin;
   unsigned int pointIdx;
 
@@ -190,7 +190,7 @@ pushBinAllNeighborSet(pushContext *pctx) {
 
 int
 pushBinThingAdd(pushContext *pctx, pushThing *thing) {
-  char me[]="pushBinThingAdd", err[AIR_STRLEN_MED];
+  char me[]="pushBinThingAdd", err[BIFF_STRLEN];
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, thing->point.pos) )) {
@@ -204,7 +204,7 @@ pushBinThingAdd(pushContext *pctx, pushThing *thing) {
 
 int
 pushBinPointAdd(pushContext *pctx, pushPoint *point) {
-  char me[]="pushBinPointAdd", err[AIR_STRLEN_MED];
+  char me[]="pushBinPointAdd", err[BIFF_STRLEN];
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {

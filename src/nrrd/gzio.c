@@ -161,7 +161,7 @@ int _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len, unsigned int* 
 */
 gzFile
 _nrrdGzOpen(FILE* fd, const char* mode) {
-  char me[] = "_nrrdGzOpen", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzOpen", err[BIFF_STRLEN];
   int error;
   int level = Z_DEFAULT_COMPRESSION; /* compression level */
   int strategy = Z_DEFAULT_STRATEGY; /* compression strategy */
@@ -280,9 +280,8 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
 ** and deallocates the (de)compression state.
 */
 int
-_nrrdGzClose (gzFile file)
-{
-  char me[] = "_nrrdGzClose", err[AIR_STRLEN_MED];
+_nrrdGzClose (gzFile file) {
+  char me[]="_nrrdGzClose", err[BIFF_STRLEN];
   int error;
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
@@ -312,7 +311,7 @@ _nrrdGzClose (gzFile file)
 */
 int
 _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
-  char me[] = "_nrrdGzRead", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzRead", err[BIFF_STRLEN];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
   Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
@@ -422,7 +421,7 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
 int
 _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len,
               unsigned int* written) {
-  char me[] = "_nrrdGzWrite", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzWrite", err[BIFF_STRLEN];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL || s->mode != 'w') {
@@ -464,7 +463,7 @@ _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len,
 */
 static int
 _nrrdGzGetByte(_NrrdGzStream *s) {
-  char me[] = "_nrrdGzGetByte", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzGetByte", err[BIFF_STRLEN];
 
   if (s->z_eof) return EOF;
   if (s->stream.avail_in == 0) {
@@ -498,7 +497,7 @@ _nrrdGzGetByte(_NrrdGzStream *s) {
 */
 static void
 _nrrdGzCheckHeader(_NrrdGzStream *s) {
-  char me[] = "_nrrdGzCheckHeader", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzCheckHeader", err[BIFF_STRLEN];
   int method; /* method byte */
   int flags;  /* flags byte */
   uInt len;
@@ -556,7 +555,7 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
 */
 static int
 _nrrdGzDestroy(_NrrdGzStream *s) {
-  char me[] = "_nrrdGzDestroy", err[AIR_STRLEN_MED];
+  char me[]="_nrrdGzDestroy", err[BIFF_STRLEN];
   int error = Z_OK;
 
   if (s == NULL) {
@@ -594,9 +593,8 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
 ** flush is the same as in the deflate() function.
 */
 static int
-_nrrdGzDoFlush(gzFile file, int flush)
-{
-  char me[] = "_nrrdGzDoFlush", err[AIR_STRLEN_MED];
+_nrrdGzDoFlush(gzFile file, int flush) {
+  char me[]="_nrrdGzDoFlush", err[BIFF_STRLEN];
   uInt len;
   int done = 0;
   _NrrdGzStream *s = (_NrrdGzStream*)file;

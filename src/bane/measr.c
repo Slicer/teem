@@ -32,7 +32,7 @@ _baneMeasr_StockAnswer(baneMeasr *measr, gage_t *san, double *parm) {
 
 baneMeasr *
 baneMeasrNew(int type, double *parm) {
-  char me[]="baneMeasrNew", err[AIR_STRLEN_MED];
+  char me[]="baneMeasrNew", err[BIFF_STRLEN];
   baneMeasr *measr;
   int item;
 
@@ -147,7 +147,7 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
 
 baneMeasr *
 baneMeasrCopy(baneMeasr *measr) {
-  char me[]="baneMeasrCopy", err[AIR_STRLEN_MED];
+  char me[]="baneMeasrCopy", err[BIFF_STRLEN];
   baneMeasr *ret = NULL;
   
   ret = baneMeasrNew(measr->type, measr->parm);

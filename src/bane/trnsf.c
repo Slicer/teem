@@ -29,7 +29,7 @@
 
 int
 baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
-  char me[]="baneOpacInfo", err[AIR_STRLEN_MED];
+  char me[]="baneOpacInfo", err[BIFF_STRLEN];
   Nrrd *proj2, *proj1, *projT;
   float *data2D, *data1D;
   int i, len, sv, sg;
@@ -149,7 +149,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
 int
 bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
-  char me[]="bane1DOpacInfoFrom2D", err[AIR_STRLEN_MED];
+  char me[]="bane1DOpacInfoFrom2D", err[BIFF_STRLEN];
   Nrrd *projH2=NULL, *projH1=NULL, *projN=NULL, *projG1=NULL;
   float *data1D;
   int i, len;
@@ -197,7 +197,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
 
 int
 _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
-  char me[]="_baneSigmaCalc1D", err[AIR_STRLEN_MED];
+  char me[]="_baneSigmaCalc1D", err[BIFF_STRLEN];
   int i, len;
   float maxg, maxh, minh, *data;
   
@@ -230,7 +230,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
 
 int
 baneSigmaCalc(float *sP, Nrrd *_info) {
-  char me[]="baneSigmaCalc", err[AIR_STRLEN_MED];
+  char me[]="baneSigmaCalc", err[BIFF_STRLEN];
   Nrrd *info;
 
   if (!(sP && _info)) { 
@@ -261,7 +261,7 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
 
 int
 banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
-  char me[]="banePosCalc", err[AIR_STRLEN_MED];
+  char me[]="banePosCalc", err[BIFF_STRLEN];
   int d, i, len, vi, gi, sv, sg;
   float *posData, *infoData, h, g, p;
 
@@ -415,7 +415,7 @@ _baneOpacCalcB(unsigned int lutLen, float *opacLut,
 
 int
 baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
-  char me[]="baneOpacCalc", err[AIR_STRLEN_MED];
+  char me[]="baneOpacCalc", err[BIFF_STRLEN];
   int dim, sv, sg, len, npts;
   float *bdata, *odata, *pdata;
 

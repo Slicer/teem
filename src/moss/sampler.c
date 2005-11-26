@@ -25,7 +25,7 @@
 
 int 
 mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
-  char me[]="mossSamplerImageSet", err[AIR_STRLEN_MED];
+  char me[]="mossSamplerImageSet", err[BIFF_STRLEN];
   int ci, ncol;
   
   if (!(smplr && image)) {
@@ -52,7 +52,7 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
 int
 mossSamplerKernelSet (mossSampler *smplr, 
                       const NrrdKernel *kernel, double *kparm) {
-  char me[]="mossSamplerKernelSet", err[AIR_STRLEN_MED];
+  char me[]="mossSamplerKernelSet", err[BIFF_STRLEN];
   unsigned int ki;
 
   if (!(smplr && kernel && kparm)) {
@@ -69,7 +69,7 @@ mossSamplerKernelSet (mossSampler *smplr,
 
 int
 mossSamplerUpdate (mossSampler *smplr) {
-  char me[]="mossSamplerUpdate", err[AIR_STRLEN_MED];
+  char me[]="mossSamplerUpdate", err[BIFF_STRLEN];
   int ncol=0, fdiam=0;
 
   if (!(smplr)) {
@@ -108,7 +108,7 @@ mossSamplerUpdate (mossSampler *smplr) {
 
 int
 mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
-  char me[]="mossSamplerSample", err[AIR_STRLEN_MED];
+  char me[]="mossSamplerSample", err[BIFF_STRLEN];
   int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
   double xf, yf, tmp;
   float (*lup)(const void *v, size_t I);

@@ -27,7 +27,7 @@
 int
 tenEvecRGB(Nrrd *nout, const Nrrd *nin,
            const tenEvecRGBParm *rgbp) {
-  char me[]="tenEvecRGB", err[AIR_STRLEN_MED];
+  char me[]="tenEvecRGB", err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX];
   float (*lup)(const void *, size_t), (*ins)(void *, size_t, float);
   float ten[7], eval[3], evec[9], RGB[3];
@@ -151,7 +151,7 @@ tenEvqOne(float vec[3], float scl) {
 int
 tenEvqVolume(Nrrd *nout,
              const Nrrd *nin, int which, int aniso, int scaleByAniso) {
-  char me[]="tenEvqVolume", err[AIR_STRLEN_MED];
+  char me[]="tenEvqVolume", err[BIFF_STRLEN];
   int map[3];
   short *qdata;
   const float *tdata;
@@ -214,7 +214,7 @@ tenEvqVolume(Nrrd *nout,
 
 int
 tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
-  char me[]="tenBMatrixCheck", err[AIR_STRLEN_MED];
+  char me[]="tenBMatrixCheck", err[BIFF_STRLEN];
 
   if (nrrdCheck(nbmat)) {
     sprintf(err, "%s: basic validity check failed", me);
@@ -258,7 +258,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
 */
 int
 _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
-  char me[]="_tenFindValley", err[AIR_STRLEN_MED];
+  char me[]="_tenFindValley", err[BIFF_STRLEN];
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
   float *hist, *histD, *histDD;

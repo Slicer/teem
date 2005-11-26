@@ -26,7 +26,7 @@
 int
 _baneRangePositive_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangePositive_Answer", err[AIR_STRLEN_MED];
+  char me[]="_baneRangePositive_Answer", err[BIFF_STRLEN];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
     sprintf(err, "%s: imin and imax don't both exist", me);
@@ -40,7 +40,7 @@ _baneRangePositive_Answer(double *ominP, double *omaxP,
 int
 _baneRangeNegative_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangeNegative_Answer", err[AIR_STRLEN_MED];
+  char me[]="_baneRangeNegative_Answer", err[BIFF_STRLEN];
   
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
     sprintf(err, "%s: imin and imax don't both exist", me);
@@ -62,7 +62,7 @@ _baneRangeNegative_Answer(double *ominP, double *omaxP,
 int
 _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
                               double imin, double imax) {
-  char me[]="_baneRangeZeroCentered_Answer", err[AIR_STRLEN_MED];
+  char me[]="_baneRangeZeroCentered_Answer", err[BIFF_STRLEN];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
     sprintf(err, "%s: imin and imax don't both exist", me);
@@ -79,7 +79,7 @@ _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
 int
 _baneRangeAnywhere_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangeAnywhere_Answer", err[AIR_STRLEN_MED];
+  char me[]="_baneRangeAnywhere_Answer", err[BIFF_STRLEN];
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
     sprintf(err, "%s: imin and imax don't both exist", me);
@@ -92,7 +92,7 @@ _baneRangeAnywhere_Answer(double *ominP, double *omaxP,
 
 baneRange *
 baneRangeNew(int type) {
-  char me[]="baneRangeNew", err[AIR_STRLEN_MED];
+  char me[]="baneRangeNew", err[BIFF_STRLEN];
   baneRange *range = NULL;
   
   if (!AIR_IN_OP(baneRangeUnknown, type, baneRangeLast)) {
@@ -132,7 +132,7 @@ baneRangeNew(int type) {
 
 baneRange *
 baneRangeCopy(baneRange *range) {
-  char me[]="baneRangeCopy", err[AIR_STRLEN_MED];
+  char me[]="baneRangeCopy", err[BIFF_STRLEN];
   baneRange *ret = NULL;
   
   ret = baneRangeNew(range->type);
@@ -148,7 +148,7 @@ int
 baneRangeAnswer(baneRange *range,
                 double *ominP, double *omaxP,
                 double imin, double imax) {
-  char me[]="baneRangeAnswer", err[AIR_STRLEN_MED];
+  char me[]="baneRangeAnswer", err[BIFF_STRLEN];
   
   if (!(range && ominP && omaxP)) {
     sprintf(err, "%s: got NULL pointer", me);

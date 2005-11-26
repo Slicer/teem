@@ -59,7 +59,7 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
-  char me[]="_tenEMBimodalInit", err[AIR_STRLEN_MED];
+  char me[]="_tenEMBimodalInit", err[BIFF_STRLEN];
   int i, median;
   Nrrd *nhisto;
   double medianD, sum;
@@ -345,7 +345,7 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
-  char me[]="_tenEMBimodalConfThresh", err[AIR_STRLEN_MED];
+  char me[]="_tenEMBimodalConfThresh", err[BIFF_STRLEN];
   double m1, s1, m2, s2, f1, f2, A, B, C, D, t1, t2;
 
   biparm->confidence = ((biparm->mean2 - biparm->mean1)
@@ -388,7 +388,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
-  char me[]="_tenEMBimodalCheck", err[AIR_STRLEN_MED];
+  char me[]="_tenEMBimodalCheck", err[BIFF_STRLEN];
 
   if (!( biparm->confidence > biparm->minConfidence )) {
     sprintf(err, "%s: confidence %g went below threshold %g", me,
@@ -422,7 +422,7 @@ _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
 
 int
 tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
-  char me[]="tenEMBimodal", err[AIR_STRLEN_MED];
+  char me[]="tenEMBimodal", err[BIFF_STRLEN];
   int done, _iter;
   
   if (!(biparm && _nhisto)) {

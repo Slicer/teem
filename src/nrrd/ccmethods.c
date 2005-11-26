@@ -107,7 +107,7 @@ _nrrdCC_eclass (int *map, int len, airArray *eqvArr) {
 
 int
 nrrdCCValid(const Nrrd *nin) {
-  char me[]="nrrdCCValid", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCValid", err[BIFF_STRLEN];
   
   if (nrrdCheck(nin)) {
     sprintf(err, "%s: basic validity check failed", me);
@@ -135,7 +135,7 @@ nrrdCCValid(const Nrrd *nin) {
 
 int
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
-  char me[]="nrrdCCSize", func[]="ccsize", err[AIR_STRLEN_MED];
+  char me[]="nrrdCCSize", func[]="ccsize", err[BIFF_STRLEN];
   int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
