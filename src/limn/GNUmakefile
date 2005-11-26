@@ -47,7 +47,7 @@ $(L).SEEN := true
 $(L).NEED = ell nrrd biff hest air
 $(L).PUBLIC_HEADERS = limn.h
 $(L).PRIVATE_HEADERS =
-$(L).OBJS = defaultsLimn.o qn.o light.o env.o cam.o methodsLimn.o \
+$(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
         obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
 	contour.o polydata.o

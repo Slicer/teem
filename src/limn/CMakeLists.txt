@@ -3,7 +3,7 @@ ADD_LIBRARY(limn
  contour.c
  defaultsLimn.c
  enumsLimn.c
- env.c
+ envmap.c
  hestLimn.c
  io.c
  light.c

@@ -518,7 +518,7 @@ LIMN_EXPORT void limnLightSwitch(limnLight *lit, int which, int on);
 LIMN_EXPORT void limnLightReset(limnLight *lit);
 LIMN_EXPORT int limnLightUpdate(limnLight *lit, limnCamera *cam);
 
-/* env.c */
+/* envmap.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
 LIMN_EXPORT int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
                                int qnMethod, void *data);
