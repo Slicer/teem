@@ -262,7 +262,7 @@ pushForceNix(pushForce *force) {
 
 pushForce *
 pushForceParse(const char *_str) {
-  char me[]="pushForceParse", err[AIR_STRLEN_MED];
+  char me[]="pushForceParse", err[BIFF_STRLEN];
   char *str, *col, *_pstr, *pstr;
   pushForce *force;
   int fri, needParm, haveParm;

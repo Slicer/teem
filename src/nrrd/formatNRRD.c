@@ -66,14 +66,14 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   airMopAdd(mop, (void*)fileP, (airMopper)airSetNull, airMopOnError);
 
   if (!fileP) {
-    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+    if ((err = (char*)malloc(BIFF_STRLEN))) {
       sprintf(err, "%s: got NULL pointer", me);
       biffAdd(NRRD, err); free(err);
     }
     airMopError(mop); return 1;
   }
   if (!_nrrdDataFNNumber(nio)) {
-    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+    if ((err = (char*)malloc(BIFF_STRLEN))) {
       sprintf(err, "%s: there appear to be zero datafiles!", me);
       biffAdd(NRRD, err); free(err);
     }
@@ -104,7 +104,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
       }
     }
     if (needPath && !airStrlen(nio->path)) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: need nio->path for header-relative datafiles", me);
         biffAdd(NRRD, err); free(err);
       }
@@ -112,7 +112,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
     }
     fname = (char*)malloc(airStrlen(nio->path) + strlen("/") + maxl + 1);
     if (!fname) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: couldn't allocate filename buffer", me);
         biffAdd(NRRD, err); free(err);
       }
@@ -157,7 +157,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   if (nio->dataFNFormat || nio->dataFNArr->len) {
     *fileP = airFopen(fname, reading ? stdin : stdout, reading ? "rb" : "wb");
     if (!(*fileP)) {
-      if ((err = (char*)malloc(strlen(fname) + AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(strlen(fname) + BIFF_STRLEN))) {
         sprintf(err, "%s: couldn't open \"%s\" (data file %d of %d) for %s",
                 me, fname, nio->dataFNIndex+1, (int)_nrrdDataFNNumber(nio),
                 reading ? "reading" : "writing");
@@ -333,7 +333,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* nio->headerStringRead is NULL whenever IO from string is not being done */
   if (file || nio->headerStringRead) {
     if (!_nrrdFormatNRRD_contentStartsLike(nio)) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: this doesn't look like a %s file", me,
                 nrrdFormatNRRD->name);
         biffAdd(NRRD, err); free(err); 
@@ -344,7 +344,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     do {
       nio->pos = 0;
       if (_nrrdOneLine(&llen, nio, file)) {
-        if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+        if ((err = (char*)malloc(BIFF_STRLEN))) {
           sprintf(err, "%s: trouble getting line of header", me);
           biffAdd(NRRD, err); free(err);
         }
@@ -353,7 +353,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       if (llen > 1) {
         ret = _nrrdReadNrrdParseField(nio, AIR_TRUE);
         if (!ret) {
-          if ((err = (char*)malloc(AIR_STRLEN_MED + strlen(nio->line)))) {
+          if ((err = (char*)malloc(BIFF_STRLEN + strlen(nio->line)))) {
             sprintf(err, "%s: trouble parsing field in \"%s\"", me, nio->line);
             biffAdd(NRRD, err); free(err);
           }
@@ -362,7 +362,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         /* comments and key/values are allowed multiple times */
         if (nio->seen[ret]
             && !(ret == nrrdField_comment || ret == nrrdField_keyvalue)) {
-          if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+          if ((err = (char*)malloc(BIFF_STRLEN))) {
             sprintf(err, "%s: already set field %s", me, 
                     airEnumStr(nrrdField, ret));
             biffAdd(NRRD, err); free(err);
@@ -370,7 +370,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           return 1;
         }
         if (nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
-          if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+          if ((err = (char*)malloc(BIFF_STRLEN))) {
             /* HEY: this error message should be printing out all the
                per-axis fields, not just the first
                HEY: if your stupid parsing functions didn't modify
@@ -393,7 +393,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         && 0 == nio->dataFNArr->len) { 
       /* we're at EOF, we're not reading from a string, but there's
          apparently no seperate data file */
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: hit end of header, but no \"%s\" given", me,
                 airEnumStr(nrrdField, nrrdField_data_file));
         biffAdd(NRRD, err); free(err);
@@ -402,7 +402,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
   }
   if (_nrrdHeaderCheck(nrrd, nio, !!file)) {
-    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+    if ((err = (char*)malloc(BIFF_STRLEN))) {
       sprintf(err, "%s: %s", me, 
               (llen ? "finished reading header, but there were problems"
                : "hit EOF before seeing a complete valid header"));
@@ -416,7 +416,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   nrrdIoStateDataFileIterBegin(nio);
   /* NOTE: if nio->headerStringRead, this may set dataFile to NULL */
   if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
-    if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+    if ((err = (char*)malloc(BIFF_STRLEN))) {
       sprintf(err, "%s: couldn't open the first datafile", me);
       biffAdd(NRRD, err); free(err);
     }
@@ -427,7 +427,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     data = NULL;
   } else {
     if (_nrrdCalloc(nrrd, nio, dataFile)) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: couldn't allocate memory for data", me);
         biffAdd(NRRD, err); free(err);
       }
@@ -444,7 +444,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (dataFile) {
     /* ---------------- skip, if need be */
     if (nrrdLineSkip(dataFile, nio)) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: couldn't skip lines", me);
         biffAdd(NRRD, err); free(err);
       }
@@ -454,7 +454,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       /* bytes are skipped here for non-compression encodings, but are
          skipped within the decompressed stream for compression encodings */
       if (nrrdByteSkip(dataFile, nrrd, nio)) {
-        if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+        if ((err = (char*)malloc(BIFF_STRLEN))) {
           sprintf(err, "%s: couldn't skip bytes", me);
           biffAdd(NRRD, err); free(err);
         }
@@ -471,7 +471,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         if (2 <= nrrdStateVerboseIO) {
           fprintf(stderr, "error!\n");
         }
-        if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+        if ((err = (char*)malloc(BIFF_STRLEN))) {
           sprintf(err, "%s:", me);
           biffAdd(NRRD, err); free(err);
         }
@@ -491,7 +491,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     data += valsPerPiece*nrrdElementSize(nrrd);
     if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
-      if ((err = (char*)malloc(AIR_STRLEN_MED))) {
+      if ((err = (char*)malloc(BIFF_STRLEN))) {
         sprintf(err, "%s: couldn't get the next datafile", me);
         biffAdd(NRRD, err); free(err);
       }
