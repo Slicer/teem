@@ -55,6 +55,9 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   info = nrrdResampleInfoNew();
   airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   hparm->elideSingleOtherDefault = AIR_FALSE;
+  hestOptAdd(&opt, "old", NULL, airTypeInt, 0, 0, &older, NULL,
+             "instead of using the new nrrdResampleContext implementation, "
+             "use the old nrrdSpatialResample implementation");
   hestOptAdd(&opt, "s,size", "sz0", airTypeOther, 1, -1, &scale, NULL,
              "For each axis, information about how many samples in output:\n "
              "\b\bo \"=\": leave this axis completely untouched: no "
@@ -99,9 +102,6 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "type to save OUTPUT as. By default (not using this option), "
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "old", NULL, airTypeInt, 0, 0, &older, NULL,
-             "instead of using the new nrrdResampleContext implementation, "
-             "use the old nrrdSpatialResample implementation");
   hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
              "(only with \"-old\") "
              "when downsampling (reducing number of samples), don't "
