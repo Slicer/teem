@@ -3,6 +3,7 @@ ADD_LIBRARY(unrrdu
   2op.c
   3op.c
   about.c
+  env.c
   axdelete.c
   axinfo.c
   axinsert.c
