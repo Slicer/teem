@@ -757,7 +757,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdEncodingUnknown == nio->encoding) {
-    nio->encoding = nrrdDefaultWriteEncoding;
+    nio->encoding = nrrdEncodingArray[nrrdDefaultWriteEncodingType];
   }
   if (!nio->encoding->available()) {
     sprintf(err, "%s: %s encoding not available in this Teem build", 

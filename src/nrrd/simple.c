@@ -1320,7 +1320,7 @@ _nrrdCheckEnums (void) {
 ** returns 1 if all is okay, 0 if there is a problem
 */
 int
-nrrdSanity (void) {
+nrrdSanity(void) {
   char me[]="nrrdSanity", err[BIFF_STRLEN];
   int aret, type;
   size_t maxsize;
@@ -1343,8 +1343,10 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  if (!nrrdDefaultWriteEncoding) {
-    sprintf(err, "%s: nrrdDefaultWriteEncoding is NULL", me);
+  if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
+    sprintf(err, "%s: nrrdDefaultWriteEncodingType (%d) not in valid "
+            "range [%d,%d]", me, nrrdDefaultWriteEncodingType,
+            nrrdEncodingTypeUnknown+1, nrrdEncodingTypeLast-1);
     biffAdd(NRRD, err); return 0;
   }
   if (airEnumValCheck(nrrdCenter, nrrdDefaultCenter)) {

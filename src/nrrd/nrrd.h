@@ -631,7 +631,7 @@ typedef struct {
 
 /******** defaults (nrrdDefault..) and state (nrrdState..) */
 /* defaultsNrrd.c */
-NRRD_EXPORT const NrrdEncoding *nrrdDefaultWriteEncoding;
+NRRD_EXPORT int nrrdDefaultWriteEncodingType;
 NRRD_EXPORT int nrrdDefaultWriteBareText;
 NRRD_EXPORT unsigned int nrrdDefaultWriteCharsPerLine;
 NRRD_EXPORT unsigned int nrrdDefaultWriteValsPerLine;
@@ -663,6 +663,7 @@ NRRD_EXPORT int nrrdStateGrayscaleImage3D;
 NRRD_EXPORT int nrrdStateKeyValueReturnInternalPointers;
 NRRD_EXPORT int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteEncodingType;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareText;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareTextOld;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultCenter;
@@ -680,6 +681,7 @@ NRRD_EXPORT const char *const nrrdEnvVarStateDisableContent;
 NRRD_EXPORT const char *const nrrdEnvVarStateMeasureType;
 NRRD_EXPORT const char *const nrrdEnvVarStateMeasureModeBins;
 NRRD_EXPORT const char *const nrrdEnvVarStateMeasureHistoType;
+NRRD_EXPORT const char *const nrrdEnvVarStateGrayscaleImage3D;
 NRRD_EXPORT int nrrdGetenvBool(int *val, char **envStr,
                                const char *envVar);
 NRRD_EXPORT int nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm,

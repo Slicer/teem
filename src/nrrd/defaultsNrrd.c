@@ -37,7 +37,7 @@
 ** explicitly.
 */
 
-const NrrdEncoding *nrrdDefaultWriteEncoding = &_nrrdEncodingRaw;
+int nrrdDefaultWriteEncodingType = nrrdEncodingTypeRaw;
 int nrrdDefaultWriteBareText = AIR_TRUE;
 unsigned int nrrdDefaultWriteCharsPerLine = 75;
 unsigned int nrrdDefaultWriteValsPerLine = 8;
@@ -87,6 +87,8 @@ int nrrdStateKindNoop = AIR_FALSE;
 
 /* ---- BEGIN non-NrrdIO */
 
+const char *const nrrdEnvVarDefaultWriteEncodingType
+  = "NRRD_DEFAULT_WRITE_ENCODING_TYPE";
 const char *const nrrdEnvVarDefaultWriteBareText
   = "NRRD_DEFAULT_WRITE_BARE_TEXT";
 const char *const nrrdEnvVarDefaultWriteBareTextOld 
@@ -122,6 +124,8 @@ const char *const nrrdEnvVarStateMeasureModeBins
   = "NRRD_STATE_MEASURE_MODE_BINS";
 const char *const nrrdEnvVarStateMeasureHistoType
   = "NRRD_STATE_MEASURE_HISTO_TYPE";
+const char *const nrrdEnvVarStateGrayscaleImage3D
+  = "NRRD_STATE_GRAYSCALE_IMAGE_3D";
 
 /*
 **        -1: unset, or bad args    ==> *val NOT set
@@ -267,6 +271,9 @@ nrrdDefaultGetenv(void) {
                    nrrdEnvVarDefaultCenter);
   }
   /* these post-date the Def --> Default rename */
+
+  nrrdGetenvEnum(/**/ &nrrdDefaultWriteEncodingType, NULL, nrrdEncodingType,
+                 nrrdEnvVarDefaultWriteEncodingType);
   nrrdGetenvUInt(/**/ &nrrdDefaultWriteCharsPerLine, NULL,
                  nrrdEnvVarDefaultWriteCharsPerLine);
   nrrdGetenvUInt(/**/ &nrrdDefaultWriteValsPerLine, NULL,
@@ -300,6 +307,8 @@ nrrdStateGetenv(void) {
                 nrrdEnvVarStateMeasureModeBins);
   nrrdGetenvEnum(/**/ &nrrdStateMeasureHistoType, NULL, nrrdType,
                  nrrdEnvVarStateMeasureHistoType);
+  nrrdGetenvBool(/**/ &nrrdStateGrayscaleImage3D, NULL,
+                 nrrdEnvVarStateGrayscaleImage3D);
 
   return;
 }
