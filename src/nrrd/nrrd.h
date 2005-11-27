@@ -663,6 +663,33 @@ NRRD_EXPORT int nrrdStateGrayscaleImage3D;
 NRRD_EXPORT int nrrdStateKeyValueReturnInternalPointers;
 NRRD_EXPORT int nrrdStateKindNoop;
 /* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareText;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareTextOld;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultCenter;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultCenterOld;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteCharsPerLine;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteValsPerLine;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultKernelParm0;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultSpacing;
+NRRD_EXPORT const char *const nrrdEnvVarStateKindNoop;
+NRRD_EXPORT const char *const nrrdEnvVarStateVerboseIO;
+NRRD_EXPORT const char *const nrrdEnvVarStateKeyValuePairsPropagate;
+NRRD_EXPORT const char *const nrrdEnvVarStateBlind8BitRange;
+NRRD_EXPORT const char *const nrrdEnvVarStateAlwaysSetContent;
+NRRD_EXPORT const char *const nrrdEnvVarStateDisableContent;
+NRRD_EXPORT const char *const nrrdEnvVarStateMeasureType;
+NRRD_EXPORT const char *const nrrdEnvVarStateMeasureModeBins;
+NRRD_EXPORT const char *const nrrdEnvVarStateMeasureHistoType;
+NRRD_EXPORT int nrrdGetenvBool(int *val, char **envStr,
+                               const char *envVar);
+NRRD_EXPORT int nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm,
+                               const char *envVar);
+NRRD_EXPORT int nrrdGetenvInt(int *val, char **envStr,
+                              const char *envVar);
+NRRD_EXPORT int nrrdGetenvUInt(unsigned int *val, char **envStr,
+                               const char *envVar);
+NRRD_EXPORT int nrrdGetenvDouble(double *val, char **envStr,
+                                 const char *envVar);
 NRRD_EXPORT void nrrdDefaultGetenv(void);
 NRRD_EXPORT void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */

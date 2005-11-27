@@ -86,116 +86,221 @@ int nrrdStateKindNoop = AIR_FALSE;
    stand to be user-controllable? */
 
 /* ---- BEGIN non-NrrdIO */
+
+const char *const nrrdEnvVarDefaultWriteBareText
+  = "NRRD_DEFAULT_WRITE_BARE_TEXT";
+const char *const nrrdEnvVarDefaultWriteBareTextOld 
+  = "NRRD_DEF_WRITE_BARE_TEXT";
+const char *const nrrdEnvVarDefaultCenter
+  = "NRRD_DEFAULT_CENTER";
+const char *const nrrdEnvVarDefaultCenterOld
+  = "NRRD_DEF_CENTER";
+const char *const nrrdEnvVarDefaultWriteCharsPerLine
+  = "NRRD_DEFAULT_WRITE_CHARS_PER_LINE";
+const char *const nrrdEnvVarDefaultWriteValsPerLine
+  = "NRRD_DEFAULT_WRITE_VALS_PER_LINE";
+const char *const nrrdEnvVarDefaultKernelParm0
+  = "NRRD_DEFAULT_KERNEL_PARM0";
+const char *const nrrdEnvVarDefaultSpacing
+  = "NRRD_DEFAULT_SPACING";
+
+const char *const nrrdEnvVarStateKindNoop
+  = "NRRD_STATE_KIND_NOOP";
+const char *const nrrdEnvVarStateVerboseIO
+  = "NRRD_STATE_VERBOSE_IO";
+const char *const nrrdEnvVarStateKeyValuePairsPropagate 
+  = "NRRD_STATE_KEYVALUEPAIRS_PROPAGATE";
+const char *const nrrdEnvVarStateBlind8BitRange
+  = "NRRD_STATE_BLIND_8_BIT_RANGE";
+const char *const nrrdEnvVarStateAlwaysSetContent
+  = "NRRD_STATE_ALWAYS_SET_CONTENT";
+const char *const nrrdEnvVarStateDisableContent
+  = "NRRD_STATE_DISABLE_CONTENT";
+const char *const nrrdEnvVarStateMeasureType
+  = "NRRD_STATE_MEASURE_TYPE";
+const char *const nrrdEnvVarStateMeasureModeBins
+  = "NRRD_STATE_MEASURE_MODE_BINS";
+const char *const nrrdEnvVarStateMeasureHistoType
+  = "NRRD_STATE_MEASURE_HISTO_TYPE";
+
+/*
+**        -1: unset, or bad args    ==> *val NOT set
+**  AIR_TRUE: set in a valid way    ==> *val set (to something)
+** AIR_FALSE: set in an invalid way ==> *val NOT set
+*/
+
+int
+nrrdGetenvBool(int *val, char **envStr, const char *envVar) {
+  char *env;
+  int tmp;
+
+  if (!(val && envVar)) {
+    return -1;
+  }
+  env = getenv(envVar);
+  if (envStr) {
+    *envStr = env;
+  }
+  if (!env) {
+    return -1;
+  }
+  if (!strlen(env)) {
+    /* for bools, being merely set (but not to any string) means "true" */
+    *val = AIR_TRUE;
+    return AIR_TRUE;
+  }
+  tmp = airEnumVal(airBool, env);
+  if (airEnumUnknown(airBool) == tmp) {
+    return AIR_FALSE;
+  } else {
+    *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
+int
+nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm,
+               const char *envVar) {
+  char *env;
+  int tmp;
+
+  if (!(val && envVar)) {
+    return -1;
+  }
+  env = getenv(envVar);
+  if (envStr) {
+    *envStr = env;
+  }
+  if (!env) {
+    return -1;
+  }
+  tmp = airEnumVal(enm, env);
+  if (airEnumUnknown(enm) == tmp) {
+    return AIR_FALSE;
+  } else {
+    *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
+int
+nrrdGetenvUInt(unsigned int *val, char **envStr, const char *envVar) {
+  char *env;
+  unsigned int tmp;
+
+  if (!(val && envVar)) {
+    return -1;
+  }
+  env = getenv(envVar);
+  if (envStr) {
+    *envStr = env;
+  }
+  if (!env) {
+    return -1;
+  }
+  if (1 != sscanf(env, "%u", &tmp)) {
+    return AIR_FALSE;
+  } else {
+    *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
+int
+nrrdGetenvInt(int *val, char **envStr, const char *envVar) {
+  char *env;
+  int tmp;
+
+  if (!(val && envVar)) {
+    return -1;
+  }
+  env = getenv(envVar);
+  if (envStr) {
+    *envStr = env;
+  }
+  if (!env) {
+    return -1;
+  }
+  if (1 != sscanf(env, "%d", &tmp)) {
+    return AIR_FALSE;
+  } else {
+    *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
+int
+nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
+  char *env;
+  double tmp;
+
+  if (!(val && envVar)) {
+    return -1;
+  }
+  env = getenv(envVar);
+  if (envStr) {
+    *envStr = env;
+  }
+  if (!env) {
+    return -1;
+  }
+  if (1 != sscanf(env, "%lf", &tmp)) {
+    return AIR_FALSE;
+  } else {
+    *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
 void
 nrrdDefaultGetenv(void) {
-  char *envS;
-  int valI;
-  unsigned int valUI;
-  double valD;
   
-  /* these two pre-date Def --> Default rename; 
-     old "_DEF_" string is recognized */
-  if (((envS = getenv("NRRD_DEF_WRITE_BARE_TEXT"))
-       || (envS = getenv("NRRD_DEFAULT_WRITE_BARE_TEXT")))
-      && (valI = airEnumVal(airBool, envS))) {
-    nrrdDefaultWriteBareText = valI;
+  /* these two pre-date Def --> Default rename */
+  if (-1 == nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
+                           nrrdEnvVarDefaultWriteBareTextOld)) {
+    nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
+                   nrrdEnvVarDefaultWriteBareText);
   }
-  if (((envS = getenv("NRRD_DEF_CENTER"))
-       || (envS = getenv("NRRD_DEFAULT_CENTER")))
-      && (valI = airEnumVal(nrrdCenter, envS))) {
-    nrrdDefaultCenter = valI;
+  if (-1 == nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter,
+                           nrrdEnvVarDefaultCenterOld)) {
+    nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter,
+                   nrrdEnvVarDefaultCenter);
   }
-
-  /* the introduction of these post-date the Def --> Default rename */
-  if ((envS = getenv("NRRD_DEFAULT_WRITE_CHARS_PER_LINE"))
-      && (1 == sscanf(envS, "%u", &valUI))) {
-    nrrdDefaultWriteCharsPerLine = valUI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_WRITE_VALS_PER_LINE"))
-      && (1 == sscanf(envS, "%u", &valUI))) {
-    nrrdDefaultWriteValsPerLine = valUI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_BOUNDARY"))
-      && (valI = airEnumVal(nrrdBoundary, envS))) {
-    nrrdDefaultResampleBoundary = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_TYPE"))
-      && (valI = airEnumVal(nrrdType, envS))) {
-    nrrdDefaultResampleType = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_RENORMALIZE"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdDefaultResampleRenormalize = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_ROUND"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdDefaultResampleRound = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_CLAMP"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdDefaultResampleClamp = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_CHEAP"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdDefaultResampleCheap = valI;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_RESAMPLE_PAD_VALUE"))
-      && (1 == sscanf(envS, "%lf", &valD))) {
-    nrrdDefaultResamplePadValue = valD;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_KERNEL_PARM0"))
-      && (1 == sscanf(envS, "%lf", &valD))) {
-    nrrdDefaultKernelParm0 = valD;
-  }
-  if ((envS = getenv("NRRD_DEFAULT_SPACING"))
-      && (1 == sscanf(envS, "%lf", &valD))) {
-    nrrdDefaultSpacing = valD;
-  }
+  /* these post-date the Def --> Default rename */
+  nrrdGetenvUInt(/**/ &nrrdDefaultWriteCharsPerLine, NULL,
+                 nrrdEnvVarDefaultWriteCharsPerLine);
+  nrrdGetenvUInt(/**/ &nrrdDefaultWriteValsPerLine, NULL,
+                 nrrdEnvVarDefaultWriteValsPerLine);
+  nrrdGetenvDouble(/**/ &nrrdDefaultKernelParm0, NULL,
+                   nrrdEnvVarDefaultKernelParm0);
+  nrrdGetenvDouble(/**/ &nrrdDefaultSpacing, NULL,
+                   nrrdEnvVarDefaultSpacing);
 
   return;
 }
 
 void
 nrrdStateGetenv(void) {
-  char *envS;
-  int valI;
-  
-  if ((envS = getenv("NRRD_STATE_KIND_NOOP"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateKindNoop = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_VERBOSE_IO"))
-      && (1 == sscanf(envS, "%d", &valI))) {
-    nrrdStateVerboseIO = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_KEYVALUEPAIRS_PROPAGATE"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateKeyValuePairsPropagate = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_BLIND_8_BIT_RANGE"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateBlind8BitRange = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_ALWAYS_SET_CONTENT"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateAlwaysSetContent = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_DISABLE_CONTENT"))
-      && (-1 != (valI = airEnumVal(airBool, envS)))) {
-    nrrdStateDisableContent = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_MEASURE_TYPE"))
-      && (nrrdTypeUnknown != (valI = airEnumVal(nrrdType, envS)))) {
-    nrrdStateMeasureType = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_MEASURE_MODE_BINS"))
-      && (1 == sscanf(envS, "%d", &valI))) {
-    nrrdStateMeasureModeBins = valI;
-  }
-  if ((envS = getenv("NRRD_STATE_MEASURE_HISTO_TYPE"))
-      && (nrrdTypeUnknown != (valI = airEnumVal(nrrdType, envS)))) {
-    nrrdStateMeasureHistoType = valI;
-  }
+
+  nrrdGetenvBool(/**/ &nrrdStateKindNoop, NULL,
+                 nrrdEnvVarStateKindNoop);
+  nrrdGetenvInt(/**/ &nrrdStateVerboseIO, NULL,
+                nrrdEnvVarStateVerboseIO);
+  nrrdGetenvBool(/**/ &nrrdStateKeyValuePairsPropagate, NULL,
+                 nrrdEnvVarStateKeyValuePairsPropagate);
+  nrrdGetenvBool(/**/ &nrrdStateBlind8BitRange, NULL,
+                 nrrdEnvVarStateBlind8BitRange);
+  nrrdGetenvBool(/**/ &nrrdStateAlwaysSetContent, NULL,
+                 nrrdEnvVarStateAlwaysSetContent);
+  nrrdGetenvBool(/**/ &nrrdStateDisableContent, NULL,
+                 nrrdEnvVarStateDisableContent);
+  nrrdGetenvEnum(/**/ &nrrdStateMeasureType, NULL, nrrdType,
+                 nrrdEnvVarStateMeasureType);
+  nrrdGetenvInt(/**/ &nrrdStateMeasureModeBins, NULL,
+                nrrdEnvVarStateMeasureModeBins);
+  nrrdGetenvEnum(/**/ &nrrdStateMeasureHistoType, NULL, nrrdType,
+                 nrrdEnvVarStateMeasureHistoType);
+
   return;
 }
 
