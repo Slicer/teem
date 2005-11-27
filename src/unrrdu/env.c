@@ -59,7 +59,8 @@ _unrrdu_envBool(FILE *file, const char *envKey, int currVal,
             varName, airEnumStr(airBool, currVal));
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %s\n", varName, airEnumStr(airBool, currVal));
+    fprintf(file, "  ==> %s = %s   **********************\n",
+            varName, airEnumStr(airBool, currVal));
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -94,7 +95,8 @@ _unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey,
             varName, airEnumStr(enm, currVal));
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %s\n", varName, airEnumStr(enm, currVal));
+    fprintf(file, "  ==> %s = %s   **********************\n",
+            varName, airEnumStr(enm, currVal));
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -130,7 +132,8 @@ _unrrdu_envInt(FILE *file, const char *envKey,
             varName, currVal);
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %d\n", varName, currVal);
+    fprintf(file, "  ==> %s = %d   **********************\n",
+            varName, currVal);
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -167,7 +170,8 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
             varName, currVal);
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %u\n", varName, currVal);
+    fprintf(file, "  ==> %s = %u   **********************\n",
+            varName, currVal);
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
