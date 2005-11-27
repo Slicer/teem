@@ -193,6 +193,17 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
                 AIR_FALSE);
   fprintf(stderr, "\n");
 
+  _hestPrintStr(stderr, 0, 0, hparm->columns, 
+                ("Bool variables may be set to true simply by setting the "
+                 "environment variable; setting the value to \"true\" or "
+                 "\"false\" sets the bool accordingly.  Enum variables may "
+                 "be set by setting the environment variable to any string "
+                 "that parses as one of the enum values.  Int and unsigned "
+                 "int variables are set via a string parse-able as a numeric "
+                 "value."),
+                AIR_FALSE);
+  fprintf(stderr, "\n");
+
   _unrrdu_envBool(stderr, 
                   nrrdEnvVarStateKeyValuePairsPropagate,
                   nrrdStateKeyValuePairsPropagate,
@@ -209,12 +220,12 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
                   "set but one has to be chosen for some operation "
                   "(e.g. resampling).",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
-                  nrrdEnvVarDefaultWriteBareText,
-                  nrrdDefaultWriteBareText,
-                  "nrrdDefaultWriteBareText",
-                  "When false, text files used for saving nrrds start with "
-                  "comment (\"# ...\") lines containing nrrd fields.",
+  _unrrdu_envEnum(stderr,
+                  nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
+                  nrrdDefaultWriteEncodingType,
+                  "nrrdDefaultWriteEncodingType",
+                  "When writing nrrds, what encoding to use. Only "
+                  "\"unu save\" affords explicit control of output encoding.",
                   hparm->columns);
   _unrrdu_envBool(stderr,
                   nrrdEnvVarStateKindNoop,
@@ -238,6 +249,13 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
                   "be [0,255] (for uchar) or [-128,127] (for signed char), "
                   "instead of actually looking into the data to find its "
                   "range.",
+                  hparm->columns);
+  _unrrdu_envBool(stderr,
+                  nrrdEnvVarDefaultWriteBareText,
+                  nrrdDefaultWriteBareText,
+                  "nrrdDefaultWriteBareText",
+                  "When false, text files used for saving nrrds start with "
+                  "comment (\"# ...\") lines containing nrrd fields.",
                   hparm->columns);
   _unrrdu_envEnum(stderr,
                   nrrdType, nrrdEnvVarStateMeasureType,
@@ -288,15 +306,21 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
                   "When using text encoding, maximum # values allowed "
                   "per line",
                   hparm->columns);
+  _unrrdu_envBool(stderr,
+                  nrrdEnvVarStateGrayscaleImage3D,
+                  nrrdStateGrayscaleImage3D,
+                  "nrrdStateGrayscaleImage3D",
+                  "If true, reading a 2-D grayscale image results in a "
+                  "3-D image with a single sample (size=1) on the first "
+                  "(fastest) axis.",
+                  hparm->columns);
 
 #if 0
-
   /* GLK is ambivalent about the continued existence of these ... */
   nrrdGetenvDouble(/**/ &nrrdDefaultKernelParm0,
                    nrrdEnvVarDefaultKernelParm0);
   nrrdGetenvDouble(/**/ &nrrdDefaultSpacing,
                    nrrdEnvVarDefaultSpacing);
-
 #endif  
 
   return 0;
