@@ -45,16 +45,17 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
   float thresh, soft, bval, scale, sigma;
-  int dwiax, EE, knownB0, newstuff, estmeth, verbose;
-  unsigned int ninLen, axmap[4];
+  int dwiax, EE, knownB0, oldstuff, estmeth, verbose;
+  unsigned int ninLen, axmap[4], wlsi;
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
   double bKVP;
 
   tenEstimateContext *tec;
 
-  hestOptAdd(&hopt, "new", NULL, airTypeInt, 0, 0, &newstuff, NULL,
-             "use the new tenEstimateContext functionality");
+  hestOptAdd(&hopt, "old", NULL, airTypeInt, 0, 0, &oldstuff, NULL,
+             "instead of the new tenEstimateContext code, use "
+             "the old tenEstimateLinear code");
   hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
              "Rician noise parameter");
   hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
@@ -63,6 +64,9 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "lls",
              "estimation method to use",
              NULL, tenEstimateMethod);
+  hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
+             "when using weighted-least-squares (\"-est wls\"), how "
+             "many iterations to do after the initial weighted fit.");
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the tensor "
              "estimation error: a value which measures how much error there "
@@ -112,7 +116,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "all the input "
              "images are diffusion-weighted in some way or another, and there "
              "exactly as many rows in the B-matrix as there are input images");
-  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
+  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, "-",
              "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
              "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
              &ninLen, NULL, nrrdHestNrrd);
@@ -146,7 +150,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
               "key/value pair based calculation of B-matrix\n", me);
       airMopError(mop); return 1;
     }
-    if (!newstuff) {
+    if (oldstuff) {
       if (knownB0) {
         fprintf(stderr, "%s: sorry, key/value-based DWI info currently "
                 "disallows knownB0\n", me);
@@ -201,27 +205,34 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nterr = NULL;
   nB0 = NULL;
-  if (newstuff) {
+  if (!oldstuff) {
     if (!AIR_EXISTS(thresh)) {
-      fprintf(stderr, "%s: sorry, need \"-t\" thresh set for newstuff\n", me);
+      fprintf(stderr, "%s: sorry, currently need \"-t\" thresh set "
+              "for new implementation\n", me);
       airMopError(mop); return 1;
     }
     tec = tenEstimateContextNew();
-    tec->verbose = verbose;
+    tec->progress = AIR_TRUE;
     airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
     EE = 0;
+    if (!EE) tenEstimateVerboseSet(tec, verbose);
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, DBL_MIN);
-    if (tenEstimateMethodMLE == estmeth) {
+    switch(estmeth) {
+    case tenEstimateMethodMLE:
       if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
         fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
                 me, airEnumStr(tenEstimateMethod, tenEstimateMethodMLE),
                 sigma);
         airMopError(mop); return 1;
       }
+      if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
+      break;
+    case tenEstimateMethodWLS:
+      if (!EE) tec->WLSIterNum = wlsi;
+      break;
     }
-    if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
     if (EE) {
