@@ -619,7 +619,8 @@ typedef struct {
     recordErrorLogDwi,
     recordLikelihood,
     verbose,               /* blah blah blah */
-    progress;
+    progress;              /* progress indication for volume processing */
+  unsigned int WLSIterNum; /* number of iterations for WLS */
   /* internal -------- */
   /* a "dwi" in here is basically any value (diffusion-weighted or not)
      that varies as a function of the model parameters being estimated */
@@ -776,11 +777,13 @@ TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
 TEN_EXPORT int tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
                                                   float *simval,
-                                                  float sigma, float bValue, float B0,
+                                                  float sigma,
+                                                  float bValue, float B0,
                                                   const float _ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
                                                   double *simval,
-                                                  double sigma, double bValue, double B0,
+                                                  double sigma,
+                                                  double bValue, double B0,
                                                   const double ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                                 Nrrd *ndwi, 

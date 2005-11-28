@@ -299,6 +299,7 @@ tenEstimateContextNew() {
     tec->recordLikelihood = AIR_FALSE;
     tec->verbose = 0;
     tec->progress = AIR_FALSE;
+    tec->WLSIterNum = 3;
     for (fi=flagUnknown+1; fi<flagLast; fi++) {
       tec->flag[fi] = AIR_FALSE;
     }
@@ -1085,7 +1086,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
 */
 int
 _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
-  /* char me[]="_tenEstimate1Tensor_LLS"; */
+  char me[]="_tenEstimate1Tensor_LLS", err[BIFF_STRLEN];
   double *emat, tmp, logB0;
   unsigned int ii, jj;
   
@@ -1093,7 +1094,7 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
   if (tec->estimateB0) {
     for (ii=0; ii<tec->allNum; ii++) {
       tmp = AIR_MAX(tec->valueMin, tec->all[ii]);
-      tec->allTmp[ii] = -log(FLT_MIN + tmp)/(FLT_MIN + tec->bValue);
+      tec->allTmp[ii] = -log(tmp)/(tec->bValue);
     }
     for (jj=0; jj<7; jj++) {
       tmp = 0;
@@ -1102,16 +1103,27 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
       }
       if (jj < 6) {
         tec->ten[1+jj] = tmp;
+        if (!AIR_EXISTS(tmp)) {
+          sprintf(err, "%s: estimated non-existant tensor coef (%u) %g", 
+                  me, jj, tmp);
+          biffAdd(TEN, err); return 1;
+        }
       } else {
         /* we're on seventh row, for finding B0 */
         tec->estimatedB0 = exp(tec->bValue*tmp);
+        tec->estimatedB0 = AIR_MIN(FLT_MAX, tec->estimatedB0);
+        if (!AIR_EXISTS(tec->estimatedB0)) {
+          sprintf(err, "%s: estimated non-existant B0 %g (b=%g, tmp=%g)", 
+                  me, tec->estimatedB0, tec->bValue, tmp);
+          biffAdd(TEN, err); return 1;
+        }
       }
     }
   } else {
-    logB0 = log(FLT_MIN + tec->knownB0);
+    logB0 = log(AIR_MAX(tec->valueMin, tec->knownB0));
     for (ii=0; ii<tec->dwiNum; ii++) {
       tmp = AIR_MAX(tec->valueMin, tec->dwi[ii]);
-      tec->dwiTmp[ii] = (logB0 - log(FLT_MIN + tmp))/(FLT_MIN + tec->bValue);
+      tec->dwiTmp[ii] = (logB0 - log(tmp))/(tec->bValue);
     }
     for (jj=0; jj<6; jj++) {
       tmp = 0;
@@ -1127,8 +1139,8 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
 int
 _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   char me[]="_tenEstimate1Tensor_WLS", err[BIFF_STRLEN];
-  unsigned int dwiIdx;
-  double *wght, dwi;
+  unsigned int dwiIdx, iter;
+  double *wght, dwi, sum;
 
   if (!tec) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1136,9 +1148,16 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   }
 
   wght = AIR_CAST(double *, tec->nwght->data);
+  sum = 0;
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
     dwi = tec->dwi[dwiIdx];
-    wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
+    dwi = AIR_MAX(tec->valueMin, dwi);
+    sum += dwi*dwi;
+  }
+  for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
+    dwi = tec->dwi[dwiIdx];
+    dwi = AIR_MAX(tec->valueMin, dwi);
+    wght[dwiIdx + tec->dwiNum*dwiIdx] = dwi*dwi/sum;
   }
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
     sprintf(err, "%s(1): trouble wght-pseudo-inverting %ux%u B-matrix", me,
@@ -1147,43 +1166,53 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
     biffMove(TEN, err, ELL);
     return 1;
   }
-  _tenEstimate1Tensor_LLS(tec);
-
-  /* just one more iteration seems to make a big difference */
   /*
-  fprintf(stderr, "!%s: bValue = %g, B0 = %g, ten = %g %g %g   %g %g   %g\n", me,
-          tec->bValue, (tec->estimateB0 ? tec->estimatedB0 : tec->knownB0), 
-          tec->ten[1], tec->ten[2], tec->ten[3], 
-          tec->ten[4], tec->ten[5], tec->ten[6]);
+  nrrdSave("wght.txt", tec->nwght, NULL);
+  nrrdSave("bmat.txt", tec->nbmat, NULL);
+  nrrdSave("emat.txt", tec->nemat, NULL);
   */
-  if (_tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, 
-                                        (tec->estimateB0 ?
-                                         tec->estimatedB0 : tec->knownB0), tec->ten)) {
-    sprintf(err, "%s: trying to improve on first LLS", me);
+  if (_tenEstimate1Tensor_LLS(tec)) {
+    sprintf(err, "%s: initial weighted LLS failed", me);
     biffAdd(TEN, err); return 1;
   }
-  for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    dwi = tec->dwiTmp[dwiIdx];
-    if (!AIR_EXISTS(dwi)) {
-      sprintf(err, "%s: bad simulated dwi[%u] == %g", me, dwiIdx, dwi);
+
+  for (iter=0; iter<tec->WLSIterNum; iter++) {
+    /*
+    fprintf(stderr, "!%s: bValue = %g, B0 = %g, ten = %g %g %g %g %g %g\n",
+            me,
+            tec->bValue, (tec->estimateB0 ? tec->estimatedB0 : tec->knownB0), 
+            tec->ten[1], tec->ten[2], tec->ten[3], 
+            tec->ten[4], tec->ten[5], tec->ten[6]);
+    */
+    if (_tenEstimate1TensorSimulateSingle(tec, 0.0, tec->bValue, 
+                                          (tec->estimateB0 ?
+                                           tec->estimatedB0 
+                                           : tec->knownB0), tec->ten)) {
+      sprintf(err, "%s: iter %u", me, iter);
       biffAdd(TEN, err); return 1;
     }
-    wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
+    for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
+      dwi = tec->dwiTmp[dwiIdx];
+      if (!AIR_EXISTS(dwi)) {
+        sprintf(err, "%s: bad simulated dwi[%u] == %g (iter %u)",
+                me, dwiIdx, dwi, iter);
+        biffAdd(TEN, err); return 1;
+      }
+      wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
+    }
+    if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
+      /*
+        nrrdSave("nbmat.txt", tec->nbmat, NULL);
+        nrrdSave("nwght.txt", tec->nwght, NULL);
+      */
+      sprintf(err, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
+              AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
+              AIR_CAST(unsigned int, tec->nbmat->axis[0].size), iter);
+      biffMove(TEN, err, ELL);
+      return 1;
+    }
+    _tenEstimate1Tensor_LLS(tec);
   }
-  if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
-    fprintf(stderr, "%s: LLS ten = %g %g %g   %g %g   %g\n", me,
-            tec->ten[1], tec->ten[2], tec->ten[3],
-            tec->ten[4], tec->ten[5],
-            tec->ten[6]);
-    nrrdSave("nbmat.txt", tec->nbmat, NULL);
-    nrrdSave("nwght.txt", tec->nwght, NULL);
-    sprintf(err, "%s(2): trouble wght-pseudo-inverting %ux%u B-matrix", me,
-            AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-            AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
-    biffMove(TEN, err, ELL);
-    return 1;
-  }
-  _tenEstimate1Tensor_LLS(tec);
   
   return 0;
 }
@@ -1655,12 +1684,14 @@ tenEstimate1TensorSingle_f(tenEstimateContext *tec,
 
   tec->all_f = all;
   tec->all_d = NULL;
-  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__, tec->knownB0, tec->estimatedB0);
+  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
+          tec->knownB0, tec->estimatedB0);
   if (_tenEstimate1TensorSingle(tec)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }
-  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__, tec->knownB0, tec->estimatedB0);
+  fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
+          tec->knownB0, tec->estimatedB0);
   TEN_T_COPY_T(ten, float, tec->ten);
 
   return 0;
@@ -1805,7 +1836,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   fflush(stderr);
   tick = NN / 200;
   for (II=0; II<NN; II++) {
-    if (0 == II%tick) {
+    if (tec->progress && 0 == II%tick) {
       fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
     }
     tec->verbose = (218 == II);
