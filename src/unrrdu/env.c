@@ -26,12 +26,8 @@
 #define INFO "List relevant environment variables and their values"
 char *_unrrdu_envInfoL = (INFO
                           ". These environment variables provide a way of "
-                          "setting default and state variables that can "
-                          "affect the way Nrrd operates.  These parameters "
-                          "are not so commonly invoked that they merit "
-                          "command-line options, yet pervasive enough that "
-                          "they sensibly apply to range of unu commands, "
-                          "rather than just one at a time. ");
+                          "setting global variables that can affect"
+                          " the way Nrrd operates.");
 
 void
 _unrrdu_envBool(FILE *file, const char *envKey, int currVal,
@@ -192,8 +188,10 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
   _hestPrintStr(stderr, 0, 0, hparm->columns, 
                 ("Each variable in the listing below starts with the name of "
                  "the environment variable (\"NRRD_...\"), what type of value "
-                 "it represents (e.g. \"int\", \"bool\"), what the variable "
-                 "is currently set to, and a description of the variable."),
+                 "it represents (e.g. \"int\", \"bool\"), what the "
+                 "environment variable is currently set to, what the "
+                 "corresponding Nrrd global variable is set to, and a "
+                 "description of the variable."),
                 AIR_FALSE);
   fprintf(stderr, "\n");
 
@@ -236,7 +234,7 @@ unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
                   nrrdStateKindNoop,
                   "nrrdStateKindNoop",
                   "When true, Nrrd makes not even the slightest effort to be "
-                  "smart about the \"kind\" field of an axis is set after "
+                  "smart about setting the \"kind\" field of an axis after "
                   "some operation that modified its samples.",
                   hparm->columns);
   _unrrdu_envInt(stderr,
