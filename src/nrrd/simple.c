@@ -458,8 +458,8 @@ _nrrdContentSet (Nrrd *nout, const char *func,
 ** Does allow nout==nin, which requires some care.
 */
 int
-nrrdContentSet (Nrrd *nout, const char *func,
-                const Nrrd *nin, const char *format, ...) {
+nrrdContentSet(Nrrd *nout, const char *func,
+               const Nrrd *nin, const char *format, ...) {
   char me[]="nrrdContentSet", err[BIFF_STRLEN];
   va_list ap;
   char *content;
@@ -499,7 +499,7 @@ nrrdContentSet (Nrrd *nout, const char *func,
 ** writes verbose description of nrrd to given file
 */
 void
-nrrdDescribe (FILE *file, const Nrrd *nrrd) {
+nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   unsigned int ai;
 
   if (file && nrrd) {
@@ -1044,7 +1044,7 @@ int
 };
 
 int
-_nrrdCheck (const Nrrd *nrrd, int checkData, int useBiff) {
+_nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   char me[]="_nrrdCheck", err[BIFF_STRLEN];
   int fi;
 
@@ -1080,7 +1080,7 @@ _nrrdCheck (const Nrrd *nrrd, int checkData, int useBiff) {
 ** required to do the data reading.
 */
 int
-nrrdCheck (const Nrrd *nrrd) {
+nrrdCheck(const Nrrd *nrrd) {
   char me[]="nrrdCheck", err[BIFF_STRLEN];
 
   if (_nrrdCheck(nrrd, AIR_TRUE, AIR_TRUE)) {
