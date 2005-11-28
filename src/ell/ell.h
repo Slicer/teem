@@ -187,7 +187,7 @@ ELL_EXPORT void ell_q_avg4_d(double avg[4], double eps, double wght[4],
                              double q3[4], double q4[4]);
 
 /* genmat.c */
-ELL_EXPORT int ell_Nm_check(Nrrd *mat);
+ELL_EXPORT int ell_Nm_check(Nrrd *mat, int doNrrdCheck);
 ELL_EXPORT int ell_Nm_tran(Nrrd *dest, Nrrd *src);
 ELL_EXPORT int ell_Nm_mul(Nrrd *dest, Nrrd *A, Nrrd *B);
 ELL_EXPORT int ell_Nm_inv(Nrrd *dest, Nrrd *src);

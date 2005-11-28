@@ -24,12 +24,19 @@
 #include "ell.h"
 
 int
-ell_Nm_check(Nrrd *mat) {
+ell_Nm_check(Nrrd *mat, int doNrrdCheck) {
   char me[]="ell_Nm_check", err[BIFF_STRLEN];
 
-  if (nrrdCheck(mat)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(ELL, err, NRRD); return 1;
+  if (doNrrdCheck) {
+    if (nrrdCheck(mat)) {
+      sprintf(err, "%s: basic nrrd validity check failed", me);
+      biffMove(ELL, err, NRRD); return 1;
+    }
+  } else {
+    if (!mat) {
+      sprintf(err, "%s: got NULL pointer", me);
+      biffAdd(ELL, err); return 1;
+    }
   }
   if (!( 2 == mat->dim )) {
     sprintf(err, "%s: nrrd must be 2-D (not %d-D)", me, mat->dim);
@@ -45,11 +52,19 @@ ell_Nm_check(Nrrd *mat) {
   return 0;
 }
 
+/*
+******** ell_Nm_tran
+**
+**     M             N
+** N [trn]  <--  M [mat]
+*/
 int
 ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
   char me[]="ell_Nm_tran", err[BIFF_STRLEN];
+  double *mat, *trn;
+  size_t MM, NN, mm, nn;
 
-  if (!( ntrn && !ell_Nm_check(nmat) )) {
+  if (!( ntrn && !ell_Nm_check(nmat, AIR_FALSE) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -57,9 +72,24 @@ ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
     sprintf(err, "%s: sorry, can't work in-place yet", me);
     biffAdd(ELL, err); return 1;
   }
+  /*
   if (nrrdAxesSwap(ntrn, nmat, 0, 1)) {
     sprintf(err, "%s: trouble", me);
     biffMove(ELL, err, NRRD); return 1;
+  }
+  */
+  NN = nmat->axis[0].size;
+  MM = nmat->axis[1].size;
+  if (nrrdMaybeAlloc(ntrn, nrrdTypeDouble, 2, MM, NN)) {
+    sprintf(err, "%s: trouble", me);
+    biffMove(ELL, err, NRRD); return 1;
+  }
+  mat = AIR_CAST(double *, nmat->data);
+  trn = AIR_CAST(double *, ntrn->data);
+  for (nn=0; nn<NN; nn++) {
+    for (mm=0; mm<MM; mm++) {
+      trn[mm + MM*nn] = mat[nn + NN*mm];
+    }
   }
 
   return 0;
@@ -79,7 +109,8 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
   
-  if (!( nAB && !ell_Nm_check(nA) && !ell_Nm_check(nB) )) {
+  if (!( nAB && !ell_Nm_check(nA, AIR_FALSE) 
+         && !ell_Nm_check(nB, AIR_FALSE) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -108,7 +139,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
     for (nn=0; nn<NN; nn++) {
       tmp = 0;
       for (mm=0; mm<MM; mm++) {
-        tmp += A[ll*MM + mm]*B[mm*NN + nn];
+        tmp += A[mm + MM*ll]*B[nn + NN*mm];
       }
       AB[ll*NN + nn] = tmp;
     }
@@ -303,7 +334,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
   double *mat, *inv;
   size_t NN;
 
-  if (!( ninv && !ell_Nm_check(nmat) )) {
+  if (!( ninv && !ell_Nm_check(nmat, AIR_FALSE) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -344,7 +375,7 @@ ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
   
-  if (!( ninv && !ell_Nm_check(nA) )) {
+  if (!( ninv && !ell_Nm_check(nA, AIR_FALSE) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
@@ -376,7 +407,8 @@ ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
   Nrrd *nAt, *nAtW, *nAtWA, *nAtWAi;
   int ret=0;
   
-  if (!( ninv && !ell_Nm_check(nA) && !ell_Nm_check(nW) )) {
+  if (!( ninv && !ell_Nm_check(nA, AIR_FALSE) 
+         && !ell_Nm_check(nW, AIR_FALSE) )) {
     sprintf(err, "%s: NULL or invalid args", me);
     biffAdd(ELL, err); return 1;
   }
