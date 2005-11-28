@@ -148,7 +148,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
     }
   }
   /* shouldn't ever get here */
-  return ell_cubic_root_unknown;
+  /* return ell_cubic_root_unknown; */
 }
 
 

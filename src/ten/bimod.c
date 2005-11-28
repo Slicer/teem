@@ -375,7 +375,6 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
       sprintf(err, "%s: neither computed threshold %g,%g inside open interval "
               "between means (%g,%g)", me, t1, t2, m1, m2);
       biffAdd(TEN, err); return 1;
-      return 1;
     }
   }
 
