@@ -506,7 +506,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     txtidx = 0;
     for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
       if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
-        txt[txtidx].key = NRRD_PNG_FIELD_KEY;
+        txt[txtidx].key = airStrdup(NRRD_PNG_FIELD_KEY);
         txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
         _nrrdSprintFieldInfo(&(txt[txtidx].text), "", nrrd, nio, fi);
         txtidx++;
@@ -524,7 +524,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     /* add nrrd comments as a single text field */
     if (nrrd->cmtArr->len > 0) {
-      txt[txtidx].key = NRRD_PNG_COMMENT_KEY;
+      txt[txtidx].key = airStrdup(NRRD_PNG_COMMENT_KEY);
       txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
       for (jj=0; jj<nrrd->cmtArr->len; jj++) {
         csize += airStrlen(nrrd->cmt[jj]) + 1;
