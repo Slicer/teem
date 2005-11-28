@@ -493,7 +493,10 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     key = airFree(key);
     value = airFree(value);
   }
-  numtxt += nrrd->cmtArr->len;
+  if (nrrd->cmtArr->len > 0) {
+    /* all comments are put into single text field */
+    numtxt += 1;
+  }
   if (0 == numtxt) {
     txt = NULL;
   } else {
