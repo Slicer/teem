@@ -269,7 +269,7 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
 */
 int
 nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
-  int i, skipRet;
+  int i, skipRet, backHack;
   char me[]="nrrdByteSkip", err[BIFF_STRLEN];
   size_t bsize;
 
@@ -277,11 +277,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nio->byteSkip < -1) {
-    sprintf(err, "%s: byteSkip %d not valid", me, nio->byteSkip);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (-1 == nio->byteSkip) {
+  if (-1 >= nio->byteSkip) {
     if (nrrdEncodingRaw != nio->encoding) {
       sprintf(err, "%s: can do backwards byte skip only in %s "
               "encoding, not %s", me,
@@ -294,7 +290,8 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     }
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
-    if (fseek(dataFile, -((long)bsize), SEEK_END)) {
+    backHack = -nio->byteSkip - 1;
+    if (fseek(dataFile, -((long)(bsize + backHack)), SEEK_END)) {
       sprintf(err, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_CNV
               ", SEEK_END)", me, bsize);
       biffAdd(NRRD, err); return 1;      
