@@ -555,6 +555,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* clean up */
   if (txt) {
     for (jj=0; jj<numtxt; jj++) {
+      txt[jj].key = (char *)airFree(txt[jj].key);
       txt[jj].text = (char *)airFree(txt[jj].text);
     }
     free(txt);
