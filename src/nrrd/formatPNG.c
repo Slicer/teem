@@ -486,9 +486,12 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   }
   for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
     nrrdKeyValueIndex(nrrd, &key, &value, jj);
+    /* HEY: why is the NULL check needed?? */
     if (NULL != key && NULL != value) {
       numtxt++;
     }
+    key = airFree(key);
+    value = airFree(value);
   }
   numtxt += nrrd->cmtArr->len;
   if (0 == numtxt) {
