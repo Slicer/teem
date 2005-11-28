@@ -551,10 +551,10 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_write_end(png, info);
   /* clean up */
   if (txt) {
-    free(txt);
     for (jj=0; jj<numtxt; jj++) {
       txt[jj].text = (char *)airFree(txt[jj].text);
     }
+    free(txt);
   }
   row = (png_byte**)airFree(row);
   png_destroy_write_struct(&png, &info);
