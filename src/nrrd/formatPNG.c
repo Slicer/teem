@@ -395,12 +395,13 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatPNG_write", err[BIFF_STRLEN];
 #if TEEM_PNG
   int fi, depth, type, csize;
-  unsigned int jj, numtxt;
+  unsigned int jj, numtxt, txtidx;
   png_structp png;
   png_infop info;
   png_bytep *row;
   png_uint_32 width, height, rowsize, hi;
-  png_text txt[NRRD_FIELD_MAX+1];
+  png_text *txt;
+  char *key, *value;
 
   /* no need to check type and format, done in FitsInFormat */
   /* create png struct with the error handlers above */
@@ -476,44 +477,60 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_set_IHDR(png, info, width, height, depth, type,
                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
                PNG_FILTER_TYPE_BASE);
-  /* add nrrd fields to the text chunk */
+  /* calculate numtxt and allocate txt[] array */
   numtxt = 0;
-  csize = 0;
   for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
     if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
-      txt[numtxt].key = NRRD_PNG_FIELD_KEY;
-      txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
-      _nrrdSprintFieldInfo(&(txt[numtxt].text), "", nrrd, nio, fi);
       numtxt++;
     }
   }
-  /* add nrrd key/value pairs to the chunk */
   for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
-    char *key, *value;
     nrrdKeyValueIndex(nrrd, &key, &value, jj);
     if (NULL != key && NULL != value) {
-      txt[numtxt].key = key;
-      txt[numtxt].text = value;
-      txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
       numtxt++;
     }
   }
-  /* add nrrd comments as a single text field */
-  if (nrrd->cmtArr->len > 0) {
-    txt[numtxt].key = NRRD_PNG_COMMENT_KEY;
-    txt[numtxt].compression = PNG_TEXT_COMPRESSION_NONE;
-    for (jj=0; jj<nrrd->cmtArr->len; jj++) {
-      csize += airStrlen(nrrd->cmt[jj]) + 1;
+  numtxt += nrrd->cmtArr->len;
+  if (0 == numtxt) {
+    txt = NULL;
+  } else {
+    txt = AIR_CAST(png_text *, calloc(numtxt, sizeof(png_text)));
+    /* add nrrd fields to the text chunk */
+    csize = 0;
+    txtidx = 0;
+    for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
+      if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
+        txt[txtidx].key = NRRD_PNG_FIELD_KEY;
+        txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
+        _nrrdSprintFieldInfo(&(txt[txtidx].text), "", nrrd, nio, fi);
+        txtidx++;
+      }
     }
-    txt[numtxt].text = (png_charp)malloc(csize + 1);
-    txt[numtxt].text[0] = 0;
-    for (jj=0; jj<nrrd->cmtArr->len; jj++) {
-      strcat(txt[numtxt].text, nrrd->cmt[jj]);
-      strcat(txt[numtxt].text, "\n");
+    /* add nrrd key/value pairs to the chunk */
+    for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
+      nrrdKeyValueIndex(nrrd, &key, &value, jj);
+      if (NULL != key && NULL != value) {
+        txt[txtidx].key = key;
+        txt[txtidx].text = value;
+        txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
+        txtidx++;
+      }
     }
-    numtxt++;
-  }
-  if (numtxt > 0) {
+    /* add nrrd comments as a single text field */
+    if (nrrd->cmtArr->len > 0) {
+      txt[txtidx].key = NRRD_PNG_COMMENT_KEY;
+      txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
+      for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+        csize += airStrlen(nrrd->cmt[jj]) + 1;
+      }
+      txt[txtidx].text = (png_charp)malloc(csize + 1);
+      txt[txtidx].text[0] = 0;
+      for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+        strcat(txt[txtidx].text, nrrd->cmt[jj]);
+        strcat(txt[txtidx].text, "\n");
+      }
+      txtidx++;
+    }
     png_set_text(png, info, txt, numtxt);
   }
   /* write header */
@@ -533,8 +550,11 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* finish writing */
   png_write_end(png, info);
   /* clean up */
-  for (jj=0; jj<numtxt; jj++) {
-    txt[jj].text = (char *)airFree(txt[jj].text);
+  if (txt) {
+    free(txt);
+    for (jj=0; jj<numtxt; jj++) {
+      txt[jj].text = (char *)airFree(txt[jj].text);
+    }
   }
   row = (png_byte**)airFree(row);
   png_destroy_write_struct(&png, &info);
