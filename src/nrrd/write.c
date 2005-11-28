@@ -395,10 +395,6 @@ _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio, int field) {
 ** the per-axis information), but many only make sense in NRRD files.
 ** This is just one example of NRRD-format-specific stuff that is not
 ** in formatNRRD.c
-**
-** HEY: the use of "10", "20", and "30" as stand-ins for "maximum
-** number of characters that might be used for printing this integral
-** value" is getting pretty tiresome...
 */
 void
 _nrrdSprintFieldInfo(char **strP, char *prefix,
@@ -406,7 +402,10 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   char me[]="_nrrdSprintFieldInfo", buff[AIR_STRLEN_MED], *fnb;
   double colvec[NRRD_SPACE_DIM_MAX];
   const char *fs;
-  unsigned int ii, dd;
+  unsigned int ii, dd,
+    uintStrlen = 11,
+    size_tStrlen = 33,
+    doubleStrlen = 513;
   int fslen, fdlen, endi, maxl;
   
   if (!( strP && prefix
@@ -434,7 +433,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     sprintf(*strP, "%s%s: %s", prefix, fs, nrrd->content);
     break;
   case nrrdField_number:
-    *strP = (char *)calloc(fslen + 30, sizeof(char));
+    *strP = (char *)calloc(fslen + size_tStrlen, sizeof(char));
     sprintf(*strP, "%s%s: " _AIR_SIZE_T_CNV, prefix, fs, 
             nrrdElementNumber(nrrd));
     break;
@@ -444,11 +443,11 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     sprintf(*strP, "%s%s: %s", prefix, fs, airEnumStr(nrrdType, nrrd->type));
     break;
   case nrrdField_block_size:
-    *strP = (char *)calloc(fslen + 20, sizeof(char));
+    *strP = (char *)calloc(fslen + size_tStrlen, sizeof(char));
     sprintf(*strP, "%s%s: " _AIR_SIZE_T_CNV, prefix, fs, nrrd->blockSize);
     break;
   case nrrdField_dimension:
-    *strP = (char *)calloc(fslen + 10, sizeof(char));
+    *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
     sprintf(*strP, "%s%s: %d", prefix, fs, nrrd->dim);
     break;
   case nrrdField_space:
@@ -457,12 +456,12 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     sprintf(*strP, "%s%s: %s", prefix, fs, airEnumStr(nrrdSpace, nrrd->space));
     break;
   case nrrdField_space_dimension:
-    *strP = (char *)calloc(fslen + 10, sizeof(char));
+    *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
     sprintf(*strP, "%s%s: %d", prefix, fs, nrrd->spaceDim);
     break;
     /* ---- begin per-axis fields ---- */
   case nrrdField_sizes:
-    *strP = (char *)calloc(fslen + nrrd->dim*10, sizeof(char));
+    *strP = (char *)calloc(fslen + nrrd->dim*(size_tStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       sprintf(buff, " " _AIR_SIZE_T_CNV, nrrd->axis[ii].size);
@@ -470,7 +469,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_spacings:
-    *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
+    *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].spacing);
@@ -478,7 +477,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_thicknesses:
-    *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
+    *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].thickness);
@@ -486,7 +485,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_axis_mins:
-    *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
+    *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].min);
@@ -494,7 +493,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_axis_maxs:
-    *strP = (char *)calloc(fslen + nrrd->dim*30, sizeof(char));
+    *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].max);
@@ -503,7 +502,8 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     break;
   case nrrdField_space_directions:
     *strP = (char *)calloc(fslen + 
-                           nrrd->dim*nrrd->spaceDim*(30 + strlen("(,) ")),
+                           nrrd->dim*nrrd->spaceDim*(doubleStrlen 
+						     + strlen("(,) ")),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
@@ -582,18 +582,18 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   case nrrdField_min:
   case nrrdField_max:
     /* we're basically a no-op, now that these fields became meaningless */
-    *strP = (char *)calloc(fslen + 30, sizeof(char));
+    *strP = (char *)calloc(fslen + doubleStrlen, sizeof(char));
     sprintf(*strP, "%s%s: 0.0", prefix, fs);
     strcat(*strP, buff);
     break;
   case nrrdField_old_min:
-    *strP = (char *)calloc(fslen + 30, sizeof(char));
+    *strP = (char *)calloc(fslen + doubleStrlen, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     airSinglePrintf(NULL, buff, "%g", nrrd->oldMin);
     strcat(*strP, buff);
     break;
   case nrrdField_old_max:
-    *strP = (char *)calloc(fslen + 30, sizeof(char));
+    *strP = (char *)calloc(fslen + doubleStrlen, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     airSinglePrintf(NULL, buff, "%g", nrrd->oldMax);
     strcat(*strP, buff);
@@ -619,11 +619,11 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     sprintf(*strP, "%s%s: %s", prefix, fs, nio->encoding->name);
     break;
   case nrrdField_line_skip:
-    *strP = (char *)calloc(fslen + 20, sizeof(char));
+    *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
     sprintf(*strP, "%s%s: %d", prefix, fs, nio->lineSkip);
     break;
   case nrrdField_byte_skip:
-    *strP = (char *)calloc(fslen + 20, sizeof(char));
+    *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
     sprintf(*strP, "%s%s: %d", prefix, fs, nio->byteSkip);
     break;
   case nrrdField_sample_units:
@@ -647,14 +647,16 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_space_origin:
-    *strP = (char *)calloc(fslen + nrrd->spaceDim*(30 + strlen("(,) ")),
+    *strP = (char *)calloc(fslen + nrrd->spaceDim*(doubleStrlen 
+						   + strlen("(,) ")),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     _nrrdStrcatSpaceVector(*strP, nrrd->spaceDim, nrrd->spaceOrigin);
     break;
   case nrrdField_measurement_frame:
     *strP = (char *)calloc(fslen + (nrrd->spaceDim*
-                                    nrrd->spaceDim*(30 + strlen("(,) "))),
+                                    nrrd->spaceDim*(doubleStrlen 
+						    + strlen("(,) "))),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (dd=0; dd<nrrd->spaceDim; dd++) {
@@ -674,8 +676,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
        the filenames */
     /* error checking elsewhere: assumes there is data file info */
     if (nio->dataFNFormat) {
-      *strP = (char *)calloc(fslen + strlen(nio->dataFNFormat) 
-                             + 10 + 10 + 10 + 10,
+      *strP = (char *)calloc(fslen + strlen(nio->dataFNFormat) + 4*uintStrlen,
                              sizeof(char));
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: %s %d %d %d", prefix, fs, nio->dataFNFormat, 
@@ -690,10 +691,11 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
       for (ii=0; ii<nio->dataFNArr->len; ii++) {
         maxl = AIR_MAX(maxl, (int)strlen(nio->dataFN[ii]));
       }
-      *strP = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) + 10 
-                             + nio->dataFNArr->len * (maxl + 1),
+      *strP = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) 
+                             + uintStrlen + nio->dataFNArr->len * (maxl + 1),
                              sizeof(char));
-      fnb = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) + 10 + maxl + 1,
+      fnb = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) 
+			   + uintStrlen + maxl + 1,
                            sizeof(char));
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);
