@@ -752,20 +752,20 @@ NRRD_EXPORT Nrrd *nrrdEmpty(Nrrd *nrrd);
 NRRD_EXPORT Nrrd *nrrdNuke(Nrrd *nrrd);
 NRRD_EXPORT int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
                              unsigned int dim, const size_t *size);
-NRRD_EXPORT int nrrdWrap(Nrrd *nrrd, void *data, int type, unsigned int dim,
-                         ... /* sx, sy, .., axis(dim-1) size */);
+NRRD_EXPORT int nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim,
+                            ... /* size_t sx, sy, .., axis(dim-1) size */);
 NRRD_EXPORT void nrrdBasicInfoInit(Nrrd *nrrd, int excludeBitflag);
 NRRD_EXPORT int nrrdBasicInfoCopy(Nrrd *nout, const Nrrd *nin,
                                   int excludeBitflag);
 NRRD_EXPORT int nrrdCopy(Nrrd *nout, const Nrrd *nin);
 NRRD_EXPORT int nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
                               const size_t *size);
-NRRD_EXPORT int nrrdAlloc(Nrrd *nrrd, int type, unsigned int dim,
-                          ... /* sx, sy, .., axis(dim-1) size */);
+NRRD_EXPORT int nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
+                             ... /* size_t sx, sy, .., axis(dim-1) size */);
 NRRD_EXPORT int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
                                    const size_t *size);
-NRRD_EXPORT int nrrdMaybeAlloc(Nrrd *nrrd, int type, unsigned int dim,
-                               ... /* sx, sy, .., axis(dim-1) size */);
+NRRD_EXPORT int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
+                                  ... /* size_t sx, sy, .., ax(dim-1) size */);
 NRRD_EXPORT int nrrdPPM(Nrrd *, size_t sx, size_t sy);
 NRRD_EXPORT int nrrdPGM(Nrrd *, size_t sx, size_t sy);
 
@@ -776,11 +776,11 @@ NRRD_EXPORT unsigned int nrrdKindSize(int kind);
 NRRD_EXPORT int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
                                  const int *axmap, int excludeBitflag);
 NRRD_EXPORT void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
-NRRD_EXPORT void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
-                                 ... /* const void* */);
+NRRD_EXPORT void nrrdAxisInfoSet_va(Nrrd *nin, int axInfo,
+                                    ... /* const void* */);
 NRRD_EXPORT void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
-NRRD_EXPORT void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
-                                 ... /* void* */);
+NRRD_EXPORT void nrrdAxisInfoGet_va(const Nrrd *nrrd, int axInfo,
+                                    ... /* void* */);
 NRRD_EXPORT double nrrdAxisInfoPos(const Nrrd *nrrd, unsigned int ax,
                                    double idx);
 NRRD_EXPORT double nrrdAxisInfoIdx(const Nrrd *nrrd, unsigned int ax,
@@ -826,9 +826,9 @@ NRRD_EXPORT int nrrdOriginCalculate(const Nrrd *nrrd,
                                     unsigned int *axisIdx,
                                     unsigned int axisIdxNum,
                                     int defaultCenter, double *origin);
-NRRD_EXPORT int nrrdContentSet(Nrrd *nout, const char *func,
-                               const Nrrd *nin, const char *format,
-                               ... /* printf-style arg list */ );
+NRRD_EXPORT int nrrdContentSet_va(Nrrd *nout, const char *func,
+                                  const Nrrd *nin, const char *format,
+                                  ... /* printf-style arg list */ );
 NRRD_EXPORT void nrrdDescribe(FILE *file, const Nrrd *nrrd);
 NRRD_EXPORT int nrrdCheck(const Nrrd *nrrd);
 NRRD_EXPORT int _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff);
@@ -923,21 +923,28 @@ NRRD_EXPORT int nrrdStringWrite(char **stringP, const Nrrd *nrrd,
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */
 /* accessors.c */
-NRRD_EXPORT int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
-NRRD_EXPORT float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
 NRRD_EXPORT double (*nrrdDLoad[NRRD_TYPE_MAX+1])(const void *v);
-NRRD_EXPORT int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
-NRRD_EXPORT float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
+NRRD_EXPORT float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
+NRRD_EXPORT int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
+NRRD_EXPORT unsigned int (*nrrdUILoad[NRRD_TYPE_MAX+1])(const void *v);
 NRRD_EXPORT double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
-NRRD_EXPORT int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
-NRRD_EXPORT float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+NRRD_EXPORT float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
+NRRD_EXPORT int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
+NRRD_EXPORT unsigned int (*nrrdUIStore[NRRD_TYPE_MAX+1])(void *v,
+                                                         unsigned int j);
 NRRD_EXPORT double (*nrrdDLookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
-NRRD_EXPORT int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
-                                                   int j);
-NRRD_EXPORT float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
-                                                   float f);
+NRRD_EXPORT float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+NRRD_EXPORT int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+NRRD_EXPORT unsigned int (*nrrdUILookup[NRRD_TYPE_MAX+1])(const void *v,
+                                                          size_t I);
 NRRD_EXPORT double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
                                                    double d);
+NRRD_EXPORT float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
+                                                   float f);
+NRRD_EXPORT int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
+                                                   int j);
+NRRD_EXPORT unsigned int    (*nrrdUIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
+                                                             unsigned int j);
 NRRD_EXPORT int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
@@ -967,8 +974,8 @@ NRRD_EXPORT int nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis);
 NRRD_EXPORT int nrrdJoin(Nrrd *nout, const Nrrd *const *nin,
                          unsigned int numNin, 
                          unsigned int axis, int incrDim);
-NRRD_EXPORT int nrrdReshape(Nrrd *nout, const Nrrd *nin, unsigned int dim,
-                            ... /* sx, sy, .., axis(dim-1) size */ );
+NRRD_EXPORT int nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim,
+                               ... /* sx, sy, .., axis(dim-1) size */ );
 NRRD_EXPORT int nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
                                 unsigned int dim, const size_t *size);
 NRRD_EXPORT int nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, unsigned int ax,
@@ -1071,8 +1078,8 @@ NRRD_EXPORT int nrrdCrop(Nrrd *nout, const Nrrd *nin,
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int nrrdSample_nva(void *val, const Nrrd *nin,
                                const size_t *coord);
-NRRD_EXPORT int nrrdSample(void *val, const Nrrd *nin,
-                           ... /* coord0, coord1, .., coord(dim-1) */ );
+NRRD_EXPORT int nrrdSample_va(void *val, const Nrrd *nin,
+                              ... /* size_t idx0, idx1, .., idx(dim-1) */ );
 NRRD_EXPORT int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop);
 
 /******** padding */
@@ -1082,15 +1089,16 @@ NRRD_EXPORT int nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
 NRRD_EXPORT int nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
                             const ptrdiff_t *min, const ptrdiff_t *max,
                             int boundary, double padValue);
-NRRD_EXPORT int nrrdPad(Nrrd *nout, const Nrrd *nin,
-                        const ptrdiff_t *min, const ptrdiff_t *max,
-                        int boundary, ... /* if nrrdBoundaryPad, the value */);
+NRRD_EXPORT int nrrdPad_va(Nrrd *nout, const Nrrd *nin,
+                           const ptrdiff_t *min, const ptrdiff_t *max,
+                           int boundary,
+                           ... /* double value (if nrrdBoundaryPad) */);
 NRRD_EXPORT int nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin,
                                   unsigned int pad,
                                   int boundary, double padValue);
-NRRD_EXPORT int nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
-                              int boundary,
-                              ... /* if nrrdBoundaryPad, what value */);
+NRRD_EXPORT int nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
+                                 int boundary,
+                                 ... /* double value (if nrrdBoundaryPad) */);
 NRRD_EXPORT int nrrdInset(Nrrd *nout, const Nrrd *nin,
                           const Nrrd *nsub, const size_t *min);
 
@@ -1211,9 +1219,9 @@ NRRD_EXPORT int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
 /******** connected component extraction and manipulation */
 /* ccmethods.c */
 NRRD_EXPORT int nrrdCCValid(const Nrrd *nin);
-NRRD_EXPORT int nrrdCCSize(Nrrd *nout, const Nrrd *nin);
-NRRD_EXPORT int nrrdCCMax(const Nrrd *nin);
-NRRD_EXPORT int nrrdCCNum(const Nrrd *nin);
+NRRD_EXPORT unsigned int nrrdCCSize(Nrrd *nout, const Nrrd *nin);
+NRRD_EXPORT unsigned int nrrdCCMax(const Nrrd *nin);
+NRRD_EXPORT unsigned int nrrdCCNum(const Nrrd *nin);
 /* cc.c */
 NRRD_EXPORT int nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin,
                            int type, unsigned int conny);
