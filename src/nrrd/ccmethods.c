@@ -27,20 +27,20 @@
 ** _nrrdCC_settle()
 **
 ** takes a mapping map[i], i in [0..len-1], and shifts the range of the
-** mapping downward so that the range is a contiguous set of integers,
+** mapping downward so that the range is a contiguous set of uints
 ** starting at 0.
 **
 ** returns the highest mapping output value, after the settling.
 */
-int
-_nrrdCC_settle (int *map, int len) {
-  int i, j, count, max, *hit;
+unsigned int
+_nrrdCC_settle(unsigned int *map, unsigned int len) {
+  unsigned int i, j, count, max, *hit;
   
   max = 0;
   for (i=0; i<len; i++) {
     max = AIR_MAX(max, map[i]);
   }
-  hit = (int *)calloc(1+max, sizeof(int));
+  hit = (unsigned int *)calloc(1+max, sizeof(unsigned int));
   for (i=0; i<len; i++) {
     hit[map[i]] = 1;
   }
@@ -63,8 +63,8 @@ _nrrdCC_settle (int *map, int len) {
 /*
 ** _nrrdCC_eclass ()
 **
-** takes the equivalence pairs in eqvArr, and an array of ints map of 
-** length len, and puts in map[i] the integer that CC i's value should
+** takes the equivalence pairs in eqvArr, and an array of uints map of 
+** length len, and puts in map[i] the uint that CC i's value should
 ** be changed to.  
 ** 
 ** based on numerical recipes, C edition, pg. 346
@@ -74,12 +74,11 @@ _nrrdCC_settle (int *map, int len) {
 **
 ** returns the highest CC id in the mapping
 */
-int
-_nrrdCC_eclass (int *map, int len, airArray *eqvArr) {
-  int *eqv, j, k, t;
-  unsigned eqi;
+unsigned int
+_nrrdCC_eclass(unsigned int *map, unsigned int len, airArray *eqvArr) {
+  unsigned int *eqv, j, k, t, eqi;
 
-  eqv = (int*)(eqvArr->data);
+  eqv = (unsigned int*)(eqvArr->data);
   for (j=0; j<len; j++) {
     map[j] = j;
   }
@@ -133,10 +132,10 @@ nrrdCCValid(const Nrrd *nin) {
 ** - what else?
 */
 
-int
+unsigned int
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
   char me[]="nrrdCCSize", func[]="ccsize", err[BIFF_STRLEN];
-  int *out, maxid, (*lup)(const void *, size_t);
+  unsigned int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
   if (!( nout && nrrdCCValid(nin) )) {
@@ -144,17 +143,18 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc(nout, nrrdTypeInt, 1, maxid+1)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeInt, 1,
+                        AIR_CAST(size_t, maxid+1))) {
     sprintf(err, "%s: can't allocate output", me);
     biffAdd(NRRD, err); return 1;
   }
-  out = (int *)(nout->data);
-  lup = nrrdILookup[nin->type];
+  out = (unsigned int *)(nout->data);
+  lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   for (I=0; I<NN; I++) {
     out[lup(nin->data, I)] += 1;
   }
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -169,15 +169,15 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
 **
 ** does NOT use biff
 */
-int
+unsigned int
 nrrdCCMax(const Nrrd *nin) {
-  int (*lup)(const void *, size_t), id, max;
+  unsigned int (*lup)(const void *, size_t), id, max;
   size_t I, NN;
 
   if (!nrrdCCValid(nin)) {
     return -1;
   }
-  lup = nrrdILookup[nin->type];
+  lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = 0;
   for (I=0; I<NN; I++) {
@@ -187,16 +187,16 @@ nrrdCCMax(const Nrrd *nin) {
   return max;
 }
 
-int
+unsigned int
 nrrdCCNum(const Nrrd *nin) {
-  int (*lup)(const void *, size_t), num=-1;
+  unsigned int (*lup)(const void *, size_t), num;
   size_t I, max, NN;
   unsigned char *hist;
   
   if (!nrrdCCValid(nin)) {
     return -1;
   }
-  lup = nrrdILookup[nin->type];
+  lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = nrrdCCMax(nin);
   hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
