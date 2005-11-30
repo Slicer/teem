@@ -326,6 +326,10 @@ unsigned int
 airIndexClamp(double min, double val, double max, unsigned int N) {
   unsigned int idx;
 
+  /* NOTE: now that unsigned types are used more widely in Teem, the
+     clamping that used to happen after index generation now must
+     happen prior to index generation */
+  val = AIR_MAX(min, val);
   idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
   idx = AIR_MIN(idx, N-1);
   return idx;
@@ -352,9 +356,11 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   airLLong sidx;
+  val = AIR_MAX(min, val); /* see note in airIndexClamp */
   sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
+  val = AIR_MAX(min, val); /* see note in airIndexClamp */
   idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
 #endif
   idx = AIR_MIN(idx, N-1);
