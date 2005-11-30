@@ -276,7 +276,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     if (verb) {
       fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
     }
-    if (nrrdMaybeAlloc(nthresh[ni], nrrdTypeUChar, 3, sx, sy, sz)) {
+    if (nrrdMaybeAlloc_va(nthresh[ni], nrrdTypeUChar, 3,
+                          sx, sy, sz)) {
       sprintf(err, "%s: trouble allocating threshold %u", me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -415,11 +416,12 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
     if (verb) {
       fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
     }
-    if (nrrdMaybeAlloc(nmom[ni], nrrdTypeDouble, 2, 5, sz)) {
+    if (nrrdMaybeAlloc_va(nmom[ni], nrrdTypeDouble, 2,
+                          AIR_CAST(size_t, 5), sz)) {
       sprintf(err, "%s: couldn't allocate nmom[%u]", me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); return 1;
     }
-    nrrdAxisInfoSet(nmom[ni], nrrdAxisInfoLabel, "mx,my,h,s,t", "z");
+    nrrdAxisInfoSet_va(nmom[ni], nrrdAxisInfoLabel, "mx,my,h,s,t", "z");
     thr = (unsigned char *)(nthresh[ni]->data);
     mom = (double *)(nmom[ni]->data);
     for (zi=0; zi<sz; zi++) {
@@ -502,13 +504,16 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
   int ai, bi, zi, sz;
   
   sz = nmom[0]->axis[1].size;
-  if (nrrdMaybeAlloc(npxfr, nrrdTypeDouble, 4,
-                     5, sz, ninLen, ninLen)) {
+  if (nrrdMaybeAlloc_va(npxfr, nrrdTypeDouble, 4,
+                        AIR_CAST(size_t, 5),
+                        AIR_CAST(size_t, sz),
+                        AIR_CAST(size_t, ninLen),
+                        AIR_CAST(size_t, ninLen))) {
     sprintf(err, "%s: couldn't allocate transform nrrd", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  nrrdAxisInfoSet(npxfr, nrrdAxisInfoLabel,
-                  "mx,my,h,s,t", "zi", "orig", "target");
+  nrrdAxisInfoSet_va(npxfr, nrrdAxisInfoLabel,
+                     "mx,my,h,s,t", "zi", "orig", "target");
   xfr = (double *)(npxfr->data);
   for (bi=0; bi<ninLen; bi++) {
     for (ai=0; ai<ninLen; ai++) {
@@ -552,8 +557,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   airMopAdd(mop, ninv, airFree, airMopAlways);
   for (z=0; z<sz; z++) {
     airMopAdd(mop, nmat[z]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdMaybeAlloc(nmat[z], nrrdTypeDouble, 2,
-                       (1 == order ? 3 : 9), npairs)) {
+    if (nrrdMaybeAlloc_va(nmat[z], nrrdTypeDouble, 2,
+                          AIR_CAST(size_t, (1 == order ? 3 : 9)),
+                          AIR_CAST(size_t, npairs))) {
       sprintf(err, "%s: couldn't allocate fitting matrices", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -561,16 +567,19 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   }
   airMopAdd(mop, nvec=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nans=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc(nhst, nrrdTypeDouble, 2,
-                     (1 == order ? 9 : 27), sz)
-      || nrrdMaybeAlloc(nvec, nrrdTypeDouble, 2, 1, npairs)) {
+  if (nrrdMaybeAlloc_va(nhst, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, (1 == order ? 9 : 27)),
+                        AIR_CAST(size_t, sz))
+      || nrrdMaybeAlloc_va(nvec, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 1),
+                           AIR_CAST(size_t, npairs))) {
     sprintf(err, "%s: couldn't allocate HST nrrd", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  nrrdAxisInfoSet(nhst, nrrdAxisInfoLabel,
-                  (1 == order 
-                   ? "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz"
-                   : "HST parms"), "z");
+  nrrdAxisInfoSet_va(nhst, nrrdAxisInfoLabel,
+                     (1 == order 
+                      ? "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz"
+                      : "HST parms"), "z");
 
   /* ------ per-slice: compute model fitting matrix and its pseudo-inverse */
   grad = (double *)(ngrad->data);
@@ -967,8 +976,12 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
   cx = sx/2.0;
   cy = sy/2.0;
   supp = (int)kern->support(kparm);
-  if (nrrdMaybeAlloc(nwght, nrrdTypeFloat, 2, 2*supp, sy)
-      || nrrdMaybeAlloc(nidx, nrrdTypeInt, 2, 2*supp, sy)) {
+  if (nrrdMaybeAlloc_va(nwght, nrrdTypeFloat, 2,
+                        AIR_CAST(size_t, 2*supp),
+                        AIR_CAST(size_t, sy))
+      || nrrdMaybeAlloc_va(nidx, nrrdTypeInt, 2,
+                           AIR_CAST(size_t, 2*supp),
+                           AIR_CAST(size_t, sy))) {
     sprintf(err, "%s: trouble allocating buffers", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }

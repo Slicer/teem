@@ -616,7 +616,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     }
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     /* HEY: need to create textual representation of resampling parameters */
-    if (nrrdContentSet(nout, func, nin, "")) {
+    if (nrrdContentSet_va(nout, func, nin, "")) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -865,7 +865,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     }
   }
   /* HEY: need to create textual representation of resampling parameters */
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

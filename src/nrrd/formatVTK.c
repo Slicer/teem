@@ -224,20 +224,31 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     nrrd->dim = 3;
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy, sz);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, xs, ys, zs);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, xm, ym, zm);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize,
+                       AIR_CAST(size_t, sx),
+                       AIR_CAST(size_t, sy),
+                       AIR_CAST(size_t, sz));
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSpacing, xs, ys, zs);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, xm, ym, zm);
   } else if (!strncmp("VECTORS", three[0], strlen("VECTORS"))) {
     nrrd->dim = 4;
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 3, sx, sy, sz);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize,
+                       AIR_CAST(size_t, 3),
+                       AIR_CAST(size_t, sx),
+                       AIR_CAST(size_t, sy),
+                       AIR_CAST(size_t, sz));
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
     nrrd->axis[0].kind = nrrdKind3Vector;
   } else if (!strncmp("TENSORS", three[0], strlen("TENSORS"))) {
     nrrd->dim = 4;
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 9, sx, sy, sz);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize,
+                       AIR_CAST(size_t, 9),
+                       AIR_CAST(size_t, sx),
+                       AIR_CAST(size_t, sy),
+                       AIR_CAST(size_t, sz));
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSpacing, AIR_NAN, xs, ys, zs);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
     nrrd->axis[0].kind = nrrdKind3DMatrix;
   } else {
     sprintf(err, "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "

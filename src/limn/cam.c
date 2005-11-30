@@ -237,19 +237,26 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   airMopAdd(mop, ndist = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nfova = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntime = nrrdNew(), (airMopper)nrrdNix, airMopAlways);
-  if (nrrdWrap(ntime, time, nrrdTypeDouble, 1, numKeys)) {
+  if (nrrdWrap_va(ntime, time, nrrdTypeDouble, 1,
+                  AIR_CAST(size_t, numKeys))) {
     sprintf(err, "%s: trouble wrapping time values", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
   airMopAdd(mop, nsample = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   timeType = limnSplineTypeSpecNew(limnSplineTypeTimeWarp);
   airMopAdd(mop, timeType, (airMopper)limnSplineTypeSpecNix, airMopAlways);
-  if (nrrdMaybeAlloc(nquat, nrrdTypeDouble, 2, 4, numKeys)
-      || nrrdMaybeAlloc(nfrom, nrrdTypeDouble, 2, 3, numKeys)
-      || nrrdMaybeAlloc(natpt, nrrdTypeDouble, 2, 3, numKeys)
-      || nrrdMaybeAlloc(nupvc, nrrdTypeDouble, 2, 3, numKeys)
-      || nrrdMaybeAlloc(ndist, nrrdTypeDouble, 2, 4, numKeys)
-      || nrrdMaybeAlloc(nfova, nrrdTypeDouble, 2, 2, numKeys)) {
+  if (nrrdMaybeAlloc_va(nquat, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, 4), AIR_CAST(size_t, numKeys))
+      || nrrdMaybeAlloc_va(nfrom, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 3), AIR_CAST(size_t, numKeys))
+      || nrrdMaybeAlloc_va(natpt, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 3), AIR_CAST(size_t, numKeys))
+      || nrrdMaybeAlloc_va(nupvc, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 3), AIR_CAST(size_t, numKeys))
+      || nrrdMaybeAlloc_va(ndist, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 4), AIR_CAST(size_t, numKeys))
+      || nrrdMaybeAlloc_va(nfova, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 2), AIR_CAST(size_t, numKeys))) {
     sprintf(err, "%s: couldn't allocate buffer nrrds", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }

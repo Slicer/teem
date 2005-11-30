@@ -223,7 +223,7 @@ _nrrdMeasureMode(void *ans, int ansType,
     memcpy(line, _line, len*nrrdTypeSize[lineType]);
 
     nline = nrrdNew();
-    if (nrrdWrap(nline, line, lineType, 1, len)) {
+    if (nrrdWrap_va(nline, line, lineType, 1, len)) {
       free(biffGetDone(NRRD));
       nrrdNix(nline);
       nrrdDStore[ansType](ans, AIR_NAN);
@@ -1067,8 +1067,8 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, func, nin,
-                     "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
+  if (nrrdContentSet_va(nout, func, nin,
+                        "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
     sprintf(err, "%s:", me); 
     biffAdd(NRRD, err); return 1;
   }

@@ -236,8 +236,8 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   }
 
   mapcnt = _nrrdContentGet(nmap);
-  if (nrrdContentSet(nout, multi ? mverbStr[kind] : verbStr[kind],
-                     nin, "%s", mapcnt)) {
+  if (nrrdContentSet_va(nout, multi ? mverbStr[kind] : verbStr[kind],
+                        nin, "%s", mapcnt)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(mapcnt); return 1;
   }
@@ -814,7 +814,8 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
             ") is too small", me, aclLen);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdMaybeAlloc(nacl, nrrdTypeUShort, 2, 2, aclLen)) {
+  if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2, 
+                        AIR_CAST(size_t, 2), AIR_CAST(size_t, aclLen))) {
     sprintf(err, "%s: ", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1050,7 +1051,7 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
             me, _nsubst->dim);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdAxisInfoGet(_nsubst, nrrdAxisInfoSize, &asize0, &asize1);
+  nrrdAxisInfoGet_va(_nsubst, nrrdAxisInfoSize, &asize0, &asize1);
   if (2 != asize0) {
     sprintf(err, "%s: substitution table has to be 2xN, not %dxN",
             me, asize0);

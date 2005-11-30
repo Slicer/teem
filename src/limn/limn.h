@@ -698,7 +698,7 @@ LIMN_EXPORT void limnSplineEvaluate(double *out,
 LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
                                        limnSpline *spline, Nrrd *nin);
 LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
-                                 double minT, int M, double maxT);
+                                 double minT, size_t M, double maxT);
 
 /* contour.c */
 LIMN_EXPORT limnContour3DContext *limnContour3DContextNew(void);

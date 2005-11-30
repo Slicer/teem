@@ -173,7 +173,11 @@ main(int argc, char *argv[]) {
     sx = 2*samp-1;
     sy = samp;
   }
-  if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4, 7, sx, sy, 3)) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, sx),
+                        AIR_CAST(size_t, sy),
+                        AIR_CAST(size_t, 3))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 

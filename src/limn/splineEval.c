@@ -351,11 +351,11 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
     biffAdd(LIMN, err); return 1;
   }
   if (limnSplineInfoScalar == spline->info) {
-    nrrdAxisInfoGet(nin, nrrdAxisInfoSize, size);
+    nrrdAxisInfoGet_va(nin, nrrdAxisInfoSize, size);
     infoSize = 1;
     odim = nin->dim;
   } else {
-    nrrdAxisInfoGet(nin, nrrdAxisInfoSize, size+1);
+    nrrdAxisInfoGet_va(nin, nrrdAxisInfoSize, size+1);
     infoSize = size[0] = limnSplineInfoSize[spline->info];
     odim = 1 + nin->dim;
   }
@@ -379,12 +379,12 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
 
 int
 limnSplineSample(Nrrd *nout, limnSpline *spline,
-                 double minT, int M, double maxT) {
+                 double minT, size_t M, double maxT) {
   char me[]="limnSplineSample", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ntt;
   double *tt;
-  int I;
+  size_t I;
 
   if (!(nout && spline)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -392,7 +392,8 @@ limnSplineSample(Nrrd *nout, limnSpline *spline,
   }
   mop = airMopNew();
   airMopAdd(mop, ntt=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc(ntt, nrrdTypeDouble, 1, M)) {
+  if (nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 1,
+                        M)) {
     sprintf(err, "%s: trouble allocating tmp nrrd", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }

@@ -72,7 +72,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
             me, pos, nin->axis[saxi].size-1);
     biffAdd(NRRD, err); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -117,7 +117,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, func, nin, "%d,%d", saxi, pos)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d", saxi, pos)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -194,7 +194,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -302,7 +302,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
             (ai ? "x" : ""), min[ai], max[ai]);
     strcat(buff1, buff2);
   }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -352,7 +352,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nrrd)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -376,13 +376,13 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 }
 
 /*
-******** nrrdSample()
+******** nrrdSample_va()
 **
 ** var-args version of nrrdSample_nva()
 */
 int
-nrrdSample(void *val, const Nrrd *nrrd, ...) {
-  char me[]="nrrdSample", err[BIFF_STRLEN];
+nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
+  char me[]="nrrdSample_va", err[BIFF_STRLEN];
   unsigned int ai;
   size_t coord[NRRD_DIM_MAX];
   va_list ap;

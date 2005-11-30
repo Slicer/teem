@@ -169,7 +169,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
   }
 
   mapcnt = _nrrdContentGet(nmap);
-  if (nrrdContentSet(nout, verbStr[kind], nin, "%s", mapcnt)) {
+  if (nrrdContentSet_va(nout, verbStr[kind], nin, "%s", mapcnt)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(mapcnt); return 1;
   }

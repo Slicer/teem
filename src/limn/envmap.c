@@ -78,7 +78,10 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
     sprintf(err, "%s: sorry, QN method %d not implemented", me, qnMethod);
     biffAdd(LIMN, err); return 1;
   }
-  if (nrrdMaybeAlloc(map, nrrdTypeFloat, 3, 3, sx, sy)) {
+  if (nrrdMaybeAlloc_va(map, nrrdTypeFloat, 3,
+                        AIR_CAST(size_t, 3),
+                        AIR_CAST(size_t, sx),
+                        AIR_CAST(size_t, sy))) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(LIMN, err, NRRD); return 1;
   }

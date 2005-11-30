@@ -37,21 +37,24 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   /* this will probably be over-written */
   tstate->verbose = gstate->verbose;
   tstate->threadIdx = threadIdx;
-  if (nrrdMaybeAlloc(tstate->nperm, nrrdTypeInt, 2,
-                     ECHO_JITTABLE_NUM, parm->numSamples)) {
+  if (nrrdMaybeAlloc_va(tstate->nperm, nrrdTypeInt, 2,
+                        AIR_CAST(size_t, ECHO_JITTABLE_NUM),
+                        AIR_CAST(size_t, parm->numSamples))) {
     sprintf(err, "%s: couldn't allocate jitter permutation array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxisInfoSet(tstate->nperm, nrrdAxisInfoLabel,
-                  "jittable", "sample");
+  nrrdAxisInfoSet_va(tstate->nperm, nrrdAxisInfoLabel,
+                     "jittable", "sample");
 
-  if (nrrdMaybeAlloc(tstate->njitt, echoPos_nt, 3,
-                     2, ECHO_JITTABLE_NUM, parm->numSamples)) {
+  if (nrrdMaybeAlloc_va(tstate->njitt, echoPos_nt, 3,
+                        AIR_CAST(size_t, 2),
+                        AIR_CAST(size_t, ECHO_JITTABLE_NUM),
+                        AIR_CAST(size_t, parm->numSamples))) {
     sprintf(err, "%s: couldn't allocate jitter array", me);
     biffMove(ECHO, err, NRRD); return 1;
   }
-  nrrdAxisInfoSet(tstate->njitt, nrrdAxisInfoLabel,
-                  "x,y", "jittable", "sample");
+  nrrdAxisInfoSet_va(tstate->njitt, nrrdAxisInfoLabel,
+                     "x,y", "jittable", "sample");
 
   tstate->permBuff = AIR_CAST(unsigned int *, airFree(tstate->permBuff));
   if (!(tstate->permBuff = AIR_CAST(unsigned int *,
@@ -430,18 +433,20 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   gstate->scene = scene;
   gstate->parm = parm;
   mop = airMopNew();
-  if (nrrdMaybeAlloc(nraw, echoCol_nt, 3,
-                     ECHO_IMG_CHANNELS, parm->imgResU, parm->imgResV)) {
+  if (nrrdMaybeAlloc_va(nraw, echoCol_nt, 3,
+                        AIR_CAST(size_t, ECHO_IMG_CHANNELS),
+                        AIR_CAST(size_t, parm->imgResU),
+                        AIR_CAST(size_t, parm->imgResV))) {
     sprintf(err, "%s: couldn't allocate output image", me);
     biffMove(ECHO, err, NRRD); airMopError(mop); return 1;
   }
   airMopAdd(mop, nraw, (airMopper)nrrdNix, airMopOnError);
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoLabel,
-                  "r,g,b,a,t", "x", "y");
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoMin,
-                  AIR_NAN, cam->uRange[0], cam->vRange[0]);
-  nrrdAxisInfoSet(nraw, nrrdAxisInfoMax,
-                  AIR_NAN, cam->uRange[1], cam->vRange[1]);
+  nrrdAxisInfoSet_va(nraw, nrrdAxisInfoLabel,
+                     "r,g,b,a,t", "x", "y");
+  nrrdAxisInfoSet_va(nraw, nrrdAxisInfoMin,
+                     AIR_NAN, cam->uRange[0], cam->vRange[0]);
+  nrrdAxisInfoSet_va(nraw, nrrdAxisInfoMax,
+                     AIR_NAN, cam->uRange[1], cam->vRange[1]);
   gstate->time = airTime();
 
   if (parm->numThreads > 1) {

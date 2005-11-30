@@ -359,7 +359,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   airMopAdd(mop, nin=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (pad) {
     airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdSimplePad(nin, _nin, radius, nrrdBoundaryBleed)) {
+    if (nrrdSimplePad_va(nin, _nin, radius, nrrdBoundaryBleed)) {
       sprintf(err, "%s: trouble padding input", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -401,8 +401,8 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   }
 
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
-  if (nrrdContentSet(nout, func, nin, "%d,%d,%g,%d",
-                     mode, radius, wght, bins)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d,%g,%d",
+                        mode, radius, wght, bins)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

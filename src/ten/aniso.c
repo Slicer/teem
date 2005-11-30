@@ -471,7 +471,8 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
     sprintf(err, "%s: resolution (%d) invalid", me, res);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 2, res, res)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
+                        AIR_CAST(size_t, res), AIR_CAST(size_t, res))) {
     sprintf(err, "%s: ", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -530,7 +531,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   size[1] = sy = nin->axis[2].size;
   size[2] = sz = nin->axis[3].size;
   N = sx*sy*sz;
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -616,7 +617,8 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
   } else {
     wlup = NULL;
   }
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 2, res, yres)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
+                        AIR_CAST(size_t, res), AIR_CAST(size_t, yres))) {
     sprintf(err, "%s: ", me);
     biffMove(TEN, err, NRRD); return 1;
   }

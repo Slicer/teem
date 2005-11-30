@@ -35,11 +35,11 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int ret, *comp, compLen, cc, sx, sy, sz;
+  int ret, *comp, compLen, cc;
   Nrrd *nin, *nout;
   char *outS;
   float thresh, *edata, *tdata, eval[3], evec[9], scl;
-  size_t N, I;
+  size_t N, I, sx, sy, sz;
 
   hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
              "which eigenvalues should be saved out. \"0\" for the "
@@ -78,7 +78,8 @@ tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  ret = nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 3*compLen, sx, sy, sz);
+  ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
+                          AIR_CAST(size_t, 3*compLen), sx, sy, sz);
   if (ret) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);

@@ -179,7 +179,8 @@ tenEvqVolume(Nrrd *nout,
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  if (nrrdMaybeAlloc(nout, nrrdTypeShort, 3, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeShort, 3,
+                        sx, sy, sz)) {
     sprintf(err, "%s: can't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }

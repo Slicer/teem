@@ -408,8 +408,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   }
 
   if (nfiber) {
-    if (nrrdMaybeAlloc(nfiber, nrrdTypeDouble, 2,
-                       3, fptsArr[0]->len + fptsArr[1]->len - 1)) {
+    if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2,
+                          AIR_CAST(size_t, 3),
+                          AIR_CAST(size_t, (fptsArr[0]->len 
+                                            + fptsArr[1]->len - 1)))) {
       sprintf(err, "%s: couldn't allocate fiber nrrd", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }

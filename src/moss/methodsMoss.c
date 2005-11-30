@@ -128,9 +128,14 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
     biffAdd(MOSS, err); return 1;
   }
   if (1 == ncol) {
-    ret = nrrdMaybeAlloc(image, type, 2, sx, sy);
+    ret = nrrdMaybeAlloc_va(image, type, 2,
+                            AIR_CAST(size_t, sx),
+                            AIR_CAST(size_t, sy));
   } else {
-    ret = nrrdMaybeAlloc(image, type, 3, ncol, sx, sy);
+    ret = nrrdMaybeAlloc_va(image, type, 3,
+                            AIR_CAST(size_t, ncol),
+                            AIR_CAST(size_t, sx),
+                            AIR_CAST(size_t, sy));
   }
   if (ret) {
     sprintf(err, "%s: couldn't allocate image", me);

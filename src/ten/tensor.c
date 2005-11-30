@@ -159,7 +159,8 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
   N = sx*sy*sz;
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 9, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, 
+                        AIR_CAST(size_t, 9), sx, sy, sz)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -229,7 +230,8 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
       biffAdd(TEN, err); return 1;
     }
   }
-  if (nrrdMaybeAlloc(tseven, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7), sx, sy, sz)) {
     sprintf(err, "%s: trouble allocating output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -485,7 +487,8 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   }
 
   /* finally */
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7), sx, sy, sz)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }

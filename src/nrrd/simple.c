@@ -395,8 +395,8 @@ _nrrdContentGet(const Nrrd *nin) {
 }
 
 int
-_nrrdContentSet_nva (Nrrd *nout, const char *func,
-                     char *content, const char *format, va_list arg) {
+_nrrdContentSet_nva(Nrrd *nout, const char *func,
+                    char *content, const char *format, va_list arg) {
   char me[]="_nrrdContentSet_nva", err[BIFF_STRLEN], *buff;
 
   buff = (char *)malloc(128*AIR_STRLEN_HUGE);
@@ -429,9 +429,9 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
 }
 
 int
-_nrrdContentSet (Nrrd *nout, const char *func,
-                 char *content, const char *format, ...) {
-  char me[]="_nrrdContentSet", err[BIFF_STRLEN];
+_nrrdContentSet_va(Nrrd *nout, const char *func,
+                   char *content, const char *format, ...) {
+  char me[]="_nrrdContentSet_va", err[BIFF_STRLEN];
   va_list ap;
   
   va_start(ap, format);
@@ -458,9 +458,9 @@ _nrrdContentSet (Nrrd *nout, const char *func,
 ** Does allow nout==nin, which requires some care.
 */
 int
-nrrdContentSet(Nrrd *nout, const char *func,
-               const Nrrd *nin, const char *format, ...) {
-  char me[]="nrrdContentSet", err[BIFF_STRLEN];
+nrrdContentSet_va(Nrrd *nout, const char *func,
+                  const Nrrd *nin, const char *format, ...) {
+  char me[]="nrrdContentSet_va", err[BIFF_STRLEN];
   va_list ap;
   char *content;
   
@@ -1234,7 +1234,7 @@ _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
 */
 /*
 int
-nrrdHasNonExistSet (Nrrd *nrrd) {
+nrrdHasNonExistSet(Nrrd *nrrd) {
   size_t I, N;
   float val;
 
@@ -1259,7 +1259,7 @@ nrrdHasNonExistSet (Nrrd *nrrd) {
 */
 
 int
-_nrrdCheckEnums (void) {
+_nrrdCheckEnums(void) {
   char me[]="_nrrdCheckEnums", err[BIFF_STRLEN],
     which[AIR_STRLEN_SMALL];
 

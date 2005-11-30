@@ -99,7 +99,8 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
   double *grad, len;
   unsigned int gi;
   
-  if (nrrdMaybeAlloc(ngrad, nrrdTypeDouble, 2, 3, num)) {
+  if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, 3), AIR_CAST(size_t, num))) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }

@@ -1033,7 +1033,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
             sizeX, sizeY, sizeZ);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdMaybeAlloc(ndwi, outType, 4,
+  if (nrrdMaybeAlloc_va(ndwi, outType, 4,
                      AIR_CAST(size_t, tec->allNum), sizeX, sizeY, sizeZ)) {
     sprintf(err, "%s: couldn't allocate DWI output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
@@ -1805,13 +1805,15 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   }
   airMopAdd(mop, all, airFree, airMopAlways);
 
-  if (nrrdMaybeAlloc(nten, outType, 4, sizeTen, sizeX, sizeY, sizeZ)) {
+  if (nrrdMaybeAlloc_va(nten, outType, 4,
+                        sizeTen, sizeX, sizeY, sizeZ)) {
     sprintf(err, "%s: couldn't allocate tensor output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   if (nB0P) {
     *nB0P = nrrdNew();
-    if (nrrdMaybeAlloc(*nB0P, outType, 3, sizeX, sizeY, sizeZ)) {
+    if (nrrdMaybeAlloc_va(*nB0P, outType, 3,
+                          sizeX, sizeY, sizeZ)) {
       sprintf(err, "%s: couldn't allocate B0 output", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
@@ -1820,7 +1822,8 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   }
   if (nterrP) {
     *nterrP = nrrdNew();
-    if (nrrdMaybeAlloc(*nterrP, outType, 3, sizeX, sizeY, sizeZ)) {
+    if (nrrdMaybeAlloc_va(*nterrP, outType, 3,
+                          sizeX, sizeY, sizeZ)) {
       sprintf(err, "%s: couldn't allocate fitting error output", me);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }

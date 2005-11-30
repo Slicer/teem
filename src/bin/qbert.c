@@ -100,7 +100,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     }
     if (anyneed) {
       fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
-      if (nrrdPad(nout, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
+      if (nrrdPad_va(nout, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
         sprintf(err, "%s: trouble padding", me);
         biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
       }
@@ -240,7 +240,11 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   scnd = gageAnswerPointer(ctx, pvl, gageScl2ndDD);
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 2+doH, sz[0], sz[1], sz[2])) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 2+doH),
+                        AIR_CAST(size_t, sz[0]),
+                        AIR_CAST(size_t, sz[1]),
+                        AIR_CAST(size_t, sz[2]))) {
     sprintf(err, "%s: couldn't allocate floating point VG%s volume",
             me, doH ? "H" : "");
     biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
@@ -329,10 +333,13 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   }
   fprintf(stderr, "%s: using %d-bin histograms\n", me, bins);
   E = 0;
-  if (!E) E |= nrrdMaybeAlloc(nvhist, nrrdTypeInt, 1, bins);
-  if (!E) E |= nrrdMaybeAlloc(nghist, nrrdTypeInt, 1, bins);
+  if (!E) E |= nrrdMaybeAlloc_va(nvhist, nrrdTypeInt, 1,
+                                 AIR_CAST(size_t, bins));
+  if (!E) E |= nrrdMaybeAlloc_va(nghist, nrrdTypeInt, 1,
+                                 AIR_CAST(size_t, bins));
   if (doH) {
-    if (!E) E |= nrrdMaybeAlloc(nhhist, nrrdTypeInt, 1, bins);
+    if (!E) E |= nrrdMaybeAlloc_va(nhhist, nrrdTypeInt, 1,
+                                   AIR_CAST(size_t, bins));
   }
   if (E) {
     sprintf(err, "%s: couldn't allocate %d %d-bin histograms",
@@ -442,7 +449,11 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
     fprintf(stderr, "%s: putting 2ndDD in range 1 to 169 (0.0 -> 85)\n", me);
   }
   
-  if (nrrdMaybeAlloc(nvgh, nrrdTypeUChar, 4, nval, sz[0], sz[1], sz[2])) {
+  if (nrrdMaybeAlloc_va(nvgh, nrrdTypeUChar, 4,
+                        AIR_CAST(size_t, nval),
+                        AIR_CAST(size_t, sz[0]),
+                        AIR_CAST(size_t, sz[1]),
+                        AIR_CAST(size_t, sz[2]))) {
     sprintf(err, "%s: couldn't allocate 8-bit VG%s volume",
             me, doH ? "H" : "");
     biffMove(QBERT, err, NRRD); return 1;
@@ -475,8 +486,8 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
     sprintf(cmt, "minh: %g", minh);  nrrdCommentAdd(nvgh, cmt);
     sprintf(cmt, "maxh: %g", maxh);  nrrdCommentAdd(nvgh, cmt);
   }
-  nrrdAxisInfoSet(nvgh, nrrdAxisInfoCenter, nrrdCenterUnknown,
-                  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+  nrrdAxisInfoSet_va(nvgh, nrrdAxisInfoCenter, nrrdCenterUnknown,
+                     nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
 
   return 0;
 }
@@ -717,13 +728,13 @@ main(int argc, char *argv[]) {
     }
 
     /* do final decoration of axes */
-    nrrdAxisInfoSet(nvgh, nrrdAxisInfoLabel,
-                    !notdoH ? "vgh" : "vg",
-                    "x", "y", "z");
+    nrrdAxisInfoSet_va(nvgh, nrrdAxisInfoLabel,
+                       !notdoH ? "vgh" : "vg",
+                       "x", "y", "z");
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMin, amin);
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoMax, amax);
     nrrdAxisInfoSet_nva(nvgh, nrrdAxisInfoSpacing, spacing);
-    nrrdContentSet(nvgh, "qbert", nin, "");
+    nrrdContentSet_va(nvgh, "qbert", nin, "");
     
     E = nrrdSave(outS, nvgh, NULL);
   }

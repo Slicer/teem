@@ -131,8 +131,8 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   }
   
   sliceCont = _nrrdContentGet(nslice);
-  if (nrrdContentSet(nout, func, nin, "%s,%d," _AIR_SIZE_T_CNV, 
-                     sliceCont, axis, pos)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s,%d," _AIR_SIZE_T_CNV, 
+                        sliceCont, axis, pos)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(sliceCont); return 1;
   }
@@ -259,7 +259,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   }
   strcat(buff1, "]");
   subCont = _nrrdContentGet(nsub);
-  if (nrrdContentSet(nout, func, nin, "%s,%s", subCont, buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s,%s", subCont, buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(subCont); return 1;
   }
@@ -270,14 +270,14 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
 }
 
 /*
-******** nrrdPad()
+******** nrrdPad_va()
 **
 ** strictly for padding
 */
 int
-nrrdPad(Nrrd *nout, const Nrrd *nin,
-        const ptrdiff_t *min, const ptrdiff_t *max, int boundary, ...) {
-  char me[]="nrrdPad", func[]="pad", err[BIFF_STRLEN],
+nrrdPad_va(Nrrd *nout, const Nrrd *nin,
+           const ptrdiff_t *min, const ptrdiff_t *max, int boundary, ...) {
+  char me[]="nrrdPad_va", func[]="pad", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
   int outside;
@@ -349,7 +349,7 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
       biffAdd(NRRD, err); return 1;
     }
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -435,7 +435,7 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
   } else {
     strcpy(buff2, airEnumStr(nrrdBoundary, boundary));
   }
-  if (nrrdContentSet(nout, func, nin, "%s,%s", buff1, buff2)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s,%s", buff1, buff2)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -468,11 +468,12 @@ nrrdPad(Nrrd *nout, const Nrrd *nin,
 /*
 ******** nrrdPad_nva()
 **
-** unlike other {X,X_nva} pairs, nrrdPad_nva() is a wrapper around
-** nrrdPad() instead of the other way around.
+** unlike other {X_va,X_nva} pairs, nrrdPad_nva() is a wrapper around
+** nrrdPad_va() instead of the other way around.
 */
 int
-nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
+nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
+            const ptrdiff_t *min, const ptrdiff_t *max,
             int boundary, double padValue) {
   char me[]="nrrdPad_nva", err[BIFF_STRLEN];
   int E;
@@ -482,9 +483,9 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdBoundaryPad == boundary) {
-    E = nrrdPad(nout, nin, min, max, boundary, padValue);
+    E = nrrdPad_va(nout, nin, min, max, boundary, padValue);
   } else {
-    E = nrrdPad(nout, nin, min, max, boundary);
+    E = nrrdPad_va(nout, nin, min, max, boundary);
   }
   if (E) {
     sprintf(err, "%s:", me);
@@ -495,14 +496,14 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *
 }
 
 /*
-******** nrrdSimplePad()
+******** nrrdSimplePad_va()
 **
 ** pads by a given amount on top and bottom of EVERY axis
 */
 int
-nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
-              int boundary, ...) {
-  char me[]="nrrdSimplePad", err[BIFF_STRLEN];
+nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
+                 int boundary, ...) {
+  char me[]="nrrdSimplePad_va", err[BIFF_STRLEN];
   unsigned ai;
   int ret;
   ptrdiff_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
@@ -520,9 +521,9 @@ nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
   va_start(ap, boundary);
   if (nrrdBoundaryPad == boundary) {
     padValue = va_arg(ap, double);
-    ret = nrrdPad(nout, nin, min, max, boundary, padValue);
+    ret = nrrdPad_va(nout, nin, min, max, boundary, padValue);
   } else {
-    ret = nrrdPad(nout, nin, min, max, boundary);
+    ret = nrrdPad_va(nout, nin, min, max, boundary);
   }
   va_end(ap);
   if (ret) {
@@ -535,8 +536,8 @@ nrrdSimplePad(Nrrd *nout, const Nrrd *nin, unsigned int pad,
 /*
 ******** nrrdSimplePad_nva()
 **
-** unlike other {X,X_nva} pairs, nrrdSimplePad_nva() is a wrapper
-** around nrrdSimplePad() instead of the other way around.
+** unlike other {X_va,X_nva} pairs, nrrdSimplePad_nva() is a wrapper
+** around nrrdSimplePad_va() instead of the other way around.
 */
 int
 nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
@@ -549,9 +550,9 @@ nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
     biffAdd(NRRD, err); return 1;
   }
   if (nrrdBoundaryPad == boundary) {
-    E = nrrdSimplePad(nout, nin, pad, boundary, padValue);
+    E = nrrdSimplePad_va(nout, nin, pad, boundary, padValue);
   } else {
-    E = nrrdSimplePad(nout, nin, pad, boundary);
+    E = nrrdSimplePad_va(nout, nin, pad, boundary);
   }
   if (E) {
     sprintf(err, "%s:", me);

@@ -94,7 +94,10 @@ main(int argc, char *argv[]) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdAlloc(nout, nrrdTypeFloat, 3, size[0], size[1], size[2])) {
+  if (nrrdAlloc_va(nout, nrrdTypeFloat, 3,
+                   AIR_CAST(size_t, size[0]),
+                   AIR_CAST(size_t, size[1]),
+                   AIR_CAST(size_t, size[2]))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem allocating volume:\n%s\n", me, err);
     airMopError(mop); return 1;
@@ -113,10 +116,10 @@ main(int argc, char *argv[]) {
     }
   }
 
-  nrrdAxisInfoSet(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
-  nrrdAxisInfoSet(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
-  nrrdAxisInfoSet(nout, nrrdAxisInfoCenter, 
-                  nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter, 
+                     nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
   nrrdAxisInfoSpacingSet(nout, 0);
   nrrdAxisInfoSpacingSet(nout, 1);
   nrrdAxisInfoSpacingSet(nout, 2);

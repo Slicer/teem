@@ -387,7 +387,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     if (!(*nvalP)) {
       *nvalP = nrrdNew();
     }
-    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, maxid+1)) {
+    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1,
+                          AIR_CAST(size_t, maxid+1))) {
       sprintf(err, "%s: couldn't allocate output value list", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -420,8 +421,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     sprintf(err, "%s: trouble converting to final output", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  if (nrrdContentSet(nout, func, nin, "%s,%d",
-                     airEnumStr(nrrdType, type), conny)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s,%d",
+                        airEnumStr(nrrdType, type), conny)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -571,7 +572,9 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
     biffAdd(NRRD, err); return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc(nout, nrrdTypeUChar, 2, maxid+1, maxid+1)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 2,
+                        AIR_CAST(size_t, maxid+1),
+                        AIR_CAST(size_t, maxid+1))) {
     sprintf(err, "%s: trouble allocating output", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -599,7 +602,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
      return the sorts of values that we expect */
   nout->axis[0].min = nout->axis[1].min = -0.5;
   nout->axis[0].max = nout->axis[1].max = maxid + 0.5;
-  if (nrrdContentSet(nout, func, nin, "%d", conny)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", conny)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -763,12 +766,12 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   valcnt = ((_nval && _nval->content) 
             ? _nval->content 
             : nrrdStateUnknownContent);
-  if ( (valDir && nrrdContentSet(nout, func, nin, "%c(%s),%d,%d,%d",
-                                  (valDir > 0 ? '+' : '-'), valcnt,
-                                  maxSize, maxNeighbor, conny))
+  if ( (valDir && nrrdContentSet_va(nout, func, nin, "%c(%s),%d,%d,%d",
+                                    (valDir > 0 ? '+' : '-'), valcnt,
+                                    maxSize, maxNeighbor, conny))
        ||
-       (!valDir && nrrdContentSet(nout, func, nin, ".,%d,%d,%d",
-                                 maxSize, maxNeighbor, conny)) ) {
+       (!valDir && nrrdContentSet_va(nout, func, nin, ".,%d,%d,%d",
+                                     maxSize, maxNeighbor, conny)) ) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -852,7 +855,8 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     if (!(*nvalP)) {
       *nvalP = nrrdNew();
     }
-    if (nrrdMaybeAlloc(*nvalP, nin->type, 1, numid)) {
+    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1,
+                          AIR_CAST(size_t, numid))) {
       sprintf(err, "%s: couldn't allocate output value list", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -875,7 +879,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
 
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

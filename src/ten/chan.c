@@ -131,7 +131,9 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     *ngradP = NULL;
     ninfo = *nbmatP = nrrdNew();
   }
-  if (nrrdAlloc(ninfo, nrrdTypeDouble, 2, valNum, dwiNum)) {
+  if (nrrdAlloc_va(ninfo, nrrdTypeDouble, 2,
+                   AIR_CAST(size_t, valNum),
+                   AIR_CAST(size_t, dwiNum))) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -249,7 +251,8 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   mop = airMopNew();
   airMopAdd(mop, ngrad=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
-      || nrrdMaybeAlloc(nbmat, nrrdTypeDouble, 2, 6, ngrad->axis[1].size)) {
+      || nrrdMaybeAlloc_va(nbmat, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 6), ngrad->axis[1].size)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
@@ -606,7 +609,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     }
     fprintf(stderr, "%s: using %g for DW confidence threshold\n", me, thresh);
   }
-  if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7), sx, sy, sz)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
@@ -614,7 +618,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (!(*nterrP)) {
       *nterrP = nrrdNew();
     }
-    if (nrrdMaybeAlloc(*nterrP, nrrdTypeFloat, 3, sx, sy, sz)) {
+    if (nrrdMaybeAlloc_va(*nterrP, nrrdTypeFloat, 3,
+                          sx, sy, sz)) {
       sprintf(err, "%s: couldn't allocate error output", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -628,7 +633,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (!(*nB0P)) {
       *nB0P = nrrdNew();
     }
-    if (nrrdMaybeAlloc(*nB0P, nrrdTypeFloat, 3, sx, sy, sz)) {
+    if (nrrdMaybeAlloc_va(*nB0P, nrrdTypeFloat, 3,
+                          sx, sy, sz)) {
       sprintf(err, "%s: couldn't allocate error output", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -787,7 +793,8 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
             nten->axis[2].size, nten->axis[3].size);
     biffAdd(TEN, err); return 1;
   }
-  if (nrrdMaybeAlloc(ndwi, nrrdTypeFloat, 4, DD, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(ndwi, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, DD), sx, sy, sz)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -936,7 +943,8 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  if (nrrdMaybeAlloc(nout, nrrdTypeFloat, 4, 7, sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7), sx, sy, sz)) {
     sprintf(err, "%s: couldn't alloc output", me);
     biffMove(TEN, err, NRRD); return 1;
   }

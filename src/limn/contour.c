@@ -364,8 +364,9 @@ limnContour3DContextNew(void) {
     lctx->reverse = AIR_FALSE;
     lctx->spanSize = 300;
     lctx->nspanHist = nrrdNew();
-    nrrdMaybeAlloc(lctx->nspanHist, nrrdTypeInt, 2, 
-                   lctx->spanSize, lctx->spanSize);
+    nrrdMaybeAlloc_va(lctx->nspanHist, nrrdTypeInt, 2, 
+                      AIR_CAST(size_t, lctx->spanSize), 
+                      AIR_CAST(size_t, lctx->spanSize));
     lctx->range = nrrdRangeNew(AIR_NAN, AIR_NAN);
     lctx->sx = 0;
     lctx->sy = 0;

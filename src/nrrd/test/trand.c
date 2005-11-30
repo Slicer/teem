@@ -33,7 +33,8 @@ main(int argc, char **argv) {
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
-  nrrdAlloc(nval=nrrdNew(), nrrdTypeDouble, 1, BINS*BINS);
+  nrrdAlloc_va(nval=nrrdNew(), nrrdTypeDouble, 1,
+               AIR_CAST(size_t, BINS*BINS));
   val = (double *)nval->data;
 
   airSrandMT((int)airTime());

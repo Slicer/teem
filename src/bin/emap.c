@@ -151,7 +151,10 @@ main(int argc, char *argv[]) {
   if (airStrlen(debugS)) {
     ELL_34M_EXTRACT(V2W, cam->V2W);
     ndebug = nrrdNew();
-    nrrdMaybeAlloc(ndebug, nrrdTypeFloat, 3, 3, 1024, 512);
+    nrrdMaybeAlloc_va(ndebug, nrrdTypeFloat, 3,
+                      AIR_CAST(size_t, 3),
+                      AIR_CAST(size_t, 1024),
+                      AIR_CAST(size_t, 512));
     airMopAdd(mop, ndebug, (airMopper)nrrdNuke, airMopAlways);
     debug = (float *)ndebug->data;
     for (vi=0; vi<=511; vi++) {

@@ -119,7 +119,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
     nout->axis[axis].kind = nrrdKindStub;
   }
   nout->axis[axis].size = 1;
-  if (nrrdContentSet(nout, func, nin, "%d", axis)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -181,7 +181,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     sprintf(err, "%s: couldn't compute axis permutation inverse", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -255,7 +255,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
       sprintf(buff2, "%s%d", (ai ? "," : ""), axes[ai]);
       strcat(buff1, buff2);
     }
-    if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+    if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -330,7 +330,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
       biffAdd(NRRD, err); return 1;
     }
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -393,7 +393,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
     strcat(buff1, buff2);
   }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -445,7 +445,7 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
   axmap[ax2] = ax1;
   axmap[ax1] = ax2;
   if (nrrdAxesPermute(nout, nin, axmap)
-      || nrrdContentSet(nout, func, nin, "%d,%d", ax1, ax2)) {
+      || nrrdContentSet_va(nout, func, nin, "%d,%d", ax1, ax2)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -487,7 +487,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   }
   /* nrrdBasicInfoCopy called by nrrdShuffle() */
   if (nrrdShuffle(nout, nin, axis, perm)
-      || nrrdContentSet(nout, func, nin, "%d", axis)) {
+      || nrrdContentSet_va(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -827,7 +827,8 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
   _nrrdAxisInfoInit(&(nout->axis[saxi+1]));
   nout->axis[saxi].size = sizeFast;
   nout->axis[saxi+1].size = sizeSlow;
-  if (nrrdContentSet(nout, func, nin, "%d,%d,%d", saxi, sizeFast, sizeSlow)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d,%d",
+                        saxi, sizeFast, sizeSlow)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -878,7 +879,7 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
     _nrrdAxisInfoCopy(&(nout->axis[ai]), &(nin->axis[ai+1]),
                       NRRD_AXIS_INFO_NONE);
   }
-  if (nrrdContentSet(nout, func, nin, "%d", daxi)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", daxi)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -930,7 +931,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   /* the ONLY thing we can say about the new axis is its size */
   _nrrdAxisInfoInit(&(nout->axis[maxi]));
   nout->axis[maxi].size = sizeFast*sizeSlow;
-  if (nrrdContentSet(nout, func, nin, "%d", maxi)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", maxi)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -998,7 +999,7 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
   }
   /* basic info copied by _nrrdCopy, but probably more than we 
      want- perhaps space dimension and origin should be nixed? */
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1006,13 +1007,13 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
 }
 
 /*
-******** nrrdReshape()
+******** nrrdReshape_va()
 **
 ** var-args version of nrrdReshape_nva()
 */
 int
-nrrdReshape(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
-  char me[]="nrrdReshape", err[BIFF_STRLEN];
+nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
+  char me[]="nrrdReshape_va", err[BIFF_STRLEN];
   unsigned int ai;
   size_t size[NRRD_DIM_MAX];
   va_list ap;
@@ -1066,7 +1067,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
     sprintf(err, "%s: can't blockify 1-D nrrd", me);
     biffAdd(NRRD, err); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -1093,7 +1094,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1153,7 +1154,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
             airEnumStr(nrrdType, nrrdTypeBlock));
     biffAdd(NRRD, err); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!(nrrdElementSize(nin))) {
     sprintf(err, "%s: nin or nout reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -1181,7 +1182,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
     sprintf(err, "%s: failed to copy axes", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -1201,7 +1202,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   return 0;
 }
 
-/* for nrrdTile...
+/* for nrrdTile ..
 
 will require that # slices be <= number of images: won't crop for you,
 but will happy pad with black.  This will be handled in another

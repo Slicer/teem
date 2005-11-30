@@ -196,8 +196,10 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     /* now allocate the real control point information */
     spline->ncpt = nrrdNew();
     airMopAdd(mop, spline->ncpt, (airMopper)nrrdNuke, airMopOnError);
-    if (nrrdMaybeAlloc(spline->ncpt, nrrdTypeDouble, 3,
-                       1, 3, _ncpt->axis[0].size)) {
+    if (nrrdMaybeAlloc_va(spline->ncpt, nrrdTypeDouble, 3,
+                          AIR_CAST(size_t, 1),
+                          AIR_CAST(size_t, 3),
+                          _ncpt->axis[0].size)) {
       sprintf(err, "%s: trouble allocating real control points", me);
       biffMove(LIMN, err, NRRD); airMopError(mop); return NULL;
     }
@@ -297,7 +299,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_3V_SET(min, 0, -1, 0);
         ELL_3V_SET(max, wantSize-1, 1, N-1); 
         if (nrrdAxesInsert(ntmpA, nin, 1)
-            || nrrdPad(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
+            || nrrdPad_va(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
           sprintf(err, "%s: trouble with axinsert/pad", me);
           biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
         }
@@ -312,7 +314,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         }
         ELL_2V_SET(min, 0, -1);
         ELL_2V_SET(max, wantSize-1, N);
-        if (nrrdPad(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
+        if (nrrdPad_va(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpA, 1, 3, (N+2)/3)) {
           sprintf(err, "%s: trouble with pad/axsplit", me);
           biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
@@ -339,7 +341,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_3V_SET(max, 0, 1, N-1); 
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdAxesInsert(ntmpB, ntmpA, 0)
-            || nrrdPad(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
+            || nrrdPad_va(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
           sprintf(err, "%s: trouble with axinsert/axinsert/pad", me);
           biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
         }
@@ -355,7 +357,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_2V_SET(min, 0, -1);
         ELL_2V_SET(max, 0, N+1);
         if (nrrdAxesInsert(ntmpA, nin, 0)
-            || nrrdPad(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
+            || nrrdPad_va(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpB, 1, 3, (N+2)/3)) {
           sprintf(err, "%s: trouble with axinsert/pad/axsplit", me);
           biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
@@ -434,7 +436,8 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
 
   if (limnSplineTypeTimeWarp == spline->type) {
     ntmp = nrrdNew();
-    if (nrrdWrap(ntmp, spline->time, nrrdTypeDouble, 1, _ncpt->axis[0].size)
+    if (nrrdWrap_va(ntmp, spline->time, nrrdTypeDouble, 1,
+                    _ncpt->axis[0].size)
         || nrrdConvert(ntmp, _ncpt, nrrdTypeDouble)) {
       sprintf(err, "%s: trouble copying info", me);
       biffMove(LIMN, err, NRRD); nrrdNix(ntmp); return 1;

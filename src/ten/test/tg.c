@@ -96,8 +96,11 @@ main(int argc, char *argv[]) {
   _clp2xyz(xyz, clp);
   fprintf(stderr, "%s: want evals = %g %g %g\n", me, xyz[0], xyz[1], xyz[2]);
 
-  if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
-                     7, samp, samp, samp)) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, samp),
+                        AIR_CAST(size_t, samp),
+                        AIR_CAST(size_t, samp))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 

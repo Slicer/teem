@@ -73,7 +73,9 @@ main(int argc, char *argv[]) {
   hbins = bins[1];
   nhist = nrrdNew();
   airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc(nhist, nrrdTypeDouble, 2, rbins, hbins)) {
+  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, rbins),
+                        AIR_CAST(size_t, hbins))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate histogram:\n%s", me, err);
     airMopError(mop); return 1;

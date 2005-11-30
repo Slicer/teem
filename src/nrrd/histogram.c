@@ -82,7 +82,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     lup = NULL;
   }
 
-  if (nrrdMaybeAlloc(nout, type, 1, bins)) {
+  if (nrrdMaybeAlloc_va(nout, type, 1, bins)) {
     sprintf(err, "%s: failed to alloc histo array (len " _AIR_SIZE_T_CNV
             ")", me, bins);
     biffAdd(NRRD, err); return 1;
@@ -140,7 +140,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     }
   }
 
-  if (nrrdContentSet(nout, func, nin, "%d", bins)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", bins)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -266,7 +266,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   sprintf(cmt, "max hits: %g, in bin %d, around value %g\n",
           maxhits, maxhitidx, nrrdAxisInfoPos(nout, 0, maxhitidx));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  if (!E) E |= nrrdContentSet(nout, func, nin, "%d", sy);
+  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%d", sy);
   if (E) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -391,7 +391,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     NRRD_COORD_INCR(coordIn, szIn, nin->dim, 0);
   }
 
-  if (nrrdContentSet(nout, func, nin, "%d,%d", hax, bins)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d", hax, bins)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -568,7 +568,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     nrrdDInsert[nout->type](nout->data, Iout, count);
   }
 
-  /* HEY: switch to nrrdContentSet? */
+  /* HEY: switch to nrrdContentSet_va? */
   if (hadContent) {
     nout->content = (char *)calloc(strlen(func) + strlen("()")
                                    + numNin*strlen(",")

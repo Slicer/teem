@@ -99,13 +99,14 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
   float x, y, z, scale[3];
-  int what, a, idx, ansLen, E=0, xi, yi, zi, otype,
-    six, siy, siz, sox, soy, soz, iBaseDim, oBaseDim, renorm;
+  int what, E=0, otype, renorm;
+  unsigned int iBaseDim, oBaseDim;
   const gage_t *answer;
   const char *key=NULL;
   Nrrd *nin, *nout, *_nmat, *nmat;
   Nrrd *ngrad=NULL, *nbmat=NULL, *ntocrop=NULL, *ntmp=NULL;
-  size_t cropMin[2], cropMax[2];
+  size_t cropMin[2], cropMax[2], ai, ansLen,
+    idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
   double bval=0;
   gageContext *ctx;
   gagePerVolume *pvl;
@@ -245,9 +246,9 @@ main(int argc, char *argv[]) {
   spx = SPACING(nin->axis[0+iBaseDim].spacing);
   spy = SPACING(nin->axis[1+iBaseDim].spacing);
   spz = SPACING(nin->axis[2+iBaseDim].spacing);
-  sox = (int)(scale[0]*six);
-  soy = (int)(scale[1]*siy);
-  soz = (int)(scale[2]*siz);
+  sox = AIR_CAST(size_t, scale[0]*six);
+  soy = AIR_CAST(size_t, scale[1]*siy);
+  soz = AIR_CAST(size_t, scale[2]*siz);
   nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
   nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
   nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
@@ -286,16 +287,20 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
           2*ctx->radius);
   fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
-          (float)sox/six, (float)soy/siy, (float)soz/siz);
+          AIR_CAST(double, sox)/six,
+          AIR_CAST(double, soy)/siy,
+          AIR_CAST(double, soz)/siz);
   if (ansLen > 1) {
-    fprintf(stderr, "%s: creating %d x %d x %d x %d output\n", 
-           me, ansLen, sox, soy, soz);
-    if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 4,
-                                (size_t)ansLen, 
-				(size_t)sox, (size_t)soy, (size_t)soz);
+    fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
+            " x " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV " output\n", 
+            me, ansLen, sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 4,
+                                   ansLen, sox, soy, soz);
   } else {
-    fprintf(stderr, "%s: creating %d x %d x %d output\n", me, sox, soy, soz);
-    if (!E) E |= nrrdMaybeAlloc(nout=nrrdNew(), otype, 3, sox, soy, soz);
+    fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
+            " x " _AIR_SIZE_T_CNV " output\n", me, sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 3,
+                                   sox, soy, soz);
   }
   airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
   if (E) {
@@ -306,7 +311,8 @@ main(int argc, char *argv[]) {
   }
   t0 = airTime();
   for (zi=0; zi<=soz-1; zi++) {
-    fprintf(stderr, "%d/%d ", zi, soz-1); fflush(stderr);
+    fprintf(stderr, _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
+            zi, soz-1); fflush(stderr);
     z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
     for (yi=0; yi<=soy-1; yi++) {
       y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
@@ -336,7 +342,8 @@ main(int argc, char *argv[]) {
         
         if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
           fprintf(stderr, 
-                  "%s: trouble at i=(%d,%d,%d) -> f=(%g,%g,%g):\n%s\n(%d)\n",
+                  "%s: trouble at i=(" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV
+                  "," _AIR_SIZE_T_CNV ") -> f=(%g,%g,%g):\n%s\n(%d)\n",
                   me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
                   ctx->errStr, ctx->errNum);
           airMopError(mop);
@@ -346,9 +353,9 @@ main(int argc, char *argv[]) {
           nrrdFInsert[nout->type](nout->data, idx,
                                   nrrdFClamp[nout->type](*answer));
         } else {
-          for (a=0; a<=ansLen-1; a++) {
-            nrrdFInsert[nout->type](nout->data, a + ansLen*idx, 
-                                    nrrdFClamp[nout->type](answer[a]));
+          for (ai=0; ai<=ansLen-1; ai++) {
+            nrrdFInsert[nout->type](nout->data, ai + ansLen*idx,
+                                    nrrdFClamp[nout->type](answer[ai]));
           }
         }
       }
@@ -357,7 +364,7 @@ main(int argc, char *argv[]) {
 
   /* HEY: this isn't actually correct in general, but is true
      for gageKindScl and gageKindVec */
-  nrrdContentSet(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
+  nrrdContentSet_va(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
   nout->axis[0+oBaseDim].spacing = 
     ((double)six/sox)*SPACING(nin->axis[0+iBaseDim].spacing);
   nout->axis[0+oBaseDim].label = airStrdup(nin->axis[0+iBaseDim].label);

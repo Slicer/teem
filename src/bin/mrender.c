@@ -222,8 +222,9 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
           2*uu->gctx0->radius);
   
-  if (nrrdMaybeAlloc((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
-                     uu->hctx->imgSize[0], uu->hctx->imgSize[1])) {
+  if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
+                        AIR_CAST(size_t, uu->hctx->imgSize[0]),
+                        AIR_CAST(size_t, uu->hctx->imgSize[1]))) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MREND, err, NRRD);
     return 1;

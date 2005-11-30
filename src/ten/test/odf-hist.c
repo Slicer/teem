@@ -87,7 +87,9 @@ main(int argc, char *argv[]) {
   }
   ncovar = nrrdNew();
   airMopAdd(mop, ncovar, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc(ncovar, nrrdTypeFloat, 2, bins, bins)) {
+  if (nrrdMaybeAlloc_va(ncovar, nrrdTypeFloat, 2,
+                        AIR_CAST(size_t, bins),
+                        AIR_CAST(size_t, bins))) {
     airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating covariance output:\n%s", me, errS);
     airMopError(mop); return 1;
@@ -105,7 +107,9 @@ main(int argc, char *argv[]) {
 
     nanglut = nrrdNew();
     airMopAdd(mop, nanglut, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdMaybeAlloc(nanglut, nrrdTypeInt, 2, VV, VV)) {
+    if (nrrdMaybeAlloc_va(nanglut, nrrdTypeInt, 2,
+                          AIR_CAST(size_t, VV),
+                          AIR_CAST(size_t, VV))) {
       airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble allocating lookup table:\n%s", me, errS);
       airMopError(mop); return 1;

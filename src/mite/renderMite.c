@@ -143,8 +143,10 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
           me, 2*muu->gctx0->radius);
   
-  if (nrrdMaybeAlloc(muu->nout, mite_nt, 3, 5 /* RGBAZ */ ,
-                     muu->hctx->imgSize[0], muu->hctx->imgSize[1])) {
+  if (nrrdMaybeAlloc_va(muu->nout, mite_nt, 3,
+                        AIR_CAST(size_t, 5) /* RGBAZ */ ,
+                        AIR_CAST(size_t, muu->hctx->imgSize[0]),
+                        AIR_CAST(size_t, muu->hctx->imgSize[1]))) {
     sprintf(err, "%s: nrrd trouble", me);
     biffMove(MITE, err, NRRD);
     return 1;

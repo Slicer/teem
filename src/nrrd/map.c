@@ -203,7 +203,7 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
     /* copy peripheral information */
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
-    if (nrrdContentSet(nout, typeS, nin, "")) {
+    if (nrrdContentSet_va(nout, typeS, nin, "")) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
@@ -332,7 +332,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  if (nrrdContentSet(nout, func, nin, "%d", bits)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", bits)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -450,7 +450,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
-  if (nrrdContentSet(nout, func, nin, "")) {
+  if (nrrdContentSet_va(nout, func, nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -575,7 +575,8 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     /* for "smart" mode, we have to some extra work while creating the
        histogram to look for bins incessantly hit with the exact same
        value */
-    if (nrrdMaybeAlloc(nhist=nrrdNew(), nrrdTypeUInt, 1, bins)) {
+    if (nrrdMaybeAlloc_va(nhist=nrrdNew(), nrrdTypeUInt, 1,
+                          AIR_CAST(size_t, bins))) {
       sprintf(err, "%s: failed to allocate histogram", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -631,7 +632,8 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       /* printf("%s: disrespecting bin %d\n", me, steady[1+2*bii]); */
     }
   }
-  if (nrrdMaybeAlloc(nmap=nrrdNew(), nrrdTypeFloat, 1, bins+1)) {
+  if (nrrdMaybeAlloc_va(nmap=nrrdNew(), nrrdTypeFloat, 1,
+                        AIR_CAST(size_t, bins+1))) {
     sprintf(err, "%s: failed to create map nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -715,7 +717,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   }
 
   /* fiddling with content is the only thing we'll do */
-  if (nrrdContentSet(nout, func, nin, "%d,%d", bins, smart)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d", bins, smart)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }

@@ -114,7 +114,7 @@ gageKernel = &_gageKernel_enum;
 *********************************************************
 **
 ** the usual/default padder used in gage, basically just a simple
-** wrapper around nrrdPad(), but similar in spirit to nrrdSimplePad().
+** wrapper around nrrdPad_va(), but similar in spirit to nrrdSimplePad().
 **
 ** The "kind" is needed to learn the baseDim for this kind of volume.
 ** The "_info" pointer is ignored.
@@ -124,8 +124,8 @@ gageKernel = &_gageKernel_enum;
 ** example of this.
 */
 Nrrd *
-_gageStandardPadder (Nrrd *nin, gageKind *kind, 
-                     int padding, gagePerVolume *pvl) {
+_gageStandardPadder(Nrrd *nin, gageKind *kind, 
+                    int padding, gagePerVolume *pvl) {
   Nrrd *npad;
   char me[]="_gageStandardPadder", err[BIFF_STRLEN];
 
@@ -160,7 +160,7 @@ _gageStandardPadder (Nrrd *nin, gageKind *kind,
     amax[0 + baseDim] = nin->axis[0 + baseDim].size - 1 + padding;
     amax[1 + baseDim] = nin->axis[1 + baseDim].size - 1 + padding;
     amax[2 + baseDim] = nin->axis[2 + baseDim].size - 1 + padding;
-    if (nrrdPad(npad, nin, amin, amax, nrrdBoundaryBleed)) {
+    if (nrrdPad_va(npad, nin, amin, amax, nrrdBoundaryBleed)) {
       sprintf(err, "%s: trouble padding input volume", me);
       biffMove(GAGE, err, NRRD); return NULL;
     }

@@ -116,8 +116,8 @@ extern char *_nrrdContentGet(const Nrrd *nin);
 extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
                                char *content, const char *format,
                                va_list arg);
-extern int _nrrdContentSet(Nrrd *nout, const char *func,
-                           char *content, const char *format, ...);
+extern int _nrrdContentSet_va(Nrrd *nout, const char *func,
+                              char *content, const char *format, ...);
 extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff);
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
 extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
@@ -197,8 +197,9 @@ extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
 
 /* ---- BEGIN non-NrrdIO */
 /* ccmethods.c */
-extern int _nrrdCC_settle(int *map, int len);
-extern int _nrrdCC_eclass(int *map, int len, airArray *eqvArr);
+extern unsigned int _nrrdCC_settle(unsigned int *map, unsigned int len);
+extern unsigned int _nrrdCC_eclass(unsigned int *map, unsigned int len,
+                                   airArray *eqvArr);
 
 /* apply1D.c */
 extern double _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis);

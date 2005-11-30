@@ -102,7 +102,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
       ins(nout->data, I, val);
     }
   }
-  if (nrrdContentSet(nout, func, nin, "%g,%g,%g", min, max, gamma)) {
+  if (nrrdContentSet_va(nout, func, nin, "%g,%g,%g", min, max, gamma)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
@@ -237,7 +237,7 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
     val = lookup(nin->data, I);
     insert(nout->data, I, uop(val));
   }
-  if (nrrdContentSet(nout, airEnumStr(nrrdUnaryOp, op), nin, "")) {
+  if (nrrdContentSet_va(nout, airEnumStr(nrrdUnaryOp, op), nin, "")) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -366,8 +366,8 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
 
   contA = _nrrdContentGet(ninA);
   contB = _nrrdContentGet(ninB);
-  if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
-                      contA, "%s", contB)) {
+  if (_nrrdContentSet_va(nout, airEnumStr(nrrdBinaryOp, op),
+                         contA, "%s", contB)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
@@ -433,8 +433,8 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   }
   contA = nrrdIterContent(inA);
   contB = nrrdIterContent(inB);
-  if (_nrrdContentSet(nout, airEnumStr(nrrdBinaryOp, op),
-                      contA, "%s", contB)) {
+  if (_nrrdContentSet_va(nout, airEnumStr(nrrdBinaryOp, op),
+                         contA, "%s", contB)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); return 1;
   }
@@ -577,8 +577,8 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   contA = _nrrdContentGet(ninA);
   contB = _nrrdContentGet(ninB);
   contC = _nrrdContentGet(ninC);
-  if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
-                      contA, "%s,%s", contB, contC)) {
+  if (_nrrdContentSet_va(nout, airEnumStr(nrrdTernaryOp, op),
+                         contA, "%s,%s", contB, contC)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }
@@ -658,8 +658,8 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   contA = nrrdIterContent(inA);
   contB = nrrdIterContent(inB);
   contC = nrrdIterContent(inC);
-  if (_nrrdContentSet(nout, airEnumStr(nrrdTernaryOp, op),
-                      contA, "%s,%s", contB, contC)) {
+  if (_nrrdContentSet_va(nout, airEnumStr(nrrdTernaryOp, op),
+                         contA, "%s,%s", contB, contC)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
   }

@@ -282,8 +282,9 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (!( 1 == isp.kind->table[isp.item].answerLength ||
            3 == isp.kind->table[isp.item].answerLength )) {
-      sprintf(err, "%s: %s not a scalar or vector (answerLength = %d): can't be a txf "
-              "domain variable", me, domStr, isp.kind->table[isp.item].answerLength);
+      sprintf(err, "%s: %s not a scalar or vector (answerLength = %d): "
+              "can't be a txf domain variable", me, domStr,
+              isp.kind->table[isp.item].answerLength);
       biffAdd(MITE, err); return 1;
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
@@ -642,7 +643,8 @@ _miteStageRun(miteThread *mtt, miteUser *muu) {
       /* right now, we can't store vector-valued txf domain variables */
     } else {
       /* its a scalar txf domain variable */
-      txfIdx = airIndexClamp(stage->min, *(stage->val), stage->max, stage->size);
+      txfIdx = airIndexClamp(stage->min, *(stage->val),
+                             stage->max, stage->size);
       if (mtt->verbose) {
         dbg[0 + 2*stageIdx] = *(stage->val);
       }

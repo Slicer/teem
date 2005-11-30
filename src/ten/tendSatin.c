@@ -125,12 +125,12 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     ELL_3V_SET(min, -1, -1, -1);
     ELL_3V_SET(max, 1, 1, 1);
   }
-  if (nrrdMaybeAlloc(nconf=nrrdNew(), nrrdTypeFloat, 3,
-                     size[0], size[1], size[2]) ||
-      nrrdMaybeAlloc(neval=nrrdNew(), nrrdTypeFloat, 4,
-                     3, size[0], size[1], size[2]) ||
-      nrrdMaybeAlloc(nevec=nrrdNew(), nrrdTypeFloat, 4,
-                     9, size[0], size[1], size[2])) {
+  if (nrrdMaybeAlloc_va(nconf=nrrdNew(), nrrdTypeFloat, 3,
+                        size[0], size[1], size[2]) ||
+      nrrdMaybeAlloc_va(neval=nrrdNew(), nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 3), size[0], size[1], size[2]) ||
+      nrrdMaybeAlloc_va(nevec=nrrdNew(), nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 9), size[0], size[1], size[2])) {
     sprintf(err, "%s: trouble allocating temp nrrds", me);
     biffMove(TEN, err, NRRD); return 1;
   }
@@ -167,8 +167,8 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   nrrdNuke(nconf);
   nrrdNuke(neval);
   nrrdNuke(nevec);
-  nrrdAxisInfoSet(nout, nrrdAxisInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
-  nrrdAxisInfoSet(nout, nrrdAxisInfoLabel, "tensor", "x", "y", "z");
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoLabel, "tensor", "x", "y", "z");
   sprintf(buff, "satin(%g,%g,%g)", parm, mina, maxa);
   nout->content = airStrdup(buff);
   return 0;

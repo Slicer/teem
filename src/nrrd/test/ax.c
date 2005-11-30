@@ -36,13 +36,15 @@ main(int argc, char *argv[]) {
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
-  if (nrrdAlloc(nrrd=nrrdNew(), nrrdTypeFloat, 2, 4, 4)) {
+  if (nrrdAlloc_va(nrrd=nrrdNew(), nrrdTypeFloat, 2,
+                   AIR_CAST(size_t, 4),
+                   AIR_CAST(size_t, 4))) {
     printf("trouble:\n%s\n", biffGet(NRRD));
     exit(1);
   }
-  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, 10.0, 10.0);
-  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMax, 12.0, 12.0);
-  nrrdAxisInfoSet(nrrd, nrrdAxisInfoCenter, nrrdCenterNode, nrrdCenterCell);
+  nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, 10.0, 10.0);
+  nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMax, 12.0, 12.0);
+  nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoCenter, nrrdCenterNode, nrrdCenterCell);
 
   idx = 0;
   printf("\n");
@@ -104,8 +106,8 @@ main(int argc, char *argv[]) {
   printf("range(1, %g -- %g) == (%g -- %g) --> (%g -- %g)\n",
          idx, idx2, lo, hi, idx3, idx4);
 
-  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMin, 12.0, 12.0);
-  nrrdAxisInfoSet(nrrd, nrrdAxisInfoMax, 10.0, 10.0);
+  nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, 12.0, 12.0);
+  nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMax, 10.0, 10.0);
   printf("\n(axis min,max flipped)\n");
 
   idx = 0;

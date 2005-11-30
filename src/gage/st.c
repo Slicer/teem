@@ -26,7 +26,7 @@
 #define GAGE_CACHE_LEN 1013
 
 unsigned int
-_gageHash (int x, int y, int z) {
+_gageHash(int x, int y, int z) {
   unsigned int h, g;
   unsigned char s[6];
   int i;
@@ -50,9 +50,9 @@ _gageHash (int x, int y, int z) {
 }
 
 void
-_gageCacheProbe (gageContext *ctx, gage_t *grad,
-                 int *cc, gage_t *gc, 
-                 int x, int y, int z) {
+_gageCacheProbe(gageContext *ctx, gage_t *grad,
+                int *cc, gage_t *gc, 
+                int x, int y, int z) {
   int hi;
 
   hi = _gageHash(x, y, z);
@@ -84,8 +84,8 @@ _gageCacheProbe (gageContext *ctx, gage_t *grad,
 ** an appropriate iScale > 1, so that you don't undersample.
 */
 int
-gageStructureTensor (Nrrd *nout, const Nrrd *nin,
-                     int dScale, int iScale, int dsmp) {
+gageStructureTensor(Nrrd *nout, const Nrrd *nin,
+                    int dScale, int iScale, int dsmp) {
   char me[]="gageStructureTensor", err[BIFF_STRLEN];
   NrrdKernelSpec *gk0, *gk1, *ik0;
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
@@ -219,7 +219,11 @@ gageStructureTensor (Nrrd *nout, const Nrrd *nin,
   osx = (nin->axis[0].size)/dsmp;
   osy = (nin->axis[1].size)/dsmp;
   osz = (nin->axis[2].size)/dsmp;
-  if (nrrdMaybeAlloc(nout, gage_nrrdType, 4, 7, osx, osy, osz)) {
+  if (nrrdMaybeAlloc_va(nout, gage_nrrdType, 4,
+                        AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, osx),
+                        AIR_CAST(size_t, osy),
+                        AIR_CAST(size_t, osz))) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(GAGE, err, NRRD); airMopError(mop); return 1;
   }

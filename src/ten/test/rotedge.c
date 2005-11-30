@@ -60,8 +60,11 @@ main(int argc, char *argv[]) {
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdMaybeAlloc(nten, nrrdTypeFloat, 4,
-                     7, samp[0], samp[1], 1)) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, samp[0]),
+                        AIR_CAST(size_t, samp[1]),
+                        AIR_CAST(size_t, 1))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop); 

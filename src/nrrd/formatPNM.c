@@ -257,9 +257,14 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we know what we need in order to set nrrd fields and read data */
   if (color) {
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, 3, sx, sy);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize,
+                       AIR_CAST(size_t, 3),
+                       AIR_CAST(size_t, sx),
+                       AIR_CAST(size_t, sy));
   } else {
-    nrrdAxisInfoSet(nrrd, nrrdAxisInfoSize, sx, sy);
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize,
+                       AIR_CAST(size_t, sx),
+                       AIR_CAST(size_t, sy));
   }
   if (!nio->skipData) {
     if (_nrrdCalloc(nrrd, nio, file)) {

@@ -80,7 +80,8 @@ ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
   */
   NN = nmat->axis[0].size;
   MM = nmat->axis[1].size;
-  if (nrrdMaybeAlloc(ntrn, nrrdTypeDouble, 2, MM, NN)) {
+  if (nrrdMaybeAlloc_va(ntrn, nrrdTypeDouble, 2,
+                        MM, NN)) {
     sprintf(err, "%s: trouble", me);
     biffMove(ELL, err, NRRD); return 1;
   }
@@ -128,7 +129,8 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
             me, LL, MM, nB->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }
-  if (nrrdMaybeAlloc(nAB, nrrdTypeDouble, 2, NN, LL)) {
+  if (nrrdMaybeAlloc_va(nAB, nrrdTypeDouble, 2,
+                        NN, LL)) {
     sprintf(err, "%s: trouble", me);
     biffMove(ELL, err, NRRD); return 1;
   }
@@ -346,7 +348,8 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
             me, nmat->axis[1].size, NN);
     biffAdd(ELL, err); return 1;
   }
-  if (nrrdMaybeAlloc(ninv, nrrdTypeDouble, 2, NN, NN)) {
+  if (nrrdMaybeAlloc_va(ninv, nrrdTypeDouble, 2,
+                        NN, NN)) {
     sprintf(err, "%s: trouble", me);
     biffMove(ELL, err, NRRD); return 1;
   }

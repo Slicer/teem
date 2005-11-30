@@ -529,8 +529,8 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
       if (!axis->kernel) {
         nrrdEmpty(axis->nline);
       } else {
-        if (nrrdMaybeAlloc(axis->nline, nrrdResample_nt, 1, 
-                           1 + axis->sizeIn)) {
+        if (nrrdMaybeAlloc_va(axis->nline, nrrdResample_nt, 1, 
+                              AIR_CAST(size_t, 1 + axis->sizeIn))) {
           sprintf(err, "%s: couldn't allocate scanline buffer", me);
           biffAdd(NRRD, err); return 1;
         }
@@ -592,10 +592,12 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
            the stretched out version of the kernel */
         dotLen = (int)(2*ceil(support/axis->ratio));
       }
-      if (nrrdMaybeAlloc(axis->nweight, nrrdResample_nt, 2,
-                         dotLen, axis->samples)
-          || nrrdMaybeAlloc(axis->nindex, nrrdTypeInt, 2,
-                            dotLen, axis->samples)) {
+      if (nrrdMaybeAlloc_va(axis->nweight, nrrdResample_nt, 2,
+                            AIR_CAST(size_t, dotLen),
+                            AIR_CAST(size_t, axis->samples))
+          || nrrdMaybeAlloc_va(axis->nindex, nrrdTypeInt, 2,
+                               AIR_CAST(size_t, dotLen),
+                               AIR_CAST(size_t, axis->samples))) {
         sprintf(err, "%s: trouble allocating index and weighting vectors", me);
         biffAdd(NRRD, err); return 1;
       }
@@ -1240,7 +1242,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
     }
 
     /* HEY: need to create textual representation of resampling parameters */
-    if (nrrdContentSet(nout, func, rsmc->nin, "")) {
+    if (nrrdContentSet_va(nout, func, rsmc->nin, "")) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
