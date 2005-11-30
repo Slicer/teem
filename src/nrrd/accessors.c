@@ -70,10 +70,15 @@ _nrrdLoad##TA##TB(TB *v) {                  \
 #define LOAD_LIST(TA, TB)                   \
   (TA (*)(const void *))_nrrdLoad##TA##TB,
 
+MAP(LOAD_DEF, UI)
 MAP(LOAD_DEF, JN)
 MAP(LOAD_DEF, FL)
 MAP(LOAD_DEF, DB)
 
+unsigned int (*
+nrrdUILoad[NRRD_TYPE_MAX+1])(const void*) = {
+  NULL, MAP(LOAD_LIST, UI) NULL
+};
 int (*
 nrrdILoad[NRRD_TYPE_MAX+1])(const void*) = {
   NULL, MAP(LOAD_LIST, JN) NULL
@@ -103,10 +108,15 @@ _nrrdStore##TA##TB(TB *v, TA j) {           \
 #define STORE_LIST(TA, TB)                  \
   (TA (*)(void *, TA))_nrrdStore##TA##TB,
 
+MAP(STORE_DEF, UI)
 MAP(STORE_DEF, JN)
 MAP(STORE_DEF, FL)
 MAP(STORE_DEF, DB)
 
+unsigned int (*
+nrrdUIStore[NRRD_TYPE_MAX+1])(void *, unsigned int) = {
+  NULL, MAP(STORE_LIST, UI) NULL
+};
 int (*
 nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
   NULL, MAP(STORE_LIST, JN) NULL
@@ -134,10 +144,15 @@ _nrrdLookup##TA##TB(TB *v, size_t I) {        \
 #define LOOKUP_LIST(TA, TB)                   \
   (TA (*)(const void*, size_t))_nrrdLookup##TA##TB,
 
+MAP(LOOKUP_DEF, UI)
 MAP(LOOKUP_DEF, JN)
 MAP(LOOKUP_DEF, FL)
 MAP(LOOKUP_DEF, DB)
 
+unsigned int (*
+nrrdUILookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
+  NULL, MAP(LOOKUP_LIST, UI) NULL
+};
 int (*
 nrrdILookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, JN) NULL
@@ -167,10 +182,15 @@ _nrrdInsert##TA##TB(TB *v, size_t I, TA j) {       \
 #define INSERT_LIST(TA, TB)                        \
   (TA (*)(void*, size_t, TA))_nrrdInsert##TA##TB,
 
+MAP(INSERT_DEF, UI)
 MAP(INSERT_DEF, JN)
 MAP(INSERT_DEF, FL)
 MAP(INSERT_DEF, DB)
 
+unsigned int (*
+nrrdUIInsert[NRRD_TYPE_MAX+1])(void *, size_t, unsigned int) = {
+  NULL, MAP(INSERT_LIST, UI) NULL
+};
 int (*
 nrrdIInsert[NRRD_TYPE_MAX+1])(void *, size_t, int) = {
   NULL, MAP(INSERT_LIST, JN) NULL
