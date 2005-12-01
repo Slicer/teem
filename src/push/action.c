@@ -104,16 +104,19 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
   numThing = _pushThingTotal(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc(nPosOut, push_nrrdType, 2,
-                        2 == pctx->dimIn ? 2 : 3, numPoint);
+    E |= nrrdMaybeAlloc_va(nPosOut, push_nrrdType, 2,
+                           AIR_CAST(size_t, 2 == pctx->dimIn ? 2 : 3),
+                           AIR_CAST(size_t, numPoint));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc(nTenOut, push_nrrdType, 2, 
-                        2 == pctx->dimIn ? 4 : 7, numPoint);
+    E |= nrrdMaybeAlloc_va(nTenOut, push_nrrdType, 2, 
+                           AIR_CAST(size_t, 2 == pctx->dimIn ? 4 : 7),
+                           AIR_CAST(size_t, numPoint));
   }
   if (nStnOut) {
-    E |= nrrdMaybeAlloc(nStnOut, nrrdTypeUInt, 2,
-                        3, numThing);
+    E |= nrrdMaybeAlloc_va(nStnOut, nrrdTypeUInt, 2,
+                           AIR_CAST(size_t, 3),
+                           AIR_CAST(size_t, numThing));
   }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
@@ -302,7 +305,10 @@ _pushForceSample(pushContext *pctx, unsigned int sx, unsigned int sy) {
 
   probe = &_probe;
   ntmp = nrrdNew();
-  nrrdMaybeAlloc(ntmp, nrrdTypeDouble, 3, 3, sx, sy);
+  nrrdMaybeAlloc_va(ntmp, nrrdTypeDouble, 3,
+                    AIR_CAST(size_t, 3),
+                    AIR_CAST(size_t, sx),
+                    AIR_CAST(size_t, sy));
   data = (double*)ntmp->data;
   probe->pos[2] = 0.0;
   fprintf(stderr, "sampling force field"); fflush(stderr);
