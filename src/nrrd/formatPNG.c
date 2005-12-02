@@ -490,8 +490,10 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     if (NULL != key && NULL != value) {
       numtxt++;
     }
-    key = airFree(key);
-    value = airFree(value);
+    free(key);
+    free(value);
+    key = NULL;
+    value = NULL;
   }
   if (nrrd->cmtArr->len > 0) {
     /* all comments are put into single text field */
