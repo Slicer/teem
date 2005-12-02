@@ -1228,8 +1228,8 @@ NRRD_EXPORT int nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin,
 NRRD_EXPORT int nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin,
                                 unsigned int conny);
 NRRD_EXPORT int nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *nval,
-                            int dir, int maxSize, int maxNeighbor,
-                            unsigned int conny);
+                            int dir, unsigned int maxSize,
+                            unsigned int maxNeighbor, unsigned int conny);
 NRRD_EXPORT int nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval);
 NRRD_EXPORT int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin);
   

@@ -61,7 +61,7 @@ _nrrdCC_settle(unsigned int *map, unsigned int len) {
 }
 
 /*
-** _nrrdCC_eclass ()
+** _nrrdCC_eclass()
 **
 ** takes the equivalence pairs in eqvArr, and an array of uints map of 
 ** length len, and puts in map[i] the uint that CC i's value should
@@ -85,10 +85,12 @@ _nrrdCC_eclass(unsigned int *map, unsigned int len, airArray *eqvArr) {
   for (eqi=0; eqi<eqvArr->len; eqi++) {
     j = eqv[0 + 2*eqi];
     k = eqv[1 + 2*eqi];
-    while (map[j] != j) 
+    while (map[j] != j) {
       j = map[j];
-    while (map[k] != k)
+    }
+    while (map[k] != k) {
       k = map[k];
+    }
     if (j != k) {
       if (j < k) {
         t = j; j = k; k = t;
@@ -143,7 +145,7 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     biffAdd(NRRD, err); return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeInt, 1,
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, maxid+1))) {
     sprintf(err, "%s: can't allocate output", me);
     biffAdd(NRRD, err); return 1;
@@ -201,7 +203,11 @@ nrrdCCNum(const Nrrd *nin) {
   max = nrrdCCMax(nin);
   hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
   if (!hist) {
-    return -1;
+    /* is there any precedent in Teem for doing like this?  GLK recalls
+       something in the shmalloc/shdetach API like this, but doesn't know
+       if its a good idea for Teem.  The point is to break things that use
+       this return value, while avoiding use of Biff */
+    return AIR_CAST(unsigned int, -1);
   }
   for (I=0; I<NN; I++) {
     hist[lup(nin->data, I)] = 1;

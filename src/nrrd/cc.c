@@ -24,12 +24,6 @@
 #include "privateNrrd.h"
 
 /*
-** NOTE: it is currently a bug of all the connected component stuff
-** here that unsigned int is sometimes allowed as a type for CCs, but
-** int is used for CC id representation and manipulation
-*/
-
-/*
 ** learned: if you have globals, such as _nrrdCC_verb, which are 
 ** defined and declared here, but which are NOT initialized, then
 ** C++ apps which are linking against Teem will have problems!!!
@@ -39,13 +33,12 @@ int _nrrdCC_EqvIncr = 128;
 int _nrrdCC_verb = 0;
 
 int
-_nrrdCCFind_1(Nrrd *nout, int *numid, const Nrrd *nin) {
+_nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   /* char me[]="_nrrdCCFind_1", err[BIFF_STRLEN]; */
-  int id, lval, val, *out, (*lup)(const void *, size_t);
-  int sx, I;
+  unsigned int sx, I, id, lval, val, *out, (*lup)(const void *, size_t);
 
-  lup = nrrdILookup[nin->type];
-  out = (int*)(nout->data);
+  lup = nrrdUILookup[nin->type];
+  out = AIR_CAST(unsigned int*, nout->data);
   out[0] = id = 0;
   *numid = 1;
   
@@ -65,9 +58,8 @@ _nrrdCCFind_1(Nrrd *nout, int *numid, const Nrrd *nin) {
 }
 
 void
-_nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
-  int *eqv;
-  int eqi;
+_nrrdCCEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
+  unsigned int *eqv, eqi;
 
   /* HEY: would it speed things up at all to enforce j < k? */
   if (_nrrdCC_verb) {
@@ -75,7 +67,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
             j, k, eqvArr->len);
   }
   if (eqvArr->len) {
-    eqv = (int *)(eqvArr->data);
+    eqv = AIR_CAST(unsigned int*, eqvArr->data);
     /* we have some equivalences, but we're only going to check against
        the last one in an effort to reduce duplicate entries */
     eqi = eqvArr->len-1;
@@ -86,7 +78,7 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
     }
   }
   eqi = airArrayLenIncr(eqvArr, 1);
-  eqv = (int *)(eqvArr->data);
+  eqv = AIR_CAST(unsigned int*, eqvArr->data);
   eqv[0 + 2*eqi] = j;
   eqv[1 + 2*eqi] = k;
   return;
@@ -102,24 +94,27 @@ _nrrdCCEqvAdd(airArray *eqvArr, int j, int k) {
 **  v Y
 */
 int
-_nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
+_nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_2"  /* , err[BIFF_STRLEN]*/ ; 
   double vl=0, pvl[5]={0,0,0,0,0};
-  int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
-  int p, x, y, sx, sy;
+  unsigned int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
+  unsigned int p, x, y, sx, sy;
 
   id = 0; /* sssh! compiler warnings */
-  lup = nrrdILookup[nin->type];
-  out = (int*)(nout->data);
+  lup = nrrdUILookup[nin->type];
+  out = AIR_CAST(unsigned int*, nout->data);
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
-#define GETV_2(x,y) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1)) \
+#define GETV_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
+                      && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? lup(nin->data, (x) + sx*(y)) \
-                     : 0.5)  /* a value that can't come from an array of ints */
-#define GETI_2(x,y) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1)) \
+                     : 0.5) /* value that can't come from an array of uints */
+#define GETI_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
+                      && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? out[(x) + sx*(y)] \
-                     : -1)   /* a CC index we never assigned */
+                     : AIR_CAST(unsigned int, -1))  /* CC index (probably!)
+                                                       never assigned */
 
   *numid = 0;
   for (y=0; y<sy; y++) {
@@ -190,42 +185,44 @@ _nrrdCCFind_2(Nrrd *nout, int *numid, airArray *eqvArr,
 ** Z  .  .  .
 */
 int
-_nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
+_nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
-  /* char me[]="_nrrdCCFind_2", err[BIFF_STRLEN] ; */
+  /* char me[]="_nrrdCCFind_3", err[BIFF_STRLEN] ; */
   double pvl[14], vl=0;
-  int id, pid[14], *out, (*lup)(const void *, size_t);
-  int p, x, y, z, sx, sy, sz;  
+  unsigned int id, pid[14], *out, (*lup)(const void *, size_t);
+  unsigned int p, x, y, z, sx, sy, sz;  
 
   id = 0; /* sssh! compiler warnings */
-  lup = nrrdILookup[nin->type];
-  out = (int*)(nout->data);
+  lup = nrrdUILookup[nin->type];
+  out = AIR_CAST(unsigned int*, nout->data);
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
-#define GETV_3(x,y,z) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1) \
-                        && AIR_IN_CL(0, (z), sz-1))                        \
-                       ? lup(nin->data, (x) + sx*((y) + sy*(z)))           \
+#define GETV_3(x,y,z) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))   \
+                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1)) \
+                       && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
+                       ? lup(nin->data, (x) + sx*((y) + sy*(z)))              \
                        : 0.5)
-#define GETI_3(x,y,z) ((AIR_IN_CL(0, (x), sx-1) && AIR_IN_CL(0, (y), sy-1) \
-                        && AIR_IN_CL(0, (z), sz-1))                        \
-                       ? out[(x) + sx*((y) + sy*(z))]                      \
-                       : -1)
+#define GETI_3(x,y,z) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))   \
+                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1)) \
+                       && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
+                       ? out[(x) + sx*((y) + sy*(z))]                         \
+                       : AIR_CAST(unsigned int, -1))
   
   *numid = 0;
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
         if (!x) {
-          pvl[ 1] = GETV_3(-1,   y,   z);  pid[ 1] = GETI_3(-1,   y,   z);
-          pvl[ 2] = GETV_3(-1, y-1,   z);  pid[ 2] = GETI_3(-1, y-1,   z);
-          pvl[ 3] = GETV_3( 0, y-1,   z);  pid[ 3] = GETI_3( 0, y-1,   z);
-          pvl[ 5] = GETV_3(-1, y-1, z-1);  pid[ 5] = GETI_3(-1, y-1, z-1);
-          pvl[ 8] = GETV_3(-1,   y, z-1);  pid[ 8] = GETI_3(-1,   y, z-1);
-          pvl[11] = GETV_3(-1, y+1, z-1);  pid[11] = GETI_3(-1, y+1, z-1);
-          pvl[ 6] = GETV_3( 0, y-1, z-1);  pid[ 6] = GETI_3( 0, y-1, z-1);
-          pvl[ 9] = GETV_3( 0,   y, z-1);  pid[ 9] = GETI_3( 0,   y, z-1);
-          pvl[12] = GETV_3( 0, y+1, z-1);  pid[12] = GETI_3( 0, y+1, z-1);
+          pvl[ 1] = GETV_3( -1,   y,   z); pid[ 1] = GETI_3( -1,   y,   z);
+          pvl[ 2] = GETV_3( -1, y-1,   z); pid[ 2] = GETI_3( -1, y-1,   z);
+          pvl[ 3] = GETV_3(  0, y-1,   z); pid[ 3] = GETI_3(  0, y-1,   z);
+          pvl[ 5] = GETV_3( -1, y-1, z-1); pid[ 5] = GETI_3( -1, y-1, z-1);
+          pvl[ 8] = GETV_3( -1,   y, z-1); pid[ 8] = GETI_3( -1,   y, z-1);
+          pvl[11] = GETV_3( -1, y+1, z-1); pid[11] = GETI_3( -1, y+1, z-1);
+          pvl[ 6] = GETV_3(  0, y-1, z-1); pid[ 6] = GETI_3(  0, y-1, z-1);
+          pvl[ 9] = GETV_3(  0,   y, z-1); pid[ 9] = GETI_3(  0,   y, z-1);
+          pvl[12] = GETV_3(  0, y+1, z-1); pid[12] = GETI_3(  0, y+1, z-1);
         } else {
           pvl[ 1] = vl;                    pid[ 1] = id;
           pvl[ 2] = pvl[ 3];               pid[ 2] = pid[ 3];
@@ -269,7 +266,7 @@ _nrrdCCFind_3(Nrrd *nout, int *numid, airArray *eqvArr,
 }
 
 int
-_nrrdCCFind_N(Nrrd *nout, int *numid, airArray *eqvArr,
+_nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
   char me[]="_nrrdCCFind_N", err[BIFF_STRLEN];
   
@@ -307,8 +304,9 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
   char me[]="nrrdCCFind", func[]="ccfind", err[BIFF_STRLEN];
   Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
-  int ret, *map, *fpid, numid, maxid,
-    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
+  unsigned int *fpid, numid, maxid, *map,
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, unsigned int);
+  int ret;
   size_t I, NN;
   void *val;
   
@@ -321,9 +319,11 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     sprintf(err, "%s: nout == nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!( nrrdTypeIsIntegral[nin->type] && nrrdTypeSize[nin->type] <= 4 )) {
+  if (!( nrrdTypeIsIntegral[nin->type] 
+         && nrrdTypeIsUnsigned[nin->type] 
+         && nrrdTypeSize[nin->type] <= 4 )) {
     sprintf(err, "%s: can only find connected components in 1, 2, or 4 byte "
-            "integral values (not %s)",
+            "unsigned integral values (not %s)",
             me, airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 1;
   }
@@ -332,9 +332,11 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
       sprintf(err, "%s: got invalid target type %d", me, type);
       biffAdd(NRRD, err); return 1;
     }
-    if (!( nrrdTypeIsIntegral[type] && nrrdTypeSize[type] <= 4 )) {
+    if (!( nrrdTypeIsIntegral[type]
+           && nrrdTypeIsUnsigned[nin->type] 
+           && nrrdTypeSize[type] <= 4 )) {
       sprintf(err, "%s: can only save connected components to 1, 2, or 4 byte "
-              "integral values (not %s)",
+              "unsigned integral values (not %s)",
               me, airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); return 1;
     }
@@ -344,15 +346,15 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
             "data (not %d)", me, nin->dim, nin->dim, conny);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdConvert(nfpid=nrrdNew(), nin, nrrdTypeInt)) {
+  if (nrrdConvert(nfpid=nrrdNew(), nin, nrrdTypeUInt)) {
     sprintf(err, "%s: couldn't allocate fpid %s array to match input size",
-            me, airEnumStr(nrrdType, nrrdTypeInt));
+            me, airEnumStr(nrrdType, nrrdTypeUInt));
     biffAdd(NRRD, err); return 1;
   }
 
   mop = airMopNew();
   airMopAdd(mop, nfpid, (airMopper)nrrdNuke, airMopAlways);
-  eqvArr = airArrayNew(NULL, NULL, 2*sizeof(int), _nrrdCC_EqvIncr);
+  eqvArr = airArrayNew(NULL, NULL, 2*sizeof(unsigned int), _nrrdCC_EqvIncr);
   airMopAdd(mop, eqvArr, (airMopper)airArrayNuke, airMopAlways);
   ret = 0;
   switch(nin->dim) {
@@ -374,11 +376,11 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
-  map = (int*)calloc(numid, sizeof(int));
+  map = (unsigned int*)calloc(numid, sizeof(unsigned int));
   airMopAdd(mop, map, airFree, airMopAlways);
   maxid = _nrrdCC_eclass(map, numid, eqvArr);
   /* convert fpid values to final id values */
-  fpid = (int*)(nfpid->data);
+  fpid = (unsigned int*)(nfpid->data);
   NN = nrrdElementNumber(nfpid);
   for (I=0; I<NN; I++) {
     fpid[I] = map[fpid[I]];
@@ -395,8 +397,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, *nvalP, (airMopper)nrrdNuke, airMopOnError);
     val = (*nvalP)->data;
-    lup = nrrdILookup[nin->type];
-    ins = nrrdIInsert[nin->type];
+    lup = nrrdUILookup[nin->type];
+    ins = nrrdUIInsert[nin->type];
     /* I'm not sure if its more work to do all the redundant assignments
        or to check whether or not to do them */
     for (I=0; I<NN; I++) {
@@ -415,7 +417,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
             ? nrrdTypeUChar
             : (maxid <= nrrdTypeMax[nrrdTypeUShort]
                ? nrrdTypeUShort
-               : nrrdTypeInt));
+               : nrrdTypeUInt));
   }
   if (nrrdConvert(nout, nfpid, type)) {
     sprintf(err, "%s: trouble converting to final output", me);
@@ -445,12 +447,12 @@ _nrrdCCAdj_1(unsigned char *out, int numid, const Nrrd *nin) {
 }
 
 int
-_nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin,
+_nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
              unsigned int conny) {
-  int (*lup)(const void *, size_t), x, y, sx, sy, id=0;
+  unsigned int (*lup)(const void *, size_t), x, y, sx, sy, id=0;
   double pid[5];
   
-  lup = nrrdILookup[nin->type];
+  lup = nrrdUILookup[nin->type];
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   for (y=0; y<sy; y++) {
@@ -465,11 +467,11 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin,
         pid[3] = pid[4];
       }
       pid[4] = GETV_2(x+1, y-1);
-      id = (int)GETV_2(x, y);
+      id = AIR_CAST(unsigned int, GETV_2(x, y));
 #define TADJ(P) \
       if (pid[(P)] != 0.5 && id != pid[(P)]) { \
-        out[id + numid*((int)pid[(P)])] = \
-          out[((int)pid[(P)]) + numid*id] = 1; \
+        out[id + numid*AIR_CAST(unsigned int, pid[(P)])] = \
+          out[AIR_CAST(unsigned int, pid[(P)]) + numid*id] = 1; \
       }
       TADJ(1);
       TADJ(3);
@@ -486,10 +488,10 @@ _nrrdCCAdj_2(unsigned char *out, int numid, const Nrrd *nin,
 int
 _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
              unsigned int conny) {
-  int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id=0;
+  unsigned int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id=0;
   double pid[14];
   
-  lup = nrrdILookup[nin->type];
+  lup = nrrdUILookup[nin->type];
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
@@ -521,7 +523,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
         pid[ 7] = GETV_3(x+1, y-1, z-1);
         pid[10] = GETV_3(x+1,   y, z-1);
         pid[13] = GETV_3(x+1, y+1, z-1);
-        id = (int)GETV_3(x, y, z);
+        id = AIR_CAST(unsigned int, GETV_3(x, y, z));
         TADJ(1);
         TADJ(3);
         TADJ(9);
@@ -555,7 +557,8 @@ _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
 int
 nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   char me[]="nrrdCCAdjacency", func[]="ccadj", err[BIFF_STRLEN];
-  int ret, maxid;
+  int ret;
+  unsigned int maxid;
   unsigned char *out;
 
   if (!( nout && nrrdCCValid(nin) )) {
@@ -600,6 +603,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   }
   /* this goofiness is just so that histo-based projections
      return the sorts of values that we expect */
+  nout->axis[0].center = nout->axis[1].center = nrrdCenterCell;
   nout->axis[0].min = nout->axis[1].min = -0.5;
   nout->axis[0].max = nout->axis[1].max = maxid + 0.5;
   if (nrrdContentSet_va(nout, func, nin, "%d", conny)) {
@@ -651,14 +655,16 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
 */
 int
 nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
-            int valDir, int maxSize, int maxNeighbor, unsigned int conny) {
+            int valDir, unsigned int maxSize, unsigned int maxNeighbor,
+            unsigned int conny) {
   char me[]="nrrdCCMerge", func[]="ccmerge", err[BIFF_STRLEN], *valcnt;
-  int _i, i, j, bigi=0, numid, *size, *sizeId, *id,
+  unsigned int _i, i, j, bigi=0, numid, *size, *sizeId,
     *nn,  /* number of neighbors */
-    *map, *val=NULL, *hit,
-    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
+    *val=NULL, *hit,
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, unsigned int);
   Nrrd *nadj, *nsize, *nval=NULL, *nnn;
   unsigned char *adj;
+  unsigned int *map, *id;
   airArray *mop;
   size_t I, NN;
   
@@ -670,11 +676,11 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   }
   if (valDir) {
     airMopAdd(mop, nval = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdConvert(nval, _nval, nrrdTypeInt)) {
+    if (nrrdConvert(nval, _nval, nrrdTypeUInt)) {
       sprintf(err, "%s: value-directed merging needs usable nval", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
-    val = (int*)(nval->data);
+    val = (unsigned int*)(nval->data);
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
@@ -692,9 +698,9 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  size = (int*)(nsize->data);
+  size = (unsigned int*)(nsize->data);
   adj = (unsigned char*)(nadj->data);
-  nn = (int*)(nnn->data);
+  nn = (unsigned int*)(nnn->data);
   numid = nsize->axis[0].size;
   for (i=0; i<numid; i++) {
     nn[i] = 0;
@@ -702,10 +708,10 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
       nn[i] += adj[j + numid*i];
     }
   }
-  map = (int*)calloc(numid, sizeof(int));
-  id = (int*)calloc(numid, sizeof(int));
-  hit = (int*)calloc(numid, sizeof(int));
-  sizeId = (int*)calloc(2*numid, sizeof(int));
+  map = (unsigned int*)calloc(numid, sizeof(unsigned int));
+  id = (unsigned int*)calloc(numid, sizeof(unsigned int));
+  hit = (unsigned int*)calloc(numid, sizeof(unsigned int));
+  sizeId = (unsigned int*)calloc(2*numid, sizeof(unsigned int));
   if (!(map && id && hit && sizeId)) {
     sprintf(err, "%s: couldn't allocate buffers", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -720,7 +726,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     sizeId[0 + 2*i] = size[i];
     sizeId[1 + 2*i] = i;
   }
-  qsort(sizeId, numid, 2*sizeof(int), nrrdValCompare[nrrdTypeInt]);
+  qsort(sizeId, numid, 2*sizeof(unsigned int), nrrdValCompare[nrrdTypeUInt]);
   for (i=0; i<numid; i++) {
     id[i] = sizeId[1 + 2*i];
   }
@@ -734,12 +740,15 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
      i goes through the CC ids in ascending order of size */
   for (_i=0; _i<numid; _i++) {
     i = id[_i];
-    if (hit[i])
+    if (hit[i]) {
       continue;
-    if (maxSize && (size[i] > maxSize))
+    }
+    if (maxSize && (size[i] > maxSize)) {
       continue;
-    if (maxNeighbor && (nn[i] > maxNeighbor))
+    }
+    if (maxNeighbor && (nn[i] > maxNeighbor)) {
       continue;
+    }
     /* find biggest neighbor, exploiting the fact that we already
        sorted CC ids on size.  j descends through indices of id[],
        bigi goes through CC ids which are larger than CC i */
@@ -748,16 +757,19 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
       if (adj[bigi + numid*i]) 
         break;
     }
-    if (j == _i)
+    if (j == _i) {
       continue;   /* we had no neighbors ?!?! */
-    if (valDir && (val[bigi] - val[i])*valDir < 0 )
+    }
+    if (valDir && (AIR_CAST(int, val[bigi]) 
+                   - AIR_CAST(int, val[i]))*valDir < 0 ) {
       continue;
+    }
     /* else all criteria for merging have been met */
     map[i] = bigi;
     hit[bigi] = AIR_TRUE;
   }
-  lup = nrrdILookup[nin->type];
-  ins = nrrdIInsert[nout->type];
+  lup = nrrdUILookup[nin->type];
+  ins = nrrdUIInsert[nout->type];
   NN = nrrdElementNumber(nin);
   for (I=0; I<NN; I++) {
     ins(nout->data, I, map[lup(nin->data, I)]);
@@ -791,8 +803,8 @@ int
 nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   char me[]="nrrdCCRevalue", err[BIFF_STRLEN];
   size_t I, NN;
-  int (*vlup)(const void *, size_t), (*ilup)(const void *, size_t),
-    (*ins)(void *, size_t, int);
+  unsigned int (*vlup)(const void *, size_t), (*ilup)(const void *, size_t),
+    (*ins)(void *, size_t, unsigned int);
   
   if (!( nout && nrrdCCValid(nin) && nval )) {
     sprintf(err, "%s: invalid args", me);
@@ -803,9 +815,9 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
     biffAdd(NRRD, err); return 1;
   }
   NN = nrrdElementNumber(nin);
-  vlup = nrrdILookup[nval->type];
-  ilup = nrrdILookup[nin->type];
-  ins = nrrdIInsert[nout->type];
+  vlup = nrrdUILookup[nval->type];
+  ilup = nrrdUILookup[nin->type];
+  ins = nrrdUIInsert[nout->type];
   for (I=0; I<NN; I++) {
     ins(nout->data, I, vlup(nval->data, ilup(nin->data, I)));
   }
@@ -817,9 +829,8 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
 int
 nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   char me[]="nrrdCCSettle", func[]="ccsettle", err[BIFF_STRLEN];
-  int numid, maxid, jd, id, *map,
-    (*lup)(const void *, size_t), (*ins)(void *, size_t, int);
-  void *val=NULL;
+  unsigned int numid, maxid, jd, id, *map,
+    (*lup)(const void *, size_t), (*ins)(void *, size_t, unsigned int);
   size_t I, NN;
   airArray *mop;
 
@@ -834,10 +845,10 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   maxid = nrrdCCMax(nin);
-  lup = nrrdILookup[nin->type];
-  ins = nrrdIInsert[nin->type];
+  lup = nrrdUILookup[nin->type];
+  ins = nrrdUIInsert[nin->type];
   NN = nrrdElementNumber(nin);
-  map = (int *)calloc(maxid+1, sizeof(int));
+  map = (unsigned int *)calloc(maxid+1, sizeof(unsigned int));
   if (!map) {
     sprintf(err, "%s: couldn't allocate internal LUT", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -862,7 +873,6 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     }
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, *nvalP, (airMopper)nrrdNuke, airMopOnError);
-    val = (int*)((*nvalP)->data);
   }
 
   id = 0;
@@ -870,7 +880,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     if (map[jd]) {
       map[jd] = id;
       if (nvalP) {
-        ins(val, id, jd);
+        ins((*nvalP)->data, id, jd);
       }
       id++;
     }
