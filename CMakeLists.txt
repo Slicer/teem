@@ -1,6 +1,6 @@
 # This is the root Teem CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
-PROJECT(TEEM C)
+PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
 # TEEM version number.  Must reflect the values in teem/src/air.h
