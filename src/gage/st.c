@@ -66,7 +66,7 @@ _gageCacheProbe(gageContext *ctx, gage_t *grad,
     cc[3*hi + 0] = x;
     cc[3*hi + 1] = y;
     cc[3*hi + 2] = z;
-    gageProbe(ctx, x, y, z);
+    gageProbe(ctx, AIR_CAST(int, x), AIR_CAST(int, y), AIR_CAST(int, z));
     ELL_3V_COPY(gc + 3*hi, grad);
   }
   return ;
@@ -95,7 +95,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   gagePerVolume *pvl;
   airArray *mop;
   gage_t *grad, *ixw, *iyw, *izw, wght, sten[6], *gradCache, *out;
-  float xs, ys, zs, ms;
+  double xs, ys, zs, ms;
 
   if (!(nout && nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -207,11 +207,11 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
 
   for (wi=-rad; wi<=rad; wi++) {
     ik0->parm[0] = iScale/xs;
-    ixw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    ixw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
     ik0->parm[0] = iScale/ys;
-    iyw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    iyw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
     ik0->parm[0] = iScale/zs;
-    izw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    izw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
     fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
             wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
   }
