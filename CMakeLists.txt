@@ -12,9 +12,11 @@ SET(TEEM_VERSION_PATCH "0")
 # enough to distinguish available features of the toolkit.
 SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}")
 
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
 #-----------------------------------------------------------------------------
 # Test for some required system information.
-INCLUDE (${CMAKE_ROOT}/Modules/CMakeBackwardCompatibilityC.cmake)
+INCLUDE (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
 # Output directories.
@@ -51,6 +53,55 @@ IF(NOT TEEM_BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DTEEM_STATIC)
 ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
 
+OPTION(TEEM_ZLIB "Build Teem with support for gzip compression." OFF)
+OPTION(TEEM_PNG "Build Teem with support for PNG images." OFF)
+
+# Can't build PNG without ZLIB, so force it on.
+IF(TEEM_PNG AND NOT TEEM_ZLIB)
+  SET(TEEM_ZLIB ON)
+ENDIF(TEEM_PNG AND NOT TEEM_ZLIB)
+
+SET(TEEM_ZLIB_LIB "")
+SET(TEEM_PNG_LIB "")
+IF(TEEM_ZLIB)
+  # Find ZLIB
+  FIND_PACKAGE(ZLIB)
+  IF(ZLIB_FOUND)
+    ADD_DEFINITIONS(-DTEEM_ZLIB=1)
+    SET(TEEM_ZLIB_LIB ${ZLIB_LIBRARIES})
+    SET(TEEM_ZLIB_IPATH ${ZLIB_INCLUDE_DIR})
+  ELSE(ZLIB_FOUND)
+    SET(TEEM_ZLIB OFF)
+  ENDIF(ZLIB_FOUND)
+
+  IF(TEEM_PNG)
+    FIND_PACKAGE(PNG)
+    IF(PNG_FOUND)
+      ADD_DEFINITIONS(-DTEEM_PNG=1 ${PNG_DEFINITIONS})
+      SET(TEEM_PNG_LIB ${PNG_LIBRARIES})
+      SET(TEEM_PNG_IPATH ${PNG_INCLUDE_DIR})
+    ELSE(PNG_FOUND)
+      SET(TEEM_PNG OFF)
+    ENDIF(PNG_FOUND)
+  ENDIF(TEEM_PNG)
+ENDIF(TEEM_ZLIB)
+
+# Try and locate BZIP2 stuff
+OPTION(TEEM_BZIP2 "Build Teem with support for bzip compression." OFF)
+SET(TEEM_BZIP2_LIB "")
+
+IF(TEEM_BZIP2)
+  FIND_PACKAGE(BZ2)
+
+  IF(BZ2_FOUND)
+    ADD_DEFINITIONS(-DTEEM_BZIP2=1)
+    SET(TEEM_BZIP2_LIB ${BZ2_LIBRARIES})
+    SET(TEEM_BZIP2_IPATH ${BZ2_INCLUDE_DIR})
+  ELSE(BZ2_FOUND)
+    SET(TEEM_BZIP2 OFF )
+  ENDIF(BZ2_FOUND)
+ENDIF(TEEM_BZIP2)
+
 #-----------------------------------------------------------------------------
 #Include Teem Defines
 # Set compiler flags for endian-ness.
@@ -86,8 +137,8 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
-	limn hoover alan echo ten
-	mite coil push)
+  limn hoover alan echo ten
+  mite coil push)
 
 
 FOREACH(header_file
@@ -142,8 +193,10 @@ SUBDIRS(src)
 # For testing
 OPTION(BUILD_TESTING "Enable this to perform testing of TEEM" OFF)
 IF(BUILD_TESTING)
+  SET(DART_ROOT "" CACHE INTERNAL "" FORCE)
   INCLUDE(Dart)
   ENABLE_TESTING()
+  MARK_AS_ADVANCED(TCL_TCLSH)
 ENDIF(BUILD_TESTING)
 
 #-----------------------------------------------------------------------------
