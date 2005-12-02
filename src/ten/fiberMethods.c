@@ -91,7 +91,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
   tfx->fiberType = tenFiberTypeUnknown;
   tfx->intg = tenDefFiberIntg;
   tfx->anisoStopType = tenDefFiberAnisoStopType;
-  tfx->anisoSpeed = tenAnisoUnknown;
+  tfx->anisoSpeedType = tenAnisoUnknown;
   tfx->stop = 0;
   tfx->anisoThresh = tenDefFiberAnisoThresh;
   /* so I'm not using the normal default mechanism, shoot me */
