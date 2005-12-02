@@ -1,21 +1,22 @@
 ADD_LIBRARY(limn
- cam.c
- contour.c
- defaultsLimn.c
- enumsLimn.c
- envmap.c
- hestLimn.c
- io.c
- light.c
- methodsLimn.c
- obj.c
- qn.c
- renderLimn.c
- shapes.c
- splineEval.c
- splineMethods.c
- splineMisc.c
- transform.c
-)
+  defaultsLimn.c
+  qn.c
+  light.c
+  envmap.c
+  cam.c
+  methodsLimn.c
+  obj.c
+  transform.c
+  shapes.c
+  renderLimn.c
+  io.c
+  hestLimn.c
+  splineMisc.c
+  splineMethods.c
+  splineEval.c
+  enumsLimn.c
+  contour.c
+  polydata.c
+  )
 
 TARGET_LINK_LIBRARIES(limn ell nrrd biff hest air)
