@@ -167,7 +167,7 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
 /*
 ******** nrrdCCMax
 **
-** returns the highest cc id, or 0 if there were problems
+** returns the highest CC ID, or 0 if there were problems
 **
 ** does NOT use biff
 */
@@ -177,7 +177,7 @@ nrrdCCMax(const Nrrd *nin) {
   size_t I, NN;
 
   if (!nrrdCCValid(nin)) {
-    return -1;
+    return 0;
   }
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
@@ -189,6 +189,12 @@ nrrdCCMax(const Nrrd *nin) {
   return max;
 }
 
+/*
+******** nrrdCCNum
+**
+** returns the number of connected components (the # of CC IDs assigned)
+** a return of 0 indicates an error
+*/
 unsigned int
 nrrdCCNum(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), num;
@@ -196,18 +202,14 @@ nrrdCCNum(const Nrrd *nin) {
   unsigned char *hist;
   
   if (!nrrdCCValid(nin)) {
-    return -1;
+    return 0;
   }
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = nrrdCCMax(nin);
   hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
   if (!hist) {
-    /* is there any precedent in Teem for doing like this?  GLK recalls
-       something in the shmalloc/shdetach API like this, but doesn't know
-       if its a good idea for Teem.  The point is to break things that use
-       this return value, while avoiding use of Biff */
-    return AIR_CAST(unsigned int, -1);
+    return 0;
   }
   for (I=0; I<NN; I++) {
     hist[lup(nin->data, I)] = 1;
