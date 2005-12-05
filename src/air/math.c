@@ -203,29 +203,6 @@ airCbrt(double v) {
 }
 
 double
-airErf(double x) {
-  /* 
-   * When I was a Cornell undergrad (sophomore year, 1992), I was
-   * interested in a programming job in the Astronomy department.  The
-   * job posting said I should talk to Saul Teukolsky, one of the
-   * Numerical Recipes authors.  The first thing he asked was "What's
-   * your GPA?".  I was confused.  If programming ability is the real
-   * question at hand, this was about as sensible as asking "How much
-   * do you weigh?"  As soon as I admitted to getting a B+ in a
-   * previous physics class, he literally just waved me away and
-   * turned back to his computer.  
-   */
-  double t,z,ans;
-
-  z = AIR_ABS(x);
-  t = 1.0/(1.0+0.5*z);
-  ans=t*exp(-z*z-1.26551223+t*(1.00002368+t*(0.37409196+t*(0.09678418+
-            t*(-0.18628806+t*(0.27886807+t*(-1.13520398+t*(1.48851587+
-            t*(-0.82215223+t*0.17087277)))))))));
-  return (x >= 0.0 ? 1.0 - ans : ans - 1.0);
-}
-
-double
 airGaussian(double x, double mean, double stdv) {
   
   x = x - mean;
@@ -248,6 +225,49 @@ airGaussian(double x, double mean, double stdv) {
 ** zero as possible). The relative error of the total approximation
 ** may be greater.
 */
+
+double
+airErfc(double x) {
+  double ax, y, b;
+
+  ax = AIR_ABS(x);
+  if (ax < 0.9820789566638689) {
+    b = (0.9999999999995380997 + ax*(-1.0198241793287349401 + 
+        ax*(0.37030717279808919457 + ax*(-0.15987839763633308864 + 
+        ax*(0.12416682580357861661 + (-0.04829622197742573233 +
+        0.0066094852952188890901*ax)*ax)))))/
+        (1 + ax*(0.1085549876246959456 + ax*(0.49279836663925410323 + 
+        ax*(0.020058474597886988472 + ax*(0.10597158000597863862 + 
+        (-0.0012466514192679810876 + 0.0099475501252703646772*ax)*ax)))));
+  } else if (ax < 2.020104167011169) {
+    y = ax - 1;
+    b = (0.15729920705029613528 + y*(-0.37677358667097191131 + 
+        y*(0.3881956571123873123 + y*(-0.22055886537359936478 + 
+        y*(0.073002666454740425451 + (-0.013369369366972563804 +
+        0.0010602024397541548717*y)*y)))))/
+        (1 + y*(0.243700597525225235 + y*(0.47203101881562848941 + 
+        y*(0.080051054975943863026 + y*(0.083879049958465759886 + 
+        (0.0076905426306038205308 + 0.0058528196473365970129*y)*y)))));
+  } else {
+    y = 2/ax;
+    b = (-2.7460876468061399519e-14 + y*(0.28209479188874503125 + 
+        y*(0.54260398586720212019 + y*(0.68145162781305697748 + 
+        (0.44324741856237800393 + 0.13869182273440856508*y)*y))))/
+        (1 + y*(1.9234811027995435174 + y*(2.5406810534399069812 + 
+        y*(1.8117409273494093139 + (0.76205066033991530997 +
+        0.13794679143736608167*y)*y))));
+    b *= exp(-x*x);
+  }
+  if (x < 0) {
+    b = 2-b;
+  }
+  return b;
+}
+
+double
+airErf(double x) {
+  return 1.0 - airErfc(x);
+}
 
 /*
 ******** airBesselI0

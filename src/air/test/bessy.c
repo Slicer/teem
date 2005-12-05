@@ -43,5 +43,6 @@ main(int argc, char *argv[]) {
   printf("BesselI(1, %g) = %g\n", x, airBesselI1(x));
   printf("BesselI1By0(%g) = %g  ?=?  %g\n", x,
          airBesselI1By0(x), airBesselI1(x)/airBesselI0(x));
+  printf("erfc,erf(%g) = %g  %g\n", x, airErfc(x), airErf(x));
   exit(0);
 }

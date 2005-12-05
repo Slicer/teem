@@ -496,6 +496,7 @@ AIR_EXPORT double airCbrt(double);
 AIR_EXPORT double airSgnPow(double, double);
 AIR_EXPORT int airSgn(double);
 AIR_EXPORT int airLog2(double n);
+AIR_EXPORT double airErfc(double x);
 AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
 AIR_EXPORT double airBesselI0(double x);
