@@ -66,7 +66,8 @@ _gageCacheProbe(gageContext *ctx, gage_t *grad,
     cc[3*hi + 0] = x;
     cc[3*hi + 1] = y;
     cc[3*hi + 2] = z;
-    gageProbe(ctx, AIR_CAST(int, x), AIR_CAST(int, y), AIR_CAST(int, z));
+    gageProbe(ctx, AIR_CAST(gage_t, x), AIR_CAST(gage_t, y),
+              AIR_CAST(gage_t, z));
     ELL_3V_COPY(gc + 3*hi, grad);
   }
   return ;
