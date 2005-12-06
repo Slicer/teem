@@ -168,7 +168,8 @@ FOREACH(header_file
     nrrd/nrrdEnums.h
     push/push.h
     )
-  MESSAGE(STATUS "Copy header file: ${header_file}")
+  # When debugging, uncomment this line
+  #MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
   CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
     "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
