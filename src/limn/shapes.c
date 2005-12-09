@@ -104,16 +104,34 @@ limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
     theta = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
-      tmp = limnObjectVertexAdd(obj, partIdx, 1, -sin(theta), cos(theta));
-      limnObjectVertexAdd(obj, partIdx, -1, -sin(theta), cos(theta));
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                1,
+                                AIR_CAST(float, -sin(theta)),
+                                AIR_CAST(float, cos(theta)));
+      limnObjectVertexAdd(obj, partIdx,
+                          -1,
+                          AIR_CAST(float, -sin(theta)),
+                          AIR_CAST(float, cos(theta)));
       break;
     case 1:
-      tmp = limnObjectVertexAdd(obj, partIdx, sin(theta), 1, cos(theta));
-      limnObjectVertexAdd(obj, partIdx, sin(theta), -1, cos(theta));
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                AIR_CAST(float, sin(theta)),
+                                1,
+                                AIR_CAST(float, cos(theta)));
+      limnObjectVertexAdd(obj, partIdx,
+                          AIR_CAST(float, sin(theta)),
+                          -1,
+                          AIR_CAST(float, cos(theta)));
       break;
     case 2: default:
-      tmp = limnObjectVertexAdd(obj, partIdx, cos(theta), sin(theta), 1);
-      limnObjectVertexAdd(obj, partIdx, cos(theta), sin(theta), -1);
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                AIR_CAST(float, cos(theta)),
+                                AIR_CAST(float, sin(theta)),
+                                1);
+      limnObjectVertexAdd(obj, partIdx,
+                          AIR_CAST(float, cos(theta)),
+                          AIR_CAST(float, sin(theta)),
+                          -1);
       break;
     }
     if (!ii) {
@@ -158,13 +176,22 @@ limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
     th = AIR_AFFINE(0, ii, res, 0, 2*AIR_PI);
     switch(axis) {
     case 0:
-      tmp = limnObjectVertexAdd(obj, partIdx, 0, -sin(th), cos(th));
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                0,
+                                AIR_CAST(float, -sin(th)),
+                                AIR_CAST(float, cos(th)));
       break;
     case 1:
-      tmp = limnObjectVertexAdd(obj, partIdx, sin(th), 0, cos(th));
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                AIR_CAST(float, sin(th)),
+                                0,
+                                AIR_CAST(float, cos(th)));
       break;
     case 2: default:
-      tmp = limnObjectVertexAdd(obj, partIdx, cos(th), sin(th), 0);
+      tmp = limnObjectVertexAdd(obj, partIdx,
+                                AIR_CAST(float, cos(th)),
+                                AIR_CAST(float, sin(th)),
+                                0);
       break;
     }
     if (!ii) {
@@ -201,7 +228,7 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
                          unsigned int axis, unsigned int thetaRes,
                          unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
-  float t, p;
+  double t, p;
   
   thetaRes = AIR_MAX(thetaRes, 3);
   phiRes = AIR_MAX(phiRes, 2);
@@ -228,15 +255,21 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
       switch(axis) {
       case 0:
         limnObjectVertexAdd(obj, partIdx,
-                            cos(p), -sin(t)*sin(p), cos(t)*sin(p));
+                            AIR_CAST(float, cos(p)),
+                            AIR_CAST(float, -sin(t)*sin(p)),
+                            AIR_CAST(float, cos(t)*sin(p)));
         break;
       case 1:
         limnObjectVertexAdd(obj, partIdx,
-                            sin(t)*sin(p), cos(p), cos(t)*sin(p));
+                            AIR_CAST(float, sin(t)*sin(p)),
+                            AIR_CAST(float, cos(p)),
+                            AIR_CAST(float, cos(t)*sin(p)));
         break;
       case 2: default:
         limnObjectVertexAdd(obj, partIdx,
-                            cos(t)*sin(p), sin(t)*sin(p), cos(p));
+                            AIR_CAST(float, cos(t)*sin(p)),
+                            AIR_CAST(float, sin(t)*sin(p)),
+                            AIR_CAST(float, cos(p)));
         break;
       }
     }
@@ -306,19 +339,19 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
       t = AIR_AFFINE(0, ti, thetaRes, 0, 2*AIR_PI);
       switch(axis) {
       case 0:
-        x = airSgnPow(cos(p),B);
-        y = -airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
-        z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
+        x = AIR_CAST(float, airSgnPow(cos(p),B));
+        y = AIR_CAST(float, -airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
+        z = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
         break;
       case 1:
-        x = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
-        y = airSgnPow(cos(p),B);
-        z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
+        x = AIR_CAST(float, airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
+        y = AIR_CAST(float, airSgnPow(cos(p),B));
+        z = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
         break;
       case 2: default:
-        x = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
-        y = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
-        z = airSgnPow(cos(p),B);
+        x = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
+        y = AIR_CAST(float, airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
+        z = AIR_CAST(float, airSgnPow(cos(p),B));
         break;
       }
       limnObjectVertexAdd(obj, partIdx, x, y, z);

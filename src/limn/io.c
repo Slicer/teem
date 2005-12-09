@@ -217,9 +217,13 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       /* we could also parse an RGB color */
       if (-1 == lastLook || !ELL_3V_EQUAL(lastRGB, vert+3)) {
         lookIdx = limnObjectLookAdd(obj);
-        ELL_4V_SET(obj->look[lookIdx].rgba, vert[3], vert[4], vert[5], 1);
+        ELL_4V_SET(obj->look[lookIdx].rgba,
+                   AIR_CAST(float, vert[3]),
+                   AIR_CAST(float, vert[4]),
+                   AIR_CAST(float, vert[5]),
+                   1);
         lastLook = lookIdx;
-        ELL_3V_COPY(lastRGB, vert+3);
+        ELL_3V_COPY_T(lastRGB, float, vert+3);
       } else {
         lookIdx = lastLook;
       }
@@ -230,7 +234,10 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
     fprintf(stderr, "line %d: vertGot = %d; lookIdx = %d; partIdx = %d\n",
             lineCount, vertGot, lookIdx, partIdx);
     */
-    limnObjectVertexAdd(obj, partIdx, vert[0], vert[1], vert[2]);
+    limnObjectVertexAdd(obj, partIdx,
+                        AIR_CAST(float, vert[0]),
+                        AIR_CAST(float, vert[1]),
+                        AIR_CAST(float, vert[2]));
     vertGot++;
   }
   /* read face information */

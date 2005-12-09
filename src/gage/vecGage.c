@@ -176,11 +176,12 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLength)) {
-    pvl->directAnswer[gageVecLength][0] = ELL_3V_LEN(vecAns);
+    pvl->directAnswer[gageVecLength][0] = AIR_CAST(gage_t, ELL_3V_LEN(vecAns));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNormalized)) {
     if (pvl->directAnswer[gageVecLength][0]) {
-      ELL_3V_SCALE(normAns, 1.0/pvl->directAnswer[gageVecLength][0], vecAns);
+      ELL_3V_SCALE_T(normAns, gage_t,
+                     1.0/pvl->directAnswer[gageVecLength][0], vecAns);
     } else {
       ELL_3V_COPY(normAns, gageZeroNormal);
     }
@@ -213,16 +214,16 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurlNorm)) {
     pvl->directAnswer[gageVecCurlNorm][0] =
-        ELL_3V_LEN( curlAns );  
+      AIR_CAST(gage_t, ELL_3V_LEN(curlAns));  
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelicity)) {
     pvl->directAnswer[gageVecHelicity][0] = 
-        ELL_3V_DOT(vecAns, curlAns);
+      ELL_3V_DOT(vecAns, curlAns);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNormHelicity)) {
     cmag = ELL_3V_LEN(curlAns);
     pvl->directAnswer[gageVecNormHelicity][0] = 
-        cmag ? ELL_3V_DOT(normAns, curlAns)/cmag : 0;
+      AIR_CAST(gage_t, cmag ? ELL_3V_DOT(normAns, curlAns)/cmag : 0);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
       ELL_3M_TRANSPOSE(tran, jacAns);
@@ -239,11 +240,11 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_ADD2(symm, symm, tmpMat);
       /* get eigenvalues in sorted order */
       /* asw = */ ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
-      pvl->directAnswer[gageVecLambda2][0] = eval[1];
+      pvl->directAnswer[gageVecLambda2][0] = AIR_CAST(gage_t, eval[1]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
       pvl->directAnswer[gageVecImaginaryPart][0] =
-          gage_imaginary_part_eigenvalues( jacAns ); 
+        AIR_CAST(gage_t, gage_imaginary_part_eigenvalues(jacAns)); 
   }
   /* 2nd order vector derivative continued */ 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHessian)) {
@@ -284,24 +285,24 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       tmpVec[1] = hesAns[ 6] - hesAns[18];
       tmpVec[2] = hesAns[ 9] - hesAns[ 3];      
       pvl->directAnswer[gageVecCurlNormGrad][0]=
-          norm*ELL_3V_DOT(tmpVec, curlAns);
+        AIR_CAST(gage_t, norm*ELL_3V_DOT(tmpVec, curlAns));
 
       tmpVec[0] = hesAns[22] - hesAns[16];
       tmpVec[1] = hesAns[ 7] - hesAns[19];
       tmpVec[2] = hesAns[10] - hesAns[ 4];      
       pvl->directAnswer[gageVecCurlNormGrad][1]=
-          norm*ELL_3V_DOT(tmpVec, curlAns);
+        AIR_CAST(gage_t, norm*ELL_3V_DOT(tmpVec, curlAns));
 
       tmpVec[0] = hesAns[23] - hesAns[17];
       tmpVec[1] = hesAns[ 8] - hesAns[20];
       tmpVec[2] = hesAns[11] - hesAns[ 5];      
       pvl->directAnswer[gageVecCurlNormGrad][2]=
-          norm*ELL_3V_DOT(tmpVec, curlAns);      
+        AIR_CAST(gage_t,  norm*ELL_3V_DOT(tmpVec, curlAns));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNCurlNormGrad)) {
       norm = 1./ELL_3V_LEN(curlnormgradAns);
-      ELL_3V_SCALE(pvl->directAnswer[gageVecNCurlNormGrad],
-                   norm, pvl->directAnswer[gageVecCurlNormGrad]);
+      ELL_3V_SCALE_T(pvl->directAnswer[gageVecNCurlNormGrad], gage_t,
+                     norm, pvl->directAnswer[gageVecCurlNormGrad]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelGradient)) {
       pvl->directAnswer[gageVecHelGradient][0] = 
@@ -370,16 +371,16 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGFrob)) {
     pvl->directAnswer[gageVecMGFrob][0] 
-      = ELL_3M_FROB(pvl->directAnswer[gageVecMultiGrad]);
+      = AIR_CAST(gage_t, ELL_3M_FROB(pvl->directAnswer[gageVecMultiGrad]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEval)) {
     ELL_3M_COPY(tmpMat, pvl->directAnswer[gageVecMultiGrad]);
     /* HEY: look at the return value for root multiplicity? */
     ell_3m_eigensolve_d(mgeval, mgevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY(pvl->directAnswer[gageVecMGEval], mgeval);
+    ELL_3V_COPY_T(pvl->directAnswer[gageVecMGEval], gage_t, mgeval);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEvec)) {
-    ELL_3M_COPY(pvl->directAnswer[gageVecMGEvec], mgevec);
+    ELL_3M_COPY_T(pvl->directAnswer[gageVecMGEvec], gage_t, mgevec);
   }
 
   return;

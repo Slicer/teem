@@ -68,14 +68,17 @@ baneProbe(double val[3],
              + 3*(x + nin->axis[0].size*(y + nin->axis[1].size*z)) );
   }
   if (!hvp->makeMeasrVol || !hvp->measrVolDone) {
-    gageProbe(ctx, x, y, z);
+    gageProbe(ctx,
+              AIR_CAST(gage_t, x),
+              AIR_CAST(gage_t, y),
+              AIR_CAST(gage_t, z));
     val[0] = baneMeasrAnswer(hvp->axis[0].measr, ctx);
     val[1] = baneMeasrAnswer(hvp->axis[1].measr, ctx);
     val[2] = baneMeasrAnswer(hvp->axis[2].measr, ctx);
     if (hvp->makeMeasrVol) {
-      data[0] = val[0];
-      data[1] = val[1];
-      data[2] = val[2];
+      data[0] = AIR_CAST(float, val[0]);
+      data[1] = AIR_CAST(float, val[1]);
+      data[2] = AIR_CAST(float, val[2]);
     }
   } else {
     val[0] = data[0];
@@ -294,13 +297,13 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   pvl = gagePerVolumeNew(ctx, nin, gageKindScl);
   gageParmSet(ctx, gageParmVerbose, 0);
-  gageParmSet(ctx, gageParmRenormalize, hvp->renormalize);
+  gageParmSet(ctx, gageParmRenormalize, AIR_CAST(gage_t, hvp->renormalize));
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
     sprintf(err, "%s: code currently assumes k3pack", me);
     biffAdd(BANE, err); airMopError(mop); return 1;
   }
-  gageParmSet(ctx, gageParmK3Pack, hvp->k3pack);
+  gageParmSet(ctx, gageParmK3Pack, AIR_CAST(gage_t, hvp->k3pack));
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],

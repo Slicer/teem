@@ -189,9 +189,9 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
       continue;
     }
     if (pos[i] < newsml) {
-      pos[i] = AIR_AFFINE(min, pos[i], newsml, newmin, 0.0);
+      pos[i] = AIR_CAST(float, AIR_AFFINE(min, pos[i], newsml, newmin, 0.0));
     } else {
-      pos[i] = AIR_AFFINE(newsml, pos[i], max, 0.0, newmax);
+      pos[i] = AIR_CAST(float, AIR_AFFINE(newsml, pos[i], max, 0.0, newmax));
     }
   }
   range = nrrdRangeNew(newmin, newmax);

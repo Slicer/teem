@@ -118,7 +118,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
     bef = (float *)((*nrrdP)->data);
-    off = AIR_AFFINE(0.0, shape, 1.0, 0.0, width/2);
+    off = AIR_CAST(float, AIR_AFFINE(0.0, shape, 1.0, 0.0, width/2));
     /* positions */
     bef[0 + 2*0] = cent - 2*width;
     bef[0 + 2*1] = cent - width/2 - off;
@@ -126,9 +126,9 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     bef[0 + 2*3] = cent + width/2 - off;
     bef[0 + 2*4] = cent + width/2 + off;
     bef[0 + 2*5] = cent + 2*width;
-    if (bef[0 + 2*1] == bef[0 + 2*2]) bef[0 + 2*1] -= 0.001;
-    if (bef[0 + 2*2] == bef[0 + 2*3]) bef[0 + 2*2] -= 0.001;
-    if (bef[0 + 2*3] == bef[0 + 2*4]) bef[0 + 2*4] += 0.001;
+    if (bef[0 + 2*1] == bef[0 + 2*2]) bef[0 + 2*1] -= 0.001f;
+    if (bef[0 + 2*2] == bef[0 + 2*3]) bef[0 + 2*2] -= 0.001f;
+    if (bef[0 + 2*3] == bef[0 + 2*4]) bef[0 + 2*4] += 0.001f;
     /* opacities */
     bef[1 + 2*0] = 0.0;
     bef[1 + 2*1] = 0.0;

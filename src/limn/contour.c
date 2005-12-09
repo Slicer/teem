@@ -775,12 +775,14 @@ limnContour3DExtract(limnContour3DContext *lctx,
             ELL_4V_HOMOG(tvertB, tvertB);
             ovi = lctx->vidx[vidx[ei] + 5*si] =
               limnObjectVertexAdd(cont, partIdx,
-                                  tvertB[0], tvertB[1], tvertB[2]);
+                                  AIR_CAST(float, tvertB[0]),
+                                  AIR_CAST(float, tvertB[1]),
+                                  AIR_CAST(float, tvertB[2]));
             if (lctx->findNormals) {
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
               ELL_3MV_MUL(tvec, lctx->normalTransform, grad);
               vtx = cont->vert + ovi;
-              ELL_3V_NORM(vtx->worldNormal, tvec, tlen);
+              ELL_3V_NORM_T(vtx->worldNormal, float, tvec, tlen);
             }
             lctx->vertNum++;
             /*

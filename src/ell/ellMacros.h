@@ -169,6 +169,11 @@ extern "C" {
    (v2)[1] = (a)*(v1)[1],       \
    (v2)[2] = (a)*(v1)[2])
 
+#define ELL_3V_SCALE_T(v2, TT, a, v1)   \
+  ((v2)[0] = AIR_CAST(TT, (a)*(v1)[0]), \
+   (v2)[1] = AIR_CAST(TT, (a)*(v1)[1]), \
+   (v2)[2] = AIR_CAST(TT, (a)*(v1)[2]))
+
 #define ELL_3V_SCALE_INCR(v2, s0, v0) \
   ((v2)[0] += (s0)*(v0)[0], \
    (v2)[1] += (s0)*(v0)[1], \
@@ -217,6 +222,10 @@ extern "C" {
 
 #define ELL_3V_NORM(v2, v1, length) \
   (length = ELL_3V_LEN(v1), ELL_3V_SCALE(v2, 1.0/length, v1))
+
+#define ELL_3V_NORM_T(v2, TT, v1, length) \
+  (length = AIR_CAST(TT, ELL_3V_LEN(v1)), \
+   ELL_3V_SCALE_T(v2, TT, 1.0/length, v1))
 
 #define ELL_3V_CROSS(v3, v1, v2) \
   ((v3)[0] = (v1)[1]*(v2)[2] - (v1)[2]*(v2)[1], \
@@ -666,6 +675,16 @@ extern "C" {
    (v2)[2]=(m)[ 8]*(v1)[0]+(m)[ 9]*(v1)[1]+(m)[10]*(v1)[2]+(m)[11]*(v1)[3], \
    (v2)[3]=(m)[12]*(v1)[0]+(m)[13]*(v1)[1]+(m)[14]*(v1)[2]+(m)[15]*(v1)[3])
 
+#define ELL_4MV_MUL_T(v2, TT, m, v1)                        \
+  ((v2)[0]=AIR_CAST(TT, ((m)[ 0]*(v1)[0]+(m)[ 1]*(v1)[1]    \
+                        +(m)[ 2]*(v1)[2]+(m)[ 3]*(v1)[3])), \
+   (v2)[1]=AIR_CAST(TT, ((m)[ 4]*(v1)[0]+(m)[ 5]*(v1)[1]    \
+                        +(m)[ 6]*(v1)[2]+(m)[ 7]*(v1)[3])), \
+   (v2)[2]=AIR_CAST(TT, ((m)[ 8]*(v1)[0]+(m)[ 9]*(v1)[1]    \
+                        +(m)[10]*(v1)[2]+(m)[11]*(v1)[3])), \
+   (v2)[3]=AIR_CAST(TT, ((m)[12]*(v1)[0]+(m)[13]*(v1)[1]    \
+                        +(m)[14]*(v1)[2]+(m)[15]*(v1)[3])))
+   
 #define ELL_4MV_TMUL(v2, m, v1)                                             \
   ((v2)[0]=(m)[ 0]*(v1)[0]+(m)[ 4]*(v1)[1]+(m)[ 8]*(v1)[2]+(m)[12]*(v1)[3], \
    (v2)[1]=(m)[ 1]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 9]*(v1)[2]+(m)[13]*(v1)[3], \

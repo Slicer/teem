@@ -230,7 +230,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   /* This is after the typo report by Fernando Vega Higuera;
      the previous version of the code had a bug caused by
      mindless transcription of the erroneous equation 5.8 */
-  *sP = 2*maxg/(sqrt(AIR_E)*(maxh - minh));
+  *sP = AIR_CAST(float, 2*maxg/(sqrt(AIR_E)*(maxh - minh)));
 
   return 0;
 }
@@ -318,7 +318,8 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     pos->axis[1].max = info->axis[2].max;
     posData = (float *)pos->data;
     for (gi=0; gi<sg; gi++) {
-      g = AIR_AFFINE(0, gi, sg-1, info->axis[2].min, info->axis[2].max);
+      g = AIR_CAST(float, AIR_AFFINE(0, gi, sg-1, 
+                                     info->axis[2].min, info->axis[2].max));
       for (vi=0; vi<sv; vi++) {
         h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
         /* from pg. 61 of GK's MS */
@@ -360,8 +361,8 @@ _baneOpacCalcA(unsigned int lutLen, float *opacLut,
     for (j=1; j<numCpts; j++)
       if (p < xo[0 + 2*j])
         break;
-    opacLut[i] = AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j], 
-                            xo[1 + 2*(j-1)], xo[1 + 2*j]);
+    opacLut[i] = AIR_CAST(float, AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j], 
+                                            xo[1 + 2*(j-1)], xo[1 + 2*j]));
   }
   /*
   for (i=0; i<numCpts; i++)
@@ -377,7 +378,7 @@ _baneOpacCalcB(unsigned int lutLen, float *opacLut,
                float *pos) {
   /* char me[]="_baneOpacCalcB"; */
   unsigned int i, j;
-  float p, op;
+  double p, op;
 
   /*
   printf("%s(%d, %lu, %d, %lu, %lu, %lu): hello\n", me, lutLen,
@@ -413,7 +414,7 @@ _baneOpacCalcB(unsigned int lutLen, float *opacLut,
         break;
     op = AIR_AFFINE(x[j-1], p, x[j], o[j-1], o[j]);
   endloop:
-    opacLut[i] = op;
+    opacLut[i] = AIR_CAST(float, op);
     /* 
     printf("opac[%d] = %g\n", i, op);
     */

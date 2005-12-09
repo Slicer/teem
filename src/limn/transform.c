@@ -36,10 +36,10 @@ limnObjectWorldHomog(limnObject *obj) {
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    h = 1.0/vert->world[3];
+    h = AIR_CAST(float, 1.0/vert->world[3]);
     ELL_3V_SCALE(vert->world, h, vert->world);
     vert->world[3] = 1.0;
-    ELL_3V_NORM(vert->worldNormal, vert->worldNormal, h);
+    ELL_3V_NORM_T(vert->worldNormal, float, vert->worldNormal, h);
   }
   
   return 0;
@@ -82,7 +82,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
     }
 
     if (limnSpaceWorld == space) {
-      ELL_3V_NORM(face->worldNormal, nn, norm);
+      ELL_3V_NORM_T(face->worldNormal, float, nn, norm);
       /*
       printf("%s: worldNormal[%d] = %g %g %g\n", me, faceIdx,
              face->worldNormal[0], face->worldNormal[1],
@@ -90,7 +90,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
       */
     }
     else {
-      ELL_3V_NORM(face->screenNormal, nn, norm);
+      ELL_3V_NORM_T(face->screenNormal, float, nn, norm);
       /*
       printf("%s: sn[%d] = %g %g %g\n", me, faceIdx,
              f->sn[0], f->sn[1], f->sn[2]);
@@ -122,7 +122,7 @@ limnObjectVertexNormals(limnObject *obj) {
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    ELL_3V_NORM(vert->worldNormal, vert->worldNormal, norm);
+    ELL_3V_NORM_T(vert->worldNormal, float, vert->worldNormal, norm);
   }
   return 0;
 }
@@ -135,8 +135,8 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
 
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    ELL_4MV_MUL(vert->coord, cam->W2V, vert->world);
-    d = 1.0/vert->world[3];
+    ELL_4MV_MUL_T(vert->coord, float, cam->W2V, vert->world);
+    d = AIR_CAST(float, 1.0/vert->world[3]);
     ELL_4V_SCALE(vert->coord, d, vert->coord);
     /*
     printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n", 
@@ -164,8 +164,8 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     d = (cam->orthographic 
-         ? 1
-         : cam->vspDist/vert->coord[2]);
+         ? 1.0f
+         : AIR_CAST(float, cam->vspDist/vert->coord[2]));
     vert->coord[0] *= d;
     vert->coord[1] *= d;
     /* coord[2] unchanged */
@@ -193,19 +193,19 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
     biffAdd(LIMN, err); return 1;
   }
   wx0 = 0;
-  wx1 = (cam->uRange[1] - cam->uRange[0])*win->scale;
+  wx1 = AIR_CAST(float, (cam->uRange[1] - cam->uRange[0])*win->scale);
   wy0 = 0;
-  wy1 = (cam->vRange[1] - cam->vRange[0])*win->scale;
+  wy1 = AIR_CAST(float, (cam->vRange[1] - cam->vRange[0])*win->scale);
   ELL_4V_SET(win->bbox, wx0, wy0, wx1, wy1);
   if (win->yFlip) {
     ELL_SWAP2(wy0, wy1, t);
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    vert->coord[0] = AIR_AFFINE(cam->uRange[0], vert->coord[0],
-                                cam->uRange[1], wx0, wx1);
-    vert->coord[1] = AIR_AFFINE(cam->vRange[0], vert->coord[1],
-                                cam->vRange[1], wy0, wy1);
+    vert->coord[0] = AIR_CAST(float, AIR_AFFINE(cam->uRange[0], vert->coord[0],
+                                                cam->uRange[1], wx0, wx1));
+    vert->coord[1] = AIR_CAST(float, AIR_AFFINE(cam->vRange[0], vert->coord[1],
+                                                cam->vRange[1], wy0, wy1));
     /* coord[2] unchanged */
     /*
     printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjectDTransform",

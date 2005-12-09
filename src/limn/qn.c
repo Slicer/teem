@@ -44,13 +44,13 @@ _limnQN16simple_QNtoV_f(float *vec, int qn) {
     xi = 127 - xi;
     yi = 127 - yi;
   }
-  x = xi/126.0;
-  y = yi/126.0;
-  z = 1.0 - x - y;
+  x = xi/126.0f;
+  y = yi/126.0f;
+  z = 1.0f - x - y;
   x = (qn & 0x2000) ? -x : x;
   y = (qn & 0x4000) ? -y : y;
   z = (qn & 0x8000) ? -z : z;
-  n = 1.0/sqrt(x*x + y*y + z*z);
+  n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
   vec[0] = x*n;
   vec[1] = y*n;
   vec[2] = z*n;
@@ -81,7 +81,7 @@ _limnQN16simple_VtoQN_f(float *vec) {
   if (!L) {
     return 0;
   }
-  w = 126.0/L;
+  w = 126.0f/L;
   xi = (int)(x*w);
   yi = (int)(y*w);
   if (xi >= 64) {
@@ -100,13 +100,13 @@ _limnQN16border1_QNtoV_f(float *vec, int qn) {
   
   ui = qn & 0xFF;
   vi = qn >> 8;
-  u = AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5);
-  v = AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5);
+  u = AIR_CAST(float, AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5));
+  v = AIR_CAST(float, AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5));
   x =  u + v;
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   z *= (((ui ^ vi) & 0x01) << 1) - 1;
-  n = 1.0/sqrt(x*x + y*y + z*z);
+  n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
   vec[0] = x*n; 
   vec[1] = y*n; 
   vec[2] = z*n;
@@ -165,7 +165,7 @@ _limnQN16border1_VtoQN_f(float *vec) {
 /* May 11 2003 GK (visually) verified that except at equator seam,
    the error due to quantization is unbiased */
 
-#define _EVEN_CHECK_QtoV(HNB, vec, qn) \
+#define _EVEN_CHECK_QtoV(HNB, TT, vec, qn) \
   ui = (qn) & ((1<<HNB)-1); \
   vi = ((qn) >> HNB) & ((1<<HNB)-1); \
   u = AIR_AFFINE(0, ui, ((1<<HNB)-1), -0.5, 0.5); \
@@ -176,9 +176,9 @@ _limnQN16border1_VtoQN_f(float *vec) {
   /* would this be better served by a branch? */ \
   z *= (((ui ^ vi) & 0x01) << 1) - 1; \
   n = 1.0/sqrt(x*x + y*y + z*z); \
-  (vec)[0] = x*n; \
-  (vec)[1] = y*n; \
-  (vec)[2] = z*n
+  (vec)[0] = AIR_CAST(TT, x*n); \
+  (vec)[1] = AIR_CAST(TT, y*n); \
+  (vec)[2] = AIR_CAST(TT, z*n)
 
 #define _EVEN_CHECK_VtoQ(HNB, vec) \
   x = (vec)[0]; \
@@ -206,7 +206,7 @@ _limnQN16border1_VtoQN_f(float *vec) {
   } \
   return (vi << HNB) | ui
 
-#define _EVEN_OCTA_QtoV(HNB, vec, qn) \
+#define _EVEN_OCTA_QtoV(HNB, TT, vec, qn) \
   xi = (qn) & ((1<<HNB)-1); \
   yi = ((qn) >> HNB) & ((1<<HNB)-1); \
   x = AIR_AFFINE(-0.5, xi, ((1<<HNB)-1)+0.5, -1, 1); \
@@ -225,9 +225,9 @@ _limnQN16border1_VtoQN_f(float *vec) {
     } \
   } \
   n = 1.0/sqrt(x*x + y*y + z*z); \
-  (vec)[0] = x*n; \
-  (vec)[1] = y*n; \
-  (vec)[2] = z*n
+  (vec)[0] = AIR_CAST(TT, x*n); \
+  (vec)[1] = AIR_CAST(TT, y*n); \
+  (vec)[2] = AIR_CAST(TT, z*n)
 
 #define _EVEN_OCTA_VtoQ(HNB, vec) \
   x = (vec)[0]; \
@@ -300,7 +300,7 @@ _limnQN16checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(8, vec, qn);
+  _EVEN_CHECK_QtoV(8, float, vec, qn);
 }
 
 void
@@ -308,7 +308,7 @@ _limnQN16checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(8, vec, qn);
+  _EVEN_CHECK_QtoV(8, double, vec, qn);
 }
 
 int
@@ -334,7 +334,7 @@ _limnQN16octa_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(8, vec, qn);
+  _EVEN_OCTA_QtoV(8, float, vec, qn);
 }
 
 void
@@ -342,7 +342,7 @@ _limnQN16octa_QNtoV_d(double *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(8, vec, qn);
+  _EVEN_OCTA_QtoV(8, double, vec, qn);
 }
 
 int
@@ -365,7 +365,7 @@ _limnQN16octa_VtoQN_d(double *vec) {
 
 /* 15 bit --> HNB == 7 */
 
-#define _ODD_OCTA_QtoV(HNB, vec, qn) \
+#define _ODD_OCTA_QtoV(HNB, TT, vec, qn) \
   ui = qn & ((1<<HNB)-1); \
   vi = (qn >> HNB) & ((1<<HNB)-1); \
   zi = (qn >> (2*HNB)) & 0x01; \
@@ -376,9 +376,9 @@ _limnQN16octa_VtoQN_d(double *vec) {
   z = 1 - AIR_ABS(x) - AIR_ABS(y); \
   z *= (zi << 1) - 1; \
   n = 1.0/sqrt(x*x + y*y + z*z); \
-  vec[0] = x*n; \
-  vec[1] = y*n; \
-  vec[2] = z*n
+  vec[0] = AIR_CAST(TT, x*n); \
+  vec[1] = AIR_CAST(TT, y*n); \
+  vec[2] = AIR_CAST(TT, z*n)
 
 #define _ODD_OCTA_VtoQ(HNB, vec) \
   x = vec[0]; \
@@ -403,7 +403,7 @@ _limnQN15octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(7, vec, qn);
+  _ODD_OCTA_QtoV(7, float, vec, qn);
 }
 
 void
@@ -411,7 +411,7 @@ _limnQN15octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(7, vec, qn);
+  _ODD_OCTA_QtoV(7, double, vec, qn);
 }
 
 int
@@ -437,7 +437,7 @@ _limnQN14checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(7, vec, qn);
+  _EVEN_CHECK_QtoV(7, float, vec, qn);
 }
 
 void
@@ -445,7 +445,7 @@ _limnQN14checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(7, vec, qn);
+  _EVEN_CHECK_QtoV(7, double, vec, qn);
 }
 
 int
@@ -471,7 +471,7 @@ _limnQN14octa_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(7, vec, qn);
+  _EVEN_OCTA_QtoV(7, float, vec, qn);
 }
 
 void
@@ -479,7 +479,7 @@ _limnQN14octa_QNtoV_d(double *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(7, vec, qn);
+  _EVEN_OCTA_QtoV(7, double, vec, qn);
 }
 
 int
@@ -505,7 +505,7 @@ _limnQN13octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(6, vec, qn);
+  _ODD_OCTA_QtoV(6, float, vec, qn);
 }
 
 void
@@ -513,7 +513,7 @@ _limnQN13octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(6, vec, qn);
+  _ODD_OCTA_QtoV(6, double, vec, qn);
 }
 
 int
@@ -539,7 +539,7 @@ _limnQN12checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(6, vec, qn);
+  _EVEN_CHECK_QtoV(6, float, vec, qn);
 }
 
 void
@@ -547,7 +547,7 @@ _limnQN12checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(6, vec, qn);
+  _EVEN_CHECK_QtoV(6, double, vec, qn);
 }
 
 int
@@ -573,7 +573,7 @@ _limnQN12octa_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(6, vec, qn);
+  _EVEN_OCTA_QtoV(6, float, vec, qn);
 }
 
 void
@@ -581,7 +581,7 @@ _limnQN12octa_QNtoV_d(double *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(6, vec, qn);
+  _EVEN_OCTA_QtoV(6, double, vec, qn);
 }
 
 int
@@ -607,7 +607,7 @@ _limnQN11octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(5, vec, qn);
+  _ODD_OCTA_QtoV(5, float, vec, qn);
 }
 
 void
@@ -615,7 +615,7 @@ _limnQN11octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(5, vec, qn);
+  _ODD_OCTA_QtoV(5, double, vec, qn);
 }
 
 int
@@ -641,7 +641,7 @@ _limnQN10checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(5, vec, qn);
+  _EVEN_CHECK_QtoV(5, float, vec, qn);
 }
 
 void
@@ -649,7 +649,7 @@ _limnQN10checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(5, vec, qn);
+  _EVEN_CHECK_QtoV(5, double, vec, qn);
 }
 
 int
@@ -675,7 +675,7 @@ _limnQN10octa_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(5, vec, qn);
+  _EVEN_OCTA_QtoV(5, float, vec, qn);
 }
 
 void
@@ -683,7 +683,7 @@ _limnQN10octa_QNtoV_d(double *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(5, vec, qn);
+  _EVEN_OCTA_QtoV(5, double, vec, qn);
 }
 
 int
@@ -708,7 +708,7 @@ _limnQN9octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(4, vec, qn);
+  _ODD_OCTA_QtoV(4, float, vec, qn);
 }
 
 void
@@ -716,7 +716,7 @@ _limnQN9octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
   
-  _ODD_OCTA_QtoV(4, vec, qn);
+  _ODD_OCTA_QtoV(4, double, vec, qn);
 }
 
 int
@@ -742,7 +742,7 @@ _limnQN8checker_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(4, vec, qn);
+  _EVEN_CHECK_QtoV(4, float, vec, qn);
 }
 
 void
@@ -750,7 +750,7 @@ _limnQN8checker_QNtoV_d(double *vec, int qn) {
   int ui, vi;
   double u, v, x, y, z, n;
 
-  _EVEN_CHECK_QtoV(4, vec, qn);
+  _EVEN_CHECK_QtoV(4, double, vec, qn);
 }
 
 int
@@ -776,7 +776,7 @@ _limnQN8octa_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(4, vec, qn);
+  _EVEN_OCTA_QtoV(4, float, vec, qn);
 }
 
 void
@@ -784,7 +784,7 @@ _limnQN8octa_QNtoV_d(double *vec, int qn) {
   int xi, yi;
   double x, y, z, n;
 
-  _EVEN_OCTA_QtoV(4, vec, qn);
+  _EVEN_OCTA_QtoV(4, double, vec, qn);
 }
 
 int
