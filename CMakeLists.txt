@@ -1,6 +1,6 @@
 # This is the root Teem CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
-PROJECT(TEEM)
+PROJECT(TEEM C)
 
 #-----------------------------------------------------------------------------
 # TEEM version number.  Must reflect the values in teem/src/air.h
@@ -20,8 +20,8 @@ INCLUDE (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
 # Output directories.
-SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
-SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+SET (LIBRARY_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+SET (EXECUTABLE_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
 #output directory for installing all include files.")
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(TEEM_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
@@ -168,8 +168,7 @@ FOREACH(header_file
     nrrd/nrrdEnums.h
     push/push.h
     )
-  # When debugging, uncomment this line
-  #MESSAGE(STATUS "Copy header file: ${header_file}")
+  MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
   CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
     "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
