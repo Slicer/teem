@@ -35,8 +35,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
                  int invert) {
   size_t sx=0, sy=0, ti, nt;
   int x, y, vi, *sdata;
-  float aspect, minX, minY, maxX, maxY, px, py, spx, spy,
-    conf, Dxx, Dxy, Dyy, *tdata, *pdata;
+  double aspect, minX, minY, maxX, maxY, conf, Dxx, Dxy, Dyy, px, py, spx, spy;
+  float *tdata, *pdata;
   
   if (npos) {
     nt = npos->axis[1].size;
@@ -51,7 +51,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
     sx = nten->axis[1].size;
     sy = nten->axis[2].size;
     nt = sx*sy;
-    aspect = (float)(sx*spx)/(sy*spy);
+    aspect = sx*spx/(sy*spy);
   }
 
   if (aspect > 7.5/10) {
@@ -80,8 +80,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   fprintf(file, "%%%%Title: blah blah blah\n");
   fprintf(file, "%%%%Pages: 1\n");
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
-          (int)floor(minX), (int)floor(minY),
-          (int)ceil(maxX), (int)ceil(maxY));
+          AIR_CAST(int, floor(minX)), AIR_CAST(int, floor(minY)),
+          AIR_CAST(int, ceil(maxX)), AIR_CAST(int, ceil(maxY)));
   fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
           minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");

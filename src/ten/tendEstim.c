@@ -44,12 +44,12 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
-  float thresh, soft, bval, scale, sigma;
+  float thresh, soft, scale, sigma;
   int dwiax, EE, knownB0, oldstuff, estmeth, verbose;
   unsigned int ninLen, axmap[4], wlsi;
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
-  double bKVP;
+  double bKVP, bval;
 
   tenEstimateContext *tec;
 
@@ -102,7 +102,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "specify the B-matrix.\n  **OR**\n "
              "Can say just \"-B kvp\" to try to learn B matrices from "
              "key/value pair information in input images.");
-  hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &bval, "1.0",
+  hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "1.0",
              "\"b\" diffusion-weighting factor");
   hestOptAdd(&hopt, "knownB0", "bool",
              airTypeBool, 1, 1, &knownB0, "false",

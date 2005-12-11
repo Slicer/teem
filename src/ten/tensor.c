@@ -128,7 +128,7 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
     TEN_T2M(tenMeasr, tdata);
     ell_3m_mul_d(tenWorld, MF, tenMeasr);
     ell_3m_mul_d(tenWorld, tenWorld, MFT);
-    TEN_M2T(tdata, tenWorld);
+    TEN_M2T_TT(tdata, float, tenWorld);
     tdata += 7;
   }
   for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
@@ -172,7 +172,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
       continue;
     }
     TEN_T2M(nine, seven);
-    ELL_3M_SCALE(nine, scale, nine);
+    ELL_3M_SCALE(nine, AIR_CAST(float, scale), nine);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL,
                        NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT)) {
@@ -241,7 +241,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   N = sx*sy*sz;
   for (I=0; I<N; I++) {
     TEN_M2T(seven, nine);
-    seven[0] = conf ? conf[I] : 1.0;
+    seven[0] = conf ? conf[I] : 1.0f;
     seven += 7;
     nine += 9;
   }
@@ -302,8 +302,8 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
       fprintf(stderr, "    % 31.15f\n", trc + eval[1]);
       fprintf(stderr, "    % 31.15f\n", trc + eval[2]);
     }
-    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
-    ELL_3M_COPY(_evec, evec);
+    ELL_3V_SET_TT(_eval, float, eval[0] + trc, eval[1] + trc, eval[2] + trc);
+    ELL_3M_COPY_TT(_evec, float, evec);
     if (ell_cubic_root_single_double == ret) {
       /* this was added to fix a stupid problem with very nearly
          isotropic glyphs, used for demonstration figures */
@@ -327,7 +327,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
   } else {
     /* caller only wants eigenvalues */
     ret = ell_3m_eigenvalues_d(eval, m, AIR_TRUE);
-    ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
+    ELL_3V_SET_TT(_eval, float, eval[0] + trc, eval[1] + trc, eval[2] + trc);
   }    
   return ret;
 }
@@ -412,7 +412,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
   ELL_3M_MUL(tmpMat1, diag, evec);
   ELL_3M_MUL(tmpMat2, evecT, tmpMat1);
   ten[0] = conf;
-  TEN_M2T(ten, tmpMat2);
+  TEN_M2T_TT(ten, float, tmpMat2);
   return;
 }
 

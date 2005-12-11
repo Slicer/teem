@@ -121,7 +121,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *hacknpng, *hacknrgb;
   NrrdRange *hackrange;
 
-  float v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
+  double v2w[9], ldir[3], edir[3], fdir[3], corn[3], len;
 
   /* so that command-line options can be read from file */
   hparm->respFileEnable = AIR_TRUE;
@@ -358,7 +358,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       ELL_34M_EXTRACT(v2w, cam->V2W);
       ELL_3MV_MUL(ldir, v2w, buvne+1);
-      ell_3v_perp_f(edir, ldir);
+      ell_3v_perp_d(edir, ldir);
       ELL_3V_NORM(edir, edir, len);
       ELL_3V_CROSS(fdir, ldir, edir);
       ELL_3V_NORM(fdir, fdir, len);
@@ -434,7 +434,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
           }
           ELL_34M_EXTRACT(v2w, cam->V2W);
           ELL_3MV_MUL(ldir, v2w, buvne+1);
-          ell_3v_perp_f(edir, ldir);
+          ell_3v_perp_d(edir, ldir);
           ELL_3V_NORM(edir, edir, len);
           ELL_3V_CROSS(fdir, ldir, edir);
           ELL_3V_NORM(fdir, fdir, len);

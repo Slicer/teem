@@ -117,7 +117,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageSclHessEval][2] = AIR_CAST(gage_t, heval[2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
-    ELL_3M_COPY_T(pvl->directAnswer[gageSclHessEvec], gage_t, hevec);
+    ELL_3M_COPY_TT(pvl->directAnswer[gageSclHessEvec], gage_t, hevec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageScl2ndDD)) {
     ELL_3MV_MUL(tmpVec, hess, norm);
@@ -131,8 +131,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
       
       /* gten = nPerp * sHess * nPerp */
-      ELL_3M_MUL_T(tmpMat, gage_t, sHess, nPerp);
-      ELL_3M_MUL_T(gten, gage_t, nPerp, tmpMat);
+      ELL_3M_MUL_TT(tmpMat, gage_t, sHess, nPerp);
+      ELL_3M_MUL_TT(gten, gage_t, nPerp, tmpMat);
 
       if (ctx->verbose) {
         fprintf(stderr, "%s: gten: \n", me);
@@ -198,7 +198,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY_T(pvl->directAnswer[gageSclCurvDir1], gage_t, tmpVec);
+    ELL_3V_COPY_TT(pvl->directAnswer[gageSclCurvDir1], gage_t, tmpVec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir2)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
@@ -207,7 +207,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(tmpMat, gten);
     ELL_3M_DIAG_SET(tmpMat, gten[0] - *k2, gten[4] - *k2, gten[8] - *k2);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
-    ELL_3V_COPY_T(pvl->directAnswer[gageSclCurvDir2], gage_t, tmpVec);
+    ELL_3V_COPY_TT(pvl->directAnswer[gageSclCurvDir2], gage_t, tmpVec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclFlowlineCurv)) {
     if (gmag >= ctx->parm.gradMagCurvMin) {
@@ -215,7 +215,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
          nProj are all already set */
       /* ncTen = nPerp * sHess * nProj */
       ELL_3M_MUL(tmpMat, sHess, nProj);
-      ELL_3M_MUL_T(ncTen, gage_t, nPerp, tmpMat);
+      ELL_3M_MUL_TT(ncTen, gage_t, nPerp, tmpMat);
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }

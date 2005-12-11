@@ -255,10 +255,11 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
       fprintf(stderr, "%s%s: (nothing was hit)\n",_echoDot(tstate->depth), me);
     }
     /* ray hits nothing in scene */
-    ELL_4V_SET(chan, scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
-               (parm->renderBoxes
-                ? 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits)
-                : 1.0));
+    ELL_4V_SET_TT(chan, echoCol_t,
+                  scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
+                  (parm->renderBoxes
+                   ? 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits)
+                   : 1.0));
     goto done;
   }
 
@@ -391,7 +392,7 @@ _echoRTRenderThreadBody(void *_arg) {
         } else {
           echoRayColor(chan, &ray, scene, parm, arg);
         }
-        chan[4] = airTime() - time0;
+        chan[4] = AIR_CAST(echoCol_t, airTime() - time0);
         
         /* move to next "scanline" */
         arg->jitt += 2*ECHO_JITTABLE_NUM;

@@ -179,7 +179,7 @@ limnPolyDataCube(limnPolyData *pld, int sharpEdge) {
   
   vertIdx = 0;
   cnum = sharpEdge ? 3 : 1;
-  cn = sqrt(3.0);
+  cn = AIR_CAST(float, sqrt(3.0));
   for (ci=0; ci<cnum; ci++) {
     ELL_4V_SET(pld->vert[vertIdx].xyzw,  -1,  -1,  -1,  1); vertIdx++;
   }
@@ -273,7 +273,7 @@ int
 limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
   char me[]="limnPolyDataCylinderNew", err[BIFF_STRLEN];
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
-  float theta, cth, sth, sq2;
+  double theta, cth, sth, sq2;
 
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
@@ -287,10 +287,11 @@ limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
   }
   
   vertIdx = 0;
-  for (blah=0; blah < (sharpEdge ? 2 : 1); blah++) {
+  for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET(pld->vert[vertIdx].xyzw, cos(theta), sin(theta), 1, 1);
+      ELL_4V_SET_TT(pld->vert[vertIdx].xyzw, float,
+                    cos(theta), sin(theta), 1, 1);
       /*
       fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
               pld->vert[vertIdx].xyzw[0],
@@ -303,7 +304,8 @@ limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
   for (blah=0; blah < (sharpEdge ? 2 : 1); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET(pld->vert[vertIdx].xyzw, cos(theta), sin(theta), -1, 1);
+      ELL_4V_SET_TT(pld->vert[vertIdx].xyzw, float,
+                    cos(theta), sin(theta), -1, 1);
       /*
       fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
               pld->vert[vertIdx].xyzw[0],
@@ -351,18 +353,20 @@ limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       cth = cos(theta);
       sth = sin(theta);
-      ELL_3V_SET(pld->vert[thetaIdx + 0*thetaRes].norm, 0, 0, 1);
-      ELL_3V_SET(pld->vert[thetaIdx + 1*thetaRes].norm, cth, sth, 0);
-      ELL_3V_SET(pld->vert[thetaIdx + 2*thetaRes].norm, cth, sth, 0);
-      ELL_3V_SET(pld->vert[thetaIdx + 3*thetaRes].norm, 0, 0, -1);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 0*thetaRes].norm, float, 0, 0, 1);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 1*thetaRes].norm, float, cth, sth, 0);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 2*thetaRes].norm, float, cth, sth, 0);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 3*thetaRes].norm, float, 0, 0, -1);
     }
   } else {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       cth = sq2*cos(theta);
       sth = sq2*sin(theta);
-      ELL_3V_SET(pld->vert[thetaIdx + 0*thetaRes].norm, cth, sth, sq2);
-      ELL_3V_SET(pld->vert[thetaIdx + 1*thetaRes].norm, cth, sth, -sq2);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 0*thetaRes].norm, float,
+                    cth, sth, sq2);
+      ELL_3V_SET_TT(pld->vert[thetaIdx + 1*thetaRes].norm, float,
+                    cth, sth, -sq2);
     }
   }
 
@@ -387,13 +391,13 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   char me[]="limnPolyDataSuperquadric", err[BIFF_STRLEN];
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
-  float theta, phi;
+  double theta, phi;
 
   /* sanity bounds */
-  thetaRes = AIR_MAX(3, thetaRes);
-  phiRes = AIR_MAX(2, phiRes);
-  alpha = AIR_MAX(0.00001, alpha);
-  beta = AIR_MAX(0.00001, beta);
+  thetaRes = AIR_MAX(3.0f, thetaRes);
+  phiRes = AIR_MAX(2.0f, phiRes);
+  alpha = AIR_MAX(0.00001f, alpha);
+  beta = AIR_MAX(0.00001f, beta);
 
   vertNum = 2 + thetaRes*(phiRes-1);
   fanNum = 2;
@@ -410,7 +414,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   ELL_3V_SET(pld->vert[vertIdx].norm, 0, 0, 1);
   ++vertIdx;
   for (phiIdx=1; phiIdx<phiRes; phiIdx++) {
-    float cost, sint, cosp, sinp;
+    double cost, sint, cosp, sinp;
     phi = AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI);
     cosp = cos(phi);
     sinp = sin(phi);
@@ -418,18 +422,18 @@ limnPolyDataSuperquadric(limnPolyData *pld,
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       cost = cos(theta);
       sint = sin(theta);
-      ELL_4V_SET(pld->vert[vertIdx].xyzw,
-                 airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
-                 airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
-                 airSgnPow(cosp,beta),
-                 1.0);
+      ELL_4V_SET_TT(pld->vert[vertIdx].xyzw, float,
+                    airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
+                    airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
+                    airSgnPow(cosp,beta),
+                    1.0);
       if (1 == alpha && 1 == beta) {
         ELL_3V_COPY(pld->vert[vertIdx].norm, pld->vert[vertIdx].xyzw);
       } else {
-        ELL_3V_SET(pld->vert[vertIdx].norm,
-                   2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                   2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                   2*airSgnPow(cosp,2-beta)/beta);
+        ELL_3V_SET_TT(pld->vert[vertIdx].norm, float,
+                      2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                      2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                      2*airSgnPow(cosp,2-beta)/beta);
       }
       ++vertIdx;
     }
@@ -506,10 +510,10 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
-  thetaRes = AIR_MAX(3, thetaRes);
-  phiRes = AIR_MAX(2, phiRes);
-  alpha = AIR_MAX(0.00001, alpha);
-  beta = AIR_MAX(0.00001, beta);
+  thetaRes = AIR_MAX(3.0f, thetaRes);
+  phiRes = AIR_MAX(2.0f, phiRes);
+  alpha = AIR_MAX(0.00001f, alpha);
+  beta = AIR_MAX(0.00001f, beta);
 
   vertNum = thetaRes*phiRes + 1;
   indxNum = 2*(phiRes+1)*thetaRes;
@@ -521,26 +525,26 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   vertIdx = 0;
   for (phiIdx=0; phiIdx<phiRes; phiIdx++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      float cost, sint, cosp, sinp;
-      float phi = (AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI)
-                   + AIR_AFFINE(0, thetaIdx, thetaRes, 0, AIR_PI)/phiRes);
-      float theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0.0, 2*AIR_PI);
+      double cost, sint, cosp, sinp;
+      double phi = (AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI)
+                    + AIR_AFFINE(0, thetaIdx, thetaRes, 0, AIR_PI)/phiRes);
+      double theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0.0, 2*AIR_PI);
       cosp = cos(phi);
       sinp = sin(phi);
       cost = cos(theta);
       sint = sin(theta);
-      ELL_4V_SET(pld->vert[vertIdx].xyzw,
-                 airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
-                 airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
-                 airSgnPow(cosp,beta),
-                 1.0);
+      ELL_4V_SET_TT(pld->vert[vertIdx].xyzw, float,
+                    airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
+                    airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
+                    airSgnPow(cosp,beta),
+                    1.0);
       if (1 == alpha && 1 == beta) {
         ELL_3V_COPY(pld->vert[vertIdx].norm, pld->vert[vertIdx].xyzw);
       } else {
-        ELL_3V_SET(pld->vert[vertIdx].norm,
-                   2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                   2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                   2*airSgnPow(cosp,2-beta)/beta);
+        ELL_3V_SET_TT(pld->vert[vertIdx].norm, float,
+                      2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                      2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
+                      2*airSgnPow(cosp,2-beta)/beta);
       }
       ++vertIdx;
     }

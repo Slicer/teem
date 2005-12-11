@@ -75,6 +75,17 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
   and make sure Windows stuff also still works (if new files or
   libraries were added)
 
+2.5) cvs branch/tag confusion:
+cd ~/teem              (my working checkout)
+cvs tag Teem-1-9-0-bp
+cvs tag -b Teem-1-9-0
+mkdir ~/Teem-1-9-0
+cd ~/Teem-1-9-0
+cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co -r Teem-1-9-0 teem
+cd teem
+cvs update -dAP -r Teem-1-9-0    (probably unnecessary)
+cvs tag Teem-1-9-0-pb
+
 3) Create source-only tgz:
 (for anonymous checkout:
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/teem/ login
@@ -173,3 +184,13 @@ cd teem/htdocs
 cvs update
 exit
 
+
+
+
+
+
+
+
+for Deft:
+cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem init
+cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem import -m "initial import" Deft Deft start

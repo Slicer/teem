@@ -60,6 +60,14 @@ extern "C" {
                     (t)[4] = (m)[4], (t)[5] = (m)[5], \
                                      (t)[6] = (m)[8] )
 
+#define TEN_M2T_TT(t, TT, m) ( \
+   (t)[1] = AIR_CAST(TT, (m)[0]), \
+   (t)[2] = AIR_CAST(TT, (m)[1]), \
+   (t)[3] = AIR_CAST(TT, (m)[2]), \
+   (t)[4] = AIR_CAST(TT, (m)[4]), \
+   (t)[5] = AIR_CAST(TT, (m)[5]), \
+   (t)[6] = AIR_CAST(TT, (m)[8]))
+
 #define TEN_TV_MUL(v2, t, v1) \
   ((v2)[0] = (t)[1]*(v1)[0] + (t)[2]*(v1)[1] + (t)[3]*(v1)[2], \
    (v2)[1] = (t)[2]*(v1)[0] + (t)[4]*(v1)[1] + (t)[5]*(v1)[2], \
