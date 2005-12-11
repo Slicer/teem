@@ -369,13 +369,13 @@ _limnQN16octa_VtoQN_d(double *vec) {
   ui = qn & ((1<<HNB)-1); \
   vi = (qn >> HNB) & ((1<<HNB)-1); \
   zi = (qn >> (2*HNB)) & 0x01; \
-  u = AIR_AFFINE(-0.5, ui, ((1<<HNB)-1)+0.5, -0.5, 0.5); \
-  v = AIR_AFFINE(-0.5, vi, ((1<<HNB)-1)+0.5, -0.5, 0.5); \
+  u = AIR_CAST(TT, AIR_AFFINE(-0.5, ui, ((1<<HNB)-1)+0.5, -0.5, 0.5)); \
+  v = AIR_CAST(TT, AIR_AFFINE(-0.5, vi, ((1<<HNB)-1)+0.5, -0.5, 0.5)); \
   x =  u + v; \
   y =  u - v; \
   z = 1 - AIR_ABS(x) - AIR_ABS(y); \
   z *= (zi << 1) - 1; \
-  n = 1.0/sqrt(x*x + y*y + z*z); \
+  n = AIR_CAST(TT, 1.0/sqrt(x*x + y*y + z*z)); \
   vec[0] = AIR_CAST(TT, x*n); \
   vec[1] = AIR_CAST(TT, y*n); \
   vec[2] = AIR_CAST(TT, z*n)

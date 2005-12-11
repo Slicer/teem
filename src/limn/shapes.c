@@ -313,7 +313,7 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
                             float A, float B, 
                             unsigned int thetaRes, unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
-  float x, y, z, t, p;
+  double x, y, z, t, p;
   
   thetaRes = AIR_MAX(thetaRes, 3);
   phiRes = AIR_MAX(phiRes, 2);
@@ -339,22 +339,25 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
       t = AIR_AFFINE(0, ti, thetaRes, 0, 2*AIR_PI);
       switch(axis) {
       case 0:
-        x = AIR_CAST(float, airSgnPow(cos(p),B));
-        y = AIR_CAST(float, -airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
-        z = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
+        x = airSgnPow(cos(p),B);
+        y = -airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
+        z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
         break;
       case 1:
-        x = AIR_CAST(float, airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
-        y = AIR_CAST(float, airSgnPow(cos(p),B));
-        z = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
+        x = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
+        y = airSgnPow(cos(p),B);
+        z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
         break;
       case 2: default:
-        x = AIR_CAST(float, airSgnPow(cos(t),A) * airSgnPow(sin(p),B));
-        y = AIR_CAST(float, airSgnPow(sin(t),A) * airSgnPow(sin(p),B));
-        z = AIR_CAST(float, airSgnPow(cos(p),B));
+        x = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
+        y = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
+        z = airSgnPow(cos(p),B);
         break;
       }
-      limnObjectVertexAdd(obj, partIdx, x, y, z);
+      limnObjectVertexAdd(obj, partIdx,
+                          AIR_CAST(float, x),
+                          AIR_CAST(float, y),
+                          AIR_CAST(float, z));
     }
   }
   switch(axis) {

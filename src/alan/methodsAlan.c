@@ -40,7 +40,7 @@ alanContextInit(alanContext *actx) {
     actx->frameInterval = 10;
     actx->saveInterval = 100;
     actx->maxIteration = 1000000;
-    actx->minAverageChange = 0.00002;
+    actx->minAverageChange = 0.00002f;
     actx->maxPixelChange = 6;
     actx->K = AIR_NAN;
     actx->F = AIR_NAN;
@@ -229,8 +229,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     case alanTextureTypeGrayScott:
       actx->initA = 1;
       actx->initB = 0;
-      actx->diffA = 0.00002;
-      actx->diffB = 0.00002;
+      actx->diffA = 0.00002f;
+      actx->diffB = 0.00002f;
       break;
     default:
       sprintf(err, "%s: texture type %d invalid", me, parmI);
@@ -269,40 +269,40 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->constFilename = parmI;
     break;
   case alanParmDeltaT:
-    actx->deltaT = parm;
+    actx->deltaT = AIR_CAST(alan_t, parm);
     break;
   case alanParmDeltaX:
-    actx->deltaX = parm;
+    actx->deltaX = AIR_CAST(alan_t, parm);
     break;
   case alanParmReact:
-    actx->react = parm;
+    actx->react = AIR_CAST(alan_t, parm);
     break;
   case alanParmDiffA:
-    actx->diffA = parm;
+    actx->diffA = AIR_CAST(alan_t, parm);
     break;
   case alanParmDiffB:
-    actx->diffB = parm;
+    actx->diffB = AIR_CAST(alan_t, parm);
     break;
   case alanParmRandRange:
-    actx->randRange = parm;
+    actx->randRange = AIR_CAST(alan_t, parm);
     break;
   case alanParmK:
-    actx->K = parm;
+    actx->K = AIR_CAST(alan_t, parm);
     break;
   case alanParmF:
-    actx->F = parm;
+    actx->F = AIR_CAST(alan_t, parm);
     break;
   case alanParmMinAverageChange:
-    actx->minAverageChange = parm;
+    actx->minAverageChange = AIR_CAST(alan_t, parm);
     break;
   case alanParmMaxPixelChange:
-    actx->maxPixelChange = parm;
+    actx->maxPixelChange = AIR_CAST(alan_t, parm);
     break;
   case alanParmAlpha:
-    actx->alpha = parm;
+    actx->alpha = AIR_CAST(alan_t, parm);
     break;
   case alanParmBeta:
-    actx->beta = parm;
+    actx->beta = AIR_CAST(alan_t, parm);
     break;
   case alanParmWrapAround:
     parmI = !!parm;

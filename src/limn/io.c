@@ -223,7 +223,7 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
                    AIR_CAST(float, vert[5]),
                    1);
         lastLook = lookIdx;
-        ELL_3V_COPY_T(lastRGB, float, vert+3);
+        ELL_3V_COPY_TT(lastRGB, float, vert+3);
       } else {
         lookIdx = lastLook;
       }

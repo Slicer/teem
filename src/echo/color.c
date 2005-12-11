@@ -49,27 +49,27 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
     ui = airIndex(0.0, u, 1.0, su);
     vi = airIndex(0.0, v, 1.0, sv);
     tdata00 = (unsigned char*)(ntext->data) + 4*(ui + su*vi);
-    ELL_4V_SET(rgba,
-               tdata00[0]/255.0, tdata00[1]/255.0,
-               tdata00[2]/255.0, tdata00[3]/255.0);
+    ELL_4V_SET_TT(rgba, echoCol_t,
+                  tdata00[0]/255.0, tdata00[1]/255.0,
+                  tdata00[2]/255.0, tdata00[3]/255.0);
   } else {
     u = AIR_AFFINE(0.0, u, 1.0, 0.0, su-1);  u = AIR_CLAMP(0, u, su-1);
     v = AIR_AFFINE(0.0, v, 1.0, 0.0, sv-1);  v = AIR_CLAMP(0, v, sv-1);
-    u -= (u == su-1);  ui = (int)u;  uf = u - ui;
-    v -= (v == sv-1);  vi = (int)v;  vf = v - vi;
+    u -= (u == su-1);  ui = (int)u;  uf = AIR_CAST(float, u - ui);
+    v -= (v == sv-1);  vi = (int)v;  vf = AIR_CAST(float, v - vi);
     tdata00 = (unsigned char*)(ntext->data) + 4*(ui + su*vi);
     tdata01 = tdata00 + 4;
     tdata10 = tdata00 + 4*su;
     tdata11 = tdata10 + 4;
-    ELL_4V_SET(rgba,
-               ((1-vf)*(1-uf)*tdata00[0] + (1-vf)*uf*tdata01[0] +
-                vf*(1-uf)*tdata10[0] + vf*uf*tdata11[0])/255.0,
-               ((1-vf)*(1-uf)*tdata00[1] + (1-vf)*uf*tdata01[1] +
-                vf*(1-uf)*tdata10[1] + vf*uf*tdata11[1])/255.0,
-               ((1-vf)*(1-uf)*tdata00[2] + (1-vf)*uf*tdata01[2] +
-                vf*(1-uf)*tdata10[2] + vf*uf*tdata11[2])/255.0,
-               ((1-vf)*(1-uf)*tdata00[3] + (1-vf)*uf*tdata01[3] +
-                vf*(1-uf)*tdata10[3] + vf*uf*tdata11[3])/255.0);
+    ELL_4V_SET_TT(rgba, echoCol_t,
+                  ((1-vf)*(1-uf)*tdata00[0] + (1-vf)*uf*tdata01[0] +
+                   vf*(1-uf)*tdata10[0] + vf*uf*tdata11[0])/255.0,
+                  ((1-vf)*(1-uf)*tdata00[1] + (1-vf)*uf*tdata01[1] +
+                   vf*(1-uf)*tdata10[1] + vf*uf*tdata11[1])/255.0,
+                  ((1-vf)*(1-uf)*tdata00[2] + (1-vf)*uf*tdata01[2] +
+                   vf*(1-uf)*tdata10[2] + vf*uf*tdata11[2])/255.0,
+                  ((1-vf)*(1-uf)*tdata00[3] + (1-vf)*uf*tdata01[3] +
+                   vf*(1-uf)*tdata10[3] + vf*uf*tdata11[3])/255.0);
   }
 }
 
@@ -160,9 +160,9 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     } else {
       blocked = AIR_FALSE;
     }
-    fracseen = blocked ? 1.0 - parm->shadow : 1.0;
+    fracseen = AIR_CAST(echoCol_t, blocked ? 1.0 - parm->shadow : 1.0);
     echoLightColor(Lcol, Ldist, scene->light[Lidx], parm, tstate);
-    ELL_3V_SCALE_INCR(diff, fracseen*Ldot, Lcol);
+    ELL_3V_SCALE_INCR_TT(diff, echoCol_t, fracseen*Ldot, Lcol);
     if (spec) {
       Ldot = ELL_3V_DOT(Ldir, intx->refl);
       if (echoTypeRectangle == intx->obj->type) {
@@ -170,7 +170,7 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
       }
       if (Ldot > 0) {
         Ldot = pow(Ldot, sp);
-        ELL_3V_SCALE_INCR(spec, fracseen*Ldot, Lcol);
+        ELL_3V_SCALE_INCR_TT(spec, echoCol_t, fracseen*Ldot, Lcol);
       }
     }
   }
@@ -217,7 +217,7 @@ _echoIntxColorMetal(INTXCOLOR_ARGS) {
   c = 1 - c;
   c = c*c*c*c*c;
   RS = intx->obj->mat[echoMatterMetalR0];
-  RS = RS + (1 - RS)*c;
+  RS = AIR_CAST(echoCol_t, RS + (1 - RS)*c);
   ka = intx->obj->mat[echoMatterMetalKa];
   kd = intx->obj->mat[echoMatterMetalKd];
   kp = ka + kd;
@@ -331,9 +331,9 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
        channel (r, g, or b) is full on (1.0), then there should be no
        attenuation in its color.  The more the color is below 1.0, the
        more it should be damped with distance. */
-    k[0] = exp(parm->glassC*(matlCol[0]-1)*intx->t);
-    k[1] = exp(parm->glassC*(matlCol[1]-1)*intx->t);
-    k[2] = exp(parm->glassC*(matlCol[2]-1)*intx->t);
+    k[0] = AIR_CAST(echoCol_t, exp(parm->glassC*(matlCol[0]-1)*intx->t));
+    k[1] = AIR_CAST(echoCol_t, exp(parm->glassC*(matlCol[1]-1)*intx->t));
+    k[2] = AIR_CAST(echoCol_t, exp(parm->glassC*(matlCol[2]-1)*intx->t));
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: internal refl @ t = %g -> k = %g %g %g\n",
               _echoDot(tstate->depth), me, intx->t, k[0], k[1], k[2]);
@@ -356,7 +356,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     R0 *= R0;
     c = 1 - c;
     c = c*c*c*c*c;
-    RS = R0 + (1-R0)*c;
+    RS = AIR_CAST(echoCol_t, R0 + (1-R0)*c);
     RT = 1 - RS;
   }
   ka = intx->obj->mat[echoMatterMetalKa];

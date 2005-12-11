@@ -101,7 +101,7 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
   int i;
 
   lit = (limnLight *)_lit;
-  ELL_3V_NORM_T(vec, float, vec, norm);
+  ELL_3V_NORM_TT(vec, float, vec, norm);
   r = lit->amb[0];
   g = lit->amb[1];
   b = lit->amb[2];

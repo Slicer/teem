@@ -180,8 +180,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNormalized)) {
     if (pvl->directAnswer[gageVecLength][0]) {
-      ELL_3V_SCALE_T(normAns, gage_t,
-                     1.0/pvl->directAnswer[gageVecLength][0], vecAns);
+      ELL_3V_SCALE_TT(normAns, gage_t,
+                      1.0/pvl->directAnswer[gageVecLength][0], vecAns);
     } else {
       ELL_3V_COPY(normAns, gageZeroNormal);
     }
@@ -301,8 +301,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNCurlNormGrad)) {
       norm = 1./ELL_3V_LEN(curlnormgradAns);
-      ELL_3V_SCALE_T(pvl->directAnswer[gageVecNCurlNormGrad], gage_t,
-                     norm, pvl->directAnswer[gageVecCurlNormGrad]);
+      ELL_3V_SCALE_TT(pvl->directAnswer[gageVecNCurlNormGrad], gage_t,
+                      norm, pvl->directAnswer[gageVecCurlNormGrad]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelGradient)) {
       pvl->directAnswer[gageVecHelGradient][0] = 
@@ -377,10 +377,10 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(tmpMat, pvl->directAnswer[gageVecMultiGrad]);
     /* HEY: look at the return value for root multiplicity? */
     ell_3m_eigensolve_d(mgeval, mgevec, tmpMat, AIR_TRUE);
-    ELL_3V_COPY_T(pvl->directAnswer[gageVecMGEval], gage_t, mgeval);
+    ELL_3V_COPY_TT(pvl->directAnswer[gageVecMGEval], gage_t, mgeval);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEvec)) {
-    ELL_3M_COPY_T(pvl->directAnswer[gageVecMGEvec], gage_t, mgevec);
+    ELL_3M_COPY_TT(pvl->directAnswer[gageVecMGEvec], gage_t, mgevec);
   }
 
   return;

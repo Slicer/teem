@@ -713,7 +713,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 */
 #define AIR_MAX(a,b) ((a) > (b) ? (a) : (b))
 #define AIR_MIN(a,b) ((a) < (b) ? (a) : (b))
-#define AIR_ABS(a) ((a) > 0 ? (a) : -(a))
+#define AIR_ABS(a) ((a) > 0.0f ? (a) : -(a))
 
 /*
 ******** AIR_COMPARE(a,b)

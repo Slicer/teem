@@ -164,8 +164,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
     } else {
       /* NOTE: the random number stuff here is OUTSIDE the multi-threaded
          segment of the program- only the init thread does this */
-      lev0[0 + 2*I] = actx->initA + RAND;
-      lev0[1 + 2*I] = actx->initB + RAND;
+      lev0[0 + 2*I] = AIR_CAST(alan_t, actx->initA + RAND);
+      lev0[1 + 2*I] = AIR_CAST(alan_t, actx->initB + RAND);
     }
     if (parmInit) {
       parm[0 + 3*I] = parmInit[0 + 3*I];
@@ -244,8 +244,8 @@ _alanTuringWorker(void *_task) {
   sy = task->actx->size[1];
   sz = (2 == dim ? 1 : task->actx->size[2]);
   parm = (alan_t*)(task->actx->nparm->data);
-  diffA = task->actx->diffA/pow(task->actx->deltaX, dim);
-  diffB = task->actx->diffB/pow(task->actx->deltaX, dim);
+  diffA = AIR_CAST(alan_t, task->actx->diffA/pow(task->actx->deltaX, dim));
+  diffB = AIR_CAST(alan_t, task->actx->diffB/pow(task->actx->deltaX, dim));
   startW = task->idx*sy/task->actx->numThreads;
   endW = (task->idx+1)*sy/task->actx->numThreads;
   tendata = task->actx->nten ? (alan_t *)task->actx->nten->data : NULL;
@@ -332,7 +332,7 @@ _alanTuringWorker(void *_task) {
               v[6] = lev0 + 2*(mx + sx*(py));
               v[8] = lev0 + 2*(px + sx*(py));
               ten = tendata + 4*idx;
-              conf = (AIR_CLAMP(0.3, ten[0], 1) - 0.3)/0.7;
+              conf = AIR_CAST(alan_t, (AIR_CLAMP(0.3, ten[0], 1) - 0.3)/0.7);
               if (conf) {
                 Dxx = ten[1];
                 Dxy = ten[2];
@@ -348,14 +348,14 @@ _alanTuringWorker(void *_task) {
                   tmx = tendata + 4*(mx + sx*( y + sy*( z)));
                   tpy = tendata + 4*( x + sx*(py + sy*( z)));
                   tmy = tendata + 4*( x + sx*(my + sy*( z)));
-                  corrA = ((tpx[1] - tmx[1])*(v[5][0] - v[3][0])/4 +  /* Dxx,x * A,x */
-                           (tpx[2] - tmx[2])*(v[7][0] - v[1][0])/4 +  /* Dxy,x * A,y */
-                           (tpy[2] - tmy[2])*(v[5][0] - v[3][0])/4 +  /* Dxy,y * A,x */
-                           (tpy[3] - tmy[3])*(v[7][0] - v[1][0]));    /* Dyy,y * A,y */
-                  corrB = ((tpx[1] - tmx[1])*(v[5][1] - v[3][1])/4 +  /* Dxx,x * B,x */
-                           (tpx[2] - tmx[2])*(v[7][1] - v[1][1])/4 +  /* Dxy,x * B,y */
-                           (tpy[2] - tmy[2])*(v[5][1] - v[3][1])/4 +  /* Dxy,y * B,x */
-                           (tpy[3] - tmy[3])*(v[7][1] - v[1][1]));    /* Dyy,y * B,y */
+                  corrA = ((tpx[1]-tmx[1])*(v[5][0]-v[3][0])/4+ /* Dxx,x*A,x */
+                           (tpx[2]-tmx[2])*(v[7][0]-v[1][0])/4+ /* Dxy,x*A,y */
+                           (tpy[2]-tmy[2])*(v[5][0]-v[3][0])/4+ /* Dxy,y*A,x */
+                           (tpy[3]-tmy[3])*(v[7][0]-v[1][0]));  /* Dyy,y*A,y */
+                  corrB = ((tpx[1]-tmx[1])*(v[5][1]-v[3][1])/4+ /* Dxx,x*B,x */
+                           (tpx[2]-tmx[2])*(v[7][1]-v[1][1])/4+ /* Dxy,x*B,y */
+                           (tpy[2]-tmy[2])*(v[5][1]-v[3][1])/4+ /* Dxy,y*B,x */
+                           (tpy[3]-tmy[3])*(v[7][1]-v[1][1]));  /* Dyy,y*B,y */
                 }
               } else {
                 /* no confidence; you diffuse */

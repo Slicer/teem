@@ -74,7 +74,7 @@ echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
   }
   ELL_3V_SCALE(rgb, light->mat[echoMatterLightPower], rgb);
   if (light->mat[echoMatterLightUnit]) {
-    falloff = light->mat[echoMatterLightUnit]/Ldist;
+    falloff = AIR_CAST(echoCol_t, light->mat[echoMatterLightUnit]/Ldist);
     falloff *= falloff;
     ELL_3V_SCALE(rgb, falloff, rgb);
   }

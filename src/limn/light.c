@@ -88,7 +88,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
       ELL_3V_COPY(dir, _dir);
     }
     ELL_3V_NORM(dir, dir, norm);
-    ELL_4V_SET(lit->dir[i], dir[0], dir[1], dir[2], 0.0);
+    ELL_4V_SET_TT(lit->dir[i], float, dir[0], dir[1], dir[2], 0.0);
   }
   return 0;
 }
