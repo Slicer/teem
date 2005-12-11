@@ -43,12 +43,12 @@ main(int argc, char *argv[]) {
   Nrrd *nlight, *nmap, *ndebug;
   char *me, *outS, *errS, *debugS;
   airArray *mop;
-  float amb[3], *linfo, *debug, *map, W[3], V[3], diff;
+  float amb[3], *linfo, *debug, *map;
   unsigned li, ui, vi;
   int qn, bits, method, doerr;
   limnLight *light;
   limnCamera *cam;
-  double u, v, r, w, V2W[9];
+  double u, v, r, w, V2W[9], diff, WW[3], VV[3];
   
   me = argv[0];
   mop = airMopNew();
@@ -168,26 +168,26 @@ main(int argc, char *argv[]) {
         w = sqrt(1 - r*r);
         
         /* first, the near side of the sphere */
-        ELL_3V_SET(V, u, v, -w);
-        ELL_3MV_MUL(W, V2W, V);
-        qn = limnVtoQN_f[method](W);
+        ELL_3V_SET(VV, u, v, -w);
+        ELL_3MV_MUL(WW, V2W, VV);
+        qn = limnVtoQN_d[method](WW);
         if (doerr) {
-          limnQNtoV_f[method](V, qn);
-          ELL_3V_SUB(W, W, V);
-          diff = ELL_3V_LEN(W);
+          limnQNtoV_d[method](VV, qn);
+          ELL_3V_SUB(WW, WW, VV);
+          diff = ELL_3V_LEN(WW);
           ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
         }
 
         /* second, the far side of the sphere */
-        ELL_3V_SET(V, u, v, w);
-        ELL_3MV_MUL(W, V2W, V);
-        qn = limnVtoQN_f[method](W);
+        ELL_3V_SET(VV, u, v, w);
+        ELL_3MV_MUL(WW, V2W, VV);
+        qn = limnVtoQN_d[method](WW);
         if (doerr) {
-          limnQNtoV_f[method](V, qn);
-          ELL_3V_SUB(W, W, V);
-          diff = ELL_3V_LEN(W);
+          limnQNtoV_d[method](VV, qn);
+          ELL_3V_SUB(WW, WW, VV);
+          diff = ELL_3V_LEN(WW);
           ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);

@@ -926,7 +926,7 @@ tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
     biffAdd(TEN, err); return 1;
   }
 
-  TEN_T_COPY_T(ten, double, _ten);
+  TEN_T_COPY(ten, _ten);
   if (_tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
@@ -1692,7 +1692,7 @@ tenEstimate1TensorSingle_f(tenEstimateContext *tec,
   }
   fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
           tec->knownB0, tec->estimatedB0);
-  TEN_T_COPY_T(ten, float, tec->ten);
+  TEN_T_COPY_TT(ten, float, tec->ten);
 
   return 0;
 }

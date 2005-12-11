@@ -196,25 +196,26 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
     return 0;
   }
 
-  lenD = sqrt(lenDsqr);
-  ELL_3V_SCALE(nD, 1.0/lenD, D);
+  lenD = AIR_CAST(push_t, sqrt(lenDsqr));
+  ELL_3V_SCALE(nD, 1.0f/lenD, D);
   /*
   TEN_T_SCALE_ADD2(ten,
-                   0.5, myPoint->ten,
-                   0.5, herPoint->ten);
+                   0.5f, myPoint->ten,
+                   0.5f, herPoint->ten);
   _pushTenInv(pctx, inv, ten);
   */
 
   TEN_T_SCALE_ADD2(inv,
-                   0.5, myPoint->inv,
-                   0.5, herPoint->inv);
+                   0.5f, myPoint->inv,
+                   0.5f, herPoint->inv);
 
   TEN_TV_MUL(U, inv, D);
-  ELL_3V_NORM(nU, U, lenU);
+  ELL_3V_NORM_TT(nU, push_t, U, lenU);
   dot = ELL_3V_DOT(nU, nD);
   haveDist = dot*lenD;
-  restDist = dot*2*pctx->scale*lenD/lenU;
-  mag = force->func(haveDist, restDist, pctx->scale, force->parm);
+  restDist = dot*2.0f*pctx->scale*lenD/lenU;
+  mag = force->func(haveDist, restDist,
+                    AIR_CAST(push_t, pctx->scale), force->parm);
   ELL_3V_SCALE(fvec, mag, nU);
   
   if ((0 && pctx->verbose && ELL_3V_LEN(fvec))) {
@@ -243,7 +244,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
   
   if (pctx->driftCorrect) {
     TEN_TV_MUL(V, myPoint->inv, D);
-    lenV = ELL_3V_LEN(V);
+    lenV = AIR_CAST(push_t, ELL_3V_LEN(V));
     /* dc-0: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
        fix = (1 - mm)/(1 + mm); */
     /* dc-1: mm = 2*dot*pctx->scale*(1.0/lenV - 1.0/lenU);
@@ -256,8 +257,8 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
     ** ----- this is probably correct, based on
     ** ----- tests with the one-ramp.nrrd dataset
     */
-    mm = 2*dot*pctx->scale*(1.0/lenU - 1.0/lenV);
-    mm = AIR_MAX(mm, -0.95);
+    mm = 2.0f*dot*pctx->scale*(1.0f/lenU - 1.0f/lenV);
+    mm = AIR_MAX(mm, -0.95f);
     if (mm <= -1) {
       sprintf(err, "%s: invalid mm <= -1 from:\n"
               "%g == 2*(dot=%g)*(scale=%g)*(1.0/lenU=%g - 1.0/lenV=%g = %g)",
@@ -265,7 +266,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
               1.0/lenU - 1.0/lenV);
       biffAdd(PUSH, err); return 1;
     }
-    fix = sqrt((1 - mm)/(1 + mm));
+    fix = AIR_CAST(push_t, sqrt((1 - mm)/(1 + mm)));
     if (pctx->verbose) {
       fprintf(stderr, "   dcfix: mm = %f -> fix = %f\n", mm, fix);
     }
@@ -285,13 +286,13 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
 push_t
 _pushThingMass(pushContext *pctx, pushThing *thg) {
 
-  return pctx->mass*THING_SIZE(pctx, thg);
+  return AIR_CAST(push_t, pctx->mass*THING_SIZE(pctx, thg));
 }
 
 push_t
 _pushThingPointCharge(pushContext *pctx, pushThing *thg) {
 
-  return THING_SIZE(pctx, thg)/thg->numVert;
+  return AIR_CAST(push_t, THING_SIZE(pctx, thg)/thg->numVert);
 }
 
 int
@@ -314,11 +315,13 @@ _pushForceSample(pushContext *pctx, unsigned int sx, unsigned int sy) {
   fprintf(stderr, "sampling force field"); fflush(stderr);
   for (yi=0; yi<sy; yi++) {
     fprintf(stderr, " %d/%d", yi, sy);
-    probe->pos[1] = AIR_AFFINE(0, yi, sy-1,
-                               pctx->minPos[1], pctx->maxPos[1]);
+    probe->pos[1] = AIR_CAST(push_t,
+                             AIR_AFFINE(0, yi, sy-1,
+                                        pctx->minPos[1], pctx->maxPos[1]));
     for (xi=0; xi<sx; xi++) {
-      probe->pos[0] = AIR_AFFINE(0, xi, sx-1,
-                                 pctx->minPos[0], pctx->maxPos[0]);
+      probe->pos[0] = AIR_CAST(push_t,
+                               AIR_AFFINE(0, xi, sx-1,
+                                          pctx->minPos[0], pctx->maxPos[0]));
       _pushProbe(pctx->task[0], probe);
       bin = _pushBinLocate(pctx, probe->pos);
       neigh = bin->neighbor;
@@ -432,13 +435,13 @@ _pushForce(pushTask *task, int myBinIdx,
     /* each point in this thing also potentially experiences wall forces */
     if (task->pctx->wall) {
       for (ci=0; ci<=2; ci++) {
-        len = myPoint->pos[ci] - task->pctx->minPos[ci];
+        len = AIR_CAST(push_t, myPoint->pos[ci] - task->pctx->minPos[ci]);
         if (len < 0) {
-          myPoint->frc[ci] += -task->pctx->wall*len;
+          myPoint->frc[ci] += AIR_CAST(push_t, -task->pctx->wall*len);
         } else {
-          len = task->pctx->maxPos[ci] - myPoint->pos[ci];
+          len = AIR_CAST(push_t, task->pctx->maxPos[ci] - myPoint->pos[ci]);
           if (len < 0) {
-            myPoint->frc[ci] += task->pctx->wall*len;
+            myPoint->frc[ci] += AIR_CAST(push_t, task->pctx->wall*len);
           }
         }
       }
@@ -452,16 +455,18 @@ _pushForce(pushTask *task, int myBinIdx,
     myThing = myBin->thing[myThingIdx];
     if (task->pctx->minIter
         && task->pctx->iter < task->pctx->minIter) {
-      drag = AIR_AFFINE(0, task->pctx->iter, task->pctx->minIter,
-                        task->pctx->preDrag, task->pctx->drag);
+      drag = AIR_CAST(push_t,
+                      AIR_AFFINE(0, task->pctx->iter, task->pctx->minIter,
+                                 task->pctx->preDrag, task->pctx->drag));
     } else {
-      drag = task->pctx->drag;
+      drag = AIR_CAST(push_t, task->pctx->drag);
     }
     ELL_3V_SCALE_INCR(myThing->point.frc, -drag, myThing->point.vel);
     if (task->pctx->nudge) {
-      ELL_3V_NORM(dir, myThing->point.pos, len);
+      ELL_3V_NORM_TT(dir, push_t, myThing->point.pos, len);
       if (len) {
-        ELL_3V_SCALE_INCR(myThing->point.frc, -task->pctx->nudge*len, dir);
+        ELL_3V_SCALE_INCR_TT(myThing->point.frc, push_t,
+                             -task->pctx->nudge*len, dir);
       }
     }
   }
@@ -571,8 +576,8 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
   /* copy from fiber tract vertex buffer */
   for (vertIdx=0; vertIdx<numVert; vertIdx++) {
     thing->vert[vertIdx].thing = thing;
-    ELL_3V_COPY(thing->vert[vertIdx].pos,
-                task->vertBuff + 3*(startIdx + vertIdx));
+    ELL_3V_COPY_TT(thing->vert[vertIdx].pos, push_t,
+                   task->vertBuff + 3*(startIdx + vertIdx));
     _pushProbe(task, thing->vert + vertIdx);
     thing->vert[vertIdx].charge = _pushThingPointCharge(task->pctx, thing);
   }
@@ -581,24 +586,28 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
   /* compute tangent at all vertices */
   if (task->pctx->tlFrenet && thing->len > MIN_FRENET_LEN) {
     ELL_3V_SUB(thing->vert[0].tan, thing->vert[1].pos, thing->vert[0].pos);
-    ELL_3V_NORM(thing->vert[0].tan, thing->vert[0].tan, tmp);
+    ELL_3V_NORM_TT(thing->vert[0].tan, push_t,
+                   thing->vert[0].tan, tmp);
     for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
       ELL_3V_SUB(thing->vert[vertIdx].tan,
                  thing->vert[vertIdx+1].pos,
                  thing->vert[vertIdx-1].pos);
-      ELL_3V_NORM(thing->vert[vertIdx].tan, thing->vert[vertIdx].tan, tmp);
+      ELL_3V_NORM_TT(thing->vert[vertIdx].tan, push_t,
+                     thing->vert[vertIdx].tan, tmp);
     }
     ELL_3V_SUB(thing->vert[numVert-1].tan,
              thing->vert[numVert-1].pos,
                thing->vert[numVert-2].pos);
-    ELL_3V_NORM(thing->vert[numVert-1].tan, thing->vert[numVert-1].tan, tmp);
+    ELL_3V_NORM_TT(thing->vert[numVert-1].tan, push_t,
+                   thing->vert[numVert-1].tan, tmp);
     
     /* compute "normal" at all vertices */
     for (vertIdx=1; vertIdx<numVert-1; vertIdx++) {
       ELL_3V_CROSS(thing->vert[vertIdx].nor,
                    thing->vert[vertIdx+1].tan,
                    thing->vert[vertIdx-1].tan);
-      ELL_3V_NORM(thing->vert[vertIdx].nor, thing->vert[vertIdx].nor, tmp);
+      ELL_3V_NORM_TT(thing->vert[vertIdx].nor, push_t,
+                     thing->vert[vertIdx].nor, tmp);
       tmp = ELL_3V_LEN(thing->vert[vertIdx].nor);
       if (!AIR_EXISTS(tmp)) {
         fprintf(stderr, "(%d) (%g,%g,%g) X (%g,%g,%g) = "
@@ -719,12 +728,14 @@ _pushUpdate(pushTask *task, int binIdx,
               thing->point.frc[0], thing->point.frc[0], step, mass, step/mass,
               thing->point.vel[0], thing->point.vel[1]);
     }
-    ELL_3V_SCALE_INCR(thing->point.pos, step, thing->point.vel);
+    ELL_3V_SCALE_INCR_TT(thing->point.pos, push_t,
+                         step, thing->point.vel);
     if (2 == task->pctx->dimIn
         || (3 == task->pctx->dimIn && 1 == task->pctx->nin->axis[3].size)) {
       thing->point.pos[2] = 0;
     }
-    ELL_3V_SCALE_INCR(thing->point.vel, step/mass, thing->point.frc);
+    ELL_3V_SCALE_INCR_TT(thing->point.vel, push_t,
+                         step/mass, thing->point.frc);
     if (task->pctx->verbose) {
       fprintf(stderr, "thing %d: pos(%f,%f); vel(%f,%f)\n",
               thing->ttaagg,

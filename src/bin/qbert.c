@@ -258,7 +258,10 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
         fflush(stderr);
       }
       for (i=0; i<sz[0]; i++) {
-        gageProbe(ctx, i, j, k);
+        gageProbe(ctx,
+                  AIR_CAST(gage_t, i),
+                  AIR_CAST(gage_t, j),
+                  AIR_CAST(gage_t, k));
         vghF[0] = *val;
         vghF[1] = *gmag;
         if (doH) {
@@ -516,7 +519,7 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd**)nin, NULL, 2,
                               NULL, bins, nrrdTypeFloat, clamp);
   if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
-  if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45);
+  if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45f);
   if (!E) { 
     range = nrrdRangeNewSet(nscA, nrrdBlind8BitRangeTrue);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);

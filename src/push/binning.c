@@ -34,8 +34,8 @@ _pushBinLocate(pushContext *pctx, push_t *pos) {
   if (pctx->singleBin) {
     ret = pctx->bin + 0;
   } else {
-    min = -1.0 - pctx->margin;
-    max = 1.0 + pctx->margin;
+    min = -1.0f - pctx->margin;
+    max = 1.0f + pctx->margin;
     be = pctx->binsEdge;
     if (AIR_IN_CL(min, pos[0], max)
         && AIR_IN_CL(min, pos[1], max)

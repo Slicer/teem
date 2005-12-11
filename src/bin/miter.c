@@ -160,7 +160,8 @@ main(int argc, char *argv[]) {
   muu->rangeInit[miteRangeKd] = ads[1];
   muu->rangeInit[miteRangeKs] = ads[2];
   gageParmSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageParmSet(muu->gctx0, gageParmRenormalize, renorm ? 1 : 0);
+  gageParmSet(muu->gctx0, gageParmRenormalize,
+              AIR_CAST(gage_t, renorm ? AIR_TRUE : AIR_FALSE));
   muu->verbUi = verbPix[0];
   muu->verbVi = verbPix[1];
   if (offfr) {

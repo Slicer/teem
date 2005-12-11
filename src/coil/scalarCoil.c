@@ -39,10 +39,12 @@
 
 coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
+  double ret;
   
-  return (  (iv3[0][4] - 2*iv3[1][4] + iv3[2][4])/(spacing[0]*spacing[0])
-          + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
-          + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
+  ret = (  (iv3[0][4] - 2*iv3[1][4] + iv3[2][4])/(spacing[0]*spacing[0])
+         + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
+         + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
+  return AIR_CAST(coil_t, ret);
 }
 
 void
@@ -60,7 +62,7 @@ _coilKindScalarFilterHomogeneous(coil_t *delta, coil_t **iv3,
                                  double spacing[3],
                                  double parm[COIL_PARMS_NUM]) {
   
-  delta[0] = parm[0]*_coilLaplacian3(iv3, spacing);
+  delta[0] = AIR_CAST(coil_t, parm[0])*_coilLaplacian3(iv3, spacing);
 }
 
 void
@@ -98,11 +100,11 @@ _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
 }
 
 #define _COIL_CONDUCT(LL, KK) \
-  (exp(-0.5*(LL)/(KK)))
+  AIR_CAST(coil_t, exp(-0.5*(LL)/(KK)))
 
 /*
 #define _COIL_CONDUCT(vec, KK) \
-  (1.0/(1.0 + (LL)/(KK)))
+  AIR_CAST(coil_t, 1.0/(1.0 + (LL)/(KK)))
 */
 
 void
@@ -113,9 +115,9 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
     KK, rspX, rspY, rspZ;
 
   /* reciprocals of spacings in X, Y, and Z */
-  rspX = 1.0/spacing[0];
-  rspY = 1.0/spacing[1];
-  rspZ = 1.0/spacing[2];
+  rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
+  rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
+  rspZ = AIR_CAST(coil_t, 1.0/spacing[2]);
 
   _coilKindScalar3x3x3Gradients(forwX, backX,
                                 forwY, backY,
@@ -124,7 +126,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
                                 rspX, rspY, rspZ);
   
   /* compute fluxes */
-  KK = parm[1]*parm[1];
+  KK = AIR_CAST(coil_t, parm[1]*parm[1]);
   forwX[0] *= _COIL_CONDUCT(ELL_3V_DOT(forwX, forwX), KK);
   forwY[1] *= _COIL_CONDUCT(ELL_3V_DOT(forwY, forwY), KK);
   forwZ[2] *= _COIL_CONDUCT(ELL_3V_DOT(forwZ, forwZ), KK);
@@ -132,9 +134,9 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
   backY[1] *= _COIL_CONDUCT(ELL_3V_DOT(backY, backY), KK);
   backZ[2] *= _COIL_CONDUCT(ELL_3V_DOT(backZ, backZ), KK);
 
-  delta[0] = parm[0]*(rspX*(forwX[0] - backX[0])
-                      + rspY*(forwY[1] - backY[1])
-                      + rspZ*(forwZ[2] - backZ[2]));
+  delta[0] = AIR_CAST(coil_t, parm[0])*(rspX*(forwX[0] - backX[0])
+                                        + rspY*(forwY[1] - backY[1])
+                                        + rspZ*(forwZ[2] - backZ[2]));
 }
 
 void
@@ -145,9 +147,9 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
     grad[3], gm, eps, KK, LL, rspX, rspY, rspZ, lerp;
 
   /* reciprocals of spacings in X, Y, and Z */
-  rspX = 1.0/spacing[0];
-  rspY = 1.0/spacing[1];
-  rspZ = 1.0/spacing[2];
+  rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
+  rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
+  rspZ = AIR_CAST(coil_t, 1.0/spacing[2]);
 
   _coilKindScalar3x3x3Gradients(forwX, backX,
                                 forwY, backY,
@@ -157,11 +159,11 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   grad[0] = rspX*(iv3[2][4] - iv3[0][4]);
   grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
   grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
-  gm = ELL_3V_LEN(grad);
+  gm = AIR_CAST(coil_t, ELL_3V_LEN(grad));
   
   /* compute fluxes */
-  eps = 0.000001;
-  KK = parm[1]*parm[1];
+  eps = 0.000001f;
+  KK = AIR_CAST(coil_t, parm[1]*parm[1]);
   LL = ELL_3V_DOT(forwX, forwX);
   forwX[0] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
   LL = ELL_3V_DOT(forwY, forwY);
@@ -175,12 +177,12 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   LL = ELL_3V_DOT(backZ, backZ);
   backZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
 
-  lerp = parm[2];
+  lerp = AIR_CAST(coil_t, parm[2]);
   delta[0] = (lerp*_coilLaplacian3(iv3, spacing)
               + (1-lerp)*gm*(rspX*(forwX[0] - backX[0])
                              + rspY*(forwY[1] - backY[1])
                              + rspZ*(forwZ[2] - backZ[2])));
-  delta[0] *= parm[0];
+  delta[0] *= AIR_CAST(coil_t, parm[0]);
 }
 
 void

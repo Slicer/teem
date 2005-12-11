@@ -278,7 +278,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     }
     if (nrrdMaybeAlloc_va(nthresh[ni], nrrdTypeUChar, 3,
                           sx, sy, sz)) {
-      sprintf(err, "%s: trouble allocating threshold %u", me, (unsigned int)ni);
+      sprintf(err, "%s: trouble allocating threshold %u",
+              me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
     thr = (unsigned char *)(nthresh[ni]->data);
