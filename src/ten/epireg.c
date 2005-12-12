@@ -53,7 +53,7 @@ _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
 int
 _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
                 int reference,
-                float bwX, float bwY, float DWthr,
+                double bwX, double bwY, double DWthr,
                 const NrrdKernel *kern, double *kparm) {
   char me[]="_tenEpiRegCheck", err[BIFF_STRLEN];
   unsigned int ni;
@@ -115,7 +115,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
 */
 int
 _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
-               float bwX, float bwY, int verb) {
+               double bwX, double bwY, int verb) {
   char me[]="_tenEpiRegBlur", err[BIFF_STRLEN];
   NrrdResampleInfo *rinfo;
   airArray *mop;
@@ -278,7 +278,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     }
     if (nrrdMaybeAlloc_va(nthresh[ni], nrrdTypeUChar, 3,
                           sx, sy, sz)) {
-      sprintf(err, "%s: trouble allocating threshold %u", me, (unsigned int)ni);
+      sprintf(err, "%s: trouble allocating threshold %u",
+              me, (unsigned int)ni);
       biffMove(TEN, err, NRRD); airMopError(mop); return 1;
     }
     thr = (unsigned char *)(nthresh[ni]->data);
@@ -730,11 +731,11 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 
 int
 _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
-                 float goodFrac, int prog, int verb) {
+                 double goodFrac, int prog, int verb) {
   char me[]="_tenEpiRegFitHST", err[BIFF_STRLEN];
   airArray *mop;
   Nrrd *ncc, *ntA, *ntB, *nsd, *nl2;
-  int c, sz, zi, sh, hi;
+  unsigned int cc, sz, zi, sh, hi;
   float *mess, *two, tmp;
   double *hst, x, y, xx, xy, mm, bb;
 
@@ -771,11 +772,11 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   /* now ntA stores the per-slice messiness */
-  mess = (float*)(ntA->data);
+  mess = AIR_CAST(float*, ntA->data);
 
   /* allocate an array of 2 floats per slice */
   sz = ntA->axis[0].size;
-  two = (float*)calloc(2*sz, sizeof(float));
+  two = AIR_CAST(float*, calloc(2*sz, sizeof(float)));
   if (!two) {
     sprintf(err, "%s: couldn't allocate tmp buffer", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
@@ -786,14 +787,14 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     two[0 + 2*zi] = (AIR_EXISTS(mess[zi])
                      ? mess[zi]
                      : 666);  /* don't use empty slices */
-    two[1 + 2*zi] = zi;
+    two[1 + 2*zi] = AIR_CAST(float, zi);
   }
   /* sort into ascending messiness */
   qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
   /* flip ordering while thresholding messiness into usability */
   for (zi=0; zi<sz; zi++) {
     tmp = two[1 + 2*zi];
-    two[1 + 2*zi] = (AIR_AFFINE(0, zi, sz-1, 0, 1) <= goodFrac ? 1.0 : 0.0);
+    two[1 + 2*zi] = AIR_AFFINE(0, zi, sz-1, 0, 1) <= goodFrac ? 1.0f : 0.0f;
     two[0 + 2*zi] = tmp;
   }  
   /* sort again, now into ascending slice order */
@@ -802,7 +803,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     fprintf(stderr, "%s: using slices", me);
     for (zi=0; zi<sz; zi++) {
       if (two[1 + 2*zi]) {
-        fprintf(stderr, " %d", zi);
+        fprintf(stderr, " %u", zi);
       }
     }
     fprintf(stderr, " for fitting\n");
@@ -814,17 +815,17 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   sh = nhst->axis[0].size;
   for (hi=0; hi<sh; hi++) {
     x = y = xy = xx = 0;
-    c = 0;
+    cc = 0;
     for (zi=0; zi<sz; zi++) {
       if (!two[1 + 2*zi])
         continue;
-      c += 1;
+      cc += 1;
       x += zi;
       xx += zi*zi;
       y += hst[hi + sh*zi];
       xy += zi*hst[hi + sh*zi];
     }
-    x /= c; xx /= c; y /= c; xy /= c;
+    x /= cc; xx /= cc; y /= cc; xy /= cc;
     mm = (xy - x*y)/(xx - x*x);
     bb = y - mm*x;
     for (zi=0; zi<sz; zi++) {
@@ -907,27 +908,27 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
   
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
-  supp = (unsigned int)kern->support(kparm);
+  supp = AIR_CAST(unsigned int, kern->support(kparm));
   ins = nrrdDInsert[nout->type];
   clamp = nrrdDClamp[nout->type];
 
-  in = (float*)(nin->data);
+  in = AIR_CAST(float*, nin->data);
   for (xi=0; xi<sx; xi++) {
-    idx = (int*)(nidx->data);
-    wght = (float*)(nwght->data);
+    idx = AIR_CAST(int*, nidx->data);
+    wght = AIR_CAST(float*, nwght->data);
     for (yi=0; yi<sy; yi++) {
-      pp = hh*(xi - cx) + ss*(yi - cy) + tt + cy;
-      pb = (size_t)floor(pp);
+      pp = AIR_CAST(float, hh*(xi - cx) + ss*(yi - cy) + tt + cy);
+      pb = AIR_CAST(size_t, floor(pp));
       pf = pp - pb;
-      for (pi=-(supp-1); pi<=supp; pi++) {
-        idx[pi+(supp-1)] = AIR_MIN(pb + pi, sy-1);
-        wght[pi+(supp-1)] = pi - pf;
+      for (pi=0; pi<2*supp; pi++) {
+        idx[pi] = AIR_MIN(pb + pi - (supp-1), sy-1);
+        wght[pi] = pi - (supp-1) - pf;
       }
       idx += 2*supp;
       wght += 2*supp;
     }
-    idx = (int*)(nidx->data);
-    wght = (float*)(nwght->data);
+    idx = AIR_CAST(int*, nidx->data);
+    wght = AIR_CAST(float*, nwght->data);
     kern->evalN_f(wght, wght, 2*supp*sy, kparm);
     for (yi=0; yi<sy; yi++) {
       tmp = 0;

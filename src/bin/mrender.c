@@ -68,7 +68,7 @@ char *info = ("A demonstration of hoover, gage, and nrrd measures. "
               "tensor), gage to "
               "measure one of various quantities along the rays, and a "
               "specified nrrd measure to reduce all the values along a ray "
-              "down to one scalar, which is saved in the output (float) "
+              "down to one scalar, which is saved in the output (double) "
               "image.");
 
 /* -------------------------------------------------------------- */
@@ -163,15 +163,15 @@ mrendUserCheck(mrendUser *uu) {
 
 typedef struct mrendRender_t {
   double time0, time1;  /* render start and end times */
-  Nrrd *nout;           /* output image: always 2D array of floats */
-  float *imgData;       /* output image data */
+  Nrrd *nout;           /* output image: always 2D array of doubles */
+  double *imgData;       /* output image data */
   int sx, sy,           /* image dimensions */
     totalSamples;       /* total number of samples used for all rays */
   struct mrendThread_t *tinfo[HOOVER_THREAD_MAX];
 } mrendRender;
 
 typedef struct mrendThread_t {
-  float *val,           /* array of ray samples */
+  double *val,          /* array of ray samples */
     rayLen,             /* length of ray segment between near and far */
     rayStep;            /* ray step needed FOR THIS RAY, to acheive sampling on
                            planes (same scaling of uu->rayStep) */
@@ -222,7 +222,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
           2*uu->gctx0->radius);
   
-  if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeFloat, 2,
+  if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeDouble, 2,
                         AIR_CAST(size_t, uu->hctx->imgSize[0]),
                         AIR_CAST(size_t, uu->hctx->imgSize[1]))) {
     sprintf(err, "%s: nrrd trouble", me);
@@ -234,7 +234,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   (*rrP)->nout->axis[1].min = uu->hctx->cam->vRange[0];
   (*rrP)->nout->axis[1].max = uu->hctx->cam->vRange[1];
   airMopAdd(uu->mrmop, (*rrP)->nout, (airMopper)nrrdNuke, airMopAlways);
-  (*rrP)->imgData = (float *)((*rrP)->nout->data);
+  (*rrP)->imgData = AIR_CAST(double*, (*rrP)->nout->data);
   (*rrP)->sx = uu->hctx->imgSize[0];
   (*rrP)->sy = uu->hctx->imgSize[1];
   
@@ -309,7 +309,7 @@ mrendThreadEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
   if (tt->thrid) {
     tt->gctx = gageContextNix(tt->gctx);
   }
-  tt->val = (float *)airFree(tt->val);
+  tt->val = AIR_CAST(double*, airFree(tt->val));
   
   return 0;
 }
@@ -346,9 +346,9 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
                  (uu->hctx->cam->vspFaar - uu->hctx->cam->vspNeer));
   newLen = AIR_ROUNDUP(rayLen/tt->rayStep) + 1;
   if (!tt->val || newLen > tt->valLen) {
-    tt->val = (float *)airFree(tt->val);
+    tt->val = AIR_CAST(double*, airFree(tt->val));
     tt->valLen = newLen;
-    tt->val = (float*)calloc(newLen, sizeof(float));
+    tt->val = AIR_CAST(double*, calloc(newLen, sizeof(double)));
   }
   tt->valNum = 0;
   if (!uIndex) {
@@ -362,12 +362,12 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 
 int
 mrendRayEnd(mrendThread *tt, mrendRender *rr, mrendUser *uu) {
-  float answer;
+  double answer;
 
   if (tt->valNum) {
     nrrdMeasureLine[uu->measr](&answer,
-                               nrrdTypeFloat,
-                               tt->val, nrrdTypeFloat,
+                               nrrdTypeDouble,
+                               tt->val, nrrdTypeDouble,
                                tt->valNum,
                                0, tt->rayLen);
     answer = AIR_EXISTS(answer) ? answer : uu->fromNaN;
@@ -531,8 +531,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "vp", "img coords", airTypeInt, 2, 2, &(uu->verbPixel),
              "-1 -1", "pixel coordinates for which to turn on all verbose "
              "debugging messages, or \"-1 -1\" to disable this.");
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS),
-             NULL, "file to write output nrrd to");
+  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS), "-",
+             "file to write output nrrd to.  Defaults to stdout (\"-\").");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   
   hestParseOrDie(hopt, argc-1, argv+1, hparm,

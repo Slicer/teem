@@ -39,8 +39,8 @@ main(int argc, char *argv[]) {
   char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode, Ethread;
-  float ads[3];
-  double gmc, turn, eye[3], eyedist;
+  float ads[3], gmc;
+  double turn, eye[3], eyedist;
   Nrrd *nin;
   
   me = argv[0];
@@ -115,7 +115,7 @@ main(int argc, char *argv[]) {
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeFloat, 1, 1, &gmc, "0.0",
              "For curvature-based transfer functions, set curvature to "
              "zero when gradient magnitude is below this");
   hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep),
@@ -160,7 +160,8 @@ main(int argc, char *argv[]) {
   muu->rangeInit[miteRangeKd] = ads[1];
   muu->rangeInit[miteRangeKs] = ads[2];
   gageParmSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageParmSet(muu->gctx0, gageParmRenormalize, renorm);
+  gageParmSet(muu->gctx0, gageParmRenormalize,
+              AIR_CAST(gage_t, renorm ? AIR_TRUE : AIR_FALSE));
   muu->verbUi = verbPix[0];
   muu->verbVi = verbPix[1];
   if (offfr) {

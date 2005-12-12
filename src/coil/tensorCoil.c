@@ -127,27 +127,28 @@ void
 _coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3, 
                                   double spacing[3],
                                   double parm[COIL_PARMS_NUM]) {
-  coil_t rspsqX, rspsqY, rspsqZ;
+  coil_t rspsqX, rspsqY, rspsqZ, parm0;
   
-  rspsqX = 1.0/(spacing[0]*spacing[0]);
-  rspsqY = 1.0/(spacing[1]*spacing[1]);
-  rspsqZ = 1.0/(spacing[2]*spacing[2]);
+  rspsqX = AIR_CAST(coil_t, 1.0/(spacing[0]*spacing[0]));
+  rspsqY = AIR_CAST(coil_t, 1.0/(spacing[1]*spacing[1]));
+  rspsqZ = AIR_CAST(coil_t, 1.0/(spacing[2]*spacing[2]));
+  parm0 = AIR_CAST(coil_t, parm[0]);
   delta[0] = 0;
-  delta[1] = parm[0]*LAPL(iv3, 1, rspsqX, rspsqY, rspsqZ);
-  delta[2] = parm[0]*LAPL(iv3, 2, rspsqX, rspsqY, rspsqZ);
-  delta[3] = parm[0]*LAPL(iv3, 3, rspsqX, rspsqY, rspsqZ);
-  delta[4] = parm[0]*LAPL(iv3, 4, rspsqX, rspsqY, rspsqZ);
-  delta[5] = parm[0]*LAPL(iv3, 5, rspsqX, rspsqY, rspsqZ);
-  delta[6] = parm[0]*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ);
+  delta[1] = parm0*LAPL(iv3, 1, rspsqX, rspsqY, rspsqZ);
+  delta[2] = parm0*LAPL(iv3, 2, rspsqX, rspsqY, rspsqZ);
+  delta[3] = parm0*LAPL(iv3, 3, rspsqX, rspsqY, rspsqZ);
+  delta[4] = parm0*LAPL(iv3, 4, rspsqX, rspsqY, rspsqZ);
+  delta[5] = parm0*LAPL(iv3, 5, rspsqX, rspsqY, rspsqZ);
+  delta[6] = parm0*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ);
 }
 
 #define HESS(hess, iv3, vi, rspX, rspY, rspZ) \
   (hess)[1] = rspX*rspX*(IND(iv3,vi,0,1,1) - 2*IND(iv3,vi,1,1,1) + IND(iv3,vi,2,1,1)); \
   (hess)[4] = rspY*rspY*(IND(iv3,vi,1,0,1) - 2*IND(iv3,vi,1,1,1) + IND(iv3,vi,1,2,1)); \
   (hess)[6] = rspZ*rspZ*(IND(iv3,vi,1,1,0) - 2*IND(iv3,vi,1,1,1) + IND(iv3,vi,1,1,2)); \
-  (hess)[2] = rspX*rspY*(IND(iv3,vi,2,2,1) - IND(iv3,vi,0,2,1) - IND(iv3,vi,2,0,1) + IND(iv3,vi,0,0,1))/4.0; \
-  (hess)[3] = rspX*rspZ*(IND(iv3,vi,2,1,2) - IND(iv3,vi,0,1,2) - IND(iv3,vi,2,1,0) + IND(iv3,vi,0,1,0))/4.0; \
-  (hess)[5] = rspY*rspZ*(IND(iv3,vi,1,2,2) - IND(iv3,vi,1,0,2) - IND(iv3,vi,1,2,0) + IND(iv3,vi,1,0,0))/4.0
+  (hess)[2] = rspX*rspY*(IND(iv3,vi,2,2,1) - IND(iv3,vi,0,2,1) - IND(iv3,vi,2,0,1) + IND(iv3,vi,0,0,1))/4.0f; \
+  (hess)[3] = rspX*rspZ*(IND(iv3,vi,2,1,2) - IND(iv3,vi,0,1,2) - IND(iv3,vi,2,1,0) + IND(iv3,vi,0,1,0))/4.0f; \
+  (hess)[5] = rspY*rspZ*(IND(iv3,vi,1,2,2) - IND(iv3,vi,1,0,2) - IND(iv3,vi,1,2,0) + IND(iv3,vi,1,0,0))/4.0f
 
 #define _COIL_CONDUCT(LL, KK) \
   (exp(-0.5*(LL)/(KK)))
@@ -164,23 +165,24 @@ void
 _coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3, 
                            double spacing[3],
                            double parm[COIL_PARMS_NUM]) {
-  coil_t hess[7], rspX, rspY, rspZ;
+  coil_t hess[7], rspX, rspY, rspZ, parm0;
   float eval[3], evec[9], tens[7], lin;
 
-  rspX = 1.0/spacing[0];
-  rspY = 1.0/spacing[1];
-  rspZ = 1.0/spacing[2];
+  rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
+  rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
+  rspZ = AIR_CAST(coil_t, 1.0/spacing[2]);
   TENS(tens, iv3);
   tenEigensolve_f(eval, evec, tens);
-  lin = (eval[0] - eval[1])/(eval[0] - eval[2] + 0.000001);
+  lin = (eval[0] - eval[1])/(eval[0] - eval[2] + 0.000001f);
   TEN_T3V_OUTER(tens, evec + 3*0);
   delta[0] = 0;
-  HESS(hess, iv3, 1, rspX, rspY, rspZ); delta[1] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
-  HESS(hess, iv3, 2, rspX, rspY, rspZ); delta[2] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
-  HESS(hess, iv3, 3, rspX, rspY, rspZ); delta[3] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
-  HESS(hess, iv3, 4, rspX, rspY, rspZ); delta[4] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
-  HESS(hess, iv3, 5, rspX, rspY, rspZ); delta[5] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
-  HESS(hess, iv3, 6, rspX, rspY, rspZ); delta[6] = lin*parm[0]*tens[0]*TEN_T_DOT(hess, tens);
+  parm0 = AIR_CAST(coil_t, parm[0]);
+  HESS(hess, iv3, 1, rspX, rspY, rspZ); delta[1] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
+  HESS(hess, iv3, 2, rspX, rspY, rspZ); delta[2] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
+  HESS(hess, iv3, 3, rspX, rspY, rspZ); delta[3] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
+  HESS(hess, iv3, 4, rspX, rspY, rspZ); delta[4] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
+  HESS(hess, iv3, 5, rspX, rspY, rspZ); delta[5] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
+  HESS(hess, iv3, 6, rspX, rspY, rspZ); delta[6] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
 }
 
 void
@@ -194,9 +196,9 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
     dmu1[7], dmu2[7], mu2Norm, dskw[7], skwNorm,
     phi3[7];
 
-  rspX = 1.0/spacing[0]; rspsqX = rspX*rspX;
-  rspY = 1.0/spacing[1]; rspsqY = rspY*rspY;
-  rspZ = 1.0/spacing[2]; rspsqZ = rspZ*rspZ;
+  rspX = AIR_CAST(coil_t, 1.0/spacing[0]); rspsqX = rspX*rspX;
+  rspY = AIR_CAST(coil_t, 1.0/spacing[1]); rspsqY = rspY*rspY;
+  rspZ = AIR_CAST(coil_t, 1.0/spacing[2]); rspsqZ = rspZ*rspZ;
   TENS(tens, iv3);
   TENGRAD(tengrad, iv3, rspX, rspY, rspZ);
   tenEigensolve_d(eval, evec, tens);
@@ -232,15 +234,15 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
              TEN_T_DOT(phi3, tengrad + 1*7),
              TEN_T_DOT(phi3, tengrad + 2*7));
   LL += ELL_3V_DOT(grad,grad);
-  KK = parm[3]*parm[3];
+  KK = AIR_CAST(coil_t, parm[3]*parm[3]);
   cnd *= _COIL_CONDUCT(LL, KK); 
-  delta[0] = 0;
-  delta[1] = parm[0]*cnd*LAPL(iv3, 1, rspsqX, rspsqY, rspsqZ);
-  delta[2] = parm[0]*cnd*LAPL(iv3, 2, rspsqX, rspsqY, rspsqZ);
-  delta[3] = parm[0]*cnd*LAPL(iv3, 3, rspsqX, rspsqY, rspsqZ);
-  delta[4] = parm[0]*cnd*LAPL(iv3, 4, rspsqX, rspsqY, rspsqZ);
-  delta[5] = parm[0]*cnd*LAPL(iv3, 5, rspsqX, rspsqY, rspsqZ);
-  delta[6] = parm[0]*cnd*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ);
+  delta[0]= 0.0f;
+  delta[1]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 1, rspsqX, rspsqY, rspsqZ));
+  delta[2]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 2, rspsqX, rspsqY, rspsqZ));
+  delta[3]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 3, rspsqX, rspsqY, rspsqZ));
+  delta[4]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 4, rspsqX, rspsqY, rspsqZ));
+  delta[5]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 5, rspsqX, rspsqY, rspsqZ));
+  delta[6]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ));
 }
 
 void

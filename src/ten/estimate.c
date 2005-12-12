@@ -926,7 +926,7 @@ tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
     biffAdd(TEN, err); return 1;
   }
 
-  TEN_T_COPY_T(ten, double, _ten);
+  TEN_T_COPY(ten, _ten);
   if (_tenEstimate1TensorSimulateSingle(tec, sigma, bValue, B0, ten)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
@@ -1055,10 +1055,13 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
       dwi_d += tec->allNum;
     } else {
       for (tt=0; tt<7; tt++) {
-        ten_f[tt] = tlup(nten->data, tt + sizeTen*II);
+        ten_f[tt] = AIR_CAST(float, tlup(nten->data, tt + sizeTen*II));
       }
-      E = tenEstimate1TensorSimulateSingle_f(tec, dwi_f, sigma, 
-                                             bValue, B0, ten_f);
+      E = tenEstimate1TensorSimulateSingle_f(tec, dwi_f,
+                                             AIR_CAST(float, sigma),
+                                             AIR_CAST(float, bValue),
+                                             AIR_CAST(float, B0),
+                                             ten_f);
       dwi_f += tec->allNum;
     }
     if (E) {
@@ -1692,7 +1695,7 @@ tenEstimate1TensorSingle_f(tenEstimateContext *tec,
   }
   fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
           tec->knownB0, tec->estimatedB0);
-  TEN_T_COPY_T(ten, float, tec->ten);
+  TEN_T_COPY_TT(ten, float, tec->ten);
 
   return 0;
 }

@@ -12,7 +12,11 @@ ADD_LIBRARY(air
   math.c
   string.c
   threadAir.c
-)
+  )
+
+IF(UNIX)
+  TARGET_LINK_LIBRARIES(air -lm)
+ENDIF(UNIX)
 
 INSTALL_TARGETS(/lib air)
 INSTALL_FILES(/include/teem/ ".h" air.h)

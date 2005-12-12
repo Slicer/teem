@@ -301,7 +301,7 @@ limnPolyDataCylinder(limnPolyData *pld, unsigned int thetaRes, int sharpEdge) {
       ++vertIdx;
     }
   }
-  for (blah=0; blah < (sharpEdge ? 2 : 1); blah++) {
+  for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
       ELL_4V_SET_TT(pld->vert[vertIdx].xyzw, float,
@@ -394,8 +394,8 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   double theta, phi;
 
   /* sanity bounds */
-  thetaRes = AIR_MAX(3.0f, thetaRes);
-  phiRes = AIR_MAX(2.0f, phiRes);
+  thetaRes = AIR_MAX(3u, thetaRes);
+  phiRes = AIR_MAX(2u, phiRes);
   alpha = AIR_MAX(0.00001f, alpha);
   beta = AIR_MAX(0.00001f, beta);
 
@@ -510,10 +510,17 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
+<<<<<<< polydata.c
   thetaRes = AIR_MAX(3.0f, thetaRes);
   phiRes = AIR_MAX(2.0f, phiRes);
   alpha = AIR_MAX(0.00001f, alpha);
   beta = AIR_MAX(0.00001f, beta);
+=======
+  thetaRes = AIR_MAX(3u, thetaRes);
+  phiRes = AIR_MAX(2u, phiRes);
+  alpha = AIR_MAX(0.00001f, alpha);
+  beta = AIR_MAX(0.00001f, beta);
+>>>>>>> 1.5
 
   vertNum = thetaRes*phiRes + 1;
   indxNum = 2*(phiRes+1)*thetaRes;
@@ -630,9 +637,9 @@ limnPolyDataPlane(limnPolyData *pld, unsigned int uRes, unsigned int vRes) {
   
   vertIdx = 0;
   for (vIdx=0; vIdx<vRes; vIdx++) {
-    vv = AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0);
+    vv = AIR_AFFINE(0, vIdx, vRes-1, -1.0f, 1.0f);
     for (uIdx=0; uIdx<uRes; uIdx++) {
-      uu = AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0);
+      uu = AIR_AFFINE(0, uIdx, uRes-1, -1.0f, 1.0f);
       ELL_4V_SET(pld->vert[vertIdx].xyzw, uu, vv, 0.0, 1.0);
       ELL_4V_SET(pld->vert[vertIdx].norm, 0.0, 0.0, 1.0, 0.0);
       ELL_4V_SET(pld->vert[vertIdx].rgba, 255, 255, 255, 255);
@@ -670,9 +677,9 @@ limnPolyDataTransform_f(limnPolyData *pld, const float homat[16]) {
     ELL_3M_TRANSPOSE(nmat, inv);
     for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
       ELL_4MV_MUL(hovec, homat, pld->vert[vertIdx].xyzw);
-      ELL_4V_COPY(pld->vert[vertIdx].xyzw, hovec);
+      ELL_4V_COPY_TT(pld->vert[vertIdx].xyzw, float, hovec);
       ELL_3MV_MUL(norm, nmat, pld->vert[vertIdx].norm);
-      ELL_3V_COPY(pld->vert[vertIdx].norm, norm);
+      ELL_3V_COPY_TT(pld->vert[vertIdx].norm, float, norm);
     }
   }
   return;
@@ -690,9 +697,9 @@ limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
     ELL_3M_TRANSPOSE(nmat, inv);
     for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
       ELL_4MV_MUL(hovec, homat, pld->vert[vertIdx].xyzw);
-      ELL_4V_COPY(pld->vert[vertIdx].xyzw, hovec);
+      ELL_4V_COPY_TT(pld->vert[vertIdx].xyzw, float, hovec);
       ELL_3MV_MUL(norm, nmat, pld->vert[vertIdx].norm);
-      ELL_3V_COPY(pld->vert[vertIdx].norm, norm);
+      ELL_3V_COPY_TT(pld->vert[vertIdx].norm, float, norm);
     }
   }
   return;

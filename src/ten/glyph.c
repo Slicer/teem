@@ -41,7 +41,7 @@ tenGlyphParmNew() {
     parm->facetRes = 10;
     parm->glyphScale = 1.0;
     parm->sqdSharp = 3.0;
-    ELL_5V_SET(parm->edgeWidth, 0.0, 0.0, 0.4, 0.2, 0.1);
+    ELL_5V_SET(parm->edgeWidth, 0.0f, 0.0f, 0.4f, 0.2f, 0.1f);
 
     parm->colEvec = 0;  /* first */
     parm->colMaxSat = 1; 
@@ -56,7 +56,7 @@ tenGlyphParmNew() {
     parm->slicePos = 0;
     parm->sliceAnisoType = tenAnisoUnknown;
     parm->sliceOffset = 0.0;
-    parm->sliceBias = 0.05;
+    parm->sliceBias = 0.05f;
     parm->sliceGamma = 1.0;
   }
   return parm;
@@ -179,9 +179,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   char me[]="tenGlyphGen", err[BIFF_STRLEN];
   gageShape *shape;
   airArray *mop;
-  double pI[3], pW[3];
-  float cl, cp, *tdata, evec[9], rotEvec[9], eval[3], *cvec,
-    aniso[TEN_ANISO_MAX+1], sRot[16], mA[16], msFr[9], tmpvec[3], mB[16],
+  float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16],
+    aniso[TEN_ANISO_MAX+1];
+  double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3],
     R, G, B, qA, qB, glyphAniso, sliceGray;
   unsigned int duh;
   int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs,
@@ -387,22 +387,23 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         look->spow = 0;
         glyphIdx = limnObjectSquareAdd(glyphsLimn, lookIdx);
         ELL_4M_IDENTITY_SET(mA);
-        ell_4m_post_mul_f(mA, sRot);
+        ell_4m_post_mul_d(mA, sRot);
         if (!npos) {
           ELL_4M_SCALE_SET(mB,
                            shape->voxLen[0],
                            shape->voxLen[1],
                            shape->voxLen[2]);
         }
-        ell_4m_post_mul_f(mA, mB);
+        ell_4m_post_mul_d(mA, mB);
         ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);
-        ell_4m_post_mul_f(mA, mB);
+        ell_4m_post_mul_d(mA, mB);
         ELL_4M_TRANSLATE_SET(mB,
                              originOffset[0],
                              originOffset[1],
                              originOffset[2]);
-        ell_4m_post_mul_f(mA, mB);
-        limnObjectPartTransform(glyphsLimn, glyphIdx, mA);
+        ell_4m_post_mul_d(mA, mB);
+        ELL_4M_COPY_TT(mA_f, float, mA);
+        limnObjectPartTransform(glyphsLimn, glyphIdx, mA_f);
       }
       if (glyphsEcho) {
         esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
@@ -458,11 +459,11 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     ELL_3V_SCALE(eval, parm->glyphScale, eval);     /* scale by evals */
     ELL_4M_SCALE_SET(mB, eval[0], eval[1], eval[2]);
 
-    ell_4m_post_mul_f(mA, mB);
+    ell_4m_post_mul_d(mA, mB);
     ELL_43M_INSET(mB, rotEvec);                     /* rotate by evecs */
-    ell_4m_post_mul_f(mA, mB);
+    ell_4m_post_mul_d(mA, mB);
     ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);  /* translate */
-    ell_4m_post_mul_f(mA, mB);
+    ell_4m_post_mul_d(mA, mB);
 
     /* set color (in R,G,B) */
     cvec = evec + 3*(AIR_CLAMP(0, parm->colEvec, 2));
@@ -531,7 +532,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
                                                parm->facetRes);
         break;
       }
-      limnObjectPartTransform(glyphsLimn, glyphIdx, mA);
+      ELL_4M_COPY_TT(mA_f, float, mA);
+      limnObjectPartTransform(glyphsLimn, glyphIdx, mA_f);
     }
     if (glyphsEcho) {
       switch(parm->glyphType) {

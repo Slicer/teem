@@ -95,13 +95,12 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
-  float pos[3];
+  float pos[3], gmc;
   int what, ansLen, E=0, iBaseDim, renorm;
   const gage_t *answer, *answer2;
   Nrrd *nin;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
-  double gmc;
   airArray *mop;
 
   mop = airMopNew();
@@ -131,7 +130,7 @@ main(int argc, char *argv[]) {
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeFloat, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -160,7 +159,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageParmSet(ctx, gageParmVerbose, 42);
   gageParmSet(ctx, gageParmGradMagMin, gmc);
-  gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
+  gageParmSet(ctx, gageParmRenormalize,
+              AIR_CAST(gage_t, renorm ? AIR_TRUE : AIR_FALSE));
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
@@ -212,28 +212,28 @@ main(int argc, char *argv[]) {
     printf("\n");
     
     /* random testing */
-    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
     gageProbe(ctx2, pos[0], pos[1], pos[2]);
     printf("====== C %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
            pos[0], pos[1], pos[2]);
     printans(stdout, answer2, ansLen);
     printf("\n");
     
-    ELL_3V_SET(pos, 4.4, 5.5, 6.6);
+    ELL_3V_SET(pos, 4.4f, 5.5f, 6.6f);
     gageProbe(ctx, pos[0], pos[1], pos[2]);
     printf("====== D %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
            pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
     
-    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
     gageProbe(ctx, pos[0], pos[1], pos[2]);
     printf("====== E %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
            pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
     
-    ELL_3V_SET(pos, 1.2, 2.3, 3.4);
+    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
     gageProbe(ctx2, pos[0], pos[1], pos[2]);
     printf("====== F %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
            pos[0], pos[1], pos[2]);

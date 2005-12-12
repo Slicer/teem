@@ -94,7 +94,7 @@ typedef struct pushPoint_t {
 /*
 ******** pushThing struct
 **
-** represents both single points, and tractlets, as follows:
+** Represents both single points, and tractlets, as follows:
 **
 ** for single points: "point" tells the whole story of the point,
 ** but point.{tan,nor} is meaningless.  For the sake of easily computing all

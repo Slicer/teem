@@ -119,7 +119,7 @@ _pushForceSpringFunc(push_t haveDist, push_t restDist,
 push_t
 _pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
-  return 2*scale*maxEval*(1.0 + parm[1]);
+  return 2.0f*scale*maxEval*(1.0f + parm[1]);
 }
 
 /* ----------------------------------------------------------------
@@ -132,7 +132,7 @@ _pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 #define _DGAUSS(x, sig, cut) (                                               \
    x >= sig*cut ? 0                                                          \
    : -exp(-x*x/(2.0*sig*sig))*x)
-#define SQRTTHREE 1.73205080756887729352
+#define SQRTTHREE 1.73205080756887729352f
 
 push_t
 _pushForceGaussFunc(push_t haveDist, push_t restDist,
@@ -142,13 +142,13 @@ _pushForceGaussFunc(push_t haveDist, push_t restDist,
   AIR_UNUSED(scale);
   sig = restDist/SQRTTHREE;
   cut = parm[0];
-  return _DGAUSS(haveDist, sig, cut);
+  return AIR_CAST(push_t, _DGAUSS(haveDist, sig, cut));
 }
 
 push_t
 _pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 
-  return (2*scale*maxEval/SQRTTHREE)*parm[0];
+  return (2.0f*scale*maxEval/SQRTTHREE)*parm[0];
 }
 
 /* ----------------------------------------------------------------
@@ -166,7 +166,7 @@ _pushForceChargeFunc(push_t haveDist, push_t restDist,
 
   AIR_UNUSED(scale);
   xx = haveDist/restDist;
-  return -parm[0]*(xx > parm[1] ? 0 : 1.0/(xx*xx));
+  return -parm[0]*(xx > parm[1] ? 0 : 1.0f/(xx*xx));
 }
 
 push_t
@@ -189,8 +189,8 @@ _pushForceCotanFunc(push_t haveDist, push_t restDist,
 
   AIR_UNUSED(scale);
   xx = haveDist/restDist;
-  ss = sin(xx*AIR_PI/2.0);
-  return parm[0]*(xx > 1 ? 0 : 1.0 - 1.0/(ss*ss));
+  ss = AIR_CAST(push_t, sin(xx*AIR_PI/2.0));
+  return parm[0]*(xx > 1 ? 0 : 1.0f - 1.0f/(ss*ss));
 }
 
 push_t
@@ -302,7 +302,7 @@ pushForceParse(const char *_str) {
               me, _pstr, _str);
       biffAdd(PUSH, err); airMopError(mop); return NULL;
     }
-    force->parm[haveParm] = pval;
+    force->parm[haveParm] = AIR_CAST(push_t, pval);
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {

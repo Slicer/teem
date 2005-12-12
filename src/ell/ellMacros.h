@@ -517,6 +517,12 @@ extern "C" {
    (v2)[2] = (v1)[2],       \
    (v2)[3] = (v1)[3])
 
+#define ELL_4V_COPY_TT(v2, TT, v1)  \
+  ((v2)[0] = AIR_CAST(TT, (v1)[0]), \
+   (v2)[1] = AIR_CAST(TT, (v1)[1]), \
+   (v2)[2] = AIR_CAST(TT, (v1)[2]), \
+   (v2)[3] = AIR_CAST(TT, (v1)[3]))
+
 #define ELL_4V_ADD2(v3, v1, v2)  \
   ((v3)[0] = (v1)[0] + (v2)[0], \
    (v3)[1] = (v1)[1] + (v2)[1], \
@@ -610,6 +616,12 @@ extern "C" {
    ELL_4V_COPY((m2)+ 4, (m1)+ 4), \
    ELL_4V_COPY((m2)+ 8, (m1)+ 8), \
    ELL_4V_COPY((m2)+12, (m1)+12))
+
+#define ELL_4M_COPY_TT(m2, TT, m1)     \
+  (ELL_4V_COPY_TT((m2)+ 0, TT, (m1)+ 0), \
+   ELL_4V_COPY_TT((m2)+ 4, TT, (m1)+ 4), \
+   ELL_4V_COPY_TT((m2)+ 8, TT, (m1)+ 8), \
+   ELL_4V_COPY_TT((m2)+12, TT, (m1)+12))
 
 #define ELL_4M_TRANSPOSE(m2, m1) \
   ((m2)[ 0] = (m1)[ 0],          \

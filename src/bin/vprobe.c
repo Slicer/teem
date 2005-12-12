@@ -98,7 +98,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
-  float x, y, z, scale[3];
+  float gmc;
   int what, E=0, otype, renorm;
   unsigned int iBaseDim, oBaseDim;
   const gage_t *answer;
@@ -110,7 +110,7 @@ main(int argc, char *argv[]) {
   double bval=0;
   gageContext *ctx;
   gagePerVolume *pvl;
-  double t0, t1, gmc, mat[16], ipos[4], opos[4], spx, spy, spz;
+  double t0, t1, mat[16], ipos[4], opos[4], spx, spy, spz, x, y, z, scale[3];
   airArray *mop;
 
   mop = airMopNew();
@@ -126,7 +126,7 @@ main(int argc, char *argv[]) {
              NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeFloat, 3, 3, scale,
+  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
              "1.0 1.0 1.0",
              "scaling factor for resampling on each axis "
              "(>1.0 : supersampling)");
@@ -143,7 +143,7 @@ main(int argc, char *argv[]) {
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeFloat, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestOptAdd(&hopt, "m", "matrix", airTypeOther, 1, 1, &_nmat, "",
@@ -262,7 +262,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
   gageParmSet(ctx, gageParmVerbose, 1);
-  gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
+  gageParmSet(ctx, gageParmRenormalize,
+              AIR_CAST(gage_t, renorm ? AIR_TRUE : AIR_FALSE));
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
@@ -340,7 +341,10 @@ main(int argc, char *argv[]) {
                 me, x, y, z, ipos[0], ipos[1], ipos[2]);
         */
         
-        if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
+        if (gageProbe(ctx,
+                      AIR_CAST(gage_t, ipos[0]),
+                      AIR_CAST(gage_t, ipos[1]),
+                      AIR_CAST(gage_t, ipos[2]))) {
           fprintf(stderr, 
                   "%s: trouble at i=(" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV
                   "," _AIR_SIZE_T_CNV ") -> f=(%g,%g,%g):\n%s\n(%d)\n",
