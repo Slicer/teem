@@ -1055,10 +1055,13 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
       dwi_d += tec->allNum;
     } else {
       for (tt=0; tt<7; tt++) {
-        ten_f[tt] = tlup(nten->data, tt + sizeTen*II);
+        ten_f[tt] = AIR_CAST(float, tlup(nten->data, tt + sizeTen*II));
       }
-      E = tenEstimate1TensorSimulateSingle_f(tec, dwi_f, sigma, 
-                                             bValue, B0, ten_f);
+      E = tenEstimate1TensorSimulateSingle_f(tec, dwi_f,
+                                             AIR_CAST(float, sigma),
+                                             AIR_CAST(float, bValue),
+                                             AIR_CAST(float, B0),
+                                             ten_f);
       dwi_f += tec->allNum;
     }
     if (E) {

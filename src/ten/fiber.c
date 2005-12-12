@@ -30,7 +30,10 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
   double iPos[3];
   
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
-  return gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
+  return gageProbe(tfx->gtx,
+                   AIR_CAST(gage_t, iPos[0]),
+                   AIR_CAST(gage_t, iPos[1]),
+                   AIR_CAST(gage_t, iPos[2]));
 }
 
 int
@@ -303,10 +306,16 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 
   /* try probing once */
   if (tfx->useIndexSpace) {
-    ret = gageProbe(tfx->gtx, seed[0], seed[1], seed[2]);
+    ret = gageProbe(tfx->gtx,
+                    AIR_CAST(gage_t, seed[0]),
+                    AIR_CAST(gage_t, seed[1]),
+                    AIR_CAST(gage_t, seed[2]));
   } else {
     gageShapeWtoI(tfx->gtx->shape, tmp, seed);
-    ret = gageProbe(tfx->gtx, tmp[0], tmp[1], tmp[2]);
+    ret = gageProbe(tfx->gtx,
+                    AIR_CAST(gage_t, tmp[0]),
+                    AIR_CAST(gage_t, tmp[1]),
+                    AIR_CAST(gage_t, tmp[2]));
   }
   if (ret) {
     sprintf(err, "%s: first gageProbe failed: %s (%d)", 

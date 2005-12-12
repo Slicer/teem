@@ -414,7 +414,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_Cs2] = 1 - ca;
   c[tenAniso_Ct2] = ca ? cp/ca : 0;
   /* non-westin anisos */
-  mean = sum/3.0;
+  mean = sum/3.0f;
   stdv = AIR_CAST(float,
                   sqrt((mean-e0)*(mean-e0) /* okay, not exactly standard dev */
                        + (mean-e1)*(mean-e1) 
@@ -422,7 +422,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   ra = AIR_CAST(float, stdv/(FLT_EPSILON + mean*sqrt(6.0)));
   ra = AIR_CLAMP(0.0f, ra, 1.0f);
   c[tenAniso_RA] = ra;
-  denom = 2.0*(e0*e0 + e1*e1 + e2*e2);
+  denom = 2.0f*(e0*e0 + e1*e1 + e2*e2);
   if (denom) {
     fa = AIR_CAST(float, stdv*sqrt(3.0/denom));
     fa = AIR_CLAMP(0.0f, fa, 1.0f);
@@ -493,8 +493,8 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
   for (y=0; y<res; y++) {
     for (x=0; x<=y; x++) {
       /* (c0,c1,c2) are the barycentric coordinates */
-      c0 = 1 - AIR_AFFINE(-0.5f, y, res-0.5f, 0.0f, 1.0f);
-      c2 = AIR_AFFINE(-0.5f, x, res-0.5f, 0.0f, 1.0f);
+      c0 = AIR_CAST(float, 1.0 - AIR_AFFINE(-0.5, y, res-0.5, 0.0, 1.0));
+      c2 = AIR_CAST(float, AIR_AFFINE(-0.5, x, res-0.5, 0.0, 1.0));
       c1 = 1 - c0 - c2;
       e[0] = c0*m0[0] + c1*m1[0] + c2*m2[0];
       e[1] = c0*m0[1] + c1*m1[1] + c2*m2[1];
