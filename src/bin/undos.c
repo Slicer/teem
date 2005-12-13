@@ -39,6 +39,11 @@ char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
 #define LF 13
 #define BAD_PERC 5.0
 
+typedef union {
+  char **c;
+  void **v;
+} _undosU;
+
 void
 undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   airArray *mop;
@@ -47,6 +52,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   airArray *dataArr;
   unsigned int ci;
   int car, numBad, willConvert;
+  _undosU uu;
 
   mop = airMopNew();
   if (!airStrlen(name)) {
@@ -68,7 +74,8 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
 
   /* -------------------------------------------------------- */
   /* create buffer */
-  dataArr = airArrayNew((void**)&data, NULL, sizeof(char), AIR_STRLEN_HUGE);
+  uu.c = &data;
+  dataArr = airArrayNew(uu.v, NULL, sizeof(char), AIR_STRLEN_HUGE);
   if (!dataArr) {
     if (!quiet) {
       fprintf(stderr, "%s: internal allocation error #1\n", me);
