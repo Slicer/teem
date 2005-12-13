@@ -1028,6 +1028,14 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
   void *dataOut;
   NrrdResampleAxis *axisIn, *axisOut;
   airArray *mop;
+
+  /* NOTE: there was an odd memory leak here with normal operation (no
+     errors), because the final airMopOkay() was missing, but quick
+     attempts at resolving it pre-Teem-1.9 release were not successful
+     (surprisingly, commenting out the airMopSub's led to a segfault).
+     So, the airMopAdd which is supposed to manage the per-axis 
+     resampling result is commented out, and there are no leaks and
+     no segfaults with normal operation, which is good enough for now */
   
   /* compute strideIn; this is constant across passes because all
      passes resample topRax, and axes with lower indices have
@@ -1065,9 +1073,10 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     }
     
     /* allocate output for this pass */
-    if (passIdx<rsmc->passNum-1) {
+    if (passIdx < rsmc->passNum-1) {
       axisOut->nrsmp = nrrdNew();
-      airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways);
+      /* see NOTE above!
+	 airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways); */
       if (nrrdMaybeAlloc_nva(axisOut->nrsmp, nrrdResample_nt, rsmc->dim,
                              axisOut->sizePerm)) {
         sprintf(err, "%s: trouble allocating output of pass %u", me,
@@ -1176,10 +1185,11 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
                 axisIn->axIdx);
       }
       axisIn->nrsmp = nrrdNuke(axisIn->nrsmp);
-      airMopSub(mop, axisIn->nrsmp, (airMopper)nrrdNuke);
+      /* airMopSub(mop, axisIn->nrsmp, (airMopper)nrrdNuke); */
     }
   } /* for passIdx */
   
+  airMopOkay(mop);
   return 0;
 }
 
