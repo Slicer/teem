@@ -44,7 +44,7 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
     biffMove(TEN, err, NRRD); return 1;
   }
 
-  ELL_3V_COPY(weight, _weight);
+  ELL_3V_COPY_TT(weight, float, _weight);
   size = weight[0] + weight[1] + weight[2];
   if (!size) {
     sprintf(err, "%s: some of eigenvalue weights is zero", me);
@@ -69,9 +69,12 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
     fprintf(stderr, "!%s: eval = %g %g %g --> size = %g --> ",
             me, eval[0], eval[1], eval[2], size);
     */
-    eval[0] = AIR_AFFINE(0, amount, 1, eval[0], target*eval[0]/size);
-    eval[1] = AIR_AFFINE(0, amount, 1, eval[1], target*eval[1]/size);
-    eval[2] = AIR_AFFINE(0, amount, 1, eval[2], target*eval[2]/size);
+    eval[0] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[0],
+                                         target*eval[0]/size));
+    eval[1] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[1],
+                                         target*eval[1]/size));
+    eval[2] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[2],
+                                         target*eval[2]/size));
     /*
     fprintf(stderr, "%g %g %g\n", eval[0], eval[1], eval[2]);
     */
@@ -109,12 +112,12 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
     tout[0] = tin[0];
-    tout[1] = amount*tin[1];
-    tout[2] = amount*tin[2];
-    tout[3] = amount*tin[3];
-    tout[4] = amount*tin[4];
-    tout[5] = amount*tin[5];
-    tout[6] = amount*tin[6];
+    tout[1] = AIR_CAST(float, amount*tin[1]);
+    tout[2] = AIR_CAST(float, amount*tin[2]);
+    tout[3] = AIR_CAST(float, amount*tin[3]);
+    tout[4] = AIR_CAST(float, amount*tin[4]);
+    tout[5] = AIR_CAST(float, amount*tin[5]);
+    tout[6] = AIR_CAST(float, amount*tin[6]);
     tin += 7;
     tout += 7;
   }
@@ -156,17 +159,17 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tin);
     if (fixDet) {
-      eval[0] = AIR_MAX(eval[0], 0.00001);
-      eval[1] = AIR_MAX(eval[1], 0.00001);
-      eval[2] = AIR_MAX(eval[2], 0.00001);
-      eval[0] = log(eval[0]);
-      eval[1] = log(eval[1]);
-      eval[2] = log(eval[2]);
+      eval[0] = AIR_MAX(eval[0], 0.00001f);
+      eval[1] = AIR_MAX(eval[1], 0.00001f);
+      eval[2] = AIR_MAX(eval[2], 0.00001f);
+      eval[0] = AIR_CAST(float, log(eval[0]));
+      eval[1] = AIR_CAST(float, log(eval[1]));
+      eval[2] = AIR_CAST(float, log(eval[2]));
     }
-    mean = (eval[0] + eval[1] + eval[2])/3.0;
-    eval[0] = AIR_LERP(scale, mean, eval[0]);
-    eval[1] = AIR_LERP(scale, mean, eval[1]);
-    eval[2] = AIR_LERP(scale, mean, eval[2]);
+    mean = (eval[0] + eval[1] + eval[2])/3.0f;
+    eval[0] = AIR_CAST(float, AIR_LERP(scale, mean, eval[0]));
+    eval[1] = AIR_CAST(float, AIR_LERP(scale, mean, eval[1]));
+    eval[2] = AIR_CAST(float, AIR_LERP(scale, mean, eval[2]));
     if (fixDet) {
       eval[0] = exp(eval[0]);
       eval[1] = exp(eval[1]);

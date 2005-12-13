@@ -333,9 +333,12 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     }
     tenEigensolve_f(eval, evec, tdata);
     /* transform eigenvectors by measurement frame */
-    ELL_3MV_MUL(tmpvec, msFr, evec + 0); ELL_3V_COPY(evec + 0, tmpvec);
-    ELL_3MV_MUL(tmpvec, msFr, evec + 3); ELL_3V_COPY(evec + 3, tmpvec);
-    ELL_3MV_MUL(tmpvec, msFr, evec + 6); ELL_3V_COPY(evec + 6, tmpvec);
+    ELL_3MV_MUL(tmpvec, msFr, evec + 0);
+    ELL_3V_COPY_TT(evec + 0, float, tmpvec);
+    ELL_3MV_MUL(tmpvec, msFr, evec + 3);
+    ELL_3V_COPY_TT(evec + 3, float, tmpvec);
+    ELL_3MV_MUL(tmpvec, msFr, evec + 6);
+    ELL_3V_COPY_TT(evec + 6, float, tmpvec);
     ELL_3V_CROSS(tmpvec, evec + 0, evec + 3);
     if (0 > ELL_3V_DOT(tmpvec, evec + 6)) {
       ELL_3V_SCALE(evec + 6, -1, evec + 6);
@@ -410,11 +413,14 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         ELL_3V_ADD2(((echoRectangle*)esquare)->origin, pW, originOffset);
         ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
         ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
-        echoColorSet(esquare, sliceGray, sliceGray, sliceGray, 1);
+        echoColorSet(esquare,
+                     AIR_CAST(echoCol_t, sliceGray),
+                     AIR_CAST(echoCol_t, sliceGray),
+                     AIR_CAST(echoCol_t, sliceGray), 1);
         /* this is pretty arbitrary- but I want shadows to have some effect.
            Previously, the material was all ambient: (A,D,S) = (1,0,0),
            which avoided all shadow effects. */
-        echoMatterPhongSet(glyphsEcho, esquare, 0.4, 0.6, 0, 40);
+        echoMatterPhongSet(glyphsEcho, esquare, 0.4f, 0.6f, 0, 40);
         echoListAdd(list, esquare);
       }
     }
@@ -510,7 +516,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     if (glyphsLimn) {
       lookIdx = limnObjectLookAdd(glyphsLimn);
       look = glyphsLimn->look + lookIdx;
-      ELL_4V_SET(look->rgba, R, G, B, 1);
+      ELL_4V_SET_TT(look->rgba, float, R, G, B, 1);
       ELL_3V_SET(look->kads, parm->ADSP[0], parm->ADSP[1], parm->ADSP[2]);
       look->spow = 0;
       switch(parm->glyphType) {
@@ -528,7 +534,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       case tenGlyphTypeSuperquad:
       default:
         glyphIdx = limnObjectPolarSuperquadAdd(glyphsLimn, lookIdx, axis,
-                                               qA, qB, 2*parm->facetRes,
+                                               AIR_CAST(float, qA),
+                                               AIR_CAST(float, qB),
+                                               2*parm->facetRes,
                                                parm->facetRes);
         break;
       }
@@ -555,7 +563,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         echoSuperquadSet(eglyph, axis, qA, qB);
         break;
       }
-      echoColorSet(eglyph, R, G, B, 1);
+      echoColorSet(eglyph,
+                   AIR_CAST(echoCol_t, R),
+                   AIR_CAST(echoCol_t, G),
+                   AIR_CAST(echoCol_t, B), 1);
       echoMatterPhongSet(glyphsEcho, eglyph, 
                          parm->ADSP[0], parm->ADSP[1],
                          parm->ADSP[2], parm->ADSP[3]);
