@@ -285,7 +285,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     thr = (unsigned char *)(nthresh[ni]->data);
     for (I=0; I<sx*sy*sz; I++) {
       val = nrrdFLookup[nblur[ni]->type](nblur[ni]->data, I);
-      val -= DWthr;
+      val -= AIR_CAST(float, DWthr);
       thr[I] = (val >= 0 ? 1 : 0);
     }
   }

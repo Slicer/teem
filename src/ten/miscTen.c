@@ -121,11 +121,11 @@ tenEvqOne(float vec[3], float scl) {
   int mi, bins, base, vi, ui;
   short ret;
 
-  ELL_3V_NORM(vec, vec, tmp);
+  ELL_3V_NORM_TT(vec, float, vec, tmp);
   L1 = AIR_ABS(vec[0]) + AIR_ABS(vec[1]) + AIR_ABS(vec[2]);
   ELL_3V_SCALE(vec, 1/L1, vec);
-  scl = AIR_CLAMP(0.0, scl, 1.0);
-  scl = pow(scl, 0.75);
+  scl = AIR_CLAMP(0.0f, scl, 1.0f);
+  scl = AIR_CAST(float, pow(scl, 0.75));
   mi = airIndex(0.0, scl, 1.0, 6);
   if (mi) {
     switch (mi) {

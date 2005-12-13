@@ -510,17 +510,10 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
-<<<<<<< polydata.c
-  thetaRes = AIR_MAX(3.0f, thetaRes);
-  phiRes = AIR_MAX(2.0f, phiRes);
-  alpha = AIR_MAX(0.00001f, alpha);
-  beta = AIR_MAX(0.00001f, beta);
-=======
   thetaRes = AIR_MAX(3u, thetaRes);
   phiRes = AIR_MAX(2u, phiRes);
   alpha = AIR_MAX(0.00001f, alpha);
   beta = AIR_MAX(0.00001f, beta);
->>>>>>> 1.5
 
   vertNum = thetaRes*phiRes + 1;
   indxNum = 2*(phiRes+1)*thetaRes;
@@ -637,9 +630,9 @@ limnPolyDataPlane(limnPolyData *pld, unsigned int uRes, unsigned int vRes) {
   
   vertIdx = 0;
   for (vIdx=0; vIdx<vRes; vIdx++) {
-    vv = AIR_AFFINE(0, vIdx, vRes-1, -1.0f, 1.0f);
+    vv = AIR_CAST(float, AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0));
     for (uIdx=0; uIdx<uRes; uIdx++) {
-      uu = AIR_AFFINE(0, uIdx, uRes-1, -1.0f, 1.0f);
+      uu = AIR_CAST(float, AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
       ELL_4V_SET(pld->vert[vertIdx].xyzw, uu, vv, 0.0, 1.0);
       ELL_4V_SET(pld->vert[vertIdx].norm, 0.0, 0.0, 1.0, 0.0);
       ELL_4V_SET(pld->vert[vertIdx].rgba, 255, 255, 255, 255);

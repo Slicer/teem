@@ -87,14 +87,22 @@ tkwbSlideNix(tkwbSlide *slide) {
   return NULL;
 }
 
+typedef union {
+  tkwbSlide ***ps;
+  char ***pc;
+  void **v;
+} _tkwbU;
+
 int
 tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   char **all, line[AIR_STRLEN_HUGE];
   airArray *allArr;
   unsigned int allLen;
   unsigned int lineLen, lineIdx, totalLen;
-
-  allArr = airArrayNew((void**)(&all), &allLen, sizeof(char*), tkwbArrayIncr);
+  _tkwbU uu;
+  
+  uu.pc = &all;
+  allArr = airArrayNew(uu.v, &allLen, sizeof(char*), tkwbArrayIncr);
   airArrayPointerCB(allArr, airNull, airFree);
   lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
   totalLen = 0;
@@ -151,6 +159,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   char *title, *image, *text, stop[AIR_STRLEN_HUGE], line[AIR_STRLEN_HUGE];
   int slideIdx=0, hitEOF, notReally;
   unsigned int len;
+  _tkwbU uu;
   
   mop = airMopNew();
   if (!( file = airFopen(filename, stdin, "rb") )) {
@@ -165,7 +174,8 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     biffAdd(TKWB, err); airMopError(mop); return 1;
   }
 
-  slideArr = airArrayNew((void**)(&slide), NULL,
+  uu.ps = &slide;
+  slideArr = airArrayNew(uu.v, NULL,
                          sizeof(tkwbSlide*), tkwbArrayIncr);
   airMopAdd(mop, slideArr, (airMopper)airArrayNix, airMopAlways);
   hitEOF = notReally = AIR_FALSE;
