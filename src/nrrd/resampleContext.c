@@ -1180,6 +1180,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     }
   } /* for passIdx */
   
+  airMopOkay(mop);
   return 0;
 }
 
