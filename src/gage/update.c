@@ -228,6 +228,10 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 
   if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n", me,
 			    ctx->radius);
+  if (!( ctx->radius > 0 )) {
+    sprintf(err, "%s: have bad radius %d", me, ctx->radius);
+    biffAdd(GAGE, err); return 1;
+  }
   fd = 2*ctx->radius;
   ctx->fsl = (gage_t *)airFree(ctx->fsl);
   ctx->fw = (gage_t *)airFree(ctx->fw);
