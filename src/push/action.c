@@ -213,7 +213,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
   ELL_3V_NORM_TT(nU, push_t, U, lenU);
   dot = ELL_3V_DOT(nU, nD);
   haveDist = dot*lenD;
-  restDist = dot*2.0f*pctx->scale*lenD/lenU;
+  restDist = AIR_CAST(push_t, dot*2.0*pctx->scale*lenD/lenU);
   mag = force->func(haveDist, restDist,
                     AIR_CAST(push_t, pctx->scale), force->parm);
   ELL_3V_SCALE(fvec, mag, nU);
@@ -257,7 +257,7 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
     ** ----- this is probably correct, based on
     ** ----- tests with the one-ramp.nrrd dataset
     */
-    mm = 2.0f*dot*pctx->scale*(1.0f/lenU - 1.0f/lenV);
+    mm = AIR_CAST(push_t, 2.0*dot*pctx->scale*(1.0/lenU - 1.0/lenV));
     mm = AIR_MAX(mm, -0.95f);
     if (mm <= -1) {
       sprintf(err, "%s: invalid mm <= -1 from:\n"
@@ -538,7 +538,8 @@ _pushThingTractletBe(pushTask *task, pushThing *thing, pushBin *oldBin) {
   }
 
   /* remember the length */
-  thing->len = task->fctx->halfLen[0] + task->fctx->halfLen[1];
+  thing->len = 
+    AIR_CAST(push_t, task->fctx->halfLen[0] + task->fctx->halfLen[1]);
 
   /* allocate tractlet vertices as needed */
   if (numVert != thing->numVert) {

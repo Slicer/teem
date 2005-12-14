@@ -175,7 +175,8 @@ main(int argc, char *argv[]) {
           limnQNtoV_d[method](VV, qn);
           ELL_3V_SUB(WW, WW, VV);
           diff = ELL_3V_LEN(WW);
-          ELL_3V_SET(debug + 3*(ui + 1024*vi), diff, diff, diff);
+          ELL_3V_SET_TT(debug + 3*(ui + 1024*vi), float, 
+                        diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
         }
@@ -188,7 +189,8 @@ main(int argc, char *argv[]) {
           limnQNtoV_d[method](VV, qn);
           ELL_3V_SUB(WW, WW, VV);
           diff = ELL_3V_LEN(WW);
-          ELL_3V_SET(debug + 3*(ui + 512 + 1024*vi), diff, diff, diff);
+          ELL_3V_SET_TT(debug + 3*(ui + 512 + 1024*vi), float, 
+                        diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
         }

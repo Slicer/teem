@@ -385,7 +385,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       if (glyphsLimn) {
         lookIdx = limnObjectLookAdd(glyphsLimn);
         look = glyphsLimn->look + lookIdx;
-        ELL_4V_SET(look->rgba, sliceGray, sliceGray, sliceGray, 1);
+        ELL_4V_SET_TT(look->rgba, float, sliceGray, sliceGray, sliceGray, 1);
         ELL_3V_SET(look->kads, 1, 0, 0);
         look->spow = 0;
         glyphIdx = limnObjectSquareAdd(glyphsLimn, lookIdx);
