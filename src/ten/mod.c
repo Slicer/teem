@@ -69,12 +69,10 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
     fprintf(stderr, "!%s: eval = %g %g %g --> size = %g --> ",
             me, eval[0], eval[1], eval[2], size);
     */
-    eval[0] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[0],
-                                         target*eval[0]/size));
-    eval[1] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[1],
-                                         target*eval[1]/size));
-    eval[2] = AIR_CAST(float, AIR_AFFINE(0, amount, 1, eval[2],
-                                         target*eval[2]/size));
+    ELL_3V_SET_TT(eval, float,
+                  AIR_AFFINE(0, amount, 1, eval[0], target*eval[0]/size),
+                  AIR_AFFINE(0, amount, 1, eval[1], target*eval[1]/size),
+                  AIR_AFFINE(0, amount, 1, eval[2], target*eval[2]/size));
     /*
     fprintf(stderr, "%g %g %g\n", eval[0], eval[1], eval[2]);
     */
@@ -111,13 +109,11 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
   tout = (float *)(nout->data);
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
-    tout[0] = tin[0];
-    tout[1] = AIR_CAST(float, amount*tin[1]);
-    tout[2] = AIR_CAST(float, amount*tin[2]);
-    tout[3] = AIR_CAST(float, amount*tin[3]);
-    tout[4] = AIR_CAST(float, amount*tin[4]);
-    tout[5] = AIR_CAST(float, amount*tin[5]);
-    tout[6] = AIR_CAST(float, amount*tin[6]);
+    TEN_T_SET_TT(tout, float,
+                 tin[0],
+                 amount*tin[1], amount*tin[2], amount*tin[3],
+                 amount*tin[4], amount*tin[5],
+                 amount*tin[6]);
     tin += 7;
     tout += 7;
   }
@@ -162,23 +158,20 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
       eval[0] = AIR_MAX(eval[0], 0.00001f);
       eval[1] = AIR_MAX(eval[1], 0.00001f);
       eval[2] = AIR_MAX(eval[2], 0.00001f);
-      eval[0] = AIR_CAST(float, log(eval[0]));
-      eval[1] = AIR_CAST(float, log(eval[1]));
-      eval[2] = AIR_CAST(float, log(eval[2]));
+      ELL_3V_SET_TT(eval, float, log(eval[0]), log(eval[1]), log(eval[2]));
     }
     mean = (eval[0] + eval[1] + eval[2])/3.0f;
-    eval[0] = AIR_CAST(float, AIR_LERP(scale, mean, eval[0]));
-    eval[1] = AIR_CAST(float, AIR_LERP(scale, mean, eval[1]));
-    eval[2] = AIR_CAST(float, AIR_LERP(scale, mean, eval[2]));
+    ELL_3V_SET_TT(eval, float,
+                  AIR_LERP(scale, mean, eval[0]),
+                  AIR_LERP(scale, mean, eval[1]),
+                  AIR_LERP(scale, mean, eval[2]));
     if (fixDet) {
-      eval[0] = exp(eval[0]);
-      eval[1] = exp(eval[1]);
-      eval[2] = exp(eval[2]);
+      ELL_3V_SET_TT(eval, float, exp(eval[0]), exp(eval[1]), exp(eval[2]));
     }
     if (eval[2] < 0 && makePositive) {
-      eval[0] = AIR_MAX(eval[0], 0.0);
-      eval[1] = AIR_MAX(eval[1], 0.0);
-      eval[2] = AIR_MAX(eval[2], 0.0);
+      eval[0] = AIR_MAX(eval[0], 0.0f);
+      eval[1] = AIR_MAX(eval[1], 0.0f);
+      eval[2] = AIR_MAX(eval[2], 0.0f);
     }
     tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
@@ -220,14 +213,16 @@ tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tin);
     if (AIR_EXISTS(min)) {
-      eval[0] = AIR_MAX(eval[0], min);
-      eval[1] = AIR_MAX(eval[1], min);
-      eval[2] = AIR_MAX(eval[2], min);
+      ELL_3V_SET_TT(eval, float,
+                    AIR_MAX(eval[0], min),
+                    AIR_MAX(eval[1], min),
+                    AIR_MAX(eval[2], min));
     }
     if (AIR_EXISTS(max)) {
-      eval[0] = AIR_MIN(eval[0], max);
-      eval[1] = AIR_MIN(eval[1], max);
-      eval[2] = AIR_MIN(eval[2], max);
+      ELL_3V_SET_TT(eval, float,
+                    AIR_MIN(eval[0], max),
+                    AIR_MIN(eval[1], max),
+                    AIR_MIN(eval[2], max));
     }
     tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
@@ -268,9 +263,10 @@ tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tin);
-    eval[0] = pow(eval[0], expo);
-    eval[1] = pow(eval[1], expo);
-    eval[2] = pow(eval[2], expo);
+    ELL_3V_SET_TT(eval, float,
+                  pow(eval[0], expo),
+                  pow(eval[1], expo),
+                  pow(eval[2], expo));
     tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;
@@ -310,9 +306,10 @@ tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
   N = nrrdElementNumber(nin)/7;
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tin);
-    eval[0] += val;
-    eval[1] += val;
-    eval[2] += val;
+    ELL_3V_SET_TT(eval, float,
+                  eval[0] + val,
+                  eval[1] + val,
+                  eval[2] + val);
     tenMakeOne_f(tout, tin[0], eval, evec);
     tin += 7;
     tout += 7;

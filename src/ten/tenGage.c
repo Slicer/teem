@@ -216,7 +216,7 @@ _tenGageFilter (gageContext *ctx, gagePerVolume *pvl) {
 void
 _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* char me[]="_tenGageAnswer"; */
-  gage_t epsilon=1.0E-10;
+  gage_t epsilon=1.0E-10f;
   gage_t *tenAns, *evalAns, *evecAns, *vecTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,
@@ -237,7 +237,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   evecAns = pvl->directAnswer[tenGageEvec];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensor)) {
     /* done if doV */
-    tenAns[0] = AIR_CLAMP(0.0, tenAns[0], 1.0);
+    tenAns[0] = AIR_CLAMP(0.0f, tenAns[0], 1.0f);
     dtA = tenAns[1];
     dtB = tenAns[2];
     dtC = tenAns[3];
@@ -450,7 +450,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
   /* --- R --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGradVec)) {
     gradCbR = vecTmp = pvl->directAnswer[tenGageRGradVec];
-    tmp0 = 1.0/(epsilon + 2*sqrt(cbQ*cbQ*cbQ));
+    tmp0 = AIR_CAST(gage_t, 1.0/(epsilon + 2*sqrt(cbQ*cbQ*cbQ)));
     ELL_3V_SCALE_ADD4(vecTmp,
                       (5.0f*cbB - 2.0f*cbS)/54.0f, gradCbA,
                       -1.0f/2.0f, gradCbC,
@@ -470,7 +470,7 @@ _tenGageAnswer (gageContext *ctx, gagePerVolume *pvl) {
     vecTmp = pvl->directAnswer[tenGageThetaGradVec];
     tmp1 = cbQ*cbQ*cbQ;
     tmp1 = AIR_CAST(gage_t, sqrt(tmp1)*sqrt(1.0 - cbR*cbR/(epsilon + tmp1)));
-    tmp1 = 1.0/(epsilon + tmp1);
+    tmp1 = 1.0f/(epsilon + tmp1);
     tmp0 = tmp1*3*cbR/(epsilon + 2*cbQ);
     ELL_3V_SCALE_ADD2(vecTmp,
                       tmp0, gradCbQ,

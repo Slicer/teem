@@ -144,7 +144,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
                                        double spacing[3],
                                        double parm[COIL_PARMS_NUM]) {
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
-    grad[3], gm, eps, KK, LL, rspX, rspY, rspZ, lerp;
+    grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
 
   /* reciprocals of spacings in X, Y, and Z */
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
@@ -165,17 +165,18 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   eps = 0.000001f;
   KK = AIR_CAST(coil_t, parm[1]*parm[1]);
   LL = ELL_3V_DOT(forwX, forwX);
-  forwX[0] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  forwX[0] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(forwY, forwY);
-  forwY[1] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  forwY[1] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(forwZ, forwZ);
-  forwZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  forwZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backX, backX);
-  backX[0] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  backX[0] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backY, backY);
-  backY[1] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  backY[1] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backZ, backZ);
-  backZ[2] *= _COIL_CONDUCT(LL, KK)/(eps + sqrt(LL));
+  backZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
 
   lerp = AIR_CAST(coil_t, parm[2]);
   delta[0] = (lerp*_coilLaplacian3(iv3, spacing)

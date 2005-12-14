@@ -88,6 +88,15 @@ extern "C" {
                  (t)[4] = (d), (t)[5] = (e), \
                                (t)[6] = (f) )
 
+#define TEN_T_SET_TT(t, TT, conf, a, b, c, d, e, f) ( \
+   (t)[0] = AIR_CAST(TT, (conf)), \
+   (t)[1] = AIR_CAST(TT, (a)), \
+   (t)[2] = AIR_CAST(TT, (b)), \
+   (t)[3] = AIR_CAST(TT, (c)), \
+   (t)[4] = AIR_CAST(TT, (d)), \
+   (t)[5] = AIR_CAST(TT, (e)), \
+   (t)[6] = AIR_CAST(TT, (f)))
+
 #define TEN_T_COPY(d, s) ( \
    (d)[0] = (s)[0], \
    (d)[1] = (s)[1], \

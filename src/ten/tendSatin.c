@@ -40,7 +40,8 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
   bound1 = AIR_CAST(float, 0.5 - 0.5*airErf((r-0.9)/(bnd + 0.0001)));
   /* other way around */
   bound2 = AIR_CAST(float, 0.5 - 0.5*airErf((0.9-thick-r)/(bnd + 0.0001)));
-  aniso = AIR_AFFINE(0.0f, AIR_MIN(bound1, bound2), 1.0f, mina, maxa);
+  aniso = AIR_CAST(float, AIR_AFFINE(0.0, AIR_MIN(bound1, bound2), 1.0,
+                                     mina, maxa));
 
   ELL_3V_SET_TT(eval, float,
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
@@ -54,7 +55,7 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
 
     /* v1: points towards pole at positive Z */
     ELL_3V_SET(tmp, -x, -y, -z);
-    ELL_3V_NORM(tmp, tmp, norm);
+    ELL_3V_NORM_TT(tmp, float, tmp, norm);
     ELL_3V_CROSS(evec + 3*1, tmp, evec + 3*0);
 
     /* v2: v0 x v1 */
