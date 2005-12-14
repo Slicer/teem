@@ -47,6 +47,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   float thresh, soft, scale, sigma;
   int dwiax, EE, knownB0, oldstuff, estmeth, verbose;
   unsigned int ninLen, axmap[4], wlsi;
+  double valueMin;
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
   double bKVP, bval;
@@ -92,6 +93,9 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "(but not the confidence value) by this amount.  Can help with "
              "downstream numerical precision if values are very large "
              "or small.");
+  hestOptAdd(&hopt, "mv", "min val", airTypeDouble, 1, 1, &valueMin, "1.0",
+             "minimum plausible value (especially important for linear "
+             "least squares estimation)");
   hestOptAdd(&hopt, "B", "B-list", airTypeString, 1, 1, &bmatS, NULL,
              "6-by-N list of B-matrices characterizing "
              "the diffusion weighting for each "
@@ -218,7 +222,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!EE) tenEstimateVerboseSet(tec, verbose);
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
-    if (!EE) EE |= tenEstimateValueMinSet(tec, DBL_MIN);
+    if (!EE) EE |= tenEstimateValueMinSet(tec, valueMin);
     switch(estmeth) {
     case tenEstimateMethodMLE:
       if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
