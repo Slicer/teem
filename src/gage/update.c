@@ -226,7 +226,8 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   gagePerVolume *pvl;
   unsigned int pvlIdx;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n", me,
+			    ctx->radius);
   fd = 2*ctx->radius;
   ctx->fsl = (gage_t *)airFree(ctx->fsl);
   ctx->fw = (gage_t *)airFree(ctx->fw);
