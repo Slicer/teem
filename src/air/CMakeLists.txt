@@ -19,4 +19,3 @@ IF(UNIX)
 ENDIF(UNIX)
 
 INSTALL_TARGETS(/lib air)
-INSTALL_FILES(/include/teem/ ".h" air.h)

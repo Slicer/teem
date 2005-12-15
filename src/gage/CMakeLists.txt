@@ -18,3 +18,4 @@ ADD_LIBRARY(gage
 )
 
 TARGET_LINK_LIBRARIES(gage ell nrrd biff air)
+INSTALL_TARGETS(/lib gage)

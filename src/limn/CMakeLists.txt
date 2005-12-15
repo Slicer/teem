@@ -20,3 +20,4 @@ ADD_LIBRARY(limn
   )
 
 TARGET_LINK_LIBRARIES(limn ell nrrd biff hest air)
+INSTALL_TARGETS(/lib limn)

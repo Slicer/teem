@@ -50,3 +50,4 @@ ADD_LIBRARY(ten
 )
 
 TARGET_LINK_LIBRARIES(ten echo limn gage dye unrrdu ell nrrd biff air)
+INSTALL_TARGETS(/lib ten)

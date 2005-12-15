@@ -3,3 +3,4 @@ ADD_LIBRARY(biff
 )
 
 TARGET_LINK_LIBRARIES(biff air)  
+INSTALL_TARGETS(/lib biff)

@@ -8,4 +8,3 @@ ADD_LIBRARY(hest
 TARGET_LINK_LIBRARIES(hest air)
 
 INSTALL_TARGETS(/lib hest)
-INSTALL_FILES(/include/teem ".h" hest.h)
