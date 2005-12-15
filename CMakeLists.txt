@@ -14,6 +14,10 @@ SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+# We need ansi c-flags, especially on HP
+SET(CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS}")
+SET(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})
+
 #-----------------------------------------------------------------------------
 # Test for some required system information.
 INCLUDE (CMakeBackwardCompatibilityC)
