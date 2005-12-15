@@ -397,7 +397,9 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
 
   if (inside) {
     if (gageProbe(tt->gctx,
-                  samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
+                  AIR_CAST(gage_t, samplePosIndex[0]),
+                  AIR_CAST(gage_t, samplePosIndex[1]),
+                  AIR_CAST(gage_t, samplePosIndex[2]))) {
       sprintf(err, "%s: gage trouble: %s (%d)", me,
               tt->gctx->errStr, tt->gctx->errNum);
       biffAdd(MREND, err);
@@ -557,8 +559,10 @@ main(int argc, char *argv[]) {
     return 1;
   }
   gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
-  gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
+  gageParmSet(uu->gctx0, gageParmRequireAllSpacings,
+              AIR_CAST(gage_t, AIR_FALSE));
+  gageParmSet(uu->gctx0, gageParmRenormalize,
+              AIR_CAST(gage_t, renorm));
   fprintf(stderr, "%s: will render %s of %s in %s volume\n", me,
           airEnumStr(nrrdMeasure, uu->measr),
           airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
