@@ -558,7 +558,8 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
+  gageParmSet(uu->gctx0, gageParmGradMagCurvMin,
+              AIR_CAST(gage_t, gmc));
   gageParmSet(uu->gctx0, gageParmRequireAllSpacings,
               AIR_CAST(gage_t, AIR_FALSE));
   gageParmSet(uu->gctx0, gageParmRenormalize,
