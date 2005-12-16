@@ -15,3 +15,4 @@ ADD_LIBRARY(echo
 )
 
 TARGET_LINK_LIBRARIES(echo limn ell nrrd biff air)
+INSTALL_TARGETS(/lib echo)

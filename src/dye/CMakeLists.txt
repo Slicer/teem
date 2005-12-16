@@ -4,3 +4,4 @@ ADD_LIBRARY(dye
 )
 
 TARGET_LINK_LIBRARIES(dye ell biff air)  
+INSTALL_TARGETS(/lib dye)

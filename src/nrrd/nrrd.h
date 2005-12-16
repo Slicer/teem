@@ -943,8 +943,8 @@ NRRD_EXPORT float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
                                                    float f);
 NRRD_EXPORT int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
                                                    int j);
-NRRD_EXPORT unsigned int    (*nrrdUIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
-                                                             unsigned int j);
+NRRD_EXPORT unsigned int (*nrrdUIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
+                                                          unsigned int j);
 NRRD_EXPORT int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
@@ -1113,7 +1113,7 @@ NRRD_EXPORT void (*nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *ans, int ansType,
 NRRD_EXPORT int nrrdProject(Nrrd *nout, const Nrrd *nin,
                             unsigned int axis, int measr, int type);
 
-/********* various kinds of histograms */
+/********* various kinds of histograms and their analysis */
 /* histogram.c */
 NRRD_EXPORT int nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                           const Nrrd *nwght, size_t bins, int type);
@@ -1127,6 +1127,7 @@ NRRD_EXPORT int nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                unsigned int numNin,
                                const Nrrd *nwght, const size_t *bins,
                                int type, const int *clamp);
+NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist);
 
 /******** arithmetic and math on nrrds */
 /* arith.c */

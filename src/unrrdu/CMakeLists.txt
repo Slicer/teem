@@ -58,3 +58,4 @@ ADD_LIBRARY(unrrdu
 )
 
 TARGET_LINK_LIBRARIES(unrrdu nrrd biff hest air)
+INSTALL_TARGETS(/lib unrrdu)

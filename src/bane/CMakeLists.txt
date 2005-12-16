@@ -23,4 +23,3 @@ ADD_LIBRARY(bane
 
 TARGET_LINK_LIBRARIES(bane gage unrrdu nrrd biff air)
 INSTALL_TARGETS(/lib bane)
-INSTALL_FILES(/include/teem ".h" bane.h)

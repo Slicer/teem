@@ -155,6 +155,36 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 }
 
 int
+_nrrdHistoCheck(const Nrrd *nhist) {
+  char me[]="_nrrdHistoCheck", err[BIFF_STRLEN];
+
+  if (!nhist) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nhist->type) {
+    sprintf(err, "%s: has non-scalar %s type",
+            me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdHasNonExist(nhist)) {
+    sprintf(err, "%s: has non-existent values", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (1 != nhist->dim) {
+    sprintf(err, "%s: dim == %u != 1", 
+            me, nhist->dim);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!(nhist->axis[0].size > 1)) {
+    sprintf(err, "%s: has single sample along sole axis", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  return 0;
+}
+
+int
 nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
               size_t sy, int showLog, double max) {
   char me[]="nrrdHistoDraw", func[]="dhisto", err[BIFF_STRLEN],
@@ -173,18 +203,8 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (!(1 == nin->dim && nrrdTypeBlock != nin->type)) {
-    if (1 != nin->dim) {
-      sprintf(err, "%s: nrrd can\'t be a histogram, dim=%d, not 1", 
-              me, nin->dim);
-    } else {
-      sprintf(err, "%s: nrrd can\'t be a histogram because it is %s type",
-              me, airEnumStr(nrrdType, nrrdTypeBlock));
-    }
-    biffAdd(NRRD, err); return 1;
-  }
-  if (nrrdHasNonExist(nin)) {
-    sprintf(err, "%s: given nrrd has non-existent values", me);
+  if (_nrrdHistoCheck(nin)) {
+    sprintf(err, "%s: input nrrd not a histogram", me);
     biffAdd(NRRD, err); return 1;
   }
   sx = nin->axis[0].size;
@@ -270,6 +290,10 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   if (E) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+
+  if (333 == sy) {
+    nrrdHistoThresholdOtsu(&hits, nin);
   }
 
   /* bye */
@@ -593,3 +617,76 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   return 0;
 }
 
+int
+nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist) {
+  char me[]="nrrdHistoThresholdOtsu", err[BIFF_STRLEN];
+  unsigned int histLen, histIdx, maxIdx;
+  Nrrd *nhist, *nbvar;
+  double *hist, *bvar, thresh, num0, num1, mean0, mean1,
+    onum0, onum1, omean0, omean1, max;
+  airArray *mop;
+
+  if (!(threshP && _nhist)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (_nrrdHistoCheck(_nhist)) {
+    sprintf(err, "%s: input nrrd not a histogram", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  mop = airMopNew();
+  airMopAdd(mop, nhist = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nbvar = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nhist, _nhist, nrrdTypeDouble)
+      || nrrdCopy(nbvar, nhist)) {
+    sprintf(err, "%s: making local copies", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  hist = AIR_CAST(double*, nhist->data);
+  bvar = AIR_CAST(double*, nbvar->data);
+
+  histLen = nhist->axis[0].size;
+  num1 = mean1 = 0;
+  for (histIdx=0; histIdx<histLen; histIdx++) {
+    num1 += hist[histIdx];
+    mean1 += hist[histIdx]*histIdx;
+  }
+  if (num1) {
+    num0 = 0;
+    mean0 = 0;
+    mean1 /= num1;
+    for (histIdx=0; histIdx<histLen; histIdx++) {
+      if (histIdx) {
+        onum0 = num0;
+        onum1 = num1;
+        omean0 = mean0;
+        omean1 = mean1;
+        num0 = onum0 + hist[histIdx-1];
+        num1 = onum1 - hist[histIdx-1];
+        mean0 = (omean0*onum0 + hist[histIdx-1]*(histIdx-1)) / num0;
+        mean1 = (omean1*onum1 - hist[histIdx-1]*(histIdx-1)) / num1;
+      }
+      bvar[histIdx] = num0*num1*(mean1 - mean0)*(mean1 - mean0);
+    }
+    max = bvar[0];
+    maxIdx = 0;
+    for (histIdx=1; histIdx<histLen; histIdx++) {
+      if (bvar[histIdx] > max) {
+        max = bvar[histIdx];
+        maxIdx = histIdx;
+      }
+    }
+    thresh = maxIdx;
+  } else {
+    thresh = histLen/2;
+  }
+  
+  if (AIR_EXISTS(nhist->axis[0].min) && AIR_EXISTS(nhist->axis[0].max)) {
+    thresh = NRRD_CELL_POS(nhist->axis[0].min, nhist->axis[0].max,
+                           histLen, thresh);
+  }
+  *threshP = thresh;
+  airMopOkay(mop);
+  return 0;
+}

@@ -9,3 +9,4 @@ ADD_LIBRARY(ell
 )
 
 TARGET_LINK_LIBRARIES(ell nrrd biff air)
+INSTALL_TARGETS(/lib ell)
