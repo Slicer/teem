@@ -26,14 +26,12 @@
 #define INFO "Estimate tensors from a set of DW images"
 char *_tend_estimInfoL =
   (INFO
-   ". The various DWI volumes must be stacked along axis 0 (as with the "
-   "output of \"tend epireg\").  The tensor coefficient weightings associated "
-   "with "
-   "each of the DWIs, the B-matrix, is given as a seperate array, "
-   "see \"tend bmat\" usage "
-   "info for details.  A \"confidence\" value is computed with the tensor, "
-   "based on a soft thresholding of the sum of all the DWIs, according to "
-   "the threshold and softness parameters. ");
+   ". The tensor coefficient weightings associated with "
+   "each of the DWIs, the B-matrix, is given either as a seperate array, "
+   "(see \"tend bmat\" usage info for details), or by the key-value pairs "
+   "in the DWI nrrd header.  A \"confidence\" value is computed with the "
+   "tensor, based on a soft thresholding of the sum of all the DWIs, "
+   "according to the threshold and softness parameters. ");
 
 int
 tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -63,7 +61,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "verbosity level");
   hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
              "lls",
-             "estimation method to use",
+             "estimation method to use. \"lls\": linear-least squares",
              NULL, tenEstimateMethod);
   hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
              "when using weighted-least-squares (\"-est wls\"), how "
@@ -106,8 +104,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "specify the B-matrix.\n  **OR**\n "
              "Can say just \"-B kvp\" to try to learn B matrices from "
              "key/value pair information in input images.");
-  hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "1.0",
-             "\"b\" diffusion-weighting factor");
+  hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "nan",
+             "\"b\" diffusion-weighting factor (units of sec/mm^2)");
   hestOptAdd(&hopt, "knownB0", "bool",
              airTypeBool, 1, 1, &knownB0, "false",
              "Determines of the B=0 non-diffusion-weighted reference image "
@@ -140,6 +138,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* figure out B-matrix */
   if (strcmp("kvp", bmatS)) {
+    if (!AIR_EXISTS(bval)) {
+      fprintf(stderr, "%s: need to specify scalar b-value\n", me);
+      airMopError(mop); return 1;
+    }
     /* its NOT coming from key/value pairs */
     if (nrrdLoad(nbmat, bmatS, NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
@@ -150,14 +152,14 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   } else {
     /* it IS coming from key/value pairs */
     if (1 != ninLen) {
-      fprintf(stderr, "%s: sorry, require single 4-D DWI volume for "
+      fprintf(stderr, "%s: require a single 4-D DWI volume for "
               "key/value pair based calculation of B-matrix\n", me);
       airMopError(mop); return 1;
     }
     if (oldstuff) {
       if (knownB0) {
-        fprintf(stderr, "%s: sorry, key/value-based DWI info currently "
-                "disallows knownB0\n", me);
+        fprintf(stderr, "%s: sorry, key/value-based DWI info not compatible "
+                "with older implementation of knownB0\n", me);
         airMopError(mop); return 1;
       }
     }
@@ -165,6 +167,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
+    }
+    if (AIR_EXISTS(bval)) {
+      fprintf(stderr, "%s: WARNING: key/value pair derived b-value %g "
+              "over-riding %g from command-line", me, bKVP, bval);
     }
     bval = bKVP;
     if (ngradKVP) {
