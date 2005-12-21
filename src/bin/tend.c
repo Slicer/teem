@@ -32,6 +32,12 @@ main(int argc, char **argv) {
   airArray *mop;
 
   me = argv[0];
+
+  /* parse environment variables first, in case they break nrrdDefault*
+     or nrrdState* variables in a way that nrrdSanity() should see */
+  nrrdDefaultGetenv();
+  nrrdStateGetenv();
+
   /* no harm done in making sure we're sane */
   if (!nrrdSanity()) {
     fprintf(stderr, "******************************************\n");
