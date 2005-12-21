@@ -34,6 +34,86 @@ char *_tend_estimInfoL =
    "according to the threshold and softness parameters. ");
 
 int
+tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
+  char me[]="tend_estimThresholdFind", err[BIFF_STRLEN];
+  Nrrd **ndwi;
+  airArray *mop;
+  unsigned int slIdx, slNum, dwiAx, dwiNum,
+    rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
+  double *bmat, bten[7], bnorm;
+  int dwiIdx;
+
+  mop = airMopNew();
+
+  if (!(threshP && nbmat && nin4d)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
+    sprintf(err, "%s: problem within given b-matrix", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
+  /* HEY: copied from tenEpiRegister4D() */
+  rangeAxisNum = nrrdRangeAxesGet(nin4d, rangeAxisIdx);
+  if (0 == rangeAxisNum) {
+    /* we fall back on old behavior */
+    dwiAx = 0;
+  } else if (1 == rangeAxisNum) {
+    /* thankfully there's exactly one range axis */
+    dwiAx = rangeAxisIdx[0];
+  } else {
+    sprintf(err, "%s: have %u range axes instead of 1, don't know which "
+            "is DWI axis", me, rangeAxisNum);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
+  slNum = nin4d->axis[dwiAx].size;
+  bmat = AIR_CAST(double *, nbmat->data);
+  dwiNum = 0;
+  for (slIdx=0; slIdx<slNum; slIdx++) {
+    TEN_T_SET(bten, 1.0,
+              bmat[0], bmat[1], bmat[2],
+              bmat[3], bmat[4],
+              bmat[5]);
+    bnorm = TEN_T_NORM(bten);
+    dwiNum += bnorm > 0.0;
+    bmat += 6;
+  }
+  if (0 == dwiNum) {
+    sprintf(err, "%s: somehow got zero DWIs", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  ndwi = AIR_CAST(Nrrd **, calloc(dwiNum, sizeof(Nrrd *)));
+  bmat = AIR_CAST(double *, nbmat->data);
+  dwiIdx = -1;
+  for (slIdx=0; slIdx<slNum; slIdx++) {
+    TEN_T_SET(bten, 1.0,
+              bmat[0], bmat[1], bmat[2],
+              bmat[3], bmat[4],
+              bmat[5]);
+    bnorm = TEN_T_NORM(bten);
+    if (bnorm > 0.0) {
+      dwiIdx++;
+      ndwi[dwiIdx] = nrrdNew();
+      airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdSlice(ndwi[dwiIdx], nin4d, dwiAx, slIdx)) {
+        sprintf(err, "%s: trouble slicing DWI at index %u", me, slIdx);
+        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      }
+    }
+    bmat += 6;
+  }
+  if (_tenEpiRegFindThresh(threshP, ndwi, dwiNum, AIR_FALSE)) {
+    sprintf(err, "%s: trouble finding thresh", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  
+  airMopOkay(mop);
+  return 0;
+}
+
+int
 tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
@@ -42,10 +122,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
-  float thresh, soft, scale, sigma;
+  float soft, scale, sigma;
   int dwiax, EE, knownB0, oldstuff, estmeth, verbose;
   unsigned int ninLen, axmap[4], wlsi;
-  double valueMin;
+  double valueMin, thresh;
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
   double bKVP, bval;
@@ -78,7 +158,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "giving a filename here allows you to save out the B=0 image "
              "which is estimated from the data.  By default, this image value "
              "is estimated but not saved.");
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "nan",
+  hestOptAdd(&hopt, "t", "thresh", airTypeDouble, 1, 1, &thresh, "nan",
              "value at which to threshold the mean DWI value per pixel "
              "in order to generate the \"confidence\" mask.  By default, "
              "the threshold value is calculated automatically, based on "
@@ -216,10 +296,20 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   nterr = NULL;
   nB0 = NULL;
   if (!oldstuff) {
-    if (!AIR_EXISTS(thresh)) {
-      fprintf(stderr, "%s: sorry, currently need \"-t\" thresh set "
+    if (1 != ninLen) {
+      fprintf(stderr, "%s: sorry, currently need single 4D volume "
               "for new implementation\n", me);
       airMopError(mop); return 1;
+    }
+    if (!AIR_EXISTS(thresh)) {
+      if (tend_estimThresholdFind(&thresh, nbmat, nin4d)) {
+        airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble finding threshold:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+      /* HACK to lower threshold a titch */
+      thresh *= 0.93;
+      fprintf(stderr, "%s: using mean DWI threshold %g\n", me, thresh);
     }
     tec = tenEstimateContextNew();
     tec->progress = AIR_TRUE;
