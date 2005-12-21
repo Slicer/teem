@@ -194,6 +194,18 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     info += valNum*nexNum;
   }
 
+  /* perhaps too paranoid: see if there are extra keys,
+     which probably implies confusion/mismatch between number of
+     gradients and number of values */
+  sprintf(key, keyFmt, dwiIdx);
+  val = nrrdKeyValueGet(ndwi, key);
+  if (val) {
+    sprintf(err, "%s: saw \"%s\" key, more than required %u keys, "
+            "likely mismatch between keys and actual gradients",
+            me, key, dwiIdx);
+    biffAdd(TEN, err); return 1;
+  }
+
   /* normalize so that maximal norm is 1.0 */
   normMax = 0;
   info = (double *)(ninfo->data);
