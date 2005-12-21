@@ -742,7 +742,6 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
     nrrdSave("nbmat.txt", tec->nbmat, NULL);
     nrrdSave("nemat.txt", tec->nemat, NULL);
     */
-    
     tec->flag[flagDwiSet] = AIR_FALSE;
     tec->flag[flagWght] = AIR_FALSE;
   }
@@ -1001,7 +1000,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
     biffAdd(TEN, err); return 1;
   }
   if (!(AIR_EXISTS(sigma) && sigma >= 0.0 
-        && AIR_EXISTS(bValue) && bValue > 0.0)) {
+        && AIR_EXISTS(bValue) && bValue >= 0.0)) {
     sprintf(err, "%s: got invalid sigma (%g) or bValue (%g)\n", me,
             sigma, bValue);
     biffAdd(TEN, err); return 1;
@@ -1205,8 +1204,8 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
     }
     if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
       /*
-        nrrdSave("nbmat.txt", tec->nbmat, NULL);
-        nrrdSave("nwght.txt", tec->nwght, NULL);
+      nrrdSave("nbmat.txt", tec->nbmat, NULL);
+      nrrdSave("nwght.txt", tec->nwght, NULL);
       */
       sprintf(err, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
               AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
