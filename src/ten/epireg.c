@@ -128,7 +128,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
     }
     for (ni=0; ni<dwiLen; ni++) {
       if (verb) {
-        fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
+        fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
       }
       if (nrrdCopy(nblur[ni], ndwi[ni])) {
         sprintf(err, "%s: trouble copying ndwi[%u]", me, (unsigned int)ni);
@@ -174,7 +174,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
   }
   for (ni=0; ni<dwiLen; ni++) {
     if (verb) {
-      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
+      fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
     }
     savemin[0] = ndwi[ni]->axis[0].min; savemax[0] = ndwi[ni]->axis[0].max; 
     savemin[1] = ndwi[ni]->axis[1].min; savemax[1] = ndwi[ni]->axis[1].max;
@@ -239,12 +239,17 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
   if (save) {
     nrrdSave("regtmp-dwihist.nrrd", nhist, NULL);
   }
+  /*
   if (_tenFindValley(DWthrP, nhist, 0.65, save)) {
     sprintf(err, "%s: problem finding DWI histogram valley", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  fprintf(stderr, "%s: using %g for DWI threshold\n", me, *DWthrP);
-  
+  */
+  if (nrrdHistoThresholdOtsu(DWthrP, nhist)) {
+    sprintf(err, "%s: problem finding DWI threshold", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+
   airMopOkay(mop);
   return 0;
 }
@@ -263,6 +268,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
       sprintf(err, "%s: trouble with automatic threshold determination", me);
       biffAdd(TEN, err); return 1;
     }
+    fprintf(stderr, "%s: using %g for DWI threshold\n", me, DWthr);
   }
   
   mop = airMopNew();
@@ -274,7 +280,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
   sz = nblur[0]->axis[2].size;
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
+      fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
     }
     if (nrrdMaybeAlloc_va(nthresh[ni], nrrdTypeUChar, 3,
                           sx, sy, sz)) {
@@ -333,7 +339,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   }
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
+      fprintf(stderr, "%2d ", ni); fflush(stderr);
     }
     /* for each volume, we find the biggest bright 3-D CC, and merge
        down (to dark) all smaller bright pieces.  Then, within each
@@ -415,7 +421,7 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
   }
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "%u ", (unsigned int)ni); fflush(stderr);
+      fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
     }
     if (nrrdMaybeAlloc_va(nmom[ni], nrrdTypeDouble, 2,
                           AIR_CAST(size_t, 5), sz)) {
@@ -988,7 +994,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
   }
   for (ni=0; ni<ninLen; ni++) {
     if (verb) {
-      fprintf(stderr, "% 2d ", ni); fflush(stderr);
+      fprintf(stderr, "%2d ", ni); fflush(stderr);
     }
     if (nrrdCopy(ndone[ni], nin[ni])
         || ((!ni) && nrrdSlice(nslcB, ndone[ni], 2, 0)) /* only when 0==ni */
@@ -1156,16 +1162,19 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
 }
 
 int
-tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
+tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
                  int reference,
                  double bwX, double bwY, double fitFrac,
                  double DWthr, int doCC, 
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
   char me[]="tenEpiRegister4D", err[BIFF_STRLEN];
-  int ni, ninLen, amap[4]={-1, 1, 2, 3};
-  Nrrd **nout, **nin;
+  unsigned int axIdx, ninIdx, ninLen,
+    dwiAx, rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
+  int amap[4], dwiIdx;
+  Nrrd **nout, **nin, **ndwi, **ndwiOut, *ngrad, *ndwigrad;
   airArray *mop;
+  double *grad, *dwigrad, glen;
 
   if (!(_nout && _nin)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1175,28 +1184,93 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
     sprintf(err, "%s: need a 4-D input array, not %d-D", me, _nin->dim);
     biffAdd(TEN, err); return 1;
   }
-  ninLen = _nin->axis[0].size;
-  if (!( AIR_IN_CL(6, ninLen, 60) )) {
-    sprintf(err, "%s: %d (size of axis 0 and # DWIs) is unreasonable", 
-            me, ninLen);
+  if (tenGradientCheck(_ngrad, nrrdTypeDefault, 6 /* <-- HEY: not sure */)) {
+    sprintf(err, "%s: problem with given gradient list", me);
     biffAdd(TEN, err); return 1;
   }
+
+  rangeAxisNum = nrrdRangeAxesGet(_nin, rangeAxisIdx);
+  if (0 == rangeAxisNum) {
+    /* we fall back on old behavior */
+    dwiAx = 0;
+  } else if (1 == rangeAxisNum) {
+    /* thankfully there's exactly one range axis */
+    dwiAx = rangeAxisIdx[0];
+  } else {
+    sprintf(err, "%s: have %u range axes instead of 1, don't know which "
+            "is DWI axis", me, rangeAxisNum);
+    biffAdd(TEN, err); return 1;
+  }
+
+  ninLen = _nin->axis[dwiAx].size;
+  if (!( AIR_IN_CL(6, ninLen, 120) )) {
+    sprintf(err, "%s: %u (size of axis %u, and # DWIs) is unreasonable", 
+            me, ninLen, dwiAx);
+    biffAdd(TEN, err); return 1;
+  }
+  if (ninLen != _ngrad->axis[1].size) {
+    sprintf(err, "%s: ninLen %u != # grads " _AIR_SIZE_T_CNV, 
+            me, ninLen, _ngrad->axis[1].size);
+    biffAdd(TEN, err); return 1;
+  }
+
   mop = airMopNew();
+  ngrad = nrrdNew();
+  ndwigrad = nrrdNew();
+  airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ndwigrad, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
+      || nrrdConvert(ndwigrad, _ngrad, nrrdTypeDouble)) { /* HACK applies */
+    sprintf(err, "%s: trouble converting gradients to doubles", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+
   nin = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
+  ndwi = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
   nout = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
+  ndwiOut = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
+  if (!(nin && ndwi && nout && ndwiOut)) {
+    sprintf(err, "%s: trouble allocating local arrays", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
   airMopAdd(mop, nin, airFree, airMopAlways);
+  airMopAdd(mop, ndwi, airFree, airMopAlways);
   airMopAdd(mop, nout, airFree, airMopAlways);
-  for (ni=0; ni<ninLen; ni++) {
-    nin[ni] = nrrdNew();
-    nout[ni] = nrrdNew();
-    airMopAdd(mop, nin[ni], (airMopper)nrrdNuke, airMopAlways);
-    airMopAdd(mop, nout[ni], (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdSlice(nin[ni], _nin, 0, ni)) {
-      sprintf(err, "%s: trouble slicing at %d on axis 0", me, ni);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  airMopAdd(mop, ndwiOut, airFree, airMopAlways);
+  dwiIdx = -1;
+  grad = AIR_CAST(double *, ngrad->data);
+  dwigrad = AIR_CAST(double *, ndwigrad->data);
+  for (ninIdx=0; ninIdx<ninLen; ninIdx++) {
+    glen = ELL_3V_LEN(grad + 3*ninIdx);
+    if (-1 != reference || glen > 0.0) {
+      /* we're not allowed to use only those images that are truly DWIs,
+         or,
+         (we are so allowed and) this is a true DWI */
+      dwiIdx++;
+      ndwi[dwiIdx] = nrrdNew();
+      ndwiOut[dwiIdx] = nrrdNew();
+      airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
+      airMopAdd(mop, ndwiOut[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdSlice(ndwi[dwiIdx], _nin, dwiAx,
+                    AIR_CAST(unsigned int, ninIdx))) {
+        sprintf(err, "%s: trouble slicing at %d on axis %u",
+                me, ninIdx, dwiAx);
+        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      }
+      /* NOTE: this works because dwiIdx <= ninIdx */
+      ELL_3V_COPY(dwigrad + 3*dwiIdx, grad + 3*ninIdx);
+    } else {
+      /* we are only looking at true DWIs, and this isn't one of them */
+      continue;
     }
   }
-  if (tenEpiRegister3D(nout, nin, ninLen, ngrad,
+  if (-1 == dwiIdx) {
+    sprintf(err, "%s: somehow got no DWIs", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  /* HEY: HACK! */
+  ndwigrad->axis[1].size = 1 + AIR_CAST(unsigned int, dwiIdx);
+  if (tenEpiRegister3D(ndwiOut, ndwi, ndwigrad->axis[1].size, ndwigrad,
                        reference,
                        bwX, bwY, fitFrac, DWthr,
                        doCC,
@@ -1205,11 +1279,54 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *ngrad,
     sprintf(err, "%s: trouble", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  if (nrrdJoin(_nout, (const Nrrd**)nout, ninLen, 0, AIR_TRUE)) {
+  dwiIdx = -1;
+  for (ninIdx=0; ninIdx<ninLen; ninIdx++) {
+    glen = ELL_3V_LEN(grad + 3*ninIdx);
+    if (-1 != reference || glen > 0.0) {
+      /* we're not allowed to use only those images that are truly DWIs,
+         or,
+         (we are so allowed and) this is a true DWI */
+      dwiIdx++;
+      nout[ninIdx] = ndwiOut[dwiIdx];
+      /*
+      fprintf(stderr, "!%s: (A) nout[%u] = %p\n", me, ninIdx, nout[ninIdx]);
+      */
+    } else {
+      /* we are only looking at true DWIs, and this isn't one of them */
+      nout[ninIdx] = nrrdNew();
+      airMopAdd(mop, nout[ninIdx], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdSlice(nout[ninIdx], _nin, dwiAx, ninIdx)) {
+        sprintf(err, "%s: trouble slicing at %d on axis %u",
+                me, dwiIdx, dwiAx);
+        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      }
+      /*
+      fprintf(stderr, "!%s: (B) nout[%u] = %p\n", me, ninIdx, nout[ninIdx]);
+      */
+    }
+  }
+  if (nrrdJoin(_nout, (const Nrrd**)nout, ninLen, dwiAx, AIR_TRUE)) {
     sprintf(err, "%s: trouble joining output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
+  for (axIdx=0; axIdx<4; axIdx++) {
+    amap[axIdx] = axIdx;
+  }
+  amap[dwiAx] = -1;
   nrrdAxisInfoCopy(_nout, _nin, amap, NRRD_AXIS_INFO_NONE);
+  if (nrrdBasicInfoCopy(_nout, _nin,
+                        NRRD_BASIC_INFO_DATA_BIT
+                        | NRRD_BASIC_INFO_TYPE_BIT
+                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                        | NRRD_BASIC_INFO_DIMENSION_BIT
+                        | NRRD_BASIC_INFO_CONTENT_BIT
+                        | NRRD_BASIC_INFO_COMMENTS_BIT
+                        | (nrrdStateKeyValuePairsPropagate
+                           ? 0
+                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    sprintf(err, "%s:", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
   
   airMopOkay(mop);
   return 0;
