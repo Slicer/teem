@@ -312,7 +312,7 @@ main(int argc, char *argv[]) {
   }
   t0 = airTime();
   for (zi=0; zi<=soz-1; zi++) {
-    fprintf(stderr, _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
+    fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
             zi, soz-1); fflush(stderr);
     z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
     for (yi=0; yi<=soy-1; yi++) {
