@@ -85,6 +85,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
   ndwi = AIR_CAST(Nrrd **, calloc(dwiNum, sizeof(Nrrd *)));
+  airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
   bmat = AIR_CAST(double *, nbmat->data);
   dwiIdx = -1;
   for (slIdx=0; slIdx<slNum; slIdx++) {
@@ -381,6 +382,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+  }
+  if (nterr) {
+    /* it was allocated by tenEstimate*, we have to clean it up */
+    airMopAdd(mop, nterr, (airMopper)nrrdNuke, airMopAlways);
   }
   if (nB0) {
     /* it was allocated by tenEstimate*, we have to clean it up */
