@@ -58,9 +58,8 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
              &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeString, 1, 1, &gradS, NULL,
              "array of gradient directions, in the same order as the "
-             "associated DWIs were given to \"-i\",\n "
-             "**OR**\n ",
-             "\"-g kvp\" signifies that gradient directions should "
+             "associated DWIs were given to \"-i\", "
+             "**OR** \"-g kvp\" signifies that gradient directions should "
              "be read from the key/value pairs of the DWI",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, "-1",
@@ -108,7 +107,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
              "first number to use in numbered sequence of output files.");
-  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, "-",
              "For seperate 3D DWI volume inputs: prefix for output filenames; "
              "will save out one (registered) "
              "DWI for each input DWI, using the same type as the input. "

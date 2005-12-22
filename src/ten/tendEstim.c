@@ -320,6 +320,23 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, valueMin);
     switch(estmeth) {
+    case tenEstimateMethodLLS:
+      if (airStrlen(terrS)) {
+        tec->recordErrorLogDwi = AIR_TRUE;
+        /* tec->recordErrorDwi = AIR_TRUE; */
+      }
+      break;
+    case tenEstimateMethodNLS:
+      if (airStrlen(terrS)) {
+        tec->recordErrorDwi = AIR_TRUE;
+      }
+      break;
+    case tenEstimateMethodWLS:
+      if (!EE) tec->WLSIterNum = wlsi;
+      if (airStrlen(terrS)) {
+        tec->recordErrorDwi = AIR_TRUE;
+      }
+      break;
     case tenEstimateMethodMLE:
       if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
         fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
@@ -328,9 +345,9 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
         airMopError(mop); return 1;
       }
       if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
-      break;
-    case tenEstimateMethodWLS:
-      if (!EE) tec->WLSIterNum = wlsi;
+      if (airStrlen(terrS)) {
+        tec->recordLikelihood = AIR_TRUE;
+      }
       break;
     }
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
