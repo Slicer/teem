@@ -1169,9 +1169,9 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
   char me[]="tenEpiRegister4D", err[BIFF_STRLEN];
-  unsigned int axIdx, ninIdx, ninLen,
+  unsigned int ninIdx, ninLen,
     dwiAx, rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
-  int amap[4], dwiIdx;
+  int dwiIdx;
   Nrrd **nout, **nin, **ndwi, **ndwiOut, *ngrad, *ndwigrad;
   airArray *mop;
   double *grad, *dwigrad, glen;
@@ -1309,11 +1309,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     sprintf(err, "%s: trouble joining output", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
-  for (axIdx=0; axIdx<4; axIdx++) {
-    amap[axIdx] = axIdx;
-  }
-  amap[dwiAx] = -1;
-  nrrdAxisInfoCopy(_nout, _nin, amap, NRRD_AXIS_INFO_NONE);
+  nrrdAxisInfoCopy(_nout, _nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdBasicInfoCopy(_nout, _nin,
                         NRRD_BASIC_INFO_DATA_BIT
                         | NRRD_BASIC_INFO_TYPE_BIT
