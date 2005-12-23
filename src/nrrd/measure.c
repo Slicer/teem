@@ -184,7 +184,7 @@ _nrrdMeasureMean(void *ans, int ansType,
     for (ii=0; !AIR_EXISTS(S) && ii<len; ii++) {
       S = lup(line, ii);
     }
-    if (ii<len) {
+    if (AIR_EXISTS(S)) {
       /* there was an existant value */
       count = 1;
       for (; ii<len; ii++) {
