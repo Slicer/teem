@@ -88,10 +88,14 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
   /* find single DWI axis, set dwiNum to its size */
   dwiAxis = -1;
   for (axi=0; axi<ndwi->dim; axi++) {
-    if (nrrdKindList == ndwi->axis[axi].kind) {
+    /* the use of nrrdKindVector here is out of deference to how ITK's
+       itkNrrdImageIO.cxx uses nrrdKindVector for VECTOR pixels */
+    if (nrrdKindList == ndwi->axis[axi].kind
+        || nrrdKindVector == ndwi->axis[axi].kind) {
       if (-1 != dwiAxis) {
-        sprintf(err, "%s: already saw %s kind on axis %d", me, 
-                airEnumStr(nrrdKind, nrrdKindList), dwiAxis);
+        sprintf(err, "%s: already saw %s or %s kind on axis %d", me, 
+                airEnumStr(nrrdKind, nrrdKindList),
+                airEnumStr(nrrdKind, nrrdKindVector), dwiAxis);
         biffAdd(TEN, err); return 1;
       }
       dwiAxis = axi;
