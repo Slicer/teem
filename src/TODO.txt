@@ -1,9 +1,22 @@
+--------- teem 1.9 cut-off
+
 for cmake:
  - get some basic tests working (if only nrrdSanity)
  - build pv on windows
  - see if wild-card expansion works as expected on windows
  - make cmd-line utilities link with static libs
  - enable turning on zlib, bz2, threads, and png
+
+[portable54-250:~/d/parepi/6] gk%
+tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
+   -B kvp -knownB0 false -t 250 -o tmp.nrrd
+   0.0%tend estim: trouble doing estimation:
+[ten] tenEstimate1TensorVolume4D: failed at sample 40
+[ten] tenEstimate1TensorSingle_d:
+[ten] _tenEstimate1TensorSingle: estimation failed
+[ten] _tenEstimate1Tensor_WLS: trying to improve on first WLS
+[ten] _tenEstimate1TensorSimulateSingle
+
 
 gage: re-modularize to facilitate probing bricked data
 
@@ -29,8 +42,6 @@ solved the problem...
 - want bin/dev and bin/install targets
 
 add BSD architecture that guy emailed me about
-
---------- teem 1.9 cut-off
 
 unu: jhisto works with axis[0] elements when given a single nrrd
 
