@@ -96,7 +96,6 @@ setenv VERSION <<version>>
 cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co teem
 cd teem
 find . -name CVS  -exec rm -rf {} \;
-rm -rf darwin linux linux.64/
 cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
@@ -153,7 +152,8 @@ cd teem-${VERSION}-src; setenv TEEM_DEST `pwd`
 cd src; make; cd ..
 mv src/LICENSE.txt . 
 yes | rm -rf README.txt aix cygwin darwin.32 darwin.64 irix6.64 \
-      irix6.n32 linux.32 linux.amd64 linux.ia64 solaris win32 src
+      irix6.n32 linux.32 linux.amd64 linux.ia64 solaris win32 src \
+      CMake CMakeLists.txt CTestConfig.cmake DartConfig.cmake
 cd ..
 mv teem-${VERSION}-src teem-${VERSION}-${TEEM_ARCH}
 tar czvf teem-${VERSION}-${TEEM_ARCH}.tar.gz teem-${VERSION}-${TEEM_ARCH}
@@ -169,10 +169,6 @@ binary
 prompt
 cd incoming
 mput *.tar.gz
-
-8) make a CVS tag for the version
-cvs rtag version-X_X_X teem
-(can't use "." in cvs tag name)
 
 9) update online documentation (which may be done more often than releases)
 cd ~/teemdoc

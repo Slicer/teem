@@ -392,12 +392,12 @@ _pushThingSetup(pushContext *pctx) {
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
       if (1 < thing->numVert) {
-	/* info about seedpoint has to be set separately */
-	ELL_3V_SET_TT(thing->point.pos, push_t,
+        /* info about seedpoint has to be set separately */
+        ELL_3V_SET_TT(thing->point.pos, push_t,
                       lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
                       lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
                       lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
-	_pushProbe(pctx->task[0], &(thing->point));
+        _pushProbe(pctx->task[0], &(thing->point));
       }
       /*
       fprintf(stderr, "!%s: numThing(%d) = %d\n", "_pushThingSetup",

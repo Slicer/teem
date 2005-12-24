@@ -18,7 +18,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
   int spacingStatus;
 
   if (!(1 == nrhs && mxIsChar(prhs[0]))) {
-    sprintf(errBuff, "%s: requires one string argument (the name of the file)", me);
+    sprintf(errBuff, "%s: requires one string argument (the name of the file)",
+            me);
     mexErrMsgTxt(errBuff);
   }
 
@@ -44,39 +45,39 @@ void mexFunction(int nlhs, mxArray *plhs[],
 
   domainAxisNum = nrrdDomainAxesGet(nrrd, domainAxisIdx);
   plhs[0] = mxCreateDoubleMatrix(domainAxisNum /* # rows */, 
-				 nrrd->dim /* # cols */, mxREAL);
+                                 nrrd->dim /* # cols */, mxREAL);
   for (colIdx=0; colIdx<nrrd->dim; colIdx++) {
     spacingStatus = nrrdSpacingCalculate(nrrd, domainAxisIdx[colIdx], 
-					 &spacing, spaceDir);
+                                         &spacing, spaceDir);
     switch(spacingStatus) {
     case nrrdSpacingStatusNone:
       for (rowIdx=0; rowIdx<domainAxisNum; rowIdx++) {
-	mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = AIR_NAN;
+        mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = AIR_NAN;
       }
       break;
     case nrrdSpacingStatusScalarNoSpace:
       for (rowIdx=0; rowIdx<domainAxisNum; rowIdx++) {
-	mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = 0;
+        mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = 0;
       }
       if (colIdx < domainAxisNum) {
-	mxGetPr(plhs[0])[colIdx + domainAxisNum*colIdx] = spacing;
+        mxGetPr(plhs[0])[colIdx + domainAxisNum*colIdx] = spacing;
       }
       break;
     case nrrdSpacingStatusDirection:
       for (rowIdx=0; rowIdx<domainAxisNum; rowIdx++) {
-	mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = 
-	  nrrd->axis[colIdx].spaceDirection[rowIdx];
+        mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = 
+          nrrd->axis[colIdx].spaceDirection[rowIdx];
       }
       break;
     case nrrdSpacingStatusUnknown:
       sprintf(errBuff, "%s: error interpreting axis %u spacing "
-	      "(nrrdSpacingStatusUnknown)", me, colIdx);
+              "(nrrdSpacingStatusUnknown)", me, colIdx);
       airMopError(mop);
       mexErrMsgTxt(errBuff);
       break;
     case nrrdSpacingStatusScalarWithSpace:
       sprintf(errBuff, "%s: error interpreting axis %u spacing "
-	      "(nrrdSpacingScalarWithSpace)", me, colIdx);
+              "(nrrdSpacingScalarWithSpace)", me, colIdx);
       airMopError(mop);
       mexErrMsgTxt(errBuff);
       break;

@@ -49,9 +49,9 @@
 */
 #define TEEM_VERSION_MAJOR   1      /* must be 1 digit */
 #define TEEM_VERSION_MINOR   9      /* 1 or 2 digits */
-#define TEEM_VERSION_PATCH   0      /* 1 or 2 digits */
-#define TEEM_VERSION         10900  /* can be easily compared numerically */
-#define TEEM_VERSION_STRING "1.9.0" /* cannot be so easily compared */
+#define TEEM_VERSION_PATCH   1      /* 1 or 2 digits */
+#define TEEM_VERSION         10901  /* can be easily compared numerically */
+#define TEEM_VERSION_STRING "1.9.1" /* cannot be so easily compared */
 
 /* NrrdIO-hack-000 */
 

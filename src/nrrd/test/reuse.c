@@ -69,7 +69,7 @@ main(int argc, char **argv) {
     exit(1);
   }
   fprintf(stderr, "%s: data for axmerge(\"%s\",0) at %p\n", 
-	  me, argv[2], n2->data);
+          me, argv[2], n2->data);
   
   nrrdNuke(nrrd);
   nrrdNix(n2);

@@ -67,13 +67,14 @@ void mexFunction(int nlhs, mxArray *plhs[],
   }
   ntype = typeMtoN(mxGetClassID(arrayMx));
   if (nrrdTypeUnknown == ntype) {
-    sprintf(errBuff, "%s: sorry, can't handle type %s", me, mxGetClassName(arrayMx));
+    sprintf(errBuff, "%s: sorry, can't handle type %s",
+            me, mxGetClassName(arrayMx));
     mexErrMsgTxt(errBuff);
   }
   dim = mxGetNumberOfDimensions(arrayMx);
   if (!( 1 <= dim && dim <= NRRD_DIM_MAX )) {
     sprintf(errBuff, "%s: number of array dimensions %d outside range [1,%d]",
-	    me, dim, NRRD_DIM_MAX);
+            me, dim, NRRD_DIM_MAX);
     mexErrMsgTxt(errBuff);
   }
   
