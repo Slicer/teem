@@ -44,19 +44,24 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   char *outS, *buff;
 
+  char *gradS;
   NrrdKernelSpec *ksp;
-  Nrrd **nin, **nout3D, *nout4D, *ngrad;
+  Nrrd **nin, **nout3D, *nout4D, *ngrad, *ngradKVP, *nbmatKVP;
   unsigned int ni, ninLen;
   int ref, noverbose, progress, nocc, baseNum;
   float bw[2], thr, fitFrac;
+  double bvalue;
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
              "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
              "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
              &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "g", "grads", airTypeOther, 1, 1, &ngrad, NULL,
+  hestOptAdd(&hopt, "g", "grads", airTypeString, 1, 1, &gradS, NULL,
              "array of gradient directions, in the same order as the "
-             "associated DWIs were given to \"-i\"", NULL, NULL, nrrdHestNrrd);
+             "associated DWIs were given to \"-i\", "
+             "**OR** \"-g kvp\" signifies that gradient directions should "
+             "be read from the key/value pairs of the DWI",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, "-1",
              "which of the DW volumes (zero-based numbering) should be used "
              "as the standard, to which all other images are transformed. "
@@ -102,7 +107,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
              "first number to use in numbered sequence of output files.");
-  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, "-",
              "For seperate 3D DWI volume inputs: prefix for output filenames; "
              "will save out one (registered) "
              "DWI for each input DWI, using the same type as the input. "
@@ -113,6 +118,32 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   USAGE(_tend_epiregInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  if (strcmp("kvp", gradS)) {
+    /* they're NOT coming from key/value pairs */
+    if (nrrdLoad(ngrad=nrrdNew(), gradS, NULL)) {
+      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble loading gradient list:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  } else {
+    if (1 != ninLen) {
+      fprintf(stderr, "%s: can do key/value pairs only from single nrrd", me);
+      airMopError(mop); return 1;
+    }
+    /* they are coming from key/value pairs */
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bvalue, nin[0])) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing gradient list:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    if (nbmatKVP) {
+      fprintf(stderr, "%s: sorry, can only use gradients, not b-matrices", me);
+      airMopError(mop); return 1;
+    }
+    ngrad = ngradKVP;
+  }
+  airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
 
   nout3D = (Nrrd **)calloc(ninLen, sizeof(Nrrd *));
   nout4D = nrrdNew();

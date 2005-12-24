@@ -956,6 +956,9 @@ nrrdSpatialAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
 ** which correspond to dependent variables.  The return value is the
 ** number of range axes; that number of values are set in the given
 ** axisIdx[] array
+**
+** Note: this really is as simple as returning the complement of the
+** axis selected by nrrdDomainAxesGet()
 */
 unsigned int
 nrrdRangeAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {

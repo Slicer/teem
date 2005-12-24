@@ -1,6 +1,6 @@
 # This is the root Teem CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
-PROJECT(TEEM C)
+PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
 # TEEM version number.  Must reflect the values in teem/src/air.h
@@ -14,14 +14,18 @@ SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+# We need ansi c-flags, especially on HP
+SET(CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS}")
+SET(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})
+
 #-----------------------------------------------------------------------------
 # Test for some required system information.
 INCLUDE (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
 # Output directories.
-SET (LIBRARY_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
-SET (EXECUTABLE_OUTPUT_PATH ${TEEM_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
 #output directory for installing all include files.")
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(TEEM_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
@@ -140,7 +144,7 @@ SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
   limn hoover alan echo ten
   mite coil push)
 
-
+SET(TEEM_INSTALLED_HEADER_FILES)
 FOREACH(header_file
     air/air.h
     hest/hest.h
@@ -168,10 +172,14 @@ FOREACH(header_file
     nrrd/nrrdEnums.h
     push/push.h
     )
-  MESSAGE(STATUS "Copy header file: ${header_file}")
+  # When debugging, uncomment this line
+  #MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
   CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
     "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
+  SET(TEEM_INSTALLED_HEADER_FILES
+    ${TEEM_INSTALLED_HEADER_FILES}
+    "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}")
 ENDFOREACH(header_file)
 
 #---
@@ -180,10 +188,6 @@ INCLUDE_DIRECTORIES(
   "${TEEM_SOURCE_DIR}/include/"
   "${TEEM_BINARY_DIR}/include/"
   )
-
-#---
-# Install directory
-SET (CMAKE_INSTALL_PREFIX "${TEEM_BINARY_DIR}")
 
 #-----------------------------------------------------------------------------
 # Dispatch the build into the proper subdirectories.
@@ -227,12 +231,12 @@ CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
   "${TEEM_BINARY_DIR}/TEEMConfig.cmake" @ONLY IMMEDIATE)
 
 # For installed tree usage
-SET(TEEM_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMLibraryDepends.cmake)
+SET(TEEM_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMLibraryDepends.cmake)
 SET(TEEM_EXECUTABLE_DIRS "${CMAKE_INSTALL_PREFIX}/bin")
 SET(TEEM_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
-SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMUse.cmake")
+SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMUse.cmake")
 SET(TEEM_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION}/TEEMBuildSettings.cmake)
+SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMBuildSettings.cmake)
 SET(prefix "${CMAKE_INSTALL_PREFIX}")
 SET(exec_prefix "${prefix}")
 SET(exec_prefix_set "no")
@@ -244,8 +248,11 @@ SET(srcdir ".")
 CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
   "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake" @ONLY IMMEDIATE)
 
-INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake")
-INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake")
-INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake")
-INSTALL_FILES(/lib/TEEM-${TEEM_VERSION} FILES "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake")
+INSTALL_FILES(/include/teem FILES ${TEEM_INSTALLED_HEADER_FILES})
+INSTALL_FILES(/lib/TEEM-${TEEM_VERSION_STRING} FILES
+  "${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake"
+  "${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake"
+  "${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake"
+  "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake"
+  )
 

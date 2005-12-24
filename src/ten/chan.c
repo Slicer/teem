@@ -88,10 +88,14 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
   /* find single DWI axis, set dwiNum to its size */
   dwiAxis = -1;
   for (axi=0; axi<ndwi->dim; axi++) {
-    if (nrrdKindList == ndwi->axis[axi].kind) {
+    /* the use of nrrdKindVector here is out of deference to how ITK's
+       itkNrrdImageIO.cxx uses nrrdKindVector for VECTOR pixels */
+    if (nrrdKindList == ndwi->axis[axi].kind
+        || nrrdKindVector == ndwi->axis[axi].kind) {
       if (-1 != dwiAxis) {
-        sprintf(err, "%s: already saw %s kind on axis %d", me, 
-                airEnumStr(nrrdKind, nrrdKindList), dwiAxis);
+        sprintf(err, "%s: already saw %s or %s kind on axis %d", me, 
+                airEnumStr(nrrdKind, nrrdKindList),
+                airEnumStr(nrrdKind, nrrdKindVector), dwiAxis);
         biffAdd(TEN, err); return 1;
       }
       dwiAxis = axi;
@@ -192,6 +196,18 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
       dwiIdx += nexNum-1;
     }
     info += valNum*nexNum;
+  }
+
+  /* perhaps too paranoid: see if there are extra keys,
+     which probably implies confusion/mismatch between number of
+     gradients and number of values */
+  sprintf(key, keyFmt, dwiIdx);
+  val = nrrdKeyValueGet(ndwi, key);
+  if (val) {
+    sprintf(err, "%s: saw \"%s\" key, more than required %u keys, "
+            "likely mismatch between keys and actual gradients",
+            me, key, dwiIdx);
+    biffAdd(TEN, err); return 1;
   }
 
   /* normalize so that maximal norm is 1.0 */

@@ -233,7 +233,7 @@ enum {
   nrrdKind3Gradient,         /* 20: 3-component covariant vector */
   nrrdKind3Normal,           /* 21: 3-component covector, assumed normalized */
   nrrdKind4Vector,           /* 22: 4-component vector */
-  nrrdKindQuaternion,        /* 23: (x,y,z,w), not necessarily normalized */
+  nrrdKindQuaternion,        /* 23: (w,x,y,z), not necessarily normalized */
   nrrdKind2DSymMatrix,       /* 24: Mxx Mxy Myy */
   nrrdKind2DMaskedSymMatrix, /* 25: mask Mxx Mxy Myy */
   nrrdKind2DMatrix,          /* 26: Mxx Mxy Myx Myy */
