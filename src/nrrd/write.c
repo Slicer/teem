@@ -503,7 +503,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   case nrrdField_space_directions:
     *strP = (char *)calloc(fslen + 
                            nrrd->dim*nrrd->spaceDim*(doubleStrlen 
-						     + strlen("(,) ")),
+                                                     + strlen("(,) ")),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
@@ -648,7 +648,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     break;
   case nrrdField_space_origin:
     *strP = (char *)calloc(fslen + nrrd->spaceDim*(doubleStrlen 
-						   + strlen("(,) ")),
+                                                   + strlen("(,) ")),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     _nrrdStrcatSpaceVector(*strP, nrrd->spaceDim, nrrd->spaceOrigin);
@@ -656,7 +656,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   case nrrdField_measurement_frame:
     *strP = (char *)calloc(fslen + (nrrd->spaceDim*
                                     nrrd->spaceDim*(doubleStrlen 
-						    + strlen("(,) "))),
+                                                    + strlen("(,) "))),
                            sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (dd=0; dd<nrrd->spaceDim; dd++) {
@@ -695,7 +695,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
                              + uintStrlen + nio->dataFNArr->len * (maxl + 1),
                              sizeof(char));
       fnb = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) 
-			   + uintStrlen + maxl + 1,
+                           + uintStrlen + maxl + 1,
                            sizeof(char));
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);

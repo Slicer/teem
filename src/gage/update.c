@@ -227,7 +227,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   unsigned int pvlIdx;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n", me,
-			    ctx->radius);
+                            ctx->radius);
   if (!( ctx->radius > 0 )) {
     sprintf(err, "%s: have bad radius %d", me, ctx->radius);
     biffAdd(GAGE, err); return 1;

@@ -82,7 +82,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   mtype = typeNtoM(nrrd->type);
   if (mxUNKNOWN_CLASS == mtype) {
     sprintf(errBuff, "%s: sorry, can't handle type %s (%d)", me,
-	    airEnumStr(nrrdType, nrrd->type), nrrd->type);
+            airEnumStr(nrrdType, nrrd->type), nrrd->type);
     airMopError(mop);
     mexErrMsgTxt(errBuff);
   }

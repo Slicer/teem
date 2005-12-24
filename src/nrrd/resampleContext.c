@@ -1076,7 +1076,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     if (passIdx < rsmc->passNum-1) {
       axisOut->nrsmp = nrrdNew();
       /* see NOTE above!
-	 airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways); */
+         airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways); */
       if (nrrdMaybeAlloc_nva(axisOut->nrsmp, nrrdResample_nt, rsmc->dim,
                              axisOut->sizePerm)) {
         sprintf(err, "%s: trouble allocating output of pass %u", me,
