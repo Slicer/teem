@@ -338,18 +338,6 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
         tec->recordErrorDwi = AIR_TRUE;
       }
       break;
-    case tenEstimateMethodMLE:
-      if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
-        fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
-                me, airEnumStr(tenEstimateMethod, tenEstimateMethodMLE),
-                sigma);
-        airMopError(mop); return 1;
-      }
-      if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
-      if (airStrlen(terrS)) {
-        tec->recordLikelihood = AIR_TRUE;
-      }
-      break;
     }
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);

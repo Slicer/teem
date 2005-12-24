@@ -36,8 +36,7 @@ _tenEstimateMethodStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenEstimateMethod)",
   "LLS",
   "WLS",
-  "NLS",
-  "MLE"
+  "NLS"
 };
 
 char
@@ -45,8 +44,7 @@ _tenEstimateMethodDesc[][AIR_STRLEN_MED] = {
   "unknown tenEstimateMethod",
   "linear least-squares fit of log(DWI)",
   "weighted least-squares fit of log(DWI)",
-  "non-linear least-squares fit of DWI",
-  "maximum likelihood estimate from DWI",
+  "non-linear least-squares fit of DWI"
 };
 
 airEnum
@@ -224,7 +222,6 @@ _tenEstimateOutputInit(tenEstimateContext *tec) {
   tec->time = AIR_NAN;
   tec->errorDwi = AIR_NAN;
   tec->errorLogDwi = AIR_NAN;
-  tec->likelihood = AIR_NAN;
 }
 
 tenEstimateContext *
@@ -249,7 +246,6 @@ tenEstimateContextNew() {
     tec->recordTime = AIR_FALSE;
     tec->recordErrorDwi = AIR_FALSE;
     tec->recordErrorLogDwi = AIR_FALSE;
-    tec->recordLikelihood = AIR_FALSE;
     tec->verbose = 0;
     tec->progress = AIR_FALSE;
     tec->WLSIterNum = 3;
@@ -451,13 +447,6 @@ _tenEstimateCheck(tenEstimateContext *tec) {
     }
     if (airEnumValCheck(tenEstimateMethod, tec->estimateMethod)) {
       sprintf(err, "%s: estimation method not set", me);
-      biffAdd(TEN, err); return 1;
-    }
-    if (tenEstimateMethodMLE == tec->estimateMethod
-        && !(AIR_EXISTS(tec->sigma) && (tec->sigma >= 0.0))
-        ) {
-      sprintf(err, "%s: can't do %s estim w/out non-negative sigma set", me,
-              airEnumStr(tenEstimateMethod, tenEstimateMethodMLE));
       biffAdd(TEN, err); return 1;
     }
     if (!(AIR_EXISTS(tec->dwiConfThresh) && AIR_EXISTS(tec->dwiConfSoft))) {
@@ -1443,150 +1432,12 @@ _tenEstimate1Tensor_NLS(tenEstimateContext *tec) {
   return 0;
 }
 
-int
-_tenEstimate1Tensor_GradientMLE(tenEstimateContext *tec,
-                                double *gradB0P, double gradTen[7],
-                                double currB0, double currTen[7]) {
-  char me[]="_tenEstimate1Tensor_GradientMLE", err[BIFF_STRLEN];
-  double *bmat, dot, barg, tmp, scl, dwi, sigma, bval;
-  unsigned int dwiIdx;
-
-  if (!(tec && gradB0P && gradTen && currTen)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (tec->verbose) {
-    fprintf(stderr, "%s grad (currTen = %g %g %g   %g %g    %g)\n", me,
-            currTen[1], currTen[2], currTen[3],
-            currTen[4], currTen[5],
-            currTen[6]);
-  }
-  TEN_T_SET(gradTen, 0,   0, 0, 0,    0, 0,   0);
-  *gradB0P = 0;
-  sigma = tec->sigma;
-  bval = tec->bValue;
-  bmat = AIR_CAST(double *, tec->nbmat->data);
-  for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
-    dwi = tec->dwi[dwiIdx];
-    dot = ELL_6V_DOT(bmat, currTen+1);
-    barg = exp(-bval*dot)*(dwi/sigma)*(currB0/sigma);
-    tmp = (exp(bval*dot)/sigma)*dwi/airBesselI0(barg);
-    if (tec->verbose) {
-      fprintf(stderr, "%s[%u]: dot = %g, barg = %g, tmp = %g\n", me, dwiIdx,
-              dot, barg, tmp);
-    }
-    if (tmp > DBL_MIN) {
-      tmp = currB0/sigma - tmp*airBesselI1(barg);
-    } else {
-      tmp = currB0/sigma;
-    }
-    if (tec->verbose) {
-      fprintf(stderr, " ---- tmp = %g\n", tmp);
-    }
-    scl = tmp*exp(-2*bval*dot)*bval*currB0/sigma;
-    ELL_6V_SCALE_INCR(gradTen+1, scl, bmat);
-    if (tec->verbose) {
-      fprintf(stderr, "%s[%u]: bmat = %g %g %g    %g %g     %g\n",
-              me, dwiIdx,
-              bmat[0], bmat[1], bmat[2], 
-              bmat[3], bmat[4], 
-              bmat[5]);
-      fprintf(stderr, "%s[%u]: scl = %g -> gradTen = %g %g %g    %g %g   %g\n",
-              me, dwiIdx, scl,
-              gradTen[1], gradTen[2], gradTen[3],
-              gradTen[4], gradTen[5],
-              gradTen[6]);
-    }
-    if (!AIR_EXISTS(scl)) {
-      TEN_T_SET(gradTen, AIR_NAN, 
-                AIR_NAN, AIR_NAN, AIR_NAN, 
-                AIR_NAN, AIR_NAN, AIR_NAN);
-      *gradB0P = AIR_NAN;
-      sprintf(err, "%s: scl = %g, very sorry", me, scl);
-      biffAdd(TEN, err); return 1;
-    }
-    bmat += tec->nbmat->axis[0].size;
-    /* HEY: increment gradB0 */
-  }
-  ELL_6V_SCALE_INCR(gradTen+1, 1.0/tec->dwiNum, gradTen+1);
-  if (tec->verbose) {
-    fprintf(stderr, "%s: final gradTen = %g %g %g    %g %g   %g\n", me,
-            gradTen[1], gradTen[2], gradTen[3],
-            gradTen[4], gradTen[5],
-            gradTen[6]);
-  }
-  return 0;
-}
-
-int
-_tenEstimate1Tensor_BadnessMLE(tenEstimateContext *tec,
-                               double *retP,
-                               double currB0, double curt[7]) {
-  char me[]="_tenEstimate1Tensor_BadnessMLE", err[BIFF_STRLEN];
-  unsigned int dwiIdx;
-  double *bmat, sum, rice, logrice=0, mesdwi=0, simdwi=0, dot=0;
-  int E;
-
-  E = 0;
-  sum = 0;
-  bmat = AIR_CAST(double *, tec->nbmat->data);
-  for (dwiIdx=0; !E && dwiIdx<tec->dwiNum; dwiIdx++) {
-    dot = ELL_6V_DOT(bmat, curt+1);
-    simdwi = currB0*exp(-(tec->bValue)*dot);
-    mesdwi = tec->dwi[dwiIdx];
-    if (!E) E |= _tenRician(&rice, mesdwi, simdwi, tec->sigma);
-    if (!E) E |= !AIR_EXISTS(rice);
-    if (!E) logrice = log(rice + DBL_MIN);
-    if (!E) sum += logrice;
-    if (!E) E |= !AIR_EXISTS(sum);
-    if (!E) bmat += tec->nbmat->axis[0].size;
-  }
-  if (E) {
-    sprintf(err, "%s[%u]: dot = (%g %g %g %g %g %g).(%g %g %g %g %g %g) = %g",
-            me, dwiIdx,
-            bmat[0], bmat[1], bmat[2], bmat[3], bmat[4], bmat[5],
-            curt[1], curt[2], curt[3], curt[4], curt[5], curt[6], dot);
-    biffAdd(TEN, err);
-    sprintf(err, "%s[%u]: simdwi = %g * exp(-%g * %g) = %g * exp(%g) "
-            "= %g * %g = %g", me, dwiIdx,
-            currB0, tec->bValue, dot, 
-            currB0, -(tec->bValue)*dot,
-            currB0, exp(-(tec->bValue)*dot),
-            currB0*exp(-(tec->bValue)*dot));
-    biffAdd(TEN, err);
-    sprintf(err, "%s[%u]: mesdwi = %g, simdwi = %g, sigma = %g", me, dwiIdx,
-            mesdwi, simdwi, tec->sigma);
-    biffAdd(TEN, err);
-    sprintf(err, "%s[%u]: rice = %g, logrice = %g, sum = %g", me, dwiIdx,
-            rice, logrice, sum);
-    biffAdd(TEN, err);
-    *retP = AIR_NAN;
-    return 1;
-  }
-  *retP = -sum/tec->dwiNum;
-  return 0;
-}
-
-int
-_tenEstimate1Tensor_MLE(tenEstimateContext *tec) {
-  char me[]="_tenEstimate1Tensor_MLE", err[BIFF_STRLEN];
-
-  if (_tenEstimate1TensorDescent(tec, NULL,
-                                 _tenEstimate1Tensor_BadnessMLE)) {
-    sprintf(err, "%s: ", me);
-    biffAdd(TEN, err); return 1;
-  }
-
-  return 0;
-}
-
 /*
 ** sets:
 ** tec->ten[0] (from tec->conf)
 ** tec->time, if tec->recordTime
 ** tec->errorDwi, if tec->recordErrorDwi
 ** tec->errorLogDwi, if tec->recordErrorLogDwi
-** tec->likelihood, if tec->recordLikelihood
 */
 int
 _tenEstimate1TensorSingle(tenEstimateContext *tec) {
@@ -1607,9 +1458,6 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
     break;
   case tenEstimateMethodNLS:
     E = _tenEstimate1Tensor_NLS(tec);
-    break;
-  case tenEstimateMethodMLE:
-    E = _tenEstimate1Tensor_MLE(tec);
     break;
   default:
     sprintf(err, "%s: estimation method %d unimplemented",
@@ -1643,8 +1491,6 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
       tec->errorLogDwi = _tenEstimateErrorLogDwi(tec);
     }
   }
-
-  /* HEY: record likelihood! */
 
   return 0;
 }
@@ -1769,14 +1615,12 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     biffAdd(TEN, err); return 1;
   }
   if (nterrP) {
-    int recE, recEL, recLK;
+    int recE, recEL;
     recE = !!(tec->recordErrorDwi);
     recEL = !!(tec->recordErrorLogDwi);
-    recLK = !!(tec->recordLikelihood);
-    if (1 != recE + recEL + recLK) {
+    if (1 != recE + recEL) {
       sprintf(err, "%s: requested error volume but need exactly one of "
-              "recordErrorDwi, recordErrorLogDwi, recordLikelihood "
-              "to be set", me);
+              "recordErrorDwi, recordErrorLogDwi to be set", me);
       biffAdd(TEN, err); return 1;
     }
   }
@@ -1870,8 +1714,6 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
         ins((*nterrP)->data, II, tec->errorDwi);
       } else if (tec->recordErrorLogDwi) {
         ins((*nterrP)->data, II, tec->errorLogDwi);
-      } else if (tec->recordLikelihood) {
-        ins((*nterrP)->data, II, tec->likelihood);
       }
     }
   }

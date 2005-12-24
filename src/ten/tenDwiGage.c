@@ -34,23 +34,18 @@ _tenDwiGageStr[][AIR_STRLEN_SMALL] = {
   "tlls",
   "tllserr",
   "tllserrlog",
-  "tllslike",
   "twls",
   "twlserr",
   "twlserrlog",
-  "twlslike",
   "tnls",
   "tnlserr",
   "tnlserrlog",
-  "tnlslike",
   "tmle",
   "tmleerr",
   "tmleerrlog",
-  "tmlelike",
   "t",
   "terr",
   "terrlog",
-  "tlike",
   "c"
 };
 
@@ -62,23 +57,15 @@ _tenDwiGageVal[] = {
   tenDwiGageTensorLLS,
   tenDwiGageTensorLLSError,
   tenDwiGageTensorLLSErrorLog,
-  tenDwiGageTensorLLSLikelihood,
   tenDwiGageTensorWLS,
   tenDwiGageTensorWLSError,
   tenDwiGageTensorWLSErrorLog,
-  tenDwiGageTensorWLSLikelihood,
   tenDwiGageTensorNLS,
   tenDwiGageTensorNLSError,
   tenDwiGageTensorNLSErrorLog,
-  tenDwiGageTensorNLSLikelihood,
-  tenDwiGageTensorMLE,
-  tenDwiGageTensorMLEError,
-  tenDwiGageTensorMLEErrorLog,
-  tenDwiGageTensorMLELikelihood,
   tenDwiGageTensor,
   tenDwiGageTensorError,
   tenDwiGageTensorErrorLog,
-  tenDwiGageTensorLikelihood,
   tenDwiGageConfidence
 };
 
@@ -112,28 +99,19 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGageTensorLLS,                7,  0,  {tenDwiGageAll, tenDwiGageMeanDwiValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorLLSError,           1,  0,  {tenDwiGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorLLSErrorLog,        1,  0,  {tenDwiGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorLLSLikelihood,      1,  0,  {tenDwiGageTensorLLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
 
   {tenDwiGageTensorWLS,                7,  0,  {tenDwiGageAll, tenDwiGageMeanDwiValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorWLSError,           1,  0,  {tenDwiGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorWLSErrorLog,        1,  0,  {tenDwiGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorWLSLikelihood,      1,  0,  {tenDwiGageTensorWLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
 
   {tenDwiGageTensorNLS,                7,  0,  {tenDwiGageAll, tenDwiGageMeanDwiValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorNLSError,           1,  0,  {tenDwiGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorNLSErrorLog,        1,  0,  {tenDwiGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorNLSLikelihood,      1,  0,  {tenDwiGageTensorNLS, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-
-  {tenDwiGageTensorMLE,                7,  0,  {tenDwiGageAll, tenDwiGageMeanDwiValue, -1, -1, -1},                                   -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorMLEError,           1,  0,  {tenDwiGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorMLEErrorLog,        1,  0,  {tenDwiGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorMLELikelihood,      1,  0,  {tenDwiGageTensorMLE, -1, -1, -1, -1},                                                 -1,        -1,    AIR_TRUE},
 
   /* these are NOT sub-items: they are copies, as controlled by the kind->data */
   {tenDwiGageTensor,                   7,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorError,              1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorErrorLog,           1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
-  {tenDwiGageTensorLikelihood,         1,  0,  {-1 /* NOT! */, -1, -1, -1, -1},                                                       -1,        -1,    AIR_TRUE},
 
   {tenDwiGageConfidence,               1,  0,  {tenDwiGageTensor, -1, -1, -1, -1},                                      tenDwiGageTensor,         0,    AIR_TRUE}
 };

@@ -311,59 +311,41 @@ enum {
   /*  3: "tlls": GT[7],
       4: "tllserr": GT[1], 
       5: "tllserrlog": GT[1], 
-      6: "tllslike": GT[1], 
      linear least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorLLS,
   tenDwiGageTensorLLSError,      /* sum-of-sqrd-diffs w/ Dwis */
   tenDwiGageTensorLLSErrorLog,   /* sum-of-sqrd-diffs w/ log(Dwi)s */
-  tenDwiGageTensorLLSLikelihood,
 
-  /*  7: "twls": GT[7],
-      8: "twlserr": GT[1],
-      9: "twlserrlog": GT[1],
-     10: "twlslike": GT[1],
+  /*  6: "twls": GT[7],
+      7: "twlserr": GT[1],
+      8: "twlserrlog": GT[1],
      weighted least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorWLS,
   tenDwiGageTensorWLSError,
   tenDwiGageTensorWLSErrorLog,
-  tenDwiGageTensorWLSLikelihood,
 
-  /* 11: "tnls": GT[7],
-     12: "tnlserr": GT[1],
-     13: "tnlserrlog": GT[1],
-     14: "tnlslike": GT[1],
+  /*  9: "tnls": GT[7],
+     10: "tnlserr": GT[1],
+     11: "tnlserrlog": GT[1],
      non-linear least squares fit of tensor value to Dwis (not log) */
   tenDwiGageTensorNLS,
   tenDwiGageTensorNLSError,
   tenDwiGageTensorNLSErrorLog,
-  tenDwiGageTensorNLSLikelihood,
 
-  /* 15: "tmle": GT[7],
-     16: "tmleerr": GT[1],
-     17: "tmleerrlog": GT[1],
-     18: "tmlelike": GT[1],
-     maximum-likelihood fit of tensor value to Dwis */
-  tenDwiGageTensorMLE,
-  tenDwiGageTensorMLEError,
-  tenDwiGageTensorMLEErrorLog,
-  tenDwiGageTensorMLELikelihood,
-
-  /* 19: "t": GT[7], 
-     20: "terr": GT[1],
-     21: "terrlog": GT[1],
-     22: "tlike": GT[1],
+  /* 12: "t": GT[7], 
+     13: "terr": GT[1],
+     14: "terrlog": GT[1],
      one of the above tensors and its errors, depending on settings */
   tenDwiGageTensor,
   tenDwiGageTensorErrorLog,
   tenDwiGageTensorError,
-  tenDwiGageTensorLikelihood,
 
-  /* 23: "c", first of seven tensor values: GT[1] */
+  /* 15: "c", first of seven tensor values: GT[1] */
   tenDwiGageConfidence,
   
   tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 23
+#define TEN_DWI_GAGE_ITEM_MAX 15
 
 /*
 ******** tenEstimateMethod* enum
@@ -375,10 +357,9 @@ enum {
   tenEstimateMethodLLS,      /* 1 */
   tenEstimateMethodWLS,      /* 2 */
   tenEstimateMethodNLS,      /* 3 */
-  tenEstimateMethodMLE,      /* 4 */
   tenEstimateMethodLast
 };
-#define TEN_ESTIMATE_METHOD_MAX 4
+#define TEN_ESTIMATE_METHOD_MAX 3
 
 /*
 ******** tenEvecRGBParm struct
@@ -617,7 +598,6 @@ typedef struct {
     recordTime,            /* if non-zero, record estimation time */
     recordErrorDwi,
     recordErrorLogDwi,
-    recordLikelihood,
     verbose,               /* blah blah blah */
     progress;              /* progress indication for volume processing */
   unsigned int WLSIterNum; /* number of iterations for WLS */
@@ -647,8 +627,7 @@ typedef struct {
     mdwi,                  /* mean Dwi value (used for conf mask calc) */
     time,                  /* time required for estimation */
     errorDwi,              /* error in Dwi of estimate */
-    errorLogDwi,           /* error in log(Dwi) of estimate */
-    likelihood;            /* the maximized likelihood */
+    errorLogDwi;           /* error in log(Dwi) of estimate */
 } tenEstimateContext;
 
 /* defaultsTen.c */
