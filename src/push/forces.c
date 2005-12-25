@@ -219,7 +219,7 @@ push_t
                                     push_t restDist,
                                     push_t scale,
                                     const push_t *parm) = {
-				      _pushForceUnknownFunc,
+                                      _pushForceUnknownFunc,
                                       _pushForceSpringFunc,
                                       _pushForceGaussFunc,
                                       _pushForceChargeFunc,
