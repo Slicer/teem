@@ -202,8 +202,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
 
-  iq[0] = 1.0;
-  ELL_3V_COPY(iq + 1, ip);
+  ELL_4V_SET(iq, 1.0, ip[0], ip[1], ip[2]);
   ell_q_to_3m_d(rot, iq);
   ELL_3V_SET(orig,
              -2*R + 2*R/size[0],
@@ -215,8 +214,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   ELL_3V_COPY(orig, tmp);
   ELL_3M_MUL(tmp, rot, i2w);
   ELL_3M_COPY(i2w, tmp);
-  mq[0] = 1.0;
-  ELL_3V_COPY(mq + 1, mp);
+  ELL_4V_SET(mq, 1.0, mp[0], mp[1], mp[2]);
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
