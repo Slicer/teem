@@ -36,7 +36,7 @@ char *_tend_gradsInfoL =
    "tries sign changes in gradient directions in trying to find an optimally "
    "balanced set of directions.  This uses a randomized search, so if it "
    "doesn't seem to be finishing in a reasonable amount of time, try "
-   "restarting.");
+   "restarting with a different \"-seed\".");
 
 int
 tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -45,10 +45,11 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int num, E, nosrand;
+  int num, E;
   Nrrd *nin, *nout;
   char *outS;
   tenGradientParm *tgparm;
+  unsigned int seed;
 
   mop = airMopNew();
   tgparm = tenGradientParmNew();
@@ -60,8 +61,8 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              "initial gradient directions to start with, instead "
              "of default random initial directions (overrides \"-n\")",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "nosrand", NULL, airTypeInt, 0, 0, &nosrand, NULL,
-             "do NOT call srand() to initialize random number generator");
+  hestOptAdd(&hopt, "seed", "value", airTypeUInt, 1, 1, &seed, "42",
+             "seed value to used with airSrandMT()");
   hestOptAdd(&hopt, "dt", "dt", airTypeDouble, 1, 1, &(tgparm->dt), "0.05",
              "time increment in solver");
   hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &(tgparm->drag),
@@ -107,7 +108,7 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  tgparm->srand = !nosrand;
+  tgparm->seed = seed;
   E = (nin
        ? tenGradientDistribute(nout, nin, tgparm)
        : tenGradientGenerate(nout, num, tgparm));

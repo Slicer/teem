@@ -37,9 +37,9 @@ tenGradientParmNew(void) {
     ret->minVelocity = 0.000001;
     ret->minMean = 0.0001;
     ret->minMeanImprovement = 0.00001;
-    ret->srand = AIR_TRUE;
     ret->snap = 0;
     ret->single = AIR_FALSE;
+    ret->seed = 42;
     ret->minIteration = 20;
     ret->maxIteration = 1000000;
   }
@@ -94,7 +94,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
 ** generates num random unit vectors of type double
 */
 int
-tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
+tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
   char me[]="tenGradientRandom", err[BIFF_STRLEN];
   double *grad, len;
   unsigned int gi;
@@ -104,9 +104,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }
-  if (srand) {
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
-  }
+  airSrandMT(seed);
   grad = (double*)(ngrad->data);
   for (gi=0; gi<num; gi++) {
     do {
@@ -445,7 +443,7 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenGradientRandom(nin, num, tgparm->srand)
+  if (tenGradientRandom(nin, num, tgparm->seed)
       || tenGradientDistribute(nout, nin, tgparm)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(TEN, err); airMopError(mop); return 1;

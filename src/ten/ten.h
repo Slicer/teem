@@ -583,8 +583,8 @@ typedef struct {
     minVelocity,
     minMean,
     minMeanImprovement;
-  int srand, snap, single;
-  unsigned minIteration, maxIteration;
+  int snap, single;
+  unsigned int seed, minIteration, maxIteration;
 } tenGradientParm;
 
 /*
@@ -600,9 +600,12 @@ typedef struct {
     sigma,                 /* noise parameter */
     dwiConfThresh,         /* mean Dwi threshold for confidence mask */
     dwiConfSoft;           /* softness in confidence mask */
-                           /* NOTE: for both _ngrad and _nbmat,
-                              only one can be non-NULL, and axis[1].size
-                              is the total # values, both Dwi and non-Dwi */
+                           /* NOTE: for both _ngrad and _nbmat:
+                              1) only one can be non-NULL, and axis[1].size
+                              is the total # values, both Dwi and non-Dwi
+                              2) NO additional re-normalization is done on
+                              the grads/bmats, UNLIKE the normalization 
+                              performed by tenDWMRIKeyValueParse(). */
   const Nrrd *_ngrad,      /* caller's 3-by-allNum gradient list */
     *_nbmat;               /* caller's 6-by-allNum B-matrix list,
                               off-diagonals are *NOT* pre-multiplied by 2 */
@@ -668,7 +671,8 @@ TEN_EXPORT tenGradientParm *tenGradientParmNew(void);
 TEN_EXPORT tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
 TEN_EXPORT int tenGradientCheck(const Nrrd *ngrad, int type,
                                 unsigned int minnum);
-TEN_EXPORT int tenGradientRandom(Nrrd *ngrad, unsigned int num, int srand);
+TEN_EXPORT int tenGradientRandom(Nrrd *ngrad, unsigned int num,
+                                 unsigned int seed);
 TEN_EXPORT int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
 TEN_EXPORT int tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
                                        tenGradientParm *tgparm);
@@ -790,7 +794,8 @@ TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                                 double sigma, double bValue,
                                                 const Nrrd *nB0,
                                                 const Nrrd *nten,
-                                                int outType);
+                                                int outType,
+                                                int keyValueSet);
 TEN_EXPORT int tenEstimate1TensorSingle_f(tenEstimateContext *tec,
                                           float ten[7], const float *all);
 TEN_EXPORT int tenEstimate1TensorSingle_d(tenEstimateContext *tec,
