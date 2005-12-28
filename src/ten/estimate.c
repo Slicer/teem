@@ -937,13 +937,14 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                  Nrrd *ndwi, 
                                  double sigma, double bValue,
                                  const Nrrd *nB0, const Nrrd *nten,
-                                 int outType) {
-  char me[]="tenEstimate1TensorSimulateVolume", err[BIFF_STRLEN];
+                                 int outType, int keyValueSet) {
+  char me[]="tenEstimate1TensorSimulateVolume", err[BIFF_STRLEN],
+    keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
   size_t sizeTen, sizeX, sizeY, sizeZ, NN, II;
-  double (*tlup)(const void *, size_t), (*blup)(const void *, size_t), 
-    ten_d[7], *dwi_d, B0;
+  double (*tlup)(const void *, size_t), (*blup)(const void *, size_t),
+    (*lup)(const void *, size_t), ten_d[7], *dwi_d, B0;
   float *dwi_f, ten_f[7];
-  unsigned int tt;
+  unsigned int tt, allIdx;
   int axmap[4], E;
   airArray *mop;
 
@@ -1033,6 +1034,35 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     sprintf(err, "%s:", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  if (keyValueSet) {
+    nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
+    sprintf(valstr, "%g", bValue);
+    nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);
+    if (tec->_ngrad) {
+      lup = nrrdDLookup[tec->_ngrad->type];
+      for (allIdx=0; allIdx<tec->allNum; allIdx++) {
+        sprintf(keystr, tenDWMRIGradKeyFmt, allIdx);
+        sprintf(valstr, "%g %g %g",
+                lup(tec->_ngrad->data, 0 + 3*allIdx),
+                lup(tec->_ngrad->data, 1 + 3*allIdx),
+                lup(tec->_ngrad->data, 2 + 3*allIdx));
+        nrrdKeyValueAdd(ndwi, keystr, valstr);
+      }
+    } else {
+      lup = nrrdDLookup[tec->_nbmat->type];
+      for (allIdx=0; allIdx<tec->allNum; allIdx++) {
+        sprintf(keystr, tenDWMRIBmatKeyFmt, allIdx);
+        sprintf(valstr, "%g %g %g %g %g %g",
+                lup(tec->_nbmat->data, 0 + 6*allIdx),
+                lup(tec->_nbmat->data, 1 + 6*allIdx),
+                lup(tec->_nbmat->data, 2 + 6*allIdx),
+                lup(tec->_nbmat->data, 3 + 6*allIdx),
+                lup(tec->_nbmat->data, 4 + 6*allIdx),
+                lup(tec->_nbmat->data, 5 + 6*allIdx));
+        nrrdKeyValueAdd(ndwi, keystr, valstr);
+      }
+    }
   }
   airMopOkay(mop);
   return 0;
