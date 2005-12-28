@@ -162,7 +162,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "mp", "measurement orientation", airTypeDouble, 3, 3, mp,
              "0 0 0",
              "quaternion quotient space orientation of measurement frame");
-  hestOptAdd(&hopt, "b", "boundary", airTypeDouble, 1, 1, &bnd, "5",
+  hestOptAdd(&hopt, "b", "boundary", airTypeDouble, 1, 1, &bnd, "10",
              "parameter governing how fuzzy the boundary between high and "
              "low anisotropy is. Use \"-b 0\" for no fuzziness");
   hestOptAdd(&hopt, "r", "little radius", airTypeDouble, 1, 1, &r, "30",
@@ -171,7 +171,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
              "(major) radius of helical turns");
   hestOptAdd(&hopt, "S", "spacing", airTypeDouble, 1, 1, &S, "100",
              "spacing between turns of helix (along its axis)");
-  hestOptAdd(&hopt, "a", "angle", airTypeDouble, 1, 1, &angle, "1.0",
+  hestOptAdd(&hopt, "a", "angle", airTypeDouble, 1, 1, &angle, "60",
              "maximal angle of twist of tensors along path.  There is no "
              "twist at helical core of path, and twist increases linearly "
              "with radius around this path.  Positive twist angle with "
@@ -218,7 +218,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
-                 r, R, S, angle, ev);
+                 r, R, S, angle*AIR_PI/180, ev);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   ELL_3V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN);
@@ -230,6 +230,9 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter,
                      nrrdCenterUnknown, nrrdCenterCell,
                      nrrdCenterCell, nrrdCenterCell);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoKind,
+                     nrrdKind3DMaskedSymMatrix, nrrdKindSpace,
+                     nrrdKindSpace, nrrdKindSpace);
   nout->measurementFrame[0][0] = mf[0];
   nout->measurementFrame[1][0] = mf[1];
   nout->measurementFrame[2][0] = mf[2];
