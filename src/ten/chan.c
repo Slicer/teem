@@ -149,9 +149,9 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     *ngradP = NULL;
     ninfo = *nbmatP = nrrdNew();
   }
-  if (nrrdAlloc_va(ninfo, nrrdTypeDouble, 2,
-                   AIR_CAST(size_t, valNum),
-                   AIR_CAST(size_t, dwiNum))) {
+  if (nrrdMaybeAlloc_va(ninfo, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, valNum),
+                        AIR_CAST(size_t, dwiNum))) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(TEN, err, NRRD); return 1;
   }

@@ -192,11 +192,11 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdAlloc_va(nout, nrrdTypeFloat, 4,
-                   AIR_CAST(size_t, 7),
-                   AIR_CAST(size_t, size[0]),
-                   AIR_CAST(size_t, size[1]),
-                   AIR_CAST(size_t, size[2]))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
+                        AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, size[0]),
+                        AIR_CAST(size_t, size[1]),
+                        AIR_CAST(size_t, size[2]))) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);
     airMopError(mop); return 1;
