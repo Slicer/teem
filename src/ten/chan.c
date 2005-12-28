@@ -23,6 +23,24 @@
 #include "ten.h"
 #include "privateTen.h"
 
+const char *
+tenDWMRIModalityKey = "modality";
+
+const char *
+tenDWMRIModalityVal = "DWMRI";
+
+const char *
+tenDWMRIBValueKey = "DWMRI_b-value";
+
+const char *
+tenDWMRIGradKeyFmt = "DWMRI_gradient_%04u";
+
+const char *
+tenDWMRIBmatKeyFmt = "DWMRI_B-matrix_%04u";
+
+const char *
+tenDWMRINexKeyFmt = "DWMRI_NEX_%04u";
+
 /*
 ******** tenDWMRIKeyValueParse
 **
@@ -40,13 +58,9 @@ int
 tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
                       double *bP, const Nrrd *ndwi) {
   char me[]="tenDWMRIKeyValueParse", err[BIFF_STRLEN],
-    modalityKey[] = "modality",
-    modalityVal[] = "DWMRI",
-    bvalueKey[] = "DWMRI_b-value",
-    gradKeyFmt[] = "DWMRI_gradient_%04d", tmpKey[AIR_STRLEN_MED],
-    bmatKeyFmt[] = "DWMRI_B-matrix_%04d",
-    nexKeyFmt[] = "DWMRI_NEX_%04d",
-    *keyFmt, key[AIR_STRLEN_MED], *val;
+    tmpKey[AIR_STRLEN_MED],
+    key[AIR_STRLEN_MED], *val;
+  const char *keyFmt;
   int dwiAxis;
   unsigned int axi, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
     nexNum, nexIdx;
@@ -59,28 +73,28 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
   }
 
   /* check modality */
-  val = nrrdKeyValueGet(ndwi, modalityKey);
+  val = nrrdKeyValueGet(ndwi, tenDWMRIModalityKey);
   if (!val) {
-    sprintf(err, "%s: didn't have \"%s\" key", me, modalityKey);
+    sprintf(err, "%s: didn't have \"%s\" key", me, tenDWMRIModalityKey);
     biffAdd(TEN, err); return 1;
   }
-  if (strcmp(val, modalityVal)) {
+  if (strcmp(val, tenDWMRIModalityVal)) {
     sprintf(err, "%s: \"%s\" value was \"%s\", not \"%s\"", me,
-            modalityKey, val, modalityVal);
+            tenDWMRIModalityKey, val, tenDWMRIModalityVal);
     biffAdd(TEN, err); return 1;
   }
   val = (char *)airFree(val);
   
   /* learn b-value */
-  val = nrrdKeyValueGet(ndwi, bvalueKey);
+  val = nrrdKeyValueGet(ndwi, tenDWMRIBValueKey);
   if (!val) {
-    sprintf(err, "%s: didn't have \"%s\" key", me, bvalueKey);
+    sprintf(err, "%s: didn't have \"%s\" key", me, tenDWMRIBValueKey);
     biffAdd(TEN, err); return 1;
   }
   if (1 != sscanf(val, "%lg", bP)) {
     sprintf(err, "%s: couldn't parse float from value \"%s\" "
             "for key \"%s\"", me,
-            val, bvalueKey);
+            val, tenDWMRIBValueKey);
     biffAdd(TEN, err); return 1;
   }
   val = (char *)airFree(val);
@@ -109,13 +123,13 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
   dwiNum = ndwi->axis[dwiAxis].size;
 
   /* figure out if we're parsing gradients or b-matrices */
-  sprintf(tmpKey, gradKeyFmt, 0);
+  sprintf(tmpKey, tenDWMRIGradKeyFmt, 0);
   val = nrrdKeyValueGet(ndwi, tmpKey);
   if (val) {
     valNum = 3;
   } else {
     valNum = 6;
-    sprintf(key, bmatKeyFmt, 0);
+    sprintf(key, tenDWMRIBmatKeyFmt, 0);
     val = nrrdKeyValueGet(ndwi, key);
     if (!val) {
       sprintf(err, "%s: saw neither \"%s\" nor \"%s\" key", me,
@@ -127,11 +141,11 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
 
   /* set up parsing and allocate one of output nrrds */
   if (3 == valNum) {
-    keyFmt = gradKeyFmt;
+    keyFmt = tenDWMRIGradKeyFmt;
     ninfo = *ngradP = nrrdNew();
     *nbmatP = NULL;
   } else {
-    keyFmt = bmatKeyFmt;
+    keyFmt = tenDWMRIBmatKeyFmt;
     *ngradP = NULL;
     ninfo = *nbmatP = nrrdNew();
   }
@@ -159,7 +173,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
       biffAdd(TEN, err); return 1;
     }
     val = (char *)airFree(val);
-    sprintf(key, nexKeyFmt, dwiIdx);
+    sprintf(key, tenDWMRINexKeyFmt, dwiIdx);
     val = nrrdKeyValueGet(ndwi, key);
     if (!val) {
       /* there is no NEX indicated */

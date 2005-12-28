@@ -731,6 +731,12 @@ TEN_EXPORT void tenInv_d(double inv[7], double ten[7]);
 
 /* chan.c */
 /* old tenCalc* functions replaced by tenEstimate* */
+TEN_EXPORT const char *tenDWMRIModalityKey;
+TEN_EXPORT const char *tenDWMRIModalityVal;
+TEN_EXPORT const char *tenDWMRIBValueKey;
+TEN_EXPORT const char *tenDWMRIGradKeyFmt;
+TEN_EXPORT const char *tenDWMRIBmatKeyFmt;
+TEN_EXPORT const char *tenDWMRINexKeyFmt;
 TEN_EXPORT int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
                                      double *bP, const Nrrd *ndwi);
 TEN_EXPORT int tenBMatrixCalc(Nrrd *nbmat, const Nrrd *ngrad);
