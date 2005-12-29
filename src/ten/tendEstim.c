@@ -187,18 +187,16 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "key/value pair information in input images.");
   hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "nan",
              "\"b\" diffusion-weighting factor (units of sec/mm^2)");
-  hestOptAdd(&hopt, "knownB0", "bool",
-             airTypeBool, 1, 1, &knownB0, "false",
+  hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
              "Determines of the B=0 non-diffusion-weighted reference image "
              "is known, or if it has to be estimated along with the tensor "
              "elements.\n "
-             "\b\bo if \"true\": the B=0 image is "
-             "the FIRST input image given to \"-i\", and hence the B-matrix "
-             "has ONE LESS row than the number of of input images.\n "
-             "\b\bo if \"false\": there is no \"reference\" image; "
-             "all the input "
-             "images are diffusion-weighted in some way or another, and there "
-             "exactly as many rows in the B-matrix as there are input images");
+             "\b\bo if \"true\": in the given list of diffusion gradients or "
+             "B-matrices, there are one or more with zero norm, which are "
+             "simply averaged to find the B=0 reference image value\n "
+             "\b\bo if \"false\": there may or may not be diffusion-weighted "
+             "images among the input; the B=0 image value is going to be "
+             "estimated along with the diffusion model");
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, "-",
              "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
              "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
