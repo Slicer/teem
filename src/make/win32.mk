@@ -36,7 +36,11 @@ unproject6: project.clean.msvc6
 
 sortedObjs = $(sort $(foreach lib,$(LIBS),$(addsuffix /$(lib),$($(lib).OBJS))))
 flipSlash = $(WIN32.TOP)src\\\\$(notdir $(1))\\\\$(subst /,,$(dir $(1)))
+writeCmdFile = $(shell echo -n $(patsubst %.o,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.c\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(call flipSlash,$(1))) >> $(2))
 
+#write-var-to-file=$(strip $(shell rm -f $1)$(eval __a :=)$(foreach w,$($2),$(if $(filter $3,$(words $(__a))),$(shell echo -n "$(strip $(__a)) " >> $1)$(eval __a:=))$(eval __a +=$w))$(shell echo $(__a) >> $1))
+
+#
 # MS Visual Studio .NET 2003 project files
 
 project.build.msvc71: headers.copy teem.vcproj.build bins.vcproj.build
@@ -46,7 +50,12 @@ project.clean.msvc71: headers.clean
 
 teem.vcproj.build:
 	@echo -n "Creating teem.vcproj..."
-	@echo s/TEEMALLDOTC/$(patsubst %.o,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.c\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(foreach obj,$(sortedObjs),$(call flipSlash,$(obj))))/g > cmd.ed
+	@echo -n s/TEEMALLDOTC/ > cmd.ed
+	$(foreach obj,$(sortedObjs),$(call writeCmdFile,$(obj),cmd2.ed))
+	@cat cmd2.ed >> cmd.ed
+	@rm -rf cmd2.ed
+	@echo /g >> cmd.ed
+#	@echo s/TEEMALLDOTC/$(patsubst %.o,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.c\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(foreach obj,$(sortedObjs),$(call flipSlash,$(obj))))/g > cmd.ed
 	@echo s/TEEMALLDOTH/$(patsubst %.h,\\t\\t\\t\\\<File\\n\\t\\t\\t\\tRelativePath=\"%.h\"\\\>\\n\\t\\t\\t\\\<\\/File\\\>\\n,$(foreach lib,$(LIBS),$(addprefix $(WIN32.TOP)src\\\\$(lib)\\\\,$($(lib).PUBLIC_HEADERS) $($(lib).PRIVATE_HEADERS))))/g >> cmd.ed
 	@echo s/TEEMALLINC/$(foreach lib,$(LIBS),\,$(WIN32.TOP)src\\\\$(lib))/g >> cmd.ed
 	@echo "s/ \,/\,/g" >> cmd.ed
