@@ -168,7 +168,6 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   nrrdNuke(nconf);
   nrrdNuke(neval);
   nrrdNuke(nevec);
-  nrrdAxisInfoSet_va(nout, nrrdAxisInfoSpacing, AIR_NAN, 1.0, 1.0, 1.0);
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoLabel, "tensor", "x", "y", "z");
   sprintf(buff, "satin(%g,%g,%g)", parm, mina, maxa);
   nout->content = airStrdup(buff);
@@ -186,6 +185,8 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   float parm, maxa, mina, thick, bnd;
   Nrrd *nout;
   char *outS;
+  gageShape *shape;
+  double spd[4][4], orig[4];
   
   hestOptAdd(&hopt, "t", "do torus", airTypeInt, 0, 0, &torus, NULL,
              "generate a torus dataset, instead of the default spherical");
@@ -227,6 +228,41 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
 
+  /* use gageShape to determine orientation info */
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter,
+                     nrrdCenterUnknown, nrrdCenterCell,
+                     nrrdCenterCell, nrrdCenterCell);
+  shape = gageShapeNew();
+  airMopAdd(mop, shape, (airMopper)gageShapeNix, airMopAlways);
+  if (gageShapeSet(shape, nout, tenGageKind->baseDim)) {
+    airMopAdd(mop, err=biffGetDone(GAGE), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble doing shape:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }
+  /* the ItoW is a 4x4 matrix, but 
+     we really only care about the first three rows */
+  ELL_4V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_4MV_COL0_GET(spd[1], shape->ItoW);
+  ELL_4MV_COL1_GET(spd[2], shape->ItoW);
+  ELL_4MV_COL2_GET(spd[3], shape->ItoW);
+  ELL_4MV_COL3_GET(orig, shape->ItoW);
+  nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
+  nrrdSpaceOriginSet(nout, orig);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoSpaceDirection,
+                     spd[0], spd[1], spd[2], spd[3]);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoKind,
+                     nrrdKind3DMaskedSymMatrix, nrrdKindSpace,
+                     nrrdKindSpace, nrrdKindSpace);
+  nout->measurementFrame[0][0] = 1;
+  nout->measurementFrame[1][0] = 0;
+  nout->measurementFrame[2][0] = 0;
+  nout->measurementFrame[0][1] = 0;
+  nout->measurementFrame[1][1] = 1;
+  nout->measurementFrame[2][1] = 0;
+  nout->measurementFrame[0][2] = 0;
+  nout->measurementFrame[1][2] = 0;
+  nout->measurementFrame[2][2] = 1;
+  
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
