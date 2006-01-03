@@ -374,6 +374,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     - compute change in velocity (by f=ma)
     - compute change in position (by definition)
     - apply those changes to the real world
+    (this is the midpoint integration method, or 2nd order Runge-Kutta)
   */
   /* npos is already initialized (via nrrdCopy) */
   memset(nvel->data, 0, nrrdElementSize(nvel)*nrrdElementNumber(nvel));

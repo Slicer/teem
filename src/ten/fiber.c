@@ -216,6 +216,18 @@ _tenFiberIntegrate_Euler(tenFiberContext *tfx, double forwDir[3]) {
 }
 
 int
+_tenFiberIntegrate_Midpoint(tenFiberContext *tfx, double forwDir[3]) {
+  double loc[3], half[3];
+  
+  _tenFiberStep[tfx->fiberType](tfx, half);
+  ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*tfx->stepSize, half);
+  if (_tenFiberProbe(tfx, loc)) return 1;
+  _tenFiberStep[tfx->fiberType](tfx, forwDir);
+  ELL_3V_SCALE(forwDir, tfx->stepSize, forwDir);
+  return 0;
+}
+
+int
 _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
   double loc[3], k1[3], k2[3], k3[3], k4[3], c1, c2, c3, c4, h;
 
@@ -245,6 +257,7 @@ int (*
 _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
   NULL,
   _tenFiberIntegrate_Euler,
+  _tenFiberIntegrate_Midpoint,
   _tenFiberIntegrate_RK4
 };
 

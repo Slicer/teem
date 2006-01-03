@@ -435,10 +435,11 @@ enum {
 enum {
   tenFiberIntgUnknown,   /* 0: nobody knows */
   tenFiberIntgEuler,     /* 1: dumb but fast */
-  tenFiberIntgRK4,       /* 2: 4rth order runge-kutta */
+  tenFiberIntgMidpoint,  /* 2: 2nd order Runge-Kutta */
+  tenFiberIntgRK4,       /* 3: 4rth order Runge-Kutta */
   tenFiberIntgLast
 };
-#define TEN_FIBER_INTG_MAX  2
+#define TEN_FIBER_INTG_MAX  3
 
 /*
 ******** tenFiberStop* enum
@@ -690,6 +691,7 @@ TEN_EXPORT airEnum _tenGage;
 TEN_EXPORT airEnum *tenGage;
 TEN_EXPORT airEnum *tenFiberType;
 TEN_EXPORT airEnum *tenFiberStop;
+TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;
 
 /* glyph.c */

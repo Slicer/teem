@@ -26,10 +26,9 @@
 #define INFO "Extract a single fiber tract, given a start point"
 char *_tend_fiberInfoL =
   (INFO
-   ".  Currently, only fibers based on 4th-order Runge-Kutta on "
-   "principal eigenvector are supported via \"tend\".  The \"world space\" "
-   "in which fibers are calculated has the volume inscribed in a bi-unit cube "
-   "centered at the origin. The output fiber is in the form "
+   ".  This is really only useful for debugging purposes; there is no way "
+   "that a command-line tractography tool is going to be very interesting "
+   "for real applications. The output fiber is in the form "
    "of a 3xN array of doubles, with N points along fiber.");
 
 int
@@ -43,7 +42,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenFiberContext *tfx;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  int E;
+  int E, intg;
   Nrrd *nin, *nout;
   unsigned int si, stopLen;
   
@@ -52,8 +51,8 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "directions starting from here");
   hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
              "stepsize along fiber, in world space");
-  hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, 
-             NULL, "the conditions that should signify the end of a fiber. "
+  hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, NULL,
+             "the conditions that should signify the end of a fiber. "
              "Multiple stopping criteria are logically OR-ed and tested at "
              "every point along the fiber.  Possibilities include:\n "
              "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
@@ -66,8 +65,11 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
              "to be above the given threshold. ",
              &stopLen, NULL, tendFiberStopCB);
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp,
-             "tent", "kernel for reconstructing tensor field",
+  hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
+             "integration method for fiber tracking",
+             NULL, tenFiberIntg);
+  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "tent",
+             "kernel for reconstructing tensor field",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
@@ -114,7 +116,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec1);
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
-  if (!E) E |= tenFiberIntgSet(tfx, tenFiberIntgRK4);
+  if (!E) E |= tenFiberIntgSet(tfx, intg);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace, AIR_TRUE);
   if (!E) E |= tenFiberUpdate(tfx);

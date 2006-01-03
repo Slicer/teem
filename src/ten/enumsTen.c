@@ -516,6 +516,51 @@ tenFiberStop = &_tenFiberStop;
 /* ----------------------------------------------------------------------- */
 
 char
+_tenFiberIntgStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenFiberIntg)",
+  "euler",
+  "midpoint",
+  "rk4"
+};
+
+char
+_tenFiberIntgStrEqv[][AIR_STRLEN_SMALL] = {
+  "euler",
+  "midpoint", "rk2",
+  "rk4",
+  ""
+};
+
+int
+_tenFiberIntgValEqv[] = {
+  tenFiberIntgEuler,
+  tenFiberIntgMidpoint, tenFiberIntgMidpoint,
+  tenFiberIntgRK4
+};
+
+char
+_tenFiberIntgDesc[][AIR_STRLEN_MED] = {
+  "unknown tenFiber intg",
+  "plain Euler",
+  "midpoint method, 2nd order Runge-Kutta",
+  "4rth order Runge-Kutta"
+};
+
+airEnum
+_tenFiberIntg = {
+  "fiber integration method",
+  TEN_FIBER_INTG_MAX,
+  _tenFiberIntgStr, NULL,
+  _tenFiberIntgDesc,
+  _tenFiberIntgStrEqv, _tenFiberIntgValEqv, 
+  AIR_FALSE
+};
+airEnum *
+tenFiberIntg = &_tenFiberIntg;
+
+/* ----------------------------------------------------------------------- */
+
+char
 _tenGlyphTypeStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenGlyphType)",
   "box",
