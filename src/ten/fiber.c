@@ -498,4 +498,3 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
 
   return 0;
 }
-

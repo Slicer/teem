@@ -980,6 +980,3 @@ TEN_EXPORT hestCB *tendFiberStopCB;
 #endif
 
 #endif /* TEN_HAS_BEEN_INCLUDED */
-
-
-
