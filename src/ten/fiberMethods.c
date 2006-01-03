@@ -23,39 +23,6 @@
 #include "ten.h"
 #include "privateTen.h"
 
-/*
-** the volume fits inside 
-** [-vhlen[0],vhlen[0]] x [-vhlen[1],vhlen[1]] x [-vhlen[2],vhlen[2]]
-*/
-/*
-void
-_tenLearnLengths(double vhlen[3], int center, Nrrd *dtvol) {
-  double maxLen;
-  int numSamples[3], numElements[3];
-
-  numSamples[0] = dtvol->axis[1].size;
-  numSamples[1] = dtvol->axis[2].size;
-  numSamples[2] = dtvol->axis[3].size;
-  if (nrrdCenterCell == center) {
-    numElements[0] = numSamples[0];
-    numElements[1] = numSamples[1];
-    numElements[2] = numSamples[2];
-  } else {
-    numElements[0] = numSamples[0]-1;
-    numElements[1] = numSamples[1]-1;
-    numElements[2] = numSamples[2]-1;
-  }
-  vhlen[0] = numElements[0]*dtvol->axis[1].spacing;
-  vhlen[1] = numElements[1]*dtvol->axis[1].spacing;
-  vhlen[2] = numElements[2]*dtvol->axis[1].spacing;
-  maxLen = AIR_MAX(vhlen[0], vhlen[1]);
-  maxLen = AIR_MAX(vhlen[2], maxLen);
-  vhlen[0] /= maxLen;
-  vhlen[1] /= maxLen;
-  vhlen[2] /= maxLen;
-}
-*/
-
 tenFiberContext *
 tenFiberContextNew(const Nrrd *dtvol) {
   char me[]="tenFiberContextNew", err[BIFF_STRLEN];
@@ -86,7 +53,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
     sprintf(err, "%s: couldn't set default kernel", me);
     biffAdd(TEN, err); return NULL;
   }
-  /* looks to GK like GK says that must set fiber type and 
+  /* looks to GK like GK says that we must set fiber type and 
      some stop criterion */
   tfx->fiberType = tenFiberTypeUnknown;
   tfx->intg = tenDefFiberIntg;
@@ -105,6 +72,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
   tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
                             only get read if the right tenFiberStopSet has
                             been called, in which case they'll be set... */
+  tfx->minRadius = 1;    /* above lament applies here as well */
   tfx->wPunct = tenDefFiberWPunct;
 
   GAGE_QUERY_RESET(tfx->query);
@@ -113,6 +81,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
   tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
   tfx->anisoStop = NULL;
   tfx->anisoSpeed = NULL;
+  tfx->radius = AIR_NAN;
   /* no more; set below 
   tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso); */
   return tfx;
@@ -172,6 +141,7 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
 ** tenFiberStopSet(tfx, tenFiberStopAniso, int anisoType, double anisoThresh)
 ** tenFiberStopSet(tfx, tenFiberStopNumSteps, int numSteps)
 ** tenFiberStopSet(tfx, tenFiberStopConfidence, double conf)
+** tenFiberStopSet(tfx, tenFiberStopRadius, double radius)
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
@@ -255,6 +225,14 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       biffAdd(TEN, err); ret = 1; goto end;
     }
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
+    break;
+  case tenFiberStopRadius:
+    tfx->minRadius = va_arg(ap, double);
+    if (!( AIR_EXISTS(tfx->minRadius) )) {
+      sprintf(err, "%s: given minimum radius doesn't exist", me);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    /* no query modifications needed */
     break;
   case tenFiberStopBounds:
     /* nothing to set; always used as a stop criterion */

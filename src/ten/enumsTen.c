@@ -465,6 +465,7 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "length",
   "steps",
   "confidence",
+  "radius",
   "bounds"
 };
 
@@ -474,6 +475,7 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   "length", "len",
   "steps",
   "confidence", "conf", "c",
+  "radius",
   "bounds",
   ""
 };
@@ -484,6 +486,7 @@ _tenFiberStopValEqv[] = {
   tenFiberStopLength, tenFiberStopLength,
   tenFiberStopNumSteps,
   tenFiberStopConfidence, tenFiberStopConfidence, tenFiberStopConfidence,
+  tenFiberStopRadius,
   tenFiberStopBounds
 };
 
@@ -494,6 +497,7 @@ _tenFiberStopDesc[][AIR_STRLEN_MED] = {
   "fiber length exceeded normalcy bounds",
   "number of steps along fiber too many",
   "tensor \"confidence\" value too low",
+  "radius of curvature of path got too small",
   "fiber went outside bounding box"
 };
 

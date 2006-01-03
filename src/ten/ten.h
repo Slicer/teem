@@ -452,10 +452,11 @@ enum {
   tenFiberStopLength,     /* 2: fiber length in world space got too long */
   tenFiberStopNumSteps,   /* 3: took too many steps along fiber */
   tenFiberStopConfidence, /* 4: tensor "confidence" value went too low */
-  tenFiberStopBounds,     /* 5: fiber position stepped outside volume */
+  tenFiberStopRadius,     /* 5: radius of curvature got too small */
+  tenFiberStopBounds,     /* 6: fiber position stepped outside volume */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX   5
+#define TEN_FIBER_STOP_MAX   6
 
 /*
 ******** #define TEN_FIBER_NUM_STEPS_MAX
@@ -498,9 +499,10 @@ typedef struct {
     anisoSpeedFunc[3];  /* parameters of mapping aniso to speed */
   unsigned int maxNumSteps; /* max # steps allowed on one fiber half */
   double stepSize,      /* step size in world space */
-    maxHalfLen;         /* longest propagation (forward or backward) allowed
+    maxHalfLen,         /* longest propagation (forward or backward) allowed
                            from midpoint */
-  double confThresh;    /* confidence threshold */
+    confThresh,         /* confidence threshold */
+    minRadius;          /* minimum radius of curvature of path */
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
   gageQuery query;      /* query we'll send to gageQuerySet */
@@ -517,6 +519,7 @@ typedef struct {
     *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
     *anisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
     *anisoSpeed;        /* gageAnswerPointer(pvl, tenGage<anisoSpeed>) */
+  double radius;        /* current radius of curvature */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
   unsigned int numSteps[2]; /* how many samples are used for each fiber half */

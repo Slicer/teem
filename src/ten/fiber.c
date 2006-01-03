@@ -52,6 +52,11 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
       return tenFiberStopConfidence;
     }
   }
+  if (tfx->stop & (1 << tenFiberStopRadius)) {
+    if (tfx->radius < tfx->minRadius) {
+      return tenFiberStopRadius;
+    }
+  }
   if (tfx->stop & (1 << tenFiberStopAniso)) {
     if (*(tfx->anisoStop) < tfx->anisoThresh) {
       return tenFiberStopAniso;
@@ -324,6 +329,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   }
 
   /* see if we're doomed */
+  /* have to fake out the possible radius check, since at this point
+     there is no radius of curvature; this will always pass */
+  tfx->radius = DBL_MAX;  
   if ((whyStop = _tenFiberStopCheck(tfx))) {
     /* stopped immediately at seed point, but that's not an error */
     tfx->whyNowhere = whyStop;
@@ -338,9 +346,8 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     tfx->whyNowhere = tenFiberStopUnknown;
   }
 
-  /* record the principal eigenvector at the seed point, which
-     is needed to align the 4 intermediate steps of RK4 for the
-     FIRST step of each half of the tract */
+  /* record the principal eigenvector at the seed point, so that we know
+     which direction to go at the beginning of each half */
   ELL_3V_COPY(tfx->firstEvec, tfx->evec + 3*0);
 
   /* airMop{Error,Okay}() can safely be called on NULL */
@@ -351,12 +358,13 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL, 
                                       3*sizeof(double), TEN_FIBER_INCR);
       airMopAdd(mop, fptsArr[tfx->dir], (airMopper)airArrayNuke, airMopAlways);
+      fptsIdx = -1;  /* will be over-written with 1st airArrayLenIncr */
       buffIdx = -1;
     } else {
       fptsArr[tfx->dir] = NULL;
       fpts[tfx->dir] = NULL;
-      buffIdx = halfBuffLen;
       fptsIdx = -1;
+      buffIdx = halfBuffLen;
     }
     tfx->halfLen[tfx->dir] = 0;
     if (tfx->useIndexSpace) {
@@ -366,6 +374,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       gageShapeWtoI(tfx->gtx->shape, iPos, seed);
       ELL_3V_COPY(tfx->wPos, seed);
     }
+    /* have to initially pass the possible radius check in
+       _tenFiberStopCheck(); this will always pass */
+    tfx->radius = DBL_MAX;  
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
     tfx->lastDirSet = AIR_FALSE;
     for (tfx->numSteps[tfx->dir] = 0; AIR_TRUE; tfx->numSteps[tfx->dir]++) {
@@ -408,6 +419,19 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       if (_tenFiberIntegrate[tfx->intg](tfx, forwDir)) {
         tfx->whyStop[tfx->dir] = tenFiberStopBounds;
         break;
+      }
+      if (tfx->stop & (1 << tenFiberStopRadius)) {
+        /* some more work required to compute radius of curvature */
+        double svec[3], dvec[3], SS, DD; /* sum,diff length squared */
+        if (tfx->lastDirSet) {
+          ELL_3V_ADD2(svec, tfx->lastDir, forwDir);
+          ELL_3V_SUB(dvec, tfx->lastDir, forwDir);
+          SS = ELL_3V_DOT(svec, svec);
+          DD = ELL_3V_DOT(dvec, dvec);
+          tfx->radius = sqrt(SS*(SS+DD)/DD)/4;
+        } else {
+          tfx->radius = DBL_MAX;
+        }
       }
       ELL_3V_COPY(tfx->lastDir, forwDir);
       tfx->lastDirSet = AIR_TRUE;
