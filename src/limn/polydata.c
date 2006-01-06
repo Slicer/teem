@@ -516,7 +516,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   beta = AIR_MAX(0.00001f, beta);
 
   vertNum = thetaRes*phiRes + 1;
-  indxNum = 2*(phiRes+1)*thetaRes;
+  indxNum = 2*thetaRes*(phiRes+1) - 2;
   if (limnPolyDataAlloc(pld, vertNum, indxNum, 1)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
@@ -557,7 +557,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   pld->type[0] = limnPrimitiveTriangleStrip;
   pld->vcnt[0] = indxNum;
   vertIdx = 0;
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+  for (thetaIdx=1; thetaIdx<thetaRes; thetaIdx++) {
     pld->indx[vertIdx++] = 0;
     pld->indx[vertIdx++] = thetaIdx;
   }
