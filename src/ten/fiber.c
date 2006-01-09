@@ -27,13 +27,20 @@
 
 int
 _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
+  /* char me[]="_tenFiberProbe"; */
   double iPos[3];
+  int ret;
   
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
-  return gageProbe(tfx->gtx,
-                   AIR_CAST(gage_t, iPos[0]),
-                   AIR_CAST(gage_t, iPos[1]),
-                   AIR_CAST(gage_t, iPos[2]));
+  ret = gageProbe(tfx->gtx,
+                  AIR_CAST(gage_t, iPos[0]),
+                  AIR_CAST(gage_t, iPos[1]),
+                  AIR_CAST(gage_t, iPos[2]));
+  /*
+  fprintf(stderr, "!%s: probe(%g,%g,%g) -> %u\n", me, 
+          iPos[0], iPos[1], iPos[2], ret);
+  */
+  return ret;
 }
 
 int

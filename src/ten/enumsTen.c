@@ -84,7 +84,9 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "Q",
   "FA",
   "R",
-  "P",
+  "mode",
+  "theta",
+  "modew",
 
   "evals",
   "eval0",
@@ -160,7 +162,9 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "Q",
   "FA",
   "R",
-  "P",
+  "mode",
+  "theta",
+  "warped mode",
   "3 eigenvalues",
   "eigenvalue 0",
   "eigenvalue 1",
@@ -222,7 +226,9 @@ _tenGageVal[] = {
   tenGageQ,             /* "q", (S - B)/9: GT[1] */
   tenGageFA,            /* "fa", fractional anisotropy: GT[1] */
   tenGageR,             /* "r", 9*A*B - 2*A^3 - 27*C: GT[1] */
-  tenGageTheta,         /* "th", arccos(R/sqrt(Q^3))/3: GT[1] */
+  tenGageMode,          /* "mode", sqrt(2)*R/sqrt(Q^3): GT[1] */
+  tenGageTheta,         /* "th", arccos(mode/sqrt(2))/AIR_PI: GT[1] */
+  tenGageModeWarp,      /* */
   tenGageEval,          /* "eval", all eigenvalues of tensor : GT[3] */
   tenGageEval0,         /* "eval0", major eigenvalue of tensor : GT[1] */
   tenGageEval1,         /* "eval1", medium eigenvalue of tensor : GT[1] */
@@ -283,7 +289,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "q",
   "fa",
   "r",
+  "mode",
   "th", "theta",
+  "modew", "mw",
   "eval",
   "eval0",
   "eval1",
@@ -345,7 +353,9 @@ _tenGageValEqv[] = {
   tenGageQ,
   tenGageFA,
   tenGageR,
+  tenGageMode,
   tenGageTheta, tenGageTheta,
+  tenGageModeWarp, tenGageModeWarp,
   tenGageEval,
   tenGageEval0,
   tenGageEval1,
