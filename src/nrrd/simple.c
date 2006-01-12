@@ -1191,6 +1191,9 @@ nrrdElementNumber (const Nrrd *nrrd) {
   return num;
 }
 
+/*
+** obviously, this requires that the per-axis size fields have been set
+*/
 void
 _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
                 unsigned int split) {
