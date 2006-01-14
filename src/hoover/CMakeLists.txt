@@ -6,3 +6,4 @@ ADD_LIBRARY(hoover
 )
 
 TARGET_LINK_LIBRARIES(hoover limn ell nrrd biff air)
+INSTALL_TARGETS(/lib hoover)

@@ -7,3 +7,4 @@ ADD_LIBRARY(moss
 )
 
 TARGET_LINK_LIBRARIES(moss ell nrrd biff hest air)
+INSTALL_TARGETS(/lib moss)

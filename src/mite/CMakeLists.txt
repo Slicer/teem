@@ -10,3 +10,4 @@ ADD_LIBRARY(mite
 )
 
 TARGET_LINK_LIBRARIES(mite ten hoover limn gage ell nrrd biff air)
+INSTALL_TARGETS(/lib mite)

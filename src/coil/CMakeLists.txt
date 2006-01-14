@@ -9,3 +9,4 @@ ADD_LIBRARY(coil
 )
 
 TARGET_LINK_LIBRARIES(coil ten gage ell nrrd biff air)
+INSTALL_TARGETS(/lib coil)
