@@ -95,18 +95,16 @@
 #define TWIST( m, s0, s1 ) \
   ((m) ^ (MIXBITS(s0,s1)>>1) ^ (TWOSCOMP(LOBIT(s1)) & 0x9908b0dfUL))
 
-/* It would be annoying to initialize _airRandMTStateGlobal at
-   compile-time, partly because pNext is the address of member field
-   (currently set by _airRandMTReload), and partly because we'd have
-   to explicitly write AIR_RANDMT_N == 624 values in the source code,
-   which would only make things opaque.  So, we use the flag
-   _airRandMTStateGlobal_initialized to initialize the global state on
-   its first use.  Users paranoid about the time to do this
-   initialization check, or who want to ensure thread safety, should
-   be using airRandMTStateNew and airDrandMT_r */
+/* airRandMTStateGlobal is not allocated at compile-time because of
+   weirdness of where non-initialized global objects go in shared
+   libraries.  Its allocation and initialization are controlled by
+   _airRandMTStateGlobal_{allocated,initialized}. Users who want to
+   ensure thread safety should be using airRandMTStateNew and
+   airDrandMT_r, not the global state.
+*/
 
-airRandMTState _airRandMTStateGlobal;
-airRandMTState *airRandMTStateGlobal = &_airRandMTStateGlobal;
+airRandMTState *airRandMTStateGlobal = NULL;
+static int _airRandMTStateGlobal_allocated = AIR_FALSE;
 static int _airRandMTStateGlobal_initialized = AIR_FALSE;
 
 static void
@@ -203,12 +201,20 @@ airDrandMT53_r(airRandMTState *rng) {
 
 void
 airSrandMT(unsigned int seed) {
+  if (!_airRandMTStateGlobal_allocated) {
+    airRandMTStateGlobal = airRandMTStateNew(0);
+    _airRandMTStateGlobal_allocated = AIR_TRUE;
+  }
   airSrandMT_r(airRandMTStateGlobal, seed);
   _airRandMTStateGlobal_initialized = AIR_TRUE;
 }
 
 double
 airDrandMT() {
+  if (!_airRandMTStateGlobal_allocated) {
+    airRandMTStateGlobal = airRandMTStateNew(0);
+    _airRandMTStateGlobal_allocated = AIR_TRUE;
+  }
   if (!_airRandMTStateGlobal_initialized) {
     airSrandMT(AIR_RANDMT_DEFAULT_SEED);
   }
