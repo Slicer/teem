@@ -88,13 +88,13 @@ airNormalRand_r(double *z1, double *z2, airRandMTState *state) {
 unsigned int
 airRandInt(unsigned int N) {
   
-  return airIndex(0.0, airDrandMT(), 1.0, N);
+  return airUIrandMT_r(airRandMTStateGlobal)%N;
 }
 
 unsigned int
 airRandInt_r(airRandMTState *state, unsigned int N) {
   
-  return airIndex(0.0, airDrandMT_r(state), 1.0, N);
+  return airUIrandMT_r(state)%N;
 }
 
 /*
