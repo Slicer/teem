@@ -221,3 +221,35 @@ airDrandMT() {
   return airDrandMT_r(airRandMTStateGlobal);
 }
 
+/* This checks to see if the sequence of numbers we get is what we
+   expect.  It should return 0 if all is well, 1 if not.
+
+   One thing to check for if it fails is the presence of twos
+   complement interger representation.  The code here relies on it.
+*/
+int
+airRandMTSanity() {
+  int result = 0;
+  /* Create a new generator with our seed */
+  airRandMTState* rng = airRandMTStateNew(AIR_RANDMT_DEFAULT_SEED);
+
+  if (!rng) {
+    /* Couldn't allocate memory */
+    return 1;
+  }
+
+  /* Now check against a predetermined list of values. */
+  result |= airUIrandMT_r(rng) != 1608637542U;
+  result |= airUIrandMT_r(rng) != 3421126067U;
+  result |= airUIrandMT_r(rng) != 4083286876U;
+  result |= airUIrandMT_r(rng) !=  787846414U;
+  result |= airUIrandMT_r(rng) != 3143890026U;
+  result |= airUIrandMT_r(rng) != 3348747335U;
+  result |= airUIrandMT_r(rng) != 2571218620U;
+  result |= airUIrandMT_r(rng) != 2563451924U;
+  result |= airUIrandMT_r(rng) !=  670094950U;
+  result |= airUIrandMT_r(rng) != 1914837113U;
+
+  airRandMTStateNix(rng);
+  return result;
+}
