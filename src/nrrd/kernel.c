@@ -1287,6 +1287,15 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
+
+  // [jorik] (if i understood this correctly) parm is always of length
+  // NRRD_KERNEL_PARMS_NUM. We have to clear all parameters here, since
+  // nrrdKernelSet copies all arguments into its own array later, and
+  // copying uninitialised memory is bad (it traps my memory debugger).
+  for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++) {
+    parm[j] = 0;
+  }
+
   strcpy(str, _str);
   strcpy(kstr, "");
   pstr = NULL;
