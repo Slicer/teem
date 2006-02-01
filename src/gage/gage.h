@@ -178,7 +178,15 @@ enum {
 };
 #define GAGE_KERNEL_NUM     6
 
-#define GAGE_ITEM_PREREQ_NUM 5
+/* 
+******** GAGE_ITEM_PREREQ_NUM
+**
+** Max number of prerequisites for any item in *any* kind.
+** This value has gotten bumped periodically, which means that
+** *all* tables have to be updated, alas.
+*/
+#define GAGE_ITEM_PREREQ_NUM 6
+
 /*
 ******** gageItemEntry struct
 **
@@ -458,8 +466,11 @@ typedef struct gagePoint_t {
 ** maximum item value is within the bounds set here. Using
 ** GAGE_QUERY_BYTES_NUM == 8 gives a max item value of 63, which is 
 ** far above anything being used now.
+** 
+** Sat Jan 21 18:12:01 EST 2006: second derivatives of tensors blew
+** past old GAGE_QUERY_BYTES_NUM, now GAGE_QUERY_BYTES_NUM == 16
 */
-#define GAGE_QUERY_BYTES_NUM 8
+#define GAGE_QUERY_BYTES_NUM 16
 #define GAGE_ITEM_MAX ((8*GAGE_QUERY_BYTES_NUM)-1)
 typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 
