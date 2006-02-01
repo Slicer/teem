@@ -61,37 +61,37 @@ gage_imaginary_part_eigenvalues( gage_t *M ) {
 
 gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
-  /* enum value         len, deriv, prereqs,                                                      parent item, parent index, needData */
-  {gageVecVector,          3,  0,   {-1, -1, -1, -1, -1},                                                   -1,      -1,     0},
-  {gageVecVector0,         1,  0,   {gageVecVector, -1, -1, -1, -1},                             gageVecVector,       0,     0},
-  {gageVecVector1,         1,  0,   {gageVecVector, -1, -1, -1, -1},                             gageVecVector,       1,     0},
-  {gageVecVector2,         1,  0,   {gageVecVector, -1, -1, -1, -1},                             gageVecVector,       2,     0},
-  {gageVecLength,          1,  0,   {gageVecVector, -1, -1, -1, -1},                                        -1,      -1,     0},
-  {gageVecNormalized,      3,  0,   {gageVecVector, gageVecLength, -1, -1, -1},                             -1,      -1,     0},
-  {gageVecJacobian,        9,  1,   {-1, -1, -1, -1, -1},                                                   -1,      -1,     0},
-  {gageVecDivergence,      1,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecCurl,            3,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecCurlNorm,        1,  1,   {gageVecCurl, -1, -1, -1, -1},                                          -1,      -1,     0},
-  {gageVecHelicity,        1,  1,   {gageVecVector, gageVecCurl, -1, -1, -1},                               -1,      -1,     0},
-  {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl, -1, -1, -1},                           -1,      -1,     0},
-  {gageVecLambda2,         1,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecImaginaryPart,   1,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0}, 
-  {gageVecHessian,        27,  2,   {-1, -1, -1, -1, -1},                                                   -1,      -1,     0},
-  {gageVecDivGradient,     3,  1,   {gageVecHessian, -1, -1, -1, -1},                                       -1,      -1,     0},
-  {gageVecCurlGradient,    9,  2,   {gageVecHessian, -1, -1, -1, -1},                                       -1,      -1,     0},
-  {gageVecCurlNormGrad,    3,  2,   {gageVecHessian, gageVecCurl, -1, -1, -1},                              -1,      -1,     0},
-  {gageVecNCurlNormGrad,   3,  2,   {gageVecCurlNormGrad, -1, -1, -1, -1},                                  -1,      -1,     0},
-  {gageVecHelGradient,     3,  2,   {gageVecVector, gageVecJacobian, gageVecCurl, gageVecCurlGradient, -1}, -1,      -1,     0},
-  {gageVecDirHelDeriv,     1,  2,   {gageVecNormalized, gageVecHelGradient, -1, -1, -1},                    -1,      -1,     0},
-  {gageVecProjHelGradient, 3,  2,   {gageVecNormalized, gageVecHelGradient, gageVecDirHelDeriv, -1, -1},    -1,      -1,     0},
+  /* enum value         len, deriv, prereqs,                                                          parent item, parent index, needData */
+  {gageVecVector,          3,  0,   {-1, -1, -1, -1, -1, -1},                                                   -1,      -1,     0},
+  {gageVecVector0,         1,  0,   {gageVecVector, -1, -1, -1, -1, -1},                             gageVecVector,       0,     0},
+  {gageVecVector1,         1,  0,   {gageVecVector, -1, -1, -1, -1, -1},                             gageVecVector,       1,     0},
+  {gageVecVector2,         1,  0,   {gageVecVector, -1, -1, -1, -1, -1},                             gageVecVector,       2,     0},
+  {gageVecLength,          1,  0,   {gageVecVector, -1, -1, -1, -1, -1},                                        -1,      -1,     0},
+  {gageVecNormalized,      3,  0,   {gageVecVector, gageVecLength, -1, -1, -1, -1},                             -1,      -1,     0},
+  {gageVecJacobian,        9,  1,   {-1, -1, -1, -1, -1, -1},                                                   -1,      -1,     0},
+  {gageVecDivergence,      1,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecCurl,            3,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecCurlNorm,        1,  1,   {gageVecCurl, -1, -1, -1, -1, -1},                                          -1,      -1,     0},
+  {gageVecHelicity,        1,  1,   {gageVecVector, gageVecCurl, -1, -1, -1, -1},                               -1,      -1,     0},
+  {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl, -1, -1, -1, -1},                           -1,      -1,     0},
+  {gageVecLambda2,         1,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecImaginaryPart,   1,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0}, 
+  {gageVecHessian,        27,  2,   {-1, -1, -1, -1, -1, -1},                                                   -1,      -1,     0},
+  {gageVecDivGradient,     3,  1,   {gageVecHessian, -1, -1, -1, -1, -1},                                       -1,      -1,     0},
+  {gageVecCurlGradient,    9,  2,   {gageVecHessian, -1, -1, -1, -1, -1},                                       -1,      -1,     0},
+  {gageVecCurlNormGrad,    3,  2,   {gageVecHessian, gageVecCurl, -1, -1, -1, -1},                              -1,      -1,     0},
+  {gageVecNCurlNormGrad,   3,  2,   {gageVecCurlNormGrad, -1, -1, -1, -1, -1},                                  -1,      -1,     0},
+  {gageVecHelGradient,     3,  2,   {gageVecVector, gageVecJacobian, gageVecCurl, gageVecCurlGradient, -1, -1}, -1,      -1,     0},
+  {gageVecDirHelDeriv,     1,  2,   {gageVecNormalized, gageVecHelGradient, -1, -1, -1, -1},                    -1,      -1,     0},
+  {gageVecProjHelGradient, 3,  2,   {gageVecNormalized, gageVecHelGradient, gageVecDirHelDeriv, -1, -1, -1},    -1,      -1,     0},
   /* HEY: these should change to sub-items!!! */
-  {gageVecGradient0,       3,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecGradient1,       3,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecGradient2,       3,  1,   {gageVecJacobian, -1, -1, -1, -1},                                      -1,      -1,     0},
-  {gageVecMultiGrad,       9,  1,   {gageVecGradient0, gageVecGradient1, gageVecGradient2, -1, -1},         -1,      -1,     0},
-  {gageVecMGFrob,          1,  1,   {gageVecMultiGrad, -1, -1, -1, -1},                                     -1,      -1,     0},
-  {gageVecMGEval,          3,  1,   {gageVecMultiGrad, -1, -1, -1, -1},                                     -1,      -1,     0},
-  {gageVecMGEvec,          9,  1,   {gageVecMultiGrad, gageVecMGEval, -1, -1, -1},                          -1,      -1,     0}
+  {gageVecGradient0,       3,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecGradient1,       3,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecGradient2,       3,  1,   {gageVecJacobian, -1, -1, -1, -1, -1},                                      -1,      -1,     0},
+  {gageVecMultiGrad,       9,  1,   {gageVecGradient0, gageVecGradient1, gageVecGradient2, -1, -1, -1},         -1,      -1,     0},
+  {gageVecMGFrob,          1,  1,   {gageVecMultiGrad, -1, -1, -1, -1, -1},                                     -1,      -1,     0},
+  {gageVecMGEval,          3,  1,   {gageVecMultiGrad, -1, -1, -1, -1, -1},                                     -1,      -1,     0},
+  {gageVecMGEvec,          9,  1,   {gageVecMultiGrad, gageVecMGEval, -1, -1, -1, -1},                          -1,      -1,     0}
 };
 
 void
@@ -359,15 +359,15 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMultiGrad)) {
     ELL_3M_IDENTITY_SET(pvl->directAnswer[gageVecMultiGrad]);
-    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
-                      pvl->directAnswer[gageVecGradient0],
-                      pvl->directAnswer[gageVecGradient0]);
-    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
-                      pvl->directAnswer[gageVecGradient1],
-                      pvl->directAnswer[gageVecGradient1]);
-    ELL_3MV_OUTER_ADD(pvl->directAnswer[gageVecMultiGrad],
-                      pvl->directAnswer[gageVecGradient2],
-                      pvl->directAnswer[gageVecGradient2]);
+    ELL_3MV_OUTER_INCR(pvl->directAnswer[gageVecMultiGrad],
+                       pvl->directAnswer[gageVecGradient0],
+                       pvl->directAnswer[gageVecGradient0]);
+    ELL_3MV_OUTER_INCR(pvl->directAnswer[gageVecMultiGrad],
+                       pvl->directAnswer[gageVecGradient1],
+                       pvl->directAnswer[gageVecGradient1]);
+    ELL_3MV_OUTER_INCR(pvl->directAnswer[gageVecMultiGrad],
+                       pvl->directAnswer[gageVecGradient2],
+                       pvl->directAnswer[gageVecGradient2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGFrob)) {
     pvl->directAnswer[gageVecMGFrob][0] 
