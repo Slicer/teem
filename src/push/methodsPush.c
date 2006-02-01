@@ -128,12 +128,20 @@ pushContextNew(void) {
     pctx->minIter = 0;
     pctx->maxIter = 0;
     pctx->snap = 0;
+    pctx->gravItem = tenGageUnknown;
+    pctx->gravNotItem[0] = tenGageUnknown;
+    pctx->gravNotItem[1] = tenGageUnknown;
+    pctx->seedThreshItem  = tenGageUnknown;
+    pctx->seedThreshSign = +1;
+    pctx->gravScl = 0.0;
+    pctx->seedThresh = 0.0;
     pctx->singleBin = AIR_FALSE;
     pctx->driftCorrect = AIR_TRUE;
     pctx->verbose = 0;
     pctx->force = NULL;
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
+    pctx->ksp22 = nrrdKernelSpecNew();
     for (si=0; si<PUSH_STAGE_MAXNUM; si++) {
       for (pi=0; pi<PUSH_STAGE_PARM_MAXNUM; pi++) {
         pctx->stageParm[si][pi] = AIR_NAN;
@@ -176,6 +184,7 @@ pushContextNix(pushContext *pctx) {
     /* weirdness: we don't manage the pushForce- caller (perhaps hest) does */
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
     pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
+    pctx->ksp22 = nrrdKernelSpecNix(pctx->ksp22);
     airFree(pctx);
   }
   return NULL;

@@ -74,8 +74,11 @@ typedef float push_t;
 ** information about a point in the simulation.  There are really two
 ** kinds of information here: "pos", "vel", and "frc" pertain to the simulation
 ** of point dynamics, while "ten", "aniso", "inv", and "cnt" are properties of
-** the field sampled at the point.  "tan" and "cur" are only meaningful in
+** the field sampled at the point.  "tan" and "nor" are only meaningful in
 ** tractlets.
+**
+** HEY: with the addition of grav, gravNot, seedThresh, GK wonders why so much
+** information has to be stored per point, and not in the task ...
 */
 typedef struct pushPoint_t {
   struct pushThing_t *thing;   /* what thing do I belong to */
@@ -88,7 +91,9 @@ typedef struct pushPoint_t {
     inv[7],                    /* inverse of tensor */
     cnt[3],                    /* mask's containment gradient */
     tan[3],                    /* tangent: unit direction through me */
-    nor[3];                    /* change in tangent, normalized */
+    nor[3],                    /* change in tangent, normalized */
+    grav[3], gravNot[2][3],    /* gravity stuff */
+    seedThresh;                /* seed thresh */
 } pushPoint;
 
 /*
@@ -130,7 +135,7 @@ typedef struct pushThing_t {
 ** related purposes- to bin *all* the points in the simulation-- both 
 ** single points as well as vertices of tractlets-- and also to bin the
 ** all "things".  The binning of points is used for the force calculation
-** stage, and the binngin of things is used for the update stage.
+** stage, and the binning of things is used for the update stage.
 **
 ** The bins are the *only* way to access the things in the simulation, so
 ** bins own the things they contain.  However, because things point to
@@ -139,10 +144,10 @@ typedef struct pushThing_t {
 typedef struct pushBin_t {
   unsigned int numPoint;       /* # of points in this bin */
   pushPoint **point;           /* dyn. alloc. array of point pointers */
-  airArray *pointArr;          /* airArray around pointPtr and numThing */
+  airArray *pointArr;          /* airArray around point and numPoint */
   unsigned int numThing;       /* # of things in this bin */
   pushThing **thing;           /* dyn. alloc. array of thing pointers */
-  airArray *thingArr;          /* airArray around thingPtr and numThing */
+  airArray *thingArr;          /* airArray around thing and numThing */
   struct pushBin_t **neighbor; /* pre-computed NULL-terminated list of all
                                   neighboring bins, including myself */
 } pushBin;
@@ -155,8 +160,9 @@ typedef struct pushBin_t {
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
-  const gage_t *tenAns, *invAns,
-    *cntAns;                   /* results of gage probing */
+  const gage_t *tenAns, *invAns, *cntAns,
+    *gravAns, *gravNotAns[2],  /* results of gage probing */
+    *seedThreshAns;            /* seed threshold answer */
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */
   unsigned int threadIdx,      /* which thread am I */
@@ -172,6 +178,7 @@ typedef struct pushTask_t {
 ** the functions and information which determine inter-point forces
 */
 typedef struct {
+  char name[AIR_STRLEN_SMALL];
   push_t (*func)(push_t haveDist, push_t restDist, push_t scale,
                  const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
   push_t (*maxDist)(push_t maxEval, push_t scale,
@@ -222,9 +229,16 @@ typedef struct pushContext_t {
     maxIter,                       /* if non-zero, max number of iterations */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
+  int gravItem,                    /* tenGage item (vector) for gravity */
+    gravNotItem[2],                /* for constraining gravity */
+    seedThreshItem,                /* item for constraining random seeding */
+    seedThreshSign;                /* +1: need val > thresh; -1: opposite */
+  double gravScl,                  /* sign and magnitude of gravity's effect */
+    seedThresh;                    /* threshold for seed constraint */
   pushForce *force;                /* force function to use */
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
-    *ksp11;                        /* for gradient of mask */
+    *ksp11,                        /* for gradient of mask */
+    *ksp22;                        /* 2nd deriv, probably for gravity */
   push_t stageParm[PUSH_STAGE_MAXNUM][PUSH_STAGE_PARM_MAXNUM];
   pushProcess process[PUSH_STAGE_MAXNUM]; /* the function for each stage */
   /* INTERNAL -------------------------- */

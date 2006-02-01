@@ -29,9 +29,10 @@ enum {
   pushForceGauss,         /* 2 */
   pushForceCharge,        /* 3 */
   pushForceCotan,         /* 4 */
+  pushForceNone,          /* 5 */
   pushForceLast
 };
-#define PUSH_FORCE_MAX       4
+#define PUSH_FORCE_MAX       5
 
 char
 _pushForceStr[PUSH_FORCE_MAX+1][AIR_STRLEN_SMALL] = {
@@ -40,6 +41,7 @@ _pushForceStr[PUSH_FORCE_MAX+1][AIR_STRLEN_SMALL] = {
   "gauss",
   "charge",
   "cotan",
+  "none"
 };
 
 char
@@ -49,6 +51,7 @@ _pushForceDesc[PUSH_FORCE_MAX+1][AIR_STRLEN_MED] = {
   "derivative of a Gaussian energy function",
   "inverse square law, with tunable cut-off",
   "Cotangent based energy function (from Meyer et al. SMI 05)",
+  "no force"
 };
 
 airEnum
@@ -201,17 +204,43 @@ _pushForceCotanMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 }
 
 /* ----------------------------------------------------------------
+** -----------------------=------- NONE ---------------------------
+** ----------------------------------------------------------------
+** 0 parms:
+*/
+push_t
+_pushForceNoneFunc(push_t haveDist, push_t restDist,
+                   push_t scale, const push_t *parm) {
+
+  AIR_UNUSED(haveDist);
+  AIR_UNUSED(restDist);
+  AIR_UNUSED(scale);
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+push_t
+_pushForceNoneMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+
+  AIR_UNUSED(maxEval);
+  AIR_UNUSED(scale);
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+/* ----------------------------------------------------------------
 ** ------------------------------ arrays ... ----------------------
 ** ----------------------------------------------------------------
 */
 
 int
 _pushForceParmNum[PUSH_FORCE_MAX+1] = {
-  0, /* pushForceUnknown */
+
   2, /* pushForceSpring */
   1, /* pushForceGauss */
   2, /* pushForceCharge */
-  1  /* pushForceCotan */
+  1, /* pushForceCotan */
+  0  /* pushForceNone */
 };
 
 push_t
@@ -224,6 +253,7 @@ push_t
                                       _pushForceGaussFunc,
                                       _pushForceChargeFunc,
                                       _pushForceCotanFunc,
+                                      _pushForceNoneFunc,
 };
 
 push_t
@@ -235,6 +265,7 @@ push_t
                                          _pushForceGaussMaxDist,
                                          _pushForceChargeMaxDist,
                                          _pushForceCotanMaxDist,
+                                         _pushForceNoneMaxDist,
 };
 
 pushForce *
@@ -279,6 +310,15 @@ pushForceParse(const char *_str) {
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
   force = _pushForceNew();
   airMopAdd(mop, force, (airMopper)pushForceNix, airMopOnError);
+
+  if (!strcmp(airEnumStr(pushForceEnum, pushForceNone), str)) {
+    /* special case: no parameters */
+    strcpy(force->name, _pushForceStr[pushForceNone]);
+    force->func = _pushForceFunc[pushForceNone];
+    force->maxDist = _pushForceMaxDist[pushForceNone];
+    airMopOkay(mop);
+    return force;
+  }
 
   col = strchr(str, ':');
   if (!col) {
@@ -328,6 +368,7 @@ pushForceParse(const char *_str) {
   }
   
   /* parameters have been set, now set the rest of the force info */
+  strcpy(force->name, _pushForceStr[fri]);
   force->func = _pushForceFunc[fri];
   force->maxDist = _pushForceMaxDist[fri];
 

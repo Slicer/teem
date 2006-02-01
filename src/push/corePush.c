@@ -202,6 +202,39 @@ _pushContextCheck(pushContext *pctx) {
       biffAdd(PUSH, err); return 1;
     }
   }
+  if (tenGageUnknown != pctx->gravItem) {
+    unsigned int nii;
+    if (airEnumValCheck(tenGage, pctx->gravItem)) {
+      sprintf(err, "%s: gravity item %u invalid", me, pctx->gravItem);
+      biffAdd(PUSH, err); return 1;
+    }
+    if (3 != tenGageKind->table[pctx->gravItem].answerLength) {
+      sprintf(err, "%s: answer length of gravity item %s is %u, not 3", me,
+              airEnumStr(tenGage, pctx->gravItem),
+              tenGageKind->table[pctx->gravItem].answerLength);
+      biffAdd(PUSH, err); return 1;
+    }
+    if (!AIR_EXISTS(pctx->gravScl)) {
+      sprintf(err, "%s: gravity scaling doesn't exist", me);
+      biffAdd(PUSH, err); return 1;
+    }
+    for (nii=0; nii<=1; nii++) {
+      if (tenGageUnknown != pctx->gravNotItem[nii]) {
+        if (airEnumValCheck(tenGage, pctx->gravNotItem[nii])) {
+          sprintf(err, "%s: not gravity item[%u] %u invalid",
+                  me, nii, pctx->gravNotItem[nii]);
+          biffAdd(PUSH, err); return 1;
+        }
+        if (3 != tenGageKind->table[pctx->gravItem].answerLength) {
+          sprintf(err, "%s: answer length of not gravity item[%u] "
+                  "%s is %u, not 3", me, nii,
+                  airEnumStr(tenGage, pctx->gravNotItem[nii]),
+                  tenGageKind->table[pctx->gravNotItem[nii]].answerLength);
+          biffAdd(PUSH, err); return 1;
+        }
+      }
+    }
+  }
   return 0;
 }
 

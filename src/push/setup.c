@@ -161,6 +161,15 @@ _pushGageSetup(pushContext *pctx) {
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel00,
                              pctx->ksp00->kernel, pctx->ksp00->parm);
   if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, tenGageTensor);
+  if (tenGageUnknown != pctx->gravItem) {
+    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravItem);
+  }
+  if (tenGageUnknown != pctx->gravNotItem[0]) {
+    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravNotItem[0]);
+  }
+  if (tenGageUnknown != pctx->gravNotItem[1]) {
+    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravNotItem[1]);
+  }
   /* set up tensor inverse probing */
   if (!E) E |= !(pctx->ipvl = gagePerVolumeNew(pctx->gctx,
                                                pctx->ninv, tenGageKind));
@@ -172,7 +181,14 @@ _pushGageSetup(pushContext *pctx) {
   if (!E) E |= gagePerVolumeAttach(pctx->gctx, mpvl);
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel11,
                              pctx->ksp11->kernel, pctx->ksp11->parm);
+  if (!E) E |= gageKernelSet(pctx->gctx, gageKernel22,
+                             pctx->ksp22->kernel, pctx->ksp22->parm);
   if (!E) E |= gageQueryItemOn(pctx->gctx, mpvl, gageSclGradVec);
+  /* (maybe) turn on seed thresholding */
+  if (tenGageUnknown != pctx->seedThreshItem) {
+    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->seedThreshItem);
+  }
+  /* HEY: seed threshold item should possibly be turned off later! */
   if (!E) E |= gageUpdate(pctx->gctx);
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
@@ -208,7 +224,8 @@ _pushFiberSetup(pushContext *pctx) {
   if (!E) E |= tenFiberTypeSet(pctx->fctx, tenFiberTypeEvec1);
   if (!E) E |= tenFiberKernelSet(pctx->fctx,
                                  pctx->ksp00->kernel, pctx->ksp00->parm);
-  if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4);
+  /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4); */
+  if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgMidpoint);
   /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgEuler); */
   if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize, pctx->tlStep);
   if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
@@ -242,6 +259,22 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
                                      tenGageTensor);
     task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2],
                                      gageSclGradVec);
+    task->gravAns = (tenGageUnknown != task->pctx->gravItem
+                     ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                         task->pctx->gravItem)
+                     : NULL);
+    task->gravNotAns[0] = (tenGageUnknown != task->pctx->gravNotItem[0]
+                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                               task->pctx->gravNotItem[0])
+                           : NULL);
+    task->gravNotAns[1] = (tenGageUnknown != task->pctx->gravNotItem[1]
+                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                               task->pctx->gravNotItem[1])
+                           : NULL);
+    task->seedThreshAns = (tenGageUnknown != task->pctx->seedThreshItem
+                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                               task->pctx->seedThreshItem)
+                           : NULL);
     if (threadIdx) {
       task->thread = airThreadNew();
     }
@@ -339,8 +372,9 @@ _pushBinSetup(pushContext *pctx) {
       fprintf(stderr, "!%s: fixing binsEdge %d to 1\n", me, pctx->binsEdge);
       pctx->binsEdge = 1;
     }
-    pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn ? 
-                                                  1 : pctx->binsEdge);
+    pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn
+                                                  ? 1
+                                                  : pctx->binsEdge);
   }
   pctx->bin = (pushBin *)calloc(pctx->numBin, sizeof(pushBin));
   if (!( pctx->bin )) {
@@ -432,7 +466,14 @@ _pushThingSetup(pushContext *pctx) {
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
            the range of values in the mask */
-      } while (thing->vert[0].ten[0] < 0.5);
+        /* HEY: can't ensure that this will eventually succeed with
+           seedThresh enabled! */
+      } while (thing->vert[0].ten[0] < 0.5
+               || (tenGageUnknown != pctx->seedThreshItem
+                   && ((pctx->seedThresh - thing->vert[0].seedThresh)
+                       *pctx->seedThreshSign > 0)
+                   )
+               );
     }
     for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
       if (pushBinPointAdd(pctx, thing->vert + pointIdx)) {

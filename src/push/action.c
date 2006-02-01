@@ -59,6 +59,18 @@ _pushProbe(pushTask *task, pushPoint *point) {
   sum = eval[0] + eval[1] + eval[2];
   point->aniso = (eval[0] - eval[1])/(sum + FLT_EPSILON);
   ELL_3V_COPY(point->cnt, task->cntAns);
+  if (tenGageUnknown != task->pctx->gravItem) {
+    ELL_3V_COPY(point->grav, task->gravAns);
+  }
+  if (tenGageUnknown != task->pctx->gravNotItem[0]) {
+    ELL_3V_COPY(point->gravNot[0], task->gravNotAns[0]);
+  }
+  if (tenGageUnknown != task->pctx->gravNotItem[1]) {
+    ELL_3V_COPY(point->gravNot[1], task->gravNotAns[1]);
+  }
+  if (tenGageUnknown != task->pctx->seedThreshItem) {
+    point->seedThresh = task->seedThreshAns[0];
+  }
   return;
 }
 
@@ -180,8 +192,13 @@ _pushPairwiseForce(pushContext *pctx, push_t fvec[3], pushForce *force,
     U[3], nU[3], lenU, 
     V[3], lenV;
 
-  /* in case lenD > maxDist */
+  /* in case we return early */
   ELL_3V_SET(fvec, 0, 0, 0);
+
+  if (!strcmp("none", force->name)) {
+    /* no actual force */
+    return 0;
+  }
 
   ELL_3V_SUB(D, herPoint->pos, myPoint->pos);
   lenDsqr = ELL_3V_DOT(D, D);
@@ -380,55 +397,72 @@ _pushForce(pushTask *task, int myBinIdx,
     myCharge = myPoint->charge;
     ELL_3V_SET(myPoint->frc, 0, 0, 0);
 
-    neighbor = myBin->neighbor;
-    while ((herBin = *neighbor)) {
-      for (herPointIdx=0; herPointIdx<herBin->numPoint; herPointIdx++) {
-        herPoint = herBin->point[herPointIdx];
-        if (myPoint->thing == herPoint->thing) {
-          /* there are no intra-thing forces */
-          continue;
-        }
-        herCharge = herPoint->charge;
-        /*
-        task->pctx->verbose = (myPoint->thing->ttaagg == 398);
-        */
-        if (_pushPairwiseForce(task->pctx, fvec, task->pctx->force,
-                               myPoint, herPoint)) {
-          sprintf(err, "%s: myPoint (thing %d) vs herPoint (thing %d)", me,
-                  myPoint->thing->ttaagg, herPoint->thing->ttaagg);
-          biffAdd(PUSH, err); return 1;
-        }
-
-        ELL_3V_SCALE_INCR(myPoint->frc, myCharge*herCharge, fvec);
-        if (!ELL_3V_EXISTS(myPoint->frc)) {
-          sprintf(err, "%s: point (thing %d) frc -> NaN from point (thing %d)"
-                  " w/ fvec (%g,%g,%g)",
-                  me, myPoint->thing->ttaagg,
-                  herPoint->thing->ttaagg, fvec[0], fvec[1], fvec[2]);
-          biffAdd(PUSH, err); return 1;
-        }
-        if (task->pctx->verbose) {
-          fprintf(stderr, "   ... myPoint->frc = %g %g %g\n", 
-                  myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
-        }
-
-        /* POST */
-        if (0 && 400 == task->pctx->iter 
-            && 192 == myPoint->thing->ttaagg
-            && ELL_3V_LEN(fvec)) {
-          fprintf(stderr, "%f,%f += %f,%f <- %f, %f <- (% 4d) %f,%f\n",
-                  myPoint->frc[0], myPoint->frc[1],
-                  fvec[0], fvec[1],
-                  myCharge, herCharge, 
-                  herPoint->thing->ttaagg,
-                  herPoint->pos[0], herPoint->pos[1]);
-          if (!AIR_EXISTS(myPoint->frc[0])) {
-            exit(1);
+    if (strcmp("none", task->pctx->force->name)) {
+      neighbor = myBin->neighbor;
+      while ((herBin = *neighbor)) {
+        for (herPointIdx=0; herPointIdx<herBin->numPoint; herPointIdx++) {
+          herPoint = herBin->point[herPointIdx];
+          if (myPoint->thing == herPoint->thing) {
+            /* there are no intra-thing forces */
+            continue;
           }
+          herCharge = herPoint->charge;
+          /*
+            task->pctx->verbose = (myPoint->thing->ttaagg == 398);
+          */
+          if (_pushPairwiseForce(task->pctx, fvec, task->pctx->force,
+                                 myPoint, herPoint)) {
+            sprintf(err, "%s: myPoint (thing %d) vs herPoint (thing %d)", me,
+                    myPoint->thing->ttaagg, herPoint->thing->ttaagg);
+            biffAdd(PUSH, err); return 1;
+          }
+          
+          ELL_3V_SCALE_INCR(myPoint->frc, myCharge*herCharge, fvec);
+          if (!ELL_3V_EXISTS(myPoint->frc)) {
+            sprintf(err, "%s: point (thing %d) frc -> "
+                    "NaN from point (thing %d) w/ fvec (%g,%g,%g)",
+                    me, myPoint->thing->ttaagg,
+                    herPoint->thing->ttaagg, fvec[0], fvec[1], fvec[2]);
+            biffAdd(PUSH, err); return 1;
+          }
+          if (task->pctx->verbose) {
+            fprintf(stderr, "   ... myPoint->frc = %g %g %g\n", 
+                    myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+          }
+          
+          /* POST */
+          if (0 && 400 == task->pctx->iter 
+              && 192 == myPoint->thing->ttaagg
+              && ELL_3V_LEN(fvec)) {
+            fprintf(stderr, "%f,%f += %f,%f <- %f, %f <- (% 4d) %f,%f\n",
+                    myPoint->frc[0], myPoint->frc[1],
+                    fvec[0], fvec[1],
+                    myCharge, herCharge, 
+                    herPoint->thing->ttaagg,
+                    herPoint->pos[0], herPoint->pos[1]);
+            if (!AIR_EXISTS(myPoint->frc[0])) {
+              exit(1);
+            }
+          }
+          
         }
-
+        neighbor++;
       }
-      neighbor++;
+    }
+
+    /* each point in this thing also potentially experiences gravity */
+    if (task->gravAns) {
+      push_t tdot;
+      ELL_3V_SCALE(fvec, task->pctx->gravScl, myPoint->grav);
+      ELL_3V_INCR(myPoint->frc, fvec);
+      if (task->gravNotAns[0]) {
+        tdot = ELL_3V_DOT(myPoint->frc, task->gravNotAns[0]);
+        ELL_3V_SCALE_INCR(myPoint->frc, -tdot, task->gravNotAns[0]);
+      }
+      if (task->gravNotAns[1]) {
+        tdot = ELL_3V_DOT(myPoint->frc, task->gravNotAns[1]);
+        ELL_3V_SCALE_INCR(myPoint->frc, -tdot, task->gravNotAns[1]);
+      }
     }
   
     /* fprintf(stderr, "!%s: bingo 1.3 %d\n", me, myBinIdx); */
@@ -721,46 +755,53 @@ _pushUpdate(pushTask *task, int binIdx,
 
     /* update dynamics: applies equally to points and tractlets */
     mass = _pushThingMass(task->pctx, thing);
-    if (task->pctx->verbose) {
-      fprintf(stderr, "vel(%f,%f) * step(%f) -+-> pos(%f,%f)\n", 
-              thing->point.vel[0], thing->point.vel[0], step,
-              thing->point.pos[0], thing->point.pos[1]);
-      fprintf(stderr, "frc(%f,%f) * step(%f)/mass(%f) (%f) -+-> vel(%f,%f)\n", 
-              thing->point.frc[0], thing->point.frc[0], step, mass, step/mass,
-              thing->point.vel[0], thing->point.vel[1]);
-    }
-    ELL_3V_SCALE_INCR_TT(thing->point.pos, push_t,
-                         step, thing->point.vel);
-    if (2 == task->pctx->dimIn
-        || (3 == task->pctx->dimIn && 1 == task->pctx->nin->axis[3].size)) {
-      thing->point.pos[2] = 0;
-    }
-    ELL_3V_SCALE_INCR_TT(thing->point.vel, push_t,
-                         step/mass, thing->point.frc);
-    if (task->pctx->verbose) {
-      fprintf(stderr, "thing %d: pos(%f,%f); vel(%f,%f)\n",
-              thing->ttaagg,
-              thing->point.pos[0], thing->point.pos[1],
-              thing->point.vel[0], thing->point.vel[0]);
-      fprintf(stderr, "sumVel = %f ---> ", task->sumVel);
-    }
-    task->sumVel += ELL_3V_LEN(thing->point.vel);
-    if (task->pctx->verbose) {
-      fprintf(stderr, "%f (exists %d)\n", task->sumVel,
-              AIR_EXISTS(task->sumVel));
-    }
-    if (!AIR_EXISTS(task->sumVel)) {
-      sprintf(err, "%s(%d): sumVel went NaN (from vel (%g,%g,%g), from force "
-              "(%g,%g,%g)) on thing %d (%d verts) %p of bin %d", 
-              me, task->threadIdx,
-              thing->point.vel[0],
-              thing->point.vel[1],
-              thing->point.vel[2],
-              thing->point.frc[0],
-              thing->point.frc[1],
-              thing->point.frc[2],
-              thing->ttaagg, thing->numVert, AIR_CAST(void*, thing), binIdx);
-      biffAdd(PUSH, err); return 1;
+    if (mass) {
+      if (task->pctx->verbose) {
+        fprintf(stderr, "vel(%f,%f) * step(%f) -+-> pos(%f,%f)\n", 
+                thing->point.vel[0], thing->point.vel[0], step,
+                thing->point.pos[0], thing->point.pos[1]);
+        fprintf(stderr, "frc(%f,%f)*step(%f)/mass(%f) (%f) -+-> vel(%f,%f)\n", 
+                thing->point.frc[0], thing->point.frc[0],
+                step, mass, step/mass,
+                thing->point.vel[0], thing->point.vel[1]);
+      }
+      ELL_3V_SCALE_INCR_TT(thing->point.pos, push_t,
+                           step, thing->point.vel);
+      if (2 == task->pctx->dimIn
+          || (3 == task->pctx->dimIn && 1 == task->pctx->nin->axis[3].size)) {
+        thing->point.pos[2] = 0;
+      }
+      ELL_3V_SCALE_INCR_TT(thing->point.vel, push_t,
+                           step/mass, thing->point.frc);
+      if (task->pctx->verbose) {
+        fprintf(stderr, "thing %d: pos(%f,%f); vel(%f,%f)\n",
+                thing->ttaagg,
+                thing->point.pos[0], thing->point.pos[1],
+                thing->point.vel[0], thing->point.vel[0]);
+        fprintf(stderr, "sumVel = %f ---> ", task->sumVel);
+      }
+      task->sumVel += ELL_3V_LEN(thing->point.vel);
+      if (task->pctx->verbose) {
+        fprintf(stderr, "%f (exists %d)\n", task->sumVel,
+                AIR_EXISTS(task->sumVel));
+      }
+      if (!AIR_EXISTS(task->sumVel)) {
+        sprintf(err, "%s(%d): sumVel went NaN (from vel (%g,%g,%g), force "
+                "(%g,%g,%g)) on thing %d (%d verts) %p of bin %d", 
+                me, task->threadIdx,
+                thing->point.vel[0],
+                thing->point.vel[1],
+                thing->point.vel[2],
+                thing->point.frc[0],
+                thing->point.frc[1],
+                thing->point.frc[2],
+                thing->ttaagg, thing->numVert, AIR_CAST(void*, thing), binIdx);
+        biffAdd(PUSH, err); return 1;
+      }
+    } else {
+      /* no mass */
+      ELL_3V_SCALE_INCR_TT(thing->point.pos, push_t,
+                           step, thing->point.frc);
     }
     task->numThing += 1;
     /* while _pushProbe clamps positions to inside domain before
