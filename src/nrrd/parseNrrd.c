@@ -167,7 +167,7 @@ _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nio);
   AIR_UNUSED(useBiff);
   /* It was decided to just completely ignore this field.  "number" is
-  ** entirely redundant with the (required) sizes field, and there no
+  ** entirely redundant with the (required) sizes field, and there is no
   ** need to save it to, or learn it from, the header.  In fact the "num"
   ** field was eliminated from the Nrrd struct some time ago, in favor of
   ** the nrrdElementNumber() function.  It may seem odd or unfortunate that
