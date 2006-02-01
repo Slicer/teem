@@ -291,6 +291,11 @@ extern "C" {
    ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
    ELL_3V_SCALE((m2)+6, (s), (m1)+6))
 
+#define ELL_3M_SCALE_INCR(m2, s, m1) \
+  (ELL_3V_SCALE_INCR((m2)+0, (s), (m1)+0), \
+   ELL_3V_SCALE_INCR((m2)+3, (s), (m1)+3), \
+   ELL_3V_SCALE_INCR((m2)+6, (s), (m1)+6))
+
 #define ELL_3M_SCALE_ADD2(m2, s0, m0, s1, m1) \
   (ELL_3V_SCALE_ADD2((m2)+0, (s0), (m0)+0, (s1), (m1)+0), \
    ELL_3V_SCALE_ADD2((m2)+3, (s0), (m0)+3, (s1), (m1)+3), \
@@ -317,6 +322,11 @@ extern "C" {
    (m3)[6] = (m1)[6] - (m2)[6],  \
    (m3)[7] = (m1)[7] - (m2)[7],  \
    (m3)[8] = (m1)[8] - (m2)[8])
+
+#define ELL_3M_SCALE_ADD3(m3, s0, m0, s1, m1, s2, m2) \
+  (ELL_3V_SCALE_ADD3((m3)+0, (s0), (m0)+0, (s1), (m1)+0, (s2), (m2)+0), \
+   ELL_3V_SCALE_ADD3((m3)+3, (s0), (m0)+3, (s1), (m1)+3, (s2), (m2)+3), \
+   ELL_3V_SCALE_ADD3((m3)+6, (s0), (m0)+6, (s1), (m1)+6, (s2), (m2)+6))
 
 #define ELL_3M_COPY(m2, m1) \
   (ELL_3V_COPY((m2)+0, (m1)+0), \
@@ -422,10 +432,15 @@ extern "C" {
    ELL_3V_SCALE((m)+3, (v1)[1], (v2)), \
    ELL_3V_SCALE((m)+6, (v1)[2], (v2)))
 
-#define ELL_3MV_OUTER_ADD(m, v1, v2) \
+#define ELL_3MV_OUTER_INCR(m, v1, v2) \
   (ELL_3V_SCALE_INCR((m)+0, (v1)[0], (v2)), \
    ELL_3V_SCALE_INCR((m)+3, (v1)[1], (v2)), \
    ELL_3V_SCALE_INCR((m)+6, (v1)[2], (v2)))
+
+#define ELL_3MV_SCALE_OUTER_INCR(m, s, v1, v2) \
+  (ELL_3V_SCALE_INCR((m)+0, (s)*(v1)[0], (v2)), \
+   ELL_3V_SCALE_INCR((m)+3, (s)*(v1)[1], (v2)), \
+   ELL_3V_SCALE_INCR((m)+6, (s)*(v1)[2], (v2)))
 
 #define ELL_3MV_MUL(v2, m, v1) \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[1]*(v1)[1] + (m)[2]*(v1)[2], \
