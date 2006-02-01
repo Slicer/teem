@@ -129,9 +129,13 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "R grad mag",
   "R normal",
 
-  "P grad vec",
-  "P grad mag",
-  "P normal",
+  "mode grad vec",
+  "mode grad mag",
+  "mode normal",
+
+  "theta grad vec",
+  "theta grad mag",
+  "theta normal",
 
   "invariant gradients",
   "invariant gradient mags",
@@ -146,6 +150,35 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "Cl2",
   "Cp2",
   "Ca2",
+
+  "hessian",
+  "trace hessian",
+  "B hessian",
+  "det hessian",
+  "S hessian",
+  "Q hessian",
+
+  "FA hessian",
+  "FA hessian evals",
+  "FA hessian eval 0",
+  "FA hessian eval 1",
+  "FA hessian eval 2",
+  "FA hessian evecs",
+  "FA hessian evec 0",
+  "FA hessian evec 1",
+  "FA hessian evec 2",
+
+  "R hessian",
+
+  "mode hessian",
+  "mode hessian evals",
+  "mode hessian eval 0",
+  "mode hessian eval 1",
+  "mode hessian eval 2",
+  "mode hessian evecs",
+  "mode hessian evec 0",
+  "mode hessian evec 1",
+  "mode hessian evec 2",
 
   "anisotropies"
 };
@@ -197,9 +230,12 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "R grad vec",
   "R grad mag",
   "R normal",
-  "P grad vec",
-  "P grad mag",
-  "P normal",
+  "mode grad vec",
+  "mode grad mag",
+  "mode normal",
+  "theta grad vec",
+  "theta grad mag",
+  "theta normal",
   "invariant gradients",
   "invariant gradient mags",
   "rotation tangents",
@@ -211,6 +247,31 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "linear anisotropy (2)",
   "planar anisotropy (2)",
   "linear+planar anisotropy (2)",
+  "hessian",
+  "trace hessian",
+  "B hessian",
+  "det hessian",
+  "S hessian",
+  "Q hessian",
+  "FA hessian",
+  "FA hessian evals",
+  "FA hessian eval 0",
+  "FA hessian eval 1",
+  "FA hessian eval 2",
+  "FA hessian evecs",
+  "FA hessian evec 0",
+  "FA hessian evec 1",
+  "FA hessian evec 2",
+  "R hessian",
+  "mode hessian",
+  "mode hessian evals",
+  "mode hessian eval 0",
+  "mode hessian eval 1",
+  "mode hessian eval 2",
+  "mode hessian evecs",
+  "mode hessian evec 0",
+  "mode hessian evec 1",
+  "mode hessian evec 2",
   "anisotropies"
 };
 
@@ -261,9 +322,12 @@ _tenGageVal[] = {
   tenGageRGradVec,      /* "rgv", gradient vector of Q: GT[3] */
   tenGageRGradMag,      /* "rgm", gradient magnitude of Q: GT[1] */
   tenGageRNormal,       /* "rn", normalized gradient of Q: GT[3] */
-  tenGageThetaGradVec,  /* "thgv", gradient vector of P: GT[3] */
-  tenGageThetaGradMag,  /* "thgm", gradient magnitude of P: GT[1] */
-  tenGageThetaNormal,   /* "thn", normalized gradient of P: GT[3] */
+  tenGageModeGradVec,   /* "mgv", gradient vector of mode: GT[3] */
+  tenGageModeGradMag,   /* "mgm", gradient magnitude of mode: GT[1] */
+  tenGageModeNormal,    /* "mn", normalized gradient of moe: GT[3] */
+  tenGageThetaGradVec,  /* "thgv", gradient vector of theta: GT[3] */
+  tenGageThetaGradMag,  /* "thgm", gradient magnitude of theta: GT[1] */
+  tenGageThetaNormal,   /* "thn", normalized gradient of theta: GT[3] */
   tenGageInvarGrads,    /* "igs" */
   tenGageInvarGradMags, /* "igms" */
   tenGageRotTans,       /* "rts" */
@@ -275,7 +339,32 @@ _tenGageVal[] = {
   tenGageCl2,
   tenGageCp2,
   tenGageCa2,
-  tenGageAniso          /* "an", all anisotropies: GT[TEN_ANISO_MAX+1] */
+  tenGageHessian,
+  tenGageTraceHessian,
+  tenGageBHessian,
+  tenGageDetHessian,
+  tenGageSHessian,
+  tenGageQHessian,
+  tenGageFAHessian,
+  tenGageFAHessianEval,
+  tenGageFAHessianEval0,
+  tenGageFAHessianEval1,
+  tenGageFAHessianEval2,
+  tenGageFAHessianEvec,
+  tenGageFAHessianEvec0,
+  tenGageFAHessianEvec1,
+  tenGageFAHessianEvec2,
+  tenGageRHessian,
+  tenGageModeHessian,
+  tenGageModeHessianEval,
+  tenGageModeHessianEval0,
+  tenGageModeHessianEval1,
+  tenGageModeHessianEval2,
+  tenGageModeHessianEvec,
+  tenGageModeHessianEvec0,
+  tenGageModeHessianEvec1,
+  tenGageModeHessianEvec2,
+  tenGageAniso
 };
 
 char
@@ -324,6 +413,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "rgv", "r grad vec",
   "rgm", "r grad mag",
   "rn", "r normal",
+  "mgv", "mode grad vec",
+  "mgm", "mode grad mag",
+  "mn", "mode normal",
   "thgv", "th grad vec",
   "thgm", "th grad mag",
   "thn", "th normal",
@@ -338,6 +430,31 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "cl2",
   "cp2",
   "ca2",
+  "hess",
+  "trhess",
+  "bhess",
+  "dethess",
+  "shess",
+  "qhess",
+  "fahess",
+  "fahesseval",
+  "fahesseval0",
+  "fahesseval1",
+  "fahesseval2",
+  "fahessevec",
+  "fahessevec0",
+  "fahessevec1",
+  "fahessevec2",
+  "rhess",
+  "mhess",
+  "mhesseval",
+  "mhesseval0",
+  "mhesseval1",
+  "mhesseval2",
+  "mhessevec",
+  "mhessevec0",
+  "mhessevec1",
+  "mhessevec2",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -388,6 +505,9 @@ _tenGageValEqv[] = {
   tenGageRGradVec, tenGageRGradVec,
   tenGageRGradMag, tenGageRGradMag,
   tenGageRNormal, tenGageRNormal,
+  tenGageModeGradVec, tenGageModeGradVec,
+  tenGageModeGradMag, tenGageModeGradMag,
+  tenGageModeNormal, tenGageThetaNormal,
   tenGageThetaGradVec, tenGageThetaGradVec,
   tenGageThetaGradMag, tenGageThetaGradMag,
   tenGageThetaNormal, tenGageThetaNormal,
@@ -402,6 +522,31 @@ _tenGageValEqv[] = {
   tenGageCl2,
   tenGageCp2,
   tenGageCa2,
+  tenGageHessian,
+  tenGageTraceHessian,
+  tenGageBHessian,
+  tenGageDetHessian,
+  tenGageSHessian,
+  tenGageQHessian,
+  tenGageFAHessian,
+  tenGageFAHessianEval,
+  tenGageFAHessianEval0,
+  tenGageFAHessianEval1,
+  tenGageFAHessianEval2,
+  tenGageFAHessianEvec,
+  tenGageFAHessianEvec0,
+  tenGageFAHessianEvec1,
+  tenGageFAHessianEvec2,
+  tenGageRHessian,
+  tenGageModeHessian,
+  tenGageModeHessianEval,
+  tenGageModeHessianEval0,
+  tenGageModeHessianEval1,
+  tenGageModeHessianEval2,
+  tenGageModeHessianEvec,
+  tenGageModeHessianEvec0,
+  tenGageModeHessianEvec1,
+  tenGageModeHessianEvec2,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
