@@ -1,3 +1,9 @@
+I love biff:
+[gnocchi:~/Deft/src] gk% vprobe -i crop.nhdr -k tensor -q hess -s 1 1 1 -o hess.nrrd
+gageKindTotalAnswerLength: PANIC:
+ [gage] gageKindCheck: kind "tensor" item max 65 > GAGE_ITEM_MAX 63
+
+
 *** fix memory-in-use problem after a biffGetDone()
 
 biffDisable()
