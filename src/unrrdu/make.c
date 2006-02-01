@@ -307,6 +307,9 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrd->type = type;
   nrrd->dim = sizeLen;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, size);
+  /* have to simulate having parsed this line for error checking in
+     _nrrdDataFNCheck() to not cause problems */
+  nio->seen[nrrdField_sizes] = AIR_TRUE;
   if (_nrrdContainsPercentDAndMore(dataFileNames[0])) {
     /* trying to do a formatted filename list */
     if (nameLen < 4 || nameLen > 5) {
