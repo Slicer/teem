@@ -1317,7 +1317,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
                         | NRRD_BASIC_INFO_DIMENSION_BIT
                         | NRRD_BASIC_INFO_CONTENT_BIT
                         | NRRD_BASIC_INFO_COMMENTS_BIT)) {
-    /* note that we're ALWAYS copying the key-value pairs- its just
+    /* note that we're ALWAYS copying the key/value pairs- its just
        too annoying to have to set nrrdStateKeyValuePairsPropagate
        in order for the DWI-specific key/value pairs to be set */
     sprintf(err, "%s:", me);
