@@ -404,6 +404,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         /* even if gageProbe had an error OTHER than going out of bounds,
            we're not going to report it any differently here, alas */
         tfx->whyStop[tfx->dir] = tenFiberStopBounds;
+	/*
+	fprintf(stderr, "!%s: A tfx->whyStop[%d] = %s\n", me, tfx->dir,
+		airEnumStr(tenFiberStop, tfx->whyStop[tfx->dir]));
+	*/
         break;
       }
       if ((whyStop = _tenFiberStopCheck(tfx))) {
@@ -415,6 +419,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
           tfx->numSteps[tfx->dir]--;
         }
         tfx->whyStop[tfx->dir] = whyStop;
+	/*
+	fprintf(stderr, "!%s: B tfx->whyStop[%d] = %s\n", me, tfx->dir,
+		airEnumStr(tenFiberStop, tfx->whyStop[tfx->dir]));
+	*/
         break;
       }
       if (tfx->useIndexSpace) {
@@ -438,6 +446,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       /* forwDir is set by this to point to the next fiber point */
       if (_tenFiberIntegrate[tfx->intg](tfx, forwDir)) {
         tfx->whyStop[tfx->dir] = tenFiberStopBounds;
+	/*
+	fprintf(stderr, "!%s: C tfx->whyStop[%d] = %s\n", me, tfx->dir,
+		airEnumStr(tenFiberStop, tfx->whyStop[tfx->dir]));
+	*/
         break;
       }
       if (tfx->stop & (1 << tenFiberStopRadius)) {
