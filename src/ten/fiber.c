@@ -460,27 +460,41 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     }
   }
 
-  if (nfiber) {
-    if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2,
-                          AIR_CAST(size_t, 3),
-                          AIR_CAST(size_t, (fptsArr[0]->len 
-                                            + fptsArr[1]->len - 1)))) {
-      sprintf(err, "%s: couldn't allocate fiber nrrd", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    fiber = (double*)(nfiber->data);
-    outIdx = 0;
-    for (i=fptsArr[0]->len-1; i>=1; i--) {
-      ELL_3V_COPY(fiber + 3*outIdx, fpts[0] + 3*i);
-      outIdx++;
-    }
-    for (i=0; i<=fptsArr[1]->len-1; i++) {
-      ELL_3V_COPY(fiber + 3*outIdx, fpts[1] + 3*i);
-      outIdx++;
+  if ((tfx->stop & (1 << tenFiberStopStub))
+      && (2 == fptsArr[0]->len + fptsArr[1]->len)) {
+    /* seed point was actually valid, but neither half got anywhere,
+       and the user has set tenFiberStopStub, so we report this as
+       a non-starter, via tfx->whyNowhere. */
+    tfx->whyNowhere = tenFiberStopStub;
+    /* for the curious, tfx->whyStop[0,1] remain set, from above */
+    if (nfiber) {
+      nrrdEmpty(nfiber);
+    } else {
+      *startIdxP = *endIdxP = 0;
     }
   } else {
-    *startIdxP = halfBuffLen - tfx->numSteps[0];
-    *endIdxP = halfBuffLen + tfx->numSteps[1];
+    if (nfiber) {
+      if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2,
+                            AIR_CAST(size_t, 3),
+                            AIR_CAST(size_t, (fptsArr[0]->len 
+                                              + fptsArr[1]->len - 1)))) {
+        sprintf(err, "%s: couldn't allocate fiber nrrd", me);
+        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      }
+      fiber = (double*)(nfiber->data);
+      outIdx = 0;
+      for (i=fptsArr[0]->len-1; i>=1; i--) {
+        ELL_3V_COPY(fiber + 3*outIdx, fpts[0] + 3*i);
+        outIdx++;
+      }
+      for (i=0; i<=fptsArr[1]->len-1; i++) {
+        ELL_3V_COPY(fiber + 3*outIdx, fpts[1] + 3*i);
+        outIdx++;
+      }
+    } else {
+      *startIdxP = halfBuffLen - tfx->numSteps[0];
+      *endIdxP = halfBuffLen + tfx->numSteps[1];
+    }
   }
 
   tfx->stop = oldStop;

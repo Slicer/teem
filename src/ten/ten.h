@@ -493,9 +493,10 @@ enum {
   tenFiberStopConfidence, /* 4: tensor "confidence" value went too low */
   tenFiberStopRadius,     /* 5: radius of curvature got too small */
   tenFiberStopBounds,     /* 6: fiber position stepped outside volume */
+  tenFiberStopStub,       /* 7: treat single vertex fibers as non-starters */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX   6
+#define TEN_FIBER_STOP_MAX   7
 
 /*
 ******** #define TEN_FIBER_NUM_STEPS_MAX

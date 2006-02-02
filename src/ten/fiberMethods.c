@@ -142,6 +142,8 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
 ** tenFiberStopSet(tfx, tenFiberStopNumSteps, int numSteps)
 ** tenFiberStopSet(tfx, tenFiberStopConfidence, double conf)
 ** tenFiberStopSet(tfx, tenFiberStopRadius, double radius)
+** tenFiberStopSet(tfx, tenFiberStopBounds)
+** tenFiberStopSet(tfx, tenFiberStopStub)
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
@@ -236,6 +238,10 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     break;
   case tenFiberStopBounds:
     /* nothing to set; always used as a stop criterion */
+    break;
+  case tenFiberStopStub:
+    /* no var-args to grab */
+    /* no query modifications needed */
     break;
   default:
     sprintf(err, "%s: stop criterion %d not recognized", me, stop);

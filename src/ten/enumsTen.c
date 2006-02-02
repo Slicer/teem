@@ -621,7 +621,8 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "steps",
   "confidence",
   "radius",
-  "bounds"
+  "bounds",
+  "stub"
 };
 
 char
@@ -632,6 +633,7 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   "confidence", "conf", "c",
   "radius",
   "bounds",
+  "stub",
   ""
 };
 
@@ -642,7 +644,8 @@ _tenFiberStopValEqv[] = {
   tenFiberStopNumSteps,
   tenFiberStopConfidence, tenFiberStopConfidence, tenFiberStopConfidence,
   tenFiberStopRadius,
-  tenFiberStopBounds
+  tenFiberStopBounds,
+  tenFiberStopStub,
 };
 
 char
@@ -653,7 +656,8 @@ _tenFiberStopDesc[][AIR_STRLEN_MED] = {
   "number of steps along fiber too many",
   "tensor \"confidence\" value too low",
   "radius of curvature of path got too small",
-  "fiber went outside bounding box"
+  "fiber went outside bounding box",
+  "neither fiber half got anywhere; fiber has single vert"
 };
 
 airEnum
