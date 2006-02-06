@@ -81,23 +81,6 @@ airNormalRand_r(double *z1, double *z2, airRandMTState *state) {
 }
 
 /*
-******** airRandInt
-**
-** returns a random integer in range [0, N-1]
-*/
-unsigned int
-airRandInt(unsigned int N) {
-  
-  return airUIrandMT_r(airRandMTStateGlobal)%N;
-}
-
-unsigned int
-airRandInt_r(airRandMTState *state, unsigned int N) {
-  
-  return airUIrandMT_r(state)%N;
-}
-
-/*
 ******** airShuffle()
 **
 ** generates a random permutation of integers [0..N-1] if perm is non-zero,

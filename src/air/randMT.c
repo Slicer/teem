@@ -199,26 +199,46 @@ airDrandMT53_r(airRandMTState *rng) {
   return ( a * 67108864.0 + b ) * (1.0/9007199254740992.0); /* by Isaku Wada */
 }
 
+#define _GLOBAL_ALLOC \
+  if (!_airRandMTStateGlobal_allocated) { \
+    airRandMTStateGlobal = airRandMTStateNew(0); \
+    _airRandMTStateGlobal_allocated = AIR_TRUE; \
+  }
+#define _GLOBAL_INIT \
+  if (!_airRandMTStateGlobal_initialized) { \
+    airSrandMT(AIR_RANDMT_DEFAULT_SEED); \
+  } \
+
 void
 airSrandMT(unsigned int seed) {
-  if (!_airRandMTStateGlobal_allocated) {
-    airRandMTStateGlobal = airRandMTStateNew(0);
-    _airRandMTStateGlobal_allocated = AIR_TRUE;
-  }
+  _GLOBAL_ALLOC;
   airSrandMT_r(airRandMTStateGlobal, seed);
   _airRandMTStateGlobal_initialized = AIR_TRUE;
 }
 
 double
 airDrandMT() {
-  if (!_airRandMTStateGlobal_allocated) {
-    airRandMTStateGlobal = airRandMTStateNew(0);
-    _airRandMTStateGlobal_allocated = AIR_TRUE;
-  }
-  if (!_airRandMTStateGlobal_initialized) {
-    airSrandMT(AIR_RANDMT_DEFAULT_SEED);
-  }
+  _GLOBAL_ALLOC;
+  _GLOBAL_INIT;
   return airDrandMT_r(airRandMTStateGlobal);
+}
+
+/*
+******** airRandInt
+**
+** returns a random integer in range [0, N-1]
+*/
+unsigned int
+airRandInt(unsigned int N) {
+  _GLOBAL_ALLOC;
+  _GLOBAL_INIT;
+  return airUIrandMT_r(airRandMTStateGlobal)%N;
+}
+
+unsigned int
+airRandInt_r(airRandMTState *state, unsigned int N) {
+  
+  return airUIrandMT_r(state)%N;
 }
 
 /* This checks to see if the sequence of numbers we get is what we

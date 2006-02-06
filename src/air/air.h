@@ -348,6 +348,8 @@ AIR_EXPORT void airSrandMT_r(airRandMTState *state, unsigned int seed);
 AIR_EXPORT double airDrandMT_r(airRandMTState *state);       /* [0,1] */
 AIR_EXPORT unsigned int airUIrandMT_r(airRandMTState *state);
 AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
+AIR_EXPORT unsigned int airRandInt(unsigned int N);
+AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
 AIR_EXPORT void airSrandMT(unsigned int seed);
 AIR_EXPORT double airDrandMT();
 
@@ -486,8 +488,6 @@ AIR_EXPORT double airDStore(void *v, int t, double d);
 AIR_EXPORT void airNormalRand(double *z1, double *z2);
 AIR_EXPORT void airNormalRand_r(double *z1, double *z2,
                                 airRandMTState *state);
-AIR_EXPORT unsigned int airRandInt(unsigned int N);
-AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
 AIR_EXPORT void airShuffle(unsigned int *buff, unsigned int N, int perm);
 AIR_EXPORT void airShuffle_r(airRandMTState *state,
                              unsigned int *buff, unsigned int N,
