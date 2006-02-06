@@ -226,17 +226,6 @@ typedef struct {
 } limnVertex;
 
 /*
-******** struct limnVrt
-**
-** a very abbreviated limnVertex
-*/
-typedef struct {
-  float xyzw[4],              /* homogeneous coordinates */
-    norm[3];                  /* normal */
-  unsigned char rgba[4];      /* RGBA color */
-} limnVrt;
-
-/*
 ******** struct limnEdge
 **
 ** all the information about an edge
@@ -339,6 +328,34 @@ typedef struct {
 } limnObject;
 
 /*
+******** struct limnVrt
+**
+** a very abbreviated limnVertex
+**
+** this was killed Sun Feb  5 16:50:23 EST 2006 with the re-organization of
+** limnPolyData to have per-attribute arrays
+**
+typedef struct {
+  float xyzw[4],              / * homogeneous coordinates * /
+    norm[3];                  / * normal * /
+  unsigned char rgba[4];      / * RGBA color * /
+} limnVrt;
+*/
+
+/*
+******** limnPolyDataInfo* enum
+**
+** information that may be known per-vertex in limnPolyData
+*/
+enum {
+  limnPolyDataInfoUnknown,  /* nobody knows */
+  limnPolyDataInfoRGBA,     /* RGBA 4-tuple */
+  limnPolyDataInfoNorm,     /* (x,y,z) unit-length 3-vector */
+  limnPolyDataInfoTex2D,    /* (s,t) 2D texture coordinates */
+  limnPolyDataInfoLast
+};
+
+/*
 ******** limnPolyData
 **
 ** A simpler beast for representing polygonal surfaces and other things
@@ -354,7 +371,10 @@ typedef struct {
 */
 typedef struct {
   unsigned int vertNum;  /* there are vertNum limnVrts in vert[] */
-  limnVrt *vert;
+  float *xyzw;           /* vertNum homog coord 4-tuples (always allocated) */
+  unsigned char *rgba;   /* if non-NULL, vertNum RGBA color 4-tuples */
+  float *norm;           /* if non-NULL, vertNum (x,y,z) unit normals */
+  float *tex2D;          /* if non-NULL, vertNum (s,t) 2D texture coords */
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;    /* all indices (into vert[]) for all primitives,
@@ -589,6 +609,7 @@ LIMN_EXPORT int limnObjectFaceAdd(limnObject *obj,
 LIMN_EXPORT limnPolyData *limnPolyDataNew(void);
 LIMN_EXPORT limnPolyData *limnPolyDataNix(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataAlloc(limnPolyData *pld,
+                                  unsigned int infoBitFlag,
                                   unsigned int vertNum,
                                   unsigned int indxNum,
                                   unsigned int primNum);
@@ -596,24 +617,32 @@ LIMN_EXPORT size_t limnPolyDataSize(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA);
 LIMN_EXPORT int limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                                   unsigned int num);
-LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld, int sharpEdge);
+LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
+                                 unsigned int infoBitFlag,
+                                 int sharpEdge);
 LIMN_EXPORT int limnPolyDataCylinder(limnPolyData *pld,
+                                     unsigned int infoBitFlag,
                                      unsigned int res, int sharpEdge);
 LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld,
+                                         unsigned int infoBitFlag,
                                          float A, float B,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataSpiralSuperquadric(limnPolyData *pld,
+                                               unsigned int infoBitFlag,
                                                float A, float B,
                                                unsigned int thetaRes,
                                                unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataPolarSphere(limnPolyData *pld,
+                                        unsigned int infoBitFlag,
                                         unsigned int thetaRes,
                                         unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
+                                         unsigned int infoBitFlag,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
+                                  unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
 LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
                                          const float homat[16]);
