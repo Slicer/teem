@@ -381,8 +381,8 @@ typedef struct {
                             concatenated together into one array */
 
   unsigned int primNum;  /* there are primNum primitives (tris or tristrips) */
-  signed char *type;     /* prim ii is a type[ii] (limnPrimitive* enum) */
-  unsigned int *vcnt;    /* prim ii has vcnt[ii] vertices */
+  unsigned char *type;   /* prim ii is a type[ii] (limnPrimitive* enum) */
+  unsigned int *icnt;    /* prim ii has vcnt[ii] vertex indices */
 } limnPolyData;
 
 typedef struct {
@@ -397,6 +397,10 @@ typedef struct {
                                    from gageShape->ItoW, but having this as
                                    a separate field allows limn to avoid
                                    dependence on gage */
+  double facesPerVoxel,         /* approximate; for pre-allocating geometry */
+    vertsPerVoxel;              /* approximate; for pre-allocating geometry */
+  unsigned int pldArrIncr;      /* increment for airArrays used during the
+                                   creation of geometry */
   /* ------ internal ----- */
   int reverse;                  /* reverse sense of inside/outside (based on
                                    lowerInside and determinant of transform) */
@@ -740,7 +744,7 @@ LIMN_EXPORT int limnContour3DLowerInsideSet(limnContour3DContext *lctx,
 LIMN_EXPORT int limnContour3DTransformSet(limnContour3DContext *lctx,
                                           const double mat[16]);
 LIMN_EXPORT int limnContour3DExtract(limnContour3DContext *lctx,
-                                     limnObject *cont, double isovalue);
+                                     limnPolyData *cont, double isovalue);
 
 #ifdef __cplusplus
 }

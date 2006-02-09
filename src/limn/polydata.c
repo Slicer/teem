@@ -38,7 +38,7 @@ limnPolyDataNew(void) {
     pld->indx = NULL;
     pld->primNum = 0;
     pld->type = NULL;
-    pld->vcnt = NULL;
+    pld->icnt = NULL;
   }
   return pld;
 }
@@ -53,7 +53,7 @@ limnPolyDataNix(limnPolyData *pld) {
     airFree(pld->tex2D);
     airFree(pld->indx);
     airFree(pld->type);
-    airFree(pld->vcnt);
+    airFree(pld->icnt);
   }
   airFree(pld);
   return NULL;
@@ -141,12 +141,12 @@ limnPolyDataAlloc(limnPolyData *pld,
     pld->indxNum = indxNum;
   }
   if (primNum != pld->primNum) {
-    pld->type = (signed char *)airFree(pld->type);
-    pld->vcnt = (unsigned int *)airFree(pld->vcnt);
+    pld->type = (unsigned char *)airFree(pld->type);
+    pld->icnt = (unsigned int *)airFree(pld->icnt);
     if (primNum) {
-      pld->type = (signed char *)calloc(primNum, sizeof(signed char));
-      pld->vcnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
-      if (!(pld->type && pld->vcnt)) {
+      pld->type = (unsigned char *)calloc(primNum, sizeof(unsigned char));
+      pld->icnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
+      if (!(pld->type && pld->icnt)) {
         sprintf(err, "%s: couldn't allocate %u primitives", me, primNum);
         biffAdd(LIMN, err); return 1;
       }
@@ -206,7 +206,7 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   }
   memcpy(pldB->indx, pldA->indx, pldA->indxNum*sizeof(unsigned int));
   memcpy(pldB->type, pldA->type, pldA->primNum*sizeof(signed char));
-  memcpy(pldB->vcnt, pldA->vcnt, pldA->primNum*sizeof(unsigned int));
+  memcpy(pldB->icnt, pldA->icnt, pldA->primNum*sizeof(unsigned int));
   return 0;
 }
 
@@ -238,7 +238,7 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
     }
     memcpy(pldB->type + ii*pldA->primNum, pldA->type,
            pldA->primNum*sizeof(signed char));
-    memcpy(pldB->vcnt + ii*pldA->primNum, pldA->vcnt,
+    memcpy(pldB->icnt + ii*pldA->primNum, pldA->icnt,
            pldA->primNum*sizeof(unsigned int));
   }
   return 0;
@@ -346,7 +346,7 @@ limnPolyDataCube(limnPolyData *pld,
   }
 
   pld->type[0] = limnPrimitiveQuads;
-  pld->vcnt[0] = indxNum;
+  pld->icnt[0] = indxNum;
   
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
@@ -414,7 +414,7 @@ limnPolyDataCylinder(limnPolyData *pld,
     pld->indx[vertIdx++] = thetaIdx;
   }
   pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->vcnt[primIdx] = thetaRes;
+  pld->icnt[primIdx] = thetaRes;
   primIdx++;
 
   /* single strip around */
@@ -425,7 +425,7 @@ limnPolyDataCylinder(limnPolyData *pld,
   pld->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes;
   pld->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes;
   pld->type[primIdx] = limnPrimitiveTriangleStrip;
-  pld->vcnt[primIdx] = 2*(thetaRes+1);
+  pld->icnt[primIdx] = 2*(thetaRes+1);
   primIdx++;
 
   /* fan on bottom */
@@ -433,7 +433,7 @@ limnPolyDataCylinder(limnPolyData *pld,
     pld->indx[vertIdx++] = (sharpEdge ? 3 : 1)*thetaRes + thetaIdx;
   }
   pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->vcnt[primIdx] = thetaRes;
+  pld->icnt[primIdx] = thetaRes;
   primIdx++;
 
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
@@ -553,7 +553,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   }
   pld->indx[vertIdx++] = 1;
   pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->vcnt[primIdx++] = thetaRes + 2;
+  pld->icnt[primIdx++] = thetaRes + 2;
 
   /* tristrips around */
   for (phiIdx=1; phiIdx<phiRes-1; phiIdx++) {
@@ -579,7 +579,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
     pld->indx[vertIdx++] = (phiIdx-1)*thetaRes + 1;
     pld->indx[vertIdx++] = phiIdx*thetaRes + 1;
     pld->type[primIdx] = limnPrimitiveTriangleStrip;
-    pld->vcnt[primIdx++] = 2*(thetaRes+1);
+    pld->icnt[primIdx++] = 2*(thetaRes+1);
   }
 
   /* triangle fan at bottom */
@@ -589,7 +589,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   }
   pld->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
   pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->vcnt[primIdx++] = thetaRes + 2;
+  pld->icnt[primIdx++] = thetaRes + 2;
 
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
@@ -663,7 +663,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
 
   /* single triangle strip */
   pld->type[0] = limnPrimitiveTriangleStrip;
-  pld->vcnt[0] = indxNum;
+  pld->icnt[0] = indxNum;
   vertIdx = 0;
   for (thetaIdx=1; thetaIdx<thetaRes; thetaIdx++) {
     pld->indx[vertIdx++] = 0;
@@ -766,7 +766,7 @@ limnPolyDataPlane(limnPolyData *pld,
       pld->indx[vertIdx++] = uIdx + uRes*(primIdx);
     }    
     pld->type[primIdx] = limnPrimitiveTriangleStrip;
-    pld->vcnt[primIdx] = 2*uRes;
+    pld->icnt[primIdx] = 2*uRes;
   }
 
   return 0;
@@ -838,14 +838,14 @@ limnPolyDataPolygonNumber(limnPolyData *pld) {
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     switch(pld->type[primIdx]) {
     case limnPrimitiveTriangles:
-      ret += pld->vcnt[primIdx]/3;
+      ret += pld->icnt[primIdx]/3;
       break;
     case limnPrimitiveTriangleStrip:
     case limnPrimitiveTriangleFan:
-      ret += pld->vcnt[primIdx] - 2;
+      ret += pld->icnt[primIdx] - 2;
       break;
     case limnPrimitiveQuads:
-      ret += pld->vcnt[primIdx]/4;
+      ret += pld->icnt[primIdx]/4;
       break;
     }
   }
