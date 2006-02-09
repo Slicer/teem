@@ -361,10 +361,15 @@ limnContour3DContextNew(void) {
     lctx->nvol = NULL;
     lctx->lowerInside = AIR_FALSE;
     ELL_4M_IDENTITY_SET(lctx->transform);
+    /* these magic values assume a certain level of surface smoothness,
+       which certainly does not apply to all cases */
+    lctx->facesPerVoxel = 2.15;
+    lctx->vertsPerVoxel = 1.15;
+    lctx->pldArrIncr = 256;
     lctx->reverse = AIR_FALSE;
     lctx->spanSize = 300;
     lctx->nspanHist = nrrdNew();
-    nrrdMaybeAlloc_va(lctx->nspanHist, nrrdTypeInt, 2, 
+    nrrdMaybeAlloc_va(lctx->nspanHist, nrrdTypeUInt, 2, 
                       AIR_CAST(size_t, lctx->spanSize), 
                       AIR_CAST(size_t, lctx->spanSize));
     lctx->range = nrrdRangeNew(AIR_NAN, AIR_NAN);
@@ -437,8 +442,9 @@ limnContour3DTransformSet(limnContour3DContext *lctx,
 int
 limnContour3DVolumeSet(limnContour3DContext *lctx, const Nrrd *nvol) {
   char me[]="limnContour3DVolumeSet", err[BIFF_STRLEN];
-  int minI, maxI, *spanHist, sx, sy, sz, ss, si, xi, yi, zi, vi;
+  int minI, maxI, sx, sy, sz, ss, si, xi, yi, zi, vi;
   double tmp, min, max, (*lup)(const void *v, size_t I);
+  unsigned int *spanHist;
   void *data;
 
   if (!( lctx && nvol )) {
@@ -475,7 +481,7 @@ limnContour3DVolumeSet(limnContour3DContext *lctx, const Nrrd *nvol) {
   }
   /* compute span space histogram */
   ss = lctx->spanSize;
-  spanHist = (int*)(lctx->nspanHist->data);
+  spanHist = AIR_CAST(unsigned int*, lctx->nspanHist->data);
   for (si=0; si<ss*ss; si++) {
     spanHist[si] = 0;
   }
@@ -562,11 +568,11 @@ _limnContour3DVoxelGrads(double vgrad[8][3], double *val,
 
 int
 limnContour3DExtract(limnContour3DContext *lctx,
-                     limnObject *cont, double isovalue) {
+                     limnPolyData *cont, double isovalue) {
   char me[]="limnContour3DExtract", err[BIFF_STRLEN];
-  int sx, sy, sz, xi, yi, zi, zpi, si, spi, partIdx, vidx[12],
-    minI, maxI, valI, ss, *spanHist,
-    estVoxNum, estFaceNum, estVertNum;
+  int sx, sy, sz, xi, yi, zi, zpi, si, spi, vidx[12],
+    minI, maxI, valI, ss, E;
+  unsigned int estVoxNum, estVertNum, estFaceNum, *spanHist;
   double (*lup)(const void *, size_t);
   const void *data;
   int e2v[12][2] = {        /* maps edge index to corner vertex indices */
@@ -593,6 +599,7 @@ limnContour3DExtract(limnContour3DContext *lctx,
     {0, 1, 1},  /* 6 */
     {1, 1, 1}   /* 7 */
   };
+  airArray *xyzwArr, *normArr, *indxArr;
 
   if (!( lctx && cont )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -634,7 +641,7 @@ limnContour3DExtract(limnContour3DContext *lctx,
   lup = nrrdDLookup[lctx->nvol->type];
   data = lctx->nvol->data;
   ss = lctx->spanSize;
-  spanHist = (int*)(lctx->nspanHist->data);
+  spanHist = AIR_CAST(unsigned int*, lctx->nspanHist->data);
 
   /* estimate number of voxels, faces, and vertices involved */
   estVoxNum = 0;
@@ -644,13 +651,51 @@ limnContour3DExtract(limnContour3DContext *lctx,
       estVoxNum += spanHist[minI + ss*maxI];
     }
   }
-  estFaceNum = (int)(estVoxNum*2.15);
-  estVertNum = (int)(estVoxNum*1.15);
-  
-  /* start new part, and preset length of face and vert arrays */
-  partIdx = limnObjectPartAdd(cont);
-  limnObjectFaceNumPreSet(cont, partIdx, estFaceNum);
-  limnObjectVertexNumPreSet(cont, partIdx, estVertNum);
+  estVertNum = AIR_CAST(unsigned int, estVoxNum*(lctx->vertsPerVoxel));
+  estFaceNum = AIR_CAST(unsigned int, estVoxNum*(lctx->facesPerVoxel));
+  /*
+  fprintf(stderr, "!%s: est vox, vert, face: %u %u %u\n", me,
+          estVoxNum, estVertNum, estFaceNum);
+  */
+
+  /* initialize limnPolyData with estimated # faces and vertices */
+  /* we will manage the innards of the limnPolyData entirely ourselves */
+  if (limnPolyDataAlloc(cont, 0, 0, 0, 0)) {
+    sprintf(err, "%s: trouble emptying given polydata", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  xyzwArr = airArrayNew((void**)&(cont->xyzw), &(cont->vertNum),
+                        4*sizeof(float), lctx->pldArrIncr);
+  if (lctx->findNormals) {
+    /* HEY: must increment normArr and xzywArr in synchrony!!! */
+    normArr = airArrayNew((void**)&(cont->norm), NULL,
+                          3*sizeof(float), lctx->pldArrIncr);
+  } else {
+    normArr = NULL;
+  }
+  indxArr = airArrayNew((void**)&(cont->indx), &(cont->indxNum),
+                        sizeof(unsigned int), lctx->pldArrIncr);
+  cont->primNum = 1;  /* for now, its just triangle soup */
+  cont->type = (unsigned char *)calloc(cont->primNum, sizeof(unsigned char));
+  cont->icnt = (unsigned int *)calloc(cont->primNum, sizeof(unsigned int));
+  cont->type[0] = limnPrimitiveTriangles;
+  cont->icnt[0] = 0;  /* incremented below */
+
+  E = 0;
+  airArrayLenPreSet(xyzwArr, estVertNum);
+  E |= !(xyzwArr->data);
+  if (lctx->findNormals) {
+    airArrayLenPreSet(normArr, estVertNum);
+    E |= !(normArr->data);
+  }
+  airArrayLenPreSet(indxArr, 3*estFaceNum);
+  E |= !(indxArr->data);
+  if (E) {
+    sprintf(err, "%s: couldn't pre-allocate contour geometry (%p %p %p)",
+            me, xyzwArr->data, (lctx->findNormals ? normArr->data : NULL),
+            indxArr->data);
+    biffAdd(LIMN, err); return 1;
+  }
 
   /* initialize per-slice stuff */
   for (yi=0; yi<sy; yi++) {
@@ -762,7 +807,6 @@ limnContour3DExtract(limnContour3DContext *lctx,
           if ((ecase & (1 << ei))
               && -1 == lctx->vidx[vidx[ei] + 5*si]) {
             int ovi;
-            limnVertex *vtx;
             double tvec[3], grad[3], tlen;
             /* this edge is needed for triangulation,
                and, we haven't already created a vertex for it */
@@ -773,16 +817,14 @@ limnContour3DExtract(limnContour3DContext *lctx,
             ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
             ELL_4MV_MUL(tvertB, lctx->transform, tvertA);
             ELL_4V_HOMOG(tvertB, tvertB);
-            ovi = lctx->vidx[vidx[ei] + 5*si] =
-              limnObjectVertexAdd(cont, partIdx,
-                                  AIR_CAST(float, tvertB[0]),
-                                  AIR_CAST(float, tvertB[1]),
-                                  AIR_CAST(float, tvertB[2]));
+            ovi = lctx->vidx[vidx[ei] + 5*si] = airArrayLenIncr(xyzwArr, 1);
+            ELL_4V_SET_TT(cont->xyzw + 4*ovi, float,
+                          tvertB[0], tvertB[1], tvertB[2], 1.0);
             if (lctx->findNormals) {
+              airArrayLenIncr(normArr, 1);
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
               ELL_3MV_MUL(tvec, lctx->normalTransform, grad);
-              vtx = cont->vert + ovi;
-              ELL_3V_NORM_TT(vtx->worldNormal, float, tvec, tlen);
+              ELL_3V_NORM_TT(cont->norm + 3*ovi, float, tvec, tlen);
             }
             lctx->vertNum++;
             /*
@@ -797,6 +839,7 @@ limnContour3DExtract(limnContour3DContext *lctx,
         ti = 0;
         tcase = _limnContour3DTriangle[vcase];
         while (-1 != tcase[0 + 3*ti]) {
+          unsigned iii;
           ELL_3V_SET(vii,
                      lctx->vidx[vidx[tcase[0 + 3*ti]] + 5*si],
                      lctx->vidx[vidx[tcase[1 + 3*ti]] + 5*si],
@@ -805,14 +848,20 @@ limnContour3DExtract(limnContour3DContext *lctx,
             int tmpi;
             tmpi = vii[1]; vii[1] = vii[2]; vii[2] = tmpi;
           }
-          limnObjectFaceAdd(cont, partIdx, 0, 3, vii);
+          iii = airArrayLenIncr(indxArr, 3);
+          ELL_3V_COPY(cont->indx + iii, vii);
+          cont->icnt[0] += 3;
           lctx->faceNum++;
           ti++;
         }
       }
     }
   }
-  
+
+  airArrayNix(xyzwArr);
+  airArrayNix(normArr);
+  airArrayNix(indxArr);
+
   /* end time */
   lctx->time = airTime() - lctx->time;
   return 0;
