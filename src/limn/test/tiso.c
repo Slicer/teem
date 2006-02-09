@@ -30,7 +30,7 @@ main(int argc, char *argv[]) {
   char *me, *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  limnObject *obj;
+  limnPolyData *pld;
   Nrrd *nin;
   double isoval;
   limnContour3DContext *lctx;
@@ -50,8 +50,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   
-  obj = limnObjectNew(2000, AIR_FALSE);
-  airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
+  pld = limnPolyDataNew();
+  airMopAdd(mop, pld, (airMopper)limnPolyDataNix, airMopAlways);
 
   file = airFopen(outS, stdout, "w");
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
@@ -60,8 +60,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, lctx, (airMopper)limnContour3DContextNix, airMopAlways);
 
   if (limnContour3DVolumeSet(lctx, nin)
-      || limnContour3DExtract(lctx, obj, isoval)
-      || limnObjectOFFWrite(file, obj)) {
+      || limnContour3DExtract(lctx, pld, isoval)
+      /* || limnPolyDataOFFWrite(file, pld) IT DOESN'T EXIST */) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
