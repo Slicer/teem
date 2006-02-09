@@ -139,6 +139,7 @@ airArrayPointerCB(airArray *a,
 */
 void
 airArrayLenPreSet(airArray *a, unsigned int newlen) {
+  /* char me[]="airArrayLenPreSet"; */
   unsigned int newsize;
   void *newdata;
 
@@ -151,22 +152,35 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
     a->noReallocWhenSmaller = AIR_FALSE;
   } else {
     newsize = (newlen-1)/a->incr + 1;
+    /*
+    fprintf(stderr, "!%s: newlen = %u, incr = %u -> newsize = %u\n", me,
+            newlen, a->incr, newsize);
+    fprintf(stderr, "!%s: a->size = %u, a->len = %u, a->unit = %u\n", me,
+            a->size, a->len, a->unit);
+    */
     if (newsize > a->size) {
       newdata = calloc(newsize*a->incr, a->unit);
+      /*
+      fprintf(stderr, "!%s: a->data = %p, newdata = %p\n", me, 
+              a->data, newdata);
+      */
       if (!newdata) {
         free(a->data);
         _airSetData(a, NULL);
         return;
       }
-      memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
-                                       newsize*a->incr*a->unit));
-      free(a->data);
+      if (a->data) {
+        memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
+                                         newsize*a->incr*a->unit));
+        free(a->data);
+      }
       _airSetData(a, newdata);
       a->size = newsize;
     }
     a->noReallocWhenSmaller = AIR_TRUE;
   }
 
+  /* fprintf(stderr, "!%s: returning data %p\n", me, a->data); */
   return;
 }
 
@@ -270,6 +284,10 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 **  no error, delta > 0: return index of 1st element in newly allocated
 **                       segment (a->len before length was increased)
 ** no error, delta <= 0: return 0, and a->data unchanged
+**
+** HEY: it is apparently not clear how to do error checking (aside from
+** looking at a->data) when there was NO data previously allocated, and the
+** first index of the newly allocated data is zero...
 */
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {
