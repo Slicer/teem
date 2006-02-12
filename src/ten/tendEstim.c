@@ -365,6 +365,9 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+    if (airStrlen(terrS)) {
+      airMopAdd(mop, nterr, (airMopper)nrrdNuke, airMopAlways);
+    }
   } else {
     EE = 0;
     if (1 == ninLen) {
