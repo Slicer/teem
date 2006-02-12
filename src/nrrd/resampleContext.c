@@ -602,7 +602,6 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
         biffAdd(NRRD, err); return 1;
       }
     }
-    rsmc->flag[flagSamples] = AIR_FALSE;
     rsmc->flag[flagRanges] = AIR_FALSE;
     rsmc->flag[flagVectorAllocate] = AIR_TRUE;
   }
@@ -852,7 +851,8 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
   int bi;
 
   if (rsmc->flag[flagInputSizes]
-      || rsmc->flag[flagKernels]) {
+      || rsmc->flag[flagKernels]
+      || rsmc->flag[flagSamples]) {
 
     rsmc->topRax = rsmc->botRax = AIR_CAST(unsigned int, -1);
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
@@ -971,6 +971,7 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
 
     rsmc->flag[flagInputSizes] = AIR_FALSE;
     rsmc->flag[flagKernels] = AIR_FALSE;
+    rsmc->flag[flagSamples] = AIR_FALSE;
     rsmc->flag[flagPermutation] = AIR_TRUE;
   }
 
@@ -1084,14 +1085,21 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
         biffAdd(NRRD, err); airMopError(mop); return 1;
       }
       if (rsmc->verbose) {
-        fprintf(stderr, "%s: allocated pass %u output nrrd @ %p "
-                "(on axis %u)\n", me, axisIn->passIdx,
-                AIR_CAST(void*, axisOut->nrsmp), axisOut->axIdx);
+        fprintf(stderr, "%s: allocated pass %u/%u output nrrd @ %p/%p "
+                "(on axis %u)\n", me, passIdx, axisIn->passIdx,
+                AIR_CAST(void*, axisOut->nrsmp), 
+		AIR_CAST(void*, axisOut->nrsmp->data), axisOut->axIdx);
       }
     } else {
       if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
         sprintf(err, "%s: trouble allocating final output", me);
         biffAdd(NRRD, err); airMopError(mop); return 1;
+      }
+      if (rsmc->verbose) {
+        fprintf(stderr, "%s: allocated final pass %u output nrrd @ %p/%p\n",
+		me, passIdx,
+                AIR_CAST(void*, nout), 
+		AIR_CAST(void*, nout->data));
       }
     }
 
@@ -1110,6 +1118,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       rsmpOut = NULL;
       dataOut = nout->data;
     }
+
     line = (nrrdResample_t *)(axisIn->nline->data);
     index = (int *)(axisIn->nindex->data);
     weight = (nrrdResample_t *)(axisIn->nweight->data);
