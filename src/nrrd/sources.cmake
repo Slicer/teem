@@ -1,4 +1,6 @@
-ADD_LIBRARY(nrrd
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(NRRD_SOURCES
   accessors.c
   apply1D.c
   apply2D.c
@@ -47,18 +49,6 @@ ADD_LIBRARY(nrrd
   tmfKernel.c
   winKernel.c
   write.c
-)
+  )
 
-TARGET_LINK_LIBRARIES(nrrd biff hest air)
-
-IF(TEEM_BZIP2_LIB)
-  TARGET_LINK_LIBRARIES(nrrd ${TEEM_BZIP2_LIB})
-ENDIF(TEEM_BZIP2_LIB)
-IF(TEEM_ZLIB_LIB)
-  TARGET_LINK_LIBRARIES(nrrd ${TEEM_ZLIB_LIB})
-  IF(TEEM_PNG_LIB)
-    TARGET_LINK_LIBRARIES(nrrd ${TEEM_PNG_LIB})
-  ENDIF(TEEM_PNG_LIB)
-ENDIF(TEEM_ZLIB_LIB)
-
-INSTALL_TARGETS(/lib nrrd)
+ADD_TEEM_LIBRARY(nrrd ${NRRD_SOURCES})

@@ -1,4 +1,6 @@
-ADD_LIBRARY(gage
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(GAGE_SOURCES
   ctx.c
   defaultsGage.c
   filter.c
@@ -15,7 +17,6 @@ ADD_LIBRARY(gage
   update.c
   vecGage.c
   vecprint.c
-)
+  )
 
-TARGET_LINK_LIBRARIES(gage ell nrrd biff air)
-INSTALL_TARGETS(/lib gage)
+ADD_TEEM_LIBRARY(gage ${GAGE_SOURCES})

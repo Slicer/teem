@@ -1,6 +1,7 @@
 MACRO(CREATE_EXEC name sources libraries)
   ADD_EXECUTABLE("${name}" ${sources})
-  TARGET_LINK_LIBRARIES("${name}" ${libraries})
+#   TARGET_LINK_LIBRARIES("${name}" ${libraries})
+  TARGET_LINK_LIBRARIES("${name}" teem)
   INSTALL_TARGETS(/bin "${name}")
 ENDMACRO(CREATE_EXEC)
 

@@ -1,4 +1,6 @@
-ADD_LIBRARY(unrrdu
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(UNRRDU_SOURCES
   1op.c
   2op.c
   3op.c
@@ -55,7 +57,6 @@ ADD_LIBRARY(unrrdu
   unorient.c
   unquantize.c
   untile.c
-)
+  )
 
-TARGET_LINK_LIBRARIES(unrrdu nrrd biff hest air)
-INSTALL_TARGETS(/lib unrrdu)
+ADD_TEEM_LIBRARY(unrrdu ${UNRRDU_SOURCES})

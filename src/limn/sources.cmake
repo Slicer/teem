@@ -1,4 +1,6 @@
-ADD_LIBRARY(limn
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(LIMN_SOURCES
   defaultsLimn.c
   qn.c
   light.c
@@ -19,5 +21,4 @@ ADD_LIBRARY(limn
   polydata.c
   )
 
-TARGET_LINK_LIBRARIES(limn ell nrrd biff hest air)
-INSTALL_TARGETS(/lib limn)
+ADD_TEEM_LIBRARY(limn ${LIMN_SOURCES})

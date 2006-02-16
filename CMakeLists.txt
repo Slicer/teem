@@ -189,9 +189,59 @@ INCLUDE_DIRECTORIES(
   "${TEEM_BINARY_DIR}/include/"
   )
 
+
+# All the source files
+SET(TEEM_SOURCES)
+
+#-----------------------------------------------------------------------------
+# Macro for adding the current set of source files to the master list
+MACRO(ADD_TEEM_LIBRARY dir)
+  SET(srcs)
+  FOREACH(src ${ARGN})
+    SET(srcs ${srcs} "src/${dir}/${src}")
+  ENDFOREACH(src ${ARGN})
+  SET(TEEM_SOURCES ${TEEM_SOURCES} ${srcs})
+ENDMACRO(ADD_TEEM_LIBRARY name)
+
+
 #-----------------------------------------------------------------------------
 # Dispatch the build into the proper subdirectories.
-SUBDIRS(src)
+FOREACH(dir ${TEEM_LIBRARIES})
+  INCLUDE(src/${dir}/sources.cmake)
+ENDFOREACH(dir ${TEEM_LIBRARIES})
+
+#-----------------------------------------------------------------------------
+# Build the Mega library
+#
+# This needs to occur after the parsing of the subdirectories.
+
+# Create the library target
+ADD_LIBRARY(teem ${TEEM_SOURCES})
+
+IF(TEEM_BZIP2_LIB)
+  TARGET_LINK_LIBRARIES(teem ${TEEM_BZIP2_LIB})
+ENDIF(TEEM_BZIP2_LIB)
+IF(TEEM_ZLIB_LIB)
+  TARGET_LINK_LIBRARIES(teem ${TEEM_ZLIB_LIB})
+  IF(TEEM_PNG_LIB)
+    TARGET_LINK_LIBRARIES(teem ${TEEM_PNG_LIB})
+  ENDIF(TEEM_PNG_LIB)
+ENDIF(TEEM_ZLIB_LIB)
+
+IF(UNIX)
+  TARGET_LINK_LIBRARIES(teem -lm)
+ENDIF(UNIX)
+
+INSTALL_TARGETS(/lib teem)
+
+# Now compile the binaries
+SUBDIRS(src/bin)
+
+# I found some hex programs
+OPTION(BUILD_HEX "Build hehex and enhex" OFF)
+IF(BUILD_HEX)
+  SUBDIRS(src/hex)
+ENDIF(BUILD_HEX)
 
 #-----------------------------------------------------------------------------
 # For testing

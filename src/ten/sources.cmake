@@ -1,4 +1,6 @@
-ADD_LIBRARY(ten
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(TEN_SOURCES
   aniso.c
   bimod.c
   bvec.c
@@ -47,7 +49,6 @@ ADD_LIBRARY(ten
   tendSlice.c
   tendSten.c
   tendUnmf.c
-)
+  )
 
-TARGET_LINK_LIBRARIES(ten echo limn gage dye unrrdu ell nrrd biff air)
-INSTALL_TARGETS(/lib ten)
+ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})

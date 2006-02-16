@@ -1,4 +1,6 @@
-ADD_LIBRARY(bane
+# This variable will help provide a master list of all the sources.
+# Add new source files here.
+SET(BANE_SOURCES
   clip.c
   defaultsBane.c
   gkmsFlotsam.c
@@ -18,8 +20,6 @@ ADD_LIBRARY(bane
   trex.c
   trnsf.c
   valid.c
-)
+  )
 
-
-TARGET_LINK_LIBRARIES(bane gage unrrdu nrrd biff air)
-INSTALL_TARGETS(/lib bane)
+ADD_TEEM_LIBRARY(bane ${BANE_SOURCES})
