@@ -185,8 +185,8 @@ ENDFOREACH(header_file)
 #---
 # Include directory 
 INCLUDE_DIRECTORIES(
-  "${TEEM_SOURCE_DIR}/include/"
   "${TEEM_BINARY_DIR}/include/"
+  "${TEEM_SOURCE_DIR}/include/"
   )
 
 
