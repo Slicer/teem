@@ -94,12 +94,13 @@ char *probeInfo = ("Shows off the functionality of the gage library. "
 int
 main(int argc, char *argv[]) {
   gageKind *kind;
-  char *me, *outS, *whatS, *err;
+  char *me, *outS, *whatS, *err, hackKeyStr[]="TEEM_VPROBE_HACK_ZI",
+    *hackValStr;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
   float gmc;
-  int what, E=0, otype, renorm;
+  int what, E=0, otype, renorm, hackSet;
   unsigned int iBaseDim, oBaseDim;
   const gage_t *answer;
   const char *key=NULL;
@@ -112,6 +113,7 @@ main(int argc, char *argv[]) {
   gagePerVolume *pvl;
   double t0, t1, mat[16], ipos[4], opos[4], spx, spy, spz, x, y, z, scale[3];
   airArray *mop;
+  unsigned int hackZi;
 
   mop = airMopNew();
   me = argv[0];
@@ -310,10 +312,29 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
+
+  hackSet = nrrdGetenvUInt(&hackZi, &hackValStr, hackKeyStr);
+  if (AIR_FALSE == hackSet) {
+    fprintf(stderr, "%s: couldn't parse value of \"%s\" (\"%s\") as uint\n",
+            me, hackKeyStr, hackValStr);
+    airMopError(mop);
+    return 1;
+  }
+  if (AIR_TRUE == hackSet) {
+    fprintf(stderr, "%s: Hack on: will only measure Zi=%u\n", me, hackZi);
+  }
+
   t0 = airTime();
   for (zi=0; zi<=soz-1; zi++) {
     fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
             zi, soz-1); fflush(stderr);
+
+    if (AIR_TRUE == hackSet) {
+      if (hackZi != zi) {
+        continue;
+      }
+    }
+
     z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
     for (yi=0; yi<=soy-1; yi++) {
       y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
