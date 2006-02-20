@@ -77,7 +77,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFAGradMag,           1,  1,  {tenGageFAGradVec, -1, -1, -1, -1, -1},                                                -1,        -1,    0},
   {tenGageFANormal,            3,  1,  {tenGageFAGradVec, tenGageFAGradMag, -1, -1, -1, -1},                                  -1,        -1,    0},
 
-  {tenGageRGradVec,            3,  1,  {tenGageTraceGradVec, tenGageBGradVec, tenGageDetGradVec, tenGageSGradVec, -1, -1},    -1,        -1,    0},
+  {tenGageRGradVec,            3,  1,  {tenGageR, tenGageTraceGradVec, tenGageBGradVec, tenGageDetGradVec, tenGageSGradVec, -1}, -1,     -1,    0},
   {tenGageRGradMag,            1,  1,  {tenGageRGradVec, -1, -1, -1, -1, -1},                                                 -1,        -1,    0},
   {tenGageRNormal,             3,  1,  {tenGageRGradVec, tenGageRGradMag, -1, -1, -1, -1},                                    -1,        -1,    0},
 
@@ -105,9 +105,9 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
   {tenGageHessian,            63,  2,  {-1, -1, -1, -1, -1, -1},                                                              -1,        -1,    0},
   {tenGageTraceHessian,        9,  2,  {tenGageHessian, -1, -1, -1, -1, -1},                                                  -1,        -1,    0},
-  {tenGageBHessian,            9,  2,  {tenGageTensorGrad, tenGageHessian, -1, -1, -1, -1},                                   -1,        -1,    0},
-  {tenGageDetHessian,          9,  2,  {tenGageTensorGrad, tenGageHessian, -1, -1, -1, -1},                                   -1,        -1,    0},
-  {tenGageSHessian,            9,  2,  {tenGageTensorGrad, tenGageHessian, -1, -1, -1, -1},                                   -1,        -1,    0},
+  {tenGageBHessian,            9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
+  {tenGageDetHessian,          9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
+  {tenGageSHessian,            9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
   {tenGageQHessian,            9,  2,  {tenGageBHessian, tenGageSHessian, -1, -1, -1, -1},                                    -1,        -1,    0},
 
   {tenGageFAHessian,           9,  2,  {tenGageSHessian, tenGageQHessian, tenGageSGradVec, tenGageQGradVec, tenGageFA, -1},   -1,        -1,    0},
@@ -265,7 +265,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     *gradCbS=NULL, *gradCbB=NULL, *gradCbQ=NULL, *gradCbR=NULL,
     *hessCbS=NULL, *hessCbB=NULL, *hessCbQ=NULL, *hessCbR=NULL,
     gradDdXYZ[21]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  gage_t tmp0, tmp1, magTmp=0,
+  gage_t tmp0, tmp1, tmp2, magTmp=0,
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0,
     cbQQQ=0, cbQ=0, cbR=0, cbA=0, cbB=0, cbC=0, cbS=0,
     gradCbA[3]={0,0,0}, gradCbC[3]={0,0,0};
@@ -420,11 +420,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     gradCbB = vecTmp = pvl->directAnswer[tenGageBGradVec];
     ELL_3V_SCALE_ADD6(vecTmp, 
                       dtD + dtF, gradDtA,
+                      dtA + dtF, gradDtD,
+                      dtA + dtD, gradDtF,
                       -2.0f*dtB, gradDtB,
                       -2.0f*dtC, gradDtC,
-                      dtA + dtF, gradDtD,
-                      -2.0f*dtE, gradDtE,
-                      dtA + dtD, gradDtF);
+                      -2.0f*dtE, gradDtE);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBGradMag)) {
     magTmp = pvl->directAnswer[tenGageBGradMag][0] =
@@ -459,11 +459,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     gradCbS = vecTmp = pvl->directAnswer[tenGageSGradVec];
     ELL_3V_SCALE_ADD6(vecTmp,
                       2.0f*dtA, gradDtA,
+                      2.0f*dtD, gradDtD,
+                      2.0f*dtF, gradDtF,
                       4.0f*dtB, gradDtB,
                       4.0f*dtC, gradDtC,
-                      2.0f*dtD, gradDtD,
-                      4.0f*dtE, gradDtE,
-                      2.0f*dtF, gradDtF);
+                      4.0f*dtE, gradDtE);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageSGradMag)) {
     magTmp = pvl->directAnswer[tenGageSGradMag][0] =
@@ -492,11 +492,19 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* --- FA --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradVec)) {
     vecTmp = pvl->directAnswer[tenGageFAGradVec];
+    tmp2 = AIR_MAX(0, pvl->directAnswer[tenGageFA][0]);
+    tmp0 = tmp2/(epsilon + 2*cbQ);
+    tmp1 = -tmp2/(epsilon + 2*cbS);
+    ELL_3V_SCALE_ADD2(vecTmp,
+                      AIR_CAST(gage_t, tmp0), gradCbQ, 
+                      AIR_CAST(gage_t, tmp1), gradCbS);
+    /* ORIGINAL:
     tmp0 = 9.0f/(epsilon + 2*pvl->directAnswer[tenGageFA][0]*cbS);
     tmp1 = -tmp0*cbQ/(epsilon + cbS);
     ELL_3V_SCALE_ADD2(vecTmp,
                       AIR_CAST(gage_t, tmp0), gradCbQ, 
                       AIR_CAST(gage_t, tmp1), gradCbS);
+    */
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradMag)) {
     magTmp = pvl->directAnswer[tenGageFAGradMag][0] =
@@ -509,8 +517,6 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* --- R --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRGradVec)) {
     gradCbR = vecTmp = pvl->directAnswer[tenGageRGradVec];
-    cbQQQ = AIR_MAX(0, cbQ*cbQ*cbQ);
-    tmp0 = AIR_CAST(gage_t, 1.0/(epsilon + 2*sqrt(cbQQQ)));
     ELL_3V_SCALE_ADD4(vecTmp,
                       (5.0f*cbB - 2.0f*cbS)/54.0f, gradCbA,
                       5.0f*cbA/54.0f, gradCbB,
@@ -713,7 +719,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3MV_OUTER_INCR(matTmp, gradDtD, gradDtF);
     ELL_3M_SCALE_INCR(matTmp, dtD + dtF, hessDtA);
     ELL_3M_SCALE_INCR(matTmp, dtA + dtF, hessDtD);
-    ELL_3M_SCALE_INCR(matTmp, dtD + dtD, hessDtF);
+    ELL_3M_SCALE_INCR(matTmp, dtA + dtD, hessDtF);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetHessian)) {
     gage_t tmp[3];
@@ -757,18 +763,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageSHessian)) {
     hessCbS = matTmp = pvl->directAnswer[tenGageSHessian];
     ELL_3M_ZERO_SET(matTmp);
-    ELL_3M_SCALE_INCR(matTmp, dtB, hessDtB);
+    ELL_3M_SCALE_INCR(matTmp,      dtB, hessDtB);
     ELL_3MV_OUTER_INCR(matTmp, gradDtB, gradDtB);
-    ELL_3M_SCALE_INCR(matTmp, dtC, hessDtC);
+    ELL_3M_SCALE_INCR(matTmp,      dtC, hessDtC);
     ELL_3MV_OUTER_INCR(matTmp, gradDtC, gradDtC);
-    ELL_3M_SCALE_INCR(matTmp, dtE, hessDtE);
+    ELL_3M_SCALE_INCR(matTmp,      dtE, hessDtE);
     ELL_3MV_OUTER_INCR(matTmp, gradDtE, gradDtE);
     ELL_3M_SCALE(matTmp, 2.0f, matTmp);
-    ELL_3M_SCALE_INCR(matTmp, dtA, hessDtA);
+    ELL_3M_SCALE_INCR(matTmp,      dtA, hessDtA);
     ELL_3MV_OUTER_INCR(matTmp, gradDtA, gradDtA);
-    ELL_3M_SCALE_INCR(matTmp, dtD, hessDtD);
+    ELL_3M_SCALE_INCR(matTmp,      dtD, hessDtD);
     ELL_3MV_OUTER_INCR(matTmp, gradDtD, gradDtD);
-    ELL_3M_SCALE_INCR(matTmp, dtF, hessDtF);
+    ELL_3M_SCALE_INCR(matTmp,      dtF, hessDtF);
     ELL_3MV_OUTER_INCR(matTmp, gradDtF, gradDtF);
     ELL_3M_SCALE(matTmp, 2.0f, matTmp);
   }
@@ -782,12 +788,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     gage_t tmpQ, rQ, orQ, oQ, tmpS, rS, orS, oS;
     tmpQ = AIR_MAX(0, cbQ);
     tmpS = AIR_MAX(0, cbS);
-    oQ = 1.0f/(epsilon + tmpQ);
-    oS = 1.0f/(epsilon + tmpS);
+    oQ = tmpQ ? 1.0f/(epsilon + tmpQ) : 0;
+    oS = tmpS ? 1.0f/(epsilon + tmpS) : 0;
     rQ = AIR_CAST(gage_t, sqrt(tmpQ));
     rS = AIR_CAST(gage_t, sqrt(tmpS));
-    orQ = 1.0f/(epsilon + rQ);
-    orS = 1.0f/(epsilon + rS);
+    orQ = rQ ? 1.0f/(epsilon + rQ) : 0;
+    orS = rS ? 1.0f/(epsilon + rS) : 0;
     matTmp = pvl->directAnswer[tenGageFAHessian];
     ELL_3M_ZERO_SET(matTmp);
     ELL_3M_SCALE_INCR(matTmp, orS*orQ, hessCbQ);
@@ -841,7 +847,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     matTmp = pvl->directAnswer[tenGageModeHessian];
     ELL_3M_ZERO_SET(matTmp);
     ELL_3M_SCALE_INCR(matTmp, -(3.0f/2.0f)*cbR, hessCbQ);
-    ELL_3MV_SCALE_OUTER_INCR(matTmp, -(15.0f/4.0f)*cbR*oQ, gradCbQ, gradCbQ);
+    ELL_3MV_SCALE_OUTER_INCR(matTmp, (15.0f/4.0f)*cbR*oQ, gradCbQ, gradCbQ);
     ELL_3MV_SCALE_OUTER_INCR(matTmp, -(3.0f/2.0f), gradCbR, gradCbQ);
     ELL_3M_SCALE_INCR(matTmp, cbQ, hessCbR);
     ELL_3MV_SCALE_OUTER_INCR(matTmp, -(3.0f/2.0f), gradCbQ, gradCbR);

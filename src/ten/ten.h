@@ -265,9 +265,9 @@ enum {
   tenGageRGradMag,         /* 42: "rgm", gradient magnitude of Q: GT[1] */
   tenGageRNormal,          /* 43: "rn", normalized gradient of Q: GT[3] */
 
-  tenGageModeGradVec,      /* 44: "mgv", gradient vector of Th: GT[3] */
-  tenGageModeGradMag,      /* 45: "mgm", gradient magnitude of Th: GT[1] */
-  tenGageModeNormal,       /* 46: "mn", normalized gradient of Th: GT[3] */
+  tenGageModeGradVec,      /* 44: "mgv", gradient vector of Mode: GT[3] */
+  tenGageModeGradMag,      /* 45: "mgm", gradient magnitude of Mode: GT[1] */
+  tenGageModeNormal,       /* 46: "mn", normalized gradient of Mode: GT[3] */
 
   tenGageThetaGradVec,     /* 47: "thgv", gradient vector of Th: GT[3] */
   tenGageThetaGradMag,     /* 48: "thgm", gradient magnitude of Th: GT[1] */
