@@ -640,7 +640,14 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
            airFP_QNAN    == airFPClass_d(mapLup(nmap->data, 1*entLen)) &&
            airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2*entLen)) )) {
       sprintf(err, "%s: 1st entry's position non-existant, but position "
-              "of 1st three entries not -inf, NaN, and +inf", me);
+              "of 1st three entries (%g:%d,%g:%d,%g:%d) not "
+              "-inf, NaN, and +inf", me,
+              mapLup(nmap->data, 0*entLen), 
+              airFPClass_d(mapLup(nmap->data, 0*entLen)),
+              mapLup(nmap->data, 1*entLen),
+              airFPClass_d(mapLup(nmap->data, 1*entLen)),
+              mapLup(nmap->data, 2*entLen),
+              airFPClass_d(mapLup(nmap->data, 2*entLen)));
       biffAdd(NRRD, err); return 1;
     }
   }
