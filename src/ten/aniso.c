@@ -458,7 +458,8 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
 }
 
 int
-tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
+tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
+             int hflip, int whole, int nanout) {
   char me[]="tenAnisoMap", err[BIFF_STRLEN];
   float *out, c[TEN_ANISO_MAX+1], tmp;
   unsigned int x, y;
@@ -487,8 +488,13 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int whole, int nanout) {
     ELL_3V_SET(m2, 0, 0, 1);
   } else {
     ELL_3V_SET(m0, S, S, S);
-    ELL_3V_SET(m1, L, 0, 0);
-    ELL_3V_SET(m2, P, P, 0);
+    if (hflip) {
+      ELL_3V_SET(m1, P, P, 0);
+      ELL_3V_SET(m2, L, 0, 0);
+    } else {
+      ELL_3V_SET(m1, L, 0, 0);
+      ELL_3V_SET(m2, P, P, 0);
+    }
   }
   for (y=0; y<res; y++) {
     for (x=0; x<=y; x++) {

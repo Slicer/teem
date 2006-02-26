@@ -863,7 +863,7 @@ TEN_EXPORT double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]);
 TEN_EXPORT double tenAnisoEval_d(const double eval[3], int aniso);
 TEN_EXPORT void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float eval[3]);
 TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
-                            int whole, int nanout);
+                            int hflip, int whole, int nanout);
 TEN_EXPORT int tenAnisoVolume(Nrrd *nout, const Nrrd *nin,
                               int aniso, double confThresh);
 TEN_EXPORT int tenAnisoHistogram(Nrrd *nout, const Nrrd *nin,
