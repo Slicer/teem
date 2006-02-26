@@ -354,7 +354,7 @@ airFPClass_d(double val) {
                        airFP_QNAN */
   mant0 = f.c.mant0;
   mant1 = f.c.mant1;
-  hibit = mant0 >> 20;
+  hibit = mant0 >> 19;
 
   index = ((!!sign) << 2) | ((!!expo) << 1) | (!!mant0 || !!mant1);
   switch(index) {
