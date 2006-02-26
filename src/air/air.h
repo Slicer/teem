@@ -442,13 +442,15 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_dio,           /*  7: airMyDio set to something invalid */
-  airInsane_32Bit,         /*  8: airMy32Bit is wrong */
-  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_AIR_NAN_f,     /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
+  airInsane_AIR_NAN_d,     /*  8: airFPClass_d(AIR_QNAN,AIR_SNAN) wrong */
+  airInsane_dio,           /*  9: airMyDio set to something invalid */
+  airInsane_32Bit,         /* 10: airMy32Bit is wrong */
+  airInsane_UCSize,        /* 11: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 12: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 13: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        11
+#define AIR_INSANE_MAX        13
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 

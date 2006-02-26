@@ -97,6 +97,16 @@ airSanity(void) {
   if (AIR_QNANHIBIT != (int)mant) {
     return airInsane_QNaNHiBit;
   }
+  if (!( airFP_QNAN == airFPClass_f(AIR_NAN)
+         && airFP_QNAN == airFPClass_f(AIR_QNAN)
+         && airFP_SNAN == airFPClass_f(AIR_SNAN) )) {
+    return airInsane_AIR_NAN_f;
+  }
+  if (!( airFP_QNAN == airFPClass_d(AIR_NAN)
+         && airFP_QNAN == airFPClass_d(AIR_QNAN)
+         && airFP_SNAN == airFPClass_d(AIR_SNAN) )) {
+    return airInsane_AIR_NAN_d;
+  }
   if (!(airFP_QNAN == airFPClass_f(nanF)
         && airFP_POS_INF == airFPClass_f(pinfF)
         && airFP_NEG_INF == airFPClass_f(ninfF))) {
@@ -138,6 +148,8 @@ _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "AIR_EXISTS(NaN) was true",
   "air_FPClass_f() wrong after double->float assignment",
   "TEEM_QNANHIBIT is wrong",
+  "airFPClass_f(AIR_QNAN,AIR_SNAN) wrong",
+  "airFPClass_d(AIR_QNAN,AIR_SNAN) wrong",
   "TEEM_DIO has invalid value",
   "TEEM_32BIT is wrong",
   "unsigned char isn't 8 bits",
