@@ -816,8 +816,6 @@ NRRD_EXPORT const char *nrrdBiffKey;
 NRRD_EXPORT unsigned int nrrdSpaceDimension(int space);
 NRRD_EXPORT int nrrdSpaceSet(Nrrd *nrrd, int space);
 NRRD_EXPORT int nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim);
-NRRD_EXPORT void nrrdSpaceGet(const Nrrd *nrrd, int *space,
-                              unsigned int *spaceDim);
 NRRD_EXPORT unsigned int nrrdSpaceOriginGet(const Nrrd *nrrd,
                                             double vector[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd,
