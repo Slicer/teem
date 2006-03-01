@@ -39,7 +39,7 @@
 ** can be used to implement pre-processor logic about specifc
 ** versions.  The TEEM_VERSION_STRING is used in the (existing) char
 ** *airTeemVersion (added in version 1.9.0).  Yes, keeping these in
-** sync is indeed a manual operation.
+** sync is currently a manual operation.
 **
 ** NOTE: Significant API changes (aside from API additions) should NOT
 ** occur with changes in patch level, only with major or minor version
@@ -47,11 +47,11 @@
 **
 ** NOTE: ../CMakeLists.txt's TEEM_VERSION variables must be in sync
 */
-#define TEEM_VERSION_MAJOR   1      /* must be 1 digit */
-#define TEEM_VERSION_MINOR   9      /* 1 or 2 digits */
-#define TEEM_VERSION_PATCH   1      /* 1 or 2 digits */
-#define TEEM_VERSION         10901  /* can be easily compared numerically */
-#define TEEM_VERSION_STRING "1.9.1" /* cannot be so easily compared */
+#define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
+#define TEEM_VERSION_MINOR      10   /* 1 or 2 digits */
+#define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
+#define TEEM_VERSION         11000   /* can be easily compared numerically */
+#define TEEM_VERSION_STRING "1.10.0" /* cannot be so easily compared */
 
 /* NrrdIO-hack-000 */
 
