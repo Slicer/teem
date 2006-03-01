@@ -29,13 +29,16 @@ limnPolyDataNew(void) {
 
   pld = (limnPolyData *)calloc(1, sizeof(limnPolyData));
   if (pld) {
-    pld->vertNum = 0;
     pld->xyzw = NULL;
+    pld->vertNum = 0;
     pld->rgba = NULL;
+    pld->rgbaNum = 0;
     pld->norm = NULL;
+    pld->normNum = 0;
     pld->tex2D = NULL;
-    pld->indxNum = 0;
+    pld->tex2DNum = 0;
     pld->indx = NULL;
+    pld->indxNum = 0;
     pld->primNum = 0;
     pld->type = NULL;
     pld->icnt = NULL;
@@ -60,45 +63,52 @@ limnPolyDataNix(limnPolyData *pld) {
 }
 
 /*
-** does NOT set pld->vertNum
+** doesn't set pld->vertNum, only the per-attribute xxxNum variables
 */
 int
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
                        unsigned int vertNum) {
   char me[]="_limnPolyDataInfoAlloc", err[BIFF_STRLEN];
   
-  if (vertNum != pld->vertNum) {
-    if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-      pld->rgba = (unsigned char *)airFree(pld->rgba);
-      if (vertNum) {
-        pld->rgba = (unsigned char *)calloc(vertNum, 4*sizeof(unsigned char));
-        if (!pld->rgba) {
-          sprintf(err, "%s: couldn't allocate %u rgba", me, vertNum);
-          biffAdd(LIMN, err); return 1;
-        }
+  if (vertNum != pld->rgbaNum
+      && ((1 << limnPolyDataInfoRGBA) & infoBitFlag)) {
+    pld->rgba = (unsigned char *)airFree(pld->rgba);
+    if (vertNum) {
+      pld->rgba = (unsigned char *)calloc(vertNum, 4*sizeof(unsigned char));
+      if (!pld->rgba) {
+        sprintf(err, "%s: couldn't allocate %u rgba", me, vertNum);
+        biffAdd(LIMN, err); return 1;
       }
     }
-    if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-      pld->norm = (float *)airFree(pld->norm);
-      if (vertNum) {
-        pld->norm = (float *)calloc(vertNum, 4*sizeof(float));
-        if (!pld->norm) {
-          sprintf(err, "%s: couldn't allocate %u norm", me, vertNum);
-          biffAdd(LIMN, err); return 1;
-        }
-      }
-    }
-    if ((1 << limnPolyDataInfoTex2D) & infoBitFlag) {
-      pld->tex2D = (float *)airFree(pld->tex2D);
-      if (vertNum) {
-        pld->tex2D = (float *)calloc(vertNum, 4*sizeof(float));
-        if (!pld->tex2D) {
-          sprintf(err, "%s: couldn't allocate %u tex2D", me, vertNum);
-          biffAdd(LIMN, err); return 1;
-        }
-      }
-    }
+    pld->rgbaNum = vertNum;
   }
+
+  if (vertNum != pld->normNum
+      && ((1 << limnPolyDataInfoNorm) & infoBitFlag)) {
+    pld->norm = (float *)airFree(pld->norm);
+    if (vertNum) {
+      pld->norm = (float *)calloc(vertNum, 4*sizeof(float));
+      if (!pld->norm) {
+        sprintf(err, "%s: couldn't allocate %u norm", me, vertNum);
+        biffAdd(LIMN, err); return 1;
+      }
+    }
+    pld->normNum = vertNum;
+  }
+
+  if (vertNum != pld->tex2DNum
+      && ((1 << limnPolyDataInfoTex2D) & infoBitFlag)) {
+    pld->tex2D = (float *)airFree(pld->tex2D);
+    if (vertNum) {
+      pld->tex2D = (float *)calloc(vertNum, 4*sizeof(float));
+      if (!pld->tex2D) {
+        sprintf(err, "%s: couldn't allocate %u tex2D", me, vertNum);
+        biffAdd(LIMN, err); return 1;
+      }
+    }
+    pld->tex2DNum = vertNum;
+  }
+
   return 0;
 }
 
@@ -123,11 +133,11 @@ limnPolyDataAlloc(limnPolyData *pld,
         biffAdd(LIMN, err); return 1;
       }
     }
-    if (_limnPolyDataInfoAlloc(pld, infoBitFlag, vertNum)) {
-      sprintf(err, "%s: couldn't allocate info", me);
-      biffAdd(LIMN, err); return 1;
-    }
     pld->vertNum = vertNum;
+  }
+  if (_limnPolyDataInfoAlloc(pld, infoBitFlag, vertNum)) {
+    sprintf(err, "%s: couldn't allocate info", me);
+    biffAdd(LIMN, err); return 1;
   }
   if (indxNum != pld->indxNum) {
     pld->indx = (unsigned int *)airFree(pld->indx);
@@ -163,13 +173,13 @@ limnPolyDataSize(limnPolyData *pld) {
   if (pld) {
     ret += pld->vertNum*sizeof(float)*4;  /* xyzw */
     if (pld->rgba) {
-      ret += pld->vertNum*sizeof(unsigned char)*4;
+      ret += pld->rgbaNum*sizeof(unsigned char)*4;
     }
     if (pld->norm) {
-      ret += pld->vertNum*sizeof(float)*3;
+      ret += pld->normNum*sizeof(float)*3;
     }
     if (pld->tex2D) {
-      ret += pld->vertNum*sizeof(float)*2;
+      ret += pld->tex2DNum*sizeof(float)*2;
     }
     ret += pld->indxNum*sizeof(unsigned int);
     ret += pld->primNum*sizeof(signed char);
@@ -196,13 +206,13 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   }
   memcpy(pldB->xyzw, pldA->xyzw, pldA->vertNum*sizeof(float)*4);
   if (pldA->rgba) {
-    memcpy(pldB->rgba, pldA->rgba, pldA->vertNum*sizeof(unsigned char)*4);
+    memcpy(pldB->rgba, pldA->rgba, pldA->rgbaNum*sizeof(unsigned char)*4);
   }
   if (pldA->norm) {
-    memcpy(pldB->norm, pldA->norm, pldA->vertNum*sizeof(float)*3);
+    memcpy(pldB->norm, pldA->norm, pldA->normNum*sizeof(float)*3);
   }
   if (pldA->tex2D) {
-    memcpy(pldB->tex2D, pldA->tex2D, pldA->vertNum*sizeof(float)*2);
+    memcpy(pldB->tex2D, pldA->tex2D, pldA->tex2DNum*sizeof(float)*2);
   }
   memcpy(pldB->indx, pldA->indx, pldA->indxNum*sizeof(unsigned int));
   memcpy(pldB->type, pldA->type, pldA->primNum*sizeof(signed char));
@@ -349,7 +359,7 @@ limnPolyDataCube(limnPolyData *pld,
   pld->icnt[0] = indxNum;
   
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
@@ -466,7 +476,7 @@ limnPolyDataCylinder(limnPolyData *pld,
   }
 
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
@@ -592,7 +602,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   pld->icnt[primIdx++] = thetaRes + 2;
 
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
@@ -681,7 +691,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   }
 
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }

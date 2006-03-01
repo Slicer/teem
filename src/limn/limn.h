@@ -32,6 +32,7 @@
 #include <teem/hest.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
+#include <teem/gage.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(limn_EXPORTS) || defined(teem_EXPORTS)
@@ -368,13 +369,25 @@ enum {
 ** the limnPolyData is more OpenGL oriented.
 **
 ** Experimenting with *not* having airArrays here...
+**
+** There need to be per-attribute "xxxNum" variables because otherwise
+** it is impossible to unambiguously manage both changes in the number
+** of vertices, and changes in the set of attributes required.
+**
+** The idea is that at some point general gage info could be stored
+** per-vertex here, until that happens there is probably not going 
+** to be explicit dependence of limn on gage (now that limnFeature
+** stuff moved to the "seek" library)
 */
 typedef struct {
-  unsigned int vertNum;  /* there are vertNum limnVrts in vert[] */
   float *xyzw;           /* vertNum homog coord 4-tuples (always allocated) */
-  unsigned char *rgba;   /* if non-NULL, vertNum RGBA color 4-tuples */
+  unsigned int vertNum;  /* there are vertNum limnVrts in vert[] */
+  unsigned char *rgba;   /* if non-NULL, rgbaNum RGBA color 4-tuples */
+  unsigned int rgbaNum;  /* logical size of rgba */
   float *norm;           /* if non-NULL, vertNum (x,y,z) unit normals */
+  unsigned int normNum;  /* logical size of norm */
   float *tex2D;          /* if non-NULL, vertNum (s,t) 2D texture coords */
+  unsigned int tex2DNum; /* logical size of tex2D */
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;    /* all indices (into vert[]) for all primitives,
@@ -384,44 +397,6 @@ typedef struct {
   unsigned char *type;   /* prim ii is a type[ii] (limnPrimitive* enum) */
   unsigned int *icnt;    /* prim ii has vcnt[ii] vertex indices */
 } limnPolyData;
-
-typedef struct {
-  /* ------- input ------- */
-  const Nrrd *nvol;             /* the volume we're operating on */
-  int lowerInside,              /* lower values are logically inside
-                                   isosurfaces, not outside */
-    findNormals;                /* find normals for isosurface vertices with
-                                   forward and central differencing */
-  double transform[16];         /* map vertices through this transform;
-                                   defaults to identity.  This is apt to come
-                                   from gageShape->ItoW, but having this as
-                                   a separate field allows limn to avoid
-                                   dependence on gage */
-  double facesPerVoxel,         /* approximate; for pre-allocating geometry */
-    vertsPerVoxel;              /* approximate; for pre-allocating geometry */
-  unsigned int pldArrIncr;      /* increment for airArrays used during the
-                                   creation of geometry */
-  /* ------ internal ----- */
-  int reverse;                  /* reverse sense of inside/outside (based on
-                                   lowerInside and determinant of transform) */
-  double normalTransform[9];    /* how to transform normals */
-  Nrrd *nspanHist;              /* image of span space */
-  NrrdRange *range;             /* to store min and max of nvol */
-  size_t sx, sy, sz,            /* dimensions */
-    spanSize;                   /* resolution of span space along edge */
-  int *vidx;                    /* 5 * sx * sy array of vertex index
-                                   offsets, to support re-using of vertices
-                                   across voxels and slices */
-  double *val;                  /* 4 * (sx+2) * (sy+2) array as value cache,
-                                   with Z as fastest axis, and one sample
-                                   of padding on all sides */
-  /* ------ output ----- */
-  unsigned int
-    voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
-                                   isosurface, and number of vertices and
-                                   faces in that isosurface */
-  double time;                  /* time for extraction */
-} limnContour3DContext;
 
 /*
 ******** limnQN enum
@@ -732,19 +707,6 @@ LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
                                        limnSpline *spline, Nrrd *nin);
 LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
-
-/* contour.c */
-LIMN_EXPORT limnContour3DContext *limnContour3DContextNew(void);
-LIMN_EXPORT limnContour3DContext *
-  limnContour3DContextNix(limnContour3DContext *);
-LIMN_EXPORT int limnContour3DVolumeSet(limnContour3DContext *lctx,
-                                       const Nrrd *nvol);
-LIMN_EXPORT int limnContour3DLowerInsideSet(limnContour3DContext *lctx,
-                                            int lowerInside);
-LIMN_EXPORT int limnContour3DTransformSet(limnContour3DContext *lctx,
-                                          const double mat[16]);
-LIMN_EXPORT int limnContour3DExtract(limnContour3DContext *lctx,
-                                     limnPolyData *cont, double isovalue);
 
 #ifdef __cplusplus
 }
