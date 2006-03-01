@@ -34,13 +34,29 @@ mode(double v[3]) {
 
 typedef struct {
   airArray *xyzwArr, *normArr, *indxArr;
+  int evti[12];  /* edge vertex index */
 } baggage;
 
 static baggage *
-baggageNew() {
+baggageNew(unsigned int sx) {
   baggage *bag;
 
   bag = (baggage *)calloc(1, sizeof(baggage));
+
+  /*                     X      Y */
+  bag->evti[ 0] = 0 + 5*(0 + sx*0);
+  bag->evti[ 1] = 1 + 5*(0 + sx*0);
+  bag->evti[ 2] = 1 + 5*(1 + sx*0);
+  bag->evti[ 3] = 0 + 5*(0 + sx*1);
+  bag->evti[ 4] = 2 + 5*(0 + sx*0);
+  bag->evti[ 5] = 2 + 5*(1 + sx*0);
+  bag->evti[ 6] = 2 + 5*(0 + sx*1);
+  bag->evti[ 7] = 2 + 5*(1 + sx*1);
+  bag->evti[ 8] = 3 + 5*(0 + sx*0);
+  bag->evti[ 9] = 4 + 5*(0 + sx*0);
+  bag->evti[10] = 4 + 5*(1 + sx*0);
+  bag->evti[11] = 3 + 5*(0 + sx*1);
+
   bag->xyzwArr = NULL;
   bag->normArr = NULL;
   bag->indxArr = NULL;
@@ -599,9 +615,6 @@ shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
 static void
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
             unsigned int zi) {
-
-#if 0
-
   int e2v[12][2] = {        /* maps edge index to corner vertex indices */
     {0, 1},  /*  0 */
     {0, 2},  /*  1 */
@@ -627,108 +640,114 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
     {1, 1, 1}   /* 7 */
   };
 
-    /* ----------- begin triangulate slice */
-    for (yi=0; yi<sy-1; yi++) {
-      double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
-      unsigned char vcase;
-      int ti, vi, ei, vi0, vi1, ecase, *tcase;
-      unsigned int vii[3];
-      for (xi=0; xi<sx-1; xi++) {
-        si = xi + sx*yi;
-        spi = (xi+1) + (sx+2)*(yi+1);
-        if (seekTypeIsocontour == sctx->featureType) {
-          /* learn voxel values */
-          /*                     X   Y                 Z */
-          vval[0] = sctx->val[4*(0 + 0*(sx+2) + spi) + 1];
-          vval[1] = sctx->val[4*(1 + 0*(sx+2) + spi) + 1];
-          vval[2] = sctx->val[4*(0 + 1*(sx+2) + spi) + 1];
-          vval[3] = sctx->val[4*(1 + 1*(sx+2) + spi) + 1];
-          vval[4] = sctx->val[4*(0 + 0*(sx+2) + spi) + 2];
-          vval[5] = sctx->val[4*(1 + 0*(sx+2) + spi) + 2];
-          vval[6] = sctx->val[4*(0 + 1*(sx+2) + spi) + 2];
-          vval[7] = sctx->val[4*(1 + 1*(sx+2) + spi) + 2];
-        }
-        if (seekTypeRidgeSurface == sctx->featureType
-            || seekTypeValleySurface == sctx->featureType) {
-          vvalSurfSet(sctx, vval, evidx, xi, yi);
-        }
-        /* determine voxel and edge case */
-        vcase = 0;
-        for (vi=0; vi<8; vi++) {
-          vcase |= (vval[vi] > 0) << vi;
-        }
-        if (0 == vcase || 255 == vcase) {
-          /* no triangles added here */
-          continue;
-        }
-        /* set voxel corner gradients */
-        if (sctx->normalsFind && !sctx->normAns) {
-          _seek3DVoxelGrads(vgrad, sctx->val, sx, spi);
-        }
-        sctx->voxNum++;
-        ecase = _seek3DEdge[vcase];
-        /* create new vertices as needed */
-        for (ei=0; ei<12; ei++) {
-          if ((ecase & (1 << ei))
-              && -1 == sctx->vidx[vidx[ei] + 5*si]) {
-            int ovi;
-            double tvec[3], grad[3], tlen;
-            /* this edge is needed for triangulation,
-               and, we haven't already created a vertex for it */
-            vi0 = e2v[ei][0];
-            vi1 = e2v[ei][1];
-            ww = vval[vi0]/(vval[vi0] - vval[vi1]);
-            ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
-            ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
-            ELL_4MV_MUL(tvertB, sctx->transform, tvertA);
-            ELL_4V_HOMOG(tvertB, tvertB);
-            ovi = sctx->vidx[vidx[ei] + 5*si] = airArrayLenIncr(xyzwArr, 1);
-            ELL_4V_SET_TT(lpld->xyzw + 4*ovi, float,
-                          tvertB[0], tvertB[1], tvertB[2], 1.0);
-            if (sctx->normalsFind) {
-              airArrayLenIncr(normArr, 1);
-              if (sctx->normAns) {
-                gageProbe(sctx->gctx, tvertA[0], tvertA[1], tvertA[2]);
-                ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, -1, sctx->normAns);
-                if (sctx->lowerInside) {
-                  ELL_3V_SCALE(lpld->norm + 3*ovi, -1, lpld->norm + 3*ovi);
-                }
-              } else {
-                ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
-                ELL_3MV_MUL(tvec, sctx->normalTransform, grad);
-                ELL_3V_NORM_TT(lpld->norm + 3*ovi, float, tvec, tlen);
+#if 0
+
+  unsigned xi, yi, sx, sy;
+
+  sx = sctx->sx;
+  sy = sctx->sy;
+
+  for (yi=0; yi<sy-1; yi++) {
+    double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
+    unsigned char vcase;
+    int ti, vi, ei, vi0, vi1, ecase, *tcase;
+    unsigned int vii[3];
+    for (xi=0; xi<sx-1; xi++) {
+      si = xi + sx*yi;
+      spi = (xi+1) + (sx+2)*(yi+1);
+      if (seekTypeIsocontour == sctx->featureType) {
+        /* learn voxel values */
+        /*                     X   Y                 Z */
+        vval[0] = sctx->val[4*(0 + 0*(sx+2) + spi) + 1];
+        vval[1] = sctx->val[4*(1 + 0*(sx+2) + spi) + 1];
+        vval[2] = sctx->val[4*(0 + 1*(sx+2) + spi) + 1];
+        vval[3] = sctx->val[4*(1 + 1*(sx+2) + spi) + 1];
+        vval[4] = sctx->val[4*(0 + 0*(sx+2) + spi) + 2];
+        vval[5] = sctx->val[4*(1 + 0*(sx+2) + spi) + 2];
+        vval[6] = sctx->val[4*(0 + 1*(sx+2) + spi) + 2];
+        vval[7] = sctx->val[4*(1 + 1*(sx+2) + spi) + 2];
+      }
+      if (seekTypeRidgeSurface == sctx->featureType
+          || seekTypeValleySurface == sctx->featureType) {
+        vvalSurfSet(sctx, vval, evidx, xi, yi);
+      }
+      /* determine voxel and edge case */
+      vcase = 0;
+      for (vi=0; vi<8; vi++) {
+        vcase |= (vval[vi] > 0) << vi;
+      }
+      if (0 == vcase || 255 == vcase) {
+        /* no triangles added here */
+        continue;
+      }
+      /* set voxel corner gradients */
+      if (sctx->normalsFind && !sctx->normAns) {
+        _seek3DVoxelGrads(vgrad, sctx->val, sx, spi);
+      }
+      sctx->voxNum++;
+      ecase = _seek3DEdge[vcase];
+      /* create new vertices as needed */
+      for (ei=0; ei<12; ei++) {
+        if ((ecase & (1 << ei))
+            && -1 == sctx->vidx[bag->evti[ei] + 5*si]) {
+          int ovi;
+          double tvec[3], grad[3], tlen;
+          /* this edge is needed for triangulation,
+             and, we haven't already created a vertex for it */
+          vi0 = e2v[ei][0];
+          vi1 = e2v[ei][1];
+          ww = vval[vi0]/(vval[vi0] - vval[vi1]);
+          ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
+          ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
+          ELL_4MV_MUL(tvertB, sctx->transform, tvertA);
+          ELL_4V_HOMOG(tvertB, tvertB);
+          ovi = sctx->vidx[bag->evti[ei] + 5*si] = airArrayLenIncr(xyzwArr, 1);
+          ELL_4V_SET_TT(lpld->xyzw + 4*ovi, float,
+                        tvertB[0], tvertB[1], tvertB[2], 1.0);
+          if (sctx->normalsFind) {
+            airArrayLenIncr(normArr, 1);
+            if (sctx->normAns) {
+              gageProbe(sctx->gctx, tvertA[0], tvertA[1], tvertA[2]);
+              ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, -1, sctx->normAns);
+              if (sctx->lowerInside) {
+                ELL_3V_SCALE(lpld->norm + 3*ovi, -1, lpld->norm + 3*ovi);
               }
+            } else {
+              ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
+              ELL_3MV_MUL(tvec, sctx->normalTransform, grad);
+              ELL_3V_NORM_TT(lpld->norm + 3*ovi, float, tvec, tlen);
             }
-            sctx->vertNum++;
-            /*
+          }
+          sctx->vertNum++;
+          /*
             fprintf(stderr, "%s: vert %d (edge %d) of (%d,%d,%d) "
-                    "at %g %g %g\n",
-                    me, sctx->vidx[vidx[ei] + 5*si], ei, xi, yi, zi,
-                    vert[0] + xi, vert[1] + yi, vert[2] + zi);
-            */
-          }
-        }
-        /* add triangles */
-        ti = 0;
-        tcase = _seek3DTriangle[vcase];
-        while (-1 != tcase[0 + 3*ti]) {
-          unsigned iii;
-          ELL_3V_SET(vii,
-                     sctx->vidx[vidx[tcase[0 + 3*ti]] + 5*si],
-                     sctx->vidx[vidx[tcase[1 + 3*ti]] + 5*si],
-                     sctx->vidx[vidx[tcase[2 + 3*ti]] + 5*si]);
-          if (sctx->reverse) {
-            int tmpi;
-            tmpi = vii[1]; vii[1] = vii[2]; vii[2] = tmpi;
-          }
-          iii = airArrayLenIncr(indxArr, 3);
-          ELL_3V_COPY(lpld->indx + iii, vii);
-          lpld->icnt[0] += 3;
-          sctx->faceNum++;
-          ti++;
+            "at %g %g %g\n",
+            me, sctx->vidx[bag->evti[ei] + 5*si], ei, xi, yi, zi,
+            vert[0] + xi, vert[1] + yi, vert[2] + zi);
+          */
         }
       }
-    } /* ----------- end triangulate slice */
+      /* add triangles */
+      ti = 0;
+      tcase = _seek3DTriangle[vcase];
+      while (-1 != tcase[0 + 3*ti]) {
+        unsigned iii;
+        ELL_3V_SET(vii,
+                   sctx->vidx[bag->evti[tcase[0 + 3*ti]] + 5*si],
+                   sctx->vidx[bag->evti[tcase[1 + 3*ti]] + 5*si],
+                   sctx->vidx[bag->evti[tcase[2 + 3*ti]] + 5*si]);
+        if (sctx->reverse) {
+          int tmpi;
+          tmpi = vii[1]; vii[1] = vii[2]; vii[2] = tmpi;
+        }
+        iii = airArrayLenIncr(indxArr, 3);
+        ELL_3V_COPY(lpld->indx + iii, vii);
+        lpld->icnt[0] += 3;
+        sctx->faceNum++;
+        ti++;
+      }
+    }
+  }
 
 #endif
 
@@ -738,7 +757,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
 static int
 surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   char me[]="surfaceExtract", err[BIFF_STRLEN];
-  int E, vidx[12];
+  int E;
   unsigned int zi, si, spi, minI, maxI, valI, evidx;
   baggage *bag;
 
@@ -747,32 +766,20 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   sctx->vertNum = 0;
   sctx->faceNum = 0;
 
-  bag = baggageNew();
+  bag = baggageNew(sctx->sx);
+
   if (outputInit(sctx, bag, lpld)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(SEEK, err); return 1;
   }
-
-  /* set up vidx */
-  /*                X      Y */
-  vidx[ 0] = 0 + 5*(0 + sctx->sx*0);
-  vidx[ 1] = 1 + 5*(0 + sctx->sx*0);
-  vidx[ 2] = 1 + 5*(1 + sctx->sx*0);
-  vidx[ 3] = 0 + 5*(0 + sctx->sx*1);
-  vidx[ 4] = 2 + 5*(0 + sctx->sx*0);
-  vidx[ 5] = 2 + 5*(1 + sctx->sx*0);
-  vidx[ 6] = 2 + 5*(0 + sctx->sx*1);
-  vidx[ 7] = 2 + 5*(1 + sctx->sx*1);
-  vidx[ 8] = 3 + 5*(0 + sctx->sx*0);
-  vidx[ 9] = 4 + 5*(0 + sctx->sx*0);
-  vidx[10] = 4 + 5*(1 + sctx->sx*0);
-  vidx[11] = 3 + 5*(0 + sctx->sx*1);
 
   shuffleProbe(sctx, bag, 0);
   for (zi=1; zi<sctx->sz; zi++) {
     shuffleProbe(sctx, bag, zi);
     triangulate(sctx, bag, lpld, zi);
   }
+
+  /* HEY: if there was no surface output, clean up everything right */
 
   baggageNix(bag);
 

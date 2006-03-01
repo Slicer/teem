@@ -164,6 +164,7 @@ SEEK_EXPORT seekContext *seekContextNix(seekContext *sctx);
 SEEK_EXPORT void seekVerboseSet(seekContext *sctx, int verbose);
 SEEK_EXPORT int seekDataSet(seekContext *sctx, const Nrrd *ninscl,
                             gageContext *gctx, unsigned int pvlIdx);
+SEEK_EXPORT int seekNormalsFindSet(seekContext *sctx, int doit);
 SEEK_EXPORT int seekSamplesSet(seekContext *sctx, size_t samples[3]);
 SEEK_EXPORT int seekTypeSet(seekContext *sctx, int type);
 SEEK_EXPORT int seekLowerInsideSet(seekContext *sctx, int lowerInside);
