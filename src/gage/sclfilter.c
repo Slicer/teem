@@ -28,9 +28,9 @@
 #define Z 2
 
 void
-gageScl3PFilter2(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                 gage_t *val, gage_t *gvec, gage_t *hess,
+gageScl3PFilter2(double *ivX, double *ivY, double *ivZ,
+                 double *fw0, double *fw1, double *fw2,
+                 double *val, double *gvec, double *hess,
                  int doV, int doD1, int doD2) {
 
   /* fw? + 2*?
@@ -134,9 +134,9 @@ gageScl3PFilter2(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 }
 
 void
-gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                 gage_t *val, gage_t *gvec, gage_t *hess,
+gageScl3PFilter4(double *ivX, double *ivY, double *ivZ,
+                 double *fw0, double *fw1, double *fw2,
+                 double *val, double *gvec, double *hess,
                  int doV, int doD1, int doD2) {
 
   /* fw? + 4*?
@@ -302,12 +302,12 @@ gageScl3PFilter4(gage_t *ivX, gage_t *ivY, gage_t *ivZ,
 
 void
 gageScl3PFilterN(int fd,
-                 gage_t *ivX, gage_t *ivY, gage_t *ivZ,
-                 gage_t *fw0, gage_t *fw1, gage_t *fw2,
-                 gage_t *val, gage_t *gvec, gage_t *hess,
+                 double *ivX, double *ivY, double *ivZ,
+                 double *fw0, double *fw1, double *fw2,
+                 double *val, double *gvec, double *hess,
                  int doV, int doD1, int doD2) {
   int i, j;
-  gage_t T;
+  double T;
 
   /* fw? + N*?
        |     |  
@@ -400,7 +400,7 @@ void
 _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclFilter";
   int fd;
-  gage_t *fw00, *fw11, *fw22;
+  double *fw00, *fw11, *fw22;
 
   fd = 2*ctx->radius;
   if (!ctx->parm.k3pack) {

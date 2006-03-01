@@ -83,10 +83,10 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
     pvl->flag[ii] = AIR_FALSE;
   }
   pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
-  pvl->lup = nrrdLOOKUP[nin->type];
-  pvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(kind),
-                                 sizeof(gage_t));
-  pvl->directAnswer = (gage_t **)calloc(kind->itemMax+1, sizeof(gage_t*));
+  pvl->lup = nrrdDLookup[nin->type];
+  pvl->answer = (double *)calloc(gageKindTotalAnswerLength(kind),
+                                 sizeof(double));
+  pvl->directAnswer = (double **)calloc(kind->itemMax+1, sizeof(double*));
   if (!(pvl->answer && pvl->directAnswer)) {
     sprintf(err, "%s: couldn't alloc answer and directAnswer arrays", me);
     biffAdd(GAGE, err); return NULL;
@@ -128,13 +128,13 @@ _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
      constant state of gage construction, this seems much simpler.
      Pointers to per-pervolume-allocated arrays are fixed below */
   memcpy(nvl, pvl, sizeof(gagePerVolume));
-  nvl->iv3 = (gage_t *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(gage_t));
-  nvl->iv2 = (gage_t *)calloc(fd*fd*nvl->kind->valLen, sizeof(gage_t));
-  nvl->iv1 = (gage_t *)calloc(fd*nvl->kind->valLen, sizeof(gage_t));
-  nvl->answer = (gage_t *)calloc(gageKindTotalAnswerLength(nvl->kind),
-                                 sizeof(gage_t));
-  nvl->directAnswer = (gage_t **)calloc(nvl->kind->itemMax+1,
-                                        sizeof(gage_t*));
+  nvl->iv3 = (double *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(double));
+  nvl->iv2 = (double *)calloc(fd*fd*nvl->kind->valLen, sizeof(double));
+  nvl->iv1 = (double *)calloc(fd*nvl->kind->valLen, sizeof(double));
+  nvl->answer = (double *)calloc(gageKindTotalAnswerLength(nvl->kind),
+                                 sizeof(double));
+  nvl->directAnswer = (double **)calloc(nvl->kind->itemMax+1,
+                                        sizeof(double*));
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
          && nvl->answer && nvl->directAnswer )) {
     sprintf(err, "%s: couldn't allocate all caches", me);
@@ -169,11 +169,11 @@ gagePerVolumeNix(gagePerVolume *pvl) {
     if (pvl->kind->pvlDataNix) {
       pvl->data = pvl->kind->pvlDataNix(pvl->kind, pvl->data);
     }
-    pvl->iv3 = (gage_t *)airFree(pvl->iv3);
-    pvl->iv2 = (gage_t *)airFree(pvl->iv2);
-    pvl->iv1 = (gage_t *)airFree(pvl->iv1);
-    pvl->answer = (gage_t *)airFree(pvl->answer);
-    pvl->directAnswer = (gage_t **)airFree(pvl->directAnswer);
+    pvl->iv3 = (double *)airFree(pvl->iv3);
+    pvl->iv2 = (double *)airFree(pvl->iv2);
+    pvl->iv1 = (double *)airFree(pvl->iv1);
+    pvl->answer = (double *)airFree(pvl->answer);
+    pvl->directAnswer = (double **)airFree(pvl->directAnswer);
     airFree(pvl);
   }
   return NULL;
@@ -185,9 +185,9 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 ** way of getting a pointer to a specific answer in a pervolume's ans array
 **
 */
-const gage_t *
+const double *
 gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
-  const gage_t *ret;
+  const double *ret;
 
   AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
@@ -199,9 +199,9 @@ gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 }
 
 /* non-const version of the above */
-gage_t *
+double *
 _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
-  gage_t *ret;
+  double *ret;
 
   AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {

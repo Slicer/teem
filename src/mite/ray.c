@@ -158,7 +158,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
            double samplePosIndex[3]) {
   char me[]="miteSample", err[BIFF_STRLEN];
   mite_t R, G, B, A;
-  gage_t *NN;
+  double *NN;
   double NdotV, kn[3], knd[3], ref[3], len, *dbg=NULL;
 
   if (!inside) {
@@ -185,9 +185,9 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   /* do probing at this location to determine values of everything
      that might appear in the txf domain */
   if (gageProbe(mtt->gctx,
-                AIR_CAST(gage_t, samplePosIndex[0]),
-                AIR_CAST(gage_t, samplePosIndex[1]),
-                AIR_CAST(gage_t, samplePosIndex[2]))) {
+                samplePosIndex[0],
+                samplePosIndex[1],
+                samplePosIndex[2])) {
     sprintf(err, "%s: gage trouble: %s (%d)", me,
             mtt->gctx->errStr, mtt->gctx->errNum);
     biffAdd(MITE, err); return AIR_NAN;
@@ -198,19 +198,17 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
        with too many branches on all possible checks of queryMite,
        and slowing things down with doing the work of setting them all.
        This code has not been profiled whatsoever */
-    mtt->directAnsMiteVal[miteValXw][0] = AIR_CAST(gage_t, samplePosWorld[0]);
-    mtt->directAnsMiteVal[miteValXi][0] = AIR_CAST(gage_t, samplePosIndex[0]);
-    mtt->directAnsMiteVal[miteValYw][0] = AIR_CAST(gage_t, samplePosWorld[1]);
-    mtt->directAnsMiteVal[miteValYi][0] = AIR_CAST(gage_t, samplePosIndex[1]);
-    mtt->directAnsMiteVal[miteValZw][0] = AIR_CAST(gage_t, samplePosWorld[2]);
-    mtt->directAnsMiteVal[miteValZi][0] = AIR_CAST(gage_t, samplePosIndex[2]);
-    mtt->directAnsMiteVal[miteValRw][0] = AIR_CAST(gage_t,
-                                                   ELL_3V_LEN(samplePosWorld));
-    mtt->directAnsMiteVal[miteValRi][0] = AIR_CAST(gage_t,
-                                                   ELL_3V_LEN(samplePosIndex));
-    mtt->directAnsMiteVal[miteValTw][0] = AIR_CAST(gage_t, rayT);
-    mtt->directAnsMiteVal[miteValTi][0] = AIR_CAST(gage_t, num);
-    ELL_3V_COPY_TT(mtt->directAnsMiteVal[miteValView], gage_t, mtt->V);
+    mtt->directAnsMiteVal[miteValXw][0] = samplePosWorld[0];
+    mtt->directAnsMiteVal[miteValXi][0] = samplePosIndex[0];
+    mtt->directAnsMiteVal[miteValYw][0] = samplePosWorld[1];
+    mtt->directAnsMiteVal[miteValYi][0] = samplePosIndex[1];
+    mtt->directAnsMiteVal[miteValZw][0] = samplePosWorld[2];
+    mtt->directAnsMiteVal[miteValZi][0] = samplePosIndex[2];
+    mtt->directAnsMiteVal[miteValRw][0] = ELL_3V_LEN(samplePosWorld);
+    mtt->directAnsMiteVal[miteValRi][0] = ELL_3V_LEN(samplePosIndex);
+    mtt->directAnsMiteVal[miteValTw][0] = rayT;
+    mtt->directAnsMiteVal[miteValTi][0] = num;
+    ELL_3V_COPY(mtt->directAnsMiteVal[miteValView], mtt->V);
     NN = mtt->directAnsMiteVal[miteValNormal];
     if (mtt->_normal) {
       if (1 == muu->normalSide) {
@@ -223,8 +221,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     if ((GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotV)
          || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotL)
          || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValVrefN))) {
-      mtt->directAnsMiteVal[miteValNdotV][0] =
-        AIR_CAST(gage_t, ELL_3V_DOT(NN, mtt->V));
+      mtt->directAnsMiteVal[miteValNdotV][0] = ELL_3V_DOT(NN, mtt->V);
       mtt->directAnsMiteVal[miteValNdotL][0] =
         ELL_3V_DOT(NN, muu->lit->dir[0]);
       if (!muu->normalSide) {
@@ -235,15 +232,14 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
       }
       NdotV = mtt->directAnsMiteVal[miteValNdotV][0];
       ELL_3V_SCALE_ADD2(ref, 2*NdotV, NN, -1, mtt->V);
-      ELL_3V_NORM_TT(mtt->directAnsMiteVal[miteValVrefN], gage_t, ref, len);
+      ELL_3V_NORM(mtt->directAnsMiteVal[miteValVrefN], ref, len);
     }
 
     if (GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValGTdotV)) {
       ELL_3MV_MUL(kn, mtt->nPerp, mtt->V);
       ELL_3V_NORM(kn, kn, len);
       ELL_3MV_MUL(knd, mtt->geomTens, kn);
-      mtt->directAnsMiteVal[miteValGTdotV][0] = 
-        AIR_CAST(gage_t, ELL_3V_DOT(knd, kn));
+      mtt->directAnsMiteVal[miteValGTdotV][0] = ELL_3V_DOT(knd, kn);
     }
   }
   

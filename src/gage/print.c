@@ -91,7 +91,7 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
 void
 _gagePrint_fslw(FILE *file, gageContext *ctx) {
   int i, fd;
-  gage_t *fslx, *fsly, *fslz, *fw,
+  double *fslx, *fsly, *fslz, *fw,
     *fw000, *fw001, *fw002, 
     *fw100, *fw101, *fw102, 
     *fw110, *fw111, *fw112, 

@@ -29,10 +29,10 @@ gageBiffKey = "gage";
 int
 gageDefVerbose = 0;
 
-gage_t
+double
 gageDefGradMagMin = 0.00001f;
 
-gage_t
+double
 gageDefGradMagCurvMin = 0.0f;
 
 int
@@ -44,13 +44,13 @@ gageDefCheckIntegrals = AIR_TRUE;
 int
 gageDefK3Pack = AIR_TRUE;
 
-gage_t
+double
 gageDefDefaultSpacing = 1.0f;
 
 int
 gageDefCurvNormalSide = 1;
 
-gage_t
+double
 gageDefKernelIntegralNearZero = 0.0001f;
 
 int

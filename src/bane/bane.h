@@ -247,7 +247,7 @@ typedef struct baneMeasr_t {
                             but NOT its recursive prerequisite expansion). */
   baneRange *range;
   int offset0;
-  double (*answer)(struct baneMeasr_t *, gage_t *, double *parm);
+  double (*answer)(struct baneMeasr_t *, double *, double *parm);
 } baneMeasr;
 
 /* -------------------- histogram volumes, etc. ---------------------- */

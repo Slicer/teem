@@ -27,21 +27,13 @@
 extern "C" {
 #endif
 
-#define GT gage_t
-
-#if GAGE_TYPE_FLOAT
-#  define ell_3v_PRINT ell_3v_print_f
-#  define ell_3m_PRINT ell_3m_print_f
-#  define ell_3v_PERP ell_3v_perp_f
-#  define nrrdLOOKUP nrrdFLookup
-#  define EVALN evalN_f               /* NrrdKernel method */
-#else
-#  define ell_3v_PRINT ell_3v_print_d
-#  define ell_3m_PRINT ell_3m_print_d
-#  define ell_3v_PERP ell_3v_perp_d
-#  define nrrdLOOKUP nrrdDLookup
-#  define EVALN evalN_d               /* NrrdKernel method */
-#endif
+/*
+ define ell_3v_PRINT ell_3v_print_d
+ define ell_3m_PRINT ell_3m_print_d
+ define ell_3v_PERP ell_3v_perp_d
+ define nrrdLOOKUP nrrdDLookup
+ define EVALN evalN_d       / * NrrdKernel method * /
+*/
 
 /* shape.c */
 extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
@@ -49,7 +41,7 @@ extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
-extern gage_t *_gageAnswerPointer(const gageContext *ctx, 
+extern double *_gageAnswerPointer(const gageContext *ctx, 
                                   gagePerVolume *pvl, int item);
 
 /* print.c */
@@ -57,7 +49,7 @@ extern void _gagePrint_off(FILE *, gageContext *ctx);
 extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
-extern int _gageLocationSet(gageContext *ctx, gage_t x, gage_t y, gage_t z);
+extern int _gageLocationSet(gageContext *ctx, double x, double y, double z);
 
 /* sclprint.c */
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);

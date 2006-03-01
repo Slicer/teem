@@ -27,14 +27,16 @@
 extern "C" {
 #endif
 
-#if GAGE_TYPE_FLOAT
-#define limnVtoQN_GT limnVtoQN_f
-#else
-#define limnVtoQN_GT limnVtoQN_d
-#endif
+/*
+ # if GAGE_TYPE_FLOAT
+ # define limnVtoQN_GT limnVtoQN_f
+ # else
+ # define limnVtoQN_GT limnVtoQN_d
+ # endif
+*/
 
 /* txf.c */
-extern gage_t *_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp);
+extern double *_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp);
 extern int _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu);
 extern int _miteStageSet(miteThread *mtt, miteRender *mrr);
 extern void _miteStageRun(miteThread *mtt, miteUser *muu);

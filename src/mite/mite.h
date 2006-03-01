@@ -295,7 +295,7 @@ enum {
 #define MITE_STAGE_OP_MAX  4
 
 typedef struct {
-  gage_t *val;                  /* the txf axis variable, computed either by
+  double *val;                  /* the txf axis variable, computed either by
                                    gage or by mite.  This points into the 
                                    answer vector in one of the thread's
                                    pervolumes, or into ansMiteVal in the
@@ -306,7 +306,7 @@ typedef struct {
                                    operation applies to ALL the range variables
                                    adjusted by this txf (can't add color while
                                    multiplying opacity) */
-    (*qn)(gage_t *);            /* if non-NULL: callback for doing vector
+    (*qn)(double *);            /* if non-NULL: callback for doing vector
                                    quantization of vector-valued txf domain
                                    variables */
   double min, max;              /* quantization range of values which is 
@@ -334,35 +334,35 @@ typedef struct {
 */
 enum {
   miteValUnknown=-1,    /* -1: nobody knows */
-  miteValXw,            /*  0: "Xw", X position, world space (gage_t[1]) */
-  miteValXi,            /*  1: "Xi", X     "   , index   "   (gage_t[1]) */
-  miteValYw,            /*  2: "Yw", Y     "   , world   "   (gage_t[1]) */
-  miteValYi,            /*  3: "Yi", Y     "   , index   "   (gage_t[1]) */
-  miteValZw,            /*  4: "Zw", Z     "   , world   "   (gage_t[1]) */
-  miteValZi,            /*  5: "Zi", Z     "   , index   "   (gage_t[1]) */
-  miteValRw,            /*  6: "Rw", dist to origin, world " (gage_t[1]) */
-  miteValRi,            /*  7: "Ri", dist to origin, index " (gage_t[1]) */
-  miteValTw,            /*  8: "Tw", ray position (gage_t[1]) */
-  miteValTi,            /*  9: "Ti", ray index (ray sample #) (gage_t[1]) */
-  miteValView,          /* 10: "V", the view vector (gage_t[3]) */
+  miteValXw,            /*  0: "Xw", X position, world space (double[1]) */
+  miteValXi,            /*  1: "Xi", X     "   , index   "   (double[1]) */
+  miteValYw,            /*  2: "Yw", Y     "   , world   "   (double[1]) */
+  miteValYi,            /*  3: "Yi", Y     "   , index   "   (double[1]) */
+  miteValZw,            /*  4: "Zw", Z     "   , world   "   (double[1]) */
+  miteValZi,            /*  5: "Zi", Z     "   , index   "   (double[1]) */
+  miteValRw,            /*  6: "Rw", dist to origin, world " (double[1]) */
+  miteValRi,            /*  7: "Ri", dist to origin, index " (double[1]) */
+  miteValTw,            /*  8: "Tw", ray position (double[1]) */
+  miteValTi,            /*  9: "Ti", ray index (ray sample #) (double[1]) */
+  miteValView,          /* 10: "V", the view vector (double[3]) */
   miteValNormal,        /* 11: "N", the nominal surface normal, as measured
                                by a scalar, vector, or tensor kind, and then
                                determined by the semantics of
                                muu->normalSide */
   miteValNdotV,         /* 12: "NdotV", surface normal dotted w/ view vector
-                               (towards eye) (gage_t[1]) */
+                               (towards eye) (double[1]) */
   miteValNdotL,         /* 13: "NdotL", surface normal dotted w/ light vector
-                               (towards the light source) (gage_t[1]) */
+                               (towards the light source) (double[1]) */
   miteValVrefN,         /* 14: "VrefN", view vector reflected across normal
-                               (gage_t[3]) */
+                               (double[3]) */
   miteValGTdotV,        /* 15: "GTdotV", normal curvature in view direction,
                                the contraction of the geometry tensor along
-                               the view vector (gage_t[1]) */
+                               the view vector (double[1]) */
   miteValVdefT,         /* 16: "defT", view direction, deflected by tensor,
-                               then normalized (gage_t[3]) */
+                               then normalized (double[3]) */
   miteValVdefTdotV,     /* 17: "VdefTdotV", VdefT dotted back with V, not the
                                same as the tensor contraction along V,
-                               (gage_t[1]) */
+                               (double[1]) */
   miteValWdotD,         /* 18: "WdotD", world space position dotted with
                                muu->vectorD */
   miteValLast
@@ -376,7 +376,7 @@ enum {
 */
 typedef struct miteThread_t {
   gageContext *gctx;            /* per-thread context */
-  gage_t *ansScl,               /* pointer to gageKindScl answer vector */
+  double *ansScl,               /* pointer to gageKindScl answer vector */
     *nPerp, *geomTens,          /* convenience pointers into ansScl */
     *ansVec,                    /* pointer to gageKindVec answer vector */
     *ansTen,                    /* pointer to tenGageKind answer vector */

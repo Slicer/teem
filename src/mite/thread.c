@@ -45,10 +45,10 @@ miteThreadNew() {
   /* were miteVal a full-fledged gageKind, the following would
      be done by gagePerVolumeNew */
   mtt->ansMiteVal = 
-    (gage_t *)calloc(gageKindTotalAnswerLength(miteValGageKind), 
-                     sizeof(gage_t));
+    (double *)calloc(gageKindTotalAnswerLength(miteValGageKind), 
+                     sizeof(double));
   mtt->directAnsMiteVal = 
-    (gage_t **)calloc(miteValGageKind->itemMax+1, sizeof(gage_t*));
+    (double **)calloc(miteValGageKind->itemMax+1, sizeof(double*));
   if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
     sprintf(err, "%s: couldn't calloc miteVal answer arrays", me);
     biffAdd(MITE, err); return NULL;
@@ -73,8 +73,8 @@ miteThreadNew() {
 miteThread *
 miteThreadNix(miteThread *mtt) {
 
-  mtt->ansMiteVal = (gage_t *)airFree(mtt->ansMiteVal);
-  mtt->directAnsMiteVal = (gage_t **)airFree(mtt->directAnsMiteVal);
+  mtt->ansMiteVal = (double *)airFree(mtt->ansMiteVal);
+  mtt->directAnsMiteVal = (double **)airFree(mtt->directAnsMiteVal);
   airFree(mtt);
   return NULL;
 }

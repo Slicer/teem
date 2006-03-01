@@ -160,7 +160,7 @@ typedef struct pushBin_t {
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
-  const gage_t *tenAns, *invAns, *cntAns,
+  const double *tenAns, *invAns, *cntAns,
     *gravAns, *gravNotAns[2],  /* results of gage probing */
     *seedThreshAns;            /* seed threshold answer */
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */

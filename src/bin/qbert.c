@@ -196,7 +196,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   char me[]="qbertProbe", err[BIFF_STRLEN], prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
-  const gage_t *val, *gmag, *scnd;
+  const double *val, *gmag, *scnd;
   float *vghF;
   int E;
   unsigned int i, j, k;
@@ -258,10 +258,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
         fflush(stderr);
       }
       for (i=0; i<sz[0]; i++) {
-        gageProbe(ctx,
-                  AIR_CAST(gage_t, i),
-                  AIR_CAST(gage_t, j),
-                  AIR_CAST(gage_t, k));
+        gageProbe(ctx, i, j, k);
         vghF[0] = *val;
         vghF[1] = *gmag;
         if (doH) {

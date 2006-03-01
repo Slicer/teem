@@ -50,8 +50,8 @@ _gageHash(int x, int y, int z) {
 }
 
 void
-_gageCacheProbe(gageContext *ctx, gage_t *grad,
-                int *cc, gage_t *gc, 
+_gageCacheProbe(gageContext *ctx, double *grad,
+                int *cc, double *gc, 
                 int x, int y, int z) {
   int hi;
 
@@ -66,8 +66,7 @@ _gageCacheProbe(gageContext *ctx, gage_t *grad,
     cc[3*hi + 0] = x;
     cc[3*hi + 1] = y;
     cc[3*hi + 2] = z;
-    gageProbe(ctx, AIR_CAST(gage_t, x), AIR_CAST(gage_t, y),
-              AIR_CAST(gage_t, z));
+    gageProbe(ctx, x, y, z);
     ELL_3V_COPY(gc + 3*hi, grad);
   }
   return ;
@@ -95,7 +94,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   gageQuery query;
   gagePerVolume *pvl;
   airArray *mop;
-  gage_t *grad, *ixw, *iyw, *izw, wght, sten[6], *gradCache, *out;
+  double *grad, *ixw, *iyw, *izw, wght, sten[6], *gradCache, *out;
   double xs, ys, zs, ms;
 
   if (!(nout && nin)) {
@@ -177,9 +176,9 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   ik0->parm[0] = iScale/zs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
   diam = 2*rad + 1;
-  ixw = (gage_t*)calloc(diam, sizeof(gage_t));
-  iyw = (gage_t*)calloc(diam, sizeof(gage_t));
-  izw = (gage_t*)calloc(diam, sizeof(gage_t));
+  ixw = (double*)calloc(diam, sizeof(double));
+  iyw = (double*)calloc(diam, sizeof(double));
+  izw = (double*)calloc(diam, sizeof(double));
   if (!(ixw && iyw && izw)) {
     sprintf(err, "%s: couldn't allocate grad vector or weight buffers", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
@@ -192,7 +191,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
      without having the cache hang directly off the gageContext, is that
      we're doing all the probing for one context in one shot- producing
      an entirely volume of structure tensors with one function call */
-  gradCache = (gage_t*)calloc(3*GAGE_CACHE_LEN, sizeof(gage_t));
+  gradCache = (double*)calloc(3*GAGE_CACHE_LEN, sizeof(double));
   coordCache = (int*)calloc(3*GAGE_CACHE_LEN, sizeof(int));
   if (!(gradCache && coordCache)) {
     sprintf(err, "%s: couldn't allocate caches", me);
@@ -208,11 +207,11 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
 
   for (wi=-rad; wi<=rad; wi++) {
     ik0->parm[0] = iScale/xs;
-    ixw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
+    ixw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
     ik0->parm[0] = iScale/ys;
-    iyw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
+    iyw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
     ik0->parm[0] = iScale/zs;
-    izw[wi+rad] = AIR_CAST(gage_t, ik0->kernel->eval1_d(wi, ik0->parm));
+    izw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
     fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
             wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
   }
@@ -220,7 +219,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   osx = (nin->axis[0].size)/dsmp;
   osy = (nin->axis[1].size)/dsmp;
   osz = (nin->axis[2].size)/dsmp;
-  if (nrrdMaybeAlloc_va(nout, gage_nrrdType, 4,
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 4,
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, osx),
                         AIR_CAST(size_t, osy),
@@ -230,7 +229,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, nout, (airMopper)nrrdEmpty, airMopOnError);
 
-  out = (gage_t *)nout->data;
+  out = (double *)nout->data;
   for (ozi=0; ozi<osz; ozi++) {
     fprintf(stderr, "%s: z = %d/%d\n", me, ozi+1, osz);
     for (oyi=0; oyi<osy; oyi++) {

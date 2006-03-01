@@ -24,7 +24,7 @@
 #include "privateBane.h"
 
 double
-_baneMeasr_StockAnswer(baneMeasr *measr, gage_t *san, double *parm) {
+_baneMeasr_StockAnswer(baneMeasr *measr, double *san, double *parm) {
 
   AIR_UNUSED(parm);
   return san[measr->offset0];

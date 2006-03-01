@@ -25,7 +25,7 @@
 
 void
 _gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
-  gage_t *iv3;
+  double *iv3;
   int i, fd;
 
   iv3 = pvl->iv3;

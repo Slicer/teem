@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   char *me, *outS;
   float angle;
   double xs, ys, zs, y, z, padval;
-  const gage_t *val;
+  const double *val;
   int sx, sy, sz, E, xi, yi, zi, clamp;
   NrrdKernelSpec *gantric;
   void *out;
@@ -134,10 +134,7 @@ main(int argc, char *argv[]) {
         z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
         if (clamp || AIR_IN_OP(0, z, sz-1)) {
           z = AIR_CLAMP(0, z, sz-1);
-          gageProbe(ctx,
-                    AIR_CAST(gage_t, xi),
-                    AIR_CAST(gage_t, yi),
-                    AIR_CAST(gage_t, z));
+          gageProbe(ctx, xi, yi, zi);
           insert(out, xi + sx*(yi + sy*zi), *val);
         } else {
           insert(out, xi + sx*(yi + sy*zi), padval);

@@ -100,8 +100,8 @@ gageContextCopy(gageContext *ctx) {
   }
   ntx->shape = gageShapeCopy(ctx->shape);
   fd = 2*ntx->radius;
-  ntx->fsl = (gage_t *)calloc(fd*3, sizeof(gage_t));
-  ntx->fw = (gage_t *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
+  ntx->fsl = (double *)calloc(fd*3, sizeof(double));
+  ntx->fw = (double *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(double));
   ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!( ntx->fsl && ntx->fw && ntx->off )) {
     sprintf(err, "%s: couldn't allocate new filter caches for fd=%d",
@@ -138,8 +138,8 @@ gageContextNix(gageContext *ctx) {
       /* no point in doing a detach, the whole context is going bye-bye */
     }
     ctx->shape = gageShapeNix(ctx->shape);
-    ctx->fw = (gage_t *)airFree(ctx->fw);
-    ctx->fsl = (gage_t *)airFree(ctx->fsl);
+    ctx->fw = (double *)airFree(ctx->fw);
+    ctx->fsl = (double *)airFree(ctx->fsl);
     ctx->off = (unsigned int *)airFree(ctx->off);
   }
   airFree(ctx);
@@ -247,7 +247,7 @@ gageKernelReset(gageContext *ctx) {
 ** consequences
 */
 void
-gageParmSet(gageContext *ctx, int which, gage_t val) {
+gageParmSet(gageContext *ctx, int which, double val) {
   char me[]="gageParmSet";
   unsigned int pvlIdx;
   
@@ -547,7 +547,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 ** structs of the attached pervolumes
 */
 int
-gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
+gageProbe(gageContext *ctx, double x, double y, double z) {
   char me[]="gageProbe";
   int xi, yi, zi;
   unsigned int pvlIdx;
@@ -588,11 +588,11 @@ gageProbe(gageContext *ctx, gage_t x, gage_t y, gage_t z) {
 }
 
 int
-gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
+gageProbeSpace(gageContext *ctx, double x, double y, double z,
                int indexSpace, int clamp) {
   int ret;
   unsigned int *size;
-  gage_t xi, yi, zi;
+  double xi, yi, zi;
 
   size = ctx->shape->size;
   if (indexSpace) {
@@ -602,23 +602,23 @@ gageProbeSpace(gageContext *ctx, gage_t x, gage_t y, gage_t z,
   } else {
     /* have to convert from world to index */
     /* HEY: this has to be tested/debugged */
-    double icoord[4]; gage_t wcoord[4];
+    double icoord[4]; double wcoord[4];
     ELL_4V_SET(wcoord, x, y, z, 1);
     ELL_4MV_MUL(icoord, ctx->shape->WtoI, wcoord);
     ELL_4V_HOMOG(icoord, icoord);
-    xi = AIR_CAST(gage_t, icoord[0]);
-    yi = AIR_CAST(gage_t, icoord[1]);
-    zi = AIR_CAST(gage_t, icoord[2]);
+    xi = icoord[0];
+    yi = icoord[1];
+    zi = icoord[2];
   }
   if (clamp) {
     if (nrrdCenterNode == ctx->shape->center) {
-      xi = AIR_CAST(gage_t, AIR_CLAMP(0, xi, size[0]-1));
-      yi = AIR_CAST(gage_t, AIR_CLAMP(0, yi, size[1]-1));
-      zi = AIR_CAST(gage_t, AIR_CLAMP(0, zi, size[2]-1));
+      xi = AIR_CLAMP(0, xi, size[0]-1);
+      yi = AIR_CLAMP(0, yi, size[1]-1);
+      zi = AIR_CLAMP(0, zi, size[2]-1);
     } else {
-      xi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, xi, size[0]-0.5));
-      yi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, yi, size[1]-0.5));
-      zi = AIR_CAST(gage_t, AIR_CLAMP(-0.5, zi, size[2]-0.5));
+      xi = AIR_CLAMP(-0.5, xi, size[0]-0.5);
+      yi = AIR_CLAMP(-0.5, yi, size[1]-0.5);
+      zi = AIR_CLAMP(-0.5, zi, size[2]-0.5);
     }
   }
   ret = gageProbe(ctx, xi, yi, zi);

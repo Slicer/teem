@@ -73,7 +73,7 @@ hestCB probeKindHestCB = {
 }; 
 
 void
-printans(FILE *file, const gage_t *ans, int len) {
+printans(FILE *file, const double *ans, int len) {
   int a;
 
   AIR_UNUSED(file);
@@ -95,9 +95,10 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
-  float pos[3], gmc;
+  float pos[3];
+  double gmc;
   int what, ansLen, E=0, iBaseDim, renorm;
-  const gage_t *answer, *answer2;
+  const double *answer, *answer2;
   Nrrd *nin;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
@@ -130,7 +131,7 @@ main(int argc, char *argv[]) {
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeFloat, 1, 1, &gmc,
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -159,8 +160,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageParmSet(ctx, gageParmVerbose, 42);
   gageParmSet(ctx, gageParmGradMagMin, gmc);
-  gageParmSet(ctx, gageParmRenormalize,
-              AIR_CAST(gage_t, renorm ? AIR_TRUE : AIR_FALSE));
+  gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));

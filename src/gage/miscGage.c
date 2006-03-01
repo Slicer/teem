@@ -37,7 +37,7 @@ gageErrNum=-1;
 ** set this to {AIR_NAN, AIR_NAN, AIR_NAN}, but simply passing
 ** NANs around can make things fantastically slow ...
 */
-gage_t
+double
 gageZeroNormal[3] = {0,0,0};
 
 char

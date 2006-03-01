@@ -233,11 +233,11 @@ _gageCacheSizeUpdate(gageContext *ctx) {
     biffAdd(GAGE, err); return 1;
   }
   fd = 2*ctx->radius;
-  ctx->fsl = (gage_t *)airFree(ctx->fsl);
-  ctx->fw = (gage_t *)airFree(ctx->fw);
+  ctx->fsl = (double *)airFree(ctx->fsl);
+  ctx->fw = (double *)airFree(ctx->fw);
   ctx->off = (unsigned int *)airFree(ctx->off);
-  ctx->fsl = (gage_t *)calloc(fd*3, sizeof(gage_t));
-  ctx->fw = (gage_t *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(gage_t));
+  ctx->fsl = (double *)calloc(fd*3, sizeof(double));
+  ctx->fw = (double *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(double));
   ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!(ctx->fsl && ctx->fw && ctx->off)) {
     sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
@@ -245,12 +245,12 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   }
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
-    pvl->iv3 = (gage_t *)airFree(pvl->iv3);
-    pvl->iv2 = (gage_t *)airFree(pvl->iv2);
-    pvl->iv1 = (gage_t *)airFree(pvl->iv1);
-    pvl->iv3 = (gage_t *)calloc(fd*fd*fd*pvl->kind->valLen, sizeof(gage_t));
-    pvl->iv2 = (gage_t *)calloc(fd*fd*pvl->kind->valLen, sizeof(gage_t));
-    pvl->iv1 = (gage_t *)calloc(fd*pvl->kind->valLen, sizeof(gage_t));
+    pvl->iv3 = (double *)airFree(pvl->iv3);
+    pvl->iv2 = (double *)airFree(pvl->iv2);
+    pvl->iv1 = (double *)airFree(pvl->iv1);
+    pvl->iv3 = (double *)calloc(fd*fd*fd*pvl->kind->valLen, sizeof(double));
+    pvl->iv2 = (double *)calloc(fd*fd*pvl->kind->valLen, sizeof(double));
+    pvl->iv1 = (double *)calloc(fd*pvl->kind->valLen, sizeof(double));
     if (!(pvl->iv3 && pvl->iv2 && pvl->iv1)) {
       sprintf(err, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
               me, pvlIdx, fd);

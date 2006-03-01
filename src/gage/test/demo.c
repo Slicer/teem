@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin;
   gageContext *ctx;
   gagePerVolume *pvl;
-  const gage_t *grad, *norm;
+  const double *grad, *norm;
   double kparm[NRRD_KERNEL_PARMS_NUM];
   int E;
 
