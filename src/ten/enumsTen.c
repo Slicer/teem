@@ -48,6 +48,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "Skew",
   "Mode",
   "Th",
+  "Omega",
   "Cz",
   "Det",
   "Tr",
@@ -87,6 +88,7 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "mode",
   "theta",
   "modew",
+  "omega",
 
   "evals",
   "eval0",
@@ -137,6 +139,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "theta grad mag",
   "theta normal",
 
+  "omega grad vec",
+  "omega grad mag",
+  "omega normal",
+
   "invariant gradients",
   "invariant gradient mags",
   "rotation tangents",
@@ -180,6 +186,16 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "mode hessian evec 1",
   "mode hessian evec 2",
 
+  "omega hessian",
+  "omega hessian evals",
+  "omega hessian eval 0",
+  "omega hessian eval 1",
+  "omega hessian eval 2",
+  "omega hessian evecs",
+  "omega hessian evec 0",
+  "omega hessian evec 1",
+  "omega hessian evec 2",
+
   "anisotropies"
 };
 
@@ -198,6 +214,7 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "mode",
   "theta",
   "warped mode",
+  "omega",
   "3 eigenvalues",
   "eigenvalue 0",
   "eigenvalue 1",
@@ -236,6 +253,9 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "theta grad vec",
   "theta grad mag",
   "theta normal",
+  "omega grad vec",
+  "omega grad mag",
+  "omega normal",
   "invariant gradients",
   "invariant gradient mags",
   "rotation tangents",
@@ -272,6 +292,15 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "mode hessian evec 0",
   "mode hessian evec 1",
   "mode hessian evec 2",
+  "omega hessian",
+  "omega hessian evals",
+  "omega hessian eval 0",
+  "omega hessian eval 1",
+  "omega hessian eval 2",
+  "omega hessian evecs",
+  "omega hessian evec 0",
+  "omega hessian evec 1",
+  "omega hessian evec 2",
   "anisotropies"
 };
 
@@ -290,6 +319,7 @@ _tenGageVal[] = {
   tenGageMode,          /* "mode", sqrt(2)*R/sqrt(Q^3): GT[1] */
   tenGageTheta,         /* "th", arccos(mode/sqrt(2))/AIR_PI: GT[1] */
   tenGageModeWarp,      /* */
+  tenGageOmega,         /* */
   tenGageEval,          /* "eval", all eigenvalues of tensor : GT[3] */
   tenGageEval0,         /* "eval0", major eigenvalue of tensor : GT[1] */
   tenGageEval1,         /* "eval1", medium eigenvalue of tensor : GT[1] */
@@ -328,6 +358,9 @@ _tenGageVal[] = {
   tenGageThetaGradVec,  /* "thgv", gradient vector of theta: GT[3] */
   tenGageThetaGradMag,  /* "thgm", gradient magnitude of theta: GT[1] */
   tenGageThetaNormal,   /* "thn", normalized gradient of theta: GT[3] */
+  tenGageOmegaGradVec,  /* */
+  tenGageOmegaGradMag,  /* */
+  tenGageOmegaNormal,   /* */
   tenGageInvarGrads,    /* "igs" */
   tenGageInvarGradMags, /* "igms" */
   tenGageRotTans,       /* "rts" */
@@ -363,7 +396,16 @@ _tenGageVal[] = {
   tenGageModeHessianEvec,
   tenGageModeHessianEvec0,
   tenGageModeHessianEvec1,
-  tenGageModeHessianEvec2,
+  tenGageOmegaHessianEvec2,
+  tenGageOmegaHessian,
+  tenGageOmegaHessianEval,
+  tenGageOmegaHessianEval0,
+  tenGageOmegaHessianEval1,
+  tenGageOmegaHessianEval2,
+  tenGageOmegaHessianEvec,
+  tenGageOmegaHessianEvec0,
+  tenGageOmegaHessianEvec1,
+  tenGageOmegaHessianEvec2,
   tenGageAniso
 };
 
@@ -381,6 +423,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "mode", "m",
   "th", "theta",
   "modew", "mw",
+  "omega", "om",
   "eval",
   "eval0",
   "eval1",
@@ -419,6 +462,9 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "thgv", "th grad vec",
   "thgm", "th grad mag",
   "thn", "th normal",
+  "omgv",
+  "omgm",
+  "omn",
   "igs", "invariant gradients", "shgs", 
   "igms", "invariant gradient mags", "shgms", 
   "rts", "rotation tangents",
@@ -455,6 +501,15 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "mhessevec0",
   "mhessevec1",
   "mhessevec2",
+  "omhess",
+  "omhesseval",
+  "omhesseval0",
+  "omhesseval1",
+  "omhesseval2",
+  "omhessevec",
+  "omhessevec0",
+  "omhessevec1",
+  "omhessevec2",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -473,6 +528,7 @@ _tenGageValEqv[] = {
   tenGageMode, tenGageMode,
   tenGageTheta, tenGageTheta,
   tenGageModeWarp, tenGageModeWarp,
+  tenGageOmega, tenGageOmega,
   tenGageEval,
   tenGageEval0,
   tenGageEval1,
@@ -511,6 +567,9 @@ _tenGageValEqv[] = {
   tenGageThetaGradVec, tenGageThetaGradVec,
   tenGageThetaGradMag, tenGageThetaGradMag,
   tenGageThetaNormal, tenGageThetaNormal,
+  tenGageOmegaGradVec,
+  tenGageOmegaGradMag,
+  tenGageOmegaNormal,
   tenGageInvarGrads, tenGageInvarGrads, tenGageInvarGrads,
   tenGageInvarGradMags, tenGageInvarGradMags, tenGageInvarGradMags,
   tenGageRotTans, tenGageRotTans,
@@ -547,6 +606,15 @@ _tenGageValEqv[] = {
   tenGageModeHessianEvec0,
   tenGageModeHessianEvec1,
   tenGageModeHessianEvec2,
+  tenGageOmegaHessian,
+  tenGageOmegaHessianEval,
+  tenGageOmegaHessianEval0,
+  tenGageOmegaHessianEval1,
+  tenGageOmegaHessianEval2,
+  tenGageOmegaHessianEvec,
+  tenGageOmegaHessianEvec0,
+  tenGageOmegaHessianEvec1,
+  tenGageOmegaHessianEvec2,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 

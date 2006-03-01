@@ -253,6 +253,13 @@ double _tenAnisoEval_Th_d(const double eval[3]) {
   return acos(sqrt(2)*_tenAnisoEval_Skew_d(eval))/3;
 }
 
+float  _tenAnisoEval_Omega_f(const float  eval[3]) {
+  return _tenAnisoEval_FA_f(eval)*(1.0f+_tenAnisoEval_Mode_f(eval))/2.0f;
+}
+double _tenAnisoEval_Omega_d(const double eval[3]) {
+  return _tenAnisoEval_FA_d(eval)*(1.0f+_tenAnisoEval_Mode_d(eval))/2.0f;
+}
+
 float  _tenAnisoEval_Cz_f(const float  eval[3]) {
   return ((eval[0] + eval[1])/(FLT_EPSILON + eval[2]) 
           + (eval[1] + eval[2])/(FLT_EPSILON + eval[0]) 
@@ -309,6 +316,7 @@ float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
   _tenAnisoEval_Skew_f,
   _tenAnisoEval_Mode_f,
   _tenAnisoEval_Th_f,
+  _tenAnisoEval_Omega_f,
   _tenAnisoEval_Cz_f,
   _tenAnisoEval_Det_f,
   _tenAnisoEval_Tr_f,
@@ -339,6 +347,7 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   _tenAnisoEval_Skew_d,
   _tenAnisoEval_Mode_d,
   _tenAnisoEval_Th_d,
+  _tenAnisoEval_Omega_d,
   _tenAnisoEval_Cz_d,
   _tenAnisoEval_Det_d,
   _tenAnisoEval_Tr_d,
@@ -446,6 +455,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_Mode] = N/(FLT_EPSILON + 2*D*D*D);
   c[tenAniso_Th] =
     AIR_CAST(float, acos(AIR_CLAMP(-1, sqrt(2)*c[tenAniso_Skew], 1))/3);
+  c[tenAniso_Omega] = c[tenAniso_FA]*(1+c[tenAniso_Mode])/2;
   c[tenAniso_Cz] = ((e0 + e1)/(FLT_EPSILON + e2) 
                     + (e1 + e2)/(FLT_EPSILON + e0) 
                     + (e0 + e2)/(FLT_EPSILON + e1))/6;

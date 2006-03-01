@@ -151,7 +151,7 @@ _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_tenDwiGageFilter";
-  gage_t *fw00, *fw11, *fw22, *dwi;
+  double *fw00, *fw11, *fw22, *dwi;
   int fd;
   tenDwiGageKindData *kindData;
   unsigned int J, dwiNum;
@@ -209,7 +209,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_tenDwiGageAnswer";
   unsigned int dwiIdx;
   tenDwiGageKindData *kindData;
-  gage_t *dwiAll, dwiMean=0;
+  double *dwiAll, dwiMean=0;
 
   kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data);
 
@@ -236,16 +236,12 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenDwiGageMeanDwiValue][0] = dwiMean;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorLLS)) {
-#if GAGE_TYPE_FLOAT
-    tenEstimateLinearSingle_f
-#else
-    tenEstimateLinearSingle_d
-#endif    
-      (pvl->directAnswer[tenDwiGageTensorLLS], NULL,
-       dwiAll, AIR_CAST(double *, kindData->nemat->data),
-       /* pvlData->vbuf */ NULL, kindData->num,
-       AIR_TRUE, kindData->dwiConfThresh,
-       kindData->dwiConfSoft, kindData->bval);
+    tenEstimateLinearSingle_d(pvl->directAnswer[tenDwiGageTensorLLS],
+                              NULL, dwiAll,
+                              AIR_CAST(double *, kindData->nemat->data),
+                              /* pvlData->vbuf */ NULL, kindData->num,
+                              AIR_TRUE, kindData->dwiConfThresh,
+                              kindData->dwiConfSoft, kindData->bval);
   }
   /*
   tenDwiGageTensorLinearFitError,
