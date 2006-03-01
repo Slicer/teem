@@ -141,8 +141,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
-  limn hoover alan echo ten
-  mite coil push)
+ limn seek hoover alan echo ten mite coil push)
 
 SET(TEEM_INSTALLED_HEADER_FILES)
 FOREACH(header_file
@@ -157,19 +156,18 @@ FOREACH(header_file
     ell/ellMacros.h
     unrrdu/unrrdu.h
     dye/dye.h
-    alan/alan.h
-    limn/limn.h
-    gage/gage.h
     moss/moss.h
-    echo/echo.h
+    gage/gage.h
     bane/bane.h
+    limn/limn.h
+    seek/seek.h
+    hoover/hoover.h
+    alan/alan.h
+    echo/echo.h
     ten/ten.h
     ten/tenMacros.h
-    hoover/hoover.h
     mite/mite.h
-    nrrd/nrrdDefines.h
-    nrrd/nrrdMacros.h
-    nrrd/nrrdEnums.h
+    coil/coil.h
     push/push.h
     )
   # When debugging, uncomment this line
