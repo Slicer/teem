@@ -17,7 +17,6 @@ SET(LIMN_SOURCES
   splineMethods.c
   splineEval.c
   enumsLimn.c
-  contour.c
   polydata.c
   )
 
