@@ -165,7 +165,6 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 static double
 sclGet(seekContext *sctx, baggage *bag,
        unsigned int xi, unsigned int yi, unsigned int zi) {
-  double val;
 
   zi = AIR_MIN(sctx->sz-1, zi);
   return bag->scllup(bag->scldata, xi + sctx->sx*(yi + sctx->sy*zi));
@@ -228,6 +227,44 @@ shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
   }
   return;
 }
+
+#define VAL(xx, yy, zz)  (val[4*( (xx) + (yy)*(sx+2) + spi) + (zz+1)])
+void
+voxelGrads(double vgrad[8][3], double *val, int sx, int spi) {
+  ELL_3V_SET(vgrad[0],
+             VAL( 1,  0,  0) - VAL(-1,  0,  0),
+             VAL( 0,  1,  0) - VAL( 0, -1,  0),
+             VAL( 0,  0,  1) - VAL( 0,  0, -1));
+  ELL_3V_SET(vgrad[1],
+             VAL( 2,  0,  0) - VAL( 0,  0,  0),
+             VAL( 1,  1,  0) - VAL( 1, -1,  0),
+             VAL( 1,  0,  1) - VAL( 1,  0, -1));
+  ELL_3V_SET(vgrad[2],
+             VAL( 1,  1,  0) - VAL(-1,  1,  0),
+             VAL( 0,  2,  0) - VAL( 0,  0,  0),
+             VAL( 0,  1,  1) - VAL( 0,  1, -1));
+  ELL_3V_SET(vgrad[3],
+             VAL( 2,  1,  0) - VAL( 0,  1,  0),
+             VAL( 1,  2,  0) - VAL( 1,  0,  0),
+             VAL( 1,  1,  1) - VAL( 1,  1, -1));
+  ELL_3V_SET(vgrad[4],
+             VAL( 1,  0,  1) - VAL(-1,  0,  1),
+             VAL( 0,  1,  1) - VAL( 0, -1,  1),
+             VAL( 0,  0,  2) - VAL( 0,  0,  0));
+  ELL_3V_SET(vgrad[5],
+             VAL( 2,  0,  1) - VAL( 0,  0,  1),
+             VAL( 1,  1,  1) - VAL( 1, -1,  1),
+             VAL( 1,  0,  2) - VAL( 1,  0,  0));
+  ELL_3V_SET(vgrad[6],
+             VAL( 1,  1,  1) - VAL(-1,  1,  1),
+             VAL( 0,  2,  1) - VAL( 0,  0,  1),
+             VAL( 0,  1,  2) - VAL( 0,  1,  0));
+  ELL_3V_SET(vgrad[7],
+             VAL( 2,  1,  1) - VAL( 0,  1,  1),
+             VAL( 1,  2,  1) - VAL( 1,  0,  1),
+             VAL( 1,  1,  2) - VAL( 1,  1,  0));
+}
+#undef VAL
 
 static void
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
@@ -300,7 +337,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
       }
       /* set voxel corner gradients */
       if (sctx->normalsFind && !sctx->normAns) {
-        /* voxelGrads(vgrad, sctx->sclv, sx, spi); */
+        voxelGrads(vgrad, sctx->sclv, sx, spi);
       }
       sctx->voxNum++;
       ecase = seekContour3DTopoHackEdge[vcase];
@@ -317,16 +354,18 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
           ww = vval[vi0]/(vval[vi0] - vval[vi1]);
           ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
           ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + zi, 1);
-          ELL_4MV_MUL(tvertB, sctx->shape->ItoW, tvertA);
+          ELL_4MV_MUL(tvertB, sctx->txfIdx, tvertA);
+          ELL_4MV_MUL(tvertA, sctx->shape->ItoW, tvertB);
+          ELL_4V_HOMOG(tvertA, tvertA);
           ELL_4V_HOMOG(tvertB, tvertB);
           ovi = sctx->vidx[bag->evti[ei] + 5*si] = 
             airArrayLenIncr(bag->xyzwArr, 1);
           ELL_4V_SET_TT(lpld->xyzw + 4*ovi, float,
-                        tvertB[0], tvertB[1], tvertB[2], 1.0);
+                        tvertA[0], tvertA[1], tvertA[2], 1.0);
           if (sctx->normalsFind) {
             airArrayLenIncr(bag->normArr, 1);
             if (sctx->normAns) {
-              gageProbe(sctx->gctx, tvertA[0], tvertA[1], tvertA[2]);
+              gageProbe(sctx->gctx, tvertB[0], tvertB[1], tvertB[2]);
               ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, -1, sctx->normAns);
               if (sctx->reverse) {
                 ELL_3V_SCALE(lpld->norm + 3*ovi, -1, lpld->norm + 3*ovi);

@@ -27,7 +27,7 @@ static int
 updateNinEtAl(seekContext *sctx) {
   char me[]="updateNinEtAl", err[BIFF_STRLEN];
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagData = %d\n", me, sctx->flag[flagData]);
   }
@@ -61,7 +61,7 @@ static int
 updateAnswerPointers(seekContext *sctx) {
   char me[]="updateAnswerPointers", err[BIFF_STRLEN];
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagItemValue = %d\n", me,
             sctx->flag[flagItemValue]);
@@ -121,6 +121,12 @@ updateAnswerPointers(seekContext *sctx) {
                                              sctx->normItem)
                          : NULL);
       }
+      if (sctx->flag[flagItemGradient]
+          || sctx->flag[flagItemEigensystem]) {
+        sprintf(err, "%s: can't set gradient or eigensystem for %s",
+                me, airEnumStr(seekType, seekTypeIsocontour));
+        biffAdd(SEEK, err); return 1;
+      }
       sctx->gradAns = NULL;
       sctx->evalAns = NULL;
       sctx->evecAns = NULL;
@@ -172,7 +178,7 @@ updateSxSySz(seekContext *sctx) {
   double min, max, scl[3], off[3];
   unsigned int axi;
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagSamples = %d\n", me, sctx->flag[flagSamples]);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me, sctx->flag[flagNinEtAl]);
@@ -196,8 +202,8 @@ updateSxSySz(seekContext *sctx) {
                 AIR_CAST(unsigned int, sctx->samples[1]),
                 AIR_CAST(unsigned int, sctx->samples[2]),
                 AIR_CAST(unsigned int, sizeIn[0]),
-                AIR_CAST(unsigned int, sizeIn[0]),
-                AIR_CAST(unsigned int, sizeIn[0]));
+                AIR_CAST(unsigned int, sizeIn[1]),
+                AIR_CAST(unsigned int, sizeIn[2]));
         biffAdd(SEEK, err); return 1;
       }
       ELL_3V_COPY(sizeOut, sctx->samples);
@@ -236,7 +242,7 @@ static int
 updateReverse(seekContext *sctx) {
   char me[]="updateReverse" /* , err[BIFF_STRLEN] */;
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
             sctx->flag[flagNinEtAl]);
@@ -263,7 +269,7 @@ static int
 updateTxfNormal(seekContext *sctx) {
   char me[]="updateTxfNormal" /*, err[BIFF_STRLEN] */ ;
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
             sctx->flag[flagNinEtAl]);
@@ -292,7 +298,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
   char me[]="updateSlabCacheAlloc", err[BIFF_STRLEN];
   int E;
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d (type = %s)\n", me,
             sctx->flag[flagType], airEnumStr(seekType, sctx->type));
@@ -359,11 +365,11 @@ updateSlabCacheAlloc(seekContext *sctx) {
 
 static int
 updateSclDerived(seekContext *sctx) {
-  char me[]="updateSclDerived", err[BIFF_STRLEN];
+  char me[]="updateSclDerived", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
   double *scl, idxIn[4], idxOut[4], val;
   unsigned int xi, yi, zi;
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d\n", me,
             sctx->flag[flagType]);
@@ -383,7 +389,14 @@ updateSclDerived(seekContext *sctx) {
         biffMove(SEEK, err, NRRD); return 1;
       }
       scl = AIR_CAST(double*, sctx->nsclDerived->data);
+      if (sctx->verbose) {
+        fprintf(stderr, "%s: pre-computing scalar volume ...       ", me);
+      }
       for (zi=0; zi<sctx->sz; zi++) {
+        if (sctx->verbose) {
+          fprintf(stderr, "%s", airDoneStr(0, zi, sctx->sz, doneStr));
+          fflush(stderr);
+        }
         for (yi=0; yi<sctx->sy; yi++) {
           for (xi=0; xi<sctx->sx; xi++) {
             ELL_4V_SET(idxOut, xi, yi, zi, 1.0);
@@ -400,6 +413,9 @@ updateSclDerived(seekContext *sctx) {
           }
         }
       }
+      if (sctx->verbose) {
+        fprintf(stderr, "\b\b\b\b\b\b done.\n");
+      }
     }
     sctx->flag[flagSclDerived] = AIR_TRUE;
   }
@@ -415,7 +431,7 @@ updateSpanSpaceHist(seekContext *sctx) {
   const void *data;
   double (*lup)(const void *, size_t);
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d\n", me,
             sctx->flag[flagType]);
@@ -512,7 +528,7 @@ static int
 updateResult(seekContext *sctx) {
   char me[]="updateResult", err[BIFF_STRLEN];
 
-  if (sctx->verbose) {
+  if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagIsovalue = %d\n", me,
             sctx->flag[flagIsovalue]);
