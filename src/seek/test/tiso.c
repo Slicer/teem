@@ -30,10 +30,13 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnPolyData *pld;
+  gageContext *gctx;
+  gagePerVolume *pvl;
   Nrrd *nin;
-  double isoval;
+  double isoval, kparm[3];
   seekContext *sctx;
   FILE *file;
+  int usegage, E;
   
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
@@ -41,6 +44,8 @@ main(int argc, char *argv[]) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "v", "iso", airTypeDouble, 1, 1, &isoval, NULL,
              "isovalue");
+  hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
+	     "use gage too");
   hestOptAdd(&hopt, "o", "output OFF", airTypeString, 1, 1, &outS, "out.off",
              "output file to save OFF into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -58,19 +63,47 @@ main(int argc, char *argv[]) {
   sctx = seekContextNew();
   airMopAdd(mop, sctx, (airMopper)seekContextNix, airMopAlways);
 
+  if (usegage) {
+    gctx = gageContextNew();
+    airMopAdd(mop, gctx, (airMopper)gageContextNix, airMopAlways);
+    ELL_3V_SET(kparm, 1, 1.0, 0.0);
+    if (!(pvl = gagePerVolumeNew(gctx, nin, gageKindScl))
+	|| gagePerVolumeAttach(gctx, pvl)
+	|| gageKernelSet(gctx, gageKernel00, nrrdKernelBCCubic, kparm)
+	|| gageKernelSet(gctx, gageKernel11, nrrdKernelBCCubicD, kparm)
+	|| gageKernelSet(gctx, gageKernel22, nrrdKernelBCCubicDD, kparm)
+	|| gageQueryItemOn(gctx, pvl, gageSclValue)
+	|| gageQueryItemOn(gctx, pvl, gageSclNormal)
+	|| gageUpdate(gctx)) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
+
   seekVerboseSet(sctx, 10);
 
-  if (seekDataSet(sctx, nin, NULL, 0)
-      || seekTypeSet(sctx, seekTypeIsocontour)
-      || seekIsovalueSet(sctx, isoval)
-      || seekUpdate(sctx)
-      || seekExtract(sctx, pld)
-      /* || limnPolyDataOFFWrite(file, pld) THIS FUNCTION DOESN'T EXIST */) {
-    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+  E = 0;
+  if (usegage) {
+    if (!E) E |= seekDataSet(sctx, NULL, gctx, 0);
+    if (!E) E |= seekItemScalarSet(sctx, gageSclValue);
+    if (!E) E |= seekItemNormalSet(sctx, gageSclNormal);
+  } else {
+    if (!E) E |= seekDataSet(sctx, nin, NULL, 0);
+  }
+  if (!E) E |= seekNormalsFindSet(sctx, AIR_TRUE);
+  if (!E) E |= seekTypeSet(sctx, seekTypeIsocontour);
+  if (!E) E |= seekIsovalueSet(sctx, isoval);
+  if (!E) E |= seekUpdate(sctx);
+  if (!E) E |= seekExtract(sctx, pld);
+  if (E) {
+    airMopAdd(mop, err = biffGetDone(SEEK), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
   fprintf(stderr, "%s: extraction time = %g\n", me, sctx->time);
+
+  /* || limnPolyDataOFFWrite(file, pld) THIS FUNCTION DOESN'T EXIST */
   
   airMopOkay(mop);
   return 0;
