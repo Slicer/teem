@@ -74,7 +74,8 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
       biffMove(SEEK, err, NRRD); return 1;
     }
     if (3 != ninscl->dim) {
-      sprintf(err, "%s: need 3-D volume (not %d-D)", me, ninscl->dim);
+      sprintf(err, "%s: vanilla scalar volume must be 3-D (not %d-D)",
+              me, ninscl->dim);
       biffAdd(SEEK, err); return 1;
     }
     if (nrrdTypeBlock == ninscl->type) {
