@@ -117,8 +117,8 @@ typedef struct {
   NrrdRange *range;             /* for seekTypeIsocontour: range of scalars */
   size_t sx, sy, sz;            /* actual dimensions of feature grid */
   double txfIdx[16];            /* transforms from the index space of the 
-                                   feature grid ("idxOut") to the index space
-                                   of the underlying volume ("idxIn") */
+                                   feature sampling grid to the index space
+                                   of the underlying volume */
   int *vidx;                    /* 5 * sx * sy array of vertex index
                                    offsets, to support re-using of vertices
                                    across voxels and slices. Yes, this means
