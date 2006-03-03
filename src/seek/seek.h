@@ -76,7 +76,7 @@ typedef struct {
   gageContext *gctx;            /* for handling non-vanilla scalar volumes */
   gagePerVolume *pvl;           /* for handling non-vanilla scalar volumes */
   int type;                     /* from seekType* enum */
-  int valItem,
+  int sclvItem,
     gradItem, normItem,
     evalItem, evecItem;
   int lowerInside,              /* lower values are logically inside
@@ -95,23 +95,26 @@ typedef struct {
   unsigned int pldArrIncr;      /* increment for airArrays used during the
                                    creation of geometry */
   /* ------ internal ----- */
-  int flag[128];
+  int *flag;                    /* for controlling updates of internal state */
   const Nrrd *nin;              /* either ninscl or gctx->pvl->nin */
   unsigned int baseDim;         /* 0 for scalars, or something else */
   gageShape *_shape,            /* local shape, always owned */
     *shape;                     /* not owned */
-  Nrrd *nsclDerived;            /* for holding the volume of computed scalars,
-                                   as measured by gage */
-  const double *valAns,
+  Nrrd *nsclDerived;            /* for seekTypeIsocontour: volume of computed
+                                   scalars, as measured by gage */
+  const double *sclvAns,
     *gradAns, *normAns,
     *evalAns, *evecAns;
-  int reverse;                  /* need to reverse sign of field normal
-                                   to get the isocontour normal */
-  double txfNormal[9];          /* how to transform normals */
-  size_t spanSize;              /* resolution of span space along edge */
-  Nrrd *nspanHist;              /* span space histogram (seekTypeIsocontours)
-                                   NOTE: also stores the value range */
-  NrrdRange *range;             /* store range of nvol (seekTypeIsocontours) */
+  int reverse;                  /* for seekTypeIsocontour: need to reverse
+                                   sign of scalar field normal to get the 
+                                   "right" isocontour normal */
+  double txfNormal[9];          /* for seekTypeIsocontour: how to
+                                   transform normals */
+  size_t spanSize;              /* for seekTypeIsocontour: resolution of
+                                   span space along edge */
+  Nrrd *nspanHist;              /* for seekTypeIsocontour: span space
+                                   histogram */
+  NrrdRange *range;             /* for seekTypeIsocontour: range of scalars */
   size_t sx, sy, sz;            /* actual dimensions of feature grid */
   double txfIdx[16];            /* transforms from the index space of the 
                                    feature grid to the index space of the 
@@ -121,7 +124,7 @@ typedef struct {
                                    across voxels and slices. Yes, this means
                                    there is allocation for edges in the voxels
                                    beyond the positive X and Y edges */
-  double *val,                  /* 4 * (sx+2) * (sy+2) array as value cache,
+  double *sclv,                 /* 4 * (sx+2) * (sy+2) scalar value cache,
                                    with Z as fastest axis, and one sample
                                    of padding on all sides, as needed for
                                    central-difference-based gradients */
@@ -130,16 +133,18 @@ typedef struct {
                                    (vec,z,x,y) */
     *eval,                      /* 3 * 2 * sx * sy array of eigenvalues */
     *evec;                      /* 9 * 2 * sx * sy array of eigenvectors */
-  unsigned char *etrack;        /* 8 * sx * sy array of values which track
-                                   what becomes of the eigenvector that we
-                                   started tracking at the reference corner:
+  unsigned char *etrk;          /* 8 * sx * sy array to record what becomes
+                                   of the important eigenvector tracked from
+                                   the reference corner:
                                    0: +evec0
                                    1: +evec1
                                    2: +evec2
                                    3: -evec0
                                    4: -evec1
-                                   5: -evec2
-                                */
+                                   5: -evec2 */
+  Nrrd *nvidx, *nsclv,          /* nrrd wrappers around arrays above */
+    *ngrad, *neval,
+    *nevec, *netrk;
   /* ------ output ----- */
   unsigned int
     voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
@@ -169,7 +174,7 @@ SEEK_EXPORT int seekSamplesSet(seekContext *sctx, size_t samples[3]);
 SEEK_EXPORT int seekTypeSet(seekContext *sctx, int type);
 SEEK_EXPORT int seekLowerInsideSet(seekContext *sctx, int lowerInside);
 SEEK_EXPORT int seekTransformSet(seekContext *sctx, const double mat[16]);
-SEEK_EXPORT int seekItemValueSet(seekContext *sctx, int item);
+SEEK_EXPORT int seekItemScalarSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemNormalSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemGradientSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemEigensystemSet(seekContext *sctx,

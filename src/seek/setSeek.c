@@ -98,7 +98,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
   }
   sctx->flag[flagData] = AIR_TRUE;
 
-  sctx->valItem = -1;
+  sctx->sclvItem = -1;
   sctx->normItem = -1;
   sctx->gradItem = -1;
   sctx->evalItem = -1;
@@ -234,20 +234,20 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
 }
 
 /*
-******** seekItemValueSet
+******** seekItemScalarSet
 **
-** sets: valItem
+** sets: sclvItem
 */
 int
-seekItemValueSet(seekContext *sctx, int item) {
-  char me[]="seekItemValueSet", err[BIFF_STRLEN];
+seekItemScalarSet(seekContext *sctx, int item) {
+  char me[]="seekItemScalarSet", err[BIFF_STRLEN];
 
   if (itemCheck(sctx, item, 1)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(SEEK, err); return 1;
   }
-  if (sctx->valItem != item) {
-    sctx->valItem = item;
+  if (sctx->sclvItem != item) {
+    sctx->sclvItem = item;
     sctx->flag[flagItemValue] = AIR_TRUE;
   }
   return 0;

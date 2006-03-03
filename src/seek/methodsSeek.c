@@ -35,7 +35,7 @@ seekContextNew(void) {
     sctx->gctx = NULL;
     sctx->pvl = NULL;
     sctx->type = seekTypeUnknown;
-    sctx->valItem = -1;
+    sctx->sclvItem = -1;
     sctx->normItem = -1;
     sctx->gradItem = -1;
     sctx->evalItem = -1;
@@ -51,6 +51,7 @@ seekContextNew(void) {
     sctx->pldArrIncr = 512;
 
     sctx->nin = NULL;
+    sctx->flag = AIR_CAST(int *, calloc(flagLast, sizeof(int)));
     for (fi=flagUnknown+1; fi<flagLast; fi++) {
       sctx->flag[fi] = AIR_FALSE;
     }
@@ -58,7 +59,7 @@ seekContextNew(void) {
     sctx->_shape = gageShapeNew();
     sctx->shape = NULL;
     sctx->nsclDerived = nrrdNew();
-    sctx->valAns = NULL;
+    sctx->sclvAns = NULL;
     sctx->normAns = NULL;
     sctx->gradAns = NULL;
     sctx->evalAns = NULL;
@@ -72,12 +73,18 @@ seekContextNew(void) {
     sctx->sy = 0;
     sctx->sz = 0;
     ELL_4M_IDENTITY_SET(sctx->txfIdx);
+    sctx->nvidx = nrrdNew();
+    sctx->nsclv = nrrdNew();
+    sctx->ngrad = nrrdNew();
+    sctx->neval = nrrdNew();
+    sctx->nevec = nrrdNew();
+    sctx->netrk = nrrdNew();
     sctx->vidx = NULL;
-    sctx->val = NULL;
+    sctx->sclv = NULL;
     sctx->grad = NULL;
     sctx->eval = NULL;
     sctx->evec = NULL;
-    sctx->etrack = NULL;
+    sctx->etrk = NULL;
     sctx->time = AIR_NAN;
   }  
   return sctx;
@@ -87,16 +94,17 @@ seekContext *
 seekContextNix(seekContext *sctx) {
 
   if (sctx) {
+    sctx->flag = airFree(sctx->flag);
     sctx->_shape = gageShapeNix(sctx->_shape);
     sctx->nsclDerived = nrrdNuke(sctx->nsclDerived);
     sctx->nspanHist = nrrdNuke(sctx->nspanHist);
     sctx->range = nrrdRangeNix(sctx->range);
-    sctx->vidx = (int *)airFree(sctx->vidx);
-    sctx->val = (double *)airFree(sctx->val);
-    sctx->grad = (double *)airFree(sctx->grad);
-    sctx->eval = (double *)airFree(sctx->eval);
-    sctx->evec = (double *)airFree(sctx->evec);
-    sctx->etrack = (unsigned char *)airFree(sctx->etrack);
+    sctx->nvidx = nrrdNuke(sctx->nvidx);
+    sctx->nsclv = nrrdNuke(sctx->nsclv);
+    sctx->ngrad = nrrdNuke(sctx->ngrad);
+    sctx->neval = nrrdNuke(sctx->neval);
+    sctx->nevec = nrrdNuke(sctx->nevec);
+    sctx->netrk = nrrdNuke(sctx->netrk);
     airFree(sctx);
   }
   return NULL;

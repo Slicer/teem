@@ -26,7 +26,12 @@
 static int
 updateNinEtAl(seekContext *sctx) {
   char me[]="updateNinEtAl", err[BIFF_STRLEN];
-  
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagData = %d\n", me, sctx->flag[flagData]);
+  }
+
   if (!( sctx->ninscl || sctx->pvl )) {
     sprintf(err, "%s: data never set", me);
     biffAdd(SEEK, err); return 1;
@@ -56,6 +61,26 @@ static int
 updateAnswerPointers(seekContext *sctx) {
   char me[]="updateAnswerPointers", err[BIFF_STRLEN];
 
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagItemValue = %d\n", me,
+            sctx->flag[flagItemValue]);
+    fprintf(stderr, "%s: flagItemNormal = %d\n", me,
+            sctx->flag[flagItemNormal]);
+    fprintf(stderr, "%s: flagItemGradient = %d\n", me,
+            sctx->flag[flagItemGradient]);
+    fprintf(stderr, "%s: flagItemEigensystem = %d\n", me,
+            sctx->flag[flagItemEigensystem]);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+    fprintf(stderr, "%s: flagNormalsFind = %d\n", me,
+            sctx->flag[flagNormalsFind]);
+    fprintf(stderr, "%s: flagType = %d\n", me,
+            sctx->flag[flagType]);
+    fprintf(stderr, "%s: flagData = %d\n", me,
+            sctx->flag[flagData]);
+  }
+
   if (seekTypeUnknown == sctx->type) {
     sprintf(err, "%s: feature type never set", me);
     biffAdd(SEEK, err); return 1;
@@ -71,7 +96,7 @@ updateAnswerPointers(seekContext *sctx) {
     
     switch (sctx->type) {
     case seekTypeIsocontour:
-      if (!( sctx->ninscl || -1 != sctx->valItem )) {
+      if (!( sctx->ninscl || -1 != sctx->sclvItem )) {
         sprintf(err, "%s: need either scalar volume or value item set for %s",
                 me, airEnumStr(seekType, seekTypeIsocontour));
         biffAdd(SEEK, err); return 1;
@@ -86,11 +111,11 @@ updateAnswerPointers(seekContext *sctx) {
         }
       }
       if (sctx->ninscl) {
-        sctx->valAns = NULL;
+        sctx->sclvAns = NULL;
         sctx->normAns = NULL;
       } else {
-        sctx->valAns = gageAnswerPointer(sctx->gctx, sctx->pvl,
-                                         sctx->valItem);
+        sctx->sclvAns = gageAnswerPointer(sctx->gctx, sctx->pvl,
+                                          sctx->sclvItem);
         sctx->normAns = (sctx->normalsFind
                          ? gageAnswerPointer(sctx->gctx, sctx->pvl,
                                              sctx->normItem)
@@ -113,7 +138,7 @@ updateAnswerPointers(seekContext *sctx) {
         sprintf(err, "%s: grad, eval, evec items not all set", me);
         biffAdd(SEEK, err); return 1;
       }
-      sctx->valAns = NULL;
+      sctx->sclvAns = NULL;
       sctx->normAns = NULL;
       sctx->gradAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->gradItem);
       sctx->evalAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evalItem);
@@ -146,6 +171,12 @@ updateSxSySz(seekContext *sctx) {
   size_t sizeIn[3], sizeOut[3];
   double min, max, scl[3], off[3];
   unsigned int axi;
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagSamples = %d\n", me, sctx->flag[flagSamples]);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me, sctx->flag[flagNinEtAl]);
+  }
 
   sizeIn[0] = sctx->nin->axis[sctx->baseDim+0].size;
   sizeIn[1] = sctx->nin->axis[sctx->baseDim+1].size;
@@ -203,7 +234,15 @@ updateSxSySz(seekContext *sctx) {
 
 static int
 updateReverse(seekContext *sctx) {
-  /* char me[]="updateReverse", err[BIFF_STRLEN]; */
+  char me[]="updateReverse" /* , err[BIFF_STRLEN] */;
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+    fprintf(stderr, "%s: flagLowerInside = %d\n", me,
+            sctx->flag[flagLowerInside]);
+  }
 
   if (sctx->flag[flagNinEtAl]
       || sctx->flag[flagLowerInside]) {
@@ -222,7 +261,15 @@ updateReverse(seekContext *sctx) {
 
 static int
 updateTxfNormal(seekContext *sctx) {
-  /* char me[]="updateTxfNormal", err[BIFF_STRLEN]; */
+  char me[]="updateTxfNormal" /*, err[BIFF_STRLEN] */ ;
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+    fprintf(stderr, "%s: flagLowerInside = %d\n", me,
+            sctx->flag[flagLowerInside]);
+  }
 
   if (sctx->flag[flagNinEtAl]
       || sctx->flag[flagLowerInside]) {
@@ -245,39 +292,65 @@ updateSlabCacheAlloc(seekContext *sctx) {
   char me[]="updateSlabCacheAlloc", err[BIFF_STRLEN];
   int E;
 
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagType = %d (type = %s)\n", me,
+            sctx->flag[flagType], airEnumStr(seekType, sctx->type));
+    fprintf(stderr, "%s: flagNormalsFind = %d\n", me,
+            sctx->flag[flagNormalsFind]);
+    fprintf(stderr, "%s: flagSxSySz = %d\n", me,
+            sctx->flag[flagSxSySz]);
+  }
+
   E = 0;
-  if (!E && sctx->flag[flagSxSySz]) {
-    sctx->vidx = (int *)airFree(sctx->vidx);
-    sctx->vidx = (int *)calloc(5*sctx->sx*sctx->sy, sizeof(int));
-    E |= !sctx->vidx;
+  if (sctx->flag[flagSxSySz]) {
+    if (!E) E |= nrrdMaybeAlloc_va(sctx->nvidx, nrrdTypeInt, 3,
+                                   AIR_CAST(size_t, 5),
+                                   sctx->sx,
+                                   sctx->sy);
+    if (!E) sctx->vidx = AIR_CAST(int*, sctx->nvidx->data);
   }
   if (sctx->flag[flagType]
       || sctx->flag[flagNormalsFind]  /* um, this is overkill, no? ... */
       || sctx->flag[flagSxSySz]) {
-    sctx->val = (double *)airFree(sctx->val);
-    if (!E && seekTypeIsocontour == sctx->type) {
-      sctx->val = (double *)calloc(4*(sctx->sx+2)*(sctx->sy+2), 
-                                   sizeof(double));
-      E |= !sctx->val;
+    if (seekTypeIsocontour == sctx->type) {
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nsclv, nrrdTypeDouble, 3,
+                                     AIR_CAST(size_t, 4),
+                                     sctx->sx + 2,
+                                     sctx->sy + 2);
+      if (!E) sctx->sclv = AIR_CAST(double*, sctx->nsclv->data);
     }
-    sctx->grad = (double *)airFree(sctx->grad);
-    sctx->eval = (double *)airFree(sctx->eval);
-    sctx->evec = (double *)airFree(sctx->evec);
-    sctx->etrack = (unsigned char *)airFree(sctx->etrack);
-    if (!E && (seekTypeRidgeSurface == sctx->type
-               || seekTypeValleySurface == sctx->type)) {
-      sctx->grad = (double *)calloc(3*2*sctx->sx*sctx->sy, sizeof(double));
-      sctx->eval = (double *)calloc(3*2*sctx->sx*sctx->sy, sizeof(double));
-      sctx->evec = (double *)calloc(9*2*sctx->sx*sctx->sy, sizeof(double));
-      sctx->etrack = (unsigned char *)calloc(8*sctx->sx*sctx->sy,
-                                             sizeof(unsigned char));
-      E |= (!sctx->grad || !sctx->eval || !sctx->evec || !sctx->etrack);
+    if ((seekTypeRidgeSurface == sctx->type
+         || seekTypeValleySurface == sctx->type)) {
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, 
+                                     AIR_CAST(size_t, 3),
+                                     AIR_CAST(size_t, 2),
+                                     sctx->sx,
+                                     sctx->sy);
+      if (!E) sctx->grad = AIR_CAST(double*, sctx->ngrad->data);
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4, 
+                                     AIR_CAST(size_t, 3),
+                                     AIR_CAST(size_t, 2),
+                                     sctx->sx,
+                                     sctx->sy);
+      if (!E) sctx->eval = AIR_CAST(double*, sctx->neval->data);
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4, 
+                                     AIR_CAST(size_t, 9),
+                                     AIR_CAST(size_t, 2),
+                                     sctx->sx,
+                                     sctx->sy);
+      if (!E) sctx->evec = AIR_CAST(double*, sctx->nevec->data);
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->netrk, nrrdTypeUChar, 3, 
+                                     AIR_CAST(size_t, 8),
+                                     sctx->sx,
+                                     sctx->sy);
+      if (!E) sctx->etrk = AIR_CAST(unsigned char*, sctx->netrk->data);
     }
     sctx->flag[flagSlabCacheAlloc] = AIR_TRUE;
   }
   if (E) {
     sprintf(err, "%s: couldn't allocate all slab caches", me);
-    biffAdd(SEEK, err); return 1;
+    biffMove(SEEK, err, NRRD); return 1;
   }
   sctx->flag[flagNormalsFind] = AIR_FALSE;
   sctx->flag[flagSxSySz] = AIR_FALSE;
@@ -289,6 +362,14 @@ updateSclDerived(seekContext *sctx) {
   char me[]="updateSclDerived", err[BIFF_STRLEN];
   double *scl, idxIn[4], idxOut[4], val;
   unsigned int xi, yi, zi;
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagType = %d\n", me,
+            sctx->flag[flagType]);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+  }
 
   if (sctx->flag[flagType]
       || sctx->flag[flagNinEtAl]) {
@@ -309,7 +390,7 @@ updateSclDerived(seekContext *sctx) {
             ELL_4MV_MUL(idxIn, sctx->txfIdx, idxOut);
             ELL_34V_HOMOG(idxIn, idxIn);
             gageProbe(sctx->gctx, idxIn[0], idxIn[1], idxIn[2]);
-            val = sctx->valAns[0];
+            val = sctx->sclvAns[0];
             if (!AIR_EXISTS(val)) {
               sprintf(err, "%s: probed scalar[%u,%u,%u] %g doesn't exist", me,
                       xi, yi, zi, val);
@@ -333,6 +414,16 @@ updateSpanSpaceHist(seekContext *sctx) {
   double min, max, val;
   const void *data;
   double (*lup)(const void *, size_t);
+
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagType = %d\n", me,
+            sctx->flag[flagType]);
+    fprintf(stderr, "%s: flagSclDerived = %d\n", me,
+            sctx->flag[flagSclDerived]);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+  }
 
   if (sctx->flag[flagType]
       || sctx->flag[flagSclDerived]
@@ -421,6 +512,26 @@ static int
 updateResult(seekContext *sctx) {
   char me[]="updateResult", err[BIFF_STRLEN];
 
+  if (sctx->verbose) {
+    fprintf(stderr, "%s: --------------------\n", me);
+    fprintf(stderr, "%s: flagIsovalue = %d\n", me,
+            sctx->flag[flagIsovalue]);
+    fprintf(stderr, "%s: flagAnswerPointers = %d\n", me,
+            sctx->flag[flagAnswerPointers]);
+    fprintf(stderr, "%s: flagType = %d\n", me,
+            sctx->flag[flagType]);
+    fprintf(stderr, "%s: flagSlabCacheAlloc = %d\n", me,
+            sctx->flag[flagSlabCacheAlloc]);
+    fprintf(stderr, "%s: flagSpanSpaceHist = %d\n", me,
+            sctx->flag[flagSpanSpaceHist]);
+    fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
+            sctx->flag[flagNinEtAl]);
+    fprintf(stderr, "%s: flagReverse = %d\n", me,
+            sctx->flag[flagReverse]);
+    fprintf(stderr, "%s: flagTxfNormal = %d\n", me,
+            sctx->flag[flagTxfNormal]);
+  }
+
   if (sctx->flag[flagIsovalue]
       && seekTypeIsocontour != sctx->type) {
     sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
@@ -429,7 +540,7 @@ updateResult(seekContext *sctx) {
     biffAdd(SEEK, err); return 1;
   }
 
-  /* this is totally pointless. duh. */
+  /* this seems to be a very pointless exercise */
   if (sctx->flag[flagIsovalue]
       || sctx->flag[flagAnswerPointers]
       || sctx->flag[flagType]
