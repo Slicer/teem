@@ -168,8 +168,7 @@ sclGet(seekContext *sctx, baggage *bag,
   double val;
 
   zi = AIR_MIN(sctx->sz-1, zi);
-  /* return bag->scllup(bag->scldata, xi + sctx->sx*(yi + sctx->sy*zi)); */
-  return 0;
+  return bag->scllup(bag->scldata, xi + sctx->sx*(yi + sctx->sy*zi));
 }
 
 static void
@@ -184,15 +183,15 @@ shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
       si = xi + sx*yi;
       spi = (xi+1) + (sx+2)*(yi+1);
       if (!zi) {
-        bag->evti[0 + 5*si] = -1;
-        bag->evti[1 + 5*si] = -1;
+        sctx->vidx[0 + 5*si] = -1;
+        sctx->vidx[1 + 5*si] = -1;
       } else {
-        bag->evti[0 + 5*si] = bag->evti[3 + 5*si];
-        bag->evti[1 + 5*si] = bag->evti[4 + 5*si];
+        sctx->vidx[0 + 5*si] = sctx->vidx[3 + 5*si];
+        sctx->vidx[1 + 5*si] = sctx->vidx[4 + 5*si];
       }
-      bag->evti[2 + 5*si] = -1;
-      bag->evti[3 + 5*si] = -1;
-      bag->evti[4 + 5*si] = -1;
+      sctx->vidx[2 + 5*si] = -1;
+      sctx->vidx[3 + 5*si] = -1;
+      sctx->vidx[4 + 5*si] = -1;
       if (seekTypeIsocontour == sctx->type) {
         if (!zi) {
           sctx->sclv[0 + 4*spi] = (sclGet(sctx, bag, xi, yi, 0)
