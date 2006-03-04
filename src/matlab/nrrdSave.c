@@ -86,6 +86,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     sizeZ[axIdx] = mxGetDimensions(arrayMx)[axIdx];
   }
   nrrd = nrrdNew();
+  mop = airMopNew();
   airMopAdd(mop, nrrd, (airMopper)nrrdNix, airMopAlways);
   if (nrrdWrap_nva(nrrd, mxGetPr(arrayMx), ntype, dim, sizeZ)
       || nrrdSave(filename, nrrd, NULL)) {
