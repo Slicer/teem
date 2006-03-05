@@ -397,7 +397,7 @@ airDoneStr(double start, double here, double end, char *str) {
       sprintf(str, "\b\b\b\b\b\b100.0%%");
     }
     else {
-      sprintf(str, "\b\b\b\b\b\b  done");
+      sprintf(str, "\b\b\b\b\b\b done.");
     }
   }
 
