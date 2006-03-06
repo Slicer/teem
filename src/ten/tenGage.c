@@ -878,7 +878,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
-    ELL_3V_COPY(evalAnsF, evalAns);
+    ELL_3V_COPY_TT(evalAnsF, float, evalAns);
     tenAnisoCalc_f(aniso, evalAnsF);
     for (ci=0; ci<=TEN_ANISO_MAX; ci++) {
       pvl->directAnswer[tenGageAniso][ci] = aniso[ci];
