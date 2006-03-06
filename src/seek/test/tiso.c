@@ -37,6 +37,7 @@ main(int argc, char *argv[]) {
   seekContext *sctx;
   FILE *file;
   int usegage, E, hack;
+  size_t samples[3];
   
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
@@ -93,6 +94,8 @@ main(int argc, char *argv[]) {
   if (usegage) {
     if (!E) E |= seekDataSet(sctx, NULL, gctx, 0);
     if (hack) {
+      ELL_3V_SET(samples, 5, 5, 5);
+      if (!E) E |= seekSamplesSet(sctx, samples);
       if (!E) E |= seekItemGradientSet(sctx, gageSclGradVec);
       if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval,
                                           gageSclHessEvec);
