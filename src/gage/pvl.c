@@ -41,8 +41,8 @@ gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
 
   gageShapeReset(&shape);
   if (_gageShapeSet(ctx, &shape, nin, kind->baseDim)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;;
+    sprintf(err, "%s: trouble setting volume as %s kind", me, kind->name);
+    biffAdd(GAGE, err); return 1;
   }
   return 0;
 }
