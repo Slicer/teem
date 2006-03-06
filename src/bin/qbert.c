@@ -259,10 +259,10 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
       }
       for (i=0; i<sz[0]; i++) {
         gageProbe(ctx, i, j, k);
-        vghF[0] = *val;
-        vghF[1] = *gmag;
+        vghF[0] = AIR_CAST(float, *val);
+        vghF[1] = AIR_CAST(float, *gmag);
         if (doH) {
-          vghF[2] = *scnd;
+          vghF[2] = AIR_CAST(float, *scnd);
         }
         vghF += 2+doH;
       }
