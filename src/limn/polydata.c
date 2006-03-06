@@ -845,19 +845,37 @@ limnPolyDataPolygonNumber(limnPolyData *pld) {
   unsigned int ret, primIdx;
 
   ret = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    switch(pld->type[primIdx]) {
-    case limnPrimitiveTriangles:
-      ret += pld->icnt[primIdx]/3;
-      break;
-    case limnPrimitiveTriangleStrip:
-    case limnPrimitiveTriangleFan:
-      ret += pld->icnt[primIdx] - 2;
-      break;
-    case limnPrimitiveQuads:
-      ret += pld->icnt[primIdx]/4;
-      break;
+  if (pld) {
+    for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+      switch(pld->type[primIdx]) {
+      case limnPrimitiveTriangles:
+        ret += pld->icnt[primIdx]/3;
+        break;
+      case limnPrimitiveTriangleStrip:
+      case limnPrimitiveTriangleFan:
+        ret += pld->icnt[primIdx] - 2;
+        break;
+      case limnPrimitiveQuads:
+        ret += pld->icnt[primIdx]/4;
+        break;
+      }
     }
   }
   return ret;
 }
+
+/*
+int
+limnPolyDataVertexNormals(limnPolyData *pld) { 
+  char me[]="limnPolyDataVertexNormals", err[BIFF_STRLEN];
+
+  if (limnPolyDataAlloc(pld,
+                        
+                                  unsigned int infoBitFlag,
+                                  unsigned int vertNum,
+                                  unsigned int indxNum,
+                                  unsigned int primNum);
+
+  return 0;
+}
+*/
