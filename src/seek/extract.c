@@ -171,6 +171,19 @@ sclGet(seekContext *sctx, baggage *bag,
 }
 
 static void
+idxProbe(seekContext *sctx, baggage *bag,
+         double xi, double yi, double zi) {
+  double idxOut[4], idxIn[4];
+  AIR_UNUSED(bag);
+
+  ELL_4V_SET(idxOut, xi, yi, zi, 1);
+  ELL_4MV_MUL(idxIn, sctx->txfIdx, idxOut);
+  ELL_4V_HOMOG(idxIn, idxIn);
+  gageProbe(sctx->gctx, idxIn[0], idxIn[1], idxIn[2]);
+  return;
+}
+
+static void
 shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
   unsigned int xi, yi, sx, sy, si, spi;
 
@@ -191,7 +204,8 @@ shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
       sctx->vidx[2 + 5*si] = -1;
       sctx->vidx[3 + 5*si] = -1;
       sctx->vidx[4 + 5*si] = -1;
-      if (seekTypeIsocontour == sctx->type) {
+      switch (sctx->type) {
+      case seekTypeIsocontour:
         if (!zi) {
           sctx->sclv[0 + 4*spi] = (sclGet(sctx, bag, xi, yi, 0)
                                    - sctx->isovalue);
@@ -206,6 +220,24 @@ shuffleProbe(seekContext *sctx, baggage *bag, unsigned int zi) {
         }
         sctx->sclv[3 + 4*spi] = (sclGet(sctx, bag, xi, yi, zi+2)
                                  - sctx->isovalue);
+        break;
+      case seekTypeRidgeSurface:
+      case seekTypeValleySurface:
+        if (!zi) {
+          idxProbe(sctx, bag, xi, yi, 0);
+          ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->gradAns);
+          ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->evalAns);
+          ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evecAns);
+        } else {
+          ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->grad + 3*(1 + 2*si));
+          ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->eval + 3*(1 + 2*si));
+          ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evec + 9*(1 + 2*si));
+        }
+        idxProbe(sctx, bag, xi, yi, zi);
+        ELL_3V_COPY(sctx->grad + 3*(1 + 2*si), sctx->gradAns);
+        ELL_3V_COPY(sctx->eval + 3*(1 + 2*si), sctx->evalAns);
+        ELL_3M_COPY(sctx->evec + 9*(1 + 2*si), sctx->evecAns);
+        break;
       }
     }
     /* copy ends of this scanline left/right to margin */
@@ -267,8 +299,51 @@ voxelGrads(double vgrad[8][3], double *val, int sx, int spi) {
 #undef VAL
 
 static void
+vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
+            unsigned int xi, unsigned int yi, unsigned int zi) {
+  double eval[8][3], evec[8][3], grad[8][3], mineval, maxeval=0;
+  unsigned int sx, vi, vrti[8], minidx, maxidx;
+
+  sx = AIR_CAST(unsigned int, sctx->sx);
+  vrti[0] = 0 + 2*(xi + 0 + sx*(yi + 0));
+  vrti[1] = 0 + 2*(xi + 1 + sx*(yi + 0));
+  vrti[2] = 0 + 2*(xi + 0 + sx*(yi + 1));
+  vrti[3] = 0 + 2*(xi + 1 + sx*(yi + 1));
+  vrti[4] = 1 + 2*(xi + 0 + sx*(yi + 0));
+  vrti[5] = 1 + 2*(xi + 1 + sx*(yi + 0));
+  vrti[6] = 1 + 2*(xi + 0 + sx*(yi + 1));
+  vrti[7] = 1 + 2*(xi + 1 + sx*(yi + 1));
+
+  for (vi=0; vi<8; vi++) {
+    ELL_3V_COPY(grad[vi], sctx->grad + 3*vrti[vi]);
+    ELL_3V_COPY(evec[vi], sctx->evec + 2*3 + 9*vrti[vi]);
+    ELL_3V_COPY(eval[vi], sctx->eval + 3*vrti[vi]);
+    if (!vi) {
+      maxeval = eval[vi][2];
+    } else {
+      maxeval = AIR_MAX(maxeval, eval[vi][2]);
+    }
+  }
+
+  if (maxeval > -0.02) {
+    for (vi=0; vi<8; vi++) {
+      vval[vi] = 0;
+    }
+  } else {
+    for (vi=0; vi<8; vi++) {
+      if (evec[vi][2] < 0) {
+        ELL_3V_SCALE(evec[vi], -1, evec[vi]);
+      }
+      vval[vi] = ELL_3V_DOT(grad[vi], evec[vi]);
+    }
+  }
+  return;
+}
+
+static void
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
             unsigned int zi) {
+  char me[]="triangulate";
   int e2v[12][2] = {        /* maps edge index to corner vertex indices */
     {0, 1},  /*  0 */
     {0, 2},  /*  1 */
@@ -308,7 +383,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
     for (xi=0; xi<sx-1; xi++) {
       si = xi + sx*yi;
       spi = (xi+1) + (sx+2)*(yi+1);
-      if (seekTypeIsocontour == sctx->type) {
+      switch (sctx->type) {
+      case seekTypeIsocontour:
         /* learn voxel values */
         /*                      X   Y                 Z */
         vval[0] = sctx->sclv[4*(0 + 0*(sx+2) + spi) + 1];
@@ -319,13 +395,12 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
         vval[5] = sctx->sclv[4*(1 + 0*(sx+2) + spi) + 2];
         vval[6] = sctx->sclv[4*(0 + 1*(sx+2) + spi) + 2];
         vval[7] = sctx->sclv[4*(1 + 1*(sx+2) + spi) + 2];
+        break;
+      case seekTypeRidgeSurface:
+      case seekTypeValleySurface:
+        vvalSurfSet(sctx, bag, vval, xi, yi, zi);
+        break;
       }
-      /*
-      if (seekTypeRidgeSurface == sctx->type
-          || seekTypeValleySurface == sctx->type) {
-        vvalSurfSet(sctx, vval, evidx, xi, yi);
-      }
-      */
       /* determine voxel and edge case */
       vcase = 0;
       for (vi=0; vi<8; vi++) {
@@ -336,7 +411,9 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
         continue;
       }
       /* set voxel corner gradients */
-      if (sctx->normalsFind && !sctx->normAns) {
+      if (seekTypeIsocontour == sctx->type 
+          && sctx->normalsFind 
+          && !sctx->normAns) {
         voxelGrads(vgrad, sctx->sclv, sx, spi);
       }
       sctx->voxNum++;
@@ -411,7 +488,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
 
 static int
 surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
-  char me[]="surfaceExtract", err[BIFF_STRLEN];
+  char me[]="surfaceExtract", err[BIFF_STRLEN], done[AIR_STRLEN_SMALL];
   int E;
   unsigned int zi, si, spi, minI, maxI, valI, evidx;
   baggage *bag;
@@ -424,10 +501,19 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     biffAdd(SEEK, err); return 1;
   }
 
-  shuffleProbe(sctx, bag, 0);
-  for (zi=1; zi<sctx->sz; zi++) {
+  if (sctx->verbose > 2) {
+    fprintf(stderr, "%s: extracting ...       ", me);
+  }
+  for (zi=0; zi<sctx->sz-1; zi++) {
+    if (sctx->verbose > 2) {
+      fprintf(stderr, "%s", airDoneStr(0, zi, sctx->sz-1, done));
+      fflush(stderr);
+    }
     shuffleProbe(sctx, bag, zi);
     triangulate(sctx, bag, lpld, zi);
+  }
+  if (sctx->verbose > 2) {
+    fprintf(stderr, "%s\n", airDoneStr(0, zi, sctx->sz-1, done));
   }
 
   /* this cleans up the airArrays in bag */

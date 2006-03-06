@@ -144,8 +144,19 @@ updateAnswerPointers(seekContext *sctx) {
         sprintf(err, "%s: grad, eval, evec items not all set", me);
         biffAdd(SEEK, err); return 1;
       }
+      if (sctx->normalsFind) {
+        /* NOTE simplifying assumption described in seek.h */
+        if (-1 == sctx->normItem) {
+          sprintf(err, "%s: need normal item set for normals for %s",
+                  me, airEnumStr(seekType, sctx->type));
+          biffAdd(SEEK, err); return 1;
+        }
+        sctx->normAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
+                                           sctx->normItem));
+      } else {
+        sctx->normAns = NULL;
+      }
       sctx->sclvAns = NULL;
-      sctx->normAns = NULL;
       sctx->gradAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->gradItem);
       sctx->evalAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evalItem);
       sctx->evecAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evecItem);
@@ -394,7 +405,7 @@ updateSclDerived(seekContext *sctx) {
       }
       for (zi=0; zi<sctx->sz; zi++) {
         if (sctx->verbose) {
-          fprintf(stderr, "%s", airDoneStr(0, zi, sctx->sz, doneStr));
+          fprintf(stderr, "%s", airDoneStr(0, zi, sctx->sz-1, doneStr));
           fflush(stderr);
         }
         for (yi=0; yi<sctx->sy; yi++) {
@@ -414,7 +425,7 @@ updateSclDerived(seekContext *sctx) {
         }
       }
       if (sctx->verbose) {
-        fprintf(stderr, "\b\b\b\b\b\b done.\n");
+        fprintf(stderr, "%s\n", airDoneStr(0, zi, sctx->sz-1, doneStr));
       }
     }
     sctx->flag[flagSclDerived] = AIR_TRUE;
