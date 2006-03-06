@@ -331,6 +331,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
     }
   } else {
     for (vi=0; vi<8; vi++) {
+      /* SILLY PRE-MICCAI HACKING */
       if (evec[vi][2] < 0) {
         ELL_3V_SCALE(evec[vi], -1, evec[vi]);
       }
@@ -442,10 +443,24 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
           if (sctx->normalsFind) {
             airArrayLenIncr(bag->normArr, 1);
             if (sctx->normAns) {
+              double len;
               gageProbe(sctx->gctx, tvertB[0], tvertB[1], tvertB[2]);
               ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, -1, sctx->normAns);
               if (sctx->reverse) {
                 ELL_3V_SCALE(lpld->norm + 3*ovi, -1, lpld->norm + 3*ovi);
+              }
+              /*
+              if ((lpld->norm + 3*ovi)[2] < 0) {
+                ELL_3V_SCALE(lpld->norm + 3*ovi, -1, lpld->norm + 3*ovi);
+              }
+              */
+              /* SILLY PRE-MICCAI HACKING */
+              len = ELL_3V_LEN(lpld->norm + 3*ovi);
+              if (AIR_ABS(len - 1.0) > 0.000001) {
+                fprintf(stderr, "!%s: normal len %g very != 1.0\n", me, len);
+              }
+              if (0 == airRandInt(300)) {
+                fprintf(stderr, "!%s: just checking in; len = %g\n", me, len);
               }
             } else {
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
