@@ -113,6 +113,7 @@ main(int argc, char *argv[]) {
   double t0, t1, mat[16], ipos[4], opos[4], spx, spy, spz, x, y, z, scale[3];
   airArray *mop;
   unsigned int hackZi;
+  double (*ins)(void *v, size_t I, double d);
 
   mop = airMopNew();
   me = argv[0];
@@ -319,10 +320,12 @@ main(int argc, char *argv[]) {
     return 1;
   }
   if (AIR_TRUE == hackSet) {
-    fprintf(stderr, "%s: Hack on: will only measure Zi=%u\n", me, hackZi);
+    fprintf(stderr, "%s: %s hack on: will only measure Zi=%u\n", 
+            me, hackKeyStr, hackZi);
   }
 
   t0 = airTime();
+  ins = nrrdDInsert[nout->type];
   for (zi=0; zi<=soz-1; zi++) {
     fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
             zi, soz-1); fflush(stderr);
@@ -370,12 +373,10 @@ main(int argc, char *argv[]) {
           return 1;
         }
         if (1 == ansLen) {
-          nrrdFInsert[nout->type](nout->data, idx,
-                                  nrrdFClamp[nout->type](*answer));
+          ins(nout->data, idx, *answer);
         } else {
           for (ai=0; ai<=ansLen-1; ai++) {
-            nrrdFInsert[nout->type](nout->data, ai + ansLen*idx,
-                                    nrrdFClamp[nout->type](answer[ai]));
+            ins(nout->data, ai + ansLen*idx, answer[ai]);
           }
         }
       }
