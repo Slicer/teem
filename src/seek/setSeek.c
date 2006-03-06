@@ -225,6 +225,11 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
             sctx->pvl->kind->enm->name);
     biffAdd(SEEK, err); return 1;
   }
+  if (!GAGE_QUERY_ITEM_TEST(sctx->pvl->query, item)) {
+    sprintf(err, "%s: item \"%s\" (%d) not set in query", me,
+            airEnumStr(sctx->pvl->kind->enm, item), item);
+    biffAdd(SEEK, err); return 1;
+  }
   if (sctx->pvl->kind->table[item].answerLength != wantLen) {
     sprintf(err, "%s: item %s has length %u, not wanted %u", me,
             airEnumStr(sctx->pvl->kind->enm, item),

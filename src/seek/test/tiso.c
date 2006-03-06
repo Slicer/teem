@@ -30,13 +30,13 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnPolyData *pld;
-  gageContext *gctx;
+  gageContext *gctx=NULL;
   gagePerVolume *pvl;
   Nrrd *nin;
   double isoval, kparm[3];
   seekContext *sctx;
   FILE *file;
-  int usegage, E;
+  int usegage, E, hack;
   
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
@@ -46,6 +46,7 @@ main(int argc, char *argv[]) {
              "isovalue");
   hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
 	     "use gage too");
+  hestOptAdd(&hopt, "hack", NULL, airTypeInt, 0, 0, &hack, NULL, "hack");
   hestOptAdd(&hopt, "o", "output OFF", airTypeString, 1, 1, &outS, "out.off",
              "output file to save OFF into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -66,7 +67,7 @@ main(int argc, char *argv[]) {
   if (usegage) {
     gctx = gageContextNew();
     airMopAdd(mop, gctx, (airMopper)gageContextNix, airMopAlways);
-    ELL_3V_SET(kparm, 1, 1.0, 0.0);
+    ELL_3V_SET(kparm, 2, 1.0, 0.0);
     if (!(pvl = gagePerVolumeNew(gctx, nin, gageKindScl))
 	|| gagePerVolumeAttach(gctx, pvl)
 	|| gageKernelSet(gctx, gageKernel00, nrrdKernelBCCubic, kparm)
@@ -74,6 +75,11 @@ main(int argc, char *argv[]) {
 	|| gageKernelSet(gctx, gageKernel22, nrrdKernelBCCubicDD, kparm)
 	|| gageQueryItemOn(gctx, pvl, gageSclValue)
 	|| gageQueryItemOn(gctx, pvl, gageSclNormal)
+        || (usegage
+            && (gageQueryItemOn(gctx, pvl, gageSclGradVec)
+                || gageQueryItemOn(gctx, pvl, gageSclHessEval)
+                || gageQueryItemOn(gctx, pvl, gageSclHessEvec)
+                || gageQueryItemOn(gctx, pvl, gageSclHessEvec2)))
 	|| gageUpdate(gctx)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -86,14 +92,25 @@ main(int argc, char *argv[]) {
   E = 0;
   if (usegage) {
     if (!E) E |= seekDataSet(sctx, NULL, gctx, 0);
-    if (!E) E |= seekItemScalarSet(sctx, gageSclValue);
-    if (!E) E |= seekItemNormalSet(sctx, gageSclNormal);
+    if (hack) {
+      if (!E) E |= seekItemGradientSet(sctx, gageSclGradVec);
+      if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval,
+                                          gageSclHessEvec);
+      if (!E) E |= seekItemNormalSet(sctx, gageSclHessEvec2);
+    } else {
+      if (!E) E |= seekItemScalarSet(sctx, gageSclValue);
+      if (!E) E |= seekItemNormalSet(sctx, gageSclNormal);
+    }
   } else {
     if (!E) E |= seekDataSet(sctx, nin, NULL, 0);
   }
   if (!E) E |= seekNormalsFindSet(sctx, AIR_TRUE);
-  if (!E) E |= seekTypeSet(sctx, seekTypeIsocontour);
-  if (!E) E |= seekIsovalueSet(sctx, isoval);
+  if (hack) {
+    if (!E) E |= seekTypeSet(sctx, seekTypeRidgeSurface);
+  } else {
+    if (!E) E |= seekTypeSet(sctx, seekTypeIsocontour);
+    if (!E) E |= seekIsovalueSet(sctx, isoval);
+  }
   if (!E) E |= seekUpdate(sctx);
   if (!E) E |= seekExtract(sctx, pld);
   if (E) {

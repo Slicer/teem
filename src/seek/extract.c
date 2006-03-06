@@ -369,7 +369,6 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
     {0, 1, 1},  /* 6 */
     {1, 1, 1}   /* 7 */
   };
-
   unsigned xi, yi, sx, sy, si, spi;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -459,9 +458,10 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld,
               if (AIR_ABS(len - 1.0) > 0.000001) {
                 fprintf(stderr, "!%s: normal len %g very != 1.0\n", me, len);
               }
-              if (0 == airRandInt(300)) {
-                fprintf(stderr, "!%s: just checking in; len = %g\n", me, len);
-              }
+              fprintf(stderr, "!%s: len(%g,%g,%g) = %g\n", me, 
+                      (lpld->norm + 3*ovi)[0],
+                      (lpld->norm + 3*ovi)[1],
+                      (lpld->norm + 3*ovi)[2], len);
             } else {
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
               ELL_3MV_MUL(tvec, sctx->txfNormal, grad);
