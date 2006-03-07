@@ -36,7 +36,6 @@ seekVerboseSet(seekContext *sctx, int verbose) {
   return;
 }
 
-
 /*
 ******** seekDataSet
 **
@@ -208,6 +207,48 @@ seekNormalsFindSet(seekContext *sctx, int normalsFind) {
   return 0;
 }
 
+int
+seekStrengthUseSet(seekContext *sctx, int doit) {
+  char me[]="seekStrengthUseSet", err[BIFF_STRLEN];
+
+  if (!sctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (sctx->strengthUse != doit) {
+    sctx->strengthUse = doit;
+    sctx->flag[flagStrengthUse] = AIR_TRUE;
+  }
+  return 0;
+}
+
+int
+seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
+  char me[]="seekStrengthSet", err[BIFF_STRLEN];
+
+  if (!sctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (!(1 == strengthSign || -1 == strengthSign)) {
+    sprintf(err, "%s: strengthSign (%d) not +1 or -1", me, strengthSign);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (!AIR_EXISTS(strength)) {
+    sprintf(err, "%s: strength %g doesn't exist", me, strength);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (sctx->strengthSign != strengthSign) {
+    sctx->strengthSign = strengthSign;
+    sctx->flag[flagStrength] = AIR_TRUE;
+  }
+  if (sctx->strength != strength) {
+    sctx->strength = strength;
+    sctx->flag[flagStrength] = AIR_TRUE;
+  }
+  return 0;
+}
+
 static int
 itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
   char me[]="itemCheck", err[BIFF_STRLEN];
@@ -255,6 +296,25 @@ seekItemScalarSet(seekContext *sctx, int item) {
   if (sctx->sclvItem != item) {
     sctx->sclvItem = item;
     sctx->flag[flagItemValue] = AIR_TRUE;
+  }
+  return 0;
+}
+
+/*
+******** seekItemStrengthSet
+**
+*/
+int
+seekItemStrengthSet(seekContext *sctx, int item) {
+  char me[]="seekItemStrengthSet", err[BIFF_STRLEN];
+
+  if (itemCheck(sctx, item, 1)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (sctx->stngItem != item) {
+    sctx->stngItem = item;
+    sctx->flag[flagItemStrength] = AIR_TRUE;
   }
   return 0;
 }
@@ -354,4 +414,3 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
   }
   return 0;
 }
-

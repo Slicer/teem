@@ -78,17 +78,22 @@ typedef struct {
   int type;                     /* from seekType* enum */
   int sclvItem,
     gradItem, normItem,
-    evalItem, evecItem;
+    evalItem, evecItem,
+    stngItem;                   /* "stng" == strength */
   int lowerInside,              /* lower values are logically inside
                                    isosurfaces, not outside */
-    normalsFind;                /* find normals for isosurface vertices, either
+    normalsFind,                /* find normals for isosurface vertices, either
                                    with forward and central differencing on 
                                    values, or via the given normItem. **NOTE**
                                    simplifying assumption: if gctx, and
                                    if normalsFind, then normItem must be set
                                    (i.e. will not find normals via differencing
                                    when we have a gctx) */
-  double isovalue;              /* for seekTypeIsocontour */
+    strengthUse,
+    strengthSign;
+  double isovalue,              /* for seekTypeIsocontour */
+    strength;                   /* if strengthUse, feature needs to satisfy
+                                   strengthAns*strengthSign > strength */
   size_t samples[3];            /* user-requested dimensions of feature grid */
   double facesPerVoxel,         /* approximate; for pre-allocating geometry */
     vertsPerVoxel;              /* approximate; for pre-allocating geometry */
@@ -104,7 +109,8 @@ typedef struct {
                                    scalars, as measured by gage */
   const double *sclvAns,
     *gradAns, *normAns,
-    *evalAns, *evecAns;
+    *evalAns, *evecAns,
+    *stngAns;
   int reverse;                  /* for seekTypeIsocontour: need to reverse
                                    sign of scalar field normal to get the 
                                    "right" isocontour normal */
@@ -133,18 +139,13 @@ typedef struct {
                                    (vec,z,x,y) */
     *eval,                      /* 3 * 2 * sx * sy array of eigenvalues */
     *evec;                      /* 9 * 2 * sx * sy array of eigenvectors */
-  unsigned char *etrk;          /* 8 * sx * sy array to record what becomes
-                                   of the important eigenvector tracked from
-                                   the reference corner:
-                                   0: +evec0
-                                   1: +evec1
-                                   2: +evec2
-                                   3: -evec0
-                                   4: -evec1
-                                   5: -evec2 */
+  signed char *flip;            /* 5 * sx * sy record of how the eigenvector
+                                   of interest flips along the voxel edges */
+  double *stng;                 /* 2 * sx * sy array of strength */
   Nrrd *nvidx, *nsclv,          /* nrrd wrappers around arrays above */
     *ngrad, *neval,
-    *nevec, *netrk;
+    *nevec, *nflip,
+    *nstng;
   /* ------ output ----- */
   unsigned int
     voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
@@ -170,11 +171,15 @@ SEEK_EXPORT void seekVerboseSet(seekContext *sctx, int verbose);
 SEEK_EXPORT int seekDataSet(seekContext *sctx, const Nrrd *ninscl,
                             gageContext *gctx, unsigned int pvlIdx);
 SEEK_EXPORT int seekNormalsFindSet(seekContext *sctx, int doit);
+SEEK_EXPORT int seekStrengthUseSet(seekContext *sctx, int doit);
+SEEK_EXPORT int seekStrengthSet(seekContext *sctx, int strengthSign,
+                                double strength);
 SEEK_EXPORT int seekSamplesSet(seekContext *sctx, size_t samples[3]);
 SEEK_EXPORT int seekTypeSet(seekContext *sctx, int type);
 SEEK_EXPORT int seekLowerInsideSet(seekContext *sctx, int lowerInside);
 SEEK_EXPORT int seekTransformSet(seekContext *sctx, const double mat[16]);
 SEEK_EXPORT int seekItemScalarSet(seekContext *sctx, int item);
+SEEK_EXPORT int seekItemStrengthSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemNormalSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemGradientSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemEigensystemSet(seekContext *sctx,

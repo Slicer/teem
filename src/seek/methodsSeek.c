@@ -40,9 +40,13 @@ seekContextNew(void) {
     sctx->gradItem = -1;
     sctx->evalItem = -1;
     sctx->evecItem = -1;
+    sctx->stngItem = -1;
     sctx->lowerInside = AIR_FALSE;
     sctx->normalsFind = AIR_FALSE;
+    sctx->strengthUse = AIR_FALSE;
+    sctx->strengthSign = 1;
     sctx->isovalue = AIR_NAN;
+    sctx->strength = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
     /* these magic values assume a certain level of surface smoothness,
        which certainly does not apply to all cases */
@@ -64,6 +68,7 @@ seekContextNew(void) {
     sctx->gradAns = NULL;
     sctx->evalAns = NULL;
     sctx->evecAns = NULL;
+    sctx->stngAns = NULL;
     sctx->reverse = AIR_FALSE;
     ELL_3M_IDENTITY_SET(sctx->txfNormal);
     sctx->spanSize = 300;
@@ -78,13 +83,15 @@ seekContextNew(void) {
     sctx->ngrad = nrrdNew();
     sctx->neval = nrrdNew();
     sctx->nevec = nrrdNew();
-    sctx->netrk = nrrdNew();
+    sctx->nflip = nrrdNew();
+    sctx->nstng = nrrdNew();
     sctx->vidx = NULL;
     sctx->sclv = NULL;
     sctx->grad = NULL;
     sctx->eval = NULL;
     sctx->evec = NULL;
-    sctx->etrk = NULL;
+    sctx->flip = NULL;
+    sctx->stng = NULL;
     sctx->time = AIR_NAN;
   }  
   return sctx;
@@ -104,7 +111,8 @@ seekContextNix(seekContext *sctx) {
     sctx->ngrad = nrrdNuke(sctx->ngrad);
     sctx->neval = nrrdNuke(sctx->neval);
     sctx->nevec = nrrdNuke(sctx->nevec);
-    sctx->netrk = nrrdNuke(sctx->netrk);
+    sctx->nflip = nrrdNuke(sctx->nflip);
+    sctx->nstng = nrrdNuke(sctx->nstng);
     airFree(sctx);
   }
   return NULL;

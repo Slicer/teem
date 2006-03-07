@@ -65,6 +65,8 @@ updateAnswerPointers(seekContext *sctx) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagItemValue = %d\n", me,
             sctx->flag[flagItemValue]);
+    fprintf(stderr, "%s: flagItemStrength = %d\n", me,
+            sctx->flag[flagItemStrength]);
     fprintf(stderr, "%s: flagItemNormal = %d\n", me,
             sctx->flag[flagItemNormal]);
     fprintf(stderr, "%s: flagItemGradient = %d\n", me,
@@ -75,6 +77,8 @@ updateAnswerPointers(seekContext *sctx) {
             sctx->flag[flagNinEtAl]);
     fprintf(stderr, "%s: flagNormalsFind = %d\n", me,
             sctx->flag[flagNormalsFind]);
+    fprintf(stderr, "%s: flagStrengthUse = %d\n", me,
+            sctx->flag[flagStrengthUse]);
     fprintf(stderr, "%s: flagType = %d\n", me,
             sctx->flag[flagType]);
     fprintf(stderr, "%s: flagData = %d\n", me,
@@ -85,15 +89,29 @@ updateAnswerPointers(seekContext *sctx) {
     sprintf(err, "%s: feature type never set", me);
     biffAdd(SEEK, err); return 1;
   }
-
+  
   if (sctx->flag[flagItemValue]
+      || sctx->flag[flagItemStrength]
       || sctx->flag[flagItemNormal]
       || sctx->flag[flagItemGradient]
       || sctx->flag[flagItemEigensystem]
       || sctx->flag[flagNinEtAl]
       || sctx->flag[flagNormalsFind]
+      || sctx->flag[flagStrengthUse]
       || sctx->flag[flagType]) {
-    
+
+    /* this is apt regardless of feature type */
+    if (sctx->strengthUse) {
+      if (-1 == sctx->stngItem) {
+        sprintf(err, "%s: need to set strength item to use strength", me);
+        biffAdd(SEEK, err); return 1;
+      }
+      sctx->stngAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
+                                         sctx->stngItem));
+    } else {
+      sctx->stngAns = NULL;
+    }
+
     switch (sctx->type) {
     case seekTypeIsocontour:
       if (!( sctx->ninscl || -1 != sctx->sclvItem )) {
@@ -173,9 +191,11 @@ updateAnswerPointers(seekContext *sctx) {
     }
 
     sctx->flag[flagItemValue] = AIR_FALSE;
+    sctx->flag[flagItemStrength] = AIR_FALSE;
     sctx->flag[flagItemNormal] = AIR_FALSE;
     sctx->flag[flagItemGradient] = AIR_FALSE;
     sctx->flag[flagItemEigensystem] = AIR_FALSE;
+    sctx->flag[flagNormalsFind] = AIR_FALSE;
     sctx->flag[flagAnswerPointers] = AIR_TRUE;
   }
 
@@ -313,23 +333,28 @@ updateSlabCacheAlloc(seekContext *sctx) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d (type = %s)\n", me,
             sctx->flag[flagType], airEnumStr(seekType, sctx->type));
-    fprintf(stderr, "%s: flagNormalsFind = %d\n", me,
-            sctx->flag[flagNormalsFind]);
+    fprintf(stderr, "%s: flagStrengthUse = %d\n", me,
+            sctx->flag[flagStrengthUse]);
     fprintf(stderr, "%s: flagSxSySz = %d\n", me,
             sctx->flag[flagSxSySz]);
   }
 
   E = 0;
-  if (sctx->flag[flagSxSySz]) {
+  if (sctx->flag[flagType]
+      || sctx->flag[flagStrengthUse]  /* kind of sloppy/overkill */
+      || sctx->flag[flagSxSySz]) {
     if (!E) E |= nrrdMaybeAlloc_va(sctx->nvidx, nrrdTypeInt, 3,
                                    AIR_CAST(size_t, 5),
                                    sctx->sx,
                                    sctx->sy);
     if (!E) sctx->vidx = AIR_CAST(int*, sctx->nvidx->data);
-  }
-  if (sctx->flag[flagType]
-      || sctx->flag[flagNormalsFind]  /* um, this is overkill, no? ... */
-      || sctx->flag[flagSxSySz]) {
+    if (sctx->strengthUse) {
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nstng, nrrdTypeDouble, 3,
+                                     AIR_CAST(size_t, 2),
+                                     sctx->sx,
+                                     sctx->sy);
+      if (!E) sctx->stng = AIR_CAST(double*, sctx->nstng->data);
+    }
     if (seekTypeIsocontour == sctx->type) {
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nsclv, nrrdTypeDouble, 3,
                                      AIR_CAST(size_t, 4),
@@ -357,11 +382,16 @@ updateSlabCacheAlloc(seekContext *sctx) {
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->evec = AIR_CAST(double*, sctx->nevec->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->netrk, nrrdTypeUChar, 3, 
-                                     AIR_CAST(size_t, 8),
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, 
+                                     AIR_CAST(size_t, 5),
                                      sctx->sx,
                                      sctx->sy);
-      if (!E) sctx->etrk = AIR_CAST(unsigned char*, sctx->netrk->data);
+      if (!E) sctx->flip = AIR_CAST(signed char*, sctx->nflip->data);
+    } else {
+      sctx->grad = NULL;
+      sctx->eval = NULL;
+      sctx->evec = NULL;
+      sctx->flip = NULL;
     }
     sctx->flag[flagSlabCacheAlloc] = AIR_TRUE;
   }
@@ -369,7 +399,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
     sprintf(err, "%s: couldn't allocate all slab caches", me);
     biffMove(SEEK, err, NRRD); return 1;
   }
-  sctx->flag[flagNormalsFind] = AIR_FALSE;
+  sctx->flag[flagStrengthUse] = AIR_FALSE;
   sctx->flag[flagSxSySz] = AIR_FALSE;
   return 0;
 }
@@ -559,17 +589,31 @@ updateResult(seekContext *sctx) {
             sctx->flag[flagTxfNormal]);
   }
 
-  if (sctx->flag[flagIsovalue]
-      && seekTypeIsocontour != sctx->type) {
-    sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
-            airEnumStr(seekType, sctx->type),
-            airEnumStr(seekType, seekTypeIsocontour));
+  if (seekTypeIsocontour == sctx->type) {
+    if (!AIR_EXISTS(sctx->isovalue)) {
+      sprintf(err, "%s: didn't seem to ever set isovalue (now %g)", me,
+              sctx->isovalue);
+      biffAdd(SEEK, err); return 1;
+    }
+  } else {
+    if (sctx->flag[flagIsovalue]) {
+      sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
+              airEnumStr(seekType, sctx->type),
+              airEnumStr(seekType, seekTypeIsocontour));
+      biffAdd(SEEK, err); return 1;
+    }
+  }
+
+  if (sctx->strengthUse && !sctx->stngAns) {
+    sprintf(err, "%s: can't use feature strength without a strength item", me);
     biffAdd(SEEK, err); return 1;
   }
 
   /* this seems to be a very pointless exercise */
   if (sctx->flag[flagIsovalue]
       || sctx->flag[flagAnswerPointers]
+      || sctx->flag[flagStrengthUse]
+      || sctx->flag[flagStrength]
       || sctx->flag[flagType]
       || sctx->flag[flagSlabCacheAlloc]
       || sctx->flag[flagSpanSpaceHist]
@@ -581,6 +625,8 @@ updateResult(seekContext *sctx) {
 
     sctx->flag[flagIsovalue] = AIR_FALSE;
     sctx->flag[flagAnswerPointers] = AIR_FALSE;
+    sctx->flag[flagStrengthUse] = AIR_FALSE;
+    sctx->flag[flagStrength] = AIR_FALSE;
     sctx->flag[flagType] = AIR_FALSE;
     sctx->flag[flagSlabCacheAlloc] = AIR_FALSE;
     sctx->flag[flagSpanSpaceHist] = AIR_FALSE;
