@@ -345,6 +345,57 @@ edgeNeighbors(limnPolyData *pld, int neigh[3], unsigned int face) {
 }
 */
 
+enum {
+  flipUnvisited = 0,
+  flipPushed,
+  flipDoneAsIs,
+  flipDoneFlip,
+  flipBogus
+};
+
+static void
+flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
+                 unsigned int neighGot[3], unsigned int neighRecord[3][3],
+                 unsigned int totalTriIdx) {
+  
+  return;
+}
+
+static int
+flipDetermine(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
+              unsigned int record[3]) {
+  unsigned int *vertWithTri, vert[3], vertA, vertB;
+
+  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
+  ELL_3V_COPY(vert, vertWithTri + 3*record[0]);
+  vertA = record[1];
+  vertB = record[2];
+  
+  
+  return flipDoneAsIs;
+}
+
+static void
+flipNeighborsPush(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
+                  unsigned int *triFlip, airArray *todoArr,
+                  unsigned int totalTriIdx) {
+  unsigned int neighGot[3], neighRecord[3][3], ii, *todo, todoIdx;
+
+  flipNeighborsGet(pld, nTriWithVert, nVertWithTri,
+                   neighGot, neighRecord,
+                   totalTriIdx);
+  for (ii=0; ii<2; ii++) {
+    if (neighGot[ii] && !triFlip[neighRecord[ii][0]]) {
+      todoIdx = airArrayLenIncr(todoArr, 1);
+      todo = AIR_CAST(unsigned int, todoArr->data);
+      ELL_3V_COPY(todo + 3*todoIdx, neighRecord[ii]);
+      triFlip[neighRecord[ii][0]] = flipPushed;
+    }
+  }
+
+  return;
+}
+
 int
 limnPolyDataVertexWindingFix(limnPolyData *pld) { 
   char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
@@ -357,15 +408,23 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
                         into a single triangle index */
     totalTriNum,     /* total # triangles in all primitives (actually not,
                         just the total number of plausible triangle indices) */
+    totalTriIdx,     /* master triangle index */
+    trueTotalTriNum, /* correct total # triangles in all primitives */
     baseVertIdx,     /* first vertex for current primitive */
     *triWithVertNum, /* 1D array (len totalTriNum) of # tri with vert[i] */
-    twvnm,           /* max # of tris on single vertex */
-    *triWithVert,    /* 2D array (twvnm-by-totalTriNum) of per-vert tris */
+    maxTriPerVert,   /* max # of tris on single vertex */
+    *triWithVert,    /* 2D array ((1+maxTriPerVert) x pld->xyzwNum) 
+                        of per-vertex triangles */
+    *vertWithTri,    /* 3D array (3 x maxTriPerPrim x pld->primNum)
+                        of per-tri vertices (vertex indices), which is just
+                        a repackaging of the information in the lpld */
     doneTriNum,      /* # triangles finished so far */
     *todo;           /* the to-do stack */
   unsigned char
-    *triDone;        /* 1D array (len totalTriNum) record of done tris */
-  Nrrd *nTriWithVert;
+    *triFlip;        /* 1D array (len totalTriNum) record of triangle flip
+                        info, filled in as we go, taking values from the
+                        tri* enum above */
+  Nrrd *nTriWithVert, *nVertWithTri;
   airArray *mop, *todoArr;
   
   if (!pld) {
@@ -375,28 +434,35 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
 
   /* calculate maxTriPerPrim and totalTriNum */
   maxTriPerPrim = 0;
+  trueTotalTriNum = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum;
     if (limnPrimitiveTriangles != pld->type[primIdx]) {
-      sprintf(err, "%s: sorry, can only have %s prims now (prim %u is %s)",
+      sprintf(err, "%s: sorry, can only have %s prims (prim[%u] is %s)",
               me, airEnumStr(limnPrimitive, limnPrimitiveTriangles),
               primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
       biffAdd(LIMN, err); return 1;
     }
-    maxTriPerPrim = AIR_MAX(maxTriPerPrim, pld->icnt[primIdx]/3);
+    triNum = pld->icnt[primIdx]/3;
+    maxTriPerPrim = AIR_MAX(maxTriPerPrim, triNum);
+    trueTotalTriNum += triNum;
   }
   totalTriNum = maxTriPerPrim*pld->primNum;
 
-  /* allocate 1-D triWithVertNum */
+  /* allocate 1-D triWithVertNum and triFlip */
   mop = airMopNew();
   triWithVertNum = AIR_CAST(unsigned int*,
                             calloc(pld->xyzwNum, sizeof(unsigned int)));
-  if (!triWithVertNum) {
+  airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
+  triFlip = AIR_CAST(unsigned char *,
+                     calloc(totalTriNum, sizeof(unsigned char)));
+  airMopAdd(mop, triFlip, airFree, airMopAlways);
+  if (!(triWithVertNum && triFlip)) {
     sprintf(err, "%s: couldn't allocate temp arrays", me);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
-  airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
 
-  /* fill in 1-D triWithVertNum */
+  /* fill in triWithVertNum */
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, *indxLine, ii;
@@ -410,64 +476,116 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
     baseVertIdx += 3*triNum;
   }
 
-  /* find (1 less than) axis-0 size of TriWithVert */
-  twvnm = 0;
+  /* find (1 less than) axis-0 size of TriWithVert from triWithVertNum */
+  maxTriPerVert = 0;
   for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
     fprintf(stderr, "!%s: triWithVertNum[%u] = %u\n", me, vertIdx,
             triWithVertNum[vertIdx]);
-    twvnm = AIR_MAX(twvnm, triWithVertNum[vertIdx]);
+    maxTriPerVert = AIR_MAX(maxTriPerVert, triWithVertNum[vertIdx]);
   }
 
-  /* allocate TriWithVert */
+  /* allocate TriWithVert and VertWithTri */
   nTriWithVert = nrrdNew();
   airMopAdd(mop, nTriWithVert, (airMopper)nrrdNuke, airMopAlways);
+  nVertWithTri = nrrdNew();
+  airMopAdd(mop, nVertWithTri, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, 
-                        AIR_CAST(size_t, 1+twvnm),
-                        AIR_CAST(size_t, pld->xyzwNum))) {
-    sprintf(err, "%s: couldn't allocate TriWithVert", me);
+                        AIR_CAST(size_t, 1+maxTriPerVert),
+                        AIR_CAST(size_t, pld->xyzwNum))
+      || nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 3, 
+                           AIR_CAST(size_t, 3),
+                           AIR_CAST(size_t, maxTriPerPrim),
+                           AIR_CAST(size_t, pld->primNum))) {
+    sprintf(err, "%s: couldn't allocate TriWithVert or VertWithTri", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
+  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
 
-  /* fill in TriWithVert.  Note clever indexing scheme for triangles */
+  /* fill in TriWithVert and VertWithTri */
+  baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, *indxLine, *twvLine, ii;
     triNum = pld->icnt[primIdx]/3;
     for (triIdx=0; triIdx<triNum; triIdx++) {
+      totalTriIdx = triIdx + maxTriPerPrim*primIdx;
       indxLine = pld->indx + baseVertIdx + 3*triIdx;
       for (ii=0; ii<3; ii++) {
-        twvLine = triWithVert + (1+twvnm)*indxLine[ii];
-        fprintf(stderr, "%d/%u/%d/%d  ", ii, indxLine[ii],
-                twvLine - triWithVert,
-                (twvLine - triWithVert)/(1+twvnm));
-        /* twvLine[1+twvLine[0]] = triIdx + maxTriPerPrim*primIdx; */
-        /* twvLine[0]++; */
+        (vertWithTri + 3*totalTriIdx)[ii] = indxLine[ii];
+        twvLine = triWithVert + (1+maxTriPerVert)*indxLine[ii];
+        twvLine[1+twvLine[0]] = totalTriIdx;
+        twvLine[0]++;
       }
-      fprintf(stderr, "\n");
     }
     baseVertIdx += 3*triNum;
   }
-  
-  /* nrrdSave("ntwv.nrrd", nTriWithVert, NULL); */
 
-  /*
-  create todo stack;
-
-  while (#done < total # tri) {
-
-    pick first undone triangle, flag as done
-    neigh = edgeNeighbors(first);
-    push all (neigh,v0,v1)
-  
-    while (todo) {
-      (this,v0,v1) = todo.pop;
-      fix(this,v0,v1);
-      flag this as done;
-      neigh = edgeNeighbors(this);
-      push (neigh,v0,v1) not done;
+  /* initialize the triFlip array so that we can quickly scan it 
+     for triangles left undone.  This is needed because of the way
+     that triangles are given a linear index- there may be linear
+     indices that do not correspond to a triangle */
+  for (totalTriIdx=0; totalTriIdx<totalTriNum; totalTriIdx++) {
+    triFlip[totalTriIdx] = flipBogus;
+  }
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      triFlip[triIdx + maxTriPerPrim*primIdx] = flipUnvisited;
     }
   }
-  */  
+
+  /* create the "stack" of todo records, which are three numbers:
+     record[0]: totalTriIdx
+     record[1]: vertIndxA
+     record[2]: vertIndxB
+     This means that vertIndxA and vertIndxB should be successive
+     vertices in triangle totalTriIdx's vertex list */
+  todoArr = airArrayNew((void**)(&todo), NULL, 3*sizeof(unsigned int),
+                        maxTriPerPrim);
+  airMopAdd(mop, todoArr, (airMopper)airArrayNuke, airMopAlways);
+
+  /* the skinny */
+  doneTriNum = 0;
+  while (doneTriNum < trueTotalTriNum) {
+    /* find first undone triangle, which should be on a different
+       connected component than any processed so far */
+    for (totalTriIdx=0; triFlip[totalTriIdx]; totalTriIdx++)
+      ;
+    triFlip[totalTriIdx] = flipDoneAsIs;
+    ++doneTriNum;
+    flipNeighborsPush(pld, nTriWithVert, nVertWithTri, triFlip, todoArr, 
+                      totalTriIdx);
+    while (todoArr->len) {
+      unsigned record[3];
+      ELL_3V_COPY(record, todo + 3*(todoArr->len-1));
+      airArrayLenIncr(todoArr, -1);
+      triFlip[record[0]] = flipDetermine(pld, nTriWithVert, nVertWithTri,
+                                         record);
+      ++doneTriNum;
+      flipNeighborsPush(pld, nTriWithVert, nVertWithTri, triFlip, todoArr,
+                        record[0]);
+    }
+  }
+
+  /* Now effect the necessary flips. This is done as a second pass because
+     of the annoyance of getting to the vertex indices of a given triangle,
+     complicated since indices for all primitives are concatenated together. */
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum, *indxLine;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indxLine = pld->indx + baseVertIdx + 3*triIdx;
+      if (flipDoneFlip == triFlip[triIdx + maxTriPerPrim*primIdx]) {
+        unsigned int tmp;
+        tmp = indxLine[0];
+        indxLine[0] = indxLine[2];
+        indxLine[2] = tmp;
+      }
+    }
+    baseVertIdx += 3*triNum;
+  }
 
   airMopOkay(mop);
   return 0;
