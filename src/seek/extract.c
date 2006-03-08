@@ -149,7 +149,7 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
     sprintf(err, "%s: trouble emptying given polydata", me);
     biffAdd(SEEK, err); return 1;
   }
-  bag->xyzwArr = airArrayNew((void**)&(lpld->xyzw), &(lpld->vertNum),
+  bag->xyzwArr = airArrayNew((void**)&(lpld->xyzw), &(lpld->xyzwNum),
                              4*sizeof(float), sctx->pldArrIncr);
   if (sctx->normalsFind) {
     bag->normArr = airArrayNew((void**)&(lpld->norm), &(lpld->normNum),
@@ -288,7 +288,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
 
   ELL_3V_COPY(current, evecA);
   u = 0;
-  du = 0.333333;
+  du = 0.49999;
   wantDot = 0.9; /* between cos(pi/6) and cos(pi/8) */
   minDu = 0.001;
   while (u + du < 1.0) {
@@ -298,7 +298,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
       *flip = 0;
       return 0;
     }
-    if (mode < -0.5) {
+    if (mode < -0.75) {
       /* sorry, eigenvalue mode got too close to 2nd order isotropy */
       *flip = 0;
       return 0;
@@ -307,13 +307,16 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
       /* angle between current and next is too big; reduce step */
       du /= 2;
       if (du < minDu) {
-        sprintf(err, "%s: got to du=%g < minDu=%g: "
-                "dot=%g; stngA,B = %g,%g; strength = %g; mode = %g;"
-                "(xi,yi,zi)=(%u,%u,%u+%u); (dx,dy,dz)=(%u,%u,%u)",
-                me, du, minDu,
+        sprintf(err, "%s: evector wild @ u=%g: du=%g < minDu=%g; "
+                "dot=%g; stngA,B = %g,%g; strength = %g; mode = %g; "
+                "(xi,yi,zi)=(%u,%u,%u+%u); (dx,dy,dz)=(%u,%u,%u) ",
+                me, u, du, minDu,
                 dot, stngA, stngB, strength, mode,
                 xi, yi, bag->zi, ziOff, dx, dy, dz);
-        biffAdd(SEEK, err); return 1;
+        /* biffAdd(SEEK, err); return 1; */
+        fprintf(stderr, "%s\n", err);
+        *flip = 0;
+        return 0;
       }
       SETNEXT(u+du);
     }
@@ -411,7 +414,9 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         /* ----------------- set/probe top of initial slab */
         sctx->vidx[0 + 5*si] = -1;
         sctx->vidx[1 + 5*si] = -1;
-        idxProbe(sctx, bag, xi, yi, 0);
+        if (sctx->gctx) { /* HEY: need this check, what's the right way? */
+          idxProbe(sctx, bag, xi, yi, 0);
+        }
         if (sctx->strengthUse) {
           sctx->stng[0 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
         }
@@ -456,7 +461,9 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
       sctx->vidx[2 + 5*si] = -1;
       sctx->vidx[3 + 5*si] = -1;
       sctx->vidx[4 + 5*si] = -1;
-      idxProbe(sctx, bag, xi, yi, bag->zi+1);
+      if (sctx->gctx) { /* HEY: need this check, what's the right way? */
+        idxProbe(sctx, bag, xi, yi, bag->zi+1);
+      }
       if (sctx->strengthUse) {
         sctx->stng[1 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
       }
@@ -544,9 +551,54 @@ voxelGrads(double vgrad[8][3], double *val, int sx, int spi) {
 #undef VAL
 
 static void
+vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
+           unsigned int xi, unsigned int yi) {
+  unsigned int sx, sy, si, spi, vi;
+
+  AIR_UNUSED(bag);
+  sx = AIR_CAST(unsigned int, sctx->sx);
+  sy = AIR_CAST(unsigned int, sctx->sy);
+  si = xi + sx*yi;
+  spi = (xi+1) + (sx+2)*(yi+1);
+
+  /* learn voxel values */
+  /*                      X   Y                 Z */
+  vval[0] = sctx->sclv[4*(0 + 0*(sx+2) + spi) + 1];
+  vval[1] = sctx->sclv[4*(1 + 0*(sx+2) + spi) + 1];
+  vval[2] = sctx->sclv[4*(0 + 1*(sx+2) + spi) + 1];
+  vval[3] = sctx->sclv[4*(1 + 1*(sx+2) + spi) + 1];
+  vval[4] = sctx->sclv[4*(0 + 0*(sx+2) + spi) + 2];
+  vval[5] = sctx->sclv[4*(1 + 0*(sx+2) + spi) + 2];
+  vval[6] = sctx->sclv[4*(0 + 1*(sx+2) + spi) + 2];
+  vval[7] = sctx->sclv[4*(1 + 1*(sx+2) + spi) + 2];
+  if (sctx->strengthUse) {
+    double s, w, ssum, wsum;
+    /*                 Z      X   Y   */
+    ssum = wsum = 0;
+#define ACCUM(vi) w = AIR_ABS(1.0/vval[vi]); ssum += w*s; wsum += w
+    s = sctx->stng[0 + 2*(0 + 0*sx + si)]; ACCUM(0);
+    s = sctx->stng[0 + 2*(1 + 0*sx + si)]; ACCUM(1);
+    s = sctx->stng[0 + 2*(0 + 1*sx + si)]; ACCUM(2);
+    s = sctx->stng[0 + 2*(1 + 1*sx + si)]; ACCUM(3);
+    s = sctx->stng[1 + 2*(0 + 0*sx + si)]; ACCUM(4);
+    s = sctx->stng[1 + 2*(1 + 0*sx + si)]; ACCUM(5);
+    s = sctx->stng[1 + 2*(0 + 1*sx + si)]; ACCUM(6);
+    s = sctx->stng[1 + 2*(1 + 1*sx + si)]; ACCUM(7);
+#undef ACCUM
+    if (ssum/wsum < sctx->strength) {
+      for (vi=0; vi<8; vi++) {
+        vval[vi] = 0;
+      }
+    }
+  }
+  return;
+}
+
+
+static void
 vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
             unsigned int xi, unsigned int yi) {
-  char me[]="vvalSurfSet";
+  /* char me[]="vvalSurfSet"; */
   double eval[8][3], evec[8][3], grad[8][3], stng[8], minStrength=0;
   signed char flip[12], flipProd;
   unsigned int sx, sy, si, vi, ei, vrti[8];
@@ -606,7 +658,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
 
 static int
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  char me[]="triangulate";
+  /* char me[]="triangulate"; */
   unsigned xi, yi, sx, sy, si, spi;
   /* ========================================================== */
   /* NOTE: these things must agree with information in tables.c */
@@ -650,16 +702,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
       spi = (xi+1) + (sx+2)*(yi+1);
       switch (sctx->type) {
       case seekTypeIsocontour:
-        /* learn voxel values */
-        /*                      X   Y                 Z */
-        vval[0] = sctx->sclv[4*(0 + 0*(sx+2) + spi) + 1];
-        vval[1] = sctx->sclv[4*(1 + 0*(sx+2) + spi) + 1];
-        vval[2] = sctx->sclv[4*(0 + 1*(sx+2) + spi) + 1];
-        vval[3] = sctx->sclv[4*(1 + 1*(sx+2) + spi) + 1];
-        vval[4] = sctx->sclv[4*(0 + 0*(sx+2) + spi) + 2];
-        vval[5] = sctx->sclv[4*(1 + 0*(sx+2) + spi) + 2];
-        vval[6] = sctx->sclv[4*(0 + 1*(sx+2) + spi) + 2];
-        vval[7] = sctx->sclv[4*(1 + 1*(sx+2) + spi) + 2];
+        vvalIsoSet(sctx, bag, vval, xi, yi);
         break;
       case seekTypeRidgeSurface:
       case seekTypeValleySurface:
@@ -766,11 +809,11 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     biffAdd(SEEK, err); return 1;
   }
 
-  if (sctx->verbose > 2) {
+  if (0 && sctx->verbose > 2) {
     fprintf(stderr, "%s: extracting ...       ", me);
   }
   for (zi=0; zi<sz-1; zi++) {
-    if (sctx->verbose > 2) {
+    if (0 && sctx->verbose > 2) {
       fprintf(stderr, "%s", airDoneStr(0, zi, sz-2, done));
       fflush(stderr);
     }
@@ -781,7 +824,7 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
       biffAdd(SEEK, err); return 1;
     }
   }
-  if (sctx->verbose > 2) {
+  if (0 && sctx->verbose > 2) {
     fprintf(stderr, "%s\n", airDoneStr(0, zi, sz-2, done));
   }
 
@@ -800,6 +843,14 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
   if (!( sctx && lpld )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(SEEK, err); return 1;
+  }
+
+  if (seekTypeIsocontour == sctx->type) {
+    if (!AIR_EXISTS(sctx->isovalue)) {
+      sprintf(err, "%s: didn't seem to ever set isovalue (now %g)", me,
+              sctx->isovalue);
+      biffAdd(SEEK, err); return 1;
+    }
   }
 
   if (sctx->verbose) {

@@ -589,19 +589,12 @@ updateResult(seekContext *sctx) {
             sctx->flag[flagTxfNormal]);
   }
 
-  if (seekTypeIsocontour == sctx->type) {
-    if (!AIR_EXISTS(sctx->isovalue)) {
-      sprintf(err, "%s: didn't seem to ever set isovalue (now %g)", me,
-              sctx->isovalue);
-      biffAdd(SEEK, err); return 1;
-    }
-  } else {
-    if (sctx->flag[flagIsovalue]) {
-      sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
-              airEnumStr(seekType, sctx->type),
-              airEnumStr(seekType, seekTypeIsocontour));
-      biffAdd(SEEK, err); return 1;
-    }
+  if (seekTypeIsocontour != sctx->type
+      && sctx->flag[flagIsovalue]) {
+    sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
+            airEnumStr(seekType, sctx->type),
+            airEnumStr(seekType, seekTypeIsocontour));
+    biffAdd(SEEK, err); return 1;
   }
 
   if (sctx->strengthUse && !sctx->stngAns) {
