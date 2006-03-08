@@ -30,7 +30,7 @@ limnPolyDataNew(void) {
   pld = (limnPolyData *)calloc(1, sizeof(limnPolyData));
   if (pld) {
     pld->xyzw = NULL;
-    pld->vertNum = 0;
+    pld->xyzwNum = 0;
     pld->rgba = NULL;
     pld->rgbaNum = 0;
     pld->norm = NULL;
@@ -63,7 +63,7 @@ limnPolyDataNix(limnPolyData *pld) {
 }
 
 /*
-** doesn't set pld->vertNum, only the per-attribute xxxNum variables
+** doesn't set pld->xyzwNum, only the per-attribute xxxNum variables
 */
 int
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
@@ -124,7 +124,7 @@ limnPolyDataAlloc(limnPolyData *pld,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (vertNum != pld->vertNum) {
+  if (vertNum != pld->xyzwNum) {
     pld->xyzw = (float *)airFree(pld->xyzw);
     if (vertNum) {
       pld->xyzw = (float *)calloc(vertNum, 4*sizeof(float));
@@ -133,7 +133,7 @@ limnPolyDataAlloc(limnPolyData *pld,
         biffAdd(LIMN, err); return 1;
       }
     }
-    pld->vertNum = vertNum;
+    pld->xyzwNum = vertNum;
   }
   if (_limnPolyDataInfoAlloc(pld, infoBitFlag, vertNum)) {
     sprintf(err, "%s: couldn't allocate info", me);
@@ -171,7 +171,7 @@ limnPolyDataSize(limnPolyData *pld) {
   size_t ret = 0;
 
   if (pld) {
-    ret += pld->vertNum*sizeof(float)*4;  /* xyzw */
+    ret += pld->xyzwNum*sizeof(float)*4;  /* xyzw */
     if (pld->rgba) {
       ret += pld->rgbaNum*sizeof(unsigned char)*4;
     }
@@ -200,11 +200,11 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
                         ((pldA->rgba ? 1 << limnPolyDataInfoRGBA : 0)
                          | (pldA->norm ? 1 << limnPolyDataInfoNorm : 0)
                          | (pldA->tex2D ? 1 << limnPolyDataInfoTex2D : 0)),
-                        pldA->vertNum, pldA->indxNum, pldA->primNum)) {
+                        pldA->xyzwNum, pldA->indxNum, pldA->primNum)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
   }
-  memcpy(pldB->xyzw, pldA->xyzw, pldA->vertNum*sizeof(float)*4);
+  memcpy(pldB->xyzw, pldA->xyzw, pldA->xyzwNum*sizeof(float)*4);
   if (pldA->rgba) {
     memcpy(pldB->rgba, pldA->rgba, pldA->rgbaNum*sizeof(unsigned char)*4);
   }
@@ -235,16 +235,16 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (limnPolyDataAlloc(pldB, num*pldA->vertNum,
+  if (limnPolyDataAlloc(pldB, num*pldA->xyzwNum,
                        num*pldA->indxNum, num*pldA->primNum)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
   }
   for (ii=0; ii<num; ii++) {
-    memcpy(pldB->vert + ii*pldA->vertNum, pldA->vert,
-           pldA->vertNum*sizeof(limnVrt));
+    memcpy(pldB->vert + ii*pldA->xyzwNum, pldA->vert,
+           pldA->xyzwNum*sizeof(limnVrt));
     for (jj=0; jj<pldA->indxNum; jj++) {
-      (pldB->indx + ii*pldA->indxNum)[jj] = pldA->indx[jj] + ii*pldA->vertNum;
+      (pldB->indx + ii*pldA->indxNum)[jj] = pldA->indx[jj] + ii*pldA->xyzwNum;
     }
     memcpy(pldB->type + ii*pldA->primNum, pldA->type,
            pldA->primNum*sizeof(signed char));
@@ -255,532 +255,6 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
 }
 
 #endif
-
-int
-limnPolyDataCube(limnPolyData *pld,
-                 unsigned int infoBitFlag,
-                 int sharpEdge) {
-  char me[]="limnPolyDataCube", err[BIFF_STRLEN];
-  unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  float cn;
-
-  vertNum = sharpEdge ? 6*4 : 8;
-  primNum = 1;
-  indxNum = 6*4;
-  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
-  }
-  
-  vertIdx = 0;
-  cnum = sharpEdge ? 3 : 1;
-  cn = AIR_CAST(float, sqrt(3.0));
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,  -1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,   1,  -1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,   1,  -1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,  -1,  -1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,   1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,   1,   1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,   1,   1,  1); vertIdx++;
-  }
-  for (ci=0; ci<cnum; ci++) {
-    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,  -1,   1,  1); vertIdx++;
-  }
-
-  vertIdx = 0;
-  if (sharpEdge) {
-    ELL_4V_SET(pld->indx + vertIdx,  0,  3,  6,  9); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  2, 14, 16,  5); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  4, 17, 18,  8); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  7, 19, 21, 10); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  1, 11, 23, 13); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx, 12, 22, 20, 15); vertIdx += 4;
-  } else {
-    ELL_4V_SET(pld->indx + vertIdx,  0,  1,  2,  3); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  0,  4,  5,  1); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  1,  5,  6,  2); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  2,  6,  7,  3); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  0,  3,  7,  4); vertIdx += 4;
-    ELL_4V_SET(pld->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
-  }
-
-  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    if (sharpEdge) {
-      ELL_3V_SET(pld->norm +  3*0,  0,  0, -1);
-      ELL_3V_SET(pld->norm +  3*3,  0,  0, -1);
-      ELL_3V_SET(pld->norm +  3*6,  0,  0, -1);
-      ELL_3V_SET(pld->norm +  3*9,  0,  0, -1);
-      ELL_3V_SET(pld->norm +  3*2, -1,  0,  0);
-      ELL_3V_SET(pld->norm +  3*5, -1,  0,  0);
-      ELL_3V_SET(pld->norm + 3*14, -1,  0,  0);
-      ELL_3V_SET(pld->norm + 3*16, -1,  0,  0);
-      ELL_3V_SET(pld->norm +  3*4,  0,  1,  0);
-      ELL_3V_SET(pld->norm +  3*8,  0,  1,  0);
-      ELL_3V_SET(pld->norm + 3*17,  0,  1,  0);
-      ELL_3V_SET(pld->norm + 3*18,  0,  1,  0);
-      ELL_3V_SET(pld->norm +  3*7,  1,  0,  0);
-      ELL_3V_SET(pld->norm + 3*10,  1,  0,  0);
-      ELL_3V_SET(pld->norm + 3*19,  1,  0,  0);
-      ELL_3V_SET(pld->norm + 3*21,  1,  0,  0);
-      ELL_3V_SET(pld->norm +  3*1,  0, -1,  0);
-      ELL_3V_SET(pld->norm + 3*11,  0, -1,  0);
-      ELL_3V_SET(pld->norm + 3*13,  0, -1,  0);
-      ELL_3V_SET(pld->norm + 3*23,  0, -1,  0);
-      ELL_3V_SET(pld->norm + 3*12,  0,  0,  1);
-      ELL_3V_SET(pld->norm + 3*15,  0,  0,  1);
-      ELL_3V_SET(pld->norm + 3*20,  0,  0,  1);
-      ELL_3V_SET(pld->norm + 3*22,  0,  0,  1);
-    } else {
-      ELL_3V_SET(pld->norm + 3*0, -cn, -cn, -cn);
-      ELL_3V_SET(pld->norm + 3*1, -cn,  cn, -cn);
-      ELL_3V_SET(pld->norm + 3*2,  cn,  cn, -cn);
-      ELL_3V_SET(pld->norm + 3*3,  cn, -cn, -cn);
-      ELL_3V_SET(pld->norm + 3*4, -cn, -cn,  cn);
-      ELL_3V_SET(pld->norm + 3*5, -cn,  cn,  cn);
-      ELL_3V_SET(pld->norm + 3*6,  cn,  cn,  cn);
-      ELL_3V_SET(pld->norm + 3*7,  cn, -cn,  cn);
-    }
-  }
-
-  pld->type[0] = limnPrimitiveQuads;
-  pld->icnt[0] = indxNum;
-  
-  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
-      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
-    }
-  }
-
-  return 0;
-}
-
-int
-limnPolyDataCylinder(limnPolyData *pld,
-                     unsigned int infoBitFlag,
-                     unsigned int thetaRes, int sharpEdge) {
-  char me[]="limnPolyDataCylinderNew", err[BIFF_STRLEN];
-  unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
-  double theta, cth, sth, sq2;
-
-  /* sanity bounds */
-  thetaRes = AIR_MAX(3, thetaRes);
-
-  vertNum = sharpEdge ? 4*thetaRes : 2*thetaRes;
-  primNum = 3;
-  indxNum = 2*thetaRes + 2*(thetaRes+1);  /* 2 fans + 1 strip */
-  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me); 
-    biffAdd(LIMN, err); return 1;
-  }
-  
-  vertIdx = 0;
-  for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
-                    cos(theta), sin(theta), 1, 1);
-      /*
-      fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
-              (pld->xyzw + 4*vertIdx)[0],
-              (pld->xyzw + 4*vertIdx)[1],
-              (pld->xyzw + 4*vertIdx)[2]);
-      */
-      ++vertIdx;
-    }
-  }
-  for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
-                    cos(theta), sin(theta), -1, 1);
-      /*
-      fprintf(stderr, "!%s: vert[%u] = %g %g %g\n", me, vertIdx,
-              (pld->xyzw + 4*vertIdx)[0],
-              (pld->xyzw + 4*vertIdx)[1],
-              (pld->xyzw + 4*vertIdx)[2]);
-      */
-      ++vertIdx;
-    }
-  }
-
-  primIdx = 0;
-  vertIdx = 0;
-
-  /* fan on top */
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = thetaIdx;
-  }
-  pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->icnt[primIdx] = thetaRes;
-  primIdx++;
-
-  /* single strip around */
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes + thetaIdx;
-    pld->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes + thetaIdx;
-  }
-  pld->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes;
-  pld->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes;
-  pld->type[primIdx] = limnPrimitiveTriangleStrip;
-  pld->icnt[primIdx] = 2*(thetaRes+1);
-  primIdx++;
-
-  /* fan on bottom */
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = (sharpEdge ? 3 : 1)*thetaRes + thetaIdx;
-  }
-  pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->icnt[primIdx] = thetaRes;
-  primIdx++;
-
-  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    sq2 = sqrt(2.0);
-    if (sharpEdge) {
-      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-        cth = cos(theta);
-        sth = sin(theta);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 0*thetaRes),
-                      float, 0, 0, 1);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1*thetaRes),
-                      float, cth, sth, 0);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 2*thetaRes),
-                      float, cth, sth, 0);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 3*thetaRes),
-                      float, 0, 0, -1);
-      }
-    } else {
-      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-        cth = sq2*cos(theta);
-        sth = sq2*sin(theta);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 0*thetaRes), float,
-                      cth, sth, sq2);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1*thetaRes), float,
-                      cth, sth, -sq2);
-      }
-    }
-  }
-
-  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
-      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
-    }
-  }
-
-  return 0;
-}
-
-/*
-******** limnPolyDataSuperquadric
-**
-** makes a superquadric parameterized around the Z axis
-*/
-int
-limnPolyDataSuperquadric(limnPolyData *pld,
-                         unsigned int infoBitFlag,
-                         float alpha, float beta,
-                         unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSuperquadric", err[BIFF_STRLEN];
-  unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
-    thetaIdx, phiIdx, primIdx;
-  double theta, phi;
-
-  /* sanity bounds */
-  thetaRes = AIR_MAX(3u, thetaRes);
-  phiRes = AIR_MAX(2u, phiRes);
-  alpha = AIR_MAX(0.00001f, alpha);
-  beta = AIR_MAX(0.00001f, beta);
-
-  vertNum = 2 + thetaRes*(phiRes-1);
-  fanNum = 2;
-  stripNum = phiRes-2;
-  primNum = fanNum + stripNum;
-  indxNum = (thetaRes+2)*fanNum + 2*(thetaRes+1)*stripNum;
-  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
-  }
-
-  vertIdx = 0;
-  ELL_4V_SET(pld->xyzw + 4*vertIdx, 0, 0, 1, 1);
-  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, 1);
-  }
-  ++vertIdx;
-  for (phiIdx=1; phiIdx<phiRes; phiIdx++) {
-    double cost, sint, cosp, sinp;
-    phi = AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI);
-    cosp = cos(phi);
-    sinp = sin(phi);
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
-      cost = cos(theta);
-      sint = sin(theta);
-      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
-                    airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(cosp,beta),
-                    1.0);
-      if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-        if (1 == alpha && 1 == beta) {
-          ELL_3V_COPY(pld->norm + 3*vertIdx, pld->xyzw + 4*vertIdx);
-        } else {
-          ELL_3V_SET_TT(pld->norm + 3*vertIdx, float,
-                        2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(cosp,2-beta)/beta);
-        }
-      }
-      ++vertIdx;
-    }
-  }
-  ELL_4V_SET(pld->xyzw + 4*vertIdx, 0, 0, -1, 1);
-  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, -1);
-  }
-  ++vertIdx;
-
-  /* triangle fan at top */
-  vertIdx = 0;
-  primIdx = 0;
-  pld->indx[vertIdx++] = 0;
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = thetaIdx + 1;
-  }
-  pld->indx[vertIdx++] = 1;
-  pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->icnt[primIdx++] = thetaRes + 2;
-
-  /* tristrips around */
-  for (phiIdx=1; phiIdx<phiRes-1; phiIdx++) {
-    /*
-    fprintf(stderr, "!%s: prim[%u] = vert[%u] =", me, primIdx, vertIdx);
-    */
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      /*
-      fprintf(stderr, " [%u %u] %u %u", 
-              vertIdx, vertIdx + 1,
-              (phiIdx-1)*thetaRes + thetaIdx + 1,
-              phiIdx*thetaRes + thetaIdx + 1);
-      */
-      pld->indx[vertIdx++] = (phiIdx-1)*thetaRes + thetaIdx + 1;
-      pld->indx[vertIdx++] = phiIdx*thetaRes + thetaIdx + 1;
-    }
-    /*
-    fprintf(stderr, " [%u %u] %u %u (%u verts)\n", 
-            vertIdx, vertIdx + 1,
-            (phiIdx-1)*thetaRes + 1,
-            phiIdx*thetaRes + 1, 2*(thetaRes+1));
-    */
-    pld->indx[vertIdx++] = (phiIdx-1)*thetaRes + 1;
-    pld->indx[vertIdx++] = phiIdx*thetaRes + 1;
-    pld->type[primIdx] = limnPrimitiveTriangleStrip;
-    pld->icnt[primIdx++] = 2*(thetaRes+1);
-  }
-
-  /* triangle fan at bottom */
-  pld->indx[vertIdx++] = vertNum-1;
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes - thetaIdx;
-  }
-  pld->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
-  pld->type[primIdx] = limnPrimitiveTriangleFan;
-  pld->icnt[primIdx++] = thetaRes + 2;
-
-  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
-      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
-    }
-  }
-
-  return 0;
-}
-
-/*
-******** limnPolyDataSpiralSuperquadric
-**
-** puts a superquadric into a single spiral triangle strip
-*/
-int
-limnPolyDataSpiralSuperquadric(limnPolyData *pld,
-                               unsigned int infoBitFlag,
-                               float alpha, float beta,
-                               unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSuperquadric", err[BIFF_STRLEN];
-  unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
-
-  /* sanity bounds */
-  thetaRes = AIR_MAX(3u, thetaRes);
-  phiRes = AIR_MAX(2u, phiRes);
-  alpha = AIR_MAX(0.00001f, alpha);
-  beta = AIR_MAX(0.00001f, beta);
-
-  vertNum = thetaRes*phiRes + 1;
-  indxNum = 2*thetaRes*(phiRes+1) - 2;
-  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, 1)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
-  }
-
-  vertIdx = 0;
-  for (phiIdx=0; phiIdx<phiRes; phiIdx++) {
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      double cost, sint, cosp, sinp;
-      double phi = (AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI)
-                    + AIR_AFFINE(0, thetaIdx, thetaRes, 0, AIR_PI)/phiRes);
-      double theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0.0, 2*AIR_PI);
-      cosp = cos(phi);
-      sinp = sin(phi);
-      cost = cos(theta);
-      sint = sin(theta);
-      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
-                    airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(cosp,beta),
-                    1.0);
-      if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-        if (1 == alpha && 1 == beta) {
-          ELL_3V_COPY(pld->norm + 3*vertIdx, pld->xyzw + 4*vertIdx);
-        } else {
-          ELL_3V_SET_TT(pld->norm + 3*vertIdx, float,
-                        2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(cosp,2-beta)/beta);
-        }
-      }
-      ++vertIdx;
-    }
-  }
-  ELL_4V_SET(pld->xyzw + 4*vertIdx, 0, 0, -1, 1);
-  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, -1);
-  }
-  ++vertIdx;
-
-  /* single triangle strip */
-  pld->type[0] = limnPrimitiveTriangleStrip;
-  pld->icnt[0] = indxNum;
-  vertIdx = 0;
-  for (thetaIdx=1; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = 0;
-    pld->indx[vertIdx++] = thetaIdx;
-  }
-  for (phiIdx=0; phiIdx<phiRes-1; phiIdx++) {
-    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      pld->indx[vertIdx++] = ((phiIdx + 0) * thetaRes) + thetaIdx;
-      pld->indx[vertIdx++] = ((phiIdx + 1) * thetaRes) + thetaIdx;
-    }
-  }
-  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-    pld->indx[vertIdx++] = (phiRes - 1)*thetaRes + thetaIdx;
-    pld->indx[vertIdx++] = (phiRes - 0)*thetaRes;
-  }
-
-  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
-      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
-    }
-  }
-
-  return 0;
-}
-
-/*
-******** limnPolyDataPolarSphere
-**
-** makes a unit sphere, centered at the origin, parameterized around Z axis
-*/
-int
-limnPolyDataPolarSphere(limnPolyData *pld,
-                        unsigned int infoBitFlag,
-                        unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataPolarSphere", err[BIFF_STRLEN];
-
-  if (limnPolyDataSuperquadric(pld, infoBitFlag,
-                               1.0, 1.0, thetaRes, phiRes)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
-  }                              
-  return 0;
-}
-
-int
-limnPolyDataSpiralSphere(limnPolyData *pld,
-                         unsigned int infoBitFlag,
-                         unsigned int thetaRes,
-                         unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSphere", err[BIFF_STRLEN];
-
-  if (limnPolyDataSpiralSuperquadric(pld, infoBitFlag,
-                                     1.0, 1.0, thetaRes, phiRes)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
-  }                              
-  return 0;
-}
-
-int
-limnPolyDataPlane(limnPolyData *pld,
-                  unsigned int infoBitFlag,
-                  unsigned int uRes, unsigned int vRes) {
-  char me[]="limnPolyDataPlane", err[BIFF_STRLEN];
-  unsigned int vertNum, indxNum, primNum, uIdx, vIdx, vertIdx, primIdx;
-  float uu, vv;
-
-  /* sanity */
-  uRes = AIR_MAX(2, uRes);
-  vRes = AIR_MAX(2, vRes);
-
-  vertNum = uRes*vRes;
-  primNum = vRes-1;
-  indxNum = primNum*2*uRes;
-  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me); 
-    biffAdd(LIMN, err); return 1;
-  }
-  
-  vertIdx = 0;
-  for (vIdx=0; vIdx<vRes; vIdx++) {
-    vv = AIR_CAST(float, AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0));
-    for (uIdx=0; uIdx<uRes; uIdx++) {
-      uu = AIR_CAST(float, AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
-      ELL_4V_SET(pld->xyzw + 4*vertIdx, uu, vv, 0.0, 1.0);
-      if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-        ELL_4V_SET(pld->norm + 3*vertIdx, 0.0, 0.0, 1.0, 0.0);
-      }
-      if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-        ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
-      }
-      ++vertIdx;
-    }
-  }
-
-  vertIdx = 0;
-  for (primIdx=0; primIdx<primNum; primIdx++) {
-    for (uIdx=0; uIdx<uRes; uIdx++) {
-      pld->indx[vertIdx++] = uIdx + uRes*(primIdx+1);
-      pld->indx[vertIdx++] = uIdx + uRes*(primIdx);
-    }    
-    pld->type[primIdx] = limnPrimitiveTriangleStrip;
-    pld->icnt[primIdx] = 2*uRes;
-  }
-
-  return 0;
-}
 
 /*
 ******** limnPolyDataTransform_f, limnPolyDataTransform_d
@@ -802,7 +276,7 @@ limnPolyDataTransform_f(limnPolyData *pld,
     } else {
       ELL_3M_IDENTITY_SET(nmat);  /* hush unused value compiler warnings */
     }
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
       ELL_4MV_MUL(hovec, homat, pld->xyzw + 4*vertIdx);
       ELL_4V_COPY_TT(pld->xyzw + 4*vertIdx, float, hovec);
       if (pld->norm) {
@@ -828,7 +302,7 @@ limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
     } else {
       ELL_3M_IDENTITY_SET(nmat);  /* hush unused value compiler warnings */
     }
-    for (vertIdx=0; vertIdx<pld->vertNum; vertIdx++) {
+    for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
       ELL_4MV_MUL(hovec, homat, pld->xyzw + 4*vertIdx);
       ELL_4V_COPY_TT(pld->xyzw + 4*vertIdx, float, hovec);
       if (pld->norm) {
@@ -865,6 +339,141 @@ limnPolyDataPolygonNumber(limnPolyData *pld) {
 }
 
 /*
+static void
+edgeNeighbors(limnPolyData *pld, int neigh[3], unsigned int face) {
+
+}
+*/
+
+int
+limnPolyDataVertexWindingFix(limnPolyData *pld) { 
+  char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
+  unsigned int
+    primIdx,         /* for indexing through primitives */
+    triIdx,          /* for indexing through triangles in each primitive */
+    vertIdx,         /* for indexing through vertex indices */
+    maxTriPerPrim,   /* max # triangles per primitive, which is essential for
+                        the indexing of each triangle (in each primitive)
+                        into a single triangle index */
+    totalTriNum,     /* total # triangles in all primitives (actually not,
+                        just the total number of plausible triangle indices) */
+    baseVertIdx,     /* first vertex for current primitive */
+    *triWithVertNum, /* 1D array (len totalTriNum) of # tri with vert[i] */
+    twvnm,           /* max # of tris on single vertex */
+    *triWithVert,    /* 2D array (twvnm-by-totalTriNum) of per-vert tris */
+    doneTriNum,      /* # triangles finished so far */
+    *todo;           /* the to-do stack */
+  unsigned char
+    *triDone;        /* 1D array (len totalTriNum) record of done tris */
+  Nrrd *nTriWithVert;
+  airArray *mop, *todoArr;
+  
+  if (!pld) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  /* calculate maxTriPerPrim and totalTriNum */
+  maxTriPerPrim = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    if (limnPrimitiveTriangles != pld->type[primIdx]) {
+      sprintf(err, "%s: sorry, can only have %s prims now (prim %u is %s)",
+              me, airEnumStr(limnPrimitive, limnPrimitiveTriangles),
+              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
+      biffAdd(LIMN, err); return 1;
+    }
+    maxTriPerPrim = AIR_MAX(maxTriPerPrim, pld->icnt[primIdx]/3);
+  }
+  totalTriNum = maxTriPerPrim*pld->primNum;
+
+  /* allocate 1-D triWithVertNum */
+  mop = airMopNew();
+  triWithVertNum = AIR_CAST(unsigned int*,
+                            calloc(pld->xyzwNum, sizeof(unsigned int)));
+  if (!triWithVertNum) {
+    sprintf(err, "%s: couldn't allocate temp arrays", me);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
+
+  /* fill in 1-D triWithVertNum */
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum, *indxLine, ii;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indxLine = pld->indx + baseVertIdx + 3*triIdx;
+      for (ii=0; ii<3; ii++) {
+        triWithVertNum[indxLine[ii]]++;
+      }
+    }
+    baseVertIdx += 3*triNum;
+  }
+
+  /* find (1 less than) axis-0 size of TriWithVert */
+  twvnm = 0;
+  for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
+    fprintf(stderr, "!%s: triWithVertNum[%u] = %u\n", me, vertIdx,
+            triWithVertNum[vertIdx]);
+    twvnm = AIR_MAX(twvnm, triWithVertNum[vertIdx]);
+  }
+
+  /* allocate TriWithVert */
+  nTriWithVert = nrrdNew();
+  airMopAdd(mop, nTriWithVert, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, 
+                        AIR_CAST(size_t, 1+twvnm),
+                        AIR_CAST(size_t, pld->xyzwNum))) {
+    sprintf(err, "%s: couldn't allocate TriWithVert", me);
+    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+  }
+  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
+
+  /* fill in TriWithVert.  Note clever indexing scheme for triangles */
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum, *indxLine, *twvLine, ii;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indxLine = pld->indx + baseVertIdx + 3*triIdx;
+      for (ii=0; ii<3; ii++) {
+        twvLine = triWithVert + (1+twvnm)*indxLine[ii];
+        fprintf(stderr, "%d/%u/%d/%d  ", ii, indxLine[ii],
+                twvLine - triWithVert,
+                (twvLine - triWithVert)/(1+twvnm));
+        /* twvLine[1+twvLine[0]] = triIdx + maxTriPerPrim*primIdx; */
+        /* twvLine[0]++; */
+      }
+      fprintf(stderr, "\n");
+    }
+    baseVertIdx += 3*triNum;
+  }
+  
+  /* nrrdSave("ntwv.nrrd", nTriWithVert, NULL); */
+
+  /*
+  create todo stack;
+
+  while (#done < total # tri) {
+
+    pick first undone triangle, flag as done
+    neigh = edgeNeighbors(first);
+    push all (neigh,v0,v1)
+  
+    while (todo) {
+      (this,v0,v1) = todo.pop;
+      fix(this,v0,v1);
+      flag this as done;
+      neigh = edgeNeighbors(this);
+      push (neigh,v0,v1) not done;
+    }
+  }
+  */  
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
 int
 limnPolyDataVertexNormals(limnPolyData *pld) { 
   char me[]="limnPolyDataVertexNormals", err[BIFF_STRLEN];
@@ -879,3 +488,4 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
   return 0;
 }
 */
+

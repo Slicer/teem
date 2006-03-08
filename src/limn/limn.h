@@ -380,13 +380,13 @@ enum {
 ** stuff moved to the "seek" library)
 */
 typedef struct {
-  float *xyzw;           /* vertNum homog coord 4-tuples (always allocated) */
-  unsigned int vertNum;  /* there are vertNum limnVrts in vert[] */
+  float *xyzw;           /* (always allocated) xyzwNum position 4-tuples */
+  unsigned int xyzwNum;  /* logical size of xyzw */
   unsigned char *rgba;   /* if non-NULL, rgbaNum RGBA color 4-tuples */
   unsigned int rgbaNum;  /* logical size of rgba */
-  float *norm;           /* if non-NULL, vertNum (x,y,z) unit normals */
+  float *norm;           /* if non-NULL, normtNum (x,y,z) unit normals */
   unsigned int normNum;  /* logical size of norm */
-  float *tex2D;          /* if non-NULL, vertNum (s,t) 2D texture coords */
+  float *tex2D;          /* if non-NULL, tex2DNum (s,t) 2D texture coords */
   unsigned int tex2DNum; /* logical size of tex2D */
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
@@ -395,7 +395,7 @@ typedef struct {
 
   unsigned int primNum;  /* there are primNum primitives (tris or tristrips) */
   unsigned char *type;   /* prim ii is a type[ii] (limnPrimitive* enum) */
-  unsigned int *icnt;    /* prim ii has vcnt[ii] vertex indices */
+  unsigned int *icnt;    /* prim ii has icnt[ii] vertex indices */
 } limnPolyData;
 
 /*
@@ -499,6 +499,7 @@ LIMN_EXPORT int limnDefCameraRightHanded;
 /* enumsLimn.c */
 LIMN_EXPORT airEnum *limnSpace;
 LIMN_EXPORT airEnum *limnCameraPathTrack;
+LIMN_EXPORT airEnum *limnPrimitive;
 
 /* qn.c */
 LIMN_EXPORT int limnQNBins[LIMN_QN_MAX+1];
@@ -596,6 +597,14 @@ LIMN_EXPORT size_t limnPolyDataSize(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA);
 LIMN_EXPORT int limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                                   unsigned int num);
+LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
+                                         const float homat[16]);
+LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
+                                         const double homat[16]);
+LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
+
+/* polyshapes.c */
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
                                  unsigned int infoBitFlag,
                                  int sharpEdge);
@@ -623,11 +632,6 @@ LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
-LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
-                                         const float homat[16]);
-LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
-                                         const double homat[16]);
-LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(limnPolyData *pld);
 
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);

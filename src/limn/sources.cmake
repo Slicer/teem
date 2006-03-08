@@ -18,6 +18,7 @@ SET(LIMN_SOURCES
   splineEval.c
   enumsLimn.c
   polydata.c
+  polyshapes.c
   )
 
 ADD_TEEM_LIBRARY(limn ${LIMN_SOURCES})

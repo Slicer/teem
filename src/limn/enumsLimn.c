@@ -87,3 +87,56 @@ _limnCameraPathTrack = {
 };
 airEnum *
 limnCameraPathTrack = &_limnCameraPathTrack;
+
+/* ------------------------------------------------------------ */  
+
+char
+_limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
+  "(unknown limnPrimitive)",
+  "triangles",
+  "tristrip",
+  "trifan",
+  "quads",
+  "linestrip"
+};
+
+char
+_limnPrimitiveDesc[][AIR_STRLEN_MED] = {
+  "unknown limnPrimitive",
+  "triangle soup",
+  "triangle strip",
+  "triangle fan",
+  "quad soup",
+  "line strip"
+};
+
+char
+_limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
+  "triangles",
+  "tristrip",
+  "trifan",
+  "quads",
+  "linestrip",
+  ""
+};
+
+int
+_limnPrimitiveValEqv[] = {
+  limnPrimitiveTriangles,
+  limnPrimitiveTriangleStrip,
+  limnPrimitiveTriangleFan,
+  limnPrimitiveQuads,
+  limnPrimitiveLineStrip
+};
+
+airEnum
+_limnPrimitive = {
+  "limnPrimitive",
+  LIMN_PRIMITIVE_MAX,
+  _limnPrimitiveStr, NULL,
+  _limnPrimitiveDesc,
+  _limnPrimitiveStrEqv, _limnPrimitiveValEqv,
+  AIR_FALSE
+};
+airEnum *
+limnPrimitive = &_limnPrimitive;
