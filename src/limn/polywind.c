@@ -54,7 +54,7 @@ static void
 flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                  unsigned int neighGot[3], unsigned int neighInfo[3][3],
                  unsigned int *intxBuff, unsigned int totalTriIdx) {
-  char me[]="flipNeighborsGet";
+  /* char me[]="flipNeighborsGet"; */
   unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert,
     *vertWithTri, *triWithVert;
   int ii;
@@ -110,7 +110,7 @@ static unsigned int
 flipNeighborsPush(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                   unsigned char *triDone, airArray *todoArr,
                   unsigned int *buff, unsigned int totalTriIdx) {
-  char me[]="flipNeighborsPush";
+  /* char me[]="flipNeighborsPush"; */
   unsigned int neighGot[3], neighInfo[3][3], ii, *todo, todoIdx,
     *vertWithTri, doneIncr;
 
@@ -192,9 +192,9 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
     *triDone;        /* 1D array (len totalTriNum) record of done-ness */
   Nrrd *nTriWithVert, *nVertWithTri;
   airArray *mop, *todoArr;
-
+  /*
   fprintf(stderr, "!%s: hi\n", me);
-
+  */
   if (!pld) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
@@ -330,10 +330,10 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
       ;
     triDone[totalTriIdx] = AIR_TRUE;
     ++doneTriNum;
-
+    /*
     fprintf(stderr, "!%s: considering tri %u done (%u)\n",
             me, totalTriIdx, doneTriNum);
-
+    */
     doneTriNum += flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
                                     triDone, todoArr, 
                                     buff, totalTriIdx);
@@ -364,9 +364,9 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
     }
     baseVertIdx += 3*triNum;
   }
-  
+  /*  
   fprintf(stderr, "!%s: bye\n", me);
-
+  */
   airMopOkay(mop);
   return 0;
 }

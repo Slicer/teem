@@ -747,6 +747,10 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
             airArrayLenIncr(bag->xyzwArr, 1);
           ELL_4V_SET_TT(lpld->xyzw + 4*ovi, float,
                         tvertA[0], tvertA[1], tvertA[2], 1.0);
+          /*
+          fprintf(stderr, "!%s: vert %u: %g %g %g\n", me, ovi,
+                  tvertA[0], tvertA[1], tvertA[2]);
+          */
           if (sctx->normalsFind) {
             airArrayLenIncr(bag->normArr, 1);
             if (sctx->normAns) {
@@ -785,6 +789,10 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
         }
         iii = airArrayLenIncr(bag->indxArr, 3);
         ELL_3V_COPY(lpld->indx + iii, vii);
+        /*
+        fprintf(stderr, "!%s: tri %u: %u %u %u\n",
+                me, iii/3, vii[0], vii[1], vii[2]);
+        */
         lpld->icnt[0] += 3;
         sctx->faceNum++;
         ti++;
