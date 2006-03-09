@@ -809,11 +809,11 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     biffAdd(SEEK, err); return 1;
   }
 
-  if (0 && sctx->verbose > 2) {
+  if (sctx->verbose > 2) {
     fprintf(stderr, "%s: extracting ...       ", me);
   }
   for (zi=0; zi<sz-1; zi++) {
-    if (0 && sctx->verbose > 2) {
+    if (sctx->verbose > 2) {
       fprintf(stderr, "%s", airDoneStr(0, zi, sz-2, done));
       fflush(stderr);
     }
@@ -824,7 +824,7 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
       biffAdd(SEEK, err); return 1;
     }
   }
-  if (0 && sctx->verbose > 2) {
+  if (sctx->verbose > 2) {
     fprintf(stderr, "%s\n", airDoneStr(0, zi, sz-2, done));
   }
 
