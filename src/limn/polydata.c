@@ -380,7 +380,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, *indxLine, ii;
-    float pos[3][3], edgeA[3], edgeB[3], norm[3];
+    float pos[3][3], edgeA[3], edgeB[3], sum[3], dif[3], norm[3], wght;
     
     triNum = pld->icnt[primIdx]/3;
     for (triIdx=0; triIdx<triNum; triIdx++) {
@@ -392,8 +392,12 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
       ELL_3V_SUB(edgeB, pos[2], pos[0]);
       ELL_3V_CROSS(norm, edgeA, edgeB);
       ELL_3V_NORM(norm, norm, len);
+      ELL_3V_ADD2(sum, edgeA, edgeB);
+      ELL_3V_SUB(dif, edgeA, edgeB);
+      /* wght is angle between edges, as per redbook page Appendix E */
+      wght = 2*AIR_CAST(float, atan2(ELL_3V_LEN(dif), ELL_3V_LEN(sum)));
       for (ii=0; ii<3; ii++) {
-        ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
+        ELL_3V_SCALE_INCR(pld->norm + 3*indxLine[ii], wght, norm);
       }
     }
     baseVertIdx += 3*triNum;
