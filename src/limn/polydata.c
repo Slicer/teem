@@ -339,21 +339,6 @@ limnPolyDataPolygonNumber(limnPolyData *pld) {
 }
 
 /*
-static void
-edgeNeighbors(limnPolyData *pld, int neigh[3], unsigned int face) {
-
-}
-*/
-
-enum {
-  flipUnvisited = 0,
-  flipPushed,
-  flipDoneAsIs,
-  flipDoneFlip,
-  flipBogus
-};
-
-/*
 ** determines intersection of elements of srcA and srcB.
 ** assumes: 
 ** - there are no repeats in either list
@@ -382,7 +367,7 @@ flipListIntx(unsigned int *dstC,
 
 static void
 flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-                 unsigned int neighGot[3], unsigned int neighRecord[3][3],
+                 unsigned int neighGot[3], unsigned int neighInfo[3][3],
                  unsigned int *intxBuff, unsigned int totalTriIdx) {
   unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert,
     *vertWithTri, *triWithVert;
@@ -405,9 +390,9 @@ flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
         neighIdx = intxBuff[1];
       }
       neighGot[ii] = AIR_TRUE;
-      neighRecord[ii][0] = neighIdx;
-      neighRecord[ii][1] = vertB;
-      neighRecord[ii][2] = vertA;
+      neighInfo[ii][0] = neighIdx;
+      neighInfo[ii][1] = vertA;
+      neighInfo[ii][2] = vertB;
     } else {
       neighGot[ii] = AIR_FALSE;
     }
@@ -416,45 +401,52 @@ flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
 }
 
 static int
-flipDetermine(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-              unsigned int record[3]) {
-  unsigned int *vertWithTri, vert[3], vertA, vertB;
+flipNeed(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
+         unsigned int triIdx, unsigned int vertA, unsigned int vertB) {
+  unsigned int *vertWithTri, vert[3];
   int ai, bi;
 
   AIR_UNUSED(pld);
   AIR_UNUSED(nTriWithVert);
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  ELL_3V_COPY(vert, vertWithTri + 3*record[0]);
-  vertA = record[1];
-  vertB = record[2];
+  ELL_3V_COPY(vert, vertWithTri + 3*triIdx);
   for (ai=0; vert[ai] != vertA; ai++)
     ;
   for (bi=0; vert[bi] != vertB; bi++)
     ;
-  return (1 == AIR_MOD(ai - bi, 3)
-          ? flipDoneAsIs
-          : flipDoneFlip);
+  return (1 != AIR_MOD(ai - bi, 3));
 }
 
-static void
+static unsigned int
 flipNeighborsPush(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-                  unsigned char *triFlip, airArray *todoArr,
+                  unsigned char *triDone, airArray *todoArr,
                   unsigned int *buff, unsigned int totalTriIdx) {
-  unsigned int neighGot[3], neighRecord[3][3], ii, *todo, todoIdx;
+  unsigned int neighGot[3], neighInfo[3][3], ii, *todo, todoIdx,
+    *vertWithTri, doneIncr;
 
+  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   flipNeighborsGet(pld, nTriWithVert, nVertWithTri,
-                   neighGot, neighRecord,
+                   neighGot, neighInfo,
                    buff, totalTriIdx);
+  doneIncr = 0;
   for (ii=0; ii<2; ii++) {
-    if (neighGot[ii] && !triFlip[neighRecord[ii][0]]) {
+    if (neighGot[ii] && !triDone[neighInfo[ii][0]]) {
+      unsigned int tmp, *idxLine;
+      if (flipNeed(pld, nTriWithVert, nVertWithTri,
+                   neighInfo[ii][0], neighInfo[ii][1], neighInfo[ii][2])) {
+        idxLine = vertWithTri + 3*neighInfo[ii][0];
+        tmp = idxLine[0];
+        idxLine[0] = idxLine[1];
+        idxLine[1] = tmp;
+      }
+      triDone[neighInfo[ii][0]] = AIR_TRUE;
       todoIdx = airArrayLenIncr(todoArr, 1);
-      todo = AIR_CAST(unsigned int*, todoArr->data) + 3*todoIdx;
-      ELL_3V_COPY(todo, neighRecord[ii]);
-      triFlip[neighRecord[ii][0]] = flipPushed;
+      todo = AIR_CAST(unsigned int*, todoArr->data);
+      todo[todoIdx] = neighInfo[ii][0];
+      ++doneIncr;
     }
   }
-
-  return;
+  return doneIncr;
 }
 
 int
@@ -483,15 +475,18 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
     *buff,           /* stupid buffer */
     *todo;           /* the to-do stack */
   unsigned char
-    *triFlip;        /* 1D array (len totalTriNum) record of triangle flip
-                        info, filled in as we go, taking values from the
-                        tri* enum above */
+    *triDone;        /* 1D array (len totalTriNum) record of done-ness */
   Nrrd *nTriWithVert, *nVertWithTri;
   airArray *mop, *todoArr;
   
   if (!pld) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
+  }
+
+  if (!(pld->xyzwNum && pld->primNum)) {
+    /* this is empty? */
+    return 0;
   }
 
   /* calculate maxTriPerPrim and totalTriNum */
@@ -511,15 +506,15 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
   }
   totalTriNum = maxTriPerPrim*pld->primNum;
 
-  /* allocate 1-D triWithVertNum and triFlip */
+  /* allocate 1-D triWithVertNum and triDone */
   mop = airMopNew();
   triWithVertNum = AIR_CAST(unsigned int*,
                             calloc(pld->xyzwNum, sizeof(unsigned int)));
   airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
-  triFlip = AIR_CAST(unsigned char *,
+  triDone = AIR_CAST(unsigned char *,
                      calloc(totalTriNum, sizeof(unsigned char)));
-  airMopAdd(mop, triFlip, airFree, airMopAlways);
-  if (!(triWithVertNum && triFlip)) {
+  airMopAdd(mop, triDone, airFree, airMopAlways);
+  if (!(triWithVertNum && triDone)) {
     sprintf(err, "%s: couldn't allocate temp arrays", me);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
@@ -586,28 +581,23 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
     baseVertIdx += 3*triNum;
   }
 
-  /* initialize the triFlip array so that we can quickly scan it 
+  /* initialize the triDone array so that we can quickly scan it 
      for triangles left undone.  This is needed because of the way
      that triangles are given a linear index- there may be linear
      indices that do not correspond to a triangle */
   for (totalTriIdx=0; totalTriIdx<totalTriNum; totalTriIdx++) {
-    triFlip[totalTriIdx] = flipBogus;
+    triDone[totalTriIdx] = AIR_TRUE;
   }
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum;
     triNum = pld->icnt[primIdx]/3;
     for (triIdx=0; triIdx<triNum; triIdx++) {
-      triFlip[triIdx + maxTriPerPrim*primIdx] = flipUnvisited;
+      triDone[triIdx + maxTriPerPrim*primIdx] = AIR_FALSE;
     }
   }
 
-  /* create the "stack" of todo records, which are three numbers:
-     record[0]: totalTriIdx
-     record[1]: vertIndxA
-     record[2]: vertIndxB
-     This means that vertIndxA and vertIndxB should be successive
-     vertices in triangle totalTriIdx's vertex list */
-  todoArr = airArrayNew((void**)(&todo), NULL, 3*sizeof(unsigned int),
+  /* create the stack of recently fixed triangles */
+  todoArr = airArrayNew((void**)(&todo), NULL, sizeof(unsigned int),
                         maxTriPerPrim);
   airMopAdd(mop, todoArr, (airMopper)airArrayNuke, airMopAlways);
 
@@ -616,39 +606,33 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
   while (doneTriNum < trueTotalTriNum) {
     /* find first undone triangle, which should be on a different
        connected component than any processed so far */
-    for (totalTriIdx=0; triFlip[totalTriIdx]; totalTriIdx++)
+    for (totalTriIdx=0; triDone[totalTriIdx]; totalTriIdx++)
       ;
-    triFlip[totalTriIdx] = flipDoneAsIs;
+    triDone[totalTriIdx] = AIR_TRUE;
     ++doneTriNum;
-    flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
-                      triFlip, todoArr, 
-                      buff, totalTriIdx);
+    doneTriNum += flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
+                                    triDone, todoArr, 
+                                    buff, totalTriIdx);
     while (todoArr->len) {
-      unsigned record[3];
-      ELL_3V_COPY(record, todo + 3*(todoArr->len-1));
+      unsigned int popped;
+      popped = todo[todoArr->len-1];
       airArrayLenIncr(todoArr, -1);
-      triFlip[record[0]] = flipDetermine(pld, nTriWithVert, nVertWithTri,
-                                         record);
-      ++doneTriNum;
-      flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
-                        triFlip, todoArr,
-                        buff, record[0]);
+      doneTriNum += flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
+                                      triDone, todoArr,
+                                      buff, popped);
     }
   }
 
-  /* Now effect the necessary flips. This is done as a second pass because
-     of the annoyance of getting to the vertex indices of a given triangle */
+  /* Copy from nVertWithTri back into polydata */
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, *indxLine;
+    unsigned int triNum, *indxLine, ii;
     triNum = pld->icnt[primIdx]/3;
     for (triIdx=0; triIdx<triNum; triIdx++) {
+      totalTriIdx = triIdx + maxTriPerPrim*primIdx;
       indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      if (flipDoneFlip == triFlip[triIdx + maxTriPerPrim*primIdx]) {
-        unsigned int tmp;
-        tmp = indxLine[0];
-        indxLine[0] = indxLine[2];
-        indxLine[2] = tmp;
+      for (ii=0; ii<3; ii++) {
+        indxLine[ii] = (vertWithTri + 3*totalTriIdx)[ii];
       }
     }
     baseVertIdx += 3*triNum;
