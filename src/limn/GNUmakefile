@@ -52,7 +52,7 @@ $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
 	polydata.o polyshapes.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
-	test/tcamanim test/soid test/off2eps test/triimg test/plot
+	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx
 ####
 ####
 ####
