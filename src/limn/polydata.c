@@ -353,11 +353,65 @@ enum {
   flipBogus
 };
 
+/*
+** determines intersection of elements of srcA and srcB.
+** assumes: 
+** - there are no repeats in either list
+** - dstC is allocated for at least as long as the longer of srcA and srcB
+*/
+static unsigned int
+flipListIntx(unsigned int *dstC,
+             const unsigned int *_srcA, const unsigned int *_srcB) {
+  const unsigned int *srcA, *srcB;
+  unsigned int numA, numB, numC, idxA, idxB;
+
+  numA = _srcA[0];
+  srcA = _srcA + 1;
+  numB = _srcB[0];
+  srcB = _srcB + 1;
+  numC = 0;
+  for (idxA=0; idxA<numA; idxA++) {
+    for (idxB=0; idxB<numB; idxB++) {
+      if (srcA[idxA] == srcB[idxB]) {
+        dstC[numC++] = srcA[idxA];
+      }
+    }
+  }
+  return numC;
+}
+
 static void
 flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                  unsigned int neighGot[3], unsigned int neighRecord[3][3],
-                 unsigned int totalTriIdx) {
-  
+                 unsigned int *intxBuff, unsigned int totalTriIdx) {
+  unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert,
+    *vertWithTri, *triWithVert;
+  int ii, iip;
+
+  AIR_UNUSED(pld);
+  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
+  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
+  maxTriPerVert = nTriWithVert->axis[0].size - 1;
+  for (ii=0; ii<3; ii++) {
+    iip = AIR_MOD(ii+1, 3);
+    vertA = (vertWithTri + 3*totalTriIdx)[ii];
+    vertB = (vertWithTri + 3*totalTriIdx)[iip];
+    intxNum = flipListIntx(intxBuff,
+                           triWithVert + (1+maxTriPerVert)*vertA,
+                           triWithVert + (1+maxTriPerVert)*vertB);
+    if (2 == intxNum) {
+      neighIdx = intxBuff[0];
+      if (neighIdx == totalTriIdx) {
+        neighIdx = intxBuff[1];
+      }
+      neighGot[ii] = AIR_TRUE;
+      neighRecord[ii][0] = neighIdx;
+      neighRecord[ii][1] = vertB;
+      neighRecord[ii][2] = vertA;
+    } else {
+      neighGot[ii] = AIR_FALSE;
+    }
+  }
   return;
 }
 
@@ -365,30 +419,37 @@ static int
 flipDetermine(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
               unsigned int record[3]) {
   unsigned int *vertWithTri, vert[3], vertA, vertB;
+  int ai, bi;
 
+  AIR_UNUSED(pld);
+  AIR_UNUSED(nTriWithVert);
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   ELL_3V_COPY(vert, vertWithTri + 3*record[0]);
   vertA = record[1];
   vertB = record[2];
-  
-  
-  return flipDoneAsIs;
+  for (ai=0; vert[ai] != vertA; ai++)
+    ;
+  for (bi=0; vert[bi] != vertB; bi++)
+    ;
+  return (1 == AIR_MOD(ai - bi, 3)
+          ? flipDoneAsIs
+          : flipDoneFlip);
 }
 
 static void
 flipNeighborsPush(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-                  unsigned int *triFlip, airArray *todoArr,
-                  unsigned int totalTriIdx) {
+                  unsigned char *triFlip, airArray *todoArr,
+                  unsigned int *buff, unsigned int totalTriIdx) {
   unsigned int neighGot[3], neighRecord[3][3], ii, *todo, todoIdx;
 
   flipNeighborsGet(pld, nTriWithVert, nVertWithTri,
                    neighGot, neighRecord,
-                   totalTriIdx);
+                   buff, totalTriIdx);
   for (ii=0; ii<2; ii++) {
     if (neighGot[ii] && !triFlip[neighRecord[ii][0]]) {
       todoIdx = airArrayLenIncr(todoArr, 1);
-      todo = AIR_CAST(unsigned int, todoArr->data);
-      ELL_3V_COPY(todo + 3*todoIdx, neighRecord[ii]);
+      todo = AIR_CAST(unsigned int*, todoArr->data) + 3*todoIdx;
+      ELL_3V_COPY(todo, neighRecord[ii]);
       triFlip[neighRecord[ii][0]] = flipPushed;
     }
   }
@@ -419,6 +480,7 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
                         of per-tri vertices (vertex indices), which is just
                         a repackaging of the information in the lpld */
     doneTriNum,      /* # triangles finished so far */
+    *buff,           /* stupid buffer */
     *todo;           /* the to-do stack */
   unsigned char
     *triFlip;        /* 1D array (len totalTriNum) record of triangle flip
@@ -479,12 +541,10 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
   /* find (1 less than) axis-0 size of TriWithVert from triWithVertNum */
   maxTriPerVert = 0;
   for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
-    fprintf(stderr, "!%s: triWithVertNum[%u] = %u\n", me, vertIdx,
-            triWithVertNum[vertIdx]);
     maxTriPerVert = AIR_MAX(maxTriPerVert, triWithVertNum[vertIdx]);
   }
 
-  /* allocate TriWithVert and VertWithTri */
+  /* allocate TriWithVert, VertWithTri, buff */
   nTriWithVert = nrrdNew();
   airMopAdd(mop, nTriWithVert, (airMopper)nrrdNuke, airMopAlways);
   nVertWithTri = nrrdNew();
@@ -501,6 +561,12 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
   }
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
+  buff = AIR_CAST(unsigned int*, calloc(maxTriPerVert, sizeof(unsigned int)));
+  if (!buff) {
+    sprintf(err, "%s: failed to alloc an itty bitty buffer", me);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, buff, airFree, airMopAlways);
 
   /* fill in TriWithVert and VertWithTri */
   baseVertIdx = 0;
@@ -554,8 +620,9 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
       ;
     triFlip[totalTriIdx] = flipDoneAsIs;
     ++doneTriNum;
-    flipNeighborsPush(pld, nTriWithVert, nVertWithTri, triFlip, todoArr, 
-                      totalTriIdx);
+    flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
+                      triFlip, todoArr, 
+                      buff, totalTriIdx);
     while (todoArr->len) {
       unsigned record[3];
       ELL_3V_COPY(record, todo + 3*(todoArr->len-1));
@@ -563,14 +630,14 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
       triFlip[record[0]] = flipDetermine(pld, nTriWithVert, nVertWithTri,
                                          record);
       ++doneTriNum;
-      flipNeighborsPush(pld, nTriWithVert, nVertWithTri, triFlip, todoArr,
-                        record[0]);
+      flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
+                        triFlip, todoArr,
+                        buff, record[0]);
     }
   }
 
   /* Now effect the necessary flips. This is done as a second pass because
-     of the annoyance of getting to the vertex indices of a given triangle,
-     complicated since indices for all primitives are concatenated together. */
+     of the annoyance of getting to the vertex indices of a given triangle */
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, *indxLine;
