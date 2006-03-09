@@ -588,12 +588,13 @@ LIMN_EXPORT int limnObjectFaceAdd(limnObject *obj,
 /* polydata.c */
 LIMN_EXPORT limnPolyData *limnPolyDataNew(void);
 LIMN_EXPORT limnPolyData *limnPolyDataNix(limnPolyData *pld);
+LIMN_EXPORT unsigned int limnPolyDataInfoBitFlag(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataAlloc(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int vertNum,
                                   unsigned int indxNum,
                                   unsigned int primNum);
-LIMN_EXPORT size_t limnPolyDataSize(limnPolyData *pld);
+LIMN_EXPORT size_t limnPolyDataSize(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA);
 LIMN_EXPORT int limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                                   unsigned int num);
@@ -601,8 +602,8 @@ LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
                                          const float homat[16]);
 LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
                                          const double homat[16]);
-LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
+LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataVertexNormals(limnPolyData *pld);
 
 /* polyshapes.c */
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
@@ -632,6 +633,9 @@ LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
+
+/* polywind.c */
+LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
 
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);

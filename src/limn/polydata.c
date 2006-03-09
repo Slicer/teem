@@ -112,6 +112,25 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
   return 0;
 }
 
+unsigned int
+limnPolyDataInfoBitFlag(const limnPolyData *pld) {
+  unsigned int ret;
+
+  ret = 0;
+  if (pld) {
+    if (pld->rgbaNum == pld->xyzwNum) {
+      ret |= (1 << limnPolyDataInfoRGBA);
+    }
+    if (pld->normNum == pld->xyzwNum) {
+      ret |= (1 << limnPolyDataInfoNorm);
+    }
+    if (pld->tex2DNum == pld->xyzwNum) {
+      ret |= (1 << limnPolyDataInfoTex2D);
+    }
+  }
+  return ret;
+}
+
 int
 limnPolyDataAlloc(limnPolyData *pld,
                   unsigned int infoBitFlag,
@@ -167,11 +186,11 @@ limnPolyDataAlloc(limnPolyData *pld,
 }
 
 size_t
-limnPolyDataSize(limnPolyData *pld) {
+limnPolyDataSize(const limnPolyData *pld) {
   size_t ret = 0;
 
   if (pld) {
-    ret += pld->xyzwNum*sizeof(float)*4;  /* xyzw */
+    ret += pld->xyzwNum*sizeof(float)*4;
     if (pld->rgba) {
       ret += pld->rgbaNum*sizeof(unsigned char)*4;
     }
@@ -315,7 +334,7 @@ limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
 }
 
 unsigned int
-limnPolyDataPolygonNumber(limnPolyData *pld) {
+limnPolyDataPolygonNumber(const limnPolyData *pld) {
   unsigned int ret, primIdx;
 
   ret = 0;
@@ -338,323 +357,52 @@ limnPolyDataPolygonNumber(limnPolyData *pld) {
   return ret;
 }
 
-/*
-** determines intersection of elements of srcA and srcB.
-** assumes: 
-** - there are no repeats in either list
-** - dstC is allocated for at least as long as the longer of srcA and srcB
-*/
-static unsigned int
-flipListIntx(unsigned int *dstC,
-             const unsigned int *_srcA, const unsigned int *_srcB) {
-  const unsigned int *srcA, *srcB;
-  unsigned int numA, numB, numC, idxA, idxB;
-
-  numA = _srcA[0];
-  srcA = _srcA + 1;
-  numB = _srcB[0];
-  srcB = _srcB + 1;
-  numC = 0;
-  for (idxA=0; idxA<numA; idxA++) {
-    for (idxB=0; idxB<numB; idxB++) {
-      if (srcA[idxA] == srcB[idxB]) {
-        dstC[numC++] = srcA[idxA];
-      }
-    }
-  }
-  return numC;
-}
-
-static void
-flipNeighborsGet(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-                 unsigned int neighGot[3], unsigned int neighInfo[3][3],
-                 unsigned int *intxBuff, unsigned int totalTriIdx) {
-  unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert,
-    *vertWithTri, *triWithVert;
-  int ii, iip;
-
-  AIR_UNUSED(pld);
-  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
-  maxTriPerVert = nTriWithVert->axis[0].size - 1;
-  for (ii=0; ii<3; ii++) {
-    iip = AIR_MOD(ii+1, 3);
-    vertA = (vertWithTri + 3*totalTriIdx)[ii];
-    vertB = (vertWithTri + 3*totalTriIdx)[iip];
-    intxNum = flipListIntx(intxBuff,
-                           triWithVert + (1+maxTriPerVert)*vertA,
-                           triWithVert + (1+maxTriPerVert)*vertB);
-    if (2 == intxNum) {
-      neighIdx = intxBuff[0];
-      if (neighIdx == totalTriIdx) {
-        neighIdx = intxBuff[1];
-      }
-      neighGot[ii] = AIR_TRUE;
-      neighInfo[ii][0] = neighIdx;
-      neighInfo[ii][1] = vertA;
-      neighInfo[ii][2] = vertB;
-    } else {
-      neighGot[ii] = AIR_FALSE;
-    }
-  }
-  return;
-}
-
-static int
-flipNeed(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-         unsigned int triIdx, unsigned int vertA, unsigned int vertB) {
-  unsigned int *vertWithTri, vert[3];
-  int ai, bi;
-
-  AIR_UNUSED(pld);
-  AIR_UNUSED(nTriWithVert);
-  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  ELL_3V_COPY(vert, vertWithTri + 3*triIdx);
-  for (ai=0; vert[ai] != vertA; ai++)
-    ;
-  for (bi=0; vert[bi] != vertB; bi++)
-    ;
-  return (1 != AIR_MOD(ai - bi, 3));
-}
-
-static unsigned int
-flipNeighborsPush(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
-                  unsigned char *triDone, airArray *todoArr,
-                  unsigned int *buff, unsigned int totalTriIdx) {
-  unsigned int neighGot[3], neighInfo[3][3], ii, *todo, todoIdx,
-    *vertWithTri, doneIncr;
-
-  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  flipNeighborsGet(pld, nTriWithVert, nVertWithTri,
-                   neighGot, neighInfo,
-                   buff, totalTriIdx);
-  doneIncr = 0;
-  for (ii=0; ii<2; ii++) {
-    if (neighGot[ii] && !triDone[neighInfo[ii][0]]) {
-      unsigned int tmp, *idxLine;
-      if (flipNeed(pld, nTriWithVert, nVertWithTri,
-                   neighInfo[ii][0], neighInfo[ii][1], neighInfo[ii][2])) {
-        idxLine = vertWithTri + 3*neighInfo[ii][0];
-        tmp = idxLine[0];
-        idxLine[0] = idxLine[1];
-        idxLine[1] = tmp;
-      }
-      triDone[neighInfo[ii][0]] = AIR_TRUE;
-      todoIdx = airArrayLenIncr(todoArr, 1);
-      todo = AIR_CAST(unsigned int*, todoArr->data);
-      todo[todoIdx] = neighInfo[ii][0];
-      ++doneIncr;
-    }
-  }
-  return doneIncr;
-}
-
-int
-limnPolyDataVertexWindingFix(limnPolyData *pld) { 
-  char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
-  unsigned int
-    primIdx,         /* for indexing through primitives */
-    triIdx,          /* for indexing through triangles in each primitive */
-    vertIdx,         /* for indexing through vertex indices */
-    maxTriPerPrim,   /* max # triangles per primitive, which is essential for
-                        the indexing of each triangle (in each primitive)
-                        into a single triangle index */
-    totalTriNum,     /* total # triangles in all primitives (actually not,
-                        just the total number of plausible triangle indices) */
-    totalTriIdx,     /* master triangle index */
-    trueTotalTriNum, /* correct total # triangles in all primitives */
-    baseVertIdx,     /* first vertex for current primitive */
-    *triWithVertNum, /* 1D array (len totalTriNum) of # tri with vert[i] */
-    maxTriPerVert,   /* max # of tris on single vertex */
-    *triWithVert,    /* 2D array ((1+maxTriPerVert) x pld->xyzwNum) 
-                        of per-vertex triangles */
-    *vertWithTri,    /* 3D array (3 x maxTriPerPrim x pld->primNum)
-                        of per-tri vertices (vertex indices), which is just
-                        a repackaging of the information in the lpld */
-    doneTriNum,      /* # triangles finished so far */
-    *buff,           /* stupid buffer */
-    *todo;           /* the to-do stack */
-  unsigned char
-    *triDone;        /* 1D array (len totalTriNum) record of done-ness */
-  Nrrd *nTriWithVert, *nVertWithTri;
-  airArray *mop, *todoArr;
-  
-  if (!pld) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
-  }
-
-  if (!(pld->xyzwNum && pld->primNum)) {
-    /* this is empty? */
-    return 0;
-  }
-
-  /* calculate maxTriPerPrim and totalTriNum */
-  maxTriPerPrim = 0;
-  trueTotalTriNum = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum;
-    if (limnPrimitiveTriangles != pld->type[primIdx]) {
-      sprintf(err, "%s: sorry, can only have %s prims (prim[%u] is %s)",
-              me, airEnumStr(limnPrimitive, limnPrimitiveTriangles),
-              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
-      biffAdd(LIMN, err); return 1;
-    }
-    triNum = pld->icnt[primIdx]/3;
-    maxTriPerPrim = AIR_MAX(maxTriPerPrim, triNum);
-    trueTotalTriNum += triNum;
-  }
-  totalTriNum = maxTriPerPrim*pld->primNum;
-
-  /* allocate 1-D triWithVertNum and triDone */
-  mop = airMopNew();
-  triWithVertNum = AIR_CAST(unsigned int*,
-                            calloc(pld->xyzwNum, sizeof(unsigned int)));
-  airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
-  triDone = AIR_CAST(unsigned char *,
-                     calloc(totalTriNum, sizeof(unsigned char)));
-  airMopAdd(mop, triDone, airFree, airMopAlways);
-  if (!(triWithVertNum && triDone)) {
-    sprintf(err, "%s: couldn't allocate temp arrays", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
-  }
-
-  /* fill in triWithVertNum */
-  baseVertIdx = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, *indxLine, ii;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      for (ii=0; ii<3; ii++) {
-        triWithVertNum[indxLine[ii]]++;
-      }
-    }
-    baseVertIdx += 3*triNum;
-  }
-
-  /* find (1 less than) axis-0 size of TriWithVert from triWithVertNum */
-  maxTriPerVert = 0;
-  for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
-    maxTriPerVert = AIR_MAX(maxTriPerVert, triWithVertNum[vertIdx]);
-  }
-
-  /* allocate TriWithVert, VertWithTri, buff */
-  nTriWithVert = nrrdNew();
-  airMopAdd(mop, nTriWithVert, (airMopper)nrrdNuke, airMopAlways);
-  nVertWithTri = nrrdNew();
-  airMopAdd(mop, nVertWithTri, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, 
-                        AIR_CAST(size_t, 1+maxTriPerVert),
-                        AIR_CAST(size_t, pld->xyzwNum))
-      || nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 3, 
-                           AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, maxTriPerPrim),
-                           AIR_CAST(size_t, pld->primNum))) {
-    sprintf(err, "%s: couldn't allocate TriWithVert or VertWithTri", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
-  }
-  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
-  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  buff = AIR_CAST(unsigned int*, calloc(maxTriPerVert, sizeof(unsigned int)));
-  if (!buff) {
-    sprintf(err, "%s: failed to alloc an itty bitty buffer", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
-  }
-  airMopAdd(mop, buff, airFree, airMopAlways);
-
-  /* fill in TriWithVert and VertWithTri */
-  baseVertIdx = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, *indxLine, *twvLine, ii;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      totalTriIdx = triIdx + maxTriPerPrim*primIdx;
-      indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      for (ii=0; ii<3; ii++) {
-        (vertWithTri + 3*totalTriIdx)[ii] = indxLine[ii];
-        twvLine = triWithVert + (1+maxTriPerVert)*indxLine[ii];
-        twvLine[1+twvLine[0]] = totalTriIdx;
-        twvLine[0]++;
-      }
-    }
-    baseVertIdx += 3*triNum;
-  }
-
-  /* initialize the triDone array so that we can quickly scan it 
-     for triangles left undone.  This is needed because of the way
-     that triangles are given a linear index- there may be linear
-     indices that do not correspond to a triangle */
-  for (totalTriIdx=0; totalTriIdx<totalTriNum; totalTriIdx++) {
-    triDone[totalTriIdx] = AIR_TRUE;
-  }
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      triDone[triIdx + maxTriPerPrim*primIdx] = AIR_FALSE;
-    }
-  }
-
-  /* create the stack of recently fixed triangles */
-  todoArr = airArrayNew((void**)(&todo), NULL, sizeof(unsigned int),
-                        maxTriPerPrim);
-  airMopAdd(mop, todoArr, (airMopper)airArrayNuke, airMopAlways);
-
-  /* the skinny */
-  doneTriNum = 0;
-  while (doneTriNum < trueTotalTriNum) {
-    /* find first undone triangle, which should be on a different
-       connected component than any processed so far */
-    for (totalTriIdx=0; triDone[totalTriIdx]; totalTriIdx++)
-      ;
-    triDone[totalTriIdx] = AIR_TRUE;
-    ++doneTriNum;
-    doneTriNum += flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
-                                    triDone, todoArr, 
-                                    buff, totalTriIdx);
-    while (todoArr->len) {
-      unsigned int popped;
-      popped = todo[todoArr->len-1];
-      airArrayLenIncr(todoArr, -1);
-      doneTriNum += flipNeighborsPush(pld, nTriWithVert, nVertWithTri,
-                                      triDone, todoArr,
-                                      buff, popped);
-    }
-  }
-
-  /* Copy from nVertWithTri back into polydata */
-  baseVertIdx = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, *indxLine, ii;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      totalTriIdx = triIdx + maxTriPerPrim*primIdx;
-      indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      for (ii=0; ii<3; ii++) {
-        indxLine[ii] = (vertWithTri + 3*totalTriIdx)[ii];
-      }
-    }
-    baseVertIdx += 3*triNum;
-  }
-
-  airMopOkay(mop);
-  return 0;
-}
-
-/*
 int
 limnPolyDataVertexNormals(limnPolyData *pld) { 
   char me[]="limnPolyDataVertexNormals", err[BIFF_STRLEN];
+  unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
+  float len;
 
-  if (limnPolyDataAlloc(pld,
-                        
-                                  unsigned int infoBitFlag,
-                                  unsigned int vertNum,
-                                  unsigned int indxNum,
-                                  unsigned int primNum);
+  infoBitFlag = limnPolyDataInfoBitFlag(pld);
+  if (limnPolyDataAlloc(pld, 
+                        infoBitFlag | (1 << limnPolyDataInfoNorm),
+                        pld->xyzwNum,
+                        pld->indxNum,
+                        pld->primNum)) {
+    sprintf(err, "%s: couldn't alloc polydata normals", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+    ELL_3V_SET(pld->norm + 3*normIdx, 0, 0, 0);
+  }
+
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum, *indxLine, ii;
+    float pos[3][3], edgeA[3], edgeB[3], norm[3];
+    
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indxLine = pld->indx + baseVertIdx + 3*triIdx;
+      for (ii=0; ii<3; ii++) {
+        ELL_34V_HOMOG(pos[ii], pld->xyzw + 4*indxLine[ii]);
+      }
+      ELL_3V_SUB(edgeA, pos[1], pos[0]);
+      ELL_3V_SUB(edgeB, pos[2], pos[0]);
+      ELL_3V_CROSS(norm, edgeA, edgeB);
+      ELL_3V_NORM(norm, norm, len);
+      for (ii=0; ii<3; ii++) {
+        ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
+      }
+    }
+    baseVertIdx += 3*triNum;
+  }
+
+  for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+    ELL_3V_NORM(pld->norm + 3*normIdx, pld->norm + 3*normIdx, len);
+  }
 
   return 0;
 }
-*/
 
