@@ -186,6 +186,15 @@ airCbrt(double v) {
 }
 
 double
+airMode3_d(const double v[3]) {
+  double num, den;
+  num = (v[0] + v[1] - 2*v[2])*(2*v[0] - v[1] - v[2])*(v[0] - 2*v[1] + v[2]);
+  den = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - v[1]*v[2] - v[0]*v[1] - v[0]*v[2];
+  den = sqrt(den);
+  return (den ? num/(2*den*den*den) : 0);
+}
+
+double
 airGaussian(double x, double mean, double stdv) {
   
   x = x - mean;
@@ -195,10 +204,11 @@ airGaussian(double x, double mean, double stdv) {
 /*
 ** The function approximations below were done by GLK in Mathematica,
 ** using its MiniMaxApproximation[] function.  The functional forms
-** used for the Bessel functions were copied from Numerical Recipes,
-** which were in turn copied from the "Handbook of Mathematical
+** used for the Bessel functions were copied from Numerical Recipes
+** (which were in turn copied from the "Handbook of Mathematical
 ** Functions with Formulas, Graphs, and Mathematical Tables" by
-** Abramowitz and Stegun.
+** Abramowitz and Stegun), but the coefficients here represent
+** an increase in accuracy.
 **
 ** The rational functions (crudely copy/paste from Mathematica into
 ** this file) upon which the approximations are based have a relative
