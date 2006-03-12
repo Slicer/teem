@@ -124,6 +124,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFAHessianEvec0,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         0,    0},
   {tenGageFAHessianEvec1,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         3,    0},
   {tenGageFAHessianEvec2,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         6,    0},
+  {tenGageFAStrengthRidge,     1,  2,  {tenGageConfidence, tenGageFAHessianEval, tenGageFA, -1, -1, -1},                      -1,         0,    0},
+  {tenGageFAStrengthValley,    1,  2,  {tenGageConfidence, tenGageFAHessianEval, -1, -1, -1, -1},                             -1,         0,    0},
 
   {tenGageRHessian,            9,  2,  {tenGageR, tenGageRGradVec, tenGageTraceHessian,
                                         tenGageBHessian, tenGageDetHessian, tenGageSHessian},                                 -1,        -1,    0},
@@ -806,6 +808,21 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     TEN_M2T(fakeTen, pvl->directAnswer[tenGageFAHessian]);
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
     tenEigensolve_d(pvl->directAnswer[tenGageFAHessianEval], NULL, fakeTen);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAStrengthRidge)) {
+    double ev, mde, fa;
+    ev = -pvl->directAnswer[tenGageFAHessianEval][2];
+    ev = AIR_MAX(0, ev);
+    mde = airMode3_d(pvl->directAnswer[tenGageFAHessianEval]);
+    mde = AIR_AFFINE(-1, mde, 1, 1, 0);
+    fa = pvl->directAnswer[tenGageFA][0];
+    fa = sqrt(fa);
+    pvl->directAnswer[tenGageFAStrengthRidge][0] = tenAns[0]*ev*mde*fa;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAStrengthValley)) {
+    double ev;
+    ev = pvl->directAnswer[tenGageFAHessianEval][0];
+    pvl->directAnswer[tenGageFAStrengthValley][0] = tenAns[0]*AIR_MAX(0, ev);
   }
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRHessian)) {
