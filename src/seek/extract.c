@@ -210,15 +210,6 @@ idxProbe(seekContext *sctx, baggage *bag, double xi, double yi, double zi) {
   return;
 }
 
-static double
-mode3(const double v[3]) {
-  double num, den;
-  num = (v[0] + v[1] - 2*v[2])*(2*v[0] - v[1] - v[2])*(v[0] - 2*v[1] + v[2]);
-  den = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - v[1]*v[2] - v[0]*v[1] - v[0]*v[2];
-  den = sqrt(den);
-  return (den ? num/(2*den*den*den) : 0);
-}
-
 /*
 ** this is one of the few things that has to operate on more than one
 ** zi plane at once, and it is honestly probably the primary motivation
@@ -279,7 +270,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
     ELL_3V_SCALE(next, -1, next); \
   } \
   dot = ELL_3V_DOT(current, next); \
-  mode = bag->modeSign*mode3(sctx->evalAns); \
+  mode = bag->modeSign*airMode3_d(sctx->evalAns); \
   if (sctx->strengthUse) { \
     strength = sctx->strengthSign*sctx->stngAns[0]; \
   } else { \
