@@ -31,10 +31,10 @@ _seekTypeStr[SEEK_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "isocontour",
   "ridge surface",
   "valley surface",
-  "minimal surface",
-  "maximal surface",
   "ridge line",
   "valley line",
+  "minimal surface",
+  "maximal surface",
 };
 
 char
@@ -43,10 +43,10 @@ _seekTypeDesc[SEEK_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "standard marching cubes surface",
   "ridge surface",
   "valley surface",
-  "minimal surface",
-  "maximal surface",
   "ridge line",
   "valley line",
+  "minimal surface",
+  "maximal surface",
 };
 
 char
@@ -54,10 +54,10 @@ _seekTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "isocontour",
   "ridge surface",
   "valley surface",
-  "minimal surface",
-  "maximal surface",
   "ridge line",
   "valley line",
+  "minimal surface",
+  "maximal surface",
   ""
 };
 
@@ -66,10 +66,10 @@ _seekTypeValEqv[] = {
   seekTypeIsocontour,
   seekTypeRidgeSurface,
   seekTypeValleySurface,
-  seekTypeMinimalSurface,
-  seekTypeMaximalSurface,
   seekTypeRidgeLine,
   seekTypeValleyLine,
+  seekTypeMinimalSurface,
+  seekTypeMaximalSurface,
 };
 
 airEnum

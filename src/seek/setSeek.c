@@ -223,7 +223,8 @@ seekStrengthUseSet(seekContext *sctx, int doit) {
 }
 
 int
-seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
+seekStrengthSet(seekContext *sctx, int strengthSign,
+                double strengthMin, double strength) {
   char me[]="seekStrengthSet", err[BIFF_STRLEN];
 
   if (!sctx) {
@@ -234,12 +235,17 @@ seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
     sprintf(err, "%s: strengthSign (%d) not +1 or -1", me, strengthSign);
     biffAdd(SEEK, err); return 1;
   }
-  if (!AIR_EXISTS(strength)) {
-    sprintf(err, "%s: strength %g doesn't exist", me, strength);
+  if (!(AIR_EXISTS(strengthMin) && AIR_EXISTS(strength))) {
+    sprintf(err, "%s: strength %g or %g doesn't exist", me,
+            strengthMin, strength);
     biffAdd(SEEK, err); return 1;
   }
   if (sctx->strengthSign != strengthSign) {
     sctx->strengthSign = strengthSign;
+    sctx->flag[flagStrength] = AIR_TRUE;
+  }
+  if (sctx->strengthMin != strengthMin) {
+    sctx->strengthMin = strengthMin;
     sctx->flag[flagStrength] = AIR_TRUE;
   }
   if (sctx->strength != strength) {

@@ -61,10 +61,10 @@ enum {
   seekTypeIsocontour,     /* 1: standard marching-cubes */
   seekTypeRidgeSurface,   /* 2: */
   seekTypeValleySurface,  /* 3: */
-  seekTypeMinimalSurface, /* 4: */
-  seekTypeMaximalSurface, /* 5: */
-  seekTypeRidgeLine,      /* 6: */
-  seekTypeValleyLine,     /* 7: */
+  seekTypeRidgeLine,      /* 4: */
+  seekTypeValleyLine,     /* 5: */
+  seekTypeMinimalSurface, /* 6: */
+  seekTypeMaximalSurface, /* 7: */
   seekTypeLast
 };
 #define SEEK_TYPE_MAX        7
@@ -92,8 +92,9 @@ typedef struct {
     strengthUse,
     strengthSign;
   double isovalue,              /* for seekTypeIsocontour */
-    strength;                   /* if strengthUse, feature needs to satisfy
+    strength,                   /* if strengthUse, feature needs to satisfy
                                    strengthAns*strengthSign > strength */
+    strengthMin;
   size_t samples[3];            /* user-requested dimensions of feature grid */
   double facesPerVoxel,         /* approximate; for pre-allocating geometry */
     vertsPerVoxel;              /* approximate; for pre-allocating geometry */
@@ -151,6 +152,8 @@ typedef struct {
     voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
                                    isosurface, and number of vertices and
                                    faces in that isosurface */
+  double strengthSeenMax;       /* in case strength was used, the maximum
+                                   vertex strength seen (from probing slabs) */
   double time;                  /* time for extraction */
 } seekContext;
 
@@ -173,11 +176,10 @@ SEEK_EXPORT int seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 SEEK_EXPORT int seekNormalsFindSet(seekContext *sctx, int doit);
 SEEK_EXPORT int seekStrengthUseSet(seekContext *sctx, int doit);
 SEEK_EXPORT int seekStrengthSet(seekContext *sctx, int strengthSign,
-                                double strength);
+                                double strengthMin, double strength);
 SEEK_EXPORT int seekSamplesSet(seekContext *sctx, size_t samples[3]);
 SEEK_EXPORT int seekTypeSet(seekContext *sctx, int type);
 SEEK_EXPORT int seekLowerInsideSet(seekContext *sctx, int lowerInside);
-SEEK_EXPORT int seekTransformSet(seekContext *sctx, const double mat[16]);
 SEEK_EXPORT int seekItemScalarSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemStrengthSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemNormalSet(seekContext *sctx, int item);

@@ -47,6 +47,7 @@ seekContextNew(void) {
     sctx->strengthSign = 1;
     sctx->isovalue = AIR_NAN;
     sctx->strength = 0.0;
+    sctx->strengthMin = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
     /* these magic values assume a certain level of surface smoothness,
        which certainly does not apply to all cases */
@@ -92,6 +93,10 @@ seekContextNew(void) {
     sctx->evec = NULL;
     sctx->flip = NULL;
     sctx->stng = NULL;
+    sctx->voxNum = 0;
+    sctx->vertNum = 0;
+    sctx->faceNum = 0;
+    sctx->strengthSeenMax = AIR_NAN;
     sctx->time = AIR_NAN;
   }  
   return sctx;

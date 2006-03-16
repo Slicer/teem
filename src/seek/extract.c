@@ -244,7 +244,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   if (sctx->strengthUse) {
     stngA = sctx->stng[ziOff    + 2*(xi    + sx*yi)];
     stngB = sctx->stng[ziOff+dz + 2*(xi+dx + sx*(yi+dy))];
-    if (!( stngA > sctx->strength && stngB > sctx->strength )) {
+    if (!( stngA > sctx->strengthMin && stngB > sctx->strengthMin )) {
       *flip = 0;
       return 0;
     }
@@ -253,7 +253,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
     stngB = 0;
   }
 
-  /* this edge is in bounds, and the endpoints meet strength (if we care) */
+  /* this edge is in bounds, and the endpoints meet strengthMin (if we care) */
 
   ELL_3V_SET(posA, xi, yi, bag->zi+ziOff);
   ELL_3V_SET(posB, xi+dx, yi+dy, bag->zi+ziOff+dz);
@@ -284,7 +284,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   minDu = 0.001;
   while (u + du < 1.0) {
     SETNEXT(u+du);
-    if (sctx->strengthUse && strength < sctx->strength) {
+    if (sctx->strengthUse && strength < sctx->strengthMin) {
       /* sorry, strength got too weak along this edge */
       *flip = 0;
       return 0;
@@ -410,6 +410,11 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         }
         if (sctx->strengthUse) {
           sctx->stng[0 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
+          if (!si) {
+            sctx->strengthSeenMax = sctx->stng[0 + 2*si];
+          }
+          sctx->strengthSeenMax = AIR_MAX(sctx->strengthSeenMax,
+                                          sctx->stng[0 + 2*si]);
         }
         switch (sctx->type) {
         case seekTypeIsocontour:
@@ -457,6 +462,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
       }
       if (sctx->strengthUse) {
         sctx->stng[1 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
+        sctx->strengthSeenMax = AIR_MAX(sctx->strengthSeenMax,
+                                        sctx->stng[1 + 2*si]);
       }
       switch (sctx->type) {
       case seekTypeIsocontour:
@@ -576,7 +583,7 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
     s = sctx->stng[1 + 2*(0 + 1*sx + si)]; ACCUM(6);
     s = sctx->stng[1 + 2*(1 + 1*sx + si)]; ACCUM(7);
 #undef ACCUM
-    if (ssum/wsum < sctx->strength) {
+    if (ssum/wsum < sctx->strengthMin) {
       for (vi=0; vi<8; vi++) {
         vval[vi] = 0;
       }
@@ -625,7 +632,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
     flipProd *= flip[ei];
   }
 
-  if ((sctx->strengthUse && minStrength < sctx->strength)
+  if ((sctx->strengthUse && minStrength < sctx->strengthMin)
       || !flipProd) {
     /* either the corners this voxel don't meet strength,
        or something else is funky */
@@ -731,7 +738,9 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
           ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + bag->zi, 1);
           ELL_4MV_MUL(tvertB, sctx->txfIdx, tvertA);
+          /* tvertB is now in input index space */
           ELL_4MV_MUL(tvertA, sctx->shape->ItoW, tvertB);
+          /* tvertA is now in input world space */
           ELL_4V_HOMOG(tvertA, tvertA);
           ELL_4V_HOMOG(tvertB, tvertB);
           ovi = sctx->vidx[bag->evti[ei] + 5*si] = 
@@ -857,6 +866,9 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
     fprintf(stderr, "%s: flagResult = %d\n", me,
             sctx->flag[flagResult]);
   }
+
+  /* reset max strength seen */
+  sctx->strengthSeenMax = AIR_NAN;
 
   /* start time */
   time0 = airTime();
