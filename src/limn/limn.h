@@ -634,7 +634,7 @@ LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
 
-/* polywind.c */
+/* polymod.c */
 LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
 
 /* io.c */

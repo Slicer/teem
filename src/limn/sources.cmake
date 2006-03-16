@@ -19,7 +19,7 @@ SET(LIMN_SOURCES
   enumsLimn.c
   polydata.c
   polyshapes.c
-  polywind.c
+  polymod.c
   )
 
 ADD_TEEM_LIBRARY(limn ${LIMN_SOURCES})
