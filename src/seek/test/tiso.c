@@ -48,8 +48,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
 	     "use gage too");
   hestOptAdd(&hopt, "hack", NULL, airTypeInt, 0, 0, &hack, NULL, "hack");
-  hestOptAdd(&hopt, "o", "output OFF", airTypeString, 1, 1, &outS, "out.off",
-             "output file to save OFF into");
+  hestOptAdd(&hopt, "o", "output IV", airTypeString, 1, 1, &outS, "out.off",
+             "output file to save IV into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
@@ -123,7 +123,11 @@ main(int argc, char *argv[]) {
   }
   fprintf(stderr, "%s: extraction time = %g\n", me, sctx->time);
 
-  /* || limnPolyDataOFFWrite(file, pld) THIS FUNCTION DOESN'T EXIST */
+  if (limnPolyDataIVWrite(file, pld)) {
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }
   
   airMopOkay(mop);
   return 0;
