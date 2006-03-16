@@ -313,8 +313,8 @@ enum {
   tenGageFAHessianEvec0,   /*  77: "fahessevec0": [3] */
   tenGageFAHessianEvec1,   /*  78: "fahessevec1": [3] */
   tenGageFAHessianEvec2,   /*  79: "fahessevec2": [3] */
-  tenGageFAStrengthRidge,  /*  80: "faridge": [1] */
-  tenGageFAStrengthValley, /*  81: "favalley": [1] */
+  tenGageFARidgeSurfaceStrength,  /*  80: "farsurf": [1] */
+  tenGageFAValleySurfaceStrength, /*  81: "favsurf": [1] */
 
   tenGageRHessian,         /*  82: "rhess": [9] */
 
