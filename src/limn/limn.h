@@ -641,6 +641,7 @@ LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
 LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);
 LIMN_EXPORT int limnObjectOFFRead(limnObject *obj, FILE *file);
 LIMN_EXPORT int limnObjectOFFWrite(FILE *file, limnObject *obj);
+LIMN_EXPORT int limnPolyDataIVWrite(FILE *file, const limnPolyData *pld);
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);

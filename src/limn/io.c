@@ -135,6 +135,94 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
   return 0;
 }
 
+int
+limnPolyDataIVWrite(FILE *file, const limnPolyData *pld) {
+  char me[]="limnPolyDataIVWrite", err[BIFF_STRLEN];
+  unsigned int primIdx, xyzwIdx, rgbaIdx, normIdx, bitFlag,
+    baseVertIdx;
+  float xyz[3];
+
+  if (!(file && pld)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    if (limnPrimitiveTriangles != pld->type[primIdx]) {
+      sprintf(err, "%s: sorry, can only have %s prims (prim[%u] is %s)",
+              me, airEnumStr(limnPrimitive, limnPrimitiveTriangles),
+              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
+      biffAdd(LIMN, err); return 1;
+    }
+  }
+
+  fprintf(file, "#Inventor V2.0 ascii\n");
+  fprintf(file, "# written by Teem/limn\n\n");
+  fprintf(file, "Separator {\n");
+  fprintf(file, "  Coordinate3 {\n");
+  fprintf(file, "    point [\n");
+  for (xyzwIdx=0; xyzwIdx<pld->xyzwNum; xyzwIdx++) {
+    ELL_34V_HOMOG(xyz, pld->xyzw + 4*xyzwIdx);
+    fprintf(file, "      %g %g %g%s\n",
+            xyz[0], xyz[1], xyz[2],
+            xyzwIdx < pld->xyzwNum-1 ? "," : "");
+  }
+  fprintf(file, "    ]\n");
+  fprintf(file, "  }\n");
+
+  bitFlag = limnPolyDataInfoBitFlag(pld);
+
+  if (bitFlag & (1 << limnPolyDataInfoNorm)) {
+    fprintf(file, "  NormalBinding {  value PER_VERTEX_INDEXED }\n");
+    fprintf(file, "  Normal {\n");
+    fprintf(file, "    vector [\n");
+    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+      fprintf(file, "      %g %g %g%s\n",
+              pld->norm[0 + 3*normIdx],
+              pld->norm[1 + 3*normIdx],
+              pld->norm[2 + 3*normIdx],
+              normIdx < pld->normNum-1 ? "," : "");
+    }
+    fprintf(file, "    ]\n");
+    fprintf(file, "  }\n");
+  }
+  if (bitFlag & (1 << limnPolyDataInfoRGBA)) {
+    fprintf(file, "  MaterialBinding {  value PER_VERTEX_INDEXED }\n");
+    fprintf(file, "  Material {\n");
+    fprintf(file, "    diffuseColor [\n");
+    for (rgbaIdx=0; rgbaIdx<pld->rgbaNum; rgbaIdx++) {
+      fprintf(file, "      %g %g %g%s\n",
+              pld->rgba[0 + 4*rgbaIdx]/255.0,
+              pld->rgba[1 + 4*rgbaIdx]/255.0,
+              pld->rgba[2 + 4*rgbaIdx]/255.0,
+              rgbaIdx < pld->rgbaNum-1 ? "," : "");
+    }
+    fprintf(file, "    ]\n");
+    fprintf(file, "  }\n");
+  }
+
+  fprintf(file, "  IndexedFaceSet {\n");
+  fprintf(file, "    coordIndex [\n");
+
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triIdx, triNum, *indx3;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indx3 = pld->indx + baseVertIdx + 3*triIdx;
+      fprintf(file, "      %u, %u, %u, -1%s\n",
+              indx3[0], indx3[1], indx3[2],
+              triIdx < triNum-1 ? "," : "");
+    }
+    baseVertIdx += 3*triNum;
+  }
+  fprintf(file, "    ]\n");
+  fprintf(file, "  }\n");
+
+  fprintf(file, "}\n");
+
+  return 0;
+}
+
 typedef union {
   int **i;
   void **v;
