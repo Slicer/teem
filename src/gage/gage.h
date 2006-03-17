@@ -172,7 +172,7 @@ enum {
 ** is defined at compile-time in a per-kind table (at least it is for
 ** the scalar, vector, and tensor kinds)
 **
-** NOTE!!! You can't re-arrange these variables, because of all the
+** NOTE!!! YOU CAN NOT re-arrange these variables, because of all the
 ** compile-time definitions that are done to define a gageKind.
 */
 typedef struct {
