@@ -651,6 +651,7 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
     sprintf(err, "%s: couldn't allocated temp buffers", me);
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, startIndx, airFree, airMopAlways);
 
   baseIndx = pld->indx;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
