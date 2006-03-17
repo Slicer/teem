@@ -412,3 +412,92 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
   return 0;
 }
 
+unsigned int
+limnPolyDataPrimitiveTypes(limnPolyData *pld) {
+  unsigned int ret, primIdx;
+
+  ret = 0;
+  if (pld) {
+    for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+      ret |= (1 << pld->type[primIdx]);
+    }
+  }
+  return ret;
+}
+
+int
+limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) { 
+  char me[]="limnPolyDataPrimitiveVertexNumber", err[BIFF_STRLEN];
+  unsigned int *vnum, pidx;
+  
+  if (!(nout && pld)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (nrrdMaybeAlloc_va(nout, 1, nrrdTypeUInt,
+                        AIR_CAST(size_t, pld->primNum))) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffMove(LIMN, err, NRRD); return 1;
+  }
+
+  vnum = AIR_CAST(unsigned int *, nout->data);
+  for (pidx=0; pidx<pld->primNum; pidx++) {
+    vnum[pidx] = pld->icnt[pidx];
+  }
+
+  return 0;
+}
+
+int
+limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) { 
+  char me[]="limnPolyDataPrimitiveArea", err[BIFF_STRLEN];
+  unsigned int primIdx, baseVertIdx;
+  unsigned int triNum, triIdx, *indx, ii;
+  float vert[3][3], edgeA[3], edgeB[3], cross[3];
+  double *area;
+
+  if (!(nout && pld)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1,
+                        AIR_CAST(size_t, pld->primNum))) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffMove(LIMN, err, NRRD); return 1;
+  }
+
+  area = AIR_CAST(double *, nout->data);
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    area[primIdx] = 0;
+    switch (pld->type[primIdx]) {
+    case limnPrimitiveTriangles:
+      triNum = pld->icnt[primIdx]/3;
+      for (triIdx=0; triIdx<triNum; triIdx++) {
+        indx = pld->indx + baseVertIdx + 3*triIdx;
+        for (ii=0; ii<3; ii++) {
+          ELL_34V_HOMOG(vert[ii], pld->xyzw + 4*indx[ii]);
+        }
+        ELL_3V_SUB(edgeA, vert[1], vert[0]);
+        ELL_3V_SUB(edgeB, vert[2], vert[0]);
+        ELL_3V_CROSS(cross, edgeA, edgeB);
+        area[primIdx] += ELL_3V_LEN(cross)/2;
+      }
+      break;
+    case limnPrimitiveTriangleStrip:
+    case limnPrimitiveTriangleFan:
+    case limnPrimitiveQuads:
+      sprintf(err, "%s: sorry, haven't implemented area(prim[%u]=%s) yet", me,
+              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
+      biffAdd(LIMN, err); return 1;
+      break;
+    case limnPrimitiveLineStrip:
+      /* lines have no area */
+      break;
+    }
+    baseVertIdx += pld->icnt[primIdx];
+  }
+
+  return 0;
+}
+
