@@ -116,10 +116,9 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   unsigned int estVertNum, estFaceNum, minI, maxI, valI, *spanHist;
   int E;
 
-  if (seekTypeIsocontour == sctx->type) {
+  if (seekTypeIsocontour == sctx->type
+      && AIR_IN_OP(sctx->range->min, sctx->isovalue, sctx->range->max)) {
     unsigned int estVoxNum=0;
-    /* nixed the short-cut based on seeing if the isovalue was outside
-       the value range, since it complicated the logic... */
     /* estimate number of voxels, faces, and vertices involved */
     spanHist = AIR_CAST(unsigned int*, sctx->nspanHist->data);
     valI = airIndex(sctx->range->min, sctx->isovalue, sctx->range->max,
