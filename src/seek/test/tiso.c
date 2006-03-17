@@ -32,7 +32,7 @@ main(int argc, char *argv[]) {
   limnPolyData *pld;
   gageContext *gctx=NULL;
   gagePerVolume *pvl;
-  Nrrd *nin;
+  Nrrd *nin, *nmeas;
   double isoval, kparm[3];
   seekContext *sctx;
   FILE *file;
@@ -122,6 +122,16 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
   fprintf(stderr, "%s: extraction time = %g\n", me, sctx->time);
+
+  nmeas = nrrdNew();
+  airMopAdd(mop, nmeas, (airMopper)nrrdNuke, airMopAlways);
+  if (limnPolyDataCCFind(pld)
+      || limnPolyDataPrimitiveArea(nmeas, pld)
+      || limnPolyDataPrimitiveSort(pld, nmeas)) {
+    err = biffGetDone(LIMN);
+    fprintf(stderr, "%s: trouble sorting:\n%s", me, err);
+    free(err);
+  }
 
   if (limnPolyDataIVWrite(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
