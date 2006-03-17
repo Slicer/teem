@@ -49,11 +49,11 @@ seekContextNew(void) {
     sctx->strength = 0.0;
     sctx->strengthMin = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
-    /* these magic values assume a certain level of surface smoothness,
+    /* these two magic values assume a certain level of surface smoothness,
        which certainly does not apply to all cases */
     sctx->facesPerVoxel = 2.15;
     sctx->vertsPerVoxel = 1.15;
-    sctx->pldArrIncr = 512;
+    sctx->pldArrIncr = 2048;
 
     sctx->nin = NULL;
     sctx->flag = AIR_CAST(int *, calloc(flagLast, sizeof(int)));
