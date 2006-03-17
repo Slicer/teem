@@ -484,6 +484,11 @@ AIR_EXPORT double airDLoad(void *v, int t);
 AIR_EXPORT int airIStore(void *v, int t, int i);
 AIR_EXPORT float airFStore(void *v, int t, float f);
 AIR_EXPORT double airDStore(void *v, int t, double d);
+AIR_EXPORT void airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k);
+AIR_EXPORT unsigned int airEqvMap(airArray *eqvArr,
+                                  unsigned int *map, unsigned int len);
+AIR_EXPORT unsigned int airEqvSettle(unsigned int *map, unsigned int len);
+
 
 /* math.c */
 AIR_EXPORT void airNormalRand(double *z1, double *z2);

@@ -582,5 +582,119 @@ airDStore(void *v, int t, double d) {
   }
 }
 
-/* ---- END non-NrrdIO */
+/*
+******** airEqvSettle()
+**
+** takes a mapping map[i], i in [0..len-1], and shifts the range of the
+** mapping downward so that the range is a contiguous set of uints
+** starting at 0.
+**
+** returns the highest mapping output value, after the settling.
+**
+** honestly this doesn't necessarily have anything to do with processing
+** equivalence classes, but its an operation that is nice to have in
+** those cases
+*/
+unsigned int
+airEqvSettle(unsigned int *map, unsigned int len) {
+  unsigned int i, j, count, max, *hit;
+  
+  max = 0;
+  for (i=0; i<len; i++) {
+    max = AIR_MAX(max, map[i]);
+  }
+  hit = (unsigned int *)calloc(1+max, sizeof(unsigned int));
+  for (i=0; i<len; i++) {
+    hit[map[i]] = 1;
+  }
+  count = 0;
+  for (j=0; j<=max; j++) {
+    if (hit[j]) {
+      hit[j] = count;
+      count += 1;
+    }
+  }
+  max = 0;
+  for (i=0; i<len; i++) {
+    map[i] = hit[map[i]];
+    max = AIR_MAX(max, map[i]);
+  }
+  free(hit);
+  return max;
+}
 
+/*
+******** airEqvMap
+**
+** takes the equivalence pairs in eqvArr, and an array of uints map of 
+** length len, and puts in map[i] the uint that class i's value should
+** be changed to.  
+** 
+** based on numerical recipes, C edition, pg. 346
+** modifications: 
+**  - when resolving ancestors, map to the one with the lower index.
+**  - applies settling to resulting map 
+**
+** returns the highest class id in the mapping
+*/
+unsigned int
+airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len) {
+  unsigned int *eqv, j, k, t, eqi;
+
+  for (j=0; j<len; j++) {
+    map[j] = j;
+  }
+  eqv = (unsigned int*)(eqvArr->data);
+  for (eqi=0; eqi<eqvArr->len; eqi++) {
+    j = eqv[0 + 2*eqi];
+    k = eqv[1 + 2*eqi];
+    while (map[j] != j) {
+      j = map[j];
+    }
+    while (map[k] != k) {
+      k = map[k];
+    }
+    if (j != k) {
+      if (j < k) {
+        t = j; j = k; k = t;
+      }
+      map[j] = k;
+    }
+  }
+  for (j=0; j<len; j++) {
+    while (map[j] != map[map[j]]) {
+      map[j] = map[map[j]];
+    }
+  }
+  return airEqvSettle(map, len);
+}
+
+/*
+******** airEqvAdd
+**
+** adds another equivalence class
+*/
+void
+airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
+  unsigned int *eqv, eqi;
+
+  /* HEY: would it speed things up at all to enforce j < k? */
+  if (eqvArr->len) {
+    /* we have some equivalences, but we're only going to check against
+       the last one in an effort to reduce duplicate entries */
+    eqv = AIR_CAST(unsigned int*, eqvArr->data);
+    eqi = eqvArr->len-1;
+    if ( (eqv[0 + 2*eqi] == j && eqv[1 + 2*eqi] == k) ||
+         (eqv[0 + 2*eqi] == k && eqv[1 + 2*eqi] == j) ) {
+      /* don't add a duplicate */
+      return;
+    }
+  }
+  eqi = airArrayLenIncr(eqvArr, 1);
+  eqv = AIR_CAST(unsigned int*, eqvArr->data);
+  eqv[0 + 2*eqi] = j;
+  eqv[1 + 2*eqi] = k;
+  return;
+}
+
+/* ---- END non-NrrdIO */
