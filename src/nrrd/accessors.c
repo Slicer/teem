@@ -210,24 +210,24 @@ nrrdDInsert[NRRD_TYPE_MAX+1])(void *, size_t, double) = {
 ** Dereferences pointer v and sprintf()s that value into given string s,
 ** returns the result of sprintf()
 */
-int _nrrdSprintCH(char *s, const CH *v) { return sprintf(s, "%d", *v); }
-int _nrrdSprintUC(char *s, const UC *v) { return sprintf(s, "%u", *v); }
-int _nrrdSprintSH(char *s, const SH *v) { return sprintf(s, "%d", *v); }
-int _nrrdSprintUS(char *s, const US *v) { return sprintf(s, "%u", *v); }
-int _nrrdSprintIN(char *s, const JN *v) { return sprintf(s, "%d", *v); }
-int _nrrdSprintUI(char *s, const UI *v) { return sprintf(s, "%u", *v); }
-int _nrrdSprintLL(char *s, const LL *v) { 
+static int _nrrdSprintCH(char *s, const CH *v) { return sprintf(s, "%d", *v); }
+static int _nrrdSprintUC(char *s, const UC *v) { return sprintf(s, "%u", *v); }
+static int _nrrdSprintSH(char *s, const SH *v) { return sprintf(s, "%d", *v); }
+static int _nrrdSprintUS(char *s, const US *v) { return sprintf(s, "%u", *v); }
+static int _nrrdSprintIN(char *s, const JN *v) { return sprintf(s, "%d", *v); }
+static int _nrrdSprintUI(char *s, const UI *v) { return sprintf(s, "%u", *v); }
+static int _nrrdSprintLL(char *s, const LL *v) { 
   return sprintf(s, AIR_LLONG_FMT, *v); 
 }
-int _nrrdSprintUL(char *s, const UL *v) { 
+static int _nrrdSprintUL(char *s, const UL *v) { 
   return sprintf(s, AIR_ULLONG_FMT, *v); 
 }
 /* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
    basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
    digits of precision for floats and doubles, respectively */
-int _nrrdSprintFL(char *s, const FL *v) {
+static int _nrrdSprintFL(char *s, const FL *v) {
   return airSinglePrintf(NULL, s, "%.8g", (double)(*v)); }
-int _nrrdSprintDB(char *s, const DB *v) {
+static int _nrrdSprintDB(char *s, const DB *v) {
   return airSinglePrintf(NULL, s, "%.17g", *v); }
 int (*
 nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *) = {
@@ -252,21 +252,21 @@ nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *) = {
 ** Dereferences pointer v and fprintf()s that value into given file f;
 ** returns the result of fprintf()
 */
-int _nrrdFprintCH(FILE *f, const CH *v) { return fprintf(f, "%d", *v); }
-int _nrrdFprintUC(FILE *f, const UC *v) { return fprintf(f, "%u", *v); }
-int _nrrdFprintSH(FILE *f, const SH *v) { return fprintf(f, "%d", *v); }
-int _nrrdFprintUS(FILE *f, const US *v) { return fprintf(f, "%u", *v); }
-int _nrrdFprintIN(FILE *f, const JN *v) { return fprintf(f, "%d", *v); }
-int _nrrdFprintUI(FILE *f, const UI *v) { return fprintf(f, "%u", *v); }
-int _nrrdFprintLL(FILE *f, const LL *v) { 
+static int _nrrdFprintCH(FILE *f, const CH *v) { return fprintf(f, "%d", *v); }
+static int _nrrdFprintUC(FILE *f, const UC *v) { return fprintf(f, "%u", *v); }
+static int _nrrdFprintSH(FILE *f, const SH *v) { return fprintf(f, "%d", *v); }
+static int _nrrdFprintUS(FILE *f, const US *v) { return fprintf(f, "%u", *v); }
+static int _nrrdFprintIN(FILE *f, const JN *v) { return fprintf(f, "%d", *v); }
+static int _nrrdFprintUI(FILE *f, const UI *v) { return fprintf(f, "%u", *v); }
+static int _nrrdFprintLL(FILE *f, const LL *v) { 
   return fprintf(f, AIR_LLONG_FMT, *v); 
 }
-int _nrrdFprintUL(FILE *f, const UL *v) { 
+static int _nrrdFprintUL(FILE *f, const UL *v) { 
   return fprintf(f, AIR_ULLONG_FMT, *v); 
 }
-int _nrrdFprintFL(FILE *f, const FL *v) {
+static int _nrrdFprintFL(FILE *f, const FL *v) {
   return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
-int _nrrdFprintDB(FILE *f, const DB *v) {
+static int _nrrdFprintDB(FILE *f, const DB *v) {
   return airSinglePrintf(f, NULL, "%.17g", *v); }
 int (*
 nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *) = {
@@ -290,17 +290,17 @@ nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *) = {
 ** by by that type; for floating point types we just return
 ** the given number, since every float must fit in a double.
 */
-float _nrrdFClampCH(FL v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
-float _nrrdFClampUC(FL v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
-float _nrrdFClampSH(FL v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
-float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
-float _nrrdFClampIN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
-float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
-float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
-                                             NRRD_LLONG_MAX);}
-float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
-float _nrrdFClampFL(FL v) { return v; }
-float _nrrdFClampDB(FL v) { return v; }
+static float _nrrdFClampCH(FL v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
+static float _nrrdFClampUC(FL v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
+static float _nrrdFClampSH(FL v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
+static float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
+static float _nrrdFClampIN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
+static float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
+static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+                                                    NRRD_LLONG_MAX);}
+static float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static float _nrrdFClampFL(FL v) { return v; }
+static float _nrrdFClampDB(FL v) { return v; }
 float (*
 nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
   NULL,
@@ -322,17 +322,17 @@ nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
 ** same as nrrdDClamp, but for doubles.  One change: in the case of
 ** floats, doubles are clamped to the range -FLT_MAX to FLT_MAX.
 */
-double _nrrdDClampCH(DB v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
-double _nrrdDClampUC(DB v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
-double _nrrdDClampSH(DB v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
-double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
-double _nrrdDClampIN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
-double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
-double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
-                                              NRRD_LLONG_MAX);}
-double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
-double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
-double _nrrdDClampDB(DB v) { return v; }
+static double _nrrdDClampCH(DB v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
+static double _nrrdDClampUC(DB v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
+static double _nrrdDClampSH(DB v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
+static double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
+static double _nrrdDClampIN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
+static double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
+static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+                                                     NRRD_LLONG_MAX);}
+static double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
+static double _nrrdDClampDB(DB v) { return v; }
 double (*
 nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   NULL,
@@ -446,16 +446,16 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   *minP = min;                                                           \
   *maxP = max;
 
-void _nrrdMinMaxExactFindCH (_MMEF_ARGS(CH)) {_MMEF_FIXED(CH)}
-void _nrrdMinMaxExactFindUC (_MMEF_ARGS(UC)) {_MMEF_FIXED(UC)}
-void _nrrdMinMaxExactFindSH (_MMEF_ARGS(SH)) {_MMEF_FIXED(SH)}
-void _nrrdMinMaxExactFindUS (_MMEF_ARGS(US)) {_MMEF_FIXED(US)}
-void _nrrdMinMaxExactFindIN (_MMEF_ARGS(JN)) {_MMEF_FIXED(JN)}
-void _nrrdMinMaxExactFindUI (_MMEF_ARGS(UI)) {_MMEF_FIXED(UI)}
-void _nrrdMinMaxExactFindLL (_MMEF_ARGS(LL)) {_MMEF_FIXED(LL)}
-void _nrrdMinMaxExactFindUL (_MMEF_ARGS(UL)) {_MMEF_FIXED(UL)}
-void _nrrdMinMaxExactFindFL (_MMEF_ARGS(FL)) {_MMEF_FLOAT(FL)}
-void _nrrdMinMaxExactFindDB (_MMEF_ARGS(DB)) {_MMEF_FLOAT(DB)}
+static void _nrrdMinMaxExactFindCH (_MMEF_ARGS(CH)) {_MMEF_FIXED(CH)}
+static void _nrrdMinMaxExactFindUC (_MMEF_ARGS(UC)) {_MMEF_FIXED(UC)}
+static void _nrrdMinMaxExactFindSH (_MMEF_ARGS(SH)) {_MMEF_FIXED(SH)}
+static void _nrrdMinMaxExactFindUS (_MMEF_ARGS(US)) {_MMEF_FIXED(US)}
+static void _nrrdMinMaxExactFindIN (_MMEF_ARGS(JN)) {_MMEF_FIXED(JN)}
+static void _nrrdMinMaxExactFindUI (_MMEF_ARGS(UI)) {_MMEF_FIXED(UI)}
+static void _nrrdMinMaxExactFindLL (_MMEF_ARGS(LL)) {_MMEF_FIXED(LL)}
+static void _nrrdMinMaxExactFindUL (_MMEF_ARGS(UL)) {_MMEF_FIXED(UL)}
+static void _nrrdMinMaxExactFindFL (_MMEF_ARGS(FL)) {_MMEF_FLOAT(FL)}
+static void _nrrdMinMaxExactFindDB (_MMEF_ARGS(DB)) {_MMEF_FLOAT(DB)}
 
 /*
 ******** nrrdMinMaxExactFind[]
@@ -507,19 +507,18 @@ nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
   case 2: ret = _VC_FIXED; break;                                        \
   case 1: ret = AIR_EXISTS(*A) ? 1 : -1; break;                          \
   case 0: default: ret = 0;                                              \
-  }                                                                      \
-  return ret;
+  }
 
-int _nrrdValCompareCH (_VC_ARGS(CH)) {return _VC_FIXED;}
-int _nrrdValCompareUC (_VC_ARGS(UC)) {return _VC_FIXED;}
-int _nrrdValCompareSH (_VC_ARGS(SH)) {return _VC_FIXED;}
-int _nrrdValCompareUS (_VC_ARGS(US)) {return _VC_FIXED;}
-int _nrrdValCompareIN (_VC_ARGS(JN)) {return _VC_FIXED;}
-int _nrrdValCompareUI (_VC_ARGS(UI)) {return _VC_FIXED;}
-int _nrrdValCompareLL (_VC_ARGS(LL)) {return _VC_FIXED;}
-int _nrrdValCompareUL (_VC_ARGS(UL)) {return _VC_FIXED;}
-int _nrrdValCompareFL (_VC_ARGS(FL)) {_VC_FLOAT}
-int _nrrdValCompareDB (_VC_ARGS(DB)) {_VC_FLOAT}
+static int _nrrdValCompareCH (_VC_ARGS(CH)) {return _VC_FIXED;}
+static int _nrrdValCompareUC (_VC_ARGS(UC)) {return _VC_FIXED;}
+static int _nrrdValCompareSH (_VC_ARGS(SH)) {return _VC_FIXED;}
+static int _nrrdValCompareUS (_VC_ARGS(US)) {return _VC_FIXED;}
+static int _nrrdValCompareIN (_VC_ARGS(JN)) {return _VC_FIXED;}
+static int _nrrdValCompareUI (_VC_ARGS(UI)) {return _VC_FIXED;}
+static int _nrrdValCompareLL (_VC_ARGS(LL)) {return _VC_FIXED;}
+static int _nrrdValCompareUL (_VC_ARGS(UL)) {return _VC_FIXED;}
+static int _nrrdValCompareFL (_VC_ARGS(FL)) {_VC_FLOAT; return ret;}
+static int _nrrdValCompareDB (_VC_ARGS(DB)) {_VC_FLOAT; return ret;}
 int (*
 nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   NULL,
@@ -533,6 +532,35 @@ nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   (int (*)(const void *, const void *))_nrrdValCompareUL,
   (int (*)(const void *, const void *))_nrrdValCompareFL,
   (int (*)(const void *, const void *))_nrrdValCompareDB,
+  NULL
+};
+
+/*
+** ...Inv: for descending order
+*/
+static int _nrrdValCompareInvCH (_VC_ARGS(CH)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvUC (_VC_ARGS(UC)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvSH (_VC_ARGS(SH)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvUS (_VC_ARGS(US)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvIN (_VC_ARGS(JN)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvUI (_VC_ARGS(UI)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvLL (_VC_ARGS(LL)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvUL (_VC_ARGS(UL)) {return -_VC_FIXED;}
+static int _nrrdValCompareInvFL (_VC_ARGS(FL)) {_VC_FLOAT; return -ret;}
+static int _nrrdValCompareInvDB (_VC_ARGS(DB)) {_VC_FLOAT; return -ret;}
+int (*
+nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
+  NULL,
+  (int (*)(const void *, const void *))_nrrdValCompareInvCH,
+  (int (*)(const void *, const void *))_nrrdValCompareInvUC,
+  (int (*)(const void *, const void *))_nrrdValCompareInvSH,
+  (int (*)(const void *, const void *))_nrrdValCompareInvUS,
+  (int (*)(const void *, const void *))_nrrdValCompareInvIN,
+  (int (*)(const void *, const void *))_nrrdValCompareInvUI,
+  (int (*)(const void *, const void *))_nrrdValCompareInvLL,
+  (int (*)(const void *, const void *))_nrrdValCompareInvUL,
+  (int (*)(const void *, const void *))_nrrdValCompareInvFL,
+  (int (*)(const void *, const void *))_nrrdValCompareInvDB,
   NULL
 };
 

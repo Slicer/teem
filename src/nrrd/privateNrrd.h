@@ -196,11 +196,6 @@ extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
 #endif
 
 /* ---- BEGIN non-NrrdIO */
-/* ccmethods.c */
-extern unsigned int _nrrdCC_settle(unsigned int *map, unsigned int len);
-extern unsigned int _nrrdCC_eclass(unsigned int *map, unsigned int len,
-                                   airArray *eqvArr);
-
 /* apply1D.c */
 extern double _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis);
 extern double _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis);

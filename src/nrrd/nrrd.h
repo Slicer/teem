@@ -953,6 +953,7 @@ NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP,
                                                          int *hasNonExistP,
                                                          const Nrrd *nrrd);
 NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
+NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *);
 /* ---- END non-NrrdIO */
 
 
@@ -1221,6 +1222,7 @@ NRRD_EXPORT int nrrdCCValid(const Nrrd *nin);
 NRRD_EXPORT unsigned int nrrdCCSize(Nrrd *nout, const Nrrd *nin);
 NRRD_EXPORT unsigned int nrrdCCMax(const Nrrd *nin);
 NRRD_EXPORT unsigned int nrrdCCNum(const Nrrd *nin);
+
 /* cc.c */
 NRRD_EXPORT int nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin,
                            int type, unsigned int conny);

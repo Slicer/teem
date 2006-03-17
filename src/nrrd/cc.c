@@ -57,33 +57,6 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   return 0;
 }
 
-void
-_nrrdCCEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
-  unsigned int *eqv, eqi;
-
-  /* HEY: would it speed things up at all to enforce j < k? */
-  if (_nrrdCC_verb) {
-    fprintf(stderr, "%s: ***(%d,%d)***: eqvArr->len = %d\n", "_nrrdCCEqvAdd",
-            j, k, eqvArr->len);
-  }
-  if (eqvArr->len) {
-    eqv = AIR_CAST(unsigned int*, eqvArr->data);
-    /* we have some equivalences, but we're only going to check against
-       the last one in an effort to reduce duplicate entries */
-    eqi = eqvArr->len-1;
-    if ( (eqv[0 + 2*eqi] == j && eqv[1 + 2*eqi] == k) ||
-         (eqv[0 + 2*eqi] == k && eqv[1 + 2*eqi] == j) ) {
-      /* don't add a duplicate */
-      return;
-    }
-  }
-  eqi = airArrayLenIncr(eqvArr, 1);
-  eqv = AIR_CAST(unsigned int*, eqvArr->data);
-  eqv[0 + 2*eqi] = j;
-  eqv[1 + 2*eqi] = k;
-  return;
-}
-
 /*
 ** layout of value (pvl) and index (pid) cache:
 ** 
@@ -142,7 +115,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
       if (vl == pvl[(P)]) {                         \
         if (p) { /* we already had a value match */ \
           if (id != pid[(P)]) {                     \
-            _nrrdCCEqvAdd(eqvArr, pid[(P)], id);    \
+            airEqvAdd(eqvArr, pid[(P)], id);        \
           }                                         \
         } else {                                    \
           id = pid[p=(P)];                          \
@@ -378,7 +351,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
 
   map = (unsigned int*)calloc(numid, sizeof(unsigned int));
   airMopAdd(mop, map, airFree, airMopAlways);
-  maxid = _nrrdCC_eclass(map, numid, eqvArr);
+  maxid = airEqvMap(eqvArr, map, numid);
   /* convert fpid values to final id values */
   fpid = (unsigned int*)(nfpid->data);
   NN = nrrdElementNumber(nfpid);
