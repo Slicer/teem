@@ -126,6 +126,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFAHessianEvec2,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         6,    0},
   {tenGageFARidgeSurfaceStrength,1, 2, {tenGageConfidence, tenGageFAHessianEval, -1, -1, -1, -1},                             -1,         0,    0},
   {tenGageFAValleySurfaceStrength,1,2, {tenGageConfidence, tenGageFAHessianEval, -1, -1, -1, -1},                             -1,         0,    0},
+  {tenGageFALaplacian,         1, 2,   {tenGageFAHessian, -1, -1, -1, -1, -1},                                                -1,         0,    0},
+  {tenGageFA2ndDD,             1, 2,   {tenGageFAHessian, tenGageFANormal, -1, -1, -1, -1},                                   -1,         0,    0},
 
   {tenGageRHessian,            9,  2,  {tenGageR, tenGageRGradVec, tenGageTraceHessian,
                                         tenGageBHessian, tenGageDetHessian, tenGageSHessian},                                 -1,        -1,    0},
@@ -820,6 +822,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ev = pvl->directAnswer[tenGageFAHessianEval][0];
     ev = AIR_MAX(0, ev);
     pvl->directAnswer[tenGageFAValleySurfaceStrength][0] = tenAns[0]*ev;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFALaplacian)) {
+    double *hess;
+    hess = pvl->directAnswer[tenGageFAHessian];
+    pvl->directAnswer[tenGageFALaplacian][0] = hess[0] + hess[4] + hess[8];
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFA2ndDD)) {
+    double *hess, *norm, tmpv[3];
+    hess = pvl->directAnswer[tenGageFAHessian];
+    norm = pvl->directAnswer[tenGageFANormal];
+    ELL_3MV_MUL(tmpv, hess, norm);
+    pvl->directAnswer[tenGageFA2ndDD][0] = ELL_3V_DOT(norm, tmpv);
   }
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRHessian)) {

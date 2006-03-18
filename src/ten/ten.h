@@ -201,9 +201,9 @@ typedef struct {
 ** brief appearance here the RGB evec coloring was removed.  The
 ** gagePerVolume->data field that it motivated has rightly remained.
 **
-** !!! Changes to this list need to be propogated to tenGage.c's
-** !!! _tenGageTable[] and _tenGageAnswer(), 
-** !!! and to enumsTen.c's tenGage airEnum.
+** !!! Changes to this list need to be propogated to:
+** !!! tenGage.c: _tenGageTable[], _tenGageAnswer(), 
+** !!! enumsTen.c: tenGage airEnum.
 **
 */
 enum {
@@ -315,33 +315,35 @@ enum {
   tenGageFAHessianEvec2,   /*  79: "fahessevec2": [3] */
   tenGageFARidgeSurfaceStrength,  /*  80: "farsurf": [1] */
   tenGageFAValleySurfaceStrength, /*  81: "favsurf": [1] */
+  tenGageFALaplacian,      /*  82: "falapl": [1] */
+  tenGageFA2ndDD,          /*  83: "fa2d": [1] */
 
-  tenGageRHessian,         /*  82: "rhess": [9] */
+  tenGageRHessian,         /*  84: "rhess": [9] */
 
-  tenGageModeHessian,      /*  83: "mhess": [9] */
-  tenGageModeHessianEval,  /*  84: "mhesseval": [3] */
-  tenGageModeHessianEval0, /*  85: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /*  86: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /*  87: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /*  88: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /*  89: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /*  90: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /*  91: "mhessevec2": [3] */
+  tenGageModeHessian,      /*  85: "mhess": [9] */
+  tenGageModeHessianEval,  /*  86: "mhesseval": [3] */
+  tenGageModeHessianEval0, /*  87: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /*  88: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /*  89: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /*  90: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /*  91: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /*  92: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /*  93: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /*  92: "omhess": [9] */
-  tenGageOmegaHessianEval, /*  93: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/*  94: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/*  95: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/*  96: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /*  97: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/*  98: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/*  99: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 100: "omhessevec2": [3] */
+  tenGageOmegaHessian,     /*  94: "omhess": [9] */
+  tenGageOmegaHessianEval, /*  95: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/*  96: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/*  97: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/*  98: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /*  99: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 100: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 101: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 102: "omhessevec2": [3] */
 
-  tenGageAniso,            /* 101: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 103: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     101
+#define TEN_GAGE_ITEM_MAX     103
 
 /*
 ******** tenDwiGage* enum
