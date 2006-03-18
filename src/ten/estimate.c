@@ -1655,6 +1655,7 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
             me, tec->estimateMethod);
     biffAdd(TEN, err); return 1;
   }
+  tec->time = tec->recordTime ? airTime() - time0 : 0;
   if (tec->negEvalShift) {
     double eval[3];
     tenEigensolve_d(eval, NULL, tec->ten);
@@ -1664,7 +1665,6 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
       tec->ten[6] += -eval[2];
     }
   }
-  tec->time = tec->recordTime ? airTime() - time0 : 0;
   if (E) {
     TEN_T_SET(tec->ten, AIR_NAN, 
               AIR_NAN, AIR_NAN, AIR_NAN, 
