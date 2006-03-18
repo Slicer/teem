@@ -455,7 +455,7 @@ limnPolyDataVertexWindingFix(limnPolyData *pld) {
         indxLine[ii] = (vertWithTri + 3*uniTriIdx)[ii];
       }
     }
-    baseVertIdx += 3*triNum;
+    baseVertIdx += pld->icnt[primIdx];
   }
   /*  
   fprintf(stderr, "!%s: bye\n", me);
@@ -677,6 +677,37 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   pld->icnt = icntNew;
 
   airMopOkay(mop);
+  return 0;
+}
+
+int
+limnPolyDataVertexWindingFlip(limnPolyData *pld) { 
+  char me[]="limnPolyDataVertexWindingFlip", err[BIFF_STRLEN];
+  unsigned int baseVertIdx, primIdx;
+
+  if (!pld) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
+    sprintf(err, "%s: sorry, can only handle %s primitives", me,
+            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    biffAdd(LIMN, err); return 1;
+  }
+
+  baseVertIdx = 0;
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    unsigned int triNum, triIdx, *indxLine, tmpIdx;
+    triNum = pld->icnt[primIdx]/3;
+    for (triIdx=0; triIdx<triNum; triIdx++) {
+      indxLine = pld->indx + baseVertIdx + 3*triIdx;
+      tmpIdx = indxLine[0];
+      indxLine[0] = indxLine[2];
+      indxLine[2] = tmpIdx;
+    }
+    baseVertIdx += pld->icnt[primIdx];
+  }
+
   return 0;
 }
 
