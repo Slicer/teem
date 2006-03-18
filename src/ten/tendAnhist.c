@@ -50,14 +50,14 @@ tend_anhistMain(int argc, char **argv, char *me, hestParm *hparm) {
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
+  hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, NULL,
              "resolution of anisotropy plot");
   hestOptAdd(&hopt, "right", NULL, airTypeInt, 0, 0, &right, NULL,
              "sample a right-triangle-shaped region, instead of "
              "a roughly equilateral triangle. ");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output image (floating point)");
 
   mop = airMopNew();
