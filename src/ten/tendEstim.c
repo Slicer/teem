@@ -124,7 +124,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd **nin, *nin4d, *nbmat, *nterr, *nB0, *nout;
   char *outS, *terrS, *bmatS, *eb0S;
   float soft, scale, sigma;
-  int dwiax, EE, knownB0, oldstuff, estmeth, verbose;
+  int dwiax, EE, knownB0, oldstuff, estmeth, verbose, fixneg;
   unsigned int ninLen, axmap[4], wlsi;
   double valueMin, thresh;
 
@@ -147,6 +147,11 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
              "when using weighted-least-squares (\"-est wls\"), how "
              "many iterations to do after the initial weighted fit.");
+  hestOptAdd(&hopt, "fixneg", NULL, airTypeInt, 0, 0, &fixneg, NULL,
+             "after estimating the tensor, ensure that there are no negative "
+             "eigenvalues by adding (to all eigenvalues) the amount by which "
+             "the smallest is negative (corresponding to increasing the "
+             "non-DWI image value).");
   hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the tensor "
              "estimation error: a value which measures how much error there "
@@ -315,6 +320,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, tec, (airMopper)tenEstimateContextNix, airMopAlways);
     EE = 0;
     if (!EE) tenEstimateVerboseSet(tec, verbose);
+    if (!EE) tenEstimateNegEvalShiftSet(tec, fixneg);
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, valueMin);

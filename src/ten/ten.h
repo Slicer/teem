@@ -685,6 +685,8 @@ typedef struct {
     recordErrorLogDwi,
     recordLikelihood,
     verbose,               /* blah blah blah */
+    negEvalShift,          /* if non-zero, shift eigenvalues upwards so that
+                              smallest one is non-negative */
     progress;              /* progress indication for volume processing */
   unsigned int WLSIterNum; /* number of iterations for WLS */
   /* internal -------- */
@@ -834,6 +836,8 @@ TEN_EXPORT airEnum *tenEstimateMethod;
 TEN_EXPORT tenEstimateContext *tenEstimateContextNew();
 TEN_EXPORT void tenEstimateVerboseSet(tenEstimateContext *tec,
                                       int verbose);
+TEN_EXPORT void tenEstimateNegEvalShiftSet(tenEstimateContext *tec,
+                                           int doit);
 TEN_EXPORT int tenEstimateMethodSet(tenEstimateContext *tec,
                                     int estMethod);
 TEN_EXPORT int tenEstimateSigmaSet(tenEstimateContext *tec,

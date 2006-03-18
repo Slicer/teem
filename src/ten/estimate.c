@@ -298,6 +298,15 @@ tenEstimateVerboseSet(tenEstimateContext *tec,
   return;
 }
 
+void
+tenEstimateNegEvalShiftSet(tenEstimateContext *tec, int doit) {
+
+  if (tec) {
+    tec->negEvalShift = !!doit;
+  }
+  return;
+}
+
 int
 tenEstimateMethodSet(tenEstimateContext *tec, int estimateMethod) {
   char me[]="tenEstimateMethodSet", err[BIFF_STRLEN];
@@ -1645,6 +1654,15 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
     sprintf(err, "%s: estimation method %d unimplemented",
             me, tec->estimateMethod);
     biffAdd(TEN, err); return 1;
+  }
+  if (tec->negEvalShift) {
+    double eval[3];
+    tenEigensolve_d(eval, NULL, tec->ten);
+    if (eval[2] < 0) {
+      tec->ten[1] += -eval[2];
+      tec->ten[4] += -eval[2];
+      tec->ten[6] += -eval[2];
+    }
   }
   tec->time = tec->recordTime ? airTime() - time0 : 0;
   if (E) {
