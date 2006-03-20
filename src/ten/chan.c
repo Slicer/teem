@@ -30,6 +30,9 @@ const char *
 tenDWMRIModalityVal = "DWMRI";
 
 const char *
+tenDWMRINAVal = "n/a";
+
+const char *
 tenDWMRIBValueKey = "DWMRI_b-value";
 
 const char *
@@ -40,6 +43,9 @@ tenDWMRIBmatKeyFmt = "DWMRI_B-matrix_%04u";
 
 const char *
 tenDWMRINexKeyFmt = "DWMRI_NEX_%04u";
+
+const char *
+tenDWMRISkipKeyFmt = "DWMRI_skip_%04u";
 
 /*
 ******** tenDWMRIKeyValueParse
@@ -52,22 +58,28 @@ tenDWMRINexKeyFmt = "DWMRI_NEX_%04u";
 **
 ** Either *ngradP or *nbmatP is set to a newly- allocated nrrd
 ** containing this information, and the other one is set to NULL
-** Also, the (scalar) b-value is stored in *bP
+** The (scalar) b-value is stored in *bP. The image values that are
+** to be skipped are stored in the *skipP array (allocated here),
+** the length of that array is stored in *skipNumP.  Unlike the skip
+** array used internally with tenEstimate, this is just a simple 1-D
+** array; it is not a list of pairs of (index,skipBool).
 */
 int
-tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
-                      double *bP, const Nrrd *ndwi) {
+tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
+                      unsigned int **skipP, unsigned int *skipNumP,
+                      const Nrrd *ndwi) {
   char me[]="tenDWMRIKeyValueParse", err[BIFF_STRLEN],
     tmpKey[AIR_STRLEN_MED],
     key[AIR_STRLEN_MED], *val;
   const char *keyFmt;
   int dwiAxis;
   unsigned int axi, dwiIdx, dwiNum, valNum, valIdx, parsedNum,
-    nexNum, nexIdx;
+    nexNum, nexIdx, skipIdx, *skipLut;
   Nrrd *ninfo;
   double *info, normMax, norm;
+  airArray *mop, *skipArr;
 
-  if (!( ngradP && nbmatP && bP && ndwi )) {
+  if (!( ngradP && nbmatP && skipP && skipNumP && bP && ndwi )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
@@ -157,57 +169,90 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
   }
   info = (double *)(ninfo->data);
 
+  /* set up skip list recording */
+  mop = airMopNew();
+  skipArr = airArrayNew((void**)skipP, skipNumP, sizeof(unsigned int), 16);
+  airMopAdd(mop, skipArr, (airMopper)airArrayNix, airMopAlways);
+  skipLut = AIR_CAST(unsigned int*, calloc(dwiNum, sizeof(unsigned int)));
+  airMopAdd(mop, skipLut, airFree, airMopAlways);
+  if (!skipLut) {
+    sprintf(err, "%s: couldn't allocate skip LUT", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
   /* parse values in ninfo */
   for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
     sprintf(key, keyFmt, dwiIdx);
     val = nrrdKeyValueGet(ndwi, key);
     if (!val) {
       sprintf(err, "%s: didn't see \"%s\" key", me, key);
-      biffAdd(TEN, err); return 1;
+      biffAdd(TEN, err); airMopError(mop); return 1;
     }
-    parsedNum = airParseStrD(info, val, AIR_WHITESPACE, valNum);
-    if (valNum != parsedNum) {
-      sprintf(err, "%s: couldn't parse %d floats in value \"%s\" "
-              "for key \"%s\" (only got %d)",
-              me, valNum, val, key, parsedNum);
-      biffAdd(TEN, err); return 1;
-    }
-    val = (char *)airFree(val);
-    sprintf(key, tenDWMRINexKeyFmt, dwiIdx);
-    val = nrrdKeyValueGet(ndwi, key);
-    if (!val) {
-      /* there is no NEX indicated */
-      nexNum = 1;
+    airToLower(val);
+    if (!strncmp(tenDWMRINAVal, val + strspn(val, AIR_WHITESPACE),
+                 strlen(tenDWMRINAVal))) {
+      /* have no sensible gradient or B-matrix info here, and must skip */
+      for (valIdx=0; valIdx<valNum; valIdx++) {
+        info[valIdx] = AIR_NAN;
+      }
+      skipIdx = airArrayLenIncr(skipArr, 1);
+      (*skipP)[skipIdx] = dwiIdx;
+      skipLut[dwiIdx] = AIR_TRUE;
+      /* can't have NEX on a skipped gradient or B-matrix */
+      val = (char *)airFree(val);
+      sprintf(key, tenDWMRINexKeyFmt, dwiIdx);
+      val = nrrdKeyValueGet(ndwi, key);
+      if (val) {
+        sprintf(err, "%s: can't have NEX of skipped DWI %u", me, skipIdx);
+        biffAdd(TEN, err); airMopError(mop); return 1;
+      }
+      nexNum = 1; /* for "info +=" below */
     } else {
-      if (1 != sscanf(val, "%u", &nexNum)) {
-        sprintf(err, "%s: couldn't parse integer in value \"%s\" "
-                "for key \"%s\"", me, val, key);
-        biffAdd(TEN, err); return 1;
+      /* we probably do have sensible gradient or B-matrix info */
+      parsedNum = airParseStrD(info, val, AIR_WHITESPACE, valNum);
+      if (valNum != parsedNum) {
+        sprintf(err, "%s: couldn't parse %d floats in value \"%s\" "
+                "for key \"%s\" (only got %d)",
+                me, valNum, val, key, parsedNum);
+        biffAdd(TEN, err); airMopError(mop); return 1;
       }
       val = (char *)airFree(val);
-      if (!( nexNum >= 1 )) {
-        sprintf(err, "%s: NEX (%d) for DWI %d not >= 1", me, nexNum, dwiIdx);
-        biffAdd(TEN, err); return 1;
-      }
-      if (!( dwiIdx + nexNum - 1 < dwiNum )) {
-        sprintf(err, "%s: NEX %d for DWI %d implies %d DWI > real # DWI %d",
-                me, nexNum, dwiIdx, dwiIdx + nexNum, dwiNum);
-        biffAdd(TEN, err); return 1;
-      }
-      for (nexIdx=1; nexIdx<nexNum; nexIdx++) {
-        sprintf(key, keyFmt, dwiIdx+nexIdx);
-        val = nrrdKeyValueGet(ndwi, key);
-        if (val) {
-          val = (char *)airFree(val);
-          sprintf(err, "%s: shouldn't have key \"%s\" with NEX %d for DWI %d",
-                  me, key, nexNum, dwiIdx);
-          biffAdd(TEN, err); return 1;
+      sprintf(key, tenDWMRINexKeyFmt, dwiIdx);
+      val = nrrdKeyValueGet(ndwi, key);
+      if (!val) {
+        /* there is no NEX indicated */
+        nexNum = 1;
+      } else {
+        if (1 != sscanf(val, "%u", &nexNum)) {
+          sprintf(err, "%s: couldn't parse integer in value \"%s\" "
+                  "for key \"%s\"", me, val, key);
+          biffAdd(TEN, err); airMopError(mop); return 1;
         }
-        for (valIdx=0; valIdx<valNum; valIdx++) {
-          info[valIdx + valNum*nexIdx] = info[valIdx];
+        val = (char *)airFree(val);
+        if (!( nexNum >= 1 )) {
+          sprintf(err, "%s: NEX (%d) for DWI %d not >= 1", me, nexNum, dwiIdx);
+          biffAdd(TEN, err); airMopError(mop); return 1;
         }
+        if (!( dwiIdx + nexNum - 1 < dwiNum )) {
+          sprintf(err, "%s: NEX %d for DWI %d implies %d DWI > real # DWI %d",
+                  me, nexNum, dwiIdx, dwiIdx + nexNum, dwiNum);
+          biffAdd(TEN, err); airMopError(mop); return 1;
+        }
+        for (nexIdx=1; nexIdx<nexNum; nexIdx++) {
+          sprintf(key, keyFmt, dwiIdx+nexIdx);
+          val = nrrdKeyValueGet(ndwi, key);
+          if (val) {
+            val = (char *)airFree(val);
+            sprintf(err, "%s: shouldn't have key \"%s\" with "
+                    "NEX %d for DWI %d", me, key, nexNum, dwiIdx);
+            biffAdd(TEN, err); airMopError(mop); return 1;
+          }
+          for (valIdx=0; valIdx<valNum; valIdx++) {
+            info[valIdx + valNum*nexIdx] = info[valIdx];
+          }
+        }
+        dwiIdx += nexNum-1;
       }
-      dwiIdx += nexNum-1;
     }
     info += valNum*nexNum;
   }
@@ -221,33 +266,54 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
     sprintf(err, "%s: saw \"%s\" key, more than required %u keys, "
             "likely mismatch between keys and actual gradients",
             me, key, dwiIdx);
-    biffAdd(TEN, err); return 1;
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+
+  /* second pass: see which ones are skipped, even though gradient/B-matrix
+     information has been specified */
+  for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
+    sprintf(key, tenDWMRISkipKeyFmt, dwiIdx);
+    val = nrrdKeyValueGet(ndwi, key);
+    if (val) {
+      airToLower(val);
+      if (!strncmp("true", val + strspn(val, AIR_WHITESPACE),
+                   strlen("true"))) {
+        skipIdx = airArrayLenIncr(skipArr, 1);
+        (*skipP)[skipIdx] = dwiIdx;
+        skipLut[dwiIdx] = AIR_TRUE;
+      }
+    }
   }
 
   /* normalize so that maximal norm is 1.0 */
   normMax = 0;
   info = (double *)(ninfo->data);
   for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
-    if (3 == valNum) {
-      norm = ELL_3V_LEN(info);
-    } else {
-      norm = sqrt(info[0]*info[0] + 2*info[1]*info[1] + 2*info[2]*info[2]
-                                  +   info[3]*info[3] + 2*info[4]*info[4]
-                                                      +   info[5]*info[5]);
+    if (!skipLut[dwiIdx]) {
+      if (3 == valNum) {
+        norm = ELL_3V_LEN(info);
+      } else {
+        norm = sqrt(info[0]*info[0] + 2*info[1]*info[1] + 2*info[2]*info[2]
+                                    +   info[3]*info[3] + 2*info[4]*info[4]
+                                                        +   info[5]*info[5]);
+      }
+      normMax = AIR_MAX(normMax, norm);
     }
-    normMax = AIR_MAX(normMax, norm);
     info += valNum;
   }
   info = (double *)(ninfo->data);
   for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
-    if (3 == valNum) {
-      ELL_3V_SCALE(info, 1.0/normMax, info);
-    } else {
-      ELL_6V_SCALE(info, 1.0/normMax, info);
+    if (!skipLut[dwiIdx]) {
+      if (3 == valNum) {
+        ELL_3V_SCALE(info, 1.0/normMax, info);
+      } else {
+        ELL_6V_SCALE(info, 1.0/normMax, info);
+      }
     }
     info += valNum;
   }
   
+  airMopOkay(mop); 
   return 0;
 }
 

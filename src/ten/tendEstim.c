@@ -105,7 +105,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     }
     bmat += 6;
   }
-  if (_tenEpiRegFindThresh(threshP, ndwi, dwiNum, AIR_FALSE)) {
+  if (_tenEpiRegThresholdFind(threshP, ndwi, dwiNum, AIR_FALSE, 1.5)) {
     sprintf(err, "%s: trouble finding thresh", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
@@ -125,7 +125,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS, *terrS, *bmatS, *eb0S;
   float soft, scale, sigma;
   int dwiax, EE, knownB0, oldstuff, estmeth, verbose, fixneg;
-  unsigned int ninLen, axmap[4], wlsi;
+  unsigned int ninLen, axmap[4], wlsi, *skip, skipNum, skipIdx;
   double valueMin, thresh;
 
   Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
@@ -233,6 +233,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     nin4d = nin[0];
+    skip = NULL;
+    skipNum = 0;
   } else {
     /* it IS coming from key/value pairs */
     if (1 != ninLen) {
@@ -247,7 +249,8 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
         airMopError(mop); return 1;
       }
     }
-    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP, nin[0])) {
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP,
+                              &skip, &skipNum, nin[0])) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
@@ -324,6 +327,10 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, valueMin);
+    for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
+      /* fprintf(stderr, "%s: skipping %u\n", me, skip[skipIdx]); */
+      if (!EE) EE |= tenEstimateSkipSet(tec, skip[skipIdx], AIR_TRUE);
+    }
     switch(estmeth) {
     case tenEstimateMethodLLS:
       if (airStrlen(terrS)) {

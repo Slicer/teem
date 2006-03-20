@@ -47,7 +47,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *gradS;
   NrrdKernelSpec *ksp;
   Nrrd **nin, **nout3D, *nout4D, *ngrad, *ngradKVP, *nbmatKVP;
-  unsigned int ni, ninLen;
+  unsigned int ni, ninLen, *skip, skipNum;
   int ref, noverbose, progress, nocc, baseNum;
   float bw[2], thr, fitFrac;
   double bvalue;
@@ -132,7 +132,8 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     /* they are coming from key/value pairs */
-    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bvalue, nin[0])) {
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bvalue,
+                              &skip, &skipNum, nin[0])) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing gradient list:\n%s\n", me, err);
       airMopError(mop); return 1;

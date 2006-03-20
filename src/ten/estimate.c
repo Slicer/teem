@@ -206,6 +206,7 @@ enum {
   flagDwiAlloc,
   flagAllSet,
   flagDwiSet,
+  flagSkipSet,
   flagWght,
   flagEmat,
   flagLast
@@ -241,6 +242,9 @@ tenEstimateContextNew() {
     tec->dwiConfSoft = AIR_NAN;
     tec->_ngrad = NULL;
     tec->_nbmat = NULL;
+    tec->skipList = NULL;
+    tec->skipListArr = airArrayNew((void**)&(tec->skipList), NULL,
+                                   2*sizeof(unsigned int), 128);
     tec->all_f = NULL;
     tec->all_d = NULL;
     tec->simulate = AIR_FALSE;
@@ -267,6 +271,7 @@ tenEstimateContextNew() {
     tec->allTmp = NULL;
     tec->dwiTmp = NULL;
     tec->dwi = NULL;
+    tec->skipLut = NULL;
     _tenEstimateOutputInit(tec);
   }
   return tec;
@@ -279,11 +284,13 @@ tenEstimateContextNix(tenEstimateContext *tec) {
     nrrdNuke(tec->nbmat);
     nrrdNuke(tec->nwght);
     nrrdNuke(tec->nemat);
+    airArrayNuke(tec->skipListArr);
     airFree(tec->all);
     airFree(tec->bnorm);
     airFree(tec->allTmp);
     airFree(tec->dwiTmp);
     airFree(tec->dwi);
+    airFree(tec->skipLut);
     airFree(tec);
   }
   return NULL;
@@ -420,6 +427,40 @@ tenEstimateBMatricesSet(tenEstimateContext *tec,
 }
 
 int
+tenEstimateSkipSet(tenEstimateContext *tec,
+                   unsigned int valIdx, int doSkip) {
+  char me[]="tenEstimateSkipSet", err[BIFF_STRLEN];
+  unsigned int skipIdx;
+
+  if (!tec) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+
+  skipIdx = airArrayLenIncr(tec->skipListArr, 1);
+  tec->skipList[0 + 2*skipIdx] = valIdx;
+  tec->skipList[1 + 2*skipIdx] = !!doSkip;
+
+  tec->flag[flagSkipSet] = AIR_TRUE;
+  return 0;
+}
+
+int
+tenEstimateSkipReset(tenEstimateContext *tec) {
+  char me[]="tenEstimateSkipReset", err[BIFF_STRLEN];
+
+  if (!tec) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+
+  airArrayLenSet(tec->skipListArr, 0);
+
+  tec->flag[flagSkipSet] = AIR_TRUE;
+  return 0;
+}
+
+int
 tenEstimateThresholdSet(tenEstimateContext *tec,
                         double thresh, double soft) {
   char me[]="tenEstimateThresholdSet", err[BIFF_STRLEN];
@@ -483,13 +524,18 @@ _tenEstimateCheck(tenEstimateContext *tec) {
   return 0;
 }
 
+/*
+** allNum includes the skipped images
+** dwiNum does not include the skipped images
+*/
 int
 _tenEstimateNumUpdate(tenEstimateContext *tec) {
   char me[]="_tenEstimateNumUpdate", err[BIFF_STRLEN];
-  unsigned int newAllNum, newDwiNum, allIdx;
+  unsigned int newAllNum, newDwiNum, allIdx, skipListIdx, skipIdx, skipDo;
   double (*lup)(const void *, size_t), gg[3], bb[6];
 
-  if (tec->flag[flagBInfo]) {
+  if (tec->flag[flagBInfo]
+      || tec->flag[flagSkipSet]) {
     if (tec->_ngrad) {
       newAllNum = AIR_CAST(unsigned int, tec->_ngrad->axis[1].size);
       lup = nrrdDLookup[tec->_ngrad->type];
@@ -502,43 +548,61 @@ _tenEstimateNumUpdate(tenEstimateContext *tec) {
       tec->flag[flagAllNum] = AIR_TRUE;
     }
 
-    /* HEY: this should be its own update function */
+    /* HEY: this should probably be its own update function, but its very
+       convenient to allocate these allNum-length arrays here, immediately */
+    airFree(tec->skipLut);
+    tec->skipLut = AIR_CAST(unsigned char *, calloc(tec->allNum,
+                                                    sizeof(unsigned char)));
     airFree(tec->bnorm);
     tec->bnorm = AIR_CAST(double *, calloc(tec->allNum, sizeof(double)));
-    if (!tec->bnorm) {
-      sprintf(err, "%s: couldn't allocate bnorm vec %u\n", me, tec->allNum);
+    if (!(tec->skipLut && tec->bnorm)) {
+      sprintf(err, "%s: couldn't allocate skipLut, bnorm vectors length %u\n",
+              me, tec->allNum);
       biffAdd(TEN, err); return 1;
     }
-    for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-      if (tec->_ngrad) {
-        gg[0] = lup(tec->_ngrad->data, 0 + 3*allIdx);
-        gg[1] = lup(tec->_ngrad->data, 1 + 3*allIdx);
-        gg[2] = lup(tec->_ngrad->data, 2 + 3*allIdx);
-        bb[0] = gg[0]*gg[0];
-        bb[1] = gg[1]*gg[0];
-        bb[2] = gg[2]*gg[0];
-        bb[3] = gg[1]*gg[1];
-        bb[4] = gg[2]*gg[1];
-        bb[5] = gg[2]*gg[2];
-      } else {
-        bb[0] = lup(tec->_nbmat->data, 0 + 6*allIdx);
-        bb[1] = lup(tec->_nbmat->data, 1 + 6*allIdx);
-        bb[2] = lup(tec->_nbmat->data, 2 + 6*allIdx);
-        bb[3] = lup(tec->_nbmat->data, 3 + 6*allIdx);
-        bb[4] = lup(tec->_nbmat->data, 4 + 6*allIdx);
-        bb[5] = lup(tec->_nbmat->data, 5 + 6*allIdx);
+
+    for (skipListIdx=0; skipListIdx<tec->skipListArr->len; skipListIdx++) {
+      skipIdx = tec->skipList[0 + 2*skipListIdx];
+      skipDo = tec->skipList[1 + 2*skipListIdx];
+      if (!(skipIdx < tec->allNum)) {
+        sprintf(err, "%s: skipList entry %u value index %u not < # vals %u",
+                me, skipListIdx, skipIdx, tec->allNum);
+        biffAdd(TEN, err); return 1;
       }
-      tec->bnorm[allIdx] = sqrt(bb[0]*bb[0] + 2*bb[1]*bb[1] + 2*bb[2]*bb[2]
-                                + bb[3]*bb[3] + 2*bb[4]*bb[4]
-                                + bb[5]*bb[5]);
+      tec->skipLut[skipIdx] = skipDo;
     }
     
-    if (tec->estimateB0) {
-      newDwiNum = tec->allNum;
-    } else {
-      newDwiNum = 0;
-      for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-        newDwiNum += (0.0 != tec->bnorm[allIdx]);
+    newDwiNum = 0;
+    for (allIdx=0; allIdx<tec->allNum; allIdx++) {
+      if (tec->skipLut[allIdx]) {
+        tec->bnorm[allIdx] = AIR_NAN;
+      } else {
+        if (tec->_ngrad) {
+          gg[0] = lup(tec->_ngrad->data, 0 + 3*allIdx);
+          gg[1] = lup(tec->_ngrad->data, 1 + 3*allIdx);
+          gg[2] = lup(tec->_ngrad->data, 2 + 3*allIdx);
+          bb[0] = gg[0]*gg[0];
+          bb[1] = gg[1]*gg[0];
+          bb[2] = gg[2]*gg[0];
+          bb[3] = gg[1]*gg[1];
+          bb[4] = gg[2]*gg[1];
+          bb[5] = gg[2]*gg[2];
+        } else {
+          bb[0] = lup(tec->_nbmat->data, 0 + 6*allIdx);
+          bb[1] = lup(tec->_nbmat->data, 1 + 6*allIdx);
+          bb[2] = lup(tec->_nbmat->data, 2 + 6*allIdx);
+          bb[3] = lup(tec->_nbmat->data, 3 + 6*allIdx);
+          bb[4] = lup(tec->_nbmat->data, 4 + 6*allIdx);
+          bb[5] = lup(tec->_nbmat->data, 5 + 6*allIdx);
+        }
+        tec->bnorm[allIdx] = sqrt(bb[0]*bb[0] + 2*bb[1]*bb[1] + 2*bb[2]*bb[2]
+                                  + bb[3]*bb[3] + 2*bb[4]*bb[4]
+                                  + bb[5]*bb[5]);
+        if (tec->estimateB0) {
+          ++newDwiNum;
+        } else {
+          newDwiNum += (0.0 != tec->bnorm[allIdx]);
+        }
       }
     }
     if (tec->dwiNum != newDwiNum) {
@@ -608,11 +672,11 @@ _tenEstimateDwiAllocUpdate(tenEstimateContext *tec) {
 int
 _tenEstimateAllSetUpdate(tenEstimateContext *tec) {
   /* char me[]="_tenEstimateAllSetUpdate", err[BIFF_STRLEN]; */
-  /* unsigned int allIdx, dwiIdx; */
-
+  /* unsigned int skipListIdx, skipIdx, skip, dwiIdx */;
+  
   if (tec->flag[flagAllAlloc]
       || tec->flag[flagDwiNum]) {
-
+    
   }
   return 0;
 }
@@ -633,7 +697,8 @@ _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
     dwiIdx = 0;
     bmat = AIR_CAST(double*, tec->nbmat->data);
     for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-      if (tec->estimateB0 || tec->bnorm[allIdx]) {
+      if (!tec->skipLut[allIdx]          
+          && (tec->estimateB0 || tec->bnorm[allIdx])) {
         if (tec->_ngrad) {
           gg[0] = lup(tec->_ngrad->data, 0 + 3*allIdx);
           gg[1] = lup(tec->_ngrad->data, 1 + 3*allIdx);
@@ -751,16 +816,18 @@ _tenEstimateValuesSet(tenEstimateContext *tec) {
   B0Num = 0;
   dwiIdx = 0;
   for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-    tec->all[allIdx] = (tec->all_f 
-                        ? tec->all_f[allIdx]
-                        : tec->all_d[allIdx]);
-    tec->mdwi += tec->bnorm[allIdx]*tec->all[allIdx];
-    normSum += tec->bnorm[allIdx];
-    if (tec->estimateB0 || tec->bnorm[allIdx]) {
-      tec->dwi[dwiIdx++] = tec->all[allIdx];
-    } else {
-      tec->knownB0 += tec->all[allIdx];
-      B0Num += 1;
+    if (!tec->skipLut[allIdx]) {
+      tec->all[allIdx] = (tec->all_f 
+                          ? tec->all_f[allIdx]
+                          : tec->all_d[allIdx]);
+      tec->mdwi += tec->bnorm[allIdx]*tec->all[allIdx];
+      normSum += tec->bnorm[allIdx];
+      if (tec->estimateB0 || tec->bnorm[allIdx]) {
+        tec->dwi[dwiIdx++] = tec->all[allIdx];
+      } else {
+        tec->knownB0 += tec->all[allIdx];
+        B0Num += 1;
+      }
     }
   }
   if (!tec->estimateB0) {

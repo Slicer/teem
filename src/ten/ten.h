@@ -672,6 +672,8 @@ typedef struct {
   const Nrrd *_ngrad,      /* caller's 3-by-allNum gradient list */
     *_nbmat;               /* caller's 6-by-allNum B-matrix list,
                               off-diagonals are *NOT* pre-multiplied by 2 */
+  unsigned int *skipList;  /* list of value indices that we are to skip */
+  airArray *skipListArr;   /* airArray around skipList */
   const float *all_f;      /* caller's list of all values (length allNum) */
   const double *all_d;     /* caller's list of all values (length allNum) */
   int simulate,            /* if non-zero, we're being used for simulation,
@@ -706,8 +708,9 @@ typedef struct {
     *bnorm,                /* frob norm of B-matrix, allocated for allNum */
     *allTmp, *dwiTmp,      /* for storing intermediate values,
                               allocated for allNum and dwiNum respectively */
-    *dwi,                  /* the Dwi values, allocated for dwiNum */
-    time0;                 /* start time */
+    *dwi;                  /* the Dwi values, allocated for dwiNum */
+  unsigned char *skipLut;  /* skipLut[i] non-zero if we should ignore all[i],
+                              allocated for allNum */
   /* output ---------- */
   double estimatedB0,      /* estimated non-Dwi value, only if estimateB0 */
     ten[7],                /* the estimated single tensor */
@@ -799,12 +802,16 @@ TEN_EXPORT void tenInv_d(double inv[7], double ten[7]);
 /* old tenCalc* functions replaced by tenEstimate* */
 TEN_EXPORT const char *tenDWMRIModalityKey;
 TEN_EXPORT const char *tenDWMRIModalityVal;
+TEN_EXPORT const char *tenDWMRINAVal;
 TEN_EXPORT const char *tenDWMRIBValueKey;
 TEN_EXPORT const char *tenDWMRIGradKeyFmt;
 TEN_EXPORT const char *tenDWMRIBmatKeyFmt;
 TEN_EXPORT const char *tenDWMRINexKeyFmt;
-TEN_EXPORT int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP,
-                                     double *bP, const Nrrd *ndwi);
+TEN_EXPORT const char *tenDWMRISkipKeyFmt;
+TEN_EXPORT int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
+                                     unsigned int **skip,
+                                     unsigned int *skipNum,
+                                     const Nrrd *ndwi);
 TEN_EXPORT int tenBMatrixCalc(Nrrd *nbmat, const Nrrd *ngrad);
 TEN_EXPORT int tenEMatrixCalc(Nrrd *nemat, const Nrrd *nbmat, int knownB0);
 TEN_EXPORT void tenEstimateLinearSingle_f(float *ten, float *B0P,
@@ -850,6 +857,10 @@ TEN_EXPORT int tenEstimateGradientsSet(tenEstimateContext *tec,
 TEN_EXPORT int tenEstimateBMatricesSet(tenEstimateContext *tec,
                                        const Nrrd *nbmat,
                                        double bValue, int estimateB0);
+TEN_EXPORT int tenEstimateSkipSet(tenEstimateContext *tec,
+                                  unsigned int valIdx,
+                                  int doSkip);
+TEN_EXPORT int tenEstimateSkipReset(tenEstimateContext *tec);
 TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
                                        double thresh, double soft);
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);
@@ -942,8 +953,8 @@ TEN_EXPORT int tenFiberTrace(tenFiberContext *tfx,
                              Nrrd *fiber, double seed[3]);
 
 /* epireg.c */
-TEN_EXPORT int _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin,
-                                    int ninLen, int save);
+TEN_EXPORT int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin,
+                                       int ninLen, int save, double expo);
 TEN_EXPORT int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi,
                                 unsigned int dwiLen, Nrrd *ngrad,
                                 int reference,

@@ -195,8 +195,9 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
 }
 
 int
-_tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
-  char me[]="_tenEpiRegFindThresh", err[BIFF_STRLEN];
+_tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen,
+                        int save, double expo) {
+  char me[]="_tenEpiRegThresholdFind", err[BIFF_STRLEN];
   Nrrd *nhist, *ntmp;
   airArray *mop;
   int ni, bins, E;
@@ -245,7 +246,7 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
   */
-  if (nrrdHistoThresholdOtsu(DWthrP, nhist)) {
+  if (nrrdHistoThresholdOtsu(DWthrP, nhist, expo)) {
     sprintf(err, "%s: problem finding DWI threshold", me);
     biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
@@ -256,7 +257,7 @@ _tenEpiRegFindThresh(double *DWthrP, Nrrd **nin, int ninLen, int save) {
 
 int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
-                    double DWthr, int verb, int progress) {
+                    double DWthr, int verb, int progress, double expo) {
   char me[]="_tenEpiRegThreshold", err[BIFF_STRLEN];
   airArray *mop;
   size_t I, sx, sy, sz, ni;
@@ -264,7 +265,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
   unsigned char *thr;
 
   if (!( AIR_EXISTS(DWthr) )) {
-    if (_tenEpiRegFindThresh(&DWthr, nblur, ninLen, progress)) {
+    if (_tenEpiRegThresholdFind(&DWthr, nblur, ninLen, progress, expo)) {
       sprintf(err, "%s: trouble with automatic threshold determination", me);
       biffAdd(TEN, err); return 1;
     }
@@ -1083,7 +1084,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
 
   /* ------ threshold */
   if (_tenEpiRegThreshold(nbuffB, nbuffA, ninLen, 
-                          DWthr, verbose, progress)) {
+                          DWthr, verbose, progress, 1.5)) {
     sprintf(err, "%s: trouble thresholding", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
