@@ -965,6 +965,7 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuExs nrrdUnaryOpExists
 #define nuRnd nrrdUnaryOpRand
 #define nuNrn nrrdUnaryOpNormalRand
+#define nuoIf nrrdUnaryOpIf
 #define nuZer nrrdUnaryOpZero
 #define nuOne nrrdUnaryOpOne
 
@@ -996,6 +997,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "exists",
   "rand",
   "normrand",
+  "if",
   "zero",
   "one"
 };
@@ -1028,6 +1030,7 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "value is not infinity or NaN",
   "uniformly distributed random value between 0 and 1",
   "normally distributed random value, mean 0, stdv 1",
+  "if nonzero, 1, else 0",
   "always zero",
   "always one"
 };
@@ -1059,6 +1062,7 @@ _nrrdUnaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "exists",
   "rand",
   "normalrand", "normrand", "nrand",
+  "if",
   "zero", "0",
   "one", "1",
   ""
@@ -1091,6 +1095,7 @@ _nrrdUnaryOpValEqv[] = {
   nuExs,
   nuRnd,
   nuNrn, nuNrn, nuNrn,
+  nuoIf,
   nuZer, nuZer,
   nuOne, nuOne
 };

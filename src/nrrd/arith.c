@@ -117,19 +117,19 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
 
 /* ---------------------------- unary -------------- */
 
-double _nrrdUnaryOpNegative(double a)   {return -a;}
-double _nrrdUnaryOpReciprocal(double a) {return 1.0/a;}
-double _nrrdUnaryOpSin(double a)        {return sin(a);}
-double _nrrdUnaryOpCos(double a)        {return cos(a);}
-double _nrrdUnaryOpTan(double a)        {return tan(a);}
-double _nrrdUnaryOpAsin(double a)       {return asin(a);}
-double _nrrdUnaryOpAcos(double a)       {return acos(a);}
-double _nrrdUnaryOpAtan(double a)       {return atan(a);}
-double _nrrdUnaryOpExp(double a)        {return exp(a);}
-double _nrrdUnaryOpLog(double a)        {return log(a);}
-double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
-double _nrrdUnaryOpLog10(double a)      {return log10(a);}
-double _nrrdUnaryOpLog1p(double a)      {
+static double _nrrdUnaryOpNegative(double a)   {return -a;}
+static double _nrrdUnaryOpReciprocal(double a) {return 1.0/a;}
+static double _nrrdUnaryOpSin(double a)        {return sin(a);}
+static double _nrrdUnaryOpCos(double a)        {return cos(a);}
+static double _nrrdUnaryOpTan(double a)        {return tan(a);}
+static double _nrrdUnaryOpAsin(double a)       {return asin(a);}
+static double _nrrdUnaryOpAcos(double a)       {return acos(a);}
+static double _nrrdUnaryOpAtan(double a)       {return atan(a);}
+static double _nrrdUnaryOpExp(double a)        {return exp(a);}
+static double _nrrdUnaryOpLog(double a)        {return log(a);}
+static double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
+static double _nrrdUnaryOpLog10(double a)      {return log10(a);}
+static double _nrrdUnaryOpLog1p(double a)      {
   double b;
 
   b = 1 + a;
@@ -139,32 +139,33 @@ double _nrrdUnaryOpLog1p(double a)      {
     return log(b)*a/(b-1);
   }
 }
-double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
-double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
-double _nrrdUnaryOpErf(double a)        {return airErf(a);}
-double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
-double _nrrdUnaryOpFloor(double a)      {return floor(a);}
-double _nrrdUnaryOpRoundUp(double a)    {return AIR_ROUNDUP(a);}
-double _nrrdUnaryOpRoundDown(double a)  {return AIR_ROUNDDOWN(a);}
-double _nrrdUnaryOpAbs(double a)        {return AIR_ABS(a);}
-double _nrrdUnaryOpSgn(double a) {
+static double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
+static double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
+static double _nrrdUnaryOpErf(double a)        {return airErf(a);}
+static double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
+static double _nrrdUnaryOpFloor(double a)      {return floor(a);}
+static double _nrrdUnaryOpRoundUp(double a)    {return AIR_ROUNDUP(a);}
+static double _nrrdUnaryOpRoundDown(double a)  {return AIR_ROUNDDOWN(a);}
+static double _nrrdUnaryOpAbs(double a)        {return AIR_ABS(a);}
+static double _nrrdUnaryOpSgn(double a) {
   return (a < 0.0 ? -1 : (a > 0.0 ? 1 : 0));}
-double _nrrdUnaryOpExists(double a)     {return AIR_EXISTS(a);}
-double _nrrdUnaryOpRand(double a) {
+static double _nrrdUnaryOpExists(double a)     {return AIR_EXISTS(a);}
+static double _nrrdUnaryOpRand(double a) {
   AIR_UNUSED(a);
   return airDrandMT();
 }
-double _nrrdUnaryOpNormalRand(double a) {
+static double _nrrdUnaryOpNormalRand(double a) {
   double v;
   AIR_UNUSED(a);
   airNormalRand(&v, NULL);
   return v;
 }
-double _nrrdUnaryOpZero(double a) {
+static double _nrrdUnaryOpIf(double a) { return (a ? 1 : 0); }
+static double _nrrdUnaryOpZero(double a) {
   AIR_UNUSED(a);  
   return 1.0;
 }
-double _nrrdUnaryOpOne(double a) {
+static double _nrrdUnaryOpOne(double a) {
   AIR_UNUSED(a);  
   return 0.0;
 }
@@ -196,6 +197,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpExists,
   _nrrdUnaryOpRand,
   _nrrdUnaryOpNormalRand,
+  _nrrdUnaryOpIf,
   _nrrdUnaryOpZero,
   _nrrdUnaryOpOne
 };
@@ -249,29 +251,29 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
 
 /* ---------------------------- binary -------------- */
 
-double _nrrdBinaryOpAdd(double a, double b)       {return a + b;}
-double _nrrdBinaryOpSubtract(double a, double b)  {return a - b;}
-double _nrrdBinaryOpMultiply(double a, double b)  {return a * b;}
-double _nrrdBinaryOpDivide(double a, double b)    {return a / b;}
-double _nrrdBinaryOpPow(double a, double b)       {return pow(a,b);}
-double _nrrdBinaryOpSgnPow(double a, double b)    {return airSgnPow(a,b);}
-double _nrrdBinaryOpMod(double a, double b) {
+static double _nrrdBinaryOpAdd(double a, double b)       {return a + b;}
+static double _nrrdBinaryOpSubtract(double a, double b)  {return a - b;}
+static double _nrrdBinaryOpMultiply(double a, double b)  {return a * b;}
+static double _nrrdBinaryOpDivide(double a, double b)    {return a / b;}
+static double _nrrdBinaryOpPow(double a, double b)       {return pow(a,b);}
+static double _nrrdBinaryOpSgnPow(double a, double b)  {return airSgnPow(a,b);}
+static double _nrrdBinaryOpMod(double a, double b) {
   return AIR_MOD((int)a,(int)b);}
-double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
-double _nrrdBinaryOpAtan2(double a, double b)     {return atan2(a,b);}
-double _nrrdBinaryOpMin(double a, double b)       {return AIR_MIN(a,b);}
-double _nrrdBinaryOpMax(double a, double b)       {return AIR_MAX(a,b);}
-double _nrrdBinaryOpLT(double a, double b)        {return (a < b);}
-double _nrrdBinaryOpLTE(double a, double b)       {return (a <= b);}
-double _nrrdBinaryOpGT(double a, double b)        {return (a > b);}
-double _nrrdBinaryOpGTE(double a, double b)       {return (a >= b);}
-double _nrrdBinaryOpCompare(double a, double b) {
+static double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
+static double _nrrdBinaryOpAtan2(double a, double b)     {return atan2(a,b);}
+static double _nrrdBinaryOpMin(double a, double b)       {return AIR_MIN(a,b);}
+static double _nrrdBinaryOpMax(double a, double b)       {return AIR_MAX(a,b);}
+static double _nrrdBinaryOpLT(double a, double b)        {return (a < b);}
+static double _nrrdBinaryOpLTE(double a, double b)       {return (a <= b);}
+static double _nrrdBinaryOpGT(double a, double b)        {return (a > b);}
+static double _nrrdBinaryOpGTE(double a, double b)       {return (a >= b);}
+static double _nrrdBinaryOpCompare(double a, double b) {
   return (a < b ? -1 : (a > b ? 1 : 0));}
-double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
-double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
-double _nrrdBinaryOpExists(double a, double b)    {return (AIR_EXISTS(a) 
-                                                           ? a : b);}
-double _nrrdBinaryOpIf(double a, double b)        {return (a ? a : b);}
+static double _nrrdBinaryOpEqual(double a, double b)     {return (a == b);}
+static double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
+static double _nrrdBinaryOpExists(double a, double b)  {return (AIR_EXISTS(a) 
+                                                                ? a : b);}
+static double _nrrdBinaryOpIf(double a, double b)        {return (a ? a : b);}
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -448,27 +450,27 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
 
 /* ---------------------------- ternary -------------- */
 
-double _nrrdTernaryOpAdd(double a, double b, double c) {
+static double _nrrdTernaryOpAdd(double a, double b, double c) {
   return a + b + c;
 }
-double _nrrdTernaryOpMultiply(double a, double b, double c)  {
+static double _nrrdTernaryOpMultiply(double a, double b, double c)  {
   return a * b * c;
 }
-double _nrrdTernaryOpMin(double a, double b, double c) { 
+static double _nrrdTernaryOpMin(double a, double b, double c) { 
   b = AIR_MIN(b, c);
   return AIR_MIN(a, b);
 }
-double _nrrdTernaryOpMax(double a, double b, double c) { 
+static double _nrrdTernaryOpMax(double a, double b, double c) { 
   b = AIR_MAX(b, c);
   return AIR_MAX(a, b);
 }
-double _nrrdTernaryOpClamp(double a, double b, double c) {
+static double _nrrdTernaryOpClamp(double a, double b, double c) {
   return AIR_CLAMP(a, b, c);
 }
-double _nrrdTernaryOpIfElse(double a, double b, double c) {
+static double _nrrdTernaryOpIfElse(double a, double b, double c) {
   return (a ? b : c);
 }
-double _nrrdTernaryOpLerp(double a, double b, double c) {
+static double _nrrdTernaryOpLerp(double a, double b, double c) {
   /* we do something more than the simple lerp here because
      we want to facilitate usage as something which can get around
      non-existant values (b and c as NaN or Inf) without
@@ -482,13 +484,13 @@ double _nrrdTernaryOpLerp(double a, double b, double c) {
     return AIR_LERP(a, b, c);
   }
 }
-double _nrrdTernaryOpExists(double a, double b, double c) {
+static double _nrrdTernaryOpExists(double a, double b, double c) {
   return (AIR_EXISTS(a) ? b : c);
 }
-double _nrrdTernaryOpInOpen(double a, double b, double c) {
+static double _nrrdTernaryOpInOpen(double a, double b, double c) {
   return (AIR_IN_OP(a, b, c));
 }
-double _nrrdTernaryOpInClosed(double a, double b, double c) {
+static double _nrrdTernaryOpInClosed(double a, double b, double c) {
   return (AIR_IN_CL(a, b, c));
 }
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
