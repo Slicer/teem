@@ -63,7 +63,7 @@ $(L).OBJS = \
 	keyvalue.o  resampleContext.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/strio \
 	test/minmax test/tkernel test/typestest test/tline test/genvol \
-	test/quadvol test/convo test/kv test/reuse test/histrad 
+	test/quadvol test/convo test/kv test/reuse test/histrad test/otsu
 
 ####
 ####
