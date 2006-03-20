@@ -48,7 +48,12 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"abs\": absolute value\n "
              "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
              "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
-             "\b\bo \"rand\": random value in [0.0,1.0), no relation to input",
+             "\b\bo \"rand\": random value in [0.0,1.0), no relation to input"
+             "\b\bo \"nrand\": random sample from normal distribution with "
+             "mean 0.0 and stdv 1.0, no relation to input\n "
+             "\b\bo \"if\": if input is non-zero, 1, else 0\n "
+             "\b\bo \"0\": output always 0\n "
+             "\b\bo \"1\": output always 1",
              NULL, nrrdUnaryOp);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "convert input nrrd to this type prior to "
