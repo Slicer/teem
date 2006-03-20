@@ -25,7 +25,7 @@
 
 int
 _pushProcessDummy(pushTask *task, int bin, 
-                  const push_t parm[PUSH_STAGE_PARM_MAXNUM]) {
+                  const double parm[PUSH_STAGE_PARM_MAXNUM]) {
   char me[]="_pushProcessDummy";
   unsigned int i, j;
 

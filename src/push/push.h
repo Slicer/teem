@@ -46,22 +46,6 @@
 extern "C" {
 #endif
 
-/*
-** 0: push_t == float
-** 1: push_t == double
-*/
-#if 0
-typedef double push_t;
-#define push_nrrdType nrrdTypeDouble
-#define PUSH_TYPE_FLOAT 0
-#define tenEIGENSOLVE tenEigensolve_d
-#else
-typedef float push_t;
-#define push_nrrdType nrrdTypeFloat
-#define PUSH_TYPE_FLOAT 1
-#define tenEIGENSOLVE tenEigensolve_f
-#endif
-
 #define PUSH pushBiffKey
 #define PUSH_STAGE_MAXNUM 4
 #define PUSH_STAGE_PARM_MAXNUM 1
@@ -82,7 +66,7 @@ typedef float push_t;
 */
 typedef struct pushPoint_t {
   struct pushThing_t *thing;   /* what thing do I belong to */
-  push_t charge,               /* "charge" of the point */
+  double charge,               /* "charge" of the point */
     pos[3],                    /* position in world space */
     vel[3],                    /* velocity */
     frc[3],                    /* force accumulator for current iteration */
@@ -124,7 +108,7 @@ typedef struct pushThing_t {
                                   (*not* pointers to pushPoints), or, just
                                   the address of "point" for single point */
   unsigned int seedIdx;        /* which of the vertices is the seed point */
-  push_t len;                  /* 0 for point, else (world-space) length of
+  double len;                  /* 0 for point, else (world-space) length of
                                   tractlet */
 } pushThing;
 
@@ -179,11 +163,11 @@ typedef struct pushTask_t {
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL];
-  push_t (*func)(push_t haveDist, push_t restDist, push_t scale,
-                 const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
-  push_t (*maxDist)(push_t maxEval, push_t scale,
-                    const push_t parm[PUSH_FORCE_PARM_MAXNUM]);
-  push_t parm[PUSH_FORCE_PARM_MAXNUM];
+  double (*func)(double haveDist, double restDist, double scale,
+                 const double parm[PUSH_FORCE_PARM_MAXNUM]);
+  double (*maxDist)(double maxEval, double scale,
+                    const double parm[PUSH_FORCE_PARM_MAXNUM]);
+  double parm[PUSH_FORCE_PARM_MAXNUM];
 } pushForce;
 
 /*
@@ -192,7 +176,7 @@ typedef struct {
 ** the sort of function that is called by the worker threads
 */
 typedef int (*pushProcess)(pushTask *task, int bin,
-                           const push_t parm[PUSH_STAGE_PARM_MAXNUM]);
+                           const double parm[PUSH_STAGE_PARM_MAXNUM]);
 
 /*
 ******** pushContext
@@ -203,7 +187,7 @@ typedef struct pushContext_t {
   /* INPUT ----------------------------- */
   Nrrd *nin,                       /* image of 2D or 3D masked tensors */
     *npos,                         /* positions to start with
-                                      (overrides numPoint) */
+                                      (overrides numThing) */
     *nstn;                         /* start/nums for tractlets in npos */
   double drag,                     /* to slow fast things down */
     preDrag,                       /* different drag pre-min-iter */
@@ -239,7 +223,7 @@ typedef struct pushContext_t {
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11,                        /* for gradient of mask */
     *ksp22;                        /* 2nd deriv, probably for gravity */
-  push_t stageParm[PUSH_STAGE_MAXNUM][PUSH_STAGE_PARM_MAXNUM];
+  double stageParm[PUSH_STAGE_MAXNUM][PUSH_STAGE_PARM_MAXNUM];
   pushProcess process[PUSH_STAGE_MAXNUM]; /* the function for each stage */
   /* INTERNAL -------------------------- */
   Nrrd *nten,                      /* 3D image of 3D masked tensors */

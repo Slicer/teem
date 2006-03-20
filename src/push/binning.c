@@ -25,17 +25,17 @@
 
 /* returns NULL if position is outside simulation domain */
 pushBin *
-_pushBinLocate(pushContext *pctx, push_t *pos) {
+_pushBinLocate(pushContext *pctx, double *pos) {
   char me[]="_pushBinLocate", err[BIFF_STRLEN];
-  push_t min, max;
+  double min, max;
   int be, xi, yi, zi;
   pushBin *ret;
 
   if (pctx->singleBin) {
     ret = pctx->bin + 0;
   } else {
-    min = AIR_CAST(push_t, -1.0 - pctx->margin);
-    max = AIR_CAST(push_t, 1.0 + pctx->margin);
+    min = AIR_CAST(double, -1.0 - pctx->margin);
+    max = AIR_CAST(double, 1.0 + pctx->margin);
     be = pctx->binsEdge;
     if (AIR_IN_CL(min, pos[0], max)
         && AIR_IN_CL(min, pos[1], max)

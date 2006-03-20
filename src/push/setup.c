@@ -40,7 +40,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
   Nrrd *ntmp;
   int E;
   float *_ten, *_inv;
-  push_t ten[7], inv[7];
+  double ten[7], inv[7];
   size_t ii, NN;
 
   mop = airMopNew();
@@ -358,8 +358,8 @@ _pushBinSetup(pushContext *pctx) {
     tdata += 7;
   }
   pctx->meanEval /= count;
-  pctx->maxDist = pctx->force->maxDist(AIR_CAST(push_t, pctx->scale),
-                                       AIR_CAST(push_t, pctx->maxEval),
+  pctx->maxDist = pctx->force->maxDist(AIR_CAST(double, pctx->scale),
+                                       AIR_CAST(double, pctx->maxEval),
                                        pctx->force->parm);
   if (pctx->singleBin) {
     pctx->binsEdge = 1;
@@ -417,20 +417,20 @@ _pushThingSetup(pushContext *pctx) {
       baseIdx = stn[0 + 3*thingIdx];
       thing = pushThingNew(stn[1 + 3*thingIdx]);
       for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
-        ELL_3V_SET_TT(thing->vert[pointIdx].pos, push_t,
-                      lup(pctx->npos->data, 0 + 3*(pointIdx + baseIdx)),
-                      lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
-                      lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
+        ELL_3V_SET(thing->vert[pointIdx].pos,
+                   lup(pctx->npos->data, 0 + 3*(pointIdx + baseIdx)),
+                   lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
+                   lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
         _pushProbe(pctx->task[0], thing->vert + pointIdx);
         thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
       if (1 < thing->numVert) {
         /* info about seedpoint has to be set separately */
-        ELL_3V_SET_TT(thing->point.pos, push_t,
-                      lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
-                      lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
-                      lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
+        ELL_3V_SET(thing->point.pos,
+                   lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
+                   lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
+                   lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
         _pushProbe(pctx->task[0], &(thing->point));
       }
       /*
@@ -439,27 +439,27 @@ _pushThingSetup(pushContext *pctx) {
       */
     } else if (pctx->npos) {
       thing = pushThingNew(1);
-      ELL_3V_SET_TT(thing->vert[0].pos, push_t,
-                    lup(pctx->npos->data, 0 + 3*thingIdx),
-                    lup(pctx->npos->data, 1 + 3*thingIdx),
-                    lup(pctx->npos->data, 2 + 3*thingIdx));
+      ELL_3V_SET(thing->vert[0].pos,
+                 lup(pctx->npos->data, 0 + 3*thingIdx),
+                 lup(pctx->npos->data, 1 + 3*thingIdx),
+                 lup(pctx->npos->data, 2 + 3*thingIdx));
       _pushProbe(pctx->task[0], thing->vert + 0);
       thing->vert[0].charge = _pushThingPointCharge(pctx, thing);
     } else {
       thing = pushThingNew(1);
       do {
         thing->vert[0].pos[0] =
-          AIR_CAST(push_t, AIR_AFFINE(0.0, airDrandMT(), 1.0,
+          AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                       pctx->minPos[0], pctx->maxPos[0]));
         thing->vert[0].pos[1] =
-          AIR_CAST(push_t, AIR_AFFINE(0.0, airDrandMT(), 1.0,
+          AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                       pctx->minPos[1], pctx->maxPos[1]));
         if (2 == pctx->dimIn
             || (3 == pctx->dimIn && 1 == pctx->nin->axis[3].size)) {
           thing->vert[0].pos[2] = 0;
         } else {
           thing->vert[0].pos[2] =
-            AIR_CAST(push_t, AIR_AFFINE(0.0, airDrandMT(), 1.0,
+            AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                         pctx->minPos[2], pctx->maxPos[2]));
         }
         _pushProbe(pctx->task[0], thing->vert + 0);

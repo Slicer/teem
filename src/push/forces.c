@@ -70,9 +70,9 @@ pushForceEnum = &_pushForceEnum;
 ** ------------------------------ (stubs) -------------------------
 ** ----------------------------------------------------------------
 */
-push_t
-_pushForceUnknownFunc(push_t haveDist, push_t restDist,
-                      push_t scale, const push_t *parm) {
+double
+_pushForceUnknownFunc(double haveDist, double restDist,
+                      double scale, const double *parm) {
   char me[]="_pushForceUnknownFunc";
 
   AIR_UNUSED(haveDist);
@@ -83,8 +83,8 @@ _pushForceUnknownFunc(push_t haveDist, push_t restDist,
   return AIR_NAN;
 }
 
-push_t
-_pushForceUnknownMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceUnknownMaxDist(double maxEval, double scale, const double *parm) {
   char me[]="_pushForceUnknownMaxDist";
 
   AIR_UNUSED(maxEval);
@@ -101,10 +101,10 @@ _pushForceUnknownMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 ** 0: spring constant (formerly known as pctx->stiff)
 ** 1: pull distance
 */
-push_t
-_pushForceSpringFunc(push_t haveDist, push_t restDist,
-                     push_t scale, const push_t *parm) {
-  push_t diff, ret, pull;
+double
+_pushForceSpringFunc(double haveDist, double restDist,
+                     double scale, const double *parm) {
+  double diff, ret, pull;
 
   pull = parm[1]*scale;
   diff = haveDist - restDist;
@@ -119,8 +119,8 @@ _pushForceSpringFunc(push_t haveDist, push_t restDist,
   return ret;
 }
 
-push_t
-_pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceSpringMaxDist(double maxEval, double scale, const double *parm) {
 
   return 2.0f*scale*maxEval*(1.0f + parm[1]);
 }
@@ -137,19 +137,19 @@ _pushForceSpringMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
    : -exp(-x*x/(2.0*sig*sig))*x)
 #define SQRTTHREE 1.73205080756887729352f
 
-push_t
-_pushForceGaussFunc(push_t haveDist, push_t restDist,
-                    push_t scale, const push_t *parm) {
-  push_t sig, cut;
+double
+_pushForceGaussFunc(double haveDist, double restDist,
+                    double scale, const double *parm) {
+  double sig, cut;
 
   AIR_UNUSED(scale);
   sig = restDist/SQRTTHREE;
   cut = parm[0];
-  return AIR_CAST(push_t, _DGAUSS(haveDist, sig, cut));
+  return AIR_CAST(double, _DGAUSS(haveDist, sig, cut));
 }
 
-push_t
-_pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceGaussMaxDist(double maxEval, double scale, const double *parm) {
 
   return (2.0f*scale*maxEval/SQRTTHREE)*parm[0];
 }
@@ -162,18 +162,18 @@ _pushForceGaussMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 ** parm[0]: vertical scaling 
 ** parm[1]: cut-off (as multiple of "1.0")
 */
-push_t
-_pushForceChargeFunc(push_t haveDist, push_t restDist,
-                     push_t scale, const push_t *parm) {
-  push_t xx;
+double
+_pushForceChargeFunc(double haveDist, double restDist,
+                     double scale, const double *parm) {
+  double xx;
 
   AIR_UNUSED(scale);
   xx = haveDist/restDist;
   return -parm[0]*(xx > parm[1] ? 0 : 1.0f/(xx*xx));
 }
 
-push_t
-_pushForceChargeMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceChargeMaxDist(double maxEval, double scale, const double *parm) {
 
   return (2*scale*maxEval)*parm[1];
 }
@@ -185,19 +185,19 @@ _pushForceChargeMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 ** (scale: distance to "1.0")
 ** parm[0]: vertical scaling 
 */
-push_t
-_pushForceCotanFunc(push_t haveDist, push_t restDist,
-                    push_t scale, const push_t *parm) {
-  push_t xx, ss;
+double
+_pushForceCotanFunc(double haveDist, double restDist,
+                    double scale, const double *parm) {
+  double xx, ss;
 
   AIR_UNUSED(scale);
   xx = haveDist/restDist;
-  ss = AIR_CAST(push_t, sin(xx*AIR_PI/2.0));
+  ss = AIR_CAST(double, sin(xx*AIR_PI/2.0));
   return parm[0]*(xx > 1 ? 0 : 1.0f - 1.0f/(ss*ss));
 }
 
-push_t
-_pushForceCotanMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceCotanMaxDist(double maxEval, double scale, const double *parm) {
 
   AIR_UNUSED(parm);
   return 2*scale*maxEval;
@@ -208,9 +208,9 @@ _pushForceCotanMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
 ** ----------------------------------------------------------------
 ** 0 parms:
 */
-push_t
-_pushForceNoneFunc(push_t haveDist, push_t restDist,
-                   push_t scale, const push_t *parm) {
+double
+_pushForceNoneFunc(double haveDist, double restDist,
+                   double scale, const double *parm) {
 
   AIR_UNUSED(haveDist);
   AIR_UNUSED(restDist);
@@ -219,8 +219,8 @@ _pushForceNoneFunc(push_t haveDist, push_t restDist,
   return 0.0;
 }
 
-push_t
-_pushForceNoneMaxDist(push_t maxEval, push_t scale, const push_t *parm) {
+double
+_pushForceNoneMaxDist(double maxEval, double scale, const double *parm) {
 
   AIR_UNUSED(maxEval);
   AIR_UNUSED(scale);
@@ -243,11 +243,11 @@ _pushForceParmNum[PUSH_FORCE_MAX+1] = {
   0  /* pushForceNone */
 };
 
-push_t
-(*_pushForceFunc[PUSH_FORCE_MAX+1])(push_t haveDist,
-                                    push_t restDist,
-                                    push_t scale,
-                                    const push_t *parm) = {
+double
+(*_pushForceFunc[PUSH_FORCE_MAX+1])(double haveDist,
+                                    double restDist,
+                                    double scale,
+                                    const double *parm) = {
                                       _pushForceUnknownFunc,
                                       _pushForceSpringFunc,
                                       _pushForceGaussFunc,
@@ -256,10 +256,10 @@ push_t
                                       _pushForceNoneFunc,
 };
 
-push_t
-(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(push_t maxEval,
-                                       push_t scale,
-                                       const push_t *parm) = {
+double
+(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(double maxEval,
+                                       double scale,
+                                       const double *parm) = {
                                          _pushForceUnknownMaxDist,
                                          _pushForceSpringMaxDist,
                                          _pushForceGaussMaxDist,
@@ -342,7 +342,7 @@ pushForceParse(const char *_str) {
               me, _pstr, _str);
       biffAdd(PUSH, err); airMopError(mop); return NULL;
     }
-    force->parm[haveParm] = AIR_CAST(push_t, pval);
+    force->parm[haveParm] = AIR_CAST(double, pval);
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {

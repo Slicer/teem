@@ -20,9 +20,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef PUSH_PRIVATE_HAS_BEEN_INCLUDED
-#define PUSH_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,13 +28,13 @@ extern "C" {
 extern int _pushVerbose;
 
 /* methodsPush.c */
-extern push_t *_pushThingPos(pushThing *thg);
+extern double *_pushThingPos(pushThing *thg);
 
 /* forces.c */
 extern airEnum *pushForceEnum;
 
 /* binning.c */
-extern pushBin *_pushBinLocate(pushContext *pctx, push_t *pos);
+extern pushBin *_pushBinLocate(pushContext *pctx, double *pos);
 extern int _pushBinPointNullify(pushContext *pctx,
                                 pushBin *oldBin, pushPoint *point);
 extern void _pushBinPointAdd(pushContext *pctx,
@@ -46,7 +43,7 @@ extern void _pushBinPointAdd(pushContext *pctx,
 /* corePush.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
 extern int _pushProcessDummy(pushTask *task, int bin,
-                              const push_t *parm);
+                              const double *parm);
 
 /* setup.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
@@ -59,18 +56,16 @@ extern int _pushBinSetup(pushContext *pctx);
 extern int _pushThingSetup(pushContext *pctx);
 
 /* action.c */
-extern push_t _pushThingPointCharge(pushContext *pctx, pushThing *thg);
+extern double _pushThingPointCharge(pushContext *pctx, pushThing *thg);
 extern int _pushForceSample(pushContext *pctx,
                             unsigned int sx, unsigned int sy);
-void _pushTenInv(pushContext *pctx, push_t *inv, push_t *ten);
+void _pushTenInv(pushContext *pctx, double *inv, double *ten);
 extern void _pushProbe(pushTask *task, pushPoint *point);
 extern int _pushInputProcess(pushContext *pctx);
 extern void _pushInitialize(pushContext *pctx);
-extern int _pushForce(pushTask *task, int bin, const push_t *parm);
-extern int _pushUpdate(pushTask *task, int bin, const push_t *parm);
+extern int _pushForce(pushTask *task, int bin, const double *parm);
+extern int _pushUpdate(pushTask *task, int bin, const double *parm);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* PUSH_PRIVATE_HAS_BEEN_INCLUDED */
