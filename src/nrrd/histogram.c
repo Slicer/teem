@@ -155,8 +155,8 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 }
 
 int
-_nrrdHistoCheck(const Nrrd *nhist) {
-  char me[]="_nrrdHistoCheck", err[BIFF_STRLEN];
+nrrdHistoCheck(const Nrrd *nhist) {
+  char me[]="nrrdHistoCheck", err[BIFF_STRLEN];
 
   if (!nhist) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -203,7 +203,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
     sprintf(err, "%s: nout==nin disallowed", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdHistoCheck(nin)) {
+  if (nrrdHistoCheck(nin)) {
     sprintf(err, "%s: input nrrd not a histogram", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -290,10 +290,6 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   if (E) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
-  }
-
-  if (333 == sy) {
-    nrrdHistoThresholdOtsu(&hits, nin);
   }
 
   /* bye */
@@ -617,8 +613,15 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   return 0;
 }
 
+/*
+******** nrrdHistoThresholdOtsu
+**
+** does simple Otsu tresholding of a histogram, with a variable exponont.
+** When "expo" is 2.0, it computes variance; lower values probably represent
+** greater insensitivities to outliers. Idea from ...
+*/
 int
-nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist) {
+nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   char me[]="nrrdHistoThresholdOtsu", err[BIFF_STRLEN];
   unsigned int histLen, histIdx, maxIdx;
   Nrrd *nhist, *nbvar;
@@ -630,7 +633,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (_nrrdHistoCheck(_nhist)) {
+  if (nrrdHistoCheck(_nhist)) {
     sprintf(err, "%s: input nrrd not a histogram", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -667,7 +670,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist) {
         mean0 = (omean0*onum0 + hist[histIdx-1]*(histIdx-1)) / num0;
         mean1 = (omean1*onum1 - hist[histIdx-1]*(histIdx-1)) / num1;
       }
-      bvar[histIdx] = num0*num1*(mean1 - mean0)*(mean1 - mean0);
+      bvar[histIdx] = num0*num1*airSgnPow(mean1 - mean0, expo);
     }
     max = bvar[0];
     maxIdx = 0;

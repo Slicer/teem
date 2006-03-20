@@ -1116,6 +1116,7 @@ NRRD_EXPORT int nrrdProject(Nrrd *nout, const Nrrd *nin,
 /* histogram.c */
 NRRD_EXPORT int nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                           const Nrrd *nwght, size_t bins, int type);
+NRRD_EXPORT int nrrdHistoCheck(const Nrrd *nhist);
 NRRD_EXPORT int nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy,
                               int showLog, double max);
 NRRD_EXPORT int nrrdHistoAxis(Nrrd *nout, const Nrrd *nin,
@@ -1126,7 +1127,8 @@ NRRD_EXPORT int nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                unsigned int numNin,
                                const Nrrd *nwght, const size_t *bins,
                                int type, const int *clamp);
-NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist);
+NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist,
+                                       double expo);
 
 /******** arithmetic and math on nrrds */
 /* arith.c */
