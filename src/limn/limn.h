@@ -605,7 +605,8 @@ LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
 LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexNormals(limnPolyData *pld);
 LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout,
+                                                  limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld);
 
 /* polyshapes.c */
@@ -642,6 +643,9 @@ LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
+LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut, 
+                                            const limnPolyData *pldIn,
+                                            const Nrrd *nmask);
 
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);

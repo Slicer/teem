@@ -711,3 +711,127 @@ limnPolyDataVertexWindingFlip(limnPolyData *pld) {
   return 0;
 }
 
+int
+limnPolyDataPrimitiveSelect(limnPolyData *pldOut, 
+                            const limnPolyData *pldIn,
+                            const Nrrd *_nmask) {
+  char me[]="limnPolyDataPrimitiveSelect", err[BIFF_STRLEN];
+  Nrrd *nmask;
+  double *mask;
+  unsigned int oldBaseVertIdx, oldPrimIdx, oldVertIdx, bitflag, 
+    *old2newMap, *new2oldMap, 
+    newPrimNum, newBaseVertIdx, newPrimIdx, newIndxNum, newVertIdx, newVertNum;
+  unsigned char *vertUsed;
+  airArray *mop;
+
+  if (!(pldOut && pldIn && _nmask)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (!(1 == _nmask->dim
+        && nrrdTypeBlock != _nmask->type
+        && _nmask->axis[0].size == pldIn->primNum)) {
+    sprintf(err, "%s: need 1-D %u-len scalar nrrd "
+            "(not %u-D type %s, axis[0].size %u)", me,
+            pldIn->primNum, _nmask->dim, airEnumStr(nrrdType, _nmask->type),
+            AIR_CAST(unsigned int, _nmask->axis[0].size));
+    biffAdd(LIMN, err); return 1;
+  }
+
+  mop = airMopNew();
+  nmask = nrrdNew();
+  airMopAdd(mop, nmask, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nmask, _nmask, nrrdTypeDouble)) {
+    sprintf(err, "%s: trouble converting mask to %s", me,
+            airEnumStr(nrrdType, nrrdTypeDouble));
+    biffMove(LIMN, err, NRRD); return 1;
+  }
+  mask = AIR_CAST(double *, nmask->data);
+
+  old2newMap = AIR_CAST(unsigned int *, calloc(pldIn->xyzwNum,
+                                               sizeof(unsigned int)));
+  airMopAdd(mop, old2newMap, airFree, airMopAlways);
+  vertUsed = AIR_CAST(unsigned char *, calloc(pldIn->xyzwNum,
+                                              sizeof(unsigned char)));
+  airMopAdd(mop, vertUsed, airFree, airMopAlways);
+
+  /* initialize all verts as unused */
+  for (oldVertIdx=0; oldVertIdx<pldIn->xyzwNum; oldVertIdx++) {
+    vertUsed[oldVertIdx] = AIR_FALSE;
+  }
+  /* mark the used verts, and count # new indices and primitives  */
+  oldBaseVertIdx = 0;
+  newPrimNum = 0;
+  newIndxNum = 0;
+  for (oldPrimIdx=0; oldPrimIdx<pldIn->primNum; oldPrimIdx++) {
+    unsigned indxIdx;
+    if (mask[oldPrimIdx]) {
+      for (indxIdx=0; indxIdx<pldIn->icnt[oldPrimIdx]; indxIdx++) {
+        vertUsed[(pldIn->indx + oldBaseVertIdx)[indxIdx]] = AIR_TRUE;
+      }
+      newIndxNum += pldIn->icnt[oldPrimIdx];
+      newPrimNum++;
+    }
+    oldBaseVertIdx += pldIn->icnt[oldPrimIdx];
+  }
+  /* count the used verts, and set up map from old to new indices */
+  newVertNum = 0;
+  for (oldVertIdx=0; oldVertIdx<pldIn->xyzwNum; oldVertIdx++) {
+    if (vertUsed[oldVertIdx]) {
+      old2newMap[oldVertIdx] = newVertNum++;
+    }
+  }
+  /* allocate and fill reverse map */
+  new2oldMap = AIR_CAST(unsigned int *, calloc(newVertNum,
+                                               sizeof(unsigned int)));
+  airMopAdd(mop, new2oldMap, airFree, airMopAlways);
+  newVertIdx = 0;
+  for (oldVertIdx=0; oldVertIdx<pldIn->xyzwNum; oldVertIdx++) {
+    if (vertUsed[oldVertIdx]) {
+      new2oldMap[newVertIdx++] = oldVertIdx;
+    }
+  }
+  
+  /* allocate output polydata */
+  bitflag = limnPolyDataInfoBitFlag(pldIn);
+  if (limnPolyDataAlloc(pldOut, bitflag, newVertNum, newIndxNum, newPrimNum)) {
+    sprintf(err, "%s: trouble allocating output", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  /* transfer per-primitive information from old to new */
+  oldBaseVertIdx = 0;
+  newBaseVertIdx = 0;
+  newPrimIdx = 0;
+  for (oldPrimIdx=0; oldPrimIdx<pldIn->primNum; oldPrimIdx++) {
+    if (mask[oldPrimIdx]) {
+      unsigned indxIdx;
+      pldOut->icnt[newPrimIdx] = pldIn->icnt[oldPrimIdx];
+      pldOut->type[newPrimIdx] = pldIn->type[oldPrimIdx];
+      for (indxIdx=0; indxIdx<pldIn->icnt[oldPrimIdx]; indxIdx++) {
+        oldVertIdx = (pldIn->indx + oldBaseVertIdx)[indxIdx];
+        (pldOut->indx + newBaseVertIdx)[indxIdx] = old2newMap[oldVertIdx];
+      }
+      newBaseVertIdx += pldIn->icnt[oldPrimIdx];
+      newPrimIdx++;
+    }
+    oldBaseVertIdx += pldIn->icnt[oldPrimIdx];
+  }
+  /* transfer per-vertex info */
+  for (newVertIdx=0; newVertIdx<newVertNum; newVertIdx++) {
+    oldVertIdx = new2oldMap[newVertIdx];
+    ELL_4V_COPY(pldOut->xyzw + 4*newVertIdx, pldIn->xyzw + 4*oldVertIdx);
+    if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+      ELL_4V_COPY(pldOut->rgba + 4*newVertIdx, pldIn->rgba + 4*oldVertIdx);
+    }
+    if ((1 << limnPolyDataInfoNorm) & bitflag) {
+      ELL_3V_COPY(pldOut->norm + 3*newVertIdx, pldIn->norm + 3*oldVertIdx);
+    }
+    if ((1 << limnPolyDataInfoTex2D) & bitflag) {
+      ELL_3V_COPY(pldOut->tex2D + 2*newVertIdx, pldIn->tex2D + 2*oldVertIdx);
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}

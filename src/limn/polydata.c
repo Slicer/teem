@@ -118,13 +118,13 @@ limnPolyDataInfoBitFlag(const limnPolyData *pld) {
 
   ret = 0;
   if (pld) {
-    if (pld->rgbaNum == pld->xyzwNum) {
+    if (pld->rgba && pld->rgbaNum == pld->xyzwNum) {
       ret |= (1 << limnPolyDataInfoRGBA);
     }
-    if (pld->normNum == pld->xyzwNum) {
+    if (pld->norm && pld->normNum == pld->xyzwNum) {
       ret |= (1 << limnPolyDataInfoNorm);
     }
-    if (pld->tex2DNum == pld->xyzwNum) {
+    if (pld->tex2D && pld->tex2DNum == pld->xyzwNum) {
       ret |= (1 << limnPolyDataInfoTex2D);
     }
   }
