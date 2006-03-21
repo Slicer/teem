@@ -90,7 +90,8 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
     sprintf(err, "%s: didn't have \"%s\" key", me, tenDWMRIModalityKey);
     biffAdd(TEN, err); return 1;
   }
-  if (strcmp(val, tenDWMRIModalityVal)) {
+  if (strncmp(tenDWMRIModalityVal, val + strspn(val, AIR_WHITESPACE),
+              strlen(tenDWMRIModalityVal))) {
     sprintf(err, "%s: \"%s\" value was \"%s\", not \"%s\"", me,
             tenDWMRIModalityKey, val, tenDWMRIModalityVal);
     biffAdd(TEN, err); return 1;
