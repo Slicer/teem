@@ -136,7 +136,9 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
 
   if (gageDeconvolve(nout, &lastDiff,
-                     nin, kind, ksp, otype, maxIter, AIR_TRUE,
+                     nin, kind,
+                     ksp, otype,
+                     maxIter, AIR_TRUE,
                      epsilon, 1)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

@@ -44,7 +44,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     biffAdd(GAGE, err); return 1;
   }
   if (!(nrrdTypeDefault == typeOut
-        || airEnumValCheck(nrrdType, typeOut))) {
+        || !airEnumValCheck(nrrdType, typeOut))) {
     sprintf(err, "%s: typeOut %d not valid", me, typeOut);
     biffAdd(GAGE, err); return 1;
   }
