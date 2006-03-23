@@ -17,7 +17,7 @@ SET(GAGE_SOURCES
   update.c
   vecGage.c
   vecprint.c
-  deconv.c
+  deconvolve.c
   )
 
 ADD_TEEM_LIBRARY(gage ${GAGE_SOURCES})
