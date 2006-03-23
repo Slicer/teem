@@ -289,7 +289,7 @@ SET(TEEM_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
 SET(TEEM_USE_FILE ${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake)
 SET(TEEM_INCLUDE_DIRS "${TEEM_BINARY_DIR}/include")
 SET(TEEM_BUILD_SETTINGS_FILE ${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake)
-SET(TEEM_TOOLS "affine;idx2pos;nrrdSanity;spots;unu;airSanity;ilk;overrgb;talkweb;vprobe;cubic;miter;pos2idx;tend;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry")
+SET(TEEM_TOOLS "affine;idx2pos;nrrdSanity;spots;unu;airSanity;ilk;overrgb;talkweb;vprobe;cubic;miter;pos2idx;tend;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry;deconv")
 
 
 SET(prefix "${TEEM_BINARY_DIR}")
