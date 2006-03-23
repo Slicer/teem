@@ -725,6 +725,13 @@ GAGE_EXPORT int gageUpdate(gageContext *ctx);
 GAGE_EXPORT int gageStructureTensor(Nrrd *nout, const Nrrd *nin,
                                     int dScale, int iScale, int dsmp);
 
+/* deconv.c */
+GAGE_EXPORT int gageDeconvolve(Nrrd *nout, double *lastDiffP,
+                               const Nrrd *nin, const gageKind *kind,
+                               const NrrdKernelSpec *ksp, int typeOut,
+                               unsigned int maxIter, int saveAnyway,
+                               double epsilon, int verbose);
+
 #ifdef __cplusplus
 }
 #endif
