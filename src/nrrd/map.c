@@ -132,21 +132,13 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 }
 */
 
-/*
-******** nrrdConvert()
-**
-** copies values from one type of nrrd to another, without any
-** transformation, except what you get with a cast.  The point is to
-** make available on Nrrds the exact same behavior as you have in C
-** with casts and assignments.
-*/
-int
-nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
-  char me[]="nrrdConvert", typeS[AIR_STRLEN_SMALL], err[BIFF_STRLEN];
+static int
+clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
+  char me[]="clampConvert", typeS[AIR_STRLEN_SMALL], err[BIFF_STRLEN];
   size_t num, size[NRRD_DIM_MAX];
 
   if (!( nin && nout 
-         && !airEnumValCheck(nrrdType, nin->type)
+         && !nrrdCheck(nin)
          && !airEnumValCheck(nrrdType, type) )) {
     sprintf(err, "%s: invalid args", me);
     biffAdd(NRRD, err); return 1;
@@ -197,7 +189,11 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
     
     /* call the appropriate converter */
     num = nrrdElementNumber(nin);
-    _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
+    if (doClamp) {
+      _nrrdClampConv[nout->type][nin->type](nout->data, nin->data, num);
+    } else {
+      _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
+    }
     nout->blockSize = 0;
     
     /* copy peripheral information */
@@ -222,6 +218,42 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
+  }
+  return 0;
+}
+
+/*
+******** nrrdConvert()
+**
+** copies values from one type of nrrd to another, without any
+** transformation, except what you get with a cast.  The point is to
+** make available on Nrrds the exact same behavior as you have in C
+** with casts and assignments.
+*/
+int
+nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
+  char me[]="nrrdConvert", err[BIFF_STRLEN];
+
+  if (clampConvert(nout, nin, type, AIR_FALSE)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  return 0;
+}
+
+/*
+******** nrrdClampConvert()
+**
+** same as nrrdConvert, but with clamping to output value representation range
+** so as to avoid wrap-around artifacts
+*/
+int
+nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
+  char me[]="nrrdClampConvert", err[BIFF_STRLEN];
+
+  if (clampConvert(nout, nin, type, AIR_TRUE)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(NRRD, err); return 1;
   }
   return 0;
 }

@@ -946,8 +946,6 @@ NRRD_EXPORT unsigned int (*nrrdUIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I,
 NRRD_EXPORT int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int    (*nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *);
-NRRD_EXPORT float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
-NRRD_EXPORT double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
 NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, 
                                                          void *maxP,
                                                          int *hasNonExistP,
@@ -1023,7 +1021,10 @@ NRRD_EXPORT int nrrdHasNonExist(const Nrrd *nrrd);
 
 /******** some of the point-wise value remapping, conversion, and such */
 /* map.c */
+NRRD_EXPORT float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
+NRRD_EXPORT double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
 NRRD_EXPORT int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
+NRRD_EXPORT int nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdQuantize(Nrrd *nout, const Nrrd *nin,
                              const NrrdRange *range, unsigned int bits);
 

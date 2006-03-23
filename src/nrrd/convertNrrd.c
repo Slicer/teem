@@ -94,18 +94,47 @@ F(A, DB)
 ** get from scalars.
 */
 #define CONV_DEF(TA, TB) \
-void _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { while (N--) a[N]=(TA)b[N]; }
+static void \
+_nrrdConv##TA##TB(TA *a, const TB *b, IT N) { \
+  size_t ii; \
+  for (ii=0; ii<N; ii++) { \
+    a[ii] = AIR_CAST(TA, b[ii]); \
+  } \
+}
+
+/*
+** _nrrdClCv<Ta><Tb>()
+**
+** same as _nrrdConv<Ta><Tb>(), but with clamping to the representable
+** range of values of the output type, using a double as intermediate
+** storage type.
+*/
+#define CLCV_DEF(TA, TB) \
+static void \
+_nrrdClCv##TA##TB(TA *a, const TB *b, IT N) { \
+  size_t ii; \
+  for (ii=0; ii<N; ii++) { \
+    a[ii] = AIR_CAST(TA, _nrrdDClamp##TA(b[ii])); \
+  } \
+}
+
+/*
+** This typedef makes the definition of _nrrdConv[][] shorter
+*/
+typedef void (*CF)(void *, const void *, IT);
 
 /* 
 ** the individual converter's appearance in the array initialization,
-** using the cast to the "CF" typedef defined below
+** using the cast to the "CF" typedef
 */
 #define CONV_LIST(TA, TB) (CF)_nrrdConv##TA##TB,
+#define CLCV_LIST(TA, TB) (CF)_nrrdClCv##TA##TB,
 
 /* 
-** the brace-delimited list of all converters _to_ type TYPE 
+** the brace-delimited list of all converters _to_ type TA
 */
-#define CONVTO_LIST(_dummy_, TYPE) {NULL, MAP2(CONV_LIST, TYPE) NULL},
+#define CONVTO_LIST(_dummy_, TA) {NULL, MAP2(CONV_LIST, TA) NULL},
+#define CLCVTO_LIST(_dummy_, TA) {NULL, MAP2(CLCV_LIST, TA) NULL},
 
 
 
@@ -114,25 +143,100 @@ void _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { while (N--) a[N]=(TA)b[N]; }
 */
 
 
+/*
+** the clamping functions where moved here from accessors.c in order
+** to create the combined clamp-and-convert functions
+*/
 
 /*
-** This typedef makes the definition of _nrrdConv[][] shorter
+******** nrrdFClamp
+**
+** for integral types, clamps a given float to the range representable
+** by that type; for floating point types we just return
+** the given number, since every float must fit in a double.
 */
-typedef void (*CF)(void *, const void *, IT);
+static float _nrrdFClampCH(FL v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
+static float _nrrdFClampUC(FL v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
+static float _nrrdFClampSH(FL v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
+static float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
+static float _nrrdFClampJN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
+static float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
+static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+                                                    NRRD_LLONG_MAX);}
+static float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static float _nrrdFClampFL(FL v) { return v; }
+static float _nrrdFClampDB(FL v) { return v; }
+float (*
+nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
+  NULL,
+  _nrrdFClampCH,
+  _nrrdFClampUC,
+  _nrrdFClampSH,
+  _nrrdFClampUS,
+  _nrrdFClampJN,
+  _nrrdFClampUI,
+  _nrrdFClampLL,
+  _nrrdFClampUL,
+  _nrrdFClampFL,
+  _nrrdFClampDB,
+  NULL};
+
+/*
+******** nrrdDClamp
+**
+** same as nrrdDClamp, but for doubles.  One change: in the case of
+** floats, doubles are clamped to the range -FLT_MAX to FLT_MAX.
+*/
+static double _nrrdDClampCH(DB v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
+static double _nrrdDClampUC(DB v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
+static double _nrrdDClampSH(DB v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
+static double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
+static double _nrrdDClampJN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
+static double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
+static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+                                                     NRRD_LLONG_MAX);}
+static double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
+static double _nrrdDClampDB(DB v) { return v; }
+double (*
+nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
+  NULL,
+  _nrrdDClampCH,
+  _nrrdDClampUC,
+  _nrrdDClampSH,
+  _nrrdDClampUS,
+  _nrrdDClampJN,
+  _nrrdDClampUI,
+  _nrrdDClampLL,
+  _nrrdDClampUL,
+  _nrrdDClampFL,
+  _nrrdDClampDB,
+  NULL};
+
 
 /* 
-** Define all 100 of the individual converters. 
+** Define all 100 of both converters.
 */
 MAP1(MAP2, CONV_DEF)
+MAP1(MAP2, CLCV_DEF)
+
 
 /* 
 ** Initialize the whole converter array.
 ** 
 ** This generates one incredibly long line of text, which hopefully will not
-** break a stupid compiler with assumptions about line-length...
+** break a poor compiler with limitations on line-length...
 */
-CF _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
+CF
+_nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL}, 
 MAP1(CONVTO_LIST, _dummy_)
+{NULL}
+};
+
+CF
+_nrrdClampConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
+{NULL}, 
+MAP1(CLCVTO_LIST, _dummy_)
 {NULL}
 };
