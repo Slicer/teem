@@ -280,8 +280,6 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
 
   maxTriPerPrim = maxTrianglePerPrimitive(pld);
   uniTriNum = maxTriPerPrim*pld->primNum;
-  fprintf(stderr, "%s: %u * %u = %u\n", me, maxTriPerPrim, pld->primNum,
-          uniTriNum);
   if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, uniTriNum))) {

@@ -215,10 +215,7 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (limnPolyDataAlloc(pldB, 
-                        ((pldA->rgba ? 1 << limnPolyDataInfoRGBA : 0)
-                         | (pldA->norm ? 1 << limnPolyDataInfoNorm : 0)
-                         | (pldA->tex2D ? 1 << limnPolyDataInfoTex2D : 0)),
+  if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA),
                         pldA->xyzwNum, pldA->indxNum, pldA->primNum)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
