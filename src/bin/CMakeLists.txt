@@ -27,6 +27,7 @@ CREATE_EXEC(mrender mrender.c "hoover;gage;ten")
 CREATE_EXEC(vprobe vprobe.c ten)
 CREATE_EXEC(pprobe pprobe.c ten)
 CREATE_EXEC(spots spots.c alan)
+CREATE_EXEC(deconv deconv.c ten)
 
 IF(BUILD_TESTING)
   ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
