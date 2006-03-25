@@ -596,7 +596,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
             me, axis, maxdim);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  
+
   /* figure out dimension of output (outdim) */
   if (diffdim) {
     /* case A: (example) 2D slices and 3D slabs are being joined
@@ -647,7 +647,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
          a tacit permuting, so we don't have to call permute
          on the parts that don't actually need it */
       /* NB: we register nrrdNix, not nrrdNuke */
-      /* fprintf(stderr, "!%s: %d: tacit reshape/permute\n", me, i); */
+      /* fprintf(stderr, "!%s: %d: tacit reshape/permute\n", me, ni); */
       airMopAdd(mop, ninperm[ni], (airMopper)nrrdNix, airMopAlways);
       nrrdAxisInfoGet_nva(nin[ni], nrrdAxisInfoSize, size);
       for (ai=nin[ni]->dim-1; ai>=mindim+1; ai--) {
@@ -711,9 +711,9 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
     
-    /* fprintf(stderr, "!%s: part %03d shape: ", me, i); */
+    /* fprintf(stderr, "!%s: part %03d shape: ", me, ni); */
     for (ai=0; ai<outdim-1; ai++) {
-      /* fprintf(stderr, "%03d ", ninperm[i]->axis[ai].size); */
+      fprintf(stderr, "%03u ", (unsigned int)ninperm[ni]->axis[ai].size);
       if (ninperm[ni]->axis[ai].size != ninperm[0]->axis[ai].size) {
         sprintf(err, "%s: axis %d size (" _AIR_SIZE_T_CNV 
                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
@@ -722,16 +722,20 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
         biffAdd(NRRD, err); airMopError(mop); return 1;
       }
     }
-    /* fprintf(stderr, "%03d\n", ninperm[ni]->axis[outdim-1].size); */
+    /*
+    fprintf(stderr, "%03u\n", (unsigned int)ninperm[ni]->axis[outdim-1].size);
+    */
     outlen += ninperm[ni]->axis[outdim-1].size;
   }
-  /* fprintf(stderr, "!%s: outlen = %d\n", me, outlen); */
+  /* fprintf(stderr, "!%s: outlen = %u\n", me, (unsigned int)outlen); */
 
   /* allocate temporary nrrd and concat input into it */
   outnum = 1;
-  for (ai=0; ai<=outdim-2; ai++) {
-    size[ai] = ninperm[0]->axis[ai].size;
-    outnum *= size[ai];
+  if (outdim > 1) {
+    for (ai=0; ai<outdim-1; ai++) {
+      size[ai] = ninperm[0]->axis[ai].size;
+      outnum *= size[ai];
+    }
   }
   size[outdim-1] = outlen;
   outnum *= size[outdim-1];
