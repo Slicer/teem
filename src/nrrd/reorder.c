@@ -713,7 +713,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
     
     /* fprintf(stderr, "!%s: part %03d shape: ", me, ni); */
     for (ai=0; ai<outdim-1; ai++) {
-      fprintf(stderr, "%03u ", (unsigned int)ninperm[ni]->axis[ai].size);
+      /* fprintf(stderr, "%03u ", (unsigned int)ninperm[ni]->axis[ai].size);*/
       if (ninperm[ni]->axis[ai].size != ninperm[0]->axis[ai].size) {
         sprintf(err, "%s: axis %d size (" _AIR_SIZE_T_CNV 
                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
