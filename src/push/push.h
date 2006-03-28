@@ -63,6 +63,8 @@ extern "C" {
 **
 ** HEY: with the addition of grav, gravNot, seedThresh, GK wonders why so much
 ** information has to be stored per point, and not in the task ...
+**
+** NB: there is no constructor for this, nor does there really need to be
 */
 typedef struct pushPoint_t {
   struct pushThing_t *thing;   /* what thing do I belong to */
@@ -87,14 +89,14 @@ typedef struct pushPoint_t {
 **
 ** for single points: "point" tells the whole story of the point,
 ** but point.{tan,nor} is meaningless.  For the sake of easily computing all
-** pair-wise point interactions between things, "numVert" is 1, and
+** pair-wise point interactions between things, "vertNum" is 1, and
 ** "vert" points to "point".  "len" is 0.
 **
 ** for tractlets: the "pos", "vel", "frc" fields of "point" summarize the
 ** the dynamics of the entire tractlet, while the field attributes
 ** ("ten", "inv", "cnt") pertain exactly to the seed point.  For example,
 ** a particular tensor anisotropy in "point.ten" may have resulted in this
-** thing turning from a point into a tractlet, or vice versa.  "numVert" is
+** thing turning from a point into a tractlet, or vice versa.  "vertNum" is
 ** the number of tractlet vertices; "vert" is the array of them.  The
 ** only field of the vertex points that is not meaningful is "vel": the
 ** tractlet velocity is "point.vel"
@@ -103,7 +105,7 @@ typedef struct pushThing_t {
   int ttaagg;
   pushPoint point;             /* information about single point, or a
                                   seed point, hard to say exactly */
-  unsigned int numVert;        /* 1 for single point, else length of vert[] */
+  unsigned int vertNum;        /* 1 for single point, else length of vert[] */
   pushPoint *vert;             /* dyn. alloc. array of tractlet vertices
                                   (*not* pointers to pushPoints), or, just
                                   the address of "point" for single point */
@@ -126,12 +128,12 @@ typedef struct pushThing_t {
 ** points, bins do not own the points they contain.
 */
 typedef struct pushBin_t {
-  unsigned int numPoint;       /* # of points in this bin */
+  unsigned int pointNum;       /* # of points in this bin */
   pushPoint **point;           /* dyn. alloc. array of point pointers */
-  airArray *pointArr;          /* airArray around point and numPoint */
-  unsigned int numThing;       /* # of things in this bin */
+  airArray *pointArr;          /* airArray around point and pointNum */
+  unsigned int thingNum;       /* # of things in this bin */
   pushThing **thing;           /* dyn. alloc. array of thing pointers */
-  airArray *thingArr;          /* airArray around thing and numThing */
+  airArray *thingArr;          /* airArray around thing and thingNum */
   struct pushBin_t **neighbor; /* pre-computed NULL-terminated list of all
                                   neighboring bins, including myself */
 } pushBin;
@@ -150,7 +152,7 @@ typedef struct pushTask_t {
   tenFiberContext *fctx;       /* result of tenFiberContextCopy(pctx->fctx) */
   airThread *thread;           /* my thread */
   unsigned int threadIdx,      /* which thread am I */
-    numThing;                  /* # things I let live this iteration */
+    thingNum;                  /* # things I let live this iteration */
   double sumVel,               /* sum of velocities of things in my bins */
     *vertBuff;                 /* buffer for tractlet vertices */
   void *returnPtr;             /* for airThreadJoin */
@@ -163,10 +165,8 @@ typedef struct pushTask_t {
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL];
-  double (*func)(double haveDist, double restDist, double scale,
-                 const double parm[PUSH_FORCE_PARM_MAXNUM]);
-  double (*maxDist)(double maxEval, double scale,
-                    const double parm[PUSH_FORCE_PARM_MAXNUM]);
+  double (*func)(double dist, const double parm[PUSH_FORCE_PARM_MAXNUM]);
+  double (*maxDist)(const double parm[PUSH_FORCE_PARM_MAXNUM]);
   double parm[PUSH_FORCE_PARM_MAXNUM];
 } pushForce;
 
@@ -185,9 +185,10 @@ typedef int (*pushProcess)(pushTask *task, int bin,
 */
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
-  Nrrd *nin,                       /* image of 2D or 3D masked tensors */
+  Nrrd *nin,                       /* 3D image of 3D masked tensors, though
+                                      it may only be a single slice */
     *npos,                         /* positions to start with
-                                      (overrides numThing) */
+                                      (overrides thingNum) */
     *nstn;                         /* start/nums for tractlets in npos */
   double drag,                     /* to slow fast things down */
     preDrag,                       /* different drag pre-min-iter */
@@ -196,7 +197,7 @@ typedef struct pushContext_t {
     scale,                         /* scaling from tensor to glyph size */
     nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
-    margin,                        /* space allowed around [-1,1]^3 for pnts */
+    cntScl,                        /* magnitude of containment gradient */
     tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int tlFrenet,                    /* use Frenet frames for tractlet forces */
@@ -204,11 +205,11 @@ typedef struct pushContext_t {
     driftCorrect,                  /* prevent sliding near anisotropy edges */
     verbose;                       /* blah blah blah */
   unsigned int seed,               /* seed value for airSrand48 */
-    tlNumStep,                     /* max # points on each tractlet half */
+    tlStepNum,                     /* max # points on each tractlet half */
     binIncr,                       /* increment for per-bin thing airArray */
-    numThing,                      /* number things to start simulation w/ */
-    numThread,                     /* number of threads to use */
-    numStage,                      /* number of stages */
+    thingNum,                      /* number things to start simulation w/ */
+    threadNum,                     /* number of threads to use */
+    stageNum,                      /* number of stages */
     minIter,                       /* if non-zero, min number of iterations */
     maxIter,                       /* if non-zero, max number of iterations */
     snap;                          /* if non-zero, interval between iterations
@@ -233,18 +234,20 @@ typedef struct pushContext_t {
   gagePerVolume *tpvl, *ipvl;      /* gage pervolumes around nten and ninv */
   tenFiberContext *fctx;           /* tenFiber context around nten */
   int finished;                    /* used to signal all threads to return */
-  unsigned int dimIn,              /* dimension (2 or 3) of input */
-    binsEdge,                      /* # bins along edge of grid */
-    numBin,                        /* total # bins in grid */
+  unsigned int dimIn,              /* dim (2 or 3) of input, meaning whether
+                                      it was a single slice or a full volume */
+    sliceAxis,                     /* got a single 3-D slice, which axis had
+                                      only a single sample */
+    binsEdge[3],                   /* # bins along each volume edge,
+                                      determined by maxEval and scale */
+    binNum,                        /* total # bins in grid */
     stageIdx,                      /* stage currently undergoing processing */
     binIdx;                        /* *next* bin of points needing to be
                                       processed.  Stage is done when
-                                      binIdx == numBin */
-  pushBin *bin;                    /* volume of bins (see binsEdge, numBin) */
+                                      binIdx == binNum */
+  pushBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   double maxDist,                  /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
-    minPos[3],                     /* lower corner of world position */
-    maxPos[3],                     /* upper corner of world position */
     meanVel,                       /* latest mean velocity of particles */
     time0, time1;                  /* time at start and stop of run */
   pushTask **task;                 /* dynamically allocated array of tasks */
@@ -262,10 +265,8 @@ typedef struct pushContext_t {
 PUSH_EXPORT const char *pushBiffKey;
 
 /* methodsPush.c */
-PUSH_EXPORT pushThing *pushThingNew(unsigned int numVert);
+PUSH_EXPORT pushThing *pushThingNew(unsigned int vertNum);
 PUSH_EXPORT pushThing *pushThingNix(pushThing *thg);
-PUSH_EXPORT void pushBinInit(pushBin *bin, unsigned int incr);
-PUSH_EXPORT void pushBinDone(pushBin *bin);
 PUSH_EXPORT pushContext *pushContextNew(void);
 PUSH_EXPORT pushContext *pushContextNix(pushContext *pctx);
 
@@ -281,6 +282,8 @@ PUSH_EXPORT int pushRun(pushContext *pctx);
 PUSH_EXPORT int pushFinish(pushContext *pctx);
 
 /* binning.c */
+PUSH_EXPORT void pushBinInit(pushBin *bin, unsigned int incr);
+PUSH_EXPORT void pushBinDone(pushBin *bin);
 PUSH_EXPORT int pushBinThingAdd(pushContext *pctx, pushThing *thing);
 PUSH_EXPORT int pushBinPointAdd(pushContext *pctx, pushPoint *point);
 PUSH_EXPORT void pushBinAllNeighborSet(pushContext *pctx);

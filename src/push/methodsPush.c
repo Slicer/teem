@@ -25,29 +25,29 @@
 #include "privatePush.h"
 
 pushThing *
-pushThingNew(unsigned int numVert) {
+pushThingNew(unsigned int vertNum) {
   static int ttaagg=0; 
   pushThing *thg;
   unsigned int idx;
 
-  if (!( numVert >= 1 )) {
+  if (!( vertNum >= 1 )) {
     thg = NULL;
   } else {
     thg = (pushThing *)calloc(1, sizeof(pushThing));
     if (thg) {
       thg->ttaagg = ttaagg++;
       thg->point.thing = thg;
-      thg->numVert = numVert;
-      if (1 == numVert) {
+      thg->vertNum = vertNum;
+      if (1 == vertNum) {
         thg->vert = &(thg->point);
       } else {
-        thg->vert = (pushPoint *)calloc(numVert, sizeof(pushPoint));
-        for (idx=0; idx<numVert; idx++) {
+        thg->vert = (pushPoint *)calloc(vertNum, sizeof(pushPoint));
+        for (idx=0; idx<vertNum; idx++) {
           thg->vert[idx].thing = thg;
         }
       }
-      thg->len = 0;
       thg->seedIdx = 0;
+      thg->len = 0;
     }
   }
   return thg;
@@ -64,40 +64,6 @@ pushThingNix(pushThing *thg) {
   }
   return NULL;
 }
-
-void
-pushBinInit(pushBin *bin, unsigned int incr) {
-
-  bin->numThing = 0;
-  bin->thing = NULL;
-  bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->numThing),
-                              sizeof(pushThing *), incr);
-  bin->numPoint = 0;
-  bin->point = NULL;
-  bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->numPoint),
-                              sizeof(pushPoint *), incr);
-  /* airArray callbacks are tempting but super confusing .... */
-  bin->neighbor = NULL;
-  return;
-}
-
-/*
-** bins own the "thing" they contain, when you nix a bin, you nix the
-** the things inside, but not the points (they belong to things)
-*/
-void
-pushBinDone(pushBin *bin) {
-  unsigned int idx;
-
-  bin->pointArr = airArrayNuke(bin->pointArr);
-  for (idx=0; idx<bin->numThing; idx++) {
-    bin->thing[idx] = pushThingNix(bin->thing[idx]);
-  }
-  bin->thingArr = airArrayNuke(bin->thingArr);
-  bin->neighbor = (pushBin **)airFree(bin->neighbor);
-  return;
-}
-
 
 pushContext *
 pushContextNew(void) {
@@ -116,15 +82,15 @@ pushContextNew(void) {
     pctx->scale = 0.2;
     pctx->nudge = 0.0;
     pctx->wall = 0.1;
-    pctx->margin = 0.3;
+    pctx->cntScl = 0.0;
     pctx->tlThresh = 0.0;
     pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
     pctx->seed = 42;
-    pctx->binIncr = 30;
-    pctx->numThing = 0;
-    pctx->numThread = 1;
-    pctx->numStage = 0;
+    pctx->binIncr = 128;
+    pctx->thingNum = 0;
+    pctx->threadNum = 1;
+    pctx->stageNum = 0;
     pctx->minIter = 0;
     pctx->maxIter = 0;
     pctx->snap = 0;
@@ -155,14 +121,14 @@ pushContextNew(void) {
     pctx->tpvl = NULL;
     pctx->fctx = NULL;
     pctx->dimIn = 0;
-    /* binsEdge and numBin are found later */
-    pctx->binsEdge = pctx->numBin = 0;
+    pctx->sliceAxis = 5280;
+    /* binsEdge and binNum are found later */
+    ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
+    pctx->binNum = 0;
     pctx->finished = AIR_FALSE;
     pctx->stageIdx = pctx->binIdx = 0;
     pctx->bin = NULL;
     pctx->maxDist = AIR_NAN;
-    ELL_3V_SET(pctx->minPos, AIR_NAN, AIR_NAN, AIR_NAN);
-    ELL_3V_SET(pctx->maxPos, AIR_NAN, AIR_NAN, AIR_NAN);
     pctx->meanVel = 0;
     pctx->time0 = pctx->time1 = 0;
     pctx->task = NULL;

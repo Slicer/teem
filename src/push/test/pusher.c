@@ -32,12 +32,11 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int seed, numThread, numThing, snap, minIter, maxIter, singleBin,
+  int seed, threadNum, thingNum, snap, minIter, maxIter, singleBin,
     noDriftCorrect, tln, frenet, incr;
   pushContext *pctx;
   Nrrd *nin, *nPosIn, *nStnIn, *nPosOut, *nTenOut, *nStnOut;
-  double step, drag, preDrag, mass, scale, nudge, margin,
-    wall, minMeanVel, tlf[3];
+  double step, drag, preDrag, mass, scale, nudge, wall, minMeanVel, tlf[3];
   NrrdKernelSpec *ksp00, *ksp11;
   pushForce *force;
   
@@ -51,7 +50,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "si", "nstn", airTypeOther, 1, 1, &nStnIn, "",
              "connectivity/tractlet information for \"-pi\" nrrd",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &numThing, "100",
+  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &thingNum, "100",
              "number of points to use in simulation");
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which determines initial point locations");
@@ -89,15 +88,12 @@ main(int argc, char *argv[]) {
              "parabola y = (1/2)*nudge*x^2)");
   hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1, &wall, "0.0",
              "spring constant of containing walls");
-  hestOptAdd(&hopt, "marg", "margin", airTypeDouble, 1, 1, &margin, "0.2",
-             "margin around [-1,1]^3 within which to allow points to "
-             "overflow, outside of which they're disallowed");
   hestOptAdd(&hopt, "mmv", "mean vel", airTypeDouble, 1, 1, &minMeanVel,
              "0.1", "minimum mean velocity that signifies convergence");
   hestOptAdd(&hopt, "snap", "iters", airTypeInt, 1, 1, &snap, "0",
              "if non-zero, number of iterations between which a snapshot "
              "is saved");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &numThread, "1",
+  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &threadNum, "1",
              "number of threads to run");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp00,
              "tent", "kernel for tensor field sampling",
@@ -133,7 +129,7 @@ main(int argc, char *argv[]) {
   pctx->nin = nin;
   pctx->npos = nPosIn;
   pctx->nstn = nStnIn;
-  pctx->numThread = numThread;
+  pctx->threadNum = threadNum;
   pctx->singleBin = singleBin;
   pctx->maxIter = maxIter;
   pctx->minIter = minIter;
@@ -145,17 +141,16 @@ main(int argc, char *argv[]) {
   pctx->tlThresh = tlf[0];
   pctx->tlSoft = tlf[1];
   pctx->tlStep = tlf[2];
-  pctx->tlNumStep = tln;
+  pctx->tlStepNum = tln;
   pctx->tlFrenet = frenet;
   pctx->force = force;
   pctx->scale = scale;
   pctx->nudge = nudge;
   pctx->wall = wall;
-  pctx->margin = margin;
   pctx->minMeanVel = minMeanVel;
   pctx->snap = snap;
-  pctx->numThing = numThing;
-  pctx->numStage = 2;
+  pctx->thingNum = thingNum;
+  pctx->stageNum = 2;
   pctx->driftCorrect = !noDriftCorrect;
   pctx->verbose = 0;
   nrrdKernelSpecSet(pctx->ksp00, ksp00->kernel, ksp00->parm);

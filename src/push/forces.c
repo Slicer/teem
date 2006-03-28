@@ -71,24 +71,19 @@ pushForceEnum = &_pushForceEnum;
 ** ----------------------------------------------------------------
 */
 double
-_pushForceUnknownFunc(double haveDist, double restDist,
-                      double scale, const double *parm) {
+_pushForceUnknownFunc(double dist, const double *parm) {
   char me[]="_pushForceUnknownFunc";
 
-  AIR_UNUSED(haveDist);
-  AIR_UNUSED(restDist);
-  AIR_UNUSED(scale);
+  AIR_UNUSED(dist);
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
 }
 
 double
-_pushForceUnknownMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceUnknownMaxDist(const double *parm) {
   char me[]="_pushForceUnknownMaxDist";
 
-  AIR_UNUSED(maxEval);
-  AIR_UNUSED(scale);
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
@@ -97,32 +92,40 @@ _pushForceUnknownMaxDist(double maxEval, double scale, const double *parm) {
 /* ----------------------------------------------------------------
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
-** 2 parms:
-** 0: spring constant (formerly known as pctx->stiff)
-** 1: pull distance
+** 1 parms:
+** 0: pull distance
 */
 double
-_pushForceSpringFunc(double haveDist, double restDist,
-                     double scale, const double *parm) {
+_pushForceSpringFunc(double dist, const double *parm) {
+  /* char me[]="_pushForceSpringFunc"; */
   double diff, ret, pull;
+  int blah = 0;
 
-  pull = parm[1]*scale;
-  diff = haveDist - restDist;
+  pull = parm[0];
+  diff = dist - 1.0;
   if (diff > pull) {
+    blah = 1;
     ret = 0;
-  } else if (diff > 0) {
+  } else if (diff > 0 && pull > 0) {
+    blah = 2;
     ret = diff*(diff*diff/(pull*pull) - 2*diff/pull + 1);
   } else {
+    blah = 3;
     ret = diff;
   }
-  ret *= parm[0];
+  /*
+  if (!AIR_EXISTS(ret)) {
+    fprintf(stderr, "!%s: dist=%g, pull=%g, blah=%d --> ret=%g\n",
+            me, dist, pull, blah, ret);
+  }
+  */
   return ret;
 }
 
 double
-_pushForceSpringMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceSpringMaxDist(const double *parm) {
 
-  return 2.0f*scale*maxEval*(1.0f + parm[1]);
+  return 1.0 + parm[0];
 }
 
 /* ----------------------------------------------------------------
@@ -135,72 +138,61 @@ _pushForceSpringMaxDist(double maxEval, double scale, const double *parm) {
 #define _DGAUSS(x, sig, cut) (                                               \
    x >= sig*cut ? 0                                                          \
    : -exp(-x*x/(2.0*sig*sig))*x)
-#define SQRTTHREE 1.73205080756887729352f
+#define SQRTTHREE 1.73205080756887729352
 
 double
-_pushForceGaussFunc(double haveDist, double restDist,
-                    double scale, const double *parm) {
+_pushForceGaussFunc(double dist, const double *parm) {
   double sig, cut;
 
-  AIR_UNUSED(scale);
-  sig = restDist/SQRTTHREE;
+  sig = 1.0/SQRTTHREE;
   cut = parm[0];
-  return AIR_CAST(double, _DGAUSS(haveDist, sig, cut));
+  return AIR_CAST(double, _DGAUSS(dist, sig, cut));
 }
 
 double
-_pushForceGaussMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceGaussMaxDist(const double *parm) {
 
-  return (2.0f*scale*maxEval/SQRTTHREE)*parm[0];
+  return (1.0/SQRTTHREE)*parm[0];
 }
 
 /* ----------------------------------------------------------------
 ** ------------------------------ CHARGE --------------------------
 ** ----------------------------------------------------------------
-** 2 parms:
+** 1 parms:
 ** (scale: distance to "1.0" in graph of x^(-2))
-** parm[0]: vertical scaling 
-** parm[1]: cut-off (as multiple of "1.0")
+** parm[0]: cut-off (as multiple of "1.0")
 */
 double
-_pushForceChargeFunc(double haveDist, double restDist,
-                     double scale, const double *parm) {
-  double xx;
+_pushForceChargeFunc(double dist, const double *parm) {
 
-  AIR_UNUSED(scale);
-  xx = haveDist/restDist;
-  return -parm[0]*(xx > parm[1] ? 0 : 1.0f/(xx*xx));
+  return (dist > parm[0] ? 0 : -1.0/(dist*dist));
 }
 
 double
-_pushForceChargeMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceChargeMaxDist(const double *parm) {
 
-  return (2*scale*maxEval)*parm[1];
+  return parm[0];
 }
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
 ** ----------------------------------------------------------------
-** 1 parms:
-** (scale: distance to "1.0")
-** parm[0]: vertical scaling 
+** 0 parms!
 */
 double
-_pushForceCotanFunc(double haveDist, double restDist,
-                    double scale, const double *parm) {
-  double xx, ss;
+_pushForceCotanFunc(double dist, const double *parm) {
+  double ss;
 
-  AIR_UNUSED(scale);
-  xx = haveDist/restDist;
-  ss = AIR_CAST(double, sin(xx*AIR_PI/2.0));
-  return parm[0]*(xx > 1 ? 0 : 1.0f - 1.0f/(ss*ss));
+  AIR_UNUSED(parm);
+  ss = sin(dist*AIR_PI/2.0);
+  return (AIR_PI/2.0)*(dist > 1 ? 0 : 1.0 - 1.0/(ss*ss));
 }
 
 double
-_pushForceCotanMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceCotanMaxDist(const double *parm) {
 
   AIR_UNUSED(parm);
-  return 2*scale*maxEval;
+  return 1;
 }
 
 /* ----------------------------------------------------------------
@@ -209,21 +201,16 @@ _pushForceCotanMaxDist(double maxEval, double scale, const double *parm) {
 ** 0 parms:
 */
 double
-_pushForceNoneFunc(double haveDist, double restDist,
-                   double scale, const double *parm) {
+_pushForceNoneFunc(double dist, const double *parm) {
 
-  AIR_UNUSED(haveDist);
-  AIR_UNUSED(restDist);
-  AIR_UNUSED(scale);
+  AIR_UNUSED(dist);
   AIR_UNUSED(parm);
   return 0.0;
 }
 
 double
-_pushForceNoneMaxDist(double maxEval, double scale, const double *parm) {
+_pushForceNoneMaxDist(const double *parm) {
 
-  AIR_UNUSED(maxEval);
-  AIR_UNUSED(scale);
   AIR_UNUSED(parm);
   return 1.0;
 }
@@ -236,36 +223,31 @@ _pushForceNoneMaxDist(double maxEval, double scale, const double *parm) {
 int
 _pushForceParmNum[PUSH_FORCE_MAX+1] = {
 
-  2, /* pushForceSpring */
+  1, /* pushForceSpring */
   1, /* pushForceGauss */
-  2, /* pushForceCharge */
-  1, /* pushForceCotan */
+  1, /* pushForceCharge */
+  0, /* pushForceCotan */
   0  /* pushForceNone */
 };
 
 double
-(*_pushForceFunc[PUSH_FORCE_MAX+1])(double haveDist,
-                                    double restDist,
-                                    double scale,
-                                    const double *parm) = {
-                                      _pushForceUnknownFunc,
-                                      _pushForceSpringFunc,
-                                      _pushForceGaussFunc,
-                                      _pushForceChargeFunc,
-                                      _pushForceCotanFunc,
-                                      _pushForceNoneFunc,
+(*_pushForceFunc[PUSH_FORCE_MAX+1])(double dist, const double *parm) = {
+  _pushForceUnknownFunc,
+  _pushForceSpringFunc,
+  _pushForceGaussFunc,
+  _pushForceChargeFunc,
+  _pushForceCotanFunc,
+  _pushForceNoneFunc,
 };
 
 double
-(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(double maxEval,
-                                       double scale,
-                                       const double *parm) = {
-                                         _pushForceUnknownMaxDist,
-                                         _pushForceSpringMaxDist,
-                                         _pushForceGaussMaxDist,
-                                         _pushForceChargeMaxDist,
-                                         _pushForceCotanMaxDist,
-                                         _pushForceNoneMaxDist,
+(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(const double *parm) = {
+  _pushForceUnknownMaxDist,
+  _pushForceSpringMaxDist,
+  _pushForceGaussMaxDist,
+  _pushForceChargeMaxDist,
+  _pushForceCotanMaxDist,
+  _pushForceNoneMaxDist,
 };
 
 pushForce *

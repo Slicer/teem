@@ -34,53 +34,41 @@
 int
 _pushTensorFieldSetup(pushContext *pctx) {
   char me[]="_pushTensorFieldSetup", err[BIFF_STRLEN];
-  Nrrd *seven[7], *two[2];
   NrrdRange *nrange;
   airArray *mop;
   Nrrd *ntmp;
   int E;
   float *_ten, *_inv;
   double ten[7], inv[7];
+  unsigned int numSingle;
   size_t ii, NN;
 
   mop = airMopNew();
   ntmp = nrrdNew();
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
-  E = AIR_FALSE;
   pctx->nten = nrrdNew();
   pctx->ninv = nrrdNew();
   pctx->nmask = nrrdNew();
-  if (3 == pctx->nin->dim) {
-    /* input is 2D array of 2D tensors */
+  numSingle = 0;
+  numSingle += (1 == pctx->nin->axis[1].size);
+  numSingle += (1 == pctx->nin->axis[2].size);
+  numSingle += (1 == pctx->nin->axis[3].size);
+  if (1 == numSingle) {
     pctx->dimIn = 2;
-    for (ii=0; ii<7; ii++) {
-      if (ii < 2) {
-        two[ii] = nrrdNew();
-        airMopAdd(mop, two[ii], (airMopper)nrrdNuke, airMopAlways);
-      }
-      seven[ii] = nrrdNew();
-      airMopAdd(mop, seven[ii], (airMopper)nrrdNuke, airMopAlways);
-    }
-    /*    (0)         (0)
-     *     1  2  3     1  2
-     *        4  5        3
-     *           6            */
-    if (!E) E |= nrrdSlice(seven[0], pctx->nin, 0, 0);
-    if (!E) E |= nrrdSlice(seven[1], pctx->nin, 0, 1);
-    if (!E) E |= nrrdSlice(seven[2], pctx->nin, 0, 2);
-    if (!E) E |= nrrdArithUnaryOp(seven[3], nrrdUnaryOpZero, seven[0]);
-    if (!E) E |= nrrdSlice(seven[4], pctx->nin, 0, 3);
-    if (!E) E |= nrrdArithUnaryOp(seven[5], nrrdUnaryOpZero, seven[0]);
-    if (!E) E |= nrrdArithUnaryOp(seven[6], nrrdUnaryOpZero, seven[0]);
-    if (!E) E |= nrrdJoin(two[0], (const Nrrd *const *)seven, 7, 0, AIR_TRUE);
-    if (!E) E |= nrrdCopy(two[1], two[0]);
-    if (!E) E |= nrrdJoin(ntmp, (const Nrrd *const *)two, 2, 3, AIR_TRUE);
-    if (!E) E |= nrrdConvert(pctx->nten, ntmp, nrrdTypeFloat);
+    pctx->sliceAxis = (1 == pctx->nin->axis[1].size
+                       ? 0
+                       : (1 == pctx->nin->axis[2].size
+                          ? 1
+                          : 2));
+    fprintf(stderr, "!%s: got 2-D input with sliceAxis %u\n",
+            me, pctx->sliceAxis);
   } else {
-    /* input was already 3D */
     pctx->dimIn = 3;
-    E = nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
+    pctx->sliceAxis = 5280;
+    fprintf(stderr, "!%s: got 3-D input\n", me);
   }
+  E = AIR_FALSE;
+  E = nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   
   /* set up ninv from nten */
   if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
@@ -92,8 +80,9 @@ _pushTensorFieldSetup(pushContext *pctx) {
   _inv = (float*)pctx->ninv->data;
   NN = nrrdElementNumber(pctx->nten)/7;
   for (ii=0; ii<NN; ii++) {
+    double det;
     TEN_T_COPY(ten, _ten);
-    _pushTenInv(pctx, inv, ten);
+    TEN_T_INV(inv, ten, det);
     TEN_T_COPY(_inv, inv);
     _ten += 7;
     _inv += 7;
@@ -111,6 +100,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
     biffAdd(PUSH, err); airMopError(mop); return 1;
   }
 
+  /*
   pctx->nten->axis[1].spacing = (AIR_EXISTS(pctx->nten->axis[1].spacing)
                                  ? pctx->nten->axis[1].spacing
                                  : 1.0);
@@ -126,6 +116,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
   pctx->nmask->axis[0].spacing = pctx->nten->axis[1].spacing;
   pctx->nmask->axis[1].spacing = pctx->nten->axis[2].spacing;
   pctx->nmask->axis[2].spacing = pctx->nten->axis[3].spacing;
+  */
   pctx->nten->axis[1].center = nrrdCenterCell;
   pctx->nten->axis[2].center = nrrdCenterCell;
   pctx->nten->axis[3].center = nrrdCenterCell;
@@ -143,8 +134,6 @@ _pushTensorFieldSetup(pushContext *pctx) {
 /*
 ** _pushGageSetup sets:
 **** pctx->gctx
-**** pctx->minPos
-**** pctx->maxPos
 */
 int
 _pushGageSetup(pushContext *pctx) {
@@ -195,8 +184,6 @@ _pushGageSetup(pushContext *pctx) {
     biffMove(PUSH, err, GAGE); return 1;
   }
   gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_TRUE);
-  ELL_3V_SCALE(pctx->minPos, -1, pctx->gctx->shape->volHalfLen);
-  ELL_3V_SCALE(pctx->maxPos, 1, pctx->gctx->shape->volHalfLen);
 
   return 0;
 }
@@ -217,7 +204,7 @@ _pushFiberSetup(pushContext *pctx) {
   }
   E = AIR_FALSE;
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopNumSteps,
-                               pctx->tlNumStep);
+                               pctx->tlStepNum);
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopAniso,
                                tenAniso_Cl1,
                                pctx->tlThresh - pctx->tlSoft);
@@ -279,9 +266,9 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
       task->thread = airThreadNew();
     }
     task->threadIdx = threadIdx;
-    task->numThing = 0;
+    task->thingNum = 0;
     task->sumVel = 0;
-    task->vertBuff = (double*)calloc(3*(1 + 2*pctx->tlNumStep),
+    task->vertBuff = (double*)calloc(3*(1 + 2*pctx->tlStepNum),
                                      sizeof(double));
     task->returnPtr = NULL;
   }
@@ -313,12 +300,12 @@ _pushTaskSetup(pushContext *pctx) {
   char me[]="_pushTaskSetup", err[BIFF_STRLEN];
   unsigned int tidx;
 
-  pctx->task = (pushTask **)calloc(pctx->numThread, sizeof(pushTask *));
+  pctx->task = (pushTask **)calloc(pctx->threadNum, sizeof(pushTask *));
   if (!(pctx->task)) {
     sprintf(err, "%s: couldn't allocate array of tasks", me);
     biffAdd(PUSH, err); return 1;
   }
-  for (tidx=0; tidx<pctx->numThread; tidx++) {
+  for (tidx=0; tidx<pctx->threadNum; tidx++) {
     pctx->task[tidx] = _pushTaskNew(pctx, tidx);
     if (!(pctx->task[tidx])) {
       sprintf(err, "%s: couldn't allocate task %d", me, tidx);
@@ -331,7 +318,7 @@ _pushTaskSetup(pushContext *pctx) {
 /*
 ** _pushBinSetup sets:
 **** pctx->maxDist, pctx->minEval, pctx->maxEval
-**** pctx->binsEdge, pctx->numBin
+**** pctx->binsEdge[], pctx->binNum
 **** pctx->bin
 **** pctx->bin[]
 */
@@ -340,6 +327,7 @@ _pushBinSetup(pushContext *pctx) {
   char me[]="_pushBinSetup", err[BIFF_STRLEN];
   float eval[3], *tdata;
   unsigned int ii, nn, count;
+  double col[3][4], volEdge[3];
 
   /* ------------------------ find maxEval and set up binning */
   nn = nrrdElementNumber(pctx->nten)/7;
@@ -358,30 +346,42 @@ _pushBinSetup(pushContext *pctx) {
     tdata += 7;
   }
   pctx->meanEval /= count;
-  pctx->maxDist = pctx->force->maxDist(AIR_CAST(double, pctx->scale),
-                                       AIR_CAST(double, pctx->maxEval),
-                                       pctx->force->parm);
+  pctx->maxDist = (2*pctx->scale*pctx->maxEval
+                   *pctx->force->maxDist(pctx->force->parm));
   if (pctx->singleBin) {
-    pctx->binsEdge = 1;
-    pctx->numBin = 1;
+    pctx->binsEdge[0] = 1;
+    pctx->binsEdge[1] = 1;
+    pctx->binsEdge[2] = 1;
+    pctx->binNum = 1;
   } else {
-    pctx->binsEdge = (int)floor((2.0 + 2*pctx->margin)/pctx->maxDist);
-    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%d\n",
-            me, pctx->maxEval, pctx->maxDist, pctx->binsEdge);
-    if (!(pctx->binsEdge >= 1)) {
-      fprintf(stderr, "!%s: fixing binsEdge %d to 1\n", me, pctx->binsEdge);
-      pctx->binsEdge = 1;
+    ELL_4MV_COL0_GET(col[0], pctx->gctx->shape->ItoW); col[0][3] = 0.0;
+    ELL_4MV_COL1_GET(col[1], pctx->gctx->shape->ItoW); col[1][3] = 0.0;
+    ELL_4MV_COL2_GET(col[2], pctx->gctx->shape->ItoW); col[2][3] = 0.0;
+    volEdge[0] = ELL_3V_LEN(col[0])*(pctx->gctx->shape->size[0]-1);
+    volEdge[1] = ELL_3V_LEN(col[1])*(pctx->gctx->shape->size[1]-1);
+    volEdge[2] = ELL_3V_LEN(col[2])*(pctx->gctx->shape->size[2]-1);
+    fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
+            volEdge[0], volEdge[1], volEdge[2]);
+    pctx->binsEdge[0] = (int)floor(volEdge[0]/pctx->maxDist);
+    pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
+    pctx->binsEdge[1] = (int)floor(volEdge[1]/pctx->maxDist);
+    pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
+    pctx->binsEdge[2] = (int)floor(volEdge[2]/pctx->maxDist);
+    pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
+    if (2 == pctx->dimIn) {
+      pctx->binsEdge[pctx->sliceAxis] = 1;
     }
-    pctx->numBin = pctx->binsEdge*pctx->binsEdge*(2 == pctx->dimIn
-                                                  ? 1
-                                                  : pctx->binsEdge);
+    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%u,%u,%u\n",
+            me, pctx->maxEval, pctx->maxDist,
+            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
+    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
   }
-  pctx->bin = (pushBin *)calloc(pctx->numBin, sizeof(pushBin));
+  pctx->bin = (pushBin *)calloc(pctx->binNum, sizeof(pushBin));
   if (!( pctx->bin )) {
     sprintf(err, "%s: trouble allocating bin arrays", me);
     biffAdd(PUSH, err); return 1;
   }
-  for (ii=0; ii<pctx->numBin; ii++) {
+  for (ii=0; ii<pctx->binNum; ii++) {
     pushBinInit(pctx->bin + ii, pctx->binIncr);
   }
   pushBinAllNeighborSet(pctx);
@@ -391,7 +391,7 @@ _pushBinSetup(pushContext *pctx) {
 
 /*
 ** _pushThingSetup sets:
-**** pctx->numThing (in case pctx->nstn and/or pctx->npos)
+**** pctx->thingNum (in case pctx->nstn and/or pctx->npos)
 **
 ** This is only called by the master thread
 ** 
@@ -405,18 +405,21 @@ _pushThingSetup(pushContext *pctx) {
   unsigned int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
 
-  pctx->numThing = (pctx->nstn
+  pctx->thingNum = (pctx->nstn
                     ? pctx->nstn->axis[1].size
                     : (pctx->npos
                        ? pctx->npos->axis[1].size
-                       : pctx->numThing));
+                       : pctx->thingNum));
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   stn = pctx->nstn ? (unsigned int*)pctx->nstn->data : NULL;
-  for (thingIdx=0; thingIdx<pctx->numThing; thingIdx++) {
+  for (thingIdx=0; thingIdx<pctx->thingNum; thingIdx++) {
+    /*
+    fprintf(stderr, "!%s: thingIdx = %u/%u\n", me, thingIdx, pctx->thingNum);
+    */
     if (pctx->nstn) {
       baseIdx = stn[0 + 3*thingIdx];
       thing = pushThingNew(stn[1 + 3*thingIdx]);
-      for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
+      for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
         ELL_3V_SET(thing->vert[pointIdx].pos,
                    lup(pctx->npos->data, 0 + 3*(pointIdx + baseIdx)),
                    lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
@@ -425,7 +428,7 @@ _pushThingSetup(pushContext *pctx) {
         thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
-      if (1 < thing->numVert) {
+      if (1 < thing->vertNum) {
         /* info about seedpoint has to be set separately */
         ELL_3V_SET(thing->point.pos,
                    lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
@@ -434,8 +437,8 @@ _pushThingSetup(pushContext *pctx) {
         _pushProbe(pctx->task[0], &(thing->point));
       }
       /*
-      fprintf(stderr, "!%s: numThing(%d) = %d\n", "_pushThingSetup",
-              thingIdx, thing->numVert);
+      fprintf(stderr, "!%s: thingNum(%d) = %d\n", "_pushThingSetup",
+              thingIdx, thing->vertNum);
       */
     } else if (pctx->npos) {
       thing = pushThingNew(1);
@@ -448,26 +451,36 @@ _pushThingSetup(pushContext *pctx) {
     } else {
       thing = pushThingNew(1);
       do {
-        thing->vert[0].pos[0] =
-          AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                                      pctx->minPos[0], pctx->maxPos[0]));
-        thing->vert[0].pos[1] =
-          AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                                      pctx->minPos[1], pctx->maxPos[1]));
-        if (2 == pctx->dimIn
-            || (3 == pctx->dimIn && 1 == pctx->nin->axis[3].size)) {
-          thing->vert[0].pos[2] = 0;
-        } else {
-          thing->vert[0].pos[2] =
-            AIR_CAST(double, AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                                        pctx->minPos[2], pctx->maxPos[2]));
+        double posIdx[4], posWorld[4];
+        posIdx[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                               -0.5, pctx->gctx->shape->size[0]-0.5);
+        posIdx[1] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                               -0.5, pctx->gctx->shape->size[1]-0.5);
+        posIdx[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                               -0.5, pctx->gctx->shape->size[2]-0.5);
+        posIdx[3] = 1.0;
+        if (2 == pctx->dimIn) {
+          posIdx[pctx->sliceAxis] = 0.0;
         }
+        ELL_4MV_MUL(posWorld, pctx->gctx->shape->ItoW, posIdx);
+        ELL_34V_HOMOG(thing->vert[0].pos, posWorld);
+        /*
+        fprintf(stderr, "%s: posIdx = %g %g %g --> posWorld = %g %g %g "
+                "--> %g %g %g\n", me,
+                posIdx[0], posIdx[1], posIdx[2],
+                posWorld[0], posWorld[1], posWorld[2],
+                thing->vert[0].pos[0], thing->vert[0].pos[1],
+                thing->vert[0].pos[2]);
+        */
         _pushProbe(pctx->task[0], thing->vert + 0);
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
            the range of values in the mask */
         /* HEY: can't ensure that this will eventually succeed with
            seedThresh enabled! */
+        /*
+        fprintf(stderr, "!%s: ten[0] = %g\n", me, thing->vert[0].ten[0]);
+        */
       } while (thing->vert[0].ten[0] < 0.5
                || (tenGageUnknown != pctx->seedThreshItem
                    && ((pctx->seedThresh - thing->vert[0].seedThresh)
@@ -475,7 +488,7 @@ _pushThingSetup(pushContext *pctx) {
                    )
                );
     }
-    for (pointIdx=0; pointIdx<thing->numVert; pointIdx++) {
+    for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
       if (pushBinPointAdd(pctx, thing->vert + pointIdx)) {
         sprintf(err, "%s: trouble binning vert %d of thing %d", me,
                 pointIdx, thingIdx);

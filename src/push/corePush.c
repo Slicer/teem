@@ -56,23 +56,23 @@ _pushStageRun(pushTask *task, int stageIdx) {
   char me[]="_pushStageRun", err[BIFF_STRLEN];
   unsigned int binIdx;
   
-  while (task->pctx->binIdx < task->pctx->numBin) {
-    if (task->pctx->numThread > 1) {
+  while (task->pctx->binIdx < task->pctx->binNum) {
+    if (task->pctx->threadNum > 1) {
       airThreadMutexLock(task->pctx->binMutex);
     }
     do {
       binIdx = task->pctx->binIdx;
-      if (task->pctx->binIdx < task->pctx->numBin) {
+      if (task->pctx->binIdx < task->pctx->binNum) {
         task->pctx->binIdx++;
       }
-    } while (binIdx < task->pctx->numBin
-             && 0 == task->pctx->bin[binIdx].numThing
-             && 0 == task->pctx->bin[binIdx].numPoint);
-    if (task->pctx->numThread > 1) {
+    } while (binIdx < task->pctx->binNum
+             && 0 == task->pctx->bin[binIdx].thingNum
+             && 0 == task->pctx->bin[binIdx].pointNum);
+    if (task->pctx->threadNum > 1) {
       airThreadMutexUnlock(task->pctx->binMutex);
     }
 
-    if (binIdx == task->pctx->numBin) {
+    if (binIdx == task->pctx->binNum) {
       /* no more bins to process */
       break;
     }
@@ -130,37 +130,37 @@ _pushWorker(void *_task) {
 int
 _pushContextCheck(pushContext *pctx) {
   char me[]="_pushContextCheck", err[BIFF_STRLEN];
-  unsigned int sidx;
+  unsigned int sidx, numSingle;
   int nul;
   
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( AIR_IN_CL(1, pctx->numStage, PUSH_STAGE_MAXNUM) )) {
-    sprintf(err, "%s: pctx->numStage (%d) outside valid range [1,%d]", me,
-            pctx->numStage, PUSH_STAGE_MAXNUM);
+  if (!( AIR_IN_CL(1, pctx->stageNum, PUSH_STAGE_MAXNUM) )) {
+    sprintf(err, "%s: pctx->stageNum (%d) outside valid range [1,%d]", me,
+            pctx->stageNum, PUSH_STAGE_MAXNUM);
     biffAdd(PUSH, err); return 1;
   }
   nul = AIR_FALSE;
-  for (sidx=0; sidx<pctx->numStage; sidx++) {
+  for (sidx=0; sidx<pctx->stageNum; sidx++) {
     nul |= !(pctx->process[sidx]);
   }
   if (nul) {
     sprintf(err, "%s: one or more of the process functions was NULL", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( pctx->numThing >= 1 )) {
-    sprintf(err, "%s: pctx->numThing (%d) not >= 1\n", me, pctx->numThing);
+  if (!( pctx->thingNum >= 1 )) {
+    sprintf(err, "%s: pctx->thingNum (%d) not >= 1\n", me, pctx->thingNum);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( pctx->numThread >= 1 )) {
-    sprintf(err, "%s: pctx->numThread (%d) not >= 1\n", me, pctx->numThread);
+  if (!( pctx->threadNum >= 1 )) {
+    sprintf(err, "%s: pctx->threadNum (%d) not >= 1\n", me, pctx->threadNum);
     biffAdd(PUSH, err); return 1;
   }
-  if (!( AIR_IN_CL(1, pctx->numThread, PUSH_THREAD_MAXNUM) )) {
-    sprintf(err, "%s: pctx->numThread (%d) outside valid range [1,%d]", me,
-            pctx->numThread, PUSH_THREAD_MAXNUM);
+  if (!( AIR_IN_CL(1, pctx->threadNum, PUSH_THREAD_MAXNUM) )) {
+    sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
+            pctx->threadNum, PUSH_THREAD_MAXNUM);
     biffAdd(PUSH, err); return 1;
   }
 
@@ -168,9 +168,16 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: got a broken input nrrd", me);
     biffMove(PUSH, err, NRRD); return 1;
   }
-  if (!( (3 == pctx->nin->dim && 4 == pctx->nin->axis[0].size) 
-         || (4 == pctx->nin->dim && 7 == pctx->nin->axis[0].size) )) {
-    sprintf(err, "%s: input doesn't look like 2D or 3D masked tensors", me);
+  if (!( (4 == pctx->nin->dim && 7 == pctx->nin->axis[0].size) )) {
+    sprintf(err, "%s: input doesn't look like 3D masked tensor volume", me);
+    biffAdd(PUSH, err); return 1;
+  }
+  numSingle = 0;
+  numSingle += (1 == pctx->nin->axis[1].size);
+  numSingle += (1 == pctx->nin->axis[2].size);
+  numSingle += (1 == pctx->nin->axis[3].size);
+  if (numSingle > 1) {
+    sprintf(err, "%s: can have a single sample along at most one axis", me);
     biffAdd(PUSH, err); return 1;
   }
 
@@ -261,20 +268,21 @@ pushStart(pushContext *pctx) {
     sprintf(err, "%s: trouble setting up context", me);
     biffAdd(PUSH, err); return 1;
   }
+  fprintf(stderr, "!%s: setup done-ish\n", me);
 
   /* HEY: this should be done by the user */
   pctx->process[0] = _pushForce;
   pctx->process[1] = _pushUpdate;
 
   pctx->finished = AIR_FALSE;
-  if (pctx->numThread > 1) {
+  if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNew();
-    pctx->stageBarrierA = airThreadBarrierNew(pctx->numThread);
-    pctx->stageBarrierB = airThreadBarrierNew(pctx->numThread);
+    pctx->stageBarrierA = airThreadBarrierNew(pctx->threadNum);
+    pctx->stageBarrierB = airThreadBarrierNew(pctx->threadNum);
   }
 
   /* start threads 1 and up running; they'll all hit stageBarrierA  */
-  for (tidx=1; tidx<pctx->numThread; tidx++) {
+  for (tidx=1; tidx<pctx->threadNum; tidx++) {
     if (pctx->verbose > 1) {
       fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
     }
@@ -295,7 +303,7 @@ pushStart(pushContext *pctx) {
 int
 pushIterate(pushContext *pctx) {
   char me[]="pushIterate", *_err, err[BIFF_STRLEN];
-  unsigned int ti, numThing;
+  unsigned int ti, thingNum;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -309,12 +317,12 @@ pushIterate(pushContext *pctx) {
   pctx->finished = AIR_FALSE;
   pctx->binIdx=0;
   pctx->stageIdx=0;
-  for (ti=0; ti<pctx->numThread; ti++) {
+  for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->sumVel = 0;
-    pctx->task[ti]->numThing = 0;
+    pctx->task[ti]->thingNum = 0;
   }
   do {
-    if (pctx->numThread > 1) {
+    if (pctx->threadNum > 1) {
       airThreadBarrierWait(pctx->stageBarrierA);
     }
     if (pctx->verbose) {
@@ -328,24 +336,24 @@ pushIterate(pushContext *pctx) {
               pctx->task[0]->pctx->stageIdx, _err);
       return 1;
     }
-    if (pctx->numThread > 1) {
+    if (pctx->threadNum > 1) {
       airThreadBarrierWait(pctx->stageBarrierB);
     }
     /* This is the only code to happen between barriers */
     pctx->stageIdx++;
     pctx->binIdx=0;
-  } while (pctx->stageIdx < pctx->numStage);
+  } while (pctx->stageIdx < pctx->stageNum);
   pctx->meanVel = 0;
-  numThing = 0;
-  for (ti=0; ti<pctx->numThread; ti++) {
+  thingNum = 0;
+  for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->meanVel += pctx->task[ti]->sumVel;
     /*
     fprintf(stderr, "!%s: task %d sumVel = %g\n", me,
             ti, pctx->task[ti]->sumVel);
     */
-    numThing += pctx->task[ti]->numThing;
+    thingNum += pctx->task[ti]->thingNum;
   }
-  pctx->meanVel /= numThing;
+  pctx->meanVel /= thingNum;
   if (pushRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PUSH, err); return 1;
@@ -369,16 +377,18 @@ pushRun(pushContext *pctx) {
   vel[0] = AIR_NAN;
   vel[1] = AIR_NAN;
   do {
+    /*
     if (400 == pctx->iter) {
       unsigned int bi, ti;
       pushBin *bin;
-      for (bi=0; bi<pctx->numBin; bi++) {
+      for (bi=0; bi<pctx->binNum; bi++) {
         bin = pctx->bin + bi;
-        for (ti=0; ti<bin->numThing; ti++) {
+        for (ti=0; ti<bin->thingNum; ti++) {
           ELL_3V_SET(bin->thing[ti]->point.vel, 0, 0, 0);
         }
       }
     }
+    */
     if (pushIterate(pctx)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PUSH, err); return 1;
@@ -450,10 +460,10 @@ pushFinish(pushContext *pctx) {
     fprintf(stderr, "%s: finishing workers\n", me);
   }
   pctx->finished = AIR_TRUE;
-  if (pctx->numThread > 1) {
+  if (pctx->threadNum > 1) {
     airThreadBarrierWait(pctx->stageBarrierA);
   }
-  for (tidx=pctx->numThread; tidx>0; tidx--) {
+  for (tidx=pctx->threadNum; tidx>0; tidx--) {
     if (tidx-1) {
       airThreadJoin(pctx->task[tidx-1]->thread,
                     &(pctx->task[tidx-1]->returnPtr));
@@ -468,13 +478,14 @@ pushFinish(pushContext *pctx) {
   pctx->nmask = nrrdNuke(pctx->nmask);
   pctx->gctx = gageContextNix(pctx->gctx);
   pctx->fctx = tenFiberContextNix(pctx->fctx);
-  for (ii=0; ii<pctx->numBin; ii++) {
+  for (ii=0; ii<pctx->binNum; ii++) {
     pushBinDone(pctx->bin + ii);
   }
   pctx->bin = (pushBin *)airFree(pctx->bin);
-  pctx->binsEdge = pctx->numBin = 0;
+  ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
+  pctx->binNum = 0;
 
-  if (pctx->numThread > 1) {
+  if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNix(pctx->binMutex);
     pctx->stageBarrierA = airThreadBarrierNix(pctx->stageBarrierA);
     pctx->stageBarrierB = airThreadBarrierNix(pctx->stageBarrierB);
