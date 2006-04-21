@@ -51,7 +51,9 @@ _tenDwiGageStr[][AIR_STRLEN_SMALL] = {
   "terr",
   "terrlog",
   "tlike",
-  "c"
+  "c",
+  "2qs",
+  "2qserr",
 };
 
 int
@@ -80,7 +82,9 @@ _tenDwiGageVal[] = {
   tenDwiGageTensorError,
   tenDwiGageTensorErrorLog,
   tenDwiGageTensorLikelihood,
-  tenDwiGageConfidence
+  tenDwiGageConfidence,
+  tenDwiGage2TensorQSeg,
+  tenDwiGage2TensorQSegError,
 };
 
 airEnum
@@ -131,7 +135,10 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGageTensorErrorLog,           1,  0,  {-1 /* NOT! */, -1, -1, -1, -1, -1},                                                   -1,        -1,    AIR_TRUE},
   {tenDwiGageTensorLikelihood,         1,  0,  {-1 /* NOT! */, -1, -1, -1, -1, -1},                                                   -1,        -1,    AIR_TRUE},
 
-  {tenDwiGageConfidence,               1,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                  tenDwiGageTensor,         0,    AIR_TRUE}
+  {tenDwiGageConfidence,               1,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                  tenDwiGageTensor,         0,    AIR_TRUE},
+
+  {tenDwiGage2TensorQSeg,             14,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                                -1,         0,    AIR_TRUE},
+  {tenDwiGage2TensorQSegError,         1,  0,  {tenDwiGageAll, tenDwiGage2TensorQSeg, -1, -1, -1, -1},                            -1,         0,    AIR_TRUE}
 };
 
 void
@@ -215,6 +222,17 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         fprintf(stderr, "%s: dwi[%u] = %g\n", me, dwiIdx, dwiAll[dwiIdx]);
       }
     }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSeg)) {
+    double *twoten;
+    twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
+
+    /* fit two tensors from the all the values in dwiAll */
+
+    twoten[0] = 1.0;   /* confidence for two-tensor fit */
+    /* twoten[1 .. 6] = first tensor */
+    twoten[7] = 0.5;   /* fraction that is the first tensor */
+    /* twoten[8 .. 13] = second tensor */
   }
   /*
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageB0)) {

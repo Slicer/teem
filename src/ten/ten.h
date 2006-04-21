@@ -418,10 +418,15 @@ enum {
 
   /* 23: "c", first of seven tensor values: [1] */
   tenDwiGageConfidence,
+
+  /* 24: "2qs", two tensor fitting by q-ball segmentation: [14] 
+     25: "2qserr": [1] */
+  tenDwiGage2TensorQSeg,
+  tenDwiGage2TensorQSegError,
   
   tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 23
+#define TEN_DWI_GAGE_ITEM_MAX 25
 
 /*
 ******** tenEstimateMethod* enum
