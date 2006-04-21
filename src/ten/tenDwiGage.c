@@ -57,6 +57,7 @@ _tenDwiGageStr[][AIR_STRLEN_SMALL] = {
 int
 _tenDwiGageVal[] = {
   tenDwiGageUnknown,
+  tenDwiGageAll,
   tenDwiGageB0,
   tenDwiGageMeanDwiValue,
   tenDwiGageTensorLLS,
