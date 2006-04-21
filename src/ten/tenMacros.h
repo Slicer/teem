@@ -120,6 +120,8 @@ extern "C" {
   + (t)[2]*((t)[5]*(t)[3] - (t)[2]*(t)[6]) \
   + (t)[3]*((t)[2]*(t)[5] - (t)[3]*(t)[4]))
 
+#define TEN_T_TRACE(t) ((t)[1] + (t)[4] + (t)[6])
+
 #define TEN_T_INV(i, t, det)                                 \
   ((det) = TEN_T_DET(t),                                     \
    (i)[0] = (t)[0],                                          \
