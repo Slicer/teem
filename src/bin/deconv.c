@@ -98,7 +98,7 @@ main(int argc, char *argv[]) {
   NrrdKernelSpec *ksp;
   int otype;
   unsigned int maxIter;
-  double epsilon, lastDiff;
+  double epsilon, lastDiff, step;
   Nrrd *nin, *nout;
   airArray *mop;
 
@@ -121,6 +121,8 @@ main(int argc, char *argv[]) {
              "deconvolution");
   hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, "0.000001",
              "convergence threshold");
+  hestOptAdd(&hopt, "s", "step", airTypeDouble, 1, 1, &step, "1.0",
+             "scaling of value update");
   hestOptAdd(&hopt, "t", "type", airTypeOther, 1, 1, &otype, "default",
              "type to save output as. By default (not using this option), "
              "the output type is the same as the input type",
@@ -139,7 +141,7 @@ main(int argc, char *argv[]) {
                      nin, kind,
                      ksp, otype,
                      maxIter, AIR_TRUE,
-                     epsilon, 1)) {
+                     step, epsilon, 1)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);

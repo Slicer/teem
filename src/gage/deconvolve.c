@@ -28,7 +28,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
                const Nrrd *nin, const gageKind *kind,
                const NrrdKernelSpec *ksp, int typeOut,
                unsigned int maxIter, int saveAnyway,
-               double epsilon, int verbose) {
+               double step, double epsilon, int verbose) {
   char me[]="gageDeconvolve", err[BIFF_STRLEN];
   gageContext *ctx[2];
   gagePerVolume *pvl[2];
@@ -91,8 +91,8 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   sz = ctx[0]->shape->size[2];
   
   for (iter=0; iter<maxIter; iter++) {
-    this = iter % 2;
-    last = 1 - this;
+    this = (iter+1) % 2;
+    last = (iter+0) % 2;
     val[this] = out[this];
     val[last] = out[last];
     inIdx = 0;
@@ -106,7 +106,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
           for (ai=0; ai<anslen; ai++) {
             in = lup(nin->data, ai + anslen*inIdx);
             aa = ans[last][ai];
-            val[this][ai] = val[last][ai] + (in - aa)/alpha;
+            val[this][ai] = val[last][ai] + step*(in - aa)/alpha;
             meandiff += 2*(in - aa)*(in - aa)/(DBL_EPSILON + in*in + aa*aa);
           }
           val[this] += anslen;
@@ -120,7 +120,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
       fprintf(stderr, "%s: iter %u meandiff = %g\n", me, iter, meandiff);
     }
     if (meandiff < epsilon) {
-      /* we have converged while iter < maxIter */
+      /* we have indeed converged while iter < maxIter */
       break;
     }
   }
