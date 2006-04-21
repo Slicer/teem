@@ -97,21 +97,17 @@ _pushForceUnknownMaxDist(const double *parm) {
 */
 double
 _pushForceSpringFunc(double dist, const double *parm) {
-  /* char me[]="_pushForceSpringFunc"; */
-  double diff, ret, pull;
-  int blah = 0;
+  char me[]="_pushForceSpringFunc";
+  double xx, ret, pull;
 
   pull = parm[0];
-  diff = dist - 1.0;
-  if (diff > pull) {
-    blah = 1;
+  xx = dist - 1.0;
+  if (xx > pull) {
     ret = 0;
-  } else if (diff > 0 && pull > 0) {
-    blah = 2;
-    ret = diff*(diff*diff/(pull*pull) - 2*diff/pull + 1);
+  } else if (xx > 0) {
+    ret = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
   } else {
-    blah = 3;
-    ret = diff;
+    ret = xx;
   }
   /*
   if (!AIR_EXISTS(ret)) {
@@ -298,6 +294,15 @@ pushForceParse(const char *_str) {
     strcpy(force->name, _pushForceStr[pushForceNone]);
     force->func = _pushForceFunc[pushForceNone];
     force->maxDist = _pushForceMaxDist[pushForceNone];
+    airMopOkay(mop);
+    return force;
+  }
+
+  if (!strcmp(airEnumStr(pushForceEnum, pushForceCotan), str)) {
+    /* special case: no parameters */
+    strcpy(force->name, _pushForceStr[pushForceCotan]);
+    force->func = _pushForceFunc[pushForceCotan];
+    force->maxDist = _pushForceMaxDist[pushForceCotan];
     airMopOkay(mop);
     return force;
   }

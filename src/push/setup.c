@@ -214,7 +214,8 @@ _pushFiberSetup(pushContext *pctx) {
   /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4); */
   if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgMidpoint);
   /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgEuler); */
-  if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize, pctx->tlStep);
+  if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize,
+                               pctx->tlStep/pctx->tlStepNum);
   if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
                                      1 /* lerp */ ,
                                      pctx->tlThresh /* thresh */,
@@ -317,7 +318,7 @@ _pushTaskSetup(pushContext *pctx) {
 
 /*
 ** _pushBinSetup sets:
-**** pctx->maxDist, pctx->minEval, pctx->maxEval
+**** pctx->maxDist, pctx->minEval, pctx->maxEval, pctx->maxDet
 **** pctx->binsEdge[], pctx->binNum
 **** pctx->bin
 **** pctx->bin[]
@@ -329,10 +330,11 @@ _pushBinSetup(pushContext *pctx) {
   unsigned int ii, nn, count;
   double col[3][4], volEdge[3];
 
-  /* ------------------------ find maxEval and set up binning */
+  /* ------------------------ find maxEval, maxDet, and set up binning */
   nn = nrrdElementNumber(pctx->nten)/7;
   tdata = (float*)pctx->nten->data;
   pctx->maxEval = 0;
+  pctx->maxDet = 0;
   pctx->meanEval = 0;
   count = 0;
   for (ii=0; ii<nn; ii++) {
@@ -342,6 +344,7 @@ _pushBinSetup(pushContext *pctx) {
       count++;
       pctx->meanEval += eval[0];
       pctx->maxEval = AIR_MAX(pctx->maxEval, eval[0]);
+      pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0] + eval[1] + eval[2]);
     }
     tdata += 7;
   }
@@ -390,6 +393,60 @@ _pushBinSetup(pushContext *pctx) {
 }
 
 /*
+** THIS IS A COMPLETE HACK!!!
+*/
+int
+pushTaskFiberReSetup(pushContext *pctx,
+                     double tlThresh, double tlSoft, double tlStep,
+                     unsigned int tlStepNum) {
+  char me[]="pushTaskFiberReSetup", err[BIFF_STRLEN];
+  tenFiberContext *fctx;
+  unsigned int taskIdx;
+  int E = 0;
+
+  fprintf(stderr, "!%s: %d\n", me, __LINE__);
+  if (!pctx->task) {
+    fprintf(stderr, "!%s: %d bailing\n", me, __LINE__);
+    return 0;
+  }
+  pctx->tlStepNum = tlStepNum;
+  pctx->tlThresh = tlThresh;
+  pctx->tlSoft = tlSoft;
+  pctx->tlStep = tlStep;
+
+  fprintf(stderr, "!%s: %d\n", me, __LINE__);
+  for (taskIdx=0; pctx->threadNum; taskIdx++) {
+    fctx = pctx->task[taskIdx]->fctx;
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (!E) E |= tenFiberStopSet(fctx, tenFiberStopNumSteps,
+                                 pctx->tlStepNum);
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (!E) E |= tenFiberStopSet(fctx, tenFiberStopAniso,
+                                 tenAniso_Cl1,
+                                 pctx->tlThresh - pctx->tlSoft);
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (!E) E |= tenFiberParmSet(fctx, tenFiberParmStepSize,
+                                 pctx->tlStep/pctx->tlStepNum);
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (!E) E |= tenFiberAnisoSpeedSet(fctx, tenAniso_Cl1,
+                                       1 /* lerp */ ,
+                                       pctx->tlThresh /* thresh */,
+                                       pctx->tlSoft);
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (!E) E |= tenFiberUpdate(fctx);
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+    if (E) {
+      sprintf(err, "%s: trouble resetting task %u fiber context", me, taskIdx);
+      biffMove(PUSH, err, TEN); return 1;
+    }
+    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
+  }
+  fprintf(stderr, "!%s: %d\n", me, __LINE__);
+  return 1;
+}
+
+
+/*
 ** _pushThingSetup sets:
 **** pctx->thingNum (in case pctx->nstn and/or pctx->npos)
 **
@@ -413,6 +470,7 @@ _pushThingSetup(pushContext *pctx) {
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   stn = pctx->nstn ? (unsigned int*)pctx->nstn->data : NULL;
   for (thingIdx=0; thingIdx<pctx->thingNum; thingIdx++) {
+    double detProbe;
     /*
     fprintf(stderr, "!%s: thingIdx = %u/%u\n", me, thingIdx, pctx->thingNum);
     */
@@ -473,6 +531,7 @@ _pushThingSetup(pushContext *pctx) {
                 thing->vert[0].pos[2]);
         */
         _pushProbe(pctx->task[0], thing->vert + 0);
+        detProbe = TEN_T_TRACE(thing->vert[0].ten);
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
            the range of values in the mask */
@@ -481,11 +540,14 @@ _pushThingSetup(pushContext *pctx) {
         /*
         fprintf(stderr, "!%s: ten[0] = %g\n", me, thing->vert[0].ten[0]);
         */
+        /* we OR together all the things that would
+           make us REJECT this last sample */
       } while (thing->vert[0].ten[0] < 0.5
                || (tenGageUnknown != pctx->seedThreshItem
                    && ((pctx->seedThresh - thing->vert[0].seedThresh)
                        *pctx->seedThreshSign > 0)
                    )
+               || (pctx->detReject && (airDrandMT() < detProbe/pctx->maxDet))
                );
     }
     for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {

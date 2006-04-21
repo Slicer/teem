@@ -202,10 +202,10 @@ _pushContextCheck(pushContext *pctx) {
       biffMove(PUSH, err, NRRD); return 1;
     }
     if (!( 2 == pctx->nstn->dim 
-           && nrrdTypeInt == pctx->nstn->type
+           && nrrdTypeUInt == pctx->nstn->type
            && 3 == pctx->nstn->axis[0].size )) {
       sprintf(err, "%s: start/num nrrd not 2-D 3-by-N array of %ss", me,
-              airEnumStr(nrrdType, nrrdTypeInt));
+              airEnumStr(nrrdType, nrrdTypeUInt));
       biffAdd(PUSH, err); return 1;
     }
   }

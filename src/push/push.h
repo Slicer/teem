@@ -194,15 +194,18 @@ typedef struct pushContext_t {
     preDrag,                       /* different drag pre-min-iter */
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
+    forceScl,                      /* scaling of pair-wise forces */
     scale,                         /* scaling from tensor to glyph size */
     nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
     cntScl,                        /* magnitude of containment gradient */
+    bigTrace,                      /* a last minute hack */
     tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
   int tlFrenet,                    /* use Frenet frames for tractlet forces */
     singleBin,                     /* disable binning (for debugging) */
     driftCorrect,                  /* prevent sliding near anisotropy edges */
+    detReject,
     verbose;                       /* blah blah blah */
   unsigned int seed,               /* seed value for airSrand48 */
     tlStepNum,                     /* max # points on each tractlet half */
@@ -248,6 +251,7 @@ typedef struct pushContext_t {
   pushBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   double maxDist,                  /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
+    maxDet,
     meanVel,                       /* latest mean velocity of particles */
     time0, time1;                  /* time at start and stop of run */
   pushTask **task;                 /* dynamically allocated array of tasks */
@@ -288,6 +292,13 @@ PUSH_EXPORT int pushBinThingAdd(pushContext *pctx, pushThing *thing);
 PUSH_EXPORT int pushBinPointAdd(pushContext *pctx, pushPoint *point);
 PUSH_EXPORT void pushBinAllNeighborSet(pushContext *pctx);
 PUSH_EXPORT int pushRebin(pushContext *pctx);
+
+/* setup.c */
+PUSH_EXPORT int pushTaskFiberReSetup(pushContext *pctx,
+                                     double tlThresh,
+                                     double tlSoft,
+                                     double tlStep,
+                                     unsigned int tlStepNum);
 
 /* action.c */
 PUSH_EXPORT int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut, 

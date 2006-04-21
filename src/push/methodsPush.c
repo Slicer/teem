@@ -79,10 +79,12 @@ pushContextNew(void) {
     pctx->preDrag = 1.0;
     pctx->step = 0.01;
     pctx->mass = 1.0;
+    pctx->forceScl = 1.0;
     pctx->scale = 0.2;
     pctx->nudge = 0.0;
     pctx->wall = 0.1;
     pctx->cntScl = 0.0;
+    pctx->bigTrace = 0.0;
     pctx->tlThresh = 0.0;
     pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
@@ -103,6 +105,7 @@ pushContextNew(void) {
     pctx->seedThresh = 0.0;
     pctx->singleBin = AIR_FALSE;
     pctx->driftCorrect = AIR_TRUE;
+    pctx->detReject = AIR_FALSE;
     pctx->verbose = 0;
     pctx->force = NULL;
     pctx->ksp00 = nrrdKernelSpecNew();
@@ -155,4 +158,3 @@ pushContextNix(pushContext *pctx) {
   }
   return NULL;
 }
-

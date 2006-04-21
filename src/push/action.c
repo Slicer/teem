@@ -30,8 +30,9 @@
 
 int
 _pushProbe(pushTask *task, pushPoint *point) {
-  double eval[3], sum, posWorld[4], posIdx[4];
-  int inside;
+  char me[]="_pushProbe";
+  double eval[3], sum, posWorld[4], posIdx[4], det;
+  int inside, ret;
 
   ELL_3V_COPY(posWorld, point->pos); posWorld[3] = 1.0;
   ELL_4MV_MUL(posIdx, task->gctx->shape->WtoI, posWorld);
@@ -41,12 +42,15 @@ _pushProbe(pushTask *task, pushPoint *point) {
             AIR_IN_OP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5));
   if (!inside) {
     posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5);
-    posIdx[1] = AIR_IN_OP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
-    posIdx[2] = AIR_IN_OP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
+    posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
+    posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
   }
-  gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+  ret = gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+
   TEN_T_COPY(point->ten, task->tenAns);
-  /* _pushTenInv(task->pctx, point->inv, point->ten); */
+  /*
+  TEN_T_INV(point->inv, point->ten, det);
+  */
   TEN_T_COPY(point->inv, task->invAns);
   tenEigensolve_d(eval, NULL, point->ten);
   /* sadly, the fact that tenAnisoCalc_f exists only for floats is part
@@ -57,12 +61,14 @@ _pushProbe(pushTask *task, pushPoint *point) {
   if (tenGageUnknown != task->pctx->gravItem) {
     ELL_3V_COPY(point->grav, task->gravAns);
   }
+  /*
   if (tenGageUnknown != task->pctx->gravNotItem[0]) {
     ELL_3V_COPY(point->gravNot[0], task->gravNotAns[0]);
   }
   if (tenGageUnknown != task->pctx->gravNotItem[1]) {
     ELL_3V_COPY(point->gravNot[1], task->gravNotAns[1]);
   }
+  */
   if (tenGageUnknown != task->pctx->seedThreshItem) {
     point->seedThresh = task->seedThreshAns[0];
   }
@@ -165,9 +171,9 @@ int
 _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
                    pushPoint *myPoint, pushPoint *herPoint) {
   char me[]="_pushPairwiseForce", err[BIFF_STRLEN];
-  double inv[7], dist, mag,
+  double inv[7], dist, mag, scl,
     U[3], nU[3], lenU, lenUsqr,
-    V[3], lenV;
+    myV[3], mylenV, herV[3], herlenV, V[3], lenV;
 
   /* in case we return early */
   ELL_3V_SET(fvec, 0, 0, 0);
@@ -181,8 +187,10 @@ _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
   lenUsqr = ELL_3V_DOT(U, U);
   if (lenUsqr < FLT_EPSILON) {
     /* myPoint and herPoint are overlapping */
+    /*
     fprintf(stderr, "%s: myPos == herPos == (%g,%g,%g)\n", me,
             myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+    */
     return 0;
   }
   if (lenUsqr >= (pctx->maxDist)*(pctx->maxDist)) {
@@ -197,17 +205,33 @@ _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
                    0.5, myPoint->inv,
                    0.5, herPoint->inv);
 
+  TEN_TV_MUL(myV, myPoint->inv, U);
+  mylenV = ELL_3V_LEN(myV);
+  TEN_TV_MUL(herV, herPoint->inv, U);
+  herlenV = ELL_3V_LEN(herV);
+  
   TEN_TV_MUL(V, inv, U);
   lenV = ELL_3V_LEN(V);
   dist = lenV/pctx->scale;
-  mag = force->func(dist/2, force->parm);
+  scl = lenU/(DBL_EPSILON + lenV);
+  if (pctx->driftCorrect) {
+
+    scl *= (herlenV/(DBL_EPSILON + mylenV))*(herlenV/(DBL_EPSILON + mylenV));
+
+    /*
+    scl *= (herlenV - mylenV)/(lenU*mylenV);
+    */
+  }
+  mag = force->func(dist/2, force->parm)*scl;
   if (!( AIR_EXISTS(mag) && ELL_3V_EXISTS(nU) )) {
     fprintf(stderr, "!%s: mag=%g, nU=(%g,%g,%g), dist=|%g,%g,%g|/%g=%g\n",
             me, mag,
             nU[0], nU[1], nU[2], 
             V[0], V[1], V[2], pctx->scale, dist);
+    ELL_3V_SET(fvec, 0, 0, 0);
+  } else {
+    ELL_3V_SCALE(fvec, mag, nU);
   }
-  ELL_3V_SCALE(fvec, mag, nU);
   
   return 0;
 }
@@ -218,13 +242,13 @@ _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
 double
 _pushThingMass(pushContext *pctx, pushThing *thg) {
 
-  return AIR_CAST(double, pctx->mass*THING_SIZE(pctx, thg));
+  return pctx->mass*THING_SIZE(pctx, thg);
 }
 
 double
 _pushThingPointCharge(pushContext *pctx, pushThing *thg) {
 
-  return AIR_CAST(double, THING_SIZE(pctx, thg)/thg->vertNum);
+  return THING_SIZE(pctx, thg)/thg->vertNum;
 }
 
 #if 0
@@ -333,7 +357,7 @@ _pushForce(pushTask *task, int myBinIdx,
                     myPoint->thing->ttaagg, herPoint->thing->ttaagg);
             biffAdd(PUSH, err); return 1;
           }
-          theCharge = (myCharge + herCharge)/2;  
+          theCharge = task->pctx->forceScl*(myCharge + herCharge)/2;  
           ELL_3V_SCALE_INCR(myPoint->frc, theCharge, fvec);
           if (!ELL_3V_EXISTS(myPoint->frc)) {
             sprintf(err, "%s: point (thing %d) frc -> "
@@ -350,13 +374,19 @@ _pushForce(pushTask *task, int myBinIdx,
         neighbor++;
       }
     }
+    if (task->pctx->bigTrace) {
+      double scl, trc;
+      trc = myPoint->ten[1] + myPoint->ten[4] + myPoint->ten[6];
+      scl = task->pctx->bigTrace*trc/(task->pctx->bigTrace + trc);
+      ELL_3V_SCALE(myPoint->frc, scl, myPoint->frc);
+    }
 
     /* each point sees containment forces */
     ELL_3V_SCALE(fvec, task->pctx->cntScl, myPoint->cnt);
     ELL_3V_INCR(myPoint->frc, fvec);
 
     /* each point in this thing also potentially experiences gravity */
-    if (task->gravAns) {
+    if (tenGageUnknown != task->pctx->gravItem) {
       double tdot;
       ELL_3V_SCALE(fvec, task->pctx->gravScl, myPoint->grav);
       ELL_3V_INCR(myPoint->frc, fvec);
@@ -376,19 +406,25 @@ _pushForce(pushTask *task, int myBinIdx,
       double posWorld[4], posIdx[4], len, frcIdx[4], frcWorld[4];
       ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
       ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
-      ELL_34V_HOMOG(posIdx, posIdx);
-      ELL_4V_SET(frcIdx, 0, 0, 0, 0);
-      for (ci=0; ci<=2; ci++) {
-        len = posIdx[ci] + 0.5;
-        if (len < 0) {
-          frcIdx[ci] = -task->pctx->wall*len;
+      ELL_4V_HOMOG(posIdx, posIdx);
+      for (ci=0; ci<3; ci++) {
+        if (1 == task->pctx->gctx->shape->size[ci]) {
+          frcIdx[ci] = 0;          
         } else {
-          len = posIdx[ci] - (task->pctx->gctx->shape->size[ci] - 0.5);
-          if (len > 0) {
+          len = posIdx[ci] - (-0.5);
+          if (len < 0) {
             frcIdx[ci] = -task->pctx->wall*len;
+          } else {
+            len = posIdx[ci] - (task->pctx->gctx->shape->size[ci] - 0.5);
+            if (len > 0) {
+              frcIdx[ci] = -task->pctx->wall*len;
+            } else {
+              frcIdx[ci] = 0;    
+            }
           }
         }
       }
+      frcIdx[3] = 0.0;
       ELL_4MV_MUL(frcWorld, task->pctx->gctx->shape->ItoW, frcIdx);
       ELL_3V_INCR(myPoint->frc, frcWorld);
     }
@@ -675,6 +711,9 @@ _pushUpdate(pushTask *task, int binIdx,
                 step, mass, step/mass,
                 thing->point.vel[0], thing->point.vel[1]);
       }
+      if (!ELL_3V_EXISTS(thing->point.vel)) {
+        ELL_3V_SET(thing->point.vel, 0, 0, 0);
+      }
       ELL_3V_SCALE_INCR(thing->point.pos, step, thing->point.vel);
       if (2 == task->pctx->dimIn) {
         double posIdx[4], posWorld[4];
@@ -684,6 +723,9 @@ _pushUpdate(pushTask *task, int binIdx,
         posIdx[task->pctx->sliceAxis] = 0.0;
         ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
         ELL_34V_HOMOG(thing->point.pos, posWorld);
+      }
+      if (!ELL_3V_EXISTS(thing->point.frc)) {
+        ELL_3V_SET(thing->point.frc, 0, 0, 0);
       }
       ELL_3V_SCALE_INCR(thing->point.vel, step/mass, thing->point.frc);
       if (task->pctx->verbose) {
