@@ -104,15 +104,14 @@ main(int argc, char *argv[]) {
   const double *answer;
   const char *key=NULL;
   Nrrd *nin, *nout, *_nmat, *nmat;
-  Nrrd *ngrad=NULL, *nbmat=NULL, *ntocrop=NULL, *ntmp=NULL;
-  size_t cropMin[2], cropMax[2], ai, ansLen,
-    idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
+  Nrrd *ngrad=NULL, *nbmat=NULL;
+  size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
   double bval=0, gmc;
   gageContext *ctx;
   gagePerVolume *pvl;
   double t0, t1, mat[16], ipos[4], opos[4], spx, spy, spz, x, y, z, scale[3];
   airArray *mop;
-  unsigned int hackZi;
+  unsigned int hackZi, *skip, skipNum, skipIdx;
   double (*ins)(void *v, size_t I, double d);
 
   mop = airMopNew();
@@ -175,47 +174,33 @@ main(int argc, char *argv[]) {
 
   /* special set-up required for DWI kind */
   if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
-#if 0
-    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, nin)) {
+    tenDwiGageKindData *kindData;
+
+    kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
+    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, nin)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-    ntocrop = ngrad ? ngrad : nbmat;
-    cropMin[0] = 0;
-    cropMin[1] = 1;
-    cropMax[0] = ntocrop->axis[0].size-1;
-    cropMax[1] = ntocrop->axis[1].size-1;
-    airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    E = 0;
-    key = NRRD;
-    if (!E) E |= nrrdCrop(ntmp, ntocrop, cropMin, cropMax);
-    key = TEN;
+    if (!E) tenEstimateVerboseSet(kindData->tec, AIR_TRUE);
+    if (!E) tenEstimateNegEvalShiftSet(kindData->tec, AIR_TRUE);
+    if (!E) E |= tenEstimateMethodSet(kindData->tec, tenEstimateMethodLLS);
+    if (!E) E |= tenEstimateValueMinSet(kindData->tec, 1.0);
     if (ngrad) {
-      if (!E) E |= tenDwiGageKindGradients(kind, bval, ntmp);
+      if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, AIR_FALSE);
       if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
     } else {
-      if (!E) E |= tenDwiGageKindBMatrices(kind, bval, ntmp);
+      if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval, AIR_FALSE);
       if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
     }
-    if (!E) E |= tenDwiGageKindFitType(kind, tenDwiGageFitTypeLinear);
-    if (!E) E |= tenDwiGageKindConfThreshold(kind, 100, 0);
+    for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
+      if (!E) E |= tenEstimateSkipSet(kindData->tec, skip[skipIdx], AIR_TRUE);
+    }
     if (E) {
       airMopAdd(mop, err = biffGetDone(key), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting grad/bmat info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-#else
-    AIR_UNUSED(key);
-    AIR_UNUSED(ngrad);
-    AIR_UNUSED(nbmat);
-    AIR_UNUSED(ntocrop);
-    AIR_UNUSED(ntmp);
-    AIR_UNUSED(cropMin);
-    AIR_UNUSED(cropMax);
-    AIR_UNUSED(bval);
-    fprintf(stderr, "%s: sorry, tenDwiGageKind currently broken\n", me);
-#endif
   }
 
   if (_nmat) {

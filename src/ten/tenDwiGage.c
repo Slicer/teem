@@ -96,11 +96,6 @@ tenDwiGage = &_tenDwiGage;
 
 /* --------------------------------------------------------------------- */
 
-typedef struct {
-  unsigned int num;     /* number of total values (both baseline and DWI) */
-  tenEstimateContext *tec;  /* HEY: NOT THREAD SAFE! */
-} tenDwiGageKindData;
-
 gageItemEntry
 _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   /* enum value                      len,deriv,  prereqs,                                                                    parent item, parent index, needData*/
@@ -159,7 +154,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   fd = 2*ctx->radius;
   dwi = pvl->directAnswer[tenDwiGageAll];
   kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data);
-  dwiNum = kindData->num;
+  dwiNum = pvl->kind->valLen;
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
@@ -202,22 +197,20 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  AIR_UNUSED(ctx);
-  AIR_UNUSED(pvl);
-
-#if 0
   char me[]="_tenDwiGageAnswer";
   unsigned int dwiIdx;
   tenDwiGageKindData *kindData;
+  tenDwiGagePvlData *pvlData;
   double *dwiAll, dwiMean=0;
 
   kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data);
+  pvlData = AIR_CAST(tenDwiGagePvlData *, pvl->data);
 
   dwiAll = pvl->directAnswer[tenDwiGageAll];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageAll)) {
     /* done if doV */
     if (ctx->verbose) {
-      for (dwiIdx=0; dwiIdx<kindData->num; dwiIdx++) {
+      for (dwiIdx=0; dwiIdx<pvl->kind->valLen; dwiIdx++) {
         fprintf(stderr, "%s: dwi[%u] = %g\n", me, dwiIdx, dwiAll[dwiIdx]);
       }
     }
@@ -229,19 +222,22 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageMeanDwiValue)) {
     dwiMean = 0;
-    for (dwiIdx=1; dwiIdx<kindData->num; dwiIdx++) {
+    for (dwiIdx=1; dwiIdx<pvl->kind->valLen; dwiIdx++) {
       dwiMean += dwiAll[dwiIdx];
     }
-    dwiMean /= 1.0f/(kindData->num - 1);
+    dwiMean /= pvl->kind->valLen;
     pvl->directAnswer[tenDwiGageMeanDwiValue][0] = dwiMean;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorLLS)) {
+    /*
+      not compiling ...
     tenEstimateLinearSingle_d(pvl->directAnswer[tenDwiGageTensorLLS],
                               NULL, dwiAll,
                               AIR_CAST(double *, kindData->nemat->data),
-                              /* pvlData->vbuf */ NULL, kindData->num,
+                              pvlData->vbuf, pvl->kind->valLen,
                               AIR_TRUE, kindData->dwiConfThresh,
                               kindData->dwiConfSoft, kindData->bval);
+    */
   }
   /*
   tenDwiGageTensorLinearFitError,
@@ -252,40 +248,27 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   tenDwiGageConfidence
   */
   return;
-#endif
 }
 
 tenDwiGageKindData*
 tenDwiGageKindDataNew() {
-#if 0
   tenDwiGageKindData *ret;
 
   ret = AIR_CAST(tenDwiGageKindData *, malloc(sizeof(tenDwiGageKindData)));
   if (ret) {
-    ret->bval = AIR_NAN;
-    ret->ngrad = NULL;
-    ret->nbmat = NULL;
-    ret->dwiConfThresh = 0;
-    ret->dwiConfSoft = 0;
-    ret->fitType = tenDefDwiGageFitType;
-    ret->num = 6661 /* NOT: set by _tenDwiGageKindNumSet() */;
-    ret->nemat = nrrdNew();
+    ret->tec = tenEstimateContextNew();
   }
   return ret;
-#endif
-  return NULL;
 }
 
 tenDwiGageKindData*
 tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 
   AIR_UNUSED(kindData);
-#if 0  
   if (kindData) {
-    nrrdNuke(kindData->nemat);
+    tenEstimateContextNix(kindData->tec);
     airFree(kindData);
   }
-#endif
   return NULL;
 }
 
@@ -293,7 +276,6 @@ int
 tenDwiGageKindCheck(const gageKind *kind) {
 
   AIR_UNUSED(kind);
-#if 0
   char me[]="tenDwiGageKindCheck", err[BIFF_STRLEN];
   
   if (!kind) {
@@ -309,49 +291,28 @@ tenDwiGageKindCheck(const gageKind *kind) {
     sprintf(err, "%s: kind->data is NULL", me);
     biffAdd(TEN, err); return 1;
   }
-#endif
   return 0;
 }
 
 int
 _tenDwiGageKindReadyCheck(const gageKind *kind) {
-
-  AIR_UNUSED(kind);
-#if 0
   char me[]="_tenDwiGageKindReadyCheck", err[BIFF_STRLEN];
-  tenDwiGageKindData *kindData;
+  /* tenDwiGageKindData *kindData; */
 
   if (tenDwiGageKindCheck(kind)) {
     sprintf(err, "%s: didn't get valid kind", me);
     biffAdd(TEN, err); return 1;
   }
-  kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
-  if (!AIR_EXISTS(kindData->bval)) {
-    sprintf(err, "%s: bval doesn't exist", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!( !!(kindData->ngrad) ^ !!(kindData->nbmat) )) {
-    sprintf(err, "%s: not one of ngrad or nbmat set", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!( AIR_EXISTS(kindData->dwiConfThresh) 
-         && AIR_EXISTS(kindData->dwiConfSoft) )) {
-    sprintf(err, "%s: thresh and soft not set", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (airEnumValCheck(tenDwiGageFitType, kindData->fitType)) {
-    sprintf(err, "%s: fitType %d not valid", me, kindData->fitType);
-    biffAdd(TEN, err); return 1;
-  }
-#endif
+  
+  /* HEY
+     there's more to do here!
+  */
+
   return 0;
 }
 
 void *
 _tenDwiGagePvlDataNew(const gageKind *kind) {
-
-  AIR_UNUSED(kind);
-#if 0
   char me[]="_tenDwiGagePvlDataNew", err[BIFF_STRLEN];
   tenDwiGagePvlData *pvlData;
   tenDwiGageKindData *kindData;
@@ -366,11 +327,9 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   if (pvlData) {
     kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
     pvlData->vbuf = AIR_CAST(double *,
-                             calloc(kindData->num, sizeof(double)));
+                             calloc(kind->valLen, sizeof(double)));
   }
   return AIR_CAST(void*, pvlData);
-#endif
-  return NULL;
 }
 
 void *
@@ -382,10 +341,6 @@ _tenDwiGagePvlDataCopy(const gageKind *kind, const void *pvlData) {
 
 void *
 _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
-
-  AIR_UNUSED(kind);
-  AIR_UNUSED(_pvlData);
-#if 0
   tenDwiGagePvlData *pvlData;
 
   AIR_UNUSED(kind);
@@ -394,7 +349,6 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
     airFree(pvlData->vbuf);
     airFree(pvlData);
   }
-#endif
   return NULL;
 }
 
@@ -444,55 +398,3 @@ tenDwiGageKindNix(gageKind *kind) {
   return NULL;
 }
 
-void
-_tenDwiGageKindNumSet(gageKind *kind, unsigned int num) {
-  char me[]="_tenDwiGageKindNumSet";
-
-  kind->valLen = num;
-  fprintf(stderr, "%s: table[%u].answerLength = %u\n", me, 
-          tenDwiGageAll, num);
-  kind->table[tenDwiGageAll].answerLength = num;
-  AIR_CAST(tenDwiGageKindData *, kind->data)->num = num;
-  return;
-}
-
-int
-tenDwiGageKindFitType(gageKind *kind, int fitType) {
-
-  AIR_UNUSED(kind);
-  AIR_UNUSED(fitType);
-#if 0
-  char me[]="tenDwiGageKindFitType", err[BIFF_STRLEN];
-
-  if (tenDwiGageKindCheck(kind)) {
-    sprintf(err, "%s: trouble with given kind", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (airEnumValCheck(tenDwiGageFitType, fitType)) {
-    sprintf(err, "%s: %d not a valid %s", me, fitType, 
-            tenDwiGageFitType->name);
-    biffAdd(TEN, err); return 1;
-  }
-
-  switch(fitType) {
-  case tenDwiGageFitTypeLinear:
-    kind->table[tenDwiGageTensor].prereq[0] = 
-      tenDwiGageTensorLinearFit;
-    kind->table[tenDwiGageTensorError].prereq[0] = 
-      tenDwiGageTensorLinearFitError;
-    break;
-  case tenDwiGageFitTypeNonLinear:
-    kind->table[tenDwiGageTensor].prereq[0] = 
-      tenDwiGageTensorNonLinearFit;
-    kind->table[tenDwiGageTensorError].prereq[0] = 
-      tenDwiGageTensorNonLinearFitError;
-    break;
-  default:
-    sprintf(err, "%s: fitType %d not implemented!", me, fitType);
-    biffAdd(TEN, err); return 1;
-    break;
-  }
-
-#endif
-  return 0;
-}

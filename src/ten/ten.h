@@ -412,8 +412,8 @@ enum {
      22: "tlike": [1],
      one of the above tensors and its errors, depending on settings */
   tenDwiGageTensor,
-  tenDwiGageTensorErrorLog,
   tenDwiGageTensorError,
+  tenDwiGageTensorErrorLog,
   tenDwiGageTensorLikelihood,
 
   /* 23: "c", first of seven tensor values: [1] */
@@ -722,6 +722,14 @@ typedef struct {
     likelihood;            /* the maximized likelihood */
 } tenEstimateContext;
 
+typedef struct {
+  tenEstimateContext *tec;  /* HEY: NOT THREAD SAFE! */
+} tenDwiGageKindData;
+
+typedef struct {
+  double *vbuf;
+} tenDwiGagePvlData;
+
 /* defaultsTen.c */
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
@@ -981,6 +989,8 @@ TEN_EXPORT int tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo);
 TEN_EXPORT int tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin,
                                   double min, double max);
 TEN_EXPORT int tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val);
+TEN_EXPORT int tenLog(Nrrd *nout, const Nrrd *nin);
+TEN_EXPORT int tenExp(Nrrd *nout, const Nrrd *nin);
 
 /* bvec.c */
 TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
@@ -1036,6 +1046,8 @@ F(eval) \
 F(evalpow) \
 F(evalclamp) \
 F(evaladd) \
+F(log) \
+F(exp) \
 F(evec) \
 F(evecrgb) \
 F(evq) \
