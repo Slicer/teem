@@ -1006,6 +1006,8 @@ TEN_EXPORT airEnum _tenDwiGage;
 TEN_EXPORT airEnum *tenDwiGage;
 TEN_EXPORT gageKind *tenDwiGageKindNew();
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);
+TEN_EXPORT void tenDwiGageKindNumSet(gageKind *kind, unsigned int num);
+/*
 TEN_EXPORT int tenDwiGageKindGradients(gageKind *dwiKind,
                                        double bval, const Nrrd *ngrad);
 TEN_EXPORT int tenDwiGageKindBMatrices(gageKind *dwiKind,
@@ -1013,6 +1015,7 @@ TEN_EXPORT int tenDwiGageKindBMatrices(gageKind *dwiKind,
 TEN_EXPORT int tenDwiGageKindConfThreshold(gageKind *dwiKind,
                                            double thresh, double soft);
 TEN_EXPORT int tenDwiGageKindFitType(gageKind *dwiKind, int fitType);
+*/
 
 /* bimod.c */
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);

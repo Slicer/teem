@@ -187,10 +187,14 @@ main(int argc, char *argv[]) {
     if (!E) E |= tenEstimateMethodSet(kindData->tec, tenEstimateMethodLLS);
     if (!E) E |= tenEstimateValueMinSet(kindData->tec, 1.0);
     if (ngrad) {
-      if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, AIR_FALSE);
+      if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, 
+					   AIR_FALSE);
+      tenDwiGageKindNumSet(kind, ngrad->axis[1].size);
       if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
     } else {
-      if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval, AIR_FALSE);
+      if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval,
+					   AIR_FALSE);
+      tenDwiGageKindNumSet(kind, nbmat->axis[1].size);
       if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
     }
     for (skipIdx=0; skipIdx<skipNum; skipIdx++) {

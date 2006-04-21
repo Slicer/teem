@@ -398,3 +398,12 @@ tenDwiGageKindNix(gageKind *kind) {
   return NULL;
 }
 
+void
+tenDwiGageKindNumSet(gageKind *kind, unsigned int num) {
+
+  if (kind) {
+    kind->valLen = num;
+    kind->table[tenDwiGageAll].answerLength = num;
+  }
+}
+
