@@ -107,14 +107,15 @@ _nrrdConv##TA##TB(TA *a, const TB *b, IT N) { \
 **
 ** same as _nrrdConv<Ta><Tb>(), but with clamping to the representable
 ** range of values of the output type, using a double as intermediate
-** storage type.
+** storage type HEY WHICH MEANS THAT LONG LONG (BOTH SIGNED AND UNSIGNED)
+** may suffer loss of data!!!
 */
 #define CLCV_DEF(TA, TB) \
 static void \
 _nrrdClCv##TA##TB(TA *a, const TB *b, IT N) { \
   size_t ii; \
   for (ii=0; ii<N; ii++) { \
-    a[ii] = AIR_CAST(TA, _nrrdDClamp##TA(b[ii])); \
+    a[ii] = AIR_CAST(TA, _nrrdDClamp##TA(AIR_CAST(double, b[ii]))); \
   } \
 }
 

@@ -386,11 +386,11 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
         ELL_34V_HOMOG(pos[ii], pld->xyzw + 4*indxLine[ii]);
       }
       ELL_3V_SUB(edgeA, pos[1], pos[0]);
-      ELL_3V_NORM(edgeA, edgeA, len);
+      ELL_3V_NORM_TT(edgeA, float, edgeA, len);
       ELL_3V_SUB(edgeB, pos[2], pos[0]);
-      ELL_3V_NORM(edgeB, edgeB, len);
+      ELL_3V_NORM_TT(edgeB, float, edgeB, len);
       ELL_3V_CROSS(norm, edgeA, edgeB);
-      ELL_3V_NORM(norm, norm, len);
+      ELL_3V_NORM_TT(norm, float, norm, len);
       ELL_3V_ADD2(sum, edgeA, edgeB);
       ELL_3V_SUB(dif, edgeA, edgeB);
       /* wght is angle between edges, as per redbook Appendix E */
@@ -403,7 +403,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
   }
 
   for (normIdx=0; normIdx<pld->normNum; normIdx++) {
-    ELL_3V_NORM(pld->norm + 3*normIdx, pld->norm + 3*normIdx, len);
+    ELL_3V_NORM_TT(pld->norm + 3*normIdx, float, pld->norm + 3*normIdx, len);
   }
 
   return 0;

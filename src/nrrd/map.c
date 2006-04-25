@@ -246,6 +246,9 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
 **
 ** same as nrrdConvert, but with clamping to output value representation range
 ** so as to avoid wrap-around artifacts
+**
+** HEY: WARNING: may have loss of data when processing long long
+** (either signed or unsigned)
 */
 int
 nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
