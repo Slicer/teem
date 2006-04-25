@@ -728,7 +728,8 @@ typedef struct {
 } tenEstimateContext;
 
 typedef struct {
-  tenEstimateContext *tec;  /* HEY: NOT THREAD SAFE! */
+  tenEstimateContext *tec; /* HEY: NOT THREAD SAFE! */
+  Nrrd *ngrad;             /* may be NULL, owned by us */
 } tenDwiGageKindData;
 
 typedef struct {

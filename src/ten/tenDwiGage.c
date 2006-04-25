@@ -138,7 +138,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGageConfidence,               1,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                  tenDwiGageTensor,         0,    AIR_TRUE},
 
   {tenDwiGage2TensorQSeg,             14,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                                -1,         0,    AIR_TRUE},
-  {tenDwiGage2TensorQSegError,         1,  0,  {tenDwiGageAll, tenDwiGage2TensorQSeg, -1, -1, -1, -1},                            -1,         0,    AIR_TRUE}
+  {tenDwiGage2TensorQSegError,         1,  0,  {tenDwiGageAll, tenDwiGage2TensorQSeg, -1, -1, -1, -1},                                -1,         0,    AIR_TRUE}
 };
 
 void
@@ -276,6 +276,7 @@ tenDwiGageKindDataNew() {
   ret = AIR_CAST(tenDwiGageKindData *, malloc(sizeof(tenDwiGageKindData)));
   if (ret) {
     ret->tec = tenEstimateContextNew();
+    ret->ngrad = NULL;
   }
   return ret;
 }
@@ -286,6 +287,7 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
   AIR_UNUSED(kindData);
   if (kindData) {
     tenEstimateContextNix(kindData->tec);
+    nrrdNuke(kindData->ngrad);
     airFree(kindData);
   }
   return NULL;
@@ -323,9 +325,7 @@ _tenDwiGageKindReadyCheck(const gageKind *kind) {
     biffAdd(TEN, err); return 1;
   }
   
-  /* HEY
-     there's more to do here!
-  */
+  /* HEY: isn't there more to do here ? */
 
   return 0;
 }

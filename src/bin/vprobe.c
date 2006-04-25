@@ -31,15 +31,6 @@
 
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
 
-/* copied this from ten.h; I don't want gage to depend on ten */
-#define PROBE_MAT2LIST(l, m) ( \
-   (l)[1] = (m)[0],          \
-   (l)[2] = (m)[3],          \
-   (l)[3] = (m)[6],          \
-   (l)[4] = (m)[4],          \
-   (l)[5] = (m)[7],          \
-   (l)[6] = (m)[8] )
-
 int
 probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "probeParseKind";
@@ -190,11 +181,14 @@ main(int argc, char *argv[]) {
       if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, 
 					   AIR_FALSE);
       tenDwiGageKindNumSet(kind, ngrad->axis[1].size);
+      kindData->ngrad = nrrdNew();
+      nrrdCopy(kindData->ngrad, ngrad);
       if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
     } else {
       if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval,
 					   AIR_FALSE);
       tenDwiGageKindNumSet(kind, nbmat->axis[1].size);
+      kindData->ngrad = NULL;
       if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
     }
     for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
