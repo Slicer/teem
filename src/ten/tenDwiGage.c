@@ -284,7 +284,6 @@ tenDwiGageKindDataNew() {
 tenDwiGageKindData*
 tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 
-  AIR_UNUSED(kindData);
   if (kindData) {
     tenEstimateContextNix(kindData->tec);
     nrrdNuke(kindData->ngrad);
@@ -295,8 +294,6 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 
 int
 tenDwiGageKindCheck(const gageKind *kind) {
-
-  AIR_UNUSED(kind);
   char me[]="tenDwiGageKindCheck", err[BIFF_STRLEN];
   
   if (!kind) {
