@@ -29,8 +29,6 @@
 #include <teem/gage.h>
 #include <teem/ten.h>
 
-#define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
-
 int
 probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "probeParseKind";
@@ -91,16 +89,16 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
   int what, E=0, otype, renorm, hackSet;
-  unsigned int iBaseDim, oBaseDim;
+  unsigned int iBaseDim, oBaseDim, axi;
   const double *answer;
   const char *key=NULL;
-  Nrrd *nin, *nout, *_nmat, *nmat;
+  Nrrd *nin, *nout;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
   double bval=0, gmc;
   gageContext *ctx;
   gagePerVolume *pvl;
-  double t0, t1, mat[16], ipos[4], opos[4], spx, spy, spz, x, y, z, scale[3];
+  double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int hackZi, *skip, skipNum, skipIdx;
   double (*ins)(void *v, size_t I, double d);
@@ -138,11 +136,6 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
-  hestOptAdd(&hopt, "m", "matrix", airTypeOther, 1, 1, &_nmat, "",
-             "transform matrix to map volume through "
-             "(actually the probe locations are sent through "
-             "its inverse).  By default, there is no transform",
-             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
              "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -201,43 +194,6 @@ main(int argc, char *argv[]) {
     }
   }
 
-  if (_nmat) {
-    if (!( 2 == _nmat->dim 
-           && 4 == _nmat->axis[0].size && 4 == _nmat->axis[1].size )) {
-      fprintf(stderr, "%s: matrix needs to be a 2D 4x4 array\n", me);
-      airMopError(mop);
-      return 1;
-    }
-    nmat = nrrdNew();
-    airMopAdd(mop, nmat, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
-    if (nrrdConvert(nmat, _nmat, nrrdTypeDouble)) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop);
-      return 1;
-    }
-    ell_4m_inv_d(mat, (double*)(nmat->data));
-    /* ell_4m_print_d(stderr, mat); */
-  } else {
-    ELL_4M_IDENTITY_SET(mat);
-  }
-
-  ansLen = kind->table[what].answerLength;
-  iBaseDim = kind->baseDim;
-  oBaseDim = 1 == ansLen ? 0 : 1;
-  six = nin->axis[0+iBaseDim].size;
-  siy = nin->axis[1+iBaseDim].size;
-  siz = nin->axis[2+iBaseDim].size;
-  spx = SPACING(nin->axis[0+iBaseDim].spacing);
-  spy = SPACING(nin->axis[1+iBaseDim].spacing);
-  spz = SPACING(nin->axis[2+iBaseDim].spacing);
-  sox = AIR_CAST(size_t, scale[0]*six);
-  soy = AIR_CAST(size_t, scale[1]*siy);
-  soz = AIR_CAST(size_t, scale[2]*siz);
-  nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
-  nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
-  nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
-
   /***
   **** Except for the gageProbe() call in the inner loop below,
   **** and the gageContextNix() call at the very end, all the gage
@@ -269,12 +225,23 @@ main(int argc, char *argv[]) {
   **** end gage setup.
   ***/
 
+  ansLen = kind->table[what].answerLength;
+  iBaseDim = kind->baseDim;
+  oBaseDim = 1 == ansLen ? 0 : 1;
+  six = nin->axis[0+iBaseDim].size;
+  siy = nin->axis[1+iBaseDim].size;
+  siz = nin->axis[2+iBaseDim].size;
+  sox = AIR_CAST(size_t, scale[0]*six);
+  soy = AIR_CAST(size_t, scale[1]*siy);
+  soz = AIR_CAST(size_t, scale[2]*siz);
+  rscl[0] = AIR_CAST(double, six)/sox;
+  rscl[1] = AIR_CAST(double, siy)/soy;
+  rscl[2] = AIR_CAST(double, siz)/soz;
+
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
           2*ctx->radius);
   fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
-          AIR_CAST(double, sox)/six,
-          AIR_CAST(double, soy)/siy,
-          AIR_CAST(double, soz)/siz);
+          rscl[0], rscl[1], rscl[2]);
   if (ansLen > 1) {
     fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
             " x " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV " output\n", 
@@ -307,9 +274,18 @@ main(int argc, char *argv[]) {
             me, hackKeyStr, hackZi);
   }
 
+  if (nrrdCenterCell == ctx->shape->center) {
+    ELL_3V_SET(min, -0.5, -0.5, -0.5);
+    ELL_3V_SET(maxOut, sox-0.5, soy-0.5, soz-0.5);
+    ELL_3V_SET(maxIn,  six-0.5, siy-0.5, siz-0.5);
+  } else {
+    ELL_3V_SET(min, 0, 0, 0);
+    ELL_3V_SET(maxOut, sox-1, soy-1, soz-1);
+    ELL_3V_SET(maxIn,  six-1, siy-1, siz-1);
+  }
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
-  for (zi=0; zi<=soz-1; zi++) {
+  for (zi=0; zi<soz; zi++) {
     fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
             zi, soz-1); fflush(stderr);
 
@@ -319,38 +295,22 @@ main(int argc, char *argv[]) {
       }
     }
 
-    z = AIR_AFFINE(0, zi, soz-1, 0, siz-1);
-    for (yi=0; yi<=soy-1; yi++) {
-      y = AIR_AFFINE(0, yi, soy-1, 0, siy-1);
-      for (xi=0; xi<=sox-1; xi++) {
-        x = AIR_AFFINE(0, xi, sox-1, 0, six-1);
+    z = AIR_AFFINE(min[2], zi, maxOut[2], min[2], maxIn[2]);
+    for (yi=0; yi<soy; yi++) {
+      y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
+      for (xi=0; xi<sox; xi++) {
+        x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*( (!xi && !yi && !zi) ||
                            /* ((100 == xi) && (8 == yi) && (8 == zi)) */
                            ((61 == xi) && (51 == yi) && (46 == zi))
                            /* ((40==xi) && (30==yi) && (62==zi)) || */
                            /* ((40==xi) && (30==yi) && (63==zi)) */ );
-        
-        ELL_4V_SET(opos, x*spx, y*spy, z*spz, 1);
-        ELL_4MV_MUL(ipos, mat, opos);
-        /*
-        fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
-                me, opos[0], opos[1], opos[2], ipos[0], ipos[1], ipos[2]);
-        */
-        ELL_4V_HOMOG(ipos, ipos);
-        ipos[0] = AIR_CLAMP(0, ipos[0]/spx, six-1);
-        ipos[1] = AIR_CLAMP(0, ipos[1]/spy, siy-1);
-        ipos[2] = AIR_CLAMP(0, ipos[2]/spz, siz-1);
-        /*
-        fprintf(stderr, "%s: (%g,%g,%g) --> (%g,%g,%g)\n", 
-                me, x, y, z, ipos[0], ipos[1], ipos[2]);
-        */
-        
-        if (gageProbe(ctx, ipos[0], ipos[1], ipos[2])) {
+        if (gageProbe(ctx, x, y, z)) {
           fprintf(stderr, 
                   "%s: trouble at i=(" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV
                   "," _AIR_SIZE_T_CNV ") -> f=(%g,%g,%g):\n%s\n(%d)\n",
-                  me, xi, yi, zi, ipos[0], ipos[1], ipos[2],
+                  me, xi, yi, zi, x, y, z,
                   ctx->errStr, ctx->errNum);
           airMopError(mop);
           return 1;
@@ -369,15 +329,40 @@ main(int argc, char *argv[]) {
   /* HEY: this isn't actually correct in general, but is true
      for gageKindScl and gageKindVec */
   nrrdContentSet_va(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
-  nout->axis[0+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[0+iBaseDim].spacing);
-  nout->axis[0+oBaseDim].label = airStrdup(nin->axis[0+iBaseDim].label);
-  nout->axis[1+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[1+iBaseDim].spacing);
-  nout->axis[1+oBaseDim].label = airStrdup(nin->axis[1+iBaseDim].label);
-  nout->axis[2+oBaseDim].spacing = 
-    ((double)six/sox)*SPACING(nin->axis[2+iBaseDim].spacing);
-  nout->axis[2+oBaseDim].label = airStrdup(nin->axis[2+iBaseDim].label);
+
+  for (axi=0; axi<3; axi++) {
+    nout->axis[axi+oBaseDim].label = airStrdup(nin->axis[axi+iBaseDim].label);
+    nout->axis[axi+oBaseDim].center = ctx->shape->center;
+  }
+
+  nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
+                                | NRRD_BASIC_INFO_TYPE_BIT
+                                | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                                | NRRD_BASIC_INFO_DIMENSION_BIT
+                                | NRRD_BASIC_INFO_CONTENT_BIT
+                                | NRRD_BASIC_INFO_SPACEORIGIN_BIT
+                                | NRRD_BASIC_INFO_OLDMIN_BIT
+                                | NRRD_BASIC_INFO_OLDMAX_BIT
+                                | NRRD_BASIC_INFO_COMMENTS_BIT
+                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+  if (ctx->shape->fromOrientation) {
+    nrrdSpaceSet(nout, nin->space);
+    nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+    for (axi=0; axi<3; axi++) {
+      nrrdSpaceVecScale(nout->axis[axi+oBaseDim].spaceDirection,
+                        rscl[axi],
+                        nin->axis[axi+iBaseDim].spaceDirection);
+      z = AIR_AFFINE(min[axi], 0, maxOut[axi], min[axi], maxIn[axi]);
+      nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                            1.0, nout->spaceOrigin,
+                            z, nin->axis[axi+iBaseDim].spaceDirection);
+    }
+  } else {
+    for (axi=0; axi<3; axi++) {
+      nout->axis[axi+oBaseDim].spacing = 
+        rscl[axi]*nin->axis[axi+iBaseDim].spacing;
+    }
+  }
 
   fprintf(stderr, "\n");
   t1 = airTime();
