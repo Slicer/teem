@@ -30,10 +30,10 @@ int
 gageDefVerbose = 0;
 
 double
-gageDefGradMagMin = 0.00001f;
+gageDefGradMagMin = 0.00001;
 
 double
-gageDefGradMagCurvMin = 0.0f;
+gageDefGradMagCurvMin = 0.0;
 
 int
 gageDefRenormalize = AIR_FALSE;
@@ -45,13 +45,13 @@ int
 gageDefK3Pack = AIR_TRUE;
 
 double
-gageDefDefaultSpacing = 1.0f;
+gageDefDefaultSpacing = 1.0;
 
 int
 gageDefCurvNormalSide = 1;
 
 double
-gageDefKernelIntegralNearZero = 0.0001f;
+gageDefKernelIntegralNearZero = 0.0001;
 
 int
 gageDefRequireAllSpacings = AIR_TRUE;
@@ -60,4 +60,4 @@ int
 gageDefRequireEqualCenters = AIR_TRUE;
 
 int
-gageDefDefaultCenter = nrrdCenterNode;
+gageDefDefaultCenter = nrrdCenterCell;
