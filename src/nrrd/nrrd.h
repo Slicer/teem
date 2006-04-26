@@ -834,6 +834,19 @@ NRRD_EXPORT size_t nrrdElementSize(const Nrrd *nrrd);
 NRRD_EXPORT size_t nrrdElementNumber(const Nrrd *nrrd);
 NRRD_EXPORT int nrrdSanity(void);
 NRRD_EXPORT int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
+NRRD_EXPORT void nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
+                                  const double src[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT void nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
+                                       double sclA, 
+                                       const double vecA[NRRD_SPACE_DIM_MAX],
+                                       double sclB, 
+                                       const double vecB[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
+                                   double scl, 
+                                   const double vec[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
+                                    const double vec[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 
 /******** comments related */
 /* comment.c */

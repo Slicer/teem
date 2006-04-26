@@ -90,13 +90,13 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
     nrrd->space = nrrdSpaceUnknown;
     nrrd->spaceDim = 0;
     for (axi=0; axi<NRRD_DIM_MAX; axi++) {
-      _nrrdSpaceVecSetNaN(nrrd->axis[axi].spaceDirection);
+      nrrdSpaceVecSetNaN(nrrd->axis[axi].spaceDirection);
     }
     for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
       airFree(nrrd->spaceUnits[saxi]);
       nrrd->spaceUnits[saxi] = NULL;
     }
-    _nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
+    nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
   } else {
     if (airEnumValCheck(nrrdSpace, space)) {
       sprintf(err, "%s: given space (%d) not valid", me, space);
@@ -301,7 +301,7 @@ nrrdOriginCalculate(const Nrrd *nrrd,
 }
 
 void
-_nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
+nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
                   const double src[NRRD_SPACE_DIM_MAX]) {
   int ii;
 
@@ -312,7 +312,7 @@ _nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX],
 
 /*
 ** NOTE: since this was created until Wed Sep 21 13:34:17 EDT 2005,
-** _nrrdSpaceVecScaleAdd2 and _nrrdSpaceVecScale would treat a
+** nrrdSpaceVecScaleAdd2 and nrrdSpaceVecScale would treat a
 ** non-existent vector coefficient as 0.0.  The reason for this had
 ** to do with how the function is used.  For example, in nrrdCrop
 **
@@ -331,7 +331,7 @@ _nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX],
 */
 
 void
-_nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
+nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
                        double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
   int ii;
@@ -342,7 +342,7 @@ _nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
 }
 
 void
-_nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
+nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                    double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
   int ii;
   
@@ -352,7 +352,7 @@ _nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
 }
 
 double
-_nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
+nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
   int di;
   double nn;
 
@@ -364,7 +364,7 @@ _nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
 }
 
 void
-_nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
+nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
   int di;
 
   for (di=0; di<NRRD_SPACE_DIM_MAX; di++) {

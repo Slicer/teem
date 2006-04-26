@@ -1267,7 +1267,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
     }
 
     /* start work of updating space origin */
-    _nrrdSpaceVecCopy(nout->spaceOrigin, rsmc->nin->spaceOrigin);
+    nrrdSpaceVecCopy(nout->spaceOrigin, rsmc->nin->spaceOrigin);
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       if (rsmc->axis[axIdx].kernel) {
         /* this axis was resampled */
@@ -1303,9 +1303,9 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
                                            maxIdxFull,
                                            rsmc->nin->axis[axIdx].min,
                                            rsmc->nin->axis[axIdx].max);
-        _nrrdSpaceVecScale(nout->axis[axIdx].spaceDirection,
-                           1.0/rsmc->axis[axIdx].ratio,
-                           rsmc->nin->axis[axIdx].spaceDirection);
+        nrrdSpaceVecScale(nout->axis[axIdx].spaceDirection,
+                          1.0/rsmc->axis[axIdx].ratio,
+                          rsmc->nin->axis[axIdx].spaceDirection);
         nout->axis[axIdx].kind = _nrrdKindAltered(rsmc->nin->axis[axIdx].kind,
                                                   AIR_TRUE);
         /* space origin may have translated along this axis;
@@ -1316,10 +1316,10 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, char *func) {
                              rsmc->axis[axIdx].max,
                              rsmc->axis[axIdx].samples,
                              0);
-          _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                                 1.0, nout->spaceOrigin,
-                                 zeroPos,
-                                 rsmc->nin->axis[axIdx].spaceDirection);
+          nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                                1.0, nout->spaceOrigin,
+                                zeroPos,
+                                rsmc->nin->axis[axIdx].spaceDirection);
         }
       } else {
         /* no resampling; this axis totally unchanged */

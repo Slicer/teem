@@ -453,12 +453,12 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     biffAdd(NRRD, err); return 1;
   }
   /* copy origin, then shift it along the spatial axes */
-  _nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+  nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
   for (ai=0; ai<nin->dim; ai++) {
     if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
-      _nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                             1.0, nout->spaceOrigin,
-                             min[ai], nin->axis[ai].spaceDirection);
+      nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
+                            1.0, nout->spaceOrigin,
+                            min[ai], nin->axis[ai].spaceDirection);
     }
   }
 

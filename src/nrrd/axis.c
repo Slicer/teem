@@ -1061,7 +1061,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
       *spacing = AIR_NAN;
     }
     if (vector) {
-      _nrrdSpaceVecSetNaN(vector);
+      nrrdSpaceVecSetNaN(vector);
     }
   } else {
     if (AIR_EXISTS(nrrd->axis[ax].spacing)) {
@@ -1071,18 +1071,18 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
         ret = nrrdSpacingStatusScalarNoSpace;
       }
       *spacing = nrrd->axis[ax].spacing;
-      _nrrdSpaceVecSetNaN(vector);      
+      nrrdSpaceVecSetNaN(vector);      
     } else {
       if (nrrd->spaceDim > 0) {
         ret = nrrdSpacingStatusDirection;
-        *spacing = _nrrdSpaceVecNorm(nrrd->spaceDim, 
-                                     nrrd->axis[ax].spaceDirection);
-        _nrrdSpaceVecScale(vector, 1.0/(*spacing),
-                           nrrd->axis[ax].spaceDirection);
+        *spacing = nrrdSpaceVecNorm(nrrd->spaceDim, 
+                                    nrrd->axis[ax].spaceDirection);
+        nrrdSpaceVecScale(vector, 1.0/(*spacing),
+                          nrrd->axis[ax].spaceDirection);
       } else {
         ret = nrrdSpacingStatusNone;
         *spacing = AIR_NAN;
-        _nrrdSpaceVecSetNaN(vector);
+        nrrdSpaceVecSetNaN(vector);
       }
     }
   }
@@ -1115,8 +1115,8 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
   spatialAxisNum = nrrdSpatialAxesGet(nout, spatialAxisIdx);
   for (saxii=0; saxii<spatialAxisNum; saxii++) {
     axis = nout->axis + spatialAxisIdx[saxii];
-    axis->spacing = _nrrdSpaceVecNorm(nout->spaceDim,
-                                      axis->spaceDirection);
+    axis->spacing = nrrdSpaceVecNorm(nout->spaceDim,
+                                     axis->spaceDirection);
     if (setMinsFromOrigin) {
       axis->min = (saxii < nout->spaceDim 
                    ? nout->spaceOrigin[saxii]
