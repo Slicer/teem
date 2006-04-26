@@ -241,14 +241,14 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     }
     if (!E) E |= tenEstimateUpdate(kindData->tec);
     if (!E) E |= tenEstimate1TensorSingle_d(kindData->tec,
-                                            twoten + 1, dwiAll);
+                                            twoten + 0, dwiAll);
     for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
       if (!E) E |= tenEstimateSkipSet(kindData->tec, valIdx,
                                       1 - pvlData->wght[valIdx]);
     }
     if (!E) E |= tenEstimateUpdate(kindData->tec);
     if (!E) E |= tenEstimate1TensorSingle_d(kindData->tec,
-                                            twoten + 8, dwiAll);
+                                            twoten + 7, dwiAll);
     if (E) {
       fprintf(stderr, "!%s: %s\n", me, biffGetDone(TEN));
     }
