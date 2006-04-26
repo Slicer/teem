@@ -531,7 +531,8 @@ _tenEstimateCheck(tenEstimateContext *tec) {
 int
 _tenEstimateNumUpdate(tenEstimateContext *tec) {
   char me[]="_tenEstimateNumUpdate", err[BIFF_STRLEN];
-  unsigned int newAllNum, newDwiNum, allIdx, skipListIdx, skipIdx, skipDo;
+  unsigned int newAllNum, newDwiNum, allIdx,
+    skipListIdx, skipIdx, skipDo, skipNotNum;
   double (*lup)(const void *, size_t), gg[3], bb[6];
 
   if (tec->flag[flagBInfo]
@@ -570,6 +571,15 @@ _tenEstimateNumUpdate(tenEstimateContext *tec) {
         biffAdd(TEN, err); return 1;
       }
       tec->skipLut[skipIdx] = skipDo;
+    }
+    skipNotNum = 0;
+    for (skipIdx=0; skipIdx<tec->allNum; skipIdx++) {
+      skipNotNum += !tec->skipLut[skipIdx];
+    }
+    if (!(skipNotNum >= 7 )) {
+      sprintf(err, "%s: number of not-skipped (used) values %u < minimum 7",
+              me, skipNotNum);
+      biffAdd(TEN, err); return 1;
     }
     
     newDwiNum = 0;
