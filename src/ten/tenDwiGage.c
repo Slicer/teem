@@ -225,13 +225,37 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSeg)) {
     double *twoten;
+    unsigned int valIdx, E;
+
     twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
 
-    /* fit two tensors from the all the values in dwiAll */
+    /* bogus: simulate a 2-tensor segmentation */
+    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
+      pvlData->wght[valIdx] = valIdx % 2;
+    }
+
+    E = 0;
+    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
+      if (!E) E |= tenEstimateSkipSet(kindData->tec, valIdx,
+                                      pvlData->wght[valIdx]);
+    }
+    if (!E) E |= tenEstimateUpdate(kindData->tec);
+    if (!E) E |= tenEstimate1TensorSingle_d(kindData->tec,
+                                            twoten + 1, dwiAll);
+    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
+      if (!E) E |= tenEstimateSkipSet(kindData->tec, valIdx,
+                                      1 - pvlData->wght[valIdx]);
+    }
+    if (!E) E |= tenEstimateUpdate(kindData->tec);
+    if (!E) E |= tenEstimate1TensorSingle_d(kindData->tec,
+                                            twoten + 8, dwiAll);
+    if (E) {
+      fprintf(stderr, "!%s: %s\n", me, biffGetDone(TEN));
+    }
 
     twoten[0] = 1.0;   /* confidence for two-tensor fit */
-    /* twoten[1 .. 6] = first tensor */
     twoten[7] = 0.5;   /* fraction that is the first tensor */
+    /* twoten[1 .. 6] = first tensor */
     /* twoten[8 .. 13] = second tensor */
   }
   /*
@@ -344,6 +368,8 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
     kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
     pvlData->vbuf = AIR_CAST(double *,
                              calloc(kind->valLen, sizeof(double)));
+    pvlData->wght = AIR_CAST(unsigned int *,
+                             calloc(kind->valLen, sizeof(unsigned int)));
   }
   return AIR_CAST(void*, pvlData);
 }
@@ -363,6 +389,7 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
   if (_pvlData) {
     pvlData = AIR_CAST(tenDwiGagePvlData *, _pvlData);
     airFree(pvlData->vbuf);
+    airFree(pvlData->wght);
     airFree(pvlData);
   }
   return NULL;

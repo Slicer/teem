@@ -187,6 +187,8 @@ main(int argc, char *argv[]) {
     for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
       if (!E) E |= tenEstimateSkipSet(kindData->tec, skip[skipIdx], AIR_TRUE);
     }
+    /* HEY: HACK */
+    if (!E) E |= tenEstimateThresholdSet(kindData->tec, 50, 1);
     if (E) {
       airMopAdd(mop, err = biffGetDone(key), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting grad/bmat info:\n%s\n", me, err);
@@ -300,6 +302,10 @@ main(int argc, char *argv[]) {
       y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
       for (xi=0; xi<sox; xi++) {
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
+        /*
+        fprintf(stderr, " (%u, %u)", AIR_CAST(unsigned int, xi),
+                AIR_CAST(unsigned int, yi)); fflush(stderr);
+        */
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*( (!xi && !yi && !zi) ||
                            /* ((100 == xi) && (8 == yi) && (8 == zi)) */

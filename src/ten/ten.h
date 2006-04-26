@@ -734,6 +734,7 @@ typedef struct {
 
 typedef struct {
   double *vbuf;
+  unsigned int *wght;
 } tenDwiGagePvlData;
 
 /* defaultsTen.c */
