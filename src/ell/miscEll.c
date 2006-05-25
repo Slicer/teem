@@ -36,7 +36,7 @@ int ell_debug = 0;
 
 
 void
-ell_3m_print_f(FILE *f, float s[9]) {
+ell_3m_print_f(FILE *f, const float s[9]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
           s[0], s[1], s[2]);
@@ -47,14 +47,14 @@ ell_3m_print_f(FILE *f, float s[9]) {
 }
 
 void
-ell_3v_print_f(FILE *f, float s[3]) {
+ell_3v_print_f(FILE *f, const float s[3]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
           s[0], s[1], s[2]);
 }
 
 void
-ell_3m_print_d(FILE *f, double s[9]) {
+ell_3m_print_d(FILE *f, const double s[9]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
           s[0], s[1], s[2]);
@@ -65,14 +65,14 @@ ell_3m_print_d(FILE *f, double s[9]) {
 }
 
 void
-ell_3v_print_d(FILE *f, double s[3]) {
+ell_3v_print_d(FILE *f, const double s[3]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
           s[0], s[1], s[2]);
 }
 
 void
-ell_4m_print_f(FILE *f, float s[16]) {
+ell_4m_print_f(FILE *f, const float s[16]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
           s[ 0], s[ 1], s[ 2], s[ 3]);
@@ -85,14 +85,14 @@ ell_4m_print_f(FILE *f, float s[16]) {
 }
 
 void
-ell_4v_print_f(FILE *f, float s[4]) {
+ell_4v_print_f(FILE *f, const float s[4]) {
 
   fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
           s[0], s[1], s[2], s[3]);
 }
 
 void
-ell_4m_print_d(FILE *f, double s[16]) {
+ell_4m_print_d(FILE *f, const double s[16]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
           s[ 0], s[ 1], s[ 2], s[ 3]);
@@ -105,7 +105,7 @@ ell_4m_print_d(FILE *f, double s[16]) {
 }
 
 void
-ell_4v_print_d(FILE *f, double s[4]) {
+ell_4v_print_d(FILE *f, const double s[4]) {
 
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
           s[0], s[1], s[2], s[3]);

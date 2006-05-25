@@ -140,7 +140,7 @@ _ell_3m_make_right_handed_d(double v[9]) {
 ** This does NOT use biff
 */
 void
-ell_3m_1d_nullspace_d(double ans[3], double _n[9]) {
+ell_3m_1d_nullspace_d(double ans[3], const double _n[9]) {
   double t[9], n[9], norm;
   
   ELL_3M_TRANSPOSE(n, _n);
@@ -170,7 +170,7 @@ ell_3m_1d_nullspace_d(double ans[3], double _n[9]) {
 ** This does NOT use biff
 */
 void
-ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
+ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
   double n[9], tmp[3], norm;
 
   ELL_3M_TRANSPOSE(n, _n);
@@ -210,7 +210,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], double _n[9]) {
 ** (actually, this is prior to tenEigensolve's isotropic removal)
 */
 int
-ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
+ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   double A, B, C, scale, frob, m[9], eval[3];
   int roots;
 
@@ -236,7 +236,8 @@ ell_3m_eigenvalues_d(double _eval[3], double _m[9], int newton) {
 }
 
 void
-_ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
+_ell_3m_evecs_d(double evec[9], double eval[3], int roots, 
+		const double m[9]) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
 
   ELL_3V_GET(e0, e1, e2, eval);
@@ -338,7 +339,8 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, double m[9]) {
 ** This does NOT use biff
 */
 int
-ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
+ell_3m_eigensolve_d(double eval[3], double evec[9],
+		    const double m[9], const int newton) {
   int roots;
 
   /* if (ell_debug) {
@@ -371,7 +373,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], double m[9], int newton) {
 */
 int
 ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
-             double mat[9], int newton) {
+             const double mat[9], const int newton) {
   double trn[9], msqr[9], eval[3], evec[9];
   int roots;
   

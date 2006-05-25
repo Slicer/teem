@@ -24,7 +24,7 @@
 #include "ell.h"
 
 void
-ell_3m_mul_f(float m3[9], float _m1[9], float _m2[9]) {
+ell_3m_mul_f(float m3[9], const float _m1[9], const float _m2[9]) {
   float m1[9], m2[9];
 
   ELL_3M_COPY(m1, _m1);
@@ -33,7 +33,7 @@ ell_3m_mul_f(float m3[9], float _m1[9], float _m2[9]) {
 }
 
 void
-ell_3m_mul_d(double m3[9], double _m1[9], double _m2[9]) {
+ell_3m_mul_d(double m3[9], const double _m1[9], const double _m2[9]) {
   double m1[9], m2[9];
 
   ELL_3M_COPY(m1, _m1);
@@ -42,28 +42,28 @@ ell_3m_mul_d(double m3[9], double _m1[9], double _m2[9]) {
 }
 
 void
-ell_3m_pre_mul_f(float _m[9], float x[9]) {
+ell_3m_pre_mul_f(float _m[9], const float x[9]) {
   float m[9];
   ELL_3M_MUL(m, _m, x);
   ELL_3M_COPY(_m, m);
 }
 
 void
-ell_3m_pre_mul_d(double _m[9], double x[9]) {
+ell_3m_pre_mul_d(double _m[9], const double x[9]) {
   double m[9];
   ELL_3M_MUL(m, _m, x);
   ELL_3M_COPY(_m, m);
 }
 
 void
-ell_3m_post_mul_f(float _m[9], float x[9]) {
+ell_3m_post_mul_f(float _m[9], const float x[9]) {
   float m[9];
   ELL_3M_MUL(m, x, _m);
   ELL_3M_COPY(_m, m);
 }
 
 void
-ell_3m_post_mul_d(double _m[9], double x[9]) {
+ell_3m_post_mul_d(double _m[9], const double x[9]) {
   double m[9];
   ELL_3M_MUL(m, x, _m);
   ELL_3M_COPY(_m, m);
@@ -80,14 +80,14 @@ ell_3m_det_d(double m[9]) {
 }
 
 void
-ell_3m_inv_f(float i[9], float m[9]) {
+ell_3m_inv_f(float i[9], const float m[9]) {
   float det;
 
   ELL_3M_INV(i, m, det);
 }
 
 void
-ell_3m_inv_d(double i[9], double m[9]) {
+ell_3m_inv_d(double i[9], const double m[9]) {
   double det;
 
   ELL_3M_INV(i, m, det);
@@ -98,38 +98,38 @@ ell_3m_inv_d(double i[9], double m[9]) {
 /* -------------------------------------------------------------------- */
 
 void
-ell_4m_mul_f(float m3[16], float m1[16], float m2[16]) {
+ell_4m_mul_f(float m3[16], const float m1[16], const float m2[16]) {
   ELL_4M_MUL(m3, m1, m2);
 }
 
 void
-ell_4m_mul_d(double m3[16], double m1[16], double m2[16]) {
+ell_4m_mul_d(double m3[16], const double m1[16], const double m2[16]) {
   ELL_4M_MUL(m3, m1, m2);
 }
 
 void
-ell_4m_pre_mul_f(float _m[16], float x[16]) {
+ell_4m_pre_mul_f(float _m[16], const float x[16]) {
   float m[16];
   ELL_4M_MUL(m, _m, x);
   ELL_4M_COPY(_m, m);
 }
 
 void
-ell_4m_pre_mMul_d(double _m[16], double x[16]) {
+ell_4m_pre_mMul_d(double _m[16], const double x[16]) {
   double m[16];
   ELL_4M_MUL(m, _m, x);
   ELL_4M_COPY(_m, m);
 }
 
 void
-ell_4m_post_mul_f(float _m[16], float x[16]) {
+ell_4m_post_mul_f(float _m[16], const float x[16]) {
   float m[16];
   ELL_4M_MUL(m, x, _m);
   ELL_4M_COPY(_m, m);
 }
 
 void
-ell_4m_post_mul_d(double _m[16], double x[16]) {
+ell_4m_post_mul_d(double _m[16], const double x[16]) {
   double m[16];
   ELL_4M_MUL(m, x, _m);
   ELL_4M_COPY(_m, m);
@@ -197,14 +197,14 @@ ell_4m_det_d(double m[16]) {
                        (m)[ 8],(m)[ 9],(m)[10])/det
 
 void
-ell_4m_inv_f(float i[16], float m[16]) {
+ell_4m_inv_f(float i[16], const float m[16]) {
   float det;
 
   _4INV;
 }
 
 void
-ell_4m_inv_d(double i[16], double m[16]) {
+ell_4m_inv_d(double i[16], const double m[16]) {
   double det;
 
   _4INV;
