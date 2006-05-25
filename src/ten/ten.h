@@ -583,7 +583,8 @@ typedef struct {
 
 
 
-  //const double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */ // Removed 'const' by Orjan to allow hacking of eigenvals and vecs
+  /* Removed 'const' by Orjan to allow hacking of eigenvals and vecs */
+  /* const double *dten,*/   /* gageAnswerPointer(pvl, tenGageTensor) */ 
   double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
     *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
     *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
@@ -597,7 +598,7 @@ typedef struct {
                            (from tenFiberStop* enum) */
     whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
 
-  // Added by Orjan
+  /* Added by Orjan */
   int doingOrjanStuff, initTen;
   double *ten2;
 
@@ -745,12 +746,12 @@ typedef struct {
 typedef struct {
   double *vbuf;
   unsigned int *wght;
-
-  	// ADDED BY ORJAN
-	double *qvals;
-	double *qpoints;
-	double *dists;
-	double *weights;
+  
+  /* ADDED BY ORJAN */
+  double *qvals;
+  double *qpoints;
+  double *dists;
+  double *weights;
 } tenDwiGagePvlData;
 
 /* defaultsTen.c */
@@ -958,6 +959,7 @@ TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
 
 /* fiberMethods.c */
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
+TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol);
 TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const NrrdKernel *kern,

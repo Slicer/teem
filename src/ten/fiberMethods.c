@@ -118,19 +118,19 @@ tenFiberContextDwiNew(const Nrrd *dtvol) {
 
   GAGE_QUERY_RESET(tfx->query);
   if (tfx->doingOrjanStuff) {
-  	GAGE_QUERY_ITEM_ON( tfx->query, tenDwiGage2TensorQSeg );
-
-  	tfx->dten = NULL;
-  	tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* This will be hacked */
-	  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* This will be hacked */
-	  tfx->ten2 = gageAnswerPointer(tfx->gtx, tfx->pvl, tenDwiGage2TensorQSeg );
-	  gageUpdate(tfx);
-	} else {
-	  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
-	  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* Contains 1 element */
-	  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* Contains 3 elements */
-	  tfx->ten2 = NULL;
-	}
+    GAGE_QUERY_ITEM_ON( tfx->query, tenDwiGage2TensorQSeg );
+    
+    tfx->dten = NULL;
+    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* This will be hacked */
+    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* This will be hacked */
+    tfx->ten2 = gageAnswerPointer(tfx->gtx, tfx->pvl, tenDwiGage2TensorQSeg );
+    gageUpdate(tfx);
+  } else {
+    tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+    tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* Contains 1 element */
+    tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* Contains 3 elements */
+    tfx->ten2 = NULL;
+  }
   tfx->anisoStop = NULL;
   tfx->anisoSpeed = NULL;
   tfx->radius = AIR_NAN;

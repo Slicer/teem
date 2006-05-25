@@ -36,78 +36,78 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
 
 
   if( tfx->doingOrjanStuff ) {
-	  double M0[9], M1[9], evecs0[9], evecs1[9], evals0[3], evals1[3], *evec0, *evec1;
-	  int useTensor=-1;
+    double M0[9], M1[9], evecs0[9], evecs1[9], evals0[3], evals1[3],
+      *evec0, *evec1, len, dot0, dot1;
+    int useTensor=-1;
 
-		/* Estimate principal diffusion direction of each tensor */
-	  tenEigensolve_d( evals0, evecs0, tfx->ten2 +1 -1 );
-	  tenEigensolve_d( evals1, evecs1, tfx->ten2 +8 -1 );
-
-		evec0 = evecs0 + 3*ELL_MAX3_IDX( evals0[0], evals0[1], evals0[2] );
-		evec1 = evecs1 + 3*ELL_MAX3_IDX( evals1[0], evals1[1], evals1[2] );
-
-/*
-		fprintf( stderr, "evec0 = %f %f %f\n", evec0[0], evec0[1], evec0[2] );
-		fprintf( stderr, "evec1 = %f %f %f\n", evec1[0], evec1[1], evec1[2] );
-*/
-
-
-		if (tfx->lastDirSet) {
-			/* Use diffusion direction with largest curvature */
-			double angle0, angle1, nevec0[3],nevec1[3];
-
-			ELL_3V_SCALE( tfx->lastDir, 1 / ELL_3V_LEN( tfx->lastDir ), tfx->lastDir );
-			ELL_3V_SCALE( evec0, 1 / ELL_3V_LEN( evec0 ), evec0 );
-			ELL_3V_SCALE( evec1, 1 / ELL_3V_LEN( evec1 ), evec1 );
-			ELL_3V_SCALE( nevec0, -1, evec0 );
-			ELL_3V_SCALE( nevec1, -1, evec1 );
-
-			if( acos( ELL_3V_DOT( tfx->lastDir, nevec0 ) ) < acos( ELL_3V_DOT( tfx->lastDir, evec0 ) ))
-				ELL_3V_COPY( evec0, nevec0 );
-
-			if( acos( ELL_3V_DOT( tfx->lastDir, nevec1 ) ) < acos( ELL_3V_DOT( tfx->lastDir, evec1 ) ))
-				ELL_3V_COPY( evec1, nevec1 );
-
-			angle0 = acos( ELL_3V_DOT( tfx->lastDir, evec0 ) );
-			angle1 = acos( ELL_3V_DOT( tfx->lastDir, evec1 ) );
-
-			useTensor = (angle0 < angle1) ? 0 : 1;
-      // fprintf( stderr, "angle0 = %f angle1 = %f, \t using tensor %d\n", angle0, angle1, useTensor );
-
+    /* Estimate principal diffusion direction of each tensor */
+    tenEigensolve_d( evals0, evecs0, tfx->ten2 +1 -1 );
+    tenEigensolve_d( evals1, evecs1, tfx->ten2 +8 -1 );
+    
+    evec0 = evecs0;
+    evec1 = evecs1;
+    
+    /*
+      fprintf( stderr, "evec0 = %f %f %f\n", evec0[0], evec0[1], evec0[2] );
+      fprintf( stderr, "evec1 = %f %f %f\n", evec1[0], evec1[1], evec1[2] );
+    */
+    
+    
+    if (tfx->lastDirSet) {
+      /* Use diffusion direction with largest curvature */
+      double dot0, dot1;
+      
+      ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
+      dot0 = ELL_3V_DOT(tfx->lastDir, evec0);
+      dot1 = ELL_3V_DOT(tfx->lastDir, evec1);
+      if (dot0 < 0) {
+	dot0 *= -1;
+	ELL_3V_SCALE(evec0, -1, evec0);
+      }
+      if (dot1 < 0) {
+	dot1 *= -1;
+	ELL_3V_SCALE(evec1, -1, evec1);
+      }
+      
+      useTensor = (dot0 > dot1) ? 0 : 1;
+      /*
+      fprintf(stderr, "dot0 = %f dot = %f, \t using tensor %d\n",
+	      dot0, dot1, useTensor );
+      */
+      
     } else {
-    	/* Use diffusion direction specified by user */
-    	useTensor = tfx->initTen;
-    	// fprintf( stderr, "Lastdir not set, using tensor %d\n", useTensor );
+      /* Use diffusion direction specified by user */
+      useTensor = tfx->initTen;
+      /* fprintf( stderr, "Lastdir not set, using tensor %d\n", useTensor ); */
     }
-
-  	switch( useTensor ) {
-  		case 0:
-	    	tfx->eval[0] = evals0[ ELL_MAX3_IDX( evals0[0], evals0[1], evals0[2] ) ];
-	    	ELL_3V_COPY( tfx->evec, evec0 );
-			  break;
-			case 1:
-			  tfx->eval[0] = evals1[ ELL_MAX3_IDX( evals1[0], evals1[1], evals1[2] ) ];
-	    	ELL_3V_COPY( tfx->evec, evec1 );
-			  break;
-			default:
-				fprintf(stderr, "This should never happen since 'useTensor' is always set" );
-				exit(1);
-		}
-	}
-
-
-/*
-  fprintf(stderr, "!%s: probe(%g,%g,%g) -> %u\n", me,
-          iPos[0], iPos[1], iPos[2], ret);
-*/
-
+    switch( useTensor ) {
+    case 0:
+      tfx->eval[0] = evals0[ ELL_MAX3_IDX( evals0[0], evals0[1], evals0[2] ) ];
+      ELL_3V_COPY( tfx->evec, evec0 );
+      break;
+    case 1:
+      tfx->eval[0] = evals1[ ELL_MAX3_IDX( evals1[0], evals1[1], evals1[2] ) ];
+      ELL_3V_COPY( tfx->evec, evec1 );
+      break;
+    default:
+      fprintf(stderr, "This should never happen since 'useTensor' is always set" );
+      exit(1);
+    }
+  }
+  
+  
+  /*
+    fprintf(stderr, "!%s: probe(%g,%g,%g) -> %u\n", me,
+    iPos[0], iPos[1], iPos[2], ret);
+  */
+  
   return ret;
 }
 
 int
 _tenFiberStopCheck(tenFiberContext *tfx) {
   char me[]="_tenFiberStopCheck";
-
+  
   if (tfx->numSteps[tfx->dir] >= TEN_FIBER_NUM_STEPS_MAX) {
     fprintf(stderr, "%s: numSteps[%d] exceeded sanity check value of %d!!\n",
             me, tfx->dir, TEN_FIBER_NUM_STEPS_MAX);
