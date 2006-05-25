@@ -18,6 +18,7 @@ SET(TEN_SOURCES
   tenGage.c
   tenDwiGage.c
   tensor.c
+  qseg.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c

@@ -42,10 +42,10 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenFiberContext *tfx;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  int E, intg;
+  int E, intg, dwiUse;
   Nrrd *nin, *nout;
-  unsigned int si, stopLen;
-  
+  unsigned int si, stopLen, whichPath;
+
   hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, NULL,
              "seed point for fiber; it will propogate in two opposite "
              "directions starting from here");
@@ -73,6 +73,11 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &dwiUse, NULL,
+             "input volume is a DWI volume, not a single tensor volume");
+  hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
+             "when doing two-tensor tracking, which path to follow "
+             "(0 or 1)");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output fiber");
 
@@ -85,7 +90,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  tfx = tenFiberContextNew(nin);
+  if (dwiUse) {
+    fprintf(stderr, "%s: whichPath = %u\n", me, whichPath);
+    tfx = tenFiberContextDwiNew(nin);
+    tfx->initTen = whichPath;
+  } else {
+    tfx = tenFiberContextNew(nin);
+  }
   if (!tfx) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: failed to create the fiber context:\n%s\n", me, err);

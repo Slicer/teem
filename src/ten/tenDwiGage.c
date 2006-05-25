@@ -54,6 +54,7 @@ _tenDwiGageStr[][AIR_STRLEN_SMALL] = {
   "c",
   "2qs",
   "2qserr",
+  "2qsnerr",
 };
 
 int
@@ -85,6 +86,7 @@ _tenDwiGageVal[] = {
   tenDwiGageConfidence,
   tenDwiGage2TensorQSeg,
   tenDwiGage2TensorQSegError,
+  tenDwiGage2TensorQSegAndError,
 };
 
 airEnum
@@ -137,8 +139,9 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
 
   {tenDwiGageConfidence,               1,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                  tenDwiGageTensor,         0,    AIR_TRUE},
 
-  {tenDwiGage2TensorQSeg,             14,  0,  {tenDwiGageTensor, -1, -1, -1, -1, -1},                                                -1,         0,    AIR_TRUE},
-  {tenDwiGage2TensorQSegError,         1,  0,  {tenDwiGageAll, tenDwiGage2TensorQSeg, -1, -1, -1, -1},                                -1,         0,    AIR_TRUE}
+  {tenDwiGage2TensorQSeg,             14,  0,  {tenDwiGageAll, -1, -1, -1, -1, -1},                                                   -1,         0,    AIR_TRUE},
+  {tenDwiGage2TensorQSegError,         1,  0,  {tenDwiGageAll, tenDwiGage2TensorQSeg, -1, -1, -1, -1},                                -1,         0,    AIR_TRUE},
+  {tenDwiGage2TensorQSegAndError,     15,  0,  {tenDwiGage2TensorQSeg, tenDwiGage2TensorQSegError, -1, -1, -1},                       -1,         0,    AIR_TRUE}
 };
 
 void
@@ -219,30 +222,52 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* done if doV */
     if (ctx->verbose) {
       for (dwiIdx=0; dwiIdx<pvl->kind->valLen; dwiIdx++) {
-        fprintf(stderr, "%s: dwi[%u] = %g\n", me, dwiIdx, dwiAll[dwiIdx]);
+        fprintf(stderr, "%s(%d+%g,%d+%g,%d+%g): dwi[%u] = %g\n", me,
+		ctx->point.xi, ctx->point.xf,
+		ctx->point.yi, ctx->point.yf,
+		ctx->point.zi, ctx->point.zf,
+		dwiIdx, dwiAll[dwiIdx]);
       }
+      fprintf(stderr, "%s: type(ngrad) = %d = %s\n", me,
+	      kindData->ngrad->type,
+	      airEnumStr(nrrdType, kindData->ngrad->type));
     }
   }
+  // 49,20,15
+  //if( ctx->point.xi == 32 + 16 +3 -2 && ctx->point.yi == 16 +3 +1 && ctx->point.zi == 15 )
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSeg)) {
+
+    const double *grads;
+    int gradcount;
     double *twoten;
+
     unsigned int valIdx, E;
 
     twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
 
-    /* bogus: simulate a 2-tensor segmentation */
-    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
-      pvlData->wght[valIdx] = valIdx % 2;
+    gradcount = pvl->kind->valLen -1; // Dont count b0
+    grads = ((const double*) kindData->ngrad->data) +3; // Ignore b0 gradient
+    if( dwiAll[0] != 0 ) { // S0 = 0
+      qball( kindData->tec->bValue, gradcount, dwiAll, grads, pvlData->qvals );
+      qvals2points( gradcount, pvlData->qvals, grads, pvlData->qpoints );
+      segsamp2( gradcount, pvlData->qvals, grads, pvlData->qpoints, pvlData->wght + 1, pvlData->dists );
+    } else {
+      // This is stupid, should really return right here since data is garbage
+      for (valIdx=1; valIdx < gradcount+1; valIdx++) {
+	pvlData->wght[valIdx] = valIdx % 2;
+      }
     }
 
+
     E = 0;
-    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
+    for (valIdx=1; valIdx<pvl->kind->valLen; valIdx++) {
       if (!E) E |= tenEstimateSkipSet(kindData->tec, valIdx,
                                       pvlData->wght[valIdx]);
     }
     if (!E) E |= tenEstimateUpdate(kindData->tec);
     if (!E) E |= tenEstimate1TensorSingle_d(kindData->tec,
                                             twoten + 0, dwiAll);
-    for (valIdx=0; valIdx<pvl->kind->valLen; valIdx++) {
+    for (valIdx=1; valIdx<pvl->kind->valLen; valIdx++) {
       if (!E) E |= tenEstimateSkipSet(kindData->tec, valIdx,
                                       1 - pvlData->wght[valIdx]);
     }
@@ -257,6 +282,173 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     twoten[7] = 0.5;   /* fraction that is the first tensor */
     /* twoten[1 .. 6] = first tensor */
     /* twoten[8 .. 13] = second tensor */
+
+    // Compute fraction between tensors if not garbage in this voxel
+    if( dwiAll[0] != 0 ) { // S0 = 0
+      double ten0[9], ten1[9], vec[3], exp0,exp1,d,e=0,g=0, a=0,b=0;
+      int i;
+
+      ten0[0] = twoten[1];
+      ten0[1] = twoten[2];
+      ten0[2] = twoten[3];
+      ten0[3] = twoten[2];
+      ten0[4] = twoten[4];
+      ten0[5] = twoten[5];
+      ten0[6] = twoten[3];
+      ten0[7] = twoten[5];
+      ten0[8] = twoten[6];
+
+      ten1[0] = twoten[7+1];
+      ten1[1] = twoten[7+2];
+      ten1[2] = twoten[7+3];
+      ten1[3] = twoten[7+2];
+      ten1[4] = twoten[7+4];
+      ten1[5] = twoten[7+5];
+      ten1[6] = twoten[7+3];
+      ten1[7] = twoten[7+5];
+      ten1[8] = twoten[7+6];
+
+	for( i=0; i < gradcount; i++ ) {
+		ell_3mv_mul_d( vec, ten0, grads +3*i );
+		exp0 = exp( - kindData->tec->bValue * ELL_3V_DOT( grads +3*i, vec ));
+
+		ell_3mv_mul_d( vec, ten1, grads +3*i );
+		exp1 = exp( - kindData->tec->bValue * ELL_3V_DOT( grads +3*i, vec ) );
+
+		d = dwiAll[i+1] / dwiAll[0];
+		e = exp0 - exp1;
+		g = d - exp1;
+
+		a += .5*e*e;
+		b += e*g;
+	}
+
+	twoten[7] = AIR_CLAMP(0, .5*(b/a), 1);
+    }
+    
+    /*
+    if( ctx->point.xi == 32 + 16 +3 -2 && ctx->point.yi == 16 +3 +1 && ctx->point.zi == 15 )
+      {
+	int i;
+
+	printf("Now at pixel\n");
+
+	printf("\nS=\n");
+	for( i=0; i < pvl->kind->valLen; i++ )
+	  printf("%f ", dwiAll[i] );
+	printf("\n");
+
+	printf("\nQ=\n");
+	for( i=1; i < pvl->kind->valLen; i++ )
+	  printf("%f ", pvlData->qvals[i-1] );
+	printf("\n");
+
+	printf("\nSeg=\n");
+	for( i=1; i < pvl->kind->valLen; i++ )
+	  printf("%d ", pvlData->wght[i]);
+	printf("\n");
+
+	printf("\nTensors=\n");
+	for( i=0; i < 14; i++ )
+	  printf("%f ", twoten[i]);
+	printf("\n");
+
+	twoten[0] = 0;
+	twoten[1] = 0;
+	twoten[2] = 0;
+	twoten[3] = 0;
+	twoten[4] = 0;
+	twoten[5] = 0;
+	twoten[6] = 0;
+	twoten[7] = 0;
+	twoten[8] = 0;
+	twoten[9] = 0;
+	twoten[10] = 0;
+	twoten[11] = 0;
+	twoten[12] = 0;
+	twoten[13] = 0;	
+      }
+    */
+
+    //    printf( "f = %f", twoten[7] );
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSegError)) {
+    const double *grads;
+    int gradcount;
+    double *twoten, ten0[9], ten1[9], vec[3], d;
+    int i;
+
+
+    if( dwiAll[0] != 0 ) { // S0 = 0
+      twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
+      gradcount = pvl->kind->valLen -1; // Dont count b0
+      grads = ((const double*) kindData->ngrad->data) +3; // Ignore b0 gradient
+
+      ten0[0] = twoten[1];
+      ten0[1] = twoten[2];
+      ten0[2] = twoten[3];
+      ten0[3] = twoten[2];
+      ten0[4] = twoten[4];
+      ten0[5] = twoten[5];
+      ten0[6] = twoten[3];
+      ten0[7] = twoten[5];
+      ten0[8] = twoten[6];
+
+      ten1[0] = twoten[7+1];
+      ten1[1] = twoten[7+2];
+      ten1[2] = twoten[7+3];
+      ten1[3] = twoten[7+2];
+      ten1[4] = twoten[7+4];
+      ten1[5] = twoten[7+5];
+      ten1[6] = twoten[7+3];
+      ten1[7] = twoten[7+5];
+      ten1[8] = twoten[7+6];
+
+      /*
+	// Shows difference between f=0.5 and computed
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = 0;
+      for( i=0; i < gradcount; i++ ) {
+	// Isn't there an inner-product defined somewhere in teem?
+	ELL_3MV_MUL( vec, ten0, grads +3*i );
+	d = .5 * exp( - kindData->tec->bValue * ELL_3V_DOT(grads + 3*i, vec) );
+
+	ell_3mv_mul_d( vec, ten1, grads +3*i );
+	d += .5 * exp( - kindData->tec->bValue * (grads[3*i]*vec[0] + grads[3*i+1]*vec[1] + grads[3*i+2]*vec[2]) );
+	d = dwiAll[i+1]/dwiAll[0] - d;
+	pvl->directAnswer[tenDwiGage2TensorQSegError][0] += d*d;
+      }
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = sqrt( pvl->directAnswer[tenDwiGage2TensorQSegError][0] );
+      //      printf("%f   ", pvl->directAnswer[tenDwiGage2TensorQSegError][0]);
+      */
+
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = 0;
+      for( i=0; i < gradcount; i++ ) {
+	// Isn't there an inner-product defined somewhere in teem?
+	ell_3mv_mul_d( vec, ten0, grads +3*i );
+	d = twoten[7] * exp( - kindData->tec->bValue * (grads[3*i]*vec[0] + grads[3*i+1]*vec[1] + grads[3*i+2]*vec[2]) );
+
+	ell_3mv_mul_d( vec, ten1, grads +3*i );
+	d += (1 - twoten[7]) * exp( - kindData->tec->bValue * (grads[3*i]*vec[0] + grads[3*i+1]*vec[1] + grads[3*i+2]*vec[2]) );
+	d = dwiAll[i+1]/dwiAll[0] - d;
+	pvl->directAnswer[tenDwiGage2TensorQSegError][0] += d*d;
+      }
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = sqrt( pvl->directAnswer[tenDwiGage2TensorQSegError][0] );
+      //      printf("%f\n", pvl->directAnswer[tenDwiGage2TensorQSegError][0]);
+
+    } else {
+      pvl->directAnswer[tenDwiGage2TensorQSegError][0] = 0; // COMPLETELY WRONG!! An error is not defined!
+    }
+    //printf("%f\n",pvl->directAnswer[tenDwiGage2TensorQSegError][0]);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSegAndError)) {
+    double *twoten, *err, *twotenerr;
+
+    twoten = pvl->directAnswer[tenDwiGage2TensorQSeg];
+    err = pvl->directAnswer[tenDwiGage2TensorQSegError];
+    twotenerr = pvl->directAnswer[tenDwiGage2TensorQSegAndError];
+    TEN_T_COPY(twotenerr + 0, twoten + 0);
+    TEN_T_COPY(twotenerr + 7, twoten + 7);
+    twotenerr[14] = err[0];
   }
   /*
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageB0)) {
@@ -319,7 +511,7 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 int
 tenDwiGageKindCheck(const gageKind *kind) {
   char me[]="tenDwiGageKindCheck", err[BIFF_STRLEN];
-  
+
   if (!kind) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
@@ -345,7 +537,7 @@ _tenDwiGageKindReadyCheck(const gageKind *kind) {
     sprintf(err, "%s: didn't get valid kind", me);
     biffAdd(TEN, err); return 1;
   }
-  
+
   /* HEY: isn't there more to do here ? */
 
   return 0;
@@ -357,6 +549,10 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   tenDwiGagePvlData *pvlData;
   tenDwiGageKindData *kindData;
 
+  // ADDED BY ORJAN
+  const int gradcount = kind->valLen -1;
+  const int segcount = 2;
+
   if (_tenDwiGageKindReadyCheck(kind)) {
     sprintf(err, "%s: kindData not ready for use", me);
     biffMove(GAGE, err, TEN); return NULL;
@@ -366,10 +562,18 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
                      malloc(sizeof(tenDwiGagePvlData)));
   if (pvlData) {
     kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
+
     pvlData->vbuf = AIR_CAST(double *,
                              calloc(kind->valLen, sizeof(double)));
     pvlData->wght = AIR_CAST(unsigned int *,
                              calloc(kind->valLen, sizeof(unsigned int)));
+    pvlData->wght[0] = 1;
+
+	// ADDED BY ORJAN
+	pvlData->qvals = (double*) malloc( gradcount * sizeof(double) );
+	pvlData->qpoints = (double*) malloc( 3 * gradcount * sizeof(double) );
+	pvlData->dists = (double*) malloc( segcount * gradcount * sizeof(double) );
+	pvlData->weights = (double*) malloc( segcount * gradcount * sizeof(double) );
   }
   return AIR_CAST(void*, pvlData);
 }
@@ -390,6 +594,13 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
     pvlData = AIR_CAST(tenDwiGagePvlData *, _pvlData);
     airFree(pvlData->vbuf);
     airFree(pvlData->wght);
+
+    // ADDED BY ORJAN
+	airFree(pvlData->qvals);
+	airFree(pvlData->qpoints);
+	airFree(pvlData->dists);
+	airFree(pvlData->weights);
+
     airFree(pvlData);
   }
   return NULL;

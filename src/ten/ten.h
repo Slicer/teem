@@ -65,7 +65,7 @@ extern "C" {
 ** aniso.c: _tenAnisoEval_X_f()
 ** aniso.c: _tenAnisoEval_f[]
 ** aniso.c: tenAnisoCalc_f()
-** enumsTen.c: tenAniso  
+** enumsTen.c: tenAniso
 */
 enum {
   tenAnisoUnknown, /*  0: nobody knows */
@@ -102,7 +102,7 @@ enum {
 
 /*
 ******** tenGlyphType* enum
-** 
+**
 ** the different types of glyphs that may be used for tensor viz
 */
 enum {
@@ -121,12 +121,12 @@ enum {
 ** all input parameters to tenGlyphGen
 */
 typedef struct {
-  int verbose; 
-  
+  int verbose;
+
   /* glyphs will be shown at samples that have confidence >= confThresh,
      and anisotropy anisoType >= anisoThresh, and if nmask is non-NULL,
-     then the corresponding mask value must be >= maskThresh.  If 
-     onlyPositive, then samples with a non-positive eigenvalue will 
+     then the corresponding mask value must be >= maskThresh.  If
+     onlyPositive, then samples with a non-positive eigenvalue will
      be skipped, regardless of their purported anisotropy */
   Nrrd *nmask;
   int anisoType, onlyPositive;
@@ -176,7 +176,7 @@ typedef struct {
 
 /*
 ******** tenGage* enum
-** 
+**
 ** all the possible queries supported in the tenGage gage kind
 ** various properties of the quantities below (eigenvalues = v1, v2, v3):
 ** eigenvalue cubic equation: v^3 + A*v^2 + B*v + C = 0
@@ -186,7 +186,7 @@ typedef struct {
 ** S = v1*v1 + v2*v2 + v3*v3
 ** Q = (S-B)/9 = variance({v1,v2,v3})/2 = (RootRadius/2)^2
 ** FA = 3*sqrt(Q/S)
-** R = (9*A*B - 2*A^3 - 27*C)/54 
+** R = (9*A*B - 2*A^3 - 27*C)/54
      = (5*A*B - 2*A*S - 27*C)/54 = thirdmoment({v1,v2,v3})/2
 ** P = arccos(R/sqrt(Q)^3)/3 = phase angle of cubic solution
 **
@@ -197,12 +197,12 @@ typedef struct {
 ** capability of tenGage is that because this is visualization, you
 ** can't easily control whether the measurement frame is applied, if
 ** known- in that sense the RGB info is uniquely different from the
-** other vector and tensor items that can be queried ... so after a 
+** other vector and tensor items that can be queried ... so after a
 ** brief appearance here the RGB evec coloring was removed.  The
 ** gagePerVolume->data field that it motivated has rightly remained.
 **
 ** !!! Changes to this list need to be propogated to:
-** !!! tenGage.c: _tenGageTable[], _tenGageAnswer(), 
+** !!! tenGage.c: _tenGageTable[], _tenGageAnswer(),
 ** !!! enumsTen.c: tenGage airEnum.
 **
 */
@@ -235,10 +235,10 @@ enum {
 
   tenGageTensorGrad,       /*  21: "tg", all tensor component gradients,
                                    starting with confidence gradient: [21] */
-  tenGageTensorGradMag,    /*  22: "tgm", actually a 3-vector of tensor 
+  tenGageTensorGradMag,    /*  22: "tgm", actually a 3-vector of tensor
                                    gradient norms, one for each axis: [3] */
   tenGageTensorGradMagMag, /*  23: "tgmm", single scalar magnitude: [1] */
-  
+
   tenGageTraceGradVec,     /*  24: "trgv": gradient (vector) of trace: [3] */
   tenGageTraceGradMag,     /*  25: "trgm": gradient magnitude of trace: [1] */
   tenGageTraceNormal,      /*  26: "trn": normal of trace: [3] */
@@ -367,9 +367,9 @@ enum {
   tenDwiGageMeanDwiValue,
 
   /*  3: "tlls": [7],
-      4: "tllserr": [1], 
-      5: "tllserrlog": [1], 
-      6: "tllslike": [1], 
+      4: "tllserr": [1],
+      5: "tllserrlog": [1],
+      6: "tllslike": [1],
      linear least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorLLS,
   tenDwiGageTensorLLSError,      /* sum-of-sqrd-diffs w/ Dwis */
@@ -406,7 +406,7 @@ enum {
   tenDwiGageTensorMLEErrorLog,
   tenDwiGageTensorMLELikelihood,
 
-  /* 19: "t": [7], 
+  /* 19: "t": [7],
      20: "terr": [1],
      21: "terrlog": [1],
      22: "tlike": [1],
@@ -419,14 +419,15 @@ enum {
   /* 23: "c", first of seven tensor values: [1] */
   tenDwiGageConfidence,
 
-  /* 24: "2qs", two tensor fitting by q-ball segmentation: [14] 
+  /* 24: "2qs", two tensor fitting by q-ball segmentation: [14]
      25: "2qserr": [1] */
   tenDwiGage2TensorQSeg,
   tenDwiGage2TensorQSegError,
-  
+  tenDwiGage2TensorQSegAndError,
+
   tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 25
+#define TEN_DWI_GAGE_ITEM_MAX 26
 
 /*
 ******** tenEstimateMethod* enum
@@ -535,7 +536,7 @@ enum {
 enum {
   tenFiberParmUnknown,         /* 0: nobody knows */
   tenFiberParmStepSize,        /* 1: base step size */
-  tenFiberParmUseIndexSpace,   /* 2: non-zero iff output of fiber should be 
+  tenFiberParmUseIndexSpace,   /* 2: non-zero iff output of fiber should be
                                   seeded in and output in index space,
                                   instead of default world */
   tenFiberParmWPunct,          /* 3: tensor-line parameter */
@@ -579,7 +580,11 @@ typedef struct {
   int lastDirSet;       /* lastDir[] is usefully set */
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
-  const double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
+
+
+
+  //const double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */ // Removed 'const' by Orjan to allow hacking of eigenvals and vecs
+  double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
     *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
     *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
     *anisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
@@ -591,6 +596,11 @@ typedef struct {
   int whyStop[2],       /* why backward/forward (0/1) tracing stopped
                            (from tenFiberStop* enum) */
     whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
+
+  // Added by Orjan
+  int doingOrjanStuff, initTen;
+  double *ten2;
+
 } tenFiberContext;
 
 /*
@@ -622,7 +632,7 @@ typedef struct {
                             current iteration */
     vmin, vmax,          /* value range represented by histogram. This is
                             saved from given histogram, and used to inform
-                            final output values, but it is not used for 
+                            final output values, but it is not used for
                             any intermediate histogram calculations, all of
                             which are done entirely in index space */
     delta;               /* some measure of model change between iters */
@@ -643,9 +653,9 @@ typedef struct {
 ** all parameters for repulsion-based generation of gradient directions
 */
 typedef struct {
-  double mass, 
+  double mass,
     charge,
-    drag, 
+    drag,
     dt,
     jitter,
     minVelocity,
@@ -663,7 +673,7 @@ typedef struct {
 typedef struct {
   /* input ----------- */
   double bValue,           /* scalar b value */
-    valueMin,              /* smallest sensible for input Dwi value, 
+    valueMin,              /* smallest sensible for input Dwi value,
                               must be > 0.0 (for taking log) */
     sigma,                 /* noise parameter */
     dwiConfThresh,         /* mean Dwi threshold for confidence mask */
@@ -672,7 +682,7 @@ typedef struct {
                               1) only one can be non-NULL, and axis[1].size
                               is the total # values, both Dwi and non-Dwi
                               2) NO additional re-normalization is done on
-                              the grads/bmats, UNLIKE the normalization 
+                              the grads/bmats, UNLIKE the normalization
                               performed by tenDWMRIKeyValueParse(). */
   const Nrrd *_ngrad,      /* caller's 3-by-allNum gradient list */
     *_nbmat;               /* caller's 6-by-allNum B-matrix list,
@@ -735,6 +745,12 @@ typedef struct {
 typedef struct {
   double *vbuf;
   unsigned int *wght;
+
+  	// ADDED BY ORJAN
+	double *qvals;
+	double *qpoints;
+	double *dists;
+	double *weights;
 } tenDwiGagePvlData;
 
 /* defaultsTen.c */
@@ -841,8 +857,8 @@ TEN_EXPORT void tenEstimateLinearSingle_d(double *ten, double *B0P,
                                           double soft, double b);
 TEN_EXPORT int tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                    const Nrrd *const *ndwi,
-                                   unsigned int dwiLen, 
-                                   const Nrrd *nbmat, int knownB0, 
+                                   unsigned int dwiLen,
+                                   const Nrrd *nbmat, int knownB0,
                                    double thresh, double soft, double b);
 TEN_EXPORT int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                    const Nrrd *ndwi, const Nrrd *_nbmat,
@@ -867,7 +883,7 @@ TEN_EXPORT int tenEstimateSigmaSet(tenEstimateContext *tec,
 TEN_EXPORT int tenEstimateValueMinSet(tenEstimateContext *tec,
                                       double valueMin);
 TEN_EXPORT int tenEstimateGradientsSet(tenEstimateContext *tec,
-                                       const Nrrd *ngrad, 
+                                       const Nrrd *ngrad,
                                        double bValue, int estimateB0);
 TEN_EXPORT int tenEstimateBMatricesSet(tenEstimateContext *tec,
                                        const Nrrd *nbmat,
@@ -890,7 +906,7 @@ TEN_EXPORT int tenEstimate1TensorSimulateSingle_d(tenEstimateContext *tec,
                                                   double bValue, double B0,
                                                   const double ten[7]);
 TEN_EXPORT int tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
-                                                Nrrd *ndwi, 
+                                                Nrrd *ndwi,
                                                 double sigma, double bValue,
                                                 const Nrrd *nB0,
                                                 const Nrrd *nten,
@@ -982,7 +998,7 @@ TEN_EXPORT int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
                                 int reference,
                                 double bwX, double bwY,
                                 double fitFrac, double DWthr,
-                                int doCC, 
+                                int doCC,
                                 const NrrdKernel *kern, double *kparm,
                                 int progress, int verbose);
 
@@ -1000,7 +1016,7 @@ TEN_EXPORT int tenLog(Nrrd *nout, const Nrrd *nin);
 TEN_EXPORT int tenExp(Nrrd *nout, const Nrrd *nin);
 
 /* bvec.c */
-TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
+TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
                                    double *bb, double *ww,
                                    int iterMax, double eps);
 
@@ -1067,7 +1083,7 @@ F(shrink) \
 F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
-TEN_EXPORT unrrduCmd *tendCmdList[]; 
+TEN_EXPORT unrrduCmd *tendCmdList[];
 TEN_EXPORT void tendUsage(char *me, hestParm *hparm);
 TEN_EXPORT hestCB *tendFiberStopCB;
 

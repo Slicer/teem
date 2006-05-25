@@ -24,20 +24,61 @@
 #include "privateTen.h"
 
 tenFiberContext *
-tenFiberContextNew(const Nrrd *dtvol) {
-  char me[]="tenFiberContextNew", err[BIFF_STRLEN];
+tenFiberContextDwiNew(const Nrrd *dtvol) {
+  char me[]="tenFiberContextDwiNew", err[BIFF_STRLEN];
   tenFiberContext *tfx;
+  gageKind *kind;
+  int useDwi = AIR_TRUE; /* Should be a parameter of this function */
 
-  if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a tensor volume", me);
-    biffAdd(TEN, err); return NULL;
-  }
   if (!( tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext)) )) {
     /* that is not good */
     return NULL;
   }
+  if (useDwi) {
+  	tenDwiGageKindData *kindData;
+  	int E=0;
+  	Nrrd *ngrad=NULL, *nbmat=NULL;
+	  double bval=0;
+	  unsigned int *skip, skipNum, skipIdx;
+
+  	tfx->doingOrjanStuff = AIR_TRUE;
+
+  	kind = tenDwiGageKindNew();
+    kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
+
+  	tenDwiGageKindNumSet(kind, dtvol->axis[0].size);
+
+  	if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, dtvol)) {
+	    fprintf(stderr, "%s: trouble parsing DWI info:\n\n", me );
+	  }
+		if (!E) tenEstimateVerboseSet(kindData->tec, AIR_TRUE);
+		if (!E) tenEstimateNegEvalShiftSet(kindData->tec, AIR_TRUE);
+		if (!E) E |= tenEstimateMethodSet(kindData->tec, tenEstimateMethodLLS);
+		if (!E) E |= tenEstimateValueMinSet(kindData->tec, 1.0);
+		if (ngrad) {
+			if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, AIR_FALSE);
+			kindData->ngrad = nrrdNew();
+			nrrdCopy(kindData->ngrad, ngrad);
+		} else {
+			if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval, AIR_FALSE);
+			kindData->ngrad = NULL;
+		}
+		for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
+			if (!E) E |= tenEstimateSkipSet(kindData->tec, skip[skipIdx], AIR_TRUE);
+		}
+		/* HEY: HACK */
+		if (!E) E |= tenEstimateThresholdSet(kindData->tec, 50, 1);
+		if (E) {
+			fprintf(stderr, "%s: trouble setting grad/bmat info:\n", me );
+		}
+
+		/* HAVE TO DO CLEAN UP OF THIS SOMEWHERE */
+  } else {
+  	tfx->doingOrjanStuff = AIR_FALSE;
+  	kind = tenGageKind;
+  }
   if ( !(tfx->gtx = gageContextNew())
-       || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, dtvol, tenGageKind)) 
+       || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, dtvol, kind))
        || (gagePerVolumeAttach(tfx->gtx, tfx->pvl)) ) {
     sprintf(err, "%s: gage trouble", me);
     biffMove(TEN, err, GAGE); free(tfx); return NULL;
@@ -53,7 +94,100 @@ tenFiberContextNew(const Nrrd *dtvol) {
     sprintf(err, "%s: couldn't set default kernel", me);
     biffAdd(TEN, err); return NULL;
   }
-  /* looks to GK like GK says that we must set fiber type and 
+  /* looks to GK like GK says that we must set fiber type and
+    some stop criterion */
+  tfx->fiberType = tenFiberTypeUnknown;
+  tfx->intg = tenDefFiberIntg;
+  tfx->anisoStopType = tenDefFiberAnisoStopType;
+  tfx->anisoSpeedType = tenAnisoUnknown;
+  tfx->stop = 0;
+  tfx->anisoThresh = tenDefFiberAnisoThresh;
+  /* so I'm not using the normal default mechanism, shoot me */
+  tfx->anisoSpeedFunc[0] = 0;
+  tfx->anisoSpeedFunc[1] = 0;
+  tfx->anisoSpeedFunc[2] = 0;
+  tfx->maxNumSteps = tenDefFiberMaxNumSteps;
+  tfx->useIndexSpace = tenDefFiberUseIndexSpace;
+  tfx->stepSize = tenDefFiberStepSize;
+  tfx->maxHalfLen = tenDefFiberMaxHalfLen;
+  tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
+                            only get read if the right tenFiberStopSet has
+                            been called, in which case they'll be set... */
+  tfx->minRadius = 1;    /* above lament applies here as well */
+  tfx->wPunct = tenDefFiberWPunct;
+
+  GAGE_QUERY_RESET(tfx->query);
+  if (tfx->doingOrjanStuff) {
+  	GAGE_QUERY_ITEM_ON( tfx->query, tenDwiGage2TensorQSeg );
+
+  	tfx->dten = NULL;
+  	tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* This will be hacked */
+	  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* This will be hacked */
+	  tfx->ten2 = gageAnswerPointer(tfx->gtx, tfx->pvl, tenDwiGage2TensorQSeg );
+	  gageUpdate(tfx);
+	} else {
+	  tfx->dten = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+	  tfx->eval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0); /* Contains 1 element */
+	  tfx->evec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0); /* Contains 3 elements */
+	  tfx->ten2 = NULL;
+	}
+  tfx->anisoStop = NULL;
+  tfx->anisoSpeed = NULL;
+  tfx->radius = AIR_NAN;
+  /* no more; set below
+  tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso); */
+  return tfx;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tenFiberContext *
+tenFiberContextNew(const Nrrd *dtvol) {
+  char me[]="tenFiberContextNew", err[BIFF_STRLEN];
+  tenFiberContext *tfx;
+
+  if (tenTensorCheck(dtvol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a tensor volume", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  if (!( tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext)) )) {
+    /* that is not good */
+    return NULL;
+  }
+  if ( !(tfx->gtx = gageContextNew())
+       || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, dtvol, tenGageKind))
+       || (gagePerVolumeAttach(tfx->gtx, tfx->pvl)) ) {
+    sprintf(err, "%s: gage trouble", me);
+    biffMove(TEN, err, GAGE); free(tfx); return NULL;
+  }
+  tfx->dtvol = dtvol;
+  tfx->ksp = nrrdKernelSpecNew();
+  if (nrrdKernelSpecParse(tfx->ksp, tenDefFiberKernel)) {
+    sprintf(err, "%s: couldn't parse tenDefFiberKernel \"%s\"",
+            me,  tenDefFiberKernel);
+    biffMove(TEN, err, NRRD); return NULL;
+  }
+  if (tenFiberKernelSet(tfx, tfx->ksp->kernel, tfx->ksp->parm)) {
+    sprintf(err, "%s: couldn't set default kernel", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  /* looks to GK like GK says that we must set fiber type and
      some stop criterion */
   tfx->fiberType = tenFiberTypeUnknown;
   tfx->intg = tenDefFiberIntg;
@@ -82,7 +216,7 @@ tenFiberContextNew(const Nrrd *dtvol) {
   tfx->anisoStop = NULL;
   tfx->anisoSpeed = NULL;
   tfx->radius = AIR_NAN;
-  /* no more; set below 
+  /* no more; set below
   tfx->aniso = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageAniso); */
   return tfx;
 }
@@ -199,7 +333,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       break;
     }
     /* NOTE: we are no longer computing ALL anisotropy measures ...
-       GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso); 
+       GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
     */
     GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
     tfx->anisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
@@ -358,12 +492,21 @@ tenFiberKernelSet(tenFiberContext *tfx,
     biffAdd(TEN, err); return 1;
   }
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
-  if (gageKernelSet(tfx->gtx, gageKernel00,
+/*
+  if (gageKernelSet((tfx->doingOrjanStuff
+  	                 ? tfx->dwiGageContext
+  	                 : tfx->gtx), gageKernel00,
                     tfx->ksp->kernel, tfx->ksp->parm)) {
     sprintf(err, "%s: problem setting kernel", me);
     biffMove(TEN, err, GAGE); return 1;
-  }
-  
+	}
+*/
+  if (gageKernelSet( tfx->gtx, gageKernel00,
+                    tfx->ksp->kernel, tfx->ksp->parm)) {
+    sprintf(err, "%s: problem setting kernel", me);
+    biffMove(TEN, err, GAGE); return 1;
+	}
+
   return 0;
 }
 
@@ -380,7 +523,7 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
     biffAdd(TEN, err); return 1;
   }
   tfx->intg = intg;
-  
+
   return 0;
 }
 
@@ -472,7 +615,7 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
 
 tenFiberContext *
 tenFiberContextNix(tenFiberContext *tfx) {
-  
+
   if (tfx) {
     tfx->ksp = nrrdKernelSpecNix(tfx->ksp);
     tfx->gtx = gageContextNix(tfx->gtx);

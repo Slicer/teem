@@ -27,16 +27,80 @@
 
 int
 _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
-  /* char me[]="_tenFiberProbe"; */
+  char me[]="_tenFiberProbe";
   double iPos[3];
   int ret;
-  
+
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
   ret = gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
-  /*
-  fprintf(stderr, "!%s: probe(%g,%g,%g) -> %u\n", me, 
+
+
+  if( tfx->doingOrjanStuff ) {
+	  double M0[9], M1[9], evecs0[9], evecs1[9], evals0[3], evals1[3], *evec0, *evec1;
+	  int useTensor=-1;
+
+		/* Estimate principal diffusion direction of each tensor */
+	  tenEigensolve_d( evals0, evecs0, tfx->ten2 +1 -1 );
+	  tenEigensolve_d( evals1, evecs1, tfx->ten2 +8 -1 );
+
+		evec0 = evecs0 + 3*ELL_MAX3_IDX( evals0[0], evals0[1], evals0[2] );
+		evec1 = evecs1 + 3*ELL_MAX3_IDX( evals1[0], evals1[1], evals1[2] );
+
+/*
+		fprintf( stderr, "evec0 = %f %f %f\n", evec0[0], evec0[1], evec0[2] );
+		fprintf( stderr, "evec1 = %f %f %f\n", evec1[0], evec1[1], evec1[2] );
+*/
+
+
+		if (tfx->lastDirSet) {
+			/* Use diffusion direction with largest curvature */
+			double angle0, angle1, nevec0[3],nevec1[3];
+
+			ELL_3V_SCALE( tfx->lastDir, 1 / ELL_3V_LEN( tfx->lastDir ), tfx->lastDir );
+			ELL_3V_SCALE( evec0, 1 / ELL_3V_LEN( evec0 ), evec0 );
+			ELL_3V_SCALE( evec1, 1 / ELL_3V_LEN( evec1 ), evec1 );
+			ELL_3V_SCALE( nevec0, -1, evec0 );
+			ELL_3V_SCALE( nevec1, -1, evec1 );
+
+			if( acos( ELL_3V_DOT( tfx->lastDir, nevec0 ) ) < acos( ELL_3V_DOT( tfx->lastDir, evec0 ) ))
+				ELL_3V_COPY( evec0, nevec0 );
+
+			if( acos( ELL_3V_DOT( tfx->lastDir, nevec1 ) ) < acos( ELL_3V_DOT( tfx->lastDir, evec1 ) ))
+				ELL_3V_COPY( evec1, nevec1 );
+
+			angle0 = acos( ELL_3V_DOT( tfx->lastDir, evec0 ) );
+			angle1 = acos( ELL_3V_DOT( tfx->lastDir, evec1 ) );
+
+			useTensor = (angle0 < angle1) ? 0 : 1;
+      // fprintf( stderr, "angle0 = %f angle1 = %f, \t using tensor %d\n", angle0, angle1, useTensor );
+
+    } else {
+    	/* Use diffusion direction specified by user */
+    	useTensor = tfx->initTen;
+    	// fprintf( stderr, "Lastdir not set, using tensor %d\n", useTensor );
+    }
+
+  	switch( useTensor ) {
+  		case 0:
+	    	tfx->eval[0] = evals0[ ELL_MAX3_IDX( evals0[0], evals0[1], evals0[2] ) ];
+	    	ELL_3V_COPY( tfx->evec, evec0 );
+			  break;
+			case 1:
+			  tfx->eval[0] = evals1[ ELL_MAX3_IDX( evals1[0], evals1[1], evals1[2] ) ];
+	    	ELL_3V_COPY( tfx->evec, evec1 );
+			  break;
+			default:
+				fprintf(stderr, "This should never happen since 'useTensor' is always set" );
+				exit(1);
+		}
+	}
+
+
+/*
+  fprintf(stderr, "!%s: probe(%g,%g,%g) -> %u\n", me,
           iPos[0], iPos[1], iPos[2], ret);
-  */
+*/
+
   return ret;
 }
 
@@ -83,7 +147,7 @@ void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 
   if (!(tfx->lastDirSet)) {
-    /* this is the first step (or one of the intermediate steps 
+    /* this is the first step (or one of the intermediate steps
        for RK4) in this fiber half; 1st half follows the
        eigenvector determined at seed point, 2nd goes opposite */
     if (!tfx->dir) {
@@ -137,7 +201,7 @@ _tenFiberAnisoSpeed(double *step, double xx, double parm[3]) {
 */
 void
 _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
-  
+
   ELL_3V_COPY(step, tfx->evec + 3*0);
   _tenFiberAlign(tfx, step);
   if (tfx->anisoSpeedType) {
@@ -149,7 +213,7 @@ _tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
 void
 _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   double cl, evec0[3], vout[3], vin[3], len;
-  
+
   ELL_3V_COPY(evec0, tfx->evec + 3*0);
   _tenFiberAlign(tfx, evec0);
 
@@ -180,7 +244,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
 void
 _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
   char me[]="_tenFiberStep_PureLine";
-  
+
   AIR_UNUSED(tfx);
   AIR_UNUSED(step);
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
@@ -189,7 +253,7 @@ _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
 void
 _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
   char me[]="_tenFiberStep_Zhukov";
-  
+
   AIR_UNUSED(tfx);
   AIR_UNUSED(step);
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
@@ -207,13 +271,13 @@ _tenFiberStep[TEN_FIBER_TYPE_MAX+1])(tenFiberContext *, double *) = {
 /*
 ** -------------------------------------------------------------------
 ** -------------------------------------------------------------------
-** The _tenFiberIntegrate_* routines must assume that 
+** The _tenFiberIntegrate_* routines must assume that
 ** _tenFiberProbe(tfx, tfx->wPos) has just been called
 */
 
 int
 _tenFiberIntegrate_Euler(tenFiberContext *tfx, double forwDir[3]) {
-  
+
   _tenFiberStep[tfx->fiberType](tfx, forwDir);
   ELL_3V_SCALE(forwDir, tfx->stepSize, forwDir);
   return 0;
@@ -222,7 +286,7 @@ _tenFiberIntegrate_Euler(tenFiberContext *tfx, double forwDir[3]) {
 int
 _tenFiberIntegrate_Midpoint(tenFiberContext *tfx, double forwDir[3]) {
   double loc[3], half[3];
-  
+
   _tenFiberStep[tfx->fiberType](tfx, half);
   ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*tfx->stepSize, half);
   if (_tenFiberProbe(tfx, loc)) return 1;
@@ -253,7 +317,7 @@ _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
              c1*k1[0] + c2*k2[0] + c3*k3[0] + c4*k4[0],
              c1*k1[1] + c2*k2[1] + c3*k3[1] + c4*k4[1],
              c1*k1[2] + c2*k2[2] + c3*k3[2] + c4*k4[2]);
-  
+
   return 0;
 }
 
@@ -270,7 +334,7 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 **
 ** slightly more flexible API for fiber tracking than tenFiberTrace
 **
-** EITHER: pass a non-NULL nfiber, and NULL, 0, NULL, NULL for 
+** EITHER: pass a non-NULL nfiber, and NULL, 0, NULL, NULL for
 ** the following arguments, and things are the same as with tenFiberTrace:
 ** data inside the nfiber is allocated, and the tract vertices are copied
 ** into it, having been stored in dynamically allocated airArrays
@@ -295,9 +359,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   double
     tmp[3],
     iPos[3],
-    currPoint[3], 
+    currPoint[3],
     forwDir[3],
-    *fiber;                  /* array of both forward and backward points, 
+    *fiber;                  /* array of both forward and backward points,
                                 when finished */
   int ret, whyStop, buffIdx, fptsIdx, outIdx, oldStop;
   unsigned int i;
@@ -334,7 +398,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     ret = gageProbe(tfx->gtx, tmp[0], tmp[1], tmp[2]);
   }
   if (ret) {
-    sprintf(err, "%s: first gageProbe failed: %s (%d)", 
+    sprintf(err, "%s: first gageProbe failed: %s (%d)",
             me, tfx->gtx->errStr, tfx->gtx->errNum);
     biffAdd(TEN, err); return 1;
   }
@@ -342,7 +406,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   /* see if we're doomed */
   /* have to fake out the possible radius check, since at this point
      there is no radius of curvature; this will always pass */
-  tfx->radius = DBL_MAX;  
+  tfx->radius = DBL_MAX;
   if ((whyStop = _tenFiberStopCheck(tfx))) {
     /* stopped immediately at seed point, but that's not an error */
     tfx->whyNowhere = whyStop;
@@ -366,7 +430,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 
   for (tfx->dir=0; tfx->dir<=1; tfx->dir++) {
     if (nfiber) {
-      fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL, 
+      fptsArr[tfx->dir] = airArrayNew((void**)&(fpts[tfx->dir]), NULL,
                                       3*sizeof(double), TEN_FIBER_INCR);
       airMopAdd(mop, fptsArr[tfx->dir], (airMopper)airArrayNuke, airMopAlways);
       fptsIdx = -1;  /* will be over-written with 1st airArrayLenIncr */
@@ -387,7 +451,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     }
     /* have to initially pass the possible radius check in
        _tenFiberStopCheck(); this will always pass */
-    tfx->radius = DBL_MAX;  
+    tfx->radius = DBL_MAX;
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
     tfx->lastDirSet = AIR_FALSE;
     for (tfx->numSteps[tfx->dir] = 0; AIR_TRUE; tfx->numSteps[tfx->dir]++) {
@@ -479,7 +543,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     if (nfiber) {
       if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2,
                             AIR_CAST(size_t, 3),
-                            AIR_CAST(size_t, (fptsArr[0]->len 
+                            AIR_CAST(size_t, (fptsArr[0]->len
                                               + fptsArr[1]->len - 1)))) {
         sprintf(err, "%s: couldn't allocate fiber nrrd", me);
         biffMove(TEN, err, NRRD); airMopError(mop); return 1;
