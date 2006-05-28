@@ -32,14 +32,15 @@
 
 /* Calculate the Q-ball profile from DWIs */
 void
-qball( const double b, const int gradcount, const double svals[],
-       const double grads[], double qvals[] ) {
+qball(const double b, const int gradcount, const double svals[],
+      const double grads[], double qvals[] ) {
   /* Not an optimal Q-ball implementation! (Taken from submission to
      MICCAI 2006) Should be solved analytically in the future,
      implemented from recent papers. */
   int i,j;
   double d, dist, weight, min, max;
   
+  AIR_UNUSED(b);
   min = max = svals[1] / svals[0];
   for( i = 0; i < gradcount; i++ ) {
     d = svals[i+1] / svals[0];
@@ -49,17 +50,16 @@ qball( const double b, const int gradcount, const double svals[],
       min = d;
   }
   
-  for( i = 0; i < gradcount; i++ )
-    {
-      qvals[i] = 0;
-      for( j = 0; j < gradcount; j++ )
-	{
-	  d = AIR_AFFINE( min, svals[j+1] / svals[0], max, 0,1 );
-	  dist = fabs( grads[3*i+0]*grads[3*j+0] + grads[3*i+1]*grads[3*j+1] + grads[3*i+2]*grads[3*j+2] );
-	  weight = cos( 0.5 * AIR_PI * dist );
-	  qvals[i] += d * weight*weight*weight*weight;
-	}
+  for( i = 0; i < gradcount; i++ ) {
+    qvals[i] = 0;
+    for( j = 0; j < gradcount; j++ ) {
+      d = AIR_AFFINE( min, svals[j+1] / svals[0], max, 0,1 );
+      dist = ELL_3V_DOT(grads + 3*i, grads + 3*j);
+      dist = AIR_ABS(dist);
+      weight = cos( 0.5 * AIR_PI * dist );
+      qvals[i] += d * weight*weight*weight*weight;
     }
+  }
   return;
 }
 
@@ -69,10 +69,10 @@ segsamp2( const int gradcount, const double qvals[],
 	  const double grads[], const double qpoints[],
 	  unsigned int seg[], double dists[]) {
   const int segcount = 2;
-  
-  int i,j,changed=AIR_TRUE;
+  int i, changed=AIR_TRUE;
   double centroids[ 3*2 ]; /* 3*segcount */
-  
+
+  AIR_UNUSED(grads);
   initcent2( gradcount, qvals, qpoints, centroids );
   
   for( i = 0; i < MAX_KMEANS_ITERATIONS && changed; i++ ) {
@@ -101,11 +101,11 @@ initcent2( const int gradcount, const double qvals[],
   for( i = 0; i < gradcount; i++ )
     if( qvals[maxidx] < qvals[i] )
       maxidx = i;
-
+  
   ELL_3V_COPY( centroids, qpoints +3*maxidx );
   /*
-  printf("init: max=%d cent0=[%f %f %f]\n", maxidx,
-	 centroids[0], centroids[1], centroids[2]);
+    printf("init: max=%d cent0=[%f %f %f]\n", maxidx,
+    centroids[0], centroids[1], centroids[2]);
   */
   
   /* Find peak/axis from Q-ball furthest away from first peak */
@@ -117,17 +117,17 @@ initcent2( const int gradcount, const double qvals[],
       max = dist;
     }
   }
-
+  
   ELL_3V_COPY( centroids+3, qpoints +3*maxidx );
   /*
-  printf( "\ninit: max=%d cent1=[%f %f %f]\n", maxidx, 
-	  centroids[3], centroids[4], centroids[5]);
+    printf( "\ninit: max=%d cent1=[%f %f %f]\n", maxidx, 
+    centroids[3], centroids[4], centroids[5]);
   */
 }
 
 /* Calculates 2 new centroids (and a new segmentation) from distances
    between Q-balls and centroids, returns true if segmentation changed
- */
+*/
 int
 calccent2( const int gradcount, const double qpoints[],
 	   const double dists[], double centroid[6], unsigned int seg[]) {
@@ -137,7 +137,7 @@ calccent2( const int gradcount, const double qpoints[],
      afterwards */
   int i,changed=AIR_FALSE;
   double sum0[9],sum1[9],mat[9], eval[3],evec[9];
-
+  
   ELL_3M_ZERO_SET( sum0 );
   ELL_3M_ZERO_SET( sum1 );
   for( i = 0; i < gradcount; i++ ) {
@@ -153,19 +153,19 @@ calccent2( const int gradcount, const double qpoints[],
       seg[i] = 1;
     }
   }
-
+  
   ell_3m_eigensolve_d( eval, evec, sum0, 0 );
   ELL_3V_COPY( centroid, evec + 3*ELL_MAX3_IDX( eval[0], eval[1], eval[2] ) );
   /* ELL_3V_SCALE( centroid, ELL_3V_LEN( centroid ), centroid ); */
-
-
+  
+  
   ell_3m_eigensolve_d( eval, evec, sum1, 0 );
   ELL_3V_COPY( centroid +3, evec + 3*ELL_MAX3_IDX( eval[0], eval[1], eval[2] ) );
   /* ELL_3V_SCALE( centroid +3, ELL_3V_LEN( centroid ), centroid +3); Normalize */
-
+  
   return changed;
 #endif
-
+  
   int i, sign, seg0count=0, seg1count=0, changed=AIR_FALSE;
   double oldcentroid[6], diff[3], sum[3];
   
@@ -221,9 +221,9 @@ calccent2( const int gradcount, const double qpoints[],
   /* printf("cent = %f %f %f %f %f %f\n", centroid[0],centroid[1],centroid[2],centroid[3],centroid[4],centroid[5] ); */
   
   /*
-  Should give error if any segment contains less than 6 elements,
-  i.e. if( seg0count < 6 || seg1count < 6 ), since that would
-  imply that a tensor cannot be computed for that segment.
+    Should give error if any segment contains less than 6 elements,
+    i.e. if( seg0count < 6 || seg1count < 6 ), since that would
+    imply that a tensor cannot be computed for that segment.
   */
   
   return changed;
@@ -251,7 +251,7 @@ calcdists( const int centcount, const double centroid[],
   for( j = 0; j < centcount; j++ )
     for( i = 0; i < gradcount; i++ )
       dists[j*gradcount +i] = pldist( &qpoints[3*i], &centroid[3*j] );
-
+  
   /*
     printf("dists = ");
     for( i = 0; i < 2*gradcount; i++ )
@@ -264,7 +264,7 @@ calcdists( const int centcount, const double centroid[],
    through the origin */
 double
 pldist( const double point[], const double line[] ) {
-   
+  
   double cross[3];
   double negpoint[3];
   
@@ -273,7 +273,7 @@ pldist( const double point[], const double line[] ) {
   negpoint[2] = -point[2];
   
   ELL_3V_CROSS( cross, line, negpoint );
-
+  
   return ELL_3V_LEN( cross ) / ELL_3V_LEN( line );
 }
 

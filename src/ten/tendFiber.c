@@ -42,7 +42,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenFiberContext *tfx;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  int E, intg, dwiUse;
+  int E, intg, useDwi;
   Nrrd *nin, *nout;
   unsigned int si, stopLen, whichPath;
 
@@ -73,7 +73,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &dwiUse, NULL,
+  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &useDwi, NULL,
              "input volume is a DWI volume, not a single tensor volume");
   hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
              "when doing two-tensor tracking, which path to follow "
@@ -90,10 +90,10 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (dwiUse) {
+  if (useDwi) {
     fprintf(stderr, "%s: whichPath = %u\n", me, whichPath);
     tfx = tenFiberContextDwiNew(nin);
-    tfx->initTen = whichPath;
+    tfx->ten2Init = whichPath;
   } else {
     tfx = tenFiberContextNew(nin);
   }

@@ -553,7 +553,7 @@ enum {
 */
 typedef struct {
   /* ---- input -------- */
-  const Nrrd *dtvol;    /* the volume being analyzed */
+  const Nrrd *nin;      /* the tensor OR DWI volume being analyzed */
   NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
   int fiberType,        /* from tenFiberType* enum */
     intg,               /* from tenFiberIntg* enum */
@@ -585,11 +585,16 @@ typedef struct {
 
   /* Removed 'const' by Orjan to allow hacking of eigenvals and vecs */
   /* const double *dten,*/   /* gageAnswerPointer(pvl, tenGageTensor) */ 
-  double *dten,   /* gageAnswerPointer(pvl, tenGageTensor) */
-    *eval,              /* gageAnswerPointer(pvl, tenGageEval) */
-    *evec,              /* gageAnswerPointer(pvl, tenGageEvec) */
-    *anisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
-    *anisoSpeed;        /* gageAnswerPointer(pvl, tenGage<anisoSpeed>) */
+  const double *gageTen,    /* gageAnswerPointer(pvl, tenGageTensor) */
+    *gageEval,              /* gageAnswerPointer(pvl, tenGageEval) */
+    *gageEvec,              /* gageAnswerPointer(pvl, tenGageEvec) */
+    *gageAnisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
+    *gageAnisoSpeed,        /* gageAnswerPointer(pvl, tenGage<anisoSpeed>) */
+    *gageTen2;              /* gageAnswerPointer(pvl, tenDwiGage2TensorQSeg) */
+  double ten2AnisoStop;
+  double fiberTen[7], fiberEval[3], fiberEvec[9],
+    fiberAnisoStop, fiberAnisoSpeed;
+  int doingOrjanStuff, ten2Init;
   double radius;        /* current radius of curvature */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
@@ -597,10 +602,6 @@ typedef struct {
   int whyStop[2],       /* why backward/forward (0/1) tracing stopped
                            (from tenFiberStop* enum) */
     whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
-
-  /* Added by Orjan */
-  int doingOrjanStuff, initTen;
-  double *ten2;
 
 } tenFiberContext;
 

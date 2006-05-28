@@ -308,7 +308,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorQSegError)) {
     const double *grads;
     int gradcount;
-    double *twoten, ten0[9], ten1[9], vec[3], d;
+    double *twoten, d;
     int i;
 
 
