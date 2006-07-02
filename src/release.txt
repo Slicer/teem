@@ -81,26 +81,26 @@ cvs tag Teem-1-9-0-bp
 cvs tag -b Teem-1-9-0
 mkdir ~/Teem-1-9-0
 cd ~/Teem-1-9-0
-cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co -r Teem-1-9-0 teem
+cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co -r Teem-1-9-0 teem
 cd teem
 cvs update -dAP -r Teem-1-9-0    (probably unnecessary)
 cvs tag Teem-1-9-0-pb
 
 3) Create source-only tgz:
 (for anonymous checkout:
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/teem/ login
+cvs -d:pserver:anonymous@teem.cvs.sf.net:/cvsroot/teem/ login
 <hit return>
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/teem/ co teem
+cvs -d:pserver:anonymous@teem.cvs.sf.net:/cvsroot/teem/ co teem
 )
 setenv VERSION <<version>>
-cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co teem
+cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co teem
 cd teem
 find . -name CVS  -exec rm -rf {} \;
 cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
 
-cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem co NrrdIO
+cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co NrrdIO
 cd NrrdIO
 find . -name CVS  -exec rm -rf {} \;
 cd ..; mv NrrdIO NrrdIO-${VERSION}-src
@@ -188,5 +188,5 @@ exit
 
 
 for Deft:
-cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem init
-cvs -d:ext:kindlmann@cvs.sourceforge.net:/cvsroot/teem import -m "initial import" Deft Deft start
+cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem init
+cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem import -m "initial import" Deft Deft start
