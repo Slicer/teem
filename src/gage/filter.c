@@ -224,8 +224,8 @@ _gageFwSet(gageContext *ctx) {
 int
 _gageLocationSet(gageContext *ctx, double x, double y, double z) {
   char me[]="_gageProbeLocationSet";
-  unsigned int top[3],  /* "top" x, y, z: highest valid index in volume */
-    xi, yi, zi;         /* computed integral positions in volume */
+  unsigned int top[3];  /* "top" x, y, z: highest valid index in volume */
+  int xi, yi, zi;       /* computed integral positions in volume */
   double xf, yf, zf, min, max[3];
 
   top[0] = ctx->shape->size[0] - 1;
