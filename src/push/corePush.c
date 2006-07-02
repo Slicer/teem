@@ -304,6 +304,7 @@ int
 pushIterate(pushContext *pctx) {
   char me[]="pushIterate", *_err, err[BIFF_STRLEN];
   unsigned int ti, thingNum;
+  double time0, time1;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -313,6 +314,9 @@ pushIterate(pushContext *pctx) {
   if (pctx->verbose) {
     fprintf(stderr, "%s: starting iteration\n", me);
   }
+
+  time0 = airTime();
+
   /* the _pushWorker checks finished after the barriers */
   pctx->finished = AIR_FALSE;
   pctx->binIdx=0;
@@ -361,7 +365,42 @@ pushIterate(pushContext *pctx) {
   if (0 && 100 == pctx->iter) {
     _pushForceSample(pctx, 300, 300);
   }
+
+  time1 = airTime();
+  pctx->time += time1 - time0;
   
+  return 0;
+}
+
+/*
+******** pushFreeze
+**
+** zeros out the velocity of all points
+*/
+int
+pushFreeze(pushContext *pctx) {
+  char me[]="pushFreeze", err[BIFF_STRLEN];
+  unsigned int binIdx, thingIdx, pointNum, pointIdx;
+  pushBin *bin;
+  pushThing *thing;
+  pushPoint *point;
+
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PUSH, err); return 1;
+  }
+
+  pointNum = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (thingIdx=0; thingIdx<bin->thingNum; thingIdx++) {
+      thing = bin->thing[thingIdx];
+      for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
+        point = thing->vert + pointIdx;
+        ELL_3V_SET(point->vel, 0.0, 0.0, 0.0);
+      }
+    }
+  }
   return 0;
 }
 
@@ -436,6 +475,7 @@ pushRun(pushContext *pctx) {
                 && (0 == pctx->maxIter
                     || pctx->iter < pctx->maxIter)) );
   pctx->time1 = airTime();
+  /* this over-writes the value incremented within pushIterate() */
   pctx->time = pctx->time1 - pctx->time0;
 
   return 0;

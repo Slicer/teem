@@ -164,9 +164,10 @@ typedef struct pushTask_t {
 ** the functions and information which determine inter-point forces
 */
 typedef struct {
+  int noop;
   char name[AIR_STRLEN_SMALL];
   double (*func)(double dist, const double parm[PUSH_FORCE_PARM_MAXNUM]);
-  double (*maxDist)(const double parm[PUSH_FORCE_PARM_MAXNUM]);
+  double (*extent)(const double parm[PUSH_FORCE_PARM_MAXNUM]);
   double parm[PUSH_FORCE_PARM_MAXNUM];
 } pushForce;
 
@@ -192,6 +193,7 @@ typedef struct pushContext_t {
     *nstn;                         /* start/nums for tractlets in npos */
   double drag,                     /* to slow fast things down */
     preDrag,                       /* different drag pre-min-iter */
+    velWarp,                       /* velocity warping stability hack */
     step,                          /* time step in integration */
     mass,                          /* mass of particles */
     forceScl,                      /* scaling of pair-wise forces */
@@ -202,7 +204,8 @@ typedef struct pushContext_t {
     bigTrace,                      /* a last minute hack */
     tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
-  int tlFrenet,                    /* use Frenet frames for tractlet forces */
+  int tlUse,                       /* enable tractlets */
+    tlFrenet,                      /* use Frenet frames for tractlet forces */
     singleBin,                     /* disable binning (for debugging) */
     driftCorrect,                  /* prevent sliding near anisotropy edges */
     detReject,
@@ -233,7 +236,7 @@ typedef struct pushContext_t {
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
     *ninv,                         /* pre-computed inverse of nten */
     *nmask;                        /* mask image from nten */
-  gageContext *gctx;               /* gage context around nten and nmask */
+  gageContext *gctx;               /* gage context around nten, ninv, nmask */
   gagePerVolume *tpvl, *ipvl;      /* gage pervolumes around nten and ninv */
   tenFiberContext *fctx;           /* tenFiber context around nten */
   int finished;                    /* used to signal all threads to return */
@@ -259,7 +262,7 @@ typedef struct pushContext_t {
   airThreadBarrier *stageBarrierA, /* barriers between stages */
     *stageBarrierB;
   /* OUTPUT ---------------------------- */
-  double time;                     /* how long it took to run */
+  double time;                     /* total time spent in computation */
   unsigned int iter;               /* how many iterations were needed */
   Nrrd *noutPos,                   /* list of 2D or 3D positions */
     *noutTen;                      /* list of 2D or 3D masked tensors */
@@ -282,6 +285,7 @@ PUSH_EXPORT hestCB *pushHestForce;
 /* corePush.c */
 PUSH_EXPORT int pushStart(pushContext *pctx);
 PUSH_EXPORT int pushIterate(pushContext *pctx);
+PUSH_EXPORT int pushFreeze(pushContext *pctx);
 PUSH_EXPORT int pushRun(pushContext *pctx);
 PUSH_EXPORT int pushFinish(pushContext *pctx);
 

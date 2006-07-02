@@ -81,8 +81,8 @@ _pushForceUnknownFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceUnknownMaxDist(const double *parm) {
-  char me[]="_pushForceUnknownMaxDist";
+_pushForceUnknownExtent(const double *parm) {
+  char me[]="_pushForceUnknownExtent";
 
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
@@ -97,7 +97,7 @@ _pushForceUnknownMaxDist(const double *parm) {
 */
 double
 _pushForceSpringFunc(double dist, const double *parm) {
-  char me[]="_pushForceSpringFunc";
+  /* char me[]="_pushForceSpringFunc"; */
   double xx, ret, pull;
 
   pull = parm[0];
@@ -119,7 +119,7 @@ _pushForceSpringFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceSpringMaxDist(const double *parm) {
+_pushForceSpringExtent(const double *parm) {
 
   return 1.0 + parm[0];
 }
@@ -146,7 +146,7 @@ _pushForceGaussFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceGaussMaxDist(const double *parm) {
+_pushForceGaussExtent(const double *parm) {
 
   return (1.0/SQRTTHREE)*parm[0];
 }
@@ -165,7 +165,7 @@ _pushForceChargeFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceChargeMaxDist(const double *parm) {
+_pushForceChargeExtent(const double *parm) {
 
   return parm[0];
 }
@@ -185,7 +185,7 @@ _pushForceCotanFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceCotanMaxDist(const double *parm) {
+_pushForceCotanExtent(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1;
@@ -205,7 +205,7 @@ _pushForceNoneFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceNoneMaxDist(const double *parm) {
+_pushForceNoneExtent(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1.0;
@@ -237,13 +237,13 @@ double
 };
 
 double
-(*_pushForceMaxDist[PUSH_FORCE_MAX+1])(const double *parm) = {
-  _pushForceUnknownMaxDist,
-  _pushForceSpringMaxDist,
-  _pushForceGaussMaxDist,
-  _pushForceChargeMaxDist,
-  _pushForceCotanMaxDist,
-  _pushForceNoneMaxDist,
+(*_pushForceExtent[PUSH_FORCE_MAX+1])(const double *parm) = {
+  _pushForceUnknownExtent,
+  _pushForceSpringExtent,
+  _pushForceGaussExtent,
+  _pushForceChargeExtent,
+  _pushForceCotanExtent,
+  _pushForceNoneExtent,
 };
 
 pushForce *
@@ -253,8 +253,9 @@ _pushForceNew() {
 
   force = (pushForce *)calloc(1, sizeof(pushForce));
   if (force) {
+    force->noop = AIR_FALSE;  /* by default, not a no-op */
     force->func = NULL;
-    force->maxDist = NULL;
+    force->extent = NULL;
     for (pi=0; pi<PUSH_FORCE_PARM_MAXNUM; pi++) {
       force->parm[pi] = AIR_NAN;
     }
@@ -291,9 +292,10 @@ pushForceParse(const char *_str) {
 
   if (!strcmp(airEnumStr(pushForceEnum, pushForceNone), str)) {
     /* special case: no parameters */
+    force->noop = AIR_TRUE;
     strcpy(force->name, _pushForceStr[pushForceNone]);
     force->func = _pushForceFunc[pushForceNone];
-    force->maxDist = _pushForceMaxDist[pushForceNone];
+    force->extent = _pushForceExtent[pushForceNone];
     airMopOkay(mop);
     return force;
   }
@@ -302,7 +304,7 @@ pushForceParse(const char *_str) {
     /* special case: no parameters */
     strcpy(force->name, _pushForceStr[pushForceCotan]);
     force->func = _pushForceFunc[pushForceCotan];
-    force->maxDist = _pushForceMaxDist[pushForceCotan];
+    force->extent = _pushForceExtent[pushForceCotan];
     airMopOkay(mop);
     return force;
   }
@@ -357,7 +359,7 @@ pushForceParse(const char *_str) {
   /* parameters have been set, now set the rest of the force info */
   strcpy(force->name, _pushForceStr[fri]);
   force->func = _pushForceFunc[fri];
-  force->maxDist = _pushForceMaxDist[fri];
+  force->extent = _pushForceExtent[fri];
 
   airMopOkay(mop);
   return force;

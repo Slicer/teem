@@ -83,6 +83,10 @@ _pushTensorFieldSetup(pushContext *pctx) {
     double det;
     TEN_T_COPY(ten, _ten);
     TEN_T_INV(inv, ten, det);
+    if (!det || !AIR_EXISTS(det)) {
+      fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me, 
+              AIR_CAST(unsigned int, ii), AIR_CAST(unsigned int, NN), det);
+    }
     TEN_T_COPY(_inv, inv);
     _ten += 7;
     _inv += 7;
@@ -332,11 +336,11 @@ _pushBinSetup(pushContext *pctx) {
 
   /* ------------------------ find maxEval, maxDet, and set up binning */
   nn = nrrdElementNumber(pctx->nten)/7;
-  tdata = (float*)pctx->nten->data;
   pctx->maxEval = 0;
   pctx->maxDet = 0;
   pctx->meanEval = 0;
   count = 0;
+  tdata = (float*)pctx->nten->data;
   for (ii=0; ii<nn; ii++) {
     tenEigensolve_f(eval, NULL, tdata);
     if (tdata[0] > 0.5) {
@@ -344,13 +348,13 @@ _pushBinSetup(pushContext *pctx) {
       count++;
       pctx->meanEval += eval[0];
       pctx->maxEval = AIR_MAX(pctx->maxEval, eval[0]);
-      pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0] + eval[1] + eval[2]);
+      pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0]*eval[1]*eval[2]);
     }
     tdata += 7;
   }
   pctx->meanEval /= count;
   pctx->maxDist = (2*pctx->scale*pctx->maxEval
-                   *pctx->force->maxDist(pctx->force->parm));
+                   *pctx->force->extent(pctx->force->parm));
   if (pctx->singleBin) {
     pctx->binsEdge[0] = 1;
     pctx->binsEdge[1] = 1;
@@ -360,21 +364,24 @@ _pushBinSetup(pushContext *pctx) {
     ELL_4MV_COL0_GET(col[0], pctx->gctx->shape->ItoW); col[0][3] = 0.0;
     ELL_4MV_COL1_GET(col[1], pctx->gctx->shape->ItoW); col[1][3] = 0.0;
     ELL_4MV_COL2_GET(col[2], pctx->gctx->shape->ItoW); col[2][3] = 0.0;
-    volEdge[0] = ELL_3V_LEN(col[0])*(pctx->gctx->shape->size[0]-1);
-    volEdge[1] = ELL_3V_LEN(col[1])*(pctx->gctx->shape->size[1]-1);
-    volEdge[2] = ELL_3V_LEN(col[2])*(pctx->gctx->shape->size[2]-1);
+    volEdge[0] = ELL_3V_LEN(col[0])*pctx->gctx->shape->size[0];
+    volEdge[1] = ELL_3V_LEN(col[1])*pctx->gctx->shape->size[1];
+    volEdge[2] = ELL_3V_LEN(col[2])*pctx->gctx->shape->size[2];
     fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
             volEdge[0], volEdge[1], volEdge[2]);
-    pctx->binsEdge[0] = (int)floor(volEdge[0]/pctx->maxDist);
+    pctx->binsEdge[0] = AIR_CAST(unsigned int,
+                                 floor(volEdge[0]/pctx->maxDist));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
-    pctx->binsEdge[1] = (int)floor(volEdge[1]/pctx->maxDist);
+    pctx->binsEdge[1] = AIR_CAST(unsigned int,
+                                 floor(volEdge[1]/pctx->maxDist));
     pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
-    pctx->binsEdge[2] = (int)floor(volEdge[2]/pctx->maxDist);
+    pctx->binsEdge[2] = AIR_CAST(unsigned int,
+                                 floor(volEdge[2]/pctx->maxDist));
     pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
     if (2 == pctx->dimIn) {
       pctx->binsEdge[pctx->sliceAxis] = 1;
     }
-    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=%u,%u,%u\n",
+    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=(%u,%u,%u)\n",
             me, pctx->maxEval, pctx->maxDist,
             pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
     pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
@@ -458,7 +465,7 @@ pushTaskFiberReSetup(pushContext *pctx,
 int
 _pushThingSetup(pushContext *pctx) {
   char me[]="_pushThingSetup", err[BIFF_STRLEN];
-  double (*lup)(const void *v, size_t I);
+  double (*lup)(const void *v, size_t I), maxDet;
   unsigned int *stn, pointIdx, baseIdx, thingIdx;
   pushThing *thing;
 
@@ -469,6 +476,12 @@ _pushThingSetup(pushContext *pctx) {
                        : pctx->thingNum));
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   stn = pctx->nstn ? (unsigned int*)pctx->nstn->data : NULL;
+  fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
+  /* HEY: we end up keeping a local copy of maxDet because convolution
+     can produce a tensor with higher determinant than that of any
+     original sample.  However, if this is going into effect,
+     detReject should probably *not* be enabled... */
+  maxDet = pctx->maxDet;
   for (thingIdx=0; thingIdx<pctx->thingNum; thingIdx++) {
     double detProbe;
     /*
@@ -531,7 +544,8 @@ _pushThingSetup(pushContext *pctx) {
                 thing->vert[0].pos[2]);
         */
         _pushProbe(pctx->task[0], thing->vert + 0);
-        detProbe = TEN_T_TRACE(thing->vert[0].ten);
+        detProbe = TEN_T_DET(thing->vert[0].ten);
+        maxDet = AIR_MAX(maxDet, detProbe);
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
            the range of values in the mask */
@@ -547,7 +561,7 @@ _pushThingSetup(pushContext *pctx) {
                    && ((pctx->seedThresh - thing->vert[0].seedThresh)
                        *pctx->seedThreshSign > 0)
                    )
-               || (pctx->detReject && (airDrandMT() < detProbe/pctx->maxDet))
+               || (pctx->detReject && (airDrandMT() < detProbe/maxDet))
                );
     }
     for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
@@ -564,6 +578,7 @@ _pushThingSetup(pushContext *pctx) {
       biffAdd(PUSH, err); return 1;
     }
   }
+  fprintf(stderr, "!%s: ... seeding DONE\n", me);
   /*
   {
     Nrrd *nten, *npos, *nstn;

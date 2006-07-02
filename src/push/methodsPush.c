@@ -39,7 +39,7 @@ pushThingNew(unsigned int vertNum) {
       thg->point.thing = thg;
       thg->vertNum = vertNum;
       if (1 == vertNum) {
-        thg->vert = &(thg->point);
+        thg->vert = &(thg->point); /* HEY: is this just inviting confusion? */
       } else {
         thg->vert = (pushPoint *)calloc(vertNum, sizeof(pushPoint));
         for (idx=0; idx<vertNum; idx++) {
@@ -57,7 +57,7 @@ pushThing *
 pushThingNix(pushThing *thg) {
   
   if (thg) {
-    if (thg->vert != &(thg->point)) {
+    if (1 < thg->vertNum) {
       thg->vert = (pushPoint *)airFree(thg->vert);
     }
     airFree(thg);
@@ -77,6 +77,7 @@ pushContextNew(void) {
     pctx->nstn = NULL;
     pctx->drag = 0.1;
     pctx->preDrag = 1.0;
+    pctx->velWarp = 0.0;
     pctx->step = 0.01;
     pctx->mass = 1.0;
     pctx->forceScl = 1.0;
@@ -88,7 +89,14 @@ pushContextNew(void) {
     pctx->tlThresh = 0.0;
     pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
+    pctx->tlUse = AIR_FALSE;
+    pctx->tlFrenet = AIR_FALSE;
+    pctx->singleBin = AIR_FALSE;
+    pctx->driftCorrect = AIR_FALSE;
+    pctx->detReject = AIR_FALSE;
+    pctx->verbose = 0;
     pctx->seed = 42;
+    pctx->tlStepNum = 5;
     pctx->binIncr = 128;
     pctx->thingNum = 0;
     pctx->threadNum = 1;
@@ -103,10 +111,6 @@ pushContextNew(void) {
     pctx->seedThreshSign = +1;
     pctx->gravScl = 0.0;
     pctx->seedThresh = 0.0;
-    pctx->singleBin = AIR_FALSE;
-    pctx->driftCorrect = AIR_TRUE;
-    pctx->detReject = AIR_FALSE;
-    pctx->verbose = 0;
     pctx->force = NULL;
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
@@ -122,16 +126,20 @@ pushContextNew(void) {
     pctx->nmask = NULL;
     pctx->gctx = NULL;
     pctx->tpvl = NULL;
+    pctx->ipvl = NULL;
     pctx->fctx = NULL;
+    pctx->finished = AIR_FALSE;
     pctx->dimIn = 0;
-    pctx->sliceAxis = 5280;
-    /* binsEdge and binNum are found later */
+    pctx->sliceAxis = 5280;  /* an invalid value */
+    /* binsEdge and binNum are set later */
     ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
     pctx->binNum = 0;
-    pctx->finished = AIR_FALSE;
     pctx->stageIdx = pctx->binIdx = 0;
     pctx->bin = NULL;
     pctx->maxDist = AIR_NAN;
+    pctx->maxEval = AIR_NAN;
+    pctx->meanEval = AIR_NAN;
+    pctx->maxDet = AIR_NAN;
     pctx->meanVel = 0;
     pctx->time0 = pctx->time1 = 0;
     pctx->task = NULL;

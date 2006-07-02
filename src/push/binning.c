@@ -76,7 +76,9 @@ _pushBinLocate(pushContext *pctx, double *_posWorld) {
     ELL_4MV_MUL(posIdx, pctx->gctx->shape->WtoI, posWorld);
     ELL_34V_HOMOG(posIdx, posIdx);
     for (axi=0; axi<3; axi++) {
-      eidx[axi] = airIndexClamp(0, posIdx[axi], pctx->gctx->shape->size[axi],
+      eidx[axi] = airIndexClamp(-0.5,
+                                posIdx[axi],
+                                pctx->gctx->shape->size[axi]-0.5,
                                 pctx->binsEdge[axi]);
     }
     binIdx = (eidx[0]
@@ -182,7 +184,7 @@ _pushBinNeighborSet(pushBin *bin, pushBin **nei, unsigned int num) {
 
 void
 pushBinAllNeighborSet(pushContext *pctx) {
-  char me[]="pushBinAllNeighborSet";
+  /* char me[]="pushBinAllNeighborSet"; */
   pushBin *nei[3*3*3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
