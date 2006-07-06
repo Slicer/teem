@@ -175,7 +175,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
 int
 _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
                    pushPoint *myPoint, pushPoint *herPoint) {
-  /* char me[]="_pushPairwiseForce", err[BIFF_STRLEN] */;
+  /* char me[]="_pushPairwiseForce", err[BIFF_STRLEN]; */
   double inv[7], dist, mag,
     U[3], lenUsqr,
     V[3], nV[3], W[3], lenV;
