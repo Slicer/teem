@@ -50,7 +50,7 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
              "a printf-style format to use for generating all "
              "filenames.  Use this to override the number of characters "
              "used to represent the slice position, or the file format "
-             "of the output, e.g. \"-ff %03.ppm\" for 000.ppm, "
+             "of the output, e.g. \"-ff %03d.ppm\" for 000.ppm, "
              "001.ppm, etc. By default (not using this option), slices "
              "are saved in NRRD format (or PNM or PNG where possible) "
              "with shortest possible filenames.");
