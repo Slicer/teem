@@ -89,8 +89,14 @@ typedef struct {
                                    if normalsFind, then normItem must be set
                                    (i.e. will not find normals via differencing
                                    when we have a gctx) */
-    strengthUse,
-    strengthSign;
+    strengthUse,                /* do reject contributions to the feature for
+                                   which the strength measurement falls below
+                                   the required threshold */
+    strengthSign;               /* the sign (either +1 of -1) of the strength
+                                   quantity when it is considered to have high
+                                   magnitude. E.g. for ridge surfaces,
+                                   hesseval[2] should be very negative so 
+                                   strengthSign == -1 */
   double isovalue,              /* for seekTypeIsocontour */
     strength,                   /* if strengthUse, feature needs to satisfy
                                    strengthAns*strengthSign > strength */
@@ -140,8 +146,11 @@ typedef struct {
                                    (vec,z,x,y) */
     *eval,                      /* 3 * 2 * sx * sy array of eigenvalues */
     *evec;                      /* 9 * 2 * sx * sy array of eigenvectors */
-  signed char *flip;            /* 5 * sx * sy record of how the eigenvector
-                                   of interest flips along the voxel edges */
+  signed char *flip;            /* 2 * 5 * sx * sy record of how eigenvector(s)
+                                   of interest flip along the 5 voxel edges
+                                   that are unique to each voxel.  Fastest axis
+                                   is the two eigensystem indices that are
+                                   tracked, in the case of crease lines */
   double *stng;                 /* 2 * sx * sy array of strength */
   Nrrd *nvidx, *nsclv,          /* nrrd wrappers around arrays above */
     *ngrad, *neval,
