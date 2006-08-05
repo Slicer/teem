@@ -64,12 +64,15 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       /* its a faux-3D image, really grayscale */
       ret = 2;
     } else if (3 == nrrd->axis[0].size) {
-      /* its a real color image */
+      /* its a real RGB color image */
+      ret = 3;
+    } else if (4 == nrrd->axis[0].size) {
+      /* its a real CMYK (our best guess) color image */
       ret = 3;
     } else {
       /* else its no good */
       sprintf(err, "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
-              ", not 1 or 3", me, nrrd->axis[0].size);
+              ", not 1, 3, or 4", me, nrrd->axis[0].size);
       biffMaybeAdd(NRRD, err, useBiff); 
       return AIR_FALSE;
     }
@@ -104,7 +107,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   char me[]="_nrrdFormatEPS_write", err[BIFF_STRLEN];
-  int color, sx, sy;
+  int color, cmyk, sx, sy;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;
   airArray *mop;
@@ -121,7 +124,9 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   }
-  color = (3 == nrrd->dim);
+  color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size 
+                               || 4 == nrrd->axis[0].size);
+  cmyk = color && 4 == nrrd->axis[0].size;
   if (color) {
     sx = nrrd->axis[1].size;
     sy = nrrd->axis[2].size;
@@ -164,7 +169,11 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%% linestr creates an empty string to hold "
           "one scanline\n");
-  fprintf(file, "/linestr %d string def\n", sx*(color ? 3 : 1));
+  fprintf(file, "/linestr %d string def\n", sx*(color 
+                                                ? (cmyk 
+                                                   ? 4
+                                                   : 3)
+                                                : 1));
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
   fprintf(file, "gsave\n");
@@ -179,8 +188,12 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "%g %g scale\n", sx*scale, sy*scale);
   fprintf(file, "%d %d 8\n", sx, sy);
   fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
-  fprintf(file, "{currentfile linestr readhexstring pop} %s\n",
-          color ? "false 3 colorimage" : "image");
+  if (color) {
+    fprintf(file, "{currentfile linestr readhexstring pop} "
+            "false %d colorimage\n", cmyk ? 4 : 3);
+  } else {
+    fprintf(file, "{currentfile linestr readhexstring pop} image\n");
+  }
   nrrdEncodingHex->write(file, nrrd->data, nrrdElementNumber(nrrd),
                          nrrd, nio);
   fprintf(file, "\n");
