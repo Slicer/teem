@@ -554,7 +554,7 @@ enum {
 typedef struct {
   /* ---- input -------- */
   const Nrrd *nin;      /* the tensor OR DWI volume being analyzed */
-  NrrdKernelSpec *ksp;  /* how to interpolate tensor values in dtvol */
+  NrrdKernelSpec *ksp;  /* reconstruction kernel for tensors or DWIs */
   int fiberType,        /* from tenFiberType* enum */
     intg,               /* from tenFiberIntg* enum */
     anisoStopType,      /* which aniso we do a threshold on */
@@ -581,10 +581,6 @@ typedef struct {
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
 
-
-
-  /* Removed 'const' by Orjan to allow hacking of eigenvals and vecs */
-  /* const double *dten,*/   /* gageAnswerPointer(pvl, tenGageTensor) */ 
   const double *gageTen,    /* gageAnswerPointer(pvl, tenGageTensor) */
     *gageEval,              /* gageAnswerPointer(pvl, tenGageEval) */
     *gageEvec,              /* gageAnswerPointer(pvl, tenGageEvec) */
