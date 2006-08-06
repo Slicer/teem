@@ -94,6 +94,7 @@ pushContextNew(void) {
     pctx->singleBin = AIR_FALSE;
     pctx->driftCorrect = AIR_FALSE;
     pctx->detReject = AIR_FALSE;
+    pctx->midPntSmp = AIR_FALSE;
     pctx->verbose = 0;
     pctx->seed = 42;
     pctx->tlStepNum = 5;

@@ -368,6 +368,7 @@ pushIterate(pushContext *pctx) {
 
   time1 = airTime();
   pctx->time += time1 - time0;
+  pctx->iter += 1;
   
   return 0;
 }

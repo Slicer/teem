@@ -173,9 +173,10 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
 }
 
 int
-_pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
+_pushPairwiseForce(pushTask *task, double fvec[3], pushForce *force,
                    pushPoint *myPoint, pushPoint *herPoint) {
   /* char me[]="_pushPairwiseForce", err[BIFF_STRLEN]; */
+  pushPoint _tmpPoint;
   double inv[7], dist, mag,
     U[3], lenUsqr,
     V[3], nV[3], W[3], lenV;
@@ -201,18 +202,27 @@ _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
     return 0;
   }
 #endif
-  if (lenUsqr >= (pctx->maxDist)*(pctx->maxDist)) {
+  if (lenUsqr >= (task->pctx->maxDist)*(task->pctx->maxDist)) {
     /* too far away to influence each other */
     ELL_3V_SET(fvec, 0, 0, 0);
     return 0;
   }
 
-  TEN_T_SCALE_ADD2(inv,
-                   0.5, myPoint->inv,
-                   0.5, herPoint->inv);
+  if (task->pctx->midPntSmp) {
+    double det;
+    ELL_3V_SCALE_ADD2(_tmpPoint.pos,
+                      0.5, myPoint->pos,
+                      0.5, herPoint->pos);
+    _pushProbe(task, &_tmpPoint);
+    TEN_T_INV(inv, _tmpPoint.ten, det);
+  } else {
+    TEN_T_SCALE_ADD2(inv,
+                     0.5, myPoint->inv,
+                     0.5, herPoint->inv);
+  }
   TEN_TV_MUL(V, inv, U);
   ELL_3V_NORM(nV, V, lenV);
-  dist = lenV/(2*pctx->scale);
+  dist = lenV/(2*task->pctx->scale);
 
   mag = force->func(dist, force->parm);
   TEN_TV_MUL(W, inv, nV);
@@ -225,7 +235,7 @@ _pushPairwiseForce(pushContext *pctx, double fvec[3], pushForce *force,
     fprintf(stderr, "!%s: mag=%g, dist=%g=(|V=%g,%g,%g|=%g)/%g\n",
             me, mag, dist,
             V[0], V[1], V[2], lenV,
-            pctx->scale);
+            task->pctx->scale);
     fprintf(stderr, "!%s: U=%g,%g,%g\n", me, U[0], U[1], U[2]);
     ELL_3V_SET(fvec, 0, 0, 0);
   } else {
@@ -287,7 +297,7 @@ _pushForceSample(pushContext *pctx, unsigned int sx, unsigned int sy) {
       do {
         for (hi=0; hi<(*neigh)->pointNum; hi++) {
           her = (*neigh)->point[hi];
-          _pushPairwiseForce(pctx, fvec, pctx->force, probe, her);
+          _pushPairwiseForce(pctx->task[0], fvec, pctx->force, probe, her);
           ELL_3V_INCR(fsum, fvec);
         }
         neigh++;
@@ -349,7 +359,7 @@ _pushForce(pushTask *task, int myBinIdx,
           /*
             task->pctx->verbose = (myPoint->thing->ttaagg == 398);
           */
-          if (_pushPairwiseForce(task->pctx, fvec, task->pctx->force,
+          if (_pushPairwiseForce(task, fvec, task->pctx->force,
                                  myPoint, herPoint)) {
             sprintf(err, "%s: myPoint (thing %d) vs herPoint (thing %d)", me,
                     myPoint->thing->ttaagg, herPoint->thing->ttaagg);
@@ -411,7 +421,7 @@ _pushForce(pushTask *task, int myBinIdx,
         if (1 == task->pctx->gctx->shape->size[ci]) {
           frcIdx[ci] = 0;          
         } else {
-          len = posIdx[ci] - 0.5;
+          len = posIdx[ci] - -0.5;
           if (len < 0) {
             len *= -1;
             frcIdx[ci] = task->pctx->wall*len*len;
@@ -717,15 +727,6 @@ _pushUpdate(pushTask *task, int binIdx,
     if (!ELL_3V_EXISTS(thing->point.vel)) {
       ELL_3V_SET(thing->point.vel, 0, 0, 0);
     }
-    if (2 == task->pctx->dimIn) {
-      double posIdx[4], posWorld[4];
-      ELL_3V_COPY(posWorld, thing->point.pos); posWorld[3] = 1.0;
-      ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
-      ELL_4V_HOMOG(posIdx, posIdx);
-      posIdx[task->pctx->sliceAxis] = 0.0;
-      ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
-      ELL_34V_HOMOG(thing->point.pos, posWorld);
-    }
     if (!ELL_3V_EXISTS(thing->point.frc)) {
       ELL_3V_SET(thing->point.frc, 0, 0, 0);
     }
@@ -777,6 +778,15 @@ _pushUpdate(pushTask *task, int binIdx,
       biffAdd(PUSH, err); return 1;
     }
     ELL_3V_SCALE_INCR(thing->point.pos, step, thing->point.vel);
+    if (2 == task->pctx->dimIn) {
+      double posIdx[4], posWorld[4];
+      ELL_3V_COPY(posWorld, thing->point.pos); posWorld[3] = 1.0;
+      ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
+      ELL_4V_HOMOG(posIdx, posIdx);
+      posIdx[task->pctx->sliceAxis] = 0.0;
+      ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
+      ELL_34V_HOMOG(thing->point.pos, posWorld);
+    }
     
     task->thingNum += 1;
     /* while _pushProbe clamps positions to inside domain before

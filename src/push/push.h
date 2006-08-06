@@ -209,6 +209,7 @@ typedef struct pushContext_t {
     singleBin,                     /* disable binning (for debugging) */
     driftCorrect,                  /* prevent sliding near anisotropy edges */
     detReject,
+    midPntSmp,
     verbose;                       /* blah blah blah */
   unsigned int seed,               /* seed value for airSrand48 */
     tlStepNum,                     /* max # points on each tractlet half */
