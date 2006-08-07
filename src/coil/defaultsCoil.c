@@ -27,3 +27,6 @@ coilBiffKey = "coil";
 
 int
 coilDefaultRadius = 1;
+
+int
+coilVerbose = 0;

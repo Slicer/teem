@@ -215,6 +215,7 @@ typedef struct coilContext_t {
 /* defaultsCoil.c */
 COIL_EXPORT const char *coilBiffKey;
 COIL_EXPORT int coilDefaultRadius;
+COIL_EXPORT int coilVerbose;
 
 /* enumsCoil.c */
 COIL_EXPORT airEnum *coilMethodType;

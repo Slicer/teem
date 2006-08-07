@@ -143,9 +143,15 @@ void
 _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
                                        double spacing[3],
                                        double parm[COIL_PARMS_NUM]) {
+  /* char me[]="_coilKindScalarFilterModifiedCurvature"; */
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
 
+  /*
+  if (coilVerbose) {
+    fprintf(stderr, "!%s: --------- hello --------\n", me);
+  }
+  */
   /* reciprocals of spacings in X, Y, and Z */
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
   rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
@@ -160,7 +166,21 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
   grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
   gm = AIR_CAST(coil_t, ELL_3V_LEN(grad));
-  
+  /*
+  if (coilVerbose) {
+    fprintf(stderr, "forwX = %g %g %g    backX = %g %g %g\n", 
+            forwX[0], forwX[1], forwX[2],
+            backX[0], backX[1], backX[2]);
+    fprintf(stderr, "forwY = %g %g %g    backY = %g %g %g\n", 
+            forwY[0], forwY[1], forwY[2],
+            backY[0], backY[1], backY[2]);
+    fprintf(stderr, "forwZ = %g %g %g    backZ = %g %g %g\n", 
+            forwZ[0], forwZ[1], forwZ[2],
+            backZ[0], backZ[1], backZ[2]);
+    fprintf(stderr, "grad = %g %g %g --> gm = %g\n", 
+            grad[0], grad[1], grad[2], gm);
+  }
+  */
   /* compute fluxes */
   eps = 0.000001f;
   KK = AIR_CAST(coil_t, parm[1]*parm[1]);
@@ -168,14 +188,19 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   forwX[0] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(forwY, forwY);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   forwY[1] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(forwZ, forwZ);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   forwZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backX, backX);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   backX[0] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backY, backY);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   backY[1] *= _COIL_CONDUCT(LL, KK)*denom;
   LL = ELL_3V_DOT(backZ, backZ);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
   backZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
 
   lerp = AIR_CAST(coil_t, parm[2]);
@@ -184,6 +209,11 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
                              + rspY*(forwY[1] - backY[1])
                              + rspZ*(forwZ[2] - backZ[2])));
   delta[0] *= AIR_CAST(coil_t, parm[0]);
+  /*
+  if (coilVerbose) {
+    fprintf(stderr, "!%s: delta = %g\n", me, delta[0]);
+  }
+  */
 }
 
 void

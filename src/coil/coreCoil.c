@@ -165,6 +165,8 @@ _coilProcess(coilTask *task, int doFilter) {
         for (xi=0; xi<sizeX; xi++) {
           task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
                         xi, yi, thisZ, sizeX, sizeY, sizeZ);
+          coilVerbose = ((29 == xi || 30 == xi || 31 == xi )
+                         && 30 == yi && 30 == thisZ);
           filter(here + 1*valLen, task->iv3,
                  task->cctx->spacing, task->cctx->parm);
           here += 2*valLen;
