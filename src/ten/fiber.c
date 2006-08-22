@@ -27,7 +27,7 @@
 
 int
 _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
-  char me[]="_tenFiberProbe";
+  /* char me[]="_tenFiberProbe"; */
   double iPos[3];
   int ret;
 
