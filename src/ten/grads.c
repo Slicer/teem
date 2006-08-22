@@ -180,10 +180,18 @@ tenGradientMeasure(double *minAngle, double *pot,
          *four* pairwise interactions, hence the "2*" below */
       ELL_3V_SUB(pdir, pos + 3*ii, pos + 3*jj);
       plen = ELL_3V_LEN(pdir);
-      *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      if (tgparm->expo > 25) {
+        *pot += tgparm->expo/plen;
+      } else {
+        *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      }
       ELL_3V_ADD2(pdir, pos + 3*ii, pos + 3*jj);
       plen = ELL_3V_LEN(pdir);
-      *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      if (tgparm->expo > 25) {
+        *pot += tgparm->expo/plen;
+      } else {
+        *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      }
       aa = ell_3v_angle_d(pos + 3*ii, pos + 3*jj);
       if (aa > AIR_PI/2) {
         aa = AIR_PI - aa;
@@ -509,8 +517,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       /* do averaging with last to avoid getting fooled by 
          momentary pauses in progress of solution */
       potchange = (potchange + AIR_ABS(newpot - pot)/(pot*tgparm->dt))/2;
-      if (newpot > pot*1.001) {
-        /* potential has increased too much, step size is too big */
+      if (newpot > pot*1.000001) {
+        /* potential has increased (too much), step size is too big */
         fprintf(stderr, "%s(%d): real dt %g --> %g\n", me, iter,
                 tgparm->realDt, tgparm->realDt/2);
         tgparm->realDt /= 2;
