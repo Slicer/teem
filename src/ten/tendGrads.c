@@ -74,6 +74,9 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              "instead of the default behavior of tracking a pair of "
              "antipodal points (appropriate for determining DWI gradients), "
              "use only single points (appropriate for who knows what).");
+  hestOptAdd(&hopt, "d", NULL, airTypeInt, 0, 0, &(tgparm->descent), NULL,
+             "instead of the default behavior of doing RK2 physics, "
+             "just do gradient descent on potential energy.");
   hestOptAdd(&hopt, "snap", "interval", airTypeInt, 1, 1, &(tgparm->snap), "0",
              "specifies an interval between which snapshots of the point "
              "positions should be saved out.  By default (not using this "
@@ -81,13 +84,20 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1,
              &(tgparm->jitter), "0.05",
              "amount by which to perturb points when given an input nrrd");
-  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
-             &(tgparm->minVelocity), "0.00001",
-             "low threshold on mean velocity of repelling points, "
-             "at which point repulsion phase of algorithm terminates. ");
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
+             &(tgparm->minVelocity), "0.00001",
+             "low threshold on mean velocity of repelling points, "
+             "at which point repulsion phase of algorithm terminates.");
+  hestOptAdd(&hopt, "exp", "exponent", airTypeUInt, 1, 1, 
+             &(tgparm->expo), "1",
+             "the exponent n that determines the potential energy 1/r^n.");
+  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
+             &(tgparm->minPotentialChange), "0.00001",
+             "low threshold on fractional change of potential at "
+             "which point repulsion phase of algorithm terminates.");
   hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 
              &(tgparm->minMeanImprovement), "0.00005",
              "in the second phase of the algorithm, "

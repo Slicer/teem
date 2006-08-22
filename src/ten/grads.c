@@ -39,9 +39,13 @@ tenGradientParmNew(void) {
     ret->minMeanImprovement = 0.00001;
     ret->snap = 0;
     ret->single = AIR_FALSE;
+    ret->descent = AIR_FALSE;
+    ret->expo = 1;
     ret->seed = 42;
     ret->minIteration = 20;
     ret->maxIteration = 1000000;
+    ret->minPotentialChange = 0.00001;
+    ret->itersUsed = 0;
   }
   return ret;
 }
@@ -52,7 +56,6 @@ tenGradientParmNix(tenGradientParm *tgparm) {
   airFree(tgparm);
   return NULL;
 }
-
 
 int
 tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
@@ -156,11 +159,47 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
 }
 
 void
+tenGradientMeasure(double *minAngle, double *pot,
+                   Nrrd *npos, tenGradientParm *tgparm) {
+  double pdir[3], plen, *pos, aa;
+  int ii, jj, num;
+
+  if (!(minAngle && pot && npos && tgparm )) {
+    return;
+  }
+
+  num = npos->axis[1].size;
+  pos = AIR_CAST(double *, npos->data);
+  *minAngle = AIR_PI;
+
+  *pot = 0;
+  for (ii=0; ii<num; ii++) {
+    for (jj=0; jj<ii; jj++) {
+      /* we're looking only once at pairs (ii,jj) by forcing jj<ii, 
+         but the two possible signs for pos_ii and pos_jj lead to
+         *four* pairwise interactions, hence the "2*" below */
+      ELL_3V_SUB(pdir, pos + 3*ii, pos + 3*jj);
+      plen = ELL_3V_LEN(pdir);
+      *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      ELL_3V_ADD2(pdir, pos + 3*ii, pos + 3*jj);
+      plen = ELL_3V_LEN(pdir);
+      *pot += 2*tgparm->charge*airIntPow(1.0/plen, tgparm->expo);
+      aa = ell_3v_angle_d(pos + 3*ii, pos + 3*jj);
+      if (aa > AIR_PI/2) {
+        aa = AIR_PI - aa;
+      }
+      *minAngle = AIR_MIN(*minAngle, aa);
+    }
+  }
+  return;
+}
+
+void
 _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
                        Nrrd *nvel, Nrrd *npos,
                        tenGradientParm *tgparm) {
   double *dvdt, *dpdt, *vel, *pos, qq, force[3], ff[3],
-    pdir[3], mdir[3], plen, mlen, prep, mrep;
+    pdir[3], mdir[3], plen, mlen, prep, mrep, step;
   int num, ii, jj;
   
   dvdt = (double *)(ndvdt->data);
@@ -169,6 +208,8 @@ _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
   pos = (double *)(npos->data);
   num = ndvdt->axis[1].size;
   qq = (tgparm->charge)*(tgparm->charge);
+
+  /* only for descent */
 
   for (ii=0; ii<num; ii++) {
     /* find forces acting on ii from position of all other pairs jj */
@@ -179,24 +220,79 @@ _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
       }
       ELL_3V_SUB(pdir, pos + 3*ii, pos + 3*jj);
       ELL_3V_NORM(pdir, pdir, plen);
-      prep = qq/(plen*plen);
+      prep = qq*airIntPow(tgparm->minEdge/plen, tgparm->expo+1);
       if (tgparm->single) {
         mrep = 0;
         ELL_3V_SET(mdir, 0, 0, 0);
       } else {
         ELL_3V_ADD2(mdir, pos + 3*ii, pos + 3*jj);
         ELL_3V_NORM(mdir, mdir, mlen);
-        mrep = qq/(mlen*mlen);
+        mrep = qq*airIntPow(tgparm->minEdge/mlen, tgparm->expo+1);
       }
-      ELL_3V_SCALE_ADD3(ff,
-                        prep, pdir,
-                        mrep, mdir,
-                        -tgparm->drag, vel + 3*ii);
+      if (tgparm->descent) {
+        /*
+        if (!( AIR_EXISTS(mrep) && AIR_EXISTS(prep) )) {
+          fprintf(stderr, "!%d(%g,%g,%g) %d(%g,%g,%g): "
+                  "%g/%g--%g    %g/%g--%g\n",
+                  ii, (pos + 3*ii)[0], (pos + 3*ii)[1], (pos + 3*ii)[2],
+                  jj, (pos + 3*jj)[0], (pos + 3*jj)[1], (pos + 3*jj)[2],
+                  tgparm->minEdge, plen, prep,
+                  tgparm->minEdge, mlen, mrep);
+          exit(1);
+        }
+        */
+        ELL_3V_SCALE_ADD2(ff,
+                          prep, pdir,
+                          mrep, mdir);
+      } else {
+        ELL_3V_SCALE_ADD3(ff,
+                          prep, pdir,
+                          mrep, mdir,
+                          -tgparm->drag, vel + 3*ii);
+      }
       ELL_3V_ADD2(force, force, ff);
+      /*
+      if (!( ELL_3V_EXISTS(force) )) {
+        fprintf(stderr, "!%d,%d(%g,%g,%g)  <--- (%g,%g,%g)\n", ii, jj,
+                force[0], force[1], force[2],
+                ff[0], ff[1], ff[2]);
+      }
+      */
     }
-    ELL_3V_SCALE(dvdt + 3*ii, 1.0/tgparm->mass, force);
-    ELL_3V_COPY(dpdt + 3*ii, vel + 3*ii);
+    if (tgparm->descent) {
+      double newpos[3], len;
+      ELL_3V_NORM(force, force, len);
+      if (!ELL_3V_EXISTS(force)) {
+        ELL_3V_SET(force, 0, 0, 0);
+        len = 0;
+      }
+      step = len*tgparm->realDt/num;
+      /* this seemed to work to get the large exponents numerically
+         stable, by imposing a speed limit the decreases as the 
+         exponent increases, but then it became apparent that by
+         scaling forces for different particles differently, the
+         net force on the system could become non-zero, and any 
+         assymetries in the system created slow rotation... 
+         step = step/(1.0 + step/(tgparm->minEdge/tgparm->expo)); */
+      ELL_3V_SCALE_ADD2(newpos,
+                        1.0, pos + 3*ii,
+                        step, force);
+      /*
+      if (!( AIR_EXISTS(step) && ELL_3V_EXISTS(force) )) {
+        fprintf(stderr, "!%d(%g,%g,%g) blah:  %g    %g,%g,%g\n", ii,
+                newpos[0], newpos[1], newpos[2],
+                step, force[0], force[1], force[2]);
+      }
+      */
+      ELL_3V_NORM(newpos, newpos, len);
+      ELL_3V_SUB(vel + 3*ii, pos + 3*ii, newpos);
+      ELL_3V_COPY(pos + 3*ii, newpos);
+    } else {
+      ELL_3V_SCALE(dvdt + 3*ii, 1.0/tgparm->mass, force);
+      ELL_3V_COPY(dpdt + 3*ii, vel + 3*ii);
+    }
   }
+
   return;
 }
 
@@ -255,13 +351,20 @@ _tenGradientMeanVelocity(Nrrd *nvel) {
 }
 
 double
-_tenGradientParty(double *grad, int num) {
+_tenGradientParty(double *grad, int num, airRandMTState *rstate) {
   double mean[3];
+  unsigned int rnd, rndBit;
   int ii;
-  
+
+  rnd = airUIrandMT_r(rstate);
+  rndBit = 0;
   ELL_3V_SET(mean, 0, 0, 0);
   for (ii=0; ii<num; ii++) {
-    if (airRandInt(2)) {
+    if (32 == rndBit) {
+      rnd = airUIrandMT_r(rstate);
+      rndBit = 0;
+    }
+    if (rnd & (1 << rndBit++)) {
       ELL_3V_SCALE(grad + 3*ii, -1, grad + 3*ii);
     }
     ELL_3V_INCR(mean, grad + 3*ii);
@@ -276,6 +379,7 @@ tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
   char me[]="tenGradientMeanMinimize", err[BIFF_STRLEN];
   int num;
   double *grad, len, lastLen, improv;
+  airRandMTState *rstate;
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2)) {
     sprintf(err, "%s: got NULL pointer or invalid input", me);
@@ -287,11 +391,12 @@ tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
   }
   num = nout->axis[1].size;
   grad = (double*)(nout->data);
-   
-  lastLen = _tenGradientParty(grad, num);
+
+  rstate = airRandMTStateNew(tgparm->seed);
+  lastLen = _tenGradientParty(grad, num, rstate);
   do {
     do {
-      len = _tenGradientParty(grad, num);
+      len = _tenGradientParty(grad, num, rstate);
     } while (len > lastLen);
     improv = lastLen - len;
     lastLen = len;
@@ -299,6 +404,7 @@ tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
             me, improv, len);
   } while (improv > tgparm->minMeanImprovement
            && len > tgparm->minMean);
+  airRandMTStateNix(rstate);
   
   return 0;
 }
@@ -318,7 +424,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   unsigned int gi, iter;
   airArray *mop;
   Nrrd *nvel, *npos, *nveltmp, *npostmp, *ndvdt, *ndpdt;
-  double *grad, len, meanVelocity;
+  double *grad, len, meanVelocity, pot, minAngle, newpot, potchange;
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2) || !tgparm) {
     sprintf(err, "%s: got NULL pointer or invalid input", me);
@@ -376,30 +482,62 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     - apply those changes to the real world
     (this is the midpoint integration method, or 2nd order Runge-Kutta)
   */
-  /* npos is already initialized (via nrrdCopy) */
+  /* npos is already initialized (via nrrdCopy above) */
+  tenGradientMeasure(&minAngle, &pot, npos, tgparm);
+  tgparm->realDt = tgparm->dt;
+  tgparm->nudge = 0.1;
+  fprintf(stderr, "%s: initial phi = %g, minAngle = %g\n", me,
+          pot, minAngle);
+  /* the minEdge value is used to ensure that the exponentiation used 
+     in force calculation never explodes to infinity, rather- at worst
+     forces go to zero for particles that aren't the closest */
+  tgparm->minEdge = 2*sin(minAngle/2);
+  potchange = 1.0; /* maximum possible value */
   memset(nvel->data, 0, nrrdElementSize(nvel)*nrrdElementNumber(nvel));
   meanVelocity = _tenGradientMeanVelocity(nvel);
   for (iter=0;
        (iter < tgparm->minIteration 
         || (iter < tgparm->maxIteration
+            && potchange > tgparm->minPotentialChange
             && meanVelocity > tgparm->minVelocity)); 
        iter++) {
-    _tenGradientChangeFind(ndvdt, ndpdt,
-                           nvel, npos, tgparm);
-    _tenGradientChangeApply(nveltmp, npostmp,
-                            ndvdt, ndpdt, 
-                            nvel, npos, tgparm, 0.5);
-    _tenGradientChangeFind(ndvdt, ndpdt,
-                           nveltmp, npostmp, tgparm);
-    _tenGradientChangeApply(nvel, npos,
-                            ndvdt, ndpdt, 
-                            nvel, npos, tgparm, 1.0);
+    if (tgparm->descent) {
+      _tenGradientChangeFind(ndvdt, ndpdt,
+                             nvel, npos, tgparm);
+      tenGradientMeasure(&minAngle, &newpot, npos, tgparm);
+      tgparm->minEdge = 2*sin(minAngle/2);
+      /* do averaging with last to avoid getting fooled by 
+         momentary pauses in progress of solution */
+      potchange = (potchange + AIR_ABS(newpot - pot)/(pot*tgparm->dt))/2;
+      if (newpot > pot*1.001) {
+        /* potential has increased too much, step size is too big */
+        fprintf(stderr, "%s(%d): real dt %g --> %g\n", me, iter,
+                tgparm->realDt, tgparm->realDt/2);
+        tgparm->realDt /= 2;
+        tgparm->nudge /= 10;
+      } else {
+        tgparm->realDt *= 1 + tgparm->nudge;
+        tgparm->realDt = AIR_MIN(1, tgparm->realDt);
+      }
+      pot = newpot;
+    } else {
+      _tenGradientChangeFind(ndvdt, ndpdt,
+                             nvel, npos, tgparm);
+      _tenGradientChangeApply(nveltmp, npostmp,
+                              ndvdt, ndpdt, 
+                              nvel, npos, tgparm, 0.5);
+      _tenGradientChangeFind(ndvdt, ndpdt,
+                             nveltmp, npostmp, tgparm);
+      _tenGradientChangeApply(nvel, npos,
+                              ndvdt, ndpdt, 
+                              nvel, npos, tgparm, 1.0);
+    }
     meanVelocity = _tenGradientMeanVelocity(nvel);
     if (tgparm->snap) {
       if (!(iter % tgparm->snap)) {
         sprintf(filename, "%05d.nrrd", iter/tgparm->snap);
-        fprintf(stderr, "%s: %d: meanVelocity = %g; saving %s\n",
-                me, iter, meanVelocity, filename);
+        fprintf(stderr, "%s(%d): phi = %g, delta phi = %g; saving %s\n",
+                me, iter, pot, potchange, filename);
         if (nrrdSave(filename, npos, NULL)) {
           serr = biffGetDone(NRRD);
           fprintf(stderr, "%s: iter=%d, couldn't save snapshot:\n%s"
@@ -408,17 +546,37 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
         }
       }
     } else {
+      /* double outer[9], tmp[9], *pos; */
       if (!(iter % 1000)) {
-        fprintf(stderr, "%s: iteration = %d: meanVelocity = %g\n",
-                me, iter, meanVelocity);
+        fprintf(stderr, "%s(%d):\n   phi = %g, Dphi = %g, mina = %g\n",
+                me, iter, pot, potchange, minAngle);
       }
+      /*
+      for (gi=0; gi<nout->axis[1].size; gi++) {
+
+      }
+      */
     }
   }
 
-  fprintf(stderr, "%s: optimizing balance ... \n", me);
-  if (tenGradientMeanMinimize(nout, npos, tgparm)) {
-    sprintf(err, "%s: failed to minimize vector sum of gradients", me);
-    biffAdd(TEN, err); return 1;
+  fprintf(stderr, "%s: done distributing:\n", me);
+  fprintf(stderr, "    iter=%d, vel = %g, phi = %g, delta phi = %g\n",
+          iter, meanVelocity, pot, potchange);
+  fprintf(stderr, "    min angle = %g\n", minAngle);
+  tgparm->itersUsed = iter;
+
+  if (tgparm->minMeanImprovement) {
+    fprintf(stderr, "%s: optimizing balance ... \n", me);
+    if (tenGradientMeanMinimize(nout, npos, tgparm)) {
+      sprintf(err, "%s: failed to minimize vector sum of gradients", me);
+      biffAdd(TEN, err); return 1;
+    }
+  } else {
+    fprintf(stderr, "%s: leaving balance as is\n", me);
+    if (nrrdConvert(nout, npos, nrrdTypeDouble)) {
+      sprintf(err, "%s: can't initialize output with input", me);
+      biffMove(TEN, err, NRRD); return 1;
+    }
   }
 
   airMopOkay(mop); 

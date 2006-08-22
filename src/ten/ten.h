@@ -658,9 +658,14 @@ typedef struct {
     jitter,
     minVelocity,
     minMean,
-    minMeanImprovement;
-  int snap, single;
-  unsigned int seed, minIteration, maxIteration;
+    minMeanImprovement,
+    minPotentialChange;
+  int snap, single, descent;
+  unsigned int expo, seed, minIteration, maxIteration;
+  /* internal state, unlike everything above */
+  double realDt, minEdge, nudge;
+  /* output */
+  unsigned int itersUsed;
 } tenGradientParm;
 
 /*
@@ -773,6 +778,8 @@ TEN_EXPORT int tenGradientRandom(Nrrd *ngrad, unsigned int num,
 TEN_EXPORT int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
 TEN_EXPORT int tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
                                        tenGradientParm *tgparm);
+TEN_EXPORT void tenGradientMeasure(double *minAngle, double *pot,
+                                   Nrrd *npos, tenGradientParm *tgparm);
 TEN_EXPORT int tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                                      tenGradientParm *tgparm);
 TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
