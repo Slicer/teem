@@ -493,6 +493,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   /* npos is already initialized (via nrrdCopy above) */
   tenGradientMeasure(&minAngle, &pot, npos, tgparm);
   tgparm->realDt = tgparm->dt;
+  fprintf(stderr, "!%s: realDt = %g\n", me, tgparm->realDt);
   tgparm->nudge = 0.1;
   fprintf(stderr, "%s: initial phi = %g, minAngle = %g\n", me,
           pot, minAngle);
@@ -517,7 +518,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       /* do averaging with last to avoid getting fooled by 
          momentary pauses in progress of solution */
       potchange = (potchange + AIR_ABS(newpot - pot)/(pot*tgparm->dt))/2;
-      if (newpot > pot*1.000001) {
+      if (newpot > pot) {
         /* potential has increased (too much), step size is too big */
         fprintf(stderr, "%s(%d): real dt %g --> %g\n", me, iter,
                 tgparm->realDt, tgparm->realDt/2);
@@ -525,7 +526,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
         tgparm->nudge /= 10;
       } else {
         tgparm->realDt *= 1 + tgparm->nudge;
-        tgparm->realDt = AIR_MIN(1, tgparm->realDt);
+        tgparm->realDt = AIR_MIN(tgparm->dt, tgparm->realDt);
       }
       pot = newpot;
     } else {
@@ -556,8 +557,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     } else {
       /* double outer[9], tmp[9], *pos; */
       if (!(iter % 1000)) {
-        fprintf(stderr, "%s(%d):\n   phi = %g, Dphi = %g, mina = %g\n",
-                me, iter, pot, potchange, minAngle);
+        fprintf(stderr, "%s(%d):\n velo = %g, phi = %g, Dphi = %g, mina = %g\n",
+                me, iter, meanVelocity, pot, potchange, minAngle);
       }
       /*
       for (gi=0; gi<nout->axis[1].size; gi++) {
@@ -610,6 +611,7 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
 
+  fprintf(stderr, "!%s: dt = %g\n", me, tgparm->dt);
   if (tenGradientRandom(nin, num, tgparm->seed)
       || tenGradientDistribute(nout, nin, tgparm)) {
     sprintf(err, "%s: trouble", me);
