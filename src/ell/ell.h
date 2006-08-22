@@ -107,6 +107,8 @@ ELL_EXPORT void ell_3mv_mul_f(float v2[3], const float m[9], const float v1[3]);
 ELL_EXPORT void ell_3mv_mul_d(double v2[3], const double m[9], const double v1[3]);
 ELL_EXPORT void ell_4mv_mul_f(float v2[4], const float m[16], const float v1[4]);
 ELL_EXPORT void ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]);
+ELL_EXPORT float ell_3v_angle_f(float u[3], float v[3]);
+ELL_EXPORT double ell_3v_angle_d(double u[3], double v[3]);
 
 /* mat.c */
 ELL_EXPORT void ell_3m_mul_f(float m3[9], const float m1[9], const float m2[9]);

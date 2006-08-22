@@ -85,3 +85,32 @@ void
 ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]) {
   ELL_4MV_MUL(v2, m, v1);
 }
+
+float
+ell_3v_angle_f(float u[3], float v[3]) {
+  float tmp[3], ret;
+
+  if (ELL_3V_DOT(u, v) < 0.0) {
+    ELL_3V_ADD2(tmp, u, v);
+    ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
+  } else {
+    ELL_3V_SUB(tmp, u, v);
+    ret = AIR_CAST(float, 2*asin(ELL_3V_LEN(tmp)/2.0));
+  }
+  return ret;
+}
+
+double
+ell_3v_angle_d(double u[3], double v[3]) {
+  double tmp[3], ret;
+
+  if (ELL_3V_DOT(u, v) < 0.0) {
+    ELL_3V_ADD2(tmp, u, v);
+    ret = AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0);
+  } else {
+    ELL_3V_SUB(tmp, u, v);
+    ret = 2*asin(ELL_3V_LEN(tmp)/2.0);
+  }
+  return ret;
+}
+
