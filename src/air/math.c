@@ -141,6 +141,36 @@ airSgnPow(double v, double p) {
              : -pow(-v, p)));
 }
 
+double
+airIntPow(double v, int p) {
+  double sq, ret;
+
+  if (p > 0) {
+    sq = v;
+    while (!(p & 1)) {
+      /* while the low bit is zero */ 
+      p >>= 1;
+      sq *= sq;
+    }
+    /* must terminate because we know p != 0, and when
+       it terminates we know that the low bit is 1 */
+    ret = sq;
+    while (p >>= 1) {
+      /* while there are any non-zero bits in p left */
+      sq *= sq;
+      if (p & 1) {
+        ret *= sq;
+      }
+    }
+  } else if (p < 0) {
+    ret = airIntPow(1.0/v, -p);
+  } else {
+    ret = 1.0;
+  }
+
+  return ret;
+}
+
 /*
 ******** airLog2()
 **
