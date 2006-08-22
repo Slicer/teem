@@ -49,7 +49,6 @@ main(int argc, char *argv[]) {
   tgparm->single = AIR_FALSE;
   tgparm->descent = AIR_TRUE;
   tgparm->snap = 0;
-  tgparm->minVelocity = 0.0;
   tgparm->minMeanImprovement = 0.0;
 
   nlog = nrrdNew();
@@ -68,8 +67,12 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
+             &(tgparm->minVelocity), "0.00000000001",
+             "low threshold on mean velocity of repelling points, "
+             "at which point repulsion phase of algorithm terminates.");
   hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
-             &(tgparm->minPotentialChange), "0.00000001",
+             &(tgparm->minPotentialChange), "0.00000000001",
              "low threshold on fractional change of potential at "
              "which point repulsion phase of algorithm terminates.");
   hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1,
@@ -125,6 +128,9 @@ main(int argc, char *argv[]) {
   if (!E) E |= nrrdKeyValueAdd(nlog, keyStr, valStr);
   if (!E) strcpy(keyStr, "dp");
   if (!E) sprintf(valStr, "%g", tgparm->minPotentialChange);
+  if (!E) E |= nrrdKeyValueAdd(nlog, keyStr, valStr);
+  if (!E) strcpy(keyStr, "minvelo");
+  if (!E) sprintf(valStr, "%g", tgparm->minVelocity);
   if (!E) E |= nrrdKeyValueAdd(nlog, keyStr, valStr);
   if (!E) strcpy(keyStr, "minmean");
   if (!E) sprintf(valStr, "%g", tgparm->minMean);
