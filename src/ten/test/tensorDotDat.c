@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
 
-  int E;
+  int E, optimizeAngle;
   unsigned int ii, minNum, maxNum;
   double *log, minAngle, pot;
   char *outStr, logFilename[AIR_STRLEN_MED], gradFilename[AIR_STRLEN_MED],
@@ -72,6 +72,8 @@ main(int argc, char *argv[]) {
              &(tgparm->minVelocity), "0.00000000001",
              "low threshold on mean velocity of repelling points, "
              "at which point repulsion phase of algorithm terminates.");
+  hestOptAdd(&hopt, "oa", NULL, airTypeInt, 0, 0, &optimizeAngle, NULL,
+             "optimize for the maximal minimal angle, instead of potential.");
   hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
              &(tgparm->minPotentialChange), "0.00000000001",
              "low threshold on fractional change of potential at "
@@ -164,7 +166,9 @@ main(int argc, char *argv[]) {
         airMopError(mop); return 1;
       }
       tenGradientMeasure(&minAngle, &pot, ngrad, tgparm);
-      if (1 == tgparm->seed || pot < log[3 + 6*ii]) {
+      if (1 == tgparm->seed 
+          || ((optimizeAngle && minAngle > log[4 + 6*ii])
+              || pot < log[3 + 6*ii])) {
         /* this gradient set is best so far */
         log[2 + 6*ii] = tgparm->seed;
         log[3 + 6*ii] = pot;

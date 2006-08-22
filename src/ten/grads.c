@@ -217,8 +217,6 @@ _tenGradientChangeFind(Nrrd *ndvdt, Nrrd *ndpdt,
   num = ndvdt->axis[1].size;
   qq = (tgparm->charge)*(tgparm->charge);
 
-  /* only for descent */
-
   for (ii=0; ii<num; ii++) {
     /* find forces acting on ii from position of all other pairs jj */
     ELL_3V_SET(force, 0, 0, 0);
