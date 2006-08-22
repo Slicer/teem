@@ -32,7 +32,7 @@ main(int argc, char *argv[]) {
   airArray *mop;
 
   int E;
-  unsigned int ii, minNum, maxNum, expo;
+  unsigned int ii, minNum, maxNum;
   double *log, minAngle, pot;
   char *outStr, logFilename[AIR_STRLEN_MED], gradFilename[AIR_STRLEN_MED],
     keyStr[AIR_STRLEN_MED], valStr[AIR_STRLEN_MED];
@@ -62,8 +62,9 @@ main(int argc, char *argv[]) {
              "minimum number of gradients to be computed");
   hestOptAdd(&hopt, "max", "max #", airTypeUInt, 1, 1, &maxNum, "129",
              "maximum number of gradients to be computed");
-  hestOptAdd(&hopt, "p", "exponent", airTypeUInt, 1, 1, &expo, "2",
-             "the exponent p that defines the 1/r^p potential energy");
+  hestOptAdd(&hopt, "p", "exponent", airTypeUInt, 1, 1, &(tgparm->expo), "1",
+             "the exponent p that defines the 1/r^p potential energy "
+             "(Coulomb is 1)");
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
@@ -83,7 +84,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   /* see if we can open the log */
-  sprintf(logFilename, "%s/000-%03u-log.nrrd", outStr, expo);
+  sprintf(logFilename, "%s/000-%03u-log.nrrd", outStr, tgparm->expo);
   if (nrrdLoad(nlog, logFilename, NULL)) {
     /* no, we couldn't load it, and we don't care why */
     free(biffGetDone(NRRD));
@@ -159,7 +160,7 @@ main(int argc, char *argv[]) {
         log[3 + 6*ii] = pot;
         log[4 + 6*ii] = minAngle;
         log[5 + 6*ii] = tgparm->itersUsed;
-        sprintf(gradFilename, "%s/%03u-%03u.nrrd", outStr, ii, expo);
+        sprintf(gradFilename, "%s/%03u-%03u.nrrd", outStr, ii, tgparm->expo);
         if (nrrdSave(gradFilename, ngrad, NULL)) {
           airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
           fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
