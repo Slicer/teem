@@ -43,7 +43,6 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   tgparm = tenGradientParmNew();
   airMopAdd(mop, tgparm, (airMopper)tenGradientParmNix, airMopAlways);
-  tgparm->dt = 1.0;
   tgparm->drag = 0.0;
   tgparm->charge = 1.0;
   tgparm->single = AIR_FALSE;
@@ -64,6 +63,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "p", "exponent", airTypeUInt, 1, 1, &(tgparm->expo), "1",
              "the exponent p that defines the 1/r^p potential energy "
              "(Coulomb is 1)");
+  hestOptAdd(&hopt, "dt", "dt", airTypeDouble, 1, 1, &(tgparm->dt), "1",
+             "time increment in solver");
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
@@ -125,6 +126,9 @@ main(int argc, char *argv[]) {
   E = 0;
   if (!E) strcpy(keyStr, "maxiter");
   if (!E) sprintf(valStr, "%d", tgparm->maxIteration);
+  if (!E) E |= nrrdKeyValueAdd(nlog, keyStr, valStr);
+  if (!E) strcpy(keyStr, "dt");
+  if (!E) sprintf(valStr, "%g", tgparm->dt);
   if (!E) E |= nrrdKeyValueAdd(nlog, keyStr, valStr);
   if (!E) strcpy(keyStr, "dp");
   if (!E) sprintf(valStr, "%g", tgparm->minPotentialChange);
