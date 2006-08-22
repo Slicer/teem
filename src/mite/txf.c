@@ -93,7 +93,7 @@ miteStageOp = &_miteStageOp;
 **   gage(vector:<item>) : gageKindVec
 **   gage(tensor:<item>) : tenGageKind
 **
-** Notice that "scalar", "vector", and "tensor" to NOT refer to the type 
+** Notice that "scalar", "vector", and "tensor" do NOT refer to the type 
 ** of the quantity being measured, but rather to the type of volume in 
 ** which quantity is measured (i.e., the gageKind used)
 */
@@ -626,6 +626,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 
 void
 _miteStageRun(miteThread *mtt, miteUser *muu) {
+  char me[]="_miteStageRun";
   int stageIdx, ri, rii, txfIdx, finalIdx;
   miteStage *stage;
   mite_t *rangeData;
@@ -646,6 +647,9 @@ _miteStageRun(miteThread *mtt, miteUser *muu) {
       txfIdx = airIndexClamp(stage->min, *(stage->val),
                              stage->max, stage->size);
       if (mtt->verbose) {
+        fprintf(stderr, "!%s: %s=%g in [%g,%g]/%u -> %u\n", me,
+                stage->label, *(stage->val),
+                stage->min, stage->max, stage->size, txfIdx);
         dbg[0 + 2*stageIdx] = *(stage->val);
       }
     }
