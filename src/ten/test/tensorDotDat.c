@@ -165,7 +165,7 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "%s: trouble making distribution:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
-      tenGradientMeasure(&minAngle, &pot, ngrad, tgparm);
+      tenGradientMeasure(&pot, &minAngle, ngrad, tgparm);
       if (1 == tgparm->seed 
           || ((optimizeAngle && minAngle > log[4 + 6*ii])
               || pot < log[3 + 6*ii])) {

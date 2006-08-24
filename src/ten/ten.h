@@ -651,21 +651,36 @@ typedef struct {
 ** all parameters for repulsion-based generation of gradient directions
 */
 typedef struct {
-  double mass,
-    charge,
-    drag,
-    dt,
-    jitter,
-    minVelocity,
-    minMean,
-    minMeanImprovement,
-    minPotentialChange;
-  int snap, single, descent;
-  unsigned int expo, seed, minIteration, maxIteration;
-  /* internal state, unlike everything above */
-  double realDt, minEdge, nudge;
-  /* output */
-  unsigned int itersUsed;
+  /* ----------------------- INPUT */
+  double initStep,        /* initial step size for gradient descent */
+    jitter,               /* amount by which distribution is jittered
+                             when starting with a given input set, as
+                             a fraction of the ideal edge length */
+    minVelocity,          /* minimum mean gradient velocity that signifies
+                             end of first distribution phase */
+    minPotentialChange,   /* minimum change in potential that signifies
+                             end of first distribution phase */
+    minMean,              /* mean gradient length that signifies end of 
+                             secondary balancing phase */
+    minMeanImprovement;   /* magnitude of improvement (reduction) of mean
+                             gradient length that signifies end of 
+                             secondary balancing phase */
+  int single;             /* distribute single points, instead of 
+                             anti-podal pairs of points */
+  unsigned int snap,      /* interval of interations at which to save
+                             snapshats of distribution */
+    expo,                 /* the exponent N that defines the potential
+                             energy profile 1/r^N (coulomb: N=1) */
+    seed,                 /* seed value for random number generator */
+    maxIteration;         /* bail if we haven't converged by this number
+                             of iterations */
+  /* ----------------------- INTERNAL */
+  double step,            /* actual current step size (adjusted during
+                             the algorithm depending on progress) */
+    idealEdge,            /* length of edge in idealized configuration */
+    nudge;                /* how to increase realDT with each iteration */
+  /* ----------------------- OUTPUT */
+  unsigned int itersUsed; /* total number of iterations */
 } tenGradientParm;
 
 /*
@@ -775,11 +790,13 @@ TEN_EXPORT int tenGradientCheck(const Nrrd *ngrad, int type,
                                 unsigned int minnum);
 TEN_EXPORT int tenGradientRandom(Nrrd *ngrad, unsigned int num,
                                  unsigned int seed);
+TEN_EXPORT double tenGradientIdealEdge(unsigned int N, int single);
 TEN_EXPORT int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
-TEN_EXPORT int tenGradientMeanMinimize(Nrrd *nout, const Nrrd *nin,
-                                       tenGradientParm *tgparm);
-TEN_EXPORT void tenGradientMeasure(double *minAngle, double *pot,
-                                   Nrrd *npos, tenGradientParm *tgparm);
+TEN_EXPORT int tenGradientBalance(Nrrd *nout, const Nrrd *nin,
+                                  tenGradientParm *tgparm);
+TEN_EXPORT void tenGradientMeasure(double *pot, double *minAngle,
+                                   const Nrrd *npos, tenGradientParm *tgparm,
+                                   int edgeNormalize);
 TEN_EXPORT int tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                                      tenGradientParm *tgparm);
 TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
