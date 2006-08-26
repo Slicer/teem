@@ -649,6 +649,10 @@ typedef struct {
 ******** struct tenGradientParm
 **
 ** all parameters for repulsion-based generation of gradient directions
+**
+** the old physics-based point-repulsion code (RK2 integration of
+** equations of motion, with drag force) is gone; this is only the
+** fast gradient descent with some strategies for adaptive step size
 */
 typedef struct {
   /* ----------------------- INPUT */
@@ -669,18 +673,29 @@ typedef struct {
                              anti-podal pairs of points */
   unsigned int snap,      /* interval of interations at which to save
                              snapshats of distribution */
+    report,               /* interval of interations at which to report
+                             on progress */
     expo,                 /* the exponent N that defines the potential
                              energy profile 1/r^N (coulomb: N=1) */
     seed,                 /* seed value for random number generator */
+    maxEdgeShrink,        /* max number of times we try to compute 
+                             an update with smaller edge normalization */
+    minIteration,         /* run for at least this many iterations, 
+                             which can be useful for high exponents,
+                             for which potential measurements can 
+                             easily go to infinity */
     maxIteration;         /* bail if we haven't converged by this number
                              of iterations */
   /* ----------------------- INTERNAL */
   double step,            /* actual current step size (adjusted during
                              the algorithm depending on progress) */
-    idealEdge,            /* length of edge in idealized configuration */
     nudge;                /* how to increase realDT with each iteration */
   /* ----------------------- OUTPUT */
   unsigned int itersUsed; /* total number of iterations */
+  double potential,       /* potential, without edge normalization */
+    potentialNorm,        /* potential, with edge normalization */
+    angle,                /* minimum angle */
+    edge;                 /* minimum edge length */
 } tenGradientParm;
 
 /*
@@ -795,6 +810,7 @@ TEN_EXPORT int tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist);
 TEN_EXPORT int tenGradientBalance(Nrrd *nout, const Nrrd *nin,
                                   tenGradientParm *tgparm);
 TEN_EXPORT void tenGradientMeasure(double *pot, double *minAngle,
+                                   double *minEdge,
                                    const Nrrd *npos, tenGradientParm *tgparm,
                                    int edgeNormalize);
 TEN_EXPORT int tenGradientDistribute(Nrrd *nout, const Nrrd *nin,

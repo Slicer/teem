@@ -63,27 +63,23 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "seed", "value", airTypeUInt, 1, 1, &seed, "42",
              "seed value to used with airSrandMT()");
-  hestOptAdd(&hopt, "dt", "dt", airTypeDouble, 1, 1, &(tgparm->dt), "0.05",
+  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &(tgparm->initStep),
+             "1.0",
              "time increment in solver");
-  hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &(tgparm->drag),
-             "0.0005", "viscous drag, to keep things stable");
-  hestOptAdd(&hopt, "charge", "charge", airTypeDouble, 1, 1,
-             &(tgparm->charge), "0.2",
-             "amount of charge on each particle");
   hestOptAdd(&hopt, "single", NULL, airTypeInt, 0, 0, &(tgparm->single), NULL,
              "instead of the default behavior of tracking a pair of "
              "antipodal points (appropriate for determining DWI gradients), "
              "use only single points (appropriate for who knows what).");
-  hestOptAdd(&hopt, "d", NULL, airTypeInt, 0, 0, &(tgparm->descent), NULL,
-             "instead of the default behavior of doing RK2 physics, "
-             "just do gradient descent on potential energy.");
   hestOptAdd(&hopt, "snap", "interval", airTypeInt, 1, 1, &(tgparm->snap), "0",
              "specifies an interval between which snapshots of the point "
              "positions should be saved out.  By default (not using this "
              "option), there is no such snapshot behavior");
   hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1,
-             &(tgparm->jitter), "0.05",
+             &(tgparm->jitter), "0.1",
              "amount by which to perturb points when given an input nrrd");
+  hestOptAdd(&hopt, "miniter", "# iters", airTypeInt, 1, 1,
+             &(tgparm->minIteration), "0",
+             "max number of iterations for which to run the simulation");
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
@@ -104,7 +100,7 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              "when stochastically balancing the sign of the gradients, "
              "the (small) improvement in length of mean gradient "
              "which triggers termination (as further improvements "
-             "are unlikely. ");
+             "are unlikely.");
   hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1,
              &(tgparm->minMean), "0.0001",
              "if length of mean gradient falls below this, finish "
@@ -119,6 +115,9 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   tgparm->seed = seed;
+  if (tgparm->snap) {
+    tgparm->report = tgparm->snap;
+  }
   E = (nin
        ? tenGradientDistribute(nout, nin, tgparm)
        : tenGradientGenerate(nout, num, tgparm));
