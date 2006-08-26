@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
 
-  int E, optimizeEdge;
+  int E, optimizeEdge, workToDo;
   unsigned int ii, numRange[2], seedRange[2], seed, seedDone;
   double *log, minAngle, minEdge, pot, potNorm, time0, time1;
   char *outStr, logFilename[AIR_STRLEN_MED], gradFilename[AIR_STRLEN_MED],
@@ -194,6 +194,7 @@ main(int argc, char *argv[]) {
      8: time used (in seconds)
   */
 
+  workToDo = AIR_FALSE;
   for (seed=seedRange[0];
        seedRange[1] < seedRange[0] || seed <= seedRange[1];
        seed++) {
@@ -204,6 +205,7 @@ main(int argc, char *argv[]) {
         /* have already tried this seed, move on */
         continue;
       }
+      workToDo = AIR_TRUE;
       tgparm->seed = seed;
       fprintf(stderr, "%s ================ %u %u\n", me, ii, tgparm->seed);
       time0 = airTime();
@@ -241,7 +243,10 @@ main(int argc, char *argv[]) {
         airMopError(mop); return 1;
       }
     }
-  }   
+  }
+  if (!workToDo) {
+    fprintf(stderr, "%s: apparently finished requested computations.\n", me);
+  }
 
   airMopOkay(mop);
   return 0;
