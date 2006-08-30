@@ -188,6 +188,7 @@ typedef struct coilContext_t {
                                       action of the filtering.  The timestep is
                                       probably the first value. */
   /* ---------- internal */
+  unsigned int iter;               /* what iteration we're on */
   size_t size[3],                  /* size of volume */
     nextSlice;                     /* global indicator of next slice needing
                                       to be processed, either in filter or

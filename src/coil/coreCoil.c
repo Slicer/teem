@@ -142,6 +142,7 @@ _coilThisZGet(coilTask *task, int doFilter) {
 
 void
 _coilProcess(coilTask *task, int doFilter) {
+  char me[]="_coilProcess";
   int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
   void (*filter)(coil_t *delta, coil_t **iv3, 
@@ -160,13 +161,15 @@ _coilProcess(coilTask *task, int doFilter) {
       if (thisZ == sizeZ) {
         break;
       }
+      if (task->cctx->verbose > 2) {
+        fprintf(stderr, "%s(%u),f: iter=%u, z=%d\n",
+                me, task->threadIdx, task->cctx->iter, thisZ);
+      }
       here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
         for (xi=0; xi<sizeX; xi++) {
           task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
                         xi, yi, thisZ, sizeX, sizeY, sizeZ);
-          coilVerbose = ((29 == xi || 30 == xi || 31 == xi )
-                         && 30 == yi && 30 == thisZ);
           filter(here + 1*valLen, task->iv3,
                  task->cctx->spacing, task->cctx->parm);
           here += 2*valLen;
@@ -178,6 +181,10 @@ _coilProcess(coilTask *task, int doFilter) {
       thisZ = _coilThisZGet(task, doFilter);
       if (thisZ == sizeZ) {
         break;
+      }
+      if (task->cctx->verbose > 3) {
+        fprintf(stderr, "%s(%u),u: iter=%u, z=%d\n",
+                me, task->threadIdx, task->cctx->iter, thisZ);
       }
       here = (coil_t*)(task->cctx->nvol->data) + 2*valLen*sizeX*sizeY*thisZ;
       for (yi=0; yi<sizeY; yi++) {
@@ -361,6 +368,7 @@ coilIterate(coilContext *cctx, int numIterations) {
   
   time0 = airTime();
   for (iter=0; iter<numIterations; iter++) {
+    cctx->iter = iter;
     if (cctx->verbose) {
       fprintf(stderr, "%s: starting iter %d (of %d)\n", me, iter, 
               numIterations);
