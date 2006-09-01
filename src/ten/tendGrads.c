@@ -87,8 +87,8 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              &(tgparm->minVelocity), "0.00001",
              "low threshold on mean velocity of repelling points, "
              "at which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "exp", "exponent", airTypeUInt, 1, 1, 
-             &(tgparm->expo), "1",
+  hestOptAdd(&hopt, "exp", "exponent", airTypeDouble, 1, 1,
+             &(tgparm->expo_d), "1",
              "the exponent n that determines the potential energy 1/r^n.");
   hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
              &(tgparm->minPotentialChange), "0.00001",
@@ -114,6 +114,15 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  /* see if it was an integral exponent */
+  tgparm->expo = AIR_CAST(unsigned int, tgparm->expo_d);
+  if (tgparm->expo == tgparm->expo_d) {
+    /* ooo, it was */
+    tgparm->expo_d = 0;
+  } else {
+    /* no, its non-integral, indicate this as follows */
+    tgparm->expo = 0;
+  }
   tgparm->seed = seed;
   if (tgparm->snap) {
     tgparm->report = tgparm->snap;

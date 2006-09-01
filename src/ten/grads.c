@@ -39,6 +39,7 @@ tenGradientParmNew(void) {
     ret->snap = 0;
     ret->report = 400;
     ret->expo = 1;
+    ret->expo_d = 0;
     ret->seed = 42;
     ret->maxEdgeShrink = 20;
     ret->minIteration = 0;
@@ -211,7 +212,11 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
       if (minEdge) {
         *minEdge = AIR_MIN(*minEdge, len);
       }
-      ptmp = airIntPow(edge/len, tgparm->expo);
+      if (tgparm->expo) {
+        ptmp = airIntPow(edge/len, tgparm->expo);
+      } else {
+        ptmp = pow(edge/len, tgparm->expo_d);
+      }
       *pot += ptmp;
       if (minAngle) {
         atmp = ell_3v_angle_d(pos + 3*ii, pos + 3*jj);
@@ -224,7 +229,11 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
         if (minEdge) {
           *minEdge = AIR_MIN(*minEdge, len);
         }
-        *pot += 2*airIntPow(edge/len, tgparm->expo);
+        if (tgparm->expo) {
+          *pot += 2*airIntPow(edge/len, tgparm->expo);
+        } else {
+          *pot += 2*pow(edge/len, tgparm->expo_d);
+        }
         if (minAngle) {
           *minAngle = AIR_MIN(AIR_PI-atmp, *minAngle);
         }
@@ -270,7 +279,7 @@ _tenGradientUpdate(double *meanVel, double *edgeMin,
                    Nrrd *npos, double edge, tenGradientParm *tgparm) {
   /* char me[]="_tenGradientUpdate"; */
   double *pos, newpos[3], grad[3], ngrad[3],
-    dir[3], len, rep, step, diff[3], limit;
+    dir[3], len, rep, step, diff[3], limit, expo;
   int num, ii, jj, E;
 
   E = 0;
@@ -278,8 +287,9 @@ _tenGradientUpdate(double *meanVel, double *edgeMin,
   num = npos->axis[1].size;
   *meanVel = 0;
   *edgeMin = edge;
-  limit = tgparm->expo*AIR_MIN(sqrt(tgparm->expo),
-                               log(1 + tgparm->initStep/tgparm->step));
+  expo = tgparm->expo ? tgparm->expo : tgparm->expo_d;
+  limit = expo*AIR_MIN(sqrt(expo),
+                       log(1 + tgparm->initStep/tgparm->step));
   for (ii=0; ii<num; ii++) {
     ELL_3V_SET(grad, 0, 0, 0);
     for (jj=0; jj<num; jj++) {
@@ -289,13 +299,21 @@ _tenGradientUpdate(double *meanVel, double *edgeMin,
       ELL_3V_SUB(dir, pos + 3*ii, pos + 3*jj);
       ELL_3V_NORM(dir, dir, len);
       *edgeMin = AIR_MIN(*edgeMin, len);
-      rep = airIntPow(edge/len, tgparm->expo+1);
+      if (tgparm->expo) {
+        rep = airIntPow(edge/len, tgparm->expo+1);
+      } else {
+        rep = pow(edge/len, tgparm->expo_d+1);
+      }
       ELL_3V_SCALE_INCR(grad, rep/num, dir);
       if (!tgparm->single) {
         ELL_3V_ADD2(dir, pos + 3*ii, pos + 3*jj);
         ELL_3V_NORM(dir, dir, len);
         *edgeMin = AIR_MIN(*edgeMin, len);
-        rep = airIntPow(edge/len, tgparm->expo+1);
+        if (tgparm->expo) {
+          rep = airIntPow(edge/len, tgparm->expo+1);
+        } else {
+          rep = pow(edge/len, tgparm->expo_d+1);
+        }
         ELL_3V_SCALE_INCR(grad, rep/num, dir);
       }
     }

@@ -686,6 +686,8 @@ typedef struct {
                              easily go to infinity */
     maxIteration;         /* bail if we haven't converged by this number
                              of iterations */
+  double expo_d;          /* floating point exponent.  If expo is zero,
+                             this is the value that matters */
   /* ----------------------- INTERNAL */
   double step,            /* actual current step size (adjusted during
                              the algorithm depending on progress) */
