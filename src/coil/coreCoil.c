@@ -121,7 +121,9 @@ _coilThisZGet(coilTask *task, int doFilter) {
     thatFlag = &(task->cctx->todoFilter);
   }
 
-  airThreadMutexLock(task->cctx->nextSliceMutex);
+  if (task->cctx->numThreads > 1) {
+    airThreadMutexLock(task->cctx->nextSliceMutex);
+  }
   if (task->cctx->nextSlice == task->cctx->size[2]
       && *thisFlag) {
     /* we're the first thread to start this phase */
@@ -136,7 +138,9 @@ _coilThisZGet(coilTask *task, int doFilter) {
       *thatFlag = AIR_TRUE;
     }
   }
-  airThreadMutexUnlock(task->cctx->nextSliceMutex);
+  if (task->cctx->numThreads > 1) {
+    airThreadMutexUnlock(task->cctx->nextSliceMutex);
+  }
   return thisZ;
 }
 
@@ -252,7 +256,9 @@ _coilWorker(void *_task) {
       fprintf(stderr, "%s(%d): waiting to check finished\n",
               me, task->threadIdx);
     }
-    airThreadBarrierWait(task->cctx->filterBarrier);
+    if (task->cctx->numThreads > 1) {
+      airThreadBarrierWait(task->cctx->filterBarrier);
+    }
     if (task->cctx->finished) {
       if (task->cctx->verbose > 1) {
         fprintf(stderr, "%s(%d): done!\n", me, task->threadIdx);
@@ -269,7 +275,9 @@ _coilWorker(void *_task) {
     _coilProcess(task, AIR_TRUE);
 
     /* second: update */
-    airThreadBarrierWait(task->cctx->updateBarrier);
+    if (task->cctx->numThreads > 1) {
+      airThreadBarrierWait(task->cctx->updateBarrier);
+    }
     if (task->cctx->verbose > 1) {
       fprintf(stderr, "%s(%d): updating ... \n",
               me, task->threadIdx);
@@ -332,12 +340,14 @@ coilStart(coilContext *cctx) {
   }
   
   /* start threads 1 and up running; they'll all hit filterBarrier  */
-  for (tidx=1; tidx<cctx->numThreads; tidx++) {
-    if (cctx->verbose > 1) {
-      fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
+  if (cctx->numThreads > 1) {
+    for (tidx=1; tidx<cctx->numThreads; tidx++) {
+      if (cctx->verbose > 1) {
+        fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
+      }
+      airThreadStart(cctx->task[tidx]->thread, _coilWorker,
+                     (void *)(cctx->task[tidx]));
     }
-    airThreadStart(cctx->task[tidx]->thread, _coilWorker,
-                   (void *)(cctx->task[tidx]));
   }
 
   /* set things as though we've just finished an update phase */
@@ -418,11 +428,11 @@ coilFinish(coilContext *cctx) {
   cctx->finished = AIR_TRUE;
   if (cctx->numThreads > 1) {
     airThreadBarrierWait(cctx->filterBarrier);
-  }
-  for (tidx=1; tidx<cctx->numThreads; tidx++) {
-    airThreadJoin(cctx->task[tidx]->thread, &(cctx->task[tidx]->returnPtr));
-    cctx->task[tidx]->thread = airThreadNix(cctx->task[tidx]->thread);
-    cctx->task[tidx] = _coilTaskNix(cctx->task[tidx]);
+    for (tidx=1; tidx<cctx->numThreads; tidx++) {
+      airThreadJoin(cctx->task[tidx]->thread, &(cctx->task[tidx]->returnPtr));
+      cctx->task[tidx]->thread = airThreadNix(cctx->task[tidx]->thread);
+      cctx->task[tidx] = _coilTaskNix(cctx->task[tidx]);
+    }
   }
   cctx->task[0]->thread = airThreadNix(cctx->task[0]->thread);
   cctx->task[0] = _coilTaskNix(cctx->task[0]);
