@@ -31,7 +31,7 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int size, pret, nolog;
+  int size, pret, nolog, notick;
   airArray *mop;
   double max;
 
@@ -40,6 +40,8 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
              "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
              "do not show the log-scaled histogram with decade tick-marks");
+  hestOptAdd(&opt, "notick", NULL, airTypeInt, 0, 0, &notick, NULL,
+             "do not draw the log decade tick marks");
   hestOptAdd(&opt, "max,maximum", "max # hits", airTypeDouble, 1, 1,
              &max, "nan",
              "constrain the top of the drawn histogram to be at this "
@@ -61,7 +63,9 @@ unrrdu_dhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoDraw(nout, nin, size, !nolog, max)) {
+  if (nrrdHistoDraw(nout, nin, size, 
+                    nolog ? AIR_FALSE : (notick ? 2 : AIR_TRUE), 
+                    max)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
     airMopError(mop);
