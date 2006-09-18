@@ -264,15 +264,24 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
       tick |= ticks[k] == y;
     for (x=0; x<sx; x++) {
       pgmData[x + sx*(sy-1-y)] = 
-        (!showLog
-         ? (y >= Y[x] ? 0 : 255)
-         : (y >= logY[x]       /* above log curve                       */
-            ? (!tick ? 0       /*                    not on tick mark   */
-               : 255)          /*                    on tick mark       */
-            : (y >= Y[x]       /* below log curve, above normal curve   */
-               ? (!tick ? 128  /*                    not on tick mark   */
-                  : 0)         /*                    on tick mark       */
-               :255            /* below log curve, below normal curve */
+        (2 == showLog    /* HACK: draw log curve, but not log tick marks */
+         ? (y >= logY[x]       
+            ? 0                   /* above log curve                     */
+            : (y >= Y[x]       
+               ? 128              /* below log curve, above normal curve */
+               : 255              /* below log curve, below normal curve */
+               )
+            )
+         : (!showLog
+            ? (y >= Y[x] ? 0 : 255)
+            : (y >= logY[x]       /* above log curve                     */
+               ? (!tick ? 0       /*                    not on tick mark */
+                  : 255)          /*                    on tick mark     */
+               : (y >= Y[x]       /* below log curve, above normal curve */
+                  ? (!tick ? 128  /*                    not on tick mark */
+                     : 0)         /*                    on tick mark     */
+                  :255            /* below log curve, below normal curve */
+                  )
                )
             )
          );
