@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
   const double *gvec, *gmag, *evec0, *eval0;
   double (*ins)(void *v, size_t I, double d);
   double (*lup)(const void *v, size_t I);
-  double dotmax, dotpow, gmmax, gmpow, _dotmax, _gmmax, scl;
+  double dotmax, dotpow, gmmax, evalshift, gmpow, _dotmax, _gmmax, scl, clamp;
 
   me = argv[0];
   mop = airMopNew();
@@ -65,6 +65,10 @@ main(int argc, char *argv[]) {
              "cubicdd:1,0", "k00", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "dotmax", "dot", airTypeDouble, 1, 1, &dotmax, "5",
              "max effective value of dot(gvec, evec0)");
+  hestOptAdd(&hopt, "evs", "shift", airTypeDouble, 1, 1, &evalshift, "0",
+             "negative shift to avoid changing mostly flat regions");
+  hestOptAdd(&hopt, "clamp", "clamp", airTypeDouble, 1, 1, &clamp, "nan",
+             "if it exists, data value can't be forced below this");
   hestOptAdd(&hopt, "dotpow", "pow", airTypeDouble, 1, 1, &dotpow, "1",
              "exponent for dot");
   hestOptAdd(&hopt, "gmmax", "dot", airTypeDouble, 1, 1, &gmmax, "2",
@@ -177,7 +181,7 @@ main(int argc, char *argv[]) {
         dot = 1 - AIR_MIN(dot, dotmax)/dotmax;
         dot = pow(dot, dotpow);
 
-        eval = AIR_MAX(0, *eval0);
+        eval = AIR_MAX(0, *eval0 - evalshift);
 
         _gmmax = AIR_MAX(_gmmax, *gmag);
         gm = 1 - AIR_MIN(*gmag, gmmax)/gmmax;
@@ -220,12 +224,16 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         size_t si;
-        double orig, off;
+        double in, off, out;
 
         si = xi + sx*(yi + sy*zi);
-        orig = lup(nin->data, si);
+        in = lup(nin->data, si);
         off = lup(nblur->data, si);
-        ins(nout->data, si, orig - off);
+        out = in - off;
+        if (AIR_EXISTS(clamp)) {
+          out = AIR_MAX(out, clamp);
+        }
+        ins(nout->data, si, out);
       }
     }
   }
