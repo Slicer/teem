@@ -155,7 +155,15 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't allocate output:\n%s", me, err);
     airMopError(mop); return 1;
   }
+
+  if (!(nout->type == nin->type && nblur->type == nin->type)) {
+    fprintf(stderr, "%s: whoa, types (%s %s %s) not all equal\n", me,
+            airEnumStr(nrrdType, nin->type),
+            airEnumStr(nrrdType, nblur->type),
+            airEnumStr(nrrdType, nout->type));
+  }
   ins = nrrdDInsert[nout->type];
+  lup = nrrdDLookup[nout->type];
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
   sz = nin->axis[2].size;
@@ -171,9 +179,11 @@ main(int argc, char *argv[]) {
     fflush(stderr);
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
-        double dot, eval, gm;
+        size_t si;
+        double dot, eval, gm, shift, in, out;
 
         gageProbe(ctx, xi, yi, zi);
+        si = xi + sx*(yi + sy*zi);
 
         dot = ELL_3V_DOT(gvec, evec0);
         _dotmax = AIR_MAX(_dotmax, dot);
@@ -187,7 +197,15 @@ main(int argc, char *argv[]) {
         gm = 1 - AIR_MIN(*gmag, gmmax)/gmmax;
         gm = pow(gm, gmpow);
 
-        ins(nout->data, xi + sx*(yi + sy*zi), scl*gm*eval*dot);
+        shift = scl*gm*eval*dot;
+        if (AIR_EXISTS(clamp)) {
+          in = lup(nin->data, si);
+          out = in - shift;
+          out = AIR_MAX(out, clamp);
+          shift = in - out;
+        }
+
+        ins(nout->data, si, shift);
       }
     }
   }
@@ -213,27 +231,16 @@ main(int argc, char *argv[]) {
   }
   fprintf(stderr, "done.\n");
 
-  if (!(nout->type == nin->type && nblur->type == nin->type)) {
-    fprintf(stderr, "%s: whoa, types (%s %s %s) not all equal\n", me,
-            airEnumStr(nrrdType, nin->type),
-            airEnumStr(nrrdType, nblur->type),
-            airEnumStr(nrrdType, nout->type));
-  }
-  lup = nrrdDLookup[nout->type];
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         size_t si;
-        double in, off, out;
+        double in, shift;
 
         si = xi + sx*(yi + sy*zi);
         in = lup(nin->data, si);
-        off = lup(nblur->data, si);
-        out = in - off;
-        if (AIR_EXISTS(clamp)) {
-          out = AIR_MAX(out, clamp);
-        }
-        ins(nout->data, si, out);
+        shift = lup(nblur->data, si);
+        ins(nout->data, si, in - shift);
       }
     }
   }
