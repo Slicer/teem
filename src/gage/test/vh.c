@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         size_t si;
-        double dot, evl, gm, shift, in, out;
+        double dot, evl, gm, shift, in, out, mode;
 
         gageProbe(ctx, xi, yi, zi);
         si = xi + sx*(yi + sy*zi);
@@ -192,8 +192,8 @@ main(int argc, char *argv[]) {
         dot = pow(dot, dotpow);
 
         evl = AIR_MAX(0, eval[0] - evalshift);
-        evl *= (eval[0] - eval[1])/(FLT_MIN + sqrt(eval[0]*eval[0] 
-                                                   + eval[1]*eval[1]));
+        mode = airMode3_d(eval);
+        evl *= AIR_AFFINE(-1, mode, 1, 0, 1);
 
         _gmmax = AIR_MAX(_gmmax, *gmag);
         gm = 1 - AIR_MIN(*gmag, gmmax)/gmmax;
