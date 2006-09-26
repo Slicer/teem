@@ -204,7 +204,7 @@ main(int argc, char *argv[]) {
           in = lup(nin->data, si);
           out = in - shift;
           out = AIR_MAX(out, clamp);
-          shift = in - out;
+          shift = AIR_MAX(0, in - out);
         }
 
         ins(nout->data, si, shift);
