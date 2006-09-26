@@ -192,7 +192,8 @@ main(int argc, char *argv[]) {
         dot = pow(dot, dotpow);
 
         evl = AIR_MAX(0, eval[0] - evalshift);
-        evl *= eval[0] - eval[1];
+        evl *= (eval[0] - eval[1])/(FLT_MIN + sqrt(eval[0]*eval[0] 
+                                                   + eval[1]*eval[1]));
 
         _gmmax = AIR_MAX(_gmmax, *gmag);
         gm = 1 - AIR_MIN(*gmag, gmmax)/gmmax;
