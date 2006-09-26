@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   unsigned int sx, sy, sz, xi, yi, zi, ai;
   gageContext *ctx;
   gagePerVolume *pvl;
-  const double *gvec, *gmag, *evec0, *eval0;
+  const double *gvec, *gmag, *evec0, *eval;
   double (*ins)(void *v, size_t I, double d);
   double (*lup)(const void *v, size_t I);
   double dotmax, dotpow, gmmax, evalshift, gmpow, _dotmax, _gmmax, scl, clamp;
@@ -136,7 +136,7 @@ main(int argc, char *argv[]) {
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclGradVec);
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclGradMag);
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclHessEvec0);
-  if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclHessEval0);
+  if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclHessEval);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -146,7 +146,7 @@ main(int argc, char *argv[]) {
   gvec = gageAnswerPointer(ctx, pvl, gageSclGradVec);
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   evec0 = gageAnswerPointer(ctx, pvl, gageSclHessEvec0);
-  eval0 = gageAnswerPointer(ctx, pvl, gageSclHessEval0);
+  eval = gageAnswerPointer(ctx, pvl, gageSclHessEval);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         size_t si;
-        double dot, eval, gm, shift, in, out;
+        double dot, evl, gm, shift, in, out;
 
         gageProbe(ctx, xi, yi, zi);
         si = xi + sx*(yi + sy*zi);
@@ -191,13 +191,14 @@ main(int argc, char *argv[]) {
         dot = 1 - AIR_MIN(dot, dotmax)/dotmax;
         dot = pow(dot, dotpow);
 
-        eval = AIR_MAX(0, *eval0 - evalshift);
+        evl = AIR_MAX(0, eval[0] - evalshift);
+        evl *= eval[0] - eval[1];
 
         _gmmax = AIR_MAX(_gmmax, *gmag);
         gm = 1 - AIR_MIN(*gmag, gmmax)/gmmax;
         gm = pow(gm, gmpow);
 
-        shift = scl*gm*eval*dot;
+        shift = scl*gm*evl*dot;
         if (AIR_EXISTS(clamp)) {
           in = lup(nin->data, si);
           out = in - shift;
