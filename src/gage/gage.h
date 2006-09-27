@@ -273,9 +273,9 @@ enum {
   gageVecLength,          /*  4: "l", length of CWI vector: [1] */
   gageVecNormalized,      /*  5: "n", normalized CWI vector: [3] */
   gageVecJacobian,        /*  6: "j", component-wise Jacobian: [9]
-                              0:dv_x/dx  3:dv_x/dy  6:dv_x/dz
-                              1:dv_y/dx  4:dv_y/dy  7:dv_y/dz
-                              2:dv_z/dx  5:dv_z/dy  8:dv_z/dz */
+                              0:dv_x/dx  1:dv_x/dy  2:dv_x/dz
+                              3:dv_y/dx  4:dv_y/dy  5:dv_y/dz
+                              6:dv_z/dx  7:dv_z/dy  8:dv_z/dz */
   gageVecDivergence,      /*  7: "d", divergence (based on Jacobian): [1] */
   gageVecCurl,            /*  8: "c", curl (based on Jacobian): [3] */
   gageVecCurlNorm,        /*  9: "cm", curl magnitude: [1] */
@@ -285,6 +285,7 @@ enum {
   gageVecImaginaryPart,   /* 13: "imag", imag. part of jacobian's
                              eigenv: [1] */
   gageVecHessian,         /* 14: "vh", second-order derivative: [27] 
+                             HEY: indices here need to be double checked
                               0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
                               3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
                               6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
