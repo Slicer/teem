@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode, Ethread;
-  float ads[3];
+  float ads[3], isScale;
   double turn, eye[3], eyedist, gmc;
   Nrrd *nin;
   
@@ -83,6 +83,8 @@ main(int argc, char *argv[]) {
              "0 0 -1", "view space light position (extended to infinity)");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, muu->hctx->imgSize,
              "256 256", "image dimensions");
+  hestOptAdd(&hopt, "iss", "scale", airTypeFloat, 1, 1, &isScale, "1.0",
+             "scaling of image size (from \"is\")");
   hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads,
              "0.1 0.6 0.3", "phong components");
   hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1, 
@@ -167,6 +169,8 @@ main(int argc, char *argv[]) {
   if (offfr) {
     ELL_3V_INCR(muu->hctx->cam->from, muu->hctx->cam->at);
   }
+  muu->hctx->imgSize[0] *= isScale;
+  muu->hctx->imgSize[1] *= isScale;
   
   muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
