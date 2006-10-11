@@ -118,17 +118,12 @@ static const char *_nrrdGzErrMsg[10] = {
 
 #define _NRRD_GZ_ERR_MSG(err) _nrrdGzErrMsg[Z_NEED_DICT-(err)]
 
-static int  _nrrdGzGetByte (_NrrdGzStream *s);
-static void _nrrdGzCheckHeader (_NrrdGzStream *s);
-static int _nrrdGzDestroy (_NrrdGzStream *s);
-static int _nrrdGzDoFlush (gzFile file, int flush);
-static void _nrrdGzPutLong (FILE *file, uLong x);
-static uLong _nrrdGzGetLong (_NrrdGzStream *s);
-
-gzFile _nrrdGzOpen (FILE* fd, const char *mode);
-int _nrrdGzClose (gzFile file);
-int _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read);
-int _nrrdGzWrite (gzFile file, const voidp buf, unsigned int len, unsigned int* written);
+/* some forward declarations for things in this file */
+static void _nrrdGzCheckHeader(_NrrdGzStream *s);
+static int _nrrdGzDestroy(_NrrdGzStream *s);
+static int _nrrdGzDoFlush(gzFile file, int flush);
+static void _nrrdGzPutLong(FILE *file, uLong x);
+static uLong _nrrdGzGetLong(_NrrdGzStream *s);
 
 /*
 ** _nrrdGzOpen()
@@ -310,7 +305,7 @@ _nrrdGzClose (gzFile file) {
 ** Returns the number of bytes actually read (0 for end of file).
 */
 int
-_nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
+_nrrdGzRead(gzFile file, voidp buf, unsigned int len, unsigned int* read) {
   char me[]="_nrrdGzRead", err[BIFF_STRLEN];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
@@ -419,8 +414,8 @@ _nrrdGzRead (gzFile file, voidp buf, unsigned int len, unsigned int* read) {
 ** Returns the number of bytes actually written (0 in case of error).
 */
 int
-_nrrdGzWrite (gzFile file, const voidp buf, unsigned int len,
-              unsigned int* written) {
+_nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
+             unsigned int* written) {
   char me[]="_nrrdGzWrite", err[BIFF_STRLEN];
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
