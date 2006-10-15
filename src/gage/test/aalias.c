@@ -155,10 +155,17 @@ main(int argc, char *argv[]) {
         /* NOTE: this update behavior is *not* what is described in
            the paper, but it is (I believe) what's in the
            itk::AntiAliasBinaryImageFilter code, which is probably the
-           closest thing to a reference implementation. The big
-           difference is that we use "eps" to give the isosurface some
-           margin of safety around the mask voxels; the ITK code
-           does not. */
+           closest thing to a reference implementation. Unlike the
+           paper, that code (and this code) enforces the constraint
+           from the mask image in terms of the function values, and
+           ensures that the new function has the same "sign" (with
+           respect to the threshold value) as the original mask.  The
+           paper, however, states the constraint in terms of the
+           update delta, and preventing its sign to be the same as
+           that of the mask (or maybe its the opposite).  In any case,
+           the main difference between this code and ITK's is that we
+           use "eps" to give the isosurface some margin of safety
+           around the mask voxels; the ITK code does not. */
         newval = dist[si] + update[si];
         if (mask[si] > thresh) {
           newval = AIR_MAX(newval, thresh+eps);
