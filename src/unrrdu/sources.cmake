@@ -57,6 +57,7 @@ SET(UNRRDU_SOURCES
   unorient.c
   unquantize.c
   untile.c
+  dist.c
   )
 
 ADD_TEEM_LIBRARY(unrrdu ${UNRRDU_SOURCES})

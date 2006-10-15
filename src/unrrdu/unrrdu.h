@@ -97,7 +97,7 @@ typedef struct {
 ***********************************************************
     You add commands to unu by:
     1) adjusting the definition of UNRRDU_MAP()
-    2) listing the appropriate object in GNUmakefile and CMakeLists.txt
+    2) listing the appropriate object in GNUmakefile and sources.cmake
     That's it.
 ********************************************************** */
 #define UNRRDU_DECLARE(C) UNRRDU_EXPORT unrrduCmd unrrdu_##C##Cmd;
@@ -111,6 +111,7 @@ F(data) \
 F(convert) \
 F(resample) \
 F(cmedian) \
+F(dist) \
 F(minmax) \
 F(quantize) \
 F(unquantize) \
