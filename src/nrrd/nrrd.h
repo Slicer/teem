@@ -473,7 +473,7 @@ typedef struct {
   /* evaluate once, double precision */
   double (*eval1_d)(double x, const double *parm);
 
-  /* eval. N times, double precision */
+  /* evaluate N times, double precision */
   void (*evalN_d)(double *f, const double *x, size_t N, const double *parm);
 } NrrdKernel;
 
@@ -1166,6 +1166,12 @@ NRRD_EXPORT int nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
                                 int pad, int mode,
                                 unsigned int radius, float wght,
                                 unsigned int bins);
+NRRD_EXPORT int nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
+                               int typeOut, const int *axisDo,
+                               double thresh, int insideHigher);
+NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
+                                     int typeOut, const int *axisDo,
+                                     double thresh, int insideHigher);
 
 /*
 ******** nrrdResample_t typedef

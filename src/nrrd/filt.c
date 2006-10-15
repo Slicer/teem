@@ -422,3 +422,278 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   return 0;
 }
 
+/*
+** returns intersection of parabolas c(x) = spc^2 (x - xi)^2 + yi
+*/
+static double
+intx(double x0, double y0, double x1, double y1, double spc) {
+  double ss;
+  
+  ss = spc*spc;
+  return (y1/ss + x1*x1 - (y0/ss + x0*x0))/(2*(x1 - x0));
+}
+
+/*
+** squared-distance transform of single scanline
+**
+** based on code published with:
+** Distance Transforms of Sampled Functions
+** Pedro F. Felzenszwalb and Daniel P. Huttenlocher
+** Cornell Computing and Information Science TR2004-1963 
+**
+** dd: output (pre-allocated for "len")
+** ff: input function (pre-allocated for "len")
+** zz: buffer (pre-allocated for "len"+1) for locations of 
+**     boundaries between parabolas
+** vv: buffer (pre-allocated for "len") for locations of 
+**     parabolas in lower envelope
+**
+** The major modification from the published method is the inclusion
+** of the "spc" parameter that gives the inter-sample spacing, so that
+** the multi-dimensional version can work on non-isotropic samples.
+**
+** FLT_MIN and FLT_MAX are used to be consistent with the
+** initialization in nrrdDistanceL2(), which uses FLT_MAX
+** to be compatible with the case of using floats
+*/
+static void
+distanceL2Sqrd1D(double *dd, const double *ff, 
+                 double *zz, unsigned int *vv,
+                 size_t len, double spc) {
+  unsigned int kk, qq;
+
+  if (!( dd && ff && zz && vv && len > 0 )) {
+    /* error */
+    return;
+  }
+
+  kk = 0;
+  vv[0] = 0;
+  zz[0] = -FLT_MAX;
+  zz[1] = +FLT_MAX;
+  for (qq=1; qq<len; qq++) {
+    double ss;
+    ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
+    while (ss <= zz[kk]) {
+      kk--;
+      ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
+    }
+    kk++;
+    vv[kk] = qq;
+    zz[kk] = ss;
+    zz[kk+1] = +FLT_MAX;
+  }
+
+  kk = 0;
+  for (qq=00; qq<len; qq++) {
+    double dx;
+    while (zz[kk+1] < qq) {
+      kk++;
+    }
+    /* cast to avoid overflow weirdness on the unsigned ints */
+    dx = AIR_CAST(double, qq) - vv[kk];
+    dd[qq] = spc*spc*dx*dx + ff[vv[kk]];
+  }
+  
+  return;
+}
+
+static int
+distanceL2Sqrd(Nrrd *ndist) {
+  char me[]="distanceL2Sqrd", err[BIFF_STRLEN];
+  size_t sizeMax;           /* max size of all axes */
+  Nrrd *ntmpA, *ntmpB, *npass[NRRD_DIM_MAX+1];
+  int spcSomeExist, spcSomeNonExist;
+  unsigned int di, *vv;
+  double *dd, *ff, *zz;
+  double spc[NRRD_DIM_MAX], vector[NRRD_SPACE_DIM_MAX];
+  double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
+  airArray *mop;
+
+  if (!( nrrdTypeFloat == ndist->type || nrrdTypeDouble == ndist->type )) {
+    sprintf(err, "%s: sorry, can only process type %s or %s (not %s)", me,
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, ndist->type));
+  }
+
+  spcSomeExist = AIR_FALSE;
+  spcSomeNonExist = AIR_FALSE;
+  for (di=0; di<ndist->dim; di++) {
+    nrrdSpacingCalculate(ndist, di, spc + di, vector);
+    spcSomeExist |= AIR_EXISTS(spc[di]);
+    spcSomeNonExist |= !AIR_EXISTS(spc[di]);
+  }
+  if (spcSomeExist && spcSomeNonExist) {
+    sprintf(err, "%s: axis spacings must all exist or all non-exist", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!spcSomeExist) {
+    for (di=0; di<ndist->dim; di++) {
+      spc[di] = 1.0;
+    }
+  }
+
+  sizeMax = 0;
+  for (di=0; di<ndist->dim; di++) {
+    sizeMax = AIR_MAX(sizeMax, ndist->axis[di].size);
+  }
+
+  /* create mop and allocate tmp buffers */
+  mop = airMopNew();
+  ntmpA = nrrdNew();
+  airMopAdd(mop, ntmpA, (airMopper)nrrdNuke, airMopAlways);
+  if (ndist->dim > 2) {
+    ntmpB = nrrdNew();
+    airMopAdd(mop, ntmpB, (airMopper)nrrdNuke, airMopAlways);
+  } else {
+    ntmpB = NULL;
+  }
+  if (nrrdCopy(ntmpA, ndist)
+      || (ndist->dim > 2 && nrrdCopy(ntmpB, ndist))) {
+    sprintf(err, "%s: couldn't allocate image buffers", me);
+  }
+  dd = AIR_CAST(double *, calloc(sizeMax, sizeof(double)));
+  ff = AIR_CAST(double *, calloc(sizeMax, sizeof(double)));
+  zz = AIR_CAST(double *, calloc(sizeMax+1, sizeof(double)));
+  vv = AIR_CAST(unsigned int *, calloc(sizeMax, sizeof(unsigned int)));
+  airMopAdd(mop, dd, airFree, airMopAlways);
+  airMopAdd(mop, ff, airFree, airMopAlways);
+  airMopAdd(mop, zz, airFree, airMopAlways);
+  airMopAdd(mop, vv, airFree, airMopAlways);
+  if (!( dd && ff && zz && vv )) {
+    sprintf(err, "%s: couldn't allocate scanline buffers", me);
+  }
+
+  /* set up array of buffers */
+  npass[0] = ndist;
+  for (di=1; di<ndist->dim; di++) {
+    npass[di] = (di % 2) ? ntmpA : ntmpB;
+  }
+  npass[ndist->dim] = ndist;
+
+  /* run the multiple passes */
+  /* what makes the indexing here so simple is that by assuming that
+     we're processing every axis, the input to any given pass can be
+     logically considered a 2-D image (a list of scanlines), where the
+     second axis is the merge of all input axes but the first.  With
+     the rotational shuffle of axes through passes, the initial axis
+     and the set of other axes swap places, so its like the 2-D image
+     is being transposed.  NOTE: the Nrrds that were allocated as
+     buffers are really being mis-used, in that the axis sizes and
+     raster ordering of what we're storing there is *not* the same as
+     told by axis[].size */
+  lup = nrrdDLookup[ndist->type];
+  ins = nrrdDInsert[ndist->type];
+  for (di=0; di<ndist->dim; di++) {
+    size_t lineIdx, lineNum, valIdx, valNum;
+
+    valNum = ndist->axis[di].size;
+    lineNum = nrrdElementNumber(ndist)/valNum;
+    for (lineIdx=0; lineIdx<lineNum; lineIdx++) {
+      /* read input scanline into ff */
+      for (valIdx=0; valIdx<valNum; valIdx++) {
+        ff[valIdx] = lup(npass[di]->data, valIdx + valNum*lineIdx);
+      }
+      /* do the transform */
+      distanceL2Sqrd1D(dd, ff, zz, vv, valNum, spc[di]);
+      /* write dd to output scanline */
+      for (valIdx=0; valIdx<valNum; valIdx++) {
+        ins(npass[di+1]->data, lineIdx + lineNum*valIdx, dd[valIdx]);
+      }
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+int
+nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
+               int typeOut, const int *axisDo,
+               double thresh, int insideHigher) {
+  char me[]="nrrdDistanceL2", err[BIFF_STRLEN];
+  size_t ii, nn; 
+  double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
+
+  if (!( nout && nin )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: need scalar type for distance transform (not %s)", me,
+            airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( nrrdTypeDouble == typeOut || nrrdTypeFloat == typeOut )) {
+    sprintf(err, "%s: sorry, can only transform to type %s or %s (not %s)", me,
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, typeOut));
+    biffAdd(NRRD, err); return 1;
+  }
+  if (axisDo) {
+    sprintf(err, "%s: sorry, selective axis transform not implemented", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!AIR_EXISTS(thresh)) {
+    sprintf(err, "%s: threshold (%g) doesn't exist", me, thresh);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  if (nrrdConvert(nout, nin, typeOut)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  lup = nrrdDLookup[nout->type];
+  ins = nrrdDInsert[nout->type];
+
+  nn = nrrdElementNumber(nout);
+  for (ii=0; ii<nn; ii++) {
+    double val;
+    val = lup(nout->data, ii);
+    if (insideHigher) {
+      ins(nout->data, ii, val >= thresh ? 0 : FLT_MAX);
+    } else {
+      ins(nout->data, ii, val < thresh ? 0 : FLT_MAX);
+    }
+  }
+
+  if (distanceL2Sqrd(nout)
+      || nrrdArithUnaryOp(nout, nrrdUnaryOpSqrt, nout)) {
+    sprintf(err, "%s: trouble doing transform", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  return 0;
+}
+
+int
+nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
+                     int typeOut, const int *axisDo,
+                     double thresh, int insideHigher) {
+  char me[]="nrrdDistanceL2Signed", err[BIFF_STRLEN];
+  airArray *mop;
+  Nrrd *ninv;
+
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  mop = airMopNew();
+  ninv = nrrdNew();
+  airMopAdd(mop, ninv, (airMopper)nrrdNuke, airMopAlways);
+
+  if (nrrdDistanceL2(nout, nin, typeOut, axisDo, thresh, insideHigher)
+      || nrrdDistanceL2(ninv, nin, typeOut, axisDo, thresh, !insideHigher)
+      || nrrdArithUnaryOp(ninv, nrrdUnaryOpNegative, ninv)
+      || nrrdArithBinaryOp(nout, nrrdBinaryOpAdd, nout, ninv)) {
+    sprintf(err, "%s: trouble doing or combining transforms", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
