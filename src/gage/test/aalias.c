@@ -22,9 +22,11 @@
 
 #include "../gage.h"
 
-char *aaliasInfo = ("roughly implements \"Reducing Aliasing Artifacts "
+char *aaliasInfo = ("implements \"Reducing Aliasing Artifacts "
                     "in Iso-Surfaces of Binary Volumes\", "
-                    "R. T. Whitaker IEEE VolVis 2000.");
+                    "R. T. Whitaker IEEE VolVis 2000.  With optimization, "
+                    "could favorably compare to "
+                    "itk::AntiAliasBinaryImageFilter.");
 
 int
 main(int argc, char *argv[]) {
@@ -62,9 +64,11 @@ main(int argc, char *argv[]) {
              "the value to use for thresholding the input "
              "volume, to create the binary constraint image.");
   hestOptAdd(&hopt, "eps", "val", airTypeDouble, 1, 1, &eps, "0.05",
-             "value bracket around threshold that constraints update.");
+             "width of value bracket around threshold, to constrain the "
+             "the update from letting to value, originally on either "
+             "side of the threshold, from getting too close.");
   hestOptAdd(&hopt, "rms", "thresh", airTypeDouble, 1, 1, &rmsMin, "0.01",
-             "value bracket around threshold that constraints update.");
+             "RMS change below this terminates updates.");
   hestOptAdd(&hopt, "mi", "max", airTypeUInt, 1, 1, &maxIter, "100",
              "maximum # iterations");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
@@ -152,25 +156,21 @@ main(int argc, char *argv[]) {
     for (si=0; si<sx*sy*sz; si++) {
       double newval;
       if (update[si]) {
-        /* NOTE: this update behavior is *not* what is described in
-           the paper, but it is (I believe) what's in the
-           itk::AntiAliasBinaryImageFilter code, which is probably the
-           closest thing to a reference implementation. Unlike the
-           paper, that code (and this code) enforces the constraint
-           from the mask image in terms of the function values, and
-           ensures that the new function has the same "sign" (with
-           respect to the threshold value) as the original mask.  The
-           paper, however, states the constraint in terms of the
-           update delta, and preventing its sign to be the same as
-           that of the mask (or maybe its the opposite).  In any case,
-           the main difference between this code and ITK's is that we
-           use "eps" to give the isosurface some margin of safety
-           around the mask voxels; the ITK code does not. */
+        /* NOTE: this update behavior is only slightly different than
+           what's described in Equation 18 of the paper. That update
+           rule ensures that the value never changes "sign" (with
+           respect to the threshold value), by clamping the values
+           above or below to 0.0.  But worst-case scenario is that two
+           adjacent samples that were on other side of the threshold
+           (i.e. 0), could then equal the threshold, which would
+           confuse a marching-cubes type algorithm.  So the "eps"
+           enforces a small value range around the treshold, and keeps
+           the values on either side of it. */
         newval = dist[si] + update[si];
         if (mask[si] > thresh) {
-          newval = AIR_MAX(newval, thresh+eps);
+          newval = AIR_MAX(newval, thresh+eps/2);
         } else {
-          newval = AIR_MIN(newval, thresh-eps);
+          newval = AIR_MIN(newval, thresh-eps/2);
         }
         rms += (dist[si] - newval)*(dist[si] - newval);
         dist[si] = newval;
