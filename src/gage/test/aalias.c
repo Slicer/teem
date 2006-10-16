@@ -78,13 +78,6 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( 3 == nin->dim
-         && nrrdTypeBlock != nin->type )) {
-    fprintf(stderr, "%s: need a 3-D scalar nrrd (not %u-D %s)", me,
-            nin->dim, airEnumStr(nrrdType, nin->type));
-    airMopError(mop); return 1;
-  }
-
   ndist = nrrdNew();
   nmask = nrrdNew();
   nupdate = nrrdNew();
@@ -124,12 +117,6 @@ main(int argc, char *argv[]) {
   valu = gageAnswerPointer(ctx, pvl, gageSclValue);
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   mcrv = gageAnswerPointer(ctx, pvl, gageSclMeanCurv);
-
-  if (!( ctx->shape->spacing[0] == ctx->shape->spacing[1] 
-         && ctx->shape->spacing[0] == ctx->shape->spacing[2] )) {
-    fprintf(stderr, "%s: whoa- non-isotropic voxels\n", me);
-    airMopError(mop); return 1;
-  }
 
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
@@ -184,7 +171,7 @@ main(int argc, char *argv[]) {
       fprintf(stderr, "\n%s: RMS %g below threshold %g\n", me, rms, rmsMin);
       break;
     } else {
-      fprintf(stderr, " rms = %g\n", rms);
+      fprintf(stderr, " rms = %g > %g\n", rms, rmsMin);
     }
   }
   if (iter == maxIter) {
@@ -198,7 +185,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't allocate output:\n%s", me, err);
     airMopError(mop); return 1;
   }
-
+  
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s", me, err);
