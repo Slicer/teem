@@ -499,7 +499,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
 }
 
 static int
-distanceL2Sqrd(Nrrd *ndist) {
+distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   char me[]="distanceL2Sqrd", err[BIFF_STRLEN];
   size_t sizeMax;           /* max size of all axes */
   Nrrd *ntmpA, *ntmpB, *npass[NRRD_DIM_MAX+1];
@@ -533,6 +533,11 @@ distanceL2Sqrd(Nrrd *ndist) {
       spc[di] = 1.0;
     }
   }
+  *spcMean = 0;
+  for (di=0; di<ndist->dim; di++) {
+    *spcMean += spc[di];
+  }
+  *spcMean /= ndist->dim;
 
   sizeMax = 0;
   for (di=0; di<ndist->dim; di++) {
@@ -608,6 +613,20 @@ distanceL2Sqrd(Nrrd *ndist) {
   return 0;
 }
 
+/*
+******** nrrdDistanceL2
+**
+** computes euclidean (L2) distance transform of input image, after
+** thresholding at "thresh". 
+**
+** NOTE: the output of this is slightly offset from what one might
+** expect; decreased by half of the average (over all axes) sample
+** spacing.  The reason for this is so that when the transform is
+** applied to the inverted image and negated, to create a full 
+** signed distance map, the transition from interior to exterior
+** distance values is smooth.  Without this trick, there is a 
+** small little plateau at the transition.
+*/
 int
 nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
                int typeOut, const int *axisDo,
@@ -615,6 +634,7 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
   char me[]="nrrdDistanceL2", err[BIFF_STRLEN];
   size_t ii, nn; 
   double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
+  double spcMean;
 
   if (!( nout && nin )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -659,10 +679,15 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
     }
   }
 
-  if (distanceL2Sqrd(nout)
-      || nrrdArithUnaryOp(nout, nrrdUnaryOpSqrt, nout)) {
+  if (distanceL2Sqrd(nout, &spcMean)) {
     sprintf(err, "%s: trouble doing transform", me);
     biffAdd(NRRD, err); return 1;
+  }
+
+  for (ii=0; ii<nn; ii++) {
+    double val;
+    val = sqrt(lup(nout->data, ii));
+    ins(nout->data, ii, AIR_MAX(0, val - spcMean/2));
   }
 
   return 0;
