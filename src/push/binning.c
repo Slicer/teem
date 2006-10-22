@@ -58,17 +58,15 @@ pushBinDone(pushBin *bin) {
 
 
 /* 
-** bins on boundary now extend to infinity; so this never returns NULL,
-** which is a change from last year
+** bins on boundary now extend to infinity; so this never returns NULL
 */
 pushBin *
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
   /* char me[]="_pushBinLocate"; */
   double posWorld[4], posIdx[4];
-  int eidx[3];
-  unsigned int axi, binIdx;
+  unsigned int axi, eidx[3], binIdx;
 
-  if (pctx->singleBin) {
+  if (pctx->binSingle) {
     binIdx = 0;
   } else {
     ELL_3V_COPY(posWorld, _posWorld); 
@@ -189,7 +187,7 @@ pushBinAllNeighborSet(pushContext *pctx) {
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
 
-  if (pctx->singleBin) {
+  if (pctx->binSingle) {
     neiNum = 0;
     nei[neiNum++] = pctx->bin + 0;
     _pushBinNeighborSet(pctx->bin + 0, nei, neiNum);

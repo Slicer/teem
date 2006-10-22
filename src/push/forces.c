@@ -23,56 +23,51 @@
 #include "push.h"
 #include "privatePush.h"
 
-enum {
-  pushForceUnknown,
-  pushForceSpring,        /* 1 */
-  pushForceGauss,         /* 2 */
-  pushForceCharge,        /* 3 */
-  pushForceCotan,         /* 4 */
-  pushForceNone,          /* 5 */
-  pushForceLast
-};
-#define PUSH_FORCE_MAX       5
+#define SPRING  "spring"
+#define GAUSS   "gauss"
+#define COULOMB "coulomb"
+#define COTAN   "cotan"
+#define ZERO    "zero"
 
 char
-_pushForceStr[PUSH_FORCE_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_force)",
-  "spring",
-  "gauss",
-  "charge",
-  "cotan",
-  "none"
+_pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_energy)",
+  SPRING,
+  GAUSS,
+  COULOMB,
+  COTAN,
+  ZERO
 };
 
 char
-_pushForceDesc[PUSH_FORCE_MAX+1][AIR_STRLEN_MED] = {
-  "unknown_force",
-  "Hooke's law, with a tunable region of attraction",
-  "derivative of a Gaussian energy function",
-  "inverse square law, with tunable cut-off",
-  "Cotangent based energy function (from Meyer et al. SMI 05)",
-  "no force"
+_pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
+  "unknown_energy",
+  "Hooke's law-based potential, with a tunable region of attraction",
+  "Gaussian potential",
+  "Coulomb electrostatic potential, with tunable cut-off",
+  "Cotangent-based potential (from Meyer et al. SMI '05)",
+  "no energy"
 };
 
 airEnum
-_pushForceEnum = {
-  "force",
-  PUSH_FORCE_MAX,
-  _pushForceStr,  NULL,
-  _pushForceDesc,
+_pushEnergyType = {
+  "energy",
+  PUSH_ENERGY_TYPE_MAX,
+  _pushEnergyTypeStr,  NULL,
+  _pushEnergyTypeDesc,
   NULL, NULL,
   AIR_FALSE
 };
 airEnum *
-pushForceEnum = &_pushForceEnum;
+pushEnergyType = &_pushEnergyType;
 
 /* ----------------------------------------------------------------
-** ------------------------------ (stubs) -------------------------
+** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
 */
 double
-_pushForceUnknownFunc(double dist, const double *parm) {
-  char me[]="_pushForceUnknownFunc";
+_pushEnergyUnknownEnergy(double dist, const double *parm) {
+  char me[]="_pushEnergyUnknownEnergy";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -81,13 +76,34 @@ _pushForceUnknownFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceUnknownExtent(const double *parm) {
-  char me[]="_pushForceUnknownExtent";
+_pushEnergyUnknownForce(double dist, const double *parm) {
+  char me[]="_pushEnergyUnknownForce";
+
+  AIR_UNUSED(dist);
+  AIR_UNUSED(parm);
+  fprintf(stderr, "%s: this is not good.\n", me);
+  return AIR_NAN;
+}
+
+double
+_pushEnergyUnknownSupport(const double *parm) {
+  char me[]="_pushEnergyUnknownSupport";
 
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: this is not good.\n", me);
   return AIR_NAN;
 }
+
+pushEnergy
+_pushEnergyUnknown = {
+  "unknown",
+  0,
+  _pushEnergyUnknownEnergy,
+  _pushEnergyUnknownForce,
+  _pushEnergyUnknownSupport
+};
+const pushEnergy *const
+pushEnergyUnknown = &_pushEnergyUnknown;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ SPRING --------------------------
@@ -96,8 +112,31 @@ _pushForceUnknownExtent(const double *parm) {
 ** 0: pull distance
 */
 double
-_pushForceSpringFunc(double dist, const double *parm) {
-  /* char me[]="_pushForceSpringFunc"; */
+_pushEnergySpringEnergy(double dist, const double *parm) {
+  /* char me[]="_pushEnergySpringEnergy"; */
+  double xx, ret, pull;
+
+  pull = parm[0];
+  xx = dist - 1.0;
+  if (xx > pull) {
+    ret = 0;
+  } else if (xx > 0) {
+    ret = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1/2);
+  } else {
+    ret = xx*xx/2;
+  }
+  /*
+  if (!AIR_EXISTS(ret)) {
+    fprintf(stderr, "!%s: dist=%g, pull=%g, blah=%d --> ret=%g\n",
+            me, dist, pull, blah, ret);
+  }
+  */
+  return ret;
+}
+
+double
+_pushEnergySpringForce(double dist, const double *parm) {
+  /* char me[]="_pushEnergySpringForce"; */
   double xx, ret, pull;
 
   pull = parm[0];
@@ -119,10 +158,21 @@ _pushForceSpringFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceSpringExtent(const double *parm) {
+_pushEnergySpringSupport(const double *parm) {
 
   return 1.0 + parm[0];
 }
+
+const pushEnergy
+_pushEnergySpring = {
+  SPRING,
+  1,
+  _pushEnergySpringEnergy,
+  _pushEnergySpringForce,
+  _pushEnergySpringSupport
+};
+const pushEnergy *const
+pushEnergySpring = &_pushEnergySpring;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ GAUSS --------------------------
@@ -137,7 +187,7 @@ _pushForceSpringExtent(const double *parm) {
 #define SQRTTHREE 1.73205080756887729352
 
 double
-_pushForceGaussFunc(double dist, const double *parm) {
+_pushEnergyGaussEnergy(double dist, const double *parm) {
   double sig, cut;
 
   sig = 1.0/SQRTTHREE;
@@ -146,10 +196,30 @@ _pushForceGaussFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceGaussExtent(const double *parm) {
+_pushEnergyGaussForce(double dist, const double *parm) {
+  double sig, cut;
+
+  sig = 1.0/SQRTTHREE;
+  cut = parm[0];
+  return AIR_CAST(double, _DGAUSS(dist, sig, cut));
+}
+
+double
+_pushEnergyGaussSupport(const double *parm) {
 
   return (1.0/SQRTTHREE)*parm[0];
 }
+
+const pushEnergy
+_pushEnergyGauss = {
+  GAUSS,
+  1,
+  _pushEnergyGaussEnergy,
+  _pushEnergyGaussForce,
+  _pushEnergyGaussSupport
+};
+const pushEnergy *const
+pushEnergyGauss = &_pushEnergyGauss;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ CHARGE --------------------------
@@ -159,16 +229,33 @@ _pushForceGaussExtent(const double *parm) {
 ** parm[0]: cut-off (as multiple of "1.0")
 */
 double
-_pushForceChargeFunc(double dist, const double *parm) {
+_pushEnergyCoulombEnergy(double dist, const double *parm) {
+
+  return (dist > parm[0] ? 0 : 1.0/dist));
+}
+
+double
+_pushEnergyCoulombForce(double dist, const double *parm) {
 
   return (dist > parm[0] ? 0 : -1.0/(dist*dist));
 }
 
 double
-_pushForceChargeExtent(const double *parm) {
+_pushEnergyCoulombSupport(const double *parm) {
 
   return parm[0];
 }
+
+const pushEnergy
+_pushEnergyCoulomb = {
+  COULOMB,
+  1,
+  _pushEnergyCoulombEnergy,
+  _pushEnergyCoulombForce,
+  _pushEnergyCoulombSupport
+};
+const pushEnergy *const
+pushEnergyCoulomb = &_pushEnergyCoulomb;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
@@ -176,7 +263,7 @@ _pushForceChargeExtent(const double *parm) {
 ** 0 parms!
 */
 double
-_pushForceCotanFunc(double dist, const double *parm) {
+_pushEnergyCotanEnergy(double dist, const double *parm) {
   double ss;
 
   AIR_UNUSED(parm);
@@ -185,19 +272,39 @@ _pushForceCotanFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceCotanExtent(const double *parm) {
+_pushEnergyCotanForce(double dist, const double *parm) {
+  double ss;
+
+  AIR_UNUSED(parm);
+  ss = sin(dist*AIR_PI/2.0);
+  return (AIR_PI/2.0)*(dist > 1 ? 0 : 1.0 - 1.0/(ss*ss));
+}
+
+double
+_pushEnergyCotanSupport(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1;
 }
 
+const pushEnergy
+_pushEnergyCotan = {
+  COTAN,
+  0,
+  _pushEnergyCotanEnergy,
+  _pushEnergyCotanForce,
+  _pushEnergyCotanSupport
+};
+const pushEnergy *const
+pushEnergyCotan = &_pushEnergyCotan;
+
 /* ----------------------------------------------------------------
-** -----------------------=------- NONE ---------------------------
+** ------------------------------- ZERO ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms:
 */
 double
-_pushForceNoneFunc(double dist, const double *parm) {
+_pushEnergyZeroFunc(double dist, const double *parm) {
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -205,178 +312,167 @@ _pushForceNoneFunc(double dist, const double *parm) {
 }
 
 double
-_pushForceNoneExtent(const double *parm) {
+_pushEnergyZeroSupport(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1.0;
 }
 
+const pushEnergy
+_pushEnergyZero = {
+  ZERO,
+  0,
+  _pushEnergyZeroFunc,
+  _pushEnergyZeroFunc,
+  _pushEnergyZeroSupport
+};
+const pushEnergy *const
+pushEnergyZero = &_pushEnergyZero;
+
 /* ----------------------------------------------------------------
-** ------------------------------ arrays ... ----------------------
+** ----------------------------------------------------------------
 ** ----------------------------------------------------------------
 */
 
-int
-_pushForceParmNum[PUSH_FORCE_MAX+1] = {
-
-  1, /* pushForceSpring */
-  1, /* pushForceGauss */
-  1, /* pushForceCharge */
-  0, /* pushForceCotan */
-  0  /* pushForceNone */
+const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX+1] = {
+  &_pushEnergyUnknown,  /* 0 */
+  &_pushEnergySpring,   /* 1 */
+  &_pushEnergyGauss,    /* 2 */
+  &_pushEnergyCoulomb,  /* 3 */
+  &_pushEnergyCotan,    /* 4 */
+  &_pushEnergyZero      /* 5 */
 };
 
-double
-(*_pushForceFunc[PUSH_FORCE_MAX+1])(double dist, const double *parm) = {
-  _pushForceUnknownFunc,
-  _pushForceSpringFunc,
-  _pushForceGaussFunc,
-  _pushForceChargeFunc,
-  _pushForceCotanFunc,
-  _pushForceNoneFunc,
-};
-
-double
-(*_pushForceExtent[PUSH_FORCE_MAX+1])(const double *parm) = {
-  _pushForceUnknownExtent,
-  _pushForceSpringExtent,
-  _pushForceGaussExtent,
-  _pushForceChargeExtent,
-  _pushForceCotanExtent,
-  _pushForceNoneExtent,
-};
-
-pushForce *
-_pushForceNew() {
-  pushForce *force;
+pushEnergySpec *
+pushEnergySpecNew() {
+  pushEnergySpec *ensp;
   int pi;
 
-  force = (pushForce *)calloc(1, sizeof(pushForce));
-  if (force) {
-    force->noop = AIR_FALSE;  /* by default, not a no-op */
-    force->func = NULL;
-    force->extent = NULL;
-    for (pi=0; pi<PUSH_FORCE_PARM_MAXNUM; pi++) {
-      force->parm[pi] = AIR_NAN;
+  ensp = (pushEnergySpec *)calloc(1, sizeof(pushEnergySpec));
+  if (ensp) {
+    ensp->energy = pushEnergyUnknown;
+    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+      ensp->parm[pi] = AIR_NAN;
     }
   }
-  return force;
+  return ensp;
 }
 
-pushForce *
-pushForceNix(pushForce *force) {
+pushEnergySpec *
+pushEnergySpecNix(pushEnergySpec *ensp) {
 
-  airFree(force);
+  airFree(ensp);
   return NULL;
 }
 
-pushForce *
-pushForceParse(const char *_str) {
-  char me[]="pushForceParse", err[BIFF_STRLEN];
+int
+pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
+  char me[]="pushEnergySpecParse", err[BIFF_STRLEN];
   char *str, *col, *_pstr, *pstr;
-  pushForce *force;
-  int fri, needParm, haveParm;
+  int etype;
+  unsigned int pi, haveParm;
   airArray *mop;
   double pval;
 
-  if (!_str) {
+  if (!( ensp && _str )) {
     sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PUSH, err); return NULL;
+    biffAdd(PUSH, err); return 1;
   }
 
+  /* see if its the name of something that needs no parameters */
+  etype = airEnumVal(pushEnergyType, _str);
+  if (pushEnergyTypeUnknown != etype) {
+    /* the string is the name of some energy */
+    ensp->energy = pushEnergyAll[etype];
+    if (0 != ensp->energy->parmNum) {
+      sprintf(err, "%s: need %u parms for %s energy, but got none", me,
+              ensp->energy->parmNum, ensp->energy->name);
+      biffAdd(PUSH, err); return 1;
+    }
+    /* the energy needs 0 parameters */
+    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+      ensp->parm[pi] = AIR_NAN;
+    }
+    return 0;
+  }
+
+  /* start parsing parms after ':' */
   mop = airMopNew();
   str = airStrdup(_str);
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
-  force = _pushForceNew();
-  airMopAdd(mop, force, (airMopper)pushForceNix, airMopOnError);
-
-  if (!strcmp(airEnumStr(pushForceEnum, pushForceNone), str)) {
-    /* special case: no parameters */
-    force->noop = AIR_TRUE;
-    strcpy(force->name, _pushForceStr[pushForceNone]);
-    force->func = _pushForceFunc[pushForceNone];
-    force->extent = _pushForceExtent[pushForceNone];
-    airMopOkay(mop);
-    return force;
-  }
-
-  if (!strcmp(airEnumStr(pushForceEnum, pushForceCotan), str)) {
-    /* special case: no parameters */
-    strcpy(force->name, _pushForceStr[pushForceCotan]);
-    force->func = _pushForceFunc[pushForceCotan];
-    force->extent = _pushForceExtent[pushForceCotan];
-    airMopOkay(mop);
-    return force;
-  }
-
   col = strchr(str, ':');
   if (!col) {
-    sprintf(err, "%s: didn't see colon separator in \"%s\"", me, str);
-    biffAdd(PUSH, err); airMopError(mop); return NULL;
+    sprintf(err, "%s: \"%s\" isn't a parameter-free energy, but it has no "
+            "\":\" separator to indicate parameters", me, str);
+    biffAdd(PUSH, err); airMopError(mop); return 1;
   }
   *col = '\0';
-  fri = airEnumVal(pushForceEnum, str);
-  if (pushForceUnknown == fri) {
-    sprintf(err, "%s: didn't recognize \"%s\" as a force", me, str);
+  etype = airEnumVal(pushEnergyType, str);
+  if (pushEnergyTypeUnknown == etype) {
+    sprintf(err, "%s: didn't recognize \"%s\" as a %s", me,
+            str, pushEnergyType->name);
+    biffAdd(PUSH, err); airMopError(mop); return 1;
   }
-  needParm = _pushForceParmNum[fri];
+
+  ensp->energy = pushEnergyAll[etype];
+  if (0 == ensp->energy->parmNum) {
+    sprintf(err, "%s: \"%s\" energy has no parms, but got something", me,
+            ensp->energy->name);
+    biffAdd(PUSH, err); return 1;
+  }
+
   _pstr = pstr = col+1;
   /* code lifted from teem/src/nrrd/kernel.c, should probably refactor... */
-  for (haveParm=0; haveParm<needParm; haveParm++) {
+  for (haveParm=0; haveParm<ensp->energy->parmNum; haveParm++) {
     if (!pstr) {
       break;
     }
     if (1 != sscanf(pstr, "%lg", &pval)) {
       sprintf(err, "%s: trouble parsing \"%s\" as double (in \"%s\")",
               me, _pstr, _str);
-      biffAdd(PUSH, err); airMopError(mop); return NULL;
+      biffAdd(PUSH, err); airMopError(mop); return 1;
     }
-    force->parm[haveParm] = AIR_CAST(double, pval);
+    ensp->parm[haveParm] = pval;
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {
         sprintf(err, "%s: nothing after last comma in \"%s\" (in \"%s\")",
                 me, _pstr, _str);
-        biffAdd(PUSH, err); airMopError(mop); return NULL;
+        biffAdd(PUSH, err); airMopError(mop); return 1;
       }
     }
   }
   /* haveParm is now the number of parameters that were parsed. */
-  if (haveParm < needParm) {
-    sprintf(err, "%s: parsed only %d of %d required parameters (for %s force)"
+  if (haveParm < ensp->energy->parmNum) {
+    sprintf(err, "%s: parsed only %u of %u required parms (for %s energy)"
             "from \"%s\" (in \"%s\")",
-            me, haveParm, needParm,
-            airEnumStr(pushForceEnum, fri), _pstr, _str);
-      biffAdd(PUSH, err); airMopError(mop); return NULL;
+            me, haveParm, ensp->energy->parmNum,
+            ensp->energy->name, _pstr, _str);
+    biffAdd(PUSH, err); airMopError(mop); return 1;
   } else {
     if (pstr) {
-      sprintf(err, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-              me, _pstr, _str, needParm);
-      biffAdd(PUSH, err); airMopError(mop); return NULL;
+      sprintf(err, "%s: \"%s\" (in \"%s\") has more than %u doubles",
+              me, _pstr, _str, ensp->energy->parmNum);
+      biffAdd(PUSH, err); airMopError(mop); return 1;
     }
   }
   
-  /* parameters have been set, now set the rest of the force info */
-  strcpy(force->name, _pushForceStr[fri]);
-  force->func = _pushForceFunc[fri];
-  force->extent = _pushForceExtent[fri];
-
   airMopOkay(mop);
-  return force;
+  return 0;
 }
 
 int
-_pushHestForceParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  pushForce **fcP;
+_pushHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  pushEnergySpec **enspP;
   char me[]="_pushHestForceParse", *perr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  fcP = (pushForce **)ptr;
-  *fcP = pushForceParse(str);
-  if (!(*fcP)) {
+  enspP = (pushEnergySpec **)ptr;
+  *enspP = pushEnergySpecNew();
+  if (pushEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PUSH);
     strncpy(err, perr, AIR_STRLEN_HUGE-1);
     free(perr);
@@ -386,12 +482,12 @@ _pushHestForceParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 }
 
 hestCB
-_pushHestForce = {
-  sizeof(pushForce*),
-  "force specification",
-  _pushHestForceParse,
-  (airMopper)pushForceNix
+_pushHestEnergySpec = {
+  sizeof(pushEnergySpec*),
+  "energy specification",
+  _pushHestEnergyParse,
+  (airMopper)pushEnergySpecNix
 };
 
 hestCB *
-pushHestForce = &_pushHestForce;
+pushHestEnergySpec = &_pushHestEnergySpec;

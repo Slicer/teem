@@ -47,9 +47,6 @@ extern "C" {
 #endif
 
 #define PUSH pushBiffKey
-#define PUSH_STAGE_MAXNUM 4
-#define PUSH_STAGE_PARM_MAXNUM 1
-#define PUSH_FORCE_PARM_MAXNUM 3
 #define PUSH_THREAD_MAXNUM 512
 
 /*
@@ -67,9 +64,7 @@ extern "C" {
 ** NB: there is no constructor for this, nor does there really need to be
 */
 typedef struct pushPoint_t {
-  struct pushThing_t *thing;   /* what thing do I belong to */
-  double charge,               /* "charge" of the point */
-    pos[3],                    /* position in world space */
+  double pos[3],               /* position in world space */
     vel[3],                    /* velocity */
     frc[3],                    /* force accumulator for current iteration */
     ten[7],                    /* tensor here */
@@ -159,25 +154,39 @@ typedef struct pushTask_t {
 } pushTask;
 
 /*
-******** pushForce
+******** pushEnergyType* enum
 **
-** the functions and information which determine inter-point forces
+** the different shapes of potential energy profiles that can be used
 */
-typedef struct {
-  int noop;
-  char name[AIR_STRLEN_SMALL];
-  double (*func)(double dist, const double parm[PUSH_FORCE_PARM_MAXNUM]);
-  double (*extent)(const double parm[PUSH_FORCE_PARM_MAXNUM]);
-  double parm[PUSH_FORCE_PARM_MAXNUM];
-} pushForce;
+enum {
+  pushEnergyTypeUnknown,       /* 0 */
+  pushEnergyTypeSpring,        /* 1 */
+  pushEnergyTypeGauss,         /* 2 */
+  pushEnergyTypeCoulomb,       /* 3 */
+  pushEnergyTypeCotan,         /* 4 */
+  pushEnergyTypeZero,          /* 5 */
+  pushEnergyTypeLast
+};
+#define PUSH_ENERGY_TYPE_MAX      5
+#define PUSH_ENERGY_PARM_NUM 3
 
 /*
-******** pushProcess
+******** pushEnergy
 **
-** the sort of function that is called by the worker threads
+** the functions which determine inter-point forces
 */
-typedef int (*pushProcess)(pushTask *task, int bin,
-                           const double parm[PUSH_STAGE_PARM_MAXNUM]);
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  unsigned int parmNum;
+  double (*energy)(double dist, const double parm[PUSH_ENERGY_PARM_NUM]);
+  double (*force)(double dist, const double parm[PUSH_ENERGY_PARM_NUM]);
+  double (*support)(const double parm[PUSH_ENERGY_PARM_NUM]);
+} pushEnergy;
+
+typedef struct {
+  const pushEnergy *energy;
+  double parm[PUSH_ENERGY_PARM_NUM];
+} pushEnergySpec;
 
 /*
 ******** pushContext
@@ -191,49 +200,46 @@ typedef struct pushContext_t {
     *npos,                         /* positions to start with
                                       (overrides thingNum) */
     *nstn;                         /* start/nums for tractlets in npos */
-  double drag,                     /* to slow fast things down */
-    preDrag,                       /* different drag pre-min-iter */
-    velWarp,                       /* velocity warping stability hack */
-    step,                          /* time step in integration */
-    mass,                          /* mass of particles */
-    forceScl,                      /* scaling of pair-wise forces */
+  double step,                     /* time step in integration */
     scale,                         /* scaling from tensor to glyph size */
-    nudge,                         /* scaling of nudging towards center */
     wall,                          /* spring constant of walls */
     cntScl,                        /* magnitude of containment gradient */
     bigTrace,                      /* a last minute hack */
-    tlThresh, tlSoft, tlStep,      /* tractlet formation parameters */
     minMeanVel;                    /* stop if mean velocity drops below this */
-  int tlUse,                       /* enable tractlets */
-    tlFrenet,                      /* use Frenet frames for tractlet forces */
-    singleBin,                     /* disable binning (for debugging) */
-    driftCorrect,                  /* prevent sliding near anisotropy edges */
-    detReject,
-    midPntSmp,
+  int detReject,                   /* determinant-based rejection at init */
+    midPntSmp,                     /* sample midpoint btw part.s for physics */
     verbose;                       /* blah blah blah */
-  unsigned int seed,               /* seed value for airSrand48 */
-    tlStepNum,                     /* max # points on each tractlet half */
-    binIncr,                       /* increment for per-bin thing airArray */
+  unsigned int seedRNG,            /* seed value for random number generator */
     thingNum,                      /* number things to start simulation w/ */
     threadNum,                     /* number of threads to use */
-    stageNum,                      /* number of stages */
-    minIter,                       /* if non-zero, min number of iterations */
     maxIter,                       /* if non-zero, max number of iterations */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
   int gravItem,                    /* tenGage item (vector) for gravity */
-    gravNotItem[2],                /* for constraining gravity */
-    seedThreshItem,                /* item for constraining random seeding */
+    gravNotItem[2];                /* for constraining gravity */
+  double gravScl;                  /* sign and magnitude of gravity's effect */
+
+  int seedThreshItem,              /* item for constraining random seeding */
     seedThreshSign;                /* +1: need val > thresh; -1: opposite */
-  double gravScl,                  /* sign and magnitude of gravity's effect */
-    seedThresh;                    /* threshold for seed constraint */
-  pushForce *force;                /* force function to use */
+  double seedThresh;               /* threshold for seed constraint */
+
+  const pushEnergySpec *ensp;      /* potential energy function to use */
+
+  int tltUse,                      /* enable tractlets */
+    tltFrenet;                     /* use Frenet frames for tractlet forces */
+  unsigned int tltStepNum;         /* max # points on each tractlet half */
+  double tltThresh,
+    tltSoft, tltStep;              /* tractlet formation parameters */
+
+  int binSingle;                   /* disable binning (for debugging) */
+  unsigned int binIncr;            /* increment for per-bin thing airArray */
+
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11,                        /* for gradient of mask */
     *ksp22;                        /* 2nd deriv, probably for gravity */
-  double stageParm[PUSH_STAGE_MAXNUM][PUSH_STAGE_PARM_MAXNUM];
-  pushProcess process[PUSH_STAGE_MAXNUM]; /* the function for each stage */
+
   /* INTERNAL -------------------------- */
+
   Nrrd *nten,                      /* 3D image of 3D masked tensors */
     *ninv,                         /* pre-computed inverse of nten */
     *nmask;                        /* mask image from nten */
@@ -243,27 +249,30 @@ typedef struct pushContext_t {
   int finished;                    /* used to signal all threads to return */
   unsigned int dimIn,              /* dim (2 or 3) of input, meaning whether
                                       it was a single slice or a full volume */
-    sliceAxis,                     /* got a single 3-D slice, which axis had
+    sliceAxis;                     /* got a single 3-D slice, which axis had
                                       only a single sample */
-    binsEdge[3],                   /* # bins along each volume edge,
+
+  pushBin *bin;                    /* volume of bins (see binsEdge, binNum) */
+  unsigned int binsEdge[3],        /* # bins along each volume edge,
                                       determined by maxEval and scale */
     binNum,                        /* total # bins in grid */
-    stageIdx,                      /* stage currently undergoing processing */
     binIdx;                        /* *next* bin of points needing to be
                                       processed.  Stage is done when
                                       binIdx == binNum */
-  pushBin *bin;                    /* volume of bins (see binsEdge, binNum) */
+  airThreadMutex *binMutex;        /* mutex around bin */
+
   double maxDist,                  /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
     maxDet,
-    meanVel,                       /* latest mean velocity of particles */
-    time0, time1;                  /* time at start and stop of run */
+    meanVel;                       /* latest mean velocity of particles */
   pushTask **task;                 /* dynamically allocated array of tasks */
-  airThreadMutex *binMutex;        /* mutex around bin */
-  airThreadBarrier *stageBarrierA, /* barriers between stages */
-    *stageBarrierB;
+  airThreadBarrier *iterBarrierA;  /* barriers between iterations */
+  airThreadBarrier *iterBarrierB;  /* barriers between iterations */
+
   /* OUTPUT ---------------------------- */
-  double time;                     /* total time spent in computation */
+
+  double timeIteration,            /* time needed for last (single) iter */
+    timeRun;                       /* total time spent in computation */
   unsigned int iter;               /* how many iterations were needed */
   Nrrd *noutPos,                   /* list of 2D or 3D positions */
     *noutTen;                      /* list of 2D or 3D masked tensors */
@@ -278,15 +287,23 @@ PUSH_EXPORT pushThing *pushThingNix(pushThing *thg);
 PUSH_EXPORT pushContext *pushContextNew(void);
 PUSH_EXPORT pushContext *pushContextNix(pushContext *pctx);
 
-/* forces.c */
-PUSH_EXPORT pushForce *pushForceParse(const char *str);
-PUSH_EXPORT pushForce *pushForceNix(pushForce *force);
-PUSH_EXPORT hestCB *pushHestForce;
+/* forces.c (legacy name for info about (derivatives of) energy functions) */
+PUSH_EXPORT airEnum *pushEnergyType;
+PUSH_EXPORT const pushEnergy *const pushEnergyUnknown;
+PUSH_EXPORT const pushEnergy *const pushEnergySpring;
+PUSH_EXPORT const pushEnergy *const pushEnergyGauss;
+PUSH_EXPORT const pushEnergy *const pushEnergyCoulomb;
+PUSH_EXPORT const pushEnergy *const pushEnergyCotan;
+PUSH_EXPORT const pushEnergy *const pushEnergyZero;
+PUSH_EXPORT const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX+1];
+PUSH_EXPORT pushEnergySpec *pushEnergySpecNew();
+PUSH_EXPORT pushEnergySpec *pushEnergySpecNix(pushEnergySpec *ensp);
+PUSH_EXPORT int pushEnergySpecParse(pushEnergySpec *ensp, const char *str);
+PUSH_EXPORT hestCB *pushHestEnergySpec;
 
 /* corePush.c */
 PUSH_EXPORT int pushStart(pushContext *pctx);
 PUSH_EXPORT int pushIterate(pushContext *pctx);
-PUSH_EXPORT int pushFreeze(pushContext *pctx);
 PUSH_EXPORT int pushRun(pushContext *pctx);
 PUSH_EXPORT int pushFinish(pushContext *pctx);
 
@@ -300,12 +317,13 @@ PUSH_EXPORT int pushRebin(pushContext *pctx);
 
 /* setup.c */
 PUSH_EXPORT int pushTaskFiberReSetup(pushContext *pctx,
-                                     double tlThresh,
-                                     double tlSoft,
-                                     double tlStep,
-                                     unsigned int tlStepNum);
+                                     double tltThresh,
+                                     double tltSoft,
+                                     double tltStep,
+                                     unsigned int tltStepNum);
 
 /* action.c */
+PUSH_EXPORT int pushBinProcess(pushTask *task, unsigned int myBinIdx);
 PUSH_EXPORT int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut, 
                               pushContext *pctx);
 

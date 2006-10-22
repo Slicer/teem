@@ -64,13 +64,11 @@ _pushTensorFieldSetup(pushContext *pctx) {
             me, pctx->sliceAxis);
   } else {
     pctx->dimIn = 3;
-    pctx->sliceAxis = 5280;
+    pctx->sliceAxis = 52;
     fprintf(stderr, "!%s: got 3-D input\n", me);
   }
-  E = AIR_FALSE;
-  E = nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
-  
-  /* set up ninv from nten */
+  E = 0;
+  if (!E) E |= nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
   if (E) {
     sprintf(err, "%s: trouble creating 3D tensor input", me);
@@ -104,23 +102,6 @@ _pushTensorFieldSetup(pushContext *pctx) {
     biffAdd(PUSH, err); airMopError(mop); return 1;
   }
 
-  /*
-  pctx->nten->axis[1].spacing = (AIR_EXISTS(pctx->nten->axis[1].spacing)
-                                 ? pctx->nten->axis[1].spacing
-                                 : 1.0);
-  pctx->nten->axis[2].spacing = (AIR_EXISTS(pctx->nten->axis[2].spacing)
-                                 ? pctx->nten->axis[2].spacing
-                                 : 1.0);
-  pctx->nten->axis[3].spacing = (AIR_EXISTS(pctx->nten->axis[3].spacing)
-                                 ? pctx->nten->axis[3].spacing
-                                 : 1.0);
-  pctx->ninv->axis[1].spacing = pctx->nten->axis[1].spacing;
-  pctx->ninv->axis[2].spacing = pctx->nten->axis[2].spacing;
-  pctx->ninv->axis[3].spacing = pctx->nten->axis[3].spacing;
-  pctx->nmask->axis[0].spacing = pctx->nten->axis[1].spacing;
-  pctx->nmask->axis[1].spacing = pctx->nten->axis[2].spacing;
-  pctx->nmask->axis[2].spacing = pctx->nten->axis[3].spacing;
-  */
   pctx->nten->axis[1].center = nrrdCenterCell;
   pctx->nten->axis[2].center = nrrdCenterCell;
   pctx->nten->axis[3].center = nrrdCenterCell;
@@ -172,11 +153,12 @@ _pushGageSetup(pushContext *pctx) {
   if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx,
                                          pctx->nmask, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(pctx->gctx, mpvl);
+  if (!E) E |= gageQueryItemOn(pctx->gctx, mpvl, gageSclGradVec);
+
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel11,
                              pctx->ksp11->kernel, pctx->ksp11->parm);
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel22,
                              pctx->ksp22->kernel, pctx->ksp22->parm);
-  if (!E) E |= gageQueryItemOn(pctx->gctx, mpvl, gageSclGradVec);
   /* (maybe) turn on seed thresholding */
   if (tenGageUnknown != pctx->seedThreshItem) {
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->seedThreshItem);
@@ -208,10 +190,10 @@ _pushFiberSetup(pushContext *pctx) {
   }
   E = AIR_FALSE;
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopNumSteps,
-                               pctx->tlStepNum);
+                               pctx->tltStepNum);
   if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopAniso,
                                tenAniso_Cl1,
-                               pctx->tlThresh - pctx->tlSoft);
+                               pctx->tltThresh - pctx->tltSoft);
   if (!E) E |= tenFiberTypeSet(pctx->fctx, tenFiberTypeEvec1);
   if (!E) E |= tenFiberKernelSet(pctx->fctx,
                                  pctx->ksp00->kernel, pctx->ksp00->parm);
@@ -219,11 +201,11 @@ _pushFiberSetup(pushContext *pctx) {
   if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgMidpoint);
   /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgEuler); */
   if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize,
-                               pctx->tlStep/pctx->tlStepNum);
+                               pctx->tltStep/pctx->tltStepNum);
   if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
                                      1 /* lerp */ ,
-                                     pctx->tlThresh /* thresh */,
-                                     pctx->tlSoft);
+                                     pctx->tltThresh /* thresh */,
+                                     pctx->tltSoft);
   if (!E) E |= tenFiberUpdate(pctx->fctx);
   if (E) {
     sprintf(err, "%s: trouble setting up fiber context", me);
@@ -273,7 +255,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     task->threadIdx = threadIdx;
     task->thingNum = 0;
     task->sumVel = 0;
-    task->vertBuff = (double*)calloc(3*(1 + 2*pctx->tlStepNum),
+    task->vertBuff = (double*)calloc(3*(1 + 2*pctx->tltStepNum),
                                      sizeof(double));
     task->returnPtr = NULL;
   }
@@ -354,8 +336,8 @@ _pushBinSetup(pushContext *pctx) {
   }
   pctx->meanEval /= count;
   pctx->maxDist = (2*pctx->scale*pctx->maxEval
-                   *pctx->force->extent(pctx->force->parm));
-  if (pctx->singleBin) {
+                   *pctx->ensp->energy->support(pctx->ensp->parm));
+  if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
     pctx->binsEdge[1] = 1;
     pctx->binsEdge[2] = 1;
@@ -404,8 +386,8 @@ _pushBinSetup(pushContext *pctx) {
 */
 int
 pushTaskFiberReSetup(pushContext *pctx,
-                     double tlThresh, double tlSoft, double tlStep,
-                     unsigned int tlStepNum) {
+                     double tltThresh, double tltSoft, double tltStep,
+                     unsigned int tltStepNum) {
   char me[]="pushTaskFiberReSetup", err[BIFF_STRLEN];
   tenFiberContext *fctx;
   unsigned int taskIdx;
@@ -416,29 +398,29 @@ pushTaskFiberReSetup(pushContext *pctx,
     fprintf(stderr, "!%s: %d bailing\n", me, __LINE__);
     return 0;
   }
-  pctx->tlStepNum = tlStepNum;
-  pctx->tlThresh = tlThresh;
-  pctx->tlSoft = tlSoft;
-  pctx->tlStep = tlStep;
+  pctx->tltStepNum = tltStepNum;
+  pctx->tltThresh = tltThresh;
+  pctx->tltSoft = tltSoft;
+  pctx->tltStep = tltStep;
 
   fprintf(stderr, "!%s: %d\n", me, __LINE__);
   for (taskIdx=0; pctx->threadNum; taskIdx++) {
     fctx = pctx->task[taskIdx]->fctx;
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
     if (!E) E |= tenFiberStopSet(fctx, tenFiberStopNumSteps,
-                                 pctx->tlStepNum);
+                                 pctx->tltStepNum);
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
     if (!E) E |= tenFiberStopSet(fctx, tenFiberStopAniso,
                                  tenAniso_Cl1,
-                                 pctx->tlThresh - pctx->tlSoft);
+                                 pctx->tltThresh - pctx->tltSoft);
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
     if (!E) E |= tenFiberParmSet(fctx, tenFiberParmStepSize,
-                                 pctx->tlStep/pctx->tlStepNum);
+                                 pctx->tltStep/pctx->tltStepNum);
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
     if (!E) E |= tenFiberAnisoSpeedSet(fctx, tenAniso_Cl1,
                                        1 /* lerp */ ,
-                                       pctx->tlThresh /* thresh */,
-                                       pctx->tlSoft);
+                                       pctx->tltThresh /* thresh */,
+                                       pctx->tltSoft);
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
     if (!E) E |= tenFiberUpdate(fctx);
     fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
@@ -496,7 +478,6 @@ _pushThingSetup(pushContext *pctx) {
                    lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
                    lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
         _pushProbe(pctx->task[0], thing->vert + pointIdx);
-        thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
       }
       thing->seedIdx = stn[2 + 3*thingIdx];
       if (1 < thing->vertNum) {
@@ -518,7 +499,6 @@ _pushThingSetup(pushContext *pctx) {
                  lup(pctx->npos->data, 1 + 3*thingIdx),
                  lup(pctx->npos->data, 2 + 3*thingIdx));
       _pushProbe(pctx->task[0], thing->vert + 0);
-      thing->vert[0].charge = _pushThingPointCharge(pctx, thing);
     } else {
       thing = pushThingNew(1);
       do {
@@ -571,7 +551,6 @@ _pushThingSetup(pushContext *pctx) {
         biffAdd(PUSH, err); return 1;
       }
       ELL_3V_SET(thing->vert[pointIdx].vel, 0, 0, 0);
-      thing->vert[pointIdx].charge = _pushThingPointCharge(pctx, thing);
     }
     if (pushBinThingAdd(pctx, thing)) {
       sprintf(err, "%s: trouble thing %d", me, thingIdx);

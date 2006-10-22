@@ -68,60 +68,54 @@ pushThingNix(pushThing *thg) {
 pushContext *
 pushContextNew(void) {
   pushContext *pctx;
-  unsigned int si, pi;
 
   pctx = (pushContext *)calloc(1, sizeof(pushContext));
   if (pctx) {
     pctx->nin = NULL;
     pctx->npos = NULL;
     pctx->nstn = NULL;
-    pctx->drag = 0.1;
-    pctx->preDrag = 1.0;
-    pctx->velWarp = 0.0;
-    pctx->step = 0.01;
-    pctx->mass = 1.0;
-    pctx->forceScl = 1.0;
+    pctx->step = 1;
     pctx->scale = 0.2;
-    pctx->nudge = 0.0;
     pctx->wall = 0.1;
     pctx->cntScl = 0.0;
     pctx->bigTrace = 0.0;
-    pctx->tlThresh = 0.0;
-    pctx->tlSoft = 0.0;
     pctx->minMeanVel = 0.0;
-    pctx->tlUse = AIR_FALSE;
-    pctx->tlFrenet = AIR_FALSE;
-    pctx->singleBin = AIR_FALSE;
-    pctx->driftCorrect = AIR_FALSE;
+
     pctx->detReject = AIR_FALSE;
     pctx->midPntSmp = AIR_FALSE;
     pctx->verbose = 0;
-    pctx->seed = 42;
-    pctx->tlStepNum = 5;
-    pctx->binIncr = 128;
+
+    pctx->seedRNG = 42;
     pctx->thingNum = 0;
     pctx->threadNum = 1;
-    pctx->stageNum = 0;
-    pctx->minIter = 0;
     pctx->maxIter = 0;
     pctx->snap = 0;
+
     pctx->gravItem = tenGageUnknown;
     pctx->gravNotItem[0] = tenGageUnknown;
     pctx->gravNotItem[1] = tenGageUnknown;
+    pctx->gravScl = 0.0;
+
     pctx->seedThreshItem  = tenGageUnknown;
     pctx->seedThreshSign = +1;
-    pctx->gravScl = 0.0;
     pctx->seedThresh = 0.0;
-    pctx->force = NULL;
+
+    pctx->ensp = NULL;
+
+    pctx->tltUse = AIR_FALSE;
+    pctx->tltFrenet = AIR_FALSE;
+    pctx->tltStepNum = 5;
+    pctx->tltThresh = 0.0;
+    pctx->tltSoft = 0.0;
+    pctx->tltStep = 0.0;
+
+    pctx->binSingle = AIR_FALSE;
+    pctx->binIncr = 512;
+
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
     pctx->ksp22 = nrrdKernelSpecNew();
-    for (si=0; si<PUSH_STAGE_MAXNUM; si++) {
-      for (pi=0; pi<PUSH_STAGE_PARM_MAXNUM; pi++) {
-        pctx->stageParm[si][pi] = AIR_NAN;
-      }
-      pctx->process[si] = _pushProcessDummy;
-    }
+
     pctx->nten = NULL;
     pctx->ninv = NULL;
     pctx->nmask = NULL;
@@ -131,23 +125,26 @@ pushContextNew(void) {
     pctx->fctx = NULL;
     pctx->finished = AIR_FALSE;
     pctx->dimIn = 0;
-    pctx->sliceAxis = 5280;  /* an invalid value */
-    /* binsEdge and binNum are set later */
+    pctx->sliceAxis = 42;  /* an invalid value */
+
+    pctx->bin = NULL;
     ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
     pctx->binNum = 0;
-    pctx->stageIdx = pctx->binIdx = 0;
-    pctx->bin = NULL;
+    pctx->binIdx = 0;
+    pctx->binMutex = NULL;
+
     pctx->maxDist = AIR_NAN;
     pctx->maxEval = AIR_NAN;
     pctx->meanEval = AIR_NAN;
     pctx->maxDet = AIR_NAN;
     pctx->meanVel = 0;
-    pctx->time0 = pctx->time1 = 0;
+
     pctx->task = NULL;
-    pctx->binMutex = NULL;
-    pctx->stageBarrierA = NULL;
-    pctx->stageBarrierB = NULL;
-    pctx->time = 0;
+
+    pctx->iterBarrierA = NULL;
+    pctx->iterBarrierB = NULL;
+    pctx->timeIteration = 0;
+    pctx->timeRun = 0;
     pctx->iter = 0;
     pctx->noutPos = NULL;
     pctx->noutTen = NULL;

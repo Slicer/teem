@@ -27,23 +27,12 @@ extern "C" {
 /* defaultsPush.c */
 extern int _pushVerbose;
 
-/* methodsPush.c */
-extern double *_pushThingPos(pushThing *thg);
-
-/* forces.c */
-extern airEnum *pushForceEnum;
-
 /* binning.c */
 extern pushBin *_pushBinLocate(pushContext *pctx, double *pos);
 extern int _pushBinPointNullify(pushContext *pctx,
                                 pushBin *oldBin, pushPoint *point);
 extern void _pushBinPointAdd(pushContext *pctx,
                              pushBin *bin, pushPoint *point);
-
-/* corePush.c */
-extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
-extern int _pushProcessDummy(pushTask *task, int bin,
-                              const double *parm);
 
 /* setup.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
