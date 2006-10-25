@@ -63,12 +63,12 @@ _pushProbe(pushTask *task, pushPoint *point) {
 }
 
 int
-pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
+pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
               pushContext *pctx) {
   char me[]="pushOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
-  float *posOut, *tenOut;
+  float *posOut, *tenOut, *enrOut;
   pushBin *bin;
   pushPoint *point;
 
@@ -84,12 +84,17 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
+  if (nEnrOut) {
+    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, 
+                           AIR_CAST(size_t, pointNum));
+  }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PUSH, err, NRRD); return 1;
   }
   posOut = nPosOut ? (float*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (float*)(nTenOut->data) : NULL;
+  enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
 
   pointRun = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -102,6 +107,9 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
       }
       if (tenOut) {
         TEN_T_COPY(tenOut + 7*pointRun, point->ten);
+      }
+      if (enrOut) {
+        enrOut[pointRun] = point->enr;
       }
       pointRun++;
     }

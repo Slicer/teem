@@ -53,9 +53,10 @@ extern "C" {
 ******** pushPoint
 **
 ** information about a point in the simulation.  There are really two
-** kinds of information here: "pos", "vel", and "frc" pertain to the simulation
-** of point dynamics, while "ten", "inv", and "cnt" are properties of
-** the field sampled at the point.
+** kinds of information here: "pos", "enr", "frc" pertain to the
+** simulation of point dynamics, while "ten", "inv", "cnt", "grav",
+** "gravGrad", "seedThresh" are properties of the field sampled at the
+** point.
 */
 typedef struct pushPoint_t {
   unsigned int ttaagg;
@@ -67,6 +68,9 @@ typedef struct pushPoint_t {
     cnt[3],                    /* mask's containment gradient */
     grav, gravGrad[3],         /* gravity stuff */
     seedThresh;                /* seed thresh */
+  /* per-point list of active neighbors- which is updated only periodically.
+     In addition to spatial binning, this greatly reduces the number of
+     pair-wise interactions computed (based on idea from Meyer et al.) */
   struct pushPoint_t **neigh;
   unsigned int neighNum;
   airArray *neighArr;
@@ -278,7 +282,7 @@ PUSH_EXPORT int pushRebin(pushContext *pctx);
 
 /* action.c */
 PUSH_EXPORT int pushBinProcess(pushTask *task, unsigned int myBinIdx);
-PUSH_EXPORT int pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
+PUSH_EXPORT int pushOutputGet(Nrrd *nPos, Nrrd *nTen, Nrrd *nEnr,
                               pushContext *pctx);
 
 #ifdef __cplusplus

@@ -282,10 +282,24 @@ _pushBinSetup(pushContext *pctx) {
       count++;
       pctx->meanEval += eval[0];
       pctx->maxEval = AIR_MAX(pctx->maxEval, eval[0]);
-      pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0]*eval[1]*eval[2]);
+      if (2 == pctx->dimIn) {
+        double det2d;
+        /* HEY! HEY! this assumes not only that the measurement frame
+           has been taken care of, but that the volume is axis-aligned */
+        det2d = (0 == pctx->sliceAxis
+                 ? TEN_T_DET_YZ(tdata)
+                 : (1 == pctx->sliceAxis
+                    ? TEN_T_DET_XZ(tdata)
+                    : TEN_T_DET_XY(tdata)));
+        pctx->maxDet = AIR_MAX(pctx->maxDet, det2d);
+      } else {
+        pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0]*eval[1]*eval[2]);
+      }
     }
     tdata += 7;
   }
+  fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me, 
+          pctx->dimIn, pctx->sliceAxis, pctx->maxDet);
   pctx->meanEval /= count;
   pctx->maxDist = (2*pctx->scale*pctx->maxEval
                    *pctx->ensp->energy->support(pctx->ensp->parm));
@@ -406,6 +420,17 @@ _pushPointSetup(pushContext *pctx) {
         */
         _pushProbe(pctx->task[0], point);
         detProbe = TEN_T_DET(point->ten);
+
+        if (2 == pctx->dimIn) {
+          /* see above HEY! HEY! */
+          detProbe = (0 == pctx->sliceAxis
+                      ? TEN_T_DET_YZ(point->ten)
+                      : (1 == pctx->sliceAxis
+                         ? TEN_T_DET_XZ(point->ten)
+                         : TEN_T_DET_XY(point->ten)));
+        } else {
+          detProbe = TEN_T_DET(point->ten);
+        }
         maxDet = AIR_MAX(maxDet, detProbe);
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
