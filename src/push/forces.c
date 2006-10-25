@@ -65,24 +65,17 @@ pushEnergyType = &_pushEnergyType;
 ** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
 */
-double
-_pushEnergyUnknownEnergy(double dist, const double *parm) {
-  char me[]="_pushEnergyUnknownEnergy";
+void
+_pushEnergyUnknownEval(double *enr, double *frc,
+                       double dist, const double *parm) {
+  char me[]="_pushEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  fprintf(stderr, "%s: this is not good.\n", me);
-  return AIR_NAN;
-}
-
-double
-_pushEnergyUnknownForce(double dist, const double *parm) {
-  char me[]="_pushEnergyUnknownForce";
-
-  AIR_UNUSED(dist);
-  AIR_UNUSED(parm);
-  fprintf(stderr, "%s: this is not good.\n", me);
-  return AIR_NAN;
+  *enr = AIR_NAN;
+  *frc = AIR_NAN;
+  fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
+  return;
 }
 
 double
@@ -90,7 +83,7 @@ _pushEnergyUnknownSupport(const double *parm) {
   char me[]="_pushEnergyUnknownSupport";
 
   AIR_UNUSED(parm);
-  fprintf(stderr, "%s: this is not good.\n", me);
+  fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
   return AIR_NAN;
 }
 
@@ -98,8 +91,7 @@ pushEnergy
 _pushEnergyUnknown = {
   "unknown",
   0,
-  _pushEnergyUnknownEnergy,
-  _pushEnergyUnknownForce,
+  _pushEnergyUnknownEval,
   _pushEnergyUnknownSupport
 };
 const pushEnergy *const
@@ -109,21 +101,27 @@ pushEnergyUnknown = &_pushEnergyUnknown;
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
 ** 1 parms:
-** 0: pull distance
+** parm[0]: width of pull region (beyond 1.0)
+**
+** learned: "1/2" is not 0.5 !!!!!
 */
-double
-_pushEnergySpringEnergy(double dist, const double *parm) {
-  /* char me[]="_pushEnergySpringEnergy"; */
-  double xx, ret, pull;
+void
+_pushEnergySpringEval(double *enr, double *frc,
+                      double dist, const double *parm) {
+  /* char me[]="_pushEnergySpringEval"; */
+  double xx, pull;
 
   pull = parm[0];
   xx = dist - 1.0;
   if (xx > pull) {
-    ret = 0;
+    *enr = 0;
+    *frc = 0;
   } else if (xx > 0) {
-    ret = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1/2);
+    *enr = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1.0/2.0);
+    *frc = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
   } else {
-    ret = xx*xx/2;
+    *enr = xx*xx/2;
+    *frc = xx;
   }
   /*
   if (!AIR_EXISTS(ret)) {
@@ -131,30 +129,7 @@ _pushEnergySpringEnergy(double dist, const double *parm) {
             me, dist, pull, blah, ret);
   }
   */
-  return ret;
-}
-
-double
-_pushEnergySpringForce(double dist, const double *parm) {
-  /* char me[]="_pushEnergySpringForce"; */
-  double xx, ret, pull;
-
-  pull = parm[0];
-  xx = dist - 1.0;
-  if (xx > pull) {
-    ret = 0;
-  } else if (xx > 0) {
-    ret = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
-  } else {
-    ret = xx;
-  }
-  /*
-  if (!AIR_EXISTS(ret)) {
-    fprintf(stderr, "!%s: dist=%g, pull=%g, blah=%d --> ret=%g\n",
-            me, dist, pull, blah, ret);
-  }
-  */
-  return ret;
+  return;
 }
 
 double
@@ -167,8 +142,7 @@ const pushEnergy
 _pushEnergySpring = {
   SPRING,
   1,
-  _pushEnergySpringEnergy,
-  _pushEnergySpringForce,
+  _pushEnergySpringEval,
   _pushEnergySpringSupport
 };
 const pushEnergy *const
@@ -178,44 +152,40 @@ pushEnergySpring = &_pushEnergySpring;
 ** ------------------------------ GAUSS --------------------------
 ** ----------------------------------------------------------------
 ** 1 parms:
-** (scale: distance to inflection point of force function)
-** parm[0]: cut-off (as a multiple of standard dev)
+** (distance to inflection point of force function is always 1.0)
+** parm[0]: cut-off (as a multiple of standard dev (which is 1.0))
 */
-#define _DGAUSS(x, sig, cut) (                                               \
-   x >= sig*cut ? 0                                                          \
-   : -exp(-x*x/(2.0*sig*sig))*x)
-#define SQRTTHREE 1.73205080756887729352
+/* HEY: copied from teem/src/nrrd/kernel.c */
+#define _GAUSS(x, sig, cut) ( \
+   x >= sig*cut ? 0           \
+   : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
 
-double
-_pushEnergyGaussEnergy(double dist, const double *parm) {
-  double sig, cut;
+#define _DGAUSS(x, sig, cut) ( \
+   x >= sig*cut ? 0            \
+   : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
 
-  sig = 1.0/SQRTTHREE;
+void
+_pushEnergyGaussEval(double *enr, double *frc,
+                     double dist, const double *parm) {
+  double cut;
+
   cut = parm[0];
-  return AIR_CAST(double, _DGAUSS(dist, sig, cut));
-}
-
-double
-_pushEnergyGaussForce(double dist, const double *parm) {
-  double sig, cut;
-
-  sig = 1.0/SQRTTHREE;
-  cut = parm[0];
-  return AIR_CAST(double, _DGAUSS(dist, sig, cut));
+  *enr = _GAUSS(dist, 1.0, cut);
+  *frc = _DGAUSS(dist, 1.0, cut);
+  return;
 }
 
 double
 _pushEnergyGaussSupport(const double *parm) {
 
-  return (1.0/SQRTTHREE)*parm[0];
+  return parm[0];
 }
 
 const pushEnergy
 _pushEnergyGauss = {
   GAUSS,
   1,
-  _pushEnergyGaussEnergy,
-  _pushEnergyGaussForce,
+  _pushEnergyGaussEval,
   _pushEnergyGaussSupport
 };
 const pushEnergy *const
@@ -228,16 +198,13 @@ pushEnergyGauss = &_pushEnergyGauss;
 ** (scale: distance to "1.0" in graph of x^(-2))
 ** parm[0]: cut-off (as multiple of "1.0")
 */
-double
-_pushEnergyCoulombEnergy(double dist, const double *parm) {
+void
+_pushEnergyCoulombEval(double *enr, double *frc,
+                       double dist, const double *parm) {
 
-  return (dist > parm[0] ? 0 : 1.0/dist));
-}
-
-double
-_pushEnergyCoulombForce(double dist, const double *parm) {
-
-  return (dist > parm[0] ? 0 : -1.0/(dist*dist));
+  *enr = (dist > parm[0] ? 0 : 1.0/dist);
+  *frc = (dist > parm[0] ? 0 : -1.0/(dist*dist));
+  return;
 }
 
 double
@@ -250,8 +217,7 @@ const pushEnergy
 _pushEnergyCoulomb = {
   COULOMB,
   1,
-  _pushEnergyCoulombEnergy,
-  _pushEnergyCoulombForce,
+  _pushEnergyCoulombEval,
   _pushEnergyCoulombSupport
 };
 const pushEnergy *const
@@ -262,22 +228,17 @@ pushEnergyCoulomb = &_pushEnergyCoulomb;
 ** ----------------------------------------------------------------
 ** 0 parms!
 */
-double
-_pushEnergyCotanEnergy(double dist, const double *parm) {
-  double ss;
+void
+_pushEnergyCotanEval(double *enr, double *frc,
+                     double dist, const double *parm) {
+  double pot, cc;
 
   AIR_UNUSED(parm);
-  ss = sin(dist*AIR_PI/2.0);
-  return (AIR_PI/2.0)*(dist > 1 ? 0 : 1.0 - 1.0/(ss*ss));
-}
-
-double
-_pushEnergyCotanForce(double dist, const double *parm) {
-  double ss;
-
-  AIR_UNUSED(parm);
-  ss = sin(dist*AIR_PI/2.0);
-  return (AIR_PI/2.0)*(dist > 1 ? 0 : 1.0 - 1.0/(ss*ss));
+  pot = AIR_PI/2.0;
+  cc = 1.0/(FLT_MIN + tan(dist*pot));
+  *enr = dist > 1 ? 0 : cc + dist*pot - pot;
+  *frc = dist > 1 ? 0 : -cc*cc*pot;
+  return;
 }
 
 double
@@ -291,8 +252,7 @@ const pushEnergy
 _pushEnergyCotan = {
   COTAN,
   0,
-  _pushEnergyCotanEnergy,
-  _pushEnergyCotanForce,
+  _pushEnergyCotanEval,
   _pushEnergyCotanSupport
 };
 const pushEnergy *const
@@ -303,12 +263,15 @@ pushEnergyCotan = &_pushEnergyCotan;
 ** ----------------------------------------------------------------
 ** 0 parms:
 */
-double
-_pushEnergyZeroFunc(double dist, const double *parm) {
+void
+_pushEnergyZeroEval(double *enr, double *frc,
+                    double dist, const double *parm) {
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  return 0.0;
+  *enr = 0;
+  *frc = 0;
+  return;
 }
 
 double
@@ -322,8 +285,7 @@ const pushEnergy
 _pushEnergyZero = {
   ZERO,
   0,
-  _pushEnergyZeroFunc,
-  _pushEnergyZeroFunc,
+  _pushEnergyZeroEval,
   _pushEnergyZeroSupport
 };
 const pushEnergy *const
@@ -356,6 +318,20 @@ pushEnergySpecNew() {
     }
   }
   return ensp;
+}
+
+void
+pushEnergySpecSet(pushEnergySpec *ensp, const pushEnergy *energy,
+                  const double parm[PUSH_ENERGY_PARM_NUM]) {
+  unsigned int pi;
+
+  if (ensp && energy && parm) {
+    ensp->energy = energy;
+    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+      ensp->parm[pi] = parm[pi];
+    }
+  }
+  return;
 }
 
 pushEnergySpec *

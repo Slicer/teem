@@ -137,12 +137,7 @@ _pushGageSetup(pushContext *pctx) {
   if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, tenGageTensor);
   if (tenGageUnknown != pctx->gravItem) {
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravItem);
-  }
-  if (tenGageUnknown != pctx->gravNotItem[0]) {
-    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravNotItem[0]);
-  }
-  if (tenGageUnknown != pctx->gravNotItem[1]) {
-    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravNotItem[1]);
+    if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravGradItem);
   }
   /* set up tensor inverse probing */
   if (!E) E |= !(pctx->ipvl = gagePerVolumeNew(pctx->gctx,
@@ -174,46 +169,6 @@ _pushGageSetup(pushContext *pctx) {
   return 0;
 }
 
-/*
-** _pushFiberSetup sets:
-**** pctx->fctx
-*/
-int
-_pushFiberSetup(pushContext *pctx) {
-  char me[]="_pushFiberSetup", err[BIFF_STRLEN];
-  int E;
-
-  pctx->fctx = tenFiberContextNew(pctx->nten);
-  if (!pctx->fctx) { 
-    sprintf(err, "%s: couldn't create fiber context", me);
-    biffMove(PUSH, err, TEN); return 1;
-  }
-  E = AIR_FALSE;
-  if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopNumSteps,
-                               pctx->tltStepNum);
-  if (!E) E |= tenFiberStopSet(pctx->fctx, tenFiberStopAniso,
-                               tenAniso_Cl1,
-                               pctx->tltThresh - pctx->tltSoft);
-  if (!E) E |= tenFiberTypeSet(pctx->fctx, tenFiberTypeEvec1);
-  if (!E) E |= tenFiberKernelSet(pctx->fctx,
-                                 pctx->ksp00->kernel, pctx->ksp00->parm);
-  /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgRK4); */
-  if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgMidpoint);
-  /* if (!E) E |= tenFiberIntgSet(pctx->fctx, tenFiberIntgEuler); */
-  if (!E) E |= tenFiberParmSet(pctx->fctx, tenFiberParmStepSize,
-                               pctx->tltStep/pctx->tltStepNum);
-  if (!E) E |= tenFiberAnisoSpeedSet(pctx->fctx, tenAniso_Cl1,
-                                     1 /* lerp */ ,
-                                     pctx->tltThresh /* thresh */,
-                                     pctx->tltSoft);
-  if (!E) E |= tenFiberUpdate(pctx->fctx);
-  if (E) {
-    sprintf(err, "%s: trouble setting up fiber context", me);
-    biffMove(PUSH, err, TEN); return 1;
-  }
-  return 0;
-}
-
 pushTask *
 _pushTaskNew(pushContext *pctx, int threadIdx) {
   pushTask *task;
@@ -222,7 +177,6 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
   if (task) {
     task->pctx = pctx;
     task->gctx = gageContextCopy(pctx->gctx);
-    task->fctx = tenFiberContextCopy(pctx->fctx);
     /* 
     ** HEY: its a limitation in gage that we have to know a priori
     ** the ordering of per-volumes in the context ...
@@ -233,30 +187,27 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
                                      tenGageTensor);
     task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2],
                                      gageSclGradVec);
-    task->gravAns = (tenGageUnknown != task->pctx->gravItem
-                     ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                         task->pctx->gravItem)
-                     : NULL);
-    task->gravNotAns[0] = (tenGageUnknown != task->pctx->gravNotItem[0]
-                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                               task->pctx->gravNotItem[0])
-                           : NULL);
-    task->gravNotAns[1] = (tenGageUnknown != task->pctx->gravNotItem[1]
-                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                               task->pctx->gravNotItem[1])
-                           : NULL);
-    task->seedThreshAns = (tenGageUnknown != task->pctx->seedThreshItem
-                           ? gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                               task->pctx->seedThreshItem)
-                           : NULL);
+    if (tenGageUnknown != task->pctx->gravItem) {
+      task->gravAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                        task->pctx->gravItem);
+      task->gravGradAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                            task->pctx->gravGradItem);
+    } else {
+      task->gravAns = NULL;
+      task->gravGradAns = NULL;
+    }
+    if (tenGageUnknown != task->pctx->seedThreshItem) {
+      task->seedThreshAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
+                                              task->pctx->seedThreshItem);
+    } else {
+      task->seedThreshAns = NULL;
+    }
     if (threadIdx) {
       task->thread = airThreadNew();
     }
     task->threadIdx = threadIdx;
-    task->thingNum = 0;
-    task->sumVel = 0;
-    task->vertBuff = (double*)calloc(3*(1 + 2*pctx->tltStepNum),
-                                     sizeof(double));
+    task->pointNum = 0;
+    task->energySum = 0;
     task->returnPtr = NULL;
   }
   return task;
@@ -267,11 +218,9 @@ _pushTaskNix(pushTask *task) {
 
   if (task) {
     task->gctx = gageContextNix(task->gctx);
-    task->fctx = tenFiberContextNix(task->fctx);
     if (task->threadIdx) {
       task->thread = airThreadNix(task->thread);
     }
-    task->vertBuff = (double *)airFree(task->vertBuff);
     airFree(task);
   }
   return NULL;
@@ -293,6 +242,9 @@ _pushTaskSetup(pushContext *pctx) {
     biffAdd(PUSH, err); return 1;
   }
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
+    if (pctx->verbose) {
+      fprintf(stderr, "%s: creating task %u/%u\n", me, tidx, pctx->threadNum);
+    }
     pctx->task[tidx] = _pushTaskNew(pctx, tidx);
     if (!(pctx->task[tidx])) {
       sprintf(err, "%s: couldn't allocate task %d", me, tidx);
@@ -382,62 +334,8 @@ _pushBinSetup(pushContext *pctx) {
 }
 
 /*
-** THIS IS A COMPLETE HACK!!!
-*/
-int
-pushTaskFiberReSetup(pushContext *pctx,
-                     double tltThresh, double tltSoft, double tltStep,
-                     unsigned int tltStepNum) {
-  char me[]="pushTaskFiberReSetup", err[BIFF_STRLEN];
-  tenFiberContext *fctx;
-  unsigned int taskIdx;
-  int E = 0;
-
-  fprintf(stderr, "!%s: %d\n", me, __LINE__);
-  if (!pctx->task) {
-    fprintf(stderr, "!%s: %d bailing\n", me, __LINE__);
-    return 0;
-  }
-  pctx->tltStepNum = tltStepNum;
-  pctx->tltThresh = tltThresh;
-  pctx->tltSoft = tltSoft;
-  pctx->tltStep = tltStep;
-
-  fprintf(stderr, "!%s: %d\n", me, __LINE__);
-  for (taskIdx=0; pctx->threadNum; taskIdx++) {
-    fctx = pctx->task[taskIdx]->fctx;
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (!E) E |= tenFiberStopSet(fctx, tenFiberStopNumSteps,
-                                 pctx->tltStepNum);
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (!E) E |= tenFiberStopSet(fctx, tenFiberStopAniso,
-                                 tenAniso_Cl1,
-                                 pctx->tltThresh - pctx->tltSoft);
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (!E) E |= tenFiberParmSet(fctx, tenFiberParmStepSize,
-                                 pctx->tltStep/pctx->tltStepNum);
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (!E) E |= tenFiberAnisoSpeedSet(fctx, tenAniso_Cl1,
-                                       1 /* lerp */ ,
-                                       pctx->tltThresh /* thresh */,
-                                       pctx->tltSoft);
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (!E) E |= tenFiberUpdate(fctx);
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-    if (E) {
-      sprintf(err, "%s: trouble resetting task %u fiber context", me, taskIdx);
-      biffMove(PUSH, err, TEN); return 1;
-    }
-    fprintf(stderr, "!%s: %d %p\n", me, __LINE__, fctx);
-  }
-  fprintf(stderr, "!%s: %d\n", me, __LINE__);
-  return 1;
-}
-
-
-/*
-** _pushThingSetup sets:
-**** pctx->thingNum (in case pctx->nstn and/or pctx->npos)
+** _pushPointSetup sets:
+**** pctx->pointNum (in case pctx->npos)
 **
 ** This is only called by the master thread
 ** 
@@ -445,62 +343,46 @@ pushTaskFiberReSetup(pushContext *pctx,
 ** just before the rebinning
 */
 int
-_pushThingSetup(pushContext *pctx) {
-  char me[]="_pushThingSetup", err[BIFF_STRLEN];
+_pushPointSetup(pushContext *pctx) {
+  char me[]="_pushPointSetup", err[BIFF_STRLEN];
   double (*lup)(const void *v, size_t I), maxDet;
-  unsigned int *stn, pointIdx, baseIdx, thingIdx;
-  pushThing *thing;
+  unsigned int pointIdx;
+  pushPoint *point;
+  /*  
+  double posIdxHack[2][4] = {
+    {49.99999, 50, 0, 1},
+    {50, 50, 0, 1}};
+  */
 
-  pctx->thingNum = (pctx->nstn
-                    ? pctx->nstn->axis[1].size
-                    : (pctx->npos
-                       ? pctx->npos->axis[1].size
-                       : pctx->thingNum));
+  pctx->pointNum = (pctx->npos
+                    ? pctx->npos->axis[1].size
+                    : pctx->pointNum);
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
-  stn = pctx->nstn ? (unsigned int*)pctx->nstn->data : NULL;
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
   /* HEY: we end up keeping a local copy of maxDet because convolution
      can produce a tensor with higher determinant than that of any
      original sample.  However, if this is going into effect,
      detReject should probably *not* be enabled... */
   maxDet = pctx->maxDet;
-  for (thingIdx=0; thingIdx<pctx->thingNum; thingIdx++) {
+  for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
     double detProbe;
     /*
-    fprintf(stderr, "!%s: thingIdx = %u/%u\n", me, thingIdx, pctx->thingNum);
+    fprintf(stderr, "!%s: pointIdx = %u/%u\n", me, pointIdx, pctx->pointNum);
     */
-    if (pctx->nstn) {
-      baseIdx = stn[0 + 3*thingIdx];
-      thing = pushThingNew(stn[1 + 3*thingIdx]);
-      for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
-        ELL_3V_SET(thing->vert[pointIdx].pos,
-                   lup(pctx->npos->data, 0 + 3*(pointIdx + baseIdx)),
-                   lup(pctx->npos->data, 1 + 3*(pointIdx + baseIdx)),
-                   lup(pctx->npos->data, 2 + 3*(pointIdx + baseIdx)));
-        _pushProbe(pctx->task[0], thing->vert + pointIdx);
-      }
-      thing->seedIdx = stn[2 + 3*thingIdx];
-      if (1 < thing->vertNum) {
-        /* info about seedpoint has to be set separately */
-        ELL_3V_SET(thing->point.pos,
-                   lup(pctx->npos->data, 0 + 3*(thing->seedIdx + baseIdx)),
-                   lup(pctx->npos->data, 1 + 3*(thing->seedIdx + baseIdx)),
-                   lup(pctx->npos->data, 2 + 3*(thing->seedIdx + baseIdx)));
-        _pushProbe(pctx->task[0], &(thing->point));
-      }
-      /*
-      fprintf(stderr, "!%s: thingNum(%d) = %d\n", "_pushThingSetup",
-              thingIdx, thing->vertNum);
-      */
-    } else if (pctx->npos) {
-      thing = pushThingNew(1);
-      ELL_3V_SET(thing->vert[0].pos,
-                 lup(pctx->npos->data, 0 + 3*thingIdx),
-                 lup(pctx->npos->data, 1 + 3*thingIdx),
-                 lup(pctx->npos->data, 2 + 3*thingIdx));
-      _pushProbe(pctx->task[0], thing->vert + 0);
+    point = pushPointNew(pctx);
+    if (pctx->npos) {
+      ELL_3V_SET(point->pos,
+                 lup(pctx->npos->data, 0 + 3*pointIdx),
+                 lup(pctx->npos->data, 1 + 3*pointIdx),
+                 lup(pctx->npos->data, 2 + 3*pointIdx));
+      _pushProbe(pctx->task[0], point);
     } else {
-      thing = pushThingNew(1);
+      /*
+      double posWorld[4];
+      ELL_4MV_MUL(posWorld, pctx->gctx->shape->ItoW, posIdxHack[pointIdx]);
+      ELL_34V_HOMOG(point->pos, posWorld);
+      _pushProbe(pctx->task[0], point);
+      */
       do {
         double posIdx[4], posWorld[4];
         posIdx[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
@@ -514,17 +396,16 @@ _pushThingSetup(pushContext *pctx) {
           posIdx[pctx->sliceAxis] = 0.0;
         }
         ELL_4MV_MUL(posWorld, pctx->gctx->shape->ItoW, posIdx);
-        ELL_34V_HOMOG(thing->vert[0].pos, posWorld);
+        ELL_34V_HOMOG(point->pos, posWorld);
         /*
         fprintf(stderr, "%s: posIdx = %g %g %g --> posWorld = %g %g %g "
                 "--> %g %g %g\n", me,
                 posIdx[0], posIdx[1], posIdx[2],
                 posWorld[0], posWorld[1], posWorld[2],
-                thing->vert[0].pos[0], thing->vert[0].pos[1],
-                thing->vert[0].pos[2]);
+                point->pos[0], point->pos[1], point->pos[2]);
         */
-        _pushProbe(pctx->task[0], thing->vert + 0);
-        detProbe = TEN_T_DET(thing->vert[0].ten);
+        _pushProbe(pctx->task[0], point);
+        detProbe = TEN_T_DET(point->ten);
         maxDet = AIR_MAX(maxDet, detProbe);
         /* assuming that we're not using some very blurring kernel,
            this will eventually succeed, because we previously checked
@@ -532,58 +413,24 @@ _pushThingSetup(pushContext *pctx) {
         /* HEY: can't ensure that this will eventually succeed with
            seedThresh enabled! */
         /*
-        fprintf(stderr, "!%s: ten[0] = %g\n", me, thing->vert[0].ten[0]);
+        fprintf(stderr, "!%s: ten[0] = %g\n", me, point->ten[0]);
         */
-        /* we OR together all the things that would
+        /* we OR together all the tests that would
            make us REJECT this last sample */
-      } while (thing->vert[0].ten[0] < 0.5
+      } while (point->ten[0] < 0.5
                || (tenGageUnknown != pctx->seedThreshItem
-                   && ((pctx->seedThresh - thing->vert[0].seedThresh)
+                   && ((pctx->seedThresh - point->seedThresh)
                        *pctx->seedThreshSign > 0)
                    )
                || (pctx->detReject && (airDrandMT() < detProbe/maxDet))
                );
     }
-    for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
-      if (pushBinPointAdd(pctx, thing->vert + pointIdx)) {
-        sprintf(err, "%s: trouble binning vert %d of thing %d", me,
-                pointIdx, thingIdx);
-        biffAdd(PUSH, err); return 1;
-      }
-      ELL_3V_SET(thing->vert[pointIdx].vel, 0, 0, 0);
-    }
-    if (pushBinThingAdd(pctx, thing)) {
-      sprintf(err, "%s: trouble thing %d", me, thingIdx);
+    if (pushBinPointAdd(pctx, point)) {
+      sprintf(err, "%s: trouble binning point %u", me, point->ttaagg);
       biffAdd(PUSH, err); return 1;
     }
   }
   fprintf(stderr, "!%s: ... seeding DONE\n", me);
-  /*
-  {
-    Nrrd *nten, *npos, *nstn;
-    char me[]="dammit", err[BIFF_STRLEN], poutS[AIR_STRLEN_MED],
-      toutS[AIR_STRLEN_MED], soutS[AIR_STRLEN_MED];
-      nten = nrrdNew();
-      npos = nrrdNew();
-      nstn = nrrdNew();
-      sprintf(poutS, "snap-pre.%06d.pos.nrrd", -1);
-      sprintf(toutS, "snap-pre.%06d.ten.nrrd", -1);
-      sprintf(soutS, "snap-pre.%06d.stn.nrrd", -1);
-      if (pushOutputGet(npos, nten, nstn, pctx)) {
-        sprintf(err, "%s: couldn't get snapshot for iter %d", me, -1);
-        biffAdd(PUSH, err); return 1;
-      }
-      if (nrrdSave(poutS, npos, NULL)
-          || nrrdSave(toutS, nten, NULL)
-          || nrrdSave(soutS, nstn, NULL)) {
-        sprintf(err, "%s: couldn't save snapshot for iter %d", me, -1);
-        biffMove(PUSH, err, NRRD); return 1;
-      }
-      nten = nrrdNuke(nten);
-      npos = nrrdNuke(npos);
-      nstn = nrrdNuke(nstn);
-  }
-  */
   return 0;
 }
 

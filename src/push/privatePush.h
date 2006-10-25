@@ -29,8 +29,6 @@ extern int _pushVerbose;
 
 /* binning.c */
 extern pushBin *_pushBinLocate(pushContext *pctx, double *pos);
-extern int _pushBinPointNullify(pushContext *pctx,
-                                pushBin *oldBin, pushPoint *point);
 extern void _pushBinPointAdd(pushContext *pctx,
                              pushBin *bin, pushPoint *point);
 
@@ -39,20 +37,12 @@ extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);
 extern pushTask *_pushTaskNix(pushTask *task);
 extern int _pushTensorFieldSetup(pushContext *pctx);
 extern int _pushGageSetup(pushContext *pctx);
-extern int _pushFiberSetup(pushContext *pctx);
 extern int _pushTaskSetup(pushContext *pctx);
 extern int _pushBinSetup(pushContext *pctx);
-extern int _pushThingSetup(pushContext *pctx);
+extern int _pushPointSetup(pushContext *pctx);
 
 /* action.c */
-extern double _pushThingPointCharge(pushContext *pctx, pushThing *thg);
-extern int _pushForceSample(pushContext *pctx,
-                            unsigned int sx, unsigned int sy);
-extern int _pushProbe(pushTask *task, pushPoint *point);
-extern int _pushInputProcess(pushContext *pctx);
-extern void _pushInitialize(pushContext *pctx);
-extern int _pushForce(pushTask *task, int bin, const double *parm);
-extern int _pushUpdate(pushTask *task, int bin, const double *parm);
+extern void _pushProbe(pushTask *task, pushPoint *point);
 
 #ifdef __cplusplus
 }

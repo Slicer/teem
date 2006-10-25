@@ -24,94 +24,55 @@
 #include "privatePush.h"
 
 unsigned int
-_pushThingTotal(pushContext *pctx) {
-  unsigned int binIdx, thingNum;
-
-  thingNum = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-    thingNum += pctx->bin[binIdx].thingNum;
-  }
-  return thingNum;
-}
-
-unsigned int
 _pushPointTotal(pushContext *pctx) {
-  unsigned int binIdx, thingIdx, pointNum;
+  unsigned int binIdx, pointNum;
   pushBin *bin;
 
   pointNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (thingIdx=0; thingIdx<bin->thingNum; thingIdx++) {
-      pointNum += bin->thing[thingIdx]->vertNum;
-    }
+    pointNum += bin->pointNum;
   }
   return pointNum;
 }
 
-int
+void
 _pushProbe(pushTask *task, pushPoint *point) {
   /* char me[]="_pushProbe"; */
-  double eval[3], sum, posWorld[4], posIdx[4];
-  int inside, ret;
+  double posWorld[4], posIdx[4];
 
   ELL_3V_COPY(posWorld, point->pos); posWorld[3] = 1.0;
   ELL_4MV_MUL(posIdx, task->gctx->shape->WtoI, posWorld);
   ELL_4V_HOMOG(posIdx, posIdx);
-  inside = (AIR_IN_OP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5) &&
-            AIR_IN_OP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5) &&
-            AIR_IN_OP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5));
-  if (!inside) {
-    posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5);
-    posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
-    posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
-  }
-  ret = gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+  posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5);
+  posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
+  posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
+  gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
 
   TEN_T_COPY(point->ten, task->tenAns);
   TEN_T_COPY(point->inv, task->invAns);
-  if (task->pctx->tltUse) {
-    tenEigensolve_d(eval, NULL, point->ten);
-    /* sadly, the fact that tenAnisoCalc_f exists only for floats is part
-       of the motivation for hard-wiring the aniso measure to Cl1 */
-    /* HEY: with _tenAnisoEval_f[](), that's no longer true!!! */
-    sum = eval[0] + eval[1] + eval[2];
-    point->aniso = (eval[0] - eval[1])/(sum + FLT_EPSILON);
-  } else {
-    point->aniso = 0.0;
-  }
   ELL_3V_COPY(point->cnt, task->cntAns);
   if (tenGageUnknown != task->pctx->gravItem) {
-    ELL_3V_COPY(point->grav, task->gravAns);
+    point->grav = task->gravAns[0];
+    ELL_3V_COPY(point->gravGrad, task->gravGradAns);
   }
-  /*
-  if (tenGageUnknown != task->pctx->gravNotItem[0]) {
-    ELL_3V_COPY(point->gravNot[0], task->gravNotAns[0]);
-  }
-  if (tenGageUnknown != task->pctx->gravNotItem[1]) {
-    ELL_3V_COPY(point->gravNot[1], task->gravNotAns[1]);
-  }
-  */
   if (tenGageUnknown != task->pctx->seedThreshItem) {
     point->seedThresh = task->seedThreshAns[0];
   }
-  return inside;
+  return;
 }
 
 int
-pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
+pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
               pushContext *pctx) {
   char me[]="pushOutputGet", err[BIFF_STRLEN];
-  unsigned int binIdx, pointRun, pointNum, thingRun, thingNum,
-    pointIdx, thingIdx, *stnOut;
+  unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
   float *posOut, *tenOut;
   pushBin *bin;
-  pushThing *thing;
   pushPoint *point;
 
   pointNum = _pushPointTotal(pctx);
-  thingNum = _pushThingTotal(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2,
@@ -123,53 +84,219 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStnOut,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
-  if (nStnOut) {
-    E |= nrrdMaybeAlloc_va(nStnOut, nrrdTypeUInt, 2,
-                           AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, thingNum));
-  }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PUSH, err, NRRD); return 1;
   }
   posOut = nPosOut ? (float*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (float*)(nTenOut->data) : NULL;
-  stnOut = nStnOut ? (unsigned int*)(nStnOut->data) : NULL;
 
-  thingRun = 0;
   pointRun = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (thingIdx=0; thingIdx<bin->thingNum; thingIdx++) {
-      thing = bin->thing[thingIdx];
-      if (stnOut) {
-        ELL_3V_SET(stnOut + 3*thingRun,
-                   pointRun, thing->vertNum, thing->seedIdx);
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      if (posOut) {
+        ELL_3V_SET(posOut + 3*pointRun,
+                   point->pos[0], point->pos[1], point->pos[2]);
       }
-      for (pointIdx=0; pointIdx<thing->vertNum; pointIdx++) {
-        point = thing->vert + pointIdx;
-        if (posOut) {
-          ELL_3V_SET(posOut + 3*pointRun,
-                     point->pos[0], point->pos[1], point->pos[2]);
-        }
-        if (tenOut) {
-          TEN_T_COPY(tenOut + 7*pointRun, point->ten);
-        }
-        pointRun++;
+      if (tenOut) {
+        TEN_T_COPY(tenOut + 7*pointRun, point->ten);
       }
-      thingRun++;
+      pointRun++;
     }
   }
 
   return 0;
 }
 
+double
+_pushPairwiseEnergy(pushTask *task,
+                    double frc[3],
+                    pushEnergySpec *ensp,
+                    pushPoint *myPoint, pushPoint *herPoint,
+                    double YY[3], double iscl) {
+  /* char me[]="_pushPairwiseEnergy", err[BIFF_STRLEN]; */
+  double inv[7], XX[3], nXX[3], rr, mag, WW[3], enr;
+
+  if (task->pctx->midPntSmp) {
+    pushPoint _tmpPoint;
+    double det;
+    ELL_3V_SCALE_ADD2(_tmpPoint.pos,
+                      0.5, myPoint->pos,
+                      0.5, herPoint->pos);
+    _pushProbe(task, &_tmpPoint);
+    TEN_T_INV(inv, _tmpPoint.ten, det);
+  } else {
+    TEN_T_SCALE_ADD2(inv,
+                     0.5, myPoint->inv,
+                     0.5, herPoint->inv);
+  }
+  TEN_TV_MUL(XX, inv, YY);
+  ELL_3V_NORM(nXX, XX, rr);
+
+  ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
+  if (mag) {
+    mag *= iscl;
+    TEN_TV_MUL(WW, inv, nXX);
+    ELL_3V_SCALE(frc, mag, WW);
+  } else {
+    ELL_3V_SET(frc, 0, 0, 0);
+  }
+
+  return enr;
+}
+
 int
 pushBinProcess(pushTask *task, unsigned int myBinIdx) {
   char me[]="pushBinProcess";
+  pushBin *myBin, *herBin, **neighbor;
+  unsigned int myPointIdx, herPointIdx;
+  pushPoint *myPoint, *herPoint;
+  double enr, frc[3], delta[3], deltaLen, deltaNorm[3], warp[3], limit,
+    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd;
 
-  fprintf(stderr, "!%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
+  if (task->pctx->verbose > 2) {
+    fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
+  }
+  maxDiffLenSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
+  iscl = 1.0/(2*task->pctx->scale);
+  myBin = task->pctx->bin + myBinIdx;
+  for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
+    myPoint = myBin->point[myPointIdx];
+    myPoint->enr = 0;
+    ELL_3V_SET(myPoint->frc, 0, 0, 0);
+
+    if (!task->pctx->iterNeighbor
+        || 0 == task->pctx->iter % task->pctx->iterNeighbor) {
+      neighbor = myBin->neighbor;
+      if (task->pctx->iterNeighbor) {
+        airArrayLenSet(myPoint->neighArr, 0);
+      }
+      while ((herBin = *neighbor)) {
+        for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
+          herPoint = herBin->point[herPointIdx];
+          if (myPoint == herPoint) {
+            /* can't interact with myself */
+            continue;
+          }
+          ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+          diffLenSqrd = ELL_3V_DOT(diff, diff);
+          if (diffLenSqrd > maxDiffLenSqrd) {
+            /* too far away to interact */
+            continue;
+          }
+          enr = _pushPairwiseEnergy(task, frc, task->pctx->ensp,
+                                    myPoint, herPoint, diff, iscl);
+          myPoint->enr += enr/2;
+          if (ELL_3V_DOT(frc, frc)) {
+            ELL_3V_INCR(myPoint->frc, frc);
+            if (task->pctx->iterNeighbor) {
+              unsigned int idx;
+              idx = airArrayLenIncr(myPoint->neighArr, 1);
+              myPoint->neigh[idx] = herPoint;
+            }
+          }
+        }
+        neighbor++;
+      }
+    } else {
+      /* we are doing neighborhood list optimization, and this is an
+         iteration where we use the list.  So the body of this loop
+         has to be the same as the meat of the above loop */
+      unsigned int neighIdx;
+      for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
+        herPoint = myPoint->neigh[neighIdx];
+        ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+        enr = _pushPairwiseEnergy(task, frc, task->pctx->ensp,
+                                  myPoint, herPoint, diff, iscl);
+        myPoint->enr += enr/2;
+        ELL_3V_INCR(myPoint->frc, frc);
+      }
+    }
+
+    /* each point sees containment forces */
+    ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
+    ELL_3V_INCR(myPoint->frc, frc);
+    myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
+
+    /* each point also maybe experiences gravity */
+    if (tenGageUnknown != task->pctx->gravItem) {
+      ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
+      myPoint->enr += 
+        task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
+      ELL_3V_INCR(myPoint->frc, frc);
+    }
+  
+    /* each point in this thing also maybe experiences wall forces */
+    if (task->pctx->wall) {
+      /* there's an effort here to get the forces and energies, which
+         are actually computed in index space, to be correctly scaled
+         into world space, but no promises that its right ... */
+      double enrIdx[4], enrWorld[4];
+      unsigned int ci;
+      double posWorld[4], posIdx[4], len, frcIdx[4], frcWorld[4];
+      ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
+      ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
+      ELL_4V_HOMOG(posIdx, posIdx);
+      for (ci=0; ci<3; ci++) {
+        if (1 == task->pctx->gctx->shape->size[ci]) {
+          frcIdx[ci] = 0;          
+        } else {
+          len = posIdx[ci] - -0.5;
+          if (len < 0) {
+            len *= -1;
+            frcIdx[ci] = task->pctx->wall*len;
+            enrIdx[ci] = task->pctx->wall*len*len/2;
+          } else {
+            len = posIdx[ci] - (task->pctx->gctx->shape->size[ci] - 0.5);
+            if (len > 0) {
+              frcIdx[ci] = -task->pctx->wall*len;
+              enrIdx[ci] = task->pctx->wall*len*len/2;
+            } else {
+              frcIdx[ci] = 0;
+              enrIdx[ci] = 0;
+            }
+          }
+        }
+      }
+      frcIdx[3] = 0.0;
+      enrIdx[3] = 0.0;
+      ELL_4MV_MUL(frcWorld, task->pctx->gctx->shape->ItoW, frcIdx);
+      ELL_4MV_MUL(enrWorld, task->pctx->gctx->shape->ItoW, enrIdx);
+      ELL_3V_INCR(myPoint->frc, frcWorld);
+      myPoint->enr += ELL_3V_LEN(enrWorld);
+    }
+
+    task->energySum += myPoint->enr;
+
+    /* -------------------------------------------- */
+    /* force calculation done, now update positions */
+    /* -------------------------------------------- */
+
+    ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
+    ELL_3V_NORM(deltaNorm, delta, deltaLen);
+    if (deltaLen) {
+      TEN_TV_MUL(warp, myPoint->inv, delta);
+      /* limit is some fraction glyph radius along direction of delta */
+      limit = 0.3*task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp));
+      deltaLen = limit*deltaLen/(limit + deltaLen);
+      ELL_3V_SCALE_INCR(myPoint->pos, deltaLen, deltaNorm);
+    }
+    if (2 == task->pctx->dimIn) {
+      double posIdx[4], posWorld[4];
+      ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
+      ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
+      ELL_4V_HOMOG(posIdx, posIdx);
+      posIdx[task->pctx->sliceAxis] = 0.0;
+      ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
+      ELL_34V_HOMOG(myPoint->pos, posWorld);
+    }
+    if (!task->pctx->iterProbe
+        || 0 == task->pctx->iter % task->pctx->iterProbe) {
+      _pushProbe(task, myPoint);
+    }
+  }
+  
   return 0;
 }
-
-

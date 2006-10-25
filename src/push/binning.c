@@ -23,6 +23,10 @@
 #include "push.h"
 #include "privatePush.h"
 
+/*
+** because the pushContext keeps an array of bins (not pointers to them)
+** we have Init and Done functions (not New and Nix)
+*/
 void
 pushBinInit(pushBin *bin, unsigned int incr) {
 
@@ -30,41 +34,41 @@ pushBinInit(pushBin *bin, unsigned int incr) {
   bin->point = NULL;
   bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
                               sizeof(pushPoint *), incr);
-  bin->thingNum = 0;
-  bin->thing = NULL;
-  bin->thingArr = airArrayNew((void**)&(bin->thing), &(bin->thingNum),
-                              sizeof(pushThing *), incr);
-  /* airArray callbacks are tempting but super confusing .... */
   bin->neighbor = NULL;
   return;
 }
 
 /*
-** bins own the "thing" they contain, when you nix a bin, you nix the
-** the things inside, but not the points (they belong to things)
+** bins own the points they contain- so this frees them
 */
 void
 pushBinDone(pushBin *bin) {
   unsigned int idx;
 
-  bin->pointArr = airArrayNuke(bin->pointArr);
-  for (idx=0; idx<bin->thingNum; idx++) {
-    bin->thing[idx] = pushThingNix(bin->thing[idx]);
+  for (idx=0; idx<bin->pointNum; idx++) {
+    bin->point[idx] = pushPointNix(bin->point[idx]);
   }
-  bin->thingArr = airArrayNuke(bin->thingArr);
+  bin->pointArr = airArrayNuke(bin->pointArr);
   bin->neighbor = (pushBin **)airFree(bin->neighbor);
   return;
 }
 
 
 /* 
-** bins on boundary now extend to infinity; so this never returns NULL
+** bins on boundary now extend to infinity; so the only time this 
+** returns NULL (indicating error) is for non-existant positions
 */
 pushBin *
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
-  /* char me[]="_pushBinLocate"; */
+  char me[]="_pushBinLocate", err[BIFF_STRLEN];
   double posWorld[4], posIdx[4];
   unsigned int axi, eidx[3], binIdx;
+
+  if (!ELL_3V_EXISTS(_posWorld)) {
+    sprintf(err, "%s: non-existant position (%g,%g,%g)", me,
+            _posWorld[0], _posWorld[1], _posWorld[2]);
+    biffAdd(PUSH, err); return NULL;
+  }
 
   if (pctx->binSingle) {
     binIdx = 0;
@@ -92,19 +96,8 @@ _pushBinLocate(pushContext *pctx, double *_posWorld) {
 }
 
 /*
-** HEY: doesn't check to make sure thing isn't already in bin
+** this makes the bin the owner of the point
 */
-void
-_pushBinThingAdd(pushContext *pctx, pushBin *bin, pushThing *thing) {
-  int thgI;
-
-  AIR_UNUSED(pctx);
-  thgI = airArrayLenIncr(bin->thingArr, 1);
-  bin->thing[thgI] = thing;
-
-  return;
-}
-
 void
 _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point) {
   int pntI;
@@ -117,19 +110,8 @@ _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point) {
 }
 
 /*
-** remove the pointer to the thing from the bin, don't kill the thing
-** because we don't know here if this is part of a killing, or a rebinning
+** the bin loses track of the point, caller responsible for ownership
 */
-void
-_pushBinThingRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
-
-  AIR_UNUSED(pctx);
-  bin->thing[loseIdx] = bin->thing[bin->thingNum-1];
-  airArrayLenIncr(bin->thingArr, -1);
-  
-  return;
-}
-
 void
 _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
@@ -138,33 +120,6 @@ _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
   airArrayLenIncr(bin->pointArr, -1);
   
   return;
-}
-
-int
-_pushBinPointNullify(pushContext *pctx, pushBin *oldBin, pushPoint *point) {
-  char me[]="_pushBinPointNullify", err[BIFF_STRLEN];
-  pushBin *bin;
-  unsigned int pointIdx;
-
-  if (!( bin = oldBin ? oldBin : _pushBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: NULL bin for point %p (%g,%g,%g)", me,
-            AIR_CAST(void*, point),
-            point->pos[0], point->pos[1], point->pos[2]);
-    biffAdd(PUSH, err); return 1;
-  }
-  for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-    if (point == bin->point[pointIdx]) {
-      break;
-    }
-  }
-  if (pointIdx == bin->pointNum) {
-    sprintf(err, "%s: point %p (%g,%g,%g) wasn't in its bin", me,
-            AIR_CAST(void*, point),
-            point->pos[0], point->pos[1], point->pos[2]);
-    biffAdd(PUSH, err); return 1;
-  }
-  bin->point[pointIdx] = NULL;
-  return 0;
 }
 
 void
@@ -224,26 +179,13 @@ pushBinAllNeighborSet(pushContext *pctx) {
 }
 
 int
-pushBinThingAdd(pushContext *pctx, pushThing *thing) {
-  char me[]="pushBinThingAdd", err[BIFF_STRLEN];
-  pushBin *bin;
-  
-  if (!( bin = _pushBinLocate(pctx, thing->point.pos) )) {
-    sprintf(err, "%s: can't locate point of thing %p",
-            me, AIR_CAST(void*, thing));
-    biffAdd(PUSH, err); return 1;
-  }
-  _pushBinThingAdd(pctx, bin, thing);
-  return 0;
-}
-
-int
 pushBinPointAdd(pushContext *pctx, pushPoint *point) {
   char me[]="pushBinPointAdd", err[BIFF_STRLEN];
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: can't locate point %p", me, AIR_CAST(void*, point));
+    sprintf(err, "%s: can't locate point %p %u",
+            me, AIR_CAST(void*, point), point->ttaagg);
     biffAdd(PUSH, err); return 1;
   }
   _pushBinPointAdd(pctx, bin, point);
@@ -256,66 +198,34 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 */
 int
 pushRebin(pushContext *pctx) {
-  char me[]="pushRebin";
-  unsigned int oldBinIdx, thingIdx, pointIdx;
+  char me[]="pushRebin", err[BIFF_STRLEN];
+  unsigned int oldBinIdx, pointIdx;
   pushBin *oldBin, *newBin;
-  pushThing *thing;
   pushPoint *point;
 
-  /* even if there is a single bin, we have to toss out-of-bounds
-     things, and prune nullified points */
-  for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
-    oldBin = pctx->bin + oldBinIdx;
-
-    /* quietly clear out pointers to points that got nullified,
-       or that went out of bounds (not an error here) */
-    for (pointIdx=0; pointIdx<oldBin->pointNum; /* nope! */) {
-      point = oldBin->point[pointIdx];
-      if (!point) {
-        /* this point got nullified */
-        _pushBinPointRemove(pctx, oldBin, pointIdx);
-      } else {
-        if (!( newBin = _pushBinLocate(pctx, point->pos) )) {
-          /* this point is out of bounds */
-          _pushBinPointRemove(pctx, oldBin, pointIdx);
-        } else {
-          if (oldBin != newBin) {
-            _pushBinPointRemove(pctx, oldBin, pointIdx);
-            _pushBinPointAdd(pctx, newBin, point);
-          } else {
-            /* its in the right bin, move on */
-            pointIdx++;
-          }
+  if (!pctx->binSingle) {
+    for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
+      oldBin = pctx->bin + oldBinIdx;
+      
+      for (pointIdx=0; pointIdx<oldBin->pointNum; /* nope! */) {
+        point = oldBin->point[pointIdx];
+        newBin = _pushBinLocate(pctx, point->pos);
+        if (!newBin) {
+          sprintf(err, "%s: can't locate point %p %u",
+                  me, AIR_CAST(void*, point), point->ttaagg);
+          biffAdd(PUSH, err); return 1;
         }
-      }
-    } /* for pointIdx */
-    
-    for (thingIdx=0; thingIdx<oldBin->thingNum; /* nope! */) {
-      thing = oldBin->thing[thingIdx];
-      if (!( newBin = _pushBinLocate(pctx, thing->point.pos) )) {
-        /* bad thing! I kill you now */
-        fprintf(stderr, "%s: killing thing at (%g,%g,%g)\n", me,
-                thing->point.pos[0],
-                thing->point.pos[1],
-                thing->point.pos[2]);
-        /* any real out-of-bounds points in the bins have already
-           been removed, so we don't need to nullify here */
-        _pushBinThingRemove(pctx, oldBin, thingIdx);
-        pushThingNix(thing);
-      } else {
         if (oldBin != newBin) {
-          _pushBinThingRemove(pctx, oldBin, thingIdx);
-          _pushBinThingAdd(pctx, newBin, thing);
-          /* don't increment thingIdx; the *next* thing index
-             is now at thingIdx */
+          _pushBinPointRemove(pctx, oldBin, pointIdx);
+          _pushBinPointAdd(pctx, newBin, point);
         } else {
-          /* this thing is already in the right bin, move on */
-          thingIdx++;
+          /* its in the right bin, move on */
+          pointIdx++;
         }
-      }
-    } /* for thingIdx */
-    
-  } /* for oldBinIdx */
+      } /* for pointIdx */
+      
+    } /* for oldBinIdx */
+  }
 
   return 0;
 }
