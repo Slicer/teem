@@ -198,6 +198,7 @@ pushStart(pushContext *pctx) {
   
   /* the ordering of steps below is important: gage context
      has to be set up before its copied by task setup */
+  pctx->step = pctx->stepInitial;
   if (_pushTensorFieldSetup(pctx)
       || _pushGageSetup(pctx) 
       || _pushTaskSetup(pctx)
@@ -261,6 +262,7 @@ pushIterate(pushContext *pctx) {
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->pointNum = 0;
     pctx->task[ti]->energySum = 0;
+    pctx->task[ti]->deltaFracSum = 0;
   }
 
   if (pctx->verbose) {
@@ -290,11 +292,14 @@ pushIterate(pushContext *pctx) {
   }
 
   pctx->energySum = 0;
+  pctx->deltaFrac = 0;
   pointNum = 0;
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->energySum += pctx->task[ti]->energySum;
+    pctx->deltaFrac += pctx->task[ti]->deltaFracSum;
     pointNum += pctx->task[ti]->pointNum;
   }
+  pctx->deltaFrac /= pointNum;
   if (pushRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PUSH, err); return 1;
@@ -303,6 +308,14 @@ pushIterate(pushContext *pctx) {
   time1 = airTime();
   pctx->timeIteration = time1 - time0;
   pctx->timeRun += time1 - time0;
+  if (pctx->iterNeighbor && 0 == pctx->iter % pctx->iterNeighbor) {
+    pctx->expectTrouble = AIR_TRUE;
+  } else if (pctx->iterProbe && 0 == pctx->iter % pctx->iterProbe) {
+    pctx->expectTrouble = AIR_TRUE;
+  } else {
+    pctx->expectTrouble = AIR_FALSE;
+  }
+  
   pctx->iter += 1;
 
   return 0;
@@ -313,12 +326,19 @@ pushRun(pushContext *pctx) {
   char me[]="pushRun", err[BIFF_STRLEN],
     poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
   Nrrd *npos, *nten;
-  double time0, time1, engLast, engNew, engDelta;
+  double time0, time1, enrLast,
+    enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
   
+  if (pushIterate(pctx)) {
+    sprintf(err, "%s: trouble on starting iteration", me);
+    biffAdd(PUSH, err); return 1;
+  }
+  fprintf(stderr, "!%s: starting pctx->energySum = %g\n", me, pctx->energySum);
+
   time0 = airTime();
   pctx->iter = 0;
   do {
-    engLast = pctx->energySum;
+    enrLast = pctx->energySum;
     if (pushIterate(pctx)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PUSH, err); return 1;
@@ -340,11 +360,58 @@ pushRun(pushContext *pctx) {
       nten = nrrdNuke(nten);
       npos = nrrdNuke(npos);
     }
-    engNew = pctx->energySum;
-    engDelta = 1;
-  } while ( (engDelta > 0.00001
+    if (pctx->energySum > enrLast && pctx->expectTrouble) {
+      /* energy went up instead of down, but we expected that, so go another
+         iteration, and don't bother updating progress indicators */
+      double tmpNew, tmpImprov;
+      tmpNew = pctx->energySum;
+      tmpImprov = 2*(enrLast - tmpNew)/(enrLast + tmpNew);
+      fprintf(stderr, "!%s: %u, (bad) e=%g, de=%g, df=%g\n", me,
+              pctx->iter, tmpNew, tmpImprov, pctx->deltaFrac);
+      continue;
+    }
+    enrNew = pctx->energySum;
+    enrImprov = 2*(enrLast - enrNew)/(enrLast + enrNew);
+    fprintf(stderr, "!%s: %u, e=%g, de=%g,%g, df=%g\n",
+            me, pctx->iter, enrNew, enrImprov, enrImprovAvg, pctx->deltaFrac);
+    if (enrImprov < 0 || pctx->deltaFrac < pctx->deltaFracMin) {
+      /* either energy went up instead of down,
+         or particles were hitting their speed limit too much */
+      double tmp;
+      tmp = pctx->step;
+      if (enrImprov < 0) {
+        pctx->step *= pctx->energyStepFrac;
+        fprintf(stderr, "%s: ***** iter %u e improv = %g; step = %g --> %g\n",
+                me, pctx->iter, enrImprov, tmp, pctx->step);
+      } else {
+        pctx->step *= pctx->deltaFracStepFrac;
+        fprintf(stderr, "%s: ##### iter %u deltaf = %g; step = %g --> %g\n",
+                me, pctx->iter, pctx->deltaFrac, tmp, pctx->step);
+      }
+      /* this forces another iteration */
+      enrImprovAvg = AIR_NAN; 
+    } else {
+      /* there was some improvement; energy went down */
+      if (!AIR_EXISTS(enrImprovAvg)) {
+        /* either enrImprovAvg has initial NaN setting, or was set to NaN
+           because we had to decrease step size; either way we now
+           re-initialize it */
+        enrImprovAvg = enrImprov;
+      } else {
+        /* we had improvement this iteration and last, do weighted average
+           of the two, so that we are measuring the trend, rather than being
+           sensitive to two iterations that just happen to have the same
+           energy.  Thus, when enrImprovAvg gets near user-defined threshold,
+           we really must have converged */
+        enrImprovAvg = (enrImprovAvg + enrImprov)/2;
+      }
+    }
+  } while ( ((!AIR_EXISTS(enrImprovAvg) 
+              || enrImprovAvg > pctx->energyImprovMin)
              && (0 == pctx->maxIter
                  || pctx->iter < pctx->maxIter)) );
+  fprintf(stderr, "%s: done after %u iters; enr = %g, enrImprov = %g,%g\n", 
+          me, pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();
 
   pctx->timeRun = time1 - time0;

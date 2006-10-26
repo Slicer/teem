@@ -285,11 +285,15 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
     if (deltaLen) {
+      double newDelta;
       TEN_TV_MUL(warp, myPoint->inv, delta);
       /* limit is some fraction glyph radius along direction of delta */
-      limit = 0.3*task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp));
-      deltaLen = limit*deltaLen/(limit + deltaLen);
-      ELL_3V_SCALE_INCR(myPoint->pos, deltaLen, deltaNorm);
+      limit = (task->pctx->deltaLimit
+               *task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp)));
+      newDelta = limit*deltaLen/(limit + deltaLen);
+      /* by definition newDelta <= deltaLen */
+      task->deltaFracSum += newDelta/deltaLen;
+      ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
     }
     if (2 == task->pctx->dimIn) {
       double posIdx[4], posWorld[4];
@@ -304,6 +308,9 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         || 0 == task->pctx->iter % task->pctx->iterProbe) {
       _pushProbe(task, myPoint);
     }
+    
+    /* the point lived, count it */
+    task->pointNum += 1;
   }
   
   return 0;

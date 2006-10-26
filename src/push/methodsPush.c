@@ -77,10 +77,15 @@ pushContextNew(void) {
     pctx->nin = NULL;
     pctx->npos = NULL;
 
-    pctx->step = 1;
+    pctx->stepInitial = 1;
     pctx->scale = 0.2;
     pctx->wall = 0.1;
     pctx->cntScl = 0.0;
+    pctx->deltaLimit = 0.3;
+    pctx->deltaFracMin = 0.2;
+    pctx->energyStepFrac = 0.9;
+    pctx->deltaFracStepFrac = 0.5;
+    pctx->energyImprovMin = 0.01;
 
     pctx->detReject = AIR_FALSE;
     pctx->midPntSmp = AIR_FALSE;
@@ -127,6 +132,7 @@ pushContextNew(void) {
     pctx->binIdx = 0;
     pctx->binMutex = NULL;
 
+    pctx->step = AIR_NAN;
     pctx->maxDist = AIR_NAN;
     pctx->maxEval = AIR_NAN;
     pctx->meanEval = AIR_NAN;
@@ -137,6 +143,9 @@ pushContextNew(void) {
 
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
+
+    pctx->expectTrouble = AIR_FALSE;
+    pctx->deltaFrac = AIR_NAN;
 
     pctx->timeIteration = 0;
     pctx->timeRun = 0;

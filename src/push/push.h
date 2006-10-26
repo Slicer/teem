@@ -106,7 +106,8 @@ typedef struct pushTask_t {
   airThread *thread;           /* my thread */
   unsigned int threadIdx,      /* which thread am I */
     pointNum;                  /* # points I let live this iteration */
-  double energySum;            /* sum of energies of points I processed */
+  double energySum,            /* sum of energies of points I processed */
+    deltaFracSum;              /* contribution to pctx->deltaFrac */
   void *returnPtr;             /* for airThreadJoin */
 } pushTask;
 
@@ -160,10 +161,25 @@ typedef struct pushContext_t {
                                       it may only be a single slice */
     *npos;                         /* positions to start with
                                       (overrides pointNum) */
-  double step,                     /* time step in integration */
+  double stepInitial,              /* initial time step in integration 
+                                      (which will be reduced as the system
+                                      converges) */
     scale,                         /* scaling from tensor to glyph size */
     wall,                          /* spring constant of walls */
-    cntScl;                        /* magnitude of containment gradient */
+    cntScl,                        /* magnitude of containment gradient */
+    deltaLimit,                    /* speed limit on particles' motion, as a
+                                      fraction of glyph radius along
+                                      direction of motion */
+    deltaFracMin,                  /* lowest value of deltaFrac (see below)
+                                      that is allowed without decreasing 
+                                      step size */
+    energyStepFrac,                /* when energy goes up instead of down, the
+                                      fraction by which to scale step size */
+    deltaFracStepFrac,             /* when deltaFrac goes below deltaFracMin,
+                                      fraction by which to scale step size */
+    energyImprovMin;               /* convergence threshold: stop when
+                                      fracional improvement (decrease) in
+                                      energy dips below this */
   int detReject,                   /* determinant-based rejection at init */
     midPntSmp,                     /* sample midpoint btw part.s for physics */
     verbose;                       /* blah blah blah */
@@ -222,13 +238,24 @@ typedef struct pushContext_t {
                                       binIdx == binNum */
   airThreadMutex *binMutex;        /* mutex around bin */
 
-  double maxDist,                  /* max distance btween interacting points */
+  double step,                     /* current working step size */
+    maxDist,                       /* max distance btween interacting points */
     maxEval, meanEval,             /* max and mean principal eval in field */
     maxDet,
     energySum;                     /* potential energy of entire particles */
   pushTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
+  int expectTrouble;               /* non-zero if we're doing either the
+                                      neighborhood list or skipped probing
+                                      optimizations, but this last iteration
+                                      was one without the optimization, so we
+                                      can expect an increase in the total 
+                                      system energy */
+  double deltaFrac;                /* mean (over all particles in last 
+                                      iteration) of fraction of distance 
+                                      actually travelled to distance that it
+                                      wanted to travel (due to speed limit) */
 
   /* OUTPUT ---------------------------- */
 

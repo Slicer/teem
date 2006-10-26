@@ -31,10 +31,10 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  char *outS[2];
+  char *outS[3];
   char *gravStr, *gravGradStr;
   pushContext *pctx;
-  Nrrd *_nin, *nin, *nPosIn, *nPosOut, *nTenOut;
+  Nrrd *_nin, *nin, *nPosIn, *nPosOut, *nTenOut, *nEnrOut;
   NrrdKernelSpec *ksp00, *ksp11;
   pushEnergySpec *ensp;
   
@@ -53,8 +53,8 @@ main(int argc, char *argv[]) {
              "positions to start at (overrides \"-np\")",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1,
-             &(pctx->step), "1",
-             "stepsize for gradient descent");
+             &(pctx->stepInitial), "1",
+             "step size for gradient descent");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1,
              &(pctx->scale), "1500",
              "scaling from tensor size to glyph size");
@@ -64,6 +64,26 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "cnts", "scale", airTypeDouble, 1, 1, 
              &(pctx->cntScl), "0.0",
              "scaling of containment force");
+  hestOptAdd(&hopt, "limit", "frac", airTypeDouble, 1, 1, 
+             &(pctx->deltaLimit), "0.3",
+             "speed limit on particles' motion");
+  hestOptAdd(&hopt, "dfmin", "frac", airTypeDouble, 1, 1, 
+             &(pctx->deltaFracMin), "0.2",
+             "decrease step size if deltaFrac goes below this");
+
+  hestOptAdd(&hopt, "esf", "frac", airTypeDouble, 1, 1, 
+             &(pctx->energyStepFrac), "0.9",
+             "when energy goes up instead of down, fraction by "
+             "which to scale step size");
+  hestOptAdd(&hopt, "dfsf", "frac", airTypeDouble, 1, 1, 
+             &(pctx->deltaFracStepFrac), "0.5",
+             "when deltaFrac goes below deltaFracMin, fraction by "
+             "which to scale step size");
+  hestOptAdd(&hopt, "eimin", "frac", airTypeDouble, 1, 1, 
+             &(pctx->energyImprovMin), "0.01",
+             "convergence threshold: stop when fracional improvement "
+             "(decrease) in energy dips below this");
+
   hestOptAdd(&hopt, "detr", NULL, airTypeBool, 0, 0, 
              &(pctx->detReject), NULL,
              "do determinant-based rejection of initial sample locations");
@@ -112,7 +132,8 @@ main(int argc, char *argv[]) {
              "fordif", "kernel for finding containment gradient from mask",
              NULL, NULL, nrrdHestKernelSpec);
 
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 2, 2, outS, "p.nrrd t.nrrd",
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 3, 3, outS,
+             "p.nrrd t.nrrd e.nrrd",
              "output files to save position and tensor info into");
 
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -124,6 +145,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
   nTenOut = nrrdNew();
   airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
+  nEnrOut = nrrdNew();
+  airMopAdd(mop, nEnrOut, (airMopper)nrrdNuke, airMopAlways);
   
   if (3 == _nin->spaceDim && AIR_EXISTS(_nin->measurementFrame[0][0])) {
     nin = nrrdNew();
@@ -169,7 +192,7 @@ main(int argc, char *argv[]) {
 
   if (pushStart(pctx)
       || pushRun(pctx)
-      || pushOutputGet(nPosOut, nTenOut, NULL, pctx)
+      || pushOutputGet(nPosOut, nTenOut, nEnrOut, pctx)
       || pushFinish(pctx)) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -179,7 +202,8 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: time for %d iterations= %g secs\n",
           me, pctx->iter, pctx->timeRun);
   if (nrrdSave(outS[0], nPosOut, NULL)
-      || nrrdSave(outS[1], nTenOut, NULL)) {
+      || nrrdSave(outS[1], nTenOut, NULL)
+      || nrrdSave(outS[2], nEnrOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
     airMopError(mop); 
