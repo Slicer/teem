@@ -438,8 +438,8 @@ airThreadNew(void) {
 int
 airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
-  /* we arbitrarily chose to have the threadBody
-     evaluation happen here, instead of at airThreadJoin */
+  /* run the threadBody callback, which will return only when the
+     task has decided to call it quits */
   thread->ret = (*threadBody)(arg);
   return 0;
 }
