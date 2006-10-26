@@ -60,7 +60,7 @@ main(int argc, char *argv[]) {
              "cubicdd:1,0", "k00", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "dt", "step", airTypeDouble, 1, 1, &dt, "0.17",
              "time step size");
-  hestOptAdd(&hopt, "thresh", "val", airTypeDouble, 1, 1, &thresh, "0.5",
+  hestOptAdd(&hopt, "th", "val", airTypeDouble, 1, 1, &thresh, "0.0",
              "the value to use for thresholding the input "
              "volume, to create the binary constraint image.");
   hestOptAdd(&hopt, "eps", "val", airTypeDouble, 1, 1, &eps, "0.05",
