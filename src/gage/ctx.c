@@ -430,17 +430,26 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 **
 ** based on ctx's shape and radius, and the (xi,yi,zi) determined from
 ** the probe location, fills the iv3 cache in the given pervolume
+**
+** This function is a bottleneck for so many things, so forcing off
+** the verbose comments seems like one way of trying to speed it up.
+** However, temporarily if-def'ing out unused branches of the
+** "switch(pvl->kind->valLen)", and #define'ing fddd to 64 (for 4x4x4
+** neighborhoods) did not noticeably speed anything up.
+**
 */
 void
 gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
   int _xx, _yy, _zz, xx, yy, zz, lx, ly, lz,
-    hx, hy, hz, fr, fddd, cacheIdx, dataIdx;
+    hx, hy, hz, fr, cacheIdx, dataIdx, fddd;
   unsigned int sx, sy, sz;
   char *data, *here;
   unsigned int tup;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (0 && ctx->verbose) {
+    fprintf(stderr, "%s: hello\n", me);
+  }
   sx = ctx->shape->size[0];
   sy = ctx->shape->size[1];
   sz = ctx->shape->size[2];
@@ -459,13 +468,13 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       && hz < AIR_CAST(int, sz)) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
-    if (ctx->verbose) {
+    if (0 && ctx->verbose) {
       fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
               me, pvl->kind->valLen,
               AIR_CAST(void*, pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
-    if (ctx->verbose) {
+    if (0 && ctx->verbose) {
       fprintf(stderr, "%s: size = (%u,%u,%u);\n"
               "  fd = %d; coord = (%d,%d,%d) --> dataIdx = %d\n",
               me, sx, sy, sz, 2*fr,
@@ -534,7 +543,9 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       }
     }
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (0 && ctx->verbose) {
+    fprintf(stderr, "%s: bye\n", me);
+  }
   return;
 }
 
