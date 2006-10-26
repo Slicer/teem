@@ -163,8 +163,7 @@ typedef struct pushContext_t {
   double step,                     /* time step in integration */
     scale,                         /* scaling from tensor to glyph size */
     wall,                          /* spring constant of walls */
-    cntScl,                        /* magnitude of containment gradient */
-    minMeanVel;                    /* stop if mean velocity drops below this */
+    cntScl;                        /* magnitude of containment gradient */
   int detReject,                   /* determinant-based rejection at init */
     midPntSmp,                     /* sample midpoint btw part.s for physics */
     verbose;                       /* blah blah blah */
@@ -198,8 +197,7 @@ typedef struct pushContext_t {
   unsigned int binIncr;            /* increment for per-bin airArray */
 
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
-    *ksp11,                        /* for gradient of mask */
-    *ksp22;                        /* 2nd deriv, probably for gravity */
+    *ksp11;                        /* for gradient of mask */
 
   /* INTERNAL -------------------------- */
 

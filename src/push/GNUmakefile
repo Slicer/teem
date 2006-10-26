@@ -49,8 +49,7 @@ $(L).PUBLIC_HEADERS = push.h
 $(L).PRIVATE_HEADERS = privatePush.h
 $(L).OBJS = defaultsPush.o methodsPush.o binning.o \
   forces.o corePush.o setup.o action.o
-$(L).TESTS = test/eparse
-# $(L).TESTS = test/pusher
+$(L).TESTS = test/eparse test/pusher
 ####
 ####
 ####

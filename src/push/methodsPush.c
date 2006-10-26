@@ -81,7 +81,6 @@ pushContextNew(void) {
     pctx->scale = 0.2;
     pctx->wall = 0.1;
     pctx->cntScl = 0.0;
-    pctx->minMeanVel = 0.0;
 
     pctx->detReject = AIR_FALSE;
     pctx->midPntSmp = AIR_FALSE;
@@ -110,7 +109,6 @@ pushContextNew(void) {
 
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
-    pctx->ksp22 = nrrdKernelSpecNew();
 
     pctx->ttaagg = 0;
     pctx->nten = NULL;
@@ -156,7 +154,6 @@ pushContextNix(pushContext *pctx) {
     pctx->ensp = pushEnergySpecNix(pctx->ensp);
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
     pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
-    pctx->ksp22 = nrrdKernelSpecNix(pctx->ksp22);
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     pctx->noutTen = nrrdNuke(pctx->noutTen);
     airFree(pctx);

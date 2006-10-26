@@ -152,8 +152,6 @@ _pushGageSetup(pushContext *pctx) {
 
   if (!E) E |= gageKernelSet(pctx->gctx, gageKernel11,
                              pctx->ksp11->kernel, pctx->ksp11->parm);
-  if (!E) E |= gageKernelSet(pctx->gctx, gageKernel22,
-                             pctx->ksp22->kernel, pctx->ksp22->parm);
   /* (maybe) turn on seed thresholding */
   if (tenGageUnknown != pctx->seedThreshItem) {
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->seedThreshItem);

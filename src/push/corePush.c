@@ -341,7 +341,7 @@ pushRun(pushContext *pctx) {
       npos = nrrdNuke(npos);
     }
     engNew = pctx->energySum;
-    engDelta = 2*(engNew - engLast)/(engNew + engLast);
+    engDelta = 1;
   } while ( (engDelta > 0.00001
              && (0 == pctx->maxIter
                  || pctx->iter < pctx->maxIter)) );

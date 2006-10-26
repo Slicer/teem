@@ -32,141 +32,152 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[2];
-  int seed, threadNum, thingNum, snap, minIter, maxIter, singleBin,
-    noDriftCorrect, tln, frenet, incr;
+  char *gravStr, *gravGradStr;
   pushContext *pctx;
-  Nrrd *nin, *nPosIn, *nStnIn, *nPosOut, *nTenOut, *nStnOut;
-  double step, drag, preDrag, mass, scale, nudge, wall, minMeanVel, tlf[3];
+  Nrrd *_nin, *nin, *nPosIn, *nPosOut, *nTenOut;
   NrrdKernelSpec *ksp00, *ksp11;
-  pushForce *force;
+  pushEnergySpec *ensp;
   
-  mop = airMopNew();
   me = argv[0];
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
+
+  mop = airMopNew();
+  pctx = pushContextNew();
+  airMopAdd(mop, pctx, (airMopper)pushContextNix, airMopAlways);
+
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &_nin, NULL,
              "input volume to filter", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "np", "# points", airTypeUInt, 1, 1,
+             &(pctx->pointNum), "1000",
+             "number of points to use in simulation");
   hestOptAdd(&hopt, "pi", "npos", airTypeOther, 1, 1, &nPosIn, "",
              "positions to start at (overrides \"-np\")",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "si", "nstn", airTypeOther, 1, 1, &nStnIn, "",
-             "connectivity/tractlet information for \"-pi\" nrrd",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "np", "# points", airTypeInt, 1, 1, &thingNum, "100",
-             "number of points to use in simulation");
-  hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
-             "seed value for RNG which determines initial point locations");
-  hestOptAdd(&hopt, "maxi", "# iters", airTypeInt, 1, 1, &maxIter, "0",
-             "if non-zero, max number of iterations to do processing for");
-  hestOptAdd(&hopt, "mini", "# iters", airTypeInt, 1, 1, &minIter, "0",
-             "if non-zero, min number of iterations to do processing for");
-  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &step, "0.01",
-             "time step in integration");
-  hestOptAdd(&hopt, "tlf", "thr soft step", airTypeDouble, 3, 3, tlf,
-             "0.2 0.2 0.01",
-             "three parameters determining tractlet formation: the "
-             "nominal Cl treshold below which there is no tractlet, "
-             "the region of smoothing around the threshold, and the base "
-             "size of each step");
-  hestOptAdd(&hopt, "tln", "# steps", airTypeInt, 1, 1, &tln, "10",
-             "max number of steps in each tractlet half");
-  hestOptAdd(&hopt, "fren", NULL, airTypeInt, 0, 0, &frenet, NULL,
-             "use tractlet Frenet frame for force averaging");
-  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0.25",
+  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1,
+             &(pctx->step), "1",
+             "stepsize for gradient descent");
+  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1,
+             &(pctx->scale), "1500",
              "scaling from tensor size to glyph size");
-  hestOptAdd(&hopt, "drag", "drag", airTypeDouble, 1, 1, &drag, "0.01",
-             "amount of drag");
-  hestOptAdd(&hopt, "preDrag", "preDrag", airTypeDouble, 1, 1, &preDrag,
-             "0.2",
-             "amount of drag at beginning of minimum iteration period");
-  hestOptAdd(&hopt, "mass", "mass", airTypeDouble, 1, 1, &mass, "1",
-             "mass of each particle");
-  hestOptAdd(&hopt, "force", "spec", airTypeOther, 1, 1, &force, NULL,
-             "specification of force function to use",
-             NULL, NULL, pushHestForce);
-  hestOptAdd(&hopt, "nudge", "nudge", airTypeDouble, 1, 1, &nudge, "0.0",
-             "scaling of how distance from origin generates a nudging "
-             "force back towards the origin (as if by sitting in "
-             "parabola y = (1/2)*nudge*x^2)");
-  hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1, &wall, "0.0",
+  hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1,
+             &(pctx->wall), "0.0",
              "spring constant of containing walls");
-  hestOptAdd(&hopt, "mmv", "mean vel", airTypeDouble, 1, 1, &minMeanVel,
-             "0.1", "minimum mean velocity that signifies convergence");
-  hestOptAdd(&hopt, "snap", "iters", airTypeInt, 1, 1, &snap, "0",
-             "if non-zero, number of iterations between which a snapshot "
-             "is saved");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &threadNum, "1",
+  hestOptAdd(&hopt, "cnts", "scale", airTypeDouble, 1, 1, 
+             &(pctx->cntScl), "0.0",
+             "scaling of containment force");
+  hestOptAdd(&hopt, "detr", NULL, airTypeBool, 0, 0, 
+             &(pctx->detReject), NULL,
+             "do determinant-based rejection of initial sample locations");
+  hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1, 
+             &(pctx->seedRNG), "42",
+             "seed value for RNG which determines initial point locations");
+  hestOptAdd(&hopt, "nt", "# threads", airTypeUInt, 1, 1,
+             &(pctx->threadNum), "1",
              "number of threads to run");
+  hestOptAdd(&hopt, "nskip", "# iters", airTypeUInt, 1, 1,
+             &(pctx->iterNeighbor), "0",
+             "only do full neighbor traversal on iterations "
+             "that are multiples of this");
+  hestOptAdd(&hopt, "pskip", "# iters", airTypeUInt, 1, 1,
+              &(pctx->iterProbe), "0",
+             "only do field probing on iterations that are multiples of this");
+  hestOptAdd(&hopt, "maxi", "# iters", airTypeUInt, 1, 1,
+             &(pctx->maxIter), "0",
+             "if non-zero, max # iterations to run");
+  hestOptAdd(&hopt, "snap", "iters", airTypeUInt, 1, 1, &(pctx->snap), "0",
+             "if non-zero, # iterations between which a snapshot "
+             "is saved");
+
+  hestOptAdd(&hopt, "grv", "item", airTypeString, 1, 1, &gravStr, "none",
+             "item to act as gravity");
+  hestOptAdd(&hopt, "grvgv", "item", airTypeString, 1, 1, &gravGradStr, "none",
+             "item to act as gravity gradient");
+  hestOptAdd(&hopt, "grvs", "scale", airTypeDouble, 1, 1, &(pctx->gravScl),
+             "nan", "magnitude and scaling of gravity vector");
+  hestOptAdd(&hopt, "grvz", "scale", airTypeDouble, 1, 1, &(pctx->gravZero),
+             "nan", "height (WRT gravity) of zero potential energy");
+
+  hestOptAdd(&hopt, "energy", "spec", airTypeOther, 1, 1, &ensp, "cotan",
+             "specification of energy function to use",
+             NULL, NULL, pushHestEnergySpec);
+
+  hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0,
+             &(pctx->binSingle), NULL,
+             "turn off spatial binning (which prevents multi-threading "
+             "from being useful), for debugging or speed-up measurement");
+
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp00,
              "tent", "kernel for tensor field sampling",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &ksp11,
              "fordif", "kernel for finding containment gradient from mask",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0, &singleBin, NULL,
-             "turn off spatial binning (which prevents multi-threading "
-             "from being useful), for debugging or speed-up measurement");
-  hestOptAdd(&hopt, "incr", "N", airTypeInt, 1, 1, &incr, "60",
-             "increment for per-bin airArray of things");
-  hestOptAdd(&hopt, "ndc", NULL, airTypeBool, 0, 0, &noDriftCorrect, NULL,
-             "turn off the correction for sliding around near changes of "
-             "size in the tensor field");
+
   hestOptAdd(&hopt, "o", "nout", airTypeString, 2, 2, outS, "p.nrrd t.nrrd",
              "output files to save position and tensor info into");
+
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  pctx = pushContextNew();
-  airMopAdd(mop, pctx, (airMopper)pushContextNix, airMopAlways);
   nPosOut = nrrdNew();
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
   nTenOut = nrrdNew();
   airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
-  nStnOut = nrrdNew();
-  airMopAdd(mop, nStnOut, (airMopper)nrrdNuke, airMopAlways);
   
-  pctx->binIncr = incr;
+  if (3 == _nin->spaceDim && AIR_EXISTS(_nin->measurementFrame[0][0])) {
+    nin = nrrdNew();
+    airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
+    if (tenMeasurementFrameReduce(nin, _nin)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble undoing measurement frame:\n%s", me, err);
+      airMopError(mop);
+      exit(1);
+    }
+  } else {
+    nin = _nin;
+  }
+
   pctx->nin = nin;
   pctx->npos = nPosIn;
-  pctx->nstn = nStnIn;
-  pctx->threadNum = threadNum;
-  pctx->singleBin = singleBin;
-  pctx->maxIter = maxIter;
-  pctx->minIter = minIter;
-  pctx->seed = seed;
-  pctx->drag = drag;
-  pctx->preDrag = preDrag;
-  pctx->step = step;
-  pctx->mass = mass;
-  pctx->tlThresh = tlf[0];
-  pctx->tlSoft = tlf[1];
-  pctx->tlStep = tlf[2];
-  pctx->tlStepNum = tln;
-  pctx->tlFrenet = frenet;
-  pctx->force = force;
-  pctx->scale = scale;
-  pctx->nudge = nudge;
-  pctx->wall = wall;
-  pctx->minMeanVel = minMeanVel;
-  pctx->snap = snap;
-  pctx->thingNum = thingNum;
-  pctx->stageNum = 2;
-  pctx->driftCorrect = !noDriftCorrect;
   pctx->verbose = 0;
+  pctx->binIncr = 84;  /* random small-ish value */
+  pushEnergySpecSet(pctx->ensp, ensp->energy, ensp->parm);
   nrrdKernelSpecSet(pctx->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(pctx->ksp11, ksp11->kernel, ksp11->parm);
+  if (strcmp("none", gravStr)) {
+    pctx->gravItem = airEnumVal(tenGage, gravStr);
+    if (tenGageUnknown == pctx->gravItem) {
+      fprintf(stderr, "%s: couldn't parse \"%s\" as a %s (gravity)\n", me,
+              gravStr, tenGage->name);
+      airMopError(mop);
+      return 1;
+    }
+    pctx->gravGradItem = airEnumVal(tenGage, gravGradStr);
+    if (tenGageUnknown == pctx->gravGradItem) {
+      fprintf(stderr, "%s: couldn't parse \"%s\" as a %s (gravity grad)\n",
+              me, gravGradStr, tenGage->name);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    pctx->gravItem = tenGageUnknown;
+    pctx->gravGradItem = tenGageUnknown;
+    pctx->gravZero = AIR_NAN;
+    pctx->gravScl = AIR_NAN;
+  }
 
   if (pushStart(pctx)
       || pushRun(pctx)
-      || pushOutputGet(nPosOut, nTenOut, nStnOut, pctx)
+      || pushOutputGet(nPosOut, nTenOut, NULL, pctx)
       || pushFinish(pctx)) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); 
     return 1;
   }
-  fprintf(stderr, "%s: time for %d iterations= %g secs; meanVel = %g\n",
-          me, pctx->iter, pctx->time, pctx->meanVel);
+  fprintf(stderr, "%s: time for %d iterations= %g secs\n",
+          me, pctx->iter, pctx->timeRun);
   if (nrrdSave(outS[0], nPosOut, NULL)
       || nrrdSave(outS[1], nTenOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
