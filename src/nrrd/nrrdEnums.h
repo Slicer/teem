@@ -56,7 +56,7 @@ enum {
 };
 
 /*
-******** nrrdFormatType enum
+******** nrrdFormatType* enum
 **
 ** the different file formats which nrrd supports
 */
@@ -74,7 +74,7 @@ enum {
 #define NRRD_FORMAT_TYPE_MAX    6
 
 /*
-******** nrrdBoundary enum
+******** nrrdBoundary* enum
 **
 ** when resampling, how to deal with the ends of a scanline
 */
@@ -91,7 +91,7 @@ enum {
 #define NRRD_BOUNDARY_MAX  4
 
 /*
-******** nrrdType enum
+******** nrrdType* enum
 **
 ** all the different types, identified by integer
 **
