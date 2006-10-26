@@ -340,10 +340,17 @@ enum {
   tenGageOmegaHessianEvec1,/* 101: "omhessevec1": [3] */
   tenGageOmegaHessianEvec2,/* 102: "omhessevec2": [3] */
 
-  tenGageAniso,            /* 103: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageTraceGradVecDotEvec0, /* 103: "trgvdotevec0": [1] */
+  tenGageTraceNormalDotEvec0,  /* 104: "trndotevec0": [1] */
+  tenGageFAGradVecDotEvec0,    /* 105: "fagvdotevec0": [1] */
+  tenGageFANormalDotEvec0,     /* 106: "fandotevec0": [1] */
+  tenGageOmegaGradVecDotEvec0, /* 107: "omgvdotevec0": [1] */
+  tenGageOmegaNormalDotEvec0,  /* 108: "omndotevec0": [1] */
+
+  tenGageAniso,            /* 109: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     103
+#define TEN_GAGE_ITEM_MAX     109
 
 /*
 ******** tenDwiGage* enum

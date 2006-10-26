@@ -144,17 +144,24 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageModeHessianEvec2,    3,  2,  {tenGageModeHessianEvec, -1, -1, -1, -1, -1},                      tenGageModeHessianEvec,         6,    0},
 
   {tenGageOmegaHessian,        9,  2,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec,
-                                        tenGageFAHessian, tenGageModeHessian},                                                  -1,        -1,    0},
-  {tenGageOmegaHessianEval,    3,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                               -1,        -1,    0},
-  {tenGageOmegaHessianEval0,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEval,         0,    0},
-  {tenGageOmegaHessianEval1,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEval,         1,    0},
-  {tenGageOmegaHessianEval2,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEval,         2,    0},
-  {tenGageOmegaHessianEvec,    9,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                               -1,        -1,    0},
-  {tenGageOmegaHessianEvec0,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEvec,         0,    0},
-  {tenGageOmegaHessianEvec1,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEvec,         3,    0},
-  {tenGageOmegaHessianEvec2,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                      tenGageOmegaHessianEvec,         6,    0},
+                                        tenGageFAHessian, tenGageModeHessian},                                                -1,        -1,    0},
+  {tenGageOmegaHessianEval,    3,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
+  {tenGageOmegaHessianEval0,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         0,    0},
+  {tenGageOmegaHessianEval1,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         1,    0},
+  {tenGageOmegaHessianEval2,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         2,    0},
+  {tenGageOmegaHessianEvec,    9,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
+  {tenGageOmegaHessianEvec0,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         0,    0},
+  {tenGageOmegaHessianEvec1,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         3,    0},
+  {tenGageOmegaHessianEvec2,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         6,    0},
 
-  {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1, -1},                                  -1,        -1,    0}
+  {tenGageTraceGradVecDotEvec0,1,  1,  {tenGageTraceGradVec, tenGageEvec0, -1, -1, -1, -1},                                   -1,        -1,    0},
+  {tenGageTraceNormalDotEvec0, 1,  1,  {tenGageTraceNormal, tenGageEvec0, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageFAGradVecDotEvec0,   1,  1,  {tenGageFAGradVec, tenGageEvec0, -1, -1, -1, -1},                                      -1,        -1,    0},
+  {tenGageFANormalDotEvec0,    1,  1,  {tenGageFANormal, tenGageEvec0, -1, -1, -1, -1},                                       -1,        -1,    0},
+  {tenGageOmegaGradVecDotEvec0,1,  1,  {tenGageOmegaGradVec, tenGageEvec0, -1, -1, -1, -1},                                   -1,        -1,    0},
+  {tenGageOmegaNormalDotEvec0, 1,  1,  {tenGageOmegaNormal, tenGageEvec0, -1, -1, -1, -1},                                    -1,        -1,    0},
+
+  {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1, -1},                                -1,        -1,    0}
 };
 
 void
@@ -298,7 +305,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   evecAns = pvl->directAnswer[tenGageEvec];
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensor)) {
     /* done if doV */
+    /* HEY: this was prohibiting a Deft-related hack 
     tenAns[0] = AIR_CLAMP(0, tenAns[0], 1);
+    */
+    /* HEY: and this was botching using 1-conf as potential energy for push 
+    tenAns[0] = AIR_MAX(0, tenAns[0]);
+    */
     dtA = tenAns[1];
     dtB = tenAns[2];
     dtC = tenAns[3];
@@ -902,6 +914,32 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     TEN_M2T(fakeTen, pvl->directAnswer[tenGageOmegaHessian]);
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
     tenEigensolve_d(pvl->directAnswer[tenGageOmegaHessianEval], NULL, fakeTen);
+  }
+
+  /* --- evec0 dot products */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceGradVecDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceGradVec]);
+    pvl->directAnswer[tenGageTraceGradVecDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceNormalDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceNormal]);
+    pvl->directAnswer[tenGageTraceNormalDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradVecDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFAGradVec]);
+    pvl->directAnswer[tenGageFAGradVecDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFANormalDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFANormal]);
+    pvl->directAnswer[tenGageFANormalDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaGradVecDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaGradVec]);
+    pvl->directAnswer[tenGageOmegaGradVecDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaNormalDotEvec0)) {
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaNormal]);
+    pvl->directAnswer[tenGageOmegaNormalDotEvec0][0] = AIR_ABS(tmp0);
   }
 
   /* --- Aniso --- */

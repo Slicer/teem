@@ -200,6 +200,13 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "omega hessian evec 1",
   "omega hessian evec 2",
 
+  "trace gradvec dot evec0",
+  "trace normal dot evec0",
+  "FA gradvec dot evec0",
+  "FA normal dot evec0",
+  "omega gradvec dot evec0",
+  "omega normal dot evec0",
+
   "anisotropies"
 };
 
@@ -309,6 +316,12 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "omega hessian evec 0",
   "omega hessian evec 1",
   "omega hessian evec 2",
+  "trace gradvec dot evec0",
+  "trace normal dot evec0",
+  "FA gradvec dot evec0",
+  "FA normal dot evec0",
+  "omega gradvec dot evec0",
+  "omega normal dot evec0",
   "anisotropies"
 };
 
@@ -418,6 +431,12 @@ _tenGageVal[] = {
   tenGageOmegaHessianEvec0,
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
+  tenGageTraceGradVecDotEvec0,
+  tenGageTraceNormalDotEvec0,
+  tenGageFAGradVecDotEvec0,
+  tenGageFANormalDotEvec0,
+  tenGageOmegaGradVecDotEvec0,
+  tenGageOmegaNormalDotEvec0,
   tenGageAniso
 };
 
@@ -526,6 +545,12 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "omhessevec0",
   "omhessevec1",
   "omhessevec2",
+  "trgvdotevec0",
+  "trndotevec0",
+  "fagvdotevec0",
+  "fandotevec0",
+  "omgvdotevec0",
+  "omndotevec0",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -635,6 +660,12 @@ _tenGageValEqv[] = {
   tenGageOmegaHessianEvec0,
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
+  tenGageTraceGradVecDotEvec0,
+  tenGageTraceNormalDotEvec0,
+  tenGageFAGradVecDotEvec0,
+  tenGageFANormalDotEvec0,
+  tenGageOmegaGradVecDotEvec0,
+  tenGageOmegaNormalDotEvec0,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
