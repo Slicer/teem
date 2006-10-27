@@ -203,6 +203,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     if (threadIdx) {
       task->thread = airThreadNew();
     }
+    task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
     task->threadIdx = threadIdx;
     task->pointNum = 0;
     task->energySum = 0;
@@ -220,6 +221,7 @@ _pushTaskNix(pushTask *task) {
     if (task->threadIdx) {
       task->thread = airThreadNix(task->thread);
     }
+    task->rng = airRandMTStateNix(task->rng);
     airFree(task);
   }
   return NULL;

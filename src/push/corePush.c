@@ -308,14 +308,6 @@ pushIterate(pushContext *pctx) {
   time1 = airTime();
   pctx->timeIteration = time1 - time0;
   pctx->timeRun += time1 - time0;
-  if (pctx->iterNeighbor && 0 == pctx->iter % pctx->iterNeighbor) {
-    pctx->expectTrouble = AIR_TRUE;
-  } else if (pctx->iterProbe && 0 == pctx->iter % pctx->iterProbe) {
-    pctx->expectTrouble = AIR_TRUE;
-  } else {
-    pctx->expectTrouble = AIR_FALSE;
-  }
-  
   pctx->iter += 1;
 
   return 0;
@@ -360,16 +352,6 @@ pushRun(pushContext *pctx) {
       nten = nrrdNuke(nten);
       npos = nrrdNuke(npos);
     }
-    if (pctx->energySum > enrLast && pctx->expectTrouble) {
-      /* energy went up instead of down, but we expected that, so go another
-         iteration, and don't bother updating progress indicators */
-      double tmpNew, tmpImprov;
-      tmpNew = pctx->energySum;
-      tmpImprov = 2*(enrLast - tmpNew)/(enrLast + tmpNew);
-      fprintf(stderr, "!%s: %u, (bad) e=%g, de=%g, df=%g\n", me,
-              pctx->iter, tmpNew, tmpImprov, pctx->deltaFrac);
-      continue;
-    }
     enrNew = pctx->energySum;
     enrImprov = 2*(enrLast - enrNew)/(enrLast + enrNew);
     fprintf(stderr, "!%s: %u, e=%g, de=%g,%g, df=%g\n",
@@ -395,8 +377,8 @@ pushRun(pushContext *pctx) {
       if (!AIR_EXISTS(enrImprovAvg)) {
         /* either enrImprovAvg has initial NaN setting, or was set to NaN
            because we had to decrease step size; either way we now
-           re-initialize it */
-        enrImprovAvg = enrImprov;
+           re-initialize it to a large-ish value, to delay convergence */
+        enrImprovAvg = 3*enrImprov;
       } else {
         /* we had improvement this iteration and last, do weighted average
            of the two, so that we are measuring the trend, rather than being

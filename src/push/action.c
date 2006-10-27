@@ -175,10 +175,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     myPoint->enr = 0;
     ELL_3V_SET(myPoint->frc, 0, 0, 0);
 
-    if (!task->pctx->iterNeighbor
-        || 0 == task->pctx->iter % task->pctx->iterNeighbor) {
+    if (1.0 <= task->pctx->neighborTrueProb
+        || airDrandMT_r(task->rng) <= task->pctx->neighborTrueProb) {
       neighbor = myBin->neighbor;
-      if (task->pctx->iterNeighbor) {
+      if (1.0 > task->pctx->neighborTrueProb) {
         airArrayLenSet(myPoint->neighArr, 0);
       }
       while ((herBin = *neighbor)) {
@@ -199,7 +199,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
           myPoint->enr += enr/2;
           if (ELL_3V_DOT(frc, frc)) {
             ELL_3V_INCR(myPoint->frc, frc);
-            if (task->pctx->iterNeighbor) {
+            if (1.0 > task->pctx->neighborTrueProb) {
               unsigned int idx;
               idx = airArrayLenIncr(myPoint->neighArr, 1);
               myPoint->neigh[idx] = herPoint;
@@ -304,8 +304,8 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
       ELL_34V_HOMOG(myPoint->pos, posWorld);
     }
-    if (!task->pctx->iterProbe
-        || 0 == task->pctx->iter % task->pctx->iterProbe) {
+    if (1.0 <= task->pctx->probeProb
+        || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
       _pushProbe(task, myPoint);
     }
     

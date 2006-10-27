@@ -85,6 +85,8 @@ pushContextNew(void) {
     pctx->deltaFracMin = 0.2;
     pctx->energyStepFrac = 0.9;
     pctx->deltaFracStepFrac = 0.5;
+    pctx->neighborTrueProb = 0.3;
+    pctx->probeProb = 0.5;
     pctx->energyImprovMin = 0.01;
 
     pctx->detReject = AIR_FALSE;
@@ -93,8 +95,6 @@ pushContextNew(void) {
 
     pctx->seedRNG = 42;
     pctx->threadNum = 1;
-    pctx->iterNeighbor = 5;
-    pctx->iterProbe = 4;
     pctx->maxIter = 0;
     pctx->snap = 0;
 
@@ -144,7 +144,6 @@ pushContextNew(void) {
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
 
-    pctx->expectTrouble = AIR_FALSE;
     pctx->deltaFrac = AIR_NAN;
 
     pctx->timeIteration = 0;

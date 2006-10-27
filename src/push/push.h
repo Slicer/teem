@@ -99,7 +99,7 @@ typedef struct pushBin_t {
 typedef struct pushTask_t {
   struct pushContext_t *pctx;  /* parent's context */
   gageContext *gctx;           /* result of gageContextCopy(pctx->gctx) */
-  const double *tenAns,         /* results of gage probing */
+  const double *tenAns,        /* results of gage probing */
     *invAns, *cntAns,
     *gravAns, *gravGradAns,
     *seedThreshAns; 
@@ -108,6 +108,7 @@ typedef struct pushTask_t {
     pointNum;                  /* # points I let live this iteration */
   double energySum,            /* sum of energies of points I processed */
     deltaFracSum;              /* contribution to pctx->deltaFrac */
+  airRandMTState *rng;         /* state for my RNG */
   void *returnPtr;             /* for airThreadJoin */
 } pushTask;
 
@@ -177,6 +178,12 @@ typedef struct pushContext_t {
                                       fraction by which to scale step size */
     deltaFracStepFrac,             /* when deltaFrac goes below deltaFracMin,
                                       fraction by which to scale step size */
+    neighborTrueProb,              /* probability that we find the true
+                                      neighbors of the particle, as opposed to
+                                      using a cached list */
+    probeProb,                     /* probability that we gageProbe() to find
+                                      the local tensor value, instead of
+                                      re-using last value */
     energyImprovMin;               /* convergence threshold: stop when
                                       fracional improvement (decrease) in
                                       energy dips below this */
@@ -185,12 +192,6 @@ typedef struct pushContext_t {
     verbose;                       /* blah blah blah */
   unsigned int seedRNG,            /* seed value for random number generator */
     threadNum,                     /* number of threads to use */
-    iterNeighbor,                  /* recompute list of active neighbors on
-                                      iterations that are a multiple of this,
-                                      or, 0 to disable this optimization */
-    iterProbe,                     /* only do field probing (which is slow) on
-                                      iterations that are a multiple of this,
-                                      or, 0 to disable this optimization */
     maxIter,                       /* if non-zero, max number of iterations */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
@@ -246,12 +247,6 @@ typedef struct pushContext_t {
   pushTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
-  int expectTrouble;               /* non-zero if we're doing either the
-                                      neighborhood list or skipped probing
-                                      optimizations, but this last iteration
-                                      was one without the optimization, so we
-                                      can expect an increase in the total 
-                                      system energy */
   double deltaFrac;                /* mean (over all particles in last 
                                       iteration) of fraction of distance 
                                       actually travelled to distance that it

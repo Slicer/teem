@@ -93,13 +93,12 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "nt", "# threads", airTypeUInt, 1, 1,
              &(pctx->threadNum), "1",
              "number of threads to run");
-  hestOptAdd(&hopt, "nskip", "# iters", airTypeUInt, 1, 1,
-             &(pctx->iterNeighbor), "0",
-             "only do full neighbor traversal on iterations "
-             "that are multiples of this");
-  hestOptAdd(&hopt, "pskip", "# iters", airTypeUInt, 1, 1,
-              &(pctx->iterProbe), "0",
-             "only do field probing on iterations that are multiples of this");
+  hestOptAdd(&hopt, "nprob", "# iters", airTypeDouble, 1, 1,
+             &(pctx->neighborTrueProb), "1.0",
+             "do full neighbor traversal with this probability");
+  hestOptAdd(&hopt, "pprob", "# iters", airTypeDouble, 1, 1,
+             &(pctx->probeProb), "1.0",
+             "do field probing with this probability");
   hestOptAdd(&hopt, "maxi", "# iters", airTypeUInt, 1, 1,
              &(pctx->maxIter), "0",
              "if non-zero, max # iterations to run");
