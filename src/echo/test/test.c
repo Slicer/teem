@@ -41,16 +41,16 @@ main(int argc, char **argv) {
   scene = echoSceneNew();
   airMopAdd(mop, scene, (airMopper)echoSceneNix, airMopAlways);
   list = echoObjectNew(scene, echoTypeList);
-  for (I=0; I<30; I++) {
+  for (I=0; I<70; I++) {
     sph = echoObjectNew(scene, echoTypeSphere);
     R = airDrandMT();
     G = airDrandMT();
     B = airDrandMT();
     echoSphereSet(sph,
-                  AIR_AFFINE(0, R, 1, -1, 1),
-                  AIR_AFFINE(0, G, 1, -1, 1),
-                  AIR_AFFINE(0, B, 1, -1, 1),
-                  0.05);
+                  AIR_AFFINE(0, R, 1, -0.8, 0.8),
+                  AIR_AFFINE(0, G, 1, -0.8, 0.8),
+                  AIR_AFFINE(0, B, 1, -0.8, 0.8),
+                  0.15);
     echoColorSet(sph, R, G, B, 1.0);
     echoMatterPhongSet(scene, sph, 0, 1, 0, 40);
     echoListAdd(list, sph);
@@ -58,6 +58,7 @@ main(int argc, char **argv) {
   split = echoListSplit3(scene, list, 10);
   echoObjectAdd(scene, split);
 
+  /*
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -1, -1, -1,
                    2, 0, 0,
@@ -65,14 +66,49 @@ main(int argc, char **argv) {
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterPhongSet(scene, rect, 0, 1, 0, 40);
   echoObjectAdd(scene, rect);
+  */
 
   rect = echoObjectNew(scene, echoTypeRectangle);
-  echoRectangleSet(rect, -0.25, -0.25, 2,
-                   0.5, 0, 0,
-                   0, 0.5, 0);
+  echoRectangleSet(rect, -2, -2, 2,
+                   0, 4, 0,
+                   4, 0, 0);
   echoColorSet(rect, 1, 1, 1, 1);
-  echoMatterLightSet(scene, rect, 3, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
   
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -2, -2, -2,
+                   4, 0, 0,
+                   0, 4, 0);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
+  
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -2, 2, -2,
+                   4, 0, 0,
+                   0, 0, 4);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
+  
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -2, -2, -2,
+                   0, 0, 4,
+                   4, 0, 0);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
+  
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, -2, -2, -2,
+                   0, 4, 0,
+                   0, 0, 4);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
+  
+  rect = echoObjectNew(scene, echoTypeRectangle);
+  echoRectangleSet(rect, 2, -2, -2,
+                   0, 0, 4,
+                   0, 4, 0);
+  echoColorSet(rect, 1, 1, 1, 1);
+  echoMatterLightSet(scene, rect, 1, 2);
 
   nraw = nrrdNew();
   cam = limnCameraNew();
@@ -83,7 +119,7 @@ main(int argc, char **argv) {
   airMopAdd(mop, parm, (airMopper)echoRTParmNix, airMopAlways);
   airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
 
-  ELL_3V_SET(cam->from, 10, 10, 10);
+  ELL_3V_SET(cam->from, 20, 20, 20);
   ELL_3V_SET(cam->at, 0, 0, 0);
   ELL_3V_SET(cam->up, 0, 0, 1);
   cam->neer = -2;
@@ -91,12 +127,12 @@ main(int argc, char **argv) {
   cam->faar = 2;
   cam->atRelative = AIR_TRUE;
   cam->rightHanded = AIR_TRUE;
-  cam->uRange[0] = -1.4;  cam->vRange[0] = -1.4;
-  cam->uRange[1] =  1.4;  cam->vRange[1] =  1.4;
+  cam->uRange[0] = -1.6;  cam->vRange[0] = -1.6;
+  cam->uRange[1] =  1.6;  cam->vRange[1] =  1.6;
   parm->imgResU = parm->imgResV = 300;
-  parm->numSamples = 16;
+  parm->numSamples = 100;
   parm->jitterType = echoJitterJitter;
-  parm->aperture = 0;
+  parm->aperture = 0.0;
   parm->renderBoxes = AIR_FALSE;
 
   if (echoRTRender(nraw, cam, scene, parm, gstate)) {

@@ -111,7 +111,11 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     /* from, neer, shadow */
     shadRay.shadow = AIR_TRUE;
     ELL_3V_COPY(shadRay.from, intx->pos);
-    shadRay.neer = ECHO_EPSILON;
+    /* HEY: this has to be fixed: shadow rays were getting aborted
+       because of this in a scene of instanced superquadrics, and
+       so epsilon had to be increased.  Something about this epsilon
+       has to be adjusted according to the instancing matrix */
+    shadRay.neer = 30*ECHO_EPSILON;
   }
   
   /* set ambient (easy) */

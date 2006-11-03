@@ -337,7 +337,8 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
        root between t0 and t1 or t2, whichever one is associated with
        a smaller value */
     Tmin = t0;
-    Tmax = v1 < v2 ? t1 : t2;  /* HEY: shouldn't I just be using whichever one is closer? */
+    /* HEY: shouldn't I just be using whichever one is closer? */
+    Tmax = v1 < v2 ? t1 : t2;
     Vmin = VAL(Tmin);
     Vmax = VAL(Tmax);
   }
@@ -379,10 +380,14 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
        we got screwed by numerical errors
        --> pretend that there was no intersection,
        and HEY this will have to be debugged later */
+    if (tstate->verbose) {
+      fprintf(stderr, "%s%s: SORRY, numerical problems!\n",
+              _echoDot(tstate->depth), me);
+    }
     return AIR_FALSE;
   }
 
-  /* else we succeedded in finding the intersection */
+  /* else we succeeded in finding the intersection */
   intx->t = TT + saveTmin;
   VALGRAD(VV, dV, TT);   /* puts gradient into grad */
   ELL_3V_NORM(intx->norm, grad, tmp);

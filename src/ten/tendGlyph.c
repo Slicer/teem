@@ -113,7 +113,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3], buvne[5], shadow;
-  int ires[2], slice[2], nobg;
+  int ires[2], slice[2], nobg, ambocc;
   unsigned int hackci, hacknumcam;
   size_t hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
   char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
@@ -252,12 +252,18 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
              "use a right-handed UVN frame (V points down)");
+  hestOptAdd(&hopt, "dn", "near clip", airTypeDouble, 1, 1, &(cam->neer), "-2",
+             "position of near clipping plane, relative to look-at point");
+  hestOptAdd(&hopt, "df", "far clip", airTypeDouble, 1, 1, &(cam->faar), "2",
+             "position of far clipping plane, relative to look-at point");
   hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
              "use orthogonal projection");
   hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
              "-1 1", "range in U direction of image plane");
   hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
              "-1 1", "range in V direction of image plane");
+  hestOptAdd(&hopt, "fv", "fov", airTypeDouble, 1, 1, &(cam->fov), "nan",
+             "if not NaN, vertical field-of-view, in degrees");
 
   /* postscript-specific options */
   hestOptAdd(&hopt, "gr", "glyph res", airTypeInt, 1, 1, &(gparm->facetRes),
@@ -298,6 +304,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Requires lots more samples \"-ns\" to converge.  Use "
              "brightness 0 (the default) to turn this off, and use "
              "environment map-based shading (\"-emap\") instead. ");
+  hestOptAdd(&hopt, "ao", NULL, airTypeInt, 0, 0, &ambocc, NULL,
+             "set up 6 area lights in a box to approximate "
+             "ambient occlusion");
   hestOptAdd(&hopt, "shadow", "s", airTypeFloat, 1, 1, &shadow, "1.0",
              "the extent to which shadowing occurs");
   hestOptAdd(&hopt, "hack", "hack", airTypeString, 1, 1, &hackFN, "",
@@ -324,7 +333,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (npos) {
-    fprintf(stderr, "!%s: hack: turning off onlyPositive\n", me);
+    fprintf(stderr, "!%s: have npos --> turning off onlyPositive \n", me);
     gparm->onlyPositive = AIR_FALSE;
   }
   
@@ -339,23 +348,27 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
+  if (AIR_EXISTS(cam->fov)) {
+    if (limnCameraAspectSet(cam, ires[0], ires[1], nrrdCenterCell)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with camera:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
+  cam->dist = 0;
+  cam->atRelative = AIR_TRUE;
+  if (limnCameraUpdate(cam)) {
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble with camera:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }
   if (doRT) {
     nraw = nrrdNew();
     airMopAdd(mop, nraw, (airMopper)nrrdNuke, airMopAlways);
     gstate = echoGlobalStateNew();
     airMopAdd(mop, gstate, (airMopper)echoGlobalStateNix, airMopAlways);
-    cam->neer = -2;
-    cam->dist = 0;
-    cam->faar = 2;
-    cam->atRelative = AIR_TRUE;
     eparm->shadow = shadow;
     if (buvne[0] > 0) {
-
-      if (limnCameraUpdate(cam)) {
-        airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble with camera:\n%s\n", me, err);
-        airMopError(mop); return 1;
-      }
       ELL_34M_EXTRACT(v2w, cam->V2W);
       ELL_3MV_MUL(ldir, v2w, buvne+1);
       ell_3v_perp_d(edir, ldir);
@@ -373,6 +386,57 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       echoColorSet(rect, 1, 1, 1, 1);
       echoMatterLightSet(scene, rect, buvne[0], 0);
       echoObjectAdd(scene, rect);
+    }
+    if (ambocc) {
+      double eye[3], llen;
+      ELL_3V_SUB(eye, cam->from, cam->at);
+      llen = 4*ELL_3V_LEN(eye);
+
+      ELL_3V_COPY(corn, cam->at);
+      corn[0] -= llen/2;
+      corn[1] -= llen/2;
+      corn[2] -= llen/2;
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       llen, 0, 0,       0, llen, 0);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       0, 0, llen,       llen, 0, 0);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       0, llen, 0,      0, 0, llen);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+
+      corn[0] += llen/2;
+      corn[1] += llen/2;
+      corn[2] += llen/2;
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       0, -llen, 0,         -llen, 0, 0);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       -llen, 0, 0,        0, 0, -llen);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+      rect = echoObjectNew(scene, echoTypeRectangle);
+      echoRectangleSet(rect, corn[0], corn[1], corn[2],
+                       0, 0, -llen,      0, -llen, 0);
+      echoColorSet(rect, 1, 1, 1, 1);
+      echoMatterLightSet(scene, rect, 1, llen);
+      echoObjectAdd(scene, rect);
+      
     }
     eparm->imgResU = ires[0];
     eparm->imgResV = ires[1];
@@ -472,9 +536,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     airMopAdd(mop, win->file, (airMopper)airFclose, airMopAlways);
     cam->neer = -0.000000001;
-    cam->dist = 0;
     cam->faar = 0.0000000001;
-    cam->atRelative = AIR_TRUE;
     win->ps.lineWidth[limnEdgeTypeBackFacet] = 0;
     win->ps.lineWidth[limnEdgeTypeBackCrease] = 0;
     win->ps.lineWidth[limnEdgeTypeContour] = gparm->edgeWidth[0];
