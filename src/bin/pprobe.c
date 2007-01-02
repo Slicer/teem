@@ -51,25 +51,42 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   kindP = (gageKind **)ptr;
   airToLower(str);
-  if (!strcmp("scalar", str)) {
+  if (!strcmp(gageKindScl->name, str)) {
     *kindP = gageKindScl;
-  } else if (!strcmp("vector", str)) {
+  } else if (!strcmp(gageKindVec->name, str)) {
     *kindP = gageKindVec;
-  } else if (!strcmp("tensor", str)) {
+  } else if (!strcmp(tenGageKind->name, str)) {
     *kindP = tenGageKind;
+  } else if (!strcmp(TEN_DWI_GAGE_KIND_NAME, str)) {
+    *kindP = tenDwiGageKindNew();
   } else {
-    sprintf(err, "%s: not \"scalar\", \"vector\", or \"tensor\"", me);
+    sprintf(err, "%s: not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
+            gageKindScl->name, gageKindVec->name,
+            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
     return 1;
   }
 
   return 0;
 }
 
+void *
+probeParseKindDestroy(void *ptr) {
+  gageKind *kind;
+  
+  if (ptr) {
+    kind = AIR_CAST(gageKind *, ptr);
+    if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
+      tenDwiGageKindNix(kind);
+    }
+  }
+  return NULL;
+}
+
 hestCB probeKindHestCB = {
   sizeof(gageKind *),
   "kind",
   probeParseKind,
-  NULL
+  probeParseKindDestroy
 }; 
 
 void
@@ -97,12 +114,16 @@ main(int argc, char *argv[]) {
   NrrdKernelSpec *k00, *k11, *k22;
   float pos[3];
   double gmc;
-  int what, ansLen, E=0, iBaseDim, renorm;
+  int what, ansLen, E=0, renorm;
   const double *answer, *answer2;
   Nrrd *nin;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
   airArray *mop;
+
+  Nrrd *ngrad=NULL, *nbmat=NULL;
+  double bval;
+  unsigned int *skip, skipNum;
 
   mop = airMopNew();
   me = argv[0];
@@ -150,11 +171,28 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
+  /* special set-up required for DWI kind */
+  if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
+    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, nin)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    if (skipNum) {
+      fprintf(stderr, "%s: sorry, can't do DWI skipping in tenDwiGage", me);
+      airMopError(mop); return 1;
+    }
+    /* this could stand to use some more command-line arguments */
+    if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat,
+                          tenEstimate1MethodLLS,
+                          tenEstimate2MethodQSegLLS)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
+
   ansLen = kind->table[what].answerLength;
-  iBaseDim = kind->baseDim;
-  nin->axis[0+iBaseDim].spacing = SPACING(nin->axis[0+iBaseDim].spacing);
-  nin->axis[1+iBaseDim].spacing = SPACING(nin->axis[1+iBaseDim].spacing);
-  nin->axis[2+iBaseDim].spacing = SPACING(nin->axis[2+iBaseDim].spacing);
 
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
