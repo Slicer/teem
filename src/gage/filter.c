@@ -151,8 +151,8 @@ _gageFwSet(gageContext *ctx) {
       continue;
     }
     /* we evaluate weights for all three axes with one call */
-    ctx->ksp[i]->kernel->evalN_d(ctx->fw + 3*fd*i, ctx->fsl,
-                                 3*fd, ctx->ksp[i]->parm);
+    ctx->ksp[i]->kernel->evalN_d(ctx->fw + fd*3*i, ctx->fsl,
+                                 fd*3, ctx->ksp[i]->parm);
   }
 
   if (ctx->verbose > 1) {
