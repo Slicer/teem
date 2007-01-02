@@ -40,16 +40,18 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   kindP = (gageKind **)ptr;
   airToLower(str);
-  if (!strcmp("scalar", str)) {
+  if (!strcmp(gageKindScl->name, str)) {
     *kindP = gageKindScl;
-  } else if (!strcmp("vector", str)) {
+  } else if (!strcmp(gageKindVec->name, str)) {
     *kindP = gageKindVec;
-  } else if (!strcmp("tensor", str)) {
+  } else if (!strcmp(tenGageKind->name, str)) {
     *kindP = tenGageKind;
-  } else if (!strcmp("dwi", str)) {
+  } else if (!strcmp(TEN_DWI_GAGE_KIND_NAME, str)) {
     *kindP = tenDwiGageKindNew();
   } else {
-    sprintf(err, "%s: not \"scalar\", \"vector\", \"tensor\", or \"dwi\"", me);
+    sprintf(err, "%s: not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
+            gageKindScl->name, gageKindVec->name,
+            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
     return 1;
   }
 
@@ -91,7 +93,6 @@ main(int argc, char *argv[]) {
   int what, E=0, otype, renorm, hackSet;
   unsigned int iBaseDim, oBaseDim, axi;
   const double *answer;
-  const char *key=NULL;
   Nrrd *nin, *nout;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
@@ -100,7 +101,7 @@ main(int argc, char *argv[]) {
   gagePerVolume *pvl;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
-  unsigned int hackZi, *skip, skipNum, skipIdx;
+  unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
 
   mop = airMopNew();
@@ -145,9 +146,9 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestParseFree), airMopAlways);
 
+
   what = airEnumVal(kind->enm, whatS);
-  if (-1 == what) {
-    /* -1 indeed always means "unknown" for any gageKind */
+  if (!what) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
             me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
@@ -158,40 +159,21 @@ main(int argc, char *argv[]) {
 
   /* special set-up required for DWI kind */
   if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
-    tenDwiGageKindData *kindData;
-
-    kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, nin)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-    if (!E) tenEstimateVerboseSet(kindData->tec, AIR_TRUE);
-    if (!E) tenEstimateNegEvalShiftSet(kindData->tec, AIR_TRUE);
-    if (!E) E |= tenEstimateMethodSet(kindData->tec, tenEstimateMethodLLS);
-    if (!E) E |= tenEstimateValueMinSet(kindData->tec, 1.0);
-    if (ngrad) {
-      if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval, 
-					   AIR_FALSE);
-      tenDwiGageKindNumSet(kind, ngrad->axis[1].size);
-      kindData->ngrad = nrrdNew();
-      nrrdCopy(kindData->ngrad, ngrad);
-      if (!E) airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
-    } else {
-      if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval,
-					   AIR_FALSE);
-      tenDwiGageKindNumSet(kind, nbmat->axis[1].size);
-      kindData->ngrad = NULL;
-      if (!E) airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
+    if (skipNum) {
+      fprintf(stderr, "%s: sorry, can't do DWI skipping in tenDwiGage", me);
+      airMopError(mop); return 1;
     }
-    for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
-      if (!E) E |= tenEstimateSkipSet(kindData->tec, skip[skipIdx], AIR_TRUE);
-    }
-    /* HEY: HACK */
-    if (!E) E |= tenEstimateThresholdSet(kindData->tec, 50, 1);
-    if (E) {
-      airMopAdd(mop, err = biffGetDone(key), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble setting grad/bmat info:\n%s\n", me, err);
+    /* this could stand to use some more command-line arguments */
+    if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat,
+                          tenEstimate1MethodLLS,
+                          tenEstimate2MethodQSegLLS)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
   }
@@ -300,12 +282,18 @@ main(int argc, char *argv[]) {
     z = AIR_AFFINE(min[2], zi, maxOut[2], min[2], maxIn[2]);
     for (yi=0; yi<soy; yi++) {
       y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
-      for (xi=0; xi<sox; xi++) {
-        x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         /*
-        fprintf(stderr, " (%u, %u)", AIR_CAST(unsigned int, xi),
-                AIR_CAST(unsigned int, yi)); fflush(stderr);
+        fprintf(stderr, " (%u, %u)", 
+                AIR_CAST(unsigned int, yi), AIR_CAST(unsigned int, zi));
+        fflush(stderr);
         */
+      for (xi=0; xi<sox; xi++) {
+        /*
+        fprintf(stderr, " (%u, %u, %u)", AIR_CAST(unsigned int, xi),
+                AIR_CAST(unsigned int, yi), AIR_CAST(unsigned int, zi));
+        fflush(stderr);
+        */
+        x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*( (!xi && !yi && !zi) ||
                            /* ((100 == xi) && (8 == yi) && (8 == zi)) */
