@@ -29,6 +29,7 @@
 char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
               "to just CR), or, with the \"-r\" option, convert back to DOS, "
               "for whatever sick and twisted reason you'd have to do that. "
+              "Can also handle legacy MAC text files (only LF). "
               "Unlike the simple sed or perl scripts for this purpose, "
               "this program is careful to be idempotent.  Also, this makes "
               "an effort to not meddle with binary files (on which this may "
@@ -45,7 +46,8 @@ typedef union {
 } _undosU;
 
 void
-undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
+undosConvert(char *me, char *name, int reverse, int mac,
+             int quiet, int noAction) {
   airArray *mop;
   FILE *fin, *fout;
   char *data=NULL;
@@ -122,16 +124,30 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
     willConvert = AIR_TRUE;
   } else if (reverse) {
     for (ci=0; ci<dataArr->len; ci++) {
-      if (CR == data[ci] && (ci && LF != data[ci-1])) {
-        willConvert = AIR_TRUE;
-        break;
+      if (mac) {
+        if (CR == data[ci]) {
+          willConvert = AIR_TRUE;
+          break;
+        }
+      } else {
+        if (CR == data[ci] && (ci && LF != data[ci-1])) {
+          willConvert = AIR_TRUE;
+          break;
+        }
       }
     }
   } else {
     for (ci=0; ci<dataArr->len; ci++) {
-      if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
-        willConvert = AIR_TRUE;
-        break;
+      if (mac) {
+        if (LF == data[ci]) {
+          willConvert = AIR_TRUE;
+          break;
+        }
+      } else {
+        if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
+          willConvert = AIR_TRUE;
+          break;
+        }
       }
     }
   }
@@ -141,10 +157,11 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
     return;
   } else {
     if (!quiet) {
-      fprintf(stderr, "%s: %s \"%s\" %s DOS ... \n", me, 
+      fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me, 
               noAction ? "would convert" : "converting",
               name,
-              reverse ? "to" : "from");
+              reverse ? "to" : "from",
+              mac ? "MAC" : "DOS");
     }
   }
   if (noAction) {
@@ -171,9 +188,10 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
   car = 'a';
   if (reverse) {
     for (ci=0; ci<dataArr->len; ci++) {
-      if (CR == data[ci] && (ci && LF != data[ci-1])) {
+      if ((mac && CR == data[ci])
+          || (CR == data[ci] && (ci && LF != data[ci-1]))) {
         car = putc(LF, fout);
-        if (EOF != car) {
+        if (!mac && EOF != car) {
           car = putc(CR, fout);
         }
       } else {
@@ -182,9 +200,10 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
     }
   } else {
     for (ci=0; EOF != car && ci<dataArr->len; ci++) {
-      if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
+      if ((mac && LF == data[ci])
+          || (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1]))) {
         car = putc(CR, fout);
-        ci++;
+        ci += !mac;
       } else {
         car = putc(data[ci], fout);
       }
@@ -205,7 +224,7 @@ undosConvert(char *me, char *name, int reverse, int quiet, int noAction) {
 int
 main(int argc, char *argv[]) {
   char *me, **name;
-  int lenName, ni, reverse, quiet, noAction;
+  int lenName, ni, reverse, quiet, noAction, mac;
   hestOpt *hopt = NULL;
   airArray *mop;
 
@@ -214,6 +233,8 @@ main(int argc, char *argv[]) {
              "convert back to DOS, instead of converting from DOS to normal");
   hestOptAdd(&hopt, "q", NULL, airTypeInt, 0, 0, &quiet, NULL,
              "never print anything to stderr, even for errors.");
+  hestOptAdd(&hopt, "m", NULL, airTypeInt, 0, 0, &mac, NULL,
+             "deal with legacy MAC text files.");
   hestOptAdd(&hopt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
              "don't actually write converted files, just pretend to. "
              "This is useful to see which files WOULD be converted. ");
@@ -228,7 +249,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni=0; ni<lenName; ni++) {
-    undosConvert(me, name[ni], reverse, quiet, noAction);
+    undosConvert(me, name[ni], reverse, mac, quiet, noAction);
   }
   
   airMopOkay(mop);
