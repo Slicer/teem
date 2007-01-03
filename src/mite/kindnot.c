@@ -138,31 +138,32 @@ miteVal = &_miteVal;
 */
 gageItemEntry
 _miteValTable[MITE_VAL_ITEM_MAX+1] = {
-  /* enum value        len,deriv,  prereqs,                                       parent item, index, needData*/
-  {miteValXw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValXi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValYw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValYi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValZw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValZi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValRw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValRi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValTw,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValTi,            1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValView,          3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValNormal,        3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValNdotV,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValNdotL,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValVrefN,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValGTdotV,        1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValVdefT,         3,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValVdefTdotV,     1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0},
-  {miteValWdotD,         1,  0,  {-1, -1, -1, -1, -1},                                    -1,   -1,    0}
+  /* enum value        len,deriv, prereqs,  parent item, index, needData*/
+  {miteValXw,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValXi,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValYw,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValYi,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValZw,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValZi,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValRw,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValRi,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValTw,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValTi,            1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValView,          3,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValNormal,        3,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValNdotV,         1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValNdotL,         1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValVrefN,         3,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValGTdotV,        1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValVdefT,         3,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValVdefTdotV,     1,  0,   {},               0,   0,     AIR_FALSE},
+  {miteValWdotD,         1,  0,   {},               0,   0,     AIR_FALSE}
 };
 
 
 gageKind
 _miteValGageKind = {
+  AIR_FALSE,
   "mite",
   &_miteVal,
   0,
