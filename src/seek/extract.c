@@ -26,7 +26,7 @@
 typedef struct {
   int evti[12];  /* edge vertex index */
   double (*scllup)(const void *, size_t);
-  unsigned int esIdx[2],  /* eigensystem index */
+  unsigned int esIdx,  /* eigensystem index */
     zi;     /* slice index we're currently on */
   int modeSign;
   const void *scldata;
@@ -60,24 +60,12 @@ baggageNew(seekContext *sctx) {
 
   switch (sctx->type) {
   case seekTypeRidgeSurface:
-    bag->esIdx[0] = 2;
-    bag->esIdx[1] = UINT_MAX;
+    bag->esIdx = 2;
     bag->modeSign = -1;
     break;
   case seekTypeValleySurface:
-    bag->esIdx[0] = 0;
-    bag->esIdx[1] = UINT_MAX;
+    bag->esIdx = 0;
     bag->modeSign = +1;
-    break;
-  case seekTypeRidgeLine:
-    bag->esIdx[0] = 2;
-    bag->esIdx[1] = 1;
-    bag->modeSign = +1;
-    break;
-  case seekTypeValleyLine:
-    bag->esIdx[0] = 0;
-    bag->esIdx[1] = 1;
-    bag->modeSign = -1;
     break;
   default:
     /* sprintf(err, "%s: feature type %s not handled", me,
@@ -85,8 +73,7 @@ baggageNew(seekContext *sctx) {
     biffAdd(SEEK, err); return 1;
     */
     /* without biff, we get as nasty as possible */
-    bag->esIdx[0] = UINT_MAX;
-    bag->esIdx[1] = UINT_MAX;
+    bag->esIdx = UINT_MAX;
     bag->modeSign = 0;
     break;
   }
@@ -233,11 +220,10 @@ idxProbe(seekContext *sctx, baggage *bag, double xi, double yi, double zi) {
 static int
 evecFlipProbe(seekContext *sctx, baggage *bag,
               signed char *flip,  /* OUTPUT HERE */
-              unsigned int esIdxIdx,
               unsigned int xi, unsigned int yi, unsigned int ziOff,
               unsigned int dx, unsigned int dy, unsigned int dz) {
   char me[]="evecFlipProbe", err[BIFF_STRLEN];
-  unsigned int sx, sy, sz, si, esIdx;
+  unsigned int sx, sy, sz, si;
   double stngA, stngB, u, du, dot, strength, wantDot, minDu, mode;
   double current[3], next[3], posNext[3], posA[3], posB[3], evecA[3], evecB[3];
 
@@ -245,16 +231,13 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   sy = AIR_CAST(unsigned int, sctx->sy);
   sz = AIR_CAST(unsigned int, sctx->sz);
   si = xi + sx*yi;
-  esIdx = bag->esIdx[esIdxIdx];
 
   if (!(xi + dx < sx
         && yi + dy < sy
         && bag->zi + ziOff + dz < sz)) {
-    sprintf(err, "%s: point (%u+%u,%u+%u,%u+%u+%u) !< (%u,%u,%u)", me,
-            xi, dx, yi, dy, bag->zi, ziOff, dz, sx, sy, sz);
     /* the edge we're being asked about is outside the volume */
     *flip = 0;
-    biffAdd(SEEK, err); return 1;
+    return 0;
   }
 
   if (sctx->strengthUse) {
@@ -262,10 +245,6 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
     stngB = sctx->stng[ziOff+dz + 2*(xi+dx + sx*(yi+dy))];
     if (!( stngA > sctx->strengthMin && stngB > sctx->strengthMin )) {
       *flip = 0;
-      /*
-      fprintf(stderr, "!%s: stng ends %g %g <= min %g\n", me, 
-              stngA, stngB, sctx->strengthMin);
-      */
       return 0;
     }
   } else {
@@ -278,14 +257,14 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   ELL_3V_SET(posA, xi, yi, bag->zi+ziOff);
   ELL_3V_SET(posB, xi+dx, yi+dy, bag->zi+ziOff+dz);
   ELL_3V_COPY(evecA, sctx->evec 
-              + 3*(esIdx + 3*(ziOff    + 2*(xi    + sx*yi))));
+              + 3*(bag->esIdx + 3*(ziOff    + 2*(xi    + sx*yi))));
   ELL_3V_COPY(evecB, sctx->evec
-              + 3*(esIdx + 3*(ziOff+dz + 2*(xi+dx + sx*(yi+dy)))));
+              + 3*(bag->esIdx + 3*(ziOff+dz + 2*(xi+dx + sx*(yi+dy)))));
 
 #define SETNEXT(uu) \
   ELL_3V_SCALE_ADD2(posNext, 1.0-(uu), posA, (uu), posB); \
   idxProbe(sctx, bag, posNext[0], posNext[1], posNext[2]); \
-  ELL_3V_COPY(next, sctx->evecAns + 3*esIdx); \
+  ELL_3V_COPY(next, sctx->evecAns + 3*bag->esIdx); \
   if (ELL_3V_DOT(current, next) < 0) { \
     ELL_3V_SCALE(next, -1, next); \
   } \
@@ -307,10 +286,6 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
     if (sctx->strengthUse && strength < sctx->strengthMin) {
       /* sorry, strength got too weak along this edge */
       *flip = 0;
-      /*
-      fprintf(stderr, "!%s: stng mid %g <= min %g\n", me, 
-              strength, sctx->strengthMin);
-      */
       return 0;
     }
     if (mode < -0.75) {
@@ -344,9 +319,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   SETNEXT(u);
   if (dot < wantDot) {
     sprintf(err, "%s: confused at end of edge", me);
-    /* biffAdd(SEEK, err); return 1; */
-    fprintf(stderr, "%s\n", err);
-    *flip = 0;
+    biffAdd(SEEK, err); return 1;
   }
   ELL_3V_COPY(current, next);
 
@@ -363,83 +336,53 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
 /*
 ** !!! this has to be done as a separate second pass because of how
 ** !!! the flip quantities correspond to the edges between voxels
+**
+** I backed out of an effort to track two eigenvectors at once...
 */
 static int
-evecFlipShuffleProbe(seekContext *sctx, baggage *bag,
-                     unsigned int esIdxIdx) {
+evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
   char me[]="evecFlipShuffleProbe", err[BIFF_STRLEN];
-  unsigned int xi, yi, sx, sy, sz, si;
+  unsigned int xi, yi, sx, sy, si;
   signed char flipA, flipB, flipC;
-  int ret;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
   sy = AIR_CAST(unsigned int, sctx->sy);
-  sz = AIR_CAST(unsigned int, sctx->sz);
 
   /* NOTE: these have to go all the way to sy-1 and sx-1, instead of
-     sy-2 and sx-2 (like shuffleProbe() below) because of the need to set the
-     flips on the edges at the positive X and Y volume boundary. We do checks
-     here to make sure that we're not probing outside the volume */
+     sy-2 and sx-2 (like shuffleProbe() below) because of the need to
+     set the flips on the edges at the positive X and Y volume
+     boundary.  The necessary bounds checking happens in
+     evecFlipProbe(): messy, I know */
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
       /* ================================================= */
       if (!bag->zi) {
         /* ----------------- set/probe top of initial slab */
-        ret = 0;
-        if (xi + 1 < sx) {
-          ret |= evecFlipProbe(sctx, bag, &flipA, esIdxIdx,
-                               xi, yi, 0, 1, 0, 0);
-        }
-        if (yi + 1 < sy) {
-          ret |= evecFlipProbe(sctx, bag, &flipB, esIdxIdx,
-                               xi, yi, 0, 0, 1, 0);
-        }
-        if (ret) {
+        if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 1, 0, 0)
+            || evecFlipProbe(sctx, bag, &flipB, xi, yi, 0, 0, 1, 0)) {
           sprintf(err, "%s: problem at (xi,yi) = (%u,%u), zi=0", me, xi, yi);
           biffAdd(SEEK, err); return 1;
         }
-        sctx->flip[esIdxIdx + 2*(0 + 5*si)] = flipA;
-        sctx->flip[esIdxIdx + 2*(1 + 5*si)] = flipB;
+        sctx->flip[0 + 5*si] = flipA;
+        sctx->flip[1 + 5*si] = flipB;
       } else {
         /* ------------------- shuffle to top from bottom of slab */
-        sctx->flip[esIdxIdx + 2*(0 + 5*si)] = 
-          sctx->flip[esIdxIdx + 2*(3 + 5*si)];
-        sctx->flip[esIdxIdx + 2*(1 + 5*si)] = 
-          sctx->flip[esIdxIdx + 2*(4 + 5*si)];
+        sctx->flip[0 + 5*si] = sctx->flip[3 + 5*si];
+        sctx->flip[1 + 5*si] = sctx->flip[4 + 5*si];
       }
       /* ----------------------- set/probe bottom of slab */
-      ret = 0;
-      if (bag->zi + 0 + 1 < sz) {
-        ret |= evecFlipProbe(sctx, bag, &flipA, esIdxIdx,
-                             xi, yi, 0, 0, 0, 1);
-      }
-      if (xi + 1 < sx) {
-        ret |= evecFlipProbe(sctx, bag, &flipB, esIdxIdx,
-                             xi, yi, 1, 1, 0, 0);
-      }
-      if (yi + 1 < sy) {
-        ret |= evecFlipProbe(sctx, bag, &flipC, esIdxIdx,
-                             xi, yi, 1, 0, 1, 0);
-      }
-      if (ret) {
+      if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 0, 0, 1)
+          || evecFlipProbe(sctx, bag, &flipB, xi, yi, 1, 1, 0, 0)
+          || evecFlipProbe(sctx, bag, &flipC, xi, yi, 1, 0, 1, 0)) {
         sprintf(err, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
                 xi, yi, bag->zi);
         biffAdd(SEEK, err); return 1;
       }
-      sctx->flip[esIdxIdx + 2*(2 + 5*si)] = flipA;
-      sctx->flip[esIdxIdx + 2*(3 + 5*si)] = flipB;
-      sctx->flip[esIdxIdx + 2*(4 + 5*si)] = flipC;
+      sctx->flip[2 + 5*si] = flipA;
+      sctx->flip[3 + 5*si] = flipB;
+      sctx->flip[4 + 5*si] = flipC;
       /* ================================================= */
-      /*
-      fprintf(stderr, "!%s(%u): (%u,%u): %d %d %d %d %d\n", me,
-              bag->zi, xi, yi,
-              sctx->flip[esIdxIdx + 2*(0 + 5*si)],
-              sctx->flip[esIdxIdx + 2*(1 + 5*si)],
-              sctx->flip[esIdxIdx + 2*(2 + 5*si)],
-              sctx->flip[esIdxIdx + 2*(3 + 5*si)],
-              sctx->flip[esIdxIdx + 2*(4 + 5*si)]);
-      */
     }
   }
 
@@ -456,7 +399,6 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
 
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
-      /* fprintf(stderr, "!%s(%u): %u %u\n", me, bag->zi, xi, yi); */
       si = xi + sx*yi;
       spi = (xi+1) + (sx+2)*(yi+1);
       /* ================================================= */
@@ -486,8 +428,6 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
           break;
         case seekTypeRidgeSurface:
         case seekTypeValleySurface:
-        case seekTypeRidgeLine:
-        case seekTypeValleyLine:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->gradAns);
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->evalAns);
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evecAns);
@@ -508,34 +448,12 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
           break;
         case seekTypeRidgeSurface:
         case seekTypeValleySurface:
-        case seekTypeRidgeLine:
-        case seekTypeValleyLine:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->grad + 3*(1 + 2*si));
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->eval + 3*(1 + 2*si));
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evec + 9*(1 + 2*si));
           break;
         }
       }
-      /*
-          fprintf(stderr, "!%s: grad = %g %g %g\n", me,
-                  (sctx->grad + 3*(0 + 2*si))[0],
-                  (sctx->grad + 3*(0 + 2*si))[1],
-                  (sctx->grad + 3*(0 + 2*si))[2]);
-          fprintf(stderr, "!%s: eval = %g %g %g\n", me,
-                  (sctx->eval + 3*(0 + 2*si))[0],
-                  (sctx->eval + 3*(0 + 2*si))[1],
-                  (sctx->eval + 3*(0 + 2*si))[2]);
-          fprintf(stderr, "!%s: evec = (%g %g %g) (%g %g %g) (%g %g %g)\n", me,
-                  (sctx->evec + 9*(0 + 2*si))[0],
-                  (sctx->evec + 9*(0 + 2*si))[1],
-                  (sctx->evec + 9*(0 + 2*si))[2],
-                  (sctx->evec + 9*(0 + 2*si))[3],
-                  (sctx->evec + 9*(0 + 2*si))[4],
-                  (sctx->evec + 9*(0 + 2*si))[5],
-                  (sctx->evec + 9*(0 + 2*si))[6],
-                  (sctx->evec + 9*(0 + 2*si))[7],
-                  (sctx->evec + 9*(0 + 2*si))[8]);
-      */
       /* ----------------------- set/probe bottom of slab */
       sctx->vidx[2 + 5*si] = -1;
       sctx->vidx[3 + 5*si] = -1;
@@ -555,33 +473,11 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         break;
       case seekTypeRidgeSurface:
       case seekTypeValleySurface:
-      case seekTypeRidgeLine:
-      case seekTypeValleyLine:
         ELL_3V_COPY(sctx->grad + 3*(1 + 2*si), sctx->gradAns);
         ELL_3V_COPY(sctx->eval + 3*(1 + 2*si), sctx->evalAns);
         ELL_3M_COPY(sctx->evec + 9*(1 + 2*si), sctx->evecAns);
         break;
       }
-      /*
-          fprintf(stderr, "!%s: grad = %g %g %g\n", me,
-                  (sctx->grad + 3*(1 + 2*si))[0],
-                  (sctx->grad + 3*(1 + 2*si))[1],
-                  (sctx->grad + 3*(1 + 2*si))[2]);
-          fprintf(stderr, "!%s: eval = %g %g %g\n", me,
-                  (sctx->eval + 3*(1 + 2*si))[0],
-                  (sctx->eval + 3*(1 + 2*si))[1],
-                  (sctx->eval + 3*(1 + 2*si))[2]);
-          fprintf(stderr, "!%s: evec = (%g %g %g) (%g %g %g) (%g %g %g)\n", me,
-                  (sctx->evec + 9*(1 + 2*si))[0],
-                  (sctx->evec + 9*(1 + 2*si))[1],
-                  (sctx->evec + 9*(1 + 2*si))[2],
-                  (sctx->evec + 9*(1 + 2*si))[3],
-                  (sctx->evec + 9*(1 + 2*si))[4],
-                  (sctx->evec + 9*(1 + 2*si))[5],
-                  (sctx->evec + 9*(1 + 2*si))[6],
-                  (sctx->evec + 9*(1 + 2*si))[7],
-                  (sctx->evec + 9*(1 + 2*si))[8]);
-      */
       /* ================================================= */
     }
     /* copy ends of this scanline left/right to margin */
@@ -604,14 +500,10 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
 
   /* this is done as a separate pass because it looks at values between
      voxels (so its indexing is not trivial to fold into loops above) */
-  if (evecFlipShuffleProbe(sctx, bag, 0)) {
-    sprintf(err, "%s: trouble (0) at zi=%u\n", me, bag->zi);
-    biffAdd(SEEK, err); return 1;
-  }
-  if (seekTypeRidgeLine == sctx->type
-      || seekTypeValleyLine == sctx->type) {
-    if (evecFlipShuffleProbe(sctx, bag, 1)) {
-      sprintf(err, "%s: trouble (1) at zi=%u\n", me, bag->zi);
+  if (seekTypeRidgeSurface == sctx->type
+      || seekTypeValleySurface == sctx->type) {
+    if (evecFlipShuffleProbe(sctx, bag)) {
+      sprintf(err, "%s: trouble at zi=%u\n", me, bag->zi);
       biffAdd(SEEK, err); return 1;
     }
   }
@@ -703,19 +595,16 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
 
 
 static void
-vvalCreaseSet(seekContext *sctx, baggage *bag, double vval[8],
-              unsigned int esIdxIdx,
-              unsigned int xi, unsigned int yi) {
-  /* char me[]="vvalCreaseSet"; */
+vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
+            unsigned int xi, unsigned int yi) {
+  /* char me[]="vvalSurfSet"; */
   double eval[8][3], evec[8][3], grad[8][3], stng[8], minStrength=0;
   signed char flip[12], flipProd;
-  unsigned int sx, sy, si, vi, ei, vrti[8], esIdx;
+  unsigned int sx, sy, si, vi, ei, vrti[8];
 
   sx = AIR_CAST(unsigned int, sctx->sx);
   sy = AIR_CAST(unsigned int, sctx->sy);
   si = xi + sx*yi;
-  esIdx = bag->esIdx[esIdxIdx];
-
   vrti[0] = 0 + 2*(xi + 0 + sx*(yi + 0));
   vrti[1] = 0 + 2*(xi + 1 + sx*(yi + 0));
   vrti[2] = 0 + 2*(xi + 0 + sx*(yi + 1));
@@ -727,7 +616,7 @@ vvalCreaseSet(seekContext *sctx, baggage *bag, double vval[8],
 
   for (vi=0; vi<8; vi++) {
     ELL_3V_COPY(grad[vi], sctx->grad + 3*vrti[vi]);
-    ELL_3V_COPY(evec[vi], sctx->evec + 3*(esIdx + 3*vrti[vi]));
+    ELL_3V_COPY(evec[vi], sctx->evec + 3*(bag->esIdx + 3*vrti[vi]));
     ELL_3V_COPY(eval[vi], sctx->eval + 3*vrti[vi]);
     if (sctx->strengthUse) {
       stng[vi] = sctx->stng[vrti[vi]];
@@ -740,7 +629,7 @@ vvalCreaseSet(seekContext *sctx, baggage *bag, double vval[8],
   }
   flipProd = 1;
   for (ei=0; ei<12; ei++) {
-    flip[ei] = sctx->flip[esIdxIdx + 2*(bag->evti[ei] + 5*si)];
+    flip[ei] = sctx->flip[bag->evti[ei] + 5*si];
     flipProd *= flip[ei];
   }
 
@@ -767,8 +656,8 @@ vvalCreaseSet(seekContext *sctx, baggage *bag, double vval[8],
 }
 
 static int
-featureContrib(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  /* char me[]="featureContrib"; */
+triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
+  /* char me[]="triangulate"; */
   unsigned xi, yi, sx, sy, si, spi;
   /* ========================================================== */
   /* NOTE: these things must agree with information in tables.c */
@@ -802,7 +691,7 @@ featureContrib(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   sy = AIR_CAST(unsigned int, sctx->sy);
 
   for (yi=0; yi<sy-1; yi++) {
-    double vval[2][8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
+    double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
     unsigned char vcase;
     int ti, vi, ei, vi0, vi1, ecase;
     const int *tcase;
@@ -812,32 +701,17 @@ featureContrib(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
       spi = (xi+1) + (sx+2)*(yi+1);
       switch (sctx->type) {
       case seekTypeIsocontour:
-        vvalIsoSet(sctx, bag, vval[0], xi, yi);
+        vvalIsoSet(sctx, bag, vval, xi, yi);
         break;
       case seekTypeRidgeSurface:
       case seekTypeValleySurface:
-        vvalCreaseSet(sctx, bag, vval[0], 0, xi, yi);
-        break;
-      case seekTypeRidgeLine:
-      case seekTypeValleyLine:
-        vvalCreaseSet(sctx, bag, vval[0], 0, xi, yi);
-        vvalCreaseSet(sctx, bag, vval[1], 1, xi, yi);
+        vvalSurfSet(sctx, bag, vval, xi, yi);
         break;
       }
       /* determine voxel and edge case */
-      if (seekTypeRidgeLine == sctx->type
-          || seekTypeValleyLine == sctx->type) {
-        vcase = 0;
-        for (vi=0; vi<8; vi++) {
-          vcase |= (vval[1][vi] > 0) << vi;
-        }
-        if (0 == vcase || 255 == vcase) {
-          continue;
-        }
-      }
       vcase = 0;
       for (vi=0; vi<8; vi++) {
-        vcase |= (vval[0][vi] > 0) << vi;
+        vcase |= (vval[vi] > 0) << vi;
       }
       if (0 == vcase || 255 == vcase) {
         /* no triangles added here */
@@ -861,7 +735,7 @@ featureContrib(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
              and, we haven't already created a vertex for it */
           vi0 = e2v[ei][0];
           vi1 = e2v[ei][1];
-          ww = vval[0][vi0]/(vval[0][vi0] - vval[0][vi1]);
+          ww = vval[vi0]/(vval[vi0] - vval[vi1]);
           ELL_3V_LERP(vert, ww, vccoord[vi0], vccoord[vi1]);
           ELL_4V_SET(tvertA, vert[0] + xi, vert[1] + yi, vert[2] + bag->zi, 1);
           ELL_4MV_MUL(tvertB, sctx->txfIdx, tvertA);
@@ -930,8 +804,8 @@ featureContrib(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 }
 
 static int
-featureExtract(seekContext *sctx, limnPolyData *lpld) {
-  char me[]="featureExtract", err[BIFF_STRLEN], done[AIR_STRLEN_SMALL];
+surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
+  char me[]="surfaceExtract", err[BIFF_STRLEN], done[AIR_STRLEN_SMALL];
   unsigned int zi, sz;
   baggage *bag;
 
@@ -954,7 +828,7 @@ featureExtract(seekContext *sctx, limnPolyData *lpld) {
     }
     bag->zi = zi;
     if (shuffleProbe(sctx, bag)
-        || featureContrib(sctx, bag, lpld)) {
+        || triangulate(sctx, bag, lpld)) {
       sprintf(err, "%s: trouble on zi = %u", me, zi);
       biffAdd(SEEK, err); return 1;
     }
@@ -1004,9 +878,7 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
   case seekTypeIsocontour:
   case seekTypeRidgeSurface:
   case seekTypeValleySurface:
-  case seekTypeRidgeLine:
-  case seekTypeValleyLine:
-    E = featureExtract(sctx, lpld);
+    E = surfaceExtract(sctx, lpld);
     break;
   default:
     sprintf(err, "%s: sorry, %s extraction not implemented", me,
