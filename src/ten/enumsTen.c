@@ -201,11 +201,16 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "omega hessian evec 2",
 
   "trace gradvec dot evec0",
-  "trace normal dot evec0",
+  "diffusionAngle(trace)",
+  "diffusionFraction(trace)",
   "FA gradvec dot evec0",
-  "FA normal dot evec0",
+  "diffusionAngle(FA)",
+  "diffusionFraction(FA)",
   "omega gradvec dot evec0",
-  "omega normal dot evec0",
+  "diffusionAngle(Omega)",
+  "diffusionFraction(Omega)",
+
+  "cov",
 
   "anisotropies"
 };
@@ -317,11 +322,15 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "omega hessian evec 1",
   "omega hessian evec 2",
   "trace gradvec dot evec0",
-  "trace normal dot evec0",
+  "diffusion angle of trace",
+  "diffusion fraction of trace",
   "FA gradvec dot evec0",
-  "FA normal dot evec0",
+  "diffusion angle of FA",
+  "diffusion fraction of FA",
   "omega gradvec dot evec0",
-  "omega normal dot evec0",
+  "diffusion angle of omega",
+  "diffusion fraction of omega",
+  "covariance",
   "anisotropies"
 };
 
@@ -432,11 +441,15 @@ _tenGageVal[] = {
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
   tenGageTraceGradVecDotEvec0,
-  tenGageTraceNormalDotEvec0,
+  tenGageTraceDiffusionAngle,
+  tenGageTraceDiffusionFraction,
   tenGageFAGradVecDotEvec0,
-  tenGageFANormalDotEvec0,
+  tenGageFADiffusionAngle,
+  tenGageFADiffusionFraction,
   tenGageOmegaGradVecDotEvec0,
-  tenGageOmegaNormalDotEvec0,
+  tenGageOmegaDiffusionAngle,
+  tenGageOmegaDiffusionFraction,
+  tenGageCovariance,
   tenGageAniso
 };
 
@@ -546,11 +559,15 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "omhessevec1",
   "omhessevec2",
   "trgvdotevec0",
-  "trndotevec0",
+  "datr",
+  "dftr",
   "fagvdotevec0",
-  "fandotevec0",
+  "dafa",
+  "dffa",
   "omgvdotevec0",
-  "omndotevec0",
+  "daom",
+  "dfom",
+  "cov",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -660,12 +677,21 @@ _tenGageValEqv[] = {
   tenGageOmegaHessianEvec0,
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
+
   tenGageTraceGradVecDotEvec0,
-  tenGageTraceNormalDotEvec0,
+  tenGageTraceDiffusionAngle,
+  tenGageTraceDiffusionFraction,
+
   tenGageFAGradVecDotEvec0,
-  tenGageFANormalDotEvec0,
+  tenGageFADiffusionAngle,
+  tenGageFADiffusionFraction,
+
   tenGageOmegaGradVecDotEvec0,
-  tenGageOmegaNormalDotEvec0,
+  tenGageOmegaDiffusionAngle,
+  tenGageOmegaDiffusionFraction,
+
+  tenGageCovariance,
+
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
@@ -890,3 +916,60 @@ _tenGlyphType = {
 airEnum *
 tenGlyphType = &_tenGlyphType;
 
+/* ---------------------------------------------- */
+
+char
+_tenEstimate1MethodStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenEstimate1Method)",
+  "LLS",
+  "WLS",
+  "NLS",
+  "MLE"
+};
+
+char
+_tenEstimate1MethodDesc[][AIR_STRLEN_MED] = {
+  "unknown tenEstimate1Method",
+  "linear least-squares fit of log(DWI)",
+  "weighted least-squares fit of log(DWI)",
+  "non-linear least-squares fit of DWI",
+  "maximum likelihood estimate from DWI"
+};
+
+airEnum
+_tenEstimate1Method = {
+  "single-tensor-estimation",
+  TEN_ESTIMATE_1_METHOD_MAX,
+  _tenEstimate1MethodStr, NULL,
+  _tenEstimate1MethodDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+tenEstimate1Method= &_tenEstimate1Method;
+
+/* ---------------------------------------------- */
+
+char
+_tenEstimate2MethodStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenEstimate2Method)",
+  "QSegLLS"
+};
+
+char
+_tenEstimate2MethodDesc[][AIR_STRLEN_MED] = {
+  "unknown tenEstimate2Method",
+  "Q-ball segmentation"
+};
+
+airEnum
+_tenEstimate2Method = {
+  "two-tensor-estimation",
+  TEN_ESTIMATE_2_METHOD_MAX,
+  _tenEstimate2MethodStr, NULL,
+  _tenEstimate2MethodDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+tenEstimate2Method= &_tenEstimate2Method;

@@ -25,143 +25,153 @@
 
 gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
-  /* enum value              len,deriv,  prereqs,                                                                    parent item, parent index, needData*/
-  {tenGageTensor,              7,  0,  {-1, -1, -1, -1, -1, -1},                                                              -1,        -1,    0},
-  {tenGageConfidence,          1,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                        tenGageTensor,         0,    0},
+  /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
+  {tenGageUnknown,                 0,  0,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageTensor,                  7,  0,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageConfidence,              1,  0,  {tenGageTensor},                                          tenGageTensor,        0,     AIR_FALSE},
 
-  {tenGageTrace,               1,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageB,                   1,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageDet,                 1,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageS,                   1,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageQ,                   1,  0,  {tenGageS, tenGageB, -1, -1, -1, -1},                                                  -1,        -1,    0},
-  {tenGageFA,                  1,  0,  {tenGageQ, tenGageS, -1, -1, -1, -1},                                                  -1,        -1,    0},
-  {tenGageR,                   1,  0,  {tenGageTrace, tenGageB, tenGageDet, tenGageS, -1, -1},                                -1,        -1,    0},
-  {tenGageMode,                1,  0,  {tenGageR, tenGageQ, -1, -1, -1, -1},                                                  -1,        -1,    0},
-  {tenGageTheta,               1,  0,  {tenGageMode, -1, -1, -1, -1, -1},                                                     -1,        -1,    0},
-  {tenGageModeWarp,            1,  0,  {tenGageMode, -1, -1, -1, -1, -1},                                                     -1,        -1,    0},
-  {tenGageOmega,               1,  0,  {tenGageFA, tenGageMode, -1, -1, -1, -1},                                              -1,        -1,    0},
+  {tenGageTrace,                   1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageB,                       1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageDet,                     1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageS,                       1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageQ,                       1,  0,  {tenGageS, tenGageB},                                                 0,        0,     AIR_FALSE},
+  {tenGageFA,                      1,  0,  {tenGageQ, tenGageS},                                                 0,        0,     AIR_FALSE},
+  {tenGageR,                       1,  0,  {tenGageTrace, tenGageB, tenGageDet, tenGageS},                       0,        0,     AIR_FALSE},
+  {tenGageMode,                    1,  0,  {tenGageR, tenGageQ},                                                 0,        0,     AIR_FALSE},
+  {tenGageTheta,                   1,  0,  {tenGageMode},                                                        0,        0,     AIR_FALSE},
+  {tenGageModeWarp,                1,  0,  {tenGageMode},                                                        0,        0,     AIR_FALSE},
+  {tenGageOmega,                   1,  0,  {tenGageFA, tenGageMode},                                             0,        0,     AIR_FALSE},
 
-  {tenGageEval,                3,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageEval0,               1,  0,  {tenGageEval, -1, -1, -1, -1, -1},                                            tenGageEval,         0,    0},
-  {tenGageEval1,               1,  0,  {tenGageEval, -1, -1, -1, -1, -1},                                            tenGageEval,         1,    0},
-  {tenGageEval2,               1,  0,  {tenGageEval, -1, -1, -1, -1, -1},                                            tenGageEval,         2,    0},
-  {tenGageEvec,                9,  0,  {tenGageTensor, -1, -1, -1, -1, -1},                                                   -1,        -1,    0},
-  {tenGageEvec0,               3,  0,  {tenGageEvec, -1, -1, -1, -1, -1},                                            tenGageEvec,         0,    0},
-  {tenGageEvec1,               3,  0,  {tenGageEvec, -1, -1, -1, -1, -1},                                            tenGageEvec,         3,    0},
-  {tenGageEvec2,               3,  0,  {tenGageEvec, -1, -1, -1, -1, -1},                                            tenGageEvec,         6,    0},
+  {tenGageEval,                    3,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageEval0,                   1,  0,  {tenGageEval},                                              tenGageEval,        0,     AIR_FALSE},
+  {tenGageEval1,                   1,  0,  {tenGageEval},                                              tenGageEval,        1,     AIR_FALSE},
+  {tenGageEval2,                   1,  0,  {tenGageEval},                                              tenGageEval,        2,     AIR_FALSE},
+  {tenGageEvec,                    9,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageEvec0,                   3,  0,  {tenGageEvec},                                              tenGageEvec,        0,     AIR_FALSE},
+  {tenGageEvec1,                   3,  0,  {tenGageEvec},                                              tenGageEvec,        3,     AIR_FALSE},
+  {tenGageEvec2,                   3,  0,  {tenGageEvec},                                              tenGageEvec,        6,     AIR_FALSE},
 
-  {tenGageTensorGrad,         21,  1,  {-1, -1, -1, -1, -1, -1},                                                              -1,        -1,    0},
-  {tenGageTensorGradMag,       3,  1,  {tenGageTensorGrad, -1, -1, -1, -1, -1},                                               -1,        -1,    0},
-  {tenGageTensorGradMagMag,    1,  1,  {tenGageTensorGradMag, -1, -1, -1, -1, -1},                                            -1,        -1,    0},
+  {tenGageTensorGrad,             21,  1,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageTensorGradMag,           3,  1,  {tenGageTensorGrad},                                                  0,        0,     AIR_FALSE},
+  {tenGageTensorGradMagMag,        1,  1,  {tenGageTensorGradMag},                                               0,        0,     AIR_FALSE},
 
-  {tenGageTraceGradVec,        3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageTraceGradMag,        1,  1,  {tenGageTraceGradVec, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
-  {tenGageTraceNormal,         3,  1,  {tenGageTraceGradVec, tenGageTraceGradMag, -1, -1, -1, -1},                            -1,        -1,    0},
+  {tenGageTraceGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
+  {tenGageTraceGradMag,            1,  1,  {tenGageTraceGradVec},                                                0,        0,     AIR_FALSE},
+  {tenGageTraceNormal,             3,  1,  {tenGageTraceGradVec, tenGageTraceGradMag},                           0,        0,     AIR_FALSE},
 
-  {tenGageBGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageBGradMag,            1,  1,  {tenGageBGradVec, -1, -1, -1, -1, -1},                                                 -1,        -1,    0},
-  {tenGageBNormal,             3,  1,  {tenGageBGradVec, tenGageBGradMag, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageBGradVec,                3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
+  {tenGageBGradMag,                1,  1,  {tenGageBGradVec},                                                    0,        0,     AIR_FALSE},
+  {tenGageBNormal,                 3,  1,  {tenGageBGradVec, tenGageBGradMag},                                   0,        0,     AIR_FALSE},
 
-  {tenGageDetGradVec,          3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageDetGradMag,          1,  1,  {tenGageDetGradVec, -1, -1, -1, -1, -1},                                               -1,        -1,    0},
-  {tenGageDetNormal,           3,  1,  {tenGageDetGradVec, tenGageDetGradMag, -1, -1, -1, -1},                                -1,        -1,    0},
+  {tenGageDetGradVec,              3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
+  {tenGageDetGradMag,              1,  1,  {tenGageDetGradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageDetNormal,               3,  1,  {tenGageDetGradVec, tenGageDetGradMag},                               0,        0,     AIR_FALSE},
 
-  {tenGageSGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageSGradMag,            1,  1,  {tenGageSGradVec, -1, -1, -1, -1, -1},                                                 -1,        -1,    0},
-  {tenGageSNormal,             3,  1,  {tenGageSGradVec, tenGageSGradMag, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageSGradVec,                3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
+  {tenGageSGradMag,                1,  1,  {tenGageSGradVec},                                                    0,        0,     AIR_FALSE},
+  {tenGageSNormal,                 3,  1,  {tenGageSGradVec, tenGageSGradMag},                                   0,        0,     AIR_FALSE},
 
-  {tenGageQGradVec,            3,  1,  {tenGageSGradVec, tenGageBGradVec, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageQGradMag,            1,  1,  {tenGageQGradVec, -1, -1, -1, -1, -1},                                                 -1,        -1,    0},
-  {tenGageQNormal,             3,  1,  {tenGageQGradVec, tenGageQGradMag, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageQGradVec,                3,  1,  {tenGageSGradVec, tenGageBGradVec},                                   0,        0,     AIR_FALSE},
+  {tenGageQGradMag,                1,  1,  {tenGageQGradVec},                                                    0,        0,     AIR_FALSE},
+  {tenGageQNormal,                 3,  1,  {tenGageQGradVec, tenGageQGradMag},                                   0,        0,     AIR_FALSE},
 
-  {tenGageFAGradVec,           3,  1,  {tenGageQGradVec, tenGageSGradVec, tenGageFA, -1, -1, -1},                             -1,        -1,    0},
-  {tenGageFAGradMag,           1,  1,  {tenGageFAGradVec, -1, -1, -1, -1, -1},                                                -1,        -1,    0},
-  {tenGageFANormal,            3,  1,  {tenGageFAGradVec, tenGageFAGradMag, -1, -1, -1, -1},                                  -1,        -1,    0},
+  {tenGageFAGradVec,               3,  1,  {tenGageQGradVec, tenGageSGradVec, tenGageFA},                        0,        0,     AIR_FALSE},
+  {tenGageFAGradMag,               1,  1,  {tenGageFAGradVec},                                                   0,        0,     AIR_FALSE},
+  {tenGageFANormal,                3,  1,  {tenGageFAGradVec, tenGageFAGradMag},                                 0,        0,     AIR_FALSE},
 
-  {tenGageRGradVec,            3,  1,  {tenGageR, tenGageTraceGradVec, tenGageBGradVec, tenGageDetGradVec, tenGageSGradVec, -1}, -1,     -1,    0},
-  {tenGageRGradMag,            1,  1,  {tenGageRGradVec, -1, -1, -1, -1, -1},                                                 -1,        -1,    0},
-  {tenGageRNormal,             3,  1,  {tenGageRGradVec, tenGageRGradMag, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageRGradVec,                3,  1,  {tenGageR, tenGageTraceGradVec, tenGageBGradVec,
+                                            tenGageDetGradVec, tenGageSGradVec},                                 0,        0,     AIR_FALSE},
+  {tenGageRGradMag,                1,  1,  {tenGageRGradVec},                                                    0,        0,     AIR_FALSE},
+  {tenGageRNormal,                 3,  1,  {tenGageRGradVec, tenGageRGradMag},                                   0,        0,     AIR_FALSE},
 
-  {tenGageModeGradVec,         3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageMode, -1, -1, -1},                           -1,        -1,    0},
-  {tenGageModeGradMag,         1,  1,  {tenGageModeGradVec, -1, -1, -1, -1, -1},                                              -1,        -1,    0},
-  {tenGageModeNormal,          3,  1,  {tenGageModeGradVec, tenGageModeGradMag, -1, -1, -1, -1},                              -1,        -1,    0},
+  {tenGageModeGradVec,             3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageMode},                      0,        0,     AIR_FALSE},
+  {tenGageModeGradMag,             1,  1,  {tenGageModeGradVec},                                                 0,        0,     AIR_FALSE},
+  {tenGageModeNormal,              3,  1,  {tenGageModeGradVec, tenGageModeGradMag},                             0,        0,     AIR_FALSE},
   
-  {tenGageThetaGradVec,        3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageTheta, -1, -1, -1},                          -1,        -1,    0},
-  {tenGageThetaGradMag,        1,  1,  {tenGageThetaGradVec, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
-  {tenGageThetaNormal,         3,  1,  {tenGageThetaGradVec, tenGageThetaGradMag, -1, -1, -1, -1},                            -1,        -1,    0},
+  {tenGageThetaGradVec,            3,  1,  {tenGageRGradVec, tenGageQGradVec, tenGageTheta},                     0,        0,     AIR_FALSE},
+  {tenGageThetaGradMag,            1,  1,  {tenGageThetaGradVec},                                                0,        0,     AIR_FALSE},
+  {tenGageThetaNormal,             3,  1,  {tenGageThetaGradVec, tenGageThetaGradMag},                           0,        0,     AIR_FALSE},
   
-  {tenGageOmegaGradVec,        3,  1,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec, -1, -1},                -1,        -1,    0},
-  {tenGageOmegaGradMag,        1,  1,  {tenGageOmegaGradVec, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
-  {tenGageOmegaNormal,         3,  1,  {tenGageOmegaGradVec, tenGageOmegaGradMag, -1, -1, -1, -1},                            -1,        -1,    0},
+  {tenGageOmegaGradVec,            3,  1,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec},       0,        0,     AIR_FALSE},
+  {tenGageOmegaGradMag,            1,  1,  {tenGageOmegaGradVec},                                                0,        0,     AIR_FALSE},
+  {tenGageOmegaNormal,             3,  1,  {tenGageOmegaGradVec, tenGageOmegaGradMag},                           0,        0,     AIR_FALSE},
   
-  {tenGageInvarGrads,          9,  1,  {tenGageTensor, tenGageTensorGrad, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageInvarGradMags,       3,  1,  {tenGageInvarGrads, -1, -1, -1, -1, -1},                                               -1,        -1,    0},
-  {tenGageRotTans,             9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec, -1, -1},                  -1,        -1,    0},
-  {tenGageRotTanMags,          3,  1,  {tenGageRotTans, -1, -1, -1, -1, -1},                                                  -1,        -1,    0},
+  {tenGageInvarGrads,              9,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
+  {tenGageInvarGradMags,           3,  1,  {tenGageInvarGrads},                                                  0,        0,     AIR_FALSE},
+  {tenGageRotTans,                 9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec},         0,        0,     AIR_FALSE},
+  {tenGageRotTanMags,              3,  1,  {tenGageRotTans},                                                     0,        0,     AIR_FALSE},
 
-  {tenGageEvalGrads,           9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec, -1, -1},                                 -1,        -1,    0},
+  {tenGageEvalGrads,               9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec},                        0,        0,     AIR_FALSE},
 
-  {tenGageCl1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
-  {tenGageCp1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
-  {tenGageCa1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
-  {tenGageCl2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
-  {tenGageCp2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
-  {tenGageCa2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2, -1, -1},                     -1,        -1,    0},
+  {tenGageCl1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageCp1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageCa1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageCl2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageCp2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageCa2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
 
-  {tenGageHessian,            63,  2,  {-1, -1, -1, -1, -1, -1},                                                              -1,        -1,    0},
-  {tenGageTraceHessian,        9,  2,  {tenGageHessian, -1, -1, -1, -1, -1},                                                  -1,        -1,    0},
-  {tenGageBHessian,            9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
-  {tenGageDetHessian,          9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
-  {tenGageSHessian,            9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian, -1, -1, -1},                        -1,        -1,    0},
-  {tenGageQHessian,            9,  2,  {tenGageBHessian, tenGageSHessian, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageHessian,                63,  2,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageTraceHessian,            9,  2,  {tenGageHessian},                                                     0,        0,     AIR_FALSE},
+  {tenGageBHessian,                9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
+  {tenGageDetHessian,              9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
+  {tenGageSHessian,                9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
+  {tenGageQHessian,                9,  2,  {tenGageBHessian, tenGageSHessian},                                   0,        0,     AIR_FALSE},
 
-  {tenGageFAHessian,           9,  2,  {tenGageSHessian, tenGageQHessian, tenGageSGradVec, tenGageQGradVec, tenGageFA, -1},   -1,        -1,    0},
-  {tenGageFAHessianEval,       3,  2,  {tenGageFAHessian, -1, -1, -1, -1, -1},                                                -1,        -1,    0},
-  {tenGageFAHessianEval0,      1,  2,  {tenGageFAHessianEval, -1, -1, -1, -1, -1},                          tenGageFAHessianEval,         0,    0},
-  {tenGageFAHessianEval1,      1,  2,  {tenGageFAHessianEval, -1, -1, -1, -1, -1},                          tenGageFAHessianEval,         1,    0},
-  {tenGageFAHessianEval2,      1,  2,  {tenGageFAHessianEval, -1, -1, -1, -1, -1},                          tenGageFAHessianEval,         2,    0},
-  {tenGageFAHessianEvec,       9,  2,  {tenGageFAHessian, -1, -1, -1, -1, -1},                                                -1,        -1,    0},
-  {tenGageFAHessianEvec0,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         0,    0},
-  {tenGageFAHessianEvec1,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         3,    0},
-  {tenGageFAHessianEvec2,      3,  2,  {tenGageFAHessianEvec, -1, -1, -1, -1, -1},                          tenGageFAHessianEvec,         6,    0},
-  {tenGageFARidgeSurfaceStrength,1, 2, {tenGageConfidence, tenGageFAHessianEval, -1, -1, -1, -1},                             -1,         0,    0},
-  {tenGageFAValleySurfaceStrength,1,2, {tenGageConfidence, tenGageFAHessianEval, -1, -1, -1, -1},                             -1,         0,    0},
-  {tenGageFALaplacian,         1, 2,   {tenGageFAHessian, -1, -1, -1, -1, -1},                                                -1,         0,    0},
-  {tenGageFA2ndDD,             1, 2,   {tenGageFAHessian, tenGageFANormal, -1, -1, -1, -1},                                   -1,         0,    0},
+  {tenGageFAHessian,               9,  2,  {tenGageSHessian, tenGageQHessian,
+                                            tenGageSGradVec, tenGageQGradVec, tenGageFA},                        0,        0,     AIR_FALSE},
+  {tenGageFAHessianEval,           3,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
+  {tenGageFAHessianEval0,          1,  2,  {tenGageFAHessianEval},                            tenGageFAHessianEval,        0,     AIR_FALSE},
+  {tenGageFAHessianEval1,          1,  2,  {tenGageFAHessianEval},                            tenGageFAHessianEval,        1,     AIR_FALSE},
+  {tenGageFAHessianEval2,          1,  2,  {tenGageFAHessianEval},                            tenGageFAHessianEval,        2,     AIR_FALSE},
+  {tenGageFAHessianEvec,           9,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
+  {tenGageFAHessianEvec0,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        0,     AIR_FALSE},
+  {tenGageFAHessianEvec1,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        3,     AIR_FALSE},
+  {tenGageFAHessianEvec2,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        6,     AIR_FALSE},
+  {tenGageFARidgeSurfaceStrength,  1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
+  {tenGageFAValleySurfaceStrength, 1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
+  {tenGageFALaplacian,             1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
+  {tenGageFA2ndDD,                 1,  2,  {tenGageFAHessian, tenGageFANormal},                                  0,        0,     AIR_FALSE},
 
-  {tenGageRHessian,            9,  2,  {tenGageR, tenGageRGradVec, tenGageTraceHessian,
-                                        tenGageBHessian, tenGageDetHessian, tenGageSHessian},                                 -1,        -1,    0},
+  {tenGageRHessian,                9,  2,  {tenGageR, tenGageRGradVec, tenGageTraceHessian,
+                                            tenGageBHessian, tenGageDetHessian, tenGageSHessian},                0,        0,     AIR_FALSE},
 
-  {tenGageModeHessian,         9,  2,  {tenGageR, tenGageQ, tenGageRGradVec, tenGageQGradVec,
-                                        tenGageRHessian, tenGageQHessian},                                                    -1,        -1,    0},
-  {tenGageModeHessianEval,     3,  2,  {tenGageModeHessian, -1, -1, -1, -1, -1},                                              -1,        -1,    0},
-  {tenGageModeHessianEval0,    1,  2,  {tenGageModeHessianEval, -1, -1, -1, -1, -1},                      tenGageModeHessianEval,         0,    0},
-  {tenGageModeHessianEval1,    1,  2,  {tenGageModeHessianEval, -1, -1, -1, -1, -1},                      tenGageModeHessianEval,         1,    0},
-  {tenGageModeHessianEval2,    1,  2,  {tenGageModeHessianEval, -1, -1, -1, -1, -1},                      tenGageModeHessianEval,         2,    0},
-  {tenGageModeHessianEvec,     9,  2,  {tenGageModeHessian, -1, -1, -1, -1, -1},                                              -1,        -1,    0},
-  {tenGageModeHessianEvec0,    3,  2,  {tenGageModeHessianEvec, -1, -1, -1, -1, -1},                      tenGageModeHessianEvec,         0,    0},
-  {tenGageModeHessianEvec1,    3,  2,  {tenGageModeHessianEvec, -1, -1, -1, -1, -1},                      tenGageModeHessianEvec,         3,    0},
-  {tenGageModeHessianEvec2,    3,  2,  {tenGageModeHessianEvec, -1, -1, -1, -1, -1},                      tenGageModeHessianEvec,         6,    0},
+  {tenGageModeHessian,             9,  2,  {tenGageR, tenGageQ, tenGageRGradVec, tenGageQGradVec,
+                                            tenGageRHessian, tenGageQHessian},                                   0,        0,     AIR_FALSE},
+  {tenGageModeHessianEval,         3,  2,  {tenGageModeHessian},                                                 0,        0,     AIR_FALSE},
+  {tenGageModeHessianEval0,        1,  2,  {tenGageModeHessianEval},                        tenGageModeHessianEval,        0,     AIR_FALSE},
+  {tenGageModeHessianEval1,        1,  2,  {tenGageModeHessianEval},                        tenGageModeHessianEval,        1,     AIR_FALSE},
+  {tenGageModeHessianEval2,        1,  2,  {tenGageModeHessianEval},                        tenGageModeHessianEval,        2,     AIR_FALSE},
+  {tenGageModeHessianEvec,         9,  2,  {tenGageModeHessian},                                                 0,        0,     AIR_FALSE},
+  {tenGageModeHessianEvec0,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        0,     AIR_FALSE},
+  {tenGageModeHessianEvec1,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        3,     AIR_FALSE},
+  {tenGageModeHessianEvec2,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        6,     AIR_FALSE},
 
-  {tenGageOmegaHessian,        9,  2,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec,
-                                        tenGageFAHessian, tenGageModeHessian},                                                -1,        -1,    0},
-  {tenGageOmegaHessianEval,    3,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
-  {tenGageOmegaHessianEval0,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         0,    0},
-  {tenGageOmegaHessianEval1,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         1,    0},
-  {tenGageOmegaHessianEval2,   1,  2,  {tenGageOmegaHessianEval, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEval,         2,    0},
-  {tenGageOmegaHessianEvec,    9,  2,  {tenGageOmegaHessian, -1, -1, -1, -1, -1},                                             -1,        -1,    0},
-  {tenGageOmegaHessianEvec0,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         0,    0},
-  {tenGageOmegaHessianEvec1,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         3,    0},
-  {tenGageOmegaHessianEvec2,   3,  2,  {tenGageOmegaHessianEvec, -1, -1, -1, -1, -1},                    tenGageOmegaHessianEvec,         6,    0},
+  {tenGageOmegaHessian,            9,  2,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec,
+                                            tenGageFAHessian, tenGageModeHessian},                               0,        0,     AIR_FALSE},
+  {tenGageOmegaHessianEval,        3,  2,  {tenGageOmegaHessian},                                                0,        0,     AIR_FALSE},
+  {tenGageOmegaHessianEval0,       1,  2,  {tenGageOmegaHessianEval},                      tenGageOmegaHessianEval,        0,     AIR_FALSE},
+  {tenGageOmegaHessianEval1,       1,  2,  {tenGageOmegaHessianEval},                      tenGageOmegaHessianEval,        1,     AIR_FALSE},
+  {tenGageOmegaHessianEval2,       1,  2,  {tenGageOmegaHessianEval},                      tenGageOmegaHessianEval,        2,     AIR_FALSE},
+  {tenGageOmegaHessianEvec,        9,  2,  {tenGageOmegaHessian},                                                0,        0,     AIR_FALSE},
+  {tenGageOmegaHessianEvec0,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        0,     AIR_FALSE},
+  {tenGageOmegaHessianEvec1,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        3,     AIR_FALSE},
+  {tenGageOmegaHessianEvec2,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        6,     AIR_FALSE},
 
-  {tenGageTraceGradVecDotEvec0,1,  1,  {tenGageTraceGradVec, tenGageEvec0, -1, -1, -1, -1},                                   -1,        -1,    0},
-  {tenGageTraceNormalDotEvec0, 1,  1,  {tenGageTraceNormal, tenGageEvec0, -1, -1, -1, -1},                                    -1,        -1,    0},
-  {tenGageFAGradVecDotEvec0,   1,  1,  {tenGageFAGradVec, tenGageEvec0, -1, -1, -1, -1},                                      -1,        -1,    0},
-  {tenGageFANormalDotEvec0,    1,  1,  {tenGageFANormal, tenGageEvec0, -1, -1, -1, -1},                                       -1,        -1,    0},
-  {tenGageOmegaGradVecDotEvec0,1,  1,  {tenGageOmegaGradVec, tenGageEvec0, -1, -1, -1, -1},                                   -1,        -1,    0},
-  {tenGageOmegaNormalDotEvec0, 1,  1,  {tenGageOmegaNormal, tenGageEvec0, -1, -1, -1, -1},                                    -1,        -1,    0},
+  {tenGageTraceGradVecDotEvec0,    1,  1,  {tenGageTraceGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
+  {tenGageTraceDiffusionAngle,     1,  1,  {tenGageTraceNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
+  {tenGageTraceDiffusionFraction,  1,  1,  {tenGageTraceNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
 
-  {tenGageAniso, TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2, -1, -1, -1},                                -1,        -1,    0}
+  {tenGageFAGradVecDotEvec0,       1,  1,  {tenGageFAGradVec, tenGageEvec0},                                     0,        0,     AIR_FALSE},
+  {tenGageFADiffusionAngle,        1,  1,  {tenGageFANormal, tenGageEvec0},                                      0,        0,     AIR_FALSE},
+  {tenGageFADiffusionFraction,     1,  1,  {tenGageFANormal, tenGageTensor},                                     0,        0,     AIR_FALSE},
+
+  {tenGageOmegaGradVecDotEvec0,    1,  1,  {tenGageOmegaGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
+  {tenGageOmegaDiffusionAngle,     1,  1,  {tenGageOmegaNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
+  {tenGageOmegaDiffusionFraction,  1,  1,  {tenGageOmegaNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
+
+  {tenGageCovariance,             21,  0,  {tenGageTensor}, /* and all the values in iv3 */                      0,        0,     AIR_FALSE},
+
+  {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
 void
@@ -921,25 +931,90 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceGradVec]);
     pvl->directAnswer[tenGageTraceGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceNormalDotEvec0)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceDiffusionAngle)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceNormal]);
-    pvl->directAnswer[tenGageTraceNormalDotEvec0][0] = AIR_ABS(tmp0);
+    tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
+    pvl->directAnswer[tenGageTraceDiffusionAngle][0] = tmp0;
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceDiffusionFraction)) {
+    double tmpv[3];
+    TEN_TV_MUL(tmpv, tenAns, pvl->directAnswer[tenGageTraceNormal]);
+    tmp0 = ELL_3V_DOT(tmpv, pvl->directAnswer[tenGageTraceNormal]);
+    tmp0 /= TEN_T_TRACE(tenAns) ? TEN_T_TRACE(tenAns) : 1;
+    pvl->directAnswer[tenGageTraceDiffusionFraction][0] = tmp0;
+  }
+
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradVecDotEvec0)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFAGradVec]);
     pvl->directAnswer[tenGageFAGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFANormalDotEvec0)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFADiffusionAngle)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFANormal]);
-    pvl->directAnswer[tenGageFANormalDotEvec0][0] = AIR_ABS(tmp0);
+    tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
+    pvl->directAnswer[tenGageFADiffusionAngle][0] = tmp0;
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFADiffusionFraction)) {
+    double tmpv[3];
+    TEN_TV_MUL(tmpv, tenAns, pvl->directAnswer[tenGageFANormal]);
+    tmp0 = ELL_3V_DOT(tmpv, pvl->directAnswer[tenGageFANormal]);
+    tmp0 /= TEN_T_TRACE(tenAns) ? TEN_T_TRACE(tenAns) : 1;
+    pvl->directAnswer[tenGageFADiffusionFraction][0] = tmp0;
+  }
+
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaGradVecDotEvec0)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaGradVec]);
     pvl->directAnswer[tenGageOmegaGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaNormalDotEvec0)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaDiffusionAngle)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaNormal]);
-    pvl->directAnswer[tenGageOmegaNormalDotEvec0][0] = AIR_ABS(tmp0);
+    tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
+    pvl->directAnswer[tenGageOmegaDiffusionAngle][0] = tmp0;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaDiffusionFraction)) {
+    double tmpv[3];
+    TEN_TV_MUL(tmpv, tenAns, pvl->directAnswer[tenGageOmegaNormal]);
+    tmp0 = ELL_3V_DOT(tmpv, pvl->directAnswer[tenGageOmegaNormal]);
+    tmp0 /= TEN_T_TRACE(tenAns) ? TEN_T_TRACE(tenAns) : 1;
+    pvl->directAnswer[tenGageOmegaDiffusionFraction][0] = tmp0;
+  }
+
+  /* --- Covariance --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCovariance)) {
+    unsigned int cc, tt, taa, tbb,
+      vijk, vii, vjj, vkk, fd, fddd;
+    double *cov, ww, wxx, wyy, wzz, ten[7];
+
+    cov = pvl->directAnswer[tenGageCovariance];
+    /* HEY: casting because radius signed (shouldn't be) */
+    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    fddd = fd*fd*fd;
+
+    /* reset answer */
+    for (cc=0; cc<21; cc++) {
+      cov[cc] = 0;
+    }
+
+    ten[0] = 1; /* never used anyway */
+    for (vijk=0; vijk<fddd; vijk++) {
+      vii = vijk % fd;
+      vjj = (vijk/fd) % fd;
+      vkk = vijk/fd/fd;
+      wxx = ctx->fw[vii + fd*(0 + 3*gageKernel00)];
+      wyy = ctx->fw[vjj + fd*(1 + 3*gageKernel00)];
+      wzz = ctx->fw[vkk + fd*(2 + 3*gageKernel00)];
+      ww = wxx*wyy*wzz;
+      for (tt=1; tt<7; tt++) {
+        ten[tt] = ww*(pvl->iv3[vijk + fddd*tt] - tenAns[tt]);
+      }
+
+      cc = 0;
+      for (taa=0; taa<6; taa++) {
+        for (tbb=taa; tbb<6; tbb++) {
+          cov[cc] += ten[taa+1]*ten[tbb+1];
+          cc++;
+        }
+      }
+    }
   }
 
   /* --- Aniso --- */
@@ -955,6 +1030,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
 gageKind
 _tenGageKind = {
+  AIR_FALSE, /* statically allocated */
   "tensor",
   &_tenGage,
   1,

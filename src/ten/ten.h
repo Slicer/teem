@@ -207,150 +207,162 @@ typedef struct {
 **
 */
 enum {
-  tenGageUnknown = -1,     /*  -1: nobody knows */
+  tenGageUnknown,          /*   0: nobody knows */
 
-  tenGageTensor,           /*   0: "t", the reconstructed tensor: [7] */
-  tenGageConfidence,       /*   1: "c", first of seven tensor values: [1] */
-  tenGageTrace,            /*   2: "tr", trace of tensor: [1] */
-  tenGageB,                /*   3: "b": [1] */
-  tenGageDet,              /*   4: "det", determinant of tensor: [1] */
-  tenGageS,                /*   5: "s", square of frobenius norm: [1] */
-  tenGageQ,                /*   6: "q", (S - B)/9: [1] */
-  tenGageFA,               /*   7: "fa", fractional anisotropy: [1] */
-  tenGageR,                /*   8: "r", 9*A*B - 2*A^3 - 27*C: [1] */
-  tenGageMode,             /*   9: "mode", sqrt(2)*R/sqrt(Q^3): [1] */
-  tenGageTheta,            /*  10: "th", arccos(-mode)/AIR_PI: [1] */
-  tenGageModeWarp,         /*  11: "modew", mode warped for better contrast:
+  tenGageTensor,           /*   1: "t", the reconstructed tensor: [7] */
+  tenGageConfidence,       /*   2: "c", first of seven tensor values: [1] */
+  tenGageTrace,            /*   3: "tr", trace of tensor: [1] */
+  tenGageB,                /*   4: "b": [1] */
+  tenGageDet,              /*   5: "det", determinant of tensor: [1] */
+  tenGageS,                /*   6: "s", square of frobenius norm: [1] */
+  tenGageQ,                /*   7: "q", (S - B)/9: [1] */
+  tenGageFA,               /*   8: "fa", fractional anisotropy: [1] */
+  tenGageR,                /*   9: "r", 9*A*B - 2*A^3 - 27*C: [1] */
+  tenGageMode,             /*  10: "mode", sqrt(2)*R/sqrt(Q^3): [1] */
+  tenGageTheta,            /*  11: "th", arccos(-mode)/AIR_PI: [1] */
+  tenGageModeWarp,         /*  12: "modew", mode warped for better contrast:
                                    cos((1-m)*pi/2): [1] */
-  tenGageOmega,            /*  12: "om", fa*(mode+1)/2: [1] */
+  tenGageOmega,            /*  13: "om", fa*(mode+1)/2: [1] */
 
-  tenGageEval,             /*  13: "eval", all eigenvals of tensor : [3] */
-  tenGageEval0,            /*  14: "eval0", major eigenval of tensor : [1] */
-  tenGageEval1,            /*  15: "eval1", medium eigenval of tensor : [1] */
-  tenGageEval2,            /*  16: "eval2", minor eigenval of tensor : [1] */
-  tenGageEvec,             /*  17: "evec", major eigenvects of tensor: [9] */
-  tenGageEvec0,            /*  18: "evec0", major eigenvect of tensor: [3] */
-  tenGageEvec1,            /*  19: "evec1", medium eigenvect of tensor: [3] */
-  tenGageEvec2,            /*  20: "evec2", minor eigenvect of tensor: [3] */
+  tenGageEval,             /*  14: "eval", all eigenvals of tensor : [3] */
+  tenGageEval0,            /*  15: "eval0", major eigenval of tensor : [1] */
+  tenGageEval1,            /*  16: "eval1", medium eigenval of tensor : [1] */
+  tenGageEval2,            /*  17: "eval2", minor eigenval of tensor : [1] */
+  tenGageEvec,             /*  18: "evec", major eigenvects of tensor: [9] */
+  tenGageEvec0,            /*  19: "evec0", major eigenvect of tensor: [3] */
+  tenGageEvec1,            /*  20: "evec1", medium eigenvect of tensor: [3] */
+  tenGageEvec2,            /*  21: "evec2", minor eigenvect of tensor: [3] */
 
-  tenGageTensorGrad,       /*  21: "tg", all tensor component gradients,
+  tenGageTensorGrad,       /*  22: "tg", all tensor component gradients,
                                    starting with confidence gradient: [21] */
-  tenGageTensorGradMag,    /*  22: "tgm", actually a 3-vector of tensor
+  tenGageTensorGradMag,    /*  23: "tgm", actually a 3-vector of tensor
                                    gradient norms, one for each axis: [3] */
-  tenGageTensorGradMagMag, /*  23: "tgmm", single scalar magnitude: [1] */
+  tenGageTensorGradMagMag, /*  24: "tgmm", single scalar magnitude: [1] */
 
-  tenGageTraceGradVec,     /*  24: "trgv": gradient (vector) of trace: [3] */
-  tenGageTraceGradMag,     /*  25: "trgm": gradient magnitude of trace: [1] */
-  tenGageTraceNormal,      /*  26: "trn": normal of trace: [3] */
+  tenGageTraceGradVec,     /*  25: "trgv": gradient (vector) of trace: [3] */
+  tenGageTraceGradMag,     /*  26: "trgm": gradient magnitude of trace: [1] */
+  tenGageTraceNormal,      /*  27: "trn": normal of trace: [3] */
 
-  tenGageBGradVec,         /*  27: "bgv", gradient (vector) of B: [3] */
-  tenGageBGradMag,         /*  28: "bgm", gradient magnitude of B: [1] */
-  tenGageBNormal,          /*  29: "bn", normal of B: [3] */
+  tenGageBGradVec,         /*  28: "bgv", gradient (vector) of B: [3] */
+  tenGageBGradMag,         /*  29: "bgm", gradient magnitude of B: [1] */
+  tenGageBNormal,          /*  30: "bn", normal of B: [3] */
 
-  tenGageDetGradVec,       /*  30: "detgv", gradient (vector) of Det: [3] */
-  tenGageDetGradMag,       /*  31: "detgm", gradient magnitude of Det: [1] */
-  tenGageDetNormal,        /*  32: "detn", normal of Det: [3] */
+  tenGageDetGradVec,       /*  31: "detgv", gradient (vector) of Det: [3] */
+  tenGageDetGradMag,       /*  32: "detgm", gradient magnitude of Det: [1] */
+  tenGageDetNormal,        /*  33: "detn", normal of Det: [3] */
 
-  tenGageSGradVec,         /*  33: "sgv", gradient (vector) of S: [3] */
-  tenGageSGradMag,         /*  34: "sgm", gradient magnitude of S: [1] */
-  tenGageSNormal,          /*  35: "sn", normal of S: [3] */
+  tenGageSGradVec,         /*  34: "sgv", gradient (vector) of S: [3] */
+  tenGageSGradMag,         /*  35: "sgm", gradient magnitude of S: [1] */
+  tenGageSNormal,          /*  36: "sn", normal of S: [3] */
 
-  tenGageQGradVec,         /*  36: "qgv", gradient vector of Q: [3] */
-  tenGageQGradMag,         /*  37: "qgm", gradient magnitude of Q: [1] */
-  tenGageQNormal,          /*  38: "qn", normalized gradient of Q: [3] */
+  tenGageQGradVec,         /*  37: "qgv", gradient vector of Q: [3] */
+  tenGageQGradMag,         /*  38: "qgm", gradient magnitude of Q: [1] */
+  tenGageQNormal,          /*  39: "qn", normalized gradient of Q: [3] */
 
-  tenGageFAGradVec,        /*  39: "fagv", gradient vector of FA: [3] */
-  tenGageFAGradMag,        /*  40: "fagm", gradient magnitude of FA: [1] */
-  tenGageFANormal,         /*  41: "fan", normalized gradient of FA: [3] */
+  tenGageFAGradVec,        /*  40: "fagv", gradient vector of FA: [3] */
+  tenGageFAGradMag,        /*  41: "fagm", gradient magnitude of FA: [1] */
+  tenGageFANormal,         /*  42: "fan", normalized gradient of FA: [3] */
 
-  tenGageRGradVec,         /*  42: "rgv", gradient vector of Q: [3] */
-  tenGageRGradMag,         /*  43: "rgm", gradient magnitude of Q: [1] */
-  tenGageRNormal,          /*  44: "rn", normalized gradient of Q: [3] */
+  tenGageRGradVec,         /*  43: "rgv", gradient vector of Q: [3] */
+  tenGageRGradMag,         /*  44: "rgm", gradient magnitude of Q: [1] */
+  tenGageRNormal,          /*  45: "rn", normalized gradient of Q: [3] */
 
-  tenGageModeGradVec,      /*  45: "mgv", gradient vector of Mode: [3] */
-  tenGageModeGradMag,      /*  46: "mgm", gradient magnitude of Mode: [1] */
-  tenGageModeNormal,       /*  47: "mn", normalized gradient of Mode: [3] */
+  tenGageModeGradVec,      /*  46: "mgv", gradient vector of Mode: [3] */
+  tenGageModeGradMag,      /*  47: "mgm", gradient magnitude of Mode: [1] */
+  tenGageModeNormal,       /*  48: "mn", normalized gradient of Mode: [3] */
 
-  tenGageThetaGradVec,     /*  48: "thgv", gradient vector of Th: [3] */
-  tenGageThetaGradMag,     /*  49: "thgm", gradient magnitude of Th: [1] */
-  tenGageThetaNormal,      /*  50: "thn", normalized gradient of Th: [3] */
+  tenGageThetaGradVec,     /*  49: "thgv", gradient vector of Th: [3] */
+  tenGageThetaGradMag,     /*  50: "thgm", gradient magnitude of Th: [1] */
+  tenGageThetaNormal,      /*  51: "thn", normalized gradient of Th: [3] */
 
-  tenGageOmegaGradVec,     /*  51: "omgv", gradient vector of Omega: [3] */
-  tenGageOmegaGradMag,     /*  52: "omgm", gradient magnitude of Omega: [1] */
-  tenGageOmegaNormal,      /*  53: "omn", normalized gradient of Omega: [3] */
+  tenGageOmegaGradVec,     /*  52: "omgv", gradient vector of Omega: [3] */
+  tenGageOmegaGradMag,     /*  53: "omgm", gradient magnitude of Omega: [1] */
+  tenGageOmegaNormal,      /*  54: "omn", normalized gradient of Omega: [3] */
 
-  tenGageInvarGrads,       /*  54: "igs", projections of tensor gradient onto
+  tenGageInvarGrads,       /*  55: "igs", projections of tensor gradient onto
                                    the normalized shape gradients: eval mean,
                                    variance, skew, in that order: [9]  */
-  tenGageInvarGradMags,    /*  55: "igms", vector magnitude of the spatial
+  tenGageInvarGradMags,    /*  56: "igms", vector magnitude of the spatial
                                    invariant gradients (above): [3] */
-  tenGageRotTans,          /*  56: "rts", projections of the tensor grad onto
+  tenGageRotTans,          /*  57: "rts", projections of the tensor grad onto
                                    non-normalized rotation tangents: [9] */
-  tenGageRotTanMags,       /*  57: "rtms", mags of vectors above: [3] */
-  tenGageEvalGrads,        /*  58: "evgs", projections of tensor gradient onto
+  tenGageRotTanMags,       /*  58: "rtms", mags of vectors above: [3] */
+  tenGageEvalGrads,        /*  59: "evgs", projections of tensor gradient onto
                                    gradients of eigenvalues: [9] */
-  tenGageCl1,              /*  59: same as tenAniso_Cl1, but faster */
-  tenGageCp1,              /*  60: same as tenAniso_Cp1, but faster */
-  tenGageCa1,              /*  61: same as tenAniso_Ca1, but faster */
-  tenGageCl2,              /*  62: same as tenAniso_Cl2, but faster */
-  tenGageCp2,              /*  63: same as tenAniso_Cp2, but faster */
-  tenGageCa2,              /*  64: same as tenAniso_Ca2, but faster */
+  tenGageCl1,              /*  60: same as tenAniso_Cl1, but faster */
+  tenGageCp1,              /*  61: same as tenAniso_Cp1, but faster */
+  tenGageCa1,              /*  62: same as tenAniso_Ca1, but faster */
+  tenGageCl2,              /*  63: same as tenAniso_Cl2, but faster */
+  tenGageCp2,              /*  64: same as tenAniso_Cp2, but faster */
+  tenGageCa2,              /*  65: same as tenAniso_Ca2, but faster */
 
-  tenGageHessian,          /*  65: "hess", all hessians of tensor
+  tenGageHessian,          /*  66: "hess", all hessians of tensor
                                    components: [63] */
-  tenGageTraceHessian,     /*  66: "trhess", hessian(trace): [9] */
-  tenGageBHessian,         /*  67: "bhess": [9] */
-  tenGageDetHessian,       /*  68: "dethess": [9] */
-  tenGageSHessian,         /*  69: "shess": [9] */
-  tenGageQHessian,         /*  70: "qhess": [9] */
+  tenGageTraceHessian,     /*  67: "trhess", hessian(trace): [9] */
+  tenGageBHessian,         /*  68: "bhess": [9] */
+  tenGageDetHessian,       /*  69: "dethess": [9] */
+  tenGageSHessian,         /*  70: "shess": [9] */
+  tenGageQHessian,         /*  71: "qhess": [9] */
 
-  tenGageFAHessian,        /*  71: "fahess": [9] */
-  tenGageFAHessianEval,    /*  72: "fahesseval": [3] */
-  tenGageFAHessianEval0,   /*  73: "fahesseval0": [1] */
-  tenGageFAHessianEval1,   /*  74: "fahesseval1": [1] */
-  tenGageFAHessianEval2,   /*  75: "fahesseval2": [1] */
-  tenGageFAHessianEvec,    /*  76: "fahessevec": [9] */
-  tenGageFAHessianEvec0,   /*  77: "fahessevec0": [3] */
-  tenGageFAHessianEvec1,   /*  78: "fahessevec1": [3] */
-  tenGageFAHessianEvec2,   /*  79: "fahessevec2": [3] */
-  tenGageFARidgeSurfaceStrength,  /*  80: "farsurf": [1] */
-  tenGageFAValleySurfaceStrength, /*  81: "favsurf": [1] */
-  tenGageFALaplacian,      /*  82: "falapl": [1] */
-  tenGageFA2ndDD,          /*  83: "fa2d": [1] */
+  tenGageFAHessian,        /*  72: "fahess": [9] */
+  tenGageFAHessianEval,    /*  73: "fahesseval": [3] */
+  tenGageFAHessianEval0,   /*  74: "fahesseval0": [1] */
+  tenGageFAHessianEval1,   /*  75: "fahesseval1": [1] */
+  tenGageFAHessianEval2,   /*  76: "fahesseval2": [1] */
+  tenGageFAHessianEvec,    /*  77: "fahessevec": [9] */
+  tenGageFAHessianEvec0,   /*  78: "fahessevec0": [3] */
+  tenGageFAHessianEvec1,   /*  79: "fahessevec1": [3] */
+  tenGageFAHessianEvec2,   /*  80: "fahessevec2": [3] */
+  tenGageFARidgeSurfaceStrength,  /*  81: "farsurf": [1] */
+  tenGageFAValleySurfaceStrength, /*  82: "favsurf": [1] */
+  tenGageFALaplacian,      /*  83: "falapl": [1] */
+  tenGageFA2ndDD,          /*  84: "fa2d": [1] */
 
-  tenGageRHessian,         /*  84: "rhess": [9] */
+  tenGageRHessian,         /*  85: "rhess": [9] */
 
-  tenGageModeHessian,      /*  85: "mhess": [9] */
-  tenGageModeHessianEval,  /*  86: "mhesseval": [3] */
-  tenGageModeHessianEval0, /*  87: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /*  88: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /*  89: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /*  90: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /*  91: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /*  92: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /*  93: "mhessevec2": [3] */
+  tenGageModeHessian,      /*  86: "mhess": [9] */
+  tenGageModeHessianEval,  /*  87: "mhesseval": [3] */
+  tenGageModeHessianEval0, /*  88: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /*  89: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /*  90: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /*  91: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /*  92: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /*  93: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /*  94: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /*  94: "omhess": [9] */
-  tenGageOmegaHessianEval, /*  95: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/*  96: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/*  97: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/*  98: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /*  99: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 100: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 101: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 102: "omhessevec2": [3] */
+  tenGageOmegaHessian,     /*  95: "omhess": [9] */
+  tenGageOmegaHessianEval, /*  96: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/*  97: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/*  98: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/*  99: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 100: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 101: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 102: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 103: "omhessevec2": [3] */
 
-  tenGageTraceGradVecDotEvec0, /* 103: "trgvdotevec0": [1] */
-  tenGageTraceNormalDotEvec0,  /* 104: "trndotevec0": [1] */
-  tenGageFAGradVecDotEvec0,    /* 105: "fagvdotevec0": [1] */
-  tenGageFANormalDotEvec0,     /* 106: "fandotevec0": [1] */
-  tenGageOmegaGradVecDotEvec0, /* 107: "omgvdotevec0": [1] */
-  tenGageOmegaNormalDotEvec0,  /* 108: "omndotevec0": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 104: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAngle,    /* 105: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 106: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 107: "fagvdotevec0": [1] */
+  tenGageFADiffusionAngle,       /* 108: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 109: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 110: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAngle,    /* 111: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 112: "daom": [1] */
 
-  tenGageAniso,            /* 109: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageCovariance, /* 113: "cov" 4rth order covariance tensor: [21]
+                        (in order of appearance)
+                        0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
+                                6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
+                                       11:xzxz 12:xzyy 13:xzyz 14:xzzz
+                                               15:yyyy 16:yyyz 17:yyzz
+                                                       18:yzyz 19:yzzz
+                                                               20:zzzz */
+
+  tenGageAniso,            /* 114: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     109
+#define TEN_GAGE_ITEM_MAX     114
 
 /*
 ******** tenDwiGage* enum
@@ -359,97 +371,110 @@ enum {
 ** underly diffusion tensor imaging
 */
 enum {
-  tenDwiGageUnknown = -1,       /* -1: nobody knows */
+  tenDwiGageUnknown,        /* 0: nobody knows */
 
-  /*  0: "all", all the measured values, both baseline and diffusion
+  /*  1: "all", all the measured values, both baseline and diffusion
       weighted: [N], where N is the number of DWIs */
   tenDwiGageAll,
 
-  /*  1: "b0", the non-Dwi image value, either by direct measurement
+  /*  2: "b0", the non-Dwi image value, either by direct measurement
       or by estimation: [1] */
   tenDwiGageB0,
 
-  /*  2: "mdwi", the average Dwi image value, which is thresholded to
+  /*  3: "mdwi", the average Dwi image value, which is thresholded to
       create the confidence mask: [1] */
   tenDwiGageMeanDwiValue,
 
-  /*  3: "tlls": [7],
-      4: "tllserr": [1],
-      5: "tllserrlog": [1],
-      6: "tllslike": [1],
+  /*  4: "tlls": [7],
+      5: "tllserr": [1],
+      6: "tllserrlog": [1],
+      7: "tllslike": [1],
      linear least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorLLS,
   tenDwiGageTensorLLSError,      /* sum-of-sqrd-diffs w/ Dwis */
   tenDwiGageTensorLLSErrorLog,   /* sum-of-sqrd-diffs w/ log(Dwi)s */
   tenDwiGageTensorLLSLikelihood,
 
-  /*  7: "twls": [7],
-      8: "twlserr": [1],
-      9: "twlserrlog": [1],
-     10: "twlslike": [1],
+  /*  8: "twls": [7],
+      9: "twlserr": [1],
+     10: "twlserrlog": [1],
+     11: "twlslike": [1],
      weighted least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorWLS,
   tenDwiGageTensorWLSError,
   tenDwiGageTensorWLSErrorLog,
   tenDwiGageTensorWLSLikelihood,
 
-  /* 11: "tnls": [7],
-     12: "tnlserr": [1],
-     13: "tnlserrlog": [1],
-     14: "tnlslike": [1],
+  /* 12: "tnls": [7],
+     13: "tnlserr": [1],
+     14: "tnlserrlog": [1],
+     15: "tnlslike": [1],
      non-linear least squares fit of tensor value to Dwis (not log) */
   tenDwiGageTensorNLS,
   tenDwiGageTensorNLSError,
   tenDwiGageTensorNLSErrorLog,
   tenDwiGageTensorNLSLikelihood,
 
-  /* 15: "tmle": [7],
-     16: "tmleerr": [1],
-     17: "tmleerrlog": [1],
-     18: "tmlelike": [1],
+  /* 16: "tmle": [7],
+     17: "tmleerr": [1],
+     18: "tmleerrlog": [1],
+     19: "tmlelike": [1],
      maximum-likelihood fit of tensor value to Dwis */
   tenDwiGageTensorMLE,
   tenDwiGageTensorMLEError,
   tenDwiGageTensorMLEErrorLog,
   tenDwiGageTensorMLELikelihood,
 
-  /* 19: "t": [7],
-     20: "terr": [1],
-     21: "terrlog": [1],
-     22: "tlike": [1],
+  /* 20: "t": [7],
+     21: "terr": [1],
+     22: "terrlog": [1],
+     23: "tlike": [1],
      one of the above tensors and its errors, depending on settings */
   tenDwiGageTensor,
   tenDwiGageTensorError,
   tenDwiGageTensorErrorLog,
   tenDwiGageTensorLikelihood,
 
-  /* 23: "c", first of seven tensor values: [1] */
+  /* 24: "c", first of seven tensor values: [1] */
   tenDwiGageConfidence,
 
-  /* 24: "2qs", two tensor fitting by q-ball segmentation: [14]
-     25: "2qserr": [1] */
+  /* 25: "2qserr": [1]
+     26: "2qs", two tensor fitting by q-ball segmentation: [14]
+     27: "2qsnerr": [15] */
   tenDwiGage2TensorQSeg,
   tenDwiGage2TensorQSegError,
   tenDwiGage2TensorQSegAndError,
 
   tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 26
+#define TEN_DWI_GAGE_ITEM_MAX 27
 
 /*
-******** tenEstimateMethod* enum
+******** tenEstimate1Method* enum
 **
-** the different ways of doing model parameter estimation
+** the different ways of doing single tensor estimation
 */
 enum {
-  tenEstimateMethodUnknown,  /* 0 */
-  tenEstimateMethodLLS,      /* 1 */
-  tenEstimateMethodWLS,      /* 2 */
-  tenEstimateMethodNLS,      /* 3 */
-  tenEstimateMethodMLE,      /* 4 */
-  tenEstimateMethodLast
+  tenEstimate1MethodUnknown,   /* 0 */
+  tenEstimate1MethodLLS,       /* 1 */
+  tenEstimate1MethodWLS,       /* 2 */
+  tenEstimate1MethodNLS,       /* 3 */
+  tenEstimate1MethodMLE,       /* 4 */
+  tenEstimate1MethodLast
 };
-#define TEN_ESTIMATE_METHOD_MAX 4
+#define TEN_ESTIMATE_1_METHOD_MAX 4
+
+/*
+******** tenEstimate2Method* enum
+**
+** the different ways of doing two-tensor estimation
+*/
+enum {
+  tenEstimate2MethodUnknown,   /* 0 */
+  tenEstimate2MethodQSegLLS,   /* 1 */
+  tenEstimate2MethodLast
+};
+#define TEN_ESTIMATE_2_METHOD_MAX 1
 
 /*
 ******** tenEvecRGBParm struct
@@ -583,8 +608,10 @@ typedef struct {
   double wPos[3],       /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3],         /* previous value of wDir */
-    firstEvec[3];       /* principal eigenvector first found at seed point */
-  int lastDirSet;       /* lastDir[] is usefully set */
+    lastTen[7],         /* in 2-tensor tracking, which tensor was last used */
+    seedEvec[3];        /* principal eigenvector first found at seed point */
+  int lastDirSet,       /* lastDir[] is usefully set */
+    lastTenSet;         /* lastTen[] is usefully set */
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
 
@@ -597,7 +624,7 @@ typedef struct {
   double ten2AnisoStop;
   double fiberTen[7], fiberEval[3], fiberEvec[9],
     fiberAnisoStop, fiberAnisoSpeed;
-  int doingOrjanStuff, ten2Init;
+  int ten2Tracking, ten2Which;
   double radius;        /* current radius of curvature */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
@@ -735,7 +762,7 @@ typedef struct {
   const double *all_d;     /* caller's list of all values (length allNum) */
   int simulate,            /* if non-zero, we're being used for simulation,
                               not estimation: be tolerant of unset parms */
-    estimateMethod,        /* what kind of estimation to do */
+    estimate1Method,       /* what kind of single-tensor estimation to do */
     estimateB0,            /* if non-zero, B0 should be estimated along with
                               rest of model. Otherwise, B0 is found by simply
                               taking average of non-Dwi images */
@@ -779,16 +806,36 @@ typedef struct {
     likelihood;            /* the maximized likelihood */
 } tenEstimateContext;
 
+/*
+******** struct tenDwiGageKindData
+**
+** the kind data has static info that is set by the user
+** and then not altered-- or else it wouldn't really be per-kind,
+** and it wouldn't be thread-safe
+*/
 typedef struct {
-  tenEstimateContext *tec; /* HEY: NOT THREAD SAFE! */
-  Nrrd *ngrad;             /* may be NULL, owned by us */
+  Nrrd *ngrad, *nbmat;       /* owned by us */
+  double thresh, soft, bval, valueMin;
+  int est1Method, est2Method;
 } tenDwiGageKindData;
 
+/*
+******** struct tenDwiGagePvlData
+**
+** the pvl data is the dynamic stuff (buffers, mostly)
+** that is potentially modified per query.
+** being part of the pvl, such modifications are thread-safe
+**
+** the reason for having two tenEstimateContexts is that within
+** one volume you will sometimes want to measure both one and 
+** two tensors, and it would be crazy to incur the overhead of
+** switching between the two *per-query*.
+*/
 typedef struct {
+  tenEstimateContext *tec1, /* for estimating single tensors */
+    *tec2;                  /* for estimating two-tensors */
   double *vbuf;
   unsigned int *wght;
-  
-  /* ADDED BY ORJAN */
   double *qvals;
   double *qpoints;
   double *dists;
@@ -835,6 +882,8 @@ TEN_EXPORT airEnum *tenFiberType;
 TEN_EXPORT airEnum *tenFiberStop;
 TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;
+TEN_EXPORT airEnum *tenEstimate1Method;
+TEN_EXPORT airEnum *tenEstimate2Method;
 
 /* glyph.c */
 TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
@@ -877,7 +926,7 @@ TEN_EXPORT void tenInv_f(float inv[7], float ten[7]);
 TEN_EXPORT void tenInv_d(double inv[7], double ten[7]);
 
 /* chan.c */
-/* old tenCalc* functions replaced by tenEstimate* */
+/* old tenCalc* functions superceded/deprecated by new tenEstimate* code */
 TEN_EXPORT const char *tenDWMRIModalityKey;
 TEN_EXPORT const char *tenDWMRIModalityVal;
 TEN_EXPORT const char *tenDWMRINAVal;
@@ -917,7 +966,6 @@ TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
                            const Nrrd *nbmat, double b);
 
 /* estimate.c */
-TEN_EXPORT airEnum *tenEstimateMethod;
 TEN_EXPORT tenEstimateContext *tenEstimateContextNew();
 TEN_EXPORT void tenEstimateVerboseSet(tenEstimateContext *tec,
                                       int verbose);
@@ -1072,21 +1120,23 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 TEN_EXPORT gageKind *tenGageKind;
 
 /* tenDwiGage.c */
+/* we can't declare or define a tenDwiGageKind->name (analogous to 
+   tenGageKind->name or gageSclKind->name) because the DWI kind is
+   dynamically allocated, but at least we can declare a cannonical
+   name (HEY: ugly) */
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
 TEN_EXPORT airEnum _tenDwiGage;
 TEN_EXPORT airEnum *tenDwiGage;
 TEN_EXPORT gageKind *tenDwiGageKindNew();
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);
-TEN_EXPORT void tenDwiGageKindNumSet(gageKind *kind, unsigned int num);
-/*
-TEN_EXPORT int tenDwiGageKindGradients(gageKind *dwiKind,
-                                       double bval, const Nrrd *ngrad);
-TEN_EXPORT int tenDwiGageKindBMatrices(gageKind *dwiKind,
-                                       double bval, const Nrrd *nbmat);
-TEN_EXPORT int tenDwiGageKindConfThreshold(gageKind *dwiKind,
-                                           double thresh, double soft);
-TEN_EXPORT int tenDwiGageKindFitType(gageKind *dwiKind, int fitType);
-*/
+/* warning: this function will likely change its arguments in the future */
+TEN_EXPORT int tenDwiGageKindSet(gageKind *dwiKind,
+                                 double thresh, double soft,
+                                 double bval, double valueMin,
+                                 const Nrrd *ngrad,
+                                 const Nrrd *nbmat,
+                                 int emethod1, int emethod2);
+TEN_EXPORT int tenDwiGageKindCheck(const gageKind *kind);
 
 /* bimod.c */
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
@@ -1114,8 +1164,8 @@ F(anscale) \
 F(anhist) \
 F(point) \
 F(slice) \
-F(fiber) \
 F(norm) \
+F(fiber) \
 F(eval) \
 F(evalpow) \
 F(evalclamp) \

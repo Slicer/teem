@@ -143,7 +143,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
              "lls",
              "estimation method to use. \"lls\": linear-least squares",
-             NULL, tenEstimateMethod);
+             NULL, tenEstimate1Method);
   hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
              "when using weighted-least-squares (\"-est wls\"), how "
              "many iterations to do after the initial weighted fit.");
@@ -332,27 +332,27 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       if (!EE) EE |= tenEstimateSkipSet(tec, skip[skipIdx], AIR_TRUE);
     }
     switch(estmeth) {
-    case tenEstimateMethodLLS:
+    case tenEstimate1MethodLLS:
       if (airStrlen(terrS)) {
         tec->recordErrorLogDwi = AIR_TRUE;
         /* tec->recordErrorDwi = AIR_TRUE; */
       }
       break;
-    case tenEstimateMethodNLS:
+    case tenEstimate1MethodNLS:
       if (airStrlen(terrS)) {
         tec->recordErrorDwi = AIR_TRUE;
       }
       break;
-    case tenEstimateMethodWLS:
+    case tenEstimate1MethodWLS:
       if (!EE) tec->WLSIterNum = wlsi;
       if (airStrlen(terrS)) {
         tec->recordErrorDwi = AIR_TRUE;
       }
       break;
-    case tenEstimateMethodMLE:
+    case tenEstimate1MethodMLE:
       if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
         fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
-                me, airEnumStr(tenEstimateMethod, tenEstimateMethodMLE),
+                me, airEnumStr(tenEstimate1Method, tenEstimate1MethodMLE),
                 sigma);
         airMopError(mop); return 1;
       }

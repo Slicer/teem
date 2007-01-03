@@ -26,15 +26,19 @@
 #define TEN_FIBER_INCR 512
 
 int
-_tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
+_tenFiberProbe(tenFiberContext *tfx, double wPos[3], int seedProbe) {
   /* char me[]="_tenFiberProbe"; */
   double iPos[3];
   int ret;
 
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
   ret = gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
-
-  if (!tfx->doingOrjanStuff) {
+  /*
+  fprintf(stderr, "!%s(%g,%g,%g): hi\n", me,
+          iPos[0], iPos[1], iPos[2]);
+  */
+  if (!tfx->ten2Tracking) {
+    /* normal single-tensor tracking */
     TEN_T_COPY(tfx->fiberTen, tfx->gageTen);
     ELL_3V_COPY(tfx->fiberEval, tfx->gageEval);
     ELL_3M_COPY(tfx->fiberEvec, tfx->gageEvec);
@@ -42,6 +46,7 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
       tfx->fiberAnisoStop = tfx->gageAnisoStop[0];
     }
   } else {
+    /* two-tensor tracking */
     double evec[2][9], eval[2][3], len;
     int useTensor=-1;
 
@@ -49,41 +54,58 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3]) {
     tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
     tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
 
-    if (tfx->lastDirSet) {
-      /* Use diffusion direction with largest curvature */
-      double dot[2];
-      
-      ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
-      dot[0] = ELL_3V_DOT(tfx->lastDir, evec[0] + 3*0);
-      dot[1] = ELL_3V_DOT(tfx->lastDir, evec[1] + 3*0);
+    /* set useTensor */
+    if (seedProbe) {
+      /* we're on the *very* first probe per tract, at the seed point */
+      ELL_3V_COPY(tfx->seedEvec, evec[tfx->ten2Which]);
+      useTensor = tfx->ten2Which;
+      /*
+      fprintf(stderr, "!%s: ** useTensor == ten2Which == %d\n", me, 
+              useTensor);
+      */
+    } else {
+      double *lastVec, dot[2];
+
+      if (!tfx->lastDirSet) {
+        /* we're on some probe of the first step */
+        lastVec = tfx->seedEvec;
+      } else {
+        /* we're past the first step */
+        ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
+        lastVec = tfx->lastDir;
+      }
+      dot[0] = ELL_3V_DOT(lastVec, evec[0]);
+      dot[1] = ELL_3V_DOT(lastVec, evec[1]);
       if (dot[0] < 0) {
-	dot[0] *= -1;
-	ELL_3M_SCALE(evec[0] + 3*0, -1, evec[0] + 3*0);
+        dot[0] *= -1;
+        ELL_3M_SCALE(evec[0], -1, evec[0]);
       }
       if (dot[1] < 0) {
-	dot[1] *= -1;
-	ELL_3M_SCALE(evec[1] + 3*0, -1, evec[1] + 3*0);
+        dot[1] *= -1;
+        ELL_3M_SCALE(evec[1], -1, evec[1]);
       }
-      
       useTensor = (dot[0] > dot[1]) ? 0 : 1;
       /*
-      fprintf(stderr, "dotA = %f dotB = %f, \t using tensor %d\n",
-	      dotA, dotB, useTensor );
+      fprintf(stderr, "!%s(%g,%g,%g): dot[0] = %f dot[1] = %f, "
+              "\t using tensor %d\n",
+              me, wPos[0], wPos[1], wPos[2], dot[0], dot[1], useTensor );
       */
-      
-    } else {
-      /* Use diffusion direction specified by user */
-      useTensor = tfx->ten2Init;
-      /* fprintf( stderr, "Lastdir not set, using tensor %d\n", useTensor ); */
     }
     TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*useTensor);
+    tfx->fiberTen[0] = tfx->gageTen2[0];   /* copy confidence */
     ELL_3V_COPY(tfx->fiberEval, eval[useTensor]);
     ELL_3M_COPY(tfx->fiberEvec, evec[useTensor]);
     if (tfx->stop & (1 << tenFiberStopAniso)) {
-      /* HEY: tfx->fiberAnisoStop = tfx->gageAnisoStop[0]; */
+      double tmp;
+      tmp = tenAnisoEval_d(tfx->fiberEval, tfx->anisoStopType);
+      tfx->fiberAnisoStop = AIR_CLAMP(0, tmp, 1);
       /* HEY: what about speed? */
     }
   }
+  /*
+  fprintf(stderr, "!%s: fiberEvec = %g %g %g\n", me, 
+          tfx->fiberEvec[0], tfx->fiberEvec[1], tfx->fiberEvec[2]);
+  */
   return ret;
 }
 
@@ -128,28 +150,39 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
 
 void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
-
+  /* char me[]="_tenFiberAlign"; */
+  double scale, dot;
+  
+  /*
+  fprintf(stderr, "!%s: hi %s (lds %d):\t%g %g %g\n", me,
+          !tfx->lastDirSet ? "**" : "  ",
+          tfx->lastDirSet, vec[0], vec[1], vec[2]);
+  */
   if (!(tfx->lastDirSet)) {
+    dot = ELL_3V_DOT(tfx->seedEvec, vec);
     /* this is the first step (or one of the intermediate steps
        for RK4) in this fiber half; 1st half follows the
        eigenvector determined at seed point, 2nd goes opposite */
+    /*
+    fprintf(stderr, "!%s: dir=%d, dot=%g\n", me, tfx->dir, dot);
+    */
     if (!tfx->dir) {
       /* 1st half */
-      if (ELL_3V_DOT(tfx->firstEvec, vec) < 0) {
-        ELL_3V_SCALE(vec, -1, vec);
-      }
+      scale = dot < 0 ? -1 : 1;
     } else {
       /* 2nd half */
-      if (ELL_3V_DOT(tfx->firstEvec, vec) > 0) {
-        ELL_3V_SCALE(vec, -1, vec);
-      }
+      scale = dot > 0 ? -1 : 1;
     }
   } else {
+    dot = ELL_3V_DOT(tfx->lastDir, vec);
     /* we have some history in this fiber half */
-    if (ELL_3V_DOT(tfx->lastDir, vec) < 0) {
-      ELL_3V_SCALE(vec, -1, vec);
-    }
+    scale = dot < 0 ? -1 : 1;
   }
+  ELL_3V_SCALE(vec, scale, vec);
+  /*
+  fprintf(stderr, "!%s: scl = %g -> \t%g %g %g\n",
+          me, scale, vec[0], vec[1], vec[2]);
+  */
   return;
 }
 
@@ -256,7 +289,7 @@ _tenFiberStep[TEN_FIBER_TYPE_MAX+1])(tenFiberContext *, double *) = {
 ** -------------------------------------------------------------------
 ** -------------------------------------------------------------------
 ** The _tenFiberIntegrate_* routines must assume that
-** _tenFiberProbe(tfx, tfx->wPos) has just been called
+** _tenFiberProbe(tfx, tfx->wPos, AIR_FALSE) has just been called
 */
 
 int
@@ -273,7 +306,7 @@ _tenFiberIntegrate_Midpoint(tenFiberContext *tfx, double forwDir[3]) {
 
   _tenFiberStep[tfx->fiberType](tfx, half);
   ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*tfx->stepSize, half);
-  if (_tenFiberProbe(tfx, loc)) return 1;
+  if (_tenFiberProbe(tfx, loc, AIR_FALSE)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, forwDir);
   ELL_3V_SCALE(forwDir, tfx->stepSize, forwDir);
   return 0;
@@ -288,13 +321,13 @@ _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
 
   _tenFiberStep[tfx->fiberType](tfx, k1);
   ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*h, k1);
-  if (_tenFiberProbe(tfx, loc)) return 1;
+  if (_tenFiberProbe(tfx, loc, AIR_FALSE)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k2);
   ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, 0.5*h, k2);
-  if (_tenFiberProbe(tfx, loc)) return 1;
+  if (_tenFiberProbe(tfx, loc, AIR_FALSE)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k3);
   ELL_3V_SCALE_ADD2(loc, 1, tfx->wPos, h, k3);
-  if (_tenFiberProbe(tfx, loc)) return 1;
+  if (_tenFiberProbe(tfx, loc, AIR_FALSE)) return 1;
   _tenFiberStep[tfx->fiberType](tfx, k4);
 
   ELL_3V_SET(forwDir,
@@ -373,13 +406,16 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   tfx->halfLen[0] = tfx->halfLen[1] = 0.0;
   tfx->numSteps[0] = tfx->numSteps[1] = 0;
   tfx->whyStop[0] = tfx->whyStop[1] = tenFiberStopUnknown;
-
-  /* try probing once */
+  /*
+  fprintf(stderr, "!%s: try probing once, at seed %g %g %g\n", me,
+          seed[0], seed[1], seed[2]);
+  */
+  /* try probing once, at seed point */
   if (tfx->useIndexSpace) {
     gageShapeItoW(tfx->gtx->shape, tmp, seed);
-    ret = _tenFiberProbe(tfx, tmp);
+    ret = _tenFiberProbe(tfx, tmp, AIR_TRUE);
   } else {
-    ret = _tenFiberProbe(tfx, seed);
+    ret = _tenFiberProbe(tfx, seed, AIR_TRUE);
   }
   if (ret) {
     sprintf(err, "%s: first _tenFiberProbe failed: %s (%d)",
@@ -387,7 +423,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     biffAdd(TEN, err); return 1;
   }
 
-  /* see if we're doomed */
+  /* see if we're doomed (tract dies before it gets anywhere)  */
   /* have to fake out the possible radius check, since at this point
      there is no radius of curvature; this will always pass */
   tfx->radius = DBL_MAX;
@@ -407,7 +443,11 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 
   /* record the principal eigenvector at the seed point, so that we know
      which direction to go at the beginning of each half */
-  ELL_3V_COPY(tfx->firstEvec, tfx->fiberEvec + 3*0);
+  ELL_3V_COPY(tfx->seedEvec, tfx->fiberEvec + 3*0);
+  /*
+  fprintf(stderr, "!%s: **** seedEvec = %g %g %g\n", me,
+          tfx->seedEvec[0], tfx->seedEvec[1], tfx->seedEvec[2]);
+  */
 
   /* airMop{Error,Okay}() can safely be called on NULL */
   mop = nfiber ? airMopNew() : NULL;
@@ -438,8 +478,14 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     tfx->radius = DBL_MAX;
     ELL_3V_SET(tfx->lastDir, 0, 0, 0);
     tfx->lastDirSet = AIR_FALSE;
+    TEN_T_SET(tfx->lastTen, 0,   0, 0, 0,   0, 0,  0);
+    tfx->lastTenSet = AIR_FALSE;
+    /*
+    fprintf(stderr, "!%s: (again) seedEvec = %g %g %g\n", me,
+            tfx->seedEvec[0], tfx->seedEvec[1], tfx->seedEvec[2]);
+    */
     for (tfx->numSteps[tfx->dir] = 0; AIR_TRUE; tfx->numSteps[tfx->dir]++) {
-      if (_tenFiberProbe(tfx, tfx->wPos)) {
+      if (_tenFiberProbe(tfx, tfx->wPos, AIR_FALSE)) {
         /* even if gageProbe had an error OTHER than going out of bounds,
            we're not going to report it any differently here, alas */
         tfx->whyStop[tfx->dir] = tenFiberStopBounds;
@@ -491,6 +537,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 	*/
         break;
       }
+      /*
+      fprintf(stderr, "!%s: forwDir = %g %g %g\n", me,
+              forwDir[0], forwDir[1], forwDir[2]);
+      */
       if (tfx->stop & (1 << tenFiberStopRadius)) {
         /* some more work required to compute radius of curvature */
         double svec[3], dvec[3], SS, DD; /* sum,diff length squared */
@@ -504,6 +554,12 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
           tfx->radius = DBL_MAX;
         }
       }
+      /*
+      if (!tfx->lastDirSet) {
+        fprintf(stderr, "!%s: now setting lastDirSet to (%g,%g,%g)\n", me,
+                forwDir[0], forwDir[1], forwDir[2]);
+      }
+      */
       ELL_3V_COPY(tfx->lastDir, forwDir);
       tfx->lastDirSet = AIR_TRUE;
       ELL_3V_ADD2(tfx->wPos, tfx->wPos, forwDir);

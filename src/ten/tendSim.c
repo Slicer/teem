@@ -103,7 +103,7 @@ tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
                   ? nrrdTypeFloat
                   : nrrdTypeDouble);
     E = 0;
-    if (!E) E |= tenEstimateMethodSet(tec, tenEstimateMethodLLS);
+    if (!E) E |= tenEstimateMethodSet(tec, tenEstimate1MethodLLS);
     if (!E) E |= tenEstimateValueMinSet(tec, 0.0001);
     if (nbmat) {
       if (!E) E |= tenEstimateBMatricesSet(tec, nbmat, b, AIR_TRUE);

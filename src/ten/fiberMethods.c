@@ -36,47 +36,29 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
   }
 
   if (useDwi) {
-    tenDwiGageKindData *kindData;
-    int E=0;
     Nrrd *ngrad=NULL, *nbmat=NULL;
     double bval=0;
-    unsigned int *skip, skipNum, skipIdx;
+    unsigned int *skip, skipNum;
     
-    tfx->doingOrjanStuff = AIR_TRUE;
+    tfx->ten2Tracking = AIR_TRUE;
     
+    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, vol)) {
+      sprintf(err, "%s: trouble parsing DWI info", me );
+      biffAdd(TEN, err); return NULL;
+    }
+    if (skipNum) {
+      sprintf(err, "%s: sorry, can't do DWI skipping here", me);
+      biffAdd(TEN, err); return NULL;
+    }
     kind = tenDwiGageKindNew();
-    kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
-    
-    tenDwiGageKindNumSet(kind, vol->axis[0].size);
-    
-    if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum,
-                              vol)) {
-      fprintf(stderr, "%s: trouble parsing DWI info:\n\n", me );
+    if (tenDwiGageKindSet(kind,
+                          50, 1, bval, 1.0, /* HEY: generalize these */
+                          ngrad, NULL,
+                          tenEstimate1MethodLLS,
+                          tenEstimate2MethodQSegLLS)) {
+      sprintf(err, "%s: trouble setting DWI kind", me);
+      biffAdd(TEN, err); return NULL;
     }
-    if (!E) tenEstimateVerboseSet(kindData->tec, AIR_TRUE);
-    if (!E) tenEstimateNegEvalShiftSet(kindData->tec, AIR_TRUE);
-    if (!E) E |= tenEstimateMethodSet(kindData->tec, tenEstimateMethodLLS);
-    if (!E) E |= tenEstimateValueMinSet(kindData->tec, 1.0);
-    if (ngrad) {
-      if (!E) E |= tenEstimateGradientsSet(kindData->tec, ngrad, bval,
-                                           AIR_FALSE);
-      kindData->ngrad = nrrdNew();
-      nrrdCopy(kindData->ngrad, ngrad);
-    } else {
-      if (!E) E |= tenEstimateBMatricesSet(kindData->tec, nbmat, bval,
-                                           AIR_FALSE);
-      kindData->ngrad = NULL;
-    }
-    for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
-      if (!E) E |= tenEstimateSkipSet(kindData->tec, skip[skipIdx], AIR_TRUE);
-    }
-    /* HEY: HACK */
-    if (!E) E |= tenEstimateThresholdSet(kindData->tec, 50, 1);
-    if (E) {
-      fprintf(stderr, "%s: trouble setting grad/bmat info:\n", me );
-    }
-    
-    /* HAVE TO DO CLEAN UP OF THIS SOMEWHERE */
   } else {
     /* it should be a tensor volume */
     if (tenTensorCheck(vol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
@@ -127,13 +109,20 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
   tfx->wPunct = tenDefFiberWPunct;
 
   GAGE_QUERY_RESET(tfx->query);
-  if (tfx->doingOrjanStuff) {
+  if (tfx->ten2Tracking) {
     GAGE_QUERY_ITEM_ON( tfx->query, tenDwiGage2TensorQSeg );
     tfx->gageTen = NULL;
     tfx->gageEval = NULL;
     tfx->gageEvec = NULL;
     tfx->gageTen2 = gageAnswerPointer(tfx->gtx, tfx->pvl,
                                       tenDwiGage2TensorQSeg);
+    /*
+  double ten2AnisoStop;
+  double fiberTen[7], fiberEval[3], fiberEvec[9],
+    fiberAnisoStop, fiberAnisoSpeed;
+  int ten2Tracking, ten2Which;
+    */
+    tfx->ten2Which = 0;
     gageUpdate(tfx->gtx);
   } else {
     tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
@@ -143,6 +132,9 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
   }
   tfx->gageAnisoStop = NULL;
   tfx->gageAnisoSpeed = NULL;
+  tfx->ten2AnisoStop = AIR_NAN;
+  /* ... don't really see the point of initializing the ten2 stuff here;
+     its properly done in tenFiberTraceSet() ... */
   tfx->radius = AIR_NAN;
 
   return tfx;
@@ -245,12 +237,6 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   va_start(ap, stop);
   switch(stop) {
   case tenFiberStopAniso:
-
-    if (tfx->doingOrjanStuff) {
-      fprintf(stderr, "!%s: sorry, can't yet work on DWIs; bye.\n", me);
-      exit(1);
-    }
-
     tfx->anisoStopType = va_arg(ap, int);
     tfx->anisoThresh = va_arg(ap, double);
     if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStopType, tenAnisoLast))) {
@@ -384,7 +370,7 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     biffAdd(TEN, err); return 1;
   }
   
-  if (tfx->doingOrjanStuff) {
+  if (tfx->ten2Tracking) {
     fprintf(stderr, "!%s: sorry, can't yet work on DWIs; bye.\n", me);
     exit(1);
   }
@@ -422,8 +408,9 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     break;
   }
   tfx->anisoSpeedType = aniso;
-  if (tfx->doingOrjanStuff) {
-    /* HEY! */
+  if (tfx->ten2Tracking) {
+    /* actually, finding anisotropy in the context of 2-tensor
+       tracking is not currently done by gage */
   } else {
     GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
     tfx->gageAnisoSpeed = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
@@ -462,7 +449,7 @@ tenFiberKernelSet(tenFiberContext *tfx,
   }
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
 /*
-  if (gageKernelSet((tfx->doingOrjanStuff
+  if (gageKernelSet((tfx->ten2Tracking
   	                 ? tfx->dwiGageContext
   	                 : tfx->gtx), gageKernel00,
                     tfx->ksp->kernel, tfx->ksp->parm)) {
@@ -554,9 +541,10 @@ tenFiberUpdate(tenFiberContext *tfx) {
     sprintf(err, "%s: trouble with gage", me);
     biffMove(TEN, err, GAGE); return 1;
   }
-  if (tfx->doingOrjanStuff) {
-    if (!(0 == tfx->ten2Init || 1 == tfx->ten2Init)) {
-      sprintf(err, "%s: ten2Init must be 0 or 1 (not %d)", me, tfx->ten2Init);
+  if (tfx->ten2Tracking) {
+    if (!(0 == tfx->ten2Which || 1 == tfx->ten2Which)) {
+      sprintf(err, "%s: ten2Which must be 0 or 1 (not %d)",
+              me, tfx->ten2Which);
       biffAdd(TEN, err); return 1;
     }
   }
@@ -573,7 +561,7 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   char me[]="tenFiberContextCopy";
   tenFiberContext *tfx;
 
-  if (oldTfx->doingOrjanStuff) {
+  if (oldTfx->ten2Tracking) {
     fprintf(stderr, "!%s: sorry, can't copy DWI contexts; bye.\n", me);
     exit(1);
   }

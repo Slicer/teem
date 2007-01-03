@@ -24,42 +24,16 @@
 #include "privateTen.h"
 
 /*
+** learned: when it looks like good-old LLS estimation is producing
+** nothing but zero tensors, see if your tec->valueMin is larger
+** than (what are problably) floating-point DWIs
+*/
+
+/*
 
 http://www.mathworks.com/access/helpdesk/help/toolbox/curvefit/ch_fitt5.html#40515
 
 */
-
-/* ---------------------------------------------- */
-
-char
-_tenEstimateMethodStr[][AIR_STRLEN_SMALL] = {
-  "(unknown tenEstimateMethod)",
-  "LLS",
-  "WLS",
-  "NLS",
-  "MLE"
-};
-
-char
-_tenEstimateMethodDesc[][AIR_STRLEN_MED] = {
-  "unknown tenEstimateMethod",
-  "linear least-squares fit of log(DWI)",
-  "weighted least-squares fit of log(DWI)",
-  "non-linear least-squares fit of DWI",
-  "maximum likelihood estimate from DWI",
-};
-
-airEnum
-_tenEstimateMethod = {
-  "tenEstimateMethod",
-  TEN_ESTIMATE_METHOD_MAX,
-  _tenEstimateMethodStr, NULL,
-  _tenEstimateMethodDesc,
-  NULL, NULL,
-  AIR_FALSE
-};
-airEnum *
-tenEstimateMethod= &_tenEstimateMethod;
 
 /* ---------------------------------------------- */
 
@@ -245,10 +219,11 @@ tenEstimateContextNew() {
     tec->skipList = NULL;
     tec->skipListArr = airArrayNew((void**)&(tec->skipList), NULL,
                                    2*sizeof(unsigned int), 128);
+    tec->skipListArr->noReallocWhenSmaller = AIR_TRUE;
     tec->all_f = NULL;
     tec->all_d = NULL;
     tec->simulate = AIR_FALSE;
-    tec->estimateMethod = tenEstimateMethodUnknown;
+    tec->estimate1Method = tenEstimate1MethodUnknown;
     tec->estimateB0 = AIR_TRUE;
     tec->recordTime = AIR_FALSE;
     tec->recordErrorDwi = AIR_FALSE;
@@ -322,13 +297,14 @@ tenEstimateMethodSet(tenEstimateContext *tec, int estimateMethod) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (airEnumValCheck(tenEstimateMethod, estimateMethod)) {
-    sprintf(err, "%s: estimateMethod %d not valid", me, estimateMethod);
+  if (airEnumValCheck(tenEstimate1Method, estimateMethod)) {
+    sprintf(err, "%s: estimateMethod %d not a valid %s", me,
+            estimateMethod, tenEstimate1Method->name);
     biffAdd(TEN, err); return 1;
   }
 
-  if (tec->estimateMethod != estimateMethod) {
-    tec->estimateMethod = estimateMethod;
+  if (tec->estimate1Method != estimateMethod) {
+    tec->estimate1Method = estimateMethod;
     tec->flag[flagEstimateMethod] = AIR_TRUE;
   }
   
@@ -499,15 +475,15 @@ _tenEstimateCheck(tenEstimateContext *tec) {
       sprintf(err, "%s: b-value not set", me);
       biffAdd(TEN, err); return 1;
     }
-    if (airEnumValCheck(tenEstimateMethod, tec->estimateMethod)) {
+    if (airEnumValCheck(tenEstimate1Method, tec->estimate1Method)) {
       sprintf(err, "%s: estimation method not set", me);
       biffAdd(TEN, err); return 1;
     }
-    if (tenEstimateMethodMLE == tec->estimateMethod
+    if (tenEstimate1MethodMLE == tec->estimate1Method
         && !(AIR_EXISTS(tec->sigma) && (tec->sigma >= 0.0))
         ) {
       sprintf(err, "%s: can't do %s estim w/out non-negative sigma set", me,
-              airEnumStr(tenEstimateMethod, tenEstimateMethodMLE));
+              airEnumStr(tenEstimate1Method, tenEstimate1MethodMLE));
       biffAdd(TEN, err); return 1;
     }
     if (!(AIR_EXISTS(tec->dwiConfThresh) && AIR_EXISTS(tec->dwiConfSoft))) {
@@ -1166,6 +1142,9 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
   unsigned int ii, jj;
   
   emat = AIR_CAST(double *, tec->nemat->data);
+  if (tec->verbose) {
+    fprintf(stderr, "!%s: estimateB0 = %d\n", me, tec->estimateB0);
+  }
   if (tec->estimateB0) {
     for (ii=0; ii<tec->allNum; ii++) {
       tmp = AIR_MAX(tec->valueMin, tec->all[ii]);
@@ -1204,6 +1183,12 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
       tmp = 0;
       for (ii=0; ii<tec->dwiNum; ii++) {
         tmp += emat[ii + tec->dwiNum*jj]*tec->dwiTmp[ii];
+        if (tec->verbose > 5) {
+          fprintf(stderr, "%s: emat[(%u,%u)=%u]*dwi[%u] = %g*%g --> %g\n", me,
+                  ii, jj, ii + tec->dwiNum*jj, ii,
+                  emat[ii + tec->dwiNum*jj], tec->dwiTmp[ii],
+                  tmp);
+        }
       }
       tec->ten[1+jj] = tmp;
     }
@@ -1714,22 +1699,22 @@ _tenEstimate1TensorSingle(tenEstimateContext *tec) {
   time0 = tec->recordTime ? airTime() : 0;
   _tenEstimateValuesSet(tec);
   tec->ten[0] = tec->conf;
-  switch(tec->estimateMethod) {
-  case tenEstimateMethodLLS:
+  switch(tec->estimate1Method) {
+  case tenEstimate1MethodLLS:
     E = _tenEstimate1Tensor_LLS(tec);
     break;
-  case tenEstimateMethodWLS:
+  case tenEstimate1MethodWLS:
     E = _tenEstimate1Tensor_WLS(tec);
     break;
-  case tenEstimateMethodNLS:
+  case tenEstimate1MethodNLS:
     E = _tenEstimate1Tensor_NLS(tec);
     break;
-  case tenEstimateMethodMLE:
+  case tenEstimate1MethodMLE:
     E = _tenEstimate1Tensor_MLE(tec);
     break;
   default:
     sprintf(err, "%s: estimation method %d unimplemented",
-            me, tec->estimateMethod);
+            me, tec->estimate1Method);
     biffAdd(TEN, err); return 1;
   }
   tec->time = tec->recordTime ? airTime() - time0 : 0;
@@ -1786,14 +1771,18 @@ tenEstimate1TensorSingle_f(tenEstimateContext *tec,
 
   tec->all_f = all;
   tec->all_d = NULL;
+  /*
   fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
           tec->knownB0, tec->estimatedB0);
+  */
   if (_tenEstimate1TensorSingle(tec)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }
+  /*
   fprintf(stderr, "!%s(%u): B0 = %g,%g\n", me, __LINE__,
           tec->knownB0, tec->estimatedB0);
+  */
   TEN_T_COPY_TT(ten, float, tec->ten);
 
   return 0;
@@ -1803,6 +1792,7 @@ int
 tenEstimate1TensorSingle_d(tenEstimateContext *tec,
                            double ten[7], const double *all) {
   char me[]="tenEstimate1TensorSingle_d", err[BIFF_STRLEN];
+  unsigned int ii;
 
   if (!(tec && ten && all)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1811,18 +1801,24 @@ tenEstimate1TensorSingle_d(tenEstimateContext *tec,
 
   tec->all_f = NULL;
   tec->all_d = all;
+  if (tec->verbose) {
+    for (ii=0; ii<tec->allNum; ii++) {
+      fprintf(stderr, "%s: dwi[%u] = %g\n", me, ii,
+              tec->all_d ? tec->all_d[ii] : tec->all_f[ii]);
+    }
+  }
   if (_tenEstimate1TensorSingle(tec)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
   }
-  TEN_T_COPY(ten, tec->ten);
-  /*
+  if (tec->verbose) {
     fprintf(stderr, "%s: ten = %g   %g %g %g   %g %g   %g\n", me,
             ten[0],
             ten[1], ten[2], ten[3], 
             ten[4], ten[5], 
             ten[6]);
-  */
+  }
+  TEN_T_COPY(ten, tec->ten);
   return 0;
 }
 
@@ -1971,6 +1967,12 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     }
     for (dd=0; dd<tec->allNum; dd++) {
       all[dd] = lup(ndwi->data, dd + tec->allNum*II);
+    }
+    /*
+    tec->verbose = 10*(II == 42509);
+    */
+    if (tec->verbose) {
+      fprintf(stderr, "!%s: hello; II=%u\n", me, AIR_CAST(unsigned int, II));
     }
     if (tenEstimate1TensorSingle_d(tec, ten, all)) {
       sprintf(err, "%s: failed at sample " _AIR_SIZE_T_CNV, me, II);
