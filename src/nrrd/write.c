@@ -754,6 +754,10 @@ int
 _nrrdEncodingMaybeSet(NrrdIoState *nio) {
   char me[]="_nrrdEncodingMaybeSet", err[BIFF_STRLEN];
 
+  if (!nio) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
   if (!nio->encoding) {
     sprintf(err, "%s: invalid (NULL) encoding", me);
     biffAdd(NRRD, err); return 1;
