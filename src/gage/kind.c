@@ -34,7 +34,8 @@ int
 gageKindCheck(const gageKind *kind) {
   char me[]="gageKindCheck", err[BIFF_STRLEN];
   int pitem, pindex, alen;
-  int ii;
+  int ii, pi;
+  gageItemEntry *item;
 
   if (!kind) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -45,40 +46,65 @@ gageKindCheck(const gageKind *kind) {
             me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
     biffAdd(GAGE, err); return 1;
   }
-  for (ii=0; ii<=kind->itemMax; ii++) {
-    if (ii != kind->table[ii].enumVal) {
-      sprintf(err, "%s: item %d of kind \"%s\" has enumVal %d (not %d)",
-              me, ii, kind->name, kind->table[ii].enumVal, ii);
+  for (ii=1; ii<=kind->itemMax; ii++) {
+    item = kind->table + ii;
+    if (ii != item->enumVal) {
+      sprintf(err, "%s: \"%s\"-kind \"%s\" (item %d) has enumVal %d (not %d)",
+              me, kind->name, airEnumStr(kind->enm, ii),
+              ii, item->enumVal, ii);
       biffAdd(GAGE, err); return 1;
     }
-    alen = kind->table[ii].answerLength;
+    alen = item->answerLength;
     if (!(1 <= alen)) {
-      sprintf(err, "%s: item %d of kind \"%s\" has invalid answerLength %d",
-              me, ii, kind->name, alen);
+      if (kind->dynamicAlloc) {
+        sprintf(err, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
+                "answerLength (%d) not set?",
+                me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
+      } else {
+        sprintf(err, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
+                "answerLength %d",
+                me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
+      }
       biffAdd(GAGE, err); return 1;
     }
-    if (!(AIR_IN_CL(0, kind->table[ii].needDeriv, 2))) {
-      sprintf(err, "%s: item %d of kind \"%s\" has invalid needDeriv %d",
-              me, ii, kind->name, kind->table[ii].needDeriv);
+    if (!(AIR_IN_CL(0, item->needDeriv, 2))) {
+      sprintf(err, "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d",
+              me, kind->name, airEnumStr(kind->enm, ii), ii, item->needDeriv);
       biffAdd(GAGE, err); return 1;
     }
-    pitem = kind->table[ii].parentItem;
-    pindex = kind->table[ii].parentIndex;
-    if (-1 != pitem) {
+    for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
+      if (!( 0 <= item->prereq[pi] )) {
+        if (kind->dynamicAlloc) {
+          sprintf(err, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
+                  "prereq %d (%d) not set?",
+                  me, kind->name, airEnumStr(kind->enm, ii), ii,
+                  pi, item->prereq[pi]);
+        } else {
+          sprintf(err, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
+                  "prereq %d (%d)",
+                  me, kind->name, airEnumStr(kind->enm, ii), ii,
+                  pi, item->prereq[pi]);
+        }
+        biffAdd(GAGE, err); return 1;
+      }
+    }
+    pitem = item->parentItem;
+    pindex = item->parentIndex;
+    if (0 != pitem) {
       if (0 == ii) {
-        sprintf(err, "%s: first item (index 0) of kind \"%s\" can't "
+        sprintf(err, "%s: first item (index 0) of \"%s\"-kind can't "
                 "be a sub-item (wanted parent index %d)", 
                 me, kind->name, pitem);
         biffAdd(GAGE, err); return 1;
       }
-      if (!(AIR_IN_CL(0, pitem, kind->itemMax))) {
-        sprintf(err, "%s: item %d of kind \"%s\" wants parent item %d "
+      if (!(AIR_IN_CL(1, pitem, kind->itemMax))) {
+        sprintf(err, "%s: item %d of \"%s\"-kind wants parent item %d "
                 "outside valid range [0..%d]",
                 me, ii, kind->name, pitem, kind->itemMax);
         biffAdd(GAGE, err); return 1;
       }
-      if (-1 != kind->table[pitem].parentItem) {
-        sprintf(err, "%s: item %d of kind \"%s\" has parent %d which "
+      if (0 != kind->table[pitem].parentItem) {
+        sprintf(err, "%s: item %d of \"%s\"-kind has parent %d which "
                 "wants to have parent %d: can't have sub-sub-items", 
                 me, ii, kind->name, pitem, kind->table[pitem].parentItem);
         biffAdd(GAGE, err); return 1;
@@ -86,7 +112,7 @@ gageKindCheck(const gageKind *kind) {
       if (!( 0 <= pindex
              && ((unsigned int)pindex + alen 
                  <= kind->table[pitem].answerLength) )) {
-        sprintf(err, "%s: item %d of kind \"%s\" wants index range [%d,%d] "
+        sprintf(err, "%s: item %d of \"%s\"-kind wants index range [%d,%d] "
                 "of parent %d, which isn't in valid range [0,%d]",
                 me, ii, kind->name,
                 pindex, pindex + alen - 1,
@@ -94,7 +120,7 @@ gageKindCheck(const gageKind *kind) {
         biffAdd(GAGE, err); return 1;
       }
     }
-  }  
+  } 
   return 0;
 }
 
@@ -109,8 +135,8 @@ gageKindTotalAnswerLength(const gageKind *kind) {
     free(err); exit(1);
   }
   alen = 0;
-  for (ii=0; ii<=kind->itemMax; ii++) {
-    alen += (-1 == kind->table[ii].parentItem
+  for (ii=1; ii<=kind->itemMax; ii++) {
+    alen += (0 == kind->table[ii].parentItem
              ? kind->table[ii].answerLength
              : 0);
   }
@@ -128,14 +154,14 @@ int
 _gageKindAnswerOffset(const gageKind *kind, int item) {
   int parent, ii;
 
-  if (!item) {
+  if (1 >= item) {
     /* the first item always has zero offset */
     return 0;
   }
 
   /* else we're not the first */
   parent = kind->table[item].parentItem;
-  if (-1 != parent) {
+  if (0 != parent) {
     /* we're a sub-item */
     return (kind->table[item].parentIndex 
             + _gageKindAnswerOffset(kind, parent));
@@ -143,8 +169,8 @@ _gageKindAnswerOffset(const gageKind *kind, int item) {
 
   /* else we're not a sub-item: find the first previous non-sub-item */
   ii = item-1;
-  while (-1 != kind->table[ii].parentItem) {
-    /* gageKindCheck ensures that item 0 is not a sub-item */
+  while (0 != kind->table[ii].parentItem) {
+    /* gageKindCheck ensures that item 1 is not a sub-item */
     ii--;
   }
   return (kind->table[ii].answerLength

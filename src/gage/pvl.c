@@ -91,7 +91,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
     sprintf(err, "%s: couldn't alloc answer and directAnswer arrays", me);
     biffAdd(GAGE, err); return NULL;
   }
-  for (ii=0; ii<=kind->itemMax; ii++) {
+  for (ii=1; ii<=kind->itemMax; ii++) {
     pvl->directAnswer[ii] = pvl->answer + gageKindAnswerOffset(kind, ii);
   }
   pvl->flag[gagePvlFlagVolume] = AIR_TRUE;
@@ -140,7 +140,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
     sprintf(err, "%s: couldn't allocate all caches", me);
     biffAdd(GAGE, err); return NULL;
   }
-  for (ii=0; ii<=pvl->kind->itemMax; ii++) {
+  for (ii=1; ii<=pvl->kind->itemMax; ii++) {
     nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
   }
   if (pvl->kind->pvlDataCopy) {
@@ -276,7 +276,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
       ii--;
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)) {
         for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
-          if (-1 != pvl->kind->table[ii].prereq[pi]) {
+          if (0 != pvl->kind->table[ii].prereq[pi]) {
             GAGE_QUERY_ITEM_ON(pvl->query, pvl->kind->table[ii].prereq[pi]);
           }
         }
@@ -294,7 +294,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
      encourages putting new smarts at superficial levels
      instead of deeper levels */
   if (!pvl->data) {
-    for (ii=0; ii<=pvl->kind->itemMax; ii++) {
+    for (ii=1; ii<=pvl->kind->itemMax; ii++) {
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)
           && pvl->kind->table[ii].needData) {
         sprintf(err, "%s: item %d (%s) needs data, but pvl->data is NULL", 
@@ -336,6 +336,11 @@ gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
     biffAdd(GAGE, err); return 1;
   }
 
+  if (airEnumValCheck(pvl->kind->enm, item)) {
+    sprintf(err, "%s: %d not a valid %s value", me,
+            item, pvl->kind->enm->name);
+    biffAdd(GAGE, err); return 1;
+  }
   GAGE_QUERY_ITEM_ON(pvl->query, item);
   if (gageQuerySet(ctx, pvl, pvl->query)) {
     sprintf(err, "%s: trouble", me);

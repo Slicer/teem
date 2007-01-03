@@ -197,7 +197,7 @@ _gageStandardNixer (Nrrd *npad, gageKind *kind, gagePerVolume *pvl) {
 }
 
 void
-gageParmReset (gageParm *parm) {
+gageParmReset(gageParm *parm) {
 
   if (parm) {
     parm->renormalize = gageDefRenormalize;
@@ -216,7 +216,7 @@ gageParmReset (gageParm *parm) {
 }
 
 void
-gagePointReset (gagePoint *point) {
+gagePointReset(gagePoint *point) {
 
   if (point) {
     /* learned: can't initialize the floating point to AIR_NAN, 

@@ -27,45 +27,40 @@
 ** _gageSclTable
 **
 ** the static array of item information for the scalar kind. 
-**
-** General notes about setting these things up: 
-** - Yes, you'll need more than 80 columns of display
-** - You do need to explicitily initialize all the prerequisite elements,
-** because the compiler will initialize them to zero (which is a valid
-** item value)
 */
 gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
-  /* enum value        len,deriv,  prereqs,                                          parent item,    parent index,  needData */
-  {gageSclValue,         1,  0,  {-1, -1, -1, -1, -1, -1},                                   -1,              -1,  0},
-  {gageSclGradVec,       3,  1,  {-1, -1, -1, -1, -1, -1},                                   -1,              -1,  0},
-  {gageSclGradMag,       1,  1,  {gageSclGradVec, -1, -1, -1, -1, -1},                       -1,              -1,  0},
-  {gageSclNormal,        3,  1,  {gageSclGradVec, gageSclGradMag, -1, -1, -1, -1},           -1,              -1,  0},
-  {gageSclNPerp,         9,  1,  {gageSclNormal, -1, -1, -1, -1, -1},                        -1,              -1,  0},
-  {gageSclHessian,       9,  2,  {gageSclHessian, -1, -1, -1, -1, -1},                       -1,              -1,  0},
-  {gageSclLaplacian,     1,  2,  {gageSclHessian, -1, -1, -1, -1, -1},                       -1,              -1,  0},
-  {gageSclHessFrob,      1,  2,  {gageSclHessian, -1, -1, -1, -1, -1},                       -1,              -1,  0},
-  {gageSclHessEval,      3,  2,  {gageSclHessian, -1, -1, -1, -1, -1},                       -1,              -1,  0},
-  {gageSclHessEval0,     1,  2,  {gageSclHessEval, -1, -1, -1, -1, -1},                      gageSclHessEval,  0,  0},
-  {gageSclHessEval1,     1,  2,  {gageSclHessEval, -1, -1, -1, -1, -1},                      gageSclHessEval,  1,  0},
-  {gageSclHessEval2,     1,  2,  {gageSclHessEval, -1, -1, -1, -1, -1},                      gageSclHessEval,  2,  0},
-  {gageSclHessEvec,      9,  2,  {gageSclHessian, gageSclHessEval, -1, -1, -1, -1},          -1,              -1,  0},
-  {gageSclHessEvec0,     3,  2,  {gageSclHessEvec, -1, -1, -1, -1, -1},                      gageSclHessEvec,  0,  0},
-  {gageSclHessEvec1,     3,  2,  {gageSclHessEvec, -1, -1, -1, -1, -1},                      gageSclHessEvec,  3,  0},
-  {gageSclHessEvec2,     3,  2,  {gageSclHessEvec, -1, -1, -1, -1, -1},                      gageSclHessEvec,  6,  0},
-  {gageScl2ndDD,         1,  2,  {gageSclHessian, gageSclNormal, -1, -1, -1, -1},            -1,              -1,  0},
-  {gageSclGeomTens,      9,  2,  {gageSclHessian, gageSclNPerp, gageSclGradMag, -1, -1, -1}, -1,              -1,  0},
-  {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1, -1},      -1,              -1,  0},
-  {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace, -1, -1, -1, -1},      -1,              -1,  0},
-  {gageSclTotalCurv,     1,  2,  {gageSclGeomTens, -1, -1, -1, -1, -1},                      -1,              -1,  0},
-  {gageSclShapeTrace,    1,  2,  {gageSclGeomTens, -1, -1, -1, -1, -1},                      -1,              -1,  0},
-  {gageSclShapeIndex,    1,  2,  {gageSclK1, gageSclK2, -1, -1, -1, -1},                     -1,              -1,  0},
-  {gageSclMeanCurv,      1,  2,  {gageSclK1, gageSclK2, -1, -1, -1, -1},                     -1,              -1,  0},
-  {gageSclGaussCurv,     1,  2,  {gageSclK1, gageSclK2, -1, -1, -1, -1},                     -1,              -1,  0},
-  {gageSclCurvDir1,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2, -1, -1, -1},        -1,              -1,  0},
-  {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2, -1, -1, -1},        -1,              -1,  0},
-  {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens, -1, -1, -1, -1, -1},                      -1,              -1,  0},
-  {gageSclMedian,        1,  0,  {-1, -1, -1, -1, -1, -1},                                   -1,              -1,  0}
+  /* enum value        len,deriv,  prereqs,                                 parent item,  parent index,  needData */
+  {gageSclUnknown,       0,  0,  {},                                             0,               0,   AIR_FALSE},
+  {gageSclValue,         1,  0,  {},                                             0,               0,   AIR_FALSE},
+  {gageSclGradVec,       3,  1,  {},                                             0,               0,   AIR_FALSE},
+  {gageSclGradMag,       1,  1,  {gageSclGradVec},                               0,               0,   AIR_FALSE},
+  {gageSclNormal,        3,  1,  {gageSclGradVec, gageSclGradMag},               0,               0,   AIR_FALSE},
+  {gageSclNPerp,         9,  1,  {gageSclNormal},                                0,               0,   AIR_FALSE},
+  {gageSclHessian,       9,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
+  {gageSclLaplacian,     1,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
+  {gageSclHessFrob,      1,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
+  {gageSclHessEval,      3,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
+  {gageSclHessEval0,     1,  2,  {gageSclHessEval},                              gageSclHessEval, 0,   AIR_FALSE},
+  {gageSclHessEval1,     1,  2,  {gageSclHessEval},                              gageSclHessEval, 1,   AIR_FALSE},
+  {gageSclHessEval2,     1,  2,  {gageSclHessEval},                              gageSclHessEval, 2,   AIR_FALSE},
+  {gageSclHessEvec,      9,  2,  {gageSclHessian, gageSclHessEval},              0,               0,   AIR_FALSE},
+  {gageSclHessEvec0,     3,  2,  {gageSclHessEvec},                              gageSclHessEvec, 0,   AIR_FALSE},
+  {gageSclHessEvec1,     3,  2,  {gageSclHessEvec},                              gageSclHessEvec, 3,   AIR_FALSE},
+  {gageSclHessEvec2,     3,  2,  {gageSclHessEvec},                              gageSclHessEvec, 6,   AIR_FALSE},
+  {gageScl2ndDD,         1,  2,  {gageSclHessian, gageSclNormal},                0,               0,   AIR_FALSE},
+  {gageSclGeomTens,      9,  2,  {gageSclHessian, gageSclNPerp, gageSclGradMag}, 0,               0,   AIR_FALSE},
+  {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace},          0,               0,   AIR_FALSE},
+  {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace},          0,               0,   AIR_FALSE},
+  {gageSclTotalCurv,     1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
+  {gageSclShapeTrace,    1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
+  {gageSclShapeIndex,    1,  2,  {gageSclK1, gageSclK2},                         0,               0,   AIR_FALSE},
+  {gageSclMeanCurv,      1,  2,  {gageSclK1, gageSclK2},                         0,               0,   AIR_FALSE},
+  {gageSclGaussCurv,     1,  2,  {gageSclK1, gageSclK2},                         0,               0,   AIR_FALSE},
+  {gageSclCurvDir1,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
+  {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
+  {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
+  {gageSclMedian,        1,  0,  {},                                             0,               0,   AIR_FALSE}
 };
 
 char
@@ -282,10 +277,11 @@ gageScl = &_gageScl;
 
 gageKind
 _gageKindScl = {
+  AIR_FALSE, /* statically allocated */
   "scalar",
   &_gageScl,
-  0,
-  1,
+  0, /* baseDim */
+  1, /* valLen */
   GAGE_SCL_ITEM_MAX,
   _gageSclTable,
   _gageSclIv3Print,
