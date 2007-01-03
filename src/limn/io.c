@@ -140,19 +140,33 @@ limnPolyDataIVWrite(FILE *file, const limnPolyData *pld) {
   char me[]="limnPolyDataIVWrite", err[BIFF_STRLEN];
   unsigned int primIdx, xyzwIdx, rgbaIdx, normIdx, bitFlag,
     baseVertIdx;
-  float xyz[3];
+  int haveStrips, haveTris, haveElse;
+  float xyz[3], norm[3], len;
 
   if (!(file && pld)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
+  haveStrips = haveTris = haveElse = AIR_FALSE;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    if (limnPrimitiveTriangles != pld->type[primIdx]) {
-      sprintf(err, "%s: sorry, can only have %s prims (prim[%u] is %s)",
+    int isTri, isStrip, isElse;
+    isTri = limnPrimitiveTriangles == pld->type[primIdx];
+    isStrip = limnPrimitiveTriangleStrip == pld->type[primIdx];
+    isElse = !(isTri || isStrip);
+    haveTris |= isTri;
+    haveStrips |= isStrip;
+    haveElse |= isElse;
+    if (isElse) {
+      sprintf(err, "%s: sorry, can only have %s or %s prims (prim[%u] is %s)",
               me, airEnumStr(limnPrimitive, limnPrimitiveTriangles),
+              airEnumStr(limnPrimitive, limnPrimitiveTriangleStrip),
               primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
       biffAdd(LIMN, err); return 1;
     }
+  }
+  if (haveStrips && 1 != pld->primNum) {
+    sprintf(err, "%s: sorry, can only have a single triangle strip", me);
+    biffAdd(LIMN, err); return 1;
   }
 
   fprintf(file, "#Inventor V2.0 ascii\n");
@@ -160,63 +174,95 @@ limnPolyDataIVWrite(FILE *file, const limnPolyData *pld) {
   fprintf(file, "Separator {\n");
   fprintf(file, "  Coordinate3 {\n");
   fprintf(file, "    point [\n");
-  for (xyzwIdx=0; xyzwIdx<pld->xyzwNum; xyzwIdx++) {
-    ELL_34V_HOMOG(xyz, pld->xyzw + 4*xyzwIdx);
-    fprintf(file, "      %g %g %g%s\n",
-            xyz[0], xyz[1], xyz[2],
-            xyzwIdx < pld->xyzwNum-1 ? "," : "");
+  if (haveStrips) {
+    unsigned int vii;
+    for (vii=0; vii<pld->icnt[0]; vii++) {
+      xyzwIdx = (pld->indx)[vii];
+      ELL_34V_HOMOG(xyz, pld->xyzw + 4*xyzwIdx);
+      fprintf(file, "      %g %g %g%s\n",
+              xyz[0], xyz[1], xyz[2],
+              vii < pld->icnt[0]-1 ? "," : "");
+    }
+  } else {
+    for (xyzwIdx=0; xyzwIdx<pld->xyzwNum; xyzwIdx++) {
+      ELL_34V_HOMOG(xyz, pld->xyzw + 4*xyzwIdx);
+      fprintf(file, "      %g %g %g%s\n",
+              xyz[0], xyz[1], xyz[2],
+              xyzwIdx < pld->xyzwNum-1 ? "," : "");
+    }
   }
   fprintf(file, "    ]\n");
   fprintf(file, "  }\n");
 
   bitFlag = limnPolyDataInfoBitFlag(pld);
-
   if (bitFlag & (1 << limnPolyDataInfoNorm)) {
     fprintf(file, "  NormalBinding {  value PER_VERTEX_INDEXED }\n");
     fprintf(file, "  Normal {\n");
     fprintf(file, "    vector [\n");
-    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
-      fprintf(file, "      %g %g %g%s\n",
-              pld->norm[0 + 3*normIdx],
-              pld->norm[1 + 3*normIdx],
-              pld->norm[2 + 3*normIdx],
-              normIdx < pld->normNum-1 ? "," : "");
+    if (haveStrips) {
+      unsigned int vii;
+      for (vii=0; vii<pld->icnt[0]; vii++) {
+        normIdx = (pld->indx)[vii];
+        ELL_3V_SET(norm, 
+                   pld->norm[0 + 3*normIdx],
+                   pld->norm[1 + 3*normIdx],
+                   pld->norm[2 + 3*normIdx]);
+        ELL_3V_NORM(norm, norm, len);
+        fprintf(file, "      %g %g %g%s\n", norm[0], norm[1], norm[2],
+                vii < pld->icnt[0]-1 ? "," : "");
+      }
+    } else {
+      for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+        fprintf(file, "      %g %g %g%s\n",
+                pld->norm[0 + 3*normIdx],
+                pld->norm[1 + 3*normIdx],
+                pld->norm[2 + 3*normIdx],
+                normIdx < pld->normNum-1 ? "," : "");
+      }
     }
     fprintf(file, "    ]\n");
     fprintf(file, "  }\n");
   }
-  if (bitFlag & (1 << limnPolyDataInfoRGBA)) {
-    fprintf(file, "  MaterialBinding {  value PER_VERTEX_INDEXED }\n");
-    fprintf(file, "  Material {\n");
-    fprintf(file, "    diffuseColor [\n");
-    for (rgbaIdx=0; rgbaIdx<pld->rgbaNum; rgbaIdx++) {
-      fprintf(file, "      %g %g %g%s\n",
-              pld->rgba[0 + 4*rgbaIdx]/255.0,
-              pld->rgba[1 + 4*rgbaIdx]/255.0,
-              pld->rgba[2 + 4*rgbaIdx]/255.0,
-              rgbaIdx < pld->rgbaNum-1 ? "," : "");
+  if (!haveStrips) {
+    if (bitFlag & (1 << limnPolyDataInfoRGBA)) {
+      fprintf(file, "  MaterialBinding {  value PER_VERTEX_INDEXED }\n");
+      fprintf(file, "  Material {\n");
+      fprintf(file, "    diffuseColor [\n");
+      for (rgbaIdx=0; rgbaIdx<pld->rgbaNum; rgbaIdx++) {
+        fprintf(file, "      %g %g %g%s\n",
+                pld->rgba[0 + 4*rgbaIdx]/255.0,
+                pld->rgba[1 + 4*rgbaIdx]/255.0,
+                pld->rgba[2 + 4*rgbaIdx]/255.0,
+                rgbaIdx < pld->rgbaNum-1 ? "," : "");
+      }
+      fprintf(file, "    ]\n");
+      fprintf(file, "  }\n");
+    }
+  }
+
+  if (haveStrips) {
+    fprintf(file, "  TriangleStripSet {\n");
+    fprintf(file, "    numVertices %u\n", pld->icnt[0]);
+    fprintf(file, "  }\n");
+  } else {
+    fprintf(file, "  IndexedFaceSet {\n");
+    fprintf(file, "    coordIndex [\n");
+    
+    baseVertIdx = 0;
+    for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+      unsigned int triIdx, triNum, *indx3;
+      triNum = pld->icnt[primIdx]/3;
+      for (triIdx=0; triIdx<triNum; triIdx++) {
+        indx3 = pld->indx + baseVertIdx + 3*triIdx;
+        fprintf(file, "      %u, %u, %u, -1%s\n",
+                indx3[0], indx3[1], indx3[2],
+                triIdx < triNum-1 ? "," : "");
+      }
+      baseVertIdx += 3*triNum;
     }
     fprintf(file, "    ]\n");
     fprintf(file, "  }\n");
   }
-
-  fprintf(file, "  IndexedFaceSet {\n");
-  fprintf(file, "    coordIndex [\n");
-
-  baseVertIdx = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triIdx, triNum, *indx3;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      indx3 = pld->indx + baseVertIdx + 3*triIdx;
-      fprintf(file, "      %u, %u, %u, -1%s\n",
-              indx3[0], indx3[1], indx3[2],
-              triIdx < triNum-1 ? "," : "");
-    }
-    baseVertIdx += 3*triNum;
-  }
-  fprintf(file, "    ]\n");
-  fprintf(file, "  }\n");
 
   fprintf(file, "}\n");
 
