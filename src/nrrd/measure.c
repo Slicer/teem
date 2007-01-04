@@ -980,6 +980,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   const char *ptr, *iData;
   char *oData, *line;
   double axmin, axmax;
+  airArray *mop;
   
   if (!(nin && nout)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -1009,6 +1010,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     }
   }
   
+  mop = airMopNew();
   iType = nin->type;
   oType = (nrrdTypeDefault != type 
            ? type 
@@ -1034,7 +1036,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
     sprintf(err, "%s: failed to create output", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
   /* allocate a scanline buffer */
@@ -1042,8 +1044,9 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_CNV "," 
             _AIR_SIZE_T_CNV ") scanline buffer",
             me, linLen, iElSz);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
+  airMopAdd(mop, line, airFree, airMopAlways);
 
   /* the skinny */
   axmin = nin->axis[axis].min;
@@ -1065,12 +1068,12 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
     sprintf(err, "%s:", me); 
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   if (nrrdContentSet_va(nout, func, nin,
                         "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
     sprintf(err, "%s:", me); 
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   /* this will copy the space origin over directly, which is reasonable */
   if (nrrdBasicInfoCopy(nout, nin,
@@ -1084,8 +1087,9 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(NRRD, err); airMopError(mop); return 1;
   }
 
+  airMopOkay(mop);
   return 0;
 }
