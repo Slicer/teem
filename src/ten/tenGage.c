@@ -106,9 +106,11 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageCl1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageCp1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageCa1,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageClpmin1,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageCl2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageCp2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageCa2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
+  {tenGageClpmin2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
 
   {tenGageHessian,                63,  2,  {},                                                                   0,        0,     AIR_FALSE},
   {tenGageTraceHessian,            9,  2,  {tenGageHessian},                                                     0,        0,     AIR_FALSE},
@@ -674,7 +676,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 1*3),
                ELL_3V_LEN(pvl->directAnswer[tenGageRotTans] + 2*3));
   }
-  /* --- C{l,p,a}1 --- */
+  /* --- C{l,p,a,lpmin}1 --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1)) {
     tmp0 = tenAnisoEval_d(evalAns, tenAniso_Cl1);
     pvl->directAnswer[tenGageCl1][0] = AIR_CLAMP(0, tmp0, 1);
@@ -687,7 +689,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = tenAnisoEval_d(evalAns, tenAniso_Ca1);
     pvl->directAnswer[tenGageCa1][0] = AIR_CLAMP(0, tmp0, 1);
   }
-  /* --- C{l,p,a}2 --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageClpmin1)) {
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Clpmin1);
+    pvl->directAnswer[tenGageClpmin1][0] = AIR_CLAMP(0, tmp0, 1);
+  }
+  /* --- C{l,p,a,lpmin}2 --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl2)) {
     tmp0 = tenAnisoEval_d(evalAns, tenAniso_Cl2);
     pvl->directAnswer[tenGageCl2][0] = AIR_CLAMP(0, tmp0, 1);
@@ -699,6 +705,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa2)) {
     tmp0 = tenAnisoEval_d(evalAns, tenAniso_Ca2);
     pvl->directAnswer[tenGageCa2][0] = AIR_CLAMP(0, tmp0, 1);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageClpmin2)) {
+    tmp0 = tenAnisoEval_d(evalAns, tenAniso_Clpmin2);
+    pvl->directAnswer[tenGageClpmin2][0] = AIR_CLAMP(0, tmp0, 1);
   }
   /* --- Hessian madness (the derivative, not the soldier) --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageHessian)) {

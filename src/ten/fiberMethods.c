@@ -303,6 +303,9 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     case tenAniso_Ca1:
       anisoGage = tenGageCa1;
       break;
+    case tenAniso_Clpmin1:
+      anisoGage = tenGageClpmin1;
+      break;
     case tenAniso_Cl2:
       anisoGage = tenGageCl2;
       break;
@@ -311,6 +314,9 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       break;
     case tenAniso_Ca2:
       anisoGage = tenGageCa2;
+      break;
+    case tenAniso_Clpmin2:
+      anisoGage = tenGageClpmin2;
       break;
     default:
       sprintf(err, "%s: sorry, currently don't have fast %s computation "

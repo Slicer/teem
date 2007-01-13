@@ -388,10 +388,6 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   unsigned int i;
   airArray *mop;
   
-  fprintf(stderr, "!%s: type = %s (%d)\n", me, 
-          airEnumStr(tenFiberType, tfx->fiberType), tfx->fiberType);
-          
-
   if (!(tfx)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;

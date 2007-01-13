@@ -68,37 +68,39 @@ extern "C" {
 ** enumsTen.c: tenAniso
 */
 enum {
-  tenAnisoUnknown, /*  0: nobody knows */
-  tenAniso_Cl1,    /*  1: Westin's linear (first version) */
-  tenAniso_Cp1,    /*  2: Westin's planar (first version) */
-  tenAniso_Ca1,    /*  3: Westin's linear + planar (first version) */
-  tenAniso_Cs1,    /*  4: Westin's spherical (first version) */
-  tenAniso_Ct1,    /*  5: gk's anisotropy type (first version) */
-  tenAniso_Cl2,    /*  6: Westin's linear (second version) */
-  tenAniso_Cp2,    /*  7: Westin's planar (second version) */
-  tenAniso_Ca2,    /*  8: Westin's linear + planar (second version) */
-  tenAniso_Cs2,    /*  9: Westin's spherical (second version) */
-  tenAniso_Ct2,    /* 10: gk's anisotropy type (second version) */
-  tenAniso_RA,     /* 11: Bass+Pier's relative anisotropy */
-  tenAniso_FA,     /* 12: (Bass+Pier's fractional anisotropy)/sqrt(2) */
-  tenAniso_VF,     /* 13: volume fraction = 1-(Bass+Pier's volume ratio) */
-  tenAniso_B,      /* 14: linear term in cubic characteristic polynomial */
-  tenAniso_Q,      /* 15: radius of root circle is 2*sqrt(Q) */
-  tenAniso_R,      /* 16: half of third moment of eigenvalues */
-  tenAniso_S,      /* 17: frobenius norm, squared */
-  tenAniso_Skew,   /* 18: R/sqrt(2*Q^3) */
-  tenAniso_Mode,   /* 19: 3*sqrt(6)*det(dev)/norm(dev) = sqrt(2)*skew */
-  tenAniso_Th,     /* 20: acos(sqrt(2)*skew)/3 */
-  tenAniso_Omega,  /* 21: FA*(1+mode)/2 */
-  tenAniso_Cz,     /* 22: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Det,    /* 23: plain old determinant */
-  tenAniso_Tr,     /* 24: plain old trace */
-  tenAniso_eval0,  /* 25: largest eigenvalue */
-  tenAniso_eval1,  /* 26: middle eigenvalue */
-  tenAniso_eval2,  /* 27: smallest eigenvalue */
+  tenAnisoUnknown,  /*  0: nobody knows */
+  tenAniso_Cl1,     /*  1: Westin's linear (first version) */
+  tenAniso_Cp1,     /*  2: Westin's planar (first version) */
+  tenAniso_Ca1,     /*  3: Westin's linear + planar (first version) */
+  tenAniso_Clpmin1, /*  4: minimum of Cl and Cp (first version) */
+  tenAniso_Cs1,     /*  5: Westin's spherical (first version) */
+  tenAniso_Ct1,     /*  6: gk's anisotropy type (first version) */
+  tenAniso_Cl2,     /*  7: Westin's linear (second version) */
+  tenAniso_Cp2,     /*  8: Westin's planar (second version) */
+  tenAniso_Ca2,     /*  9: Westin's linear + planar (second version) */
+  tenAniso_Clpmin2, /* 10: minimum of Cl and Cp (second version) */
+  tenAniso_Cs2,     /* 11: Westin's spherical (second version) */
+  tenAniso_Ct2,     /* 12: gk's anisotropy type (second version) */
+  tenAniso_RA,      /* 13: Bass+Pier's relative anisotropy */
+  tenAniso_FA,      /* 14: (Bass+Pier's fractional anisotropy)/sqrt(2) */
+  tenAniso_VF,      /* 15: volume fraction = 1-(Bass+Pier's volume ratio) */
+  tenAniso_B,       /* 16: linear term in cubic characteristic polynomial */
+  tenAniso_Q,       /* 17: radius of root circle is 2*sqrt(Q) */
+  tenAniso_R,       /* 18: half of third moment of eigenvalues */
+  tenAniso_S,       /* 19: frobenius norm, squared */
+  tenAniso_Skew,    /* 20: R/sqrt(2*Q^3) */
+  tenAniso_Mode,    /* 21: 3*sqrt(6)*det(dev)/norm(dev) = sqrt(2)*skew */
+  tenAniso_Th,      /* 22: acos(sqrt(2)*skew)/3 */
+  tenAniso_Omega,   /* 23: FA*(1+mode)/2 */
+  tenAniso_Cz,      /* 24: Zhukov's invariant-based anisotropy metric */
+  tenAniso_Det,     /* 25: plain old determinant */
+  tenAniso_Tr,      /* 26: plain old trace */
+  tenAniso_eval0,   /* 27: largest eigenvalue */
+  tenAniso_eval1,   /* 28: middle eigenvalue */
+  tenAniso_eval2,   /* 29: smallest eigenvalue */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX 27
+#define TEN_ANISO_MAX  29
 
 /*
 ******** tenGlyphType* enum
@@ -292,65 +294,67 @@ enum {
   tenGageCl1,              /*  60: same as tenAniso_Cl1, but faster */
   tenGageCp1,              /*  61: same as tenAniso_Cp1, but faster */
   tenGageCa1,              /*  62: same as tenAniso_Ca1, but faster */
-  tenGageCl2,              /*  63: same as tenAniso_Cl2, but faster */
-  tenGageCp2,              /*  64: same as tenAniso_Cp2, but faster */
-  tenGageCa2,              /*  65: same as tenAniso_Ca2, but faster */
+  tenGageClpmin1,          /*  63: min(cl1,cp1) */
+  tenGageCl2,              /*  64: same as tenAniso_Cl2, but faster */
+  tenGageCp2,              /*  65: same as tenAniso_Cp2, but faster */
+  tenGageCa2,              /*  66: same as tenAniso_Ca2, but faster */
+  tenGageClpmin2,          /*  67: min(cl2,cp2) */
 
-  tenGageHessian,          /*  66: "hess", all hessians of tensor
+  tenGageHessian,          /*  68: "hess", all hessians of tensor
                                    components: [63] */
-  tenGageTraceHessian,     /*  67: "trhess", hessian(trace): [9] */
-  tenGageBHessian,         /*  68: "bhess": [9] */
-  tenGageDetHessian,       /*  69: "dethess": [9] */
-  tenGageSHessian,         /*  70: "shess": [9] */
-  tenGageQHessian,         /*  71: "qhess": [9] */
+  tenGageTraceHessian,     /*  69: "trhess", hessian(trace): [9] */
+  tenGageBHessian,         /*  70: "bhess": [9] */
+  tenGageDetHessian,       /*  71: "dethess": [9] */
+  tenGageSHessian,         /*  72: "shess": [9] */
+  tenGageQHessian,         /*  73: "qhess": [9] */
 
-  tenGageFAHessian,        /*  72: "fahess": [9] */
-  tenGageFAHessianEval,    /*  73: "fahesseval": [3] */
-  tenGageFAHessianEval0,   /*  74: "fahesseval0": [1] */
-  tenGageFAHessianEval1,   /*  75: "fahesseval1": [1] */
-  tenGageFAHessianEval2,   /*  76: "fahesseval2": [1] */
-  tenGageFAHessianEvec,    /*  77: "fahessevec": [9] */
-  tenGageFAHessianEvec0,   /*  78: "fahessevec0": [3] */
-  tenGageFAHessianEvec1,   /*  79: "fahessevec1": [3] */
-  tenGageFAHessianEvec2,   /*  80: "fahessevec2": [3] */
-  tenGageFARidgeSurfaceStrength,  /*  81: "farsurf": [1] */
-  tenGageFAValleySurfaceStrength, /*  82: "favsurf": [1] */
-  tenGageFALaplacian,      /*  83: "falapl": [1] */
-  tenGageFA2ndDD,          /*  84: "fa2d": [1] */
+  tenGageFAHessian,        /*  74: "fahess": [9] */
+  tenGageFAHessianEval,    /*  75: "fahesseval": [3] */
+  tenGageFAHessianEval0,   /*  76: "fahesseval0": [1] */
+  tenGageFAHessianEval1,   /*  77: "fahesseval1": [1] */
+  tenGageFAHessianEval2,   /*  78: "fahesseval2": [1] */
+  tenGageFAHessianEvec,    /*  79: "fahessevec": [9] */
+  tenGageFAHessianEvec0,   /*  80: "fahessevec0": [3] */
+  tenGageFAHessianEvec1,   /*  81: "fahessevec1": [3] */
+  tenGageFAHessianEvec2,   /*  82: "fahessevec2": [3] */
+  tenGageFARidgeSurfaceStrength,  /*  83: "farsurf": [1] */
+  tenGageFAValleySurfaceStrength, /*  84: "favsurf": [1] */
+  tenGageFALaplacian,      /*  85: "falapl": [1] */
+  tenGageFA2ndDD,          /*  86: "fa2d": [1] */
 
-  tenGageRHessian,         /*  85: "rhess": [9] */
+  tenGageRHessian,         /*  87: "rhess": [9] */
 
-  tenGageModeHessian,      /*  86: "mhess": [9] */
-  tenGageModeHessianEval,  /*  87: "mhesseval": [3] */
-  tenGageModeHessianEval0, /*  88: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /*  89: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /*  90: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /*  91: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /*  92: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /*  93: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /*  94: "mhessevec2": [3] */
+  tenGageModeHessian,      /*  88: "mhess": [9] */
+  tenGageModeHessianEval,  /*  89: "mhesseval": [3] */
+  tenGageModeHessianEval0, /*  90: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /*  91: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /*  92: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /*  93: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /*  94: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /*  95: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /*  96: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /*  95: "omhess": [9] */
-  tenGageOmegaHessianEval, /*  96: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/*  97: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/*  98: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/*  99: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /* 100: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 101: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 102: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 103: "omhessevec2": [3] */
+  tenGageOmegaHessian,     /*  97: "omhess": [9] */
+  tenGageOmegaHessianEval, /*  98: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/*  99: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/* 100: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/* 101: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 102: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 103: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 104: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 105: "omhessevec2": [3] */
 
-  tenGageTraceGradVecDotEvec0,   /* 104: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAngle,    /* 105: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 106: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 107: "fagvdotevec0": [1] */
-  tenGageFADiffusionAngle,       /* 108: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 109: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 110: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAngle,    /* 111: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 112: "daom": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 106: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAngle,    /* 107: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 108: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 109: "fagvdotevec0": [1] */
+  tenGageFADiffusionAngle,       /* 110: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 111: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 112: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAngle,    /* 113: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 114: "daom": [1] */
 
-  tenGageCovariance, /* 113: "cov" 4rth order covariance tensor: [21]
+  tenGageCovariance, /* 115: "cov" 4rth order covariance tensor: [21]
                         (in order of appearance)
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
@@ -359,10 +363,10 @@ enum {
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
 
-  tenGageAniso,            /* 114: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 116: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     114
+#define TEN_GAGE_ITEM_MAX     116
 
 /*
 ******** tenDwiGage* enum

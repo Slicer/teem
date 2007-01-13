@@ -61,6 +61,21 @@ double _tenAnisoEval_Ca1_d(const double eval[3]) {
   return (eval[0] + eval[1] - 2*eval[2])/(DBL_EPSILON + sum);
 }
 
+float  _tenAnisoEval_Clpmin1_f(const float  eval[3]) {
+  float cl, cp, sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  cl = (eval[0] - eval[1])/(DBL_EPSILON + sum);
+  cp = 2*(eval[1] - eval[2])/(DBL_EPSILON + sum);
+  return AIR_MIN(cl, cp);
+}
+double _tenAnisoEval_Clpmin1_d(const double eval[3]) {
+  double cl, cp, sum = eval[0] + eval[1] + eval[2];
+  sum = AIR_MAX(0, sum);
+  cl = (eval[0] - eval[1])/(DBL_EPSILON + sum);
+  cp = 2*(eval[1] - eval[2])/(DBL_EPSILON + sum);
+  return AIR_MIN(cl, cp);
+}
+
 float  _tenAnisoEval_Cs1_f(const float  eval[3]) {
   float sum = eval[0] + eval[1] + eval[2];
   sum = AIR_MAX(0, sum);
@@ -108,6 +123,19 @@ float  _tenAnisoEval_Ca2_f(const float  eval[3]) {
 double _tenAnisoEval_Ca2_d(const double eval[3]) {
   double eval0 = AIR_MAX(0, eval[0]);
   return (eval[0] - eval[2])/(DBL_EPSILON + eval0);
+}
+
+float  _tenAnisoEval_Clpmin2_f(const float  eval[3]) {
+  float cl, cp, eval0 = AIR_MAX(0, eval[0]);
+  cl = (eval[0] - eval[1])/(FLT_EPSILON + eval0);
+  cp = (eval[1] - eval[2])/(DBL_EPSILON + eval0);
+  return AIR_MIN(cl, cp);
+}
+double _tenAnisoEval_Clpmin2_d(const double eval[3]) {
+  double cl, cp, eval0 = AIR_MAX(0, eval[0]);
+  cl = (eval[0] - eval[1])/(FLT_EPSILON + eval0);
+  cp = (eval[1] - eval[2])/(DBL_EPSILON + eval0);
+  return AIR_MIN(cl, cp);
 }
 
 float  _tenAnisoEval_Cs2_f(const float  eval[3]) {
@@ -299,11 +327,13 @@ float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
   _tenAnisoEval_Cl1_f,
   _tenAnisoEval_Cp1_f,
   _tenAnisoEval_Ca1_f,
+  _tenAnisoEval_Clpmin1_f,
   _tenAnisoEval_Cs1_f,
   _tenAnisoEval_Ct1_f,
   _tenAnisoEval_Cl2_f,
   _tenAnisoEval_Cp2_f,
   _tenAnisoEval_Ca2_f,
+  _tenAnisoEval_Clpmin2_f,
   _tenAnisoEval_Cs2_f,
   _tenAnisoEval_Ct2_f,
   _tenAnisoEval_RA_f,
@@ -330,11 +360,13 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   _tenAnisoEval_Cl1_d,
   _tenAnisoEval_Cp1_d,
   _tenAnisoEval_Ca1_d,
+  _tenAnisoEval_Clpmin1_d,
   _tenAnisoEval_Cs1_d,
   _tenAnisoEval_Ct1_d,
   _tenAnisoEval_Cl2_d,
   _tenAnisoEval_Cp2_d,
   _tenAnisoEval_Ca2_d,
+  _tenAnisoEval_Clpmin2_d,
   _tenAnisoEval_Cs2_d,
   _tenAnisoEval_Ct2_d,
   _tenAnisoEval_RA_d,
@@ -411,6 +443,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_Cp1] = cp;
   ca = cl + cp;
   c[tenAniso_Ca1] = ca;
+  c[tenAniso_Clpmin1] = AIR_MIN(cl, cp);
   c[tenAniso_Cs1] = 1 - ca;
   c[tenAniso_Ct1] = ca ? cp/ca : 0;
   /* second version of cl, cp, cs */
@@ -420,6 +453,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_Cp2] = cp;
   ca = cl + cp;
   c[tenAniso_Ca2] = ca;
+  c[tenAniso_Clpmin2] = AIR_MIN(cl, cp);
   c[tenAniso_Cs2] = 1 - ca;
   c[tenAniso_Ct2] = ca ? cp/ca : 0;
   /* non-westin anisos */
