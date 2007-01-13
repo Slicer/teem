@@ -88,7 +88,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
   }
   /* looks to GK like GK says that we must set fiber type and
     some stop criterion */
-  tfx->fiberType = tenFiberTypeUnknown;
+  tfx->fiberType = tenFiberTypeEvec0;
   tfx->intg = tenDefFiberIntg;
   tfx->anisoStopType = tenDefFiberAnisoStopType;
   tfx->anisoSpeedType = tenAnisoUnknown;
@@ -190,12 +190,36 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
   switch(type) {
   case tenFiberTypeEvec0:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
+    /* HEY: COPY AND PASTE */
+    tfx->gageEvec 
+      = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                          (tenFiberTypeEvec0 == tfx->fiberType
+                           ? tenGageEvec0
+                           : (tenFiberTypeEvec1 == tfx->fiberType
+                              ? tenGageEvec1
+                              : tenGageEvec2)));
     break;
   case tenFiberTypeEvec1:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
+    /* HEY: COPY AND PASTE */
+    tfx->gageEvec 
+      = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                          (tenFiberTypeEvec0 == tfx->fiberType
+                           ? tenGageEvec0
+                           : (tenFiberTypeEvec1 == tfx->fiberType
+                              ? tenGageEvec1
+                              : tenGageEvec2)));
     break;
   case tenFiberTypeEvec2:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
+    /* HEY: COPY AND PASTE */
+    tfx->gageEvec 
+      = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                          (tenFiberTypeEvec0 == tfx->fiberType
+                           ? tenGageEvec0
+                           : (tenFiberTypeEvec1 == tfx->fiberType
+                              ? tenGageEvec1
+                              : tenGageEvec2)));
     break;
   case tenFiberTypeTensorLine:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);

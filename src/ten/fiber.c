@@ -216,8 +216,9 @@ _tenFiberAnisoSpeed(double *step, double xx, double parm[3]) {
 ** UNIT LENGTH, with anisoStepSize, its scaled by that anisotropy measure
 */
 void
-_tenFiberStep_Evec1(tenFiberContext *tfx, double step[3]) {
+_tenFiberStep_Evec(tenFiberContext *tfx, double step[3]) {
 
+  /* fiberEvec points to the correct gage answer based on fiberType */
   ELL_3V_COPY(step, tfx->fiberEvec + 3*0);
   _tenFiberAlign(tfx, step);
   if (tfx->anisoSpeedType) {
@@ -279,7 +280,9 @@ _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
 void (*
 _tenFiberStep[TEN_FIBER_TYPE_MAX+1])(tenFiberContext *, double *) = {
   NULL,
-  _tenFiberStep_Evec1,
+  _tenFiberStep_Evec,
+  _tenFiberStep_Evec,
+  _tenFiberStep_Evec,
   _tenFiberStep_TensorLine,
   _tenFiberStep_PureLine,
   _tenFiberStep_Zhukov
@@ -384,6 +387,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   int ret, whyStop, buffIdx, fptsIdx, outIdx, oldStop;
   unsigned int i;
   airArray *mop;
+  
+  fprintf(stderr, "!%s: type = %s (%d)\n", me, 
+          airEnumStr(tenFiberType, tfx->fiberType), tfx->fiberType);
+          
 
   if (!(tfx)) {
     sprintf(err, "%s: got NULL pointer", me);

@@ -127,7 +127,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     }
   }
-  if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec1);
+  if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec0);
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, intg);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
