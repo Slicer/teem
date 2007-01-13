@@ -124,11 +124,23 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
     */
     tfx->ten2Which = 0;
     gageUpdate(tfx->gtx);
-  } else {
+  } else if (tenFiberTypeEvec0 == tfx->fiberType
+	     || tenFiberTypeEvec1 == tfx->fiberType
+	     || tenFiberTypeEvec2 == tfx->fiberType) {
     tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
     tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
-    tfx->gageEvec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
+    tfx->gageEvec 
+      = gageAnswerPointer(tfx->gtx, tfx->pvl,
+			  (tenFiberTypeEvec0 == tfx->fiberType
+			   ? tenGageEvec0
+			   : (tenFiberTypeEvec1 == tfx->fiberType
+			      ? tenGageEvec1
+			      : tenGageEvec2)));
     tfx->gageTen2 = NULL;
+  } else {
+    sprintf(err, "%s: problem with unimplemented fiberType %d", me,
+	    tfx->fiberType);
+    biffAdd(TEN, err); return NULL;
   }
   tfx->gageAnisoStop = NULL;
   tfx->gageAnisoSpeed = NULL;
@@ -176,8 +188,14 @@ tenFiberTypeSet(tenFiberContext *tfx, int type) {
   }
   qse = 0;
   switch(type) {
-  case tenFiberTypeEvec1:
+  case tenFiberTypeEvec0:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
+    break;
+  case tenFiberTypeEvec1:
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
+    break;
+  case tenFiberTypeEvec2:
+    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
     break;
   case tenFiberTypeTensorLine:
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
@@ -572,7 +590,14 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   tfx->pvl = tfx->gtx->pvl[0];  /* HEY! gage API sucks */
   tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
   tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
-  tfx->gageEvec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
+  /* HEY: COPY AND PASTE */
+  tfx->gageEvec 
+    = gageAnswerPointer(tfx->gtx, tfx->pvl,
+			(tenFiberTypeEvec0 == tfx->fiberType
+			 ? tenGageEvec0
+			 : (tenFiberTypeEvec1 == tfx->fiberType
+			    ? tenGageEvec1
+			    : tenGageEvec2)));
   tfx->gageAnisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl,
                                          tfx->anisoStopType);
   tfx->gageAnisoSpeed = (tfx->anisoSpeedType

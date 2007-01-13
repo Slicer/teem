@@ -359,9 +359,10 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 ** OR: pass a NULL nfiber, and a buff allocated for 3*(2*halfBuffLen + 1)
 ** (note the "+ 1" !!!) doubles.  The fiber tracking on each half will stop
 ** at halfBuffLen points. The given seedpoint will be stored in
-** buff[0,1,2 + 3*halfBuffLen].  The indices for the end of the first
-** tract half, and the end of the second tract half, will be set in
-** *startIdxP and *endIdxP respectively.
+** buff[0,1,2 + 3*halfBuffLen].  The linear (1-D) indices for the end of
+** the first tract half, and the end of the second tract half, will be set in
+** *startIdxP and *endIdxP respectively (this does not include a multiply
+** by 3)
 */
 int
 tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,

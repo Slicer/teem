@@ -712,7 +712,9 @@ tenGage = &_tenGage;
 char
 _tenFiberTypeStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenFiberType)",
+  "evec0",
   "evec1",
+  "evec2",
   "tensorline",
   "pureline",
   "zhukov"
@@ -722,6 +724,8 @@ char
 _tenFiberTypeDesc[][AIR_STRLEN_MED] = {
   "unknown tenFiber type",
   "simply follow principal eigenvector",
+  "follow medium eigenvector",
+  "follow minor eigenvector",
   "Weinstein-Kindlmann tensorlines",
   "based on tensor multiplication only",
   "Zhukov\'s oriented tensors"
@@ -729,7 +733,9 @@ _tenFiberTypeDesc[][AIR_STRLEN_MED] = {
 
 char
 _tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "ev0", "evec0",
   "ev1", "evec1",
+  "ev2", "evec2",
   "tline", "tensorline",
   "pline", "pureline",
   "z", "zhukov",
@@ -738,7 +744,9 @@ _tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
 
 int
 _tenFiberTypeValEqv[] = {
+  tenFiberTypeEvec0, tenFiberTypeEvec0,
   tenFiberTypeEvec1, tenFiberTypeEvec1,
+  tenFiberTypeEvec2, tenFiberTypeEvec2,
   tenFiberTypeTensorLine, tenFiberTypeTensorLine,
   tenFiberTypePureLine, tenFiberTypePureLine,
   tenFiberTypeZhukov, tenFiberTypeZhukov

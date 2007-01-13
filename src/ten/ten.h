@@ -513,13 +513,15 @@ typedef struct {
 */
 enum {
   tenFiberTypeUnknown,    /* 0: nobody knows */
-  tenFiberTypeEvec1,      /* 1: standard following of principal eigenvector */
-  tenFiberTypeTensorLine, /* 2: Weinstein-Kindlmann tensorlines */
-  tenFiberTypePureLine,   /* 3: "pure" tensorlines- multiplication only */
-  tenFiberTypeZhukov,     /* 4: Zhukov's oriented tensor reconstruction */
+  tenFiberTypeEvec0,      /* 1: standard following of principal eigenvector */
+  tenFiberTypeEvec1,      /* 2: following medium eigenvector */
+  tenFiberTypeEvec2,      /* 3: following minor eigenvector */
+  tenFiberTypeTensorLine, /* 4: Weinstein-Kindlmann tensorlines */
+  tenFiberTypePureLine,   /* 5: "pure" tensorlines- multiplication only */
+  tenFiberTypeZhukov,     /* 6: Zhukov's oriented tensor reconstruction */
   tenFiberTypeLast
 };
-#define TEN_FIBER_TYPE_MAX   4
+#define TEN_FIBER_TYPE_MAX   6
 
 /*
 ******** tenFiberIntg* enum
