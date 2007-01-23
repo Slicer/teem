@@ -37,7 +37,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   Nrrd *nout[2];
   airArray *mop;
   unsigned int sx, sy, sz, xi, yi, zi, anslen, this, last, inIdx, iter;
-  int E;
+  int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -56,7 +56,10 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     sprintf(err, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
     biffAdd(GAGE, err); return 1;
   }
-  
+
+  /* this once changed from 0 to 1, but is unlikely to change again */
+  valItem = 1;
+
   mop = airMopNew();
   for (iter=0; iter<2; iter++) {
     nout[iter] = nrrdNew();
@@ -72,17 +75,17 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     if (!E) E |= gagePerVolumeAttach(ctx[iter], pvl[iter]);
     if (!E) E |= gageKernelSet(ctx[iter], gageKernel00,
                                ksp->kernel, ksp->parm);
-    if (!E) E |= gageQueryItemOn(ctx[iter], pvl[iter], 0);
+    if (!E) E |= gageQueryItemOn(ctx[iter], pvl[iter], valItem);
     if (!E) E |= gageUpdate(ctx[iter]);
     if (E) {
       sprintf(err, "%s: trouble setting up context %u", me, iter);
       biffAdd(GAGE, err); airMopError(mop); return 1;
     }
     out[iter] = AIR_CAST(double*, nout[iter]->data);
-    ans[iter] = gageAnswerPointer(ctx[iter], pvl[iter], 0);
+    ans[iter] = gageAnswerPointer(ctx[iter], pvl[iter], valItem);
   }
   
-  anslen = kind->table[0].answerLength;
+  anslen = kind->table[valItem].answerLength;
   lup = nrrdDLookup[nin->type];
 
   alpha = ksp->kernel->eval1_d(0.0, ksp->parm);
