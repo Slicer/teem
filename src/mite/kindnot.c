@@ -139,6 +139,7 @@ miteVal = &_miteVal;
 gageItemEntry
 _miteValTable[MITE_VAL_ITEM_MAX+1] = {
   /* enum value        len,deriv, prereqs,  parent item, index, needData*/
+  {miteValUnknown,       0,  0,   {},               0,   0,     AIR_FALSE},
   {miteValXw,            1,  0,   {},               0,   0,     AIR_FALSE},
   {miteValXi,            1,  0,   {},               0,   0,     AIR_FALSE},
   {miteValYw,            1,  0,   {},               0,   0,     AIR_FALSE},

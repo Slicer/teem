@@ -333,41 +333,41 @@ typedef struct {
 ** the miteThread, in lieu of a gagePerVolume
 */
 enum {
-  miteValUnknown=-1,    /* -1: nobody knows */
-  miteValXw,            /*  0: "Xw", X position, world space (double[1]) */
-  miteValXi,            /*  1: "Xi", X     "   , index   "   (double[1]) */
-  miteValYw,            /*  2: "Yw", Y     "   , world   "   (double[1]) */
-  miteValYi,            /*  3: "Yi", Y     "   , index   "   (double[1]) */
-  miteValZw,            /*  4: "Zw", Z     "   , world   "   (double[1]) */
-  miteValZi,            /*  5: "Zi", Z     "   , index   "   (double[1]) */
-  miteValRw,            /*  6: "Rw", dist to origin, world " (double[1]) */
-  miteValRi,            /*  7: "Ri", dist to origin, index " (double[1]) */
-  miteValTw,            /*  8: "Tw", ray position (double[1]) */
-  miteValTi,            /*  9: "Ti", ray index (ray sample #) (double[1]) */
-  miteValView,          /* 10: "V", the view vector (double[3]) */
-  miteValNormal,        /* 11: "N", the nominal surface normal, as measured
+  miteValUnknown,       /*  0: nobody knows */
+  miteValXw,            /*  1: "Xw", X position, world space (double[1]) */
+  miteValXi,            /*  2: "Xi", X     "   , index   "   (double[1]) */
+  miteValYw,            /*  3: "Yw", Y     "   , world   "   (double[1]) */
+  miteValYi,            /*  4: "Yi", Y     "   , index   "   (double[1]) */
+  miteValZw,            /*  5: "Zw", Z     "   , world   "   (double[1]) */
+  miteValZi,            /*  6: "Zi", Z     "   , index   "   (double[1]) */
+  miteValRw,            /*  7: "Rw", dist to origin, world " (double[1]) */
+  miteValRi,            /*  8: "Ri", dist to origin, index " (double[1]) */
+  miteValTw,            /*  9: "Tw", ray position (double[1]) */
+  miteValTi,            /* 10: "Ti", ray index (ray sample #) (double[1]) */
+  miteValView,          /* 11: "V", the view vector (double[3]) */
+  miteValNormal,        /* 12: "N", the nominal surface normal, as measured
                                by a scalar, vector, or tensor kind, and then
                                determined by the semantics of
                                muu->normalSide */
-  miteValNdotV,         /* 12: "NdotV", surface normal dotted w/ view vector
+  miteValNdotV,         /* 13: "NdotV", surface normal dotted w/ view vector
                                (towards eye) (double[1]) */
-  miteValNdotL,         /* 13: "NdotL", surface normal dotted w/ light vector
+  miteValNdotL,         /* 14: "NdotL", surface normal dotted w/ light vector
                                (towards the light source) (double[1]) */
-  miteValVrefN,         /* 14: "VrefN", view vector reflected across normal
+  miteValVrefN,         /* 15: "VrefN", view vector reflected across normal
                                (double[3]) */
-  miteValGTdotV,        /* 15: "GTdotV", normal curvature in view direction,
+  miteValGTdotV,        /* 16: "GTdotV", normal curvature in view direction,
                                the contraction of the geometry tensor along
                                the view vector (double[1]) */
-  miteValVdefT,         /* 16: "defT", view direction, deflected by tensor,
+  miteValVdefT,         /* 17: "defT", view direction, deflected by tensor,
                                then normalized (double[3]) */
-  miteValVdefTdotV,     /* 17: "VdefTdotV", VdefT dotted back with V, not the
+  miteValVdefTdotV,     /* 18: "VdefTdotV", VdefT dotted back with V, not the
                                same as the tensor contraction along V,
                                (double[1]) */
-  miteValWdotD,         /* 18: "WdotD", world space position dotted with
+  miteValWdotD,         /* 19: "WdotD", world space position dotted with
                                muu->vectorD */
   miteValLast
 };
-#define MITE_VAL_ITEM_MAX  18
+#define MITE_VAL_ITEM_MAX  19
 
 /*
 ******** miteThread

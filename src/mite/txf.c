@@ -85,7 +85,7 @@ miteStageOp = &_miteStageOp;
 ** to determine the gageItemSpec from it (which means finding the
 ** kind and item).  The valid formats are:
 **
-**   ""                  : NULL kind, -1 item
+**   ""                  : NULL kind, 0 item
 **   <item>              : miteValGageKind (DEPRECATED)
 **   mite(<item>)        : miteValGageKind
 **   gage(<item>)        : gageKindScl (DEPRECATED)
@@ -110,7 +110,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
   if (0 == strlen(label)) {
     /* nothing was specified; we try to indicate that by mimicking 
        the return of gageItemSpecNew() */
-    isp->item = -1;
+    isp->item = 0;
     isp->kind = NULL;
     return 0;
   }
@@ -132,7 +132,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     kqstr = buff + strlen("gage(");
     /* first see if its a (deprecated) gageKindScl specification */
     isp->item = airEnumVal(gageScl, kqstr);
-    if (-1 != isp->item) {
+    if (0 != isp->item) {
       isp->kind = gageKindScl;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
               "\"gage(%s)\" without explicit gage kind specification; "
@@ -160,7 +160,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
         biffAdd(MITE, err); airMopError(mop); return 1;
       }
       isp->item = airEnumVal(isp->kind->enm, qstr);
-      if (-1 == isp->item) {
+      if (0 == isp->item) {
         sprintf(err, "%s: couldn't parse \"%s\" as a %s variable",
                 me, qstr, isp->kind->name);
         biffAdd(MITE, err); airMopError(mop); return 1;
@@ -175,7 +175,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
     *endparen = 0;
     qstr = buff + strlen("mite(");
     isp->item = airEnumVal(miteVal, qstr);
-    if (-1 == isp->item) {
+    if (0 == isp->item) {
       sprintf(err, "%s: couldn't parse \"%s\" as a miteVal variable",
               me, qstr);
       biffAdd(MITE, err); airMopError(mop); return 1;
@@ -184,7 +184,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
   } else {
     /* didn't start with "gage(" or "mite(" */
     isp->item = airEnumVal(miteVal, label);
-    if (-1 != isp->item) {
+    if (0 != isp->item) {
       /* its measured by mite */
       isp->kind = miteValGageKind;
       fprintf(stderr, "\n%s: WARNING: deprecated use of txf domain "
@@ -282,8 +282,9 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (!( 1 == isp.kind->table[isp.item].answerLength ||
            3 == isp.kind->table[isp.item].answerLength )) {
-      sprintf(err, "%s: %s not a scalar or vector (answerLength = %d): "
-              "can't be a txf domain variable", me, domStr,
+      sprintf(err, "%s: %s (item %d) not a scalar or vector "
+              "(answerLength = %d): "
+              "can't be a txf domain variable", me, domStr, isp.item,
               isp.kind->table[isp.item].answerLength);
       biffAdd(MITE, err); return 1;
     }
