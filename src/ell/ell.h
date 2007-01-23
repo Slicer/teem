@@ -59,8 +59,10 @@ enum {
   ell_cubic_root_triple,          /* 2 */
   ell_cubic_root_single_double,   /* 3 */
   ell_cubic_root_three,           /* 4 */
-  ell_cubic_root_last             /* 5 */
+  ell_cubic_root_last
 };
+
+#define ELL_CUBIC_ROOT_MAX           4
 
 /* 
 ** Note: *** PRE-TEEM 1.7 *** matrix element ordering was:
@@ -90,6 +92,7 @@ enum {
 
 /* miscEll.c */
 ELL_EXPORT const char *ell_biff_key;
+ELL_EXPORT airEnum *ell_cubic_root;
 ELL_EXPORT int ell_debug;
 ELL_EXPORT void ell_3m_print_f(FILE *f, const float s[9]);
 ELL_EXPORT void ell_3v_print_f(FILE *f, const float s[3]);

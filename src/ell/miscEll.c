@@ -35,6 +35,37 @@ ell_biff_key = "ell";
 int ell_debug = 0;
 
 
+char
+_ell_cubic_root_str[][AIR_STRLEN_SMALL] = {
+  "(unknown ell_cubic_root)",
+  "single",
+  "triple",
+  "single and double",
+  "three"
+};
+
+char
+_ell_cubic_root_desc[][AIR_STRLEN_MED] = {
+  "(unknown ell_cubic_root)",
+  "one single root",
+  "one triple root",
+  "a single and a double root",
+  "three distinct roots"
+};
+
+airEnum
+_ell_cubic_root = {
+  "cubic root solutions",
+  ELL_CUBIC_ROOT_MAX,
+  _ell_cubic_root_str, NULL,
+  _ell_cubic_root_desc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+ell_cubic_root = &_ell_cubic_root;
+
+
 void
 ell_3m_print_f(FILE *f, const float s[9]) {
 
