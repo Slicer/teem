@@ -245,24 +245,26 @@ typedef struct {
 ** otherwise, return indicates which call-back had trouble
 */
 enum {
-  hooverErrNone,
-  hooverErrInit,           /* call biffGet(HOOVER) */
-  hooverErrRenderBegin,
-  hooverErrThreadCreate,
-  hooverErrThreadBegin,
-  hooverErrRayBegin,
-  hooverErrSample,
-  hooverErrRayEnd,
-  hooverErrThreadEnd,
-  hooverErrThreadJoin,
-  hooverErrRenderEnd,
+  hooverErrNone,           /*  0 */
+  hooverErrInit,           /*  1: call biffGet(HOOVER) */
+  hooverErrRenderBegin,    /*  2 */
+  hooverErrThreadCreate,   /*  3 */
+  hooverErrThreadBegin,    /*  4 */
+  hooverErrRayBegin,       /*  5 */
+  hooverErrSample,         /*  6 */
+  hooverErrRayEnd,         /*  7 */
+  hooverErrThreadEnd,      /*  8 */
+  hooverErrThreadJoin,     /*  9 */
+  hooverErrRenderEnd,      /* 10 */
   hooverErrLast
 };
+#define HOOVER_ERR_MAX        10
 
 /* defaultsHoover.c */
 HOOVER_EXPORT const char *hooverBiffKey;
 HOOVER_EXPORT int hooverDefVolCentering;
 HOOVER_EXPORT int hooverDefImgCentering;
+HOOVER_EXPORT airEnum *hooverErr;
 
 /* methodsHoover.c */
 HOOVER_EXPORT hooverContext *hooverContextNew();

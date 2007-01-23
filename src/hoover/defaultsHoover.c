@@ -28,3 +28,46 @@ int
 hooverDefVolCentering = nrrdCenterNode;
 int
 hooverDefImgCentering = nrrdCenterCell;
+
+char
+_hooverErrStr[HOOVER_ERR_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_err)",
+  "Initialization",
+  "RenderBegin",
+  "ThreadCreate",
+  "ThreadBegin",
+  "RayBegin",
+  "Sample",
+  "RayEnd",
+  "ThreadEnd",
+  "ThreadJoin",
+  "RenderEnd"
+};
+
+airEnum
+_hooverErr = {
+  "error",
+  HOOVER_ERR_MAX,
+  _hooverErrStr, NULL,
+  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+hooverErr = &_hooverErr;
+
+
+/*
+  hooverErrNone,
+  hooverErrInit, 
+  hooverErrRenderBegin,
+  hooverErrThreadCreate,
+  hooverErrThreadBegin,
+  hooverErrRayBegin,
+  hooverErrSample,
+  hooverErrRayEnd,
+  hooverErrThreadEnd,
+  hooverErrThreadJoin,
+  hooverErrRenderEnd,
+  hooverErrLast
+*/
