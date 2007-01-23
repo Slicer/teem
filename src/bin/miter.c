@@ -252,14 +252,13 @@ main(int argc, char *argv[]) {
   E = hooverRender(muu->hctx, &Ecode, &Ethread);
   if (E) {
     if (hooverErrInit == E) {
-      airMopAdd(mop, errS = biffGetDone(HOOVER), airFree, airMopAlways);
-      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
-              me, Ecode, Ethread, errS);
+      errS = biffGetDone(HOOVER);
     } else {
-      airMopAdd(mop, errS = biffGetDone(MITE), airFree, airMopAlways);
-      fprintf(stderr, "%s: ERROR (code %d, thread %d):\n%s\n",
-              me, Ecode, Ethread, errS);
+      errS = biffGetDone(MITE);
     }
+    airMopAdd(mop, errS, airFree, airMopAlways);
+    fprintf(stderr, "%s: %s error (code %d, thread %d):\n%s\n",
+            me, airEnumStr(hooverErr, E), Ecode, Ethread, errS);
     airMopError(mop);
     return 1;
   }
