@@ -106,9 +106,9 @@ tenDwiGage = &_tenDwiGage;
 gageItemEntry
 _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   /* enum value                    len,deriv, prereqs,                           parent item, parent index, needData */
-  {tenDwiGageUnknown,                0,  0,  {},                                                   0,  0, AIR_TRUE},
+  {tenDwiGageUnknown,                0,  0,  {0},                                                  0,  0, AIR_TRUE},
   /* len == 0 for tenDwiGageAll means "learn later at run-time" */
-  {tenDwiGageAll,                    0,  0,  {},                                                   0,  0, AIR_TRUE},
+  {tenDwiGageAll,                    0,  0,  {0},                                                  0,  0, AIR_TRUE},
   {tenDwiGageB0,                     1,  0,  {tenDwiGageAll},                          tenDwiGageAll,  0, AIR_TRUE},
   {tenDwiGageMeanDwiValue,           1,  0,  {tenDwiGageAll},                                      0,  0, AIR_TRUE},
 

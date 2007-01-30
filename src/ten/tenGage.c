@@ -26,8 +26,8 @@
 gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
-  {tenGageUnknown,                 0,  0,  {},                                                                   0,        0,     AIR_FALSE},
-  {tenGageTensor,                  7,  0,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageUnknown,                 0,  0,  {0},                                                                  0,        0,     AIR_FALSE},
+  {tenGageTensor,                  7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageConfidence,              1,  0,  {tenGageTensor},                                          tenGageTensor,        0,     AIR_FALSE},
 
   {tenGageTrace,                   1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
@@ -51,7 +51,16 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageEvec1,                   3,  0,  {tenGageEvec},                                              tenGageEvec,        3,     AIR_FALSE},
   {tenGageEvec2,                   3,  0,  {tenGageEvec},                                              tenGageEvec,        6,     AIR_FALSE},
 
-  {tenGageTensorGrad,             21,  1,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageDelNormK2,               7,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageDelNormK3,               7,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageDelNormR1,               7,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageDelNormR2,               7,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+
+  {tenGageDelNormPhi1,             7,  0,  {tenGageEvec},                                                        0,        0,     AIR_FALSE},
+  {tenGageDelNormPhi2,             7,  0,  {tenGageEvec},                                                        0,        0,     AIR_FALSE},
+  {tenGageDelNormPhi3,             7,  0,  {tenGageEvec},                                                        0,        0,     AIR_FALSE},
+
+  {tenGageTensorGrad,             21,  1,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorGradMag,           3,  1,  {tenGageTensorGrad},                                                  0,        0,     AIR_FALSE},
   {tenGageTensorGradMagMag,        1,  1,  {tenGageTensorGradMag},                                               0,        0,     AIR_FALSE},
 
@@ -96,9 +105,14 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageOmegaGradMag,            1,  1,  {tenGageOmegaGradVec},                                                0,        0,     AIR_FALSE},
   {tenGageOmegaNormal,             3,  1,  {tenGageOmegaGradVec, tenGageOmegaGradMag},                           0,        0,     AIR_FALSE},
   
-  {tenGageInvarGrads,              9,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
-  {tenGageInvarGradMags,           3,  1,  {tenGageInvarGrads},                                                  0,        0,     AIR_FALSE},
-  {tenGageRotTans,                 9,  1,  {tenGageTensor, tenGageTensorGrad, tenGageEval, tenGageEvec},         0,        0,     AIR_FALSE},
+  {tenGageInvarKGrads,             9,  1,  {tenGageDelNormK2, tenGageDelNormK3, tenGageTensorGrad},              0,        0,     AIR_FALSE},
+  {tenGageInvarKGradMags,          3,  1,  {tenGageInvarKGrads},                                                 0,        0,     AIR_FALSE},
+  {tenGageInvarRGrads,             9,  1,  {tenGageDelNormR1, tenGageDelNormR2, tenGageDelNormK3,
+                                            tenGageTensorGrad},                                                  0,        0,     AIR_FALSE},
+  {tenGageInvarRGradMags,          3,  1,  {tenGageInvarRGrads},                                                 0,        0,     AIR_FALSE},
+
+  {tenGageRotTans,                 9,  1,  {tenGageDelNormPhi1, tenGageDelNormPhi2, tenGageDelNormPhi3,
+                                            tenGageTensorGrad},                                                  0,        0,     AIR_FALSE},
   {tenGageRotTanMags,              3,  1,  {tenGageRotTans},                                                     0,        0,     AIR_FALSE},
 
   {tenGageEvalGrads,               9,  1,  {tenGageTensorGrad, tenGageEval, tenGageEvec},                        0,        0,     AIR_FALSE},
@@ -112,7 +126,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageCa2,                     1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
   {tenGageClpmin2,                 1,  0,  {tenGageTensor, tenGageEval0, tenGageEval1, tenGageEval2},            0,        0,     AIR_FALSE},
 
-  {tenGageHessian,                63,  2,  {},                                                                   0,        0,     AIR_FALSE},
+  {tenGageHessian,                63,  2,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTraceHessian,            9,  2,  {tenGageHessian},                                                     0,        0,     AIR_FALSE},
   {tenGageBHessian,                9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
   {tenGageDetHessian,              9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
@@ -404,6 +418,32 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
     tenEigensolve_d(evalAns, NULL, tenAns);
   }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormK2)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormK3)) {
+    double tmp[7];
+    tenInvariantKGradients_d(tmp,
+                             pvl->directAnswer[tenGageDelNormK2],
+                             pvl->directAnswer[tenGageDelNormK3],
+                             tenAns, 0.0000001);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormR1)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormR2)) {
+    tenInvariantKGradients_d(pvl->directAnswer[tenGageDelNormR1],
+                             pvl->directAnswer[tenGageDelNormR2],
+                             pvl->directAnswer[tenGageDelNormK3],
+                             tenAns, 0.0000001);
+  }
+  
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormPhi1)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormPhi2)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormPhi3)) {
+    tenRotationTangents_d(pvl->directAnswer[tenGageDelNormPhi1],
+                          pvl->directAnswer[tenGageDelNormPhi2],
+                          pvl->directAnswer[tenGageDelNormPhi3],
+                          evecAns);
+  }
+
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGrad)) {
     /* done if doD1 */
     /* still have to set up pointer variables that item answers
@@ -611,34 +651,64 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageOmegaNormal],
                  magTmp ? 1/magTmp : 0, vecTmp);
   }
+
+#define SQRT_1_OVER_3 0.57735026918962576450
+
   /* --- Invariant gradients + rotation tangents --- */
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGrads)) {
-    double mu1Grad[7], mu2Grad[7], mu2Norm,
-      skwGrad[7], skwNorm, copyT[7];
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarKGrads)) {
+    double mu1Grad[7], *mu2Grad, *skwGrad;
     
-    TEN_T_COPY(copyT, tenAns);
-    tenInvariantGradients_d(mu1Grad, 
-                            mu2Grad, &mu2Norm,
-                            skwGrad, &skwNorm,
-                            copyT);
-    ELL_3V_SET(pvl->directAnswer[tenGageInvarGrads] + 0*3,
+    TEN_T_SET(mu1Grad, 1,
+              SQRT_1_OVER_3, 0, 0,
+              SQRT_1_OVER_3, 0,
+              SQRT_1_OVER_3);
+    mu2Grad = pvl->directAnswer[tenGageDelNormK2];
+    skwGrad = pvl->directAnswer[tenGageDelNormK3];
+
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarKGrads] + 0*3,
                TEN_T_DOT(mu1Grad, gradDdXYZ + 0*7),
                TEN_T_DOT(mu1Grad, gradDdXYZ + 1*7),
                TEN_T_DOT(mu1Grad, gradDdXYZ + 2*7));
-    ELL_3V_SET(pvl->directAnswer[tenGageInvarGrads] + 1*3,
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarKGrads] + 1*3,
                TEN_T_DOT(mu2Grad, gradDdXYZ + 0*7),
                TEN_T_DOT(mu2Grad, gradDdXYZ + 1*7),
                TEN_T_DOT(mu2Grad, gradDdXYZ + 2*7));
-    ELL_3V_SET(pvl->directAnswer[tenGageInvarGrads] + 2*3,
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarKGrads] + 2*3,
                TEN_T_DOT(skwGrad, gradDdXYZ + 0*7),
                TEN_T_DOT(skwGrad, gradDdXYZ + 1*7),
                TEN_T_DOT(skwGrad, gradDdXYZ + 2*7));
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarGradMags)) {
-    ELL_3V_SET(pvl->directAnswer[tenGageInvarGradMags],
-               ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 0*3),
-               ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 1*3),
-               ELL_3V_LEN(pvl->directAnswer[tenGageInvarGrads] + 2*3));
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarKGradMags)) {
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarKGradMags],
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarKGrads] + 0*3),
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarKGrads] + 1*3),
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarKGrads] + 2*3));
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarRGrads)) {
+    double *R1Grad, *R2Grad, *R3Grad;
+    
+    R1Grad = pvl->directAnswer[tenGageDelNormR1];
+    R2Grad = pvl->directAnswer[tenGageDelNormR2];
+    R3Grad = pvl->directAnswer[tenGageDelNormK3];
+
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarRGrads] + 0*3,
+               TEN_T_DOT(R1Grad, gradDdXYZ + 0*7),
+               TEN_T_DOT(R1Grad, gradDdXYZ + 1*7),
+               TEN_T_DOT(R1Grad, gradDdXYZ + 2*7));
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarRGrads] + 1*3,
+               TEN_T_DOT(R2Grad, gradDdXYZ + 0*7),
+               TEN_T_DOT(R2Grad, gradDdXYZ + 1*7),
+               TEN_T_DOT(R2Grad, gradDdXYZ + 2*7));
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarRGrads] + 2*3,
+               TEN_T_DOT(R3Grad, gradDdXYZ + 0*7),
+               TEN_T_DOT(R3Grad, gradDdXYZ + 1*7),
+               TEN_T_DOT(R3Grad, gradDdXYZ + 2*7));
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageInvarRGradMags)) {
+    ELL_3V_SET(pvl->directAnswer[tenGageInvarRGradMags],
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarRGrads] + 0*3),
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarRGrads] + 1*3),
+               ELL_3V_LEN(pvl->directAnswer[tenGageInvarRGrads] + 2*3));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalGrads)) {
     double matOut[9], tenOut[9];
@@ -653,10 +723,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)) {
-    double phi1[7], phi2[7], phi3[7], evec[9];
+    double phi1[7], phi2[7], phi3[7];
 
-    ELL_9V_COPY(evec, evecAns);
-    tenRotationTangents_d(phi1, phi2, phi3, evec);
+    tenRotationTangents_d(phi1, phi2, phi3, evecAns);
     ELL_3V_SET(pvl->directAnswer[tenGageRotTans] + 0*3,
                TEN_T_DOT(phi1, gradDdXYZ + 0*7),
                TEN_T_DOT(phi1, gradDdXYZ + 1*7),
@@ -1020,7 +1089,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       cc = 0;
       for (taa=0; taa<6; taa++) {
         for (tbb=taa; tbb<6; tbb++) {
-          cov[cc] += ten[taa+1]*ten[tbb+1];
+          cov[cc] += 100000*ten[taa+1]*ten[tbb+1];
           cc++;
         }
       }

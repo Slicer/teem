@@ -615,149 +615,163 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
 #define Tyz (ten[5])
 #define Tzz (ten[6])
 
+#define SQRT_1_OVER_2 0.70710678118654752440
+#define SQRT_1_OVER_3 0.57735026918962576450
+#define SQRT_2_OVER_3 0.81649658092772603272
+#define SQRT_1_OVER_6 0.40824829046386301635
+
 /*
-** eval and evec are given merely as space into which
-** we may compute the eigensystem
+** very special purpose: compute tensor-valued gradient
+** of eigenvalue skewness, but have to be given two
+** other invariant gradients, NORMALIZED, to which
+** eigenvalue skewness should be perpendicular
 */
 void
-tenInvariantGradients_d(double mu1[7],
-                        double mu2[7], double *mu2Norm,
-                        double skw[7], double *skwNorm,
-                        double ten[7]) {
-  double eval[3], evec[9];
-  double mu1Dot, mu2Dot, dot, mev, third, matR[9],
-    matA[9], matB[9], norm, epsilon;
+_tenEvalSkewnessGradient_d(double skw[7],
+                           const double perp1[7],
+                           const double perp2[7],
+                           const double ten[7],
+                           const double minnorm) {
+  double dot, scl, norm;
+  
+  /* start with gradient of determinant */
+  TEN_T_SET(skw, ten[0],
+            Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
+            Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
+            Txx*Tyy - Txy*Txy);
+  /* this normalization is so that minnorm comparison below
+     is meaningful regardless of scale of input */
+  /* HEY: should have better handling of case where determinant
+     gradient magnitude is near zero */
+  scl = 1.0/(DBL_EPSILON + TEN_T_NORM(skw));
+  TEN_T_SCALE(skw, scl, skw);
+  dot = TEN_T_DOT(skw, perp1);
+  TEN_T_SCALE_INCR(skw, -dot, perp1);
+  dot = TEN_T_DOT(skw, perp2);
+  TEN_T_SCALE_INCR(skw, -dot, perp2);
+  norm = TEN_T_NORM(skw);
+  if (norm < minnorm) {
+    /* skw is at an extremum, should diagonalize */
+    double eval[3], evec[9], matA[9], matB[9], matC[9], mev, third;
 
-  /* largest allowable dot product betwen two normals */
-  epsilon = 0.00001;
+    tenEigensolve_d(eval, evec, ten);
+    mev = (eval[0] + eval[1] + eval[2])/3;
+    eval[0] -= mev;
+    eval[1] -= mev;
+    eval[2] -= mev;
+    third = (eval[0]*eval[0]*eval[0]
+             + eval[1]*eval[1]*eval[1]
+             + eval[2]*eval[2]*eval[2])/3;
+    if (third > 0) {
+      /* skw is positive: linear: eval[1] = eval[2] */
+      ELL_3MV_OUTER(matA, evec + 1*3, evec + 1*3);
+      ELL_3MV_OUTER(matB, evec + 2*3, evec + 2*3);
+    } else {
+      /* skw is negative: planar: eval[0] = eval[1] */
+      ELL_3MV_OUTER(matA, evec + 0*3, evec + 0*3);
+      ELL_3MV_OUTER(matB, evec + 1*3, evec + 1*3);
+    }
+    ELL_3M_SCALE_ADD2(matC, SQRT_1_OVER_2, matA, -SQRT_1_OVER_2, matB);
+    TEN_M2T(skw, matC);
+    /* have to make sure that this contrived tensor
+       is indeed orthogonal to perp1 and perp2 */
+    dot = TEN_T_DOT(skw, perp1);
+    TEN_T_SCALE_INCR(skw, -dot, perp1);
+    dot = TEN_T_DOT(skw, perp2);
+    TEN_T_SCALE_INCR(skw, -dot, perp2);
+    norm = TEN_T_NORM(skw);
+  }
+  TEN_T_SCALE(skw, 1.0/norm, skw);
+  return;
+}
+
+void
+tenInvariantKGradients_d(double mu1[7], double mu2[7], double skw[7],
+                         const double ten[7], const double minnorm) {
+  double dot, norm;
 
   TEN_T_SET(mu1, ten[0],
-            0.57735027, 0, 0,      /* sqrt(1/3) = 0.57735027 */
-            0.57735027, 0, 
-            0.57735027);
+            SQRT_1_OVER_3, 0, 0,
+            SQRT_1_OVER_3, 0,
+            SQRT_1_OVER_3);
+
   TEN_T_SET(mu2, ten[0],
             2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
             2*Tyy - Txx - Tzz, 3*Tyz,
             2*Tzz - Txx - Tyy);
-  *mu2Norm = TEN_T_NORM(mu2);
-  if (*mu2Norm < epsilon) {
+  norm = TEN_T_NORM(mu2);
+  if (norm < minnorm) {
     /* they gave us a diagonal matrix */
     TEN_T_SET(mu2, ten[0],
-              0.816496581, 0, 0,   /* sqrt(2/3) = 0.816496581 */
-              -0.408248290, 0,     /* sqrt(1/6) = 0.408248290 */
-              -0.408248290);
-    TEN_T_SET(skw, ten[0],
-              0, 0, 0,
-              0.707106781, 0,      /* sqrt(1/2) = 0.707106781 */
-              -0.707106781);
-    *skwNorm = 0;  /* have to invent a value, this works */
+              SQRT_2_OVER_3, 0, 0,
+              -SQRT_1_OVER_6, 0,
+              -SQRT_1_OVER_6);
+  }
+  /* next two lines shouldn't really be necessary */
+  dot = TEN_T_DOT(mu2, mu1);
+  TEN_T_SCALE_INCR(mu2, -dot, mu1);
+  norm = TEN_T_NORM(mu2);
+  TEN_T_SCALE(mu2, 1.0/norm, mu2);
+  _tenEvalSkewnessGradient_d(skw, mu1, mu2, ten, minnorm);
+
+  return;
+}
+
+void
+tenInvariantRGradients_d(double R1[7], double R2[7], double R3[7],
+                         const double ten[7], const double minnorm) {
+  double dot, dev[7], norm, tenNorm, devNorm;
+
+  TEN_T_COPY(R1, ten);
+  tenNorm = norm = TEN_T_NORM(R1);
+  if (norm < minnorm) {
+    TEN_T_SET(R1, ten[0],
+              SQRT_1_OVER_3, 0, 0,
+              SQRT_1_OVER_3, 0,
+              SQRT_1_OVER_3);
+    norm = TEN_T_NORM(R1);
+  }
+  TEN_T_SCALE(R1, 1.0/norm, R1);
+
+  TEN_T_SET(dev, ten[0],
+            (2*Txx - Tyy - Tzz)/3, Txy, Txz,
+            (2*Tyy - Txx - Tzz)/3, Tyz,
+            (2*Tzz - Txx - Tyy)/3);
+  devNorm = TEN_T_NORM(dev);
+  if (devNorm < minnorm) {
+    /* they gave us a diagonal matrix */
+    TEN_T_SET(R2, ten[0],
+              SQRT_2_OVER_3, 0, 0,
+              -SQRT_1_OVER_6, 0,
+              -SQRT_1_OVER_6);
   } else {
-    /* we have some variance */
-    TEN_T_SCALE(mu2, 1.0/(*mu2Norm), mu2);
-    /* make damn sure mu2 is orthogonal to mu1 */
-    dot = TEN_T_DOT(mu2, mu1);
-    if (AIR_ABS(dot) > epsilon) {
-      TEN_T_SCALE_INCR(mu2, -dot, mu1);
-      norm = TEN_T_NORM(mu2);
-      TEN_T_SCALE(mu2, 1.0/(norm), mu2);
-    }
-    TEN_T_SET(skw, ten[0],
-              Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
-              Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
-              Txx*Tyy - Txy*Txy);
-    mu1Dot = TEN_T_DOT(skw, mu1);
-    mu2Dot = TEN_T_DOT(skw, mu2);
-    TEN_T_SCALE_INCR2(skw, -mu1Dot, mu1, -mu2Dot, mu2);
-    *skwNorm = TEN_T_NORM(skw);
-    if (*skwNorm < epsilon) {
-      /* skw is at an extremum, have to diagonalize */
-      tenEigensolve_d(eval, evec, ten);
-      mev = (eval[0] + eval[1] + eval[2])/3;
-      third = ((eval[0] - mev)*(eval[0] - mev)*(eval[0] - mev)
-               + (eval[1] - mev)*(eval[1] - mev)*(eval[1] - mev)
-               + (eval[2] - mev)*(eval[2] - mev)*(eval[2] - mev))/3;
-      if (third > 0) {
-        /* skw is positive: linear: eval[1] = eval[2] */
-        ELL_3V_SET(matA + 0*3, 0, 0, 0);
-        ELL_3V_SET(matA + 1*3, 0, 0.707106781, 0);
-        ELL_3V_SET(matA + 2*3, 0, 0, -0.707106781);
-      } else {
-        /* skw is negative: planar: eval[0] = eval[1] */
-        ELL_3V_SET(matA + 0*3, 0.707106781, 0, 0);
-        ELL_3V_SET(matA + 1*3, 0, -0.707106781, 0);
-        ELL_3V_SET(matA + 2*3, 0, 0, 0);
-      }
-      ELL_3M_TRANSPOSE(matR, evec);
-      ELL_3M_MUL(matB, matA, evec);
-      ELL_3M_MUL(matA, matR, matB);
-      TEN_M2T(skw, matA);
-      /* not sure why this last orgthonalization against mu2 is needed,
-         but I got some slop otherwise : mu2 . skw = 0.001 or so */
-      dot = TEN_T_DOT(mu2, skw);
-      TEN_T_SCALE_INCR(skw, -dot, mu2);
-      norm = TEN_T_NORM(skw);
-      TEN_T_SCALE(skw, 1.0/(norm), skw);
-    } else {
-      /* skw not at extremum */
-      TEN_T_SCALE(skw, 1.0/(*skwNorm), skw);
-      /* make damn sure skw is orthogonal to mu1 ... */
-      dot = TEN_T_DOT(skw, mu1);
-      if (AIR_ABS(dot) > epsilon) {
-        TEN_T_SCALE_INCR(skw, -dot, mu1);
-      }
-      /* ... and to mu2 */
-      dot = TEN_T_DOT(skw, mu2);
-      if (AIR_ABS(dot) > epsilon) {
-        TEN_T_SCALE_INCR(skw, -dot, mu2);
-      }
-      norm = TEN_T_NORM(skw);
-      TEN_T_SCALE(skw, 1.0/(norm), skw);
-    }
+    TEN_T_SCALE_ADD2(R2, tenNorm/devNorm, dev, -devNorm/tenNorm, ten);
   }
-  if (fabs(TEN_T_DOT(skw, mu1)) > 0.7) {
-    fprintf(stderr, "tenShapeGradients_d : PANIC\n");
-    fprintf(stderr, "dots = %g %g %g\n",
-            TEN_T_DOT(mu1, mu2),
-            TEN_T_DOT(mu1, skw),
-            TEN_T_DOT(mu2, skw));
-    fprintf(stderr, "ten = (%g) %g %g %g   %g %g   %g\n",
-            ten[0],
-            ten[1], ten[2], ten[3],
-            ten[4], ten[5],
-            ten[6]);
-    fprintf(stderr, "mu2Norm = %g; mu2 = (%g) %g %g %g   %g %g   %g\n",
-            *mu2Norm,
-            mu2[0],
-            mu2[1], mu2[2], mu2[3],
-            mu2[4], mu2[5],
-            mu2[6]);
-    fprintf(stderr, "skwNorm = %g; skw = (%g) %g %g %g   %g %g   %g\n",
-            *skwNorm,
-            skw[0],
-            skw[1], skw[2], skw[3],
-            skw[4], skw[5],
-            skw[6]);
-    exit(0);
-  }
+  /* next two lines shouldn't really be necessary */
+  dot = TEN_T_DOT(R2, R1);
+  TEN_T_SCALE_INCR(R2, -dot, R1);
+  norm = TEN_T_NORM(R2);
+  TEN_T_SCALE(R2, 1.0/norm, R2);
+  _tenEvalSkewnessGradient_d(R3, R1, R2, ten, minnorm);
 
   return;
 }
 
 /*
-** eval and evec must be pre-computed and given to us
+** evec must be pre-computed (unit-length eigenvectors) and given to us
 */
 void
 tenRotationTangents_d(double phi1[7],
                       double phi2[7],
                       double phi3[7],
-                      double evec[9]) {
+                      const double evec[9]) {
   double outA[9], outB[9], mat[9];
 
   if (phi1) {
     phi1[0] = 1.0;
     ELL_3MV_OUTER(outA, evec + 1*3, evec + 2*3);
     ELL_3MV_OUTER(outB, evec + 2*3, evec + 1*3);
-    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi1, mat);
   }
 
@@ -765,7 +779,7 @@ tenRotationTangents_d(double phi1[7],
     phi2[0] = 1.0;
     ELL_3MV_OUTER(outA, evec + 0*3, evec + 2*3);
     ELL_3MV_OUTER(outB, evec + 2*3, evec + 0*3);
-    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi2, mat);
   }
 
@@ -773,7 +787,7 @@ tenRotationTangents_d(double phi1[7],
     phi3[0] = 1.0;
     ELL_3MV_OUTER(outA, evec + 0*3, evec + 1*3);
     ELL_3MV_OUTER(outB, evec + 1*3, evec + 0*3);
-    ELL_3M_SCALE_ADD2(mat, 0.7071068, outA, 0.7071068, outB);
+    ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi3, mat);
   }
   
@@ -781,14 +795,14 @@ tenRotationTangents_d(double phi1[7],
 }
 
 void
-tenInv_f(float inv[7], float ten[7]) {
+tenInv_f(float inv[7], const float ten[7]) {
   float det;
 
   TEN_T_INV(inv, ten, det);
 }
 
 void
-tenInv_d(double inv[7], double ten[7]) {
+tenInv_d(double inv[7], const double ten[7]) {
   double det;
 
   TEN_T_INV(inv, ten, det);

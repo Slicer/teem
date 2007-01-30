@@ -121,7 +121,10 @@ main(int argc, char *argv[]) {
       tdata += 7;
     }
   }
-  
+
+  nten->axis[1].spacing = 1.0;
+  nten->axis[2].spacing = 1.0;
+  nten->axis[3].spacing = 1.0;
   if (nrrdSave(outS, nten, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);

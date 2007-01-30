@@ -101,6 +101,14 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "evec1",
   "evec2",
 
+  "delnk2",
+  "delnk3",
+  "delnr1",
+  "delnr2",
+  "delnphi1",
+  "delnphi2",
+  "delnphi3",
+
   "tensor grad",
   "tensor grad mag",
   "tensor grad mag mag",
@@ -145,8 +153,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "omega grad mag",
   "omega normal",
 
-  "invariant gradients",
-  "invariant gradient mags",
+  "invariant K gradients",
+  "invariant K gradient mags",
+  "invariant R gradients",
+  "invariant R gradient mags",
   "rotation tangents",
   "rotation tangent mags",
 
@@ -243,6 +253,13 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "eigenvector 0",
   "eigenvector 1",
   "eigenvector 2",
+  "delnk2",   /* sorry */
+  "delnk3",   /* sorry */
+  "delnr1",   /* sorry */
+  "delnr2",   /* sorry */
+  "delnphi1", /* sorry */
+  "delnphi2", /* sorry */
+  "delnphi3", /* sorry */
   "tensor gradients",
   "tensor gradients magnitudes",
   "tensor gradients magnitude magnitudes",
@@ -276,8 +293,10 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "omega grad vec",
   "omega grad mag",
   "omega normal",
-  "invariant gradients",
-  "invariant gradient mags",
+  "invariant K gradients",
+  "invariant K gradient mags",
+  "invariant R gradients",
+  "invariant R gradient mags",
   "rotation tangents",
   "rotation tangent mags",
   "eigenvalue gradients",
@@ -362,6 +381,13 @@ _tenGageVal[] = {
   tenGageEvec0,         /* "evec0", major eigenvectors of tensor: GT[3] */
   tenGageEvec1,         /* "evec1", medium eigenvectors of tensor: GT[3] */
   tenGageEvec2,         /* "evec2", minor eigenvectors of tensor: GT[3] */
+  tenGageDelNormK2,
+  tenGageDelNormK3,
+  tenGageDelNormR1,
+  tenGageDelNormR2,
+  tenGageDelNormPhi1,
+  tenGageDelNormPhi2,
+  tenGageDelNormPhi3,
   tenGageTensorGrad,    /* "tg", all tensor component gradients: GT[21] */
   tenGageTensorGradMag,    /* "tgm" */
   tenGageTensorGradMagMag,    /* "tgmm" */
@@ -395,8 +421,10 @@ _tenGageVal[] = {
   tenGageOmegaGradVec,  /* */
   tenGageOmegaGradMag,  /* */
   tenGageOmegaNormal,   /* */
-  tenGageInvarGrads,    /* "igs" */
-  tenGageInvarGradMags, /* "igms" */
+  tenGageInvarKGrads,
+  tenGageInvarKGradMags,
+  tenGageInvarRGrads,
+  tenGageInvarRGradMags,
   tenGageRotTans,       /* "rts" */
   tenGageRotTanMags,    /* "rtms" */
   tenGageEvalGrads,     /* "evgs" */
@@ -482,6 +510,13 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "evec0",
   "evec1",
   "evec2",
+  "delnk2",
+  "delnk3",
+  "delnr1",
+  "delnr2",
+  "delnphi1",
+  "delnphi2",
+  "delnphi3",
   "tg", "tensor grad",
   "tgm", "tensor grad mag",
   "tgmm", "tensor grad mag mag",
@@ -515,8 +550,10 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "omgv",
   "omgm",
   "omn",
-  "igs", "invariant gradients", "shgs", 
-  "igms", "invariant gradient mags", "shgms", 
+  "ikgs",
+  "ikgms",
+  "irgs",
+  "irgms",
   "rts", "rotation tangents",
   "rtms", "rotation tangent mags",
   "evgs", "eigenvalue gradients",
@@ -603,6 +640,13 @@ _tenGageValEqv[] = {
   tenGageEvec0,
   tenGageEvec1,
   tenGageEvec2,
+  tenGageDelNormK2,
+  tenGageDelNormK3,
+  tenGageDelNormR1,
+  tenGageDelNormR2,
+  tenGageDelNormPhi1,
+  tenGageDelNormPhi2,
+  tenGageDelNormPhi3,
   tenGageTensorGrad, tenGageTensorGrad,
   tenGageTensorGradMag, tenGageTensorGradMag,
   tenGageTensorGradMagMag, tenGageTensorGradMagMag,
@@ -636,8 +680,10 @@ _tenGageValEqv[] = {
   tenGageOmegaGradVec,
   tenGageOmegaGradMag,
   tenGageOmegaNormal,
-  tenGageInvarGrads, tenGageInvarGrads, tenGageInvarGrads,
-  tenGageInvarGradMags, tenGageInvarGradMags, tenGageInvarGradMags,
+  tenGageInvarKGrads,
+  tenGageInvarKGradMags,
+  tenGageInvarRGrads,
+  tenGageInvarRGradMags,
   tenGageRotTans, tenGageRotTans,
   tenGageRotTanMags, tenGageRotTanMags,
   tenGageEvalGrads, tenGageEvalGrads,

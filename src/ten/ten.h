@@ -235,127 +235,147 @@ enum {
   tenGageEvec1,            /*  20: "evec1", medium eigenvect of tensor: [3] */
   tenGageEvec2,            /*  21: "evec2", minor eigenvect of tensor: [3] */
 
-  tenGageTensorGrad,       /*  22: "tg", all tensor component gradients,
+  tenGageDelNormK2,        /*  22: "delnk2": normalized gradient tensor of 
+                                   K2 = eval variance: [7] */
+  tenGageDelNormK3,        /*  23: "delnk3": normal gradient tensor of 
+                                   K3 = R3 = eval skewness: [7] */
+  tenGageDelNormR1,        /*  24: "delnr1": normalized gradient tensor of
+                                   R1 = tensor norm: [7] */
+  tenGageDelNormR2,        /*  25: "delnr2": normalized gradient tensor of
+                                   R2 = FA: [7] */
+  tenGageDelNormPhi1,      /*  26: "delnphi1": normalized rotation tangent
+                                    around principal evector: [7] */
+  tenGageDelNormPhi2,      /*  27: "delnphi2": normalized rotation tangent
+                                    rotation around medium evector: [7] */
+  tenGageDelNormPhi3,      /*  28: "delnphi3": normalized rotation tangent
+                                    rotation around minor evector: [7] */
+
+  tenGageTensorGrad,       /*  29: "tg", all tensor component gradients,
                                    starting with confidence gradient: [21] */
-  tenGageTensorGradMag,    /*  23: "tgm", actually a 3-vector of tensor
+  tenGageTensorGradMag,    /*  30: "tgm", actually a 3-vector of tensor
                                    gradient norms, one for each axis: [3] */
-  tenGageTensorGradMagMag, /*  24: "tgmm", single scalar magnitude: [1] */
+  tenGageTensorGradMagMag, /*  31: "tgmm", single scalar magnitude: [1] */
 
-  tenGageTraceGradVec,     /*  25: "trgv": gradient (vector) of trace: [3] */
-  tenGageTraceGradMag,     /*  26: "trgm": gradient magnitude of trace: [1] */
-  tenGageTraceNormal,      /*  27: "trn": normal of trace: [3] */
+  tenGageTraceGradVec,     /*  32: "trgv": gradient (vector) of trace: [3] */
+  tenGageTraceGradMag,     /*  33: "trgm": gradient magnitude of trace: [1] */
+  tenGageTraceNormal,      /*  34: "trn": normal of trace: [3] */
 
-  tenGageBGradVec,         /*  28: "bgv", gradient (vector) of B: [3] */
-  tenGageBGradMag,         /*  29: "bgm", gradient magnitude of B: [1] */
-  tenGageBNormal,          /*  30: "bn", normal of B: [3] */
+  tenGageBGradVec,         /*  35: "bgv", gradient (vector) of B: [3] */
+  tenGageBGradMag,         /*  36: "bgm", gradient magnitude of B: [1] */
+  tenGageBNormal,          /*  37: "bn", normal of B: [3] */
 
-  tenGageDetGradVec,       /*  31: "detgv", gradient (vector) of Det: [3] */
-  tenGageDetGradMag,       /*  32: "detgm", gradient magnitude of Det: [1] */
-  tenGageDetNormal,        /*  33: "detn", normal of Det: [3] */
+  tenGageDetGradVec,       /*  38: "detgv", gradient (vector) of Det: [3] */
+  tenGageDetGradMag,       /*  39: "detgm", gradient magnitude of Det: [1] */
+  tenGageDetNormal,        /*  40: "detn", normal of Det: [3] */
 
-  tenGageSGradVec,         /*  34: "sgv", gradient (vector) of S: [3] */
-  tenGageSGradMag,         /*  35: "sgm", gradient magnitude of S: [1] */
-  tenGageSNormal,          /*  36: "sn", normal of S: [3] */
+  tenGageSGradVec,         /*  41: "sgv", gradient (vector) of S: [3] */
+  tenGageSGradMag,         /*  42: "sgm", gradient magnitude of S: [1] */
+  tenGageSNormal,          /*  43: "sn", normal of S: [3] */
 
-  tenGageQGradVec,         /*  37: "qgv", gradient vector of Q: [3] */
-  tenGageQGradMag,         /*  38: "qgm", gradient magnitude of Q: [1] */
-  tenGageQNormal,          /*  39: "qn", normalized gradient of Q: [3] */
+  tenGageQGradVec,         /*  44: "qgv", gradient vector of Q: [3] */
+  tenGageQGradMag,         /*  45: "qgm", gradient magnitude of Q: [1] */
+  tenGageQNormal,          /*  46: "qn", normalized gradient of Q: [3] */
 
-  tenGageFAGradVec,        /*  40: "fagv", gradient vector of FA: [3] */
-  tenGageFAGradMag,        /*  41: "fagm", gradient magnitude of FA: [1] */
-  tenGageFANormal,         /*  42: "fan", normalized gradient of FA: [3] */
+  tenGageFAGradVec,        /*  47: "fagv", gradient vector of FA: [3] */
+  tenGageFAGradMag,        /*  48: "fagm", gradient magnitude of FA: [1] */
+  tenGageFANormal,         /*  49: "fan", normalized gradient of FA: [3] */
 
-  tenGageRGradVec,         /*  43: "rgv", gradient vector of Q: [3] */
-  tenGageRGradMag,         /*  44: "rgm", gradient magnitude of Q: [1] */
-  tenGageRNormal,          /*  45: "rn", normalized gradient of Q: [3] */
+  tenGageRGradVec,         /*  50: "rgv", gradient vector of Q: [3] */
+  tenGageRGradMag,         /*  51: "rgm", gradient magnitude of Q: [1] */
+  tenGageRNormal,          /*  52: "rn", normalized gradient of Q: [3] */
 
-  tenGageModeGradVec,      /*  46: "mgv", gradient vector of Mode: [3] */
-  tenGageModeGradMag,      /*  47: "mgm", gradient magnitude of Mode: [1] */
-  tenGageModeNormal,       /*  48: "mn", normalized gradient of Mode: [3] */
+  tenGageModeGradVec,      /*  53: "mgv", gradient vector of Mode: [3] */
+  tenGageModeGradMag,      /*  54: "mgm", gradient magnitude of Mode: [1] */
+  tenGageModeNormal,       /*  55: "mn", normalized gradient of Mode: [3] */
 
-  tenGageThetaGradVec,     /*  49: "thgv", gradient vector of Th: [3] */
-  tenGageThetaGradMag,     /*  50: "thgm", gradient magnitude of Th: [1] */
-  tenGageThetaNormal,      /*  51: "thn", normalized gradient of Th: [3] */
+  tenGageThetaGradVec,     /*  56: "thgv", gradient vector of Th: [3] */
+  tenGageThetaGradMag,     /*  57: "thgm", gradient magnitude of Th: [1] */
+  tenGageThetaNormal,      /*  58: "thn", normalized gradient of Th: [3] */
 
-  tenGageOmegaGradVec,     /*  52: "omgv", gradient vector of Omega: [3] */
-  tenGageOmegaGradMag,     /*  53: "omgm", gradient magnitude of Omega: [1] */
-  tenGageOmegaNormal,      /*  54: "omn", normalized gradient of Omega: [3] */
+  tenGageOmegaGradVec,     /*  59: "omgv", gradient vector of Omega: [3] */
+  tenGageOmegaGradMag,     /*  60: "omgm", gradient magnitude of Omega: [1] */
+  tenGageOmegaNormal,      /*  61: "omn", normalized gradient of Omega: [3] */
 
-  tenGageInvarGrads,       /*  55: "igs", projections of tensor gradient onto
-                                   the normalized shape gradients: eval mean,
-                                   variance, skew, in that order: [9]  */
-  tenGageInvarGradMags,    /*  56: "igms", vector magnitude of the spatial
-                                   invariant gradients (above): [3] */
-  tenGageRotTans,          /*  57: "rts", projections of the tensor grad onto
+  tenGageInvarKGrads,      /*  62: "ikgs", projections of tensor gradient onto
+                                  the normalized shape gradients: eval mean,
+                                  variance, skew, in that order: [9]  */
+  tenGageInvarKGradMags,   /*  63: "ikgms", vector magnitude of the spatial
+                                  invariant gradients (above): [3] */
+  tenGageInvarRGrads,      /*  64: "irgs", projections of tensor gradient onto
+                                  the normalized shape gradients: eval mean,
+                                  variance, skew, in that order: [9]  */
+  tenGageInvarRGradMags,   /*  65: "irgms", vector magnitude of the spatial
+                                  invariant gradients (above): [3] */
+  tenGageRotTans,          /*  66: "rts", projections of the tensor grad onto
                                    non-normalized rotation tangents: [9] */
-  tenGageRotTanMags,       /*  58: "rtms", mags of vectors above: [3] */
-  tenGageEvalGrads,        /*  59: "evgs", projections of tensor gradient onto
+  tenGageRotTanMags,       /*  67: "rtms", mags of vectors above: [3] */
+  tenGageEvalGrads,        /*  68: "evgs", projections of tensor gradient onto
                                    gradients of eigenvalues: [9] */
-  tenGageCl1,              /*  60: same as tenAniso_Cl1, but faster */
-  tenGageCp1,              /*  61: same as tenAniso_Cp1, but faster */
-  tenGageCa1,              /*  62: same as tenAniso_Ca1, but faster */
-  tenGageClpmin1,          /*  63: min(cl1,cp1) */
-  tenGageCl2,              /*  64: same as tenAniso_Cl2, but faster */
-  tenGageCp2,              /*  65: same as tenAniso_Cp2, but faster */
-  tenGageCa2,              /*  66: same as tenAniso_Ca2, but faster */
-  tenGageClpmin2,          /*  67: min(cl2,cp2) */
+  tenGageCl1,              /*  69: same as tenAniso_Cl1, but faster */
+  tenGageCp1,              /*  70: same as tenAniso_Cp1, but faster */
+  tenGageCa1,              /*  71: same as tenAniso_Ca1, but faster */
+  tenGageClpmin1,          /*  72: min(cl1,cp1) */
+  tenGageCl2,              /*  73: same as tenAniso_Cl2, but faster */
+  tenGageCp2,              /*  74: same as tenAniso_Cp2, but faster */
+  tenGageCa2,              /*  75: same as tenAniso_Ca2, but faster */
+  tenGageClpmin2,          /*  76: min(cl2,cp2) */
 
-  tenGageHessian,          /*  68: "hess", all hessians of tensor
+  tenGageHessian,          /*  77: "hess", all hessians of tensor
                                    components: [63] */
-  tenGageTraceHessian,     /*  69: "trhess", hessian(trace): [9] */
-  tenGageBHessian,         /*  70: "bhess": [9] */
-  tenGageDetHessian,       /*  71: "dethess": [9] */
-  tenGageSHessian,         /*  72: "shess": [9] */
-  tenGageQHessian,         /*  73: "qhess": [9] */
+  tenGageTraceHessian,     /*  78: "trhess", hessian(trace): [9] */
+  tenGageBHessian,         /*  79: "bhess": [9] */
+  tenGageDetHessian,       /*  80: "dethess": [9] */
+  tenGageSHessian,         /*  81: "shess": [9] */
+  tenGageQHessian,         /*  82: "qhess": [9] */
 
-  tenGageFAHessian,        /*  74: "fahess": [9] */
-  tenGageFAHessianEval,    /*  75: "fahesseval": [3] */
-  tenGageFAHessianEval0,   /*  76: "fahesseval0": [1] */
-  tenGageFAHessianEval1,   /*  77: "fahesseval1": [1] */
-  tenGageFAHessianEval2,   /*  78: "fahesseval2": [1] */
-  tenGageFAHessianEvec,    /*  79: "fahessevec": [9] */
-  tenGageFAHessianEvec0,   /*  80: "fahessevec0": [3] */
-  tenGageFAHessianEvec1,   /*  81: "fahessevec1": [3] */
-  tenGageFAHessianEvec2,   /*  82: "fahessevec2": [3] */
-  tenGageFARidgeSurfaceStrength,  /*  83: "farsurf": [1] */
-  tenGageFAValleySurfaceStrength, /*  84: "favsurf": [1] */
-  tenGageFALaplacian,      /*  85: "falapl": [1] */
-  tenGageFA2ndDD,          /*  86: "fa2d": [1] */
+  tenGageFAHessian,        /*  83: "fahess": [9] */
+  tenGageFAHessianEval,    /*  84: "fahesseval": [3] */
+  tenGageFAHessianEval0,   /*  85: "fahesseval0": [1] */
+  tenGageFAHessianEval1,   /*  86: "fahesseval1": [1] */
+  tenGageFAHessianEval2,   /*  87: "fahesseval2": [1] */
+  tenGageFAHessianEvec,    /*  88: "fahessevec": [9] */
+  tenGageFAHessianEvec0,   /*  89: "fahessevec0": [3] */
+  tenGageFAHessianEvec1,   /*  90: "fahessevec1": [3] */
+  tenGageFAHessianEvec2,   /*  91: "fahessevec2": [3] */
+  tenGageFARidgeSurfaceStrength,  /*  92: "farsurf": [1] */
+  tenGageFAValleySurfaceStrength, /*  93: "favsurf": [1] */
+  tenGageFALaplacian,      /*  94: "falapl": [1] */
+  tenGageFA2ndDD,          /*  95: "fa2d": [1] */
 
-  tenGageRHessian,         /*  87: "rhess": [9] */
+  tenGageRHessian,         /*  96: "rhess": [9] */
 
-  tenGageModeHessian,      /*  88: "mhess": [9] */
-  tenGageModeHessianEval,  /*  89: "mhesseval": [3] */
-  tenGageModeHessianEval0, /*  90: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /*  91: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /*  92: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /*  93: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /*  94: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /*  95: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /*  96: "mhessevec2": [3] */
+  tenGageModeHessian,      /*  97: "mhess": [9] */
+  tenGageModeHessianEval,  /*  98: "mhesseval": [3] */
+  tenGageModeHessianEval0, /*  99: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /* 100: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /* 101: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /* 102: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /* 103: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /* 104: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /* 105: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /*  97: "omhess": [9] */
-  tenGageOmegaHessianEval, /*  98: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/*  99: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/* 100: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/* 101: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /* 102: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 103: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 104: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 105: "omhessevec2": [3] */
+  tenGageOmegaHessian,     /* 106: "omhess": [9] */
+  tenGageOmegaHessianEval, /* 107: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/* 108: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/* 109: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/* 110: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 111: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 112: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 113: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 114: "omhessevec2": [3] */
 
-  tenGageTraceGradVecDotEvec0,   /* 106: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAngle,    /* 107: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 108: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 109: "fagvdotevec0": [1] */
-  tenGageFADiffusionAngle,       /* 110: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 111: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 112: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAngle,    /* 113: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 114: "daom": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 115: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAngle,    /* 116: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 117: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 118: "fagvdotevec0": [1] */
+  tenGageFADiffusionAngle,       /* 119: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 120: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 121: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAngle,    /* 122: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 123: "daom": [1] */
 
-  tenGageCovariance, /* 115: "cov" 4rth order covariance tensor: [21]
-                        (in order of appearance)
+  tenGageCovariance, /* 124: "cov" 4rth order covariance tensor: [21]
+                        in order of appearance:
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
                                        11:xzxz 12:xzyy 13:xzyz 14:xzzz
@@ -363,10 +383,10 @@ enum {
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
 
-  tenGageAniso,            /* 116: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 125: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     116
+#define TEN_GAGE_ITEM_MAX     125
 
 /*
 ******** tenDwiGage* enum
@@ -920,16 +940,22 @@ TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
                        const Nrrd *neval, const Nrrd *nevec);
 TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,
                         unsigned int axis, size_t pos, unsigned int dim);
-TEN_EXPORT void tenInvariantGradients_d(double mu1[7],
-                                        double mu2[7], double *mu2Norm,
-                                        double skw[7], double *skwNorm,
-                                        double ten[7]);
+TEN_EXPORT void tenInvariantKGradients_d(double K1[7],
+                                         double K2[7],
+                                         double K3[7],
+                                         const double ten[7],
+                                         const double minnorm);
+TEN_EXPORT void tenInvariantRGradients_d(double R1[7],
+                                         double R2[7],
+                                         double R3[7],
+                                         const double ten[7],
+                                         const double minnorm);
 TEN_EXPORT void tenRotationTangents_d(double phi1[7],
                                       double phi2[7],
                                       double phi3[7],
-                                      double evec[9]);
-TEN_EXPORT void tenInv_f(float inv[7], float ten[7]);
-TEN_EXPORT void tenInv_d(double inv[7], double ten[7]);
+                                      const double evec[9]);
+TEN_EXPORT void tenInv_f(float inv[7], const float ten[7]);
+TEN_EXPORT void tenInv_d(double inv[7], const double ten[7]);
 
 /* chan.c */
 /* old tenCalc* functions superceded/deprecated by new tenEstimate* code */
