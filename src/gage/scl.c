@@ -31,9 +31,9 @@
 gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   /* enum value        len,deriv,  prereqs,                                 parent item,  parent index,  needData */
-  {gageSclUnknown,       0,  0,  {},                                             0,               0,   AIR_FALSE},
-  {gageSclValue,         1,  0,  {},                                             0,               0,   AIR_FALSE},
-  {gageSclGradVec,       3,  1,  {},                                             0,               0,   AIR_FALSE},
+  {gageSclUnknown,       0,  0,  {0},                                            0,               0,   AIR_FALSE},
+  {gageSclValue,         1,  0,  {0},                                            0,               0,   AIR_FALSE},
+  {gageSclGradVec,       3,  1,  {0},                                            0,               0,   AIR_FALSE},
   {gageSclGradMag,       1,  1,  {gageSclGradVec},                               0,               0,   AIR_FALSE},
   {gageSclNormal,        3,  1,  {gageSclGradVec, gageSclGradMag},               0,               0,   AIR_FALSE},
   {gageSclNPerp,         9,  1,  {gageSclNormal},                                0,               0,   AIR_FALSE},
@@ -60,7 +60,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclCurvDir1,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
   {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
   {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
-  {gageSclMedian,        1,  0,  {},                                             0,               0,   AIR_FALSE}
+  {gageSclMedian,        1,  0,  {0},                                            0,               0,   AIR_FALSE}
 };
 
 char

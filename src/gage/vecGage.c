@@ -62,14 +62,14 @@ gage_imaginary_part_eigenvalues(double *M ) {
 gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value         len, deriv, prereqs,                                                  parent item, parent index, needData */
-  {gageVecUnknown,         0,  0,   {},                                                                 0,      0,       AIR_FALSE},
-  {gageVecVector,          3,  0,   {},                                                                 0,      0,       AIR_FALSE},
+  {gageVecUnknown,         0,  0,   {0},                                                                0,      0,       AIR_FALSE},
+  {gageVecVector,          3,  0,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecVector0,         1,  0,   {gageVecVector},                                        gageVecVector,      0,       AIR_FALSE},
   {gageVecVector1,         1,  0,   {gageVecVector},                                        gageVecVector,      1,       AIR_FALSE},
   {gageVecVector2,         1,  0,   {gageVecVector},                                        gageVecVector,      2,       AIR_FALSE},
   {gageVecLength,          1,  0,   {gageVecVector},                                                    0,      0,       AIR_FALSE},
   {gageVecNormalized,      3,  0,   {gageVecVector, gageVecLength},                                     0,      0,       AIR_FALSE},
-  {gageVecJacobian,        9,  1,   {},                                                                 0,      0,       AIR_FALSE},
+  {gageVecJacobian,        9,  1,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecDivergence,      1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurl,            3,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurlNorm,        1,  1,   {gageVecCurl},                                                      0,      0,       AIR_FALSE},
@@ -77,7 +77,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl},                                   0,      0,       AIR_FALSE},
   {gageVecLambda2,         1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecImaginaryPart,   1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE}, 
-  {gageVecHessian,        27,  2,   {},                                                                 0,      0,       AIR_FALSE},
+  {gageVecHessian,        27,  2,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecDivGradient,     3,  1,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
   {gageVecCurlGradient,    9,  2,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
   {gageVecCurlNormGrad,    3,  2,   {gageVecHessian, gageVecCurl},                                      0,      0,       AIR_FALSE},
