@@ -62,8 +62,8 @@ extern "C" {
 ** and even the individual eigenvalues
 **
 ** keep in sync:
-** aniso.c: _tenAnisoEval_X_f()
-** aniso.c: _tenAnisoEval_f[]
+** aniso.c: _tenAnisoEval_X_f(), _tenAnisoEval_f[]
+** aniso.c: _tenAnisoTen_X_d(), _tenAnisoTen_d[]
 ** aniso.c: tenAnisoCalc_f()
 ** enumsTen.c: tenAniso
 */
@@ -92,15 +92,14 @@ enum {
   tenAniso_Mode,    /* 21: 3*sqrt(6)*det(dev)/norm(dev) = sqrt(2)*skew */
   tenAniso_Th,      /* 22: acos(sqrt(2)*skew)/3 */
   tenAniso_Omega,   /* 23: FA*(1+mode)/2 */
-  tenAniso_Cz,      /* 24: Zhukov's invariant-based anisotropy metric */
-  tenAniso_Det,     /* 25: plain old determinant */
-  tenAniso_Tr,      /* 26: plain old trace */
-  tenAniso_eval0,   /* 27: largest eigenvalue */
-  tenAniso_eval1,   /* 28: middle eigenvalue */
-  tenAniso_eval2,   /* 29: smallest eigenvalue */
+  tenAniso_Det,     /* 24: plain old determinant */
+  tenAniso_Tr,      /* 25: plain old trace */
+  tenAniso_eval0,   /* 26: largest eigenvalue */
+  tenAniso_eval1,   /* 27: middle eigenvalue */
+  tenAniso_eval2,   /* 28: smallest eigenvalue */
   tenAnisoLast
 };
-#define TEN_ANISO_MAX  29
+#define TEN_ANISO_MAX  28
 
 /*
 ******** tenGlyphType* enum
@@ -940,12 +939,12 @@ TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
                        const Nrrd *neval, const Nrrd *nevec);
 TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,
                         unsigned int axis, size_t pos, unsigned int dim);
-TEN_EXPORT void tenInvariantKGradients_d(double K1[7],
+TEN_EXPORT void tenInvariantGradientsK_d(double K1[7],
                                          double K2[7],
                                          double K3[7],
                                          const double ten[7],
                                          const double minnorm);
-TEN_EXPORT void tenInvariantRGradients_d(double R1[7],
+TEN_EXPORT void tenInvariantGradientsR_d(double R1[7],
                                          double R2[7],
                                          double R3[7],
                                          const double ten[7],
@@ -1053,7 +1052,13 @@ TEN_EXPORT tenEstimateContext *tenEstimateContextNix(tenEstimateContext *tec);
 TEN_EXPORT float (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float eval[3]);
 TEN_EXPORT float tenAnisoEval_f(const float eval[3], int aniso);
 TEN_EXPORT double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]);
-TEN_EXPORT double tenAnisoEval_d(const double eval[3], int aniso);
+TEN_EXPORT double tenAnisoEval_d(const double ten[7], int aniso);
+
+TEN_EXPORT float (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float ten[7]);
+TEN_EXPORT float tenAnisoTen_f(const float ten[7], int aniso);
+TEN_EXPORT double (*_tenAnisoTen_d[TEN_ANISO_MAX+1])(const double ten[7]);
+TEN_EXPORT double tenAnisoTen_d(const double ten[7], int aniso);
+
 TEN_EXPORT void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float eval[3]);
 TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
                             int hflip, int whole, int nanout);
