@@ -422,14 +422,14 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormK2)
       || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormK3)) {
     double tmp[7];
-    tenInvariantKGradients_d(tmp,
+    tenInvariantGradientsK_d(tmp,
                              pvl->directAnswer[tenGageDelNormK2],
                              pvl->directAnswer[tenGageDelNormK3],
                              tenAns, 0.0000001);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormR1)
       || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDelNormR2)) {
-    tenInvariantKGradients_d(pvl->directAnswer[tenGageDelNormR1],
+    tenInvariantGradientsR_d(pvl->directAnswer[tenGageDelNormR1],
                              pvl->directAnswer[tenGageDelNormR2],
                              pvl->directAnswer[tenGageDelNormK3],
                              tenAns, 0.0000001);
