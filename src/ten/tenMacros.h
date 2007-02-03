@@ -143,6 +143,24 @@ extern "C" {
 
 #define TEN_T_NORM(A) (sqrt(TEN_T_DOT(A,A)))
 
+#define TEN_T_SUB(a, b, c) (  \
+  (a)[0] = ((b)[0] + (c)[0])/2.0, \
+  (a)[1] = (b)[1] - (c)[1], \
+  (a)[2] = (b)[2] - (c)[2], \
+  (a)[3] = (b)[3] - (c)[3], \
+  (a)[4] = (b)[4] - (c)[4], \
+  (a)[5] = (b)[5] - (c)[5], \
+  (a)[6] = (b)[6] - (c)[6])
+
+#define TEN_T_AFFINE(C, i, x, I, A, B) (              \
+  (C)[0] = AIR_AFFINE((i), (x), (I), (A)[0], (B)[0]), \
+  (C)[1] = AIR_AFFINE((i), (x), (I), (A)[1], (B)[1]), \
+  (C)[2] = AIR_AFFINE((i), (x), (I), (A)[2], (B)[2]), \
+  (C)[3] = AIR_AFFINE((i), (x), (I), (A)[3], (B)[3]), \
+  (C)[4] = AIR_AFFINE((i), (x), (I), (A)[4], (B)[4]), \
+  (C)[5] = AIR_AFFINE((i), (x), (I), (A)[5], (B)[5]), \
+  (C)[6] = AIR_AFFINE((i), (x), (I), (A)[6], (B)[6]))
+
 #define TEN_T_SCALE(a, s, b) ( \
    (a)[0] = (b)[0],               \
    (a)[1] = (s)*(b)[1],           \
