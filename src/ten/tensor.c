@@ -686,7 +686,7 @@ _tenEvalSkewnessGradient_d(double skw[7],
 }
 
 void
-tenInvariantKGradients_d(double mu1[7], double mu2[7], double skw[7],
+tenInvariantGradientsK_d(double mu1[7], double mu2[7], double skw[7],
                          const double ten[7], const double minnorm) {
   double dot, norm;
 
@@ -718,7 +718,7 @@ tenInvariantKGradients_d(double mu1[7], double mu2[7], double skw[7],
 }
 
 void
-tenInvariantRGradients_d(double R1[7], double R2[7], double R3[7],
+tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7],
                          const double ten[7], const double minnorm) {
   double dot, dev[7], norm, tenNorm, devNorm;
 
