@@ -179,8 +179,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   char me[]="tenGlyphGen", err[BIFF_STRLEN];
   gageShape *shape;
   airArray *mop;
-  float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16],
-    aniso[TEN_ANISO_MAX+1];
+  float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16];
   double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3],
     R, G, B, qA, qB, glyphAniso, sliceGray;
   unsigned int duh;
@@ -344,7 +343,6 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       ELL_3V_SCALE(evec + 6, -1, evec + 6);
     }
     ELL_3M_TRANSPOSE(rotEvec, evec);
-    tenAnisoCalc_f(aniso, eval);
     if (parm->doSlice
         && pI[parm->sliceAxis] == parm->slicePos) {
       /* set sliceGray */
@@ -371,7 +369,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
           }
           continue;
         }
-        sliceGray = aniso[parm->sliceAnisoType];
+        sliceGray = tenAnisoEval_f(eval, parm->sliceAnisoType);
       }
       if (parm->sliceGamma > 0) {
         sliceGray = AIR_AFFINE(0, sliceGray, 1, parm->sliceBias, 1);
@@ -441,15 +439,15 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       }
       continue;
     }
-    if (!( aniso[parm->anisoType] >= parm->anisoThresh )) {
+    if (!( tenAnisoEval_f(eval, parm->anisoType) >= parm->anisoThresh )) {
       if (parm->verbose >= 2) {
         fprintf(stderr, "%s: glyph %d/%d: aniso[%d] %g < thresh %g\n",
                 me, idx, numGlyphs, parm->anisoType,
-                aniso[parm->anisoType], parm->anisoThresh);
+                tenAnisoEval_f(eval, parm->anisoType), parm->anisoThresh);
       }
       continue;
     }
-    glyphAniso = aniso[parm->colAnisoType];
+    glyphAniso = tenAnisoEval_f(eval, parm->colAnisoType);
     /*
       fprintf(stderr, "%s: eret = %d; evals = %g %g %g\n", me,
       eret, eval[0], eval[1], eval[2]);
@@ -496,8 +494,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     B = pow(B, parm->colGamma);
     
     /* which is the axis of revolution */
-    cl = AIR_MIN(0.99, aniso[tenAniso_Cl1]);
-    cp = AIR_MIN(0.99, aniso[tenAniso_Cp1]);
+    cl = AIR_MIN(0.99, tenAnisoEval_f(eval, tenAniso_Cl1));
+    cp = AIR_MIN(0.99, tenAnisoEval_f(eval, tenAniso_Cp1));
     if (cl > cp) {
       axis = 0;
       qA = pow(1-cp, parm->sqdSharp);

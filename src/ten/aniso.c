@@ -848,6 +848,7 @@ tenAnisoTen_d(const double ten[7], int aniso) {
           : 0);
 }
 
+#if 0
 /*
 ******** tenAnisoCalc_f
 **
@@ -952,6 +953,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_eval2] = e2;
   return;
 }
+#endif
 
 int
 tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,

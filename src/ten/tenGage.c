@@ -324,7 +324,6 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   double hessCbA[9]={0,0,0,0,0,0,0,0,0},
     hessCbC[9]={0,0,0,0,0,0,0,0,0};
   int ci;
-  float evalAnsF[3], aniso[TEN_ANISO_MAX+1];
 
   tenAns = pvl->directAnswer[tenGageTensor];
   evalAns = pvl->directAnswer[tenGageEval];
@@ -1098,10 +1097,8 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
   /* --- Aniso --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
-    ELL_3V_COPY_TT(evalAnsF, float, evalAns);
-    tenAnisoCalc_f(aniso, evalAnsF);
-    for (ci=0; ci<=TEN_ANISO_MAX; ci++) {
-      pvl->directAnswer[tenGageAniso][ci] = aniso[ci];
+    for (ci=tenAnisoUnknown+1; ci<=TEN_ANISO_MAX; ci++) {
+      pvl->directAnswer[tenGageAniso][ci] = tenAnisoEval_d(evalAns, ci);
     }
   }
   return;

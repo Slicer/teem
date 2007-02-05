@@ -37,8 +37,7 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   int loc[3], idx, sx, sy, sz, i;
   Nrrd *nin;
-  float *tdata, eval[3], evec[9], c[TEN_ANISO_MAX+1],
-    angle, axis[3], mat[9];
+  float *tdata, eval[3], evec[9], angle, axis[3], mat[9];
 
   hestOptAdd(&hopt, "p", "x y z", airTypeInt, 3, 3, loc, NULL,
              "coordinates of sample to be described");
@@ -97,11 +96,10 @@ tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
           mat[3], mat[4], mat[5]);
   fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
           mat[6], mat[7], mat[8]);
-  tenAnisoCalc_f(c, eval);
   fprintf(stderr, "anisotropies = \n");
   for (i=1; i<=TEN_ANISO_MAX; i++) {
     fprintf(stderr, "%s: % 15.7f\n",
-            airEnumStr(tenAniso, i), c[i]);
+            airEnumStr(tenAniso, i), tenAnisoEval_f(eval, i));
   }
 
   airMopOkay(mop);

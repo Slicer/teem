@@ -155,7 +155,7 @@ tenEvqVolume(Nrrd *nout,
   int map[3];
   short *qdata;
   const float *tdata;
-  float eval[3], evec[9], c[TEN_ANISO_MAX+1], an;
+  float eval[3], evec[9], an;
   size_t N, I, sx, sy, sz;
 
   if (!(nout && nin)) {
@@ -190,8 +190,7 @@ tenEvqVolume(Nrrd *nout,
   for (I=0; I<N; I++) {
     tenEigensolve_f(eval, evec, tdata);
     if (scaleByAniso) {
-      tenAnisoCalc_f(c, eval);
-      an = c[aniso];
+      an = tenAnisoEval_f(eval, aniso);
     } else {
       an = 1.0;
     }

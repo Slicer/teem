@@ -32,7 +32,7 @@ main(int argc, char *argv[]) {
   unsigned int ii, nn;
   double evalD[3], pp[3], qq[4], rot[9], mat1[9], mat2[9], tenD[7], tmp, mean;
   double aniso[4];
-  float tenF[7], evalF[3], allanisoF[TEN_ANISO_MAX+1];
+  float tenF[7], evalF[3];
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -75,7 +75,6 @@ main(int argc, char *argv[]) {
     TEN_T_COPY(tenF, tenD);
     tenEigensolve_d(evalD, NULL, tenD);
     tenEigensolve_f(evalF, NULL, tenF);
-    tenAnisoCalc_f(allanisoF, evalF);
     for (aa=tenAnisoUnknown+1; aa<tenAnisoLast; aa++) {
       int bogus;
       aniso[0] = tenAnisoEval_f(evalF, aa);
@@ -98,9 +97,7 @@ main(int argc, char *argv[]) {
       if (AIR_EXISTS(tmp) && bogus && equi && tmp < 0.001) {
         continue;
       }
-      if (!AIR_EXISTS(tmp)
-          || tmp > 0.0000003
-          || (!bogus && AIR_ABS(mean - allanisoF[aa]) > 0.04)) {
+      if (!AIR_EXISTS(tmp) || tmp > 0.0000003) {
         fprintf(stderr, "\n%s: %u %d (%s) (isot %s, equi %s) tmp=%g\n",
                 me, ii, aa, 
                 airEnumStr(tenAniso, aa),
@@ -111,8 +108,8 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "  %f %f %f (%f %f %f)f --->\n",
                 evalD[0], evalD[1], evalD[2],
                 evalF[0], evalF[1], evalF[2]);
-        fprintf(stderr, "  %f %f %f %f %f\n", 
-                aniso[0], aniso[1], aniso[2], aniso[3], allanisoF[aa]);
+        fprintf(stderr, "  %f %f %f %f\n", 
+                aniso[0], aniso[1], aniso[2], aniso[3]);
         exit(1);
       }
     }

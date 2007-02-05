@@ -1059,7 +1059,6 @@ TEN_EXPORT float tenAnisoTen_f(const float ten[7], int aniso);
 TEN_EXPORT double (*_tenAnisoTen_d[TEN_ANISO_MAX+1])(const double ten[7]);
 TEN_EXPORT double tenAnisoTen_d(const double ten[7], int aniso);
 
-TEN_EXPORT void tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float eval[3]);
 TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
                             int hflip, int whole, int nanout);
 TEN_EXPORT int tenAnisoVolume(Nrrd *nout, const Nrrd *nin,
