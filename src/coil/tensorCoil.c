@@ -193,8 +193,7 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
     rspsqX, rspsqY, rspsqZ;
   double eval[3], evec[9], tens[7], tengrad[21], grad[3], LL, KK,
     cnd,
-    dmu1[7], dmu2[7], mu2Norm, dskw[7], skwNorm,
-    phi3[7];
+    dmu1[7], dmu2[7], dskw[7], phi3[7];
 
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]); rspsqX = rspX*rspX;
   rspY = AIR_CAST(coil_t, 1.0/spacing[1]); rspsqY = rspY*rspY;
@@ -202,10 +201,7 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
   TENS(tens, iv3);
   TENGRAD(tengrad, iv3, rspX, rspY, rspZ);
   tenEigensolve_d(eval, evec, tens);
-  tenInvariantGradients_d(dmu1,
-                          dmu2, &mu2Norm,
-                          dskw, &skwNorm,
-                          tens);
+  tenInvariantGradientsK_d(dmu1, dmu2, dskw, tens, 0.000001);
   tenRotationTangents_d(NULL, NULL, phi3, evec);
   /* \midhat{\nabla} \mu_1 ----------------- */
   ELL_3V_SET(grad,
