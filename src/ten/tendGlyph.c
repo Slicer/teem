@@ -112,7 +112,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoRTParm *eparm;
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
-  float bg[3], buvne[5], shadow;
+  float bg[3], buvne[5], shadow, creaseAngle;
   int ires[2], slice[2], nobg, ambocc;
   unsigned int hackci, hacknumcam;
   size_t hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
@@ -275,11 +275,14 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "width of edges drawn for three kinds of glyph "
              "edges: silohuette, crease, non-crease");
   hestOptAdd(&hopt, "psc", "scale", airTypeFloat, 1, 1, &(win->scale), "300",
-              "(* postscript only *) "
+             "(* postscript only *) "
              "scaling from screen space units to postscript units "
              "(in points)");
+  hestOptAdd(&hopt, "ca", "angle", airTypeFloat, 1, 1, &creaseAngle, "70",
+             "(* postscript only *) "
+             "minimum crease angle");
   hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &nobg, NULL,
-              "(* postscript only *) "
+             "(* postscript only *) "
              "don't initially fill with background color");
 
   /* ray-traced-specific options */
@@ -544,7 +547,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.lineWidth[limnEdgeTypeFrontFacet] = gparm->edgeWidth[2];
     win->ps.lineWidth[limnEdgeTypeBorder] = 0;
       /* win->ps.lineWidth[limnEdgeTypeFrontCrease]; */
-    win->ps.creaseAngle = 70;
+    win->ps.creaseAngle = creaseAngle;
     win->ps.noBackground = nobg;
     ELL_3V_COPY(win->ps.bg, bg);
     if (limnObjectRender(glyph, cam, win)
