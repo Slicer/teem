@@ -40,8 +40,14 @@ main(int argc, char **argv) {
 
   /* if user hasn't tried to set nrrdStateKindNoop by an environment
      variable, we set it to false, since its probably what people expect */
-  if (!getenv("NRRD_STATE_KIND_NOOP")) {
+  if (!getenv(nrrdEnvVarStateKindNoop)) {
     nrrdStateKindNoop = AIR_FALSE;
+  }
+
+  /* if user hasn't tried to set nrrdStateKeyValuePairsPropagate by an envvar,
+     we set it to true, since that's probably what unu users expect */
+  if (!getenv(nrrdEnvVarStateKeyValuePairsPropagate)) {
+    nrrdStateKeyValuePairsPropagate = AIR_TRUE;
   }
 
   /* no harm done in making sure we're sane */
