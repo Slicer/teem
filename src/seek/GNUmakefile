@@ -48,7 +48,7 @@ $(L).NEED = gage limn ell nrrd biff hest air
 $(L).PUBLIC_HEADERS = seek.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = enumsSeek.o tables.o methodsSeek.o setSeek.o updateSeek.o extract.o
-$(L).TESTS = test/tiso
+$(L).TESTS = test/tiso test/trv
 ####
 ####
 ####
