@@ -46,6 +46,28 @@ limnSpace = &_limnSpace;
 /* ------------------------------------------------------------ */  
 
 char
+_limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown info)",
+  "rgba",
+  "norm",
+  "tex2d"
+};
+
+airEnum
+_limnPolyDataInfo = {
+  "limn polydata info",
+  LIMN_POLY_DATA_INFO_MAX,
+  _limnPolyDataInfoStr, NULL,
+  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+limnPolyDataInfo = &_limnPolyDataInfo;
+
+/* ------------------------------------------------------------ */  
+
+char
 _limnCameraPathTrackStr[][AIR_STRLEN_SMALL] = {
   "(unknown limnCameraPathTrack)",
   "from",

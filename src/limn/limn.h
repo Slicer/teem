@@ -347,14 +347,18 @@ typedef struct {
 ******** limnPolyDataInfo* enum
 **
 ** information that may be known per-vertex in limnPolyData
+** 
+** NOTE: The xyzw position data is always required, and that is always
+** allocated and present.  This is the optional extra per-vertex information.
 */
 enum {
-  limnPolyDataInfoUnknown,  /* nobody knows */
-  limnPolyDataInfoRGBA,     /* RGBA 4-tuple */
-  limnPolyDataInfoNorm,     /* (x,y,z) unit-length 3-vector */
-  limnPolyDataInfoTex2D,    /* (s,t) 2D texture coordinates */
+  limnPolyDataInfoUnknown,    /* 0: nobody knows */
+  limnPolyDataInfoRGBA,       /* 1: RGBA 4-tuple */
+  limnPolyDataInfoNorm,       /* 2: (x,y,z) unit-length 3-vector */
+  limnPolyDataInfoTex2D,      /* 3: (s,t) 2D texture coordinates */
   limnPolyDataInfoLast
 };
+#define LIMN_POLY_DATA_INFO_MAX  3
 
 /*
 ******** limnPolyData
@@ -384,7 +388,7 @@ typedef struct {
   unsigned int xyzwNum;  /* logical size of xyzw */
   unsigned char *rgba;   /* if non-NULL, rgbaNum RGBA color 4-tuples */
   unsigned int rgbaNum;  /* logical size of rgba */
-  float *norm;           /* if non-NULL, normtNum (x,y,z) unit normals */
+  float *norm;           /* if non-NULL, normNum (x,y,z) unit normals */
   unsigned int normNum;  /* logical size of norm */
   float *tex2D;          /* if non-NULL, tex2DNum (s,t) 2D texture coords */
   unsigned int tex2DNum; /* logical size of tex2D */
@@ -498,6 +502,7 @@ LIMN_EXPORT int limnDefCameraRightHanded;
 
 /* enumsLimn.c */
 LIMN_EXPORT airEnum *limnSpace;
+LIMN_EXPORT airEnum *limnPolyDataInfo;
 LIMN_EXPORT airEnum *limnCameraPathTrack;
 LIMN_EXPORT airEnum *limnPrimitive;
 
@@ -652,6 +657,9 @@ LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);
 LIMN_EXPORT int limnObjectOFFRead(limnObject *obj, FILE *file);
 LIMN_EXPORT int limnObjectOFFWrite(FILE *file, limnObject *obj);
 LIMN_EXPORT int limnPolyDataIVWrite(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataLMPDRead(limnPolyData *pld, FILE *file);
+LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);
