@@ -48,8 +48,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
 	     "use gage too");
   hestOptAdd(&hopt, "hack", NULL, airTypeInt, 0, 0, &hack, NULL, "hack");
-  hestOptAdd(&hopt, "o", "output IV", airTypeString, 1, 1, &outS, "out.off",
-             "output file to save IV into");
+  hestOptAdd(&hopt, "o", "output LMPD", airTypeString, 1, 1, &outS, "out.lmpd",
+             "output file to save LMPD into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
     free(err);
   }
 
-  if (limnPolyDataIVWrite(file, pld)) {
+  if (limnPolyDataLMPDWrite(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
