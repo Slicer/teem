@@ -106,16 +106,22 @@ ELL_EXPORT void ell_4v_print_d(FILE *f, const double s[4]);
 /* vecEll.c */
 ELL_EXPORT void ell_3v_perp_f(float p[3], const float v[3]);
 ELL_EXPORT void ell_3v_perp_d(double p[3], const double v[3]);
-ELL_EXPORT void ell_3mv_mul_f(float v2[3], const float m[9], const float v1[3]);
-ELL_EXPORT void ell_3mv_mul_d(double v2[3], const double m[9], const double v1[3]);
-ELL_EXPORT void ell_4mv_mul_f(float v2[4], const float m[16], const float v1[4]);
-ELL_EXPORT void ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]);
+ELL_EXPORT void ell_3mv_mul_f(float v2[3],
+                              const float m[9], const float v1[3]);
+ELL_EXPORT void ell_3mv_mul_d(double v2[3],
+                              const double m[9], const double v1[3]);
+ELL_EXPORT void ell_4mv_mul_f(float v2[4],
+                              const float m[16], const float v1[4]);
+ELL_EXPORT void ell_4mv_mul_d(double v2[4],
+                              const double m[16], const double v1[4]);
 ELL_EXPORT float ell_3v_angle_f(float u[3], float v[3]);
 ELL_EXPORT double ell_3v_angle_d(double u[3], double v[3]);
 
 /* mat.c */
-ELL_EXPORT void ell_3m_mul_f(float m3[9], const float m1[9], const float m2[9]);
-ELL_EXPORT void ell_3m_mul_d(double m3[9], const double m1[9], const double m2[9]);
+ELL_EXPORT void ell_3m_mul_f(float m3[9],
+                             const float m1[9], const float m2[9]);
+ELL_EXPORT void ell_3m_mul_d(double m3[9],
+                             const double m1[9], const double m2[9]);
 ELL_EXPORT void ell_3m_pre_mul_f(float m[9], const float x[9]);
 ELL_EXPORT void ell_3m_pre_mul_d(double m[9], const double x[9]);
 ELL_EXPORT void ell_3m_post_mul_f(float m[9], const float x[9]);
@@ -124,8 +130,10 @@ ELL_EXPORT float ell_3m_det_f(float m[9]);
 ELL_EXPORT double ell_3m_det_d(double m[9]);
 ELL_EXPORT void ell_3m_inv_f(float i[9], const float m[9]);
 ELL_EXPORT void ell_3m_inv_d(double i[9], const double m[9]);
-ELL_EXPORT void ell_4m_mul_f(float m3[16], const float m1[16], const float m2[16]);
-ELL_EXPORT void ell_4m_mul_d(double m3[16], const double m1[16], const double m2[16]);
+ELL_EXPORT void ell_4m_mul_f(float m3[16],
+                             const float m1[16], const float m2[16]);
+ELL_EXPORT void ell_4m_mul_d(double m3[16],
+                             const double m1[16], const double m2[16]);
 ELL_EXPORT void ell_4m_pre_mul_f(float m[16], const float x[16]);
 ELL_EXPORT void ell_4m_pre_mul_d(double m[16], const double x[16]);
 ELL_EXPORT void ell_4m_post_mul_f(float m[16], const float x[16]);
@@ -134,6 +142,8 @@ ELL_EXPORT float ell_4m_det_f(float m[16]);
 ELL_EXPORT double ell_4m_det_d(double m[16]);
 ELL_EXPORT void ell_4m_inv_f(float i[16], const float m[16]);
 ELL_EXPORT void ell_4m_inv_d(double i[16], const double m[16]);
+ELL_EXPORT void ell_6m_mul_d(double AB[36],
+                             const double A[36], const double B[36]);
 
 /* 
 ** Note: quaternion element ordering is:
@@ -161,33 +171,48 @@ ELL_EXPORT void ell_q_to_4m_f( float m[16], const  float q[4]);
 ELL_EXPORT void ell_q_to_4m_d(double m[16], const double q[4]);
 ELL_EXPORT  float ell_q_to_aa_f( float axis[3], const  float q[4]);
 ELL_EXPORT double ell_q_to_aa_d(double axis[3], const double q[4]);
-ELL_EXPORT void ell_aa_to_q_f( float q[4], const  float angle, const  float axis[3]);
-ELL_EXPORT void ell_aa_to_q_d(double q[4], const double angle, const double axis[3]);
-ELL_EXPORT void ell_aa_to_3m_f( float m[9], const  float angle, const  float axis[3]);
-ELL_EXPORT void ell_aa_to_3m_d(double m[9], const double angle, const double axis[3]);
-ELL_EXPORT void ell_aa_to_4m_f( float m[16], const  float angle, const  float axis[3]);
-ELL_EXPORT void ell_aa_to_4m_d(double m[16], const double angle, const double axis[3]);
+ELL_EXPORT void ell_aa_to_q_f(float q[4],
+                              const  float angle, const  float axis[3]);
+ELL_EXPORT void ell_aa_to_q_d(double q[4],
+                              const double angle, const double axis[3]);
+ELL_EXPORT void ell_aa_to_3m_f(float m[9],
+                               const  float angle, const  float axis[3]);
+ELL_EXPORT void ell_aa_to_3m_d(double m[9],
+                               const double angle, const double axis[3]);
+ELL_EXPORT void ell_aa_to_4m_f(float m[16],
+                               const  float angle, const  float axis[3]);
+ELL_EXPORT void ell_aa_to_4m_d(double m[16],
+                               const double angle, const double axis[3]);
 ELL_EXPORT  float ell_3m_to_aa_f( float axis[3], const  float m[9]);
 ELL_EXPORT double ell_3m_to_aa_d(double axis[3], const double m[9]);
 ELL_EXPORT  float ell_4m_to_aa_f( float axis[3], const  float m[16]);
 ELL_EXPORT double ell_4m_to_aa_d(double axis[3], const double m[16]);
-ELL_EXPORT void ell_q_mul_f( float q3[4], const  float q1[4], const  float q2[4]);
-ELL_EXPORT void ell_q_mul_d(double q3[4], const double q1[4], const double q2[4]);
+ELL_EXPORT void ell_q_mul_f(float q3[4],
+                            const  float q1[4], const  float q2[4]);
+ELL_EXPORT void ell_q_mul_d(double q3[4],
+                            const double q1[4], const double q2[4]);
 ELL_EXPORT void ell_q_inv_f( float qi[4], const  float q[4]);
 ELL_EXPORT void ell_q_inv_d(double qi[4], const double q[4]);
 ELL_EXPORT void ell_q_pow_f( float q2[4], const  float q1[4], const  float p);
 ELL_EXPORT void ell_q_pow_d(double q2[4], const double q1[4], const double p);
-ELL_EXPORT void ell_q_div_f( float q3[4], const  float q1[4], const  float q2[4]);
-ELL_EXPORT void ell_q_div_d(double q3[4], const double q1[4], const double q2[4]);
+ELL_EXPORT void ell_q_div_f(float q3[4],
+                            const  float q1[4], const  float q2[4]);
+ELL_EXPORT void ell_q_div_d(double q3[4],
+                            const double q1[4], const double q2[4]);
 ELL_EXPORT void ell_q_exp_f( float q2[4], const  float q1[4]);
 ELL_EXPORT void ell_q_exp_d(double q2[4], const double q1[4]);
 ELL_EXPORT void ell_q_log_f( float q2[4], const  float q1[4]);
 ELL_EXPORT void ell_q_log_d(double q2[4], const double q1[4]);
-ELL_EXPORT void ell_q_3v_rotate_f( float v2[3], const  float q[4], const  float v1[3]);
-ELL_EXPORT void ell_q_3v_rotate_d(double v2[3], const double q[4], const double v1[3]);
-ELL_EXPORT void ell_q_4v_rotate_f( float v2[4], const  float q[4], const  float v1[4]);
-ELL_EXPORT void ell_q_4v_rotate_d(double v2[4], const double q[4], const double v1[4]);
-ELL_EXPORT void ell_q_avg4_d(double avg[4], const double eps, const double wght[4],
+ELL_EXPORT void ell_q_3v_rotate_f(float v2[3],
+                                  const  float q[4], const  float v1[3]);
+ELL_EXPORT void ell_q_3v_rotate_d(double v2[3],
+                                  const double q[4], const double v1[3]);
+ELL_EXPORT void ell_q_4v_rotate_f(float v2[4],
+                                  const  float q[4], const  float v1[4]);
+ELL_EXPORT void ell_q_4v_rotate_d(double v2[4],
+                                  const double q[4], const double v1[4]);
+ELL_EXPORT void ell_q_avg4_d(double avg[4],
+                             const double eps, const double wght[4],
                              const double q1[4], const double q2[4],
                              const double q3[4], const double q4[4]);
 
@@ -213,6 +238,8 @@ ELL_EXPORT int ell_3m_eigensolve_d(double eval[3], double evec[9],
 				   const double m[9], const int newton);
 ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
                             const double mat[9], const int newton);
+ELL_EXPORT int ell_6ms_eigensolve_d(double eval[6], double evec[36],
+                                    const double mat[21], const double eps);
 
 /* bessy.c */
 
