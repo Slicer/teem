@@ -45,6 +45,24 @@ main(int argc, char *argv[]) {
   me = argv[0];
   N = 100000;
 
+  AIR_UNUSED(pntA_d);
+  AIR_UNUSED(pntB_d);
+  AIR_UNUSED(pntC_d);
+  AIR_UNUSED(mat4C_d);
+  AIR_UNUSED(mat3C_d);
+  AIR_UNUSED(mat4B_d);
+  AIR_UNUSED(mat3B_d);
+  AIR_UNUSED(mat4A_d);
+  AIR_UNUSED(mat3A_d);
+  AIR_UNUSED(qC_d);
+  AIR_UNUSED(qB_d);
+  AIR_UNUSED(qA_d);
+  AIR_UNUSED(axisB_d);
+  AIR_UNUSED(angleB_d);
+  AIR_UNUSED(axisA_d);
+  AIR_UNUSED(angleA_d);
+  AIR_UNUSED(argc);
+
   for (I=0; I<N; I++) {
     /* make a rotation (as a quaternion) */
     ELL_3V_SET(axisA_f, 2*airDrandMT()-1, 2*airDrandMT()-1, 2*airDrandMT()-1);
