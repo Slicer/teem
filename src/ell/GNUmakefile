@@ -49,7 +49,7 @@ $(L).PUBLIC_HEADERS = ell.h ellMacros.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o quat.o genmat.o
 $(L).TESTS = test/sort3 test/invert test/tq test/wheel test/rot2aa \
-     test/inter test/mmul
+     test/inter test/mmul test/es6
 ####
 ####
 ####
