@@ -390,3 +390,241 @@ ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
   return roots;
 }
 
+/*
+** NOTE: profiling showed that about a quarter of the execution time of
+** ell_6ms_eigensolve_d() is spent here; so reconsider its need and
+** implementation... (fabs vs. AIR_ABS() made no difference)
+*/
+static void
+_maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
+               double mat[6][6]) {
+  double maxm, tmp;
+  unsigned int rrI, ccI;
+
+  /* we hope that all these loops are unrolled by the optimizer */
+  *sumon = *sumoff = 0.0;
+  for (rrI=0; rrI<6; rrI++) {
+    *sumon += AIR_ABS(mat[rrI][rrI]);
+  }
+  maxm = -1;
+  for (rrI=0; rrI<5; rrI++) {
+    for (ccI=rrI+1; ccI<6; ccI++) {
+      tmp = AIR_ABS(mat[rrI][ccI]);
+      *sumoff += tmp;
+      if (tmp > maxm) {
+        maxm = tmp;
+        maxI[0] = rrI;
+        maxI[1] = ccI;
+      }
+    }
+  }
+
+  /*
+  if (1) {
+    double nrm, trc;
+    nrm = trc = 0;
+    for (rrI=0; rrI<6; rrI++) {
+      trc += mat[rrI][rrI];
+      nrm += mat[rrI][rrI]*mat[rrI][rrI];
+    }
+    for (rrI=0; rrI<5; rrI++) {
+      for (ccI=rrI+1; ccI<6; ccI++) {
+        nrm += 2*mat[rrI][ccI]*mat[rrI][ccI];
+      }
+    }
+    fprintf(stderr, "---------------- invars = %g %g\n", trc, nrm);
+  }
+  */
+
+  return;
+}
+
+static int
+_compar(const void *_A, const void *_B) {
+  double *A, *B;
+  A = AIR_CAST(double *, _A);
+  B = AIR_CAST(double *, _B);
+  return (A[0] < B[0] ? 1 : (A[0] > B[0] ? -1 : 0));
+}
+
+/*
+******* ell_6ms_eigensolve_d
+**
+** uses Jacobi iterations to find eigensystem of 6x6 symmetric matrix,
+** given in sym[21].  Puts eigenvalues, in descending order, in eval[6],
+** and corresponding eigenvectors in _evec+0, _evec+6, ..., _evec+30.
+** NOTE: you can pass a NULL _evec if eigenvectors aren't needed.
+** 
+** does NOT use biff
+*/
+int
+ell_6ms_eigensolve_d(double eval[6], double _evec[36],
+                     const double sym[21], const double eps) {
+  /* char me[]="ell_6ms_eigensolve_d"; */
+  double mat[2][6][6], evec[2][6][6], sumon, sumoff, evtmp[12];
+  unsigned int cur, rrI, ccI, maxI[2], iter;
+
+  if (!( eval && sym && eps >= 0 )) {
+    return 1;
+  }
+  /* copy symmetric matrix sym[] into upper tris of mat[0][][] & mat[1][][] */
+  mat[0][0][0] = sym[ 0];
+  mat[0][0][1] = sym[ 1];
+  mat[0][0][2] = sym[ 2];
+  mat[0][0][3] = sym[ 3];
+  mat[0][0][4] = sym[ 4];
+  mat[0][0][5] = sym[ 5];
+  mat[0][1][1] = sym[ 6];
+  mat[0][1][2] = sym[ 7];
+  mat[0][1][3] = sym[ 8];
+  mat[0][1][4] = sym[ 9];
+  mat[0][1][5] = sym[10];
+  mat[0][2][2] = sym[11];
+  mat[0][2][3] = sym[12];
+  mat[0][2][4] = sym[13];
+  mat[0][2][5] = sym[14];
+  mat[0][3][3] = sym[15];
+  mat[0][3][4] = sym[16];
+  mat[0][3][5] = sym[17];
+  mat[0][4][4] = sym[18];
+  mat[0][4][5] = sym[19];
+  mat[0][5][5] = sym[20];
+  if (_evec) {
+    /* initialize evec[0]; */
+    for (rrI=0; rrI<6; rrI++) {
+      for (ccI=0; ccI<6; ccI++) {
+        evec[0][ccI][rrI] = (rrI == ccI);
+      }
+    }
+  }
+  /*
+  fprintf(stderr, "!%s(INIT): m = [", me);
+  for (rrI=0; rrI<6; rrI++) {
+    for (ccI=0; ccI<6; ccI++) {
+      fprintf(stderr, "%f%s", 
+              (rrI <= ccI ? mat[0][rrI][ccI] : mat[0][ccI][rrI]), 
+              ccI<5 ? "," : (rrI<5 ? ";" : "]"));
+    }
+    fprintf(stderr, "\n");
+  }
+  */
+  _maxI_sum_find(maxI, &sumon, &sumoff, mat[0]);
+  /*
+  maxI[0] = 0;
+  maxI[1] = 3;
+  */
+  cur = 1;         /* fake out anticipating first line of loop */
+  iter = 0;
+  while (sumoff/sumon > eps) {
+    double th, tt, cc, ss; 
+    unsigned int P, Q;
+    /*
+    fprintf(stderr, "!%s(%u): sumoff/sumon = %g/%g = %g > %g\n", me, iter,
+            sumoff, sumon, sumoff/sumon, eps);
+    */
+    cur = 1 - cur;
+
+    P = maxI[0];
+    Q = maxI[1];
+    th = (mat[cur][Q][Q] - mat[cur][P][P])/(2*mat[cur][P][Q]);
+    tt = (th > 0 ? +1 : -1)/(AIR_ABS(th) + sqrt(th*th + 1));
+    cc = 1/sqrt(tt*tt + 1);
+    ss = cc*tt;
+    /*
+    fprintf(stderr, "!%s(%u): maxI = (P,Q) = (%u,%u) --> ss=%f, cc=%f\n",
+            me, iter, P, Q, ss, cc);
+    fprintf(stderr, "     r = [");
+    for (rrI=0; rrI<6; rrI++) {
+      for (ccI=0; ccI<6; ccI++) {
+        fprintf(stderr, "%g%s",
+                (rrI == ccI
+                 ? (rrI == P || rrI == Q ? cc : 1.0)
+                 : (rrI == P && ccI == Q
+                    ? ss
+                    : (rrI == Q && ccI == P
+                       ? -ss
+                       : 0))),
+                ccI<5 ? "," : (rrI<5 ? ";" : "]"));
+      }
+      fprintf(stderr, "\n");
+    }
+    */
+    /* initialize by copying whole matrix */
+    for (rrI=0; rrI<6; rrI++) {
+      for (ccI=rrI; ccI<6; ccI++) {
+        mat[1-cur][rrI][ccI] = mat[cur][rrI][ccI];
+      }
+    }
+    /* perform Jacobi rotation */
+    for (rrI=0; rrI<P; rrI++) {
+      mat[1-cur][rrI][P] = cc*mat[cur][rrI][P] - ss*mat[cur][rrI][Q];
+    }
+    for (ccI=P+1; ccI<6; ccI++) {
+      mat[1-cur][P][ccI] = cc*mat[cur][P][ccI] - ss*(Q <= ccI 
+                                                     ? mat[cur][Q][ccI] 
+                                                     : mat[cur][ccI][Q]);
+    }
+    for (rrI=0; rrI<Q; rrI++) {
+      mat[1-cur][rrI][Q] = ss*(rrI <= P 
+                               ? mat[cur][rrI][P]
+                               : mat[cur][P][rrI]) + cc*mat[cur][rrI][Q];
+    }
+    for (ccI=Q+1; ccI<6; ccI++) {
+      mat[1-cur][Q][ccI] = ss*mat[cur][P][ccI] + cc*mat[cur][Q][ccI];
+    }
+    /* set special entries */
+    mat[1-cur][P][P] = mat[cur][P][P] - tt*mat[cur][P][Q];
+    mat[1-cur][Q][Q] = mat[cur][Q][Q] + tt*mat[cur][P][Q];
+    mat[1-cur][P][Q] = 0.0;
+    if (_evec) {
+      /* NOTE: the eigenvectors use transpose of indexing of mat */
+      /* start by copying all */
+      for (rrI=0; rrI<6; rrI++) {
+        for (ccI=0; ccI<6; ccI++) {
+          evec[1-cur][ccI][rrI] = evec[cur][ccI][rrI];
+        }
+      }
+      for (rrI=0; rrI<6; rrI++) {
+        evec[1-cur][P][rrI] = cc*evec[cur][P][rrI] - ss*evec[cur][Q][rrI];
+        evec[1-cur][Q][rrI] = ss*evec[cur][P][rrI] + cc*evec[cur][Q][rrI];
+      }
+    }
+
+    _maxI_sum_find(maxI, &sumon, &sumoff, mat[1-cur]);
+
+    /*
+    fprintf(stderr, "!%s(%u): m = [", me, iter);
+    for (rrI=0; rrI<6; rrI++) {
+      for (ccI=0; ccI<6; ccI++) {
+        fprintf(stderr, "%f%s", 
+                (rrI <= ccI ? mat[1-cur][rrI][ccI] : mat[1-cur][ccI][rrI]), 
+                ccI<5 ? "," : (rrI<5 ? ";" : "]"));
+      }
+      fprintf(stderr, "\n");
+    }
+    */
+    iter++;
+  }
+  /* 1-cur is index of final solution */
+
+  /* sort evals */
+  for (ccI=0; ccI<6; ccI++) {
+    evtmp[0 + 2*ccI] = mat[1-cur][ccI][ccI];
+    evtmp[1 + 2*ccI] = ccI;
+  }
+  qsort(evtmp, 6, 2*sizeof(double), _compar);
+
+  /* copy out solution */
+  for (ccI=0; ccI<6; ccI++) {
+    eval[ccI] = evtmp[0 + 2*ccI];
+    if (_evec) {
+      unsigned eeI;
+      for (rrI=0; rrI<6; rrI++) {
+        eeI = AIR_CAST(unsigned int, evtmp[1 + 2*ccI]);
+        _evec[rrI + 6*ccI] = evec[1-cur][eeI][rrI];
+      }
+    }
+  }
+  
+  return 0;
+}
