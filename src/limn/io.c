@@ -867,6 +867,14 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
+
+  lpldP = (limnPolyData **)ptr;
+  if (!strlen(str)) {
+    /* got empty filename; user didn't really want data, that's okay*/
+    *lpldP = NULL;
+    return 0;
+  }
+
   file = fopen(str, "rb");
   if (!file) {
     sprintf(err, "%s: couldn't open \"%s\" for reading", me, str);
@@ -874,7 +882,6 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   mop = airMopNew();
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-  lpldP = (limnPolyData **)ptr;
   *lpldP = limnPolyDataNew();
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
   if (limnPolyDataLMPDRead(*lpldP, file)) {
