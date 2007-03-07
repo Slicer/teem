@@ -660,6 +660,7 @@ LIMN_EXPORT int limnPolyDataIVWrite(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataLMPDRead(limnPolyData *pld, FILE *file);
 LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
+LIMN_EXPORT int limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld);
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);

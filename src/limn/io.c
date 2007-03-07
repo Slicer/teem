@@ -905,3 +905,20 @@ _limnHestPolyDataLMPD = {
 hestCB *
 limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 
+int
+limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
+  char me[]="limnPolyDataVTKWrite", err[BIFF_STRLEN];
+
+  if (!(file && pld)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  fprintf(file, "# vtk DataFile Version 2.0\n");
+  fprintf(file, "limnPolyData\n");
+  fprintf(file, "ASCII\n");
+  fprintf(file, "DATASET POLYDATA\n");
+  
+
+  return 0;
+}
+
