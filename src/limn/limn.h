@@ -183,16 +183,24 @@ enum {
 };
 #define LIMN_SPACE_MAX  4
 
+/*
+******** limnPrimitive* enum
+**
+** primitive types in the limnPolyData (should probably called 
+** limnPolyDataPrimitiveType).
+**
+** keep in sync: Deft/src/PolyData.cxx/PolyData::drawImmediate()
+*/ 
 enum {
-  limnPrimitiveUnknown,      /* 0 */
-  limnPrimitiveTriangles,    /* 1: triangle soup */
-  limnPrimitiveTriangleStrip,/* 2: triangle strip */
-  limnPrimitiveTriangleFan,  /* 3: triangle fan */
-  limnPrimitiveQuads,        /* 4: quad soup */
-  limnPrimitiveLineStrip,    /* 5: line strip */
+  limnPrimitiveUnknown,       /* 0 */
+  limnPrimitiveTriangles,     /* 1: triangle soup (for GL_TRIANGLES) */
+  limnPrimitiveTriangleStrip, /* 2: triangle strip (for GL_TRIANGLE_STRIP) */
+  limnPrimitiveTriangleFan,   /* 3: triangle fan (for GL_TRIANGLE_FAN) */
+  limnPrimitiveQuads,         /* 4: quad soup (for GL_QUADS) */
+  limnPrimitiveLineStrip,     /* 5: line strip (for GL_LINE_STRIP) */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX      5
+#define LIMN_PRIMITIVE_MAX       5
 
 /*
 ******** struct limnLook
