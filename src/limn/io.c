@@ -908,6 +908,7 @@ limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 int
 limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
   char me[]="limnPolyDataVTKWrite", err[BIFF_STRLEN];
+  unsigned int pntIdx, prmIdx, *indx;
 
   if (!(file && pld)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -917,7 +918,41 @@ limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
   fprintf(file, "limnPolyData\n");
   fprintf(file, "ASCII\n");
   fprintf(file, "DATASET POLYDATA\n");
-  
+  fprintf(file, "POINTS %u float\n", pld->xyzwNum);
+  for (pntIdx=0; pntIdx<pld->xyzwNum; pntIdx++) {
+    float xyz[3];
+    ELL_34V_HOMOG(xyz, pld->xyzw + 4*pntIdx);
+    fprintf(file, "%f %f %f\n", xyz[0], xyz[1], xyz[2]);
+  }
+  indx = pld->indx;
+  for (prmIdx=0; prmIdx<pld->primNum; prmIdx++) {
+    unsigned int idxNum, triNum, triIdx;
+    idxNum = pld->icnt[prmIdx];
+    fprintf(file, "\n");
+    switch (pld->type[prmIdx]) {
+    case limnPrimitiveTriangleFan:
+      sprintf(err, "%s: %s prims (prim[%u]) not supported in VTK?", 
+              me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+      biffAdd(LIMN, err); return 1;
+      break;
+    case limnPrimitiveQuads:
+    case limnPrimitiveTriangleStrip:
+    case limnPrimitiveLineStrip:
+      sprintf(err, "%s: sorry, saving %s prims (prim[%u]) not implemented", 
+              me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+      biffAdd(LIMN, err); return 1;
+      break;
+    case limnPrimitiveTriangles:
+      triNum = idxNum/3;
+      fprintf(file, "POLYGONS %u %u\n", triNum, triNum + idxNum);
+      for (triIdx=0; triIdx<triNum; triIdx++) {
+        fprintf(file, "3 %u %u %u\n",
+                indx[0 + 3*triIdx], indx[1 + 3*triIdx], indx[2 + 3*triIdx]);
+      }
+      break;
+    }
+    indx += idxNum;
+  }
 
   return 0;
 }
