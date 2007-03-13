@@ -440,10 +440,10 @@ _maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
 }
 
 static int
-_compar(const void *_A, const void *_B) {
+_compar(const void *A_void, const void *B_void) {
   double *A, *B;
-  A = AIR_CAST(double *, _A);
-  B = AIR_CAST(double *, _B);
+  A = AIR_CAST(double *, A_void);
+  B = AIR_CAST(double *, B_void);
   return (A[0] < B[0] ? 1 : (A[0] > B[0] ? -1 : 0));
 }
 
