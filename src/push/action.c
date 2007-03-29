@@ -47,8 +47,15 @@ _pushProbe(pushTask *task, pushPoint *point) {
   posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5);
   posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
   posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
-  gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+  if (task->pctx->numSS) {
+    gageStackProbe(task->gctx, point->posSS);
+    gageProbe(task->gctxSS, posIdx[0], posIdx[1], posIdx[2]);
+    point->zcSS = task->zcSSAns[0];
+    ELL_3V_COPY(point->gvSS, task->gvSSAns);
+  }
 
+  gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+    
   TEN_T_COPY(point->ten, task->tenAns);
   TEN_T_COPY(point->inv, task->invAns);
   ELL_3V_COPY(point->cnt, task->cntAns);
@@ -71,6 +78,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   float *posOut, *tenOut, *enrOut;
   pushBin *bin;
   pushPoint *point;
+  double sclmin, sclmax, sclmean;
 
   pointNum = _pushPointTotal(pctx);
   E = AIR_FALSE;
@@ -97,6 +105,8 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
 
   pointRun = 0;
+  sclmean = 0;
+  sclmin = sclmax = AIR_NAN;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
@@ -106,13 +116,39 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
                    point->pos[0], point->pos[1], point->pos[2]);
       }
       if (tenOut) {
-        TEN_T_COPY(tenOut + 7*pointRun, point->ten);
+        if (pctx->numSS) {
+          double matOut[9], matTmp[9], norm[3], perp1[3], perp2[3], len, scl;
+          ELL_3V_NORM(norm, point->gvSS, len);
+          ELL_3MV_OUTER(matTmp, norm, norm);
+          ELL_3M_ZERO_SET(matOut);
+          ELL_3M_SCALE_INCR(matOut, 0.01, matTmp);
+          ell_3v_perp_d(perp1, norm);
+          ELL_3V_NORM(perp1, perp1, len);
+          ELL_3MV_OUTER(matTmp, perp1, perp1);
+          scl = AIR_AFFINE(0, point->posSS, pctx->numSS-1,
+                           pctx->minSS, pctx->maxSS);
+          sclmin = AIR_EXISTS(sclmin) ? AIR_MIN(sclmin, scl) : scl;
+          sclmax = AIR_EXISTS(sclmax) ? AIR_MAX(sclmax, scl) : scl;
+          ELL_3M_SCALE_INCR(matOut, scl, matTmp);
+          ELL_3V_CROSS(perp2, norm, perp1);
+          ELL_3MV_OUTER(matTmp, perp2, perp2);
+          ELL_3M_SCALE_INCR(matOut, scl, matTmp);
+          TEN_M2T(tenOut + 7*pointRun, matOut);
+          sclmean += point->posSS;
+        } else {
+          TEN_T_COPY(tenOut + 7*pointRun, point->ten);
+        }
       }
       if (enrOut) {
         enrOut[pointRun] = point->enr;
       }
       pointRun++;
     }
+  }
+  if (pctx->numSS) {
+    sclmean /= pointRun;
+    fprintf(stderr, "!%s: scale min, mean, max = %g %g %g\n", me,
+            sclmin, sclmean, sclmax);
   }
 
   return 0;
@@ -125,34 +161,167 @@ _pushPairwiseEnergy(pushTask *task,
                     pushPoint *myPoint, pushPoint *herPoint,
                     double YY[3], double iscl) {
   /* char me[]="_pushPairwiseEnergy", err[BIFF_STRLEN]; */
-  double inv[7], XX[3], nXX[3], rr, mag, WW[3], enr;
+  double inv[7], XX[3], nXX[3], nYY[3], rr, mag, WW[3], enr;
 
-  if (task->pctx->midPntSmp) {
-    pushPoint _tmpPoint;
-    double det;
-    ELL_3V_SCALE_ADD2(_tmpPoint.pos,
-                      0.5, myPoint->pos,
-                      0.5, herPoint->pos);
-    _pushProbe(task, &_tmpPoint);
-    TEN_T_INV(inv, _tmpPoint.ten, det);
+  if (task->pctx->numSS) {
+    ELL_3V_NORM(nYY, YY, rr);
+    ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
+    ELL_3V_SCALE(frc, mag, nYY);
   } else {
-    TEN_T_SCALE_ADD2(inv,
-                     0.5, myPoint->inv,
-                     0.5, herPoint->inv);
-  }
-  TEN_TV_MUL(XX, inv, YY);
-  ELL_3V_NORM(nXX, XX, rr);
-
-  ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
-  if (mag) {
-    mag *= iscl;
-    TEN_TV_MUL(WW, inv, nXX);
-    ELL_3V_SCALE(frc, mag, WW);
-  } else {
-    ELL_3V_SET(frc, 0, 0, 0);
+    if (task->pctx->midPntSmp) {
+      pushPoint _tmpPoint;
+      double det;
+      ELL_3V_SCALE_ADD2(_tmpPoint.pos,
+                        0.5, myPoint->pos,
+                        0.5, herPoint->pos);
+      _pushProbe(task, &_tmpPoint);
+      TEN_T_INV(inv, _tmpPoint.ten, det);
+    } else {
+      TEN_T_SCALE_ADD2(inv,
+                       0.5, myPoint->inv,
+                       0.5, herPoint->inv);
+    }
+    TEN_TV_MUL(XX, inv, YY);
+    ELL_3V_NORM(nXX, XX, rr);
+    
+    ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
+    if (mag) {
+      mag *= iscl;
+      TEN_TV_MUL(WW, inv, nXX);
+      ELL_3V_SCALE(frc, mag, WW);
+    } else {
+      ELL_3V_SET(frc, 0, 0, 0);
+    }
   }
 
   return enr;
+}
+
+#define EPS_PER_MAX_DIST 200
+#define SEEK_MAX_ITER 30
+
+void
+_pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
+  char me[]="_pushSurfaceSeek";
+  double stepDir[3], gm, zcLast, endA[3], endB[3], aa, bb, cc, za, zb, eps,
+    posOrig[3];
+  unsigned int iter;
+
+  ELL_3V_COPY(posOrig, myPoint->pos);
+
+  eps = task->pctx->maxDist/EPS_PER_MAX_DIST;
+  step = AIR_ABS(step)*0.618;
+  /*
+  fprintf(stderr, "!%s: eps = %g; step = %g\n", me, eps, step);
+  */
+  _pushProbe(task, myPoint);
+  if (myPoint->zcSS < 0) {
+    step *= -1;
+  }
+  iter = 0;
+  do {
+    zcLast = myPoint->zcSS;
+    ELL_3V_NORM(stepDir, myPoint->gvSS, gm);
+    ELL_3V_SCALE_INCR(myPoint->pos, step, stepDir);
+    _pushProbe(task, myPoint);
+    iter++;
+  } while (zcLast*myPoint->zcSS > 0
+           && iter < SEEK_MAX_ITER);
+
+  if (SEEK_MAX_ITER == iter) {
+    ELL_3V_COPY(myPoint->pos, posOrig);
+    return;
+  }
+
+  /* position of last probe led to a change in zc.
+     last probe at myPoint->pos,
+     previous probe at myPoint->pos - step*stepDir */
+  ELL_3V_COPY(endA, myPoint->pos);
+  za = myPoint->zcSS;
+  aa = 0;
+  ELL_3V_SCALE_ADD2(endB, 1, myPoint->pos, -step, stepDir);
+  zb = zcLast;
+  bb = 1;
+  iter = 0;
+  do {
+    cc = (zb*aa - za*bb)/(zb - za);
+    ELL_3V_LERP(myPoint->pos, cc, endA, endB);
+    _pushProbe(task, myPoint);
+    if (za * myPoint->zcSS > 0) {
+      aa = cc;
+    } else { 
+      bb = cc;
+    }
+    iter ++;
+  } while ((bb - aa)*step > eps
+           && iter < SEEK_MAX_ITER);
+
+  if (SEEK_MAX_ITER == iter) {
+    ELL_3V_COPY(myPoint->pos, posOrig);
+  }
+
+  return;
+}
+
+#define SCALE_TEST_STEP 0.1
+#define SCALE_STEP_SIZE 0.05
+
+double
+_pushDeltaScale(pushTask *task, pushPoint *myPoint) {
+  char me[]="_pushDeltaScale";
+  pushPoint *herPoint;
+  unsigned int neighIdx;
+  double wght, wghtSum, diff[3], dscale, oldScaleIdx, oldScale,
+    oldStrength, testScale, testScaleIdx, testStrength, strengthGrad,
+    newScale, newScaleIdx,
+    avgScaleIdx, wantScaleIdx, limit;
+  int signRnd;
+
+  avgScaleIdx = 0;
+  wghtSum = 0;
+  for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
+    herPoint = myPoint->neigh[neighIdx];
+    ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+    wght = 1.0/(FLT_MIN + ELL_3V_LEN(diff));
+    avgScaleIdx += wght*herPoint->posSS;
+    wghtSum += wght;
+  }
+  avgScaleIdx /= wghtSum;
+  
+  oldScaleIdx = myPoint->posSS;
+  oldScale = AIR_AFFINE(0, oldScaleIdx, task->pctx->numSS-1,
+                        task->pctx->minSS, task->pctx->maxSS);
+  oldStrength = ELL_3V_LEN(myPoint->gvSS)*oldScale;
+  signRnd = 2*airRandInt_r(task->rng, 2) - 1;
+  testScaleIdx = oldScaleIdx + SCALE_TEST_STEP*signRnd*task->pctx->numSS;
+  myPoint->posSS = testScaleIdx;
+  _pushSurfaceSeek(task, myPoint, task->pctx->deltaLimit*task->pctx->scale);
+  testScale = AIR_AFFINE(0, testScaleIdx, task->pctx->numSS-1,
+                         task->pctx->minSS, task->pctx->maxSS);
+  testStrength = ELL_3V_LEN(myPoint->gvSS)*testScale;
+  strengthGrad = (testStrength - oldStrength)/(testScale - oldScale);
+  newScale = oldScale + SCALE_STEP_SIZE*strengthGrad;
+  newScaleIdx= AIR_AFFINE(task->pctx->minSS, newScale, task->pctx->maxSS,
+                          0, task->pctx->numSS-1);
+  
+  wantScaleIdx = AIR_AFFINE(0, 0.5, 1, avgScaleIdx, newScaleIdx);
+
+  /* this is not how deltaLimit is supposed to be used, but its similar */
+  dscale = wantScaleIdx - oldScaleIdx;
+  limit = task->pctx->deltaLimit;
+  dscale = limit*dscale/(limit + dscale);
+
+  /*
+  fprintf(stderr, "!%s: oldScaleIdx %g -> dscale = %g\n", me,
+          oldScaleIdx, dscale);
+  */
+  fprintf(stderr, "!%s: (dlimit = %g) strengthGrad = %g -> dscale = %g\n", me, 
+          limit, strengthGrad, dscale);
+  dscale = AIR_EXISTS(dscale) ? dscale : 0;
+  
+  /* return it the way we got it */
+  myPoint->posSS = oldScaleIdx;
+  return dscale;
 }
 
 int
@@ -162,7 +331,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
   unsigned int myPointIdx, herPointIdx;
   pushPoint *myPoint, *herPoint;
   double enr, frc[3], delta[3], deltaLen, deltaNorm[3], warp[3], limit,
-    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd;
+    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd, dscale;
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
@@ -176,7 +345,8 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     ELL_3V_SET(myPoint->frc, 0, 0, 0);
 
     if (1.0 <= task->pctx->neighborTrueProb
-        || airDrandMT_r(task->rng) <= task->pctx->neighborTrueProb) {
+        || airDrandMT_r(task->rng) <= task->pctx->neighborTrueProb
+        || !myPoint->neighArr->len) {
       neighbor = myBin->neighbor;
       if (1.0 > task->pctx->neighborTrueProb) {
         airArrayLenSet(myPoint->neighArr, 0);
@@ -223,19 +393,24 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       }
     }
 
-    /* each point sees containment forces */
-    ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
-    ELL_3V_INCR(myPoint->frc, frc);
-    myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
+    if (!task->pctx->numSS) {
+      /* containment forces + gravity do not currently
+         apply in the case of SS behavior */
 
-    /* each point also maybe experiences gravity */
-    if (tenGageUnknown != task->pctx->gravItem) {
-      ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
-      myPoint->enr += 
-        task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
+      /* each point sees containment forces */
+      ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
       ELL_3V_INCR(myPoint->frc, frc);
-    }
-  
+      myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
+
+      /* each point also maybe experiences gravity */
+      if (tenGageUnknown != task->pctx->gravItem) {
+        ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
+        myPoint->enr += 
+          task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
+        ELL_3V_INCR(myPoint->frc, frc);
+      }
+    }      
+
     /* each point in this thing also maybe experiences wall forces */
     if (task->pctx->wall) {
       /* there's an effort here to get the forces and energies, which
@@ -274,7 +449,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_4MV_MUL(enrWorld, task->pctx->gctx->shape->ItoW, enrIdx);
       ELL_3V_INCR(myPoint->frc, frcWorld);
       myPoint->enr += ELL_3V_LEN(enrWorld);
-    }
+    } /* wall */
 
     task->energySum += myPoint->enr;
 
@@ -284,34 +459,53 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
 
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
-    if (deltaLen) {
-      double newDelta;
-      TEN_TV_MUL(warp, myPoint->inv, delta);
-      /* limit is some fraction glyph radius along direction of delta */
-      limit = (task->pctx->deltaLimit
-               *task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp)));
-      newDelta = limit*deltaLen/(limit + deltaLen);
-      /* by definition newDelta <= deltaLen */
-      task->deltaFracSum += newDelta/deltaLen;
-      ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
-    }
-    if (2 == task->pctx->dimIn) {
-      double posIdx[4], posWorld[4];
-      ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
-      ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
-      ELL_4V_HOMOG(posIdx, posIdx);
-      posIdx[task->pctx->sliceAxis] = 0.0;
-      ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
-      ELL_34V_HOMOG(myPoint->pos, posWorld);
-    }
-    if (1.0 <= task->pctx->probeProb
-        || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
-      _pushProbe(task, myPoint);
+    if (task->pctx->numSS) {
+      double newDelta = 0;
+
+      /* learn change in scale at old position */
+      dscale = _pushDeltaScale(task, myPoint);
+      if (deltaLen) {
+        limit = task->pctx->deltaLimit*task->pctx->scale;
+        newDelta = limit*deltaLen/(limit + deltaLen);
+        /* by definition newDelta <= deltaLen */
+        task->deltaFracSum += newDelta/deltaLen;
+        ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
+      }
+      myPoint->posSS += dscale;
+      if (newDelta || dscale) {
+        _pushSurfaceSeek(task, myPoint, 
+                         newDelta ? newDelta : 0.05);
+      }
+    } else {
+      if (deltaLen) {
+        double newDelta;
+        TEN_TV_MUL(warp, myPoint->inv, delta);
+        /* limit is some fraction of glyph radius along direction of delta */
+        limit = (task->pctx->deltaLimit
+                 *task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp)));
+        newDelta = limit*deltaLen/(limit + deltaLen);
+        /* by definition newDelta <= deltaLen */
+        task->deltaFracSum += newDelta/deltaLen;
+        ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
+      }
+      if (2 == task->pctx->dimIn) {
+        double posIdx[4], posWorld[4];
+        ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
+        ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
+        ELL_4V_HOMOG(posIdx, posIdx);
+        posIdx[task->pctx->sliceAxis] = 0.0;
+        ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
+        ELL_34V_HOMOG(myPoint->pos, posWorld);
+      }
+      if (1.0 <= task->pctx->probeProb
+          || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
+        _pushProbe(task, myPoint);
+      }
     }
     
     /* the point lived, count it */
     task->pointNum += 1;
-  }
+  } /* for myPointIdx */
   
   return 0;
 }
