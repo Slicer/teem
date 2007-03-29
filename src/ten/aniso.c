@@ -659,7 +659,6 @@ double _tenAnisoTen_eval0_d(const double ten[7]) {
   return eval[0];
 }
 
-
 float  _tenAnisoEval_eval1_f(const float  eval[3]) { return eval[1]; }
 double _tenAnisoEval_eval1_d(const double eval[3]) { return eval[1]; }
 float  _tenAnisoTen_eval1_f(const float  ten[7]) {
