@@ -172,6 +172,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageOmegaHessianEvec0,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        0,     AIR_FALSE},
   {tenGageOmegaHessianEvec1,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        3,     AIR_FALSE},
   {tenGageOmegaHessianEvec2,       3,  2,  {tenGageOmegaHessianEvec},                      tenGageOmegaHessianEvec,        6,     AIR_FALSE},
+  {tenGageOmegaLaplacian,          1,  2,  {tenGageOmegaHessian},                                                0,        0,     AIR_FALSE},
+  {tenGageOmega2ndDD,              1,  2,  {tenGageOmegaHessian, tenGageOmegaNormal},                            0,        0,     AIR_FALSE},
 
   {tenGageTraceGradVecDotEvec0,    1,  1,  {tenGageTraceGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
   {tenGageTraceDiffusionAngle,     1,  1,  {tenGageTraceNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
@@ -308,7 +310,7 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  /* char me[]="_tenGageAnswer"; */
+  char me[]="_tenGageAnswer";
   double *tenAns, *evalAns, *evecAns, *vecTmp=NULL, *matTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,
@@ -343,8 +345,8 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     dtE = tenAns[5];
     dtF = tenAns[6];
     if (ctx->verbose) {
-      fprintf(stderr, "tensor = (%g) %g %g %g   %g %g   %g\n", tenAns[0],
-              dtA, dtB, dtC, dtD, dtE, dtF);
+      fprintf(stderr, "!%s: tensor = (%g) %g %g %g   %g %g   %g\n", me,
+              tenAns[0], dtA, dtB, dtC, dtD, dtE, dtF);
     }
   }
   /* done if doV 
@@ -1002,6 +1004,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     TEN_M2T(fakeTen, pvl->directAnswer[tenGageOmegaHessian]);
     /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
     tenEigensolve_d(pvl->directAnswer[tenGageOmegaHessianEval], NULL, fakeTen);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaLaplacian)) {
+    double *hess;
+    hess = pvl->directAnswer[tenGageOmegaHessian];
+    pvl->directAnswer[tenGageOmegaLaplacian][0] = hess[0] + hess[4] + hess[8];
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmega2ndDD)) {
+    double *hess, *norm, tmpv[3];
+    hess = pvl->directAnswer[tenGageOmegaHessian];
+    norm = pvl->directAnswer[tenGageOmegaNormal];
+    ELL_3MV_MUL(tmpv, hess, norm);
+    pvl->directAnswer[tenGageOmega2ndDD][0] = ELL_3V_DOT(norm, tmpv);
   }
 
   /* --- evec0 dot products */

@@ -102,6 +102,25 @@ enum {
 #define TEN_ANISO_MAX  28
 
 /*
+******** tenPathType* enum
+**
+** different kinds of paths between two tensors
+*/
+enum {
+  tenPathTypeUnknown,         /* 0: nobody knows */
+  tenPathTypeLerp,            /* 1: simple per-coefficient lerp */
+  tenPathTypeLogLerp,         /* 2: lerp on coefs of logs (Log-Euclidean) */
+  tenPathTypeAffineInvariant, /* 3: Riemannian approach of many authors */
+  tenPathTypeWang,            /* 4: affine-invariant of Z Wang & B Vemuri */
+  tenPathTypeGeodeLoxoK,      /* 5: geodesic-loxodrome on K_i invariants */
+  tenPathTypeGeodeLoxoR,      /* 6: geodesic-loxodrome on R_i invariants */
+  tenPathTypeLoxoK,           /* 7: total loxodrome on K_i invariants */
+  tenPathTypeLoxoR,           /* 8: total loxodrome on R_i invariants */
+  tenPathTypeLast
+};
+#define TEN_PATH_TYPE_MAX        8
+
+/*
 ******** tenGlyphType* enum
 **
 ** the different types of glyphs that may be used for tensor viz
@@ -362,18 +381,20 @@ enum {
   tenGageOmegaHessianEvec0,/* 112: "omhessevec0": [3] */
   tenGageOmegaHessianEvec1,/* 113: "omhessevec1": [3] */
   tenGageOmegaHessianEvec2,/* 114: "omhessevec2": [3] */
+  tenGageOmegaLaplacian,   /* 115: "omlapl": [1] */
+  tenGageOmega2ndDD,       /* 116: "om2d": [1] */
 
-  tenGageTraceGradVecDotEvec0,   /* 115: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAngle,    /* 116: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 117: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 118: "fagvdotevec0": [1] */
-  tenGageFADiffusionAngle,       /* 119: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 120: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 121: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAngle,    /* 122: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 123: "daom": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 117: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAngle,    /* 118: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 119: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 120: "fagvdotevec0": [1] */
+  tenGageFADiffusionAngle,       /* 121: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 122: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 123: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAngle,    /* 124: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 125: "daom": [1] */
 
-  tenGageCovariance, /* 124: "cov" 4rth order covariance tensor: [21]
+  tenGageCovariance, /* 126: "cov" 4rth order covariance tensor: [21]
                         in order of appearance:
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
@@ -382,10 +403,10 @@ enum {
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
 
-  tenGageAniso,            /* 125: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 127: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     125
+#define TEN_GAGE_ITEM_MAX     127
 
 /*
 ******** tenDwiGage* enum
@@ -867,6 +888,19 @@ typedef struct {
   double *weights;
 } tenDwiGagePvlData;
 
+typedef struct {
+  /* input ------------- */
+  int verbose;
+  double convStep, minNorm, convEps;
+  int enableRecurse;
+  unsigned int maxIter, numSteps;
+  int lengthFancy;
+  /* output ------------ */
+  unsigned int numIter;
+  double convFinal;
+  double lengthShape, lengthOrient;
+} tenPathParm;
+
 /* defaultsTen.c */
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
@@ -901,6 +935,7 @@ TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
 
 /* enumsTen.c */
 TEN_EXPORT airEnum *tenAniso;
+TEN_EXPORT airEnum *tenPathType;
 TEN_EXPORT airEnum _tenGage;
 TEN_EXPORT airEnum *tenGage;
 TEN_EXPORT airEnum *tenFiberType;
@@ -909,6 +944,22 @@ TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;
 TEN_EXPORT airEnum *tenEstimate1Method;
 TEN_EXPORT airEnum *tenEstimate2Method;
+
+/* path.c */
+TEN_EXPORT tenPathParm *tenPathParmNew();
+TEN_EXPORT tenPathParm *tenPathParmNix(tenPathParm *tpp);
+TEN_EXPORT void tenPathInterpTwo(double oten[7],
+                                 double tenA[7], double tenB[7],
+                                 int ptype, double aa,
+                                 tenPathParm *tpp);
+TEN_EXPORT double tenPathLength(Nrrd *npath, int doubleVerts,
+                                int fancy, int shape);
+TEN_EXPORT int tenPathInterpTwoDiscrete(Nrrd *nout, 
+                                        double tenA[7], double tenB[7],
+                                        int ptype, unsigned int num,
+                                        tenPathParm *tpp);
+TEN_EXPORT double tenPathDistance(double tenA[7], double tenB[7],
+                                  int ptype, tenPathParm *tpp);
 
 /* glyph.c */
 TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
@@ -933,8 +984,11 @@ TEN_EXPORT int tenEigensolve_f(float eval[3], float evec[9],
                                const float ten[7]);
 TEN_EXPORT int tenEigensolve_d(double eval[3], double evec[9],
                                const double ten[7]);
+/* should rename ...One... --> ...Single... */
 TEN_EXPORT void tenMakeOne_f(float ten[7],
                              float conf, float eval[3], float evec[9]);
+TEN_EXPORT void tenMakeOne_d(double ten[7],
+                             double conf, double eval[3], double evec[9]);
 TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
                        const Nrrd *neval, const Nrrd *nevec);
 TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,
@@ -953,6 +1007,15 @@ TEN_EXPORT void tenRotationTangents_d(double phi1[7],
                                       double phi2[7],
                                       double phi3[7],
                                       const double evec[9]);
+TEN_EXPORT void tenLogSingle_d(double logten[7], double ten[7]);
+TEN_EXPORT void tenLogSingle_f(float logten[7], float ten[7]);
+TEN_EXPORT void tenExpSingle_d(double expten[7], double ten[7]);
+TEN_EXPORT void tenExpSingle_f(float expten[7], float ten[7]);
+TEN_EXPORT void tenSqrtSingle_d(double sqrtten[7], double ten[7]);
+TEN_EXPORT void tenSqrtSingle_f(float sqrtten[7], float ten[7]);
+TEN_EXPORT void tenPowSingle_d(double powten[7], double ten[7], double power);
+TEN_EXPORT void tenPowSingle_f(float powten[7], float ten[7], float power);
+/* should rename to tenInvSingle_x */
 TEN_EXPORT void tenInv_f(float inv[7], const float ten[7]);
 TEN_EXPORT void tenInv_d(double inv[7], const double ten[7]);
 
@@ -991,6 +1054,7 @@ TEN_EXPORT int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                    const Nrrd *ndwi, const Nrrd *_nbmat,
                                    int knownB0,
                                    double thresh, double soft, double b);
+/* should rename ...One... --> ...Single... */
 TEN_EXPORT void tenSimulateOne_f(float *dwi, float B0, const float *ten,
                                  const double *bmat, unsigned int DD, float b);
 TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
@@ -1079,6 +1143,7 @@ TEN_EXPORT void tenEvecRGBSingle_d(double RGB[3], double conf,
 /* miscTen.c */
 TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin,
                           const tenEvecRGBParm *rgbp);
+/* should rename ...One... --> ...Single... */
 TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
                             int aniso, int scaleByAniso);
