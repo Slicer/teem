@@ -25,222 +25,6 @@
 
 char *info = ("does stupid geodesics");
 
-void
-_tenGeodesicRelaxOne(Nrrd *ntdata, Nrrd *nigrtdata,
-                     unsigned int ii, double scl) {
-  double *tdata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7], len02, len24,
-    tmp, tng[7], correct, half;
-  unsigned int jj, NN;
-
-  NN = (ntdata->axis[1].size-1)/2;
-  half = (NN+1)/2;
-
-  tdata = AIR_CAST(double *, ntdata->data);
-  tt[0] = tdata + 7*(2*ii - 2);
-  tt[1] = tdata + 7*(2*ii - 1); /* unused */
-  tt[2] = tdata + 7*(2*ii + 0);
-  tt[3] = tdata + 7*(2*ii + 1); /* unused */
-  tt[4] = tdata + 7*(2*ii + 2);
-  igrtdata = AIR_CAST(double *, nigrtdata->data);
-  for (jj=0; jj<6; jj++) {
-    igrt[0][jj] = igrtdata + 7*(jj + 6*(2*ii - 2)); /* unused */
-    igrt[1][jj] = igrtdata + 7*(jj + 6*(2*ii - 1));
-    igrt[2][jj] = igrtdata + 7*(jj + 6*(2*ii + 0));
-    igrt[3][jj] = igrtdata + 7*(jj + 6*(2*ii + 1));
-    igrt[4][jj] = igrtdata + 7*(jj + 6*(2*ii + 2)); /* unused */
-  }
-
-  /* re-align [1] and [3] bases relative to [2] */
-  for (jj=2; jj<=5; jj++) {
-    if (TEN_T_DOT(igrt[1][jj], igrt[2][jj]) < 0) {
-      TEN_T_SCALE(igrt[1][jj], -1, igrt[1][jj]);
-    }
-    if (TEN_T_DOT(igrt[3][jj], igrt[2][jj]) < 0) {
-      TEN_T_SCALE(igrt[3][jj], -1, igrt[1][jj]);
-    }
-  }  
-
-  TEN_T_SUB(d02, tt[2], tt[0]);
-  TEN_T_SUB(d24, tt[4], tt[2]);
-  for (jj=0; jj<6; jj++) {
-    len02 = TEN_T_DOT(igrt[1][jj], d02);
-    len24 = TEN_T_DOT(igrt[3][jj], d24);
-    correct = (len24 - len02)/2;
-    TEN_T_SCALE_INCR(tt[2], correct*scl, igrt[2][jj]);
-  }
-
-  TEN_T_SUB(d02, tt[2], tt[0]);
-  TEN_T_SUB(d24, tt[4], tt[2]);
-  TEN_T_SUB(tng, tt[4], tt[0]);
-  tmp = 1.0/TEN_T_NORM(tng);
-  TEN_T_SCALE(tng, tmp, tng);
-  len02 = TEN_T_DOT(tng, d02);
-  len24 = TEN_T_DOT(tng, d24);
-  correct = (len24 - len02)/2;
-  TEN_T_SCALE_INCR(tt[2], correct*scl, tng);
-
-  TEN_T_SCALE_INCR2(tt[1], 0.5, tt[0], 0.5, tt[2]);
-  TEN_T_SCALE_INCR2(tt[3], 0.5, tt[2], 0.5, tt[4]);
-  return;
-}
-
-/*
-** this assumes that the real vertices are on the even-numbered indices
-** (0   1   2   3   4)
-**  0   2   4   6   8 --> size=9 --> NN=4
-**    1   3   5   7
-*/
-double
-_tenGeodesicLength(Nrrd *ntt) {
-  double *tt, len, diff[7];
-  unsigned int ii, NN;
-  
-  tt = AIR_CAST(double *, ntt->data);
-  NN = (ntt->axis[1].size-1)/2;
-  len = 0;
-  for (ii=0; ii<NN; ii++) {
-    TEN_T_SUB(diff, tt + 7*2*(ii + 1), tt + 7*2*(ii + 0));
-    len += TEN_T_NORM(diff);
-  }
-  return len;
-}
-
-void
-_tenGeodesicIGRT(double *igrt, double *ten, int useK, double minnorm) {
-  double eval[3], evec[9];
-
-  if (useK) {
-    tenInvariantGradientsK_d(igrt + 7*0, igrt + 7*1, igrt + 7*2, ten, minnorm);
-  } else {
-    tenInvariantGradientsR_d(igrt + 7*0, igrt + 7*1, igrt + 7*2, ten, minnorm);
-  }
-  tenEigensolve_d(eval, evec, ten);
-  tenRotationTangents_d(igrt + 7*3, igrt + 7*4, igrt + 7*5, evec);
-  return;
-}
-
-int
-_tenGeodesicPolyLine(Nrrd *ngeod, unsigned int *numIter,
-                     double tenA[7], double tenB[7],
-                     unsigned int NN, int useK, double scl, int recurse,
-                     double minnorm, unsigned int maxIter, double conv) {
-  char me[]="_tenGeodesicPolyLine", err[BIFF_STRLEN];
-  Nrrd *nigrt, *ntt, *nsub;
-  double *igrt, *geod, *tt, len, newlen;
-  unsigned int ii;
-  airArray *mop;
-
-  if (!(ngeod && numIter && tenA && tenB)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
-  }
-  if (!(NN >= 2)) {
-    sprintf(err, "%s: # steps %u too small", me, NN);
-    biffAdd(TEN, err); return 1;
-  }
-
-  mop = airMopNew();
-  ntt = nrrdNew();
-  airMopAdd(mop, ntt, (airMopper)nrrdNuke, airMopAlways);
-  nigrt = nrrdNew();
-  airMopAdd(mop, nigrt, (airMopper)nrrdNuke, airMopAlways);
-  nsub = nrrdNew();
-  airMopAdd(mop, nsub, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc_va(ngeod, nrrdTypeDouble, 2,
-                        AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, NN+1))
-      || nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 2,
-                           AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, 2*NN + 1))
-      || nrrdMaybeAlloc_va(nigrt, nrrdTypeDouble, 3,
-                           AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, 6),
-                           AIR_CAST(size_t, 2*NN + 1))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-  }
-  geod = AIR_CAST(double *, ngeod->data);
-  tt = AIR_CAST(double *, ntt->data);
-  igrt = AIR_CAST(double *, nigrt->data);
-
-  *numIter = 0;
-  if (NN > 14 && recurse) {
-    unsigned int subIter;
-    int E;
-    NrrdResampleContext *rsmc;
-    double kparm[3] = {1.0, 0.0, 0.5};
-    /* recurse and find geodesic with smaller number of vertices */
-    if (_tenGeodesicPolyLine(nsub, &subIter, tenA, tenB,
-                             NN/2, useK, scl, recurse,
-                             minnorm, maxIter, conv)) {
-      sprintf(err, "%s: problem with recursive call", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
-    }
-    /* upsample coarse geodesic to higher resolution */
-    rsmc = nrrdResampleContextNew();
-    airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-    E = AIR_FALSE;
-    if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterNode);
-    if (!E) E |= nrrdResampleNrrdSet(rsmc, nsub);
-    if (!E) E |= nrrdResampleKernelSet(rsmc, 0, NULL, NULL);
-    if (!E) E |= nrrdResampleKernelSet(rsmc, 1, nrrdKernelBCCubic, kparm);
-    if (!E) E |= nrrdResampleSamplesSet(rsmc, 1, 2*NN + 1);
-    if (!E) E |= nrrdResampleRangeFullSet(rsmc, 1);
-    if (!E) E |= nrrdResampleBoundarySet(rsmc, nrrdBoundaryBleed);
-    if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
-    if (!E) E |= nrrdResampleRenormalizeSet(rsmc, AIR_TRUE);
-    if (!E) E |= nrrdResampleExecute(rsmc, ntt);
-    if (E) {
-      sprintf(err, "%s: problem upsampling course solution", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
-    }
-    *numIter += subIter;
-  } else {
-    /* initialize the path, including all the segment midpoints */
-    for (ii=0; ii<=2*NN; ii++) {
-      TEN_T_AFFINE(tt + 7*ii, 0, ii, 2*NN, tenA, tenB);
-    }
-  }
-  for (ii=1; ii<2*NN; ii++) {
-    _tenGeodesicIGRT(igrt + 7*6*ii, tt + 7*ii, useK, minnorm);
-  }
-  
-  newlen = _tenGeodesicLength(ntt);
-  do {
-    unsigned int lo, hi;
-    int dd;
-    len = newlen;
-    if (0 == *numIter % 2) {
-      lo = 1;
-      hi = NN;
-      dd = 1;
-    } else {
-      lo = NN-1;
-      hi = 0;
-      dd = -1;
-    }
-    for (ii=lo; ii!=hi; ii+=dd) {
-      _tenGeodesicRelaxOne(ntt, nigrt, ii , scl);
-    }
-    /* try doing this less often */
-    for (ii=1; ii<2*NN; ii++) {
-      _tenGeodesicIGRT(igrt + 7*6*ii, tt + 7*ii, useK, minnorm);
-    }
-    newlen = _tenGeodesicLength(ntt);
-    *numIter += 1;
-  } while ((0 == maxIter || *numIter < maxIter)
-           && 2*AIR_ABS(newlen - len)/(newlen + len) > conv);
-
-  /* copy final result to output */
-  for (ii=0; ii<=NN; ii++) {
-    TEN_T_COPY(geod + 7*ii, tt + 7*2*ii);
-  }  
-
-  airMopOkay(mop);
-  return 0;
-}
-
-
 int
 main(int argc, char *argv[]) {
   char *me, *err;
@@ -248,98 +32,261 @@ main(int argc, char *argv[]) {
   airArray *mop;
 
   char *outS;
-  double _tA[6], tA[7], _tB[6], tB[7], time0, time1, conv,
-    pA[3], pB[3], qA[4], qB[4], rA[9], rB[9], mat1[9], mat2[9], tmp;
-  unsigned int NN, iter, maxiter;
-  int recurse, noop;
-  Nrrd *ngeod;
+  double _tA[6], tA[7], _tB[6], tB[7], time0, time1, conv, confThresh,
+    pA[3], pB[3], qA[4], qB[4], rA[9], rB[9], mat1[9], mat2[9], tmp,
+    stepSize, minNorm, sclA, sclB;
+  unsigned int NN, maxiter, refIdx[3];
+  int recurse, ptype, verb;
+  Nrrd *_nin, *nin, *nout;
+  tenPathParm *tpp;
 
   mop = airMopNew();
   me = argv[0];
-  hestOptAdd(&hopt, "a", "tensor", airTypeDouble, 6, 6, _tA, NULL,
+  hestOptAdd(&hopt, "a", "tensor", airTypeDouble, 6, 6, _tA, "1 0 0 1 0 1",
              "first tensor");
   hestOptAdd(&hopt, "pa", "qq", airTypeDouble, 3, 3, pA, "0 0 0",
              "rotation of first tensor");
-  hestOptAdd(&hopt, "b", "tensor", airTypeDouble, 6, 6, _tB, NULL,
+  hestOptAdd(&hopt, "sa", "scl", airTypeDouble, 1, 1, &sclA, "1.0",
+             "scaling of first tensor");
+  hestOptAdd(&hopt, "b", "tensor", airTypeDouble, 6, 6, _tB, "1 0 0 1 0 1",
              "second tensor");
   hestOptAdd(&hopt, "pb", "qq", airTypeDouble, 3, 3, pB, "0 0 0",
              "rotation of second tensor");
+  hestOptAdd(&hopt, "sb", "scl", airTypeDouble, 1, 1, &sclB, "1.0",
+             "scaling of second tensor");
+  hestOptAdd(&hopt, "i", "nten", airTypeOther, 1, 1, &_nin, "",
+             "input tensor volume (makes previous options moot)",
+             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "ri", "x y z", airTypeUInt, 3, 3, refIdx, "0 0 0",
+             "index of reference tensor in input tensor volume");
+  hestOptAdd(&hopt, "th", "thresh", airTypeDouble, 1, 1, &confThresh, "0.5",
+             "conf mask threshold on \"-i\"");
   hestOptAdd(&hopt, "n", "# steps", airTypeUInt, 1, 1, &NN, "100",
              "number of steps in between two tensors");
+  hestOptAdd(&hopt, "s", "stepsize", airTypeDouble, 1, 1, &stepSize, "1",
+             "step size in update");
+  hestOptAdd(&hopt, "mn", "minnorm", airTypeDouble, 1, 1, &minNorm, "0.000001",
+             "minnorm of something");
   hestOptAdd(&hopt, "c", "conv", airTypeDouble, 1, 1, &conv, "0.0001",
              "convergence threshold of length fraction");
   hestOptAdd(&hopt, "mi", "maxiter", airTypeUInt, 1, 1, &maxiter, "0",
              "if non-zero, max # iterations for computation");
   hestOptAdd(&hopt, "r", "recurse", airTypeInt, 0, 0, &recurse, NULL,
-             "enable recursive solution");
-  hestOptAdd(&hopt, "no", "no-op", airTypeInt, 0, 0, &noop, NULL,
-             "no-op solution, just lerp");
+             "enable recursive solution, when useful");
+  hestOptAdd(&hopt, "t", "path type", airTypeEnum, 1, 1, &ptype, "lerp",
+             "what type of path to compute", NULL, tenPathType);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verb, "0",
+             "verbosity");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  ELL_6V_COPY(tA + 1, _tA);
-  tA[0] = 1.0;
-  ELL_6V_COPY(tB + 1, _tB);
-  tB[0] = 1.0;
+  tpp = tenPathParmNew();
+  airMopAdd(mop, tpp, (airMopper)tenPathParmNix, airMopAlways);
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  ELL_4V_SET(qA, 1, pA[0], pA[1], pA[2]);
-  ELL_4V_NORM(qA, qA, tmp);
-  ELL_4V_SET(qB, 1, pB[0], pB[1], pB[2]);
-  ELL_4V_NORM(qB, qB, tmp);
-  ell_q_to_3m_d(rA, qA);
-  ell_q_to_3m_d(rB, qB);
+  tpp->verbose = verb;
+  tpp->convStep = stepSize;
+  tpp->enableRecurse = recurse;
+  tpp->minNorm = minNorm;
+  tpp->maxIter = maxiter;
+  tpp->convEps = conv;
+  if (_nin) {
+    double refTen[7], inTen[7], *in, *out;
+    unsigned int xi, yi, zi, sx, sy, sz, dimOut;
+    int axmap[NRRD_DIM_MAX], slow;
+    size_t size[NRRD_DIM_MAX];
 
-  TEN_T2M(mat1, tA);
-  ell_3m_mul_d(mat2, rA, mat1);
-  ELL_3M_TRANSPOSE_IP(rA, tmp);
-  ell_3m_mul_d(mat1, mat2, rA);
-  TEN_M2T(tA, mat1);
-
-  TEN_T2M(mat1, tB);
-  ell_3m_mul_d(mat2, rB, mat1);
-  ELL_3M_TRANSPOSE_IP(rB, tmp);
-  ell_3m_mul_d(mat1, mat2, rB);
-  TEN_M2T(tB, mat1);
-  /*
-  fprintf(stderr, "!%s: tA = (%g) %g %g %g\n    %g %g\n    %g\n", me,
-          tA[0], tA[1], tA[2], tA[3], tA[4], tA[5], tA[6]);
-  fprintf(stderr, "!%s: tB = (%g) %g %g %g\n    %g %g\n    %g\n", me,
-          tB[0], tB[1], tB[2], tB[3], tB[4], tB[5], tB[6]);
-  */
-
-  ngeod = nrrdNew();
-  airMopAdd(mop, ngeod, (airMopper)nrrdNuke, airMopAlways);
-  time0 = airTime();
-  if (noop) {
-    double *geod;
-    unsigned int ii;
-    nrrdMaybeAlloc_va(ngeod, nrrdTypeDouble, 2,
-                      AIR_CAST(size_t, 7),
-                      AIR_CAST(size_t, NN));
-    geod = AIR_CAST(double *, ngeod->data);
-    for (ii=0; ii<NN; ii++) {
-      TEN_T_AFFINE(geod + 7*ii, 0, ii, NN-1, tA, tB);
+    if (tenTensorCheck(_nin, nrrdTypeDefault, AIR_TRUE, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: input volume not valid:\n%s\n",
+              me, err);
+      airMopError(mop); 
+      return 1;
+    }
+    sx = AIR_CAST(unsigned int, _nin->axis[1].size);
+    sy = AIR_CAST(unsigned int, _nin->axis[2].size);
+    sz = AIR_CAST(unsigned int, _nin->axis[3].size);
+    if (!( refIdx[0] < sx 
+           && refIdx[1] < sy
+           && refIdx[2] < sz )) {
+      fprintf(stderr, "%s: index (%u,%u,%u) out of bounds (%u,%u,%u)\n", me,
+              refIdx[0], refIdx[1], refIdx[2], sx, sy, sz);
+      airMopError(mop);
+      return 1;
+    }
+    nin = nrrdNew();
+    airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
+    slow = (ptype == tenPathTypeGeodeLoxoK
+            || ptype == tenPathTypeGeodeLoxoR
+            || ptype == tenPathTypeLoxoK
+            || ptype == tenPathTypeLoxoR);
+    if (slow) {
+      tpp->lengthFancy = AIR_TRUE;
+      dimOut = 4;
+      size[0] = 3;
+      size[1] = _nin->axis[1].size;
+      size[2] = _nin->axis[2].size;
+      size[3] = _nin->axis[3].size;
+      axmap[0] = -1;
+      axmap[1] = 1;
+      axmap[2] = 2;
+      axmap[3] = 3;
+    } else {
+      dimOut = 3;
+      size[0] = _nin->axis[1].size;
+      size[1] = _nin->axis[2].size;
+      size[2] = _nin->axis[3].size;
+      axmap[0] = 1;
+      axmap[1] = 2;
+      axmap[2] = 3;
+    }      
+    if (nrrdConvert(nin, _nin, nrrdTypeDouble)
+        || nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, dimOut, size)
+        || nrrdAxisInfoCopy(nout, nin, axmap, 
+                            NRRD_AXIS_INFO_SIZE_BIT)
+        || nrrdBasicInfoCopy(nout, nin, 
+                             (NRRD_BASIC_INFO_DATA_BIT
+                              | NRRD_BASIC_INFO_TYPE_BIT
+                              | NRRD_BASIC_INFO_DIMENSION_BIT
+                              | NRRD_BASIC_INFO_CONTENT_BIT
+                              | NRRD_BASIC_INFO_SAMPLEUNITS_BIT))) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop); 
+      return 1;
+    }
+    in = AIR_CAST(double *, nin->data);
+    out = AIR_CAST(double *, nout->data);
+    TEN_T_COPY(refTen, in + 7*(refIdx[0] + sx*(refIdx[1] + sy*refIdx[2])));
+    fprintf(stderr, "!%s: reference tensor = (%g) %g %g %g   %g %g    %g\n",
+            me, refTen[0], refTen[1], refTen[2], refTen[3],
+            refTen[4], refTen[5], refTen[6]);
+    for (zi=0; zi<sz; zi++) {
+      for (yi=0; yi<sy; yi++) {
+        for (xi=0; xi<sx; xi++) {
+          TEN_T_COPY(inTen, in + 7*(xi + sx*(yi + sy*zi)));
+          if (slow) {
+            fprintf(stderr, "!%s: %u %u %u \n", me, xi, yi, zi);
+            if (inTen[0] < confThresh) {
+              out[0] = AIR_NAN;
+              out[1] = AIR_NAN;
+              out[2] = AIR_NAN;
+            } else {
+              tpp->verbose = 10*(xi == refIdx[0]
+                                 && yi == refIdx[1]
+                                 && zi == refIdx[2]);
+              out[0] =  tenPathDistance(inTen, refTen, ptype, tpp);
+              out[1] =  tpp->lengthShape;
+              out[2] =  tpp->lengthOrient;
+            }
+            out += 3;
+          } else {
+            if (inTen[0] < confThresh) {
+              *out = AIR_NAN;
+            } else {
+              *out =  tenPathDistance(inTen, refTen, ptype, tpp);
+            }
+            out += 1;
+          }
+        }
+        if (slow) {
+          if (nrrdSave(outS, nout, NULL)) {
+            airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+            fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+            airMopError(mop); 
+            return 1;
+          }
+        }
+      }
     }
   } else {
-    if (_tenGeodesicPolyLine(ngeod, &iter, tA, tB, NN-1,
-                             AIR_FALSE, 1.0, recurse,
-                             0.000001, maxiter, conv)) {
+    /* only doing the path between two specified tensors */
+    ELL_6V_COPY(tA + 1, _tA);
+    tA[0] = 1.0;
+    TEN_T_SCALE(tA, sclA, tA);
+    ELL_6V_COPY(tB + 1, _tB);
+    tB[0] = 1.0;
+    TEN_T_SCALE(tB, sclB, tB);
+    
+    ELL_4V_SET(qA, 1, pA[0], pA[1], pA[2]);
+    ELL_4V_NORM(qA, qA, tmp);
+    ELL_4V_SET(qB, 1, pB[0], pB[1], pB[2]);
+    ELL_4V_NORM(qB, qB, tmp);
+    ell_q_to_3m_d(rA, qA);
+    ell_q_to_3m_d(rB, qB);
+    
+    TEN_T2M(mat1, tA);
+    ell_3m_mul_d(mat2, rA, mat1);
+    ELL_3M_TRANSPOSE_IP(rA, tmp);
+    ell_3m_mul_d(mat1, mat2, rA);
+    TEN_M2T(tA, mat1);
+    
+    TEN_T2M(mat1, tB);
+    ell_3m_mul_d(mat2, rB, mat1);
+    ELL_3M_TRANSPOSE_IP(rB, tmp);
+    ell_3m_mul_d(mat1, mat2, rB);
+    TEN_M2T(tB, mat1);
+    /*
+      fprintf(stderr, "!%s: tA = (%g) %g %g %g\n    %g %g\n    %g\n", me,
+      tA[0], tA[1], tA[2], tA[3], tA[4], tA[5], tA[6]);
+      fprintf(stderr, "!%s: tB = (%g) %g %g %g\n    %g %g\n    %g\n", me,
+      tB[0], tB[1], tB[2], tB[3], tB[4], tB[5], tB[6]);
+    */
+    
+    time0 = airTime();
+    if (tenPathInterpTwoDiscrete(nout, tA, tB, ptype, NN, tpp)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble computing path:\n%s\n",
               me, err);
       airMopError(mop); 
       return 1;
     }
+    fprintf(stderr, "!%s: ------- # iter = %u, conv = %g\n", me,
+            tpp->numIter, tpp->convFinal);
+    time1 = airTime();
+    fprintf(stderr, "%s: geodesic length = %g; time = %g\n",
+            me, tenPathLength(nout, AIR_FALSE, AIR_FALSE, AIR_FALSE),
+            time1 - time0);
+    
+    if (1) {
+      double *geod, eval0[3], eval[3], evec0[9], evec[9], rot[9], diff[7],
+        nrm, tmp, axis[3], angle;
+      unsigned int ii, NN;
+      
+      NN = AIR_CAST(unsigned int, nout->axis[1].size);
+      geod = AIR_CAST(double *, nout->data);
+      geod += 7;
+      for (ii=1; ii<NN; ii++) {
+        double igrad[3][7];
+        
+        tenEigensolve_d(eval0, evec0, geod-7);
+        ELL_3M_TRANSPOSE_IP(evec0, tmp);
+        tenEigensolve_d(eval, evec, geod);
+        ELL_3M_MUL(rot, evec0, evec);
+        angle = ell_3m_to_aa_d(axis, rot);
+        TEN_T_SUB(diff, geod, geod-7);
+        tenInvariantGradientsK_d(igrad[0], igrad[1], igrad[2], geod, 0);
+        nrm = TEN_T_NORM(diff);
+        TEN_T_SCALE(diff, 1.0/nrm, diff);
+        fprintf(stderr, "%2u %9.6f (%9.6f %9.6f %9.6f) : %9.6f %9.6f %9.6f "
+                ": (%9.6f,%9.6f,%9.6f) %g %g %g\n",
+                ii, angle, axis[0], axis[1], axis[2],
+                TEN_T_DOT(igrad[0], diff),
+                TEN_T_DOT(igrad[1], diff),
+                TEN_T_DOT(igrad[2], diff),
+                nrm, TEN_T_NORM(diff), TEN_T_NORM(igrad[2]),
+                eval[0], eval[1], eval[2]);
+        geod += 7;
+      }
+    }
   }
-  time1 = airTime();
-  fprintf(stderr, "%s: geodesic length = %g; iter = %u; time = %g\n",
-          me, _tenGeodesicLength(ngeod), iter, time1 - time0);
 
-  if (nrrdSave(outS, ngeod, NULL)) {
+  if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
     airMopError(mop); 
