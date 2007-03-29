@@ -73,8 +73,14 @@ extern "C" {
 ** max number of pervolumes that can be associated with a context.
 ** Since this is so often just 1, it makes no sense to adopt a more
 ** general mechanism to allow an unlimited number of pervolumes.
+**
+** HEY: Tue Mar 27 10:30:21 EDT 2007: this increased from 4 to something
+** larger because it was putting an unwanted cap on the number of 
+** pervolumes that could be put into a stack.  Thus, the comment above
+** is probably out of date, and the existence of this limit should 
+** probably be reconsidered...
 */
-#define GAGE_PERVOLUME_NUM 4
+#define GAGE_PERVOLUME_NUM 128
 
 /*
 ******** gageParm.. enum
@@ -103,6 +109,7 @@ enum {
   gageParmRequireAllSpacings,     /* int */
   gageParmRequireEqualCenters,    /* int */
   gageParmDefaultCenter,          /* int */
+  gageParmStackUse,               /* int */
   gageParmLast
 };
 
@@ -415,15 +422,26 @@ typedef struct gageParm_t {
                                  of all being nrrdCenterUnknown). If zero, its
                                  okay for axes' centers to be unset, but two
                                  that are set cannot be unequal */
-    defaultCenter;            /* only meaningful when requireAllSpacings is
+    defaultCenter,            /* only meaningful when requireAllSpacings is
                                  zero- what centering to use when you have to
                                  invent one, because its not set */
+    stackUse;                 /* if non-zero: treat the pvl's (all same kind)
+                                 as multiple values of a single logical volume
+                                 (e.g. for approximating scale space).
+                                 The first pvl is effectively just a buffer;
+                                 the N-1 pvls used are at index 1 through N-2.
+                                 The query in pvl[0] will determine the
+                                 computations done, and answers for the whole
+                                 stack will be stored in pvl[0]. */
 } gageParm;
 
 /*
 ******** gagePoint struct
 **
 ** stores location of last query location
+**
+** HEY: the stack information probably belongs in here, but is being
+** left out for now because of the hack-ish nature of stack computations
 */
 typedef struct gagePoint_t {
   double xf, yf, zf;          /* fractional voxel location, used to
@@ -510,6 +528,13 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ~(1 << (i % 8)))
 
+/* Stand-in for gageKernel* enum value when specifying the stack kernel; this
+   may be replaced with a real gageKernel* value when the time is right. */
+#define GAGE_KERNEL_STACK -1
+
+/* maximum number of volumes in stack. */
+#define GAGE_STACK_NUM_MAX 128
+
 /*
 ******** gageContext struct
 **
@@ -520,11 +545,15 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 */
 typedef struct gageContext_t {
   int verbose;                /* verbosity */
-  gageParm parm;              /* parameters */
+  gageParm parm;              /* all parameters */
   NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];  /* all the kernels we'll ever need */
   struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
                               /* the pervolumes attached to this context */
   unsigned int pvlNum;        /* number of pervolumes currently attached */
+  double stackIdx;            /* location in stack for next gageProbe()
+                                 NOTE: stack indexing is effectively 
+                                 cell-centered, with nrrdBoundaryBleed */
+  NrrdKernelSpec *stackKsp;   /* how to reconstruct from stack samples */
   gageShape *shape;           /* sizes, spacings, centering, and other 
                                  geometric aspects of the volume */
   int flag[GAGE_CTX_FLAG_NUM];/* all the flags used by gageUpdate() used to
@@ -550,10 +579,11 @@ typedef struct gageContext_t {
                                  for that to be a problem */
   gagePoint point;            /* last probe location */
 
-  /* errStr and errNum are for describing errors that happen in  gageProbe():
+  /* errStr and errNum are for describing errors that happen in gageProbe():
      using biff is too heavy-weight for this, and the idea is that no ill
      should occur if the error is repeatedly ignored.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
+  /* HEY: there should be at least an enum for the values that errNum takes */
   char errStr[AIR_STRLEN_LARGE];
   int errNum;
 } gageContext;
@@ -574,13 +604,13 @@ typedef struct gagePerVolume_t {
   int flag[GAGE_PVL_FLAG_NUM];/* for the kind-specific flags .. */
   double *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  These are cubical,
                                  square, and linear arrays, all length fd on
-                                 each edge.  Exactly how values are arranged
-                                 in iv3 (non-scalar volumes can have the
-                                 component axis be the slowest or the fastest)
-                                 is not strictly speaking gage's concern, as
-                                 filling iv3 is up to iv3Fill in the gageKind
-                                 struct.  Use of iv2 and iv1 is entirely up
-                                 the kind's filter method. */
+                                 each edge.  Currently gageIv3Fill() fills
+                                 the iv3 (at a latter point this will be 
+                                 delegated back to the gageKind to facilitate
+                                 bricking), and currently the tuple axis (with
+                                 length valLen) always slowest.  However, use
+                                 of iv2 and iv1 is entirely up the kind's
+                                 filter method. */
   double (*lup)(const void *ptr, size_t I); 
                               /* nrrd{F,D}Lookup[] element, according to
                                  nin->type and double */
@@ -681,6 +711,7 @@ GAGE_EXPORT double gageDefKernelIntegralNearZero;
 GAGE_EXPORT int gageDefRequireAllSpacings;
 GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;
+GAGE_EXPORT int gageDefStackUse;
 
 /* miscGage.c */
 GAGE_EXPORT double gageZeroNormal[3];
@@ -780,6 +811,7 @@ GAGE_EXPORT int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageKernelSet(gageContext *ctx, int which,
                               const NrrdKernel *k, const double *kparm);
 GAGE_EXPORT void gageKernelReset(gageContext *ctx);
+GAGE_EXPORT int gageStackProbe(gageContext *ctx, double stackIdx);
 GAGE_EXPORT int gageProbe(gageContext *ctx, double x, double y, double z);
 GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
                                int indexSpace, int clamp);

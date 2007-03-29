@@ -211,6 +211,7 @@ gageParmReset(gageParm *parm) {
     parm->requireAllSpacings = gageDefRequireAllSpacings;
     parm->requireEqualCenters = gageDefRequireEqualCenters;
     parm->defaultCenter = gageDefDefaultCenter;
+    parm->stackUse = gageDefStackUse;
   }
   return;
 }

@@ -243,6 +243,9 @@ _gageCacheSizeUpdate(gageContext *ctx) {
     sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
     biffAdd(GAGE, err); return 1;
   }
+  /* note that all pvls get caches allocated for the same size, even if
+     their queries don't involve the largest-size kernels. This is actually
+     the feature that enabled the stack functionality to be easily added. */
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     pvl->iv3 = (double *)airFree(pvl->iv3);
@@ -304,6 +307,31 @@ gageUpdate(gageContext *ctx) {
   if (0 == ctx->pvlNum) {
     sprintf(err, "%s: context has no attached pervolumes", me);
     biffAdd(GAGE, err); return 1;
+  }
+
+  /* HEY: shouldn't there be some more logic/state for this? */
+  if (ctx->parm.stackUse) {
+    unsigned int pi;
+    if (!ctx->stackKsp) {
+      sprintf(err, "%s: can't do stack without stackKsp", me);
+      biffAdd(GAGE, err); return 1;
+    }
+    if (!( 2 <= ctx->pvlNum )) {
+      sprintf(err, "%s: need at least 2 pervolumes for stack", me);
+      biffAdd(GAGE, err); return 1;
+    }
+    if (!( GAGE_STACK_NUM_MAX >= ctx->pvlNum-1 )) {
+      sprintf(err, "%s: # effective stack volumes (%u; pvlNum=%u) > max # %u",
+              me, ctx->pvlNum-1, ctx->pvlNum, GAGE_STACK_NUM_MAX);
+      biffAdd(GAGE, err); return 1;
+    }
+    for (pi=1; pi<ctx->pvlNum; pi++) {
+      if (!( ctx->pvl[0]->kind == ctx->pvl[pi]->kind )) {
+        sprintf(err, "%s: pvl[%u] kind (%s) != pvl[0] kind (%s)", me,
+                pi, ctx->pvl[pi]->kind->name, ctx->pvl[0]->kind->name);
+        biffAdd(GAGE, err); return 1;
+      }
+    }
   }
 
   /* start traversing the whole update graph ... */

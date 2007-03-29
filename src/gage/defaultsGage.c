@@ -61,3 +61,6 @@ gageDefRequireEqualCenters = AIR_TRUE;
 
 int
 gageDefDefaultCenter = nrrdCenterCell;
+
+int
+gageDefStackUse = AIR_FALSE;

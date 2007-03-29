@@ -137,7 +137,10 @@ _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
                                         sizeof(double*));
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
          && nvl->answer && nvl->directAnswer )) {
-    sprintf(err, "%s: couldn't allocate all caches", me);
+    sprintf(err, "%s: couldn't allocate all caches "
+            "(fd=%d, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
+            fd, nvl->kind->valLen, gageKindTotalAnswerLength(nvl->kind),
+            nvl->kind->itemMax);
     biffAdd(GAGE, err); return NULL;
   }
   for (ii=1; ii<=pvl->kind->itemMax; ii++) {
