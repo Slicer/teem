@@ -73,6 +73,33 @@ tenAniso = &_tenAniso;
 /* --------------------------------------------------------------------- */
 
 char
+_tenPathTypeStr[TEN_PATH_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown path type)",
+  "lerp",
+  "loglerp",
+  "affinv",
+  "wang",
+  "geoloxk",
+  "geoloxr",
+  "loxk",
+  "loxr"
+};
+
+airEnum
+_tenPathType = {
+  "path type",
+  TEN_PATH_TYPE_MAX,
+  _tenPathTypeStr, NULL,
+  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+tenPathType = &_tenPathType;
+
+/* --------------------------------------------------------------------- */
+
+char
 _tenGageStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenGage)",
 
@@ -212,6 +239,8 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "omega hessian evec 0",
   "omega hessian evec 1",
   "omega hessian evec 2",
+  "omega laplacian",
+  "omega 2nd DD",
 
   "trace gradvec dot evec0",
   "diffusionAngle(trace)",
@@ -343,6 +372,8 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "omega hessian evec 0",
   "omega hessian evec 1",
   "omega hessian evec 2",
+  "omega laplacian",
+  "omega 2nd DD",
   "trace gradvec dot evec0",
   "diffusion angle of trace",
   "diffusion fraction of trace",
@@ -473,6 +504,8 @@ _tenGageVal[] = {
   tenGageOmegaHessianEvec0,
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
+  tenGageOmegaLaplacian,
+  tenGageOmega2ndDD,
   tenGageTraceGradVecDotEvec0,
   tenGageTraceDiffusionAngle,
   tenGageTraceDiffusionFraction,
@@ -602,6 +635,8 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "omhessevec0",
   "omhessevec1",
   "omhessevec2",
+  "omlapl",
+  "om2d", "om2dd",
   "trgvdotevec0",
   "datr",
   "dftr",
@@ -732,6 +767,8 @@ _tenGageValEqv[] = {
   tenGageOmegaHessianEvec0,
   tenGageOmegaHessianEvec1,
   tenGageOmegaHessianEvec2,
+  tenGageOmegaLaplacian,
+  tenGageOmega2ndDD, tenGageOmega2ndDD,
 
   tenGageTraceGradVecDotEvec0,
   tenGageTraceDiffusionAngle,
