@@ -1341,11 +1341,11 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       biffAdd(NRRD, err); return 1;
     }
     if (!AIR_IN_CL(1, tmfA, (int)nrrdKernelTMF_maxA)) {
-      sprintf(err, "%s: accuracty value %d outside range [1,%d]",
+      sprintf(err, "%s: accuracy value %d outside range [1,%d]",
               me, tmfD, nrrdKernelTMF_maxA);
       biffAdd(NRRD, err); return 1;
     }
-    fprintf(stderr, "%s: D,C,A = %d,%d,%d --> %d,%d,%d\n", me,
+    fprintf(stderr, "!%s: D,C,A = %d,%d,%d --> %d,%d,%d\n", me,
             tmfD, tmfC, tmfA, tmfD+1, tmfC+1, tmfA);
     *kernelP = nrrdKernelTMF[tmfD+1][tmfC+1][tmfA];
   } else {
