@@ -52,24 +52,24 @@ _seekTypeDesc[SEEK_TYPE_MAX+1][AIR_STRLEN_MED] = {
 char
 _seekTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "isocontour",
-  "ridge surface",
-  "valley surface",
-  "ridge line",
-  "valley line",
-  "minimal surface",
-  "maximal surface",
+  "ridge surface", "ridgesurface", "rs",
+  "valley surface", "valleysurface", "vs",
+  "ridge line", "ridgeline", "rl",
+  "valley line", "valleyline", "vl",
+  "minimal surface", "mins",
+  "maximal surface", "maxs",
   ""
 };
 
 int
 _seekTypeValEqv[] = {
   seekTypeIsocontour,
-  seekTypeRidgeSurface,
-  seekTypeValleySurface,
-  seekTypeRidgeLine,
-  seekTypeValleyLine,
-  seekTypeMinimalSurface,
-  seekTypeMaximalSurface,
+  seekTypeRidgeSurface, seekTypeRidgeSurface, seekTypeRidgeSurface,
+  seekTypeValleySurface, seekTypeValleySurface, seekTypeValleySurface,
+  seekTypeRidgeLine, seekTypeRidgeLine, seekTypeRidgeLine,
+  seekTypeValleyLine, seekTypeValleyLine, seekTypeValleyLine,
+  seekTypeMinimalSurface, seekTypeMinimalSurface,
+  seekTypeMaximalSurface, seekTypeMaximalSurface,
 };
 
 airEnum

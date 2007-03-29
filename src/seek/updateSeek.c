@@ -151,8 +151,8 @@ updateAnswerPointers(seekContext *sctx) {
       break;
     case seekTypeRidgeSurface:
     case seekTypeValleySurface:
-    case seekTypeRidgeLine:
-    case seekTypeValleyLine:
+    case seekTypeMaximalSurface:
+    case seekTypeMinimalSurface:
       if ( !sctx->pvl ) {
         sprintf(err, "%s: can't find %s without a gage context",
                 me, airEnumStr(seekType, sctx->type));
@@ -161,25 +161,18 @@ updateAnswerPointers(seekContext *sctx) {
       if (!( -1 != sctx->gradItem
              && -1 != sctx->evalItem
              && -1 != sctx->evecItem )) {
-        sprintf(err, "%s: grad, eval, evec items (%d,%d,%d) not all set", me,
-                sctx->gradItem, sctx->evalItem, sctx->evecItem);
+        sprintf(err, "%s: grad, eval, evec items not all set", me);
         biffAdd(SEEK, err); return 1;
       }
       if (sctx->normalsFind) {
-        if (seekTypeRidgeLine == sctx->type
-            || seekTypeValleyLine == sctx->type) {
-          sprintf(err, "%s: can't find surface normals on %s", me, 
-                  airEnumStr(seekType, sctx->type));
-          biffAdd(SEEK, err); return 1;
-        }
         /* NOTE simplifying assumption described in seek.h */
         if (-1 == sctx->normItem) {
           sprintf(err, "%s: need normal item set for normals for %s",
                   me, airEnumStr(seekType, sctx->type));
           biffAdd(SEEK, err); return 1;
         }
-        sctx->normAns = gageAnswerPointer(sctx->gctx, sctx->pvl,
-                                          sctx->normItem);
+        sctx->normAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
+                                           sctx->normItem));
       } else {
         sctx->normAns = NULL;
       }
@@ -188,8 +181,6 @@ updateAnswerPointers(seekContext *sctx) {
       sctx->evalAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evalItem);
       sctx->evecAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evecItem);
       break;
-    case seekTypeMinimalSurface:
-    case seekTypeMaximalSurface:
     default:
       sprintf(err, "%s: sorry, %s extraction not implemented", me,
               airEnumStr(seekType, sctx->type));
@@ -371,8 +362,8 @@ updateSlabCacheAlloc(seekContext *sctx) {
     }
     if (seekTypeRidgeSurface == sctx->type
         || seekTypeValleySurface == sctx->type
-        || seekTypeRidgeLine == sctx->type
-        || seekTypeValleyLine == sctx->type) {
+        || seekTypeMaximalSurface == sctx->type
+        || seekTypeMinimalSurface == sctx->type) {
       if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, 
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
@@ -391,8 +382,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->evec = AIR_CAST(double*, sctx->nevec->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 4, 
-                                     AIR_CAST(size_t, 2),
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, 
                                      AIR_CAST(size_t, 5),
                                      sctx->sx,
                                      sctx->sy);

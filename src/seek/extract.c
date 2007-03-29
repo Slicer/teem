@@ -67,6 +67,14 @@ baggageNew(seekContext *sctx) {
     bag->esIdx = 0;
     bag->modeSign = +1;
     break;
+  case seekTypeMaximalSurface:
+    bag->esIdx = 0;
+    bag->modeSign = -1;
+    break;
+  case seekTypeMinimalSurface:
+    bag->esIdx = 2;
+    bag->modeSign = +1;
+    break;
   default:
     /* sprintf(err, "%s: feature type %s not handled", me,
             airEnumStr(seekType, sctx->type));
@@ -288,7 +296,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
       *flip = 0;
       return 0;
     }
-    if (mode < -0.75) {
+    if (mode < -0.8) {
       /* sorry, eigenvalue mode got too close to 2nd order isotropy */
       *flip = 0;
       return 0;
@@ -428,6 +436,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
           break;
         case seekTypeRidgeSurface:
         case seekTypeValleySurface:
+        case seekTypeMaximalSurface:
+        case seekTypeMinimalSurface:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->gradAns);
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->evalAns);
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evecAns);
@@ -448,6 +458,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
           break;
         case seekTypeRidgeSurface:
         case seekTypeValleySurface:
+        case seekTypeMaximalSurface:
+        case seekTypeMinimalSurface:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->grad + 3*(1 + 2*si));
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->eval + 3*(1 + 2*si));
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evec + 9*(1 + 2*si));
@@ -473,6 +485,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         break;
       case seekTypeRidgeSurface:
       case seekTypeValleySurface:
+      case seekTypeMaximalSurface:
+      case seekTypeMinimalSurface:
         ELL_3V_COPY(sctx->grad + 3*(1 + 2*si), sctx->gradAns);
         ELL_3V_COPY(sctx->eval + 3*(1 + 2*si), sctx->evalAns);
         ELL_3M_COPY(sctx->evec + 9*(1 + 2*si), sctx->evecAns);
@@ -501,7 +515,9 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
   /* this is done as a separate pass because it looks at values between
      voxels (so its indexing is not trivial to fold into loops above) */
   if (seekTypeRidgeSurface == sctx->type
-      || seekTypeValleySurface == sctx->type) {
+      || seekTypeValleySurface == sctx->type
+      || seekTypeMaximalSurface == sctx->type
+      || seekTypeMinimalSurface == sctx->type) {
     if (evecFlipShuffleProbe(sctx, bag)) {
       sprintf(err, "%s: trouble at zi=%u\n", me, bag->zi);
       biffAdd(SEEK, err); return 1;
@@ -705,6 +721,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
         break;
       case seekTypeRidgeSurface:
       case seekTypeValleySurface:
+      case seekTypeMaximalSurface:
+      case seekTypeMinimalSurface:
         vvalSurfSet(sctx, bag, vval, xi, yi);
         break;
       }
@@ -878,6 +896,8 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
   case seekTypeIsocontour:
   case seekTypeRidgeSurface:
   case seekTypeValleySurface:
+  case seekTypeMinimalSurface:
+  case seekTypeMaximalSurface:
     E = surfaceExtract(sctx, lpld);
     break;
   default:
