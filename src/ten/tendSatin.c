@@ -110,7 +110,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
-              float thick, float bnd, int torus) {
+              float thick, float bnd, float bndRm, int torus) {
   char me[]="tend_satinGen", err[BIFF_STRLEN], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
@@ -148,10 +148,12 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
         *conf = 1.0;
         if (torus) {
           tend_satinTorusEigen(eval, evec, x, y, z, parm,
-                               mina, maxa, thick, bnd);
+                               mina, maxa, thick,
+                               bnd + bndRm*AIR_AFFINE(0, yi, size[1]-1, 0, 1));
         } else {
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
-                                mina, maxa, thick, bnd);
+                                mina, maxa, thick,
+                                bnd + bndRm*AIR_AFFINE(0,yi, size[1]-1, 0, 1));
         }
         conf += 1;
         eval += 3;
@@ -182,7 +184,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   int wsize, torus;
-  float parm, maxa, mina, thick, bnd;
+  float parm, maxa, mina, thick, bnd, bndRm;
   Nrrd *nout;
   char *outS;
   gageShape *shape;
@@ -205,6 +207,9 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "b", "boundary", airTypeFloat, 1, 1, &bnd, "0.05",
              "parameter governing how fuzzy the boundary between high and "
              "low anisotropy is. Use \"-b 0\" for no fuzziness");
+  hestOptAdd(&hopt, "br", "ramp", airTypeFloat, 1, 1, &bndRm, "0.0",
+             "how much to ramp upeffective \"b\" along Y axis. "
+             "Use \"-b 0\" for no such ramping.");
   hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
              "parameter governing how thick region of high anisotropy is");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
@@ -222,7 +227,8 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tend_satinGen(nout, parm, mina, maxa, wsize, thick, bnd, torus)) {
+  if (tend_satinGen(nout, parm, mina, maxa, wsize, thick,
+                    bnd, bndRm, torus)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
     airMopError(mop); return 1;
