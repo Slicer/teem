@@ -19,6 +19,7 @@ SET(TEN_SOURCES
   tenDwiGage.c
   tensor.c
   qseg.c
+  path.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c
