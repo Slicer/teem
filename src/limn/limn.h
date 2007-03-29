@@ -669,11 +669,11 @@ LIMN_EXPORT int limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataLMPDRead(limnPolyData *pld, FILE *file);
 LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
 LIMN_EXPORT int limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataOFFRead(limnPolyData *pld, FILE *file);
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);
 LIMN_EXPORT int limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx);
-LIMN_EXPORT int limnObjectLoneEdgeAdd(limnObject *obj, unsigned int lookIdx);
 LIMN_EXPORT int limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
                                       unsigned int axis, unsigned int res);
 LIMN_EXPORT int limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,

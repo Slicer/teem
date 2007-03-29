@@ -399,6 +399,10 @@ limnObjectOFFRead(limnObject *obj, FILE *file) {
       }
       continue;
     }
+    if ('#' == line[0]) {
+      /* its some other kind of comment line */
+      continue;
+    }
     if (1 != sscanf(line, "%u", &vertNum)) {
       sprintf(err, "%s: (near line %d) can't get first int "
               "(#verts) from \"%s\" for face %d (of %d)",
@@ -956,4 +960,118 @@ limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
 
   return 0;
 }
+
+/*
+******** limnPolyDataOFFRead
+**
+** HEY: this has to be re-written with different allocation strategies
+** if it is to support anything other than a single limnPrimitiveTriangles
+*/
+int
+limnPolyDataOFFRead(limnPolyData *pld, FILE *file) {
+  char me[]="limnPolyDataOFFRead", err[BIFF_STRLEN];
+  char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
+  unsigned int num[3], xyzwNum, xyzwGot,
+    faceNum, faceGot, lineCount, got, lret;
+  
+  if (!( pld && file )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  /* HEY: this just snarfs lines until it parses 3 uints, 
+     disregarding whether the "OFF" magic was actually there! */
+  got = 0;
+  lineCount = 0;
+  do {
+    if (!airOneLine(file, line, AIR_STRLEN_LARGE)) {
+      sprintf(err, "%s: hit EOF before getting #vert #face #edge line", me);
+      biffAdd(LIMN, err); return 1;
+    }
+    lineCount++;
+    got = airParseStrUI(num, line, AIR_WHITESPACE, 3);
+  } while (3 != got);
+  xyzwNum = num[0];
+  faceNum = num[1];
+
+  /* allocate */
+  if (limnPolyDataAlloc(pld, 0 /* no extra info */,
+                        xyzwNum, 3*faceNum, 1)) {
+    sprintf(err, "%s: couldn't allocate", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  
+  /* read all vertex information */
+  xyzwGot = 0;
+  while (xyzwGot < xyzwNum) {
+    float *xyzw;
+    do {
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lineCount++;
+    } while (1 == lret);
+    if (!lret) {
+      sprintf(err, "%s: (near line %d) hit EOF trying to read vert %d (of %d)",
+              me, lineCount, xyzwGot, xyzwNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    xyzw = pld->xyzw + 4*xyzwGot;
+    if (3 != airParseStrF(xyzw, line, AIR_WHITESPACE, 3)) {
+      sprintf(err, "%s: couldn't parse 3 floats from \"%s\" "
+              "for vert %d (of %d)",
+              me, line, xyzwGot, xyzwNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    xyzw[3] = 1.0;
+    xyzwGot++;
+  }
+
+  /* read face information */
+  faceGot = 0;
+  while (faceGot < faceNum) {
+    unsigned int *indx, indxSingle[4], indxNum;
+    do {
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lineCount++;
+    } while (1 == lret);
+    if (!lret) {
+      sprintf(err, "%s: (near line %d) hit EOF trying to read face %d (of %d)",
+              me, lineCount, faceGot, faceNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    if ('#' == line[0]) {
+      /* its some kind of comment, either LIMN BEGIN PART or otherwise */
+      continue;
+    }
+    if (1 != sscanf(line, "%u", &indxNum)) {
+      sprintf(err, "%s: (near line %d) can't get first uint "
+              "(#verts) from \"%s\" for face %d (of %d)",
+              me, lineCount, line, faceGot, faceNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (3 != indxNum) {
+      sprintf(err, "%s: sorry, can only handle triangles (not %u verts)", 
+              me, indxNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    if (indxNum+1 != airParseStrUI(indxSingle, line,
+                                   AIR_WHITESPACE, indxNum+1)) {
+      sprintf(err, "%s: (near line %d) couldn't parse %d uints from \"%s\" "
+              "for face %d (of %d)",
+              me, lineCount, indxNum+1, line, faceGot, faceNum);
+      biffAdd(LIMN, err); return 1;
+    }
+    indx = pld->indx + 3*faceGot;
+    ELL_3V_SET(indx, indxSingle[1], indxSingle[2], indxSingle[3]);
+    /* for now ignoring the color information */
+    faceGot++;
+  }
+
+  /* set remaining info */
+  pld->type[0] = limnPrimitiveTriangles;
+  pld->icnt[0] = 3*faceNum;
+
+  return 0;
+}
+
+
 
