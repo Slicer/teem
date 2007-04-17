@@ -35,8 +35,8 @@ limnPolyDataNew(void) {
     pld->rgbaNum = 0;
     pld->norm = NULL;
     pld->normNum = 0;
-    pld->tex2D = NULL;
-    pld->tex2DNum = 0;
+    pld->tex2 = NULL;
+    pld->tex2Num = 0;
     pld->indx = NULL;
     pld->indxNum = 0;
     pld->primNum = 0;
@@ -53,7 +53,7 @@ limnPolyDataNix(limnPolyData *pld) {
     airFree(pld->xyzw);
     airFree(pld->rgba);
     airFree(pld->norm);
-    airFree(pld->tex2D);
+    airFree(pld->tex2);
     airFree(pld->indx);
     airFree(pld->type);
     airFree(pld->icnt);
@@ -96,17 +96,17 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     pld->normNum = vertNum;
   }
 
-  if (vertNum != pld->tex2DNum
-      && ((1 << limnPolyDataInfoTex2D) & infoBitFlag)) {
-    pld->tex2D = (float *)airFree(pld->tex2D);
+  if (vertNum != pld->tex2Num
+      && ((1 << limnPolyDataInfoTex2) & infoBitFlag)) {
+    pld->tex2 = (float *)airFree(pld->tex2);
     if (vertNum) {
-      pld->tex2D = (float *)calloc(vertNum, 4*sizeof(float));
-      if (!pld->tex2D) {
-        sprintf(err, "%s: couldn't allocate %u tex2D", me, vertNum);
+      pld->tex2 = (float *)calloc(vertNum, 4*sizeof(float));
+      if (!pld->tex2) {
+        sprintf(err, "%s: couldn't allocate %u tex2", me, vertNum);
         biffAdd(LIMN, err); return 1;
       }
     }
-    pld->tex2DNum = vertNum;
+    pld->tex2Num = vertNum;
   }
 
   return 0;
@@ -124,8 +124,8 @@ limnPolyDataInfoBitFlag(const limnPolyData *pld) {
     if (pld->norm && pld->normNum == pld->xyzwNum) {
       ret |= (1 << limnPolyDataInfoNorm);
     }
-    if (pld->tex2D && pld->tex2DNum == pld->xyzwNum) {
-      ret |= (1 << limnPolyDataInfoTex2D);
+    if (pld->tex2 && pld->tex2Num == pld->xyzwNum) {
+      ret |= (1 << limnPolyDataInfoTex2);
     }
   }
   return ret;
@@ -197,8 +197,8 @@ limnPolyDataSize(const limnPolyData *pld) {
     if (pld->norm) {
       ret += pld->normNum*sizeof(float)*3;
     }
-    if (pld->tex2D) {
-      ret += pld->tex2DNum*sizeof(float)*2;
+    if (pld->tex2) {
+      ret += pld->tex2Num*sizeof(float)*2;
     }
     ret += pld->indxNum*sizeof(unsigned int);
     ret += pld->primNum*sizeof(signed char);
@@ -227,8 +227,8 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   if (pldA->norm) {
     memcpy(pldB->norm, pldA->norm, pldA->normNum*sizeof(float)*3);
   }
-  if (pldA->tex2D) {
-    memcpy(pldB->tex2D, pldA->tex2D, pldA->tex2DNum*sizeof(float)*2);
+  if (pldA->tex2) {
+    memcpy(pldB->tex2, pldA->tex2, pldA->tex2Num*sizeof(float)*2);
   }
   memcpy(pldB->indx, pldA->indx, pldA->indxNum*sizeof(unsigned int));
   memcpy(pldB->type, pldA->type, pldA->primNum*sizeof(signed char));

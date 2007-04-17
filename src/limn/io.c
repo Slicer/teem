@@ -531,8 +531,8 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
         case limnPolyDataInfoNorm:
           E = nrrdWrap_va(nrrd, pld->norm, nrrdTypeFloat, 2, 3, pld->normNum);
           break;
-        case limnPolyDataInfoTex2D:
-          E = nrrdWrap_va(nrrd, pld->tex2D, nrrdTypeFloat, 2, 2,pld->tex2DNum);
+        case limnPolyDataInfoTex2:
+          E = nrrdWrap_va(nrrd, pld->tex2, nrrdTypeFloat, 2, 2,pld->tex2Num);
           break;
         default:
           sprintf(err, "%s: info %d (%s) not handled", me, bit,
@@ -825,10 +825,10 @@ limnPolyDataLMPDRead(limnPolyData *pld, FILE *file) {
         wantSize = 3;
         data = pld->norm;
         break;
-      case limnPolyDataInfoTex2D:
+      case limnPolyDataInfoTex2:
         wantType = nrrdTypeFloat;
         wantSize = 2;
-        data = pld->tex2D;
+        data = pld->tex2;
         break;
       default:
         sprintf(err, "%s: info %d (%s) not handled", me, info,

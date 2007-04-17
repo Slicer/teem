@@ -363,7 +363,7 @@ enum {
   limnPolyDataInfoUnknown,    /* 0: nobody knows */
   limnPolyDataInfoRGBA,       /* 1: RGBA 4-tuple */
   limnPolyDataInfoNorm,       /* 2: (x,y,z) unit-length 3-vector */
-  limnPolyDataInfoTex2D,      /* 3: (s,t) 2D texture coordinates */
+  limnPolyDataInfoTex2,       /* 3: (s,t) 2D texture coordinates */
   limnPolyDataInfoLast
 };
 #define LIMN_POLY_DATA_INFO_MAX  3
@@ -398,8 +398,8 @@ typedef struct {
   unsigned int rgbaNum;  /* logical size of rgba */
   float *norm;           /* if non-NULL, normNum (x,y,z) unit normals */
   unsigned int normNum;  /* logical size of norm */
-  float *tex2D;          /* if non-NULL, tex2DNum (s,t) 2D texture coords */
-  unsigned int tex2DNum; /* logical size of tex2D */
+  float *tex2;           /* if non-NULL, tex2Num (s,t) 2D texture coords */
+  unsigned int tex2Num;  /* logical size of tex2 */
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;    /* all indices (into vert[]) for all primitives,
@@ -653,6 +653,7 @@ LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
 
 /* polymod.c */
 LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataVertexWindingSplit(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
