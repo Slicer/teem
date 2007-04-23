@@ -474,6 +474,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       ELL_3V_COPY(iPos, seed);
       gageShapeItoW(tfx->gtx->shape, tfx->wPos, iPos);
     } else {
+      /*
+      fprintf(stderr, "!%s(A): %p %p %p\n", me,
+              tfx->gtx->shape, iPos, seed);
+      */
       gageShapeWtoI(tfx->gtx->shape, iPos, seed);
       ELL_3V_COPY(tfx->wPos, seed);
     }
@@ -515,6 +519,10 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         break;
       }
       if (tfx->useIndexSpace) {
+        /*
+        fprintf(stderr, "!%s(B): %p %p %p\n", me,
+                tfx->gtx->shape, iPos, tfx->wPos);
+        */
         gageShapeWtoI(tfx->gtx->shape, iPos, tfx->wPos);
         ELL_3V_COPY(currPoint, iPos);
       } else {
