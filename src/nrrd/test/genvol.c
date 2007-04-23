@@ -33,11 +33,12 @@ rho(double r) {
 
 double
 genvolFunc(double x, double y, double z) {
-  double phi, Rbig, Rlit, sig0=0.2, sig1=0.06, a, b;
+  double phi, Rbig, Rlit, sig0=0.2, sig1=0.04, a, b;
 
+  /* ridge surface is a Mobius aka Moebius strip */
   Rbig = sqrt(x*x + y*y);
   Rlit = sqrt(z*z + (Rbig-0.5)*(Rbig-0.5));
-  phi = atan2(Rbig-0.5, z) - (atan2(x, y)/2);
+  phi = atan2(Rbig-0.5, z) - atan2(x, y)/2;
   a = Rlit*cos(phi);
   b = Rlit*sin(phi);
   return airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
