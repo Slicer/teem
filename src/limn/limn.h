@@ -652,8 +652,9 @@ LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int uRes, unsigned int vRes);
 
 /* polymod.c */
-LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataVertexWindingSplit(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
+                                             int allowSplitting);
+LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);

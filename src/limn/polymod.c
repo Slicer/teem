@@ -126,7 +126,7 @@ flipNeed(Nrrd *nVertWithTri, unsigned int triIdx,
 ** loop of both vertex winding fixing, and the learning stage of 
 ** vertex splitting 
 **
-** for flipping:
+** for flipping (!splitting)
 ** assumes that triIdx was just popped from "okay" stack
 ** (triIdx has just been fixed to have correct winding)
 ** then goes through the not-yet-done neighbors of triIdx, 
@@ -141,7 +141,7 @@ static unsigned int
 neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                    unsigned char *triDone, airArray *okayArr,
                    unsigned int *intxBuff, airArray *splitArr,
-                   unsigned int triIdx, int flipping) {
+                   unsigned int triIdx, int splitting) {
   /* char me[]="neighborsCheckPush"; */
   unsigned int neighGot[3], neighInfo[3][3], ii, *okay, okayIdx,
     *vertWithTri, pushedNum;
@@ -164,10 +164,10 @@ neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
   */
   pushedNum = 0;
   for (ii=0; ii<3; ii++) {
-    /* WARNING: complicated logic WRT triDone, flipping, and need */
+    /* WARNING: complicated logic WRT triDone, splitting, and need */
     if (neighGot[ii]) {
       unsigned int tmp, *idxLine, need;
-      if (flipping) {
+      if (!splitting) {
         if (!triDone[neighInfo[ii][0]]) {
           /* we only take time to learn need if as yet undone */
           need = flipNeed(nVertWithTri, neighInfo[ii][0],
@@ -179,7 +179,7 @@ neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
           }
         }
       } else {
-        /* !flipping: we're here for splitting  */
+        /* we're here for splitting  */
         /* we have to learn need regardless of done-ness */
         need = flipNeed(nVertWithTri, neighInfo[ii][0],
                         neighInfo[ii][1], neighInfo[ii][2]);
@@ -214,7 +214,7 @@ neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
           }
         }
       }
-      /* regardless of flipping, we push onto the okay stack all
+      /* regardless of splitting, we push onto the okay stack all
          the un-done neighbors that we just processed */
       if (!triDone[neighInfo[ii][0]]) {
         triDone[neighInfo[ii][0]] = AIR_TRUE;
@@ -250,7 +250,7 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   char me[]="triangleWithVertex", err[BIFF_STRLEN];
   unsigned int *triWithVertNum,   /* vert ii has triWithVertNum[ii] tris */
     *triWithVert, baseVertIdx, primIdx, vertIdx, 
-    maxTriPerVert, maxTriPerPrim, totTriIdx;
+    maxTriPerVert, totTriIdx;
   airArray *mop;
 
   if (!(nTriWithVert && pld)) {
@@ -299,7 +299,6 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   }
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
 
-  maxTriPerPrim = maxTrianglePerPrimitive(pld);
   baseVertIdx = 0;
   totTriIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -327,7 +326,7 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
 static int
 vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) { 
   char me[]="vertexWithTriangle", err[BIFF_STRLEN];
-  unsigned int maxTriPerPrim, baseVertIdx, primIdx, *vertWithTri, triNum;
+  unsigned int baseVertIdx, primIdx, *vertWithTri, triNum;
 
   if (!(nVertWithTri && pld)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -339,7 +338,6 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
     biffAdd(LIMN, err); return 1;
   }
 
-  maxTriPerPrim = maxTrianglePerPrimitive(pld);
   triNum = limnPolyDataPolygonNumber(pld);
   if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 3),
@@ -374,7 +372,6 @@ splitListExtract(unsigned int *listLenP,
   unsigned int *edgeData, edgeNum, *edgeLine, edgeIdx, edgeTmp[5],
     tmp, nextVertIdx, listLen;
 
-  fprintf(stderr, "!%s(%u): hello\n", me, firstVertIdx);
   edgeNum = edgeArr->len;
   edgeData = AIR_CAST(unsigned int*, edgeArr->data);
   edgeNum -= edgeDoneNum;
@@ -598,7 +595,7 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
               int looping) {
   char me[]="splitTriTrack", err[BIFF_STRLEN];
   unsigned int len0, len1, *edgeData, *edgeLine, edgeIdx, triIdx,
-    maxTriPerVert, maxTriPerPrim, *triWithVert, *vertWithTri,
+    maxTriPerVert, *triWithVert, *vertWithTri,
     sweepLen, loopEnd0, loopEnd1, loopStart0, loopStart1;
   int doBack0, doBack1;
   
@@ -607,7 +604,6 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
   edgeData += 5*startIdx;
   maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size-1);
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
-  maxTriPerPrim = AIR_CAST(unsigned int, nVertWithTri->axis[0].size);
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
 
   if (looping) {
@@ -772,7 +768,7 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
              int looping) {
   char me[]="splitVertDup", err[BIFF_STRLEN];
   unsigned int *vixLut, ii, vixLutLen, oldVertNum, newVertNum, *edgeData,
-    bitflag, trackIdx, baseVertIdx, primIdx, vert0, vert1;
+    bitflag, trackIdx, vert0, vert1;
   airArray *mop;
   limnPolyData pldTmp;
 
@@ -878,32 +874,20 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
      the split information is computed entirely from nVertWithTri
      and nTriWithVert (which were based on the original polydata),
      but not the current polydata */
-  /* HEY: this is awful: as it is we're going through ALL the triangles
-     just to search for those that might need updating (triple-nested loop).
-     We NEED a fast way of going from the triangle index directly to
-     its part of the vert index array ...  */
-  baseVertIdx = 0;
-  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, triIdx, totTriIdx, *indxLine, ii, jj;
-    triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      totTriIdx = triIdx + baseVertIdx/3;
-      indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      for (trackIdx=0; trackIdx<trackLen; trackIdx++) {
-        if (track[trackIdx] == totTriIdx) {
-          for (ii=0; ii<vixLutLen; ii++) {
-            for (jj=0; jj<3; jj++) {
-              if (indxLine[jj] == vixLut[0 + 2*ii]
-                  && !((0 == trackIdx && indxLine[jj] == vert0)
-                       || (trackLen-1 == trackIdx && indxLine[jj] == vert1))) {
-                indxLine[jj] = vixLut[1 + 2*ii];
-              }
-            }
-          }
+  /* HEY: this is one place where we really exploit the fact that we only
+     have triangles: it makes the indxLine computation much much easier */
+  for (trackIdx=0; trackIdx<trackLen; trackIdx++) {
+    unsigned int *indxLine, ii, jj;
+    indxLine = pld->indx + 3*track[trackIdx];
+    for (ii=0; ii<vixLutLen; ii++) {
+      for (jj=0; jj<3; jj++) {
+        if (indxLine[jj] == vixLut[0 + 2*ii]
+            && !((0 == trackIdx && indxLine[jj] == vert0)
+                 || (trackLen-1 == trackIdx && indxLine[jj] == vert1))) {
+          indxLine[jj] = vixLut[1 + 2*ii];
         }
       }
     }
-    baseVertIdx += pld->icnt[primIdx];
   }
 
   airMopOkay(mop);
@@ -916,6 +900,8 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
 **  edge[4]: non-zero if this split has been processed
 **
 ** this really makes no effort to be fast (or comprehensible)
+**
+** HEY should we be returning some statistics (e.g. how many points added)?
 */
 static int
 doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
@@ -1008,19 +994,20 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
       }
       if (!E) E |= splitListExtract(&listLen, edgeArr, hitCount,
                                     vertIdx, edgeDoneNum);
+      /* HEY: should do a splitListShorten() that cuts across repeated
+         triangles, and then shifting downward the rest of the list.
+         take care with loops.  iterate until there is no shortening */
+      /*
       if (1) {
         unsigned int hitIdx, hitSum;
         hitSum = 0;
         for (hitIdx=0; hitIdx<vertNum; hitIdx++) {
           hitSum += hitCount[hitIdx];
         }
-        /*
         fprintf(stderr, "!%s: (%d) POST hitSum = %u (pass %u)\n", me, E,
                 hitSum, passIdx);
-        */
       }
       if (1 == passIdx) {
-        /*
         fprintf(stderr, "!%s: loop len %u, verts %u,%u --- %u,%u\n"
                 "         tris %u,%u --- %u,%u\n", me,
                 listLen,
@@ -1032,8 +1019,8 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                 (edgeData + 5*(edgeDoneNum + listLen - 1))[1],
                 (edgeData + 5*edgeDoneNum)[0],
                 (edgeData + 5*edgeDoneNum)[1]);
-        */
       }
+      */
       if (!E) E |= splitTriTrack(track0, &track0Len, track1, &track1Len, 
                                  sweep, nTriWithVert, nVertWithTri,
                                  edgeArr, edgeDoneNum, listLen, passIdx);
@@ -1078,7 +1065,7 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
 }
 
 int
-_limnPolyDataVertexWindingProcess(limnPolyData *pld, int flipping) { 
+_limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) { 
   char me[]="limnPolyDataVertexWindingProcess", err[BIFF_STRLEN];
   unsigned int
     primIdx,         /* for indexing through primitives */
@@ -1173,13 +1160,13 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int flipping) {
   okayArr = airArrayNew((void**)(&okay), NULL, sizeof(unsigned int),
                         maxTriPerPrim);
   airMopAdd(mop, okayArr, (airMopper)airArrayNuke, airMopAlways);
-  if (flipping) {
-    splitArr = NULL;
-    split = NULL;
-  } else {
+  if (splitting) {
     splitArr = airArrayNew(NULL, NULL, 5*sizeof(unsigned int),
                            maxTriPerPrim);
     /* split set as it is used */
+  } else {
+    splitArr = NULL;
+    split = NULL;
   }
 
   /* the skinny */
@@ -1207,7 +1194,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int flipping) {
     */
     doneTriNum += neighborsCheckPush(nTriWithVert, nVertWithTri,
                                      triDone, okayArr, intxBuff, splitArr,
-                                     totTriIdx, flipping);
+                                     totTriIdx, splitting);
     while (okayArr->len) {
       unsigned int popped;
       popped = okay[okayArr->len-1];
@@ -1217,11 +1204,16 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int flipping) {
       */
       doneTriNum += neighborsCheckPush(nTriWithVert, nVertWithTri,
                                        triDone, okayArr, intxBuff, splitArr,
-                                       popped, flipping);
+                                       popped, splitting);
     }
   }
 
-  if (flipping) {
+  if (splitting) {
+    if (doSplitting(pld, nTriWithVert, nVertWithTri, splitArr)) {
+      sprintf(err, "%s: problem doing vertex splitting", me);
+      biffAdd(LIMN, err); return 1;
+    }
+  } else {
     /* Copy from nVertWithTri back into polydata */
     baseVertIdx = 0;
     for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -1236,44 +1228,36 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int flipping) {
       }
       baseVertIdx += pld->icnt[primIdx];
     }
-  } else {
-    if (doSplitting(pld, nTriWithVert, nVertWithTri, splitArr)) {
-      sprintf(err, "%s: problem doing vertex splitting", me);
-      biffAdd(LIMN, err); return 1;
-    }
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-int
-limnPolyDataVertexWindingFix(limnPolyData *pld) { 
-  char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
-  
-  if (_limnPolyDataVertexWindingProcess(pld, AIR_TRUE)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
-  }
-  return 0;
-}
-
 /*
-** this does vertex splitting so that non-orientable surfaces 
-** can be rendered without seams. Took longer to implement than
-** intended.
+** with non-zero splitting, this does vertex splitting so that
+** non-orientable surfaces can be rendered without seams. Took longer
+** to implement than intended.
 **
 ** HEY: still has a bug in handling which triangles get which
 ** (new) vertices when the seam in the non-orientable surface
 ** is a closed loop.  Can be debugged later...
 */
 int
-limnPolyDataVertexWindingSplit(limnPolyData *pld) { 
+limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) { 
   char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
 
-  if (_limnPolyDataVertexWindingProcess(pld, AIR_FALSE)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
+  if (!splitting) {
+    if (_limnPolyDataVertexWindingProcess(pld, AIR_FALSE)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(LIMN, err); return 1;
+    }
+  } else {
+    if (_limnPolyDataVertexWindingProcess(pld, AIR_FALSE)
+        || _limnPolyDataVertexWindingProcess(pld, AIR_TRUE)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(LIMN, err); return 1;
+    }
   }
   return 0;
 }
@@ -1643,6 +1627,288 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
     }
     if ((1 << limnPolyDataInfoTex2) & bitflag) {
       ELL_3V_COPY(pldOut->tex2 + 2*newVertIdx, pldIn->tex2 + 2*oldVertIdx);
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+** tests:
+** everything stays
+** half of single prim stays
+** one prim stays, one prim goes
+** in multiple prims, mix of verts all staying, all going, part staying.
+*/
+/*
+** HEY: for the time being this is not actually clipping polygons:
+** its just dropping them or keeping them. True clipping to be done later.
+*/
+int
+limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
+  char me[]="limnPolyDataClip", err[BIFF_STRLEN];
+  airArray *mop;
+  unsigned char *keepVert=NULL, *keepTri=NULL;
+  unsigned int oldBaseTriIdx, newBaseTriIdx, 
+    oldVertIdx, oldVertNum, oldTriIdx, oldTriNum,
+    newVertIdx, newVertNum, newTriNum,
+    newPrimIdx, newPrimNum, oldPrimIdx, oldPrimNum, bitflag;
+  unsigned int *vimap=NULL;
+  double (*lup)(const void *v, size_t I);
+  limnPolyData ptmp;
+  int E;
+
+  if (!(pld && nval)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  if (nrrdTypeBlock == nval->type) {
+    sprintf(err, "%s: need scalar type (not %s)", me, 
+            airEnumStr(nrrdType, nval->type));
+    biffAdd(LIMN, err); return 1;
+  }
+  if (pld->xyzwNum != nrrdElementNumber(nval)) {
+    sprintf(err, "%s: # verts %u != # values %u", me,
+            pld->xyzwNum, AIR_CAST(unsigned int, nrrdElementNumber(nval)));
+    biffAdd(LIMN, err); return 1;
+  }
+  if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
+    sprintf(err, "%s: sorry, can only handle %s primitives", me,
+            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    biffAdd(LIMN, err); return 1;
+  }
+
+  oldVertNum = pld->xyzwNum;
+  oldTriNum = limnPolyDataPolygonNumber(pld);
+  /*
+  fprintf(stderr, "!%s: old vert # %u, tri # %u\n", me,
+          oldVertNum, oldTriNum);
+  */
+  mop = airMopNew();
+  /* experimenting with being more diligent about combining error
+     checking into allocation; it certainly makes things longer */
+  E = AIR_FALSE;
+  if (!E) {
+    keepVert = AIR_CAST(unsigned char *, calloc(oldVertNum,
+                                                sizeof(unsigned char)));
+  }
+  E |= !keepVert;
+  if (!E) {
+    airMopAdd(mop, keepVert, airFree, airMopAlways);
+    keepTri = AIR_CAST(unsigned char *, calloc(oldTriNum,
+                                               sizeof(unsigned char)));
+  }
+  E |= !keepTri;
+  if (!E) {
+    airMopAdd(mop, keepTri, airFree, airMopAlways);
+    vimap = AIR_CAST(unsigned int *, calloc(oldVertNum,
+                                            sizeof(unsigned int)));
+  }
+  E |= !vimap;
+  if (E) {
+    sprintf(err, "%s: couldn't allocate buffers", me);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, vimap, airFree, airMopAlways);
+
+  /* initialize keepVert based on threshold */
+  lup = nrrdDLookup[nval->type];
+  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
+    keepVert[oldVertIdx] = lup(nval->data, oldVertIdx) > thresh;
+  }
+
+  /* set keepTri: a triangle stays if any of its vertices met thresh */
+  newTriNum = 0;
+  for (oldTriIdx=0; oldTriIdx<oldTriNum; oldTriIdx++) {
+    unsigned int *line;
+    line = pld->indx + 3*oldTriIdx;
+    keepTri[oldTriIdx] = (keepVert[line[0]] 
+                          || keepVert[line[1]]
+                          || keepVert[line[2]]);
+    if (keepTri[oldTriIdx]) {
+      ++newTriNum;
+    }
+  }
+  /*
+  fprintf(stderr, "!%s: oldTriNum = %u, newTriNum = %u\n", me,
+          oldTriNum, newTriNum);
+  */
+
+  /* finalize keepVert: a vertex stays if any triangle needs it */
+  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
+    keepVert[oldVertIdx] = AIR_FALSE;
+  }
+  for (oldTriIdx=0; oldTriIdx<oldTriNum; oldTriIdx++) {
+    unsigned int *line;
+    line = pld->indx + 3*oldTriIdx;
+    /*
+    fprintf(stderr, "!%s: tri[%u] = %u %u %u\n", me, oldTriIdx,
+            line[0], line[1], line[2]);
+    */
+    keepVert[line[0]] |= keepTri[oldTriIdx];
+    keepVert[line[1]] |= keepTri[oldTriIdx];
+    keepVert[line[2]] |= keepTri[oldTriIdx];
+  }
+
+  /* set vimap */
+  newVertIdx = 0;
+  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
+    if (keepVert[oldVertIdx]) {
+      vimap[oldVertIdx] = newVertIdx++;
+    } else {
+      vimap[oldVertIdx] = UINT_MAX;
+    }
+    /*
+    fprintf(stderr, "!%s: vimap[%u] = %u\n", me,
+            oldVertIdx, vimap[oldVertIdx]);
+    */
+  }
+  newVertNum = newVertIdx;
+  /*
+  fprintf(stderr, "!%s: oldVertNum = %u, newVertNum = %u\n", me,
+          oldVertNum, newVertNum);
+  */
+
+  /* set newPrimNum: a primitive stays if any triangle of it stays */
+  newPrimNum = 0;
+  oldBaseTriIdx = 0;
+  oldPrimNum = pld->primNum;
+  for (oldPrimIdx=0; oldPrimIdx<oldPrimNum; oldPrimIdx++) {
+    int keep, trinum, tidx;
+    keep = AIR_FALSE;
+    trinum = pld->icnt[oldPrimIdx]/3;
+    for (tidx=0; tidx<trinum; tidx++) {
+      keep |= keepTri[oldBaseTriIdx + tidx];
+    }
+    if (keep) {
+      newPrimNum++;
+    }
+    oldBaseTriIdx += trinum;
+  }
+  /*
+  fprintf(stderr, "!%s: oldPrimNum = %u, newPrimNum = %u\n", me,
+          oldPrimNum, newPrimNum);
+  */
+
+  /* quiet compiler warnings */
+  ptmp.rgba = NULL;
+  ptmp.norm = NULL;
+  ptmp.tex2 = NULL;
+  ptmp.indx = NULL;
+  ptmp.icnt = NULL;
+
+  /* HEY: sneakily preserve the old arrays; we own them now */
+  bitflag = limnPolyDataInfoBitFlag(pld);
+  ptmp.xyzw = pld->xyzw;
+  airMopAdd(mop, ptmp.xyzw, airFree, airMopAlways);
+  pld->xyzw = NULL;
+  pld->xyzwNum = 0;
+  if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+    ptmp.rgba = pld->rgba;
+    airMopAdd(mop, ptmp.rgba, airFree, airMopAlways);
+    pld->rgba = NULL;
+    pld->rgbaNum = 0;
+  }
+  if ((1 << limnPolyDataInfoNorm) & bitflag) {
+    ptmp.norm = pld->norm;
+    airMopAdd(mop, ptmp.norm, airFree, airMopAlways);
+    pld->norm = NULL;
+    pld->normNum = 0;
+  }
+  if ((1 << limnPolyDataInfoTex2) & bitflag) {
+    ptmp.tex2 = pld->tex2;
+    airMopAdd(mop, ptmp.tex2, airFree, airMopAlways);
+    pld->tex2 = NULL;
+    pld->tex2Num = 0;
+  }
+  ptmp.indx = pld->indx;
+  airMopAdd(mop, ptmp.indx, airFree, airMopAlways);
+  pld->indx = NULL;
+  pld->indxNum = 0;
+  ptmp.icnt = pld->icnt;
+  airMopAdd(mop, ptmp.icnt, airFree, airMopAlways);
+  pld->icnt = NULL;
+  pld->primNum = 0;
+  if (limnPolyDataAlloc(pld, bitflag, newVertNum,
+                        3*newTriNum, newPrimNum)) {
+    sprintf(err, "%s: couldn't allocate new vert # %u", me, newVertNum);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+
+  /* set type[], icnt[], and indx[] */
+  oldBaseTriIdx = 0;
+  newBaseTriIdx = 0;
+  newPrimIdx = 0;
+  for (oldPrimIdx=0; oldPrimIdx<oldPrimNum; oldPrimIdx++) {
+    int keep, oldtrinum, newtrinum, icnt, tidx;
+    keep = AIR_FALSE;
+    oldtrinum = ptmp.icnt[oldPrimIdx]/3;
+    /*
+    fprintf(stderr, "!%s: oldtrinum[%u] = %u\n", me, oldPrimIdx, oldtrinum);
+    */
+    newtrinum = 0;
+    icnt = 0;
+    for (tidx=0; tidx<oldtrinum; tidx++) {
+      /*
+      fprintf(stderr, "!%s: keepTri[%u + %u = %u] = %u\n", me,
+              oldBaseTriIdx, tidx, oldBaseTriIdx + tidx,
+              keepTri[oldBaseTriIdx + tidx]);
+      */
+      if (keepTri[oldBaseTriIdx + tidx]) {
+        unsigned int *iline;
+        keep = AIR_TRUE;
+        iline = ptmp.indx + 3*(oldBaseTriIdx + tidx);
+        /*
+        fprintf(stderr, "!%s: tri[%u] = %u %u %u --> [%u] %u %u %u\n", me,
+                oldBaseTriIdx + tidx, iline[0], iline[1], iline[2],
+                newBaseTriIdx + newtrinum, 
+                vimap[iline[0]], vimap[iline[1]], vimap[iline[2]]);
+        */
+        ELL_3V_SET(pld->indx + 3*(newBaseTriIdx + newtrinum),
+                   vimap[iline[0]], vimap[iline[1]], vimap[iline[2]]);
+        icnt += 3;
+        newtrinum += 1;
+      }
+    }
+    if (keep) {
+      pld->type[newPrimIdx] = limnPrimitiveTriangles;
+      pld->icnt[newPrimIdx] = 3*newtrinum;
+      /*
+      fprintf(stderr, "!%s: icnt[%u] = %u\n", me,
+              newPrimIdx, pld->icnt[newPrimIdx]);
+      */
+      newPrimIdx++;
+    }
+    oldBaseTriIdx += oldtrinum;
+    newBaseTriIdx += newtrinum;
+  }
+  /*
+  fprintf(stderr, "!%s: copying rgb %d, norm %d, tex2 %d\n", me,
+          (1 << limnPolyDataInfoRGBA) & bitflag,
+          (1 << limnPolyDataInfoNorm) & bitflag,
+          (1 << limnPolyDataInfoTex2) & bitflag);
+  */
+
+  /* copy pld's vertex information to duped vertices */
+  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
+    if (keepVert[oldVertIdx]) {
+      newVertIdx = vimap[oldVertIdx];
+      ELL_4V_COPY(pld->xyzw + 4*newVertIdx,
+                  ptmp.xyzw + 4*oldVertIdx);
+      if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+        ELL_4V_COPY(pld->rgba + 4*newVertIdx,
+                    ptmp.rgba + 4*oldVertIdx);
+      }
+      if ((1 << limnPolyDataInfoNorm) & bitflag) {
+        ELL_3V_COPY(pld->norm + 3*newVertIdx,
+                    ptmp.norm + 3*oldVertIdx);
+      }
+      if ((1 << limnPolyDataInfoTex2) & bitflag) {
+        ELL_2V_COPY(pld->tex2 + 2*newVertIdx,
+                    ptmp.tex2 + 2*oldVertIdx);
+      }
     }
   }
 
