@@ -792,6 +792,10 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** It is the callers responsibility to make sure I-i and O-o are 
 ** both non-zero.  Strictly speaking, real problems arise only when
 ** when I-i is zero: division by zero generates either NaN or infinity
+**
+** NOTE that "x" is evaluated only once (which makes this more useful),
+** as is "I" and "O" (usually not so important); "i" and "o" are each
+** evaluated twice
 */
 #define AIR_AFFINE(i,x,I,o,O) ( \
 ((double)(O)-(o))*((double)(x)-(i)) / ((double)(I)-(i)) + (o))
@@ -809,6 +813,8 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 **
 ** It is the callers responsibility to make sure I-i and O-o are 
 ** both non-zero
+**
+** NOTE that all arguments are evaluated only once
 */
 #define AIR_DELTA(i,x,I,o,O) ( \
 ((double)(O)-(o))*((double)(x)) / ((double)(I)-(i)) )
@@ -826,7 +832,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 **
 ** Conversion sequence to use when printf/fprintf/sprintf-ing a value of
 ** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
-** respecitvely.
+** respectively.
 **
 ** This is not a useful macro for the world at large- only for Teem
 ** source files.  Why: we need to leave this as a bare string, so that
