@@ -37,7 +37,11 @@ pushPointNew(pushContext *pctx) {
     if (pnt) {
       pnt->ttaagg = pctx->ttaagg++;
       ELL_3V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN);
-      pnt->posSS = 2;
+      if (pctx->numSS) {
+        pnt->posSS = (pctx->numSS-1)/2;
+      } else {
+        pnt->posSS = AIR_NAN;
+      }
       ELL_3V_SET(pnt->frc, AIR_NAN, AIR_NAN, AIR_NAN);
       TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN,
                 AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);

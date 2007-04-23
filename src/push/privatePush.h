@@ -42,7 +42,7 @@ extern int _pushBinSetup(pushContext *pctx);
 extern int _pushPointSetup(pushContext *pctx);
 
 /* action.c */
-extern void _pushProbe(pushTask *task, pushPoint *point);
+extern int _pushProbe(pushTask *task, pushPoint *point);
 
 #ifdef __cplusplus
 }

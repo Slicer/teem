@@ -151,15 +151,16 @@ _pushTensorFieldSetup(pushContext *pctx) {
       biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
     }
     for (ni=0; ni<pctx->numSS; ni++) {
-      pctx->kspSS->parm[0]= AIR_AFFINE(0, ni, pctx->numSS-1,
-                                       pctx->minSS, pctx->maxSS);
+      pctx->kspSSblur->parm[0]= AIR_AFFINE(0, ni, pctx->numSS-1,
+                                           pctx->minSS, pctx->maxSS);
       for (axi=1; axi<4; axi++) {
-        if (!E) E |= nrrdResampleKernelSet(rsmc, axi, pctx->kspSS->kernel,
-                                           pctx->kspSS->parm);
+        if (!E) E |= nrrdResampleKernelSet(rsmc, axi, pctx->kspSSblur->kernel,
+                                           pctx->kspSSblur->parm);
       }
       pctx->ntenSS[ni] = nrrdNew();
       airMopAdd(mop, pctx->ntenSS[ni], (airMopper)nrrdNuke, airMopOnError);
-      fprintf(stderr, "!%s: resampling %u/%u ... ", me, ni, pctx->numSS);
+      fprintf(stderr, "!%s: resampling %u/%u (parm[0] = %g) ... ", me,
+              ni, pctx->numSS, pctx->kspSSblur->parm[0]);
       fflush(stderr);
       if (!E) E |= nrrdResampleExecute(rsmc, pctx->ntenSS[ni]);
       if (E) {
@@ -231,6 +232,7 @@ _pushGageSetup(pushContext *pctx) {
     pctx->gctxSS = gageContextNew();
     fprintf(stderr, "!%s: pctx->gctxSS at %p\n", me, pctx->gctxSS);
     gageParmSet(pctx->gctxSS, gageParmRequireAllSpacings, AIR_TRUE);
+    gageParmSet(pctx->gctxSS, gageParmStackUse, AIR_TRUE);
     E = AIR_FALSE;
     if (!E) E |= gageKernelSet(pctx->gctxSS, gageKernel00,
                                pctx->ksp00->kernel, pctx->ksp00->parm);
@@ -238,6 +240,8 @@ _pushGageSetup(pushContext *pctx) {
                                pctx->ksp11->kernel, pctx->ksp11->parm);
     if (!E) E |= gageKernelSet(pctx->gctxSS, gageKernel22,
                                pctx->ksp22->kernel, pctx->ksp22->parm);
+    if (!E) E |= gageKernelSet(pctx->gctxSS, GAGE_KERNEL_STACK,
+                               pctx->kspSS->kernel, pctx->kspSS->parm);
     if (!E) E |= !(pvl = gagePerVolumeNew(pctx->gctxSS, pctx->nten,
                                           tenGageKind));
     if (!E) E |= gagePerVolumeAttach(pctx->gctxSS, pvl);
@@ -252,6 +256,10 @@ _pushGageSetup(pushContext *pctx) {
     if (!E) E |= gageQueryItemOn(pctx->gctxSS, pvl, pctx->zcValSSItem);
     if (!E) E |= gageQueryItemOn(pctx->gctxSS, pvl, pctx->gradVecSSItem);
     if (!E) E |= gageUpdate(pctx->gctxSS);
+    fprintf(stderr, "!%s: pctx->gctxSS->stackKsp = %s:%g,%g\n", me,
+            pctx->gctxSS->stackKsp->kernel->name,
+            pctx->gctxSS->stackKsp->parm[0],
+            pctx->gctxSS->stackKsp->parm[1]);
     if (E) {
       sprintf(err, "%s: trouble setting up gage SS", me);
       biffMove(PUSH, err, GAGE); return 1;
@@ -422,7 +430,7 @@ _pushBinSetup(pushContext *pctx) {
           pctx->dimIn, pctx->sliceAxis, pctx->maxDet);
   pctx->meanEval /= count;
   if (pctx->numSS) {
-    pctx->maxDist = (2*pctx->scale
+    pctx->maxDist = (2*pctx->scale*pctx->maxSS
                      *pctx->ensp->energy->support(pctx->ensp->parm));
     fprintf(stderr, "!%s: SS ==> maxDist = %g\n", me, pctx->maxDist);
   } else {
@@ -516,7 +524,10 @@ _pushPointSetup(pushContext *pctx) {
                  lup(pctx->npos->data, 0 + 3*pointIdx),
                  lup(pctx->npos->data, 1 + 3*pointIdx),
                  lup(pctx->npos->data, 2 + 3*pointIdx));
-      _pushProbe(pctx->task[0], point);
+      if (_pushProbe(pctx->task[0], point)) {
+        sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
+        biffAdd(PUSH, err); return 1;
+      }
     } else {
       /*
       double posWorld[4];
@@ -545,7 +556,10 @@ _pushPointSetup(pushContext *pctx) {
                 posWorld[0], posWorld[1], posWorld[2],
                 point->pos[0], point->pos[1], point->pos[2]);
         */
-        _pushProbe(pctx->task[0], point);
+        if (_pushProbe(pctx->task[0], point)) {
+          sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
+          biffAdd(PUSH, err); return 1;
+        }
         detProbe = TEN_T_DET(point->ten);
 
         if (2 == pctx->dimIn) {

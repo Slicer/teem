@@ -36,9 +36,9 @@ _pushPointTotal(pushContext *pctx) {
   return pointNum;
 }
 
-void
+int
 _pushProbe(pushTask *task, pushPoint *point) {
-  /* char me[]="_pushProbe"; */
+  char me[]="_pushProbe", err[BIFF_STRLEN];
   double posWorld[4], posIdx[4];
 
   ELL_3V_COPY(posWorld, point->pos); posWorld[3] = 1.0;
@@ -48,13 +48,21 @@ _pushProbe(pushTask *task, pushPoint *point) {
   posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
   posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
   if (task->pctx->numSS) {
-    gageStackProbe(task->gctx, point->posSS);
-    gageProbe(task->gctxSS, posIdx[0], posIdx[1], posIdx[2]);
+    if (gageStackProbe(task->gctxSS, point->posSS)
+        || gageProbe(task->gctxSS, posIdx[0], posIdx[1], posIdx[2])) {
+      sprintf(err, "%s: gageProbe(SS,%p) failed:\n (%d) %s\n", me,
+              task->gctxSS, task->gctxSS->errNum, task->gctxSS->errStr);
+      biffAdd(PUSH, err); return 1;
+    }
     point->zcSS = task->zcSSAns[0];
     ELL_3V_COPY(point->gvSS, task->gvSSAns);
   }
 
-  gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2]);
+  if (gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2])) {
+    sprintf(err, "%s: gageProbe failed:\n (%d) %s\n", me,
+            task->gctx->errNum, task->gctx->errStr);
+    biffAdd(PUSH, err); return 1;
+  }
     
   TEN_T_COPY(point->ten, task->tenAns);
   TEN_T_COPY(point->inv, task->invAns);
@@ -66,7 +74,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
   if (tenGageUnknown != task->pctx->seedThreshItem) {
     point->seedThresh = task->seedThreshAns[0];
   }
-  return;
+  return 0;
 }
 
 int
@@ -134,7 +142,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
           ELL_3MV_OUTER(matTmp, perp2, perp2);
           ELL_3M_SCALE_INCR(matOut, scl, matTmp);
           TEN_M2T(tenOut + 7*pointRun, matOut);
-          sclmean += point->posSS;
+          sclmean += scl;
         } else {
           TEN_T_COPY(tenOut + 7*pointRun, point->ten);
         }
@@ -147,25 +155,26 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   }
   if (pctx->numSS) {
     sclmean /= pointRun;
-    fprintf(stderr, "!%s: scale min, mean, max = %g %g %g\n", me,
-            sclmin, sclmean, sclmax);
+    fprintf(stderr, "!%s: scale min, mean, max = %g %g %g (%g)\n", me,
+            sclmin, sclmean, sclmax, sclmax - sclmin);
   }
 
   return 0;
 }
 
-double
+int
 _pushPairwiseEnergy(pushTask *task,
+                    double *enrP,
                     double frc[3],
                     pushEnergySpec *ensp,
                     pushPoint *myPoint, pushPoint *herPoint,
                     double YY[3], double iscl) {
-  /* char me[]="_pushPairwiseEnergy", err[BIFF_STRLEN]; */
-  double inv[7], XX[3], nXX[3], nYY[3], rr, mag, WW[3], enr;
+  char me[]="_pushPairwiseEnergy", err[BIFF_STRLEN];
+  double inv[7], XX[3], nXX[3], nYY[3], rr, mag, WW[3];
 
   if (task->pctx->numSS) {
     ELL_3V_NORM(nYY, YY, rr);
-    ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
+    ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
     ELL_3V_SCALE(frc, mag, nYY);
   } else {
     if (task->pctx->midPntSmp) {
@@ -174,7 +183,11 @@ _pushPairwiseEnergy(pushTask *task,
       ELL_3V_SCALE_ADD2(_tmpPoint.pos,
                         0.5, myPoint->pos,
                         0.5, herPoint->pos);
-      _pushProbe(task, &_tmpPoint);
+      if (_pushProbe(task, &_tmpPoint)) {
+        sprintf(err, "%s: at midpoint of %u and %u", me,
+                myPoint->ttaagg, herPoint->ttaagg);
+        biffAdd(PUSH, err); *enrP = AIR_NAN; return 1;
+      }
       TEN_T_INV(inv, _tmpPoint.ten, det);
     } else {
       TEN_T_SCALE_ADD2(inv,
@@ -184,7 +197,7 @@ _pushPairwiseEnergy(pushTask *task,
     TEN_TV_MUL(XX, inv, YY);
     ELL_3V_NORM(nXX, XX, rr);
     
-    ensp->energy->eval(&enr, &mag, rr*iscl, ensp->parm);
+    ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
     if (mag) {
       mag *= iscl;
       TEN_TV_MUL(WW, inv, nXX);
@@ -194,15 +207,15 @@ _pushPairwiseEnergy(pushTask *task,
     }
   }
 
-  return enr;
+  return 0;
 }
 
 #define EPS_PER_MAX_DIST 200
 #define SEEK_MAX_ITER 30
 
-void
+int
 _pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
-  char me[]="_pushSurfaceSeek";
+  char me[]="_pushSurfaceSeek", err[BIFF_STRLEN];
   double stepDir[3], gm, zcLast, endA[3], endB[3], aa, bb, cc, za, zb, eps,
     posOrig[3];
   unsigned int iter;
@@ -214,7 +227,10 @@ _pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
   /*
   fprintf(stderr, "!%s: eps = %g; step = %g\n", me, eps, step);
   */
-  _pushProbe(task, myPoint);
+  if (_pushProbe(task, myPoint)) {
+    sprintf(err, "%s: initial probe", me);
+    biffAdd(PUSH, err); return 1;
+  }
   if (myPoint->zcSS < 0) {
     step *= -1;
   }
@@ -223,14 +239,18 @@ _pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
     zcLast = myPoint->zcSS;
     ELL_3V_NORM(stepDir, myPoint->gvSS, gm);
     ELL_3V_SCALE_INCR(myPoint->pos, step, stepDir);
-    _pushProbe(task, myPoint);
+    if (_pushProbe(task, myPoint)) {
+      sprintf(err, "%s: on iter %u of zero-cross seeking", me, iter);
+      biffAdd(PUSH, err); return 1;
+    }
     iter++;
   } while (zcLast*myPoint->zcSS > 0
            && iter < SEEK_MAX_ITER);
 
   if (SEEK_MAX_ITER == iter) {
-    ELL_3V_COPY(myPoint->pos, posOrig);
-    return;
+    /* ELL_3V_COPY(myPoint->pos, posOrig); */
+    sprintf(err, "%s: never saw ZC after %u iters (step=%g)", me, iter, step);
+    biffAdd(PUSH, err); return 1;
   }
 
   /* position of last probe led to a change in zc.
@@ -246,7 +266,10 @@ _pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
   do {
     cc = (zb*aa - za*bb)/(zb - za);
     ELL_3V_LERP(myPoint->pos, cc, endA, endB);
-    _pushProbe(task, myPoint);
+    if (_pushProbe(task, myPoint)) {
+      sprintf(err, "%s: on iter %u of zero-cross converge", me, iter);
+      biffAdd(PUSH, err); return 1;
+    }
     if (za * myPoint->zcSS > 0) {
       aa = cc;
     } else { 
@@ -257,25 +280,30 @@ _pushSurfaceSeek(pushTask *task, pushPoint *myPoint, double step) {
            && iter < SEEK_MAX_ITER);
 
   if (SEEK_MAX_ITER == iter) {
-    ELL_3V_COPY(myPoint->pos, posOrig);
+    /* ELL_3V_COPY(myPoint->pos, posOrig); */
+    sprintf(err, "%s: failed ZC converge after %u iters (step=%g)", me, 
+            iter, step);
+    biffAdd(PUSH, err); return 1;
   }
 
-  return;
+  return 0;
 }
 
 #define SCALE_TEST_STEP 0.1
-#define SCALE_STEP_SIZE 0.05
+#define SCALE_STEP_SIZE 0.2
 
-double
-_pushDeltaScale(pushTask *task, pushPoint *myPoint) {
-  char me[]="_pushDeltaScale";
+int
+_pushDeltaScale(pushTask *task, double *dscaleP, pushPoint *myPoint) {
+  char me[]="_pushDeltaScale", err[BIFF_STRLEN];
   pushPoint *herPoint;
   unsigned int neighIdx;
-  double wght, wghtSum, diff[3], dscale, oldScaleIdx, oldScale,
+  double wght, wghtSum, diff[3], oldScaleIdx, oldScale,
     oldStrength, testScale, testScaleIdx, testStrength, strengthGrad,
     newScale, newScaleIdx,
     avgScaleIdx, wantScaleIdx, limit;
   int signRnd;
+
+  oldScaleIdx = myPoint->posSS;
 
   avgScaleIdx = 0;
   wghtSum = 0;
@@ -286,16 +314,25 @@ _pushDeltaScale(pushTask *task, pushPoint *myPoint) {
     avgScaleIdx += wght*herPoint->posSS;
     wghtSum += wght;
   }
-  avgScaleIdx /= wghtSum;
+  if (wghtSum) {
+    avgScaleIdx /= wghtSum;
+  } else {
+    /* we had no neighbors! */
+    avgScaleIdx = oldScaleIdx;
+  }
   
-  oldScaleIdx = myPoint->posSS;
   oldScale = AIR_AFFINE(0, oldScaleIdx, task->pctx->numSS-1,
                         task->pctx->minSS, task->pctx->maxSS);
   oldStrength = ELL_3V_LEN(myPoint->gvSS)*oldScale;
   signRnd = 2*airRandInt_r(task->rng, 2) - 1;
   testScaleIdx = oldScaleIdx + SCALE_TEST_STEP*signRnd*task->pctx->numSS;
   myPoint->posSS = testScaleIdx;
-  _pushSurfaceSeek(task, myPoint, task->pctx->deltaLimit*task->pctx->scale);
+  if (_pushSurfaceSeek(task, myPoint,
+                       task->pctx->deltaLimit*task->pctx->scale)) {
+    sprintf(err, "%s: seeking at testScaleIdx %g=%g", me,
+            myPoint->posSS, testScaleIdx);
+    biffAdd(PUSH, err); return 1;
+  }
   testScale = AIR_AFFINE(0, testScaleIdx, task->pctx->numSS-1,
                          task->pctx->minSS, task->pctx->maxSS);
   testStrength = ELL_3V_LEN(myPoint->gvSS)*testScale;
@@ -304,45 +341,55 @@ _pushDeltaScale(pushTask *task, pushPoint *myPoint) {
   newScaleIdx= AIR_AFFINE(task->pctx->minSS, newScale, task->pctx->maxSS,
                           0, task->pctx->numSS-1);
   
-  wantScaleIdx = AIR_AFFINE(0, 0.5, 1, avgScaleIdx, newScaleIdx);
+  wantScaleIdx = AIR_LERP(0.5, avgScaleIdx, newScaleIdx);
+  /*
+  fprintf(stderr, "!%s: {avg,new,want}ScaleIdx = %g %g %g\n", me,
+          avgScaleIdx, newScaleIdx, wantScaleIdx);
+  */
 
   /* this is not how deltaLimit is supposed to be used, but its similar */
-  dscale = wantScaleIdx - oldScaleIdx;
+  *dscaleP = wantScaleIdx - oldScaleIdx;
   limit = task->pctx->deltaLimit;
-  dscale = limit*dscale/(limit + dscale);
+  *dscaleP = (*dscaleP > 0
+              ? limit*(*dscaleP)/(limit + (*dscaleP))
+              : limit*(*dscaleP)/(limit - (*dscaleP)));
 
   /*
   fprintf(stderr, "!%s: oldScaleIdx %g -> dscale = %g\n", me,
-          oldScaleIdx, dscale);
+          oldScaleIdx, *dscaleP);
+  fprintf(stderr, "!%s: limit=%g, strengthGrad = (%g - %g)/(%g - %g) = %g \n"
+          "  -> dscale = %g\n", me, limit,
+          testStrength, oldStrength, testScale, oldScale,
+          strengthGrad, *dscaleP);
   */
-  fprintf(stderr, "!%s: (dlimit = %g) strengthGrad = %g -> dscale = %g\n", me, 
-          limit, strengthGrad, dscale);
-  dscale = AIR_EXISTS(dscale) ? dscale : 0;
+  *dscaleP = AIR_EXISTS(*dscaleP) ? *dscaleP : 0;
   
   /* return it the way we got it */
   myPoint->posSS = oldScaleIdx;
-  return dscale;
+  return 0;
 }
 
 int
 pushBinProcess(pushTask *task, unsigned int myBinIdx) {
-  char me[]="pushBinProcess";
+  char me[]="pushBinProcess", err[BIFF_STRLEN];
   pushBin *myBin, *herBin, **neighbor;
   unsigned int myPointIdx, herPointIdx;
   pushPoint *myPoint, *herPoint;
   double enr, frc[3], delta[3], deltaLen, deltaNorm[3], warp[3], limit,
-    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd, dscale;
+    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd, dscale, ssss;
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
   }
   maxDiffLenSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
-  iscl = 1.0/(2*task->pctx->scale);
   myBin = task->pctx->bin + myBinIdx;
+  iscl = 1.0/(2*task->pctx->scale);
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     myPoint = myBin->point[myPointIdx];
     myPoint->enr = 0;
     ELL_3V_SET(myPoint->frc, 0, 0, 0);
+    ssss = AIR_AFFINE(0, myPoint->posSS, task->pctx->numSS-1,
+                      task->pctx->minSS, task->pctx->maxSS);
 
     if (1.0 <= task->pctx->neighborTrueProb
         || airDrandMT_r(task->rng) <= task->pctx->neighborTrueProb
@@ -364,8 +411,12 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
             /* too far away to interact */
             continue;
           }
-          enr = _pushPairwiseEnergy(task, frc, task->pctx->ensp,
-                                    myPoint, herPoint, diff, iscl);
+          if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
+                                  myPoint, herPoint, diff, iscl/ssss)) {
+            sprintf(err, "%s: between points %u and %u, A", me,
+                    myPoint->ttaagg, herPoint->ttaagg);
+            biffAdd(PUSH, err); return 1;
+          }
           myPoint->enr += enr/2;
           if (ELL_3V_DOT(frc, frc)) {
             ELL_3V_INCR(myPoint->frc, frc);
@@ -386,8 +437,12 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
         herPoint = myPoint->neigh[neighIdx];
         ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
-        enr = _pushPairwiseEnergy(task, frc, task->pctx->ensp,
-                                  myPoint, herPoint, diff, iscl);
+        if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
+                                myPoint, herPoint, diff, iscl/ssss)) {
+          sprintf(err, "%s: between points %u and %u, B", me,
+                  myPoint->ttaagg, herPoint->ttaagg);
+          biffAdd(PUSH, err); return 1;
+        }
         myPoint->enr += enr/2;
         ELL_3V_INCR(myPoint->frc, frc);
       }
@@ -463,7 +518,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       double newDelta = 0;
 
       /* learn change in scale at old position */
-      dscale = _pushDeltaScale(task, myPoint);
+      if (_pushDeltaScale(task, &dscale, myPoint)) {
+        sprintf(err, "%s: pre-update on %u", me, myPoint->ttaagg);
+        biffAdd(PUSH, err); return 1;
+      }
+      /* update spatial position */
       if (deltaLen) {
         limit = task->pctx->deltaLimit*task->pctx->scale;
         newDelta = limit*deltaLen/(limit + deltaLen);
@@ -471,10 +530,17 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         task->deltaFracSum += newDelta/deltaLen;
         ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
       }
+      /* update scale-space position */
       myPoint->posSS += dscale;
+      /* clamp to node-centered range (though gage can take cell-centered) */
+      myPoint->posSS = AIR_CLAMP(0, myPoint->posSS, task->pctx->numSS-1);
+      /* if anything changed, re-seek to surface */
       if (newDelta || dscale) {
-        _pushSurfaceSeek(task, myPoint, 
-                         newDelta ? newDelta : 0.05);
+        if (_pushSurfaceSeek(task, myPoint, 
+                             newDelta ? newDelta : 0.05)) {
+          sprintf(err, "%s: seeking post-update on %u", me, myPoint->ttaagg);
+          biffAdd(PUSH, err); return 1;
+        }
       }
     } else {
       if (deltaLen) {
@@ -499,7 +565,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       }
       if (1.0 <= task->pctx->probeProb
           || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
-        _pushProbe(task, myPoint);
+        if (_pushProbe(task, myPoint)) {
+          sprintf(err, "%s: probing at new field pos", me);
+          biffAdd(PUSH, err); return 1;
+        }
       }
     }
     
