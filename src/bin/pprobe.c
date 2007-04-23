@@ -28,6 +28,7 @@
 #include <teem/nrrd.h>
 #include <teem/gage.h>
 #include <teem/ten.h>
+#include <teem/limn.h>
 
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
 
@@ -108,17 +109,19 @@ char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
 int
 main(int argc, char *argv[]) {
   gageKind *kind;
-  char *me, *whatS, *err;
+  char *me, *whatS, *err, *outS;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22;
   float pos[3];
   double gmc;
-  int what, ansLen, E=0, renorm;
+  unsigned int ansLen;
+  int what, E=0, renorm;
   const double *answer, *answer2;
-  Nrrd *nin;
+  Nrrd *nin, *nout=NULL;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
+  limnPolyData *lpld=NULL;
   airArray *mop;
 
   Nrrd *ngrad=NULL, *nbmat=NULL;
@@ -135,8 +138,11 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
              NULL, NULL, &probeKindHestCB);
-  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
+  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, "0 0 0",
              "the position in index space at which to probe");
+  hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
+             "input polydata (overrides \"-p\")",
+             NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
@@ -155,6 +161,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
+             "output array, when probing on polydata vertices");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -196,7 +204,6 @@ main(int argc, char *argv[]) {
 
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageParmSet(ctx, gageParmVerbose, 42);
   gageParmSet(ctx, gageParmGradMagMin, gmc);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -217,16 +224,59 @@ main(int argc, char *argv[]) {
 
   /* test with original context */
   answer = gageAnswerPointer(ctx, ctx->pvl[0], what);
-  if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
-    fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me, ctx->errStr, ctx->errNum);
-    airMopError(mop);
-    return 1;
+  if (lpld) {
+    double *dout, xyzw[4];
+    unsigned int vidx, ai;
+    nout = nrrdNew();
+    airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+    if (1 == ansLen) {
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
+                       AIR_CAST(size_t, lpld->xyzwNum));
+    } else {
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
+                       AIR_CAST(size_t, ansLen),
+                       AIR_CAST(size_t, lpld->xyzwNum));
+    }
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    dout = AIR_CAST(double *, nout->data);
+    for (vidx=0; vidx<lpld->xyzwNum; vidx++) {
+      ELL_4V_COPY(xyzw, lpld->xyzw + 4*vidx);
+      ELL_4V_HOMOG(xyzw, xyzw);
+      if (gageProbeSpace(ctx, xyzw[0], xyzw[1], xyzw[2],
+                         AIR_FALSE, AIR_TRUE)) {
+        fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
+                me, ctx->errStr, ctx->errNum);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<ansLen; ai++) {
+        dout[ai + ansLen*vidx] = answer[ai];
+      }
+    }
+    if (nrrdSave(outS, nout, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    gageParmSet(ctx, gageParmVerbose, 42);
+    if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
+      fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
+              me, ctx->errStr, ctx->errNum);
+      airMopError(mop);
+      return 1;
+    }
+    printf("%s: %s(%g,%g,%g) = ", me,
+           airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
+    printans(stdout, answer, ansLen);
+    printf("\n");
   }
-  printf("%s: %s(%g,%g,%g) = ", me,
-         airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
-  printans(stdout, answer, ansLen);
-  printf("\n");
-
 
   if (0) {
     /* test with copied context */
