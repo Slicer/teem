@@ -599,7 +599,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 int
 gageStackProbe(gageContext *ctx, double sidx) {
   char me[]="gageStackProbe";
-  
+
   if (!ctx) {
     return 1;
   }
@@ -614,7 +614,6 @@ gageStackProbe(gageContext *ctx, double sidx) {
     return 1;
   }
   
-  /* clamping is done later */
   ctx->stackIdx = sidx;
   return 0;
 }
@@ -625,11 +624,12 @@ gageStackProbe(gageContext *ctx, double sidx) {
 ** after the individual iv3's in the stack have been filled, 
 ** this does the across-stack filtering to fill pvl[0]'s iv3
 */
-void
+int
 _gageStackIv3Fill(gageContext *ctx) {
+  char me[]="_gageStackIv3Fill";
   unsigned int fr, fd, ii, fddd, valLen, pvlIdx, cacheIdx;
   int stackBase, _pvlIdx;
-  double *kparm, val, fslw[GAGE_STACK_NUM_MAX], stackFrac, stackIdx, sum;
+  double *kparm, val, fslw[GAGE_STACK_NUM_MAX], stackFrac, sum;
 
   fr = AIR_CAST(unsigned int, ctx->radius);
   fd = 2*fr;
@@ -637,10 +637,24 @@ _gageStackIv3Fill(gageContext *ctx) {
   valLen = ctx->pvl[0]->kind->valLen;
   kparm = ctx->stackKsp->parm;
 
+  if (!AIR_EXISTS(ctx->stackIdx)) {
+    sprintf(ctx->errStr, "%s: stackIdx %g doesn't exist", me, ctx->stackIdx);
+    ctx->errNum = 10;
+    return 1;
+  }
+  if (!( AIR_IN_CL(-0.5, ctx->stackIdx, ctx->pvlNum - 1.5) )) {
+    sprintf(ctx->errStr, "%s: stackIdx %g outside [%g,%g]", me, ctx->stackIdx,
+            -0.5, ctx->pvlNum - 1.5);
+    ctx->errNum = 11;
+    return 1;
+  }
   /* cell-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
-  stackIdx = AIR_CLAMP(-0.5, ctx->stackIdx, ctx->pvlNum - 1.5);
-  stackBase = AIR_CAST(int, stackIdx+1) - 1;
-  stackFrac = stackIdx - stackBase;
+  stackBase = AIR_CAST(int, ctx->stackIdx+1) - 1;
+  stackFrac = ctx->stackIdx - stackBase;
+  /*
+  fprintf(stderr, "!%s: stackIdx = %g -> base,frac = %d, %g\n", me,
+          ctx->stackIdx, stackBase, stackFrac);
+  */
   for (ii=0; ii<fd; ii++) {
     fslw[ii] = stackFrac - ii + fr-1;
   }  
@@ -662,10 +676,18 @@ _gageStackIv3Fill(gageContext *ctx) {
       _pvlIdx = stackBase + ii - (fr-1);
       pvlIdx = 1 + AIR_CLAMP(0, _pvlIdx, AIR_CAST(int, ctx->pvlNum-2));
       val += fslw[ii]*ctx->pvl[pvlIdx]->iv3[cacheIdx];
+      /*
+      if (!cacheIdx) {
+        fprintf(stderr, "!%s: ii=%d, _pvlIdx=%d, pvlIdx=%u, iv3=%g, "
+                "f=%g, val=%g\n", me,
+                ii, _pvlIdx, pvlIdx, ctx->pvl[pvlIdx]->iv3[cacheIdx],
+                fslw[ii], val);
+      }
+      */
     }
     ctx->pvl[0]->iv3[cacheIdx] = val;
   }
-  return;
+  return 0;
 }
 
 /*
@@ -690,7 +712,7 @@ gageProbe(gageContext *ctx, double x, double y, double z) {
   zi = ctx->point.zi;
   if (_gageLocationSet(ctx, x, y, z)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set
-       (as they should be) */
+       (as they should be already) */
     return 1;
   }
   
@@ -704,7 +726,10 @@ gageProbe(gageContext *ctx, double x, double y, double z) {
     }
   }
   if (ctx->parm.stackUse) {
-    _gageStackIv3Fill(ctx);
+    if (_gageStackIv3Fill(ctx)) {
+      /* some problem; leave gageErrStr and gageErrNum set */
+      return 1;
+    }
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: stack's pvl's value cache at "
               "coords = %d,%d,%d:\n", me,

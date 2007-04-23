@@ -399,8 +399,13 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
 
 void
 gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
+  /* char me[]="gageShapeWtoI"; */
   double index[4], world[4];
 
+  /*
+  fprintf(stderr, "!%s: hello %p %p %p; %p\n", me, 
+          shape, _index, _world, shape->WtoI);
+  */
   ELL_3V_COPY(world, _world);
   world[3] = 1.0;
   ELL_4MV_MUL(index, shape->WtoI, world);
