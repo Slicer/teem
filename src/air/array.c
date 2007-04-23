@@ -291,6 +291,7 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 */
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {
+  /* char me[]="airArrayLenIncr"; */
   unsigned int oldlen, ret;
 
   if (!a) {
