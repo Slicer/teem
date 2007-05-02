@@ -53,10 +53,10 @@ unrrdu_3opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "respectively\n "
              "\b\bo \"exists\": if the first value exists, use the second "
              "value, otherwise use the third\n "
-             "\b\bo \"in_op\": 1 iff third value is > first and < "
-             "second, 0 otherwise\n "
-             "\b\bo \"in_cl\": 1 iff third value is >= first and <= "
-             "second, 0 otherwise",
+             "\b\bo \"in_op\": 1 iff second value is > first and < "
+             "third, 0 otherwise\n "
+             "\b\bo \"in_cl\": 1 iff second value is >= first and <= "
+             "third, 0 otherwise",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
              "First input.  Can be a single value or a nrrd.",
