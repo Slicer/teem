@@ -72,6 +72,9 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "cubic:0,0.5",
              "The kernel to use for resampling.  Possibilities include:\n "
              "\b\bo \"box\": nearest neighbor interpolation\n "
+             "\b\bo \"cheap\": nearest neighbor interpolation for upsampling, "
+             "and non-blurring sub-sampling (pick subset of input samples) "
+             "on downsampling\n "
              "\b\bo \"tent\": linear interpolation\n "
              "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
              "cubics:\n "
@@ -103,8 +106,10 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
-             "(only with \"-old\") "
-             "when downsampling (reducing number of samples), don't "
+             "DEPRECATED: the \"-k cheap\" option is the new (and more "
+             "reliable) way to access this functionality. \"-cheap\" is "
+             "only here for legacy use in combination with \"-old\".\n "
+             "When downsampling (reducing number of samples), don't "
              "try to do correct filtering by scaling kernel to match "
              "new (stretched) index space; keep it in old index space. "
              "When used in conjunction with \"-k box\", this can implement "
