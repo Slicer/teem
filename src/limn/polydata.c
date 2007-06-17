@@ -236,41 +236,46 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   return 0;
 }
 
-#if 0
-
-/* GLK got lazy Sun Feb  5 18:31:57 EST 2006 and didn't bring this uptodate
-   with the new limnPolyData */
-
 int
 limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                   unsigned int num) {
   char me[]="limnPolyDataCopyN", err[BIFF_STRLEN];
-  unsigned int ii, jj;
+  unsigned int ii, jj, size;
 
   if (!( pldB && pldA )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (limnPolyDataAlloc(pldB, num*pldA->xyzwNum,
-                       num*pldA->indxNum, num*pldA->primNum)) {
+  if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA), num*pldA->xyzwNum,
+                        num*pldA->indxNum, num*pldA->primNum)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
   }
   for (ii=0; ii<num; ii++) {
-    memcpy(pldB->vert + ii*pldA->xyzwNum, pldA->vert,
-           pldA->xyzwNum*sizeof(limnVrt));
+    size = pldA->xyzwNum*sizeof(float)*4;
+    memcpy(pldB->xyzw + ii*size, pldA->xyzw, size);
     for (jj=0; jj<pldA->indxNum; jj++) {
       (pldB->indx + ii*pldA->indxNum)[jj] = pldA->indx[jj] + ii*pldA->xyzwNum;
     }
-    memcpy(pldB->type + ii*pldA->primNum, pldA->type,
-           pldA->primNum*sizeof(signed char));
-    memcpy(pldB->icnt + ii*pldA->primNum, pldA->icnt,
-           pldA->primNum*sizeof(unsigned int));
+    size = pldA->primNum*sizeof(signed char);
+    memcpy(pldB->type + ii*size, pldA->type, size);
+    size = pldA->primNum*sizeof(unsigned int);
+    memcpy(pldB->icnt + ii*size, pldA->icnt, size);
+    if (pldA->rgba) {
+      size = pldA->rgbaNum*sizeof(unsigned char)*4;
+      memcpy(pldB->rgba + ii*size, pldA->rgba, size);
+    }
+    if (pldA->norm) {
+      size = pldA->normNum*sizeof(float)*3;
+      memcpy(pldB->norm + ii*size, pldA->norm, size);
+    }
+    if (pldA->tex2) {
+      size = pldA->tex2Num*sizeof(float)*2;
+      memcpy(pldB->tex2 + ii*size, pldA->tex2, size);
+    }
   }
   return 0;
 }
-
-#endif
 
 /*
 ******** limnPolyDataTransform_f, limnPolyDataTransform_d
@@ -338,6 +343,9 @@ limnPolyDataPolygonNumber(const limnPolyData *pld) {
   if (pld) {
     for (primIdx=0; primIdx<pld->primNum; primIdx++) {
       switch(pld->type[primIdx]) {
+      case limnPrimitiveNoop:
+        /* no increment */
+        break;
       case limnPrimitiveTriangles:
         ret += pld->icnt[primIdx]/3;
         break;
@@ -468,6 +476,9 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     area[primIdx] = 0;
     switch (pld->type[primIdx]) {
+      case limnPrimitiveNoop:
+        area[primIdx] = 0.0;
+        break;
     case limnPrimitiveTriangles:
       triNum = pld->icnt[primIdx]/3;
       for (triIdx=0; triIdx<triNum; triIdx++) {

@@ -468,6 +468,14 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
     biffAdd(LIMN, err); return 1;
   }
 
+  for (primIdx=0; primIdx<pld->primNum; primIdx++) {
+    if (limnPrimitiveNoop == pld->type[primIdx]) {
+      sprintf(err, "%s: sorry, can't save with prim[%u] type %s", me,
+              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
+      biffAdd(LIMN, err); return 1;
+    }
+  }
+
   mop = airMopNew();
   
   fprintf(file, "%s\n", LMPD_MAGIC);
@@ -910,6 +918,55 @@ hestCB *
 limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 
 int
+_limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "_limnHestPolyDataOFFParse", *nerr;
+  limnPolyData **lpldP;
+  airArray *mop;
+  FILE *file;
+  
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  lpldP = (limnPolyData **)ptr;
+  if (!strlen(str)) {
+    /* got empty filename; user didn't really want data, that's okay*/
+    *lpldP = NULL;
+    return 0;
+  }
+
+  file = fopen(str, "rb");
+  if (!file) {
+    sprintf(err, "%s: couldn't open \"%s\" for reading", me, str);
+    return 1;
+  }
+  mop = airMopNew();
+  airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
+  *lpldP = limnPolyDataNew();
+  airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
+  if (limnPolyDataOFFRead(*lpldP, file)) {
+    airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
+    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+    airMopError(mop);
+    return 1;
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+hestCB
+_limnHestPolyDataOFF = {
+  sizeof(limnPolyData *),
+  "polydata",
+  _limnHestPolyDataOFFParse,
+  (airMopper)limnPolyDataNix
+}; 
+
+hestCB *
+limnHestPolyDataOFF = &_limnHestPolyDataOFF;
+
+int
 limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
   char me[]="limnPolyDataVTKWrite", err[BIFF_STRLEN];
   unsigned int pntIdx, prmIdx, *indx;
@@ -953,6 +1010,11 @@ limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
         fprintf(file, "3 %u %u %u\n",
                 indx[0 + 3*triIdx], indx[1 + 3*triIdx], indx[2 + 3*triIdx]);
       }
+      break;
+    default:
+      sprintf(err, "%s: sorry, type %s (prim %u) not handled here", me, 
+              airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+      biffAdd(LIMN, err); return 1;
       break;
     }
     indx += idxNum;

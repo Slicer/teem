@@ -193,14 +193,15 @@ enum {
 */ 
 enum {
   limnPrimitiveUnknown,       /* 0 */
-  limnPrimitiveTriangles,     /* 1: triangle soup (for GL_TRIANGLES) */
-  limnPrimitiveTriangleStrip, /* 2: triangle strip (for GL_TRIANGLE_STRIP) */
-  limnPrimitiveTriangleFan,   /* 3: triangle fan (for GL_TRIANGLE_FAN) */
-  limnPrimitiveQuads,         /* 4: quad soup (for GL_QUADS) */
-  limnPrimitiveLineStrip,     /* 5: line strip (for GL_LINE_STRIP) */
+  limnPrimitiveNoop,          /* 1: no-op primitive, nothing drawn */
+  limnPrimitiveTriangles,     /* 2: triangle soup (for GL_TRIANGLES) */
+  limnPrimitiveTriangleStrip, /* 3: triangle strip (for GL_TRIANGLE_STRIP) */
+  limnPrimitiveTriangleFan,   /* 4: triangle fan (for GL_TRIANGLE_FAN) */
+  limnPrimitiveQuads,         /* 5: quad soup (for GL_QUADS) */
+  limnPrimitiveLineStrip,     /* 6: line strip (for GL_LINE_STRIP) */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX       5
+#define LIMN_PRIMITIVE_MAX       6
 
 /*
 ******** struct limnLook
@@ -672,6 +673,7 @@ LIMN_EXPORT int limnPolyDataLMPDRead(limnPolyData *pld, FILE *file);
 LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
 LIMN_EXPORT int limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataOFFRead(limnPolyData *pld, FILE *file);
+LIMN_EXPORT hestCB *limnHestPolyDataOFF;
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);

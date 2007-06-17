@@ -115,6 +115,7 @@ limnCameraPathTrack = &_limnCameraPathTrack;
 char
 _limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
   "(unknown limnPrimitive)",
+  "noop",
   "triangles",
   "tristrip",
   "trifan",
@@ -125,6 +126,7 @@ _limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
 char
 _limnPrimitiveDesc[][AIR_STRLEN_MED] = {
   "unknown limnPrimitive",
+  "no-op",
   "triangle soup",
   "triangle strip",
   "triangle fan",
@@ -134,6 +136,7 @@ _limnPrimitiveDesc[][AIR_STRLEN_MED] = {
 
 char
 _limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
+  "noop",
   "triangles",
   "tristrip",
   "trifan",
@@ -144,6 +147,7 @@ _limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
 
 int
 _limnPrimitiveValEqv[] = {
+  limnPrimitiveNoop,
   limnPrimitiveTriangles,
   limnPrimitiveTriangleStrip,
   limnPrimitiveTriangleFan,
