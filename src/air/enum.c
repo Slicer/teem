@@ -38,6 +38,21 @@ airEnumUnknown(const airEnum *enm) {
 }
 
 /*
+******** airEnumLast
+**
+** return the highest value representing a known value
+*/
+int
+airEnumLast(const airEnum *enm) {
+  
+  if (enm && enm->val) {
+    return enm->val[enm->M];
+  } else {
+    return enm->M;
+  }
+}
+
+/*
 ** _airEnumIndex()
 **
 ** given an enum "enm" and value "val", return the index into enm->str[] 
