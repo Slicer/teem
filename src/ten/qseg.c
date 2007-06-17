@@ -32,8 +32,8 @@
 
 /* Calculate the Q-ball profile from DWIs */
 void
-qball(const double b, const int gradcount, const double svals[],
-      const double grads[], double qvals[] ) {
+_tenQball(const double b, const int gradcount, const double svals[],
+          const double grads[], double qvals[] ) {
   /* Not an optimal Q-ball implementation! (Taken from submission to
      MICCAI 2006) Should be solved analytically in the future,
      implemented from recent papers. */
@@ -65,19 +65,19 @@ qball(const double b, const int gradcount, const double svals[],
 
 /* Segments DWIs into 2 segments based on Q-ball profiles */
 void
-segsamp2( const int gradcount, const double qvals[],
-	  const double grads[], const double qpoints[],
-	  unsigned int seg[], double dists[]) {
+_tenSegsamp2(const int gradcount, const double qvals[],
+             const double grads[], const double qpoints[],
+             unsigned int seg[], double dists[]) {
   const int segcount = 2;
   int i, changed=AIR_TRUE;
   double centroids[ 3*2 ]; /* 3*segcount */
 
   AIR_UNUSED(grads);
-  initcent2( gradcount, qvals, qpoints, centroids );
+  _tenInitcent2(gradcount, qvals, qpoints, centroids);
   
   for( i = 0; i < MAX_KMEANS_ITERATIONS && changed; i++ ) {
-    calcdists( segcount, centroids, gradcount, qpoints, dists );
-    changed = calccent2( gradcount, qpoints, dists, centroids, seg );
+    _tenCalcdists(segcount, centroids, gradcount, qpoints, dists);
+    changed = _tenCalccent2(gradcount, qpoints, dists, centroids, seg);
     
     /*
       printf( "Seg[%d]\t= { ",i );
@@ -91,8 +91,8 @@ segsamp2( const int gradcount, const double qvals[],
 
 /* Gives an inital choice of 2 centroids */
 void
-initcent2( const int gradcount, const double qvals[],
-	   const double qpoints[], double centroids[6]) {
+_tenInitcent2(const int gradcount, const double qvals[],
+              const double qpoints[], double centroids[6]) {
   int i, maxidx;
   double max, dist;
   
@@ -111,8 +111,8 @@ initcent2( const int gradcount, const double qvals[],
   /* Find peak/axis from Q-ball furthest away from first peak */
   max = 0;
   for( i = 0; i < gradcount; i++ ) {
-    dist = pldist( qpoints +3*i, centroids );
-    if( dist > max ) {
+    dist = _tenPldist(qpoints +3*i, centroids);
+    if (dist > max) {
       maxidx = i;
       max = dist;
     }
@@ -129,8 +129,8 @@ initcent2( const int gradcount, const double qvals[],
    between Q-balls and centroids, returns true if segmentation changed
 */
 int
-calccent2( const int gradcount, const double qpoints[],
-	   const double dists[], double centroid[6], unsigned int seg[]) {
+_tenCalccent2(const int gradcount, const double qpoints[],
+              const double dists[], double centroid[6], unsigned int seg[]) {
 #if 0
   /* HEY: Attempt to implement better line-adding by adding
      outerproducts of points and estimating major eigenvector
@@ -231,8 +231,8 @@ calccent2( const int gradcount, const double qpoints[],
 
 /* Converts Q-values and gradients to points on the Q-ball surface */
 void
-qvals2points( const int gradcount, const double qvals[],
-	      const double grads[], double qpoints[] ) {
+_tenQvals2points(const int gradcount, const double qvals[],
+                 const double grads[], double qpoints[] ) {
   int i;
   memcpy( qpoints, grads, 3 * gradcount * sizeof( double ) );
   for( i = 0; i < gradcount; i++ ) {
@@ -245,12 +245,12 @@ qvals2points( const int gradcount, const double qvals[],
 /* Calculates the shortest distances from each centroid/axis to each
    Q-ball point */
 void
-calcdists( const int centcount, const double centroid[],
-	   const int gradcount, const double qpoints[], double dists[] ) {
+_tenCalcdists(const int centcount, const double centroid[],
+              const int gradcount, const double qpoints[], double dists[] ) {
   int i,j;
   for( j = 0; j < centcount; j++ )
     for( i = 0; i < gradcount; i++ )
-      dists[j*gradcount +i] = pldist( &qpoints[3*i], &centroid[3*j] );
+      dists[j*gradcount +i] = _tenPldist(&qpoints[3*i], &centroid[3*j]);
   
   /*
     printf("dists = ");
@@ -263,7 +263,7 @@ calcdists( const int centcount, const double centroid[],
 /* Estimates the shortest distance from a point to a line going
    through the origin */
 double
-pldist( const double point[], const double line[] ) {
+_tenPldist( const double point[], const double line[] ) {
   
   double cross[3];
   double negpoint[3];
@@ -279,8 +279,8 @@ pldist( const double point[], const double line[] ) {
 
 /* Converts a segmentation into a set of 0-1 weights */
 void
-seg2weights( const int gradcount, const int seg[],
-	     const int segcount, double weights[] ) {
+_tenSeg2weights(const int gradcount, const int seg[],
+                const int segcount, double weights[] ) {
   int i,j;
   for( j = 0; j < segcount; j++ ) {
     for( i = 0; i < gradcount; i++ ) {

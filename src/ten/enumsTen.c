@@ -28,6 +28,7 @@
 char
 _tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown aniso)",
+  "Conf",
   "Cl1",
   "Cp1",
   "Ca1",
@@ -107,6 +108,7 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "confidence",
   
   "trace",
+  "N",
   "B",
   "det",
   "S",
@@ -142,6 +144,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "trace grad vec",
   "trace grad mag",
   "trace normal",
+
+  "norm grad vec",
+  "norm grad mag",
+  "norm normal",
 
   "B grad vec",
   "B grad mag",
@@ -263,6 +269,7 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "tensor",
   "confidence",
   "trace",
+  "norm",
   "B",
   "determinant",
   "S",
@@ -294,6 +301,9 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "trace grad vec",
   "trace grad mag",
   "trace normal",
+  "norm grad vec",
+  "norm grad mag",
+  "norm normal",
   "B grad vec",
   "B grad mag",
   "B normal",
@@ -393,6 +403,7 @@ _tenGageVal[] = {
   tenGageTensor,        /* "t", the reconstructed tensor: GT[7] */
   tenGageConfidence,    /* "c", first of seven tensor values: GT[1] */
   tenGageTrace,         /* "tr", trace of tensor: GT[1] */
+  tenGageNorm,
   tenGageB,             /* "b": GT[1] */
   tenGageDet,           /* "det", determinant of tensor: GT[1] */
   tenGageS,             /* "s", square of frobenius norm: GT[1] */
@@ -424,6 +435,9 @@ _tenGageVal[] = {
   tenGageTraceGradVec,  /* "trgv": gradient (vector) of trace: GT[3] */
   tenGageTraceGradMag,  /* "trgm": gradient magnitude of trace: GT[1] */
   tenGageTraceNormal,   /* "trn": normal of trace: GT[3] */
+  tenGageNormGradVec,
+  tenGageNormGradMag,
+  tenGageNormNormal,
   tenGageBGradVec,      /* "bgv", gradient (vector) of B: GT[3] */
   tenGageBGradMag,      /* "bgm", gradient magnitude of B: GT[1] */
   tenGageBNormal,       /* "bn", normal of B: GT[3] */
@@ -524,6 +538,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "t", "tensor",
   "c", "conf",
   "tr", "trace",
+  "n", "norm", "r1",
   "b",
   "det",
   "s",
@@ -543,7 +558,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "evec1",
   "evec2",
   "delnk2",
-  "delnk3",
+  "delnk3", "delnr3",
   "delnr1",
   "delnr2",
   "delnphi1",
@@ -552,12 +567,19 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "tg", "tensor grad",
   "tgm", "tensor grad mag",
   "tgmm", "tensor grad mag mag",
+
   "trgv", "tracegv", "trace grad vec",
   "trgm", "tracegm", "trace grad mag",
   "trn", "tracen", "trace normal",
+
+  "ngv", "r1gv", "normgv",
+  "ngm", "r1gm", "normgm",
+  "nn", "r1n", "normn",
+
   "bgv", "b grad vec",
   "bgm", "b grad mag",
   "bn", "b normal",
+
   "detgv", "det grad vec",
   "detgm", "det grad mag",
   "detn", "det normal",
@@ -656,6 +678,7 @@ _tenGageValEqv[] = {
   tenGageTensor, tenGageTensor,
   tenGageConfidence, tenGageConfidence,
   tenGageTrace, tenGageTrace,
+  tenGageNorm, tenGageNorm, tenGageNorm,
   tenGageB,
   tenGageDet,
   tenGageS,
@@ -675,7 +698,7 @@ _tenGageValEqv[] = {
   tenGageEvec1,
   tenGageEvec2,
   tenGageDelNormK2,
-  tenGageDelNormK3,
+  tenGageDelNormK3, tenGageDelNormK3,
   tenGageDelNormR1,
   tenGageDelNormR2,
   tenGageDelNormPhi1,
@@ -684,9 +707,15 @@ _tenGageValEqv[] = {
   tenGageTensorGrad, tenGageTensorGrad,
   tenGageTensorGradMag, tenGageTensorGradMag,
   tenGageTensorGradMagMag, tenGageTensorGradMagMag,
+
   tenGageTraceGradVec, tenGageTraceGradVec, tenGageTraceGradVec,
   tenGageTraceGradMag, tenGageTraceGradMag, tenGageTraceGradMag,
   tenGageTraceNormal, tenGageTraceNormal, tenGageTraceNormal,
+
+  tenGageNormGradVec, tenGageNormGradVec, tenGageNormGradVec,
+  tenGageNormGradMag, tenGageNormGradMag, tenGageNormGradMag,
+  tenGageNormNormal, tenGageNormNormal, tenGageNormNormal,
+
   tenGageBGradVec, tenGageBGradVec,
   tenGageBGradMag, tenGageBGradMag,
   tenGageBNormal, tenGageBNormal,
@@ -1053,13 +1082,15 @@ tenEstimate1Method= &_tenEstimate1Method;
 char
 _tenEstimate2MethodStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenEstimate2Method)",
-  "QSegLLS"
+  "QSegLLS",
+  "Peled"
 };
 
 char
 _tenEstimate2MethodDesc[][AIR_STRLEN_MED] = {
   "unknown tenEstimate2Method",
-  "Q-ball segmentation"
+  "Q-ball segmentation",
+  "Peled"
 };
 
 airEnum

@@ -38,6 +38,22 @@
 ********
 ******** !!!! NOTE NOTE NOTE NOTE NOTE !!!!
 */
+float  _tenAnisoEval_Conf_f(const float  eval[3]) {
+  AIR_UNUSED(eval);
+  return 1.0;
+}
+double _tenAnisoEval_Conf_d(const double eval[3]) {
+  AIR_UNUSED(eval);
+  return 1.0;  return 1.0;
+}
+float  _tenAnisoTen_Conf_f(const float  ten[7]) {
+  return ten[0];
+}
+double _tenAnisoTen_Conf_d(const double ten[7]) {
+  return ten[0];
+}
+
+
 float  _tenAnisoEval_Cl1_f(const float  eval[3]) {
   float sum = eval[0] + eval[1] + eval[2];
   sum = AIR_MAX(0, sum);
@@ -689,6 +705,7 @@ double _tenAnisoTen_eval2_d(const double ten[7]) {
 
 float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
   NULL,
+  _tenAnisoEval_Conf_f,
   _tenAnisoEval_Cl1_f,
   _tenAnisoEval_Cp1_f,
   _tenAnisoEval_Ca1_f,
@@ -721,6 +738,7 @@ float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
    
 double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   NULL,
+  _tenAnisoEval_Conf_d,
   _tenAnisoEval_Cl1_d,
   _tenAnisoEval_Cp1_d,
   _tenAnisoEval_Ca1_d,
@@ -753,6 +771,7 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
    
 float  (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float  ten[7]) = {
   NULL,
+  _tenAnisoTen_Conf_f,
   _tenAnisoTen_Cl1_f,
   _tenAnisoTen_Cp1_f,
   _tenAnisoTen_Ca1_f,
@@ -785,6 +804,7 @@ float  (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float  ten[7]) = {
    
 double (*_tenAnisoTen_d[TEN_ANISO_MAX+1])(const double ten[7]) = {
   NULL,
+  _tenAnisoTen_Conf_d,
   _tenAnisoTen_Cl1_d,
   _tenAnisoTen_Cp1_d,
   _tenAnisoTen_Ca1_d,
@@ -1018,10 +1038,10 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
 int
 tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   char me[]="tenAnisoVolume", err[BIFF_STRLEN];
-  size_t N, I, copyI;
-  float *out, *in, *tensor, eval[3];
+  size_t N, I;
+  float *out, *in, *tensor;
   int map[NRRD_DIM_MAX];
-  size_t sx, sy, sz, size[3], coord[3];
+  size_t sx, sy, sz, size[3];
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: didn't get a tensor nrrd", me);
@@ -1046,10 +1066,11 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   for (I=0; I<=N-1; I++) {
     /* tenVerbose = (I == 911327); */
     tensor = in + I*7;
-    if (tensor[0] < confThresh) {
+    if (tenAniso_Conf != aniso && tensor[0] < confThresh) {
       out[I] = 0.0;
       continue;
     }
+    /* no longer used 
     tenEigensolve_f(eval, NULL, tensor);
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
       copyI = I;
@@ -1060,7 +1081,23 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
               (int)coord[0], (int)coord[1], (int)coord[2]);
       biffAdd(TEN, err); return 1;
     }
-    out[I] = tenAnisoEval_f(eval, aniso);
+    */
+    out[I] = tenAnisoTen_f(tensor, aniso);
+    if (!AIR_EXISTS(out[I])) {
+      size_t copyI, coord[3];
+      copyI = I;
+      NRRD_COORD_GEN(coord, size, 3, copyI);
+      sprintf(err, "%s: generated non-existent aniso %g from tensor "
+              "(%g) %g %g %g   %g %g   %g at sample %u = (%u,%u,%u)", me,
+              out[I],
+              tensor[0], tensor[1], tensor[2], tensor[3],
+              tensor[4], tensor[5], tensor[6],
+              AIR_CAST(unsigned int, I),
+              AIR_CAST(unsigned int, coord[0]),
+              AIR_CAST(unsigned int, coord[1]),
+              AIR_CAST(unsigned int, coord[2]));
+      biffAdd(TEN, err); return 1;
+    }
   }
   ELL_3V_SET(map, 1, 2, 3);
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_SIZE_BIT)) {

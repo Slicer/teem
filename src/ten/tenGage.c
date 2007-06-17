@@ -31,6 +31,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageConfidence,              1,  0,  {tenGageTensor},                                          tenGageTensor,        0,     AIR_FALSE},
 
   {tenGageTrace,                   1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
+  {tenGageNorm,                    1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
   {tenGageB,                       1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
   {tenGageDet,                     1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
   {tenGageS,                       1,  0,  {tenGageTensor},                                                      0,        0,     AIR_FALSE},
@@ -67,6 +68,10 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageTraceGradVec,            3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
   {tenGageTraceGradMag,            1,  1,  {tenGageTraceGradVec},                                                0,        0,     AIR_FALSE},
   {tenGageTraceNormal,             3,  1,  {tenGageTraceGradVec, tenGageTraceGradMag},                           0,        0,     AIR_FALSE},
+
+  {tenGageNormGradVec,             3,  1,  {tenGageNorm, tenGageSGradVec},                                       0,        0,     AIR_FALSE},
+  {tenGageNormGradMag,             1,  1,  {tenGageNormGradVec},                                                 0,        0,     AIR_FALSE},
+  {tenGageNormNormal,              3,  1,  {tenGageNormGradVec, tenGageNormGradMag},                             0,        0,     AIR_FALSE},
 
   {tenGageBGradVec,                3,  1,  {tenGageTensor, tenGageTensorGrad},                                   0,        0,     AIR_FALSE},
   {tenGageBGradMag,                1,  1,  {tenGageBGradVec},                                                    0,        0,     AIR_FALSE},
@@ -356,6 +361,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTrace)) {
     cbA = -(pvl->directAnswer[tenGageTrace][0] = dtA + dtD + dtF);
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageNorm)) {
+    pvl->directAnswer[tenGageNorm][0] = 
+      sqrt(dtA*dtA + dtD*dtD + dtF*dtF + 2*dtB*dtB + 2*dtC*dtC + 2*dtE*dtE);
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageB)) {
     cbB = pvl->directAnswer[tenGageB][0] = 
       dtA*dtD + dtA*dtF + dtD*dtF - dtB*dtB - dtC*dtC - dtE*dtE;
@@ -492,6 +501,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageTraceNormal],
                  magTmp ? 1/magTmp : 0, vecTmp);
   }
+
+  /* ---- Norm stuff handled after S */
+
   /* --- B --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBGradVec)) {
     gradCbB = vecTmp = pvl->directAnswer[tenGageBGradVec];
@@ -548,6 +560,23 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageSNormal],
                  magTmp ? 1/magTmp : 0, vecTmp);
   }
+
+  /* --- Norm --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageNormGradVec)) {
+    double nslc;
+    nslc = pvl->directAnswer[tenGageNorm][0];
+    nslc = nslc ? 1/(2*nslc) : 0.0;
+    vecTmp = pvl->directAnswer[tenGageNormGradVec];
+    ELL_3V_SCALE(vecTmp, nslc, pvl->directAnswer[tenGageSGradVec]);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageNormGradMag)) {
+    magTmp = pvl->directAnswer[tenGageNormGradMag][0] = ELL_3V_LEN(vecTmp);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageNormNormal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageNormNormal],
+                 magTmp ? 1/magTmp : 0, vecTmp);
+  }
+
   /* --- Q --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageQGradVec)) {
     gradCbQ = vecTmp = pvl->directAnswer[tenGageQGradVec];
@@ -1130,7 +1159,7 @@ _tenGageKind = {
   _tenGageIv3Print,
   _tenGageFilter,
   _tenGageAnswer,
-  NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL,
   NULL
 };
 gageKind *

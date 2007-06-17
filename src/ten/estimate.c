@@ -199,7 +199,7 @@ _tenEstimateOutputInit(tenEstimateContext *tec) {
   tec->time = AIR_NAN;
   tec->errorDwi = AIR_NAN;
   tec->errorLogDwi = AIR_NAN;
-  tec->likelihood = AIR_NAN;
+  tec->likelihoodDwi = AIR_NAN;
 }
 
 tenEstimateContext *
@@ -228,7 +228,7 @@ tenEstimateContextNew() {
     tec->recordTime = AIR_FALSE;
     tec->recordErrorDwi = AIR_FALSE;
     tec->recordErrorLogDwi = AIR_FALSE;
-    tec->recordLikelihood = AIR_FALSE;
+    tec->recordLikelihoodDwi = AIR_FALSE;
     tec->verbose = 0;
     tec->progress = AIR_FALSE;
     tec->WLSIterNum = 3;
@@ -841,10 +841,17 @@ _tenEstimateErrorDwi(tenEstimateContext *tec) {
   err = 0;
   for (dwiIdx=0; dwiIdx<tec->dwiNum; dwiIdx++) {
     diff = tec->dwi[dwiIdx] - tec->dwiTmp[dwiIdx];
+    /*
+    avg = (tec->dwi[dwiIdx] + tec->dwiTmp[dwiIdx])/2;
+    avg = AIR_ABS(avg);
+    if (avg) {
+      err += diff*diff/(avg*avg);
+    }
+    */
     err += diff*diff;
   }
   err /= tec->dwiNum;
-  return err;
+  return sqrt(err);
 }
 double
 _tenEstimateErrorLogDwi(tenEstimateContext *tec) {
@@ -858,7 +865,7 @@ _tenEstimateErrorLogDwi(tenEstimateContext *tec) {
     err += diff*diff;
   }
   err /= tec->dwiNum;
-  return err;
+  return sqrt(err);
 }
 
 /*
@@ -1687,7 +1694,7 @@ _tenEstimate1Tensor_MLE(tenEstimateContext *tec) {
 ** tec->time, if tec->recordTime
 ** tec->errorDwi, if tec->recordErrorDwi
 ** tec->errorLogDwi, if tec->recordErrorLogDwi
-** tec->likelihood, if tec->recordLikelihood
+** tec->likelihoodDwi, if tec->recordLikelihoodDwi
 */
 int
 _tenEstimate1TensorSingle(tenEstimateContext *tec) {
@@ -1893,10 +1900,10 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     int recE, recEL, recLK;
     recE = !!(tec->recordErrorDwi);
     recEL = !!(tec->recordErrorLogDwi);
-    recLK = !!(tec->recordLikelihood);
+    recLK = !!(tec->recordLikelihoodDwi);
     if (1 != recE + recEL + recLK) {
       sprintf(err, "%s: requested error volume but need exactly one of "
-              "recordErrorDwi, recordErrorLogDwi, recordLikelihood "
+              "recordErrorDwi, recordErrorLogDwi, recordLikelihoodDwi "
               "to be set", me);
       biffAdd(TEN, err); return 1;
     }
@@ -1997,8 +2004,8 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
         ins((*nterrP)->data, II, tec->errorDwi);
       } else if (tec->recordErrorLogDwi) {
         ins((*nterrP)->data, II, tec->errorLogDwi);
-      } else if (tec->recordLikelihood) {
-        ins((*nterrP)->data, II, tec->likelihood);
+      } else if (tec->recordLikelihoodDwi) {
+        ins((*nterrP)->data, II, tec->likelihoodDwi);
       }
     }
   }

@@ -221,7 +221,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopAlways);
 
   /* figure out B-matrix */
-  if (strcmp("kvp", bmatS)) {
+  if (strcmp("kvp", airToLower(bmatS))) {
     if (!AIR_EXISTS(bval)) {
       fprintf(stderr, "%s: need to specify scalar b-value\n", me);
       airMopError(mop); return 1;
@@ -358,7 +358,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
       if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
       if (airStrlen(terrS)) {
-        tec->recordLikelihood = AIR_TRUE;
+        tec->recordLikelihoodDwi = AIR_TRUE;
       }
       break;
     }

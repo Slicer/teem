@@ -55,16 +55,27 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
   }
 
 
-/* For 2-tensor estimation */
-extern void qball( const double b, const int gradcount, const double svals[], const double grads[], double qvals[] );
-extern void segsamp2( const int gradcount, const double qvals[], const double grads[], const double qpoints[], unsigned int seg[], double dists[] );
-extern void calcdists( const int centcount, const double centroid[6], const int gradcount, const double qpoints[], double dists[] );
-extern void initcent2( const int gradcount, const double qvals[], const double grads[], double centroids[6] );
-extern int calccent2( const int gradcount, const double qpoints[], const double dists[], double centroid[6], unsigned int seg[] );
-extern void seg2weights( const int gradcount, const int seg[], const int segcount, double weights[] );
-extern void qvals2points( const int gradcount, const double qvals[], const double grads[], double qpoints[] );
-extern double pldist( const double point[], const double line[] );
-
+/* qseg.c: 2-tensor estimation */
+extern void _tenQball(const double b, const int gradcount,
+                      const double svals[], const double grads[],
+                      double qvals[] );
+extern void _tenSegsamp2(const int gradcount, const double qvals[],
+                         const double grads[], const double qpoints[],
+                         unsigned int seg[], double dists[] );
+extern void _tenCalcdists(const int centcount, const double centroid[6],
+                          const int gradcount, const double qpoints[],
+                          double dists[] );
+extern void _tenInitcent2(const int gradcount, const double qvals[],
+                          const double grads[], double centroids[6] );
+extern int _tenCalccent2(const int gradcount, const double qpoints[],
+                         const double dists[], double centroid[6],
+                         unsigned int seg[] );
+extern void _tenSeg2weights(const int gradcount, const int seg[],
+                            const int segcount, double weights[] );
+extern void _tenQvals2points(const int gradcount, const double qvals[],
+                             const double grads[], double qpoints[] );
+extern double _tenPldist(const double point[], const double line[] );
+  
 /* For 2-tensor tracking */
 extern tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol);
 
