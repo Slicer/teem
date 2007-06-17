@@ -298,6 +298,7 @@ _gageOffValueUpdate(gageContext *ctx) {
 int
 gageUpdate(gageContext *ctx) {
   char me[]="gageUpdate", err[BIFF_STRLEN];
+  unsigned int pi;
   int i;
 
   if (!( ctx )) {
@@ -311,7 +312,6 @@ gageUpdate(gageContext *ctx) {
 
   /* HEY: shouldn't there be some more logic/state for this? */
   if (ctx->parm.stackUse) {
-    unsigned int pi;
     if (!ctx->stackKsp) {
       sprintf(err, "%s: can't do stack without stackKsp", me);
       biffAdd(GAGE, err); return 1;
@@ -391,6 +391,18 @@ gageUpdate(gageContext *ctx) {
   /* chances are, something above has invalidated the state maintained
      during successive calls to gageProbe() */
   gagePointReset(&ctx->point);
+
+  for (pi=0; pi<ctx->pvlNum; pi++) {
+    if (ctx->pvl[pi]->kind->pvlDataUpdate) {
+      if (ctx->pvl[pi]->kind->pvlDataUpdate(ctx->pvl[pi]->kind,
+                                            ctx->pvl[pi],
+                                            ctx->pvl[pi]->data)) {
+        sprintf(err, "%s: pvlDataUpdate(pvl[%u]) failed", me, pi);
+        biffAdd(GAGE, err); return 1;
+      }
+    }
+  }
+
   if (ctx->verbose) fprintf(stderr, "%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
 
   return 0;

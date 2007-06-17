@@ -606,7 +606,7 @@ _gageKindVec = {
   _gageVecIv3Print,
   _gageVecFilter,
   _gageVecAnswer,
-  NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL,
   NULL
 };
 gageKind *const

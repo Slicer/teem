@@ -619,11 +619,11 @@ typedef struct gagePerVolume_t {
   void *data;                 /* extra data, parameters, buffers, etc.
                                  required for answering some items
                                  (as per the gageItemEntry->needData)
-                                 managed with kind->pvlDataNew, 
-                                 kind->pvlDataCopy, and kind->pvlDataNix,
-                                 so there is no channel for extra info
-                                 to be passed into the pvl->data, other
-                                 that what was put into kind->data */
+                                 managed with kind->pvlDataNew,
+                                 kind->pvlDataCopy, kind->pvlDataUpdate,
+                                 and kind->pvlDataNix, so there is no channel
+                                 for extra info to be passed into the pvl->data,
+                                 other that what was put into kind->data */
 } gagePerVolume;
 
 /*
@@ -673,13 +673,15 @@ typedef struct gageKind_t {
               gagePerVolume *),
     (*answer)(gageContext *,        /* such as _gageSclAnswer() */
               gagePerVolume *),
-    /* for allocating, copying, and nixing the pervolume->data */
+    /* for allocating, copying, updating, and nixing the pervolume->data */
     /* pvlDataNew and pvlDataCopy can use biff, but:
        --> they must use GAGE key (and not callback's library's key), and
        --> pvlDataNix can not use biff */
     *(*pvlDataNew)(const struct gageKind_t *),
     *(*pvlDataCopy)(const struct gageKind_t *, const void *data),
     *(*pvlDataNix)(const struct gageKind_t *, void *data);
+  int (*pvlDataUpdate)(const struct gageKind_t *,
+                       const gagePerVolume *pvl, const void *data);
   void *data;                       /* extra information about the kind of 
                                        volume that's being probed.  This
                                        is passed as "data" to pvlDataNew,

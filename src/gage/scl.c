@@ -287,7 +287,7 @@ _gageKindScl = {
   _gageSclIv3Print,
   _gageSclFilter,
   _gageSclAnswer,
-  NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL,
   NULL
 };
 gageKind *const
