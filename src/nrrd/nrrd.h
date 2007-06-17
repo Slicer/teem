@@ -179,9 +179,11 @@ typedef struct {
                                        in the "measurement frame" to those in
                                        the world space described by spaceDim
                                        (and hopefully space).  Coeff [i][j] is
-                                       column i and row j.  There are no
-                                       semantics linking this to the "kind" of
-                                       any axis, for a variety of reasons */
+                                       *column* i & *row* j, which is probably
+                                       the *transpose* of what you expect.
+                                       There are no semantics linking this to
+                                       the "kind" of any axis, for a variety
+                                       of reasons */
   size_t blockSize;                 /* for nrrdTypeBlock, block byte size */
   double oldMin, oldMax;            /* if non-NaN, and if nrrd is of integral
                                        type, extremal values for the array
