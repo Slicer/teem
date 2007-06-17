@@ -927,21 +927,32 @@ nrrdDomainAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
   return domAxi;
 }
 
+int
+_nrrdSpaceVecExists(const Nrrd *nrrd, unsigned int axi) {
+  unsigned int sai;
+  int ret;
+
+  if (!( nrrd && axi < nrrd->dim && nrrd->spaceDim )) {
+    ret = AIR_FALSE;
+  } else {
+    ret = AIR_TRUE;
+    for (sai=0; sai<nrrd->spaceDim; sai++) {
+      ret &= AIR_EXISTS(nrrd->axis[axi].spaceDirection[sai]);
+    }
+  }
+  return ret;
+}
+
 unsigned int
 nrrdSpatialAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
-  unsigned int spcAxi, axi, sai;
-  int good;
+  unsigned int spcAxi, axi;
 
   if (!( nrrd && axisIdx && nrrd->spaceDim)) {
     return 0;
   }
   spcAxi = 0;
   for (axi=0; axi<nrrd->dim; axi++) {
-    good = AIR_TRUE;
-    for (sai=0; sai<nrrd->spaceDim; sai++) {
-      good &= AIR_EXISTS(nrrd->axis[axi].spaceDirection[sai]);
-    }
-    if (good) {
+    if (_nrrdSpaceVecExists(nrrd, axi)) {
       axisIdx[spcAxi++] = axi;
     }
   }
@@ -1073,7 +1084,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
       *spacing = nrrd->axis[ax].spacing;
       nrrdSpaceVecSetNaN(vector);      
     } else {
-      if (nrrd->spaceDim > 0) {
+      if (nrrd->spaceDim > 0 && _nrrdSpaceVecExists(nrrd, ax)) {
         ret = nrrdSpacingStatusDirection;
         *spacing = nrrdSpaceVecNorm(nrrd->spaceDim, 
                                     nrrd->axis[ax].spaceDirection);
