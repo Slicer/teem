@@ -123,12 +123,28 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   ax[0] = &(nin->axis[baseDim+0]);
   ax[1] = &(nin->axis[baseDim+1]);
   ax[2] = &(nin->axis[baseDim+2]);
+  /*
+  if (1) {
+    unsigned int ai;
+    for (ai=0; ai<3; ai++) {
+      fprintf(stderr, "!%s: ax[%u] spc = %g, sd = %g %g %g\n", me, ai,
+              ax[ai]->spacing,
+              ax[ai]->spaceDirection[0],
+              ax[ai]->spaceDirection[1],
+              ax[ai]->spaceDirection[2]);
+    }
+  }
+  */
   statCalc[0] = nrrdSpacingCalculate(nin, baseDim + 0,
                                      spcCalc + 0, vecCalc[0]);
   statCalc[1] = nrrdSpacingCalculate(nin, baseDim + 1,
                                      spcCalc + 1, vecCalc[1]);
   statCalc[2] = nrrdSpacingCalculate(nin, baseDim + 2,
                                      spcCalc + 2, vecCalc[2]);
+  /*
+  fprintf(stderr, "!%s: axis stat %d %d %d\n", me,
+          statCalc[0], statCalc[1], statCalc[2]);
+  */
   /* see if nrrdSpacingCalculate ever *failed* */
   if (nrrdSpacingStatusUnknown == statCalc[0] ||
       nrrdSpacingStatusUnknown == statCalc[1] ||
