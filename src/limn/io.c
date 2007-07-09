@@ -514,6 +514,7 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
     sprintf(err, "%s: problem saving indx array", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
+  fflush(file);
   fprintf(file, "\n");
 
   fprintf(file, "%s%s\n", DEMARK_STR, XYZW_STR);
@@ -522,6 +523,7 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
     sprintf(err, "%s: problem saving xyzw array", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
+  fflush(file);
   fprintf(file, "\n");
 
   if (infoNum) {
@@ -553,6 +555,7 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
                   me, airEnumStr(limnPolyDataInfo, bit));
           biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
         }
+        fflush(file);
         fprintf(file, "\n");
       }
       flag /= 2;
