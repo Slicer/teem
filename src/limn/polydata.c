@@ -246,32 +246,42 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA), num*pldA->xyzwNum,
-                        num*pldA->indxNum, num*pldA->primNum)) {
+  if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA),
+                        num*pldA->xyzwNum,
+                        num*pldA->indxNum,
+                        num*pldA->primNum)) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffAdd(LIMN, err); return 1;
   }
   for (ii=0; ii<num; ii++) {
-    size = pldA->xyzwNum*sizeof(float)*4;
-    memcpy(pldB->xyzw + ii*size, pldA->xyzw, size);
+    /* fprintf(stderr, "!%s: ii = %u/%u\n", me, ii, num); */
+    size = pldA->xyzwNum*4;
+    /*
+    char *_beg = (char *)(pldB->xyzw + ii*size);
+    char *_end = _beg + size - 1;
+    fprintf(stderr, "!%s: memcpy(%p+%u=%p,%u) --> [%p,%p] inside: %d %d\n", me,
+            pldB->xyzw, ii*size, pldB->xyzw + ii*size, size,
+            _beg, _end, AIR_IN_CL(_xyzwBeg, _beg, _xyzwEnd), 
+            AIR_IN_CL(_xyzwBeg, _end, _xyzwEnd));
+    */
+    memcpy(pldB->xyzw + ii*size, pldA->xyzw, size*sizeof(float));
     for (jj=0; jj<pldA->indxNum; jj++) {
       (pldB->indx + ii*pldA->indxNum)[jj] = pldA->indx[jj] + ii*pldA->xyzwNum;
     }
-    size = pldA->primNum*sizeof(signed char);
-    memcpy(pldB->type + ii*size, pldA->type, size);
-    size = pldA->primNum*sizeof(unsigned int);
-    memcpy(pldB->icnt + ii*size, pldA->icnt, size);
+    size = pldA->primNum;
+    memcpy(pldB->type + ii*size, pldA->type, size*sizeof(unsigned char));
+    memcpy(pldB->icnt + ii*size, pldA->icnt, size*sizeof(unsigned int));
     if (pldA->rgba) {
-      size = pldA->rgbaNum*sizeof(unsigned char)*4;
-      memcpy(pldB->rgba + ii*size, pldA->rgba, size);
+      size = pldA->rgbaNum*4;
+      memcpy(pldB->rgba + ii*size, pldA->rgba, size*sizeof(unsigned char));
     }
     if (pldA->norm) {
-      size = pldA->normNum*sizeof(float)*3;
-      memcpy(pldB->norm + ii*size, pldA->norm, size);
+      size = pldA->normNum*3;
+      memcpy(pldB->norm + ii*size, pldA->norm, size*sizeof(float));
     }
     if (pldA->tex2) {
-      size = pldA->tex2Num*sizeof(float)*2;
-      memcpy(pldB->tex2 + ii*size, pldA->tex2, size);
+      size = pldA->tex2Num*2;
+      memcpy(pldB->tex2 + ii*size, pldA->tex2, size*sizeof(float));
     }
   }
   return 0;
@@ -388,23 +398,25 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
     float pos[3][3], edgeA[3], edgeB[3], sum[3], dif[3], norm[3], wght;
     
     triNum = pld->icnt[primIdx]/3;
-    for (triIdx=0; triIdx<triNum; triIdx++) {
-      indxLine = pld->indx + baseVertIdx + 3*triIdx;
-      for (ii=0; ii<3; ii++) {
-        ELL_34V_HOMOG(pos[ii], pld->xyzw + 4*indxLine[ii]);
-      }
-      ELL_3V_SUB(edgeA, pos[1], pos[0]);
-      ELL_3V_NORM_TT(edgeA, float, edgeA, len);
-      ELL_3V_SUB(edgeB, pos[2], pos[0]);
-      ELL_3V_NORM_TT(edgeB, float, edgeB, len);
-      ELL_3V_CROSS(norm, edgeA, edgeB);
-      ELL_3V_NORM_TT(norm, float, norm, len);
-      ELL_3V_ADD2(sum, edgeA, edgeB);
-      ELL_3V_SUB(dif, edgeA, edgeB);
-      /* wght is angle between edges, as per redbook Appendix E */
-      wght = 2*AIR_CAST(float, atan2(ELL_3V_LEN(dif), ELL_3V_LEN(sum)));
-      for (ii=0; ii<3; ii++) {
-        ELL_3V_SCALE_INCR(pld->norm + 3*indxLine[ii], wght, norm);
+    if (limnPrimitiveNoop != pld->type[primIdx]) {
+      for (triIdx=0; triIdx<triNum; triIdx++) {
+        indxLine = pld->indx + baseVertIdx + 3*triIdx;
+        for (ii=0; ii<3; ii++) {
+          ELL_34V_HOMOG(pos[ii], pld->xyzw + 4*indxLine[ii]);
+        }
+        ELL_3V_SUB(edgeA, pos[1], pos[0]);
+        ELL_3V_NORM_TT(edgeA, float, edgeA, len);
+        ELL_3V_SUB(edgeB, pos[2], pos[0]);
+        ELL_3V_NORM_TT(edgeB, float, edgeB, len);
+        ELL_3V_CROSS(norm, edgeA, edgeB);
+        ELL_3V_NORM_TT(norm, float, norm, len);
+        ELL_3V_ADD2(sum, edgeA, edgeB);
+        ELL_3V_SUB(dif, edgeA, edgeB);
+        /* wght is angle between edges, as per redbook Appendix E */
+        wght = 2*AIR_CAST(float, atan2(ELL_3V_LEN(dif), ELL_3V_LEN(sum)));
+        for (ii=0; ii<3; ii++) {
+          ELL_3V_SCALE_INCR(pld->norm + 3*indxLine[ii], wght, norm);
+        }
       }
     }
     baseVertIdx += 3*triNum;
