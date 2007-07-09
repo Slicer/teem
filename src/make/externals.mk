@@ -31,7 +31,7 @@
 ## external EXT is enabled during make, then TEEM_EXT will be defined
 ## as "1" during source file compilation.
 ##
-XTERNS = PNG ZLIB BZIP2 PTHREAD
+XTERNS = PNG ZLIB BZIP2 PTHREAD LEVMAR
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
@@ -71,3 +71,12 @@ nrrd.XTERN += PNG
 ## link lines, respectively.
 PTHREAD.LINK = -lpthread
 air.XTERN += PTHREAD
+
+## LEVMAR: Levenberg-Marquardt from 
+## http://www.ics.forth.gr/~lourakis/levmar/
+##
+## Arch-specific .mk files may need to set TEEM_LEVMAR_IPATH and
+## TEEM_LEVMAR_LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
+LEVMAR.LINK = -llevmar
+ten.XTERN += LEVMAR
