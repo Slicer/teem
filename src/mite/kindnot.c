@@ -174,7 +174,7 @@ _miteValGageKind = {
   NULL,
   NULL,
   NULL,
-  NULL, NULL, NULL,
+  NULL, NULL, NULL, NULL,
   NULL
 };
 
