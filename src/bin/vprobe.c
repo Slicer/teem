@@ -90,7 +90,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet;
+  int what, E=0, otype, renorm, hackSet, verbose;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
@@ -115,6 +115,8 @@ main(int argc, char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, &probeKindHestCB);
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+             "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
@@ -264,7 +266,7 @@ main(int argc, char *argv[]) {
   ctx = gageContextNew();
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
-  gageParmSet(ctx, gageParmVerbose, 1);
+  gageParmSet(ctx, gageParmVerbose, verbose);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
@@ -361,9 +363,16 @@ main(int argc, char *argv[]) {
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
   for (zi=0; zi<soz; zi++) {
-    fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
-            zi, soz-1); fflush(stderr);
-
+    if (verbose) {
+      if (verbose > 1) {
+        fprintf(stderr, "z = ");
+      }
+      fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
+              zi, soz-1); fflush(stderr);
+      if (verbose > 1) {
+        fprintf(stderr, "\n");
+      }
+    }
     if (AIR_TRUE == hackSet) {
       if (hackZi != zi) {
         continue;
@@ -373,17 +382,18 @@ main(int argc, char *argv[]) {
     z = AIR_AFFINE(min[2], zi, maxOut[2], min[2], maxIn[2]);
     for (yi=0; yi<soy; yi++) {
       y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
-      /* 
-         fprintf(stderr, " (%u, %u)", 
-                AIR_CAST(unsigned int, yi), AIR_CAST(unsigned int, zi));
+      if (2 == verbose) {
+        fprintf(stderr, " %u/%u", AIR_CAST(unsigned int, yi),
+                AIR_CAST(unsigned int, soy));
         fflush(stderr);
-      */
-        for (xi=0; xi<sox; xi++) {
-        /*
-        fprintf(stderr, " (%u, %u, %u)", AIR_CAST(unsigned int, xi),
-                AIR_CAST(unsigned int, yi), AIR_CAST(unsigned int, zi));
-        fflush(stderr);
-        */
+      }
+      for (xi=0; xi<sox; xi++) {
+        if (verbose > 2) {
+          fprintf(stderr, " (%u,%u)/(%u,%u)", 
+                  AIR_CAST(unsigned int, xi), AIR_CAST(unsigned int, yi),
+                  AIR_CAST(unsigned int, sox), AIR_CAST(unsigned int, soy));
+          fflush(stderr);
+        }
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*(32 == xi && 16 == yi && 16 == zi);
