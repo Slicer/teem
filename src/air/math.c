@@ -22,11 +22,48 @@
 
 
 #include "air.h"
+#include <teemEndian.h>
 
 /*
 ** by the way, the organization of functions into files is a little
 ** arbitrary around here
 */
+
+/*
+** from: Gavin C Cawley, "On a Fast, Compact Approximation of the
+** Exponential Function" Neural Computation, 2000, 12(9), 2009-2012.
+**
+** which in turn is based on: N N Schraudolph, "A fast, compact approximation
+** of the exponential function." Neural Computation, 1999, 11(4), 853-862.
+*/
+
+typedef union {
+  double dd;
+  int nn[2];
+} eco_t;
+
+#define EXPA (1048576/0.69314718055994530942)
+#define EXPC 60801
+#if TEEM_ENDIAN == 1234
+#  define EXPI 1
+#else
+#  define EXPI 0
+#endif
+double
+airFastExp(double val) {
+  eco_t eco;
+  double ret;
+
+  eco.nn[EXPI] = AIR_CAST(int, (EXPA*(val)) + (1072693248 - EXPC));
+  eco.nn[1-EXPI] = 0;
+  ret = (eco.dd > 0.0
+         ? eco.dd
+         : exp(val)); /* else result is implausible, use real exp() */
+  return ret;
+}
+#undef EXPA
+#undef EXPC
+#undef EXPI
 
 /*
 ******** airNormalRand

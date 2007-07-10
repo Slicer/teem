@@ -492,6 +492,7 @@ AIR_EXPORT unsigned int airEqvSettle(unsigned int *map, unsigned int len);
 
 
 /* math.c */
+AIR_EXPORT double airFastExp(double val);
 AIR_EXPORT void airNormalRand(double *z1, double *z2);
 AIR_EXPORT void airNormalRand_r(double *z1, double *z2,
                                 airRandMTState *state);

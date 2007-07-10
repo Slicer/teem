@@ -51,7 +51,7 @@ $(L).OBJS = 754.o randMT.o array.o miscAir.o parseAir.o math.o \
 	endianAir.o dio.o mop.o enum.o sane.o string.o threadAir.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp test/trand test/tdio \
-        test/bessy test/tarr
+        test/bessy test/tarr test/texp
 
 $(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true
