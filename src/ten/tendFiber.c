@@ -92,7 +92,9 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (useDwi) {
     fprintf(stderr, "%s: whichPath = %u\n", me, whichPath);
-    tfx = tenFiberContextDwiNew(nin);
+    tfx = tenFiberContextDwiNew(nin, 50, 1, 1,
+                                tenEstimate1MethodLLS,
+                                tenEstimate2MethodQSegLLS);
     if (tfx) {
       tfx->ten2Which = whichPath;
     }

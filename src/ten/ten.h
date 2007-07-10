@@ -428,83 +428,101 @@ enum {
   tenDwiGageAll,
 
   /*  2: "b0", the non-Dwi image value, either by direct measurement
-      or by estimation: [1] */
+      or by estimation: [1]
+      HEY: currently a hack, because it assumes a single known B0 */
   tenDwiGageB0,
 
-  /*  3: "mdwi", the average Dwi image value, which is thresholded to
-      create the confidence mask: [1] */
-  tenDwiGageMeanDwiValue,
+  /*  3: "jdwi", just the DWIs, no B0: [N-1] (HEY same hack) */
+  tenDwiGageJustDWI,
 
-  /*  4: "tlls": [7],
-      5: "tllserr": [1],
-      6: "tllserrlog": [1],
-      7: "tllslike": [1],
+  /*  4: "adc", ADCs from the DWIs: [N-1] (HEY same hack) */
+  tenDwiGageADC,
+
+  /*  5: "mdwi", the average Dwi image value, which is thresholded to
+      create the confidence mask: [1] */
+  tenDwiGageMeanDWIValue,
+
+  /*  6: "tlls": [7],
+      7: "tllserr": [1],
+      8: "tllserrlog": [1],
+      9: "tllslike": [1],
      linear least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorLLS,
   tenDwiGageTensorLLSError,      /* RMS error w/ Dwis */
   tenDwiGageTensorLLSErrorLog,   /* RMS error w/ log(Dwi)s */
   tenDwiGageTensorLLSLikelihood,
 
-  /*  8: "twls": [7],
-      9: "twlserr": [1],
-     10: "twlserrlog": [1],
-     11: "twlslike": [1],
+  /* 10: "twls": [7],
+     11: "twlserr": [1],
+     12: "twlserrlog": [1],
+     13: "twlslike": [1],
      weighted least squares fit of tensor value to log(Dwi)s */
   tenDwiGageTensorWLS,
   tenDwiGageTensorWLSError,
   tenDwiGageTensorWLSErrorLog,
   tenDwiGageTensorWLSLikelihood,
 
-  /* 12: "tnls": [7],
-     13: "tnlserr": [1],
-     14: "tnlserrlog": [1],
-     15: "tnlslike": [1],
+  /* 14: "tnls": [7],
+     15: "tnlserr": [1],
+     16: "tnlserrlog": [1],
+     17: "tnlslike": [1],
      non-linear least squares fit of tensor value to Dwis (not log) */
   tenDwiGageTensorNLS,
   tenDwiGageTensorNLSError,
   tenDwiGageTensorNLSErrorLog,
   tenDwiGageTensorNLSLikelihood,
 
-  /* 16: "tmle": [7],
-     17: "tmleerr": [1],
-     18: "tmleerrlog": [1],
-     19: "tmlelike": [1],
+  /* 18: "tmle": [7],
+     19: "tmleerr": [1],
+     20: "tmleerrlog": [1],
+     21: "tmlelike": [1],
      maximum-likelihood fit of tensor value to Dwis */
   tenDwiGageTensorMLE,
   tenDwiGageTensorMLEError,
   tenDwiGageTensorMLEErrorLog,
   tenDwiGageTensorMLELikelihood,
 
-  /* 20: "t": [7],
-     21: "terr": [1],
-     22: "terrlog": [1],
-     23: "tlike": [1],
+  /* 22: "t": [7],
+     23: "terr": [1],
+     24: "terrlog": [1],
+     25: "tlike": [1],
      one of the above tensors and its errors, depending on settings */
   tenDwiGageTensor,
   tenDwiGageTensorError,
   tenDwiGageTensorErrorLog,
   tenDwiGageTensorLikelihood,
 
-  /* 24: "c", first of seven tensor values: [1] */
+  /* 26: "c", first of seven tensor values: [1] */
   tenDwiGageConfidence,
 
-  /* 25: "2qserr": [1]
-     26: "2qs", two tensor fitting by q-ball segmentation: [14]
-     27: "2qsnerr": [15] */
+  /* 27: "fa", FA computed from the single tensor: [1] */
+  tenDwiGageFA,
+
+  /* 28: "adwie", all errors between measured and predicted DWIs
+     [N-1] (HEY same hack) */
+  tenDwiGageTensorAllDWIError,
+
+  /* 29: "2qserr": [1]
+     30: "2qs", two tensor fitting by q-ball segmentation: [14]
+     31: "2qsnerr": [15] */
   tenDwiGage2TensorQSeg,
   tenDwiGage2TensorQSegError,
   tenDwiGage2TensorQSegAndError,
 
-  /* 28: "2qserr": [1]
-     29: "2qs", two tensor fitting by q-ball segmentation: [14]
-     30: "2qsnerr": [15] */
+  /* 32: "2pelederr": [1]
+     33: "2peled", two tensor fitting by q-ball segmentation: [14]
+     34: "2pelednerr": [15] */
   tenDwiGage2TensorPeled,
   tenDwiGage2TensorPeledError,
   tenDwiGage2TensorPeledAndError,
 
+  /* 35: "2peledlminfo", levmar output info vector: [9]
+     note: length 9 being correct is checked in _tenDwiGagePvlDataNew() */
+  tenDwiGage2TensorPeledLevmarInfo,
+
   tenDwiGageLast
 };
-#define TEN_DWI_GAGE_ITEM_MAX 30
+#define TEN_DWI_GAGE_ITEM_MAX 35
 
 /*
 ******** tenEstimate1Method* enum
@@ -877,6 +895,7 @@ typedef struct {
   Nrrd *ngrad, *nbmat;       /* owned by us */
   double thresh, soft, bval, valueMin;
   int est1Method, est2Method;
+  unsigned int randSeed;
 } tenDwiGageKindData;
 
 /*
@@ -900,6 +919,15 @@ typedef struct {
   double *qpoints;
   double *dists;
   double *weights;
+  Nrrd *nten1EigenGrads;
+  airRandMTState *randState;
+  unsigned int randSeed;
+  double ten1[7], ten1Evec[9], ten1Eval[3];
+  int levmarUseFastExp;
+  unsigned int levmarMaxIter;
+  double levmarTau, levmarEps1, levmarEps2, levmarEps3,
+    levmarDelta, levmarMinCp;
+  double levmarInfo[9]; /* output */
 } tenDwiGagePvlData;
 
 typedef struct {
@@ -1130,7 +1158,7 @@ TEN_EXPORT tenEstimateContext *tenEstimateContextNix(tenEstimateContext *tec);
 TEN_EXPORT float (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float eval[3]);
 TEN_EXPORT float tenAnisoEval_f(const float eval[3], int aniso);
 TEN_EXPORT double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]);
-TEN_EXPORT double tenAnisoEval_d(const double ten[7], int aniso);
+TEN_EXPORT double tenAnisoEval_d(const double eval[3], int aniso);
 
 TEN_EXPORT float (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float ten[7]);
 TEN_EXPORT float tenAnisoTen_f(const float ten[7], int aniso);
@@ -1168,7 +1196,12 @@ TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
 
 /* fiberMethods.c */
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
-TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol);
+TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol,
+                                                  double thresh,
+                                                  double soft,
+                                                  double valueMin,
+                                                  int ten1method,
+                                                  int ten2method);
 TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const NrrdKernel *kern,
@@ -1250,7 +1283,8 @@ TEN_EXPORT int tenDwiGageKindSet(gageKind *dwiKind,
                                  double bval, double valueMin,
                                  const Nrrd *ngrad,
                                  const Nrrd *nbmat,
-                                 int emethod1, int emethod2);
+                                 int emethod1, int emethod2,
+                                 unsigned int randSeed);
 TEN_EXPORT int tenDwiGageKindCheck(const gageKind *kind);
 
 /* bimod.c */

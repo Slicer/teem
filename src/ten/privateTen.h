@@ -76,8 +76,11 @@ extern void _tenQvals2points(const int gradcount, const double qvals[],
                              const double grads[], double qpoints[] );
 extern double _tenPldist(const double point[], const double line[] );
   
-/* For 2-tensor tracking */
-extern tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol);
+/* arishFuncs.c: Arish's implementation of Peled's 2-tensor fit */
+#define VEC_SIZE	3
+
+extern void twoTensFunc(double *p, double *x, int m, int n, void *data);
+extern void formTensor2D(double ten[7], double lam1, double lam3, double phi);
 
 #ifdef __cplusplus
 }

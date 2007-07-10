@@ -25,7 +25,9 @@
 
 static
 tenFiberContext *
-_tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
+_tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
+                          double thresh, double soft, double valueMin,
+                          int ten1method, int ten2method) {
   char me[]="_tenFiberContextCommonNew", err[BIFF_STRLEN];
   tenFiberContext *tfx;
   gageKind *kind;
@@ -52,10 +54,9 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
     }
     kind = tenDwiGageKindNew();
     if (tenDwiGageKindSet(kind,
-                          50, 1, bval, 1.0, /* HEY: generalize these */
+                          thresh, soft, bval, valueMin,
                           ngrad, NULL,
-                          tenEstimate1MethodLLS,
-                          tenEstimate2MethodQSegLLS)) {
+                          ten1method, ten2method, 42)) {
       sprintf(err, "%s: trouble setting DWI kind", me);
       biffAdd(TEN, err); return NULL;
     }
@@ -153,11 +154,15 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi) {
 }
 
 tenFiberContext *
-tenFiberContextDwiNew(const Nrrd *dwivol) {
+tenFiberContextDwiNew(const Nrrd *dwivol,
+                      double thresh, double soft, double valueMin,
+                      int ten1method, int ten2method) {
   char me[]="tenFiberContextDwiNew", err[BIFF_STRLEN];
   tenFiberContext *tfx;
 
-  if (!( tfx = _tenFiberContextCommonNew(dwivol, AIR_TRUE) )) {
+  if (!( tfx = _tenFiberContextCommonNew(dwivol, AIR_TRUE,
+                                         thresh, soft, valueMin,
+                                         ten1method, ten2method) )) {
     sprintf(err, "%s: couldn't create new context", me);
     biffAdd(TEN, err); return NULL;
   }
@@ -169,7 +174,10 @@ tenFiberContextNew(const Nrrd *dtvol) {
   char me[]="tenFiberContextNew", err[BIFF_STRLEN];
   tenFiberContext *tfx;
 
-  if (!( tfx = _tenFiberContextCommonNew(dtvol, AIR_FALSE) )) {
+  if (!( tfx = _tenFiberContextCommonNew(dtvol, AIR_FALSE,
+                                         AIR_NAN, AIR_NAN, AIR_NAN,
+                                         tenEstimate1MethodUnknown,
+                                         tenEstimate2MethodUnknown) )) {
     sprintf(err, "%s: couldn't create new context", me);
     biffAdd(TEN, err); return NULL;
   }
