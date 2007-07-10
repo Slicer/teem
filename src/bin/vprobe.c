@@ -91,7 +91,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   int what, E=0, otype, renorm, hackSet, verbose;
-  unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx;
+  unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
@@ -132,6 +132,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
              "cubicdd:1,0", "kernel for gageKernel22",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
+             "RNG seed; mostly for debugging");
 
   hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS,
              "0", "how many scale-space samples to evaluate, or, "
@@ -188,7 +190,7 @@ main(int argc, char *argv[]) {
     /* this could stand to use some more command-line arguments */
     if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat,
                           tenEstimate1MethodLLS,
-                          tenEstimate2MethodQSegLLS)) {
+                          tenEstimate2MethodQSegLLS, seed)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
