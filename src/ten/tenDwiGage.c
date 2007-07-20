@@ -676,9 +676,10 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorPeledLevmarInfo)) {
     double *info;
-    unsigned int ii;
+    unsigned int ii, alen;
+    alen = gageKindAnswerLength(pvl->kind, tenDwiGage2TensorPeledLevmarInfo);
     info = pvl->directAnswer[tenDwiGage2TensorPeledLevmarInfo];
-    for (ii=0; ii<LM_INFO_SZ; ii++) {
+    for (ii=0; ii<alen; ii++) {
       info[ii] = pvlData->levmarInfo[ii];
     }
   }
@@ -789,7 +790,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
 #endif
   pvlData->levmarUseFastExp = AIR_FALSE;
   pvlData->levmarMaxIter = 50;
-  pvlData->levmarTau = LM_INIT_MU;
+  pvlData->levmarTau = 1E-03; /* LM_INIT_MU; */
   pvlData->levmarEps1 = 1E-8;
   pvlData->levmarEps2 = 1E-12;
   pvlData->levmarEps3 = 1E-8;
