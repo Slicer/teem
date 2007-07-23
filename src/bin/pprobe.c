@@ -193,7 +193,8 @@ main(int argc, char *argv[]) {
     /* this could stand to use some more command-line arguments */
     if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat,
                           tenEstimate1MethodLLS,
-                          tenEstimate2MethodQSegLLS)) {
+                          tenEstimate2MethodQSegLLS,
+                          /* randSeed */ 7919)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
       airMopError(mop); return 1;
