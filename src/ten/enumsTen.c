@@ -885,6 +885,51 @@ _tenFiberType = {
 airEnum *
 tenFiberType = &_tenFiberType;
 
+/* --------------------------------------------------------------------- */
+
+char
+_tenDwiFiberTypeStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenDwiFiberType)",
+  "1evec0",
+  "2evec0",
+  "12BlendEvec0"
+};
+
+char
+_tenDwiFiberTypeDesc[][AIR_STRLEN_MED] = {
+  "unknown tenDwiFiber type",
+  "single tensor evec0-based",
+  "two-tensor evec0-based",
+  "parameterized blend between 1- and 2-tensor fits"
+};
+
+char
+_tenDwiFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "1evec0", "1e0",
+  "2evec0", "2e0",
+  "12BlendEvec0", "12be0",
+  ""
+};
+
+int
+_tenDwiFiberTypeValEqv[] = {
+  tenDwiFiberType1Evec0, tenDwiFiberType1Evec0,
+  tenDwiFiberType2Evec0, tenDwiFiberType2Evec0,
+  tenDwiFiberType12BlendEvec0, tenDwiFiberType12BlendEvec0
+};
+
+airEnum
+_tenDwiFiberType = {
+  "tenDwiFiberType",
+  TEN_DWI_FIBER_TYPE_MAX,
+  _tenDwiFiberTypeStr, NULL,
+  _tenDwiFiberTypeDesc,
+  _tenDwiFiberTypeStrEqv, _tenDwiFiberTypeValEqv,
+  AIR_FALSE
+};
+airEnum *
+tenDwiFiberType = &_tenDwiFiberType;
+
 /* ----------------------------------------------------------------------- */
 
 char

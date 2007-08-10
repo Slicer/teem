@@ -600,6 +600,23 @@ enum {
 #define TEN_FIBER_TYPE_MAX   6
 
 /*
+******** tenDwiFiberType* enum
+** 
+** how tractography is done in DWI volumes.  This is orthogonal to
+** how single- or two-tensor estimation is done; it describes what we
+** do with the model(s) once estimated
+*/
+enum {
+  tenDwiFiberTypeUnknown,      /* 0: nobody knows */
+  tenDwiFiberType1Evec0,       /* 1: like old-fashioned tractography */
+  tenDwiFiberType2Evec0,       /* 2: only using 2-tensor fits */
+  tenDwiFiberType12BlendEvec0, /* 3: blend between 1- and 2-ten evec0 methods,
+                                  based on something else */
+  tenDwiFiberTypeLast
+};
+#define TEN_DWI_FIBER_TYPE_MAX    3
+
+/*
 ******** tenFiberIntg* enum
 **
 ** the different integration styles supported.  Obviously, this is more
@@ -665,7 +682,8 @@ typedef struct {
   /* ---- input -------- */
   const Nrrd *nin;      /* the tensor OR DWI volume being analyzed */
   NrrdKernelSpec *ksp;  /* reconstruction kernel for tensors or DWIs */
-  int fiberType,        /* from tenFiberType* enum */
+  int useDwi,           /* we're working in a DWI, not a tensor, volume */    
+    fiberType,          /* from tenFiberType* OR tenDwiFiberType* enum */
     intg,               /* from tenFiberIntg* enum */
     anisoStopType,      /* which aniso we do a threshold on */
     anisoSpeedType,     /* base step size is function of this anisotropy */
@@ -682,8 +700,11 @@ typedef struct {
   double wPunct;        /* knob for tensor lines */
   /* ---- internal ----- */
   gageQuery query;      /* query we'll send to gageQuerySet */
-  int dir;              /* current direction being computed (0 or 1) */
-  double wPos[3],       /* current world space location */
+  int dir,              /* current direction being computed (0 or 1) */
+    mframeUse;          /* need to use mframe[] and mframeT[] */
+  double mframe[9],     /* measurement frame in normal matrix lay-out */
+    mframeT[9],         /* transpose of mframe[] */
+    wPos[3],            /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3],         /* previous value of wDir */
     lastTen[7],         /* in 2-tensor tracking, which tensor was last used */
@@ -698,11 +719,11 @@ typedef struct {
     *gageEvec,              /* gageAnswerPointer(pvl, tenGageEvec) */
     *gageAnisoStop,         /* gageAnswerPointer(pvl, tenGage<anisoStop>) */
     *gageAnisoSpeed,        /* gageAnswerPointer(pvl, tenGage<anisoSpeed>) */
-    *gageTen2;              /* gageAnswerPointer(pvl, tenDwiGage2TensorQSeg) */
+    *gageTen2;              /* gageAnswerPointer(pvl, tenDwiGage..2Tensor..) */
   double ten2AnisoStop;
   double fiberTen[7], fiberEval[3], fiberEvec[9],
     fiberAnisoStop, fiberAnisoSpeed;
-  int ten2Tracking, ten2Which;
+  int ten2Which;
   double radius;        /* current radius of curvature */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
@@ -981,6 +1002,7 @@ TEN_EXPORT airEnum *tenPathType;
 TEN_EXPORT airEnum _tenGage;
 TEN_EXPORT airEnum *tenGage;
 TEN_EXPORT airEnum *tenFiberType;
+TEN_EXPORT airEnum *tenDwiFiberType;
 TEN_EXPORT airEnum *tenFiberStop;
 TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;

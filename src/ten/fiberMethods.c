@@ -41,8 +41,10 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     Nrrd *ngrad=NULL, *nbmat=NULL;
     double bval=0;
     unsigned int *skip, skipNum;
-    
-    tfx->ten2Tracking = AIR_TRUE;
+
+    tfx->useDwi = AIR_TRUE;
+    /* default fiber type */
+    tfx->fiberType = tenDwiFiberTypeUnknown;
     
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, vol)) {
       sprintf(err, "%s: trouble parsing DWI info", me );
@@ -62,6 +64,9 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     }
   } else {
     /* it should be a tensor volume */
+    tfx->useDwi = AIR_FALSE;
+    /* default fiber type */
+    tfx->fiberType = tenFiberTypeUnknown;
     if (tenTensorCheck(vol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
       sprintf(err, "%s: didn't get a tensor volume", me);
       biffAdd(TEN, err); return NULL;
@@ -87,9 +92,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     sprintf(err, "%s: couldn't set default kernel", me);
     biffAdd(TEN, err); return NULL;
   }
-  /* looks to GK like GK says that we must set fiber type and
-    some stop criterion */
-  tfx->fiberType = tenFiberTypeEvec0;
+  /* looks to GK like GK says that we must set some stop criterion */
   tfx->intg = tenDefFiberIntg;
   tfx->anisoStopType = tenDefFiberAnisoStopType;
   tfx->anisoSpeedType = tenAnisoUnknown;
@@ -110,39 +113,22 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   tfx->wPunct = tenDefFiberWPunct;
 
   GAGE_QUERY_RESET(tfx->query);
-  if (tfx->ten2Tracking) {
-    GAGE_QUERY_ITEM_ON( tfx->query, tenDwiGage2TensorQSeg );
-    tfx->gageTen = NULL;
-    tfx->gageEval = NULL;
-    tfx->gageEvec = NULL;
-    tfx->gageTen2 = gageAnswerPointer(tfx->gtx, tfx->pvl,
-                                      tenDwiGage2TensorQSeg);
-    /*
-  double ten2AnisoStop;
-  double fiberTen[7], fiberEval[3], fiberEvec[9],
-    fiberAnisoStop, fiberAnisoSpeed;
-  int ten2Tracking, ten2Which;
-    */
-    tfx->ten2Which = 0;
-    gageUpdate(tfx->gtx);
-  } else if (tenFiberTypeEvec0 == tfx->fiberType
-	     || tenFiberTypeEvec1 == tfx->fiberType
-	     || tenFiberTypeEvec2 == tfx->fiberType) {
-    tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
-    tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
-    tfx->gageEvec 
-      = gageAnswerPointer(tfx->gtx, tfx->pvl,
-			  (tenFiberTypeEvec0 == tfx->fiberType
-			   ? tenGageEvec0
-			   : (tenFiberTypeEvec1 == tfx->fiberType
-			      ? tenGageEvec1
-			      : tenGageEvec2)));
-    tfx->gageTen2 = NULL;
+  tfx->mframe[0] = vol->measurementFrame[0][0];
+  tfx->mframe[1] = vol->measurementFrame[1][0];
+  tfx->mframe[2] = vol->measurementFrame[2][0];
+  tfx->mframe[3] = vol->measurementFrame[0][1];
+  tfx->mframe[4] = vol->measurementFrame[1][1];
+  tfx->mframe[5] = vol->measurementFrame[2][1];
+  tfx->mframe[6] = vol->measurementFrame[0][2];
+  tfx->mframe[7] = vol->measurementFrame[1][2];
+  tfx->mframe[8] = vol->measurementFrame[2][2];
+  if (ELL_3M_EXISTS(tfx->mframe)) {
+    tfx->mframeUse = AIR_TRUE;
+    ELL_3M_TRANSPOSE(tfx->mframeT, tfx->mframe);
   } else {
-    sprintf(err, "%s: problem with unimplemented fiberType %d", me,
-	    tfx->fiberType);
-    biffAdd(TEN, err); return NULL;
+    tfx->mframeUse = AIR_FALSE;
   }
+
   tfx->gageAnisoStop = NULL;
   tfx->gageAnisoSpeed = NULL;
   tfx->ten2AnisoStop = AIR_NAN;
@@ -186,75 +172,119 @@ tenFiberContextNew(const Nrrd *dtvol) {
 }
 
 int
-tenFiberTypeSet(tenFiberContext *tfx, int type) {
+tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
   char me[]="tenFiberTypeSet", err[BIFF_STRLEN];
-  int qse;
 
   if (!tfx) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  qse = 0;
-  switch(type) {
-  case tenFiberTypeEvec0:
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
-    /* HEY: COPY AND PASTE */
-    tfx->gageEvec 
-      = gageAnswerPointer(tfx->gtx, tfx->pvl,
-                          (tenFiberTypeEvec0 == tfx->fiberType
-                           ? tenGageEvec0
-                           : (tenFiberTypeEvec1 == tfx->fiberType
-                              ? tenGageEvec1
-                              : tenGageEvec2)));
-    break;
-  case tenFiberTypeEvec1:
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
-    /* HEY: COPY AND PASTE */
-    tfx->gageEvec 
-      = gageAnswerPointer(tfx->gtx, tfx->pvl,
-                          (tenFiberTypeEvec0 == tfx->fiberType
-                           ? tenGageEvec0
-                           : (tenFiberTypeEvec1 == tfx->fiberType
-                              ? tenGageEvec1
-                              : tenGageEvec2)));
-    break;
-  case tenFiberTypeEvec2:
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
-    /* HEY: COPY AND PASTE */
-    tfx->gageEvec 
-      = gageAnswerPointer(tfx->gtx, tfx->pvl,
-                          (tenFiberTypeEvec0 == tfx->fiberType
-                           ? tenGageEvec0
-                           : (tenFiberTypeEvec1 == tfx->fiberType
-                              ? tenGageEvec1
-                              : tenGageEvec2)));
-    break;
-  case tenFiberTypeTensorLine:
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval0);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval1);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval2);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
-    break;
-  case tenFiberTypePureLine:
-    GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
-    break;
-  case tenFiberTypeZhukov:
-    sprintf(err, "%s: sorry, Zhukov oriented tensors not implemented", me);
-    biffAdd(TEN, err); return 1;
-    break;
-  default:
-    sprintf(err, "%s: fiber type %d not recognized", me, type);
-    biffAdd(TEN, err); return 1;
-    break;
+  if (tfx->useDwi) {
+    fprintf(stderr, "!%s(%d)--- hello\n", me, ftype);
+    switch (ftype) {
+    case tenDwiFiberType1Evec0:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenDwiGageTensorLLS);
+      tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                                       tenDwiGageTensorLLS);
+      tfx->gageTen2 = NULL;
+      break;
+    case tenDwiFiberType2Evec0:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenDwiGage2TensorPeled);
+      tfx->gageTen = NULL;
+      tfx->gageTen2 = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                                        tenDwiGage2TensorPeled);
+      break;
+    case tenDwiFiberType12BlendEvec0:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenDwiGageTensorLLS);
+      tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                                       tenDwiGageTensorLLS);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenDwiGage2TensorPeled);
+      tfx->gageTen2 = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                                        tenDwiGage2TensorPeled);
+      break;
+    default:
+      sprintf(err, "%s: unimplemented %s %d", me,
+              tenDwiFiberType->name, ftype); 
+      biffAdd(TEN, err); return 1;
+      break;
+    }
+    tfx->gageEval = NULL;
+    tfx->gageEvec = NULL;
+  } else {
+    /* working with tensor volume */
+    switch(ftype) {
+    case tenFiberTypeEvec0:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
+      /* HEY: COPY AND PASTE */
+      tfx->gageEvec 
+        = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                            (tenFiberTypeEvec0 == tfx->fiberType
+                             ? tenGageEvec0
+                             : (tenFiberTypeEvec1 == tfx->fiberType
+                                ? tenGageEvec1
+                                : tenGageEvec2)));
+      break;
+    case tenFiberTypeEvec1:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
+      /* HEY: COPY AND PASTE */
+      tfx->gageEvec 
+        = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                            (tenFiberTypeEvec0 == tfx->fiberType
+                             ? tenGageEvec0
+                             : (tenFiberTypeEvec1 == tfx->fiberType
+                                ? tenGageEvec1
+                                : tenGageEvec2)));
+      break;
+    case tenFiberTypeEvec2:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
+      /* HEY: COPY AND PASTE */
+      tfx->gageEvec 
+        = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                            (tenFiberTypeEvec0 == ftype
+                             ? tenGageEvec0
+                             : (tenFiberTypeEvec1 == ftype
+                                ? tenGageEvec1
+                                : tenGageEvec2)));
+      break;
+    case tenFiberTypeTensorLine:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval0);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval1);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEval2);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
+      break;
+    case tenFiberTypePureLine:
+      GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
+      break;
+    case tenFiberTypeZhukov:
+      sprintf(err, "%s: sorry, Zhukov oriented tensors not implemented", me);
+      biffAdd(TEN, err); return 1;
+      break;
+    default:
+      sprintf(err, "%s: fiber type %d not recognized", me, ftype);
+      biffAdd(TEN, err); return 1;
+      break;
+    }  /* switch */
+    if (tenFiberTypeEvec0 == tfx->fiberType
+        || tenFiberTypeEvec1 == tfx->fiberType
+        || tenFiberTypeEvec2 == tfx->fiberType) {
+      tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+      tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
+      tfx->gageEvec 
+        = gageAnswerPointer(tfx->gtx, tfx->pvl,
+                            (tenFiberTypeEvec0 == tfx->fiberType
+                             ? tenGageEvec0
+                             : (tenFiberTypeEvec1 == tfx->fiberType
+                                ? tenGageEvec1
+                                : tenGageEvec2)));
+      tfx->gageTen2 = NULL;
+    }
+    tfx->ten2Which = 0;
   }
-  if (qse) {
-    sprintf(err, "%s: problem setting query", me);
-    biffMove(TEN, err, GAGE); return 1;
-  }
-  tfx->fiberType = type;
+  tfx->fiberType = ftype;
+
   return 0;
 }
 
@@ -298,45 +328,54 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       sprintf(err, "%s: given aniso threshold doesn't exist", me);
       biffAdd(TEN, err); ret = 1; goto end;
     }
-    switch(tfx->anisoStopType) {
-    case tenAniso_FA:
-      anisoGage = tenGageFA;
-      break;
-    case tenAniso_Cl1:
-      anisoGage = tenGageCl1;
-      break;
-    case tenAniso_Cp1:
-      anisoGage = tenGageCp1;
-      break;
-    case tenAniso_Ca1:
-      anisoGage = tenGageCa1;
-      break;
-    case tenAniso_Clpmin1:
-      anisoGage = tenGageClpmin1;
-      break;
-    case tenAniso_Cl2:
-      anisoGage = tenGageCl2;
-      break;
-    case tenAniso_Cp2:
-      anisoGage = tenGageCp2;
-      break;
-    case tenAniso_Ca2:
-      anisoGage = tenGageCa2;
-      break;
-    case tenAniso_Clpmin2:
-      anisoGage = tenGageClpmin2;
-      break;
-    default:
-      sprintf(err, "%s: sorry, currently don't have fast %s computation "
-              "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
-      biffAdd(TEN, err); ret = 1; goto end;
-      break;
+    if (tfx->useDwi) {
+      /* the tensor of which we measure anisotropy can come from lots of
+         places, not just a 1-tensor gage item, so there's no specific 
+         item to turn on here... */
+      tfx->gageAnisoStop = NULL;
+    } else { /* using tensors */
+      switch(tfx->anisoStopType) {
+      case tenAniso_FA:
+        anisoGage = tenGageFA;
+        break;
+      case tenAniso_Cl1:
+        anisoGage = tenGageCl1;
+        break;
+      case tenAniso_Cp1:
+        anisoGage = tenGageCp1;
+        break;
+      case tenAniso_Ca1:
+        anisoGage = tenGageCa1;
+        break;
+      case tenAniso_Clpmin1:
+        anisoGage = tenGageClpmin1;
+        break;
+      case tenAniso_Cl2:
+        anisoGage = tenGageCl2;
+        break;
+      case tenAniso_Cp2:
+        anisoGage = tenGageCp2;
+        break;
+      case tenAniso_Ca2:
+        anisoGage = tenGageCa2;
+        break;
+      case tenAniso_Clpmin2:
+        anisoGage = tenGageClpmin2;
+        break;
+      default:
+        sprintf(err, "%s: sorry, currently don't have fast %s computation "
+                "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
+        biffAdd(TEN, err); ret = 1; goto end;
+        break;
+      }
+      /* NOTE: we are no longer computing ALL anisotropy measures ...
+         GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
+      */
+      GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
+      tfx->gageAnisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
+      fprintf(stderr, "!%s: stopping on aniso %s < %g\n", me,
+              airEnumStr(tenAniso, tfx->anisoStopType), tfx->anisoThresh);
     }
-    /* NOTE: we are no longer computing ALL anisotropy measures ...
-       GAGE_QUERY_ITEM_ON(tfx->query, tenGageAniso);
-    */
-    GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
-    tfx->gageAnisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
     break;
   case tenFiberStopLength:
     tfx->maxHalfLen = va_arg(ap, double);
@@ -382,7 +421,6 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     biffAdd(TEN, err); ret = 1; goto end;
   }
   tfx->stop = tfx->stop | (1 << stop);
-
  end:
   va_end(ap);
   return ret;
@@ -426,7 +464,7 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     biffAdd(TEN, err); return 1;
   }
   
-  if (tfx->ten2Tracking) {
+  if (tfx->useDwi) {
     fprintf(stderr, "!%s: sorry, can't yet work on DWIs; bye.\n", me);
     exit(1);
   }
@@ -464,7 +502,7 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     break;
   }
   tfx->anisoSpeedType = aniso;
-  if (tfx->ten2Tracking) {
+  if (tfx->useDwi) {
     /* actually, finding anisotropy in the context of 2-tensor
        tracking is not currently done by gage */
   } else {
@@ -504,20 +542,11 @@ tenFiberKernelSet(tenFiberContext *tfx,
     biffAdd(TEN, err); return 1;
   }
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
-/*
-  if (gageKernelSet((tfx->ten2Tracking
-  	                 ? tfx->dwiGageContext
-  	                 : tfx->gtx), gageKernel00,
+  if (gageKernelSet(tfx->gtx, gageKernel00,
                     tfx->ksp->kernel, tfx->ksp->parm)) {
     sprintf(err, "%s: problem setting kernel", me);
     biffMove(TEN, err, GAGE); return 1;
-	}
-*/
-  if (gageKernelSet( tfx->gtx, gageKernel00,
-                    tfx->ksp->kernel, tfx->ksp->parm)) {
-    sprintf(err, "%s: problem setting kernel", me);
-    biffMove(TEN, err, GAGE); return 1;
-	}
+  }
 
   return 0;
 }
@@ -597,7 +626,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
     sprintf(err, "%s: trouble with gage", me);
     biffMove(TEN, err, GAGE); return 1;
   }
-  if (tfx->ten2Tracking) {
+  if (tfx->useDwi) {
     if (!(0 == tfx->ten2Which || 1 == tfx->ten2Which)) {
       sprintf(err, "%s: ten2Which must be 0 or 1 (not %d)",
               me, tfx->ten2Which);
@@ -617,7 +646,7 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   char me[]="tenFiberContextCopy";
   tenFiberContext *tfx;
 
-  if (oldTfx->ten2Tracking) {
+  if (oldTfx->useDwi) {
     fprintf(stderr, "!%s: sorry, can't copy DWI contexts; bye.\n", me);
     exit(1);
   }

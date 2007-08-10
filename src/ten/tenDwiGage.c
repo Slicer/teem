@@ -179,7 +179,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGage2TensorPeledError,       1,  0,  {tenDwiGageAll, tenDwiGage2TensorPeled},                0,  0, AIR_TRUE},
   {tenDwiGage2TensorPeledAndError,   15,  0,  {tenDwiGage2TensorPeled, tenDwiGage2TensorPeledError},  0,  0, AIR_TRUE},
   
-  {tenDwiGage2TensorPeledLevmarInfo,  9,  0,  {tenDwiGage2TensorPeled},                               0,  0, AIR_TRUE}
+  {tenDwiGage2TensorPeledLevmarInfo,  LM_INFO_SZ,  0,  {tenDwiGage2TensorPeled},                      0,  0, AIR_TRUE}
 };
 
 void
@@ -242,6 +242,31 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   }
 
   return;
+}
+
+/* Returns the Akaike Information Criterion */
+
+/* 
+** residual: is the variance
+** n: number of observations: number of DWI's in our case
+** k: number of parameters: number of tensor components in our case
+*/
+double 
+_tenComputeAIC(double residual, int n, int k) {
+   double AIC = 0;
+
+   if (residual == 0) {
+     return 0;
+   }
+
+   /* AIC, RSS used when doing regression */
+   AIC = 2*k + n*log(residual);
+   /* Always use bias adjustment */
+   /* if (n/k < 40) { */
+   AIC = AIC + ((2*k*(k + 1))/(n - k - 1));
+   /* } */
+
+   return AIC;
 }
 
 /* Form a 2D tensor from the parameters */
@@ -550,10 +575,12 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorPeled)) {
 #if TEEM_LEVMAR
 #define PARAMS 4
-    double *twoTen, Cp;
-
+    double *twoTen, Cp /* , residual, AICSingFit, AICTwoFit */;
+    
     /* Pointer to the location where the two tensor will be written */
     twoTen = pvl->directAnswer[tenDwiGage2TensorPeled];
+    /* Estimate the DWI error, error is given as standard deviation */
+    pvlData->tec2->recordErrorDwi = AIR_FALSE;
     /* Estimate the single tensor */
     tenEstimate1TensorSingle_d(pvlData->tec2, pvlData->ten1, dwiAll);
     /* Get the eigenValues and eigen vectors for this tensor */
@@ -561,6 +588,11 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* Get westins Cp */
     Cp = tenAnisoEval_d(pvlData->ten1Eval, tenAniso_Cp1);
     
+    /* Calculate the residual, need the variance to sqr it */
+    /* residual = pvlData->tec2->errorDwi*pvlData->tec2->errorDwi; */
+    /* Calculate the AIC for single tensor fit */
+    /* AICSingFit = _tenComputeAIC(residual, pvlData->tec2->dwiNum, 6); */
+
     /* If Cp greater than the threshold compute the two tensors */
     if (Cp > pvlData->levmarMinCp) {
       /* Vars for the NLLS */
@@ -597,19 +629,23 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       guess[1] = 0.5;
       guess[2] = AIR_PI/4;
       guess[3] = -AIR_PI/4;
+      /*
       guess[2] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
-                            -AIR_PI/2, AIR_PI/2);
-      guess[3] = -AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
-                             -AIR_PI/2, AIR_PI/2);
+                            AIR_PI/6, AIR_PI/3);
+      guess[3] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
+                             -AIR_PI/6, -AIR_PI/3);
+      */
       /* Fill in the constraints for the LM optimization, 
          the threshold of error difference */
       opts[0] = pvlData->levmarTau;
       opts[1] = pvlData->levmarEps1;
       opts[2] = pvlData->levmarEps2;
       opts[3] = pvlData->levmarEps3;
+      /* Very imp to set this opt, note that only forward
+         differences are used to approx Jacobian */
       opts[4] = pvlData->levmarDelta;
       
-      /* NLLS, results are stored back into guess[] */
+      /* run NLLS, results are stored back into guess[] */
       pvlData->levmarUseFastExp = AIR_FALSE;
       lmret = dlevmar_bc_dif(_tenLevmarPeledCB, guess, pvlData->tec2->dwi,
                              PARAMS, pvlData->tec2->dwiNum, loBnd, upBnd,
@@ -620,6 +656,12 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         ctx->errNum = 1;
         sprintf(ctx->errStr, "%s: dlevmar_bc_dif() failed!", me);
       } else {
+        /* Get the AIC for the two tensor fit, use the levmarinfo
+           to get the residual */
+        /*
+        residual = pvlData->levmarInfo[1]/pvlData->tec2->dwiNum;
+        AICTwoFit = _tenComputeAIC(residual, pvlData->tec2->dwiNum, 12);
+        */
         /* Form the tensors using the estimated pp, returned in guess */
         _tenPeledRotate2D(tenA, guess[0], pvlData->ten1Eval[2], guess[2]);
         _tenPeledRotate2D(tenB, guess[0], pvlData->ten1Eval[2], guess[3]);
@@ -631,14 +673,22 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         ELL_3M_MUL(matA, rott, matTmp);
         ELL_3M_MUL(matTmp, matB, pvlData->ten1Evec);
         ELL_3M_MUL(matB, rott, matTmp);
-        
+	
         /* Copy two two tensors */
-        TEN_M2T(twoTen + 0, matA);
-        TEN_M2T(twoTen + 7, matB);
+        /* guess[1] is population fraction of first tensor */
+        if (guess[1] > 0.5) {
+          twoTen[7] = guess[1];
+          TEN_M2T(twoTen + 0, matA);
+          TEN_M2T(twoTen + 7, matB);
+        } else {
+          twoTen[7] = 1 - guess[1];
+          TEN_M2T(twoTen + 0, matB);
+          TEN_M2T(twoTen + 7, matA);
+        }
         twoTen[0] = 1;
-        twoTen[7] = guess[1];
       }
     } else {
+      /* cp too low to bother with two-tensor fit */
       unsigned int ii;
       /* Single tensor fit is good, copy the first tensor in the first one */
       TEN_T_COPY(twoTen, pvlData->ten1);
@@ -661,7 +711,15 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 #endif
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorPeledError)) {
-    /* code goes here */
+	double *info;
+	info = pvlData->levmarInfo;
+    pvl->directAnswer[tenDwiGage2TensorPeledError][0] = 0;
+
+    if (info[1] > 0) {
+      /* Returning the standard deviation */
+      pvl->directAnswer[tenDwiGage2TensorPeledError][0] = 
+        sqrt(info[1]/pvlData->tec2->dwiNum);
+    }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorPeledAndError)) {
     double *twoten, *err, *twotenerr;
@@ -783,19 +841,16 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
     sprintf(err, "%s: LM_OPTS_SZ (%d) != expected 5\n", me, LM_OPTS_SZ);
     biffAdd(GAGE, err); return NULL;
   }
-  if (9 != LM_INFO_SZ) {
-    sprintf(err, "%s: LM_INFO_SZ (%d) != expected 5\n", me, LM_INFO_SZ);
-    biffAdd(GAGE, err); return NULL;
-  }
 #endif
   pvlData->levmarUseFastExp = AIR_FALSE;
-  pvlData->levmarMaxIter = 50;
+  pvlData->levmarMaxIter = 200;
   pvlData->levmarTau = 1E-03; /* LM_INIT_MU; */
   pvlData->levmarEps1 = 1E-8;
-  pvlData->levmarEps2 = 1E-12;
+  pvlData->levmarEps2 = 1E-8;
   pvlData->levmarEps3 = 1E-8;
-  pvlData->levmarDelta = 1E-5;
-  pvlData->levmarMinCp = 0.1;
+  pvlData->levmarDelta = 1E-8;
+  pvlData->levmarMinCp = 0.08;
+
   /* pvlData->levmarInfo[] is output; not initialized */
 
   return AIR_CAST(void *, pvlData);

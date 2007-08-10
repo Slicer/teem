@@ -37,7 +37,7 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3], int seedProbe) {
   fprintf(stderr, "!%s(%g,%g,%g): hi\n", me,
           iPos[0], iPos[1], iPos[2]);
   */
-  if (!tfx->ten2Tracking) {
+  if (!tfx->useDwi) {
     /* normal single-tensor tracking */
     TEN_T_COPY(tfx->fiberTen, tfx->gageTen);
     ELL_3V_COPY(tfx->fiberEval, tfx->gageEval);
@@ -45,61 +45,78 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3], int seedProbe) {
     if (tfx->stop & (1 << tenFiberStopAniso)) {
       tfx->fiberAnisoStop = tfx->gageAnisoStop[0];
     }
-  } else {
-    /* two-tensor tracking */
-    double evec[2][9], eval[2][3], len;
-    int useTensor=-1;
-
-    /* Estimate principal diffusion direction of each tensor */
-    tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
-    tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
-
-    /* set useTensor */
-    if (seedProbe) {
-      /* we're on the *very* first probe per tract, at the seed point */
-      ELL_3V_COPY(tfx->seedEvec, evec[tfx->ten2Which]);
-      useTensor = tfx->ten2Which;
-      /*
-      fprintf(stderr, "!%s: ** useTensor == ten2Which == %d\n", me, 
-              useTensor);
-      */
-    } else {
-      double *lastVec, dot[2];
-
-      if (!tfx->lastDirSet) {
-        /* we're on some probe of the first step */
-        lastVec = tfx->seedEvec;
+  } else { /* tracking in DWIs */
+    if (tenDwiFiberType1Evec0 == tfx->fiberType) {
+      if (tfx->mframeUse) {
+        double matTmpA[9], matTmpB[9];
+        TEN_T2M(matTmpA, tfx->gageTen);
+        ELL_3M_MUL(matTmpB, tfx->mframe, matTmpA);
+        ELL_3M_MUL(matTmpA, matTmpB, tfx->mframeT);
+        TEN_M2T(tfx->fiberTen, matTmpA);
+        tfx->fiberTen[0] = tfx->gageTen[0];
       } else {
-        /* we're past the first step */
-        ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
-        lastVec = tfx->lastDir;
+        TEN_T_COPY(tfx->fiberTen, tfx->gageTen);
       }
-      dot[0] = ELL_3V_DOT(lastVec, evec[0]);
-      dot[1] = ELL_3V_DOT(lastVec, evec[1]);
-      if (dot[0] < 0) {
-        dot[0] *= -1;
-        ELL_3M_SCALE(evec[0], -1, evec[0]);
+      tenEigensolve_d(tfx->fiberEval, tfx->fiberEvec, tfx->fiberTen);
+      if (tfx->stop & (1 << tenFiberStopAniso)) {
+        double tmp;
+        tmp = tenAnisoTen_d(tfx->fiberTen, tfx->anisoStopType);
+        tfx->fiberAnisoStop = AIR_CLAMP(0, tmp, 1);
       }
-      if (dot[1] < 0) {
-        dot[1] *= -1;
-        ELL_3M_SCALE(evec[1], -1, evec[1]);
+    } else {
+      double evec[2][9], eval[2][3], len;
+      int useTensor=-1;
+      
+      /* Estimate principal diffusion direction of each tensor */
+      tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
+      tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
+      
+      /* set useTensor */
+      if (seedProbe) {  /* we're on the *very* 1st probe per tract, @ seed pt */
+        ELL_3V_COPY(tfx->seedEvec, evec[tfx->ten2Which]);
+        useTensor = tfx->ten2Which;
+        /*
+          fprintf(stderr, "!%s: ** useTensor == ten2Which == %d\n", me, 
+          useTensor);
+        */
+      } else {
+        double *lastVec, dot[2];
+        
+        if (!tfx->lastDirSet) {
+          /* we're on some probe of the first step */
+          lastVec = tfx->seedEvec;
+        } else {
+          /* we're past the first step */
+          ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
+          lastVec = tfx->lastDir;
+        }
+        dot[0] = ELL_3V_DOT(lastVec, evec[0]);
+        dot[1] = ELL_3V_DOT(lastVec, evec[1]);
+        if (dot[0] < 0) {
+          dot[0] *= -1;
+          ELL_3M_SCALE(evec[0], -1, evec[0]);
+        }
+        if (dot[1] < 0) {
+          dot[1] *= -1;
+          ELL_3M_SCALE(evec[1], -1, evec[1]);
+        }
+        useTensor = (dot[0] > dot[1]) ? 0 : 1;
+        /*
+          fprintf(stderr, "!%s(%g,%g,%g): dot[0] = %f dot[1] = %f, "
+          "\t using tensor %d\n",
+          me, wPos[0], wPos[1], wPos[2], dot[0], dot[1], useTensor );
+        */
       }
-      useTensor = (dot[0] > dot[1]) ? 0 : 1;
-      /*
-      fprintf(stderr, "!%s(%g,%g,%g): dot[0] = %f dot[1] = %f, "
-              "\t using tensor %d\n",
-              me, wPos[0], wPos[1], wPos[2], dot[0], dot[1], useTensor );
-      */
-    }
-    TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*useTensor);
-    tfx->fiberTen[0] = tfx->gageTen2[0];   /* copy confidence */
-    ELL_3V_COPY(tfx->fiberEval, eval[useTensor]);
-    ELL_3M_COPY(tfx->fiberEvec, evec[useTensor]);
-    if (tfx->stop & (1 << tenFiberStopAniso)) {
-      double tmp;
-      tmp = tenAnisoEval_d(tfx->fiberEval, tfx->anisoStopType);
-      tfx->fiberAnisoStop = AIR_CLAMP(0, tmp, 1);
-      /* HEY: what about speed? */
+      TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*useTensor);
+      tfx->fiberTen[0] = tfx->gageTen2[0];   /* copy confidence */
+      ELL_3V_COPY(tfx->fiberEval, eval[useTensor]);
+      ELL_3M_COPY(tfx->fiberEvec, evec[useTensor]);
+      if (tfx->stop & (1 << tenFiberStopAniso)) {
+        double tmp;
+        tmp = tenAnisoEval_d(tfx->fiberEval, tfx->anisoStopType);
+        tfx->fiberAnisoStop = AIR_CLAMP(0, tmp, 1);
+        /* HEY: what about speed? */
+      }
     }
   }
   /*
