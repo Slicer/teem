@@ -48,12 +48,12 @@ $(L).NEED = gage unrrdu nrrd biff air
 $(L).PUBLIC_HEADERS = bane.h
 $(L).PRIVATE_HEADERS = privateBane.h
 $(L).OBJS = defaultsBane.o rangeBane.o inc.o clip.o measr.o methodsBane.o \
-	valid.o trnsf.o scat.o hvol.o trex.o \
+	valid.o trnsf.o scat.o hvol.o trex.o lh.o \
 	gkmsFlotsam.o \
 	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
 	gkmsMite.o gkmsTxf.o
 $(L).TESTS = test/tinfo test/sigma test/pos \
-	test/opac 
+	test/opac test/tlh
 ####
 ####
 ####

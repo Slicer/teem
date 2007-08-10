@@ -1,3 +1,11 @@
+lh stuff:
+- limit to only going upstream or downstream
+- threshold on grad mag
+- threshold on distance travelled
+- mirror based on 
+
+
+
 make all the constants that GKMSInit sets be global defaults, so that
 gkms can see them too.
 

@@ -48,3 +48,9 @@ baneStateHistEqSmart = 2;
 
 int
 baneHack = 0;
+
+const char
+baneDefLHKernel00[] = "cubic:0.333,0.333";
+
+const char
+baneDefLHKernel11[] = "cubicd:0.333,0.333";
