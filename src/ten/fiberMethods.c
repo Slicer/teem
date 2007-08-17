@@ -110,6 +110,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
                             only get read if the right tenFiberStopSet has
                             been called, in which case they'll be set... */
   tfx->minRadius = 1;    /* above lament applies here as well */
+  tfx->minFraction = 0.5; /* and here */
   tfx->wPunct = tenDefFiberWPunct;
 
   GAGE_QUERY_RESET(tfx->query);
@@ -301,6 +302,7 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
 ** tenFiberStopSet(tfx, tenFiberStopConfidence, double conf)
 ** tenFiberStopSet(tfx, tenFiberStopRadius, double radius)
 ** tenFiberStopSet(tfx, tenFiberStopBounds)
+** tenFiberStopSet(tfx, tenFiberStopFraction, double fraction)
 ** tenFiberStopSet(tfx, tenFiberStopStub)
 */
 int
@@ -411,6 +413,19 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     break;
   case tenFiberStopBounds:
     /* nothing to set; always used as a stop criterion */
+    break;
+  case tenFiberStopFraction:
+    if (!tfx->useDwi) {
+      sprintf(err, "%s: can only use %s-based termination in DWI tractography",
+              me, airEnumStr(tenFiberStop, tenFiberStopFraction));
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    tfx->minFraction = va_arg(ap, double);
+    if (!( AIR_EXISTS(tfx->minFraction) )) {
+      sprintf(err, "%s: given minimum fraction doesn't exist", me);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    /* no query modifications needed */
     break;
   case tenFiberStopStub:
     /* no var-args to grab */

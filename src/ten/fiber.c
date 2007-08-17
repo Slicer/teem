@@ -65,19 +65,30 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3], int seedProbe) {
       }
     } else {
       double evec[2][9], eval[2][3], len;
-      int useTensor=-1;
-      
+
+      tfx->ten2Use = -1;
+
       /* Estimate principal diffusion direction of each tensor */
       tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
       tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
+
+      if (tfx->mframeUse) {
+        double vectmp[3];
+        /* NOTE: only fixing the *FIRST* eigenvector */
+        ELL_3MV_MUL(vectmp, tfx->mframe, evec[0]);
+        ELL_3V_COPY(evec[0], vectmp);
+        ELL_3MV_MUL(vectmp, tfx->mframe, evec[1]);
+        ELL_3V_COPY(evec[1], vectmp);
+      }
       
-      /* set useTensor */
-      if (seedProbe) {  /* we're on the *very* 1st probe per tract, @ seed pt */
+      /* set ten2Use */
+      if (seedProbe) {  /* we're on the *very* 1st probe per tract, 
+                           at the seed pt */
         ELL_3V_COPY(tfx->seedEvec, evec[tfx->ten2Which]);
-        useTensor = tfx->ten2Which;
+        tfx->ten2Use = tfx->ten2Which;
         /*
-          fprintf(stderr, "!%s: ** useTensor == ten2Which == %d\n", me, 
-          useTensor);
+          fprintf(stderr, "!%s: ** ten2Use == ten2Which == %d\n", me, 
+          tfx->ten2Use);
         */
       } else {
         double *lastVec, dot[2];
@@ -100,17 +111,25 @@ _tenFiberProbe(tenFiberContext *tfx, double wPos[3], int seedProbe) {
           dot[1] *= -1;
           ELL_3M_SCALE(evec[1], -1, evec[1]);
         }
-        useTensor = (dot[0] > dot[1]) ? 0 : 1;
+        tfx->ten2Use = (dot[0] > dot[1]) ? 0 : 1;
         /*
           fprintf(stderr, "!%s(%g,%g,%g): dot[0] = %f dot[1] = %f, "
           "\t using tensor %d\n",
-          me, wPos[0], wPos[1], wPos[2], dot[0], dot[1], useTensor );
+          me, wPos[0], wPos[1], wPos[2], dot[0], dot[1], tfx->ten2Use );
         */
       }
-      TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*useTensor);
+      if (tfx->mframeUse) {
+        double matTmpA[9], matTmpB[9];
+        TEN_T2M(matTmpA, tfx->gageTen2 + 7*(tfx->ten2Use));
+        ELL_3M_MUL(matTmpB, tfx->mframe, matTmpA);
+        ELL_3M_MUL(matTmpA, matTmpB, tfx->mframeT);
+        TEN_M2T(tfx->fiberTen, matTmpA);
+      } else {
+        TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*(tfx->ten2Use));
+      }
       tfx->fiberTen[0] = tfx->gageTen2[0];   /* copy confidence */
-      ELL_3V_COPY(tfx->fiberEval, eval[useTensor]);
-      ELL_3M_COPY(tfx->fiberEvec, evec[useTensor]);
+      ELL_3V_COPY(tfx->fiberEval, eval[tfx->ten2Use]);
+      ELL_3M_COPY(tfx->fiberEvec, evec[tfx->ten2Use]);
       if (tfx->stop & (1 << tenFiberStopAniso)) {
         double tmp;
         tmp = tenAnisoEval_d(tfx->fiberEval, tfx->anisoStopType);
@@ -160,6 +179,15 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
   if (tfx->stop & (1 << tenFiberStopLength)) {
     if (tfx->halfLen[tfx->dir] >= tfx->maxHalfLen) {
       return tenFiberStopLength;
+    }
+  }
+  if (tfx->useDwi && tfx->stop & (1 << tenFiberStopFraction)) {
+    double fracUse;
+    fracUse = (0 == tfx->ten2Use
+               ? tfx->gageTen2[7]
+               : 1 - tfx->gageTen2[7]);
+    if (fracUse < tfx->minFraction) {
+      return tenFiberStopFraction;
     }
   }
   return 0;

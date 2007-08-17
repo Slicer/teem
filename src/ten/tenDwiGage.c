@@ -576,6 +576,12 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 #if TEEM_LEVMAR
 #define PARAMS 4
     double *twoTen, Cp /* , residual, AICSingFit, AICTwoFit */;
+    /* Vars for the NLLS */
+    double guess[PARAMS], loBnd[PARAMS], upBnd[PARAMS],
+      opts[LM_OPTS_SZ], *grad, *egrad, tenA[7], tenB[7],
+      matA[9], matB[9], matTmp[9], rott[9];
+    unsigned int gi;
+    int lmret;
     
     /* Pointer to the location where the two tensor will be written */
     twoTen = pvl->directAnswer[tenDwiGage2TensorPeled];
@@ -593,111 +599,93 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* Calculate the AIC for single tensor fit */
     /* AICSingFit = _tenComputeAIC(residual, pvlData->tec2->dwiNum, 6); */
 
-    /* If Cp greater than the threshold compute the two tensors */
-    if (Cp > pvlData->levmarMinCp) {
-      /* Vars for the NLLS */
-      double guess[PARAMS], loBnd[PARAMS], upBnd[PARAMS],
-        opts[LM_OPTS_SZ], *grad, *egrad, tenA[7], tenB[7],
-        matA[9], matB[9], matTmp[9], rott[9];
-      unsigned int gi;
-      int lmret;
+    /* the CP-based test is gone; caller's responsibility */
       
-      /* rotate DW gradients by inverse of eigenvector column matrix
-         and place into pvlData->nten1EigenGrads (which has been
-         allocated by _tenDwiGagePvlDataNew()) */
-      grad = AIR_CAST(double *, kindData->ngrad->data);
-      egrad = AIR_CAST(double *, pvlData->nten1EigenGrads->data);
-      for (gi=0; gi<kindData->ngrad->axis[1].size; gi++) {
-        /* yes, this is also transforming some zero-length (B0) gradients;
-           that's harmless */
-        ELL_3MV_MUL(egrad, pvlData->ten1Evec, grad);
-        grad += 3;
-        egrad += 3;
-      }
+    /* rotate DW gradients by inverse of eigenvector column matrix
+       and place into pvlData->nten1EigenGrads (which has been
+       allocated by _tenDwiGagePvlDataNew()) */
+    grad = AIR_CAST(double *, kindData->ngrad->data);
+    egrad = AIR_CAST(double *, pvlData->nten1EigenGrads->data);
+    for (gi=0; gi<kindData->ngrad->axis[1].size; gi++) {
+      /* yes, this is also transforming some zero-length (B0) gradients;
+         that's harmless */
+      ELL_3MV_MUL(egrad, pvlData->ten1Evec, grad);
+      grad += 3;
+      egrad += 3;
+    }
+    
+    /* Lower and upper bounds for the NLLS routine */
+    loBnd[0] = 0.0;
+    loBnd[1] = 0.0;       
+    loBnd[2] = -AIR_PI/2;
+    loBnd[3] = -AIR_PI/2;
+    upBnd[0] = pvlData->ten1Eval[0]*5;
+    upBnd[1] = 1.0;
+    upBnd[2] = AIR_PI/2;
+    upBnd[3] = AIR_PI/2;
+    /* Starting point for the NLLS */
+    guess[0] = pvlData->ten1Eval[0];
+    guess[1] = 0.5;
 
-      /* Lower and upper bounds for the NLLS routine */
-      loBnd[0] = 0.0;
-      loBnd[1] = 0.0;       
-      loBnd[2] = -AIR_PI/2;
-      loBnd[3] = -AIR_PI/2;
-      upBnd[0] = pvlData->ten1Eval[0]*5;
-      upBnd[1] = 1.0;
-      upBnd[2] = AIR_PI/2;
-      upBnd[3] = AIR_PI/2;
-      /* Starting point for the NLLS */
-      guess[0] = pvlData->ten1Eval[0];
-      guess[1] = 0.5;
-      guess[2] = AIR_PI/4;
-      guess[3] = -AIR_PI/4;
+    guess[2] = AIR_PI/4;
+    guess[3] = -AIR_PI/4;
+    /*
+    guess[2] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
+                          AIR_PI/6, AIR_PI/3);
+    guess[3] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
+                          -AIR_PI/6, -AIR_PI/3);
+    */
+    /* Fill in the constraints for the LM optimization, 
+       the threshold of error difference */
+    opts[0] = pvlData->levmarTau;
+    opts[1] = pvlData->levmarEps1;
+    opts[2] = pvlData->levmarEps2;
+    opts[3] = pvlData->levmarEps3;
+    /* Very imp to set this opt, note that only forward
+       differences are used to approx Jacobian */
+    opts[4] = pvlData->levmarDelta;
+    
+    /* run NLLS, results are stored back into guess[] */
+    pvlData->levmarUseFastExp = AIR_FALSE;
+    lmret = dlevmar_bc_dif(_tenLevmarPeledCB, guess, pvlData->tec2->dwi,
+                           PARAMS, pvlData->tec2->dwiNum, loBnd, upBnd,
+                           pvlData->levmarMaxIter, opts,
+                           pvlData->levmarInfo,
+                           NULL, NULL, pvlData);
+    if (-1 == lmret) {
+      ctx->errNum = 1;
+      sprintf(ctx->errStr, "%s: dlevmar_bc_dif() failed!", me);
+    } else {
+      /* Get the AIC for the two tensor fit, use the levmarinfo
+         to get the residual */
       /*
-      guess[2] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
-                            AIR_PI/6, AIR_PI/3);
-      guess[3] = AIR_AFFINE(0, airDrandMT_r(pvlData->randState), 1,
-                             -AIR_PI/6, -AIR_PI/3);
-      */
-      /* Fill in the constraints for the LM optimization, 
-         the threshold of error difference */
-      opts[0] = pvlData->levmarTau;
-      opts[1] = pvlData->levmarEps1;
-      opts[2] = pvlData->levmarEps2;
-      opts[3] = pvlData->levmarEps3;
-      /* Very imp to set this opt, note that only forward
-         differences are used to approx Jacobian */
-      opts[4] = pvlData->levmarDelta;
-      
-      /* run NLLS, results are stored back into guess[] */
-      pvlData->levmarUseFastExp = AIR_FALSE;
-      lmret = dlevmar_bc_dif(_tenLevmarPeledCB, guess, pvlData->tec2->dwi,
-                             PARAMS, pvlData->tec2->dwiNum, loBnd, upBnd,
-                             pvlData->levmarMaxIter, opts,
-                             pvlData->levmarInfo,
-                             NULL, NULL, pvlData);
-      if (-1 == lmret) {
-        ctx->errNum = 1;
-        sprintf(ctx->errStr, "%s: dlevmar_bc_dif() failed!", me);
-      } else {
-        /* Get the AIC for the two tensor fit, use the levmarinfo
-           to get the residual */
-        /*
         residual = pvlData->levmarInfo[1]/pvlData->tec2->dwiNum;
         AICTwoFit = _tenComputeAIC(residual, pvlData->tec2->dwiNum, 12);
-        */
-        /* Form the tensors using the estimated pp, returned in guess */
-        _tenPeledRotate2D(tenA, guess[0], pvlData->ten1Eval[2], guess[2]);
-        _tenPeledRotate2D(tenB, guess[0], pvlData->ten1Eval[2], guess[3]);
-        TEN_T2M(matA, tenA);
-        TEN_T2M(matB, tenB);
-        
-        ELL_3M_TRANSPOSE(rott, pvlData->ten1Evec);
-        ELL_3M_MUL(matTmp, matA, pvlData->ten1Evec);
-        ELL_3M_MUL(matA, rott, matTmp);
-        ELL_3M_MUL(matTmp, matB, pvlData->ten1Evec);
-        ELL_3M_MUL(matB, rott, matTmp);
-	
-        /* Copy two two tensors */
-        /* guess[1] is population fraction of first tensor */
-        if (guess[1] > 0.5) {
-          twoTen[7] = guess[1];
-          TEN_M2T(twoTen + 0, matA);
-          TEN_M2T(twoTen + 7, matB);
-        } else {
-          twoTen[7] = 1 - guess[1];
-          TEN_M2T(twoTen + 0, matB);
-          TEN_M2T(twoTen + 7, matA);
-        }
-        twoTen[0] = 1;
+      */
+      /* Form the tensors using the estimated pp, returned in guess */
+      _tenPeledRotate2D(tenA, guess[0], pvlData->ten1Eval[2], guess[2]);
+      _tenPeledRotate2D(tenB, guess[0], pvlData->ten1Eval[2], guess[3]);
+      TEN_T2M(matA, tenA);
+      TEN_T2M(matB, tenB);
+      
+      ELL_3M_TRANSPOSE(rott, pvlData->ten1Evec);
+      ELL_3M_MUL(matTmp, matA, pvlData->ten1Evec);
+      ELL_3M_MUL(matA, rott, matTmp);
+      ELL_3M_MUL(matTmp, matB, pvlData->ten1Evec);
+      ELL_3M_MUL(matB, rott, matTmp);
+      
+      /* Copy two two tensors */
+      /* guess[1] is population fraction of first tensor */
+      if (guess[1] > 0.5) {
+        twoTen[7] = guess[1];
+        TEN_M2T(twoTen + 0, matA);
+        TEN_M2T(twoTen + 7, matB);
+      } else {
+        twoTen[7] = 1 - guess[1];
+        TEN_M2T(twoTen + 0, matB);
+        TEN_M2T(twoTen + 7, matA);
       }
-    } else {
-      /* cp too low to bother with two-tensor fit */
-      unsigned int ii;
-      /* Single tensor fit is good, copy the first tensor in the first one */
-      TEN_T_COPY(twoTen, pvlData->ten1);
-      /* Copy zeros into the second tensor */
-      TEN_T_SET(twoTen + 7, 0,    0, 0, 0,    0, 0,    0);
-      /* set levmarInfo in case its asked for */
-      for (ii=0; ii<LM_INFO_SZ; ii++) {
-        pvlData->levmarInfo[ii] = 0.0;
-      }
+      twoTen[0] = 1;
     }
 #undef PARAMS
 #else

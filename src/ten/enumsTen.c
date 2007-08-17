@@ -941,6 +941,7 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "confidence",
   "radius",
   "bounds",
+  "fraction",
   "stub"
 };
 
@@ -952,6 +953,7 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   "confidence", "conf", "c",
   "radius",
   "bounds",
+  "fraction", "frac", "f",
   "stub",
   ""
 };
@@ -964,6 +966,7 @@ _tenFiberStopValEqv[] = {
   tenFiberStopConfidence, tenFiberStopConfidence, tenFiberStopConfidence,
   tenFiberStopRadius,
   tenFiberStopBounds,
+  tenFiberStopFraction, tenFiberStopFraction, tenFiberStopFraction, 
   tenFiberStopStub,
 };
 
@@ -976,6 +979,7 @@ _tenFiberStopDesc[][AIR_STRLEN_MED] = {
   "tensor \"confidence\" value too low",
   "radius of curvature of path got too small",
   "fiber went outside bounding box",
+  "fractional constituency of tracked tensor got too small",
   "neither fiber half got anywhere; fiber has single vert"
 };
 

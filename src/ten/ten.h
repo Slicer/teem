@@ -646,10 +646,12 @@ enum {
   tenFiberStopConfidence, /* 4: tensor "confidence" value went too low */
   tenFiberStopRadius,     /* 5: radius of curvature got too small */
   tenFiberStopBounds,     /* 6: fiber position stepped outside volume */
-  tenFiberStopStub,       /* 7: treat single vertex fibers as non-starters */
+  tenFiberStopFraction,   /* 7: (in multi-tensor tracking) fractional
+                             constituency of tracked tensor got too small */
+  tenFiberStopStub,       /* 8: treat single vertex fibers as non-starters */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX   7
+#define TEN_FIBER_STOP_MAX   8
 
 /*
 ******** #define TEN_FIBER_NUM_STEPS_MAX
@@ -696,8 +698,10 @@ typedef struct {
     maxHalfLen,         /* longest propagation (forward or backward) allowed
                            from midpoint */
     confThresh,         /* confidence threshold */
-    minRadius;          /* minimum radius of curvature of path */
+    minRadius,          /* minimum radius of curvature of path */
+    minFraction;        /* minimum fractional constituency in multi-tensor */
   double wPunct;        /* knob for tensor lines */
+  int ten2Which;        /* which path to follow in 2-tensor tracking */
   /* ---- internal ----- */
   gageQuery query;      /* query we'll send to gageQuerySet */
   int dir,              /* current direction being computed (0 or 1) */
@@ -710,7 +714,8 @@ typedef struct {
     lastTen[7],         /* in 2-tensor tracking, which tensor was last used */
     seedEvec[3];        /* principal eigenvector first found at seed point */
   int lastDirSet,       /* lastDir[] is usefully set */
-    lastTenSet;         /* lastTen[] is usefully set */
+    lastTenSet,         /* lastTen[] is usefully set */
+    ten2Use;            /* which of the 2-tensors was last used */
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
 
@@ -723,7 +728,6 @@ typedef struct {
   double ten2AnisoStop;
   double fiberTen[7], fiberEval[3], fiberEvec[9],
     fiberAnisoStop, fiberAnisoSpeed;
-  int ten2Which;
   double radius;        /* current radius of curvature */
   /* ---- output ------- */
   double halfLen[2];    /* length of each fiber half in world space */
