@@ -878,11 +878,11 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  nout->dim = nin->dim - 1;
   for (ai=daxi; ai<nin->dim-1; ai++) {
     _nrrdAxisInfoCopy(&(nout->axis[ai]), &(nin->axis[ai+1]),
                       NRRD_AXIS_INFO_NONE);
   }
+  nout->dim = nin->dim - 1;
   if (nrrdContentSet_va(nout, func, nin, "%d", daxi)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
