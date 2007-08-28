@@ -179,7 +179,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGage2TensorPeledError,       1,  0,  {tenDwiGageAll, tenDwiGage2TensorPeled},                0,  0, AIR_TRUE},
   {tenDwiGage2TensorPeledAndError,   15,  0,  {tenDwiGage2TensorPeled, tenDwiGage2TensorPeledError},  0,  0, AIR_TRUE},
   
-  {tenDwiGage2TensorPeledLevmarInfo,  LM_INFO_SZ,  0,  {tenDwiGage2TensorPeled},                      0,  0, AIR_TRUE}
+  {tenDwiGage2TensorPeledLevmarInfo,  5,  0,  {tenDwiGage2TensorPeled},                               0,  0, AIR_TRUE}
 };
 
 void
@@ -825,6 +825,8 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   /* here's an okay spot to check our compile-time assumptions 
      about the levmar library */
 #if TEEM_LEVMAR
+  /* this is needed to make sure that the tenDwiGage2TensorPeledLevmarInfo
+     item definition above is valid */
   if (5 != LM_OPTS_SZ) {
     sprintf(err, "%s: LM_OPTS_SZ (%d) != expected 5\n", me, LM_OPTS_SZ);
     biffAdd(GAGE, err); return NULL;
