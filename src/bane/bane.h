@@ -290,31 +290,6 @@ typedef struct {
   int measrVolDone;                    /* values in measrVol are filled */
 } baneHVolParm;
 
-typedef struct {
-  /* -------------- input */
-  int verbose;
-  unsigned int maxStepNum;
-  const Nrrd *nin;
-  NrrdKernelSpec *ksp00, *ksp11;
-  double step;
-  /* -------------- internal */
-  /* double voxdiag; too ambitious for now */
-  gageContext *gctx;
-  gagePerVolume *gpvl;
-} baneLHContext;
-
-/* lh.c */
-BANE_EXPORT baneLHContext *baneLHContextNew();
-BANE_EXPORT void baneLHVerboseSet(baneLHContext *blhc, int verb);
-BANE_EXPORT int baneLHKernelSet(baneLHContext *blhc, int which,
-                                const NrrdKernelSpec *ksp);
-BANE_EXPORT int baneLHVolumeSet(baneLHContext *blhc, const Nrrd *nin);
-BANE_EXPORT int baneLHStepSet(baneLHContext *blhc, double step);
-BANE_EXPORT int baneLHMaxStepNumSet(baneLHContext *blhc, unsigned int msn);
-BANE_EXPORT int baneLHVolumeCompute(baneLHContext *blhc, Nrrd *nout,
-                                    int typeOut);
-BANE_EXPORT baneLHContext *baneLHContextNix(baneLHContext *blhc);
-
 /* defaultsBane.c */
 BANE_EXPORT const char *baneBiffKey;
 BANE_EXPORT int baneDefVerbose;
@@ -325,8 +300,6 @@ BANE_EXPORT int baneDefPercHistBins;
 BANE_EXPORT int baneStateHistEqBins;
 BANE_EXPORT int baneStateHistEqSmart;
 BANE_EXPORT int baneHack;
-BANE_EXPORT const char baneDefLHKernel00[];
-BANE_EXPORT const char baneDefLHKernel11[];
 
 /* rangeBane.c */
 BANE_EXPORT baneRange *baneRangeNew(int type);
