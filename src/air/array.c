@@ -203,8 +203,8 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
 */
 void
 airArrayLenSet(airArray *a, unsigned int newlen) {
-  unsigned int newsize;
-  int ii;
+  /* char me[]="airArrayLenSet"; */
+  unsigned int ii, newsize;
   void *addr, *newdata;
   
   if (!a) {
@@ -218,8 +218,10 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
   }
 
   /* call freeCB/doneCB on all the elements which are going bye-bye */
+  /* Wed Sep 12 14:40:45 EDT 2007: the order in which these called is
+     now ascending, instead of descending (as was the way before) */
   if (newlen < a->len && (a->freeCB || a->doneCB)) {
-    for (ii=a->len-1; ii>=(int)newlen; ii--) {
+    for (ii=newlen; ii<a->len; ii++) {
       addr = (char*)(a->data) + ii*a->unit;
       if (a->freeCB) {
         (a->freeCB)(*((void**)addr));
@@ -260,7 +262,7 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 
   /* call allocCB/initCB on newly created elements */
   if (newlen > a->len && (a->allocCB || a->initCB)) {
-    for (ii=newlen; ii<(int)(a->len); ii++) {
+    for (ii=a->len; ii<newlen; ii++) {
       addr = (char*)(a->data) + ii*a->unit;
       if (a->allocCB) {
         *((void**)addr) = (a->allocCB)();
