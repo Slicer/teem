@@ -139,19 +139,20 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
             airEnumStr(tenAniso, info[1]), info[2]);
     */
     break;
+  case tenFiberStopFraction:
+    /* <frac> : double */
   case tenFiberStopLength:
     /* <length> : double */
   case tenFiberStopConfidence:
     /* <conf> : double */
     if (1 != sscanf(opt, "%lg", info+1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
-              (info[0] == tenFiberStopLength
-               ? "length" : "confidence"), opt);
+              airEnumStr(tenFiberStop, info[0]), opt);
       airMopError(mop); return 1;
     }
     /*
     fprintf(stderr, "!%s: parse %s:%g\n", me, 
-            (info[0] == tenFiberStopLength ? "length" : "confidence"),
+            airEnumStr(tenFiberStop, info[0]),
             info[1]);
     */
     break;

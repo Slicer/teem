@@ -669,6 +669,7 @@ enum {
                                   seeded in and output in index space,
                                   instead of default world */
   tenFiberParmWPunct,          /* 3: tensor-line parameter */
+  tenFiberParmVerbose,         /* 4: verbosity */
   tenFiberParmLast
 };
 #define TEN_FIBER_PARM_MAX        4
@@ -690,7 +691,8 @@ typedef struct {
     anisoStopType,      /* which aniso we do a threshold on */
     anisoSpeedType,     /* base step size is function of this anisotropy */
     stop,               /* BITFLAG for different reasons to stop a fiber */
-    useIndexSpace;      /* output in index space, not world space */
+    useIndexSpace,      /* output in index space, not world space */
+    verbose;            /* blah blah blah */
   double anisoThresh,   /* anisotropy threshold */
     anisoSpeedFunc[3];  /* parameters of mapping aniso to speed */
   unsigned int maxNumSteps; /* max # steps allowed on one fiber half */
@@ -701,7 +703,7 @@ typedef struct {
     minRadius,          /* minimum radius of curvature of path */
     minFraction;        /* minimum fractional constituency in multi-tensor */
   double wPunct;        /* knob for tensor lines */
-  int ten2Which;        /* which path to follow in 2-tensor tracking */
+  unsigned int ten2Which;  /* which path to follow in 2-tensor tracking */
   /* ---- internal ----- */
   gageQuery query;      /* query we'll send to gageQuerySet */
   int dir,              /* current direction being computed (0 or 1) */
@@ -711,11 +713,10 @@ typedef struct {
     wPos[3],            /* current world space location */
     wDir[3],            /* difference between this and last world space pos */
     lastDir[3],         /* previous value of wDir */
-    lastTen[7],         /* in 2-tensor tracking, which tensor was last used */
     seedEvec[3];        /* principal eigenvector first found at seed point */
   int lastDirSet,       /* lastDir[] is usefully set */
-    lastTenSet,         /* lastTen[] is usefully set */
-    ten2Use;            /* which of the 2-tensors was last used */
+    lastTenSet;         /* lastTen[] is usefully set */
+  unsigned int ten2Use; /* which of the 2-tensors was last used */
   gageContext *gtx;     /* wrapped around pvl */
   gagePerVolume *pvl;   /* wrapped around dtvol */
 
@@ -737,6 +738,27 @@ typedef struct {
     whyNowhere;         /* why fiber never got started (from tenFiberStop*) */
 
 } tenFiberContext;
+
+/*
+******** tenFiberSingle
+**
+** experimental struct for holding results from a single tracing
+*/
+typedef struct {
+  /* ------- available for recording for reference, not used by ten */
+  double seedPos[3];    /* where was the seed point */
+  unsigned int dirIdx;  /* which direction at seedpoint to follow */
+  unsigned int dirNum;  /* how many directions at seedpoint could be followed */
+  /* ------- output ------- */
+  Nrrd *nvert;          /* locations of tract vertices */
+  double halfLen[2];    /* (same as in tenFiberContext) */
+  unsigned int seedIdx, /* which index in nvert is for seedpoint */
+    stepNum[2];         /* (same as in tenFiberContext) */
+  int whyStop[2],       /* (same as in tenFiberContext) */
+    whyNowhere;         /* (same as in tenFiberContext) */
+  Nrrd *nval;           /* results of probing at vertices */
+  double measr[NRRD_MEASURE_MAX+1];  /* a controlled mess */
+} tenFiberSingle;
 
 /*
 ******** struct tenEmBimodalParm
@@ -1221,6 +1243,10 @@ TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
                               double tweak, int save);
 
 /* fiberMethods.c */
+TEN_EXPORT void tenFiberSingleInit(tenFiberSingle *tfbs);
+TEN_EXPORT void tenFiberSingleDone(tenFiberSingle *tfbs);
+TEN_EXPORT tenFiberSingle *tenFiberSingleNew();
+TEN_EXPORT tenFiberSingle *tenFiberSingleNix(tenFiberSingle *tfbs);
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
 TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol,
                                                   double thresh,
@@ -1251,7 +1277,15 @@ TEN_EXPORT int tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
                                 unsigned int *startIdxP, unsigned int *endIdxP,
                                 double seed[3]);
 TEN_EXPORT int tenFiberTrace(tenFiberContext *tfx,
-                             Nrrd *fiber, double seed[3]);
+                             Nrrd *nfiber, double seed[3]);
+TEN_EXPORT unsigned int tenFiberDirectionNumber(tenFiberContext *tfx,
+                                                double seed[3]);
+TEN_EXPORT int tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
+                                   double seed[3], unsigned int which);
+TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
+                                  const Nrrd *nseed);
+TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx, 
+                                     limnPolyData *lpld, airArray *tfbsArr);
 
 /* epireg.c */
 TEN_EXPORT int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin,

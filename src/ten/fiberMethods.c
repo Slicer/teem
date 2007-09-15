@@ -23,6 +23,56 @@
 #include "ten.h"
 #include "privateTen.h"
 
+
+void
+tenFiberSingleInit(tenFiberSingle *tfbs) {
+  // char me[]="tenFiberSingleInit";
+  unsigned idx;
+
+  ELL_3V_SET(tfbs->seedPos, AIR_NAN, AIR_NAN, AIR_NAN);
+  tfbs->dirIdx = tfbs->dirNum = 0;
+  tfbs->nvert = nrrdNew();
+  tfbs->halfLen[0] = tfbs->halfLen[1] = AIR_NAN;
+  tfbs->seedIdx = tfbs->stepNum[0] = tfbs->stepNum[1] = 0;
+  tfbs->whyStop[0] = tfbs->whyStop[1] = tenFiberStopUnknown;
+  tfbs->whyNowhere = tenFiberStopUnknown; /* actually, the semantics of this
+                                             field is reversed, so this is not
+                                             really the way it should be set */
+  tfbs->nval = nrrdNew();
+  for (idx=0; idx<=NRRD_MEASURE_MAX; idx++) {
+    tfbs->measr[idx] = AIR_NAN;
+  }
+  return;
+}
+
+void
+tenFiberSingleDone(tenFiberSingle *tfbs) {
+
+  tfbs->nvert = nrrdNuke(tfbs->nvert);
+  tfbs->nval = nrrdNuke(tfbs->nval);
+}
+
+tenFiberSingle *
+tenFiberSingleNew() {
+  tenFiberSingle *ret;
+
+  ret = AIR_CAST(tenFiberSingle *, calloc(1, sizeof(tenFiberSingle)));
+  if (ret) {
+    tenFiberSingleInit(ret);
+  }
+  return ret;
+}
+
+tenFiberSingle *
+tenFiberSingleNix(tenFiberSingle *tfbs) {
+
+  if (tfbs) {
+    tenFiberSingleDone(tfbs);
+    airFree(tfbs);
+  }
+  return NULL;
+}
+
 static
 tenFiberContext *
 _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
@@ -104,6 +154,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   tfx->anisoSpeedFunc[2] = 0;
   tfx->maxNumSteps = tenDefFiberMaxNumSteps;
   tfx->useIndexSpace = tenDefFiberUseIndexSpace;
+  tfx->verbose = 0;
   tfx->stepSize = tenDefFiberStepSize;
   tfx->maxHalfLen = tenDefFiberMaxHalfLen;
   tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
@@ -268,16 +319,16 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
       biffAdd(TEN, err); return 1;
       break;
     }  /* switch */
-    if (tenFiberTypeEvec0 == tfx->fiberType
-        || tenFiberTypeEvec1 == tfx->fiberType
-        || tenFiberTypeEvec2 == tfx->fiberType) {
+    if (tenFiberTypeEvec0 == ftype
+        || tenFiberTypeEvec1 == ftype
+        || tenFiberTypeEvec2 == ftype) {
       tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
       tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
       tfx->gageEvec 
         = gageAnswerPointer(tfx->gtx, tfx->pvl,
-                            (tenFiberTypeEvec0 == tfx->fiberType
+                            (tenFiberTypeEvec0 == ftype
                              ? tenGageEvec0
-                             : (tenFiberTypeEvec1 == tfx->fiberType
+                             : (tenFiberTypeEvec1 == ftype
                                 ? tenGageEvec1
                                 : tenGageEvec2)));
       tfx->gageTen2 = NULL;
@@ -375,8 +426,10 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
       */
       GAGE_QUERY_ITEM_ON(tfx->query, anisoGage);
       tfx->gageAnisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl, anisoGage);
+      /*
       fprintf(stderr, "!%s: stopping on aniso %s < %g\n", me,
               airEnumStr(tenAniso, tfx->anisoStopType), tfx->anisoThresh);
+      */
     }
     break;
   case tenFiberStopLength:
@@ -598,6 +651,9 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
     case tenFiberParmWPunct:
       tfx->wPunct = val;
       break;
+    case tenFiberParmVerbose:
+      tfx->verbose = AIR_CAST(int, val);
+      break;
     default:
       fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n",
               me, parm);
@@ -643,7 +699,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
   }
   if (tfx->useDwi) {
     if (!(0 == tfx->ten2Which || 1 == tfx->ten2Which)) {
-      sprintf(err, "%s: ten2Which must be 0 or 1 (not %d)",
+      sprintf(err, "%s: ten2Which must be 0 or 1 (not %u)",
               me, tfx->ten2Which);
       biffAdd(TEN, err); return 1;
     }
