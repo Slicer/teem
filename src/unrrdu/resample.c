@@ -70,7 +70,10 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk,
              "cubic:0,0.5",
-             "The kernel to use for resampling.  Possibilities include:\n "
+             "The kernel to use for resampling.  "
+             "Kernels logically live in the input index space for upsampling, "
+             "and in the output index space for downsampling.  "
+             "Possibilities include:\n "
              "\b\bo \"box\": nearest neighbor interpolation\n "
              "\b\bo \"cheap\": nearest neighbor interpolation for upsampling, "
              "and non-blurring sub-sampling (pick subset of input samples) "
