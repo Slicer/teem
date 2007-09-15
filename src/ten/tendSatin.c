@@ -248,10 +248,10 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* the ItoW is a 4x4 matrix, but 
      we really only care about the first three rows */
   ELL_4V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_4MV_COL0_GET(spd[1], shape->ItoW);
-  ELL_4MV_COL1_GET(spd[2], shape->ItoW);
-  ELL_4MV_COL2_GET(spd[3], shape->ItoW);
-  ELL_4MV_COL3_GET(orig, shape->ItoW);
+  ELL_4MV_COL0_GET(spd[1], shape->ItoW); ELL_4V_SCALE(spd[1], 32, spd[1]);
+  ELL_4MV_COL1_GET(spd[2], shape->ItoW); ELL_4V_SCALE(spd[2], 32, spd[2]);
+  ELL_4MV_COL2_GET(spd[3], shape->ItoW); ELL_4V_SCALE(spd[3], 32, spd[3]);
+  ELL_4MV_COL3_GET(orig, shape->ItoW);   ELL_4V_SCALE(orig, 32, orig);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoSpaceDirection,
