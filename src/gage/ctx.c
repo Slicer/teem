@@ -132,6 +132,7 @@ gageContextCopy(gageContext *ctx) {
 */
 gageContext *
 gageContextNix(gageContext *ctx) {
+  /* char me[]="gageContextNix"; */
   unsigned int pvlIdx;
 
   if (ctx) {
