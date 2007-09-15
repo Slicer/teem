@@ -426,6 +426,12 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
               myPoint->neigh[idx] = herPoint;
             }
           }
+          if (!ELL_3V_EXISTS(myPoint->frc)) {
+            sprintf(err, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
+                    myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
+                    herBin);
+            biffAdd(PUSH, err); return 1;
+          }
         }
         neighbor++;
       }
@@ -447,6 +453,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         ELL_3V_INCR(myPoint->frc, frc);
       }
     }
+    if (!ELL_3V_EXISTS(myPoint->frc)) {
+      sprintf(err, "%s: post-nei myPoint->frc (%g,%g,%g) doesn't exist", me,
+              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      biffAdd(PUSH, err); return 1;
+    }
 
     if (!task->pctx->numSS) {
       /* containment forces + gravity do not currently
@@ -465,6 +476,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         ELL_3V_INCR(myPoint->frc, frc);
       }
     }      
+    if (!ELL_3V_EXISTS(myPoint->frc)) {
+      sprintf(err, "%s: post-grav myPoint->frc (%g,%g,%g) doesn't exist", me,
+              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      biffAdd(PUSH, err); return 1;
+    }
 
     /* each point in this thing also maybe experiences wall forces */
     if (task->pctx->wall) {
@@ -505,6 +521,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_3V_INCR(myPoint->frc, frcWorld);
       myPoint->enr += ELL_3V_LEN(enrWorld);
     } /* wall */
+    if (!ELL_3V_EXISTS(myPoint->frc)) {
+      sprintf(err, "%s: post-wall myPoint->frc (%g,%g,%g) doesn't exist", me,
+              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      biffAdd(PUSH, err); return 1;
+    }
 
     task->energySum += myPoint->enr;
 
@@ -514,6 +535,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
 
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
+    if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
+      sprintf(err, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist", me,
+              deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
+      biffAdd(PUSH, err); return 1;
+    }
     if (task->pctx->numSS) {
       double newDelta = 0;
 
@@ -553,15 +579,29 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         /* by definition newDelta <= deltaLen */
         task->deltaFracSum += newDelta/deltaLen;
         ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
+        if (!ELL_3V_EXISTS(myPoint->pos)) {
+          sprintf(err, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
+                  "doesn't exist", me,
+                  newDelta, deltaNorm[0], deltaNorm[1], deltaNorm[2],
+                  myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+          biffAdd(PUSH, err); return 1;
+        }
       }
       if (2 == task->pctx->dimIn) {
-        double posIdx[4], posWorld[4];
-        ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
-        ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
+        double posIdx[4], posWorld[4], posOrig[4];
+        ELL_3V_COPY(posOrig, myPoint->pos); posOrig[3] = 1.0;
+        ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posOrig);
         ELL_4V_HOMOG(posIdx, posIdx);
         posIdx[task->pctx->sliceAxis] = 0.0;
         ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
         ELL_34V_HOMOG(myPoint->pos, posWorld);
+        if (!ELL_3V_EXISTS(myPoint->pos)) {
+          sprintf(err, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
+                  "doesn't exist", me,
+                  posOrig[0], posOrig[1], posOrig[2], 
+                  myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+          biffAdd(PUSH, err); return 1;
+        }
       }
       if (1.0 <= task->pctx->probeProb
           || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
