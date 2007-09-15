@@ -40,15 +40,23 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   tenFiberContext *tfx;
+  tenFiberSingle *tfbs, *fiber;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  int E, intg, useDwi;
-  Nrrd *nin, *nout;
+  int E, intg, useDwi, allPaths, verbose, worldSpace;
+  Nrrd *nin, *nseed;
   unsigned int si, stopLen, whichPath;
+  airArray *fiberArr;
+  limnPolyData *fiberPld;
 
-  hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, NULL,
+  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
+             "define seedpoint and output path in worldspace.  Otherwise, "
+             "(without using this option) everything is in index space");
+  hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, "0 0 0",
              "seed point for fiber; it will propogate in two opposite "
              "directions starting from here");
+  hestOptAdd(&hopt, "ns", "seed nrrd", airTypeOther, 1, 1, &nseed, "",
+             "3-by-N nrrd of seedpoints", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
              "stepsize along fiber, in world space");
   hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, NULL,
@@ -78,8 +86,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
              "when doing two-tensor tracking, which path to follow "
              "(0 or 1)");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output fiber");
+  hestOptAdd(&hopt, "ap", "allpaths", airTypeInt, 0, 0, &allPaths, NULL,
+             "follow all paths from seedpoint(s), output will be "
+             "limnPolyData, rather than a nrrd");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
+             "verbosity level");
+  hestOptAdd(&hopt, "o", "out", airTypeString, 1, 1, &outS, "-",
+             "output fiber(s)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -87,24 +100,20 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  tfbs = tenFiberSingleNew();
+  airMopAdd(mop, tfbs, (airMopper)tenFiberSingleNix, airMopAlways);
 
   if (useDwi) {
-    fprintf(stderr, "%s: whichPath = %u\n", me, whichPath);
     tfx = tenFiberContextDwiNew(nin, 50, 1, 1,
                                 tenEstimate1MethodLLS,
-                                tenEstimate2MethodQSegLLS);
-    if (tfx) {
-      tfx->ten2Which = whichPath;
-    }
+                                tenEstimate2MethodPeled);
   } else {
     tfx = tenFiberContextNew(nin);
   }
   if (!tfx) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: failed to create the fiber context:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
   E = 0;
@@ -129,35 +138,78 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     }
   }
-  if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec0);
+  if (useDwi) {
+    if (!E) E |= tenFiberTypeSet(tfx, tenDwiFiberType2Evec0);
+  } else {
+    if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec0);
+  }
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, intg);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
-  if (!E) E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace, AIR_TRUE);
+  if (!E) E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace,
+                               worldSpace ? AIR_FALSE: AIR_TRUE);
   if (!E) E |= tenFiberUpdate(tfx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); exit(1);
+    airMopError(mop); return 1;
   }
-  if (tenFiberTrace(tfx, nout, start)) {
-    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); exit(1);
-  }
-  if (nout->data) {
-    fprintf(stderr, "%s: whyStop[backward] = %s; whyStop[forward] = %s\n", me,
-            airEnumStr(tenFiberStop, tfx->whyStop[0]),
-            airEnumStr(tenFiberStop, tfx->whyStop[1]));
-    if (nrrdSave(outS, nout, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
+
+  tfx->verbose = verbose;
+  if (!allPaths) {
+    if (tenFiberSingleTrace(tfx, tfbs, start, whichPath)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+    if (tenFiberStopUnknown == tfx->whyNowhere) {
+      fprintf(stderr, "%s: steps[back,forw] = %u,%u; seedIdx = %u\n", me,
+              tfbs->stepNum[0], tfbs->stepNum[1], tfbs->seedIdx);
+      fprintf(stderr, "%s: whyStop[back,forw] = %s,%s\n", me,
+              airEnumStr(tenFiberStop, tfbs->whyStop[0]),
+              airEnumStr(tenFiberStop, tfbs->whyStop[1]));
+      if (nrrdSave(outS, tfbs->nvert, NULL)) {
+        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+    } else {
+      fprintf(stderr, "%s: fiber failed to start: %s.\n",
+              me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
+    }
   } else {
-    fprintf(stderr, "%s: fiber failed to start: %s.\n",
-            me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
+    FILE *file;
+    if (!nseed) {
+      fprintf(stderr, "%s: didn't get seed nrrd via \"-ns\"\n", me);
+      airMopError(mop); return 1;
+    }
+    fiberArr = airArrayNew(AIR_CAST(void **, &fiber), NULL,
+                           sizeof(tenFiberSingle), 1024 /* incr */);
+    airArrayStructCB(fiberArr,
+                     AIR_CAST(void (*)(void *), tenFiberSingleInit),
+                     AIR_CAST(void (*)(void *), tenFiberSingleDone));
+    airMopAdd(mop, fiberArr, (airMopper)airArrayNuke, airMopAlways);
+    fiberPld = limnPolyDataNew();
+    airMopAdd(mop, fiberPld, (airMopper)limnPolyDataNix, airMopAlways);
+    if (tenFiberMultiTrace(tfx, fiberArr, nseed)
+        || tenFiberMultiPolyData(tfx, fiberPld, fiberArr)) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+
+    if (!(file = fopen(outS, "wb"))) {
+      fprintf(stderr, "%s: couldn't open %s for writing\n", me, outS);
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
+    if (limnPolyDataLMPDWrite(file, fiberPld)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
   }
+
   airMopOkay(mop);
   return 0;
 }
