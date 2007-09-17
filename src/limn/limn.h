@@ -672,6 +672,7 @@ LIMN_EXPORT int limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataReadLMPD(limnPolyData *pld, FILE *file);
 LIMN_EXPORT int limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataReadOFF(limnPolyData *pld, FILE *file);
+LIMN_EXPORT int limnPolyDataSave(const char *fname, const limnPolyData *lpld);
 LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
 LIMN_EXPORT hestCB *limnHestPolyDataOFF;
 

@@ -890,12 +890,12 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 0;
   }
 
-  file = fopen(str, "rb");
-  if (!file) {
-    sprintf(err, "%s: couldn't open \"%s\" for reading", me, str);
-    return 1;
-  }
   mop = airMopNew();
+  if (!( file = airFopen(str, stdin, "rb") )) {
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s", 
+            me, str, strerror(errno));
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   *lpldP = limnPolyDataNew();
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
@@ -939,12 +939,12 @@ _limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 0;
   }
 
-  file = fopen(str, "rb");
-  if (!file) {
-    sprintf(err, "%s: couldn't open \"%s\" for reading", me, str);
-    return 1;
-  }
   mop = airMopNew();
+  if (!( file = airFopen(str, stdin, "rb") )) {
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s", 
+            me, str, strerror(errno));
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   *lpldP = limnPolyDataNew();
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
@@ -972,7 +972,8 @@ limnHestPolyDataOFF = &_limnHestPolyDataOFF;
 int
 limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
   char me[]="limnPolyDataWriteVTK", err[BIFF_STRLEN];
-  unsigned int pntIdx, prmIdx, *indx;
+  unsigned int pntIdx, prmIdx, *indx, idxNum;
+  int linesOnly;
 
   if (!(file && pld)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -988,39 +989,65 @@ limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
     ELL_34V_HOMOG(xyz, pld->xyzw + 4*pntIdx);
     fprintf(file, "%f %f %f\n", xyz[0], xyz[1], xyz[2]);
   }
-  indx = pld->indx;
+
+  fprintf(file, "\n");
+
+  /* first check if its only lines... */
+  linesOnly = AIR_TRUE;
   for (prmIdx=0; prmIdx<pld->primNum; prmIdx++) {
-    unsigned int idxNum, triNum, triIdx;
-    idxNum = pld->icnt[prmIdx];
-    fprintf(file, "\n");
-    switch (pld->type[prmIdx]) {
-    case limnPrimitiveTriangleFan:
-      sprintf(err, "%s: %s prims (prim[%u]) not supported in VTK?", 
-              me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
-      biffAdd(LIMN, err); return 1;
-      break;
-    case limnPrimitiveQuads:
-    case limnPrimitiveTriangleStrip:
-    case limnPrimitiveLineStrip:
-      sprintf(err, "%s: sorry, saving %s prims (prim[%u]) not implemented", 
-              me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
-      biffAdd(LIMN, err); return 1;
-      break;
-    case limnPrimitiveTriangles:
-      triNum = idxNum/3;
-      fprintf(file, "POLYGONS %u %u\n", triNum, triNum + idxNum);
-      for (triIdx=0; triIdx<triNum; triIdx++) {
-        fprintf(file, "3 %u %u %u\n",
-                indx[0 + 3*triIdx], indx[1 + 3*triIdx], indx[2 + 3*triIdx]);
+    linesOnly &= (limnPrimitiveLineStrip == pld->type[prmIdx]);
+  }
+  if (linesOnly) {
+    fprintf(file, "LINES %u %u\n", pld->primNum, pld->primNum + pld->indxNum);
+    indx = pld->indx;
+    for (prmIdx=0; prmIdx<pld->primNum; prmIdx++) {
+      unsigned int ii;
+      idxNum = pld->icnt[prmIdx];
+      fprintf(file, "%u", idxNum);
+      for (ii=0; ii<idxNum; ii++) {
+        fprintf(file, " %u", indx[ii]);
       }
-      break;
-    default:
-      sprintf(err, "%s: sorry, type %s (prim %u) not handled here", me, 
-              airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
-      biffAdd(LIMN, err); return 1;
-      break;
+      fprintf(file, "\n");
+      indx += idxNum;
     }
-    indx += idxNum;
+  } else {
+    indx = pld->indx;
+    for (prmIdx=0; prmIdx<pld->primNum; prmIdx++) {
+      unsigned int triNum, triIdx;
+      idxNum = pld->icnt[prmIdx];
+      switch (pld->type[prmIdx]) {
+      case limnPrimitiveTriangleFan:
+        sprintf(err, "%s: %s prims (prim[%u]) not supported in VTK?", 
+                me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+        biffAdd(LIMN, err); return 1;
+        break;
+      case limnPrimitiveQuads:
+      case limnPrimitiveTriangleStrip:
+        sprintf(err, "%s: sorry, saving %s prims (prim[%u]) not implemented", 
+                me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+        biffAdd(LIMN, err); return 1;
+        break;
+      case limnPrimitiveLineStrip:
+        sprintf(err, "%s: confusion", me);
+        biffAdd(LIMN, err); return 1;
+        break;
+      case limnPrimitiveTriangles:
+        triNum = idxNum/3;
+        fprintf(file, "POLYGONS %u %u\n", triNum, triNum + idxNum);
+        for (triIdx=0; triIdx<triNum; triIdx++) {
+          fprintf(file, "3 %u %u %u\n",
+                  indx[0 + 3*triIdx], indx[1 + 3*triIdx], indx[2 + 3*triIdx]);
+        }
+        break;
+      default:
+        sprintf(err, "%s: sorry, type %s (prim %u) not handled here", me, 
+                airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
+        biffAdd(LIMN, err); return 1;
+        break;
+      }
+      fprintf(file, "\n");
+      indx += idxNum;
+    }
   }
 
   return 0;
@@ -1135,5 +1162,48 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   pld->type[0] = limnPrimitiveTriangles;
   pld->icnt[0] = 3*faceNum;
 
+  return 0;
+}
+
+int
+limnPolyDataSave(const char *_fname, const limnPolyData *lpld) {
+  char me[]="limnPolyDataSave", err[BIFF_STRLEN];
+  char *fname;
+  FILE *file;
+  airArray *mop;
+  int ret;
+
+  if (!(_fname && lpld)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  mop = airMopNew();
+
+  if (!( file = airFopen(_fname, stdout, "wb") )) {
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
+            me, _fname, strerror(errno));
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
+
+  fname = airToLower(airStrdup(_fname));
+  airMopAdd(mop, fname, (airMopper)airFree, airMopAlways);
+  if (airEndsWith(fname, ".vtk")) {
+    ret = limnPolyDataWriteVTK(file, lpld);
+  } else if (airEndsWith(fname, ".iv")) {
+    ret = limnPolyDataWriteIV(file, lpld);
+  } else {
+    if (!airEndsWith(fname, ".lmpd")) {
+      fprintf(stderr, "%s: WARNING: unknown or no suffix on \"%s\"; "
+              "using LMPD format", me, _fname);
+    }
+    ret = limnPolyDataWriteLMPD(file, lpld);
+  }
+  if (ret) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+
+  airMopOkay(mop);
   return 0;
 }

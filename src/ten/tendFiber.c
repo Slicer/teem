@@ -178,7 +178,6 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
               me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
     }
   } else {
-    FILE *file;
     if (!nseed) {
       fprintf(stderr, "%s: didn't get seed nrrd via \"-ns\"\n", me);
       airMopError(mop); return 1;
@@ -197,15 +196,9 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
-
-    if (!(file = fopen(outS, "wb"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing\n", me, outS);
-      airMopError(mop); return 1;
-    }
-    airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-    if (limnPolyDataWriteLMPD(file, fiberPld)) {
+    if (limnPolyDataSave(outS, fiberPld)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      fprintf(stderr, "%s: trouble saving:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
   }
