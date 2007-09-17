@@ -664,15 +664,15 @@ LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
                                             const Nrrd *nmask);
 
 /* io.c */
-LIMN_EXPORT int limnObjectDescribe(FILE *file, limnObject *obj);
-LIMN_EXPORT int limnObjectOFFRead(limnObject *obj, FILE *file);
-LIMN_EXPORT int limnObjectOFFWrite(FILE *file, limnObject *obj);
-LIMN_EXPORT int limnPolyDataIVWrite(FILE *file, const limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataLMPDRead(limnPolyData *pld, FILE *file);
+LIMN_EXPORT int limnObjectDescribe(FILE *file, const limnObject *obj);
+LIMN_EXPORT int limnObjectReadOFF(limnObject *obj, FILE *file);
+LIMN_EXPORT int limnObjectWriteOFF(FILE *file, const limnObject *obj);
+LIMN_EXPORT int limnPolyDataWriteIV(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataReadLMPD(limnPolyData *pld, FILE *file);
+LIMN_EXPORT int limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataReadOFF(limnPolyData *pld, FILE *file);
 LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
-LIMN_EXPORT int limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataOFFRead(limnPolyData *pld, FILE *file);
 LIMN_EXPORT hestCB *limnHestPolyDataOFF;
 
 /* shapes.c */

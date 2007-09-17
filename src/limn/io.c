@@ -24,7 +24,7 @@
 #include "limn.h"
 
 int
-limnObjectDescribe(FILE *file, limnObject *obj) {
+limnObjectDescribe(FILE *file, const limnObject *obj) {
   limnFace *face; unsigned int si, fii;
   limnEdge *edge; unsigned int eii;
   limnVertex *vert; unsigned int vii;
@@ -76,8 +76,8 @@ limnObjectDescribe(FILE *file, limnObject *obj) {
 }
 
 int
-limnObjectOFFWrite(FILE *file, limnObject *obj) {
-  char me[]="limnObjectOFFWrite", err[BIFF_STRLEN];
+limnObjectWriteOFF(FILE *file, const limnObject *obj) {
+  char me[]="limnObjectWriteOFF", err[BIFF_STRLEN];
   unsigned int si;
   limnVertex *vert; unsigned int vii;
   limnFace *face; unsigned int fii;
@@ -136,8 +136,8 @@ limnObjectOFFWrite(FILE *file, limnObject *obj) {
 }
 
 int
-limnPolyDataIVWrite(FILE *file, const limnPolyData *pld) {
-  char me[]="limnPolyDataIVWrite", err[BIFF_STRLEN];
+limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
+  char me[]="limnPolyDataWriteIV", err[BIFF_STRLEN];
   unsigned int primIdx, xyzwIdx, rgbaIdx, normIdx, bitFlag,
     baseVertIdx;
   int haveStrips, haveTris, haveElse;
@@ -275,8 +275,8 @@ typedef union {
 } _ippu;
 
 int
-limnObjectOFFRead(limnObject *obj, FILE *file) {
-  char me[]="limnObjectOFFRead", err[BIFF_STRLEN];
+limnObjectReadOFF(limnObject *obj, FILE *file) {
+  char me[]="limnObjectReadOFF", err[BIFF_STRLEN];
   double vert[6];
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
   int lineCount, lookIdx, partIdx, idxTmp, faceNum, faceGot, got;
@@ -457,8 +457,8 @@ http://www.npr.org/templates/story/story.php?storyId=4531695
 #define XYZW_STR "xyzw:"
 
 int
-limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
-  char me[]="limnPolyDataLMPDWrite", err[BIFF_STRLEN], infoS[AIR_STRLEN_MED];
+limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
+  char me[]="limnPolyDataWriteLMPD", err[BIFF_STRLEN], infoS[AIR_STRLEN_MED];
   unsigned int primIdx, infoNum, flag, bit;
   Nrrd *nrrd;
   airArray *mop;
@@ -568,7 +568,7 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
 }
 
 /*
-******** limnPolyDataLMPDRead
+******** limnPolyDataReadLMPD
 **
 ** reads a limnPolyData from an LMPD file
 **
@@ -576,8 +576,8 @@ limnPolyDataLMPDWrite(FILE *file, const limnPolyData *pld) {
 ** needs some serious clean-up
 */
 int
-limnPolyDataLMPDRead(limnPolyData *pld, FILE *file) {
-  char me[]="limnPolyDataLMPDRead", err[BIFF_STRLEN],
+limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
+  char me[]="limnPolyDatReadLMPD", err[BIFF_STRLEN],
     line[AIR_STRLEN_MED], name[AIR_STRLEN_MED], *tmp;
   unsigned int vertNum, indxNum, primNum, primIdx, lineLen,
     infoNum, infoIdx, info, flag;
@@ -899,7 +899,7 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   *lpldP = limnPolyDataNew();
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
-  if (limnPolyDataLMPDRead(*lpldP, file)) {
+  if (limnPolyDataReadLMPD(*lpldP, file)) {
     airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
     strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     airMopError(mop);
@@ -948,7 +948,7 @@ _limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   *lpldP = limnPolyDataNew();
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
-  if (limnPolyDataOFFRead(*lpldP, file)) {
+  if (limnPolyDataReadOFF(*lpldP, file)) {
     airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
     strncpy(err, nerr, AIR_STRLEN_HUGE-1);
     airMopError(mop);
@@ -970,8 +970,8 @@ hestCB *
 limnHestPolyDataOFF = &_limnHestPolyDataOFF;
 
 int
-limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
-  char me[]="limnPolyDataVTKWrite", err[BIFF_STRLEN];
+limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
+  char me[]="limnPolyDataWriteVTK", err[BIFF_STRLEN];
   unsigned int pntIdx, prmIdx, *indx;
 
   if (!(file && pld)) {
@@ -1027,14 +1027,14 @@ limnPolyDataVTKWrite(FILE *file, const limnPolyData *pld) {
 }
 
 /*
-******** limnPolyDataOFFRead
+******** limnPolyDataReadOFF
 **
 ** HEY: this has to be re-written with different allocation strategies
 ** if it is to support anything other than a single limnPrimitiveTriangles
 */
 int
-limnPolyDataOFFRead(limnPolyData *pld, FILE *file) {
-  char me[]="limnPolyDataOFFRead", err[BIFF_STRLEN];
+limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
+  char me[]="limnPolyDataReadOFF", err[BIFF_STRLEN];
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
   unsigned int num[3], xyzwNum, xyzwGot,
     faceNum, faceGot, lineCount, got, lret;
@@ -1137,6 +1137,3 @@ limnPolyDataOFFRead(limnPolyData *pld, FILE *file) {
 
   return 0;
 }
-
-
-

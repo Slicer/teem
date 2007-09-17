@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
     free(err);
   }
 
-  if (limnPolyDataLMPDWrite(file, pld)) {
+  if (limnPolyDataWriteLMPD(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

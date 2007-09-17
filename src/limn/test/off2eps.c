@@ -111,7 +111,7 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-  if (limnObjectOFFRead(obj, file)) {
+  if (limnObjectReadOFF(obj, file)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

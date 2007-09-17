@@ -68,7 +68,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (limnPolyDataClip(pld, nin, thresh)
-      || limnPolyDataLMPDWrite(file, pld)) {
+      || limnPolyDataWriteLMPD(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

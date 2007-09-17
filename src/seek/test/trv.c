@@ -169,7 +169,7 @@ main(int argc, char *argv[]) {
 
   nmeas = nrrdNew();
   airMopAdd(mop, nmeas, (airMopper)nrrdNuke, airMopAlways);
-  if (limnPolyDataVertexWindingFix(pld)
+  if (limnPolyDataVertexWindingFix(pld, AIR_TRUE)
       || limnPolyDataVertexWindingFlip(pld)
       || limnPolyDataVertexNormals(pld)
       || limnPolyDataCCFind(pld)
@@ -190,9 +190,9 @@ main(int argc, char *argv[]) {
       meas[ccIdx] = 0.0;
     }
     if (!E) E |= limnPolyDataPrimitiveSelect(pldSub, pld, nmeas);
-    if (!E) E |= limnPolyDataLMPDWrite(file, pldSub);
+    if (!E) E |= limnPolyDataWriteLMPD(file, pldSub);
   } else {
-    if (!E) E |= limnPolyDataLMPDWrite(file, pld);
+    if (!E) E |= limnPolyDataWriteLMPD(file, pld);
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);

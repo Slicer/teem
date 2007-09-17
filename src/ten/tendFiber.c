@@ -203,7 +203,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
     airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
-    if (limnPolyDataLMPDWrite(file, fiberPld)) {
+    if (limnPolyDataWriteLMPD(file, fiberPld)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop); return 1;

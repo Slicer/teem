@@ -263,7 +263,7 @@ main(int argc, char *argv[]) {
   file = airFopen(outS, stdout, "w");
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
-  if (limnObjectOFFWrite(file, obj)) {
+  if (limnObjectWriteOFF(file, obj)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -32,10 +32,11 @@ main(int argc, char *argv[]) {
   FILE *file;
   limnPolyData *lmpd;
 
+  AIR_UNUSED(argc);
   me = argv[0];
   lmpd = limnPolyDataNew();
   file = fopen("in.lmpd", "r");
-  if (limnPolyDataLMPDRead(lmpd, file)) {
+  if (limnPolyDataReadLMPD(lmpd, file)) {
     err = biffGetDone(LIMN),
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     return 1;
@@ -43,7 +44,7 @@ main(int argc, char *argv[]) {
   fclose(file);
   
   file = fopen("out.vtk", "w");
-  if (limnPolyDataVTKWrite(file, lmpd)) {
+  if (limnPolyDataWriteVTK(file, lmpd)) {
     err = biffGetDone(LIMN);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     return 1;
