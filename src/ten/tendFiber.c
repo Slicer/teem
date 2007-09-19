@@ -126,21 +126,22 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
   E = 0;
   for (si=0, stop=_stop; si<stopLen; si++, stop+=3) {
-    switch((int)stop[0]) {
+    switch(AIR_CAST(int, stop[0])) {
     case tenFiberStopAniso:
       if (!E) E |= tenFiberStopSet(tfx, tenFiberStopAniso,
                                    (int)stop[1], stop[2]);
       break;
-    case tenFiberStopLength:
-      if (!E) E |= tenFiberStopSet(tfx, tenFiberStopLength, stop[1]);
-      break;
     case tenFiberStopNumSteps:
       if (!E) E |= tenFiberStopSet(tfx, tenFiberStopNumSteps, (int)stop[1]);
       break;
+    case tenFiberStopLength:
     case tenFiberStopConfidence:
-      if (!E) E |= tenFiberStopSet(tfx, tenFiberStopConfidence, stop[1]);
+    case tenFiberStopRadius:
+      if (!E) E |= tenFiberStopSet(tfx, AIR_CAST(int, stop[0]), stop[1]);
       break;
     case tenFiberStopBounds:
+      /* nothing to actually do */
+      break;
     default:
       fprintf(stderr, "%s: stop method %d not supported\n", me,
               AIR_CAST(int, stop[0]));
