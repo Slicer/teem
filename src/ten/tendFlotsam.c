@@ -171,7 +171,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* moron */
     break;
   default:
-    sprintf(err, "%s: stop method %d not suppored", me,
+    sprintf(err, "%s: stop method %d not supported", me,
             AIR_CAST(int, info[0]));
     airMopError(mop); return 1;
     break;
