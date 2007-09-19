@@ -136,6 +136,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     case tenFiberStopLength:
     case tenFiberStopConfidence:
+    case tenFiberStopFraction:
     case tenFiberStopRadius:
       if (!E) E |= tenFiberStopSet(tfx, AIR_CAST(int, stop[0]), stop[1]);
       break;

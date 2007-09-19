@@ -140,13 +140,10 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     */
     break;
   case tenFiberStopFraction:
-    /* <frac> : double */
   case tenFiberStopLength:
-    /* <length> : double */
   case tenFiberStopRadius:
-    /* <length> : double */
   case tenFiberStopConfidence:
-    /* <conf> : double */
+    /* all of these take a single double */
     if (1 != sscanf(opt, "%lg", info+1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
               airEnumStr(tenFiberStop, AIR_CAST(int, info[0])), opt);

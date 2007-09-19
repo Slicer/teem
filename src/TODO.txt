@@ -1,5 +1,9 @@
 --------- teem 1.10 priority
 
+fix all 
+"dereferencing type-punned pointer will break strict-aliasing rules"
+warnings on a modern linux system
+
 fix the copyright year (now 2007)
 
 regenerate NrrdIO, check it into ITK, clean up errors + warnings
