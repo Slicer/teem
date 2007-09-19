@@ -100,6 +100,9 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
         tmp = tenAnisoTen_d(tfx->fiberTen, tfx->anisoStopType);
         tfx->fiberAnisoStop = AIR_CLAMP(0, tmp, 1);
       }
+      if (seedProbe) {
+        ELL_3V_COPY(tfx->seedEvec, tfx->fiberEvec);
+      }
       break;
     case tenDwiFiberType2Evec0:
       /* Estimate principal diffusion direction of each tensor */
@@ -226,7 +229,9 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
       return tenFiberStopLength;
     }
   }
-  if (tfx->useDwi && tfx->stop & (1 << tenFiberStopFraction)) {
+  if (tfx->useDwi
+      && tfx->stop & (1 << tenFiberStopFraction)
+      && tfx->gageTen2) { /* not all DWI fiber types use gageTen2 */
     double fracUse;
     fracUse = (0 == tfx->ten2Use
                ? tfx->gageTen2[7]
