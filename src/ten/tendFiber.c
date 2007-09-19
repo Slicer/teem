@@ -142,7 +142,9 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     case tenFiberStopBounds:
     default:
-      /* nothing to do */
+      fprintf(stderr, "%s: stop method %d not supported\n", me,
+              AIR_CAST(int, stop[0]));
+      airMopError(mop); return 1;
       break;
     }
   }
