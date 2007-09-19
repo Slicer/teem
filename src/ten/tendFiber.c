@@ -47,22 +47,41 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *ftypeS;
   int E, intg, useDwi, allPaths, verbose, worldSpace, worldSpaceOut,
     ftype, ftypeDef;
-  Nrrd *nin, *nseed;
+  Nrrd *nin, *nseed, *nmat, *_nmat;
   unsigned int si, stopLen, whichPath;
+  double matx[16]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
   airArray *fiberArr;
   limnPolyData *fiberPld;
 
-  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
-             "define seedpoint and output path in worldspace.  Otherwise, "
-             "(without using this option) everything is in index space");
-  hestOptAdd(&hopt, "wspo", NULL, airTypeInt, 0, 0, &worldSpaceOut, NULL,
-             "output should be in worldspace, even if input is not "
-             "(this is confusing)");
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
+             "input volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &useDwi, NULL,
+             "input volume is a DWI volume, not a single tensor volume");
   hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, "0 0 0",
              "seed point for fiber; it will propogate in two opposite "
              "directions starting from here");
   hestOptAdd(&hopt, "ns", "seed nrrd", airTypeOther, 1, 1, &nseed, "",
              "3-by-N nrrd of seedpoints", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
+             "define seedpoint and output path in worldspace.  Otherwise, "
+             "(without using this option) everything is in index space");
+  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "", 
+             "fiber type; defaults to something");
+  hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
+             "integration method for fiber tracking",
+             NULL, tenFiberIntg);
+  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "tent",
+             "kernel for reconstructing tensor field",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
+             "when doing multi-tensor tracking, index of path to follow "
+             "(made moot by \"-ap\")");
+  hestOptAdd(&hopt, "ap", "allpaths", airTypeInt, 0, 0, &allPaths, NULL,
+             "follow all paths from seedpoint(s), output will be "
+             "polydata, rather than a single 3-by-N nrrd");
+  hestOptAdd(&hopt, "wspo", NULL, airTypeInt, 0, 0, &worldSpaceOut, NULL,
+             "output should be in worldspace, even if input is not "
+             "(this feature is unstable and/or confusing)");
   hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
              "stepsize along fiber, in world space");
   hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, NULL,
@@ -79,26 +98,13 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
              "to be above the given threshold. ",
              &stopLen, NULL, tendFiberStopCB);
-  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "", 
-             "fiber type; defaults to something");
-  hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
-             "integration method for fiber tracking",
-             NULL, tenFiberIntg);
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "tent",
-             "kernel for reconstructing tensor field",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &useDwi, NULL,
-             "input volume is a DWI volume, not a single tensor volume");
-  hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
-             "when doing multi-tensor tracking, index of path to follow "
-             "(made moot by \"-ap\")");
-  hestOptAdd(&hopt, "ap", "allpaths", airTypeInt, 0, 0, &allPaths, NULL,
-             "follow all paths from seedpoint(s), output will be "
-             "polydata, rather than a single 3-by-N nrrd");
   hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
+  hestOptAdd(&hopt, "nmat", "transform", airTypeOther, 1, 1, &_nmat, "",
+             "a 4x4 homogenous transform matrix (as a nrrd, or just a text "
+             "file) given with this option will be applied to the output "
+             "tractography vertices just prior to output",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "out", airTypeString, 1, 1, &outS, "-",
              "output fiber(s)");
 
@@ -111,6 +117,27 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tfbs = tenFiberSingleNew();
   airMopAdd(mop, tfbs, (airMopper)tenFiberSingleNix, airMopAlways);
 
+  if (_nmat) {
+    if (!(2 == _nmat->dim
+          && 4 == _nmat->axis[0].size
+          && 4 == _nmat->axis[1].size)) {
+      fprintf(stderr, "%s: transform matrix must be 2-D 4-by-4 array "
+              "not %u-D %u-by-?\n", me,
+              AIR_CAST(unsigned int, _nmat->dim),
+              AIR_CAST(unsigned int, _nmat->axis[0].size));
+      airMopError(mop); return 1;
+    }
+    nmat = nrrdNew();
+    airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(nmat, _nmat, nrrdTypeDouble)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: problem with transform matrix\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+    ELL_4M_COPY(matx, AIR_CAST(double *, nmat->data));
+    fprintf(stderr, "%s: transforming output by:\n", me);
+    ell_4m_print_d(stderr, matx);
+  }
   if (useDwi) {
     tfx = tenFiberContextDwiNew(nin, 50, 1, 1,
                                 tenEstimate1MethodLLS,
@@ -202,6 +229,10 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
         fprintf(stderr, "%s: WARNING!!! output conversion "
                 "to worldspace not done!!!\n", me);
       }
+      if (_nmat) {
+        fprintf(stderr, "%s: WARNING!!! output transform "
+                "not done!!!\n", me);
+      }
       if (nrrdSave(outS, tfbs->nvert, NULL)) {
         airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
@@ -240,6 +271,17 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
         gageShapeItoW(tfx->gtx->shape, world, index);
         ELL_4V_COPY(fiberPld->xyzw + 4*ii, world);
         (fiberPld->xyzw + 4*ii)[3] = 1.0;
+      }
+    }
+    if (_nmat) {
+      /* have to further transform output by given matrix */
+      unsigned int ii;
+      double xxx[4], yyy[4];
+      for (ii=0; ii<fiberPld->xyzwNum; ii++) {
+        ELL_4V_COPY(xxx, fiberPld->xyzw + 4*ii);
+        ELL_4MV_MUL(yyy, matx, xxx);
+        ELL_4V_HOMOG(yyy, yyy);
+        ELL_4V_COPY(fiberPld->xyzw + 4*ii, yyy);
       }
     }
     if (limnPolyDataSave(outS, fiberPld)) {
