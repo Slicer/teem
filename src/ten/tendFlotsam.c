@@ -106,13 +106,13 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   } 
   *opt = '\0';
   opt++;
-  info[0] = airEnumVal(tenFiberStop, str);
-  if (tenFiberStopUnknown == info[0]) {
+  info[0] = AIR_CAST(int, airEnumVal(tenFiberStop, str));
+  if (tenFiberStopUnknown == AIR_CAST(int, info[0])) {
     sprintf(err, "%s: didn't recognize \"%s\" as %s",
             me, str, tenFiberStop->name);
     airMopError(mop); return 1;
   }
-  switch((int)info[0]) {
+  switch(AIR_CAST(int, info[0])) {
   case tenFiberStopAniso:
     /* <aniso>,<level> : tenAniso,double */
     opt2 = strchr(opt, ',');
@@ -123,8 +123,8 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     }
     *opt2 = '\0';
     opt2++;
-    info[1] = airEnumVal(tenAniso, opt);
-    if (tenAnisoUnknown == info[1]) {
+    info[1] = AIR_CAST(int, airEnumVal(tenAniso, opt));
+    if (tenAnisoUnknown == AIR_CAST(int, info[1])) {
       sprintf(err, "%s: didn't recognize \"%s\" as %s",
               me, opt, tenAniso->name);
       airMopError(mop); return 1;
@@ -136,23 +136,25 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     }
     /*
     fprintf(stderr, "!%s: parsed aniso:%s,%g\n", me,
-            airEnumStr(tenAniso, info[1]), info[2]);
+            airEnumStr(tenAniso, AIR_CAST(int, info[1])), info[2]);
     */
     break;
   case tenFiberStopFraction:
     /* <frac> : double */
   case tenFiberStopLength:
     /* <length> : double */
+  case tenFiberStopRadius:
+    /* <length> : double */
   case tenFiberStopConfidence:
     /* <conf> : double */
     if (1 != sscanf(opt, "%lg", info+1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
-              airEnumStr(tenFiberStop, info[0]), opt);
+              airEnumStr(tenFiberStop, AIR_CAST(int, info[0])), opt);
       airMopError(mop); return 1;
     }
     /*
     fprintf(stderr, "!%s: parse %s:%g\n", me, 
-            airEnumStr(tenFiberStop, info[0]),
+            airEnumStr(tenFiberStop, AIR_CAST(int, info[0])),
             info[1]);
     */
     break;
@@ -169,7 +171,8 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* moron */
     break;
   default:
-    sprintf(err, "%s: stop method %d not suppored", me, (int)info[0]);
+    sprintf(err, "%s: stop method %d not suppored", me,
+            AIR_CAST(int, info[0]));
     airMopError(mop); return 1;
     break;
   }
