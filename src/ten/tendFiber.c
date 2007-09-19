@@ -43,7 +43,9 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenFiberSingle *tfbs, *fiber;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  int E, intg, useDwi, allPaths, verbose, worldSpace;
+  airEnum *ftypeEnum;
+  char *ftypeS;
+  int E, intg, useDwi, allPaths, verbose, worldSpace, ftype, ftypeDef;
   Nrrd *nin, *nseed;
   unsigned int si, stopLen, whichPath;
   airArray *fiberArr;
@@ -73,6 +75,8 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
              "to be above the given threshold. ",
              &stopLen, NULL, tendFiberStopCB);
+  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "", 
+             "fiber type; defaults to something");
   hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
              "integration method for fiber tracking",
              NULL, tenFiberIntg);
@@ -138,10 +142,27 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       break;
     }
   }
-  if (useDwi) {
-    if (!E) E |= tenFiberTypeSet(tfx, tenDwiFiberType2Evec0);
-  } else {
-    if (!E) E |= tenFiberTypeSet(tfx, tenFiberTypeEvec0);
+  if (!E) {
+    if (useDwi) {
+      ftypeEnum = tenDwiFiberType;
+      ftypeDef = tenDwiFiberType2Evec0;
+    } else {
+      ftypeEnum = tenFiberType;
+      ftypeDef = tenFiberTypeEvec0;
+    }
+    if (airStrlen(ftypeS)) {
+      ftype = airEnumVal(ftypeEnum, ftypeS);
+      if (airEnumUnknown(ftypeEnum) == ftype) {
+        fprintf(stderr, "%s: couldn't parse \"%s\" as a %s\n", me,
+                ftypeS, ftypeEnum->name);
+        airMopError(mop); return 1;
+      }
+    } else {
+      ftype = ftypeDef;
+      fprintf(stderr, "%s: (defaulting %s to %s)\n", me,
+              ftypeEnum->name, airEnumStr(ftypeEnum, ftype));
+    }
+    E |= tenFiberTypeSet(tfx, ftype);
   }
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, intg);
