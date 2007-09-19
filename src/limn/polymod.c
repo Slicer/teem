@@ -1267,7 +1267,7 @@ limnPolyDataCCFind(limnPolyData *pld) {
   char me[]="limnPolyDataCCFind", err[BIFF_STRLEN];
   unsigned int realTriNum, *triMap, *triWithVert, vertIdx, *ccSize,
     *indxOld, *indxNew, primNumOld, *icntOld, *icntNew, *baseIndx,
-    primIdxNew, primNumNew, passIdx, eqvNum;
+    primIdxNew, primNumNew, passIdx, eqvNum=0;
   unsigned char *typeOld, *typeNew;
   Nrrd *nTriWithVert, *nccSize, *nTriMap;
   airArray *mop, *eqvArr;
