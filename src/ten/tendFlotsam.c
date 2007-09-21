@@ -143,6 +143,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   case tenFiberStopLength:
   case tenFiberStopRadius:
   case tenFiberStopConfidence:
+  case tenFiberStopMinLength:
     /* all of these take a single double */
     if (1 != sscanf(opt, "%lg", info+1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
@@ -156,6 +157,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     */
     break;
   case tenFiberStopNumSteps:
+  case tenFiberStopMinNumSteps:
     /* <#steps> : int */
     if (1 != sscanf(opt, "%d", &integer)) {
       sprintf(err, "%s: couldn't parse \"%s\" as int", me, opt);

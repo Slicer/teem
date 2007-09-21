@@ -481,7 +481,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     forwDir[3],
     *fiber;                  /* array of both forward and backward points,
                                 when finished */
-  int gret, whyStop, buffIdx, fptsIdx, outIdx, oldStop;
+  int gret, whyStop, buffIdx, fptsIdx, outIdx, oldStop, keepfiber;
   unsigned int i;
   airArray *mop;
   
@@ -666,13 +666,30 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     }
   }
 
+  keepfiber = AIR_TRUE;
   if ((tfx->stop & (1 << tenFiberStopStub))
       && (2 == fptsArr[0]->len + fptsArr[1]->len)) {
     /* seed point was actually valid, but neither half got anywhere,
        and the user has set tenFiberStopStub, so we report this as
        a non-starter, via tfx->whyNowhere. */
     tfx->whyNowhere = tenFiberStopStub;
-    /* for the curious, tfx->whyStop[0,1] remain set, from above */
+    keepfiber = AIR_FALSE;
+  }
+  if ((tfx->stop & (1 << tenFiberStopMinNumSteps))
+      && (fptsArr[0]->len + fptsArr[1]->len < tfx->minNumSteps)) {
+    /* whole fiber didn't have enough steps */
+    tfx->whyNowhere = tenFiberStopMinNumSteps;
+    keepfiber = AIR_FALSE;
+  }
+  if ((tfx->stop & (1 << tenFiberStopMinLength))
+      && (tfx->halfLen[0] + tfx->halfLen[1] < tfx->minWholeLen)) {
+    /* whole fiber wasn't long enough */
+    tfx->whyNowhere = tenFiberStopMinLength;
+    keepfiber = AIR_FALSE;
+  }
+  if (!keepfiber) {
+    /* for the curious, tfx->whyStop[0,1], tfx->numSteps[0,1], and
+       tfx->halfLen[1,2] remain set, from above */
     if (nfiber) {
       nrrdEmpty(nfiber);
     } else {

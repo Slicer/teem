@@ -23,13 +23,10 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define INFO "Extract a single fiber tract, given a start point"
+#define INFO "Fiber tractography, from one or more seeds"
 char *_tend_fiberInfoL =
   (INFO
-   ".  This is really only useful for debugging purposes; there is no way "
-   "that a command-line tractography tool is going to be very interesting "
-   "for real applications. The output fiber is in the form "
-   "of a 3xN array of doubles, with N points along fiber.");
+   ".  A fairly complete command-line interface to the tenFiber API.");
 
 int
 tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
@@ -77,15 +74,17 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "when doing multi-tensor tracking, index of path to follow "
              "(made moot by \"-ap\")");
   hestOptAdd(&hopt, "ap", "allpaths", airTypeInt, 0, 0, &allPaths, NULL,
-             "follow all paths from seedpoint(s), output will be "
-             "polydata, rather than a single 3-by-N nrrd");
+             "follow all paths from (all) seedpoint(s), output will be "
+             "polydata, rather than a single 3-by-N nrrd, even if only "
+             "a single path is generated");
   hestOptAdd(&hopt, "wspo", NULL, airTypeInt, 0, 0, &worldSpaceOut, NULL,
              "output should be in worldspace, even if input is not "
              "(this feature is unstable and/or confusing)");
   hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
              "stepsize along fiber, in world space");
   hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, NULL,
-             "the conditions that should signify the end of a fiber. "
+             "the conditions that should signify the end of a fiber, or "
+             "when to discard a fiber that is done propagating. "
              "Multiple stopping criteria are logically OR-ed and tested at "
              "every point along the fiber.  Possibilities include:\n "
              "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
@@ -93,10 +92,18 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
              "as with \"tend anvol\" (see its usage info)\n "
              "\b\bo \"len:<length>\": limits the length, in world space, "
              "of each fiber half\n "
-             "\b\bo \"steps:<N>\": limits the number of points in each "
-             "fiber half\n "
+             "\b\bo \"steps:<N>\": the number of steps in each fiber half "
+             "is capped at N\n "
              "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
-             "to be above the given threshold. ",
+             "to be above the given thresh\n "
+             "\b\bo \"radius:<thresh>\": requires that the radius of "
+             "curvature of the fiber stay above given thr\n "
+             "\b\bo \"frac:<F>\": in multi-tensor tracking, the fraction "
+             "of the tracked component must stay above F\n "
+             "\b\bo \"minlen:<len>\": discard fiber if its final whole "
+             "length is below len (not really a termination criterion)\n "
+             "\b\bo \"minsteps:<N>\": discard fiber if its final number of "
+             "steps is below N (not really a termination criterion)",
              &stopLen, NULL, tendFiberStopCB);
   hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
@@ -153,26 +160,31 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
   E = 0;
   for (si=0, stop=_stop; si<stopLen; si++, stop+=3) {
-    switch(AIR_CAST(int, stop[0])) {
+    int istop;  /* not from Apple */
+    istop = AIR_CAST(int, stop[0]);
+    switch(istop) {
     case tenFiberStopAniso:
-      if (!E) E |= tenFiberStopSet(tfx, tenFiberStopAniso,
-                                   (int)stop[1], stop[2]);
+      if (!E) E |= tenFiberStopSet(tfx, istop,
+                                   AIR_CAST(int, stop[1]), stop[2]);
       break;
     case tenFiberStopNumSteps:
-      if (!E) E |= tenFiberStopSet(tfx, tenFiberStopNumSteps, (int)stop[1]);
+    case tenFiberStopMinNumSteps:
+      if (!E) E |= tenFiberStopSet(tfx, istop,
+                                   AIR_CAST(unsigned int, stop[1]));
       break;
     case tenFiberStopLength:
     case tenFiberStopConfidence:
     case tenFiberStopFraction:
     case tenFiberStopRadius:
-      if (!E) E |= tenFiberStopSet(tfx, AIR_CAST(int, stop[0]), stop[1]);
+    case tenFiberStopMinLength:
+      if (!E) E |= tenFiberStopSet(tfx, istop, stop[1]);
       break;
     case tenFiberStopBounds:
       /* nothing to actually do */
       break;
     default:
       fprintf(stderr, "%s: stop method %d not supported\n", me,
-              AIR_CAST(int, stop[0]));
+              istop);
       airMopError(mop); return 1;
       break;
     }
@@ -211,7 +223,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
 
-  tfx->verbose = verbose;
+  tenFiberVerboseSet(tfx, verbose);
   if (!allPaths) {
     if (tenFiberSingleTrace(tfx, tfbs, start, whichPath)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);

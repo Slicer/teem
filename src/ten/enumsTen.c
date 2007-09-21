@@ -942,7 +942,9 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "radius",
   "bounds",
   "fraction",
-  "stub"
+  "stub",
+  "minlen",
+  "minsteps",
 };
 
 char
@@ -955,6 +957,8 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   "bounds",
   "fraction", "frac", "f",
   "stub",
+  "minlen", "minlength",
+  "minsteps", "minnumsteps",
   ""
 };
 
@@ -968,6 +972,8 @@ _tenFiberStopValEqv[] = {
   tenFiberStopBounds,
   tenFiberStopFraction, tenFiberStopFraction, tenFiberStopFraction, 
   tenFiberStopStub,
+  tenFiberStopMinLength, tenFiberStopMinLength,
+  tenFiberStopMinNumSteps, tenFiberStopMinNumSteps,
 };
 
 char
@@ -980,7 +986,9 @@ _tenFiberStopDesc[][AIR_STRLEN_MED] = {
   "radius of curvature of path got too small",
   "fiber went outside bounding box",
   "fractional constituency of tracked tensor got too small",
-  "neither fiber half got anywhere; fiber has single vert"
+  "neither fiber half got anywhere; fiber has single vert",
+  "whole fiber has insufficient length",
+  "whole fiber has too few numbers of steps"
 };
 
 airEnum

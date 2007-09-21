@@ -635,23 +635,39 @@ enum {
 /*
 ******** tenFiberStop* enum
 **
-** the different reasons why fibers stop going (or never start)
+** the different reasons why fibers stop going (as stored in
+** tenFiberSingle->whyStop[]), or never got started
+** (tenFiberSingle->whyNowhere), or never went far enough (also
+** tenFiberSingle->whyNowhere).
+** 
+** The addition of tenFiberStopMinLength and tenFiberStopMinNumSteps
+** really stretch the meaningfulness of "tenFiberStop", but its the
+** only logical place for such constraints to go.
+** NOTE: tenFiberStopMinLength and tenFiberStopMinNumSteps only make
+** sense as a value for whyNowhere, not whyStop, despite the name.
 */
 enum {
-  tenFiberStopUnknown,    /* 0: nobody knows,
-                             or, for whyNowhere: no, we did get somewhere */
-  tenFiberStopAniso,      /* 1: specified aniso got below specified level */
-  tenFiberStopLength,     /* 2: fiber length in world space got too long */
-  tenFiberStopNumSteps,   /* 3: took too many steps along fiber */
-  tenFiberStopConfidence, /* 4: tensor "confidence" value went too low */
-  tenFiberStopRadius,     /* 5: radius of curvature got too small */
-  tenFiberStopBounds,     /* 6: fiber position stepped outside volume */
-  tenFiberStopFraction,   /* 7: (in multi-tensor tracking) fractional
-                             constituency of tracked tensor got too small */
-  tenFiberStopStub,       /* 8: treat single vertex fibers as non-starters */
+  tenFiberStopUnknown,     /*  0: nobody knows,
+                                  or, for tfx->whyNowhere: no, actually,
+                                  we *did* get somewhere with this fiber */
+  tenFiberStopAniso,       /*  1: specified aniso got below specified level */
+  tenFiberStopLength,      /*  2: fiber length in world space got too long */
+  tenFiberStopNumSteps,    /*  3: took too many steps along fiber */
+  tenFiberStopConfidence,  /*  4: tensor "confidence" value went too low */
+  tenFiberStopRadius,      /*  5: radius of curvature got too small */
+  tenFiberStopBounds,      /*  6: fiber position stepped outside volume */
+  tenFiberStopFraction,    /*  7: during multi-tensor tracking, fractional
+                                  constituency of the tracked tensor got
+                                  too small */
+  tenFiberStopStub,        /*  8: treat single vertex fibers as non-starters */
+  tenFiberStopMinLength,   /*  9: fibers with total (both halves) small length
+                                  are discarded */
+  tenFiberStopMinNumSteps, /* 10: fibers with total (both halves) small # steps
+                                  are discarded (more general-purpose than
+                                  tenFiberStopStub) */
   tenFiberStopLast
 };
-#define TEN_FIBER_STOP_MAX   8
+#define TEN_FIBER_STOP_MAX    10
 
 /*
 ******** #define TEN_FIBER_NUM_STEPS_MAX
@@ -695,10 +711,12 @@ typedef struct {
     verbose;            /* blah blah blah */
   double anisoThresh,   /* anisotropy threshold */
     anisoSpeedFunc[3];  /* parameters of mapping aniso to speed */
-  unsigned int maxNumSteps; /* max # steps allowed on one fiber half */
+  unsigned int maxNumSteps, /* max # steps allowed on one fiber *half* */
+    minNumSteps;        /* min signficiant # steps on *whole* fiber */
   double stepSize,      /* step size in world space */
     maxHalfLen,         /* longest propagation (forward or backward) allowed
                            from midpoint */
+    minWholeLen,        /* minimum significant length of whole fiber */
     confThresh,         /* confidence threshold */
     minRadius,          /* minimum radius of curvature of path */
     minFraction;        /* minimum fractional constituency in multi-tensor */
@@ -1254,6 +1272,7 @@ TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol,
                                                   double valueMin,
                                                   int ten1method,
                                                   int ten2method);
+TEN_EXPORT void tenFiberVerboseSet(tenFiberContext *tfx, int verbose);
 TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const NrrdKernel *kern,

@@ -153,10 +153,12 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   tfx->anisoSpeedFunc[1] = 0;
   tfx->anisoSpeedFunc[2] = 0;
   tfx->maxNumSteps = tenDefFiberMaxNumSteps;
+  tfx->minNumSteps = 0;
   tfx->useIndexSpace = tenDefFiberUseIndexSpace;
   tfx->verbose = 0;
   tfx->stepSize = tenDefFiberStepSize;
   tfx->maxHalfLen = tenDefFiberMaxHalfLen;
+  tfx->minWholeLen = 0.0;
   tfx->confThresh = 0.5; /* why do I even bother setting these- they'll
                             only get read if the right tenFiberStopSet has
                             been called, in which case they'll be set... */
@@ -221,6 +223,15 @@ tenFiberContextNew(const Nrrd *dtvol) {
   }
 
   return tfx;
+}
+
+void
+tenFiberVerboseSet(tenFiberContext *tfx, int verbose) {
+
+  if (tfx) {
+    tfx->verbose = verbose;
+  }
+  return;
 }
 
 int
@@ -347,9 +358,11 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
 ** of the use of varargs
 **
 ** valid calls:
-** tenFiberStopSet(tfx, tenFiberStopLength, double maxHalfLen)
+** tenFiberStopSet(tfx, tenFiberStopLength, double max)
+** tenFiberStopSet(tfx, tenFiberStopMinLength, double min)
 ** tenFiberStopSet(tfx, tenFiberStopAniso, int anisoType, double anisoThresh)
-** tenFiberStopSet(tfx, tenFiberStopNumSteps, int numSteps)
+** tenFiberStopSet(tfx, tenFiberStopNumSteps, unsigned int num)
+** tenFiberStopSet(tfx, tenFiberStopMinNumSteps, unsigned int num)
 ** tenFiberStopSet(tfx, tenFiberStopConfidence, double conf)
 ** tenFiberStopSet(tfx, tenFiberStopRadius, double radius)
 ** tenFiberStopSet(tfx, tenFiberStopBounds)
@@ -435,17 +448,31 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   case tenFiberStopLength:
     tfx->maxHalfLen = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->maxHalfLen) && tfx->maxHalfLen > 0.0 )) {
-      sprintf(err, "%s: given maxHalfLen doesn't exist or isn't > 0.0", me);
+      sprintf(err, "%s: given maxHalfLen %g doesn't exist or isn't > 0.0",
+              me, tfx->maxHalfLen);
+      biffAdd(TEN, err); ret = 1; goto end;
+    }
+    /* no query modifications needed */
+    break;
+  case tenFiberStopMinLength:
+    tfx->minWholeLen = va_arg(ap, double);
+    if (!( AIR_EXISTS(tfx->minWholeLen) && tfx->minWholeLen >= 0.0 )) {
+      sprintf(err, "%s: given minWholeLen %g doesn't exist or isn't >= 0.0",
+              me, tfx->minWholeLen);
       biffAdd(TEN, err); ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
   case tenFiberStopNumSteps:
-    tfx->maxNumSteps = va_arg(ap, int);
+    tfx->maxNumSteps = va_arg(ap, unsigned int);
     if (!( tfx->maxNumSteps > 0 )) {
       sprintf(err, "%s: given maxNumSteps isn't > 0.0", me);
       biffAdd(TEN, err); ret = 1; goto end;
     }
+    /* no query modifications needed */
+    break;
+  case tenFiberStopMinNumSteps:
+    tfx->minNumSteps = va_arg(ap, unsigned int);
     /* no query modifications needed */
     break;
   case tenFiberStopConfidence:
