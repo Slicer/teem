@@ -470,7 +470,7 @@ ell_q_4v_rotate_d(double v2[4], const double q[4], const double v1[4]) {
 void
 ell_q_avg4_d(double m[4], const double eps, const double _wght[4],
              const double _q1[4], const double _q2[4],
-	     const double _q3[4], const double _q4[4]) {
+             const double _q3[4], const double _q4[4]) {
   double N, err, a[4], b[4], c[4], d[4], 
     tmp[4], la[4], lb[4], lc[4], ld[4], u[4], wght[4];
   int iter;

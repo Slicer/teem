@@ -1088,7 +1088,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
         fprintf(stderr, "%s: allocated pass %u/%u output nrrd @ %p/%p "
                 "(on axis %u)\n", me, passIdx, axisIn->passIdx,
                 AIR_CAST(void*, axisOut->nrsmp), 
-		AIR_CAST(void*, axisOut->nrsmp->data), axisOut->axIdx);
+                AIR_CAST(void*, axisOut->nrsmp->data), axisOut->axIdx);
       }
     } else {
       if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
@@ -1097,9 +1097,9 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       }
       if (rsmc->verbose) {
         fprintf(stderr, "%s: allocated final pass %u output nrrd @ %p/%p\n",
-		me, passIdx,
+                me, passIdx,
                 AIR_CAST(void*, nout), 
-		AIR_CAST(void*, nout->data));
+                AIR_CAST(void*, nout->data));
       }
     }
 

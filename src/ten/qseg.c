@@ -183,7 +183,7 @@ _tenCalccent2(const int gradcount, const double qpoints[],
       sum[1] = oldcentroid[1] + qpoints[3*i +1];
       sum[2] = oldcentroid[2] + qpoints[3*i +2];
       sign = (diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]) <
-	(sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
+        (sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
       
       changed = changed || (seg[i] != 0);
       
@@ -200,7 +200,7 @@ _tenCalccent2(const int gradcount, const double qpoints[],
       sum[1] = oldcentroid[3+1] + qpoints[3*i +1];
       sum[2] = oldcentroid[3+2] + qpoints[3*i +2];
       sign = (diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]) <
-	(sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
+        (sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
       
       changed = changed || (seg[i] != 1);
       

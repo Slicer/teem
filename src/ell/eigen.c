@@ -237,7 +237,7 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
 
 void
 _ell_3m_evecs_d(double evec[9], double eval[3], int roots, 
-		const double m[9]) {
+                const double m[9]) {
   double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
 
   ELL_3V_GET(e0, e1, e2, eval);
@@ -340,7 +340,7 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
 */
 int
 ell_3m_eigensolve_d(double eval[3], double evec[9],
-		    const double m[9], const int newton) {
+                    const double m[9], const int newton) {
   int roots;
 
   /* if (ell_debug) {

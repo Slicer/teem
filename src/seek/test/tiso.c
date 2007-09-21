@@ -46,7 +46,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "v", "iso", airTypeDouble, 1, 1, &isoval, NULL,
              "isovalue");
   hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
-	     "use gage too");
+             "use gage too");
   hestOptAdd(&hopt, "hack", NULL, airTypeInt, 0, 0, &hack, NULL, "hack");
   hestOptAdd(&hopt, "o", "output LMPD", airTypeString, 1, 1, &outS, "out.lmpd",
              "output file to save LMPD into");
@@ -70,18 +70,18 @@ main(int argc, char *argv[]) {
     airMopAdd(mop, gctx, (airMopper)gageContextNix, airMopAlways);
     ELL_3V_SET(kparm, 2, 1.0, 0.0);
     if (!(pvl = gagePerVolumeNew(gctx, nin, gageKindScl))
-	|| gagePerVolumeAttach(gctx, pvl)
-	|| gageKernelSet(gctx, gageKernel00, nrrdKernelBCCubic, kparm)
-	|| gageKernelSet(gctx, gageKernel11, nrrdKernelBCCubicD, kparm)
-	|| gageKernelSet(gctx, gageKernel22, nrrdKernelBCCubicDD, kparm)
-	|| gageQueryItemOn(gctx, pvl, gageSclValue)
-	|| gageQueryItemOn(gctx, pvl, gageSclNormal)
+        || gagePerVolumeAttach(gctx, pvl)
+        || gageKernelSet(gctx, gageKernel00, nrrdKernelBCCubic, kparm)
+        || gageKernelSet(gctx, gageKernel11, nrrdKernelBCCubicD, kparm)
+        || gageKernelSet(gctx, gageKernel22, nrrdKernelBCCubicDD, kparm)
+        || gageQueryItemOn(gctx, pvl, gageSclValue)
+        || gageQueryItemOn(gctx, pvl, gageSclNormal)
         || (usegage
             && (gageQueryItemOn(gctx, pvl, gageSclGradVec)
                 || gageQueryItemOn(gctx, pvl, gageSclHessEval)
                 || gageQueryItemOn(gctx, pvl, gageSclHessEvec)
                 || gageQueryItemOn(gctx, pvl, gageSclHessEvec2)))
-	|| gageUpdate(gctx)) {
+        || gageUpdate(gctx)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop); return 1;

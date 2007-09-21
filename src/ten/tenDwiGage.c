@@ -12,12 +12,12 @@
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
 
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307	USA
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #include "ten.h"
@@ -699,8 +699,8 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 #endif
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGage2TensorPeledError)) {
-	double *info;
-	info = pvlData->levmarInfo;
+    double *info;
+    info = pvlData->levmarInfo;
     pvl->directAnswer[tenDwiGage2TensorPeledError][0] = 0;
 
     if (info[1] > 0) {

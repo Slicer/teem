@@ -724,7 +724,7 @@ typedef struct {
   unsigned int ten2Which;  /* which path to follow in 2-tensor tracking */
   /* ---- internal ----- */
   gageQuery query;      /* query we'll send to gageQuerySet */
-  int dir,              /* current direction being computed (0 or 1) */
+  int halfIdx,          /* current fiber half being computed (0 or 1) */
     mframeUse;          /* need to use mframe[] and mframeT[] */
   double mframe[9],     /* measurement frame in normal matrix lay-out */
     mframeT[9],         /* transpose of mframe[] */

@@ -758,11 +758,11 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   /* HEY: COPY AND PASTE */
   tfx->gageEvec 
     = gageAnswerPointer(tfx->gtx, tfx->pvl,
-			(tenFiberTypeEvec0 == tfx->fiberType
-			 ? tenGageEvec0
-			 : (tenFiberTypeEvec1 == tfx->fiberType
-			    ? tenGageEvec1
-			    : tenGageEvec2)));
+                        (tenFiberTypeEvec0 == tfx->fiberType
+                         ? tenGageEvec0
+                         : (tenFiberTypeEvec1 == tfx->fiberType
+                            ? tenGageEvec1
+                            : tenGageEvec2)));
   tfx->gageAnisoStop = gageAnswerPointer(tfx->gtx, tfx->pvl,
                                          tfx->anisoStopType);
   tfx->gageAnisoSpeed = (tfx->anisoSpeedType
