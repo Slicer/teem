@@ -463,6 +463,11 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 ** the first tract half, and the end of the second tract half, will be set in
 ** *startIdxP and *endIdxP respectively (this does not include a multiply
 ** by 3)
+**
+** it is worth pointing out here that internally, all tractography is done
+** in gage's world space, regardless of tfx->useIndexSpace.  The conversion
+** from/to index is space (if tfx->useIndexSpace is non-zero) is only done
+** for seedpoints and when fiber vertices are saved out, respectively.
 */
 int
 tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
