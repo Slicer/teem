@@ -310,6 +310,7 @@ SET(TEEM_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
 SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMUse.cmake")
 SET(TEEM_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMBuildSettings.cmake)
+SET(TEEM_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 SET(prefix "${CMAKE_INSTALL_PREFIX}")
 SET(exec_prefix "${prefix}")
 SET(exec_prefix_set "no")
