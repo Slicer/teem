@@ -1,8 +1,13 @@
 MACRO(CREATE_EXEC name sources libraries)
-  ADD_EXECUTABLE("${name}" ${sources})
+  ADD_EXECUTABLE(${name} ${sources})
 #   TARGET_LINK_LIBRARIES("${name}" ${libraries})
-  TARGET_LINK_LIBRARIES("${name}" teem)
-  INSTALL_TARGETS(/bin "${name}")
+  TARGET_LINK_LIBRARIES(${name} teem)
+  INSTALL(TARGETS ${name}
+    RUNTIME DESTINATION bin
+    )
+  SET_TARGET_PROPERTIES(${name} PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+    )
 ENDMACRO(CREATE_EXEC)
 
 CREATE_EXEC(airSanity airSanity.c air)

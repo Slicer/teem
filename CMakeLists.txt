@@ -238,6 +238,26 @@ ENDFOREACH(dir ${TEEM_LIBRARIES})
 # Create the library target
 ADD_LIBRARY(teem ${TEEM_SOURCES})
 
+# Set up some library paths for installation.
+IF(APPLE)
+  # In OSX, they treat library paths a little differntly than on
+  # linux.  The path to the library can be encoded in the library.
+  # Any code linking to this library will look for the library in the
+  # path specified by this path.  What this means for us, is that you
+  # can't use the library easily until you install it.
+  SET_TARGET_PROPERTIES(teem PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
+    )
+ELSE(APPLE)
+  # Windows will ingore the RPATH stuff, so other unix based systems
+  # with rpath support will do the right thing.
+  SET_TARGET_PROPERTIES(teem PROPERTIES
+    BUILD_WITH_INSTALL_RPATH OFF
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+    )
+ENDIF(APPLE)
+
 IF(TEEM_BZIP2_LIB)
   TARGET_LINK_LIBRARIES(teem ${TEEM_BZIP2_LIB})
 ENDIF(TEEM_BZIP2_LIB)
@@ -252,7 +272,10 @@ IF(UNIX)
   TARGET_LINK_LIBRARIES(teem -lm)
 ENDIF(UNIX)
 
-INSTALL_TARGETS(/lib teem)
+INSTALL(TARGETS teem
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  )
 
 # Now compile the binaries
 SUBDIRS(src/bin)
@@ -322,11 +345,14 @@ SET(srcdir ".")
 CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
   "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake" @ONLY IMMEDIATE)
 
-INSTALL_FILES(/include/teem FILES ${TEEM_INSTALLED_HEADER_FILES})
-INSTALL_FILES(/lib/TEEM-${TEEM_VERSION_STRING} FILES
+INSTALL(FILES ${TEEM_INSTALLED_HEADER_FILES}
+  DESTINATION include/teem
+  )
+INSTALL(FILES
   "${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake"
   "${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake"
   "${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake"
   "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake"
+  DESTINATION lib/TEEM-${TEEM_VERSION_STRING}
   )
 
