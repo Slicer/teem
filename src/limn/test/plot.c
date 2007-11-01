@@ -29,6 +29,8 @@ typedef struct {
   FILE *file;
   double psc;
   double bbox[4];
+  int nobg;
+  double bgColor[3];
   
   double maxX, maxY;  /* set by plotPreamble */
 } plotPS;
@@ -40,7 +42,7 @@ typedef struct {
   /* also hest-allocated */
   char *axisHorzLabel, *axisVertLabel;
   double *horzTick, *vertTick;
-  
+
   int numHorzTick, numVertTick;
   int labelHorzTick, labelVertTick;
   double axisThick, tickThick, tickLabelSize, tickLength;
@@ -76,6 +78,10 @@ plotPreamble(plotPS *pps, plotParm *pparm) {
   fprintf(pps->file, "%g %g lineto\n", pps->maxX, pps->maxY);
   fprintf(pps->file, "0 %g lineto\n", pps->maxY);
   fprintf(pps->file, "closepath\n");
+  if (!pps->nobg) {
+    fprintf(pps->file, "gsave %g %g %g setrgbcolor fill grestore\n",
+            pps->bgColor[0], pps->bgColor[1], pps->bgColor[2]);
+  }
   fprintf(pps->file, "clip\n");
   fprintf(pps->file, "gsave newpath\n");
   fprintf(pps->file, "1 setlinejoin\n");
@@ -316,6 +322,11 @@ main(int argc, char *argv[]) {
              "bounding box, in graph space");
   hestOptAdd(&hopt, "psc", "PS scale", airTypeDouble, 1, 1, &(pps.psc), "300",
              "scaling from graph space to PostScript points");
+  hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &(pps.nobg), NULL,
+             "don't fill with background color");
+  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 3, 3,
+             &(pps.bgColor), "1 1 1",
+             "background RGB color; each component in range [0.0,1.0]");
   
   hestOptAdd(&hopt, "grth", "graph thickness", airTypeDouble,
              1, -1, &(pparm.graphThick), "0.01",

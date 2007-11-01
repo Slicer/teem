@@ -158,7 +158,8 @@ enum {
 typedef struct {
   float lineWidth[LIMN_EDGE_TYPE_MAX+1],
     creaseAngle,      /* difference between crease and facet, in *degrees* */
-    bg[3];            /* background color */
+    bg[3],            /* background color */
+    edgeColor[3];     /* edge color */
   int showpage,       /* finish with "showpage" */
     wireFrame,        /* just render wire-frame */
     noBackground;     /* refrain from initially filling with bg[] color */

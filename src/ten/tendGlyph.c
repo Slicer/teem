@@ -112,7 +112,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoRTParm *eparm;
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
-  float bg[3], buvne[5], shadow, creaseAngle;
+  float bg[3], edgeColor[3], buvne[5], shadow, creaseAngle;
   int ires[2], slice[2], nobg, ambocc;
   unsigned int hackci, hacknumcam;
   size_t hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
@@ -222,6 +222,8 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "and specular power");
   hestOptAdd(&hopt, "bg", "background", airTypeFloat, 3, 3, bg, "1 1 1",
              "background RGB color; each component in range [0.0,1.0]");
+  hestOptAdd(&hopt, "ec", "edge rgb", airTypeFloat, 3, 3, edgeColor, "0 0 0",
+             "edge RGB color; each component in range [0.0,1.0]");
 
   /* parameters for showing a dataset slice */
   hestOptAdd(&hopt, "slc", "axis pos", airTypeInt, 2, 2, slice, "-1 -1",
@@ -550,6 +552,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     win->ps.creaseAngle = creaseAngle;
     win->ps.noBackground = nobg;
     ELL_3V_COPY(win->ps.bg, bg);
+    ELL_3V_COPY(win->ps.edgeColor, edgeColor);
     if (limnObjectRender(glyph, cam, win)
         || limnObjectPSDraw(glyph, cam, emap, win)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);

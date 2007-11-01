@@ -149,6 +149,7 @@ void
 _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
                 limnCamera *cam, limnWindow *win) {
   limnVertex *vert0, *vert1;
+  float R, G, B;
 
   AIR_UNUSED(cam);
   if (win->ps.lineWidth[edge->type]) {
@@ -156,8 +157,15 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
     vert1 = obj->vert + edge->vertIdx[1];
     fprintf(win->file, "%g %g M ", vert0->coord[0], vert0->coord[1]);
     fprintf(win->file, "%g %g L ", vert1->coord[0], vert1->coord[1]);
-    fprintf(win->file, "%g W 0 Gr ", win->ps.lineWidth[edge->type]);
-    fprintf(win->file, "S\n");
+    fprintf(win->file, "%g W ", win->ps.lineWidth[edge->type]);
+    R = win->ps.edgeColor[0];
+    G = win->ps.edgeColor[1];
+    B = win->ps.edgeColor[2];
+    if (R == G && G == B) {
+      fprintf(win->file, "%g Gr S\n", R);
+    } else {
+      fprintf(win->file, "%g %g %g RGB S\n", R, G, B);
+    }
   }
 }
 
