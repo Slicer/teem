@@ -673,4 +673,3 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   free(contC); 
   return 0;
 }
-
