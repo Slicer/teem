@@ -163,11 +163,11 @@ static double _nrrdUnaryOpNormalRand(double a) {
 static double _nrrdUnaryOpIf(double a) { return (a ? 1 : 0); }
 static double _nrrdUnaryOpZero(double a) {
   AIR_UNUSED(a);  
-  return 1.0;
+  return 0.0;
 }
 static double _nrrdUnaryOpOne(double a) {
   AIR_UNUSED(a);  
-  return 0.0;
+  return 1.0;
 }
 
 double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
