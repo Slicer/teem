@@ -31,6 +31,7 @@ int
 main(int argc, char *argv[]) {
   char *me;
   double x;
+  int i;
 
   me = argv[0];
   if (2 != argc || 1 != sscanf(argv[1], "%lg", &x)) {
@@ -43,6 +44,14 @@ main(int argc, char *argv[]) {
   printf("BesselI(1, %g) = %g\n", x, airBesselI1(x));
   printf("BesselI1By0(%g) = %g  ?=?  %g\n", x,
          airBesselI1By0(x), airBesselI1(x)/airBesselI0(x));
+  printf("BesselIScaled(0, %g) = %f\n", x, airBesselI0Scaled(x));
+  printf("BesselIScaled(1, %g) = %f\n", x, airBesselI1Scaled(x));
   printf("erfc,erf(%g) = %g  %g\n", x, airErfc(x), airErf(x));
+ 
+
+  for (i = -5; i< 5; i++) {
+    printf("BesselIn(%d, %g) = %g\n", i, x, airBesselIn(i,x));
+    printf("BesselInScaled(%d, %g) = %g\n", i, x, airBesselInScaled(i,x));
+  }
   exit(0);
 }
