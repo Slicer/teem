@@ -1291,7 +1291,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelAQuarticDD,   /* 2nd deriv. of A quartic family */
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
-  *const nrrdKernelGaussianDD;   /* 2nd derivative of Gaussian */
+  *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
+  *const nrrdKernelDiscreteScale; /* Discrete scale-space kernel */
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
