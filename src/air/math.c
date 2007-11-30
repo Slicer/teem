@@ -360,6 +360,38 @@ airBesselI0(double x) {
 }
 
 /*
+******** airBesselI0Scaled
+**
+** modified Bessel function of the first kind, order 0, scaled by exp(-abs(x)).
+*/
+double
+airBesselI0Scaled(double x) {
+  double b, ax, y;
+
+  ax = AIR_ABS(x);
+  if (ax < 5.664804810929075) {
+    y = x/5.7;
+    y *= y;
+    b = (0.9999999996966272 + y*(7.7095783675529646 + 
+        y*(13.211021909077445 + y*(8.648398832703904 + 
+        (2.5427099920536578 + 0.3103650754941674*y)*y))))/
+        (1 + y*(-0.41292170755003793 + (0.07122966874756179 
+        - 0.005182728492608365*y)*y));
+     b *= exp(-ax);
+  } else {
+    y = 5.7/ax;
+    b = (0.398942280546057 + y*(-0.749709626164583 + 
+        y*(0.507462772839054 + y*(-0.0918770649691261 + 
+        (-0.00135238228377743 - 0.0000897561853670307*y)*y))))/
+        (1 + y*(-1.90117313211089 + (1.31154807540649 
+        - 0.255339661975509*y)*y));
+    b *= (1/sqrt(ax));
+  }
+  return b;
+}
+
+
+/*
 ******** airBesselI1
 **
 ** modified Bessel function of the first kind, order 1
@@ -385,6 +417,37 @@ airBesselI1(double x) {
         (1 + y*(-1.61964537617937 + (0.919118239717915 - 
         0.142824922601647*y)*y));
     b *= exp(ax)/sqrt(ax);
+  }
+  return x < 0.0 ? -b : b;
+}
+
+/*
+******** airBesselI1Scaled
+**
+** modified Bessel function of the first kind, order 1, scaled by exp(-abs(x))
+*/
+double
+airBesselI1Scaled(double x) {
+  double b, ax, y;
+
+  ax = AIR_ABS(x);
+  if (ax < 6.449305566387246) {
+    y = x/6.45;
+    y *= y;
+    b = ax*(0.4999999998235554 + y*(2.370331499358438 + 
+        y*(3.3554331305863787 + y*(2.0569974969268707 + 
+        (0.6092719473097832 + 0.0792323006694466*y)*y))))/
+        (1 + y*(-0.4596495788370524 + (0.08677361454866868 \
+        - 0.006777712190188699*y)*y));
+    b *= exp(-ax);
+  } else {
+    y = 6.45/ax;
+    b = (0.398942280267484 + y*(-0.669339325353065 + 
+        y*(0.40311772245257 + y*(-0.0766281832045885 + 
+        (0.00248933264397244 + 0.0000703849046144657*y)*y))))/
+        (1 + y*(-1.61964537617937 + (0.919118239717915 - 
+        0.142824922601647*y)*y));
+    b *= 1/sqrt(ax);
   }
   return x < 0.0 ? -b : b;
 }
@@ -458,4 +521,86 @@ airBesselI1By0(double x) {
          0.005906535730887518966127383058238522133819*y)*y)));
   }
   return x < 0.0 ? -q : q;
+}
+
+/*
+******** airBesselIn
+**
+** modified Bessel function of the first kind, order n.
+**
+*/
+double
+airBesselIn(int n, double x) {
+  double tax,b,bi,bim,bip;
+  unsigned i;
+  int an = AIR_ABS(n);
+
+  if (an==0) {
+    return airBesselI0(x);
+  } else if (an==1) {
+    return airBesselI1(x);
+  }
+
+  if (x == 0.0) {
+    return 0.0;
+  }
+
+  tax = 2.0/AIR_ABS(x);
+  bip = b = 0.0;
+  bi = 1.0;
+  for (i=2*(an + (int) sqrt(40.0*an));i>0;i--) {
+    bim = bip + i*tax*bi;
+    bip = bi;
+    bi = bim;
+    if (AIR_ABS(bi) > 1.0e10) {
+      b  *= 1.0e-10;
+      bi *= 1.0e-10;
+      bip*= 1.0e-10;
+    }
+    if (i == an) b = bip;
+  }
+  b *= airBesselI0(x)/bi;
+  return x < 0.0 ? -b : b;
+
+}
+
+/*
+******** airBesselIn
+**
+** modified Bessel function of the first kind, order n, scaled by exp(-abs(x))
+**
+*/
+double
+airBesselInScaled(int n, double x) {
+  double tax,b,bi,bim,bip;
+  unsigned i;
+  int an = AIR_ABS(n);
+
+  if (an==0) {
+    return airBesselI0Scaled(x);
+  } else if (an==1) {
+    return airBesselI1Scaled(x);
+  }
+
+  if (x == 0.0) {
+    return 0.0;
+  }
+
+  tax = 2.0/AIR_ABS(x);
+  bip = b = 0.0;
+  bi = 1.0;
+  for (i=2*(an + (int) sqrt(40.0*an));i>0;i--) {
+    bim = bip + i*tax*bi;
+    bip = bi;
+    bi = bim;
+    if (AIR_ABS(bi) > 1.0e10) {
+      b  *= 1.0e-10;
+      bi *= 1.0e-10;
+      bip*= 1.0e-10;
+    }
+    if (i == an) b = bip;
+  }
+  b *= airBesselI0Scaled(x)/bi;
+  return x < 0.0 ? -b : b;
+
 }
