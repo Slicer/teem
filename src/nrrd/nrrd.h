@@ -739,7 +739,7 @@ NRRD_EXPORT NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNew(void);
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
 NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew();
-NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecCopy(NrrdKernelSpec *ksp);
+NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecCopy(const NrrdKernelSpec *ksp);
 NRRD_EXPORT void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
                                    const double kparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT void nrrdKernelParmSet(const NrrdKernel **kP,
@@ -1292,7 +1292,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
-  *const nrrdKernelDiscreteScale; /* Discrete scale-space kernel */
+  *const nrrdKernelDiscreteScale; /* Discrete Gaussian-like kernel for 
+                                     scale-space analysis */
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);

@@ -1043,27 +1043,22 @@ nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
 
-#define _DISCRETESCALE(x, sig, cut) ( \
-   x >= sig*cut ? 0           \
-   : airBesselInScaled(AIR_CAST(int, x) ,sig*sig))
+#define _DISCRETESCALE(xx, sig, cut) (               \
+   xx >= sig*cut ? 0                                 \
+   : airBesselInExpScaled(AIR_ROUNDUP(xx), sig*sig))
 
 double
-_nrrdDSInt(const double *parm) {
-  double sig,cut, ival;
-  unsigned i;
+_nrrdDiscScale1_d(double xx, const double *parm) {
+  double sig, cut;
   
-  cut = parm[1];
   sig = parm[0];
-  ival = 0.0;
-  for (i =1 ; i<= AIR_CAST(int, sig*cut); i++) {
-    ival += airBesselInScaled(i,sig*sig);
-  }
-  ival = 2*ival + airBesselInScaled(0,sig*sig);
-  return ival;
+  cut = parm[1];
+  xx = AIR_ABS(xx);
+  return _DISCRETESCALE(xx, sig, cut);
 }
 
 double
-_nrrdDSSup(const double *parm) {
+_nrrdDiscScaleSup(const double *parm) {
   double sig, cut;
 
   sig = parm[0];
@@ -1072,61 +1067,63 @@ _nrrdDSSup(const double *parm) {
 }
 
 double
-_nrrdDS1_d(double x, const double *parm) {
-  double sig, cut;
-  
-  sig = parm[0];
-  cut = parm[1];
-  x = AIR_ABS(x);
-  return _DISCRETESCALE(x, sig, cut);
+_nrrdDiscScaleInt(const double *parm) {
+  double sum;
+  int ii, supp;
+
+  supp = AIR_CAST(int, _nrrdDiscScaleSup(parm));
+  sum = 0.0;
+  for (ii=-supp; ii<=supp; ii++) {
+    sum += _nrrdDiscScale1_d(ii, parm);
+  }
+  return sum;
 }
 
 float
-_nrrdDS1_f(float x, const double *parm) {
+_nrrdDiscScale1_f(float xx, const double *parm) {
   float sig, cut;
   
   sig = AIR_CAST(float, parm[0]);
   cut = AIR_CAST(float, parm[1]);
-  x = AIR_ABS(x);
-  return AIR_CAST(float, _DISCRETESCALE(x, sig, cut));
+  xx = AIR_ABS(xx);
+  return AIR_CAST(float, _DISCRETESCALE(xx, sig, cut));
 }
 
 void
-_nrrdDSN_d(double *f, const double *x, size_t len, const double *parm) {
-  double sig, cut, t;
-  size_t i;
+_nrrdDiscScaleN_d(double *f, const double *x,
+                  size_t len, const double *parm) {
+  double sig, cut, tt;
+  size_t ii;
   
   sig = parm[0];
   cut = parm[1];
-  for (i=0; i<len; i++) {
-    t = x[i];
-    t = AIR_ABS(t);
-    f[i] = _DISCRETESCALE(t, sig, cut);
+  for (ii=0; ii<len; ii++) {
+    tt = AIR_ABS(x[ii]);
+    f[ii] = _DISCRETESCALE(tt, sig, cut);
   }
 }
 
 void
-_nrrdDSN_f(float *f, const float *x, size_t len, const double *parm) {
-  float sig, cut, t;
-  size_t i;
+_nrrdDiscScaleN_f(float *f, const float *x, size_t len, const double *parm) {
+  float sig, cut, tt;
+  size_t ii;
   
   sig = AIR_CAST(float, parm[0]);
   cut = AIR_CAST(float, parm[1]);
-  for (i=0; i<len; i++) {
-    t = x[i];
-    t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _DISCRETESCALE(t, sig, cut));
+  for (ii=0; ii<len; ii++) {
+    tt = AIR_ABS(x[ii]);
+    f[ii] = AIR_CAST(float, _DISCRETESCALE(tt, sig, cut));
   }
 }
 
 NrrdKernel
-_nrrdKernelDS = {
-  "discretescale",
-  2, _nrrdDSSup,  _nrrdDSInt,   
-  _nrrdDS1_f,   _nrrdDSN_f,   _nrrdDS1_d,   _nrrdDSN_d
+_nrrdKernelDiscreteScale = {
+  "discretegauss",
+  2, _nrrdDiscScaleSup,  _nrrdDiscScaleInt,   
+  _nrrdDiscScale1_f, _nrrdDiscScaleN_f, _nrrdDiscScale1_d, _nrrdDiscScaleN_d
 };
 NrrdKernel *const
-nrrdKernelDiscreteScale = &_nrrdKernelDS;
+nrrdKernelDiscreteScale = &_nrrdKernelDiscreteScale;
 
 /* ------------------------------------------------------------ */
 
@@ -1453,7 +1450,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
         *kernelP == nrrdKernelGaussianD ||
         *kernelP == nrrdKernelGaussianDD ||
         *kernelP == nrrdKernelDiscreteScale) {
-      /* for Gaussians or Discrete Scale, we need all the parameters given explicitly */
+      /* for Gaussians or Discrete Scale, we need all the parameters
+         given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
       /*  For everything else (note that TMF kernels are handled

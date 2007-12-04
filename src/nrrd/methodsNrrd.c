@@ -200,7 +200,7 @@ nrrdKernelSpecNew(void) {
 }
 
 NrrdKernelSpec *
-nrrdKernelSpecCopy(NrrdKernelSpec *oldKsp) {
+nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
   NrrdKernelSpec *ksp=NULL;
 
   if (oldKsp) {
