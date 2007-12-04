@@ -44,14 +44,14 @@ main(int argc, char *argv[]) {
   printf("BesselI(1, %g) = %g\n", x, airBesselI1(x));
   printf("BesselI1By0(%g) = %g  ?=?  %g\n", x,
          airBesselI1By0(x), airBesselI1(x)/airBesselI0(x));
-  printf("BesselIScaled(0, %g) = %f\n", x, airBesselI0Scaled(x));
-  printf("BesselIScaled(1, %g) = %f\n", x, airBesselI1Scaled(x));
+  printf("BesselIExpScaled(0, %g) = %f\n", x, airBesselI0ExpScaled(x));
+  printf("BesselIExpScaled(1, %g) = %f\n", x, airBesselI1ExpScaled(x));
   printf("erfc,erf(%g) = %g  %g\n", x, airErfc(x), airErf(x));
  
-
-  for (i = -5; i< 5; i++) {
-    printf("BesselIn(%d, %g) = %g\n", i, x, airBesselIn(i,x));
-    printf("BesselInScaled(%d, %g) = %g\n", i, x, airBesselInScaled(i,x));
+  printf(" n      BesselIn(n,%g)    BesselInExpScaled(n,%g)\n", x, x);
+  for (i = -10; i<= 10; i++) {
+    printf("%d     %g         %g\n", i,
+           airBesselIn(i,x), airBesselInExpScaled(i,x));
   }
   exit(0);
 }

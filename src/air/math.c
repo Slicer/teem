@@ -360,12 +360,13 @@ airBesselI0(double x) {
 }
 
 /*
-******** airBesselI0Scaled
+******** airBesselI0ExpScaled
 **
-** modified Bessel function of the first kind, order 0, scaled by exp(-abs(x)).
+** modified Bessel function of the first kind, order 0,
+** scaled by exp(-abs(x)).
 */
 double
-airBesselI0Scaled(double x) {
+airBesselI0ExpScaled(double x) {
   double b, ax, y;
 
   ax = AIR_ABS(x);
@@ -377,7 +378,7 @@ airBesselI0Scaled(double x) {
         (2.5427099920536578 + 0.3103650754941674*y)*y))))/
         (1 + y*(-0.41292170755003793 + (0.07122966874756179 
         - 0.005182728492608365*y)*y));
-     b *= exp(-ax);
+    b *= exp(-ax);
   } else {
     y = 5.7/ax;
     b = (0.398942280546057 + y*(-0.749709626164583 + 
@@ -422,12 +423,13 @@ airBesselI1(double x) {
 }
 
 /*
-******** airBesselI1Scaled
+******** airBesselI1ExpScaled
 **
-** modified Bessel function of the first kind, order 1, scaled by exp(-abs(x))
+** modified Bessel function of the first kind, order 1,
+** scaled by exp(-abs(x))
 */
 double
-airBesselI1Scaled(double x) {
+airBesselI1ExpScaled(double x) {
   double b, ax, y;
 
   ax = AIR_ABS(x);
@@ -530,77 +532,82 @@ airBesselI1By0(double x) {
 **
 */
 double
-airBesselIn(int n, double x) {
-  double tax,b,bi,bim,bip;
-  unsigned i;
-  int an = AIR_ABS(n);
+airBesselIn(int nn, double xx) {
+  double tax, bb, bi, bim, bip;
+  int ii, an, top;
 
-  if (an==0) {
-    return airBesselI0(x);
-  } else if (an==1) {
-    return airBesselI1(x);
+  an = AIR_ABS(nn);
+  if (0 == an) {
+    return airBesselI0(xx);
+  } else if (1 == an) {
+    return airBesselI1(xx);
   }
 
-  if (x == 0.0) {
+  if (0.0 == xx) {
     return 0.0;
   }
 
-  tax = 2.0/AIR_ABS(x);
-  bip = b = 0.0;
+  tax = 2.0/AIR_ABS(xx);
+  bip = bb = 0.0;
   bi = 1.0;
-  for (i=2*(an + (int) sqrt(40.0*an));i>0;i--) {
-    bim = bip + i*tax*bi;
+  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  for (ii=top; ii > 0; ii--) {
+    bim = bip + ii*tax*bi;
     bip = bi;
     bi = bim;
     if (AIR_ABS(bi) > 1.0e10) {
-      b  *= 1.0e-10;
+      bb *= 1.0e-10;
       bi *= 1.0e-10;
       bip*= 1.0e-10;
     }
-    if (i == an) b = bip;
+    if (ii == an) {
+      bb = bip;
+    }
   }
-  b *= airBesselI0(x)/bi;
-  return x < 0.0 ? -b : b;
-
+  bb *= airBesselI0(xx)/bi;
+  return (xx < 0.0 ? -bb : bb);
 }
 
 /*
 ******** airBesselIn
 **
-** modified Bessel function of the first kind, order n, scaled by exp(-abs(x))
+** modified Bessel function of the first kind, order n,
+** scaled by exp(-abs(x))
 **
 */
 double
-airBesselInScaled(int n, double x) {
-  double tax,b,bi,bim,bip;
-  unsigned i;
-  int an = AIR_ABS(n);
+airBesselInExpScaled(int nn, double xx) {
+  double tax, bb, bi, bim, bip;
+  int top, ii, an;
 
-  if (an==0) {
-    return airBesselI0Scaled(x);
-  } else if (an==1) {
-    return airBesselI1Scaled(x);
+  an = AIR_ABS(nn);
+  if (0 == an) {
+    return airBesselI0ExpScaled(xx);
+  } else if (1 == an) {
+    return airBesselI1ExpScaled(xx);
   }
 
-  if (x == 0.0) {
+  if (0 == xx) {
     return 0.0;
   }
 
-  tax = 2.0/AIR_ABS(x);
-  bip = b = 0.0;
+  tax = 2.0/AIR_ABS(xx);
+  bip = bb = 0.0;
   bi = 1.0;
-  for (i=2*(an + (int) sqrt(40.0*an));i>0;i--) {
-    bim = bip + i*tax*bi;
+  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  for (ii=top; ii > 0; ii--) {
+    bim = bip + ii*tax*bi;
     bip = bi;
     bi = bim;
     if (AIR_ABS(bi) > 1.0e10) {
-      b  *= 1.0e-10;
+      bb *= 1.0e-10;
       bi *= 1.0e-10;
       bip*= 1.0e-10;
     }
-    if (i == an) b = bip;
+    if (ii == an) {
+      bb = bip;
+    }
   }
-  b *= airBesselI0Scaled(x)/bi;
-  return x < 0.0 ? -b : b;
-
+  bb *= airBesselI0ExpScaled(xx)/bi;
+  return (xx < 0.0 ? -bb : bb);
 }

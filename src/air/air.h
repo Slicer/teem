@@ -511,12 +511,12 @@ AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
 AIR_EXPORT double airBesselI0(double x);
 AIR_EXPORT double airBesselI1(double x);
-AIR_EXPORT double airBesselI0Scaled(double x);
-AIR_EXPORT double airBesselI1Scaled(double x);
+AIR_EXPORT double airBesselI0ExpScaled(double x);
+AIR_EXPORT double airBesselI1ExpScaled(double x);
 AIR_EXPORT double airLogBesselI0(double x);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
-AIR_EXPORT double airBesselInScaled(int n, double x);
+AIR_EXPORT double airBesselInExpScaled(int n, double x);
 /* ---- END non-NrrdIO */
 
 /* dio.c */
