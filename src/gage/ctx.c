@@ -32,6 +32,7 @@ gageContext *
 gageContextNew() {
   gageContext *ctx;
   int i;
+  unsigned int sii;
   
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
   if (ctx) {
@@ -40,16 +41,18 @@ gageContextNew() {
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = NULL;
     }
-    for (i=0; i<GAGE_PERVOLUME_NUM; i++) {
+    for (i=0; i<GAGE_PERVOLUME_MAXNUM; i++) {
       ctx->pvl[i] = NULL;
     }
     ctx->pvlNum = 0;
-    ctx->stackIdx = AIR_NAN;
-    ctx->stackKsp = NULL;
     gageKernelReset(ctx); /* placed here for logic of kernel flag */
     ctx->shape = gageShapeNew();
-    for (i=0; i<GAGE_CTX_FLAG_NUM; i++) {
+    for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
       ctx->flag[i] = AIR_FALSE;
+    }
+    ctx->stackRange[0] = ctx->stackRange[1] = AIR_NAN;
+    for (sii=0; sii<GAGE_PERVOLUME_MAXNUM; sii++) {
+      ctx->stackFslw[sii] = AIR_NAN;
     }
     ctx->needD[0] = ctx->needD[1] = ctx->needD[2] = AIR_FALSE;
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -90,10 +93,12 @@ gageContextCopy(gageContext *ctx) {
      constant state of gage construction, this seems much simpler.
      Pointers are fixed below */
   memcpy(ntx, ctx, sizeof(gageContext));
-  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     ntx->ksp[i] = nrrdKernelSpecCopy(ctx->ksp[i]);
   }
-  ntx->stackKsp = nrrdKernelSpecCopy(ctx->stackKsp);
+  for (pvlIdx=0; pvlIdx<GAGE_PERVOLUME_MAXNUM; pvlIdx++) {
+    ntx->stackFslw[pvlIdx] = ctx->stackFslw[pvlIdx];
+  }
   for (pvlIdx=0; pvlIdx<ntx->pvlNum; pvlIdx++) {
     ntx->pvl[pvlIdx] = _gagePerVolumeCopy(ctx->pvl[pvlIdx], 2*ctx->radius);
     if (!ntx->pvl[pvlIdx]) {
@@ -104,7 +109,7 @@ gageContextCopy(gageContext *ctx) {
   ntx->shape = gageShapeCopy(ctx->shape);
   fd = 2*ntx->radius;
   ntx->fsl = (double *)calloc(fd*3, sizeof(double));
-  ntx->fw = (double *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(double));
+  ntx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
   ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!( ntx->fsl && ntx->fw && ntx->off )) {
     sprintf(err, "%s: couldn't allocate new filter caches for fd=%d",
@@ -159,9 +164,6 @@ gageContextNix(gageContext *ctx) {
 ** Refers to ctx->checkIntegrals and acts appropriately.
 **
 ** Does use biff.
-**
-** This is also the brains of gageStackKernelSet(), as invoked by
-** passing which == GAGE_KERNEL_STACK
 */
 int
 gageKernelSet(gageContext *ctx, 
@@ -174,20 +176,14 @@ gageKernelSet(gageContext *ctx,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (GAGE_KERNEL_STACK != which) {
-    if (airEnumValCheck(gageKernel, which)) {
-      sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
-              which, gageKernelUnknown+1, gageKernelLast-1);
-      biffAdd(GAGE, err); return 1;
-    }
+  if (airEnumValCheck(gageKernel, which)) {
+    sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
+            which, gageKernelUnknown+1, gageKernelLast-1);
+    biffAdd(GAGE, err); return 1;
   }
   if (ctx->verbose) {
-    if (GAGE_KERNEL_STACK != which) {
-      fprintf(stderr, "%s: which = %d -> %s\n", me, which,
-              airEnumStr(gageKernel, which));
-    } else {
-      fprintf(stderr, "%s: which = %d -> stack\n", me, which);
-    }
+    fprintf(stderr, "%s: which = %d -> %s\n", me, which,
+            airEnumStr(gageKernel, which));
   }
   numParm = k->numParm;
   if (!(AIR_IN_CL(0, numParm, NRRD_KERNEL_PARMS_NUM))) {
@@ -205,7 +201,7 @@ gageKernelSet(gageContext *ctx,
     if (gageKernel00 == which ||
         gageKernel10 == which ||
         gageKernel20 == which ||
-        GAGE_KERNEL_STACK == which) {
+        gageKernelStack == which) {
       if (!( integral > 0 )) {
         sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0.0",
                 me, integral);
@@ -223,31 +219,11 @@ gageKernelSet(gageContext *ctx,
   }
 
   /* okay, enough enough, go set the kernel */
-  if (GAGE_KERNEL_STACK != which) {
-    if (!ctx->ksp[which]) {
-      ctx->ksp[which] = nrrdKernelSpecNew();
-    }
-    nrrdKernelSpecSet(ctx->ksp[which], k, kparm);
-  } else {
-    if (!ctx->stackKsp) {
-      ctx->stackKsp = nrrdKernelSpecNew();
-    }
-    nrrdKernelSpecSet(ctx->stackKsp, k, kparm);
+  if (!ctx->ksp[which]) {
+    ctx->ksp[which] = nrrdKernelSpecNew();
   }
+  nrrdKernelSpecSet(ctx->ksp[which], k, kparm);
   ctx->flag[gageCtxFlagKernel] = AIR_TRUE;
-
-  return 0;
-}
-
-int
-gageStackKernelSet(gageContext *ctx, 
-                   const NrrdKernel *k, const double *kparm) {
-  char me[]="gageStackKernelSet", err[BIFF_STRLEN];
-
-  if (gageKernelSet(ctx, GAGE_KERNEL_STACK, k, kparm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;
-  }
 
   return 0;
 }
@@ -255,7 +231,7 @@ gageStackKernelSet(gageContext *ctx,
 /*
 ******** gageKernelReset()
 **
-** reset kernels (including stackKsp) and parameters.
+** reset kernels (including the stack ksp) and parameters.
 */
 void
 gageKernelReset(gageContext *ctx) {
@@ -266,7 +242,6 @@ gageKernelReset(gageContext *ctx) {
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = nrrdKernelSpecNix(ctx->ksp[i]);
     }
-    ctx->stackKsp = nrrdKernelSpecNix(ctx->stackKsp);
     ctx->flag[gageCtxFlagKernel] = AIR_TRUE;
   }
   return;
@@ -348,6 +323,9 @@ gageParmSet(gageContext *ctx, int which, double val) {
        have the same kind!  This should be caught by gageUpdate(), which is
        supposed to be called after changing anything, prior to gageProbe() */
     break;
+  case gageParmStackRenormalize:
+    ctx->parm.stackRenormalize = AIR_CAST(int, val);
+    break;
   default:
     fprintf(stderr, "\n%s: which = %d not valid!!\n\n", me, which);
     break;
@@ -392,9 +370,9 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
     sprintf(err, "%s: given pervolume already attached", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (ctx->pvlNum == GAGE_PERVOLUME_NUM) {
-    sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_NUM == %d "
-            "pervolumes attached", me, GAGE_PERVOLUME_NUM);
+  if (ctx->pvlNum == GAGE_PERVOLUME_MAXNUM) {
+    sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_MAXNUM == %d "
+            "pervolumes attached", me, GAGE_PERVOLUME_MAXNUM);
     biffAdd(GAGE, err); return 1;
   }
 
@@ -591,117 +569,20 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 }
 
 /*
-******** gageStackProbe()
-**
-** sets the location in the stack for the next probe gageProbe()
-**
-** sidx is index-space position in the stack
-*/
-int
-gageStackProbe(gageContext *ctx, double sidx) {
-  char me[]="gageStackProbe";
-
-  if (!ctx) {
-    return 1;
-  }
-  if (!ctx->parm.stackUse) {
-    sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
-    ctx->errNum = 1;
-    return 1;
-  }
-  if (!AIR_EXISTS(sidx)) {
-    sprintf(ctx->errStr, "%s: stack index %g doesn't exist", me, sidx);
-    ctx->errNum = 2;
-    return 1;
-  }
-  
-  ctx->stackIdx = sidx;
-  return 0;
-}
-
-/*
-** _gageStackIv3Fill
-**
-** after the individual iv3's in the stack have been filled, 
-** this does the across-stack filtering to fill pvl[0]'s iv3
-*/
-int
-_gageStackIv3Fill(gageContext *ctx) {
-  char me[]="_gageStackIv3Fill";
-  unsigned int fr, fd, ii, fddd, valLen, pvlIdx, cacheIdx;
-  int stackBase, _pvlIdx;
-  double *kparm, val, fslw[GAGE_STACK_NUM_MAX], stackFrac, sum;
-
-  fr = AIR_CAST(unsigned int, ctx->radius);
-  fd = 2*fr;
-  fddd = fd*fd*fd;
-  valLen = ctx->pvl[0]->kind->valLen;
-  kparm = ctx->stackKsp->parm;
-
-  if (!AIR_EXISTS(ctx->stackIdx)) {
-    sprintf(ctx->errStr, "%s: stackIdx %g doesn't exist", me, ctx->stackIdx);
-    ctx->errNum = 10;
-    return 1;
-  }
-  if (!( AIR_IN_CL(-0.5, ctx->stackIdx, ctx->pvlNum - 1.5) )) {
-    sprintf(ctx->errStr, "%s: stackIdx %g outside [%g,%g]", me, ctx->stackIdx,
-            -0.5, ctx->pvlNum - 1.5);
-    ctx->errNum = 11;
-    return 1;
-  }
-  /* cell-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
-  stackBase = AIR_CAST(int, ctx->stackIdx+1) - 1;
-  stackFrac = ctx->stackIdx - stackBase;
-  /*
-  fprintf(stderr, "!%s: stackIdx = %g -> base,frac = %d, %g\n", me,
-          ctx->stackIdx, stackBase, stackFrac);
-  */
-  for (ii=0; ii<fd; ii++) {
-    fslw[ii] = stackFrac - ii + fr-1;
-  }  
-  ctx->stackKsp->kernel->evalN_d(fslw, fslw, fd, kparm);
-
-  /* renormalize weights */
-  sum = 0;
-  for (ii=0; ii<fd; ii++) {
-    sum += fslw[ii];
-  }
-  for (ii=0; ii<fd; ii++) {
-    fslw[ii] /= sum;
-  }
-
-  /* NOTE we are treating the 4D fd*fd*fd*valLen iv3 as a big 1-D array */
-  for (cacheIdx=0; cacheIdx<fddd*valLen; cacheIdx++) {
-    val = 0;
-    for (ii=0; ii<fd; ii++) {
-      _pvlIdx = stackBase + ii - (fr-1);
-      pvlIdx = 1 + AIR_CLAMP(0, _pvlIdx, AIR_CAST(int, ctx->pvlNum-2));
-      val += fslw[ii]*ctx->pvl[pvlIdx]->iv3[cacheIdx];
-      /*
-      if (!cacheIdx) {
-        fprintf(stderr, "!%s: ii=%d, _pvlIdx=%d, pvlIdx=%u, iv3=%g, "
-                "f=%g, val=%g\n", me,
-                ii, _pvlIdx, pvlIdx, ctx->pvl[pvlIdx]->iv3[cacheIdx],
-                fslw[ii], val);
-      }
-      */
-    }
-    ctx->pvl[0]->iv3[cacheIdx] = val;
-  }
-  return 0;
-}
-
-/*
-******** gageProbe()
+** _gageProbe
 **
 ** how to do probing.  (x,y,z) position is *index space* position
 **
 ** doesn't actually do much more than call callbacks in the gageKind
 ** structs of the attached pervolumes
+**
+** NOTE: the stack filter weights are (like the spatial filter weights)
+** computed inside _gageLocationSet()
 */
 int
-gageProbe(gageContext *ctx, double x, double y, double z) {
-  char me[]="gageProbe";
+_gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
+           double stackIdx) {
+  char me[]="_gageProbe";
   int xi, yi, zi;
   unsigned int pvlIdx;
   
@@ -711,7 +592,7 @@ gageProbe(gageContext *ctx, double x, double y, double z) {
   xi = ctx->point.xi;
   yi = ctx->point.yi;
   zi = ctx->point.zi;
-  if (_gageLocationSet(ctx, x, y, z)) {
+  if (_gageLocationSet(ctx, _xi, _yi, _zi, stackIdx)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set
        (as they should be already) */
     return 1;
@@ -722,25 +603,30 @@ gageProbe(gageContext *ctx, double x, double y, double z) {
   if (!( xi == ctx->point.xi &&
          yi == ctx->point.yi &&
          zi == ctx->point.zi )) {
-    for (pvlIdx=(ctx->parm.stackUse ? 1 : 0); pvlIdx<ctx->pvlNum; pvlIdx++) {
-      gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+    if (ctx->parm.stackUse) {
+      for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+        if (ctx->stackFslw[pvlIdx]) {
+          gageIv3Fill(ctx, ctx->pvl[1+pvlIdx]);
+        }
+      }
+    } else {
+      for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+        gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+      }
     }
   }
+  /* fprintf(stderr, "##%s: bingo 2\n", me); */
   if (ctx->parm.stackUse) {
-    if (_gageStackIv3Fill(ctx)) {
-      /* some problem; leave gageErrStr and gageErrNum set */
-      return 1;
-    }
+    _gageStackIv3Fill(ctx);
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: stack's pvl's value cache at "
-              "coords = %d,%d,%d:\n", me,
+      fprintf(stderr, "%s: base pvl's value cache at "
+              "coords = %d,%d,%d:\n", me, 
               ctx->point.xi, ctx->point.yi, ctx->point.zi);
       ctx->pvl[0]->kind->iv3Print(stderr, ctx, ctx->pvl[0]);
     }
     ctx->pvl[0]->kind->filter(ctx, ctx->pvl[0]);
     ctx->pvl[0]->kind->answer(ctx, ctx->pvl[0]);
   } else {
-    /* fprintf(stderr, "##%s: bingo 2\n", me); */
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
       if (ctx->verbose > 1) {
         fprintf(stderr, "%s: pvl[%u]'s value cache at "
@@ -757,28 +643,48 @@ gageProbe(gageContext *ctx, double x, double y, double z) {
   return 0;
 }
 
+/*
+******** gageProbe()
+**
+** bummer: the non-stack gageProbe function is now just a wrapper
+** around the stack-based gageProbe
+*/
 int
-gageProbeSpace(gageContext *ctx, double x, double y, double z,
+gageProbe(gageContext *ctx, double xi, double yi, double zi) {
+
+  return _gageProbe(ctx, xi, yi, zi, 0.0);
+}
+
+int
+_gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                int indexSpace, int clamp) {
   int ret;
   unsigned int *size;
-  double xi, yi, zi;
+  double xi, yi, zi, si;
 
   size = ctx->shape->size;
+  si = 0.0;
   if (indexSpace) {
-    xi = x;
-    yi = y;
-    zi = z;
+    xi = xx;
+    yi = yy;
+    zi = zz;
+    if (ctx->parm.stackUse) {
+      si = ss;
+    }
   } else {
     /* have to convert from world to index */
     /* HEY: this has to be tested/debugged */
     double icoord[4]; double wcoord[4];
-    ELL_4V_SET(wcoord, x, y, z, 1);
+    ELL_4V_SET(wcoord, xx, yy, zz, 1);
     ELL_4MV_MUL(icoord, ctx->shape->WtoI, wcoord);
     ELL_4V_HOMOG(icoord, icoord);
     xi = icoord[0];
     yi = icoord[1];
     zi = icoord[2];
+    if (ctx->parm.stackUse) {
+      si = AIR_AFFINE(ctx->stackRange[0], ss, ctx->stackRange[1],
+                      0, ctx->pvlNum-2);
+    }
   }
   if (clamp) {
     if (nrrdCenterNode == ctx->shape->center) {
@@ -790,7 +696,17 @@ gageProbeSpace(gageContext *ctx, double x, double y, double z,
       yi = AIR_CLAMP(-0.5, yi, size[1]-0.5);
       zi = AIR_CLAMP(-0.5, zi, size[2]-0.5);
     }
+    if (ctx->parm.stackUse) {
+      si = AIR_CLAMP(0, si, ctx->pvlNum-2);
+    }
   }
-  ret = gageProbe(ctx, xi, yi, zi);
+  ret = _gageProbe(ctx, xi, yi, zi, si);
   return ret;
+}
+
+int
+gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
+               int indexSpace, int clamp) {
+  
+  return _gageProbeSpace(ctx, xx, yy, zz, 0.0, indexSpace, clamp);
 }

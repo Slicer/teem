@@ -281,7 +281,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   shape->spacing[2] = AIR_ABS(zs);
   
   /* ------ set spacing-dependent filter weight scalings */
-  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     switch (i) {
     case gageKernel00:
     case gageKernel10:
@@ -294,13 +294,13 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     case gageKernel11:
     case gageKernel21:
       for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = 1.0f/(shape->spacing[ai]);
+        shape->fwScale[i][ai] = 1.0/(shape->spacing[ai]);
       }
       break;
     case gageKernel22:
       for (ai=0; ai<=2; ai++) {
         shape->fwScale[i][ai] = 
-          1.0f/((shape->spacing[ai])*(shape->spacing[ai]));
+          1.0/((shape->spacing[ai])*(shape->spacing[ai]));
       }
       break;
     }
@@ -505,4 +505,45 @@ gageShapeEqual(gageShape *shape1, char *_name1,
   }
 
   return 1;
+}
+
+void
+gageShapeBoundingBox(double min[3], double max[3],
+                     gageShape *shape) {
+  double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
+  unsigned int ii;
+  
+  if (!( min && max && shape )) {
+    return;
+  }
+  if (nrrdCenterNode == shape->center) {
+    ELL_3V_SET(minIdx, 0, 0, 0);
+    ELL_3V_SET(maxIdx,
+               shape->size[0]-1,
+               shape->size[1]-1,
+               shape->size[2]-1);
+  } else {
+    ELL_3V_SET(minIdx, -0.5, -0.5, -0.5);
+    ELL_3V_SET(maxIdx,
+               shape->size[0]-0.5,
+               shape->size[1]-0.5,
+               shape->size[2]-0.5);
+  }
+  ELL_3V_SET(cornerIdx[0], minIdx[0], minIdx[1], minIdx[2]);
+  ELL_3V_SET(cornerIdx[1], maxIdx[0], minIdx[1], minIdx[2]);
+  ELL_3V_SET(cornerIdx[2], minIdx[0], maxIdx[1], minIdx[2]);
+  ELL_3V_SET(cornerIdx[3], maxIdx[0], maxIdx[1], minIdx[2]);
+  ELL_3V_SET(cornerIdx[4], minIdx[0], minIdx[1], maxIdx[2]);
+  ELL_3V_SET(cornerIdx[5], maxIdx[0], minIdx[1], maxIdx[2]);
+  ELL_3V_SET(cornerIdx[6], minIdx[0], maxIdx[1], maxIdx[2]);
+  ELL_3V_SET(cornerIdx[7], maxIdx[0], maxIdx[1], maxIdx[2]);
+  gageShapeItoW(shape, tmp, cornerIdx[0]);
+  ELL_3V_COPY(min, tmp);
+  ELL_3V_COPY(max, tmp);
+  for (ii=1; ii<8; ii++) {
+    gageShapeItoW(shape, tmp, cornerIdx[ii]);
+    ELL_3V_MIN(min, min, tmp);
+    ELL_3V_MAX(max, max, tmp);
+  }
+  return;
 }

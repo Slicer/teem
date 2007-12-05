@@ -125,10 +125,10 @@ _gageNeedDUpdate(gageContext *ctx) {
 void
 _gageNeedKUpdate(gageContext *ctx) {
   char me[]="_gageNeedKUpdate";
-  int kernIdx, needK[GAGE_KERNEL_NUM], change;
+  int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
   
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  for (kernIdx=0; kernIdx<GAGE_KERNEL_NUM; kernIdx++) {
+  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     needK[kernIdx] = AIR_FALSE;
   }
   if (ctx->needD[0]) {
@@ -153,7 +153,7 @@ _gageNeedKUpdate(gageContext *ctx) {
     }  
   }
   change = AIR_FALSE;
-  for (kernIdx=0; kernIdx<GAGE_KERNEL_NUM; kernIdx++) {
+  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     change |= (needK[kernIdx] != ctx->needK[kernIdx]);
   }
   if (change) {
@@ -161,7 +161,7 @@ _gageNeedKUpdate(gageContext *ctx) {
       fprintf(stderr, "%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
               me, needK[0], needK[1], needK[2], needK[3], needK[4], needK[5]);
     }
-    for (kernIdx=0; kernIdx<GAGE_KERNEL_NUM; kernIdx++) {
+    for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
       ctx->needK[kernIdx] = needK[kernIdx];
     }
     ctx->flag[gageCtxFlagNeedK] = AIR_TRUE;
@@ -184,7 +184,7 @@ _gageRadiusUpdate(gageContext *ctx) {
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   maxRad = 0;
-  for (kernIdx=0; kernIdx<GAGE_KERNEL_NUM; kernIdx++) {
+  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     if (ctx->needK[kernIdx]) {
       ksp = ctx->ksp[kernIdx];
       if (!ksp) {
@@ -237,7 +237,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   ctx->fw = (double *)airFree(ctx->fw);
   ctx->off = (unsigned int *)airFree(ctx->off);
   ctx->fsl = (double *)calloc(fd*3, sizeof(double));
-  ctx->fw = (double *)calloc(fd*3*GAGE_KERNEL_NUM, sizeof(double));
+  ctx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
   ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!(ctx->fsl && ctx->fw && ctx->off)) {
     sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
@@ -312,17 +312,13 @@ gageUpdate(gageContext *ctx) {
 
   /* HEY: shouldn't there be some more logic/state for this? */
   if (ctx->parm.stackUse) {
-    if (!ctx->stackKsp) {
-      sprintf(err, "%s: can't do stack without stackKsp", me);
+    if (!ctx->ksp[gageKernelStack]) {
+      sprintf(err, "%s: can't do stack without ksp[%s]", me,
+              airEnumStr(gageKernel, gageKernelStack));
       biffAdd(GAGE, err); return 1;
     }
     if (!( 2 <= ctx->pvlNum )) {
       sprintf(err, "%s: need at least 2 pervolumes for stack", me);
-      biffAdd(GAGE, err); return 1;
-    }
-    if (!( GAGE_STACK_NUM_MAX >= ctx->pvlNum-1 )) {
-      sprintf(err, "%s: # effective stack volumes (%u; pvlNum=%u) > max # %u",
-              me, ctx->pvlNum-1, ctx->pvlNum, GAGE_STACK_NUM_MAX);
       biffAdd(GAGE, err); return 1;
     }
     for (pi=1; pi<ctx->pvlNum; pi++) {

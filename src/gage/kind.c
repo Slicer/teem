@@ -72,7 +72,7 @@ gageKindCheck(const gageKind *kind) {
               me, kind->name, airEnumStr(kind->enm, ii), ii, item->needDeriv);
       biffAdd(GAGE, err); return 1;
     }
-    for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
+    for (pi=0; pi<GAGE_ITEM_PREREQ_MAXNUM; pi++) {
       if (!( 0 <= item->prereq[pi] )) {
         if (kind->dynamicAlloc) {
           sprintf(err, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "

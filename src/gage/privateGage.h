@@ -39,6 +39,12 @@ extern "C" {
 extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
                          const Nrrd *nin, unsigned int baseDim);
 
+/* ctx.c */
+extern int _gageProbe(gageContext *ctx, double xi, double yi, double zi,
+                      double stackIdx);
+extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
+                           double ss, int indexSpace, int clamp);
+
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
 extern double *_gageAnswerPointer(const gageContext *ctx, 
@@ -49,7 +55,11 @@ extern void _gagePrint_off(FILE *, gageContext *ctx);
 extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
-extern int _gageLocationSet(gageContext *ctx, double x, double y, double z);
+extern int _gageLocationSet(gageContext *ctx,
+                            double x, double y, double z, double s);
+
+/* stack.c */
+extern int _gageStackIv3Fill(gageContext *ctx);
 
 /* sclprint.c */
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);

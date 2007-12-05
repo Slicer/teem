@@ -64,3 +64,6 @@ gageDefDefaultCenter = nrrdCenterCell;
 
 int
 gageDefStackUse = AIR_FALSE;
+
+int
+gageDefStackRenormalize = AIR_TRUE;

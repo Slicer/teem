@@ -68,7 +68,7 @@ extern "C" {
 */
 
 /*
-******** GAGE_PERVOLUME_NUM
+******** GAGE_PERVOLUME_MAXNUM
 **
 ** max number of pervolumes that can be associated with a context.
 ** Since this is so often just 1, it makes no sense to adopt a more
@@ -80,7 +80,7 @@ extern "C" {
 ** is probably out of date, and the existence of this limit should 
 ** probably be reconsidered...
 */
-#define GAGE_PERVOLUME_NUM 128
+#define GAGE_PERVOLUME_MAXNUM 128
 
 /*
 ******** gageParm.. enum
@@ -110,6 +110,7 @@ enum {
   gageParmRequireEqualCenters,    /* int */
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
+  gageParmStackRenormalize,       /* int (does not imply gageParmStackUse) */
   gageParmLast
 };
 
@@ -124,25 +125,25 @@ enum {
 ** to gageUpdate().
 */
 enum {
-  gageCtxFlagUnknown=-1,
-  gageCtxFlagNeedD,      /*  0: derivatives required for query */
-  gageCtxFlagK3Pack,     /*  1: whether to use 3 or 6 kernels */
-  gageCtxFlagNeedK,      /*  2: which of the kernels will actually be used */
-  gageCtxFlagKernel,     /*  3: any one of the kernels or its parameters */
-  gageCtxFlagRadius,     /*  4: radius of support for kernels with query */
-  gageCtxFlagShape,      /*  5: a new pervolume shape was set */
+  gageCtxFlagUnknown,
+  gageCtxFlagNeedD,      /*  1: derivatives required for query */
+  gageCtxFlagK3Pack,     /*  2: whether to use 3 or 6 kernels */
+  gageCtxFlagNeedK,      /*  3: which of the kernels will actually be used */
+  gageCtxFlagKernel,     /*  4: any one of the kernels or its parameters */
+  gageCtxFlagRadius,     /*  5: radius of support for kernels with query */
+  gageCtxFlagShape,      /*  6: a new pervolume shape was set */
   gageCtxFlagLast
 };
-#define GAGE_CTX_FLAG_NUM    6
+#define GAGE_CTX_FLAG_MAX    6
 
 enum {
-  gagePvlFlagUnknown=-1,
-  gagePvlFlagVolume,     /*  0: got a new volume */
-  gagePvlFlagQuery,      /*  1: what do you really care about */
-  gagePvlFlagNeedD,      /*  2: derivatives required for query */
+  gagePvlFlagUnknown,
+  gagePvlFlagVolume,     /*  1: got a new volume */
+  gagePvlFlagQuery,      /*  2: what do you really care about */
+  gagePvlFlagNeedD,      /*  3: derivatives required for query */
   gagePvlFlagLast
 };
-#define GAGE_PVL_FLAG_NUM    3
+#define GAGE_PVL_FLAG_MAX    3
   
 
 /*
@@ -152,19 +153,20 @@ enum {
 ** of what kind of volume is being probed.
 */
 enum {
-  gageKernelUnknown=-1, /* -1: nobody knows */
-  gageKernel00,         /*  0: measuring values */
-  gageKernel10,         /*  1: reconstructing 1st derivatives */
-  gageKernel11,         /*  2: measuring 1st derivatives */
-  gageKernel20,         /*  3: reconstructing 1st partials and 2nd deriv.s */
-  gageKernel21,         /*  4: measuring 1st partials for a 2nd derivative */
-  gageKernel22,         /*  5: measuring 2nd derivatives */
+  gageKernelUnknown,    /*  0: nobody knows */
+  gageKernel00,         /*  1: measuring values */
+  gageKernel10,         /*  2: reconstructing 1st derivatives */
+  gageKernel11,         /*  3: measuring 1st derivatives */
+  gageKernel20,         /*  4: reconstructing 1st partials and 2nd deriv.s */
+  gageKernel21,         /*  5: measuring 1st partials for a 2nd derivative */
+  gageKernel22,         /*  6: measuring 2nd derivatives */
+  gageKernelStack,      /*  7: for reconstructing across a stack */
   gageKernelLast
 };
-#define GAGE_KERNEL_NUM     6
+#define GAGE_KERNEL_MAX     7
 
 /* 
-******** GAGE_ITEM_PREREQ_NUM
+******** GAGE_ITEM_PREREQ_MAXNUM
 **
 ** Max number of prerequisites for any item in *any* kind.
 **
@@ -176,7 +178,7 @@ enum {
 **
 ** Wed Nov  8 14:12:44 EST 2006 pre-emptively upping this from 6
 */
-#define GAGE_ITEM_PREREQ_NUM 8
+#define GAGE_ITEM_PREREQ_MAXNUM 8
 
 /*
 ******** gageItemEntry struct
@@ -198,10 +200,10 @@ typedef struct {
   int needDeriv,        /* what kind of derivative info is immediately needed
                            for this item (not recursively expanded). This is
                            NO LONGER a bitvector: values are 0, 1, 2, .. */
-    prereq[GAGE_ITEM_PREREQ_NUM],
+    prereq[GAGE_ITEM_PREREQ_MAXNUM],
                         /* what are the other items this item depends on
                            (not recusively expanded), you can list up to
-                           GAGE_ITEM_PREREQ_NUM of them, and use 0
+                           GAGE_ITEM_PREREQ_MAXNUM of them, and use 0
                            (the unknown item) to fill out the list.
                            _OR_ -1 if this is a dynamic kind and the prereqs
                            will not be known until later in runtime */
@@ -356,7 +358,7 @@ typedef struct gageShape_t {
                                  spaceOrigin information was used */
   unsigned int size[3];       /* raster dimensions of volume */
   double spacing[3],          /* spacings for each axis */
-    fwScale[GAGE_KERNEL_NUM][3];
+    fwScale[GAGE_KERNEL_MAX+1][3];
                               /* how to rescale weights for each of the
                                  kernels according to non-unity-ness of
                                  sample spacing (0=X, 1=Y, 2=Z) */
@@ -425,7 +427,7 @@ typedef struct gageParm_t {
     defaultCenter,            /* only meaningful when requireAllSpacings is
                                  zero- what centering to use when you have to
                                  invent one, because its not set */
-    stackUse;                 /* if non-zero: treat the pvl's (all same kind)
+    stackUse,                 /* if non-zero: treat the pvl's (all same kind)
                                  as multiple values of a single logical volume
                                  (e.g. for approximating scale space).
                                  The first pvl is effectively just a buffer;
@@ -433,6 +435,9 @@ typedef struct gageParm_t {
                                  The query in pvl[0] will determine the
                                  computations done, and answers for the whole
                                  stack will be stored in pvl[0]. */
+    stackRenormalize;         /* if non-zero (and if stackUse is non-zero):
+                                 derivatives of filter stage are renormalized
+                                 based on the stack parameter */
 } gageParm;
 
 /*
@@ -440,14 +445,15 @@ typedef struct gageParm_t {
 **
 ** stores location of last query location
 **
-** HEY: the stack information probably belongs in here, but is being
-** left out for now because of the hack-ish nature of stack computations
+** GK has gone back and forth over whether stack location should be part
+** of this- logically it makes sense, but with the current organization of
+** the stack implementation, it was just never used.
 */
 typedef struct gagePoint_t {
-  double xf, yf, zf;          /* fractional voxel location, used to
-                                 short-circuit calculation of filter sample
-                                 locations and weights */
-  int xi, yi, zi;             /* integral voxel location */
+  double xf, yf, zf;     /* fractional voxel location, used to
+                            short-circuit calculation of filter sample
+                            locations and weights */
+  int xi, yi, zi;        /* integral voxel location */
 } gagePoint;
 
 /*
@@ -528,13 +534,6 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ~(1 << (i % 8)))
 
-/* Stand-in for gageKernel* enum value when specifying the stack kernel; this
-   may be replaced with a real gageKernel* value when the time is right. */
-#define GAGE_KERNEL_STACK -1
-
-/* maximum number of volumes in stack. */
-#define GAGE_STACK_NUM_MAX 128
-
 /*
 ******** gageContext struct
 **
@@ -546,21 +545,26 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 typedef struct gageContext_t {
   int verbose;                /* verbosity */
   gageParm parm;              /* all parameters */
-  NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];  /* all the kernels we'll ever need */
-  struct gagePerVolume_t *pvl[GAGE_PERVOLUME_NUM];
+  NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1]; /* all the kernels we'll ever need,
+                                             including the stack kernel */
+  struct gagePerVolume_t *pvl[GAGE_PERVOLUME_MAXNUM];
                               /* the pervolumes attached to this context */
   unsigned int pvlNum;        /* number of pervolumes currently attached */
-  double stackIdx;            /* location in stack for next gageProbe()
-                                 NOTE: stack indexing is effectively 
-                                 cell-centered, with nrrdBoundaryBleed */
-  NrrdKernelSpec *stackKsp;   /* how to reconstruct from stack samples */
   gageShape *shape;           /* sizes, spacings, centering, and other 
                                  geometric aspects of the volume */
-  int flag[GAGE_CTX_FLAG_NUM];/* all the flags used by gageUpdate() used to
+  double stackRange[2],       /* range of values associated with stack.
+                                 These are always set, even with scale-space
+                                 derivative normalization is not requested,
+                                 so that the stack always has (analogous to
+                                 the spatial axes) a notion of world space.
+                                 NOTE: stack is ALWAYS node-centered */
+    stackFslw[GAGE_PERVOLUME_MAXNUM]; /* filter sample locations and weights
+                                         for reconstruction along the stack */
+  int flag[GAGE_CTX_FLAG_MAX+1]; /* all the flags used by gageUpdate() used to
                                  describe what changed in this context */
   int needD[3];               /* which value/derivatives need to be calculated
                                  for all pervolumes (doV, doD1, doD2) */
-  int needK[GAGE_KERNEL_NUM]; /* which kernels are needed for all pervolumes */
+  int needK[GAGE_KERNEL_MAX+1]; /* which kernels are needed for all pvls */
   int radius;                 /* radius of support of samples needed to 
                                  satisfy query, given the set of kernels.
                                  The "filter diameter" fd == 2*radius
@@ -568,7 +572,7 @@ typedef struct gageContext_t {
   double *fsl,                /* filter sample locations (all axes):
                                  logically a fd x 3 array */
     *fw;                      /* filter weights (all axes, all kernels):
-                                 logically a fd x 3 x GAGE_KERNEL_NUM array */
+                                 logically a fdx3xGAGE_KERNEL_MAX+1 array */
   unsigned int *off;          /* offsets to other fd^3 samples needed to fill
                                  3D intermediate value cache. Allocated size is
                                  dependent on kernels, values inside are
@@ -601,7 +605,7 @@ typedef struct gagePerVolume_t {
   int needD[3];               /* which derivatives need to be calculated for
                                  the query (above) in this volume */
   const Nrrd *nin;            /* the volume to sample within */
-  int flag[GAGE_PVL_FLAG_NUM];/* for the kind-specific flags .. */
+  int flag[GAGE_PVL_FLAG_MAX+1];/* for the kind-specific flags .. */
   double *iv3, *iv2, *iv1;    /* 3D, 2D, 1D, value caches.  These are cubical,
                                  square, and linear arrays, all length fd on
                                  each edge.  Currently gageIv3Fill() fills
@@ -714,6 +718,7 @@ GAGE_EXPORT int gageDefRequireAllSpacings;
 GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
+GAGE_EXPORT int gageDefStackRenormalize;
 
 /* miscGage.c */
 GAGE_EXPORT double gageZeroNormal[3];
@@ -776,6 +781,8 @@ GAGE_EXPORT void gageShapeItoW(gageShape *shape,
                                double world[3], double index[3]);
 GAGE_EXPORT int gageShapeEqual(gageShape *shp1, char *name1,
                                gageShape *shp2, char *name2);
+GAGE_EXPORT void gageShapeBoundingBox(double min[3], double max[3],
+                                      gageShape *shape);
 
 /* the organization of the next two files used to be according to
    what the first argument is, not what appears in the function name,
@@ -801,6 +808,23 @@ GAGE_EXPORT int gageQueryAdd(gageContext *ctx, gagePerVolume *pvl,
 GAGE_EXPORT int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl,
                                 int item);
 
+/* stack.c */
+GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], unsigned int num,
+                              const Nrrd *nin, unsigned int baseDim,
+                              const NrrdKernelSpec *kspec,
+                              double rangeMin, double rangeMax,
+                              int boundary, int renormalize, int verbose);
+GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
+                                      gagePerVolume ***pvlP,
+                                      const Nrrd *const *nblur,
+                                      unsigned int blnum,
+                                      const gageKind *kind);
+GAGE_EXPORT int gageStackPerVolumeAttach(gageContext *ctx,
+                                         gagePerVolume *pvlBase,
+                                         gagePerVolume **pvlStack,
+                                         unsigned int blnum,
+                                         double rangeMin, double rangeMax);
+
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();
 GAGE_EXPORT gageContext *gageContextCopy(gageContext *ctx);
@@ -813,10 +837,14 @@ GAGE_EXPORT int gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl);
 GAGE_EXPORT int gageKernelSet(gageContext *ctx, int which,
                               const NrrdKernel *k, const double *kparm);
 GAGE_EXPORT void gageKernelReset(gageContext *ctx);
-GAGE_EXPORT int gageStackProbe(gageContext *ctx, double stackIdx);
-GAGE_EXPORT int gageProbe(gageContext *ctx, double x, double y, double z);
+GAGE_EXPORT int gageProbe(gageContext *ctx, double xi, double yi, double zi);
 GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
                                int indexSpace, int clamp);
+GAGE_EXPORT int gageStackProbe(gageContext *ctx,
+                               double xi, double yi, double zi, double si);
+GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
+                                    double x, double y, double z, double s,
+                                    int indexSpace, int clamp);
 
 /* update.c */
 GAGE_EXPORT int gageUpdate(gageContext *ctx);

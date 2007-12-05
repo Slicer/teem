@@ -142,35 +142,35 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 void
 _gageFwSet(gageContext *ctx) {
   char me[]="_gageFwSet";
-  int i, j, fd;
+  int kidx, j, fd;
   double *fwX, *fwY, *fwZ;
-
+  
   fd = 2*ctx->radius;
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    if (!ctx->needK[i]) {
+  for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
+    if (!ctx->needK[kidx]) {
       continue;
     }
     /* we evaluate weights for all three axes with one call */
-    ctx->ksp[i]->kernel->evalN_d(ctx->fw + fd*3*i, ctx->fsl,
-                                 fd*3, ctx->ksp[i]->parm);
+    ctx->ksp[kidx]->kernel->evalN_d(ctx->fw + fd*3*kidx, ctx->fsl,
+                                    fd*3, ctx->ksp[kidx]->parm);
   }
-
+  
   if (ctx->verbose > 1) {
     fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
     _gagePrint_fslw(stderr, ctx);
   }
   if (ctx->parm.renormalize) {
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      if (!ctx->needK[i])
+    for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
+      if (!ctx->needK[kidx])
         continue;
-      switch (i) {
+      switch (kidx) {
       case gageKernel00:
       case gageKernel10:
       case gageKernel20:
-        _gageFwValueRenormalize(ctx, i);
+        _gageFwValueRenormalize(ctx, kidx);
         break;
       default:
-        _gageFwDerivRenormalize(ctx, i);
+        _gageFwDerivRenormalize(ctx, kidx);
         break;
       }
     }
@@ -179,25 +179,27 @@ _gageFwSet(gageContext *ctx) {
       _gagePrint_fslw(stderr, ctx);
     }
   }
-
+  
   /* fix weightings for non-unit-spacing samples */
   if (!( 1.0 == ctx->shape->spacing[0] &&
          1.0 == ctx->shape->spacing[1] &&
          1.0 == ctx->shape->spacing[2] )) {
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      if (!ctx->needK[i]) {
+    for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
+      if (!ctx->needK[kidx]) {
         continue;
       }
-      if (gageKernel00 == i || gageKernel10 == i || gageKernel20 == i) {
+      if (gageKernel00 == kidx
+          || gageKernel10 == kidx
+          || gageKernel20 == kidx) {
         continue;
       }
-      fwX = ctx->fw + 0 + fd*(0 + 3*i);
-      fwY = ctx->fw + 0 + fd*(1 + 3*i);
-      fwZ = ctx->fw + 0 + fd*(2 + 3*i);
+      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
+      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
+      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
       for (j=0; j<fd; j++) {
-        fwX[j] *= ctx->shape->fwScale[i][0];
-        fwY[j] *= ctx->shape->fwScale[i][1];
-        fwZ[j] *= ctx->shape->fwScale[i][2];
+        fwX[j] *= ctx->shape->fwScale[kidx][0];
+        fwY[j] *= ctx->shape->fwScale[kidx][1];
+        fwZ[j] *= ctx->shape->fwScale[kidx][2];
       }
     }
     if (ctx->verbose > 1) {
@@ -205,6 +207,7 @@ _gageFwSet(gageContext *ctx) {
       _gagePrint_fslw(stderr, ctx);
     }
   }
+
   return;
 }
 
@@ -215,14 +218,17 @@ _gageFwSet(gageContext *ctx) {
 ** depend on it:
 ** fsl, fw
 **
-** (x,y,z) is index space position in the volume
+** (_xi,_yi,_zi) is *index* space position in the volume
+** _si is the index-space position in the stack, the value is ignored
+** if there is no stack behavior 
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
 ** ctx->errNum=0 and sprints message into ctx->errStr.
 */
 int
-_gageLocationSet(gageContext *ctx, double x, double y, double z) {
+_gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
+                 double stackIdx) {
   char me[]="_gageProbeLocationSet";
   unsigned int top[3];  /* "top" x, y, z: highest valid index in volume */
   int xi, yi, zi;       /* computed integral positions in volume */
@@ -242,20 +248,29 @@ _gageLocationSet(gageContext *ctx, double x, double y, double z) {
     max[1] = top[1] + 0.5;
     max[2] = top[2] + 0.5;
   }
-  if (!( AIR_IN_CL(min, x, max[0]) && 
-         AIR_IN_CL(min, y, max[1]) && 
-         AIR_IN_CL(min, z, max[2]) )) {
+  if (!( AIR_IN_CL(min, _xi, max[0]) && 
+         AIR_IN_CL(min, _yi, max[1]) && 
+         AIR_IN_CL(min, _zi, max[2]) )) {
     sprintf(ctx->errStr, "%s: position (%g,%g,%g) outside (%s-centered) "
             "bounds [%g,%g]x[%g,%g]x[%g,%g]",
-            me, x, y, z,
+            me, _xi, _yi, _zi,
             airEnumStr(nrrdCenter, ctx->shape->center),
             min, max[0], min, max[1], min, max[2]);
     ctx->errNum = 0;
     return 1;
   }
-  xi = AIR_CAST(unsigned int, x+1) - 1; xf = x - xi;
-  yi = AIR_CAST(unsigned int, y+1) - 1; yf = y - yi;
-  zi = AIR_CAST(unsigned int, z+1) - 1; zf = z - zi;
+  if (ctx->parm.stackUse) {
+    if (!( AIR_IN_CL(0, stackIdx, ctx->pvlNum-2) )) {
+      sprintf(ctx->errStr, "%s: stack position %g outside (%s-centered) "
+              "bounds [0,%u]", me,
+              stackIdx, airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum-2);
+      ctx->errNum = 0;
+      return 1;
+    }
+  }
+  xi = AIR_CAST(unsigned int, _xi+1) - 1; xf = _xi - xi;
+  yi = AIR_CAST(unsigned int, _yi+1) - 1; yf = _yi - yi;
+  zi = AIR_CAST(unsigned int, _zi+1) - 1; zf = _zi - zi;
 
   ctx->point.xi = xi;
   ctx->point.yi = yi;
@@ -265,7 +280,7 @@ _gageLocationSet(gageContext *ctx, double x, double y, double z) {
             "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
             "        -> i(%5d,%5d,%5d) \n"
             "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
-            me, x, y, z, xi, yi, zi, xf, yf, zf);
+            me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
   }
   
   if (!( ctx->point.xf == xf &&
@@ -280,5 +295,64 @@ _gageLocationSet(gageContext *ctx, double x, double y, double z) {
     _gageFwSet(ctx);
   }
 
+  if (ctx->parm.stackUse) {
+    int stackBase;
+    double stackFrac, sum;
+    unsigned int ii;
+    NrrdKernelSpec *sksp;
+
+    /* node-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
+    stackBase = AIR_CAST(int, stackIdx);
+    stackFrac = stackIdx - stackBase;
+    for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      ctx->stackFslw[ii] = stackIdx - ii;
+    }  
+    sksp = ctx->ksp[gageKernelStack];
+    sksp->kernel->evalN_d(ctx->stackFslw, ctx->stackFslw,
+                          ctx->pvlNum-1, sksp->parm);
+  
+    /* HEY: we really are quite far from implementing arbitrary
+       nrrdBoundary behaviors here!!!! */
+    /* HEY: surprise: gageParmStackRenormalize does NOT control this,
+       since that refers to *derivative* normalization */
+    /* renormalize weights */
+    sum = 0;
+    for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      sum += ctx->stackFslw[ii];
+    }
+    for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      ctx->stackFslw[ii] /= sum;
+    }
+
+    fprintf(stderr, "!%s: stackRenormalize = %d\n", me, ctx->parm.stackRenormalize);
+    /* fix derivative kernel weights for stack */
+    if (ctx->parm.stackRenormalize) {
+      unsigned int kidx, fd, j;
+      double scl, *fwX, *fwY, *fwZ;
+      
+      scl= AIR_AFFINE(0, stackIdx, ctx->pvlNum-2,
+                      ctx->stackRange[0], ctx->stackRange[1]);
+      fd = 2*ctx->radius;
+      kidx = gageKernel11;
+      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
+      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
+      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
+      for (j=0; j<fd; j++) {
+        fwX[j] *= scl;
+        fwY[j] *= scl;
+        fwZ[j] *= scl;
+      }
+      kidx = gageKernel22;
+      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
+      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
+      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
+      for (j=0; j<fd; j++) {
+        fwX[j] *= scl*scl;
+        fwY[j] *= scl*scl;
+        fwZ[j] *= scl*scl;
+      }
+    }
+  }
+  
   return 0;
 }

@@ -48,7 +48,8 @@ _gageKernelStr[][AIR_STRLEN_SMALL] = {
   "11",
   "20",
   "21",
-  "22"
+  "22",
+  "stack"
 };
 
 char
@@ -59,18 +60,8 @@ _gageKernelDesc[][AIR_STRLEN_MED] = {
   "kernel for measuring 1st derivatives when doing 1st derivatives",
   "kernel for reconstruction values when doing 2nd derivatives",
   "kernel for measuring 1st derivatives when doing 2nd derivatives",
-  "kernel for measuring 2nd derivatives when doing 2nd derivatives"
-};
-
-int
-_gageKernelVal[] = {
-  gageKernelUnknown,
-  gageKernel00,
-  gageKernel10,
-  gageKernel11,
-  gageKernel20,
-  gageKernel21,
-  gageKernel22
+  "kernel for measuring 2nd derivatives when doing 2nd derivatives",
+  "kernel for reconstruction across a stack"
 };
 
 char
@@ -81,6 +72,7 @@ _gageKernelStrEqv[][AIR_STRLEN_SMALL] = {
   "20", "k20",
   "21", "k21",
   "22", "k22",
+  "stack", "ss", "kss",
   ""
 };
 
@@ -91,14 +83,15 @@ _gageKernelValEqv[] = {
   gageKernel11, gageKernel11,
   gageKernel20, gageKernel20,
   gageKernel21, gageKernel21,
-  gageKernel22, gageKernel22
+  gageKernel22, gageKernel22,
+  gageKernelStack, gageKernelStack, gageKernelStack
 };
 
 airEnum
 _gageKernel_enum = {
   "kernel",
-  GAGE_KERNEL_NUM,
-  _gageKernelStr, _gageKernelVal,
+  GAGE_KERNEL_MAX,
+  _gageKernelStr, NULL,
   _gageKernelDesc,
   _gageKernelStrEqv, _gageKernelValEqv,
   AIR_FALSE
@@ -212,6 +205,7 @@ gageParmReset(gageParm *parm) {
     parm->requireEqualCenters = gageDefRequireEqualCenters;
     parm->defaultCenter = gageDefDefaultCenter;
     parm->stackUse = gageDefStackUse;
+    parm->stackRenormalize = gageDefStackRenormalize;
   }
   return;
 }

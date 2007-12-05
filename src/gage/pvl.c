@@ -79,7 +79,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   GAGE_QUERY_RESET(pvl->query);
   pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
   pvl->nin = nin;
-  for (ii=0; ii<GAGE_PVL_FLAG_NUM; ii++) {
+  for (ii=gagePvlFlagUnknown+1; ii<gagePvlFlagLast; ii++) {
     pvl->flag[ii] = AIR_FALSE;
   }
   pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
@@ -278,7 +278,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     do {
       ii--;
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)) {
-        for (pi=0; pi<GAGE_ITEM_PREREQ_NUM; pi++) {
+        for (pi=0; pi<GAGE_ITEM_PREREQ_MAXNUM; pi++) {
           if (0 != pvl->kind->table[ii].prereq[pi]) {
             GAGE_QUERY_ITEM_ON(pvl->query, pvl->kind->table[ii].prereq[pi]);
           }
