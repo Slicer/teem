@@ -252,9 +252,19 @@ airCbrt(double v) {
 #endif
 }
 
+/*
+** skewness of three numbers, scaled to fit in [-1,+1]
+** -1: small, big, big
+** +1: small, small, big
+*/
 double
-airMode3_d(const double v[3]) {
-  double num, den;
+airMode3_d(const double _v[3]) {
+  double num, den, mean, v[3];
+
+  mean = (_v[0] + _v[1] + _v[2])/3;
+  v[0] = _v[0] - mean;
+  v[1] = _v[1] - mean;
+  v[2] = _v[2] - mean;
   num = (v[0] + v[1] - 2*v[2])*(2*v[0] - v[1] - v[2])*(v[0] - 2*v[1] + v[2]);
   den = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - v[1]*v[2] - v[0]*v[1] - v[0]*v[2];
   den = sqrt(den);
