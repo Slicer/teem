@@ -141,7 +141,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
- limn seek hoover alan echo ten mite coil push)
+ limn seek hoover alan echo ten mite coil)
 
 SET(TEEM_INSTALLED_HEADER_FILES)
 FOREACH(header_file
@@ -168,7 +168,6 @@ FOREACH(header_file
     ten/tenMacros.h
     mite/mite.h
     coil/coil.h
-    push/push.h
     )
   # When debugging, uncomment this line
   #MESSAGE(STATUS "Copy header file: ${header_file}")
