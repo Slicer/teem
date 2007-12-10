@@ -57,7 +57,7 @@ miteUserNew() {
   ELL_3V_SET(muu->fakeFrom, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(muu->vectorD, 0, 0, 0);
   airMopAdd(muu->umop, muu->hctx, (airMopper)hooverContextNix, airMopAlways);
-  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     muu->ksp[i] = NULL;
   }
   muu->gctx0 = gageContextNew();
