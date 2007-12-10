@@ -112,13 +112,13 @@ main(int argc, char *argv[]) {
   char *me, *whatS, *err, *outS;
   hestParm *hparm;
   hestOpt *hopt = NULL;
-  NrrdKernelSpec *k00, *k11, *k22;
+  NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   float pos[3];
-  double gmc;
-  unsigned int ansLen;
-  int what, E=0, renorm;
+  double gmc, rangeSS[2], idxSS;
+  unsigned int ansLen, numSS, ninSSIdx;
+  int what, E=0, renorm, SSrenorm, verbose;
   const double *answer, *answer2;
-  Nrrd *nin, *nout=NULL;
+  Nrrd *nin, **ninSS=NULL, *nout=NULL;
   gageContext *ctx, *ctx2;
   gagePerVolume *pvl;
   limnPolyData *lpld=NULL;
@@ -143,6 +143,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
              "input polydata (overrides \"-p\")",
              NULL, NULL, limnHestPolyDataLMPD);
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+             "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
@@ -154,6 +156,23 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
              "cubicdd:1,0", "kernel for gageKernel22",
              NULL, NULL, nrrdHestKernelSpec);
+
+  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS,
+             "0", "how many scale-space samples to evaluate, or, "
+             "0 to turn-off all scale-space behavior");
+  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
+             "nan nan", "range of scales in scale-space");
+  hestOptAdd(&hopt, "ssi", "SS idx", airTypeDouble, 1, 1, &idxSS, "0",
+             "position at which to sample in scale-space");
+  hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur,
+             "gauss:1,5", "blurring kernel, to sample scale space",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
+             "tent", "kernel for reconstructing from scale space samples",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ssrn", "ssrn", airTypeInt, 1, 1, &SSrenorm, "0",
+             "enable derivative normalization based on scale space");
+
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
@@ -203,6 +222,27 @@ main(int argc, char *argv[]) {
 
   ansLen = kind->table[what].answerLength;
 
+  /* for setting up pre-blurred scale-space samples */
+  if (numSS) {
+    ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
+    if (!ninSS) {
+      fprintf(stderr, "%s: couldn't allocate ninSS", me);
+      airMopError(mop); return 1;
+    }
+    for (ninSSIdx=0; ninSSIdx<numSS; ninSSIdx++) {
+      ninSS[ninSSIdx] = nrrdNew();
+      airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
+    }
+    if (gageStackBlur(ninSS, numSS,
+                      nin, kind->baseDim, 
+                      kSSblur, rangeSS[0], rangeSS[1],
+                      nrrdBoundaryBleed, AIR_TRUE, verbose)) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
+      airMopError(mop); return 1;
+    }
+  }
+
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageParmSet(ctx, gageParmGradMagMin, gmc);
@@ -210,10 +250,26 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
-  if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
+  if (numSS) {
+    gagePerVolume **pvlSS;
+    gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
+    gageParmSet(ctx, gageParmStackRenormalize,
+                SSrenorm ? AIR_TRUE : AIR_FALSE);
+    fprintf(stderr, "!%s: ssrn = %d -> %d\n", me,
+            SSrenorm, ctx->parm.stackRenormalize);
+    if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
+                                       AIR_CAST(const Nrrd**, ninSS),
+                                       numSS, kind);
+    if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, numSS, 
+                                          rangeSS[0], rangeSS[1]);
+    if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
+  } else {
+    if (!E) E |= gagePerVolumeAttach(ctx, pvl);
+  }
   if (!E) E |= gageQueryItemOn(ctx, pvl, what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
@@ -267,7 +323,10 @@ main(int argc, char *argv[]) {
     }
   } else {
     gageParmSet(ctx, gageParmVerbose, 42);
-    if (gageProbe(ctx, pos[0], pos[1], pos[2])) {
+    E = (numSS
+         ? gageStackProbe(ctx, pos[0], pos[1], pos[2], idxSS)
+         : gageProbe(ctx, pos[0], pos[1], pos[2]));
+    if (E) {
       fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
               me, ctx->errStr, ctx->errNum);
       airMopError(mop);
