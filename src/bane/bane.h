@@ -278,8 +278,8 @@ typedef struct {
                                           measured (as many as) three times */
     renormalize,                       /* use gage's mask renormalization */
     k3pack;        
-  const NrrdKernel *k[GAGE_KERNEL_NUM];
-  double kparm[GAGE_KERNEL_NUM][NRRD_KERNEL_PARMS_NUM];
+  const NrrdKernel *k[GAGE_KERNEL_MAX+1];
+  double kparm[GAGE_KERNEL_MAX+1][NRRD_KERNEL_PARMS_NUM];
   baneClip *clip;
   double incLimit;                     /* lowest permissible fraction of the
                                           data remaining after new inclusion
