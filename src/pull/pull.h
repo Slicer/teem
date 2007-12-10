@@ -85,8 +85,8 @@ typedef struct pullInfoSpec_t {
   char *volName;                /* volume name */
   char *itemName;               /* item name (kind is known by volume) */
   double scaling,               /* scaling factor (including sign) */
-    thresh,                     /* for seedThresh */
-    zero;                       /* for height and inside: where is zero */
+    zero;                       /* for height and inside: where is zero,
+                                   for seedThresh, threshold value */
   /* ------ INTERNAL ------ */
   unsigned int volIdx;          /* which volume */
   int item;                     /* which item */
@@ -105,7 +105,8 @@ typedef struct pullPoint_t {
     energy,                   /* energy accumulator for this iteration */
     force[4];                 /* force accumulator for this iteration */
   double info[1];             /* actually, sneakily, allocated for *more*,
-                                 depending on pullInfo needs */
+                                 depending on pullInfo needs, so has to be
+                                 last field */
 } pullPoint;
 
 /*
@@ -170,7 +171,9 @@ typedef struct {
                                   (like its a variable name) */
   const gageKind *kind;
   const Nrrd *ninSingle;       /* don't own */
-  const Nrrd *const *ninScale; /* don't own */
+  const Nrrd *const *ninScale; /* don't own;
+                                  NOTE: only one of ninSingle and ninScale
+                                  can be non-NULL */
   unsigned int scaleNum;       /* length of volScale[] */
   double scaleMin, scaleMax;
   NrrdKernelSpec *ksp00,       /* for sampling tensor field */
@@ -190,15 +193,15 @@ typedef struct {
 typedef struct pullTask_t {
   struct pullContext_t
     *pctx;                      /* parent's context; not const because the
-                                   tasks assign themselves bins */
+                                   tasks assign themselves bins to do work */
   pullVolume
     *vol[PULL_VOLUME_MAXNUM];   /* volumes copied from parent */
   const double
     *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
-                                   pointing into per-task per-volume gctxs */
+                                   pointing into per-task per-volume gctxs,
+                                   or: NULL if that info is not being used */
   unsigned int 
-    ansLen[PULL_INFO_MAX+1],    /* length of answer */
-    ansOffset[PULL_INFO_MAX+1]; /* offset of answer within pullPoint->info */
+    infoOffset[PULL_INFO_MAX+1];/* offset of answer within pullPoint->info */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   unsigned int
@@ -227,8 +230,8 @@ typedef struct pullContext_t {
   unsigned int volNum;             /* actual length of vol[] used */
 
   pullInfoSpec
-    *ispec[PULL_INFO_MAX+1];       /* the infos in effect (we DO OWN) */
-  unsigned int ispecNum;           /* actual length of ispec[] used */
+    *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
+                                      non-NULL (and we DO OWN ispec[ii]) */
   
   double stepInitial,              /* initial time step in integration 
                                       (which will be reduced as the system
@@ -362,7 +365,7 @@ PULL_EXPORT int pullFinish(pullContext *pctx);
 
 /* infoPull.c */
 PULL_EXPORT airEnum *const pullInfo;
-PULL_EXPORT unsigned int pullInfoLen(int info);
+PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,

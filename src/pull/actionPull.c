@@ -37,6 +37,45 @@ _pullPointTotal(pullContext *pctx) {
 }
 
 int
+_pullProbe(pullTask *task, pullPoint *point) {
+  char me[]="_pullProbe", err[BIFF_STRLEN];
+  unsigned int ii, gret=0;
+  
+  for (ii=0; ii<task->pctx->volNum; ii++) {
+    if (task->vol[ii]->ninSingle) {
+      gret = gageProbeSpace(task->vol[ii]->gctx,
+                            point->pos[0], point->pos[1], point->pos[2],
+                            AIR_FALSE, AIR_TRUE);
+    } else {
+      gret = gageStackProbeSpace(task->vol[ii]->gctx,
+                                 point->pos[0], point->pos[1],
+                                 point->pos[2], point->pos[3],
+                                 AIR_FALSE, AIR_TRUE);
+    }
+    if (gret) {
+      break;
+    }
+  }
+  if (gret) {
+    sprintf(err, "%s: probe failed on vol %u/%u: (%d) %s\n", me,
+            ii, task->pctx->volNum,
+            task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
+    biffAdd(PULL, err); return 1;
+  }
+
+  /* maybe is a little stupid to have the infos indexed this way, 
+     since it means that we always have to loop through all indices */
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    if (task->ans[ii]) {
+      _pullInfoAnswerCopy[_pullInfoAnswerLen[ii]](point->info 
+                                                  + task->infoOffset[ii],
+                                                  task->ans[ii]);
+    }
+  }
+  return 0;
+}
+
+int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nEnrOut, pullContext *pctx) {
 #if 0
   char me[]="pullOutputGet", err[BIFF_STRLEN];

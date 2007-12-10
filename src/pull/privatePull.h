@@ -24,6 +24,10 @@
 extern "C" {
 #endif
 
+/* infoPull.c */
+extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];
+PULL_EXPORT void (*_pullInfoAnswerCopy[10])(double *, const double *);
+
 /* methodsPull.c */
 extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
 
@@ -31,6 +35,12 @@ extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
 extern pullBin *_pullBinLocate(pullContext *pctx, double *pos);
 extern void _pullBinPointAdd(pullContext *pctx,
                              pullBin *bin, pullPoint *point);
+
+/* actionPull.c */
+extern int _pullProbe(pullTask *task, pullPoint *point);
+
+/* corePull.c */
+extern int _pullContextCheck(pullContext *pctx);
 
 /* setupPull.c */
 extern int _pullInfoSetup(pullContext *pctx);

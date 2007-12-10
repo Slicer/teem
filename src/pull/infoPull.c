@@ -76,7 +76,7 @@ airEnum *const
 pullInfo = &_pullInfo;
 
 unsigned int
-_pullInfoLen[PULL_INFO_MAX+1] = {
+_pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   0, /* pullInfoUnknown */
   7, /* pullInfoTensor */
   7, /* pullInfoTensorInverse */
@@ -96,11 +96,11 @@ _pullInfoLen[PULL_INFO_MAX+1] = {
 }; 
 
 unsigned int
-pullInfoLen(int info) {
+pullInfoAnswerLen(int info) {
   unsigned int ret;
   
   if (!airEnumValCheck(pullInfo, info)) {
-    ret = _pullInfoLen[info];
+    ret = _pullInfoAnswerLen[info];
   } else {
     ret = 0;
   }
@@ -117,7 +117,6 @@ pullInfoSpecNew(void) {
     ispec->volName = NULL;
     ispec->itemName = NULL;
     ispec->scaling = AIR_NAN;
-    ispec->thresh = AIR_NAN;
     ispec->zero = AIR_NAN;
     ispec->volIdx = UINT_MAX;
     ispec->item = 0;
@@ -142,12 +141,10 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     sprintf(err, "%s: %d not a valid %s value", me, info, pullInfo->name);
     biffAdd(PULL, err); return 1;
   }
-  for (ii=0; ii<pctx->ispecNum; ii++) {
-    if (pctx->ispec[ii]->info == info) {
-      sprintf(err, "%s: existing ispec[%u] already has info %u (%s)", me, 
-              ii, info, airEnumStr(pullInfo, info));
-      biffAdd(PULL, err); return 1;
-    }
+  if (pctx->ispec[info]) {
+    sprintf(err, "%s: already set info %s (%d)", me, 
+            airEnumStr(pullInfo, info), info);
+    biffAdd(PULL, err); return 1;
   }
   if (0 == pctx->volNum) {
     sprintf(err, "%s: given context has no volumes", me);
@@ -170,13 +167,18 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             itemName, kind->name);
     biffAdd(PULL, err); return 1;
   }
-  needLen = pullInfoLen(info);
+  needLen = pullInfoAnswerLen(info);
   haveLen = kind->table[item].answerLength;
   if (needLen != haveLen) {
     sprintf(err, "%s: info \"%s\" needs len %u, "
             "but \"%s\" item \"%s\" has len %u",
             me, airEnumStr(pullInfo, info), needLen,
             kind->name, airEnumStr(kind->enm, item), haveLen);
+    biffAdd(PULL, err); return 1;
+  }
+  if (haveLen > 9) {
+    sprintf(err, "%s: sorry, answer length (%u) > 9 unsupported", me,
+            haveLen);
     biffAdd(PULL, err); return 1;
   }
 
@@ -189,7 +191,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   /* now set item in gage query */
   gageQueryItemOn(vol->gctx, vol->gpvl, item);
 
-  pctx->ispec[pctx->ispecNum++] = ispec;
+  pctx->ispec[info] = ispec;
   
   return 0;
 }
@@ -204,4 +206,68 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
   }
   return NULL;
 }
+
+static void
+_infoCopy1(double *dst, const double *src) {
+  dst[0] = src[0]; 
+}
+
+static void
+_infoCopy2(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1];
+}
+
+static void
+_infoCopy3(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2];
+}
+
+static void
+_infoCopy4(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+}
+
+static void
+_infoCopy5(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[4] = src[4];
+}
+
+static void
+_infoCopy6(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[4] = src[4]; dst[5] = src[5];
+}
+
+static void
+_infoCopy7(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6];
+}
+
+static void
+_infoCopy8(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6]; dst[7] = src[7];
+}
+
+static void
+_infoCopy9(double *dst, const double *src) {
+  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6]; dst[7] = src[7];
+  dst[8] = src[8];
+}
+
+void (*_pullInfoAnswerCopy[10])(double *, const double *) = {
+  NULL,
+  _infoCopy1,
+  _infoCopy2,
+  _infoCopy3,
+  _infoCopy4,
+  _infoCopy5,
+  _infoCopy6,
+  _infoCopy7,
+  _infoCopy8,
+  _infoCopy9
+};
 

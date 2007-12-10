@@ -36,8 +36,10 @@ _pullInfoSetup(pullContext *pctx) {
     }
   }
   pctx->infoTotalLen = 0;
-  for (ii=0; ii<pctx->ispecNum; ii++) {
-    pctx->infoTotalLen += pullInfoLen(pctx->ispec[ii]->info);
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    if (pctx->ispec[ii]) {
+      pctx->infoTotalLen += pullInfoAnswerLen(ii);
+    }
   }
   fprintf(stderr, "!%s: infoTotalLen = %u\n", me, pctx->infoTotalLen);
   return 0;
@@ -47,7 +49,7 @@ pullTask *
 _pullTaskNew(pullContext *pctx, int threadIdx) {
   char me[]="_pullTaskNew", err[BIFF_STRLEN];
   pullTask *task;
-  unsigned int ii;
+  unsigned int ii, offset;
 
   task = (pullTask *)calloc(1, sizeof(pullTask));
   if (!task) {
@@ -62,29 +64,19 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
       biffAdd(PULL, err); return NULL;
     }
   }
-#if 0    
-  task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                   tenGageTensor);
-  task->invAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1],
-                                   tenGageTensor);
-  task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2],
-                                   gageSclGradVec);
-  if (tenGageUnknown != task->pctx->gravItem) {
-    task->gravAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                      task->pctx->gravItem);
-    task->gravGradAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                          task->pctx->gravGradItem);
-  } else {
-    task->gravAns = NULL;
-    task->gravGradAns = NULL;
+  offset = 0;
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    unsigned int volIdx;
+    if (pctx->ispec[ii]) {
+      volIdx = pctx->ispec[ii]->volIdx;
+      task->ans[ii] = gageAnswerPointer(task->vol[volIdx]->gctx,
+                                        task->vol[volIdx]->gpvl,
+                                        pctx->ispec[ii]->item);
+      task->infoOffset[ii] = offset;
+      offset += _pullInfoAnswerLen[ii];
+    }
   }
-  if (tenGageUnknown != task->pctx->seedThreshItem) {
-    task->seedThreshAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                            task->pctx->seedThreshItem);
-  } else {
-    task->seedThreshAns = NULL;
-  }
-  if (threadIdx) {
+  if (pctx->threadNum > 1) {
     task->thread = airThreadNew();
   }
   task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
@@ -93,22 +85,23 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->energySum = 0;
   task->deltaFracSum = 0;
   task->returnPtr = NULL;
-#endif
   return task;
 }
 
 pullTask *
 _pullTaskNix(pullTask *task) {
-#if 0
+  unsigned int ii;
+
   if (task) {
-    task->gctx = gageContextNix(task->gctx);
-    if (task->threadIdx) {
+    for (ii=0; ii<task->pctx->volNum; ii++) {
+      task->vol[ii] = pullVolumeNix(task->vol[ii]);
+    }
+    if (task->pctx->threadNum > 1) {
       task->thread = airThreadNix(task->thread);
     }
     task->rng = airRandMTStateNix(task->rng);
     airFree(task);
   }
-#endif
   return NULL;
 }
 
@@ -210,21 +203,18 @@ _pullBinSetup(pullContext *pctx) {
 int
 _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN];
-#if 0
-  double (*lup)(const void *v, size_t I), maxDet;
   unsigned int pointIdx;
   pullPoint *point;
+  double *posData;
 
   pctx->pointNum = (pctx->npos
                     ? pctx->npos->axis[1].size
                     : pctx->pointNum);
-  lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
+  posData = (pctx->npos
+             ? AIR_CAST(double *, pctx->npos->data)
+             : NULL);
+#if 0
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
-  /* HEY: we end up keeping a local copy of maxDet because convolution
-     can produce a tensor with higher determinant than that of any
-     original sample.  However, if this is going into effect,
-     detReject should probably *not* be enabled... */
-  maxDet = pctx->maxDet;
   for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
     double detProbe;
     /*
@@ -232,10 +222,7 @@ _pullPointSetup(pullContext *pctx) {
     */
     point = pullPointNew(pctx);
     if (pctx->npos) {
-      ELL_3V_SET(point->pos,
-                 lup(pctx->npos->data, 0 + 3*pointIdx),
-                 lup(pctx->npos->data, 1 + 3*pointIdx),
-                 lup(pctx->npos->data, 2 + 3*pointIdx));
+      ELL_4V_COPY(point->pos, posData + 4*pointIdx);
       if (_pullProbe(pctx->task[0], point)) {
         sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
         biffAdd(PULL, err); return 1;
@@ -250,9 +237,6 @@ _pullPointSetup(pullContext *pctx) {
         posIdx[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
                                -0.5, pctx->gctx->shape->size[2]-0.5);
         posIdx[3] = 1.0;
-        if (2 == pctx->dimIn) {
-          posIdx[pctx->sliceAxis] = 0.0;
-        }
         ELL_4MV_MUL(posWorld, pctx->gctx->shape->ItoW, posIdx);
         ELL_34V_HOMOG(point->pos, posWorld);
         /*
@@ -266,37 +250,8 @@ _pullPointSetup(pullContext *pctx) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
-        detProbe = TEN_T_DET(point->ten);
 
-        if (2 == pctx->dimIn) {
-          /* see above HEY! HEY! */
-          detProbe = (0 == pctx->sliceAxis
-                      ? TEN_T_DET_YZ(point->ten)
-                      : (1 == pctx->sliceAxis
-                         ? TEN_T_DET_XZ(point->ten)
-                         : TEN_T_DET_XY(point->ten)));
-        } else {
-          detProbe = TEN_T_DET(point->ten);
-        }
-        maxDet = AIR_MAX(maxDet, detProbe);
-        /* assuming that we're not using some very blurring kernel,
-           this will eventually succeed, because we previously checked
-           the range of values in the mask */
-        /* HEY: can't ensure that this will eventually succeed with
-           seedThresh enabled! */
-        /*
-        fprintf(stderr, "!%s: ten[0] = %g\n", me, point->ten[0]);
-        */
-        /* we OR together all the tests that would
-           make us REJECT this last sample */
-      } while (point->ten[0] < 0.5
-               || (tenGageUnknown != pctx->seedThreshItem
-                   && ((pctx->seedThresh - point->seedThresh)
-                       *pctx->seedThreshSign > 0)
-                   )
-               || (pctx->detReject 
-                   && (airDrandMT() < detProbe/maxDet))
-               );
+      } while (point is no good);
     }
     if (pullBinPointAdd(pctx, point)) {
       sprintf(err, "%s: trouble binning point %u", me, point->ttaagg);

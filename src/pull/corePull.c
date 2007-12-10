@@ -105,6 +105,8 @@ _pullWorker(void *_task) {
 int
 _pullContextCheck(pullContext *pctx) {
   char me[]="_pullContextCheck", err[BIFF_STRLEN];
+  unsigned int ii;
+  int gotIspec;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -115,8 +117,15 @@ _pullContextCheck(pullContext *pctx) {
       sprintf(err, "%s: got a broken npos", me);
       biffMove(PULL, err, NRRD); return 1;
     }
-    if (!( (2 == pctx->npos->dim && 4 == pctx->npos->axis[0].size) )) {
-      sprintf(err, "%s: npos not a 2-D 4-by-N array", me);
+    if (!( 2 == pctx->npos->dim 
+           && 4 == pctx->npos->axis[0].size
+           && nrrdTypeDouble == pctx->npos->type )) {
+      sprintf(err, "%s: npos not a 2-D 4-by-N array of %s "
+              "(got %u-D %u-by-X of %s)", me,
+              airEnumStr(nrrdType, nrrdTypeDouble),
+              pctx->npos->dim,
+              AIR_CAST(unsigned int, pctx->npos->axis[0].size),
+              airEnumStr(nrrdType, pctx->npos->type));
       biffAdd(PULL, err); return 1;
     }
   } else {
@@ -129,9 +138,57 @@ _pullContextCheck(pullContext *pctx) {
     sprintf(err, "%s: have no volumes set", me);
     biffAdd(PULL, err); return 1;
   }
-  if (!pctx->ispecNum) {
+  gotIspec = AIR_FALSE;
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    if (pctx->ispec[ii]) {
+      /* make sure we have extra info as necessary */
+      switch (ii) {
+      case pullInfoInside:
+      case pullInfoHeight:
+      case pullInfoIsosurfaceValue:
+        if (!( AIR_EXISTS(pctx->ispec[ii]->scaling)
+               && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
+          sprintf(err, "%s: %s info needs scaling (%g) and zero (%g)", me, 
+                  airEnumStr(pullInfo, ii),
+                  pctx->ispec[ii]->scaling, pctx->ispec[ii]->zero);
+          biffAdd(PULL, err); return 1;
+        }
+        break;
+      }
+      gotIspec = AIR_TRUE;
+    }
+  }
+  if (!gotIspec) {
     sprintf(err, "%s: have no infos set", me);
     biffAdd(PULL, err); return 1;
+  }
+  if (pctx->ispec[pullInfoInside]) {
+    if (!pctx->ispec[pullInfoInsideGradient]) {
+      sprintf(err, "%s: want %s but don't have %s set", me, 
+              airEnumStr(pullInfo, pullInfoInside),
+              airEnumStr(pullInfo, pullInfoInsideGradient));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+  if (pctx->ispec[pullInfoHeight]) {
+    if (!( pctx->ispec[pullInfoHeightGradient]
+           && pctx->ispec[pullInfoHeightHessian] )) {
+      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
+              airEnumStr(pullInfo, pullInfoHeight),
+              airEnumStr(pullInfo, pullInfoHeightGradient),
+              airEnumStr(pullInfo, pullInfoHeightHessian));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+  if (pctx->ispec[pullInfoIsosurfaceValue]) {
+    if (!( pctx->ispec[pullInfoIsosurfaceGradient]
+           && pctx->ispec[pullInfoIsosurfaceHessian] )) {
+      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
+              airEnumStr(pullInfo, pullInfoIsosurfaceValue),
+              airEnumStr(pullInfo, pullInfoIsosurfaceGradient),
+              airEnumStr(pullInfo, pullInfoIsosurfaceHessian));
+      biffAdd(PULL, err); return 1;
+    }
   }
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
     sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,

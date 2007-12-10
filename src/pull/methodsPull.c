@@ -58,6 +58,7 @@ pullPoint *
 pullPointNew(pullContext *pctx) {
   char me[]="pullPointNew", err[BIFF_STRLEN];
   pullPoint *pnt;
+  unsigned int ii;
   
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -67,6 +68,8 @@ pullPointNew(pullContext *pctx) {
     sprintf(err, "%s: can't allocate points w/out infoTotalLen set\n", me);
     biffAdd(PULL, err); return NULL;
   }
+  /* Allocate the pullPoint so that it has pctx->infoTotalLen doubles.
+     The pullPoint declaration has info[1], hence the "- 1" below */
   pnt = AIR_CAST(pullPoint *,
                  calloc(1, sizeof(pullPoint)
                         + sizeof(double)*(pctx->infoTotalLen - 1)));
@@ -80,10 +83,13 @@ pullPointNew(pullContext *pctx) {
   pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  /* old code used DBL_MAX:
+  /* HEY: old code used DBL_MAX:
      "any finite quantity will be less than this" ... why??? */
   pnt->energy = 0.0;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  for (ii=0; ii<pctx->infoTotalLen; ii++) {
+    pnt->info[ii] = AIR_NAN;
+  }
   return pnt;
 }
 
@@ -111,10 +117,9 @@ pullContextNew(void) {
     pctx->vol[ii] = NULL;
   }
   pctx->volNum = 0;
-  for (ii=0; ii<PULL_INFO_MAX+1; ii++) {
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     pctx->ispec[ii] = NULL;
   }
-  pctx->ispecNum = 0;
 
   pctx->stepInitial = 1;
   pctx->interScl = 1;
@@ -176,10 +181,11 @@ pullContextNix(pullContext *pctx) {
       pctx->vol[ii] = pullVolumeNix(pctx->vol[ii]);
     }
     pctx->volNum = 0;
-    for (ii=0; ii<pctx->ispecNum; ii++) {
-      pctx->ispec[ii] = pullInfoSpecNix(pctx->ispec[ii]);
+    for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+      if (pctx->ispec[ii]) {
+        pctx->ispec[ii] = pullInfoSpecNix(pctx->ispec[ii]);
+      }
     }
-    pctx->ispecNum = 0;
     pctx->ensp = pullEnergySpecNix(pctx->ensp);
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     airFree(pctx);
