@@ -199,64 +199,22 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
-    NrrdResampleContext *rsmc;
-    unsigned int axi;
-    
-    if (!( AIR_EXISTS(rangeSS[0]) && AIR_EXISTS(rangeSS[1]) )) {
-      fprintf(stderr, "%s: need min (%g) and max (%g) SS to both exist\n", me,
-              rangeSS[0], rangeSS[1]);
-      airMopError(mop); return 1;
-    }
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
     if (!ninSS) {
       fprintf(stderr, "%s: couldn't allocate ninSS", me);
       airMopError(mop); return 1;
     }
-    rsmc = nrrdResampleContextNew();
-    airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-    E = 0;
-    if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell);
-    if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
-    if (kind->baseDim) {
-      if (!E) E |= nrrdResampleKernelSet(rsmc, 0, NULL, NULL);
-    }
-    for (axi=0; axi<3; axi++) {
-      if (!E) E |= nrrdResampleSamplesSet(rsmc, kind->baseDim + axi,
-                                          nin->axis[kind->baseDim + axi].size);
-      if (!E) E |= nrrdResampleRangeFullSet(rsmc, kind->baseDim + axi);
-    }
-    if (!E) E |= nrrdResampleBoundarySet(rsmc, nrrdBoundaryBleed);
-    if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
-    if (!E) E |= nrrdResampleRenormalizeSet(rsmc, AIR_TRUE);
-    if (E) {
-      fprintf(stderr, "%s: trouble setting up resampling\n", me);
-      airMopError(mop); return 1;
-    }
     for (ninSSIdx=0; ninSSIdx<numSS; ninSSIdx++) {
-      /*
-      char tmpName[128];
-      */
-      kSSblur->parm[0] = AIR_AFFINE(0, ninSSIdx, numSS-1,
-                                    rangeSS[0], rangeSS[1]);
-      for (axi=0; axi<3; axi++) {
-        if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                           kSSblur->kernel, kSSblur->parm);
-      }
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
-      fprintf(stderr, "!%s: resampling %u/%u ... ", me, ninSSIdx, numSS);
-      fflush(stderr);
-      if (!E) E |= nrrdResampleExecute(rsmc, ninSS[ninSSIdx]);
-      if (E) {
-        fprintf(stderr, "%s: trouble setting resampling %u of %u\n", me,
-                ninSSIdx, numSS);
-        airMopError(mop); return 1;
-      }
-      fprintf(stderr, "done.\n");
-      /*
-      sprintf(tmpName, "blur%02u.nrrd", ninSSIdx);
-      nrrdSave(tmpName, ninSS[ninSSIdx], NULL);
-      */
+    }
+    if (gageStackBlur(ninSS, numSS,
+                      nin, kind->baseDim, 
+                      kSSblur, rangeSS[0], rangeSS[1],
+                      nrrdBoundaryBleed, AIR_TRUE, verbose)) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
+      airMopError(mop); return 1;
     }
   }
 
@@ -277,20 +235,20 @@ main(int argc, char *argv[]) {
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   /* even with scale-space, the first pvl ("pvl") is where the query is set */
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
-  if (!E) E |= gagePerVolumeAttach(ctx, pvl);
-  if (!E) E |= gageQueryItemOn(ctx, pvl, what);
   if (numSS) {
-    gagePerVolume *pvlSS;
-
+    gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    /* add the blurred volumes to the stack */
-    for (ninSSIdx=0; ninSSIdx<numSS; ninSSIdx++) {
-      if (!E) E |= !(pvlSS = gagePerVolumeNew(ctx, ninSS[ninSSIdx], kind));
-      if (!E) E |= gagePerVolumeAttach(ctx, pvlSS);
-    }
-    if (!E) E |= gageKernelSet(ctx, GAGE_KERNEL_STACK, kSS->kernel, kSS->parm);
-    gageStackProbe(ctx, idxSS); /* normally is set once per gageProbe() */
+    if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
+                                       AIR_CAST(const Nrrd**, ninSS),
+                                       numSS, kind);
+    if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, numSS, 
+                                          rangeSS[0], rangeSS[1]);
+    if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
+  } else {
+    if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   }
+  if (!E) E |= gageQueryItemOn(ctx, pvl, what);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -399,7 +357,13 @@ main(int argc, char *argv[]) {
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*(32 == xi && 16 == yi && 16 == zi);
-        if (gageProbe(ctx, x, y, z)) {
+        /* 
+           gageStackProbe(ctx, idxSS); 
+        */
+        E = (numSS
+             ? gageStackProbe(ctx, x, y, z, idxSS)
+             : gageProbe(ctx, x, y, z));
+        if (E) {
           fprintf(stderr, 
                   "%s: trouble at i=(" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV
                   "," _AIR_SIZE_T_CNV ") -> f=(%g,%g,%g):\n%s\n(%d)\n",
