@@ -77,6 +77,10 @@ _airEnumIndex(const airEnum *enm, int val) {
   return ret;
 }
 
+/*
+** returns non-zero if there is an error: given "val" is *not* 
+** a valid value of the airEnum "enm"
+*/
 int
 airEnumValCheck(const airEnum *enm, int val) {
 
