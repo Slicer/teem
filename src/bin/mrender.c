@@ -91,7 +91,7 @@ typedef struct {
      set these, and then we'll gageKernelSet() them in the context
      in order to do the proper error checking- hest can't do the
      error checking that we need... */
-  NrrdKernelSpec *ksp[GAGE_KERNEL_NUM];
+  NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
   gageContext *gctx0;   /* gage input and parent thread state */
   hooverContext *hctx;  /* hoover input and state */
   char *outS;           /* (managed by hest) output filename */
@@ -110,7 +110,7 @@ mrendUserNew() {
   uu->rayStep = 0.0;
   uu->whatq = gageSclUnknown;
   uu->measr = nrrdMeasureUnknown;
-  for (i=0; i<GAGE_KERNEL_NUM; i++) {
+  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     uu->ksp[i] = NULL;
   }
   uu->gctx0 = gageContextNew();
