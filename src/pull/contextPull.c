@@ -215,17 +215,16 @@ _pullContextCheck(pullContext *pctx) {
 }
 
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nEnrOut, pullContext *pctx) {
-#if 0
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
   float *posOut, *tenOut, *enrOut;
-  pushBin *bin;
-  pushPoint *point;
+  pullBin *bin;
+  pullPoint *point;
   double sclmin, sclmax, sclmean;
 
-  pointNum = _pushPointTotal(pctx);
+  pointNum = _pullPointTotal(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2,
@@ -261,16 +260,15 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nEnrOut, pullContext *pctx) {
                    point->pos[0], point->pos[1], point->pos[2]);
       }
       if (tenOut) {
-        TEN_T_COPY(tenOut + 7*pointRun, point->ten);
+        TEN_T_SET(tenOut + 7*pointRun, 1, 1, 0, 0, 1, 0, 1);
       }
       if (enrOut) {
-        enrOut[pointRun] = point->enr;
+        enrOut[pointRun] = point->energy;
       }
       pointRun++;
     }
   }
 
-#endif
   return 0;
 }
 

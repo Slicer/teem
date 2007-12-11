@@ -237,6 +237,12 @@ _pullInfoSetup(pullContext *pctx) {
   return 0;
 }
 
+void
+_pullInfoFinish(pullContext *pctx) {
+
+  
+}
+
 static void
 _infoCopy1(double *dst, const double *src) {
   dst[0] = src[0]; 

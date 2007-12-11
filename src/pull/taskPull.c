@@ -111,3 +111,13 @@ _pullTaskSetup(pullContext *pctx) {
   return 0;
 }
 
+void
+_pullTaskFinish(pullContext *pctx) {
+  unsigned int tidx;
+  
+  for (tidx=0; tidx<pctx->threadNum; tidx++) {
+    pctx->task[tidx] = _pullTaskNix(pctx->task[tidx]);
+  }
+  pctx->task = airFree(pctx->task);
+  return;
+}

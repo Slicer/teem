@@ -39,6 +39,7 @@ extern int _pullContextCheck(pullContext *pctx);
 extern pullTask *_pullTaskNew(pullContext *pctx, int threadIdx);
 extern pullTask *_pullTaskNix(pullTask *task);
 extern int _pullTaskSetup(pullContext *pctx);
+extern void _pullTaskFinish(pullContext *pctx);
 
 /* pointPull.c */
 extern unsigned int _pullPointTotal(pullContext *pctx);
@@ -51,6 +52,7 @@ extern void _pullBinPointAdd(pullContext *pctx,
 extern void _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx);
 extern void _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num);
 extern int _pullBinSetup(pullContext *pctx);
+extern void _pullBinFinish(pullContext *pctx);
 
 /* actionPull.c */
 extern int _pullProbe(pullTask *task, pullPoint *point);

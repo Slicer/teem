@@ -367,7 +367,8 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
-PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nEnr, pullContext *pctx);
+PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nTen, Nrrd *nEnr,
+                              pullContext *pctx);
 
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);

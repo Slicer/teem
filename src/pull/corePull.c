@@ -87,7 +87,7 @@ _pullWorker(void *_task) {
       fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
     }
     if (_pullProcess(task)) {
-      /* HEY clearly not threadsafe ... */
+      /* HEY clearly not threadsafe to have errors ... */
       sprintf(err, "%s: thread %u trouble", me, task->threadIdx);
       biffAdd(PULL, err); 
       task->pctx->finished = AIR_TRUE;
@@ -256,7 +256,7 @@ pullRun(pullContext *pctx) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
-      if (pullOutputGet(npos, NULL, pctx)) {
+      if (pullOutputGet(npos, NULL, NULL, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PULL, err); return 1;
       }
@@ -323,7 +323,7 @@ pullRun(pullContext *pctx) {
 int
 pullFinish(pullContext *pctx) {
   char me[]="pullFinish", err[BIFF_STRLEN];
-  unsigned int ii, tidx;
+  unsigned int tidx;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -344,23 +344,12 @@ pullFinish(pullContext *pctx) {
       airThreadJoin(pctx->task[tidx-1]->thread,
                     &(pctx->task[tidx-1]->returnPtr));
     }
-    pctx->task[tidx-1]->thread = airThreadNix(pctx->task[tidx-1]->thread);
-    pctx->task[tidx-1] = _pullTaskNix(pctx->task[tidx-1]);
   }
-  pctx->task = (pullTask **)airFree(pctx->task);
 
-  for (ii=0; ii<pctx->binNum; ii++) {
-    pullBinDone(pctx->bin + ii);
-  }
-  pctx->bin = (pullBin *)airFree(pctx->bin);
-  ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
-  pctx->binNum = 0;
-
-  if (pctx->threadNum > 1) {
-    pctx->binMutex = airThreadMutexNix(pctx->binMutex);
-    pctx->iterBarrierA = airThreadBarrierNix(pctx->iterBarrierA);
-    pctx->iterBarrierB = airThreadBarrierNix(pctx->iterBarrierB);
-  }
+  /* no need for _pullInfoFinish(pctx), at least not now */
+  _pullTaskFinish(pctx);
+  _pullBinFinish(pctx);
+  /* no need for _pullPointFinish(pctx): nixed bins deleted pnts inside */
 
   return 0;
 }

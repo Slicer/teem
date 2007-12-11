@@ -279,3 +279,15 @@ _pullBinSetup(pullContext *pctx) {
   return 0;
 }
 
+void
+_pullBinFinish(pullContext *pctx) {
+  unsigned int ii;
+
+  for (ii=0; ii<pctx->binNum; ii++) {
+    pullBinDone(pctx->bin + ii);
+  }
+  pctx->bin = (pullBin *)airFree(pctx->bin);
+  ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
+  pctx->binNum = 0;
+}
+
