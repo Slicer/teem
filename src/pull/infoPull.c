@@ -160,6 +160,12 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             airEnumStr(pullInfo, info), info);
     biffAdd(PULL, err); return 1;
   }
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    if (pctx->ispec[ii] == ispec) {
+      sprintf(err, "%s: already got ispec %p as ispec[%u]", me, ispec, ii);
+      biffAdd(PULL, err); return 1;
+    }
+  }
   if (0 == pctx->volNum) {
     sprintf(err, "%s: given context has no volumes", me);
     biffAdd(PULL, err); return 1;
@@ -235,12 +241,6 @@ _pullInfoSetup(pullContext *pctx) {
   }
   fprintf(stderr, "!%s: infoTotalLen = %u\n", me, pctx->infoTotalLen);
   return 0;
-}
-
-void
-_pullInfoFinish(pullContext *pctx) {
-
-  
 }
 
 static void

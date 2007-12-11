@@ -93,7 +93,7 @@ pullVolumeNix(pullVolume *vol) {
 }
 
 int
-_pullVolumeSet(pullVolume *vol, char *name,
+_pullVolumeAdd(pullVolume *vol, char *name,
                const Nrrd *ninSingle,
                const Nrrd *const *ninScale, unsigned int ninNum,
                const gageKind *kind, 
@@ -102,7 +102,7 @@ _pullVolumeSet(pullVolume *vol, char *name,
                const NrrdKernelSpec *ksp11,
                const NrrdKernelSpec *ksp22,
                const NrrdKernelSpec *kspSS) {
-  char me[]="_pullVolumeSet", err[BIFF_STRLEN];
+  char me[]="_pullVolumeAdd", err[BIFF_STRLEN];
   int E;
 
   if (!( vol && (ninSingle || ninScale) && kind 
@@ -185,7 +185,7 @@ _pullVolumeSet(pullVolume *vol, char *name,
 ** the effect is to give pctx ownership of the vol
 */
 int
-pullVolumeSingleSet(pullContext *pctx, pullVolume *vol,
+pullVolumeSingleAdd(pullContext *pctx, pullVolume *vol,
                     char *name, const Nrrd *nin,
                     const gageKind *kind, 
                     const NrrdKernelSpec *ksp00,
@@ -193,7 +193,7 @@ pullVolumeSingleSet(pullContext *pctx, pullVolume *vol,
                     const NrrdKernelSpec *ksp22) {
   char me[]="pullVolumeSingleSet", err[BIFF_STRLEN];
 
-  if (_pullVolumeSet(vol, name, nin, NULL, 0, 
+  if (_pullVolumeAdd(vol, name, nin, NULL, 0, 
                      kind, AIR_NAN, AIR_NAN, 
                      ksp00, ksp11, ksp22, NULL)) {
     sprintf(err, "%s: trouble", me);
@@ -208,7 +208,7 @@ pullVolumeSingleSet(pullContext *pctx, pullVolume *vol,
 ** the effect is to give pctx ownership of the vol
 */
 int
-pullVolumeStackSet(pullContext *pctx, pullVolume *vol,
+pullVolumeStackAdd(pullContext *pctx, pullVolume *vol,
                    char *name,
                    const Nrrd *const *nin, unsigned int ninNum,
                    const gageKind *kind, 
@@ -219,7 +219,7 @@ pullVolumeStackSet(pullContext *pctx, pullVolume *vol,
                    const NrrdKernelSpec *kspSS) {
   char me[]="pullVolumeStackSet", err[BIFF_STRLEN];
 
-  if (_pullVolumeSet(vol, name, NULL, nin, ninNum,
+  if (_pullVolumeAdd(vol, name, NULL, nin, ninNum,
                      kind, scaleMin, scaleMax,
                      ksp00, ksp11, ksp22, kspSS)) {
     sprintf(err, "%s: trouble", me);
@@ -241,7 +241,7 @@ _pullVolumeCopy(pullVolume *volOrig) {
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
-  if (_pullVolumeSet(volNew, volOrig->name, 
+  if (_pullVolumeAdd(volNew, volOrig->name, 
                      volOrig->ninSingle,
                      volOrig->ninScale, volOrig->scaleNum,
                      volOrig->gpvl->kind,
