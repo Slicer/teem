@@ -62,19 +62,20 @@ enum {
   pullInfoHessian,            /*  3: [9] hessian used for force distortion */
   pullInfoInside,             /*  4: [1] containment scalar */
   pullInfoInsideGradient,     /*  5: [3] containment vector */
-  pullInfoHeight,             /*  6: [1] for gravity */
-  pullInfoHeightGradient,     /*  7: [3] for gravity */
-  pullInfoHeightHessian,      /*  8: [9] for gravity */
+  pullInfoHeight,             /*  6: [1] for gravity and crease detection */
+  pullInfoHeightGradient,     /*  7: [3] */
+  pullInfoHeightHessian,      /*  8: [9] */
   pullInfoSeedThresh,         /*  9: [1] scalar for thresholding seeding */
   pullInfoTangent1,           /* 10: [3] first tangent to constraint surf */
   pullInfoTangent2,           /* 11: [3] second tangent to constraint surf */
   pullInfoTangentMode,        /* 12: [1] for morphing between co-dim 1 and 2 */
-  pullInfoIsosurfaceValue,    /* 13: [1] */
+  pullInfoIsosurfaceValue,    /* 13: [1] for isosurface extraction */
   pullInfoIsosurfaceGradient, /* 14: [3] */
   pullInfoIsosurfaceHessian,  /* 15: [9] */
+  pullInfoStrength,           /* 16: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            15
+#define PULL_INFO_MAX            16
 
 /* 
 ** how the gageItem for a pullInfo is specified
@@ -217,7 +218,8 @@ typedef struct pullTask_t {
 **
 ** everything for doing one computation
 **
-** NOTE: right now there is no API for setting the INPUT fields
+** NOTE: right now there is no API for setting the input fields (as there
+** is in gage and tenFiber) eventually there will be...
 */
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
@@ -333,12 +335,8 @@ PULL_EXPORT pullEnergySpec *pullEnergySpecNix(pullEnergySpec *ensp);
 PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
 
-/* methodsPull.c */
+/* volumePull.c */
 PULL_EXPORT gageKind *pullGageKindParse(const char *str);
-PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
-PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
-PULL_EXPORT pullContext *pullContextNew(void);
-PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT pullVolume *pullVolumeNew();
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
 PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, pullVolume *vol,
@@ -357,12 +355,6 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx, pullVolume *vol,
                                    const NrrdKernelSpec *ksp22,
                                    const NrrdKernelSpec *kspSS);
 
-/* corePull.c */
-PULL_EXPORT int pullStart(pullContext *pctx);
-PULL_EXPORT int pullIterate(pullContext *pctx);
-PULL_EXPORT int pullRun(pullContext *pctx);
-PULL_EXPORT int pullFinish(pullContext *pctx);
-
 /* infoPull.c */
 PULL_EXPORT airEnum *const pullInfo;
 PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
@@ -372,16 +364,31 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
                                 int info, const char *volName,
                                 const char *itemName);
 
+/* contextPull.c */
+PULL_EXPORT pullContext *pullContextNew(void);
+PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
+PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nEnr, pullContext *pctx);
+
+/* pointPull.c */
+PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
+PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
+
 /* binningPull.c */
 PULL_EXPORT void pullBinInit(pullBin *bin, unsigned int incr);
 PULL_EXPORT void pullBinDone(pullBin *bin);
 PULL_EXPORT int pullBinPointAdd(pullContext *pctx, pullPoint *point);
 PULL_EXPORT void pullBinAllNeighborSet(pullContext *pctx);
+PULL_EXPORT int pullBinPointAdd(pullContext *pctx, pullPoint *point);
 PULL_EXPORT int pullRebin(pullContext *pctx);
 
 /* actionPull.c */
 PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
-PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nEnr, pullContext *pctx);
+
+/* corePull.c */
+PULL_EXPORT int pullStart(pullContext *pctx);
+PULL_EXPORT int pullIterate(pullContext *pctx);
+PULL_EXPORT int pullRun(pullContext *pctx);
+PULL_EXPORT int pullFinish(pullContext *pctx);
 
 #ifdef __cplusplus
 }

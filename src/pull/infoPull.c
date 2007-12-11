@@ -41,6 +41,7 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
   "isoval",
   "isogradvec",
   "isohessian",
+  "strength"
 };
 
 int
@@ -61,6 +62,7 @@ _pullInfoVal[] = {
   pullInfoIsosurfaceValue,    /* 13: [1] */
   pullInfoIsosurfaceGradient, /* 14: [3] */
   pullInfoIsosurfaceHessian,  /* 15: [9] */
+  pullInfoStrength            /* 16: [1] */
 };
 
 airEnum
@@ -93,6 +95,7 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   1, /* pullInfoIsosurfaceValue */
   3, /* pullInfoIsosurfaceGradient */
   9, /* pullInfoIsosurfaceHessian */
+  1, /* pullInfoStrength */
 }; 
 
 unsigned int
@@ -122,6 +125,17 @@ pullInfoSpecNew(void) {
     ispec->item = 0;
   }
   return ispec;
+}
+
+pullInfoSpec *
+pullInfoSpecNix(pullInfoSpec *ispec) {
+
+  if (ispec) {
+    ispec->volName = airFree(ispec->volName);
+    ispec->itemName = airFree(ispec->itemName);
+    airFree(ispec);
+  }
+  return NULL;
 }
 
 int
@@ -181,6 +195,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen);
     biffAdd(PULL, err); return 1;
   }
+  if (pullInfoStrength == info && !vol->ninScale) {
+    sprintf(err, "%s: can only use %s info with a stack volume", 
+            me, airEnumStr(pullInfo, pullInfoStrength));
+    biffAdd(PULL, err); return 1;
+  }
 
   ispec->info = info;
   ispec->volName = airStrdup(volName);
@@ -196,15 +215,26 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   return 0;
 }
 
-pullInfoSpec *
-pullInfoSpecNix(pullInfoSpec *ispec) {
+int
+_pullInfoSetup(pullContext *pctx) {
+  char me[]="_pullInfoSetup", err[BIFF_STRLEN];
+  unsigned int ii;
 
-  if (ispec) {
-    ispec->volName = airFree(ispec->volName);
-    ispec->itemName = airFree(ispec->itemName);
-    airFree(ispec);
+  for (ii=0; ii<pctx->volNum; ii++) {
+    if (gageUpdate(pctx->vol[ii]->gctx)) {
+      sprintf(err, "%s: trouble setting up gage on vol %u/%u",
+              me, ii, pctx->volNum);
+      biffMove(PULL, err, GAGE); return 1;
+    }
   }
-  return NULL;
+  pctx->infoTotalLen = 0;
+  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    if (pctx->ispec[ii]) {
+      pctx->infoTotalLen += pullInfoAnswerLen(ii);
+    }
+  }
+  fprintf(stderr, "!%s: infoTotalLen = %u\n", me, pctx->infoTotalLen);
+  return 0;
 }
 
 static void

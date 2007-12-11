@@ -47,8 +47,8 @@ $(L).SEEN := true
 $(L).NEED = ten gage ell nrrd biff air
 $(L).PUBLIC_HEADERS = pull.h
 $(L).PRIVATE_HEADERS = privatePull.h
-$(L).OBJS = defaultsPull.o energy.o methodsPull.o infoPull.o \
-     corePull.o setupPull.o binningPull.o actionPull.o
+$(L).OBJS = defaultsPull.o energy.o volumePull.o infoPull.o contextPull.o \
+    taskPull.o pointPull.o binningPull.o actionPull.o corePull.o 
 $(L).TESTS = 
 ####
 ####

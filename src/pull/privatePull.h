@@ -24,31 +24,43 @@
 extern "C" {
 #endif
 
+/* volumePull.c */
+extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
+
 /* infoPull.c */
 extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];
-PULL_EXPORT void (*_pullInfoAnswerCopy[10])(double *, const double *);
+extern void (*_pullInfoAnswerCopy[10])(double *, const double *);
+extern int _pullInfoSetup(pullContext *pctx);
 
-/* methodsPull.c */
-extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
+/* contextPull.c */
+extern int _pullContextCheck(pullContext *pctx);
+
+/* taskPull.c */
+extern pullTask *_pullTaskNew(pullContext *pctx, int threadIdx);
+extern pullTask *_pullTaskNix(pullTask *task);
+extern int _pullTaskSetup(pullContext *pctx);
+
+/* pointPull.c */
+extern unsigned int _pullPointTotal(pullContext *pctx);
+extern int _pullProbe(pullTask *task, pullPoint *point);
 
 /* binningPull.c */
 extern pullBin *_pullBinLocate(pullContext *pctx, double *pos);
 extern void _pullBinPointAdd(pullContext *pctx,
                              pullBin *bin, pullPoint *point);
+extern void _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx);
+extern void _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num);
+extern int _pullBinSetup(pullContext *pctx);
 
 /* actionPull.c */
 extern int _pullProbe(pullTask *task, pullPoint *point);
 
-/* corePull.c */
-extern int _pullContextCheck(pullContext *pctx);
-
-/* setupPull.c */
-extern int _pullInfoSetup(pullContext *pctx);
-extern pullTask *_pullTaskNew(pullContext *pctx, int threadIdx);
-extern pullTask *_pullTaskNix(pullTask *task);
-extern int _pullTaskSetup(pullContext *pctx);
-extern int _pullBinSetup(pullContext *pctx);
+/* pointPull.c */
 extern int _pullPointSetup(pullContext *pctx);
+
+/* corePull.c */
+extern int _pullProcess(pullTask *task);
+extern void *_pullWorker(void *_task);
 
 #ifdef __cplusplus
 }

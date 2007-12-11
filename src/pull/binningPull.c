@@ -220,3 +220,62 @@ pullRebin(pullContext *pctx) {
 
   return 0;
 }
+
+int
+_pullBinSetup(pullContext *pctx) {
+  char me[]="_pullBinSetup", err[BIFF_STRLEN];
+  unsigned ii;
+  double volEdge[3];
+
+  gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,
+                       pctx->vol[0]->gctx->shape);
+  for (ii=1; ii<pctx->volNum; ii++) {
+    double min[3], max[3];
+    gageShapeBoundingBox(min, max, pctx->vol[ii]->gctx->shape);
+    ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
+    ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
+  }
+  fprintf(stderr, "!%s: bbox min (%g,%g,%g) max (%g,%g,%g)\n", me,
+          pctx->bboxMin[0], pctx->bboxMin[1], pctx->bboxMin[2],
+          pctx->bboxMax[0], pctx->bboxMax[1], pctx->bboxMax[2]);
+  
+  pctx->maxDist = (pctx->interScl ? pctx->interScl : 0.2);
+  fprintf(stderr, "!%s: interScl = %g --> maxDist = %g\n", me, 
+          pctx->interScl, pctx->maxDist);
+
+  if (pctx->binSingle) {
+    pctx->binsEdge[0] = 1;
+    pctx->binsEdge[1] = 1;
+    pctx->binsEdge[2] = 1;
+    pctx->binNum = 1;
+  } else {
+    volEdge[0] = pctx->bboxMax[0] - pctx->bboxMin[0];
+    volEdge[1] = pctx->bboxMax[1] - pctx->bboxMin[1];
+    volEdge[2] = pctx->bboxMax[2] - pctx->bboxMin[2];
+    fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
+            volEdge[0], volEdge[1], volEdge[2]);
+    pctx->binsEdge[0] = AIR_CAST(unsigned int,
+                                 floor(volEdge[0]/pctx->maxDist));
+    pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
+    pctx->binsEdge[1] = AIR_CAST(unsigned int,
+                                 floor(volEdge[1]/pctx->maxDist));
+    pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
+    pctx->binsEdge[2] = AIR_CAST(unsigned int,
+                                 floor(volEdge[2]/pctx->maxDist));
+    pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
+    fprintf(stderr, "!%s: binsEdge=(%u,%u,%u)\n", me,
+            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
+    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
+  }
+  pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
+  if (!( pctx->bin )) {
+    sprintf(err, "%s: trouble allocating bin arrays", me);
+    biffAdd(PULL, err); return 1;
+  }
+  for (ii=0; ii<pctx->binNum; ii++) {
+    pullBinInit(pctx->bin + ii, pctx->binIncr);
+  }
+  pullBinAllNeighborSet(pctx);
+  return 0;
+}
+
