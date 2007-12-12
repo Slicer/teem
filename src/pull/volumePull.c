@@ -155,6 +155,11 @@ _pullVolumeAdd(pullVolume *vol, char *name,
   }
 
   vol->name = airStrdup(name); /* HEY: error checking? */
+  if (!vol->name) {
+    sprintf(err, "%s: couldn't strdup name (len %u)", me,
+            AIR_CAST(unsigned int, airStrlen(name)));
+    biffAdd(PULL, err); return 1;
+  }
   vol->kind = kind;
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);
