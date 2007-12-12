@@ -165,15 +165,19 @@ pullFinish(pullContext *pctx) {
       fprintf(stderr, "%s: finishing workers\n", me);
     }
     airThreadBarrierWait(pctx->iterBarrierA);
-  }
-  /* worker threads now pass barrierA and see that finished is AIR_TRUE,
-     and then bail, so now we collect them */
-  for (tidx=pctx->threadNum; tidx>0; tidx--) {
-    if (tidx-1) {
-      airThreadJoin(pctx->task[tidx-1]->thread,
-                    &(pctx->task[tidx-1]->returnPtr));
+    /* worker threads now pass barrierA and see that finished is AIR_TRUE,
+       and then bail, so now we collect them */
+    for (tidx=pctx->threadNum; tidx>0; tidx--) {
+      if (tidx-1) {
+        airThreadJoin(pctx->task[tidx-1]->thread,
+                      &(pctx->task[tidx-1]->returnPtr));
+      }
     }
   }
+
+  pctx->binMutex = airThreadMutexNix(pctx->binMutex);
+  pctx->iterBarrierA = airThreadBarrierNix(pctx->iterBarrierA);
+  pctx->iterBarrierB = airThreadBarrierNix(pctx->iterBarrierB);
 
   /* no need for _pullVolumeFinish(pctx), at least not now */
   /* no need for _pullInfoFinish(pctx), at least not now */
