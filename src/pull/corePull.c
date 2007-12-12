@@ -173,11 +173,10 @@ pullFinish(pullContext *pctx) {
                       &(pctx->task[tidx-1]->returnPtr));
       }
     }
+    pctx->binMutex = airThreadMutexNix(pctx->binMutex);
+    pctx->iterBarrierA = airThreadBarrierNix(pctx->iterBarrierA);
+    pctx->iterBarrierB = airThreadBarrierNix(pctx->iterBarrierB);
   }
-
-  pctx->binMutex = airThreadMutexNix(pctx->binMutex);
-  pctx->iterBarrierA = airThreadBarrierNix(pctx->iterBarrierA);
-  pctx->iterBarrierB = airThreadBarrierNix(pctx->iterBarrierB);
 
   /* no need for _pullVolumeFinish(pctx), at least not now */
   /* no need for _pullInfoFinish(pctx), at least not now */
