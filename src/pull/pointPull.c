@@ -112,12 +112,14 @@ _pullProbe(pullTask *task, pullPoint *point) {
   }
 
   /* maybe is a little stupid to have the infos indexed this way, 
-     since it means that we always have to loop through all indices */
+     since it means that we always have to loop through all indices,
+     but at least the compiler can unroll it... */
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    unsigned int alen, aidx;
     if (task->ans[ii]) {
-      _pullInfoAnswerCopy[_pullInfoAnswerLen[ii]](point->info 
-                                                  + task->infoOffset[ii],
-                                                  task->ans[ii]);
+      alen = _pullInfoAnswerLen[ii];
+      aidx = task->pctx->infoIdx[ii];
+      _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
     }
   }
   return 0;
@@ -156,29 +158,39 @@ _pullPointSetup(pullContext *pctx) {
     point = pullPointNew(pctx);
     if (pctx->npos) {
       ELL_4V_COPY(point->pos, posData + 4*pointIdx);
+      /* even though we are dictating the point locations, we still have
+         to do the initial probe */
       if (_pullProbe(pctx->task[0], point)) {
         sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
         biffAdd(PULL, err); return 1;
       }
     } else {
-      reject = AIR_FALSE;
       do {
         ELL_3V_SET(point->pos,
                    AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                              pctx->bboxMin[0], pctx->bboxMin[0]),
+                              pctx->bboxMin[0], pctx->bboxMax[0]),
                    AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                              pctx->bboxMin[1], pctx->bboxMin[1]),
+                              pctx->bboxMin[1], pctx->bboxMax[1]),
                    AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                              pctx->bboxMin[2], pctx->bboxMin[2]));
+                              pctx->bboxMin[2], pctx->bboxMax[2]));
         if (pctx->haveScale) {
           point->pos[3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                                     pctx->bboxMin[3], pctx->bboxMin[3]);
+                                     pctx->bboxMin[3], pctx->bboxMax[3]);
         } else {
           point->pos[3] = AIR_NAN;
         }
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
+        }
+        reject = AIR_FALSE;
+        if (pctx->ispec[pullInfoSeedThresh]) {
+          pullInfoSpec *ispec;
+          double val;
+          ispec = pctx->ispec[pullInfoSeedThresh];
+          val = point->info[pctx->infoIdx[pullInfoSeedThresh]];
+          val = (val - ispec->zero)*ispec->scale;
+          reject |= val < 0;
         }
       } while (reject);
     }

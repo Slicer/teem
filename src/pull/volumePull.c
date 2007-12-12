@@ -79,7 +79,6 @@ pullVolumeNew() {
 
 pullVolume *
 pullVolumeNix(pullVolume *vol) {
-  char me[]="pullVolumeNix";
 
   if (vol) {
     vol->name = airFree(vol->name);
@@ -274,7 +273,10 @@ _pullVolumeCopy(pullVolume *volOrig) {
     sprintf(err, "%s: trouble creating new volume", me);
     biffAdd(PULL, err); return NULL;
   }
-  if (gageUpdate(volNew->gctx)) {
+  /* we just created a new (per-task) gageContext, and it will not learn
+     the items from the info specs, so we have to add query here */
+  if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
+      || gageUpdate(volNew->gctx)) {
     sprintf(err, "%s: trouble with new volume gctx", me);
     biffMove(PULL, err, GAGE); return NULL;
   }
@@ -291,6 +293,28 @@ _pullVolumeSetup(pullContext *pctx) {
       sprintf(err, "%s: trouble setting up gage on vol %u/%u",
               me, ii, pctx->volNum);
       biffMove(PULL, err, GAGE); return 1;
+    }
+  }
+  if (1) {
+    gagePerVolume *pvl;
+    const double *ans;
+    double pos[3];
+    int gret;
+    for (ii=0; ii<pctx->volNum; ii++) {
+      pvl = pctx->vol[ii]->gctx->pvl[0];
+      fprintf(stderr, "!%s: vol[%u] query:\n", me, ii);
+      gageQueryPrint(stderr, pvl->kind, pvl->query);
+      ans = gageAnswerPointer(pctx->vol[ii]->gctx, pvl, gageSclValue);
+      ELL_3V_SET(pos, 0.6, 0.6, 0.3);
+      gret = gageProbeSpace(pctx->vol[ii]->gctx, pos[0], pos[1], pos[2],
+                            AIR_FALSE, AIR_TRUE);
+      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+              pos[0], pos[1], pos[2], *ans);
+      ELL_3V_SET(pos, 0.5, 0.0, 0.0);
+      gret = gageProbeSpace(pctx->vol[ii]->gctx, pos[0], pos[1], pos[2],
+                            AIR_FALSE, AIR_TRUE);
+      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+              pos[0], pos[1], pos[2], *ans);
     }
   }
   gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,

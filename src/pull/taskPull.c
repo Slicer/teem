@@ -42,6 +42,28 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
       biffAdd(PULL, err); return NULL;
     }
   }
+  if (1) {
+    gagePerVolume *pvl;
+    const double *ans;
+    double pos[3];
+    int gret;
+    for (ii=0; ii<pctx->volNum; ii++) {
+      pvl = task->vol[ii]->gctx->pvl[0];
+      fprintf(stderr, "!%s: vol[%u] query:\n", me, ii);
+      gageQueryPrint(stderr, pvl->kind, pvl->query);
+      ans = gageAnswerPointer(task->vol[ii]->gctx, pvl, gageSclValue);
+      ELL_3V_SET(pos, 0.6, 0.6, 0.3);
+      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
+                            AIR_FALSE, AIR_TRUE);
+      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+              pos[0], pos[1], pos[2], *ans);
+      ELL_3V_SET(pos, 0.5, 0.0, 0.0);
+      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
+                            AIR_FALSE, AIR_TRUE);
+      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+              pos[0], pos[1], pos[2], *ans);
+    }
+  }
   offset = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     unsigned int volIdx;
@@ -50,8 +72,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
       task->ans[ii] = gageAnswerPointer(task->vol[volIdx]->gctx,
                                         task->vol[volIdx]->gpvl,
                                         pctx->ispec[ii]->item);
-      task->infoOffset[ii] = offset;
-      offset += _pullInfoAnswerLen[ii];
+      fprintf(stderr, "!%s: task->ans[%u] = %p\n", me, ii, task->ans[ii]);
     }
   }
   if (pctx->threadNum > 1) {

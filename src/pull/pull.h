@@ -85,7 +85,7 @@ typedef struct pullInfoSpec_t {
   int info;                     /* from the pullInfo* enum */
   char *volName;                /* volume name */
   char *itemName;               /* item name (kind is known by volume) */
-  double scaling,               /* scaling factor (including sign) */
+  double scale,                 /* scaling factor (including sign) */
     zero;                       /* for height and inside: where is zero,
                                    for seedThresh, threshold value */
   /* ------ INTERNAL ------ */
@@ -201,8 +201,6 @@ typedef struct pullTask_t {
     *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
                                    pointing into per-task per-volume gctxs,
                                    or: NULL if that info is not being used */
-  unsigned int 
-    infoOffset[PULL_INFO_MAX+1];/* offset of answer within pullPoint->info */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   unsigned int
@@ -238,8 +236,8 @@ typedef struct pullContext_t {
   double stepInitial,              /* initial time step in integration 
                                       (which will be reduced as the system
                                       converges) */
-    interScl,                      /* scaling on inter-particle interactions */
-    wallScl;                       /* spring constant of walls */
+    interScale,                    /* scaling on inter-particle interactions */
+    wallScale;                     /* spring constant of walls */
 
   /* concerning the probability-based optimizations */
   double
@@ -280,9 +278,10 @@ typedef struct pullContext_t {
 
   double bboxMin[4], bboxMax[4];   /* bounding box of all volumes, the region
                                       over which the binning is defined */
-  unsigned int infoTotalLen;       /* total length of the info buffers needed,
+  unsigned int infoTotalLen,       /* total length of the info buffers needed,
                                       which determines size of allocated
                                       binPoint */
+    infoIdx[PULL_INFO_MAX+1];      /* index of answer within pullPoint->info */
   unsigned int idtagNext;          /* next per-point igtag value */
   int haveScale,                   /* non-zero iff one of the volumes is in
                                       scale-space */

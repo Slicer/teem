@@ -227,9 +227,9 @@ _pullBinSetup(pullContext *pctx) {
   unsigned ii;
   double volEdge[3];
 
-  pctx->maxDist = (pctx->interScl ? pctx->interScl : 0.2);
-  fprintf(stderr, "!%s: interScl = %g --> maxDist = %g\n", me, 
-          pctx->interScl, pctx->maxDist);
+  pctx->maxDist = (pctx->interScale ? pctx->interScale : 0.2);
+  fprintf(stderr, "!%s: interScale = %g --> maxDist = %g\n", me, 
+          pctx->interScale, pctx->maxDist);
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;

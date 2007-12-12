@@ -107,15 +107,10 @@ pullStart(pullContext *pctx) {
   char me[]="pullStart", err[BIFF_STRLEN];
   unsigned int tidx;
 
-  if (_pullContextCheck(pctx)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PULL, err); return 1;
-  }
-
   /* the ordering of steps below is important! e.g. gage context has
      to be set up (_pullVolumeSetup) by before its copied (_pullTaskSetup) */
-  pctx->step = pctx->stepInitial;
-  if (_pullVolumeSetup(pctx)
+  if (_pullContextCheck(pctx)
+      || _pullVolumeSetup(pctx)
       || _pullInfoSetup(pctx) 
       || _pullTaskSetup(pctx)
       || _pullBinSetup(pctx)
@@ -142,7 +137,9 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
   }
+
   pctx->iter = 0;
+  pctx->step = pctx->stepInitial;
 
   return 0;
 }

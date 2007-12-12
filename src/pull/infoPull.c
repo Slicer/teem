@@ -119,7 +119,7 @@ pullInfoSpecNew(void) {
     ispec->info = pullInfoUnknown;
     ispec->volName = NULL;
     ispec->itemName = NULL;
-    ispec->scaling = AIR_NAN;
+    ispec->scale = AIR_NAN;
     ispec->zero = AIR_NAN;
     ispec->volIdx = UINT_MAX;
     ispec->item = 0;
@@ -144,7 +144,6 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   char me[]="pullInfoSpecAdd", err[BIFF_STRLEN];
   unsigned int ii, haveLen, needLen;
   const gageKind *kind;
-  const pullVolume *vol;
   int item;
   
   if (!( pctx && ispec && volName && itemName )) {
@@ -179,8 +178,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     sprintf(err, "%s: no volume has name \"%s\"", me, volName);
     biffAdd(PULL, err); return 1;
   }
-  vol = pctx->vol[ii];
-  kind = vol->kind;
+  kind = pctx->vol[ii]->kind;
   item = airEnumVal(kind->enm, itemName);
   if (!item) {
     sprintf(err, "%s: \"%s\" not a valid \"%s\" item", me, 
@@ -201,7 +199,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen);
     biffAdd(PULL, err); return 1;
   }
-  if (pullInfoStrength == info && !vol->ninScale) {
+  if (pullInfoStrength == info && !pctx->vol[ii]->ninScale) {
     sprintf(err, "%s: can only use %s info with a stack volume", 
             me, airEnumStr(pullInfo, pullInfoStrength));
     biffAdd(PULL, err); return 1;
@@ -214,7 +212,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   ispec->item = item;
 
   /* now set item in gage query */
-  gageQueryItemOn(vol->gctx, vol->gpvl, item);
+  gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);
 
   pctx->ispec[info] = ispec;
   
@@ -229,7 +227,14 @@ _pullInfoSetup(pullContext *pctx) {
   pctx->infoTotalLen = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
+      pctx->infoIdx[ii] = pctx->infoTotalLen;
+      fprintf(stderr, "!%s: infoIdx[%u] (%s) = %u\n", me,
+              ii, airEnumStr(pullInfo, ii), pctx->infoIdx[ii]);
       pctx->infoTotalLen += pullInfoAnswerLen(ii);
+      if (!pullInfoAnswerLen(ii)) {
+        sprintf(err, "%s: got zero-length answer for ispec[%u]", me, ii);
+        biffAdd(PULL, err); return 1;
+      }
     }
   }
   fprintf(stderr, "!%s: infoTotalLen = %u\n", me, pctx->infoTotalLen);

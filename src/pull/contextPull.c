@@ -43,11 +43,12 @@ pullContextNew(void) {
   pctx->volNum = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     pctx->ispec[ii] = NULL;
+    pctx->infoIdx[ii] = UINT_MAX;
   }
 
   pctx->stepInitial = 1;
-  pctx->interScl = 1;
-  pctx->wallScl = 0;
+  pctx->interScale = 1;
+  pctx->wallScale = 0;
   pctx->neighborTrueProb = 1;
   pctx->probeProb = 1;
   pctx->deltaLimit = 0.3;
@@ -100,7 +101,6 @@ pullContextNew(void) {
 */
 pullContext *
 pullContextNix(pullContext *pctx) {
-  char me[]="pullContextNix";
   unsigned int ii;
   
   if (pctx) {
@@ -176,11 +176,11 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoInside:
       case pullInfoHeight:
       case pullInfoIsosurfaceValue:
-        if (!( AIR_EXISTS(pctx->ispec[ii]->scaling)
+        if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
                && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
-          sprintf(err, "%s: %s info needs scaling (%g) and zero (%g)", me, 
+          sprintf(err, "%s: %s info needs scale (%g) and zero (%g)", me, 
                   airEnumStr(pullInfo, ii),
-                  pctx->ispec[ii]->scaling, pctx->ispec[ii]->zero);
+                  pctx->ispec[ii]->scale, pctx->ispec[ii]->zero);
           biffAdd(PULL, err); return 1;
         }
         break;
