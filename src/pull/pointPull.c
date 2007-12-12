@@ -137,6 +137,7 @@ _pullPointSetup(pullContext *pctx) {
   unsigned int pointIdx;
   pullPoint *point;
   double *posData;
+  int reject;
 
   pctx->pointNum = (pctx->npos
                     ? pctx->npos->axis[1].size
@@ -144,10 +145,8 @@ _pullPointSetup(pullContext *pctx) {
   posData = (pctx->npos
              ? AIR_CAST(double *, pctx->npos->data)
              : NULL);
-#if 0
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
   for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
-    double detProbe;
     /*
     fprintf(stderr, "!%s: pointIdx = %u/%u\n", me, pointIdx, pctx->pointNum);
     */
@@ -159,38 +158,33 @@ _pullPointSetup(pullContext *pctx) {
         biffAdd(PULL, err); return 1;
       }
     } else {
+      reject = AIR_FALSE;
       do {
-        double posIdx[4], posWorld[4];
-        posIdx[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[0]-0.5);
-        posIdx[1] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[1]-0.5);
-        posIdx[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[2]-0.5);
-        posIdx[3] = 1.0;
-        ELL_4MV_MUL(posWorld, pctx->gctx->shape->ItoW, posIdx);
-        ELL_34V_HOMOG(point->pos, posWorld);
-        /*
-        fprintf(stderr, "%s: posIdx = %g %g %g --> posWorld = %g %g %g "
-                "--> %g %g %g\n", me,
-                posIdx[0], posIdx[1], posIdx[2],
-                posWorld[0], posWorld[1], posWorld[2],
-                point->pos[0], point->pos[1], point->pos[2]);
-        */
+        ELL_3V_SET(point->pos,
+                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                              pctx->bboxMin[0], pctx->bboxMin[0]),
+                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                              pctx->bboxMin[1], pctx->bboxMin[1]),
+                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                              pctx->bboxMin[2], pctx->bboxMin[2]));
+        if (pctx->haveScale) {
+          point->pos[3] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                                     pctx->bboxMin[3], pctx->bboxMin[3]);
+        } else {
+          point->pos[3] = AIR_NAN;
+        }
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
-
-      } while (point is no good);
+      } while (reject);
     }
     if (pullBinPointAdd(pctx, point)) {
-      sprintf(err, "%s: trouble binning point %u", me, point->ttaagg);
+      sprintf(err, "%s: trouble binning point %u", me, point->idtag);
       biffAdd(PULL, err); return 1;
     }
   }
   fprintf(stderr, "!%s: ... seeding DONE\n", me);
-#endif
   return 0;
 }
 

@@ -227,18 +227,6 @@ _pullBinSetup(pullContext *pctx) {
   unsigned ii;
   double volEdge[3];
 
-  gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,
-                       pctx->vol[0]->gctx->shape);
-  for (ii=1; ii<pctx->volNum; ii++) {
-    double min[3], max[3];
-    gageShapeBoundingBox(min, max, pctx->vol[ii]->gctx->shape);
-    ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
-    ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
-  }
-  fprintf(stderr, "!%s: bbox min (%g,%g,%g) max (%g,%g,%g)\n", me,
-          pctx->bboxMin[0], pctx->bboxMin[1], pctx->bboxMin[2],
-          pctx->bboxMax[0], pctx->bboxMax[1], pctx->bboxMax[2]);
-  
   pctx->maxDist = (pctx->interScl ? pctx->interScl : 0.2);
   fprintf(stderr, "!%s: interScl = %g --> maxDist = %g\n", me, 
           pctx->interScl, pctx->maxDist);

@@ -280,3 +280,47 @@ _pullVolumeCopy(pullVolume *volOrig) {
   }
   return volNew;
 }
+
+int
+_pullVolumeSetup(pullContext *pctx) {
+  char me[]="_pullVolumeSetup", err[BIFF_STRLEN];
+  unsigned int ii;
+
+  for (ii=0; ii<pctx->volNum; ii++) {
+    if (gageUpdate(pctx->vol[ii]->gctx)) {
+      sprintf(err, "%s: trouble setting up gage on vol %u/%u",
+              me, ii, pctx->volNum);
+      biffMove(PULL, err, GAGE); return 1;
+    }
+  }
+  gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,
+                       pctx->vol[0]->gctx->shape);
+  for (ii=1; ii<pctx->volNum; ii++) {
+    double min[3], max[3];
+    gageShapeBoundingBox(min, max, pctx->vol[ii]->gctx->shape);
+    ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
+    ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
+  }
+  pctx->haveScale = AIR_FALSE;
+  for (ii=0; ii<pctx->volNum; ii++) {
+    if (pctx->vol[ii]->ninScale) {
+      pctx->haveScale = AIR_TRUE;
+      pctx->bboxMin[3] = pctx->vol[ii]->scaleMin;
+      pctx->bboxMax[3] = pctx->vol[ii]->scaleMax;
+    }
+  }
+  if (pctx->haveScale) {
+    fprintf(stderr, "!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
+            pctx->bboxMin[0], pctx->bboxMin[1],
+            pctx->bboxMin[2], pctx->bboxMin[3],
+            pctx->bboxMax[0], pctx->bboxMax[1],
+            pctx->bboxMax[2], pctx->bboxMax[3]);
+  } else {
+    fprintf(stderr, "!%s: bbox min (%g,%g,%g) max (%g,%g,%g)\n", me,
+            pctx->bboxMin[0], pctx->bboxMin[1], pctx->bboxMin[2],
+            pctx->bboxMax[0], pctx->bboxMax[1], pctx->bboxMax[2]);
+  }
+
+  return 0;
+}
+

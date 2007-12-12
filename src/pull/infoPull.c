@@ -226,13 +226,6 @@ _pullInfoSetup(pullContext *pctx) {
   char me[]="_pullInfoSetup", err[BIFF_STRLEN];
   unsigned int ii;
 
-  for (ii=0; ii<pctx->volNum; ii++) {
-    if (gageUpdate(pctx->vol[ii]->gctx)) {
-      sprintf(err, "%s: trouble setting up gage on vol %u/%u",
-              me, ii, pctx->volNum);
-      biffMove(PULL, err, GAGE); return 1;
-    }
-  }
   pctx->infoTotalLen = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {

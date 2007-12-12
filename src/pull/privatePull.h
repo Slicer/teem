@@ -26,6 +26,7 @@ extern "C" {
 
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
+extern int _pullVolumeSetup(pullContext *pctx);
 
 /* infoPull.c */
 extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];

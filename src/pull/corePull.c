@@ -112,10 +112,11 @@ pullStart(pullContext *pctx) {
     biffAdd(PULL, err); return 1;
   }
 
-  /* the ordering of steps below is important: gage context
-     has to be set up before its copied by task setup */
+  /* the ordering of steps below is important! e.g. gage context has
+     to be set up (_pullVolumeSetup) by before its copied (_pullTaskSetup) */
   pctx->step = pctx->stepInitial;
-  if (_pullInfoSetup(pctx) 
+  if (_pullVolumeSetup(pctx)
+      || _pullInfoSetup(pctx) 
       || _pullTaskSetup(pctx)
       || _pullBinSetup(pctx)
       || _pullPointSetup(pctx)) {
@@ -177,6 +178,7 @@ pullFinish(pullContext *pctx) {
     }
   }
 
+  /* no need for _pullVolumeFinish(pctx), at least not now */
   /* no need for _pullInfoFinish(pctx), at least not now */
   _pullTaskFinish(pctx);
   _pullBinFinish(pctx);

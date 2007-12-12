@@ -70,6 +70,7 @@ pullContextNew(void) {
   ELL_3V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN);
   pctx->infoTotalLen = 0; /* will be set later */
   pctx->idtagNext = 0;
+  pctx->haveScale = AIR_FALSE;
   pctx->finished = AIR_FALSE;
 
   pctx->bin = NULL;
@@ -122,7 +123,7 @@ pullContextNix(pullContext *pctx) {
 int
 _pullContextCheck(pullContext *pctx) {
   char me[]="_pullContextCheck", err[BIFF_STRLEN];
-  unsigned int ii;
+  unsigned int ii, sclvi;
   int gotIspec;
 
   if (!pctx) {
@@ -154,6 +155,18 @@ _pullContextCheck(pullContext *pctx) {
   if (!pctx->volNum) {
     sprintf(err, "%s: have no volumes set", me);
     biffAdd(PULL, err); return 1;
+  }
+  for (ii=0; ii<pctx->volNum; ii++) {
+    if (pctx->vol[ii]->ninScale) {
+      sclvi = ii;
+      for (ii=sclvi+1; ii<pctx->volNum; ii++) {
+        if (pctx->vol[ii]->ninScale) {
+          sprintf(err, "%s: can have only 1 scale volume (not both %u and %u)",
+                  me, ii, sclvi);
+          biffAdd(PULL, err); return 1;
+        }
+      }
+    }
   }
   gotIspec = AIR_FALSE;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
@@ -273,4 +286,3 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pullContext *pctx) {
 
   return 0;
 }
-

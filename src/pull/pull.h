@@ -278,13 +278,15 @@ typedef struct pullContext_t {
 
   /* INTERNAL -------------------------- */
 
-  double bboxMin[3], bboxMax[3];   /* bounding box of all volumes, the region
+  double bboxMin[4], bboxMax[4];   /* bounding box of all volumes, the region
                                       over which the binning is defined */
   unsigned int infoTotalLen;       /* total length of the info buffers needed,
                                       which determines size of allocated
                                       binPoint */
   unsigned int idtagNext;          /* next per-point igtag value */
-  int finished;                    /* used to signal all threads to return */
+  int haveScale,                   /* non-zero iff one of the volumes is in
+                                      scale-space */
+    finished;                      /* used to signal all threads to return */
 
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   unsigned int binsEdge[3],        /* # bins along each volume edge,
