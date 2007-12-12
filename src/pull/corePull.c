@@ -112,8 +112,6 @@ pullStart(pullContext *pctx) {
     biffAdd(PULL, err); return 1;
   }
 
-  airSrandMT(pctx->seedRNG);
-  
   /* the ordering of steps below is important: gage context
      has to be set up before its copied by task setup */
   pctx->step = pctx->stepInitial;
@@ -148,6 +146,44 @@ pullStart(pullContext *pctx) {
   return 0;
 }
 
+/*
+** this is called *after* pullOutputGet
+**
+** should nix everything created by the many _pull*Setup() functions
+*/
+int
+pullFinish(pullContext *pctx) {
+  char me[]="pullFinish", err[BIFF_STRLEN];
+  unsigned int tidx;
+
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+
+  pctx->finished = AIR_TRUE;
+  if (pctx->threadNum > 1) {
+    if (pctx->verbose > 1) {
+      fprintf(stderr, "%s: finishing workers\n", me);
+    }
+    airThreadBarrierWait(pctx->iterBarrierA);
+  }
+  /* worker threads now pass barrierA and see that finished is AIR_TRUE,
+     and then bail, so now we collect them */
+  for (tidx=pctx->threadNum; tidx>0; tidx--) {
+    if (tidx-1) {
+      airThreadJoin(pctx->task[tidx-1]->thread,
+                    &(pctx->task[tidx-1]->returnPtr));
+    }
+  }
+
+  /* no need for _pullInfoFinish(pctx), at least not now */
+  _pullTaskFinish(pctx);
+  _pullBinFinish(pctx);
+  /* no need for _pullPointFinish(pctx): nixed bins deleted pnts inside */
+
+  return 0;
+}
 /*
 ******** pullIterate
 **
@@ -315,41 +351,3 @@ pullRun(pullContext *pctx) {
   return 0;
 }
 
-/*
-** this is called *after* pullOutputGet
-**
-** should nix everything created by the many _pull*Setup() functions
-*/
-int
-pullFinish(pullContext *pctx) {
-  char me[]="pullFinish", err[BIFF_STRLEN];
-  unsigned int tidx;
-
-  if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
-  }
-
-  pctx->finished = AIR_TRUE;
-  if (pctx->threadNum > 1) {
-    if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: finishing workers\n", me);
-    }
-    airThreadBarrierWait(pctx->iterBarrierA);
-  }
-  /* worker threads now pass barrierA and see that finished is AIR_TRUE,
-     and then bail, so now we collect them */
-  for (tidx=pctx->threadNum; tidx>0; tidx--) {
-    if (tidx-1) {
-      airThreadJoin(pctx->task[tidx-1]->thread,
-                    &(pctx->task[tidx-1]->returnPtr));
-    }
-  }
-
-  /* no need for _pullInfoFinish(pctx), at least not now */
-  _pullTaskFinish(pctx);
-  _pullBinFinish(pctx);
-  /* no need for _pullPointFinish(pctx): nixed bins deleted pnts inside */
-
-  return 0;
-}

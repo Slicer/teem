@@ -339,13 +339,13 @@ PULL_EXPORT hestCB *pullHestEnergySpec;
 PULL_EXPORT gageKind *pullGageKindParse(const char *str);
 PULL_EXPORT pullVolume *pullVolumeNew();
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
-PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, pullVolume *vol,
+PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, 
                                     char *name, const Nrrd *nin,
                                     const gageKind *kind, 
                                     const NrrdKernelSpec *ksp00,
                                     const NrrdKernelSpec *ksp11,
                                     const NrrdKernelSpec *ksp22);
-PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx, pullVolume *vol,
+PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    char *name, const Nrrd *const *nin,
                                    unsigned int ninNum,
                                    const gageKind *kind, 

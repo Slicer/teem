@@ -94,10 +94,12 @@ pullContextNew(void) {
 }
 
 /*
-** this should only nix things created by pullContextNew
+** this should only nix things created by pullContextNew, or the things
+** (vols and ispecs) that were explicitly added to this context
 */
 pullContext *
 pullContextNix(pullContext *pctx) {
+  char me[]="pullContextNix";
   unsigned int ii;
   
   if (pctx) {
