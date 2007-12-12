@@ -66,6 +66,7 @@ pullPointNew(pullContext *pctx) {
 pullPoint *
 pullPointNix(pullPoint *pnt) {
 
+  pnt->neighArr = airArrayNix(pnt->neighArr);
   airFree(pnt);
   return NULL;
 }
@@ -137,6 +138,7 @@ _pullPointSetup(pullContext *pctx) {
   unsigned int pointIdx;
   pullPoint *point;
   double *posData;
+  airRandMTState *rng;
   int reject;
 
   pctx->pointNum = (pctx->npos
@@ -146,6 +148,7 @@ _pullPointSetup(pullContext *pctx) {
              ? AIR_CAST(double *, pctx->npos->data)
              : NULL);
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
+  rng = pctx->task[0]->rng;
   for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
     /*
     fprintf(stderr, "!%s: pointIdx = %u/%u\n", me, pointIdx, pctx->pointNum);
@@ -161,14 +164,14 @@ _pullPointSetup(pullContext *pctx) {
       reject = AIR_FALSE;
       do {
         ELL_3V_SET(point->pos,
-                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                   AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                               pctx->bboxMin[0], pctx->bboxMin[0]),
-                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                   AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                               pctx->bboxMin[1], pctx->bboxMin[1]),
-                   AIR_AFFINE(0.0, airDrandMT(), 1.0,
+                   AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                               pctx->bboxMin[2], pctx->bboxMin[2]));
         if (pctx->haveScale) {
-          point->pos[3] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
+          point->pos[3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                      pctx->bboxMin[3], pctx->bboxMin[3]);
         } else {
           point->pos[3] = AIR_NAN;
