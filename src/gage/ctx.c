@@ -658,6 +658,7 @@ gageProbe(gageContext *ctx, double xi, double yi, double zi) {
 int
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                int indexSpace, int clamp) {
+  /* char me[]="_gageProbeSpace"; */
   int ret;
   unsigned int *size;
   double xi, yi, zi, si;
@@ -685,6 +686,10 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       si = AIR_AFFINE(ctx->stackRange[0], ss, ctx->stackRange[1],
                       0, ctx->pvlNum-2);
     }
+    /*
+    fprintf(stderr, "%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,
+            xx, yy, zz, xi, yi, zi);
+    */
   }
   if (clamp) {
     if (nrrdCenterNode == ctx->shape->center) {

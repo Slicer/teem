@@ -771,12 +771,8 @@ GAGE_EXPORT gageShape *gageShapeNew();
 GAGE_EXPORT gageShape *gageShapeCopy(gageShape *shp);
 GAGE_EXPORT gageShape *gageShapeNix(gageShape *shape);
 GAGE_EXPORT int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
-GAGE_EXPORT void gageShapeUnitWtoI(gageShape *shape,
-                                   double index[3], double world[3]);
 GAGE_EXPORT void gageShapeWtoI(gageShape *shape,
                                double index[3], double world[3]);
-GAGE_EXPORT void gageShapeUnitItoW(gageShape *shape,
-                                   double world[3], double index[3]);
 GAGE_EXPORT void gageShapeItoW(gageShape *shape,
                                double world[3], double index[3]);
 GAGE_EXPORT int gageShapeEqual(gageShape *shp1, char *name1,

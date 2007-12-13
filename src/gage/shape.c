@@ -75,6 +75,27 @@ gageShapeNix(gageShape *shape) {
 }
 
 /*
+** Thu Dec 13 02:25:12 EST 2007:
+** this had no use outside gage, added _ prefix
+*/
+void
+_gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
+  int i;
+  
+  if (nrrdCenterNode == shape->center) {
+    for (i=0; i<=2; i++) {
+      world[i] = NRRD_NODE_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
+                               shape->size[i], index[i]);
+    }
+  } else {
+    for (i=0; i<=2; i++) {
+      world[i] = NRRD_CELL_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
+                               shape->size[i], index[i]);
+    }
+  }
+}
+
+/*
 ** _gageShapeSet
 **
 ** we are serving two masters here.  If ctx is non-NULL, we are being called
@@ -92,9 +113,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[BIFF_STRLEN];
   int i, ai, cx, cy, cz, defCenter, statCalc[3];
-  unsigned int minsize, sx, sy, sz, num[3];
+  unsigned int minsize, sx, sy, sz;
   const NrrdAxisInfo *ax[3];
-  double maxLen, xs, ys, zs, defSpacing,
+  double maxLen, defSpacing,
     vecA[4], vecB[3], vecC[3], vecD[4],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
 
@@ -146,9 +167,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
           statCalc[0], statCalc[1], statCalc[2]);
   */
   /* see if nrrdSpacingCalculate ever *failed* */
-  if (nrrdSpacingStatusUnknown == statCalc[0] ||
-      nrrdSpacingStatusUnknown == statCalc[1] ||
-      nrrdSpacingStatusUnknown == statCalc[2]) {
+  if (nrrdSpacingStatusUnknown == statCalc[0]
+      || nrrdSpacingStatusUnknown == statCalc[1]
+      || nrrdSpacingStatusUnknown == statCalc[2]) {
     sprintf(err, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
             me, baseDim + 0, baseDim + 1, baseDim + 2);
     biffAdd(GAGE, err); gageShapeReset(shape);
@@ -156,21 +177,21 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   }
   /* see if nrrdSpacingCalculate encountered an axis with no space
      direction in a nrrd that nominally has a surrounding space */
-  if (nrrdSpacingStatusScalarWithSpace == statCalc[0] ||
-      nrrdSpacingStatusScalarWithSpace == statCalc[1] ||
-      nrrdSpacingStatusScalarWithSpace == statCalc[2]) {
+  if (nrrdSpacingStatusScalarWithSpace == statCalc[0]
+      || nrrdSpacingStatusScalarWithSpace == statCalc[1]
+      || nrrdSpacingStatusScalarWithSpace == statCalc[2]) {
     sprintf(err, "%s: nrrdSpacingCalculate weirdness on axis %d, %d, or %d",
             me, baseDim + 0, baseDim + 1, baseDim + 2);
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
   }
-  if (!( (nrrdSpacingStatusDirection == statCalc[0] &&
-          nrrdSpacingStatusDirection == statCalc[1] &&
-          nrrdSpacingStatusDirection == statCalc[2])
+  if (!( (   nrrdSpacingStatusDirection == statCalc[0]
+          && nrrdSpacingStatusDirection == statCalc[1]
+          && nrrdSpacingStatusDirection == statCalc[2])
          ||
-         (nrrdSpacingStatusDirection != statCalc[0] &&
-          nrrdSpacingStatusDirection != statCalc[1] &&
-          nrrdSpacingStatusDirection != statCalc[2])
+         (   nrrdSpacingStatusDirection != statCalc[0]
+          && nrrdSpacingStatusDirection != statCalc[1]
+          && nrrdSpacingStatusDirection != statCalc[2])
          )) {
     sprintf(err, "%s: inconsistent space directions use "
             "in axis %d, %d, and %d",
@@ -178,9 +199,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
   }
-  if (nrrdSpacingStatusDirection == statCalc[0] &&
-      nrrdSpacingStatusDirection == statCalc[1] &&
-      nrrdSpacingStatusDirection == statCalc[2]) {
+  if (   nrrdSpacingStatusDirection == statCalc[0]
+      && nrrdSpacingStatusDirection == statCalc[1]
+      && nrrdSpacingStatusDirection == statCalc[2]) {
     /* this will get reset to false in case of error */
     shape->fromOrientation = AIR_TRUE;
   } else {
@@ -213,9 +234,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       return 1;
     }
   } else {
-    if ( (nrrdCenterUnknown != cx && nrrdCenterUnknown != cy && cx != cy) ||
-         (nrrdCenterUnknown != cy && nrrdCenterUnknown != cz && cy != cz) ||
-         (nrrdCenterUnknown != cx && nrrdCenterUnknown != cz && cx != cz) ) {
+    if (    (nrrdCenterUnknown != cx && nrrdCenterUnknown != cy && cx != cy) 
+         || (nrrdCenterUnknown != cy && nrrdCenterUnknown != cz && cy != cz) 
+         || (nrrdCenterUnknown != cx && nrrdCenterUnknown != cz && cx != cz) ) {
       sprintf(err, "%s: two known centerings (of %s,%s,%s) are unequal", me,
               airEnumStr(nrrdCenter, cx),
               airEnumStr(nrrdCenter, cy),
@@ -249,10 +270,16 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
   /* ------ find spacings (set shape->spacing[0,1,2]) */
   if (shape->fromOrientation) {
-    xs = spcCalc[0];
-    ys = spcCalc[1];
-    zs = spcCalc[2];
+    shape->spacing[0] = AIR_ABS(spcCalc[0]);
+    shape->spacing[1] = AIR_ABS(spcCalc[1]);
+    shape->spacing[2] = AIR_ABS(spcCalc[2]);
+    for (ai=0; ai<=2; ai++) {
+      shape->volHalfLen[ai] = AIR_NAN;
+      shape->voxLen[ai] = AIR_NAN;
+    }
   } else {
+    double xs, ys, zs;
+    unsigned int num[3];
     xs = ax[0]->spacing;
     ys = ax[1]->spacing;
     zs = ax[2]->spacing;
@@ -275,10 +302,28 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       biffAdd(GAGE, err); gageShapeReset(shape);
       return 1;
     }
+    /* ------ learn lengths for bounding nrrd in bi-unit cube
+       (set shape->volHalfLen[0,1,2] and shape->voxLen[0,1,2]) */
+    shape->spacing[0] = AIR_ABS(xs);
+    shape->spacing[1] = AIR_ABS(ys);
+    shape->spacing[2] = AIR_ABS(zs);
+    maxLen = 0.0;
+    for (ai=0; ai<=2; ai++) {
+      num[ai] = (nrrdCenterNode == shape->center
+                 ? shape->size[ai]-1
+                 : shape->size[ai]);
+      shape->volHalfLen[ai] = num[ai]*shape->spacing[ai];
+      maxLen = AIR_MAX(maxLen, shape->volHalfLen[ai]);
+    }
+    /* Thu Dec 13 02:45:01 EST 2007
+       fixed long-standing bug in handling vols without full orientation info:
+       spacing[ai] was never scaled to account for being crammed into
+       the bi-unit cube!! */
+    for (ai=0; ai<=2; ai++) {
+      shape->volHalfLen[ai] /= maxLen;
+      shape->spacing[ai] = shape->voxLen[ai] = 2*shape->volHalfLen[ai]/num[ai];
+    }
   }
-  shape->spacing[0] = AIR_ABS(xs);
-  shape->spacing[1] = AIR_ABS(ys);
-  shape->spacing[2] = AIR_ABS(zs);
   
   /* ------ set spacing-dependent filter weight scalings */
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
@@ -304,22 +349,6 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       }
       break;
     }
-  }
-
-  /* ------ learn lengths for bounding nrrd in bi-unit cube
-     (set shape->volHalfLen[0,1,2] and shape->voxLen[0,1,2]) */
-  /* HEY: does it make any sense to be setting this if fromOrientation? */
-  maxLen = 0.0;
-  for (ai=0; ai<=2; ai++) {
-    num[ai] = (nrrdCenterNode == shape->center
-               ? shape->size[ai]-1
-               : shape->size[ai]);
-    shape->volHalfLen[ai] = num[ai]*shape->spacing[ai];
-    maxLen = AIR_MAX(maxLen, shape->volHalfLen[ai]);
-  }
-  for (ai=0; ai<=2; ai++) {
-    shape->volHalfLen[ai] /= maxLen;
-    shape->voxLen[ai] = 2*shape->volHalfLen[ai]/num[ai];
   }
 
   /* ------ set transform matrices */
@@ -358,21 +387,21 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     */
   } else {
     ELL_3V_SET(vecC, 0, 0, 0);
-    gageShapeUnitItoW(shape, vecA, vecC);
+    _gageShapeUnitItoW(shape, vecA, vecC);
     ELL_3V_SET(vecC, 1, 0, 0);
-    gageShapeUnitItoW(shape, vecB, vecC);
+    _gageShapeUnitItoW(shape, vecB, vecC);
     ELL_3V_SUB(vecD, vecB, vecA);
     vecD[3] = 0;
     ELL_4MV_COL0_SET(shape->ItoW, vecD);
 
     ELL_3V_SET(vecC, 0, 1, 0);
-    gageShapeUnitItoW(shape, vecB, vecC);
+    _gageShapeUnitItoW(shape, vecB, vecC);
     ELL_3V_SUB(vecD, vecB, vecA);
     vecD[3] = 0;
     ELL_4MV_COL1_SET(shape->ItoW, vecD);
 
     ELL_3V_SET(vecC, 0, 0, 1);
-    gageShapeUnitItoW(shape, vecB, vecC);
+    _gageShapeUnitItoW(shape, vecB, vecC);
     ELL_3V_SUB(vecD, vecB, vecA);
     vecD[3] = 0;
     ELL_4MV_COL2_SET(shape->ItoW, vecD);
@@ -396,6 +425,8 @@ gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
   return 0;
 }
 
+/*
+** this wasn't being used at all
 void
 gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
   int i;
@@ -412,6 +443,7 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
     }
   }
 }
+*/
 
 void
 gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
@@ -426,23 +458,6 @@ gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
   world[3] = 1.0;
   ELL_4MV_MUL(index, shape->WtoI, world);
   ELL_3V_SCALE(_index, 1.0/index[3], index);
-}
-
-void
-gageShapeUnitItoW(gageShape *shape, double world[3], double index[3]) {
-  int i;
-  
-  if (nrrdCenterNode == shape->center) {
-    for (i=0; i<=2; i++) {
-      world[i] = NRRD_NODE_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
-                               shape->size[i], index[i]);
-    }
-  } else {
-    for (i=0; i<=2; i++) {
-      world[i] = NRRD_CELL_POS(-shape->volHalfLen[i], shape->volHalfLen[i],
-                               shape->size[i], index[i]);
-    }
-  }
 }
 
 void

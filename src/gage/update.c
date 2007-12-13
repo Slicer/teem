@@ -299,7 +299,7 @@ int
 gageUpdate(gageContext *ctx) {
   char me[]="gageUpdate", err[BIFF_STRLEN];
   unsigned int pi;
-  int i;
+  int i, haveQuery;
 
   if (!( ctx )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -307,6 +307,14 @@ gageUpdate(gageContext *ctx) {
   }
   if (0 == ctx->pvlNum) {
     sprintf(err, "%s: context has no attached pervolumes", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  haveQuery = AIR_FALSE;
+  for (pi=0; pi<ctx->pvlNum; pi++) {
+    haveQuery |= GAGE_QUERY_NONZERO(ctx->pvl[pi]->query);
+  }
+  if (!haveQuery) {
+    sprintf(err, "%s: all pervolumes have no query items set", me);
     biffAdd(GAGE, err); return 1;
   }
 
