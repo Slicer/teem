@@ -84,13 +84,12 @@ typedef struct pullInfoSpec_t {
   /* ------ INPUT ------ */
   int info;                     /* from the pullInfo* enum */
   char *volName;                /* volume name */
-  char *itemName;               /* item name (kind is known by volume) */
+  int item;                     /* which item */
   double scale,                 /* scaling factor (including sign) */
     zero;                       /* for height and inside: where is zero,
                                    for seedThresh, threshold value */
   /* ------ INTERNAL ------ */
   unsigned int volIdx;          /* which volume */
-  int item;                     /* which item */
 } pullInfoSpec;
 
 /*
@@ -257,6 +256,9 @@ typedef struct pullContext_t {
                                       down, how to scale step size */
     moveFracStepScale,             /* (< 1.0) when moveFrac goes below
                                       moveFracMin, how to scale step size */
+    energyImprovFloor,             /* if per-point energyImprov goes below this
+                                      (which is actually slightly less than 0),
+                                      we say that energy has gone up */
     energyImprovMin;               /* convergence threshold: stop when
                                       fractional improvement (decrease) in
                                       energy dips below this */
@@ -267,7 +269,7 @@ typedef struct pullContext_t {
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
   
-  pullEnergySpec *ensp;            /* potential energy function to use */
+  pullEnergySpec *energySpec;      /* potential energy function to use */
   
   int binSingle;                   /* disable binning (for debugging) */
   unsigned int binIncr;            /* increment for per-bin airArray */
@@ -320,9 +322,9 @@ PULL_EXPORT const pullEnergy *const pullEnergyCotan;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
 PULL_EXPORT pullEnergySpec *pullEnergySpecNew();
-PULL_EXPORT void pullEnergySpecSet(pullEnergySpec *ensp,
-                                   const pullEnergy *energy,
-                                   const double parm[PULL_ENERGY_PARM_NUM]);
+PULL_EXPORT int pullEnergySpecSet(pullEnergySpec *ensp,
+                                  const pullEnergy *energy,
+                                  const double parm[PULL_ENERGY_PARM_NUM]);
 PULL_EXPORT pullEnergySpec *pullEnergySpecNix(pullEnergySpec *ensp);
 PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
@@ -353,8 +355,7 @@ PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                                int info, const char *volName,
-                                const char *itemName);
+                                int info, const char *volName, int item);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
@@ -365,6 +366,9 @@ PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nTen, Nrrd *nEnr,
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
+PULL_EXPORT int pullHeightDerivativesTest(pullContext *pctx,
+                                          double xx, double yy, double zz,
+                                          double ss, double eps);
 
 /* binningPull.c */
 PULL_EXPORT int pullBinPointAdd(pullContext *pctx, pullPoint *point);

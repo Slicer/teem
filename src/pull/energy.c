@@ -320,18 +320,23 @@ pullEnergySpecNew() {
   return ensp;
 }
 
-void
+int
 pullEnergySpecSet(pullEnergySpec *ensp, const pullEnergy *energy,
                   const double parm[PULL_ENERGY_PARM_NUM]) {
+  char me[]="pullEnergySpecSet", err[BIFF_STRLEN];
   unsigned int pi;
 
+  if (!( ensp && energy )) {
+    sprintf(err, "%s: got NULL pointer", me); 
+    biffAdd(PULL, err); return 1;
+  }
   if (ensp && energy && parm) {
     ensp->energy = energy;
     for (pi=0; pi<PULL_ENERGY_PARM_NUM; pi++) {
       ensp->parm[pi] = parm[pi];
     }
   }
-  return;
+  return 0;
 }
 
 pullEnergySpec *

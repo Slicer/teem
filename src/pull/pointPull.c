@@ -110,6 +110,27 @@ _pullEnergyAverage(const pullContext *pctx) {
   return avg;
 }
 
+double
+_pullStepAverage(const pullContext *pctx) {
+  unsigned int binIdx, pointIdx, pointNum;
+  const pullBin *bin;
+  const pullPoint *point;
+  double sum, avg;
+
+  sum = 0;
+  pointNum = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    pointNum += bin->pointNum;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      sum += point->step;
+    }
+  }
+  avg = (!pointNum ? AIR_NAN : sum/pointNum);
+  return avg;
+}
+
 void
 _pullPointStepSet(const pullContext *pctx, double step) {
   unsigned int binIdx, pointIdx;
@@ -243,5 +264,66 @@ _pullPointSetup(pullContext *pctx) {
     }
   }
   fprintf(stderr, "!%s: ... seeding DONE\n", me);
+  return 0;
+}
+
+int 
+pullHeightDerivativesTest(pullContext *pctx,
+                          double xx, double yy, double zz, double ss, 
+                          double eps) {
+  char me[]="pullHeightDerivativesTest", err[BIFF_STRLEN];
+  pullPoint *point;
+  airArray *mop;
+  unsigned int ai;
+  double xyz[3], *val, *grad, *hess, agrad[3], dvec[3];
+
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (!( pctx->ispec[pullInfoHeight]
+         && pctx->ispec[pullInfoHeightGradient]
+         && pctx->ispec[pullInfoHeightHessian] )) {
+    sprintf(err, "%s: don't have %s, %s, and %s ispecs set", me,
+            airEnumStr(pullInfo, pullInfoHeight),
+            airEnumStr(pullInfo, pullInfoHeightGradient),
+            airEnumStr(pullInfo, pullInfoHeightHessian));
+    biffAdd(PULL, err); return 1;
+  }
+
+  fprintf(stderr, "%s: hello\n", me);
+  mop = airMopNew();
+  point = pullPointNew(pctx);
+  airMopAdd(mop, point, (airMopper)pullPointNix, airMopAlways);
+  val = point->info + pctx->infoIdx[pullInfoHeight];
+  grad = point->info + pctx->infoIdx[pullInfoHeightGradient];
+  hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
+  
+  ELL_4V_SET(point->pos, xx, yy, zz, ss);
+  if (_pullProbe(pctx->task[0], point)) {
+    sprintf(err, "%s: initial probe", me);
+    biffAdd(PULL, err); return 1;
+  }
+  fprintf(stderr, "%s: val(%g,%g,%g) = %g\n", me, xx, yy, zz, val[0]);
+
+  point->pos[3] = ss;
+  ELL_3V_SET(xyz, xx, yy, zz);
+  for (ai=0; ai<3; ai++) {
+    ELL_3V_COPY(point->pos, xyz); point->pos[ai] += eps;
+    _pullProbe(pctx->task[0], point);
+    agrad[ai] = val[0];
+    ELL_3V_COPY(point->pos, xyz); point->pos[ai] -= eps;
+    _pullProbe(pctx->task[0], point);
+    agrad[ai] = (agrad[ai] - val[0])/(2*eps);
+  }
+  ELL_3V_COPY(point->pos, xyz);
+  _pullProbe(pctx->task[0], point);
+  ELL_3V_SUB(dvec, grad, agrad);
+  fprintf(stderr, "%s: grad = (%g,%g,%g), agrad = (%g,%g,%g); err = %g\n", me,
+          grad[0], grad[1], grad[2],
+          agrad[0], agrad[1], agrad[2],
+          ELL_3V_LEN(dvec));
+
+  airMopOkay(mop);
   return 0;
 }

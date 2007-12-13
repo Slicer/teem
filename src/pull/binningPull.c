@@ -225,9 +225,12 @@ int
 _pullBinSetup(pullContext *pctx) {
   char me[]="_pullBinSetup", err[BIFF_STRLEN];
   unsigned ii;
-  double volEdge[3];
+  double volEdge[3], scl;
+  const pullEnergySpec *espec;
 
-  pctx->maxDist = (pctx->interScale ? pctx->interScale : 0.2);
+  scl = (pctx->interScale ? pctx->interScale : 0.2);
+  espec = pctx->energySpec;
+  pctx->maxDist = 2*scl*espec->energy->support(espec->parm);
   fprintf(stderr, "!%s: interScale = %g --> maxDist = %g\n", me, 
           pctx->interScale, pctx->maxDist);
 

@@ -140,6 +140,8 @@ pullStart(pullContext *pctx) {
   }
 
   pctx->iter = 0;
+  pctx->timeIteration = 0;
+  pctx->timeRun = 0;
 
   return 0;
 }
@@ -256,16 +258,15 @@ pullRun(pullContext *pctx) {
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
   int stopIter, stopConverged;
+  unsigned firstIter;
   
   if (pctx->verbose) {
     fprintf(stderr, "%s: hello\n", me);
   }
-  /* in case a new stepInitial has been set after the points were created */
   enrLast = _pullEnergyAverage(pctx);
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   time0 = airTime();
-  _pullPointStepSet(pctx, pctx->stepInitial);
-  pctx->iter = 0;
+  firstIter = pctx->iter;
   enrImprovAvg = 0;
   do {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
@@ -288,15 +289,16 @@ pullRun(pullContext *pctx) {
     }
     pctx->iter += 1;
     enrNew = _pullEnergyAverage(pctx);
-    if (1 == pctx->iter) {
+    if (firstIter + 1 == pctx->iter) {
       enrImprovAvg = enrImprov = 1;
     } else {
       enrImprov = 2*(enrLast - enrNew)/AIR_ABS(enrLast + enrNew);
       enrImprovAvg = (enrImprovAvg + enrImprov)/2;
     }
     if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g\n",
-              me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg);
+      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g, s=%g\n",
+              me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
+              _pullStepAverage(pctx));
     }
     enrLast = enrNew;
     stopConverged = (enrImprovAvg < pctx->energyImprovMin);
@@ -311,7 +313,7 @@ pullRun(pullContext *pctx) {
           pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();
 
-  pctx->timeRun = time1 - time0;
+  pctx->timeRun += time1 - time0;
   pctx->energy = enrNew;
 
   return 0;

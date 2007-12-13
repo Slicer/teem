@@ -49,7 +49,7 @@ $(L).PUBLIC_HEADERS = pull.h
 $(L).PRIVATE_HEADERS = privatePull.h
 $(L).OBJS = defaultsPull.o energy.o volumePull.o infoPull.o contextPull.o \
     taskPull.o pointPull.o binningPull.o actionPull.o corePull.o 
-$(L).TESTS = 
+$(L).TESTS = test/eparse
 ####
 ####
 ####

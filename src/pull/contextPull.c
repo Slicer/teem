@@ -54,6 +54,7 @@ pullContextNew(void) {
   pctx->moveLimit = 1.0;
   pctx->moveFracMin = 0.2;
   pctx->energyStepScale = 0.8;
+  pctx->energyImprovFloor = -0.001;
   pctx->moveFracStepScale = 0.5;
   pctx->energyImprovMin = 0.01;
 
@@ -62,7 +63,7 @@ pullContextNew(void) {
   pctx->maxIter = 0;
   pctx->snap = 0;
   
-  pctx->ensp = pullEnergySpecNew();
+  pctx->energySpec = pullEnergySpecNew();
   
   pctx->binSingle = AIR_FALSE;
   pctx->binIncr = 32;
@@ -111,7 +112,7 @@ pullContextNix(pullContext *pctx) {
         pctx->ispec[ii] = pullInfoSpecNix(pctx->ispec[ii]);
       }
     }
-    pctx->ensp = pullEnergySpecNix(pctx->ensp);
+    pctx->energySpec = pullEnergySpecNix(pctx->energySpec);
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     airFree(pctx);
   }
@@ -219,26 +220,46 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
+  if (pctx->ispec[pullInfoTangent2]) {
+    if (!pctx->ispec[pullInfoTangent1]) {
+      sprintf(err, "%s: want %s but don't have %s set", me, 
+              airEnumStr(pullInfo, pullInfoTangent2),
+              airEnumStr(pullInfo, pullInfoTangent1));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+  if (pctx->ispec[pullInfoTangentMode]) {
+    if (!( pctx->ispec[pullInfoTangent1]
+           && pctx->ispec[pullInfoTangent2] )) {
+      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
+              airEnumStr(pullInfo, pullInfoTangentMode),
+              airEnumStr(pullInfo, pullInfoTangent1),
+              airEnumStr(pullInfo, pullInfoTangent2));
+      biffAdd(PULL, err); return 1;
+    }
+  }
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
     sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
             pctx->threadNum, PULL_THREAD_MAXNUM);
     biffAdd(PULL, err); return 1;
   }
 
-#define CHECK(thing, min)                                       \
-  if (!( min <= pctx->thing && pctx->thing <= 1.0 )) {          \
-    sprintf(err, "%s: pctx->" #thing " %g not in range [%g,1]", \
-            me, min, pctx->thing);                              \
-    biffAdd(PULL, err); return 1;                               \
+#define CHECK(thing, min, max)                                   \
+  if (!( min <= pctx->thing && pctx->thing <= max )) {           \
+    sprintf(err, "%s: pctx->" #thing " %g not in range [%g,%g]", \
+            me, pctx->thing, min, max);                          \
+    biffAdd(PULL, err); return 1;                                \
   }
   /* these bounds are somewhat arbitrary */
-  CHECK(neighborLearnProb, 0.05);
-  CHECK(probeProb, 0.05);
-  CHECK(moveLimit, 0.1);
-  CHECK(moveFracMin, 0.1);
-  CHECK(energyStepScale, 0.1);
-  CHECK(moveFracStepScale, 0.1);
-  CHECK(energyImprovMin, 0.0);
+  CHECK(neighborLearnProb, 0.05, 1.0);
+  CHECK(probeProb, 0.05, 1.0);
+  CHECK(moveLimit, 0.1, 10.0);
+  CHECK(moveFracMin, 0.1, 1.0);
+  CHECK(energyStepScale, 0.1, 1.0);
+  CHECK(energyStepScale, 0.1, 1.0);
+  CHECK(moveFracStepScale, 0.1, 1.0);
+  CHECK(energyImprovFloor, -1.0, 0.0);
+  CHECK(energyImprovMin, 0.0, 1.0);
 
   return 0;
 }

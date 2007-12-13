@@ -118,11 +118,10 @@ pullInfoSpecNew(void) {
   if (ispec) {
     ispec->info = pullInfoUnknown;
     ispec->volName = NULL;
-    ispec->itemName = NULL;
+    ispec->item = 0;
     ispec->scale = AIR_NAN;
     ispec->zero = AIR_NAN;
     ispec->volIdx = UINT_MAX;
-    ispec->item = 0;
   }
   return ispec;
 }
@@ -132,7 +131,6 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 
   if (ispec) {
     ispec->volName = airFree(ispec->volName);
-    ispec->itemName = airFree(ispec->itemName);
     airFree(ispec);
   }
   return NULL;
@@ -140,13 +138,12 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 
 int
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                int info, const char *volName, const char *itemName) {
+                int info, const char *volName, int item) {
   char me[]="pullInfoSpecAdd", err[BIFF_STRLEN];
   unsigned int ii, haveLen, needLen;
   const gageKind *kind;
-  int item;
   
-  if (!( pctx && ispec && volName && itemName )) {
+  if (!( pctx && ispec && volName )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PULL, err); return 1;
   }
@@ -161,12 +158,14 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   }
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
-      sprintf(err, "%s: already got ispec %p as ispec[%u]", me, ispec, ii);
+      sprintf(err, "%s(%s): already got ispec %p as ispec[%u]", me,
+              airEnumStr(pullInfo, info), ispec, ii);
       biffAdd(PULL, err); return 1;
     }
   }
   if (0 == pctx->volNum) {
-    sprintf(err, "%s: given context has no volumes", me);
+    sprintf(err, "%s(%s): given context has no volumes", me,
+            airEnumStr(pullInfo, info));
     biffAdd(PULL, err); return 1;
   }
   for (ii=0; ii<pctx->volNum; ii++) {
@@ -175,21 +174,20 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     }
   }
   if (ii == pctx->volNum) {
-    sprintf(err, "%s: no volume has name \"%s\"", me, volName);
+    sprintf(err, "%s(%s): no volume has name \"%s\"", me,
+            airEnumStr(pullInfo, info), volName);
     biffAdd(PULL, err); return 1;
   }
   kind = pctx->vol[ii]->kind;
-  item = airEnumVal(kind->enm, itemName);
-  if (!item) {
-    sprintf(err, "%s: \"%s\" not a valid \"%s\" item", me, 
-            itemName, kind->name);
+  if (airEnumValCheck(kind->enm, item)) {
+    sprintf(err, "%s(%s): %d not a valid \"%s\" item", me, 
+            airEnumStr(pullInfo, info), item, kind->name);
     biffAdd(PULL, err); return 1;
   }
   needLen = pullInfoAnswerLen(info);
   haveLen = kind->table[item].answerLength;
   if (needLen != haveLen) {
-    sprintf(err, "%s: info \"%s\" needs len %u, "
-            "but \"%s\" item \"%s\" has len %u",
+    sprintf(err, "%s(%s): needs len %u, but \"%s\" item \"%s\" has len %u",
             me, airEnumStr(pullInfo, info), needLen,
             kind->name, airEnumStr(kind->enm, item), haveLen);
     biffAdd(PULL, err); return 1;
@@ -200,17 +198,17 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     biffAdd(PULL, err); return 1;
   }
   if (pullInfoStrength == info && !pctx->vol[ii]->ninScale) {
-    sprintf(err, "%s: can only use %s info with a stack volume", 
-            me, airEnumStr(pullInfo, pullInfoStrength));
+    sprintf(err, "%s(%s): can only use %s info with a stack volume", 
+            me, airEnumStr(pullInfo, info), 
+            airEnumStr(pullInfo, pullInfoStrength));
     biffAdd(PULL, err); return 1;
   }
 
   ispec->info = info;
   ispec->volName = airStrdup(volName);
-  ispec->itemName = airStrdup(itemName);
   ispec->volIdx = ii;
   ispec->item = item;
-
+  
   /* now set item in gage query */
   gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);
 

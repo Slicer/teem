@@ -44,6 +44,7 @@ extern void _pullTaskFinish(pullContext *pctx);
 
 /* pointPull.c */
 extern unsigned int _pullPointNumber(const pullContext *pctx);
+extern double _pullStepAverage(const pullContext *pctx);
 extern double _pullEnergyAverage(const pullContext *pctx);
 extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepSet(const pullContext *pctx, double step);

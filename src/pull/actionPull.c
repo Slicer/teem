@@ -23,23 +23,49 @@
 #include "pull.h"
 #include "privatePull.h"
 
+int
+_pullPairwiseEnergy(pullTask *task,
+                    double *enrP,
+                    double frc[3],
+                    pullEnergySpec *ensp,
+                    pullPoint *myPoint, pullPoint *herPoint,
+                    double XX[3], double iscl) {
+  double nXX[3], rr, mag;
+  
+  ELL_3V_NORM(nXX, XX, rr);
+  ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
+  if (mag) {
+    mag *= iscl;
+    ELL_3V_SCALE(frc, mag, nXX);
+  } else {
+    ELL_3V_SET(frc, 0, 0, 0);
+  }
+
+  return 0;
+}
+
 /*
 ** we go into this assuming that all the points we'll look at
 ** have just had _pullProbe() called on them
 */
 int
 pullBinProcess(pullTask *task, unsigned int myBinIdx) {
-  char me[]="pushBinProcess", err[BIFF_STRLEN];
+  char me[]="pullBinProcess", err[BIFF_STRLEN];
   pullBin *myBin, *herBin, **neighbor;
   unsigned int myPointIdx, herPointIdx;
   pullPoint *myPoint, *herPoint;
 
-  double maxDistSqrd, move[3], moveNorm[3], moveLen;
+  double maxDistSqrd, iscl, move[3], moveNorm[3], moveLen, enrImprov;
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
   }
   maxDistSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
+  iscl = 1.0/(2*task->pctx->interScale);
+  if (task->pctx->verbose > 2) {
+    fprintf(stderr, "%s: maxDist = %g, interScale = %g -> iscl = %g\n", me, 
+            task->pctx->maxDist, task->pctx->interScale, iscl);
+  }
   myBin = task->pctx->bin + myBinIdx;
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     myPoint = myBin->point[myPointIdx];
@@ -48,80 +74,10 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     myPoint->energy = 0;
     ELL_4V_SET(myPoint->move, 0, 0, 0, 0);
 
-#if 0
-    if (1.0 <= task->pctx->neighborTrueProb
-        || airDrandMT_r(task->rng) <= task->pctx->neighborTrueProb
-        || !myPoint->neighArr->len) {
-      neighbor = myBin->neighbor;
-      if (1.0 > task->pctx->neighborTrueProb) {
-        airArrayLenSet(myPoint->neighArr, 0);
-      }
-      while ((herBin = *neighbor)) {
-        for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
-          herPoint = herBin->point[herPointIdx];
-          if (myPoint == herPoint) {
-            /* can't interact with myself */
-            continue;
-          }
-          ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
-          diffLenSqrd = ELL_3V_DOT(diff, diff);
-          if (diffLenSqrd > maxDiffLenSqrd) {
-            /* too far away to interact */
-            continue;
-          }
-          if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
-                                  myPoint, herPoint, diff, iscl)) {
-            sprintf(err, "%s: between points %u and %u, A", me,
-                    myPoint->ttaagg, herPoint->ttaagg);
-            biffAdd(PULL, err); return 1;
-          }
-          myPoint->enr += enr/2;
-          if (ELL_3V_DOT(frc, frc)) {
-            ELL_3V_INCR(myPoint->frc, frc);
-            if (1.0 > task->pctx->neighborTrueProb) {
-              unsigned int idx;
-              idx = airArrayLenIncr(myPoint->neighArr, 1);
-              myPoint->neigh[idx] = herPoint;
-            }
-          }
-          if (!ELL_3V_EXISTS(myPoint->frc)) {
-            sprintf(err, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
-                    myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
-                    herBin);
-            biffAdd(PULL, err); return 1;
-          }
-        }
-        neighbor++;
-      }
-    } else {
-      /* we are doing neighborhood list optimization, and this is an
-         iteration where we use the list.  So the body of this loop
-         has to be the same as the meat of the above loop */
-      unsigned int neighIdx;
-      for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
-        herPoint = myPoint->neigh[neighIdx];
-        ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
-        if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
-                                myPoint, herPoint, diff, iscl)) {
-          sprintf(err, "%s: between points %u and %u, B", me,
-                  myPoint->ttaagg, herPoint->ttaagg);
-          biffAdd(PULL, err); return 1;
-        }
-        myPoint->enr += enr/2;
-        ELL_3V_INCR(myPoint->frc, frc);
-      }
-    }
-    if (!ELL_3V_EXISTS(myPoint->frc)) {
-      sprintf(err, "%s: post-nei myPoint->frc (%g,%g,%g) doesn't exist", me,
-              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
-      biffAdd(PULL, err); return 1;
-    }
-#endif
-
     if (task->pctx->ispec[pullInfoHeight]) {
       const pullInfoSpec *ispec;
       const unsigned int *infoIdx;
-      double val, grad[3], hess[9];
+      double val, grad[3], hess[9], tmp[3], contr, tt;
       ispec = task->pctx->ispec[pullInfoHeight];
       infoIdx = task->pctx->infoIdx;
       val = myPoint->info[infoIdx[pullInfoHeight]];
@@ -130,20 +86,141 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       val = (val - ispec->zero)*ispec->scale;
       ELL_3V_SCALE(grad, ispec->scale, grad);
       ELL_3M_SCALE(hess, ispec->scale, hess);
-      ELL_3V_SCALE_INCR(myPoint->move, -1, grad);
       myPoint->energy += val;
+
+      ELL_3MV_MUL(tmp, hess, grad);
+      contr = ELL_3V_DOT(grad, tmp);
+      if (contr <= 0) {
+        /* if the contraction of the hessian along the gradient is
+           negative then we seem to be near a local maxima of height,
+           which is bad, so we do simple gradient descent. This also
+           catches the case when the second derivative is zero. */
+        tt = 1;
+      } else {
+        tt = ELL_3V_DOT(grad, grad)/contr;
+        /* hack to make sure we don't try to move too far */
+        tt = AIR_MIN(3, tt);
+      }
+      ELL_3V_SCALE_INCR(myPoint->move, -tt, grad);
+    }
+    /*
+      if we have both tang1 and tang2: move only within their span
+      if we have tang1: move within its span
+      with mode: some lerp between the two
+    */
+    if (task->pctx->ispec[pullInfoTangent2]) {
+      const pullInfoSpec *ispec1, *ispec2;
+      const unsigned int *infoIdx;
+      const double *tang1, *tang2;
+      double tmp[3], out1[9], out2[9], proj[9];
+      ispec1 = task->pctx->ispec[pullInfoTangent1];
+      ispec2 = task->pctx->ispec[pullInfoTangent2];
+      infoIdx = task->pctx->infoIdx;
+      tang1 = myPoint->info + infoIdx[pullInfoTangent1];
+      tang2 = myPoint->info + infoIdx[pullInfoTangent2];
+      ELL_3MV_OUTER(out1, tang1, tang1);
+      ELL_3MV_OUTER(out2, tang2, tang2);
+      ELL_3M_ADD2(proj, out1, out2);
+      ELL_3MV_MUL(tmp, proj, myPoint->move);
+      ELL_3V_COPY(myPoint->move, tmp);
+    }
+    
+    if (pullEnergyZero != task->pctx->energySpec->energy) {
+      if (1.0 <= task->pctx->neighborLearnProb
+          || airDrandMT_r(task->rng) <= task->pctx->neighborLearnProb
+          || !myPoint->neighArr->len) {
+        neighbor = myBin->neigh;
+        if (1.0 > task->pctx->neighborLearnProb) {
+          airArrayLenSet(myPoint->neighArr, 0);
+        }
+        while ((herBin = *neighbor)) {
+          for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
+            double distSqrd, enr, diff[3], frc[3];
+            herPoint = herBin->point[herPointIdx];
+            if (myPoint == herPoint) {
+              /* can't interact with myself */
+              continue;
+            }
+            ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+            distSqrd = ELL_3V_DOT(diff, diff);
+            /*
+            fprintf(stderr, "!%s: dist(%u,%u)^2 = %g %s %g\n", me,
+                    myPoint->idtag, herPoint->idtag, 
+                    distSqrd, (distSqrd > maxDistSqrd ? ">" : "<="), 
+                    maxDistSqrd);
+            */
+            if (distSqrd > maxDistSqrd) {
+              /* too far away to interact */
+              continue;
+            }
+            if (_pullPairwiseEnergy(task, &enr, frc, task->pctx->energySpec,
+                                    myPoint, herPoint, diff, iscl)) {
+              sprintf(err, "%s: between points %u and %u, A", me,
+                      myPoint->idtag, herPoint->idtag);
+              biffAdd(PULL, err); return 1;
+            }
+            myPoint->energy += enr/2;
+            if (ELL_3V_DOT(frc, frc)) {
+              ELL_3V_INCR(myPoint->move, frc);
+              if (1.0 > task->pctx->neighborLearnProb) {
+                unsigned int idx;
+                idx = airArrayLenIncr(myPoint->neighArr, 1);
+                myPoint->neigh[idx] = herPoint;
+              }
+            }
+            if (!ELL_3V_EXISTS(myPoint->move)) {
+              sprintf(err, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
+                      myPoint->move[0], myPoint->move[1], myPoint->move[2],
+                      herBin);
+              biffAdd(PULL, err); return 1;
+            }
+          }
+          neighbor++;
+        }
+      } else {
+        /* we are doing neighborhood list optimization, and this is an
+           iteration where we use the list.  So the body of this loop
+           has to be the same as the meat of the above loop */
+        unsigned int neighIdx;
+        for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
+          double diff[3], enr, frc[3];
+          herPoint = myPoint->neigh[neighIdx];
+          ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+          if (_pullPairwiseEnergy(task, &enr, frc, task->pctx->energySpec,
+                                  myPoint, herPoint, diff, iscl)) {
+            sprintf(err, "%s: between points %u and %u, B", me,
+                    myPoint->idtag, herPoint->idtag);
+            biffAdd(PULL, err); return 1;
+          }
+          myPoint->energy += enr/2;
+          ELL_3V_INCR(myPoint->move, frc);
+        }
+      }
+      if (!ELL_3V_EXISTS(myPoint->move)) {
+        sprintf(err, "%s: post-nei myPoint->move (%g,%g,%g) doesn't exist", me,
+                myPoint->move[0], myPoint->move[1], myPoint->move[2]);
+        biffAdd(PULL, err); return 1;
+      }
     }
 
     /* ------------------------------------------------ */
     /* all increments to move[] done, now actually move */
     /* ------------------------------------------------ */
 
-    if (myPoint->energy > myPoint->energyLast) {
+    enrImprov = 2*(myPoint->energyLast - myPoint->energy)
+      / (AIR_ABS(myPoint->energyLast) + AIR_ABS(myPoint->energy));
+    if (enrImprov < task->pctx->energyImprovFloor) {
       /* alas, we didn't go downhill in energy with the last move.
          The current/next move (below) will be smaller */
       myPoint->step *= task->pctx->energyStepScale;
+      if (task->pctx->verbose > 4) {
+        fprintf(stderr, "!%s: point %u enr %g %g step --> %g\n", me,
+                myPoint->idtag, myPoint->energyLast,
+                myPoint->energy, myPoint->step);
+      }
     }
     myPoint->energyLast = myPoint->energy;
+    
     ELL_3V_SCALE(move, myPoint->step, myPoint->move);
     moveLen = ELL_3V_LEN(move);
     if (moveLen) {
@@ -188,38 +265,3 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
 
   return 0;
 }
-
-#if 0
-    if (enrImprov < 0 || pctx->deltaFrac < pctx->deltaFracMin) {
-      /* either energy went up instead of down,
-         or particles were hitting their speed limit too much */
-      double tmp;
-      tmp = pctx->step;
-      if (enrImprov < 0) {
-        pctx->step *= pctx->energyStepFrac;
-        fprintf(stderr, "%s: ***** iter %u e improv = %g; step = %g --> %g\n",
-                me, pctx->iter, enrImprov, tmp, pctx->step);
-      } else {
-        pctx->step *= pctx->deltaFracStepFrac;
-        fprintf(stderr, "%s: ##### iter %u deltaf = %g; step = %g --> %g\n",
-                me, pctx->iter, pctx->deltaFrac, tmp, pctx->step);
-      }
-      /* this forces another iteration */
-      enrImprovAvg = AIR_NAN; 
-    } else {
-      /* there was some improvement; energy went down */
-      if (!AIR_EXISTS(enrImprovAvg)) {
-        /* either enrImprovAvg has initial NaN setting, or was set to NaN
-           because we had to decrease step size; either way we now
-           re-initialize it to a large-ish value, to delay convergence */
-        enrImprovAvg = 3*enrImprov;
-      } else {
-        /* we had improvement this iteration and last, do weighted average
-           of the two, so that we are measuring the trend, rather than being
-           sensitive to two iterations that just happen to have the same
-           energy.  Thus, when enrImprovAvg gets near user-defined threshold,
-           we really must have converged */
-        enrImprovAvg = (enrImprovAvg + enrImprov)/2;
-      }
-    }
-#endif
