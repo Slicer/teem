@@ -33,22 +33,20 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   pullBin *myBin, *herBin, **neighbor;
   unsigned int myPointIdx, herPointIdx;
   pullPoint *myPoint, *herPoint;
-  double enr, frc[3], delta[3], deltaLen, deltaNorm[3], limit,
-    diff[3], diffLenSqrd, dscale;
-  /*
-  double maxDiffLenSqrd, iscl;
-  */
+
+  double maxDistSqrd, move[3], moveNorm[3], moveLen;
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
   }
-  /* maxDiffLenSqrd = (task->pctx->maxDist)*(task->pctx->maxDist); */
+  maxDistSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
   myBin = task->pctx->bin + myBinIdx;
-  /* iscl = 1.0/(2*task->pctx->scale); */
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     myPoint = myBin->point[myPointIdx];
+
+    myPoint->energyLast = myPoint->energy;
     myPoint->energy = 0;
-    ELL_3V_SET(myPoint->force, 0, 0, 0);
+    ELL_4V_SET(myPoint->move, 0, 0, 0, 0);
 
 #if 0
     if (1.0 <= task->pctx->neighborTrueProb
@@ -130,43 +128,55 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       ELL_3V_COPY(grad, myPoint->info + infoIdx[pullInfoHeightGradient]);
       ELL_3M_COPY(hess, myPoint->info + infoIdx[pullInfoHeightHessian]);
       val = (val - ispec->zero)*ispec->scale;
-      
+      ELL_3V_SCALE(grad, ispec->scale, grad);
+      ELL_3M_SCALE(hess, ispec->scale, hess);
+      ELL_3V_SCALE_INCR(myPoint->move, -1, grad);
+      myPoint->energy += val;
     }
-    task->energySum += myPoint->energy;
 
-    /* -------------------------------------------- */
-    /* force calculation done, now update positions */
-    /* -------------------------------------------- */
+    /* ------------------------------------------------ */
+    /* all increments to move[] done, now actually move */
+    /* ------------------------------------------------ */
 
-    ELL_3V_SCALE(delta, task->pctx->step, myPoint->force);
-    deltaLen = ELL_3V_LEN(delta);
-    if (deltaLen) {
-      ELL_3V_SCALE(deltaNorm, 1.0/deltaLen, delta);
+    if (myPoint->energy > myPoint->energyLast) {
+      /* alas, we didn't go downhill in energy with the last move.
+         The current/next move (below) will be smaller */
+      myPoint->step *= task->pctx->energyStepScale;
+    }
+    myPoint->energyLast = myPoint->energy;
+    ELL_3V_SCALE(move, myPoint->step, myPoint->move);
+    moveLen = ELL_3V_LEN(move);
+    if (moveLen) {
+      ELL_3V_SCALE(moveNorm, 1.0/moveLen, move);
     } else {
-      ELL_3V_SET(deltaNorm, 0, 0, 0);
+      ELL_3V_SET(moveNorm, 0, 0, 0);
     }
-    if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
-      sprintf(err, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist", me,
-              deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
+    if (!(AIR_EXISTS(moveLen) && ELL_3V_EXISTS(moveNorm))) {
+      sprintf(err, "%s: moveLen %g or moveNorm (%g,%g,%g) doesn't exist", me,
+              moveLen, moveNorm[0], moveNorm[1], moveNorm[2]);
       biffAdd(PULL, err); return 1;
     }
-    if (deltaLen) {
-      double newDeltaLen;
+    if (moveLen) {
+      double newMoveLen, limit, moveFrac;
       /* limit is some fraction of glyph radius along direction of delta */
-      limit = task->pctx->deltaLimit*task->pctx->interScale;
-      newDeltaLen = limit*deltaLen/(limit + deltaLen);
-      /* by definition newDeltaLen <= deltaLen */
-      task->deltaFracSum += newDeltaLen/deltaLen;
-      ELL_3V_SCALE_INCR(myPoint->pos, newDeltaLen, deltaNorm);
+      limit = task->pctx->moveLimit*task->pctx->interScale;
+      newMoveLen = limit*moveLen/(limit + moveLen);
+      ELL_3V_SCALE_INCR(myPoint->pos, newMoveLen, moveNorm);
       if (!ELL_3V_EXISTS(myPoint->pos)) {
         sprintf(err, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
                 "doesn't exist", me,
-                newDeltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2],
+                newMoveLen, moveNorm[0], moveNorm[1], moveNorm[2],
                 myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
         biffAdd(PULL, err); return 1;
       }
+      /* by definition newMoveLen <= moveLen */
+      moveFrac = newMoveLen/moveLen;
+      if (moveFrac < task->pctx->moveFracMin) {
+        myPoint->step *= task->pctx->moveFracStepScale;
+      }
     }
 
+    /* (possibly) probe at new location */
     if (1.0 <= task->pctx->probeProb
         || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
       if (_pullProbe(task, myPoint)) {
@@ -174,10 +184,42 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
         biffAdd(PULL, err); return 1;
       }
     }
-    
-    /* the point lived, count it */
-    task->pointNum += 1;
   } /* for myPointIdx */
 
   return 0;
 }
+
+#if 0
+    if (enrImprov < 0 || pctx->deltaFrac < pctx->deltaFracMin) {
+      /* either energy went up instead of down,
+         or particles were hitting their speed limit too much */
+      double tmp;
+      tmp = pctx->step;
+      if (enrImprov < 0) {
+        pctx->step *= pctx->energyStepFrac;
+        fprintf(stderr, "%s: ***** iter %u e improv = %g; step = %g --> %g\n",
+                me, pctx->iter, enrImprov, tmp, pctx->step);
+      } else {
+        pctx->step *= pctx->deltaFracStepFrac;
+        fprintf(stderr, "%s: ##### iter %u deltaf = %g; step = %g --> %g\n",
+                me, pctx->iter, pctx->deltaFrac, tmp, pctx->step);
+      }
+      /* this forces another iteration */
+      enrImprovAvg = AIR_NAN; 
+    } else {
+      /* there was some improvement; energy went down */
+      if (!AIR_EXISTS(enrImprovAvg)) {
+        /* either enrImprovAvg has initial NaN setting, or was set to NaN
+           because we had to decrease step size; either way we now
+           re-initialize it to a large-ish value, to delay convergence */
+        enrImprovAvg = 3*enrImprov;
+      } else {
+        /* we had improvement this iteration and last, do weighted average
+           of the two, so that we are measuring the trend, rather than being
+           sensitive to two iterations that just happen to have the same
+           energy.  Thus, when enrImprovAvg gets near user-defined threshold,
+           we really must have converged */
+        enrImprovAvg = (enrImprovAvg + enrImprov)/2;
+      }
+    }
+#endif

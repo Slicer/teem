@@ -53,10 +53,15 @@ pullPointNew(pullContext *pctx) {
   pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  /* HEY: old code used DBL_MAX:
-     "any finite quantity will be less than this" ... why??? */
-  pnt->energy = 0.0;
-  ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  /* the first thing that pullBinProcess does (per point) is:
+     myPoint->energyLast = myPoint->energy;
+     so we pre-load energy with DBL_MAX, which is higher than whatever
+     finite energy might be computed, which ensures that none of the
+     adaptive time step stuff kicks in */
+  pnt->energy = DBL_MAX;
+  pnt->energyLast = AIR_NAN;
+  ELL_4V_SET(pnt->move, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  pnt->step = pctx->stepInitial;
   for (ii=0; ii<pctx->infoTotalLen; ii++) {
     pnt->info[ii] = AIR_NAN;
   }
@@ -72,9 +77,9 @@ pullPointNix(pullPoint *pnt) {
 }
 
 unsigned int
-_pullPointTotal(pullContext *pctx) {
+_pullPointNumber(const pullContext *pctx) {
   unsigned int binIdx, pointNum;
-  pullBin *bin;
+  const pullBin *bin;
 
   pointNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -82,6 +87,43 @@ _pullPointTotal(pullContext *pctx) {
     pointNum += bin->pointNum;
   }
   return pointNum;
+}
+
+double
+_pullEnergyAverage(const pullContext *pctx) {
+  unsigned int binIdx, pointIdx, pointNum;
+  const pullBin *bin;
+  const pullPoint *point;
+  double sum, avg;
+
+  sum = 0;
+  pointNum = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    pointNum += bin->pointNum;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      sum += point->energy;
+    }
+  }
+  avg = (!pointNum ? AIR_NAN : sum/pointNum);
+  return avg;
+}
+
+void
+_pullPointStepSet(const pullContext *pctx, double step) {
+  unsigned int binIdx, pointIdx;
+  const pullBin *bin;
+  pullPoint *point;
+
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->step = step;
+    }
+  }
+  return;
 }
 
 int
@@ -127,7 +169,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
 
 /*
 ** _pullPointSetup sets:
-**** pctx->pointNum (in case pctx->npos)
+**** pctx->pointNumInitial (in case pctx->npos)
 **
 ** This is only called by the master thread
 ** 
@@ -143,18 +185,19 @@ _pullPointSetup(pullContext *pctx) {
   airRandMTState *rng;
   int reject;
 
-  pctx->pointNum = (pctx->npos
-                    ? pctx->npos->axis[1].size
-                    : pctx->pointNum);
+  pctx->pointNumInitial = (pctx->npos
+                           ? pctx->npos->axis[1].size
+                           : pctx->pointNumInitial);
   posData = (pctx->npos
              ? AIR_CAST(double *, pctx->npos->data)
              : NULL);
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
   rng = pctx->task[0]->rng;
-  for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
-    /*
-    fprintf(stderr, "!%s: pointIdx = %u/%u\n", me, pointIdx, pctx->pointNum);
-    */
+  for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
+    if (pctx->verbose > 5) {
+      fprintf(stderr, "%s: setting up point = %u/%u\n", me,
+              pointIdx, pctx->pointNumInitial);
+    }
     point = pullPointNew(pctx);
     if (pctx->npos) {
       ELL_4V_COPY(point->pos, posData + 4*pointIdx);
@@ -202,4 +245,3 @@ _pullPointSetup(pullContext *pctx) {
   fprintf(stderr, "!%s: ... seeding DONE\n", me);
   return 0;
 }
-

@@ -28,7 +28,7 @@
 ** we have Init and Done functions (not New and Nix)
 */
 void
-pullBinInit(pullBin *bin, unsigned int incr) {
+_pullBinInit(pullBin *bin, unsigned int incr) {
 
   bin->pointNum = 0;
   bin->point = NULL;
@@ -42,7 +42,7 @@ pullBinInit(pullBin *bin, unsigned int incr) {
 ** bins own the points they contain- so this frees them
 */
 void
-pullBinDone(pullBin *bin) {
+_pullBinDone(pullBin *bin) {
   unsigned int idx;
 
   for (idx=0; idx<bin->pointNum; idx++) {
@@ -255,13 +255,14 @@ _pullBinSetup(pullContext *pctx) {
             pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
     pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
   }
+  fprintf(stderr, "!%s: binNum = %u\n", me, pctx->binNum);
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
-    sprintf(err, "%s: trouble allocating bin arrays", me);
+    sprintf(err, "%s: couln't allocate %u bins", me, pctx->binNum);
     biffAdd(PULL, err); return 1;
   }
   for (ii=0; ii<pctx->binNum; ii++) {
-    pullBinInit(pctx->bin + ii, pctx->binIncr);
+    _pullBinInit(pctx->bin + ii, pctx->binIncr);
   }
   pullBinAllNeighborSet(pctx);
   return 0;
@@ -272,7 +273,7 @@ _pullBinFinish(pullContext *pctx) {
   unsigned int ii;
 
   for (ii=0; ii<pctx->binNum; ii++) {
-    pullBinDone(pctx->bin + ii);
+    _pullBinDone(pctx->bin + ii);
   }
   pctx->bin = (pullBin *)airFree(pctx->bin);
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);

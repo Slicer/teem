@@ -43,10 +43,14 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* pointPull.c */
-extern unsigned int _pullPointTotal(pullContext *pctx);
+extern unsigned int _pullPointNumber(const pullContext *pctx);
+extern double _pullEnergyAverage(const pullContext *pctx);
 extern int _pullProbe(pullTask *task, pullPoint *point);
+extern void _pullPointStepSet(const pullContext *pctx, double step);
 
 /* binningPull.c */
+extern void _pullBinInit(pullBin *bin, unsigned int incr);
+extern void _pullBinDone(pullBin *bin);
 extern pullBin *_pullBinLocate(pullContext *pctx, double *pos);
 extern void _pullBinPointAdd(pullContext *pctx,
                              pullBin *bin, pullPoint *point);

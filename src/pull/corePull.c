@@ -32,15 +32,16 @@ _pullProcess(pullTask *task) {
   char me[]="_pullProcess", err[BIFF_STRLEN];
   unsigned int binIdx;
   
-  while (task->pctx->binIdx < task->pctx->binNum) {
+  while (task->pctx->binNextIdx < task->pctx->binNum) {
     /* get the index of the next bin to process */
     if (task->pctx->threadNum > 1) {
       airThreadMutexLock(task->pctx->binMutex);
     }
+    /* note that we entirely skip bins with no points */
     do {
-      binIdx = task->pctx->binIdx;
-      if (task->pctx->binIdx < task->pctx->binNum) {
-        task->pctx->binIdx++;
+      binIdx = task->pctx->binNextIdx;
+      if (task->pctx->binNextIdx < task->pctx->binNum) {
+        task->pctx->binNextIdx++;
       }
     } while (binIdx < task->pctx->binNum
              && 0 == task->pctx->bin[binIdx].pointNum);
@@ -139,7 +140,6 @@ pullStart(pullContext *pctx) {
   }
 
   pctx->iter = 0;
-  pctx->step = pctx->stepInitial;
 
   return 0;
 }
@@ -187,16 +187,15 @@ pullFinish(pullContext *pctx) {
   return 0;
 }
 /*
-******** pullIterate
+** _pullIterate
 **
 ** (documentation)
 **
 ** NB: this implements the body of thread 0, the master thread
 */
 int
-pullIterate(pullContext *pctx) {
-  char me[]="pullIterate", err[BIFF_STRLEN];
-  unsigned int ti, pointNum;
+_pullIterate(pullContext *pctx) {
+  char me[]="_pullIterate", err[BIFF_STRLEN];
   double time0, time1;
   int myError;
 
@@ -206,24 +205,18 @@ pullIterate(pullContext *pctx) {
   }
   
   if (pctx->verbose) {
-    fprintf(stderr, "%s: starting iterations\n", me);
+    fprintf(stderr, "%s: starting iter %d w/ %u threads\n",
+            me, pctx->iter, pctx->threadNum);
   }
 
   time0 = airTime();
 
   /* the _pullWorker checks finished after iterBarrierA */
   pctx->finished = AIR_FALSE;
-  pctx->binIdx=0;
-  for (ti=0; ti<pctx->threadNum; ti++) {
-    pctx->task[ti]->pointNum = 0;
-    pctx->task[ti]->energySum = 0;
-    pctx->task[ti]->deltaFracSum = 0;
-  }
 
-  if (pctx->verbose) {
-    fprintf(stderr, "%s: starting iter %d w/ %u threads\n",
-            me, pctx->iter, pctx->threadNum);
-  }
+  /* initialize index of next bin to be doled out to threads */
+  pctx->binNextIdx=0;
+
   if (pctx->threadNum > 1) {
     airThreadBarrierWait(pctx->iterBarrierA);
   }
@@ -245,16 +238,6 @@ pullIterate(pullContext *pctx) {
     }
     return 1;
   }
-
-  pctx->energySum = 0;
-  pctx->deltaFrac = 0;
-  pointNum = 0;
-  for (ti=0; ti<pctx->threadNum; ti++) {
-    pctx->energySum += pctx->task[ti]->energySum;
-    pctx->deltaFrac += pctx->task[ti]->deltaFracSum;
-    pointNum += pctx->task[ti]->pointNum;
-  }
-  pctx->deltaFrac /= pointNum;
   if (pullRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PULL, err); return 1;
@@ -262,9 +245,6 @@ pullIterate(pullContext *pctx) {
 
   time1 = airTime();
   pctx->timeIteration = time1 - time0;
-  pctx->timeRun += time1 - time0;
-  pctx->iter += 1;
-
   return 0;
 }
 
@@ -275,22 +255,19 @@ pullRun(pullContext *pctx) {
   Nrrd *npos;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
+  int stopIter, stopConverged;
   
-  if (pullIterate(pctx)) {
-    sprintf(err, "%s: trouble on starting iteration", me);
-    biffAdd(PULL, err); return 1;
+  if (pctx->verbose) {
+    fprintf(stderr, "%s: hello\n", me);
   }
-  fprintf(stderr, "!%s: starting pctx->energySum = %g\n",
-          me, pctx->energySum);
-
+  /* in case a new stepInitial has been set after the points were created */
+  enrLast = _pullEnergyAverage(pctx);
+  fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   time0 = airTime();
+  _pullPointStepSet(pctx, pctx->stepInitial);
   pctx->iter = 0;
+  enrImprovAvg = 0;
   do {
-    enrLast = pctx->energySum;
-    if (pullIterate(pctx)) {
-      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
-      biffAdd(PULL, err); return 1;
-    }
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
@@ -304,52 +281,38 @@ pullRun(pullContext *pctx) {
       }
       npos = nrrdNuke(npos);
     }
-    enrNew = pctx->energySum;
-    enrImprov = 2*(enrLast - enrNew)/(enrLast + enrNew);
-    fprintf(stderr, "!%s: %u, e=%g, de=%g,%g, df=%g\n",
-            me, pctx->iter, enrNew, enrImprov, enrImprovAvg, pctx->deltaFrac);
-    if (enrImprov < 0 || pctx->deltaFrac < pctx->deltaFracMin) {
-      /* either energy went up instead of down,
-         or particles were hitting their speed limit too much */
-      double tmp;
-      tmp = pctx->step;
-      if (enrImprov < 0) {
-        pctx->step *= pctx->energyStepFrac;
-        fprintf(stderr, "%s: ***** iter %u e improv = %g; step = %g --> %g\n",
-                me, pctx->iter, enrImprov, tmp, pctx->step);
-      } else {
-        pctx->step *= pctx->deltaFracStepFrac;
-        fprintf(stderr, "%s: ##### iter %u deltaf = %g; step = %g --> %g\n",
-                me, pctx->iter, pctx->deltaFrac, tmp, pctx->step);
-      }
-      /* this forces another iteration */
-      enrImprovAvg = AIR_NAN; 
-    } else {
-      /* there was some improvement; energy went down */
-      if (!AIR_EXISTS(enrImprovAvg)) {
-        /* either enrImprovAvg has initial NaN setting, or was set to NaN
-           because we had to decrease step size; either way we now
-           re-initialize it to a large-ish value, to delay convergence */
-        enrImprovAvg = 3*enrImprov;
-      } else {
-        /* we had improvement this iteration and last, do weighted average
-           of the two, so that we are measuring the trend, rather than being
-           sensitive to two iterations that just happen to have the same
-           energy.  Thus, when enrImprovAvg gets near user-defined threshold,
-           we really must have converged */
-        enrImprovAvg = (enrImprovAvg + enrImprov)/2;
-      }
+
+    if (_pullIterate(pctx)) {
+      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
+      biffAdd(PULL, err); return 1;
     }
-  } while ( ((!AIR_EXISTS(enrImprovAvg) 
-              || enrImprovAvg > pctx->energyImprovMin)
-             && (0 == pctx->maxIter
-                 || pctx->iter < pctx->maxIter)) );
-  fprintf(stderr, "%s: done after %u iters; enr = %g, enrImprov = %g,%g\n", 
-          me, pctx->iter, enrNew, enrImprov, enrImprovAvg);
+    pctx->iter += 1;
+    enrNew = _pullEnergyAverage(pctx);
+    if (1 == pctx->iter) {
+      enrImprovAvg = enrImprov = 1;
+    } else {
+      enrImprov = 2*(enrLast - enrNew)/AIR_ABS(enrLast + enrNew);
+      enrImprovAvg = (enrImprovAvg + enrImprov)/2;
+    }
+    if (pctx->verbose > 1) {
+      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g\n",
+              me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg);
+    }
+    enrLast = enrNew;
+    stopConverged = (enrImprovAvg < pctx->energyImprovMin);
+    if (stopConverged && pctx->verbose) {
+      fprintf(stderr, "%s: %g < %g: converged!!\n", me, 
+              enrImprovAvg, pctx->energyImprovMin);
+    }
+    stopIter = (pctx->iter == pctx->maxIter);
+  } while (!( stopIter || stopConverged ));
+  fprintf(stderr, "%s: done (%d,%d) at iter %u; enr = %g, enrImprov = %g,%g\n", 
+          me, stopIter, stopConverged, 
+          pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();
 
   pctx->timeRun = time1 - time0;
+  pctx->energy = enrNew;
 
   return 0;
 }
-

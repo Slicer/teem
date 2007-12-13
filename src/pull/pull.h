@@ -104,10 +104,13 @@ typedef struct pullPoint_t {
   airArray *neighArr;
   double pos[4],              /* position in space and scale */
     energy,                   /* energy accumulator for this iteration */
-    force[4];                 /* force accumulator for this iteration */
-  double info[1];             /* actually, sneakily, allocated for *more*,
-                                 depending on pullInfo needs, so has to be
-                                 last field */
+    move[4],                  /* movement accumulator for this iteration */
+    energyLast,               /* energy at last iteration */
+    step,                     /* my own private notion of (time) step size */
+    info[1];                  /* all information learned from gage that matters
+                                 for particle dynamics.  This is sneakily
+                                 allocated for *more*, depending on needs,
+                                 so this has to be last field */
 } pullPoint;
 
 /*
@@ -203,10 +206,6 @@ typedef struct pullTask_t {
                                    or: NULL if that info is not being used */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
-  unsigned int
-    pointNum;                   /* # points I let live this iteration */
-  double energySum,             /* sum of energies of points I processed */
-    deltaFracSum;               /* contribution to pctx->deltaFrac */
   airRandMTState *rng;          /* state for my RNG */
   void *returnPtr;              /* for airThreadJoin */
 } pullTask;
@@ -222,7 +221,7 @@ typedef struct pullTask_t {
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
   int verbose;                     /* blah blah blah */
-  unsigned int pointNum;           /* number points to start simulation w/ */
+  unsigned int pointNumInitial;    /* number points to start simulation w/ */
   Nrrd *npos;                      /* positions (4xN array) to start with
                                       (overrides pointNum) */
   pullVolume 
@@ -233,36 +232,35 @@ typedef struct pullContext_t {
     *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
                                       non-NULL (and we DO OWN ispec[ii]) */
   
-  double stepInitial,              /* initial time step in integration 
-                                      (which will be reduced as the system
-                                      converges) */
+  double stepInitial,              /* initial (time) step for dynamics */
     interScale,                    /* scaling on inter-particle interactions */
-    wallScale;                     /* spring constant of walls */
+    wallScale,                     /* spring constant of walls */
 
   /* concerning the probability-based optimizations */
-  double
-    neighborTrueProb,              /* probability that we find the true
+    neighborLearnProb,             /* probability that we find the true
                                       neighbors of the particle, as opposed to
                                       using a cached list */
-    probeProb;                     /* probability that we gageProbe() to find
+    probeProb,                     /* probability that we gageProbe() to find
                                       the real local values, instead of
                                       re-using last value */
 
-  /* how the time-step is adaptively varied as the system converges */
-  double 
-    deltaLimit,                    /* speed limit on particles' motion, as a
+  /* how the (per-point) time-step is adaptively varied to reach convergence:
+     moveFrac is computed for each particle as the fraction of distance
+     actually travelled, to the distance that it wanted to travel, but 
+     couldn't due to the speedLimit */
+    moveLimit,                     /* speed limit on particles' motion, as a
                                       fraction of nominal radius along
                                       direction of motion */
-    deltaFracMin,                  /* lowest value of deltaFrac (see below)
-                                      that is allowed without decreasing 
-                                      step size */
-    energyStepFrac,                /* when energy goes up instead of down, the
-                                      fraction by which to scale step size */
-    deltaFracStepFrac,             /* when deltaFrac goes below deltaFracMin,
-                                      fraction by which to scale step size */
+    moveFracMin,                   /* if moveFrac is below this, step size
+                                      will be scaled down */
+    energyStepScale,               /* (< 1.0) when energy goes up instead of
+                                      down, how to scale step size */
+    moveFracStepScale,             /* (< 1.0) when moveFrac goes below
+                                      moveFracMin, how to scale step size */
     energyImprovMin;               /* convergence threshold: stop when
-                                      fracional improvement (decrease) in
+                                      fractional improvement (decrease) in
                                       energy dips below this */
+
   unsigned int seedRNG,            /* seed value for random number generator */
     threadNum,                     /* number of threads to use */
     maxIter,                       /* if non-zero, max number of iterations */
@@ -286,32 +284,25 @@ typedef struct pullContext_t {
   int haveScale,                   /* non-zero iff one of the volumes is in
                                       scale-space */
     finished;                      /* used to signal all threads to return */
-
+  double maxDist;                  /* max dist of point-point interaction */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   unsigned int binsEdge[3],        /* # bins along each volume edge,
                                       determined by maxEval and scale */
     binNum,                        /* total # bins in grid */
-    binIdx;                        /* *next* bin of points needing to be
-                                      processed.  Stage is done when
-                                      binIdx == binNum */
+    binNextIdx;                    /* next bin of points to be processed,
+                                      we're done when binNextIdx == binNum */
   airThreadMutex *binMutex;        /* mutex around bin, needed because bins
                                       are the unit of work for the tasks */
 
-  double step,                     /* current working step size */
-    maxDist,                       /* max distance btween interacting points */
-    energySum;                     /* potential energy of entire system */
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
-  double deltaFrac;                /* mean (over all particles in last 
-                                      iteration) of fraction of distance 
-                                      actually travelled to distance that it
-                                      wanted to travel (due to speed limit) */
 
   /* OUTPUT ---------------------------- */
 
   double timeIteration,            /* time needed for last (single) iter */
-    timeRun;                       /* total time spent in computation */
+    timeRun,                       /* total time spent in pullRun() */
+    energy;                        /* final energy of system */
   unsigned int iter;               /* how many iterations were needed */
   Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
@@ -376,8 +367,6 @@ PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 
 /* binningPull.c */
-PULL_EXPORT void pullBinInit(pullBin *bin, unsigned int incr);
-PULL_EXPORT void pullBinDone(pullBin *bin);
 PULL_EXPORT int pullBinPointAdd(pullContext *pctx, pullPoint *point);
 PULL_EXPORT void pullBinAllNeighborSet(pullContext *pctx);
 PULL_EXPORT int pullBinPointAdd(pullContext *pctx, pullPoint *point);
@@ -388,7 +377,6 @@ PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
 
 /* corePull.c */
 PULL_EXPORT int pullStart(pullContext *pctx);
-PULL_EXPORT int pullIterate(pullContext *pctx);
 PULL_EXPORT int pullRun(pullContext *pctx);
 PULL_EXPORT int pullFinish(pullContext *pctx);
 

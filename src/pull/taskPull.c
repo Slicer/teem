@@ -80,9 +80,6 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   }
   task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
   task->threadIdx = threadIdx;
-  task->pointNum = 0;
-  task->energySum = 0;
-  task->deltaFracSum = 0;
   task->returnPtr = NULL;
   return task;
 }

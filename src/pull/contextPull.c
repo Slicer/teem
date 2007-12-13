@@ -35,7 +35,7 @@ pullContextNew(void) {
   }
   
   pctx->verbose = 0;
-  pctx->pointNum = 0;
+  pctx->pointNumInitial = 0;
   pctx->npos = NULL;
   for (ii=0; ii<PULL_VOLUME_MAXNUM; ii++) {
     pctx->vol[ii] = NULL;
@@ -49,12 +49,12 @@ pullContextNew(void) {
   pctx->stepInitial = 1;
   pctx->interScale = 1;
   pctx->wallScale = 0;
-  pctx->neighborTrueProb = 1;
-  pctx->probeProb = 1;
-  pctx->deltaLimit = 0.3;
-  pctx->deltaFracMin = 0.2;
-  pctx->energyStepFrac = 0.9;
-  pctx->deltaFracStepFrac = 0.5;
+  pctx->neighborLearnProb = 1.0;
+  pctx->probeProb = 1.0;
+  pctx->moveLimit = 1.0;
+  pctx->moveFracMin = 0.2;
+  pctx->energyStepScale = 0.8;
+  pctx->moveFracStepScale = 0.5;
   pctx->energyImprovMin = 0.01;
 
   pctx->seedRNG = 42;
@@ -73,24 +73,22 @@ pullContextNew(void) {
   pctx->idtagNext = 0;
   pctx->haveScale = AIR_FALSE;
   pctx->finished = AIR_FALSE;
+  pctx->maxDist = AIR_NAN;
 
   pctx->bin = NULL;
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
   pctx->binNum = 0;
-  pctx->binIdx = 0;
+  pctx->binNextIdx = 0;
   pctx->binMutex = NULL;
 
-  pctx->step = AIR_NAN;
-  pctx->maxDist = AIR_NAN;
-  pctx->energySum = 0;
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
-  pctx->deltaFrac = AIR_NAN;
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
   pctx->iter = 0;
+  pctx->energy = AIR_NAN;
   pctx->noutPos = nrrdNew();
   return pctx;
 }
@@ -147,8 +145,9 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   } else {
-    if (!( pctx->pointNum >= 1 )) {
-      sprintf(err, "%s: pctx->pointNum (%d) not >= 1\n", me, pctx->pointNum);
+    if (!( pctx->pointNumInitial >= 1 )) {
+      sprintf(err, "%s: pctx->pointNumInitial (%d) not >= 1\n", me,
+              pctx->pointNumInitial);
       biffAdd(PULL, err); return 1;
     }
   }
@@ -226,6 +225,21 @@ _pullContextCheck(pullContext *pctx) {
     biffAdd(PULL, err); return 1;
   }
 
+#define CHECK(thing, min)                                       \
+  if (!( min <= pctx->thing && pctx->thing <= 1.0 )) {          \
+    sprintf(err, "%s: pctx->" #thing " %g not in range [%g,1]", \
+            me, min, pctx->thing);                              \
+    biffAdd(PULL, err); return 1;                               \
+  }
+  /* these bounds are somewhat arbitrary */
+  CHECK(neighborLearnProb, 0.05);
+  CHECK(probeProb, 0.05);
+  CHECK(moveLimit, 0.1);
+  CHECK(moveFracMin, 0.1);
+  CHECK(energyStepScale, 0.1);
+  CHECK(moveFracStepScale, 0.1);
+  CHECK(energyImprovMin, 0.0);
+
   return 0;
 }
 
@@ -239,7 +253,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pullContext *pctx) {
   pullPoint *point;
   double sclmin, sclmax, sclmean;
 
-  pointNum = _pullPointTotal(pctx);
+  pointNum = _pullPointNumber(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2,
