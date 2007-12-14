@@ -159,7 +159,7 @@ _gageNeedKUpdate(gageContext *ctx) {
   if (change) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
-              me, needK[0], needK[1], needK[2], needK[3], needK[4], needK[5]);
+              me, needK[1], needK[2], needK[3], needK[4], needK[5], needK[6]);
     }
     for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
       ctx->needK[kernIdx] = needK[kernIdx];

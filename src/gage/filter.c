@@ -283,9 +283,10 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
             me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
   }
   
-  if (!( ctx->point.xf == xf &&
-         ctx->point.yf == yf &&
-         ctx->point.zf == zf )) {
+  if (ctx->parm.stackUse
+      || !( ctx->point.xf == xf &&
+            ctx->point.yf == yf &&
+            ctx->point.zf == zf )) {
     ctx->point.xf = xf;
     ctx->point.yf = yf;
     ctx->point.zf = zf;

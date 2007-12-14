@@ -196,7 +196,6 @@ gageParmReset(gageParm *parm) {
     parm->renormalize = gageDefRenormalize;
     parm->checkIntegrals = gageDefCheckIntegrals;
     parm->k3pack = gageDefK3Pack;
-    parm->gradMagMin = gageDefGradMagMin;
     parm->gradMagCurvMin = gageDefGradMagCurvMin;
     parm->defaultSpacing = gageDefDefaultSpacing;
     parm->curvNormalSide = gageDefCurvNormalSide;

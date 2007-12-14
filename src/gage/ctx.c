@@ -282,10 +282,6 @@ gageParmSet(gageContext *ctx, int which, double val) {
     ctx->parm.k3pack = val ? AIR_TRUE : AIR_FALSE;
     ctx->flag[gageCtxFlagK3Pack] = AIR_TRUE;
     break;
-  case gageParmGradMagMin:
-    ctx->parm.gradMagMin = val;
-    /* no flag to set, simply affects future calls to gageProbe() */
-    break;
   case gageParmGradMagCurvMin:
     ctx->parm.gradMagCurvMin = val;
     /* no flag to set, simply affects future calls to gageProbe() */

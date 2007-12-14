@@ -30,9 +30,6 @@ int
 gageDefVerbose = 0;
 
 double
-gageDefGradMagMin = 0.00001;
-
-double
 gageDefGradMagCurvMin = 0.0;
 
 int

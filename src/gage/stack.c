@@ -106,14 +106,14 @@ gageStackBlur(Nrrd *const nblur[], unsigned int blnum,
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
-    /* char tmpName[128]; */
+    char tmpName[128];
     kspec->parm[0] = AIR_AFFINE(0, blidx, blnum-1, rangeMin, rangeMax);
     for (axi=0; axi<3; axi++) {
       if (!E) E |= nrrdResampleKernelSet(rsmc, baseDim + axi,
                                          kspec->kernel, kspec->parm);
     }
     if (verbose) {
-      fprintf(stderr, "!%s: resampling %u/%u ... ", me, blidx, blnum);
+      fprintf(stderr, "%s: resampling %u/%u ... ", me, blidx, blnum);
       fflush(stderr);
     }
     if (!E) E |= nrrdResampleExecute(rsmc, nblur[blidx]);
@@ -127,12 +127,10 @@ gageStackBlur(Nrrd *const nblur[], unsigned int blnum,
     if (verbose) {
       fprintf(stderr, "done.\n");
     }
-    /*
     if (verbose > 4) {
       sprintf(tmpName, "blur%02u.nrrd", blidx);
       nrrdSave(tmpName, nblur[blidx], NULL);
     }
-    */
   }
 
   airMopOkay(mop);

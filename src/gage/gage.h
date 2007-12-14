@@ -101,7 +101,6 @@ enum {
   gageParmRenormalize,            /* int */
   gageParmCheckIntegrals,         /* int */
   gageParmK3Pack,                 /* int */
-  gageParmGradMagMin,             /* double */
   gageParmGradMagCurvMin,         /* double */
   gageParmDefaultSpacing,         /* double */
   gageParmCurvNormalSide,         /* int */
@@ -397,9 +396,7 @@ typedef struct gageParm_t {
                                  derivative reconstruction, and so on.
                                  This is faster because we can re-use
                                  results from low-order convolutions. */
-  double gradMagMin,          /* pre-normalized vector lengths can't be
-                                 smaller than this */
-    gradMagCurvMin,           /* punt on computing curvature information if
+  double gradMagCurvMin,      /* punt on computing curvature information if
                                  gradient magnitude is less than this. Yes,
                                  this is scalar-kind-specific, but there's
                                  no other good place for it */
@@ -706,7 +703,6 @@ typedef struct {
 /* defaultsGage.c */
 GAGE_EXPORT const char *gageBiffKey;
 GAGE_EXPORT int gageDefVerbose;
-GAGE_EXPORT double gageDefGradMagMin;
 GAGE_EXPORT double gageDefGradMagCurvMin;
 GAGE_EXPORT int gageDefRenormalize;
 GAGE_EXPORT int gageDefCheckIntegrals;
