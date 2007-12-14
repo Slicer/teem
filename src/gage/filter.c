@@ -324,7 +324,6 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       ctx->stackFslw[ii] /= sum;
     }
 
-    fprintf(stderr, "!%s: stackRenormalize = %d\n", me, ctx->parm.stackRenormalize);
     /* fix derivative kernel weights for stack */
     if (ctx->parm.stackRenormalize) {
       unsigned int kidx, fd, j;
