@@ -90,7 +90,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet, verbose;
+  int what, E=0, otype, renorm, hackSet, SSrenorm, verbose;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
@@ -148,6 +148,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
              "tent", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ssrn", "ssrn", airTypeInt, 1, 1, &SSrenorm, "0",
+             "enable derivative normalization based on scale space");
 
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
@@ -165,9 +167,9 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestParseFree), airMopAlways);
 
-
   what = airEnumVal(kind->enm, whatS);
   if (!what) {
+    /* -1 indeed always means "unknown" for any gageKind */
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
             me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
@@ -230,14 +232,15 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
+  if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  /* even with scale-space, the first pvl ("pvl") is where the query is set */
-  if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
+    gageParmSet(ctx, gageParmStackRenormalize,
+                SSrenorm ? AIR_TRUE : AIR_FALSE);
     if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
@@ -257,7 +260,6 @@ main(int argc, char *argv[]) {
     return 1;
   }
   answer = gageAnswerPointer(ctx, pvl, what);
-  gageParmSet(ctx, gageParmVerbose, 0);
   /***
   **** end gage setup.
   ***/
@@ -322,6 +324,7 @@ main(int argc, char *argv[]) {
   }
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
+  gageParmSet(ctx, gageParmVerbose, 0);
   for (zi=0; zi<soz; zi++) {
     if (verbose) {
       if (verbose > 1) {
@@ -357,9 +360,6 @@ main(int argc, char *argv[]) {
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
         ctx->verbose = 0*(32 == xi && 16 == yi && 16 == zi);
-        /* 
-           gageStackProbe(ctx, idxSS); 
-        */
         E = (numSS
              ? gageStackProbe(ctx, x, y, z, idxSS)
              : gageProbe(ctx, x, y, z));

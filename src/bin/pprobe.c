@@ -138,7 +138,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
              NULL, NULL, &probeKindHestCB);
-  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, "0 0 0",
+  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
              "the position in index space at which to probe");
   hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
              "input polydata (overrides \"-p\")",
@@ -244,8 +244,9 @@ main(int argc, char *argv[]) {
   }
 
   ctx = gageContextNew();
-  airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
-  gageParmSet(ctx, gageParmGradMagMin, gmc);
+  airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
+  gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
+  gageParmSet(ctx, gageParmVerbose, verbose);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
@@ -258,8 +259,6 @@ main(int argc, char *argv[]) {
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
     gageParmSet(ctx, gageParmStackRenormalize,
                 SSrenorm ? AIR_TRUE : AIR_FALSE);
-    fprintf(stderr, "!%s: ssrn = %d -> %d\n", me,
-            SSrenorm, ctx->parm.stackRenormalize);
     if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
@@ -280,7 +279,7 @@ main(int argc, char *argv[]) {
   }
 
   /* test with original context */
-  answer = gageAnswerPointer(ctx, ctx->pvl[0], what);
+  answer = gageAnswerPointer(ctx, pvl, what);
   if (lpld) {
     double *dout, xyzw[4];
     unsigned int vidx, ai;
@@ -322,7 +321,6 @@ main(int argc, char *argv[]) {
       return 1;
     }
   } else {
-    gageParmSet(ctx, gageParmVerbose, 42);
     E = (numSS
          ? gageStackProbe(ctx, pos[0], pos[1], pos[2], idxSS)
          : gageProbe(ctx, pos[0], pos[1], pos[2]));
