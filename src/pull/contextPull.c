@@ -53,14 +53,16 @@ pullContextNew(void) {
   pctx->probeProb = 1.0;
   pctx->moveLimit = 1.0;
   pctx->moveFracMin = 0.2;
+  pctx->opporStepScale = 1.0;
   pctx->energyStepScale = 0.8;
-  pctx->energyImprovFloor = -0.001;
+  pctx->energyImprovTest = 0.0;
   pctx->moveFracStepScale = 0.5;
   pctx->energyImprovMin = 0.01;
 
   pctx->seedRNG = 42;
   pctx->threadNum = 1;
   pctx->maxIter = 0;
+  pctx->maxConstraintIter = 10;
   pctx->snap = 0;
   
   pctx->energySpec = pullEnergySpecNew();
@@ -188,6 +190,7 @@ _pullContextCheck(pullContext *pctx) {
       gotIspec = AIR_TRUE;
     }
   }
+
   if (!gotIspec) {
     sprintf(err, "%s: have no infos set", me);
     biffAdd(PULL, err); return 1;
@@ -238,6 +241,7 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
+  
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
     sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
             pctx->threadNum, PULL_THREAD_MAXNUM);
@@ -250,53 +254,67 @@ _pullContextCheck(pullContext *pctx) {
             me, pctx->thing, min, max);                          \
     biffAdd(PULL, err); return 1;                                \
   }
-  /* these bounds are somewhat arbitrary */
+  /* these reality-check bounds are somewhat arbitrary */
   CHECK(neighborLearnProb, 0.05, 1.0);
   CHECK(probeProb, 0.05, 1.0);
   CHECK(moveLimit, 0.1, 10.0);
   CHECK(moveFracMin, 0.1, 1.0);
+  CHECK(opporStepScale, 0.89, 1.11);
   CHECK(energyStepScale, 0.1, 1.0);
   CHECK(energyStepScale, 0.1, 1.0);
   CHECK(moveFracStepScale, 0.1, 1.0);
-  CHECK(energyImprovFloor, -1.0, 0.0);
-  CHECK(energyImprovMin, 0.0, 1.0);
+  CHECK(energyImprovTest, -0.21, 0.21);
+  CHECK(energyImprovMin, -0.2, 1.0);
+#undef CHECK
 
   return 0;
 }
 
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pullContext *pctx) {
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
+              int typeOut, int pos4, pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
-  float *posOut, *tenOut, *enrOut;
+  float *posOut_f, *tenOut_f, *enrOut_f;
+  double *posOut_d, *tenOut_d, *enrOut_d;
   pullBin *bin;
   pullPoint *point;
   double sclmin, sclmax, sclmean;
 
+  if (!( nrrdTypeFloat == typeOut || nrrdTypeDouble == typeOut )) {
+    sprintf(err, "%s: typeOut (%d,%s) not %s or %s", me, 
+            typeOut, airEnumStr(nrrdType, typeOut),
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble));
+    biffAdd(PULL, err); return 1;
+  }
   pointNum = _pullPointNumber(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2,
-                           AIR_CAST(size_t, 3),
+    E |= nrrdMaybeAlloc_va(nPosOut, typeOut, 2,
+                           pos4 ? AIR_CAST(size_t, 4) : AIR_CAST(size_t, 3),
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, 
+    E |= nrrdMaybeAlloc_va(nTenOut, typeOut, 2, 
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, 
+    E |= nrrdMaybeAlloc_va(nEnrOut, typeOut, 1, 
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PULL, err, NRRD); return 1;
   }
-  posOut = nPosOut ? (float*)(nPosOut->data) : NULL;
-  tenOut = nTenOut ? (float*)(nTenOut->data) : NULL;
-  enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
+  posOut_f = nPosOut ? (float*)(nPosOut->data) : NULL;
+  tenOut_f = nTenOut ? (float*)(nTenOut->data) : NULL;
+  enrOut_f = nEnrOut ? (float*)(nEnrOut->data) : NULL;
+  posOut_d = nPosOut ? (double*)(nPosOut->data) : NULL;
+  tenOut_d = nTenOut ? (double*)(nTenOut->data) : NULL;
+  enrOut_d = nEnrOut ? (double*)(nEnrOut->data) : NULL;
 
   pointRun = 0;
   sclmean = 0;
@@ -305,15 +323,36 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      if (posOut) {
-        ELL_3V_SET(posOut + 3*pointRun,
-                   point->pos[0], point->pos[1], point->pos[2]);
+      if (nPosOut) {
+        if (nrrdTypeFloat == typeOut) {
+          ELL_3V_SET(posOut_f + (pos4 ? 4 : 3)*pointRun,
+                     point->pos[0], point->pos[1], point->pos[2]);
+          if (pos4) {
+            (posOut_f + (pos4 ? 4 : 3)*pointRun)[3] = point->pos[3];
+          }
+        } else {
+          ELL_3V_SET(posOut_d + (pos4 ? 4 : 3)*pointRun,
+                     point->pos[0], point->pos[1], point->pos[2]);
+          if (pos4) {
+            (posOut_d + (pos4 ? 4 : 3)*pointRun)[3] = point->pos[3];
+          }
+        }
       }
-      if (tenOut) {
-        TEN_T_SET(tenOut + 7*pointRun, 1, 1, 0, 0, 1, 0, 1);
+      if (nTenOut) {
+        double ev;
+        ev = (AIR_EXISTS(point->pos[3]) ? point->pos[3] : 1);
+        if (nrrdTypeFloat == typeOut) {
+          TEN_T_SET(tenOut_f + 7*pointRun, 1, ev, 0, 0, ev, 0, ev);
+        } else {
+          TEN_T_SET(tenOut_d + 7*pointRun, 1, ev, 0, 0, ev, 0, ev);
+        }
       }
-      if (enrOut) {
-        enrOut[pointRun] = point->energy;
+      if (nEnrOut) {
+        if (nrrdTypeFloat == typeOut) {
+          enrOut_f[pointRun] = point->energy;
+        } else {
+          enrOut_d[pointRun] = point->energy;
+        }
       }
       pointRun++;
     }

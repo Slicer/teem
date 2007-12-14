@@ -61,7 +61,8 @@ pullPointNew(pullContext *pctx) {
   pnt->energy = DBL_MAX;
   pnt->energyLast = AIR_NAN;
   ELL_4V_SET(pnt->move, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  pnt->step = pctx->stepInitial;
+  pnt->stepInter = pctx->stepInitial;
+  pnt->stepConstr = pctx->stepInitial;
   for (ii=0; ii<pctx->infoTotalLen; ii++) {
     pnt->info[ii] = AIR_NAN;
   }
@@ -111,7 +112,7 @@ _pullEnergyAverage(const pullContext *pctx) {
 }
 
 double
-_pullStepAverage(const pullContext *pctx) {
+_pullStepInterAverage(const pullContext *pctx) {
   unsigned int binIdx, pointIdx, pointNum;
   const pullBin *bin;
   const pullPoint *point;
@@ -124,7 +125,28 @@ _pullStepAverage(const pullContext *pctx) {
     pointNum += bin->pointNum;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      sum += point->step;
+      sum += point->stepInter;
+    }
+  }
+  avg = (!pointNum ? AIR_NAN : sum/pointNum);
+  return avg;
+}
+/* ^^^  vvv HEY HEY HEY: COPY + PASTE COPY + PASTE COPY + PASTE */
+double
+_pullStepConstrAverage(const pullContext *pctx) {
+  unsigned int binIdx, pointIdx, pointNum;
+  const pullBin *bin;
+  const pullPoint *point;
+  double sum, avg;
+
+  sum = 0;
+  pointNum = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    pointNum += bin->pointNum;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      sum += point->stepConstr;
     }
   }
   avg = (!pointNum ? AIR_NAN : sum/pointNum);
@@ -132,7 +154,7 @@ _pullStepAverage(const pullContext *pctx) {
 }
 
 void
-_pullPointStepSet(const pullContext *pctx, double step) {
+_pullPointStepScale(const pullContext *pctx, double scale) {
   unsigned int binIdx, pointIdx;
   const pullBin *bin;
   pullPoint *point;
@@ -141,7 +163,8 @@ _pullPointStepSet(const pullContext *pctx, double step) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      point->step = step;
+      point->stepInter *= scale;
+      point->stepConstr *= scale;
     }
   }
   return;
@@ -199,8 +222,8 @@ _pullProbe(pullTask *task, pullPoint *point) {
 */
 int
 _pullPointSetup(pullContext *pctx) {
-  char me[]="_pullPointSetup", err[BIFF_STRLEN];
-  unsigned int pointIdx;
+  char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
+  unsigned int pointIdx, tick;
   pullPoint *point;
   double *posData;
   airRandMTState *rng;
@@ -212,9 +235,16 @@ _pullPointSetup(pullContext *pctx) {
   posData = (pctx->npos
              ? AIR_CAST(double *, pctx->npos->data)
              : NULL);
-  fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
+  fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
+  fflush(stderr);
   rng = pctx->task[0]->rng;
+  tick = pctx->pointNumInitial/1000;
   for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
+    if (0 == pointIdx % tick) {
+      fprintf(stderr, "%s", airDoneStr(0, pointIdx, pctx->pointNumInitial,
+                                       doneStr));
+      fflush(stderr);
+    }
     if (pctx->verbose > 5) {
       fprintf(stderr, "%s: setting up point = %u/%u\n", me,
               pointIdx, pctx->pointNumInitial);
@@ -263,7 +293,8 @@ _pullPointSetup(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
-  fprintf(stderr, "!%s: ... seeding DONE\n", me);
+  fprintf(stderr, "%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
+                                     doneStr));
   return 0;
 }
 

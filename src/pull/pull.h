@@ -88,6 +88,10 @@ typedef struct pullInfoSpec_t {
   double scale,                 /* scaling factor (including sign) */
     zero;                       /* for height and inside: where is zero,
                                    for seedThresh, threshold value */
+  int constraint;               /* (for scalar items) minimizing this
+                                   is a constraint to enforce per-point
+                                   per-iteration, not a merely contribution 
+                                   to the point's energy */
   /* ------ INTERNAL ------ */
   unsigned int volIdx;          /* which volume */
 } pullInfoSpec;
@@ -105,7 +109,8 @@ typedef struct pullPoint_t {
     energy,                   /* energy accumulator for this iteration */
     move[4],                  /* movement accumulator for this iteration */
     energyLast,               /* energy at last iteration */
-    step,                     /* my own private notion of (time) step size */
+    stepInter,                /* time step for inter-particle dynamics */
+    stepConstr,               /* "time" step for constraint satisfaction */
     info[1];                  /* all information learned from gage that matters
                                  for particle dynamics.  This is sneakily
                                  allocated for *more*, depending on needs,
@@ -252,25 +257,30 @@ typedef struct pullContext_t {
                                       direction of motion */
     moveFracMin,                   /* if moveFrac is below this, step size
                                       will be scaled down */
+    opporStepScale,                /* how much to opportunistically scale step
+                                      size (up) with every iteration */
     energyStepScale,               /* (< 1.0) when energy goes up instead of
                                       down, how to scale step size */
     moveFracStepScale,             /* (< 1.0) when moveFrac goes below
                                       moveFracMin, how to scale step size */
-    energyImprovFloor,             /* if per-point energyImprov goes below this
-                                      (which is actually slightly less than 0),
-                                      we say that energy has gone up */
+    energyImprovTest,              /* if per-point energyImprov goes below this,
+                                      energy has (unfortunately) gone up.
+                                      negative values permit some worsening,
+                                      positive values demand improvement */
     energyImprovMin;               /* convergence threshold: stop when
                                       fractional improvement (decrease) in
                                       energy dips below this */
 
   unsigned int seedRNG,            /* seed value for random number generator */
     threadNum,                     /* number of threads to use */
-    maxIter,                       /* if non-zero, max number of iterations */
+    maxIter,                       /* if non-zero, max number of iterations
+                                      for whole system */
+    maxConstraintIter,             /* if non-zero, max number of iterations
+                                      for enforcing each constraint */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
   
   pullEnergySpec *energySpec;      /* potential energy function to use */
-  
   int binSingle;                   /* disable binning (for debugging) */
   unsigned int binIncr;            /* increment for per-bin airArray */
 
@@ -355,13 +365,14 @@ PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                                int info, const char *volName, int item);
+                                int info, const char *volName, int item,
+                                int constriant);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
-PULL_EXPORT int pullOutputGet(Nrrd *nPos, Nrrd *nTen, Nrrd *nEnr,
-                              pullContext *pctx);
+PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
+                              int typeOut, int pos4, pullContext *pctx);
 
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);

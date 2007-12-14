@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+#define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))/(AIR_ABS(ell) + AIR_ABS(enn)))
+#define _PULL_IMPROV_AVG(first, avg, imp) (first ? 2*(imp) : ((avg) + (imp))/2)
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
@@ -44,10 +47,11 @@ extern void _pullTaskFinish(pullContext *pctx);
 
 /* pointPull.c */
 extern unsigned int _pullPointNumber(const pullContext *pctx);
-extern double _pullStepAverage(const pullContext *pctx);
+extern double _pullStepInterAverage(const pullContext *pctx);
+extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyAverage(const pullContext *pctx);
 extern int _pullProbe(pullTask *task, pullPoint *point);
-extern void _pullPointStepSet(const pullContext *pctx, double step);
+extern void _pullPointStepScale(const pullContext *pctx, double scale);
 
 /* binningPull.c */
 extern void _pullBinInit(pullBin *bin, unsigned int incr);

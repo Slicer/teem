@@ -121,6 +121,7 @@ pullInfoSpecNew(void) {
     ispec->item = 0;
     ispec->scale = AIR_NAN;
     ispec->zero = AIR_NAN;
+    ispec->constraint = AIR_FALSE;
     ispec->volIdx = UINT_MAX;
   }
   return ispec;
@@ -138,7 +139,8 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 
 int
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                int info, const char *volName, int item) {
+                int info, const char *volName, int item,
+                int constraint) {
   char me[]="pullInfoSpecAdd", err[BIFF_STRLEN];
   unsigned int ii, haveLen, needLen;
   const gageKind *kind;
@@ -197,6 +199,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen);
     biffAdd(PULL, err); return 1;
   }
+  if (constraint && haveLen != 1) {
+    sprintf(err, "%s: can't use non-scalar (len %u) %s as constraint", me,
+            haveLen, airEnumStr(pullInfo, info));
+    biffAdd(PULL, err); return 1;
+  }
   if (pullInfoStrength == info && !pctx->vol[ii]->ninScale) {
     sprintf(err, "%s(%s): can only use %s info with a stack volume", 
             me, airEnumStr(pullInfo, info), 
@@ -208,6 +215,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   ispec->volName = airStrdup(volName);
   ispec->volIdx = ii;
   ispec->item = item;
+  ispec->constraint = constraint;
   
   /* now set item in gage query */
   gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);

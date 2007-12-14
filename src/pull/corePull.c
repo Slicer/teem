@@ -272,7 +272,7 @@ pullRun(pullContext *pctx) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
-      if (pullOutputGet(npos, NULL, NULL, pctx)) {
+      if (pullOutputGet(npos, NULL, NULL, nrrdTypeDouble, AIR_TRUE, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PULL, err); return 1;
       }
@@ -292,13 +292,13 @@ pullRun(pullContext *pctx) {
     if (firstIter + 1 == pctx->iter) {
       enrImprovAvg = enrImprov = 1;
     } else {
-      enrImprov = 2*(enrLast - enrNew)/AIR_ABS(enrLast + enrNew);
+      enrImprov = _PULL_IMPROV(enrLast, enrNew);
       enrImprovAvg = (enrImprovAvg + enrImprov)/2;
     }
     if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g, s=%g\n",
+      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g, s=%g,%g\n",
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
-              _pullStepAverage(pctx));
+              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     enrLast = enrNew;
     stopConverged = (enrImprovAvg < pctx->energyImprovMin);
@@ -307,6 +307,12 @@ pullRun(pullContext *pctx) {
               enrImprovAvg, pctx->energyImprovMin);
     }
     stopIter = (pctx->iter == pctx->maxIter);
+    _pullPointStepScale(pctx, pctx->opporStepScale);
+    /*
+    if (50 == pctx->iter) {
+      _pullPointStepScale(pctx, 100);
+    }
+    */
   } while (!( stopIter || stopConverged ));
   fprintf(stderr, "%s: done (%d,%d) at iter %u; enr = %g, enrImprov = %g,%g\n", 
           me, stopIter, stopConverged, 

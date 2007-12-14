@@ -32,6 +32,10 @@ _pullPairwiseEnergy(pullTask *task,
                     double XX[3], double iscl) {
   double nXX[3], rr, mag;
   
+  AIR_UNUSED(task);
+  AIR_UNUSED(myPoint);
+  AIR_UNUSED(herPoint);
+
   ELL_3V_NORM(nXX, XX, rr);
   ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
   if (mag) {
@@ -41,6 +45,165 @@ _pullPairwiseEnergy(pullTask *task,
     ELL_3V_SET(frc, 0, 0, 0);
   }
 
+  return 0;
+}
+
+double
+_pullPointHeight(const pullTask *task, const pullPoint *point) {
+  const pullInfoSpec *ispec;
+  const unsigned int *infoIdx;
+  double val;
+
+  ispec = task->pctx->ispec[pullInfoHeight];
+  infoIdx = task->pctx->infoIdx;
+  val = point->info[infoIdx[pullInfoHeight]];
+  val = (val - ispec->zero)*ispec->scale;
+  return val;
+}
+
+/*
+** this assumes that _pullProbe() has just been called on the point,
+** and the point is used only as a record of the info set there
+*/
+void
+_pullPointDescent(double move[3], const pullTask *task, const pullPoint *point) {
+  /* char me[]="_pullPointHeightStep"; */
+  const pullInfoSpec *ispec;
+  const unsigned int *infoIdx;
+  double val, grad[3], hess[9], tmp[3], contr, tt;
+
+  ispec = task->pctx->ispec[pullInfoHeight];
+  infoIdx = task->pctx->infoIdx;
+  val = point->info[infoIdx[pullInfoHeight]];
+  ELL_3V_COPY(grad, point->info + infoIdx[pullInfoHeightGradient]);
+  ELL_3M_COPY(hess, point->info + infoIdx[pullInfoHeightHessian]);
+  val = (val - ispec->zero)*ispec->scale;
+  ELL_3V_SCALE(grad, ispec->scale, grad);
+  ELL_3M_SCALE(hess, ispec->scale, hess);
+
+  ELL_3MV_MUL(tmp, hess, grad);
+  contr = ELL_3V_DOT(grad, tmp);
+  if (contr <= 0) {
+    /* if the contraction of the hessian along the gradient is
+       negative then we seem to be near a local maxima of height,
+       which is bad, so we do simple gradient descent. This also
+       catches the case when the second derivative is zero. */
+    tt = 1;
+  } else {
+    tt = ELL_3V_DOT(grad, grad)/contr;
+    /*
+    fprintf(stderr, "!%s(%u): tt = %g/%g = %g --> %g\n", me, 
+            point->idtag, ELL_3V_DOT(grad, grad), contr,
+            tt, AIR_MIN(3, tt));
+    */
+    /* to be safe, we limit ourselves to the distance that could
+       have been gone via gradient descent */
+    tt = tt/(1 + tt);
+  }
+  ELL_3V_SCALE(move, -tt, grad);
+  /*
+  fprintf(stderr, "!%s(%u): grad=(%g,%g,%g), tt=%g, move=(%g,%g,%g) len %g\n",
+          me, point->idtag, grad[0], grad[1], grad[2], tt,
+          move[0], move[1], move[2], ELL_3V_LEN(move));
+  */
+  /* with both tang1 and tang2: move only within their span
+     with tang1 only: move within its span
+     with mode: some lerp between the two */
+  if (task->pctx->ispec[pullInfoTangent2]) {
+    const double *tang1, *tang2;
+    double tmp[3], out1[9], out2[9], proj[9];
+
+    tang1 = point->info + infoIdx[pullInfoTangent1];
+    tang2 = point->info + infoIdx[pullInfoTangent2];
+    ELL_3MV_OUTER(out1, tang1, tang1);
+    ELL_3MV_OUTER(out2, tang2, tang2);
+    ELL_3M_ADD2(proj, out1, out2);
+    ELL_3MV_MUL(tmp, proj, move);
+    ELL_3V_COPY(move, tmp);
+    /*
+    fprintf(stderr, "!%s(%u):   --> move = (len %g) %g %g %g\n", me,
+            point->idtag, ELL_3V_LEN(move), move[0], move[1], move[2]);
+    */
+  }
+
+  return;
+}
+
+
+/*
+** sets in point:
+**  stepInter or stepConstr (based on enrImprov and moveFrac)
+**  pos
+**  and then (maybe) probes 
+*/
+int
+_pullPointMove(pullTask *task, pullPoint *point,
+               const double enrLast, const double enrNew,
+               const double moveWant[3],
+               const int forConstraint) {
+  char me[]="_pullPointMove", err[BIFF_STRLEN];
+  double enrImprov, move[3], moveNorm[3], moveLen;
+
+  enrImprov = _PULL_IMPROV(enrLast, enrNew);
+  if (enrImprov < task->pctx->energyImprovTest) {
+    /* alas, we didn't go (sufficiently) downhill in energy with the
+       last move. The current/next move will be smaller */
+    if (forConstraint) {
+      point->stepConstr *= task->pctx->energyStepScale;
+    } else {
+      point->stepInter *= task->pctx->energyStepScale;
+    }
+  }
+    
+  if (forConstraint) {
+    ELL_3V_SCALE(move, point->stepConstr, moveWant);
+  } else {
+    ELL_3V_SCALE(move, point->stepInter, moveWant);
+  }
+  moveLen = ELL_3V_LEN(move);
+  if (moveLen) {
+    ELL_3V_SCALE(moveNorm, 1.0/moveLen, move);
+  } else {
+    ELL_3V_SET(moveNorm, 0, 0, 0);
+  }
+  if (!(AIR_EXISTS(moveLen) && ELL_3V_EXISTS(moveNorm))) {
+    sprintf(err, "%s: moveLen %g or moveNorm (%g,%g,%g) doesn't exist", me,
+            moveLen, moveNorm[0], moveNorm[1], moveNorm[2]);
+    biffAdd(PULL, err); return 1;
+  }
+  if (moveLen) {
+    double newMoveLen, limit, moveFrac;
+    /* limit is some fraction of radius along direction of move */
+    limit = task->pctx->moveLimit*task->pctx->interScale;
+    newMoveLen = limit*moveLen/(limit + moveLen);
+    ELL_3V_SCALE_INCR(point->pos, newMoveLen, moveNorm);
+    if (!ELL_3V_EXISTS(point->pos)) {
+      sprintf(err, "%s: point->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
+              "doesn't exist", me,
+              newMoveLen, moveNorm[0], moveNorm[1], moveNorm[2],
+              point->pos[0], point->pos[1], point->pos[2]);
+      biffAdd(PULL, err); return 1;
+    }
+    /* by definition newMoveLen <= moveLen */
+    moveFrac = newMoveLen/moveLen;
+    if (moveFrac < task->pctx->moveFracMin) {
+      if (forConstraint) {
+        point->stepConstr *= task->pctx->moveFracStepScale;
+      } else {
+        point->stepInter *= task->pctx->moveFracStepScale;
+      }
+    }
+  }
+  
+  /* (possibly) probe at new location */
+  if (forConstraint
+      || 1.0 <= task->pctx->probeProb
+      || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
+    if (_pullProbe(task, point)) {
+      sprintf(err, "%s: probing at new field pos", me);
+      biffAdd(PULL, err); return 1;
+    }
+  }
   return 0;
 }
 
@@ -55,7 +218,14 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   unsigned int myPointIdx, herPointIdx;
   pullPoint *myPoint, *herPoint;
 
-  double maxDistSqrd, iscl, move[3], moveNorm[3], moveLen, enrImprov;
+  double maxDistSqrd, iscl;
+
+  /*
+  double pos0[3] = {0.048773, 0.592845, 0.00134082};
+  double pos1[3] = {0.1103, 0.58499, 0.00117511};
+  double pdiff[3];
+  unsigned int dbgIdx;
+  */
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
@@ -73,62 +243,49 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     myPoint->energyLast = myPoint->energy;
     myPoint->energy = 0;
     ELL_4V_SET(myPoint->move, 0, 0, 0, 0);
+    /* the purpose of the loop body is to accumulate energy and "force"
+       into myPoint->energy and myPoint->move */
 
+    /* if (0 == task->pctx->iter % 2) { */
     if (task->pctx->ispec[pullInfoHeight]) {
-      const pullInfoSpec *ispec;
-      const unsigned int *infoIdx;
-      double val, grad[3], hess[9], tmp[3], contr, tt;
-      ispec = task->pctx->ispec[pullInfoHeight];
-      infoIdx = task->pctx->infoIdx;
-      val = myPoint->info[infoIdx[pullInfoHeight]];
-      ELL_3V_COPY(grad, myPoint->info + infoIdx[pullInfoHeightGradient]);
-      ELL_3M_COPY(hess, myPoint->info + infoIdx[pullInfoHeightHessian]);
-      val = (val - ispec->zero)*ispec->scale;
-      ELL_3V_SCALE(grad, ispec->scale, grad);
-      ELL_3M_SCALE(hess, ispec->scale, hess);
-      myPoint->energy += val;
+      double move[3];
 
-      ELL_3MV_MUL(tmp, hess, grad);
-      contr = ELL_3V_DOT(grad, tmp);
-      if (contr <= 0) {
-        /* if the contraction of the hessian along the gradient is
-           negative then we seem to be near a local maxima of height,
-           which is bad, so we do simple gradient descent. This also
-           catches the case when the second derivative is zero. */
-        tt = 1;
+      if (!task->pctx->ispec[pullInfoHeight]->constraint) {
+        myPoint->energy += _pullPointHeight(task, myPoint);
+        _pullPointDescent(move, task, myPoint);
+        ELL_3V_INCR(myPoint->move, move);
       } else {
-        tt = ELL_3V_DOT(grad, grad)/contr;
-        /* hack to make sure we don't try to move too far */
-        tt = AIR_MIN(3, tt);
+        /* more involved; height is a constraint */
+        unsigned int citer;
+        double ceNew, ceLast, ceImprov, ceImprovAvg=AIR_NAN;
+
+        ceLast = _pullPointHeight(task, myPoint);
+        _pullPointDescent(move, task, myPoint);
+        _pullPointMove(task, myPoint, 1, 0, move, AIR_TRUE);
+        for (citer=0; citer<task->pctx->maxConstraintIter; citer++) {
+          ceNew = _pullPointHeight(task, myPoint);
+          ceImprov = _PULL_IMPROV(ceLast, ceNew);
+          ceImprovAvg = _PULL_IMPROV_AVG(!citer, ceImprovAvg, ceImprov);
+          if (ceImprovAvg < task->pctx->energyImprovMin) {
+            break;
+          }
+          _pullPointDescent(move, task, myPoint);
+          _pullPointMove(task, myPoint, ceLast, ceNew, move, AIR_TRUE);
+          ceLast = ceNew;
+        }
       }
-      ELL_3V_SCALE_INCR(myPoint->move, -tt, grad);
     }
-    /*
-      if we have both tang1 and tang2: move only within their span
-      if we have tang1: move within its span
-      with mode: some lerp between the two
-    */
-    if (task->pctx->ispec[pullInfoTangent2]) {
-      const pullInfoSpec *ispec1, *ispec2;
-      const unsigned int *infoIdx;
-      const double *tang1, *tang2;
-      double tmp[3], out1[9], out2[9], proj[9];
-      ispec1 = task->pctx->ispec[pullInfoTangent1];
-      ispec2 = task->pctx->ispec[pullInfoTangent2];
-      infoIdx = task->pctx->infoIdx;
-      tang1 = myPoint->info + infoIdx[pullInfoTangent1];
-      tang2 = myPoint->info + infoIdx[pullInfoTangent2];
-      ELL_3MV_OUTER(out1, tang1, tang1);
-      ELL_3MV_OUTER(out2, tang2, tang2);
-      ELL_3M_ADD2(proj, out1, out2);
-      ELL_3MV_MUL(tmp, proj, myPoint->move);
-      ELL_3V_COPY(myPoint->move, tmp);
-    }
+    /* } */
     
-    if (pullEnergyZero != task->pctx->energySpec->energy) {
+    /* if (1 == task->pctx->iter % 2) { */
+    if ((pullEnergyZero != task->pctx->energySpec->energy)
+        && (task->pctx->interScale > 0)) {
       if (1.0 <= task->pctx->neighborLearnProb
           || airDrandMT_r(task->rng) <= task->pctx->neighborLearnProb
           || !myPoint->neighArr->len) {
+        /* either we are not using neighbor caching,
+           or, we are using it and this iteration we rebuild the list, 
+           or, we are using it and we haven't built the list yet */
         neighbor = myBin->neigh;
         if (1.0 > task->pctx->neighborLearnProb) {
           airArrayLenSet(myPoint->neighArr, 0);
@@ -138,20 +295,12 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
             double distSqrd, enr, diff[3], frc[3];
             herPoint = herBin->point[herPointIdx];
             if (myPoint == herPoint) {
-              /* can't interact with myself */
-              continue;
+              continue; /* can't interact with myself */
             }
             ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
             distSqrd = ELL_3V_DOT(diff, diff);
-            /*
-            fprintf(stderr, "!%s: dist(%u,%u)^2 = %g %s %g\n", me,
-                    myPoint->idtag, herPoint->idtag, 
-                    distSqrd, (distSqrd > maxDistSqrd ? ">" : "<="), 
-                    maxDistSqrd);
-            */
             if (distSqrd > maxDistSqrd) {
-              /* too far away to interact */
-              continue;
+              continue; /* too far away to interact */
             }
             if (_pullPairwiseEnergy(task, &enr, frc, task->pctx->energySpec,
                                     myPoint, herPoint, diff, iscl)) {
@@ -178,9 +327,9 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
           neighbor++;
         }
       } else {
-        /* we are doing neighborhood list optimization, and this is an
-           iteration where we use the list.  So the body of this loop
-           has to be the same as the meat of the above loop */
+        /* we are using neighbor list caching, and this is an
+           iteration where we re-use the list.  So the body of this
+           loop has to be the same as the meat of the above loop */
         unsigned int neighIdx;
         for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
           double diff[3], enr, frc[3];
@@ -202,65 +351,50 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
         biffAdd(PULL, err); return 1;
       }
     }
+    /* } */
+
+    if (task->pctx->wallScale > 0) {
+      /*
+      unsigned int ci;
+      double wenr[3], wmve[3], len;
+
+      for (ci=0; ci<3; ci++) {
+        len = myPoint->pos[ci] - task->pctx->bboxMin[ci];
+        if (len < 0) {
+          len *= -1;
+          wmve[ci] = task->pctx->wallScale*len;
+          wenr[ci] = task->pctx->wallScale*len*len/2;
+        } else {
+          len = myPoint->pos[ci] - task->pctx->bboxMax[ci];
+          if (len > 0) {
+            wmve[ci] = -task->pctx->wallScale*len;
+            wenr[ci] = task->pctx->wallScale*len*len/2;
+          } else {
+            wmve[ci] = 0;
+            wenr[ci] = 0;
+          }
+        }
+      }
+      ELL_3V_INCR(myPoint->move, wmve);
+      myPoint->energy += ELL_3V_LEN(wenr);
+      */
+      ELL_3V_MAX(myPoint->pos, myPoint->pos, task->pctx->bboxMin);
+      ELL_3V_MIN(myPoint->pos, myPoint->pos, task->pctx->bboxMax);
+    }
+
 
     /* ------------------------------------------------ */
     /* all increments to move[] done, now actually move */
     /* ------------------------------------------------ */
 
-    enrImprov = 2*(myPoint->energyLast - myPoint->energy)
-      / (AIR_ABS(myPoint->energyLast) + AIR_ABS(myPoint->energy));
-    if (enrImprov < task->pctx->energyImprovFloor) {
-      /* alas, we didn't go downhill in energy with the last move.
-         The current/next move (below) will be smaller */
-      myPoint->step *= task->pctx->energyStepScale;
-      if (task->pctx->verbose > 4) {
-        fprintf(stderr, "!%s: point %u enr %g %g step --> %g\n", me,
-                myPoint->idtag, myPoint->energyLast,
-                myPoint->energy, myPoint->step);
-      }
-    }
-    myPoint->energyLast = myPoint->energy;
-    
-    ELL_3V_SCALE(move, myPoint->step, myPoint->move);
-    moveLen = ELL_3V_LEN(move);
-    if (moveLen) {
-      ELL_3V_SCALE(moveNorm, 1.0/moveLen, move);
-    } else {
-      ELL_3V_SET(moveNorm, 0, 0, 0);
-    }
-    if (!(AIR_EXISTS(moveLen) && ELL_3V_EXISTS(moveNorm))) {
-      sprintf(err, "%s: moveLen %g or moveNorm (%g,%g,%g) doesn't exist", me,
-              moveLen, moveNorm[0], moveNorm[1], moveNorm[2]);
+    if (_pullPointMove(task, myPoint, myPoint->energyLast, myPoint->energy, 
+                       myPoint->move, AIR_FALSE)) {
+      sprintf(err, "%s: moving %u", me, myPoint->idtag);
       biffAdd(PULL, err); return 1;
     }
-    if (moveLen) {
-      double newMoveLen, limit, moveFrac;
-      /* limit is some fraction of glyph radius along direction of delta */
-      limit = task->pctx->moveLimit*task->pctx->interScale;
-      newMoveLen = limit*moveLen/(limit + moveLen);
-      ELL_3V_SCALE_INCR(myPoint->pos, newMoveLen, moveNorm);
-      if (!ELL_3V_EXISTS(myPoint->pos)) {
-        sprintf(err, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
-                "doesn't exist", me,
-                newMoveLen, moveNorm[0], moveNorm[1], moveNorm[2],
-                myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
-        biffAdd(PULL, err); return 1;
-      }
-      /* by definition newMoveLen <= moveLen */
-      moveFrac = newMoveLen/moveLen;
-      if (moveFrac < task->pctx->moveFracMin) {
-        myPoint->step *= task->pctx->moveFracStepScale;
-      }
-    }
 
-    /* (possibly) probe at new location */
-    if (1.0 <= task->pctx->probeProb
-        || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
-      if (_pullProbe(task, myPoint)) {
-        sprintf(err, "%s: probing at new field pos", me);
-        biffAdd(PULL, err); return 1;
-      }
-    }
+    myPoint->energyLast = myPoint->energy;
+
   } /* for myPointIdx */
 
   return 0;
