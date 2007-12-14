@@ -31,6 +31,11 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
   double len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9]={0,0,0,0,0,0,0,0,0};
   double T, N, D;
+  double A, B, S;
+  double alpha = 0.5;
+  double beta = 0.5;
+  double gamma = 5;
+  double cc = 1e-6;
 #define FD_MEDIAN_MAX 16
   int fd, nidx, xi, yi, zi;
   double *fw, iv3wght[2*FD_MEDIAN_MAX*FD_MEDIAN_MAX*FD_MEDIAN_MAX],
@@ -112,6 +117,44 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
     ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
+    if (heval[1] >0 || heval[2]>0) {
+      pvl->directAnswer[gageSclHessRidgeness][0] = 0;
+    }
+    else if (AIR_ABS(heval[1])<1e-10 || AIR_ABS(heval[2])<1e-10) {
+      pvl->directAnswer[gageSclHessRidgeness][0] = 0;
+    }
+    else {
+      A = AIR_ABS(heval[1])/AIR_ABS(heval[2]);
+      B = AIR_ABS(heval[0])/sqrt(AIR_ABS(heval[1]*heval[2]));
+      S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
+      pvl->directAnswer[gageSclHessRidgeness][0] = (1-exp(-A*A/(2*alpha*alpha))) *
+                                                    exp(-B*B/(2*beta*beta)) *
+                                                    (1-exp(-S*S/(2*gamma*gamma))) *
+                                                    exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
+    }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessValleyness)) {
+    if (heval[0] <0 || heval[1]<0) {
+      pvl->directAnswer[gageSclHessValleyness][0] = 0;
+    }
+    else if (AIR_ABS(heval[0])<1e-10 || AIR_ABS(heval[1])<1e-10) {
+      pvl->directAnswer[gageSclHessValleyness][0] = 0;
+    }
+    else {
+      A = AIR_ABS(heval[1])/AIR_ABS(heval[0]);
+      B = AIR_ABS(heval[2])/sqrt(AIR_ABS(heval[1]*heval[0]));
+      S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
+      pvl->directAnswer[gageSclHessValleyness][0] = (1-exp(-A*A/(2*alpha*alpha))) *
+                                                    exp(-B*B/(2*beta*beta)) *
+                                                    (1-exp(-S*S/(2*gamma*gamma))) *
+                                                    exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
+    }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessMode)) {
+    pvl->directAnswer[gageSclHessMode][0] = airMode3_d(heval);
+  }
+
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageScl2ndDD)) {
     ELL_3MV_MUL(tmpVec, hess, norm);
     pvl->directAnswer[gageScl2ndDD][0] = ELL_3V_DOT(norm, tmpVec);
