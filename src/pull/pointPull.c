@@ -244,7 +244,7 @@ _pullPointSetup(pullContext *pctx) {
   rng = pctx->task[0]->rng;
   tick = pctx->pointNumInitial/1000;
   for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
-    if (0 == pointIdx % tick) {
+    if (tick < 100 || 0 == pointIdx % tick) {
       fprintf(stderr, "%s", airDoneStr(0, pointIdx, pctx->pointNumInitial,
                                        doneStr));
       fflush(stderr);
