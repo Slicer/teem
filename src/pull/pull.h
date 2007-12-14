@@ -191,6 +191,7 @@ typedef struct {
                                   samples */
   gageContext *gctx;           /* do own, and set based on info here */
   gagePerVolume *gpvl;         /* stupid gage API ... */
+  int seedOnly;                /* volume only required for seeding */
 } pullVolume;
 
 /*

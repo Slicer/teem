@@ -73,6 +73,7 @@ pullVolumeNew() {
     vol->kspSS = nrrdKernelSpecNew();
     vol->gctx = gageContextNew();
     vol->gpvl = NULL;
+    vol->seedOnly = AIR_TRUE;
   }
   return vol;
 }
@@ -273,6 +274,7 @@ _pullVolumeCopy(pullVolume *volOrig) {
     sprintf(err, "%s: trouble creating new volume", me);
     biffAdd(PULL, err); return NULL;
   }
+  volNew->seedOnly = volOrig->seedOnly;
   /* we just created a new (per-task) gageContext, and it will not learn
      the items from the info specs, so we have to add query here */
   if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)

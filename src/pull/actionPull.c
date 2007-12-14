@@ -266,7 +266,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
           ceNew = _pullPointHeight(task, myPoint);
           ceImprov = _PULL_IMPROV(ceLast, ceNew);
           ceImprovAvg = _PULL_IMPROV_AVG(!citer, ceImprovAvg, ceImprov);
-          if (ceImprovAvg < task->pctx->energyImprovMin) {
+          if (AIR_IN_OP(0, ceImprovAvg, task->pctx->energyImprovMin)) {
             break;
           }
           _pullPointDescent(move, task, myPoint);

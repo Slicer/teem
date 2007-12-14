@@ -176,6 +176,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
   unsigned int ii, gret=0;
   
   for (ii=0; ii<task->pctx->volNum; ii++) {
+    if (task->pctx->iter && task->vol[ii]->seedOnly) {
+      /* its after the 1st iteration (#0), and this vol is only for seeding */
+      continue;
+    }
     if (task->vol[ii]->ninSingle) {
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],

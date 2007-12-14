@@ -108,6 +108,8 @@ pullStart(pullContext *pctx) {
   char me[]="pullStart", err[BIFF_STRLEN];
   unsigned int tidx;
 
+  pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
+
   /* the ordering of steps below is important! e.g. gage context has
      to be set up (_pullVolumeSetup) by before its copied (_pullTaskSetup) */
   if (_pullContextCheck(pctx)
@@ -139,7 +141,6 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierB = NULL;
   }
 
-  pctx->iter = 0;
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
 
@@ -301,7 +302,7 @@ pullRun(pullContext *pctx) {
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     enrLast = enrNew;
-    stopConverged = (enrImprovAvg < pctx->energyImprovMin);
+    stopConverged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
     if (stopConverged && pctx->verbose) {
       fprintf(stderr, "%s: %g < %g: converged!!\n", me, 
               enrImprovAvg, pctx->energyImprovMin);

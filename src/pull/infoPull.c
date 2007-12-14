@@ -204,6 +204,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen, airEnumStr(pullInfo, info));
     biffAdd(PULL, err); return 1;
   }
+  /* HEY: this is a needless restriction, isn't it? */
   if (pullInfoStrength == info && !pctx->vol[ii]->ninScale) {
     sprintf(err, "%s(%s): can only use %s info with a stack volume", 
             me, airEnumStr(pullInfo, info), 
@@ -216,6 +217,12 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   ispec->volIdx = ii;
   ispec->item = item;
   ispec->constraint = constraint;
+  
+  /* very tricky: seedOnly is initialized to true for everything, here
+     is where we turn it off for anything info that's not seedthresh */
+  if (pullInfoSeedThresh != info) {
+    pctx->vol[ii]->seedOnly = AIR_FALSE;
+  }
   
   /* now set item in gage query */
   gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);
