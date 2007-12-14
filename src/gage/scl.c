@@ -60,7 +60,10 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclCurvDir1,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
   {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
   {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
-  {gageSclMedian,        1,  0,  {0},                                            0,               0,   AIR_FALSE}
+  {gageSclMedian,        1,  0,  {0},                                            0,               0,   AIR_FALSE},
+  {gageSclHessValleyness,1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE},
+  {gageSclHessRidgeness, 1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE},
+  {gageSclHessMode,      1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE}
 };
 
 char
@@ -94,7 +97,10 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "1st curvature direction",
   "2nd curvature direction",
   "flowline curvature",
-  "median"
+  "median",
+  "Hessian valleyness",
+  "Hessian ridgeness",
+  "Hessian mode"
 };
 
 char
@@ -128,7 +134,10 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "1st principal curvature direction",
   "2nd principal curvature direction",
   "curvature of normal streamline",
-  "median of iv3 cache (not weighted by any filter (yet))"
+  "median of iv3 cache (not weighted by any filter (yet))",
+  "measure of valleyness of Hessian",
+  "measure of ridgeness of Heassian",
+  "mode of Hessian"
 };
 
 int
@@ -162,7 +171,10 @@ _gageSclVal[] = {
   gageSclCurvDir1,
   gageSclCurvDir2,
   gageSclFlowlineCurv,
-  gageSclMedian
+  gageSclMedian,
+  gageSclHessValleyness,
+  gageSclHessRidgeness,
+  gageSclHessMode
 };
 
 #define GS_V   gageSclValue
@@ -194,13 +206,16 @@ _gageSclVal[] = {
 #define GS_C2  gageSclCurvDir2
 #define GS_FC  gageSclFlowlineCurv
 #define GS_MD  gageSclMedian
+#define GS_HV  gageSclHessValleyness
+#define GS_HR  gageSclHessRidgeness
+#define GS_HM  gageSclHessMode
 
 char
 _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "v", "val", "value", 
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
   "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
-  "gn", "n", "normal", "gnorm", "normg", "norm", "normgrad", \
+  "gn", "n", "normal", "gnorm", "normg", "norm", "normgrad",
        "norm grad", "normalized gradient",
   "np", "nperp", 
   "h", "hess", "hessian",
@@ -227,7 +242,9 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "cdir2", "c dir2", "curvdir2", "curv dir2", "curvature direction 2",
   "fc", "flowlinecurv", "flowline curv", "flowline curvature",
   "med", "median",
-  ""
+  "hvalley", "hessvalley",
+  "hridge", "hessridge",
+  "hmode", "hessmode"
 };
 
 int
@@ -260,7 +277,10 @@ _gageSclValEqv[] = {
   GS_C1, GS_C1, GS_C1, GS_C1, GS_C1,
   GS_C2, GS_C2, GS_C2, GS_C2, GS_C2,
   GS_FC, GS_FC, GS_FC, GS_FC,
-  GS_MD, GS_MD
+  GS_MD, GS_MD,
+  GS_HV, GS_HV,
+  GS_HR, GS_HR,
+  GS_HM, GS_HM
 };
 
 airEnum
