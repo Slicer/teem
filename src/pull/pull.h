@@ -90,7 +90,7 @@ typedef struct pullInfoSpec_t {
                                    for seedThresh, threshold value */
   int constraint;               /* (for scalar items) minimizing this
                                    is a constraint to enforce per-point
-                                   per-iteration, not a merely contribution 
+                                   per-iteration, not merely a contribution 
                                    to the point's energy */
   /* ------ INTERNAL ------ */
   unsigned int volIdx;          /* which volume */
@@ -212,6 +212,8 @@ typedef struct pullTask_t {
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   airRandMTState *rng;          /* state for my RNG */
+  pullPoint *pointBuffer;       /* place for copying point into during 
+                                   strength ascent computation */
   void *returnPtr;              /* for airThreadJoin */
 } pullTask;
 
@@ -238,7 +240,14 @@ typedef struct pullContext_t {
                                       non-NULL (and we DO OWN ispec[ii]) */
   
   double stepInitial,              /* initial (time) step for dynamics */
-    interScale,                    /* scaling on inter-particle interactions */
+    spaceScale,                    /* scaling (size) of inter-particle
+                                      interactions in the spatial domain */
+    scaleScale,                    /* scaling (size) of inter-particle
+                                      interactions in the scale domain */
+    scaleAttr,                     /* how much attraction there should be
+                                      between particles in scale space */
+    scaleStrengthSeek,             /* how quickly to seek the maximum of
+                                      strength with respect to scale */
     wallScale,                     /* spring constant of walls */
 
   /* concerning the probability-based optimizations */
@@ -373,7 +382,8 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
-                              int typeOut, int pos4, pullContext *pctx);
+                              pullContext *pctx, int typeOut, int pos4,
+                              double strengthThresh);
 
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);

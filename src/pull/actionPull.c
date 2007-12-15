@@ -23,6 +23,30 @@
 #include "pull.h"
 #include "privatePull.h"
 
+#define _BCCUBIC(x, B, C)                                     \
+  (x >= 2.0 ? 0 :                                             \
+  (x >= 1.0                                                   \
+   ? (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C  \
+   : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
+
+#define _DBCCUBIC(x, B, C)                        \
+   (x >= 2.0 ? 0 :                                \
+   (x >= 1.0                                      \
+    ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
+    : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
+
+double
+_hump(double x) {
+  x = 2*AIR_ABS(x);
+  return _BCCUBIC(x, 1.0, 0.0);
+}
+
+double
+_humpd(double x) {
+  x = 2*x;
+  return 2*_DBCCUBIC(x, 1.0, 0.0);
+}
+
 int
 _pullPairwiseEnergy(pullTask *task,
                     double *enrP,
@@ -46,19 +70,6 @@ _pullPairwiseEnergy(pullTask *task,
   }
 
   return 0;
-}
-
-double
-_pullPointHeight(const pullTask *task, const pullPoint *point) {
-  const pullInfoSpec *ispec;
-  const unsigned int *infoIdx;
-  double val;
-
-  ispec = task->pctx->ispec[pullInfoHeight];
-  infoIdx = task->pctx->infoIdx;
-  val = point->info[infoIdx[pullInfoHeight]];
-  val = (val - ispec->zero)*ispec->scale;
-  return val;
 }
 
 /*
@@ -129,6 +140,24 @@ _pullPointDescent(double move[3], const pullTask *task, const pullPoint *point) 
   return;
 }
 
+double
+_pullPointStrengthAscent(pullTask *task, pullPoint *point) {
+  /* char me[]="_pullPointStrengthAscent"; */
+  int sgn;
+  double str0, str1, sstep, sgrad, move;
+
+  str0 = _pullPointStrength(task->pctx, point);
+  _pullPointCopy(task->pointBuffer, point, task->pctx->infoTotalLen);
+  sgn = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
+  sstep = sgn*task->pctx->scaleScale/100;
+  point->pos[3] += sstep;
+  _pullProbe(task, point);
+  str1 = _pullPointStrength(task->pctx, point);
+  sgrad = (str1 - str0)/sstep;
+  move = task->pctx->scaleStrengthSeek*sgrad;
+  _pullPointCopy(point, task->pointBuffer, task->pctx->infoTotalLen);
+  return move;
+}
 
 /*
 ** sets in point:
@@ -139,7 +168,7 @@ _pullPointDescent(double move[3], const pullTask *task, const pullPoint *point) 
 int
 _pullPointMove(pullTask *task, pullPoint *point,
                const double enrLast, const double enrNew,
-               const double moveWant[3],
+               const double moveWant[4],
                const int forConstraint) {
   char me[]="_pullPointMove", err[BIFF_STRLEN];
   double enrImprov, move[3], moveNorm[3], moveLen;
@@ -174,7 +203,7 @@ _pullPointMove(pullTask *task, pullPoint *point,
   if (moveLen) {
     double newMoveLen, limit, moveFrac;
     /* limit is some fraction of radius along direction of move */
-    limit = task->pctx->moveLimit*task->pctx->interScale;
+    limit = task->pctx->moveLimit*task->pctx->spaceScale;
     newMoveLen = limit*moveLen/(limit + moveLen);
     ELL_3V_SCALE_INCR(point->pos, newMoveLen, moveNorm);
     if (!ELL_3V_EXISTS(point->pos)) {
@@ -193,6 +222,18 @@ _pullPointMove(pullTask *task, pullPoint *point,
         point->stepInter *= task->pctx->moveFracStepScale;
       }
     }
+  }
+  if (!forConstraint && task->pctx->haveScale) {
+    double smove, nmove, limit;
+    int sgn;
+    smove = point->stepInter*moveWant[3];
+    sgn = airSgn(smove);
+    smove = AIR_ABS(smove);
+    limit = task->pctx->moveLimit*task->pctx->scaleScale;
+    /* there is currently no means of punishing step size 
+       because we tried to move too fast in scale */
+    nmove = limit*smove/(limit + smove);
+    point->pos[3] += sgn*nmove;
   }
   
   /* (possibly) probe at new location */
@@ -231,10 +272,10 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
   }
   maxDistSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
-  iscl = 1.0/(2*task->pctx->interScale);
+  iscl = 1.0/(2*task->pctx->spaceScale);
   if (task->pctx->verbose > 2) {
-    fprintf(stderr, "%s: maxDist = %g, interScale = %g -> iscl = %g\n", me, 
-            task->pctx->maxDist, task->pctx->interScale, iscl);
+    fprintf(stderr, "%s: maxDist = %g, spaceScale = %g -> iscl = %g\n", me, 
+            task->pctx->maxDist, task->pctx->spaceScale, iscl);
   }
   myBin = task->pctx->bin + myBinIdx;
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
@@ -248,10 +289,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
 
     /* if (0 == task->pctx->iter % 2) { */
     if (task->pctx->ispec[pullInfoHeight]) {
-      double move[3];
+      double move[4]; /* even though in this context we only need move[3]? */
 
+      move[3] = 0.0;
       if (!task->pctx->ispec[pullInfoHeight]->constraint) {
-        myPoint->energy += _pullPointHeight(task, myPoint);
+        myPoint->energy += _pullPointHeight(task->pctx, myPoint);
         _pullPointDescent(move, task, myPoint);
         ELL_3V_INCR(myPoint->move, move);
       } else {
@@ -259,11 +301,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
         unsigned int citer;
         double ceNew, ceLast, ceImprov, ceImprovAvg=AIR_NAN;
 
-        ceLast = _pullPointHeight(task, myPoint);
+        ceLast = _pullPointHeight(task->pctx, myPoint);
         _pullPointDescent(move, task, myPoint);
         _pullPointMove(task, myPoint, 1, 0, move, AIR_TRUE);
         for (citer=0; citer<task->pctx->maxConstraintIter; citer++) {
-          ceNew = _pullPointHeight(task, myPoint);
+          ceNew = _pullPointHeight(task->pctx, myPoint);
           ceImprov = _PULL_IMPROV(ceLast, ceNew);
           ceImprovAvg = _PULL_IMPROV_AVG(!citer, ceImprovAvg, ceImprov);
           if (AIR_IN_OP(0, ceImprovAvg, task->pctx->energyImprovMin)) {
@@ -276,10 +318,15 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       }
     }
     /* } */
+
+    if (task->pctx->ispec[pullInfoStrength]
+        && task->pctx->scaleStrengthSeek) {
+      myPoint->move[3] += _pullPointStrengthAscent(task, myPoint);
+    }
     
     /* if (1 == task->pctx->iter % 2) { */
     if ((pullEnergyZero != task->pctx->energySpec->energy)
-        && (task->pctx->interScale > 0)) {
+        && (task->pctx->spaceScale > 0)) {
       if (1.0 <= task->pctx->neighborLearnProb
           || airDrandMT_r(task->rng) <= task->pctx->neighborLearnProb
           || !myPoint->neighArr->len) {
@@ -292,7 +339,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
         }
         while ((herBin = *neighbor)) {
           for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
-            double distSqrd, enr, diff[3], frc[3];
+            double distSqrd, enr, diff[3], frc[3], sclmod, scldiff=0;
             herPoint = herBin->point[herPointIdx];
             if (myPoint == herPoint) {
               continue; /* can't interact with myself */
@@ -300,7 +347,17 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
             ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
             distSqrd = ELL_3V_DOT(diff, diff);
             if (distSqrd > maxDistSqrd) {
-              continue; /* too far away to interact */
+              continue; /* too far away (in space) to interact */
+            }
+            if (task->pctx->haveScale) {
+              scldiff = ((herPoint->pos[3] - myPoint->pos[3])
+                         / (2*task->pctx->scaleScale));
+              sclmod = _hump(scldiff);
+            } else {
+              sclmod = 1.0;
+            }
+            if (!sclmod) {
+              continue; /* too far away (in scale) to interact */
             }
             if (_pullPairwiseEnergy(task, &enr, frc, task->pctx->energySpec,
                                     myPoint, herPoint, diff, iscl)) {
@@ -308,9 +365,15 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
                       myPoint->idtag, herPoint->idtag);
               biffAdd(PULL, err); return 1;
             }
-            myPoint->energy += enr/2;
+            myPoint->energy += sclmod*enr/2;
+            ELL_3V_SCALE(frc, sclmod, frc);
             if (ELL_3V_DOT(frc, frc)) {
               ELL_3V_INCR(myPoint->move, frc);
+              if (task->pctx->haveScale && task->pctx->scaleAttr) {
+                double sfrc;
+                sfrc = -task->pctx->scaleAttr*AIR_ABS(enr)*_humpd(scldiff);
+                myPoint->move[3] += sfrc;
+              }
               if (1.0 > task->pctx->neighborLearnProb) {
                 unsigned int idx;
                 idx = airArrayLenIncr(myPoint->neighArr, 1);
@@ -332,17 +395,30 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
            loop has to be the same as the meat of the above loop */
         unsigned int neighIdx;
         for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
-          double diff[3], enr, frc[3];
+          double diff[3], enr, frc[3], sclmod, scldiff=0;
           herPoint = myPoint->neigh[neighIdx];
           ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
+          if (task->pctx->haveScale) {
+            scldiff = ((herPoint->pos[3] - myPoint->pos[3])
+                       / (2*task->pctx->scaleScale));
+            sclmod = _hump(scldiff);
+          } else {
+            sclmod = 1;
+          }
           if (_pullPairwiseEnergy(task, &enr, frc, task->pctx->energySpec,
                                   myPoint, herPoint, diff, iscl)) {
             sprintf(err, "%s: between points %u and %u, B", me,
                     myPoint->idtag, herPoint->idtag);
             biffAdd(PULL, err); return 1;
           }
-          myPoint->energy += enr/2;
+          myPoint->energy += sclmod*enr/2;
+          ELL_3V_SCALE(frc, sclmod, frc);
           ELL_3V_INCR(myPoint->move, frc);
+          if (task->pctx->haveScale && task->pctx->scaleAttr) {
+            double sfrc;
+            sfrc = -task->pctx->scaleAttr*AIR_ABS(enr)*_humpd(scldiff);
+            myPoint->move[3] += sfrc;
+          }
         }
       }
       if (!ELL_3V_EXISTS(myPoint->move)) {
@@ -352,6 +428,16 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       }
     }
     /* } */
+
+    /* ------------------------------------------------ */
+    /* all increments to move[] done, now actually move */
+    /* ------------------------------------------------ */
+
+    if (_pullPointMove(task, myPoint, myPoint->energyLast, myPoint->energy, 
+                       myPoint->move, AIR_FALSE)) {
+      sprintf(err, "%s: moving %u", me, myPoint->idtag);
+      biffAdd(PULL, err); return 1;
+    }
 
     if (task->pctx->wallScale > 0) {
       /*
@@ -380,17 +466,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       */
       ELL_3V_MAX(myPoint->pos, myPoint->pos, task->pctx->bboxMin);
       ELL_3V_MIN(myPoint->pos, myPoint->pos, task->pctx->bboxMax);
-    }
-
-
-    /* ------------------------------------------------ */
-    /* all increments to move[] done, now actually move */
-    /* ------------------------------------------------ */
-
-    if (_pullPointMove(task, myPoint, myPoint->energyLast, myPoint->energy, 
-                       myPoint->move, AIR_FALSE)) {
-      sprintf(err, "%s: moving %u", me, myPoint->idtag);
-      biffAdd(PULL, err); return 1;
+      if (task->pctx->haveScale) {
+        myPoint->pos[3] = AIR_CLAMP(task->pctx->bboxMin[3],
+                                    myPoint->pos[3],
+                                    task->pctx->bboxMax[3]);
+      }
     }
 
     myPoint->energyLast = myPoint->energy;

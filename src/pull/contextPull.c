@@ -47,7 +47,10 @@ pullContextNew(void) {
   }
 
   pctx->stepInitial = 1;
-  pctx->interScale = 1;
+  pctx->spaceScale = 1;
+  pctx->scaleScale = 1;
+  pctx->scaleAttr = 0;
+  pctx->scaleStrengthSeek = 0.0;
   pctx->wallScale = 0;
   pctx->neighborLearnProb = 1.0;
   pctx->probeProb = 1.0;
@@ -178,6 +181,7 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoInside:
       case pullInfoHeight:
       case pullInfoIsosurfaceValue:
+      case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
                && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
           sprintf(err, "%s: %s info needs scale (%g) and zero (%g)", me, 
@@ -249,12 +253,16 @@ _pullContextCheck(pullContext *pctx) {
   }
 
 #define CHECK(thing, min, max)                                   \
-  if (!( min <= pctx->thing && pctx->thing <= max )) {           \
+  if (!( AIR_EXISTS(pctx->thing)                                 \
+         && min <= pctx->thing && pctx->thing <= max )) {        \
     sprintf(err, "%s: pctx->" #thing " %g not in range [%g,%g]", \
             me, pctx->thing, min, max);                          \
     biffAdd(PULL, err); return 1;                                \
   }
   /* these reality-check bounds are somewhat arbitrary */
+  CHECK(scaleScale, 0.000001, 5.0);
+  CHECK(scaleAttr, -500.0, 500.0);
+  CHECK(scaleStrengthSeek, 0.0, 10.0);
   CHECK(neighborLearnProb, 0.05, 1.0);
   CHECK(probeProb, 0.05, 1.0);
   CHECK(moveLimit, 0.1, 10.0);
@@ -272,10 +280,11 @@ _pullContextCheck(pullContext *pctx) {
 
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
-              int typeOut, int pos4, pullContext *pctx) {
+              pullContext *pctx, int typeOut, int pos4,
+              double sthresh) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, pointNum, pointIdx;
-  int E;
+  int E, dosth;
   float *posOut_f, *tenOut_f, *enrOut_f;
   double *posOut_d, *tenOut_d, *enrOut_d;
   pullBin *bin;
@@ -288,6 +297,11 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
             airEnumStr(nrrdType, nrrdTypeFloat),
             airEnumStr(nrrdType, nrrdTypeDouble));
     biffAdd(PULL, err); return 1;
+  }
+  if (AIR_EXISTS(sthresh) && sthresh > 0) {
+    dosth = AIR_TRUE;
+  } else {
+    dosth = AIR_FALSE;
   }
   pointNum = _pullPointNumber(pctx);
   E = AIR_FALSE;
@@ -323,6 +337,11 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (dosth) {
+        if (_pullPointStrength(pctx, point) < sthresh) {
+          continue;
+        }
+      }
       if (nPosOut) {
         if (nrrdTypeFloat == typeOut) {
           ELL_3V_SET(posOut_f + (pos4 ? 4 : 3)*pointRun,
@@ -356,6 +375,17 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
       }
       pointRun++;
     }
+  }
+  /* if we skipped points because of strength thresh,
+     this will set the output sizes correctly */
+  if (nPosOut) {
+    nPosOut->axis[1].size = AIR_CAST(size_t, pointRun);
+  }
+  if (nTenOut) {
+    nTenOut->axis[1].size = AIR_CAST(size_t, pointRun);
+  }
+  if (nEnrOut) {
+    nEnrOut->axis[0].size = AIR_CAST(size_t, pointRun);
   }
 
   return 0;

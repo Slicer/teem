@@ -79,6 +79,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     task->thread = airThreadNew();
   }
   task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
+  task->pointBuffer = pullPointNew(pctx);
   task->threadIdx = threadIdx;
   task->returnPtr = NULL;
   return task;
@@ -96,6 +97,7 @@ _pullTaskNix(pullTask *task) {
       task->thread = airThreadNix(task->thread);
     }
     task->rng = airRandMTStateNix(task->rng);
+    task->pointBuffer = pullPointNix(task->pointBuffer);
     airFree(task);
   }
   return NULL;

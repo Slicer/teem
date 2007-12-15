@@ -46,6 +46,9 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* pointPull.c */
+extern double _pullPointHeight(const pullContext *pctx, const pullPoint *point);
+extern double _pullPointStrength(const pullContext *pctx, const pullPoint *point);
+extern void _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen);
 extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);

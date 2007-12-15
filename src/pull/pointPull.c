@@ -69,6 +69,26 @@ pullPointNew(pullContext *pctx) {
   return pnt;
 }
 
+void
+_pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
+  unsigned int ii;
+  
+  dst->idtag = src->idtag;
+  dst->neigh = src->neigh;
+  dst->neighNum = src->neighNum;
+  dst->neighArr = src->neighArr;
+  ELL_4V_COPY(dst->pos, src->pos);
+  dst->energy = src->energy;
+  ELL_4V_COPY(dst->move, src->move);
+  dst->energyLast = src->energyLast;
+  dst->stepInter = src->stepInter;
+  dst->stepConstr = src->stepConstr;
+  for (ii=0; ii<ilen; ii++) {
+    dst->info[ii] = src->info[ii];
+  }
+  return;
+}
+
 pullPoint *
 pullPointNix(pullPoint *pnt) {
 
@@ -170,11 +190,46 @@ _pullPointStepScale(const pullContext *pctx, double scale) {
   return;
 }
 
+double
+_pullPointHeight(const pullContext *pctx, const pullPoint *point) {
+  const pullInfoSpec *ispec;
+  const unsigned int *infoIdx;
+  double val;
+
+  ispec = pctx->ispec[pullInfoHeight];
+  infoIdx = pctx->infoIdx;
+  val = point->info[infoIdx[pullInfoHeight]];
+  val = (val - ispec->zero)*ispec->scale;
+  return val;
+}
+
+double
+_pullPointStrength(const pullContext *pctx, const pullPoint *point) {
+  const pullInfoSpec *ispec;
+  const unsigned int *infoIdx;
+  double val;
+
+  ispec = pctx->ispec[pullInfoStrength];
+  infoIdx = pctx->infoIdx;
+  val = point->info[infoIdx[pullInfoStrength]];
+  val = (val - ispec->zero)*ispec->scale;
+  return val;
+}
+
 int
 _pullProbe(pullTask *task, pullPoint *point) {
   char me[]="_pullProbe", err[BIFF_STRLEN];
   unsigned int ii, gret=0;
   
+  if (!ELL_3V_EXISTS(point->pos)) {
+    sprintf(err, "%s: got non-exist pos (%g,%g,%g)", me, 
+            point->pos[0], point->pos[1], point->pos[2]);
+    biffAdd(PULL, err); return 1;
+  }
+  if (task->pctx->haveScale && !AIR_EXISTS(point->pos[3])) {
+    sprintf(err, "%s: got non-exist scale pos %g", me, point->pos[3]);
+    biffAdd(PULL, err); return 1;
+  }
   for (ii=0; ii<task->pctx->volNum; ii++) {
     if (task->pctx->iter && task->vol[ii]->seedOnly) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */

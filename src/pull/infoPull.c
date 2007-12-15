@@ -204,13 +204,6 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen, airEnumStr(pullInfo, info));
     biffAdd(PULL, err); return 1;
   }
-  /* HEY: this is a needless restriction, isn't it? */
-  if (pullInfoStrength == info && !pctx->vol[ii]->ninScale) {
-    sprintf(err, "%s(%s): can only use %s info with a stack volume", 
-            me, airEnumStr(pullInfo, info), 
-            airEnumStr(pullInfo, pullInfoStrength));
-    biffAdd(PULL, err); return 1;
-  }
 
   ispec->info = info;
   ispec->volName = airStrdup(volName);

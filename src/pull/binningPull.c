@@ -228,11 +228,11 @@ _pullBinSetup(pullContext *pctx) {
   double volEdge[3], scl;
   const pullEnergySpec *espec;
 
-  scl = (pctx->interScale ? pctx->interScale : 0.2);
+  scl = (pctx->spaceScale ? pctx->spaceScale : 0.2);
   espec = pctx->energySpec;
   pctx->maxDist = 2*scl*espec->energy->support(espec->parm);
-  fprintf(stderr, "!%s: interScale = %g --> maxDist = %g\n", me, 
-          pctx->interScale, pctx->maxDist);
+  fprintf(stderr, "!%s: spaceScale = %g --> maxDist = %g\n", me, 
+          pctx->spaceScale, pctx->maxDist);
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
