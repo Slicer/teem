@@ -808,7 +808,8 @@ GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], unsigned int num,
                               const Nrrd *nin, unsigned int baseDim,
                               const NrrdKernelSpec *kspec,
                               double rangeMin, double rangeMax,
-                              int boundary, int renormalize, int verbose);
+                              int boundary, int renormalize, int verbose,
+                              const char *path);
 GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
                                       gagePerVolume ***pvlP,
                                       const Nrrd *const *nblur,

@@ -136,7 +136,7 @@ _gageSclDesc[][AIR_STRLEN_MED] = {
   "curvature of normal streamline",
   "median of iv3 cache (not weighted by any filter (yet))",
   "measure of valleyness of Hessian",
-  "measure of ridgeness of Heassian",
+  "measure of ridgeness of Hessian",
   "mode of Hessian"
 };
 

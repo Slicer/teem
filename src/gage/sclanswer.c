@@ -124,13 +124,15 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       pvl->directAnswer[gageSclHessRidgeness][0] = 0;
     }
     else {
+      double *ans;
       A = AIR_ABS(heval[1])/AIR_ABS(heval[2]);
       B = AIR_ABS(heval[0])/sqrt(AIR_ABS(heval[1]*heval[2]));
       S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
-      pvl->directAnswer[gageSclHessRidgeness][0] = (1-exp(-A*A/(2*alpha*alpha))) *
-                                                    exp(-B*B/(2*beta*beta)) *
-                                                    (1-exp(-S*S/(2*gamma*gamma))) *
-                                                    exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
+      ans = pvl->directAnswer[gageSclHessRidgeness];
+      ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
+        exp(-B*B/(2*beta*beta)) *
+        (1-exp(-S*S/(2*gamma*gamma))) *
+        exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessValleyness)) {
@@ -142,13 +144,15 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       pvl->directAnswer[gageSclHessValleyness][0] = 0;
     }
     else {
+      double *ans;
       A = AIR_ABS(heval[1])/AIR_ABS(heval[0]);
       B = AIR_ABS(heval[2])/sqrt(AIR_ABS(heval[1]*heval[0]));
       S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
-      pvl->directAnswer[gageSclHessValleyness][0] = (1-exp(-A*A/(2*alpha*alpha))) *
-                                                    exp(-B*B/(2*beta*beta)) *
-                                                    (1-exp(-S*S/(2*gamma*gamma))) *
-                                                    exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
+      ans = pvl->directAnswer[gageSclHessValleyness];
+      ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
+        exp(-B*B/(2*beta*beta)) *
+        (1-exp(-S*S/(2*gamma*gamma))) *
+        exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessMode)) {

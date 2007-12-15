@@ -35,7 +35,8 @@ gageStackBlur(Nrrd *const nblur[], unsigned int blnum,
               const Nrrd *nin, unsigned int baseDim,
               const NrrdKernelSpec *_kspec,
               double rangeMin, double rangeMax,
-              int boundary, int renormalize, int verbose) {
+              int boundary, int renormalize, int verbose,
+              const char *savePath) {
   char me[]="gageStackBlur", err[BIFF_STRLEN];
   unsigned int blidx, axi;
   NrrdResampleContext *rsmc;
@@ -106,7 +107,7 @@ gageStackBlur(Nrrd *const nblur[], unsigned int blnum,
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
-    char tmpName[128];
+    char fileName[AIR_STRLEN_HUGE], tmpName[AIR_STRLEN_SMALL];
     kspec->parm[0] = AIR_AFFINE(0, blidx, blnum-1, rangeMin, rangeMax);
     for (axi=0; axi<3; axi++) {
       if (!E) E |= nrrdResampleKernelSet(rsmc, baseDim + axi,
@@ -127,9 +128,19 @@ gageStackBlur(Nrrd *const nblur[], unsigned int blnum,
     if (verbose) {
       fprintf(stderr, "done.\n");
     }
-    if (verbose > 4) {
+    if (savePath || verbose > 4) {
       sprintf(tmpName, "blur%02u.nrrd", blidx);
-      nrrdSave(tmpName, nblur[blidx], NULL);
+      strcpy(fileName, "");
+      if (savePath) {
+        strcat(fileName, savePath);
+        strcat(fileName, "/");
+      }
+      strcat(fileName, tmpName);
+      if (nrrdSave(fileName, nblur[blidx], NULL)) {
+        sprintf(err, "%s: trouble saving blur[%u] to %s", me,
+                blidx, tmpName);
+        biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
     }
   }
 
