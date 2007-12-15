@@ -61,9 +61,9 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclCurvDir2,      3,  2,  {gageSclGeomTens, gageSclK1, gageSclK2},        0,               0,   AIR_FALSE},
   {gageSclFlowlineCurv,  1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
   {gageSclMedian,        1,  0,  {0},                                            0,               0,   AIR_FALSE},
-  {gageSclHessValleyness,1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE},
-  {gageSclHessRidgeness, 1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE},
-  {gageSclHessMode,      1,  2,  {gageSclHessEval},                           gageSclHessEval, 0,   AIR_FALSE}
+  {gageSclHessValleyness,1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE},
+  {gageSclHessRidgeness, 1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE},
+  {gageSclHessMode,      1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE}
 };
 
 char

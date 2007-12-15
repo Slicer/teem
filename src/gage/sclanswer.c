@@ -30,8 +30,6 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     sHess[9]={0,0,0,0,0,0,0,0,0};
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
   double len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9]={0,0,0,0,0,0,0,0,0};
-  double T, N, D;
-  double A, B, S;
   double alpha = 0.5;
   double beta = 0.5;
   double gamma = 5;
@@ -118,6 +116,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
+    double A, B, S;
     if (heval[1] >0 || heval[2]>0) {
       pvl->directAnswer[gageSclHessRidgeness][0] = 0;
     }
@@ -135,6 +134,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessValleyness)) {
+    double A, B, S;
     if (heval[0] <0 || heval[1]<0) {
       pvl->directAnswer[gageSclHessValleyness][0] = 0;
     }
@@ -199,6 +199,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if ( (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK1)) ||
        (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK2)) ){
+    double T, N, D;
     T = ELL_3M_TRACE(gten);
     N = curv;
     D = 2*N*N - T*T;
