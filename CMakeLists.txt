@@ -140,8 +140,8 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage bane
- limn seek hoover alan echo ten mite coil)
+SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane
+ limn seek hoover echo ten mite)
 
 SET(TEEM_INSTALLED_HEADER_FILES)
 FOREACH(header_file
@@ -155,19 +155,16 @@ FOREACH(header_file
     ell/ell.h
     ell/ellMacros.h
     unrrdu/unrrdu.h
-    dye/dye.h
     moss/moss.h
     gage/gage.h
     bane/bane.h
     limn/limn.h
     seek/seek.h
     hoover/hoover.h
-    alan/alan.h
     echo/echo.h
     ten/ten.h
     ten/tenMacros.h
     mite/mite.h
-    coil/coil.h
     )
   # When debugging, uncomment this line
   #MESSAGE(STATUS "Copy header file: ${header_file}")
