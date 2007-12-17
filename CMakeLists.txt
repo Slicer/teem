@@ -140,32 +140,46 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
+SET(BUILD_EXPERIMENTAL OFF CACHE BOOL "Build experimental components of teem")
+
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane
  limn seek hoover echo ten mite)
+IF(BUILD_EXPERIMENTAL)
+  SET(TEEM_LIBRARIES ${TEEM_LIBRARIES} coil alan dye push pull)
+ENDIF(BUILD_EXPERIMENTAL)
 
-SET(TEEM_INSTALLED_HEADER_FILES)
-FOREACH(header_file
-    air/air.h
-    hest/hest.h
-    biff/biff.h
-    nrrd/nrrd.h
-    nrrd/nrrdDefines.h
-    nrrd/nrrdMacros.h
-    nrrd/nrrdEnums.h
-    ell/ell.h
-    ell/ellMacros.h
-    unrrdu/unrrdu.h
-    moss/moss.h
-    gage/gage.h
-    bane/bane.h
-    limn/limn.h
-    seek/seek.h
-    hoover/hoover.h
-    echo/echo.h
-    ten/ten.h
-    ten/tenMacros.h
-    mite/mite.h
+SET(TEEM_HEADER_FILES
+  air/air.h
+  hest/hest.h
+  biff/biff.h
+  nrrd/nrrd.h
+  nrrd/nrrdDefines.h
+  nrrd/nrrdMacros.h
+  nrrd/nrrdEnums.h
+  ell/ell.h
+  ell/ellMacros.h
+  unrrdu/unrrdu.h
+  moss/moss.h
+  gage/gage.h
+  bane/bane.h
+  limn/limn.h
+  seek/seek.h
+  hoover/hoover.h
+  echo/echo.h
+  ten/ten.h
+  ten/tenMacros.h
+  mite/mite.h
+  push/push.h
+  )
+IF(BUILD_EXPERIMENTAL)
+  SET(TEEM_HEADER_FILES ${TEEM_HEADER_FILES}
+    dye/dye.h
+    alan/alan.h
+    coil/coil.h
     )
+ENDIF(BUILD_EXPERIMENTAL)
+SET(TEEM_INSTALLED_HEADER_FILES)
+FOREACH(header_file ${TEEM_HEADER_FILES})
   # When debugging, uncomment this line
   #MESSAGE(STATUS "Copy header file: ${header_file}")
   GET_FILENAME_COMPONENT(file_no_path "${header_file}" NAME)
@@ -234,25 +248,14 @@ ENDFOREACH(dir ${TEEM_LIBRARIES})
 # Create the library target
 ADD_LIBRARY(teem ${TEEM_SOURCES})
 
-# Set up some library paths for installation.
-IF(APPLE)
-  # In OSX, they treat library paths a little differntly than on
-  # linux.  The path to the library can be encoded in the library.
-  # Any code linking to this library will look for the library in the
-  # path specified by this path.  What this means for us, is that you
-  # can't use the library easily until you install it.
-  SET_TARGET_PROPERTIES(teem PROPERTIES
-    BUILD_WITH_INSTALL_RPATH ON
-    INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
-    )
-ELSE(APPLE)
-  # Windows will ingore the RPATH stuff, so other unix based systems
-  # with rpath support will do the right thing.
-  SET_TARGET_PROPERTIES(teem PROPERTIES
-    BUILD_WITH_INSTALL_RPATH OFF
-    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
-    )
-ENDIF(APPLE)
+# Set up some library paths for installation.  Windows will ingore the
+# RPATH stuff, so other unix based systems with rpath support will do
+# the right thing, but make sure to not set BUILD_WITH_INSTALL_RPATH
+# for macs.
+SET_TARGET_PROPERTIES(teem PROPERTIES
+  BUILD_WITH_INSTALL_RPATH OFF
+  INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+  )
 
 IF(TEEM_BZIP2_LIB)
   TARGET_LINK_LIBRARIES(teem ${TEEM_BZIP2_LIB})
@@ -274,12 +277,12 @@ INSTALL(TARGETS teem
   )
 
 # Now compile the binaries
-SUBDIRS(src/bin)
+ADD_SUBDIRECTORY(src/bin)
 
 # I found some hex programs
 OPTION(BUILD_HEX "Build hehex and enhex" OFF)
 IF(BUILD_HEX)
-  SUBDIRS(src/hex)
+  ADD_SUBDIRECTORY(src/hex)
 ENDIF(BUILD_HEX)
 
 #-----------------------------------------------------------------------------
