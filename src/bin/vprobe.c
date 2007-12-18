@@ -213,7 +213,7 @@ main(int argc, char *argv[]) {
     if (gageStackBlur(ninSS, numSS,
                       nin, kind->baseDim, 
                       kSSblur, rangeSS[0], rangeSS[1],
-                      nrrdBoundaryBleed, AIR_TRUE, verbose)) {
+                      nrrdBoundaryBleed, AIR_TRUE, verbose, NULL)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
       airMopError(mop); return 1;
