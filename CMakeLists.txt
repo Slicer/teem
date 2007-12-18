@@ -249,12 +249,13 @@ ENDFOREACH(dir ${TEEM_LIBRARIES})
 ADD_LIBRARY(teem ${TEEM_SOURCES})
 
 # Set up some library paths for installation.  Windows will ingore the
-# RPATH stuff, so other unix based systems with rpath support will do
-# the right thing, but make sure to not set BUILD_WITH_INSTALL_RPATH
-# for macs.
+# RPATH stuff, and mac will ingore the INSTALL_RPATH.  Make sure for
+# macs to set BUILD_WITH_INSTALL_RPATH OFF and set INSTALL_NAME_DIR.
+# I belive INSTALL_NAME_DIR will be ignored on linux.
 SET_TARGET_PROPERTIES(teem PROPERTIES
   BUILD_WITH_INSTALL_RPATH OFF
   INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+  INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
   )
 
 IF(TEEM_BZIP2_LIB)
