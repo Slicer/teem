@@ -282,7 +282,9 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
             "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
             me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
   }
-  
+
+  /* HEY: the position optimization has to be turned off in the context
+     of stacks; Raul found this bug using vprobe */
   if (ctx->parm.stackUse
       || !( ctx->point.xf == xf &&
             ctx->point.yf == yf &&
