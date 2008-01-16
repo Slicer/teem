@@ -405,7 +405,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageMode)) {
     double cbQQQ;
     cbQQQ = 2*AIR_MAX(0, cbQ*cbQ*cbQ);
-    tmp0 = cbQQQ ? cbR/(sqrt(cbQQQ)) : 0;
+    tmp0 = 1.41421356237309504880*(cbQQQ ? cbR/(sqrt(cbQQQ)) : 0);
     pvl->directAnswer[tenGageMode][0] = AIR_CLAMP(-1, tmp0, 1);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmega)) {
