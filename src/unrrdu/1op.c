@@ -29,10 +29,11 @@ char *_unrrdu_1opInfoL = (INFO);
 int
 unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, *seedS;
   Nrrd *nin, *nout, *ntmp=NULL;
   int op, pret, type;
   airArray *mop;
+  unsigned int seed;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
              "Unary operator. Possibilities include:\n "
@@ -55,6 +56,11 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"0\": output always 0\n "
              "\b\bo \"1\": output always 1",
              NULL, nrrdUnaryOp);
+  hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
+             "seed value for RNG for rand and nrand, so that you "
+             "can get repeatable results between runs, or, "
+             "by not using this option, the RNG seeding will be "
+             "based on the current time");
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "convert input nrrd to this type prior to "
              "doing operation.  Useful when desired output is float "
@@ -89,7 +95,18 @@ unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (nrrdUnaryOpRand == op
       || nrrdUnaryOpNormalRand == op) {
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    if (airStrlen(seedS)) {
+      if (1 != sscanf(seedS, "%u", &seed)) {
+        fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
+        airMopError(mop);
+        return 1;
+      } else {
+        airSrandMT(seed);
+      }
+    } else {
+      /* got no request for specific seed */
+      airSrandMT(AIR_CAST(unsigned int, airTime()));
+    }
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
