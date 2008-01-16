@@ -288,7 +288,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   u = 0;
   du = 0.49999;
   wantDot = 0.9; /* between cos(pi/6) and cos(pi/8) */
-  minDu = 0.001;
+  minDu = 0.0002;
   while (u + du < 1.0) {
     SETNEXT(u+du);
     if (sctx->strengthUse && strength < sctx->strengthMin) {
