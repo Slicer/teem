@@ -1266,7 +1266,7 @@ TEN_EXPORT void tenFiberSingleDone(tenFiberSingle *tfbs);
 TEN_EXPORT tenFiberSingle *tenFiberSingleNew();
 TEN_EXPORT tenFiberSingle *tenFiberSingleNix(tenFiberSingle *tfbs);
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
-TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dtvol,
+TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dwivol,
                                                   double thresh,
                                                   double soft,
                                                   double valueMin,
