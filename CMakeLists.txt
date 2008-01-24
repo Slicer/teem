@@ -143,9 +143,9 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL OFF CACHE BOOL "Build experimental components of teem")
 
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane
- limn seek hoover echo ten mite)
+ limn seek hoover echo ten dye mite)
 IF(BUILD_EXPERIMENTAL)
-  SET(TEEM_LIBRARIES ${TEEM_LIBRARIES} coil alan dye push pull)
+  SET(TEEM_LIBRARIES ${TEEM_LIBRARIES} coil alan push pull)
 ENDIF(BUILD_EXPERIMENTAL)
 
 SET(TEEM_HEADER_FILES
@@ -168,12 +168,12 @@ SET(TEEM_HEADER_FILES
   echo/echo.h
   ten/ten.h
   ten/tenMacros.h
+  dye/dye.h
   mite/mite.h
   push/push.h
   )
 IF(BUILD_EXPERIMENTAL)
   SET(TEEM_HEADER_FILES ${TEEM_HEADER_FILES}
-    dye/dye.h
     alan/alan.h
     coil/coil.h
     )
