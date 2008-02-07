@@ -39,7 +39,6 @@ tenPathParmNew(void) {
     tpp->maxIter = 0;
     tpp->numSteps = 100;
     tpp->lengthFancy = AIR_FALSE;
-    tpp->qglRotReparm = AIR_FALSE;
     tpp->numIter = 0;
     tpp->convFinal = AIR_NAN;
     tpp->lengthShape = AIR_NAN;
@@ -128,12 +127,7 @@ tenPathInterpTwo(double oten[7],
       break;
     case tenPathTypeQuatGeoLoxK:
     case tenPathTypeQuatGeoLoxR:
-      if (tpp->qglRotReparm) {
-        TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
-                  AIR_NAN, AIR_NAN, AIR_NAN);
-      } else {
-        tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tpp);
-      }
+      tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tpp);
       break;
     }
   } else {
