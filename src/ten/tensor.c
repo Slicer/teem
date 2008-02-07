@@ -826,7 +826,7 @@ tenInv_d(double inv[7], const double ten[7]) {
 }
 
 void
-tenLogSingle_d(double logten[7], double ten[7]) {
+tenLogSingle_d(double logten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
   
@@ -841,7 +841,7 @@ tenLogSingle_d(double logten[7], double ten[7]) {
 }
 
 void
-tenLogSingle_f(float logten[7], float ten[7]) {
+tenLogSingle_f(float logten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
   
@@ -856,7 +856,7 @@ tenLogSingle_f(float logten[7], float ten[7]) {
 }
 
 void
-tenExpSingle_d(double expten[7], double ten[7]) {
+tenExpSingle_d(double expten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
   
@@ -868,7 +868,7 @@ tenExpSingle_d(double expten[7], double ten[7]) {
 }
 
 void
-tenExpSingle_f(float expten[7], float ten[7]) {
+tenExpSingle_f(float expten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
   
@@ -880,7 +880,7 @@ tenExpSingle_f(float expten[7], float ten[7]) {
 }
 
 void
-tenSqrtSingle_d(double sqrtten[7], double ten[7]) {
+tenSqrtSingle_d(double sqrtten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
   
@@ -892,7 +892,7 @@ tenSqrtSingle_d(double sqrtten[7], double ten[7]) {
 }
 
 void
-tenSqrtSingle_f(float sqrtten[7], float ten[7]) {
+tenSqrtSingle_f(float sqrtten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
   
@@ -904,7 +904,7 @@ tenSqrtSingle_f(float sqrtten[7], float ten[7]) {
 }
 
 void
-tenPowSingle_d(double powten[7], double ten[7], double power) {
+tenPowSingle_d(double powten[7], const double ten[7], double power) {
   double eval[3], _eval[3], evec[9];
   unsigned int ii;
   
@@ -916,7 +916,7 @@ tenPowSingle_d(double powten[7], double ten[7], double power) {
 }
 
 void
-tenPowSingle_f(float powten[7], float ten[7], float power) {
+tenPowSingle_f(float powten[7], const float ten[7], float power) {
   float eval[3], evec[9];
   unsigned int ii;
   

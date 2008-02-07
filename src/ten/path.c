@@ -34,10 +34,12 @@ tenPathParmNew(void) {
     tpp->convStep = 0.2;
     tpp->minNorm = 0.0;
     tpp->convEps = 0.0000001;
+    tpp->wghtSumEps = 0.0000001;
     tpp->enableRecurse = AIR_TRUE;
     tpp->maxIter = 0;
     tpp->numSteps = 100;
     tpp->lengthFancy = AIR_FALSE;
+    tpp->qglRotReparm = AIR_FALSE;
     tpp->numIter = 0;
     tpp->convFinal = AIR_NAN;
     tpp->lengthShape = AIR_NAN;
@@ -57,7 +59,7 @@ tenPathParmNix(tenPathParm *tpp) {
 
 void
 tenPathInterpTwo(double oten[7], 
-                 double tenA[7], double tenB[7],
+                 const double tenA[7], const double tenB[7],
                  int ptype, double aa,
                  tenPathParm *tpp) {
   char me[]="tenPathInterpTwo";
@@ -69,7 +71,9 @@ tenPathInterpTwo(double oten[7],
   if (ptype == tenPathTypeLerp
       || ptype == tenPathTypeLogLerp
       || ptype == tenPathTypeAffineInvariant
-      || ptype == tenPathTypeWang) {
+      || ptype == tenPathTypeWang
+      || ptype == tenPathTypeQuatGeoLoxK
+      || ptype == tenPathTypeQuatGeoLoxR) {
     switch (ptype) {
     case tenPathTypeLerp:
       TEN_T_LERP(oten, aa, tenA, tenB);
@@ -121,6 +125,15 @@ tenPathInterpTwo(double oten[7],
       TEN_M2T(tmp1, mat1);
       tenSqrtSingle_d(oten, tmp1);
       oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
+      break;
+    case tenPathTypeQuatGeoLoxK:
+    case tenPathTypeQuatGeoLoxR:
+      if (tpp->qglRotReparm) {
+        TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
+                  AIR_NAN, AIR_NAN, AIR_NAN);
+      } else {
+        tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tpp);
+      }
       break;
     }
   } else {
@@ -393,7 +406,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 
 int
 _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
-                          double tenA[7], double tenB[7],
+                          const double tenA[7], const double tenB[7],
                           unsigned int NN, int useK, int rotnoop,
                           tenPathParm *tpp) {
   char me[]="_tenPathGeodeLoxoPolyLine", err[BIFF_STRLEN];
@@ -530,7 +543,7 @@ _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
 
 int
 tenPathInterpTwoDiscrete(Nrrd *nout, 
-                         double tenA[7], double tenB[7],
+                         const double tenA[7], const double tenB[7],
                          int ptype, unsigned int num,
                          tenPathParm *_tpp) {
   char me[]="tenPathInterpTwoDiscrete", err[BIFF_STRLEN];
@@ -548,6 +561,8 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
             tenPathType->name);
     biffAdd(TEN, err); return 1;
   }
+  fprintf(stderr, "!%s: type %d -> %s\n", me, ptype, 
+          airEnumStr(tenPathType, ptype));
 
   mop = airMopNew();
   if (_tpp) {
@@ -558,20 +573,22 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
   }
   if (!( num >= 2 )) {
     sprintf(err, "%s: need num >= 2 (not %u)", me, num);
-    biffAdd(TEN, err); return 1;
+    biffAdd(TEN, err); airMopError(mop); return 1;
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, num))) {
     sprintf(err, "%s: trouble allocating output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
   }
   out = AIR_CAST(double *, nout->data);
 
   if (ptype == tenPathTypeLerp
       || ptype == tenPathTypeLogLerp
       || ptype == tenPathTypeAffineInvariant
-      || ptype == tenPathTypeWang) {
+      || ptype == tenPathTypeWang
+      || ptype == tenPathTypeQuatGeoLoxK
+      || ptype == tenPathTypeQuatGeoLoxR) {
     for (ii=0; ii<num; ii++) {
       double *oten;
       oten = out + 7*ii;
@@ -596,19 +613,20 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
                                   tenA, tenB,
                                   num, useK, rotnoop, tpp)) {
       sprintf(err, "%s: trouble finding path", me);
-      biffAdd(TEN, err); return 1;
+      biffAdd(TEN, err); airMopError(mop); return 1;
     }
   } else {
     sprintf(err, "%s: sorry, interp for path %s not implemented", me,
             airEnumStr(tenPathType, ptype));
-    biffAdd(TEN, err); return 1;
+    biffAdd(TEN, err); airMopError(mop); return 1;
   }
 
+  airMopOkay(mop); 
   return 0;
 }
 
 double
-tenPathDistance(double tenA[7], double tenB[7],
+tenPathDistance(const double tenA[7], const double tenB[7],
                 int ptype, tenPathParm *_tpp) {
   char me[]="tenPathDistanceTwo", *err;
   tenPathParm *tpp;
@@ -648,6 +666,8 @@ tenPathDistance(double tenA[7], double tenB[7],
   case tenPathTypeGeodeLoxoR:
   case tenPathTypeLoxoK:
   case tenPathTypeLoxoR:
+  case tenPathTypeQuatGeoLoxK:
+  case tenPathTypeQuatGeoLoxR:
     npath = nrrdNew();
     airMopAdd(mop, npath, (airMopper)nrrdNuke, airMopAlways);
     if (_tpp) {

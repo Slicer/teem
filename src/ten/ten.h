@@ -108,18 +108,20 @@ enum {
 ** different kinds of paths between two tensors
 */
 enum {
-  tenPathTypeUnknown,         /* 0: nobody knows */
-  tenPathTypeLerp,            /* 1: simple per-coefficient lerp */
-  tenPathTypeLogLerp,         /* 2: lerp on coefs of logs (Log-Euclidean) */
-  tenPathTypeAffineInvariant, /* 3: Riemannian approach of many authors */
-  tenPathTypeWang,            /* 4: affine-invariant of Z Wang & B Vemuri */
-  tenPathTypeGeodeLoxoK,      /* 5: geodesic-loxodrome on K_i invariants */
-  tenPathTypeGeodeLoxoR,      /* 6: geodesic-loxodrome on R_i invariants */
-  tenPathTypeLoxoK,           /* 7: total loxodrome on K_i invariants */
-  tenPathTypeLoxoR,           /* 8: total loxodrome on R_i invariants */
+  tenPathTypeUnknown,         /*  0: nobody knows */
+  tenPathTypeLerp,            /*  1: simple per-coefficient lerp */
+  tenPathTypeLogLerp,         /*  2: lerp on coefs of logs (Log-Euclidean) */
+  tenPathTypeAffineInvariant, /*  3: Riemannian approach of many authors */
+  tenPathTypeWang,            /*  4: affine-invariant of Z Wang & B Vemuri */
+  tenPathTypeGeodeLoxoK,      /*  5: geodesic-loxodrome on K_i invariants */
+  tenPathTypeGeodeLoxoR,      /*  6: geodesic-loxodrome on R_i invariants */
+  tenPathTypeLoxoK,           /*  7: total loxodrome on K_i invariants */
+  tenPathTypeLoxoR,           /*  8: total loxodrome on R_i invariants */
+  tenPathTypeQuatGeoLoxK,     /*  9: geodesic-loxodrome on K_i invariants */
+  tenPathTypeQuatGeoLoxR,     /* 10: geodesic-loxodrome on R_i invariants */
   tenPathTypeLast
 };
-#define TEN_PATH_TYPE_MAX        8
+#define TEN_PATH_TYPE_MAX        10
 
 /*
 ******** tenGlyphType* enum
@@ -998,7 +1000,7 @@ typedef struct {
 typedef struct {
   /* input ------------- */
   int verbose;
-  double convStep, minNorm, convEps;
+  double convStep, minNorm, convEps, wghtSumEps;
   int enableRecurse;
   unsigned int maxIter, numSteps;
   int lengthFancy;
@@ -1053,20 +1055,32 @@ TEN_EXPORT airEnum *tenGlyphType;
 TEN_EXPORT airEnum *tenEstimate1Method;
 TEN_EXPORT airEnum *tenEstimate2Method;
 
+/* qglox.c */
+TEN_EXPORT void tenQGLInterpTwo(double oten[7],
+                                const double tenA[7], const double tenB[7],
+                                int ptype, double aa, tenPathParm *tpp);
+TEN_EXPORT int tenQGLInterpN(double tenOut[7],
+                             const double *tenIn,
+                             const double *wght, 
+                             unsigned int NN, int ptype, tenPathParm *tpp);
+
 /* path.c */
 TEN_EXPORT tenPathParm *tenPathParmNew();
 TEN_EXPORT tenPathParm *tenPathParmNix(tenPathParm *tpp);
 TEN_EXPORT void tenPathInterpTwo(double oten[7],
-                                 double tenA[7], double tenB[7],
+                                 const double tenA[7],
+                                 const double tenB[7],
                                  int ptype, double aa,
                                  tenPathParm *tpp);
 TEN_EXPORT double tenPathLength(Nrrd *npath, int doubleVerts,
                                 int fancy, int shape);
 TEN_EXPORT int tenPathInterpTwoDiscrete(Nrrd *nout, 
-                                        double tenA[7], double tenB[7],
+                                        const double tenA[7],
+                                        const double tenB[7],
                                         int ptype, unsigned int num,
                                         tenPathParm *tpp);
-TEN_EXPORT double tenPathDistance(double tenA[7], double tenB[7],
+TEN_EXPORT double tenPathDistance(const double tenA[7],
+                                  const double tenB[7],
                                   int ptype, tenPathParm *tpp);
 
 /* glyph.c */
@@ -1115,14 +1129,16 @@ TEN_EXPORT void tenRotationTangents_d(double phi1[7],
                                       double phi2[7],
                                       double phi3[7],
                                       const double evec[9]);
-TEN_EXPORT void tenLogSingle_d(double logten[7], double ten[7]);
-TEN_EXPORT void tenLogSingle_f(float logten[7], float ten[7]);
-TEN_EXPORT void tenExpSingle_d(double expten[7], double ten[7]);
-TEN_EXPORT void tenExpSingle_f(float expten[7], float ten[7]);
-TEN_EXPORT void tenSqrtSingle_d(double sqrtten[7], double ten[7]);
-TEN_EXPORT void tenSqrtSingle_f(float sqrtten[7], float ten[7]);
-TEN_EXPORT void tenPowSingle_d(double powten[7], double ten[7], double power);
-TEN_EXPORT void tenPowSingle_f(float powten[7], float ten[7], float power);
+TEN_EXPORT void tenLogSingle_d(double logten[7], const double ten[7]);
+TEN_EXPORT void tenLogSingle_f(float logten[7], const float ten[7]);
+TEN_EXPORT void tenExpSingle_d(double expten[7], const double ten[7]);
+TEN_EXPORT void tenExpSingle_f(float expten[7], const float ten[7]);
+TEN_EXPORT void tenSqrtSingle_d(double sqrtten[7], const double ten[7]);
+TEN_EXPORT void tenSqrtSingle_f(float sqrtten[7], const float ten[7]);
+TEN_EXPORT void tenPowSingle_d(double powten[7], const double ten[7],
+                               double power);
+TEN_EXPORT void tenPowSingle_f(float powten[7], const float ten[7],
+                               float power);
 /* should rename to tenInvSingle_x */
 TEN_EXPORT void tenInv_f(float inv[7], const float ten[7]);
 TEN_EXPORT void tenInv_d(double inv[7], const double ten[7]);

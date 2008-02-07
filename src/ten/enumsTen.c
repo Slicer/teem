@@ -83,7 +83,9 @@ _tenPathTypeStr[TEN_PATH_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "geoloxk",
   "geoloxr",
   "loxk",
-  "loxr"
+  "loxr",
+  "qgeoloxk",
+  "qgeoloxr",
 };
 
 airEnum

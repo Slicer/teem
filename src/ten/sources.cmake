@@ -20,6 +20,7 @@ SET(TEN_SOURCES
   tensor.c
   qseg.c
   path.c
+  qglox.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c
