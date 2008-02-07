@@ -465,16 +465,29 @@ ell_q_4v_rotate_d(double v2[4], const double q[4], const double v1[4]) {
   v2[3] = v1[3];
 }
 
-#define _ELL_Q_AVG_ITER_MAX 30
+/* #define _ELL_Q_AVG_ITER_MAX 30 */
 
-void
-ell_q_avg4_d(double m[4], const double eps, const double _wght[4],
+int
+ell_q_avg4_d(double m[4], unsigned int *iterP,
              const double _q1[4], const double _q2[4],
-             const double _q3[4], const double _q4[4]) {
-  double N, err, a[4], b[4], c[4], d[4], 
+             const double _q3[4], const double _q4[4],
+             const double _wght[4], 
+             const double eps, const unsigned int maxIter) {
+  char me[]="ell_q_avg4_d", err[BIFF_STRLEN];
+  double N, elen, a[4], b[4], c[4], d[4], 
     tmp[4], la[4], lb[4], lc[4], ld[4], u[4], wght[4];
-  int iter;
+  unsigned int iter;
   
+  /* *iterP optional */
+  if (!( m && _q1 && _q2 && _q3 && _q4 && _wght )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ELL, err); return 1;
+  }
+  if (!( eps >= 0 )) {
+    sprintf(err, "%s: need eps >= 0 (not %g)", me, eps);
+    biffAdd(ELL, err); return 1;
+  }
+
   /* normalize (wrt L2) all given quaternions */
   ELL_4V_NORM(a, _q1, N);
   ELL_4V_NORM(b, _q2, N);
@@ -499,15 +512,88 @@ ell_q_avg4_d(double m[4], const double eps, const double _wght[4],
     ell_q_div_d(tmp, m, d); ell_q_log_d(ld, tmp);
     /* average, and find length */
     ELL_4V_SCALE_ADD4(u, wght[0], la, wght[1], lb, wght[2], lc, wght[3], ld);
-    err = ELL_4V_LEN(u);
+    elen = ELL_4V_LEN(u);
     /* use exp to put it back on S^3 */
     ell_q_exp_d(tmp, u); ell_q_mul_d(m, m, tmp);
     iter++;
-  } while (iter < _ELL_Q_AVG_ITER_MAX && err > eps);
-  if (err > eps) {
-    fprintf(stderr, "%s: still have error %g after %d iterations\n", 
-            "ell_q_avg4_d", err, _ELL_Q_AVG_ITER_MAX);
+  } while ((!maxIter || iter < maxIter) && elen > eps);
+  if (elen > eps) {
+    sprintf(err, "%s: still have error %g after max %d iters", me,
+            elen, maxIter);
+    biffAdd(ELL, err); return 1;
   }
-  return;
+  
+  if (iterP) {
+    *iterP = iter;
+  }
+  return 0;
 }
 
+/*
+** unlike the thing above, this one assumes that the quaternions in qq
+** have already been normalized, and, that the sum of wght[] is 1.0 
+*/
+int
+ell_q_avgN_d(double mm[4], unsigned int *iterP,
+             const double *qq, const double *wght, const unsigned int NN,
+             const double eps, const unsigned int maxIter) {
+  char me[]="ell_q_avgN_d", err[BIFF_STRLEN];
+  double tmp, *qlog, qdiv[4], elen;
+  unsigned int ii, iter;
+  airArray *mop;
+
+  /* iterP optional */
+  if (!( mm && qq && wght )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(ELL, err); return 1;
+  }
+  if (!( eps >= 0 )) {
+    sprintf(err, "%s: need eps >= 0 (not %g)", me, eps);
+    biffAdd(ELL, err); return 1;
+  }
+
+  mop = airMopNew();
+  qlog = AIR_CAST(double *, calloc(4*NN, sizeof(double)));
+  if (!qlog) {
+    sprintf(err, "%s: couldn't allocate local buffer", me);
+    biffAdd(ELL, err); return 1;
+  }
+  airMopAdd(mop, qlog, airFree, airMopAlways);
+  
+  /* initialize with euclidean mean */
+  ELL_4V_SET(mm, 0, 0, 0, 0);
+  for (ii=0; ii<NN; ii++) {
+    ELL_4V_SCALE_INCR(mm, wght[ii], qq + 4*ii);
+  }
+  ELL_4V_NORM(mm, mm, tmp);
+
+  iter = 0;
+  do {
+    double qlog[4], qexp[4];
+    /* take log of everyone */
+    for (ii=0; ii<NN; ii++) {
+      ell_q_div_d(qdiv, mm, qq + 4*ii); 
+      ell_q_log_d(qlog + 4*ii, qdiv);
+    }
+    /* average, and find length */
+    ELL_4V_SET(qlog, 0, 0, 0, 0);
+    for (ii=0; ii<NN; ii++) {
+      ELL_4V_SCALE_INCR(qlog, wght[ii], qlog + 4*ii);
+    }
+    elen = ELL_4V_LEN(qlog);
+    /* use exp to put it back on S^3 */
+    ell_q_exp_d(qexp, qlog);
+    ell_q_mul_d(mm, mm, qexp);
+    iter++;
+  } while ((!maxIter || iter < maxIter) && elen > eps);
+  if (elen > eps) {
+    sprintf(err, "%s: still have error %g after max %d iters", me,
+            elen, maxIter);
+    biffAdd(ELL, err); airMopError(mop); return 1;
+  }
+  
+  if (iterP) {
+    *iterP = iter;
+  }
+  return 0;
+}

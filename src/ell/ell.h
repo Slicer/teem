@@ -211,10 +211,15 @@ ELL_EXPORT void ell_q_4v_rotate_f(float v2[4],
                                   const  float q[4], const  float v1[4]);
 ELL_EXPORT void ell_q_4v_rotate_d(double v2[4],
                                   const double q[4], const double v1[4]);
-ELL_EXPORT void ell_q_avg4_d(double avg[4],
-                             const double eps, const double wght[4],
-                             const double q1[4], const double q2[4],
-                             const double q3[4], const double q4[4]);
+ELL_EXPORT int ell_q_avg4_d(double m[4], unsigned int *iterP,
+                            const double _q1[4], const double _q2[4],
+                            const double _q3[4], const double _q4[4],
+                            const double _wght[4], 
+                            const double eps, const unsigned int maxIter);
+ELL_EXPORT int ell_q_avgN_d(double mm[4], unsigned int *iterP,
+                            const double *qq, const double *wght,
+                            const unsigned int NN,
+                            const double eps, const unsigned int maxIter);
 
 /* genmat.c */
 ELL_EXPORT int ell_Nm_check(Nrrd *mat, int doNrrdCheck);
