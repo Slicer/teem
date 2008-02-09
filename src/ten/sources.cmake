@@ -4,6 +4,7 @@ SET(TEN_SOURCES
   aniso.c
   bimod.c
   bvec.c
+  triple.c
   chan.c
   defaultsTen.c
   enumsTen.c

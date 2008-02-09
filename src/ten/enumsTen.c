@@ -1163,3 +1163,72 @@ _tenEstimate2Method = {
 };
 airEnum *
 tenEstimate2Method= &_tenEstimate2Method;
+
+/* ---------------------------------------------- */
+
+char
+_tenTripleStr[][AIR_STRLEN_SMALL] = {
+  "(unknown tenTriple)",
+  "eigenvalue",
+  "moment",
+  "XYZ",
+  "RThetaZ",
+  "RThetaPhi",
+  "J",
+  "K",
+  "R",
+  "wheelParms"
+};
+
+char
+_tenTripleDesc[][AIR_STRLEN_MED] = {
+  "unknown tenTriple",
+  "eigenvalues sorted in descending order",
+  "central moments (mu1,mu2,mu3)",
+  "rotation of evals, like Bahn 1999 JMR:141(68-77)",
+  "cylindrical coords of rotated evals",
+  "spherical coords of rotated evals",
+  "principal invariants (J1,J2,J3)",
+  "cylindrical invariants (K1,K2,K3)",
+  "spherical invariants (R1,R2,R3)",
+  "eigenvalue wheel (center,radius,angle)"
+};
+
+char
+_tenTripleStrEqv[][AIR_STRLEN_SMALL] = {
+  "eigenvalue", "eval", "ev",
+  "moment", "mu",
+  "XYZ",
+  "RThetaZ", "RThZ", "rtz",
+  "RThetaPhi", "RThPh", "rtp",
+  "J",
+  "K",
+  "R",
+  "wheelParms", "WP",
+  ""
+};
+
+int
+_tenTripleValEqv[] = {
+  tenTripleEigenvalue, tenTripleEigenvalue, tenTripleEigenvalue,
+  tenTripleMoment, tenTripleMoment,
+  tenTripleXYZ,
+  tenTripleRThetaZ, tenTripleRThetaZ, tenTripleRThetaZ,
+  tenTripleRThetaPhi, tenTripleRThetaPhi, tenTripleRThetaPhi,
+  tenTripleJ,
+  tenTripleK,
+  tenTripleR,
+  tenTripleWheelParm, tenTripleWheelParm
+};
+
+airEnum
+_tenTriple = {
+  "tenTriple",
+  TEN_TRIPLE_MAX,
+  _tenTripleStr, NULL,
+  _tenTripleDesc,
+  _tenTripleStrEqv, _tenTripleValEqv,
+  AIR_FALSE
+};
+airEnum *
+tenTriple = &_tenTriple;

@@ -24,56 +24,6 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define SQRT6 2.44948974278317809819
-#define SQRT2 1.41421356237309504880
-#define SQRT3 1.73205080756887729352
-
-static void
-tenQBL_eval_to_XYZ(double XYZ[3], const double eval[3]) {
-  double mat[] = 
-    {2/SQRT6, -1/SQRT6, -1/SQRT6,
-     0,        1/SQRT2, -1/SQRT2,
-     1/SQRT3,  1/SQRT3,  1/SQRT3};
-
-  ELL_3MV_MUL(XYZ, mat, eval);
-  return;
-}
-
-static void
-tenQBL_XYZ_to_eval(double eval[3], const double XYZ[3]) {
-  double mat[] = 
-    {2/SQRT6,   0,       1/SQRT3,
-     -1/SQRT6,  1/SQRT2, 1/SQRT3,
-     -1/SQRT6, -1/SQRT2, 1/SQRT3};
-
-  ELL_3MV_MUL(eval, mat, XYZ);
-  return;
-}
-
-#undef SQRT6
-#undef SQRT2
-#undef SQRT3
-
-static void
-tenQGL_eval_to_RThZ(double RThZ[3], const double eval[3]) {
-  double XYZ[3];
-  
-  tenQBL_eval_to_XYZ(XYZ, eval);
-  RThZ[0] = sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1]);
-  RThZ[1] = atan2(XYZ[1], XYZ[0]);
-  RThZ[2] = XYZ[2];
-}
-
-static void
-tenQGL_RThZ_to_eval(double eval[3], const double RThZ[3]) {
-  double XYZ[3];
-
-  XYZ[0] = RThZ[0]*cos(RThZ[1]);
-  XYZ[1] = RThZ[0]*sin(RThZ[1]);
-  XYZ[2] = RThZ[2];
-  tenQBL_XYZ_to_eval(eval, XYZ);
-}
-
 /* 
 ** computes (r1 - r0)/(log(r1) - log(r0))
 */
@@ -115,8 +65,8 @@ tenQGLInterpTwoEvalK(double oeval[3],
                      double tt) {
   double RThZA[3], RThZB[3], oRThZ[3], bb;
 
-  tenQGL_eval_to_RThZ(RThZA, evalA);
-  tenQGL_eval_to_RThZ(RThZB, evalB);
+  tenTripleConvert_d(RThZA, tenTripleRThetaZ, evalA, tenTripleEigenvalue);
+  tenTripleConvert_d(RThZB, tenTripleRThetaZ, evalB, tenTripleEigenvalue);
   
   rr = AIR_LERP(tt, rr0, rr1);
   zz = AIR_LERP(tt, zz0, zz1);
@@ -134,8 +84,7 @@ tenQGLInterpTwoEvalK(double oeval[3],
     th = th0 + (th1 - th0)*log(1 + bb*tt)/log(1 + bb);
   }
   
-  tenQGL_RThZ_to_eval(oeval, oRThZ);
-
+  tenTripleConvert_d(oeval, tenTripleEigenvalue, oRThZ, tenTripleRThetaZ);
 }
 
 double
@@ -185,26 +134,6 @@ _tenQGL_Kexp(double RThZB[3],
 #undef zz
 
 
-static void
-tenQGL_eval_to_RThPh(double RThPh[3], const double eval[3]) {
-  double XYZ[3];
-  
-  tenQBL_eval_to_XYZ(XYZ, eval);
-  RThPh[0] = sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1] + XYZ[2]*XYZ[2]);
-  RThPh[1] = atan2(XYZ[1], XYZ[0]);
-  RThPh[2] = asin(sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1])/RThPh[0]);
-}
-
-static void
-tenQGL_RThPh_to_eval(double eval[3], const double RThPh[3]) {
-  double XYZ[3];
-
-  XYZ[0] = RThPh[0]*cos(RThPh[1])*sin(RThPh[2]);
-  XYZ[1] = RThPh[0]*sin(RThPh[1])*sin(RThPh[2]);
-  XYZ[2] = RThPh[0]*cos(RThPh[2]);
-  tenQBL_XYZ_to_eval(eval, XYZ);
-}
-
 #define rr0  (RThPhA[0])
 #define rr1  (RThPhB[0])
 #define rr  (oRThPh[0])
@@ -221,8 +150,8 @@ tenQGLInterpTwoEvalR(double oeval[3],
                      double tt) {
   double RThPhA[3], RThPhB[3], oRThPh[3], bb, ltph, ltph0, ltph1;
 
-  tenQGL_eval_to_RThPh(RThPhA, evalA);
-  tenQGL_eval_to_RThPh(RThPhB, evalB);
+  tenTripleConvert_d(RThPhA, tenTripleRThetaPhi, evalA, tenTripleEigenvalue);
+  tenTripleConvert_d(RThPhB, tenTripleRThetaPhi, evalB, tenTripleEigenvalue);
   
   rr = AIR_LERP(tt, rr0, rr1);
   /* HEY: CUT AND PASTE (with th -> ph) FROM ABOVE */
@@ -244,7 +173,7 @@ tenQGLInterpTwoEvalR(double oeval[3],
   ltph1 = log(tan(ph1/2));
   th = th0 + (th1 - th0)*(ltph - ltph0)/(ltph1 - ltph0);
 
-  tenQGL_RThPh_to_eval(oeval, oRThPh);
+  tenTripleConvert_d(oeval, tenTripleEigenvalue, oRThPh, tenTripleRThetaPhi);
   return;
 }
 
@@ -411,9 +340,11 @@ _tenQGLInterpNEval(double evalOut[3],
   ELL_3V_SET(RTh_Out, 0, 0, 0);
   for (ii=0; ii<NN; ii++) {
     if (tenPathTypeQuatGeoLoxK == ptype) {
-      tenQGL_eval_to_RThZ(RTh_In + 3*ii, evalIn + 3*ii);
+      tenTripleConvert_d(RTh_In + 3*ii, tenTripleRThetaZ,
+                         evalIn + 3*ii, tenTripleEigenvalue);
     } else {
-      tenQGL_eval_to_RThPh(RTh_In + 3*ii, evalIn + 3*ii);
+      tenTripleConvert_d(RTh_In + 3*ii, tenTripleRThetaPhi,
+                         evalIn + 3*ii, tenTripleEigenvalue);
     }
     ELL_3V_SCALE_INCR(RTh_Out, wght[ii], RTh_In + 3*ii);
   }
@@ -423,9 +354,11 @@ _tenQGLInterpNEval(double evalOut[3],
 
   /* finish, convert to eval */
   if (tenPathTypeQuatGeoLoxK == ptype) {
-    tenQGL_RThZ_to_eval(evalOut, RTh_Out);
+    tenTripleConvert_d(evalOut, tenTripleEigenvalue,
+                       RTh_Out, tenTripleRThetaZ);
   } else {
-    tenQGL_RThPh_to_eval(evalOut, RTh_Out);
+    tenTripleConvert_d(evalOut, tenTripleEigenvalue,
+                       RTh_Out, tenTripleRThetaPhi);
   }
 
   airMopOkay(mop);

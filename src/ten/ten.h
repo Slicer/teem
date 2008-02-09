@@ -692,6 +692,21 @@ enum {
 };
 #define TEN_FIBER_PARM_MAX        4
 
+enum {
+  tenTripleUnknown,    /* 0: nobody knows */
+  tenTripleEigenvalue, /* 1: eigenvalues sorted in descending order */
+  tenTripleMoment,     /* 2: (mu1,mu2,mu3) */
+  tenTripleXYZ,        /* 3: rotation of evals, like Bahn 1999 JMR:141(68-77) */
+  tenTripleRThetaZ,    /* 4: cylindrical coords of rotated evals */
+  tenTripleRThetaPhi,  /* 5: spherical coords of rotated evals */
+  tenTripleJ,          /* 6: (J1,J2,J3) principal invariants */
+  tenTripleK,          /* 7: (K1,K2,K3) cylindrical invariants */
+  tenTripleR,          /* 8: (R1,R2,R3) spherical invariants */
+  tenTripleWheelParm,  /* 9: eigenvalue wheel (center,radius,angle) */
+  tenTripleLast
+};
+#define TEN_TRIPLE_MAX    9
+
 /*
 ******** tenFiberContext
 **
@@ -1022,6 +1037,12 @@ TEN_EXPORT double tenDefFiberAnisoThresh;
 TEN_EXPORT int tenDefFiberIntg;
 TEN_EXPORT double tenDefFiberWPunct;
 
+/* triple.c */
+TEN_EXPORT void tenTripleConvert_d(double dst[3], int dstType,
+                                   const double src[3], const int srcType);
+TEN_EXPORT void tenTripleConvert_f(float dst[3], int dstType,
+                                   const float src[3], const int srcType);
+
 /* grads.c */
 TEN_EXPORT tenGradientParm *tenGradientParmNew(void);
 TEN_EXPORT tenGradientParm *tenGradientParmNix(tenGradientParm *tgparm);
@@ -1054,6 +1075,7 @@ TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;
 TEN_EXPORT airEnum *tenEstimate1Method;
 TEN_EXPORT airEnum *tenEstimate2Method;
+TEN_EXPORT airEnum *tenTriple;
 
 /* qglox.c */
 TEN_EXPORT void tenQGLInterpTwo(double oten[7],
