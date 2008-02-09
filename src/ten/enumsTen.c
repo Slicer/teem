@@ -1204,7 +1204,7 @@ _tenTripleStrEqv[][AIR_STRLEN_SMALL] = {
   "J",
   "K",
   "R",
-  "wheelParms", "WP",
+  "wheelParm", "WP",
   ""
 };
 
