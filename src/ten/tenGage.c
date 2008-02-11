@@ -194,6 +194,10 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
   {tenGageCovariance,             21,  0,  {tenGageTensor}, /* and all the values in iv3 */                      0,        0,     AIR_FALSE},
 
+  {tenGageTensorLogEuclidean,      7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
+  {tenGageTensorQuatGeoLoxK,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
+  {tenGageTensorQuatGeoLoxR,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
+
   {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
@@ -1131,10 +1135,75 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       cc = 0;
       for (taa=0; taa<6; taa++) {
         for (tbb=taa; tbb<6; tbb++) {
+          /* HEY: do I really mean to have this 100000 factor in here */
           cov[cc] += 100000*ten[taa+1]*ten[tbb+1];
           cc++;
         }
       }
+    }
+  }
+
+  /* these are items that somewhat bypass the convolution result
+     (in tenGageTensor) because it has to do something else fancy
+     with the constituent tensors.  This is young and hacky code;
+     and it may be that facilitating this kind of processing should
+     be better supported by the gage API ... */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean) ||
+      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK) ||
+      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
+    double buffTen[7*8*8*8], buffWght[8*8*8];
+    unsigned int vijk, vii, vjj, vkk, fd, fddd;
+    double *ans;
+    int qret;
+
+    /* HEY: casting because radius is signed (shouldn't be) */
+    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    if (fd > 8) {
+      fprintf(stderr, "%s: sorry, fd %u > limit 8 --> garbage\n", me, fd);
+      fd = AIR_MIN(fd, 8);
+    }
+    fddd = fd*fd*fd;
+    for (vijk=0; vijk<fddd; vijk++) {
+      double wxx, wyy, wzz;
+      unsigned int tt;
+      vii = vijk % fd;
+      vjj = (vijk/fd) % fd;
+      vkk = vijk/fd/fd;
+      wxx = ctx->fw[vii + fd*(0 + 3*gageKernel00)];
+      wyy = ctx->fw[vjj + fd*(1 + 3*gageKernel00)];
+      wzz = ctx->fw[vkk + fd*(2 + 3*gageKernel00)];
+      buffWght[vijk] = wxx*wyy*wzz;
+      for (tt=0; tt<7; tt++) {
+        buffTen[tt + 7*vijk] = pvl->iv3[vijk + fddd*tt];
+      }
+    }
+
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean)) {
+      double logAns[7];
+      ans = pvl->directAnswer[tenGageTensorLogEuclidean];
+      TEN_T_SET(logAns, 0,   0, 0, 0,   0, 0,   0);
+      for (vijk=0; vijk<fddd; vijk++) {
+        double tmpLog[7];
+        tenLogSingle_d(tmpLog, buffTen + 7*vijk);
+        TEN_T_SCALE_INCR(logAns, buffWght[vijk], tmpLog);
+      }
+      tenExpSingle_d(ans, logAns);
+    }
+    qret = 0;
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK)) {
+      ans = pvl->directAnswer[tenGageTensorQuatGeoLoxK];
+      qret = tenQGLInterpN(ans, buffTen, buffWght, fddd,
+                           tenPathTypeQuatGeoLoxK, NULL);
+    }
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
+      ans = pvl->directAnswer[tenGageTensorQuatGeoLoxR];
+      qret= tenQGLInterpN(ans, buffTen, buffWght, fddd,
+                          tenPathTypeQuatGeoLoxR, NULL);
+    }
+    if (qret) {
+      char *lerr;
+      fprintf(stderr, "!%s: problem!!!\n %s", me, lerr = biffGet(TEN));
+      free(lerr);
     }
   }
 

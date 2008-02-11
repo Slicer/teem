@@ -33,10 +33,10 @@ tenPathParmNew(void) {
     tpp->verbose = AIR_FALSE;
     tpp->convStep = 0.2;
     tpp->minNorm = 0.0;
-    tpp->convEps = 0.0000001;
+    tpp->convEps = 0.0000000001;
     tpp->wghtSumEps = 0.0000001;
     tpp->enableRecurse = AIR_TRUE;
-    tpp->maxIter = 0;
+    tpp->maxIter = 20;
     tpp->numSteps = 100;
     tpp->lengthFancy = AIR_FALSE;
     tpp->numIter = 0;
@@ -139,10 +139,10 @@ tenPathInterpTwo(double oten[7],
 }
 
 int
-_tenPathGeodeLoxoRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
-                          unsigned int ii, int rotnoop, double scl,
-                          tenPathParm *tpp) {
-  char me[]="_tenPathGeodeLoxoRelaxOne", err[BIFF_STRLEN];
+_tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
+                       unsigned int ii, int rotnoop, double scl,
+                       tenPathParm *tpp) {
+  char me[]="_tenPathGeoLoxRelaxOne", err[BIFF_STRLEN];
   double *tdata, *odata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7],
     len02, len24, tmp, tng[7], correct, half, update[7];
   unsigned int jj, NN;
@@ -246,9 +246,9 @@ _tenPathGeodeLoxoRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
 }
 
 void
-_tenPathGeodeLoxoIGRT(double *igrt, double *ten, int useK, int rotNoop,
-                      double minnorm) {
-  /* char me[]="_tenPathGeodeLoxoIGRT"; */
+_tenPathGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop,
+                   double minnorm) {
+  /* char me[]="_tenPathGeoLoxIGRT"; */
   double eval[3], evec[9];
 
   if (useK) {
@@ -304,7 +304,7 @@ tenPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
       unsigned int ii, lo, hi;
 
       TEN_T_LERP(mean, 0.5, tenA, tenB);
-      _tenPathGeodeLoxoIGRT(igrt, mean, AIR_FALSE, AIR_FALSE, 0.0);
+      _tenPathGeoLoxIGRT(igrt, mean, AIR_FALSE, AIR_FALSE, 0.0);
       if (shape) {
         lo = 0;
         hi = 2;
@@ -399,11 +399,11 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 }
 
 int
-_tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
-                          const double tenA[7], const double tenB[7],
-                          unsigned int NN, int useK, int rotnoop,
-                          tenPathParm *tpp) {
-  char me[]="_tenPathGeodeLoxoPolyLine", err[BIFF_STRLEN];
+_tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
+                       const double tenA[7], const double tenB[7],
+                       unsigned int NN, int useK, int rotnoop,
+                       tenPathParm *tpp) {
+  char me[]="_tenPathGeoLoxPolyLine", err[BIFF_STRLEN];
   Nrrd *nigrt, *ntt, *nss, *nsub;
   double *igrt, *geod, *tt, len, newlen;
   unsigned int ii;
@@ -451,7 +451,7 @@ _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
     NrrdResampleContext *rsmc;
     double kparm[3] = {1.0, 0.0, 0.5};
     /* recurse and find geodesic with smaller number of vertices */
-    if (_tenPathGeodeLoxoPolyLine(nsub, &subIter, tenA, tenB,
+    if (_tenPathGeoLoxPolyLine(nsub, &subIter, tenA, tenB,
                                   NN/2, useK, rotnoop, tpp)) {
       sprintf(err, "%s: problem with recursive call", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
@@ -482,7 +482,7 @@ _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
     }
   }
   for (ii=0; ii<=2*NN; ii++) {
-    _tenPathGeodeLoxoIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
+    _tenPathGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
                           tpp->minNorm);
   }
   nrrdCopy(nss, ntt);
@@ -507,7 +507,7 @@ _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
     for (ii=lo; ii!=hi; ii+=dd) {
       double sclHack;
       sclHack = ii*4.0/NN - ii*ii*4.0/NN/NN;
-      if (_tenPathGeodeLoxoRelaxOne(nss, ntt, nigrt, ii, rotnoop,
+      if (_tenPathGeoLoxRelaxOne(nss, ntt, nigrt, ii, rotnoop,
                                     sclHack*tpp->convStep, tpp)) {
         sprintf(err, "%s: problem on vert %u, iter %u\n", me, ii, *numIter);
         biffAdd(TEN, err); return 1;
@@ -516,7 +516,7 @@ _tenPathGeodeLoxoPolyLine(Nrrd *ngeod, unsigned int *numIter,
     newlen = _tenPathSpacingEqualize(ntt, nss);
     /* try doing this less often */
     for (ii=0; ii<=2*NN; ii++) {
-      _tenPathGeodeLoxoIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
+      _tenPathGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
                             tpp->minNorm);
     }
     *numIter += 1;
@@ -555,8 +555,6 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
             tenPathType->name);
     biffAdd(TEN, err); return 1;
   }
-  fprintf(stderr, "!%s: type %d -> %s\n", me, ptype, 
-          airEnumStr(tenPathType, ptype));
 
   mop = airMopNew();
   if (_tpp) {
@@ -590,20 +588,20 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
       tenPathInterpTwo(out + 7*ii, tenA, tenB, 
                        ptype, (double)ii/(num-1), tpp);
     }
-  } else if (ptype == tenPathTypeGeodeLoxoK
-             || ptype == tenPathTypeGeodeLoxoR
-             || ptype == tenPathTypeLoxoK
-             || ptype == tenPathTypeLoxoR) {
+  } else if (ptype == tenPathTypeGeoLoxK
+             || ptype == tenPathTypeGeoLoxR
+             || ptype == tenPathTypeLoxK
+             || ptype == tenPathTypeLoxR) {
     /* we have slow iterative code for these */
     unsigned int numIter;
     int useK, rotnoop;
     
-    useK = (tenPathTypeGeodeLoxoK == ptype
-            || tenPathTypeLoxoK == ptype);
-    rotnoop = (tenPathTypeGeodeLoxoK == ptype
-               || tenPathTypeGeodeLoxoR == ptype);
+    useK = (tenPathTypeGeoLoxK == ptype
+            || tenPathTypeLoxK == ptype);
+    rotnoop = (tenPathTypeGeoLoxK == ptype
+               || tenPathTypeGeoLoxR == ptype);
     fprintf(stderr, "!%s: useK = %d, rotnoop = %d\n", me, useK, rotnoop);
-    if (_tenPathGeodeLoxoPolyLine(nout, &numIter,
+    if (_tenPathGeoLoxPolyLine(nout, &numIter,
                                   tenA, tenB,
                                   num, useK, rotnoop, tpp)) {
       sprintf(err, "%s: trouble finding path", me);
@@ -656,10 +654,10 @@ tenPathDistance(const double tenA[7], const double tenB[7],
     tenLogSingle_d(logDiff, diff);
     ret = TEN_T_NORM(logDiff);
     break;
-  case tenPathTypeGeodeLoxoK:
-  case tenPathTypeGeodeLoxoR:
-  case tenPathTypeLoxoK:
-  case tenPathTypeLoxoR:
+  case tenPathTypeGeoLoxK:
+  case tenPathTypeGeoLoxR:
+  case tenPathTypeLoxK:
+  case tenPathTypeLoxR:
   case tenPathTypeQuatGeoLoxK:
   case tenPathTypeQuatGeoLoxR:
     npath = nrrdNew();

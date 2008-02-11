@@ -142,7 +142,7 @@ _wp_mu(double wp[3], const double mu[3]) {
   wp[1] = SQRT2*stdv;
   mode = SQRT2*MU3/(stdv*stdv*stdv);
   mode = AIR_CLAMP(-1, mode, 1);
-  wp[2] = acos(mode)/3;
+  wp[2] = acos(AIR_CLAMP(-1, mode, 1))/3;
 }
 
 static void
@@ -213,7 +213,7 @@ _rtp_xyz(double RThPh[3], const double XYZ[3]) {
 
   RThPh[0] = sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1] + XYZ[2]*XYZ[2]);
   RThPh[1] = atan2(XYZ[1], XYZ[0]);
-  RThPh[2] = asin(sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1])/RThPh[0]);
+  RThPh[2] = atan2(sqrt(XYZ[0]*XYZ[0] + XYZ[1]*XYZ[1]), XYZ[2]);
 }
 
 static void
@@ -236,7 +236,7 @@ static void
 _rtz_k(double rThZ[3], const double k[3]) {
 
   rThZ[0] = K2;
-  rThZ[1] = acos(K3)/3;
+  rThZ[1] = acos(AIR_CLAMP(-1, K3, 1))/3;
   rThZ[2] = K1/SQRT3;
 }
 
@@ -252,8 +252,8 @@ static void
 _rtp_r(double RThPh[3], const double r[3]) {
 
   RThPh[0] = R1;
-  RThPh[1] = acos(R3)/3;
-  RThPh[2] = asin((SQRT2/SQRT3)*R2);
+  RThPh[1] = acos(AIR_CLAMP(-1, R3, 1))/3;
+  RThPh[2] = asin(AIR_CLAMP(-1, (SQRT2/SQRT3)*R2, 1));
 }
 
 static void
@@ -313,7 +313,7 @@ CONVERT1(ev, wp, k)       /* _ev_k */
 CONVERT2(ev, xyz, rtp, r) /* _ev_r */
 
 static tenTripleConverter
-_convert[TEN_TRIPLE_MAX+1][TEN_TRIPLE_MAX+1] = {
+_convert[TEN_TRIPLE_TYPE_MAX+1][TEN_TRIPLE_TYPE_MAX+1] = {
   {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
   /* DEST:    SRC:  ev      mu      xyz       rtz       rtp       J      K       R       WP */
   /* ev */  {NULL, _iden,   _ev_mu, _ev_xyz,  _ev_rtz,  _ev_rtp,  _ev_j, _ev_k,  _ev_r,  _ev_wp},
@@ -327,10 +327,13 @@ _convert[TEN_TRIPLE_MAX+1][TEN_TRIPLE_MAX+1] = {
   /* WP */  {NULL, _wp_ev,  _wp_mu, NULL,     _wp_rtz,  NULL,     NULL,  _wp_k,   NULL,  _iden}};
 
 void
-tenTripleConvert_d(double dst[3], int dstType,
-                   const double src[3], const int srcType) {
-  if (airEnumValCheck(tenTriple, dstType)
-      || airEnumValCheck(tenTriple, srcType)) {
+tenTripleConvertSingle_d(double dst[3], int dstType,
+                         const double src[3], const int srcType) {
+  char me[]="tenTripleConvertSingle_d";
+  int direct;
+
+  if (airEnumValCheck(tenTripleType, dstType)
+      || airEnumValCheck(tenTripleType, srcType)) {
     /* got invalid source or destination type */
     ELL_3V_SET(dst, AIR_NAN, AIR_NAN, AIR_NAN);
     return;
@@ -339,22 +342,48 @@ tenTripleConvert_d(double dst[3], int dstType,
   if (_convert[dstType][srcType]) {
     /* we have a direct converter */
     _convert[dstType][srcType](dst, src);
+    direct = AIR_TRUE;
   } else {
     double eval[3];
     /* else, for lack of anything clever, we convert via evals */
-    _convert[tenTripleEigenvalue][srcType](eval, src);
-    _convert[dstType][tenTripleEigenvalue](dst, eval);
+    _convert[tenTripleTypeEigenvalue][srcType](eval, src);
+    _convert[dstType][tenTripleTypeEigenvalue](dst, eval);
+    direct = AIR_FALSE;
+  }
+
+  /* warn if conversion created non-existant values from
+     existant input */
+  if (ELL_3V_EXISTS(src) && !ELL_3V_EXISTS(dst)) {
+    fprintf(stderr, "%s: problem? (%s) %g %g %g <-%s- (%s) %g %g %g\n", me,
+            airEnumStr(tenTripleType, dstType),
+            dst[0], dst[1], dst[2], 
+            direct ? "-" : "...",
+            airEnumStr(tenTripleType, srcType),
+            src[0], src[1], src[2]);
   }
   
   return;
 }
 
 void
-tenTripleConvert_f(float _dst[3], int dstType,
-                   const float _src[3], const int srcType) {
+tenTripleConvertSingle_f(float _dst[3], int dstType,
+                         const float _src[3], const int srcType) {
   double dst[3], src[3];
 
   ELL_3V_COPY(src, _src);
-  tenTripleConvert_d(dst, dstType, src, srcType);
+  tenTripleConvertSingle_d(dst, dstType, src, srcType);
   ELL_3V_COPY(_dst, dst);
+}
+
+int
+tenTripleConvert(Nrrd *nout, int dstType,
+                 const Nrrd *nin, int srcType) {
+  char me[]="tenTripleConvert", err[BIFF_STRLEN];
+
+  AIR_UNUSED(nout);
+  AIR_UNUSED(dstType);
+  AIR_UNUSED(nin);
+  AIR_UNUSED(srcType);
+
+  return 0;
 }

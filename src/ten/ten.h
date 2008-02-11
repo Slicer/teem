@@ -113,10 +113,10 @@ enum {
   tenPathTypeLogLerp,         /*  2: lerp on coefs of logs (Log-Euclidean) */
   tenPathTypeAffineInvariant, /*  3: Riemannian approach of many authors */
   tenPathTypeWang,            /*  4: affine-invariant of Z Wang & B Vemuri */
-  tenPathTypeGeodeLoxoK,      /*  5: geodesic-loxodrome on K_i invariants */
-  tenPathTypeGeodeLoxoR,      /*  6: geodesic-loxodrome on R_i invariants */
-  tenPathTypeLoxoK,           /*  7: total loxodrome on K_i invariants */
-  tenPathTypeLoxoR,           /*  8: total loxodrome on R_i invariants */
+  tenPathTypeGeoLoxK,         /*  5: geodesic-loxodrome on K_i invariants */
+  tenPathTypeGeoLoxR,         /*  6: geodesic-loxodrome on R_i invariants */
+  tenPathTypeLoxK,            /*  7: total loxodrome on K_i invariants */
+  tenPathTypeLoxR,            /*  8: total loxodrome on R_i invariants */
   tenPathTypeQuatGeoLoxK,     /*  9: geodesic-loxodrome on K_i invariants */
   tenPathTypeQuatGeoLoxR,     /* 10: geodesic-loxodrome on R_i invariants */
   tenPathTypeLast
@@ -410,11 +410,14 @@ enum {
                                                15:yyyy 16:yyyz 17:yyzz
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
+  tenGageTensorLogEuclidean,     /* 131: log-euclidean interpolation */
+  tenGageTensorQuatGeoLoxK,      /* 132: QGL-K interpolation */
+  tenGageTensorQuatGeoLoxR,      /* 133: QGL-R interpolation */
 
-  tenGageAniso,            /* 131: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 134: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     131
+#define TEN_GAGE_ITEM_MAX     134
 
 /*
 ******** tenDwiGage* enum
@@ -693,19 +696,19 @@ enum {
 #define TEN_FIBER_PARM_MAX        4
 
 enum {
-  tenTripleUnknown,    /* 0: nobody knows */
-  tenTripleEigenvalue, /* 1: eigenvalues sorted in descending order */
-  tenTripleMoment,     /* 2: (mu1,mu2,mu3) */
-  tenTripleXYZ,        /* 3: rotation of evals, like Bahn 1999 JMR:141(68-77) */
-  tenTripleRThetaZ,    /* 4: cylindrical coords of rotated evals */
-  tenTripleRThetaPhi,  /* 5: spherical coords of rotated evals */
-  tenTripleJ,          /* 6: (J1,J2,J3) principal invariants */
-  tenTripleK,          /* 7: (K1,K2,K3) cylindrical invariants */
-  tenTripleR,          /* 8: (R1,R2,R3) spherical invariants */
-  tenTripleWheelParm,  /* 9: eigenvalue wheel (center,radius,angle) */
-  tenTripleLast
+  tenTripleTypeUnknown,    /* 0: nobody knows */
+  tenTripleTypeEigenvalue, /* 1: eigenvalues sorted in descending order */
+  tenTripleTypeMoment,     /* 2: (mu1,mu2,mu3) */
+  tenTripleTypeXYZ,        /* 3: eval rotation, after Bahn'99 JMR:141(68-77) */
+  tenTripleTypeRThetaZ,    /* 4: cylindrical coords of rotated evals */
+  tenTripleTypeRThetaPhi,  /* 5: spherical coords of rotated evals */
+  tenTripleTypeJ,          /* 6: (J1,J2,J3) principal invariants */
+  tenTripleTypeK,          /* 7: (K1,K2,K3) cylindrical invariants */
+  tenTripleTypeR,          /* 8: (R1,R2,R3) spherical invariants */
+  tenTripleTypeWheelParm,  /* 9: eigenvalue wheel (center,radius,angle) */
+  tenTripleTypeLast
 };
-#define TEN_TRIPLE_MAX    9
+#define TEN_TRIPLE_TYPE_MAX   9
 
 /*
 ******** tenFiberContext
@@ -1038,10 +1041,16 @@ TEN_EXPORT int tenDefFiberIntg;
 TEN_EXPORT double tenDefFiberWPunct;
 
 /* triple.c */
-TEN_EXPORT void tenTripleConvert_d(double dst[3], int dstType,
-                                   const double src[3], const int srcType);
-TEN_EXPORT void tenTripleConvert_f(float dst[3], int dstType,
-                                   const float src[3], const int srcType);
+TEN_EXPORT void tenTripleConvertSingle_d(double dst[3],
+                                         int dstType,
+                                         const double src[3],
+                                         const int srcType);
+TEN_EXPORT void tenTripleConvertSingle_f(float dst[3],
+                                         int dstType,
+                                         const float src[3],
+                                         const int srcType);
+TEN_EXPORT int tenTripleConvert(Nrrd *nout, int dstType,
+                                const Nrrd *nin, int srcType);
 
 /* grads.c */
 TEN_EXPORT tenGradientParm *tenGradientParmNew(void);
@@ -1075,9 +1084,17 @@ TEN_EXPORT airEnum *tenFiberIntg;
 TEN_EXPORT airEnum *tenGlyphType;
 TEN_EXPORT airEnum *tenEstimate1Method;
 TEN_EXPORT airEnum *tenEstimate2Method;
-TEN_EXPORT airEnum *tenTriple;
+TEN_EXPORT airEnum *tenTripleType;
 
 /* qglox.c */
+TEN_EXPORT void tenQGLInterpTwoEvalK(double oeval[3],
+                                     const double evalA[3],
+                                     const double evalB[3],
+                                     const double tt);
+TEN_EXPORT void tenQGLInterpTwoEvalR(double oeval[3],
+                                     const double evalA[3],
+                                     const double evalB[3],
+                                     const double tt);
 TEN_EXPORT void tenQGLInterpTwo(double oten[7],
                                 const double tenA[7], const double tenB[7],
                                 int ptype, double aa, tenPathParm *tpp);

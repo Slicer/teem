@@ -98,7 +98,7 @@ main(int argc, char *argv[]) {
   if (_nin) {
     double refTen[7], inTen[7], *in, *out;
     unsigned int xi, yi, zi, sx, sy, sz, dimOut;
-    int axmap[NRRD_DIM_MAX], slow;
+    int axmap[NRRD_DIM_MAX], numerical;
     size_t size[NRRD_DIM_MAX];
 
     if (tenTensorCheck(_nin, nrrdTypeDefault, AIR_TRUE, AIR_TRUE)) {
@@ -121,11 +121,13 @@ main(int argc, char *argv[]) {
     }
     nin = nrrdNew();
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
-    slow = (ptype == tenPathTypeGeodeLoxoK
-            || ptype == tenPathTypeGeodeLoxoR
-            || ptype == tenPathTypeLoxoK
-            || ptype == tenPathTypeLoxoR);
-    if (slow) {
+    numerical = (ptype == tenPathTypeGeoLoxK
+                 || ptype == tenPathTypeGeoLoxR
+                 || ptype == tenPathTypeLoxK
+                 || ptype == tenPathTypeLoxR
+                 || ptype == tenPathTypeQuatGeoLoxK
+                 || ptype == tenPathTypeQuatGeoLoxR);
+    if (numerical) {
       tpp->lengthFancy = AIR_TRUE;
       dimOut = 4;
       size[0] = 3;
@@ -170,7 +172,7 @@ main(int argc, char *argv[]) {
       for (yi=0; yi<sy; yi++) {
         for (xi=0; xi<sx; xi++) {
           TEN_T_COPY(inTen, in + 7*(xi + sx*(yi + sy*zi)));
-          if (slow) {
+          if (numerical) {
             fprintf(stderr, "!%s: %u %u %u \n", me, xi, yi, zi);
             if (inTen[0] < confThresh) {
               out[0] = AIR_NAN;
@@ -194,7 +196,7 @@ main(int argc, char *argv[]) {
             out += 1;
           }
         }
-        if (slow) {
+        if (numerical) {
           if (nrrdSave(outS, nout, NULL)) {
             airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
             fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
@@ -282,6 +284,35 @@ main(int argc, char *argv[]) {
                 nrm, TEN_T_NORM(diff), TEN_T_NORM(igrad[2]),
                 eval[0], eval[1], eval[2]);
         geod += 7;
+      }
+    }
+
+    if (0) {
+      double eval[3], evec[9], rot[9], tt[7], qB[4];
+      double unitq[8][4] = {{+1, 0, 0, 0},
+                            {-1, 0, 0, 0},
+                            {0, +1, 0, 0},
+                            {0, -1, 0, 0},
+                            {0, 0, +1, 0},
+                            {0, 0, -1, 0},
+                            {0, 0, 0, +1},
+                            {0, 0, 0, -1}};
+      unsigned qi;
+      tenEigensolve_d(eval, evec, tB);
+      ELL_3M_TRANSPOSE(rot, evec);
+      ell_3m_to_q_d(qB, evec);
+      fprintf(stderr, "%s:    tB: (%g) %f %f %f, %f %f, %f; qB = %f %f %f %f\n", me,
+              tB[0], tB[1], tB[2], tB[3], tB[4], tB[5], tB[6],
+              qB[0], qB[1], qB[2], qB[3]);
+      for (qi=0; qi<8; qi++) {
+        double qm[4];
+        ell_q_mul_d(qm, qB, unitq[qi]);
+        ell_q_to_3m_d(rot, qm);
+        ELL_3M_TRANSPOSE(evec, rot);
+        tenMakeOne_d(tt, tB[0], eval, evec);
+        fprintf(stderr, "%s: tt[%u]: (%g) %f %f %f, %f %f, %f; qm = %f %f %f %f\n", me, qi,
+                tt[0], tt[1], tt[2], tt[3], tt[4], tt[5], tt[6],
+                qm[0], qm[1], qm[2], qm[3]);
       }
     }
   }

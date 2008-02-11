@@ -88,13 +88,42 @@ _tenPathTypeStr[TEN_PATH_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "qgeoloxr",
 };
 
+char
+_tenPathTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "lerp",
+  "loglerp",
+  "affinv",
+  "wang",
+  "geoloxk", "glk",
+  "geoloxr", "glr",
+  "loxk",
+  "loxr",
+  "qgeoloxk", "qglk",
+  "qgeoloxr", "qglr",
+  ""
+};
+
+int
+_tenPathTypeValEqv[] = {
+  tenPathTypeLerp,
+  tenPathTypeLogLerp,
+  tenPathTypeAffineInvariant,
+  tenPathTypeWang,
+  tenPathTypeGeoLoxK, tenPathTypeGeoLoxK,
+  tenPathTypeGeoLoxR, tenPathTypeGeoLoxR,
+  tenPathTypeLoxK,
+  tenPathTypeLoxR,
+  tenPathTypeQuatGeoLoxK, tenPathTypeQuatGeoLoxK,
+  tenPathTypeQuatGeoLoxR, tenPathTypeQuatGeoLoxR,
+};
+
 airEnum
 _tenPathType = {
   "path type",
   TEN_PATH_TYPE_MAX,
   _tenPathTypeStr, NULL,
   NULL,
-  NULL, NULL,
+  _tenPathTypeStrEqv, _tenPathTypeValEqv, 
   AIR_FALSE
 };
 airEnum *
@@ -262,6 +291,10 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
 
   "cov",
 
+  "logeuclid",
+  "qglk",
+  "qglr",
+
   "anisotropies"
 };
 
@@ -396,6 +429,9 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "diffusion angle of omega",
   "diffusion fraction of omega",
   "covariance",
+  "log-euclidean",
+  "QuatGeoLoxK",
+  "QuatGeoLoxR",
   "anisotropies"
 };
 
@@ -532,12 +568,15 @@ _tenGageVal[] = {
   tenGageOmegaDiffusionAngle,
   tenGageOmegaDiffusionFraction,
   tenGageCovariance,
+  tenGageTensorLogEuclidean,
+  tenGageTensorQuatGeoLoxK,
+  tenGageTensorQuatGeoLoxR,
   tenGageAniso
 };
 
 char
 _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
-  "t", "tensor",
+  "t", "ten", "tensor",
   "c", "conf",
   "tr", "trace",
   "n", "norm", "r1",
@@ -671,13 +710,16 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   "daom",
   "dfom",
   "cov",
+  "logeuclidean", "logeuc",
+  "quatgeoloxk", "qglk",
+  "quatgeoloxr", "qglr",
   "an", "aniso", "anisotropies",
   ""
 };
 
 int
 _tenGageValEqv[] = {
-  tenGageTensor, tenGageTensor,
+  tenGageTensor, tenGageTensor, tenGageTensor,
   tenGageConfidence, tenGageConfidence,
   tenGageTrace, tenGageTrace,
   tenGageNorm, tenGageNorm, tenGageNorm,
@@ -814,6 +856,10 @@ _tenGageValEqv[] = {
   tenGageOmegaDiffusionFraction,
 
   tenGageCovariance,
+
+  tenGageTensorLogEuclidean, tenGageTensorLogEuclidean,
+  tenGageTensorQuatGeoLoxK, tenGageTensorQuatGeoLoxK,
+  tenGageTensorQuatGeoLoxR, tenGageTensorQuatGeoLoxR,
 
   tenGageAniso, tenGageAniso, tenGageAniso
 };
@@ -1167,7 +1213,7 @@ tenEstimate2Method= &_tenEstimate2Method;
 /* ---------------------------------------------- */
 
 char
-_tenTripleStr[][AIR_STRLEN_SMALL] = {
+_tenTripleTypeStr[][AIR_STRLEN_SMALL] = {
   "(unknown tenTriple)",
   "eigenvalue",
   "moment",
@@ -1181,7 +1227,7 @@ _tenTripleStr[][AIR_STRLEN_SMALL] = {
 };
 
 char
-_tenTripleDesc[][AIR_STRLEN_MED] = {
+_tenTripleTypeDesc[][AIR_STRLEN_MED] = {
   "unknown tenTriple",
   "eigenvalues sorted in descending order",
   "central moments (mu1,mu2,mu3)",
@@ -1195,7 +1241,7 @@ _tenTripleDesc[][AIR_STRLEN_MED] = {
 };
 
 char
-_tenTripleStrEqv[][AIR_STRLEN_SMALL] = {
+_tenTripleTypeStrEqv[][AIR_STRLEN_SMALL] = {
   "eigenvalue", "eval", "ev",
   "moment", "mu",
   "XYZ",
@@ -1209,26 +1255,26 @@ _tenTripleStrEqv[][AIR_STRLEN_SMALL] = {
 };
 
 int
-_tenTripleValEqv[] = {
-  tenTripleEigenvalue, tenTripleEigenvalue, tenTripleEigenvalue,
-  tenTripleMoment, tenTripleMoment,
-  tenTripleXYZ,
-  tenTripleRThetaZ, tenTripleRThetaZ, tenTripleRThetaZ,
-  tenTripleRThetaPhi, tenTripleRThetaPhi, tenTripleRThetaPhi,
-  tenTripleJ,
-  tenTripleK,
-  tenTripleR,
-  tenTripleWheelParm, tenTripleWheelParm
+_tenTripleTypeValEqv[] = {
+  tenTripleTypeEigenvalue, tenTripleTypeEigenvalue, tenTripleTypeEigenvalue,
+  tenTripleTypeMoment, tenTripleTypeMoment,
+  tenTripleTypeXYZ,
+  tenTripleTypeRThetaZ, tenTripleTypeRThetaZ, tenTripleTypeRThetaZ,
+  tenTripleTypeRThetaPhi, tenTripleTypeRThetaPhi, tenTripleTypeRThetaPhi,
+  tenTripleTypeJ,
+  tenTripleTypeK,
+  tenTripleTypeR,
+  tenTripleTypeWheelParm, tenTripleTypeWheelParm
 };
 
 airEnum
-_tenTriple = {
-  "tenTriple",
-  TEN_TRIPLE_MAX,
-  _tenTripleStr, NULL,
-  _tenTripleDesc,
-  _tenTripleStrEqv, _tenTripleValEqv,
+_tenTripleType = {
+  "tenTripleType",
+  TEN_TRIPLE_TYPE_MAX,
+  _tenTripleTypeStr, NULL,
+  _tenTripleTypeDesc,
+  _tenTripleTypeStrEqv, _tenTripleTypeValEqv,
   AIR_FALSE
 };
 airEnum *
-tenTriple = &_tenTriple;
+tenTripleType = &_tenTripleType;
