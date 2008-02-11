@@ -56,20 +56,20 @@ main(int argc, char **argv) {
   ans0 = C + r[0]*(B + r[0]*(A + r[0]));
   switch(ret) {
   case ell_cubic_root_single:
-    printf("1 single root: %g -> %f\n", r[0], ans0);
+    printf("1 single root: %f -> %f\n", r[0], ans0);
     break;
   case ell_cubic_root_triple:
-    printf("1 triple root: %g -> %f\n", r[0], ans0);
+    printf("1 triple root: %f -> %f\n", r[0], ans0);
     break;
   case ell_cubic_root_single_double:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
-    printf("1 single root %g -> %f, 1 double root %g -> %f\n", 
+    printf("1 single root %f -> %f, 1 double root %f -> %f\n", 
            r[0], ans0, r[1], ans1);
     break;
   case ell_cubic_root_three:
     ans1 = C + r[1]*(B + r[1]*(A + r[1]));
     ans2 = C + r[2]*(B + r[2]*(A + r[2]));
-    printf("3 distinct roots:\n %g -> %f\n %g -> %f\n %g -> %f\n",
+    printf("3 distinct roots:\n %f -> %f\n %f -> %f\n %f -> %f\n",
            r[0], ans0, r[1], ans1, r[2], ans2);
     break;
   default:
