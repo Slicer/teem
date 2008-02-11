@@ -308,9 +308,10 @@ _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  ell_q_avg4_d(out, LIMN_SPLINE_Q_AVG_EPS, wght, 
+  ell_q_avg4_d(out, NULL, 
                cpt + 4*idx[0], cpt + 4*idx[1], 
-               cpt + 4*idx[2], cpt + 4*idx[3]);
+               cpt + 4*idx[2], cpt + 4*idx[3],
+               wght, LIMN_SPLINE_Q_AVG_EPS, 30 /* maxIter */);
   return;
 }
 
