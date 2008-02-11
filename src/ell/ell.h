@@ -217,7 +217,8 @@ ELL_EXPORT int ell_q_avg4_d(double m[4], unsigned int *iterP,
                             const double _wght[4], 
                             const double eps, const unsigned int maxIter);
 ELL_EXPORT int ell_q_avgN_d(double mm[4], unsigned int *iterP,
-                            const double *qq, const double *wght,
+                            const double *qq, double *qbuff,
+                            const double *wght,
                             const unsigned int NN,
                             const double eps, const unsigned int maxIter);
 

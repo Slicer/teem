@@ -535,12 +535,12 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
 */
 int
 ell_q_avgN_d(double mm[4], unsigned int *iterP,
-             const double *qq, const double *wght, const unsigned int NN,
+             const double *qq, double *qlog,
+             const double *wght, const unsigned int NN,
              const double eps, const unsigned int maxIter) {
   char me[]="ell_q_avgN_d", err[BIFF_STRLEN];
-  double tmp, *qlog, qdiv[4], elen;
+  double tmp, qdiv[4], elen;
   unsigned int ii, iter;
-  airArray *mop;
 
   /* iterP optional */
   if (!( mm && qq && wght )) {
@@ -552,14 +552,6 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
     biffAdd(ELL, err); return 1;
   }
 
-  mop = airMopNew();
-  qlog = AIR_CAST(double *, calloc(4*NN, sizeof(double)));
-  if (!qlog) {
-    sprintf(err, "%s: couldn't allocate local buffer", me);
-    biffAdd(ELL, err); return 1;
-  }
-  airMopAdd(mop, qlog, airFree, airMopAlways);
-  
   /* initialize with euclidean mean */
   ELL_4V_SET(mm, 0, 0, 0, 0);
   for (ii=0; ii<NN; ii++) {
@@ -569,27 +561,27 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
 
   iter = 0;
   do {
-    double qlog[4], qexp[4];
+    double logavg[4], qexp[4];
     /* take log of everyone */
     for (ii=0; ii<NN; ii++) {
-      ell_q_div_d(qdiv, mm, qq + 4*ii); 
+      ell_q_div_d(qdiv, mm, qq + 4*ii); /* div = mm^1 * qq[ii] */
       ell_q_log_d(qlog + 4*ii, qdiv);
     }
     /* average, and find length */
-    ELL_4V_SET(qlog, 0, 0, 0, 0);
+    ELL_4V_SET(logavg, 0, 0, 0, 0);
     for (ii=0; ii<NN; ii++) {
-      ELL_4V_SCALE_INCR(qlog, wght[ii], qlog + 4*ii);
+      ELL_4V_SCALE_INCR(logavg, wght[ii], qlog + 4*ii);
     }
-    elen = ELL_4V_LEN(qlog);
+    elen = ELL_4V_LEN(logavg);
     /* use exp to put it back on S^3 */
-    ell_q_exp_d(qexp, qlog);
+    ell_q_exp_d(qexp, logavg);
     ell_q_mul_d(mm, mm, qexp);
     iter++;
   } while ((!maxIter || iter < maxIter) && elen > eps);
   if (elen > eps) {
-    sprintf(err, "%s: still have error %g after max %d iters", me,
-            elen, maxIter);
-    biffAdd(ELL, err); airMopError(mop); return 1;
+    sprintf(err, "%s: still have error %g (> eps %g) after max %d iters", me,
+            elen, eps, maxIter);
+    biffAdd(ELL, err); return 1;
   }
   
   if (iterP) {
