@@ -1289,6 +1289,9 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelAQuartic,     /* A family of quartic C2 interp. splines */
   *const nrrdKernelAQuarticD,    /* 1st deriv. of A quartic family */
   *const nrrdKernelAQuarticDD,   /* 2nd deriv. of A quartic family */
+  *const nrrdKernelC3Quintic,    /* 1-parm family C3 quintic, support [-2,2] */
+  *const nrrdKernelC3QuinticD,   /* 1st deriv of C3Quintic */
+  *const nrrdKernelC3QuinticDD,  /* 2nd deriv of C3Quintic */
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
