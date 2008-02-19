@@ -968,6 +968,9 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 ** correspond to first and second central differences 
 **
 ** A = 1: this interpolates
+**
+** But I'm using AIR_AFFINE to map the parm [0,1] --> [-0.32,1],
+** so user sees correspondance with central difference at parm = 0
 */
 
 #define _C3QUINTIC(x, A) \
@@ -995,7 +998,7 @@ _c3quint1_d(double x, const double *parm) {
   double S;
   double A;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   x = AIR_ABS(x)/S;
   return _C3QUINTIC(x, A)/S;
 }
@@ -1004,7 +1007,8 @@ static float
 _c3quint1_f(float x, const double *parm) {
   float A, S;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   x = AIR_ABS(x)/S;
   return AIR_CAST(float, _C3QUINTIC(x, A)/S);
 }
@@ -1015,7 +1019,7 @@ _c3quintN_d(double *f, const double *x, size_t len, const double *parm) {
   double t, A;
   size_t i;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1028,7 +1032,8 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1073,7 +1078,7 @@ _Dc3quint1_d(double x, const double *parm) {
   double A;
   int sgn = 1;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
   return sgn*_DC3QUINTIC(x, A)/(S*S);
@@ -1084,7 +1089,8 @@ _Dc3quint1_f(float x, const double *parm) {
   float A, S;
   int sgn = 1;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
   return AIR_CAST(float, sgn*_DC3QUINTIC(x, A)/(S*S));
@@ -1097,7 +1103,7 @@ _Dc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -1111,7 +1117,8 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -1155,7 +1162,7 @@ _DDc3quint1_d(double x, const double *parm) {
   double S;
   double A;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   x = AIR_ABS(x)/S;
   return _DDC3QUINTIC(x, A)/S;
 }
@@ -1164,7 +1171,8 @@ static float
 _DDc3quint1_f(float x, const double *parm) {
   float A, S;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   x = AIR_ABS(x)/S;
   return AIR_CAST(float, _DDC3QUINTIC(x, A)/S);
 }
@@ -1175,7 +1183,7 @@ _DDc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
   double t, A;
   size_t i;
   
-  S = parm[0]; A = parm[1];
+  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1188,7 +1196,8 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
   
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_CAST(float, parm[0]);
+  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
