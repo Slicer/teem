@@ -1049,6 +1049,11 @@ TEN_EXPORT void tenTripleConvertSingle_f(float dst[3],
                                          int dstType,
                                          const float src[3],
                                          const int srcType);
+TEN_EXPORT void tenTripleCalcSingle_d(double dst[3],
+                                      int ttype, double ten[7]);
+TEN_EXPORT void tenTripleCalcSingle_f(float dst[3],
+                                      int ttype, float ten[7]);
+TEN_EXPORT int tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten);
 TEN_EXPORT int tenTripleConvert(Nrrd *nout, int dstType,
                                 const Nrrd *nin, int srcType);
 
@@ -1445,6 +1450,8 @@ F(anplot) \
 F(anvol) \
 F(anscale) \
 F(anhist) \
+F(triple) \
+F(tconv) \
 F(point) \
 F(slice) \
 F(norm) \

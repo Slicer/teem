@@ -106,7 +106,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(TEN, err); return 1;
   }
   
   return 0;
@@ -206,7 +206,7 @@ tenEvqVolume(Nrrd *nout,
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAdd(TEN, err); return 1;
   }
   
   return 0;

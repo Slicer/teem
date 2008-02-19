@@ -101,7 +101,7 @@ _k_mu(double k[3], const double mu[3]) {
   K1 = 3*MU1;
   stdv = sqrt(MU2);
   K2 = SQRT3*stdv;
-  K3 = SQRT2*MU3/(stdv*stdv*stdv);
+  K3 = stdv ? SQRT2*MU3/(stdv*stdv*stdv) : 0;
 }
 
 static void
@@ -111,8 +111,8 @@ _r_ev(double r[3], const double ev[3]) {
   _mu_ev(mu, ev);
   R1 = sqrt(ev[0]*ev[0] + ev[1]*ev[1] + ev[2]*ev[2]);
   stdv = sqrt(MU2);
-  R2 = (3/SQRT2)*stdv/R1;
-  R3 = SQRT2*MU3/(stdv*stdv*stdv);
+  R2 = R1 ? (3/SQRT2)*stdv/R1 : 0;
+  R3 = stdv ? SQRT2*MU3/(stdv*stdv*stdv) : 0;
 }
 
 static void
@@ -121,8 +121,8 @@ _r_mu(double r[3], const double mu[3]) {
 
   R1 = sqrt(3*(MU1*MU1 + MU2));
   stdv = sqrt(MU2);
-  R2 = (3/SQRT2)*stdv/R1;
-  R3 = SQRT2*MU3/(stdv*stdv*stdv);
+  R2 = R1 ? (3/SQRT2)*stdv/R1 : 0;
+  R3 = stdv ? SQRT2*MU3/(stdv*stdv*stdv) : 0;
 }
 
 static void
@@ -140,7 +140,7 @@ _wp_mu(double wp[3], const double mu[3]) {
   wp[0] = MU1;
   stdv = sqrt(MU2);
   wp[1] = SQRT2*stdv;
-  mode = SQRT2*MU3/(stdv*stdv*stdv);
+  mode = stdv ? SQRT2*MU3/(stdv*stdv*stdv) : 0;
   mode = AIR_CLAMP(-1, mode, 1);
   wp[2] = acos(AIR_CLAMP(-1, mode, 1))/3;
 }
@@ -161,7 +161,7 @@ _r_j(double r[3], const double j[3]) {
   R2 = sqrt(J1*J1 - 3*J2)/R1;
   _mu_j(mu, j);
   stdv = sqrt(MU2);
-  R3 = SQRT2*MU3/(stdv*stdv*stdv);
+  R3 = stdv ? SQRT2*MU3/(stdv*stdv*stdv) : 0;
 }
 
 static void
@@ -375,15 +375,154 @@ tenTripleConvertSingle_f(float _dst[3], int dstType,
   ELL_3V_COPY(_dst, dst);
 }
 
+void
+tenTripleCalcSingle_d(double dst[3], int ttype, double ten[7]) {
+  double eval[3];
+
+  /* in time this can become more efficient ... */
+  switch (ttype) {
+  case tenTripleTypeEigenvalue:
+    tenEigensolve_d(dst, NULL, ten);
+    break;
+  case tenTripleTypeMoment:
+  case tenTripleTypeXYZ:
+  case tenTripleTypeRThetaZ:
+  case tenTripleTypeRThetaPhi:
+  case tenTripleTypeK:
+  case tenTripleTypeJ:
+  case tenTripleTypeWheelParm:
+    tenEigensolve_d(eval, NULL, ten);
+    tenTripleConvertSingle_d(dst, ttype, eval, tenTripleTypeEigenvalue);
+    break;
+  case tenTripleTypeR:
+    dst[0] = sqrt(_tenAnisoTen_d[tenAniso_S](ten));
+    dst[1] = _tenAnisoTen_d[tenAniso_FA](ten);
+    dst[2] = _tenAnisoTen_d[tenAniso_Mode](ten);
+    break;
+  default:
+    /* what on earth? */
+    ELL_3V_SET(dst, AIR_NAN, AIR_NAN, AIR_NAN);
+  }
+  return;
+}
+
+void
+tenTripleCalcSingle_f(float dst[3], int ttype, float ten[7]) {
+  double dst_d[3], ten_d[7];
+
+  TEN_T_COPY(ten_d, ten);
+  tenTripleCalcSingle_d(dst_d, ttype, ten_d);
+  ELL_3V_COPY_TT(dst, float, dst_d);
+  return;
+}
+
+int
+tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
+  char me[]="tenTripleCalc", err[BIFF_STRLEN];
+  size_t II, NN, size[NRRD_DIM_MAX];
+  double (*ins)(void *, size_t, double), (*lup)(const void *, size_t);
+
+  if (!( nout && nten )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenTripleType, ttype)) {
+    sprintf(err, "%s: got invalid %s (%d)", me,
+            tenTripleType->name, ttype);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tenTensorCheck(nten, nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
+    sprintf(err, "%s: didn't get a valid DT array", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( nrrdTypeFloat == nten->type ||
+         nrrdTypeDouble == nten->type )) {
+    sprintf(err, "%s: need input type %s or %s, not %s\n", me, 
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nten->type));
+  }
+  
+  nrrdAxisInfoGet_nva(nten, nrrdAxisInfoSize, size);
+  size[0] = 3;
+  if (nrrdMaybeAlloc_nva(nout, nten->type, nten->dim, size)) {
+    sprintf(err, "%s: couldn't alloc output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+
+  NN = nrrdElementNumber(nten)/7;
+  lup = nrrdDLookup[nten->type];
+  ins = nrrdDInsert[nten->type];
+  for (II=0; II<NN; II++) {
+    double ten[7], trip[3];
+    unsigned int vv;
+    for (vv=0; vv<7; vv++) {
+      ten[vv] = lup(nten->data, vv + 7*II);
+    }
+    tenTripleCalcSingle_d(trip, ttype, ten);
+    for (vv=0; vv<3; vv++) {
+      ins(nout->data, vv + 3*II, trip[vv]);
+    }
+  }
+  if (nrrdAxisInfoCopy(nout, nten, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
+    sprintf(err, "%s: couldn't copy axis info", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  nout->axis[0].kind = nrrdKindUnknown;
+  if (nrrdBasicInfoCopy(nout, nten,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    sprintf(err, "%s:", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  return 0;
+}
+
 int
 tenTripleConvert(Nrrd *nout, int dstType,
                  const Nrrd *nin, int srcType) {
   char me[]="tenTripleConvert", err[BIFF_STRLEN];
+  size_t II, NN;
+  double (*ins)(void *, size_t, double), (*lup)(const void *, size_t);
 
-  AIR_UNUSED(nout);
-  AIR_UNUSED(dstType);
-  AIR_UNUSED(nin);
-  AIR_UNUSED(srcType);
+  if (!( nout && nin )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if ( airEnumValCheck(tenTripleType, dstType) ||
+       airEnumValCheck(tenTripleType, srcType) ) {
+    sprintf(err, "%s: got invalid %s dst (%d) or src (%d)", me, 
+            tenTripleType->name, dstType, srcType);
+    biffAdd(TEN, err); return 1;
+  }
+  if (3 != nin->axis[0].size) {
+    sprintf(err, "%s: need axis[0].size 3, not " _AIR_SIZE_T_CNV, me,
+            nin->axis[0].size);
+    biffAdd(TEN, err); return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    sprintf(err, "%s: input has non-scalar %s type",
+            me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd(TEN, err); return 1;
+  }
+
+  if (nrrdCopy(nout, nin)) {
+    sprintf(err, "%s: couldn't initialize output", me);
+    biffMove(TEN, err, NRRD); return 1;
+  }
+  lup = nrrdDLookup[nin->type];
+  ins = nrrdDInsert[nout->type];
+  NN = nrrdElementNumber(nin)/3;
+  for (II=0; II<NN; II++) {
+    double src[3], dst[3];
+    src[0] = lup(nin->data, 0 + 3*II);
+    src[1] = lup(nin->data, 1 + 3*II);
+    src[2] = lup(nin->data, 2 + 3*II);
+    tenTripleConvertSingle_d(dst, dstType, src, srcType);
+    ins(nout->data, 0 + 3*II, dst[0]);
+    ins(nout->data, 1 + 3*II, dst[1]);
+    ins(nout->data, 2 + 3*II, dst[2]);
+  }
 
   return 0;
 }
