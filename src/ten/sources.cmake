@@ -55,6 +55,9 @@ SET(TEN_SOURCES
   tendUnmf.c
   tendLog.c
   tendExp.c
+  tendTriple.c
+  tendTconv.c
+  tendAvg.c
   )
 
 ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})
