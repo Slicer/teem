@@ -497,7 +497,7 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
   /* normalize (wrt L1) the given weights */
   ELL_4V_COPY(wght, _wght);
   N = wght[0] + wght[1] + wght[2] + wght[3];
-  ELL_4V_SCALE(wght, 1/N, wght);
+  ELL_4V_SCALE(wght, 1.0/N, wght);
 
   /* initialize mean to normalized euclidean mean */
   ELL_4V_SCALE_ADD4(m, wght[0], a, wght[1], b, wght[2], c, wght[3], d);
@@ -543,7 +543,8 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
   unsigned int ii, iter;
 
   /* iterP optional */
-  if (!( mm && qq && wght )) {
+  /* wght optional, to signify equal 1/NN weighting for all */
+  if (!( mm && qq )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(ELL, err); return 1;
   }
@@ -555,7 +556,9 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
   /* initialize with euclidean mean */
   ELL_4V_SET(mm, 0, 0, 0, 0);
   for (ii=0; ii<NN; ii++) {
-    ELL_4V_SCALE_INCR(mm, wght[ii], qq + 4*ii);
+    double ww;
+    ww = wght ? wght[ii] : 1.0/NN;
+    ELL_4V_SCALE_INCR(mm, ww, qq + 4*ii);
   }
   ELL_4V_NORM(mm, mm, tmp);
 
@@ -570,7 +573,9 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
     /* average, and find length */
     ELL_4V_SET(logavg, 0, 0, 0, 0);
     for (ii=0; ii<NN; ii++) {
-      ELL_4V_SCALE_INCR(logavg, wght[ii], qlog + 4*ii);
+      double ww;
+      ww = wght ? wght[ii] : 1.0/NN;
+      ELL_4V_SCALE_INCR(logavg, ww, qlog + 4*ii);
     }
     elen = ELL_4V_LEN(logavg);
     /* use exp to put it back on S^3 */
