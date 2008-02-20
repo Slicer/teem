@@ -24,66 +24,66 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenPathParm *
-tenPathParmNew(void) {
-  tenPathParm *tpp;
+tenInterpParm *
+tenInterpParmNew(void) {
+  tenInterpParm *tip;
 
-  tpp = AIR_CAST(tenPathParm *, malloc(sizeof(tenPathParm)));
-  if (tpp) {
-    tpp->verbose = AIR_FALSE;
-    tpp->convStep = 0.2;
-    tpp->minNorm = 0.0;
-    tpp->convEps = 0.0000000001;
-    tpp->wghtSumEps = 0.0000001;
-    tpp->enableRecurse = AIR_TRUE;
-    tpp->maxIter = 20;
-    tpp->numSteps = 100;
-    tpp->lengthFancy = AIR_FALSE;
-    tpp->numIter = 0;
-    tpp->convFinal = AIR_NAN;
-    tpp->lengthShape = AIR_NAN;
-    tpp->lengthOrient = AIR_NAN;
+  tip = AIR_CAST(tenInterpParm *, malloc(sizeof(tenInterpParm)));
+  if (tip) {
+    tip->verbose = AIR_FALSE;
+    tip->convStep = 0.2;
+    tip->minNorm = 0.0;
+    tip->convEps = 0.0000000001;
+    tip->wghtSumEps = 0.0000001;
+    tip->enableRecurse = AIR_TRUE;
+    tip->maxIter = 20;
+    tip->numSteps = 100;
+    tip->lengthFancy = AIR_FALSE;
+    tip->numIter = 0;
+    tip->convFinal = AIR_NAN;
+    tip->lengthShape = AIR_NAN;
+    tip->lengthOrient = AIR_NAN;
   }
-  return tpp;
+  return tip;
 }
 
-tenPathParm *
-tenPathParmNix(tenPathParm *tpp) {
+tenInterpParm *
+tenInterpParmNix(tenInterpParm *tip) {
 
-  if (tpp) {
-    free(tpp);
+  if (tip) {
+    free(tip);
   }
   return NULL;
 }
 
 void
-tenPathInterpTwo(double oten[7], 
-                 const double tenA[7], const double tenB[7],
-                 int ptype, double aa,
-                 tenPathParm *tpp) {
-  char me[]="tenPathInterpTwo";
+tenInterpTwo_d(double oten[7], 
+               const double tenA[7], const double tenB[7],
+               int ptype, double aa,
+               tenInterpParm *tip) {
+  char me[]="tenInterpTwo_d";
   double logA[7], logB[7], tmp1[7], tmp2[7], sqrtA[7], isqrtA[7],
     logMean[7], mean[7], sqrtB[7], isqrtB[7],
     mat1[9], mat2[9], mat3[9];
 
-  AIR_UNUSED(tpp);
-  if (ptype == tenPathTypeLerp
-      || ptype == tenPathTypeLogLerp
-      || ptype == tenPathTypeAffineInvariant
-      || ptype == tenPathTypeWang
-      || ptype == tenPathTypeQuatGeoLoxK
-      || ptype == tenPathTypeQuatGeoLoxR) {
+  AIR_UNUSED(tip);
+  if (ptype == tenInterpTypeLinear
+      || ptype == tenInterpTypeLogLinear
+      || ptype == tenInterpTypeAffineInvariant
+      || ptype == tenInterpTypeWang
+      || ptype == tenInterpTypeQuatGeoLoxK
+      || ptype == tenInterpTypeQuatGeoLoxR) {
     switch (ptype) {
-    case tenPathTypeLerp:
+    case tenInterpTypeLinear:
       TEN_T_LERP(oten, aa, tenA, tenB);
       break;
-    case tenPathTypeLogLerp:
+    case tenInterpTypeLogLinear:
       tenLogSingle_d(logA, tenA);
       tenLogSingle_d(logB, tenB);
       TEN_T_LERP(logMean, aa, logA, logB);
       tenExpSingle_d(oten, logMean);
       break;
-    case tenPathTypeAffineInvariant:
+    case tenInterpTypeAffineInvariant:
       tenSqrtSingle_d(sqrtA, tenA);
       tenInv_d(isqrtA, sqrtA);
       TEN_T2M(mat1, tenB);
@@ -98,7 +98,7 @@ tenPathInterpTwo(double oten[7],
       ELL_3M_MUL(mat1, mat2, mat3);   /*  sqrt(A) * m * sqrt(A) */
       TEN_M2T(oten, mat1);
       oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
-      if (tpp->verbose) {
+      if (tip->verbose) {
         fprintf(stderr, "%s:\nA= %g %g %g   %g %g  %g\n"
                 "B = %g %g %g   %g %g  %g\n"
                 "foo = %g %g %g   %g %g  %g\n"
@@ -109,7 +109,7 @@ tenPathInterpTwo(double oten[7],
                 aa, oten[1], oten[2], oten[3], oten[4], oten[5], oten[6]);
       }
       break;
-    case tenPathTypeWang:
+    case tenInterpTypeWang:
       /* HEY: this seems to be broken */
       TEN_T_LERP(mean, aa, tenA, tenB);    /* "A" = mean */
       tenLogSingle_d(logA, tenA);
@@ -125,9 +125,9 @@ tenPathInterpTwo(double oten[7],
       tenSqrtSingle_d(oten, tmp1);
       oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
       break;
-    case tenPathTypeQuatGeoLoxK:
-    case tenPathTypeQuatGeoLoxR:
-      tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tpp);
+    case tenInterpTypeQuatGeoLoxK:
+    case tenInterpTypeQuatGeoLoxR:
+      tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tip);
       break;
     }
   } else {
@@ -139,10 +139,19 @@ tenPathInterpTwo(double oten[7],
 }
 
 int
-_tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
+tenInterpN_d(double tenOut[7],
+             const double *tenIn,
+             const double *wght, 
+             unsigned int num, int ptype, tenInterpParm *tip) {
+
+  return 0;
+}
+
+int
+_tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
                        unsigned int ii, int rotnoop, double scl,
-                       tenPathParm *tpp) {
-  char me[]="_tenPathGeoLoxRelaxOne", err[BIFF_STRLEN];
+                       tenInterpParm *tip) {
+  char me[]="_tenInterpGeoLoxRelaxOne", err[BIFF_STRLEN];
   double *tdata, *odata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7],
     len02, len24, tmp, tng[7], correct, half, update[7];
   unsigned int jj, NN;
@@ -150,7 +159,7 @@ _tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
   NN = (ntdata->axis[1].size-1)/2;
   half = (NN+1)/2;
 
-  if (tpp->verbose) {
+  if (tip->verbose) {
     fprintf(stderr, "---- %u --> %u %u %u %u %u\n", ii,
             2*ii - 2, 2*ii - 1, 2*ii, 2*ii + 1, 2*ii + 2);
   }
@@ -194,7 +203,7 @@ _tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
     len24 = TEN_T_DOT(igrt[3][jj], d24);
     correct = (len24 - len02)/2;
     TEN_T_SCALE_INCR(update, correct*scl, igrt[2][jj]);
-    if (tpp->verbose) {
+    if (tip->verbose) {
       fprintf(stderr, "igrt[1][%u] = %g %g %g   %g %g   %g\n", jj,
               igrt[1][jj][1], igrt[1][jj][2], igrt[1][jj][3],
               igrt[1][jj][4], igrt[1][jj][5], igrt[1][jj][6]);
@@ -218,7 +227,7 @@ _tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
       TEN_T_SCALE_INCR(diff, -len, igrt[2][jj]);
     }
     TEN_T_SCALE_INCR(update, scl*0.2, diff);  /* HEY: scaling is a hack */
-    if (tpp->verbose) {
+    if (tip->verbose) {
       fprintf(stderr, "(rotnoop) (d = %g) "
               "update = %g %g %g     %g %g   %g\n",
               TEN_T_DOT(igrt[2][0], update),
@@ -246,9 +255,9 @@ _tenPathGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
 }
 
 void
-_tenPathGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop,
+_tenInterpGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop,
                    double minnorm) {
-  /* char me[]="_tenPathGeoLoxIGRT"; */
+  /* char me[]="_tenInterpGeoLoxIGRT"; */
   double eval[3], evec[9];
 
   if (useK) {
@@ -279,7 +288,7 @@ _tenPathGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop,
 **    1   3   5   7
 */
 double
-tenPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
+tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
   double *tt, len, diff[7], *tenA, *tenB;
   unsigned int ii, NN;
 
@@ -304,7 +313,7 @@ tenPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
       unsigned int ii, lo, hi;
 
       TEN_T_LERP(mean, 0.5, tenA, tenB);
-      _tenPathGeoLoxIGRT(igrt, mean, AIR_FALSE, AIR_FALSE, 0.0);
+      _tenInterpGeoLoxIGRT(igrt, mean, AIR_FALSE, AIR_FALSE, 0.0);
       if (shape) {
         lo = 0;
         hi = 2;
@@ -340,7 +349,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
   in = AIR_CAST(double *, nin->data);
   out = AIR_CAST(double *, nout->data);
   NN = (nin->axis[1].size-1)/2;
-  lenTotal = tenPathLength(nin, AIR_TRUE, AIR_FALSE, AIR_FALSE);
+  lenTotal = tenInterpPathLength(nin, AIR_TRUE, AIR_FALSE, AIR_FALSE);
   lenStep = lenTotal/NN;
   /*
   fprintf(stderr, "!%s: lenTotal/NN = %g/%u = %g = lenStep\n", me,
@@ -399,11 +408,11 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 }
 
 int
-_tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
-                       const double tenA[7], const double tenB[7],
-                       unsigned int NN, int useK, int rotnoop,
-                       tenPathParm *tpp) {
-  char me[]="_tenPathGeoLoxPolyLine", err[BIFF_STRLEN];
+_tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
+                         const double tenA[7], const double tenB[7],
+                         unsigned int NN, int useK, int rotnoop,
+                         tenInterpParm *tip) {
+  char me[]="_tenInterpGeoLoxPolyLine", err[BIFF_STRLEN];
   Nrrd *nigrt, *ntt, *nss, *nsub;
   double *igrt, *geod, *tt, len, newlen;
   unsigned int ii;
@@ -445,14 +454,14 @@ _tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
   igrt = AIR_CAST(double *, nigrt->data);
 
   *numIter = 0;
-  if (NN > 14 && tpp->enableRecurse) {
+  if (NN > 14 && tip->enableRecurse) {
     unsigned int subIter;
     int E;
     NrrdResampleContext *rsmc;
     double kparm[3] = {1.0, 0.0, 0.5};
     /* recurse and find geodesic with smaller number of vertices */
-    if (_tenPathGeoLoxPolyLine(nsub, &subIter, tenA, tenB,
-                                  NN/2, useK, rotnoop, tpp)) {
+    if (_tenInterpGeoLoxPolyLine(nsub, &subIter, tenA, tenB,
+                                 NN/2, useK, rotnoop, tip)) {
       sprintf(err, "%s: problem with recursive call", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
@@ -482,12 +491,12 @@ _tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     }
   }
   for (ii=0; ii<=2*NN; ii++) {
-    _tenPathGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
-                          tpp->minNorm);
+    _tenInterpGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
+                         tip->minNorm);
   }
   nrrdCopy(nss, ntt);
   
-  newlen = tenPathLength(ntt, AIR_TRUE, AIR_FALSE, AIR_FALSE);
+  newlen = tenInterpPathLength(ntt, AIR_TRUE, AIR_FALSE, AIR_FALSE);
   do {
     unsigned int lo, hi;
     int dd;
@@ -501,14 +510,14 @@ _tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
       hi = 0;
       dd = -1;
     }
-    if (tpp->verbose) {
+    if (tip->verbose) {
       fprintf(stderr, "%s: ======= iter = %u (NN=%u)\n", me, *numIter, NN);
     }
     for (ii=lo; ii!=hi; ii+=dd) {
       double sclHack;
       sclHack = ii*4.0/NN - ii*ii*4.0/NN/NN;
-      if (_tenPathGeoLoxRelaxOne(nss, ntt, nigrt, ii, rotnoop,
-                                    sclHack*tpp->convStep, tpp)) {
+      if (_tenInterpGeoLoxRelaxOne(nss, ntt, nigrt, ii, rotnoop,
+                                   sclHack*tip->convStep, tip)) {
         sprintf(err, "%s: problem on vert %u, iter %u\n", me, ii, *numIter);
         biffAdd(TEN, err); return 1;
       }
@@ -516,52 +525,52 @@ _tenPathGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     newlen = _tenPathSpacingEqualize(ntt, nss);
     /* try doing this less often */
     for (ii=0; ii<=2*NN; ii++) {
-      _tenPathGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
-                            tpp->minNorm);
+      _tenInterpGeoLoxIGRT(igrt + 7*6*ii, tt + 7*ii, useK, rotnoop,
+                           tip->minNorm);
     }
     *numIter += 1;
-  } while ((0 == tpp->maxIter || *numIter < tpp->maxIter)
-           && 2*AIR_ABS(newlen - len)/(newlen + len) > tpp->convEps);
+  } while ((0 == tip->maxIter || *numIter < tip->maxIter)
+           && 2*AIR_ABS(newlen - len)/(newlen + len) > tip->convEps);
 
   /* copy final result to output */
   for (ii=0; ii<=NN; ii++) {
     TEN_T_COPY(geod + 7*ii, tt + 7*2*ii);
   }
   /* values from outer-most recursion will stick */
-  tpp->numIter = *numIter;
-  tpp->convFinal = 2*AIR_ABS(newlen - len)/(newlen + len);
+  tip->numIter = *numIter;
+  tip->convFinal = 2*AIR_ABS(newlen - len)/(newlen + len);
 
   airMopOkay(mop);
   return 0;
 }
 
 int
-tenPathInterpTwoDiscrete(Nrrd *nout, 
-                         const double tenA[7], const double tenB[7],
-                         int ptype, unsigned int num,
-                         tenPathParm *_tpp) {
-  char me[]="tenPathInterpTwoDiscrete", err[BIFF_STRLEN];
+tenInterpTwoDiscrete_d(Nrrd *nout, 
+                       const double tenA[7], const double tenB[7],
+                       int ptype, unsigned int num,
+                       tenInterpParm *_tip) {
+  char me[]="tenInterpTwoDiscrete_d", err[BIFF_STRLEN];
   double *out;
   unsigned int ii;
   airArray *mop;
-  tenPathParm *tpp;
+  tenInterpParm *tip;
 
   if (!nout) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (airEnumValCheck(tenPathType, ptype)) {
+  if (airEnumValCheck(tenInterpType, ptype)) {
     sprintf(err, "%s: path type %d not a valid %s", me, ptype, 
-            tenPathType->name);
+            tenInterpType->name);
     biffAdd(TEN, err); return 1;
   }
 
   mop = airMopNew();
-  if (_tpp) {
-    tpp = _tpp;
+  if (_tip) {
+    tip = _tip;
   } else {
-    tpp = tenPathParmNew();
-    airMopAdd(mop, tpp, (airMopper)tenPathParmNix, airMopAlways);
+    tip = tenInterpParmNew();
+    airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
   }
   if (!( num >= 2 )) {
     sprintf(err, "%s: need num >= 2 (not %u)", me, num);
@@ -575,41 +584,41 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
   }
   out = AIR_CAST(double *, nout->data);
 
-  if (ptype == tenPathTypeLerp
-      || ptype == tenPathTypeLogLerp
-      || ptype == tenPathTypeAffineInvariant
-      || ptype == tenPathTypeWang
-      || ptype == tenPathTypeQuatGeoLoxK
-      || ptype == tenPathTypeQuatGeoLoxR) {
+  if (ptype == tenInterpTypeLinear
+      || ptype == tenInterpTypeLogLinear
+      || ptype == tenInterpTypeAffineInvariant
+      || ptype == tenInterpTypeWang
+      || ptype == tenInterpTypeQuatGeoLoxK
+      || ptype == tenInterpTypeQuatGeoLoxR) {
     for (ii=0; ii<num; ii++) {
       double *oten;
       oten = out + 7*ii;
       /* yes, this is often doing a lot of needless recomputations. */
-      tenPathInterpTwo(out + 7*ii, tenA, tenB, 
-                       ptype, (double)ii/(num-1), tpp);
+      tenInterpTwo_d(out + 7*ii, tenA, tenB, 
+                     ptype, (double)ii/(num-1), tip);
     }
-  } else if (ptype == tenPathTypeGeoLoxK
-             || ptype == tenPathTypeGeoLoxR
-             || ptype == tenPathTypeLoxK
-             || ptype == tenPathTypeLoxR) {
+  } else if (ptype == tenInterpTypeGeoLoxK
+             || ptype == tenInterpTypeGeoLoxR
+             || ptype == tenInterpTypeLoxK
+             || ptype == tenInterpTypeLoxR) {
     /* we have slow iterative code for these */
     unsigned int numIter;
     int useK, rotnoop;
     
-    useK = (tenPathTypeGeoLoxK == ptype
-            || tenPathTypeLoxK == ptype);
-    rotnoop = (tenPathTypeGeoLoxK == ptype
-               || tenPathTypeGeoLoxR == ptype);
+    useK = (tenInterpTypeGeoLoxK == ptype
+            || tenInterpTypeLoxK == ptype);
+    rotnoop = (tenInterpTypeGeoLoxK == ptype
+               || tenInterpTypeGeoLoxR == ptype);
     fprintf(stderr, "!%s: useK = %d, rotnoop = %d\n", me, useK, rotnoop);
-    if (_tenPathGeoLoxPolyLine(nout, &numIter,
-                                  tenA, tenB,
-                                  num, useK, rotnoop, tpp)) {
+    if (_tenInterpGeoLoxPolyLine(nout, &numIter,
+                                 tenA, tenB,
+                                 num, useK, rotnoop, tip)) {
       sprintf(err, "%s: trouble finding path", me);
       biffAdd(TEN, err); airMopError(mop); return 1;
     }
   } else {
     sprintf(err, "%s: sorry, interp for path %s not implemented", me,
-            airEnumStr(tenPathType, ptype));
+            airEnumStr(tenInterpType, ptype));
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
 
@@ -618,32 +627,32 @@ tenPathInterpTwoDiscrete(Nrrd *nout,
 }
 
 double
-tenPathDistance(const double tenA[7], const double tenB[7],
-                int ptype, tenPathParm *_tpp) {
-  char me[]="tenPathDistanceTwo", *err;
-  tenPathParm *tpp;
+tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7],
+                    int ptype, tenInterpParm *_tip) {
+  char me[]="tenInterpDistanceTwo_d", *err;
+  tenInterpParm *tip;
   airArray *mop;
   double ret, diff[7], logA[7], logB[7], invA[7], det, siA[7],
     mat1[9], mat2[9], mat3[9], logDiff[7];
   Nrrd *npath;
   
-  if (!( tenA && tenB && !airEnumValCheck(tenPathType, ptype) )) {
+  if (!( tenA && tenB && !airEnumValCheck(tenInterpType, ptype) )) {
     return AIR_NAN;
   }
 
   mop = airMopNew();
   switch (ptype) {
-  case tenPathTypeLerp:
+  case tenInterpTypeLinear:
     TEN_T_SUB(diff, tenA, tenB);
     ret = TEN_T_NORM(diff);
     break;
-  case tenPathTypeLogLerp:
+  case tenInterpTypeLogLinear:
     tenLogSingle_d(logA, tenA);
     tenLogSingle_d(logB, tenB);
     TEN_T_SUB(diff, logA, logB);
     ret = TEN_T_NORM(diff);
     break;
-  case tenPathTypeAffineInvariant:
+  case tenInterpTypeAffineInvariant:
     TEN_T_INV(invA, tenA, det);
     tenSqrtSingle_d(siA, invA);
     TEN_T2M(mat1, tenB);
@@ -654,36 +663,38 @@ tenPathDistance(const double tenA[7], const double tenB[7],
     tenLogSingle_d(logDiff, diff);
     ret = TEN_T_NORM(logDiff);
     break;
-  case tenPathTypeGeoLoxK:
-  case tenPathTypeGeoLoxR:
-  case tenPathTypeLoxK:
-  case tenPathTypeLoxR:
-  case tenPathTypeQuatGeoLoxK:
-  case tenPathTypeQuatGeoLoxR:
+  case tenInterpTypeGeoLoxK:
+  case tenInterpTypeGeoLoxR:
+  case tenInterpTypeLoxK:
+  case tenInterpTypeLoxR:
+  case tenInterpTypeQuatGeoLoxK:
+  case tenInterpTypeQuatGeoLoxR:
     npath = nrrdNew();
     airMopAdd(mop, npath, (airMopper)nrrdNuke, airMopAlways);
-    if (_tpp) {
-      tpp = _tpp;
+    if (_tip) {
+      tip = _tip;
     } else {
-      tpp = tenPathParmNew();
-      airMopAdd(mop, tpp, (airMopper)tenPathParmNix, airMopAlways);
+      tip = tenInterpParmNew();
+      airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
     }
-    if (tenPathInterpTwoDiscrete(npath, tenA, tenB, ptype,
-                                 tpp->numSteps, tpp)) {
+    if (tenInterpTwoDiscrete_d(npath, tenA, tenB, ptype,
+                               tip->numSteps, tip)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble computing path:\n%s\n", me, err);
       airMopError(mop); return AIR_NAN;
     }
-    ret = tenPathLength(npath, AIR_FALSE, AIR_FALSE, AIR_FALSE);
-    if (tpp->lengthFancy) {
-      tpp->lengthShape = tenPathLength(npath, AIR_FALSE, AIR_TRUE, AIR_TRUE);
-      tpp->lengthOrient = tenPathLength(npath, AIR_FALSE, AIR_TRUE, AIR_FALSE);
+    ret = tenInterpPathLength(npath, AIR_FALSE, AIR_FALSE, AIR_FALSE);
+    if (tip->lengthFancy) {
+      tip->lengthShape = tenInterpPathLength(npath, AIR_FALSE,
+                                             AIR_TRUE, AIR_TRUE);
+      tip->lengthOrient = tenInterpPathLength(npath, AIR_FALSE,
+                                              AIR_TRUE, AIR_FALSE);
     }
     break;
-  case tenPathTypeWang:
+  case tenInterpTypeWang:
   default:
     fprintf(stderr, "%s: unimplemented %s %d!!!!\n", me,
-            tenPathType->name, ptype);
+            tenInterpType->name, ptype);
     ret = AIR_NAN;
     break;
   }
@@ -692,3 +703,100 @@ tenPathDistance(const double tenA[7], const double tenB[7],
   return ret;
 }
 
+/*
+** actually, the input nrrds don't have to be 3D ...
+*/
+int
+tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
+                 unsigned int ninLen, int ptype, tenInterpParm *_tip) {
+  char me[]="tenInterpMulti3D", err[BIFF_STRLEN];
+  unsigned int ninIdx;
+  size_t II, NN;
+  double (*lup)(const void *, size_t), (*ins)(void *, size_t, double),
+    *tbuff;
+  tenInterpParm *tip;
+  airArray *mop;
+
+  /* allow NULL wght, to signify equal weighting */
+  if (!(nout && nin)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( ninLen > 0 )) {
+    sprintf(err, "%s: need at least 1 nin, not 0", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (airEnumValCheck(tenInterpType, ptype)) {
+    sprintf(err, "%s: invalid %s %d", me, 
+            tenInterpType->name, ptype);
+    biffAdd(TEN, err); return 1;
+  }
+
+  if (tenTensorCheck(nin[0], nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
+    sprintf(err, "%s: first nrrd not a tensor array", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( nrrdTypeFloat == nin[0]->type ||
+         nrrdTypeDouble == nin[0]->type )) {
+    sprintf(err, "%s: need type %s or %s (not %s) in first nrrd", me,
+            airEnumStr(nrrdType, nrrdTypeFloat),
+            airEnumStr(nrrdType, nrrdTypeDouble),
+            airEnumStr(nrrdType, nin[0]->type));
+    biffAdd(TEN, err); return 1;
+  }
+  for (ninIdx=1; ninIdx<ninLen; ninIdx++) {
+    if (tenTensorCheck(nin[ninIdx], nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
+      sprintf(err, "%s: nin[%u] not a tensor array", me, ninIdx);
+      biffAdd(TEN, err); return 1;
+    }
+    if (!nrrdSameSize(nin[0], nin[ninIdx], AIR_TRUE)) {
+      sprintf(err, "%s: nin[0] doesn't match nin[%u]", me, ninIdx);
+      biffMove(TEN, err, NRRD); return 1;
+    }
+    if (nin[0]->type != nin[ninIdx]->type) {
+      sprintf(err, "%s: nin[0] type (%s) != nin[%u] type (%s)", me, 
+              airEnumStr(nrrdType, nin[0]->type),
+              ninIdx, airEnumStr(nrrdType, nin[ninIdx]->type));
+      biffAdd(TEN, err); return 1;
+    }
+  }
+
+  mop = airMopNew();
+  if (nrrdCopy(nout, nin[0])) {
+    sprintf(err, "%s: couldn't initialize output", me);
+    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+  }
+  if (_tip) {
+    tip = _tip;
+  } else {
+    tip = tenInterpParmNew();
+    airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
+  }
+  tbuff = AIR_CAST(double *, calloc(7*ninLen, sizeof(double)));
+  if (!tbuff) {
+    sprintf(err, "%s: couldn't allocate tensor buff", me);
+    biffAdd(TEN, err); airMopError(mop); return 1;
+  }
+  ins = nrrdDInsert[nin[0]->type];
+  lup = nrrdDLookup[nin[0]->type];
+  NN = nrrdElementNumber(nin[0])/7;
+  for (II=0; II<NN; II++) {
+    double tenOut[7];
+    unsigned int tt;
+    for (ninIdx=0; ninIdx<ninLen; ninIdx++) {
+      for (tt=0; tt<7; tt++) {
+        tbuff[tt + 7*ninIdx] = lup(nin[ninIdx]->data, tt + 7*II);
+      }
+    }
+    if (tenInterpN_d(tenOut, tbuff, wght, ninLen, ptype, tip)) {
+      sprintf(err, "%s: trouble on sample " _AIR_SIZE_T_CNV, me, II);
+      biffAdd(TEN, err); airMopError(mop); return 1;
+    }
+    for (tt=0; tt<7; tt++) {
+      ins(nout->data, tt + 7*II, tenOut[tt]);
+    }
+  }
+  
+  airMopOkay(mop); 
+  return 0;
+}

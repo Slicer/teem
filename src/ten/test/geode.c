@@ -38,7 +38,7 @@ main(int argc, char *argv[]) {
   unsigned int NN, maxiter, refIdx[3];
   int recurse, ptype, verb;
   Nrrd *_nin, *nin, *nout;
-  tenPathParm *tpp;
+  tenInterpParm *tip;
 
   mop = airMopNew();
   me = argv[0];
@@ -74,7 +74,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "r", "recurse", airTypeInt, 0, 0, &recurse, NULL,
              "enable recursive solution, when useful");
   hestOptAdd(&hopt, "t", "path type", airTypeEnum, 1, 1, &ptype, "lerp",
-             "what type of path to compute", NULL, tenPathType);
+             "what type of path to compute", NULL, tenInterpType);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
   hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verb, "0",
@@ -84,17 +84,17 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  tpp = tenPathParmNew();
-  airMopAdd(mop, tpp, (airMopper)tenPathParmNix, airMopAlways);
+  tip = tenInterpParmNew();
+  airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  tpp->verbose = verb;
-  tpp->convStep = stepSize;
-  tpp->enableRecurse = recurse;
-  tpp->minNorm = minNorm;
-  tpp->maxIter = maxiter;
-  tpp->convEps = conv;
+  tip->verbose = verb;
+  tip->convStep = stepSize;
+  tip->enableRecurse = recurse;
+  tip->minNorm = minNorm;
+  tip->maxIter = maxiter;
+  tip->convEps = conv;
   if (_nin) {
     double refTen[7], inTen[7], *in, *out;
     unsigned int xi, yi, zi, sx, sy, sz, dimOut;
@@ -121,14 +121,14 @@ main(int argc, char *argv[]) {
     }
     nin = nrrdNew();
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
-    numerical = (ptype == tenPathTypeGeoLoxK
-                 || ptype == tenPathTypeGeoLoxR
-                 || ptype == tenPathTypeLoxK
-                 || ptype == tenPathTypeLoxR
-                 || ptype == tenPathTypeQuatGeoLoxK
-                 || ptype == tenPathTypeQuatGeoLoxR);
+    numerical = (ptype == tenInterpTypeGeoLoxK
+                 || ptype == tenInterpTypeGeoLoxR
+                 || ptype == tenInterpTypeLoxK
+                 || ptype == tenInterpTypeLoxR
+                 || ptype == tenInterpTypeQuatGeoLoxK
+                 || ptype == tenInterpTypeQuatGeoLoxR);
     if (numerical) {
-      tpp->lengthFancy = AIR_TRUE;
+      tip->lengthFancy = AIR_TRUE;
       dimOut = 4;
       size[0] = 3;
       size[1] = _nin->axis[1].size;
@@ -179,19 +179,19 @@ main(int argc, char *argv[]) {
               out[1] = AIR_NAN;
               out[2] = AIR_NAN;
             } else {
-              tpp->verbose = 10*(xi == refIdx[0]
+              tip->verbose = 10*(xi == refIdx[0]
                                  && yi == refIdx[1]
                                  && zi == refIdx[2]);
-              out[0] =  tenPathDistance(inTen, refTen, ptype, tpp);
-              out[1] =  tpp->lengthShape;
-              out[2] =  tpp->lengthOrient;
+              out[0] =  tenInterpDistanceTwo_d(inTen, refTen, ptype, tip);
+              out[1] =  tip->lengthShape;
+              out[2] =  tip->lengthOrient;
             }
             out += 3;
           } else {
             if (inTen[0] < confThresh) {
               *out = AIR_NAN;
             } else {
-              *out =  tenPathDistance(inTen, refTen, ptype, tpp);
+              *out =  tenInterpDistanceTwo_d(inTen, refTen, ptype, tip);
             }
             out += 1;
           }
@@ -241,7 +241,7 @@ main(int argc, char *argv[]) {
     */
     
     time0 = airTime();
-    if (tenPathInterpTwoDiscrete(nout, tA, tB, ptype, NN, tpp)) {
+    if (tenInterpTwoDiscrete_d(nout, tA, tB, ptype, NN, tip)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble computing path:\n%s\n",
               me, err);
@@ -249,10 +249,10 @@ main(int argc, char *argv[]) {
       return 1;
     }
     fprintf(stderr, "!%s: ------- # iter = %u, conv = %g\n", me,
-            tpp->numIter, tpp->convFinal);
+            tip->numIter, tip->convFinal);
     time1 = airTime();
     fprintf(stderr, "%s: geodesic length = %g; time = %g\n",
-            me, tenPathLength(nout, AIR_FALSE, AIR_FALSE, AIR_FALSE),
+            me, tenInterpPathLength(nout, AIR_FALSE, AIR_FALSE, AIR_FALSE),
             time1 - time0);
     
     if (1) {
@@ -309,7 +309,7 @@ main(int argc, char *argv[]) {
         ell_q_mul_d(qm, qB, unitq[qi]);
         ell_q_to_3m_d(rot, qm);
         ELL_3M_TRANSPOSE(evec, rot);
-        tenMakeOne_d(tt, tB[0], eval, evec);
+        tenMakeSingle_d(tt, tB[0], eval, evec);
         fprintf(stderr, "%s: tt[%u]: (%g) %f %f %f, %f %f, %f; qm = %f %f %f %f\n", me, qi,
                 tt[0], tt[1], tt[2], tt[3], tt[4], tt[5], tt[6],
                 qm[0], qm[1], qm[2], qm[3]);

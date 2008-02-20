@@ -74,10 +74,10 @@ tenAniso = &_tenAniso;
 /* --------------------------------------------------------------------- */
 
 char
-_tenPathTypeStr[TEN_PATH_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown path type)",
-  "lerp",
-  "loglerp",
+_tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown interp type)",
+  "lin",
+  "loglin",
   "affinv",
   "wang",
   "geoloxk",
@@ -89,9 +89,9 @@ _tenPathTypeStr[TEN_PATH_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 };
 
 char
-_tenPathTypeStrEqv[][AIR_STRLEN_SMALL] = {
-  "lerp",
-  "loglerp",
+_tenInterpTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "lin", "linear", "lerp",
+  "loglin", "loglinear", "loglerp",
   "affinv",
   "wang",
   "geoloxk", "glk",
@@ -104,30 +104,30 @@ _tenPathTypeStrEqv[][AIR_STRLEN_SMALL] = {
 };
 
 int
-_tenPathTypeValEqv[] = {
-  tenPathTypeLerp,
-  tenPathTypeLogLerp,
-  tenPathTypeAffineInvariant,
-  tenPathTypeWang,
-  tenPathTypeGeoLoxK, tenPathTypeGeoLoxK,
-  tenPathTypeGeoLoxR, tenPathTypeGeoLoxR,
-  tenPathTypeLoxK,
-  tenPathTypeLoxR,
-  tenPathTypeQuatGeoLoxK, tenPathTypeQuatGeoLoxK,
-  tenPathTypeQuatGeoLoxR, tenPathTypeQuatGeoLoxR,
+_tenInterpTypeValEqv[] = {
+  tenInterpTypeLinear, tenInterpTypeLinear, tenInterpTypeLinear,
+  tenInterpTypeLogLinear, tenInterpTypeLogLinear, tenInterpTypeLogLinear,
+  tenInterpTypeAffineInvariant,
+  tenInterpTypeWang,
+  tenInterpTypeGeoLoxK, tenInterpTypeGeoLoxK,
+  tenInterpTypeGeoLoxR, tenInterpTypeGeoLoxR,
+  tenInterpTypeLoxK,
+  tenInterpTypeLoxR,
+  tenInterpTypeQuatGeoLoxK, tenInterpTypeQuatGeoLoxK,
+  tenInterpTypeQuatGeoLoxR, tenInterpTypeQuatGeoLoxR,
 };
 
 airEnum
-_tenPathType = {
-  "path type",
-  TEN_PATH_TYPE_MAX,
-  _tenPathTypeStr, NULL,
+_tenInterpType = {
+  "interp type",
+  TEN_INTERP_TYPE_MAX,
+  _tenInterpTypeStr, NULL,
   NULL,
-  _tenPathTypeStrEqv, _tenPathTypeValEqv, 
+  _tenInterpTypeStrEqv, _tenInterpTypeValEqv, 
   AIR_FALSE
 };
 airEnum *
-tenPathType = &_tenPathType;
+tenInterpType = &_tenInterpType;
 
 /* --------------------------------------------------------------------- */
 

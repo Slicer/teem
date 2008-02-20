@@ -82,6 +82,24 @@ extern double _tenPldist(const double point[], const double line[] );
 extern void twoTensFunc(double *p, double *x, int m, int n, void *data);
 extern void formTensor2D(double ten[7], double lam1, double lam3, double phi);
 
+/* qglox.c: stuff for quaternion geodesic-loxodromes that has dubious
+   utility for the general public */
+TEN_EXPORT void tenQGLInterpTwoEvalK(double oeval[3],
+                                     const double evalA[3],
+                                     const double evalB[3],
+                                     const double tt);
+TEN_EXPORT void tenQGLInterpTwoEvalR(double oeval[3],
+                                     const double evalA[3],
+                                     const double evalB[3],
+                                     const double tt);
+TEN_EXPORT void tenQGLInterpTwo(double oten[7],
+                                const double tenA[7], const double tenB[7],
+                                int ptype, double aa, tenInterpParm *tip);
+TEN_EXPORT int tenQGLInterpN(double tenOut[7],
+                             const double *tenIn,
+                             const double *wght, 
+                             unsigned int NN, int ptype, tenInterpParm *tip);
+
 #ifdef __cplusplus
 }
 #endif

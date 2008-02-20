@@ -103,25 +103,25 @@ enum {
 #define TEN_ANISO_MAX  29
 
 /*
-******** tenPathType* enum
+******** tenInterpType* enum
 **
-** different kinds of paths between two tensors
+** different kinds of interpolations paths between tensors
 */
 enum {
-  tenPathTypeUnknown,         /*  0: nobody knows */
-  tenPathTypeLerp,            /*  1: simple per-coefficient lerp */
-  tenPathTypeLogLerp,         /*  2: lerp on coefs of logs (Log-Euclidean) */
-  tenPathTypeAffineInvariant, /*  3: Riemannian approach of many authors */
-  tenPathTypeWang,            /*  4: affine-invariant of Z Wang & B Vemuri */
-  tenPathTypeGeoLoxK,         /*  5: geodesic-loxodrome on K_i invariants */
-  tenPathTypeGeoLoxR,         /*  6: geodesic-loxodrome on R_i invariants */
-  tenPathTypeLoxK,            /*  7: total loxodrome on K_i invariants */
-  tenPathTypeLoxR,            /*  8: total loxodrome on R_i invariants */
-  tenPathTypeQuatGeoLoxK,     /*  9: geodesic-loxodrome on K_i invariants */
-  tenPathTypeQuatGeoLoxR,     /* 10: geodesic-loxodrome on R_i invariants */
-  tenPathTypeLast
+  tenInterpTypeUnknown,         /*  0: nobody knows */
+  tenInterpTypeLinear,          /*  1: simple per-coefficient linear */
+  tenInterpTypeLogLinear,       /*  2: linear on coefs of logs (Log-Euclidean) */
+  tenInterpTypeAffineInvariant, /*  3: Riemannian approach of many authors */
+  tenInterpTypeWang,            /*  4: affine-invariant of Z Wang & B Vemuri */
+  tenInterpTypeGeoLoxK,         /*  5: geodesic-loxodrome on K_i invariants */
+  tenInterpTypeGeoLoxR,         /*  6: geodesic-loxodrome on R_i invariants */
+  tenInterpTypeLoxK,            /*  7: total loxodrome on K_i invariants */
+  tenInterpTypeLoxR,            /*  8: total loxodrome on R_i invariants */
+  tenInterpTypeQuatGeoLoxK,     /*  9: geodesic-loxodrome on K_i invariants */
+  tenInterpTypeQuatGeoLoxR,     /* 10: geodesic-loxodrome on R_i invariants */
+  tenInterpTypeLast
 };
-#define TEN_PATH_TYPE_MAX        10
+#define TEN_INTERP_TYPE_MAX        10
 
 /*
 ******** tenGlyphType* enum
@@ -1026,7 +1026,7 @@ typedef struct {
   unsigned int numIter;
   double convFinal;
   double lengthShape, lengthOrient;
-} tenPathParm;
+} tenInterpParm;
 
 /* defaultsTen.c */
 TEN_EXPORT const char *tenBiffKey;
@@ -1079,7 +1079,7 @@ TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
 
 /* enumsTen.c */
 TEN_EXPORT airEnum *tenAniso;
-TEN_EXPORT airEnum *tenPathType;
+TEN_EXPORT airEnum *tenInterpType;
 TEN_EXPORT airEnum _tenGage;
 TEN_EXPORT airEnum *tenGage;
 TEN_EXPORT airEnum *tenFiberType;
@@ -1091,41 +1091,32 @@ TEN_EXPORT airEnum *tenEstimate1Method;
 TEN_EXPORT airEnum *tenEstimate2Method;
 TEN_EXPORT airEnum *tenTripleType;
 
-/* qglox.c */
-TEN_EXPORT void tenQGLInterpTwoEvalK(double oeval[3],
-                                     const double evalA[3],
-                                     const double evalB[3],
-                                     const double tt);
-TEN_EXPORT void tenQGLInterpTwoEvalR(double oeval[3],
-                                     const double evalA[3],
-                                     const double evalB[3],
-                                     const double tt);
-TEN_EXPORT void tenQGLInterpTwo(double oten[7],
-                                const double tenA[7], const double tenB[7],
-                                int ptype, double aa, tenPathParm *tpp);
-TEN_EXPORT int tenQGLInterpN(double tenOut[7],
-                             const double *tenIn,
-                             const double *wght, 
-                             unsigned int NN, int ptype, tenPathParm *tpp);
-
 /* path.c */
-TEN_EXPORT tenPathParm *tenPathParmNew();
-TEN_EXPORT tenPathParm *tenPathParmNix(tenPathParm *tpp);
-TEN_EXPORT void tenPathInterpTwo(double oten[7],
-                                 const double tenA[7],
-                                 const double tenB[7],
-                                 int ptype, double aa,
-                                 tenPathParm *tpp);
-TEN_EXPORT double tenPathLength(Nrrd *npath, int doubleVerts,
-                                int fancy, int shape);
-TEN_EXPORT int tenPathInterpTwoDiscrete(Nrrd *nout, 
-                                        const double tenA[7],
-                                        const double tenB[7],
-                                        int ptype, unsigned int num,
-                                        tenPathParm *tpp);
-TEN_EXPORT double tenPathDistance(const double tenA[7],
-                                  const double tenB[7],
-                                  int ptype, tenPathParm *tpp);
+TEN_EXPORT tenInterpParm *tenInterpParmNew();
+TEN_EXPORT tenInterpParm *tenInterpParmNix(tenInterpParm *tip);
+TEN_EXPORT void tenInterpTwo_d(double oten[7],
+                               const double tenA[7],
+                               const double tenB[7],
+                               int ptype, double aa,
+                               tenInterpParm *tip);
+TEN_EXPORT int tenInterpN_d(double tenOut[7],
+                            const double *tenIn,
+                            const double *wght, 
+                            unsigned int num, int ptype, tenInterpParm *tip);
+TEN_EXPORT double tenInterpPathLength(Nrrd *npath, int doubleVerts,
+                                      int fancy, int shape);
+TEN_EXPORT int tenInterpTwoDiscrete_d(Nrrd *nout, 
+                                      const double tenA[7],
+                                      const double tenB[7],
+                                      int ptype, unsigned int num,
+                                      tenInterpParm *tip);
+TEN_EXPORT double tenInterpDistanceTwo_d(const double tenA[7],
+                                         const double tenB[7],
+                                         int ptype, tenInterpParm *tip);
+TEN_EXPORT int tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin,
+                                const double *wght,
+                                unsigned int ninNum,
+                                int ptype, tenInterpParm *tip);
 
 /* glyph.c */
 TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
@@ -1150,11 +1141,10 @@ TEN_EXPORT int tenEigensolve_f(float eval[3], float evec[9],
                                const float ten[7]);
 TEN_EXPORT int tenEigensolve_d(double eval[3], double evec[9],
                                const double ten[7]);
-/* should rename ...One... --> ...Single... */
-TEN_EXPORT void tenMakeOne_f(float ten[7],
-                             float conf, float eval[3], float evec[9]);
-TEN_EXPORT void tenMakeOne_d(double ten[7],
-                             double conf, double eval[3], double evec[9]);
+TEN_EXPORT void tenMakeSingle_f(float ten[7],
+                                float conf, float eval[3], float evec[9]);
+TEN_EXPORT void tenMakeSingle_d(double ten[7],
+                                double conf, double eval[3], double evec[9]);
 TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
                        const Nrrd *neval, const Nrrd *nevec);
 TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,
@@ -1222,9 +1212,9 @@ TEN_EXPORT int tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                                    const Nrrd *ndwi, const Nrrd *_nbmat,
                                    int knownB0,
                                    double thresh, double soft, double b);
-/* should rename ...One... --> ...Single... */
-TEN_EXPORT void tenSimulateOne_f(float *dwi, float B0, const float *ten,
-                                 const double *bmat, unsigned int DD, float b);
+TEN_EXPORT void tenSimulateSingle_f(float *dwi, float B0, const float *ten,
+                                    const double *bmat, unsigned int DD,
+                                    float b);
 TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
                            const Nrrd *nbmat, double b);
 
@@ -1311,8 +1301,7 @@ TEN_EXPORT void tenEvecRGBSingle_d(double RGB[3], double conf,
 /* miscTen.c */
 TEN_EXPORT int tenEvecRGB(Nrrd *nout, const Nrrd *nin,
                           const tenEvecRGBParm *rgbp);
-/* should rename ...One... --> ...Single... */
-TEN_EXPORT short tenEvqOne_f(float vec[3], float scl);
+TEN_EXPORT short tenEvqSingle_f(float vec[3], float scl);
 TEN_EXPORT int tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which,
                             int aniso, int scaleByAniso);
 TEN_EXPORT int tenBMatrixCheck(const Nrrd *nbmat,
@@ -1442,6 +1431,7 @@ F(bmat) \
 F(estim) \
 F(sim) \
 F(make) \
+F(avg) \
 F(helix) \
 F(sten) \
 F(glyph) \

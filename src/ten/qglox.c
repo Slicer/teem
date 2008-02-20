@@ -1,4 +1,3 @@
-
 /*
   Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2006, 2005  Gordon Kindlmann
@@ -318,21 +317,21 @@ tenQGLInterpTwoEvec(double oevec[9],
 void
 tenQGLInterpTwo(double oten[7],
                 const double tenA[7], const double tenB[7],
-                int ptype, double tt, tenPathParm *tpp) {
+                int ptype, double tt, tenInterpParm *tip) {
   double oeval[3], evalA[3], evalB[3], oevec[9], evecA[9], evecB[9], cc;
 
-  AIR_UNUSED(tpp);
+  AIR_UNUSED(tip);
   tenEigensolve_d(evalA, evecA, tenA);
   tenEigensolve_d(evalB, evecB, tenB);
   cc = AIR_LERP(tt, tenA[0], tenB[0]);
 
-  if (tenPathTypeQuatGeoLoxK == ptype) {
+  if (tenInterpTypeQuatGeoLoxK == ptype) {
     tenQGLInterpTwoEvalK(oeval, evalA, evalB, tt);
   } else {
     tenQGLInterpTwoEvalR(oeval, evalA, evalB, tt);
   }
   tenQGLInterpTwoEvec(oevec, evecA, evecB, tt);
-  tenMakeOne_d(oten, cc, oeval, oevec);
+  tenMakeSingle_d(oten, cc, oeval, oevec);
 
   return;
 }
@@ -342,8 +341,8 @@ _tenQGLInterpNEval(double evalOut[3],
                    const double *evalIn, /* size 3 -by- NN */
                    const double *wght,   /* size NN */
                    unsigned int NN,
-                   int ptype, tenPathParm *tpp) {
-  char me[]="_tenQGLInterpNEvalK", err[BIFF_STRLEN];
+                   int ptype, tenInterpParm *tip) {
+  char me[]="_tenQGLInterpNEval", err[BIFF_STRLEN];
   double RTh_Out[3], *RTh_In, *rtlog, elen;
   airArray *mop;
   unsigned int ii, iter;
@@ -355,7 +354,9 @@ _tenQGLInterpNEval(double evalOut[3],
     sprintf(err, "%s: need N >= 2 (not %u)", me, NN);
     biffAdd(TEN, err); return 1;
   }
-  if (!( evalOut && evalIn && wght )) {
+  /* wght can be NULL to signify equal weighting 1/NN for all */
+  /* we do in fact require non-NULL tip at this point */
+  if (!( evalOut && evalIn && tip)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
@@ -371,7 +372,7 @@ _tenQGLInterpNEval(double evalOut[3],
   airMopAdd(mop, rtlog, airFree, airMopAlways);
 
   /* convert to (R,Th,_) and initialize RTh_Out */
-  if (tenPathTypeQuatGeoLoxK == ptype) {
+  if (tenInterpTypeQuatGeoLoxK == ptype) {
     rttype = tenTripleTypeRThetaZ;
     llog = _tenQGL_Klog;
     lexp = _tenQGL_Kexp;
@@ -382,9 +383,11 @@ _tenQGLInterpNEval(double evalOut[3],
   }
   ELL_3V_SET(RTh_Out, 0, 0, 0);
   for (ii=0; ii<NN; ii++) {
+    double ww;
     tenTripleConvertSingle_d(RTh_In + 3*ii, rttype,
                              evalIn + 3*ii, tenTripleTypeEigenvalue);
-    ELL_3V_SCALE_INCR(RTh_Out, wght[ii], RTh_In + 3*ii);
+    ww = wght ? wght[ii] : 1.0/NN;
+    ELL_3V_SCALE_INCR(RTh_Out, ww, RTh_In + 3*ii);
   }
 
   /* compute iterated weighted mean, stored in RTh_Out */
@@ -398,18 +401,20 @@ _tenQGLInterpNEval(double evalOut[3],
     /* average, and find length */
     ELL_3V_SET(logavg, 0, 0, 0);
     for (ii=0; ii<NN; ii++) {
-      ELL_3V_SCALE_INCR(logavg, wght[ii], rtlog + 3*ii);
+      double ww;
+      ww = wght ? wght[ii] : 1.0/NN;
+      ELL_3V_SCALE_INCR(logavg, ww, rtlog + 3*ii);
     }
     elen = ELL_3V_LEN(logavg);
     lexp(RTh_Out, RTh_Out, logavg);
     iter++;
-  } while ((!tpp->maxIter || iter < tpp->maxIter) && elen > tpp->convEps);
-  if (elen > tpp->convEps) {
+  } while ((!tip->maxIter || iter < tip->maxIter) && elen > tip->convEps);
+  if (elen > tip->convEps) {
     sprintf(err, "%s: still have error %g (> eps %g) after max %d iters", me,
-            elen, tpp->convEps, tpp->maxIter);
+            elen, tip->convEps, tip->maxIter);
     biffAdd(ELL, err); return 1;
   }
-  AIR_UNUSED(tpp);
+  AIR_UNUSED(tip);
 
   /* finish, convert to eval */
   tenTripleConvertSingle_d(evalOut, tenTripleTypeEigenvalue,
@@ -461,7 +466,7 @@ _tenQGLInterpNEvec(double evecOut[9],
                    const double *evecIn, /* size 9 -by- NN */
                    const double *wght,   /* size NN */
                    unsigned int NN,
-                   tenPathParm *tpp) {
+                   tenInterpParm *tip) {
   char me[]="_tenQGLInterpNEvec", err[BIFF_STRLEN];
   double *qIn, *qBuff, qOut[4], maxWght, len, *inter, odsum, dsum, rot[9];
   airArray *mop;
@@ -471,7 +476,8 @@ _tenQGLInterpNEvec(double evecOut[9],
     sprintf(err, "%s: need N >= 2 (not %u)", me, NN);
     biffAdd(TEN, err); return 1;
   }
-  if (!( evecOut && evecIn && wght )) {
+  /* wght can be NULL to signify equal weighting 1/NN for all */
+  if (!( evecOut && evecIn && tip )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
@@ -499,11 +505,13 @@ _tenQGLInterpNEvec(double evecOut[9],
      its the right representative), and then align rest with that.
      This is actually principled; symmetry allows it */
   centerIdx = 0;
-  maxWght = wght[centerIdx];
-  for (ii=1; ii<NN; ii++) {
-    if (wght[ii] > maxWght) {
-      centerIdx = ii;
-      maxWght = wght[centerIdx];
+  if (wght) {
+    maxWght = wght[centerIdx];
+    for (ii=1; ii<NN; ii++) {
+      if (wght[ii] > maxWght) {
+        centerIdx = ii;
+        maxWght = wght[centerIdx];
+      }
     }
   }
   for (ii=0; ii<NN; ii++) {
@@ -546,7 +554,7 @@ _tenQGLInterpNEvec(double evecOut[9],
 
   /* compute iterated weighted mean, stored in qOut */
   if (ell_q_avgN_d(qOut, &qiter, qIn, qBuff, wght,
-                   NN, tpp->convEps, tpp->maxIter)) {
+                   NN, tip->convEps, tip->maxIter)) {
     sprintf(err, "%s: problem doing quaternion mean", me);
     biffMove(TEN, err, ELL); airMopError(mop); return 1;
   }
@@ -567,11 +575,11 @@ tenQGLInterpN(double tenOut[7],
               const double *tenIn,
               const double *wght, 
               unsigned int NN,
-              int ptype, tenPathParm *_tpp) {
+              int ptype, tenInterpParm *_tip) {
   char me[]="tenQGLInterpN", err[BIFF_STRLEN];
   airArray *mop;
   double *evalIn, *evecIn, evalOut[3], evecOut[9], conf, wghtSum;
-  tenPathParm *tpp;
+  tenInterpParm *tip;
   unsigned int ii;
 
   if (!( NN >= 2 )) {
@@ -584,11 +592,11 @@ tenQGLInterpN(double tenOut[7],
   }
 
   mop = airMopNew();
-  if (_tpp) {
-    tpp = _tpp;
+  if (_tip) {
+    tip = _tip;
   } else {
-    tpp = tenPathParmNew();
-    airMopAdd(mop, tpp, (airMopper)tenPathParmNix, airMopAlways);
+    tip = tenInterpParmNew();
+    airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
   }
   evalIn = AIR_CAST(double *, calloc(3*NN, sizeof(double)));
   evecIn = AIR_CAST(double *, calloc(9*NN, sizeof(double)));
@@ -606,18 +614,18 @@ tenQGLInterpN(double tenOut[7],
     wghtSum += wght[ii];
     conf += wght[ii]*(tenIn + 7*ii)[0];
   }
-  if (!( AIR_IN_CL(1 - tpp->wghtSumEps, wghtSum, 1 + tpp->wghtSumEps) )) {
+  if (!( AIR_IN_CL(1 - tip->wghtSumEps, wghtSum, 1 + tip->wghtSumEps) )) {
     sprintf(err, "%s: wght sum %g not within %g of 1.0", me,
-            wghtSum, tpp->wghtSumEps);
+            wghtSum, tip->wghtSumEps);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
 
-  if (_tenQGLInterpNEval(evalOut, evalIn, wght, NN, ptype, tpp)
-      || _tenQGLInterpNEvec(evecOut, evecIn, wght, NN, tpp)) {
+  if (_tenQGLInterpNEval(evalOut, evalIn, wght, NN, ptype, tip)
+      || _tenQGLInterpNEvec(evecOut, evecIn, wght, NN, tip)) {
     sprintf(err, "%s: trouble computing", me);
     biffAdd(TEN, err); airMopError(mop); return 1;
   }
-  tenMakeOne_d(tenOut, conf, evalOut, evecOut);
+  tenMakeSingle_d(tenOut, conf, evalOut, evecOut);
 
   airMopOkay(mop);
   return 0;

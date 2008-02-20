@@ -768,7 +768,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (nterrP) {
       te = 0;
       if (knownB0) {
-        tenSimulateOne_f(dwi2, _B0, ten, bmat, DD, AIR_CAST(float, b));
+        tenSimulateSingle_f(dwi2, _B0, ten, bmat, DD, AIR_CAST(float, b));
         for (d=1; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
           d2 = AIR_MAX(dwi2[d], 1);
@@ -776,10 +776,10 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
         }
         te /= (DD-1);
       } else {
-        tenSimulateOne_f(dwi2, _B0, ten, bmat, DD+1, AIR_CAST(float, b));
+        tenSimulateSingle_f(dwi2, _B0, ten, bmat, DD+1, AIR_CAST(float, b));
         for (d=0; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
-          /* tenSimulateOne_f always puts the B0 in the beginning of
+          /* tenSimulateSingle_f always puts the B0 in the beginning of
              the dwi vector, but in this case we didn't have it in
              the input dwi vector */
           d2 = AIR_MAX(dwi2[d+1], 1);
@@ -811,7 +811,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 }
 
 /*
-******** tenSimulateOne_f
+******** tenSimulateSingle_f
 **
 ** given a tensor, simulate the set of diffusion weighted measurements
 ** represented by the given B matrix
@@ -825,9 +825,9 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
 ** So: dwi must be allocated for DD values total
 */
 void
-tenSimulateOne_f(float *dwi,
-                 float B0, const float *ten, const double *bmat,
-                 unsigned int DD, float b) {
+tenSimulateSingle_f(float *dwi,
+                    float B0, const float *ten, const double *bmat,
+                    unsigned int DD, float b) {
   double vv;
   /* this is how we multiply the off-diagonal entries by 2 */
   double matwght[6] = {1, 2, 2, 1, 2, 1};
@@ -903,8 +903,8 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   lup = nrrdFLookup[nT2->type];
   for (II=0; II<(size_t)(sx*sy*sz); II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
-    tenSimulateOne_f(dwi, lup(nT2->data, II), ten, bmat, DD,
-                     AIR_CAST(float, b));
+    tenSimulateSingle_f(dwi, lup(nT2->data, II), ten, bmat, DD,
+                        AIR_CAST(float, b));
     dwi += DD;
     ten += 7;
   }

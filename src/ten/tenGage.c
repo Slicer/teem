@@ -1193,12 +1193,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK)) {
       ans = pvl->directAnswer[tenGageTensorQuatGeoLoxK];
       qret = tenQGLInterpN(ans, buffTen, buffWght, fddd,
-                           tenPathTypeQuatGeoLoxK, NULL);
+                           tenInterpTypeQuatGeoLoxK, NULL);
     }
     if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
       ans = pvl->directAnswer[tenGageTensorQuatGeoLoxR];
       qret= tenQGLInterpN(ans, buffTen, buffWght, fddd,
-                          tenPathTypeQuatGeoLoxR, NULL);
+                          tenInterpTypeQuatGeoLoxR, NULL);
     }
     if (qret) {
       char *lerr;

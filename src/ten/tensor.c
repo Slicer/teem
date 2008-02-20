@@ -404,7 +404,7 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
 */
 
 void
-tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
+tenMakeSingle_f(float ten[7], float conf, float eval[3], float evec[9]) {
   double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
 
   ELL_3M_ZERO_SET(diag);
@@ -419,7 +419,7 @@ tenMakeOne_f(float ten[7], float conf, float eval[3], float evec[9]) {
 
 /* HEY: copy and paste! */
 void
-tenMakeOne_d(double ten[7], double conf, double eval[3], double evec[9]) {
+tenMakeSingle_d(double ten[7], double conf, double eval[3], double evec[9]) {
   double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
 
   ELL_3M_ZERO_SET(diag);
@@ -514,7 +514,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   evec = (float *)nevec->data;
   out = (float *)nout->data;
   for (I=0; I<N; I++) {
-    tenMakeOne_f(out, conf[I], eval, evec);
+    tenMakeSingle_f(out, conf[I], eval, evec);
     /* lop A */
     out += 7;
     eval += 3;
@@ -837,7 +837,7 @@ tenLogSingle_d(double logten[7], const double ten[7]) {
       eval[ii] = -FLT_MAX;  /* making stuff up */
     }
   }
-  tenMakeOne_d(logten, ten[0], eval, evec);
+  tenMakeSingle_d(logten, ten[0], eval, evec);
 }
 
 void
@@ -852,7 +852,7 @@ tenLogSingle_f(float logten[7], const float ten[7]) {
       eval[ii] = -FLT_MAX/10; /* still making stuff up */
     }
   }
-  tenMakeOne_f(logten, ten[0], eval, evec);
+  tenMakeSingle_f(logten, ten[0], eval, evec);
 }
 
 void
@@ -864,7 +864,7 @@ tenExpSingle_d(double expten[7], const double ten[7]) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = exp(eval[ii]);
   }
-  tenMakeOne_d(expten, ten[0], eval, evec);
+  tenMakeSingle_d(expten, ten[0], eval, evec);
 }
 
 void
@@ -876,7 +876,7 @@ tenExpSingle_f(float expten[7], const float ten[7]) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, exp(eval[ii]));
   }
-  tenMakeOne_f(expten, ten[0], eval, evec);
+  tenMakeSingle_f(expten, ten[0], eval, evec);
 }
 
 void
@@ -888,7 +888,7 @@ tenSqrtSingle_d(double sqrtten[7], const double ten[7]) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = eval[ii] > 0 ? sqrt(eval[ii]) : 0;
   }
-  tenMakeOne_d(sqrtten, ten[0], eval, evec);
+  tenMakeSingle_d(sqrtten, ten[0], eval, evec);
 }
 
 void
@@ -900,7 +900,7 @@ tenSqrtSingle_f(float sqrtten[7], const float ten[7]) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, eval[ii] > 0 ? sqrt(eval[ii]) : 0);
   }
-  tenMakeOne_f(sqrtten, ten[0], eval, evec);
+  tenMakeSingle_f(sqrtten, ten[0], eval, evec);
 }
 
 void
@@ -912,7 +912,7 @@ tenPowSingle_d(double powten[7], const double ten[7], double power) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = pow(_eval[ii], power);
   }
-  tenMakeOne_d(powten, ten[0], eval, evec);
+  tenMakeSingle_d(powten, ten[0], eval, evec);
 }
 
 void
@@ -924,5 +924,5 @@ tenPowSingle_f(float powten[7], const float ten[7], float power) {
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, pow(eval[ii], power));
   }
-  tenMakeOne_f(powten, ten[0], eval, evec);
+  tenMakeSingle_f(powten, ten[0], eval, evec);
 }

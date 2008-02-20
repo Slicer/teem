@@ -115,8 +115,8 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
 #define SQR(i) ((i)*(i))
 
 short
-tenEvqOne(float vec[3], float scl) {
-  char me[]="tenEvqOne";
+tenEvqSingle(float vec[3], float scl) {
+  char me[]="tenEvqSingle";
   float tmp, L1;
   int mi, bins, base, vi, ui;
   short ret;
@@ -194,7 +194,7 @@ tenEvqVolume(Nrrd *nout,
     } else {
       an = 1.0;
     }
-    qdata[I] = tenEvqOne(evec+ 3*which, an);
+    qdata[I] = tenEvqSingle(evec+ 3*which, an);
     tdata += 7;
   }
   ELL_3V_SET(map, 1, 2, 3);

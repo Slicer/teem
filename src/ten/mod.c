@@ -99,7 +99,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
                                eval[1], parm->target*eval[1]/size),
                     AIR_AFFINE(0, parm->amount, 1,
                                eval[2], parm->target*eval[2]/size));
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -140,7 +140,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
         eval[1] = AIR_MAX(eval[1], 0.0f);
         eval[2] = AIR_MAX(eval[2], 0.0f);
       }
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -160,7 +160,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
                       AIR_MIN(eval[1], parm->max),
                       AIR_MIN(eval[2], parm->max));
       }
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -172,7 +172,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
                     pow(eval[0], parm->expo),
                     pow(eval[1], parm->expo),
                     pow(eval[2], parm->expo));
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -185,7 +185,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
                     eval[0] + parm->val,
                     eval[1] + parm->val,
                     eval[2] + parm->val);
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -197,7 +197,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
         eval[ri] = log(eval[ri]);
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : -1000000;
       }
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
@@ -209,7 +209,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
         eval[ri] = exp(eval[ri]);
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : 0;
       }
-      tenMakeOne_f(tout, tin[0], eval, evec);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
