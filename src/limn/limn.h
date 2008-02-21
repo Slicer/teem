@@ -765,7 +765,8 @@ F(about) \
 F(ccfind) \
 F(psel) \
 F(rast) \
-F(verts) 
+F(verts) \
+F(meas)
 LIMN_MAP(LIMN_DECLARE)
 LIMN_EXPORT unrrduCmd *limnpuCmdList[];
 LIMN_EXPORT void limnpuUsage(char *me, hestParm *hparm);
