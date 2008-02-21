@@ -56,6 +56,12 @@ limnpu_measMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (limnPolyDataPrimitiveArea(nout, pld)) {
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:%s", me, err);
     airMopError(mop);
