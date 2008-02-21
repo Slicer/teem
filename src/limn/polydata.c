@@ -521,3 +521,58 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
   return 0;
 }
 
+/*
+** I may regret making this only be axis-aligned ...
+*/
+int
+limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
+                      double min[3], double max[3],
+                      size_t size[3], int type) {
+  char me[]="limnPolyDataRasterize", err[BIFF_STRLEN];
+  size_t xi, yi, zi;
+  unsigned int vertIdx;
+  double (*ins)(void *, size_t, double);
+
+  if (!(nout && pld && min && max && size)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (airEnumValCheck(nrrdType, type)) {
+    sprintf(err, "%s: got invalid %s %d", me, nrrdType->name, type);
+    biffAdd(LIMN, err); return 1;
+  }
+  if (nrrdTypeBlock == type) {
+    sprintf(err, "%s: can't use output type %s", me,
+            airEnumStr(nrrdType, type));
+    biffAdd(LIMN, err); return 1;
+  }
+  if (!( min[0] < max[0] && 
+         min[1] < max[1] && 
+         min[2] < max[2] )) {
+    sprintf(err, "%s min (%g,%g,%g) not < max (%g,%g,%g)", me,
+            min[0], min[1], min[2], max[0], max[1], max[2]);
+    biffAdd(LIMN, err); return 1;
+  }
+
+  if (nrrdMaybeAlloc_nva(nout, type, 3, size)) {
+    sprintf(err, "%s: trouble allocating output", me);
+    biffMove(LIMN, err, NRRD); return 1;
+  }
+  ins = nrrdDInsert[type];
+  
+  for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
+    double xyz[3];
+
+    ELL_34V_HOMOG(xyz, pld->xyzw + vertIdx);
+    if (!( AIR_IN_OP(min[0], xyz[0], max[0]) &&
+           AIR_IN_OP(min[1], xyz[1], max[1]) &&
+           AIR_IN_OP(min[2], xyz[2], max[2]) )) {
+      continue;
+    }
+    xi = airIndex(min[0], xyz[0], max[0], size[0]);
+    yi = airIndex(min[1], xyz[1], max[1], size[1]);
+    zi = airIndex(min[2], xyz[2], max[2], size[2]);
+    ins(nout->data, xi + size[0]*(yi + size[1]*zi), 1.0);
+  }
+  return 0;
+}

@@ -44,16 +44,18 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = gage ell nrrd biff hest air
+$(L).NEED = gage ell unrrdu nrrd biff hest air 
 $(L).PUBLIC_HEADERS = limn.h
-$(L).PRIVATE_HEADERS =
+$(L).PRIVATE_HEADERS = privateLimn.h
 $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
         obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
-	polydata.o polyshapes.o polymod.o
+	polydata.o polyshapes.o polymod.o \
+	lpuFlotsam.o lpu_about.o lpu_ccfind.o lpu_psel.o lpu_rast.o \
+	lpu_verts.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
 	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx \
-	test/tio test/clip
+	test/tio test/clip test/lpu
 ####
 ####
 ####

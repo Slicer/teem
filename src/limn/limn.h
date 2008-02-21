@@ -33,6 +33,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 #include <teem/gage.h>
+#include <teem/unrrdu.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(limn_EXPORTS) || defined(teem_EXPORTS)
@@ -623,6 +624,9 @@ LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout,
                                                   limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
+                                      double min[3], double max[3],
+                                      size_t size[3], int type);
 
 /* polyshapes.c */
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
@@ -749,6 +753,22 @@ LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
                                        limnSpline *spline, Nrrd *nin);
 LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
+
+/* lpu{Flotsam,...}.c */
+#define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
+#define LIMN_LIST(C) &limnpu_##C##Cmd,
+/* F(clip) \ */
+/* F(vwflip) \ */
+/* F(vwfix) */
+#define LIMN_MAP(F) \
+F(about) \
+F(ccfind) \
+F(psel) \
+F(rast) \
+F(verts) 
+LIMN_MAP(LIMN_DECLARE)
+LIMN_EXPORT unrrduCmd *limnpuCmdList[];
+LIMN_EXPORT void limnpuUsage(char *me, hestParm *hparm);
 
 #ifdef __cplusplus
 }
