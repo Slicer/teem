@@ -1193,7 +1193,7 @@ limnPolyDataSave(const char *_fname, const limnPolyData *lpld) {
   } else if (airEndsWith(fname, ".iv")) {
     ret = limnPolyDataWriteIV(file, lpld);
   } else {
-    if (!airEndsWith(fname, ".lmpd")) {
+    if (strcmp(_fname, "-") && !airEndsWith(fname, ".lmpd")) {
       fprintf(stderr, "%s: WARNING: unknown or no suffix on \"%s\"; "
               "using LMPD format", me, _fname);
     }
