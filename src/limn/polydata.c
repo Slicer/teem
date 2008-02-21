@@ -574,5 +574,9 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
     zi = airIndex(min[2], xyz[2], max[2], size[2]);
     ins(nout->data, xi + size[0]*(yi + size[1]*zi), 1.0);
   }
+
+  nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMin, min);
+  nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMax, max);
+
   return 0;
 }
