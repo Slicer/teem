@@ -563,7 +563,7 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
   for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
     double xyz[3];
 
-    ELL_34V_HOMOG(xyz, pld->xyzw + vertIdx);
+    ELL_34V_HOMOG(xyz, pld->xyzw + 4*vertIdx);
     if (!( AIR_IN_OP(min[0], xyz[0], max[0]) &&
            AIR_IN_OP(min[1], xyz[1], max[1]) &&
            AIR_IN_OP(min[2], xyz[2], max[2]) )) {
