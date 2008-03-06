@@ -80,7 +80,9 @@ hestCB probeKindHestCB = {
 
 char *probeInfo = ("Shows off the functionality of the gage library. "
                    "Uses gageProbe() to query various kinds of volumes "
-                   "to learn various measured or derived quantities. ");
+                   "to learn various measured or derived quantities. "
+                   "Can set environment variable TEEM_VPROBE_HACK_ZI "
+                   "to limit probing to a single z slice.");
 
 int
 main(int argc, char *argv[]) {
