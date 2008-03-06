@@ -90,6 +90,7 @@ main(int argc, char **argv) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
     argv0 = (char *)calloc(strlen(LPU) + strlen(argv[1]) + 2, sizeof(char));
+
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", LPU, argv[1]);
 
