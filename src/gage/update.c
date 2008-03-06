@@ -399,6 +399,7 @@ gageUpdate(gageContext *ctx) {
   for (pi=0; pi<ctx->pvlNum; pi++) {
     if (ctx->pvl[pi]->kind->pvlDataUpdate) {
       if (ctx->pvl[pi]->kind->pvlDataUpdate(ctx->pvl[pi]->kind,
+                                            ctx,
                                             ctx->pvl[pi],
                                             ctx->pvl[pi]->data)) {
         sprintf(err, "%s: pvlDataUpdate(pvl[%u]) failed", me, pi);

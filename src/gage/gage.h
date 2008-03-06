@@ -273,9 +273,10 @@ enum {
   gageSclHessValleyness,   /* 30: "valley measure", vallyness measure: [1] */
   gageSclHessRidgeness,    /* 31: "ridge measure", ridgeness measure: [1] */
   gageSclHessMode,     /* 32: "mode hessian", Hessian's mode: [1] */
+  gageSclGradVecHessAbs, /* 33: "gradha", experimental: [3] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX  32
+#define GAGE_SCL_ITEM_MAX  33
 
 /*
 ******** gageVec* enum
@@ -681,11 +682,13 @@ typedef struct gageKind_t {
     /* pvlDataNew and pvlDataCopy can use biff, but:
        --> they must use GAGE key (and not callback's library's key), and
        --> pvlDataNix can not use biff */
-    *(*pvlDataNew)(const struct gageKind_t *),
-    *(*pvlDataCopy)(const struct gageKind_t *, const void *data),
-    *(*pvlDataNix)(const struct gageKind_t *, void *data);
-  int (*pvlDataUpdate)(const struct gageKind_t *,
-                       const gagePerVolume *pvl, const void *data);
+    *(*pvlDataNew)(const struct gageKind_t *kind),
+    *(*pvlDataCopy)(const struct gageKind_t *kind, const void *data),
+    *(*pvlDataNix)(const struct gageKind_t *kind, void *data);
+  int (*pvlDataUpdate)(const struct gageKind_t *kind,
+                       const gageContext *ctx,
+                       const gagePerVolume *pvl,
+                       const void *data);
   void *data;                       /* extra information about the kind of 
                                        volume that's being probed.  This
                                        is passed as "data" to pvlDataNew,

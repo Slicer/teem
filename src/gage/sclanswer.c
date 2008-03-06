@@ -258,7 +258,8 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
     } else {
       ELL_3M_ZERO_SET(ncTen);
     }
-    pvl->directAnswer[gageSclFlowlineCurv][0] = sqrt(ELL_3M_FROB(ncTen));
+    /* there used to be a wrong extra sqrt() here */
+    pvl->directAnswer[gageSclFlowlineCurv][0] = ELL_3M_FROB(ncTen);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclMedian)) {
     /* this item is currently a complete oddball in that it does not
