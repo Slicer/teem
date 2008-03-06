@@ -36,9 +36,13 @@ nrrdCCValid(const Nrrd *nin) {
             airEnumStr(nrrdType, nin->type));
     biffAdd(NRRD, err); return 0;
   }
-  if (!( nrrdTypeSize[nin->type] <= 2 || nrrdTypeInt == nin->type )) {
+  if (!( nrrdTypeSize[nin->type] <= 2 ||
+         nrrdTypeInt == nin->type ||
+         nrrdTypeUInt == nin->type )) {
     sprintf(err, "%s: valid connected component types are 1- and 2-byte "
-            "integers, and %s", me, airEnumStr(nrrdType, nrrdTypeInt));
+            "integers, and %s and %s", me,
+            airEnumStr(nrrdType, nrrdTypeInt),
+            airEnumStr(nrrdType, nrrdTypeUInt));
     biffAdd(NRRD, err); return 0;
   }
   return 1;
