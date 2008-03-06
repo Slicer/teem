@@ -113,13 +113,13 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  float pos[3];
+  float pos[3], lineInfo[4];
   double gmc, rangeSS[2], idxSS;
-  unsigned int ansLen, numSS, ninSSIdx;
+  unsigned int ansLen, numSS, ninSSIdx, lineStepNum;
   int what, E=0, renorm, SSrenorm, verbose;
-  const double *answer, *answer2;
+  const double *answer;
   Nrrd *nin, **ninSS=NULL, *nout=NULL;
-  gageContext *ctx, *ctx2;
+  gageContext *ctx;
   gagePerVolume *pvl;
   limnPolyData *lpld=NULL;
   airArray *mop;
@@ -143,6 +143,16 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
              "input polydata (overrides \"-p\")",
              NULL, NULL, limnHestPolyDataLMPD);
+  hestOptAdd(&hopt, "pl", "x y z s", airTypeFloat, 4, 4, lineInfo, "0 0 0 0",
+             "probe along line, instead of at point.  "
+             "The \"-p\" three coords are the line start point. "
+             "If \"s\" is zero, (x,y,z) is the line end point. "
+             "If \"s\" is non-zero, (x,y,z) is the line direction, "
+             "which is scaled to have length \"s\", "
+             "and then used as the step between line samples. ");
+  hestOptAdd(&hopt, "pln", "num", airTypeUInt, 1, 1, &lineStepNum, "0",
+             "if non-zero, number of steps of probing to do along line, "
+             "which overrides \"-p\" and \"-pi\"");
   hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
@@ -197,6 +207,15 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
+  
+  if (ELL_4V_LEN(lineInfo) && !lineStepNum) {
+    fprintf(stderr, "%s: gave line info (\"-pl\") but not # samples (\"-pln\")",
+            me);
+    hestUsage(stderr, hopt, me, hparm);
+    hestGlossary(stderr, hopt, hparm);
+    airMopError(mop);
+    return 1;
+  }
 
   /* special set-up required for DWI kind */
   if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
@@ -242,7 +261,7 @@ main(int argc, char *argv[]) {
       airMopError(mop); return 1;
     }
   }
-
+  
   ctx = gageContextNew();
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
@@ -320,6 +339,69 @@ main(int argc, char *argv[]) {
       airMopError(mop);
       return 1;
     }
+  } else if (lineStepNum) {
+    /* we're probing along a line */
+    double *dout;
+    float start[3], dir[3], end[3], lpos[3];
+    unsigned int vidx, ai;
+    nout = nrrdNew();
+    airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+    if (1 == ansLen) {
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
+                       AIR_CAST(size_t, lineStepNum));
+    } else {
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
+                       AIR_CAST(size_t, ansLen),
+                       AIR_CAST(size_t, lineStepNum));
+    }
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    dout = AIR_CAST(double *, nout->data);
+    ELL_3V_COPY(start, pos);
+    if (lineInfo[3]) {
+      float tmp;
+      /* stepping along vector */
+      ELL_3V_COPY(dir, 0 + lineInfo);
+      ELL_3V_SET(end, AIR_NAN, AIR_NAN, AIR_NAN);
+      ELL_3V_NORM(dir, dir, tmp);
+      if (!tmp) {
+        fprintf(stderr, "%s: requested vector stepping, but vlen = 0", me);
+        airMopError(mop);
+        return 1;
+      }
+      ELL_3V_SCALE(dir, lineInfo[3], dir);
+    } else {
+      /* stepping between points */
+      ELL_3V_SET(dir, AIR_NAN, AIR_NAN, AIR_NAN);
+      ELL_3V_COPY(end, 0 + lineInfo);
+    }
+    for (vidx=0; vidx<lineStepNum; vidx++) {
+      if (lineInfo[3]) {
+        ELL_3V_SCALE_ADD2(lpos, 1, start, vidx, dir);
+      } else {
+        ELL_3V_AFFINE(lpos, 0, vidx, lineStepNum-1, start, end);
+      }
+      if (gageProbeSpace(ctx, lpos[0], lpos[1], lpos[2],
+                         AIR_TRUE, AIR_FALSE)) {
+        fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
+                me, ctx->errStr, ctx->errNum);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<ansLen; ai++) {
+        dout[ai + ansLen*vidx] = answer[ai];
+      }
+    }
+    if (nrrdSave(outS, nout, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
   } else {
     E = (numSS
          ? gageStackProbe(ctx, pos[0], pos[1], pos[2], idxSS)
@@ -334,58 +416,6 @@ main(int argc, char *argv[]) {
            airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
-  }
-
-  if (0) {
-    /* test with copied context */
-    if (!(ctx2 = gageContextCopy(ctx))) {
-      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop);
-      return 1;
-    }
-    airMopAdd(mop, ctx2, (airMopper)gageContextNix, airMopAlways);
-    answer2 = gageAnswerPointer(ctx, ctx2->pvl[0], what);
-    if (gageProbe(ctx2, pos[0], pos[1], pos[2])) {
-      fprintf(stderr, "%s: trouble:\n%s\n(%d)\n", me,
-              ctx->errStr, ctx->errNum);
-      airMopError(mop);
-      return 1;
-    }
-    printf("====== B %s: %s(%g,%g,%g) = ", me,
-           airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
-    printans(stdout, answer2, ansLen);
-    printf("\n");
-    
-    /* random testing */
-    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
-    gageProbe(ctx2, pos[0], pos[1], pos[2]);
-    printf("====== C %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-           pos[0], pos[1], pos[2]);
-    printans(stdout, answer2, ansLen);
-    printf("\n");
-    
-    ELL_3V_SET(pos, 4.4f, 5.5f, 6.6f);
-    gageProbe(ctx, pos[0], pos[1], pos[2]);
-    printf("====== D %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-           pos[0], pos[1], pos[2]);
-    printans(stdout, answer, ansLen);
-    printf("\n");
-    
-    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
-    gageProbe(ctx, pos[0], pos[1], pos[2]);
-    printf("====== E %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-           pos[0], pos[1], pos[2]);
-    printans(stdout, answer, ansLen);
-    printf("\n");
-    
-    ELL_3V_SET(pos, 1.2f, 2.3f, 3.4f);
-    gageProbe(ctx2, pos[0], pos[1], pos[2]);
-    printf("====== F %s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-           pos[0], pos[1], pos[2]);
-    printans(stdout, answer2, ansLen);
-    printf("\n");
-    
   }
 
   airMopOkay(mop);
