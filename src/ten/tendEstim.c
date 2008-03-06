@@ -222,11 +222,11 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   /* figure out B-matrix */
   if (strcmp("kvp", airToLower(bmatS))) {
+    /* its NOT coming from key/value pairs */
     if (!AIR_EXISTS(bval)) {
       fprintf(stderr, "%s: need to specify scalar b-value\n", me);
       airMopError(mop); return 1;
     }
-    /* its NOT coming from key/value pairs */
     if (nrrdLoad(nbmat, bmatS, NULL)) {
       airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble loading B-matrix:\n%s\n", me, err);
@@ -276,11 +276,14 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
       }
     }
     /* this will work because of the impositions of tenDWMRIKeyValueParse */
-    dwiax = (nrrdKindList == nin[0]->axis[0].kind
+    dwiax = ((nrrdKindList == nin[0]->axis[0].kind ||
+              nrrdKindVector == nin[0]->axis[0].kind)
              ? 0
-             : (nrrdKindList == nin[0]->axis[1].kind
+             : ((nrrdKindList == nin[0]->axis[1].kind ||
+                 nrrdKindVector == nin[0]->axis[1].kind)
                 ? 1
-                : (nrrdKindList == nin[0]->axis[2].kind
+                : ((nrrdKindList == nin[0]->axis[2].kind ||
+                    nrrdKindVector == nin[0]->axis[2].kind)
                    ? 2
                    : 3)));
     if (0 == dwiax) {
