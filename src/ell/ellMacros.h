@@ -269,9 +269,9 @@ extern "C" {
    (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]) && AIR_EXISTS((v)[2]))
 
 #define ELL_3V_AFFINE(v,i,x,I,o,O) ( \
-  (v)[0] = AIR_AFFINE((i)[0],(x)[0],(I)[0],(o)[0],(O)[0]), \
-  (v)[1] = AIR_AFFINE((i)[1],(x)[1],(I)[1],(o)[1],(O)[1]), \
-  (v)[2] = AIR_AFFINE((i)[2],(x)[2],(I)[2],(o)[2],(O)[2]))
+  (v)[0] = AIR_AFFINE((i), (x), (I), (o)[0], (O)[0]), \
+  (v)[1] = AIR_AFFINE((i), (x), (I), (o)[1], (O)[1]), \
+  (v)[2] = AIR_AFFINE((i), (x), (I), (o)[2], (O)[2]))
 
 #define ELL_3V_ABS(v2,v1) ( \
   (v2)[0] = AIR_ABS((v1)[0]), \
