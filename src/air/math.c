@@ -272,6 +272,16 @@ airMode3_d(const double _v[3]) {
 }
 
 double
+airMode3(double v0, double v1, double v2) {
+  double v[3];
+
+  v[0] = v0;
+  v[1] = v1;
+  v[2] = v2;
+  return airMode3_d(v);
+}
+
+double
 airGaussian(double x, double mean, double stdv) {
   
   x = x - mean;
