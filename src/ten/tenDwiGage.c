@@ -878,10 +878,12 @@ _tenDwiGagePvlDataCopy(const gageKind *kind, const void *_pvlDataOld) {
 
 int
 _tenDwiGagePvlDataUpdate(const gageKind *kind,
+                         const gageContext *ctx,
                          const gagePerVolume *pvl, const void *_pvlData) {
   /* char me[]="_tenDwiGagePvlDataUpdate"; */
   tenDwiGagePvlData *pvlData;
 
+  AIR_UNUSED(ctx);
   pvlData = AIR_CAST(tenDwiGagePvlData *, _pvlData);
   AIR_UNUSED(kind);
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenDwiGageTensorLLSError)

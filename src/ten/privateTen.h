@@ -84,21 +84,34 @@ extern void formTensor2D(double ten[7], double lam1, double lam3, double phi);
 
 /* qglox.c: stuff for quaternion geodesic-loxodromes that has dubious
    utility for the general public */
-TEN_EXPORT void tenQGLInterpTwoEvalK(double oeval[3],
-                                     const double evalA[3],
-                                     const double evalB[3],
-                                     const double tt);
-TEN_EXPORT void tenQGLInterpTwoEvalR(double oeval[3],
-                                     const double evalA[3],
-                                     const double evalB[3],
-                                     const double tt);
-TEN_EXPORT void tenQGLInterpTwo(double oten[7],
-                                const double tenA[7], const double tenB[7],
-                                int ptype, double aa, tenInterpParm *tip);
-TEN_EXPORT int tenQGLInterpN(double tenOut[7],
-                             const double *tenIn,
-                             const double *wght, 
-                             unsigned int NN, int ptype, tenInterpParm *tip);
+extern void tenQGLInterpTwoEvalK(double oeval[3],
+                                 const double evalA[3],
+                                 const double evalB[3],
+                                 const double tt);
+extern void tenQGLInterpTwoEvalR(double oeval[3],
+                                 const double evalA[3],
+                                 const double evalB[3],
+                                 const double tt);
+extern void tenQGLInterpTwoEvec(double oevec[9],
+                                const double evecA[9], const double evecB[9],
+                                double tt);
+extern void tenQGLInterpTwo(double oten[7],
+                            const double tenA[7], const double tenB[7],
+                            int ptype, double aa, tenInterpParm *tip);
+extern int _tenQGLInterpNEval(double evalOut[3],
+                              const double *evalIn, /* size 3 -by- NN */
+                              const double *wght,   /* size NN */
+                              unsigned int NN,
+                              int ptype, tenInterpParm *tip);
+extern int _tenQGLInterpNEvec(double evecOut[9],
+                              const double *evecIn, /* size 9 -by- NN */
+                              const double *wght,   /* size NN */
+                              unsigned int NN,
+                              tenInterpParm *tip);
+extern int tenQGLInterpN(double tenOut[7],
+                         const double *tenIn,
+                         const double *wght, 
+                         unsigned int NN, int ptype, tenInterpParm *tip);
 
 #ifdef __cplusplus
 }

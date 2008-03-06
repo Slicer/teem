@@ -23,6 +23,12 @@
 #include "ten.h"
 #include "privateTen.h"
 
+typedef struct {
+  double *buffTen, *buffWght;
+  tenInterpParm *tip;  /* sneakiness: using tip->allocLen to record
+                          allocation sizes of buffTen and buffWght, too */
+} _tenGagePvlData;
+
 gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
@@ -153,6 +159,17 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFALaplacian,             1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
   {tenGageFA2ndDD,                 1,  2,  {tenGageFAHessian, tenGageFANormal},                                  0,        0,     AIR_FALSE},
 
+  {tenGageFAGeomTens,              9,  2,  {tenGageFAHessian, tenGageFAGradMag, tenGageFANormal},                0,        0,     AIR_FALSE},
+  {tenGageFAKappa1,                1,  2,  {tenGageFAGeomTens},                                                  0,        0,     AIR_FALSE},
+  {tenGageFAKappa2,                1,  2,  {tenGageFAGeomTens},                                                  0,        0,     AIR_FALSE},
+  {tenGageFATotalCurv,             1,  2,  {tenGageFAGeomTens},                                                  0,        0,     AIR_FALSE},
+  {tenGageFAShapeIndex,            1,  2,  {tenGageFAKappa1, tenGageFAKappa2},                                   0,        0,     AIR_FALSE},
+  {tenGageFAMeanCurv,              1,  2,  {tenGageFAKappa1, tenGageFAKappa2},                                   0,        0,     AIR_FALSE},
+  {tenGageFAGaussCurv,             1,  2,  {tenGageFAKappa1, tenGageFAKappa2},                                   0,        0,     AIR_FALSE},
+  {tenGageFACurvDir1,              3,  2,  {tenGageFAGeomTens, tenGageFAKappa2},                                 0,        0,     AIR_FALSE},
+  {tenGageFACurvDir2,              3,  2,  {tenGageFAGeomTens, tenGageFAKappa1},                                 0,        0,     AIR_FALSE},
+  {tenGageFAFlowlineCurv,          1,  2,  {tenGageFANormal, tenGageFAHessian, tenGageFAGradMag},                0,        0,     AIR_FALSE},
+
   {tenGageRHessian,                9,  2,  {tenGageR, tenGageRGradVec, tenGageTraceHessian,
                                             tenGageBHessian, tenGageDetHessian, tenGageSHessian},                0,        0,     AIR_FALSE},
 
@@ -193,6 +210,12 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageOmegaDiffusionFraction,  1,  1,  {tenGageOmegaNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
 
   {tenGageCovariance,             21,  0,  {tenGageTensor}, /* and all the values in iv3 */                      0,        0,     AIR_FALSE},
+  {tenGageCovarianceRGRT,         21,  0,  {tenGageCovariance,
+                                            tenGageDelNormR1, tenGageDelNormR2, tenGageDelNormK3,
+                                            tenGageDelNormPhi1, tenGageDelNormPhi2, tenGageDelNormPhi3},         0,        0,     AIR_FALSE},
+  {tenGageCovarianceKGRT,         21,  0,  {tenGageCovariance,
+                                            tenGageDelNormK2, tenGageDelNormK3,
+                                            tenGageDelNormPhi1, tenGageDelNormPhi2, tenGageDelNormPhi3},         0,        0,     AIR_FALSE},
 
   {tenGageTensorLogEuclidean,      7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxK,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
@@ -971,6 +994,90 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[tenGageFA2ndDD][0] = ELL_3V_DOT(norm, tmpv);
   }
 
+  /* HEY: lots of this is copy/paste from gage/sclanswer.c */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGeomTens)) {
+    double denom, *fahess, *fagmag, tmpMat[9], *fnorm, nPerp[9], sHess[9];
+
+    fahess = pvl->directAnswer[tenGageFAHessian];
+    fagmag = pvl->directAnswer[tenGageFAGradMag];
+    fnorm = pvl->directAnswer[tenGageFANormal];
+    denom = (*fagmag) ? 1.0/(*fagmag) : 0.0;
+    ELL_3M_SCALE(sHess, denom, fahess);
+    ELL_3M_IDENTITY_SET(nPerp);
+    ELL_3MV_SCALE_OUTER_INCR(nPerp, -1, fnorm, fnorm);
+    /* gten = nPerp * sHess * nPerp */
+    ELL_3M_MUL(tmpMat, sHess, nPerp);
+    ELL_3M_MUL(pvl->directAnswer[tenGageFAGeomTens], nPerp, tmpMat);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFATotalCurv)) {
+    pvl->directAnswer[tenGageFATotalCurv][0] = 
+      ELL_3M_FROB(pvl->directAnswer[tenGageFAGeomTens]);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAKappa1) ||
+      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAKappa2)) {
+    double *k1, *k2, T, N, D;
+    k1 = pvl->directAnswer[tenGageFAKappa1];
+    k2 = pvl->directAnswer[tenGageFAKappa2];
+    T = ELL_3M_TRACE(pvl->directAnswer[tenGageFAGeomTens]);
+    N = pvl->directAnswer[tenGageFATotalCurv][0];
+    D = 2*N*N - T*T;
+    D = AIR_MAX(D, 0);
+    D = sqrt(D);
+    k1[0] = 0.5*(T + D);
+    k2[0] = 0.5*(T - D);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAMeanCurv)) {
+    double k1, k2;
+    k1 = pvl->directAnswer[tenGageFAKappa1][0];
+    k2 = pvl->directAnswer[tenGageFAKappa2][0];
+    pvl->directAnswer[tenGageFAMeanCurv][0] = (k1 + k2)/2;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAShapeIndex)) {
+    double k1, k2;
+    k1 = pvl->directAnswer[tenGageFAKappa1][0];
+    k2 = pvl->directAnswer[tenGageFAKappa2][0];
+    pvl->directAnswer[tenGageFAShapeIndex][0] = 
+      -(2/AIR_PI)*atan2(k1 + k2, k1 - k2);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGaussCurv)) {
+    double k1, k2;
+    k1 = pvl->directAnswer[tenGageFAKappa1][0];
+    k2 = pvl->directAnswer[tenGageFAKappa2][0];
+    pvl->directAnswer[tenGageFAGaussCurv][0] = k1*k2;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFACurvDir1)) {
+    double kk, tmpMat[9], tmpVec[3];
+    kk = pvl->directAnswer[tenGageFAKappa2][0];
+    ELL_3M_COPY(tmpMat, pvl->directAnswer[tenGageFAGeomTens]);
+    tmpMat[0] -= kk; tmpMat[4] -= kk; tmpMat[8] -= kk;
+    ell_3m_1d_nullspace_d(tmpVec, tmpMat);
+    ELL_3V_COPY(pvl->directAnswer[tenGageFACurvDir1], tmpVec);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFACurvDir2)) {
+    double kk, tmpMat[9], tmpVec[3];
+    kk = pvl->directAnswer[tenGageFAKappa1][0];
+    ELL_3M_COPY(tmpMat, pvl->directAnswer[tenGageFAGeomTens]);
+    tmpMat[0] -= kk; tmpMat[4] -= kk; tmpMat[8] -= kk;
+    ell_3m_1d_nullspace_d(tmpVec, tmpMat);
+    ELL_3V_COPY(pvl->directAnswer[tenGageFACurvDir1], tmpVec);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAFlowlineCurv)) {
+    double *fahess, *fnorm, *fagmag, denom, nPerp[9], nProj[9],
+      ncTen[9], sHess[9], tmpMat[9];
+    fnorm = pvl->directAnswer[tenGageFANormal];
+    fahess = pvl->directAnswer[tenGageFAHessian];
+    fagmag = pvl->directAnswer[tenGageFAGradMag];
+    ELL_3MV_OUTER(nProj, fnorm, fnorm);
+    ELL_3M_IDENTITY_SET(nPerp);
+    ELL_3M_SCALE_INCR(nPerp, -1, nProj);
+    denom = (*fagmag) ? 1.0/(*fagmag) : 0.0;
+    ELL_3M_SCALE(sHess, denom, fahess);
+    /* ncTen = nPerp * sHess * nProj */
+    ELL_3M_MUL(tmpMat, sHess, nProj);
+    ELL_3M_MUL(ncTen, nPerp, tmpMat);
+    pvl->directAnswer[gageSclFlowlineCurv][0] = ELL_3M_FROB(ncTen);
+  }
+
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRHessian)) {
     hessCbR = matTmp = pvl->directAnswer[tenGageRHessian];
     ELL_3M_ZERO_SET(matTmp);
@@ -1135,10 +1242,55 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       cc = 0;
       for (taa=0; taa<6; taa++) {
         for (tbb=taa; tbb<6; tbb++) {
-          /* HEY: do I really mean to have this 100000 factor in here */
+          /* HEY: do I really mean to have this factor in here? */
+          /* it probably meant that the units in the IGRT TMI paper were
+             wrong by this factor ... */
           cov[cc] += 100000*ten[taa+1]*ten[tbb+1];
           cc++;
         }
+      }
+    }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCovarianceRGRT)) {
+    double *cov, *covr, *igrt[6];
+    unsigned int taa, tbb, cc;
+
+    cov = pvl->directAnswer[tenGageCovariance];
+    covr = pvl->directAnswer[tenGageCovarianceRGRT];
+    igrt[0] = pvl->directAnswer[tenGageDelNormR1];
+    igrt[1] = pvl->directAnswer[tenGageDelNormR2];
+    igrt[2] = pvl->directAnswer[tenGageDelNormK3];
+    igrt[3] = pvl->directAnswer[tenGageDelNormPhi1];
+    igrt[4] = pvl->directAnswer[tenGageDelNormPhi2];
+    igrt[5] = pvl->directAnswer[tenGageDelNormPhi3];
+
+    cc = 0;
+    for (taa=0; taa<6; taa++) {
+      for (tbb=taa; tbb<6; tbb++) {
+        covr[cc] = tenDoubleContract_d(igrt[tbb], cov, igrt[taa]);
+        cc++;
+      }
+    }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCovarianceKGRT)) {
+    double *cov, *covk, *igrt[6], delnormk1[7];
+    unsigned int taa, tbb, cc;
+
+    cov = pvl->directAnswer[tenGageCovariance];
+    covk = pvl->directAnswer[tenGageCovarianceKGRT];
+    TEN_T_SET(delnormk1, 1, 0.57735026, 0, 0, 0.57735026, 0, 0.57735026);
+    igrt[0] = delnormk1;
+    igrt[1] = pvl->directAnswer[tenGageDelNormK2];
+    igrt[2] = pvl->directAnswer[tenGageDelNormK3];
+    igrt[3] = pvl->directAnswer[tenGageDelNormPhi1];
+    igrt[4] = pvl->directAnswer[tenGageDelNormPhi2];
+    igrt[5] = pvl->directAnswer[tenGageDelNormPhi3];
+
+    cc = 0;
+    for (taa=0; taa<6; taa++) {
+      for (tbb=taa; tbb<6; tbb++) {
+        covk[cc] = tenDoubleContract_d(igrt[tbb], cov, igrt[taa]);
+        cc++;
       }
     }
   }
@@ -1151,17 +1303,14 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean) ||
       GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK) ||
       GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
-    double buffTen[7*8*8*8], buffWght[8*8*8];
     unsigned int vijk, vii, vjj, vkk, fd, fddd;
+    _tenGagePvlData *pvlData;
     double *ans;
     int qret;
 
+    pvlData = AIR_CAST(_tenGagePvlData *, pvl->data);
     /* HEY: casting because radius is signed (shouldn't be) */
     fd = AIR_CAST(unsigned int, 2*ctx->radius);
-    if (fd > 8) {
-      fprintf(stderr, "%s: sorry, fd %u > limit 8 --> garbage\n", me, fd);
-      fd = AIR_MIN(fd, 8);
-    }
     fddd = fd*fd*fd;
     for (vijk=0; vijk<fddd; vijk++) {
       double wxx, wyy, wzz;
@@ -1172,33 +1321,27 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       wxx = ctx->fw[vii + fd*(0 + 3*gageKernel00)];
       wyy = ctx->fw[vjj + fd*(1 + 3*gageKernel00)];
       wzz = ctx->fw[vkk + fd*(2 + 3*gageKernel00)];
-      buffWght[vijk] = wxx*wyy*wzz;
+      pvlData->buffWght[vijk] = wxx*wyy*wzz;
       for (tt=0; tt<7; tt++) {
-        buffTen[tt + 7*vijk] = pvl->iv3[vijk + fddd*tt];
+        pvlData->buffTen[tt + 7*vijk] = pvl->iv3[vijk + fddd*tt];
       }
     }
-
-    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean)) {
-      double logAns[7];
-      ans = pvl->directAnswer[tenGageTensorLogEuclidean];
-      TEN_T_SET(logAns, 0,   0, 0, 0,   0, 0,   0);
-      for (vijk=0; vijk<fddd; vijk++) {
-        double tmpLog[7];
-        tenLogSingle_d(tmpLog, buffTen + 7*vijk);
-        TEN_T_SCALE_INCR(logAns, buffWght[vijk], tmpLog);
-      }
-      tenExpSingle_d(ans, logAns);
-    }
+    
     qret = 0;
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean)) {
+      ans = pvl->directAnswer[tenGageTensorLogEuclidean];
+      qret = tenInterpN_d(ans, pvlData->buffTen, pvlData->buffWght, fddd,
+                          tenInterpTypeLogLinear, pvlData->tip);
+    }
     if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK)) {
       ans = pvl->directAnswer[tenGageTensorQuatGeoLoxK];
-      qret = tenQGLInterpN(ans, buffTen, buffWght, fddd,
-                           tenInterpTypeQuatGeoLoxK, NULL);
+      qret = tenInterpN_d(ans, pvlData->buffTen, pvlData->buffWght, fddd,
+                          tenInterpTypeQuatGeoLoxK, pvlData->tip);
     }
     if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
       ans = pvl->directAnswer[tenGageTensorQuatGeoLoxR];
-      qret= tenQGLInterpN(ans, buffTen, buffWght, fddd,
-                          tenInterpTypeQuatGeoLoxR, NULL);
+      qret= tenInterpN_d(ans, pvlData->buffTen, pvlData->buffWght, fddd,
+                         tenInterpTypeQuatGeoLoxR, pvlData->tip);
     }
     if (qret) {
       char *lerr;
@@ -1216,6 +1359,77 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
+
+void *
+_tenGagePvlDataNew(const struct gageKind_t *kind) {
+  _tenGagePvlData *pvlData;
+
+  AIR_UNUSED(kind);
+  pvlData = AIR_CAST(_tenGagePvlData *, calloc(1, sizeof(_tenGagePvlData)));
+  if (pvlData) {
+    pvlData->buffTen = NULL;
+    pvlData->buffWght = NULL;
+    pvlData->tip = tenInterpParmNew();
+  }
+  return pvlData;
+}
+
+void *
+_tenGagePvlDataCopy(const struct gageKind_t *kind,
+                    const void *_pvlDataOld) {
+  _tenGagePvlData *pvlDataNew, *pvlDataOld;
+  unsigned int num;
+
+  AIR_UNUSED(kind);
+  pvlDataOld = AIR_CAST(_tenGagePvlData *, _pvlDataOld);
+  num = pvlDataOld->tip->allocLen;
+  pvlDataNew = AIR_CAST(_tenGagePvlData *, calloc(1, sizeof(_tenGagePvlData)));
+  if (pvlDataNew) {
+    pvlDataNew->buffTen = AIR_CAST(double *, calloc(7*num, sizeof(double)));
+    pvlDataNew->buffWght = AIR_CAST(double *, calloc(num, sizeof(double)));
+    pvlDataNew->tip = tenInterpParmCopy(pvlDataOld->tip);
+  }
+  return pvlDataNew;
+}
+
+void *
+_tenGagePvlDataNix(const struct gageKind_t *kind,
+                   void *_pvlData) {
+  _tenGagePvlData *pvlData;
+
+  AIR_UNUSED(kind);
+  pvlData = AIR_CAST(_tenGagePvlData *, _pvlData);
+  airFree(pvlData->buffTen);
+  airFree(pvlData->buffWght);
+  tenInterpParmNix(pvlData->tip);
+  airFree(pvlData);
+  return NULL;
+}
+
+int 
+_tenGagePvlDataUpdate(const struct gageKind_t *kind,
+                      const gageContext *ctx, const gagePerVolume *pvl,
+                      const void *_pvlData) {
+  _tenGagePvlData *pvlData;
+  unsigned int fd, num;
+
+  AIR_UNUSED(kind);
+  AIR_UNUSED(pvl);
+  pvlData = AIR_CAST(_tenGagePvlData *, _pvlData);
+  fd = AIR_CAST(unsigned int, 2*ctx->radius);
+  num = fd*fd*fd;
+  if (num != pvlData->tip->allocLen) {
+    /* HEY: no error checking */
+    pvlData->buffTen = airFree(pvlData->buffTen);
+    pvlData->buffWght = airFree(pvlData->buffWght);
+    pvlData->buffTen = AIR_CAST(double *, calloc(7*num, sizeof(double)));
+    pvlData->buffWght = AIR_CAST(double *, calloc(num, sizeof(double)));
+    tenInterpParmBufferAlloc(pvlData->tip, num);  
+  }
+  return 0;
+}
+
+
 gageKind
 _tenGageKind = {
   AIR_FALSE, /* statically allocated */
@@ -1228,7 +1442,10 @@ _tenGageKind = {
   _tenGageIv3Print,
   _tenGageFilter,
   _tenGageAnswer,
-  NULL, NULL, NULL, NULL,
+  _tenGagePvlDataNew,
+  _tenGagePvlDataCopy,
+  _tenGagePvlDataNix,
+  _tenGagePvlDataUpdate,
   NULL
 };
 gageKind *

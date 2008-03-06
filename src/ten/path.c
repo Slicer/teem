@@ -39,6 +39,16 @@ tenInterpParmNew(void) {
     tip->maxIter = 20;
     tip->numSteps = 100;
     tip->lengthFancy = AIR_FALSE;
+
+    tip->allocLen = 0;
+    tip->eval = NULL;
+    tip->evec = NULL;
+    tip->rtIn = NULL;
+    tip->rtLog = NULL;
+    tip->qIn = NULL;
+    tip->qBuff = NULL;
+    tip->qInter = NULL;
+
     tip->numIter = 0;
     tip->convFinal = AIR_NAN;
     tip->lengthShape = AIR_NAN;
@@ -47,103 +57,318 @@ tenInterpParmNew(void) {
   return tip;
 }
 
+
+
+/*
+** handles allocating all the various buffers that are needed for QGL
+** interpolation, so that they are repeatedly allocated and freed
+** between calls
+*/
+int
+tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
+  char me[]="tenInterpParmBufferAlloc", err[BIFF_STRLEN];
+
+  if (0 == num) {
+    /* user wants to free buffers for some reason */
+    tip->eval = airFree(tip->eval);
+    tip->evec = airFree(tip->evec);
+    tip->rtIn = airFree(tip->rtIn);
+    tip->rtLog = airFree(tip->rtLog);
+    tip->qIn = airFree(tip->qIn);
+    tip->qBuff = airFree(tip->qBuff);
+    tip->qInter = airFree(tip->qInter);
+    tip->allocLen = 0;
+  } else if (1 == num) {
+    sprintf(err, "%s: need num >= 2 (not %u)", me, num);
+    biffAdd(TEN, err); return 1;
+  } else if (num != tip->allocLen) {
+    tip->eval = airFree(tip->eval);
+    tip->evec = airFree(tip->evec);
+    tip->rtIn = airFree(tip->rtIn);
+    tip->rtLog = airFree(tip->rtLog);
+    tip->qIn = airFree(tip->qIn);
+    tip->qBuff = airFree(tip->qBuff);
+    tip->qInter = airFree(tip->qInter);
+    tip->eval = AIR_CAST(double *, calloc(3*num, sizeof(double)));
+    tip->evec = AIR_CAST(double *, calloc(9*num, sizeof(double)));
+    tip->rtIn = AIR_CAST(double *, calloc(3*num, sizeof(double)));
+    tip->rtLog = AIR_CAST(double *, calloc(3*num, sizeof(double)));
+    tip->qIn = AIR_CAST(double *, calloc(4*num, sizeof(double)));
+    tip->qBuff = AIR_CAST(double *, calloc(4*num, sizeof(double)));
+    tip->qInter = AIR_CAST(double *, calloc(num*num, sizeof(double)));
+    if (!(tip->eval && tip->evec && 
+          tip->rtIn && tip->rtLog &&
+          tip->qIn && tip->qBuff && tip->qInter)) {
+      sprintf(err, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
+              tip->eval, tip->evec, tip->rtIn, tip->rtLog,
+              tip->qIn, tip->qBuff, tip->qInter);
+      biffAdd(TEN, err); return 1;
+    }
+    tip->allocLen = num;
+  } 
+  return 0;
+}
+
+tenInterpParm *
+tenInterpParmCopy(tenInterpParm *tip) {
+  char me[]="tenInterpParmCopy", err[BIFF_STRLEN];
+  tenInterpParm *newtip;
+  unsigned int num;
+
+  num = tip->allocLen;
+  newtip = tenInterpParmNew();
+  if (newtip) {
+    memcpy(newtip, tip, sizeof(tenInterpParm));
+    /* manually set all pointers */
+    newtip->allocLen = 0;
+    newtip->eval = NULL;
+    newtip->evec = NULL;
+    newtip->rtIn = NULL;
+    newtip->rtLog = NULL;
+    newtip->qIn = NULL;
+    newtip->qBuff = NULL;
+    newtip->qInter = NULL;
+    if (tenInterpParmBufferAlloc(newtip, num)) {
+      sprintf(err, "%s: trouble allocating output", me);
+      biffAdd(TEN, err); return NULL;
+    }
+    memcpy(newtip->eval, tip->eval, 3*num*sizeof(double));
+    memcpy(newtip->evec, tip->evec, 9*num*sizeof(double));
+    memcpy(newtip->rtIn, tip->rtIn, 3*num*sizeof(double));
+    memcpy(newtip->rtLog, tip->rtLog, 3*num*sizeof(double));
+    memcpy(newtip->qIn, tip->qIn, 4*num*sizeof(double));
+    memcpy(newtip->qBuff, tip->qBuff, 4*num*sizeof(double));
+    memcpy(newtip->qInter, tip->qInter, num*num*sizeof(double));
+  }
+  return newtip;
+}
+
 tenInterpParm *
 tenInterpParmNix(tenInterpParm *tip) {
 
   if (tip) {
+    airFree(tip->eval);
+    airFree(tip->evec);
+    airFree(tip->rtIn);
+    airFree(tip->rtLog);
+    airFree(tip->qIn);
+    airFree(tip->qBuff);
+    airFree(tip->qInter);
     free(tip);
   }
   return NULL;
 }
 
+/*
+******** tenInterpTwo_d
+**
+** interpolates between two tensors, in various ways
+**
+** this is really only used for demo purposes; its not useful for
+** doing real work in DTI fields.  So: its okay that its slow
+** (e.g. for tenInterpTypeQuatGeoLox{K,R}, it recomputes the
+** eigensystems at the endpoints for every call, even though they are
+** apt to be the same between calls.
+**
+** this 
+*/
 void
 tenInterpTwo_d(double oten[7], 
                const double tenA[7], const double tenB[7],
                int ptype, double aa,
                tenInterpParm *tip) {
   char me[]="tenInterpTwo_d";
-  double logA[7], logB[7], tmp1[7], tmp2[7], sqrtA[7], isqrtA[7],
-    logMean[7], mean[7], sqrtB[7], isqrtB[7],
-    mat1[9], mat2[9], mat3[9];
+  double logA[7], logB[7], tmp1[7], tmp2[7], logMean[7],
+    mat1[9], mat2[9], mat3[9], sqrtA[7], isqrtA[7],
+    mean[7], sqrtB[7], isqrtB[7],
+    oeval[3], evalA[3], evalB[3], oevec[9], evecA[9], evecB[9];
 
-  AIR_UNUSED(tip);
-  if (ptype == tenInterpTypeLinear
-      || ptype == tenInterpTypeLogLinear
-      || ptype == tenInterpTypeAffineInvariant
-      || ptype == tenInterpTypeWang
-      || ptype == tenInterpTypeQuatGeoLoxK
-      || ptype == tenInterpTypeQuatGeoLoxR) {
-    switch (ptype) {
-    case tenInterpTypeLinear:
-      TEN_T_LERP(oten, aa, tenA, tenB);
-      break;
-    case tenInterpTypeLogLinear:
-      tenLogSingle_d(logA, tenA);
-      tenLogSingle_d(logB, tenB);
-      TEN_T_LERP(logMean, aa, logA, logB);
-      tenExpSingle_d(oten, logMean);
-      break;
-    case tenInterpTypeAffineInvariant:
-      tenSqrtSingle_d(sqrtA, tenA);
-      tenInv_d(isqrtA, sqrtA);
-      TEN_T2M(mat1, tenB);
-      TEN_T2M(mat2, isqrtA);
-      ELL_3M_MUL(mat3, mat1, mat2);   /*  B * is(A) */
-      ELL_3M_MUL(mat1, mat2, mat3);   /*  is(A) * B * is(A) */
-      TEN_M2T(tmp2, mat1);
-      tenPowSingle_d(tmp1, tmp2, aa); /*  m = (is(A) * B * is(A))^aa */
-      TEN_T2M(mat1, tmp1);
-      TEN_T2M(mat2, sqrtA);
-      ELL_3M_MUL(mat3, mat1, mat2);   /*  m * sqrt(A) */
-      ELL_3M_MUL(mat1, mat2, mat3);   /*  sqrt(A) * m * sqrt(A) */
-      TEN_M2T(oten, mat1);
-      oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
-      if (tip->verbose) {
-        fprintf(stderr, "%s:\nA= %g %g %g   %g %g  %g\n"
-                "B = %g %g %g   %g %g  %g\n"
-                "foo = %g %g %g   %g %g  %g\n"
-                "bar(%g) = %g %g %g   %g %g  %g\n", me,
-                tenA[1], tenA[2], tenA[3], tenA[4], tenA[5], tenA[6],
-                tenB[1], tenB[2], tenB[3], tenB[4], tenB[5], tenB[6],
-                tmp1[1], tmp1[2], tmp1[3], tmp1[4], tmp1[5], tmp1[6],
-                aa, oten[1], oten[2], oten[3], oten[4], oten[5], oten[6]);
-      }
-      break;
-    case tenInterpTypeWang:
-      /* HEY: this seems to be broken */
-      TEN_T_LERP(mean, aa, tenA, tenB);    /* "A" = mean */
-      tenLogSingle_d(logA, tenA);
-      tenLogSingle_d(logB, tenB);
-      TEN_T_LERP(logMean, aa, logA, logB); /* "B" = logMean */
-      tenSqrtSingle_d(sqrtB, logMean);
-      tenInv_d(isqrtB, sqrtB);
-      TEN_T2M(mat1, mean);
-      TEN_T2M(mat2, isqrtB);
-      ELL_3M_MUL(mat3, mat1, mat2);
-      ELL_3M_MUL(mat1, mat2, mat3);
-      TEN_M2T(tmp1, mat1);
-      tenSqrtSingle_d(oten, tmp1);
-      oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
-      break;
-    case tenInterpTypeQuatGeoLoxK:
-    case tenInterpTypeQuatGeoLoxR:
-      tenQGLInterpTwo(oten, tenA, tenB, ptype, aa, tip);
-      break;
+
+  if (!( oten && tenA && tenB )) {
+    /* got NULL pointer, but not using biff */
+    if (oten) {
+      TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
+                AIR_NAN, AIR_NAN, AIR_NAN);
     }
-  } else {
-    /* otherwise (currently) no closed-form expression for these */
+    return;
+  }
+
+  switch (ptype) {
+  case tenInterpTypeLinear:
+    TEN_T_LERP(oten, aa, tenA, tenB);
+    break;
+  case tenInterpTypeLogLinear:
+    tenLogSingle_d(logA, tenA);
+    tenLogSingle_d(logB, tenB);
+    TEN_T_LERP(logMean, aa, logA, logB);
+    tenExpSingle_d(oten, logMean);
+    break;
+  case tenInterpTypeAffineInvariant:
+    tenSqrtSingle_d(sqrtA, tenA);
+    tenInv_d(isqrtA, sqrtA);
+    TEN_T2M(mat1, tenB);
+    TEN_T2M(mat2, isqrtA);
+    ELL_3M_MUL(mat3, mat1, mat2);   /*  B * is(A) */
+    ELL_3M_MUL(mat1, mat2, mat3);   /*  is(A) * B * is(A) */
+    TEN_M2T(tmp2, mat1);
+    tenPowSingle_d(tmp1, tmp2, aa); /*  m = (is(A) * B * is(A))^aa */
+    TEN_T2M(mat1, tmp1);
+    TEN_T2M(mat2, sqrtA);
+    ELL_3M_MUL(mat3, mat1, mat2);   /*  m * sqrt(A) */
+    ELL_3M_MUL(mat1, mat2, mat3);   /*  sqrt(A) * m * sqrt(A) */
+    TEN_M2T(oten, mat1);
+    oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
+    if (tip->verbose) {
+      fprintf(stderr, "%s:\nA= %g %g %g   %g %g  %g\n"
+              "B = %g %g %g   %g %g  %g\n"
+              "foo = %g %g %g   %g %g  %g\n"
+              "bar(%g) = %g %g %g   %g %g  %g\n", me,
+              tenA[1], tenA[2], tenA[3], tenA[4], tenA[5], tenA[6],
+              tenB[1], tenB[2], tenB[3], tenB[4], tenB[5], tenB[6],
+              tmp1[1], tmp1[2], tmp1[3], tmp1[4], tmp1[5], tmp1[6],
+              aa, oten[1], oten[2], oten[3], oten[4], oten[5], oten[6]);
+    }
+    break;
+  case tenInterpTypeWang:
+    /* HEY: this seems to be broken */
+    TEN_T_LERP(mean, aa, tenA, tenB);    /* "A" = mean */
+    tenLogSingle_d(logA, tenA);
+    tenLogSingle_d(logB, tenB);
+    TEN_T_LERP(logMean, aa, logA, logB); /* "B" = logMean */
+    tenSqrtSingle_d(sqrtB, logMean);
+    tenInv_d(isqrtB, sqrtB);
+    TEN_T2M(mat1, mean);
+    TEN_T2M(mat2, isqrtB);
+    ELL_3M_MUL(mat3, mat1, mat2);
+    ELL_3M_MUL(mat1, mat2, mat3);
+    TEN_M2T(tmp1, mat1);
+    tenSqrtSingle_d(oten, tmp1);
+    oten[0] = AIR_LERP(aa, tenA[0], tenB[0]);
+    break;
+  case tenInterpTypeQuatGeoLoxK:
+  case tenInterpTypeQuatGeoLoxR:
+    tenEigensolve_d(evalA, evecA, tenA);
+    tenEigensolve_d(evalB, evecB, tenB);
+    if (tenInterpTypeQuatGeoLoxK == ptype) {
+      tenQGLInterpTwoEvalK(oeval, evalA, evalB, aa);
+    } else {
+      tenQGLInterpTwoEvalR(oeval, evalA, evalB, aa);
+    }
+    tenQGLInterpTwoEvec(oevec, evecA, evecB, aa);
+    tenMakeSingle_d(oten, AIR_LERP(aa, tenA[0], tenB[0]), oeval, oevec);
+    break;
+  case tenInterpTypeGeoLoxK:
+  case tenInterpTypeGeoLoxR:
+  case tenInterpTypeLoxK:
+  case tenInterpTypeLoxR:
+  default:
+    /* (currently) no closed-form expression for these */
     TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
               AIR_NAN, AIR_NAN, AIR_NAN);
+    break;
   }
   return;
 }
 
+/*
+** this NON-optionally uses biff
+**
+** for simplicity, a pre-allocated tenInterpParm MUST be passed,
+** regardless of the interpolation requested
+*/
 int
 tenInterpN_d(double tenOut[7],
-             const double *tenIn,
-             const double *wght, 
+             const double *tenIn, const double *wght,
              unsigned int num, int ptype, tenInterpParm *tip) {
+  char me[]="tenInterpN_d", err[BIFF_STRLEN];
+  unsigned int ii;
+  double ww, cc, tenErr[7], tmp[7], wghtSum, eval[3], evec[9];
 
+  TEN_T_SET(tenErr, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, 
+            AIR_NAN, AIR_NAN, AIR_NAN);
+  /* wght can be NULL ==> equal 1/num weight for all */
+  if (!(tenOut && tenIn && tip)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (!( num >= 2 )) {
+    sprintf(err, "%s: need num >= 2 (not %u)", me, num);
+    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+  }
+  if (airEnumValCheck(tenInterpType, ptype)) {
+    sprintf(err, "%s: invalid %s %d", me, tenInterpType->name, ptype);
+    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+  }
+  wghtSum = 0;
+  for (ii=0; ii<num; ii++) {
+    ww = wght ? wght[ii] : 1.0/num;
+    wghtSum += ww;
+  }
+  if (!( AIR_IN_CL(1 - tip->wghtSumEps, wghtSum, 1 + tip->wghtSumEps) )) {
+    sprintf(err, "%s: wght sum %g not within %g of 1.0", me,
+            wghtSum, tip->wghtSumEps);
+    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+  }
+
+  switch (ptype) {
+  case tenInterpTypeLinear:
+    TEN_T_SET(tenOut, 0,   0, 0, 0,   0, 0,   0);
+    cc = 0;
+    for (ii=0; ii<num; ii++) {
+      ww = wght ? wght[ii] : 1.0/num;
+      TEN_T_SCALE_INCR(tenOut, ww, tenIn + 7*ii);
+      cc += ww*(tenIn + 7*ii)[0];
+    }
+    tenOut[0] = cc;
+    break;
+  case tenInterpTypeLogLinear:
+    TEN_T_SET(tenOut, 0,   0, 0, 0,   0, 0,   0);
+    cc = 0;
+    for (ii=0; ii<num; ii++) {
+      ww = wght ? wght[ii] : 1.0/num;
+      tenLogSingle_d(tmp, tenIn + 7*ii);
+      TEN_T_SCALE_INCR(tenOut, ww, tmp);
+      cc += ww*(tenIn + 7*ii)[0];
+    }
+    tenOut[0] = cc;
+    TEN_T_COPY(tmp, tenOut);
+    tenExpSingle_d(tenOut, tmp);
+    break;
+  case tenInterpTypeAffineInvariant:
+  case tenInterpTypeWang:
+    sprintf(err, "%s: sorry, not implemented", me);
+    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    break;
+  case tenInterpTypeGeoLoxK:
+  case tenInterpTypeGeoLoxR:
+  case tenInterpTypeLoxK:
+  case tenInterpTypeLoxR:
+    sprintf(err, "%s: %s doesn't support averaging multiple tensors", me, 
+            airEnumStr(tenInterpType, ptype));
+    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    break;
+  case tenInterpTypeQuatGeoLoxK:
+  case tenInterpTypeQuatGeoLoxR:
+    if (tenInterpParmBufferAlloc(tip, num)) {
+      sprintf(err, "%s: trouble getting buffers", me);
+      biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    } else {
+      cc = 0;
+      for (ii=0; ii<num; ii++) {
+        tenEigensolve_d(tip->eval + 3*ii, tip->evec + 9*ii, tenIn + 7*ii);
+        ww = wght ? wght[ii] : 1.0/num;
+        cc += ww*(tenIn + 7*ii)[0];
+      }
+      if (_tenQGLInterpNEval(eval, tip->eval, wght, num, ptype, tip)
+          || _tenQGLInterpNEvec(evec, tip->evec, wght, num, tip)) {
+        sprintf(err, "%s: trouble computing", me);
+        biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+      }
+      tenMakeSingle_d(tenOut, cc, eval, evec);
+    }
+    break;
+  }
+  
   return 0;
 }
 

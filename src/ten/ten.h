@@ -368,41 +368,53 @@ enum {
   tenGageFALaplacian,      /*  98: "falapl": [1] */
   tenGageFA2ndDD,          /*  99: "fa2d": [1] */
 
-  tenGageRHessian,         /* 100: "rhess": [9] */
+  tenGageFAGeomTens,       /* 100: "fagten", sym. matx w/ evals {0, K1, K2} 
+                                   and evecs {grad, cdir0, cdir1}: [9] */
+  tenGageFAKappa1,         /* 101: "fak1", 1st princ curv: [1] */
+  tenGageFAKappa2,         /* 102: "fak2", 2nd princ curv (k2 <= k1): [1] */
+  tenGageFATotalCurv,      /* 103: "fatc", L2 norm(K1,K2): [1] */
+  tenGageFAShapeIndex,     /* 104: "fasi", Koen.'s shape index, ("S"): [1] */
+  tenGageFAMeanCurv,       /* 105: "famc", mean curvature (K1 + K2)/2: [1] */
+  tenGageFAGaussCurv,      /* 106: "fagc", gaussian curvature K1*K2: [1] */
+  tenGageFACurvDir1,       /* 107: "facdir1", 1st princ curv direction: [3] */
+  tenGageFACurvDir2,       /* 108: "facdir2", 2nd princ curv direction: [3] */
+  tenGageFAFlowlineCurv,   /* 109: "fafc", curv of normal streamline: [1] */
 
-  tenGageModeHessian,      /* 101: "mhess": [9] */
-  tenGageModeHessianEval,  /* 102: "mhesseval": [3] */
-  tenGageModeHessianEval0, /* 103: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /* 104: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /* 105: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /* 106: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /* 107: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /* 108: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /* 109: "mhessevec2": [3] */
+  tenGageRHessian,         /* 110: "rhess": [9] */
 
-  tenGageOmegaHessian,     /* 110: "omhess": [9] */
-  tenGageOmegaHessianEval, /* 111: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/* 112: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/* 113: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/* 114: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /* 115: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 116: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 117: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 118: "omhessevec2": [3] */
-  tenGageOmegaLaplacian,   /* 119: "omlapl": [1] */
-  tenGageOmega2ndDD,       /* 120: "om2d": [1] */
+  tenGageModeHessian,      /* 111: "mhess": [9] */
+  tenGageModeHessianEval,  /* 112: "mhesseval": [3] */
+  tenGageModeHessianEval0, /* 113: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /* 114: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /* 115: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /* 116: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /* 117: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /* 118: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /* 119: "mhessevec2": [3] */
 
-  tenGageTraceGradVecDotEvec0,   /* 121: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAngle,    /* 122: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 123: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 124: "fagvdotevec0": [1] */
-  tenGageFADiffusionAngle,       /* 125: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 126: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 127: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAngle,    /* 128: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 129: "daom": [1] */
+  tenGageOmegaHessian,     /* 120: "omhess": [9] */
+  tenGageOmegaHessianEval, /* 121: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/* 122: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/* 123: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/* 124: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 125: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 126: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 127: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 128: "omhessevec2": [3] */
+  tenGageOmegaLaplacian,   /* 129: "omlapl": [1] */
+  tenGageOmega2ndDD,       /* 130: "om2d": [1] */
 
-  tenGageCovariance, /* 130: "cov" 4rth order covariance tensor: [21]
+  tenGageTraceGradVecDotEvec0,   /* 131: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAngle,    /* 132: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 133: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 134: "fagvdotevec0": [1] */
+  tenGageFADiffusionAngle,       /* 135: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 136: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 137: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAngle,    /* 138: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 139: "daom": [1] */
+
+  tenGageCovariance, /* 140: "cov" 4rth order covariance tensor: [21]
                         in order of appearance:
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
@@ -410,14 +422,18 @@ enum {
                                                15:yyyy 16:yyyz 17:yyzz
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
-  tenGageTensorLogEuclidean,     /* 131: log-euclidean interpolation */
-  tenGageTensorQuatGeoLoxK,      /* 132: QGL-K interpolation */
-  tenGageTensorQuatGeoLoxR,      /* 133: QGL-R interpolation */
+  tenGageCovarianceRGRT, /* 141: "covr" covariance tensor expressed in frame
+                            of R invariant gradients and rotation tangents */
+  tenGageCovarianceKGRT, /* 142: "covk" covariance tensor expressed in frame
+                            of K invariant gradients and rotation tangents */
+  tenGageTensorLogEuclidean,     /* 143: log-euclidean interpolation */
+  tenGageTensorQuatGeoLoxK,      /* 144: QGL-K interpolation */
+  tenGageTensorQuatGeoLoxR,      /* 145: QGL-R interpolation */
 
-  tenGageAniso,            /* 134: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageAniso,            /* 146: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     134
+#define TEN_GAGE_ITEM_MAX     146
 
 /*
 ******** tenDwiGage* enum
@@ -1022,6 +1038,9 @@ typedef struct {
   int enableRecurse;
   unsigned int maxIter, numSteps;
   int lengthFancy;
+  /* internal ------------ */
+  unsigned int allocLen;
+  double *eval, *evec, *rtIn, *rtLog, *qIn, *qBuff, *qInter;
   /* output ------------ */
   unsigned int numIter;
   double convFinal;
@@ -1093,6 +1112,9 @@ TEN_EXPORT airEnum *tenTripleType;
 
 /* path.c */
 TEN_EXPORT tenInterpParm *tenInterpParmNew();
+TEN_EXPORT tenInterpParm *tenInterpParmCopy(tenInterpParm *tip);
+TEN_EXPORT int tenInterpParmBufferAlloc(tenInterpParm *tip,
+                                        unsigned int num);
 TEN_EXPORT tenInterpParm *tenInterpParmNix(tenInterpParm *tip);
 TEN_EXPORT void tenInterpTwo_d(double oten[7],
                                const double tenA[7],
@@ -1176,6 +1198,7 @@ TEN_EXPORT void tenPowSingle_f(float powten[7], const float ten[7],
 /* should rename to tenInvSingle_x */
 TEN_EXPORT void tenInv_f(float inv[7], const float ten[7]);
 TEN_EXPORT void tenInv_d(double inv[7], const double ten[7]);
+TEN_EXPORT double tenDoubleContract_d(double a[7], double T[21], double b[7]);
 
 /* chan.c */
 /* old tenCalc* functions superceded/deprecated by new tenEstimate* code */
