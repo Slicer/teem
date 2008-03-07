@@ -123,9 +123,9 @@ main(int argc, char *argv[]) {
   gagePerVolume *pvl;
   limnPolyData *lpld=NULL;
   airArray *mop;
-
+  int worldSpace;
   Nrrd *ngrad=NULL, *nbmat=NULL;
-  double bval;
+  double bval, eps;
   unsigned int *skip, skipNum;
 
   mop = airMopNew();
@@ -139,7 +139,10 @@ main(int argc, char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
              NULL, NULL, &probeKindHestCB);
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
-             "the position in index space at which to probe");
+             "the position in space at which to probe");
+  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
+             "if using this option, position (\"-p\") will be in world "
+             "space, instead of index space (the default)");
   hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
              "input polydata (overrides \"-p\")",
              NULL, NULL, limnHestPolyDataLMPD);
@@ -157,6 +160,10 @@ main(int argc, char *argv[]) {
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd(&hopt, "eps", "epsilon", airTypeDouble, 1, 1, &eps, "0",
+             "if non-zero, and if query is a scalar, epsilon around probe "
+             "location where we will do discrete differences to find the "
+             "gradient and hessian (for debugging)");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
              NULL, NULL, nrrdHestKernelSpec);
@@ -300,6 +307,7 @@ main(int argc, char *argv[]) {
   /* test with original context */
   answer = gageAnswerPointer(ctx, pvl, what);
   if (lpld) {
+    /* probing on locations of polydata */
     double *dout, xyzw[4];
     unsigned int vidx, ai;
     nout = nrrdNew();
@@ -323,7 +331,7 @@ main(int argc, char *argv[]) {
       ELL_4V_COPY(xyzw, lpld->xyzw + 4*vidx);
       ELL_4V_HOMOG(xyzw, xyzw);
       if (gageProbeSpace(ctx, xyzw[0], xyzw[1], xyzw[2],
-                         AIR_FALSE, AIR_TRUE)) {
+                         !worldSpace, AIR_TRUE)) {
         fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
                 me, ctx->errStr, ctx->errNum);
         airMopError(mop);
@@ -386,7 +394,7 @@ main(int argc, char *argv[]) {
         ELL_3V_AFFINE(lpos, 0, vidx, lineStepNum-1, start, end);
       }
       if (gageProbeSpace(ctx, lpos[0], lpos[1], lpos[2],
-                         AIR_TRUE, AIR_FALSE)) {
+                         !worldSpace, AIR_FALSE)) {
         fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
                 me, ctx->errStr, ctx->errNum);
         airMopError(mop);
@@ -403,9 +411,12 @@ main(int argc, char *argv[]) {
       return 1;
     }
   } else {
+    /* simple probing at a point */
     E = (numSS
-         ? gageStackProbe(ctx, pos[0], pos[1], pos[2], idxSS)
-         : gageProbe(ctx, pos[0], pos[1], pos[2]));
+         ? gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], idxSS,
+                               !worldSpace, AIR_FALSE)
+         : gageProbeSpace(ctx, pos[0], pos[1], pos[2],
+                          !worldSpace, AIR_FALSE));
     if (E) {
       fprintf(stderr, "%s: trouble:\n%s\n(%d)\n",
               me, ctx->errStr, ctx->errNum);
@@ -416,6 +427,35 @@ main(int argc, char *argv[]) {
            airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
+    if (eps && 1 == ansLen) {
+      double v[3][3][3];
+      int xo, yo, zo;
+#define PROBE(x, y, z)                                                     \
+      ((numSS                                                              \
+        ? gageStackProbeSpace(ctx, x, y, z, idxSS, !worldSpace, AIR_FALSE) \
+        : gageProbeSpace(ctx, x, y, z, !worldSpace, AIR_FALSE)), answer[0])
+      for (xo=0; xo<=2; xo++) {
+        for (yo=0; yo<=2; yo++) {
+          for (zo=0; zo<=2; zo++) {
+            v[xo][yo][zo] = PROBE(pos[0] + (xo-1)*eps,
+                                  pos[1] + (yo-1)*eps,
+                                  pos[2] + (zo-1)*eps);
+          }
+        }
+      }
+      printf("%s: approx gradient(%s) at (%g,%g,%g) = %f %f %f\n", me,
+             airEnumStr(kind->enm, what), pos[0], pos[1], pos[2],
+             (v[2][1][1] - v[0][1][1])/(2*eps),
+             (v[1][2][1] - v[1][0][1])/(2*eps),
+             (v[1][1][2] - v[1][1][0])/(2*eps));
+      /*
+      printf("%s: approx hessian(%s) at (%g,%g,%g) = %f %f %f %f %f %f\n", me,
+             airEnumStr(kind->enm, what), pos[0], pos[1], pos[2],
+             (v[0][1][1] - 2*v[1][1][1] + v[2][1][1])/(eps*eps),
+             (v[1][2][1] - v[1][0][1])/(2*eps),
+             (v[1][1][2] - v[1][1][0])/(2*eps));
+      */
+    }
   }
 
   airMopOkay(mop);
