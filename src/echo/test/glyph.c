@@ -39,6 +39,12 @@ rgbGen(echoCol_t rgb[3], float evec[3], float an) {
   rgb[2] = AIR_AFFINE(0.0, an, 1.0, 0.5, rgb[2]);
 }
 
+/* changed in ELL, below is only usage */
+#define NOTELL_3V_AFFINE(v,i,x,I,o,O) ( \
+  (v)[0] = AIR_AFFINE((i)[0],(x)[0],(I)[0],(o)[0],(O)[0]), \
+  (v)[1] = AIR_AFFINE((i)[1],(x)[1],(I)[1],(o)[1],(O)[1]), \
+  (v)[2] = AIR_AFFINE((i)[2],(x)[2],(I)[2],(o)[2],(O)[2]))
+
 void
 makeGlyphScene(limnCam *cam, EchoParm *eparm,
                Nrrd *nten, EchoGlyphParm *gparm,
@@ -74,8 +80,8 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   ELL_3V_SET(imax, 1, 1, 1);
   ELL_3V_SET(omin, 0, 0, 0);
   ELL_3V_SET(omax, xs*(sx-1), ys*(sy-1), zs*(sz-1));
-  ELL_3V_AFFINE(cam->from, imin, cam->from, imax, omin, omax);
-  ELL_3V_AFFINE(cam->at, imin, cam->at, imax, omin, omax);
+  NOTELL_3V_AFFINE(cam->from, imin, cam->from, imax, omin, omax);
+  NOTELL_3V_AFFINE(cam->at, imin, cam->at, imax, omin, omax);
 
   ng = 0;
   for (zi=0; zi<sz; zi++) {
