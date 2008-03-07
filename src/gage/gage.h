@@ -273,10 +273,9 @@ enum {
   gageSclHessValleyness,   /* 30: "valley measure", vallyness measure: [1] */
   gageSclHessRidgeness,    /* 31: "ridge measure", ridgeness measure: [1] */
   gageSclHessMode,     /* 32: "mode hessian", Hessian's mode: [1] */
-  gageSclGradVecHessAbs, /* 33: "gradha", experimental: [3] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX  33
+#define GAGE_SCL_ITEM_MAX  32
 
 /*
 ******** gageVec* enum
