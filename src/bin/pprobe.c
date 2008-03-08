@@ -427,9 +427,10 @@ main(int argc, char *argv[]) {
            airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
-    if (eps && 1 == ansLen) {
-      double v[3][3][3];
+    if (eps && 1 == ansLen && worldSpace) {
+      double v[3][3][3], fes, ee;
       int xo, yo, zo;
+      gageParmSet(ctx, gageParmVerbose, 0);
 #define PROBE(x, y, z)                                                     \
       ((numSS                                                              \
         ? gageStackProbeSpace(ctx, x, y, z, idxSS, !worldSpace, AIR_FALSE) \
@@ -448,13 +449,19 @@ main(int argc, char *argv[]) {
              (v[2][1][1] - v[0][1][1])/(2*eps),
              (v[1][2][1] - v[1][0][1])/(2*eps),
              (v[1][1][2] - v[1][1][0])/(2*eps));
-      /*
-      printf("%s: approx hessian(%s) at (%g,%g,%g) = %f %f %f %f %f %f\n", me,
+      fes = 4*eps*eps;
+      ee = eps*eps;
+      printf("%s: approx hessian(%s) at (%g,%g,%g) = \n"
+             "%f %f %f\n"
+             "   %f %f\n"
+             "      %f\n", me,
              airEnumStr(kind->enm, what), pos[0], pos[1], pos[2],
-             (v[0][1][1] - 2*v[1][1][1] + v[2][1][1])/(eps*eps),
-             (v[1][2][1] - v[1][0][1])/(2*eps),
-             (v[1][1][2] - v[1][1][0])/(2*eps));
-      */
+             (v[0][1][1] - 2*v[1][1][1] + v[2][1][1])/ee,
+             (v[2][2][1] - v[0][2][1] - v[2][0][1] + v[0][0][1])/fes,
+             (v[2][1][2] - v[0][1][2] - v[2][1][0] + v[0][1][0])/fes,
+             (v[1][2][1] - 2*v[1][1][1] + v[1][0][1])/ee,
+             (v[1][2][2] - v[1][0][2] - v[1][2][0] + v[1][0][0])/fes,
+             (v[1][1][2] - 2*v[1][1][1] + v[1][1][0])/ee);
     }
   }
 
