@@ -204,8 +204,15 @@ _gageRadiusUpdate(gageContext *ctx) {
   radius = AIR_ROUNDUP(maxRad);
   /* In case either kernels have tiny supports (less than 0.5), or if
      we in fact don't need any kernels, then we need to do this to 
-     ensure that we generate a valid (trivial) padding */
+     ensure that we generate a valid radius */
   radius = AIR_MAX(radius, 1);
+  if (ctx->parm.stackUse) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: with stack, radius %d --> %d\n",
+              me, radius, radius+1);
+    }
+    radius += 1;
+  }
   if (radius != ctx->radius) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: changing radius from %d to %d\n",

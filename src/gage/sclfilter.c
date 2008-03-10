@@ -34,6 +34,11 @@
 ** filtered per-component.
 */
 
+/*
+** Teem trivia: "3P" stands for "3-pack", the kind of kernel set used
+** (k00, k11, and k22).  6-pack filtering is still unimplemented.
+*/
+
 #define X 0
 #define Y 1
 #define Z 2
@@ -330,6 +335,38 @@ gageScl3PFilter4(gageShape *shape,
 }
 
 void
+gageScl3PFilter6(gageShape *shape, 
+                 double *ivX, double *ivY, double *ivZ,
+                 double *fw0, double *fw1, double *fw2,
+                 double *val, double *gvec, double *hess,
+                 int doV, int doD1, int doD2) {
+  int i, j;
+  double T;
+
+#define fd 6
+#include "scl3pfilterbody.c"
+#undef fd
+
+  return;
+}
+
+void
+gageScl3PFilter8(gageShape *shape, 
+                 double *ivX, double *ivY, double *ivZ,
+                 double *fw0, double *fw1, double *fw2,
+                 double *val, double *gvec, double *hess,
+                 int doV, int doD1, int doD2) {
+  int i, j;
+  double T;
+
+#define fd 8
+#include "scl3pfilterbody.c"
+#undef fd
+
+  return;
+}
+
+void
 gageScl3PFilterN(gageShape *shape, int fd,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
@@ -338,97 +375,7 @@ gageScl3PFilterN(gageShape *shape, int fd,
   int i, j;
   double T;
 
-  /* fw? + N*?
-       |     |  
-       |     +- along which axis (0:x, 1:y, 2:z)
-       |
-       + what information (0:value, 1:1st deriv, 2:2nd deriv)
-
-     ivX: 3D cube cache of original volume values
-          (its scanlines are along the X axis)
-     ivY: 2D square cache of intermediate filter results
-          (its scanlines are along the Y axis)
-     ivZ: 1D linear cache of intermediate filter results
-          (it is a scanline along the Z axis)
-  */
-
-#define DOT_N(ANS, a, b) \
-  for (T=0.0f,i=0; i<fd; i++) \
-    T += (a)[i]*(b)[i];  \
-  ANS = T
-#define VL_N(ANS, i, axis) DOT_N(ANS, fw0 + (axis)*fd, iv##axis + i*fd)
-#define D1_N(ANS, i, axis) DOT_N(ANS, fw1 + (axis)*fd, iv##axis + i*fd)
-#define D2_N(ANS, i, axis) DOT_N(ANS, fw2 + (axis)*fd, iv##axis + i*fd)
-
-  /* x0 */
-  for (j=0; j<fd*fd; j++) { VL_N(ivY[j],j,X); }
-  /* x0y0 */
-  for (j=0; j<fd; j++) { VL_N(ivZ[j],j,Y); }
-  /* x0y0z0 */
-  if (doV) {
-    VL_N(*val,0,Z);                           /* f */
-  }
-
-  if (!( doD1 || doD2 ))
-    return;
-
-  /* x0y0z1 */
-  if (doD1) {
-    D1_N(gvec[2],0,Z);                        /* g_z */
-  }
-  if (doD2) {
-    /* x0y0z2 */
-    D2_N(hess[8],0,Z);                        /* h_zz */
-  }
-  /* x0y1 */
-  for (j=0; j<fd; j++) { D1_N(ivZ[j],j,Y); }
-  /* x0y1z0 */
-  if (doD1) {
-    VL_N(gvec[1],0,Z);                        /* g_y */
-  }
-  if (doD2) {
-    /* x0y1z1 */
-    D1_N(hess[7],0,Z);                        /* h_yz */
-    hess[5] = hess[7];
-    /* x0y2 */
-    for (j=0; j<fd; j++) { D2_N(ivZ[j],j,Y); }
-    /* x0y2z0 */
-    VL_N(hess[4],0,Z);                        /* h_yy */
-  }
-  /* x1 */
-  for (j=0; j<fd*fd; j++) { D1_N(ivY[j],j,X); }
-  /* x1y0 */
-  for (j=0; j<fd; j++) { VL_N(ivZ[j],j,Y); }
-  /* x1y0z0 */
-  if (doD1) {
-    VL_N(gvec[0],0,Z);                        /* g_x */
-  }
-
-  ell_3mv_mul_d(gvec, shape->ItoWSubInvTransp, gvec);
-
-  if (!doD2)
-    return;
-
-  /* x1y0z1 */
-  D1_N(hess[6],0,Z);                          /* h_xz */
-  hess[2] = hess[6];
-  /* x1y1 */
-  for (j=0; j<fd; j++) { D1_N(ivZ[j],j,Y); }
-  /* x1y1z0 */
-  VL_N(hess[3],0,Z);                          /* h_xy */
-  hess[1] = hess[3];
-  /* x2 */
-  for (j=0; j<fd*fd; j++) { D2_N(ivY[j],j,X); }
-  /* x2y0 */
-  for (j=0; j<fd; j++) { VL_N(ivZ[j],j,Y); }
-  /* x2y0z0 */
-  VL_N(hess[0],0,Z);                          /* h_xx */
-
-  if (1) {
-    double matA[9];
-    ELL_3M_MUL(matA, shape->ItoWSubInvTransp, hess);
-    ELL_3M_MUL(hess, matA, shape->ItoWSubInv);
-  }
+#include "scl3pfilterbody.c"
 
   return;
 }
@@ -438,6 +385,8 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclFilter";
   int fd;
   double *fw00, *fw11, *fw22;
+  gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
+                                  gageScl3PFilter6, gageScl3PFilter8};
 
   fd = 2*ctx->radius;
   if (!ctx->parm.k3pack) {
@@ -448,24 +397,14 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  switch (fd) {
-  case 2:
-    gageScl3PFilter2(ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
-                     fw00, fw11, fw22,
-                     pvl->directAnswer[gageSclValue],
-                     pvl->directAnswer[gageSclGradVec],
-                     pvl->directAnswer[gageSclHessian],
-                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-    break;
-  case 4:
-    gageScl3PFilter4(ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
-                     fw00, fw11, fw22,
-                     pvl->directAnswer[gageSclValue],
-                     pvl->directAnswer[gageSclGradVec],
-                     pvl->directAnswer[gageSclHessian],
-                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-    break;
-  default:
+  if (fd <= 8) {
+    filter[ctx->radius](ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
+                        fw00, fw11, fw22,
+                        pvl->directAnswer[gageSclValue],
+                        pvl->directAnswer[gageSclGradVec],
+                        pvl->directAnswer[gageSclHessian],
+                        pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+  } else {
     gageScl3PFilterN(ctx->shape, fd,
                      pvl->iv3, pvl->iv2, pvl->iv1, 
                      fw00, fw11, fw22,
@@ -473,9 +412,11 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                      pvl->directAnswer[gageSclGradVec],
                      pvl->directAnswer[gageSclHessian],
                      pvl->needD[0], pvl->needD[1], pvl->needD[2]);
-    break;
   }
 
   return;
 }
 
+#undef X
+#undef Y
+#undef Z

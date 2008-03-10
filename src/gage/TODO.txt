@@ -1,3 +1,5 @@
+figure out how to handle derivative renormalizating (for scale) at scale=0
+
 add flags for explicitly specifying gmax, hmax, vrange
 
 ------- Teem 1.5 cutoff ---------

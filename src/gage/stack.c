@@ -216,8 +216,8 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
             rangeMin, rangeMax);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( 0 < rangeMin && rangeMin <= rangeMax )) {
-    sprintf(err, "%s: need 0 < range min (%g) <= range max (%g)", me,
+  if (!( 0 <= rangeMin && rangeMin <= rangeMax )) {
+    sprintf(err, "%s: need 0 <= range min (%g) <= range max (%g)", me,
             rangeMin, rangeMax);
     biffAdd(GAGE, err); return 1;
   }

@@ -745,16 +745,15 @@ GAGE_EXPORT void gageQueryPrint(FILE *file, const gageKind *kind,
                                 gageQuery query);
 
 /* sclfilter.c */
-GAGE_EXPORT void gageScl3PFilter2(gageShape *shape,
-                                  double *iv3, double *iv2, double *iv1,
-                                  double *fw00, double *fw11, double *fw22,
-                                  double *val, double *gvec, double *hess,
-                                  int doV, int doD1, int doD2);
-GAGE_EXPORT void gageScl3PFilter4(gageShape *shape,
-                                  double *iv3, double *iv2, double *iv1,
-                                  double *fw00, double *fw11, double *fw22,
-                                  double *val, double *gvec, double *hess,
-                                  int doV, int doD1, int doD2);
+typedef void (gageScl3PFilter_t)(gageShape *shape,
+                                 double *iv3, double *iv2, double *iv1,
+                                 double *fw00, double *fw11, double *fw22,
+                                 double *val, double *gvec, double *hess,
+                                 int doV, int doD1, int doD2);
+GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter2;
+GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter4;
+GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter6;
+GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter8;
 GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
                                   double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,

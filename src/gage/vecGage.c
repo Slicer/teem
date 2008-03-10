@@ -100,6 +100,9 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecFilter";
   double *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
+  gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
+                                  gageScl3PFilter6, gageScl3PFilter8};
+  unsigned int valIdx;
 
   fd = 2*ctx->radius;
   vec  = pvl->directAnswer[gageVecVector];
@@ -113,36 +116,26 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  switch (fd) {
-  case 2:
-#define DOIT_2(J) \
-      gageScl3PFilter2(ctx->shape, \
-                       pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
-                       fw00, fw11, fw22, \
-                       vec + J, jac + J*3, hes + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-      /* 2nd order derivative computation with this scheme is no good idea */
-    DOIT_2(0); DOIT_2(1); DOIT_2(2); 
-    break;
-  case 4:
-#define DOIT_4(J) \
-      gageScl3PFilter4(ctx->shape, \
-                       pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
-                       fw00, fw11, fw22, \
-                       vec + J, jac + J*3, hes + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-    DOIT_4(0); DOIT_4(1); DOIT_4(2); 
-    break;
-  default:
-#define DOIT_N(J)\
-      gageScl3PFilterN(ctx->shape, fd, \
-                       pvl->iv3 + J*fd*fd*fd, \
-                       pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
-                       fw00, fw11, fw22, \
-                       vec + J, jac + J*3, hes + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-    DOIT_N(0); DOIT_N(1); DOIT_N(2); 
-    break;
+  if (fd <= 8) {
+    for (valIdx=0; valIdx<3; valIdx++) {
+      filter[ctx->radius](ctx->shape,
+                          pvl->iv3 + valIdx*fd*fd*fd,
+                          pvl->iv2 + valIdx*fd*fd,
+                          pvl->iv1 + valIdx*fd,
+                          fw00, fw11, fw22,
+                          vec + valIdx, jac + valIdx*3, hes + valIdx*9,
+                          pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    }
+  } else {
+    for (valIdx=0; valIdx<3; valIdx++) {
+      gageScl3PFilterN(ctx->shape, fd,
+                       pvl->iv3 + valIdx*fd*fd*fd,
+                       pvl->iv2 + valIdx*fd*fd,
+                       pvl->iv1 + valIdx*fd,
+                       fw00, fw11, fw22,
+                       vec + valIdx, jac + valIdx*3, hes + valIdx*9,
+                       pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    }
   }
 
   return;
