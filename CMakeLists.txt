@@ -57,8 +57,8 @@ IF(NOT TEEM_BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DTEEM_STATIC)
 ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
 
-OPTION(TEEM_ZLIB "Build Teem with support for gzip compression." OFF)
-OPTION(TEEM_PNG "Build Teem with support for PNG images." OFF)
+OPTION(TEEM_ZLIB "Build Teem with support for gzip compression." ON)
+OPTION(TEEM_PNG "Build Teem with support for PNG images." ON)
 
 # Can't build PNG without ZLIB, so force it on.
 IF(TEEM_PNG AND NOT TEEM_ZLIB)
@@ -91,7 +91,7 @@ IF(TEEM_ZLIB)
 ENDIF(TEEM_ZLIB)
 
 # Try and locate BZIP2 stuff
-OPTION(TEEM_BZIP2 "Build Teem with support for bzip compression." OFF)
+OPTION(TEEM_BZIP2 "Build Teem with support for bzip compression." ON)
 SET(TEEM_BZIP2_LIB "")
 
 IF(TEEM_BZIP2)
@@ -105,6 +105,18 @@ IF(TEEM_BZIP2)
     SET(TEEM_BZIP2 OFF )
   ENDIF(BZ2_FOUND)
 ENDIF(TEEM_BZIP2)
+
+# Look for threading libraries
+OPTION(TEEM_PTHREAD "Build Teem with pthread library support." ON)
+IF(TEEM_PTHREAD)
+  INCLUDE(FindThreads)
+  IF(CMAKE_USE_PTHREADS_INIT)
+    ADD_DEFINITIONS(-DTEEM_PTHREAD)
+  ELSE(CMAKE_USE_PTHREADS_INIT)
+    MESSAGE(WARNING "Turning pthread support off.")
+    SET(TEEM_PTHREAD OFF)
+  ENDIF(CMAKE_USE_PTHREADS_INIT)
+ENDIF(TEEM_PTHREAD)
 
 #-----------------------------------------------------------------------------
 #Include Teem Defines
@@ -267,6 +279,10 @@ IF(TEEM_ZLIB_LIB)
     TARGET_LINK_LIBRARIES(teem ${TEEM_PNG_LIB})
   ENDIF(TEEM_PNG_LIB)
 ENDIF(TEEM_ZLIB_LIB)
+
+IF(TEEM_PTHREAD)
+  TARGET_LINK_LIBRARIES(teem ${CMAKE_THREAD_LIBS_INIT})
+ENDIF(TEEM_PTHREAD)
 
 IF(UNIX)
   TARGET_LINK_LIBRARIES(teem -lm)
