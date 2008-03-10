@@ -25,7 +25,6 @@
 
 void
 gageShapeReset(gageShape *shape) {
-  int i, ai;
   
   if (shape) {
     shape->defaultCenter = gageDefDefaultCenter;
@@ -33,12 +32,6 @@ gageShapeReset(gageShape *shape) {
     shape->center = nrrdCenterUnknown;
     shape->fromOrientation = AIR_FALSE;
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      /* valgrind complained about AIR_NAN at -O2 */
-      for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = airNaN();
-      }
-    }
     ELL_3V_SET(shape->volHalfLen, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_3V_SET(shape->voxLen, AIR_NAN, AIR_NAN, AIR_NAN);
   }
@@ -112,11 +105,11 @@ int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[BIFF_STRLEN];
-  int i, ai, cx, cy, cz, defCenter, statCalc[3];
+  int ai, cx, cy, cz, defCenter, statCalc[3];
   unsigned int minsize, sx, sy, sz;
   const NrrdAxisInfo *ax[3];
   double maxLen, defSpacing,
-    vecA[4], vecB[3], vecC[3], vecD[4],
+    vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
 
   /* ------ basic error checking */
@@ -325,32 +318,6 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     }
   }
   
-  /* ------ set spacing-dependent filter weight scalings */
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    switch (i) {
-    case gageKernel00:
-    case gageKernel10:
-    case gageKernel20:
-      /* interpolation requires no re-weighting for non-unit spacing */
-      for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = 1.0;
-      }
-      break;
-    case gageKernel11:
-    case gageKernel21:
-      for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = 1.0/(shape->spacing[ai]);
-      }
-      break;
-    case gageKernel22:
-      for (ai=0; ai<=2; ai++) {
-        shape->fwScale[i][ai] = 
-          1.0/((shape->spacing[ai])*(shape->spacing[ai]));
-      }
-      break;
-    }
-  }
-
   /* ------ set transform matrices */
   if (shape->fromOrientation) {
     /* find translation vector (we check above that spaceDim == 3) */
@@ -410,6 +377,10 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     ELL_4MV_COL3_SET(shape->ItoW, vecA);
   }
   ell_4m_inv_d(shape->WtoI, shape->ItoW);
+
+  ELL_34M_EXTRACT(matA, shape->ItoW);
+  ell_3m_inv_d(shape->ItoWSubInv, matA);
+  ELL_3M_TRANSPOSE(shape->ItoWSubInvTransp, shape->ItoWSubInv);
 
   return 0;
 }
@@ -484,23 +455,23 @@ gageShapeEqual(gageShape *shape1, char *_name1,
             name2, shape2->fromOrientation ? "true" : "false");
     biffAdd(GAGE, err); return 0;
   }
+  if (!( shape1->size[0] == shape2->size[0] &&
+         shape1->size[1] == shape2->size[1] &&
+         shape1->size[2] == shape2->size[2] )) {
+    sprintf(err, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
+            name1, 
+            shape1->size[0], shape1->size[1], shape1->size[2],
+            name2,
+            shape2->size[0], shape2->size[1], shape2->size[2]);
+    biffAdd(GAGE, err); return 0;
+  }
   if (shape1->fromOrientation) {
-    if (!( ELL_4M_EQUAL(shape1->ItoW,shape2->ItoW) )) {
+    if (!( ELL_4M_EQUAL(shape1->ItoW, shape2->ItoW) )) {
       sprintf(err, "%s: ItoW matrices of %s and %s not the same", me,
               name1, name2);
       biffAdd(GAGE, err); return 0;
     }
   } else {
-    if (!( shape1->size[0] == shape2->size[0] &&
-           shape1->size[1] == shape2->size[1] &&
-           shape1->size[2] == shape2->size[2] )) {
-      sprintf(err, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
-              name1, 
-              shape1->size[0], shape1->size[1], shape1->size[2],
-              name2,
-              shape2->size[0], shape2->size[1], shape2->size[2]);
-      biffAdd(GAGE, err); return 0;
-    }
     if (!( shape1->spacing[0] == shape2->spacing[0] &&
            shape1->spacing[1] == shape2->spacing[1] &&
            shape1->spacing[2] == shape2->spacing[2] )) {

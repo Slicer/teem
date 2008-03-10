@@ -116,7 +116,8 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   switch (fd) {
   case 2:
 #define DOIT_2(J) \
-      gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
+      gageScl3PFilter2(ctx->shape, \
+                       pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
                        fw00, fw11, fw22, \
                        vec + J, jac + J*3, hes + J*9, \
                        pvl->needD[0], pvl->needD[1], pvl->needD[2])
@@ -125,7 +126,8 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
     break;
   case 4:
 #define DOIT_4(J) \
-      gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
+      gageScl3PFilter4(ctx->shape, \
+                       pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
                        fw00, fw11, fw22, \
                        vec + J, jac + J*3, hes + J*9, \
                        pvl->needD[0], pvl->needD[1], pvl->needD[2])
@@ -133,7 +135,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
     break;
   default:
 #define DOIT_N(J)\
-      gageScl3PFilterN(fd, \
+      gageScl3PFilterN(ctx->shape, fd, \
                        pvl->iv3 + J*fd*fd*fd, \
                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
                        fw00, fw11, fw22, \

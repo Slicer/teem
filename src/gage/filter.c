@@ -142,8 +142,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 void
 _gageFwSet(gageContext *ctx) {
   char me[]="_gageFwSet";
-  int kidx, j, fd;
-  double *fwX, *fwY, *fwZ;
+  int kidx, fd;
   
   fd = 2*ctx->radius;
   for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
@@ -180,34 +179,6 @@ _gageFwSet(gageContext *ctx) {
     }
   }
   
-  /* fix weightings for non-unit-spacing samples */
-  if (!( 1.0 == ctx->shape->spacing[0] &&
-         1.0 == ctx->shape->spacing[1] &&
-         1.0 == ctx->shape->spacing[2] )) {
-    for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
-      if (!ctx->needK[kidx]) {
-        continue;
-      }
-      if (gageKernel00 == kidx
-          || gageKernel10 == kidx
-          || gageKernel20 == kidx) {
-        continue;
-      }
-      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
-      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
-      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-      for (j=0; j<fd; j++) {
-        fwX[j] *= ctx->shape->fwScale[kidx][0];
-        fwY[j] *= ctx->shape->fwScale[kidx][1];
-        fwZ[j] *= ctx->shape->fwScale[kidx][2];
-      }
-    }
-    if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: filter weights after non-unit fix:\n", me);
-      _gagePrint_fslw(stderr, ctx);
-    }
-  }
-
   return;
 }
 

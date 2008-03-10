@@ -567,7 +567,9 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 /*
 ** _gageProbe
 **
-** how to do probing.  (x,y,z) position is *index space* position
+** how to do probing.  (x,y,z) position is *index space* position.
+** Note, however, that derivatives (gradients and hessians) will
+** effectively be computed in *world space*.
 **
 ** doesn't actually do much more than call callbacks in the gageKind
 ** structs of the attached pervolumes

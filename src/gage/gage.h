@@ -53,11 +53,13 @@ extern "C" {
 ** the only extent to which gage treats different axes differently is
 ** the spacing between samples along the axis.  To have different
 ** filters for the same function, but along different axes, would be
-** too messy.  Thus, gage is not very useful as the engine for
-** downsampling: it can't tell that along one axis samples should be
-** blurred while they should be interpolated along another.  Rather,
-** it assumes that the main task of probing is *reconstruction*: of
-** values, of derivatives, or lots of different quantities
+** too messy.  [Sun Mar 9 13:32:22 EDT 2008: Actually, doing per-axis
+** kernels is looking more and more sensible all the time...] Thus,
+** gage is not very useful as the engine for downsampling: it can't
+** tell that along one axis samples should be blurred while they
+** should be interpolated along another.  Rather, it assumes that the
+** main task of probing is *reconstruction*: of values, of
+** derivatives, or lots of different quantities
 */
 
 /*
@@ -209,9 +211,9 @@ typedef struct {
     parentItem,         /* the enum value of an item (answerLength > 1)
                            containing the smaller value for which we are
                            merely an alias
-                           _OR_ -1 if there's no parent */
+                           _OR_ 0 if there's no parent */
     parentIndex,        /* where our value starts in parents value 
-                           _OR_ -1 if there's no parent */
+                           _OR_ 0 if there's no parent */
     needData;           /* whether non-NULL gagePerVolume->data is needed
                            for answering this item */
 } gageItemEntry;
@@ -359,11 +361,9 @@ typedef struct gageShape_t {
     fromOrientation;          /* non-zero iff the spaceDirections and
                                  spaceOrigin information was used */
   unsigned int size[3];       /* raster dimensions of volume */
-  double spacing[3],          /* spacings for each axis */
-    fwScale[GAGE_KERNEL_MAX+1][3];
-                              /* how to rescale weights for each of the
-                                 kernels according to non-unity-ness of
-                                 sample spacing (0=X, 1=Y, 2=Z) */
+  double spacing[3];          /* spacings for each axis */
+  /* the fwScale[GAGE_KERNEL_MAX+1][3] fields have been superceded by 
+     the cleaner and more general "itwit" and "itwi" matrices below */
   double volHalfLen[3],       /* half the lengths along each axis in order
                                  to bound the volume in a bi-unit cube */
     voxLen[3],                /* when bound in bi-unit cube, the dimensions
@@ -371,7 +371,10 @@ typedef struct gageShape_t {
     ItoW[16],                 /* homogeneous coord transform from index
                                  to world space (defined either by bi-unit
                                  cube or from full orientation info ) */
-    WtoI[16];                 /* inverse of above */
+    WtoI[16],                 /* inverse of above */
+    ItoWSubInvTransp[9],      /* inverse transpose of 3x3 sub-matrix of ItoW,
+                                 for transforming (covariant) gradients */
+    ItoWSubInv[9];            /* tranpose of above, for transforming hessians */
 
 } gageShape;
 
@@ -742,15 +745,17 @@ GAGE_EXPORT void gageQueryPrint(FILE *file, const gageKind *kind,
                                 gageQuery query);
 
 /* sclfilter.c */
-GAGE_EXPORT void gageScl3PFilter2(double *iv3, double *iv2, double *iv1,
+GAGE_EXPORT void gageScl3PFilter2(gageShape *shape,
+                                  double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,
                                   double *val, double *gvec, double *hess,
                                   int doV, int doD1, int doD2);
-GAGE_EXPORT void gageScl3PFilter4(double *iv3, double *iv2, double *iv1,
+GAGE_EXPORT void gageScl3PFilter4(gageShape *shape,
+                                  double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,
                                   double *val, double *gvec, double *hess,
                                   int doV, int doD1, int doD2);
-GAGE_EXPORT void gageScl3PFilterN(int fd,
+GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
                                   double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,
                                   double *val, double *gvec, double *hess,

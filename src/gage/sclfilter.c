@@ -23,12 +23,24 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/*
+** The functions gageScl3PFilter2, gageScl3PFilter4, and
+** gageScl3PFilterN weren't really intended to be public, but they
+** have become so because they implement the brains of the lowest
+** level of dot-products needed to do the convolution-based
+** reconstruction, and, to do the the transforms that affect gradient
+** and hessian values.  These functions are very useful for the
+** implementation of other gageKinds, in which non-scalar values are
+** filtered per-component.
+*/
+
 #define X 0
 #define Y 1
 #define Z 2
 
 void
-gageScl3PFilter2(double *ivX, double *ivY, double *ivZ,
+gageScl3PFilter2(gageShape *shape,
+                 double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
                  int doV, int doD1, int doD2) {
@@ -109,6 +121,8 @@ gageScl3PFilter2(double *ivX, double *ivY, double *ivZ,
     gvec[0] = VL_2(0,Z);                       /* g_x */
   }
 
+  ell_3mv_mul_d(gvec, shape->ItoWSubInvTransp, gvec);
+
   if (!doD2)
     return;
 
@@ -130,11 +144,18 @@ gageScl3PFilter2(double *ivX, double *ivY, double *ivZ,
   /* x2y0z0 */
   hess[0] = VL_2(0,Z);                         /* h_xx */
 
+  if (1) {
+    double matA[9];
+    ELL_3M_MUL(matA, shape->ItoWSubInvTransp, hess);
+    ELL_3M_MUL(hess, matA, shape->ItoWSubInv);
+  }
+
   return;
 }
 
 void
-gageScl3PFilter4(double *ivX, double *ivY, double *ivZ,
+gageScl3PFilter4(gageShape *shape,
+                 double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
                  int doV, int doD1, int doD2) {
@@ -260,6 +281,8 @@ gageScl3PFilter4(double *ivX, double *ivY, double *ivZ,
     gvec[0] = VL_4( 0,Z);                       /* g_x */
   }
 
+  ell_3mv_mul_d(gvec, shape->ItoWSubInvTransp, gvec);
+
   if (!doD2)
     return;
 
@@ -297,11 +320,17 @@ gageScl3PFilter4(double *ivX, double *ivY, double *ivZ,
   /* x2y0z0 */
   hess[0] = VL_4( 0,Z);                         /* h_xx */
 
+  if (1) {
+    double matA[9];
+    ELL_3M_MUL(matA, shape->ItoWSubInvTransp, hess);
+    ELL_3M_MUL(hess, matA, shape->ItoWSubInv);
+  }
+
   return;
 }
 
 void
-gageScl3PFilterN(int fd,
+gageScl3PFilterN(gageShape *shape, int fd,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
@@ -375,6 +404,8 @@ gageScl3PFilterN(int fd,
     VL_N(gvec[0],0,Z);                        /* g_x */
   }
 
+  ell_3mv_mul_d(gvec, shape->ItoWSubInvTransp, gvec);
+
   if (!doD2)
     return;
 
@@ -392,6 +423,12 @@ gageScl3PFilterN(int fd,
   for (j=0; j<fd; j++) { VL_N(ivZ[j],j,Y); }
   /* x2y0z0 */
   VL_N(hess[0],0,Z);                          /* h_xx */
+
+  if (1) {
+    double matA[9];
+    ELL_3M_MUL(matA, shape->ItoWSubInvTransp, hess);
+    ELL_3M_MUL(hess, matA, shape->ItoWSubInv);
+  }
 
   return;
 }
@@ -413,7 +450,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   /* perform the filtering */
   switch (fd) {
   case 2:
-    gageScl3PFilter2(pvl->iv3, pvl->iv2, pvl->iv1, 
+    gageScl3PFilter2(ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
                      fw00, fw11, fw22,
                      pvl->directAnswer[gageSclValue],
                      pvl->directAnswer[gageSclGradVec],
@@ -421,7 +458,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                      pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   case 4:
-    gageScl3PFilter4(pvl->iv3, pvl->iv2, pvl->iv1, 
+    gageScl3PFilter4(ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
                      fw00, fw11, fw22,
                      pvl->directAnswer[gageSclValue],
                      pvl->directAnswer[gageSclGradVec],
@@ -429,7 +466,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                      pvl->needD[0], pvl->needD[1], pvl->needD[2]);
     break;
   default:
-    gageScl3PFilterN(fd,
+    gageScl3PFilterN(ctx->shape, fd,
                      pvl->iv3, pvl->iv2, pvl->iv1, 
                      fw00, fw11, fw22,
                      pvl->directAnswer[gageSclValue],
