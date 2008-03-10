@@ -68,22 +68,34 @@ ell_3v_perp_d(double a[3], const double b[3]) {
 
 void
 ell_3mv_mul_f(float v2[3], const float m[9], const float v1[3]) {
-  ELL_3MV_MUL(v2, m, v1);
+  float tmp[3];
+
+  ELL_3MV_MUL(tmp, m, v1);
+  ELL_3V_COPY(v2, tmp);
 }
 
 void
 ell_3mv_mul_d(double v2[3], const double m[9], const double v1[3]) {
-  ELL_3MV_MUL(v2, m, v1);
+  double tmp[3];
+
+  ELL_3MV_MUL(tmp, m, v1);
+  ELL_3V_COPY(v2, tmp);
 }
 
 void
 ell_4mv_mul_f(float v2[4], const float m[16], const float v1[4]) {
-  ELL_4MV_MUL(v2, m, v1);
+  float tmp[4];
+
+  ELL_4MV_MUL(tmp, m, v1);
+  ELL_4V_COPY(v2, tmp);
 }
 
 void
 ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]) {
-  ELL_4MV_MUL(v2, m, v1);
+  double tmp[4];
+
+  ELL_4MV_MUL(tmp, m, v1);
+  ELL_4V_COPY(v2, tmp);
 }
 
 float

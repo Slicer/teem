@@ -98,12 +98,20 @@ ell_3m_inv_d(double i[9], const double m[9]) {
 /* -------------------------------------------------------------------- */
 
 void
-ell_4m_mul_f(float m3[16], const float m1[16], const float m2[16]) {
+ell_4m_mul_f(float m3[16], const float _m1[16], const float _m2[16]) {
+  float m1[16], m2[16];
+
+  ELL_4M_COPY(m1, _m1);
+  ELL_4M_COPY(m2, _m2);
   ELL_4M_MUL(m3, m1, m2);
 }
 
 void
-ell_4m_mul_d(double m3[16], const double m1[16], const double m2[16]) {
+ell_4m_mul_d(double m3[16], const double _m1[16], const double _m2[16]) {
+  double m1[16], m2[16];
+
+  ELL_4M_COPY(m1, _m1);
+  ELL_4M_COPY(m2, _m2);
   ELL_4M_MUL(m3, m1, m2);
 }
 
