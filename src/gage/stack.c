@@ -193,8 +193,7 @@ gageStackPerVolumeNew(gageContext *ctx,
 }
 
 /*
-** the "base" pvl is now at the very end of the ctx->pvl, 
-** instead of at the beginning
+** the "base" pvl is the first pvl, ctx->pvl[0]
 */
 int
 gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
@@ -255,17 +254,22 @@ _gageStackIv3Fill(gageContext *ctx) {
   double wght, val;
 
   fd = 2*ctx->radius;
-  cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
-  /* NOTE we are treating the 4D fd*fd*fd*valLen iv3 as a big 1-D array */
-  for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
-    val = 0;
-    for (ii=0; ii<ctx->pvlNum-1; ii++) {
-      wght = ctx->stackFslw[ii];
-      val += (wght
-              ? wght*ctx->pvl[1+ii]->iv3[cacheIdx]
-              : 0);
+  if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
+    
+  } else {
+    /* we're doing simple convolution-based recon on the stack */
+    /* NOTE we are treating the 4D fd*fd*fd*valLen iv3 as a big 1-D array */
+    cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
+    for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
+      val = 0;
+      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        wght = ctx->stackFslw[ii];
+        val += (wght
+                ? wght*ctx->pvl[1+ii]->iv3[cacheIdx]
+                : 0);
+      }
+      ctx->pvl[0]->iv3[cacheIdx] = val;
     }
-    ctx->pvl[0]->iv3[cacheIdx] = val;
   }
   return 0;
 }
