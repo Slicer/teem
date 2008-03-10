@@ -109,7 +109,7 @@ char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
 int
 main(int argc, char *argv[]) {
   gageKind *kind;
-  char *me, *whatS, *err, *outS;
+  char *me, *whatS, *err, *outS, *stackSavePath;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
@@ -179,6 +179,10 @@ main(int argc, char *argv[]) {
              "0 to turn-off all scale-space behavior");
   hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
              "nan nan", "range of scales in scale-space");
+  hestOptAdd(&hopt, "sss", "scale save path", airTypeString, 1, 1,
+             &stackSavePath, "",
+             "give a non-empty path string (like \"./\") to save out "
+             "the pre-blurred volumes computed for the stack");
   hestOptAdd(&hopt, "ssi", "SS idx", airTypeDouble, 1, 1, &idxSS, "0",
              "position at which to sample in scale-space");
   hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur,
@@ -262,7 +266,9 @@ main(int argc, char *argv[]) {
     if (gageStackBlur(ninSS, numSS,
                       nin, kind->baseDim, 
                       kSSblur, rangeSS[0], rangeSS[1],
-                      nrrdBoundaryBleed, AIR_TRUE, verbose, NULL)) {
+                      nrrdBoundaryBleed, AIR_TRUE,
+                      airStrlen(stackSavePath) ? 4 + verbose : verbose,
+                      airStrlen(stackSavePath) ? stackSavePath : NULL)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
       airMopError(mop); return 1;
