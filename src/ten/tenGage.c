@@ -271,11 +271,14 @@ _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 void
 _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_tenGageFilter";
-  double *fw00, *fw11, *fw22, *tensor, *tgrad, *thess;
+  double *fw00, *fw11, *fw22, *ten, *tgrad, *thess;
   int fd;
+  gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
+                                  gageScl3PFilter6, gageScl3PFilter8};
+  unsigned int valIdx;
 
   fd = 2*ctx->radius;
-  tensor = pvl->directAnswer[tenGageTensor];
+  ten = pvl->directAnswer[tenGageTensor];
   tgrad = pvl->directAnswer[tenGageTensorGrad];
   thess = pvl->directAnswer[tenGageHessian];
   if (!ctx->parm.k3pack) {
@@ -286,55 +289,27 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
-  switch (fd) {
-  case 2:
-#define DOIT_2(J) \
-      gageScl3PFilter2(pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2, \
-                       fw00, fw11, fw22, \
-                       tensor + J, tgrad + J*3, thess + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-    /* HEY: want trilinear interpolation of confidence */
-    /* old idea: do average of confidence at 8 corners of containing voxel
-    tensor[0] = (pvl->iv3[0] + pvl->iv3[1] + pvl->iv3[2] + pvl->iv3[3]
-                 + pvl->iv3[4] + pvl->iv3[5] + pvl->iv3[6] + pvl->iv3[7])/8;
-    */
-    /* new idea (circa Sat Apr  2 06:59:02 EST 2005):
-       do the same filtering- its just too weird for confidence to not 
-       be C0 when the filtering result is */
-    DOIT_2(0); 
-    DOIT_2(1); DOIT_2(2); DOIT_2(3);
-    DOIT_2(4); DOIT_2(5); DOIT_2(6); 
-    break;
-  case 4:
-#define DOIT_4(J) \
-      gageScl3PFilter4(pvl->iv3 + J*64, pvl->iv2 + J*16, pvl->iv1 + J*4, \
-                       fw00, fw11, fw22, \
-                       tensor + J, tgrad + J*3, thess + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-    /* HEY: want trilinear interpolation of confidence */
-    /* old: SEE NOTE ABOVE
-    tensor[0] = (pvl->iv3[21] + pvl->iv3[22]
-                 + pvl->iv3[25] + pvl->iv3[26]
-                 + pvl->iv3[37] + pvl->iv3[38] 
-                 + pvl->iv3[41] + pvl->iv3[42])/8;
-    */
-    DOIT_4(0); 
-    DOIT_4(1); DOIT_4(2); DOIT_4(3);
-    DOIT_4(4); DOIT_4(5); DOIT_4(6); 
-    break;
-  default:
-#define DOIT_N(J)\
-      gageScl3PFilterN(fd, \
-                       pvl->iv3 + J*fd*fd*fd, \
-                       pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd, \
-                       fw00, fw11, fw22, \
-                       tensor + J, tgrad + J*3, thess + J*9, \
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2])
-    /* HEY: this sucks: want trilinear interpolation of confidence */
-    DOIT_N(0);
-    DOIT_N(1); DOIT_N(2); DOIT_N(3);
-    DOIT_N(4); DOIT_N(5); DOIT_N(6); 
-    break;
+  /* HEY: we still want trilinear interpolation of confidence, no? */
+  if (fd <= 8) {
+    for (valIdx=0; valIdx<7; valIdx++) {
+      filter[ctx->radius](ctx->shape,
+                          pvl->iv3 + valIdx*fd*fd*fd,
+                          pvl->iv2 + valIdx*fd*fd,
+                          pvl->iv1 + valIdx*fd,
+                          fw00, fw11, fw22,
+                          ten + valIdx, tgrad + valIdx*3, thess + valIdx*9,
+                          pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    }
+  } else {
+    for (valIdx=0; valIdx<7; valIdx++) {
+      gageScl3PFilterN(ctx->shape, fd,
+                       pvl->iv3 + valIdx*fd*fd*fd,
+                       pvl->iv2 + valIdx*fd*fd,
+                       pvl->iv1 + valIdx*fd,
+                       fw00, fw11, fw22,
+                       ten + valIdx, tgrad + valIdx*3, thess + valIdx*9,
+                       pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+    }
   }
 
   return;
