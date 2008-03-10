@@ -1280,6 +1280,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
   *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
+  *const nrrdKernelHermiteFlag,  /* not a kernel: a flag for behavior in gage */
   *const nrrdKernelTent,         /* tent filter (linear interpolation) */
   *const nrrdKernelForwDiff,     /* forward-difference-ish 1st deriv. */
   *const nrrdKernelCentDiff,     /* central-difference-ish 1st deriv. */

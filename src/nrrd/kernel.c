@@ -247,7 +247,7 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
 
 NrrdKernel
 _nrrdKernelCheap = {
-  "box",
+  "cheap",
   1, _nrrdCheapSup, _nrrdCheapInt,  
   _nrrdCheap1_f,  _nrrdCheapN_f,  _nrrdCheap1_d,  _nrrdCheapN_d
 };
@@ -323,6 +323,25 @@ _nrrdKernelTent = {
 };
 NrrdKernel *const
 nrrdKernelTent = &_nrrdKernelTent;
+
+/* ------------------------------------------------------------ */
+
+/* 
+** NOTE: THERE IS NO HERMITE KERNEL (at least not yet, because it
+** takes both values and derivatives as arguments, which the
+** NrrdKernel currently can't handle).  This isn't a kernel, its just
+** a flag (hence the name). Its a hack, in sinister collusion with
+** gage, to enable Hermite-interpolation for its stack reconstruction.
+*/
+
+NrrdKernel
+_nrrdKernelHermiteFlag = {
+  "hermite flag",
+  1, _nrrdTentSup,_nrrdTentInt, 
+  _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
+};
+NrrdKernel *const
+nrrdKernelHermiteFlag = &_nrrdKernelHermiteFlag;
 
 /* ------------------------------------------------------------ */
 
@@ -1558,6 +1577,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("box", str))        return nrrdKernelBox;
   if (!strcmp("b", str))          return nrrdKernelBox;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
+  if (!strcmp("hermite", str))    return nrrdKernelHermiteFlag;
+  if (!strcmp("herm", str))       return nrrdKernelHermiteFlag;
   if (!strcmp("tent", str))       return nrrdKernelTent;
   if (!strcmp("t", str))          return nrrdKernelTent;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
