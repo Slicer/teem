@@ -1296,9 +1296,12 @@ nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
 
-#define _DISCRETESCALE(xx, sig, cut) (               \
-   xx >= sig*cut ? 0                                 \
-   : airBesselInExpScaled(AIR_CAST(int, xx + 0.5), sig*sig))
+#define _DISCRETESCALE(xx, sig, cut)                            \
+  (sig > 0                                                      \
+   ? (xx >= sig*cut                                             \
+      ? 0                                                       \
+      : airBesselInExpScaled(AIR_CAST(int, xx + 0.5), sig*sig)) \
+   : xx == 0)
 
 double
 _nrrdDiscScale1_d(double xx, const double *parm) {
@@ -1313,10 +1316,12 @@ _nrrdDiscScale1_d(double xx, const double *parm) {
 double
 _nrrdDiscScaleSup(const double *parm) {
   double sig, cut;
+  int ret;
 
   sig = parm[0];
   cut = parm[1];
-  return AIR_CAST(int, sig*cut);
+  ret = AIR_CAST(int, sig*cut);
+  return AIR_MAX(1, ret);
 }
 
 double
