@@ -119,6 +119,13 @@ IF(TEEM_PTHREAD)
 ENDIF(TEEM_PTHREAD)
 
 #-----------------------------------------------------------------------------
+
+IF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
+  # For Visual Studio we don't care about warnings about deprecated sprintf and
+  # the like.
+  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
+ENDIF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
+
 #Include Teem Defines
 # Set compiler flags for endian-ness.
 IF(CMAKE_WORDS_BIGENDIAN)
