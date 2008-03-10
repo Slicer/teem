@@ -11,8 +11,8 @@ SET (CTEST_CVS_COMMAND "svn")
 
 # A smoke test only builds the code and doesn't run any tests, so we
 # exclude all tests here
-#SET (CTEST_COMMAND "ctest -D Nightly")
-SET (CTEST_COMMAND "ctest -D Experimental")
+SET (CTEST_COMMAND "ctest -D Nightly")
+#SET (CTEST_COMMAND "ctest -D Experimental")
 
 SET(CTEST_INITIAL_CACHE "
   BUILD_EXPERIMENTAL:BOOL=OFF
