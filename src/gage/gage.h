@@ -362,8 +362,8 @@ typedef struct gageShape_t {
                                  spaceOrigin information was used */
   unsigned int size[3];       /* raster dimensions of volume */
   double spacing[3];          /* spacings for each axis */
-  /* the fwScale[GAGE_KERNEL_MAX+1][3] fields have been superceded by 
-     the cleaner and more general "itwit" and "itwi" matrices below */
+  /* fwScale[GAGE_KERNEL_MAX+1][3] has been superceded by the cleaner and
+     more general ItoWSubInvTransp and ItoWSubInv matrices below */
   double volHalfLen[3],       /* half the lengths along each axis in order
                                  to bound the volume in a bi-unit cube */
     voxLen[3],                /* when bound in bi-unit cube, the dimensions
