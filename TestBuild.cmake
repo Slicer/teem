@@ -7,6 +7,9 @@ SET (CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-ctest")
 SET (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 
 SET (CTEST_CMAKE_COMMAND "cmake")
+# NOTE(bigler): This command isn't defined for some tests that I've seen, so it
+# may not be necessary.  Also, I'm not sure how this is dealt with on windows
+# where it should be using TortoiseSVN.
 SET (CTEST_CVS_COMMAND "svn")
 
 # A smoke test only builds the code and doesn't run any tests, so we
