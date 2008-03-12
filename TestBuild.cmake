@@ -7,9 +7,11 @@ SET (CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-ctest")
 SET (CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 
 SET (CTEST_CMAKE_COMMAND "cmake")
-# NOTE(bigler): This command isn't defined for some tests that I've seen, so it
-# may not be necessary.  Also, I'm not sure how this is dealt with on windows
-# where it should be using TortoiseSVN.
+# NOTE(bigler): On windows you should make sure something like cygwin is in
+# your path.  Then it will find cygwin's svn.  Otherwise, your nightlies
+# won't find svn and won't do the updates.  I put it in the bat script at
+# the end:
+#   set PATH=%PATH%;"C:\Program Files\CMake 2.4\bin";"c:/cygwin/bin"
 SET (CTEST_CVS_COMMAND "svn")
 
 # A smoke test only builds the code and doesn't run any tests, so we
