@@ -592,6 +592,9 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
            the stretched out version of the kernel */
         dotLen = (int)(2*ceil(support/axis->ratio));
       }
+      /* some kernels can report zero support when they're basically
+         delta functions */
+      dotLen = AIR_MAX(2, dotLen);
       if (nrrdMaybeAlloc_va(axis->nweight, nrrdResample_nt, 2,
                             AIR_CAST(size_t, dotLen),
                             AIR_CAST(size_t, axis->samples))
