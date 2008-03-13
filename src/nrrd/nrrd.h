@@ -1188,7 +1188,7 @@ NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
 **
 ** Choose by setting "#if" arg to 1 (for float) or 0 (for double)
 */
-#if 1
+#if 0
 typedef float nrrdResample_t;
 #  define nrrdResample_nt nrrdTypeFloat
 #  define NRRD_RESAMPLE_FLOAT 1
@@ -1296,8 +1296,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
-  *const nrrdKernelDiscreteScale; /* Discrete Gaussian-like kernel for 
-                                     scale-space analysis */
+  *const nrrdKernelDiscreteGaussian; /* Discrete Gaussian-like kernel for 
+                                        scale-space analysis */
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);

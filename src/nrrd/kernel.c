@@ -25,22 +25,23 @@
 /*   
 ** summary of information about how the kernel parameter vector is set:
 
-                        numParm  parm[0]   parm[1]   parm[2]
-        nrrdKernelHann     2      scale    cut-off
-    nrrdKernelBlackman     2      scale    cut-off
-        nrrdKernelZero     1      scale
-         nrrdKernelBox     1      scale
-       nrrdKernelCheap     1      scale
-        nrrdKernelTent     1      scale
-    nrrdKernelForwDiff     1      scale
-    nrrdKernelCentDiff     1      scale
-     nrrdKernelBCCubic     3      scale       B        C
-    nrrdKernelAQuartic     2      scale       A
-    nrrdKernelC3Quintic    2      scale       A
-    nrrdKernelGaussian     2      sigma    cut-off
-  nrrdKernelDiscreteScale  2      sigma    cut-off
-   nrrdKernelTMF[][][]     1       a
-  
+                             numParm  parm[0]   parm[1]   parm[2]
+             nrrdKernelHann     2      scale    cut-off
+         nrrdKernelBlackman     2      scale    cut-off
+             nrrdKernelZero     1      scale
+              nrrdKernelBox     1      scale
+            nrrdKernelCheap     1      scale
+      nrrdKernelHermiteFlag     0
+             nrrdKernelTent     1      scale
+         nrrdKernelForwDiff     1      scale
+         nrrdKernelCentDiff     1      scale
+          nrrdKernelBCCubic     3      scale       B        C
+         nrrdKernelAQuartic     2      scale       A
+        nrrdKernelC3Quintic     2      scale       A
+         nrrdKernelGaussian     2      sigma    cut-off
+ nrrdKernelDiscreteGaussian     2      sigma    cut-off
+        nrrdKernelTMF[][][]     1       a
+
 */
 
 /* ------------------------------------------------------------ */
@@ -278,7 +279,7 @@ _nrrdTent1_d(double x, const double *parm) {
   
   S = parm[0];
   x = AIR_ABS(x)/S;
-  return _TENT(x)/S;
+  return S ? _TENT(x)/S : x == 0;
 }
 
 float
@@ -287,7 +288,7 @@ _nrrdTent1_f(float x, const double *parm) {
   
   S = AIR_CAST(float, parm[0]);
   x = AIR_ABS(x)/S;
-  return _TENT(x)/S;
+  return S ? _TENT(x)/S : x == 0;
 }
 
 void
@@ -299,7 +300,7 @@ _nrrdTentN_d(double *f, const double *x, size_t len, const double *parm) {
   S = parm[0];
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = _TENT(t)/S;
+    f[i] = S ? _TENT(t)/S : t == 0;
   }
 }
 
@@ -311,7 +312,7 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   S = AIR_CAST(float, parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = _TENT(t)/S;
+    f[i] = S ? _TENT(t)/S : t == 0;
   }
 }
 
@@ -327,18 +328,74 @@ nrrdKernelTent = &_nrrdKernelTent;
 /* ------------------------------------------------------------ */
 
 /* 
-** NOTE: THERE IS NO HERMITE KERNEL (at least not yet, because it
-** takes both values and derivatives as arguments, which the
-** NrrdKernel currently can't handle).  This isn't a kernel, its just
-** a flag (hence the name). Its a hack, in sinister collusion with
-** gage, to enable Hermite-interpolation for its stack reconstruction.
+** NOTE: THERE IS NOT REALLY A HERMITE KERNEL (at least not yet,
+** because it takes both values and derivatives as arguments, which
+** the NrrdKernel currently can't handle).  This isn't really a
+** kernel, its mostly a flag (hence the name), but it also has the
+** role of generating weights according to linear interpolation, which
+** is useful for the eventual spline evaluation.
+** 
+** This hack is in sinister collusion with gage, to enable Hermite
+** interpolation for its stack reconstruction.
 */
+
+static double
+_nrrdHermiteInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_nrrdHermiteSup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_nrrdHermite1_d(double x, const double *parm) {
+  AIR_UNUSED(parm);
+  
+  x = AIR_ABS(x);
+  return _TENT(x);
+}
+
+static float
+_nrrdHermite1_f(float x, const double *parm) {
+  AIR_UNUSED(parm);
+  
+  x = AIR_ABS(x);
+  return _TENT(x);
+}
+
+static void
+_nrrdHermiteN_d(double *f, const double *x, size_t len, const double *parm) {
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    t = x[i]; t = AIR_ABS(t);
+    f[i] = _TENT(t);
+  }
+}
+
+static void
+_nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
+  float t;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    t = x[i]; t = AIR_ABS(t);
+    f[i] = _TENT(t);
+  }
+}
 
 NrrdKernel
 _nrrdKernelHermiteFlag = {
   "hermite flag",
-  1, _nrrdTentSup,_nrrdTentInt, 
-  _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
+  0, _nrrdHermiteSup,_nrrdHermiteInt, 
+  _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
 NrrdKernel *const
 nrrdKernelHermiteFlag = &_nrrdKernelHermiteFlag;
@@ -1315,92 +1372,99 @@ nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
 
-#define _DISCRETESCALE(xx, sig, cut)                            \
+#define _DISCRETEGAUSS(xx, sig, abscut)                         \
   (sig > 0                                                      \
-   ? (xx >= sig*cut                                             \
+   ? (xx > abscut                                               \
       ? 0                                                       \
       : airBesselInExpScaled(AIR_CAST(int, xx + 0.5), sig*sig)) \
-   : xx == 0)
+   : xx <= 0.5)
+
+#define _DGABSCUT(ret, sig, cut) \
+  (ret) = 0.5 + ceil((sig)*(cut));  \
+  (ret) = AIR_MAX(0.5, (ret))
 
 double
-_nrrdDiscScale1_d(double xx, const double *parm) {
+_nrrdDiscGaussianSup(const double *parm) {
+  double ret;
+
+  _DGABSCUT(ret, parm[0], parm[1]);
+  return ret;
+}
+
+/* the functions are out of their usual definition order because we
+   use the function evaluation to determine the integral, rather than
+   trying to do it analytically */
+  
+double
+_nrrdDiscGaussian1_d(double xx, const double *parm) {
   double sig, cut;
   
   sig = parm[0];
-  cut = parm[1];
+  _DGABSCUT(cut, sig, parm[1]);
   xx = AIR_ABS(xx);
-  return _DISCRETESCALE(xx, sig, cut);
+  return _DISCRETEGAUSS(xx, sig, cut);
 }
 
 double
-_nrrdDiscScaleSup(const double *parm) {
-  double sig, cut;
-  int ret;
-
-  sig = parm[0];
-  cut = parm[1];
-  ret = AIR_CAST(int, sig*cut);
-  return AIR_MAX(1, ret);
-}
-
-double
-_nrrdDiscScaleInt(const double *parm) {
-  double sum;
+_nrrdDiscGaussianInt(const double *parm) {
+  double sum, cut;
   int ii, supp;
 
-  supp = AIR_CAST(int, _nrrdDiscScaleSup(parm));
+  _DGABSCUT(cut, parm[0], parm[1]);
+  supp = AIR_CAST(int, cut);
   sum = 0.0;
   for (ii=-supp; ii<=supp; ii++) {
-    sum += _nrrdDiscScale1_d(ii, parm);
+    sum += _nrrdDiscGaussian1_d(ii, parm);
   }
   return sum;
 }
 
 float
-_nrrdDiscScale1_f(float xx, const double *parm) {
+_nrrdDiscGaussian1_f(float xx, const double *parm) {
   float sig, cut;
   
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = parm[0];
+  _DGABSCUT(cut, sig, parm[1]);
   xx = AIR_ABS(xx);
-  return AIR_CAST(float, _DISCRETESCALE(xx, sig, cut));
+  return AIR_CAST(float, _DISCRETEGAUSS(xx, sig, cut));
 }
 
 void
-_nrrdDiscScaleN_d(double *f, const double *x,
+_nrrdDiscGaussianN_d(double *f, const double *x,
                   size_t len, const double *parm) {
   double sig, cut, tt;
   size_t ii;
   
   sig = parm[0];
-  cut = parm[1];
+  _DGABSCUT(cut, sig, parm[1]);
   for (ii=0; ii<len; ii++) {
     tt = AIR_ABS(x[ii]);
-    f[ii] = _DISCRETESCALE(tt, sig, cut);
+    f[ii] = _DISCRETEGAUSS(tt, sig, cut);
   }
 }
 
 void
-_nrrdDiscScaleN_f(float *f, const float *x, size_t len, const double *parm) {
+_nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, tt;
   size_t ii;
   
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = parm[0];
+  _DGABSCUT(cut, sig, parm[1]);
   for (ii=0; ii<len; ii++) {
     tt = AIR_ABS(x[ii]);
-    f[ii] = AIR_CAST(float, _DISCRETESCALE(tt, sig, cut));
+    f[ii] = AIR_CAST(float, _DISCRETEGAUSS(tt, sig, cut));
   }
 }
 
 NrrdKernel
-_nrrdKernelDiscreteScale = {
-  "discretegauss",
-  2, _nrrdDiscScaleSup,  _nrrdDiscScaleInt,   
-  _nrrdDiscScale1_f, _nrrdDiscScaleN_f, _nrrdDiscScale1_d, _nrrdDiscScaleN_d
+_nrrdKernelDiscreteGaussian = {
+  "discretegauss", 2,
+  _nrrdDiscGaussianSup,  _nrrdDiscGaussianInt,   
+  _nrrdDiscGaussian1_f, _nrrdDiscGaussianN_f,
+  _nrrdDiscGaussian1_d, _nrrdDiscGaussianN_d
 };
 NrrdKernel *const
-nrrdKernelDiscreteScale = &_nrrdKernelDiscreteScale;
+nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
 
 /* ------------------------------------------------------------ */
 
@@ -1612,8 +1676,11 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("gaussiandd", str)) return nrrdKernelGaussianDD;
   if (!strcmp("gaussdd", str))    return nrrdKernelGaussianDD;
   if (!strcmp("gdd", str))        return nrrdKernelGaussianDD;
-  if (!strcmp("ds", str))         return nrrdKernelDiscreteScale;
-  if (!strcmp("dscale", str))     return nrrdKernelDiscreteScale;
+  if (!strcmp("ds", str))         return nrrdKernelDiscreteGaussian;
+  if (!strcmp("dscale", str))     return nrrdKernelDiscreteGaussian;
+  if (!strcmp("dg", str))         return nrrdKernelDiscreteGaussian;
+  if (!strcmp("dgauss", str))     return nrrdKernelDiscreteGaussian;
+  if (!strcmp("dgaussian", str))  return nrrdKernelDiscreteGaussian;
   if (!strcmp("hann", str))       return nrrdKernelHann;
   if (!strcmp("hannd", str))      return nrrdKernelHannD;
   if (!strcmp("hanndd", str))     return nrrdKernelHannDD;
@@ -1735,15 +1802,17 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     if (*kernelP == nrrdKernelGaussian ||
         *kernelP == nrrdKernelGaussianD ||
         *kernelP == nrrdKernelGaussianDD ||
-        *kernelP == nrrdKernelDiscreteScale) {
-      /* for Gaussians or Discrete Scale, we need all the parameters
+        *kernelP == nrrdKernelDiscreteGaussian) {
+      /* for Gaussians or DiscreteGaussian, we need all the parameters
          given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
       /*  For everything else (note that TMF kernels are handled
           separately), we can make do with one less than the required,
           by using the default spacing  */
-      needParm = (*kernelP)->numParm - 1;
+      needParm = ((*kernelP)->numParm > 0
+                  ? (*kernelP)->numParm - 1
+                  : 0);
     }
     if (needParm > 0 && !pstr) {
       sprintf(err, "%s: didn't get any of %d required doubles after "
