@@ -206,8 +206,10 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( blnum > 1 )) {
-    sprintf(err, "%s: need more than one sample along stack", me);
+  if (!( blnum >= 2 )) {
+    /* this constriant is important for logic stack reconstruction:
+       minimum number of node-centered samples is 2 */
+    sprintf(err, "%s: need at least two samples along stack", me);
     biffAdd(GAGE, err); return 1;
   }
   if (!( AIR_EXISTS(rangeMin) && AIR_EXISTS(rangeMax) )) {
@@ -250,22 +252,91 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 int
 _gageStackIv3Fill(gageContext *ctx) {
   /* char me[]="_gageStackIv3Fill"; */
-  unsigned int fd, ii, cacheIdx, cacheLen;
-  double wght, val;
+  unsigned int fd, pvlIdx, cacheIdx, cacheLen;
 
   fd = 2*ctx->radius;
   if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
+    unsigned int xi, yi, zi, blurIdx, valIdx, fdd;
+    double xx, *iv30, *iv31, sigma0, sigma1;
     
+    fdd = fd*fd;
+    /* initialize the output iv3 to all zeros, since we won't be
+       usefully setting the values on the boundary, and we can't have
+       any non-existant values creeping in.  We shouldn't need to do
+       any kind of nrrdBoundaryBleed thing here, because the kernel
+       weights really should be zero on the boundary. */
+    cacheLen = fdd*fd*ctx->pvl[0]->kind->valLen;
+    for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
+      ctx->pvl[0]->iv3[cacheIdx] = 0;
+    }
+
+    /* find the interval in the pre-blurred volumes containing the
+       desired scale location */
+    for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+      if (ctx->stackFslw[pvlIdx]) {
+        /* has to be non-zero somewhere, since _gageLocationSet()
+           gives an error if the integral of stackFslw[] is zero */
+        break;
+      }
+    }
+    /* so no way that pvlIdx == pvlNum-1 */
+    if (pvlIdx == ctx->pvlNum-2) {
+      /* pvlNum-2 is logical pvl index of last pre-blurred volume */
+      /* gageStackPerVolumeAttach() enforces getting at least two 
+         pre-blurred volumes --> pvlNum >= 3 --> blurIdx >= 0 */
+      blurIdx = ctx->pvlNum-3;
+      xx = 1;
+    } else {
+      blurIdx = pvlIdx;
+      /* by design, the hermite non-kernel generates the same values as
+         the tent kernel (with scale forced == 1), so we can use those
+         to control the interpolation */
+      xx = 1 - ctx->stackFslw[pvlIdx];
+    }
+    iv30 = ctx->pvl[1+blurIdx]->iv3;
+    iv31 = ctx->pvl[1+blurIdx+1]->iv3;
+    sigma0 = AIR_AFFINE(0, blurIdx, ctx->pvlNum-2,
+                        ctx->stackRange[0], ctx->stackRange[1]);
+    sigma1 = AIR_AFFINE(0, blurIdx+1, ctx->pvlNum-2,
+                        ctx->stackRange[0], ctx->stackRange[1]);
+    for (valIdx=0; valIdx<ctx->pvl[0]->kind->valLen; valIdx++) {
+      unsigned iii;
+      double val0, val1, drv0, drv1, lapl0, lapl1, aa, bb, cc, dd;
+      for (zi=1; zi<fd-1; zi++) {
+        for (yi=1; yi<fd-1; yi++) {
+          for (xi=1; xi<fd-1; xi++) {
+            iii = xi + fd*(yi + fd*zi);
+            val0 = iv30[iii];
+            val1 = iv31[iii];
+            lapl0 = (iv30[iii + 1]   + iv30[iii - 1] +
+                     iv30[iii + fd]  + iv30[iii - fd] +
+                     iv30[iii + fdd] + iv30[iii - fdd] - 6*val0);
+            lapl1 = (iv31[iii + 1]   + iv31[iii - 1] +
+                     iv31[iii + fd]  + iv31[iii - fd] +
+                     iv31[iii + fdd] + iv31[iii - fdd] - 6*val1);
+            drv0 = sigma0*lapl0;
+            drv1 = sigma1*lapl1;
+            /* Hermite spline coefficients, thanks Mathematica */
+            aa = drv0 + drv1 + 2*val0 - 2*val1;
+            bb = -2*drv0 - drv1 - 3*val0 + 3*val1;
+            cc = drv0;
+            dd = val0;
+            ctx->pvl[0]->iv3[iii] = dd + xx*(cc + xx*(bb + aa*xx));
+          }
+        }
+      }
+    }
   } else {
     /* we're doing simple convolution-based recon on the stack */
     /* NOTE we are treating the 4D fd*fd*fd*valLen iv3 as a big 1-D array */
+    double wght, val;
     cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
       val = 0;
-      for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        wght = ctx->stackFslw[ii];
+      for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+        wght = ctx->stackFslw[pvlIdx];
         val += (wght
-                ? wght*ctx->pvl[1+ii]->iv3[cacheIdx]
+                ? wght*ctx->pvl[1+pvlIdx]->iv3[cacheIdx]
                 : 0);
       }
       ctx->pvl[0]->iv3[cacheIdx] = val;

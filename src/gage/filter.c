@@ -294,6 +294,12 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       sum += ctx->stackFslw[ii];
     }
+    if (!sum) {
+      sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
+              "can't do stack reconstruction", me);
+      ctx->errNum = 3; /* HEY: is there any logic to this return value? */
+      return 1;
+    }
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFslw[ii] /= sum;
     }
