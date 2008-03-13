@@ -219,7 +219,7 @@ main(int argc, char *argv[]) {
     if (gageStackBlur(ninSS, numSS,
                       nin, kind->baseDim, 
                       kSSblur, rangeSS[0], rangeSS[1],
-                      nrrdBoundaryBleed, AIR_TRUE,
+                      nrrdBoundaryBleed, renorm ? AIR_TRUE : AIR_FALSE,
                       airStrlen(stackSavePath) ? 4 + verbose : verbose,
                       airStrlen(stackSavePath) ? stackSavePath : NULL)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
