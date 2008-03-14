@@ -1,5 +1,5 @@
 # This is the root Teem CMakeLists file.
-CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
