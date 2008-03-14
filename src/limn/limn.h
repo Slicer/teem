@@ -201,9 +201,10 @@ enum {
   limnPrimitiveTriangleFan,   /* 4: triangle fan (for GL_TRIANGLE_FAN) */
   limnPrimitiveQuads,         /* 5: quad soup (for GL_QUADS) */
   limnPrimitiveLineStrip,     /* 6: line strip (for GL_LINE_STRIP) */
+  limnPrimitiveLines,         /* 7: line soup (for GL_LINES) */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX       6
+#define LIMN_PRIMITIVE_MAX       7
 
 /*
 ******** struct limnLook

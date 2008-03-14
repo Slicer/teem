@@ -120,7 +120,8 @@ _limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
   "tristrip",
   "trifan",
   "quads",
-  "linestrip"
+  "linestrip",
+  "lines"
 };
 
 char
@@ -131,7 +132,8 @@ _limnPrimitiveDesc[][AIR_STRLEN_MED] = {
   "triangle strip",
   "triangle fan",
   "quad soup",
-  "line strip"
+  "line strip",
+  "lines"
 };
 
 char
@@ -142,6 +144,7 @@ _limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
   "trifan",
   "quads",
   "linestrip",
+  "lines",
   ""
 };
 
@@ -152,7 +155,8 @@ _limnPrimitiveValEqv[] = {
   limnPrimitiveTriangleStrip,
   limnPrimitiveTriangleFan,
   limnPrimitiveQuads,
-  limnPrimitiveLineStrip
+  limnPrimitiveLineStrip,
+  limnPrimitiveLines
 };
 
 airEnum

@@ -60,7 +60,7 @@ limnpu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
       || limnPolyDataPrimitiveSort(pld, nmeas)
       || limnPolyDataSave(out, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:%s", me, err);
+    fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
