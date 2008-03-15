@@ -513,9 +513,9 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                                   not necessarily contiguous in memory
                                   (if strideIn != 1) */
     *inVec,                    /* buffer for input vector; contiguous */
-    *_outVec,                  /* output vector in context of volume;
+    *_outVec;                  /* output vector in context of volume;
                                   never contiguous */
-    tmpF;
+  double tmpF;
   double ratio,                /* factor by which or up or downsampled */
     ratios[NRRD_DIM_MAX];      /* record of "ratio" for all resampled axes,
                                   used to compute new spacing in output */
@@ -610,9 +610,9 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     }
     numOut = nrrdElementNumber(nout);
     for (I=0; I<numOut; I++) {
-      tmpF = nrrdFLookup[nin->type](nin->data, I);
-      tmpF = nrrdFClamp[typeOut](tmpF);
-      nrrdFInsert[typeOut](nout->data, I, tmpF);
+      tmpF = nrrdDLookup[nin->type](nin->data, I);
+      tmpF = nrrdDClamp[typeOut](tmpF);
+      nrrdDInsert[typeOut](nout->data, I, tmpF);
     }
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     /* HEY: need to create textual representation of resampling parameters */
