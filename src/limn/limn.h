@@ -621,7 +621,7 @@ LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
                                          const double homat[16]);
 LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexNormals(limnPolyData *pld);
-LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(limnPolyData *pld);
+LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout,
                                                   limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld);
@@ -668,6 +668,14 @@ LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
 LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut, 
                                             const limnPolyData *pldIn,
                                             const Nrrd *nmask);
+
+/* polyfilter.c */
+LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
+                                           const limnPolyData *pldIn,
+                                           Nrrd *nvertMap,
+                                           unsigned int tubeFacet,
+                                           unsigned int endFacet,
+                                           double radius);
 
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, const limnObject *obj);

@@ -50,7 +50,7 @@ $(L).PRIVATE_HEADERS = privateLimn.h
 $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
         obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
-	polydata.o polyshapes.o polymod.o \
+	polydata.o polyshapes.o polymod.o polyfilter.o \
 	lpuFlotsam.o lpu_about.o lpu_ccfind.o lpu_psel.o lpu_rast.o \
 	lpu_verts.o lpu_meas.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \

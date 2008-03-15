@@ -430,7 +430,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
 }
 
 unsigned int
-limnPolyDataPrimitiveTypes(limnPolyData *pld) {
+limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
   unsigned int ret, primIdx;
 
   ret = 0;

@@ -20,6 +20,7 @@ SET(LIMN_SOURCES
   polydata.c
   polyshapes.c
   polymod.c
+  polyfilter.c
   )
 
 ADD_TEEM_LIBRARY(limn ${LIMN_SOURCES})
