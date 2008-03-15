@@ -240,7 +240,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   nine = (float *)tnine->data;
   N = sx*sy*sz;
   for (I=0; I<N; I++) {
-    TEN_M2T(seven, nine);
+    TEN_M2T_TT(seven, float, nine);
     seven[0] = conf ? conf[I] : 1.0f;
     seven += 7;
     nine += 9;

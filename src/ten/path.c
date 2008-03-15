@@ -423,7 +423,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
   TEN_T_SUB(d02, tt[2], tt[0]);
   TEN_T_SUB(d24, tt[4], tt[2]);
   TEN_T_SET(update, 1,   0, 0, 0,   0, 0,   0);
-  for (jj=0; jj<(rotnoop ? 3 : 6); jj++) {
+  for (jj=0; jj<(rotnoop ? 3u : 6u); jj++) {
     len02 = TEN_T_DOT(igrt[1][jj], d02);
     len24 = TEN_T_DOT(igrt[3][jj], d24);
     correct = (len24 - len02)/2;

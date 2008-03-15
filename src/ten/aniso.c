@@ -342,8 +342,8 @@ float  _tenAnisoTen_RA_f(const float  tt[7]) {
   float mn, stdv, dev[7];
   mn = TEN_T_TRACE(tt)/3;
   TEN_T_SET(dev, tt[0], tt[1]-mn, tt[2], tt[3], tt[4]-mn, tt[5], tt[6]-mn);
-  stdv = sqrt(TEN_T_DOT(dev, dev));
-  return mn ? stdv/(mn*SQRT6) : 0.0;
+  stdv = AIR_CAST(float, sqrt(TEN_T_DOT(dev, dev)));
+  return mn ? AIR_CAST(float, stdv/(mn*SQRT6)) : 0.0f;
 }
 double _tenAnisoTen_RA_d(const double tt[7]) {
   double mn, stdv, dev[7];
@@ -375,7 +375,7 @@ double _tenAnisoEval_FA_d(const double eval[3]) {
 }
 float  _tenAnisoTen_FA_f(const float  tt[7]) {
   float denom, mn, stdv, dev[7];
-  denom = 2.0*TEN_T_DOT(tt, tt);
+  denom = AIR_CAST(float, 2.0*TEN_T_DOT(tt, tt));
   mn = TEN_T_TRACE(tt)/3;
   TEN_T_SET(dev, tt[0], tt[1]-mn, tt[2], tt[3], tt[4]-mn, tt[5], tt[6]-mn);
   stdv = TEN_T_DOT(dev, dev);
@@ -513,9 +513,9 @@ float  _tenAnisoEval_Skew_f(const float  _eval[3]) {
   ELL_3V_SET(eval, _eval[0] - mn, _eval[1] - mn, _eval[2] - mn);
   Q = _tenAnisoEval_Q_f(eval);
   num = _tenAnisoEval_R_f(eval);
-  dnm = Q*sqrt(2*Q);
+  dnm = AIR_CAST(float, Q*sqrt(2*Q));
   ret = dnm ? AIR_CAST(float, num/dnm) : 0.0f;
-  return AIR_CLAMP(-OOSQRT2, ret, OOSQRT2);
+  return AIR_CAST(float, AIR_CLAMP(-OOSQRT2, ret, OOSQRT2));
 }
 double _tenAnisoEval_Skew_d(const double _eval[3]) {
   double Q, num, dnm, ret, mn, eval[3];
@@ -533,9 +533,9 @@ float  _tenAnisoTen_Skew_f(const float  _t[7]) {
   TEN_T_SET(ten, _t[0], _t[1]-mn, _t[2], _t[3], _t[4]-mn, _t[5], _t[6]-mn);
   Q = _tenAnisoTen_Q_f(ten);
   num = _tenAnisoTen_R_f(ten);
-  dnm = Q*sqrt(2*Q);
+  dnm = AIR_CAST(float, Q*sqrt(2*Q));
   ret = dnm ? AIR_CAST(float, num/dnm) : 0.0f;
-  return AIR_CLAMP(-OOSQRT2, ret, OOSQRT2);
+  return AIR_CAST(float, AIR_CLAMP(-OOSQRT2, ret, OOSQRT2));
 }
 double _tenAnisoTen_Skew_d(const double _t[7]) {
   double Q, num, dnm, ret, mn, ten[7];
@@ -556,7 +556,7 @@ float  _tenAnisoEval_Mode_f(const float  _eval[3]) {
   n = (e[0] + e[1] - 2*e[2])*(2*e[0] - e[1] - e[2])*(e[0] - 2*e[1] + e[2]);
   d = (e[0]*e[0] + e[1]*e[1] + e[2]*e[2] 
        - e[0]*e[1] - e[1]*e[2] - e[0]*e[2]);
-  d = sqrt(AIR_MAX(0, d));
+  d = AIR_CAST(float, sqrt(AIR_MAX(0, d)));
   d = 2*d*d*d;
   ret = d ? AIR_CAST(float, n/d) : 0.0f;
   return AIR_CLAMP(-1, ret, 1);

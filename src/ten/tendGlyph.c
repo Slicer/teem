@@ -411,13 +411,13 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       echoRectangleSet(rect, corn[0], corn[1], corn[2],
                        0, 0, llen,       llen, 0, 0);
       echoColorSet(rect, 1, 1, 1, 1);
-      echoMatterLightSet(scene, rect, 1, llen);
+      echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
       rect = echoObjectNew(scene, echoTypeRectangle);
       echoRectangleSet(rect, corn[0], corn[1], corn[2],
                        0, llen, 0,      0, 0, llen);
       echoColorSet(rect, 1, 1, 1, 1);
-      echoMatterLightSet(scene, rect, 1, llen);
+      echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
 
       corn[0] += llen/2;
@@ -427,19 +427,19 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
       echoRectangleSet(rect, corn[0], corn[1], corn[2],
                        0, -llen, 0,         -llen, 0, 0);
       echoColorSet(rect, 1, 1, 1, 1);
-      echoMatterLightSet(scene, rect, 1, llen);
+      echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
       rect = echoObjectNew(scene, echoTypeRectangle);
       echoRectangleSet(rect, corn[0], corn[1], corn[2],
                        -llen, 0, 0,        0, 0, -llen);
       echoColorSet(rect, 1, 1, 1, 1);
-      echoMatterLightSet(scene, rect, 1, llen);
+      echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
       rect = echoObjectNew(scene, echoTypeRectangle);
       echoRectangleSet(rect, corn[0], corn[1], corn[2],
                        0, 0, -llen,      0, -llen, 0);
       echoColorSet(rect, 1, 1, 1, 1);
-      echoMatterLightSet(scene, rect, 1, llen);
+      echoMatterLightSet(scene, rect, 1, AIR_CAST(echoCol_t, llen));
       echoObjectAdd(scene, rect);
       
     }

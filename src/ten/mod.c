@@ -194,7 +194,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     for (II=0; II<=NN-1; II++) {
       tenEigensolve_f(eval, evec, tin);
       for (ri=0; ri<3; ri++) {
-        eval[ri] = log(eval[ri]);
+        eval[ri] = AIR_CAST(float, log(eval[ri]));
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : -1000000;
       }
       tenMakeSingle_f(tout, tin[0], eval, evec);
@@ -206,7 +206,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     for (II=0; II<=NN-1; II++) {
       tenEigensolve_f(eval, evec, tin);
       for (ri=0; ri<3; ri++) {
-        eval[ri] = exp(eval[ri]);
+        eval[ri] = AIR_CAST(float, exp(eval[ri]));
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : 0;
       }
       tenMakeSingle_f(tout, tin[0], eval, evec);

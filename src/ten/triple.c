@@ -372,7 +372,7 @@ tenTripleConvertSingle_f(float _dst[3], int dstType,
 
   ELL_3V_COPY(src, _src);
   tenTripleConvertSingle_d(dst, dstType, src, srcType);
-  ELL_3V_COPY(_dst, dst);
+  ELL_3V_COPY_TT(_dst, float, dst);
 }
 
 void
