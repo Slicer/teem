@@ -281,7 +281,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
         ELL_4V_COPY(index, fiberPld->xyzw + 4*ii);
         ELL_4V_HOMOG(index, index);
         gageShapeItoW(tfx->gtx->shape, world, index);
-        ELL_4V_COPY(fiberPld->xyzw + 4*ii, world);
+        ELL_4V_COPY_TT(fiberPld->xyzw + 4*ii, float, world);
         (fiberPld->xyzw + 4*ii)[3] = 1.0;
       }
     }
@@ -293,7 +293,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
         ELL_4V_COPY(xxx, fiberPld->xyzw + 4*ii);
         ELL_4MV_MUL(yyy, matx, xxx);
         ELL_4V_HOMOG(yyy, yyy);
-        ELL_4V_COPY(fiberPld->xyzw + 4*ii, yyy);
+        ELL_4V_COPY_TT(fiberPld->xyzw + 4*ii, float, yyy);
       }
     }
     if (limnPolyDataSave(outS, fiberPld)) {

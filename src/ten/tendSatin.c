@@ -153,7 +153,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
                                mina, maxa, thick, bnd + bndRm*aff);
         } else {
           float aff; 
-          AIR_AFFINE(0,yi, size[1]-1, 0, 1);
+          aff = AIR_AFFINE(0,yi, size[1]-1, 0, 1);
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
                                 mina, maxa, thick, bnd + bndRm*aff);
         }
