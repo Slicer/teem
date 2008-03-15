@@ -672,6 +672,7 @@ LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
 /* polyfilter.c */
 LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
                                            const limnPolyData *pldIn,
+                                           unsigned int infoBitFlag,
                                            Nrrd *nvertMap,
                                            unsigned int tubeFacet,
                                            unsigned int endFacet,

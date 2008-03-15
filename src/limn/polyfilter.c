@@ -25,7 +25,7 @@
 
 int
 limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
-                           Nrrd *nvertmap,
+                           unsigned int infoBitFlag, Nrrd *nvertmap,
                            unsigned int tubeFacet, unsigned int endFacet,
                            double radius) {
   char me[]="limnPolyDataSpiralTubeWrap", err[BIFF_STRLEN];
@@ -33,7 +33,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   unsigned int tubeVertNum = 0, tubeIndxNum = 0, primIdx, pi, *vertmap;
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
   airArray *mop;
-  
+
   if (!( pldOut && pldIn )) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -51,8 +51,10 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                                 + pldIn->icnt[primIdx] + 1)-2;
   }
   if (limnPolyDataAlloc(pldOut,
-                        (1 << limnPolyDataInfoRGBA)
-                        | (1 << limnPolyDataInfoNorm),
+                        /* sorry have to have normals, even if they weren't
+                           asked for, because currently they're used as part
+                           of vertex position calc */
+                        (infoBitFlag | (1 << limnPolyDataInfoNorm)),
                         tubeVertNum, tubeIndxNum, pldIn->primNum)) {
     sprintf(err, "%s: trouble allocating output", me);
     biffAdd(LIMN, err); return 1;
