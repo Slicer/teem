@@ -469,7 +469,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   case nrrdTypeFloat:
     for (II=0; II<NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outF[II] = AIR_CAST(nrrdResample_t,
+      outF[II] = AIR_CAST(float,
                           NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
     }
     break;
@@ -559,8 +559,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
             unsigned int bins, unsigned int smart, float amount) {
   char me[]="nrrdHistoEq", func[]="heq", err[BIFF_STRLEN];
   Nrrd *nhist, *nmap;
-  float *ycoord = NULL;
-  double val, min, max, *last = NULL;
+  double val, min, max, *last = NULL, *ycoord = NULL;
   int *respect = NULL, lort;
   unsigned int *hist, *steady = NULL, idx, hirt;
   size_t I, num;
@@ -667,14 +666,14 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
       /* printf("%s: disrespecting bin %d\n", me, steady[1+2*bii]); */
     }
   }
-  if (nrrdMaybeAlloc_va(nmap=nrrdNew(), nrrdTypeFloat, 1,
+  if (nrrdMaybeAlloc_va(nmap=nrrdNew(), nrrdTypeDouble, 1,
                         AIR_CAST(size_t, bins+1))) {
     sprintf(err, "%s: failed to create map nrrd", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, nmap, (airMopper)nrrdNuke,
             nmapP ? airMopOnError : airMopAlways);
-  ycoord = (float*)nmap->data;
+  ycoord = AIR_CAST(double*, nmap->data);
   nmap->axis[0].min = min;
   nmap->axis[0].max = max;
 
@@ -706,9 +705,8 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
            endpoints of the histogram */
         for (lort=bii; lort>=1 && !respect[lort-1]; lort--);
         for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++);
-        ycoord[bii] = AIR_CAST(nrrdResample_t,
-                               AIR_AFFINE(lort, bii, hirt,
-                                          ycoord[lort], ycoord[hirt]));
+        ycoord[bii] = AIR_AFFINE(lort, bii, hirt,
+                                 ycoord[lort], ycoord[hirt]);
       }
     }
     /* the very last control point has to be handled differently */
@@ -719,13 +717,10 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   /* rescale the histogram integration to span the original
      value range, and affect the influence of "amount" */
   for (bii=0; bii<=bins; bii++) {
-    ycoord[bii] = AIR_CAST(nrrdResample_t,
-                           AIR_AFFINE(0.0, ycoord[bii], ycoord[bins],
-                                      min, max));
-    ycoord[bii] = AIR_CAST(nrrdResample_t,
-                           AIR_AFFINE(0.0, amount, 1.0,
-                                      AIR_AFFINE(0, bii, bins, min, max),
-                                      ycoord[bii]));
+    ycoord[bii] = AIR_AFFINE(0.0, ycoord[bii], ycoord[bins], min, max);
+    ycoord[bii] = AIR_AFFINE(0.0, amount, 1.0,
+                             AIR_AFFINE(0, bii, bins, min, max),
+                             ycoord[bii]);
   }
 
   /* map the nrrd values through the normalized histogram integral */

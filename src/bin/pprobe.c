@@ -356,7 +356,7 @@ main(int argc, char *argv[]) {
   } else if (lineStepNum) {
     /* we're probing along a line */
     double *dout;
-    float start[3], dir[3], end[3], lpos[3];
+    double start[3], dir[3], end[3], lpos[3];
     unsigned int vidx, ai;
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -377,7 +377,7 @@ main(int argc, char *argv[]) {
     dout = AIR_CAST(double *, nout->data);
     ELL_3V_COPY(start, pos);
     if (lineInfo[3]) {
-      float tmp;
+      double tmp;
       /* stepping along vector */
       ELL_3V_COPY(dir, 0 + lineInfo);
       ELL_3V_SET(end, AIR_NAN, AIR_NAN, AIR_NAN);

@@ -577,10 +577,10 @@ float  _tenAnisoTen_Mode_f(const float  tt[7]) {
   float mn, dev[7], tmp, ret;
   mn = TEN_T_TRACE(tt)/3.0f;
   TEN_T_SET(dev, tt[0], tt[1]-mn, tt[2], tt[3], tt[4]-mn, tt[5], tt[6]-mn);
-  tmp = TEN_T_NORM(dev);
+  tmp = AIR_CAST(float, TEN_T_NORM(dev));
   tmp = tmp ? 1.0f/tmp : 0.0f;
   TEN_T_SCALE(dev, tmp, dev);
-  ret = 3*SQRT6*TEN_T_DET(dev);
+  ret = AIR_CAST(float, 3*SQRT6*TEN_T_DET(dev));
   return AIR_CLAMP(-1, ret, 1);
 }
 double _tenAnisoTen_Mode_d(const double tt[7]) {
@@ -600,7 +600,7 @@ double _tenAnisoTen_Mode_d(const double tt[7]) {
 #define SQRT2 1.41421356237309504880
 float  _tenAnisoEval_Th_f(const float  eval[3]) {
   float tmp;
-  tmp = SQRT2*_tenAnisoEval_Skew_f(eval);
+  tmp = AIR_CAST(float, SQRT2*_tenAnisoEval_Skew_f(eval));
   return AIR_CAST(float, acos(AIR_CLAMP(-1, tmp, 1))/3);
 }
 double _tenAnisoEval_Th_d(const double eval[3]) {
@@ -610,7 +610,7 @@ double _tenAnisoEval_Th_d(const double eval[3]) {
 }
 float  _tenAnisoTen_Th_f(const float  ten[7]) {
   float tmp;
-  tmp = SQRT2*_tenAnisoTen_Skew_f(ten);
+  tmp = AIR_CAST(float, SQRT2*_tenAnisoTen_Skew_f(ten));
   return AIR_CAST(float, acos(AIR_CLAMP(-1, tmp, 1))/3);
 }
 double _tenAnisoTen_Th_d(const double ten[7]) {

@@ -1084,7 +1084,7 @@ _c3quint1_f(float x, const double *parm) {
   float A, S;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   x = AIR_ABS(x)/S;
   return AIR_CAST(float, _C3QUINTIC(x, A)/S);
 }
@@ -1109,7 +1109,7 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1166,7 +1166,7 @@ _Dc3quint1_f(float x, const double *parm) {
   int sgn = 1;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
   return AIR_CAST(float, sgn*_DC3QUINTIC(x, A)/(S*S));
@@ -1194,7 +1194,7 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
@@ -1248,7 +1248,7 @@ _DDc3quint1_f(float x, const double *parm) {
   float A, S;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   x = AIR_ABS(x)/S;
   return AIR_CAST(float, _DDC3QUINTIC(x, A)/S);
 }
@@ -1273,7 +1273,7 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, parm[1]); A = AIR_AFFINE(0, A, 1, -0.32, 1);
+  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1421,7 +1421,7 @@ _nrrdDiscGaussianInt(const double *parm) {
 
 float
 _nrrdDiscGaussian1_f(float xx, const double *parm) {
-  float sig, cut;
+  double sig, cut;
   
   sig = parm[0];
   _DGABSCUT(cut, sig, parm[1]);
@@ -1445,7 +1445,7 @@ _nrrdDiscGaussianN_d(double *f, const double *x,
 
 void
 _nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
-  float sig, cut, tt;
+  double sig, cut, tt;
   size_t ii;
   
   sig = parm[0];

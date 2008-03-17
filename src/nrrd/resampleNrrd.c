@@ -894,9 +894,9 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
       tmpF = AIR_CAST(nrrdResample_t, AIR_ROUNDUP(tmpF));
     }
     if (info->clamp) {
-      tmpF = nrrdFClamp[typeOut](tmpF);
+      tmpF = nrrdDClamp[typeOut](tmpF);
     }
-    nrrdFInsert[typeOut](nout->data, I, tmpF);
+    nrrdDInsert[typeOut](nout->data, I, tmpF);
   }
 
   if (nrrdBasicInfoCopy(nout, nin,

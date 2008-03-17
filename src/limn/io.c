@@ -141,7 +141,7 @@ limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
   unsigned int primIdx, xyzwIdx, rgbaIdx, normIdx, bitFlag,
     baseVertIdx;
   int haveStrips, haveTris, haveElse;
-  float xyz[3], norm[3], len;
+  double xyz[3], norm[3], len;
 
   if (!(file && pld)) {
     sprintf(err, "%s: got NULL pointer", me);

@@ -148,12 +148,12 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
         *conf = 1.0;
         if (torus) {
           float aff;
-          aff = AIR_AFFINE(0, yi, size[1]-1, 0, 1);
+          aff = AIR_CAST(float, AIR_AFFINE(0, yi, size[1]-1, 0, 1));
           tend_satinTorusEigen(eval, evec, x, y, z, parm,
                                mina, maxa, thick, bnd + bndRm*aff);
         } else {
           float aff; 
-          aff = AIR_AFFINE(0,yi, size[1]-1, 0, 1);
+          aff = AIR_CAST(float, AIR_AFFINE(0,yi, size[1]-1, 0, 1));
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
                                 mina, maxa, thick, bnd + bndRm*aff);
         }
