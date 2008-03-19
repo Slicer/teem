@@ -1045,6 +1045,12 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 ** with 1st and 3rd derivatives zero at origin, which integrates
 ** to unity on [-2,2], with 0th, 1st, and 2nd order accuracy.
 ** It doesn't interpolate.
+**
+** The same kernel is also available as 
+** nrrdKernelTMF with D,C,A = -1,3,2 ---> nrrdKernelTMF[0][4][2],
+** the advantage here being that you have access to the first
+** and second derivatives of tthis quintic kernel as
+** nrrdKernelC3QuinticD and nrrdKernelC3QuinticDD
 */
 
 #define _C3QUINTIC(x) \
@@ -1771,8 +1777,10 @@ nrrdKernelParse(const NrrdKernel **kernelP,
               me, tmfD, nrrdKernelTMF_maxA);
       biffAdd(NRRD, err); return 1;
     }
+    /*
     fprintf(stderr, "!%s: D,C,A = %d,%d,%d --> %d,%d,%d\n", me,
             tmfD, tmfC, tmfA, tmfD+1, tmfC+1, tmfA);
+    */
     *kernelP = nrrdKernelTMF[tmfD+1][tmfC+1][tmfA];
   } else {
     /* its not a TMF */
