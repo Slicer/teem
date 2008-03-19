@@ -37,7 +37,7 @@
          nrrdKernelCentDiff     1      scale
           nrrdKernelBCCubic     3      scale       B        C
          nrrdKernelAQuartic     2      scale       A
-        nrrdKernelC3Quintic     2      scale       A
+        nrrdKernelC3Quintic     1      scale
          nrrdKernelGaussian     2      sigma    cut-off
  nrrdKernelDiscreteGaussian     2      sigma    cut-off
         nrrdKernelTMF[][][]     1       a
@@ -1040,20 +1040,18 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 
 /* ------------------------------------------------------------ */
 
-/* A = -0.32: the first and second derivatives of this
-** correspond to first and second central differences 
-**
-** A = 1: this interpolates
-**
-** But I'm using AIR_AFFINE to map the parm [0,1] --> [-0.32,1],
-** so user sees correspondance with central difference at parm = 0
+/* 
+** This is the unique, four-sample support, quintic, C^3 kernel,
+** with 1st and 3rd derivatives zero at origin, which integrates
+** to unity on [-2,2], with 0th, 1st, and 2nd order accuracy.
+** It doesn't interpolate.
 */
 
-#define _C3QUINTIC(x, A) \
+#define _C3QUINTIC(x) \
   (x >= 2.0 ? 0 :                                             \
   (x >= 1.0                                                   \
-   ? -5*(x-2)*(x-2)*(x-2)*(x-2)*(A*(11*x - 7) - 4)            \
-   : 8*(5*A + 17) + x*x*(x*x*(-3*x*(45*A+32) + 55*(5*A+4)) - 40*(5*A+6))))/176
+   ? 0.8 + x*x*(-2 + x*(2 + x*(-0.75 + x*0.1)))               \
+   : 0.7 + x*x*(-1 + x*x*(0.75 - x*0.3))))
 
 static double
 _c3quintInt(const double *parm) {
@@ -1072,55 +1070,51 @@ _c3quintSup(const double *parm) {
 static double
 _c3quint1_d(double x, const double *parm) {
   double S;
-  double A;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   x = AIR_ABS(x)/S;
-  return _C3QUINTIC(x, A)/S;
+  return _C3QUINTIC(x)/S;
 }
 
 static float
 _c3quint1_f(float x, const double *parm) {
-  float A, S;
+  float S;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _C3QUINTIC(x, A)/S);
+  return AIR_CAST(float, _C3QUINTIC(x)/S);
 }
 
 static void
 _c3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S;
-  double t, A;
+  double S, t;
   size_t i;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
-    f[i] = _C3QUINTIC(t, A)/S;
+    f[i] = _C3QUINTIC(t)/S;
   }
 }
 
 static void
 _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t, A;
+  float S, t;
   size_t i;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _C3QUINTIC(t, A)/S);
+    f[i] = AIR_CAST(float, _C3QUINTIC(t)/S);
   }
 }
 
 static NrrdKernel
 _c3quint = {
   "C3Quintic",
-  2, _c3quintSup,  _c3quintInt,   
+  1, _c3quintSup,  _c3quintInt,   
   _c3quint1_f,   _c3quintN_f,   _c3quint1_d,   _c3quintN_d
 };
 NrrdKernel *const
@@ -1128,11 +1122,11 @@ nrrdKernelC3Quintic = &_c3quint;
 
 /* ------------------------------------------------------------ */
 
-#define _DC3QUINTIC(x, A) \
+#define _DC3QUINTIC(x) \
   (x >= 2.0 ? 0 :                                             \
   (x >= 1.0                                                   \
-   ? -5*(x-2)*(x-2)*(x-2)*(A*(55*x - 50) - 16)                \
-   : x*(x*x*(-15*x*(45*A+32) + 220*(5*A+4)) - 80*(5*A+6)) ))/176
+   ? x*(-4 + x*(6 + x*(-3 + x*0.5)))                          \
+   : x*(-2 + x*x*(3 - x*1.5))))
 
 static double
 _Dc3quintInt(const double *parm) {
@@ -1151,61 +1145,57 @@ _Dc3quintSup(const double *parm) {
 static double
 _Dc3quint1_d(double x, const double *parm) {
   double S;
-  double A;
   int sgn = 1;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
-  return sgn*_DC3QUINTIC(x, A)/(S*S);
+  return sgn*_DC3QUINTIC(x)/(S*S);
 }
 
 static float
 _Dc3quint1_f(float x, const double *parm) {
-  float A, S;
+  float S;
   int sgn = 1;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
-  return AIR_CAST(float, sgn*_DC3QUINTIC(x, A)/(S*S));
+  return AIR_CAST(float, sgn*_DC3QUINTIC(x)/(S*S));
 }
 
 static void
 _Dc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S;
-  double t, A;
+  double S, t;
   size_t i;
   int sgn;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DC3QUINTIC(t, A)/(S*S);
+    f[i] = sgn*_DC3QUINTIC(t)/(S*S);
   }
 }
 
 static void
 _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t, A;
+  float S, t;
   size_t i;
   int sgn;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DC3QUINTIC(t, A)/(S*S));
+    f[i] = AIR_CAST(float, sgn*_DC3QUINTIC(t)/(S*S));
   }
 }
 
 static NrrdKernel
 _nrrdKernelDC3Quintic = {
   "C3QuinticD",
-  2, _Dc3quintSup, _Dc3quintInt,  
+  1, _Dc3quintSup, _Dc3quintInt,  
   _Dc3quint1_f,  _Dc3quintN_f,  _Dc3quint1_d,  _Dc3quintN_d
 };
 NrrdKernel *const
@@ -1213,11 +1203,11 @@ nrrdKernelC3QuinticD = &_nrrdKernelDC3Quintic;
 
 /* ------------------------------------------------------------ */
 
-#define _DDC3QUINTIC(x, A) \
+#define _DDC3QUINTIC(x) \
   (x >= 2.0 ? 0 :                                             \
   (x >= 1.0                                                   \
-   ? -(x-2)*(x-2)*(A*(55*x - 65) - 12)                        \
-   : x*x*(33*(4+5*A) - 3*x*(32+45*A)) - 4*(5*A+6)))*(5.0/44.0)
+   ? -4 + x*(12 + x*(-9 + x*2))                               \
+   : -2 + x*x*(9 - x*6)))
 
 static double
 _DDc3quintInt(const double *parm) {
@@ -1236,55 +1226,51 @@ _DDc3quintSup(const double *parm) {
 static double
 _DDc3quint1_d(double x, const double *parm) {
   double S;
-  double A;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   x = AIR_ABS(x)/S;
-  return _DDC3QUINTIC(x, A)/S;
+  return _DDC3QUINTIC(x)/S;
 }
 
 static float
 _DDc3quint1_f(float x, const double *parm) {
-  float A, S;
+  float S;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _DDC3QUINTIC(x, A)/S);
+  return AIR_CAST(float, _DDC3QUINTIC(x)/S);
 }
 
 static void
 _DDc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S;
-  double t, A;
+  double S, t;
   size_t i;
   
-  S = parm[0]; A = AIR_AFFINE(0, parm[1], 1, -0.32, 1);
+  S = parm[0];
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
-    f[i] = _DDC3QUINTIC(t, A)/S;
+    f[i] = _DDC3QUINTIC(t)/S;
   }
 }
 
 static void
 _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t, A;
+  float S, t;
   size_t i;
   
   S = AIR_CAST(float, parm[0]);
-  A = AIR_CAST(float, AIR_AFFINE(0, parm[1], 1, -0.32, 1));
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _DDC3QUINTIC(t, A)/S);
+    f[i] = AIR_CAST(float, _DDC3QUINTIC(t)/S);
   }
 }
 
 static NrrdKernel
 _DDc3quint = {
   "C3Quintic",
-  2, _DDc3quintSup,  _DDc3quintInt,   
+  1, _DDc3quintSup,  _DDc3quintInt,   
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
 NrrdKernel *const
