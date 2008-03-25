@@ -643,12 +643,12 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
   size_t ii, idxcount;
   
   lup = nrrdDLookup[lineType];
-  max = 0;
+  max = -DBL_MAX;
   for (ii=0; ii<len; ii++) {
     val = lup(line, ii);
     max = AIR_MAX(max, val);
   }
-  if (0 == max) {
+  if (-DBL_MAX == max) {
     nrrdDStore[ansType](ans, AIR_NAN);
     return;
   }
