@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2006, 2005  Gordon Kindlmann
+  Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ rho(double r) {
 
 double
 genvolFunc(double x, double y, double z) {
-  double phi, Rbig, Rlit, sig0=0.2, sig1=0.04, a, b;
+  double phi, Rbig, Rlit, sig0=0.3, sig1=0.04, a, b, ret;
 
   /* ridge surface is a Mobius aka Moebius strip */
   Rbig = sqrt(x*x + y*y);
@@ -41,7 +41,16 @@ genvolFunc(double x, double y, double z) {
   phi = atan2(Rbig-0.5, z) - atan2(x, y)/2;
   a = Rlit*cos(phi);
   b = Rlit*sin(phi);
-  return airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
+  /*
+    ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
+  */
+  a = (a > sig0 
+       ? a - sig0 
+       : (a < -sig0
+          ? a + sig0
+          : 0));
+  ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
+  return ret;
   
   /*
   double A, B;
