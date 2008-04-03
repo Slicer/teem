@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2006, 2005  Gordon Kindlmann
+  Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
@@ -451,7 +451,7 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(LIMN, err); return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, 1, nrrdTypeUInt,
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, pld->primNum))) {
     sprintf(err, "%s: couldn't allocate output", me);
     biffMove(LIMN, err, NRRD); return 1;
