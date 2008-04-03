@@ -1,12 +1,14 @@
 =============== 
-
-  teem: Gordon Kindlmann's research software
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
 
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,6 +29,10 @@ understanding of exactly what the LGPL means for people wishing to use
 any of the teem libraries in their own programs.
 
 =============== How to compile
+
+Use CMake.  CMake is the modern way to compile Teem.  The information
+below refers to the home-grown bizarro GNUmakefiles that Gordon 
+originally wrote.  Don't trust these.
 
 1: set the environment variable TEEM_ARCH to one of the following:
    "irix6.n32": for irix in n32 mode
@@ -52,36 +58,6 @@ any of the teem libraries in their own programs.
    endianness, and such that are set at compile time.  If it doesn't
    start by saying "nrrd sanity check passed", then email me; there
    are serious problems.
-
-What?  No GNU configure script?  Not yet.  If you want to volunteer
-your services writing a configure script, and you're good GNU make
-programmer, then please go for it, and it will be added to teem.
-
-For the time being, you may need to alter the appropriate
-architecture-specific ".mk" file in the "src/make" directory.  This is
-unlikely.  If you feel there is a bug in those files, please email me
-at gk@cs.utah.edu
-
-=============== General Info
-
-These libraries and utilities are written by Gordon Kindlmann in
-support of his research.  Other people have also found them useful.
-
-I consider the software in this CVS tree to be relatively stable and
-well-tested, unlike the many other libraries which I'm currently
-working on.  While I am open to the idea of adding new wrappers,
-extensions, or libraries to teem, please keep in mind that I will
-scrutinize with great scepticism any such additions to the CVS
-repository.
-
-Much of teem would be better re-written in C++.  But not the majority
-of it.  C is a small language, and a simple language, and I know
-exactly what I'm doing with it.  Lots of teem is either so simple
-(like bane) or so low-level-ish (like nrrd), that the benefits of
-using a much more powerful language like C++ do not outweigh the
-benefits of me writing the software I need, now, in a way that I
-understand, now, so that I can graduate, soon.  C++ has its time and
-place.  In later times, I may find myself in those places.
 
 =============== Directory Structure
 
