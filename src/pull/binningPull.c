@@ -30,8 +30,8 @@
 void
 _pullBinInit(pullBin *bin, unsigned int incr) {
 
-  bin->pointNum = 0;
   bin->point = NULL;
+  bin->pointNum = 0;
   bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
                               sizeof(pullPoint *), incr);
   bin->neigh = NULL;
@@ -103,7 +103,8 @@ _pullBinPointAdd(pullContext *pctx, pullBin *bin, pullPoint *point) {
 }
 
 /*
-** the bin loses track of the point, caller responsible for ownership
+** the bin loses track of the point, caller responsible for ownership,
+** even though caller never identifies it by pointer, which is weird
 */
 void
 _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx) {
@@ -128,8 +129,8 @@ _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
 }
 
 void
-pullBinAllNeighborSet(pullContext *pctx) {
-  /* char me[]="pullBinAllNeighborSet"; */
+pullBinsAllNeighborSet(pullContext *pctx) {
+  /* char me[]="pullBinsAllNeighborSet"; */
   pullBin *nei[3*3*3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
@@ -171,8 +172,8 @@ pullBinAllNeighborSet(pullContext *pctx) {
 }
 
 int
-pullBinPointAdd(pullContext *pctx, pullPoint *point) {
-  char me[]="pullBinPointAdd", err[BIFF_STRLEN];
+pullBinsPointAdd(pullContext *pctx, pullPoint *point) {
+  char me[]="pullBinsPointAdd", err[BIFF_STRLEN];
   pullBin *bin;
   
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
@@ -196,6 +197,33 @@ pullRebin(pullContext *pctx) {
   pullPoint *point;
 
   if (!pctx->binSingle) {
+    
+#if 1
+    unsigned int runIdx = 0, pointNum;
+    pointNum = _pullPointNumber(pctx);
+    for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
+      oldBin = pctx->bin + oldBinIdx;
+      while (oldBin->pointNum) {
+        /* tricky: we can't traverse bin->point[], because of how it is
+           re-ordered on point removal, so we always grab point[0] */
+        pctx->pointBuff[runIdx++] = oldBin->point[0];  
+        _pullBinPointRemove(pctx, oldBin, 0);
+      }
+    }
+
+    airShuffle(pctx->pointPerm, pointNum, AIR_TRUE);
+    for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
+      point = pctx->pointBuff[pctx->pointPerm[pointIdx]];
+      newBin = _pullBinLocate(pctx, point->pos);
+      if (!newBin) {
+        sprintf(err, "%s: can't locate point %p %u",
+                me, AIR_CAST(void*, point), point->idtag);
+        biffAdd(PULL, err); return 1;
+      }
+      _pullBinPointAdd(pctx, newBin, point);
+    }
+#else
+
     for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
       oldBin = pctx->bin + oldBinIdx;
       
@@ -216,6 +244,8 @@ pullRebin(pullContext *pctx) {
         }
       } /* for pointIdx */
     } /* for oldBinIdx */
+#endif
+
   }
 
   return 0;
@@ -228,11 +258,11 @@ _pullBinSetup(pullContext *pctx) {
   double volEdge[3], scl;
   const pullEnergySpec *espec;
 
-  scl = (pctx->spaceScale ? pctx->spaceScale : 0.2);
+  scl = (pctx->radiusSpace ? pctx->radiusSpace : 0.1);
   espec = pctx->energySpec;
   pctx->maxDist = 2*scl*espec->energy->support(espec->parm);
-  fprintf(stderr, "!%s: spaceScale = %g --> maxDist = %g\n", me, 
-          pctx->spaceScale, pctx->maxDist);
+  fprintf(stderr, "!%s: radiusSpace = %g --> maxDist = %g\n", me, 
+          pctx->radiusSpace, pctx->maxDist);
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
@@ -267,7 +297,7 @@ _pullBinSetup(pullContext *pctx) {
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii, pctx->binIncr);
   }
-  pullBinAllNeighborSet(pctx);
+  pullBinsAllNeighborSet(pctx);
   return 0;
 }
 

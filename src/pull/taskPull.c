@@ -73,14 +73,16 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
                                         task->vol[volIdx]->gpvl,
                                         pctx->ispec[ii]->item);
       fprintf(stderr, "!%s: task->ans[%u] = %p\n", me, ii, task->ans[ii]);
+    } else {
+      task->ans[ii] = NULL;
     }
   }
   if (pctx->threadNum > 1) {
     task->thread = airThreadNew();
   }
+  task->threadIdx = threadIdx;
   task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
   task->pointBuffer = pullPointNew(pctx);
-  task->threadIdx = threadIdx;
   task->returnPtr = NULL;
   return task;
 }

@@ -185,7 +185,8 @@ pullFinish(pullContext *pctx) {
   /* no need for _pullInfoFinish(pctx), at least not now */
   _pullTaskFinish(pctx);
   _pullBinFinish(pctx);
-  /* no need for _pullPointFinish(pctx): nixed bins deleted pnts inside */
+  _pullPointFinish(pctx); /* yes, nixed bins deleted pnts inside, but
+                             other buffers still have to be freed */
 
   return 0;
 }
@@ -274,7 +275,8 @@ pullRun(pullContext *pctx) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
       if (pullOutputGet(npos, NULL, NULL, pctx,
-                        nrrdTypeDouble, AIR_TRUE, AIR_NAN)) {
+                        nrrdTypeDouble, AIR_TRUE, AIR_NAN, AIR_NAN,
+                        AIR_FALSE, 0, 0)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PULL, err); return 1;
       }

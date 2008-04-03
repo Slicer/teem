@@ -53,8 +53,10 @@ extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyAverage(const pullContext *pctx);
-extern int _pullProbe(pullTask *task, pullPoint *point);
+extern int _pullProbe(pullTask *task, pullPoint *point, double pos[4]);
 extern void _pullPointStepScale(const pullContext *pctx, double scale);
+extern int _pullPointSetup(pullContext *pctx);
+extern void _pullPointFinish(pullContext *pctx);
 
 /* binningPull.c */
 extern void _pullBinInit(pullBin *bin, unsigned int incr);
@@ -66,12 +68,6 @@ extern void _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx);
 extern void _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num);
 extern int _pullBinSetup(pullContext *pctx);
 extern void _pullBinFinish(pullContext *pctx);
-
-/* actionPull.c */
-extern int _pullProbe(pullTask *task, pullPoint *point);
-
-/* pointPull.c */
-extern int _pullPointSetup(pullContext *pctx);
 
 /* corePull.c */
 extern int _pullProcess(pullTask *task);

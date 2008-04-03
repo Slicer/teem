@@ -50,18 +50,14 @@ pullPointNew(pullContext *pctx) {
   }
 
   pnt->idtag = pctx->idtagNext++;
+  pnt->neigh = NULL;
+  pnt->neighNum = 0;
   pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  /* the first thing that pullBinProcess does (per point) is:
-     myPoint->energyLast = myPoint->energy;
-     so we pre-load energy with DBL_MAX, which is higher than whatever
-     finite energy might be computed, which ensures that none of the
-     adaptive time step stuff kicks in */
-  pnt->energy = DBL_MAX;
-  pnt->energyLast = AIR_NAN;
-  ELL_4V_SET(pnt->move, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  pnt->stepInter = pctx->stepInitial;
+  pnt->energy = AIR_NAN;
+  ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  pnt->stepEnergy = pctx->stepInitial;
   pnt->stepConstr = pctx->stepInitial;
   for (ii=0; ii<pctx->infoTotalLen; ii++) {
     pnt->info[ii] = AIR_NAN;
@@ -69,19 +65,25 @@ pullPointNew(pullContext *pctx) {
   return pnt;
 }
 
+/*
+** this is NOT supposed to make a self-contained point- its
+** just to make a back-up of the variable values (and whats below
+** is certainly overkill) when doing probing for finding discrete
+** differences along scale
+*/
 void
 _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   unsigned int ii;
-  
+
+  /* HEY: shouldn't I just do a memcpy? */
   dst->idtag = src->idtag;
   dst->neigh = src->neigh;
   dst->neighNum = src->neighNum;
   dst->neighArr = src->neighArr;
   ELL_4V_COPY(dst->pos, src->pos);
   dst->energy = src->energy;
-  ELL_4V_COPY(dst->move, src->move);
-  dst->energyLast = src->energyLast;
-  dst->stepInter = src->stepInter;
+  ELL_4V_COPY(dst->force, src->force);
+  dst->stepEnergy = src->stepEnergy;
   dst->stepConstr = src->stepConstr;
   for (ii=0; ii<ilen; ii++) {
     dst->info[ii] = src->info[ii];
@@ -92,6 +94,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
 pullPoint *
 pullPointNix(pullPoint *pnt) {
 
+  /* HEY: shouldn't this be airArrayNuke? */
   pnt->neighArr = airArrayNix(pnt->neighArr);
   airFree(pnt);
   return NULL;
@@ -145,7 +148,7 @@ _pullStepInterAverage(const pullContext *pctx) {
     pointNum += bin->pointNum;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      sum += point->stepInter;
+      sum += point->stepEnergy;
     }
   }
   avg = (!pointNum ? AIR_NAN : sum/pointNum);
@@ -171,23 +174,6 @@ _pullStepConstrAverage(const pullContext *pctx) {
   }
   avg = (!pointNum ? AIR_NAN : sum/pointNum);
   return avg;
-}
-
-void
-_pullPointStepScale(const pullContext *pctx, double scale) {
-  unsigned int binIdx, pointIdx;
-  const pullBin *bin;
-  pullPoint *point;
-
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-    bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-      point = bin->point[pointIdx];
-      point->stepInter *= scale;
-      point->stepConstr *= scale;
-    }
-  }
-  return;
 }
 
 double
@@ -217,17 +203,13 @@ _pullPointStrength(const pullContext *pctx, const pullPoint *point) {
 }
 
 int
-_pullProbe(pullTask *task, pullPoint *point) {
+_pullProbe(pullTask *task, pullPoint *point, double pos[4]) {
   char me[]="_pullProbe", err[BIFF_STRLEN];
   unsigned int ii, gret=0;
   
-  if (!ELL_3V_EXISTS(point->pos)) {
-    sprintf(err, "%s: got non-exist pos (%g,%g,%g)", me, 
-            point->pos[0], point->pos[1], point->pos[2]);
-    biffAdd(PULL, err); return 1;
-  }
-  if (task->pctx->haveScale && !AIR_EXISTS(point->pos[3])) {
-    sprintf(err, "%s: got non-exist scale pos %g", me, point->pos[3]);
+  if (!ELL_4V_EXISTS(point->pos)) {
+    sprintf(err, "%s: got non-exist pos (%g,%g,%g,%g)", me, 
+            pos[0], pos[1], pos[2], pos[3]);
     biffAdd(PULL, err); return 1;
   }
   for (ii=0; ii<task->pctx->volNum; ii++) {
@@ -237,12 +219,11 @@ _pullProbe(pullTask *task, pullPoint *point) {
     }
     if (task->vol[ii]->ninSingle) {
       gret = gageProbeSpace(task->vol[ii]->gctx,
-                            point->pos[0], point->pos[1], point->pos[2],
+                            pos[0], pos[1], pos[2],
                             AIR_FALSE, AIR_TRUE);
     } else {
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                 point->pos[0], point->pos[1],
-                                 point->pos[2], point->pos[3],
+                                 pos[0], pos[1], pos[2], pos[3],
                                  AIR_FALSE, AIR_TRUE);
     }
     if (gret) {
@@ -282,7 +263,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
 int
 _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
-  unsigned int pointIdx, tick;
+  unsigned int pointIdx, tick, pn;
   pullPoint *point;
   double *posData;
   airRandMTState *rng;
@@ -313,7 +294,7 @@ _pullPointSetup(pullContext *pctx) {
       ELL_4V_COPY(point->pos, posData + 4*pointIdx);
       /* even though we are dictating the point locations, we still have
          to do the initial probe */
-      if (_pullProbe(pctx->task[0], point)) {
+      if (_pullProbe(pctx->task[0], point, point->pos)) {
         sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
         biffAdd(PULL, err); return 1;
       }
@@ -332,7 +313,7 @@ _pullPointSetup(pullContext *pctx) {
         } else {
           point->pos[3] = AIR_NAN;
         }
-        if (_pullProbe(pctx->task[0], point)) {
+        if (_pullProbe(pctx->task[0], point, point->pos)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
@@ -347,73 +328,31 @@ _pullPointSetup(pullContext *pctx) {
         }
       } while (reject);
     }
-    if (pullBinPointAdd(pctx, point)) {
+    if (pullBinsPointAdd(pctx, point)) {
       sprintf(err, "%s: trouble binning point %u", me, point->idtag);
       biffAdd(PULL, err); return 1;
     }
   }
   fprintf(stderr, "%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
                                      doneStr));
+  pn = _pullPointNumber(pctx);
+  pctx->pointBuff = AIR_CAST(pullPoint **,
+                             calloc(pn, sizeof(pullPoint*)));
+  pctx->pointPerm = AIR_CAST(unsigned int *,
+                             calloc(pn, sizeof(unsigned int)));
+  if (!( pctx->pointBuff && pctx->pointPerm )) {
+      sprintf(err, "%s: couldn't allocate buffers %p %p", me, 
+              pctx->pointBuff, pctx->pointPerm);
+      biffAdd(PULL, err); return 1;
+  }
+
   return 0;
 }
 
-int 
-pullHeightDerivativesTest(pullContext *pctx,
-                          double xx, double yy, double zz, double ss, 
-                          double eps) {
-  char me[]="pullHeightDerivativesTest", err[BIFF_STRLEN];
-  pullPoint *point;
-  airArray *mop;
-  unsigned int ai;
-  double xyz[3], *val, *grad, *hess, agrad[3], dvec[3];
+void
+_pullPointFinish(pullContext *pctx) {
 
-  if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
-  }
-  if (!( pctx->ispec[pullInfoHeight]
-         && pctx->ispec[pullInfoHeightGradient]
-         && pctx->ispec[pullInfoHeightHessian] )) {
-    sprintf(err, "%s: don't have %s, %s, and %s ispecs set", me,
-            airEnumStr(pullInfo, pullInfoHeight),
-            airEnumStr(pullInfo, pullInfoHeightGradient),
-            airEnumStr(pullInfo, pullInfoHeightHessian));
-    biffAdd(PULL, err); return 1;
-  }
-
-  fprintf(stderr, "%s: hello\n", me);
-  mop = airMopNew();
-  point = pullPointNew(pctx);
-  airMopAdd(mop, point, (airMopper)pullPointNix, airMopAlways);
-  val = point->info + pctx->infoIdx[pullInfoHeight];
-  grad = point->info + pctx->infoIdx[pullInfoHeightGradient];
-  hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
-  
-  ELL_4V_SET(point->pos, xx, yy, zz, ss);
-  if (_pullProbe(pctx->task[0], point)) {
-    sprintf(err, "%s: initial probe", me);
-    biffAdd(PULL, err); return 1;
-  }
-  fprintf(stderr, "%s: val(%g,%g,%g) = %g\n", me, xx, yy, zz, val[0]);
-
-  point->pos[3] = ss;
-  ELL_3V_SET(xyz, xx, yy, zz);
-  for (ai=0; ai<3; ai++) {
-    ELL_3V_COPY(point->pos, xyz); point->pos[ai] += eps;
-    _pullProbe(pctx->task[0], point);
-    agrad[ai] = val[0];
-    ELL_3V_COPY(point->pos, xyz); point->pos[ai] -= eps;
-    _pullProbe(pctx->task[0], point);
-    agrad[ai] = (agrad[ai] - val[0])/(2*eps);
-  }
-  ELL_3V_COPY(point->pos, xyz);
-  _pullProbe(pctx->task[0], point);
-  ELL_3V_SUB(dvec, grad, agrad);
-  fprintf(stderr, "%s: grad = (%g,%g,%g), agrad = (%g,%g,%g); err = %g\n", me,
-          grad[0], grad[1], grad[2],
-          agrad[0], agrad[1], agrad[2],
-          ELL_3V_LEN(dvec));
-
-  airMopOkay(mop);
-  return 0;
+  airFree(pctx->pointBuff);
+  airFree(pctx->pointPerm);
+  return ;
 }

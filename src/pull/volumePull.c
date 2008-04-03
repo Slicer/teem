@@ -93,6 +93,15 @@ pullVolumeNix(pullVolume *vol) {
   return NULL;
 }
 
+/*
+** used to set all the fields of pullVolume at once, including the
+** gageContext inside the pullVolume
+**
+** used both for top-level volumes in the pullContext (pctx->vol[i])
+** in which case pctx is non-NULL,
+** and for the per-task volumes (task->vol[i]),
+** in which case pctx is NULL
+*/
 int
 _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
                const Nrrd *ninSingle,

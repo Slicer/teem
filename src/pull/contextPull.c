@@ -47,19 +47,16 @@ pullContextNew(void) {
   }
 
   pctx->stepInitial = 1;
-  pctx->spaceScale = 1;
-  pctx->scaleScale = 1;
-  pctx->scaleAttr = 0;
-  pctx->scaleStrengthSeek = 0.0;
-  pctx->wallScale = 0;
+  pctx->radiusSpace = 1;
+  pctx->radiusScale = 1;
   pctx->neighborLearnProb = 1.0;
-  pctx->probeProb = 1.0;
   pctx->moveLimit = 1.0;
   pctx->moveFracMin = 0.2;
   pctx->opporStepScale = 1.0;
   pctx->energyStepScale = 0.8;
-  pctx->energyImprovTest = 0.0;
   pctx->moveFracStepScale = 0.5;
+
+  pctx->energyImprovTest = 0.0;
   pctx->energyImprovMin = 0.01;
 
   pctx->seedRNG = 42;
@@ -69,12 +66,14 @@ pullContextNew(void) {
   pctx->snap = 0;
   
   pctx->energySpec = pullEnergySpecNew();
-  
+  pctx->beta = 1.0;
+  pctx->radiusSingle = AIR_TRUE;
+
   pctx->binSingle = AIR_FALSE;
   pctx->binIncr = 32;
 
-  ELL_3V_SET(pctx->bboxMin, AIR_NAN, AIR_NAN, AIR_NAN);
-  ELL_3V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_4V_SET(pctx->bboxMin, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  ELL_4V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pctx->infoTotalLen = 0; /* will be set later */
   pctx->idtagNext = 0;
   pctx->haveScale = AIR_FALSE;
@@ -85,6 +84,8 @@ pullContextNew(void) {
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
+  pctx->pointPerm = NULL;
+  pctx->pointBuff = NULL;
   pctx->binMutex = NULL;
 
   pctx->task = NULL;
@@ -118,6 +119,7 @@ pullContextNix(pullContext *pctx) {
       }
     }
     pctx->energySpec = pullEnergySpecNix(pctx->energySpec);
+    /* handled elsewhere: bin, task, iterBarrierA, iterBarrierB */
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     airFree(pctx);
   }
@@ -260,11 +262,9 @@ _pullContextCheck(pullContext *pctx) {
     biffAdd(PULL, err); return 1;                                \
   }
   /* these reality-check bounds are somewhat arbitrary */
-  CHECK(scaleScale, 0.000001, 5.0);
-  CHECK(scaleAttr, -500.0, 500.0);
-  CHECK(scaleStrengthSeek, 0.0, 10.0);
+  CHECK(radiusScale, 0.000001, 15.0);
+  CHECK(radiusSpace, 0.000001, 15.0);
   CHECK(neighborLearnProb, 0.05, 1.0);
-  CHECK(probeProb, 0.05, 1.0);
   CHECK(moveLimit, 0.1, 10.0);
   CHECK(moveFracMin, 0.1, 1.0);
   CHECK(opporStepScale, 0.89, 1.11);
@@ -273,6 +273,7 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(moveFracStepScale, 0.1, 1.0);
   CHECK(energyImprovTest, -0.21, 0.21);
   CHECK(energyImprovMin, -0.2, 1.0);
+  CHECK(beta, 0.0, 1.0);
 #undef CHECK
 
   return 0;
@@ -281,10 +282,12 @@ _pullContextCheck(pullContext *pctx) {
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
               pullContext *pctx, int typeOut, int pos4,
-              double sthresh) {
+              double sthresh, double hthresh,
+              int scaleSwapDo, unsigned int scaleAxis,
+              double scaleScl) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointRun, pointNum, pointIdx;
-  int E, dosth;
+  int E, dosth, dohth;
   float *posOut_f, *tenOut_f, *enrOut_f;
   double *posOut_d, *tenOut_d, *enrOut_d;
   pullBin *bin;
@@ -302,6 +305,21 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
     dosth = AIR_TRUE;
   } else {
     dosth = AIR_FALSE;
+  }
+  if (AIR_EXISTS(hthresh)) {
+    dohth = AIR_TRUE;
+  } else {
+    dohth = AIR_FALSE;
+  }
+  if (scaleSwapDo) {
+    if (!( scaleAxis <= 2 )) {
+      sprintf(err, "%s: scaleAxis %u invalid", me, scaleAxis);
+      biffAdd(PULL, err); return 1;
+    }
+    if (!AIR_EXISTS(scaleScl)) {
+      sprintf(err, "%s: scaleScl %g doesn't exist", me, scaleScl);
+      biffAdd(PULL, err); return 1;
+    }
   }
   pointNum = _pullPointNumber(pctx);
   E = AIR_FALSE;
@@ -342,28 +360,58 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
           continue;
         }
       }
+      if (dohth) {
+        if (_pullPointHeight(pctx, point) > hthresh) {
+          continue;
+        }
+      }
       if (nPosOut) {
+        double tpos[4];
+        ELL_4V_COPY(tpos, point->pos);
+        if (scaleSwapDo) {
+          tpos[scaleAxis] = tpos[3]*scaleScl;
+          tpos[3] = 0;
+        }
         if (nrrdTypeFloat == typeOut) {
           ELL_3V_SET(posOut_f + (pos4 ? 4 : 3)*pointRun,
-                     point->pos[0], point->pos[1], point->pos[2]);
+                     tpos[0], tpos[1], tpos[2]);
           if (pos4) {
-            (posOut_f + (pos4 ? 4 : 3)*pointRun)[3] = point->pos[3];
+            (posOut_f + (pos4 ? 4 : 3)*pointRun)[3] = tpos[3];
           }
         } else {
           ELL_3V_SET(posOut_d + (pos4 ? 4 : 3)*pointRun,
-                     point->pos[0], point->pos[1], point->pos[2]);
+                     tpos[0], tpos[1], tpos[2]);
           if (pos4) {
-            (posOut_d + (pos4 ? 4 : 3)*pointRun)[3] = point->pos[3];
+            (posOut_d + (pos4 ? 4 : 3)*pointRun)[3] = tpos[3];
           }
         }
       }
       if (nTenOut) {
-        double ev;
-        ev = (AIR_EXISTS(point->pos[3]) ? point->pos[3] : 1);
-        if (nrrdTypeFloat == typeOut) {
-          TEN_T_SET(tenOut_f + 7*pointRun, 1, ev, 0, 0, ev, 0, ev);
+        double scl, tout[7];
+        scl = (AIR_EXISTS(point->pos[3]) ? point->pos[3] : 1);
+        if (pctx->ispec[pullInfoHeightHessian]) {
+          double *hess, eval[3], evec[9], eceil, len;
+          hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
+          ell_3m_eigensolve_d(eval, evec, hess, 10);
+          eval[0] = AIR_ABS(eval[0]);
+          eval[1] = AIR_ABS(eval[1]);
+          eval[2] = AIR_ABS(eval[2]);
+          eceil = 7/ELL_3V_LEN(eval);
+          eval[0] = AIR_MIN(eceil, 1.0/eval[0]);
+          eval[1] = AIR_MIN(eceil, 1.0/eval[1]);
+          eval[2] = AIR_MIN(eceil, 1.0/eval[2]);
+          ELL_3V_NORM(eval, eval, len);
+          tenMakeSingle_d(tout, 1, eval, evec);
         } else {
-          TEN_T_SET(tenOut_d + 7*pointRun, 1, ev, 0, 0, ev, 0, ev);
+          TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
+        }
+        if (!scaleSwapDo) {
+          TEN_T_SCALE(tout, scl, tout);
+        }
+        if (nrrdTypeFloat == typeOut) {
+          TEN_T_COPY(tenOut_f + 7*pointRun, tout);
+        } else {
+          TEN_T_COPY(tenOut_d + 7*pointRun, tout);
         }
       }
       if (nEnrOut) {

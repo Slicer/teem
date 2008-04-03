@@ -27,6 +27,7 @@
 #define GAUSS   "gauss"
 #define COULOMB "coulomb"
 #define COTAN   "cotan"
+#define QUARTIC "quartic"
 #define ZERO    "zero"
 
 char
@@ -36,6 +37,7 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   GAUSS,
   COULOMB,
   COTAN,
+  QUARTIC,
   ZERO
 };
 
@@ -46,6 +48,7 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "Gaussian potential",
   "Coulomb electrostatic potential, with tunable cut-off",
   "Cotangent-based potential (from Meyer et al. SMI '05)",
+  "Quartic thing",
   "no energy"
 };
 
@@ -259,6 +262,44 @@ const pullEnergy *const
 pullEnergyCotan = &_pullEnergyCotan;
 
 /* ----------------------------------------------------------------
+** ----------------------------- QUARTIC --------------------------
+** ----------------------------------------------------------------
+** 0 parms!
+*/
+void
+_pullEnergyQuarticEval(double *enr, double *frc,
+                       double dist, const double *parm) {
+  double omr;
+
+  AIR_UNUSED(parm);
+  if (dist <= 1) {
+    omr = 1 - dist;
+    *enr = 2.132*omr*omr*omr*omr;
+    *frc = -4*2.132*omr*omr*omr;
+  } else {
+    *enr = *frc = 0;
+  }
+  return;
+}
+
+double
+_pullEnergyQuarticSupport(const double *parm) {
+
+  AIR_UNUSED(parm);
+  return 1;
+}
+
+const pullEnergy
+_pullEnergyQuartic = {
+  QUARTIC,
+  0,
+  _pullEnergyQuarticEval,
+  _pullEnergyQuarticSupport
+};
+const pullEnergy *const
+pullEnergyQuartic = &_pullEnergyQuartic;
+
+/* ----------------------------------------------------------------
 ** ------------------------------- ZERO ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms:
@@ -302,7 +343,8 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
   &_pullEnergyGauss,    /* 2 */
   &_pullEnergyCoulomb,  /* 3 */
   &_pullEnergyCotan,    /* 4 */
-  &_pullEnergyZero      /* 5 */
+  &_pullEnergyQuartic,  /* 5 */
+  &_pullEnergyZero      /* 6 */
 };
 
 pullEnergySpec *
