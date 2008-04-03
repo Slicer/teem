@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2006, 2005  Gordon Kindlmann
+  Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
   This library is free software; you can redistribute it and/or
@@ -61,6 +61,7 @@ limnpu_measMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:%s", me, err);
