@@ -23,169 +23,124 @@
 #include "pull.h"
 #include "privatePull.h"
 
-int
-_pullPairwiseEnergy(pullTask *task,
-                    double *enrP,
-                    double frc[4],
-                    pullPoint *myPoint, pullPoint *herPoint) {
-  /* XX is the vector: me ----> her */
-  double XX[4], nXX[4], rr, mag, radspace, radscale;
-  pullEnergySpec *ensp;
-
-  ensp = task->pctx->energySpec;
-
-  ELL_4V_SUB(XX, herPoint->pos, myPoint->pos);
-  ELL_3V_NORM(nXX, XX, rr);  /* computes rr */
-  radspace = 2*task->pctx->radiusSpace;
-  if (task->pctx->haveScale) {
-    double ss, nss;
-    radscale = 2*task->pctx->radiusScale;
-    ss = XX[3]; nss = ss > 0 ? 1 : -1;
-    if (task->pctx->radiusSingle) {
-      ensp->energy->eval(enrP, &mag, nss*ss/radscale, ensp->parm);
-      if (mag) {
-        frc[3] = mag*nss/radscale;
-      } else {
-        frc[3] = 0;
-      }
-    }
-  } else {
-    frc[3] = 0;
-  }
-  ensp->energy->eval(enrP, &mag, rr/radspace, ensp->parm);
-  if (mag) {
-    ELL_3V_SCALE(frc, mag/radspace, nXX);
-  } else {
-    ELL_3V_SET(frc, 0, 0, 0);
-  }
-
-  return 0;
-}
-
 /*
-** this assumes that _pullProbe() has just been called on the point,
-** and the point is used only as a record of the info set there
-**
-** is only for "height" in 3D, not anythign along scale
+** this requires that "point" has just been the benefit of _pullProbe(),
 */
-void
-_pullPointDescent(double move[3], const pullTask *task,
-                  const pullPoint *point) {
-  /* char me[]="_pullPointHeightStep"; */
-  const pullInfoSpec *ispec;
-  const unsigned int *infoIdx;
-  double val, grad[3], hess[9], tmp[3], contr, tt, gmag, norm[3];
-  double moveLine[3], moveSurf[3];
-  int wantLine, wantSurf;
-
-  ispec = task->pctx->ispec[pullInfoHeight];
-  infoIdx = task->pctx->infoIdx;
-  val = point->info[infoIdx[pullInfoHeight]];
-  ELL_3V_COPY(grad, point->info + infoIdx[pullInfoHeightGradient]);
-  ELL_3M_COPY(hess, point->info + infoIdx[pullInfoHeightHessian]);
-  val = (val - ispec->zero)*ispec->scale;
-  ELL_3V_SCALE(grad, ispec->scale, grad);
-  ELL_3M_SCALE(hess, ispec->scale, hess);
-
-  gmag = ELL_3V_LEN(grad);
-  if (gmag) {
-    ELL_3V_SCALE(norm, 1.0/gmag, grad);
-  } else {
-    ELL_3V_COPY(norm, grad);
-  }
-  ELL_3MV_MUL(tmp, hess, norm);
-  contr = ELL_3V_DOT(norm, tmp);
-  if (contr <= 0) {
-    /* if the contraction of the hessian along the gradient is
-       negative then we seem to be near a local maxima of height,
-       which is bad, so we do simple gradient descent. This also
-       catches the case when the second derivative is zero. */
-    tt = 1;
-  } else {
-    tt = gmag*gmag/contr;
-    /* to be safe, we limit ourselves to the distance (or some scaling
-       of it) that could have been gone via gradient descent */
-    tt = tt/(3 + tt);
-  }
-  ELL_3V_SCALE(move, -tt, grad);
-
-  wantSurf = wantLine = AIR_FALSE;
-  if (task->pctx->ispec[pullInfoTangentMode]) {
-    wantSurf = wantLine = AIR_TRUE;
-  } else {
-    if (task->pctx->ispec[pullInfoTangent2]) {
-      wantLine = AIR_TRUE;
-    } else if (task->pctx->ispec[pullInfoTangent1]) {
-      wantSurf = AIR_TRUE;
-    }
-  }
-  if (wantLine || wantSurf) {
-    ELL_3V_SET(moveLine, AIR_NAN, AIR_NAN, AIR_NAN);
-    ELL_3V_SET(moveSurf, AIR_NAN, AIR_NAN, AIR_NAN);
-    if (wantLine) {
-      /* with both tang1 and tang2: move within their span towards line */
-      const double *tang1, *tang2;
-      double tmp[3], out1[9], out2[9], proj[9];
-      
-      tang1 = point->info + infoIdx[pullInfoTangent1];
-      tang2 = point->info + infoIdx[pullInfoTangent2];
-      ELL_3MV_OUTER(out1, tang1, tang1);
-      ELL_3MV_OUTER(out2, tang2, tang2);
-      ELL_3M_ADD2(proj, out1, out2);
-      ELL_3MV_MUL(tmp, proj, move);
-      ELL_3V_COPY(moveLine, tmp);
-    }
-    if (wantSurf) {
-      /* with tang1 only: move within its span towards surface */
-      const double *tang1;
-      double tmp[3], proj[9];
-      
-      tang1 = point->info + infoIdx[pullInfoTangent1];
-      ELL_3MV_OUTER(proj, tang1, tang1);
-      ELL_3MV_MUL(tmp, proj, move);
-      ELL_3V_COPY(moveSurf, tmp);
-    }
-    if (wantLine && wantSurf) {
-      /* with mode: some lerp between the two */
-      double mode;
-      ispec = task->pctx->ispec[pullInfoTangentMode];
-      mode = point->info[infoIdx[pullInfoTangentMode]];
-      mode = (mode - ispec->zero)*ispec->scale;
-      mode = (1 + mode)/2;
-      ELL_3V_LERP(move, mode, moveSurf, moveLine);
-    } else if (wantLine) {
-      ELL_3V_COPY(move, moveLine);
-    } else if (wantSurf) {
-      ELL_3V_COPY(move, moveSurf);
-    }
-  }
-
-  return;
-}
-
 static double
 _energyImage(pullTask *task, pullPoint *point,
              /* output */
-             double force[4]) {
+             double egrad[4]) {
+  double energy;
 
-  return 0;
+  if (task->pctx->ispec[pullInfoHeight]
+      && !task->pctx->ispec[pullInfoHeight]->constraint) {
+    energy = _pullPointHeight(task->pctx, point, egrad, NULL);
+  } else {
+    energy = 0;
+  }
+
+  return energy;
 }
 
+/*
+** meanNeighDist is allowed to be NULL
+**
+** meanNeighDist must be set to something; < 0 if there are no neighbors
+*/
 static double
-_energyPoints(pullTask *task, pullPoint *point,
+_energyPoints(pullTask *task, pullBin *bin, pullPoint *point, 
               /* output */
-              double force[4], double *meanNeighDist) {
+              double egrad[4], double *meanNeighDist) {
+  double energy;
 
-  return 0;
+  energy = 0;
+  if (meanNeighDist) {
+    *meanNeighDist = -1;
+  }
+
+  return energy;
+}
+
+/*
+** this requires that "point" has just been the benefit of _pullProbe(),
+** because thats what _energyImage() needs
+**
+** its in here that we scale from "energy gradient" to "force"
+*/
+static double
+_energyTotal(pullTask *task, pullBin *bin, pullPoint *point,
+             /* output */
+             double force[4], double *neighDist) {
+  double enrIm, enrPt, egradIm[4], egradPt[4], energy;
+
+  ELL_4V_SET(egradIm, 0, 0, 0, 0); /* sssh */
+  ELL_4V_SET(egradPt, 0, 0, 0, 0); /* sssh */
+  enrIm = _energyImage(task, point,
+                       force ? egradIm : NULL);
+  enrPt = _energyPoints(task, bin, point,
+                        force ? egradPt : NULL, neighDist);
+  energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
+  if (force) {
+    ELL_4V_LERP(force, task->pctx->alpha, egradIm, egradPt);
+    ELL_4V_SCALE(force, -1, force);
+  }
+  return energy;
 }
 
 int
-_pullPointProcess(pullTask *task, pullBin *myBin, pullPoint *myPoint) {
-  char me[]="pullPointProcess";
-  double enrIm, enrPt, frcIm[4], frcPt[4], enr, frc[4], meanND;
+_pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
+  char me[]="pullPointProcess", err[BIFF_STRLEN];
+  double energyOld, energyNew, force[4], distLimit, posOld[4];
+  int stepBad;
 
-  enrIm = _energyImage(task, point, &enIm, frcIm, &meanND);
-  enrPt = _energyPoints(task, point, $enPt, frcPt);
+  energyOld = _energyTotal(task, bin, point, force, &distLimit);
+  if (distLimit < 0 /* no neighbors! */
+      || pullEnergyZero == task->pctx->energySpec->energy) {
+    distLimit = task->pctx->radiusSpace;
+  }
+  /* hey, maybe using voxel size should also be used with distLimit */
+
+  ELL_4V_COPY(posOld, point->pos);
+  point->stepEnergy = AIR_MIN(distLimit, point->stepEnergy);
+  do {
+    int constrFail;
+
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, point->stepEnergy, force);
+    if (_pullProbe(task->pctx->task[0], point, point->pos)) {
+      sprintf(err, "%s: probing initial newpos (step=%g)", me,
+              point->stepEnergy);
+      biffAdd(PULL, err); return 1;
+    }
+    if (task->pctx->haveConstraint) {
+      /* posNew = satisfy constraint */
+      /* constrFail = couldn't satisfy constraint */
+      constrFail = AIR_FALSE;
+    } else {
+      constrFail = AIR_FALSE;
+    }
+    if (constrFail) {
+      energyNew = AIR_NAN;
+    } else {
+      energyNew = _energyTotal(task, bin, point, NULL, NULL);
+    }
+    stepBad = constrFail || (energyNew > energyOld);
+    if (stepBad) {
+      point->stepEnergy *= task->pctx->energyStepScale;
+      /* the idea is that if you had a non-trivial force, but you can't
+         ever seem to take a small enough step to reduce energy, then
+         you have a serious problem */
+      if (point->stepEnergy < 0.000000000001
+          && ELL_4V_LEN(force) > 0.000001) {
+        sprintf(err, "%s: point %u stepEnergy=%g: where can it go?", me,
+                point->idtag, point->stepEnergy);
+        biffAdd(PULL, err); return 1;
+      }
+    }
+  } while (stepBad);
+  /* now: energy decreased, and, if we have one, constraint has been met */
+
+  /* not recorded for the sake of this function, but for system accounting */
+  point->energy = energyNew;
 
   return 0;
 }
@@ -211,7 +166,6 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
               myPointIdx, myBinIdx);
       biffAdd(PULL, err); return 1;
     }
-
 
   } /* for myPointIdx */
 

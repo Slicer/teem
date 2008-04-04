@@ -231,6 +231,7 @@ _pullInfoSetup(pullContext *pctx) {
   unsigned int ii;
 
   pctx->infoTotalLen = 0;
+  pctx->haveConstraint = AIR_FALSE;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       pctx->infoIdx[ii] = pctx->infoTotalLen;
@@ -241,9 +242,11 @@ _pullInfoSetup(pullContext *pctx) {
         sprintf(err, "%s: got zero-length answer for ispec[%u]", me, ii);
         biffAdd(PULL, err); return 1;
       }
+      pctx->haveConstraint |= pctx->ispec[ii]->constraint;
     }
   }
-  fprintf(stderr, "!%s: infoTotalLen = %u\n", me, pctx->infoTotalLen);
+  fprintf(stderr, "!%s: infoTotalLen = %u, haveConstraint = %d\n", me,
+          pctx->infoTotalLen, pctx->haveConstraint);
   return 0;
 }
 

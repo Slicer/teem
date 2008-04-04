@@ -200,7 +200,7 @@ pullFinish(pullContext *pctx) {
 int
 _pullIterate(pullContext *pctx) {
   char me[]="_pullIterate", err[BIFF_STRLEN];
-  double time0, time1;
+  double time0;
   int myError;
 
   if (!pctx) {
@@ -247,8 +247,7 @@ _pullIterate(pullContext *pctx) {
     biffAdd(PULL, err); return 1;
   }
 
-  time1 = airTime();
-  pctx->timeIteration = time1 - time0;
+  pctx->timeIteration = airTime() - time0;
   return 0;
 }
 
@@ -265,7 +264,7 @@ pullRun(pullContext *pctx) {
   if (pctx->verbose) {
     fprintf(stderr, "%s: hello\n", me);
   }
-  enrLast = _pullEnergyAverage(pctx);
+  enrLast = _pullEnergyTotal(pctx);
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   time0 = airTime();
   firstIter = pctx->iter;
@@ -292,7 +291,7 @@ pullRun(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
     pctx->iter += 1;
-    enrNew = _pullEnergyAverage(pctx);
+    enrNew = _pullEnergyTotal(pctx);
     if (firstIter + 1 == pctx->iter) {
       enrImprovAvg = enrImprov = 1;
     } else {
@@ -311,14 +310,9 @@ pullRun(pullContext *pctx) {
               enrImprovAvg, pctx->energyImprovMin);
     }
     stopIter = (pctx->iter == pctx->maxIter);
-    _pullPointStepScale(pctx, pctx->opporStepScale);
-    /*
-    if (50 == pctx->iter) {
-      _pullPointStepScale(pctx, 100);
-    }
-    */
+    _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
   } while (!( stopIter || stopConverged ));
-  fprintf(stderr, "%s: done (%d,%d) at iter %u; enr = %g, enrImprov = %g,%g\n", 
+  fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g\n", 
           me, stopIter, stopConverged, 
           pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();

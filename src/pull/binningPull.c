@@ -210,7 +210,7 @@ pullRebin(pullContext *pctx) {
         _pullBinPointRemove(pctx, oldBin, 0);
       }
     }
-
+    /* this should really use an RNG that is explicitly seeded */
     airShuffle(pctx->pointPerm, pointNum, AIR_TRUE);
     for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
       point = pctx->pointBuff[pctx->pointPerm[pointIdx]];
@@ -223,7 +223,8 @@ pullRebin(pullContext *pctx) {
       _pullBinPointAdd(pctx, newBin, point);
     }
 #else
-
+    /* this code is stupid because it revisits points that
+       have already been placed in the correct bin */
     for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
       oldBin = pctx->bin + oldBinIdx;
       

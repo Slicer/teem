@@ -66,6 +66,7 @@ pullContextNew(void) {
   pctx->snap = 0;
   
   pctx->energySpec = pullEnergySpecNew();
+  pctx->alpha = 0.5;
   pctx->beta = 1.0;
   pctx->radiusSingle = AIR_TRUE;
 
@@ -77,6 +78,7 @@ pullContextNew(void) {
   pctx->infoTotalLen = 0; /* will be set later */
   pctx->idtagNext = 0;
   pctx->haveScale = AIR_FALSE;
+  pctx->haveConstraint = AIR_FALSE;
   pctx->finished = AIR_FALSE;
   pctx->maxDist = AIR_NAN;
 
@@ -210,11 +212,16 @@ _pullContextCheck(pullContext *pctx) {
     }
   }
   if (pctx->ispec[pullInfoHeight]) {
-    if (!( pctx->ispec[pullInfoHeightGradient]
-           && pctx->ispec[pullInfoHeightHessian] )) {
-      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
+    if (!( pctx->ispec[pullInfoHeightGradient] )) {
+      sprintf(err, "%s: want %s but don't have %s set", me, 
               airEnumStr(pullInfo, pullInfoHeight),
-              airEnumStr(pullInfo, pullInfoHeightGradient),
+              airEnumStr(pullInfo, pullInfoHeightGradient));
+      biffAdd(PULL, err); return 1;
+    }
+    if (pctx->ispec[pullInfoHeight]->constraint
+        && !pctx->ispec[pullInfoHeightHessian]) {
+      sprintf(err, "%s: want constrained %s but don't have %s set", me,
+              airEnumStr(pullInfo, pullInfoHeight),
               airEnumStr(pullInfo, pullInfoHeightHessian));
       biffAdd(PULL, err); return 1;
     }
@@ -267,12 +274,12 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(neighborLearnProb, 0.05, 1.0);
   CHECK(moveLimit, 0.1, 10.0);
   CHECK(moveFracMin, 0.1, 1.0);
-  CHECK(opporStepScale, 0.89, 1.11);
-  CHECK(energyStepScale, 0.1, 1.0);
-  CHECK(energyStepScale, 0.1, 1.0);
+  CHECK(opporStepScale, 1.0, 1.2);
+  CHECK(energyStepScale, 0.01, 0.99);
   CHECK(moveFracStepScale, 0.1, 1.0);
   CHECK(energyImprovTest, -0.21, 0.21);
   CHECK(energyImprovMin, -0.2, 1.0);
+  CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
 #undef CHECK
 
@@ -361,7 +368,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
         }
       }
       if (dohth) {
-        if (_pullPointHeight(pctx, point) > hthresh) {
+        if (_pullPointHeight(pctx, point, NULL, NULL) > hthresh) {
           continue;
         }
       }
@@ -388,7 +395,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
       }
       if (nTenOut) {
         double scl, tout[7];
-        scl = (AIR_EXISTS(point->pos[3]) ? point->pos[3] : 1);
+        scl = 1;
         if (pctx->ispec[pullInfoHeightHessian]) {
           double *hess, eval[3], evec[9], eceil, len;
           hess = point->info + pctx->infoIdx[pullInfoHeightHessian];

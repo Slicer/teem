@@ -114,24 +114,38 @@ _pullPointNumber(const pullContext *pctx) {
 }
 
 double
-_pullEnergyAverage(const pullContext *pctx) {
-  unsigned int binIdx, pointIdx, pointNum;
+_pullEnergyTotal(const pullContext *pctx) {
+  char me[]="_pullEnergyTotal";
+  unsigned int binIdx, pointIdx;
   const pullBin *bin;
   const pullPoint *point;
-  double sum, avg;
-
+  double sum;
+  
   sum = 0;
-  pointNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    pointNum += bin->pointNum;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       sum += point->energy;
     }
   }
-  avg = (!pointNum ? AIR_NAN : sum/pointNum);
-  return avg;
+  return sum;
+}
+
+void
+_pullPointStepEnergyScale(pullContext *pctx, double scale) {
+  unsigned int binIdx, pointIdx;
+  const pullBin *bin;
+  pullPoint *point;
+
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->stepEnergy *= scale;
+    }
+  }
+  return;
 }
 
 double
@@ -177,15 +191,24 @@ _pullStepConstrAverage(const pullContext *pctx) {
 }
 
 double
-_pullPointHeight(const pullContext *pctx, const pullPoint *point) {
+_pullPointHeight(const pullContext *pctx, const pullPoint *point,
+                 /* output */
+                 double grad[4], double hess[9]) {
   const pullInfoSpec *ispec;
-  const unsigned int *infoIdx;
   double val;
 
   ispec = pctx->ispec[pullInfoHeight];
-  infoIdx = pctx->infoIdx;
-  val = point->info[infoIdx[pullInfoHeight]];
+  val = point->info[pctx->infoIdx[pullInfoHeight]];
   val = (val - ispec->zero)*ispec->scale;
+  if (grad && pctx->ispec[pullInfoHeightGradient]) {
+    ELL_3V_SCALE(grad, ispec->scale, 
+                 point->info + pctx->infoIdx[pullInfoHeightGradient]);
+    grad[3] = 0;
+  }
+  if (hess && pctx->ispec[pullInfoHeightHessian]) {
+    ELL_3M_COPY(hess, point->info + pctx->infoIdx[pullInfoHeightHessian]);
+    ELL_3M_SCALE(hess, ispec->scale, hess);
+  }
   return val;
 }
 
@@ -311,7 +334,7 @@ _pullPointSetup(pullContext *pctx) {
           point->pos[3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                      pctx->bboxMin[3], pctx->bboxMax[3]);
         } else {
-          point->pos[3] = AIR_NAN;
+          point->pos[3] = 0.0;
         }
         if (_pullProbe(pctx->task[0], point, point->pos)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);

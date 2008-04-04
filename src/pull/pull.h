@@ -269,8 +269,8 @@ typedef struct pullContext_t {
                                       down, how to scale step size */
     moveFracStepScale,             /* (< 1.0) when moveFrac goes below
                                       moveFracMin, how to scale step size */
-    energyImprovTest,              /* if per-point energyImprov goes below this,
-                                      energy has (unfortunately) gone up.
+    energyImprovTest,              /* if per-point energyImprov goes below 
+                                      this, energy has (unfortunately) gone up.
                                       negative values permit some worsening,
                                       positive values demand improvement */
     energyImprovMin;               /* convergence threshold: stop when
@@ -288,7 +288,9 @@ typedef struct pullContext_t {
   
   pullEnergySpec *energySpec;      /* starting point for radial potential
                                       energy function, phi(r) */
-  double beta;                     /* tuning parameter for amount of 
+  double alpha,                    /* alpha = 0: only particle-image, 
+                                      alpha = 1: only inter-particle */
+    beta;                          /* tuning parameter for amount of 
                                       scale-space attraction */
   int radiusSingle;                /* if non-zero, combine scale-space 
                                       offset into a single radius, else
@@ -311,6 +313,7 @@ typedef struct pullContext_t {
   unsigned int idtagNext;          /* next per-point igtag value */
   int haveScale,                   /* non-zero iff one of the volumes is in
                                       scale-space */
+    haveConstraint,                /* we have a constraint to satisfy */
     finished;                      /* used to signal all threads to return */
   double maxDist;                  /* max dist of point-point interaction */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
