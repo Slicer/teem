@@ -42,7 +42,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
       biffAdd(PULL, err); return NULL;
     }
   }
-  if (1) {
+  if (0) {
     gagePerVolume *pvl;
     const double *ans;
     double pos[3];
@@ -83,6 +83,8 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->threadIdx = threadIdx;
   task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
   task->pointBuffer = pullPointNew(pctx);
+  task->neigh = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,
+                                              sizeof(pullPoint*)));
   task->returnPtr = NULL;
   return task;
 }
@@ -100,6 +102,7 @@ _pullTaskNix(pullTask *task) {
     }
     task->rng = airRandMTStateNix(task->rng);
     task->pointBuffer = pullPointNix(task->pointBuffer);
+    task->neigh = airFree(task->neigh);
     airFree(task);
   }
   return NULL;

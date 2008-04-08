@@ -214,10 +214,13 @@ typedef struct pullTask_t {
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   airRandMTState *rng;          /* state for my RNG */
-  pullPoint *pointBuffer;       /* place for copying point into during 
+  pullPoint *pointBuffer,       /* place for copying point into during 
                                    strength ascent computation; can't be
                                    statically allocated because pullPoint
                                    size is known only at run-time */
+    **neigh;                    /* array of point pointers, either all
+                                   possible points from neighbor bins, or
+                                   last learned interacting neighbors */
   void *returnPtr;              /* for airThreadJoin */
 } pullTask;
 
@@ -250,7 +253,7 @@ typedef struct pullContext_t {
                                       interactions in the scale domain */
 
   /* concerning the probability-based optimizations */
-    neighborLearnProb,             /* probability that we find the true
+    neighborTrueProb,              /* probability that we find the true
                                       neighbors of the particle, as opposed to
                                       using a cached list */
 

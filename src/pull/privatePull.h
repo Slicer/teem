@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+/* this has to be big enough to do experiments where binning is turned off */
+#define _PULL_NEIGH_MAXNUM 128
+
 #define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))                   \
                                  / (AIR_ABS(ell) + AIR_ABS(enn)))
 /* volumePull.c */

@@ -54,6 +54,7 @@ pullPointNew(pullContext *pctx) {
   pnt->neighNum = 0;
   pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
+  pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
