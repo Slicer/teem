@@ -116,7 +116,6 @@ _pullPointNumber(const pullContext *pctx) {
 
 double
 _pullEnergyTotal(const pullContext *pctx) {
-  char me[]="_pullEnergyTotal";
   unsigned int binIdx, pointIdx;
   const pullBin *bin;
   const pullPoint *point;

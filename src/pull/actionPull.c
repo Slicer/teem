@@ -26,7 +26,7 @@
 
 /*
 ** issues:
-** does everythign work on the first iteration
+** does everything work on the first iteration
 ** has pullProbe() been called when image info is needed
 ** how to handle the needed extra probe for d strength / d scale
 ** does it eventually catch non-existant energy or force
@@ -34,10 +34,10 @@
 */
 
 static unsigned int
-_neighBinPoints(pullPoint **neigh, pullTask *task, pullBin *bin, 
-                pullPoint *point) {
+_neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
 
-  AIR_UNUSED(neigh);
+  /* warn if we have more than _PULL_NEIGH_MAXNUM neighbor points */
+
   AIR_UNUSED(task);
   AIR_UNUSED(bin);
   AIR_UNUSED(point);
@@ -47,15 +47,34 @@ _neighBinPoints(pullPoint **neigh, pullTask *task, pullBin *bin,
 
 
 static double
-_energyInterParticle(pullPoint *me, pullPoint *she, double egrad[4],
-                     double *spatialDistP) {
-  double vec[4];
+_energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
+                     /* output */
+                     double egrad[4]) {
+  char meme[]="_energyInterParticle";
+  double spadist, sparad, diff[4], rr, enr, frc, *parm;
 
-  ELL_4V_SUB(vec, she->pos, me->pos);
-  *spatialDistP = ELL_3V_LEN(vec);
-  ELL_4V_SET(egrad, 0, 0, 0, 0);
+  ELL_4V_SUB(diff, she->pos, me->pos);
+  spadist = ELL_3V_LEN(diff);
+  sparad = task->pctx->radiusSpace;
+  
+  rr = spadist/sparad;
+  if (rr > 0) {
+    ELL_4V_SET(egrad, 0, 0, 0, 0);
+    return 0;
+  }
+  if (rr == 0) {
+    fprintf(stderr, "%s: pos of pts %u, %u equal: (%g,%g,%g,%g)\n",
+            meme, me->idtag, she->idtag, 
+            me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
+    ELL_4V_SET(egrad, 0, 0, 0, 0);
+    return 0;
+  }
 
-  return 0;
+  parm = task->pctx->energySpec->parm;
+  enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
+  ELL_3V_SCALE(egrad, frc/spadist, diff);
+  egrad[3] = 0;
+  return enr;
 }
 
 /*
@@ -66,7 +85,7 @@ static double
 _energyPoints(pullTask *task, pullBin *bin, pullPoint *point, 
               /* output */
               double egradSum[4], double *meanNeighDist) {
-  double energySum, distSum, egrad[4];
+  double energySum, distSqSum, egrad[4], spaDistSqMax;
   int nopt,     /* optimiziation: we sometimes re-use neighbor lists */
     ntrue;      /* we search all possible neighbors, stored in the bins
                    (either because !nopt, or, this iter we learn true
@@ -96,7 +115,7 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
 
   /* set nnum and task->neigh[] */
   if (ntrue) {
-    nnum = _neighBinPoints(task->neigh, task, bin, point);
+    nnum = _neighBinPoints(task, bin, point);
     if (nopt) {
       airArrayLenSet(point->neighArr, 0);
     }
@@ -109,22 +128,31 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
   }
 
   /* loop through neighbor points */
+  spaDistSqMax = task->pctx->radiusSpace*task->pctx->radiusSpace;
   energySum = 0;
-  distSum = 0;
+  distSqSum = 0;
   neighCount = 0;
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
   for (nidx=0; nidx<nnum; nidx++) {
-    double dist; 
-    energySum += _energyInterParticle(point, task->neigh[nidx],
-                                      egradSum ? egrad : NULL, &dist);
+    double diff[4], spaDistSq;
+    ELL_4V_SUB(diff, task->neigh[nidx]->pos, point->pos);
+    spaDistSq = ELL_3V_DOT(diff, diff);
+    if (spaDistSq > spaDistSqMax) {
+      continue;
+    }
+    if (AIR_ABS(diff[3] > task->pctx->radiusScale)) {
+      continue;
+    }
+    energySum += _energyInterParticle(task, point, task->neigh[nidx],
+                                      egradSum ? egrad : NULL);
     if (egradSum) {
       ELL_4V_INCR(egradSum, egrad);
       if (ELL_4V_DOT(egrad, egrad)) {
         if (meanNeighDist) {
           neighCount++;
-          distSum += dist;
+          distSqSum += spaDistSq;
         }
         if (nopt) {
           unsigned int ii;
@@ -138,7 +166,7 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
   /* finish computing mean distance to neighbors */
   if (meanNeighDist) {
     if (neighCount) {
-      *meanNeighDist = distSum/neighCount;
+      *meanNeighDist = sqrt(distSqSum/neighCount);
     } else {
       *meanNeighDist = -1;
     }

@@ -140,13 +140,12 @@ enum {
   pullEnergyTypeUnknown,       /* 0 */
   pullEnergyTypeSpring,        /* 1 */
   pullEnergyTypeGauss,         /* 2 */
-  pullEnergyTypeCoulomb,       /* 3 */
-  pullEnergyTypeCotan,         /* 4 */
-  pullEnergyTypeQuartic,       /* 5 */
-  pullEnergyTypeZero,          /* 6 */
+  pullEnergyTypeCotan,         /* 3 */
+  pullEnergyTypeQuartic,       /* 4 */
+  pullEnergyTypeZero,          /* 5 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX      6
+#define PULL_ENERGY_TYPE_MAX      5
 #define PULL_ENERGY_PARM_NUM 3
 
 /*
@@ -156,13 +155,17 @@ enum {
 **
 ** NOTE: the eval() function probably does NOT check to see it was passed
 ** non-NULL pointers into which to store energy and force
+**
+** Thu Apr 10 12:40:08 EDT 2008: nixed the "support" function, since it
+** was annoying to deal with variable support potentials.  Now everything
+** cuts off at dist=1.  You can still use the parm vector to change the
+** shape inside the support.
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
-  void (*eval)(double *energy, double *force,
-               double dist, const double parm[PULL_ENERGY_PARM_NUM]);
-  double (*support)(const double parm[PULL_ENERGY_PARM_NUM]);
+  double (*eval)(double *force, double dist,
+                 const double parm[PULL_ENERGY_PARM_NUM]);
 } pullEnergy;
 
 typedef struct {

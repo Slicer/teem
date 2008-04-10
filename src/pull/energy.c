@@ -25,7 +25,6 @@
 
 #define SPRING  "spring"
 #define GAUSS   "gauss"
-#define COULOMB "coulomb"
 #define COTAN   "cotan"
 #define QUARTIC "quartic"
 #define ZERO    "zero"
@@ -35,7 +34,6 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
-  COULOMB,
   COTAN,
   QUARTIC,
   ZERO
@@ -46,7 +44,6 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",
-  "Coulomb electrostatic potential, with tunable cut-off",
   "Cotangent-based potential (from Meyer et al. SMI '05)",
   "Quartic thing",
   "no energy"
@@ -68,24 +65,13 @@ pullEnergyType = &_pullEnergyType;
 ** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
 */
-void
-_pullEnergyUnknownEval(double *enr, double *frc,
-                       double dist, const double *parm) {
+double
+_pullEnergyUnknownEval(double *frc, double dist, const double *parm) {
   char me[]="_pullEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  *enr = AIR_NAN;
   *frc = AIR_NAN;
-  fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
-  return;
-}
-
-double
-_pullEnergyUnknownSupport(const double *parm) {
-  char me[]="_pullEnergyUnknownSupport";
-
-  AIR_UNUSED(parm);
   fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
   return AIR_NAN;
 }
@@ -94,8 +80,7 @@ pullEnergy
 _pullEnergyUnknown = {
   "unknown",
   0,
-  _pullEnergyUnknownEval,
-  _pullEnergyUnknownSupport
+  _pullEnergyUnknownEval
 };
 const pullEnergy *const
 pullEnergyUnknown = &_pullEnergyUnknown;
@@ -108,22 +93,24 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 **
 ** learned: "1/2" is not 0.5 !!!!!
 */
-void
-_pullEnergySpringEval(double *enr, double *frc,
-                      double dist, const double *parm) {
+double
+_pullEnergySpringEval(double *frc, double dist, const double *parm) {
   /* char me[]="_pullEnergySpringEval"; */
-  double xx, pull;
+  double enr, xx, pull;
 
   pull = parm[0];
+  /* support used to be [0,1 + pull], but now is scrunched to [0,1],
+     so hack "dist" to match old parameterization */
+  dist = AIR_AFFINE(0, dist, 1, 0, 1+pull);
   xx = dist - 1.0;
   if (xx > pull) {
-    *enr = 0;
+    enr = 0;
     *frc = 0;
   } else if (xx > 0) {
-    *enr = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1.0/2.0);
+    enr = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1.0/2.0);
     *frc = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
   } else {
-    *enr = xx*xx/2;
+    enr = xx*xx/2;
     *frc = xx;
   }
   /*
@@ -132,21 +119,14 @@ _pullEnergySpringEval(double *enr, double *frc,
             me, dist, pull, blah, ret);
   }
   */
-  return;
-}
-
-double
-_pullEnergySpringSupport(const double *parm) {
-
-  return 1.0 + parm[0];
+  return enr;
 }
 
 const pullEnergy
 _pullEnergySpring = {
   SPRING,
   1,
-  _pullEnergySpringEval,
-  _pullEnergySpringSupport
+  _pullEnergySpringEval
 };
 const pullEnergy *const
 pullEnergySpring = &_pullEnergySpring;
@@ -154,9 +134,7 @@ pullEnergySpring = &_pullEnergySpring;
 /* ----------------------------------------------------------------
 ** ------------------------------ GAUSS --------------------------
 ** ----------------------------------------------------------------
-** 1 parms:
-** (distance to inflection point of force function is always 1.0)
-** parm[0]: cut-off (as a multiple of standard dev (which is 1.0))
+** 0 parms: for simplicity we're now always cutting off at 4 sigmas
 */
 /* HEY: copied from teem/src/nrrd/kernel.c */
 #define _GAUSS(x, sig, cut) ( \
@@ -167,96 +145,45 @@ pullEnergySpring = &_pullEnergySpring;
    x >= sig*cut ? 0            \
    : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
 
-void
-_pullEnergyGaussEval(double *enr, double *frc,
-                     double dist, const double *parm) {
-  double cut;
-
-  cut = parm[0];
-  *enr = _GAUSS(dist, 1.0, cut);
-  *frc = _DGAUSS(dist, 1.0, cut);
-  return;
-}
-
 double
-_pullEnergyGaussSupport(const double *parm) {
+_pullEnergyGaussEval(double *frc, double dist, const double *parm) {
 
-  return parm[0];
+  AIR_UNUSED(parm);
+  *frc = _DGAUSS(dist, 0.25, 4);
+  return _GAUSS(dist, 0.25, 4);
 }
 
 const pullEnergy
 _pullEnergyGauss = {
   GAUSS,
-  1,
-  _pullEnergyGaussEval,
-  _pullEnergyGaussSupport
+  0,
+  _pullEnergyGaussEval
 };
 const pullEnergy *const
 pullEnergyGauss = &_pullEnergyGauss;
-
-/* ----------------------------------------------------------------
-** ------------------------------ CHARGE --------------------------
-** ----------------------------------------------------------------
-** 1 parms:
-** (scale: distance to "1.0" in graph of x^(-2))
-** parm[0]: cut-off (as multiple of "1.0")
-*/
-void
-_pullEnergyCoulombEval(double *enr, double *frc,
-                       double dist, const double *parm) {
-
-  *enr = (dist > parm[0] ? 0 : 1.0/dist);
-  *frc = (dist > parm[0] ? 0 : -1.0/(dist*dist));
-  return;
-}
-
-double
-_pullEnergyCoulombSupport(const double *parm) {
-
-  return parm[0];
-}
-
-const pullEnergy
-_pullEnergyCoulomb = {
-  COULOMB,
-  1,
-  _pullEnergyCoulombEval,
-  _pullEnergyCoulombSupport
-};
-const pullEnergy *const
-pullEnergyCoulomb = &_pullEnergyCoulomb;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms!
 */
-void
-_pullEnergyCotanEval(double *enr, double *frc,
-                     double dist, const double *parm) {
-  double pot, cc;
+double
+_pullEnergyCotanEval(double *frc, double dist, const double *parm) {
+  double pot, cc, enr;
 
   AIR_UNUSED(parm);
   pot = AIR_PI/2.0;
   cc = 1.0/(FLT_MIN + tan(dist*pot));
-  *enr = dist > 1 ? 0 : cc + dist*pot - pot;
+  enr = dist > 1 ? 0 : cc + dist*pot - pot;
   *frc = dist > 1 ? 0 : -cc*cc*pot;
-  return;
-}
-
-double
-_pullEnergyCotanSupport(const double *parm) {
-
-  AIR_UNUSED(parm);
-  return 1;
+  return enr;
 }
 
 const pullEnergy
 _pullEnergyCotan = {
   COTAN,
   0,
-  _pullEnergyCotanEval,
-  _pullEnergyCotanSupport
+  _pullEnergyCotanEval
 };
 const pullEnergy *const
 pullEnergyCotan = &_pullEnergyCotan;
@@ -266,35 +193,26 @@ pullEnergyCotan = &_pullEnergyCotan;
 ** ----------------------------------------------------------------
 ** 0 parms!
 */
-void
-_pullEnergyQuarticEval(double *enr, double *frc,
-                       double dist, const double *parm) {
-  double omr;
+double
+_pullEnergyQuarticEval(double *frc, double dist, const double *parm) {
+  double omr, enr;
 
   AIR_UNUSED(parm);
   if (dist <= 1) {
     omr = 1 - dist;
-    *enr = 2.132*omr*omr*omr*omr;
+    enr = 2.132*omr*omr*omr*omr;
     *frc = -4*2.132*omr*omr*omr;
   } else {
-    *enr = *frc = 0;
+    enr = *frc = 0;
   }
-  return;
-}
-
-double
-_pullEnergyQuarticSupport(const double *parm) {
-
-  AIR_UNUSED(parm);
-  return 1;
+  return enr;
 }
 
 const pullEnergy
 _pullEnergyQuartic = {
   QUARTIC,
   0,
-  _pullEnergyQuarticEval,
-  _pullEnergyQuarticSupport
+  _pullEnergyQuarticEval
 };
 const pullEnergy *const
 pullEnergyQuartic = &_pullEnergyQuartic;
@@ -304,30 +222,20 @@ pullEnergyQuartic = &_pullEnergyQuartic;
 ** ----------------------------------------------------------------
 ** 0 parms:
 */
-void
-_pullEnergyZeroEval(double *enr, double *frc,
-                    double dist, const double *parm) {
+double
+_pullEnergyZeroEval(double *frc, double dist, const double *parm) {
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  *enr = 0;
   *frc = 0;
-  return;
-}
-
-double
-_pullEnergyZeroSupport(const double *parm) {
-
-  AIR_UNUSED(parm);
-  return 1.0;
+  return 0;
 }
 
 const pullEnergy
 _pullEnergyZero = {
   ZERO,
   0,
-  _pullEnergyZeroEval,
-  _pullEnergyZeroSupport
+  _pullEnergyZeroEval
 };
 const pullEnergy *const
 pullEnergyZero = &_pullEnergyZero;
@@ -341,10 +249,9 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
   &_pullEnergyUnknown,  /* 0 */
   &_pullEnergySpring,   /* 1 */
   &_pullEnergyGauss,    /* 2 */
-  &_pullEnergyCoulomb,  /* 3 */
-  &_pullEnergyCotan,    /* 4 */
-  &_pullEnergyQuartic,  /* 5 */
-  &_pullEnergyZero      /* 6 */
+  &_pullEnergyCotan,    /* 3 */
+  &_pullEnergyQuartic,  /* 4 */
+  &_pullEnergyZero      /* 5 */
 };
 
 pullEnergySpec *
