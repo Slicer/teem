@@ -35,14 +35,37 @@
 
 static unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
+  char me[]="_neighBinPoints";
+  unsigned int nn, herPointIdx, herBinIdx;
+  pullBin *herBin;
+  pullPoint *herPoint;
 
-  /* warn if we have more than _PULL_NEIGH_MAXNUM neighbor points */
-
-  AIR_UNUSED(task);
-  AIR_UNUSED(bin);
-  AIR_UNUSED(point);
-
-  return 0;
+  nn = 0;
+  herBinIdx = 0;
+  while ((herBin = bin->neighBin[herBinIdx])) {
+    for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
+      herPoint = herBin->point[herPointIdx];
+      /*
+      fprintf(stderr, "!%s(%u): neighbin %u has point %u\n", me,
+              point->idtag, herBinIdx, herPoint->idtag);
+      */
+      /* can't interact with myself */
+      if (point != herPoint) {
+        if (nn < _PULL_NEIGH_MAXNUM) {
+          task->neighPoint[nn++] = herPoint;
+          /*
+          fprintf(stderr, "%s(%u): neighPoint[%u] = %u\n", 
+                  me, point->idtag, nn-1, herPoint->idtag);
+          */
+        } else {
+          fprintf(stderr, "%s: maxed out at %u points!\n", me, 
+                  _PULL_NEIGH_MAXNUM);
+        }
+      }
+    }
+    herBinIdx++;
+  }
+  return nn;
 }
 
 
@@ -57,8 +80,11 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   spadist = ELL_3V_LEN(diff);
   sparad = task->pctx->radiusSpace;
   
-  rr = spadist/sparad;
-  if (rr > 0) {
+  rr = spadist/(2*sparad);
+  /*
+  fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
+  */
+  if (rr > 1) {
     ELL_4V_SET(egrad, 0, 0, 0, 0);
     return 0;
   }
@@ -72,8 +98,13 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
 
   parm = task->pctx->energySpec->parm;
   enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-  ELL_3V_SCALE(egrad, frc/spadist, diff);
+  ELL_3V_SCALE(egrad, -frc/spadist, diff);
   egrad[3] = 0;
+  /*
+  fprintf(stderr, "%s: %u:%g,%g,%g <-- %u:%g,%g,%g, egrad = %g,%g,%g, enr = %g\n", meme, me->idtag, me->pos[0], me->pos[1], me->pos[2],
+          she->idtag, she->pos[0], she->pos[1], she->pos[2],
+          egrad[0], egrad[1], egrad[2], enr);
+  */
   return enr;
 }
 
@@ -82,10 +113,11 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
 ** it must be set, and must be < 0 if there are no neighbors
 */
 static double
-_energyPoints(pullTask *task, pullBin *bin, pullPoint *point, 
-              /* output */
-              double egradSum[4], double *meanNeighDist) {
-  double energySum, distSqSum, egrad[4], spaDistSqMax;
+_energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
+                  /* output */
+                  double egradSum[4], double *meanNeighDist) {
+  char me[]="_energyFromPoints";
+  double energySum, distSqSum, spaDistSqMax;
   int nopt,     /* optimiziation: we sometimes re-use neighbor lists */
     ntrue;      /* we search all possible neighbors, stored in the bins
                    (either because !nopt, or, this iter we learn true
@@ -112,7 +144,10 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
     nopt = AIR_FALSE;
     ntrue = AIR_TRUE;
   }
-
+  /*
+  fprintf(stderr, "!%s(%u), nopt = %d, ntrue = %d\n", me, point->idtag,
+          nopt, ntrue);
+  */
   /* set nnum and task->neigh[] */
   if (ntrue) {
     nnum = _neighBinPoints(task, bin, point);
@@ -123,12 +158,16 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
     /* (nopt true) this iter we re-use existing neighbor list */
     nnum = point->neighNum;
     for (nidx=0; nidx<point->neighNum; nidx++) {
-      task->neigh[nidx] = point->neigh[nidx];
+      task->neighPoint[nidx] = point->neighPoint[nidx];
     }
   }
 
   /* loop through neighbor points */
-  spaDistSqMax = task->pctx->radiusSpace*task->pctx->radiusSpace;
+  spaDistSqMax = 4*task->pctx->radiusSpace*task->pctx->radiusSpace;
+  /*
+  fprintf(stderr, "%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
+          task->pctx->radiusSpace, spaDistSqMax);
+  */
   energySum = 0;
   distSqSum = 0;
   neighCount = 0;
@@ -136,17 +175,26 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
   for (nidx=0; nidx<nnum; nidx++) {
-    double diff[4], spaDistSq;
-    ELL_4V_SUB(diff, task->neigh[nidx]->pos, point->pos);
+    double diff[4], spaDistSq, enr, egrad[4];
+    pullPoint *herPoint;
+    herPoint = task->neighPoint[nidx];
+    ELL_4V_SUB(diff, herPoint->pos, point->pos);
     spaDistSq = ELL_3V_DOT(diff, diff);
+    /*
+    fprintf(stderr, "!%s: sq dist %u:%g,%g,%g - %u:%g,%g,%g = %g\n", me,
+            herPoint->idtag, herPoint->pos[0], herPoint->pos[1],
+            herPoint->pos[2],
+            point->idtag, point->pos[0], point->pos[1], point->pos[2], 
+            spaDistSq);
+    */
     if (spaDistSq > spaDistSqMax) {
       continue;
     }
     if (AIR_ABS(diff[3] > task->pctx->radiusScale)) {
       continue;
     }
-    energySum += _energyInterParticle(task, point, task->neigh[nidx],
-                                      egradSum ? egrad : NULL);
+    enr = _energyInterParticle(task, point, herPoint, egrad);
+    energySum += enr;
     if (egradSum) {
       ELL_4V_INCR(egradSum, egrad);
       if (ELL_4V_DOT(egrad, egrad)) {
@@ -157,12 +205,12 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
         if (nopt) {
           unsigned int ii;
           ii = airArrayLenIncr(point->neighArr, 1);
-          point->neigh[ii] = task->neigh[nidx];
+          point->neighPoint[ii] = herPoint;
         }
       }
     }
   }
-
+  
   /* finish computing mean distance to neighbors */
   if (meanNeighDist) {
     if (neighCount) {
@@ -179,7 +227,7 @@ _energyPoints(pullTask *task, pullBin *bin, pullPoint *point,
 ** this requires that "point" has just been the benefit of _pullProbe(),
 */
 static double
-_energyImage(pullTask *task, pullPoint *point,
+_energyFromImage(pullTask *task, pullPoint *point,
              /* output */
              double egrad[4]) {
   double energy;
@@ -204,14 +252,15 @@ static double
 _energyTotal(pullTask *task, pullBin *bin, pullPoint *point,
              /* output */
              double force[4], double *neighDist) {
+  char me[]="_energyTotal";
   double enrIm, enrPt, egradIm[4], egradPt[4], energy;
-
+    
   ELL_4V_SET(egradIm, 0, 0, 0, 0); /* sssh */
   ELL_4V_SET(egradPt, 0, 0, 0, 0); /* sssh */
-  enrIm = _energyImage(task, point,
-                       force ? egradIm : NULL);
-  enrPt = _energyPoints(task, bin, point,
-                        force ? egradPt : NULL, neighDist);
+  enrIm = _energyFromImage(task, point,
+                           force ? egradIm : NULL);
+  enrPt = _energyFromPoints(task, bin, point,
+                            force ? egradPt : NULL, neighDist);
   energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
   if (force) {
     ELL_4V_LERP(force, task->pctx->alpha, egradIm, egradPt);
@@ -223,10 +272,15 @@ _energyTotal(pullTask *task, pullBin *bin, pullPoint *point,
 int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="pullPointProcess", err[BIFF_STRLEN];
-  double energyOld, energyNew, force[4], distLimit, posOld[4];
-  int stepBad;
+  double energyOld, energyNew, force[4], distLimit, posOld[4],
+    testvec[3], testlen;
+  int stepBad, giveUp;
 
   energyOld = _energyTotal(task, bin, point, force, &distLimit);
+  fprintf(stderr, "!%s: =================== point %u has:\n "
+          "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
+          point->idtag, energyOld, distLimit, 
+          force[0], force[1], force[2], force[3]);
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
     biffAdd(PULL, err); return 1;
@@ -238,11 +292,20 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   /* maybe voxel size should also be considered for finding distLimit */
 
   ELL_4V_COPY(posOld, point->pos);
-  point->stepEnergy = AIR_MIN(distLimit, point->stepEnergy);
+  ELL_3V_SCALE(testvec, point->stepEnergy, force);
+  testlen = ELL_3V_LEN(testvec);
+  if (testlen > distLimit) {
+    point->stepEnergy *= distLimit/testlen;
+  }
   do {
     int constrFail;
 
+    giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, point->stepEnergy, force);
+    fprintf(stderr, "!%s: ======= trying step %g to pos %g %g %g %g\n", me,
+            point->stepEnergy, 
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+
     if (_pullProbe(task, point, point->pos)) {
       sprintf(err, "%s: probing initial newpos (step=%g)", me,
               point->stepEnergy);
@@ -259,6 +322,9 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _energyTotal(task, bin, point, NULL, NULL);
+      fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
+              energyNew > energyOld ? ">" : "<=", energyOld,
+              energyNew > energyOld ? "!! BADSTEP !!" : "ok");
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
@@ -267,12 +333,12 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000001
           && ELL_4V_LEN(force) > 0.000001) {
-        sprintf(err, "%s: point %u stepEnergy=%g: where can it go?", me,
+        fprintf(stderr, "%s: point %u stepEnergy=%g: where can it go?\n", me,
                 point->idtag, point->stepEnergy);
-        biffAdd(PULL, err); return 1;
+        giveUp = AIR_TRUE;
       }
     }
-  } while (stepBad);
+  } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
 
   /* not recorded for the sake of this function, but for system accounting */

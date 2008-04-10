@@ -50,9 +50,9 @@ pullPointNew(pullContext *pctx) {
   }
 
   pnt->idtag = pctx->idtagNext++;
-  pnt->neigh = NULL;
+  pnt->neighPoint = NULL;
   pnt->neighNum = 0;
-  pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
+  pnt->neighArr = airArrayNew((void**)&(pnt->neighPoint), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -78,7 +78,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
 
   /* HEY: shouldn't I just do a memcpy? */
   dst->idtag = src->idtag;
-  dst->neigh = src->neigh;
+  dst->neighPoint = src->neighPoint;
   dst->neighNum = src->neighNum;
   dst->neighArr = src->neighArr;
   ELL_4V_COPY(dst->pos, src->pos);

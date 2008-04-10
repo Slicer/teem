@@ -332,7 +332,8 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
   col = strchr(str, ':');
   if (!col) {
-    sprintf(err, "%s: \"%s\" isn't a parameter-free energy, but it has no "
+    sprintf(err, "%s: either \"%s\" is not a recognized energy, "
+            "or it is an energy with parameters, and there's no "
             "\":\" separator to indicate parameters", me, str);
     biffAdd(PULL, err); airMopError(mop); return 1;
   }

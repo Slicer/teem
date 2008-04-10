@@ -102,7 +102,7 @@ typedef struct pullInfoSpec_t {
 */
 typedef struct pullPoint_t {
   unsigned int idtag;         /* unique point ID */
-  struct pullPoint_t **neigh; /* list of neighboring points */
+  struct pullPoint_t **neighPoint; /* list of neighboring points */
   unsigned int neighNum;
   airArray *neighArr;         /* airArray around neigh and neigNum
                                  (no callbacks used here) */
@@ -127,7 +127,7 @@ typedef struct pullBin_t {
   unsigned int pointNum;     /* # of points in this bin */
   airArray *pointArr;        /* airArray around point and pointNum 
                                 (no callbacks used here) */
-  struct pullBin_t **neigh;  /* pre-computed NULL-terminated list of all
+  struct pullBin_t **neighBin;  /* pre-computed NULL-terminated list of all
                                 neighboring bins, including myself */
 } pullBin;
 
@@ -221,7 +221,7 @@ typedef struct pullTask_t {
                                    strength ascent computation; can't be
                                    statically allocated because pullPoint
                                    size is known only at run-time */
-    **neigh;                    /* array of point pointers, either all
+    **neighPoint;               /* array of point pointers, either all
                                    possible points from neighbor bins, or
                                    last learned interacting neighbors */
   void *returnPtr;              /* for airThreadJoin */

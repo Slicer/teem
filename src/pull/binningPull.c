@@ -34,7 +34,7 @@ _pullBinInit(pullBin *bin, unsigned int incr) {
   bin->pointNum = 0;
   bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
                               sizeof(pullPoint *), incr);
-  bin->neigh = NULL;
+  bin->neighBin = NULL;
   return;
 }
 
@@ -49,7 +49,7 @@ _pullBinDone(pullBin *bin) {
     bin->point[idx] = pullPointNix(bin->point[idx]);
   }
   bin->pointArr = airArrayNuke(bin->pointArr);
-  bin->neigh = (pullBin **)airFree(bin->neigh);
+  bin->neighBin = (pullBin **)airFree(bin->neighBin);
   return;
 }
 
@@ -119,18 +119,18 @@ void
 _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
   unsigned int neiI;
 
-  bin->neigh = (pullBin **)airFree(bin->neigh);
-  bin->neigh = (pullBin **)calloc(1+num, sizeof(pullBin *));
+  bin->neighBin = (pullBin **)airFree(bin->neighBin);
+  bin->neighBin = (pullBin **)calloc(1+num, sizeof(pullBin *));
   for (neiI=0; neiI<num; neiI++) {
-    bin->neigh[neiI] = nei[neiI];
+    bin->neighBin[neiI] = nei[neiI];
   }
-  bin->neigh[neiI] = NULL;
+  bin->neighBin[neiI] = NULL;
   return;
 }
 
 void
 pullBinsAllNeighborSet(pullContext *pctx) {
-  /* char me[]="pullBinsAllNeighborSet"; */
+  char me[]="pullBinsAllNeighborSet";
   pullBin *nei[3*3*3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
@@ -155,8 +155,8 @@ pullBinsAllNeighborSet(pullContext *pctx) {
               for (xx=xmin; xx<=xmax; xx++) {
                 binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*zz);
                 /*
-                fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = %u\n", me, 
-                        neiNum, xi, yi, zi, binIdx);
+                fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
+                        me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
                 */
                 nei[neiNum++] = pctx->bin + binIdx;
               }
