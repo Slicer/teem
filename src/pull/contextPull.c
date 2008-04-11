@@ -50,6 +50,7 @@ pullContextNew(void) {
   pctx->radiusSpace = 1;
   pctx->radiusScale = 1;
   pctx->neighborTrueProb = 1.0;
+  pctx->probeProb = 1.0;
   pctx->moveLimit = 1.0;
   pctx->moveFracMin = 0.2;
   pctx->opporStepScale = 1.0;
@@ -271,10 +272,11 @@ _pullContextCheck(pullContext *pctx) {
   /* these reality-check bounds are somewhat arbitrary */
   CHECK(radiusScale, 0.000001, 15.0);
   CHECK(radiusSpace, 0.000001, 15.0);
-  CHECK(neighborTrueProb, 0.05, 1.0);
+  CHECK(neighborTrueProb, 0.02, 1.0);
+  CHECK(probeProb, 0.02, 1.0);
   CHECK(moveLimit, 0.1, 10.0);
   CHECK(moveFracMin, 0.1, 1.0);
-  CHECK(opporStepScale, 1.0, 1.2);
+  CHECK(opporStepScale, 1.0, 1.5);
   CHECK(energyStepScale, 0.01, 0.99);
   CHECK(moveFracStepScale, 0.1, 1.0);
   CHECK(energyImprovTest, -0.21, 0.21);

@@ -259,6 +259,8 @@ typedef struct pullContext_t {
     neighborTrueProb,              /* probability that we find the true
                                       neighbors of the particle, as opposed to
                                       using a cached list */
+    probeProb,                     /* probability that we do image probing
+                                      to find out what's really going on */
 
   /* how the (per-point) time-step is adaptively varied to reach convergence:
      moveFrac is computed for each particle as the fraction of distance

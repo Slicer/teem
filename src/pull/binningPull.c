@@ -130,7 +130,7 @@ _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
 
 void
 pullBinsAllNeighborSet(pullContext *pctx) {
-  char me[]="pullBinsAllNeighborSet";
+  /* char me[]="pullBinsAllNeighborSet"; */
   pullBin *nei[3*3*3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
