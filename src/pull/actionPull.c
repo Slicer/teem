@@ -296,63 +296,62 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
     stepMax,      /* maximum step size allowed */
     step,         /* current step size */
     valLast, val, /* last and current function values */
+    avalLast,     /* absolute value of last function value */
     hack,         /* how to control re-tries in the context of a single
                      for-loop, instead of a nested do-while loop */
     grad[4], dir[3], len, 
     posOld[3];
-  unsigned int iter, iterMax;
+  unsigned int iter,  /* 0: initial probe, 1..iterMax: probes in loop */
+    iterMax;
 #define CHECK_LEN if (!len) { \
     sprintf(err, "%s: got zero-length gradient at (%g,%g,%g,%g)\n", me, \
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]); \
     biffAdd(PULL, err); return 1;                                       \
   }
-#define PROBE if (_pullProbe(task, point)) { \
-        sprintf(err, "%s: on iter %u", me, iter); \
-        biffAdd(PULL, err); return 1; \
-      }
+#define PROBE(i, v, g, h)  if (_pullProbe(task, point)) {  \
+    sprintf(err, "%s: on iter %u", me, iter);              \
+    biffAdd(PULL, err); return 1;                          \
+  }                                                        \
+  (v) = _pullPointScalar(task->pctx, point, (i), (g), (h));
 
   /* if constraint satisfaction fails (without calling biff), we'll
      change this to AIR_TRUE */
   *constrFailP = AIR_FALSE;
-
+  iter = 0;
   stepMax = task->pctx->constraintVoxelSize;
   iterMax = task->pctx->constraintIterMax;
   /* initial probe is not done for us in _pullPointProcess */
-  if (_pullProbe(task, point)) {
-    sprintf(err, "%s: doing initial probe", me);
-    biffAdd(PULL, err); return 1;
-  }
   switch (task->pctx->constraint) {
+  case pullInfoHeight:
+    break;
   case pullInfoIsosurfaceValue:
-    val = _pullPointScalar(task->pctx, point, pullInfoIsosurfaceValue,
-                           grad, NULL);
-    valLast = AIR_ABS(val);
+    PROBE(pullInfoIsosurfaceValue, val, grad, NULL);
+    valLast = val;
+    avalLast = AIR_ABS(val);
     ELL_3V_NORM(dir, grad, len);
     CHECK_LEN;
     hack = 1;
     for (iter=0; iter<iterMax; iter++) {
       double aval;
-      step = -val/len;
+      step = -val/len; /* the newton-raphson step */
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
       ELL_3V_COPY(posOld, point->pos);
       ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
-      PROBE;
-      val = _pullPointScalar(task->pctx, point, pullInfoIsosurfaceValue,
-                             grad, NULL);
+      PROBE(pullInfoIsosurfaceValue, val, grad, NULL);
       aval = AIR_ABS(val);
-      if (aval <= valLast) {
-        /* we're closer to (or no further from) the root */
+      if (aval <= avalLast) {  /* we're no further from the root */
         if (AIR_ABS(step) < stepMax*task->pctx->constraintStepMin) {
           /* we have converged! */
           break;
         }
-        valLast = aval;
+        valLast = val;
+        avalLast = aval;
         ELL_3V_NORM(dir, grad, len);
         CHECK_LEN;
         hack = 1;
-      } else {
-        /* oops, we seem to be further from the root, re-try again */
+      } else { /* oops, try again, don't update dir or len, reset val */
         hack *= task->pctx->stepScale;
+        val = valLast;
         ELL_3V_COPY(point->pos, posOld);
       }
     }

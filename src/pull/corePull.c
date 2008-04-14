@@ -258,18 +258,24 @@ pullRun(pullContext *pctx) {
   Nrrd *npos;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
-  int stopIter, stopConverged;
+  int converged;
   unsigned firstIter;
   
   if (pctx->verbose) {
     fprintf(stderr, "%s: hello\n", me);
   }
-  enrLast = _pullEnergyTotal(pctx);
-  fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   time0 = airTime();
   firstIter = pctx->iter;
-  enrImprovAvg = 0;
-  do {
+  if (_pullIterate(pctx)) {
+    sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
+    biffAdd(PULL, err); return 1;
+  }
+  pctx->iter += 1;
+  enrLast = enrNew = _pullEnergyTotal(pctx);
+  fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
+  enrImprov = enrImprovAvg = 0;
+  converged = AIR_FALSE;
+  while (pctx->iter < pctx->iterMax && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
@@ -292,11 +298,16 @@ pullRun(pullContext *pctx) {
     }
     pctx->iter += 1;
     enrNew = _pullEnergyTotal(pctx);
+    enrImprov = _PULL_IMPROV(enrLast, enrNew);
     if (firstIter + 1 == pctx->iter) {
-      enrImprovAvg = enrImprov = 1;
+      /* we need some way of artificially boosting enrImprovAvg when
+         we're just starting, so that we thwart the convergence test,
+         which we do because we don't have the history of iterations 
+         that enrImprovAvg is supposed to describe.  Using some scaling
+         of enrImprov is one possible hack. */
+      enrImprovAvg = 3*enrImprov;
     } else {
-      enrImprov = _PULL_IMPROV(enrLast, enrNew);
-      enrImprovAvg = (enrImprovAvg + enrImprov)/2;
+      enrImprovAvg = (2*enrImprovAvg + enrImprov)/3;
     }
     if (pctx->verbose > 1) {
       fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g, s=%g,%g\n",
@@ -304,16 +315,15 @@ pullRun(pullContext *pctx) {
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     enrLast = enrNew;
-    stopConverged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
-    if (stopConverged && pctx->verbose) {
+    converged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
+    if (converged && pctx->verbose) {
       fprintf(stderr, "%s: %g < %g: converged!!\n", me, 
               enrImprovAvg, pctx->energyImprovMin);
     }
-    stopIter = (pctx->iter == pctx->iterMax);
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
-  } while (!( stopIter || stopConverged ));
+  }
   fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g\n", 
-          me, stopIter, stopConverged, 
+          me, !(pctx->iter < pctx->iterMax), converged, 
           pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();
 
