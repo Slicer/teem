@@ -227,9 +227,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       return 1;
     }
   } else {
-    if (    (nrrdCenterUnknown != cx && nrrdCenterUnknown != cy && cx != cy) 
-         || (nrrdCenterUnknown != cy && nrrdCenterUnknown != cz && cy != cz) 
-         || (nrrdCenterUnknown != cx && nrrdCenterUnknown != cz && cx != cz) ) {
+    if (   (nrrdCenterUnknown != cx && nrrdCenterUnknown != cy && cx != cy) 
+        || (nrrdCenterUnknown != cy && nrrdCenterUnknown != cz && cy != cz) 
+        || (nrrdCenterUnknown != cx && nrrdCenterUnknown != cz && cx != cz) ) {
       sprintf(err, "%s: two known centerings (of %s,%s,%s) are unequal", me,
               airEnumStr(nrrdCenter, cx),
               airEnumStr(nrrdCenter, cy),

@@ -373,8 +373,8 @@ typedef struct gageShape_t {
                                  cube or from full orientation info ) */
     WtoI[16],                 /* inverse of above */
     ItoWSubInvTransp[9],      /* inverse transpose of 3x3 sub-matrix of ItoW,
-                                 for transforming (covariant) gradients */
-    ItoWSubInv[9];            /* tranpose of above, for transforming hessians */
+                                 to transform (covariant) gradients */
+    ItoWSubInv[9];            /* tranpose of above, to transform hessians */
 
 } gageShape;
 
