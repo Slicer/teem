@@ -306,28 +306,6 @@ _pullVolumeSetup(pullContext *pctx) {
       biffMove(PULL, err, GAGE); return 1;
     }
   }
-  if (1) {
-    gagePerVolume *pvl;
-    const double *ans;
-    double pos[3];
-    int gret;
-    for (ii=0; ii<pctx->volNum; ii++) {
-      pvl = pctx->vol[ii]->gctx->pvl[0];
-      fprintf(stderr, "!%s: vol[%u] query:\n", me, ii);
-      gageQueryPrint(stderr, pvl->kind, pvl->query);
-      ans = gageAnswerPointer(pctx->vol[ii]->gctx, pvl, gageSclValue);
-      ELL_3V_SET(pos, 0.6, 0.6, 0.3);
-      gret = gageProbeSpace(pctx->vol[ii]->gctx, pos[0], pos[1], pos[2],
-                            AIR_FALSE, AIR_TRUE);
-      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-              pos[0], pos[1], pos[2], *ans);
-      ELL_3V_SET(pos, 0.5, 0.0, 0.0);
-      gret = gageProbeSpace(pctx->vol[ii]->gctx, pos[0], pos[1], pos[2],
-                            AIR_FALSE, AIR_TRUE);
-      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-              pos[0], pos[1], pos[2], *ans);
-    }
-  }
   gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,
                        pctx->vol[0]->gctx->shape);
   for (ii=1; ii<pctx->volNum; ii++) {
@@ -344,18 +322,15 @@ _pullVolumeSetup(pullContext *pctx) {
       pctx->bboxMax[3] = pctx->vol[ii]->scaleMax;
     }
   }
-  if (pctx->haveScale) {
-    fprintf(stderr, "!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
-            pctx->bboxMin[0], pctx->bboxMin[1],
-            pctx->bboxMin[2], pctx->bboxMin[3],
-            pctx->bboxMax[0], pctx->bboxMax[1],
-            pctx->bboxMax[2], pctx->bboxMax[3]);
-  } else {
-    fprintf(stderr, "!%s: bbox min (%g,%g,%g) max (%g,%g,%g)\n", me,
-            pctx->bboxMin[0], pctx->bboxMin[1], pctx->bboxMin[2],
-            pctx->bboxMax[0], pctx->bboxMax[1], pctx->bboxMax[2]);
+  if (!pctx->haveScale) {
+    pctx->bboxMin[3] = pctx->bboxMax[3] = 0.0;
   }
-
+  fprintf(stderr, "!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
+          pctx->bboxMin[0], pctx->bboxMin[1],
+          pctx->bboxMin[2], pctx->bboxMin[3],
+          pctx->bboxMax[0], pctx->bboxMax[1],
+          pctx->bboxMax[2], pctx->bboxMax[3]);
+  
   return 0;
 }
 

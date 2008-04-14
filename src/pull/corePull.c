@@ -209,8 +209,8 @@ _pullIterate(pullContext *pctx) {
   }
   
   if (pctx->verbose) {
-    fprintf(stderr, "%s: starting iter %d w/ %u threads\n",
-            me, pctx->iter, pctx->threadNum);
+    fprintf(stderr, "%s: start iter %d w/ %u threads; energy = %g\n",
+            me, pctx->iter, pctx->threadNum, _pullEnergyTotal(pctx));
   }
 
   time0 = airTime();
@@ -309,7 +309,7 @@ pullRun(pullContext *pctx) {
       fprintf(stderr, "%s: %g < %g: converged!!\n", me, 
               enrImprovAvg, pctx->energyImprovMin);
     }
-    stopIter = (pctx->iter == pctx->maxIter);
+    stopIter = (pctx->iter == pctx->iterMax);
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
   } while (!( stopIter || stopConverged ));
   fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g\n", 

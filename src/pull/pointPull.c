@@ -191,48 +191,85 @@ _pullStepConstrAverage(const pullContext *pctx) {
 }
 
 double
-_pullPointHeight(const pullContext *pctx, const pullPoint *point,
+_pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
                  /* output */
                  double grad[4], double hess[9]) {
+  double scl;
   const pullInfoSpec *ispec;
-  double val;
+  int gradInfo[1+PULL_INFO_MAX] = {
+    0,                          /* pullInfoUnknown */
+    0,                          /* pullInfoTensor */
+    0,                          /* pullInfoTensorInverse */
+    0,                          /* pullInfoHessian */
+    pullInfoInsideGradient,     /* pullInfoInside */
+    0,                          /* pullInfoInsideGradient */
+    pullInfoHeightGradient,     /* pullInfoHeight */
+    0,                          /* pullInfoHeightGradient */
+    0,                          /* pullInfoHeightHessian */
+    0,                          /* pullInfoSeedThresh */
+    0,                          /* pullInfoTangent1 */
+    0,                          /* pullInfoTangent2 */
+    0,                          /* pullInfoTangentMode */
+    pullInfoIsosurfaceGradient, /* pullInfoIsosurfaceValue */
+    0,                          /* pullInfoIsosurfaceGradient */
+    0,                          /* pullInfoIsosurfaceHessian */
+    0,                          /* pullInfoStrength */
+  };
+  int hessInfo[1+PULL_INFO_MAX] = {
+    0,                          /* pullInfoUnknown */
+    0,                          /* pullInfoTensor */
+    0,                          /* pullInfoTensorInverse */
+    0,                          /* pullInfoHessian */
+    0,                          /* pullInfoInside */
+    0,                          /* pullInfoInsideGradient */
+    pullInfoHeightHessian,      /* pullInfoHeight */
+    0,                          /* pullInfoHeightGradient */
+    0,                          /* pullInfoHeightHessian */
+    0,                          /* pullInfoSeedThresh */
+    0,                          /* pullInfoTangent1 */
+    0,                          /* pullInfoTangent2 */
+    0,                          /* pullInfoTangentMode */
+    pullInfoIsosurfaceHessian,  /* pullInfoIsosurfaceValue */
+    0,                          /* pullInfoIsosurfaceGradient */
+    0,                          /* pullInfoIsosurfaceHessian */
+    0,                          /* pullInfoStrength */
+  };
+  const unsigned int *infoIdx;
 
-  ispec = pctx->ispec[pullInfoHeight];
-  val = point->info[pctx->infoIdx[pullInfoHeight]];
-  val = (val - ispec->zero)*ispec->scale;
-  if (grad && pctx->ispec[pullInfoHeightGradient]) {
-    ELL_3V_SCALE(grad, ispec->scale, 
-                 point->info + pctx->infoIdx[pullInfoHeightGradient]);
+  infoIdx = pctx->infoIdx;
+  ispec = pctx->ispec[sclInfo];
+
+  scl = point->info[infoIdx[sclInfo]];
+  scl = (scl - ispec->zero)*ispec->scale;
+  /*
+  fprintf(stderr, "%s = (%g - %g)*%g = %g*%g = %g = %g\n",
+          airEnumStr(pullInfo, sclInfo),
+          point->info[infoIdx[sclInfo]], 
+          ispec->zero, ispec->scale,
+          point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
+          (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
+          scl);
+  */
+  if (grad && gradInfo[sclInfo]) {
+    const double *ptr = point->info + infoIdx[gradInfo[sclInfo]];
+    ELL_3V_SCALE(grad, ispec->scale, ptr);
     grad[3] = 0;
   }
-  if (hess && pctx->ispec[pullInfoHeightHessian]) {
-    ELL_3M_COPY(hess, point->info + pctx->infoIdx[pullInfoHeightHessian]);
-    ELL_3M_SCALE(hess, ispec->scale, hess);
+  if (hess && hessInfo[sclInfo]) {
+    const double *ptr = point->info + infoIdx[hessInfo[sclInfo]];
+    ELL_3M_SCALE(hess, ispec->scale, ptr);
   }
-  return val;
-}
-
-double
-_pullPointStrength(const pullContext *pctx, const pullPoint *point) {
-  const pullInfoSpec *ispec;
-  const unsigned int *infoIdx;
-  double val;
-
-  ispec = pctx->ispec[pullInfoStrength];
-  infoIdx = pctx->infoIdx;
-  val = point->info[infoIdx[pullInfoStrength]];
-  val = (val - ispec->zero)*ispec->scale;
-  return val;
+  return scl;
 }
 
 int
-_pullProbe(pullTask *task, pullPoint *point, double pos[4]) {
+_pullProbe(pullTask *task, pullPoint *point) {
   char me[]="_pullProbe", err[BIFF_STRLEN];
   unsigned int ii, gret=0;
   
   if (!ELL_4V_EXISTS(point->pos)) {
     sprintf(err, "%s: got non-exist pos (%g,%g,%g,%g)", me, 
-            pos[0], pos[1], pos[2], pos[3]);
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     biffAdd(PULL, err); return 1;
   }
   for (ii=0; ii<task->pctx->volNum; ii++) {
@@ -242,11 +279,12 @@ _pullProbe(pullTask *task, pullPoint *point, double pos[4]) {
     }
     if (task->vol[ii]->ninSingle) {
       gret = gageProbeSpace(task->vol[ii]->gctx,
-                            pos[0], pos[1], pos[2],
+                            point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE, AIR_TRUE);
     } else {
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                 pos[0], pos[1], pos[2], pos[3],
+                                 point->pos[0], point->pos[1],
+                                 point->pos[2], point->pos[3],
                                  AIR_FALSE, AIR_TRUE);
     }
     if (gret) {
@@ -317,7 +355,7 @@ _pullPointSetup(pullContext *pctx) {
       ELL_4V_COPY(point->pos, posData + 4*pointIdx);
       /* even though we are dictating the point locations, we still have
          to do the initial probe */
-      if (_pullProbe(pctx->task[0], point, point->pos)) {
+      if (_pullProbe(pctx->task[0], point)) {
         sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
         biffAdd(PULL, err); return 1;
       }
@@ -336,18 +374,23 @@ _pullPointSetup(pullContext *pctx) {
         } else {
           point->pos[3] = 0.0;
         }
-        if (_pullProbe(pctx->task[0], point, point->pos)) {
+        if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
         reject = AIR_FALSE;
         if (pctx->ispec[pullInfoSeedThresh]) {
-          pullInfoSpec *ispec;
           double val;
-          ispec = pctx->ispec[pullInfoSeedThresh];
-          val = point->info[pctx->infoIdx[pullInfoSeedThresh]];
-          val = (val - ispec->zero)*ispec->scale;
+          val = _pullPointScalar(pctx, point, pullInfoSeedThresh, NULL, NULL);
           reject |= val < 0;
+        }
+        if (!reject && pctx->constraint) {
+          int constrFail;
+          if (_constraintSatisfy(pctx->task[0], point, &constrFail)) {
+            sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
+            biffAdd(PULL, err); return 1;
+          }
+          reject = constrFail;
         }
       } while (reject);
     }

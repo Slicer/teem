@@ -139,8 +139,7 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 
 int
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                int info, const char *volName, int item,
-                int constraint) {
+                int info, const char *volName, int item) {
   char me[]="pullInfoSpecAdd", err[BIFF_STRLEN];
   unsigned int ii, haveLen, needLen;
   const gageKind *kind;
@@ -199,17 +198,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
             haveLen);
     biffAdd(PULL, err); return 1;
   }
-  if (constraint && haveLen != 1) {
-    sprintf(err, "%s: can't use non-scalar (len %u) %s as constraint", me,
-            haveLen, airEnumStr(pullInfo, info));
-    biffAdd(PULL, err); return 1;
-  }
 
   ispec->info = info;
   ispec->volName = airStrdup(volName);
   ispec->volIdx = ii;
   ispec->item = item;
-  ispec->constraint = constraint;
   
   /* very tricky: seedOnly is initialized to true for everything, here
      is where we turn it off for anything info that's not seedthresh */
@@ -225,13 +218,19 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   return 0;
 }
 
+/*
+** sets:
+** pctx->infoIdx[]
+** pctx->infoTotalLen
+** pctx->constraint
+*/
 int
 _pullInfoSetup(pullContext *pctx) {
   char me[]="_pullInfoSetup", err[BIFF_STRLEN];
   unsigned int ii;
 
   pctx->infoTotalLen = 0;
-  pctx->haveConstraint = AIR_FALSE;
+  pctx->constraint = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       pctx->infoIdx[ii] = pctx->infoTotalLen;
@@ -242,11 +241,23 @@ _pullInfoSetup(pullContext *pctx) {
         sprintf(err, "%s: got zero-length answer for ispec[%u]", me, ii);
         biffAdd(PULL, err); return 1;
       }
-      pctx->haveConstraint |= pctx->ispec[ii]->constraint;
+      if (pctx->ispec[ii]->constraint) {
+        pullVolume *cvol;
+        double sx, sy, sz;
+        pctx->constraint = ii;
+        /* we set pctx->constraintVoxelSize here because we can.
+           _pullVolumeSetup() would be a better place, but we hadn't
+           set pctx->constraint yet. */
+        cvol = pctx->vol[pctx->ispec[ii]->volIdx];
+        sx = cvol->gctx->shape->spacing[0];
+        sy = cvol->gctx->shape->spacing[1];
+        sz = cvol->gctx->shape->spacing[2];
+        pctx->constraintVoxelSize = (sx + sy + sz)/3;
+      }
     }
   }
-  fprintf(stderr, "!%s: infoTotalLen = %u, haveConstraint = %d\n", me,
-          pctx->infoTotalLen, pctx->haveConstraint);
+  fprintf(stderr, "!%s: infoTotalLen = %u, constraint = %d\n", me,
+          pctx->infoTotalLen, pctx->constraint);
   return 0;
 }
 

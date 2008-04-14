@@ -51,19 +51,16 @@ pullContextNew(void) {
   pctx->radiusScale = 1;
   pctx->neighborTrueProb = 1.0;
   pctx->probeProb = 1.0;
-  pctx->moveLimit = 1.0;
-  pctx->moveFracMin = 0.2;
   pctx->opporStepScale = 1.0;
-  pctx->energyStepScale = 0.8;
-  pctx->moveFracStepScale = 0.5;
-
-  pctx->energyImprovTest = 0.0;
+  pctx->stepScale = 0.5;
   pctx->energyImprovMin = 0.01;
+  pctx->constraintStepMin = 0.00001;
+  pctx->wall = 1;
 
   pctx->seedRNG = 42;
   pctx->threadNum = 1;
-  pctx->maxIter = 0;
-  pctx->maxConstraintIter = 10;
+  pctx->iterMax = 0;
+  pctx->constraintIterMax = 15;
   pctx->snap = 0;
   
   pctx->energySpec = pullEnergySpecNew();
@@ -79,9 +76,10 @@ pullContextNew(void) {
   pctx->infoTotalLen = 0; /* will be set later */
   pctx->idtagNext = 0;
   pctx->haveScale = AIR_FALSE;
-  pctx->haveConstraint = AIR_FALSE;
+  pctx->constraint = 0;
   pctx->finished = AIR_FALSE;
   pctx->maxDist = AIR_NAN;
+  pctx->constraintVoxelSize = AIR_NAN;
 
   pctx->bin = NULL;
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
@@ -133,7 +131,7 @@ int
 _pullContextCheck(pullContext *pctx) {
   char me[]="_pullContextCheck", err[BIFF_STRLEN];
   unsigned int ii, sclvi;
-  int gotIspec;
+  int gotIspec, gotConstr;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -178,9 +176,25 @@ _pullContextCheck(pullContext *pctx) {
       }
     }
   }
+  gotConstr = 0;
   gotIspec = AIR_FALSE;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
+      if (pctx->ispec[ii]->constraint) {
+        if (1 != pullInfoAnswerLen(ii)) {
+          sprintf(err, "%s: can't use non-scalar (len %u) %s as constraint",
+                  me, pullInfoAnswerLen(ii), airEnumStr(pullInfo, ii));
+          biffAdd(PULL, err); return 1;
+        }
+        if (gotConstr) {
+          sprintf(err, "%s: can't also have %s constraint, already have "
+                  "constraint on %s ", me, airEnumStr(pullInfo, ii),
+                  airEnumStr(pullInfo, gotConstr));
+          biffAdd(PULL, err); return 1;
+        }
+        /* elso no problems having constraint on ii */
+        gotConstr = ii;
+      }
       /* make sure we have extra info as necessary */
       switch (ii) {
       case pullInfoInside:
@@ -274,17 +288,21 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(radiusSpace, 0.000001, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
-  CHECK(moveLimit, 0.1, 10.0);
-  CHECK(moveFracMin, 0.1, 1.0);
   CHECK(opporStepScale, 1.0, 1.5);
-  CHECK(energyStepScale, 0.01, 0.99);
-  CHECK(moveFracStepScale, 0.1, 1.0);
-  CHECK(energyImprovTest, -0.21, 0.21);
+  CHECK(stepScale, 0.01, 0.99);
   CHECK(energyImprovMin, -0.2, 1.0);
+  CHECK(constraintStepMin, 0.00000000000000001, 0.1);
+  CHECK(wall, 0.0, 100.0);
   CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
 #undef CHECK
-
+  if (!( 1 <= pctx->constraintIterMax
+         && pctx->constraintIterMax <= 50 )) {
+    sprintf(err, "%s: pctx->constraintIterMax %u not in range [%u,%u]",
+            me, pctx->constraintIterMax, 1, 50);
+    biffAdd(PULL, err); return 1;
+  }
+  
   return 0;
 }
 
@@ -315,7 +333,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   } else {
     dosth = AIR_FALSE;
   }
-  if (AIR_EXISTS(hthresh)) {
+  if (AIR_EXISTS(hthresh) && pctx->ispec[pullInfoHeight]) {
     dohth = AIR_TRUE;
   } else {
     dohth = AIR_FALSE;
@@ -365,12 +383,14 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       if (dosth) {
-        if (_pullPointStrength(pctx, point) < sthresh) {
+        if (_pullPointScalar(pctx, point, pullInfoStrength,
+                             NULL, NULL) < sthresh) {
           continue;
         }
       }
       if (dohth) {
-        if (_pullPointHeight(pctx, point, NULL, NULL) > hthresh) {
+        if (_pullPointScalar(pctx, point, pullInfoHeight,
+                             NULL, NULL) > hthresh) {
           continue;
         }
       }

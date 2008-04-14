@@ -266,30 +266,26 @@ typedef struct pullContext_t {
      moveFrac is computed for each particle as the fraction of distance
      actually travelled, to the distance that it wanted to travel, but 
      couldn't due to the moveLimit */
-    moveLimit,                     /* limit on particles' motion, as a
-                                      fraction of nominal radius along
-                                      direction of motion */
-    moveFracMin,                   /* if moveFrac is below this, step size
-                                      will be scaled down */
-    opporStepScale,                /* how much to opportunistically scale step
-                                      size (up) with every iteration */
-    energyStepScale,               /* (< 1.0) when energy goes up instead of
-                                      down, how to scale step size */
-    moveFracStepScale,             /* (< 1.0) when moveFrac goes below
-                                      moveFracMin, how to scale step size */
-    energyImprovTest,              /* if per-point energyImprov goes below 
-                                      this, energy has (unfortunately) gone up.
-                                      negative values permit some worsening,
-                                      positive values demand improvement */
-    energyImprovMin;               /* convergence threshold: stop when
+    opporStepScale,                /* (>= 1.0) how much to opportunistically
+                                      scale  up step size (for energy
+                                      minimization) with every iteration */
+    stepScale,                     /* (< 1.0) when energy goes up instead of
+                                      down, or when constraint satisfaction
+                                      seems to be going the wrong way, how to
+                                      scale (down) step size */
+    energyImprovMin,               /* convergence threshold: stop when
                                       fractional improvement (decrease) in
-                                      energy dips below this */
+                                      total system energy dips below this */
+    constraintStepMin,             /* convergence threshold for constraint
+                                      satisfaction: finished if stepsize goes
+                                      below this times constraintVoxelSize */
+    wall;                          /* spring constant on bbox wall */
 
   unsigned int seedRNG,            /* seed value for random number generator */
     threadNum,                     /* number of threads to use */
-    maxIter,                       /* if non-zero, max number of iterations
+    iterMax,                       /* if non-zero, max number of iterations
                                       for whole system */
-    maxConstraintIter,             /* if non-zero, max number of iterations
+    constraintIterMax,             /* if non-zero, max number of iterations
                                       for enforcing each constraint */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
@@ -321,9 +317,13 @@ typedef struct pullContext_t {
   unsigned int idtagNext;          /* next per-point igtag value */
   int haveScale,                   /* non-zero iff one of the volumes is in
                                       scale-space */
-    haveConstraint,                /* we have a constraint to satisfy */
+    constraint,                    /* if non-zero, we have a constraint to
+                                      satisfy, and this is its info number  */
     finished;                      /* used to signal all threads to return */
-  double maxDist;                  /* max dist of point-point interaction */
+  double maxDist,                  /* max dist of point-point interaction */
+    constraintVoxelSize;           /* if there's a constraint, mean voxel edge
+                                      length, to use for limiting distance 
+                                      to travel for constraint satisfaction */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   unsigned int binsEdge[3],        /* # bins along each volume edge,
                                       determined by maxEval and scale */
@@ -394,8 +394,7 @@ PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                                int info, const char *volName, int item,
-                                int constriant);
+                                int info, const char *volName, int item);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);

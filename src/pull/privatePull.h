@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* this has to be big enough to do experiments where binning is turned off */
-#define _PULL_NEIGH_MAXNUM 128
+#define _PULL_NEIGH_MAXNUM 512
 
 #define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))                   \
                                  / (AIR_ABS(ell) + AIR_ABS(enn)))
@@ -47,19 +47,21 @@ extern pullTask *_pullTaskNix(pullTask *task);
 extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
+/* actionPull.c */
+extern int _constraintSatisfy(pullTask *task, pullPoint *point,
+                              int *constrFailP);
+
 /* pointPull.c */
-extern double _pullPointHeight(const pullContext *pctx,
-                               const pullPoint *point,
+extern double _pullPointScalar(const pullContext *pctx,
+                               const pullPoint *point, int sclInfo,
                                double grad[4], double hess[9]);
-extern double _pullPointStrength(const pullContext *pctx,
-                                 const pullPoint *point);
 extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
 extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
-extern int _pullProbe(pullTask *task, pullPoint *point, double pos[4]);
+extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepEnergyScale(pullContext *pctx, double scale);
 extern int _pullPointSetup(pullContext *pctx);
 extern void _pullPointFinish(pullContext *pctx);
