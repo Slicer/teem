@@ -34,6 +34,7 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
   "hght",
   "hghtgradvec",
   "hghthessian",
+  "hghtlapl",
   "seedthresh",
   "tan1",
   "tan2",
@@ -55,14 +56,15 @@ _pullInfoVal[] = {
   pullInfoHeight,             /*  6: [1] for gravity */
   pullInfoHeightGradient,     /*  7: [3] for gravity */
   pullInfoHeightHessian,      /*  8: [9] for gravity */
-  pullInfoSeedThresh,         /*  9: [1] scalar for thresholding seeding */
-  pullInfoTangent1,           /* 10: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 11: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 12: [1] for morphing between co-dim 1 and 2 */
-  pullInfoIsosurfaceValue,    /* 13: [1] */
-  pullInfoIsosurfaceGradient, /* 14: [3] */
-  pullInfoIsosurfaceHessian,  /* 15: [9] */
-  pullInfoStrength            /* 16: [1] */
+  pullInfoHeightLaplacian,    /*  9 */
+  pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
+  pullInfoTangent1,           /* 11: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 12: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2 */
+  pullInfoIsovalue,           /* 14: [1] */
+  pullInfoIsovalueGradient,   /* 15: [3] */
+  pullInfoIsovalueHessian,    /* 16: [9] */
+  pullInfoStrength            /* 17: [1] */
 };
 
 airEnum
@@ -88,13 +90,14 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   1, /* pullInfoHeight */
   3, /* pullInfoHeightGradient */
   9, /* pullInfoHeightHessian */
+  1, /* pullInfoHeightLaplacian */
   1, /* pullInfoSeedThresh */
   3, /* pullInfoTangent1 */
   3, /* pullInfoTangent2 */
   1, /* pullInfoTangentMode */
-  1, /* pullInfoIsosurfaceValue */
-  3, /* pullInfoIsosurfaceGradient */
-  9, /* pullInfoIsosurfaceHessian */
+  1, /* pullInfoIsovalue */
+  3, /* pullInfoIsovalueGradient */
+  9, /* pullInfoIsovalueHessian */
   1, /* pullInfoStrength */
 }; 
 
@@ -243,16 +246,12 @@ _pullInfoSetup(pullContext *pctx) {
       }
       if (pctx->ispec[ii]->constraint) {
         pullVolume *cvol;
-        double sx, sy, sz;
         pctx->constraint = ii;
         /* we set pctx->constraintVoxelSize here because we can.
            _pullVolumeSetup() would be a better place, but we hadn't
            set pctx->constraint yet. */
         cvol = pctx->vol[pctx->ispec[ii]->volIdx];
-        sx = cvol->gctx->shape->spacing[0];
-        sy = cvol->gctx->shape->spacing[1];
-        sz = cvol->gctx->shape->spacing[2];
-        pctx->constraintVoxelSize = (sx + sy + sz)/3;
+        pctx->constraintVoxelSize = ELL_3V_LEN(cvol->gctx->shape->spacing);
       }
     }
   }

@@ -31,7 +31,8 @@ int
 _pullProcess(pullTask *task) {
   char me[]="_pullProcess", err[BIFF_STRLEN];
   unsigned int binIdx;
-  
+
+  task->stuckNum = 0;
   while (task->pctx->binNextIdx < task->pctx->binNum) {
     /* get the index of the next bin to process */
     if (task->pctx->threadNum > 1) {
@@ -57,7 +58,6 @@ _pullProcess(pullTask *task) {
               task->threadIdx, binIdx);
       biffAdd(PULL, err); return 1;
     }
-
   }
   return 0;
 }
@@ -202,6 +202,7 @@ _pullIterate(pullContext *pctx) {
   char me[]="_pullIterate", err[BIFF_STRLEN];
   double time0;
   int myError;
+  unsigned int thi;
 
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -242,6 +243,10 @@ _pullIterate(pullContext *pctx) {
     }
     return 1;
   }
+  pctx->stuckNum = 0;
+  for (thi=0; thi<pctx->threadNum; thi++) {
+    pctx->stuckNum += pctx->task[thi]->stuckNum;
+  }
   if (pullRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PULL, err); return 1;
@@ -279,7 +284,7 @@ pullRun(pullContext *pctx) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
-      if (pullOutputGet(npos, NULL, NULL, pctx,
+      if (pullOutputGet(npos, NULL, NULL, NULL, NULL, pctx,
                         nrrdTypeDouble, AIR_TRUE, AIR_NAN, AIR_NAN,
                         AIR_FALSE, 0, 0)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
@@ -322,9 +327,10 @@ pullRun(pullContext *pctx) {
     }
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
   }
-  fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g\n", 
+  fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g "
+          "stuck %u\n", 
           me, !(pctx->iter < pctx->iterMax), converged, 
-          pctx->iter, enrNew, enrImprov, enrImprovAvg);
+          pctx->iter, enrNew, enrImprov, enrImprovAvg, pctx->stuckNum);
   time1 = airTime();
 
   pctx->timeRun += time1 - time0;

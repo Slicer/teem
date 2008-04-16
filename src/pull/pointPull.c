@@ -55,6 +55,7 @@ pullPointNew(pullContext *pctx) {
   pnt->neighArr = airArrayNew((void**)&(pnt->neighPoint), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
+  pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -81,6 +82,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighPoint = src->neighPoint;
   dst->neighNum = src->neighNum;
   dst->neighArr = src->neighArr;
+  dst->status = src->status;
   ELL_4V_COPY(dst->pos, src->pos);
   dst->energy = src->energy;
   ELL_4V_COPY(dst->force, src->force);
@@ -197,42 +199,44 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   double scl;
   const pullInfoSpec *ispec;
   int gradInfo[1+PULL_INFO_MAX] = {
-    0,                          /* pullInfoUnknown */
-    0,                          /* pullInfoTensor */
-    0,                          /* pullInfoTensorInverse */
-    0,                          /* pullInfoHessian */
-    pullInfoInsideGradient,     /* pullInfoInside */
-    0,                          /* pullInfoInsideGradient */
-    pullInfoHeightGradient,     /* pullInfoHeight */
-    0,                          /* pullInfoHeightGradient */
-    0,                          /* pullInfoHeightHessian */
-    0,                          /* pullInfoSeedThresh */
-    0,                          /* pullInfoTangent1 */
-    0,                          /* pullInfoTangent2 */
-    0,                          /* pullInfoTangentMode */
-    pullInfoIsosurfaceGradient, /* pullInfoIsosurfaceValue */
-    0,                          /* pullInfoIsosurfaceGradient */
-    0,                          /* pullInfoIsosurfaceHessian */
-    0,                          /* pullInfoStrength */
+    0,                        /* pullInfoUnknown */
+    0,                        /* pullInfoTensor */
+    0,                        /* pullInfoTensorInverse */
+    0,                        /* pullInfoHessian */
+    pullInfoInsideGradient,   /* pullInfoInside */
+    0,                        /* pullInfoInsideGradient */
+    pullInfoHeightGradient,   /* pullInfoHeight */
+    0,                        /* pullInfoHeightGradient */
+    0,                        /* pullInfoHeightHessian */
+    0,                        /* pullInfoHeightLaplacian */
+    0,                        /* pullInfoSeedThresh */
+    0,                        /* pullInfoTangent1 */
+    0,                        /* pullInfoTangent2 */
+    0,                        /* pullInfoTangentMode */
+    pullInfoIsovalueGradient, /* pullInfoIsovalue */
+    0,                        /* pullInfoIsovalueGradient */
+    0,                        /* pullInfoIsovalueHessian */
+    0,                        /* pullInfoStrength */
   };
   int hessInfo[1+PULL_INFO_MAX] = {
-    0,                          /* pullInfoUnknown */
-    0,                          /* pullInfoTensor */
-    0,                          /* pullInfoTensorInverse */
-    0,                          /* pullInfoHessian */
-    0,                          /* pullInfoInside */
-    0,                          /* pullInfoInsideGradient */
-    pullInfoHeightHessian,      /* pullInfoHeight */
-    0,                          /* pullInfoHeightGradient */
-    0,                          /* pullInfoHeightHessian */
-    0,                          /* pullInfoSeedThresh */
-    0,                          /* pullInfoTangent1 */
-    0,                          /* pullInfoTangent2 */
-    0,                          /* pullInfoTangentMode */
-    pullInfoIsosurfaceHessian,  /* pullInfoIsosurfaceValue */
-    0,                          /* pullInfoIsosurfaceGradient */
-    0,                          /* pullInfoIsosurfaceHessian */
-    0,                          /* pullInfoStrength */
+    0,                        /* pullInfoUnknown */
+    0,                        /* pullInfoTensor */
+    0,                        /* pullInfoTensorInverse */
+    0,                        /* pullInfoHessian */
+    0,                        /* pullInfoInside */
+    0,                        /* pullInfoInsideGradient */
+    pullInfoHeightHessian,    /* pullInfoHeight */
+    0,                        /* pullInfoHeightGradient */
+    0,                        /* pullInfoHeightHessian */
+    0,                        /* pullInfoHeightLaplacian */
+    0,                        /* pullInfoSeedThresh */
+    0,                        /* pullInfoTangent1 */
+    0,                        /* pullInfoTangent2 */
+    0,                        /* pullInfoTangentMode */
+    pullInfoIsovalueHessian,  /* pullInfoIsovalue */
+    0,                        /* pullInfoIsovalueGradient */
+    0,                        /* pullInfoIsovalueHessian */
+    0,                        /* pullInfoStrength */
   };
   const unsigned int *infoIdx;
 
@@ -240,7 +244,15 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   ispec = pctx->ispec[sclInfo];
 
   scl = point->info[infoIdx[sclInfo]];
-  scl = (scl - ispec->zero)*ispec->scale;
+  if (pullInfoHeightLaplacian != sclInfo) {
+    scl = (scl - ispec->zero)*ispec->scale;
+  } else {
+    /* NOTE: _pullContextCheck makes sure that Height is set 
+       if the Laplacian is requested */
+    const pullInfoSpec *hspec;
+    hspec = pctx->ispec[pullInfoHeight];
+    scl = (scl - hspec->zero)*hspec->scale;
+  }
   /*
   fprintf(stderr, "%s = (%g - %g)*%g = %g*%g = %g = %g\n",
           airEnumStr(pullInfo, sclInfo),
@@ -326,7 +338,7 @@ _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx, tick, pn;
   pullPoint *point;
-  double *posData;
+  double *posData, ident[9];
   airRandMTState *rng;
   int reject;
 
@@ -338,6 +350,7 @@ _pullPointSetup(pullContext *pctx) {
              : NULL);
   fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
   fflush(stderr);
+  ELL_3M_IDENTITY_SET(ident);
   rng = pctx->task[0]->rng;
   tick = pctx->pointNumInitial/1000;
   for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
@@ -386,7 +399,7 @@ _pullPointSetup(pullContext *pctx) {
         }
         if (!reject && pctx->constraint) {
           int constrFail;
-          if (_constraintSatisfy(pctx->task[0], point, &constrFail)) {
+          if (_constraintSatisfy(pctx->task[0], point, ident, &constrFail)) {
             sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
             biffAdd(PULL, err); return 1;
           }

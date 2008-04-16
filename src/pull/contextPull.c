@@ -95,6 +95,7 @@ pullContextNew(void) {
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
+  pctx->stuckNum = 0;
   pctx->iter = 0;
   pctx->energy = AIR_NAN;
   pctx->noutPos = nrrdNew();
@@ -199,7 +200,7 @@ _pullContextCheck(pullContext *pctx) {
       switch (ii) {
       case pullInfoInside:
       case pullInfoHeight:
-      case pullInfoIsosurfaceValue:
+      case pullInfoIsovalue:
       case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
                && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
@@ -241,13 +242,21 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
-  if (pctx->ispec[pullInfoIsosurfaceValue]) {
-    if (!( pctx->ispec[pullInfoIsosurfaceGradient]
-           && pctx->ispec[pullInfoIsosurfaceHessian] )) {
+  if (pctx->ispec[pullInfoHeightLaplacian]) {
+    if (!( pctx->ispec[pullInfoHeight] )) {
+      sprintf(err, "%s: want %s but don't have %s set", me, 
+              airEnumStr(pullInfo, pullInfoHeightLaplacian),
+              airEnumStr(pullInfo, pullInfoHeight));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+  if (pctx->ispec[pullInfoIsovalue]) {
+    if (!( pctx->ispec[pullInfoIsovalueGradient]
+           && pctx->ispec[pullInfoIsovalueHessian] )) {
       sprintf(err, "%s: want %s but don't have %s and %s set", me, 
-              airEnumStr(pullInfo, pullInfoIsosurfaceValue),
-              airEnumStr(pullInfo, pullInfoIsosurfaceGradient),
-              airEnumStr(pullInfo, pullInfoIsosurfaceHessian));
+              airEnumStr(pullInfo, pullInfoIsovalue),
+              airEnumStr(pullInfo, pullInfoIsovalueGradient),
+              airEnumStr(pullInfo, pullInfoIsovalueHessian));
       biffAdd(PULL, err); return 1;
     }
   }
@@ -308,6 +317,7 @@ _pullContextCheck(pullContext *pctx) {
 
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
+              Nrrd *nStatOut, Nrrd *nIdOut,
               pullContext *pctx, int typeOut, int pos4,
               double sthresh, double hthresh,
               int scaleSwapDo, unsigned int scaleAxis,
@@ -320,6 +330,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   pullBin *bin;
   pullPoint *point;
   double sclmin, sclmax, sclmean;
+  unsigned int *statOut, *idOut;
 
   if (!( nrrdTypeFloat == typeOut || nrrdTypeDouble == typeOut )) {
     sprintf(err, "%s: typeOut (%d,%s) not %s or %s", me, 
@@ -364,6 +375,14 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
     E |= nrrdMaybeAlloc_va(nEnrOut, typeOut, 1, 
                            AIR_CAST(size_t, pointNum));
   }
+  if (nStatOut) {
+    E |= nrrdMaybeAlloc_va(nStatOut, nrrdTypeUInt, 1, 
+                           AIR_CAST(size_t, pointNum));
+  }
+  if (nIdOut) {
+    E |= nrrdMaybeAlloc_va(nIdOut, nrrdTypeUInt, 1, 
+                           AIR_CAST(size_t, pointNum));
+  }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PULL, err, NRRD); return 1;
@@ -374,6 +393,8 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   posOut_d = nPosOut ? (double*)(nPosOut->data) : NULL;
   tenOut_d = nTenOut ? (double*)(nTenOut->data) : NULL;
   enrOut_d = nEnrOut ? (double*)(nEnrOut->data) : NULL;
+  statOut = nStatOut ? (unsigned int*)(nStatOut->data) : NULL;
+  idOut = nIdOut ? (unsigned int*)(nIdOut->data) : NULL;
 
   pointRun = 0;
   sclmean = 0;
@@ -450,6 +471,12 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
           enrOut_d[pointRun] = point->energy;
         }
       }
+      if (nStatOut) {
+        statOut[pointRun] = point->status;
+      }
+      if (nIdOut) {
+        idOut[pointRun] = point->idtag;
+      }
       pointRun++;
     }
   }
@@ -463,6 +490,12 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   }
   if (nEnrOut) {
     nEnrOut->axis[0].size = AIR_CAST(size_t, pointRun);
+  }
+  if (nStatOut) {
+    nStatOut->axis[0].size = AIR_CAST(size_t, pointRun);
+  }
+  if (nIdOut) {
+    nIdOut->axis[0].size = AIR_CAST(size_t, pointRun);
   }
 
   return 0;

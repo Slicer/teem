@@ -261,19 +261,20 @@ _energyFromImage(pullTask *task, pullPoint *point,
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
   if (task->pctx->ispec[pullInfoHeight]
-      && !task->pctx->ispec[pullInfoHeight]->constraint) {
+      && !task->pctx->ispec[pullInfoHeight]->constraint
+      && !task->pctx->ispec[pullInfoHeightLaplacian]->constraint) {
     energy += _pullPointScalar(task->pctx, point, pullInfoHeight,
                                egrad, NULL);
     if (egradSum) {
       ELL_4V_INCR(egradSum, egrad);
     }
   }
-  if (task->pctx->ispec[pullInfoIsosurfaceValue]
-      && !task->pctx->ispec[pullInfoIsosurfaceValue]->constraint) {
+  if (task->pctx->ispec[pullInfoIsovalue]
+      && !task->pctx->ispec[pullInfoIsovalue]->constraint) {
     /* we're only going towards an isosurface, not constrained to it
        ==> set up a parabolic potential well around the isosurface */
     double val, grd[4];
-    val = _pullPointScalar(task->pctx, point, pullInfoIsosurfaceValue,
+    val = _pullPointScalar(task->pctx, point, pullInfoIsovalue,
                            grd, NULL);
     energy += val*val;
     grd[3] = 0;
@@ -288,7 +289,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
 ** is not modified anywhere in here: constraints are ONLY spatial
 */
 int
-_constraintSatisfy(pullTask *task, pullPoint *point,
+_constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
                    /* output */
                    int *constrFailP) {
   char me[]="_constraintSatisfy", err[BIFF_STRLEN];
@@ -300,44 +301,156 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
     hack,         /* how to control re-tries in the context of a single
                      for-loop, instead of a nested do-while loop */
     grad[4], dir[3], len, 
-    posOld[3];
+    posOld[3], posNew[3], tmpv[3];
   unsigned int iter,  /* 0: initial probe, 1..iterMax: probes in loop */
     iterMax;
-#define CHECK_LEN if (!len) { \
-    sprintf(err, "%s: got zero-length gradient at (%g,%g,%g,%g)\n", me, \
+#define NORMALIZE(dir, grad, len)                                        \
+  ELL_3V_NORM((dir), (grad), (len));                                     \
+  if (!(len)) {                                                          \
+    sprintf(err, "%s: got zero-length gradient at (%g,%g,%g,%g)\n", me,  \
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]); \
-    biffAdd(PULL, err); return 1;                                       \
+    biffAdd(PULL, err); return 1;                                        \
   }
-#define PROBE(i, v, g, h)  if (_pullProbe(task, point)) {  \
-    sprintf(err, "%s: on iter %u", me, iter);              \
-    biffAdd(PULL, err); return 1;                          \
-  }                                                        \
-  (v) = _pullPointScalar(task->pctx, point, (i), (g), (h));
+
+  fprintf(stderr, "!%s(%d): hi %g %g %g\n", me, point->idtag,
+          point->pos[0], point->pos[1], point->pos[2]);
+
+  stepMax = task->pctx->constraintVoxelSize;
 
   /* if constraint satisfaction fails (without calling biff), we'll
      change this to AIR_TRUE */
   *constrFailP = AIR_FALSE;
+  /* NOTE: initial probe is not done for us in _pullPointProcess, so 
+     all cases below start with some kind of PROBE, which, for convenience,
+     we associate with iter=0 */
   iter = 0;
-  stepMax = task->pctx->constraintVoxelSize;
-  iterMax = task->pctx->constraintIterMax;
-  /* initial probe is not done for us in _pullPointProcess */
   switch (task->pctx->constraint) {
+
+    /* =================================================================== */
+
   case pullInfoHeight:
+    /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
     break;
-  case pullInfoIsosurfaceValue:
-    PROBE(pullInfoIsosurfaceValue, val, grad, NULL);
+
+    /* =================================================================== */
+
+  case pullInfoHeightLaplacian: /* zero-crossing edges */
+#define PROBE(l)  if (_pullProbe(task, point)) {                \
+      sprintf(err, "%s: on iter %u", me, iter);                    \
+      biffAdd(PULL, err); return 1;                                \
+    }                                                              \
+    (l) = _pullPointScalar(task->pctx, point,                      \
+                           pullInfoHeightLaplacian, NULL, NULL);
+#define PROBEG(l, g) \
+    PROBE(l);                                                      \
+    _pullPointScalar(task->pctx, point, pullInfoHeight, (g), NULL);
+  
+    step = 0.1*stepMax;  /* patience ... */
+    iterMax = 10*task->pctx->constraintIterMax;   /* patience ... */
+    PROBEG(val, grad);
+    if (0 == val) {
+      /* already exactly at the zero, we're done. This actually happens! */
+      break;
+    }
+    valLast = val;
+    NORMALIZE(dir, grad, len);
+    /* first phase: follow normalized gradient until laplacian sign change */
+    for (iter=1; iter<=iterMax; iter++) {
+      double sgn, pstep[3], tv[3];
+      ELL_3V_COPY(posOld, point->pos);
+      sgn = airSgn(val); /* lapl < 0 => downhill; lapl > 0 => uphill */
+      ELL_3V_SCALE(tv, sgn*step, dir);
+      ELL_3MV_MUL(pstep, proj, tv);
+      ELL_3V_INCR(point->pos, pstep);
+      PROBEG(val, grad);
+      if (val*valLast < 0) {
+        /* laplacian has changed sign; stop looking */
+        break;
+      }
+      valLast = val;
+      NORMALIZE(dir, grad, len);
+    }
+    if (iter > iterMax) {
+      *constrFailP = AIR_TRUE;
+      break;
+    }
+    /* second phase: find the zero-crossing, looking between
+       f(posOld)=valLast and f(posNew)=val */
+    ELL_3V_COPY(posNew, point->pos);
+    ELL_3V_SUB(tmpv, posNew, posOld);
+    len = ELL_3V_LEN(tmpv);
+    if (1) {
+      double a=0, b=1, s, fa, fb, fs, tmp, diff;
+      int side = 0;
+      fa = valLast;
+      fb = val;
+      if (AIR_ABS(fa) < AIR_ABS(fb)) {
+        ELL_SWAP2(a, b, tmp); ELL_SWAP2(fa, fb, tmp);
+      }
+      for (iter=1; iter<=iterMax; iter++) {
+        s = AIR_AFFINE(fa, 0, fb, a, b);
+        ELL_3V_LERP(point->pos, s, posOld, posNew);
+        PROBE(fs);
+        if (0 == fs) {
+          /* exactly nailed the zero, we're done. This actually happens! */
+          break;
+        }
+        /* "Illinois" false-position.  Look, it works. */
+        if (fs*fb > 0) { /* not between s and b */
+          b = s;
+          fb = fs;
+          if (+1 == side) {
+            fa /= 2;
+          }
+          side = +1;
+        } else { /* not between a and s */
+          a = s;
+          fa = fs;
+          if (-1 == side) {
+            fb /= 2;
+          }
+          side = -1;
+        }
+        diff = (b - a)*len;
+        if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
+          /* converged! */
+          break;
+        }
+      }
+      if (iter > iterMax) {
+        *constrFailP = AIR_TRUE;
+      }
+    }
+    break;
+#undef PROBE
+#undef PROBEG
+
+    /* =================================================================== */
+
+  case pullInfoIsovalue:
+#define PROBE(v, g)  if (_pullProbe(task, point)) {            \
+      sprintf(err, "%s: on iter %u", me, iter);                \
+      biffAdd(PULL, err); return 1;                            \
+    }                                                          \
+    (v) = _pullPointScalar(task->pctx, point,                  \
+                           pullInfoIsovalue, (g), NULL);
+
+    iterMax = task->pctx->constraintIterMax;
+    PROBE(val, grad);
     valLast = val;
     avalLast = AIR_ABS(val);
-    ELL_3V_NORM(dir, grad, len);
-    CHECK_LEN;
+    NORMALIZE(dir, grad, len);
     hack = 1;
-    for (iter=0; iter<iterMax; iter++) {
-      double aval;
+    for (iter=1; iter<=iterMax; iter++) {
+      double aval, tv[3], pv[3];
+      /* consider? http://en.wikipedia.org/wiki/Halley%27s_method */
       step = -val/len; /* the newton-raphson step */
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
       ELL_3V_COPY(posOld, point->pos);
-      ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
-      PROBE(pullInfoIsosurfaceValue, val, grad, NULL);
+      ELL_3V_SCALE(tv, hack*step, dir);
+      ELL_3MV_MUL(pv, proj, tv);
+      ELL_3V_INCR(point->pos, pv);
+      PROBE(val, grad);
       aval = AIR_ABS(val);
       if (aval <= avalLast) {  /* we're no further from the root */
         if (AIR_ABS(step) < stepMax*task->pctx->constraintStepMin) {
@@ -346,8 +459,7 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
         }
         valLast = val;
         avalLast = aval;
-        ELL_3V_NORM(dir, grad, len);
-        CHECK_LEN;
+        NORMALIZE(dir, grad, len);
         hack = 1;
       } else { /* oops, try again, don't update dir or len, reset val */
         hack *= task->pctx->stepScale;
@@ -355,21 +467,26 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
         ELL_3V_COPY(point->pos, posOld);
       }
     }
-    if (iter == iterMax) {
+    if (iter > iterMax) {
       *constrFailP = AIR_TRUE;
     }
     break;
+#undef PROBE
+
+    /* =================================================================== */
+
   default:
     fprintf(stderr, "%s: constraint on %s (%d) unimplemented!!\n", me,
             airEnumStr(pullInfo, task->pctx->constraint),
             task->pctx->constraint);
   }
-  /*
-  fprintf(stderr, "!%s bye, fail = %d\n", me, *constrFailP);
-  */
+
+  fprintf(stderr, "!%s(%u) bye, fail = %d, %g %g %g\n", me,
+          point->idtag, *constrFailP,
+          point->pos[0], point->pos[1], point->pos[2]);
+
   return 0;
-#undef CHECK_LEN
-#undef PROBE
+#undef NORMALIZE
 }
 
 /*
@@ -486,33 +603,63 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
     biffAdd(PULL, err); return 1;
   }
+
+  if (!ELL_4V_LEN(force)) {
+    /* this particle has no reason to go anywhere; we're done with it */
+    point->energy = energyOld;
+    return 0;
+  }
+
   if (distLimit < 0 /* no neighbors! */
       || pullEnergyZero == task->pctx->energySpec->energy) {
     distLimit = task->pctx->radiusSpace;
   }
   /* maybe voxel size should also be considered for finding distLimit */
 
+  point->status = 0;
   ELL_4V_COPY(posOld, point->pos);
   ELL_3V_SCALE(testvec, point->stepEnergy, force);
   testlen = ELL_3V_LEN(testvec);
   if (testlen > distLimit) {
+    fprintf(stderr, "%s: ======= (%u) step *= %g = %g\n", me, point->idtag,
+            distLimit/testlen, point->stepEnergy*distLimit/testlen);
     point->stepEnergy *= distLimit/testlen;
+  } else {
+    fprintf(stderr, "%s: ======= (%u) step = %g\n", me, point->idtag,
+            point->stepEnergy);
+  }
+  if (!point->stepEnergy) {
+    sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
+    biffAdd(PULL, err); return 1;
   }
   do {
     int constrFail;
-
+    double nspcfrc[3], spcfrclen;
+    
     giveUp = AIR_FALSE;
+    ELL_3V_NORM(nspcfrc, force, spcfrclen);
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, point->stepEnergy, force);
-    /*
-    fprintf(stderr, "!%s: ======= trying step %g to pos %g %g %g %g\n", me,
-            point->stepEnergy, 
+
+    fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
+            point->idtag, point->stepEnergy, 
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    */
-    if (task->pctx->constraint) {
-      if (_constraintSatisfy(task, point, &constrFail)) {
+
+    if (task->pctx->constraint && spcfrclen) {
+      double proj[9], pfrc[9], opos[3], npos[3], dpos[3];
+
+      ELL_3MV_OUTER(pfrc, nspcfrc, nspcfrc);
+      ELL_3M_IDENTITY_SET(proj);
+      /* ELL_3M_SUB(proj, proj, pfrc); */
+      ELL_3V_COPY(opos, point->pos);
+      if (_constraintSatisfy(task, point, proj, &constrFail)) {
         sprintf(err, "%s: trouble", me);
         biffAdd(PULL, err); return 1;
       }
+      ELL_3V_COPY(npos, point->pos);
+      ELL_3V_SUB(dpos, npos, opos);
+      fprintf(stderr, "!%s:    (constrfail = %d) dpos . nfrc = %g%s\n", me,
+              constrFail, ELL_3V_DOT(dpos, nspcfrc),
+              ELL_3V_DOT(dpos, nspcfrc) > 0 ? "       +++++++++" : "");
     } else {
       constrFail = AIR_FALSE;
     }
@@ -520,27 +667,27 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _energyTotal(task, bin, point,  NULL, NULL);
-      /*
+
       fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
               energyNew > energyOld ? ">" : "<=", energyOld,
               energyNew > energyOld ? "!! BADSTEP !!" : "ok");
-      */
+
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
-      if (point->stepEnergy < 0.000000000001
-          && ELL_4V_LEN(force) > 0.000001) {
-        fprintf(stderr, "%s: %u (%g,%g,%g,%g) stepEnr %g stuck\n", me,
-                point->idtag, 
+      if (point->stepEnergy < 0.000000000001) {
+        fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck <<<<\n\n\n", 
+                me, point->idtag, 
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                 point->stepEnergy);
         /* This point is fuct, may as well reset its step, maybe things
            will go better next time.  Without this resetting, it will stay
            effectively frozen */
         point->stepEnergy = task->pctx->stepInitial;
+        point->status = 1;
         giveUp = AIR_TRUE;
       }
     }
@@ -564,13 +711,12 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   }
   myBin = task->pctx->bin + myBinIdx;
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
-    
     if (_pullPointProcess(task, myBin, myBin->point[myPointIdx])) {
       sprintf(err, "%s: on point %u of bin %u\n", me, 
               myPointIdx, myBinIdx);
       biffAdd(PULL, err); return 1;
     }
-
+    task->stuckNum += myBin->point[myPointIdx]->status;
   } /* for myPointIdx */
 
   return 0;

@@ -86,6 +86,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->neighPoint = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,
                                                    sizeof(pullPoint*)));
   task->returnPtr = NULL;
+  task->stuckNum = 0;
   return task;
 }
 

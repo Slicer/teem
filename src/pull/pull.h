@@ -53,7 +53,19 @@ extern "C" {
 ******** pullInfo enum
 **
 ** all the things that might be learned via gage from some kind, that
-** can be used to control particle dynamics
+** can be used to control particle dynamics.
+**
+** There are multiple scalars (and associated) derivatives that can
+** be used for dynamics:
+** - Inside: just for nudging things to stay inside a mask
+** - Height: value for computer-vision-y features of ridges, valleys,
+**   and edges.  Setting pullInfoHeight as a constraint does valley
+**   sampling (flip the sign to get ridges), based on Tangent1, Tangent2,
+**   and TangentMode.  Setting pullInfoHeightLaplacian as a constraint
+*    does zero-crossing edge detection.
+** - Isovalue: just for implicit surfaces f=0
+** - Strength: some measure of feature strength, with the assumption
+**   that it can't be analytically differentiated in space or scale.
 */
 enum {
   pullInfoUnknown,            /*  0 */
@@ -62,20 +74,22 @@ enum {
   pullInfoHessian,            /*  3: [9] hessian used for force distortion */
   pullInfoInside,             /*  4: [1] containment scalar */
   pullInfoInsideGradient,     /*  5: [3] containment vector */
-  pullInfoHeight,             /*  6: [1] for gravity and crease detection */
+  pullInfoHeight,             /*  6: [1] for gravity, and edge and crease 
+                                         feature detection */
   pullInfoHeightGradient,     /*  7: [3] */
   pullInfoHeightHessian,      /*  8: [9] */
-  pullInfoSeedThresh,         /*  9: [1] scalar for thresholding seeding */
-  pullInfoTangent1,           /* 10: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 11: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 12: [1] for morphing between co-dim 1 and 2 */
-  pullInfoIsosurfaceValue,    /* 13: [1] for isosurface extraction */
-  pullInfoIsosurfaceGradient, /* 14: [3] */
-  pullInfoIsosurfaceHessian,  /* 15: [9] */
-  pullInfoStrength,           /* 16: [1] */
+  pullInfoHeightLaplacian,    /*  9: [1] for zero-crossing edge detection */
+  pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
+  pullInfoTangent1,           /* 11: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 12: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2 */
+  pullInfoIsovalue,           /* 14: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 15: [3] */
+  pullInfoIsovalueHessian,    /* 16: [9] */
+  pullInfoStrength,           /* 17: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            16
+#define PULL_INFO_MAX            17
 
 /* 
 ** how the gageItem for a pullInfo is specified
@@ -106,6 +120,8 @@ typedef struct pullPoint_t {
   unsigned int neighNum;
   airArray *neighArr;         /* airArray around neigh and neigNum
                                  (no callbacks used here) */
+  unsigned int status;        /* bit-flag of status info, though right now
+                                 its just a boolean for having gotten stuck */
   double pos[4],              /* position in space and scale */
     energy,                   /* energy accumulator for this iteration */
     force[4],                 /* force accumulator for this iteration */
@@ -114,7 +130,7 @@ typedef struct pullPoint_t {
     info[1];                  /* all information learned from gage that matters
                                  for particle dynamics.  This is sneakily
                                  allocated for *more*, depending on needs,
-                                 so this has to be last field */
+                                 so this MUST be last field */
 } pullPoint;
 
 /*
@@ -225,6 +241,7 @@ typedef struct pullTask_t {
                                    possible points from neighbor bins, or
                                    last learned interacting neighbors */
   void *returnPtr;              /* for airThreadJoin */
+  unsigned int stuckNum;        /* # stuck particles seen by this task */
 } pullTask;
 
 /*
@@ -344,7 +361,8 @@ typedef struct pullContext_t {
   double timeIteration,            /* time needed for last (single) iter */
     timeRun,                       /* total time spent in pullRun() */
     energy;                        /* final energy of system */
-  unsigned int iter;               /* how many iterations were needed */
+  unsigned int stuckNum,           /* # stuck particles in last iter */
+    iter;                          /* how many iterations were needed */
   Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
 
@@ -400,6 +418,7 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
+                              Nrrd *nStatOut, Nrrd *nIdOut,
                               pullContext *pctx, int typeOut, int pos4,
                               double strengthThresh, double heightThresh,
                               int scaleSwapDo, unsigned int scaleAxis,
