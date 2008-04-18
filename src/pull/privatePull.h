@@ -61,6 +61,9 @@ extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
+extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
+                                    pullPoint *point,
+                                    double force[4], double *neighDist);
 extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepEnergyScale(pullContext *pctx, double scale);
 extern int _pullPointSetup(pullContext *pctx);

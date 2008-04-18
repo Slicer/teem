@@ -336,10 +336,11 @@ _pullProbe(pullTask *task, pullPoint *point) {
 int
 _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
-  unsigned int pointIdx, tick, pn;
+  unsigned int pointIdx, binIdx, tick, pn;
   pullPoint *point;
   double *posData, ident[9];
   airRandMTState *rng;
+  pullBin *bin;
   int reject;
 
   pctx->pointNumInitial = (pctx->npos
@@ -423,6 +424,17 @@ _pullPointSetup(pullContext *pctx) {
       sprintf(err, "%s: couldn't allocate buffers %p %p", me, 
               pctx->pointBuff, pctx->pointPerm);
       biffAdd(PULL, err); return 1;
+  }
+
+  /* now that all points have been added, set their energy to help
+     inspect initial state */
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
+                                            NULL, NULL);
+    }
   }
 
   return 0;

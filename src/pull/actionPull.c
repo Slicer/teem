@@ -307,8 +307,9 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
 #define NORMALIZE(dir, grad, len)                                        \
   ELL_3V_NORM((dir), (grad), (len));                                     \
   if (!(len)) {                                                          \
-    sprintf(err, "%s: got zero-length gradient at (%g,%g,%g,%g)\n", me,  \
-            point->pos[0], point->pos[1], point->pos[2], point->pos[3]); \
+    sprintf(err, "%s: got zero grad at (%g,%g,%g,%g) on iter %u\n", me,  \
+            point->pos[0], point->pos[1], point->pos[2],                 \
+            point->pos[3], iter);                                        \
     biffAdd(PULL, err); return 1;                                        \
   }
 
@@ -345,8 +346,8 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
     PROBE(l);                                                      \
     _pullPointScalar(task->pctx, point, pullInfoHeight, (g), NULL);
   
-    step = 0.1*stepMax;  /* patience ... */
-    iterMax = 10*task->pctx->constraintIterMax;   /* patience ... */
+    step = 0.2*stepMax;  /* patience ... */
+    iterMax = 3*task->pctx->constraintIterMax;   /* patience ... */
     PROBEG(val, grad);
     if (0 == val) {
       /* already exactly at the zero, we're done. This actually happens! */
@@ -493,10 +494,10 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
 ** its in here that we scale from "energy gradient" to "force"
 */
 double
-_energyTotal(pullTask *task, pullBin *bin, pullPoint *point,
-             /* output */
-             double force[4], double *neighDist) {
-  /* char me[]="_energyTotal"; */
+_pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
+                      /* output */
+                      double force[4], double *neighDist) {
+  /* char me[]="_pullPointEnergyTotal"; */
   double enrIm, enrPt, egradIm[4], egradPt[4], energy;
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0); /* sssh */
@@ -576,8 +577,8 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       for (ui=0; ui<su; ui++) {
         xx = AIR_AFFINE(0, ui, su-1, min, max);
         ELL_4V_SET(point->pos, xx, yy, zz, 0);
-        eout[ui + su*vi] = _energyTotal(task, bin, point, 
-                                        force, &distLimit);
+        eout[ui + su*vi] = _pullPointEnergyTotal(task, bin, point, 
+                                                 force, &distLimit);
         ELL_3V_COPY(fout + 3*(ui + su*vi), force);
       }
     }
@@ -592,7 +593,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
           me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
   */
-  energyOld = _energyTotal(task, bin, point, force, &distLimit);
+  energyOld = _pullPointEnergyTotal(task, bin, point, force, &distLimit);
   /*
   fprintf(stderr, "!%s: =================== point %u has:\n "
           "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
@@ -666,7 +667,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     if (constrFail) {
       energyNew = AIR_NAN;
     } else {
-      energyNew = _energyTotal(task, bin, point,  NULL, NULL);
+      energyNew = _pullPointEnergyTotal(task, bin, point,  NULL, NULL);
 
       fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
               energyNew > energyOld ? ">" : "<=", energyOld,

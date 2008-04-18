@@ -91,6 +91,23 @@ enum {
 };
 #define PULL_INFO_MAX            17
 
+/*
+** the various properties of particles in the system 
+**
+** consider adding: dot between normalized directions of force and movmt 
+*/
+enum {
+  pullPropUnknown,            /*  0: nobody knows */
+  pullProbIdtag,              /*  1: [1] idtag (unsigned int) */
+  pullPropEnergy,             /*  2: [1] energy from last iteration */
+  pullPropStepEnergy,         /*  3: [1] step size for minimizing energy */
+  pullPropStepConstr,         /*  4: [1] step size for constraint satis. */
+  pullPropStuck,              /*  5: [1] (0 or 1) got stuck last iter */
+  pullPropPosition,           /*  6: [4] position */
+  pullPropForce,              /*  7: [5] force accumulation */
+  pullPropLast
+};
+
 /* 
 ** how the gageItem for a pullInfo is specified
 */
@@ -417,12 +434,9 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
-PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
-                              Nrrd *nStatOut, Nrrd *nIdOut,
-                              pullContext *pctx, int typeOut, int pos4,
-                              double strengthThresh, double heightThresh,
-                              int scaleSwapDo, unsigned int scaleAxis,
-                              double scaleScl);
+PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
+                              pullContext *pctx);
+PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
 
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);

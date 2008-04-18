@@ -316,125 +316,47 @@ _pullContextCheck(pullContext *pctx) {
 }
 
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
-              Nrrd *nStatOut, Nrrd *nIdOut,
-              pullContext *pctx, int typeOut, int pos4,
-              double sthresh, double hthresh,
-              int scaleSwapDo, unsigned int scaleAxis,
-              double scaleScl) {
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
-  unsigned int binIdx, pointRun, pointNum, pointIdx;
-  int E, dosth, dohth;
-  float *posOut_f, *tenOut_f, *enrOut_f;
-  double *posOut_d, *tenOut_d, *enrOut_d;
+  unsigned int binIdx, pointNum, pointIdx;
+  int E;
+  double *posOut, *tenOut;
   pullBin *bin;
   pullPoint *point;
-  double sclmin, sclmax, sclmean;
-  unsigned int *statOut, *idOut;
 
-  if (!( nrrdTypeFloat == typeOut || nrrdTypeDouble == typeOut )) {
-    sprintf(err, "%s: typeOut (%d,%s) not %s or %s", me, 
-            typeOut, airEnumStr(nrrdType, typeOut),
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nrrdTypeDouble));
+  pointNum = _pullPointNumber(pctx);
+  if (pointNum != pctx->idtagNext) {
+    /* HEY: should really be checking that all IDs between 
+       0 and pointNum-1 contiguous are used.  Will have to do something
+       smarter when population control is implemented */
+    sprintf(err, "%s: simplicity failed; point # %u != idtagnext %u", me,
+            pointNum, pctx->idtagNext);
     biffAdd(PULL, err); return 1;
   }
-  if (AIR_EXISTS(sthresh) && sthresh > 0) {
-    dosth = AIR_TRUE;
-  } else {
-    dosth = AIR_FALSE;
-  }
-  if (AIR_EXISTS(hthresh) && pctx->ispec[pullInfoHeight]) {
-    dohth = AIR_TRUE;
-  } else {
-    dohth = AIR_FALSE;
-  }
-  if (scaleSwapDo) {
-    if (!( scaleAxis <= 2 )) {
-      sprintf(err, "%s: scaleAxis %u invalid", me, scaleAxis);
-      biffAdd(PULL, err); return 1;
-    }
-    if (!AIR_EXISTS(scaleScl)) {
-      sprintf(err, "%s: scaleScl %g doesn't exist", me, scaleScl);
-      biffAdd(PULL, err); return 1;
-    }
-  }
-  pointNum = _pullPointNumber(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, typeOut, 2,
-                           pos4 ? AIR_CAST(size_t, 4) : AIR_CAST(size_t, 3),
+    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 4),
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, typeOut, 2, 
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2, 
                            AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, pointNum));
-  }
-  if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, typeOut, 1, 
-                           AIR_CAST(size_t, pointNum));
-  }
-  if (nStatOut) {
-    E |= nrrdMaybeAlloc_va(nStatOut, nrrdTypeUInt, 1, 
-                           AIR_CAST(size_t, pointNum));
-  }
-  if (nIdOut) {
-    E |= nrrdMaybeAlloc_va(nIdOut, nrrdTypeUInt, 1, 
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PULL, err, NRRD); return 1;
   }
-  posOut_f = nPosOut ? (float*)(nPosOut->data) : NULL;
-  tenOut_f = nTenOut ? (float*)(nTenOut->data) : NULL;
-  enrOut_f = nEnrOut ? (float*)(nEnrOut->data) : NULL;
-  posOut_d = nPosOut ? (double*)(nPosOut->data) : NULL;
-  tenOut_d = nTenOut ? (double*)(nTenOut->data) : NULL;
-  enrOut_d = nEnrOut ? (double*)(nEnrOut->data) : NULL;
-  statOut = nStatOut ? (unsigned int*)(nStatOut->data) : NULL;
-  idOut = nIdOut ? (unsigned int*)(nIdOut->data) : NULL;
-
-  pointRun = 0;
-  sclmean = 0;
-  sclmin = sclmax = AIR_NAN;
+  posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
+  tenOut = nTenOut ? (double*)(nTenOut->data) : NULL;
+  
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      if (dosth) {
-        if (_pullPointScalar(pctx, point, pullInfoStrength,
-                             NULL, NULL) < sthresh) {
-          continue;
-        }
-      }
-      if (dohth) {
-        if (_pullPointScalar(pctx, point, pullInfoHeight,
-                             NULL, NULL) > hthresh) {
-          continue;
-        }
-      }
       if (nPosOut) {
-        double tpos[4];
-        ELL_4V_COPY(tpos, point->pos);
-        if (scaleSwapDo) {
-          tpos[scaleAxis] = tpos[3]*scaleScl;
-          tpos[3] = 0;
-        }
-        if (nrrdTypeFloat == typeOut) {
-          ELL_3V_SET(posOut_f + (pos4 ? 4 : 3)*pointRun,
-                     tpos[0], tpos[1], tpos[2]);
-          if (pos4) {
-            (posOut_f + (pos4 ? 4 : 3)*pointRun)[3] = tpos[3];
-          }
-        } else {
-          ELL_3V_SET(posOut_d + (pos4 ? 4 : 3)*pointRun,
-                     tpos[0], tpos[1], tpos[2]);
-          if (pos4) {
-            (posOut_d + (pos4 ? 4 : 3)*pointRun)[3] = tpos[3];
-          }
-        }
+        ELL_4V_COPY(posOut + 4*point->idtag, point->pos);
       }
       if (nTenOut) {
         double scl, tout[7];
@@ -455,48 +377,96 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
         } else {
           TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
         }
-        if (!scaleSwapDo) {
-          TEN_T_SCALE(tout, scl, tout);
-        }
-        if (nrrdTypeFloat == typeOut) {
-          TEN_T_COPY(tenOut_f + 7*pointRun, tout);
-        } else {
-          TEN_T_COPY(tenOut_d + 7*pointRun, tout);
+        TEN_T_SCALE(tout, scl, tout);
+        if (nTenOut) {
+          TEN_T_COPY(tenOut + 7*point->idtag, tout);
         }
       }
-      if (nEnrOut) {
-        if (nrrdTypeFloat == typeOut) {
-          enrOut_f[pointRun] = point->energy;
-        } else {
-          enrOut_d[pointRun] = point->energy;
-        }
-      }
-      if (nStatOut) {
-        statOut[pointRun] = point->status;
-      }
-      if (nIdOut) {
-        idOut[pointRun] = point->idtag;
-      }
-      pointRun++;
     }
   }
-  /* if we skipped points because of strength thresh,
-     this will set the output sizes correctly */
-  if (nPosOut) {
-    nPosOut->axis[1].size = AIR_CAST(size_t, pointRun);
-  }
-  if (nTenOut) {
-    nTenOut->axis[1].size = AIR_CAST(size_t, pointRun);
-  }
-  if (nEnrOut) {
-    nEnrOut->axis[0].size = AIR_CAST(size_t, pointRun);
-  }
-  if (nStatOut) {
-    nStatOut->axis[0].size = AIR_CAST(size_t, pointRun);
-  }
-  if (nIdOut) {
-    nIdOut->axis[0].size = AIR_CAST(size_t, pointRun);
-  }
 
+  return 0;
+}
+
+int
+pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
+  char me[]="pullPropGet", err[BIFF_STRLEN];
+  int typeOut;
+  size_t size[2];
+  unsigned int dim, pointNum, pointIdx, binIdx, *out_ui;
+  double *out_d;
+  unsigned char *out_uc;
+  pullBin *bin;
+  pullPoint *point;
+  
+  pointNum = _pullPointNumber(pctx);
+  switch(prop) {
+  case pullPropEnergy:
+  case pullPropStepEnergy:
+  case pullPropStepConstr:
+    dim = 1;
+    size[0] = pointNum;
+    typeOut = nrrdTypeDouble;
+    break;
+  case pullProbIdtag:
+    dim = 1;
+    size[0] = pointNum;
+    typeOut = nrrdTypeUInt;
+    break;
+  case pullPropStuck:
+    dim = 1;
+    size[0] = pointNum;
+    typeOut = nrrdTypeUChar;
+    break;
+  case pullPropPosition:
+  case pullPropForce:
+    dim = 2;
+    size[0] = 4;
+    size[1] = pointNum;
+    typeOut = nrrdTypeDouble;
+    break;
+  default:
+    sprintf(err, "%s: prop %d unrecognized", me, prop);
+    biffAdd(PULL, err); return 1;
+    break;
+  }
+  if (nrrdMaybeAlloc_nva(nprop, typeOut, dim, size)) {
+    sprintf(err, "%s: trouble allocating output", me);
+    biffMove(PULL, err, NRRD); return 1;
+  }
+  out_d = AIR_CAST(double *, nprop->data);
+  out_ui = AIR_CAST(unsigned int *, nprop->data);
+  out_uc = AIR_CAST(unsigned char *, nprop->data);
+
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      switch(prop) {
+      case pullPropEnergy:
+        out_d[point->idtag] = point->energy;
+        break;
+      case pullPropStepEnergy:
+        out_d[point->idtag] = point->stepEnergy;
+        break;
+      case pullPropStepConstr:
+        out_d[point->idtag] = point->stepConstr;
+        break;
+      case pullProbIdtag:
+        out_ui[point->idtag] = point->idtag;
+        break;
+      case pullPropStuck:
+        out_uc[point->idtag] = point->status; /* could use a bitflag */
+        break;
+      case pullPropPosition:
+        ELL_4V_COPY(out_d + 4*point->idtag, point->pos);
+        break;
+      case pullPropForce:
+        ELL_4V_COPY(out_d + 4*point->idtag, point->force);
+        break;
+      }
+    }
+  }
+  
   return 0;
 }
