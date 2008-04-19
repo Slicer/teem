@@ -144,6 +144,8 @@ ELL_EXPORT void ell_4m_inv_f(float i[16], const float m[16]);
 ELL_EXPORT void ell_4m_inv_d(double i[16], const double m[16]);
 ELL_EXPORT void ell_6m_mul_d(double AB[36],
                              const double A[36], const double B[36]);
+ELL_EXPORT void ell_3m_rotate_between_d(double rot[9], double from[3],
+                                        double to[3]);
 
 /* 
 ** Note: quaternion element ordering is:

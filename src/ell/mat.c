@@ -237,3 +237,90 @@ ell_6m_mul_d(double AB[36], const double A[36], const double B[36]) {
   }
   return;
 }
+
+/*
+** Thanks to:
+** http://jgt.akpeters.com/papers/MollerHughes99/code.html
+*/
+void
+ell_3m_rotate_between_d(double rot[9], double from[3], double to[3]) {
+  double v[3], mtx[3][3];
+  double e, h, f;
+
+  if (!( rot && from && to)) {
+    return;
+  }
+  ELL_3V_CROSS(v, from, to);
+  e = ELL_3V_DOT(from, to);
+  f = AIR_ABS(e);
+  if (f > 0.9999999) {   /* "from" and "to"-vector almost parallel */
+    double u[3], v[3];   /* temporary storage vectors */
+    double x[3];         /* vector most nearly orthogonal to "from" */
+    double c1, c2, c3;   /* coefficients for later use */
+    int i, j;
+    
+    x[0] = AIR_ABS(from[0]);
+    x[1] = AIR_ABS(from[1]);
+    x[2] = AIR_ABS(from[2]);
+
+    if (x[0] < x[1]) {
+      if (x[0] < x[2]) {
+        x[0] = 1.0; x[1] = x[2] = 0.0;
+      } else {
+        x[2] = 1.0; x[0] = x[1] = 0.0;
+      }
+    } else {
+      if (x[1] < x[2]) {
+        x[1] = 1.0; x[0] = x[2] = 0.0;
+      } else {
+        x[2] = 1.0; x[0] = x[1] = 0.0;
+      }
+    }
+
+    u[0] = x[0] - from[0]; u[1] = x[1] - from[1]; u[2] = x[2] - from[2];
+    v[0] = x[0] - to[0];   v[1] = x[1] - to[1];   v[2] = x[2] - to[2];
+
+    c1 = 2.0 / ELL_3V_DOT(u, u);
+    c2 = 2.0 / ELL_3V_DOT(v, v);
+    c3 = c1 * c2  * ELL_3V_DOT(u, v);
+
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
+        mtx[i][j] =  - c1 * u[i] * u[j]
+                     - c2 * v[i] * v[j]
+                     + c3 * v[i] * u[j];
+      }
+      mtx[i][i] += 1.0;
+    }
+  } else { /* the most common case, unless "from"="to", or "from"=-"to" */
+    double hvx, hvz, hvxy, hvxz, hvyz;
+    h = 1.0/(1.0 + e);      /* optimization by Gottfried Chen */
+    hvx = h * v[0];
+    hvz = h * v[2];
+    hvxy = hvx * v[1];
+    hvxz = hvx * v[2];
+    hvyz = hvz * v[1];
+    mtx[0][0] = e + hvx * v[0];
+    mtx[0][1] = hvxy - v[2];
+    mtx[0][2] = hvxz + v[1];
+
+    mtx[1][0] = hvxy + v[2];
+    mtx[1][1] = e + h * v[1] * v[1];
+    mtx[1][2] = hvyz - v[0];
+
+    mtx[2][0] = hvxz - v[1];
+    mtx[2][1] = hvyz + v[0];
+    mtx[2][2] = e + hvz * v[2];
+  }
+  rot[0 + 3*0] = mtx[0][0];
+  rot[1 + 3*1] = mtx[1][1];
+  rot[2 + 3*2] = mtx[2][2];
+  rot[1 + 3*0] = mtx[0][1];
+  rot[2 + 3*1] = mtx[1][2];
+  rot[0 + 3*2] = mtx[2][0];
+  rot[0 + 3*1] = mtx[1][0];
+  rot[1 + 3*2] = mtx[2][1];
+  rot[2 + 3*0] = mtx[0][2];
+  return;
+}
+
