@@ -633,6 +633,9 @@ LIMN_EXPORT int limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
                                  unsigned int infoBitFlag,
                                  int sharpEdge);
+LIMN_EXPORT int limnPolyDataCone(limnPolyData *pld,
+                                 unsigned int infoBitFlag,
+                                 unsigned int res, int sharpEdge);
 LIMN_EXPORT int limnPolyDataCylinder(limnPolyData *pld,
                                      unsigned int infoBitFlag,
                                      unsigned int res, int sharpEdge);

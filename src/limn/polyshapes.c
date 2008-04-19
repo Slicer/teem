@@ -138,7 +138,7 @@ int
 limnPolyDataCylinder(limnPolyData *pld,
                      unsigned int infoBitFlag,
                      unsigned int thetaRes, int sharpEdge) {
-  char me[]="limnPolyDataCylinderNew", err[BIFF_STRLEN];
+  char me[]="limnPolyDataCylinder", err[BIFF_STRLEN];
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   double theta, cth, sth, sq2;
 
@@ -185,7 +185,6 @@ limnPolyDataCylinder(limnPolyData *pld,
 
   primIdx = 0;
   vertIdx = 0;
-
   /* fan on top */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
     pld->indx[vertIdx++] = thetaIdx;
@@ -238,6 +237,106 @@ limnPolyDataCylinder(limnPolyData *pld,
                       cth, sth, sq2);
         ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1*thetaRes), float,
                       cth, sth, -sq2);
+      }
+    }
+  }
+
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
+      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
+    }
+  }
+
+  return 0;
+}
+
+int
+limnPolyDataCone(limnPolyData *pld,
+                 unsigned int infoBitFlag,
+                 unsigned int thetaRes, int sharpEdge) {
+  char me[]="limnPolyDataCone", err[BIFF_STRLEN];
+  unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
+  double theta, cth, sth;
+
+  /* sanity bounds */
+  thetaRes = AIR_MAX(3, thetaRes);
+
+  vertNum = sharpEdge ? 3*thetaRes : 1 + thetaRes;
+  primNum = 2;
+  indxNum = thetaRes + 2*(thetaRes+1);  /* 1 fans + 1 strip */
+  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
+    sprintf(err, "%s: couldn't allocate output", me); 
+    biffAdd(LIMN, err); return 1;
+  }
+
+  /* top point(s) */
+  vertIdx = 0;
+  if (sharpEdge) {
+    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
+                    0, 0, 1, 1);
+      ++vertIdx;
+    }
+  } else {
+    ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
+                  0, 0, 1, 1);
+    ++vertIdx;
+  }
+  /* bottom edge */
+  for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
+    for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+      theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
+      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
+                    cos(theta), sin(theta), -1, 1);
+      ++vertIdx;
+    }
+  }
+
+  primIdx = 0;
+  vertIdx = 0;
+  /* single strip around */
+  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    pld->indx[vertIdx++] = sharpEdge ? thetaIdx : 0;
+    pld->indx[vertIdx++] = (sharpEdge ? thetaRes : 1) + thetaIdx;
+  }
+  pld->indx[vertIdx++] = 0;
+  pld->indx[vertIdx++] = sharpEdge ? thetaRes : 1;
+  pld->type[primIdx] = limnPrimitiveTriangleStrip;
+  pld->icnt[primIdx] = 2*(thetaRes+1);
+  primIdx++;
+
+  /* fan on bottom */
+  for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    pld->indx[vertIdx++] = (sharpEdge ? 2*thetaRes : 1) + thetaIdx;
+  }
+  pld->type[primIdx] = limnPrimitiveTriangleFan;
+  pld->icnt[primIdx] = thetaRes;
+  primIdx++;
+
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    double isq3;
+    isq3 = 1/sqrt(3.0);
+    if (sharpEdge) {
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
+        cth = cos(theta);
+        sth = sin(theta);
+        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 0*thetaRes),
+                      float, cth*isq3, sth*isq3, isq3);
+        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1*thetaRes),
+                      float, cth*isq3, sth*isq3, isq3);
+        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 2*thetaRes),
+                      float, 0, 0, -1);
+      }
+    } else {
+      ELL_3V_SET_TT(pld->norm + 3*(0), float,
+                    0, 0, 1);
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
+        cth = cos(theta);
+        sth = sin(theta);
+        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1), 
+                      float, cth*isq3, sth*isq3, -isq3); /* close enough */
       }
     }
   }
