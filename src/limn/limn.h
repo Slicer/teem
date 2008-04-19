@@ -628,6 +628,9 @@ LIMN_EXPORT int limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
                                       double min[3], double max[3],
                                       size_t size[3], int type);
+LIMN_EXPORT void limnPolyDataColorSet(limnPolyData *pld,
+                                      unsigned char RR, unsigned char GG,
+                                      unsigned char BB, unsigned char AA);
 
 /* polyshapes.c */
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,

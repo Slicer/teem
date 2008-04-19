@@ -580,3 +580,17 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
 
   return 0;
 }
+
+void
+limnPolyDataColorSet(limnPolyData *pld,
+                     unsigned char RR, unsigned char GG,
+                     unsigned char BB, unsigned char AA) {
+  unsigned int vertIdx;
+
+  if (pld && ((1 << limnPolyDataInfoRGBA) & limnPolyDataInfoBitFlag(pld))) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
+      ELL_4V_SET(pld->rgba + 4*vertIdx, RR, GG, BB, AA);
+    }
+  }
+  return;
+}
