@@ -687,6 +687,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
         /* This point is fuct, may as well reset its step, maybe things
            will go better next time.  Without this resetting, it will stay
            effectively frozen */
+        ELL_4V_COPY(point->pos, posOld);
         point->stepEnergy = task->pctx->stepInitial;
         point->status = 1;
         giveUp = AIR_TRUE;
@@ -695,6 +696,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
 
+  ELL_4V_COPY(point->force, force);
   /* not recorded for the sake of this function, but for system accounting */
   point->energy = energyNew;
 

@@ -104,7 +104,7 @@ enum {
   pullPropStepConstr,         /*  4: [1] step size for constraint satis. */
   pullPropStuck,              /*  5: [1] (0 or 1) got stuck last iter */
   pullPropPosition,           /*  6: [4] position */
-  pullPropForce,              /*  7: [5] force accumulation */
+  pullPropForce,              /*  7: [4] force accumulation */
   pullPropLast
 };
 

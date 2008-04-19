@@ -456,7 +456,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         out_ui[point->idtag] = point->idtag;
         break;
       case pullPropStuck:
-        out_uc[point->idtag] = point->status; /* could use a bitflag */
+        out_uc[point->idtag] = point->status; /* could still use a bitflag */
         break;
       case pullPropPosition:
         ELL_4V_COPY(out_d + 4*point->idtag, point->pos);
