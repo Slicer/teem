@@ -285,11 +285,21 @@ _energyFromImage(pullTask *task, pullPoint *point,
   return energy;
 }
 
+void
+_phistAdd(pullPoint *point, int cond) {
+  unsigned int phistIdx;
+
+  phistIdx = airArrayLenIncr(point->phistArr, 1);
+  ELL_4V_COPY(point->phist + 5*phistIdx, point->pos);
+  (point->phist + 5*phistIdx)[3] = 1.0;
+  (point->phist + 5*phistIdx)[4] = cond;
+}
+
 /* HEY: have to make sure that scale position point->pos[3] 
 ** is not modified anywhere in here: constraints are ONLY spatial
 */
 int
-_constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
+_constraintSatisfy(pullTask *task, pullPoint *point, 
                    /* output */
                    int *constrFailP) {
   char me[]="_constraintSatisfy", err[BIFF_STRLEN];
@@ -336,7 +346,7 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
     /* =================================================================== */
 
   case pullInfoHeightLaplacian: /* zero-crossing edges */
-#define PROBE(l)  if (_pullProbe(task, point)) {                \
+#define PROBE(l)  if (_pullProbe(task, point)) {                   \
       sprintf(err, "%s: on iter %u", me, iter);                    \
       biffAdd(PULL, err); return 1;                                \
     }                                                              \
@@ -357,12 +367,11 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
     NORMALIZE(dir, grad, len);
     /* first phase: follow normalized gradient until laplacian sign change */
     for (iter=1; iter<=iterMax; iter++) {
-      double sgn, pstep[3], tv[3];
+      double sgn;
       ELL_3V_COPY(posOld, point->pos);
       sgn = airSgn(val); /* lapl < 0 => downhill; lapl > 0 => uphill */
-      ELL_3V_SCALE(tv, sgn*step, dir);
-      ELL_3MV_MUL(pstep, proj, tv);
-      ELL_3V_INCR(point->pos, pstep);
+      ELL_3V_SCALE_INCR(point->pos, sgn*step, dir);
+      _phistAdd(point, pullCondConstraintSatA);
       PROBEG(val, grad);
       if (val*valLast < 0) {
         /* laplacian has changed sign; stop looking */
@@ -391,6 +400,7 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
       for (iter=1; iter<=iterMax; iter++) {
         s = AIR_AFFINE(fa, 0, fb, a, b);
         ELL_3V_LERP(point->pos, s, posOld, posNew);
+        _phistAdd(point, pullCondConstraintSatB);
         PROBE(fs);
         if (0 == fs) {
           /* exactly nailed the zero, we're done. This actually happens! */
@@ -443,14 +453,13 @@ _constraintSatisfy(pullTask *task, pullPoint *point, double proj[9],
     NORMALIZE(dir, grad, len);
     hack = 1;
     for (iter=1; iter<=iterMax; iter++) {
-      double aval, tv[3], pv[3];
+      double aval;
       /* consider? http://en.wikipedia.org/wiki/Halley%27s_method */
       step = -val/len; /* the newton-raphson step */
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
       ELL_3V_COPY(posOld, point->pos);
-      ELL_3V_SCALE(tv, hack*step, dir);
-      ELL_3MV_MUL(pv, proj, tv);
-      ELL_3V_INCR(point->pos, pv);
+      ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
+      _phistAdd(point, pullCondConstraintSatA);
       PROBE(val, grad);
       aval = AIR_ABS(val);
       if (aval <= avalLast) {  /* we're no further from the root */
@@ -549,7 +558,7 @@ int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="pullPointProcess", err[BIFF_STRLEN];
   double energyOld, energyNew, force[4], distLimit, posOld[4],
-    testvec[3], testlen;
+    testvec[3], testlen, hack;
   int stepBad, giveUp;
 
   if (0 && 3 == task->pctx->iter && 1 == point->idtag) {
@@ -605,12 +614,38 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     biffAdd(PULL, err); return 1;
   }
 
+  if (task->pctx->constraint) {
+    /* we have a constraint, so do something to get the force more
+       tangential to the constriant surface */
+    double vec[4], proj[9], nvec[3], outer[9], pfrc[3], len;
+
+    switch (task->pctx->constraint) {
+    case pullInfoHeight:
+      break;
+    case pullInfoHeightLaplacian:
+      _pullPointScalar(task->pctx, point, pullInfoHeight, vec, NULL);
+      break;
+    case pullInfoIsovalue: 
+      _pullPointScalar(task->pctx, point, pullInfoIsovalue, vec, NULL);
+      break;
+    }
+
+    ELL_3V_NORM(nvec, vec, len);
+    if (len) {
+      ELL_3MV_OUTER(outer, nvec, nvec);
+      ELL_3M_IDENTITY_SET(proj);
+      ELL_3M_SUB(proj, proj, outer);
+      ELL_3MV_MUL(pfrc, proj, force);
+      ELL_3V_COPY(force, pfrc);
+    }
+    /* if !len, gradient is zero, and no change is made */
+  }
+
   if (!ELL_4V_LEN(force)) {
     /* this particle has no reason to go anywhere; we're done with it */
     point->energy = energyOld;
     return 0;
   }
-
   if (distLimit < 0 /* no neighbors! */
       || pullEnergyZero == task->pctx->energySpec->energy) {
     distLimit = task->pctx->radiusSpace;
@@ -619,15 +654,20 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
 
   point->status = 0;
   ELL_4V_COPY(posOld, point->pos);
+  
+  airArrayLenSet(point->phistArr, 0);
+  _phistAdd(point, pullCondOld);
+
   ELL_3V_SCALE(testvec, point->stepEnergy, force);
   testlen = ELL_3V_LEN(testvec);
   if (testlen > distLimit) {
     fprintf(stderr, "%s: ======= (%u) step *= %g = %g\n", me, point->idtag,
             distLimit/testlen, point->stepEnergy*distLimit/testlen);
-    point->stepEnergy *= distLimit/testlen;
+    hack = distLimit/testlen;
   } else {
     fprintf(stderr, "%s: ======= (%u) step = %g\n", me, point->idtag,
             point->stepEnergy);
+    hack = 1;
   }
   if (!point->stepEnergy) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
@@ -635,32 +675,21 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   }
   do {
     int constrFail;
-    double nspcfrc[3], spcfrclen;
     
     giveUp = AIR_FALSE;
-    ELL_3V_NORM(nspcfrc, force, spcfrclen);
-    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, point->stepEnergy, force);
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, hack*point->stepEnergy, force);
+
+    _phistAdd(point, pullCondEnergyTry);
 
     fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
-            point->idtag, point->stepEnergy, 
+            point->idtag, hack*point->stepEnergy, 
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
 
-    if (task->pctx->constraint && spcfrclen) {
-      double proj[9], pfrc[9], opos[3], npos[3], dpos[3];
-
-      ELL_3MV_OUTER(pfrc, nspcfrc, nspcfrc);
-      ELL_3M_IDENTITY_SET(proj);
-      /* ELL_3M_SUB(proj, proj, pfrc); */
-      ELL_3V_COPY(opos, point->pos);
-      if (_constraintSatisfy(task, point, proj, &constrFail)) {
+    if (task->pctx->constraint) {
+      if (_constraintSatisfy(task, point, &constrFail)) {
         sprintf(err, "%s: trouble", me);
         biffAdd(PULL, err); return 1;
       }
-      ELL_3V_COPY(npos, point->pos);
-      ELL_3V_SUB(dpos, npos, opos);
-      fprintf(stderr, "!%s:    (constrfail = %d) dpos . nfrc = %g%s\n", me,
-              constrFail, ELL_3V_DOT(dpos, nspcfrc),
-              ELL_3V_DOT(dpos, nspcfrc) > 0 ? "       +++++++++" : "");
     } else {
       constrFail = AIR_FALSE;
     }
@@ -677,6 +706,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
+      _phistAdd(point, pullCondEnergyBad);
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000001) {
@@ -692,11 +722,13 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
         point->status = 1;
         giveUp = AIR_TRUE;
       }
-    }
+    }  
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
 
+  _phistAdd(point, pullCondNew);
   ELL_4V_COPY(point->force, force);
+
   /* not recorded for the sake of this function, but for system accounting */
   point->energy = energyNew;
 

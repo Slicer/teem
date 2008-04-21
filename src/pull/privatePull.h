@@ -49,7 +49,7 @@ extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
 extern int _constraintSatisfy(pullTask *task, pullPoint *point,
-                              double proj[9], int *constrFailP);
+                              int *constrFailP);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,

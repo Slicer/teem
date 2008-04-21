@@ -28,6 +28,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 #include <teem/gage.h>
+#include <teem/limn.h>
 #include <teem/ten.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
@@ -98,7 +99,7 @@ enum {
 */
 enum {
   pullPropUnknown,            /*  0: nobody knows */
-  pullProbIdtag,              /*  1: [1] idtag (unsigned int) */
+  pullPropIdtag,              /*  1: [1] idtag (unsigned int) */
   pullPropEnergy,             /*  2: [1] energy from last iteration */
   pullPropStepEnergy,         /*  3: [1] step size for minimizing energy */
   pullPropStepConstr,         /*  4: [1] step size for constraint satis. */
@@ -106,6 +107,20 @@ enum {
   pullPropPosition,           /*  6: [4] position */
   pullPropForce,              /*  7: [4] force accumulation */
   pullPropLast
+};
+
+/*
+** the conditions under which a point may find itself at some position 
+*/
+enum {
+  pullCondUnknown,            /* 0 */
+  pullCondOld,                /* 1 */
+  pullCondConstraintSatA,     /* 2 */
+  pullCondConstraintSatB,     /* 3 */
+  pullCondEnergyTry,          /* 4 */
+  pullCondEnergyBad,          /* 5 */
+  pullCondNew,                /* 6 */
+  pullCondLast
 };
 
 /* 
@@ -137,6 +152,10 @@ typedef struct pullPoint_t {
   unsigned int neighNum;
   airArray *neighArr;         /* airArray around neigh and neigNum
                                  (no callbacks used here) */
+  double *phist;              /* history of positions tried in the last iter,
+                                 in sets of 5 doubles: (x,y,z,t,info) */
+  unsigned int phistNum;      /* number of positions stored */
+  airArray *phistArr;         /* airArray around phist */
   unsigned int status;        /* bit-flag of status info, though right now
                                  its just a boolean for having gotten stuck */
   double pos[4],              /* position in space and scale */
@@ -436,6 +455,7 @@ PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               pullContext *pctx);
+PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
 
 /* pointPull.c */

@@ -374,6 +374,18 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
           eval[2] = AIR_MIN(eceil, 1.0/eval[2]);
           ELL_3V_NORM(eval, eval, len);
           tenMakeSingle_d(tout, 1, eval, evec);
+        } else if (pctx->ispec[pullInfoHeightGradient]
+                   || pctx->ispec[pullInfoIsovalueGradient]) {
+          double *grad, norm[3], len, mat[9], out[9];
+          grad = point->info + (pctx->ispec[pullInfoHeightGradient]
+                                ? pctx->infoIdx[pullInfoHeightGradient]
+                                : pctx->infoIdx[pullInfoIsovalueGradient]);
+          ELL_3V_NORM(norm, grad, len);
+          ELL_3MV_OUTER(out, norm, norm);
+          ELL_3M_IDENTITY_SET(mat);
+          ELL_3M_SCALE_INCR(mat, -0.92, out);
+          TEN_M2T(tout, mat);
+          tout[0] = 1;
         } else {
           TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
         }
@@ -408,7 +420,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     size[0] = pointNum;
     typeOut = nrrdTypeDouble;
     break;
-  case pullProbIdtag:
+  case pullPropIdtag:
     dim = 1;
     size[0] = pointNum;
     typeOut = nrrdTypeUInt;
@@ -452,7 +464,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
       case pullPropStepConstr:
         out_d[point->idtag] = point->stepConstr;
         break;
-      case pullProbIdtag:
+      case pullPropIdtag:
         out_ui[point->idtag] = point->idtag;
         break;
       case pullPropStuck:
@@ -468,5 +480,81 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     }
   }
   
+  return 0;
+}
+
+int
+pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
+  char me[]="pullPositionHistoryGet", err[BIFF_STRLEN];
+  pullBin *bin;
+  pullPoint *point;
+  unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx, 
+    primIdx, phistIdx, phistNum;
+
+  if (!(pld && pctx)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+
+  pointNum = 0;
+  vertNum = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      vertNum += point->phistArr->len;
+      pointNum++;
+    }
+  }
+  if (limnPolyDataAlloc(pld, 1 << limnPolyDataInfoRGBA,
+                        vertNum, vertNum, pointNum)) {
+    sprintf(err, "%s: couldn't allocate output", me);
+    biffMove(PULL, err, LIMN); return 1;
+  }
+  primIdx = 0;
+  vertIdx = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      phistNum = point->phistArr->len;
+      for (phistIdx=0; phistIdx<phistNum; phistIdx++) {
+        int cond;
+        unsigned char rgb[3];
+        ELL_3V_SET(rgb, 0, 0, 0);
+        ELL_3V_COPY(pld->xyzw + 4*vertIdx, point->phist + 5*phistIdx);
+        (pld->xyzw + 4*vertIdx)[3] = 1;
+        cond = AIR_CAST(int, (point->phist + 5*phistIdx)[4]);
+        switch (cond) {
+        case pullCondOld:
+          ELL_3V_SET(rgb, 128, 128, 128);
+          break;
+        case pullCondConstraintSatA:
+          ELL_3V_SET(rgb, 0, 255, 0);
+          break;
+        case pullCondConstraintSatB:
+          ELL_3V_SET(rgb, 0, 0, 255);
+          break;
+        case pullCondEnergyTry:
+          ELL_3V_SET(rgb, 255, 255, 255);
+          break;
+        case pullCondEnergyBad:
+          ELL_3V_SET(rgb, 255, 0, 0);
+          break;
+        case pullCondNew:
+          ELL_3V_SET(rgb, 128, 255, 128);
+          break;
+        }
+        ELL_4V_SET(pld->rgba + 4*vertIdx, rgb[0], rgb[1], rgb[2], 255);
+        pld->indx[vertIdx] = vertIdx;
+        vertIdx++;
+      }
+      pld->type[primIdx] = limnPrimitiveLineStrip;
+      pld->icnt[primIdx] = phistNum;
+      primIdx++;
+    }
+  }
+  
+
   return 0;
 }

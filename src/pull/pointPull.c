@@ -55,6 +55,10 @@ pullPointNew(pullContext *pctx) {
   pnt->neighArr = airArrayNew((void**)&(pnt->neighPoint), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
+  pnt->phist = NULL;
+  pnt->phistNum = 0;
+  pnt->phistArr = airArrayNew((void**)&(pnt->phist), &(pnt->phistNum),
+                              5*sizeof(double), 32);
   pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->energy = AIR_NAN;
@@ -82,6 +86,9 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighPoint = src->neighPoint;
   dst->neighNum = src->neighNum;
   dst->neighArr = src->neighArr;
+  dst->phist = src->phist;
+  dst->phistNum = src->phistNum;
+  dst->phistArr = src->phistArr;
   dst->status = src->status;
   ELL_4V_COPY(dst->pos, src->pos);
   dst->energy = src->energy;
@@ -99,6 +106,7 @@ pullPointNix(pullPoint *pnt) {
 
   /* HEY: shouldn't this be airArrayNuke? */
   pnt->neighArr = airArrayNix(pnt->neighArr);
+  pnt->phistArr = airArrayNix(pnt->phistArr);
   airFree(pnt);
   return NULL;
 }
@@ -242,7 +250,6 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
 
   infoIdx = pctx->infoIdx;
   ispec = pctx->ispec[sclInfo];
-
   scl = point->info[infoIdx[sclInfo]];
   if (pullInfoHeightLaplacian != sclInfo) {
     scl = (scl - ispec->zero)*ispec->scale;
@@ -338,7 +345,7 @@ _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx, binIdx, tick, pn;
   pullPoint *point;
-  double *posData, ident[9];
+  double *posData;
   airRandMTState *rng;
   pullBin *bin;
   int reject;
@@ -351,7 +358,6 @@ _pullPointSetup(pullContext *pctx) {
              : NULL);
   fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
   fflush(stderr);
-  ELL_3M_IDENTITY_SET(ident);
   rng = pctx->task[0]->rng;
   tick = pctx->pointNumInitial/1000;
   for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
@@ -400,7 +406,7 @@ _pullPointSetup(pullContext *pctx) {
         }
         if (!reject && pctx->constraint) {
           int constrFail;
-          if (_constraintSatisfy(pctx->task[0], point, ident, &constrFail)) {
+          if (_constraintSatisfy(pctx->task[0], point, &constrFail)) {
             sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
             biffAdd(PULL, err); return 1;
           }
@@ -433,7 +439,7 @@ _pullPointSetup(pullContext *pctx) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
-                                            NULL, NULL);
+                                            point->force, NULL);
     }
   }
 
