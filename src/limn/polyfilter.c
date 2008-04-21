@@ -32,6 +32,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   double *cost, *sint;
   unsigned int tubeVertNum = 0, tubeIndxNum = 0, primIdx, pi, *vertmap;
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
+  int color;
   airArray *mop;
 
   if (!( pldOut && pldIn )) {
@@ -69,6 +70,8 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   } else {
     vertmap = NULL;
   }
+  color = ((infoBitFlag & (1 << limnPolyDataInfoRGBA))
+           && (limnPolyDataInfoBitFlag(pldIn) & (1 << limnPolyDataInfoRGBA)));
   
   mop = airMopNew();
   cost = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
@@ -159,6 +162,11 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             if (vertmap) {
               vertmap[outVertTotalIdx] = inVertTotalIdx;
             }
+            if (color) {
+              ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
+                          pldIn->rgba + 4*inVertTotalIdx);
+                          
+            }
             outVertTotalIdx++;
           }
         }
@@ -197,6 +205,11 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
         if (vertmap) {
           vertmap[outVertTotalIdx] = inVertTotalIdx;
         }
+        if (color) {
+          ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
+                      pldIn->rgba + 4*inVertTotalIdx);
+          
+        }
         outVertTotalIdx++;
       }
       tubeEndIdx = outVertTotalIdx;
@@ -227,6 +240,11 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
             if (vertmap) {
               vertmap[outVertTotalIdx] = inVertTotalIdx;
+            }
+            if (color) {
+              ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
+                          pldIn->rgba + 4*inVertTotalIdx);
+                          
             }
             outVertTotalIdx++;
           }
