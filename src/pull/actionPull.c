@@ -32,6 +32,12 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
+/*
+int praying = 0;
+double prayCorner[2][2][3];
+unsigned int prayRes[2] = {430,290};
+*/
+
 unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="_neighBinPoints";
@@ -322,10 +328,10 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
             point->pos[3], iter);                                        \
     biffAdd(PULL, err); return 1;                                        \
   }
-
+  /*
   fprintf(stderr, "!%s(%d): hi %g %g %g\n", me, point->idtag,
           point->pos[0], point->pos[1], point->pos[2]);
-
+  */
   stepMax = task->pctx->constraintVoxelSize;
 
   /* if constraint satisfaction fails (without calling biff), we'll
@@ -361,6 +367,7 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
     PROBEG(val, grad);
     if (0 == val) {
       /* already exactly at the zero, we're done. This actually happens! */
+      fprintf(stderr, "!%s: a lapl == 0!\n", me);
       break;
     }
     valLast = val;
@@ -404,6 +411,7 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
         PROBE(fs);
         if (0 == fs) {
           /* exactly nailed the zero, we're done. This actually happens! */
+          fprintf(stderr, "!%s: b lapl == 0!\n", me);
           break;
         }
         /* "Illinois" false-position.  Look, it works. */
@@ -423,9 +431,17 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
           side = -1;
         }
         diff = (b - a)*len;
-        if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
-          /* converged! */
-          break;
+        if (0 /* praying */) {
+          if (AIR_ABS(diff) < 0.001*stepMax*task->pctx->constraintStepMin) {
+            fprintf(stderr, "!%s(%u): converged!\n", me, point->idtag);
+            /* converged! */
+            break;
+          }
+        } else {
+          if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
+            /* converged! */
+            break;
+          }
         }
       }
       if (iter > iterMax) {
@@ -490,11 +506,11 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
             airEnumStr(pullInfo, task->pctx->constraint),
             task->pctx->constraint);
   }
-
+  /*
   fprintf(stderr, "!%s(%u) bye, fail = %d, %g %g %g\n", me,
           point->idtag, *constrFailP,
           point->pos[0], point->pos[1], point->pos[2]);
-
+  */
   return 0;
 #undef NORMALIZE
 }
@@ -558,7 +574,8 @@ int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="pullPointProcess", err[BIFF_STRLEN];
   double energyOld, energyNew, force[4], distLimit, posOld[4],
-    testvec[3], testlen, hack;
+    capvec[3], caplen, capscl;  /* related to capping distance traveled
+                                   in a per-iteration way */
   int stepBad, giveUp;
 
   if (0 && 3 == task->pctx->iter && 1 == point->idtag) {
@@ -598,17 +615,30 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     ELL_4V_COPY(point->pos, posSave);
   }
 
+  if (!point->stepEnergy) {
+    sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
+    biffAdd(PULL, err); return 1;
+  }
   /*
-  fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
-          me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
+  if (493 == point->idtag && 3 == task->pctx->iter) {
+    fprintf(stderr, "!%s: !!!!!!!!!!!! praying ON!\n", me);
+    praying = AIR_TRUE;
+    ELL_3V_COPY(prayCorner[0][0], point->pos);
+  } else {
+    praying = AIR_FALSE;
+  }
   */
+  if (0 /* praying */) {
+    fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
+            me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
+  }
   energyOld = _pullPointEnergyTotal(task, bin, point, force, &distLimit);
-  /*
-  fprintf(stderr, "!%s: =================== point %u has:\n "
-          "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
-          point->idtag, energyOld, distLimit, 
-          force[0], force[1], force[2], force[3]);
-  */
+  if (0 /* praying */) {
+    fprintf(stderr, "!%s: =================== point %u has:\n "
+            "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
+            point->idtag, energyOld, distLimit, 
+            force[0], force[1], force[2], force[3]);
+  }
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
     biffAdd(PULL, err); return 1;
@@ -625,11 +655,10 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     case pullInfoHeightLaplacian:
       _pullPointScalar(task->pctx, point, pullInfoHeight, vec, NULL);
       break;
-    case pullInfoIsovalue: 
+    case pullInfoIsovalue:
       _pullPointScalar(task->pctx, point, pullInfoIsovalue, vec, NULL);
       break;
     }
-
     ELL_3V_NORM(nvec, vec, len);
     if (len) {
       ELL_3MV_OUTER(outer, nvec, nvec);
@@ -641,6 +670,11 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     /* if !len, gradient is zero, and no change is made */
   }
 
+  point->status = 0;
+  ELL_4V_COPY(posOld, point->pos);
+  airArrayLenSet(point->phistArr, 0);
+  _phistAdd(point, pullCondOld);
+  
   if (!ELL_4V_LEN(force)) {
     /* this particle has no reason to go anywhere; we're done with it */
     point->energy = energyOld;
@@ -652,39 +686,58 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   }
   /* maybe voxel size should also be considered for finding distLimit */
 
-  point->status = 0;
-  ELL_4V_COPY(posOld, point->pos);
-  
-  airArrayLenSet(point->phistArr, 0);
-  _phistAdd(point, pullCondOld);
-
-  ELL_3V_SCALE(testvec, point->stepEnergy, force);
-  testlen = ELL_3V_LEN(testvec);
-  if (testlen > distLimit) {
-    fprintf(stderr, "%s: ======= (%u) step *= %g = %g\n", me, point->idtag,
-            distLimit/testlen, point->stepEnergy*distLimit/testlen);
-    hack = distLimit/testlen;
+  /* find capscl */
+  ELL_3V_SCALE(capvec, point->stepEnergy, force);
+  caplen = ELL_3V_LEN(capvec);
+  if (caplen > distLimit) {
+    capscl = distLimit/caplen;
   } else {
-    fprintf(stderr, "%s: ======= (%u) step = %g\n", me, point->idtag,
-            point->stepEnergy);
-    hack = 1;
+    capscl = 1;
   }
-  if (!point->stepEnergy) {
-    sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
-    biffAdd(PULL, err); return 1;
+  if (0 /* praying */) {
+    fprintf(stderr, "%s: ======= (%u) capscl = %g\n", me, point->idtag, capscl);
   }
+
+  if (0 /* praying */) {
+    double nfrc[3], len, phold[4], ee;
+    int cfail;
+    ELL_4V_COPY(phold, point->pos);
+
+    fprintf(stderr, "!%s(%u,%u): energy(%g,%g,%g) = %f (original)\n",
+            me, task->pctx->iter, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], energyOld);
+
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
+                      0.99*capscl*point->stepEnergy, force);
+    _phistAdd(point, pullCondConstraintSatB);
+    ee = _pullPointEnergyTotal(task, bin, point, NULL, NULL);
+    fprintf(stderr, "!%s(%u): A energy(%g,%g,%g) = %f %s %f\n", me, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], ee,
+            ee >= energyOld ? ">=" : "<", energyOld);
+    _constraintSatisfy(task, point, &cfail);
+    _phistAdd(point, pullCondConstraintSatB);
+    ee = _pullPointEnergyTotal(task, bin, point, NULL, NULL);
+    fprintf(stderr, "!%s(%u): B energy(%g,%g,%g) = %f %s %f\n", me, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], ee,
+            ee >= energyOld ? ">=" : "<", energyOld);
+    
+    ELL_4V_COPY(point->pos, phold);
+    _pullPointEnergyTotal(task, bin, point, NULL, NULL);
+  }
+  
   do {
     int constrFail;
     
     giveUp = AIR_FALSE;
-    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld, hack*point->stepEnergy, force);
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
+                      capscl*point->stepEnergy, force);
 
     _phistAdd(point, pullCondEnergyTry);
-
-    fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
-            point->idtag, hack*point->stepEnergy, 
-            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-
+    if (0 /* praying */) {
+      fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
+              point->idtag, capscl*point->stepEnergy, 
+              point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+    }
     if (task->pctx->constraint) {
       if (_constraintSatisfy(task, point, &constrFail)) {
         sprintf(err, "%s: trouble", me);
@@ -697,11 +750,11 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point,  NULL, NULL);
-
-      fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
-              energyNew > energyOld ? ">" : "<=", energyOld,
-              energyNew > energyOld ? "!! BADSTEP !!" : "ok");
-
+      if (0 /* praying */) {
+        fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
+                energyNew > energyOld ? ">" : "<=", energyOld,
+                energyNew > energyOld ? "!! BADSTEP !!" : "ok");
+      }
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
@@ -709,11 +762,12 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       _phistAdd(point, pullCondEnergyBad);
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
-      if (point->stepEnergy < 0.000000000001) {
-        fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck <<<<\n\n\n", 
+      if (point->stepEnergy < 0.000000000000001) {
+        fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck; "
+                "capscl %g <<<<\n\n\n", 
                 me, point->idtag, 
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3],
-                point->stepEnergy);
+                point->stepEnergy, capscl);
         /* This point is fuct, may as well reset its step, maybe things
            will go better next time.  Without this resetting, it will stay
            effectively frozen */
