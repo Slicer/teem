@@ -38,6 +38,7 @@
           nrrdKernelBCCubic     3      scale       B        C
          nrrdKernelAQuartic     2      scale       A
         nrrdKernelC3Quintic     1      scale
+          nrrdKernelC4Hexic     1      scale
          nrrdKernelGaussian     2      sigma    cut-off
  nrrdKernelDiscreteGaussian     2      sigma    cut-off
         nrrdKernelTMF[][][]     1       a
@@ -1043,7 +1044,8 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 /* 
 ** This is the unique, four-sample support, quintic, C^3 kernel,
 ** with 1st and 3rd derivatives zero at origin, which integrates
-** to unity on [-2,2], with 0th, 1st, and 2nd order accuracy.
+** to unity on [-2,2], with 0th and 1st accuracy.
+** Unlike previously believed, this does NOT have 2nd order accuracy!
 ** It doesn't interpolate.
 **
 ** The same kernel is also available as 
@@ -1281,6 +1283,259 @@ _DDc3quint = {
 };
 NrrdKernel *const
 nrrdKernelC3QuinticDD = &_DDc3quint;
+
+/* ------------------------------------------------------------ */
+
+/* 
+** This is the unique, 6-sample support, hexic, C^4 kernel,
+** with 1st and 3rd derivatives zero at origin, which integrates
+** to unity on [-2,2], with 0th, 1st, 2nd, and 3rd order accuracy.
+** It doesn't interpolate, but it actually rings once.
+**
+** The same kernel is also available as 
+** nrrdKernelTMF with D,C,A = -1,3,2 ---> nrrdKernelTMF[0][4][2],
+** the advantage here being that you have access to the first
+** and second derivatives of tthis quintic kernel as
+** nrrdKernelC3QuinticD and nrrdKernelC3QuinticDD
+*/
+
+#define _C4HEXIC(x) \
+  (x >= 3.0 \
+   ? 0 \
+   : (x >= 2.0 \
+      ? 1539.0/160.0 + x*(-189.0/8.0 + x*(747.0/32.0 + x*(-12.0 + x*(109.0/32.0 + x*(-61.0/120.0 + x/32.0))))) \
+      : (x >= 1.0 \
+         ? 3.0/160.0 + x*(35.0/8.0 + x*(-341.0/32.0 + x*(10.0 + x*(-147.0/32.0 + x*(25.0/24.0 - x*3.0/32.0))))) \
+         : 69.0/80.0 + x*x*(-23.0/16.0 + x*x*(19.0/16.0 + x*(-7.0/12.0 + x/16.0)))  )))
+
+static double
+_c4hexInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_c4hexSup(const double *parm) {
+  double S;
+
+  S = parm[0];
+  return 3*S;
+}
+
+static double
+_c4hex1_d(double x, const double *parm) {
+  double S;
+  
+  S = parm[0];
+  x = AIR_ABS(x)/S;
+  return _C4HEXIC(x)/S;
+}
+
+static float
+_c4hex1_f(float x, const double *parm) {
+  float S;
+  
+  S = AIR_CAST(float, parm[0]);
+  x = AIR_ABS(x)/S;
+  return AIR_CAST(float, _C4HEXIC(x)/S);
+}
+
+static void
+_c4hexN_d(double *f, const double *x, size_t len, const double *parm) {
+  double S, t;
+  size_t i;
+  
+  S = parm[0];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _C4HEXIC(t)/S;
+  }
+}
+
+static void
+_c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
+  float S, t;
+  size_t i;
+  
+  S = AIR_CAST(float, parm[0]);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = AIR_CAST(float, _C4HEXIC(t)/S);
+  }
+}
+
+static NrrdKernel
+_c4hex = {
+  "C4hexic",
+  1, _c4hexSup,  _c4hexInt,   
+  _c4hex1_f,   _c4hexN_f,   _c4hex1_d,   _c4hexN_d
+};
+NrrdKernel *const
+nrrdKernelC4Hexic = &_c4hex;
+
+/* ------------------------------------------------------------ */
+
+#define _DC4HEXIC(x) \
+  (x >= 3.0 \
+   ? 0 \
+   : (x >= 2.0 \
+      ? -189.0/8.0 + x*(747.0/16.0 + x*(-36.0 + x*(109.0/8.0 + x*(-61.0/24.0 + x*(3.0/16.0))))) \
+      : (x >= 1.0 \
+         ? 35.0/8.0 + x*(-341.0/16.0 + x*(30 + x*(-147.0/8.0 + x*(125.0/24.0 + x*(-9.0/16.0))))) \
+         : x*(-23.0/8.0 + x*x*(19.0/4.0 + x*(-35.0/12.0 + x*(3.0/8.0))))  )))
+
+static double
+_Dc4hexInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_Dc4hexSup(const double *parm) {
+  double S;
+
+  S = parm[0];
+  return 3*S;
+}
+
+static double
+_Dc4hex1_d(double x, const double *parm) {
+  double S;
+  int sgn = 1;
+  
+  S = parm[0];
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return sgn*_DC4HEXIC(x)/(S*S);
+}
+
+static float
+_Dc4hex1_f(float x, const double *parm) {
+  float S;
+  int sgn = 1;
+  
+  S = AIR_CAST(float, parm[0]);
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return AIR_CAST(float, sgn*_DC4HEXIC(x)/(S*S));
+}
+
+static void
+_Dc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
+  double S, t;
+  size_t i;
+  int sgn;
+  
+  S = parm[0];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DC4HEXIC(t)/(S*S);
+  }
+}
+
+static void
+_Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
+  float S, t;
+  size_t i;
+  int sgn;
+  
+  S = AIR_CAST(float, parm[0]);
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = AIR_CAST(float, sgn*_DC4HEXIC(t)/(S*S));
+  }
+}
+
+static NrrdKernel
+_nrrdKernelDC4hexic = {
+  "C4hexicD",
+  1, _Dc4hexSup, _Dc4hexInt,  
+  _Dc4hex1_f,  _Dc4hexN_f,  _Dc4hex1_d,  _Dc4hexN_d
+};
+NrrdKernel *const
+nrrdKernelC4HexicD = &_nrrdKernelDC4hexic;
+
+/* ------------------------------------------------------------ */
+
+#define _DDC4HEXIC(x) \
+  (x >= 3.0 \
+   ? 0 \
+   : (x >= 2.0 \
+      ? 747.0/16.0 + x*(-72.0 + x*(327.0/8.0 + x*(-61.0/6.0 + x*15.0/16.0))) \
+      : (x >= 1.0 \
+         ? -341.0/16.0 + x*(60 + x*(-441.0/8.0 + x*(125.0/6.0 - x*45.0/16.0))) \
+         : -23.0/8.0 + x*x*(57.0/4.0 + x*(-35.0/3.0 + x*(15.0/8.0)))  )))
+
+static double
+_DDc4hexInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_DDc4hexSup(const double *parm) {
+  double S;
+
+  S = parm[0];
+  return 3*S;
+}
+
+static double
+_DDc4hex1_d(double x, const double *parm) {
+  double S;
+  
+  S = parm[0];
+  x = AIR_ABS(x)/S;
+  return _DDC4HEXIC(x)/S;
+}
+
+static float
+_DDc4hex1_f(float x, const double *parm) {
+  float S;
+  
+  S = AIR_CAST(float, parm[0]);
+  x = AIR_ABS(x)/S;
+  return AIR_CAST(float, _DDC4HEXIC(x)/S);
+}
+
+static void
+_DDc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
+  double S, t;
+  size_t i;
+  
+  S = parm[0];
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = _DDC4HEXIC(t)/S;
+  }
+}
+
+static void
+_DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
+  float S, t;
+  size_t i;
+  
+  S = AIR_CAST(float, parm[0]);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t)/S;
+    f[i] = AIR_CAST(float, _DDC4HEXIC(t)/S);
+  }
+}
+
+static NrrdKernel
+_DDc4hex = {
+  "C4hexic",
+  1, _DDc4hexSup,  _DDc4hexInt,   
+  _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
+};
+NrrdKernel *const
+nrrdKernelC4HexicDD = &_DDc4hex;
 
 /* ------------------------------------------------------------ */
 
@@ -1659,6 +1914,12 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c3qd", str))       return nrrdKernelC3QuinticD;
   if (!strcmp("c3quinticdd", str)) return nrrdKernelC3QuinticDD;
   if (!strcmp("c3qdd", str))       return nrrdKernelC3QuinticDD;
+  if (!strcmp("c4hexic", str))    return nrrdKernelC4Hexic;
+  if (!strcmp("c4h", str))        return nrrdKernelC4Hexic;
+  if (!strcmp("c4hexicd", str))   return nrrdKernelC4HexicD;
+  if (!strcmp("c4hd", str))       return nrrdKernelC4HexicD;
+  if (!strcmp("c4hexicdd", str))  return nrrdKernelC4HexicDD;
+  if (!strcmp("c4hdd", str))      return nrrdKernelC4HexicDD;
   if (!strcmp("gaussian", str))   return nrrdKernelGaussian;
   if (!strcmp("gauss", str))      return nrrdKernelGaussian;
   if (!strcmp("g", str))          return nrrdKernelGaussian;
@@ -1769,12 +2030,12 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     }
     if (!AIR_IN_CL(-1, tmfC, (int)nrrdKernelTMF_maxC)) {
       sprintf(err, "%s: continuity value %d outside range [-1,%d]",
-              me, tmfD, nrrdKernelTMF_maxC);
+              me, tmfC, nrrdKernelTMF_maxC);
       biffAdd(NRRD, err); return 1;
     }
     if (!AIR_IN_CL(1, tmfA, (int)nrrdKernelTMF_maxA)) {
       sprintf(err, "%s: accuracy value %d outside range [1,%d]",
-              me, tmfD, nrrdKernelTMF_maxA);
+              me, tmfA, nrrdKernelTMF_maxA);
       biffAdd(NRRD, err); return 1;
     }
     /*
