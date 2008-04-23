@@ -297,7 +297,7 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(radiusSpace, 0.000001, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
-  CHECK(opporStepScale, 1.0, 1.5);
+  CHECK(opporStepScale, 1.0, 2.0);
   CHECK(stepScale, 0.01, 0.99);
   CHECK(energyImprovMin, -0.2, 1.0);
   CHECK(constraintStepMin, 0.00000000000000001, 0.1);

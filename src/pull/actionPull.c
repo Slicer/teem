@@ -32,11 +32,9 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
-/*
 int praying = 0;
 double prayCorner[2][2][3];
-unsigned int prayRes[2] = {430,290};
-*/
+size_t prayRes[2] = {400,400};
 
 unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
@@ -431,17 +429,9 @@ _constraintSatisfy(pullTask *task, pullPoint *point,
           side = -1;
         }
         diff = (b - a)*len;
-        if (0 /* praying */) {
-          if (AIR_ABS(diff) < 0.001*stepMax*task->pctx->constraintStepMin) {
-            fprintf(stderr, "!%s(%u): converged!\n", me, point->idtag);
-            /* converged! */
-            break;
-          }
-        } else {
-          if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
-            /* converged! */
-            break;
-          }
+        if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
+          /* converged! */
+          break;
         }
       }
       if (iter > iterMax) {
@@ -619,21 +609,21 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
   }
-  /*
-  if (493 == point->idtag && 3 == task->pctx->iter) {
+
+  if (0 && 541 == point->idtag && 10 == task->pctx->iter) {
     fprintf(stderr, "!%s: !!!!!!!!!!!! praying ON!\n", me);
     praying = AIR_TRUE;
     ELL_3V_COPY(prayCorner[0][0], point->pos);
   } else {
     praying = AIR_FALSE;
   }
-  */
-  if (0 /* praying */) {
+
+  if (praying) {
     fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
             me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
   }
   energyOld = _pullPointEnergyTotal(task, bin, point, force, &distLimit);
-  if (0 /* praying */) {
+  if (praying) {
     fprintf(stderr, "!%s: =================== point %u has:\n "
             "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
             point->idtag, energyOld, distLimit, 
@@ -694,11 +684,11 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   } else {
     capscl = 1;
   }
-  if (0 /* praying */) {
+  if (praying) {
     fprintf(stderr, "%s: ======= (%u) capscl = %g\n", me, point->idtag, capscl);
   }
 
-  if (0 /* praying */) {
+  if (praying) {
     double nfrc[3], len, phold[4], ee;
     int cfail;
     ELL_4V_COPY(phold, point->pos);
@@ -708,19 +698,74 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
             point->pos[0], point->pos[1], point->pos[2], energyOld);
 
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
-                      0.99*capscl*point->stepEnergy, force);
+                      capscl*point->stepEnergy, force);
+    ELL_3V_COPY(prayCorner[1][0], point->pos);
     _phistAdd(point, pullCondConstraintSatB);
     ee = _pullPointEnergyTotal(task, bin, point, NULL, NULL);
     fprintf(stderr, "!%s(%u): A energy(%g,%g,%g) = %f %s %f\n", me, point->idtag,
             point->pos[0], point->pos[1], point->pos[2], ee,
             ee >= energyOld ? ">=" : "<", energyOld);
     _constraintSatisfy(task, point, &cfail);
+    ELL_3V_COPY(prayCorner[1][1], point->pos);
     _phistAdd(point, pullCondConstraintSatB);
     ee = _pullPointEnergyTotal(task, bin, point, NULL, NULL);
     fprintf(stderr, "!%s(%u): B energy(%g,%g,%g) = %f %s %f\n", me, point->idtag,
             point->pos[0], point->pos[1], point->pos[2], ee,
             ee >= energyOld ? ">=" : "<", energyOld);
-    
+
+#define PROBE(l)  if (_pullProbe(task, point)) {                   \
+      sprintf(err, "%s: while praying", me);                    \
+      biffAdd(PULL, err); return 1;                                \
+    }                                                              \
+    (l) = _pullPointScalar(task->pctx, point,                      \
+                           pullInfoHeightLaplacian, NULL, NULL);
+    if (1) {
+      double tv[3], *enr, *lpl, uu, vv, vpos[2][3], ll, mid[3];
+      unsigned int ui, vi;
+      Nrrd *nenr, *nlpl;
+      ELL_3V_SUB(tv, prayCorner[1][1], prayCorner[1][0]);
+      ELL_3V_SCALE(tv, 5, tv);
+      ELL_3V_ADD2(prayCorner[1][1], prayCorner[1][0], tv);
+      ELL_3V_ADD2(prayCorner[0][1], prayCorner[0][0], tv);
+      ELL_3V_LERP(vpos[0], 0.5, prayCorner[0][0], prayCorner[0][1]);
+      ELL_3V_LERP(vpos[1], 0.5, prayCorner[1][0], prayCorner[1][1]);
+      ELL_3V_LERP(mid, 0.5, vpos[0], vpos[1]);
+      for (vi=0; vi<2; vi++) {
+        for (ui=0; ui<2; ui++) {
+          ELL_3V_SUB(tv, prayCorner[ui][vi], mid);
+          ELL_3V_SCALE(tv, 10, tv);
+          ELL_3V_ADD2(prayCorner[ui][vi], mid, tv);
+          fprintf(stderr, "!%s: prayCorner[%u][%u] = %g %g %g\n", me, ui, vi,
+                  prayCorner[ui][vi][0], prayCorner[ui][vi][1],
+                  prayCorner[ui][vi][2]);
+        }
+      }
+      nenr = nrrdNew();
+      nlpl = nrrdNew();
+      nrrdMaybeAlloc_nva(nenr, nrrdTypeDouble, 2, prayRes);
+      enr = AIR_CAST(double *, nenr->data);
+      nrrdMaybeAlloc_nva(nlpl, nrrdTypeDouble, 2, prayRes);
+      lpl = AIR_CAST(double *, nlpl->data);
+      for (vi=0; vi<prayRes[1]; vi++) {
+        vv = AIR_AFFINE(0, vi, prayRes[1]-1, 0, 1);
+        ELL_3V_LERP(vpos[0], vv, prayCorner[0][0], prayCorner[0][1]);
+        ELL_3V_LERP(vpos[1], vv, prayCorner[1][0], prayCorner[1][1]);
+        for (ui=0; ui<prayRes[0]; ui++) {
+          uu = AIR_AFFINE(0, ui, prayRes[0]-1, 0, 1);
+          ELL_3V_LERP(point->pos, uu, vpos[0], vpos[1]);
+          PROBE(ll);
+          lpl[ui + prayRes[0]*vi] = ll;
+          enr[ui + prayRes[0]*vi] = _pullPointEnergyTotal(task, bin, point,
+                                                          NULL, NULL);
+        }
+      }
+      nrrdSave("nenr.nrrd", nenr, NULL);
+      nrrdSave("nlpl.nrrd", nlpl, NULL);
+      nenr = nrrdNuke(nenr);
+      nlpl = nrrdNuke(nlpl);
+    }
+#undef PROBE
+
     ELL_4V_COPY(point->pos, phold);
     _pullPointEnergyTotal(task, bin, point, NULL, NULL);
   }
@@ -733,7 +778,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
                       capscl*point->stepEnergy, force);
 
     _phistAdd(point, pullCondEnergyTry);
-    if (0 /* praying */) {
+    if (praying) {
       fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
               point->idtag, capscl*point->stepEnergy, 
               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
@@ -750,7 +795,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point,  NULL, NULL);
-      if (0 /* praying */) {
+      if (praying) {
         fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
                 energyNew > energyOld ? ">" : "<=", energyOld,
                 energyNew > energyOld ? "!! BADSTEP !!" : "ok");
