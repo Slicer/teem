@@ -48,8 +48,10 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
-extern int _constraintSatisfy(pullTask *task, pullPoint *point,
-                              int *constrFailP);
+
+/* constraints.c */
+extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
+                                  int *constrFailP);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,
@@ -57,6 +59,8 @@ extern double _pullPointScalar(const pullContext *pctx,
                                double grad[4], double hess[9]);
 extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
+extern void _pullPointHistInit(pullPoint *point);
+extern void _pullPointHistAdd(pullPoint *point, int cond);
 extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);

@@ -83,7 +83,9 @@ enum {
   pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
   pullInfoTangent1,           /* 11: [3] first tangent to constraint surf */
   pullInfoTangent2,           /* 12: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2 */
+  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2;
+                                 User must set scale so mode from -1 to 1
+                                 means co-dim 1 (surface) to 2 (line) */
   pullInfoIsovalue,           /* 14: [1] for isosurface extraction */
   pullInfoIsovalueGradient,   /* 15: [3] */
   pullInfoIsovalueHessian,    /* 16: [9] */

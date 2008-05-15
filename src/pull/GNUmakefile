@@ -48,7 +48,8 @@ $(L).NEED = ten limn gage ell nrrd biff air
 $(L).PUBLIC_HEADERS = pull.h
 $(L).PRIVATE_HEADERS = privatePull.h
 $(L).OBJS = defaultsPull.o energy.o infoPull.o volumePull.o taskPull.o  \
-    binningPull.o corePull.o contextPull.o actionPull.o pointPull.o 
+    binningPull.o corePull.o contextPull.o actionPull.o constraints.o \
+    pointPull.o 
 $(L).TESTS = test/eparse
 ####
 ####

@@ -145,9 +145,11 @@ _pullContextCheck(pullContext *pctx) {
     }
     if (!( 2 == pctx->npos->dim 
            && 4 == pctx->npos->axis[0].size
-           && nrrdTypeDouble == pctx->npos->type )) {
-      sprintf(err, "%s: npos not a 2-D 4-by-N array of %s "
+           && (nrrdTypeDouble == pctx->npos->type 
+               || nrrdTypeFloat == pctx->npos->type) )) {
+      sprintf(err, "%s: npos not a 2-D 4-by-N array of %s or %s"
               "(got %u-D %u-by-X of %s)", me,
+              airEnumStr(nrrdType, nrrdTypeFloat),
               airEnumStr(nrrdType, nrrdTypeDouble),
               pctx->npos->dim,
               AIR_CAST(unsigned int, pctx->npos->axis[0].size),
@@ -227,6 +229,24 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
+  if (pctx->ispec[pullInfoTangent2]) {
+    if (!pctx->ispec[pullInfoTangent1]) {
+      sprintf(err, "%s: want %s but don't have %s set", me, 
+              airEnumStr(pullInfo, pullInfoTangent2),
+              airEnumStr(pullInfo, pullInfoTangent1));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+  if (pctx->ispec[pullInfoTangentMode]) {
+    if (!( pctx->ispec[pullInfoTangent1]
+           && pctx->ispec[pullInfoTangent2] )) {
+      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
+              airEnumStr(pullInfo, pullInfoTangentMode),
+              airEnumStr(pullInfo, pullInfoTangent1),
+              airEnumStr(pullInfo, pullInfoTangent2));
+      biffAdd(PULL, err); return 1;
+    }
+  }
   if (pctx->ispec[pullInfoHeight]) {
     if (!( pctx->ispec[pullInfoHeightGradient] )) {
       sprintf(err, "%s: want %s but don't have %s set", me, 
@@ -234,12 +254,19 @@ _pullContextCheck(pullContext *pctx) {
               airEnumStr(pullInfo, pullInfoHeightGradient));
       biffAdd(PULL, err); return 1;
     }
-    if (pctx->ispec[pullInfoHeight]->constraint
-        && !pctx->ispec[pullInfoHeightHessian]) {
-      sprintf(err, "%s: want constrained %s but don't have %s set", me,
-              airEnumStr(pullInfo, pullInfoHeight),
-              airEnumStr(pullInfo, pullInfoHeightHessian));
-      biffAdd(PULL, err); return 1;
+    if (pctx->ispec[pullInfoHeight]->constraint) {
+      if (!pctx->ispec[pullInfoHeightHessian]) {
+        sprintf(err, "%s: want constrained %s but don't have %s set", me,
+                airEnumStr(pullInfo, pullInfoHeight),
+                airEnumStr(pullInfo, pullInfoHeightHessian));
+        biffAdd(PULL, err); return 1;
+      }
+      if (!pctx->ispec[pullInfoTangent1]) {
+        sprintf(err, "%s: want constrained %s but need at least %s set", me,
+                airEnumStr(pullInfo, pullInfoHeight),
+                airEnumStr(pullInfo, pullInfoTangent1));
+        biffAdd(PULL, err); return 1;
+      }
     }
   }
   if (pctx->ispec[pullInfoHeightLaplacian]) {
@@ -257,24 +284,6 @@ _pullContextCheck(pullContext *pctx) {
               airEnumStr(pullInfo, pullInfoIsovalue),
               airEnumStr(pullInfo, pullInfoIsovalueGradient),
               airEnumStr(pullInfo, pullInfoIsovalueHessian));
-      biffAdd(PULL, err); return 1;
-    }
-  }
-  if (pctx->ispec[pullInfoTangent2]) {
-    if (!pctx->ispec[pullInfoTangent1]) {
-      sprintf(err, "%s: want %s but don't have %s set", me, 
-              airEnumStr(pullInfo, pullInfoTangent2),
-              airEnumStr(pullInfo, pullInfoTangent1));
-      biffAdd(PULL, err); return 1;
-    }
-  }
-  if (pctx->ispec[pullInfoTangentMode]) {
-    if (!( pctx->ispec[pullInfoTangent1]
-           && pctx->ispec[pullInfoTangent2] )) {
-      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
-              airEnumStr(pullInfo, pullInfoTangentMode),
-              airEnumStr(pullInfo, pullInfoTangent1),
-              airEnumStr(pullInfo, pullInfoTangent2));
       biffAdd(PULL, err); return 1;
     }
   }

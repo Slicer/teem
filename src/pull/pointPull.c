@@ -111,6 +111,24 @@ pullPointNix(pullPoint *pnt) {
   return NULL;
 }
 
+void
+_pullPointHistInit(pullPoint *point) {
+
+  airArrayLenSet(point->phistArr, 0);
+  return;
+}
+
+void
+_pullPointHistAdd(pullPoint *point, int cond) {
+  unsigned int phistIdx;
+
+  phistIdx = airArrayLenIncr(point->phistArr, 1);
+  ELL_4V_COPY(point->phist + 5*phistIdx, point->pos);
+  (point->phist + 5*phistIdx)[3] = 1.0;
+  (point->phist + 5*phistIdx)[4] = cond;
+  return;
+}
+
 unsigned int
 _pullPointNumber(const pullContext *pctx) {
   unsigned int binIdx, pointNum;
@@ -203,7 +221,7 @@ _pullStepConstrAverage(const pullContext *pctx) {
 double
 _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
                  /* output */
-                 double grad[4], double hess[9]) {
+                 double grad[3], double hess[9]) {
   double scl;
   const pullInfoSpec *ispec;
   int gradInfo[1+PULL_INFO_MAX] = {
@@ -251,14 +269,14 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   infoIdx = pctx->infoIdx;
   ispec = pctx->ispec[sclInfo];
   scl = point->info[infoIdx[sclInfo]];
-  if (pullInfoHeightLaplacian != sclInfo) {
-    scl = (scl - ispec->zero)*ispec->scale;
-  } else {
+  if (pullInfoHeightLaplacian == sclInfo) {
     /* NOTE: _pullContextCheck makes sure that Height is set 
        if the Laplacian is requested */
     const pullInfoSpec *hspec;
     hspec = pctx->ispec[pullInfoHeight];
     scl = (scl - hspec->zero)*hspec->scale;
+  } else {
+    scl = (scl - ispec->zero)*ispec->scale;
   }
   /*
   fprintf(stderr, "%s = (%g - %g)*%g = %g*%g = %g = %g\n",
@@ -272,7 +290,6 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   if (grad && gradInfo[sclInfo]) {
     const double *ptr = point->info + infoIdx[gradInfo[sclInfo]];
     ELL_3V_SCALE(grad, ispec->scale, ptr);
-    grad[3] = 0;
   }
   if (hess && hessInfo[sclInfo]) {
     const double *ptr = point->info + infoIdx[hessInfo[sclInfo]];
@@ -349,13 +366,24 @@ _pullPointSetup(pullContext *pctx) {
   airRandMTState *rng;
   pullBin *bin;
   int reject;
+  airArray *mop;
+  Nrrd *npos;
 
-  pctx->pointNumInitial = (pctx->npos
-                           ? pctx->npos->axis[1].size
-                           : pctx->pointNumInitial);
-  posData = (pctx->npos
-             ? AIR_CAST(double *, pctx->npos->data)
-             : NULL);
+  mop = airMopNew();
+  if (pctx->npos) {
+    npos = nrrdNew();
+    airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(npos, pctx->npos, nrrdTypeDouble)) {
+      sprintf(err, "%s: trouble converting npos", me);
+      biffMove(PULL, err, NRRD); return 1;
+    }
+    pctx->pointNumInitial = npos->axis[1].size;
+    posData = npos->data;
+  } else {
+    npos = NULL;
+    /* pctx->pointNumInitial unchanged */
+    posData = NULL;
+  }
   fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
   fflush(stderr);
   rng = pctx->task[0]->rng;
@@ -371,7 +399,7 @@ _pullPointSetup(pullContext *pctx) {
               pointIdx, pctx->pointNumInitial);
     }
     point = pullPointNew(pctx);
-    if (pctx->npos) {
+    if (npos) {
       ELL_4V_COPY(point->pos, posData + 4*pointIdx);
       /* even though we are dictating the point locations, we still have
          to do the initial probe */
@@ -381,6 +409,7 @@ _pullPointSetup(pullContext *pctx) {
       }
     } else {
       do {
+        _pullPointHistInit(point);
         ELL_3V_SET(point->pos,
                    AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                               pctx->bboxMin[0], pctx->bboxMax[0]),
@@ -394,6 +423,7 @@ _pullPointSetup(pullContext *pctx) {
         } else {
           point->pos[3] = 0.0;
         }
+        _pullPointHistAdd(point, pullCondOld);
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
@@ -406,7 +436,7 @@ _pullPointSetup(pullContext *pctx) {
         }
         if (!reject && pctx->constraint) {
           int constrFail;
-          if (_constraintSatisfy(pctx->task[0], point, &constrFail)) {
+          if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
             sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
             biffAdd(PULL, err); return 1;
           }
