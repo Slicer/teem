@@ -120,8 +120,9 @@ enum {
   pullCondConstraintSatA,     /* 2 */
   pullCondConstraintSatB,     /* 3 */
   pullCondEnergyTry,          /* 4 */
-  pullCondEnergyBad,          /* 5 */
-  pullCondNew,                /* 6 */
+  pullCondConstraintFail,     /* 5 */
+  pullCondEnergyBad,          /* 6 */
+  pullCondNew,                /* 7 */
   pullCondLast
 };
 
@@ -154,12 +155,15 @@ typedef struct pullPoint_t {
   unsigned int neighNum;
   airArray *neighArr;         /* airArray around neigh and neigNum
                                  (no callbacks used here) */
+  double neighDist, neighMode;
+  unsigned int neighInterNum;
   double *phist;              /* history of positions tried in the last iter,
                                  in sets of 5 doubles: (x,y,z,t,info) */
   unsigned int phistNum;      /* number of positions stored */
   airArray *phistArr;         /* airArray around phist */
   unsigned int status;        /* bit-flag of status info, though right now
                                  its just a boolean for having gotten stuck */
+  int debug;                  /* this point is only here for debugging */
   double pos[4],              /* position in space and scale */
     energy,                   /* energy accumulator for this iteration */
     force[4],                 /* force accumulator for this iteration */

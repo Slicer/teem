@@ -28,13 +28,12 @@
 ** issues:
 ** does everything work on the first iteration
 ** how to handle the needed extra probe for d strength / d scale
-** does it eventually catch non-existant energy or force
 ** how are force/energy along scale handled differently than in space?
 */
 
-int praying = 0;
-double prayCorner[2][2][3];
-size_t prayRes[2] = {400,400};
+int _pullPraying = 0;
+double _pullPrayCorner[2][2][3];
+size_t _pullPrayRes[2] = {60,20};
 
 unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
@@ -113,29 +112,20 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   return enr;
 }
 
-/*
-** meanNeighDist is allowed to be NULL. If it is non-NULL, 
-** it must be set, and must be < 0 if there are no neighbors
-*/
 double
 _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
                   /* output */
-                  double egradSum[4], double *meanNeighDist) {
+                  double egradSum[4]) {
   /* char me[]="_energyFromPoints"; */
-  double energySum, distSqSum, spaDistSqMax;
+  double energySum, distSqSum, spaDistSqMax, wghtSum;
   int nopt,     /* optimiziation: we sometimes re-use neighbor lists */
     ntrue;      /* we search all possible neighbors, stored in the bins
                    (either because !nopt, or, this iter we learn true
                    subset of interacting neighbors).  This could also
                    be called "dontreuse" or something like that */
-  unsigned int nidx, neighCount,
+  unsigned int nidx,
     nnum;       /* how much of task->neigh[] we use */
 
-  if (meanNeighDist && !egradSum) {
-    /* shouldn't happen */
-    return AIR_NAN;
-  }
-  
   /* set nopt and ntrue */
   if (task->pctx->neighborTrueProb < 1) {
     nopt = AIR_TRUE;
@@ -178,9 +168,12 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   fprintf(stderr, "%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
           task->pctx->radiusSpace, spaDistSqMax);
   */
+  wghtSum = 0;
   energySum = 0;
   distSqSum = 0;
-  neighCount = 0;
+  point->neighInterNum = 0;
+  point->neighDist = 0.0;
+  point->neighMode = 0.0;
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
@@ -212,9 +205,15 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (egradSum) {
       ELL_4V_INCR(egradSum, egrad);
       if (ELL_4V_DOT(egrad, egrad)) {
-        if (meanNeighDist) {
-          neighCount++;
-          distSqSum += spaDistSq;
+        point->neighInterNum++;
+        point->neighDist = spaDistSq;
+        if (task->pctx->ispec[pullInfoTangentMode]) {
+          double w, m;
+          m = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
+                               NULL, NULL);
+          w = 1.0/spaDistSq;
+          point->neighMode += w*m;
+          wghtSum += w;
         }
         if (nopt && ntrue) {
           unsigned int ii;
@@ -225,13 +224,13 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     }
   }
   
-  /* finish computing mean distance to neighbors */
-  if (meanNeighDist) {
-    if (neighCount) {
-      *meanNeighDist = sqrt(distSqSum/neighCount);
-    } else {
-      *meanNeighDist = -1;
-    }
+  /* finish computing things averaged over neighbors */
+  if (point->neighInterNum) {
+    point->neighDist = sqrt(point->neighDist/point->neighInterNum);
+    point->neighMode /= wghtSum;
+  } else {
+    point->neighDist = -1;
+    point->neighMode = AIR_NAN;
   }
 
   return energySum;
@@ -266,7 +265,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
   }
   if (task->pctx->ispec[pullInfoHeight]
       && !task->pctx->ispec[pullInfoHeight]->constraint
-      && !task->pctx->ispec[pullInfoHeightLaplacian]->constraint) {
+      && (!task->pctx->ispec[pullInfoHeightLaplacian]
+          || !task->pctx->ispec[pullInfoHeightLaplacian]->constraint)) {
     energy += _pullPointScalar(task->pctx, point, pullInfoHeight,
                                grad3, NULL);
     if (egradSum) {
@@ -294,8 +294,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
 double
 _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
                       /* output */
-                      double force[4], double *neighDist) {
-  /* char me[]="_pullPointEnergyTotal"; */
+                      double force[4]) {
+  char me[]="_pullPointEnergyTotal";
   double enrIm, enrPt, egradIm[4], egradPt[4], energy;
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0); /* sssh */
@@ -303,7 +303,7 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
   enrIm = _energyFromImage(task, point, 
                            force ? egradIm : NULL);
   enrPt = _energyFromPoints(task, bin, point,
-                            force ? egradPt : NULL, neighDist);
+                            force ? egradPt : NULL);
   energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
   /*
   fprintf(stderr, "!%s(%u): energy = lerp(%g, im %g, pt %g) = %g\n", me,
@@ -340,7 +340,25 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
       }
     }
   }
+  if (!AIR_EXISTS(energy)) {
+    fprintf(stderr, "!%s(%u): HEY! non-exist energy %g\n", me, point->idtag,
+            energy);
+  }
   return energy;
+}
+
+double
+_pullDistLimit(pullTask *task, pullPoint *point) {
+  double ret;
+
+  if (point->neighDist < 0 /* no neighbors! */
+      || pullEnergyZero == task->pctx->energySpec->energy) {
+    ret = task->pctx->radiusSpace;
+  } else {
+    ret = point->neighDist;
+  }
+  /* task->pctx->constraintVoxelSize might be considered here */
+  return ret;
 }
 
 int
@@ -351,28 +369,42 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
                                    in a per-iteration way */
   int stepBad, giveUp;
 
+  if (point->debug) {
+    return 0;
+  }
   if (!point->stepEnergy) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
   }
 
-  if (0 && 541 == point->idtag && 10 == task->pctx->iter) {
+  if (0 && 162 == point->idtag) {
     fprintf(stderr, "!%s: !!!!!!!!!!!! praying ON!\n", me);
-    praying = AIR_TRUE;
-    ELL_3V_COPY(prayCorner[0][0], point->pos);
+    _pullPraying = AIR_TRUE;
+    ELL_3V_COPY(_pullPrayCorner[0][0], point->pos);
+    _pullPrayCorner[0][0][2] -= 1;
+    ELL_3V_COPY(_pullPrayCorner[0][1], point->pos);
+    _pullPrayCorner[0][1][2] += 1;
+    fprintf(stderr, "!%s: corner[0][0] = %g %g %g\n", me, 
+            _pullPrayCorner[0][0][0],
+            _pullPrayCorner[0][0][1],
+            _pullPrayCorner[0][0][2]);
+    fprintf(stderr, "!%s: corner[0][1] = %g %g %g\n", me, 
+            _pullPrayCorner[0][1][0],
+            _pullPrayCorner[0][1][1],
+            _pullPrayCorner[0][1][2]);
   } else {
-    praying = AIR_FALSE;
+    _pullPraying = AIR_FALSE;
   }
 
-  if (praying) {
+  if (_pullPraying) {
     fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
             me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
   }
-  energyOld = _pullPointEnergyTotal(task, bin, point, force, &distLimit);
-  if (praying) {
+  energyOld = _pullPointEnergyTotal(task, bin, point, force);
+  if (_pullPraying) {
     fprintf(stderr, "!%s: =================== point %u has:\n "
             "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
-            point->idtag, energyOld, distLimit, 
+            point->idtag, energyOld, point->neighDist,
             force[0], force[1], force[2], force[3]);
   }
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
@@ -383,29 +415,10 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   if (task->pctx->constraint) {
     /* we have a constraint, so do something to get the force more
        tangential to the constriant surface */
-    double vec[4], proj[9], nvec[3], outer[9], pfrc[3], len;
-
-    switch (task->pctx->constraint) {
-    case pullInfoHeight:
-      /* HEY: need an approximate constraint surface tangent */
-      ELL_3V_SET(vec, 0, 0, 0);
-      break;
-    case pullInfoHeightLaplacian:
-      _pullPointScalar(task->pctx, point, pullInfoHeight, vec, NULL);
-      break;
-    case pullInfoIsovalue:
-      _pullPointScalar(task->pctx, point, pullInfoIsovalue, vec, NULL);
-      break;
-    }
-    ELL_3V_NORM(nvec, vec, len);
-    if (len) {
-      ELL_3MV_OUTER(outer, nvec, nvec);
-      ELL_3M_IDENTITY_SET(proj);
-      ELL_3M_SUB(proj, proj, outer);
-      ELL_3MV_MUL(pfrc, proj, force);
-      ELL_3V_COPY(force, pfrc);
-    }
-    /* if !len, gradient is zero, and no change is made */
+    double proj[9], pfrc[3];
+    _pullConstraintTangent(task, point, proj);
+    ELL_3MV_MUL(pfrc, proj, force);
+    ELL_3V_COPY(force, pfrc);
   }
 
   point->status = 0;
@@ -418,11 +431,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     point->energy = energyOld;
     return 0;
   }
-  if (distLimit < 0 /* no neighbors! */
-      || pullEnergyZero == task->pctx->energySpec->energy) {
-    distLimit = task->pctx->radiusSpace;
-  }
-  /* maybe voxel size should also be considered for finding distLimit */
+  distLimit = _pullDistLimit(task, point);
 
   /* find capscl */
   ELL_3V_SCALE(capvec, point->stepEnergy, force);
@@ -432,8 +441,73 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   } else {
     capscl = 1;
   }
-  if (praying) {
-    fprintf(stderr, "%s: ======= (%u) capscl = %g\n", me, point->idtag, capscl);
+  if (_pullPraying) {
+    fprintf(stderr, "%s: ======= (%u) capscl = %g\n", me,
+            point->idtag, capscl);
+  }
+
+  if (_pullPraying) {
+    double nfrc[3], len, phold[4], ee;
+    int cfail;
+    ELL_4V_COPY(phold, point->pos);
+    
+    fprintf(stderr, "!%s(%u,%u): energy(%g,%g,%g) = %f (original)\n",
+            me, task->pctx->iter, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], energyOld);
+    
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
+                      capscl*point->stepEnergy, force);
+    ELL_3V_COPY(_pullPrayCorner[1][0], point->pos);
+    _pullPrayCorner[1][0][2] -= 1;
+    ELL_3V_COPY(_pullPrayCorner[1][1], point->pos);
+    _pullPrayCorner[1][1][2] += 1;
+    fprintf(stderr, "!%s: corner[1][0] = %g %g %g\n", me, 
+            _pullPrayCorner[1][0][0],
+            _pullPrayCorner[1][0][1],
+            _pullPrayCorner[1][0][2]);
+    fprintf(stderr, "!%s: corner[1][1] = %g %g %g\n", me, 
+            _pullPrayCorner[1][1][0],
+            _pullPrayCorner[1][1][1],
+            _pullPrayCorner[1][1][2]);
+
+#define PROBE(l)  if (_pullProbe(task, point)) {                   \
+      sprintf(err, "%s: while praying", me);                       \
+      biffAdd(PULL, err); return 1;                                \
+    }                                                              \
+    (l) = _pullPointScalar(task->pctx, point,                      \
+                           pullInfoHeight, NULL, NULL);
+    if (1) {
+      double *enr, *lpl, uu, vv, vpos[2][3], ll, mid[3];
+      unsigned int ui, vi;
+      Nrrd *nenr, *nlpl;
+      nenr = nrrdNew();
+      nlpl = nrrdNew();
+      nrrdMaybeAlloc_nva(nenr, nrrdTypeDouble, 2, _pullPrayRes);
+      enr = AIR_CAST(double *, nenr->data);
+      nrrdMaybeAlloc_nva(nlpl, nrrdTypeDouble, 2, _pullPrayRes);
+      lpl = AIR_CAST(double *, nlpl->data);
+      for (vi=0; vi<_pullPrayRes[1]; vi++) {
+        vv = AIR_AFFINE(0, vi, _pullPrayRes[1]-1, 0, 1);
+        ELL_3V_LERP(vpos[0], vv, _pullPrayCorner[0][0], _pullPrayCorner[0][1]);
+        ELL_3V_LERP(vpos[1], vv, _pullPrayCorner[1][0], _pullPrayCorner[1][1]);
+        for (ui=0; ui<_pullPrayRes[0]; ui++) {
+          uu = AIR_AFFINE(0, ui, _pullPrayRes[0]-1, 0, 1);
+          ELL_3V_LERP(point->pos, uu, vpos[0], vpos[1]);
+          PROBE(ll);
+          lpl[ui + _pullPrayRes[0]*vi] = ll;
+          enr[ui + _pullPrayRes[0]*vi] = _pullPointEnergyTotal(task, bin,
+                                                               point, NULL);
+        }
+      }
+      nrrdSave("nenr.nrrd", nenr, NULL);
+      nrrdSave("nlpl.nrrd", nlpl, NULL);
+      nenr = nrrdNuke(nenr);
+      nlpl = nrrdNuke(nlpl);
+    }
+#undef PROBE
+
+    ELL_4V_COPY(point->pos, phold);
+    _pullPointEnergyTotal(task, bin, point, NULL);
   }
 
   do {
@@ -444,7 +518,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
                       capscl*point->stepEnergy, force);
 
     _pullPointHistAdd(point, pullCondEnergyTry);
-    if (praying) {
+    if (_pullPraying) {
       fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
               point->idtag, capscl*point->stepEnergy, 
               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
@@ -459,31 +533,40 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     if (constrFail) {
       energyNew = AIR_NAN;
+      if (_pullPraying) {
+        fprintf(stderr, "!%s: ======= constraint fail\n", me);
+      }
     } else {
-      energyNew = _pullPointEnergyTotal(task, bin, point,  NULL, NULL);
-      if (praying) {
-        fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me, energyNew,
-                energyNew > energyOld ? ">" : "<=", energyOld,
+      energyNew = _pullPointEnergyTotal(task, bin, point,  NULL);
+      if (_pullPraying) {
+        fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me,
+                energyNew, energyNew > energyOld ? ">" : "<=", energyOld,
                 energyNew > energyOld ? "!! BADSTEP !!" : "ok");
       }
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
-      _pullPointHistAdd(point, pullCondEnergyBad);
+      if (constrFail) {
+        _pullPointHistAdd(point, pullCondConstraintFail);
+      } else {
+        _pullPointHistAdd(point, pullCondEnergyBad);
+      }
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000000001) {
-        fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck; "
-                "capscl %g <<<<\n\n\n", 
-                me, point->idtag, 
-                point->pos[0], point->pos[1], point->pos[2], point->pos[3],
-                point->stepEnergy, capscl);
+        if (task->pctx->verbose > 1) {
+          fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck; "
+                  "capscl %g <<<<\n\n\n", me, point->idtag, 
+                  point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+                  point->stepEnergy, capscl);
+        }
         /* This point is fuct, may as well reset its step, maybe things
            will go better next time.  Without this resetting, it will stay
            effectively frozen */
         ELL_4V_COPY(point->pos, posOld);
-        point->stepEnergy = task->pctx->stepInitial;
+        energyNew = energyOld; /* to be copied into point->energy below */
+        point->stepEnergy = task->pctx->stepInitial/100;
         point->status = 1;
         giveUp = AIR_TRUE;
       }
@@ -496,6 +579,11 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
 
   /* not recorded for the sake of this function, but for system accounting */
   point->energy = energyNew;
+  if (!AIR_EXISTS(energyNew)) {
+    sprintf(err, "%s: point %u has non-exist final energy %g\n", 
+            me, point->idtag, energyNew);
+    biffAdd(PULL, err); return 1;
+  }
 
   return 0;
 }

@@ -55,11 +55,14 @@ pullPointNew(pullContext *pctx) {
   pnt->neighArr = airArrayNew((void**)&(pnt->neighPoint), &(pnt->neighNum),
                               sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
   pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
+  pnt->neighDist = pnt->neighMode = AIR_NAN;
+  pnt->neighInterNum = 0;
   pnt->phist = NULL;
   pnt->phistNum = 0;
   pnt->phistArr = airArrayNew((void**)&(pnt->phist), &(pnt->phistNum),
                               5*sizeof(double), 32);
   pnt->status = 0;
+  pnt->debug = AIR_FALSE;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -86,10 +89,14 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighPoint = src->neighPoint;
   dst->neighNum = src->neighNum;
   dst->neighArr = src->neighArr;
+  dst->neighDist = src->neighDist;
+  dst->neighMode = src->neighMode;
+  dst->neighInterNum = src->neighInterNum;
   dst->phist = src->phist;
   dst->phistNum = src->phistNum;
   dst->phistArr = src->phistArr;
   dst->status = src->status;
+  dst->debug = src->debug;
   ELL_4V_COPY(dst->pos, src->pos);
   dst->energy = src->energy;
   ELL_4V_COPY(dst->force, src->force);
@@ -154,6 +161,9 @@ _pullEnergyTotal(const pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (point->debug) {
+        continue;
+      }
       sum += point->energy;
     }
   }
@@ -170,6 +180,9 @@ _pullPointStepEnergyScale(pullContext *pctx, double scale) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (point->debug) {
+        continue;
+      }
       point->stepEnergy *= scale;
     }
   }
@@ -190,6 +203,9 @@ _pullStepInterAverage(const pullContext *pctx) {
     pointNum += bin->pointNum;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (point->debug) {
+        continue;
+      }
       sum += point->stepEnergy;
     }
   }
@@ -211,6 +227,9 @@ _pullStepConstrAverage(const pullContext *pctx) {
     pointNum += bin->pointNum;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (point->debug) {
+        continue;
+      }
       sum += point->stepConstr;
     }
   }
@@ -269,15 +288,22 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   infoIdx = pctx->infoIdx;
   ispec = pctx->ispec[sclInfo];
   scl = point->info[infoIdx[sclInfo]];
+  scl = (scl - ispec->zero)*ispec->scale;
+  /*
+    learned: this wasn't thought through: the idea was that the height
+    *laplacian* answer should be transformed by the *height* zero and
+    scale.  scale might make sense, but not zero.  This cost a few
+    hours of tracking down the fact that the first zero-crossing
+    detection phase of the lapl constraint was failing because the
+    laplacian was facilating around hspec->zero, not 0.0 ...
   if (pullInfoHeightLaplacian == sclInfo) {
-    /* NOTE: _pullContextCheck makes sure that Height is set 
-       if the Laplacian is requested */
     const pullInfoSpec *hspec;
     hspec = pctx->ispec[pullInfoHeight];
     scl = (scl - hspec->zero)*hspec->scale;
   } else {
     scl = (scl - ispec->zero)*ispec->scale;
   }
+  */
   /*
   fprintf(stderr, "%s = (%g - %g)*%g = %g*%g = %g = %g\n",
           airEnumStr(pullInfo, sclInfo),
@@ -314,6 +340,11 @@ _pullProbe(pullTask *task, pullPoint *point) {
       continue;
     }
     if (task->vol[ii]->ninSingle) {
+      /*
+      fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g\n", me,
+              ii, task->vol[ii]->name, 
+              point->pos[0], point->pos[1], point->pos[2]);
+      */
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE, AIR_TRUE);
@@ -343,6 +374,16 @@ _pullProbe(pullTask *task, pullPoint *point) {
       alen = _pullInfoAnswerLen[ii];
       aidx = task->pctx->infoIdx[ii];
       _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
+      if (0 && 1 == alen) {
+        pullVolume *vol;
+        pullInfoSpec *isp;
+        isp = task->pctx->ispec[ii];
+        vol = task->pctx->vol[isp->volIdx];
+        fprintf(stderr, "!%s: info[%u] %s: %s \"%s\" = %g\n", me,
+                ii, airEnumStr(pullInfo, ii),
+                airEnumStr(vol->kind->enm, isp->item),
+                vol->name, task->ans[ii][0]);
+      }
     }
   }
   return 0;
@@ -365,7 +406,7 @@ _pullPointSetup(pullContext *pctx) {
   double *posData;
   airRandMTState *rng;
   pullBin *bin;
-  int reject;
+  int reject, threshFail, constrFail;
   airArray *mop;
   Nrrd *npos;
 
@@ -408,6 +449,7 @@ _pullPointSetup(pullContext *pctx) {
         biffAdd(PULL, err); return 1;
       }
     } else {
+      unsigned int threshFailCount = 0, constrFailCount = 0;
       do {
         _pullPointHistInit(point);
         ELL_3V_SET(point->pos,
@@ -428,19 +470,38 @@ _pullPointSetup(pullContext *pctx) {
           sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
-        reject = AIR_FALSE;
         if (pctx->ispec[pullInfoSeedThresh]) {
           double val;
           val = _pullPointScalar(pctx, point, pullInfoSeedThresh, NULL, NULL);
-          reject |= val < 0;
+          /*
+          fprintf(stderr, "!%s: val(%g %g %g) =  %g -> %g\n", me, 
+                  point->pos[0], point->pos[1], point->pos[2], 
+                  point->info[pctx->infoIdx[pullInfoSeedThresh]], val);
+          */
+          threshFailCount += (threshFail = val < 0);
+        } else {
+          threshFail = AIR_FALSE;
         }
-        if (!reject && pctx->constraint) {
-          int constrFail;
+        if (!threshFail && pctx->constraint) {
           if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
             sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
             biffAdd(PULL, err); return 1;
           }
-          reject = constrFail;
+          constrFailCount += constrFail;
+        } else {
+          constrFail = AIR_FALSE;
+        }
+        reject = threshFail || constrFail;
+        if (reject) {
+          if (threshFailCount + constrFailCount > 1000) {
+            sprintf(err, "%s: failed too often placing %u "
+                    "(thresh %d/%u, constr %d/%u)",
+                    me, pointIdx, threshFail, threshFailCount,
+                    constrFail, constrFailCount);
+            biffAdd(PULL, err); return 1;
+          }
+        } else {
+          threshFailCount = constrFailCount = 0;
         }
       } while (reject);
     }
@@ -469,7 +530,7 @@ _pullPointSetup(pullContext *pctx) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
-                                            point->force, NULL);
+                                            point->force);
     }
   }
 

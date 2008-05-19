@@ -48,10 +48,16 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
+extern int _pullPraying;
+extern double _pullPrayCorner[2][2][3];
+extern size_t _pullPrayRes[2];
+extern double _pullDistLimit(pullTask *task, pullPoint *point);
 
 /* constraints.c */
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                                   int *constrFailP);
+extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
+                                   double proj[9]);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,
@@ -67,7 +73,7 @@ extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
 extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
                                     pullPoint *point,
-                                    double force[4], double *neighDist);
+                                    double force[4]);
 extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepEnergyScale(pullContext *pctx, double scale);
 extern int _pullPointSetup(pullContext *pctx);

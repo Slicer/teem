@@ -54,7 +54,7 @@ pullContextNew(void) {
   pctx->opporStepScale = 1.0;
   pctx->stepScale = 0.5;
   pctx->energyImprovMin = 0.01;
-  pctx->constraintStepMin = 0.00001;
+  pctx->constraintStepMin = 0.0001;
   pctx->wall = 1;
 
   pctx->seedRNG = 42;
@@ -306,7 +306,7 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(radiusSpace, 0.000001, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
-  CHECK(opporStepScale, 1.0, 2.0);
+  CHECK(opporStepScale, 1.0, 10.0);
   CHECK(stepScale, 0.01, 0.99);
   CHECK(energyImprovMin, -0.2, 1.0);
   CHECK(constraintStepMin, 0.00000000000000001, 0.1);
@@ -334,6 +334,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   pullPoint *point;
 
   pointNum = _pullPointNumber(pctx);
+  fprintf(stderr, "!%s: pointNum = %u\n", me, pointNum);
   if (pointNum != pctx->idtagNext) {
     /* HEY: should really be checking that all IDs between 
        0 and pointNum-1 contiguous are used.  Will have to do something
@@ -383,8 +384,9 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
           eval[2] = AIR_MIN(eceil, 1.0/eval[2]);
           ELL_3V_NORM(eval, eval, len);
           tenMakeSingle_d(tout, 1, eval, evec);
-        } else if (pctx->ispec[pullInfoHeightGradient]
-                   || pctx->ispec[pullInfoIsovalueGradient]) {
+        } else if (pctx->constraint
+                   && (pctx->ispec[pullInfoHeightGradient]
+                       || pctx->ispec[pullInfoIsovalueGradient])) {
           double *grad, norm[3], len, mat[9], out[9];
           grad = point->info + (pctx->ispec[pullInfoHeightGradient]
                                 ? pctx->infoIdx[pullInfoHeightGradient]
@@ -392,7 +394,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
           ELL_3V_NORM(norm, grad, len);
           ELL_3MV_OUTER(out, norm, norm);
           ELL_3M_IDENTITY_SET(mat);
-          ELL_3M_SCALE_INCR(mat, -0.92, out);
+          ELL_3M_SCALE_INCR(mat, -0.95, out);
           TEN_M2T(tout, mat);
           tout[0] = 1;
         } else {
@@ -549,6 +551,9 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
           break;
         case pullCondEnergyBad:
           ELL_3V_SET(rgb, 255, 0, 0);
+          break;
+        case pullCondConstraintFail:
+          ELL_3V_SET(rgb, 255, 0, 255);
           break;
         case pullCondNew:
           ELL_3V_SET(rgb, 128, 255, 128);
