@@ -493,7 +493,7 @@ _pullPointSetup(pullContext *pctx) {
         }
         reject = threshFail || constrFail;
         if (reject) {
-          if (threshFailCount + constrFailCount > 1000) {
+          if (threshFailCount + constrFailCount > 10000) {
             sprintf(err, "%s: failed too often placing %u "
                     "(thresh %d/%u, constr %d/%u)",
                     me, pointIdx, threshFail, threshFailCount,

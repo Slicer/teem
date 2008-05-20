@@ -67,13 +67,55 @@ _pullInfoVal[] = {
   pullInfoStrength            /* 17: [1] */
 };
 
+char
+_pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
+  "ten",
+  "teni",
+  "hess",
+  "in",
+  "ingradvec",
+  "hght", "h",
+  "hghtgradvec", "hgvec",
+  "hghthessian", "hhess",
+  "hghtlapl", "hlapl",
+  "seedthresh", "sthr",
+  "tan1",
+  "tan2",
+  "tanmode", "tmode",
+  "isoval", "iso",
+  "isogradvec", "isogvec",
+  "isohessian", "isohess",
+  "strength"
+};
+
+int
+_pullInfoValEqv[] = {
+  pullInfoTensor,
+  pullInfoTensorInverse,
+  pullInfoHessian,
+  pullInfoInside,
+  pullInfoInsideGradient,
+  pullInfoHeight, pullInfoHeight,
+  pullInfoHeightGradient, pullInfoHeightGradient,
+  pullInfoHeightHessian, pullInfoHeightHessian,
+  pullInfoHeightLaplacian, pullInfoHeightLaplacian,
+  pullInfoSeedThresh, pullInfoSeedThresh,
+  pullInfoTangent1,
+  pullInfoTangent2,
+  pullInfoTangentMode, pullInfoTangentMode,
+  pullInfoIsovalue, pullInfoIsovalue,
+  pullInfoIsovalueGradient, pullInfoIsovalueGradient,
+  pullInfoIsovalueHessian, pullInfoIsovalueHessian,
+  pullInfoStrength
+};
+
 airEnum
 _pullInfo = {
   "pullInfo",
   PULL_INFO_MAX+1,
   _pullInfoStr, _pullInfoVal,
   NULL,
-  NULL, NULL,
+  _pullInfoStrEqv, _pullInfoValEqv,
   AIR_FALSE
 };
 airEnum *const
