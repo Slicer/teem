@@ -1049,9 +1049,9 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 ** It doesn't interpolate.
 **
 ** The same kernel is also available as 
-** nrrdKernelTMF with D,C,A = -1,3,2 ---> nrrdKernelTMF[0][4][2],
+** nrrdKernelTMF w/ D,C,A = -1,3,2 => nrrdKernelTMF[0][4][2] => "tmf:-1,3,2"
 ** the advantage here being that you have access to the first
-** and second derivatives of tthis quintic kernel as
+** and second derivatives of this quintic kernel as
 ** nrrdKernelC3QuinticD and nrrdKernelC3QuinticDD
 */
 
