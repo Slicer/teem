@@ -452,6 +452,7 @@ airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "bool",
   "int",
   "unsigned int",
+  "long int",
   "size_t",
   "float",
   "double",
@@ -467,6 +468,7 @@ airTypeSize[AIR_TYPE_MAX+1] = {
   sizeof(int),
   sizeof(int),
   sizeof(unsigned int),
+  sizeof(long int),
   sizeof(size_t),
   sizeof(float),
   sizeof(double),
@@ -482,7 +484,8 @@ airILoad(void *v, int t) {
   switch(t) {
   case airTypeBool:   return *((int*)v); break;
   case airTypeInt:    return *((int*)v); break;
-  case airTypeUInt:   return *((unsigned int*)v); break;
+  case airTypeUInt:   return (int)*((unsigned int*)v); break;
+  case airTypeLongInt:return (int)*((long int*)v); break;
   case airTypeSize_t: return (int)*((size_t*)v); break;
   case airTypeFloat:  return (int)*((float*)v); break;
   case airTypeDouble: return (int)*((double*)v); break;
@@ -498,6 +501,7 @@ airIStore(void *v, int t, int i) {
   case airTypeBool:   return (*((int*)v) = !!i); break;
   case airTypeInt:    return (*((int*)v) = i); break;
   case airTypeUInt:   return (int)(*((unsigned int*)v) = i); break;
+  case airTypeLongInt:return (int)(*((long int*)v) = i); break;
   case airTypeSize_t: return (int)(*((size_t*)v) = i); break;
   case airTypeFloat:  return (int)(*((float*)v) = (float)(i)); break;
   case airTypeDouble: return (int)(*((double*)v) = (double)(i)); break;
@@ -513,6 +517,7 @@ airFLoad(void *v, int t) {
   case airTypeBool:   return AIR_CAST(float, *((int*)v)); break;
   case airTypeInt:    return AIR_CAST(float, *((int*)v)); break;
   case airTypeUInt:   return AIR_CAST(float, *((unsigned int*)v)); break;
+  case airTypeLongInt:return AIR_CAST(float, *((long int*)v)); break;
   case airTypeSize_t: return AIR_CAST(float, *((size_t*)v)); break;
   case airTypeFloat:  return *((float*)v); break;
   case airTypeDouble: return AIR_CAST(float, *((double*)v)); break;
@@ -533,6 +538,9 @@ airFStore(void *v, int t, float f) {
     break;
   case airTypeUInt:
     return AIR_CAST(float, *((unsigned int*)v) = (unsigned int)f);
+    break;
+  case airTypeLongInt:
+    return AIR_CAST(float, *((long int*)v) = (long int)f);
     break;
   case airTypeSize_t:
     return AIR_CAST(float, *((size_t*)v) = (size_t)f);
@@ -559,6 +567,7 @@ airDLoad(void *v, int t) {
   case airTypeBool:   return *((int*)v); break;
   case airTypeInt:    return *((int*)v); break;
   case airTypeUInt:   return *((unsigned int*)v); break;
+  case airTypeLongInt:return *((long int*)v); break;
   case airTypeSize_t: return *((size_t*)v); break;
   case airTypeFloat:  return *((float*)v); break;
   case airTypeDouble: return *((double*)v); break;
@@ -574,6 +583,7 @@ airDStore(void *v, int t, double d) {
   case airTypeBool:   return (*((int*)v) = (int)d); break;
   case airTypeInt:    return (*((int*)v) = (int)d); break;
   case airTypeUInt:   return (*((unsigned int*)v) = (unsigned int)d); break;
+  case airTypeLongInt:return (*((long int*)v) = (long int)d); break;
   case airTypeSize_t: return (*((size_t*)v) = (size_t)d); break;
   case airTypeFloat:  return (*((float*)v) = (float)d); break;
   case airTypeDouble: return (*((double*)v) = d); break;

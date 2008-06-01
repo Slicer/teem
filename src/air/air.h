@@ -368,16 +368,17 @@ enum {
   airTypeBool,      /*  1 */
   airTypeInt,       /*  2 */
   airTypeUInt,      /*  3 */
-  airTypeSize_t,    /*  4 */
-  airTypeFloat,     /*  5 */
-  airTypeDouble,    /*  6 */
-  airTypeChar,      /*  7 */
-  airTypeString,    /*  8 */
-  airTypeEnum,      /*  9 */
-  airTypeOther,     /* 10 */
+  airTypeLongInt,   /*  4 */
+  airTypeSize_t,    /*  5 */
+  airTypeFloat,     /*  6 */
+  airTypeDouble,    /*  7 */
+  airTypeChar,      /*  8 */
+  airTypeString,    /*  9 */
+  airTypeEnum,      /* 10 */
+  airTypeOther,     /* 11 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   10
+#define AIR_TYPE_MAX   11
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);

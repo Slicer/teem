@@ -178,6 +178,9 @@ unsigned int
 airParseStrUI(_PARSE_STR_ARGS(unsigned int)) { _PARSE_STR_BODY("%u") }
 
 unsigned int
+airParseStrLI(_PARSE_STR_ARGS(long int)) { _PARSE_STR_BODY("%ld") }
+
+unsigned int
 airParseStrZ(_PARSE_STR_ARGS(size_t))     { _PARSE_STR_BODY(_AIR_SIZE_T_CNV) }
 
 unsigned int
@@ -350,6 +353,8 @@ unsigned int
                     unsigned int, ...))airParseStrI,
   (unsigned int (*)(void *, const char *, const char *,
                     unsigned int, ...))airParseStrUI,
+  (unsigned int (*)(void *, const char *, const char *,
+                    unsigned int, ...))airParseStrLI,
   (unsigned int (*)(void *, const char *, const char *,
                     unsigned int, ...))airParseStrZ,
   (unsigned int (*)(void *, const char *, const char *,
