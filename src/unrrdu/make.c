@@ -69,9 +69,10 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nrrd;
   size_t *size;
   int buflen, bufLen,
-    headerOnly, pret, lineSkip, byteSkip, endian, type,
+    headerOnly, pret, lineSkip, endian, type,
     encodingType, gotSpacing, gotThickness, space, spaceDim, 
     spaceSet;
+  long int byteSkip;
   unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen,
     centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim;
   double *spacing, *thickness;
@@ -140,7 +141,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
              "by many nrrd function to record a history of operations");
   hestOptAdd(&opt, "ls,lineskip", "num", airTypeInt, 1, 1, &lineSkip, "0",
              "number of ascii lines to skip before reading data");
-  hestOptAdd(&opt, "bs,byteskip", "num", airTypeInt, 1, 1, &byteSkip, "0",
+  hestOptAdd(&opt, "bs,byteskip", "num", airTypeLongInt, 1, 1, &byteSkip, "0",
              "number of bytes to skip (after skipping ascii lines, if any) "
              "before reading data.  Can use \"-bs -1\" to skip a binary "
              "header of unknown length in raw-encoded data");
