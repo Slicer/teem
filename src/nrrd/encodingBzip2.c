@@ -43,7 +43,8 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   char me[]="_nrrdEncodingBzip2_read", err[BIFF_STRLEN];
 #if TEEM_BZIP2
   size_t bsize, total_read, block_size;
-  int read, i, bzerror=BZ_OK;
+  int read, bzerror=BZ_OK;
+  long int bi;
   char *data;
   BZFILE* bzfin;
   
@@ -61,7 +62,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   }
 
   /* Here is where we do the byte skipping. */
-  for(i = 0; i < nio->byteSkip; i++) {
+  for(bi=0; bi<nio->byteSkip; bi++) {
     unsigned char b;
     /* Check to see if a single byte was able to be read. */
     read = BZ2_bzRead(&bzerror, bzfin, &b, 1);

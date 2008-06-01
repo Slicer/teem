@@ -624,7 +624,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     break;
   case nrrdField_byte_skip:
     *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
-    sprintf(*strP, "%s%s: %d", prefix, fs, nio->byteSkip);
+    sprintf(*strP, "%s%s: %ld", prefix, fs, nio->byteSkip);
     break;
   case nrrdField_sample_units:
     airOneLinify(nrrd->sampleUnits);

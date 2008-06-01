@@ -48,7 +48,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   char me[]="_nrrdEncodingGzip_read", err[BIFF_STRLEN];
 #if TEEM_ZLIB
   size_t sizeData, sizeRed, sizeChunk;
-  int i, error;
+  int error;
+  long int bi;
   unsigned int read;
   char *data;
   gzFile gzfin;
@@ -130,12 +131,12 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     /* no negative byteskip: after byteskipping, we can read directly
        into given data buffer */
     if (nio->byteSkip > 0) {
-      for (i=0; i<nio->byteSkip; i++) {
+      for (bi=0; bi<nio->byteSkip; bi++) {
         unsigned char b;
         /* Check to see if a single byte was able to be read. */
         if (_nrrdGzRead(gzfin, &b, 1, &read) != 0 || read != 1) {
-          sprintf(err, "%s: hit an error skipping byte %d of %d",
-                  me, i, nio->byteSkip);
+          sprintf(err, "%s: hit an error skipping byte %ld of %ld",
+                  me, bi, nio->byteSkip);
           biffAdd(NRRD, err);
           return 1;
         }

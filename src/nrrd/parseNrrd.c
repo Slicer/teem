@@ -886,9 +886,9 @@ _nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   info = nio->line + nio->pos;
-  _PARSE_ONE_VAL(nio->byteSkip, "%d", "int");
+  _PARSE_ONE_VAL(nio->byteSkip, "%ld", "long int");
   if (!(-1 <= nio->byteSkip)) {
-    sprintf(err, "%s: byteSkip value %d invalid", me, nio->byteSkip);
+    sprintf(err, "%s: byteSkip value %ld invalid", me, nio->byteSkip);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   return 0;

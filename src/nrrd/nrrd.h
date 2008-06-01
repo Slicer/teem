@@ -354,6 +354,9 @@ typedef struct NrrdIoState_t {
     headerStrpos;           /* ON READ, for NRRDs, if headerStringRead is
                                non-NULL, the current location of reading
                                in the header */
+  long int byteSkip;        /* exactly like lineSkip, but bytes
+                               instead of lines.  First the lines are
+                               skipped, then the bytes */
   int dataFNMin,            /* used with dataFNFormat to identify .. */
     dataFNMax,              /* .. all the multiple detached datafiles */
     dataFNStep,             /* how to step from max to min */
@@ -363,9 +366,6 @@ typedef struct NrrdIoState_t {
     endian,                 /* endian-ness of the data in file, for
                                those encoding/type combinations for
                                which it matters (from nrrdEndian) */
-    byteSkip,               /* exactly like lineSkip, but bytes
-                               instead of lines.  First the lines are
-                               skipped, then the bytes */
     seen[NRRD_FIELD_MAX+1], /* for error checking in header parsing */
     detachedHeader,         /* ON WRITE: request for file (NRRD format only)
                                to be split into distinct header and data. 

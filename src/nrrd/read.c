@@ -269,7 +269,8 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
 */
 int
 nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
-  int i, skipRet, backHack;
+  int skipRet;
+  long bi, backHack;
   char me[]="nrrdByteSkip", err[BIFF_STRLEN];
   size_t bsize;
 
@@ -301,11 +302,11 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
               me, (int)ftell(dataFile));
     }
   } else {
-    for (i=1; i<=nio->byteSkip; i++) {
+    for (bi=1; bi<=nio->byteSkip; bi++) {
       skipRet = fgetc(dataFile);
       if (EOF == skipRet) {
-        sprintf(err, "%s: hit EOF skipping byte %d of %d",
-                me, i, nio->byteSkip);
+        sprintf(err, "%s: hit EOF skipping byte %ld of %ld",
+                me, bi, nio->byteSkip);
         biffAdd(NRRD, err); return 1;
       }
     }
