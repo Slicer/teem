@@ -88,7 +88,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
 /*
 ******** unrrduHestPosCB
 **
-** For parsing position along an axis. Can be a simple integer,
+** For parsing position along an axis. Can be a simple (long) integer,
 ** or M to signify last position along axis (#samples-1), or
 ** M+<int> or M-<int> to signify some position relative to the end.
 **
@@ -109,13 +109,13 @@ unrrduUsage(const char *me, hestParm *hparm) {
 int
 unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParsePos";
-  int *pos;
+  long int *pos;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  pos = (int*)ptr;
+  pos = (long int*)ptr;
   if (!strcmp("M", str)) {
     pos[0] = 1;
     pos[1] = 0;
@@ -127,7 +127,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
     pos[0] = 1;
-    if (1 != sscanf(str+1, "%d", &(pos[1]))) {
+    if (1 != sscanf(str+1, "%ld", &(pos[1]))) {
       sprintf(err, "%s: can't parse \"%s\" as M+<int> or M-<int>", me, str);
       return 1;
     }
@@ -139,12 +139,12 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
     pos[0] = -1;
-    if (1 != sscanf(str+1, "%d", &(pos[1]))) {
+    if (1 != sscanf(str+1, "%ld", &(pos[1]))) {
       sprintf(err, "%s: can't parse \"%s\" as m+<int>", me, str);
       return 1;
     }
     if (pos[1] < 0 ) {
-      sprintf(err, "%s: int in m+<int> must be non-negative (not %d)",
+      sprintf(err, "%s: int in m+<int> must be non-negative (not %ld)",
               me, pos[1]);
       return 1;
     }
@@ -152,7 +152,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
   /* else its just a plain unadorned integer */
   pos[0] = 0;
-  if (1 != sscanf(str, "%d", &(pos[1]))) {
+  if (1 != sscanf(str, "%ld", &(pos[1]))) {
     sprintf(err, "%s: can't parse \"%s\" as int", me, str);
     return 1;
   }
@@ -160,7 +160,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 }
 
 hestCB unrrduHestPosCB = {
-  2*sizeof(int),
+  2*sizeof(long int),
   "position",
   unrrduParsePos,
   NULL

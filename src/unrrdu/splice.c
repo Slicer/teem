@@ -33,7 +33,9 @@ unrrdu_spliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nout, *nslice;
   unsigned int axis;
-  int _pos[2], pos, pret;
+  int pret;
+  long int _pos[2];
+  size_t pos;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to splice along");

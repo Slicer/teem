@@ -32,7 +32,8 @@ unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nout;
   unsigned int ai;
-  int *minOff, minLen, *maxOff, maxLen, pret;
+  int minLen, maxLen, pret;
+  long int *minOff, *maxOff;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
 

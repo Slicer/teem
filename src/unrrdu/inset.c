@@ -33,7 +33,8 @@ unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd *nin, *nout, *nsub;
   unsigned int ai, minLen;
-  int *minOff, pret;
+  int pret;
+  long int *minOff;
   size_t min[NRRD_DIM_MAX];
   airArray *mop;
 
