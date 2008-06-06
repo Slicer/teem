@@ -67,8 +67,8 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
     /* Check to see if a single byte was able to be read. */
     read = BZ2_bzRead(&bzerror, bzfin, &b, 1);
     if (read != 1 || bzerror != BZ_OK) {
-      sprintf(err, "%s: hit an error skipping byte %d of %d: %s",
-              me, i, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
+      sprintf(err, "%s: hit an error skipping byte %ld of %ld: %s",
+              me, bi, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
       biffAdd(NRRD, err);
       return 1;
     }
