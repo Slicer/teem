@@ -199,21 +199,25 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
     }
     if (airTypeEnum == opt[op].type) {
       if (!(opt[op].enm)) {
-        if (err)
-          sprintf(err, "%s!!!!!! opt[%d] is type \"enum\", but no "
-                  "airEnum pointer given", ME, op);
-        else
+        if (err) {
+          sprintf(err, "%s!!!!!! opt[%d] (%s) is type \"enum\", but no "
+                  "airEnum pointer given", ME, op, 
+                  opt[op].flag ? opt[op].flag : "?");
+        } else {
           fprintf(stderr, "%s: panic 3\n", me);
+        }
         return 1;
       }
     }
     if (airTypeOther == opt[op].type) {
       if (!(opt[op].CB)) {
-        if (err)
-          sprintf(err, "%s!!!!!! opt[%d] is type \"other\", but no "
-                  "callbacks given", ME, op);
-        else
+        if (err) {
+          sprintf(err, "%s!!!!!! opt[%d] (%s) is type \"other\", but no "
+                  "callbacks given", ME, op,
+                  opt[op].flag ? opt[op].flag : "?");
+        } else {
           fprintf(stderr, "%s: panic 4\n", me);
+        }
         return 1;
       }
       if (!( opt[op].CB->size > 0 )) {
