@@ -81,7 +81,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     task->thread = airThreadNew();
   }
   task->threadIdx = threadIdx;
-  task->rng = airRandMTStateNew(pctx->seedRNG + threadIdx);
+  task->rng = airRandMTStateNew(pctx->rngSeed + threadIdx);
   task->pointBuffer = pullPointNew(pctx);
   pctx->idtagNext = 0; /* because pullPointNew incremented it */
   task->neighPoint = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,

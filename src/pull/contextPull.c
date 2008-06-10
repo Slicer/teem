@@ -57,7 +57,8 @@ pullContextNew(void) {
   pctx->constraintStepMin = 0.0001;
   pctx->wall = 1;
 
-  pctx->seedRNG = 42;
+  pctx->pointPerVoxel = 0;
+  pctx->rngSeed = 42;
   pctx->threadNum = 1;
   pctx->iterMax = 0;
   pctx->constraintIterMax = 15;
@@ -202,6 +203,9 @@ _pullContextCheck(pullContext *pctx) {
       switch (ii) {
       case pullInfoInside:
       case pullInfoHeight:
+      case pullInfoHeightLaplacian:
+      case pullInfoSeedThresh:
+      case pullInfoTangentMode:
       case pullInfoIsovalue:
       case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
@@ -287,6 +291,13 @@ _pullContextCheck(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
   }
+  if (pctx->pointPerVoxel) {
+    if (!( pctx->ispec[pullInfoSeedThresh] )) {
+      sprintf(err, "%s: sorry, need %s info set to use pointPerVoxel",
+              me, airEnumStr(pullInfo, pullInfoSeedThresh));
+      biffAdd(PULL, err); return 1;
+    }
+  }
   
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
     sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
@@ -327,7 +338,7 @@ _pullContextCheck(pullContext *pctx) {
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
-  unsigned int binIdx, pointNum, pointIdx;
+  unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
   double *posOut, *tenOut;
   pullBin *bin;
@@ -335,14 +346,6 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
 
   pointNum = _pullPointNumber(pctx);
   fprintf(stderr, "!%s: pointNum = %u\n", me, pointNum);
-  if (pointNum != pctx->idtagNext) {
-    /* HEY: should really be checking that all IDs between 
-       0 and pointNum-1 contiguous are used.  Will have to do something
-       smarter when population control is implemented */
-    sprintf(err, "%s: simplicity failed; point # %u != idtagnext %u", me,
-            pointNum, pctx->idtagNext);
-    biffAdd(PULL, err); return 1;
-  }
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2,
@@ -360,13 +363,14 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   }
   posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (double*)(nTenOut->data) : NULL;
-  
+
+  outIdx = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       if (nPosOut) {
-        ELL_4V_COPY(posOut + 4*point->idtag, point->pos);
+        ELL_4V_COPY(posOut + 4*outIdx, point->pos);
       }
       if (nTenOut) {
         double scl, tout[7];
@@ -402,12 +406,14 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
         }
         TEN_T_SCALE(tout, scl, tout);
         if (nTenOut) {
-          TEN_T_COPY(tenOut + 7*point->idtag, tout);
+          TEN_T_COPY(tenOut + 7*outIdx, tout);
         }
-      }
+      } /* if (nTenOut) */
+      ++outIdx;
     }
   }
 
+  fprintf(stderr, "!%s: final outIdx %u, # %u\n", me, outIdx, pointNum);
   return 0;
 }
 
@@ -416,7 +422,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   char me[]="pullPropGet", err[BIFF_STRLEN];
   int typeOut;
   size_t size[2];
-  unsigned int dim, pointNum, pointIdx, binIdx, *out_ui;
+  unsigned int dim, pointNum, pointIdx, binIdx, *out_ui, outIdx;
   double *out_d;
   unsigned char *out_uc;
   pullBin *bin;
@@ -448,6 +454,11 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     size[1] = pointNum;
     typeOut = nrrdTypeDouble;
     break;
+  case pullPropNeighDist:
+    dim = 1;
+    size[0] = pointNum;
+    typeOut = nrrdTypeDouble;
+    break;
   default:
     sprintf(err, "%s: prop %d unrecognized", me, prop);
     biffAdd(PULL, err); return 1;
@@ -461,34 +472,39 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   out_ui = AIR_CAST(unsigned int *, nprop->data);
   out_uc = AIR_CAST(unsigned char *, nprop->data);
 
+  outIdx = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       switch(prop) {
       case pullPropEnergy:
-        out_d[point->idtag] = point->energy;
+        out_d[outIdx] = point->energy;
         break;
       case pullPropStepEnergy:
-        out_d[point->idtag] = point->stepEnergy;
+        out_d[outIdx] = point->stepEnergy;
         break;
       case pullPropStepConstr:
-        out_d[point->idtag] = point->stepConstr;
+        out_d[outIdx] = point->stepConstr;
         break;
       case pullPropIdtag:
-        out_ui[point->idtag] = point->idtag;
+        out_ui[outIdx] = point->idtag;
         break;
       case pullPropStuck:
-        out_uc[point->idtag] = point->status; /* could still use a bitflag */
+        out_uc[outIdx] = (point->status & PULL_STATUS_STUCK_BIT);
         break;
       case pullPropPosition:
-        ELL_4V_COPY(out_d + 4*point->idtag, point->pos);
+        ELL_4V_COPY(out_d + 4*outIdx, point->pos);
         break;
       case pullPropForce:
-        ELL_4V_COPY(out_d + 4*point->idtag, point->force);
+        ELL_4V_COPY(out_d + 4*outIdx, point->force);
+        break;
+      case pullPropNeighDist:
+        out_d[outIdx] = point->neighDist;
         break;
       }
-    }
+      ++outIdx;
+    } /* for (pointIdx) */
   }
   
   return 0;
@@ -497,6 +513,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
 int
 pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
   char me[]="pullPositionHistoryGet", err[BIFF_STRLEN];
+#if PULL_PHIST
   pullBin *bin;
   pullPoint *point;
   unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx, 
@@ -571,4 +588,11 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
   
 
   return 0;
+#else 
+  AIR_UNUSED(pld);
+  AIR_UNUSED(pctx);
+  sprintf(err, "%s: sorry, not compiled with PULL_PHIST", me);
+  biffAdd(PULL, err);
+  return 1;
+#endif
 }

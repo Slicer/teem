@@ -242,6 +242,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
                  double egradSum[4]) {
   char me[]="_energyFromImage";
   double energy, grad3[3];
+  int probed;
 
   /* not sure I have the logic for this right 
   int ptrue;
@@ -256,8 +257,13 @@ _energyFromImage(pullTask *task, pullPoint *point,
     ptrue = AIR_TRUE;
   }
   */
-  if (_pullProbe(task, point)) {
-    fprintf(stderr, "%s: problem probing!!!\n%s\n", me, biffGetDone(PULL));
+  probed = AIR_FALSE;
+#define MAYBEPROBE \
+  if (!probed) { \
+    if (_pullProbe(task, point)) { \
+      fprintf(stderr, "%s: problem probing!!!\n%s\n", me, biffGetDone(PULL)); \
+    } \
+    probed = AIR_TRUE; \
   }
   energy = 0;
   if (egradSum) {
@@ -267,6 +273,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       && !task->pctx->ispec[pullInfoHeight]->constraint
       && (!task->pctx->ispec[pullInfoHeightLaplacian]
           || !task->pctx->ispec[pullInfoHeightLaplacian]->constraint)) {
+    MAYBEPROBE;
     energy += _pullPointScalar(task->pctx, point, pullInfoHeight,
                                grad3, NULL);
     if (egradSum) {
@@ -278,6 +285,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
     /* we're only going towards an isosurface, not constrained to it
        ==> set up a parabolic potential well around the isosurface */
     double val;
+    MAYBEPROBE;
     val = _pullPointScalar(task->pctx, point, pullInfoIsovalue,
                            grad3, NULL);
     energy += val*val;
@@ -287,6 +295,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
   }
   return energy;
 }
+#undef MAYBEPROBE
 
 /*
 ** its in here that we scale from "energy gradient" to "force"
@@ -369,9 +378,6 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
                                    in a per-iteration way */
   int stepBad, giveUp;
 
-  if (point->debug) {
-    return 0;
-  }
   if (!point->stepEnergy) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
@@ -421,7 +427,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     ELL_3V_COPY(force, pfrc);
   }
 
-  point->status = 0;
+  point->status = 0; /* reset status bitflag */
   ELL_4V_COPY(posOld, point->pos);
   _pullPointHistInit(point);
   _pullPointHistAdd(point, pullCondOld);
@@ -567,7 +573,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
         ELL_4V_COPY(point->pos, posOld);
         energyNew = energyOld; /* to be copied into point->energy below */
         point->stepEnergy = task->pctx->stepInitial/100;
-        point->status = 1;
+        point->status |= PULL_STATUS_STUCK_BIT;
         giveUp = AIR_TRUE;
       }
     }  
@@ -585,6 +591,16 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     biffAdd(PULL, err); return 1;
   }
 
+  /* cheezy demo of how to remove points 
+  if (1) {
+    double dd[3], pp[3] = {0.80828, 0.191011, -0.0317192};
+    ELL_3V_SUB(dd, point->pos, pp);
+    if (ELL_3V_LEN(dd) < 0.04) {
+      point->status |= PULL_STATUS_NIXME_BIT;
+    }
+  }
+  */
+  
   return 0;
 }
 
@@ -604,7 +620,8 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
               myPointIdx, myBinIdx);
       biffAdd(PULL, err); return 1;
     }
-    task->stuckNum += myBin->point[myPointIdx]->status;
+    task->stuckNum += (myBin->point[myPointIdx]->status
+                       | PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
 
   return 0;

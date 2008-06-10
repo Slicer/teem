@@ -23,6 +23,12 @@
 #include "pull.h"
 #include "privatePull.h"
 
+#if PULL_PHIST
+int pullPhistEnabled = 1;
+#else
+int pullPhistEnabled = 0;
+#endif
+
 const char *
 pullBiffKey = "pull";
 

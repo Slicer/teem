@@ -186,7 +186,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
       fprintf(stderr, "!%s: b lapl == 0!\n", me);
       break;
     }
-    /* "Illinois" false-position.  Look, it works. */
+    /* "Illinois" false-position. Dumb, but it works. */
     if (fs*fb > 0) { /* not between s and b */
       b = s;
       fb = fs;
@@ -227,9 +227,8 @@ constraintSatLapl(pullTask *task, pullPoint *point,
    : airIntPow(m+1, p) - 1)
 
 #define MODENAVG(pnt, m)                                  \
-  ( ((pnt)->neighInterNum*(pnt)->neighMode + (m))/        \
+  ( ((pnt)->neighInterNum*(pnt)->neighMode + (m))/       \
     (1 + (pnt)->neighInterNum) )
-
 
 static int
 probeHeight(pullTask *task, pullPoint *point, 
@@ -268,8 +267,9 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
                               NULL, NULL);
       if (point->neighInterNum) {
         mode = MODENAVG(point, mode);
+        /* mode = pow((mode + 1)/2, 4)*2 - 1; */
       }
-      mode = MODEWARP(mode, 4);
+      mode = MODEWARP(mode, 5);
       mode = AIR_AFFINE(-1, mode, 1, 0, 1);
       ELL_3M_LERP(proj, mode, proj, proj2);
     } else {
@@ -470,6 +470,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
       } else {
         if (point->neighInterNum) {
           mode = MODENAVG(point, mode);
+          /* mode = pow((mode + 1)/2, 4)*2 - 1; */
         }
         md = MODEWARP(mode, 5);
         md = (1 + md)/2;

@@ -210,8 +210,8 @@ pullRebin(pullContext *pctx) {
         _pullBinPointRemove(pctx, oldBin, 0);
       }
     }
-    /* this should really use an RNG that is explicitly seeded */
-    airShuffle(pctx->pointPerm, pointNum, AIR_TRUE);
+    airShuffle_r(pctx->task[0]->rng,
+                 pctx->pointPerm, pointNum, AIR_TRUE);
     for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
       point = pctx->pointBuff[pctx->pointPerm[pointIdx]];
       newBin = _pullBinLocate(pctx, point->pos);

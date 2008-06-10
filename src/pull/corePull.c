@@ -247,6 +247,7 @@ _pullIterate(pullContext *pctx) {
   for (thi=0; thi<pctx->threadNum; thi++) {
     pctx->stuckNum += pctx->task[thi]->stuckNum;
   }
+  _pullPointNixMeRemove(pctx);
   if (pullRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PULL, err); return 1;

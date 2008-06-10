@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* this has to be big enough to do experiments where binning is turned off */
-#define _PULL_NEIGH_MAXNUM 512
+#define _PULL_NEIGH_MAXNUM 4096
 
 #define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))                   \
                                  / (AIR_ABS(ell) + AIR_ABS(enn)))
@@ -67,6 +67,7 @@ extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
+extern void _pullPointNixMeRemove(pullContext *pctx);
 extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);

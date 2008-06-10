@@ -50,6 +50,8 @@ extern "C" {
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
 
+#define PULL_PHIST 0
+
 /*
 ******** pullInfo enum
 **
@@ -108,7 +110,23 @@ enum {
   pullPropStuck,              /*  5: [1] (0 or 1) got stuck last iter */
   pullPropPosition,           /*  6: [4] position */
   pullPropForce,              /*  7: [4] force accumulation */
+  pullPropNeighDist,          /*  8: [1] "mean distance" to neighbors */
   pullPropLast
+};
+
+/*
+** the components of a point's status that are set as a bitflag 
+** in point->status
+*/
+enum {
+  pullStatusUnknown,             /* 0: nobody knows */
+  pullStatusStuck,               /* 1: couldn't move to decrease energy */
+#define PULL_STATUS_STUCK_BIT  (1<< 1)
+  pullStatusNew,                 /* 2: just added to system, bin me */
+#define PULL_STATUS_NEW_BIT    (1<< 2)
+  pullStatusNixMe,               /* 3: nix me at the end of this iter */
+#define PULL_STATUS_NIXME_BIT  (1<< 3)
+  pullStatusLast
 };
 
 /*
@@ -157,13 +175,14 @@ typedef struct pullPoint_t {
                                  (no callbacks used here) */
   double neighDist, neighMode;
   unsigned int neighInterNum;
+#if PULL_PHIST
   double *phist;              /* history of positions tried in the last iter,
                                  in sets of 5 doubles: (x,y,z,t,info) */
   unsigned int phistNum;      /* number of positions stored */
   airArray *phistArr;         /* airArray around phist */
+#endif
   unsigned int status;        /* bit-flag of status info, though right now
                                  its just a boolean for having gotten stuck */
-  int debug;                  /* this point is only here for debugging */
   double pos[4],              /* position in space and scale */
     energy,                   /* energy accumulator for this iteration */
     force[4],                 /* force accumulator for this iteration */
@@ -340,7 +359,18 @@ typedef struct pullContext_t {
                                       below this times constraintVoxelSize */
     wall;                          /* spring constant on bbox wall */
 
-  unsigned int seedRNG,            /* seed value for random number generator */
+  unsigned int 
+    pointPerVoxel,                 /* number of initial points per voxel, in
+                                      seed thresh volume. If 0, then use old
+                                      behavior of just finding pointNumInitial
+                                      (see above) seedpoint locations randomly.
+                                      If non-0 (over-riding pointNumInitial),
+                                      then jitter seedPerVox seed points in
+                                      every sample of the seed threshold
+                                      volume */
+    rngSeed,                       /* seed value for random number generator,
+                                      NOT directly related to seed point
+                                      placement*/
     threadNum,                     /* number of threads to use */
     iterMax,                       /* if non-zero, max number of iterations
                                       for whole system */
@@ -368,7 +398,7 @@ typedef struct pullContext_t {
                                       In 3-D space, the bbox is axis aligned,
                                       even when the volume is not so aligned,
                                       which means that some bins might be
-                                      under or not utilized, oh well. */
+                                      under- or un- utilized, oh well. */
   unsigned int infoTotalLen,       /* total length of the info buffers needed,
                                       which determines size of allocated
                                       binPoint */
@@ -409,6 +439,7 @@ typedef struct pullContext_t {
 } pullContext;
 
 /* defaultsPull.c */
+PULL_EXPORT int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
 
 /* energy.c */
