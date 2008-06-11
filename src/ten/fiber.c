@@ -527,9 +527,21 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     biffAdd(TEN, err); return 1;
   }
   if (gret) {
-    sprintf(err, "%s: gage problem on first _tenFiberProbe: %s (%d)",
-            me, tfx->gtx->errStr, tfx->gtx->errNum);
-    biffAdd(TEN, err); return 1;
+    if (gageErrBoundsSpace != tfx->gtx->errNum) {
+      sprintf(err, "%s: gage problem on first _tenFiberProbe: %s (%d)",
+              me, tfx->gtx->errStr, tfx->gtx->errNum);
+      biffAdd(TEN, err); return 1;
+    } else {
+      /* the problem on the first probe was that it was out of bounds,
+         which is not a catastrophe; its handled the same as below */
+      tfx->whyNowhere = tenFiberStopBounds;
+      if (nfiber) {
+        nrrdEmpty(nfiber);
+      } else {
+        *startIdxP = *endIdxP = 0;
+      }
+      return 0;
+    }
   }
 
   /* see if we're doomed (tract dies before it gets anywhere)  */
