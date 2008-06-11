@@ -591,8 +591,8 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
   yi = ctx->point.yi;
   zi = ctx->point.zi;
   if (_gageLocationSet(ctx, _xi, _yi, _zi, stackIdx)) {
-    /* we're outside the volume; leave gageErrStr and gageErrNum set
-       (as they should be already) */
+    /* we're outside the volume; leave gageErrStr and gageErrNum set;
+       as they have just been set by _gageLocationSet() */
     return 1;
   }
   

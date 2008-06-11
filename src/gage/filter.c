@@ -195,7 +195,7 @@ _gageFwSet(gageContext *ctx) {
 **
 ** does NOT use biff, but returns 1 on error and 0 if all okay
 ** Currently only error is probing outside volume, which sets
-** ctx->errNum=0 and sprints message into ctx->errStr.
+** ctx->errNum and sprints message into ctx->errStr.
 */
 int
 _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
@@ -227,7 +227,7 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
             me, _xi, _yi, _zi,
             airEnumStr(nrrdCenter, ctx->shape->center),
             min, max[0], min, max[1], min, max[2]);
-    ctx->errNum = 0;
+    ctx->errNum = gageErrBoundsSpace;
     return 1;
   }
   if (ctx->parm.stackUse) {
@@ -235,7 +235,7 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       sprintf(ctx->errStr, "%s: stack position %g outside (%s-centered) "
               "bounds [0,%u]", me,
               stackIdx, airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum-2);
-      ctx->errNum = 0;
+      ctx->errNum = gageErrBoundsStack;
       return 1;
     }
   }
@@ -297,7 +297,7 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     if (!sum) {
       sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
               "can't do stack reconstruction", me);
-      ctx->errNum = 3; /* HEY: is there any logic to this return value? */
+      ctx->errNum = gageErrStackIntegral;
       return 1;
     }
     for (ii=0; ii<ctx->pvlNum-1; ii++) {

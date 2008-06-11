@@ -115,6 +115,16 @@ enum {
   gageParmLast
 };
 
+enum {
+  gageErrUnknown,            /* 0: nobody knows */
+  gageErrNone,               /* 1: no error, actually, all's well */
+  gageErrBoundsSpace,        /* 2: out of 3-D (index-space) bounds */
+  gageErrBoundsStack,        /* 3: out of 1-D bounds of stack */
+  gageErrStackIntegral,      /* 4: stack recon coeff's sum to 0 */
+  gageErrLast
+};
+#define GAGE_ERR_MAX            4
+
 /*
 ******** gage{Ctx,Pvl}Flag.. enum
 **
@@ -590,9 +600,8 @@ typedef struct gageContext_t {
      using biff is too heavy-weight for this, and the idea is that no ill
      should occur if the error is repeatedly ignored.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
-  /* HEY: there should be at least an enum for the values that errNum takes */
   char errStr[AIR_STRLEN_LARGE];
-  int errNum;
+  int errNum;                 /* takes values from the gageErr enum */
 } gageContext;
 
 /*
@@ -726,6 +735,7 @@ GAGE_EXPORT int gageDefStackRenormalize;
 
 /* miscGage.c */
 GAGE_EXPORT double gageZeroNormal[3];
+GAGE_EXPORT airEnum *gageErr;
 GAGE_EXPORT airEnum *gageKernel;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
 GAGE_EXPORT void gagePointReset(gagePoint *point);

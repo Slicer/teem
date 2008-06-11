@@ -250,3 +250,24 @@ gageItemSpecNix(gageItemSpec *isp) {
   }
   return NULL;
 }
+
+char
+_gageErrStr[GAGE_ERR_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown gageErr)",
+  "none",
+  "space bounds",
+  "stack bounds",
+  "stack integral"
+};
+
+airEnum
+_gageErr = {
+  "gageErr",
+  GAGE_ERR_MAX,
+  _gageErrStr, NULL,
+  NULL,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+gageErr = &_gageErr;
