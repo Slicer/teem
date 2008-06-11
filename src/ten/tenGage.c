@@ -157,6 +157,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFARidgeSurfaceStrength,  1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
   {tenGageFAValleySurfaceStrength, 1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
   {tenGageFALaplacian,             1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
+  {tenGageFAHessianEvalMode,       1,  2,  {tenGageFAHessianEval},                                               0,        0,     AIR_FALSE},
   {tenGageFA2ndDD,                 1,  2,  {tenGageFAHessian, tenGageFANormal},                                  0,        0,     AIR_FALSE},
 
   {tenGageFAGeomTens,              9,  2,  {tenGageFAHessian, tenGageFAGradMag, tenGageFANormal},                0,        0,     AIR_FALSE},
@@ -198,16 +199,21 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageOmega2ndDD,              1,  2,  {tenGageOmegaHessian, tenGageOmegaNormal},                            0,        0,     AIR_FALSE},
 
   {tenGageTraceGradVecDotEvec0,    1,  1,  {tenGageTraceGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
-  {tenGageTraceDiffusionAngle,     1,  1,  {tenGageTraceNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
+  {tenGageTraceDiffusionAlign,     1,  1,  {tenGageTraceNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
   {tenGageTraceDiffusionFraction,  1,  1,  {tenGageTraceNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
 
   {tenGageFAGradVecDotEvec0,       1,  1,  {tenGageFAGradVec, tenGageEvec0},                                     0,        0,     AIR_FALSE},
-  {tenGageFADiffusionAngle,        1,  1,  {tenGageFANormal, tenGageEvec0},                                      0,        0,     AIR_FALSE},
+  {tenGageFADiffusionAlign,        1,  1,  {tenGageFANormal, tenGageEvec0},                                      0,        0,     AIR_FALSE},
   {tenGageFADiffusionFraction,     1,  1,  {tenGageFANormal, tenGageTensor},                                     0,        0,     AIR_FALSE},
 
   {tenGageOmegaGradVecDotEvec0,    1,  1,  {tenGageOmegaGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
-  {tenGageOmegaDiffusionAngle,     1,  1,  {tenGageOmegaNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
+  {tenGageOmegaDiffusionAlign,     1,  1,  {tenGageOmegaNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
   {tenGageOmegaDiffusionFraction,  1,  1,  {tenGageOmegaNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
+
+  /* currently don't have tenGageConfGradVec */
+  {tenGageConfGradVecDotEvec0,     1,  1,  {tenGageTensorGrad, tenGageEvec0},                                    0,        0,     AIR_FALSE},
+  {tenGageConfDiffusionAlign,      1,  1,  {tenGageTensorGrad, tenGageEvec0},                                    0,        0,     AIR_FALSE},
+  {tenGageConfDiffusionFraction,   1,  1,  {tenGageTensorGrad, tenGageTensor},                                   0,        0,     AIR_FALSE},
 
   {tenGageCovariance,             21,  0,  {tenGageTensor}, /* and all the values in iv3 */                      0,        0,     AIR_FALSE},
   {tenGageCovarianceRGRT,         21,  0,  {tenGageCovariance,
@@ -961,6 +967,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     hess = pvl->directAnswer[tenGageFAHessian];
     pvl->directAnswer[tenGageFALaplacian][0] = hess[0] + hess[4] + hess[8];
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAHessianEvalMode)) {
+    double *heval;
+    heval = pvl->directAnswer[tenGageFAHessianEval];
+    pvl->directAnswer[tenGageFAHessianEvalMode][0] = airMode3_d(heval);
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFA2ndDD)) {
     double *hess, *norm, tmpv[3];
     hess = pvl->directAnswer[tenGageFAHessian];
@@ -1138,10 +1149,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceGradVec]);
     pvl->directAnswer[tenGageTraceGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceDiffusionAngle)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceDiffusionAlign)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageTraceNormal]);
     tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
-    pvl->directAnswer[tenGageTraceDiffusionAngle][0] = tmp0;
+    pvl->directAnswer[tenGageTraceDiffusionAlign][0] = tmp0;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceDiffusionFraction)) {
     double tmpv[3];
@@ -1155,10 +1166,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFAGradVec]);
     pvl->directAnswer[tenGageFAGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFADiffusionAngle)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFADiffusionAlign)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageFANormal]);
     tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
-    pvl->directAnswer[tenGageFADiffusionAngle][0] = tmp0;
+    pvl->directAnswer[tenGageFADiffusionAlign][0] = tmp0;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFADiffusionFraction)) {
     double tmpv[3];
@@ -1172,10 +1183,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaGradVec]);
     pvl->directAnswer[tenGageOmegaGradVecDotEvec0][0] = AIR_ABS(tmp0);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaDiffusionAngle)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaDiffusionAlign)) {
     tmp0 = ELL_3V_DOT(evecAns + 0*3, pvl->directAnswer[tenGageOmegaNormal]);
     tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
-    pvl->directAnswer[tenGageOmegaDiffusionAngle][0] = tmp0;
+    pvl->directAnswer[tenGageOmegaDiffusionAlign][0] = tmp0;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaDiffusionFraction)) {
     double tmpv[3];
@@ -1184,6 +1195,31 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     tmp0 /= TEN_T_TRACE(tenAns) ? TEN_T_TRACE(tenAns) : 1;
     pvl->directAnswer[tenGageOmegaDiffusionFraction][0] = tmp0;
   }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageConfGradVecDotEvec0)) {
+    double *confGrad;
+    confGrad = pvl->directAnswer[tenGageTensorGrad];
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, confGrad);
+    pvl->directAnswer[tenGageConfGradVecDotEvec0][0] = AIR_ABS(tmp0);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageConfDiffusionAlign)) {
+    double *confGrad, confNorm[3], tmp;
+    confGrad = pvl->directAnswer[tenGageTensorGrad];
+    ELL_3V_NORM(confNorm, confGrad, tmp);
+    tmp0 = ELL_3V_DOT(evecAns + 0*3, confNorm);
+    tmp0 = 1 - 2*acos(AIR_ABS(tmp0))/AIR_PI;
+    pvl->directAnswer[tenGageConfDiffusionAlign][0] = tmp0;
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageConfDiffusionFraction)) {
+    double *confGrad, confNorm[3], tmp, tmpv[3];
+    confGrad = pvl->directAnswer[tenGageTensorGrad];
+    ELL_3V_NORM(confNorm, confGrad, tmp);
+    TEN_TV_MUL(tmpv, tenAns, confNorm);
+    tmp0 = ELL_3V_DOT(tmpv, confNorm);
+    tmp0 /= TEN_T_TRACE(tenAns) ? TEN_T_TRACE(tenAns) : 1;
+    pvl->directAnswer[tenGageConfDiffusionFraction][0] = tmp0;
+  }
+
 
   /* --- Covariance --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCovariance)) {
