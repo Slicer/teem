@@ -311,7 +311,7 @@ unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
   /* have to simulate having parsed this line for error checking in
      _nrrdDataFNCheck() to not cause problems */
   nio->seen[nrrdField_sizes] = AIR_TRUE;
-  if (_nrrdContainsPercentDAndMore(dataFileNames[0])) {
+  if (_nrrdContainsPercentThisAndMore(dataFileNames[0], 'd')) {
     /* trying to do a formatted filename list */
     if (nameLen < 4 || nameLen > 5) {
       fprintf(stderr, "%s: formatted list of filenames needs between "

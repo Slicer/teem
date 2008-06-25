@@ -77,11 +77,15 @@ unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-
+  
+  /* HEY: this should use nrrdSaveMulti(), and if there's additional
+     smarts here, they should be moved into nrrdSaveMulti() */
   if (airStrlen(ftmpl)) {
-    if (!_nrrdContainsPercentDAndMore(ftmpl)) {
+    if (!( _nrrdContainsPercentThisAndMore(ftmpl, 'd') 
+           || _nrrdContainsPercentThisAndMore(ftmpl, 'u') )) {
       fprintf(stderr, "%s: given filename format \"%s\" doesn't seem to "
-              "have the format sequence to print an integer\n", me, ftmpl);
+              "have the converstion specification to print an integer\n",
+              me, ftmpl);
       airMopError(mop);
       return 1;
     }
