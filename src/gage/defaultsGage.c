@@ -60,7 +60,9 @@ int
 gageDefDefaultCenter = nrrdCenterCell;
 
 int
-gageDefStackUse = AIR_FALSE;
+gageDefStackUse = AIR_FALSE; /* GLK doesn't see any reasonable circumstance
+                                where this could be AIR_TRUE, since it
+                                significantly changes the behavior of gage */
 
 int
 gageDefStackRenormalize = AIR_TRUE;
