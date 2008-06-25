@@ -108,6 +108,7 @@ pullStart(pullContext *pctx) {
   char me[]="pullStart", err[BIFF_STRLEN];
   unsigned int tidx;
 
+  fprintf(stderr, "!%s: hello %p\n", me, pctx);
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 
   /* the ordering of steps below is important! e.g. gage context has

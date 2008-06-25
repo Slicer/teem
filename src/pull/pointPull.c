@@ -501,9 +501,9 @@ _pullPointSetup(pullContext *pctx) {
         if (!point) {
           point = pullPointNew(pctx);
         }
-        iPos[0] = vidx[0] + airDrandMT_r(rng) - 0.5;
-        iPos[1] = vidx[1] + airDrandMT_r(rng) - 0.5;
-        iPos[2] = vidx[2] + airDrandMT_r(rng) - 0.5;
+        iPos[0] = vidx[0] + pctx->jitter*airDrandMT_r(rng) - 0.5;
+        iPos[1] = vidx[1] + pctx->jitter*airDrandMT_r(rng) - 0.5;
+        iPos[2] = vidx[2] + pctx->jitter*airDrandMT_r(rng) - 0.5;
         iPos[3] = 1;
         ELL_4MV_MUL(wPos, seedShape->ItoW, iPos);
         ELL_3V_COPY(point->pos, wPos);

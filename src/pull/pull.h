@@ -265,7 +265,7 @@ typedef struct {
                                   NOTE: only one of ninSingle and ninScale
                                   can be non-NULL */
   unsigned int scaleNum;       /* number of scale-space samples (volumes) */
-  double scaleMin, scaleMax;
+  double *scalePos;            /* location of all samples in scale */
   NrrdKernelSpec *ksp00,       /* for sampling tensor field */
     *ksp11,                    /* for gradient of mask, other 1st derivs */
     *ksp22,                    /* for 2nd derivatives */
@@ -383,8 +383,11 @@ typedef struct pullContext_t {
                                       energy function, phi(r) */
   double alpha,                    /* alpha = 0: only particle-image, 
                                       alpha = 1: only inter-particle */
-    beta;                          /* tuning parameter for amount of 
+    beta,                          /* tuning parameter for amount of 
                                       scale-space attraction */
+    jitter;                        /* when using pointPerVoxel, how much to
+                                      jitter the samples within the voxel;
+                                      0: no jitter, 1: full jitter */
   int radiusSingle;                /* if non-zero, combine scale-space 
                                       offset into a single radius, else
                                       use beta for Phi_{x-G}(r,s) */
@@ -398,7 +401,10 @@ typedef struct pullContext_t {
                                       In 3-D space, the bbox is axis aligned,
                                       even when the volume is not so aligned,
                                       which means that some bins might be
-                                      under- or un- utilized, oh well. */
+                                      under- or un- utilized, oh well. 
+                                      bboxMin[3] and bboxMax[3] are the 
+                                      bounds of the volume in *scale* (sigma),
+                                      not t, or tau */
   unsigned int infoTotalLen,       /* total length of the info buffers needed,
                                       which determines size of allocated
                                       binPoint */
@@ -471,9 +477,9 @@ PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx,
                                     const NrrdKernelSpec *ksp22);
 PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    char *name, const Nrrd *const *nin,
+                                   double *scale,
                                    unsigned int ninNum,
                                    const gageKind *kind, 
-                                   double scaleMin, double scaleMax,
                                    const NrrdKernelSpec *ksp00,
                                    const NrrdKernelSpec *ksp11,
                                    const NrrdKernelSpec *ksp22,

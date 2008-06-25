@@ -621,7 +621,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       biffAdd(PULL, err); return 1;
     }
     task->stuckNum += (myBin->point[myPointIdx]->status
-                       | PULL_STATUS_STUCK_BIT);
+                       & PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
 
   return 0;

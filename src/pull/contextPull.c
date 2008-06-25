@@ -67,6 +67,7 @@ pullContextNew(void) {
   pctx->energySpec = pullEnergySpecNew();
   pctx->alpha = 0.5;
   pctx->beta = 1.0;
+  pctx->jitter = 1.0;
   pctx->radiusSingle = AIR_TRUE;
 
   pctx->binSingle = AIR_FALSE;
@@ -324,11 +325,18 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(wall, 0.0, 100.0);
   CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
+  CHECK(jitter, 0.0, 1.0);
 #undef CHECK
   if (!( 1 <= pctx->constraintIterMax
          && pctx->constraintIterMax <= 50 )) {
     sprintf(err, "%s: pctx->constraintIterMax %u not in range [%u,%u]",
             me, pctx->constraintIterMax, 1, 50);
+    biffAdd(PULL, err); return 1;
+  }
+
+  if (0 == pctx->jitter && 1 < pctx->pointPerVoxel) {
+    sprintf(err, "%s: must have jitter > 0 if pointPerVoxel (%u) > 1", me,
+            pctx->pointPerVoxel);
     biffAdd(PULL, err); return 1;
   }
   

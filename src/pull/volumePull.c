@@ -65,8 +65,7 @@ pullVolumeNew() {
     vol->ninSingle = NULL;
     vol->ninScale = NULL;
     vol->scaleNum = 0;
-    vol->scaleMin = AIR_NAN;
-    vol->scaleMax = AIR_NAN;
+    vol->scalePos = NULL;
     vol->ksp00 = nrrdKernelSpecNew();
     vol->ksp11 = nrrdKernelSpecNew();
     vol->ksp22 = nrrdKernelSpecNew();
@@ -105,9 +104,9 @@ pullVolumeNix(pullVolume *vol) {
 int
 _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
                const Nrrd *ninSingle,
-               const Nrrd *const *ninScale, unsigned int ninNum,
+               const Nrrd *const *ninScale, double *scalePos,
+               unsigned int ninNum,
                const gageKind *kind, 
-               double scaleMin, double scaleMax,
                const NrrdKernelSpec *ksp00,
                const NrrdKernelSpec *ksp11,
                const NrrdKernelSpec *ksp22,
@@ -128,6 +127,10 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
         biffAdd(PULL, err); return 1;
       }
     }
+  }
+  if (ninScale && !scalePos) {
+    sprintf(err, "%s: need scalePos array if using scale-space", me);
+    biffAdd(PULL, err); return 1;
   }
   if (ninScale && !(ninNum >= 2)) {
     sprintf(err, "%s: need at least 2 volumes (not %u)", me, ninNum);
@@ -161,8 +164,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
     gageParmSet(vol->gctx, gageParmStackRenormalize, AIR_TRUE);
     if (!E) E |= gageStackPerVolumeNew(vol->gctx, &pvlSS,
                                        ninScale, ninNum, kind);
-    if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, pvlSS, ninNum,
-                                          scaleMin, scaleMax);
+    if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, pvlSS,
+                                          scalePos, ninNum);
     if (!E) E |= gageKernelSet(vol->gctx, gageKernelStack,
                                kspSS->kernel, kspSS->parm);
   } else {
@@ -189,15 +192,19 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
     vol->ninSingle = NULL;
     vol->ninScale = ninScale;
     vol->scaleNum = ninNum;
-    vol->scaleMin = scaleMin;
-    vol->scaleMax = scaleMax;
+    vol->scalePos = AIR_CAST(double *, calloc(ninNum, sizeof(double)));
+    if (!vol->scalePos) {
+      sprintf(err, "%s: couldn't calloc scalePos", me);
+      biffAdd(PULL, err); return 1;
+    }
+    for (vi=0; vi<ninNum; vi++) {
+      vol->scalePos[vi] = scalePos[vi];
+    }
     nrrdKernelSpecSet(vol->kspSS, kspSS->kernel, kspSS->parm);
   } else {
     vol->ninSingle = ninSingle;
     vol->ninScale = NULL;
     vol->scaleNum = 0;
-    vol->scaleMin = AIR_NAN;
-    vol->scaleMax = AIR_NAN;
     /* leave kspSS as is (unset) */
   }
   
@@ -221,12 +228,13 @@ pullVolumeSingleAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, name, nin, NULL, 0, 
-                     kind, AIR_NAN, AIR_NAN, 
-                     ksp00, ksp11, ksp22, NULL)) {
+  if (_pullVolumeSet(pctx, vol, name, nin,
+                     NULL, NULL, 0, 
+                     kind, ksp00, ksp11, ksp22, NULL)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PULL, err); return 1;
   }
+
   /* add this volume to context */
   fprintf(stderr, "!%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
   pctx->vol[pctx->volNum] = vol;
@@ -240,9 +248,8 @@ pullVolumeSingleAdd(pullContext *pctx,
 int
 pullVolumeStackAdd(pullContext *pctx,
                    char *name,
-                   const Nrrd *const *nin, unsigned int ninNum,
+                   const Nrrd *const *nin, double *scale, unsigned int ninNum,
                    const gageKind *kind, 
-                   double scaleMin, double scaleMax,
                    const NrrdKernelSpec *ksp00,
                    const NrrdKernelSpec *ksp11,
                    const NrrdKernelSpec *ksp22,
@@ -251,12 +258,13 @@ pullVolumeStackAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, name, NULL, nin, ninNum,
-                     kind, scaleMin, scaleMax,
-                     ksp00, ksp11, ksp22, kspSS)) {
+  if (_pullVolumeSet(pctx, vol, name, NULL,
+                     nin, scale, ninNum, 
+                     kind, ksp00, ksp11, ksp22, kspSS)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PULL, err); return 1;
   }
+
   /* add this volume to context */
   pctx->vol[pctx->volNum++] = vol;
   return 0;
@@ -275,9 +283,9 @@ _pullVolumeCopy(pullVolume *volOrig) {
   volNew = pullVolumeNew();
   if (_pullVolumeSet(NULL, volNew, volOrig->name, 
                      volOrig->ninSingle,
-                     volOrig->ninScale, volOrig->scaleNum,
+                     volOrig->ninScale, volOrig->scalePos,
+                     volOrig->scaleNum,
                      volOrig->gpvl->kind,
-                     volOrig->scaleMin, volOrig->scaleMax,
                      volOrig->ksp00, volOrig->ksp11,
                      volOrig->ksp22, volOrig->kspSS)) {
     sprintf(err, "%s: trouble creating new volume", me);
@@ -318,8 +326,8 @@ _pullVolumeSetup(pullContext *pctx) {
   for (ii=0; ii<pctx->volNum; ii++) {
     if (pctx->vol[ii]->ninScale) {
       pctx->haveScale = AIR_TRUE;
-      pctx->bboxMin[3] = pctx->vol[ii]->scaleMin;
-      pctx->bboxMax[3] = pctx->vol[ii]->scaleMax;
+      pctx->bboxMin[3] = pctx->vol[ii]->scalePos[0];
+      pctx->bboxMax[3] = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
     }
   }
   if (!pctx->haveScale) {

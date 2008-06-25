@@ -262,6 +262,7 @@ _pullBinSetup(pullContext *pctx) {
   scl = (pctx->radiusSpace ? pctx->radiusSpace : 0.1);
   espec = pctx->energySpec;
   pctx->maxDist = 2*scl;
+
   fprintf(stderr, "!%s: radiusSpace = %g --> maxDist = %g\n", me, 
           pctx->radiusSpace, pctx->maxDist);
 
