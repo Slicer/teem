@@ -209,6 +209,9 @@ nrrdDInsert[NRRD_TYPE_MAX+1])(void *, size_t, double) = {
 **
 ** Dereferences pointer v and sprintf()s that value into given string s,
 ** returns the result of sprintf()
+**
+** There is obviously no provision for ensuring that the sprint'ing
+** doesn't overflow the buffer, which is unfortunate...
 */
 static int _nrrdSprintCH(char *s, const CH *v) { return sprintf(s, "%d", *v); }
 static int _nrrdSprintUC(char *s, const UC *v) { return sprintf(s, "%u", *v); }
