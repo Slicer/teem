@@ -178,7 +178,7 @@ _gageNeedKUpdate(gageContext *ctx) {
 int
 _gageRadiusUpdate(gageContext *ctx) {
   char me[]="_gageRadiusUpdate", err[BIFF_STRLEN];
-  int kernIdx, radius;
+  unsigned int kernIdx, radius;
   double maxRad, rad;
   NrrdKernelSpec *ksp;
 

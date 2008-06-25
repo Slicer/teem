@@ -46,7 +46,7 @@ extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
                            double ss, int indexSpace, int clamp);
 
 /* pvl.c */
-extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, int fd);
+extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd);
 extern double *_gageAnswerPointer(const gageContext *ctx, 
                                   gagePerVolume *pvl, int item);
 

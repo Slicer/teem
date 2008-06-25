@@ -114,7 +114,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 ** should only be called by gageContextCopy()
 */
 gagePerVolume *
-_gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
+_gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   char me[]="gagePerVolumeCopy", err[BIFF_STRLEN];
   gagePerVolume *nvl;
   int ii;
@@ -138,7 +138,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, int fd) {
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
          && nvl->answer && nvl->directAnswer )) {
     sprintf(err, "%s: couldn't allocate all caches "
-            "(fd=%d, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
+            "(fd=%u, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
             fd, nvl->kind->valLen, gageKindTotalAnswerLength(nvl->kind),
             nvl->kind->itemMax);
     biffAdd(GAGE, err); return NULL;

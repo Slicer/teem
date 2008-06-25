@@ -32,7 +32,6 @@ gageContext *
 gageContextNew() {
   gageContext *ctx;
   int i;
-  unsigned int sii;
   
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
   if (ctx) {
@@ -41,24 +40,23 @@ gageContextNew() {
     for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->ksp[i] = NULL;
     }
-    for (i=0; i<GAGE_PERVOLUME_MAXNUM; i++) {
-      ctx->pvl[i] = NULL;
-    }
+    ctx->pvl = NULL;
     ctx->pvlNum = 0;
+    ctx->pvlArr = airArrayNew(AIR_CAST(void **, &(ctx->pvl)), &(ctx->pvlNum),
+                              sizeof(gagePerVolume*),
+                              GAGE_PERVOLUME_ARR_INCR);
     gageKernelReset(ctx); /* placed here for logic of kernel flag */
     ctx->shape = gageShapeNew();
     for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
       ctx->flag[i] = AIR_FALSE;
     }
-    ctx->stackRange[0] = ctx->stackRange[1] = AIR_NAN;
-    for (sii=0; sii<GAGE_PERVOLUME_MAXNUM; sii++) {
-      ctx->stackFslw[sii] = AIR_NAN;
-    }
+    ctx->stackPos = NULL;
+    ctx->stackFslw = NULL;
     ctx->needD[0] = ctx->needD[1] = ctx->needD[2] = AIR_FALSE;
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->needK[i] = AIR_FALSE;
     }
-    ctx->radius = -1;
+    ctx->radius = 0;
     ctx->fsl = ctx->fw = NULL;
     ctx->off = NULL;
     gagePointReset(&ctx->point);
@@ -81,8 +79,8 @@ gageContext *
 gageContextCopy(gageContext *ctx) {
   char me[]="gageContextCopy", err[BIFF_STRLEN];
   gageContext *ntx;
-  int fd, i;
-  unsigned int pvlIdx;
+  unsigned int fd, pvlIdx;
+  int ki;
 
   ntx = (gageContext*)calloc(1, sizeof(gageContext));
   if (!ntx) {
@@ -93,17 +91,34 @@ gageContextCopy(gageContext *ctx) {
      constant state of gage construction, this seems much simpler.
      Pointers are fixed below */
   memcpy(ntx, ctx, sizeof(gageContext));
-  for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-    ntx->ksp[i] = nrrdKernelSpecCopy(ctx->ksp[i]);
+  for (ki=gageKernelUnknown+1; ki<gageKernelLast; ki++) {
+    ntx->ksp[ki] = nrrdKernelSpecCopy(ctx->ksp[ki]);
   }
-  for (pvlIdx=0; pvlIdx<GAGE_PERVOLUME_MAXNUM; pvlIdx++) {
-    ntx->stackFslw[pvlIdx] = ctx->stackFslw[pvlIdx];
+  ntx->pvlArr = airArrayNew(AIR_CAST(void **, &(ntx->pvl)), &(ntx->pvlNum),
+                            sizeof(gagePerVolume*),
+                            GAGE_PERVOLUME_ARR_INCR);
+  airArrayLenSet(ntx->pvlArr, ctx->pvlNum);
+  if (!ntx->pvl) {
+    sprintf(err, "%s: couldn't allocate new pvl array", me);
+    biffAdd(GAGE, err); return NULL;
   }
   for (pvlIdx=0; pvlIdx<ntx->pvlNum; pvlIdx++) {
     ntx->pvl[pvlIdx] = _gagePerVolumeCopy(ctx->pvl[pvlIdx], 2*ctx->radius);
     if (!ntx->pvl[pvlIdx]) {
       sprintf(err, "%s: trouble copying pervolume %u", me, pvlIdx);
       biffAdd(GAGE, err); return NULL;
+    }
+  }
+  if (ctx->stackPos && ctx->stackFslw) {
+    ntx->stackPos = calloc(ctx->pvlNum-1, sizeof(double));
+    ntx->stackFslw = calloc(ctx->pvlNum-1, sizeof(double));
+    if (!( ntx->stackPos && ntx->stackFslw )) {
+      sprintf(err, "%s: couldn't allocate stackPos, stackFslw", me);
+      biffAdd(GAGE, err); return NULL;
+    }
+    for (pvlIdx=0; pvlIdx<ntx->pvlNum-1; pvlIdx++) {
+      ntx->stackPos[pvlIdx] = ctx->stackPos[pvlIdx];
+      ntx->stackFslw[pvlIdx] = ctx->stackFslw[pvlIdx];
     }
   }
   ntx->shape = gageShapeCopy(ctx->shape);
@@ -357,6 +372,7 @@ int
 gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gagePerVolumeAttach", err[BIFF_STRLEN];
   gageShape *shape;
+  unsigned int newidx;
 
   if (!( ctx && pvl )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -364,11 +380,6 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (gagePerVolumeIsAttached(ctx, pvl)) {
     sprintf(err, "%s: given pervolume already attached", me);
-    biffAdd(GAGE, err); return 1;
-  }
-  if (ctx->pvlNum == GAGE_PERVOLUME_MAXNUM) {
-    sprintf(err, "%s: sorry, already have GAGE_PERVOLUME_MAXNUM == %d "
-            "pervolumes attached", me, GAGE_PERVOLUME_MAXNUM);
     biffAdd(GAGE, err); return 1;
   }
 
@@ -397,7 +408,12 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
     gageShapeNix(shape); 
   }
   /* here we go */
-  ctx->pvl[ctx->pvlNum++] = pvl;
+  newidx = airArrayLenIncr(ctx->pvlArr, 1);
+  if (!ctx->pvl) {
+    sprintf(err, "%s: couldn't increase length of pvl", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  ctx->pvl[newidx] = pvl;
   pvl->verbose = ctx->verbose;
 
   return 0;
@@ -431,7 +447,8 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
   for (pvlIdx=foundIdx+1; pvlIdx<ctx->pvlNum; pvlIdx++) {
     ctx->pvl[pvlIdx-1] = ctx->pvl[pvlIdx];
   }
-  ctx->pvl[ctx->pvlNum--] = NULL;
+  ctx->pvl[ctx->pvlNum-1] = NULL;
+  airArrayLenIncr(ctx->pvlArr, -1);
   if (0 == ctx->pvlNum) {
     /* leave things the way that they started */
     gageShapeReset(ctx->shape);
@@ -456,13 +473,14 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 void
 gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="gageIv3Fill";
-  int _xx, _yy, _zz, xx, yy, zz, lx, ly, lz,
-    hx, hy, hz, fr, cacheIdx, dataIdx, fddd;
+  int lx, ly, lz, hx, hy, hz, _xx, _yy, _zz;
+  unsigned int xx, yy, zz, 
+    fr, cacheIdx, dataIdx, fddd;
   unsigned int sx, sy, sz;
   char *data, *here;
   unsigned int tup;
 
-  if (0 && ctx->verbose) {
+  if (ctx->verbose > 1) {
     fprintf(stderr, "%s: hello\n", me);
   }
   sx = ctx->shape->size[0];
@@ -483,13 +501,13 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       && hz < AIR_CAST(int, sz)) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
-    if (0 && ctx->verbose) {
+    if (ctx->verbose > 1) {
       fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
               me, pvl->kind->valLen,
               AIR_CAST(void*, pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
-    if (0 && ctx->verbose) {
+    if (ctx->verbose > 1) {
       fprintf(stderr, "%s: size = (%u,%u,%u);\n"
               "  fd = %d; coord = (%d,%d,%d) --> dataIdx = %d\n",
               me, sx, sy, sz, 2*fr,
@@ -558,7 +576,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       }
     }
   }
-  if (0 && ctx->verbose) {
+  if (ctx->verbose > 1) {
     fprintf(stderr, "%s: bye\n", me);
   }
   return;
@@ -581,7 +599,7 @@ int
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
            double stackIdx) {
   char me[]="_gageProbe";
-  int xi, yi, zi;
+  unsigned int xi, yi, zi;
   unsigned int pvlIdx;
   
   if (!ctx) {
@@ -603,8 +621,10 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
          zi == ctx->point.zi )) {
     if (ctx->parm.stackUse) {
       for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+        /* note that we only fill the cache for the stack samples
+           that have a non-zero weight */
         if (ctx->stackFslw[pvlIdx]) {
-          gageIv3Fill(ctx, ctx->pvl[1+pvlIdx]);
+          gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         }
       }
     } else {
@@ -615,15 +635,25 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
   }
   /* fprintf(stderr, "##%s: bingo 2\n", me); */
   if (ctx->parm.stackUse) {
+    unsigned int baseIdx, vi;
+    baseIdx = ctx->pvlNum - 1;
+    if (ctx->verbose > 2) {
+      for (vi=0; vi<baseIdx; vi++) {
+        fprintf(stderr, "%s: pvl[%u]'s value cache at "
+                "coords = %d,%d,%d:\n", me, vi,
+                ctx->point.xi, ctx->point.yi, ctx->point.zi);
+        ctx->pvl[vi]->kind->iv3Print(stderr, ctx, ctx->pvl[vi]);
+      }
+    }
     _gageStackIv3Fill(ctx);
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: base pvl's value cache at "
               "coords = %d,%d,%d:\n", me, 
               ctx->point.xi, ctx->point.yi, ctx->point.zi);
-      ctx->pvl[0]->kind->iv3Print(stderr, ctx, ctx->pvl[0]);
+      ctx->pvl[baseIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[baseIdx]);
     }
-    ctx->pvl[0]->kind->filter(ctx, ctx->pvl[0]);
-    ctx->pvl[0]->kind->answer(ctx, ctx->pvl[0]);
+    ctx->pvl[baseIdx]->kind->filter(ctx, ctx->pvl[baseIdx]);
+    ctx->pvl[baseIdx]->kind->answer(ctx, ctx->pvl[baseIdx]);
   } else {
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
       if (ctx->verbose > 1) {
@@ -656,7 +686,7 @@ gageProbe(gageContext *ctx, double xi, double yi, double zi) {
 int
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                int indexSpace, int clamp) {
-  /* char me[]="_gageProbeSpace"; */
+  char me[]="_gageProbeSpace";
   int ret;
   unsigned int *size;
   double xi, yi, zi, si;
@@ -669,6 +699,8 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     zi = zz;
     if (ctx->parm.stackUse) {
       si = ss;
+    } else {
+      si = AIR_NAN;
     }
   } else {
     /* have to convert from world to index */
@@ -681,8 +713,25 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     yi = icoord[1];
     zi = icoord[2];
     if (ctx->parm.stackUse) {
-      si = AIR_AFFINE(ctx->stackRange[0], ss, ctx->stackRange[1],
-                      0, ctx->pvlNum-2);
+      unsigned int sidx;
+      /* HEY: this linear search is just for initial testing, 
+         will be made more efficient later */
+      if (ss < ctx->stackPos[0]) {
+        si = -1;
+      } else if (ss > ctx->stackPos[ctx->pvlNum-2]) {
+        si = ctx->pvlNum-1; /* which is out of bounds */
+      } else {
+        for (sidx=0; sidx<ctx->pvlNum-2; sidx++) {
+          if (AIR_IN_CL(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1])) {
+            break;
+          }
+        }
+        if (sidx == ctx->pvlNum-2) {
+          fprintf(stderr, "!%s: search failure for ss = %g\n", me, ss);
+        }
+        si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
+                        0.0, 1.0);
+      }
     }
     /*
     fprintf(stderr, "%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,

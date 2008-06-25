@@ -70,21 +70,6 @@ extern "C" {
 */
 
 /*
-******** GAGE_PERVOLUME_MAXNUM
-**
-** max number of pervolumes that can be associated with a context.
-** Since this is so often just 1, it makes no sense to adopt a more
-** general mechanism to allow an unlimited number of pervolumes.
-**
-** HEY: Tue Mar 27 10:30:21 EDT 2007: this increased from 4 to something
-** larger because it was putting an unwanted cap on the number of 
-** pervolumes that could be put into a stack.  Thus, the comment above
-** is probably out of date, and the existence of this limit should 
-** probably be reconsidered...
-*/
-#define GAGE_PERVOLUME_MAXNUM 128
-
-/*
 ******** gageParm.. enum
 **
 ** these are passed to gageSet.  Look for like-wise named field of
@@ -463,10 +448,10 @@ typedef struct gageParm_t {
 ** the stack implementation, it was just never used.
 */
 typedef struct gagePoint_t {
-  double xf, yf, zf;     /* fractional voxel location, used to
-                            short-circuit calculation of filter sample
-                            locations and weights */
-  int xi, yi, zi;        /* integral voxel location */
+  double xf, yf, zf;       /* fractional voxel location, used to
+                              short-circuit calculation of filter sample
+                              locations and weights */
+  unsigned int xi, yi, zi; /* integral voxel location */
 } gagePoint;
 
 /*
@@ -547,6 +532,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ~(1 << (i % 8)))
 
+  /* increment for ctx->pvlArr airArray */
+#define GAGE_PERVOLUME_ARR_INCR 32
+
 /*
 ******** gageContext struct
 **
@@ -556,45 +544,77 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 ** conjuction with probing multiple volumes.
 */
 typedef struct gageContext_t {
+  /* INPUT ------------------------- */
   int verbose;                /* verbosity */
   gageParm parm;              /* all parameters */
-  NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1]; /* all the kernels we'll ever need,
-                                             including the stack kernel */
-  struct gagePerVolume_t *pvl[GAGE_PERVOLUME_MAXNUM];
-                              /* the pervolumes attached to this context */
-  unsigned int pvlNum;        /* number of pervolumes currently attached */
-  gageShape *shape;           /* sizes, spacings, centering, and other 
-                                 geometric aspects of the volume */
-  double stackRange[2],       /* range of values associated with stack.
-                                 These are always set, even with scale-space
-                                 derivative normalization is not requested,
-                                 so that the stack always has (analogous to
-                                 the spatial axes) a notion of world space.
-                                 NOTE: stack is ALWAYS node-centered */
-    stackFslw[GAGE_PERVOLUME_MAXNUM]; /* filter sample locations and weights
-                                         for reconstruction along the stack */
-  int flag[GAGE_CTX_FLAG_MAX+1]; /* all the flags used by gageUpdate() used to
-                                 describe what changed in this context */
-  int needD[3];               /* which value/derivatives need to be calculated
-                                 for all pervolumes (doV, doD1, doD2) */
-  int needK[GAGE_KERNEL_MAX+1]; /* which kernels are needed for all pvls */
-  int radius;                 /* radius of support of samples needed to 
-                                 satisfy query, given the set of kernels.
-                                 The "filter diameter" fd == 2*radius
-                                 HEY: why isn't this unsigned?! */
-  double *fsl,                /* filter sample locations (all axes):
-                                 logically a fd x 3 array */
-    *fw;                      /* filter weights (all axes, all kernels):
-                                 logically a fdx3xGAGE_KERNEL_MAX+1 array */
-  unsigned int *off;          /* offsets to other fd^3 samples needed to fill
-                                 3D intermediate value cache. Allocated size is
-                                 dependent on kernels, values inside are
-                                 dependent on the dimensions of the volume. It
-                                 may be more correct to be using size_t
-                                 instead of uint, but the X and Y dimensions of
-                                 the volume would have to be super-outrageous
-                                 for that to be a problem */
-  gagePoint point;            /* last probe location */
+
+  /* all the kernels we'll ever need, including the stack kernel */
+  NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
+
+  /* all the pervolumes attached to this context.  If using stack,
+     the base pvl is the LAST, pvl[pvlNum-1], and the stack samples
+     are pvl[0] through pvl[pvlNum-2] */
+  struct gagePerVolume_t **pvl;
+
+  /* number of pervolumes currently attached. If using stack,
+     this is one more than number of stack samples (because of the
+     base volume at the end) */
+  unsigned int pvlNum;
+
+  /* airArray for managing pvl and pvlNum */
+  airArray *pvlArr;
+
+  /* sizes, spacings, centering, and other geometric aspects of the
+     volume */
+  gageShape *shape;
+
+  /* if stack is being used, allocated for length pvlNum-1, and
+     stackPos[0] through stackPos[pvlNum-2] MUST exist and be
+     monotonically increasing stack positions for each volume.
+     Otherwise NULL */
+  double *stackPos;
+
+  /* INTERNAL ------------------------- */
+  /* if using stack: allocated for length pvlNum-1, and filter sample
+     locations and weights for reconstruction along the stack.
+     Otherwise NULL. */
+  double *stackFslw;
+
+  /* all the flags used by gageUpdate() used to describe what changed
+     in this context */
+  int flag[GAGE_CTX_FLAG_MAX+1]; 
+
+  /* which value/derivatives need to be calculated for all pervolumes
+     (doV, doD1, doD2) */
+  int needD[3];
+
+  /* which kernels are needed for all pvls.  needK[gageKernelStack]
+     is currently not set by the update function that sets needK[] */
+  int needK[GAGE_KERNEL_MAX+1];
+
+  /* radius of support of samples needed to satisfy query, given the
+     set of kernels.  The "filter diameter" fd == 2*radius.  This is
+     incremented by one if filtering across the stack with
+     nrrdKernelHermiteFlag. */
+  unsigned int radius;
+
+  /* filter sample locations (all axes): logically a fd x 3 array */
+  double *fsl;
+
+  /* filter weights (all axes, all kernels): logically a
+     fdx3xGAGE_KERNEL_MAX+1 array */
+  double *fw;
+
+  /* offsets to other fd^3 samples needed to fill 3D intermediate
+     value cache. Allocated size is dependent on kernels, values
+     inside are dependent on the dimensions of the volume. It may be
+     more correct to be using size_t instead of uint, but the X and Y
+     dimensions of the volume would have to be super-outrageous for
+     that to be a problem */
+  unsigned int *off;
+
+  /* last probe location */
+  gagePoint point;
 
   /* errStr and errNum are for describing errors that happen in gageProbe():
      using biff is too heavy-weight for this, and the idea is that no ill
@@ -820,12 +840,17 @@ GAGE_EXPORT int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl,
                                 int item);
 
 /* stack.c */
-GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], unsigned int num,
+GAGE_EXPORT double gageTauOfTee(double tee);
+GAGE_EXPORT double gageTeeOfTau(double tau);
+GAGE_EXPORT double gageSigOfTau(double tau);
+GAGE_EXPORT double gageTauOfSig(double sig);
+GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], double *scale,
+                              double (*scaleCB)(double),
+                              double scldomMin, double scldomMax,
+                              unsigned int num,
                               const Nrrd *nin, unsigned int baseDim,
                               const NrrdKernelSpec *kspec,
-                              double rangeMin, double rangeMax,
-                              int boundary, int renormalize, int verbose,
-                              const char *path);
+                              int boundary, int renormalize, int verbose);
 GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
                                       gagePerVolume ***pvlP,
                                       const Nrrd *const *nblur,
@@ -834,8 +859,8 @@ GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
 GAGE_EXPORT int gageStackPerVolumeAttach(gageContext *ctx,
                                          gagePerVolume *pvlBase,
                                          gagePerVolume **pvlStack,
-                                         unsigned int blnum,
-                                         double rangeMin, double rangeMax);
+                                         double *stackPos,
+                                         unsigned int blnum);
 
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();

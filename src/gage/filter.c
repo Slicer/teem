@@ -127,7 +127,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   fixX = sqrt(posX/negX);
   fixY = sqrt(posY/negY);
   fixZ = sqrt(posZ/negZ);
-  if (ctx->verbose > 1) {
+  if (ctx->verbose > 2) {
     fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
             me, (float)fixX, (float)fixY, (float)fixZ);
   }
@@ -146,7 +146,7 @@ _gageFwSet(gageContext *ctx) {
   
   fd = 2*ctx->radius;
   for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
-    if (!ctx->needK[kidx]) {
+    if (!ctx->needK[kidx] || kidx==gageKernelStack) {
       continue;
     }
     /* we evaluate weights for all three axes with one call */
@@ -154,14 +154,15 @@ _gageFwSet(gageContext *ctx) {
                                     fd*3, ctx->ksp[kidx]->parm);
   }
   
-  if (ctx->verbose > 1) {
+  if (ctx->verbose > 2) {
     fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
     _gagePrint_fslw(stderr, ctx);
   }
   if (ctx->parm.renormalize) {
     for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
-      if (!ctx->needK[kidx])
+      if (!ctx->needK[kidx] || kidx==gageKernelStack) {
         continue;
+      }
       switch (kidx) {
       case gageKernel00:
       case gageKernel10:
@@ -173,7 +174,7 @@ _gageFwSet(gageContext *ctx) {
         break;
       }
     }
-    if (ctx->verbose > 1) {
+    if (ctx->verbose > 2) {
       fprintf(stderr, "%s: filter weights after renormalization:\n", me);
       _gagePrint_fslw(stderr, ctx);
     }
@@ -239,14 +240,33 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       return 1;
     }
   }
-  xi = AIR_CAST(unsigned int, _xi+1) - 1; xf = _xi - xi;
-  yi = AIR_CAST(unsigned int, _yi+1) - 1; yf = _yi - yi;
-  zi = AIR_CAST(unsigned int, _zi+1) - 1; zf = _zi - zi;
-
+  /* even after all these years, GLK is still tweaking this stuff ...
+  if (nrrdCenterCell == ctx->shape->center) {
+    xi = AIR_CAST(unsigned int, _xi+1) - 1; 
+    yi = AIR_CAST(unsigned int, _yi+1) - 1;
+    zi = AIR_CAST(unsigned int, _zi+1) - 1;
+    xi -= (xi == max[0]);
+    yi -= (yi == max[1]);
+    zi -= (zi == max[2]);
+  } else {
+    xi = AIR_CAST(unsigned int, _xi);
+    yi = AIR_CAST(unsigned int, _yi);
+    zi = AIR_CAST(unsigned int, _zi);
+  }
+  */
+  xi = AIR_CAST(unsigned int, _xi); /* for cell-centered, [-0.5,0] --> 0 */
+  yi = AIR_CAST(unsigned int, _yi);
+  zi = AIR_CAST(unsigned int, _zi);
+  xi -= (xi == max[0]);  /* only can kick in for node-centered */
+  yi -= (yi == max[1]);
+  zi -= (zi == max[2]);
+  xf = _xi - xi;
+  yf = _yi - yi;
+  zf = _zi - zi;
   ctx->point.xi = xi;
   ctx->point.yi = yi;
   ctx->point.zi = zi;
-  if (ctx->verbose > 1) {
+  if (ctx->verbose > 2) {
     fprintf(stderr, "%s: \n"
             "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
             "        -> i(%5d,%5d,%5d) \n"
@@ -270,20 +290,27 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
   }
 
   if (ctx->parm.stackUse) {
-    int stackBase;
-    double stackFrac, sum;
+    double sum;
     unsigned int ii;
     NrrdKernelSpec *sksp;
 
     /* node-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
-    stackBase = AIR_CAST(int, stackIdx);
-    stackFrac = stackIdx - stackBase;
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFslw[ii] = stackIdx - ii;
-    }  
+      if (ctx->verbose > 2) {
+        fprintf(stderr, "%s: ctx->stackFslw[%u] (fsl) = %g\n", 
+                me, ii, ctx->stackFslw[ii]);
+      }
+    }
     sksp = ctx->ksp[gageKernelStack];
     sksp->kernel->evalN_d(ctx->stackFslw, ctx->stackFslw,
                           ctx->pvlNum-1, sksp->parm);
+    if (ctx->verbose > 2) {
+      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
+                me, ii, ctx->stackFslw[ii]);
+      }
+    }
   
     /* HEY: we really are quite far from implementing arbitrary
        nrrdBoundary behaviors here!!!! */
@@ -303,14 +330,25 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFslw[ii] /= sum;
     }
+    if (ctx->verbose > 2) {
+      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
+                me, ii, ctx->stackFslw[ii]);
+      }
+    }
 
-    /* fix derivative kernel weights for stack */
+    /* fix derivative kernel weights for stack. Have to reconstruct
+       the world-space stack position from stackFrac and stackBaseIdx */
     if (ctx->parm.stackRenormalize) {
-      unsigned int kidx, fd, j;
-      double scl, *fwX, *fwY, *fwZ;
-      
-      scl= AIR_AFFINE(0, stackIdx, ctx->pvlNum-2,
-                      ctx->stackRange[0], ctx->stackRange[1]);
+      unsigned int kidx, fd, j, stackBaseIdx;
+      double stackFrac, scl, *fwX, *fwY, *fwZ;
+
+      stackBaseIdx = AIR_CAST(unsigned int, stackIdx);
+      stackBaseIdx -= (stackBaseIdx == ctx->pvlNum-1);
+      stackFrac = stackIdx - stackBaseIdx;
+      scl = AIR_AFFINE(0.0, stackFrac, 1.0,
+                       ctx->stackPos[stackBaseIdx],
+                       ctx->stackPos[stackBaseIdx+1]);
       fd = 2*ctx->radius;
       kidx = gageKernel11;
       fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
