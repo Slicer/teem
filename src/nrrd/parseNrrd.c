@@ -1099,8 +1099,8 @@ _nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd,
 }
 
 int
-_nrrdContainsPercentDAndMore(char *str) {
-  char *hh, *tmp;
+_nrrdContainsPercentThisAndMore(const char *str, char this) {
+  const char *hh, *tmp;
 
   tmp = str;
   do {
@@ -1117,7 +1117,7 @@ _nrrdContainsPercentDAndMore(char *str) {
   } while (tmp[0]);
   hh++;
   hh += strspn(hh, "0123456789");
-  if (!( hh[0] == 'd' )) {
+  if (!( hh[0] == this )) {
     return 0;
   }
   hh += strcspn(hh, _nrrdFieldSep);
@@ -1224,7 +1224,10 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
   }
   airMopAdd(mop, info, airFree, airMopAlways);
 
-  if (_nrrdContainsPercentDAndMore(info)) {
+  /* HEY: this change should be made someday 
+  if (_nrrdContainsPercentThisAndMore(info, 'd')
+      || _nrrdContainsPercentThisAndMore(info, 'u')) { */
+  if (_nrrdContainsPercentThisAndMore(info, 'd')) {
     /* ---------------------------------------------------------- */
     /* --------- format.%d <min> <max> <step> [<dim>] ----------- */
     /* ---------------------------------------------------------- */

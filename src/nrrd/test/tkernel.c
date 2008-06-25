@@ -43,13 +43,15 @@ usage(char *me) {
 
 int
 main(int argc, char *argv[]) {
-  char *me, *kS, *minS, *stepS, *maxS, *outS;
+  char *me, *kS, *minS, *stepS, *maxS, *outS, *err, kstr[AIR_STRLEN_LARGE];
   const NrrdKernel *k;
+  NrrdKernelSpec *ksp;
   double parm[NRRD_KERNEL_PARMS_NUM], min, step, max, integral,
     *dom_d, *ran_d;
   float *dom_f, *ran_f, v, r_f, r_d;
   FILE *fout;
   int i, len;
+  airArray *mop;
 
   me = argv[0];
   if (6 != argc) {
@@ -61,10 +63,23 @@ main(int argc, char *argv[]) {
   maxS = argv[4];
   outS = argv[5];
   
+  mop = airMopNew();
   if (nrrdKernelParse(&k, parm, kS)) {
-    fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
+    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+    airMopError(mop);
     exit(1);
   }
+  ksp = nrrdKernelSpecNew();
+  airMopAdd(mop, ksp, (airMopper)nrrdKernelSpecNix, airMopAlways);
+  nrrdKernelSpecSet(ksp, k, parm);
+  if (nrrdKernelSpecSprint(kstr, ksp)) {
+    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s\n", me, err);
+    airMopError(mop);
+    exit(1);
+  }
+  printf("%s: printed kernel as \"%s\"\n", me, kstr);
   if (3 != (sscanf(minS, "%lf", &min) +
             sscanf(stepS, "%lf", &step) +
             sscanf(maxS, "%lf", &max))) {
@@ -90,6 +105,10 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: PANIC: couldn't allocate buffers\n", me);
     exit(1);
   }
+  airMopAdd(mop, dom_d, airFree, airMopAlways);
+  airMopAdd(mop, ran_d, airFree, airMopAlways);
+  airMopAdd(mop, dom_f, airFree, airMopAlways);
+  airMopAdd(mop, ran_f, airFree, airMopAlways);
   /* set values in both domains */
   i=0;
   for (v=min; v<=max; v+=step) {
@@ -142,12 +161,9 @@ main(int argc, char *argv[]) {
     fprintf(fout, "%g %g\n", dom_f[i], ran_f[i]);
   }
   fclose(fout);
-  
-  free(dom_d);
-  free(ran_d);
-  free(dom_f);
-  free(ran_f);
+
   fprintf(stderr, "(for matlab:)\n");
   fprintf(stderr, "x = dlmread(\'%s\', \' \'); plot(x(:,1), x(:,2));\n", outS);
+  airMopOkay(mop);
   exit(0);
 }

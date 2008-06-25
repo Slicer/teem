@@ -905,7 +905,7 @@ NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
                                                         NrrdIoState *nio,
                                                         int useBiff);
 NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
-NRRD_EXPORT int _nrrdContainsPercentDAndMore(char *str);
+NRRD_EXPORT int _nrrdContainsPercentThisAndMore(const char *str, char this);
 NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
 
 /* read.c */
@@ -928,6 +928,9 @@ NRRD_EXPORT const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *nio);
 NRRD_EXPORT const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *nio);
 NRRD_EXPORT int nrrdSave(const char *filename, const Nrrd *nrrd, 
                          NrrdIoState *nio);
+NRRD_EXPORT int nrrdSaveMulti(const char *fnameFormat,
+                              const Nrrd *const *nin, unsigned int ninLen,
+                              unsigned int numStart, NrrdIoState *nio);
 NRRD_EXPORT int nrrdWrite(FILE *file, const Nrrd *nrrd, 
                           NrrdIoState *nio);
 NRRD_EXPORT int nrrdStringWrite(char **stringP, const Nrrd *nrrd,
@@ -1305,7 +1308,8 @@ NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
 NRRD_EXPORT int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
-
+NRRD_EXPORT int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE],
+                                     NrrdKernelSpec *ksp);
 
 /* ---- END non-NrrdIO */
 

@@ -394,7 +394,7 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
 
 NrrdKernel
 _nrrdKernelHermiteFlag = {
-  "hermite flag",
+  "hermiteFlag",
   0, _nrrdHermiteSup,_nrrdHermiteInt, 
   _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
@@ -1277,7 +1277,7 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 
 static NrrdKernel
 _DDc3quint = {
-  "C3Quintic",
+  "C3QuinticDD",
   1, _DDc3quintSup,  _DDc3quintInt,   
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
@@ -1530,7 +1530,7 @@ _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 
 static NrrdKernel
 _DDc4hex = {
-  "C4hexic",
+  "C4hexicDD",
   1, _DDc4hexSup,  _DDc4hexInt,   
   _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
 };
@@ -1884,36 +1884,34 @@ NrrdKernel *
 _nrrdKernelStrToKern(char *str) {
   
   if (!strcmp("zero", str))       return nrrdKernelZero;
-  if (!strcmp("z", str))          return nrrdKernelZero;
   if (!strcmp("box", str))        return nrrdKernelBox;
-  if (!strcmp("b", str))          return nrrdKernelBox;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
+  if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteFlag;
   if (!strcmp("hermite", str))    return nrrdKernelHermiteFlag;
   if (!strcmp("herm", str))       return nrrdKernelHermiteFlag;
   if (!strcmp("tent", str))       return nrrdKernelTent;
-  if (!strcmp("t", str))          return nrrdKernelTent;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
   if (!strcmp("fordif", str))     return nrrdKernelForwDiff;
   if (!strcmp("centdiff", str))   return nrrdKernelCentDiff;
   if (!strcmp("cendif", str))     return nrrdKernelCentDiff;
+  if (!strcmp("bccubic", str))    return nrrdKernelBCCubic;
   if (!strcmp("cubic", str))      return nrrdKernelBCCubic;
-  if (!strcmp("c", str))          return nrrdKernelBCCubic;
+  if (!strcmp("bccubicd", str))   return nrrdKernelBCCubicD;
   if (!strcmp("cubicd", str))     return nrrdKernelBCCubicD;
-  if (!strcmp("cd", str))         return nrrdKernelBCCubicD;
+  if (!strcmp("bccubicdd", str))  return nrrdKernelBCCubicDD;
   if (!strcmp("cubicdd", str))    return nrrdKernelBCCubicDD;
-  if (!strcmp("cdd", str))        return nrrdKernelBCCubicDD;
+  if (!strcmp("aquartic", str))   return nrrdKernelAQuartic;
   if (!strcmp("quartic", str))    return nrrdKernelAQuartic;
-  if (!strcmp("q", str))          return nrrdKernelAQuartic;  
+  if (!strcmp("aquarticd", str))  return nrrdKernelAQuarticD;
   if (!strcmp("quarticd", str))   return nrrdKernelAQuarticD;
-  if (!strcmp("qd", str))         return nrrdKernelAQuarticD;  
+  if (!strcmp("aquarticdd", str)) return nrrdKernelAQuarticDD;
   if (!strcmp("quarticdd", str))  return nrrdKernelAQuarticDD;
-  if (!strcmp("qdd", str))        return nrrdKernelAQuarticDD;  
   if (!strcmp("c3quintic", str))  return nrrdKernelC3Quintic;
   if (!strcmp("c3q", str))        return nrrdKernelC3Quintic;
   if (!strcmp("c3quinticd", str)) return nrrdKernelC3QuinticD;
   if (!strcmp("c3qd", str))       return nrrdKernelC3QuinticD;
   if (!strcmp("c3quinticdd", str)) return nrrdKernelC3QuinticDD;
-  if (!strcmp("c3qdd", str))       return nrrdKernelC3QuinticDD;
+  if (!strcmp("c3qdd", str))      return nrrdKernelC3QuinticDD;
   if (!strcmp("c4hexic", str))    return nrrdKernelC4Hexic;
   if (!strcmp("c4h", str))        return nrrdKernelC4Hexic;
   if (!strcmp("c4hexicd", str))   return nrrdKernelC4HexicD;
@@ -1922,7 +1920,6 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c4hdd", str))      return nrrdKernelC4HexicDD;
   if (!strcmp("gaussian", str))   return nrrdKernelGaussian;
   if (!strcmp("gauss", str))      return nrrdKernelGaussian;
-  if (!strcmp("g", str))          return nrrdKernelGaussian;
   if (!strcmp("gaussiand", str))  return nrrdKernelGaussianD;
   if (!strcmp("gaussd", str))     return nrrdKernelGaussianD;
   if (!strcmp("gd", str))         return nrrdKernelGaussianD;
@@ -1934,6 +1931,7 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("dg", str))         return nrrdKernelDiscreteGaussian;
   if (!strcmp("dgauss", str))     return nrrdKernelDiscreteGaussian;
   if (!strcmp("dgaussian", str))  return nrrdKernelDiscreteGaussian;
+  if (!strcmp("discretegauss", str))  return nrrdKernelDiscreteGaussian;
   if (!strcmp("hann", str))       return nrrdKernelHann;
   if (!strcmp("hannd", str))      return nrrdKernelHannD;
   if (!strcmp("hanndd", str))     return nrrdKernelHannDD;
@@ -2135,5 +2133,41 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
     biffAdd(NRRD, err); return 1;
   }
   nrrdKernelSpecSet(ksp, kern, kparm);
+  return 0;
+}
+
+/*
+** note that the given string has to be allocated for a certain size
+** which is plenty big
+*/
+int
+nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], NrrdKernelSpec *ksp) {
+  char me[]="nrrdKernelSpecSprint", err[BIFF_STRLEN];
+  unsigned int warnLen = AIR_STRLEN_LARGE/2;
+
+  if (!( str && ksp )) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  if (strlen(ksp->kernel->name) > warnLen) {
+    sprintf(err, "%s: kernel name (len " _AIR_SIZE_T_CNV 
+            ") might lead to overflow", me,
+            strlen(ksp->kernel->name));
+    biffAdd(NRRD, err); return 1;
+  }
+  strcpy(str, ksp->kernel->name);
+  if (ksp->kernel->numParm) {
+    unsigned int ki;
+    char sp[AIR_STRLEN_LARGE];
+    for (ki=0; ki<ksp->kernel->numParm; ki++) {
+      sprintf(sp, "%c%g", (!ki ? ':' : ','), ksp->parm[ki]);
+      if (strlen(str) + strlen(sp) > warnLen) {
+        sprintf(err, "%s: kernel parm %u might lead to overflow", me, ki);
+        biffAdd(NRRD, err); return 1;
+      }
+      strcat(str, sp);
+    }
+  }
   return 0;
 }
