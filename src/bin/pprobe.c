@@ -30,6 +30,11 @@
 #include <teem/ten.h>
 #include <teem/limn.h>
 
+double 
+probeIdent(double val) {
+  return val;
+}
+
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
 
 /* copied this from ten.h; I don't want gage to depend on ten */
@@ -114,9 +119,9 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   float pos[3], lineInfo[4];
-  double gmc, rangeSS[2], idxSS;
+  double gmc, rangeSS[2], posSS, *scalePos;
   unsigned int ansLen, numSS, ninSSIdx, lineStepNum;
-  int what, E=0, renorm, SSrenorm, verbose;
+  int what, E=0, renorm, SSrenorm, SSuniform, verbose;
   const double *answer;
   Nrrd *nin, **ninSS=NULL, *nout=NULL;
   gageContext *ctx;
@@ -127,6 +132,7 @@ main(int argc, char *argv[]) {
   Nrrd *ngrad=NULL, *nbmat=NULL;
   double bval, eps;
   unsigned int *skip, skipNum;
+  double (*mapForw)(double), (*mapBack)(double);
 
   mop = airMopNew();
   me = argv[0];
@@ -183,7 +189,7 @@ main(int argc, char *argv[]) {
              &stackSavePath, "",
              "give a non-empty path string (like \"./\") to save out "
              "the pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "ssi", "SS idx", airTypeDouble, 1, 1, &idxSS, "0",
+  hestOptAdd(&hopt, "ssp", "SS pos", airTypeDouble, 1, 1, &posSS, "0",
              "position at which to sample in scale-space");
   hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur,
              "gauss:1,5", "blurring kernel, to sample scale space",
@@ -193,6 +199,9 @@ main(int argc, char *argv[]) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ssrn", "ssrn", airTypeInt, 1, 1, &SSrenorm, "0",
              "enable derivative normalization based on scale space");
+  hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
+             "do uniform samples along sigma, and not (by default) "
+             "samples according to the logarithm of diffusion time");
 
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
@@ -209,8 +218,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   what = airEnumVal(kind->enm, whatS);
-  if (-1 == what) {
-    /* -1 indeed always means "unknown" for any gageKind */
+  if (!what) {
+    /* 0 indeed always means "unknown" for any gageKind */
     fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
             me, whatS, kind->name);
     hestUsage(stderr, hopt, me, hparm);
@@ -220,8 +229,8 @@ main(int argc, char *argv[]) {
   }
   
   if (ELL_4V_LEN(lineInfo) && !lineStepNum) {
-    fprintf(stderr, "%s: gave line info (\"-pl\") but not # samples (\"-pln\")",
-            me);
+    fprintf(stderr, "%s: gave line info (\"-pl\") but not "
+            "# samples (\"-pln\")", me);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
@@ -254,8 +263,16 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
+    unsigned int vi;
+    if (SSuniform) {
+      mapForw = mapBack = probeIdent;
+    } else {
+      mapForw = gageTauOfSig;
+      mapBack = gageSigOfTau;
+    }
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
-    if (!ninSS) {
+    scalePos = AIR_CAST(double *, calloc(numSS, sizeof(double)));
+    if (!(ninSS && scalePos)) {
       fprintf(stderr, "%s: couldn't allocate ninSS", me);
       airMopError(mop); return 1;
     }
@@ -263,16 +280,38 @@ main(int argc, char *argv[]) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (gageStackBlur(ninSS, numSS,
-                      nin, kind->baseDim, 
-                      kSSblur, rangeSS[0], rangeSS[1],
+    if (gageStackBlur(ninSS, scalePos, mapBack,
+                      mapForw(rangeSS[0]), mapForw(rangeSS[1]),
+                      numSS,
+                      nin, kind->baseDim, kSSblur, 
                       nrrdBoundaryBleed, AIR_TRUE,
-                      airStrlen(stackSavePath) ? 4 + verbose : verbose,
-                      airStrlen(stackSavePath) ? stackSavePath : NULL)) {
+                      verbose)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+    if (airStrlen(stackSavePath)) {
+      char fnform[AIR_STRLEN_LARGE];
+      sprintf(fnform, "%s/blur-%%02u.nrrd", stackSavePath);
+      fprintf(stderr, "%s: |%s|\n", me, fnform);
+      if (nrrdSaveMulti(fnform, AIR_CAST(const Nrrd *const *, ninSS),
+                        numSS, 0, NULL)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+    }
+    if (verbose > 2) {
+      fprintf(stderr, "%s: range sig [%g,%g] --> tau [%g,%g]\n", me,
+              rangeSS[0], rangeSS[1],
+              mapForw(rangeSS[0]), mapForw(rangeSS[1]));
+      for (vi=0; vi<numSS; vi++) {
+        fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
+      }
+    }
+  } else {
+    ninSS = NULL;
+    scalePos = NULL;
   }
   
   ctx = gageContextNew();
@@ -295,8 +334,7 @@ main(int argc, char *argv[]) {
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, numSS, 
-                                          rangeSS[0], rangeSS[1]);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, scalePos, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);
@@ -419,7 +457,7 @@ main(int argc, char *argv[]) {
   } else {
     /* simple probing at a point */
     E = (numSS
-         ? gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], idxSS,
+         ? gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], posSS,
                                !worldSpace, AIR_FALSE)
          : gageProbeSpace(ctx, pos[0], pos[1], pos[2],
                           !worldSpace, AIR_FALSE));
@@ -433,13 +471,18 @@ main(int argc, char *argv[]) {
            airEnumStr(kind->enm, what), pos[0], pos[1], pos[2]);
     printans(stdout, answer, ansLen);
     printf("\n");
-    if (eps && 1 == ansLen && worldSpace) {
+    if (eps && 1 == ansLen) {
       double v[3][3][3], fes, ee;
       int xo, yo, zo;
+      if (!worldSpace) {
+        fprintf(stderr, "\n%s: WARNING!!: not probing in world-space (via "
+                "\"-wsp\") likely leads to errors in estimated "
+                "derivatives\n\n", me);
+      }
       gageParmSet(ctx, gageParmVerbose, 0);
 #define PROBE(x, y, z)                                                     \
       ((numSS                                                              \
-        ? gageStackProbeSpace(ctx, x, y, z, idxSS, !worldSpace, AIR_FALSE) \
+        ? gageStackProbeSpace(ctx, x, y, z, posSS, !worldSpace, AIR_FALSE) \
         : gageProbeSpace(ctx, x, y, z, !worldSpace, AIR_FALSE)), answer[0])
       for (xo=0; xo<=2; xo++) {
         for (yo=0; yo<=2; yo++) {
