@@ -30,11 +30,6 @@
 #include <teem/ten.h>
 #include <teem/limn.h>
 
-double 
-probeIdent(double val) {
-  return val;
-}
-
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
 
 /* copied this from ten.h; I don't want gage to depend on ten */
@@ -132,7 +127,6 @@ main(int argc, char *argv[]) {
   Nrrd *ngrad=NULL, *nbmat=NULL;
   double bval, eps;
   unsigned int *skip, skipNum;
-  double (*mapForw)(double), (*mapBack)(double);
 
   mop = airMopNew();
   me = argv[0];
@@ -264,12 +258,6 @@ main(int argc, char *argv[]) {
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
     unsigned int vi;
-    if (SSuniform) {
-      mapForw = mapBack = probeIdent;
-    } else {
-      mapForw = gageTauOfSig;
-      mapBack = gageSigOfTau;
-    }
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
     scalePos = AIR_CAST(double *, calloc(numSS, sizeof(double)));
     if (!(ninSS && scalePos)) {
@@ -280,9 +268,27 @@ main(int argc, char *argv[]) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (gageStackBlur(ninSS, scalePos, mapBack,
-                      mapForw(rangeSS[0]), mapForw(rangeSS[1]),
-                      numSS,
+    if (SSuniform) {
+      for (vi=0; vi<numSS; vi++) {
+        scalePos[vi] = AIR_AFFINE(0, vi, numSS-1, rangeSS[0], rangeSS[1]);
+      }
+    } else {
+      double rangeTau[2], tau;
+      rangeTau[0] = gageTauOfSig(rangeSS[0]);
+      rangeTau[1] = gageTauOfSig(rangeSS[1]);
+      for (vi=0; vi<numSS; vi++) {
+        tau = AIR_AFFINE(0, vi, numSS-1, rangeTau[0], rangeTau[1]);
+        scalePos[vi] = gageSigOfTau(tau);
+      }
+    }
+    if (verbose > 2) {
+      fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
+              rangeSS[0], rangeSS[1], SSuniform ? "" : "non-");
+      for (vi=0; vi<numSS; vi++) {
+        fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
+      }
+    }
+    if (gageStackBlur(ninSS, scalePos, numSS,
                       nin, kind->baseDim, kSSblur, 
                       nrrdBoundaryBleed, AIR_TRUE,
                       verbose)) {
@@ -299,14 +305,6 @@ main(int argc, char *argv[]) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
-      }
-    }
-    if (verbose > 2) {
-      fprintf(stderr, "%s: range sig [%g,%g] --> tau [%g,%g]\n", me,
-              rangeSS[0], rangeSS[1],
-              mapForw(rangeSS[0]), mapForw(rangeSS[1]));
-      for (vi=0; vi<numSS; vi++) {
-        fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
       }
     }
   } else {
