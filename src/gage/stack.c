@@ -25,10 +25,7 @@
 
 /* these functions don't necessarily belong in gage, but we're putting
    them here for the time being.  Being in gage means that vprobe and
-   pprobe don't need extra libraries to find them. In any case,
-   gageStackBlur() SHOULD NOT get too cozy with them, hence the use of
-   a callback (scaleCB), which allows these functions to go elsewhere
-   when and if that's decided */
+   pprobe don't need extra libraries to find them. */
 
 #define BT 2.526917043979558
 #define AA 0.629078014852877
@@ -76,9 +73,7 @@ gageTauOfSig(double sig) {
 ** scldomMin and scldomMax
 */
 int
-gageStackBlur(Nrrd *const nblur[], double *scale,
-              double (*scaleCB)(double),
-              double scldomMin, double scldomMax,
+gageStackBlur(Nrrd *const nblur[], const double *scale,
               unsigned int blnum,
               const Nrrd *nin, unsigned int baseDim,
               const NrrdKernelSpec *_kspec,
@@ -91,7 +86,7 @@ gageStackBlur(Nrrd *const nblur[], double *scale,
   airArray *mop;
   int E;
 
-  if (!(nblur && scale && scaleCB && nin && _kspec && scale)) {
+  if (!(nblur && scale && nin && _kspec)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
@@ -99,19 +94,7 @@ gageStackBlur(Nrrd *const nblur[], double *scale,
     sprintf(err, "%s: need blnum > 2, not %u", me, blnum);
     biffAdd(GAGE, err); return 1;
   }
-  if (!( AIR_EXISTS(scldomMin) && AIR_EXISTS(scldomMax) )) {
-    sprintf(err, "%s: domain bounds %g %g don't both exist", me,
-            scldomMin, scldomMax);
-    biffAdd(GAGE, err); return 1;
-  }
   for (blidx=0; blidx<blnum; blidx++) {
-    double dom;
-    dom = AIR_AFFINE(0, blidx, blnum-1, scldomMin, scldomMax);
-    if (!AIR_EXISTS(dom)) {
-      sprintf(err, "%s: dom[%u] %g doesn't exist", me, blidx, dom);
-      biffAdd(GAGE, err); return 1;
-    }
-    scale[blidx] = scaleCB(dom);
     if (!AIR_EXISTS(scale[blidx])) {
       fprintf(stderr, "%s: scale[%u] = %g doesn't exist", me, blidx, 
               scale[blidx]);
