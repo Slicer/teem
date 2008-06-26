@@ -186,7 +186,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ssp", "SS pos", airTypeDouble, 1, 1, &posSS, "0",
              "position at which to sample in scale-space");
   hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "gauss:1,5", "blurring kernel, to sample scale space",
+             "dgauss:1,5", "blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
              "tent", "kernel for reconstructing from scale space samples",
