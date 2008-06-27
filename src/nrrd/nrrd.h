@@ -905,7 +905,7 @@ NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
                                                         NrrdIoState *nio,
                                                         int useBiff);
 NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
-NRRD_EXPORT int _nrrdContainsPercentThisAndMore(const char *str, char this);
+NRRD_EXPORT int _nrrdContainsPercentThisAndMore(const char *str, char thss);
 NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
 
 /* read.c */

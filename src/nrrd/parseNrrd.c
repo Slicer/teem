@@ -1099,7 +1099,7 @@ _nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd,
 }
 
 int
-_nrrdContainsPercentThisAndMore(const char *str, char this) {
+_nrrdContainsPercentThisAndMore(const char *str, char thss) {
   const char *hh, *tmp;
 
   tmp = str;
@@ -1117,7 +1117,7 @@ _nrrdContainsPercentThisAndMore(const char *str, char this) {
   } while (tmp[0]);
   hh++;
   hh += strspn(hh, "0123456789");
-  if (!( hh[0] == this )) {
+  if (!( hh[0] == thss )) {
     return 0;
   }
   hh += strcspn(hh, _nrrdFieldSep);
