@@ -857,7 +857,7 @@ GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
 GAGE_EXPORT int gageStackPerVolumeAttach(gageContext *ctx,
                                          gagePerVolume *pvlBase,
                                          gagePerVolume **pvlStack,
-                                         double *stackPos,
+                                         const double *stackPos,
                                          unsigned int blnum);
 
 /* ctx.c */

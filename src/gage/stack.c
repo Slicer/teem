@@ -240,7 +240,7 @@ gageStackPerVolumeNew(gageContext *ctx,
 */
 int
 gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
-                         gagePerVolume **pvlStack, double *stackPos,
+                         gagePerVolume **pvlStack, const double *stackPos,
                          unsigned int blnum) {
   char me[]="gageStackPerVolumeAttach", err[BIFF_STRLEN];
   unsigned int blidx;
