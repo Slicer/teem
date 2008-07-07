@@ -34,11 +34,12 @@ char *_unrrdu_2opInfoL =
 int
 unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *out, *err, *seedS;
   NrrdIter *in1, *in2;
   Nrrd *nout, *ntmp=NULL;
   int op, type, E, pret;
   airArray *mop;
+  unsigned int seed;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
              "Binary operator. Possibilities include:\n "
@@ -57,7 +58,9 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"if\": if 1st value is non-zero, use it, "
              "else use 2nd value\n "
              "\b\bo \"exists\": if 1st value exists, use it, "
-             "else use 2nd value",
+             "else use 2nd value"
+             "\b\bo \"nrand\": scale unit-stdv Gaussian noise by 2nd value "
+             "and add to first value",
              NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
              "First input.  Can be a single value or a nrrd.",
@@ -65,6 +68,11 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
              "Second input.  Can be a single value or a nrrd.",
              NULL, NULL, nrrdHestIter);
+  hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
+             "seed value for RNG for nrand, so that you "
+             "can get repeatable results between runs, or, "
+             "by not using this option, the RNG seeding will be "
+             "based on the current time");
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all INPUT nrrds to, prior to "
              "doing operation, useful for doing, for instance, the difference "
@@ -108,6 +116,20 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNix()
        (called by hestParseFree() called be airMopOkay()) to clear up */
+  }
+  if (nrrdBinaryOpNormalRandScaleAdd == op) {
+    if (airStrlen(seedS)) {
+      if (1 != sscanf(seedS, "%u", &seed)) {
+        fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
+        airMopError(mop);
+        return 1;
+      } else {
+        airSrandMT(seed);
+      }
+    } else {
+      /* got no request for specific seed */
+      airSrandMT(AIR_CAST(unsigned int, airTime()));
+    }
   }
   if (nrrdArithIterBinaryOp(nout, op, in1, in2)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
