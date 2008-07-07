@@ -1137,6 +1137,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_SMALL] = {
   "neq",
   "exists",
   "if",
+  "nrand"
 };
 
 char 
@@ -1162,6 +1163,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1][AIR_STRLEN_MED] = {
   "not equal",
   "if exists(a), then a, else b",
   "if a, then a, else b",
+  "a + b*gaussianNoise",
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1207,6 +1209,7 @@ _nrrdBinaryOpStrEqv[][AIR_STRLEN_SMALL] = {
   "neq", "ne", "!=", "notequal",
   "exists",
   "if",
+  "nrand",
   ""
 };
 
@@ -1231,7 +1234,8 @@ _nrrdBinaryOpValEqv[] = {
   nbEq, nbEq, nbEq, nbEq,
   nbNeq, nbNeq, nbNeq, nbNeq,
   nbExt,
-  nbIf
+  nbIf,
+  nrrdBinaryOpNormalRandScaleAdd
 };
 
 airEnum

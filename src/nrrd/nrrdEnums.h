@@ -662,9 +662,10 @@ enum {
   nrrdBinaryOpNotEqual,   /* 18 */
   nrrdBinaryOpExists,     /* 19 */
   nrrdBinaryOpIf,         /* 20 */
+  nrrdBinaryOpNormalRandScaleAdd, /* 21 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   20
+#define NRRD_BINARY_OP_MAX   21
 
 /*
 ******** nrrdTernaryOp

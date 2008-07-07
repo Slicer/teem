@@ -274,6 +274,12 @@ static double _nrrdBinaryOpNotEqual(double a, double b)  {return (a != b);}
 static double _nrrdBinaryOpExists(double a, double b)  {return (AIR_EXISTS(a) 
                                                                 ? a : b);}
 static double _nrrdBinaryOpIf(double a, double b)        {return (a ? a : b);}
+static double _nrrdBinaryOpNormalRandScaleAdd(double a, double b) {
+  double v;
+  airNormalRand(&v, NULL);
+  return a + b*v;
+}
+
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -296,7 +302,8 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpEqual,
   _nrrdBinaryOpNotEqual,
   _nrrdBinaryOpExists,
-  _nrrdBinaryOpIf
+  _nrrdBinaryOpIf,
+  _nrrdBinaryOpNormalRandScaleAdd
 };
 
 /*
