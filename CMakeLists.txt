@@ -162,7 +162,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL OFF CACHE BOOL "Build experimental components of teem")
 
 SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane
- limn seek hoover echo ten dye mite pull)
+ limn seek hoover echo ten dye mite)
 IF(BUILD_EXPERIMENTAL)
   SET(TEEM_LIBRARIES ${TEEM_LIBRARIES} coil alan push pull)
 ENDIF(BUILD_EXPERIMENTAL)
