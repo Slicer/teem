@@ -58,7 +58,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"if\": if 1st value is non-zero, use it, "
              "else use 2nd value\n "
              "\b\bo \"exists\": if 1st value exists, use it, "
-             "else use 2nd value"
+             "else use 2nd value\n "
              "\b\bo \"nrand\": scale unit-stdv Gaussian noise by 2nd value "
              "and add to first value",
              NULL, nrrdBinaryOp);
