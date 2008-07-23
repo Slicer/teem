@@ -332,7 +332,8 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
     }  /* switch */
     if (tenFiberTypeEvec0 == ftype
         || tenFiberTypeEvec1 == ftype
-        || tenFiberTypeEvec2 == ftype) {
+        || tenFiberTypeEvec2 == ftype
+        || tenFiberTypeTensorLine == ftype) {
       tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
       tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval0);
       tfx->gageEvec 
@@ -341,7 +342,9 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
                              ? tenGageEvec0
                              : (tenFiberTypeEvec1 == ftype
                                 ? tenGageEvec1
-                                : tenGageEvec2)));
+                                : (tenFiberTypeEvec2 == ftype
+				   ? tenGageEvec2
+				   : tenGageEvec))));
       tfx->gageTen2 = NULL;
     }
     tfx->ten2Which = 0;
