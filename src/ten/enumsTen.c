@@ -620,7 +620,14 @@ _tenGageVal[] = {
   tenGageTensorLogEuclidean,
   tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR,
-  tenGageAniso
+  tenGageAniso,
+  tenGageCl1GradVec,
+  tenGageCl1GradMag,
+  tenGageCp1GradVec,
+  tenGageCp1GradMag,
+  tenGageCa1GradVec,
+  tenGageCa1GradMag,
+  tenGageTensorGradRotE
 };
 
 char

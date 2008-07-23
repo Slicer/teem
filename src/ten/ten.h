@@ -435,9 +435,19 @@ enum {
   tenGageTensorQuatGeoLoxR,      /* 149: QGL-R interpolation */
 
   tenGageAniso,            /* 150: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageCl1GradVec,       /* 151: gradient vector of cl1: [3] */
+  tenGageCl1GradMag,       /* 152: gradient magnitude of cl1: [1] */
+  tenGageCp1GradVec,       /* 153: gradient vector of cp1: [3] */
+  tenGageCp1GradMag,       /* 154: gradient magnitude of cp1: [1] */
+  tenGageCa1GradVec,       /* 155: gradient vector of ca1: [3] */
+  tenGageCa1GradMag,       /* 156: gradient magnitude of ca1: [1] */
+  tenGageTensorGradRotE,   /* 157: all tensor component gradients,
+			      starting with confidence gradient.
+			      Rotated such that eigenvalue
+			      derivatives are on the diagonal: [21] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     150
+#define TEN_GAGE_ITEM_MAX     157
 
 /*
 ******** tenDwiGage* enum
