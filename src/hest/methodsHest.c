@@ -97,7 +97,7 @@ hestOptAdd(hestOpt **optP,
   hestOpt *ret = NULL;
   int num;
   va_list ap;
-  void *dummy;
+  void *dummy = NULL;
 
   if (!optP)
     return;
