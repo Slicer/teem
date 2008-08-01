@@ -1178,9 +1178,9 @@ TEN_EXPORT int tenEigensolve_f(float eval[3], float evec[9],
 TEN_EXPORT int tenEigensolve_d(double eval[3], double evec[9],
                                const double ten[7]);
 TEN_EXPORT void tenMakeSingle_f(float ten[7],
-                                float conf, float eval[3], float evec[9]);
+                                float conf, const float eval[3], const float evec[9]);
 TEN_EXPORT void tenMakeSingle_d(double ten[7],
-                                double conf, double eval[3], double evec[9]);
+                                double conf, const double eval[3], const double evec[9]);
 TEN_EXPORT int tenMake(Nrrd *nout, const Nrrd *nconf,
                        const Nrrd *neval, const Nrrd *nevec);
 TEN_EXPORT int tenSlice(Nrrd *nout, const Nrrd *nten,

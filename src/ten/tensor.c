@@ -404,7 +404,7 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
 */
 
 void
-tenMakeSingle_f(float ten[7], float conf, float eval[3], float evec[9]) {
+tenMakeSingle_f(float ten[7], float conf, const float eval[3], const float evec[9]) {
   double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
 
   ELL_3M_ZERO_SET(diag);
@@ -419,7 +419,7 @@ tenMakeSingle_f(float ten[7], float conf, float eval[3], float evec[9]) {
 
 /* HEY: copy and paste! */
 void
-tenMakeSingle_d(double ten[7], double conf, double eval[3], double evec[9]) {
+tenMakeSingle_d(double ten[7], double conf, const double eval[3], const double evec[9]) {
   double tmpMat1[9], tmpMat2[9], diag[9], evecT[9];
 
   ELL_3M_ZERO_SET(diag);
