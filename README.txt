@@ -30,9 +30,13 @@ any of the teem libraries in their own programs.
 
 =============== How to compile
 
-Use CMake.  CMake is the modern way to compile Teem.  The information
-below refers to the home-grown bizarro GNUmakefiles that Gordon 
-originally wrote.  Don't trust these.
+Use CMake to compile Teem.  CMake is available from:
+
+http://www.cmake.org/
+
+The information below refers to the old home-grown bizarro
+GNUmakefiles that Gordon originally wrote.  These may still work,
+but they are not supported.
 
 1: set the environment variable TEEM_ARCH to one of the following:
    "irix6.n32": for irix in n32 mode
