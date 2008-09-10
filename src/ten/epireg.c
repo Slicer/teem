@@ -1204,11 +1204,13 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   }
 
   ninLen = _nin->axis[dwiAx].size;
+  /* outdated 
   if (!( AIR_IN_CL(6, ninLen, 120) )) {
     sprintf(err, "%s: %u (size of axis %u, and # DWIs) is unreasonable", 
             me, ninLen, dwiAx);
     biffAdd(TEN, err); return 1;
   }
+  */
   if (ninLen != _ngrad->axis[1].size) {
     sprintf(err, "%s: ninLen %u != # grads " _AIR_SIZE_T_CNV, 
             me, ninLen, _ngrad->axis[1].size);
