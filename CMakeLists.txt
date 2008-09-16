@@ -1,5 +1,15 @@
 # This is the root Teem CMakeLists file
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+
+# As of CMake 2.6 Policies were introduced in order to provide a mechanism for
+# adding backwards compatibility one feature at a time.
+
+# Run cmake --help-policy CMP<num> to see documentation.
+IF(COMMAND cmake_policy)
+  # Library paths (/path/to/libmy.so not translated to -L/path/to -lmy)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND cmake_policy)
+
 PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
@@ -75,7 +85,10 @@ IF(TEEM_ZLIB)
     SET(TEEM_ZLIB_LIB ${ZLIB_LIBRARIES})
     SET(TEEM_ZLIB_IPATH ${ZLIB_INCLUDE_DIR})
   ELSE(ZLIB_FOUND)
-    SET(TEEM_ZLIB OFF)
+    # We need to set this as a cache variable, so that it will show up as
+    # being turned off in the cache.
+    MESSAGE(SEND_ERROR "Turning off TEEM_ZLIB, because it wasn't found.")
+    SET(TEEM_ZLIB OFF CACHE BOOL "Build Teem with support for gzip compression." FORCE)
   ENDIF(ZLIB_FOUND)
 
   IF(TEEM_PNG)
@@ -85,7 +98,10 @@ IF(TEEM_ZLIB)
       SET(TEEM_PNG_LIB ${PNG_LIBRARIES})
       SET(TEEM_PNG_IPATH ${PNG_INCLUDE_DIR})
     ELSE(PNG_FOUND)
-      SET(TEEM_PNG OFF)
+      # We need to set this as a cache variable, so that it will show up as
+      # being turned off in the cache.
+      MESSAGE(SEND_ERROR "Turning off TEEM_PNG, because it wasn't found.")
+      SET(TEEM_PNG OFF CACHE BOOL "Build Teem with support for PNG images." FORCE)
     ENDIF(PNG_FOUND)
   ENDIF(TEEM_PNG)
 ENDIF(TEEM_ZLIB)
@@ -102,7 +118,10 @@ IF(TEEM_BZIP2)
     SET(TEEM_BZIP2_LIB ${BZ2_LIBRARIES})
     SET(TEEM_BZIP2_IPATH ${BZ2_INCLUDE_DIR})
   ELSE(BZ2_FOUND)
-    SET(TEEM_BZIP2 OFF )
+    # We need to set this as a cache variable, so that it will show up as
+    # being turned off in the cache.
+    MESSAGE(SEND_ERROR "Turning off TEEM_BZIP2, because it wasn't found.")
+    SET(TEEM_BZIP2 OFF CACHE BOOL "Build Teem with support for bzip compression." FORCE)
   ENDIF(BZ2_FOUND)
 ENDIF(TEEM_BZIP2)
 
@@ -113,7 +132,10 @@ IF(TEEM_PTHREAD)
   IF(CMAKE_USE_PTHREADS_INIT)
     ADD_DEFINITIONS(-DTEEM_PTHREAD)
   ELSE(CMAKE_USE_PTHREADS_INIT)
-    MESSAGE(WARNING "Turning pthread support off.")
+    # We need to set this as a cache variable, so that it will show up as
+    # being turned off in the cache.
+    MESSAGE(SEND_ERROR "Turning off TEEM_PTHREAD, because it wasn't found.")
+    SET(TEEM_PTHREAD OFF CACHE BOOL "Build Teem with pthread library support." FORCE)
     SET(TEEM_PTHREAD OFF)
   ENDIF(CMAKE_USE_PTHREADS_INIT)
 ENDIF(TEEM_PTHREAD)
