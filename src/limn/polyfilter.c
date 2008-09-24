@@ -125,7 +125,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       if (0 == inVertIdx || 1 == pldIn->icnt[primIdx]) {
         ell_3v_perp_d(perp, tang);
       } else {
-        // transport last perp forwards
+        /* transport last perp forwards */
         double dot;
         dot = ELL_3V_DOT(perp, tang);
         ELL_3V_SCALE_ADD2(perp, 1.0, perp, -dot, tang);
