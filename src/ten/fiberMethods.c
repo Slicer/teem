@@ -26,7 +26,7 @@
 
 void
 tenFiberSingleInit(tenFiberSingle *tfbs) {
-  // char me[]="tenFiberSingleInit";
+  /* char me[]="tenFiberSingleInit"; */
   unsigned idx;
 
   ELL_3V_SET(tfbs->seedPos, AIR_NAN, AIR_NAN, AIR_NAN);
