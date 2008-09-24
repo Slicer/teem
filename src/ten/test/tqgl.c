@@ -75,7 +75,7 @@ char *info = ("quaternion geo-lox hacking.  Actually all this does is "
 
 int
 main(int argc, char *argv[]) {
-  char *me, *err;
+  char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 
