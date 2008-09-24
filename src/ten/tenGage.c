@@ -229,12 +229,12 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
 
   {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE},
 
-  {tenGageCl1GradVec,	3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},	0,        0,     AIR_FALSE},
-  {tenGageCl1GradMag,	1,  1,  {tenGageCl1GradVec},								0,        0,     AIR_FALSE},
-  {tenGageCp1GradVec,	3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},	0,        0,     AIR_FALSE},
-  {tenGageCp1GradMag,	1,  1,  {tenGageCp1GradVec},								0,        0,     AIR_FALSE},
-  {tenGageCa1GradVec,	3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},	0,        0,     AIR_FALSE},
-  {tenGageCa1GradMag,	1,  1,  {tenGageCa1GradVec},								0,        0,     AIR_FALSE},
+  {tenGageCl1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
+  {tenGageCl1GradMag,              1,  1,  {tenGageCl1GradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageCp1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
+  {tenGageCp1GradMag,              1,  1,  {tenGageCp1GradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageCa1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
+  {tenGageCa1GradMag,              1,  1,  {tenGageCa1GradVec},                                                  0,        0,     AIR_FALSE},
   {tenGageTensorGradRotE, 21, 1, {tenGageTensorGrad, tenGageEval, tenGageEvec}, 0, 0, AIR_FALSE}
 };
 
@@ -757,9 +757,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                ELL_3V_LEN(pvl->directAnswer[tenGageInvarRGrads] + 2*3));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalGrads)) {
-    double matOut[9], tenOut[9];
-    double tmpRes[9];
-    int evi;
+    double matOut[9], tenOut[9], tmpRes[9], 
+      rel1, rel2, w1, w2, eps;
+    unsigned int evi;
     for (evi=0; evi<=2; evi++) {
       ELL_3MV_OUTER(matOut, evecAns + evi*3, evecAns + evi*3);
       TEN_M2T(tenOut, matOut);
@@ -772,27 +772,27 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* Added 2008-06-27: In case there are duplicate eigenvalues,
      * average their derivatives to avoid visible artifacs in edge
      * maps. Provide a smooth transition to the ill-defined case */
-    float eps=0.05; /* threshold at which we start the transition */
+    eps=0.05; /* threshold at which we start the transition */
   
     /* interpolation weights from relative eigenvalue distance */
-    float rel1=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
-    float rel2=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
-    float w1=rel1/eps-1;
+    rel1=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
+    rel2=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
+    w1=rel1/eps-1;
     w1*=w1;
-    float w2=rel2/eps-1;
+    w2=rel2/eps-1;
     w2*=w2;
 
     if (rel1>eps) {
       ELL_3V_COPY(pvl->directAnswer[tenGageEvalGrads], tmpRes);
     } else {
       if (rel2>eps) {
-	ELL_3V_SCALE_ADD2(pvl->directAnswer[tenGageEvalGrads],
-			  1-0.5*w1, tmpRes, 0.5*w1, tmpRes+3);
+        ELL_3V_SCALE_ADD2(pvl->directAnswer[tenGageEvalGrads],
+                          1-0.5*w1, tmpRes, 0.5*w1, tmpRes+3);
       } else {
-	ELL_3V_SCALE_ADD3(pvl->directAnswer[tenGageEvalGrads],
-			  1-0.5*w1-w1*w2/6.0, tmpRes,
-			  0.5*w1-w1*w2/6.0, tmpRes+3,
-			  w1*w2/3.0, tmpRes+6);
+        ELL_3V_SCALE_ADD3(pvl->directAnswer[tenGageEvalGrads],
+                          1-0.5*w1-w1*w2/6.0, tmpRes,
+                          0.5*w1-w1*w2/6.0, tmpRes+3,
+                          w1*w2/3.0, tmpRes+6);
       }
     }
 
@@ -800,23 +800,23 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ELL_3V_COPY(pvl->directAnswer[tenGageEvalGrads]+6, tmpRes+6);
     } else {
       if (rel1>eps) {
-	ELL_3V_SCALE_ADD2(pvl->directAnswer[tenGageEvalGrads]+6,
-			  1-0.5*w2, tmpRes+6, 0.5*w2, tmpRes+3);
+        ELL_3V_SCALE_ADD2(pvl->directAnswer[tenGageEvalGrads]+6,
+                          1-0.5*w2, tmpRes+6, 0.5*w2, tmpRes+3);
       } else {
-	ELL_3V_SCALE_ADD3(pvl->directAnswer[tenGageEvalGrads]+6,
-			  1-0.5*w2-w1*w2/6.0, tmpRes+6,
-			  0.5*w2-w1*w2/6.0, tmpRes+3,
-			  w1*w2/3.0, tmpRes);
+        ELL_3V_SCALE_ADD3(pvl->directAnswer[tenGageEvalGrads]+6,
+                          1-0.5*w2-w1*w2/6.0, tmpRes+6,
+                          0.5*w2-w1*w2/6.0, tmpRes+3,
+                          w1*w2/3.0, tmpRes);
       }
     }
 
     ELL_3V_ADD3(pvl->directAnswer[tenGageEvalGrads]+3,
-		tmpRes, tmpRes+3, tmpRes+6);
+                tmpRes, tmpRes+3, tmpRes+6);
     ELL_3V_ADD2(tmpRes, pvl->directAnswer[tenGageEvalGrads],
-		pvl->directAnswer[tenGageEvalGrads]+6);
+                pvl->directAnswer[tenGageEvalGrads]+6);
     ELL_3V_SUB(pvl->directAnswer[tenGageEvalGrads]+3,
-	       pvl->directAnswer[tenGageEvalGrads]+3,
-	       tmpRes); /* l2 = trace - l1 - l3 */
+               pvl->directAnswer[tenGageEvalGrads]+3,
+               tmpRes); /* l2 = trace - l1 - l3 */
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageRotTans)) {
     double phi1[7], phi2[7], phi3[7];
@@ -1431,18 +1431,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     vecTmp = pvl->directAnswer[tenGageCl1GradVec];
 
     ELL_3V_SET(vecTmp,
-	       (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][3]-pvl->directAnswer[tenGageEvalGrads][6])
-		+evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][0]+pvl->directAnswer[tenGageEvalGrads][6])
-		+evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]-pvl->directAnswer[tenGageEvalGrads][3]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][4]-pvl->directAnswer[tenGageEvalGrads][7])
-		+evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][1]+pvl->directAnswer[tenGageEvalGrads][7])
-		+evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]-pvl->directAnswer[tenGageEvalGrads][4]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][5]-pvl->directAnswer[tenGageEvalGrads][8])
-		+evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][2]+pvl->directAnswer[tenGageEvalGrads][8])
-		+evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]-pvl->directAnswer[tenGageEvalGrads][5]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
+               (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][3]-pvl->directAnswer[tenGageEvalGrads][6])
+                +evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][0]+pvl->directAnswer[tenGageEvalGrads][6])
+                +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]-pvl->directAnswer[tenGageEvalGrads][3]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][4]-pvl->directAnswer[tenGageEvalGrads][7])
+                +evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][1]+pvl->directAnswer[tenGageEvalGrads][7])
+                +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]-pvl->directAnswer[tenGageEvalGrads][4]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               (evalAns[0]*(-2*pvl->directAnswer[tenGageEvalGrads][5]-pvl->directAnswer[tenGageEvalGrads][8])
+                +evalAns[1]*(2*pvl->directAnswer[tenGageEvalGrads][2]+pvl->directAnswer[tenGageEvalGrads][8])
+                +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]-pvl->directAnswer[tenGageEvalGrads][5]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1GradMag)) {
     pvl->directAnswer[tenGageCl1GradMag][0] = ELL_3V_LEN(vecTmp);
@@ -1452,18 +1452,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     vecTmp = pvl->directAnswer[tenGageCp1GradVec];
 
     ELL_3V_SET(vecTmp,
-	       2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][3]-pvl->directAnswer[tenGageEvalGrads][6])
-		  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][0]-2*pvl->directAnswer[tenGageEvalGrads][6])
-		  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]+2*pvl->directAnswer[tenGageEvalGrads][3]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][4]-pvl->directAnswer[tenGageEvalGrads][7])
-		  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][1]-2*pvl->directAnswer[tenGageEvalGrads][7])
-		  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]+2*pvl->directAnswer[tenGageEvalGrads][4]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][5]-pvl->directAnswer[tenGageEvalGrads][8])
-		  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][2]-2*pvl->directAnswer[tenGageEvalGrads][8])
-		  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]+2*pvl->directAnswer[tenGageEvalGrads][5]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
+               2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][3]-pvl->directAnswer[tenGageEvalGrads][6])
+                  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][0]-2*pvl->directAnswer[tenGageEvalGrads][6])
+                  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]+2*pvl->directAnswer[tenGageEvalGrads][3]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][4]-pvl->directAnswer[tenGageEvalGrads][7])
+                  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][1]-2*pvl->directAnswer[tenGageEvalGrads][7])
+                  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]+2*pvl->directAnswer[tenGageEvalGrads][4]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               2*(evalAns[0]*(pvl->directAnswer[tenGageEvalGrads][5]-pvl->directAnswer[tenGageEvalGrads][8])
+                  +evalAns[1]*(-pvl->directAnswer[tenGageEvalGrads][2]-2*pvl->directAnswer[tenGageEvalGrads][8])
+                  +evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]+2*pvl->directAnswer[tenGageEvalGrads][5]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1GradMag)) {
     pvl->directAnswer[tenGageCp1GradMag][0] = ELL_3V_LEN(vecTmp);
@@ -1473,15 +1473,15 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     vecTmp = pvl->directAnswer[tenGageCa1GradVec];
 
     ELL_3V_SET(vecTmp,
-	       -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][6]
-		  -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]+pvl->directAnswer[tenGageEvalGrads][3]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][7]
-		  -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]+pvl->directAnswer[tenGageEvalGrads][4]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
-	       -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][8]
-		  -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]+pvl->directAnswer[tenGageEvalGrads][5]))
-	       /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
+               -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][6]
+                   -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][0]+pvl->directAnswer[tenGageEvalGrads][3]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][7]
+                   -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][1]+pvl->directAnswer[tenGageEvalGrads][4]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]),
+               -3*((evalAns[0]+evalAns[1])*pvl->directAnswer[tenGageEvalGrads][8]
+                   -evalAns[2]*(pvl->directAnswer[tenGageEvalGrads][2]+pvl->directAnswer[tenGageEvalGrads][5]))
+               /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1GradMag)) {
     pvl->directAnswer[tenGageCa1GradMag][0] = ELL_3V_LEN(vecTmp);
@@ -1490,27 +1490,29 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* --- tensor gradient, rotated into eigenframe of the tensor itself --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGradRotE)) {
     /* confidence not affected by rotation */
-    ELL_3V_COPY(pvl->directAnswer[tenGageTensorGradRotE], pvl->directAnswer[tenGageTensorGrad]);
-
     float evecsT[9], evecs[9], tmp[9], tmp2[9];
-
-    /* pre-compute relative eigenvalue differences to detect ill-conditioned case */
-    float diff0=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
-    float diff1=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
-    float diff2=(evalAns[0]-evalAns[2])/(evalAns[0]+evalAns[2]);
-    float diffthresh=0.05;
-
+    float diff0, diff1, diff2, diffthresh;
     float rdiff0, rdiff1, rdiff2;
+    unsigned int evi, tci;
+    
+    ELL_3V_COPY(pvl->directAnswer[tenGageTensorGradRotE],
+                pvl->directAnswer[tenGageTensorGrad]);
+
+    /* pre-compute relative eval diffs to detect ill-conditioned case */
+    diff0=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
+    diff1=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
+    diff2=(evalAns[0]-evalAns[2])/(evalAns[0]+evalAns[2]);
+    diffthresh=0.05;
+
     if (diff2>diffthresh) rdiff2=1.0; else rdiff2=diff2/diffthresh;
     if (diff1>diffthresh) rdiff1=1.0; else rdiff1=diff1/diffthresh;
     if (diff0>diffthresh) rdiff0=1.0; else rdiff0=diff0/diffthresh;
 
     ELL_3M_COPY(evecs,evecAns);
     ELL_3M_TRANSPOSE(evecsT,evecs);
-    int i, k;
-    for (i=0; i<3; ++i) {
+    for (evi=0; evi<3; evi++) {
       /* first, simply rotate derivatives into eigenframe of value */
-      TEN_T2M(tmp,gradDdXYZ + i*7);
+      TEN_T2M(tmp,gradDdXYZ + evi*7);
       ell_3m_mul_f(tmp2,tmp,evecsT);
       ell_3m_mul_f(tmp,evecs,tmp2);
 
@@ -1519,120 +1521,119 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
        * cases. Explanation in Schultz and Seidel, "Using Eigenvalue
        * Derivatives for Edge Detection in DT-MRI Data", DAGM 2008*/
       if (rdiff0<1.0) {
-	/* rotate around z axis */
-	float phi=0.5*atan((tmp[0]-tmp[4])/(2*tmp[1]));
-	float R[9],RT[9];
-	ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff0)*phi);
-	ELL_3M_TRANSPOSE(RT,R);
-	ell_3m_mul_f(tmp2,tmp,RT);
-	ell_3m_mul_f(tmp,R,tmp2);		
+        /* rotate around z axis */
+        float phi, R[9], RT[9];
+        phi=0.5*atan((tmp[0]-tmp[4])/(2*tmp[1]));
+        ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff0)*phi);
+        ELL_3M_TRANSPOSE(RT,R);
+        ell_3m_mul_f(tmp2,tmp,RT);
+        ell_3m_mul_f(tmp,R,tmp2);
       }
       if (rdiff1<1.0) {
-	/* rotate around x axis */
-	float phi=0.5*atan((tmp[4]-tmp[8])/(2*tmp[5]));
-	float R[9],RT[9];
-	ELL_3M_ROTATE_X_SET(R, (1.0-rdiff1)*phi);
-	ELL_3M_TRANSPOSE(RT,R);
-	ell_3m_mul_f(tmp2,tmp,RT);
-	ell_3m_mul_f(tmp,R,tmp2);
+        /* rotate around x axis */
+        float phi, R[9], RT[9];
+        phi=0.5*atan((tmp[4]-tmp[8])/(2*tmp[5]));
+        ELL_3M_ROTATE_X_SET(R, (1.0-rdiff1)*phi);
+        ELL_3M_TRANSPOSE(RT,R);
+        ell_3m_mul_f(tmp2,tmp,RT);
+        ell_3m_mul_f(tmp,R,tmp2);
       }
       if (rdiff2<1.0) {
-	float mean=(tmp[0]+tmp[4]+tmp[8])/3.0;
-	/* what's the median? */
-	int midaxis=0;
-	if ((tmp[0]>tmp[4] && tmp[4]>tmp[8])||
-	    (tmp[0]<tmp[4] && tmp[4]<tmp[8]))
-	  midaxis=1;
-	else if ((tmp[4]>tmp[8] && tmp[8]>tmp[0])||
-		 (tmp[4]<tmp[8] && tmp[8]<tmp[0]))
-	  midaxis=2;
-	int axis;
-	float submatrix[3];
-	int smallest=0;
-	/* do we first rotate around smallest or largest? */
-	if (mean>tmp[4*midaxis])
-	  smallest=1;
+        float mean, submatrix[3], isoPhi, gamma, beta, A, C, R[9],RT[9];
+        int axis, midaxis, smallest, sign;
 
-	char sign=1;
-	if ((smallest && (tmp[0]<tmp[4] && tmp[0]<tmp[8])) ||
-	    (!smallest && (tmp[0]>tmp[4] && tmp[0]>tmp[8]))) {
-	  axis=0;
-	  submatrix[0]=tmp[4];
-	  submatrix[1]=tmp[5];
-	  submatrix[2]=tmp[8];
-	  if (midaxis!=1) sign=-1;
-	} else if ((smallest && (tmp[4]<tmp[0] && tmp[4]<tmp[8])) ||
-		   (!smallest && (tmp[4]>tmp[0] && tmp[4]>tmp[8]))) {
-	  axis=1;
-	  submatrix[0]=tmp[8];
-	  submatrix[1]=tmp[2];
-	  submatrix[2]=tmp[0];
-	  if (midaxis!=2) sign=-1;
-	} else {
-	  axis=2;
-	  submatrix[0]=tmp[0];
-	  submatrix[1]=tmp[1];
-	  submatrix[2]=tmp[4];
-	  if (midaxis!=0) sign=-1;
-	}
-	float isoPhi=0.0f;
-	float gamma=sign*(submatrix[0]-submatrix[2]);
-	float beta=-sign*2*submatrix[1];
-	float A=sqrt(gamma*gamma+beta*beta);
-	float C=atan2(gamma,beta);
-	isoPhi=0.5*(asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])))-C);
-	/* make sure we use the minimal rotation */
-	isoPhi=asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])));
-	if (isoPhi>0) {
-	  if (fabs(M_PI-isoPhi-C)<fabs(isoPhi-C))
-	    isoPhi=0.5*(M_PI-isoPhi-C);
-	  else
-	    isoPhi=0.5*(isoPhi-C);
-	} else if (isoPhi<0) {
-	  if (fabs(-M_PI-isoPhi-C)<fabs(isoPhi-C))
-	    isoPhi=0.5*(-M_PI-isoPhi-C);
-	  else
-	    isoPhi=0.5*(isoPhi-C);
-	}
-	
-	/* perform the rotation */
-	float R[9],RT[9];
-	switch (axis) {
-	case 0:
-	  ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*isoPhi);
-	  break;
-	case 1:
-	  ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*isoPhi);
-	  break;
-	default:
-	  ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*isoPhi);
-	  break;
-	}
-	ELL_3M_TRANSPOSE(RT,R);
-	ell_3m_mul_f(tmp2,tmp,RT);
-	ell_3m_mul_f(tmp,R,tmp2);
-	
-	/* rotate around the now corrected evec */
-	axis=midaxis;
-	switch (midaxis) {
-	case 0:
-	  ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*0.5*atan((tmp[0]-tmp[4])/(2*tmp[1])));
-	  break;
-	case 1:
-	  ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*0.5*atan((tmp[8]-tmp[0])/(2*tmp[2])));
-	  break;
-	case 2:
-	  ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*0.5*atan((tmp[4]-tmp[8])/(2*tmp[5])));
-	  break;
-	}	  
-	ELL_3M_TRANSPOSE(RT,R);
-	ell_3m_mul_f(tmp2,tmp,RT);
-	ell_3m_mul_f(tmp,R,tmp2);
+        mean=(tmp[0]+tmp[4]+tmp[8])/3.0;
+        /* what's the median? */
+        midaxis=0;
+        if ((tmp[0]>tmp[4] && tmp[4]>tmp[8])||
+            (tmp[0]<tmp[4] && tmp[4]<tmp[8]))
+          midaxis=1;
+        else if ((tmp[4]>tmp[8] && tmp[8]>tmp[0])||
+                 (tmp[4]<tmp[8] && tmp[8]<tmp[0]))
+          midaxis=2;
+        /* do we first rotate around smallest or largest? */
+        if (mean>tmp[4*midaxis])
+          smallest=1;
+        
+        sign=1;
+        if ((smallest && (tmp[0]<tmp[4] && tmp[0]<tmp[8])) ||
+            (!smallest && (tmp[0]>tmp[4] && tmp[0]>tmp[8]))) {
+          axis=0;
+          submatrix[0]=tmp[4];
+          submatrix[1]=tmp[5];
+          submatrix[2]=tmp[8];
+          if (midaxis!=1) sign=-1;
+        } else if ((smallest && (tmp[4]<tmp[0] && tmp[4]<tmp[8])) ||
+                   (!smallest && (tmp[4]>tmp[0] && tmp[4]>tmp[8]))) {
+          axis=1;
+          submatrix[0]=tmp[8];
+          submatrix[1]=tmp[2];
+          submatrix[2]=tmp[0];
+          if (midaxis!=2) sign=-1;
+        } else {
+          axis=2;
+          submatrix[0]=tmp[0];
+          submatrix[1]=tmp[1];
+          submatrix[2]=tmp[4];
+          if (midaxis!=0) sign=-1;
+        }
+        isoPhi=0.0f;
+        gamma=sign*(submatrix[0]-submatrix[2]);
+        beta=-sign*2*submatrix[1];
+        A=sqrt(gamma*gamma+beta*beta);
+        C=atan2(gamma,beta);
+        isoPhi=0.5*(asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])))-C);
+        /* make sure we use the minimal rotation */
+        isoPhi=asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])));
+        if (isoPhi>0) {
+          if (fabs(M_PI-isoPhi-C)<fabs(isoPhi-C))
+            isoPhi=0.5*(M_PI-isoPhi-C);
+          else
+            isoPhi=0.5*(isoPhi-C);
+        } else if (isoPhi<0) {
+          if (fabs(-M_PI-isoPhi-C)<fabs(isoPhi-C))
+            isoPhi=0.5*(-M_PI-isoPhi-C);
+          else
+            isoPhi=0.5*(isoPhi-C);
+        }
+        
+        /* perform the rotation */
+        switch (axis) {
+        case 0:
+          ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*isoPhi);
+          break;
+        case 1:
+          ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*isoPhi);
+          break;
+        default:
+          ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*isoPhi);
+          break;
+        }
+        ELL_3M_TRANSPOSE(RT,R);
+        ell_3m_mul_f(tmp2,tmp,RT);
+        ell_3m_mul_f(tmp,R,tmp2);
+
+        /* rotate around the now corrected evec */
+        axis=midaxis;
+        switch (midaxis) {
+        case 0:
+          ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*0.5*atan((tmp[0]-tmp[4])/(2*tmp[1])));
+          break;
+        case 1:
+          ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*0.5*atan((tmp[8]-tmp[0])/(2*tmp[2])));
+          break;
+        case 2:
+          ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*0.5*atan((tmp[4]-tmp[8])/(2*tmp[5])));
+          break;
+        }
+        ELL_3M_TRANSPOSE(RT,R);
+        ell_3m_mul_f(tmp2,tmp,RT);
+        ell_3m_mul_f(tmp,R,tmp2);
       }
       /* Now, we can set the answer */
       TEN_M2T(tmp2,tmp);
-      for (k=1; k<7; ++k) {
-	pvl->directAnswer[tenGageTensorGradRotE][3*k+i] = tmp2[k];
+      for (tci=1; tci<7; tci++) {
+        pvl->directAnswer[tenGageTensorGradRotE][3*tci+evi] = tmp2[tci];
       }
     }
   }
