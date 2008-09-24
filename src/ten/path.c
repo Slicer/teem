@@ -100,8 +100,10 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
           tip->rtIn && tip->rtLog &&
           tip->qIn && tip->qBuff && tip->qInter)) {
       sprintf(err, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
-              tip->eval, tip->evec, tip->rtIn, tip->rtLog,
-              tip->qIn, tip->qBuff, tip->qInter);
+              AIR_CAST(void *, tip->eval), AIR_CAST(void *, tip->evec),
+              AIR_CAST(void *, tip->rtIn), AIR_CAST(void *, tip->rtLog),
+              AIR_CAST(void *, tip->qIn), AIR_CAST(void *, tip->qBuff),
+              AIR_CAST(void *, tip->qInter));
       biffAdd(TEN, err); return 1;
     }
     tip->allocLen = num;
