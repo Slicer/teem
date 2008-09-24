@@ -1586,13 +1586,13 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         /* make sure we use the minimal rotation */
         isoPhi=asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])));
         if (isoPhi>0) {
-          if (fabs(M_PI-isoPhi-C)<fabs(isoPhi-C))
-            isoPhi=0.5*(M_PI-isoPhi-C);
+          if (fabs(AIR_PI-isoPhi-C)<fabs(isoPhi-C))
+            isoPhi=0.5*(AIR_PI-isoPhi-C);
           else
             isoPhi=0.5*(isoPhi-C);
         } else if (isoPhi<0) {
-          if (fabs(-M_PI-isoPhi-C)<fabs(isoPhi-C))
-            isoPhi=0.5*(-M_PI-isoPhi-C);
+          if (fabs(-AIR_PI-isoPhi-C)<fabs(isoPhi-C))
+            isoPhi=0.5*(-AIR_PI-isoPhi-C);
           else
             isoPhi=0.5*(isoPhi-C);
         }
