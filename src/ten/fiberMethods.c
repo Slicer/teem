@@ -317,6 +317,9 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
       GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec0);
       GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec1);
       GAGE_QUERY_ITEM_ON(tfx->query, tenGageEvec2);
+      tfx->gageEvec = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEvec0);
+      tfx->gageTen = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageTensor);
+      tfx->gageEval = gageAnswerPointer(tfx->gtx, tfx->pvl, tenGageEval);
       break;
     case tenFiberTypePureLine:
       GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
