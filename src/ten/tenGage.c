@@ -1552,8 +1552,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                  (tmp[4]<tmp[8] && tmp[8]<tmp[0]))
           midaxis=2;
         /* do we first rotate around smallest or largest? */
-        if (mean>tmp[4*midaxis])
+        smallest = 0;
+        if (mean>tmp[4*midaxis]) {
           smallest=1;
+        }
         
         sign=1;
         if ((smallest && (tmp[0]<tmp[4] && tmp[0]<tmp[8])) ||
