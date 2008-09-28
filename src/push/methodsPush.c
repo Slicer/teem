@@ -37,11 +37,6 @@ pushPointNew(pushContext *pctx) {
     if (pnt) {
       pnt->ttaagg = pctx->ttaagg++;
       ELL_3V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN);
-      if (pctx->numSS) {
-        pnt->posSS = (pctx->numSS-1)/2;
-      } else {
-        pnt->posSS = AIR_NAN;
-      }
       ELL_3V_SET(pnt->frc, AIR_NAN, AIR_NAN, AIR_NAN);
       TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN,
                 AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -51,9 +46,6 @@ pushPointNew(pushContext *pctx) {
       pnt->grav = AIR_NAN;
       ELL_3V_SET(pnt->gravGrad, AIR_NAN, AIR_NAN, AIR_NAN);
       pnt->seedThresh = AIR_NAN;
-      pnt->zcSS = AIR_NAN;
-      ELL_3V_SET(pnt->gvSS, AIR_NAN, AIR_NAN, AIR_NAN);
-
       pnt->enr = DBL_MAX;  /* any finite quantity will be less than this */
 
       pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
@@ -122,8 +114,6 @@ pushContextNew(void) {
     pctx->ksp00 = nrrdKernelSpecNew();
     pctx->ksp11 = nrrdKernelSpecNew();
     pctx->ksp22 = nrrdKernelSpecNew();
-    pctx->kspSSblur = nrrdKernelSpecNew();
-    pctx->kspSS = nrrdKernelSpecNew();
 
     pctx->ttaagg = 0;
     pctx->nten = NULL;
@@ -156,14 +146,6 @@ pushContextNew(void) {
 
     pctx->deltaFrac = AIR_NAN;
 
-    pctx->minSS = pctx->maxSS = AIR_NAN;
-    pctx->numSS = 0;
-    pctx->zcValSSItem = 0;
-    pctx->gradVecSSItem = 0;
-
-    pctx->ntenSS = NULL;
-    pctx->gctxSS = NULL;
-
     pctx->timeIteration = 0;
     pctx->timeRun = 0;
     pctx->iter = 0;
@@ -184,9 +166,6 @@ pushContextNix(pushContext *pctx) {
     pctx->ksp00 = nrrdKernelSpecNix(pctx->ksp00);
     pctx->ksp11 = nrrdKernelSpecNix(pctx->ksp11);
     pctx->ksp22 = nrrdKernelSpecNix(pctx->ksp22);
-    pctx->kspSSblur = nrrdKernelSpecNix(pctx->kspSSblur);
-    pctx->kspSS = nrrdKernelSpecNix(pctx->kspSS);
-
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     pctx->noutTen = nrrdNuke(pctx->noutTen);
     airFree(pctx);

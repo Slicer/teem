@@ -32,12 +32,11 @@ main(int argc, char *argv[]) {
   airArray *mop;
   
   char *outS[3];
-  char *gravStr, *gravGradStr, *seedStr, *zcStr, *gvStr;
+  char *gravStr, *gravGradStr, *seedStr;
   pushContext *pctx;
   Nrrd *_nin, *nin, *nPosIn, *nPosOut, *nTenOut, *nEnrOut;
-  NrrdKernelSpec *ksp00, *ksp11, *ksp22, *kspSS, *kspSSblur;
+  NrrdKernelSpec *ksp00, *ksp11, *ksp22;
   pushEnergySpec *ensp;
-  double rangeSS[2];
   int E;
   
   me = argv[0];
@@ -142,22 +141,6 @@ main(int argc, char *argv[]) {
              "cubicdd:1,0", "kernel for 2nd derivatives",
              NULL, NULL, nrrdHestKernelSpec);
 
-  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &(pctx->numSS),
-             "0", "how many scale-space samples to evaluate, "
-             "or 0 to turn-off all scale-space behavior");
-  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
-             "nan nan", "range of scales in scale-space");
-  hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kspSSblur,
-             "gauss:1,4", "kernel for blurring, to sample scale space",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kspSS,
-             "tent", "kernel for reconstructing from scale space samples",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "zc", "item", airTypeString, 1, 1, &zcStr, "omlapl",
-             "item for zero-crossing surface (some 2nd deriv of a scalar)");
-  hestOptAdd(&hopt, "gv", "item", airTypeString, 1, 1, &gvStr, "omgv",
-             "item for gradient vector of the underlying scalar");
-  
   hestOptAdd(&hopt, "o", "nout", airTypeString, 3, 3, outS,
              "p.nrrd t.nrrd e.nrrd",
              "output files to save position and tensor info into");
@@ -195,20 +178,6 @@ main(int argc, char *argv[]) {
   nrrdKernelSpecSet(pctx->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(pctx->ksp11, ksp11->kernel, ksp11->parm);
   nrrdKernelSpecSet(pctx->ksp22, ksp22->kernel, ksp22->parm);
-  nrrdKernelSpecSet(pctx->kspSSblur, kspSSblur->kernel, kspSSblur->parm);
-  nrrdKernelSpecSet(pctx->kspSS, kspSS->kernel, kspSS->parm);
-  if (pctx->numSS) {
-    pctx->minSS = rangeSS[0];
-    pctx->maxSS = rangeSS[1];
-    pctx->zcValSSItem = airEnumVal(tenGage, zcStr);
-    pctx->gradVecSSItem = airEnumVal(tenGage, gvStr);
-    if (!( pctx->zcValSSItem && pctx->gradVecSSItem )) {
-      fprintf(stderr, "%s: couldn't parse \"%s %s\" as 2 %s's (zc + gv)\n", me,
-              zcStr, gvStr, tenGage->name);
-      airMopError(mop);
-      return 1;
-    }
-  }
   if (strcmp("none", gravStr)) {
     pctx->gravItem = airEnumVal(tenGage, gravStr);
     if (tenGageUnknown == pctx->gravItem) {
@@ -246,16 +215,6 @@ main(int argc, char *argv[]) {
 
   E = 0;
   if (!E) E |= pushStart(pctx);
-
-  if (pctx->numSS) {
-    char name[AIR_STRLEN_SMALL];
-    unsigned int ni;
-    for (ni=0; ni<pctx->numSS; ni++) {
-      sprintf(name, "blur%02u.nrrd", ni);
-      fprintf(stderr, "!%s: saving %s\n", me, name);
-      nrrdSave(name, pctx->ntenSS[ni], NULL);
-    }
-  }
 
   if (!E) E |= pushRun(pctx);
   if (!E) E |= pushOutputGet(nPosOut, nTenOut, nEnrOut, pctx);

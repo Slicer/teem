@@ -61,15 +61,13 @@ extern "C" {
 typedef struct pushPoint_t {
   unsigned int ttaagg;
   double pos[3],               /* position in world space */
-    posSS,                     /* position in scale space */
     enr,                       /* energy accumulator (current iteration) */
     frc[3],                    /* force accumulator (current iteration) */
     ten[7],                    /* tensor here */
     inv[7],                    /* inverse of tensor */
     cnt[3],                    /* mask's containment gradient */
     grav, gravGrad[3],         /* gravity stuff */
-    seedThresh,                /* seed thresh */
-    zcSS, gvSS[3];             /* self-explanatory */
+    seedThresh;                /* seed thresh */
   /* per-point list of active neighbors- which is updated only periodically.
      In addition to spatial binning, this greatly reduces the number of
      pair-wise interactions computed (based on idea from Meyer et al.) */
@@ -104,8 +102,7 @@ typedef struct pushTask_t {
   const double *tenAns,        /* results of gage probing */
     *invAns, *cntAns,
     *gravAns, *gravGradAns,
-    *seedThreshAns,
-    *zcSSAns, *gvSSAns;
+    *seedThreshAns;
   airThread *thread;           /* my thread */
   unsigned int threadIdx,      /* which thread am I */
     pointNum;                  /* # points I let live this iteration */
@@ -113,9 +110,6 @@ typedef struct pushTask_t {
     deltaFracSum;              /* contribution to pctx->deltaFrac */
   airRandMTState *rng;         /* state for my RNG */
   void *returnPtr;             /* for airThreadJoin */
-
-  gageContext *gctxSS;         /* result of gageContextCopy(pctx->gctxSS) */
-  
 } pushTask;
 
 /*
@@ -161,10 +155,6 @@ typedef struct {
 **
 ** everything for doing one simulation computation
 **
-** NOTE that right now all the scale-space-related functionality
-** (with "SS" in variable name) is rather disjoint from non-SS functionality:
-** with SS: the goal is to find a scale-space edge surface.  
-** without SS: normal glyph packing as per Vis'06 paper
 */
 typedef struct pushContext_t {
   /* INPUT ----------------------------- */
@@ -226,22 +216,8 @@ typedef struct pushContext_t {
 
   NrrdKernelSpec *ksp00,           /* for sampling tensor field */
     *ksp11,                        /* for gradient of mask, other 1st derivs */
-    *ksp22,                        /* for 2nd derivatives */
-    *kspSSblur,                    /* for blurring at different scales to
-                                      sample scale-space; must use parm[0] as
-                                      scale. NOTE that kspSSblur->parm[0]
-                                      will be over-written. */
-    *kspSS;                        /* for reconstructing from scale-space
-                                      samples */
+    *ksp22;                        /* for 2nd derivatives */
 
-  unsigned int numSS;              /* number of scales at which to sample,
-                                      and length of ntenSS, or,
-                                      0 to indicate no scale-space behavior */
-  double minSS, maxSS;             /* range of scales to use */
-  int zcValSSItem,                 /* find zero-crossings of this (probably
-                                      some kind of 2nd derivative) */
-    gradVecSSItem;                 /* gradient vector of underlying quantity */
-  
   /* INTERNAL -------------------------- */
 
   unsigned int ttaagg;             /* next value for per-point ID */
@@ -277,12 +253,6 @@ typedef struct pushContext_t {
                                       iteration) of fraction of distance 
                                       actually travelled to distance that it
                                       wanted to travel (due to speed limit) */
-
-  Nrrd **ntenSS;                   /* array of 3D volumes of 3D masked tensors,
-                                      one for each scale, length of numSS */
-  gageContext *gctxSS;             /* gage context around the original nten
-                                      and all the ntenSS[]
-                                      (and nothing else) */
 
   /* OUTPUT ---------------------------- */
 

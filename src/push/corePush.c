@@ -138,10 +138,6 @@ _pushContextCheck(pushContext *pctx) {
     sprintf(err, "%s: can have a single sample along at most one axis", me);
     biffAdd(PUSH, err); return 1;
   }
-  if (numSingle && pctx->numSS) {
-    sprintf(err, "%s: sorry, can only do SS on 3-D input", me);
-    biffMove(PUSH, err, NRRD); return 1;
-  }
 
   if (pctx->npos) {
     if (nrrdCheck(pctx->npos)) {
@@ -182,26 +178,6 @@ _pushContextCheck(pushContext *pctx) {
     }
     if (!AIR_EXISTS(pctx->gravZero)) {
       sprintf(err, "%s: gravity zero doesn't exist", me);
-      biffAdd(PUSH, err); return 1;
-    }
-  }
-  if (pctx->numSS) {
-    if (!( AIR_EXISTS(pctx->minSS) && AIR_EXISTS(pctx->maxSS) )) {
-      sprintf(err, "%s: SS min (%g) max (%g) don't both exist", me,
-              pctx->minSS, pctx->maxSS);
-      biffAdd(PUSH, err); return 1;
-    }
-    if (airEnumValCheck(tenGage, pctx->zcValSSItem)
-        || airEnumValCheck(tenGage, pctx->gradVecSSItem)) {
-      sprintf(err, "%s: zc (%d) and gv (%d) items not both set", me,
-              pctx->zcValSSItem, pctx->gradVecSSItem);
-      biffAdd(PUSH, err); return 1;
-    }
-    if ( 1.0 <= pctx->neighborTrueProb ) {
-      /* then we'd never build the neighbor list that is used
-         for scale-space attraction */
-      sprintf(err, "%s: sorry, need neighborTrueProb (%g) < 1.0 "
-              "to build neighbor lists", me, pctx->neighborTrueProb);
       biffAdd(PUSH, err); return 1;
     }
   }
@@ -469,15 +445,6 @@ pushFinish(pushContext *pctx) {
   pctx->bin = (pushBin *)airFree(pctx->bin);
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
   pctx->binNum = 0;
-
-  if (pctx->ntenSS) {
-    unsigned int ni;
-    for (ni=0; ni<pctx->numSS; ni++) {
-      pctx->ntenSS[ni] = nrrdNuke(pctx->ntenSS[ni]);
-    }
-    pctx->ntenSS = airFree(pctx->ntenSS);
-    pctx->gctxSS = gageContextNix(pctx->gctxSS);
-  }
 
   if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNix(pctx->binMutex);

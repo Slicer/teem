@@ -29,7 +29,6 @@
 **** pctx->nten
 **** pctx->ninv
 **** pctx->nmask
-**** pctx->ntenSS
 ** and checks mask range
 */
 int
@@ -113,65 +112,6 @@ _pushTensorFieldSetup(pushContext *pctx) {
   pctx->nmask->axis[1].center = nrrdCenterCell;
   pctx->nmask->axis[2].center = nrrdCenterCell;
 
-  if (pctx->numSS) {
-    NrrdResampleContext *rsmc;
-    int E;
-    unsigned int ni, axi;
-
-    if (!( AIR_EXISTS(pctx->minSS) && AIR_EXISTS(pctx->maxSS) )) {
-      sprintf(err, "%s: need min (%g) and max (%g) SS to both exist", me,
-              pctx->minSS, pctx->maxSS);
-      biffAdd(PUSH, err); airMopError(mop); return 1;
-    }
-    if (!( pctx->ntenSS = AIR_CAST(Nrrd **, calloc(pctx->numSS,
-                                                   sizeof(Nrrd *))) )) {
-      sprintf(err, "%s: couldn't allocate SS array", me);
-      biffAdd(PUSH, err); airMopError(mop); return 1;
-    }
-    /* HEY: this fancier use of the mop hasn't actually been debugged */
-    airMopAdd(mop, &(pctx->ntenSS), (airMopper)airSetNull, airMopOnError);
-    airMopAdd(mop, pctx->ntenSS, airFree, airMopOnError);
-    
-    rsmc = nrrdResampleContextNew();
-    airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-    E = 0;
-    if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell);
-    if (!E) E |= nrrdResampleNrrdSet(rsmc, pctx->nten);
-    if (!E) E |= nrrdResampleKernelSet(rsmc, 0, NULL, NULL);
-    for (axi=1; axi<4; axi++) {
-      if (!E) E |= nrrdResampleSamplesSet(rsmc, axi,
-                                          pctx->nten->axis[axi].size);
-      if (!E) E |= nrrdResampleRangeFullSet(rsmc, axi);
-    }
-    if (!E) E |= nrrdResampleBoundarySet(rsmc, nrrdBoundaryBleed);
-    if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeFloat);
-    if (!E) E |= nrrdResampleRenormalizeSet(rsmc, AIR_TRUE);
-    if (E) {
-      sprintf(err, "%s: trouble setting up resampling", me);
-      biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
-    }
-    for (ni=0; ni<pctx->numSS; ni++) {
-      pctx->kspSSblur->parm[0]= AIR_AFFINE(0, ni, pctx->numSS-1,
-                                           pctx->minSS, pctx->maxSS);
-      for (axi=1; axi<4; axi++) {
-        if (!E) E |= nrrdResampleKernelSet(rsmc, axi, pctx->kspSSblur->kernel,
-                                           pctx->kspSSblur->parm);
-      }
-      pctx->ntenSS[ni] = nrrdNew();
-      airMopAdd(mop, pctx->ntenSS[ni], (airMopper)nrrdNuke, airMopOnError);
-      fprintf(stderr, "!%s: resampling %u/%u (parm[0] = %g) ... ", me,
-              ni, pctx->numSS, pctx->kspSSblur->parm[0]);
-      fflush(stderr);
-      if (!E) E |= nrrdResampleExecute(rsmc, pctx->ntenSS[ni]);
-      if (E) {
-        sprintf(err, "%s: trouble setting resampling %u of %u", me,
-                ni, pctx->numSS);
-        biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
-      }
-      fprintf(stderr, "done\n");
-    }
-  }
-
   airMopOkay(mop); 
   return 0;
 }
@@ -179,7 +119,6 @@ _pushTensorFieldSetup(pushContext *pctx) {
 /*
 ** _pushGageSetup sets:
 **** pctx->gctx
-**** pctx->gctxSS
 */
 int
 _pushGageSetup(pushContext *pctx) {
@@ -223,49 +162,6 @@ _pushGageSetup(pushContext *pctx) {
   if (E) {
     sprintf(err, "%s: trouble setting up gage", me);
     biffMove(PUSH, err, GAGE); return 1;
-  }
-
-  if (pctx->numSS) {
-    gagePerVolume *pvl=NULL;
-    unsigned int ni;
-
-    pctx->gctxSS = gageContextNew();
-    fprintf(stderr, "!%s: pctx->gctxSS at %p\n", me, pctx->gctxSS);
-    gageParmSet(pctx->gctxSS, gageParmRequireAllSpacings, AIR_TRUE);
-    gageParmSet(pctx->gctxSS, gageParmStackUse, AIR_TRUE);
-    E = AIR_FALSE;
-    if (!E) E |= gageKernelSet(pctx->gctxSS, gageKernel00,
-                               pctx->ksp00->kernel, pctx->ksp00->parm);
-    if (!E) E |= gageKernelSet(pctx->gctxSS, gageKernel11,
-                               pctx->ksp11->kernel, pctx->ksp11->parm);
-    if (!E) E |= gageKernelSet(pctx->gctxSS, gageKernel22,
-                               pctx->ksp22->kernel, pctx->ksp22->parm);
-    if (!E) E |= gageKernelSet(pctx->gctxSS, GAGE_KERNEL_STACK,
-                               pctx->kspSS->kernel, pctx->kspSS->parm);
-    if (!E) E |= !(pvl = gagePerVolumeNew(pctx->gctxSS, pctx->nten,
-                                          tenGageKind));
-    if (!E) E |= gagePerVolumeAttach(pctx->gctxSS, pvl);
-    for (ni=0; ni<pctx->numSS; ni++) {
-      gagePerVolume *pvlTmp;
-
-      if (!E) E |= !(pvlTmp = gagePerVolumeNew(pctx->gctxSS, pctx->ntenSS[ni],
-                                               tenGageKind));
-      if (!E) E |= gagePerVolumeAttach(pctx->gctxSS, pvlTmp);
-    }
-    if (!E) E |= gageQueryItemOn(pctx->gctxSS, pvl, tenGageTensor);
-    if (!E) E |= gageQueryItemOn(pctx->gctxSS, pvl, pctx->zcValSSItem);
-    if (!E) E |= gageQueryItemOn(pctx->gctxSS, pvl, pctx->gradVecSSItem);
-    if (!E) E |= gageUpdate(pctx->gctxSS);
-    fprintf(stderr, "!%s: pctx->gctxSS->stackKsp = %s:%g,%g\n", me,
-            pctx->gctxSS->stackKsp->kernel->name,
-            pctx->gctxSS->stackKsp->parm[0],
-            pctx->gctxSS->stackKsp->parm[1]);
-    if (E) {
-      sprintf(err, "%s: trouble setting up gage SS", me);
-      biffMove(PUSH, err, GAGE); return 1;
-    }
-  } else {
-    pctx->gctxSS = NULL;
   }
 
   return 0;
@@ -318,21 +214,6 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     task->deltaFracSum = 0;
     task->returnPtr = NULL;
 
-    if (pctx->numSS) {
-      if (!(task->gctxSS = gageContextCopy(pctx->gctxSS))) {
-        sprintf(err, "%s: trouble copying SS gageContext", me);
-        biffMove(PUSH, err, GAGE); return NULL;
-      }
-      task->tenAns = gageAnswerPointer(task->gctxSS, task->gctxSS->pvl[0],
-                                       tenGageTensor);
-      task->zcSSAns = gageAnswerPointer(task->gctxSS, task->gctxSS->pvl[0],
-                                        pctx->zcValSSItem);
-      task->gvSSAns = gageAnswerPointer(task->gctxSS, task->gctxSS->pvl[0],
-                                        pctx->gradVecSSItem);
-    } else {
-      task->gctxSS = NULL;
-    }
-
   }
   return task;
 }
@@ -346,9 +227,6 @@ _pushTaskNix(pushTask *task) {
       task->thread = airThreadNix(task->thread);
     }
     task->rng = airRandMTStateNix(task->rng);
-    if (task->pctx->numSS) {
-      task->gctxSS = gageContextNix(task->gctxSS);
-    }
     airFree(task);
   }
   return NULL;
@@ -429,14 +307,8 @@ _pushBinSetup(pushContext *pctx) {
   fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me, 
           pctx->dimIn, pctx->sliceAxis, pctx->maxDet);
   pctx->meanEval /= count;
-  if (pctx->numSS) {
-    pctx->maxDist = (2*pctx->scale*pctx->maxSS
-                     *pctx->ensp->energy->support(pctx->ensp->parm));
-    fprintf(stderr, "!%s: SS ==> maxDist = %g\n", me, pctx->maxDist);
-  } else {
-    pctx->maxDist = (2*pctx->scale*pctx->maxEval
-                     *pctx->ensp->energy->support(pctx->ensp->parm));
-  }
+  pctx->maxDist = (2*pctx->scale*pctx->maxEval
+                   *pctx->ensp->energy->support(pctx->ensp->parm));
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
@@ -588,8 +460,7 @@ _pushPointSetup(pushContext *pctx) {
                    && ((pctx->seedThresh - point->seedThresh)
                        *pctx->seedThreshSign > 0)
                    )
-               || (!pctx->numSS  /* can't do detr w/ SS */
-                   && pctx->detReject 
+               || (pctx->detReject 
                    && (airDrandMT() < detProbe/maxDet))
                );
     }
