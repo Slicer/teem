@@ -1490,9 +1490,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* --- tensor gradient, rotated into eigenframe of the tensor itself --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorGradRotE)) {
     /* confidence not affected by rotation */
-    float evecsT[9], evecs[9], tmp[9], tmp2[9];
-    float diff0, diff1, diff2, diffthresh;
-    float rdiff0, rdiff1, rdiff2;
+    double evecsT[9], evecs[9], tmp[9], tmp2[9];
+    double diff0, diff1, diff2, diffthresh;
+    double rdiff0, rdiff1, rdiff2;
     unsigned int evi, tci;
     
     ELL_3V_COPY(pvl->directAnswer[tenGageTensorGradRotE],
@@ -1511,35 +1511,52 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_COPY(evecs,evecAns);
     ELL_3M_TRANSPOSE(evecsT,evecs);
     for (evi=0; evi<3; evi++) {
+      char sign;
       /* first, simply rotate derivatives into eigenframe of value */
       TEN_T2M(tmp,gradDdXYZ + evi*7);
-      ell_3m_mul_f(tmp2,tmp,evecsT);
-      ell_3m_mul_f(tmp,evecs,tmp2);
+      ell_3m_mul_d(tmp2,tmp,evecsT);
+      ell_3m_mul_d(tmp,evecs,tmp2);
 
       /* If necessary, perform a number of additional rotations to
        * distribute eigenvalue derivatives equally in ill-defined
        * cases. Explanation in Schultz and Seidel, "Using Eigenvalue
        * Derivatives for Edge Detection in DT-MRI Data", DAGM 2008*/
       if (rdiff0<1.0) {
+	/* the goal is to find the smallest angle phi such that
+	 * rotation by phi around z will result in tmp[0]=tmp[4], i.e.:
+	 *
+	 * cos(phi)^2*tmp[0]-2*sin(phi)*cos(phi)*tmp[1]+sin(phi)^2*tmp[4] =
+	 * sin(phi)^2*tmp[0]+2*sin(phi)*cos(phi)*tmp[1]+cos(phi)^2*tmp[4]
+	 * =>
+	 * tan(2*phi)=(tmp[0]-tmp[4])/(2*tmp[1])
+	 *
+	 * we use atan2 to avoid potential problems with tmp[1]==0,
+	 * but manipulate the signs of the arguments s.t. the result
+	 * is always in [-pi/2,pi/2] (i.e., the smallest solution of
+	 * the above equality)
+	 */
+
         /* rotate around z axis */
-        float phi, R[9], RT[9];
-        phi=0.5*atan((tmp[0]-tmp[4])/(2*tmp[1]));
+        double phi, R[9], RT[9];
+        sign = (tmp[0]-tmp[4])*tmp[1]>0?1:-1;
+        phi=0.5*atan2(sign*fabs(tmp[0]-tmp[4]),fabs(2*tmp[1]));
         ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff0)*phi);
         ELL_3M_TRANSPOSE(RT,R);
-        ell_3m_mul_f(tmp2,tmp,RT);
-        ell_3m_mul_f(tmp,R,tmp2);
+        ell_3m_mul_d(tmp2,tmp,RT);
+        ell_3m_mul_d(tmp,R,tmp2);
       }
       if (rdiff1<1.0) {
         /* rotate around x axis */
-        float phi, R[9], RT[9];
-        phi=0.5*atan((tmp[4]-tmp[8])/(2*tmp[5]));
+        double phi, R[9], RT[9];
+        sign = (tmp[4]-tmp[8])*tmp[5]>0?1:-1;
+        phi=0.5*atan2(sign*fabs(tmp[4]-tmp[8]),fabs(2*tmp[5]));
         ELL_3M_ROTATE_X_SET(R, (1.0-rdiff1)*phi);
         ELL_3M_TRANSPOSE(RT,R);
-        ell_3m_mul_f(tmp2,tmp,RT);
-        ell_3m_mul_f(tmp,R,tmp2);
+        ell_3m_mul_d(tmp2,tmp,RT);
+        ell_3m_mul_d(tmp,R,tmp2);
       }
       if (rdiff2<1.0) {
-        float mean, submatrix[3], isoPhi, gamma, beta, A, C, R[9],RT[9];
+        double mean, submatrix[3], isoPhi, gamma, beta, A, C, R[9],RT[9];
         int axis, midaxis, smallest, sign;
 
         mean=(tmp[0]+tmp[4]+tmp[8])/3.0;
@@ -1612,25 +1629,28 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
           break;
         }
         ELL_3M_TRANSPOSE(RT,R);
-        ell_3m_mul_f(tmp2,tmp,RT);
-        ell_3m_mul_f(tmp,R,tmp2);
+        ell_3m_mul_d(tmp2,tmp,RT);
+        ell_3m_mul_d(tmp,R,tmp2);
 
         /* rotate around the now corrected evec */
         axis=midaxis;
         switch (midaxis) {
         case 0:
-          ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*0.5*atan((tmp[0]-tmp[4])/(2*tmp[1])));
+          sign = (tmp[0]-tmp[4])*tmp[1]>0?1:-1;
+          ELL_3M_ROTATE_X_SET(R, (1.0-rdiff2)*0.5*atan2(sign*fabs(tmp[0]-tmp[4]),fabs(2*tmp[1])));
           break;
         case 1:
-          ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*0.5*atan((tmp[8]-tmp[0])/(2*tmp[2])));
+          sign = (tmp[8]-tmp[0])*tmp[2]>0?1:-1;
+          ELL_3M_ROTATE_Y_SET(R, (1.0-rdiff2)*0.5*atan2(sign*fabs(tmp[8]-tmp[0]),fabs(2*tmp[2])));
           break;
         case 2:
-          ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*0.5*atan((tmp[4]-tmp[8])/(2*tmp[5])));
+          sign = (tmp[4]-tmp[8])*tmp[5]>0?1:-1;
+          ELL_3M_ROTATE_Z_SET(R, (1.0-rdiff2)*0.5*atan2(sign*fabs(tmp[4]-tmp[8]),fabs(2*tmp[5])));
           break;
         }
         ELL_3M_TRANSPOSE(RT,R);
-        ell_3m_mul_f(tmp2,tmp,RT);
-        ell_3m_mul_f(tmp,R,tmp2);
+        ell_3m_mul_d(tmp2,tmp,RT);
+        ell_3m_mul_d(tmp,R,tmp2);
       }
       /* Now, we can set the answer */
       TEN_M2T(tmp2,tmp);
