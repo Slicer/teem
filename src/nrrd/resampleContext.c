@@ -571,8 +571,9 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       }
       minSamples = (nrrdCenterCell == axis->center ? 1 : 2);
       if (!( axis->samples >= minSamples )) {
-        sprintf(err, "%s: need at last %u samples for %s-centered sampling "
-                "along axis %u", me, minSamples,
+        sprintf(err, "%s: need at least %u output samples (not %u) for "
+                "%s-centered sampling along axis %u", me, minSamples,
+                AIR_CAST(unsigned int, axis->samples),
                 airEnumStr(nrrdCenter, axis->center), axIdx);
         biffAdd(NRRD, err); return 1;
       }
