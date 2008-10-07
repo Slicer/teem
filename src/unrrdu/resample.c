@@ -74,7 +74,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Kernels logically live in the input index space for upsampling, "
              "and in the output index space for downsampling.  "
              "Possibilities include:\n "
-             "\b\bo \"box\": nearest neighbor interpolation\n "
+             "\b\bo \"box\": nearest neighbor interpolation on upsampling, "
+             "and uniform averaging on downsampling\n "
              "\b\bo \"cheap\": nearest neighbor interpolation for upsampling, "
              "and non-blurring sub-sampling (pick subset of input samples) "
              "on downsampling\n "
@@ -125,9 +126,8 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "default centering of axes when input nrrd "
              "axes don't have a known centering: \"cell\" or \"node\" ",
              NULL, nrrdCenter);
-  hestOptAdd(&opt, "verbose", NULL, airTypeInt, 0, 0, &verbose, NULL,
-             "(not available with \"-old\") "
-             "turn on verbosity ");
+  hestOptAdd(&opt, "verbose", "v", airTypeInt, 1, 1, &verbose, "0",
+             "(not available with \"-old\") verbosity level");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
