@@ -36,7 +36,7 @@ unrrdu_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
   unsigned int axis;
   int pret;
   size_t pos;
-  int _pos[2];
+  long int _pos[2];
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
