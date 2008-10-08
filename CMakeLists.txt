@@ -239,12 +239,12 @@ INCLUDE_DIRECTORIES(
   )
 
 
-OPTION(BUILD_VTK_CAPATIBLE_TEEM "Build a VTK compatible teem library" OFF)
+OPTION(BUILD_VTK_FRIENDLY_TEEM "Build a VTK compatible teem library" OFF)
 
-IF(BUILD_VTK_CAPATIBLE_TEEM)
+IF(BUILD_VTK_FRIENDLY_TEEM)
   SET (TEEM_ZLIB_DLLCONF_IPATH "" CACHE PATH "Path to zlib DLL configure stuff")
   SET (TEEM_PNG_DLLCONF_IPATH "" CACHE PATH "Path to png DLL configure stuff")
-ENDIF(BUILD_VTK_CAPATIBLE_TEEM)
+ENDIF(BUILD_VTK_FRIENDLY_TEEM)
 
 
 ## Add external library path includes
