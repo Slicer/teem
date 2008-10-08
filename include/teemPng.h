@@ -32,3 +32,7 @@
 #    error TEEM_PNG set, but TEEM_ZLIB not set 
 #  endif
 #endif
+
+#if TEEM_PNG && TEEM_VTK_MANGLE
+#include "vtk_png_mangle.h"
+#endif

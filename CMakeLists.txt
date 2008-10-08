@@ -69,11 +69,21 @@ ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
 
 OPTION(TEEM_ZLIB "Build Teem with support for gzip compression." ON)
 OPTION(TEEM_PNG "Build Teem with support for PNG images." ON)
+OPTION(TEEM_VTK_MANGLE "Build Teem using the mangled libraries from VTK for ZLIB and PNG." OFF)
+OPTION(TEEM_VTK_ZLIB_MANGLE_IPATH "Location of vtk_zlib_mangle.h" OFF)
+OPTION(TEEM_VTK_TOOLKITS_IPATH "Location of VTK Build directory for ZLIB and PNG includes." OFF)
 
 # Can't build PNG without ZLIB, so force it on.
 IF(TEEM_PNG AND NOT TEEM_ZLIB)
   SET(TEEM_ZLIB ON)
 ENDIF(TEEM_PNG AND NOT TEEM_ZLIB)
+
+IF(TEEM_VTK_MANGLE)
+  ADD_DEFINITIONS(-DTEEM_VTK_MANGLE=1)
+  INCLUDE_DIRECTORIES( ${TEEM_VTK_TOOLKITS_IPATH} )
+  INCLUDE_DIRECTORIES( ${TEEM_VTK_ZLIB_MANGLE_IPATH} )
+ENDIF(TEEM_VTK_MANGLE)
+
 
 SET(TEEM_ZLIB_LIB "")
 SET(TEEM_PNG_LIB "")
@@ -237,14 +247,6 @@ INCLUDE_DIRECTORIES(
   "${TEEM_BINARY_DIR}/include/"
   "${TEEM_SOURCE_DIR}/include/"
   )
-
-
-OPTION(BUILD_VTK_FRIENDLY_TEEM "Build a VTK compatible teem library" OFF)
-
-IF(BUILD_VTK_FRIENDLY_TEEM)
-  SET (TEEM_ZLIB_DLLCONF_IPATH "" CACHE PATH "Path to zlib DLL configure stuff")
-  SET (TEEM_PNG_DLLCONF_IPATH "" CACHE PATH "Path to png DLL configure stuff")
-ENDIF(BUILD_VTK_FRIENDLY_TEEM)
 
 
 ## Add external library path includes

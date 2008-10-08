@@ -171,6 +171,9 @@ extern int _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
 
 #if TEEM_ZLIB
+#if TEEM_VTK_MANGLE
+#include "vtk_zlib_mangle.h"
+#endif
 #include <zlib.h>
 
 /* gzio.c */
