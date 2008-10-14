@@ -110,7 +110,7 @@ enum {
 enum {
   tenInterpTypeUnknown,         /*  0: nobody knows */
   tenInterpTypeLinear,          /*  1: simple per-coefficient linear */
-  tenInterpTypeLogLinear,       /*  2: linear on coefs of logs (Log-Euclidean) */
+  tenInterpTypeLogLinear,       /*  2: linear on logs (Log-Euclidean) */
   tenInterpTypeAffineInvariant, /*  3: Riemannian approach of many authors */
   tenInterpTypeWang,            /*  4: affine-invariant of Z Wang & B Vemuri */
   tenInterpTypeGeoLoxK,         /*  5: geodesic-loxodrome on K_i invariants */
