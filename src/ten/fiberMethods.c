@@ -527,6 +527,63 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   return ret;
 }
 
+/* to avoid var-args */
+int
+tenFiberStopAnisoSet(tenFiberContext *tfx, int anisoType, double anisoThresh) {
+  char me[]="tenFiberStopAnisoSet", err[BIFF_STRLEN];
+
+  if (tenFiberStopSet(tfx, tenFiberStopAniso, anisoType, anisoThresh)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(TEN, err); return 1;
+  }
+  return 0;
+}
+
+/* to avoid var-args */
+int
+tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
+  char me[]="tenFiberStopDoubleSet", err[BIFF_STRLEN];
+
+  switch (stop) {
+  case tenFiberStopLength:
+  case tenFiberStopMinLength:
+  case tenFiberStopConfidence:
+  case tenFiberStopRadius:
+  case tenFiberStopFraction:
+    if (tenFiberStopSet(tfx, stop, val)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(TEN, err); return 1;
+    }
+    break;
+  default:
+    sprintf(err, "%s: given stop criterion %d (%s) isn't a double", me,
+            stop, airEnumStr(tenFiberStop, stop));
+    biffAdd(TEN, err); return 1;
+  }
+  return 0;
+}
+
+/* to avoid var-args */
+int
+tenFiberStopUIntSet(tenFiberContext *tfx, int stop, unsigned int val) {
+  char me[]="tenFiberStopUIntSet", err[BIFF_STRLEN];
+
+  switch (stop) {
+  case tenFiberStopNumSteps:
+  case tenFiberStopMinNumSteps:
+    if (tenFiberStopSet(tfx, stop, val)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(TEN, err); return 1;
+    }
+    break;
+  default:
+    sprintf(err, "%s: given stop criterion %d (%s) isn't an unsigned int", me,
+            stop, airEnumStr(tenFiberStop, stop));
+    biffAdd(TEN, err); return 1;
+  }
+  return 0;
+}
+
 void
 tenFiberStopOn(tenFiberContext *tfx, int stop) {
 

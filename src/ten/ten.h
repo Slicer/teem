@@ -1365,6 +1365,12 @@ TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const double parm[NRRD_KERNEL_PARMS_NUM]);
 TEN_EXPORT int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 TEN_EXPORT int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
+TEN_EXPORT int tenFiberStopAnisoSet(tenFiberContext *tfx,
+                                    int anisoType, double anisoThresh);
+TEN_EXPORT int tenFiberStopDoubleSet(tenFiberContext *tfx,
+                                     int stop, double val);
+TEN_EXPORT int tenFiberStopUIntSet(tenFiberContext *tfx,
+                                   int stop, unsigned int val);
 TEN_EXPORT void tenFiberStopOn(tenFiberContext *tfx, int stop);
 TEN_EXPORT void tenFiberStopOff(tenFiberContext *tfx, int stop);
 TEN_EXPORT void tenFiberStopReset(tenFiberContext *tfx);
