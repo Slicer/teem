@@ -663,13 +663,20 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       */
       if (tfx->stop & (1 << tenFiberStopRadius)) {
         /* some more work required to compute radius of curvature */
-        double svec[3], dvec[3], SS, DD; /* sum,diff length squared */
+        double svec[3], dvec[3], SS, DD, dlen; /* sum,diff length squared */
+        /* tfx->lastDir and forwDir are not normalized to unit-length */
         if (tfx->lastDirSet) {
           ELL_3V_ADD2(svec, tfx->lastDir, forwDir);
           ELL_3V_SUB(dvec, tfx->lastDir, forwDir);
           SS = ELL_3V_DOT(svec, svec);
           DD = ELL_3V_DOT(dvec, dvec);
-          tfx->radius = sqrt(SS*(SS+DD)/DD)/4;
+          /* Sun Nov 2 00:04:05 EDT 2008: GLK can't recover how he
+             derived this, and can't see why it would be corrrect,
+             even though it seems to work correctly...
+             tfx->radius = sqrt(SS*(SS+DD)/DD)/4;
+          */
+          dlen = sqrt(DD);
+          tfx->radius = dlen ? (SS + DD)/(4*dlen) : DBL_MAX;
         } else {
           tfx->radius = DBL_MAX;
         }
