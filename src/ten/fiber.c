@@ -863,6 +863,34 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
   return 0;
 }
 
+/* uses biff */
+tenFiberMulti *
+tenFiberMultiNew() {
+  char me[]="tenFiberMultiNew", err[BIFF_STRLEN];
+  tenFiberMulti *ret;
+
+  ret = AIR_CAST(tenFiberMulti *, calloc(1, sizeof(tenFiberMulti)));
+  if (ret) {
+    ret->fiber = NULL;
+    ret->fiberNum = 0;
+    ret->fiberArr = airArrayNew(AIR_CAST(void **, &(ret->fiber)),
+                                &(ret->fiberNum),
+                                sizeof(tenFiberSingle), 512 /* incr */);
+    if (ret->fiberArr) {
+      airArrayStructCB(ret->fiberArr,
+                       AIR_CAST(void (*)(void *), tenFiberSingleInit),
+                       AIR_CAST(void (*)(void *), tenFiberSingleDone));
+    } else {
+      sprintf(err, "%s: couldn't create airArray", me);
+      biffAdd(TEN, err); return NULL;
+    }
+  } else {
+    sprintf(err, "%s: couldn't create tenFiberMulti", me);
+    biffAdd(TEN, err); return NULL;
+  }
+  return ret;
+}
+
 int
 tenFiberMultiCheck(airArray *arr) {
   char me[]="tenFiberMultiCheck", err[BIFF_STRLEN];
@@ -883,36 +911,42 @@ tenFiberMultiCheck(airArray *arr) {
   return 0;
 }
 
+tenFiberMulti *
+tenFiberMultiNix(tenFiberMulti *tfm) {
+
+  if (tfm) {
+    airArrayNuke(tfm->fiberArr);
+    airFree(tfm);
+  }
+  return NULL;
+}
+
 /*
 ******** tenFiberMultiTrace
 **
 ** does tractography for a list of seedpoints 
 **
-** "tfbsArr" is an airArray that the caller has already set up to be
-** an array of tenFiberSingle pointers, with length set to represent
-** the number of tenFiberSingle's that have already been allocated
-** (and pointed to).
+** tfml has been returned from tenFiberMultiNew()
 **
 ** This is probably the first time that an airArray is being forced on
 ** Teem API users in this way, since other container structs/classes
 ** could probably be better here.  Alas.
 */
 int
-tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
+tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
                    const Nrrd *_nseed) {
   char me[]="tenFiberMultiTrace", err[BIFF_STRLEN];
   airArray *mop;
   const double *seedData;
   double seed[3];
   unsigned int seedNum, seedIdx, fibrNum, dirNum, dirIdx;
-  tenFiberSingle *tfbs;
   Nrrd *nseed;
 
-  if (!(tfx && tfbsArr && _nseed)) {
+  if (!(tfx && tfml && _nseed)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenFiberMultiCheck(tfbsArr)) {
+  if (tenFiberMultiCheck(tfml->fiberArr)) {
     sprintf(err, "%s: problem with fiber array", me);
     biffAdd(TEN, err); return 1;
   }
@@ -940,7 +974,6 @@ tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
 
   /* HEY: the correctness of the use of the airArray here is quite subtle */
   fibrNum = 0;
-  tfbs = AIR_CAST(tenFiberSingle *, tfbsArr->data);
   for (seedIdx=0; seedIdx<seedNum; seedIdx++) {
     dirNum = tenFiberDirectionNumber(tfx, seed);
     if (!dirNum) {
@@ -951,35 +984,37 @@ tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
     for (dirIdx=0; dirIdx<dirNum; dirIdx++) {
       if (tfx->verbose > 1) {
         fprintf(stderr, "%s: dir %u/%u on seed %u/%u; len %u; # %u\n",
-                me, dirIdx, dirNum, seedIdx, seedNum, tfbsArr->len, fibrNum);
+                me, dirIdx, dirNum, seedIdx, seedNum,
+                tfml->fiberArr->len, fibrNum);
       }
-      /* tfbsArr->len can never be < fibrNum */
-      if (tfbsArr->len == fibrNum) {
-        airArrayLenIncr(tfbsArr, 1);
-        tfbs = AIR_CAST(tenFiberSingle *, tfbsArr->data);
+      /* tfml->fiberArr->len can never be < fibrNum */
+      if (tfml->fiberArr->len == fibrNum) {
+        airArrayLenIncr(tfml->fiberArr, 1);
       }
-      ELL_3V_COPY(tfbs[fibrNum].seedPos, seedData + 3*seedIdx);
-      tfbs[fibrNum].dirIdx = dirIdx;
-      tfbs[fibrNum].dirNum = dirNum;
+      ELL_3V_COPY(tfml->fiber[fibrNum].seedPos, seedData + 3*seedIdx);
+      tfml->fiber[fibrNum].dirIdx = dirIdx;
+      tfml->fiber[fibrNum].dirNum = dirNum;
       ELL_3V_COPY(seed, seedData + 3*seedIdx);
-      if (tenFiberSingleTrace(tfx, &(tfbs[fibrNum]), seed, dirIdx)) {
+      if (tenFiberSingleTrace(tfx, &(tfml->fiber[fibrNum]), seed, dirIdx)) {
         sprintf(err, "%s: trouble on seed (%g,%g,%g) %u/%u, dir %u/%u", me, 
                 seed[0], seed[1], seed[2], seedIdx, seedNum, dirIdx, dirNum);
         biffAdd(TEN, err); return 1;
       }
       if (tfx->verbose) {
-        if (tenFiberStopUnknown == tfbs[fibrNum].whyNowhere) {
+        if (tenFiberStopUnknown == tfml->fiber[fibrNum].whyNowhere) {
           fprintf(stderr, "%s: (%g,%g,%g) ->\n"
                   "   steps = %u,%u; len = %g,%g; whyStop = %s,%s\n",
                   me, seed[0], seed[1], seed[2],
-                  tfbs[fibrNum].stepNum[0], tfbs[fibrNum].stepNum[1],
-                  tfbs[fibrNum].halfLen[0], tfbs[fibrNum].halfLen[1],
-                  airEnumStr(tenFiberStop, tfbs[fibrNum].whyStop[0]),
-                  airEnumStr(tenFiberStop, tfbs[fibrNum].whyStop[1]));
+                  tfml->fiber[fibrNum].stepNum[0],
+                  tfml->fiber[fibrNum].stepNum[1],
+                  tfml->fiber[fibrNum].halfLen[0],
+                  tfml->fiber[fibrNum].halfLen[1],
+                  airEnumStr(tenFiberStop, tfml->fiber[fibrNum].whyStop[0]),
+                  airEnumStr(tenFiberStop, tfml->fiber[fibrNum].whyStop[1]));
         } else {
           fprintf(stderr, "%s: (%g,%g,%g) -> whyNowhere: %s\n",
                   me, seed[0], seed[1], seed[2],
-                  airEnumStr(tenFiberStop, tfbs[fibrNum].whyNowhere));
+                  airEnumStr(tenFiberStop, tfml->fiber[fibrNum].whyNowhere));
         }
       }
       fibrNum++;
@@ -988,36 +1023,45 @@ tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
   /* if the airArray got to be its length only because of the work above,
      then the following will be a no-op.  Otherwise, via the callbacks,
      it will clear out the tenFiberSingle's that we didn't create here */
-  airArrayLenSet(tfbsArr, fibrNum);
+  airArrayLenSet(tfml->fiberArr, fibrNum);
 
   airMopOkay(mop);
   return 0;
 }
 
+/*
+******** tenFiberMultiPolyData
+**
+** converts tenFiberMulti to polydata.
+**
+** currently the tenFiberContext *tfx arg is not used, but it will
+** probably be needed in the future as the way that parameters to the
+** polydata creation process are passed.
+*/
 int
 tenFiberMultiPolyData(tenFiberContext *tfx, 
-                      limnPolyData *lpld, airArray *fiberArr) {
+                      limnPolyData *lpld, tenFiberMulti *tfml) {
   char me[]="tenFiberMultiPolyData", err[BIFF_STRLEN];
-  tenFiberSingle *fiber;
   unsigned int seedIdx, vertTotalNum, fiberNum, fiberIdx, vertTotalIdx;
 
-  if (!(tfx && lpld && fiberArr)) {
+  if (!(tfx && lpld && tfml)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(TEN, err); return 1;
   }
-  if (tenFiberMultiCheck(fiberArr)) {
+  if (tenFiberMultiCheck(tfml->fiberArr)) {
     sprintf(err, "%s: problem with fiber array", me);
     biffAdd(TEN, err); return 1;
   }
-  fiber = AIR_CAST(tenFiberSingle *, fiberArr->data);
 
+  /* we have to count the real fibers that went somewhere, excluding
+     fibers that went nowhere (counted in tfml->fiberNum) */
   vertTotalNum = 0;
   fiberNum = 0;
-  for (seedIdx=0; seedIdx<fiberArr->len; seedIdx++) {
-    if (!(tenFiberStopUnknown == fiber[seedIdx].whyNowhere)) {
+  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
+    if (!(tenFiberStopUnknown == tfml->fiber[seedIdx].whyNowhere)) {
       continue;
     }
-    vertTotalNum += fiber[seedIdx].nvert->axis[1].size;
+    vertTotalNum += tfml->fiber[seedIdx].nvert->axis[1].size;
     fiberNum++;
   }
 
@@ -1029,14 +1073,14 @@ tenFiberMultiPolyData(tenFiberContext *tfx,
     
   fiberIdx = 0;
   vertTotalIdx = 0;
-  for (seedIdx=0; seedIdx<fiberArr->len; seedIdx++) {
+  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
     double *vert;
     unsigned int vertIdx, vertNum;
-    if (!(tenFiberStopUnknown == fiber[seedIdx].whyNowhere)) {
+    if (!(tenFiberStopUnknown == tfml->fiber[seedIdx].whyNowhere)) {
       continue;
     }
-    vertNum = fiber[seedIdx].nvert->axis[1].size;
-    vert = AIR_CAST(double*, fiber[seedIdx].nvert->data);
+    vertNum = tfml->fiber[seedIdx].nvert->axis[1].size;
+    vert = AIR_CAST(double*, tfml->fiber[seedIdx].nvert->data);
     for (vertIdx=0; vertIdx<vertNum; vertIdx++) {
       ELL_3V_COPY_TT(lpld->xyzw + 4*vertTotalIdx, float, vert + 3*vertIdx);
       (lpld->xyzw + 4*vertTotalIdx)[3] = 1.0;

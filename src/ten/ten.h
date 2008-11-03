@@ -816,7 +816,7 @@ typedef struct {
   /* ------- available for recording for reference, not used by ten */
   double seedPos[3];    /* where was the seed point */
   unsigned int dirIdx;  /* which direction at seedpoint to follow */
-  unsigned int dirNum;  /* how many directions at seedpoint could be followed */
+  unsigned int dirNum;  /* how many directions at seedpnt could be followed */
   /* ------- output ------- */
   Nrrd *nvert;          /* locations of tract vertices */
   double halfLen[2];    /* (same as in tenFiberContext) */
@@ -827,6 +827,17 @@ typedef struct {
   Nrrd *nval;           /* results of probing at vertices */
   double measr[NRRD_MEASURE_MAX+1];  /* a controlled mess */
 } tenFiberSingle;
+
+/*
+******** tenFiberMulti
+**
+** container for multiple fibers
+*/
+typedef struct {
+  tenFiberSingle *fiber;
+  unsigned int fiberNum;
+  airArray *fiberArr;
+} tenFiberMulti;
 
 /*
 ******** struct tenEmBimodalParm
@@ -1393,10 +1404,12 @@ TEN_EXPORT unsigned int tenFiberDirectionNumber(tenFiberContext *tfx,
                                                 double seed[3]);
 TEN_EXPORT int tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
                                    double seed[3], unsigned int which);
-TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, airArray *tfbsArr,
+TEN_EXPORT tenFiberMulti *tenFiberMultiNew(void);
+TEN_EXPORT tenFiberMulti *tenFiberMultiNix(tenFiberMulti *tfm);
+TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
                                   const Nrrd *nseed);
 TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx, 
-                                     limnPolyData *lpld, airArray *tfbsArr);
+                                     limnPolyData *lpld, tenFiberMulti *tfml);
 
 /* epireg.c */
 TEN_EXPORT int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin,

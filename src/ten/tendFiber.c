@@ -37,7 +37,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *outS;
 
   tenFiberContext *tfx;
-  tenFiberSingle *tfbs, *fiber;
+  tenFiberSingle *tfbs;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
   airEnum *ftypeEnum;
@@ -47,7 +47,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   Nrrd *nin, *nseed, *nmat, *_nmat;
   unsigned int si, stopLen, whichPath;
   double matx[16]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-  airArray *fiberArr;
+  tenFiberMulti *tfml;
   limnPolyData *fiberPld;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
@@ -259,16 +259,20 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
       fprintf(stderr, "%s: didn't get seed nrrd via \"-ns\"\n", me);
       airMopError(mop); return 1;
     }
+    tfml = tenFiberMultiNew();
+    airMopAdd(mop, tfml, (airMopper)tenFiberMultiNix, airMopAlways);
+    /*
     fiberArr = airArrayNew(AIR_CAST(void **, &fiber), NULL,
-                           sizeof(tenFiberSingle), 1024 /* incr */);
+                           sizeof(tenFiberSingle), 1024);
     airArrayStructCB(fiberArr,
                      AIR_CAST(void (*)(void *), tenFiberSingleInit),
                      AIR_CAST(void (*)(void *), tenFiberSingleDone));
     airMopAdd(mop, fiberArr, (airMopper)airArrayNuke, airMopAlways);
+    */
     fiberPld = limnPolyDataNew();
     airMopAdd(mop, fiberPld, (airMopper)limnPolyDataNix, airMopAlways);
-    if (tenFiberMultiTrace(tfx, fiberArr, nseed)
-        || tenFiberMultiPolyData(tfx, fiberPld, fiberArr)) {
+    if (tenFiberMultiTrace(tfx, tfml, nseed)
+        || tenFiberMultiPolyData(tfx, fiberPld, tfml)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop); return 1;
