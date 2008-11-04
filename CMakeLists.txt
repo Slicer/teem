@@ -13,14 +13,14 @@ ENDIF(COMMAND cmake_policy)
 PROJECT(TEEM)
 
 #-----------------------------------------------------------------------------
-# TEEM version number.  Must reflect the values in teem/src/air/air.h
+# Teem version number.  Must reflect the values in teem/src/air/air.h
 SET(TEEM_VERSION_MAJOR "1")
 SET(TEEM_VERSION_MINOR "10")
 SET(TEEM_VERSION_PATCH "0")
 
 # Version string should not include patch level.  The major.minor is
 # enough to distinguish available features of the toolkit.
-SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}")
+SET(TEEM_VERSION_STRING "${TEEM_VERSION_MAJOR}.${TEEM_VERSION_MINOR}.${TEEM_VERSION_PATCH}")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
@@ -60,7 +60,7 @@ ENDIF(QNANHIBIT_VALUE)
 
 
 #-----------------------------------------------------------------------------
-# TEEM build configuration options.
+# Teem build configuration options.
 OPTION(BUILD_SHARED_LIBS "Build Teem with shared libraries." OFF)
 SET(TEEM_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 IF(NOT TEEM_BUILD_SHARED_LIBS)
@@ -193,8 +193,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 
 SET(BUILD_EXPERIMENTAL OFF CACHE BOOL "Build experimental components of teem")
 
-SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane
- limn seek hoover echo ten dye mite)
+SET(TEEM_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane limn seek hoover echo ten dye mite)
 IF(BUILD_EXPERIMENTAL)
   SET(TEEM_LIBRARIES ${TEEM_LIBRARIES} coil alan pull)
 ENDIF(BUILD_EXPERIMENTAL)
@@ -299,6 +298,8 @@ SET_TARGET_PROPERTIES(teem PROPERTIES
   BUILD_WITH_INSTALL_RPATH OFF
   INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
   INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
+  SOVERSION 1
+  VERSION ${TEEM_VERSION_STRING}
   )
 
 IF(TEEM_BZIP2_LIB)
@@ -319,9 +320,9 @@ IF(UNIX)
   TARGET_LINK_LIBRARIES(teem -lm)
 ENDIF(UNIX)
 
-OPTION(TEEM_USE_LIB_INSTALL_SUBDIR "Add a TEEM-X.Y directory layer to the installation tree for libraries and archives." OFF)
+OPTION(TEEM_USE_LIB_INSTALL_SUBDIR "Add a teem-X.Y.Z directory layer to the installation tree for libraries and archives." OFF)
 IF(TEEM_USE_LIB_INSTALL_SUBDIR)
-  SET(EXTRA_INSTALL_PATH /TEEM-${TEEM_VERSION_STRING})
+  SET(EXTRA_INSTALL_PATH /teem-${TEEM_VERSION_STRING})
 ELSE(TEEM_USE_LIB_INSTALL_SUBDIR)
   SET(EXTRA_INSTALL_PATH "")
 ENDIF(TEEM_USE_LIB_INSTALL_SUBDIR)
@@ -343,7 +344,7 @@ ENDIF(BUILD_HEX)
 
 #-----------------------------------------------------------------------------
 # For testing
-OPTION(BUILD_TESTING "Enable this to perform testing of TEEM" OFF)
+OPTION(BUILD_TESTING "Enable this to perform testing of Teem" OFF)
 IF(BUILD_TESTING)
   SET(DART_ROOT "" CACHE INTERNAL "" FORCE)
   INCLUDE(CTest)
@@ -352,21 +353,21 @@ IF(BUILD_TESTING)
 ENDIF(BUILD_TESTING)
 
 #-----------------------------------------------------------------------------
-# Help outside projects build TEEM projects.
+# Help outside projects build Teem projects.
 INCLUDE(CMakeExportBuildSettings)
-EXPORT_LIBRARY_DEPENDENCIES(${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake)
-CMAKE_EXPORT_BUILD_SETTINGS(${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake)
+EXPORT_LIBRARY_DEPENDENCIES(${TEEM_BINARY_DIR}/TeemLibraryDepends.cmake)
+CMAKE_EXPORT_BUILD_SETTINGS(${TEEM_BINARY_DIR}/TeemBuildSettings.cmake)
 
 SET(CFLAGS "${CMAKE_C_FLAGS}")
 SET(CC "${CMAKE_C_COMPILER}")
 
 # For build tree usage
-SET(TEEM_LIBRARY_DEPENDS_FILE ${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake)
+SET(TEEM_LIBRARY_DEPENDS_FILE ${TEEM_BINARY_DIR}/TeemLibraryDepends.cmake)
 SET(TEEM_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH})
 SET(TEEM_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
-SET(TEEM_USE_FILE ${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake)
+SET(TEEM_USE_FILE ${TEEM_SOURCE_DIR}/CMake/TeemUse.cmake)
 SET(TEEM_INCLUDE_DIRS "${TEEM_BINARY_DIR}/include")
-SET(TEEM_BUILD_SETTINGS_FILE ${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake)
+SET(TEEM_BUILD_SETTINGS_FILE ${TEEM_BINARY_DIR}/TeemBuildSettings.cmake)
 SET(TEEM_TOOLS "affine;idx2pos;nrrdSanity;spots;unu;airSanity;ilk;overrgb;talkweb;vprobe;cubic;miter;pos2idx;tend;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry;deconv")
 
 
@@ -378,16 +379,16 @@ SET(includedir "${prefix}")
 SET(libdir "${prefix}/bin")
 SET(srcdir "${TEEM_SOURCE_DIR}")
 
-CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
-  "${TEEM_BINARY_DIR}/TEEMConfig.cmake" @ONLY IMMEDIATE)
+CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
+  "${TEEM_BINARY_DIR}/TeemConfig.cmake" @ONLY IMMEDIATE)
 
 # For installed tree usage
-SET(TEEM_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMLibraryDepends.cmake)
+SET(TEEM_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/Teem-${TEEM_VERSION_STRING}/TeemLibraryDepends.cmake)
 SET(TEEM_EXECUTABLE_DIRS "${CMAKE_INSTALL_PREFIX}/bin")
 SET(TEEM_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
-SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMUse.cmake")
+SET(TEEM_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/Teem-${TEEM_VERSION_STRING}/TeemUse.cmake")
 SET(TEEM_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/TEEM-${TEEM_VERSION_STRING}/TEEMBuildSettings.cmake)
+SET(TEEM_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/Teem-${TEEM_VERSION_STRING}/TeemBuildSettings.cmake)
 SET(TEEM_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 SET(prefix "${CMAKE_INSTALL_PREFIX}")
 SET(exec_prefix "${prefix}")
@@ -397,17 +398,17 @@ SET(includedir "${prefix}")
 SET(libdir "${prefix}/lib")
 SET(srcdir ".")
 
-CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TEEMConfig.cmake.in"
-  "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake" @ONLY IMMEDIATE)
+CONFIGURE_FILE("${TEEM_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
+  "${TEEM_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
 
 INSTALL(FILES ${TEEM_INSTALLED_HEADER_FILES}
   DESTINATION include/teem
   )
 INSTALL(FILES
-  "${TEEM_SOURCE_DIR}/CMake/TEEMUse.cmake"
-  "${TEEM_BINARY_DIR}/TEEMBuildSettings.cmake"
-  "${TEEM_BINARY_DIR}/TEEMLibraryDepends.cmake"
-  "${TEEM_BINARY_DIR}/CMake/TEEMConfig.cmake"
-  DESTINATION lib/TEEM-${TEEM_VERSION_STRING}
+  "${TEEM_SOURCE_DIR}/CMake/TeemUse.cmake"
+  "${TEEM_BINARY_DIR}/TeemBuildSettings.cmake"
+  "${TEEM_BINARY_DIR}/TeemLibraryDepends.cmake"
+  "${TEEM_BINARY_DIR}/CMake/TeemConfig.cmake"
+  DESTINATION lib/Teem-${TEEM_VERSION_STRING}
   )
 
