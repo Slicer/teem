@@ -31,9 +31,11 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
+#ifdef PRAY
 int _pullPraying = 0;
 double _pullPrayCorner[2][2][3];
 size_t _pullPrayRes[2] = {60,20};
+#endif
 
 unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
@@ -383,6 +385,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     biffAdd(PULL, err); return 1;
   }
 
+#ifdef PRAYING
   if (0 && 162 == point->idtag) {
     fprintf(stderr, "!%s: !!!!!!!!!!!! praying ON!\n", me);
     _pullPraying = AIR_TRUE;
@@ -406,13 +409,16 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     fprintf(stderr, "%s: =============================== (%u) hi @ %g %g %g\n",
             me, point->idtag, point->pos[0], point->pos[1], point->pos[2]);
   }
+#endif
   energyOld = _pullPointEnergyTotal(task, bin, point, force);
+#ifdef PRAYING
   if (_pullPraying) {
     fprintf(stderr, "!%s: =================== point %u has:\n "
             "     energy = %g ; ndist = %g, force %g %g %g %g\n", me,
             point->idtag, energyOld, point->neighDist,
             force[0], force[1], force[2], force[3]);
   }
+#endif
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
     biffAdd(PULL, err); return 1;
@@ -447,6 +453,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   } else {
     capscl = 1;
   }
+#ifdef PRAYING
   if (_pullPraying) {
     fprintf(stderr, "%s: ======= (%u) capscl = %g\n", me,
             point->idtag, capscl);
@@ -515,6 +522,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     ELL_4V_COPY(point->pos, phold);
     _pullPointEnergyTotal(task, bin, point, NULL);
   }
+#endif
 
   do {
     int constrFail;
@@ -524,11 +532,13 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
                       capscl*point->stepEnergy, force);
 
     _pullPointHistAdd(point, pullCondEnergyTry);
+#ifdef PRAYING
     if (_pullPraying) {
       fprintf(stderr, "!%s: ======= (%u) try step %g to pos %g %g %g %g\n", me,
               point->idtag, capscl*point->stepEnergy, 
               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     }
+#endif
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point, &constrFail)) {
         sprintf(err, "%s: trouble", me);
@@ -539,16 +549,20 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     if (constrFail) {
       energyNew = AIR_NAN;
+#ifdef PRAYING
       if (_pullPraying) {
         fprintf(stderr, "!%s: ======= constraint fail\n", me);
       }
+#endif
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point,  NULL);
+#ifdef PRAYING
       if (_pullPraying) {
         fprintf(stderr, "!%s: ======= e new = %g %s old %g %s\n", me,
                 energyNew, energyNew > energyOld ? ">" : "<=", energyOld,
                 energyNew > energyOld ? "!! BADSTEP !!" : "ok");
       }
+#endif
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {

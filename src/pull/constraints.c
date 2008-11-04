@@ -252,9 +252,11 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   double *tng;
 
   tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
+#ifdef PRAYING
   if (_pullPraying) {
     fprintf(stderr, "!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
   }
+#endif
   ELL_3MV_OUTER(proj, tng, tng);
   if (tang2Use) {
     double proj2[9];
@@ -342,20 +344,26 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   for (iter=1; iter<=iterMax; iter++) {
     NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj);
     step = (d2 <= 0 ? -plen : -d1/d2);
+#ifdef PRAYING
     if (_pullPraying) {
       fprintf(stderr, "!%s: iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
               iter, d2, -plen, -d1/d2, step);
     }
+#endif
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
+#ifdef PRAYING
     if (_pullPraying) {
       fprintf(stderr, "       -> %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
       ELL_3V_COPY(_tmpv, point->pos);
     }
+#endif
     ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
+#ifdef PRAYING
     if (_pullPraying) {
       ELL_3V_SUB(_tmpv, _tmpv, point->pos);
       fprintf(stderr, "        -> moved %g\n", ELL_3V_LEN(_tmpv));
     }
+#endif
     _pullPointHistAdd(point, pullCondConstraintSatA);
     /*
     if (_pullPraying) {

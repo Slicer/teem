@@ -301,6 +301,8 @@ typedef struct pullTask_t {
     **neighPoint;               /* array of point pointers, either all
                                    possible points from neighbor bins, or
                                    last learned interacting neighbors */
+  pullPoint *addPoint;          /* points to add before next iter */
+  airArray *addPointArr;        /* airArray around addPoint */
   void *returnPtr;              /* for airThreadJoin */
   unsigned int stuckNum;        /* # stuck particles seen by this task */
 } pullTask;

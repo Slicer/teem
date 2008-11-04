@@ -86,6 +86,12 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   pctx->idtagNext = 0; /* because pullPointNew incremented it */
   task->neighPoint = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,
                                                    sizeof(pullPoint*)));
+  task->addPoint = NULL;
+  /*
+  task->addPointArr = airArrayNew(AIR_CAST(void **, &(task->addPoint)),
+                                  NULL, sizeof(pullPoint*),
+                                  unsigned int incr);
+  */
   task->returnPtr = NULL;
   task->stuckNum = 0;
   return task;
