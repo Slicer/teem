@@ -89,10 +89,15 @@ main(int argc, char **argv) {
     airMopError(mop);
     exit(1);
   }
-  /* else, we should see if they're asking for a command we know about */  
+  /* else, we should see if they're asking for a command we know about */
   for (i=0; unrrduCmdList[i]; i++) {
-    if (!strcmp(argv[1], unrrduCmdList[i]->name))
+    if (!strcmp(argv[1], unrrduCmdList[i]->name)) {
       break;
+    }
+    if (!strcmp("--help", argv[1]) 
+        && !strcmp("about", unrrduCmdList[i]->name)) {
+      break;
+    }
   }
   /* unrrduCmdList[] is NULL-terminated */
   if (unrrduCmdList[i]) {
