@@ -1,11 +1,11 @@
 #-----------------------------------------------------------------------------
 #
-# TEEMConfig.cmake - TEEM CMake configuration file for external projects.
+# TeemConfig.cmake - Teem CMake configuration file for external projects.
 #
-# This file is configured by TEEM and used by the UseTEEM.cmake module
-# to load TEEM's settings for an external project.
+# This file is configured by Teem and used by the UseTeem.cmake module
+# to load Teem's settings for an external project.
 
-# The TEEM source tree.
+# The Teem source tree.
 SET(TEEM_SOURCE_DIR "@TEEM_SOURCE_DIR@")
 
 # The TEEM include file directories.
@@ -26,7 +26,7 @@ SET(TEEM_VERSION_PATCH "@TEEM_VERSION_PATCH@")
 SET(TEEM_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
 SET(TEEM_BUILD_SETTINGS_FILE "@TEEM_BUILD_SETTINGS_FILE@")
 
-# The location of the UseTEEM.cmake file.
+# The location of the UseTeem.cmake file.
 SET(TEEM_USE_FILE "@TEEM_USE_FILE@")
 
 # The list of tools in teem

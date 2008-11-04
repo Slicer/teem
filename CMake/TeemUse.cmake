@@ -1,5 +1,5 @@
 IF(NOT TEEM_FOUND)
-  MESSAGE(FATAL_ERROR "Something went wrong. You are including TEEMUse.cmake but TEEM was not found")
+  MESSAGE(FATAL_ERROR "Something went wrong. You are including TeemUse.cmake but Teem was not found")
 ENDIF(NOT TEEM_FOUND)
 
 # Make TEEM easier to use
@@ -17,7 +17,7 @@ IF(NOT TEEM_BUILD_SHARED_LIBS)
   ADD_DEFINITIONS(-DTEEM_STATIC=1)
 ENDIF(NOT TEEM_BUILD_SHARED_LIBS)
 
-# Add compiler flags needed to use TEEM.
+# Add compiler flags needed to use Teem.
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TEEM_REQUIRED_C_FLAGS}")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${TEEM_REQUIRED_EXE_LINKER_FLAGS}")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${TEEM_REQUIRED_SHARED_LINKER_FLAGS}")
