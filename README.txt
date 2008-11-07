@@ -21,7 +21,7 @@
 
 =============== License information
 
-See above.  This preamble appears on all .c, .h, and .mk files. Full
+See above.  This preamble should appear on all released files. Full
 text of the Simple Library Usage License (SLUL) should be in the file
 "LICENSE.txt" in the "src" directory.  The SLUL is the GNU Lesser
 General Public License, plus an exception statement that means that
