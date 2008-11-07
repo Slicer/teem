@@ -104,7 +104,6 @@ teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
 - remove excess NULL pointer checks between answer and answer wrapper
 - valgrind
 
-
 finish big changes
 - ADD gkms back into teem bins!
 
