@@ -4,29 +4,22 @@ fix all
 "dereferencing type-punned pointer will break strict-aliasing rules"
 warnings on a modern linux system
 
-fix the copyright year (now 2007)
-
 regenerate NrrdIO, check it into ITK, clean up errors + warnings
-
-CVS --> SVN conversion
 
 confirm/reconcile windows-specific fixes that Nicole (BWH) and
 Brian (SCI) did in a nrrd IO thing
 
-Make sure people are okay with CMake stuff in Teem
-
 Make sure the CMake and GNUMake agree on source files per-library
 
 decide if <LIB>_EXPORT should just be TEEM_EXPORT
+
+--------- for after teem 1.10
 
 Fix the "unu dist" segfault that I discovered awhile ago (I can
 provide the input file that triggers this)
 
 Fix the marching-cubes tables in seek; there's some evidence of a
 bug uncovered by the anisotropy crease research
-
-make push/test/pusher into a teem binary
-
 
 --------- teem 1.9 cut-off
 
@@ -103,6 +96,7 @@ teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
 - try gkms hvol with three explicit ranges
 - remove excess NULL pointer checks between answer and answer wrapper
 - valgrind
+
 
 finish big changes
 - ADD gkms back into teem bins!
