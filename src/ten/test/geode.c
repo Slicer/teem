@@ -251,7 +251,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "!%s: ------- # iter = %u, conv = %g\n", me,
             tip->numIter, tip->convFinal);
     time1 = airTime();
-    fprintf(stderr, "%s: geodesic length = %g; time = %g\n",
+    fprintf(stderr, "%s: path length = %g; time = %g\n",
             me, tenInterpPathLength(nout, AIR_FALSE, AIR_FALSE, AIR_FALSE),
             time1 - time0);
     
