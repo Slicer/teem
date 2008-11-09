@@ -24,10 +24,9 @@
 See above.  This preamble should appear on all released files. Full
 text of the Simple Library Usage License (SLUL) should be in the file
 "LICENSE.txt" in the "src" directory.  The SLUL is the GNU Lesser
-General Public License, plus an exception statement that means that
-statically-linked binaries that use parts of Teem without being
-covered by the SLUL (the SLUL stops being a reciprocal license in that
-case).
+General Public License, plus an exception: statically-linked binaries
+that link with Teem can be destributed under the terms of your choice,
+with very modest provisions.  
 
 =============== How to compile
 
@@ -35,41 +34,15 @@ Use CMake to compile Teem.  CMake is available from:
 
 http://www.cmake.org/
 
-The information below refers to the old home-grown bizarro
-GNUmakefiles that Gordon originally wrote.  These may still work,
-but they are not supported.
+There are some instructions for building Teem with CMake at:
 
-1: set the environment variable TEEM_ARCH to one of the following:
-   "irix6.n32": for irix in n32 mode
-   "irix6.64": for irix in 64-bit mode
-   "linux.32": for 32-bit linux boxes
-   "linux.ia64": for 64-bit Itanium (Intel) linux
-   "linux.amd64": for 64-bit Athlon (AMD) linux
-   "solaris": for solaris boxes
-   "cygwin": if you have cygwin (www.cygwin.com) on a windows box
-   "darwin.32": on a 32-bit Mac OS X box
-   "darwin.64": on a 64-bit Mac OS X box
-
-2: "cd src"
-
-3: "make" 
-   Or more accurately, "gmake", or "/usr/local/gnu/bin/make", or
-   however it is that you invoke a GNU make.  This MUST be GNU make.
-   I am in fact using features unique to GNU make.
-
-4: "../${TEEM_ARCH}/bin/nrrdSanity"
-   This runs a little program which performs a sanity-check on the
-   nrrd library; specifically, all the assumptions about type sizes,
-   endianness, and such that are set at compile time.  If it doesn't
-   start by saying "nrrd sanity check passed", then email me; there
-   are serious problems.
+http://teem.sourceforge.net/build.html
 
 =============== Directory Structure
 
 src/
   With one subdirectory for each of the teem libraries, all the 
-  source for the libraries is in here.  There is also a "src/make/"
-  directory which is just for makefile (.mk) files.
+  source for the libraries is in here.
 include/
   Some short header files that are used to verify the correct
   setting of compiler variables, such as TEEM_ENDIAN.
