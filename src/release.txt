@@ -1,5 +1,9 @@
 Things for Gordon to do with each teem release:
 
+-3) make sure that all the files have the right pre-ambles
+
+-2.5) make sure that there are no DOS files
+
 -2) make sure there are no tabs:
 cat > tab.txt
 (tab) (return)

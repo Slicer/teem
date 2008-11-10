@@ -153,8 +153,8 @@ create.if.missing = \
 ##
 ifeq (undefined,$(origin TEEM_DEST))
   IDEST = $(TEEM_ROOT)/include
-  LDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/lib
-  BDEST = $(TEEM_ROOT)/$(TEEM_ARCH)/bin
+  LDEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/lib
+  BDEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/bin
 else
   IDEST = $(TEEM_DEST)/include
   LDEST = $(TEEM_DEST)/lib
@@ -164,8 +164,8 @@ else
 endif
 ## create IDEST/teem if necessary
 $(call create.if.missing,$(IDEST)/teem)
-ODEST = $(TEEM_ROOT)/$(TEEM_ARCH)/obj
-PCACHE = $(TEEM_ROOT)/$(TEEM_ARCH)/purify
+ODEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/obj
+PCACHE = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 ifneq (undefined,$(origin TEEM_DEST))
