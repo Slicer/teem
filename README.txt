@@ -108,3 +108,4 @@ other:
 - always use "biff" for error handling stuff
 - if a pointer should be initialized to NULL, then set it to NULL;
   Don't assume that a pointer in a struct will be NULL following a calloc.
+
