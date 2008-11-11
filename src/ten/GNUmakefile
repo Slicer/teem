@@ -64,7 +64,6 @@ $(L).TESTS = test/roistat test/tg test/tt test/tem test/rotedge \
         test/tsoid test/odf-hist test/to test/tensorDotDat \
         test/igrt test/cntr test/geode test/taniso test/csim \
 	test/ttriple test/tqgl
-$(L).TESTS = test/geode test/ttriple test/tqgl
 ####
 ####
 ####
