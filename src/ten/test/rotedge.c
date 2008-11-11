@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   
-  int xi, yi, samp[2];
+  int xi, yi, samp[2], fsd;
   float *tdata, mrg, slp;
   double x, xx, y,
     mRot1[9], mRot2[9], mRot3[9],
@@ -50,6 +50,9 @@ main(int argc, char *argv[]) {
              "margin above and below anisotropic samples");
   hestOptAdd(&hopt, "slp", "slope", airTypeFloat, 1, 1, &slp, "35",
              "something about boundary between different shapes");
+  hestOptAdd(&hopt, "fsd", NULL, airTypeInt, 0, 0, &fsd, NULL,
+             "use full \"space\" definition of orientation, instead of "
+             "the old simple per-axis spacing");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save tensors into");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
@@ -122,9 +125,27 @@ main(int argc, char *argv[]) {
     }
   }
 
-  nten->axis[1].spacing = 1.0;
-  nten->axis[2].spacing = 1.0;
-  nten->axis[3].spacing = 1.0;
+  if (fsd) {
+    double orig[NRRD_SPACE_DIM_MAX], spcdir[NRRD_SPACE_DIM_MAX][4];
+    
+    ELL_3V_SET(orig, 0, 0, 0);
+    ELL_3V_SET(spcdir[0], AIR_NAN, AIR_NAN, AIR_NAN); /* axis 0 is tensor */
+    ELL_3V_SET(spcdir[1], 1, 0, 0);
+    ELL_3V_SET(spcdir[2], 0, 1, 0);
+    ELL_3V_SET(spcdir[3], 0, 0, 1);
+    nrrdSpaceSet(nten, nrrdSpace3DRightHanded);
+    nrrdAxisInfoSet_va(nten, nrrdAxisInfoSpaceDirection,
+                       spcdir[0], spcdir[1], spcdir[2], spcdir[3]);
+    /* this should probably be set in any case, oh well */
+    nrrdAxisInfoSet_va(nten, nrrdAxisInfoCenter,
+                       nrrdCenterUnknown, 
+                       nrrdCenterCell, nrrdCenterCell, nrrdCenterCell);
+    nrrdSpaceOriginSet(nten, orig);
+  } else {
+    nten->axis[1].spacing = 1.0;
+    nten->axis[2].spacing = 1.0;
+    nten->axis[3].spacing = 1.0;
+  }
   if (nrrdSave(outS, nten, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
