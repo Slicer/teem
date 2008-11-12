@@ -43,7 +43,16 @@ nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {
   return;
 }
 
-#define _NEED_PATH(str) ('/' != (str)[0] && strcmp("-", (str)))
+/* this macro suggested by Bryan Worthen */
+/* if str = '-', strcmp() is 0, && short circuits, return false
+** else str != '-'
+** if str[1] = ':', its probably a windows full path, != is 0, return false
+** else str[1] != ':'
+** if str[0] = '/', its a normal full path, return false
+*/
+#define _NEED_PATH(str) (strcmp("-", (str)) \
+                         && ':' != (str)[1] \
+                         && '/' != (str)[0])
 
 /*
 ** this is responsible for the header-relative path processing
