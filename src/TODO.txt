@@ -4,9 +4,6 @@ fix all
 "dereferencing type-punned pointer will break strict-aliasing rules"
 warnings on a modern linux system
 
-confirm/reconcile windows-specific fixes that Nicole (BWH) and
-Brian (SCI) did in a nrrd IO thing
-
 Make sure the CMake and GNUMake agree on source files per-library
 
 decide if <LIB>_EXPORT should just be TEEM_EXPORT
