@@ -999,6 +999,15 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     sprintf(err, "%s: measure %d not recognized", me, measr);
     biffAdd(NRRD, err); return 1;
   }
+  /* without this check, the loops below cause segfaults, because
+     nin->dim is now unsigned */
+  if (!( 2 <= nin->dim )) {
+    sprintf(err, "%s: sorry, currently need at least 2-D array to project", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* HEY: at some point, as a convenience, it would be nice to handle
+     projecting a single 1-D scanline down into a 1-D single-sample,
+     even though this would clearly be a special case */
   if (!( axis <= nin->dim-1 )) {
     sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
     biffAdd(NRRD, err); return 1;
