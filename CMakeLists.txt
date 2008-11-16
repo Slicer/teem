@@ -213,12 +213,13 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-SET(BUILD_EXPERIMENTAL OFF CACHE BOOL "Build experimental components of teem")
+SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
+SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu moss gage bane limn seek hoover echo ten dye mite)
-IF(BUILD_EXPERIMENTAL)
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} coil alan pull)
-ENDIF(BUILD_EXPERIMENTAL)
+SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu gage limn seek hoover echo ten dye mite)
+IF(BUILD_EXPERIMENTAL_LIBS)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} bane moss coil alan pull)
+ENDIF(BUILD_EXPERIMENTAL_LIBS)
 
 SET(Teem_HEADER_FILES
   air/air.h
@@ -243,13 +244,13 @@ SET(Teem_HEADER_FILES
   dye/dye.h
   mite/mite.h
   )
-IF(BUILD_EXPERIMENTAL)
+IF(BUILD_EXPERIMENTAL_LIBS)
   SET(Teem_HEADER_FILES ${Teem_HEADER_FILES}
     alan/alan.h
     coil/coil.h
     pull/pull.h
     )
-ENDIF(BUILD_EXPERIMENTAL)
+ENDIF(BUILD_EXPERIMENTAL_LIBS)
 SET(Teem_INSTALLED_HEADER_FILES)
 FOREACH(header_file ${Teem_HEADER_FILES})
   # When debugging, uncomment this line
@@ -390,7 +391,10 @@ SET(Teem_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
 SET(Teem_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 SET(Teem_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
 SET(Teem_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
-SET(Teem_TOOLS "affine;idx2pos;nrrdSanity;spots;unu;airSanity;ilk;overrgb;talkweb;vprobe;cubic;miter;pos2idx;tend;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry;deconv")
+#SET(Teem_TOOLS "nrrdSanity;unu;overrgb;vprobe;miter;tend")
+#IF(BUILD_EXPERIMENTAL_APPS)
+#  SET(Teem_TOOLS ${Teem_TOOLS};affine;idx2pos;spots;airSanity;ilk;talkweb;cubic;pos2idx;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry;deconv)
+#ENDIF(BUILD_EXPERIMENTAL_APPS)
 
 
 SET(prefix "${Teem_BINARY_DIR}")
