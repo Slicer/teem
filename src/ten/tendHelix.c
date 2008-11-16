@@ -46,7 +46,8 @@ char *_tend_helixInfoL =
 void
 tend_helixDoit(Nrrd *nout, double bnd,
                double orig[3], double i2w[9], double mf[9],
-               double r, double R, double S, double angle, double ev[3]) {
+               double r, double R, double S, double angle, double ev[3],
+               double bgEval) {
   int sx, sy, sz, xi, yi, zi;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3], mfT[9],
@@ -119,9 +120,9 @@ tend_helixDoit(Nrrd *nout, double bnd,
         ELL_3M_ROTATE_Y_SET(H2C, th);
         ELL_3M_TRANSPOSE(C2H, H2C);
         ELL_3M_SCALE_SET(mA,
-                         AIR_LERP(inside, 0.5, ev[1]),
-                         AIR_LERP(inside, 0.5, ev[2]),
-                         AIR_LERP(inside, 0.5, ev[0]));
+                         AIR_LERP(inside, bgEval, ev[1]),
+                         AIR_LERP(inside, bgEval, ev[2]),
+                         AIR_LERP(inside, bgEval, ev[0]));
         ELL_3M_MUL(mB, mA, H2C);
         ELL_3M_MUL(mA, mB, W2H);
         ELL_3M_MUL(mB, mA, mf);
@@ -148,7 +149,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   int size[3];
   Nrrd *nout;
   double R, r, S, bnd, angle, ev[3], ip[3], iq[4], mp[3], mq[4], tmp[9],
-    orig[3], i2w[9], rot[9], mf[9], spd[4][3];
+    orig[3], i2w[9], rot[9], mf[9], spd[4][3], bge;
   char *outS;
 
   hestOptAdd(&hopt, "s", "size", airTypeInt, 3, 3, size, NULL, 
@@ -181,6 +182,8 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
              "0.006 0.002 0.001",
              "eigenvalues of tensors (in order) along direction of coil, "
              "circumferential around coil, and radial around coil. ");
+  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &bge, "0.5",
+             "eigenvalue of isotropic background");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file");
 
@@ -218,7 +221,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
-                 r, R, S, angle*AIR_PI/180, ev);
+                 r, R, S, angle*AIR_PI/180, ev, bge);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   ELL_3V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN);
