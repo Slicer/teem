@@ -775,8 +775,8 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     eps=0.05; /* threshold at which we start the transition */
   
     /* interpolation weights from relative eigenvalue distance */
-    rel1=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
-    rel2=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
+    rel1=(evalAns[0]-evalAns[1])/(fabs(evalAns[0])+fabs(evalAns[1]));
+    rel2=(evalAns[1]-evalAns[2])/(fabs(evalAns[1])+fabs(evalAns[2]));
     w1=rel1/eps-1;
     w1*=w1;
     w2=rel2/eps-1;
@@ -1499,9 +1499,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                 pvl->directAnswer[tenGageTensorGrad]);
 
     /* pre-compute relative eval diffs to detect ill-conditioned case */
-    diff0=(evalAns[0]-evalAns[1])/(evalAns[0]+evalAns[1]);
-    diff1=(evalAns[1]-evalAns[2])/(evalAns[1]+evalAns[2]);
-    diff2=(evalAns[0]-evalAns[2])/(evalAns[0]+evalAns[2]);
+    diff0=(evalAns[0]-evalAns[1])/(fabs(evalAns[0])+fabs(evalAns[1]));
+    diff1=(evalAns[1]-evalAns[2])/(fabs(evalAns[1])+fabs(evalAns[2]));
+    diff2=(evalAns[0]-evalAns[2])/(fabs(evalAns[0])+fabs(evalAns[2]));
     diffthresh=0.05;
 
     if (diff2>diffthresh) rdiff2=1.0; else rdiff2=diff2/diffthresh;
