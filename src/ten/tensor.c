@@ -136,6 +136,11 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
       nout->measurementFrame[si][sj] = AIR_NAN;
     }
   }
+  for (si=0; si<3; si++) {
+    for (sj=0; sj<3; sj++) {
+      nout->measurementFrame[si][sj] = (si == sj);
+    }
+  }
 
   return 0;
 }
