@@ -248,7 +248,7 @@ tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_ellipseInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (npos) {

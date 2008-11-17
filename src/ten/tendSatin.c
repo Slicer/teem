@@ -223,7 +223,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_satinInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

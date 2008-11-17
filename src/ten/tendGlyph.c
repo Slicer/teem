@@ -102,7 +102,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nten, *emap, *nraw, *npos, *nslc;
+  Nrrd *nin, *emap, *nraw, *npos, *nslc;
   char *outS;
   limnCamera *cam, *hackcams;
   limnObject *glyph;
@@ -318,7 +318,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
              "don't mind me");
 
   /* input/output */
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-",
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file");
@@ -348,7 +348,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (tenGlyphGen(doRT ? NULL : glyph, 
                   doRT ? scene : NULL,
                   gparm,
-                  nten, npos, nslc)) {
+                  nin, npos, nslc)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble generating glyphs:\n%s\n", me, err);
     airMopError(mop); return 1;

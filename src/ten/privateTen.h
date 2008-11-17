@@ -30,8 +30,9 @@ extern "C" {
 #define TEND_CMD(name, info) \
 unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
 
-/* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h */
-
+/* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
+** then some hacking was added ... 
+*/
 #define USAGE(info) \
   if (!argc) { \
     hestInfo(stderr, me, (info), hparm); \
@@ -41,20 +42,53 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
     return 2; \
   }
 
-#define PARSE() \
-  if ((pret=hestParse(hopt, argc, argv, &perr, hparm))) { \
-    if (1 == pret) { \
-      fprintf(stderr, "%s: %s\n", me, perr); free(perr); \
-      hestUsage(stderr, hopt, me, hparm); \
-      airMopError(mop); \
-      return 2; \
-    } else { \
-      /* ... like tears ... in rain. Time ... to die. */ \
-      exit(1); \
-    } \
+/* JUSTPARSE is called by the tend functions that do *not* take an
+** input 7-component tensor volume
+*/
+#define JUSTPARSE()                                             \
+  if ((pret=hestParse(hopt, argc, argv, &perr, hparm))) {       \
+    if (1 == pret) {                                            \
+      fprintf(stderr, "%s: %s\n", me, perr); free(perr);        \
+      hestUsage(stderr, hopt, me, hparm);                       \
+      airMopError(mop);                                         \
+      return 2;                                                 \
+    } else {                                                    \
+      /* ... like tears ... in rain. Time ... to die. */        \
+      exit(1);                                                  \
+    }                                                           \
   }
-
-
+  
+/* 
+** PARSE is called by tend functions that do take a 7-component tensor 
+** volume, so that as a hack, we can process 6-component volumes as well,
+** by padding on the confidence channel (fixed at 1.0)
+*/
+#define PARSE()                                                         \
+  JUSTPARSE();                                                          \
+  if (4 == nin->dim                                                     \
+      && 6 == nin->axis[0].size                                         \
+      && nrrdTypeBlock != nin->type) {                                  \
+    ptrdiff_t min[4], max[4];                                           \
+    Nrrd *ntmp;                                                         \
+    /* create a confidence channel by padding on 1s */                  \
+    min[0] = -1; min[1] = min[2] = min[3] = 0;                          \
+    max[0] = nin->axis[0].size-1;                                       \
+    max[1] = nin->axis[1].size-1;                                       \
+    max[2] = nin->axis[2].size-1;                                       \
+    max[3] = nin->axis[3].size-1;                                       \
+    ntmp = nrrdNew();                                                   \
+    if (nrrdPad_nva(ntmp, nin, min, max, nrrdBoundaryPad, 1.0)          \
+        || nrrdCopy(nin, ntmp)) {                                       \
+      char *err;                                                        \
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);   \
+      fprintf(stderr, "%s: can't pad 6-comp tensor:\n%s", me, err);     \
+      airMopError(mop);                                                 \
+      nrrdNuke(ntmp);                                                   \
+      return 2;                                                         \
+    }                                                                   \
+    nrrdNuke(ntmp);                                                     \
+  }
+  
 /* qseg.c: 2-tensor estimation */
 extern void _tenQball(const double b, const int gradcount,
                       const double svals[], const double grads[],

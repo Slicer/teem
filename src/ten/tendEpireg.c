@@ -116,7 +116,7 @@ tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_epiregInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (strcmp("kvp", gradS)) {

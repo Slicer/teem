@@ -55,7 +55,7 @@ tend_bmatMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_bmatInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

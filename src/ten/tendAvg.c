@@ -52,7 +52,7 @@ tend_avgMain(int argc, char **argv, char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_avgInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
