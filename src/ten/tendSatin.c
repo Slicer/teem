@@ -32,7 +32,7 @@ char *_tend_satinInfoL =
 void
 tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
                       float parm, float mina, float maxa,
-                      float thick, float bnd) {
+                      float thick, float bnd, float evsc) {
   float aniso, bound1, bound2, r, norm, tmp[3];
 
   r = AIR_CAST(float, sqrt(x*x + y*y + z*z));
@@ -47,6 +47,7 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
                 AIR_LERP(aniso, 1.0/3.0, 0));
+  ELL_3V_SCALE(eval, evsc, eval);
              
   /* v0: looking down positive Z, points counter clockwise */
   if (x || y) {
@@ -70,7 +71,7 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
 void
 tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
                      float parm, float mina, float maxa,
-                     float thick, float bnd) {
+                     float thick, float bnd, float evsc) {
   float bound, R, r, norm, out[3], up[3], aniso;
 
   thick *= 2;
@@ -84,6 +85,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
                 AIR_LERP(aniso, 1.0/3.0, 0));
+  ELL_3V_SCALE(eval, evsc, eval);
 
   ELL_3V_SET(up, 0, 0, 1);
 
@@ -110,7 +112,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
-              float thick, float bnd, float bndRm, int torus) {
+              float thick, float bnd, float bndRm, float evsc, int torus) {
   char me[]="tend_satinGen", err[BIFF_STRLEN], buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
@@ -150,12 +152,12 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
           float aff;
           aff = AIR_CAST(float, AIR_AFFINE(0, yi, size[1]-1, 0, 1));
           tend_satinTorusEigen(eval, evec, x, y, z, parm,
-                               mina, maxa, thick, bnd + bndRm*aff);
+                               mina, maxa, thick, bnd + bndRm*aff, evsc);
         } else {
           float aff; 
           aff = AIR_CAST(float, AIR_AFFINE(0,yi, size[1]-1, 0, 1));
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
-                                mina, maxa, thick, bnd + bndRm*aff);
+                                mina, maxa, thick, bnd + bndRm*aff, evsc);
         }
         conf += 1;
         eval += 3;
@@ -186,7 +188,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   int wsize, torus;
-  float parm, maxa, mina, thick, bnd, bndRm;
+  float parm, maxa, mina, thick, bnd, bndRm, evsc;
   Nrrd *nout;
   char *outS;
   gageShape *shape;
@@ -214,6 +216,8 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Use \"-b 0\" for no such ramping.");
   hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
              "parameter governing how thick region of high anisotropy is");
+  hestOptAdd(&hopt, "evsc", "eval scale", airTypeFloat, 1, 1, &evsc, "1.0",
+             "scaling of eigenvalues");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
              "dimensions of output volume.  For size N, the output is "
              "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
@@ -230,7 +234,7 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (tend_satinGen(nout, parm, mina, maxa, wsize, thick,
-                    bnd, bndRm, torus)) {
+                    bnd, bndRm, evsc, torus)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
     airMopError(mop); return 1;
