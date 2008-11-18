@@ -46,8 +46,8 @@ char *_tend_helixInfoL =
 void
 tend_helixDoit(Nrrd *nout, double bnd,
                double orig[3], double i2w[9], double mf[9],
-               double r, double R, double S, double angle, double ev[3],
-               double bgEval) {
+               double r, double R, double S, double angle, int incrtwist,
+               double ev[3], double bgEval) {
   int sx, sy, sz, xi, yi, zi;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3], mfT[9],
@@ -116,7 +116,11 @@ tend_helixDoit(Nrrd *nout, double bnd,
         ELL_3MV_ROW2_SET(W2H, fv);
         ELL_3M_TRANSPOSE(H2W, W2H);
         inside = 0.5 - 0.5*airErf((ELL_3V_LEN(wpos)-r)/(bnd + 0.0001));
-        th = angle*ELL_3V_LEN(wpos)/r;
+        if (incrtwist) {
+          th = angle*ELL_3V_LEN(wpos)/r;
+        } else {
+          th = angle;
+        }
         ELL_3M_ROTATE_Y_SET(H2C, th);
         ELL_3M_TRANSPOSE(C2H, H2C);
         ELL_3M_SCALE_SET(mA,
@@ -146,7 +150,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int size[3];
+  int size[3], nit;
   Nrrd *nout;
   double R, r, S, bnd, angle, ev[3], ip[3], iq[4], mp[3], mq[4], tmp[9],
     orig[3], i2w[9], rot[9], mf[9], spd[4][3], bge;
@@ -178,6 +182,10 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
              "with radius around this path.  Positive twist angle with "
              "positive spacing resulting in a right-handed twist around a "
              "right-handed helix. ");
+  hestOptAdd(&hopt, "nit", NULL, airTypeInt, 0, 0, &nit, NULL,
+             "changes behavior of twist angle as function of distance from "
+             "center of helical core: instead of increasing linearly as "
+             "describe above, be at a constant angle");
   hestOptAdd(&hopt, "ev", "eigenvalues", airTypeDouble, 3, 3, ev,
              "0.006 0.002 0.001",
              "eigenvalues of tensors (in order) along direction of coil, "
@@ -221,7 +229,7 @@ tend_helixMain(int argc, char **argv, char *me, hestParm *hparm) {
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
-                 r, R, S, angle*AIR_PI/180, ev, bge);
+                 r, R, S, angle*AIR_PI/180, !nit, ev, bge);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   ELL_3V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN);
