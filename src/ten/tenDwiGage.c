@@ -218,8 +218,9 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
      and the needD[1] has to be passed */
   if (fd <= 8) {
     for (J=0; J<dwiNum; J++) {
-      filter[ctx->radius](ctx->shape,
-                          pvl->iv3 + J*8, pvl->iv2 + J*4, pvl->iv1 + J*2,
+      filter[ctx->radius](ctx->shape, pvl->iv3 + J*fd*fd*fd,
+                          pvl->iv2 + J*fd*fd,
+                          pvl->iv1 + J*fd,
                           fw00, fw11, fw22,
                           dwi + J, NULL, NULL,
                           pvl->needD[0], AIR_FALSE, AIR_FALSE);
