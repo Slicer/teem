@@ -109,7 +109,7 @@ tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
              "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_gradsInfoL);
-  PARSE();
+  JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
