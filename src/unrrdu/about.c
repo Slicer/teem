@@ -32,7 +32,7 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "\"unu\" is a command-line interface to much of the functionality "
     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
     "library in the \"Teem\" collection of libraries.  More information "
-    "about Teem is at <http://teem.sourceforge.net>.\n";
+    "about Teem is at <http://teem.sf.net>.\n";
   char par7[] = "\t\t\t\t"
     "Users are strongly encouraged to join the teem-users mailing list: "
     "<http://lists.sourceforge.net/lists/listinfo/teem-users>. This is "
@@ -67,13 +67,14 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "  | unu heq -b 2000 -s 1 \\\n "
     "  | unu quantize -b 8 -o zsum.png"
     "\n";
+  /* blah blah blah
   char par5[] = "\t\t\t\t"
-    "Nrrd and unu fill a frustrating gap in existing software for "
-    "handling image and volume datasets, offering generality of type "
-    "and dimension, minimal overhead for getting data in and out, "
-    "with a file format and data structure that represents important "
-    "meta-information: sample spacing, cell vs. node centering, " 
-    "measurement units, key/value pairs, comments, etc.\n";
+    "Nrrd and unu have proven effective for processing "
+    "image and volume datasets, offering generality of type "
+    "and dimension, with minimal overhead for getting data in and out, "
+    "and a file format and data structure that represents important "
+    "essential meta-information.\n";
+  */
   char par6[] = "\t\t\t\t"
     "If unu or nrrd repeatedly proves itself useful for your research, an "
     "acknowledgment to that effect in your publication would be greatly "
@@ -81,39 +82,75 @@ unrrdu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
     "\"Dataset processing performed with the {\\tt unu} tool "
     "(or the {\\tt nrrd} library), "
     "part of the {\\tt Teem} toolkit available at "
-    "{\\tt\t$<$http://teem.sourceforge.net$>$}\"\n ";
-  /*
-  char par8[] = "\t\t\t\t"
-    "Feedback, questions, requests welcome: gk@bwh.harvard.edu.\n";
-  */
+    "{\\tt\t$<$http://teem.sf.net$>$}\"\n ";
+  int enc, form, miss;
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
   AIR_UNUSED(me);
 
-  fprintf(stderr, "\n");
+  fprintf(stdout, "\n");
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
-  fprintf(stderr, fmt, buff);
+  fprintf(stdout, fmt, buff);
   sprintf(buff, "(Teem version %s, %s)",
           airTeemVersion, airTeemReleaseDate);
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
-  fprintf(stderr, fmt, buff);
-  fprintf(stderr, "\n");
+  fprintf(stdout, fmt, buff);
+  fprintf(stdout, "\n");
 
-  _hestPrintStr(stderr, 1, 0, 78, par1, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par7, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par2, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par3, AIR_FALSE);
-  _hestPrintStr(stderr, 2, 0, 78, par4, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par5, AIR_FALSE);
-  _hestPrintStr(stderr, 1, 0, 78, par6, AIR_FALSE);
-  /*
-  _hestPrintStr(stderr, 1, 0, 78, par8, AIR_FALSE);
-  */
+  _hestPrintStr(stdout, 1, 0, 78, par1, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, 78, par7, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
+  _hestPrintStr(stdout, 2, 0, 78, par4, AIR_FALSE);
+  /* _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE); */
+  _hestPrintStr(stdout, 1, 0, 78, par6, AIR_FALSE);
+  /* _hestPrintStr(stdout, 1, 0, 78, par8, AIR_FALSE); */
 
+  printf(" Formats available:");
+  miss = AIR_FALSE;
+  for (form=nrrdFormatTypeUnknown+1; form<nrrdFormatTypeLast; form++) {
+    if (nrrdFormatArray[form]->available()) {
+      printf(" %s", airEnumStr(nrrdFormatType, form));
+    } else {
+      miss = AIR_TRUE;
+    }
+  }
+  printf("\n");
+  if (miss) {
+    printf("   (not available:");
+    for (enc=nrrdFormatTypeUnknown+1; enc<nrrdFormatTypeLast; enc++) {
+      if (!nrrdFormatArray[enc]->available()) {
+        printf(" %s", airEnumStr(nrrdFormatType, enc));
+      }
+    }
+    printf(")\n");
+  }
+
+  printf(" Nrrd data encodings available:");
+  miss = AIR_FALSE;
+  for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
+    if (nrrdEncodingArray[enc]->available()) {
+      printf(" %s", airEnumStr(nrrdEncodingType, enc));
+    } else {
+      miss = AIR_TRUE;
+    }
+  }
+  printf("\n");
+  if (miss) {
+    printf("   (not available:");
+    for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
+      if (!nrrdEncodingArray[enc]->available()) {
+        printf(" %s", airEnumStr(nrrdEncodingType, enc));
+      }
+    }
+    printf(")\n");
+  }
+
+  printf("\n");
   return 0;
 }
 
