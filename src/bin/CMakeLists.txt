@@ -33,7 +33,6 @@ MACRO(CREATE_EXEC name sources libraries)
 ENDMACRO(CREATE_EXEC)
 
 # These binaries should not be depending on BUILD_EXPERIMENTAL_LIBS
-CREATE_EXEC(nrrdSanity nrrdSanity.c nrrd)
 CREATE_EXEC(overrgb overrgb.c nrrd)
 CREATE_EXEC(mrender mrender.c "hoover;gage;ten")
 CREATE_EXEC(miter miter.c mite)
@@ -46,6 +45,7 @@ CREATE_EXEC(tend tend.c ten)
 # CMakeLists.txt file
 IF(BUILD_EXPERIMENTAL_APPS)
   CREATE_EXEC(airSanity airSanity.c air)
+  CREATE_EXEC(nrrdSanity nrrdSanity.c nrrd)
   CREATE_EXEC(affine affine.c air)
   CREATE_EXEC(cubic cubic.c ell)
   CREATE_EXEC(undos undos.c hest)
