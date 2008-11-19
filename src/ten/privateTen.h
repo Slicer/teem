@@ -35,9 +35,9 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
 */
 #define USAGE(info) \
   if (!argc) { \
-    hestInfo(stderr, me, (info), hparm); \
-    hestUsage(stderr, hopt, me, hparm); \
-    hestGlossary(stderr, hopt, hparm); \
+    hestInfo(stdout, me, (info), hparm); \
+    hestUsage(stdout, hopt, me, hparm); \
+    hestGlossary(stdout, hopt, hparm); \
     airMopError(mop); \
     return 2; \
   }

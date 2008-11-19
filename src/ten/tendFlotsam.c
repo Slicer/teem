@@ -51,10 +51,10 @@ tendUsage(char *me, hestParm *hparm) {
     maxlen = AIR_MAX(maxlen, (int)strlen(tendCmdList[i]->name));
   }
 
-  sprintf(buff, "--- Diffusion Tensor Processing and Analysis ---");
+  sprintf(buff, "--- Diffusion Image Processing and Analysis ---");
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
-  fprintf(stderr, fmt, buff);
+  fprintf(stdout, fmt, buff);
   
   for (i=0; tendCmdList[i]; i++) {
     len = strlen(tendCmdList[i]->name);
@@ -66,8 +66,8 @@ tendUsage(char *me, hestParm *hparm) {
     strcat(buff, tendCmdList[i]->name);
     strcat(buff, " ... ");
     len = strlen(buff);
-    fprintf(stderr, "%s", buff);
-    _hestPrintStr(stderr, len, len, hparm->columns,
+    fprintf(stdout, "%s", buff);
+    _hestPrintStr(stdout, len, len, hparm->columns,
                   tendCmdList[i]->info, AIR_FALSE);
   }
 }
