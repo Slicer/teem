@@ -1285,12 +1285,27 @@ hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
     if ( (!argc) ||
          (E = hestParse(opt, argc, argv, &errS, parm)) ) {
       if (E) {
-        fprintf(stderr, "ERROR: %s\n", errS); free(errS);
-      } else {
-        if (doInfo && info) hestInfo(stderr, me?me:"", info, parm);
+        if (!strcmp(argv[0], "--version")) {
+          /* print version info and bail */
+          printf("Teem version %s (%s)\n",
+                 airTeemVersion, airTeemReleaseDate);
+          hestParmFree(parm);
+          hestOptFree(opt);
+          exit(0);
+        } else if (!strcmp(argv[0], "--help")) {
+          /* actually, not an error, they were asking for help */
+          E = 0;
+        } else {
+          fprintf(stderr, "ERROR: %s\n", errS); 
+        }
+        free(errS);
       }
-      if (doUsage) hestUsage(stderr, opt, me?me:"", parm);
-      if (doGlossary) hestGlossary(stderr, opt, parm);
+      if (!E) {
+        /* no error, just !argc */
+        if (doInfo && info) hestInfo(stdout, me?me:"", info, parm);
+      }
+      if (doUsage) hestUsage(E ? stderr : stdout, opt, me?me:"", parm);
+      if (doGlossary) hestGlossary(E ? stderr : stdout, opt, parm);
       hestParmFree(parm);
       hestOptFree(opt);
       exit(1);
