@@ -78,10 +78,20 @@ main(int argc, char **argv) {
     airMopError(mop);
     exit(1);
   }
-  /* else, we should see if they're asking for a command we know about */  
+  /* else, we see if its --version */
+  if (!strcmp("--version", argv[1])) {
+    printf("Teem version %s (%s)\n",
+           airTeemVersion, airTeemReleaseDate);
+    exit(0);
+  }
+  /* else, we should see if they're asking for a command we know about */
   for (i=0; tendCmdList[i]; i++) {
     if (!strcmp(argv[1], tendCmdList[i]->name))
       break;
+    if (!strcmp("--help", argv[1])
+        && !strcmp("about", tendCmdList[i]->name)) {
+      break;
+    }
   }
   if (tendCmdList[i]) {
     /* yes, we have that command */
