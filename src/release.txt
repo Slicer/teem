@@ -14,7 +14,7 @@ find . -name \*.h -exec grep -f tab.txt {} \; -print
 find . -name \*.txt -exec grep -f tab.txt {} \; -print
 rm -f tab.txt
 
--1) update TEEM_VERSION stuff in air/air.h and airTeemReleaseDate in air/misc.c
+-1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 
 0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
