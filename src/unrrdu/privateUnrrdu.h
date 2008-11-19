@@ -77,9 +77,9 @@ extern "C" {
 */
 #define USAGE(info) \
   if (!argc) { \
-    hestInfo(stderr, me, (info), hparm); \
-    hestUsage(stderr, opt, me, hparm); \
-    hestGlossary(stderr, opt, hparm); \
+    hestInfo(stdout, me, (info), hparm); \
+    hestUsage(stdout, opt, me, hparm); \
+    hestGlossary(stdout, opt, hparm); \
     airMopError(mop); \
     return 1; \
   }

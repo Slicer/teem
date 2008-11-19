@@ -63,7 +63,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
-  fprintf(stderr, fmt, buff);
+  fprintf(stdout, fmt, buff);
   
   for (i=0; unrrduCmdList[i]; i++) {
     len = strlen(unrrduCmdList[i]->name);
@@ -75,8 +75,8 @@ unrrduUsage(const char *me, hestParm *hparm) {
     strcat(buff, unrrduCmdList[i]->name);
     strcat(buff, " ... ");
     len = strlen(buff);
-    fprintf(stderr, "%s", buff);
-    _hestPrintStr(stderr, len, len, hparm->columns,
+    fprintf(stdout, "%s", buff);
+    _hestPrintStr(stdout, len, len, hparm->columns,
                   unrrduCmdList[i]->info, AIR_FALSE);
   }
 }
