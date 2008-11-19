@@ -22,6 +22,7 @@ SET(TEN_SOURCES
   qseg.c
   path.c
   qglox.c
+  tendAbout.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c

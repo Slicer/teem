@@ -1481,6 +1481,7 @@ TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
 #define TEND_LIST(C) &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F) \
+F(about) \
 F(grads) \
 F(epireg) \
 F(bmat) \

@@ -51,7 +51,7 @@ $(L).PRIVATE_HEADERS = privateTen.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
-        triple.o \
+        triple.o tendAbout.o \
 	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendTriple.o tendTconv.o tendAvg.o \
