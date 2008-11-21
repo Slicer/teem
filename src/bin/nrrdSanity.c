@@ -29,8 +29,35 @@ main(int argc, char *argv[]) {
   char *me, *err;
   int enc, form;
 
-  AIR_UNUSED(argc);
   me = argv[0];
+  if (2 == argc) {
+    if (!strcmp(argv[1], "--version")) {
+      printf("Teem version %s (%s)\n",
+             airTeemVersion, airTeemReleaseDate);
+      exit(0);
+    } else if (!strcmp(argv[1], "--help")) {
+      char par1[] = "\n Usage: nrrdSanity\n ";
+      char par2[] = "\t\t\t\t"
+        "nrrdSanity calls the nrrdSanity() check to verify the correctness "
+        "of all the information (set at compile-time) about the architecture, "
+        "such as endianness, 32/64-bit, and the size of various types, as "
+        "well as running sanity checks on the global default (nrrdDefault*) "
+        "and state (nrrdState*) variables. ";
+      char par3[] = "\t\t\t\t"
+        "As a convenience, nrrdSanity also list the availability of the "
+        "different formats and data encodings (for Nrrd files) supported "
+        "by this build.\n ";
+      _hestPrintStr(stdout, 1, 0, 78, par1, AIR_FALSE);
+      _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
+      _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
+      exit(0);
+    } else {
+      fprintf(stderr, "%s: unexpected arguments; "
+              "\"%s --help\" for more information\n", me, me);
+      exit(1);
+    }
+  }
+  /* else it was run with no arguments */
   if (!nrrdSanity()) {
     printf("%s: nrrd sanity check FAILED:\n%s\n", me, err = biffGet(NRRD));
     free(err);
