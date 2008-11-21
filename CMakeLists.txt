@@ -232,9 +232,7 @@ SET(Teem_HEADER_FILES
   ell/ell.h
   ell/ellMacros.h
   unrrdu/unrrdu.h
-  moss/moss.h
   gage/gage.h
-  bane/bane.h
   limn/limn.h
   seek/seek.h
   hoover/hoover.h
@@ -246,8 +244,10 @@ SET(Teem_HEADER_FILES
   )
 IF(BUILD_EXPERIMENTAL_LIBS)
   SET(Teem_HEADER_FILES ${Teem_HEADER_FILES}
-    alan/alan.h
+    bane/bane.h
+    moss/moss.h
     coil/coil.h
+    alan/alan.h
     pull/pull.h
     )
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
@@ -391,11 +391,6 @@ SET(Teem_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
 SET(Teem_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 SET(Teem_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
 SET(Teem_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
-#SET(Teem_TOOLS "nrrdSanity;unu;overrgb;vprobe;miter;tend")
-#IF(BUILD_EXPERIMENTAL_APPS)
-#  SET(Teem_TOOLS ${Teem_TOOLS};affine;idx2pos;spots;airSanity;ilk;talkweb;cubic;pos2idx;emap;mrender;pprobe;undos;gkms;ninspect;qbert;ungantry;deconv)
-#ENDIF(BUILD_EXPERIMENTAL_APPS)
-
 
 SET(prefix "${Teem_BINARY_DIR}")
 SET(exec_prefix "${prefix}")
