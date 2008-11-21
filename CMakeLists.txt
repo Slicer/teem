@@ -86,7 +86,7 @@ ENDIF(QNANHIBIT_VALUE)
 OPTION(BUILD_SHARED_LIBS "Build Teem with shared libraries." OFF)
 SET(Teem_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 IF(NOT Teem_BUILD_SHARED_LIBS)
-  ADD_DEFINITIONS(-DTeem_STATIC)
+  ADD_DEFINITIONS(-DTEEM_STATIC)
 ENDIF(NOT Teem_BUILD_SHARED_LIBS)
 
 OPTION(Teem_ZLIB "Build Teem with support for gzip compression." ON)
@@ -101,7 +101,7 @@ IF(Teem_PNG AND NOT Teem_ZLIB)
 ENDIF(Teem_PNG AND NOT Teem_ZLIB)
 
 IF(Teem_VTK_MANGLE)
-  ADD_DEFINITIONS(-DTeem_VTK_MANGLE=1)
+  ADD_DEFINITIONS(-DTEEM_VTK_MANGLE=1)
   INCLUDE_DIRECTORIES( ${Teem_VTK_TOOLKITS_IPATH} )
   INCLUDE_DIRECTORIES( ${Teem_VTK_ZLIB_MANGLE_IPATH} )
 ENDIF(Teem_VTK_MANGLE)
@@ -113,7 +113,7 @@ IF(Teem_ZLIB)
   # Find ZLIB
   FIND_PACKAGE(ZLIB)
   IF(ZLIB_FOUND)
-    ADD_DEFINITIONS(-DTEEM_ZLIB=1)
+    ADD_DEFINITIONS(-DTEEM_ZLIB)
     SET(Teem_ZLIB_LIB ${ZLIB_LIBRARIES})
     SET(Teem_ZLIB_IPATH ${ZLIB_INCLUDE_DIR})
   ELSE(ZLIB_FOUND)
@@ -126,7 +126,7 @@ IF(Teem_ZLIB)
   IF(Teem_PNG)
     FIND_PACKAGE(PNG)
     IF(PNG_FOUND)
-      ADD_DEFINITIONS(-DTEEM_PNG=1 ${PNG_DEFINITIONS})
+      ADD_DEFINITIONS(-DTEEM_PNG ${PNG_DEFINITIONS})
       SET(Teem_PNG_LIB ${PNG_LIBRARIES})
       SET(Teem_PNG_IPATH ${PNG_INCLUDE_DIR})
     ELSE(PNG_FOUND)
@@ -146,7 +146,7 @@ IF(Teem_BZIP2)
   FIND_PACKAGE(BZ2)
 
   IF(BZ2_FOUND)
-    ADD_DEFINITIONS(-DTeem_BZIP2=1)
+    ADD_DEFINITIONS(-DTEEM_BZIP2)
     SET(Teem_BZIP2_LIB ${BZ2_LIBRARIES})
     SET(Teem_BZIP2_IPATH ${BZ2_INCLUDE_DIR})
   ELSE(BZ2_FOUND)
@@ -162,7 +162,7 @@ OPTION(Teem_PTHREAD "Build Teem with pthread library support." ON)
 IF(Teem_PTHREAD)
   INCLUDE(FindThreads)
   IF(CMAKE_USE_PTHREADS_INIT)
-    ADD_DEFINITIONS(-DTeem_PTHREAD)
+    ADD_DEFINITIONS(-DTEEM_PTHREAD)
   ELSE(CMAKE_USE_PTHREADS_INIT)
     # We need to set this as a cache variable, so that it will show up as
     # being turned off in the cache.
@@ -171,6 +171,24 @@ IF(Teem_PTHREAD)
     SET(Teem_PTHREAD OFF)
   ENDIF(CMAKE_USE_PTHREADS_INIT)
 ENDIF(Teem_PTHREAD)
+
+# Look for "levmar" library <http://www.ics.forth.gr/~lourakis/levmar/>
+OPTION(Teem_LEVMAR "Build Teem with levmar library support." OFF)
+SET(Teem_LEVMAR_LIB "")
+IF(Teem_LEVMAR)
+  FIND_PACKAGE(LEVMAR)
+
+  IF(LEVMAR_FOUND)
+    ADD_DEFINITIONS(-DTEEM_LEVMAR)
+    SET(Teem_LEVMAR_LIB ${LEVMAR_LIBRARIES})
+    SET(Teem_LEVMAR_IPATH ${LEVMAR_INCLUDE_DIR})
+  ELSE(LEVMAR_FOUND)
+    # We need to set this as a cache variable, so that it will show up as
+    # being turned off in the cache.
+    MESSAGE(SEND_ERROR "Turning off Teem_LEVMAR, because it wasn't found.")
+    SET(Teem_LEVMAR OFF CACHE BOOL "Build Teem with levmar library support." FORCE)
+  ENDIF(LEVMAR_FOUND)
+ENDIF(Teem_LEVMAR)
 
 #-----------------------------------------------------------------------------
 
@@ -285,6 +303,10 @@ IF(Teem_BZIP2)
   INCLUDE_DIRECTORIES(${Teem_BZIP2_IPATH})
 ENDIF(Teem_BZIP2)
 
+IF(Teem_LEVMAR)
+  INCLUDE_DIRECTORIES(${Teem_LEVMAR_IPATH})
+ENDIF(Teem_LEVMAR)
+
 # All the source files
 SET(Teem_SOURCES)
 
@@ -334,6 +356,10 @@ IF(Teem_ZLIB_LIB)
     TARGET_LINK_LIBRARIES(teem ${Teem_PNG_LIB})
   ENDIF(Teem_PNG_LIB)
 ENDIF(Teem_ZLIB_LIB)
+
+IF(Teem_LEVMAR_LIB)
+  TARGET_LINK_LIBRARIES(teem ${Teem_LEVMAR_LIB})
+ENDIF(Teem_LEVMAR_LIB)
 
 IF(Teem_PTHREAD)
   TARGET_LINK_LIBRARIES(teem ${CMAKE_THREAD_LIBS_INIT})
