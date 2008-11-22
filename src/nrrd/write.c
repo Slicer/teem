@@ -690,7 +690,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     } else if (nio->dataFNArr->len > 1) {
       maxl = 0;
       for (ii=0; ii<nio->dataFNArr->len; ii++) {
-        maxl = AIR_MAX(maxl, (int)strlen(nio->dataFN[ii]));
+        maxl = AIR_MAX(maxl, strlen(nio->dataFN[ii]));
       }
       *strP = (char *)calloc(fslen + strlen(NRRD_LIST_FLAG) 
                              + uintStrlen + nio->dataFNArr->len * (maxl + 1),
