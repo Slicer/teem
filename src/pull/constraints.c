@@ -248,7 +248,9 @@ static void
 creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
            /* output */
            double proj[9]) {
+#ifdef PRAYING
   char me[]="creaseProj";
+#endif
   double *tng;
 
   tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
@@ -319,9 +321,12 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
                   double stepMax, unsigned int iterMax,
                   int *constrFailP) {
   char me[]="constraintSatHght", err[BIFF_STRLEN];
-  double val, grad[3], hess[9], proj[9], _tmpv[3]={0,0,0},
+  double val, grad[3], hess[9], proj[9],
     state[1+3+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
+#ifdef PRAYING
+  double _tmpv[3]={0,0,0};
+#endif
   unsigned int iter = 0;  /* 0: initial probe, 1..iterMax: probes in loop */
   /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
 
