@@ -126,7 +126,7 @@ airFPPartsToVal_d(unsigned int sign,
 ** Disable the 'local variable used without having been initialized'
 ** warning produced by the MSVC compiler
 */
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4700)
 #endif
@@ -139,7 +139,7 @@ airFPValToParts_d(unsigned int *signP,
   d.v = v;
   FP_GET_D(*signP, *expoP, *mant0P, *mant1P, d);
 }
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
@@ -330,7 +330,7 @@ airFPClass_f(float val) {
 ** Disable the 'local variable used without having been initialized'
 ** warning produced by the MSVC compiler
 */ 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4700)
 #endif
@@ -347,10 +347,10 @@ airFPClass_d(double val) {
 
   f.v = val;
   sign = f.c.sign; 
-  expo = f.c.expo;  /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp
-                       should be non-zero, but it was completely zero, so that
-                       this function returned airFP_NEG_DENORM instead of
-                       airFP_QNAN */
+  expo = f.c.expo; /* this seems to be a WIN32 bug: on a quiet-NaN, f.c.exp
+                      should be non-zero, but it was completely zero, so 
+                      that this function returned airFP_NEG_DENORM instead
+                      of airFP_QNAN */
   mant0 = f.c.mant0;
   mant1 = f.c.mant1;
   hibit = mant0 >> 19;
@@ -416,7 +416,7 @@ airFPClass_d(double val) {
   }
   return ret;
 }
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
