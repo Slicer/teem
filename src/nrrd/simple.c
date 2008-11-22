@@ -224,7 +224,7 @@ nrrdOriginCalculate(const Nrrd *nrrd,
                     unsigned int *axisIdx, unsigned int axisIdxNum,
                     int defaultCenter, double *origin) {
   const NrrdAxisInfo *axis[NRRD_SPACE_DIM_MAX];
-  int center, size, okay, gotSpace, gotMin, gotMaxOrSpacing;
+  int center, okay, gotSpace, gotMin, gotMaxOrSpacing;
   unsigned int ai;
   double min, spacing;
 
@@ -286,6 +286,7 @@ nrrdOriginCalculate(const Nrrd *nrrd,
   }
   
   for (ai=0; ai<axisIdxNum; ai++) {
+    size_t size;
     size = axis[ai]->size;
     min = axis[ai]->min;
     center = (nrrdCenterUnknown != axis[ai]->center
