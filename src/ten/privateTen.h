@@ -111,7 +111,7 @@ extern void _tenQvals2points(const int gradcount, const double qvals[],
 extern double _tenPldist(const double point[], const double line[] );
   
 /* arishFuncs.c: Arish's implementation of Peled's 2-tensor fit */
-#define VEC_SIZE	3
+#define VEC_SIZE 3
 
 extern void twoTensFunc(double *p, double *x, int m, int n, void *data);
 extern void formTensor2D(double ten[7], double lam1, double lam3, double phi);

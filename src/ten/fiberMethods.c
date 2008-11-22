@@ -346,8 +346,8 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
                              : (tenFiberTypeEvec1 == ftype
                                 ? tenGageEvec1
                                 : (tenFiberTypeEvec2 == ftype
-				   ? tenGageEvec2
-				   : tenGageEvec))));
+                                   ? tenGageEvec2
+                                   : tenGageEvec))));
       tfx->gageTen2 = NULL;
     }
     tfx->ten2Which = 0;

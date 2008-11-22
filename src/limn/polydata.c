@@ -407,15 +407,15 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
         ELL_3V_SUB(edgeA, pos[1], pos[0]);
         ELL_3V_SUB(edgeB, pos[2], pos[0]);
         ELL_3V_CROSS(norm, edgeA, edgeB);
-	/* Adding cross products without any normalization is
-	 * equivalent to weighting by triangle area, as proposed
-	 * (among others) by G. Taubin ("Estimating the tensor of
-	 * curvature of a surface from a polyhedral approximation",
-	 * ICCV 1995). This is efficient, avoids trouble with
-	 * degenerate triangles and gives reasonable results in
-	 * practice. */
+        /* Adding cross products without any normalization is
+         * equivalent to weighting by triangle area, as proposed
+         * (among others) by G. Taubin ("Estimating the tensor of
+         * curvature of a surface from a polyhedral approximation",
+         * ICCV 1995). This is efficient, avoids trouble with
+         * degenerate triangles and gives reasonable results in
+         * practice. */
         for (ii=0; ii<3; ii++) {
-	  ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
+          ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
         }
       }
     }

@@ -442,9 +442,9 @@ enum {
   tenGageCa1GradVec,       /* 155: gradient vector of ca1: [3] */
   tenGageCa1GradMag,       /* 156: gradient magnitude of ca1: [1] */
   tenGageTensorGradRotE,   /* 157: all tensor component gradients,
-			      starting with confidence gradient.
-			      Rotated such that eigenvalue
-			      derivatives are on the diagonal: [21] */
+                              starting with confidence gradient.
+                              Rotated such that eigenvalue
+                              derivatives are on the diagonal: [21] */
   tenGageLast
 };
 #define TEN_GAGE_ITEM_MAX     157

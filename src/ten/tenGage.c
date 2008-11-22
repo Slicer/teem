@@ -1522,19 +1522,19 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
        * cases. Explanation in Schultz and Seidel, "Using Eigenvalue
        * Derivatives for Edge Detection in DT-MRI Data", DAGM 2008*/
       if (rdiff0<1.0) {
-	/* the goal is to find the smallest angle phi such that
-	 * rotation by phi around z will result in tmp[0]=tmp[4], i.e.:
-	 *
-	 * cos(phi)^2*tmp[0]-2*sin(phi)*cos(phi)*tmp[1]+sin(phi)^2*tmp[4] =
-	 * sin(phi)^2*tmp[0]+2*sin(phi)*cos(phi)*tmp[1]+cos(phi)^2*tmp[4]
-	 * =>
-	 * tan(2*phi)=(tmp[0]-tmp[4])/(2*tmp[1])
-	 *
-	 * we use atan2 to avoid potential problems with tmp[1]==0,
-	 * but manipulate the signs of the arguments s.t. the result
-	 * is always in [-pi/2,pi/2] (i.e., the smallest solution of
-	 * the above equality)
-	 */
+        /* the goal is to find the smallest angle phi such that
+         * rotation by phi around z will result in tmp[0]=tmp[4], i.e.:
+         *
+         * cos(phi)^2*tmp[0]-2*sin(phi)*cos(phi)*tmp[1]+sin(phi)^2*tmp[4] =
+         * sin(phi)^2*tmp[0]+2*sin(phi)*cos(phi)*tmp[1]+cos(phi)^2*tmp[4]
+         * =>
+         * tan(2*phi)=(tmp[0]-tmp[4])/(2*tmp[1])
+         *
+         * we use atan2 to avoid potential problems with tmp[1]==0,
+         * but manipulate the signs of the arguments s.t. the result
+         * is always in [-pi/2,pi/2] (i.e., the smallest solution of
+         * the above equality)
+         */
 
         /* rotate around z axis */
         double phi, R[9], RT[9];
