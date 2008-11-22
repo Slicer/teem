@@ -351,7 +351,7 @@ _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio, int field) {
        being printed explicity), so they are never "interesting" */
     break;
   case nrrdField_sample_units:
-    ret = airStrlen(nrrd->sampleUnits);
+    ret = !!airStrlen(nrrd->sampleUnits);
     break;
   case nrrdField_space_units:
     for (ai=0; ai<nrrd->spaceDim; ai++) {
@@ -406,7 +406,8 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     uintStrlen = 11,
     size_tStrlen = 33,
     doubleStrlen = 513;
-  int fslen, fdlen, endi, maxl;
+  size_t fslen, fdlen, maxl;
+  int endi;
   
   if (!( strP && prefix
          && nrrd 
