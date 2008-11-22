@@ -702,7 +702,7 @@ _nrrdCenter2(int center, int defCenter) {
 double
 nrrdAxisInfoPos(const Nrrd *nrrd, unsigned int ax, double idx) {
   int center;
-  unsigned int size;
+  size_t size;
   double min, max;
   
   if (!( nrrd && ax <= nrrd->dim-1 )) {
@@ -728,7 +728,7 @@ nrrdAxisInfoPos(const Nrrd *nrrd, unsigned int ax, double idx) {
 double
 nrrdAxisInfoIdx(const Nrrd *nrrd, unsigned int ax, double pos) {
   int center;
-  unsigned int size;
+  size_t size;
   double min, max;
   
   if (!( nrrd && ax <= nrrd->dim-1 )) {
@@ -754,7 +754,7 @@ nrrdAxisInfoPosRange(double *loP, double *hiP,
                      const Nrrd *nrrd, unsigned int ax, 
                      double loIdx, double hiIdx) {
   int center, flip = 0;
-  unsigned size;
+  size_t size;
   double min, max, tmp;
 
   if (!( loP && hiP && nrrd && ax <= nrrd->dim-1 )) {
@@ -806,7 +806,7 @@ nrrdAxisInfoIdxRange(double *loP, double *hiP,
                      const Nrrd *nrrd, unsigned int ax, 
                      double loPos, double hiPos) {
   int center, flip = 0;
-  unsigned size;
+  size_t size;
   double min, max, tmp;
 
   if (!( loP && hiP && nrrd && ax <= nrrd->dim-1 )) {
