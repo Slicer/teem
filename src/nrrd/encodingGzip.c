@@ -97,8 +97,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        and we haven't hit EOF (EOF signified by read == 0).  Unlike the
        code below (for positive byteskip), we are obligated to read until
        the bitter end, and can't update sizeChunk to encompass only the 
-       required data. */
-    while (!(error = _nrrdGzRead(gzfin, buff + sizeRed, sizeChunk, &read))
+       required data.  Cast on third arg ok because of AIR_MIN use above */
+    while (!(error = _nrrdGzRead(gzfin, buff + sizeRed,
+                                 AIR_CAST(unsigned int, sizeChunk),
+                                 &read))
            && read > 0) {
       sizeRed += read;
       if (read >= sizeChunk) {
@@ -240,8 +242,11 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* Pointer to the chunks as we write them. */
   data = (char *)_data;
   
-  /* Ok, now we can begin writing. */
-  while ((error = _nrrdGzWrite(gzfout, data, sizeChunk, &wrote)) == 0 
+  /* Ok, now we can begin writing. Cast on third arg ok because of
+     AIR_MIN use above */
+  while ((error = _nrrdGzWrite(gzfout, data,
+                               AIR_CAST(unsigned int, sizeChunk),
+                               &wrote)) == 0 
          && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
     data += wrote;
