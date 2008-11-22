@@ -82,7 +82,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingAscii_write", err[BIFF_STRLEN],
     buff[AIR_STRLEN_MED];
-  unsigned int bufflen, linelen;
+  size_t bufflen, linelen;
   const char *data;
   size_t I;
   
