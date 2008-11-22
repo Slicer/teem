@@ -395,7 +395,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, *indxLine, ii;
-    float pos[3][3], edgeA[3], edgeB[3], sum[3], dif[3], norm[3], wght;
+    float pos[3][3], edgeA[3], edgeB[3], norm[3];
     
     triNum = pld->icnt[primIdx]/3;
     if (limnPrimitiveNoop != pld->type[primIdx]) {
