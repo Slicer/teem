@@ -400,7 +400,8 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
   char me[]="_nrrdSpaceVectorParse", err[BIFF_STRLEN],
     *hh, *buff, sep[]=",)";
   airArray *mop;
-  unsigned int ret, dd, length;
+  unsigned int ret, dd;
+  size_t length;
   
   mop = airMopNew();
 
@@ -1231,11 +1232,12 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
     /* ---------------------------------------------------------- */
     /* --------- format.%d <min> <max> <step> [<dim>] ----------- */
     /* ---------------------------------------------------------- */
+    size_t sspn;
     _CHECK_HAVE_DIM;
     nums = info + strcspn(info, _nrrdFieldSep);
-    tmp = strspn(nums, _nrrdFieldSep);
+    sspn = strspn(nums, _nrrdFieldSep);
     nums[0] = 0;   /* terminate so that format is now in info */
-    nums += tmp;
+    nums += sspn;
     if (!( 3 == sscanf(nums, "%d %d %d",&(nio->dataFNMin), 
                        &(nio->dataFNMax), &(nio->dataFNStep)) )) {
       sprintf(err, "%s: couldn't parse three ints (min, max, step) after "
