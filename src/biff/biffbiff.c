@@ -236,8 +236,6 @@ _biffAddKey(const char *key) {
 void
 _biffAddErr(_biffEntry *e, const char *err) {
   char *buf, me[]="_biffAddErr";
-  int ii;
-  size_t len;
 
   /* printf("%s: HEY(before): err[%s]->num = %d\n", me, e->key, e->num); */
   airArrayLenIncr(e->AA, 1);
@@ -247,17 +245,7 @@ _biffAddErr(_biffEntry *e, const char *err) {
     exit(1);
   }
   /* printf("%s: HEY(after): err[%s]->num = %d\n", me, e->key, e->num); */
-  buf = airStrdup(err);
-  len = strlen(buf);
-  for (ii=0; ii<=len-1; ii++) {
-    if (isspace(AIR_CAST(int, buf[ii]))) {
-      buf[ii] = ' ';
-    }
-  }
-  ii = len-1;
-  while (isspace(AIR_CAST(int, buf[ii]))) {
-    buf[ii--] = 0;
-  }
+  buf = airOneLinify(airStrdup(err));
   /* printf("%s: HEY(after): err[%s]->num = %d\n", me, e->key, e->num); */
   /* printf("%s: HEY: err[%s][%d] now \"%s\"\n", me, e->key, e->num-1, buf); */
   e->err[e->num-1] = buf;
