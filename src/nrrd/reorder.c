@@ -156,12 +156,11 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
                                 thought of as a "scanline" */
     numLines,                /* how many "scanlines" there are to permute */
     szIn[NRRD_DIM_MAX], *lszIn,
-    szOut[NRRD_DIM_MAX], *lszOut;
-  char *dataIn, *dataOut;
-  int axmap[NRRD_DIM_MAX];
-  unsigned int
+    szOut[NRRD_DIM_MAX], *lszOut,
     cIn[NRRD_DIM_MAX],
     cOut[NRRD_DIM_MAX];
+  char *dataIn, *dataOut;
+  int axmap[NRRD_DIM_MAX];
   unsigned int
     ai,                      /* running index along dimensions */
     lowPax,                  /* lowest axis which is "p"ermutated */
@@ -230,13 +229,13 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     lszIn = szIn + lowPax;
     lszOut = szOut + lowPax;
     ldim = nin->dim - lowPax;
-    memset(laxes, 0, NRRD_DIM_MAX*sizeof(int));
+    memset(laxes, 0, NRRD_DIM_MAX*sizeof(unsigned int));
     for (ai=0; ai<ldim; ai++) {
       laxes[ai] = axes[ai+lowPax]-lowPax;
     }
     dataOut = (char *)nout->data;
-    memset(cIn, 0, NRRD_DIM_MAX*sizeof(int));
-    memset(cOut, 0, NRRD_DIM_MAX*sizeof(int));
+    memset(cIn, 0, NRRD_DIM_MAX*sizeof(size_t));
+    memset(cOut, 0, NRRD_DIM_MAX*sizeof(size_t));
     for (idxOut=0; idxOut<numLines; idxOut++) {
       /* in our representation of the coordinates of the start of the
          scanlines that we're copying, we are not even storing all the
