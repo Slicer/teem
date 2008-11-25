@@ -5,7 +5,6 @@ SET(UNRRDU_SOURCES
   2op.c
   3op.c
   about.c
-  env.c
   axdelete.c
   axinfo.c
   axinsert.c
@@ -22,6 +21,8 @@ SET(UNRRDU_SOURCES
   data.c
   dhisto.c
   dice.c
+  dist.c
+  env.c
   flip.c
   flotsam.c
   gamma.c
@@ -41,6 +42,7 @@ SET(UNRRDU_SOURCES
   mrmap.c
   pad.c
   permute.c
+  privateUnrrdu.h
   project.c
   quantize.c
   resample.c
@@ -56,8 +58,8 @@ SET(UNRRDU_SOURCES
   unblock.c
   unorient.c
   unquantize.c
+  unrrdu.h
   untile.c
-  dist.c
   )
 
 ADD_TEEM_LIBRARY(unrrdu ${UNRRDU_SOURCES})

@@ -318,6 +318,8 @@ MACRO(ADD_Teem_LIBRARY dir)
     SET(srcs ${srcs} "src/${dir}/${src}")
   ENDFOREACH(src ${ARGN})
   SET(Teem_SOURCES ${Teem_SOURCES} ${srcs})
+  # This will group all the source files in the VS project by directory
+  SOURCE_GROUP( ${dir} FILES ${srcs} )
 ENDMACRO(ADD_Teem_LIBRARY name)
 
 

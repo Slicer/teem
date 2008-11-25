@@ -2,11 +2,13 @@
 # Add new source files here.
 SET(SEEK_SOURCES
   enumsSeek.c
-  tables.c
-  methodsSeek.c
-  setSeek.c
-  updateSeek.c
   extract.c
-)
+  methodsSeek.c
+  privateSeek.h
+  seek.h
+  setSeek.c
+  tables.c
+  updateSeek.c
+  )
 
 ADD_TEEM_LIBRARY(seek ${SEEK_SOURCES})

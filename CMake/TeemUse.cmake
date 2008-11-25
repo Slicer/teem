@@ -36,7 +36,7 @@ ENDIF(Teem_BUILD_SETTINGS_FILE)
 
 # Support static builds
 IF(NOT Teem_BUILD_SHARED_LIBS)
-  ADD_DEFINITIONS(-DTeem_STATIC=1)
+  ADD_DEFINITIONS(-DTEEM_STATIC=1)
 ENDIF(NOT Teem_BUILD_SHARED_LIBS)
 
 # Add compiler flags needed to use Teem.

@@ -37,7 +37,12 @@ SET(NRRD_SOURCES
   map.c
   measure.c
   methodsNrrd.c
+  nrrd.h
+  nrrdDefines.h
+  nrrdEnums.h
+  nrrdMacros.h
   parseNrrd.c
+  privateNrrd.h
   range.c
   read.c
   reorder.c

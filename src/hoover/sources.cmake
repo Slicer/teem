@@ -2,6 +2,7 @@
 # Add new source files here.
 SET(HOOVER_SOURCES
   defaultsHoover.c
+  hoover.h
   methodsHoover.c
   rays.c
   stub.c

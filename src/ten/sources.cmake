@@ -4,7 +4,6 @@ SET(TEN_SOURCES
   aniso.c
   bimod.c
   bvec.c
-  triple.c
   chan.c
   defaultsTen.c
   enumsTen.c
@@ -16,17 +15,20 @@ SET(TEN_SOURCES
   grads.c
   miscTen.c
   mod.c
-  tenGage.c
-  tenDwiGage.c
-  tensor.c
-  qseg.c
   path.c
+  privateTen.h
   qglox.c
+  qseg.c
+  ten.h
+  tenDwiGage.c
+  tenGage.c
+  tenMacros.h
   tendAbout.c
   tendAnhist.c
   tendAnplot.c
   tendAnscale.c
   tendAnvol.c
+  tendAvg.c
   tendBfit.c
   tendBmat.c
   tendEllipse.c
@@ -39,12 +41,14 @@ SET(TEN_SOURCES
   tendEvec.c
   tendEvecrgb.c
   tendEvq.c
+  tendExp.c
   tendExpand.c
   tendFiber.c
   tendFlotsam.c
   tendGlyph.c
   tendGrads.c
   tendHelix.c
+  tendLog.c
   tendMake.c
   tendNorm.c
   tendPoint.c
@@ -53,12 +57,11 @@ SET(TEN_SOURCES
   tendSim.c
   tendSlice.c
   tendSten.c
-  tendUnmf.c
-  tendLog.c
-  tendExp.c
-  tendTriple.c
   tendTconv.c
-  tendAvg.c
+  tendTriple.c
+  tendUnmf.c
+  tensor.c
+  triple.c
   )
 
 ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})

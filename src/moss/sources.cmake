@@ -4,6 +4,8 @@ SET(MOSS_SOURCES
   defaultsMoss.c
   hestMoss.c
   methodsMoss.c
+  moss.h
+  privateMoss.h
   sampler.c
   xform.c
   )

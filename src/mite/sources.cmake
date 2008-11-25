@@ -3,6 +3,8 @@
 SET(MITE_SOURCES
   defaultsMite.c
   kindnot.c
+  mite.h
+  privateMite.h
   ray.c
   renderMite.c
   shade.c

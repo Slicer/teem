@@ -7,6 +7,8 @@ SET(PUSH_SOURCES
   defaultsPush.c
   forces.c
   methodsPush.c
+  privatePush.h
+  push.h
   setup.c
   )
 

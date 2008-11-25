@@ -3,6 +3,8 @@
 SET(ELL_SOURCES
   cubicEll.c
   eigen.c
+  ell.h
+  ellMacros.h
   genmat.c
   mat.c
   miscEll.c

@@ -2,11 +2,14 @@
 # Add new source files here.
 SET(GAGE_SOURCES
   ctx.c
+  deconvolve.c
   defaultsGage.c
   filter.c
+  gage.h
   kind.c
   miscGage.c
   print.c
+  privateGage.h
   pvl.c
   scl.c
   sclanswer.c
@@ -18,7 +21,6 @@ SET(GAGE_SOURCES
   update.c
   vecGage.c
   vecprint.c
-  deconvolve.c
   )
 
 ADD_TEEM_LIBRARY(gage ${GAGE_SOURCES})

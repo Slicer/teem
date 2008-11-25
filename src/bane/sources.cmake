@@ -1,6 +1,7 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
 SET(BANE_SOURCES
+  bane.h
   clip.c
   defaultsBane.c
   gkmsFlotsam.c
@@ -15,6 +16,7 @@ SET(BANE_SOURCES
   inc.c
   measr.c
   methodsBane.c
+  privateBane.h
   rangeBane.c
   scat.c
   trex.c

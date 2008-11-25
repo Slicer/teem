@@ -2,8 +2,10 @@
 # Add new source files here.
 SET(HEST_SOURCES
   defaultsHest.c
+  hest.h
   methodsHest.c
   parseHest.c
+  privateHest.h
   usage.c
   )
 

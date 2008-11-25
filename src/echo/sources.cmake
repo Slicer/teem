@@ -3,6 +3,7 @@
 SET(ECHO_SOURCES
   bounds.c
   color.c
+  echo.h
   enumsEcho.c
   intx.c
   lightEcho.c
@@ -11,6 +12,7 @@ SET(ECHO_SOURCES
   methodsEcho.c
   model.c
   objmethods.c
+  privateEcho.h
   renderEcho.c
   set.c
   sqd.c
