@@ -155,6 +155,10 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     sprintf(err, "%s: got NULL pointer or non-existant threshold", me);
     biffAdd(TEN, err); return 1;
   }
+  if (nout == nin) {
+    sprintf(err, "%s: sorry, need different nrrds for input and output", me);
+    biffAdd(TEN, err); return 1;
+  }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     sprintf(err, "%s: ", me);
     biffAdd(TEN, err); return 1;
@@ -208,6 +212,10 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   
   if (!(tseven && tnine)) {
     sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(TEN, err); return 1;
+  }
+  if (tseven == tnine) {
+    sprintf(err, "%s: sorry, need different nrrds for input and output", me);
     biffAdd(TEN, err); return 1;
   }
   if (!( nrrdTypeFloat == tnine->type &&
