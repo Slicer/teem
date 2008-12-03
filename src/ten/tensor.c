@@ -180,10 +180,13 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     ELL_3M_SCALE(nine, AIR_CAST(float, scale), nine);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL,
-                       NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT)) {
+                       NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  /* by call above we just copied axis-0 kind, which might be wrong;
+     we actually know the output kind now, so we might as well set it */
+  nout->axis[0].kind = nrrdKind3DMatrix;
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     sprintf(err, "%s:", me);
@@ -193,7 +196,6 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = airStrdup("matrix");
   */
-  nout->axis[0].kind = nrrdKind3DMatrix;
 
   return 0;
 }
@@ -251,17 +253,19 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
     nine += 9;
   }
   if (nrrdAxisInfoCopy(tseven, tnine, NULL,
-                       NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT)) {
+                       NRRD_AXIS_INFO_SIZE_BIT)) {
     sprintf(err, "%s: trouble", me);
     biffMove(TEN, err, NRRD); return 1;
   }
+  /* by call above we just copied axis-0 kind, which might be wrong;
+     we actually know the output kind now, so we might as well set it */
+  tseven->axis[0].kind = nrrdKind3DMaskedSymMatrix;
   if (nrrdBasicInfoCopy(tseven, tnine,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  tseven->axis[0].label = (char *)airFree(tseven->axis[0].label);
-  tseven->axis[0].label = airStrdup("tensor");
+  /* Wed Dec  3 11:22:32 EST 2008: no real need to set label string */
 
   return 0;
 }
