@@ -619,6 +619,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     }
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
