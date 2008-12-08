@@ -388,7 +388,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   /* content */
   strcpy(buff1, "");
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai=0; ai<len; ai++) {
     sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
     strcat(buff1, buff2);
   }
