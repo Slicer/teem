@@ -35,6 +35,11 @@ miteThreadNew() {
     biffAdd(MITE, err); return NULL;
   }
 
+  mtt->rmop = airMopNew();
+  if (!mtt->rmop) {
+    sprintf(err, "%s: couldn't calloc thread's mop", me);
+    biffAdd(MITE, err); airFree(mtt); return NULL;
+  }
   mtt->gctx = NULL;
   mtt->ansScl = mtt->ansVec = mtt->ansTen = NULL;
   mtt->_normal = NULL;
@@ -75,6 +80,8 @@ miteThreadNix(miteThread *mtt) {
 
   mtt->ansMiteVal = (double *)airFree(mtt->ansMiteVal);
   mtt->directAnsMiteVal = (double **)airFree(mtt->directAnsMiteVal);
+  airMopOkay(mtt->rmop);
+
   airFree(mtt);
   return NULL;
 }

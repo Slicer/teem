@@ -550,7 +550,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
     sprintf(err, "%s: couldn't alloc array of %d stages", me, stageNum);
     biffAdd(MITE, err); return 1;
   }
-  airMopAdd(mrr->rmop, mtt->stage, airFree, airMopAlways);
+  airMopAdd(mtt->rmop, mtt->stage, airFree, airMopAlways);
   mtt->stageNum = stageNum;
   stageIdx = 0;
   for (ni=0; ni<mrr->ntxfNum; ni++) {

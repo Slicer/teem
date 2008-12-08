@@ -266,8 +266,9 @@ typedef struct {
      mrendRenderBegin, instead of mrendThreadBegin, which still has the
      role of initializing them */
   struct miteThread_t *tt[HOOVER_THREAD_MAX];  
-  airArray *rmop;             /* for things allocated which are rendering
-                                 (or rendering parameter) specific */
+  airArray *rmop;             /* for things allocated which are rendering 
+                                 (or rendering parameter) specific and which
+                                 are not thread-specific */
 } miteRender;
 
 /*
@@ -418,6 +419,9 @@ typedef struct miteThread_t {
     RR, GG, BB, TT,             /* per-ray composited values */
     ZZ;                         /* for storing ray-depth when opacity passed
                                    muu->opacMatters */
+  airArray *rmop;             /* for things allocated which are rendering 
+                                 (or rendering parameter) specific and which
+                                 are thread-specific */
 } miteThread;
 
 /* defaultsMite.c */
