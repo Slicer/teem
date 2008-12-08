@@ -121,8 +121,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     }
     if (sizeRed < sizeData + (-nio->byteSkip - 1)) {
       sprintf(err, "%s: expected " _AIR_SIZE_T_CNV " bytes and received only "
-              _AIR_SIZE_T_CNV " bytes",
-              me, sizeData + (-nio->byteSkip - 1), sizeRed);
+              _AIR_SIZE_T_CNV " bytes", me,
+              AIR_CAST(size_t, sizeData + (-nio->byteSkip - 1)), sizeRed);
       biffAdd(NRRD, err);
       return 1;
     }
