@@ -55,6 +55,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
   char me[]="_tenFiberProbe", err[BIFF_STRLEN];
   double iPos[3];
   int ret = 0;
+  double tens2[2][7];
 
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
   *gageRet = gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
@@ -82,7 +83,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
               airEnumStr(tenDwiFiberType, tfx->fiberType));
     }
     switch (tfx->fiberType) {
-      double evec[2][9], eval[2][3], len;
+      double evec[2][9], eval[2][3];
     case tenDwiFiberType1Evec0:
       if (tfx->mframeUse) {
         double matTmpA[9], matTmpB[9];
@@ -106,18 +107,27 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
       break;
     case tenDwiFiberType2Evec0:
       /* Estimate principal diffusion direction of each tensor */
-      tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
-      tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
-
       if (tfx->mframeUse) {
-        double vectmp[3];
-        /* NOTE: only fixing first (of three) eigenvector, for both tensors */
-        ELL_3MV_MUL(vectmp, tfx->mframe, evec[0]);
-        ELL_3V_COPY(evec[0], vectmp);
-        ELL_3MV_MUL(vectmp, tfx->mframe, evec[1]);
-        ELL_3V_COPY(evec[1], vectmp);
+        /* Transform both the tensors */
+        double matTmpA[9], matTmpB[9];
+
+        TEN_T2M(matTmpA, tfx->gageTen2 + 0);
+        ELL_3M_MUL(matTmpB, tfx->mframe, matTmpA);
+        ELL_3M_MUL(matTmpA, matTmpB, tfx->mframeT);
+        TEN_M2T(tens2[0], matTmpA);
+        /* new eigen values and vectors */
+        tenEigensolve_d(eval[0], evec[0], tens2[0]);
+
+        TEN_T2M(matTmpA, tfx->gageTen2 + 7);
+        ELL_3M_MUL(matTmpB, tfx->mframe, matTmpA);
+        ELL_3M_MUL(matTmpA, matTmpB, tfx->mframeT);
+        TEN_M2T(tens2[1], matTmpA);
+        tenEigensolve_d(eval[1], evec[1], tens2[1]);
+      } else {
+        tenEigensolve_d(eval[0], evec[0], tfx->gageTen2 + 0);
+        tenEigensolve_d(eval[1], evec[1], tfx->gageTen2 + 7);
       }
-      
+
       /* set ten2Use */
       if (seedProbe) {  /* we're on the *very* 1st probe per tract, 
                            at the seed pt */
@@ -135,7 +145,11 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
           lastVec = tfx->seedEvec;
         } else {
           /* we're past the first step */
-          ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len);
+          /* Arish says: "Bug len has not been initialized and don't think
+             its needed". The first part is not a problem; "len" is in the
+             *output* argument of ELL_3V_NORM.  The second part seems to be
+             true, even though Gordon can't currently see why! */
+          /* ELL_3V_NORM(tfx->lastDir, tfx->lastDir, len); */
           lastVec = tfx->lastDir;
         }
         dot[0] = ELL_3V_DOT(lastVec, evec[0]);
@@ -158,11 +172,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
 
       /* based on ten2Use, set the rest of the needed fields */
       if (tfx->mframeUse) {
-        double matTmpA[9], matTmpB[9];
-        TEN_T2M(matTmpA, tfx->gageTen2 + 7*(tfx->ten2Use));
-        ELL_3M_MUL(matTmpB, tfx->mframe, matTmpA);
-        ELL_3M_MUL(matTmpA, matTmpB, tfx->mframeT);
-        TEN_M2T(tfx->fiberTen, matTmpA);
+        TEN_T_COPY(tfx->fiberTen, tens2[tfx->ten2Use]);
       } else {
         TEN_T_COPY(tfx->fiberTen, tfx->gageTen2 + 7*(tfx->ten2Use));
       }
