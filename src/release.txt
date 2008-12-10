@@ -79,27 +79,16 @@ cp src/LICENSE.txt ~/teemdoc/html/tree/src/
   and make sure Windows stuff also still works (if new files or
   libraries were added)
 
-2.5) cvs branch/tag confusion:
-cd ~/teem              (my working checkout)
-cvs tag Teem-1-9-0-bp
-cvs tag -b Teem-1-9-0
-mkdir ~/Teem-1-9-0
-cd ~/Teem-1-9-0
-cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co -r Teem-1-9-0 teem
-cd teem
-cvs update -dAP -r Teem-1-9-0    (probably unnecessary)
-cvs tag Teem-1-9-0-pb
+2.5) svn "tag":
+setenv VERSION <<version>>
+cd ~/teem
+svn copy https://teem.svn.sourceforge.net/svnroot/teem/teem/trunk \
+         https://teem.svn.sourceforge.net/svnroot/teem/teem/tags/${VERSION}
 
 3) Create source-only tgz:
-(for anonymous checkout:
-cvs -d:pserver:anonymous@teem.cvs.sf.net:/cvsroot/teem/ login
-<hit return>
-cvs -d:pserver:anonymous@teem.cvs.sf.net:/cvsroot/teem/ co teem
-)
-setenv VERSION <<version>>
-cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co teem
+svn co http://teem.svn.sourceforge.net/svnroot/teem/teem/trunk teem
 cd teem
-find . -name CVS  -exec rm -rf {} \;
+find . -name .svn  -exec rm -rf {} \;
 cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
@@ -168,10 +157,8 @@ yes | rm -rf teem-${VERSION}-${TEEM_ARCH}
 
 7) put the builds on sourceforge:
 cd ~/rel
-ftp upload.sourceforge.net
-binary
-prompt
-cd incoming
+sftp kindlmann@frs.sourceforge.net
+cd uploads
 mput *.tar.gz
 
 9) update online documentation (which may be done more often than releases)
