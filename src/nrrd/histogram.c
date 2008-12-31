@@ -403,14 +403,14 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
      disaster */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   nrrdAxisInfoGet_nva(nout, nrrdAxisInfoSize, szOut);
-  memset(coordIn, 0, NRRD_DIM_MAX*sizeof(unsigned int));
+  memset(coordIn, 0, NRRD_DIM_MAX*sizeof(size_t));
   num = nrrdElementNumber(nin);
   for (I=0; I<num; I++) {
     /* get input nrrd value and compute its histogram index */
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val) && AIR_IN_CL(range->min, val, range->max)) {
       hidx = airIndex(range->min, val, range->max, bins);
-      memcpy(coordOut, coordIn, nin->dim*sizeof(int));
+      memcpy(coordOut, coordIn, nin->dim*sizeof(size_t));
       coordOut[hax] = (unsigned int)hidx;
       NRRD_INDEX_GEN(hI, coordOut, szOut, nout->dim);
       count = nrrdDLookup[nout->type](nout->data, hI);
