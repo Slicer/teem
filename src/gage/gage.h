@@ -97,6 +97,7 @@ enum {
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
   gageParmStackRenormalize,       /* int (does not imply gageParmStackUse) */
+  gageParmOrientationFromSpacing, /* int */
   gageParmLast
 };
 
@@ -433,9 +434,14 @@ typedef struct gageParm_t {
                                  The query in pvl[0] will determine the
                                  computations done, and answers for the whole
                                  stack will be stored in pvl[0]. */
-    stackRenormalize;         /* if non-zero (and if stackUse is non-zero):
+    stackRenormalize,         /* if non-zero (and if stackUse is non-zero):
                                  derivatives of filter stage are renormalized
                                  based on the stack parameter */
+    orientationFromSpacing;	/* only meaningful if nrrd has per-axis spacing,
+				   but no orientation info. If zero, the
+				   volume is crammed into the bi-unit cube.
+				   If non-zero, the edges of the cube are scaled
+				   to match the given per-axis spacing. */
 } gageParm;
 
 /*
@@ -752,6 +758,7 @@ GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackRenormalize;
+GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */
 GAGE_EXPORT double gageZeroNormal[3];

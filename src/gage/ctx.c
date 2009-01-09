@@ -337,6 +337,10 @@ gageParmSet(gageContext *ctx, int which, double val) {
   case gageParmStackRenormalize:
     ctx->parm.stackRenormalize = AIR_CAST(int, val);
     break;
+  case gageParmOrientationFromSpacing:
+    ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
+    /* affects future calls to _gageShapeSet */
+    break;
   default:
     fprintf(stderr, "\n%s: which = %d not valid!!\n\n", me, which);
     break;

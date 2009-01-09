@@ -66,3 +66,10 @@ gageDefStackUse = AIR_FALSE; /* GLK doesn't see any reasonable circumstance
 
 int
 gageDefStackRenormalize = AIR_TRUE;
+
+int
+gageDefOrientationFromSpacing = AIR_FALSE;
+/* Before teem 1.10.0, gage behaved inconsistently: Derivatives were
+   taken as if orientationFromSpacing were TRUE, the index space to
+   world space mapping acted as if it were FALSE. Now, you have the
+   choice and get consistent results in either case. */

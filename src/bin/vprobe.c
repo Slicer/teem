@@ -92,7 +92,8 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet, SSrenorm, SSuniform, verbose;
+  int what, E=0, otype, renorm, hackSet, SSrenorm, SSuniform, verbose,
+    orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
@@ -168,6 +169,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
+  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
+	     NULL, "If only per-axis spacing is available, use that to "
+	     "guess orientation info");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
              "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -301,6 +305,7 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmVerbose, verbose);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmOrientationFromSpacing, orientationFromSpacing);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);

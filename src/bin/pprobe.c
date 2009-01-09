@@ -116,7 +116,7 @@ main(int argc, char *argv[]) {
   float pos[3], lineInfo[4];
   double gmc, rangeSS[2], posSS, *scalePos;
   unsigned int ansLen, numSS, ninSSIdx, lineStepNum;
-  int what, E=0, renorm, SSrenorm, SSuniform, verbose;
+  int what, E=0, renorm, SSrenorm, SSuniform, verbose, orientationFromSpacing;
   const double *answer;
   Nrrd *nin, **ninSS=NULL, *nout=NULL;
   gageContext *ctx;
@@ -204,6 +204,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
+  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
+	     NULL, "If only per-axis spacing is available, use that to "
+	     "guess orientation info");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output array, when probing on polydata vertices");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -318,6 +321,7 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmVerbose, verbose);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
+  gageParmSet(ctx, gageParmOrientationFromSpacing, orientationFromSpacing);
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);

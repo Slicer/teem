@@ -115,6 +115,7 @@ gageParmReset(gageParm *parm) {
     parm->defaultCenter = gageDefDefaultCenter;
     parm->stackUse = gageDefStackUse;
     parm->stackRenormalize = gageDefStackRenormalize;
+    parm->orientationFromSpacing = gageDefOrientationFromSpacing;
   }
   return;
 }

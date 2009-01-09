@@ -106,7 +106,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
   char me[]="_gageShapeSet", err[BIFF_STRLEN];
   int ai, cx, cy, cz, defCenter, statCalc[3];
-  unsigned int minsize, sx, sy, sz;
+  unsigned int minsize, sx, sy, sz, wantedSpaceDim;
   const NrrdAxisInfo *ax[3];
   double maxLen, defSpacing,
     vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
@@ -197,13 +197,25 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
       && nrrdSpacingStatusDirection == statCalc[2]) {
     /* this will get reset to false in case of error */
     shape->fromOrientation = AIR_TRUE;
+    wantedSpaceDim=3;
   } else {
-    shape->fromOrientation = AIR_FALSE;
+    if (ctx->parm.orientationFromSpacing
+	&& nrrdSpacingStatusScalarNoSpace == statCalc[0]
+	&& nrrdSpacingStatusScalarNoSpace == statCalc[1]
+	&& nrrdSpacingStatusScalarNoSpace == statCalc[2]) {
+      ELL_3V_SET(vecCalc[0],1.0,0.0,0.0);
+      ELL_3V_SET(vecCalc[1],0.0,1.0,0.0);
+      ELL_3V_SET(vecCalc[2],0.0,0.0,1.0);
+      shape->fromOrientation = AIR_TRUE;
+      wantedSpaceDim=0; /* this will place origin at center of volume */
+    } else {
+      shape->fromOrientation = AIR_FALSE;
+    }
   }
   /* oh yea, we should make sure the space dimension is right! */
-  if (shape->fromOrientation && 3 != nin->spaceDim) {
-    sprintf(err, "%s: orientation space dimension %d != 3",
-            me, nin->spaceDim);
+  if (shape->fromOrientation && wantedSpaceDim != nin->spaceDim) {
+    sprintf(err, "%s: orientation space dimension %d != %d",
+            me, nin->spaceDim, wantedSpaceDim);
     biffAdd(GAGE, err); gageShapeReset(shape);
     return 1;
   }
@@ -320,7 +332,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   
   /* ------ set transform matrices */
   if (shape->fromOrientation) {
-    /* find translation vector (we check above that spaceDim == 3) */
+    /* find translation vector (we check above that spaceDim == wantedSpaceDim) */
     nrrdSpaceOriginGet(nin, orig);
     if (!( AIR_EXISTS(orig[0]) &&
            AIR_EXISTS(orig[1]) && 
