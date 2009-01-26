@@ -1915,3 +1915,121 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   airMopOkay(mop);
   return 0;
 }
+
+int
+limnPolyDataEdgeHalve(limnPolyData *pldOut, 
+                      const limnPolyData *pldIn) {
+  char me[]="limnPolyDataEdgeHalve", err[BIFF_STRLEN];
+  Nrrd *nnewvert;
+  unsigned int *newvert, nvold, nvidx, triidx, trinum, vlo, vhi, bitflag;
+  airArray *mop;
+
+  if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pldIn)) {
+    sprintf(err, "%s: sorry, can only handle %s primitives", me,
+            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    biffAdd(LIMN, err); return 1;
+  }
+  if (1 != pldIn->primNum) {
+    sprintf(err, "%s: sorry, can only handle a single primitive", me);
+    biffAdd(LIMN, err); return 1;
+  }
+  mop = airMopNew();
+  nnewvert = nrrdNew();
+  airMopAdd(mop, nnewvert, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
+  nvold = pldIn->xyzwNum;
+  if (nrrdMaybeAlloc_va(nnewvert, nrrdTypeUInt, 2, nvold, nvold)) {
+    sprintf(err, "%s: couldn't allocate buffer", me);
+    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+  }
+  newvert = AIR_CAST(unsigned int*, nnewvert->data);
+
+  /* run through triangles, recording edges with the new vertex index */
+  nvidx = nvold;
+  trinum = pldIn->indxNum/3;
+  for (triidx=0; triidx<trinum; triidx++) {
+    vlo = pldIn->indx[0 + 3*triidx];
+    vhi = pldIn->indx[1 + 3*triidx];
+    if (!newvert[vlo + nvold*vhi]) {
+      newvert[vlo + nvold*vhi] = newvert[vhi + nvold*vlo] = nvidx++;
+    }
+    vlo = pldIn->indx[1 + 3*triidx];
+    vhi = pldIn->indx[2 + 3*triidx];
+    if (!newvert[vlo + nvold*vhi]) {
+      newvert[vlo + nvold*vhi] = newvert[vhi + nvold*vlo] = nvidx++;
+    }
+    vlo = pldIn->indx[2 + 3*triidx];
+    vhi = pldIn->indx[0 + 3*triidx];
+    if (!newvert[vlo + nvold*vhi]) {
+      newvert[vlo + nvold*vhi] = newvert[vhi + nvold*vlo] = nvidx++;
+    }
+  }
+
+  /* allocate output */
+  bitflag = limnPolyDataInfoBitFlag(pldIn);
+  if (limnPolyDataAlloc(pldOut, bitflag, nvidx, 3*4*trinum, 1)) {
+    sprintf(err, "%s: trouble allocating output", me);
+    biffAdd(LIMN, err); airMopError(mop); return 1;
+  }
+  pldOut->type[0] = limnPrimitiveTriangles;
+  pldOut->icnt[0] = 3*4*trinum;
+
+  /* set output indx */
+  for (triidx=0; triidx<trinum; triidx++) {
+    unsigned int aa, ab, bb, bc, cc, ac;
+    aa = pldIn->indx[0 + 3*triidx];
+    bb = pldIn->indx[1 + 3*triidx];
+    cc = pldIn->indx[2 + 3*triidx];
+    ab = newvert[aa + nvold*bb];
+    bc = newvert[bb + nvold*cc];
+    ac = newvert[aa + nvold*cc];
+    ELL_3V_SET(pldOut->indx + 3*(0 + 4*triidx), aa, ab, ac);
+    ELL_3V_SET(pldOut->indx + 3*(1 + 4*triidx), ab, bc, ac);
+    ELL_3V_SET(pldOut->indx + 3*(2 + 4*triidx), ab, bb, bc);
+    ELL_3V_SET(pldOut->indx + 3*(3 + 4*triidx), ac, bc, cc);
+  }
+  
+  /* set output vertex info */
+  for (vlo=0; vlo<nvold; vlo++) {
+    ELL_4V_COPY(pldOut->xyzw + 4*vlo, pldIn->xyzw + 4*vlo);
+    if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+      ELL_4V_COPY(pldOut->rgba + 4*vlo, pldIn->rgba + 4*vlo);
+    }
+    if ((1 << limnPolyDataInfoNorm) & bitflag) {
+      ELL_3V_COPY(pldOut->norm + 3*vlo, pldIn->norm + 3*vlo);
+    }
+    if ((1 << limnPolyDataInfoTex2) & bitflag) {
+      ELL_2V_COPY(pldOut->tex2 + 2*vlo, pldIn->tex2 + 2*vlo);
+    }
+    for (vhi=vlo+1; vhi<nvold; vhi++) {
+      unsigned int mid;
+      mid = newvert[vlo + nvold*vhi];
+      if (!mid) {
+        continue;
+      }
+      ELL_4V_LERP(pldOut->xyzw + 4*mid, 0.5,
+                  pldIn->xyzw + 4*vlo,
+                  pldIn->xyzw + 4*vhi);
+      if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+        ELL_4V_LERP(pldOut->rgba + 4*mid, 0.5,
+                    pldIn->rgba + 4*vlo,
+                    pldIn->rgba + 4*vhi);
+      }
+      if ((1 << limnPolyDataInfoNorm) & bitflag) {
+        float tmp;
+        ELL_3V_LERP(pldOut->norm + 3*mid, 0.5,
+                    pldIn->norm + 3*vlo,
+                    pldIn->norm + 3*vhi);
+        ELL_3V_NORM(pldOut->norm + 3*mid, pldOut->norm + 3*mid, tmp);
+      }
+      if ((1 << limnPolyDataInfoTex2) & bitflag) {
+        ELL_2V_LERP(pldOut->tex2 + 2*mid, 0.5,
+                    pldIn->tex2 + 2*vlo,
+                    pldIn->tex2 + 2*vhi);
+      }
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
