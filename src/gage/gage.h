@@ -538,7 +538,7 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_OFF(q, i) (q[i/8] &= ~(1 << (i % 8)))
 
-  /* increment for ctx->pvlArr airArray */
+/* increment for ctx->pvlArr airArray */
 #define GAGE_PERVOLUME_ARR_INCR 32
 
 /*
