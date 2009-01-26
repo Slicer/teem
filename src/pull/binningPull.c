@@ -185,6 +185,44 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point) {
   return 0;
 }
 
+int
+pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
+                      double minOkayDist, int *added) {
+  char me[]="pullBinsPointMaybeAdd", err[BIFF_STRLEN];
+  pullBin *bin;
+  unsigned int idx;
+  int okay;
+  
+  if (!added) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (!( bin = _pullBinLocate(pctx, point->pos) )) {
+    sprintf(err, "%s: can't locate point %p %u",
+            me, AIR_CAST(void*, point), point->idtag);
+    biffAdd(PULL, err); return 1;
+  }
+  okay = AIR_TRUE;
+  for (idx=0; idx<bin->pointNum; idx++) {
+    double diff[4], len;
+    ELL_4V_SUB(diff, point->pos, bin->point[idx]->pos);
+    ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
+    diff[3] /= pctx->radiusScale;
+    len = ELL_4V_LEN(diff);
+    if (len < minOkayDist) {
+      okay = AIR_FALSE;
+      break;
+    }
+  }
+  if (okay) {
+    _pullBinPointAdd(pctx, bin, point);
+    *added = AIR_TRUE;
+  } else {
+    *added = AIR_FALSE;
+  }
+  return 0;
+}
+
 /*
 ** This function is only called by the master thread, this 
 ** does *not* have to be thread-safe in any way

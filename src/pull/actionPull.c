@@ -114,13 +114,27 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   return enr;
 }
 
-double
+/*
+** the "egradSum" argument is where the sum (over neighboring points) of
+** the energy gradient goes, but it is also effectively a flag for the
+** kind of computation that happens here:
+**
+** non-NULL egradSum: besides computing current energy, compute energy
+** gradient (with possible constraint modifications) so that we can update
+** the system.  point->neighInterNum will be computed, and thus so will
+** point->neighDist and point->neighMode
+**
+** NULL egradSum: just tell me what the energy is; and do NOT compute:
+** point->neighInterNum, point->neighDist, point->neighMode
+*/
+static double
 _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
                   /* output */
                   double egradSum[4]) {
   /* char me[]="_energyFromPoints"; */
   double energySum, distSqSum, spaDistSqMax, wghtSum;
-  int nopt,     /* optimiziation: we sometimes re-use neighbor lists */
+  int nopt,     /* optimiziation: we enable the re-use neighbor lists, or
+                   initially, the creation of neighbor lists */
     ntrue;      /* we search all possible neighbors, stored in the bins
                    (either because !nopt, or, this iter we learn true
                    subset of interacting neighbors).  This could also
@@ -146,6 +160,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     nopt = AIR_FALSE;
     ntrue = AIR_TRUE;
   }
+  /* NOTE that you can't have both nopt and ntrue be false */
   /*
   fprintf(stderr, "!%s(%u), nopt = %d, ntrue = %d\n", me, point->idtag,
           nopt, ntrue);
@@ -173,9 +188,11 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   wghtSum = 0;
   energySum = 0;
   distSqSum = 0;
-  point->neighInterNum = 0;
-  point->neighDist = 0.0;
-  point->neighMode = 0.0;
+  if (egradSum) {
+    point->neighInterNum = 0;
+    point->neighDist = 0.0;
+    point->neighMode = 0.0;
+  }
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
@@ -238,7 +255,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   return energySum;
 }
 
-double
+static double
 _energyFromImage(pullTask *task, pullPoint *point,
                  /* output */
                  double egradSum[4]) {
@@ -260,6 +277,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
   }
   */
   probed = AIR_FALSE;
+
 #define MAYBEPROBE \
   if (!probed) { \
     if (_pullProbe(task, point)) { \
@@ -267,6 +285,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
     } \
     probed = AIR_TRUE; \
   }
+
   energy = 0;
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
@@ -301,6 +320,15 @@ _energyFromImage(pullTask *task, pullPoint *point,
 
 /*
 ** its in here that we scale from "energy gradient" to "force"
+**
+** NOTE that the "force" being non-NULL has consequences for what gets
+** computed in _energyFromImage and _energyFromPoints:
+**
+** NULL "force": we're simply learning the energy (and want to know it
+** as truthfully as possible) for the sake of inspecting system state
+**
+** non-NULL "force": we're learning the current energy, but the real point
+** is to determine how to move the point to lower energy
 */
 double
 _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
@@ -605,19 +633,12 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     biffAdd(PULL, err); return 1;
   }
 
-  /* cheezy demo of how to remove points 
-  if (1) {
-    double dd[3], pp[3] = {0.80828, 0.191011, -0.0317192};
-    ELL_3V_SUB(dd, point->pos, pp);
-    if (ELL_3V_LEN(dd) < 0.04) {
-      point->status |= PULL_STATUS_NIXME_BIT;
-    }
-  }
-  */
-  
   return 0;
 }
 
+/*
+** this is where point nixing/adding should happen
+*/
 int
 pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   char me[]="pullBinProcess", err[BIFF_STRLEN];
@@ -637,6 +658,43 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     task->stuckNum += (myBin->point[myPointIdx]->status
                        & PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
+
+  /* probabilistically nix points that seem to have too many neighbors */
+  if (task->pctx->constraint) {
+    pullPoint *point;
+    double constrDim, nixProb, wantNum, haveNum, ndist;
+    for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
+      point = myBin->point[myPointIdx];
+#if 0
+      constrDim = _pullConstraintDim(task, point);
+      if (!constrDim) {
+        sprintf(err, "%s: got constraint dim 0", me);
+        biffAdd(PULL, err); return 1;
+      }
+      haveNum = 1 + point->neighInterNum; /* we count the center point */
+      wantNum = (1.0 == constrDim
+                 ? 3
+                 : (2.0 == constrDim
+                    ? 7
+                    : 5 /* HEY just guessing */ ));
+      wantNum += 0.5; /* hack */
+      nixProb = (haveNum > wantNum
+                 ? AIR_CAST(double, haveNum - wantNum)/haveNum
+                 : 0.0);
+      nixProb *= 0.1; /* hack */
+#endif
+      /* The demoninator here is the neighbor distance below which a point
+         is subject to get nixed; higher value ==> more aggressive nixing.
+         The maximum of two points interacting is 2*task->pctx->radiusSpace */
+      ndist = point->neighDist/(1.5*task->pctx->radiusSpace);
+      if (ndist < 1) {
+        nixProb = 0.5*(1 - ndist)*(1 - ndist);
+        if (airDrandMT_r(task->rng) < nixProb) {
+          point->status |= PULL_STATUS_NIXME_BIT;
+        }
+      }
+    }
+  }
 
   return 0;
 }

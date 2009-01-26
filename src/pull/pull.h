@@ -124,7 +124,11 @@ enum {
 #define PULL_STATUS_STUCK_BIT  (1<< 1)
   pullStatusNew,                 /* 2: just added to system, bin me */
 #define PULL_STATUS_NEW_BIT    (1<< 2)
-  pullStatusNixMe,               /* 3: nix me at the end of this iter */
+  pullStatusNixMe,               /* 3: nix me at the *end* of this iter
+                                    that means that even after being flagged
+                                    for nixing, the point will interact with
+                                    other points in the nearby bins during 
+                                    the current iteration */
 #define PULL_STATUS_NIXME_BIT  (1<< 3)
   pullStatusLast
 };
@@ -347,7 +351,7 @@ typedef struct pullContext_t {
      actually travelled, to the distance that it wanted to travel, but 
      couldn't due to the moveLimit */
     opporStepScale,                /* (>= 1.0) how much to opportunistically
-                                      scale  up step size (for energy
+                                      scale up step size (for energy
                                       minimization) with every iteration */
     stepScale,                     /* (< 1.0) when energy goes up instead of
                                       down, or when constraint satisfaction
@@ -509,6 +513,8 @@ PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 
 /* binningPull.c */
 PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point);
+PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
+                                      double minOkayDist, int *added);
 PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 PULL_EXPORT int pullRebin(pullContext *pctx);
 

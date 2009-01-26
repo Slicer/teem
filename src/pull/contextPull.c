@@ -343,6 +343,10 @@ _pullContextCheck(pullContext *pctx) {
   return 0;
 }
 
+/*
+** the API for this is most certainly going to change; the
+** tensor output at this point is a hack created for vis purposes
+*/
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
@@ -384,7 +388,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
         double scl, tout[7];
         scl = 1;
         if (pctx->ispec[pullInfoHeightHessian]) {
-          double *hess, eval[3], evec[9], eceil, len;
+          double *hess, eval[3], evec[9], eceil, maxeval;
           hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
           ell_3m_eigensolve_d(eval, evec, hess, 10);
           eval[0] = AIR_ABS(eval[0]);
@@ -394,7 +398,8 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
           eval[0] = AIR_MIN(eceil, 1.0/eval[0]);
           eval[1] = AIR_MIN(eceil, 1.0/eval[1]);
           eval[2] = AIR_MIN(eceil, 1.0/eval[2]);
-          ELL_3V_NORM(eval, eval, len);
+          maxeval = eval[ELL_MAX3_IDX(eval[0], eval[1], eval[2])];
+          ELL_3V_SCALE(eval, 1/maxeval, eval);
           tenMakeSingle_d(tout, 1, eval, evec);
         } else if (pctx->constraint
                    && (pctx->ispec[pullInfoHeightGradient]

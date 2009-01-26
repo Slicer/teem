@@ -173,6 +173,11 @@ _pullPointNixMeRemove(pullContext *pctx) {
   return;
 }
 
+/*
+** HEY: there should be something like a "map" over all the points,
+** which could implement all these redundant functions
+*/
+
 unsigned int
 _pullPointNumber(const pullContext *pctx) {
   unsigned int binIdx, pointNum;
@@ -429,10 +434,10 @@ _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx, binIdx, tick, pn;
   pullPoint *point;
-  double *posData;
+  double *posData, minOkayDist;
   airRandMTState *rng;
   pullBin *bin;
-  int reject, threshFail, constrFail;
+  int reject, threshFail, constrFail, added;
   airArray *mop;
   Nrrd *npos;
 
@@ -468,6 +473,12 @@ _pullPointSetup(pullContext *pctx) {
   fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
   fflush(stderr);
   rng = pctx->task[0]->rng;
+  /* minOkayDist is for pullBinsPointMaybeAdd, which is used when there is
+     a constraint. Its tempting to set this high, to more aggressively 
+     limit the number of points added, but this is risky given that there
+     is actually no guarantee that constraint manifolds will be well-
+     sampled (with respect to pctx->radiusSpace) to start with */
+  minOkayDist = 0.25;
   if (pctx->pointPerVoxel) {
     pullVolume *seedVol;
     gageShape *seedShape;
@@ -498,6 +509,7 @@ _pullPointSetup(pullContext *pctx) {
                 voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
       }
       for (ppvIdx=0; ppvIdx<pctx->pointPerVoxel; ppvIdx++) {
+        /* re-used a point that failed to be binned (for whatever reason) */
         if (!point) {
           point = pullPointNew(pctx);
         }
@@ -525,20 +537,31 @@ _pullPointSetup(pullContext *pctx) {
                     me, ppvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
             biffAdd(PULL, err); return 1;
           }
+          if (constrFail) {
+            /* constraint satisfaction failed, don't try again */
+            continue;
+          }
+          /* in the context of constraints, it makes sense to be a little more
+             selective about adding points, so that they aren't completely
+             piled on top of each other. */
+          if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
+            sprintf(err, "%s: trouble binning point %u", me, point->idtag);
+            biffAdd(PULL, err); return 1;
+          }
+          if (added) {
+            point = NULL;
+            pctx->pointNumInitial += 1;
+          }
+          /* else it wasn't added; reuse the point and try again */
         } else {
-          constrFail = AIR_FALSE;
+          /* else if we don't have a constraint, the point is ready to add */
+          if (pullBinsPointAdd(pctx, point)) {
+            sprintf(err, "%s: trouble binning point %u", me, point->idtag);
+            biffAdd(PULL, err); return 1;
+          }
+          point = NULL;
+          pctx->pointNumInitial += 1;
         }
-        if (constrFail) {
-          /* constraint satisfaction failed, don't try again */
-          continue;
-        }
-        /* else this point is good to keep */
-        if (pullBinsPointAdd(pctx, point)) {
-          sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-          biffAdd(PULL, err); return 1;
-        }
-        point = NULL;
-        pctx->pointNumInitial += 1;
       }
     }
     if (point) {
@@ -557,7 +580,7 @@ _pullPointSetup(pullContext *pctx) {
       fprintf(stderr, "%s: with pointPerVoxel %u --> pointNumInitial = %u\n",
               me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
-  } else {
+  } else { /* not pointPerVoxel */
     tick = pctx->pointNumInitial/1000;
     for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
       if (tick < 100 || 0 == pointIdx % tick) {
@@ -578,7 +601,7 @@ _pullPointSetup(pullContext *pctx) {
           sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
           biffAdd(PULL, err); return 1;
         }
-      } else {
+      } else { /* uniform sampling in volume */
         unsigned int threshFailCount = 0, constrFailCount = 0;
         do {
           _pullPointHistInit(point);
@@ -635,14 +658,22 @@ _pullPointSetup(pullContext *pctx) {
           }
         } while (reject);
       }
-      if (pullBinsPointAdd(pctx, point)) {
-        sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-        biffAdd(PULL, err); return 1;
+      /* HEY should use MaybeAdd */
+      if (pctx->constraint) {
+        if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
+          sprintf(err, "%s: trouble binning point %u", me, point->idtag);
+          biffAdd(PULL, err); return 1;
+        }
+      } else {
+        if (pullBinsPointAdd(pctx, point)) {
+          sprintf(err, "%s: trouble binning point %u", me, point->idtag);
+          biffAdd(PULL, err); return 1;
+        }
       }
     }
     fprintf(stderr, "%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
                                        doneStr));
-  }
+  } /* not pointPerVoxel */
   pn = _pullPointNumber(pctx);
   pctx->pointBuff = AIR_CAST(pullPoint **,
                              calloc(pn, sizeof(pullPoint*)));

@@ -302,6 +302,12 @@ _pullVolumeCopy(pullVolume *volOrig) {
   return volNew;
 }
 
+/*
+** sets:
+** pctx->haveScale
+** pctx->bboxMin  ([0] through [3], always)
+** pctx->bboxMax  (same)
+*/
 int
 _pullVolumeSetup(pullContext *pctx) {
   char me[]="_pullVolumeSetup", err[BIFF_STRLEN];

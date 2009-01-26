@@ -66,7 +66,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
   char me[]="constraintSatIso", err[BIFF_STRLEN];
   double 
     step,         /* current step size */
-    val, aval, /* last and current function values */
+    val, aval,    /* last and current function values */
     hack,         /* how to control re-tries in the context of a single
                      for-loop, instead of a nested do-while loop */
     grad[4], dir[3], len, state[1 + 1 + 3 + 3];
@@ -411,6 +411,53 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 
 /* ------------------------------------------- */
 
+static int
+_wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
+                pullTask *task, pullPoint *point) {
+  char me[]="_wantLineOrSurf", err[BIFF_STRLEN];
+
+  *wantSurf = *wantLine = AIR_FALSE;
+  if (task->pctx->ispec[pullInfoTangentMode]) {
+    double md;
+    if (_pullProbe(task, point)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(PULL, err); return 1;
+    }
+    *mode = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
+                             NULL, NULL);
+    if (task->pctx->iter < 2) {
+      *wantSurf = (*mode < 0);
+      *wantLine = !(*wantSurf);
+    } else {
+      if (point->neighInterNum) {
+        *mode = MODENAVG(point, *mode);
+        /* mode = pow((mode + 1)/2, 4)*2 - 1; */
+      }
+      md = MODEWARP(*mode, 5);
+      md = (1 + md)/2;
+      if (md < 0.01) {
+        *wantSurf = AIR_TRUE;
+      } else if (md > 0.99) {
+        *wantLine = AIR_TRUE;
+      } else {
+        *wantSurf = *wantLine = AIR_TRUE;
+      }
+    }
+  } else {
+    *mode = AIR_NAN;
+    if (task->pctx->ispec[pullInfoTangent2]) {
+      *wantLine = AIR_TRUE;
+    } else if (task->pctx->ispec[pullInfoTangent1]) {
+      *wantSurf = AIR_TRUE;
+    }
+  }
+  if (!( *wantLine || *wantSurf )) {
+    sprintf(err, "%s: confusion, should want line (%d) or surf (%d)", me,
+            *wantLine, *wantSurf);
+    biffAdd(PULL, err); return 1;
+  }
+  return 0;
+}
 
 /* HEY: have to make sure that scale position point->pos[3] 
 ** is not modified anywhere in here: constraints are ONLY spatial
@@ -423,7 +470,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   double stepMax;
   unsigned int iterMax;
   int wantLine, wantSurf, failLine, failSurf;
-  double mode, oldPos[4], posLine[4], posSurf[4],
+  double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4],
     modeLine = AIR_NAN, modeSurf = AIR_NAN;
   
   stepMax = task->pctx->constraintVoxelSize;
@@ -467,52 +514,13 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     }
     */
 
-    wantSurf = wantLine = AIR_FALSE;
-    mode = AIR_NAN;
-    if (task->pctx->ispec[pullInfoTangentMode]) {
-      double md;
-      if (_pullProbe(task, point)) {
-        sprintf(err, "%s: trouble", me);
-        biffAdd(PULL, err); return 1;
-      }                             
-      mode = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
-                              NULL, NULL);
-      if (task->pctx->iter < 2) {
-        wantSurf = (mode < 0);
-        wantLine = !wantSurf;
-      } else {
-        if (point->neighInterNum) {
-          mode = MODENAVG(point, mode);
-          /* mode = pow((mode + 1)/2, 4)*2 - 1; */
-        }
-        md = MODEWARP(mode, 5);
-        md = (1 + md)/2;
-        if (md < 0.01) {
-          wantSurf = AIR_TRUE;
-      } else if (md > 0.99) {
-          wantLine = AIR_TRUE;
-        } else {
-          wantSurf = wantLine = AIR_TRUE;
-        }
-      }
-    } else {
-      if (task->pctx->ispec[pullInfoTangent2]) {
-        wantLine = AIR_TRUE;
-      } else if (task->pctx->ispec[pullInfoTangent1]) {
-        wantSurf = AIR_TRUE;
-      }
-    }
-    if (!( wantLine || wantSurf )) {
-      sprintf(err, "%s: confusion, should want line (%d) or surf (%d)", me,
-              wantLine, wantSurf);
-      biffAdd(PULL, err); return 1;
-    }
+    _wantLineOrSurf(&wantLine, &wantSurf, &mode, task, point);
     ELL_4V_SET(posSurf, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_SET(posLine, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_COPY(oldPos, point->pos);
     if (wantSurf) {
       if (constraintSatHght(task, point, AIR_FALSE,
-                            AIR_FALSE, stepMax, iterMax, &failSurf)) {
+                            AIR_FALSE, stepMax, 2*iterMax, &failSurf)) {
         sprintf(err, "%s: surf trouble", me);
         biffAdd(PULL, err); return 1;
       }
@@ -610,4 +618,47 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
     break;
   }
   return;
+}
+
+/*
+** returns the dimension of the constraint manifold: 1.0, 1.5, or 2.0
+** yes, a float return, to represent the weirdness between line/surf
+**
+** a zero return value represents a biff-able error
+*/
+double
+_pullConstraintDim(pullTask *task, pullPoint *point) {
+  char me[]="_pullConstraintDim", err[BIFF_STRLEN];
+  int wantSurf, wantLine;
+  double ret, 
+    mode; /* although we never use it */
+  
+  switch (task->pctx->constraint) {
+  case pullInfoHeightLaplacian: /* zero-crossing edges */
+    ret = 2.0;
+    break;
+  case pullInfoIsovalue:
+    ret = 2.0;
+    break;
+  case pullInfoHeight:
+    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode, task, point)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(PULL, err); return 0.0;
+    }
+    if (wantSurf && wantLine) {
+      /* HEY: the logic here should ideally depend failSurf and failLine */
+      ret = 1.5;
+    } else if (wantSurf) {
+      ret = 2.0;
+    } else {
+      ret = 1.0;
+    }
+    break;
+  default:
+    sprintf(err, "%s: constraint on %s (%d) unimplemented", me,
+            airEnumStr(pullInfo, task->pctx->constraint),
+            task->pctx->constraint);
+    biffAdd(PULL, err); return 0.0;
+  }
+  return ret;
 }

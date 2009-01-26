@@ -89,7 +89,9 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
 ** 1 parms:
-** parm[0]: width of pull region (beyond 1.0)
+** parm[0]: width of pull region.  Used to be width beyond 1.0, but 
+** now things are scrunched to fit both repelling and attractive
+** region inside [0,1]
 **
 ** learned: "1/2" is not 0.5 !!!!!
 */
