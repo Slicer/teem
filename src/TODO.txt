@@ -1,4 +1,5 @@
---------- teem 1.10 priority
+large-scale fix: when using sizeof with memcpy or memset, should be using
+the variable name itself instead of type as argument to sizeof()
 
 fix all 
 "dereferencing type-punned pointer will break strict-aliasing rules"
@@ -7,8 +8,6 @@ warnings on a modern linux system
 Make sure the CMake and GNUMake agree on source files per-library
 
 decide if <LIB>_EXPORT should just be TEEM_EXPORT
-
---------- for after teem 1.10
 
 Fix the "unu dist" segfault that I discovered awhile ago (I can
 provide the input file that triggers this)
