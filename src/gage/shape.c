@@ -332,7 +332,8 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   
   /* ------ set transform matrices */
   if (shape->fromOrientation) {
-    /* find translation vector (we check above that spaceDim == wantedSpaceDim) */
+    /* find translation vector (we check above that
+       spaceDim == wantedSpaceDim) */
     nrrdSpaceOriginGet(nin, orig);
     if (!( AIR_EXISTS(orig[0]) &&
            AIR_EXISTS(orig[1]) && 
@@ -508,6 +509,7 @@ gageShapeEqual(gageShape *shape1, char *_name1,
 void
 gageShapeBoundingBox(double min[3], double max[3],
                      gageShape *shape) {
+  /* char me[]="gageShapeBoundingBox"; */
   double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
   unsigned int ii;
   
