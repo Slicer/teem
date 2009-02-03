@@ -450,8 +450,8 @@ _pullPointSetup(pullContext *pctx) {
       biffMove(PULL, err, NRRD); return 1;
     }
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
-      fprintf(stderr, "%s: with npos, overriding pointNumInitial (%u) "
-              "and pointPerVoxel (%u)", me, pctx->pointNumInitial,
+      fprintf(stderr, "%s: with npos, overriding both pointNumInitial (%u) "
+              "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
               pctx->pointPerVoxel);
     }
     pctx->pointNumInitial = npos->axis[1].size;
@@ -461,7 +461,7 @@ _pullPointSetup(pullContext *pctx) {
     npos = NULL;
     posData = NULL;
     if (pctx->pointNumInitial) {
-      fprintf(stderr, "%s: pointPerVoxel %u overrides pointNumInitial (%u)\n",
+      fprintf(stderr, "%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
               me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
     pctx->pointNumInitial = 0;
@@ -496,9 +496,22 @@ _pullPointSetup(pullContext *pctx) {
     tick = voxNum/1000;
     point = NULL;
     for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
+      unsigned int ppv;
       if (tick < 100 || 0 == voxIdx % tick) {
         fprintf(stderr, "%s", airDoneStr(0, voxIdx, voxNum, doneStr));
         fflush(stderr);
+      }
+      if (pctx->pointPerVoxel < 0) {
+        if (voxIdx % -pctx->pointPerVoxel) {
+          /* they want every Nth voxel seeding, and on this voxIdx
+             we got a remainder when dividing by N */
+          continue;
+        } else {
+          ppv = 1;
+        }
+      } else {
+        /* they want N points in each voxel */
+        ppv = pctx->pointPerVoxel;
       }
       vidx[0] = voxIdx % seedShape->size[0];
       yzi = (voxIdx - vidx[0])/seedShape->size[0];
@@ -508,7 +521,7 @@ _pullPointSetup(pullContext *pctx) {
         fprintf(stderr, "%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
                 voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
       }
-      for (ppvIdx=0; ppvIdx<pctx->pointPerVoxel; ppvIdx++) {
+      for (ppvIdx=0; ppvIdx<ppv; ppvIdx++) {
         /* re-used a point that failed to be binned (for whatever reason) */
         if (!point) {
           point = pullPointNew(pctx);
@@ -577,7 +590,7 @@ _pullPointSetup(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
     if (pctx->verbose) {
-      fprintf(stderr, "%s: with pointPerVoxel %u --> pointNumInitial = %u\n",
+      fprintf(stderr, "%s: with pointPerVoxel %d --> pointNumInitial = %u\n",
               me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
   } else { /* not pointPerVoxel */
@@ -612,6 +625,10 @@ _pullPointSetup(pullContext *pctx) {
                                 pctx->bboxMin[1], pctx->bboxMax[1]),
                      AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                 pctx->bboxMin[2], pctx->bboxMax[2]));
+          /*
+          fprintf(stderr, "!%s: pos = %g %g %g\n", me,
+                  point->pos[0], point->pos[1], point->pos[2]);
+          */
           if (pctx->haveScale) {
             point->pos[3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                        pctx->bboxMin[3], pctx->bboxMax[3]);
@@ -625,7 +642,8 @@ _pullPointSetup(pullContext *pctx) {
           }
           if (pctx->ispec[pullInfoSeedThresh]) {
             double val;
-            val = _pullPointScalar(pctx, point, pullInfoSeedThresh, NULL, NULL);
+            val = _pullPointScalar(pctx, point, pullInfoSeedThresh,
+                                   NULL, NULL);
             /*
               fprintf(stderr, "!%s: val(%g %g %g) =  %g -> %g\n", me, 
               point->pos[0], point->pos[1], point->pos[2], 
@@ -648,9 +666,10 @@ _pullPointSetup(pullContext *pctx) {
           if (reject) {
             if (threshFailCount + constrFailCount > 10000) {
               sprintf(err, "%s: failed too often placing %u "
-                      "(thresh %d/%u, constr %d/%u)",
-                      me, pointIdx, threshFail, threshFailCount,
-                      constrFail, constrFailCount);
+                      "(thresh %s/%u, constr %s/%u)",
+                      me, pointIdx,
+                      threshFail ? "true" : "false", threshFailCount,
+                      constrFail ? "true" : "false", constrFailCount);
               biffAdd(PULL, err); return 1;
             }
           } else {

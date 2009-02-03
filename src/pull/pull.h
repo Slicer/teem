@@ -261,6 +261,7 @@ typedef struct {
 ** or something, and the rest of them are created within pull per-task.
 */
 typedef struct {
+  int verbose;                 /* blah blah blah */
   char *name;                  /* how the volume will be identified
                                   (like its a variable name) */
   const gageKind *kind;
@@ -365,15 +366,16 @@ typedef struct pullContext_t {
                                       below this times constraintVoxelSize */
     wall;                          /* spring constant on bbox wall */
 
-  unsigned int 
-    pointPerVoxel,                 /* number of initial points per voxel, in
+  int pointPerVoxel;               /* number of initial points per voxel, in
                                       seed thresh volume. If 0, then use old
                                       behavior of just finding pointNumInitial
                                       (see above) seedpoint locations randomly.
-                                      If non-0 (over-riding pointNumInitial),
-                                      then jitter seedPerVox seed points in
-                                      every sample of the seed threshold
-                                      volume */
+                                      Non-zero overrides pointNumInitial.
+                                      > 0 : jitter pointPerVox seed points in
+                                      very sample of the seed threshold volume
+                                      < 0 : jitter 1 seed point in every
+                                      pointPerVox-th voxel (so -1 same as 1)*/
+  unsigned int
     rngSeed,                       /* seed value for random number generator,
                                       NOT directly related to seed point
                                       placement*/
@@ -506,6 +508,7 @@ PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
+PULL_EXPORT void pullVerboseSet(pullContext *pctx, int verbose);
 
 /* pointPull.c */
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);

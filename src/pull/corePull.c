@@ -273,6 +273,10 @@ pullRun(pullContext *pctx) {
   }
   time0 = airTime();
   firstIter = pctx->iter;
+  if (pctx->verbose) {
+    fprintf(stderr, "%s: doing priming iteration (iter now %u)\n", me,
+            pctx->iter);
+  }
   if (_pullIterate(pctx)) {
     sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
     biffAdd(PULL, err); return 1;
@@ -297,6 +301,10 @@ pullRun(pullContext *pctx) {
       npos = nrrdNuke(npos);
     }
 
+    if (pctx->verbose) {
+      fprintf(stderr, "%s: ################################ iter %u ...\n",
+              me, pctx->iter);
+    }
     if (_pullIterate(pctx)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PULL, err); return 1;
@@ -315,7 +323,8 @@ pullRun(pullContext *pctx) {
       enrImprovAvg = (2*enrImprovAvg + enrImprov)/3;
     }
     if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: iter %u: e=%g,%g, de=%g,%g, s=%g,%g\n",
+      fprintf(stderr, "%s: ######## done iter %u: "
+              "e=%g,%g, de=%g,%g, s=%g,%g\n",
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }

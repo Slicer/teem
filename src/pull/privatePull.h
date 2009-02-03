@@ -30,7 +30,7 @@ extern "C" {
 #define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))                   \
                                  / (AIR_ABS(ell) + AIR_ABS(enn)))
 /* volumePull.c */
-extern pullVolume *_pullVolumeCopy(pullVolume *pvol);
+extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
 
 /* infoPull.c */

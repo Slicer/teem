@@ -60,6 +60,7 @@ pullVolumeNew() {
 
   vol = AIR_CAST(pullVolume *, calloc(1, sizeof(pullVolume)));
   if (vol) {
+    vol->verbose = 0;
     vol->name = NULL;
     vol->kind = NULL;
     vol->ninSingle = NULL;
@@ -102,7 +103,8 @@ pullVolumeNix(pullVolume *vol) {
 ** in which case pctx is NULL
 */
 int
-_pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
+_pullVolumeSet(pullContext *pctx, pullVolume *vol,
+               int verbose, const char *name,
                const Nrrd *ninSingle,
                const Nrrd *const *ninScale, double *scalePos,
                unsigned int ninNum,
@@ -140,6 +142,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol, char *name,
     sprintf(err, "%s: got NULL vol->gageContext", me);
     biffAdd(PULL, err); return 1;
   }
+  gageParmSet(vol->gctx, gageParmVerbose, verbose);
+  gageParmSet(vol->gctx, gageParmRequireEqualCenters, AIR_TRUE);
   gageParmSet(vol->gctx, gageParmRequireAllSpacings, AIR_TRUE);
   gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -228,7 +232,7 @@ pullVolumeSingleAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, name, nin,
+  if (_pullVolumeSet(pctx, vol, pctx->verbose, name, nin,
                      NULL, NULL, 0, 
                      kind, ksp00, ksp11, ksp22, NULL)) {
     sprintf(err, "%s: trouble", me);
@@ -258,7 +262,7 @@ pullVolumeStackAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, name, NULL,
+  if (_pullVolumeSet(pctx, vol, pctx->verbose, name, NULL,
                      nin, scale, ninNum, 
                      kind, ksp00, ksp11, ksp22, kspSS)) {
     sprintf(err, "%s: trouble", me);
@@ -276,12 +280,12 @@ pullVolumeStackAdd(pullContext *pctx,
 ** DOES use biff
 */
 pullVolume *
-_pullVolumeCopy(pullVolume *volOrig) {
+_pullVolumeCopy(const pullVolume *volOrig) {
   char me[]="pullVolumeCopy", err[BIFF_STRLEN];
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
-  if (_pullVolumeSet(NULL, volNew, volOrig->name, 
+  if (_pullVolumeSet(NULL, volNew, volOrig->verbose, volOrig->name, 
                      volOrig->ninSingle,
                      volOrig->ninScale, volOrig->scalePos,
                      volOrig->scaleNum,

@@ -604,7 +604,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000000001) {
         if (task->pctx->verbose > 1) {
-          fprintf(stderr, "\n%s: %u (%g,%g,%g,%g) stepEnr %g stuck; "
+          fprintf(stderr, "%s: %u stuck; (%g,%g,%g,%g) stepEnr %g"
                   "capscl %g <<<<\n\n\n", me, point->idtag, 
                   point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                   point->stepEnergy, capscl);
@@ -662,10 +662,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   /* probabilistically nix points that seem to have too many neighbors */
   if (task->pctx->constraint) {
     pullPoint *point;
-    double constrDim, nixProb, wantNum, haveNum, ndist;
+    double nixProb, ndist;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
       point = myBin->point[myPointIdx];
 #if 0
+      /* double wantNum, haveNum, constrDim; */
       constrDim = _pullConstraintDim(task, point);
       if (!constrDim) {
         sprintf(err, "%s: got constraint dim 0", me);

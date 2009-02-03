@@ -335,7 +335,7 @@ _pullContextCheck(pullContext *pctx) {
   }
 
   if (0 == pctx->jitter && 1 < pctx->pointPerVoxel) {
-    sprintf(err, "%s: must have jitter > 0 if pointPerVoxel (%u) > 1", me,
+    sprintf(err, "%s: must have jitter > 0 if pointPerVoxel (%d) > 1", me,
             pctx->pointPerVoxel);
     biffAdd(PULL, err); return 1;
   }
@@ -428,6 +428,17 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
 
   fprintf(stderr, "!%s: final outIdx %u, # %u\n", me, outIdx, pointNum);
   return 0;
+}
+
+void
+pullVerboseSet(pullContext *pctx, int verbose) {
+  unsigned int volIdx;
+
+  pctx->verbose = verbose;
+  for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
+    gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, verbose);
+  }
+  return;
 }
 
 int
