@@ -126,3 +126,31 @@ ell_3v_angle_d(double u[3], double v[3]) {
   return ret;
 }
 
+double
+ell_3v_area_spherical_d(const double _avec[3],
+                        const double _bvec[3],
+                        const double _cvec[3]) {
+  double avec[3], bvec[3], cvec[3], axb[3], bxc[3], cxa[3], A, B, C, tmp;
+
+  ELL_3V_NORM(avec, _avec, tmp);
+  ELL_3V_NORM(bvec, _bvec, tmp);
+  ELL_3V_NORM(cvec, _cvec, tmp);
+  ELL_3V_CROSS(axb, avec, bvec);
+  ELL_3V_CROSS(bxc, bvec, cvec);
+  ELL_3V_CROSS(cxa, cvec, avec);
+  ELL_3V_NORM(axb, axb, tmp);
+  ELL_3V_NORM(bxc, bxc, tmp);
+  ELL_3V_NORM(cxa, cxa, tmp);
+  /*
+  ell_3v_print_d(stderr, axb);
+  ell_3v_print_d(stderr, bxc);
+  ell_3v_print_d(stderr, cxa);
+  */
+  A = AIR_PI - ell_3v_angle_d(axb, cxa);
+  B = AIR_PI - ell_3v_angle_d(bxc, axb);
+  C = AIR_PI - ell_3v_angle_d(cxa, bxc);
+  /*
+  fprintf(stderr, "A, B, C = %g, %g, %g\n", A, B, C);
+  */
+  return A + B + C - AIR_PI;
+}
