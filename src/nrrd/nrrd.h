@@ -712,6 +712,7 @@ NRRD_EXPORT airEnum *nrrdCenter;
 NRRD_EXPORT airEnum *nrrdKind;
 NRRD_EXPORT airEnum *nrrdField;
 NRRD_EXPORT airEnum *nrrdSpace;
+NRRD_EXPORT airEnum *nrrdSpacingStatus;
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT airEnum *nrrdBoundary;
 NRRD_EXPORT airEnum *nrrdMeasure;

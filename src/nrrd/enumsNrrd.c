@@ -764,6 +764,38 @@ _nrrdSpace = {
 airEnum *
 nrrdSpace = &_nrrdSpace;
 
+/* ------------------------ nrrdSpacingStatus ------------------------- */
+
+char
+_nrrdSpacingStatusStr[NRRD_SPACING_STATUS_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_status)",
+  "none",
+  "scalarNoSpace",
+  "scalarWithSpace",
+  "direction",
+};
+
+char
+_nrrdSpacingStatusDesc[NRRD_BOUNDARY_MAX+1][AIR_STRLEN_MED] = {
+  "unknown spacing status behavior",
+  "neither axis->spacing nor axis->spaceDirection set",
+  "axis->spacing set normally",
+  "axis->spacing set, with surround space (?)",
+  "axis->spaceDirection set normally",
+};
+
+airEnum
+_nrrdSpacingStatus = {
+  "spacing status",
+  NRRD_SPACING_STATUS_MAX,
+  _nrrdSpacingStatusStr, NULL,
+  _nrrdSpacingStatusDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+nrrdSpacingStatus = &_nrrdSpacingStatus;
+
 /* ---- BEGIN non-NrrdIO */
 
 /* ------------------------ nrrdBoundary ------------------------- */

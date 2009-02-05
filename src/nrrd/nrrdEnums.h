@@ -503,6 +503,7 @@ enum {
                                          space */
   nrrdSpacingStatusLast
 };
+#define NRRD_SPACING_STATUS_MAX          4
 
 /*
 ******** nrrdOriginStatus* enum
