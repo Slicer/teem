@@ -113,7 +113,7 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   echoGlobalState *gstate;
   tenGlyphParm *gparm;
   float bg[3], edgeColor[3], buvne[5], shadow, creaseAngle;
-  int ires[2], slice[2], nobg, ambocc;
+  int ires[2], slice[2], nobg, ambocc, concave;
   unsigned int hackci, hacknumcam;
   size_t hackmin[3]={0,0,0}, hackmax[3]={2,0,0};
   char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
@@ -286,6 +286,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "nobg", NULL, airTypeInt, 0, 0, &nobg, NULL,
              "(* postscript only *) "
              "don't initially fill with background color");
+  hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
+             "use slightly buggy rendering method suitable for "
+             "concave or self-occluding objects");
 
   /* ray-traced-specific options */
   hestOptAdd(&hopt, "is", "nx ny", airTypeInt, 2, 2, ires, "256 256",
@@ -554,7 +557,9 @@ tend_glyphMain(int argc, char **argv, char *me, hestParm *hparm) {
     ELL_3V_COPY(win->ps.bg, bg);
     ELL_3V_COPY(win->ps.edgeColor, edgeColor);
     if (limnObjectRender(glyph, cam, win)
-        || limnObjectPSDraw(glyph, cam, emap, win)) {
+        || (concave
+            ? limnObjectPSDrawConcave(glyph, cam, emap, win)
+            : limnObjectPSDraw(glyph, cam, emap, win))) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble drawing glyphs:\n%s\n", me, err);
       airMopError(mop); return 1;
