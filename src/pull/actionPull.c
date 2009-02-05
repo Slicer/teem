@@ -687,7 +687,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       /* The demoninator here is the neighbor distance below which a point
          is subject to get nixed; higher value ==> more aggressive nixing.
          The maximum of two points interacting is 2*task->pctx->radiusSpace */
-      ndist = point->neighDist/(1.5*task->pctx->radiusSpace);
+      ndist = point->neighDist/(1*task->pctx->radiusSpace);
       if (ndist < 1) {
         nixProb = 0.5*(1 - ndist)*(1 - ndist);
         if (airDrandMT_r(task->rng) < nixProb) {
