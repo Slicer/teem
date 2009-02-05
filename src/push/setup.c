@@ -127,7 +127,7 @@ _pushGageSetup(pushContext *pctx) {
   int E;
 
   pctx->gctx = gageContextNew();
-  gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_TRUE);
+  /* gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_TRUE); */
   E = AIR_FALSE;
   /* set up tensor probing */
   if (!E) E |= !(pctx->tpvl = gagePerVolumeNew(pctx->gctx,
