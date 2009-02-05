@@ -41,20 +41,11 @@ gageDefCheckIntegrals = AIR_TRUE;
 int
 gageDefK3Pack = AIR_TRUE;
 
-double
-gageDefDefaultSpacing = 1.0;
-
 int
 gageDefCurvNormalSide = 1;
 
 double
 gageDefKernelIntegralNearZero = 0.0001;
-
-int
-gageDefRequireAllSpacings = AIR_TRUE;
-
-int
-gageDefRequireEqualCenters = AIR_TRUE;
 
 int
 gageDefDefaultCenter = nrrdCenterCell;

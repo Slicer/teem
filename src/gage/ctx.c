@@ -301,10 +301,6 @@ gageParmSet(gageContext *ctx, int which, double val) {
     ctx->parm.gradMagCurvMin = val;
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
-  case gageParmDefaultSpacing:
-    ctx->parm.defaultSpacing = val;
-    /* no flag to set, simply affects future calls to gageProbe() */
-    break;
   case gageParmCurvNormalSide:
     ctx->parm.curvNormalSide = AIR_CAST(int, val);
     /* no flag to set, simply affects future calls to gageProbe() */
@@ -312,14 +308,6 @@ gageParmSet(gageContext *ctx, int which, double val) {
   case gageParmKernelIntegralNearZero:
     ctx->parm.kernelIntegralNearZero = val;
     /* no flag to set, simply affects future calls to gageKernelSet() */
-    break;
-  case gageParmRequireAllSpacings:
-    ctx->parm.requireAllSpacings = AIR_CAST(int, val);
-    /* no flag to set, simply affects future calls to gageProbe() */
-    break;
-  case gageParmRequireEqualCenters:
-    ctx->parm.requireEqualCenters = AIR_CAST(int, val);
-    /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmDefaultCenter:
     ctx->parm.defaultCenter = AIR_CAST(int, val);

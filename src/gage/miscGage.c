@@ -107,11 +107,8 @@ gageParmReset(gageParm *parm) {
     parm->checkIntegrals = gageDefCheckIntegrals;
     parm->k3pack = gageDefK3Pack;
     parm->gradMagCurvMin = gageDefGradMagCurvMin;
-    parm->defaultSpacing = gageDefDefaultSpacing;
     parm->curvNormalSide = gageDefCurvNormalSide;
     parm->kernelIntegralNearZero = gageDefKernelIntegralNearZero;
-    parm->requireAllSpacings = gageDefRequireAllSpacings;
-    parm->requireEqualCenters = gageDefRequireEqualCenters;
     parm->defaultCenter = gageDefDefaultCenter;
     parm->stackUse = gageDefStackUse;
     parm->stackRenormalize = gageDefStackRenormalize;

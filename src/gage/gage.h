@@ -89,11 +89,8 @@ enum {
   gageParmCheckIntegrals,         /* int */
   gageParmK3Pack,                 /* int */
   gageParmGradMagCurvMin,         /* double */
-  gageParmDefaultSpacing,         /* double */
   gageParmCurvNormalSide,         /* int */
   gageParmKernelIntegralNearZero, /* double */
-  gageParmRequireAllSpacings,     /* int */
-  gageParmRequireEqualCenters,    /* int */
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
   gageParmStackRenormalize,       /* int (does not imply gageParmStackUse) */
@@ -341,10 +338,10 @@ struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 ** of all the volumes associated with a context
 **
 ** Note that the utility of gageShape has extended well beyond doing
-** convolution-based measurements in volumes- it has become the one-stop
-** place for figuring out a reasonable way of locating a logically
-** a volume in 3-D space, including using a nrrd's full orientation 
-** information if it is known.
+** convolution-based measurements in volumes- it has become the
+** one-stop place for all of Teem to figure out a reasonable way of
+** locating a logically a volume in 3-D space, including using a
+** nrrd's full orientation information if it is known.
 */
 typedef struct gageShape_t {
   int defaultCenter,          /* default centering to use when given volume
@@ -360,11 +357,7 @@ typedef struct gageShape_t {
   double spacing[3];          /* spacings for each axis */
   /* fwScale[GAGE_KERNEL_MAX+1][3] has been superceded by the cleaner and
      more general ItoWSubInvTransp and ItoWSubInv matrices below */
-  double volHalfLen[3],       /* half the lengths along each axis in order
-                                 to bound the volume in a bi-unit cube */
-    voxLen[3],                /* when bound in bi-unit cube, the dimensions
-                                 of a single voxel */
-    ItoW[16],                 /* homogeneous coord transform from index
+  double ItoW[16],            /* homogeneous coord transform from index
                                  to world space (defined either by bi-unit
                                  cube or from full orientation info ) */
     WtoI[16],                 /* inverse of above */
@@ -402,10 +395,8 @@ typedef struct gageParm_t {
                                  gradient magnitude is less than this. Yes,
                                  this is scalar-kind-specific, but there's
                                  no other good place for it */
-    kernelIntegralNearZero,   /* tolerance with checkIntegrals on derivative
+    kernelIntegralNearZero;   /* tolerance with checkIntegrals on derivative
                                  kernels */
-    defaultSpacing;           /* when requireAllSpacings is zero, what spacing
-                                 to use when we have to invent one */
   int curvNormalSide,         /* determines direction of gradient that is used
                                  as normal in curvature calculations, exactly
                                  the same as miteUser's normalSide: 1 for
@@ -413,19 +404,8 @@ typedef struct gageParm_t {
                                  values are more "inside"); -1 for normal
                                  pointing to higher values (low values more
                                  "inside") */
-    requireAllSpacings,       /* if non-zero, require that spacings on all 3
-                                 spatial axes are set, and are equal; this is
-                                 the traditional way of gage.  If zero, then 
-                                 one, two, or all three axes' spacing can be
-                                 unset, and we'll use defaultSpacing instead */
-    requireEqualCenters,      /* if non-zero, all centerings on spatial axes 
-                                 must be the same (including the possibility 
-                                 of all being nrrdCenterUnknown). If zero, its
-                                 okay for axes' centers to be unset, but two
-                                 that are set cannot be unequal */
-    defaultCenter,            /* only meaningful when requireAllSpacings is
-                                 zero- what centering to use when you have to
-                                 invent one, because its not set */
+    defaultCenter,            /* what centering to use when you have to invent
+                                 one, because its not set on any axis */
     stackUse,                 /* if non-zero: treat the pvl's (all same kind)
                                  as multiple values of a single logical volume
                                  (e.g. for approximating scale space).
@@ -437,11 +417,13 @@ typedef struct gageParm_t {
     stackRenormalize,         /* if non-zero (and if stackUse is non-zero):
                                  derivatives of filter stage are renormalized
                                  based on the stack parameter */
-    orientationFromSpacing;	/* only meaningful if nrrd has per-axis spacing,
-				   but no orientation info. If zero, the
-				   volume is crammed into the bi-unit cube.
-				   If non-zero, the edges of the cube are scaled
-				   to match the given per-axis spacing. */
+    orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
+                                 but not full orientation info. If zero, the
+                                 volume is crammed into the bi-unit cube.
+                                 If non-zero, gage treats the volume as if it
+                                 had axis-aligned spaceDirection vectors, with
+                                 the non-zero values determined by the given
+                                 per-axis spacing. */
 } gageParm;
 
 /*
@@ -750,11 +732,8 @@ GAGE_EXPORT double gageDefGradMagCurvMin;
 GAGE_EXPORT int gageDefRenormalize;
 GAGE_EXPORT int gageDefCheckIntegrals;
 GAGE_EXPORT int gageDefK3Pack;
-GAGE_EXPORT double gageDefDefaultSpacing;
 GAGE_EXPORT int gageDefCurvNormalSide;
 GAGE_EXPORT double gageDefKernelIntegralNearZero;
-GAGE_EXPORT int gageDefRequireAllSpacings;
-GAGE_EXPORT int gageDefRequireEqualCenters;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackRenormalize;
