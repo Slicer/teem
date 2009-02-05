@@ -143,8 +143,6 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     biffAdd(PULL, err); return 1;
   }
   gageParmSet(vol->gctx, gageParmVerbose, verbose);
-  gageParmSet(vol->gctx, gageParmRequireEqualCenters, AIR_TRUE);
-  gageParmSet(vol->gctx, gageParmRequireAllSpacings, AIR_TRUE);
   gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
