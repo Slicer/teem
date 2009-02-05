@@ -62,7 +62,7 @@ miteUserNew() {
   }
   muu->gctx0 = gageContextNew();
   airMopAdd(muu->umop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
-  gageParmSet(muu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
+  /* gageParmSet(muu->gctx0, gageParmRequireAllSpacings, AIR_FALSE); */
   muu->lit = limnLightNew();
   airMopAdd(muu->umop, muu->lit, (airMopper)limnLightNix, airMopAlways);
   muu->normalSide = miteDefNormalSide;
