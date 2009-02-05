@@ -559,7 +559,7 @@ main(int argc, char *argv[]) {
     return 1;
   }
   gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE);
+  /* gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE); */
   gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
   fprintf(stderr, "%s: will render %s of %s in %s volume\n", me,
           airEnumStr(nrrdMeasure, uu->measr),
