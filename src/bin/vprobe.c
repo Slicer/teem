@@ -107,6 +107,31 @@ main(int argc, char *argv[]) {
   unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
 
+  /* parse environment variables first, in case they break nrrdDefault*
+     or nrrdState* variables in a way that nrrdSanity() should see */
+  nrrdDefaultGetenv();
+  nrrdStateGetenv();
+  /* no harm done in making sure we're sane */
+  if (!nrrdSanity()) {
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  This means that either nrrd can't work on this "
+            "platform, or (more likely)\n");
+    fprintf(stderr, "  there was an error in the compilation options "
+            "and variable definitions\n");
+    fprintf(stderr, "  for how Teem was built here.\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    free(err);
+    return 1;
+  }
+
   mop = airMopNew();
   me = argv[0];
   hparm = hestParmNew();
