@@ -214,8 +214,8 @@ nrrdSpaceOriginSet(Nrrd *nrrd,
 **
 ** nrrdOriginStatusNoMin:          can't compute "origin" without axis->min
 **
-** nrrdOriginStatusNoMaxOrSpacing: can't compute origin without either
-**                                 axis->max or axis->spacing
+** nrrdOriginStatusNoMaxOrSpacing: can't compute origin without (axis->min
+**                                 and) either axis->max or axis->spacing
 **
 ** nrrdOriginStatusOkay:           all is well
 */
