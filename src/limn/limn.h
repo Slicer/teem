@@ -714,6 +714,13 @@ LIMN_EXPORT int limnObjectPolarSuperquadAdd(limnObject *obj,
                                             float A, float B,
                                             unsigned int thetaRes,
                                             unsigned int phiRes);
+LIMN_EXPORT int limnObjectPolarSuperquadFancyAdd(limnObject *obj,
+                                                 unsigned int lookIdx,
+                                                 unsigned int axis,
+                                                 float A, float B,
+                                                 float C, float R,
+                                                 unsigned int thetaRes,
+                                                 unsigned int phiRes);
 
 /* transform.c */
 LIMN_EXPORT int limnObjectWorldHomog(limnObject *obj);

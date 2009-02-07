@@ -308,13 +308,14 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
 }
 
 int
-limnObjectPolarSuperquadAdd(limnObject *obj,
-                            unsigned int lookIdx, unsigned int axis,
-                            float A, float B, 
-                            unsigned int thetaRes, unsigned int phiRes) {
+limnObjectPolarSuperquadFancyAdd(limnObject *obj,
+                                 unsigned int lookIdx, unsigned int axis,
+                                 float A, float B, float C, float R,
+                                 unsigned int thetaRes, unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
   double x, y, z, t, p;
   
+  AIR_UNUSED(R);
   thetaRes = AIR_MAX(thetaRes, 3);
   phiRes = AIR_MAX(phiRes, 2);
   
@@ -342,6 +343,15 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
         x = airSgnPow(cos(p),B);
         y = -airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
         z = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
+        if (C != B) {
+          /* modify profile along y axis to create beta=C */
+          double yp, ymax;
+          yp = airSgnPow(sin(acos(airSgnPow(x, 1/C))), C);
+          ymax = airSgnPow(sin(p), B);
+          if (ymax) {
+            y *= yp/ymax;
+          }
+        }
         break;
       case 1:
         x = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
@@ -352,6 +362,15 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
         x = airSgnPow(cos(t),A) * airSgnPow(sin(p),B);
         y = airSgnPow(sin(t),A) * airSgnPow(sin(p),B);
         z = airSgnPow(cos(p),B);
+        if (C != B) {
+          /* modify profile along y axis to create beta=C */
+          double yp, ymax;
+          yp = airSgnPow(sin(acos(airSgnPow(z, 1/C))), C);
+          ymax = airSgnPow(sin(p), B);
+          if (ymax) {
+            y *= yp/ymax;
+          }
+        }
         break;
       }
       limnObjectVertexAdd(obj, partIdx,
@@ -391,4 +410,15 @@ limnObjectPolarSuperquadAdd(limnObject *obj,
   }
 
   return partIdx;
+}
+
+int
+limnObjectPolarSuperquadAdd(limnObject *obj,
+                            unsigned int lookIdx, unsigned int axis,
+                            float A, float B,
+                            unsigned int thetaRes, unsigned int phiRes) {
+
+  return limnObjectPolarSuperquadFancyAdd(obj, lookIdx, axis,
+                                          A, B, B, 0,
+                                          thetaRes, phiRes);
 }

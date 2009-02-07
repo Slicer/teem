@@ -505,7 +505,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   vertIdx = 0;
   for (phiIdx=0; phiIdx<phiRes; phiIdx++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
-      double cost, sint, cosp, sinp;
+      double cost, sint, cosp, sinp, xx, yy, zz;
       double phi = (AIR_AFFINE(0, phiIdx, phiRes, 0, AIR_PI)
                     + AIR_AFFINE(0, thetaIdx, thetaRes, 0, AIR_PI)/phiRes);
       double theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0.0, 2*AIR_PI);
@@ -513,11 +513,31 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
       sinp = sin(phi);
       cost = cos(theta);
       sint = sin(theta);
-      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float,
-                    airSgnPow(cost,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(sint,alpha) * airSgnPow(sinp,beta),
-                    airSgnPow(cosp,beta),
-                    1.0);
+      xx = airSgnPow(cost,alpha) * airSgnPow(sinp,beta);
+      yy = airSgnPow(sint,alpha) * airSgnPow(sinp,beta);
+      zz = airSgnPow(cosp,beta);
+      if (0) {
+        /* expand profile along x axis to match having beta=bp */
+        double bp=2, phip, xp, xmax;
+        phip = acos(airSgnPow(zz, 1/bp));
+        xp = airSgnPow(sin(phip), bp);
+        xmax = airSgnPow(sinp, beta);
+        if (xmax) {
+          xx *= xp/xmax;
+        }
+      }
+      ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float, xx, yy, zz, 1.0);
+      if (0) {
+        /* add thickness to small radius */
+        double xx, yy, rr;
+        xx = (pld->xyzw + 4*vertIdx)[0];
+        yy = (pld->xyzw + 4*vertIdx)[1];
+        rr = sqrt(xx*xx + yy*yy);
+        if (rr < 0.1 && rr) {
+          (pld->xyzw + 4*vertIdx)[0] *= 0.1/rr;
+          (pld->xyzw + 4*vertIdx)[1] *= 0.1/rr;
+        }
+      }
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
         if (1 == alpha && 1 == beta) {
           ELL_3V_COPY(pld->norm + 3*vertIdx, pld->xyzw + 4*vertIdx);
