@@ -76,12 +76,15 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
 double
 _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
                      /* output */
-                     double egrad[4]) {
+                     double *spadistP, double egrad[4]) {
   char meme[]="_energyInterParticle";
   double spadist, sparad, diff[4], rr, enr, frc, *parm;
 
   ELL_4V_SUB(diff, she->pos, me->pos);
   spadist = ELL_3V_LEN(diff);
+  if (spadistP) {
+    *spadistP = spadist;
+  }
   sparad = task->pctx->radiusSpace;
   
   rr = spadist/(2*sparad);
@@ -197,7 +200,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
   for (nidx=0; nidx<nnum; nidx++) {
-    double diff[4], spaDistSq, enr, egrad[4];
+    double diff[4], spaDistSq, spaDist, enr, egrad[4];
     pullPoint *herPoint;
     herPoint = task->neighPoint[nidx];
     ELL_4V_SUB(diff, herPoint->pos, point->pos);
@@ -215,7 +218,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (AIR_ABS(diff[3] > task->pctx->radiusScale)) {
       continue;
     }
-    enr = _energyInterParticle(task, point, herPoint, egrad);
+    enr = _energyInterParticle(task, point, herPoint, &spaDist, egrad);
     /*
     fprintf(stderr, "!%s: energySum = %g + %g = %g\n", me, 
             energySum, enr, energySum + enr);
@@ -225,7 +228,8 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       ELL_4V_INCR(egradSum, egrad);
       if (ELL_4V_DOT(egrad, egrad)) {
         point->neighInterNum++;
-        point->neighDist = spaDistSq;
+        /* point->neighDist += spaDistSq; */
+        point->neighDist += spaDist;
         if (task->pctx->ispec[pullInfoTangentMode]) {
           double w, m;
           m = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
@@ -245,10 +249,11 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
-    point->neighDist = sqrt(point->neighDist/point->neighInterNum);
+    /* point->neighDist = sqrt(point->neighDist/point->neighInterNum);*/
+    point->neighDist /= point->neighInterNum;
     point->neighMode /= wghtSum;
   } else {
-    point->neighDist = -1;
+    point->neighDist = 0.0; /* shouldn't have this in any normal case */
     point->neighMode = AIR_NAN;
   }
 
@@ -659,40 +664,32 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
                        & PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
 
-  /* probabilistically nix points that seem to have too many neighbors */
-  if (task->pctx->constraint) {
+  /* probabilistically nix points that have too much company */
+  if (0 && task->pctx->constraint) {
     pullPoint *point;
     double nixProb, ndist;
-    double constrDim;
-    unsigned int haveNum, wantNum;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
       point = myBin->point[myPointIdx];
-#if 1
-      /* double wantNum, haveNum, constrDim; */
-      constrDim = _pullConstraintDim(task, point);
-      if (!constrDim) {
-        sprintf(err, "%s: got constraint dim 0", me);
-        biffAdd(PULL, err); return 1;
-      }
-      haveNum = 1 + point->neighInterNum; /* we count the center point */
-      wantNum = (1.0 == constrDim
-                 ? 3
-                 : (2.0 == constrDim
-                    ? 7
-                    : 5 /* HEY just guessing */ ));
-      wantNum += 0.5; /* hack */
-      nixProb = (haveNum > wantNum
-                 ? AIR_CAST(double, haveNum - wantNum)/haveNum
-                 : 0.0);
-#else
       /* The demoninator here is the neighbor distance below which a point
          is subject to get nixed; higher value ==> more aggressive nixing.
          The maximum of two points interacting is 2*task->pctx->radiusSpace */
-      ndist = point->neighDist/(1.0*task->pctx->radiusSpace);
+      ndist = point->neighDist/(0.00001*task->pctx->radiusSpace);
+      if (0 == point->idtag % 300) {
+        fprintf(stderr, "!%s: %u: point->neighDist %g (%u) -> ndist %g\n", me,
+                point->idtag, point->neighDist,
+                point->neighInterNum, ndist);
+      }
       ndist = AIR_MIN(ndist, 1);
-      nixProb = (1 - ndist);
-#endif
-      if (10 == task->pctx->iter % 20 && nixProb) {
+      nixProb = (point->neighInterNum > 1
+                 ? (1 - ndist)*(1 - ndist)
+                 : 0.0); /* otherwise singleton points always die */
+      if (0 == point->idtag % 300) {
+        fprintf(stderr, "        -> ndist %g -> nixProb %g\n", 
+                ndist, nixProb);
+        fprintf(stderr, "         (%g %g %g)\n", 
+                point->pos[0], point->pos[1], point->pos[2]);
+      }
+      if (5 == task->pctx->iter % 10) {
         if (airDrandMT_r(task->rng) < nixProb) {
           point->status |= PULL_STATUS_NIXME_BIT;
         }

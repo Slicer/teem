@@ -329,6 +329,11 @@ _pullBinSetup(pullContext *pctx) {
     pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
   }
   fprintf(stderr, "!%s: binNum = %u\n", me, pctx->binNum);
+  if (pctx->binNum > PULL_BIN_MAXNUM) {
+    sprintf(err, "%s: #bins %u > PULL_BIN_MAXNUM %u, problem?", me,
+            pctx->binNum, PULL_BIN_MAXNUM);
+    biffAdd(PULL, err); return 1;
+  }
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
     sprintf(err, "%s: couln't allocate %u bins", me, pctx->binNum);
