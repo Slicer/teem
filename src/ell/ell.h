@@ -119,6 +119,11 @@ ELL_EXPORT double ell_3v_angle_d(double u[3], double v[3]);
 ELL_EXPORT double ell_3v_area_spherical_d(const double avec[3],
                                           const double bvec[3],
                                           const double cvec[3]);
+ELL_EXPORT void ell_3v_barycentric_spherical_d(double bary[3],
+                                               const double av[3],
+                                               const double bv[3],
+                                               const double cv[3],
+                                               const double vv[3]);
 
 /* mat.c */
 ELL_EXPORT void ell_3m_mul_f(float m3[9],
