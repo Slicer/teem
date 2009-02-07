@@ -333,7 +333,15 @@ _pullContextCheck(pullContext *pctx) {
             me, pctx->constraintIterMax, 1, 50);
     biffAdd(PULL, err); return 1;
   }
-
+  if (pctx->pointPerVoxel < -10 || pctx->pointPerVoxel > 10) {
+    sprintf(err, "%s: pointPerVoxel %d unreasonable", me,
+            pctx->pointPerVoxel);
+    biffAdd(PULL, err); return 1;
+  }
+  if (-1 == pctx->pointPerVoxel) {
+    sprintf(err, "%s: pointPerVoxel should be < -1 or >= 1", me);
+    biffAdd(PULL, err); return 1;
+  }
   if (0 == pctx->jitter && 1 < pctx->pointPerVoxel) {
     sprintf(err, "%s: must have jitter > 0 if pointPerVoxel (%d) > 1", me,
             pctx->pointPerVoxel);

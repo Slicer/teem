@@ -663,9 +663,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   if (task->pctx->constraint) {
     pullPoint *point;
     double nixProb, ndist;
+    double constrDim;
+    unsigned int haveNum, wantNum;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
       point = myBin->point[myPointIdx];
-#if 0
+#if 1
       /* double wantNum, haveNum, constrDim; */
       constrDim = _pullConstraintDim(task, point);
       if (!constrDim) {
@@ -682,14 +684,15 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       nixProb = (haveNum > wantNum
                  ? AIR_CAST(double, haveNum - wantNum)/haveNum
                  : 0.0);
-      nixProb *= 0.1; /* hack */
-#endif
+#else
       /* The demoninator here is the neighbor distance below which a point
          is subject to get nixed; higher value ==> more aggressive nixing.
          The maximum of two points interacting is 2*task->pctx->radiusSpace */
-      ndist = point->neighDist/(1*task->pctx->radiusSpace);
-      if (ndist < 1) {
-        nixProb = 0.5*(1 - ndist)*(1 - ndist);
+      ndist = point->neighDist/(1.0*task->pctx->radiusSpace);
+      ndist = AIR_MIN(ndist, 1);
+      nixProb = (1 - ndist);
+#endif
+      if (10 == task->pctx->iter % 20 && nixProb) {
         if (airDrandMT_r(task->rng) < nixProb) {
           point->status |= PULL_STATUS_NIXME_BIT;
         }

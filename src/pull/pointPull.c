@@ -482,7 +482,7 @@ _pullPointSetup(pullContext *pctx) {
   if (pctx->pointPerVoxel) {
     pullVolume *seedVol;
     gageShape *seedShape;
-    unsigned int voxNum, voxIdx, ppvIdx, vidx[3], yzi;
+    unsigned int voxNum, voxIdx, pitvIdx, vidx[3], yzi;
     double iPos[4], wPos[4], seedv;
 
     if (pctx->haveScale) {
@@ -496,7 +496,7 @@ _pullPointSetup(pullContext *pctx) {
     tick = voxNum/1000;
     point = NULL;
     for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
-      unsigned int ppv;
+      unsigned int pitv; /* points in this voxel */
       if (tick < 100 || 0 == voxIdx % tick) {
         fprintf(stderr, "%s", airDoneStr(0, voxIdx, voxNum, doneStr));
         fflush(stderr);
@@ -507,11 +507,11 @@ _pullPointSetup(pullContext *pctx) {
              we got a remainder when dividing by N */
           continue;
         } else {
-          ppv = 1;
+          pitv = 1;
         }
       } else {
         /* they want N points in each voxel */
-        ppv = pctx->pointPerVoxel;
+        pitv = pctx->pointPerVoxel;
       }
       vidx[0] = voxIdx % seedShape->size[0];
       yzi = (voxIdx - vidx[0])/seedShape->size[0];
@@ -521,7 +521,7 @@ _pullPointSetup(pullContext *pctx) {
         fprintf(stderr, "%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
                 voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
       }
-      for (ppvIdx=0; ppvIdx<ppv; ppvIdx++) {
+      for (pitvIdx=0; pitvIdx<pitv; pitvIdx++) {
         /* re-used a point that failed to be binned (for whatever reason) */
         if (!point) {
           point = pullPointNew(pctx);
@@ -534,8 +534,8 @@ _pullPointSetup(pullContext *pctx) {
         ELL_3V_COPY(point->pos, wPos);
         point->pos[3] = 0.0;
         if (_pullProbe(pctx->task[0], point)) {
-          sprintf(err, "%s: probing ppv %u of of vox %u (%u,%u,%u)",
-                  me, ppvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
+          sprintf(err, "%s: probing pnt %u of of vox %u (%u,%u,%u)",
+                  me, pitvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
           biffAdd(PULL, err); return 1;
         }
         /* we should be guaranteed to have a seed thresh info */
@@ -546,8 +546,8 @@ _pullPointSetup(pullContext *pctx) {
         }
         if (pctx->constraint) {
           if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
-            sprintf(err, "%s: on ppv %u of of vox %u (%u,%u,%u)",
-                    me, ppvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
+            sprintf(err, "%s: on pnt %u of of vox %u (%u,%u,%u)",
+                    me, pitvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
             biffAdd(PULL, err); return 1;
           }
           if (constrFail) {
