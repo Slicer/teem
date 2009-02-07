@@ -135,7 +135,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                   /* output */
                   double egradSum[4]) {
   /* char me[]="_energyFromPoints"; */
-  double energySum, distSqSum, spaDistSqMax, wghtSum;
+  double energySum, spaDistSqMax, distWghtSum, modeWghtSum;
   int nopt,     /* optimiziation: we enable the re-use neighbor lists, or
                    initially, the creation of neighbor lists */
     ntrue;      /* we search all possible neighbors, stored in the bins
@@ -188,9 +188,9 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   fprintf(stderr, "%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
           task->pctx->radiusSpace, spaDistSqMax);
   */
-  wghtSum = 0;
+  distWghtSum = 0;
+  modeWghtSum = 0;
   energySum = 0;
-  distSqSum = 0;
   if (egradSum) {
     point->neighInterNum = 0;
     point->neighDist = 0.0;
@@ -218,6 +218,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (AIR_ABS(diff[3] > task->pctx->radiusScale)) {
       continue;
     }
+    /* this uses sqrt() to get the real 3D distance (not in SS) */
     enr = _energyInterParticle(task, point, herPoint, &spaDist, egrad);
     /*
     fprintf(stderr, "!%s: energySum = %g + %g = %g\n", me, 
@@ -227,16 +228,19 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (egradSum) {
       ELL_4V_INCR(egradSum, egrad);
       if (ELL_4V_DOT(egrad, egrad)) {
+        double ww;
         point->neighInterNum++;
-        /* point->neighDist += spaDistSq; */
-        point->neighDist += spaDist;
+        ww = spaDistSq*spaDistSq*spaDistSq*spaDistSq;
+        ww = 1.0/(ww*ww); /* Lehmer mean with p-1==16 */
+        point->neighDist += ww*spaDist;
+        distWghtSum += ww;
         if (task->pctx->ispec[pullInfoTangentMode]) {
-          double w, m;
-          m = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
-                               NULL, NULL);
-          w = 1.0/spaDistSq;
-          point->neighMode += w*m;
-          wghtSum += w;
+          double mm;
+          mm = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
+                                NULL, NULL);
+          ww = 1.0/spaDistSq;
+          point->neighMode += ww*mm;
+          modeWghtSum += ww;
         }
         if (nopt && ntrue) {
           unsigned int ii;
@@ -249,11 +253,10 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
-    /* point->neighDist = sqrt(point->neighDist/point->neighInterNum);*/
-    point->neighDist /= point->neighInterNum;
-    point->neighMode /= wghtSum;
+    point->neighDist /= distWghtSum;
+    point->neighMode /= modeWghtSum;
   } else {
-    point->neighDist = 0.0; /* shouldn't have this in any normal case */
+    point->neighDist = 0.0; /* shouldn't happen in any normal case */
     point->neighMode = AIR_NAN;
   }
 
