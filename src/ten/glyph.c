@@ -182,7 +182,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16],
     absEval[3], glyphScl[3];
   double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3],
-    R, G, B, qA, qB, glyphAniso, sliceGray;
+    R, G, B, qA, qB, qC, glyphAniso, sliceGray;
   unsigned int duh;
   int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs,
     svRGBAfl=AIR_FALSE;
@@ -509,6 +509,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         qA = pow(1-cl, parm->sqdSharp);
         qB = pow(1-cp, parm->sqdSharp);
       }
+      qC = qB;
     } else if (eval[0] < 0) {
       /* all evals negative */
       float aef[3];
@@ -526,10 +527,11 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         qA = pow(1-cl, parm->sqdSharp);
         qB = pow(1-cp, parm->sqdSharp);
       }
+      qC = qB;
     } else {
 #define OOSQRT2 0.70710678118654752440
 #define OOSQRT3 0.57735026918962576451
-      double poleA[3]={OOSQRT3, OOSQRT3, OOSQRT3};
+      /* double poleA[3]={OOSQRT3, OOSQRT3, OOSQRT3}; */
       double poleB[3]={1, 0, 0};
       double poleC[3]={OOSQRT2, OOSQRT2, 0};
       double poleD[3]={OOSQRT3, -OOSQRT3, -OOSQRT3};
@@ -537,70 +539,50 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       double poleF[3]={OOSQRT3, OOSQRT3, -OOSQRT3};
       double poleG[3]={0, -OOSQRT2, -OOSQRT2};
       double poleH[3]={0, 0, -1};
-      double poleI[3]={-OOSQRT3, -OOSQRT3, -OOSQRT3};
-      double funk[2]={0,4}, thrn[2]={1,4}, octa[2]={0,2}, cone[2]={1,2};
-      double evalN[3], tmp, whole, 
-        baryB, baryC, baryD, baryE, baryF, baryG, baryH;
+      /* double poleI[3]={-OOSQRT3, -OOSQRT3, -OOSQRT3}; */
+      double funk[3]={0,4,2}, thrn[3]={1,4,4};
+      double octa[3]={0,2,2}, cone[3]={1,2,2};
+      double evalN[3], tmp, bary[3];
+      double qq[3];
       
       ELL_3V_NORM(evalN, eval, tmp);
       if (eval[1] >= -eval[2]) {
-        /* inside B-C-F */
-        whole = ell_3v_area_spherical_d(poleB, poleF, poleC);
-        baryB = ell_3v_area_spherical_d(evalN, poleF, poleC)/whole;
-        baryC = ell_3v_area_spherical_d(evalN, poleB, poleF)/whole;
-        baryF = ell_3v_area_spherical_d(evalN, poleC, poleB)/whole;
-        qA = baryB*octa[0] + baryC*cone[0] + baryF*thrn[0];
-        qB = baryB*octa[1] + baryC*cone[1] + baryF*thrn[1];
+        /* inside B-F-C */
+        ell_3v_barycentric_spherical_d(bary, poleB, poleF, poleC, evalN);
+        ELL_3V_SCALE_ADD3(qq, bary[0], octa, bary[1], thrn, bary[2], cone);
         axis = 2;
       } else if (eval[0] >= -eval[2]) {
         /* inside B-D-F */
         if (eval[1] >= 0) {
           /* inside B-E-F */
-          whole = ell_3v_area_spherical_d(poleB, poleE, poleF);
-          baryB = ell_3v_area_spherical_d(evalN, poleE, poleF)/whole;
-          baryE = ell_3v_area_spherical_d(evalN, poleF, poleB)/whole;
-          baryF = ell_3v_area_spherical_d(evalN, poleB, poleE)/whole;
-          qA = baryB*octa[0] + baryE*funk[0] + baryF*thrn[0];
-          qB = baryB*octa[1] + baryE*funk[1] + baryF*thrn[1];
+          ell_3v_barycentric_spherical_d(bary, poleB, poleE, poleF, evalN);
+          ELL_3V_SCALE_ADD3(qq, bary[0], octa, bary[1], funk, bary[2], thrn);
           axis = 2;
         } else {
           /* inside B-D-E */
-          whole = ell_3v_area_spherical_d(poleB, poleD, poleE);
-          baryB = ell_3v_area_spherical_d(evalN, poleD, poleE)/whole;
-          baryD = ell_3v_area_spherical_d(evalN, poleE, poleB)/whole;
-          baryE = ell_3v_area_spherical_d(evalN, poleB, poleD)/whole;
-          qA = baryB*cone[0] + baryD*thrn[0] + baryE*funk[0];
-          qB = baryB*cone[1] + baryD*thrn[1] + baryE*funk[1];
+          ell_3v_barycentric_spherical_d(bary, poleB, poleD, poleE, evalN);
+          ELL_3V_SCALE_ADD3(qq, bary[0], cone, bary[1], thrn, bary[2], funk);
           axis = 0;
         }
       } else if (eval[0] < -eval[1]) {
         /* inside D-G-H */
-        whole = ell_3v_area_spherical_d(poleD, poleG, poleH);
-        baryD = ell_3v_area_spherical_d(evalN, poleG, poleH)/whole;
-        baryG = ell_3v_area_spherical_d(evalN, poleH, poleD)/whole;
-        baryH = ell_3v_area_spherical_d(evalN, poleD, poleG)/whole;
-        qA = baryD*thrn[0] + baryG*cone[0] + baryH*octa[0];
-        qB = baryD*thrn[1] + baryG*cone[1] + baryH*octa[1];
+        ell_3v_barycentric_spherical_d(bary, poleD, poleG, poleH, evalN);
+        ELL_3V_SCALE_ADD3(qq, bary[0], thrn, bary[1], cone, bary[2], octa);
         axis = 0;
       } else if (eval[1] < 0) {
         /* inside E-D-H */
-        whole = ell_3v_area_spherical_d(poleE, poleD, poleH);
-        baryE = ell_3v_area_spherical_d(evalN, poleD, poleH)/whole;
-        baryD = ell_3v_area_spherical_d(evalN, poleH, poleE)/whole;
-        baryH = ell_3v_area_spherical_d(evalN, poleE, poleD)/whole;
-        qA = baryE*funk[0] + baryD*thrn[0] + baryH*octa[0];
-        qB = baryE*funk[1] + baryD*thrn[1] + baryH*octa[1];
+        ell_3v_barycentric_spherical_d(bary, poleE, poleD, poleH, evalN);
+        ELL_3V_SCALE_ADD3(qq, bary[0], funk, bary[1], thrn, bary[2], octa);
         axis = 0;
       } else {
         /* inside F-E-H */
-        whole = ell_3v_area_spherical_d(poleF, poleE, poleH);
-        baryF = ell_3v_area_spherical_d(evalN, poleE, poleH)/whole;
-        baryE = ell_3v_area_spherical_d(evalN, poleH, poleF)/whole;
-        baryH = ell_3v_area_spherical_d(evalN, poleF, poleE)/whole;
-        qA = baryF*thrn[0] + baryE*funk[0] + baryH*cone[0];
-        qB = baryF*thrn[1] + baryE*funk[1] + baryH*cone[1];
+        ell_3v_barycentric_spherical_d(bary, poleF, poleE, poleH, evalN);
+        ELL_3V_SCALE_ADD3(qq, bary[0], thrn, bary[1], funk, bary[2], cone);
         axis = 2;
       }
+      qA = qq[0];
+      qB = qq[1];
+      qC = qq[2];
 #undef OOSQRT2
 #undef OOSQRT3
     }
@@ -630,11 +612,13 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         break;
       case tenGlyphTypeSuperquad:
       default:
-        glyphIdx = limnObjectPolarSuperquadAdd(glyphsLimn, lookIdx, axis,
-                                               AIR_CAST(float, qA),
-                                               AIR_CAST(float, qB),
-                                               2*parm->facetRes,
-                                               parm->facetRes);
+        glyphIdx =
+          limnObjectPolarSuperquadFancyAdd(glyphsLimn, lookIdx, axis,
+                                           AIR_CAST(float, qA),
+                                           AIR_CAST(float, qB),
+                                           AIR_CAST(float, qC), 0,
+                                           2*parm->facetRes,
+                                           parm->facetRes);
         break;
       }
       ELL_4M_COPY_TT(mA_f, float, mA);
