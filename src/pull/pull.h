@@ -178,7 +178,11 @@ typedef struct pullPoint_t {
   unsigned int neighNum;
   airArray *neighArr;         /* airArray around neigh and neigNum
                                  (no callbacks used here) */
-  double neighDist, neighMode;
+  double neighDist,           /* some average of distance to neighboring
+                                 points with whom this point interacted,
+                                 *but* its already normalized by 
+                                 pctx->radiusScale */
+    neighMode;                /* some average of mode of nearby points */
   unsigned int neighInterNum;
 #if PULL_PHIST
   double *phist;              /* history of positions tried in the last iter,
@@ -512,6 +516,7 @@ PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
 PULL_EXPORT void pullVerboseSet(pullContext *pctx, int verbose);
 
 /* pointPull.c */
+PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 

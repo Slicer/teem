@@ -364,7 +364,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   pullBin *bin;
   pullPoint *point;
 
-  pointNum = _pullPointNumber(pctx);
+  pointNum = pullPointNumber(pctx);
   fprintf(stderr, "!%s: pointNum = %u\n", me, pointNum);
   E = AIR_FALSE;
   if (nPosOut) {
@@ -460,7 +460,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   pullBin *bin;
   pullPoint *point;
   
-  pointNum = _pullPointNumber(pctx);
+  pointNum = pullPointNumber(pctx);
   switch(prop) {
   case pullPropEnergy:
   case pullPropStepEnergy:

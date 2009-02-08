@@ -179,7 +179,7 @@ _pullPointNixMeRemove(pullContext *pctx) {
 */
 
 unsigned int
-_pullPointNumber(const pullContext *pctx) {
+pullPointNumber(const pullContext *pctx) {
   unsigned int binIdx, pointNum;
   const pullBin *bin;
 
@@ -693,7 +693,7 @@ _pullPointSetup(pullContext *pctx) {
     fprintf(stderr, "%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
                                        doneStr));
   } /* not pointPerVoxel */
-  pn = _pullPointNumber(pctx);
+  pn = pullPointNumber(pctx);
   pctx->pointBuff = AIR_CAST(pullPoint **,
                              calloc(pn, sizeof(pullPoint*)));
   pctx->pointPerm = AIR_CAST(unsigned int *,

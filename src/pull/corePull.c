@@ -211,8 +211,10 @@ _pullIterate(pullContext *pctx) {
   }
   
   if (pctx->verbose) {
-    fprintf(stderr, "%s: start iter %d w/ %u threads; energy = %g\n",
-            me, pctx->iter, pctx->threadNum, _pullEnergyTotal(pctx));
+    fprintf(stderr, "%s: starting iter %d w/ %u thread\n",
+            me, pctx->iter, pctx->threadNum);
+    fprintf(stderr, "%s: energy = %g, # particles = %u\n",
+            me, _pullEnergyTotal(pctx), pullPointNumber(pctx));
   }
 
   time0 = airTime();

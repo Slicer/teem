@@ -238,7 +238,7 @@ pullRebin(pullContext *pctx) {
     
 #if 1
     unsigned int runIdx = 0, pointNum;
-    pointNum = _pullPointNumber(pctx);
+    pointNum = pullPointNumber(pctx);
     for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
       oldBin = pctx->bin + oldBinIdx;
       while (oldBin->pointNum) {

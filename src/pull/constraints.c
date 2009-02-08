@@ -621,8 +621,10 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 }
 
 /*
-** returns the dimension of the constraint manifold: 1.0, 1.5, or 2.0
-** yes, a float return, to represent the weirdness between line/surf
+** returns the *dimension* (not codimension) of the constraint manifold:
+** 1.0 for lines
+** 2.0 for surfaces
+** 1.5 for inbetween, to represent the weirdness between line/surf
 **
 ** a zero return value represents a biff-able error
 */

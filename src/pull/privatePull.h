@@ -72,7 +72,6 @@ extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
 extern void _pullPointNixMeRemove(pullContext *pctx);
-extern unsigned int _pullPointNumber(const pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
