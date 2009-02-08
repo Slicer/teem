@@ -303,10 +303,6 @@ pullRun(pullContext *pctx) {
       npos = nrrdNuke(npos);
     }
 
-    if (pctx->verbose) {
-      fprintf(stderr, "%s: ################################ iter %u ...\n",
-              me, pctx->iter);
-    }
     if (_pullIterate(pctx)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PULL, err); return 1;
@@ -324,7 +320,7 @@ pullRun(pullContext *pctx) {
     } else {
       enrImprovAvg = (2*enrImprovAvg + enrImprov)/3;
     }
-    if (pctx->verbose > 1) {
+    if (pctx->verbose) {
       fprintf(stderr, "%s: ######## done iter %u: "
               "e=%g,%g, de=%g,%g, s=%g,%g\n",
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
@@ -333,7 +329,7 @@ pullRun(pullContext *pctx) {
     enrLast = enrNew;
     converged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
     if (converged && pctx->verbose) {
-      fprintf(stderr, "%s: %g < %g: converged!!\n", me, 
+      fprintf(stderr, "%s: enrImprovAvg %g < %g: converged!!\n", me, 
               enrImprovAvg, pctx->energyImprovMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
