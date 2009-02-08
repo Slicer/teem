@@ -300,7 +300,22 @@ int
 nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
             const size_t *perm) {
   char me[]="nrrdShuffle", func[]="shuffle", err[BIFF_STRLEN],
-    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
+    buff2[AIR_STRLEN_SMALL];
+  /* Sun Feb 8 13:13:58 CST 2009: There was a memory bug here caused
+     by using the same buff1[NRRD_DIM_MAX*30] declaration that had
+     worked fine for nrrdAxesPermute and nrrdReshape, but does NOT
+     work here because now samples along an axes are re-ordered, not
+     axes, so its often not allocated for long enough to hold the
+     string that's printed to it. Ideally there'd be another argument
+     that says whether to document the shuffle in the content string,
+     which would mean an API change.  Or, we can use a secret
+     heuristic (or maybe later a nrrdState variable) for determining
+     when an axis is short enough to make documenting the shuffle
+     interesting.  This is useful since functions like nrrdFlip()
+     probably do *not* need the shuffle (the sample reversal) to be
+     documented for long axes */
+#define LONGEST_INTERESTING_AXIS 42
+  char buff1[LONGEST_INTERESTING_AXIS*30];
   unsigned int 
     ai, ldim, len,
     cIn[NRRD_DIM_MAX+1],
@@ -386,15 +401,23 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
     NRRD_COORD_INCR(cOut, lsize, ldim, 0);
   }
-  /* content */
-  strcpy(buff1, "");
-  for (ai=0; ai<len; ai++) {
-    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
-    strcat(buff1, buff2);
-  }
-  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+  /* Set content. The LONGEST_INTERESTING_AXIS hack avoids the
+     previous array out-of-bounds bug */
+  if (len <= LONGEST_INTERESTING_AXIS) {
+    strcpy(buff1, "");
+    for (ai=0; ai<len; ai++) {
+      sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
+      strcat(buff1, buff2);
+    }
+    if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
+  } else {
+    if (nrrdContentSet_va(nout, func, nin, "")) {
+      sprintf(err, "%s:", me);
+      biffAdd(NRRD, err); return 1;
+    }
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT
@@ -411,6 +434,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
 
   return 0;
+#undef LONGEST_INTERESTING_AXIS
 }
 
 /* ---- BEGIN non-NrrdIO */
