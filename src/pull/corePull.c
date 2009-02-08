@@ -307,7 +307,6 @@ pullRun(pullContext *pctx) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PULL, err); return 1;
     }
-    pctx->iter += 1;
     enrNew = _pullEnergyTotal(pctx);
     enrImprov = _PULL_IMPROV(enrLast, enrNew);
     if (firstIter + 1 == pctx->iter) {
@@ -326,6 +325,7 @@ pullRun(pullContext *pctx) {
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
+    pctx->iter += 1;
     enrLast = enrNew;
     converged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
     if (converged && pctx->verbose) {
