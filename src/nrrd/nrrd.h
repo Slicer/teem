@@ -470,7 +470,7 @@ typedef struct {
   float (*eval1_f)(float x, const double *parm);
   
   /* evaluate N times, single precision */
-  void (*evalN_f)(float *f, const float *x, size_t N, const double *parm);   
+  void (*evalN_f)(float *f, const float *x, size_t N, const double *parm);
 
   /* evaluate once, double precision */
   double (*eval1_d)(double x, const double *parm);
