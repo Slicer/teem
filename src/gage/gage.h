@@ -93,7 +93,8 @@ enum {
   gageParmKernelIntegralNearZero, /* double */
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
-  gageParmStackRenormalize,       /* int (does not imply gageParmStackUse) */
+  gageParmStackNormalizeRecon,    /* int; does NOT imply gageParmStackUse */
+  gageParmStackNormalizeDeriv,    /* int; does NOT imply gageParmStackUse */
   gageParmOrientationFromSpacing, /* int */
   gageParmLast
 };
@@ -103,7 +104,8 @@ enum {
   gageErrNone,               /* 1: no error, actually, all's well */
   gageErrBoundsSpace,        /* 2: out of 3-D (index-space) bounds */
   gageErrBoundsStack,        /* 3: out of 1-D bounds of stack */
-  gageErrStackIntegral,      /* 4: stack recon coeff's sum to 0 */
+  gageErrStackIntegral,      /* 4: stack recon coeff's sum to 0, so can't
+                                   normalize them */
   gageErrLast
 };
 #define GAGE_ERR_MAX            4
@@ -353,7 +355,8 @@ typedef struct gageShape_t {
                                  that may be probed */
     fromOrientation;          /* non-zero iff the spaceDirections and
                                  spaceOrigin information was used */
-  unsigned int size[3];       /* raster dimensions of volume */
+  unsigned int size[3];       /* raster dimensions of volume 
+                                 HEY: shouldn't this be size_t? */
   double spacing[3];          /* spacings for each axis */
   /* fwScale[GAGE_KERNEL_MAX+1][3] has been superceded by the cleaner and
      more general ItoWSubInvTransp and ItoWSubInv matrices below */
@@ -414,9 +417,13 @@ typedef struct gageParm_t {
                                  The query in pvl[0] will determine the
                                  computations done, and answers for the whole
                                  stack will be stored in pvl[0]. */
-    stackRenormalize,         /* if non-zero (and if stackUse is non-zero):
+    stackNormalizeRecon,      /* if non-zero (and if stackUse is non-zero):
+                                 the weights used to reconstruct across
+                                 stack samples are normalized to unit sum; not
+                                 needed if the kernel is accurate enough */
+    stackNormalizeDeriv,      /* if non-zero (and if stackUse is non-zero):
                                  derivatives of filter stage are renormalized
-                                 based on the stack parameter */
+                                 based on the stack position */
     orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
                                  but not full orientation info. If zero, the
                                  volume is crammed into the bi-unit cube.
@@ -641,13 +648,13 @@ typedef struct gagePerVolume_t {
   double *answer;             /* main buffer to hold all the answers */
   double **directAnswer;      /* array of pointers into answer */
   void *data;                 /* extra data, parameters, buffers, etc.
-                                 required for answering some items
-                                 (as per the gageItemEntry->needData)
-                                 managed with kind->pvlDataNew,
-                                 kind->pvlDataCopy, kind->pvlDataUpdate,
-                                 and kind->pvlDataNix, so there is no channel
-                                 for extra info to be passed into the pvl->data,
-                                 other that what was put into kind->data */
+                                 required for answering some items (as per
+                                 the gageItemEntry->needData) managed with
+                                 kind->pvlDataNew, kind->pvlDataCopy,
+                                 kind->pvlDataUpdate, and kind->pvlDataNix,
+                                 so there is no channel for extra info to be
+                                 passed into the pvl->data, other that what
+                                 was put into kind->data */
 } gagePerVolume;
 
 /*
@@ -736,7 +743,8 @@ GAGE_EXPORT int gageDefCurvNormalSide;
 GAGE_EXPORT double gageDefKernelIntegralNearZero;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
-GAGE_EXPORT int gageDefStackRenormalize;
+GAGE_EXPORT int gageDefStackNormalizeRecon;
+GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */

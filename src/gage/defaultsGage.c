@@ -56,7 +56,10 @@ gageDefStackUse = AIR_FALSE; /* GLK doesn't see any reasonable circumstance
                                 significantly changes the behavior of gage */
 
 int
-gageDefStackRenormalize = AIR_TRUE;
+gageDefStackNormalizeRecon = AIR_FALSE;
+
+int
+gageDefStackNormalizeDeriv = AIR_TRUE;
 
 int
 gageDefOrientationFromSpacing = AIR_FALSE;

@@ -96,16 +96,21 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   }
   for (blidx=0; blidx<blnum; blidx++) {
     if (!AIR_EXISTS(scale[blidx])) {
-      fprintf(stderr, "%s: scale[%u] = %g doesn't exist", me, blidx, 
+      sprintf(err, "%s: scale[%u] = %g doesn't exist", me, blidx,
               scale[blidx]);
       biffAdd(GAGE, err); return 1;
     }
     if (blidx) {
       if (!( scale[blidx-1] < scale[blidx] )) {
-        fprintf(stderr, "%s: scale[%u] = %g not < scale[%u] = %g", me,
+        sprintf(err, "%s: scale[%u] = %g not < scale[%u] = %g", me,
                 blidx, scale[blidx-1], blidx+1, scale[blidx]);
         biffAdd(GAGE, err); return 1;
       }
+    }
+    /* see if all nblur[] are plausibly set to some Nrrd */
+    if (!nblur[blidx]) {
+      sprintf(err, "%s: got NULL nblur[%u]", me, blidx);
+      biffAdd(GAGE, err); return 1;
     }
   }
   if (3 + baseDim != nin->dim) {
@@ -126,13 +131,6 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, kspec, (airMopper)nrrdKernelSpecNix, airMopAlways);
-  /* pre-allocate output Nrrds in case not already there */
-  for (blidx=0; blidx<blnum; blidx++) {
-    if (!nblur[blidx]) {
-      sprintf(err, "%s: got NULL nblur[%u]", me, blidx);
-      biffAdd(GAGE, err); airMopError(mop); return 1;
-    }
-  }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
 
@@ -154,7 +152,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
   if (!E) E |= nrrdResampleRenormalizeSet(rsmc, renormalize);
   if (E) {
-    fprintf(stderr, "%s: trouble setting up resampling\n", me);
+    sprintf(err, "%s: trouble setting up resampling", me);
     biffAdd(GAGE, err); airMopError(mop); return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
@@ -169,6 +167,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
       fflush(stderr);
     }
     if (!E) E |= nrrdResampleExecute(rsmc, nblur[blidx]);
+    /* add some KVPs to document how these were blurred */
     if (!E) nrrdKeyValueAdd(nblur[blidx], me, "true");
     sprintf(val, "%g", scale[blidx]);
     if (!E) nrrdKeyValueAdd(nblur[blidx], keyscl, val);
@@ -192,8 +191,8 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
 }
 
 /*
-** this is a little messy: the pvl array is allocated and filled here
-** because that's the most idiomatic extension of the way that 
+** this is a little messy: the pvl array is both allocated and filled
+** here, because that's the most idiomatic extension of the way that
 ** gagePerVolumeNew() is both the allocator and the initializer. sigh.
 */
 int
@@ -327,9 +326,11 @@ _gageStackIv3Fill(gageContext *ctx) {
     
     fdd = fd*fd;
     /* initialize the output iv3 to all zeros, since we won't be
-       usefully setting the values on the boundary, and we can't have
-       any non-existant values creeping in.  We shouldn't need to do
-       any kind of nrrdBoundaryBleed thing here, because the kernel
+       usefully setting the values on the boundary (the boundary which
+       is required in the rest of the stack's iv3s in order to do the
+       laplacian-based spline recon), and we can't have any
+       non-existant values creeping in.  We shouldn't need to do any
+       kind of nrrdBoundaryBleed thing here, because the kernel
        weights really should be zero on the boundary. */
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
       ctx->pvl[baseIdx]->iv3[cacheIdx] = 0;
@@ -340,7 +341,7 @@ _gageStackIv3Fill(gageContext *ctx) {
     for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
       if (ctx->stackFslw[pvlIdx]) {
         /* has to be non-zero somewhere, since _gageLocationSet()
-           gives an error if the integral of stackFslw[] is zero */
+           gives an error if there aren't non-zero stackFslw[i] */
         break;
       }
     }

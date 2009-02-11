@@ -295,6 +295,13 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     NrrdKernelSpec *sksp;
 
     /* node-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
+    /* HEY: we really are quite far from implementing arbitrary
+       nrrdBoundary behaviors here, and centering is stuck on node! */
+    /* HEY: honestly, the whole idea that it still makes sense to do
+       low-level operations in index space, when the world-space locations
+       of the samples can be non-uniform, is a little suspect.  This is
+       all legit for nrrdKernelTent and nrrdKernelHermiteFlag, but is 
+       pretty fishy otherwise */
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFslw[ii] = stackIdx - ii;
       if (ctx->verbose > 2) {
@@ -312,34 +319,44 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       }
     }
   
-    /* HEY: we really are quite far from implementing arbitrary
-       nrrdBoundary behaviors here!!!! */
-    /* HEY: surprise: gageParmStackRenormalize does NOT control this,
-       since that refers to *derivative* normalization */
-    /* renormalize weights */
-    sum = 0;
-    for (ii=0; ii<ctx->pvlNum-1; ii++) {
-      sum += ctx->stackFslw[ii];
-    }
-    if (!sum) {
-      sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
-              "can't do stack reconstruction", me);
-      ctx->errNum = gageErrStackIntegral;
-      return 1;
-    }
-    for (ii=0; ii<ctx->pvlNum-1; ii++) {
-      ctx->stackFslw[ii] /= sum;
-    }
-    if (ctx->verbose > 2) {
+    if (ctx->parm.stackNormalizeRecon) {
+      sum = 0;
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
-                me, ii, ctx->stackFslw[ii]);
+        sum += ctx->stackFslw[ii];
+      }
+      if (!sum) {
+        sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
+                "can't do stack reconstruction", me);
+        ctx->errNum = gageErrStackIntegral;
+        return 1;
+      }
+      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        ctx->stackFslw[ii] /= sum;
+      }
+      if (ctx->verbose > 2) {
+        for (ii=0; ii<ctx->pvlNum-1; ii++) {
+          fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
+                  me, ii, ctx->stackFslw[ii]);
+        }
+      }
+    } else {
+      /* still have to make sure there are non-zero weights */
+      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        if (ctx->stackFslw[ii]) {
+          break;
+        }
+      }
+      if (ii == ctx->pvlNum-1) {
+        sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
+                "can't do stack reconstruction", me);
+        ctx->errNum = gageErrStackIntegral;
+        return 1;
       }
     }
 
     /* fix derivative kernel weights for stack. Have to reconstruct
        the world-space stack position from stackFrac and stackBaseIdx */
-    if (ctx->parm.stackRenormalize) {
+    if (ctx->parm.stackNormalizeDeriv) {
       unsigned int kidx, fd, j, stackBaseIdx;
       double stackFrac, scl, *fwX, *fwY, *fwZ;
 

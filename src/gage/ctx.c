@@ -322,8 +322,11 @@ gageParmSet(gageContext *ctx, int which, double val) {
        have the same kind!  This should be caught by gageUpdate(), which is
        supposed to be called after changing anything, prior to gageProbe() */
     break;
-  case gageParmStackRenormalize:
-    ctx->parm.stackRenormalize = AIR_CAST(int, val);
+  case gageParmStackNormalizeDeriv:
+    ctx->parm.stackNormalizeDeriv = AIR_CAST(int, val);
+    break;
+  case gageParmStackNormalizeRecon:
+    ctx->parm.stackNormalizeRecon = AIR_CAST(int, val);
     break;
   case gageParmOrientationFromSpacing:
     ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
@@ -719,10 +722,14 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
           }
         }
         if (sidx == ctx->pvlNum-2) {
-          fprintf(stderr, "!%s: search failure for ss = %g\n", me, ss);
+          fprintf(stderr, "!%s: search failure for ss = %g!\n", me, ss);
         }
+        /*
         si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
                         0.0, 1.0);
+        */
+        si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
+                        sidx, sidx+1);
       }
     }
     /*
@@ -752,5 +759,5 @@ int
 gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
                int indexSpace, int clamp) {
   
-  return _gageProbeSpace(ctx, xx, yy, zz, 0.0, indexSpace, clamp);
+  return _gageProbeSpace(ctx, xx, yy, zz, AIR_NAN, indexSpace, clamp);
 }

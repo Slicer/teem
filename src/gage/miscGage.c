@@ -111,7 +111,8 @@ gageParmReset(gageParm *parm) {
     parm->kernelIntegralNearZero = gageDefKernelIntegralNearZero;
     parm->defaultCenter = gageDefDefaultCenter;
     parm->stackUse = gageDefStackUse;
-    parm->stackRenormalize = gageDefStackRenormalize;
+    parm->stackNormalizeRecon = gageDefStackNormalizeRecon;
+    parm->stackNormalizeDeriv = gageDefStackNormalizeDeriv;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
   }
   return;
