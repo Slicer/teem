@@ -87,9 +87,10 @@ pullContextNew(void) {
   ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
-  pctx->pointPerm = NULL;
-  pctx->pointBuff = NULL;
-  pctx->binMutex = NULL;
+
+  pctx->tmpPointPerm = NULL;
+  pctx->tmpPointPtr = NULL;
+  pctx->tmpPointNum = 0;
 
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;

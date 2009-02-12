@@ -49,7 +49,8 @@ extern "C" {
 #define PULL_THREAD_MAXNUM 512
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
-#define PULL_BIN_MAXNUM 80*80*80 /* sanity check on max number bins */
+#define PULL_BIN_MAXNUM 128*128*128 /* sanity check on max number bins */
+#define POINT_NUM_INCR 1024
 
 #define PULL_PHIST 0
 
@@ -175,8 +176,8 @@ typedef struct pullInfoSpec_t {
 typedef struct pullPoint_t {
   unsigned int idtag;         /* unique point ID */
   struct pullPoint_t **neighPoint; /* list of neighboring points */
-  unsigned int neighNum;
-  airArray *neighArr;         /* airArray around neigh and neigNum
+  unsigned int neighPointNum;
+  airArray *neighPointArr;    /* airArray around neighPoint and neighNum
                                  (no callbacks used here) */
   double neighDist,           /* some average of distance to neighboring
                                  points with whom this point interacted,
@@ -438,8 +439,10 @@ typedef struct pullContext_t {
     binNum,                        /* total # bins in grid */
     binNextIdx;                    /* next bin of points to be processed,
                                       we're done when binNextIdx == binNum */
-  unsigned int *pointPerm;
-  pullPoint **pointBuff;
+  unsigned int *tmpPointPerm;
+  pullPoint **tmpPointPtr;
+  unsigned int tmpPointNum;
+
   airThreadMutex *binMutex;        /* mutex around bin, needed because bins
                                       are the unit of work for the tasks */
 

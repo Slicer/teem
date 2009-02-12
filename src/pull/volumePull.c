@@ -163,7 +163,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
       biffAdd(PULL, err); return 1;
     }
     gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(vol->gctx, gageParmStackRenormalize, AIR_TRUE);
+    gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, AIR_TRUE);
     if (!E) E |= gageStackPerVolumeNew(vol->gctx, &pvlSS,
                                        ninScale, ninNum, kind);
     if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, pvlSS,

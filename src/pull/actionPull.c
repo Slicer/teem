@@ -134,7 +134,7 @@ static double
 _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
                   /* output */
                   double egradSum[4]) {
-  char me[]="_energyFromPoints";
+  /* char me[]="_energyFromPoints"; */
   double energySum, spaDistSqMax, distWghtSum, modeWghtSum;
   int nopt,     /* optimiziation: we enable the re-use neighbor lists, or
                    initially, the creation of neighbor lists */
@@ -172,11 +172,11 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (ntrue) {
     nnum = _neighBinPoints(task, bin, point);
     if (nopt) {
-      airArrayLenSet(point->neighArr, 0);
+      airArrayLenSet(point->neighPointArr, 0);
     }
   } else {
     /* (nopt true) this iter we re-use existing neighbor list */
-    nnum = point->neighNum;
+    nnum = point->neighPointNum;
     for (nidx=0; nidx<nnum; nidx++) {
       task->neighPoint[nidx] = point->neighPoint[nidx];
     }
@@ -245,7 +245,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         }
         if (nopt && ntrue) {
           unsigned int ii;
-          ii = airArrayLenIncr(point->neighArr, 1);
+          ii = airArrayLenIncr(point->neighPointArr, 1);
           point->neighPoint[ii] = herPoint;
         }
       }
@@ -671,7 +671,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   } /* for myPointIdx */
 
   /* probabilistically nix points that have too much company */
-  if ((5 == task->pctx->iter % 10) && task->pctx->constraint) {
+  if ((19 == task->pctx->iter % 20) && task->pctx->constraint) {
     pullPoint *point;
     double nixProb, ndist, wantDist=1.3, wantNum, haveNum, constrDim;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {

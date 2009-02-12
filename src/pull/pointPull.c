@@ -51,10 +51,12 @@ pullPointNew(pullContext *pctx) {
 
   pnt->idtag = pctx->idtagNext++;
   pnt->neighPoint = NULL;
-  pnt->neighNum = 0;
-  pnt->neighArr = airArrayNew((void**)&(pnt->neighPoint), &(pnt->neighNum),
-                              sizeof(pullPoint *), PULL_POINT_NEIGH_INCR);
-  pnt->neighArr->noReallocWhenSmaller = AIR_TRUE;
+  pnt->neighPointNum = 0;
+  pnt->neighPointArr = airArrayNew((void**)&(pnt->neighPoint),
+                                   &(pnt->neighPointNum),
+                                   sizeof(pullPoint *),
+                                   PULL_POINT_NEIGH_INCR);
+  pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDist = pnt->neighMode = AIR_NAN;
   pnt->neighInterNum = 0;
 #if PULL_PHIST
@@ -88,8 +90,8 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   /* HEY: shouldn't I just do a memcpy? */
   dst->idtag = src->idtag;
   dst->neighPoint = src->neighPoint;
-  dst->neighNum = src->neighNum;
-  dst->neighArr = src->neighArr;
+  dst->neighPointNum = src->neighPointNum;
+  dst->neighPointArr = src->neighPointArr;
   dst->neighDist = src->neighDist;
   dst->neighMode = src->neighMode;
   dst->neighInterNum = src->neighInterNum;
@@ -113,10 +115,9 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
 pullPoint *
 pullPointNix(pullPoint *pnt) {
 
-  /* HEY: shouldn't this be airArrayNuke? */
-  pnt->neighArr = airArrayNix(pnt->neighArr);
+  pnt->neighPointArr = airArrayNuke(pnt->neighPointArr);
 #if PULL_PHIST
-  pnt->phistArr = airArrayNix(pnt->phistArr);
+  pnt->phistArr = airArrayNuke(pnt->phistArr);
 #endif
   airFree(pnt);
   return NULL;
@@ -163,6 +164,7 @@ _pullPointNixMeRemove(pullContext *pctx) {
     while (pointIdx < bin->pointNum) {
       point = bin->point[pointIdx];
       if (point->status & PULL_STATUS_NIXME_BIT) {
+        pullPointNix(point);
         bin->point[pointIdx] = bin->point[bin->pointNum-1];
         airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
       } else {
@@ -694,15 +696,16 @@ _pullPointSetup(pullContext *pctx) {
                                        doneStr));
   } /* not pointPerVoxel */
   pn = pullPointNumber(pctx);
-  pctx->pointBuff = AIR_CAST(pullPoint **,
-                             calloc(pn, sizeof(pullPoint*)));
-  pctx->pointPerm = AIR_CAST(unsigned int *,
-                             calloc(pn, sizeof(unsigned int)));
-  if (!( pctx->pointBuff && pctx->pointPerm )) {
-      sprintf(err, "%s: couldn't allocate buffers %p %p", me, 
-              pctx->pointBuff, pctx->pointPerm);
+  pctx->tmpPointPtr = AIR_CAST(pullPoint **,
+                               calloc(pn, sizeof(pullPoint*)));
+  pctx->tmpPointPerm = AIR_CAST(unsigned int *,
+                                calloc(pn, sizeof(unsigned int)));
+  if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
+      sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
+              pctx->tmpPointPtr, pctx->tmpPointPerm);
       biffAdd(PULL, err); return 1;
   }
+  pctx->tmpPointNum = pn;
 
   /* now that all points have been added, set their energy to help
      inspect initial state */
@@ -720,7 +723,7 @@ _pullPointSetup(pullContext *pctx) {
 void
 _pullPointFinish(pullContext *pctx) {
 
-  airFree(pctx->pointBuff);
-  airFree(pctx->pointPerm);
+  airFree(pctx->tmpPointPtr);
+  airFree(pctx->tmpPointPerm);
   return ;
 }

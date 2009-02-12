@@ -236,22 +236,39 @@ pullRebin(pullContext *pctx) {
 
   if (!pctx->binSingle) {
     
-#if 1
     unsigned int runIdx = 0, pointNum;
     pointNum = pullPointNumber(pctx);
+    if (pointNum != pctx->tmpPointNum) {
+      if (pctx->verbose) {
+        fprintf(stderr, "!%s: changing total point # %u --> %u\n", me,
+                pctx->tmpPointNum, pointNum);
+      }
+      airFree(pctx->tmpPointPerm);
+      airFree(pctx->tmpPointPtr);
+      pctx->tmpPointPtr = AIR_CAST(pullPoint **,
+                                   calloc(pointNum, sizeof(pullPoint*)));
+      pctx->tmpPointPerm = AIR_CAST(unsigned int *,
+                                    calloc(pointNum, sizeof(unsigned int)));
+      if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
+        sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
+                pctx->tmpPointPtr, pctx->tmpPointPerm);
+        biffAdd(PULL, err); return 1;
+      }
+      pctx->tmpPointNum = pointNum;
+    }
     for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
       oldBin = pctx->bin + oldBinIdx;
       while (oldBin->pointNum) {
         /* tricky: we can't traverse bin->point[], because of how it is
            re-ordered on point removal, so we always grab point[0] */
-        pctx->pointBuff[runIdx++] = oldBin->point[0];  
+        pctx->tmpPointPtr[runIdx++] = oldBin->point[0];  
         _pullBinPointRemove(pctx, oldBin, 0);
       }
     }
     airShuffle_r(pctx->task[0]->rng,
-                 pctx->pointPerm, pointNum, AIR_TRUE);
+                 pctx->tmpPointPerm, pointNum, AIR_TRUE);
     for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
-      point = pctx->pointBuff[pctx->pointPerm[pointIdx]];
+      point = pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]];
       newBin = _pullBinLocate(pctx, point->pos);
       if (!newBin) {
         sprintf(err, "%s: can't locate point %p %u",
@@ -260,31 +277,6 @@ pullRebin(pullContext *pctx) {
       }
       _pullBinPointAdd(pctx, newBin, point);
     }
-#else
-    /* this code is stupid because it revisits points that
-       have already been placed in the correct bin */
-    for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
-      oldBin = pctx->bin + oldBinIdx;
-      
-      for (pointIdx=0; pointIdx<oldBin->pointNum; /* nope! */) {
-        point = oldBin->point[pointIdx];
-        newBin = _pullBinLocate(pctx, point->pos);
-        if (!newBin) {
-          sprintf(err, "%s: can't locate point %p %u",
-                  me, AIR_CAST(void*, point), point->idtag);
-          biffAdd(PULL, err); return 1;
-        }
-        if (oldBin != newBin) {
-          _pullBinPointRemove(pctx, oldBin, pointIdx);
-          _pullBinPointAdd(pctx, newBin, point);
-        } else {
-          /* its in the right bin, move on */
-          pointIdx++;
-        }
-      } /* for pointIdx */
-    } /* for oldBinIdx */
-#endif
-
   }
 
   return 0;
