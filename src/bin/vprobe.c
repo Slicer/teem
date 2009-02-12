@@ -168,12 +168,12 @@ main(int argc, char *argv[]) {
              "0 to turn-off all scale-space behavior");
   hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
              "nan nan", "range of scales in scale-space");
-  hestOptAdd(&hopt, "srf", "scale read format", airTypeString, 1, 1,
+  hestOptAdd(&hopt, "ssrf", "SS read format", airTypeString, 1, 1,
              &stackReadFormat, "",
              "printf-style format (including a \"%u\") for the "
              "filenames from which to *read* "
              "pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "ssf", "scale save format", airTypeString, 1, 1,
+  hestOptAdd(&hopt, "sssf", "SS save format", airTypeString, 1, 1,
              &stackSaveFormat, "",
              "printf-style format (including a \"%u\") for the "
              "filenames in which to *save* "
@@ -181,11 +181,11 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ssw", "SS pos", airTypeDouble, 1, 1, &wrlSS, "0",
              "\"world\"-space position (true sigma) "
              "at which to sample in scale-space");
-  hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur,
+  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
              "dgauss:1,5", "blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
-             "tent", "kernel for reconstructing from scale space samples",
+  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
+             "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ssnd", "ssnd", airTypeInt, 1, 1, &SSnormd, "0",
              "enable derivative normalization based on scale space");
@@ -278,16 +278,31 @@ main(int argc, char *argv[]) {
       }
     }
     if (airStrlen(stackReadFormat)) {
-    } else {
-      if (gageStackBlur(ninSS, scalePos, numSS,
+      if (nrrdLoadMulti(ninSS, numSS,
+                        stackReadFormat, 0, NULL)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+      if (gageStackBlur(ninSS, scalePos, numSS, AIR_TRUE,
                         nin, kind->baseDim, kSSblur, 
                         nrrdBoundaryBleed, AIR_TRUE,
-                        verbose)) {
+                        verbose+1)) {
+        airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+        fprintf(stderr, "%s: given pre-computed blurrings don't match:\n%s\n",
+                me, err);
+        airMopError(mop); return 1;
+      }
+    } else {
+      if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE,
+                        nin, kind->baseDim, kSSblur, 
+                        nrrdBoundaryBleed, AIR_TRUE,
+                        verbose+1)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
-      if (airStrlen(stackSaveFormat)) {
+      if (airStrlen(stackSaveFormat) && !airStrlen(stackReadFormat)) {
         if (nrrdSaveMulti(stackSaveFormat,
                           AIR_CAST(const Nrrd *const *, ninSS),
                           numSS, 0, NULL)) {
