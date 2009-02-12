@@ -1043,7 +1043,7 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
   }
   if (!( _nrrdContainsPercentThisAndMore(fnameFormat, 'u') )) {
     sprintf(err, "%s: given format \"%s\" doesn't seem to "
-            "have the \"%%u\" conversion specification to print "
+            "have the \"%%u\" conversion specification to sprintf "
             "an unsigned int\n", me, fnameFormat);
     biffAdd(NRRD, err); return 1;
   }
@@ -1052,7 +1052,7 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
   /* should be big enough for the number replacing the format sequence */
   fname = AIR_CAST(char *, malloc(strlen(fnameFormat) + 128));
   if (!(fname)) {
-    sprintf(err, "%s: couldn't allocated local fname buffer", me);
+    sprintf(err, "%s: couldn't allocate local fname buffer", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
   airMopAdd(mop, fname, airFree, airMopAlways);
@@ -1074,5 +1074,3 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
   airMopOkay(mop);
   return 0;
 }
-
-
