@@ -161,6 +161,7 @@ gageContextNix(gageContext *ctx) {
       gagePerVolumeNix(ctx->pvl[pvlIdx]);
       /* no point in doing a detach, the whole context is going bye-bye */
     }
+    airArrayNuke(ctx->pvlArr);
     ctx->shape = gageShapeNix(ctx->shape);
     ctx->fw = (double *)airFree(ctx->fw);
     ctx->fsl = (double *)airFree(ctx->fsl);
