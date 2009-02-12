@@ -29,6 +29,7 @@ pullPointNew(pullContext *pctx) {
   char me[]="pullPointNew", err[BIFF_STRLEN];
   pullPoint *pnt;
   unsigned int ii;
+  size_t pntSize;
   
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -40,9 +41,8 @@ pullPointNew(pullContext *pctx) {
   }
   /* Allocate the pullPoint so that it has pctx->infoTotalLen doubles.
      The pullPoint declaration has info[1], hence the "- 1" below */
-  pnt = AIR_CAST(pullPoint *,
-                 calloc(1, sizeof(pullPoint)
-                        + sizeof(double)*(pctx->infoTotalLen - 1)));
+  pntSize = sizeof(pullPoint) + sizeof(double)*(pctx->infoTotalLen - 1);
+  pnt = AIR_CAST(pullPoint *, calloc(1, pntSize));
   if (!pnt) {
     sprintf(err, "%s: couldn't allocate point (info len %u)\n", me, 
             pctx->infoTotalLen - 1);
@@ -52,18 +52,19 @@ pullPointNew(pullContext *pctx) {
   pnt->idtag = pctx->idtagNext++;
   pnt->neighPoint = NULL;
   pnt->neighPointNum = 0;
-  pnt->neighPointArr = airArrayNew((void**)&(pnt->neighPoint),
-                                   &(pnt->neighPointNum),
-                                   sizeof(pullPoint *),
-                                   PULL_POINT_NEIGH_INCR);
+  pnt->neighPointArr = airArrayNew(AIR_CAST(void**, &(pnt->neighPoint)),
+				   &(pnt->neighPointNum),
+				   sizeof(pullPoint *),
+				   PULL_POINT_NEIGH_INCR);
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDist = pnt->neighMode = AIR_NAN;
   pnt->neighInterNum = 0;
 #if PULL_PHIST
   pnt->phist = NULL;
   pnt->phistNum = 0;
-  pnt->phistArr = airArrayNew((void**)&(pnt->phist), &(pnt->phistNum),
-                              5*sizeof(double), 32);
+  pnt->phistArr = airArrayNew(AIR_CAST(void**, &(pnt->phist)), 
+			      &(pnt->phistNum),
+			      5*sizeof(double), 32);
 #endif
   pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -411,10 +412,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
         pullInfoSpec *isp;
         isp = task->pctx->ispec[ii];
         vol = task->pctx->vol[isp->volIdx];
-        fprintf(stderr, "!%s: info[%u] %s: %s \"%s\" = %g\n", me,
-                ii, airEnumStr(pullInfo, ii),
-                airEnumStr(vol->kind->enm, isp->item),
-                vol->name, task->ans[ii][0]);
+        printf("!%s: info[%u] %s: %s \"%s\" = %g\n", me,
+	       ii, airEnumStr(pullInfo, ii),
+	       airEnumStr(vol->kind->enm, isp->item),
+	       vol->name, task->ans[ii][0]);
       }
     }
   }
@@ -436,13 +437,25 @@ _pullPointSetup(pullContext *pctx) {
   char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx, binIdx, tick, pn;
   pullPoint *point;
-  double *posData, minOkayDist;
+  double *posData;
   airRandMTState *rng;
   pullBin *bin;
   int reject, threshFail, constrFail, added;
   airArray *mop;
   Nrrd *npos;
 
+  double minOkayDist;   
+  minOkayDist = 0.2;
+  /* minOkayDist is for pullBinsPointMaybeAdd: a point is not added if its
+     distance to existing points in the bin is less than
+     minOkayDist*pctx->radiusSpace.  This is used only in the context of
+     constraints, it makes sense to be a little more selective about adding
+     points, so that they aren't completely piled on top of each other. Its
+     tempting to set this high, to more aggressively limit the number of
+     points added, but that's really the job of population control, and we
+     can't always guarantee that constraint manifolds will be well-sampled
+     (with respect to pctx->radiusSpace) to start with */
+  
   mop = airMopNew();
   if (pctx->npos) {
     npos = nrrdNew();
@@ -452,9 +465,9 @@ _pullPointSetup(pullContext *pctx) {
       biffMove(PULL, err, NRRD); airMopError(mop); return 1;
     }
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
-      fprintf(stderr, "%s: with npos, overriding both pointNumInitial (%u) "
-              "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
-              pctx->pointPerVoxel);
+      printf("%s: with npos, overriding both pointNumInitial (%u) "
+	     "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
+	     pctx->pointPerVoxel);
     }
     pctx->pointNumInitial = npos->axis[1].size;
     pctx->pointPerVoxel = 0;
@@ -463,8 +476,8 @@ _pullPointSetup(pullContext *pctx) {
     npos = NULL;
     posData = NULL;
     if (pctx->pointNumInitial) {
-      fprintf(stderr, "%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
-              me, pctx->pointPerVoxel, pctx->pointNumInitial);
+      printf("%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
+	     me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
     pctx->pointNumInitial = 0;
   } else {
@@ -472,15 +485,10 @@ _pullPointSetup(pullContext *pctx) {
     npos = NULL;
     posData = NULL;
   }
-  fprintf(stderr, "!%s: initilizing/seeding ...       ", me);
-  fflush(stderr);
+  printf("!%s: initilizing/seeding ...       ", me);
+  fflush(stdout);
   rng = pctx->task[0]->rng;
-  /* minOkayDist is for pullBinsPointMaybeAdd, which is used when there is
-     a constraint. Its tempting to set this high, to more aggressively 
-     limit the number of points added, but this is risky given that there
-     is actually no guarantee that constraint manifolds will be well-
-     sampled (with respect to pctx->radiusSpace) to start with */
-  minOkayDist = 0.25;
+  point = NULL;
   if (pctx->pointPerVoxel) {
     pullVolume *seedVol;
     gageShape *seedShape;
@@ -500,8 +508,8 @@ _pullPointSetup(pullContext *pctx) {
     for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
       unsigned int pitv; /* points in this voxel */
       if (tick < 100 || 0 == voxIdx % tick) {
-        fprintf(stderr, "%s", airDoneStr(0, voxIdx, voxNum, doneStr));
-        fflush(stderr);
+        printf("%s", airDoneStr(0, voxIdx, voxNum, doneStr));
+        fflush(stdout);
       }
       if (pctx->pointPerVoxel < 0) {
         if (voxIdx % -pctx->pointPerVoxel) {
@@ -520,8 +528,8 @@ _pullPointSetup(pullContext *pctx) {
       vidx[1] = yzi % seedShape->size[1];
       vidx[2] = (yzi - vidx[1])/seedShape->size[1];
       if (pctx->verbose > 5) {
-        fprintf(stderr, "%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
-                voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
+        printf("%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
+	       voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
       }
       for (pitvIdx=0; pitvIdx<pitv; pitvIdx++) {
         /* re-used a point that failed to be binned (for whatever reason) */
@@ -534,7 +542,7 @@ _pullPointSetup(pullContext *pctx) {
         iPos[3] = 1;
         ELL_4MV_MUL(wPos, seedShape->ItoW, iPos);
         ELL_3V_COPY(point->pos, wPos);
-        point->pos[3] = 0.0;
+        point->pos[3] = 0.0; /* HEY: no scale? */
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pnt %u of of vox %u (%u,%u,%u)",
                   me, pitvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
@@ -556,9 +564,6 @@ _pullPointSetup(pullContext *pctx) {
             /* constraint satisfaction failed, don't try again */
             continue;
           }
-          /* in the context of constraints, it makes sense to be a little more
-             selective about adding points, so that they aren't completely
-             piled on top of each other. */
           if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
             sprintf(err, "%s: trouble binning point %u", me, point->idtag);
             biffAdd(PULL, err); airMopError(mop); return 1;
@@ -579,35 +584,27 @@ _pullPointSetup(pullContext *pctx) {
         }
       }
     }
-    if (point) {
-      /* we created a new test point, but it was never placed in the volume */
-      /* so, HACK: undo pullPointNew ... */
-      pullPointNix(point);
-      pctx->idtagNext -= 1;
-    }
-    fprintf(stderr, "%s\n", airDoneStr(0, voxIdx, voxNum, doneStr));
+    printf("%s\n", airDoneStr(0, voxIdx, voxNum, doneStr));
     if (!pctx->pointNumInitial) {
       sprintf(err, "%s: seeding never succeeded (bad seedthresh? %g)",
               me, pctx->ispec[pullInfoSeedThresh]->zero);
       biffAdd(PULL, err); airMopError(mop); return 1;
     }
-    if (pctx->verbose) {
-      fprintf(stderr, "%s: with pointPerVoxel %d --> pointNumInitial = %u\n",
-              me, pctx->pointPerVoxel, pctx->pointNumInitial);
-    }
-  } else { /* not pointPerVoxel */
+  } else { 
+    /* not pointPerVoxel, either npos or pointNumInitial */
     tick = pctx->pointNumInitial/1000;
     for (pointIdx=0; pointIdx<pctx->pointNumInitial; pointIdx++) {
       if (tick < 100 || 0 == pointIdx % tick) {
-        fprintf(stderr, "%s", airDoneStr(0, pointIdx, pctx->pointNumInitial,
-                                         doneStr));
-        fflush(stderr);
+        printf("%s", airDoneStr(0, pointIdx, pctx->pointNumInitial, doneStr));
+        fflush(stdout);
       }
       if (pctx->verbose > 5) {
-        fprintf(stderr, "%s: setting up point = %u/%u\n", me,
-                pointIdx, pctx->pointNumInitial);
+        printf("%s: setting up point = %u/%u\n", me,
+	       pointIdx, pctx->pointNumInitial);
       }
-      point = pullPointNew(pctx);
+      if (!point) {
+	point = pullPointNew(pctx);
+      }
       if (npos) {
         ELL_4V_COPY(point->pos, posData + 4*pointIdx);
         /* even though we are dictating the point locations, we still have
@@ -628,8 +625,8 @@ _pullPointSetup(pullContext *pctx) {
                      AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                 pctx->bboxMin[2], pctx->bboxMax[2]));
           /*
-          fprintf(stderr, "!%s: pos = %g %g %g\n", me,
-                  point->pos[0], point->pos[1], point->pos[2]);
+	  printf("!%s: pos = %g %g %g\n", me,
+	         point->pos[0], point->pos[1], point->pos[2]);
           */
           if (pctx->haveScale) {
             point->pos[3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
@@ -647,7 +644,7 @@ _pullPointSetup(pullContext *pctx) {
             val = _pullPointScalar(pctx, point, pullInfoSeedThresh,
                                    NULL, NULL);
             /*
-              fprintf(stderr, "!%s: val(%g %g %g) =  %g -> %g\n", me, 
+              printf("!%s: val(%g %g %g) =  %g -> %g\n", me, 
               point->pos[0], point->pos[1], point->pos[2], 
               point->info[pctx->infoIdx[pullInfoSeedThresh]], val);
             */
@@ -679,23 +676,34 @@ _pullPointSetup(pullContext *pctx) {
           }
         } while (reject);
       }
-      /* HEY should use MaybeAdd */
       if (pctx->constraint) {
         if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
           sprintf(err, "%s: trouble binning point %u", me, point->idtag);
           biffAdd(PULL, err); airMopError(mop); return 1;
         }
+	if (added) {
+	  point = NULL;
+	}
+	/* else it wasn't added; reuse the point and try again */
       } else {
         if (pullBinsPointAdd(pctx, point)) {
           sprintf(err, "%s: trouble binning point %u", me, point->idtag);
           biffAdd(PULL, err); airMopError(mop); return 1;
         }
+	point = NULL;
       }
     }
-    fprintf(stderr, "%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
-                                       doneStr));
+    printf("%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
+			      doneStr));
   } /* not pointPerVoxel */
+  if (point) {
+    /* we created a new test point, but it was never placed in the volume */
+    /* so, HACK: undo pullPointNew ... */
+    pullPointNix(point);
+    pctx->idtagNext -= 1;
+  }
   pn = pullPointNumber(pctx);
+  printf("%s: ended up with %u points\n", me, pn);
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,
