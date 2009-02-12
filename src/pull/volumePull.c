@@ -330,16 +330,24 @@ _pullVolumeSetup(pullContext *pctx) {
     ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
     ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
   }
+  /* have now computed bbox{Min,Max}[0,1,2]; now do bbox{Min,Max}[3] */
+  pctx->bboxMin[3] = pctx->bboxMax[3] = 0.0;
   pctx->haveScale = AIR_FALSE;
   for (ii=0; ii<pctx->volNum; ii++) {
     if (pctx->vol[ii]->ninScale) {
-      pctx->haveScale = AIR_TRUE;
-      pctx->bboxMin[3] = pctx->vol[ii]->scalePos[0];
-      pctx->bboxMax[3] = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
+      double sclMin, sclMax;
+      sclMin = pctx->vol[ii]->scalePos[0];
+      sclMax = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
+      if (!pctx->haveScale) {
+        pctx->bboxMin[3] = sclMin;
+        pctx->bboxMax[3] = sclMax;
+        pctx->haveScale = AIR_TRUE;
+      } else {
+        /* we already know haveScale; expand existing range */
+        pctx->bboxMin[3] = AIR_MIN(sclMin, pctx->bboxMin[3]);
+        pctx->bboxMax[3] = AIR_MAX(sclMax, pctx->bboxMax[3]);
+      }
     }
-  }
-  if (!pctx->haveScale) {
-    pctx->bboxMin[3] = pctx->bboxMax[3] = 0.0;
   }
   fprintf(stderr, "!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
           pctx->bboxMin[0], pctx->bboxMin[1],
