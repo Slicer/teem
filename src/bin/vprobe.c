@@ -88,11 +88,11 @@ int
 main(int argc, char *argv[]) {
   gageKind *kind;
   char *me, *outS, *whatS, *err, hackKeyStr[]="TEEM_VPROBE_HACK_ZI",
-    *hackValStr, *stackSavePath;
+    *hackValStr, *stackReadFormat, *stackSaveFormat;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet, SSrenorm, SSuniform, verbose,
+  int what, E=0, otype, renorm, hackSet, SSnormd, SSuniform, verbose,
     orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
@@ -107,6 +107,7 @@ main(int argc, char *argv[]) {
   unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
 
+  me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
      or nrrdState* variables in a way that nrrdSanity() should see */
   nrrdDefaultGetenv();
@@ -133,7 +134,6 @@ main(int argc, char *argv[]) {
   }
 
   mop = airMopNew();
-  me = argv[0];
   hparm = hestParmNew();
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
@@ -168,10 +168,16 @@ main(int argc, char *argv[]) {
              "0 to turn-off all scale-space behavior");
   hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
              "nan nan", "range of scales in scale-space");
-  hestOptAdd(&hopt, "sss", "scale save path", airTypeString, 1, 1,
-             &stackSavePath, "",
-             "give a non-empty path string (like \"./\") to save out "
-             "the pre-blurred volumes computed for the stack");
+  hestOptAdd(&hopt, "srf", "scale read format", airTypeString, 1, 1,
+             &stackReadFormat, "",
+             "printf-style format (including a \"%u\") for the "
+             "filenames from which to *read* "
+             "pre-blurred volumes computed for the stack");
+  hestOptAdd(&hopt, "ssf", "scale save format", airTypeString, 1, 1,
+             &stackSaveFormat, "",
+             "printf-style format (including a \"%u\") for the "
+             "filenames in which to *save* "
+             "pre-blurred volumes computed for the stack");
   hestOptAdd(&hopt, "ssw", "SS pos", airTypeDouble, 1, 1, &wrlSS, "0",
              "\"world\"-space position (true sigma) "
              "at which to sample in scale-space");
@@ -181,11 +187,11 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
              "tent", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssrn", "ssrn", airTypeInt, 1, 1, &SSrenorm, "0",
+  hestOptAdd(&hopt, "ssnd", "ssnd", airTypeInt, 1, 1, &SSnormd, "0",
              "enable derivative normalization based on scale space");
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
              "do uniform samples along sigma, and not (by default) "
-             "samples according to the logarithm of diffusion time");
+             "samples according to the effective diffusion scale");
 
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
@@ -196,7 +202,7 @@ main(int argc, char *argv[]) {
              "magnitude is below this");
   hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
 	     NULL, "If only per-axis spacing is available, use that to "
-	     "guess orientation info");
+	     "contrive full orientation info");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
              "type of output volume", NULL, nrrdType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -271,33 +277,34 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
       }
     }
-    if (gageStackBlur(ninSS, scalePos, numSS,
-                      nin, kind->baseDim, kSSblur, 
-                      nrrdBoundaryBleed, AIR_TRUE,
-                      verbose)) {
-      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
-      airMopError(mop); return 1;
-    }
-    if (airStrlen(stackSavePath)) {
-      char fnform[AIR_STRLEN_LARGE];
-      sprintf(fnform, "%s/blur-%%02u.nrrd", stackSavePath);
-      fprintf(stderr, "%s: |%s|\n", me, fnform);
-      if (nrrdSaveMulti(fnform, AIR_CAST(const Nrrd *const *, ninSS),
-                        numSS, 0, NULL)) {
-        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
+    if (airStrlen(stackReadFormat)) {
+    } else {
+      if (gageStackBlur(ninSS, scalePos, numSS,
+                        nin, kind->baseDim, kSSblur, 
+                        nrrdBoundaryBleed, AIR_TRUE,
+                        verbose)) {
+        airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
+      }
+      if (airStrlen(stackSaveFormat)) {
+        if (nrrdSaveMulti(stackSaveFormat,
+                          AIR_CAST(const Nrrd *const *, ninSS),
+                          numSS, 0, NULL)) {
+          airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+          fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
+          airMopError(mop); return 1;
+        }
       }
     }
     /* there's actually work to do here, weirdly: gageProbe can either
        work in index space, or in world space, but vprobe has
        basically always been index-space-centric.  For doing any kind
        scale/stack space hacking for which vprobe is suited, its nicer
-       to have the stack position be in the stack's "world" space, not
-       the (potentially non-uniform) index space.  So here, we have to
-       actually replicate work that is done by _gageProbeSpace() in
-       converting from world to index space */
+       to have the user-specified stack position be in the stack's
+       "world" space, not the (potentially non-uniform) index space.
+       So here, we have to actually replicate work that is done by
+       _gageProbeSpace() in converting from world to index space */
     for (vi=0; vi<numSS-1; vi++) {
       if (AIR_IN_CL(scalePos[vi], wrlSS, scalePos[vi+1])) {
         idxSS = vi + AIR_AFFINE(scalePos[vi], wrlSS, scalePos[vi+1], 0, 1);
@@ -339,8 +346,9 @@ main(int argc, char *argv[]) {
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(ctx, gageParmStackRenormalize,
-                SSrenorm ? AIR_TRUE : AIR_FALSE);
+    /* HEY: possible set gageParmStackNormalizeRecon ? */
+    gageParmSet(ctx, gageParmStackNormalizeDeriv,
+                SSnormd ? AIR_TRUE : AIR_FALSE);
     if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
