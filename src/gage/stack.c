@@ -66,6 +66,12 @@ gageTauOfSig(double sig) {
 ** little helper function to do pre-blurring of a given nrrd 
 ** of the sort that might be useful for scale-space gage use
 **
+** OR, as a sneaky hack: if checkPreblurredOutput is non-zero, this
+** checks to see if the given array of nrrds (nblur[]) looks like it
+** plausibly came from the output of this function before, with the
+** same parameter settings.  This hack precludes const correctness,
+** sorry!
+**
 ** nblur has to already be allocated for "blnum" Nrrd*s, AND, they all
 ** have to point to valid (possibly empty) Nrrds, so they can hold the
 ** results of blurring. "scale" is filled with the result of
@@ -74,13 +80,15 @@ gageTauOfSig(double sig) {
 */
 int
 gageStackBlur(Nrrd *const nblur[], const double *scale,
-              unsigned int blnum,
+              unsigned int blnum, int checkPreblurredOutput,
               const Nrrd *nin, unsigned int baseDim,
               const NrrdKernelSpec *_kspec,
               int boundary, int renormalize, int verbose) {
-  char me[]="gageStackBlur", err[BIFF_STRLEN], val[AIR_STRLEN_LARGE],
-    keyscl[]="scale", keykern[]="kernel";
+  char me[]="gageStackBlur", err[BIFF_STRLEN],
+    key[3][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel"},
+    val[3][AIR_STRLEN_LARGE] = {"true", "" /* below */, "" /* below */};
   unsigned int blidx, axi;
+  size_t sizeIn[NRRD_DIM_MAX], sizeOut[NRRD_DIM_MAX];
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *kspec;
   airArray *mop;
@@ -91,7 +99,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
     biffAdd(GAGE, err); return 1;
   }
   if (!( blnum >= 2)) {
-    sprintf(err, "%s: need blnum > 2, not %u", me, blnum);
+    sprintf(err, "%s: need blnum >= 2, not %u", me, blnum);
     biffAdd(GAGE, err); return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
@@ -123,6 +131,8 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
             boundary, nrrdBoundary->name);
     biffAdd(GAGE, err); return 1;
   }
+  /* strictly speaking, only used with checkPreblurredOutput */
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, sizeIn);
   
   mop = airMopNew();
   kspec = nrrdKernelSpecCopy(_kspec);
@@ -133,56 +143,114 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   airMopAdd(mop, kspec, (airMopper)nrrdKernelSpecNix, airMopAlways);
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-
+  
   E = 0;
-  if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
-  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
-  if (baseDim) {
-    unsigned int bai;
-    for (bai=0; bai<baseDim; bai++) {
-      if (!E) E |= nrrdResampleKernelSet(rsmc, bai, NULL, NULL);
-    }
-  }
-  for (axi=0; axi<3; axi++) {
-    if (!E) E |= nrrdResampleSamplesSet(rsmc, baseDim + axi,
-                                        nin->axis[baseDim + axi].size);
-    if (!E) E |= nrrdResampleRangeFullSet(rsmc, baseDim + axi);
-  }
-  if (!E) E |= nrrdResampleBoundarySet(rsmc, boundary);
-  if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
-  if (!E) E |= nrrdResampleRenormalizeSet(rsmc, renormalize);
-  if (E) {
-    sprintf(err, "%s: trouble setting up resampling", me);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
-  }
-  for (blidx=0; blidx<blnum; blidx++) {
-    kspec->parm[0] = scale[blidx];
-    for (axi=0; axi<3; axi++) {
-      if (!E) E |= nrrdResampleKernelSet(rsmc, baseDim + axi,
-                                         kspec->kernel, kspec->parm);
-    }
-    if (verbose) {
-      fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blidx,
-              blnum, scale[blidx]);
-      fflush(stderr);
-    }
-    if (!E) E |= nrrdResampleExecute(rsmc, nblur[blidx]);
-    /* add some KVPs to document how these were blurred */
-    if (!E) nrrdKeyValueAdd(nblur[blidx], me, "true");
-    sprintf(val, "%g", scale[blidx]);
-    if (!E) nrrdKeyValueAdd(nblur[blidx], keyscl, val);
-    nrrdKernelSpecSprint(val, kspec);
-    if (!E) nrrdKeyValueAdd(nblur[blidx], keykern, val);
-    if (E) {
-      if (verbose) {
-        fprintf(stderr, "problem!\n");
+  if (!checkPreblurredOutput) {
+    if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
+    if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+    if (baseDim) {
+      unsigned int bai;
+      for (bai=0; bai<baseDim; bai++) {
+        if (!E) E |= nrrdResampleKernelSet(rsmc, bai, NULL, NULL);
       }
-      sprintf(err, "%s: trouble resampling %u of %u (scale %g)",
-              me, blidx, blnum, scale[blidx]);
+    }
+    for (axi=0; axi<3; axi++) {
+      if (!E) E |= nrrdResampleSamplesSet(rsmc, baseDim + axi,
+                                          nin->axis[baseDim + axi].size);
+      if (!E) E |= nrrdResampleRangeFullSet(rsmc, baseDim + axi);
+    }
+    if (!E) E |= nrrdResampleBoundarySet(rsmc, boundary);
+    if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
+    if (!E) E |= nrrdResampleRenormalizeSet(rsmc, renormalize);
+    if (E) {
+      sprintf(err, "%s: trouble setting up resampling", me);
       biffAdd(GAGE, err); airMopError(mop); return 1;
     }
-    if (verbose) {
-      fprintf(stderr, "done.\n");
+  }
+  for (blidx=0; blidx<blnum; blidx++) {
+    unsigned int kvpIdx;
+    kspec->parm[0] = scale[blidx];
+    if (!checkPreblurredOutput) {
+      for (axi=0; axi<3; axi++) {
+        if (!E) E |= nrrdResampleKernelSet(rsmc, baseDim + axi,
+                                           kspec->kernel, kspec->parm);
+      }
+      if (verbose) {
+        fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blidx,
+                blnum, scale[blidx]);
+        fflush(stderr);
+      }
+      if (!E) E |= nrrdResampleExecute(rsmc, nblur[blidx]);
+      if (E) {
+        if (verbose) {
+          fprintf(stderr, "problem!\n");
+        }
+        sprintf(err, "%s: trouble resampling %u of %u (scale %g)",
+                me, blidx, blnum, scale[blidx]);
+        biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
+    } else {
+      /* check to see if nblur[blidx] is as expected */
+      unsigned int axi;
+      if (nrrdCheck(nblur[blidx])) {
+        sprintf(err, "%s: basic problem with nblur[%u]", me, blidx);
+        biffMove(GAGE, err, NRRD); airMopError(mop); return 1;
+      }
+      if (nblur[blidx]->dim != nin->dim) {
+        sprintf(err, "%s: nblur[%u]->dim %u != nin->dim %u", me,
+                blidx, nblur[blidx]->dim, nin->dim);
+        biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
+      nrrdAxisInfoGet_nva(nblur[blidx], nrrdAxisInfoSize, sizeOut);
+      for (axi=0; axi<nin->dim; axi++) {
+        if (sizeIn[axi] != sizeOut[axi]) {
+          sprintf(err, "%s: nblur[%u]->axis[%u].size " _AIR_SIZE_T_CNV
+                  " != nin->axis[%u].size " _AIR_SIZE_T_CNV, me,
+                  blidx, axi, sizeOut[axi], axi, sizeIn[axi]);
+          biffAdd(GAGE, err); airMopError(mop); return 1;
+        }
+      }
+    }
+    /* fill out the 2nd and 3rd values for the KVPs */
+    sprintf(val[1], "%g", scale[blidx]);
+    nrrdKernelSpecSprint(val[2], kspec);
+    E = 0;
+    if (!checkPreblurredOutput) {
+      /* add the KVPs to document how these were blurred */
+      for (kvpIdx=0; kvpIdx<3; kvpIdx++) {
+        if (!E) E |= nrrdKeyValueAdd(nblur[blidx], key[kvpIdx], val[kvpIdx]);
+      }
+      if (E) {
+        if (!checkPreblurredOutput && verbose) {
+          fprintf(stderr, "problem!\n");
+        }
+        sprintf(err, "%s: trouble adding KVP to %u of %u (scale %g)",
+                me, blidx, blnum, scale[blidx]);
+        biffAdd(GAGE, err); airMopError(mop); return 1;
+      }
+      if (verbose) {
+        fprintf(stderr, "done.\n");
+      }
+    } else {
+      /* see if the KVPs are already there */
+      for (kvpIdx=0; kvpIdx<3; kvpIdx++) {
+        char *tmpval;
+        tmpval = nrrdKeyValueGet(nblur[blidx], key[kvpIdx]);
+        if (!tmpval) {
+          sprintf(err, "%s: didn't see key \"%s\" in nblur[%u]", me,
+                  key[kvpIdx], blidx);
+          biffAdd(GAGE, err); airMopError(mop); return 1;
+        }
+        if (strcmp(tmpval, val[kvpIdx])) {
+          sprintf(err, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
+                  key[kvpIdx], tmpval, val[kvpIdx]);
+          biffAdd(GAGE, err); airMopError(mop); return 1;
+        }
+        /* else it did match, move on */
+        if (!nrrdStateKeyValueReturnInternalPointers) {
+          tmpval = airFree(tmpval);
+        }
+      }
     }
   }
 

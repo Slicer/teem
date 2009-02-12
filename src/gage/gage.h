@@ -839,7 +839,7 @@ GAGE_EXPORT double gageTeeOfTau(double tau);
 GAGE_EXPORT double gageSigOfTau(double tau);
 GAGE_EXPORT double gageTauOfSig(double sig);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], const double *scale,
-                              unsigned int num,
+                              unsigned int num, int checkPreblurredOutput,
                               const Nrrd *nin, unsigned int baseDim,
                               const NrrdKernelSpec *kspec,
                               int boundary, int renormalize, int verbose);
