@@ -138,6 +138,8 @@ nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
 **
 ** This will COPY the given strings, and so does not depend on
 ** them existing past the return of this function
+**
+** does NOT use BIFF
 */
 int
 nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
@@ -170,6 +172,8 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
 ** "inside" the nrrd struct (pointers which you had better not free()!)
 ** is controlled by nrrdStateKeyValueReturnInternalPointers, which defaults
 ** to AIR_FALSE
+**
+** does NOT use BIFF
 */
 char *
 nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
