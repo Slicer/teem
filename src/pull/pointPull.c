@@ -449,7 +449,7 @@ _pullPointSetup(pullContext *pctx) {
     airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(npos, pctx->npos, nrrdTypeDouble)) {
       sprintf(err, "%s: trouble converting npos", me);
-      biffMove(PULL, err, NRRD); return 1;
+      biffMove(PULL, err, NRRD); airMopError(mop); return 1;
     }
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
       fprintf(stderr, "%s: with npos, overriding both pointNumInitial (%u) "
@@ -489,7 +489,7 @@ _pullPointSetup(pullContext *pctx) {
 
     if (pctx->haveScale) {
       sprintf(err, "%s: sorry, pointPerVoxel w/ scale unimplemented", me);
-      biffAdd(PULL, err); return 1;
+      biffAdd(PULL, err); airMopError(mop); return 1;
     }
     /* _pullContextCheck has made sure that there is a seedthresh info set */
     seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
@@ -538,7 +538,7 @@ _pullPointSetup(pullContext *pctx) {
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pnt %u of of vox %u (%u,%u,%u)",
                   me, pitvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
-          biffAdd(PULL, err); return 1;
+          biffAdd(PULL, err); airMopError(mop); return 1;
         }
         /* we should be guaranteed to have a seed thresh info */
         seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh, NULL, NULL);
@@ -550,7 +550,7 @@ _pullPointSetup(pullContext *pctx) {
           if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
             sprintf(err, "%s: on pnt %u of of vox %u (%u,%u,%u)",
                     me, pitvIdx, voxIdx, vidx[0], vidx[1], vidx[2]);
-            biffAdd(PULL, err); return 1;
+            biffAdd(PULL, err); airMopError(mop); return 1;
           }
           if (constrFail) {
             /* constraint satisfaction failed, don't try again */
@@ -561,7 +561,7 @@ _pullPointSetup(pullContext *pctx) {
              piled on top of each other. */
           if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
             sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-            biffAdd(PULL, err); return 1;
+            biffAdd(PULL, err); airMopError(mop); return 1;
           }
           if (added) {
             point = NULL;
@@ -572,7 +572,7 @@ _pullPointSetup(pullContext *pctx) {
           /* else if we don't have a constraint, the point is ready to add */
           if (pullBinsPointAdd(pctx, point)) {
             sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-            biffAdd(PULL, err); return 1;
+            biffAdd(PULL, err); airMopError(mop); return 1;
           }
           point = NULL;
           pctx->pointNumInitial += 1;
@@ -589,7 +589,7 @@ _pullPointSetup(pullContext *pctx) {
     if (!pctx->pointNumInitial) {
       sprintf(err, "%s: seeding never succeeded (bad seedthresh? %g)",
               me, pctx->ispec[pullInfoSeedThresh]->zero);
-      biffAdd(PULL, err); return 1;
+      biffAdd(PULL, err); airMopError(mop); return 1;
     }
     if (pctx->verbose) {
       fprintf(stderr, "%s: with pointPerVoxel %d --> pointNumInitial = %u\n",
@@ -614,7 +614,7 @@ _pullPointSetup(pullContext *pctx) {
            to do the initial probe */
         if (_pullProbe(pctx->task[0], point)) {
           sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
-          biffAdd(PULL, err); return 1;
+          biffAdd(PULL, err); airMopError(mop); return 1;
         }
       } else { /* uniform sampling in volume */
         unsigned int threshFailCount = 0, constrFailCount = 0;
@@ -640,7 +640,7 @@ _pullPointSetup(pullContext *pctx) {
           _pullPointHistAdd(point, pullCondOld);
           if (_pullProbe(pctx->task[0], point)) {
             sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
-            biffAdd(PULL, err); return 1;
+            biffAdd(PULL, err); airMopError(mop); return 1;
           }
           if (pctx->ispec[pullInfoSeedThresh]) {
             double val;
@@ -658,7 +658,7 @@ _pullPointSetup(pullContext *pctx) {
           if (!threshFail && pctx->constraint) {
             if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
               sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
-              biffAdd(PULL, err); return 1;
+              biffAdd(PULL, err); airMopError(mop); return 1;
             }
             constrFailCount += constrFail;
           } else {
@@ -672,7 +672,7 @@ _pullPointSetup(pullContext *pctx) {
                       me, pointIdx,
                       threshFail ? "true" : "false", threshFailCount,
                       constrFail ? "true" : "false", constrFailCount);
-              biffAdd(PULL, err); return 1;
+              biffAdd(PULL, err); airMopError(mop); return 1;
             }
           } else {
             threshFailCount = constrFailCount = 0;
@@ -683,12 +683,12 @@ _pullPointSetup(pullContext *pctx) {
       if (pctx->constraint) {
         if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
           sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-          biffAdd(PULL, err); return 1;
+          biffAdd(PULL, err); airMopError(mop); return 1;
         }
       } else {
         if (pullBinsPointAdd(pctx, point)) {
           sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-          biffAdd(PULL, err); return 1;
+          biffAdd(PULL, err); airMopError(mop); return 1;
         }
       }
     }
@@ -703,7 +703,7 @@ _pullPointSetup(pullContext *pctx) {
   if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
       sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
               pctx->tmpPointPtr, pctx->tmpPointPerm);
-      biffAdd(PULL, err); return 1;
+      biffAdd(PULL, err); airMopError(mop); return 1;
   }
   pctx->tmpPointNum = pn;
 
@@ -717,6 +717,8 @@ _pullPointSetup(pullContext *pctx) {
                                             point->force);
     }
   }
+
+  airMopOkay(mop); 
   return 0;
 }
 
