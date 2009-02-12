@@ -276,6 +276,7 @@ pullRebin(pullContext *pctx) {
         biffAdd(PULL, err); return 1;
       }
       _pullBinPointAdd(pctx, newBin, point);
+      pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;
     }
   }
 
