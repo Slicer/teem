@@ -116,7 +116,7 @@ main(int argc, char *argv[]) {
   float pos[3], lineInfo[4];
   double gmc, rangeSS[2], posSS, *scalePos;
   unsigned int ansLen, numSS, ninSSIdx, lineStepNum;
-  int what, E=0, renorm, SSrenorm, SSuniform, verbose, orientationFromSpacing;
+  int what, E=0, renorm, SSnormd, SSuniform, verbose, orientationFromSpacing;
   const double *answer;
   Nrrd *nin, **ninSS=NULL, *nout=NULL;
   gageContext *ctx;
@@ -191,7 +191,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS,
              "tent", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssrn", "ssrn", airTypeInt, 1, 1, &SSrenorm, "0",
+  hestOptAdd(&hopt, "ssnd", "ssnd", airTypeInt, 1, 1, &SSnormd, "0",
              "enable derivative normalization based on scale space");
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
              "do uniform samples along sigma, and not (by default) "
@@ -330,8 +330,8 @@ main(int argc, char *argv[]) {
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(ctx, gageParmStackRenormalize,
-                SSrenorm ? AIR_TRUE : AIR_FALSE);
+    gageParmSet(ctx, gageParmStackNormalizeDeriv,
+                SSnormd ? AIR_TRUE : AIR_FALSE);
     if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
