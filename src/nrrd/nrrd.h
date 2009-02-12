@@ -914,6 +914,9 @@ NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
 NRRD_EXPORT int nrrdLineSkip(FILE *dataFile, NrrdIoState *nio);
 NRRD_EXPORT int nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio);
 NRRD_EXPORT int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio);
+NRRD_EXPORT int nrrdLoadMulti(Nrrd *const *nin, unsigned int ninLen,
+                              const char *fnameFormat,
+                              unsigned int numStart, NrrdIoState *nio);
 NRRD_EXPORT int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *nio);
 NRRD_EXPORT int nrrdStringRead(Nrrd *nrrd, const char *string,
                                NrrdIoState *nio);

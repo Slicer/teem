@@ -638,3 +638,49 @@ nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   airMopOkay(mop);
   return 0;
 }
+
+int
+nrrdLoadMulti(Nrrd *const *nin, unsigned int ninLen,
+              const char *fnameFormat,
+              unsigned int numStart, NrrdIoState *nio) {
+  char me[]="nrrdLoadMulti", err[BIFF_STRLEN], *fname;
+  airArray *mop;
+  unsigned int nii;
+
+  if (!(nin && fnameFormat)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  if (!( _nrrdContainsPercentThisAndMore(fnameFormat, 'u') )) {
+    sprintf(err, "%s: given format \"%s\" doesn't seem to "
+            "have the \"%%u\" conversion specification to sprintf "
+            "an unsigned int\n", me, fnameFormat);
+    biffAdd(NRRD, err); return 1;
+  }
+  
+  mop = airMopNew();
+  /* should be big enough for the number replacing the format sequence */
+  fname = AIR_CAST(char *, malloc(strlen(fnameFormat) + 128));
+  if (!(fname)) {
+    sprintf(err, "%s: couldn't allocate local fname buffer", me);
+    biffAdd(NRRD, err); airMopError(mop); return 1;
+  }
+  airMopAdd(mop, fname, airFree, airMopAlways);
+
+  for (nii=0; nii<ninLen; nii++) {
+    unsigned int num;
+    num = numStart + nii;
+    sprintf(fname, fnameFormat, num);
+    if (nrrdLoad(nin[nii], fname, nio)) {
+      sprintf(err, "%s: trouble loading nin[%u] from %s", me, nii, fname);
+      biffAdd(NRRD, err); airMopError(mop); return 1;
+    }
+    /* HEY: GLK hopes that the nio doesn't have any state that needs
+       resetting, but we can't call nrrdIoStateInit() because that
+       would negate the purpose of sending in the nio for all but the
+       first saved nrrd */
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
