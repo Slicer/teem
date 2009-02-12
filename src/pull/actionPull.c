@@ -671,7 +671,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   } /* for myPointIdx */
 
   /* probabilistically nix points that have too much company */
-  if ((19 == task->pctx->iter % 20) && task->pctx->constraint) {
+  if ((10 == task->pctx->iter % 15) && task->pctx->constraint) {
     pullPoint *point;
     double nixProb, ndist, wantDist=1.3, wantNum, haveNum, constrDim;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
