@@ -62,24 +62,25 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
   char me[]="_pullBinLocate", err[BIFF_STRLEN];
   unsigned int axi, eidx[3], binIdx;
 
-  if (!ELL_3V_EXISTS(posWorld)) {
-    sprintf(err, "%s: non-existant position (%g,%g,%g)", me,
-            posWorld[0], posWorld[1], posWorld[2]);
+  if (!ELL_4V_EXISTS(posWorld)) {
+    sprintf(err, "%s: non-existant position (%g,%g,%g,%g)", me,
+            posWorld[0], posWorld[1], posWorld[2], posWorld[3]);
     biffAdd(PULL, err); return NULL;
   }
 
   if (pctx->binSingle) {
     binIdx = 0;
   } else {
-    for (axi=0; axi<3; axi++) {
+    for (axi=0; axi<4; axi++) {
       eidx[axi] = airIndexClamp(pctx->bboxMin[axi],
                                 posWorld[axi],
                                 pctx->bboxMax[axi],
                                 pctx->binsEdge[axi]);
     }
     binIdx = (eidx[0]
-              + pctx->binsEdge[0]*(eidx[1] 
-                                   + pctx->binsEdge[1]*eidx[2]));
+              + pctx->binsEdge[0]*(
+                    eidx[1] + pctx->binsEdge[1]*(
+                         eidx[2] + pctx->binsEdge[2] * eidx[3])));
   }
   /*
   fprintf(stderr, "!%s: bin(%g,%g,%g) = %u\n", me, 
@@ -131,39 +132,45 @@ _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
 void
 pullBinsAllNeighborSet(pullContext *pctx) {
   /* char me[]="pullBinsAllNeighborSet"; */
-  pullBin *nei[3*3*3];
-  unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
-  int xmin, ymin, zmin;
+  pullBin *nei[3*3*3*3];
+  unsigned int neiNum, xi, yi, zi, si, xx, yy, zz, ss, xmax, ymax, zmax, smax, binIdx;
+  int xmin, ymin, zmin, smin;
 
   if (pctx->binSingle) {
     neiNum = 0;
     nei[neiNum++] = pctx->bin + 0;
     _pullBinNeighborSet(pctx->bin + 0, nei, neiNum);
   } else {
-    for (zi=0; zi<pctx->binsEdge[2]; zi++) {
-      zmin = AIR_MAX(0, (int)zi-1);
-      zmax = AIR_MIN(zi+1, pctx->binsEdge[2]-1);
-      for (yi=0; yi<pctx->binsEdge[1]; yi++) {
-        ymin = AIR_MAX(0, (int)yi-1);
-        ymax = AIR_MIN(yi+1, pctx->binsEdge[1]-1);
-        for (xi=0; xi<pctx->binsEdge[0]; xi++) {
-          xmin = AIR_MAX(0, (int)xi-1);
-          xmax = AIR_MIN(xi+1, pctx->binsEdge[0]-1);
-          neiNum = 0;
-          for (zz=zmin; zz<=zmax; zz++) {
-            for (yy=ymin; yy<=ymax; yy++) {
-              for (xx=xmin; xx<=xmax; xx++) {
-                binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*zz);
-                /*
-                fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
+    for (si=0; si<pctx->binsEdge[3]; si++) {
+      smin = AIR_MAX(0, (int)si-1);
+      smax = AIR_MIN(si+1, pctx->binsEdge[3]-1);
+      for (zi=0; zi<pctx->binsEdge[2]; zi++) {
+        zmin = AIR_MAX(0, (int)zi-1);
+        zmax = AIR_MIN(zi+1, pctx->binsEdge[2]-1);
+        for (yi=0; yi<pctx->binsEdge[1]; yi++) {
+          ymin = AIR_MAX(0, (int)yi-1);
+          ymax = AIR_MIN(yi+1, pctx->binsEdge[1]-1);
+          for (xi=0; xi<pctx->binsEdge[0]; xi++) {
+            xmin = AIR_MAX(0, (int)xi-1);
+            xmax = AIR_MIN(xi+1, pctx->binsEdge[0]-1);
+            neiNum = 0;
+            for (ss=smin; ss<=smax; ss++) {
+              for (zz=zmin; zz<=zmax; zz++) {
+                for (yy=ymin; yy<=ymax; yy++) {
+                  for (xx=xmin; xx<=xmax; xx++) {
+                    binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*(zz + pctx->binsEdge[2]*ss));
+                    /*
+                    fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
                         me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
-                */
-                nei[neiNum++] = pctx->bin + binIdx;
-              }
-            }
+                    */
+                    nei[neiNum++] = pctx->bin + binIdx;
+                 }
+               }
+             }
+           }
+           _pullBinNeighborSet(pctx->bin + xi + pctx->binsEdge[0]
+                              *(yi + pctx->binsEdge[1]*(zi + pctx->binsEdge[2]*si)), nei, neiNum);
           }
-          _pullBinNeighborSet(pctx->bin + xi + pctx->binsEdge[0]
-                              *(yi + pctx->binsEdge[1]*zi), nei, neiNum);
         }
       }
     }
@@ -287,39 +294,48 @@ int
 _pullBinSetup(pullContext *pctx) {
   char me[]="_pullBinSetup", err[BIFF_STRLEN];
   unsigned ii;
-  double volEdge[3], scl;
+  double volEdge[4], scl;
   const pullEnergySpec *espec;
 
   scl = (pctx->radiusSpace ? pctx->radiusSpace : 0.1);
+  pctx->maxDistSpace = 2*scl;
+  scl = (pctx->radiusScale ? pctx->radiusScale : 0.1);
+  pctx->maxDistScale = 2*scl;
   espec = pctx->energySpec;
-  pctx->maxDist = 2*scl;
 
-  fprintf(stderr, "!%s: radiusSpace = %g --> maxDist = %g\n", me, 
-          pctx->radiusSpace, pctx->maxDist);
+  fprintf(stderr, "!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
+          pctx->radiusSpace, pctx->maxDistSpace);
+  fprintf(stderr, "!%s: radiusScale = %g --> maxDistScale = %g\n", me, 
+          pctx->radiusScale, pctx->maxDistScale);
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
     pctx->binsEdge[1] = 1;
     pctx->binsEdge[2] = 1;
+    pctx->binsEdge[3] = 1;
     pctx->binNum = 1;
   } else {
     volEdge[0] = pctx->bboxMax[0] - pctx->bboxMin[0];
     volEdge[1] = pctx->bboxMax[1] - pctx->bboxMin[1];
     volEdge[2] = pctx->bboxMax[2] - pctx->bboxMin[2];
-    fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
-            volEdge[0], volEdge[1], volEdge[2]);
+    volEdge[3] = pctx->bboxMax[3] - pctx->bboxMin[3];
+    fprintf(stderr, "!%s: volEdge = %g %g %g %g\n", me,
+            volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
     pctx->binsEdge[0] = AIR_CAST(unsigned int,
-                                 floor(volEdge[0]/pctx->maxDist));
+                                 floor(volEdge[0]/pctx->maxDistSpace));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
     pctx->binsEdge[1] = AIR_CAST(unsigned int,
-                                 floor(volEdge[1]/pctx->maxDist));
+                                 floor(volEdge[1]/pctx->maxDistSpace));
     pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
     pctx->binsEdge[2] = AIR_CAST(unsigned int,
-                                 floor(volEdge[2]/pctx->maxDist));
+                                 floor(volEdge[2]/pctx->maxDistSpace));
     pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
-    fprintf(stderr, "!%s: binsEdge=(%u,%u,%u)\n", me,
-            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
-    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
+    pctx->binsEdge[3] = AIR_CAST(unsigned int,
+                                 floor(volEdge[3]/pctx->maxDistScale));
+    pctx->binsEdge[3] = pctx->binsEdge[3] ? pctx->binsEdge[3] : 1;
+    fprintf(stderr, "!%s: binsEdge=(%u,%u,%u,%u)\n", me,
+            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2], pctx->binsEdge[3]);
+    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2]*pctx->binsEdge[3];
   }
   fprintf(stderr, "!%s: binNum = %u\n", me, pctx->binNum);
   if (pctx->binNum > PULL_BIN_MAXNUM) {
@@ -347,7 +363,7 @@ _pullBinFinish(pullContext *pctx) {
     _pullBinDone(pctx->bin + ii);
   }
   pctx->bin = (pullBin *)airFree(pctx->bin);
-  ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
+  ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
 }
 
