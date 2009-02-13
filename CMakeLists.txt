@@ -384,9 +384,6 @@ INSTALL(TARGETS teem
   ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH}
   ) 
 
-# Now compile the binaries
-ADD_SUBDIRECTORY(src/bin)
-
 # Stand-alone programs to process hex encoding of data
 OPTION(BUILD_HEX "Build dehex and enhex" OFF)
 IF(BUILD_HEX)
@@ -395,12 +392,22 @@ ENDIF(BUILD_HEX)
 
 #-----------------------------------------------------------------------------
 # For testing
-OPTION(BUILD_TESTING "Enable this to perform testing of Teem" OFF)
+OPTION(BUILD_TESTING "Enable this to perform testing of Teem" ON)
+
 IF(BUILD_TESTING)
-  SET(DART_ROOT "" CACHE INTERNAL "" FORCE)
   INCLUDE(CTest)
   ENABLE_TESTING()
+  SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+  MARK_AS_ADVANCED(BUILDNAME)
   MARK_AS_ADVANCED(TCL_TCLSH)
+ENDIF(BUILD_TESTING)
+
+#-----------------------------------------------------------------------------
+# Now compile the binaries
+ADD_SUBDIRECTORY(src/bin)
+
+IF(BUILD_TESTING)
+  ADD_SUBDIRECTORY(Testing)
 ENDIF(BUILD_TESTING)
 
 #-----------------------------------------------------------------------------
@@ -414,7 +421,7 @@ SET(CC "${CMAKE_C_COMPILER}")
 
 # For build tree usage
 SET(Teem_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
-SET(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH})
+SET(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH} CACHE INTERNAL "Single output directory for building all executables.")
 SET(Teem_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
 SET(Teem_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 SET(Teem_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
@@ -460,3 +467,4 @@ INSTALL(FILES
   "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
   DESTINATION lib/Teem-${Teem_VERSION_STRING}
   )
+

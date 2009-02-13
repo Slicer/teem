@@ -38,8 +38,9 @@ SET (CTEST_CVS_COMMAND "svn")
 
 # A smoke test only builds the code and doesn't run any tests, so we
 # exclude all tests here
-SET (CTEST_COMMAND "ctest -D Nightly")
-#SET (CTEST_COMMAND "ctest -D Experimental")
+#SET (CTEST_COMMAND "ctest -D Nightly")
+SET (CTEST_COMMAND "ctest -VV -D Experimental -A \"${CTEST_BINARY_DIRECTORY}/CMakeCache.txt\"")
+SET (CTEST_CMAKE_COMMAND "cmake")
 
 SET(CTEST_INITIAL_CACHE "
   BUILD_EXPERIMENTAL_LIBS:BOOL=OFF
@@ -57,7 +58,4 @@ SET(CTEST_INITIAL_CACHE "
 # Here are some other intersting things you can set for the initial cache
 # MAKECOMMAND:STRING=/usr/bin/make -j16
 # BUILDNAME:STRING=MySpecialConfig
-
-
-
 
