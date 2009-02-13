@@ -80,11 +80,12 @@ pullContextNew(void) {
   pctx->haveScale = AIR_FALSE;
   pctx->constraint = 0;
   pctx->finished = AIR_FALSE;
-  pctx->maxDist = AIR_NAN;
+  pctx->maxDistSpace = AIR_NAN;
+  pctx->maxDistScale = AIR_NAN;
   pctx->constraintVoxelSize = AIR_NAN;
 
   pctx->bin = NULL;
-  ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
+  ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
 
