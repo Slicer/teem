@@ -429,12 +429,14 @@ typedef struct pullContext_t {
     constraint,                    /* if non-zero, we have a constraint to
                                       satisfy, and this is its info number  */
     finished;                      /* used to signal all threads to return */
-  double maxDist,                  /* max dist of point-point interaction */
+  double maxDistSpace,             /* max dist of point-point interaction in 
+                                      the spatial axes.*/
+    maxDistScale,                  /* max dist of point-point interaction in scale */
     constraintVoxelSize;           /* if there's a constraint, mean voxel edge
                                       length, to use for limiting distance 
                                       to travel for constraint satisfaction */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
-  unsigned int binsEdge[3],        /* # bins along each volume edge,
+  unsigned int binsEdge[4],        /* # bins along each volume edge,
                                       determined by maxEval and scale */
     binNum,                        /* total # bins in grid */
     binNextIdx;                    /* next bin of points to be processed,
