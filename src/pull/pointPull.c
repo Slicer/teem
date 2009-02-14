@@ -372,7 +372,12 @@ _pullProbe(pullTask *task, pullPoint *point) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
       continue;
     }
-    if (task->vol[ii]->ninSingle) {
+    if (task->vol[ii]->ninScale) {
+      gret = gageStackProbeSpace(task->vol[ii]->gctx,
+                                 point->pos[0], point->pos[1],
+                                 point->pos[2], point->pos[3],
+                                 AIR_FALSE, AIR_TRUE);
+    } else {
       /*
       fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g\n", me,
               ii, task->vol[ii]->name, 
@@ -381,11 +386,6 @@ _pullProbe(pullTask *task, pullPoint *point) {
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE, AIR_TRUE);
-    } else {
-      gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                 point->pos[0], point->pos[1],
-                                 point->pos[2], point->pos[3],
-                                 AIR_FALSE, AIR_TRUE);
     }
     if (gret) {
       break;
