@@ -58,6 +58,7 @@ pullContextNew(void) {
   pctx->wall = 1;
 
   pctx->pointPerVoxel = 0;
+  pctx->numSamplesScale = 0;
   pctx->rngSeed = 42;
   pctx->threadNum = 1;
   pctx->iterMax = 0;
