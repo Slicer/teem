@@ -283,7 +283,8 @@ typedef struct {
     *kspSS;                    /* for reconstructing from scale-space
                                   samples */
   gageContext *gctx;           /* do own, and set based on info here */
-  gagePerVolume *gpvl;         /* stupid gage API ... */
+  gagePerVolume *gpvl,         /* stupid gage API ... */
+    **gpvlSS;                  /* stupid gage API ... */
   int seedOnly;                /* volume only required for seeding */
 } pullVolume;
 

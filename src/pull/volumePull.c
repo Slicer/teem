@@ -73,6 +73,7 @@ pullVolumeNew() {
     vol->kspSS = nrrdKernelSpecNew();
     vol->gctx = gageContextNew();
     vol->gpvl = NULL;
+    vol->gpvlSS = NULL;
     vol->seedOnly = AIR_TRUE;
   }
   return vol;
@@ -88,6 +89,7 @@ pullVolumeNix(pullVolume *vol) {
     vol->ksp22 = nrrdKernelSpecNix(vol->ksp22);
     vol->kspSS = nrrdKernelSpecNix(vol->kspSS);
     vol->gctx = gageContextNix(vol->gctx);
+    airFree(vol->gpvlSS);
     airFree(vol);
   }
   return NULL;
@@ -153,7 +155,6 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel22,
                              ksp22->kernel, ksp22->parm);
   if (ninScale) {
-    gagePerVolume **pvlSS;
     if (!kspSS) {
       sprintf(err, "%s: got NULL kspSS", me);
       biffAdd(PULL, err); return 1;
@@ -161,9 +162,9 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
     gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, AIR_FALSE);
     if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
-    if (!E) E |= gageStackPerVolumeNew(vol->gctx, &pvlSS,
+    if (!E) E |= gageStackPerVolumeNew(vol->gctx, &(vol->gpvlSS),
                                        ninScale, ninNum, kind);
-    if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, pvlSS,
+    if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, vol->gpvlSS,
                                           scalePos, ninNum);
     if (!E) E |= gageKernelSet(vol->gctx, gageKernelStack,
                                kspSS->kernel, kspSS->parm);
