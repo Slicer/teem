@@ -291,7 +291,7 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
       }
     }
-    if (gageStackBlur(ninSS, scalePos, numSS,
+    if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE, 
                       nin, kind->baseDim, kSSblur, 
                       nrrdBoundaryBleed, AIR_TRUE,
                       verbose)) {
