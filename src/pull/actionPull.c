@@ -78,24 +78,26 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
                      /* output */
                      double *spadistP, double egrad[4]) {
   char meme[]="_energyInterParticle";
-  double spadist, sparad, diff[4], rr, enr, frc, *parm;
-
+  double spadist, sparad, scalerad, diff[4], rr, rrs, enr, frc, *parm;
+  double enrTotal;
   ELL_4V_SUB(diff, she->pos, me->pos);
   spadist = ELL_3V_LEN(diff);
   if (spadistP) {
     *spadistP = spadist;
   }
   sparad = task->pctx->radiusSpace;
-  
   rr = spadist/(2*sparad);
+  scalerad = task->pctx->radiusScale;
+  rrs = AIR_ABS(diff[3])/(2*scalerad);  
+
   /*
   fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
   */
-  if (rr > 1) {
+  if (rr > 1 || rrs > 1) {
     ELL_4V_SET(egrad, 0, 0, 0, 0);
     return 0;
   }
-  if (rr == 0) {
+  if (rr == 0 && rrs == 0) {
     fprintf(stderr, "%s: pos of pts %u, %u equal: (%g,%g,%g,%g)\n",
             meme, me->idtag, she->idtag, 
             me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
@@ -103,18 +105,32 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     return 0;
   }
 
-  parm = task->pctx->energySpec->parm;
-  enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-  frc *= -1.0/(2*sparad*spadist);
-  ELL_3V_SCALE(egrad, frc, diff);
-  egrad[3] = 0;
+  if (!task->pctx->haveScale) {
+    parm = task->pctx->energySpec->parm;
+    enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
+    frc *= -1.0/(2*sparad*spadist);
+    ELL_3V_SCALE(egrad, frc, diff);
+    egrad[3] = 0;
+    enrTotal = enr;
+  } else {
+    double enrs,frcs;
+    parm = task->pctx->energySpec->parm;
+    enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
+    enrs = _pullEnergyGaussEval(&frcs, rrs, NULL);
+    frc *= -1.0 * enrs / (2*sparad*spadist);
+    frcs *= -1.0 * enr / (2*scalerad);
+    /*Compute final gradient*/
+    ELL_3V_SCALE(egrad,frc,diff);
+    egrad[3] = frcs;
+    enrTotal = enr*enrs;
+  }
   /*
   fprintf(stderr, "%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
           meme, me->idtag, she->idtag, 
           diff[0], diff[1], diff[2],
           egrad[0], egrad[1], egrad[2], enr);
   */
-  return enr;
+  return enrTotal;
 }
 
 /*
@@ -569,7 +585,10 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       capscl*point->stepEnergy, force);
-
+    /*Constraining scale dimension*/
+    if (task->pctx->haveScale) {
+      point->pos[3] = AIR_CLAMP(task->pctx->bboxMin[3],point->pos[3],task->pctx->bboxMax[3]);
+    }
     _pullPointHistAdd(point, pullCondEnergyTry);
 #ifdef PRAYING
     if (_pullPraying) {
