@@ -84,6 +84,7 @@ pullVolumeNix(pullVolume *vol) {
 
   if (vol) {
     vol->name = airFree(vol->name);
+    airFree(vol->scalePos);
     vol->ksp00 = nrrdKernelSpecNix(vol->ksp00);
     vol->ksp11 = nrrdKernelSpecNix(vol->ksp11);
     vol->ksp22 = nrrdKernelSpecNix(vol->ksp22);
