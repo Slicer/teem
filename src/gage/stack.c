@@ -313,7 +313,8 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   unsigned int blidx;
 
   if (!(ctx && pvlBase && pvlStack && stackPos)) { 
-    sprintf(err, "%s: got NULL pointer", me);
+    sprintf(err, "%s: got NULL pointer %p %p %p %p", me,
+            ctx, pvlBase, pvlStack, stackPos);
     biffAdd(GAGE, err); return 1;
   }
   if (!( blnum >= 2 )) {

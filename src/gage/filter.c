@@ -359,6 +359,7 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     if (ctx->parm.stackNormalizeDeriv) {
       unsigned int kidx, fd, j, stackBaseIdx;
       double stackFrac, scl, *fwX, *fwY, *fwZ;
+      double deriv, dgparm[2] = {0, 3};
 
       stackBaseIdx = AIR_CAST(unsigned int, stackIdx);
       stackBaseIdx -= (stackBaseIdx == ctx->pvlNum-1);
@@ -366,24 +367,27 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       scl = AIR_AFFINE(0.0, stackFrac, 1.0,
                        ctx->stackPos[stackBaseIdx],
                        ctx->stackPos[stackBaseIdx+1]);
+      dgparm[0] = scl;
+      deriv = (nrrdKernelDiscreteGaussian->eval1_d(0.0, dgparm)
+               - nrrdKernelDiscreteGaussian->eval1_d(1.0, dgparm));
       fd = 2*ctx->radius;
       kidx = gageKernel11;
       fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
       fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
       fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
       for (j=0; j<fd; j++) {
-        fwX[j] *= scl;
-        fwY[j] *= scl;
-        fwZ[j] *= scl;
+        fwX[j] /= deriv;
+        fwY[j] /= deriv;
+        fwZ[j] /= deriv;
       }
       kidx = gageKernel22;
       fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
       fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
       fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
       for (j=0; j<fd; j++) {
-        fwX[j] *= scl*scl;
-        fwY[j] *= scl*scl;
-        fwZ[j] *= scl*scl;
+        fwX[j] /= deriv*deriv;
+        fwY[j] /= deriv*deriv;
+        fwZ[j] /= deriv*deriv;
       }
     }
   }

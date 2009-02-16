@@ -163,9 +163,11 @@ gageContextNix(gageContext *ctx) {
     }
     airArrayNuke(ctx->pvlArr);
     ctx->shape = gageShapeNix(ctx->shape);
-    ctx->fw = (double *)airFree(ctx->fw);
-    ctx->fsl = (double *)airFree(ctx->fsl);
-    ctx->off = (unsigned int *)airFree(ctx->off);
+    ctx->stackPos = AIR_CAST(double *, airFree(ctx->stackPos));
+    ctx->stackFslw = AIR_CAST(double *, airFree(ctx->stackFslw));
+    ctx->fw = AIR_CAST(double *, airFree(ctx->fw));
+    ctx->fsl = AIR_CAST(double *, airFree(ctx->fsl));
+    ctx->off = AIR_CAST(unsigned int *, airFree(ctx->off));
   }
   airFree(ctx);
   return NULL;
