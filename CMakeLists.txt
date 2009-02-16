@@ -93,7 +93,7 @@ OPTION(Teem_ZLIB "Build Teem with support for gzip compression." ON)
 OPTION(Teem_PNG "Build Teem with support for PNG images." ON)
 OPTION(Teem_VTK_MANGLE "Build Teem using the mangled libraries from VTK for ZLIB and PNG." OFF)
 SET(Teem_VTK_ZLIB_MANGLE_IPATH "" CACHE PATH "Location of vtk_zlib_mangle.h")
-OPTION(Teem_VTK_TOOLKITS_IPATH "Location of VTK Build directory for ZLIB and PNG includes." OFF)
+SET(Teem_VTK_TOOLKITS_IPATH "" CACHE PATH "Location of VTK Build directory for ZLIB and PNG includes.")
 
 # Can't build PNG without ZLIB, so force it on.
 IF(Teem_PNG AND NOT Teem_ZLIB)
