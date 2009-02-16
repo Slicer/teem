@@ -116,7 +116,7 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     double enrs,frcs;
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-    enrs = _pullEnergyGaussEval(&frcs, rrs, NULL);
+    enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
     frc *= -1.0 * enrs / (2*sparad*spadist);
     frcs *= -1.0 * enr / (2*scalerad);
     /*Compute final gradient*/
