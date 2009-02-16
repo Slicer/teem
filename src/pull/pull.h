@@ -382,14 +382,12 @@ typedef struct pullContext_t {
                                       < 0 : jitter 1 seed point in every
                                       pointPerVox-th voxel (so -1 same as 1)*/
 
-  int numSamplesScale;              /* number of samples along the scale axis. 
-                                       This value is iused only if pointPerVoxel != 0.
-                                       nSS samples are place at uniform intervals between
-                                       sigma_init and sigma_end. The placing is done in 
-                                       tau (refer to gage for more info) and the tau samples
-                                       are converted to sigma */
-
-  unsigned int
+  unsigned int numSamplesScale,    /* number of samples along the scale axis.
+                                      This value is used only if pointPerVoxel
+                                      is != 0. nSS samples are placed along
+                                      through the scale extent of the volumes,
+                                      as indicated by bboxMin[3], bboxMax[3],
+                                      and are uniform in effective scale tau */
     rngSeed,                       /* seed value for random number generator,
                                       NOT directly related to seed point
                                       placement*/

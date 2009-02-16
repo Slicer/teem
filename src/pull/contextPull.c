@@ -336,7 +336,7 @@ _pullContextCheck(pullContext *pctx) {
             me, pctx->constraintIterMax, 1, 50);
     biffAdd(PULL, err); return 1;
   }
-  if (pctx->pointPerVoxel < -10 || pctx->pointPerVoxel > 10) {
+  if (pctx->pointPerVoxel < -30 || pctx->pointPerVoxel > 10) {
     sprintf(err, "%s: pointPerVoxel %d unreasonable", me,
             pctx->pointPerVoxel);
     biffAdd(PULL, err); return 1;

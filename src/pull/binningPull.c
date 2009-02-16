@@ -334,8 +334,10 @@ _pullBinSetup(pullContext *pctx) {
                                  floor(volEdge[3]/pctx->maxDistScale));
     pctx->binsEdge[3] = pctx->binsEdge[3] ? pctx->binsEdge[3] : 1;
     fprintf(stderr, "!%s: binsEdge=(%u,%u,%u,%u)\n", me,
-            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2], pctx->binsEdge[3]);
-    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2]*pctx->binsEdge[3];
+            pctx->binsEdge[0], pctx->binsEdge[1],
+            pctx->binsEdge[2], pctx->binsEdge[3]);
+    pctx->binNum = (pctx->binsEdge[0]*pctx->binsEdge[1]
+                    *pctx->binsEdge[2]*pctx->binsEdge[3]);
   }
   fprintf(stderr, "!%s: binNum = %u\n", me, pctx->binNum);
   if (pctx->binNum > PULL_BIN_MAXNUM) {

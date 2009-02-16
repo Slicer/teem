@@ -372,7 +372,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
       continue;
     }
-    if (task->vol[ii]->ninSingle) {
+    if (!task->vol[ii]->ninScale) {
       /*
       fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g\n", me,
               ii, task->vol[ii]->name, 
@@ -423,22 +423,19 @@ _pullProbe(pullTask *task, pullPoint *point) {
 }
 
 void 
-_pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
-  char me[]="_pullPointSetup", doneStr[AIR_STRLEN_SMALL];
+_pullPointInitializePerVoxel(pullContext *pctx, Nrrd *npos) {
+  char me[]="_pullPointInitializePerVoxel", doneStr[AIR_STRLEN_SMALL];
   unsigned int voxNum, voxIdx, pitvIdx, vidx[3], yzi, sIdx, pIdx, tick;
-  double iPos[4], wPos[4], seedv, pos[4];
+  double iPos[4], wPos[4], pos[4];
   airRandMTState *rng;
   pullVolume *seedVol;
   gageShape *seedShape;
   double *sigmaValues;
-  double tau0,tau1,tau,deltaS;
+  double tau0, tau1, tau, deltaS=0.0;
   double *posData;
   airArray *mop;
   mop = airMopNew();
-/*  if (pctx->haveScale) {
-    sprintf(err, "%s: sorry, pointPerVoxel w/ scale unimplemented", me);
-    biffAdd(PULL, err); airMopError(mop); return 1;
-  } */
+
   /* _pullContextCheck has made sure that there is a seedthresh info set */
   seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
   seedShape = seedVol->gctx->shape; 
@@ -450,19 +447,22 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
   /* Before looping through voxels, let us compute the scale locations
     if scale space is enable */
   if (pctx->haveScale) { 
-    sigmaValues = (double *) calloc(pctx->numSamplesScale,sizeof(double));
+    sigmaValues = AIR_CAST(double *, calloc(pctx->numSamplesScale,
+                                            sizeof(double)));
     airMopAdd(mop,sigmaValues,airFree,airMopAlways);
     tau0 = gageTauOfSig(pctx->bboxMin[3]);
-    tau1 = gageTauOfSig(pctx->bboxMax[4]);
+    tau1 = gageTauOfSig(pctx->bboxMax[3]);
     deltaS = (tau1-tau0)/pctx->numSamplesScale;
     for (sIdx=0 ; sIdx< pctx->numSamplesScale; sIdx++) {
       tau = (tau0+deltaS/2)+sIdx*deltaS;
       sigmaValues[sIdx]=gageSigOfTau(tau);
-     }
-   }
+    }
+  } else {
+    sigmaValues = NULL;
+  }
 
   /* Loop through voxels */
-  posData = npos->data;
+  posData = AIR_CAST(double *, npos->data);
   for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
     unsigned int pitv; /* points in this voxel */
     if (tick < 100 || 0 == voxIdx % tick) {
@@ -489,6 +489,7 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
       printf("%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
 	     voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
     }
+    pIdx = 0;
     for (pitvIdx=0; pitvIdx<pitv; pitvIdx++) {
       iPos[0] = vidx[0] + pctx->jitter*airDrandMT_r(rng) - 0.5;
       iPos[1] = vidx[1] + pctx->jitter*airDrandMT_r(rng) - 0.5;
@@ -497,7 +498,7 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
       ELL_4MV_MUL(wPos, seedShape->ItoW, iPos);
       ELL_3V_COPY(pos, wPos);
       if (pctx->haveScale) {
-        //Distrubute points along scale
+        /* Distrubute points along scale */
         for (sIdx=0; sIdx<pctx->numSamplesScale; sIdx++) {
           posData[pIdx] = pos[0];
           posData[pIdx+1]= pos[1];
@@ -510,7 +511,7 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
         posData[pIdx] = pos[0];
         posData[pIdx+1]= pos[1];
         posData[pIdx+2] = pos[2];
-        posData[pIdx+3] = 0.0;/* HEY: no scale? */
+        posData[pIdx+3] = 0.0;
         pIdx++;
       }
     }
@@ -521,8 +522,8 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd* npos) {
 }
 
 void
- _pullPointInitializeRandom (pullContext *pctx, Nrrd *npos) {
-  char me[]="_pullPointInitializeRandom", doneStr[AIR_STRLEN_SMALL];
+_pullPointInitializeRandom(pullContext *pctx, Nrrd *npos) {
+  char doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx,tick;
   size_t totalNumPoints, pointDim;
   airRandMTState *rng;
@@ -541,24 +542,21 @@ void
         fflush(stdout);
     }
     ELL_3V_SET(posData + pointDim*pointIdx,
-        AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                   pctx->bboxMin[0], pctx->bboxMax[0]),
-        AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                   pctx->bboxMin[1], pctx->bboxMax[1]),
-        AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                   pctx->bboxMin[2], pctx->bboxMax[2]));
-    /*
-    printf("!%s: pos = %g %g %g\n", me
-    npos->data[pointDim*pointIdx], npos->data[pointDim*pointIdx+1], npos->data[pointDim*pointIdx+2]);
-    */
+               AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
+                          pctx->bboxMin[0], pctx->bboxMax[0]),
+               AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
+                          pctx->bboxMin[1], pctx->bboxMax[1]),
+               AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
+                          pctx->bboxMin[2], pctx->bboxMax[2]));
     if (pctx->haveScale) {
       posData[pointDim*pointIdx+3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                                 pctx->bboxMin[3], pctx->bboxMax[3]);
+                                                pctx->bboxMin[3],
+                                                pctx->bboxMax[3]);
     } else {
       posData[pointDim*pointIdx+3] = 0.0;
     }
   }
-
+  
   return;
 }
 
@@ -618,6 +616,7 @@ _pullPointSetup(pullContext *pctx) {
     pctx->pointPerVoxel = 0;
     posData = npos->data;
     totalNumPoints = pctx->pointNumInitial;
+    random = AIR_FALSE;
   } else if (pctx->pointPerVoxel) {
     npos = NULL;
     posData = NULL;
@@ -625,53 +624,54 @@ _pullPointSetup(pullContext *pctx) {
       printf("%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
 	     me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
-    // Obtain number of voxels
+    /* Obtain number of voxels */
     seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
     seedShape = seedVol->gctx->shape;
     voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
 
-    /* Compute tentative (conservative total number of points
-       to allocate a temporal array of points */
+    /* Compute tentative (conservative) total number of points
+       to allocate a temporary array of points */
     if (pctx->pointPerVoxel > 0) {
-       factor = pctx->pointPerVoxel;
+      factor = pctx->pointPerVoxel;
     } else {
-       factor = 1/pctx->pointPerVoxel;
+      factor = -1.0/pctx->pointPerVoxel;
     }
     if (pctx->haveScale) {
       totalNumPoints = voxNum * factor * pctx->numSamplesScale;
     } else {
-      totalNumPoints = voxNum * factor * pctx->numSamplesScale;
+      totalNumPoints = voxNum * factor;
     }
 
-    // Reset pointNumInitial to zero
+    /* Reset pointNumInitial to zero */
     pctx->pointNumInitial = 0;
+    random = AIR_FALSE;
   } else {
     /* using pctx->pointNumInitial */
     npos = NULL;
     posData = NULL;
     totalNumPoints = pctx->pointNumInitial;
-    random = 1;
+    random = AIR_TRUE;
   }
   printf("!%s: initilizing/seeding ...       ", me);
   fflush(stdout);
 
   /* Allocating array of tentative points if npos is not there*/
-  if (npos == NULL) {
+  if (!npos) {
     npos = nrrdNew();
-    airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, npos, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     E = AIR_FALSE;
     E |= nrrdMaybeAlloc_va(npos, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 4),
                            AIR_CAST(size_t, totalNumPoints));
     if (E) {
-      sprintf(err, "%s: trouble allocating outputs", me);
+      sprintf(err, "%s: trouble allocating pos buffer", me);
       biffMove(PULL, err, NRRD); airMopOkay(mop); return 1;
     }
   }
 
   /* Filling array according to initialization method */
   if (pctx->pointPerVoxel) {
-    _pullPointInitializePerVoxel(pctx,npos);
+    _pullPointInitializePerVoxel(pctx, npos);
   } else { 
     /* not pointPerVoxel, either npos or pointNumInitial */
     if (random) {
@@ -682,35 +682,34 @@ _pullPointSetup(pullContext *pctx) {
     }
   }
 
-  // Enfroce contrains and points to bins
+  /* Enforce contraint and add points to bins */
   tick = totalNumPoints/1000;
   posData = npos->data;
   point = NULL;
   unsigned int threshFailCount = 0, constrFailCount = 0;
   for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
-
     if (tick < 100 || 0 == pointIdx % tick) {
       printf("%s", airDoneStr(0, pointIdx, totalNumPoints, doneStr));
       fflush(stdout);
     }
     if (pctx->verbose > 5) {
-        printf("%s: setting up point = %u/%u\n", me,
-	       pointIdx, totalNumPoints);
+      printf("%s: setting up point = %u/%u\n", me,
+             pointIdx, totalNumPoints);
     }
-    // Create point
+    /* Create point */
     if (!point) {
       point = pullPointNew(pctx);
     }
 
-    // Copy nrrd point into pullPoint
-    ELL_4V_COPY(point->pos,posData + 4*pointIdx);
+    /* Copy nrrd point into pullPoint */
+    ELL_4V_COPY(point->pos, posData + 4*pointIdx);
     /* even though we are dictating the point locations, we still have
        to do the initial probe */
     if (_pullProbe(pctx->task[0], point)) {
       sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
       biffAdd(PULL, err); airMopError(mop); return 1;
-     }
-
+    }
+    
     /* Apply constraint */
     /* Different constraints depending on the placing method */
     if (pctx->pointPerVoxel) {
@@ -724,7 +723,7 @@ _pullPointSetup(pullContext *pctx) {
       if (pctx->constraint) {
         if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
           sprintf(err, "%s: on pnt %u",
-                    me, pointIdx);
+                  me, pointIdx);
           biffAdd(PULL, err); airMopError(mop); return 1;
         }
         if (constrFail) {
@@ -738,12 +737,7 @@ _pullPointSetup(pullContext *pctx) {
       if (pctx->ispec[pullInfoSeedThresh]) {
         double val;
         val = _pullPointScalar(pctx, point, pullInfoSeedThresh,
-                                   NULL, NULL);
-          /*
-          printf("!%s: val(%g %g %g) =  %g -> %g\n", me, 
-          point->pos[0], point->pos[1], point->pos[2], 
-          point->info[pctx->infoIdx[pullInfoSeedThresh]], val);
-          */
+                               NULL, NULL);
         threshFailCount += (threshFail = val < 0);
       } else {
         threshFail = AIR_FALSE;
@@ -761,22 +755,22 @@ _pullPointSetup(pullContext *pctx) {
       reject = threshFail || constrFail;
       if (reject) {
         if (threshFailCount + constrFailCount > 10000) {
-            sprintf(err, "%s: failed too often placing %u "
-                      "(thresh %s/%u, constr %s/%u)",
-                      me, pointIdx,
-                      threshFail ? "true" : "false", threshFailCount,
-                      constrFail ? "true" : "false", constrFailCount);
-            biffAdd(PULL, err); airMopError(mop); return 1;
+          sprintf(err, "%s: failed too often placing %u "
+                  "(thresh %s/%u, constr %s/%u)",
+                  me, pointIdx,
+                  threshFail ? "true" : "false", threshFailCount,
+                  constrFail ? "true" : "false", constrFailCount);
+          biffAdd(PULL, err); airMopError(mop); return 1;
         }
         continue; /*Move to another point; Constraint is not met */
       } else {
-         threshFailCount = constrFailCount = 0;
+        threshFailCount = constrFailCount = 0;
       }
     } else {
-     /* Points are given as an array, we do not apply any constraint */
+      /* Points are given as an array, we do not apply any constraint */
     }
-
-    /* If we get here, the point is ready for binnig*/
+    
+    /* If we get here, the point is ready for binning */
     if (pctx->constraint) {
       if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
         sprintf(err, "%s: trouble binning point %u", me, point->idtag);
@@ -795,28 +789,27 @@ _pullPointSetup(pullContext *pctx) {
       }
       point = NULL;
       if (pctx->pointPerVoxel) {
-          pctx->pointNumInitial += 1;
+        pctx->pointNumInitial += 1;
       }
     }
-
-  } /*Done looping through npos*/
-
+    
+  } /* Done looping through npos */
   printf("%s\n", airDoneStr(0, pointIdx, pctx->pointNumInitial,
-			      doneStr));
+                            doneStr));
   if (point) {
     /* we created a new test point, but it was never placed in the volume */
     /* so, HACK: undo pullPointNew ... */
-    pullPointNix(point);
+    point = pullPointNix(point);
     pctx->idtagNext -= 1;
   }
-
+  
   /* Final check: do we have any point?. This is for pointPerVoxel */
   if (!pctx->pointNumInitial) {
     sprintf(err, "%s: seeding never succeeded (bad seedthresh? %g)",
-              me, pctx->ispec[pullInfoSeedThresh]->zero);
+            me, pctx->ispec[pullInfoSeedThresh]->zero);
     biffAdd(PULL, err); airMopError(mop); return 1;
   }
-
+  
   pn = pullPointNumber(pctx);
   printf("%s: ended up with %u points\n", me, pn);
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
@@ -824,12 +817,12 @@ _pullPointSetup(pullContext *pctx) {
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,
                                 calloc(pn, sizeof(unsigned int)));
   if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-      sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
-              pctx->tmpPointPtr, pctx->tmpPointPerm);
-      biffAdd(PULL, err); airMopError(mop); return 1;
+    sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
+            pctx->tmpPointPtr, pctx->tmpPointPerm);
+    biffAdd(PULL, err); airMopError(mop); return 1;
   }
   pctx->tmpPointNum = pn;
-
+  
   /* now that all points have been added, set their energy to help
      inspect initial state */
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -840,14 +833,14 @@ _pullPointSetup(pullContext *pctx) {
                                             point->force);
     }
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
 
 void
 _pullPointFinish(pullContext *pctx) {
-
+  
   airFree(pctx->tmpPointPtr);
   airFree(pctx->tmpPointPerm);
   return ;
