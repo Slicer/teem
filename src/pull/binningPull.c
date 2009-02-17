@@ -273,7 +273,7 @@ pullRebin(pullContext *pctx) {
       }
     }
     airShuffle_r(pctx->task[0]->rng,
-                 pctx->tmpPointPerm, pointNum, AIR_FALSE);
+                 pctx->tmpPointPerm, pointNum, pctx->permuteOnRebin);
     for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
       point = pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]];
       newBin = _pullBinLocate(pctx, point->pos);

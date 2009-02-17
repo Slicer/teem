@@ -329,7 +329,10 @@ typedef struct pullTask_t {
 */
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
-  int verbose;                     /* blah blah blah */
+  int verbose,                     /* blah blah blah */
+    permuteOnRebin;                /* permute points during rebinning between
+                                      iters, so that they are visited in a
+                                      randomized order */
   unsigned int pointNumInitial;    /* number points to start simulation w/ */
   Nrrd *npos;                      /* positions (4xN array) to start with
                                       (overrides pointNumInitial) */
