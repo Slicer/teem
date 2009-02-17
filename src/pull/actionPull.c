@@ -79,7 +79,7 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
                      double *spadistP, double egrad[4]) {
   char meme[]="_energyInterParticle";
   double spadist,scaledist, sparad, scalerad, diff[4], rr, rrs, enr, frc, *parm;
-  double enrTotal;
+  double enrTotal, signScale;
   ELL_4V_SUB(diff, she->pos, me->pos);
   spadist = ELL_3V_LEN(diff);
   if (spadistP) {
@@ -89,7 +89,13 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   rr = spadist/(2*sparad);
   scaledist = AIR_ABS(diff[3]);
   scalerad = task->pctx->radiusScale;
-  rrs = scaledist/(2*scalerad);  
+  rrs = scaledist/(2*scalerad);
+
+  if (scaledist >0 ) {
+    signScale = 1;
+  } else {
+    signScale = -1;
+  }
 
   /*
   fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
@@ -109,39 +115,56 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   if (!task->pctx->haveScale) {
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-    frc *= -1.0/(2*sparad*spadist);
-    ELL_3V_SCALE(egrad, frc, diff);
+    if (spadist == 0) {
+      ELL_3V_SET(egrad,0,0,0);
+    } else {
+      frc *= -1.0/(2*sparad*spadist);
+      ELL_3V_SCALE(egrad, frc, diff);
+    }
     egrad[3] = 0;
     enrTotal = enr;
   } else {
     /*Implementation of Phi_{x-G}(r,s)*/
     double enrs,frcs, enrg, frcg, beta;
+    if (0) {
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
     enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
     enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
     beta = task->pctx->beta;
     frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
-    ELL_3V_SCALE(egrad,frc/spadist,diff);
-    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) / (2*scalerad);
+    if (spadist == 0) {
+      ELL_3V_SET(egrad,0,0,0);
+    } else {
+      ELL_3V_SCALE(egrad,frc/spadist,diff);
+    }
+    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) * (-1.0 * signScale) / (2*scalerad);
     /*Compute final gradient*/
-    ELL_3V_SCALE(egrad,frc,diff);
     egrad[3] = frcs;
     enrTotal = (beta * enr - (1-beta) * enrg) *enrs;
+    }
 
-    if (0) {
+    if (1) {
       /* Implementation of Phi_x(r,x) */
       double y;
-      y = sqrt((spadist * spadist)/(sparad * sparad) + 
-               (scaledist * scaledist)/(scalerad * scalerad));
+      y = sqrt((spadist * spadist)/(4*sparad * sparad) + 
+               (scaledist * scaledist)/(4*scalerad * scalerad));
       parm = task->pctx->energySpec->parm;
       enr = task->pctx->energySpec->energy->eval(&frc, y, parm);
-      ELL_3V_SCALE(egrad,frc*spadist/(y*sparad*sparad),diff);
-      egrad[3] = frc*scaledist/(y*scalerad*scalerad);
+      ELL_3V_SCALE(egrad,-1.0*frc/(y*4*sparad*sparad),diff);
+      egrad[3] = -1.0*frc*(-1.0*signScale)*scaledist/(y*4*scalerad*scalerad);
       enrTotal = enr;
+     /*fprintf(stderr, "%s: %u <-- %u = %g,%g,%g,%g -> egrad = %g,%g,%g,%g, enrTotal = %g\n",
+          meme, me->idtag, she->idtag, 
+          diff[0], diff[1], diff[2],diff[3],
+          egrad[0], egrad[1], egrad[2],egrad[3], enrTotal); */
     }
   }
   /*
+       fprintf(stderr, "%s: %u <-- %u = %g,%g,%g,%g -> egrad = %g,%g,%g,%g, enrTotal = %g, y= %g\n",
+          meme, me->idtag, she->idtag, 
+          diff[0], diff[1], diff[2],diff[3],
+          egrad[0], egrad[1], egrad[2],egrad[3], enrTotal,y);
   fprintf(stderr, "%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
           meme, me->idtag, she->idtag, 
           diff[0], diff[1], diff[2],
