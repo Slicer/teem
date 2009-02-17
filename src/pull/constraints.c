@@ -24,6 +24,31 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/*
+typedef struct {
+  double val, absval, grad[3];
+} stateIso;
+
+static int
+probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
+         double pos[3],
+         stateIso *state) {
+  char me[]="probeIso", err[BIFF_STRLEN];
+  
+  ELL_3V_COPY(point->pos, pos);  /* NB: not touching point->pos[3] */
+  _pullPointHistAdd(point, cond);
+  if (_pullProbe(task, point)) {
+    sprintf(err, "%s: on iter %u", me, iter);
+    biffAdd(PULL, err); return 1;
+  }
+  state->val = _pullPointScalar(task->pctx, point,
+                                pullInfoIsovalue,
+                                state->grad, NULL);
+  state->absval = AIR_ABS(state->val);
+  return 0;
+}
+*/
+
 /* NOTE: this assumes variables "iter" (uint) and "me" (char*) */
 #define NORMALIZE(dir, grad, len)                                        \
   ELL_3V_NORM((dir), (grad), (len));                                     \
@@ -33,7 +58,6 @@
             point->pos[3], iter);                                        \
     biffAdd(PULL, err); return 1;                                        \
   }
-
 
 
 /* ------------------------------- isosurface */
