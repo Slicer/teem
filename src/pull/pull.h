@@ -438,7 +438,8 @@ typedef struct pullContext_t {
     finished;                      /* used to signal all threads to return */
   double maxDistSpace,             /* max dist of point-point interaction in 
                                       the spatial axes.*/
-    maxDistScale,                  /* max dist of point-point interaction in scale */
+    maxDistScale,                  /* max dist of point-point interaction 
+                                      along scale */
     constraintVoxelSize;           /* if there's a constraint, mean voxel edge
                                       length, to use for limiting distance 
                                       to travel for constraint satisfaction */
