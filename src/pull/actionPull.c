@@ -138,6 +138,7 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
       enr = task->pctx->energySpec->energy->eval(&frc, y, parm);
       ELL_3V_SCALE(egrad,frc*spadist/(y*sparad*sparad),diff);
       egrad[3] = frc*scaledist/(y*scalerad*scalerad);
+      enrTotal = enr;
     }
   }
   /*
