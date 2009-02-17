@@ -78,7 +78,7 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
                      /* output */
                      double *spadistP, double egrad[4]) {
   char meme[]="_energyInterParticle";
-  double spadist, sparad, scalerad, diff[4], rr, rrs, enr, frc, *parm;
+  double spadist,scaledist, sparad, scalerad, diff[4], rr, rrs, enr, frc, *parm;
   double enrTotal;
   ELL_4V_SUB(diff, she->pos, me->pos);
   spadist = ELL_3V_LEN(diff);
@@ -87,8 +87,9 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   }
   sparad = task->pctx->radiusSpace;
   rr = spadist/(2*sparad);
+  scaledist = AIR_ABS(diff[3]);
   scalerad = task->pctx->radiusScale;
-  rrs = AIR_ABS(diff[3])/(2*scalerad);  
+  rrs = scaledist/(2*scalerad);  
 
   /*
   fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
@@ -113,16 +114,31 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     egrad[3] = 0;
     enrTotal = enr;
   } else {
-    double enrs,frcs;
+    /*Implementation of Phi_{x-G}(r,s)*/
+    double enrs,frcs, enrg, frcg, beta;
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
     enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
-    frc *= -1.0 * enrs / (2*sparad*spadist);
-    frcs *= -1.0 * enr / (2*scalerad);
+    enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
+    beta = task->pctx->beta;
+    frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
+    ELL_3V_SCALE(egrad,frc/spadist,diff);
+    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) / (2*scalerad);
     /*Compute final gradient*/
     ELL_3V_SCALE(egrad,frc,diff);
     egrad[3] = frcs;
-    enrTotal = enr*enrs;
+    enrTotal = (beta * enr - (1-beta) * enrg) *enrs;
+
+    if (0) {
+      /* Implementation of Phi_x(r,x) */
+      double y;
+      y = sqrt((spadist * spadist)/(sparad * sparad) + 
+               (scaledist * scaledist)/(scalerad * scalerad));
+      parm = task->pctx->energySpec->parm;
+      enr = task->pctx->energySpec->energy->eval(&frc, y, parm);
+      ELL_3V_SCALE(egrad,frc*spadist/(y*sparad*sparad),diff);
+      egrad[3] = frc*scaledist/(y*scalerad*scalerad);
+    }
   }
   /*
   fprintf(stderr, "%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
