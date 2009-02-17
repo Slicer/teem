@@ -611,7 +611,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   } /* for myPointIdx */
 
   /* probabilistically nix points that have too much company */
-  if ((10 == task->pctx->iter % 15) && task->pctx->constraint) {
+  if (0 && (15 == task->pctx->iter % 20) && task->pctx->constraint) {
     pullPoint *point;
     double nixProb, ndist, wantDist=1.3, wantNum, haveNum, constrDim;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
@@ -620,6 +620,9 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
          maximum ndist for interaction is 2.0 */
       ndist = point->neighDist;
       constrDim = _pullConstraintDim(task, point);
+      if (task->pctx->haveScale) {
+        constrDim += 1;
+      }
       if (!constrDim) {
         sprintf(err, "%s: got constraint dim 0", me);
         biffAdd(PULL, err); return 1;
