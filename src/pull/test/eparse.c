@@ -48,7 +48,7 @@ main(int argc, char *argv[]) {
   fprintf(stderr, "%s: parsed energy \"%s\", with %u parms.\n", me,
           ensp->energy->name, ensp->energy->parmNum);
   for (pi=0; pi<ensp->energy->parmNum; pi++) {
-    fprintf(stderr, "%u: %g\n", pi, ensp->parm[pi]);
+    fprintf(stderr, "parm[%u] == %g\n", pi, ensp->parm[pi]);
   }
   fprintf(stderr, "\n");
 
