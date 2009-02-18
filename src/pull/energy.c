@@ -23,19 +23,25 @@
 #include "pull.h"
 #include "privatePull.h"
 
-#define SPRING  "spring"
-#define GAUSS   "gauss"
-#define COTAN   "cotan"
-#define QUARTIC "quartic"
-#define ZERO    "zero"
+#define SPRING    "spring"
+#define GAUSS     "gauss"
+#define GAUSSHACK "ghack"
+#define COTAN     "cotan"
+#define CUBIC     "cubic"
+#define QUARTIC   "quartic"
+#define CWELL     "cwell"
+#define ZERO      "zero"
 
 char
 _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
+  GAUSSHACK,
   COTAN,
+  CUBIC,
   QUARTIC,
+  CWELL,
   ZERO
 };
 
@@ -44,8 +50,11 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",
+  "like a Gaussian, but a lot wider",
   "Cotangent-based potential (from Meyer et al. SMI '05)",
+  "Cubic thing",
   "Quartic thing",
+  "Piecewice cubic with tunable well location and depth",
   "no energy"
 };
 
@@ -141,11 +150,11 @@ pullEnergySpring = &_pullEnergySpring;
 /* HEY: copied from teem/src/nrrd/kernel.c */
 #define _GAUSS(x, sig, cut) ( \
    x >= sig*cut ? 0           \
-   : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
+   : exp(-x*x/(2.0*sig*sig)))
 
 #define _DGAUSS(x, sig, cut) ( \
    x >= sig*cut ? 0            \
-   : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
+   : -exp(-x*x/(2.0*sig*sig))*(x/(sig*sig)))
 
 double
 _pullEnergyGaussEval(double *denr, double dist, const double *parm) {
@@ -163,6 +172,37 @@ _pullEnergyGauss = {
 };
 const pullEnergy *const
 pullEnergyGauss = &_pullEnergyGauss;
+
+/* ----------------------------------------------------------------
+** ---------------------------- GAUSSHACK -------------------------
+** ----------------------------------------------------------------
+** 0 parms: for simplicity we're now always cutting off at 4 sigmas
+*/
+/* HEY: copied from teem/src/nrrd/kernel.c */
+#define _GAUSSHACK(x, sig, cut) ( \
+   x >= sig*cut ? 0           \
+   : exp(-x*x*x*x*x*x/(2.0*sig*sig)))
+
+#define _DGAUSSHACK(x, sig, cut) ( \
+   x >= sig*cut ? 0            \
+   : -exp(-x*x*x*x*x*x/(2.0*sig*sig))*(3*x*x*x*x*x/(sig*sig)))
+
+double
+_pullEnergyGaussHackEval(double *denr, double dist, const double *parm) {
+
+  AIR_UNUSED(parm);
+  *denr = _DGAUSSHACK(dist, 0.25, 4);
+  return _GAUSSHACK(dist, 0.25, 4);
+}
+
+const pullEnergy
+_pullEnergyGaussHack = {
+  GAUSSHACK,
+  0,
+  _pullEnergyGaussHackEval
+};
+const pullEnergy *const
+pullEnergyGaussHack = &_pullEnergyGaussHack;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
@@ -189,6 +229,35 @@ _pullEnergyCotan = {
 };
 const pullEnergy *const
 pullEnergyCotan = &_pullEnergyCotan;
+
+/* ----------------------------------------------------------------
+** ------------------------------ CUBIC ---------------------------
+** ----------------------------------------------------------------
+** 0 parms!
+*/
+double
+_pullEnergyCubicEval(double *denr, double dist, const double *parm) {
+  double omr, enr;
+
+  AIR_UNUSED(parm);
+  if (dist <= 1) {
+    omr = 1 - dist;
+    enr = omr*omr*omr;
+    *denr = -3*omr*omr;
+  } else {
+    enr = *denr = 0;
+  }
+  return enr;
+}
+
+const pullEnergy
+_pullEnergyCubic = {
+  CUBIC,
+  0,
+  _pullEnergyCubicEval
+};
+const pullEnergy *const
+pullEnergyCubic = &_pullEnergyCubic;
 
 /* ----------------------------------------------------------------
 ** ----------------------------- QUARTIC --------------------------
@@ -220,6 +289,46 @@ const pullEnergy *const
 pullEnergyQuartic = &_pullEnergyQuartic;
 
 /* ----------------------------------------------------------------
+** ------------------ tunable piece-wise cubic --------------------
+** ----------------------------------------------------------------
+** 2 parm: wellX, wellY
+*/
+double
+_pullEnergyCubicWellEval(double *denr, double x, const double *parm) {
+  double a, b, c, d, e, wx, wy, enr;
+
+  wx = parm[0];
+  wy = parm[1];
+  a = (3*(-1 + wy))/wx;
+  b = (-3*(-1 + wy))/(wx*wx);
+  c = -(1 - wy)/(wx*wx*wx);
+  d = (-3*wy)/((wx-1)*(wx-1));
+  e = (-2*wy)/((wx-1)*(wx-1)*(wx-1));
+  if (x < wx) {
+    enr = 1 + x*(a + x*(b + c*x));
+    *denr = a + x*(2*b + 3*c*x);
+  } else if (x < 1) {
+    double _x;
+    _x = x - wx;
+    enr = wy + _x*_x*(d + e*_x);
+    *denr = _x*(2*d + 3*e*_x);
+  } else {
+    enr = 0;
+    *denr = 0;
+  }
+  return enr;
+}
+
+const pullEnergy
+_pullEnergyCubicWell = {
+  CWELL,
+  2,
+  _pullEnergyCubicWellEval
+};
+const pullEnergy *const
+pullEnergyCubicWell = &_pullEnergyCubicWell;
+
+/* ----------------------------------------------------------------
 ** ------------------------------- ZERO ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms:
@@ -248,12 +357,15 @@ pullEnergyZero = &_pullEnergyZero;
 */
 
 const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
-  &_pullEnergyUnknown,  /* 0 */
-  &_pullEnergySpring,   /* 1 */
-  &_pullEnergyGauss,    /* 2 */
-  &_pullEnergyCotan,    /* 3 */
-  &_pullEnergyQuartic,  /* 4 */
-  &_pullEnergyZero      /* 5 */
+  &_pullEnergyUnknown,   /* 0 */
+  &_pullEnergySpring,    /* 1 */
+  &_pullEnergyGauss,     /* 2 */
+  &_pullEnergyGaussHack, /* 3 */
+  &_pullEnergyCotan,     /* 4 */
+  &_pullEnergyCubic,     /* 5 */
+  &_pullEnergyQuartic,   /* 6 */
+  &_pullEnergyCubicWell, /* 7 */
+  &_pullEnergyZero       /* 8 */
 };
 
 pullEnergySpec *

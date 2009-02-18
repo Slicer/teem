@@ -227,12 +227,15 @@ enum {
   pullEnergyTypeUnknown,       /* 0 */
   pullEnergyTypeSpring,        /* 1 */
   pullEnergyTypeGauss,         /* 2 */
-  pullEnergyTypeCotan,         /* 3 */
-  pullEnergyTypeQuartic,       /* 4 */
-  pullEnergyTypeZero,          /* 5 */
+  pullEnergyTypeGaussHack,     /* 3 */
+  pullEnergyTypeCotan,         /* 4 */
+  pullEnergyTypeCubic,         /* 5 */
+  pullEnergyTypeQuartic,       /* 6 */
+  pullEnergyTypeCubicWell,     /* 7 */
+  pullEnergyTypeZero,          /* 8 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX      5
+#define PULL_ENERGY_TYPE_MAX      8
 #define PULL_ENERGY_PARM_NUM 3
 
 /*

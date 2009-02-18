@@ -114,14 +114,18 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
   */
   if (rr > 1 || ss > 1) {
-    ELL_4V_SET(egrad, 0, 0, 0, 0);
+    if (spaceDistP) {
+      ELL_4V_SET(egrad, 0, 0, 0, 0);
+    }
     return 0;
   }
   if (rr == 0 && ss == 0) {
     fprintf(stderr, "%s: pos of pts %u, %u equal: (%g,%g,%g,%g)\n",
             meme, me->idtag, she->idtag, 
             me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
-    ELL_4V_SET(egrad, 0, 0, 0, 0);
+    if (spaceDistP) {
+      ELL_4V_SET(egrad, 0, 0, 0, 0);
+    }
     return 0;
   }
 
@@ -636,9 +640,9 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   } /* for myPointIdx */
 
   /* probabilistically nix points that have too much company */
-  if ((15 == task->pctx->iter % 20) && task->pctx->constraint) {
+  if (0 && (15 == task->pctx->iter % 20) && task->pctx->constraint) {
     pullPoint *point;
-    double nixProb, ndist, wantDist=0.75, wantNum, haveNum, constrDim;
+    double nixProb, ndist, wantDist=0.8, wantNum, haveNum, constrDim;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
       point = myBin->point[myPointIdx];
       /* neighDist has already been normalized by task->pctx->radiusSpace.
