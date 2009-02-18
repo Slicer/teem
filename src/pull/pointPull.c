@@ -270,6 +270,9 @@ _pullStepConstrAverage(const pullContext *pctx) {
   return avg;
 }
 
+/*
+** convenience function for learning a scalar AND its gradient or hessian 
+*/
 double
 _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
                  /* output */
@@ -380,19 +383,21 @@ _pullProbe(pullTask *task, pullPoint *point) {
       */
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
-                            AIR_FALSE, AIR_TRUE);
+                            AIR_FALSE /* index-space */,
+                            AIR_TRUE /* clamp */);
     } else {
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
                                  point->pos[0], point->pos[1],
                                  point->pos[2], point->pos[3],
-                                 AIR_FALSE, AIR_TRUE);
+                                 AIR_FALSE /* index-space */,
+                                 AIR_TRUE /* clamp */);
     }
     if (gret) {
       break;
     }
   }
   if (gret) {
-    sprintf(err, "%s: probe failed on vol %u/%u: (%d) %s\n", me,
+    sprintf(err, "%s: probe failed on vol %u/%u: (%d) %s", me,
             ii, task->pctx->volNum,
             task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
     biffAdd(PULL, err); return 1;

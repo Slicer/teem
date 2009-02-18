@@ -66,12 +66,12 @@ pullEnergyType = &_pullEnergyType;
 ** ----------------------------------------------------------------
 */
 double
-_pullEnergyUnknownEval(double *frc, double dist, const double *parm) {
+_pullEnergyUnknownEval(double *denr, double dist, const double *parm) {
   char me[]="_pullEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  *frc = AIR_NAN;
+  *denr = AIR_NAN;
   fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
   return AIR_NAN;
 }
@@ -96,7 +96,7 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 ** learned: "1/2" is not 0.5 !!!!!
 */
 double
-_pullEnergySpringEval(double *frc, double dist, const double *parm) {
+_pullEnergySpringEval(double *denr, double dist, const double *parm) {
   /* char me[]="_pullEnergySpringEval"; */
   double enr, xx, pull;
 
@@ -107,13 +107,13 @@ _pullEnergySpringEval(double *frc, double dist, const double *parm) {
   xx = dist - 1.0;
   if (xx > pull) {
     enr = 0;
-    *frc = 0;
+    *denr = 0;
   } else if (xx > 0) {
     enr = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1.0/2.0);
-    *frc = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
+    *denr = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
   } else {
     enr = xx*xx/2;
-    *frc = xx;
+    *denr = xx;
   }
   /*
   if (!AIR_EXISTS(ret)) {
@@ -148,10 +148,10 @@ pullEnergySpring = &_pullEnergySpring;
    : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
 
 double
-_pullEnergyGaussEval(double *frc, double dist, const double *parm) {
+_pullEnergyGaussEval(double *denr, double dist, const double *parm) {
 
   AIR_UNUSED(parm);
-  *frc = _DGAUSS(dist, 0.25, 4);
+  *denr = _DGAUSS(dist, 0.25, 4);
   return _GAUSS(dist, 0.25, 4);
 }
 
@@ -170,14 +170,14 @@ pullEnergyGauss = &_pullEnergyGauss;
 ** 0 parms!
 */
 double
-_pullEnergyCotanEval(double *frc, double dist, const double *parm) {
+_pullEnergyCotanEval(double *denr, double dist, const double *parm) {
   double pot, cc, enr;
 
   AIR_UNUSED(parm);
   pot = AIR_PI/2.0;
   cc = 1.0/(FLT_MIN + tan(dist*pot));
   enr = dist > 1 ? 0 : cc + dist*pot - pot;
-  *frc = dist > 1 ? 0 : -cc*cc*pot;
+  *denr = dist > 1 ? 0 : -cc*cc*pot;
   return enr;
 }
 
@@ -196,16 +196,16 @@ pullEnergyCotan = &_pullEnergyCotan;
 ** 0 parms!
 */
 double
-_pullEnergyQuarticEval(double *frc, double dist, const double *parm) {
+_pullEnergyQuarticEval(double *denr, double dist, const double *parm) {
   double omr, enr;
 
   AIR_UNUSED(parm);
   if (dist <= 1) {
     omr = 1 - dist;
     enr = 2.132*omr*omr*omr*omr;
-    *frc = -4*2.132*omr*omr*omr;
+    *denr = -4*2.132*omr*omr*omr;
   } else {
-    enr = *frc = 0;
+    enr = *denr = 0;
   }
   return enr;
 }
@@ -225,11 +225,11 @@ pullEnergyQuartic = &_pullEnergyQuartic;
 ** 0 parms:
 */
 double
-_pullEnergyZeroEval(double *frc, double dist, const double *parm) {
+_pullEnergyZeroEval(double *denr, double dist, const double *parm) {
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
-  *frc = 0;
+  *denr = 0;
   return 0;
 }
 

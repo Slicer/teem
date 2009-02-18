@@ -35,7 +35,7 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
          stateIso *state) {
   char me[]="probeIso", err[BIFF_STRLEN];
   
-  ELL_3V_COPY(point->pos, pos);  /* NB: not touching point->pos[3] */
+  ELL_3V_COPY(point->pos, pos);  / * NB: not touching point->pos[3] * /
   _pullPointHistAdd(point, cond);
   if (_pullProbe(task, point)) {
     sprintf(err, "%s: on iter %u", me, iter);

@@ -33,7 +33,7 @@ main(int argc, char *argv[]) {
   
   pullEnergySpec *ensp;
   unsigned int pi, xi, nn;
-  double xx, supp, del;
+  double xx, supp;
 
   mop = airMopNew();
   me = argv[0];
@@ -54,7 +54,6 @@ main(int argc, char *argv[]) {
 
   nn = 600;
   supp = 1.0;
-  del = AIR_DELTA(0, 2, nn, 0, supp);
   for (xi=1; xi<nn; xi++) {
     double x0, x1, ee, ff, e0, e1, dummy;
     xx = AIR_AFFINE(0, xi,   nn, 0, supp);
@@ -63,7 +62,7 @@ main(int argc, char *argv[]) {
     e1 = ensp->energy->eval(&dummy, x1, ensp->parm);
     e0 = ensp->energy->eval(&dummy, x0, ensp->parm);
     ee = ensp->energy->eval(&ff, xx, ensp->parm);
-    printf("%g %g %g %g\n", xx, ee, ff, (e1 - e0)/del);
+    printf("%g %g %g %g\n", xx, ee, ff, (e1 - e0)/(x1 - x0));
   }
 
   airMopOkay(mop);

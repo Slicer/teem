@@ -37,6 +37,13 @@ double _pullPrayCorner[2][2][3];
 size_t _pullPrayRes[2] = {60,20};
 #endif
 
+/*
+** this sets, in task->neighPoint (*NOT* point->neighPoint), all the
+** points in neighboring bins with which we might possibly interact,
+** and returns the number of such points.  At this phase there is no
+** attempt to be clever about ruling out interaction with too-distant
+** points
+*/
 unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="_neighBinPoints";
@@ -72,39 +79,45 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
   return nn;
 }
 
-
+/*
+** compute the energy at "me" due to "she", and
+** the gradient vector of her energy (probably pointing towards her)
+**
+** this assumes that spaceDistP and egrad will be NULL or non-NULL
+** together; they'll be NULL if this is being called only to assess
+** the energy at this point, rather than for learning how to move it
+*/
 double
 _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
                      /* output */
-                     double *spadistP, double egrad[4]) {
+                     double *spaceDistP, double egrad[4]) {
   char meme[]="_energyInterParticle";
-  double spadist,scaledist, sparad, scalerad, diff[4], rr, rrs, enr, frc, *parm;
-  double enrTotal, signScale;
-  ELL_4V_SUB(diff, she->pos, me->pos);
-  spadist = ELL_3V_LEN(diff);
-  if (spadistP) {
-    *spadistP = spadist;
-  }
-  sparad = task->pctx->radiusSpace;
-  rr = spadist/(2*sparad);
-  scaledist = AIR_ABS(diff[3]);
-  scalerad = task->pctx->radiusScale;
-  rrs = scaledist/(2*scalerad);
+  double diff[4], spaceDist, scaleDist, scaleSgn, spaceRad, scaleRad,
+    rr, ss, enr, denr, *parm;
+  double enrTotal=0;
 
-  if (scaledist >0 ) {
-    signScale = 1;
+  /* the vector "diff" goes from her, to me, in both space and scale */
+  ELL_4V_SUB(diff, me->pos, she->pos);
+  spaceDist = ELL_3V_LEN(diff);
+  spaceRad = task->pctx->radiusSpace;
+  rr = spaceDist/spaceRad;
+  if (task->pctx->haveScale) {
+    scaleRad = task->pctx->radiusScale;
+    scaleDist = AIR_ABS(diff[3]);
+    ss = scaleDist/scaleRad;
+    scaleSgn = airSgn(diff[3]);
   } else {
-    signScale = -1;
+    ss = 0;
   }
 
   /*
   fprintf(stderr, "!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
   */
-  if (rr > 1 || rrs > 1) {
+  if (rr > 1 || ss > 1) {
     ELL_4V_SET(egrad, 0, 0, 0, 0);
     return 0;
   }
-  if (rr == 0 && rrs == 0) {
+  if (rr == 0 && ss == 0) {
     fprintf(stderr, "%s: pos of pts %u, %u equal: (%g,%g,%g,%g)\n",
             meme, me->idtag, she->idtag, 
             me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
@@ -112,59 +125,47 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     return 0;
   }
 
-  if (!task->pctx->haveScale) {
+  if (1 || !task->pctx->haveScale) {
     parm = task->pctx->energySpec->parm;
-    enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-    if (spadist == 0) {
-      ELL_3V_SET(egrad,0,0,0);
-    } else {
-      frc *= -1.0/(2*sparad*spadist);
-      ELL_3V_SCALE(egrad, frc, diff);
+    enr = task->pctx->energySpec->energy->eval(&denr, rr, parm);
+    if (spaceDistP) {
+      *spaceDistP = spaceDist;
+      denr *= 1.0/(spaceRad*spaceDist);
+      ELL_3V_SCALE(egrad, denr, diff);
+      egrad[3] = 0;
     }
-    egrad[3] = 0;
     enrTotal = enr;
   } else {
+#if 0
     /*Implementation of Phi_{x-G}(r,s)*/
     double enrs,frcs, enrg, frcg, beta;
-    if (0) {
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
     enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
     enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
     beta = task->pctx->beta;
     frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
-    if (spadist == 0) {
-      ELL_3V_SET(egrad,0,0,0);
-    } else {
-      ELL_3V_SCALE(egrad,frc/spadist,diff);
-    }
-    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) * (-1.0 * signScale) / (2*scalerad);
+    ELL_3V_SCALE(egrad,frc/spadist,diff);
+    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) / (2*scalerad);
     /*Compute final gradient*/
+    ELL_3V_SCALE(egrad,frc,diff);
     egrad[3] = frcs;
     enrTotal = (beta * enr - (1-beta) * enrg) *enrs;
-    }
 
-    if (1) {
+    if (0) {
       /* Implementation of Phi_x(r,x) */
       double y;
-      y = sqrt((spadist * spadist)/(4*sparad * sparad) + 
-               (scaledist * scaledist)/(4*scalerad * scalerad));
+      y = sqrt((spadist * spadist)/(sparad * sparad) + 
+               (scaledist * scaledist)/(scalerad * scalerad));
       parm = task->pctx->energySpec->parm;
       enr = task->pctx->energySpec->energy->eval(&frc, y, parm);
-      ELL_3V_SCALE(egrad,-1.0*frc/(y*4*sparad*sparad),diff);
-      egrad[3] = -1.0*frc*(-1.0*signScale)*scaledist/(y*4*scalerad*scalerad);
+      ELL_3V_SCALE(egrad,frc*spadist/(y*sparad*sparad),diff);
+      egrad[3] = frc*scaledist/(y*scalerad*scalerad);
       enrTotal = enr;
-     /*fprintf(stderr, "%s: %u <-- %u = %g,%g,%g,%g -> egrad = %g,%g,%g,%g, enrTotal = %g\n",
-          meme, me->idtag, she->idtag, 
-          diff[0], diff[1], diff[2],diff[3],
-          egrad[0], egrad[1], egrad[2],egrad[3], enrTotal); */
     }
+#endif
   }
   /*
-       fprintf(stderr, "%s: %u <-- %u = %g,%g,%g,%g -> egrad = %g,%g,%g,%g, enrTotal = %g, y= %g\n",
-          meme, me->idtag, she->idtag, 
-          diff[0], diff[1], diff[2],diff[3],
-          egrad[0], egrad[1], egrad[2],egrad[3], enrTotal,y);
   fprintf(stderr, "%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
           meme, me->idtag, she->idtag, 
           diff[0], diff[1], diff[2],
@@ -192,9 +193,10 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                   double egradSum[4]) {
   /* char me[]="_energyFromPoints"; */
   double energySum, spaDistSqMax, distWghtSum, modeWghtSum;
-  int nopt,     /* optimiziation: we enable the re-use neighbor lists, or
-                   initially, the creation of neighbor lists */
-    ntrue;      /* we search all possible neighbors, stored in the bins
+  int nopt,     /* optimiziation: we enable the re-use of neighbor lists
+                   between interations, or at system start, creation of
+                   neighbor lists */
+    ntrue;      /* we search all possible neighbors availble in the bins
                    (either because !nopt, or, this iter we learn true
                    subset of interacting neighbors).  This could also
                    be called "dontreuse" or something like that */
@@ -205,21 +207,23 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (task->pctx->neighborTrueProb < 1) {
     nopt = AIR_TRUE;
     if (egradSum) {
-      /* We allow the neighbor list optimization only when we're also asked
-         to compute the energy gradient.  When we're not getting the energy
-         gradient, we're being called to test the waters at possible new
-         locations, in which case we can't be changing the effective particle 
-         neighborhood */
+      /* We allow the neighbor list optimization only when we're also
+         asked to compute the energy gradient, since that's the first
+         part of moving the particle. */
       ntrue = (0 == task->pctx->iter
                || airDrandMT_r(task->rng) < task->pctx->neighborTrueProb);
     } else {
-      ntrue = AIR_FALSE;
+      /* When we're not getting the energy gradient, we're being
+         called to test the waters at possible new locations, in which
+         case we can't be changing the effective neighborhood */
+      ntrue = AIR_TRUE;
     }
   } else {
     nopt = AIR_FALSE;
     ntrue = AIR_TRUE;
   }
-  /* NOTE that you can't have both nopt and ntrue be false */
+  /* NOTE that you can't have both nopt and ntrue be false, specifically,
+     ntrue can be false only when nopt is true */
   /*
   fprintf(stderr, "!%s(%u), nopt = %d, ntrue = %d\n", me, point->idtag,
           nopt, ntrue);
@@ -231,7 +235,9 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       airArrayLenSet(point->neighPointArr, 0);
     }
   } else {
-    /* (nopt true) this iter we re-use existing neighbor list */
+    /* (nopt true) this iter we re-use this point's existing neighbor
+       list, copying it into the the task's neighbor list to simulate
+       the action of _neighBinPoints() */
     nnum = point->neighPointNum;
     for (nidx=0; nidx<nnum; nidx++) {
       task->neighPoint[nidx] = point->neighPoint[nidx];
@@ -239,7 +245,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   }
 
   /* loop through neighbor points */
-  spaDistSqMax = 4*task->pctx->radiusSpace*task->pctx->radiusSpace;
+  spaDistSqMax = task->pctx->radiusSpace*task->pctx->radiusSpace;
   /*
   fprintf(stderr, "%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
           task->pctx->radiusSpace, spaDistSqMax);
@@ -259,7 +265,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     double diff[4], spaDistSq, spaDist, enr, egrad[4];
     pullPoint *herPoint;
     herPoint = task->neighPoint[nidx];
-    ELL_4V_SUB(diff, herPoint->pos, point->pos);
+    ELL_4V_SUB(diff, point->pos, herPoint->pos); /* me - her */
     spaDistSq = ELL_3V_DOT(diff, diff);
     /*
     fprintf(stderr, "!%s: %u:%g,%g,%g <-- %u:%g,%g,%g = sqd %g %s %g\n", me,
@@ -275,7 +281,9 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       continue;
     }
     /* this uses sqrt() to get the real 3D distance (not in SS) */
-    enr = _energyInterParticle(task, point, herPoint, &spaDist, egrad);
+    enr = _energyInterParticle(task, point, herPoint,
+                               egradSum ? &spaDist : NULL,
+                               egradSum ? egrad : NULL);
     /*
     fprintf(stderr, "!%s: energySum = %g + %g = %g\n", me, 
             energySum, enr, energySum + enr);
@@ -287,6 +295,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         double ww, normdist;
         point->neighInterNum++;
         normdist = spaDist/task->pctx->radiusSpace;
+        /* must have normdist <= 1 otherwise there wouldn't be interaction */
         ww = normdist*normdist*normdist*normdist;
         ww = 1.0/(ww*ww*ww*ww); /* Lehmer mean with p-1==16 */
         point->neighDist += ww*normdist;
@@ -301,6 +310,7 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         }
         if (nopt && ntrue) {
           unsigned int ii;
+          /* we have to record that we had an interaction with this point */
           ii = airArrayLenIncr(point->neighPointArr, 1);
           point->neighPoint[ii] = herPoint;
         }
@@ -357,10 +367,12 @@ _energyFromImage(pullTask *task, pullPoint *point,
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
+  /* Note that height doesn't contribute to the energy if there is
+     a constraint associated with it */
   if (task->pctx->ispec[pullInfoHeight]
       && !task->pctx->ispec[pullInfoHeight]->constraint
-      && (!task->pctx->ispec[pullInfoHeightLaplacian]
-          || !task->pctx->ispec[pullInfoHeightLaplacian]->constraint)) {
+      && !(task->pctx->ispec[pullInfoHeightLaplacian]
+           && task->pctx->ispec[pullInfoHeightLaplacian]->constraint)) {
     MAYBEPROBE;
     energy += _pullPointScalar(task->pctx, point, pullInfoHeight,
                                grad3, NULL);
@@ -381,43 +393,39 @@ _energyFromImage(pullTask *task, pullPoint *point,
       ELL_3V_SCALE_INCR(egradSum, 2*val, grad3);
     }
   }
+  /* HEY what about strength? */
   return energy;
 }
 #undef MAYBEPROBE
 
 /*
-** its in here that we scale from "energy gradient" to "force"
-**
-** NOTE that the "force" being non-NULL has consequences for what gets
+** NOTE that the "egrad" being non-NULL has consequences for what gets
 ** computed in _energyFromImage and _energyFromPoints:
 **
-** NULL "force": we're simply learning the energy (and want to know it
+** NULL "egrad": we're simply learning the energy (and want to know it
 ** as truthfully as possible) for the sake of inspecting system state
 **
-** non-NULL "force": we're learning the current energy, but the real point
+** non-NULL "egrad": we're learning the current energy, but the real point
 ** is to determine how to move the point to lower energy
 */
 double
 _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
                       /* output */
-                      double force[4]) {
+                      double egrad[4]) {
   char me[]="_pullPointEnergyTotal";
   double enrIm, enrPt, egradIm[4], egradPt[4], energy;
     
-  ELL_4V_SET(egradIm, 0, 0, 0, 0); /* sssh */
-  ELL_4V_SET(egradPt, 0, 0, 0, 0); /* sssh */
-  enrIm = _energyFromImage(task, point, 
-                           force ? egradIm : NULL);
-  enrPt = _energyFromPoints(task, bin, point,
-                            force ? egradPt : NULL);
+  ELL_4V_SET(egradIm, 0, 0, 0, 0);
+  ELL_4V_SET(egradPt, 0, 0, 0, 0);
+  enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
+  enrPt = _energyFromPoints(task, bin, point, egrad ? egradPt : NULL);
   energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
   /*
   fprintf(stderr, "!%s(%u): energy = lerp(%g, im %g, pt %g) = %g\n", me,
           point->idtag, task->pctx->alpha, enrIm, enrPt, energy);
   */
-  if (force) {
-    ELL_4V_LERP(force, task->pctx->alpha, egradIm, egradPt);
-    ELL_4V_SCALE(force, -1, force);
+  if (egrad) {
+    ELL_4V_LERP(egrad, task->pctx->alpha, egradIm, egradPt);
     /*
     fprintf(stderr, "!%s(%u): egradIm = %g %g %g %g\n", me, point->idtag,
             egradIm[0], egradIm[1], egradIm[2], egradIm[3]);
@@ -429,20 +437,20 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
   }
   if (task->pctx->wall) {
     unsigned int axi;
-    double frc;
+    double dwe; /* derivative of wall energy */
     for (axi=0; axi<4; axi++) {
-      frc = task->pctx->bboxMin[axi] - point->pos[axi];
-      if (frc < 0) {
-        /* not below min */
-        frc = task->pctx->bboxMax[axi] - point->pos[axi];
-        if (frc > 0) {
-          /* not above max */
-          frc = 0;
+      dwe = point->pos[axi] - task->pctx->bboxMin[axi];
+      if (dwe > 0) {
+        /* pos not below min */
+        dwe = point->pos[axi] - task->pctx->bboxMax[axi];
+        if (dwe < 0) {
+          /* pos not above max */
+          dwe = 0;
         }
       } 
-      energy += task->pctx->wall*frc*frc/2;
-      if (force) {
-        force[axi] += task->pctx->wall*frc;
+      energy += task->pctx->wall*dwe*dwe/2;
+      if (egrad) {
+        egrad[axi] += task->pctx->wall*dwe;
       }
     }
   }
@@ -467,32 +475,37 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
   return ret;
 }
 
+/*
+** here is where the energy gradient is converted into force
+*/
 int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="pullPointProcess", err[BIFF_STRLEN];
-  double energyOld, energyNew, force[4], distLimit, posOld[4],
-    capvec[3], caplen, capscl;  /* related to capping distance traveled
-                                   in a per-iteration way */
+  double energyOld, energyNew, egrad[4], force[4], posOld[4],
+    capscl;  /* related to capping distance traveled per-iteration */
   int stepBad, giveUp;
 
   if (!point->stepEnergy) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
   }
-
-  energyOld = _pullPointEnergyTotal(task, bin, point, force);
+  
+  /* learn the energy at existing location, and the energy gradient */
+  energyOld = _pullPointEnergyTotal(task, bin, point, egrad);
+  ELL_4V_SCALE(force, -1, egrad);
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
     biffAdd(PULL, err); return 1;
   }
-
+  
   if (task->pctx->constraint) {
     /* we have a constraint, so do something to get the force more
-       tangential to the constriant surface */
+       tangential to the constraint surface (only in the spatial axes) */
     double proj[9], pfrc[3];
     _pullConstraintTangent(task, point, proj);
     ELL_3MV_MUL(pfrc, proj, force);
     ELL_3V_COPY(force, pfrc);
+    /* force[3] untouched */
   }
 
   point->status = 0; /* reset status bitflag */
@@ -500,47 +513,42 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   _pullPointHistInit(point);
   _pullPointHistAdd(point, pullCondOld);
   
-  if (!ELL_4V_LEN(force)) {
+  if (!ELL_4V_DOT(force, force)) {
     /* this particle has no reason to go anywhere; we're done with it */
     point->energy = energyOld;
     return 0;
   }
-  distLimit = _pullDistLimit(task, point);
 
-  /* find capscl */
-  ELL_3V_SCALE(capvec, point->stepEnergy, force);
-  caplen = ELL_3V_LEN(capvec);
-  if (caplen > distLimit) {
-    capscl = distLimit/caplen;
+  /* find capscl. HEY: this is a little weird- the cap on distance
+     traveled is determined and enforced WRT to spatial axes, but
+     it will also end up affecting motion along scale... */
+  if (0) {
+    double capvec[3], caplen, distLimit;
+
+    distLimit = _pullDistLimit(task, point);
+    ELL_3V_SCALE(capvec, point->stepEnergy, force);
+    caplen = ELL_3V_LEN(capvec);
+    if (caplen > distLimit) {
+      capscl = distLimit/caplen;
+    } else {
+      capscl = 1;
+    }
   } else {
     capscl = 1;
   }
 
+  /* try steps along force until we succcessfully lower energy */
   do {
-    double scl0, scl1, scl2;
     int constrFail;
     
-    scl0 = posOld[3];
     giveUp = AIR_FALSE;
-    ELL_3V_SCALE_ADD2(point->pos, 1.0, posOld,
+    ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       capscl*point->stepEnergy, force);
-    if (task->pctx->haveScale) {
-      point->pos[3] = posOld[3] + point->stepEnergy*force[3];
-    } else {
-      point->pos[3] = posOld[3];
-    }
-    /* Constraining scale dimension */
-    scl1 = point->pos[3];
-    /*
-    fprintf(stderr, "!%s(%u): force[3] = %g --> %g\n",
-            me, point->idtag, force[3], scl1 - scl0);
-    */
     if (task->pctx->haveScale) {
       point->pos[3] = AIR_CLAMP(task->pctx->bboxMin[3], 
                                 point->pos[3],
                                 task->pctx->bboxMax[3]);
     }
-    scl1 = point->pos[3];
     _pullPointHistAdd(point, pullCondEnergyTry);
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point, &constrFail)) {
@@ -549,12 +557,6 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
       }
     } else {
       constrFail = AIR_FALSE;
-    }
-    scl2 = point->pos[3];
-    if (scl2 != scl1) {
-      fprintf(stderr, "!%s: constraint sat changed scl %g -> %g\n", me,
-              scl1, scl2); 
-      exit(1);
     }
     if (constrFail) {
       energyNew = AIR_NAN;
@@ -583,11 +585,11 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
            effectively frozen */
         ELL_4V_COPY(point->pos, posOld);
         energyNew = energyOld; /* to be copied into point->energy below */
-        point->stepEnergy = task->pctx->stepInitial/100;
+        point->stepEnergy = task->pctx->stepInitial;
         point->status |= PULL_STATUS_STUCK_BIT;
         giveUp = AIR_TRUE;
       }
-    }  
+    }
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
   /*
@@ -634,9 +636,9 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   } /* for myPointIdx */
 
   /* probabilistically nix points that have too much company */
-  if (0 && (15 == task->pctx->iter % 20) && task->pctx->constraint) {
+  if ((15 == task->pctx->iter % 20) && task->pctx->constraint) {
     pullPoint *point;
-    double nixProb, ndist, wantDist=1.3, wantNum, haveNum, constrDim;
+    double nixProb, ndist, wantDist=0.75, wantNum, haveNum, constrDim;
     for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
       point = myBin->point[myPointIdx];
       /* neighDist has already been normalized by task->pctx->radiusSpace.

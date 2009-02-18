@@ -241,7 +241,7 @@ enum {
 ** the functions which determine inter-point forces
 **
 ** NOTE: the eval() function probably does NOT check to see it was passed
-** non-NULL pointers into which to store energy and force
+** a non-NULL pointer into which to store the derivative of energy ("denr")
 **
 ** Thu Apr 10 12:40:08 EDT 2008: nixed the "support" function, since it
 ** was annoying to deal with variable support potentials.  Now everything
@@ -251,7 +251,7 @@ enum {
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
-  double (*eval)(double *force, double dist,
+  double (*eval)(double *denr, double dist,
                  const double parm[PULL_ENERGY_PARM_NUM]);
 } pullEnergy;
 
