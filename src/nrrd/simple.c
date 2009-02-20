@@ -1343,8 +1343,15 @@ nrrdSanity(void) {
   
   aret = airSanity();
   if (aret != airInsane_not) {
+    if (airInsane_32Bit == aret) {
+      sprintf(err, "%s: (sizeof(size_t) == %u, not %u)", me, 
+	      AIR_CAST(unsigned int, sizeof(size_t)),
+	      AIR_32BIT ? 4 : 8);
+      biffAdd(NRRD, err); 
+    }
     sprintf(err, "%s: airSanity() failed: %s", me, airInsaneErr(aret));
-    biffAdd(NRRD, err); return 0;
+    biffAdd(NRRD, err);
+    return 0;
   }
 
   if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
