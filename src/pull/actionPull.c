@@ -706,9 +706,14 @@ _pullPointProcessPopCntl(pullTask *task, pullBin *bin, pullPoint *point) {
 	biffAdd(PULL, err); return 1;
       }
       ELL_4V_COPY(newpnt->pos, point->pos);
-      newpnt->pos[0] += 0.01;
-      newpnt->pos[1] += 0.01;
-      newpnt->pos[2] += 0.01;
+      /* HEY: total hack; the position of the new particle has to 
+	 be based on somethign about where the existing neighbors are */
+      newpnt->pos[0] += 0.1*task->pctx->radiusSpace;
+      newpnt->pos[1] += 0.1*task->pctx->radiusSpace;
+      newpnt->pos[2] += 0.1*task->pctx->radiusSpace;
+      if (task->pctx->haveScale) {
+	newpnt->pos[3] += 0.1*task->pctx->radiusScale;;
+      }
       triedAdding = AIR_TRUE;
     } else {
       triedAdding = AIR_FALSE;
