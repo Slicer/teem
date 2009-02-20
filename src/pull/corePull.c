@@ -289,14 +289,7 @@ pullRun(pullContext *pctx) {
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   enrImprov = enrImprovAvg = 0;
   converged = AIR_FALSE;
-  fprintf(stderr, "!%s: --------------------------------------\n", me);
-  fprintf(stderr, "!%s: --------------------------------------\n", me);
-  fprintf(stderr, "!%s: --------------------------------------\n", me);
-  fprintf(stderr, "!%s: (%u,%u) %d && %d == %d -------------- \n", me,
-	  pctx->iter, pctx->iterMax,
-	  pctx->iter < pctx->iterMax, !converged,
-	  (pctx->iter < pctx->iterMax) && !converged);
-  while ((pctx->iter < pctx->iterMax) && !converged) {
+  while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
@@ -369,9 +362,9 @@ pullRun(pullContext *pctx) {
     }
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
   }
-  fprintf(stderr, "%s: done (%d,%d) @ iter %u enr = %g enrImprov = %g,%g "
-          "stuck %u\n", 
-          me, !(pctx->iter < pctx->iterMax), converged, 
+  fprintf(stderr, "%s: done ((%d|%d)&%d) @ iter %u enr = %g enrImprov = %g,%g "
+          "stuck %u\n", me,
+	  !pctx->iterMax, pctx->iter < pctx->iterMax, !converged,
           pctx->iter, enrNew, enrImprov, enrImprovAvg, pctx->stuckNum);
   time1 = airTime();
 
