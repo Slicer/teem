@@ -339,8 +339,8 @@ pullRun(pullContext *pctx) {
 	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
 	&& enrImprovAvg < pctx->energyImprovPopCntlMin) {
       if (pctx->verbose) {
-	fprintf(stderr, "%s: enr improv %g < %g: trying pop cntl\n", me,
-		enrImprovAvg, pctx->energyImprovPopCntlMin);
+	printf("%s: enr improv %g < %g: trying pop cntl\n", me,
+	       enrImprovAvg, pctx->energyImprovPopCntlMin);
       }
       pctx->processMode = pullProcessModeNeighLearn;
       if (_pullIterate(pctx)) {
@@ -355,15 +355,13 @@ pullRun(pullContext *pctx) {
 	biffAdd(PULL, err); return 1;
       }
       pctx->processMode = pullProcessModeDescent;
-      fprintf(stderr, "!%s: add %u nix %u\n", me,
-	      pctx->addNum, pctx->nixNum);
     }
     pctx->iter += 1;
     enrLast = enrNew;
     converged = AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin);
     if (converged && pctx->verbose) {
-      fprintf(stderr, "%s: enrImprovAvg %g < %g: converged!!\n", me, 
-              enrImprovAvg, pctx->energyImprovMin);
+      printf("%s: enrImprovAvg %g < %g: converged!!\n", me, 
+	     enrImprovAvg, pctx->energyImprovMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
   }
