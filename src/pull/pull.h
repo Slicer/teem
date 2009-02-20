@@ -184,7 +184,8 @@ typedef struct pullPoint_t {
                                  *but* its already normalized by 
                                  pctx->radiusScale */
     neighMode;                /* some average of mode of nearby points */
-  unsigned int neighInterNum;
+  unsigned int neighInterNum; /* number of particles with which I had some
+				 non-zero interaction on last iteration */
 #if PULL_PHIST
   double *phist;              /* history of positions tried in the last iter,
                                  in sets of 5 doubles: (x,y,z,t,info) */
@@ -237,6 +238,14 @@ enum {
 };
 #define PULL_ENERGY_TYPE_MAX      8
 #define PULL_ENERGY_PARM_NUM 3
+
+enum {
+  pullProcessModeUnknown,
+  pullProcessModeDescent,
+  pullProcessModeNeighLearn,
+  pullProcessModePopCntl,
+  pullProcessModeLast
+};
 
 /*
 ******** pullEnergy
@@ -316,8 +325,9 @@ typedef struct pullTask_t {
     **neighPoint;               /* array of point pointers, either all
                                    possible points from neighbor bins, or
                                    last learned interacting neighbors */
-  pullPoint *addPoint;          /* points to add before next iter */
-  airArray *addPointArr;        /* airArray around addPoint */
+  pullPoint **addPoint;         /* points to add before next iter */
+  unsigned int addPointNum;     /* # of points to add */
+  airArray *addPointArr;        /* airArray around addPoint, addPointNum */
   void *returnPtr;              /* for airThreadJoin */
   unsigned int stuckNum;        /* # stuck particles seen by this task */
 } pullTask;
@@ -374,6 +384,10 @@ typedef struct pullContext_t {
     energyImprovMin,               /* convergence threshold: stop when
                                       fractional improvement (decrease) in
                                       total system energy dips below this */
+    energyImprovPopCntlMin,        /* pseudo-convergence threshold that 
+				      controls when population control is
+				      activated (has to be higher than (less
+				      strict) energyImprovMin */
     constraintStepMin,             /* convergence threshold for constraint
                                       satisfaction: finished if stepsize goes
                                       below this times constraintVoxelSize */
@@ -465,6 +479,8 @@ typedef struct pullContext_t {
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
+  int processMode;                 /* what kind of point processing is being
+				      done now (e.g. descent, pop cntl) */
 
   /* OUTPUT ---------------------------- */
 

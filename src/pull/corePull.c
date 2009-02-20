@@ -279,6 +279,7 @@ pullRun(pullContext *pctx) {
     fprintf(stderr, "%s: doing priming iteration (iter now %u)\n", me,
             pctx->iter);
   }
+  pctx->processMode = pullProcessModeDescent;
   if (_pullIterate(pctx)) {
     sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
     biffAdd(PULL, err); return 1;
@@ -288,7 +289,14 @@ pullRun(pullContext *pctx) {
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   enrImprov = enrImprovAvg = 0;
   converged = AIR_FALSE;
-  while (pctx->iter < pctx->iterMax && !converged) {
+  fprintf(stderr, "!%s: --------------------------------------\n", me);
+  fprintf(stderr, "!%s: --------------------------------------\n", me);
+  fprintf(stderr, "!%s: --------------------------------------\n", me);
+  fprintf(stderr, "!%s: (%u,%u) %d && %d == %d -------------- \n", me,
+	  pctx->iter, pctx->iterMax,
+	  pctx->iter < pctx->iterMax, !converged,
+	  (pctx->iter < pctx->iterMax) && !converged);
+  while ((pctx->iter < pctx->iterMax) && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
@@ -324,6 +332,33 @@ pullRun(pullContext *pctx) {
               "e=%g,%g, de=%g,%g, s=%g,%g\n",
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
+    }
+    if (enrImprovAvg < pctx->energyImprovPopCntlMin) {
+      unsigned int numBef, numAft;
+      if (pctx->verbose) {
+	fprintf(stderr, "%s: enr improv %g < %g: doing pop cntl\n", me,
+		enrImprovAvg, pctx->energyImprovPopCntlMin);
+      }
+      pctx->processMode = pullProcessModeNeighLearn;
+      if (_pullIterate(pctx)) {
+	sprintf(err, "%s: trouble w/ neigh learn for pop cntl on iter %u",
+		me, pctx->iter);
+	biffAdd(PULL, err); return 1;
+      }
+      pctx->processMode = pullProcessModePopCntl;
+      numBef = pullPointNumber(pctx);
+      if (_pullIterate(pctx)) {
+	sprintf(err, "%s: trouble w/ pop cntl on iter %u",
+		me, pctx->iter);
+	biffAdd(PULL, err); return 1;
+      }
+      numAft = pullPointNumber(pctx);
+      pctx->processMode = pullProcessModeDescent;
+      if (numBef != numAft) {
+	/* thwart convergence again, as above */
+	enrImprovAvg = 3*enrImprov;
+      }
+      /* else population control did nothing, carry on */
     }
     pctx->iter += 1;
     enrLast = enrNew;

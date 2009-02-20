@@ -53,7 +53,8 @@ pullContextNew(void) {
   pctx->probeProb = 1.0;
   pctx->opporStepScale = 1.0;
   pctx->stepScale = 0.5;
-  pctx->energyImprovMin = 0.01;
+  pctx->energyImprovMin = 0.001;
+  pctx->energyImprovPopCntlMin = 0.02;
   pctx->constraintStepMin = 0.0001;
   pctx->wall = 1;
 
@@ -97,6 +98,7 @@ pullContextNew(void) {
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
+  pctx->processMode = pullProcessModeUnknown;
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
@@ -317,13 +319,14 @@ _pullContextCheck(pullContext *pctx) {
     biffAdd(PULL, err); return 1;                                \
   }
   /* these reality-check bounds are somewhat arbitrary */
-  CHECK(radiusScale, 0.000001, 15.0);
-  CHECK(radiusSpace, 0.000001, 15.0);
+  CHECK(radiusScale, 0.000001, 25.0);
+  CHECK(radiusSpace, 0.000001, 25.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
   CHECK(opporStepScale, 1.0, 10.0);
   CHECK(stepScale, 0.01, 0.99);
   CHECK(energyImprovMin, -0.2, 1.0);
+  CHECK(energyImprovPopCntlMin, -0.2, 1.0);
   CHECK(constraintStepMin, 0.00000000000000001, 0.1);
   CHECK(wall, 0.0, 100.0);
   CHECK(alpha, 0.0, 1.0);
