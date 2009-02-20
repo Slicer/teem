@@ -267,7 +267,7 @@ pullRun(pullContext *pctx) {
   Nrrd *npos;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
-  int converged;
+  int converged, tryPopCntl;
   unsigned firstIter;
   
   if (pctx->verbose) {
@@ -288,6 +288,7 @@ pullRun(pullContext *pctx) {
   enrLast = enrNew = _pullEnergyTotal(pctx);
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   enrImprov = enrImprovAvg = 0;
+  tryPopCntl = AIR_TRUE;
   converged = AIR_FALSE;
   while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
@@ -327,31 +328,38 @@ pullRun(pullContext *pctx) {
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (enrImprovAvg < pctx->energyImprovPopCntlMin) {
-      unsigned int numBef, numAft;
-      if (pctx->verbose) {
-	fprintf(stderr, "%s: enr improv %g < %g: doing pop cntl\n", me,
-		enrImprovAvg, pctx->energyImprovPopCntlMin);
+      if (tryPopCntl) {
+	unsigned int numBef, numAft;
+	if (pctx->verbose) {
+	  fprintf(stderr, "%s: enr improv %g < %g: doing pop cntl\n", me,
+		  enrImprovAvg, pctx->energyImprovPopCntlMin);
+	}
+	pctx->processMode = pullProcessModeNeighLearn;
+	if (_pullIterate(pctx)) {
+	  sprintf(err, "%s: trouble w/ neigh learn for pop cntl on iter %u",
+		  me, pctx->iter);
+	  biffAdd(PULL, err); return 1;
+	}
+	pctx->processMode = pullProcessModePopCntl;
+	numBef = pullPointNumber(pctx);
+	if (_pullIterate(pctx)) {
+	  sprintf(err, "%s: trouble w/ pop cntl on iter %u",
+		  me, pctx->iter);
+	  biffAdd(PULL, err); return 1;
+	}
+	numAft = pullPointNumber(pctx);
+	pctx->processMode = pullProcessModeDescent;
+	if (numBef != numAft) {
+	  /* thwart convergence again, as above */
+	  enrImprovAvg = 3*enrImprov;
+	} else {
+	  /* inhibit future attempts at population control */
+	  tryPopCntl = AIR_FALSE;
+	}
       }
-      pctx->processMode = pullProcessModeNeighLearn;
-      if (_pullIterate(pctx)) {
-	sprintf(err, "%s: trouble w/ neigh learn for pop cntl on iter %u",
-		me, pctx->iter);
-	biffAdd(PULL, err); return 1;
-      }
-      pctx->processMode = pullProcessModePopCntl;
-      numBef = pullPointNumber(pctx);
-      if (_pullIterate(pctx)) {
-	sprintf(err, "%s: trouble w/ pop cntl on iter %u",
-		me, pctx->iter);
-	biffAdd(PULL, err); return 1;
-      }
-      numAft = pullPointNumber(pctx);
-      pctx->processMode = pullProcessModeDescent;
-      if (numBef != numAft) {
-	/* thwart convergence again, as above */
-	enrImprovAvg = 3*enrImprov;
-      }
-      /* else population control did nothing, carry on */
+    } else {
+      /* saw significant improvement, try pop cntl again later */
+      tryPopCntl = AIR_TRUE;
     }
     pctx->iter += 1;
     enrLast = enrNew;
