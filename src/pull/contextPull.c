@@ -63,6 +63,7 @@ pullContextNew(void) {
   pctx->rngSeed = 42;
   pctx->threadNum = 1;
   pctx->iterMax = 0;
+  pctx->popCntlPeriod = 20;
   pctx->constraintIterMax = 15;
   pctx->snap = 0;
   
@@ -84,6 +85,7 @@ pullContextNew(void) {
   pctx->finished = AIR_FALSE;
   pctx->maxDistSpace = AIR_NAN;
   pctx->maxDistScale = AIR_NAN;
+  pctx->constraintDim = AIR_NAN;
   pctx->constraintVoxelSize = AIR_NAN;
 
   pctx->bin = NULL;

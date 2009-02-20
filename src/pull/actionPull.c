@@ -31,6 +31,25 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
+char
+_pullProcessModeStr[PULL_PROCESS_MODE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_mode)",
+  "descent",
+  "nlearn",
+  "popcntl"
+};
+
+airEnum
+_pullProcessMode = {
+  "process mode",
+  PULL_PROCESS_MODE_MAX,
+  _pullProcessModeStr,  NULL,
+  NULL, NULL, NULL,
+  AIR_FALSE
+};
+airEnum *
+pullProcessMode = &_pullProcessMode;
+
 #ifdef PRAY
 int _pullPraying = 0;
 double _pullPrayCorner[2][2][3];
@@ -545,7 +564,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
   /* find capscl. HEY: this is a little weird- the cap on distance
      traveled is determined and enforced WRT to spatial axes, but
      it will also end up affecting motion along scale... */
-  if (0) {
+  if (1) {
     double capvec[3], caplen, distLimit;
 
     distLimit = _pullDistLimit(task, point);
@@ -556,8 +575,6 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
     } else {
       capscl = 1;
     }
-  } else {
-    capscl = 1;
   }
 
   /* try steps along force until we succcessfully lower energy */
@@ -598,8 +615,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000000001) {
         if (task->pctx->verbose > 1) {
-          fprintf(stderr, "%s: %u stuck; (%g,%g,%g,%g) stepEnr %g"
-                  "capscl %g <<<<\n\n\n", me, point->idtag, 
+          fprintf(stderr, "%s: %u STUCK; (%g,%g,%g,%g) stepEnr %g"
+                  " capscl %g\n", me, point->idtag, 
                   point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                   point->stepEnergy, capscl);
         }
@@ -668,19 +685,50 @@ _energyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
 
 int
 _pullPointProcessPopCntl(pullTask *task, pullBin *bin, pullPoint *point) {
+  char me[]="_pullPointProcessPopCntl", err[BIFF_STRLEN];
   double enrMe, enrWith, enrWithout, fracNixed;
+  int triedAdding;
 
-  enrMe = _energyFromPoints(task, bin, point, NULL);
-  enrWith = (enrMe + _energyOfNeighbors(task, bin, point, &fracNixed));
-  if (fracNixed > 0.9) {
-    /* too many neighbors nixed; can't accurately assess energy */
-    return 0;
+  if (1 == task->pctx->constraintDim 
+      || 2 == task->pctx->constraintDim) {
+    unsigned int minnnum;
+    minnnum = (2 == task->pctx->constraintDim
+	       ? 5
+	       : 2);
+    if (point->neighPointNum < minnnum) {
+      unsigned int api;
+      pullPoint *newpnt;
+      api = airArrayLenIncr(task->addPointArr, 1);
+      newpnt = task->addPoint[api] = pullPointNew(task->pctx);
+      if (!newpnt) {
+	sprintf(err, "%s: couldn't spawn new point from %u", 
+		me, point->idtag);
+	biffAdd(PULL, err); return 1;
+      }
+      ELL_4V_COPY(newpnt->pos, point->pos);
+      newpnt->pos[0] += 0.01;
+      newpnt->pos[1] += 0.01;
+      newpnt->pos[2] += 0.01;
+      triedAdding = AIR_TRUE;
+    } else {
+      triedAdding = AIR_FALSE;
+    }
+  } else {
+    triedAdding = AIR_FALSE;
   }
-  point->status |= PULL_STATUS_NIXME_BIT;
-  enrWithout = _energyOfNeighbors(task, bin, point, &fracNixed);
-  if (enrWith < enrWithout) {
-    /* have lower energy *with* the point; turn off nixing; keep it */
-    point->status &= ~PULL_STATUS_NIXME_BIT;
+  if (!triedAdding) {
+    enrMe = _energyFromPoints(task, bin, point, NULL);
+    enrWith = (enrMe + _energyOfNeighbors(task, bin, point, &fracNixed));
+    /* don't think about nixing this if too many neighbors have also been
+       nixed, since we far from convergence ==> energy less meaningful */
+    if (fracNixed < 0.5) {
+      point->status |= PULL_STATUS_NIXME_BIT;
+      enrWithout = _energyOfNeighbors(task, bin, point, &fracNixed);
+      if (enrWith < enrWithout) {
+	/* have lower energy *with* the point so keep it: turn off nixing */
+	point->status &= ~PULL_STATUS_NIXME_BIT;
+      }
+    }
   }
   
   return 0;

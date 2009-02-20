@@ -240,12 +240,13 @@ enum {
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
-  pullProcessModeUnknown,
-  pullProcessModeDescent,
-  pullProcessModeNeighLearn,
-  pullProcessModePopCntl,
+  pullProcessModeUnknown,      /* 0 */
+  pullProcessModeDescent,      /* 1 */
+  pullProcessModeNeighLearn,   /* 2 */
+  pullProcessModePopCntl,      /* 3 */
   pullProcessModeLast
 };
+#define PULL_PROCESS_MODE_MAX     3
 
 /*
 ******** pullEnergy
@@ -415,6 +416,9 @@ typedef struct pullContext_t {
     threadNum,                     /* number of threads to use */
     iterMax,                       /* if non-zero, max number of iterations
                                       for whole system */
+    popCntlPeriod,                 /* how many intervals to wait between
+				      attemps at population control, 
+				      or, 0 to say: "no pop cntl" */
     constraintIterMax,             /* if non-zero, max number of iterations
                                       for enforcing each constraint */
     snap;                          /* if non-zero, interval between iterations
@@ -460,6 +464,9 @@ typedef struct pullContext_t {
                                       the spatial axes.*/
     maxDistScale,                  /* max dist of point-point interaction 
                                       along scale */
+    constraintDim,                 /* dimension (possibly non-integer) of
+				      constraint surface we're working on,
+				      or 0 if no constraint */
     constraintVoxelSize;           /* if there's a constraint, mean voxel edge
                                       length, to use for limiting distance 
                                       to travel for constraint satisfaction */
@@ -487,7 +494,9 @@ typedef struct pullContext_t {
   double timeIteration,            /* time needed for last (single) iter */
     timeRun,                       /* total time spent in pullRun() */
     energy;                        /* final energy of system */
-  unsigned int stuckNum,           /* # stuck particles in last iter */
+  unsigned int addNum,             /* # prtls added by PopCntl in last iter */
+    nixNum,                        /* # prtls nixed by PopCntl in last iter */
+    stuckNum,                      /* # stuck particles in last iter */
     iter;                          /* how many iterations were needed */
   Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
@@ -565,6 +574,7 @@ PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 PULL_EXPORT int pullRebin(pullContext *pctx);
 
 /* actionPull.c */
+PULL_EXPORT airEnum *pullProcessMode;
 PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
 
 /* corePull.c */

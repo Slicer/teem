@@ -23,6 +23,12 @@
 #include "pull.h"
 #include "privatePull.h"
 
+#define _IMPROV(ell, enn) (           \
+  2*((ell) - (enn))            \
+  / ( (AIR_ABS(ell) + AIR_ABS(enn))          \
+      ? (AIR_ABS(ell) + AIR_ABS(enn))          \
+      : 1 )				       \
+  )
 /*
 ** this is the core of the worker threads: as long as there are bins
 ** left to process, get the next one, and process it
@@ -122,7 +128,6 @@ pullStart(pullContext *pctx) {
     sprintf(err, "%s: trouble setting up context", me);
     biffAdd(PULL, err); return 1;
   }
-  fprintf(stderr, "!%s: setup done-ish\n", me);
 
   if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNew();
@@ -141,6 +146,7 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
   }
+  fprintf(stderr, "!%s: setup for %u threads done\n", me, pctx->threadNum);
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
@@ -211,10 +217,13 @@ _pullIterate(pullContext *pctx) {
   }
   
   if (pctx->verbose) {
-    fprintf(stderr, "%s: starting iter %d w/ %u thread\n",
-            me, pctx->iter, pctx->threadNum);
-    fprintf(stderr, "%s: energy = %g, # particles = %u\n",
-            me, _pullEnergyTotal(pctx), pullPointNumber(pctx));
+    printf("%s(%s): starting iter %d w/ %u thread\n",
+	   me, airEnumStr(pullProcessMode, pctx->processMode),
+	   pctx->iter, pctx->threadNum);
+    if (pullProcessModeDescent == pctx->processMode) {
+      printf("%s: energy = %g, # particles = %u\n", me,
+	     _pullEnergyTotal(pctx), pullPointNumber(pctx));
+    }
   }
 
   time0 = airTime();
@@ -250,8 +259,8 @@ _pullIterate(pullContext *pctx) {
   for (thi=0; thi<pctx->threadNum; thi++) {
     pctx->stuckNum += pctx->task[thi]->stuckNum;
   }
-  _pullPointNixMeRemove(pctx);
-  if (pullRebin(pctx)) {
+  if (_pullPopCntlFinish(pctx)
+      || pullRebin(pctx)) {
     sprintf(err, "%s: problem with new point locations", me);
     biffAdd(PULL, err); return 1;
   }
@@ -267,7 +276,7 @@ pullRun(pullContext *pctx) {
   Nrrd *npos;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
-  int converged, tryPopCntl;
+  int converged;
   unsigned firstIter;
   
   if (pctx->verbose) {
@@ -288,7 +297,6 @@ pullRun(pullContext *pctx) {
   enrLast = enrNew = _pullEnergyTotal(pctx);
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
   enrImprov = enrImprovAvg = 0;
-  tryPopCntl = AIR_TRUE;
   converged = AIR_FALSE;
   while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
@@ -310,7 +318,7 @@ pullRun(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
     enrNew = _pullEnergyTotal(pctx);
-    enrImprov = _PULL_IMPROV(enrLast, enrNew);
+    enrImprov = _IMPROV(enrLast, enrNew);
     if (firstIter + 1 == pctx->iter) {
       /* we need some way of artificially boosting enrImprovAvg when
          we're just starting, so that we thwart the convergence test,
@@ -327,39 +335,28 @@ pullRun(pullContext *pctx) {
               me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
-    if (enrImprovAvg < pctx->energyImprovPopCntlMin) {
-      if (tryPopCntl) {
-	unsigned int numBef, numAft;
-	if (pctx->verbose) {
-	  fprintf(stderr, "%s: enr improv %g < %g: doing pop cntl\n", me,
-		  enrImprovAvg, pctx->energyImprovPopCntlMin);
-	}
-	pctx->processMode = pullProcessModeNeighLearn;
-	if (_pullIterate(pctx)) {
-	  sprintf(err, "%s: trouble w/ neigh learn for pop cntl on iter %u",
-		  me, pctx->iter);
-	  biffAdd(PULL, err); return 1;
-	}
-	pctx->processMode = pullProcessModePopCntl;
-	numBef = pullPointNumber(pctx);
-	if (_pullIterate(pctx)) {
-	  sprintf(err, "%s: trouble w/ pop cntl on iter %u",
-		  me, pctx->iter);
-	  biffAdd(PULL, err); return 1;
-	}
-	numAft = pullPointNumber(pctx);
-	pctx->processMode = pullProcessModeDescent;
-	if (numBef != numAft) {
-	  /* thwart convergence again, as above */
-	  enrImprovAvg = 3*enrImprov;
-	} else {
-	  /* inhibit future attempts at population control */
-	  tryPopCntl = AIR_FALSE;
-	}
+    if (pctx->popCntlPeriod
+	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
+	&& enrImprovAvg < pctx->energyImprovPopCntlMin) {
+      if (pctx->verbose) {
+	fprintf(stderr, "%s: enr improv %g < %g: trying pop cntl\n", me,
+		enrImprovAvg, pctx->energyImprovPopCntlMin);
       }
-    } else {
-      /* saw significant improvement, try pop cntl again later */
-      tryPopCntl = AIR_TRUE;
+      pctx->processMode = pullProcessModeNeighLearn;
+      if (_pullIterate(pctx)) {
+	sprintf(err, "%s: trouble w/ neigh learn for pop cntl on iter %u",
+		me, pctx->iter);
+	biffAdd(PULL, err); return 1;
+      }
+      pctx->processMode = pullProcessModePopCntl;
+      if (_pullIterate(pctx)) {
+	sprintf(err, "%s: trouble w/ pop cntl on iter %u",
+		me, pctx->iter);
+	biffAdd(PULL, err); return 1;
+      }
+      pctx->processMode = pullProcessModeDescent;
+      fprintf(stderr, "!%s: add %u nix %u\n", me,
+	      pctx->addNum, pctx->nixNum);
     }
     pctx->iter += 1;
     enrLast = enrNew;

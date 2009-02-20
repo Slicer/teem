@@ -437,12 +437,19 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 
 static int
 _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
-                pullTask *task, pullPoint *point) {
+                pullContext *pctx, pullTask *task, pullPoint *point) {
   char me[]="_wantLineOrSurf", err[BIFF_STRLEN];
 
   *wantSurf = *wantLine = AIR_FALSE;
-  if (task->pctx->ispec[pullInfoTangentMode]) {
+  if (pctx->ispec[pullInfoTangentMode]) {
     double md;
+    if (!(task && point)) {
+      /* rare use of biff for error that can only happen due to 
+	 bugs in pull, rather than system-achievable configurations */
+      sprintf(err, "%s: have mode, but got NULL task %p or point %p", me,
+	      task, point);
+      biffAdd(PULL, err); return 1;
+    }
     if (_pullProbe(task, point)) {
       sprintf(err, "%s: trouble", me);
       biffAdd(PULL, err); return 1;
@@ -469,9 +476,9 @@ _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
     }
   } else {
     *mode = AIR_NAN;
-    if (task->pctx->ispec[pullInfoTangent2]) {
+    if (pctx->ispec[pullInfoTangent2]) {
       *wantLine = AIR_TRUE;
-    } else if (task->pctx->ispec[pullInfoTangent1]) {
+    } else if (pctx->ispec[pullInfoTangent1]) {
       *wantSurf = AIR_TRUE;
     }
   }
@@ -538,7 +545,11 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     }
     */
 
-    _wantLineOrSurf(&wantLine, &wantSurf, &mode, task, point);
+    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode,
+			task->pctx, task, point)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(PULL, err); return 1;
+    }
     ELL_4V_SET(posSurf, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_SET(posLine, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_COPY(oldPos, point->pos);
@@ -653,13 +664,13 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 ** a zero return value represents a biff-able error
 */
 double
-_pullConstraintDim(pullTask *task, pullPoint *point) {
+_pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
   char me[]="_pullConstraintDim", err[BIFF_STRLEN];
   int wantSurf, wantLine;
   double ret, 
     mode; /* although we never use it */
   
-  switch (task->pctx->constraint) {
+  switch (pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
     ret = 2.0;
     break;
@@ -667,7 +678,7 @@ _pullConstraintDim(pullTask *task, pullPoint *point) {
     ret = 2.0;
     break;
   case pullInfoHeight:
-    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode, task, point)) {
+    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode, pctx, task, point)) {
       sprintf(err, "%s: trouble", me);
       biffAdd(PULL, err); return 0.0;
     }
@@ -682,8 +693,7 @@ _pullConstraintDim(pullTask *task, pullPoint *point) {
     break;
   default:
     sprintf(err, "%s: constraint on %s (%d) unimplemented", me,
-            airEnumStr(pullInfo, task->pctx->constraint),
-            task->pctx->constraint);
+            airEnumStr(pullInfo, pctx->constraint), pctx->constraint);
     biffAdd(PULL, err); return 0.0;
   }
   return ret;

@@ -24,6 +24,11 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/*
+** HEY: this has to be threadsafe, at least threadsafe when there
+** are no errors, because this can now be called from multiple
+** tasks during population control
+*/
 pullPoint *
 pullPointNew(pullContext *pctx) {
   char me[]="pullPointNew", err[BIFF_STRLEN];
@@ -151,13 +156,15 @@ _pullPointHistAdd(pullPoint *point, int cond) {
   return;
 }
 
-void
-_pullPointNixMeRemove(pullContext *pctx) {
-  unsigned int binIdx, pointIdx;
+int
+_pullPopCntlFinish(pullContext *pctx) {
+  char me[]="_pullPopCntlFinish", err[BIFF_STRLEN];
+  unsigned int binIdx, pointIdx, taskIdx;
   pullBin *bin;
   pullPoint *point;
   double sum;
   
+  pctx->addNum = pctx->nixNum = 0;
   sum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
@@ -168,12 +175,52 @@ _pullPointNixMeRemove(pullContext *pctx) {
         pullPointNix(point);
         bin->point[pointIdx] = bin->point[bin->pointNum-1];
         airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
+	pctx->nixNum++;
       } else {
         pointIdx++;
       }
     }
   }
-  return;
+  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+    unsigned int addPointNum;
+    pullTask *task;
+    int constrFail; 
+
+    task = pctx->task[taskIdx];
+    addPointNum = task->addPointNum;
+    if (!addPointNum) {
+      continue;
+    }
+    for (pointIdx=0; pointIdx<addPointNum; pointIdx++) {
+      point = task->addPoint[pointIdx];
+      if (_pullProbe(task, point)) {
+	sprintf(err, "%s: probing new point %u", me, point->idtag);
+	biffAdd(PULL, err); return 1;
+      }
+      if (pctx->constraint) {
+        if (_pullConstraintSatisfy(task, point, &constrFail)) {
+          sprintf(err, "%s: on new point %u", me, point->idtag);
+	  biffAdd(PULL, err); return 1;
+        }
+        if (constrFail) {
+          /* constraint satisfaction failed, so abort this new point */
+          point = pullPointNix(point);
+        }
+      }
+      if (point) {
+	if (pullBinsPointAdd(pctx, point)) {
+          sprintf(err, "%s: trouble binning new point %u", me, point->idtag);
+          biffAdd(PULL, err); return 1;
+	}
+	pctx->addNum++;
+      }
+    }
+    airArrayLenSet(task->addPointArr, 0);
+  }
+  if (pctx->verbose && (pctx->addNum || pctx->nixNum)) {
+    printf("%s: ADDED %u, NIXED %u\n", me, pctx->addNum, pctx->nixNum);
+  }
+  return 0;
 }
 
 /*

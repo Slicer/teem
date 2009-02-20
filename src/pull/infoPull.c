@@ -268,6 +268,8 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 ** pctx->infoIdx[]
 ** pctx->infoTotalLen
 ** pctx->constraint
+** pctx->constraintVoxelSize
+** pctx->constraintDim
 */
 int
 _pullInfoSetup(pullContext *pctx) {
@@ -276,6 +278,7 @@ _pullInfoSetup(pullContext *pctx) {
 
   pctx->infoTotalLen = 0;
   pctx->constraint = 0;
+  pctx->constraintDim = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       pctx->infoIdx[ii] = pctx->infoTotalLen;
@@ -297,8 +300,21 @@ _pullInfoSetup(pullContext *pctx) {
       }
     }
   }
-  fprintf(stderr, "!%s: infoTotalLen = %u, constraint = %d\n", me,
-          pctx->infoTotalLen, pctx->constraint);
+  if (pctx->constraint) {
+    if (pctx->ispec[pullInfoTangentMode]) {
+      pctx->constraintDim = 1.5;
+    } else {
+      pctx->constraintDim = _pullConstraintDim(pctx, NULL, NULL);
+      if (!pctx->constraintDim) {
+        sprintf(err, "%s: got constr dim 0.0", me);
+        biffAdd(PULL, err); return 1;
+      }
+    }
+  } else {
+    pctx->constraintDim = 0;
+  }
+  fprintf(stderr, "!%s: infoTotalLen = %u, constr = %d, constrDim = %g\n", me,
+          pctx->infoTotalLen, pctx->constraint, pctx->constraintDim);
   return 0;
 }
 

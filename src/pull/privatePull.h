@@ -27,8 +27,6 @@ extern "C" {
 /* this has to be big enough to do experiments where binning is turned off */
 #define _PULL_NEIGH_MAXNUM 4096
 
-#define _PULL_IMPROV(ell, enn) (2*((ell) - (enn))                   \
-                                 / (AIR_ABS(ell) + AIR_ABS(enn)))
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
@@ -61,7 +59,8 @@ extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                                   int *constrFailP);
 extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
                                    double proj[9]);
-extern double _pullConstraintDim(pullTask *task, pullPoint *point);
+extern double _pullConstraintDim(pullContext *pctx,
+				 pullTask *task, pullPoint *point);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,
@@ -71,7 +70,7 @@ extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
-extern void _pullPointNixMeRemove(pullContext *pctx);
+extern int _pullPopCntlFinish(pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
