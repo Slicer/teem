@@ -171,8 +171,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   newpnt->status |= PULL_STATUS_NIXME_BIT;
   enrWithout = _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed);
   newpnt->status &= ~PULL_STATUS_NIXME_BIT;
-  if (enrWith < enrWithout) {
-    /* lower energy *with* newpnt, so we keep it (in the add queue, that is) */
+  if (enrWith <= enrWithout) {
+    /* energy is lower (or the same) *with* newpnt, so we keep it, which
+       means keeping it in the add queue where it already is */
   } else {
     /* its not good to add the point, remove it from the add queue */
     airArrayLenIncr(task->addPointArr, -1);
@@ -200,10 +201,13 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   if (fracNixed < _PULL_FRAC_NIXED_THRESH) {
     point->status |= PULL_STATUS_NIXME_BIT;
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
-    if (enrWith < enrWithout) {
-      /* have lower energy *with* the point, so keep it: turn off nixing */
+    if (enrWith <= enrWithout) {
+      /* Energy isn't distinctly lowered without the point, so keep it;
+         turn off nixing.  If enrWith == enrWithout == 0, as happens to
+         isolated points, then the difference between "<=" and "<" 
+         keeps them from getting nixed */
       point->status &= ~PULL_STATUS_NIXME_BIT;
-    }
+    } 
   }
   
   return 0;
