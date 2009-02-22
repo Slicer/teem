@@ -207,7 +207,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   unsigned int idx;
   int okay;
   
-  if (*binP) {
+  if (binP) {
     *binP = NULL;
   }
   if (!(pctx && point && added)) {
@@ -219,7 +219,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
             me, AIR_CAST(void*, point), point->idtag);
     biffAdd(PULL, err); return 1;
   }
-  if (*binP) {
+  if (binP) {
     *binP = bin;
   }
   okay = AIR_TRUE;
