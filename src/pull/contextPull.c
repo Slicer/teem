@@ -75,6 +75,8 @@ pullContextNew(void) {
 
   pctx->binSingle = AIR_FALSE;
   pctx->binIncr = 32;
+  pctx->iter_cb = NULL;
+  pctx->data_cb = NULL;
 
   ELL_4V_SET(pctx->bboxMin, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_4V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -100,7 +102,6 @@ pullContextNew(void) {
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
-  pctx->processMode = pullProcessModeUnknown;
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;

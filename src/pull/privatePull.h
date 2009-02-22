@@ -27,6 +27,22 @@ extern "C" {
 /* this has to be big enough to do experiments where binning is turned off */
 #define _PULL_NEIGH_MAXNUM 4096
 
+/* used by pullBinsPointMaybeAdd; don't add a point of its (normalized)
+   distance to an existing point is less than this */
+#define _PULL_BINNING_MAYBE_ADD_THRESH 0.15
+
+/* don't nix a point if this (or greater) fraction of its neighbors
+   have already been nixed */
+#define _PULL_FRAC_NIXED_THRESH 0.5
+
+/* only try adding a point if the normalized neighbor offset sum is 
+   greater than this */
+#define _PULL_NEIGH_OFFSET_SUM_THRESH 0.1
+
+/* how far to place new points from isolated points (as a fraction of
+   radiusSpace), when not using cubic well energy */
+#define _PULL_NEWPNT_DIST 0.5
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
@@ -50,9 +66,15 @@ extern int _pullPraying;
 extern double _pullPrayCorner[2][2][3];
 extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
+extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin,
+                                    pullPoint *point, 
+                                    /* output */
+                                    double egradSum[4]);
 extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
-                                    pullPoint *point,
+                                    pullPoint *point, int ignoreImage,
                                     double force[4]);
+extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
+                                    pullPoint *point, int ignoreImage);
 
 /* constraints.c */
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
@@ -70,7 +92,6 @@ extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
-extern int _pullPopCntlFinish(pullContext *pctx);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
@@ -78,6 +99,16 @@ extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepEnergyScale(pullContext *pctx, double scale);
 extern int _pullPointSetup(pullContext *pctx);
 extern void _pullPointFinish(pullContext *pctx);
+
+/* popcntl.c */
+extern int _pullPointProcessNeighLearn(pullTask *task, pullBin *bin,
+                                       pullPoint *point);
+extern int _pullPointProcessAdding(pullTask *task, pullBin *bin,
+                                   pullPoint *point);
+extern int _pullPointProcessNixing(pullTask *task, pullBin *bin,
+                                   pullPoint *point);
+extern int _pullIterFinishAdding(pullContext *pctx);
+extern int _pullIterFinishNixing(pullContext *pctx);
 
 /* binningPull.c */
 extern void _pullBinInit(pullBin *bin, unsigned int incr);
@@ -88,6 +119,7 @@ extern void _pullBinPointAdd(pullContext *pctx,
 extern void _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx);
 extern void _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num);
 extern int _pullBinSetup(pullContext *pctx);
+extern int _pullIterFinishDescent(pullContext *pctx);
 extern void _pullBinFinish(pullContext *pctx);
 
 /* corePull.c */

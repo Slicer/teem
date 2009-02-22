@@ -193,14 +193,13 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point) {
 }
 
 int
-pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
-                      double minOkayDist, int *added) {
+pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, int *added) {
   char me[]="pullBinsPointMaybeAdd", err[BIFF_STRLEN];
   pullBin *bin;
   unsigned int idx;
   int okay;
   
-  if (!added) {
+  if (!(pctx && point && added)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PULL, err); return 1;
   }
@@ -216,7 +215,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
     ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
     diff[3] /= pctx->radiusScale;
     len = ELL_4V_LEN(diff);
-    if (len < minOkayDist) {
+    if (len < _PULL_BINNING_MAYBE_ADD_THRESH) {
       okay = AIR_FALSE;
       break;
     }
@@ -227,66 +226,6 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   } else {
     *added = AIR_FALSE;
   }
-  return 0;
-}
-
-/*
-** This function is only called by the master thread, this 
-** does *not* have to be thread-safe in any way
-*/
-int
-pullRebin(pullContext *pctx) {
-  char me[]="pullRebin", err[BIFF_STRLEN];
-  unsigned int oldBinIdx, pointIdx;
-  pullBin *oldBin, *newBin;
-  pullPoint *point;
-
-  if (!pctx->binSingle) {
-    
-    unsigned int runIdx = 0, pointNum;
-    pointNum = pullPointNumber(pctx);
-    if (pointNum != pctx->tmpPointNum) {
-      if (pctx->verbose) {
-        fprintf(stderr, "!%s: changing total point # %u --> %u\n", me,
-                pctx->tmpPointNum, pointNum);
-      }
-      airFree(pctx->tmpPointPerm);
-      airFree(pctx->tmpPointPtr);
-      pctx->tmpPointPtr = AIR_CAST(pullPoint **,
-                                   calloc(pointNum, sizeof(pullPoint*)));
-      pctx->tmpPointPerm = AIR_CAST(unsigned int *,
-                                    calloc(pointNum, sizeof(unsigned int)));
-      if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-        sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
-                pctx->tmpPointPtr, pctx->tmpPointPerm);
-        biffAdd(PULL, err); return 1;
-      }
-      pctx->tmpPointNum = pointNum;
-    }
-    for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
-      oldBin = pctx->bin + oldBinIdx;
-      while (oldBin->pointNum) {
-        /* tricky: we can't traverse bin->point[], because of how it is
-           re-ordered on point removal, so we always grab point[0] */
-        pctx->tmpPointPtr[runIdx++] = oldBin->point[0];  
-        _pullBinPointRemove(pctx, oldBin, 0);
-      }
-    }
-    airShuffle_r(pctx->task[0]->rng,
-                 pctx->tmpPointPerm, pointNum, pctx->permuteOnRebin);
-    for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
-      point = pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]];
-      newBin = _pullBinLocate(pctx, point->pos);
-      if (!newBin) {
-        sprintf(err, "%s: can't locate point %p %u",
-                me, AIR_CAST(void*, point), point->idtag);
-        biffAdd(PULL, err); return 1;
-      }
-      _pullBinPointAdd(pctx, newBin, point);
-      pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;
-    }
-  }
-
   return 0;
 }
 
@@ -367,5 +306,76 @@ _pullBinFinish(pullContext *pctx) {
   pctx->bin = (pullBin *)airFree(pctx->bin);
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
+}
+
+/*
+** sets pctx->stuckNum
+** resets all task[]->stuckNum
+** reallocates pctx->tmpPointPerm and pctx->tmpPointPtr
+** the point of this is to do rebinning
+**
+** This function is only called by the master thread, this 
+** does *not* have to be thread-safe in any way
+*/
+int
+_pullIterFinishDescent(pullContext *pctx) {
+  char me[]="_pullIterFinishDescent", err[BIFF_STRLEN];
+  unsigned int oldBinIdx, pointIdx, taskIdx;
+  pullBin *oldBin, *newBin;
+  pullPoint *point;
+
+  pctx->stuckNum = 0;
+  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+    pctx->stuckNum += pctx->task[taskIdx]->stuckNum;
+    pctx->task[taskIdx]->stuckNum = 0;
+  }
+
+  if (!pctx->binSingle) {
+    unsigned int runIdx, pointNum;
+    pointNum = pullPointNumber(pctx);
+    if (pointNum != pctx->tmpPointNum) {
+      if (pctx->verbose) {
+        fprintf(stderr, "!%s: changing total point # %u --> %u\n", me,
+                pctx->tmpPointNum, pointNum);
+      }
+      airFree(pctx->tmpPointPerm);
+      airFree(pctx->tmpPointPtr);
+      pctx->tmpPointPtr = AIR_CAST(pullPoint **,
+                                   calloc(pointNum, sizeof(pullPoint*)));
+      pctx->tmpPointPerm = AIR_CAST(unsigned int *,
+                                    calloc(pointNum, sizeof(unsigned int)));
+      if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
+        sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
+                pctx->tmpPointPtr, pctx->tmpPointPerm);
+        biffAdd(PULL, err); return 1;
+      }
+      pctx->tmpPointNum = pointNum;
+    }
+    runIdx = 0;
+    for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
+      oldBin = pctx->bin + oldBinIdx;
+      while (oldBin->pointNum) {
+        /* tricky: we can't traverse bin->point[], because of how it is
+           re-ordered on point removal, so we always grab point[0] */
+        pctx->tmpPointPtr[runIdx++] = oldBin->point[0];  
+        _pullBinPointRemove(pctx, oldBin, 0);
+      }
+    }
+    airShuffle_r(pctx->task[0]->rng,
+                 pctx->tmpPointPerm, pointNum, pctx->permuteOnRebin);
+    for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
+      point = pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]];
+      newBin = _pullBinLocate(pctx, point->pos);
+      if (!newBin) {
+        sprintf(err, "%s: can't locate point %p %u",
+                me, AIR_CAST(void*, point), point->idtag);
+        biffAdd(PULL, err); return 1;
+      }
+      _pullBinPointAdd(pctx, newBin, point);
+      pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;
+    }
+  }
+
+  return 0;
 }
 

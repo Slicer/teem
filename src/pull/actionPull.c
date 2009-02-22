@@ -36,7 +36,8 @@ _pullProcessModeStr[PULL_PROCESS_MODE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_mode)",
   "descent",
   "nlearn",
-  "popcntl"
+  "adding",
+  "nixing"
 };
 
 airEnum
@@ -49,12 +50,6 @@ _pullProcessMode = {
 };
 airEnum *
 pullProcessMode = &_pullProcessMode;
-
-#ifdef PRAY
-int _pullPraying = 0;
-double _pullPrayCorner[2][2][3];
-size_t _pullPrayRes[2] = {60,20};
-#endif
 
 /*
 ** this sets, in task->neighPoint (*NOT* point->neighPoint), all the
@@ -81,7 +76,7 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
       */
       /* can't interact with myself, or anything nixed */
       if (point != herPoint
-	  && !(herPoint->status & PULL_STATUS_NIXME_BIT)) {
+          && !(herPoint->status & PULL_STATUS_NIXME_BIT)) {
         if (nn < _PULL_NEIGH_MAXNUM) {
           task->neighPoint[nn++] = herPoint;
           /*
@@ -95,6 +90,13 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
       }
     }
     herBinIdx++;
+  }
+  /* also have to consider things in the add queue */
+  for (herPointIdx=0; herPointIdx<task->addPointNum; herPointIdx++) {
+    herPoint = task->addPoint[herPointIdx];
+    if (point != herPoint) {
+      task->neighPoint[nn++] = herPoint;
+    }
   }
   return nn;
 }
@@ -110,7 +112,7 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
 */
 static double
 _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
-		     double spaceDist, 
+                     double spaceDist, 
                      /* output */
                      double egrad[4]) {
   char meme[]="_energyInterParticle";
@@ -212,12 +214,12 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
 ** NULL egradSum: just tell me what the energy is; and do NOT compute:
 ** point->neighInterNum, point->neighDist, point->neighMode
 */
-static double
-_energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
-                  /* output */
-                  double egradSum[4]) {
-  /* char me[]="_energyFromPoints"; */
-  double energySum, spaDistSqMax, distWghtSum, modeWghtSum;
+double
+_pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
+                      /* output */
+                      double egradSum[4]) {
+  char me[]="_pullEnergyFromPoints";
+  double energySum, spaDistSqMax, modeWghtSum;
   int nopt,     /* optimiziation: we enable the re-use of neighbor lists
                    between interations, or at system start, creation of
                    neighbor lists */
@@ -229,33 +231,42 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     nnum;       /* how much of task->neigh[] we use */
 
   /* set nopt and ntrue */
-  if (pullProcessModeNeighLearn == task->pctx->processMode) {
-    /* we're here to learn and store the interacting neighbors */
+  if (pullProcessModeNeighLearn == task->processMode) {
+    /* we're here to both learn and store the true interacting neighbors */
     nopt = AIR_TRUE;
     ntrue = AIR_TRUE;
-  } else if (pullProcessModePopCntl == task->pctx->processMode) {
-    /* we just learned (on the previous pass) the real neighbors,
-       so we can certainly re-use that info now */
+  } else if (pullProcessModeAdding == task->processMode
+             || pullProcessModeNixing == task->processMode) {
+    /* we assume that the work of learning neighbors has already been 
+       done, so we can reuse them now */
     nopt = AIR_TRUE;
     ntrue = AIR_FALSE;
-  } else if (task->pctx->neighborTrueProb < 1) {
-    nopt = AIR_TRUE;
-    if (egradSum) {
-      /* We allow the neighbor list optimization only when we're also
-         asked to compute the energy gradient, since that's the first
-         part of moving the particle. */
-      ntrue = (0 == task->pctx->iter
-               || airDrandMT_r(task->rng) < task->pctx->neighborTrueProb);
+  } else if (pullProcessModeDescent == task->processMode) {
+    if (task->pctx->neighborTrueProb < 1) {
+      nopt = AIR_TRUE;
+      if (egradSum) {
+        /* We allow the neighbor list optimization only when we're also
+           asked to compute the energy gradient, since that's the first
+           part of moving the particle. */
+        ntrue = (0 == task->pctx->iter
+                 || airDrandMT_r(task->rng) < task->pctx->neighborTrueProb);
+      } else {
+        /* When we're not getting the energy gradient, we're being
+           called to test the waters at possible new locations, in which
+           case we can't be changing the effective neighborhood */
+        ntrue = AIR_TRUE;
+      }
     } else {
-      /* When we're not getting the energy gradient, we're being
-         called to test the waters at possible new locations, in which
-         case we can't be changing the effective neighborhood */
+      /* never trying neighborhood caching */
+      nopt = AIR_FALSE;
       ntrue = AIR_TRUE;
     }
   } else {
-    nopt = AIR_FALSE;
-    ntrue = AIR_TRUE;
+    fprintf(stderr, "%s: process mode %d unrecognized!\n", me,
+            task->processMode);
+    return AIR_NAN;
   }
+
   /* NOTE that you can't have both nopt and ntrue be false, specifically,
      ntrue can be false only when nopt is true */
   /*
@@ -264,8 +275,8 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   */
   /* set nnum and task->neigh[] */
   if (ntrue) {
-    /* this finds the over-inclusive set of all possible
-       interacting points, based on bin membership, not distance */
+    /* this finds the over-inclusive set of all possible interacting
+       points, based on bin membership as well the task's add queue */
     nnum = _neighBinPoints(task, bin, point);
     if (nopt) {
       airArrayLenSet(point->neighPointArr, 0);
@@ -286,7 +297,6 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   fprintf(stderr, "%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
           task->pctx->radiusSpace, spaDistSqMax);
   */
-  distWghtSum = 0;
   modeWghtSum = 0;
   energySum = 0;
   point->neighInterNum = 0;
@@ -323,48 +333,43 @@ _energyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     /* we pass spaDist to avoid recomputing sqrt() */
     enr = _energyInterParticle(task, point, herPoint, spaDist,
                                egradSum ? egrad : NULL);
-
-
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
-	 its not just a fluke zero-crossing of the potential profile */
-      double ww, normdist;
+         its not just a fluke zero-crossing of the potential profile */
+      double normdist, ww;
 
       if (nopt && ntrue) {
-	unsigned int ii;
-	/* we have to record that we had an interaction with this point */
-	ii = airArrayLenIncr(point->neighPointArr, 1);
-	point->neighPoint[ii] = herPoint;
+        unsigned int ii;
+        /* we have to record that we had an interaction with this point */
+        ii = airArrayLenIncr(point->neighPointArr, 1);
+        point->neighPoint[ii] = herPoint;
       }
       energySum += enr;
       point->neighInterNum++;
       normdist = spaDist/task->pctx->radiusSpace;
-      /* must have normdist <= 1 otherwise there wouldn't be interaction */
-      ww = normdist*normdist*normdist*normdist;
-      ww = 1.0/(ww*ww*ww*ww); /* Lehmer mean with p-1==16 */
-      point->neighDist += ww*normdist;
-      distWghtSum += ww;
+      point->neighDist += normdist;
       if (task->pctx->ispec[pullInfoTangentMode]) {
-	double mm;
-	mm = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
-			      NULL, NULL);
-	ww = 1.0/spaDistSq;
-	point->neighMode += ww*mm;
-	modeWghtSum += ww;
+        double mm;
+        mm = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
+                              NULL, NULL);
+        ww = 1.0/spaDistSq;
+        point->neighMode += ww*mm;
+        modeWghtSum += ww;
       }
       if (egradSum) {
-	ELL_4V_INCR(egradSum, egrad);
+        ELL_4V_INCR(egradSum, egrad);
       }
     }
   }
   
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
-    point->neighDist /= distWghtSum;
+    point->neighDist /= point->neighInterNum;
     if (task->pctx->ispec[pullInfoTangentMode]) {
       point->neighMode /= modeWghtSum;
     }
   } else {
+    /* we had no neighbors at all */
     point->neighDist = 0.0; /* shouldn't happen in any normal case */
     if (task->pctx->ispec[pullInfoTangentMode]) {
       point->neighMode = AIR_NAN;
@@ -442,16 +447,21 @@ _energyFromImage(pullTask *task, pullPoint *point,
 
 /*
 ** NOTE that the "egrad" being non-NULL has consequences for what gets
-** computed in _energyFromImage and _energyFromPoints:
+** computed in _energyFromImage and _pullEnergyFromPoints:
 **
 ** NULL "egrad": we're simply learning the energy (and want to know it
 ** as truthfully as possible) for the sake of inspecting system state
 **
 ** non-NULL "egrad": we're learning the current energy, but the real point
 ** is to determine how to move the point to lower energy
+**
+** the ignoreImage flag is a hack, to allow _pullPointProcessAdding to
+** do descent on a new point according to other points, but not the
+** image.
 */
 double
 _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
+                      int ignoreImage,
                       /* output */
                       double egrad[4]) {
   char me[]="_pullPointEnergyTotal";
@@ -459,8 +469,12 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0);
   ELL_4V_SET(egradPt, 0, 0, 0, 0);
-  enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
-  enrPt = _energyFromPoints(task, bin, point, egrad ? egradPt : NULL);
+  if (ignoreImage) {
+    enrIm = 0;
+  } else {
+    enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
+  }
+  enrPt = _pullEnergyFromPoints(task, bin, point, egrad ? egradPt : NULL);
   energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
   /*
   fprintf(stderr, "!%s(%u): energy = lerp(%g, im %g, pt %g) = %g\n", me,
@@ -507,7 +521,7 @@ double
 _pullDistLimit(pullTask *task, pullPoint *point) {
   double ret;
 
-  if (point->neighDist < 0 /* no neighbors! */
+  if (point->neighDist == 0 /* no neighbors! */
       || pullEnergyZero == task->pctx->energySpec->energy) {
     ret = task->pctx->radiusSpace;
   } else {
@@ -521,7 +535,8 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
 ** here is where the energy gradient is converted into force
 */
 int
-_pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
+_pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
+                         int ignoreImage) {
   char me[]="pullPointProcessDescent", err[BIFF_STRLEN];
   double energyOld, energyNew, egrad[4], force[4], posOld[4],
     capscl;  /* related to capping distance traveled per-iteration */
@@ -533,7 +548,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
   }
   
   /* learn the energy at existing location, and the energy gradient */
-  energyOld = _pullPointEnergyTotal(task, bin, point, egrad);
+  energyOld = _pullPointEnergyTotal(task, bin, point, ignoreImage, egrad);
   ELL_4V_SCALE(force, -1, egrad);
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
     sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
@@ -550,11 +565,6 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
     /* force[3] untouched */
   }
 
-  point->status = 0; /* reset status bitflag */
-  ELL_4V_COPY(posOld, point->pos);
-  _pullPointHistInit(point);
-  _pullPointHistAdd(point, pullCondOld);
-  
   if (!ELL_4V_DOT(force, force)) {
     /* this particle has no reason to go anywhere; we're done with it */
     point->energy = energyOld;
@@ -577,6 +587,10 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
     }
   }
 
+  point->status &= ~PULL_STATUS_STUCK_BIT; /* turn off stuck bit */
+  ELL_4V_COPY(posOld, point->pos);
+  _pullPointHistInit(point);
+  _pullPointHistAdd(point, pullCondOld);
   /* try steps along force until we succcessfully lower energy */
   do {
     int constrFail;
@@ -601,7 +615,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
     if (constrFail) {
       energyNew = AIR_NAN;
     } else {
-      energyNew = _pullPointEnergyTotal(task, bin, point,  NULL);
+      energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
     stepBad = constrFail || (energyNew > energyOld);
     if (stepBad) {
@@ -653,107 +667,29 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point) {
 }
 
 int
-_pullPointProcessNeighLearn(pullTask *task, pullBin *bin, pullPoint *point) {
-  double enr;
-
-  enr = _energyFromPoints(task, bin, point, NULL);
-  return 0;
-}
-
-static double
-_energyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
-		   double *fracNixed) {
-  double enr;
-  unsigned int ii, xx;
-  pullPoint *her;
-  
-  enr = 0;
-  xx = 0;
-  for (ii=0; ii<point->neighPointNum; ii++) {
-    her = point->neighPoint[ii];
-    if (her->status & PULL_STATUS_NIXME_BIT) {
-      xx += 1;
-    } else {
-      enr += _energyFromPoints(task, bin, her, NULL);
-    }
-  }
-  *fracNixed = (point->neighPointNum
-		? AIR_CAST(double, xx)/point->neighPointNum
-		: 0);
-  return enr;
-}
-
-int
-_pullPointProcessPopCntl(pullTask *task, pullBin *bin, pullPoint *point) {
-  char me[]="_pullPointProcessPopCntl", err[BIFF_STRLEN];
-  double enrMe, enrWith, enrWithout, fracNixed;
-  int triedAdding;
-
-  if (1 == task->pctx->constraintDim 
-      || 2 == task->pctx->constraintDim) {
-    unsigned int minnnum;
-    minnnum = (2 == task->pctx->constraintDim
-	       ? 5
-	       : 2);
-    if (point->neighPointNum < minnnum) {
-      unsigned int api;
-      pullPoint *newpnt;
-      api = airArrayLenIncr(task->addPointArr, 1);
-      newpnt = task->addPoint[api] = pullPointNew(task->pctx);
-      if (!newpnt) {
-	sprintf(err, "%s: couldn't spawn new point from %u", 
-		me, point->idtag);
-	biffAdd(PULL, err); return 1;
-      }
-      ELL_4V_COPY(newpnt->pos, point->pos);
-      /* HEY: total hack; the position of the new particle has to 
-	 be based on somethign about where the existing neighbors are */
-      newpnt->pos[0] += 0.1*task->pctx->radiusSpace;
-      newpnt->pos[1] += 0.1*task->pctx->radiusSpace;
-      newpnt->pos[2] += 0.1*task->pctx->radiusSpace;
-      if (task->pctx->haveScale) {
-	newpnt->pos[3] += 0.1*task->pctx->radiusScale;;
-      }
-      triedAdding = AIR_TRUE;
-    } else {
-      triedAdding = AIR_FALSE;
-    }
-  } else {
-    triedAdding = AIR_FALSE;
-  }
-  if (!triedAdding) {
-    enrMe = _energyFromPoints(task, bin, point, NULL);
-    enrWith = (enrMe + _energyOfNeighbors(task, bin, point, &fracNixed));
-    /* don't think about nixing this if too many neighbors have also been
-       nixed, since we far from convergence ==> energy less meaningful */
-    if (fracNixed < 0.5) {
-      point->status |= PULL_STATUS_NIXME_BIT;
-      enrWithout = _energyOfNeighbors(task, bin, point, &fracNixed);
-      if (enrWith < enrWithout) {
-	/* have lower energy *with* the point so keep it: turn off nixing */
-	point->status &= ~PULL_STATUS_NIXME_BIT;
-      }
-    }
-  }
-  
-  return 0;
-}
-
-int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="_pullPointProcess", err[BIFF_STRLEN];
   int E;
 
-  if (pullProcessModeDescent == task->pctx->processMode) {
-    E = _pullPointProcessDescent(task, bin, point);
-  } else if (pullProcessModeNeighLearn == task->pctx->processMode) {
+  E = 0;
+  switch (task->processMode) {
+  case pullProcessModeDescent:
+    E = _pullPointProcessDescent(task, bin, point,
+                                 AIR_FALSE /* ignoreImage */);
+    break;
+  case pullProcessModeNeighLearn:
     E = _pullPointProcessNeighLearn(task, bin, point);
-  } else if (pullProcessModePopCntl == task->pctx->processMode) {
-    E = _pullPointProcessPopCntl(task, bin, point);
-  } else {
-    sprintf(err, "%s: process mode %d unrecognized", me,
-	    task->pctx->processMode);
+    break;
+  case pullProcessModeAdding:
+    E = _pullPointProcessAdding(task, bin, point);
+    break;
+  case pullProcessModeNixing:
+    E = _pullPointProcessNixing(task, bin, point);
+    break;
+  default:
+    sprintf(err, "%s: process mode %d unrecognized", me, task->processMode);
     biffAdd(PULL, err); return 1;
+    break;
   }
   if (E) {
     sprintf(err, "%s: trouble", me);
@@ -762,9 +698,6 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   return 0;
 }
 
-/*
-** this is where point nixing/adding should happen
-*/
 int
 pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   char me[]="pullBinProcess", err[BIFF_STRLEN];

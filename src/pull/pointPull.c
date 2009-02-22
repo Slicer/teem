@@ -156,73 +156,6 @@ _pullPointHistAdd(pullPoint *point, int cond) {
   return;
 }
 
-int
-_pullPopCntlFinish(pullContext *pctx) {
-  char me[]="_pullPopCntlFinish", err[BIFF_STRLEN];
-  unsigned int binIdx, pointIdx, taskIdx;
-  pullBin *bin;
-  pullPoint *point;
-  double sum;
-  
-  pctx->addNum = pctx->nixNum = 0;
-  sum = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-    bin = pctx->bin + binIdx;
-    pointIdx = 0;
-    while (pointIdx < bin->pointNum) {
-      point = bin->point[pointIdx];
-      if (point->status & PULL_STATUS_NIXME_BIT) {
-        pullPointNix(point);
-        bin->point[pointIdx] = bin->point[bin->pointNum-1];
-        airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
-	pctx->nixNum++;
-      } else {
-        pointIdx++;
-      }
-    }
-  }
-  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
-    unsigned int addPointNum;
-    pullTask *task;
-    int constrFail; 
-
-    task = pctx->task[taskIdx];
-    addPointNum = task->addPointNum;
-    if (!addPointNum) {
-      continue;
-    }
-    for (pointIdx=0; pointIdx<addPointNum; pointIdx++) {
-      point = task->addPoint[pointIdx];
-      if (_pullProbe(task, point)) {
-	sprintf(err, "%s: probing new point %u", me, point->idtag);
-	biffAdd(PULL, err); return 1;
-      }
-      if (pctx->constraint) {
-        if (_pullConstraintSatisfy(task, point, &constrFail)) {
-          sprintf(err, "%s: on new point %u", me, point->idtag);
-	  biffAdd(PULL, err); return 1;
-        }
-        if (constrFail) {
-          /* constraint satisfaction failed, so abort this new point */
-          point = pullPointNix(point);
-        }
-      }
-      if (point) {
-	if (pullBinsPointAdd(pctx, point)) {
-          sprintf(err, "%s: trouble binning new point %u", me, point->idtag);
-          biffAdd(PULL, err); return 1;
-	}
-	pctx->addNum++;
-      }
-    }
-    airArrayLenSet(task->addPointArr, 0);
-  }
-  if (pctx->verbose && (pctx->addNum || pctx->nixNum)) {
-    printf("%s: ADDED %u, NIXED %u\n", me, pctx->addNum, pctx->nixNum);
-  }
-  return 0;
-}
-
 /*
 ** HEY: there should be something like a "map" over all the points,
 ** which could implement all these redundant functions
@@ -639,17 +572,15 @@ _pullPointSetup(pullContext *pctx) {
   unsigned int totalNumPoints, voxNum;
   int E;
 
-  double minOkayDist;
-  minOkayDist = 0.2;
-  /* minOkayDist is for pullBinsPointMaybeAdd: a point is not added if its
-     distance to existing points in the bin is less than
-     minOkayDist*pctx->radiusSpace.  This is used only in the context of
-     constraints, it makes sense to be a little more selective about adding
-     points, so that they aren't completely piled on top of each other. Its
-     tempting to set this high, to more aggressively limit the number of
-     points added, but that's really the job of population control, and we
-     can't always guarantee that constraint manifolds will be well-sampled
-     (with respect to pctx->radiusSpace) to start with */
+  /* on using pullBinsPointMaybeAdd: This is used only in the context
+     of constraints; it makes sense to be a little more selective
+     about adding points, so that they aren't completely piled on top
+     of each other. This relies on _PULL_BINNING_MAYBE_ADD_THRESH: its
+     tempting to set this value high, to more aggressively limit the
+     number of points added, but that's really the job of population
+     control, and we can't always guarantee that constraint manifolds
+     will be well-sampled (with respect to pctx->radiusSpace) to start
+     with */
   
   mop = airMopNew();
   if (pctx->npos) {
@@ -704,7 +635,7 @@ _pullPointSetup(pullContext *pctx) {
     totalNumPoints = pctx->pointNumInitial;
     random = AIR_TRUE;
   }
-  printf("!%s: initilizing/seeding ...       ", me);
+  printf("!%s: initializing/seeding ...       ", me);
   fflush(stdout);
 
   /* Allocating array of tentative points if npos is not there*/
@@ -727,10 +658,10 @@ _pullPointSetup(pullContext *pctx) {
   } else { 
     /* not pointPerVoxel, either npos or pointNumInitial */
     if (random) {
-      /*random sampling*/
-      _pullPointInitializeRandom(pctx,npos);
+      /* random sampling */
+      _pullPointInitializeRandom(pctx, npos);
     } else {
-      /*npos is given to us */
+      /* npos is given to us */
     }
   }
 
@@ -824,7 +755,7 @@ _pullPointSetup(pullContext *pctx) {
     
     /* If we get here, the point is ready for binning */
     if (pctx->constraint) {
-      if (pullBinsPointMaybeAdd(pctx, point, minOkayDist, &added)) {
+      if (pullBinsPointMaybeAdd(pctx, point, &added)) {
         sprintf(err, "%s: trouble binning point %u", me, point->idtag);
         biffAdd(PULL, err); airMopError(mop); return 1;
       }
@@ -882,6 +813,7 @@ _pullPointSetup(pullContext *pctx) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
+                                            AIR_FALSE, /* ignoreImage */
                                             point->force);
     }
   }

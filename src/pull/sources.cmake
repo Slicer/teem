@@ -14,6 +14,7 @@ SET(PULL_SOURCES
   pull.h
   taskPull.c
   volumePull.c
+  popcntl.c
   )
 
 ADD_TEEM_LIBRARY(pull ${PULL_SOURCES})

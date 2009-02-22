@@ -124,13 +124,12 @@ enum {
   pullStatusUnknown,             /* 0: nobody knows */
   pullStatusStuck,               /* 1: couldn't move to decrease energy */
 #define PULL_STATUS_STUCK_BIT  (1<< 1)
-  pullStatusNew,                 /* 2: just added to system, bin me */
-#define PULL_STATUS_NEW_BIT    (1<< 2)
-  pullStatusNixMe,               /* 3: nix me at the *end* of this iter
-                                    that means that even after being flagged
-                                    for nixing, the point will interact with
-                                    other points in the nearby bins during 
-                                    the current iteration */
+  pullStatusNewbie,              /* 2: not binned, testing if the system
+                                    would be better with me in it */
+#define PULL_STATUS_NEWBIE_BIT (1<< 2)
+  pullStatusNixMe,               /* 3: nix me at the *end* of this iter,
+                                    and don't look at me for energy 
+                                    during this iteraction */
 #define PULL_STATUS_NIXME_BIT  (1<< 3)
   pullStatusLast
 };
@@ -179,10 +178,9 @@ typedef struct pullPoint_t {
   unsigned int neighPointNum;
   airArray *neighPointArr;    /* airArray around neighPoint and neighNum
                                  (no callbacks used here) */
-  double neighDist,           /* some average of distance to neighboring
+  double neighDist,           /* average of *spatial* distance to neighboring
                                  points with whom this point interacted,
-                                 *but* its already normalized by 
-                                 pctx->radiusScale */
+                                 *but* normalized by pctx->radiusScale */
     neighMode;                /* some average of mode of nearby points */
   unsigned int neighInterNum; /* number of particles with which I had some
 				 non-zero interaction on last iteration */
@@ -243,10 +241,11 @@ enum {
   pullProcessModeUnknown,      /* 0 */
   pullProcessModeDescent,      /* 1 */
   pullProcessModeNeighLearn,   /* 2 */
-  pullProcessModePopCntl,      /* 3 */
+  pullProcessModeAdding,       /* 3 */
+  pullProcessModeNixing,       /* 4 */
   pullProcessModeLast
 };
-#define PULL_PROCESS_MODE_MAX     3
+#define PULL_PROCESS_MODE_MAX     4
 
 /*
 ******** pullEnergy
@@ -316,6 +315,8 @@ typedef struct pullTask_t {
     *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
                                    pointing into per-task per-volume gctxs,
                                    or: NULL if that info is not being used */
+  int processMode;              /* what kind of point processing is being
+                                   done by this task right now */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   airRandMTState *rng;          /* state for my RNG */
@@ -438,6 +439,9 @@ typedef struct pullContext_t {
                                       use beta for Phi_{x-G}(r,s) */
   int binSingle;                   /* disable binning (for debugging) */
   unsigned int binIncr;            /* increment for per-bin airArray */
+  void (*iter_cb)(void *data_cb);  /* callback to call once per iter
+                                      from pullRun() */
+  void *data_cb;                   /* data to pass to callback */
 
   /* INTERNAL -------------------------- */
 
@@ -466,7 +470,9 @@ typedef struct pullContext_t {
                                       along scale */
     constraintDim,                 /* dimension (possibly non-integer) of
 				      constraint surface we're working on,
-				      or 0 if no constraint */
+				      or 0 if no constraint, or if we have a
+                                      constraint, but we're using tangent mode,
+                                      so the constraint dim is per-point*/
     constraintVoxelSize;           /* if there's a constraint, mean voxel edge
                                       length, to use for limiting distance 
                                       to travel for constraint satisfaction */
@@ -486,8 +492,6 @@ typedef struct pullContext_t {
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
-  int processMode;                 /* what kind of point processing is being
-				      done now (e.g. descent, pop cntl) */
 
   /* OUTPUT ---------------------------- */
 
@@ -510,8 +514,11 @@ PULL_EXPORT airEnum *pullEnergyType;
 PULL_EXPORT const pullEnergy *const pullEnergyUnknown;
 PULL_EXPORT const pullEnergy *const pullEnergySpring;
 PULL_EXPORT const pullEnergy *const pullEnergyGauss;
-PULL_EXPORT const pullEnergy *const pullEnergyCoulomb;
+PULL_EXPORT const pullEnergy *const pullEnergyGaussHack;
 PULL_EXPORT const pullEnergy *const pullEnergyCotan;
+PULL_EXPORT const pullEnergy *const pullEnergyCubic;
+PULL_EXPORT const pullEnergy *const pullEnergyQuartic;
+PULL_EXPORT const pullEnergy *const pullEnergyCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
 PULL_EXPORT pullEnergySpec *pullEnergySpecNew();
@@ -569,9 +576,8 @@ PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 /* binningPull.c */
 PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point);
 PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
-                                      double minOkayDist, int *added);
+                                      int *added);
 PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
-PULL_EXPORT int pullRebin(pullContext *pctx);
 
 /* actionPull.c */
 PULL_EXPORT airEnum *pullProcessMode;
