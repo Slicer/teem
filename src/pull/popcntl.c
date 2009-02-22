@@ -236,10 +236,19 @@ _pullIterFinishAdding(pullContext *pctx) {
         if (added) {
           pctx->addNum++;
         } else {
+          unsigned int npi;
           if (pctx->verbose) {
             printf("%s: decided NOT to add new point %u\n", me, point->idtag);
           }
+          /* HEY: copied from above */
+          /* ugh, have to signal to neigs that its no longer their neighbor */
+          task->processMode = pullProcessModeNeighLearn;
+          point->status |= PULL_STATUS_NIXME_BIT;
+          for (npi=0; npi<point->neighPointNum; npi++) {
+            _pullEnergyFromPoints(task, bin, point->neighPoint[npi], NULL);
+          }
           point = pullPointNix(point);
+          task->processMode = pullProcessModeAdding;
         }
       }
       airArrayLenSet(task->addPointArr, 0);
