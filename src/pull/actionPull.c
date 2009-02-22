@@ -617,7 +617,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
-    stepBad = constrFail || (energyNew > energyOld);
+    stepBad = (constrFail 
+               || (energyNew > energyOld + task->pctx->energyIncreasePermit));
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
       if (constrFail) {

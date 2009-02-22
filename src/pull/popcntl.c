@@ -172,7 +172,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   newpnt->status |= PULL_STATUS_NIXME_BIT;
   enrWithout = _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed);
   newpnt->status &= ~PULL_STATUS_NIXME_BIT;
-  if (enrWith <= enrWithout) {
+  if (enrWith <= enrWithout + task->pctx->energyIncreasePermit) {
     /* energy is lower (or the same) *with* newpnt, so we keep it, which
        means keeping it in the add queue where it already is */
   } else {
@@ -202,7 +202,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   if (fracNixed < _PULL_FRAC_NIXED_THRESH) {
     point->status |= PULL_STATUS_NIXME_BIT;
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
-    if (enrWith <= enrWithout) {
+    if (enrWith <= enrWithout + task->pctx->energyIncreasePermit) {
       /* Energy isn't distinctly lowered without the point, so keep it;
          turn off nixing.  If enrWith == enrWithout == 0, as happens to
          isolated points, then the difference between "<=" and "<" 

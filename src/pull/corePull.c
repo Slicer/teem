@@ -23,7 +23,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-#define _IMPROV(ell, enn) (           \
+#define _DECREASE(ell, enn) (           \
   2*((ell) - (enn))            \
   / ( (AIR_ABS(ell) + AIR_ABS(enn))          \
       ? (AIR_ABS(ell) + AIR_ABS(enn))          \
@@ -292,7 +292,7 @@ pullRun(pullContext *pctx) {
     poutS[AIR_STRLEN_MED];
   Nrrd *npos;
   double time0, time1, enrLast,
-    enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
+    enrNew=AIR_NAN, enrDecrease=AIR_NAN, enrDecreaseAvg=AIR_NAN;
   int converged;
   unsigned firstIter;
   
@@ -312,7 +312,7 @@ pullRun(pullContext *pctx) {
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
   fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
-  enrImprov = enrImprovAvg = 0;
+  enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
   while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
@@ -334,29 +334,29 @@ pullRun(pullContext *pctx) {
       biffAdd(PULL, err); return 1;
     }
     enrNew = _pullEnergyTotal(pctx);
-    enrImprov = _IMPROV(enrLast, enrNew);
+    enrDecrease = _DECREASE(enrLast, enrNew);
     if (firstIter + 1 == pctx->iter) {
-      /* we need some way of artificially boosting enrImprovAvg when
+      /* we need some way of artificially boosting enrDecreaseAvg when
          we're just starting, so that we thwart the convergence test,
          which we do because we don't have the history of iterations 
-         that enrImprovAvg is supposed to describe.  Using some scaling
-         of enrImprov is one possible hack. */
-      enrImprovAvg = 3*enrImprov;
+         that enrDecreaseAvg is supposed to describe.  Using some scaling
+         of enrDecrease is one possible hack. */
+      enrDecreaseAvg = 3*enrDecrease;
     } else {
-      enrImprovAvg = (2*enrImprovAvg + enrImprov)/3;
+      enrDecreaseAvg = (2*enrDecreaseAvg + enrDecrease)/3;
     }
     if (pctx->verbose) {
       fprintf(stderr, "%s: ######## done iter %u: "
               "e=%g,%g, de=%g,%g, s=%g,%g\n",
-              me, pctx->iter, enrLast, enrNew, enrImprov, enrImprovAvg,
+              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->popCntlPeriod
 	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
-	&& enrImprovAvg < pctx->energyImprovPopCntlMin) {
+	&& enrDecreaseAvg < pctx->energyDecreasePopCntlMin) {
       if (pctx->verbose) {
-	printf("%s: enr improv %g < %g: trying pop cntl\n", me,
-	       enrImprovAvg, pctx->energyImprovPopCntlMin);
+	printf("%s: enr decrease %g < %g: trying pop cntl\n", me,
+	       enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
       }
       if (_iterate(pctx, pullProcessModeNeighLearn)
           || _iterate(pctx, pullProcessModeAdding)
@@ -371,10 +371,10 @@ pullRun(pullContext *pctx) {
     enrLast = enrNew;
     converged = (!pctx->addNum
                  && !pctx->nixNum
-                 && AIR_IN_OP(0, enrImprovAvg, pctx->energyImprovMin));
+                 && AIR_IN_OP(0, enrDecreaseAvg, pctx->energyDecreaseMin));
     if (converged && pctx->verbose) {
-      printf("%s: enrImprovAvg %g < %g: converged!!\n", me, 
-	     enrImprovAvg, pctx->energyImprovMin);
+      printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
+	     enrDecreaseAvg, pctx->energyDecreaseMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
     /* call the callback */
@@ -382,10 +382,10 @@ pullRun(pullContext *pctx) {
       pctx->iter_cb(pctx->data_cb);
     }
   }
-  fprintf(stderr, "%s: done ((%d|%d)&%d) @ iter %u enr = %g enrImprov = %g,%g "
-          "stuck %u\n", me,
+  fprintf(stderr, "%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
+          "%u stuck\n", me,
 	  !pctx->iterMax, pctx->iter < pctx->iterMax, !converged,
-          pctx->iter, enrNew, enrImprov, enrImprovAvg, pctx->stuckNum);
+          pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
   time1 = airTime();
 
   pctx->timeRun += time1 - time0;

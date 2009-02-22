@@ -386,17 +386,20 @@ typedef struct pullContext_t {
                                       down, or when constraint satisfaction
                                       seems to be going the wrong way, how to
                                       scale (down) step size */
-    energyImprovMin,               /* convergence threshold: stop when
+    energyDecreaseMin,             /* convergence threshold: stop when
                                       fractional improvement (decrease) in
                                       total system energy dips below this */
-    energyImprovPopCntlMin,        /* pseudo-convergence threshold that 
+    energyDecreasePopCntlMin,      /* pseudo-convergence threshold that 
 				      controls when population control is
 				      activated (has to be higher than (less
-				      strict) energyImprovMin */
+				      strict) energyDecreaseMin */
     constraintStepMin,             /* convergence threshold for constraint
                                       satisfaction: finished if stepsize goes
                                       below this times constraintVoxelSize */
-    wall;                          /* spring constant on bbox wall */
+    wall,                          /* spring constant on bbox wall */
+    energyIncreasePermit;          /* epsilon amount by which its okay for
+                                      particle energy to increase, in the
+                                      context of gradient descent */
 
   int pointPerVoxel;               /* number of initial points per voxel, in
                                       seed thresh volume. If 0, then use old

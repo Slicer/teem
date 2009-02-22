@@ -36,7 +36,8 @@ extern "C" {
 #define _PULL_FRAC_NIXED_THRESH 0.5
 
 /* only try adding a point if the normalized neighbor offset sum is 
-   greater than this */
+   greater than this (making this too small only wastes time, by descending
+   and testing a point that can't help reduce energy */
 #define _PULL_NEIGH_OFFSET_SUM_THRESH 0.1
 
 /* how far to place new points from isolated points (as a fraction of

@@ -53,10 +53,11 @@ pullContextNew(void) {
   pctx->probeProb = 1.0;
   pctx->opporStepScale = 1.0;
   pctx->stepScale = 0.5;
-  pctx->energyImprovMin = 0.001;
-  pctx->energyImprovPopCntlMin = 0.02;
+  pctx->energyDecreaseMin = 0.001;
+  pctx->energyDecreasePopCntlMin = 0.02;
   pctx->constraintStepMin = 0.0001;
   pctx->wall = 1;
+  pctx->energyIncreasePermit = 0.0;
 
   pctx->pointPerVoxel = 0;
   pctx->numSamplesScale = 0;
@@ -328,10 +329,11 @@ _pullContextCheck(pullContext *pctx) {
   CHECK(probeProb, 0.02, 1.0);
   CHECK(opporStepScale, 1.0, 10.0);
   CHECK(stepScale, 0.01, 0.99);
-  CHECK(energyImprovMin, -0.2, 1.0);
-  CHECK(energyImprovPopCntlMin, -0.2, 1.0);
+  CHECK(energyDecreaseMin, -0.2, 1.0);
+  CHECK(energyDecreasePopCntlMin, -1.0, 1.0);
   CHECK(constraintStepMin, 0.00000000000000001, 0.1);
   CHECK(wall, 0.0, 100.0);
+  CHECK(energyIncreasePermit, 0.0, 1.0);
   CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
   CHECK(jitter, 0.0, 1.0);
