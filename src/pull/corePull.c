@@ -224,13 +224,10 @@ _iterate(pullContext *pctx, int mode) {
     pctx->task[ti]->processMode = mode;
   }
   if (pctx->verbose) {
-    printf("%s(%s): starting iter %d w/ %u thread\n",
+    printf("%s(%s): iter %d goes w/ %u thrd, %u pnts, %g enr\n",
 	   me, airEnumStr(pullProcessMode, mode),
-	   pctx->iter, pctx->threadNum);
-    if (pullProcessModeDescent == mode) {
-      printf("%s: energy = %g, # particles = %u\n", me,
-	     _pullEnergyTotal(pctx), pullPointNumber(pctx));
-    }
+	   pctx->iter, pctx->threadNum,
+           pullPointNumber(pctx), _pullEnergyTotal(pctx));
   }
 
   time0 = airTime();
