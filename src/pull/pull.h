@@ -330,6 +330,9 @@ typedef struct pullTask_t {
   pullPoint **addPoint;         /* points to add before next iter */
   unsigned int addPointNum;     /* # of points to add */
   airArray *addPointArr;        /* airArray around addPoint, addPointNum */
+  pullPoint **nixPoint;         /* points to nix before next iter */
+  unsigned int nixPointNum;     /* # of points to nix */
+  airArray *nixPointArr;        /* airArray around nixPoint, nixPointNum */
   void *returnPtr;              /* for airThreadJoin */
   unsigned int stuckNum;        /* # stuck particles seen by this task */
 } pullTask;

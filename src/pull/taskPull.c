@@ -90,8 +90,15 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->neighPoint = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,
                                                    sizeof(pullPoint*)));
   task->addPoint = NULL;
+  task->addPointNum = 0;
   task->addPointArr = airArrayNew(AIR_CAST(void **, &(task->addPoint)),
                                   &(task->addPointNum), sizeof(pullPoint*),
+				  /* not exactly the right semantics ... */
+                                  PULL_POINT_NEIGH_INCR);
+  task->nixPoint = NULL;
+  task->nixPointNum = 0;
+  task->nixPointArr = airArrayNew(AIR_CAST(void **, &(task->nixPoint)),
+                                  &(task->nixPointNum), sizeof(pullPoint*),
 				  /* not exactly the right semantics ... */
                                   PULL_POINT_NEIGH_INCR);
   task->returnPtr = NULL;
@@ -114,6 +121,7 @@ _pullTaskNix(pullTask *task) {
     task->pointBuffer = pullPointNix(task->pointBuffer);
     task->neighPoint = airFree(task->neighPoint);
     task->addPointArr = airArrayNuke(task->addPointArr);
+    task->nixPointArr = airArrayNuke(task->nixPointArr);
     airFree(task);
   }
   return NULL;

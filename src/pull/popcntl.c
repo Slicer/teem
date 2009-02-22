@@ -140,7 +140,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     if (constrFail) {
       /* constraint satisfaction failed, which isn't an error for us,
-         we just don't try to add this point */
+         we just don't try to add this point.  Can do immediate nix
+         because no neighbors know about this point. */
       pullPointNix(newpnt);
       return 0;
     }
@@ -183,8 +184,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     for (npi=0; npi<newpnt->neighPointNum; npi++) {
       _pullEnergyFromPoints(task, bin, newpnt->neighPoint[npi], NULL);
     }
-    pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
+    newpnt = pullPointNix(newpnt);
   }
   return 0;
 }
@@ -208,6 +209,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
          keeps them from getting nixed */
       point->status &= ~PULL_STATUS_NIXME_BIT;
     } 
+    /* else energy is certainly higher with the point, do nix it */
   }
   
   return 0;
@@ -237,7 +239,7 @@ _pullIterFinishAdding(pullContext *pctx) {
         if (added) {
           pctx->addNum++;
         } else {
-          unsigned int npi;
+          unsigned int npi, xpi;
           if (pctx->verbose) {
             printf("%s: decided NOT to add new point %u\n", me, point->idtag);
           }
@@ -248,8 +250,10 @@ _pullIterFinishAdding(pullContext *pctx) {
           for (npi=0; npi<point->neighPointNum; npi++) {
             _pullEnergyFromPoints(task, bin, point->neighPoint[npi], NULL);
           }
-          /* point = pullPointNix(point); */
           task->processMode = pullProcessModeAdding;
+          /* can't do immediate nix for reasons GLK doesn't quite understand */
+          xpi = airArrayLenIncr(task->nixPointArr, 1);
+          task->nixPoint[xpi] = point;
         }
       }
       airArrayLenSet(task->addPointArr, 0);
@@ -264,7 +268,7 @@ _pullIterFinishAdding(pullContext *pctx) {
 int
 _pullIterFinishNixing(pullContext *pctx) {
   char me[]="_pullIterFinishNixing";
-  unsigned int binIdx;
+  unsigned int binIdx, taskIdx;
 
   pctx->nixNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -284,6 +288,18 @@ _pullIterFinishNixing(pullContext *pctx) {
       } else {
         pointIdx++;
       }
+    }
+  }
+  /* finish nixing the things that we decided not to add */
+  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+    pullTask *task;
+    task = pctx->task[taskIdx];
+    if (task->nixPointNum) {
+      unsigned int xpi;
+      for (xpi=0; xpi<task->nixPointNum; xpi++) {
+        pullPointNix(task->nixPoint[xpi]);
+      }
+      airArrayLenSet(task->nixPointArr, 0);
     }
   }
   if (pctx->verbose && pctx->nixNum) {
