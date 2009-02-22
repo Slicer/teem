@@ -224,10 +224,11 @@ _iterate(pullContext *pctx, int mode) {
     pctx->task[ti]->processMode = mode;
   }
   if (pctx->verbose) {
-    printf("%s(%s): iter %d goes w/ %u thrd, %u pnts, %g enr\n",
+    printf("%s(%s): iter %d goes w/ %u thrd, %u pnts, enr %g%s\n",
 	   me, airEnumStr(pullProcessMode, mode),
 	   pctx->iter, pctx->threadNum,
-           pullPointNumber(pctx), _pullEnergyTotal(pctx));
+           pullPointNumber(pctx), _pullEnergyTotal(pctx),
+           (pctx->permuteOnRebin ? " (por)" : ""));
   }
 
   time0 = airTime();
