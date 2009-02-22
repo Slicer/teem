@@ -248,7 +248,7 @@ _pullIterFinishAdding(pullContext *pctx) {
           for (npi=0; npi<point->neighPointNum; npi++) {
             _pullEnergyFromPoints(task, bin, point->neighPoint[npi], NULL);
           }
-          point = pullPointNix(point);
+          /* point = pullPointNix(point); */
           task->processMode = pullProcessModeAdding;
         }
       }
