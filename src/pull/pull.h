@@ -574,9 +574,12 @@ PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 
 /* binningPull.c */
-PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point);
+PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point,
+                                 /* output */
+                                 pullBin **binUsed);
 PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
-                                      int *added);
+                                      /* output */
+                                      pullBin **binUsed, int *added);
 PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 
 /* actionPull.c */

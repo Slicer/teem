@@ -179,26 +179,37 @@ pullBinsAllNeighborSet(pullContext *pctx) {
 }
 
 int
-pullBinsPointAdd(pullContext *pctx, pullPoint *point) {
+pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   char me[]="pullBinsPointAdd", err[BIFF_STRLEN];
   pullBin *bin;
   
+  if (binP) {
+    *binP = NULL;
+  }
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
     sprintf(err, "%s: can't locate point %p %u",
             me, AIR_CAST(void*, point), point->idtag);
     biffAdd(PULL, err); return 1;
+  }
+  if (binP) {
+    *binP = bin;
   }
   _pullBinPointAdd(pctx, bin, point);
   return 0;
 }
 
 int
-pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, int *added) {
+pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
+                      /* output */
+                      pullBin **binP, int *added) {
   char me[]="pullBinsPointMaybeAdd", err[BIFF_STRLEN];
   pullBin *bin;
   unsigned int idx;
   int okay;
   
+  if (*binP) {
+    *binP = NULL;
+  }
   if (!(pctx && point && added)) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PULL, err); return 1;
@@ -207,6 +218,9 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, int *added) {
     sprintf(err, "%s: can't locate point %p %u",
             me, AIR_CAST(void*, point), point->idtag);
     biffAdd(PULL, err); return 1;
+  }
+  if (*binP) {
+    *binP = bin;
   }
   okay = AIR_TRUE;
   for (idx=0; idx<bin->pointNum; idx++) {

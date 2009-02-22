@@ -755,7 +755,7 @@ _pullPointSetup(pullContext *pctx) {
     
     /* If we get here, the point is ready for binning */
     if (pctx->constraint) {
-      if (pullBinsPointMaybeAdd(pctx, point, &added)) {
+      if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
         sprintf(err, "%s: trouble binning point %u", me, point->idtag);
         biffAdd(PULL, err); airMopError(mop); return 1;
       }
@@ -766,7 +766,7 @@ _pullPointSetup(pullContext *pctx) {
         }
       }
     } else {
-      if (pullBinsPointAdd(pctx, point)) {
+      if (pullBinsPointAdd(pctx, point, NULL)) {
           sprintf(err, "%s: trouble binning point %u", me, point->idtag);
           biffAdd(PULL, err); airMopError(mop); return 1;
       }

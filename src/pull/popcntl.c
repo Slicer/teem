@@ -227,9 +227,10 @@ _pullIterFinishAdding(pullContext *pctx) {
       int added;
       for (pointIdx=0; pointIdx<task->addPointNum; pointIdx++) {
         pullPoint *point;
+        pullBin *bin;
         point = task->addPoint[pointIdx];
         point->status &= ~PULL_STATUS_NEWBIE_BIT;
-        if (pullBinsPointMaybeAdd(pctx, point, &added)) {
+        if (pullBinsPointMaybeAdd(pctx, point, &bin, &added)) {
           sprintf(err, "%s: trouble binning new point %u", me, point->idtag);
           biffAdd(PULL, err); return 1;
         }
