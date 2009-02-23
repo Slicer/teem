@@ -133,7 +133,8 @@ void
 pullBinsAllNeighborSet(pullContext *pctx) {
   /* char me[]="pullBinsAllNeighborSet"; */
   pullBin *nei[3*3*3*3];
-  unsigned int neiNum, xi, yi, zi, si, xx, yy, zz, ss, xmax, ymax, zmax, smax, binIdx;
+  unsigned int neiNum, xi, yi, zi, si, xx, yy, zz, ss, 
+    xmax, ymax, zmax, smax, binIdx;
   int xmin, ymin, zmin, smin;
 
   if (pctx->binSingle) {
@@ -164,12 +165,12 @@ pullBinsAllNeighborSet(pullContext *pctx) {
                         me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
                     */
                     nei[neiNum++] = pctx->bin + binIdx;
-                 }
-               }
-             }
-           }
-           _pullBinNeighborSet(pctx->bin + xi + pctx->binsEdge[0]
-                              *(yi + pctx->binsEdge[1]*(zi + pctx->binsEdge[2]*si)), nei, neiNum);
+                  }
+                }
+              }
+            }
+            _pullBinNeighborSet(pctx->bin + xi + pctx->binsEdge[0]
+                                *(yi + pctx->binsEdge[1]*(zi + pctx->binsEdge[2]*si)), nei, neiNum);
           }
         }
       }
@@ -286,6 +287,9 @@ _pullBinSetup(pullContext *pctx) {
     pctx->binsEdge[3] = AIR_CAST(unsigned int,
                                  floor(volEdge[3]/pctx->maxDistScale));
     pctx->binsEdge[3] = pctx->binsEdge[3] ? pctx->binsEdge[3] : 1;
+    /* hack to observe things at bin boundaries
+    ELL_3V_SET(pctx->binsEdge, 3, 3, 3);
+    */
     fprintf(stderr, "!%s: binsEdge=(%u,%u,%u,%u)\n", me,
             pctx->binsEdge[0], pctx->binsEdge[1],
             pctx->binsEdge[2], pctx->binsEdge[3]);

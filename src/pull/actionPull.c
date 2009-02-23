@@ -77,15 +77,15 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
       /* can't interact with myself, or anything nixed */
       if (point != herPoint
           && !(herPoint->status & PULL_STATUS_NIXME_BIT)) {
-        if (nn < _PULL_NEIGH_MAXNUM) {
+        if (nn+1 < _PULL_NEIGH_MAXNUM) {
           task->neighPoint[nn++] = herPoint;
           /*
           fprintf(stderr, "%s(%u): neighPoint[%u] = %u\n", 
                   me, point->idtag, nn-1, herPoint->idtag);
           */
         } else {
-          fprintf(stderr, "%s: maxed out at %u points!\n", me, 
-                  _PULL_NEIGH_MAXNUM);
+          fprintf(stderr, "%s: hit max# (%u) poss. neighbors (from bins)\n",
+                  me, _PULL_NEIGH_MAXNUM);
         }
       }
     }
@@ -95,7 +95,12 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
   for (herPointIdx=0; herPointIdx<task->addPointNum; herPointIdx++) {
     herPoint = task->addPoint[herPointIdx];
     if (point != herPoint) {
-      task->neighPoint[nn++] = herPoint;
+      if (nn+1 < _PULL_NEIGH_MAXNUM) {
+        task->neighPoint[nn++] = herPoint;
+      } else {
+        fprintf(stderr, "%s: hit max# (%u) poss. neighbors (from add queue)\n",
+                me, _PULL_NEIGH_MAXNUM);
+      }
     }
   }
   return nn;
