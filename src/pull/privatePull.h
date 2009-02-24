@@ -44,6 +44,10 @@ extern "C" {
    radiusSpace), when not using cubic well energy */
 #define _PULL_NEWPNT_DIST 0.5
 
+/* scaling factor between point->neighDistMean and distance cap; higher
+   values allow for more adventurous explorations... */
+#define _PULL_DIST_CAP_SCALE 2.0
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);

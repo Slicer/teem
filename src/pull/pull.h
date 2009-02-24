@@ -112,7 +112,7 @@ enum {
   pullPropStuck,              /*  5: [1] (0 or 1) got stuck last iter */
   pullPropPosition,           /*  6: [4] position */
   pullPropForce,              /*  7: [4] force accumulation */
-  pullPropNeighDist,          /*  8: [1] "mean distance" to neighbors */
+  pullPropNeighDistMean,      /*  8: [1] "mean distance" to neighbors */
   pullPropLast
 };
 
@@ -178,9 +178,9 @@ typedef struct pullPoint_t {
   unsigned int neighPointNum;
   airArray *neighPointArr;    /* airArray around neighPoint and neighNum
                                  (no callbacks used here) */
-  double neighDist,           /* average of *spatial* distance to neighboring
+  double neighDistMean,       /* average of distance to neighboring
                                  points with whom this point interacted,
-                                 *but* normalized by pctx->radiusScale */
+                                 in rs-normalized space */
     neighMode;                /* some average of mode of nearby points */
   unsigned int neighInterNum; /* number of particles with which I had some
 				 non-zero interaction on last iteration */

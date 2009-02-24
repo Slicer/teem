@@ -348,9 +348,9 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   double val, grad[3], hess[9], proj[9],
     state[1+3+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
-#ifdef PRAYING
+  /* #ifdef PRAYING */
   double _tmpv[3]={0,0,0};
-#endif
+  /* #endif */
   unsigned int iter = 0;  /* 0: initial probe, 1..iterMax: probes in loop */
   /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
 
@@ -366,33 +366,57 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
     pullBinsPointAdd(task->pctx, npnt);
   }
   */
+  /* #ifdef PRAYING */
+  if (_pullPraying) {
+    fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+    fprintf(stderr, "!%s: tang2 %d mode %d, stepMax %g, iterMax %u\n", me,
+            tang2Use, modeUse, stepMax, iterMax);
+  }
+  /* #endif */
   _pullPointHistAdd(point, pullCondOld);
   PROBE(val, grad, hess, proj);
+  /* #ifdef PRAYING */
+  if (_pullPraying) {
+    fprintf(stderr, " val = %g\n", val);
+    fprintf(stderr, " grad = %g %g %g\n", grad[0], grad[1], grad[2]);
+    fprintf(stderr, " hess = %g %g %g;  %g %g %g;  %g %g %g\n",
+            hess[0], hess[1], hess[2],
+            hess[3], hess[4], hess[5],
+            hess[6], hess[7], hess[8]);
+    fprintf(stderr, " proj = %g %g %g;  %g %g %g;  %g %g %g\n",
+            proj[0], proj[1], proj[2],
+            proj[3], proj[4], proj[5],
+            proj[6], proj[7], proj[8]);
+  }
+  /* #endif */
   SAVE(state, val, grad, hess, proj, point->pos);
   hack = 1;
   for (iter=1; iter<=iterMax; iter++) {
     NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj);
     step = (d2 <= 0 ? -plen : -d1/d2);
-#ifdef PRAYING
+    /* #ifdef PRAYING */
     if (_pullPraying) {
       fprintf(stderr, "!%s: iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
               iter, d2, -plen, -d1/d2, step);
     }
-#endif
+    /* #endif */
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
-#ifdef PRAYING
+    /* #ifdef PRAYING */
     if (_pullPraying) {
       fprintf(stderr, "       -> %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
       ELL_3V_COPY(_tmpv, point->pos);
     }
-#endif
+    /* #endif */
     ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
-#ifdef PRAYING
+    /* #ifdef PRAYING */
     if (_pullPraying) {
       ELL_3V_SUB(_tmpv, _tmpv, point->pos);
-      fprintf(stderr, "        -> moved %g\n", ELL_3V_LEN(_tmpv));
+      fprintf(stderr, "        -> moved to %g %g %g %g\n", 
+              point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      fprintf(stderr, "        (moved %g)\n", ELL_3V_LEN(_tmpv));
     }
-#endif
+    /* #endif */
     _pullPointHistAdd(point, pullCondConstraintSatA);
     /*
     if (_pullPraying) {
@@ -550,6 +574,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
       sprintf(err, "%s: trouble", me);
       biffAdd(PULL, err); return 1;
     }
+
     ELL_4V_SET(posSurf, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_SET(posLine, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_COPY(oldPos, point->pos);

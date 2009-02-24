@@ -145,7 +145,9 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     sprintf(err, "%s: got NULL vol->gageContext", me);
     biffAdd(PULL, err); return 1;
   }
-  gageParmSet(vol->gctx, gageParmVerbose, verbose);
+  vol->verbose = verbose;
+  gageParmSet(vol->gctx, gageParmVerbose,
+              vol->verbose > 0 ? vol->verbose - 1 : 0);
   gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
@@ -228,6 +230,8 @@ pullVolumeSingleAdd(pullContext *pctx,
                     const NrrdKernelSpec *ksp22) {
   char me[]="pullVolumeSingleSet", err[BIFF_STRLEN];
   pullVolume *vol;
+
+  fprintf(stderr, "!%s(%s): verbose %d\n", me, name, pctx->verbose);
 
   vol = pullVolumeNew();
   if (_pullVolumeSet(pctx, vol,

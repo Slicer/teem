@@ -62,7 +62,8 @@ pullPointNew(pullContext *pctx) {
 				   sizeof(pullPoint *),
 				   PULL_POINT_NEIGH_INCR);
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
-  pnt->neighDist = pnt->neighMode = AIR_NAN;
+  pnt->neighDistMean = 0;
+  pnt->neighMode = AIR_NAN;
   pnt->neighInterNum = 0;
 #if PULL_PHIST
   pnt->phist = NULL;
@@ -98,7 +99,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighPoint = src->neighPoint;
   dst->neighPointNum = src->neighPointNum;
   dst->neighPointArr = src->neighPointArr;
-  dst->neighDist = src->neighDist;
+  dst->neighDistMean = src->neighDistMean;
   dst->neighMode = src->neighMode;
   dst->neighInterNum = src->neighInterNum;
 #if PULL_PHIST
@@ -356,16 +357,16 @@ _pullProbe(pullTask *task, pullPoint *point) {
       continue;
     }
     if (!task->vol[ii]->ninScale) {
-      /*
-      fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g\n", me,
-              ii, task->vol[ii]->name, 
-              point->pos[0], point->pos[1], point->pos[2]);
-      */
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE /* index-space */,
                             AIR_TRUE /* clamp */);
     } else {
+      if (252 == point->idtag) {
+        fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g %g\n", me,
+                ii, task->vol[ii]->name, 
+                point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      }
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
                                  point->pos[0], point->pos[1],
                                  point->pos[2], point->pos[3],
@@ -392,16 +393,38 @@ _pullProbe(pullTask *task, pullPoint *point) {
       alen = _pullInfoAnswerLen[ii];
       aidx = task->pctx->infoIdx[ii];
       _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
-      if (0 && 1 == alen) {
+      if (252 == point->idtag) {
         pullVolume *vol;
         pullInfoSpec *isp;
         isp = task->pctx->ispec[ii];
         vol = task->pctx->vol[isp->volIdx];
-        printf("!%s: info[%u] %s: %s \"%s\" = %g\n", me,
-	       ii, airEnumStr(pullInfo, ii),
-	       airEnumStr(vol->kind->enm, isp->item),
-	       vol->name, task->ans[ii][0]);
+        if (1 == alen) {
+          printf("!%s: info[%u] %s: %s(\"%s\") = %g\n", me,
+                 ii, airEnumStr(pullInfo, ii),
+                 airEnumStr(vol->kind->enm, isp->item),
+                 vol->name, task->ans[ii][0]);
+        } else {
+          unsigned int vali;
+          printf("!%s: info[%u] %s: %s(\"%s\") =\n", me,
+                 ii, airEnumStr(pullInfo, ii),
+                 airEnumStr(vol->kind->enm, isp->item), vol->name);
+          for (vali=0; vali<alen; vali++) {
+            printf("!%s:    [%u]  %g\n", me, vali, 
+                   task->ans[ii][vali]);
+          }
+        }
       }
+    }
+  }
+  if (252 == point->idtag) {
+    double *tan1, *tan2, perp[3];
+    tan1 = point->info + task->pctx->infoIdx[pullInfoTangent1];
+    tan2 = point->info + task->pctx->infoIdx[pullInfoTangent2];
+    if (tan1 && tan2) {
+      ELL_3V_CROSS(perp, tan1, tan2);
+      printf("!%s: tan1 = %g %g %g; tan2 = %g %g %g \n-> x = %g %g %g\n", me, 
+             tan1[0], tan1[1], tan1[2], tan2[0], tan2[1], tan2[2],
+             perp[0], perp[1], perp[2]);
     }
   }
   return 0;
@@ -537,6 +560,7 @@ _pullPointInitializeRandom(pullContext *pctx, Nrrd *npos) {
       posData[pointDim*pointIdx+3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                                 pctx->bboxMin[3],
                                                 pctx->bboxMax[3]);
+      /* posData[pointDim*pointIdx+3] = 0.920071; */
     } else {
       posData[pointDim*pointIdx+3] = 0.0;
     }
@@ -752,7 +776,11 @@ _pullPointSetup(pullContext *pctx) {
     } else {
       /* Points are given as an array, we do not apply any constraint */
     }
-    
+    /* hack to put particular point at particular location 
+    if (252 == point->idtag) {
+      ELL_4V_SET(point->pos, 0.938522, 0.354717, 0.000392257, 0.920071);
+    }
+    */
     /* If we get here, the point is ready for binning */
     if (pctx->constraint) {
       if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {

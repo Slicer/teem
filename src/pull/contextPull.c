@@ -400,6 +400,15 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      /** to find idtag of point at given location **
+      if (AIR_ABS(-0.463476 - point->pos[0]) < 0.001 &&
+          AIR_ABS(0.831455 - point->pos[1]) < 0.001 &&
+          AIR_ABS(0.000342284 - point->pos[2]) < 0.001) {
+        printf("!%s: point %u at (%g,%g,%g,%g)\n", me, point->idtag,
+               point->pos[0], point->pos[1], 
+               point->pos[2], point->pos[3]);
+      }
+      */
       if (nPosOut) {
         ELL_4V_COPY(posOut + 4*outIdx, point->pos);
       }
@@ -455,7 +464,9 @@ pullVerboseSet(pullContext *pctx, int verbose) {
 
   pctx->verbose = verbose;
   for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
-    gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, verbose);
+    int v;
+    v = verbose > 0 ? verbose - 1 : 0;
+    gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, v);
   }
   return;
 }
@@ -497,7 +508,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     size[1] = pointNum;
     typeOut = nrrdTypeDouble;
     break;
-  case pullPropNeighDist:
+  case pullPropNeighDistMean:
     dim = 1;
     size[0] = pointNum;
     typeOut = nrrdTypeDouble;
@@ -542,8 +553,8 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
       case pullPropForce:
         ELL_4V_COPY(out_d + 4*outIdx, point->force);
         break;
-      case pullPropNeighDist:
-        out_d[outIdx] = point->neighDist;
+      case pullPropNeighDistMean:
+        out_d[outIdx] = point->neighDistMean;
         break;
       }
       ++outIdx;
