@@ -24,7 +24,7 @@
 #include "privateGage.h"
 
 void
-_gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
+_gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
   double gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, curv=0, 
     sHess[9]={0,0,0,0,0,0,0,0,0};
@@ -50,14 +50,14 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclValue)) {
     /* done if doV */
-    if (ctx->verbose) {
+    if (ctx->verbose > 2) {
       fprintf(stderr, "%s: val = % 15.7f\n", me, 
               (double)(pvl->directAnswer[gageSclValue][0]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradVec)) {
     /* done if doD1 */
-    if (ctx->verbose) {
+    if (ctx->verbose > 2) {
       fprintf(stderr, "%s: gvec = ", me);
       ell_3v_print_d(stderr, gvec);
     }
@@ -91,14 +91,14 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessian)) {
     /* done if doD2 */
-    if (ctx->verbose) {
+    if (ctx->verbose > 2) {
       fprintf(stderr, "%s: hess = \n", me);
       ell_3m_print_d(stderr, hess);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclLaplacian)) {
     pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
-    if (ctx->verbose) {
+    if (ctx->verbose > 2) {
       fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
               hess[0], hess[4], hess[8], 
               pvl->directAnswer[gageSclLaplacian][0]);
@@ -173,7 +173,7 @@ _gageSclAnswer (gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_MUL(tmpMat, sHess, nPerp);
       ELL_3M_MUL(gten, nPerp, tmpMat);
 
-      if (ctx->verbose) {
+      if (ctx->verbose > 2) {
         fprintf(stderr, "%s: gten: \n", me);
         ell_3m_print_d(stderr, gten);
         ELL_3MV_MUL(tmpVec, gten, norm);

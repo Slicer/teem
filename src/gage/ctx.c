@@ -478,9 +478,6 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   char *data, *here;
   unsigned int tup;
 
-  if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: hello\n", me);
-  }
   sx = ctx->shape->size[0];
   sy = ctx->shape->size[1];
   sz = ctx->shape->size[2];
@@ -492,6 +489,14 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   hy = ly + 2*fr - 1;
   hz = lz + 2*fr - 1;
   fddd = 2*fr*2*fr*2*fr;
+  if (ctx->verbose > 1) {
+    fprintf(stderr, "%s: hello; s %u %u %u; fr %u\n", me,
+            sx, sy, sz, fr);
+    fprintf(stderr, "%s: point.i %u %u %u\n", me,
+            ctx->point.xi, ctx->point.yi, ctx->point.zi);
+    fprintf(stderr, "%s: l %d %d %d; h %d %d %d; fddd %u\n", me,
+            lx, ly, lz, hx, hy, hz, fddd);
+  }
   data = (char*)pvl->nin->data;
   if (lx >= 0 && ly >= 0 && lz >= 0 
       && hx < AIR_CAST(int, sx)
@@ -566,8 +571,19 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
           xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
+          if (ctx->verbose > 1) {
+            fprintf(stderr, "%s: (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
+                    _xx, _yy, _zz, xx, yy, zz);
+            fprintf(stderr, "    --> dataIdx = %d; data = %p -> here = %p\n",
+                    dataIdx, data, here);
+          }
           for (tup=0; tup<pvl->kind->valLen; tup++) {
             pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
+            if (ctx->verbose > 2) {
+              fprintf(stderr, "%s: iv3[%u + %u*%u=%u] = %g\n", me,
+                      cacheIdx, fddd, tup, cacheIdx + fddd*tup,
+                      pvl->iv3[cacheIdx + fddd*tup]);
+            }
           }
           cacheIdx++;
         }
@@ -599,7 +615,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
   char me[]="_gageProbe";
   unsigned int xi, yi, zi;
   unsigned int pvlIdx;
-  
+
   if (!ctx) {
     return 1;
   }
@@ -637,7 +653,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
     baseIdx = ctx->pvlNum - 1;
     if (ctx->verbose > 2) {
       for (vi=0; vi<baseIdx; vi++) {
-        fprintf(stderr, "%s: pvl[%u]'s value cache at "
+        fprintf(stderr, "%s: (stack) pvl[%u]'s value cache at "
                 "coords = %d,%d,%d:\n", me, vi,
                 ctx->point.xi, ctx->point.yi, ctx->point.zi);
         ctx->pvl[vi]->kind->iv3Print(stderr, ctx, ctx->pvl[vi]);
@@ -645,7 +661,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
     }
     _gageStackIv3Fill(ctx);
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: base pvl's value cache at "
+      fprintf(stderr, "%s: (stack) base pvl's value cache at "
               "coords = %d,%d,%d:\n", me, 
               ctx->point.xi, ctx->point.yi, ctx->point.zi);
       ctx->pvl[baseIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[baseIdx]);
