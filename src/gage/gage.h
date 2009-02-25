@@ -94,7 +94,6 @@ enum {
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
   gageParmStackNormalizeRecon,    /* int; does NOT imply gageParmStackUse */
-  gageParmStackNormalizeDeriv,    /* int; does NOT imply gageParmStackUse */
   gageParmOrientationFromSpacing, /* int */
   gageParmLast
 };
@@ -106,9 +105,11 @@ enum {
   gageErrBoundsStack,        /* 3: out of 1-D bounds of stack */
   gageErrStackIntegral,      /* 4: stack recon coeff's sum to 0, so can't
                                    normalize them */
+  gageErrStackSearch,        /* 5: for some reason couldn't find the index
+                                   position of the probed stack location */
   gageErrLast
 };
-#define GAGE_ERR_MAX            4
+#define GAGE_ERR_MAX            5
 
 /*
 ******** gage{Ctx,Pvl}Flag.. enum
@@ -421,9 +422,6 @@ typedef struct gageParm_t {
                                  the weights used to reconstruct across
                                  stack samples are normalized to unit sum; not
                                  needed if the kernel is accurate enough */
-    stackNormalizeDeriv,      /* if non-zero (and if stackUse is non-zero):
-                                 derivatives of filter stage are renormalized
-                                 based on the stack position */
     orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
                                  but not full orientation info. If zero, the
                                  volume is crammed into the bi-unit cube.
@@ -436,17 +434,15 @@ typedef struct gageParm_t {
 /*
 ******** gagePoint struct
 **
-** stores location of last query location
-**
-** GK has gone back and forth over whether stack location should be part
-** of this- logically it makes sense, but with the current organization of
-** the stack implementation, it was just never used.
+** stores location of last query location, which is used to determine
+** whether the ctx->fsl, ctx->fw values can be re-used (based on the 
+** "Frac" values), and, whether all the pvl->iv3 have to be refilled
+** (based on the "Idx" values).  The last index is for the stack,
+** and can safely stay 0 if the stack isn't being used.
 */
 typedef struct gagePoint_t {
-  double xf, yf, zf;       /* fractional voxel location, used to
-                              short-circuit calculation of filter sample
-                              locations and weights */
-  unsigned int xi, yi, zi; /* integral voxel location */
+  double frac[4];         /* last fractional voxel location */
+  unsigned int idx[4];    /* last integral voxel location */
 } gagePoint;
 
 /*
@@ -744,7 +740,6 @@ GAGE_EXPORT double gageDefKernelIntegralNearZero;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
-GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */

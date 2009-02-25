@@ -200,8 +200,8 @@ gageKernelSet(gageContext *ctx,
     biffAdd(GAGE, err); return 1;
   }
   if (ctx->verbose) {
-    fprintf(stderr, "%s: which = %d -> %s\n", me, which,
-            airEnumStr(gageKernel, which));
+    printf("%s: which = %d -> %s\n", me, which,
+           airEnumStr(gageKernel, which));
   }
   numParm = k->numParm;
   if (!(AIR_IN_CL(0, numParm, NRRD_KERNEL_PARMS_NUM))) {
@@ -280,8 +280,16 @@ gageParmSet(gageContext *ctx, int which, double val) {
   switch (which) {
   case gageParmVerbose:
     ctx->verbose = AIR_CAST(int, val);
+    if (ctx->verbose > 3) {
+      printf("%s(%p): ctx->verbose now %d\n", me,
+             AIR_CAST(void *, ctx), ctx->verbose);
+    }
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
       ctx->pvl[pvlIdx]->verbose = AIR_CAST(int, val);
+      if (ctx->pvl[pvlIdx]->verbose > 3) {
+        printf("%s: ctx->pvl[%u]->verbose now %d\n", me, pvlIdx, 
+               ctx->pvl[pvlIdx]->verbose);
+      }
     }
     break;
   case gageParmRenormalize:
@@ -325,9 +333,6 @@ gageParmSet(gageContext *ctx, int which, double val) {
        have the same kind!  This should be caught by gageUpdate(), which is
        supposed to be called after changing anything, prior to gageProbe() */
     break;
-  case gageParmStackNormalizeDeriv:
-    ctx->parm.stackNormalizeDeriv = AIR_CAST(int, val);
-    break;
   case gageParmStackNormalizeRecon:
     ctx->parm.stackNormalizeRecon = AIR_CAST(int, val);
     break;
@@ -336,7 +341,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
     /* affects future calls to _gageShapeSet */
     break;
   default:
-    fprintf(stderr, "\n%s: which = %d not valid!!\n\n", me, which);
+    fprintf(stderr, "\n%s: sorry, which = %d not valid\n\n", me, which);
     break;
   }
   return;
@@ -482,20 +487,20 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   sy = ctx->shape->size[1];
   sz = ctx->shape->size[2];
   fr = ctx->radius;
-  lx = ctx->point.xi - (fr - 1);
-  ly = ctx->point.yi - (fr - 1);
-  lz = ctx->point.zi - (fr - 1);
+  lx = ctx->point.idx[0] - (fr - 1);
+  ly = ctx->point.idx[1] - (fr - 1);
+  lz = ctx->point.idx[2] - (fr - 1);
   hx = lx + 2*fr - 1;
   hy = ly + 2*fr - 1;
   hz = lz + 2*fr - 1;
   fddd = 2*fr*2*fr*2*fr;
   if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: hello; s %u %u %u; fr %u\n", me,
-            sx, sy, sz, fr);
-    fprintf(stderr, "%s: point.i %u %u %u\n", me,
-            ctx->point.xi, ctx->point.yi, ctx->point.zi);
-    fprintf(stderr, "%s: l %d %d %d; h %d %d %d; fddd %u\n", me,
-            lx, ly, lz, hx, hy, hz, fddd);
+    printf("%s: hello; s %u %u %u; fr %u\n", me,
+           sx, sy, sz, fr);
+    printf("%s: point.idx %u %u %u\n", me,
+           ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
+    printf("%s: l %d %d %d; h %d %d %d; fddd %u\n", me,
+           lx, ly, lz, hx, hy, hz, fddd);
   }
   data = (char*)pvl->nin->data;
   if (lx >= 0 && ly >= 0 && lz >= 0 
@@ -505,22 +510,22 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
-              me, pvl->kind->valLen,
-              AIR_CAST(void*, pvl->nin), pvl->nin->data);
+      printf("%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
+             me, pvl->kind->valLen,
+             AIR_CAST(void*, pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: size = (%u,%u,%u);\n"
-              "  fd = %d; coord = (%d,%d,%d) --> dataIdx = %d\n",
-              me, sx, sy, sz, 2*fr,
-              ctx->point.xi, ctx->point.yi, ctx->point.zi,
-              dataIdx);
-      fprintf(stderr, "%s: here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
-              "%d,%d,%d,%d,%d,%d,%d,%d\n",
-              me, here, AIR_CAST(void*, pvl->iv3),
-              ctx->off[0], ctx->off[1], ctx->off[2], ctx->off[3],
-              ctx->off[4], ctx->off[5], ctx->off[6], ctx->off[7]);
+      printf("%s: size = (%u,%u,%u);\n"
+             "  fd = %d; coord = (%u,%u,%u) --> dataIdx = %d\n",
+             me, sx, sy, sz, 2*fr,
+             ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2],
+             dataIdx);
+      printf("%s: here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
+             "%d,%d,%d,%d,%d,%d,%d,%d\n",
+             me, here, AIR_CAST(void*, pvl->iv3),
+             ctx->off[0], ctx->off[1], ctx->off[2], ctx->off[3],
+             ctx->off[4], ctx->off[5], ctx->off[6], ctx->off[7]);
     }
     switch(pvl->kind->valLen) {
     case 1:
@@ -572,17 +577,17 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
           if (ctx->verbose > 1) {
-            fprintf(stderr, "%s: (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
-                    _xx, _yy, _zz, xx, yy, zz);
-            fprintf(stderr, "    --> dataIdx = %d; data = %p -> here = %p\n",
-                    dataIdx, data, here);
+            printf("%s: (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
+                   _xx, _yy, _zz, xx, yy, zz);
+            printf("    --> dataIdx = %d; data = %p -> here = %p\n",
+                   dataIdx, data, here);
           }
           for (tup=0; tup<pvl->kind->valLen; tup++) {
             pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
             if (ctx->verbose > 2) {
-              fprintf(stderr, "%s: iv3[%u + %u*%u=%u] = %g\n", me,
-                      cacheIdx, fddd, tup, cacheIdx + fddd*tup,
-                      pvl->iv3[cacheIdx + fddd*tup]);
+              printf("%s: iv3[%u + %u*%u=%u] = %g\n", me,
+                     cacheIdx, fddd, tup, cacheIdx + fddd*tup,
+                     pvl->iv3[cacheIdx + fddd*tup]);
             }
           }
           cacheIdx++;
@@ -591,7 +596,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     }
   }
   if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: bye\n", me);
+    printf("%s: bye\n", me);
   }
   return;
 }
@@ -613,75 +618,77 @@ int
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
            double stackIdx) {
   char me[]="_gageProbe";
-  unsigned int xi, yi, zi;
-  unsigned int pvlIdx;
+  unsigned int oldIdx[4], pvlIdx;
+  int idxChanged;
 
   if (!ctx) {
     return 1;
   }
-  xi = ctx->point.xi;
-  yi = ctx->point.yi;
-  zi = ctx->point.zi;
+  ELL_4V_COPY(oldIdx, ctx->point.idx);
   if (_gageLocationSet(ctx, _xi, _yi, _zi, stackIdx)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set;
        as they have just been set by _gageLocationSet() */
     return 1;
   }
   
-  /* fprintf(stderr, "##%s: bingo 1\n", me); */
   /* if necessary, refill the iv3 cache */
-  if (!( xi == ctx->point.xi &&
-         yi == ctx->point.yi &&
-         zi == ctx->point.zi )) {
-    if (ctx->parm.stackUse) {
+  idxChanged = (oldIdx[0] != ctx->point.idx[0] ||
+                oldIdx[1] != ctx->point.idx[1] ||
+                oldIdx[2] != ctx->point.idx[2]);
+  if (ctx->parm.stackUse) {
+    idxChanged |= oldIdx[3] != ctx->point.idx[3];
+  }
+  if (idxChanged) {
+    if (!ctx->parm.stackUse) {
+      for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+        gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+      }
+    } else {
       for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
-        /* note that we only fill the cache for the stack samples
-           that have a non-zero weight */
+        /* note that we only fill the cache for the stack samples that
+           have a non-zero weight. HEY, however, it would be nice to
+           only refill the iv3 that we have to, based on the change in
+           scale, instead of refilling all of them in the support of
+           the stack recon */
         if (ctx->stackFslw[pvlIdx]) {
           gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         }
       }
-    } else {
-      for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
-        gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
-      }
     }
   }
-  /* fprintf(stderr, "##%s: bingo 2\n", me); */
   if (ctx->parm.stackUse) {
     unsigned int baseIdx, vi;
     baseIdx = ctx->pvlNum - 1;
     if (ctx->verbose > 2) {
       for (vi=0; vi<baseIdx; vi++) {
-        fprintf(stderr, "%s: (stack) pvl[%u]'s value cache at "
-                "coords = %d,%d,%d:\n", me, vi,
-                ctx->point.xi, ctx->point.yi, ctx->point.zi);
-        ctx->pvl[vi]->kind->iv3Print(stderr, ctx, ctx->pvl[vi]);
+        printf("%s: (stack) pvl[%u]'s value cache at "
+               "coords = %u,%u,%u:\n", me, vi,
+               ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
+        ctx->pvl[vi]->kind->iv3Print(stdout, ctx, ctx->pvl[vi]);
       }
     }
-    _gageStackIv3Fill(ctx);
+    _gageStackBaseIv3Fill(ctx);
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: (stack) base pvl's value cache at "
-              "coords = %d,%d,%d:\n", me, 
-              ctx->point.xi, ctx->point.yi, ctx->point.zi);
-      ctx->pvl[baseIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[baseIdx]);
+      printf("%s: (stack) base pvl's value cache at "
+             "coords = %u,%u,%u:\n", me, 
+             ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
+      ctx->pvl[baseIdx]->kind->iv3Print(stdout, ctx, ctx->pvl[baseIdx]);
     }
     ctx->pvl[baseIdx]->kind->filter(ctx, ctx->pvl[baseIdx]);
     ctx->pvl[baseIdx]->kind->answer(ctx, ctx->pvl[baseIdx]);
   } else {
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
       if (ctx->verbose > 1) {
-        fprintf(stderr, "%s: pvl[%u]'s value cache at "
-                "coords = %d,%d,%d:\n", me, pvlIdx,
-                ctx->point.xi, ctx->point.yi, ctx->point.zi);
-        ctx->pvl[pvlIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[pvlIdx]);
+        printf("%s: pvl[%u]'s value cache at "
+               "coords = %u,%u,%u:\n", me, pvlIdx,
+               ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
+        ctx->pvl[pvlIdx]->kind->iv3Print(stdout, ctx, ctx->pvl[pvlIdx]);
       }
       ctx->pvl[pvlIdx]->kind->filter(ctx, ctx->pvl[pvlIdx]);
       ctx->pvl[pvlIdx]->kind->answer(ctx, ctx->pvl[pvlIdx]);
     }
   }
   
-  /* fprintf(stderr, "##%s: bingo 5\n", me); */
   return 0;
 }
 
@@ -701,10 +708,14 @@ int
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                int indexSpace, int clamp) {
   char me[]="_gageProbeSpace";
-  int ret;
   unsigned int *size;
   double xi, yi, zi, si;
 
+  if (ctx->verbose > 3) {
+    printf("%s: hi; pos=(%g,%g,%g,%g) in %s space %s clamping\n", me,
+           xx, yy, zz, ss, indexSpace ? "index" : "world", 
+           clamp ? "WITH" : "w/out");
+  }
   size = ctx->shape->size;
   si = 0.0;
   if (indexSpace) {
@@ -717,8 +728,8 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       si = AIR_NAN;
     }
   } else {
-    /* have to convert from world to index */
-    /* HEY: this has to be tested/debugged */
+    /* have to convert from world to index.  NOTE: the [4]s here are
+       for homogeneous coordinates, not for anything stack-related */
     double icoord[4]; double wcoord[4];
     ELL_4V_SET(wcoord, xx, yy, zz, 1);
     ELL_4MV_MUL(icoord, ctx->shape->WtoI, wcoord);
@@ -728,12 +739,18 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     zi = icoord[2];
     if (ctx->parm.stackUse) {
       unsigned int sidx;
-      /* HEY: this linear search is just for initial testing, 
-         will be made more efficient later */
+      /* HEY: this is a stupid linear search! */
       if (ss < ctx->stackPos[0]) {
-        si = -1;
+        /* we'll extrapolate from stackPos[0] and [1]. um, actually the 
+         extrapolation is overkill because we're either going to clamp
+         out-of-range scale index positions, or they'll cause a
+         gageErrStackBounds error downstream */
+        sidx = 0;
       } else if (ss > ctx->stackPos[ctx->pvlNum-2]) {
-        si = ctx->pvlNum-1; /* which is out of bounds */
+        /* extrapolate from stackPos[ctx->pvlNum-3] and [ctx->pvlNum-2];
+           gageStackPerVolumeAttach ensures that we there are at least
+           two blurrings pvls and one base pvl */
+        sidx = ctx->pvlNum-3;
       } else {
         for (sidx=0; sidx<ctx->pvlNum-2; sidx++) {
           if (AIR_IN_CL(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1])) {
@@ -741,19 +758,17 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
           }
         }
         if (sidx == ctx->pvlNum-2) {
-          fprintf(stderr, "!%s: search failure for ss = %g!\n", me, ss);
+          sprintf(ctx->errStr, "%s: search failure for ss = %g", me, ss);
+          ctx->errNum = gageErrStackSearch;
+          return 1;
         }
-        /*
-        si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
-                        0.0, 1.0);
-        */
-        si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
-                        sidx, sidx+1);
       }
+      si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
+                      sidx, sidx+1);
     }
     /*
-    fprintf(stderr, "%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,
-            xx, yy, zz, xi, yi, zi);
+    printf("%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,
+           xx, yy, zz, xi, yi, zi);
     */
   }
   if (clamp) {
@@ -770,8 +785,7 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       si = AIR_CLAMP(0, si, ctx->pvlNum-2);
     }
   }
-  ret = _gageProbe(ctx, xi, yi, zi, si);
-  return ret;
+  return _gageProbe(ctx, xi, yi, zi, si);
 }
 
 int

@@ -30,7 +30,7 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
 
   fd = 2*ctx->radius;
   off = ctx->off;
-  fprintf(stderr, "off[]:\n");
+  fprintf(file, "off[]:\n");
   switch(fd) {
   case 2:
     fprintf(file, "% 6d   % 6d\n", off[6], off[7]);

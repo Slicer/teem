@@ -61,7 +61,7 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
   int que, needD[3];
   unsigned int pvlIdx;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) printf("%s: hello\n", me);
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     if (pvl->flag[gagePvlFlagQuery]) {
@@ -75,15 +75,15 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
       } while (que);
       if (!ELL_3V_EQUAL(needD, pvl->needD)) {
         if (ctx->verbose) {
-          fprintf(stderr, "%s: updating pvl[%d]'s needD to (%d,%d,%d)\n",
-                  me, pvlIdx, needD[0], needD[1], needD[2]);
+          printf("%s: updating pvl[%d]'s needD to (%d,%d,%d)\n",
+                 me, pvlIdx, needD[0], needD[1], needD[2]);
         }
         ELL_3V_COPY(pvl->needD, needD);
         pvl->flag[gagePvlFlagNeedD] = AIR_TRUE;
       }
     }
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
 
   return;
 }
@@ -98,7 +98,7 @@ _gageNeedDUpdate(gageContext *ctx) {
   int needD[3];
   unsigned int pvlIdx;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) printf("%s: hello\n", me);
   ELL_3V_SET(needD, 0, 0, 0);
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
@@ -108,13 +108,13 @@ _gageNeedDUpdate(gageContext *ctx) {
   }
   if (!ELL_3V_EQUAL(needD, ctx->needD)) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: updating ctx's needD to (%d,%d,%d)\n",
-              me, needD[0], needD[1], needD[2]);
+      printf("%s: updating ctx's needD to (%d,%d,%d)\n",
+             me, needD[0], needD[1], needD[2]);
     }
     ELL_3V_COPY(ctx->needD, needD);
     ctx->flag[gageCtxFlagNeedD] = AIR_TRUE;
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
 
   return;
 }
@@ -127,7 +127,7 @@ _gageNeedKUpdate(gageContext *ctx) {
   char me[]="_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
   
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) printf("%s: hello\n", me);
   for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     needK[kernIdx] = AIR_FALSE;
   }
@@ -158,15 +158,15 @@ _gageNeedKUpdate(gageContext *ctx) {
   }
   if (change) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
-              me, needK[1], needK[2], needK[3], needK[4], needK[5], needK[6]);
+      printf("%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
+             me, needK[1], needK[2], needK[3], needK[4], needK[5], needK[6]);
     }
     for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
       ctx->needK[kernIdx] = needK[kernIdx];
     }
     ctx->flag[gageCtxFlagNeedK] = AIR_TRUE;
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
 
   return;
 }
@@ -182,7 +182,7 @@ _gageRadiusUpdate(gageContext *ctx) {
   double maxRad, rad;
   NrrdKernelSpec *ksp;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) printf("%s: hello\n", me);
   maxRad = 0;
   for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     if (ctx->needK[kernIdx]) {
@@ -195,9 +195,9 @@ _gageRadiusUpdate(gageContext *ctx) {
       rad = ksp->kernel->support(ksp->parm);
       maxRad = AIR_MAX(maxRad, rad);
       if (ctx->verbose) {
-        fprintf(stderr, "%s: k[%s]=%s -> rad = %g -> maxRad = %g\n", me,
-                airEnumStr(gageKernel, kernIdx), ksp->kernel->name,
-                rad, maxRad);
+        printf("%s: k[%s]=%s -> rad = %g -> maxRad = %g\n", me,
+               airEnumStr(gageKernel, kernIdx), ksp->kernel->name,
+               rad, maxRad);
       }
     }
   }
@@ -209,20 +209,20 @@ _gageRadiusUpdate(gageContext *ctx) {
   if (ctx->parm.stackUse
       && nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: hermite on stack: bumping radius %d --> %d\n",
-              me, radius, radius+1);
+      printf("%s: hermite on stack: bumping radius %d --> %d\n",
+             me, radius, radius+1);
     }
     radius += 1;
   }
   if (radius != ctx->radius) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: changing radius from %d to %d\n",
-              me, ctx->radius, radius);
+      printf("%s: changing radius from %d to %d\n",
+             me, ctx->radius, radius);
     }
     ctx->radius = radius;
     ctx->flag[gageCtxFlagRadius] = AIR_TRUE;
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
 
   return 0;
 }
@@ -234,8 +234,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   gagePerVolume *pvl;
   unsigned int pvlIdx;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n", me,
-                            ctx->radius);
+  if (ctx->verbose) printf("%s: hello (radius = %d)\n", me, ctx->radius);
   if (!( ctx->radius > 0 )) {
     sprintf(err, "%s: have bad radius %d", me, ctx->radius);
     biffAdd(GAGE, err); return 1;
@@ -268,7 +267,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
       biffAdd(GAGE, err); return 1;
     }
   }
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
   
   return 0;
 }
@@ -279,7 +278,7 @@ _gageOffValueUpdate(gageContext *ctx) {
   int fd, i, j, k;
   unsigned int sx, sy;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
+  if (ctx->verbose) printf("%s: hello\n", me);
 
   sx = ctx->shape->size[0];
   sy = ctx->shape->size[1];
@@ -293,7 +292,7 @@ _gageOffValueUpdate(gageContext *ctx) {
     }
   }
   /* no flags to set for further action */
-  if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
+  if (ctx->verbose) printf("%s: bye\n", me);
   
   return;
 }
@@ -348,17 +347,17 @@ gageUpdate(gageContext *ctx) {
 
   /* start traversing the whole update graph ... */
   if (ctx->verbose) {
-    fprintf(stderr, "%s: hello ____________________ \n", me);
-    fprintf(stderr, "    context flags:");
+    printf("%s: hello ____________________ \n", me);
+    printf("    context flags:");
     for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
-      fprintf(stderr, " %d=%d", i, ctx->flag[i]);
+      printf(" %d=%d", i, ctx->flag[i]);
     }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "    pvl flags:");
+    printf("\n");
+    printf("    pvl flags:");
     for (i=gagePvlFlagUnknown+1; i<gagePvlFlagLast; i++) {
-      fprintf(stderr, " %d=%d", i, _gagePvlFlagCheck(ctx, i));
+      printf(" %d=%d", i, _gagePvlFlagCheck(ctx, i));
     }
-    fprintf(stderr, "\n");
+    printf("\n");
   }
   if (_gagePvlFlagCheck(ctx, gagePvlFlagQuery)) {
     _gagePvlNeedDUpdate(ctx);
@@ -416,7 +415,7 @@ gageUpdate(gageContext *ctx) {
     }
   }
 
-  if (ctx->verbose) fprintf(stderr, "%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
+  if (ctx->verbose) printf("%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
 
   return 0;
 }

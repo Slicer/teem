@@ -176,14 +176,14 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
                                            kspec->kernel, kspec->parm);
       }
       if (verbose) {
-        fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blidx,
-                blnum, scale[blidx]);
-        fflush(stderr);
+        printf("%s: resampling %u of %u (scale %g) ... ", me, blidx,
+               blnum, scale[blidx]);
+        fflush(stdout);
       }
       if (!E) E |= nrrdResampleExecute(rsmc, nblur[blidx]);
       if (E) {
         if (verbose) {
-          fprintf(stderr, "problem!\n");
+          printf("problem!\n");
         }
         sprintf(err, "%s: trouble resampling %u of %u (scale %g)",
                 me, blidx, blnum, scale[blidx]);
@@ -222,14 +222,14 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
       }
       if (E) {
         if (!checkPreblurredOutput && verbose) {
-          fprintf(stderr, "problem!\n");
+          printf("problem!\n");
         }
         sprintf(err, "%s: trouble adding KVP to %u of %u (scale %g)",
                 me, blidx, blnum, scale[blidx]);
         biffAdd(GAGE, err); airMopError(mop); return 1;
       }
       if (verbose) {
-        fprintf(stderr, "done.\n");
+        printf("done.\n");
       }
     } else {
       /* see if the KVPs are already there */
@@ -318,8 +318,9 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
     biffAdd(GAGE, err); return 1;
   }
   if (!( blnum >= 2 )) {
-    /* this constriant is important for the logic of stack reconstruction:
-       minimum number of node-centered samples is 2 */
+    /* this constraint is important for the logic of stack reconstruction:
+       minimum number of node-centered samples is 2, and the number of
+       pvls has to be at least 3 (two blurrings + one base pvl) */
     sprintf(err, "%s: need at least two samples along stack", me);
     biffAdd(GAGE, err); return 1;
   }
@@ -330,13 +331,13 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   }
   for (blidx=0; blidx<blnum; blidx++) {
     if (!AIR_EXISTS(stackPos[blidx])) {
-      fprintf(stderr, "%s: stackPos[%u] = %g doesn't exist", me, blidx, 
+      sprintf(err, "%s: stackPos[%u] = %g doesn't exist", me, blidx, 
               stackPos[blidx]);
       biffAdd(GAGE, err); return 1;
     }
     if (blidx < blnum-1) {
       if (!( stackPos[blidx] < stackPos[blidx+1] )) {
-        fprintf(stderr, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me,
+        sprintf(err, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me,
                 blidx, stackPos[blidx], blidx+1, stackPos[blidx+1]);
         biffAdd(GAGE, err); return 1;
       }
@@ -373,21 +374,23 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 }
 
 /*
-** _gageStackIv3Fill
+** _gageStackBaseIv3Fill
 **
-** after the individual iv3's in the stack have been filled, 
-** this does the across-stack filtering to fill pvl[pvlNum-1]'s iv3
+** after the individual iv3's in the stack have been filled, this does
+** the across-stack filtering to fill the iv3 of pvl[pvlNum-1] (the
+** "base" pvl) 
 */
 int
-_gageStackIv3Fill(gageContext *ctx) {
-  char me[]="_gageStackIv3Fill";
+_gageStackBaseIv3Fill(gageContext *ctx) {
+  char me[]="_gageStackBaseIv3Fill";
   unsigned int fd, pvlIdx, cacheIdx, cacheLen, baseIdx, valLen;
 
   fd = 2*ctx->radius;
-  baseIdx = ctx->pvlNum - 1;
+  /* the "base" pvl is the LAST pvl */
+  baseIdx = ctx->pvlNum - 1; 
   cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
+    printf("%s: cacheLen = %u\n", me, cacheLen);
   }
   if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int xi, yi, zi, blurIdx, valIdx, fdd;

@@ -24,8 +24,8 @@
 #include "privateGage.h"
 
 /*
-** sets the filter sample location (fsl) array based
-** on probe location (xf,yf,zf) stored in ctx->point
+** sets the filter sample location (fsl) array based on fractional
+** probe location ctx->point->frac
 **
 ** One possible rare surpise: if a filter is not continuous with 0
 ** at the end of its support, and if the sample location is at the
@@ -43,9 +43,9 @@ _gageFslSet(gageContext *ctx) {
   fslx = ctx->fsl + 0*2*fr;
   fsly = ctx->fsl + 1*2*fr;
   fslz = ctx->fsl + 2*2*fr;
-  xf = ctx->point.xf;
-  yf = ctx->point.yf;
-  zf = ctx->point.zf;
+  xf = ctx->point.frac[0];
+  yf = ctx->point.frac[1];
+  zf = ctx->point.frac[2];
   switch (fr) {
   case 1:
     fslx[0] = xf; fslx[1] = xf-1;
@@ -128,8 +128,8 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   fixY = sqrt(posY/negY);
   fixZ = sqrt(posZ/negZ);
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
-            me, (float)fixX, (float)fixY, (float)fixZ);
+    printf("%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
+           me, (float)fixX, (float)fixY, (float)fixZ);
   }
   for (i=0; i<fd; i++) {
     if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
@@ -155,8 +155,8 @@ _gageFwSet(gageContext *ctx) {
   }
   
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
-    _gagePrint_fslw(stderr, ctx);
+    printf("%s: filter weights after kernel evaluation:\n", me);
+    _gagePrint_fslw(stdout, ctx);
   }
   if (ctx->parm.renormalize) {
     for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
@@ -175,8 +175,8 @@ _gageFwSet(gageContext *ctx) {
       }
     }
     if (ctx->verbose > 2) {
-      fprintf(stderr, "%s: filter weights after renormalization:\n", me);
-      _gagePrint_fslw(stderr, ctx);
+      printf("%s: filter weights after renormalization:\n", me);
+      _gagePrint_fslw(stdout, ctx);
     }
   }
   
@@ -240,56 +240,41 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       return 1;
     }
   }
-  /* even after all these years, GLK is still tweaking this stuff ...
-  if (nrrdCenterCell == ctx->shape->center) {
-    xi = AIR_CAST(unsigned int, _xi+1) - 1; 
-    yi = AIR_CAST(unsigned int, _yi+1) - 1;
-    zi = AIR_CAST(unsigned int, _zi+1) - 1;
-    xi -= (xi == max[0]);
-    yi -= (yi == max[1]);
-    zi -= (zi == max[2]);
-  } else {
-    xi = AIR_CAST(unsigned int, _xi);
-    yi = AIR_CAST(unsigned int, _yi);
-    zi = AIR_CAST(unsigned int, _zi);
-  }
-  */
-  xi = AIR_CAST(unsigned int, _xi); /* for cell-centered, [-0.5,0] --> 0 */
+  /* for cell-centered, [-0.5,0] --> 0 */
+  xi = AIR_CAST(unsigned int, _xi); 
   yi = AIR_CAST(unsigned int, _yi);
   zi = AIR_CAST(unsigned int, _zi);
-  xi -= (xi == max[0]);  /* only can kick in for node-centered */
+  /* these can only can kick in for node-centered, because that's when
+     max[] has an integral value */
+  xi -= (xi == max[0]);  
   yi -= (yi == max[1]);
   zi -= (zi == max[2]);
   xf = _xi - xi;
   yf = _yi - yi;
   zf = _zi - zi;
-  ctx->point.xi = xi;
-  ctx->point.yi = yi;
-  ctx->point.zi = zi;
+  ctx->point.idx[0] = xi;
+  ctx->point.idx[1] = yi;
+  ctx->point.idx[2] = zi;
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: \n"
-            "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
-            "        -> i(%5d,%5d,%5d) \n"
-            "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
-            me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
+    printf("%s: \n"
+           "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
+           "        -> i(%5d,%5d,%5d) \n"
+           "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
+           me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
   }
 
-  /* HEY: the position optimization has to be turned off in the context
-     of stacks; Raul found this bug using vprobe */
-  if (ctx->parm.stackUse
-      || !( ctx->point.xf == xf &&
-            ctx->point.yf == yf &&
-            ctx->point.zf == zf )) {
-    ctx->point.xf = xf;
-    ctx->point.yf = yf;
-    ctx->point.zf = zf;
+  if (!( ctx->point.frac[0] == xf &&
+         ctx->point.frac[1] == yf &&
+         ctx->point.frac[2] == zf )) {
+    ELL_3V_SET(ctx->point.frac, xf, yf, zf);
     /* these may take some time (especially if using renormalization),
        hence the conditional above */
     _gageFslSet(ctx);
     _gageFwSet(ctx);
   }
 
-  if (ctx->parm.stackUse) {
+  if (ctx->parm.stackUse
+      && (ctx->point.frac[3] + ctx->point.idx[3] != stackIdx)) {
     double sum;
     unsigned int ii;
     NrrdKernelSpec *sksp;
@@ -305,8 +290,8 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFslw[ii] = stackIdx - ii;
       if (ctx->verbose > 2) {
-        fprintf(stderr, "%s: ctx->stackFslw[%u] (fsl) = %g\n", 
-                me, ii, ctx->stackFslw[ii]);
+        printf("%s: ctx->stackFslw[%u] (fsl) = %g\n", 
+               me, ii, ctx->stackFslw[ii]);
       }
     }
     sksp = ctx->ksp[gageKernelStack];
@@ -314,11 +299,10 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
                           ctx->pvlNum-1, sksp->parm);
     if (ctx->verbose > 2) {
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
-                me, ii, ctx->stackFslw[ii]);
+        printf("%s: ctx->stackFslw[%u] (fw) = %g\n", 
+               me, ii, ctx->stackFslw[ii]);
       }
     }
-  
     if (ctx->parm.stackNormalizeRecon) {
       sum = 0;
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
@@ -335,8 +319,8 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
       }
       if (ctx->verbose > 2) {
         for (ii=0; ii<ctx->pvlNum-1; ii++) {
-          fprintf(stderr, "%s: ctx->stackFslw[%u] (fw) = %g\n", 
-                  me, ii, ctx->stackFslw[ii]);
+          printf("%s: ctx->stackFslw[%u] (fw) = %g\n", 
+                 me, ii, ctx->stackFslw[ii]);
         }
       }
     } else {
@@ -353,43 +337,9 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
         return 1;
       }
     }
-
-    /* fix derivative kernel weights for stack. Have to reconstruct
-       the world-space stack position from stackFrac and stackBaseIdx */
-    if (ctx->parm.stackNormalizeDeriv) {
-      unsigned int kidx, fd, j, stackBaseIdx;
-      double stackFrac, scl, *fwX, *fwY, *fwZ;
-      double deriv, dgparm[2] = {0, 3};
-
-      stackBaseIdx = AIR_CAST(unsigned int, stackIdx);
-      stackBaseIdx -= (stackBaseIdx == ctx->pvlNum-1);
-      stackFrac = stackIdx - stackBaseIdx;
-      scl = AIR_AFFINE(0.0, stackFrac, 1.0,
-                       ctx->stackPos[stackBaseIdx],
-                       ctx->stackPos[stackBaseIdx+1]);
-      dgparm[0] = scl;
-      deriv = (nrrdKernelDiscreteGaussian->eval1_d(0.0, dgparm)
-               - nrrdKernelDiscreteGaussian->eval1_d(1.0, dgparm));
-      fd = 2*ctx->radius;
-      kidx = gageKernel11;
-      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
-      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
-      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-      for (j=0; j<fd; j++) {
-        fwX[j] /= deriv;
-        fwY[j] /= deriv;
-        fwZ[j] /= deriv;
-      }
-      kidx = gageKernel22;
-      fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
-      fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
-      fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-      for (j=0; j<fd; j++) {
-        fwX[j] /= deriv*deriv;
-        fwY[j] /= deriv*deriv;
-        fwZ[j] /= deriv*deriv;
-      }
-    }
+    ctx->point.idx[3] = AIR_CAST(unsigned int, stackIdx);
+    ctx->point.idx[3] -= (stackIdx == ctx->pvlNum-2);
+    ctx->point.frac[3] = stackIdx - ctx->point.idx[3];
   }
   
   return 0;

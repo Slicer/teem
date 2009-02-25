@@ -23,12 +23,6 @@
 #include "gage.h"
 #include "privateGage.h"
 
-char
-gageErrStr[AIR_STRLEN_LARGE]="";
-
-int
-gageErrNum=-1;
-
 /*
 ******** gageZeroNormal[]
 **
@@ -112,7 +106,6 @@ gageParmReset(gageParm *parm) {
     parm->defaultCenter = gageDefDefaultCenter;
     parm->stackUse = gageDefStackUse;
     parm->stackNormalizeRecon = gageDefStackNormalizeRecon;
-    parm->stackNormalizeDeriv = gageDefStackNormalizeDeriv;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
   }
   return;
@@ -122,12 +115,15 @@ void
 gagePointReset(gagePoint *point) {
 
   if (point) {
+    unsigned int big;
     /* learned: can't initialize the floating point to AIR_NAN, 
        non-dot-net windows compilers proclaim that QNAN == x
        for any existant x!!!  For some reason though, infinity
        is handled correctly */
-    point->xf = point->yf = point->zf = AIR_POS_INF;
-    point->xi = point->yi = point->zi = -1;
+    ELL_4V_SET(point->frac, 
+               AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
+    big = AIR_CAST(unsigned int, -1);
+    ELL_4V_SET(point->idx, big, big, big, big);
   }
   return;
 }
@@ -166,7 +162,8 @@ _gageErrStr[GAGE_ERR_MAX+1][AIR_STRLEN_SMALL] = {
   "none",
   "space bounds",
   "stack bounds",
-  "stack integral"
+  "stack integral",
+  "stack search"
 };
 
 airEnum

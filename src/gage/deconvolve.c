@@ -120,7 +120,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     }
     meandiff /= sx*sy*sz;
     if (verbose) {
-      fprintf(stderr, "%s: iter %u meandiff = %g\n", me, iter, meandiff);
+      printf("%s: iter %u meandiff = %g\n", me, iter, meandiff);
     }
     if (meandiff < epsilon) {
       /* we have indeed converged while iter < maxIter */
@@ -134,8 +134,8 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
       biffAdd(GAGE, err); airMopError(mop); return 1;
     } else {
       if (verbose) {
-        fprintf(stderr, "%s: at maxIter %u; err %g still > thresh %g\n", me,
-                iter, meandiff, epsilon);
+        printf("%s: at maxIter %u; err %g still > thresh %g\n", me,
+               iter, meandiff, epsilon);
       }
     }
   }

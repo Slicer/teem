@@ -299,12 +299,12 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     ELL_3V_COPY(vecD, orig);
     ELL_4MV_COL3_SET(shape->ItoW, vecD);
     /*
-    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
-            spcCalc[0], vecCalc[0][0], vecCalc[0][1], vecCalc[0][2]);
-    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
-            spcCalc[1], vecCalc[1][0], vecCalc[1][1], vecCalc[1][2]);
-    fprintf(stderr, "%s: %g (%g,%g,%g)\n", me,
-            spcCalc[2], vecCalc[2][0], vecCalc[2][1], vecCalc[2][2]);
+    printf("%s: %g (%g,%g,%g)\n", me,
+           spcCalc[0], vecCalc[0][0], vecCalc[0][1], vecCalc[0][2]);
+    printf("%s: %g (%g,%g,%g)\n", me,
+           spcCalc[1], vecCalc[1][0], vecCalc[1][1], vecCalc[1][2]);
+    printf("%s: %g (%g,%g,%g)\n", me,
+           spcCalc[2], vecCalc[2][0], vecCalc[2][1], vecCalc[2][2]);
     */
   } else {
     double maxLen, volHalfLen[3];
@@ -397,8 +397,8 @@ gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
   double index[4], world[4];
 
   /*
-  fprintf(stderr, "!%s: hello %p %p %p; %p\n", me, 
-          shape, _index, _world, shape->WtoI);
+  printf("!%s: hello %p %p %p; %p\n", me, 
+         shape, _index, _world, shape->WtoI);
   */
   ELL_3V_COPY(world, _world);
   world[3] = 1.0;
