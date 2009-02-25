@@ -49,19 +49,19 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     int gret;
     for (ii=0; ii<pctx->volNum; ii++) {
       pvl = task->vol[ii]->gctx->pvl[0];
-      fprintf(stderr, "!%s: vol[%u] query:\n", me, ii);
-      gageQueryPrint(stderr, pvl->kind, pvl->query);
+      printf("!%s: vol[%u] query:\n", me, ii);
+      gageQueryPrint(stdout, pvl->kind, pvl->query);
       ans = gageAnswerPointer(task->vol[ii]->gctx, pvl, gageSclValue);
       ELL_3V_SET(pos, 0.6, 0.6, 0.3);
       gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
                             AIR_FALSE, AIR_TRUE);
-      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-              pos[0], pos[1], pos[2], *ans);
+      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+             pos[0], pos[1], pos[2], *ans);
       ELL_3V_SET(pos, 0.5, 0.0, 0.0);
       gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
                             AIR_FALSE, AIR_TRUE);
-      fprintf(stderr, "!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-              pos[0], pos[1], pos[2], *ans);
+      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
+             pos[0], pos[1], pos[2], *ans);
     }
   }
   offset = 0;
@@ -72,7 +72,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
       task->ans[ii] = gageAnswerPointer(task->vol[volIdx]->gctx,
                                         task->vol[volIdx]->gpvl,
                                         pctx->ispec[ii]->item);
-      fprintf(stderr, "!%s: task->ans[%u] = %p\n", me, ii, task->ans[ii]);
+      printf("!%s: task->ans[%u] = %p\n", me, ii, task->ans[ii]);
     } else {
       task->ans[ii] = NULL;
     }
@@ -144,7 +144,7 @@ _pullTaskSetup(pullContext *pctx) {
   }
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
     if (pctx->verbose) {
-      fprintf(stderr, "%s: creating task %u/%u\n", me, tidx, pctx->threadNum);
+      printf("%s: creating task %u/%u\n", me, tidx, pctx->threadNum);
     }
     pctx->task[tidx] = _pullTaskNew(pctx, tidx);
     if (!(pctx->task[tidx])) {

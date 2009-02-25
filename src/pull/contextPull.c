@@ -376,7 +376,6 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
   pullPoint *point;
 
   pointNum = pullPointNumber(pctx);
-  fprintf(stderr, "!%s: pointNum = %u\n", me, pointNum);
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2,
@@ -401,10 +400,11 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       /** to find idtag of point at given location **
-      if (AIR_ABS(-0.463476 - point->pos[0]) < 0.001 &&
-          AIR_ABS(0.831455 - point->pos[1]) < 0.001 &&
-          AIR_ABS(0.000342284 - point->pos[2]) < 0.001) {
-        printf("!%s: point %u at (%g,%g,%g,%g)\n", me, point->idtag,
+      if (AIR_ABS(-0.194736  - point->pos[0]) < 0.001 &&
+          AIR_ABS(0.923997 - point->pos[1]) < 0.001 &&
+          AIR_ABS(0.000107472  - point->pos[2]) < 0.001) {
+        printf("!%s: point %u at (%g,%g,%g,%g) ##############\n",
+               me, point->idtag,
                point->pos[0], point->pos[1], 
                point->pos[2], point->pos[3]);
       }
@@ -454,19 +454,32 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
     }
   }
 
-  fprintf(stderr, "!%s: final outIdx %u, # %u\n", me, outIdx, pointNum);
   return 0;
 }
 
+/*
+** HEY: its really confusing to have the array of per-CONTEXT volumes.
+** I know they're there to be copied upon task creation to create the
+** per-TASK volumes, but its easy to think that one is supposed to be
+** doing something with them, or that changes to them will have some
+** effect ...
+*/
 void
 pullVerboseSet(pullContext *pctx, int verbose) {
-  unsigned int volIdx;
+  unsigned int volIdx, taskIdx;
 
   pctx->verbose = verbose;
   for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
     int v;
     v = verbose > 0 ? verbose - 1 : 0;
     gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, v);
+  }
+  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+    for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
+      int v;
+      v = verbose > 0 ? verbose - 1 : 0;
+      gageParmSet(pctx->task[taskIdx]->vol[volIdx]->gctx, gageParmVerbose, v);
+    }
   }
   return;
 }

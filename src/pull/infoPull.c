@@ -282,8 +282,10 @@ _pullInfoSetup(pullContext *pctx) {
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       pctx->infoIdx[ii] = pctx->infoTotalLen;
-      fprintf(stderr, "!%s: infoIdx[%u] (%s) = %u\n", me,
-              ii, airEnumStr(pullInfo, ii), pctx->infoIdx[ii]);
+      if (pctx->verbose) {
+        printf("!%s: infoIdx[%u] (%s) = %u\n", me,
+               ii, airEnumStr(pullInfo, ii), pctx->infoIdx[ii]);
+      }
       pctx->infoTotalLen += pullInfoAnswerLen(ii);
       if (!pullInfoAnswerLen(ii)) {
         sprintf(err, "%s: got zero-length answer for ispec[%u]", me, ii);
@@ -313,8 +315,10 @@ _pullInfoSetup(pullContext *pctx) {
   } else {
     pctx->constraintDim = 0;
   }
-  fprintf(stderr, "!%s: infoTotalLen = %u, constr = %d, constrDim = %g\n", me,
-          pctx->infoTotalLen, pctx->constraint, pctx->constraintDim);
+  if (pctx->verbose) {
+    printf("!%s: infoTotalLen = %u, constr = %d, constrDim = %g\n", me,
+           pctx->infoTotalLen, pctx->constraint, pctx->constraintDim);
+  }
   return 0;
 }
 

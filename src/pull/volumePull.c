@@ -149,6 +149,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   gageParmSet(vol->gctx, gageParmVerbose,
               vol->verbose > 0 ? vol->verbose - 1 : 0);
   gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
+  /* because we're likely only using accurate kernels */
+  gageParmSet(vol->gctx, gageParmStackNormalizeRecon, AIR_FALSE);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
@@ -163,7 +165,6 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
       biffAdd(PULL, err); return 1;
     }
     gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, AIR_FALSE);
     if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
     if (!E) E |= gageStackPerVolumeNew(vol->gctx, &(vol->gpvlSS),
                                        ninScale, ninNum, kind);
@@ -186,8 +187,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
             AIR_CAST(unsigned int, airStrlen(name)));
     biffAdd(PULL, err); return 1;
   }
-  fprintf(stderr, "!%s: vol=%p, name = %p = |%s|\n", me, vol, 
-          vol->name, vol->name);
+  printf("!%s: vol=%p, name = %p = |%s|\n", me, vol, 
+         vol->name, vol->name);
   vol->kind = kind;
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);
@@ -231,7 +232,7 @@ pullVolumeSingleAdd(pullContext *pctx,
   char me[]="pullVolumeSingleSet", err[BIFF_STRLEN];
   pullVolume *vol;
 
-  fprintf(stderr, "!%s(%s): verbose %d\n", me, name, pctx->verbose);
+  printf("!%s(%s): verbose %d\n", me, name, pctx->verbose);
 
   vol = pullVolumeNew();
   if (_pullVolumeSet(pctx, vol,
@@ -245,7 +246,7 @@ pullVolumeSingleAdd(pullContext *pctx,
   }
 
   /* add this volume to context */
-  fprintf(stderr, "!%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
+  printf("!%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
   pctx->vol[pctx->volNum] = vol;
   pctx->volNum++;
   return 0;
@@ -359,11 +360,11 @@ _pullVolumeSetup(pullContext *pctx) {
       }
     }
   }
-  fprintf(stderr, "!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
-          pctx->bboxMin[0], pctx->bboxMin[1],
-          pctx->bboxMin[2], pctx->bboxMin[3],
-          pctx->bboxMax[0], pctx->bboxMax[1],
-          pctx->bboxMax[2], pctx->bboxMax[3]);
+  printf("!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
+         pctx->bboxMin[0], pctx->bboxMin[1],
+         pctx->bboxMin[2], pctx->bboxMin[3],
+         pctx->bboxMax[0], pctx->bboxMax[1],
+         pctx->bboxMax[2], pctx->bboxMax[3]);
   
   return 0;
 }

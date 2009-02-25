@@ -77,20 +77,20 @@ _pullWorker(void *_task) {
 
   while (1) {
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): waiting on barrier A\n",
-              me, task->threadIdx);
+      printf("%s(%u): waiting on barrier A\n",
+             me, task->threadIdx);
     }
     /* pushFinish sets finished prior to the barriers */
     airThreadBarrierWait(task->pctx->iterBarrierA);
     if (task->pctx->finished) {
       if (task->pctx->verbose > 1) {
-        fprintf(stderr, "%s(%u): done!\n", me, task->threadIdx);
+        printf("%s(%u): done!\n", me, task->threadIdx);
       }
       break;
     }
     /* else there's work to do ... */    
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
+      printf("%s(%u): starting to process\n", me, task->threadIdx);
     }
     if (_pullProcess(task)) {
       /* HEY clearly not threadsafe to have errors ... */
@@ -99,8 +99,8 @@ _pullWorker(void *_task) {
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
-      fprintf(stderr, "%s(%u): waiting on barrier B\n",
-              me, task->threadIdx);
+      printf("%s(%u): waiting on barrier B\n",
+             me, task->threadIdx);
     }
     airThreadBarrierWait(task->pctx->iterBarrierB);
   }
@@ -113,7 +113,7 @@ pullStart(pullContext *pctx) {
   char me[]="pullStart", err[BIFF_STRLEN];
   unsigned int tidx;
 
-  fprintf(stderr, "!%s: hello %p\n", me, pctx);
+  printf("!%s: hello %p\n", me, pctx);
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 
   /* the ordering of steps below is important! e.g. gage context has
@@ -135,7 +135,7 @@ pullStart(pullContext *pctx) {
     /* start threads 1 and up running; they'll all hit iterBarrierA  */
     for (tidx=1; tidx<pctx->threadNum; tidx++) {
       if (pctx->verbose > 1) {
-        fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
+        printf("%s: spawning thread %d\n", me, tidx);
       }
       airThreadStart(pctx->task[tidx]->thread, _pullWorker,
                      (void *)(pctx->task[tidx]));
@@ -145,7 +145,7 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
   }
-  fprintf(stderr, "!%s: setup for %u threads done\n", me, pctx->threadNum);
+  printf("!%s: setup for %u threads done\n", me, pctx->threadNum);
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
@@ -171,7 +171,7 @@ pullFinish(pullContext *pctx) {
   pctx->finished = AIR_TRUE;
   if (pctx->threadNum > 1) {
     if (pctx->verbose > 1) {
-      fprintf(stderr, "%s: finishing workers\n", me);
+      printf("%s: finishing workers\n", me);
     }
     airThreadBarrierWait(pctx->iterBarrierA);
     /* worker threads now pass barrierA and see that finished is AIR_TRUE,
@@ -283,6 +283,7 @@ _iterate(pullContext *pctx, int mode) {
   }
 
   pctx->timeIteration = airTime() - time0;
+
   return 0;
 }
 
@@ -297,13 +298,13 @@ pullRun(pullContext *pctx) {
   unsigned firstIter;
   
   if (pctx->verbose) {
-    fprintf(stderr, "%s: hello\n", me);
+    printf("%s: hello\n", me);
   }
   time0 = airTime();
   firstIter = pctx->iter;
   if (pctx->verbose) {
-    fprintf(stderr, "%s: doing priming iteration (iter now %u)\n", me,
-            pctx->iter);
+    printf("%s: doing priming iteration (iter now %u)\n", me,
+           pctx->iter);
   }
   if (_iterate(pctx, pullProcessModeDescent)) {
     sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
@@ -311,7 +312,7 @@ pullRun(pullContext *pctx) {
   }
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
-  fprintf(stderr, "!%s: starting system energy = %g\n", me, enrLast);
+  printf("!%s: starting system energy = %g\n", me, enrLast);
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
   while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
@@ -346,10 +347,10 @@ pullRun(pullContext *pctx) {
       enrDecreaseAvg = (2*enrDecreaseAvg + enrDecrease)/3;
     }
     if (pctx->verbose) {
-      fprintf(stderr, "%s: ######## done iter %u: "
-              "e=%g,%g, de=%g,%g, s=%g,%g\n",
-              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
-              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
+      printf("%s: ________ done iter %u: "
+             "e=%g,%g, de=%g,%g, s=%g,%g\n",
+             me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
+             _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->popCntlPeriod
 	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
@@ -382,10 +383,10 @@ pullRun(pullContext *pctx) {
       pctx->iter_cb(pctx->data_cb);
     }
   }
-  fprintf(stderr, "%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
-          "%u stuck\n", me,
-	  !pctx->iterMax, pctx->iter < pctx->iterMax, !converged,
-          pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
+  printf("%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
+         "%u stuck\n", me,
+         !pctx->iterMax, pctx->iter < pctx->iterMax, !converged,
+         pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
   time1 = airTime();
 
   pctx->timeRun += time1 - time0;

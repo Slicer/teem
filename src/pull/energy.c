@@ -126,8 +126,8 @@ _pullEnergySpringEval(double *denr, double dist, const double *parm) {
   }
   /*
   if (!AIR_EXISTS(ret)) {
-    fprintf(stderr, "!%s: dist=%g, pull=%g, blah=%d --> ret=%g\n",
-            me, dist, pull, blah, ret);
+    printf("!%s: dist=%g, pull=%g, blah=%d --> ret=%g\n",
+           me, dist, pull, blah, ret);
   }
   */
   return enr;

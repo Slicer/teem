@@ -31,4 +31,3 @@ int pullPhistEnabled = 0;
 
 const char *
 pullBiffKey = "pull";
-

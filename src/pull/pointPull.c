@@ -322,13 +322,13 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   }
   */
   /*
-  fprintf(stderr, "%s = (%g - %g)*%g = %g*%g = %g = %g\n",
-          airEnumStr(pullInfo, sclInfo),
-          point->info[infoIdx[sclInfo]], 
-          ispec->zero, ispec->scale,
-          point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
-          (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
-          scl);
+  printf("%s = (%g - %g)*%g = %g*%g = %g = %g\n",
+         airEnumStr(pullInfo, sclInfo),
+         point->info[infoIdx[sclInfo]], 
+         ispec->zero, ispec->scale,
+         point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
+         (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
+         scl);
   */
   if (grad && gradInfo[sclInfo]) {
     const double *ptr = point->info + infoIdx[gradInfo[sclInfo]];
@@ -351,6 +351,9 @@ _pullProbe(pullTask *task, pullPoint *point) {
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     biffAdd(PULL, err); return 1;
   }
+  if (task->pctx->verbose > 3) {
+    printf("%s: hello; probing %u volumes\n", me, task->pctx->volNum);
+  }
   for (ii=0; ii<task->pctx->volNum; ii++) {
     if (task->pctx->iter && task->vol[ii]->seedOnly) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
@@ -362,10 +365,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
                             AIR_FALSE /* index-space */,
                             AIR_TRUE /* clamp */);
     } else {
-      if (252 == point->idtag) {
-        fprintf(stderr, "!%s: probing vol[%u] \"%s\" @ wsp %g %g %g %g\n", me,
-                ii, task->vol[ii]->name, 
-                point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      if (task->pctx->verbose > 3) {
+        printf("%s: vol[%u] has scale (%u)-> gageStackProbeSpace(%p) (v %d)\n",
+               me, ii, task->vol[ii]->scaleNum,
+               task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
       }
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
                                  point->pos[0], point->pos[1],
@@ -393,7 +396,8 @@ _pullProbe(pullTask *task, pullPoint *point) {
       alen = _pullInfoAnswerLen[ii];
       aidx = task->pctx->infoIdx[ii];
       _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
-      if (252 == point->idtag) {
+      /*
+      if (102 == point->idtag) {
         pullVolume *vol;
         pullInfoSpec *isp;
         isp = task->pctx->ispec[ii];
@@ -414,17 +418,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
           }
         }
       }
-    }
-  }
-  if (252 == point->idtag) {
-    double *tan1, *tan2, perp[3];
-    tan1 = point->info + task->pctx->infoIdx[pullInfoTangent1];
-    tan2 = point->info + task->pctx->infoIdx[pullInfoTangent2];
-    if (tan1 && tan2) {
-      ELL_3V_CROSS(perp, tan1, tan2);
-      printf("!%s: tan1 = %g %g %g; tan2 = %g %g %g \n-> x = %g %g %g\n", me, 
-             tan1[0], tan1[1], tan1[2], tan2[0], tan2[1], tan2[2],
-             perp[0], perp[1], perp[2]);
+      */
     }
   }
   return 0;
@@ -605,7 +599,6 @@ _pullPointSetup(pullContext *pctx) {
      control, and we can't always guarantee that constraint manifolds
      will be well-sampled (with respect to pctx->radiusSpace) to start
      with */
-  
   mop = airMopNew();
   if (pctx->npos) {
     npos = nrrdNew();
@@ -777,7 +770,7 @@ _pullPointSetup(pullContext *pctx) {
       /* Points are given as an array, we do not apply any constraint */
     }
     /* hack to put particular point at particular location 
-    if (252 == point->idtag) {
+    if (102 == point->idtag) {
       ELL_4V_SET(point->pos, 0.938522, 0.354717, 0.000392257, 0.920071);
     }
     */

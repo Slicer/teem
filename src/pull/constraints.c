@@ -166,7 +166,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
   PROBEG(val, grad);
   if (0 == val) {
     /* already exactly at the zero, we're done. This actually happens! */
-    fprintf(stderr, "!%s: a lapl == 0!\n", me);
+    printf("!%s: a lapl == 0!\n", me);
     return 0;
   }
   valLast = val;
@@ -207,7 +207,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
     PROBE(fs);
     if (0 == fs) {
       /* exactly nailed the zero, we're done. This actually happens! */
-      fprintf(stderr, "!%s: b lapl == 0!\n", me);
+      printf("!%s: b lapl == 0!\n", me);
       break;
     }
     /* "Illinois" false-position. Dumb, but it works. */
@@ -280,7 +280,7 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
 #ifdef PRAYING
   if (_pullPraying) {
-    fprintf(stderr, "!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
+    printf("!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
   }
 #endif
   ELL_3MV_OUTER(proj, tng, tng);
@@ -357,8 +357,8 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   /*
   if (_pullPraying) {
     pullPoint *npnt;
-    fprintf(stderr, "%s: starting at %g %g %g\n", me, 
-            point->pos[0], point->pos[1], point->pos[2]);
+    printf("%s: starting at %g %g %g\n", me, 
+           point->pos[0], point->pos[1], point->pos[2]);
     npnt = pullPointNew(task->pctx);
     npnt->debug = AIR_TRUE;
     ELL_4V_COPY(npnt->pos, point->pos);
@@ -366,57 +366,57 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
     pullBinsPointAdd(task->pctx, npnt);
   }
   */
-  /* #ifdef PRAYING */
+#ifdef PRAYING
   if (_pullPraying) {
-    fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
-            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    fprintf(stderr, "!%s: tang2 %d mode %d, stepMax %g, iterMax %u\n", me,
-            tang2Use, modeUse, stepMax, iterMax);
+    printf("!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
+           point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+    printf("!%s: tang2 %d mode %d, stepMax %g, iterMax %u\n", me,
+           tang2Use, modeUse, stepMax, iterMax);
   }
-  /* #endif */
+#endif
   _pullPointHistAdd(point, pullCondOld);
   PROBE(val, grad, hess, proj);
-  /* #ifdef PRAYING */
+#ifdef PRAYING
   if (_pullPraying) {
-    fprintf(stderr, " val = %g\n", val);
-    fprintf(stderr, " grad = %g %g %g\n", grad[0], grad[1], grad[2]);
-    fprintf(stderr, " hess = %g %g %g;  %g %g %g;  %g %g %g\n",
-            hess[0], hess[1], hess[2],
-            hess[3], hess[4], hess[5],
-            hess[6], hess[7], hess[8]);
-    fprintf(stderr, " proj = %g %g %g;  %g %g %g;  %g %g %g\n",
-            proj[0], proj[1], proj[2],
-            proj[3], proj[4], proj[5],
-            proj[6], proj[7], proj[8]);
+    printf(" val = %g\n", val);
+    printf(" grad = %g %g %g\n", grad[0], grad[1], grad[2]);
+    printf(" hess = %g %g %g;  %g %g %g;  %g %g %g\n",
+           hess[0], hess[1], hess[2],
+           hess[3], hess[4], hess[5],
+           hess[6], hess[7], hess[8]);
+    printf(" proj = %g %g %g;  %g %g %g;  %g %g %g\n",
+           proj[0], proj[1], proj[2],
+           proj[3], proj[4], proj[5],
+           proj[6], proj[7], proj[8]);
   }
-  /* #endif */
+#endif
   SAVE(state, val, grad, hess, proj, point->pos);
   hack = 1;
   for (iter=1; iter<=iterMax; iter++) {
     NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj);
     step = (d2 <= 0 ? -plen : -d1/d2);
-    /* #ifdef PRAYING */
+#ifdef PRAYING
     if (_pullPraying) {
-      fprintf(stderr, "!%s: iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
-              iter, d2, -plen, -d1/d2, step);
+      printf("!%s: iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
+             iter, d2, -plen, -d1/d2, step);
     }
-    /* #endif */
+#endif
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
-    /* #ifdef PRAYING */
+#ifdef PRAYING
     if (_pullPraying) {
-      fprintf(stderr, "       -> %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
+      printf("       -> %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
       ELL_3V_COPY(_tmpv, point->pos);
     }
-    /* #endif */
+#endif
     ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
-    /* #ifdef PRAYING */
+#ifdef PRAYING
     if (_pullPraying) {
       ELL_3V_SUB(_tmpv, _tmpv, point->pos);
-      fprintf(stderr, "        -> moved to %g %g %g %g\n", 
-              point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-      fprintf(stderr, "        (moved %g)\n", ELL_3V_LEN(_tmpv));
+      printf("        -> moved to %g %g %g %g\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      printf("        (moved %g)\n", ELL_3V_LEN(_tmpv));
     }
-    /* #endif */
+#endif
     _pullPointHistAdd(point, pullCondConstraintSatA);
     /*
     if (_pullPraying) {
@@ -447,8 +447,8 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
     *constrFailP = AIR_FALSE;
   }
   /*
-  fprintf(stderr, "!%s: %d %s\n", me, *constrFailP, 
-          *constrFailP ? "FAILED!" : "ok");
+  printf("!%s: %d %s\n", me, *constrFailP, 
+         *constrFailP ? "FAILED!" : "ok");
           */
   return 0;
 }
@@ -537,9 +537,9 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   }
   */
   /*
-  fprintf(stderr, "!%s(%d): hi %g %g %g, stepMax = %g, iterMax = %u\n",
-          me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
-          stepMax, iterMax);
+  printf("!%s(%d): hi %g %g %g, stepMax = %g, iterMax = %u\n",
+         me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
+         stepMax, iterMax);
   */
   switch (task->pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
@@ -631,9 +631,9 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
             task->pctx->constraint);
   }
   /*
-  fprintf(stderr, "!%s(%u) bye, fail = %d, %g %g %g\n", me,
-          point->idtag, *constrFailP,
-          point->pos[0], point->pos[1], point->pos[2]);
+  printf("!%s(%u) bye, fail = %d, %g %g %g\n", me,
+         point->idtag, *constrFailP,
+         point->pos[0], point->pos[1], point->pos[2]);
   */
   return 0;
 }

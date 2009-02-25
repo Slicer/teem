@@ -83,8 +83,8 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
                          eidx[2] + pctx->binsEdge[2] * eidx[3])));
   }
   /*
-  fprintf(stderr, "!%s: bin(%g,%g,%g) = %u\n", me, 
-          _posWorld[0], _posWorld[1], _posWorld[2], binIdx);
+  printf("!%s: bin(%g,%g,%g) = %u\n", me, 
+         _posWorld[0], _posWorld[1], _posWorld[2], binIdx);
   */
 
   return pctx->bin + binIdx;
@@ -161,8 +161,8 @@ pullBinsAllNeighborSet(pullContext *pctx) {
                   for (xx=xmin; xx<=xmax; xx++) {
                     binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*(zz + pctx->binsEdge[2]*ss));
                     /*
-                    fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
-                        me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
+                    printf("!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
+                           me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
                     */
                     nei[neiNum++] = pctx->bin + binIdx;
                   }
@@ -257,10 +257,10 @@ _pullBinSetup(pullContext *pctx) {
   pctx->maxDistScale = 2*scl;
   espec = pctx->energySpec;
 
-  fprintf(stderr, "!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
-          pctx->radiusSpace, pctx->maxDistSpace);
-  fprintf(stderr, "!%s: radiusScale = %g --> maxDistScale = %g\n", me, 
-          pctx->radiusScale, pctx->maxDistScale);
+  printf("!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
+         pctx->radiusSpace, pctx->maxDistSpace);
+  printf("!%s: radiusScale = %g --> maxDistScale = %g\n", me, 
+         pctx->radiusScale, pctx->maxDistScale);
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
@@ -273,8 +273,8 @@ _pullBinSetup(pullContext *pctx) {
     volEdge[1] = pctx->bboxMax[1] - pctx->bboxMin[1];
     volEdge[2] = pctx->bboxMax[2] - pctx->bboxMin[2];
     volEdge[3] = pctx->bboxMax[3] - pctx->bboxMin[3];
-    fprintf(stderr, "!%s: volEdge = %g %g %g %g\n", me,
-            volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
+    printf("!%s: volEdge = %g %g %g %g\n", me,
+           volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
     pctx->binsEdge[0] = AIR_CAST(unsigned int,
                                  floor(volEdge[0]/pctx->maxDistSpace));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
@@ -290,13 +290,13 @@ _pullBinSetup(pullContext *pctx) {
     /* hack to observe things at bin boundaries
     ELL_3V_SET(pctx->binsEdge, 3, 3, 3);
     */
-    fprintf(stderr, "!%s: binsEdge=(%u,%u,%u,%u)\n", me,
-            pctx->binsEdge[0], pctx->binsEdge[1],
-            pctx->binsEdge[2], pctx->binsEdge[3]);
+    printf("!%s: binsEdge=(%u,%u,%u,%u)\n", me,
+           pctx->binsEdge[0], pctx->binsEdge[1],
+           pctx->binsEdge[2], pctx->binsEdge[3]);
     pctx->binNum = (pctx->binsEdge[0]*pctx->binsEdge[1]
                     *pctx->binsEdge[2]*pctx->binsEdge[3]);
   }
-  fprintf(stderr, "!%s: binNum = %u\n", me, pctx->binNum);
+  printf("!%s: binNum = %u\n", me, pctx->binNum);
   if (pctx->binNum > PULL_BIN_MAXNUM) {
     sprintf(err, "%s: #bins %u > PULL_BIN_MAXNUM %u, problem?", me,
             pctx->binNum, PULL_BIN_MAXNUM);
@@ -352,8 +352,8 @@ _pullIterFinishDescent(pullContext *pctx) {
   pointNum = pullPointNumber(pctx);
   if (pointNum != pctx->tmpPointNum) {
     if (pctx->verbose) {
-      fprintf(stderr, "!%s: changing total point # %u --> %u\n", me,
-              pctx->tmpPointNum, pointNum);
+      printf("!%s: changing total point # %u --> %u\n", me,
+             pctx->tmpPointNum, pointNum);
     }
     airFree(pctx->tmpPointPerm);
     airFree(pctx->tmpPointPtr);
@@ -385,6 +385,11 @@ _pullIterFinishDescent(pullContext *pctx) {
   }
   for (pointIdx=0; pointIdx<pointNum; pointIdx++) {
     point = pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]];
+    /*
+    if (1 == pctx->iter && 102 == point->idtag) {
+      _pullDebugSanity(pctx->task[0], point);
+    }
+    */
     newBin = _pullBinLocate(pctx, point->pos);
     if (!newBin) {
       sprintf(err, "%s: can't locate point %p %u",
