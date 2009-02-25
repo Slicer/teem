@@ -337,9 +337,9 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     if (ctx->verbose) {
       for (dwiIdx=0; dwiIdx<pvl->kind->valLen; dwiIdx++) {
         fprintf(stderr, "%s(%d+%g,%d+%g,%d+%g): dwi[%u] = %g\n", me,
-                ctx->point.xi, ctx->point.xf,
-                ctx->point.yi, ctx->point.yf,
-                ctx->point.zi, ctx->point.zf,
+                ctx->point.idx[0], ctx->point.frac[0],
+                ctx->point.idx[1], ctx->point.frac[1],
+                ctx->point.idx[2], ctx->point.frac[2],
                 dwiIdx, dwiAll[dwiIdx]);
       }
       fprintf(stderr, "%s: type(ngrad) = %d = %s\n", me,
