@@ -92,7 +92,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet, SSnormd, SSuniform, verbose,
+  int what, E=0, otype, renorm, hackSet, SSuniform, verbose,
     orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
@@ -187,8 +187,6 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
              "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssnd", "ssnd", airTypeInt, 1, 1, &SSnormd, "0",
-             "enable derivative normalization based on scale space");
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
              "do uniform samples along sigma, and not (by default) "
              "samples according to the effective diffusion scale");
@@ -281,13 +279,13 @@ main(int argc, char *argv[]) {
       if (nrrdLoadMulti(ninSS, numSS,
                         stackReadFormat, 0, NULL)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
+        fprintf(stderr, "%s: trouble loading blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
       if (gageStackBlur(ninSS, scalePos, numSS, AIR_TRUE,
                         nin, kind->baseDim, kSSblur, 
                         nrrdBoundaryBleed, AIR_TRUE,
-                        verbose+1)) {
+                        verbose)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: given pre-computed blurrings don't match:\n%s\n",
                 me, err);
@@ -297,7 +295,7 @@ main(int argc, char *argv[]) {
       if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE,
                         nin, kind->baseDim, kSSblur, 
                         nrrdBoundaryBleed, AIR_TRUE,
-                        verbose+1)) {
+                        verbose)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
@@ -362,8 +360,6 @@ main(int argc, char *argv[]) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
     /* HEY: possible set gageParmStackNormalizeRecon ? */
-    gageParmSet(ctx, gageParmStackNormalizeDeriv,
-                SSnormd ? AIR_TRUE : AIR_FALSE);
     if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
