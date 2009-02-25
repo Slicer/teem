@@ -337,9 +337,6 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   }                                                                   \
   d1 = ELL_3V_DOT(grad, pdir);                                        \
   d2 = ELL_3MV_CONTR(hess, pdir)
-
-/* double _tmpv[3]; */
-
 static int
 constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
                   double stepMax, unsigned int iterMax,
@@ -348,9 +345,9 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   double val, grad[3], hess[9], proj[9],
     state[1+3+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
-  /* #ifdef PRAYING */
+#ifdef PRAYING
   double _tmpv[3]={0,0,0};
-  /* #endif */
+#endif
   unsigned int iter = 0;  /* 0: initial probe, 1..iterMax: probes in loop */
   /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
 
