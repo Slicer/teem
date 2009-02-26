@@ -345,7 +345,25 @@ int
 _pullProbe(pullTask *task, pullPoint *point) {
   char me[]="_pullProbe", err[BIFF_STRLEN];
   unsigned int ii, gret=0;
-  
+
+#if 0
+  static int logIdx=0, logDone=AIR_FALSE, logStarted=AIR_FALSE;
+  static Nrrd *nlog;
+  static double *log=NULL;
+  if (!logStarted) {
+    if (81 == point->idtag) {
+      printf("\n\n%s: ###### HELLO begin logging ....\n\n\n", me);
+      /* knowing the logIdx at the end of logging ... */
+      nlog = nrrdNew();
+      nrrdMaybeAlloc_va(nlog, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, 25),
+                        AIR_CAST(size_t, 2754));
+      log = AIR_CAST(double*, nlog->data);
+      logStarted = AIR_TRUE;
+    }
+  }
+#endif
+
   if (!ELL_4V_EXISTS(point->pos)) {
     sprintf(err, "%s: got non-exist pos (%g,%g,%g,%g)", me, 
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
@@ -360,6 +378,12 @@ _pullProbe(pullTask *task, pullPoint *point) {
       continue;
     }
     if (!task->vol[ii]->ninScale) {
+      /*
+      if (81 == point->idtag) {
+        printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
+               point->pos[0], point->pos[1], point->pos[2]);
+      }
+      */
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE /* index-space */,
@@ -370,6 +394,12 @@ _pullProbe(pullTask *task, pullPoint *point) {
                me, ii, task->vol[ii]->scaleNum,
                task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
       }
+      /*
+      if (81 == point->idtag) {
+        printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
+               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      }
+      */
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
                                  point->pos[0], point->pos[1],
                                  point->pos[2], point->pos[3],
@@ -397,7 +427,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
       aidx = task->pctx->infoIdx[ii];
       _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
       /*
-      if (102 == point->idtag) {
+      if (81 == point->idtag) {
         pullVolume *vol;
         pullInfoSpec *isp;
         isp = task->pctx->ispec[ii];
@@ -421,6 +451,27 @@ _pullProbe(pullTask *task, pullPoint *point) {
       */
     }
   }
+
+#if 0
+  if (logStarted && !logDone) {
+    unsigned int ai;
+    /* the actual logging */
+    log[0] = point->idtag;
+    ELL_4V_COPY(log + 1, point->pos);
+    for (ai=0; ai<20; ai++) {
+      log[5 + ai] = point->info[ai];
+    }
+    log += nlog->axis[0].size;
+    logIdx++;
+    if (1 == task->pctx->iter && 81 == point->idtag) {
+      printf("\n\n%s: ###### OKAY done logging (%u)....\n\n\n", me, logIdx);
+      nrrdSave("probelog.nrrd", nlog, NULL);
+      nlog = nrrdNuke(nlog);
+      logDone = AIR_TRUE;
+    }
+  }
+#endif
+  
   return 0;
 }
 

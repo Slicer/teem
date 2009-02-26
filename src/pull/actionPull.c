@@ -123,9 +123,8 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
                      /* output */
                      double egrad[4]) {
   char meme[]="_energyInterParticle";
-  double diff[4], scaleSgn, spaceRad, scaleRad,
-    rr, ss, enr, denr, *parm;
-  double enrTotal=0;
+  double diff[4], spaceRad, scaleRad, rr, ss, enr, denr, *parm;
+  int scaleSgn;
 
   /* the vector "diff" goes from her, to me, in both space and scale */
   ELL_4V_SUB(diff, me->pos, she->pos);
@@ -139,11 +138,8 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     scaleSgn = airSgn(diff[3]);
   } else {
     ss = 0;
+    scaleSgn = 1;
   }
-
-  /*
-  printf("!%s: rr(%u,%u) = %g\n", meme, me->idtag, she->idtag, rr);
-  */
   if (rr > 1 || ss > 1) {
     if (egrad) {
       ELL_4V_SET(egrad, 0, 0, 0, 0);
@@ -151,16 +147,16 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     return 0;
   }
   if (rr == 0 && ss == 0) {
-    printf("%s: pos of pts %u, %u equal: (%g,%g,%g,%g)\n",
-           meme, me->idtag, she->idtag, 
-           me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
+    fprintf(stderr, "%s: pos(%u) == pos(%u) !! (%g,%g,%g,%g)\n",
+            meme, me->idtag, she->idtag, 
+            me->pos[0], me->pos[1], me->pos[2], me->pos[3]);
     if (egrad) {
       ELL_4V_SET(egrad, 0, 0, 0, 0);
     }
     return 0;
   }
 
-  if (1 || !task->pctx->haveScale) {
+  if (!task->pctx->haveScale) {
     parm = task->pctx->energySpec->parm;
     enr = task->pctx->energySpec->energy->eval(&denr, rr, parm);
     if (egrad) {
@@ -168,7 +164,6 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
       ELL_3V_SCALE(egrad, denr, diff);
       egrad[3] = 0;
     }
-    enrTotal = enr;
   } else {
 #if 0
     /*Implementation of Phi_{x-G}(r,s)*/
@@ -184,20 +179,17 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     /*Compute final gradient*/
     ELL_3V_SCALE(egrad,frc,diff);
     egrad[3] = frcs;
-    enrTotal = (beta * enr - (1-beta) * enrg) *enrs;
-
-    if (0) {
-      /* Implementation of Phi_x(r,x) */
-      double y;
-      y = sqrt((spadist * spadist)/(sparad * sparad) + 
-               (scaledist * scaledist)/(scalerad * scalerad));
-      parm = task->pctx->energySpec->parm;
-      enr = task->pctx->energySpec->energy->eval(&frc, y, parm);
-      ELL_3V_SCALE(egrad,frc*spadist/(y*sparad*sparad),diff);
-      egrad[3] = frc*scaledist/(y*scalerad*scalerad);
-      enrTotal = enr;
+    enr = (beta * enr - (1-beta) * enrg) *enrs;
+    /* Implementation of Phi_x(r,x) */
+#endif 
+    double uu;
+    uu = sqrt(rr*rr + ss*ss);
+    parm = task->pctx->energySpec->parm;
+    enr = task->pctx->energySpec->energy->eval(&denr, uu, parm);
+    if (egrad) {
+      ELL_3V_SCALE(egrad, denr/(uu*spaceRad*spaceRad), diff);
+      egrad[3] = scaleSgn*denr/(uu*scaleRad*scaleRad);
     }
-#endif
   }
   /*
   printf("%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
@@ -205,7 +197,7 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
          diff[0], diff[1], diff[2],
          egrad[0], egrad[1], egrad[2], enr);
   */
-  return enrTotal;
+  return enr;
 }
 
 /*
@@ -577,7 +569,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     biffAdd(PULL, err); return 1;
   }
   /*
-  if (102 == point->idtag) {
+  if (81 == point->idtag) {
     printf("!%s(%u): old pos = %g %g %g %g\n", me, point->idtag,
            point->pos[0], point->pos[1],
            point->pos[2], point->pos[3]);
@@ -602,7 +594,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     /* force[3] untouched */
   }
   /*
-  if (102 == point->idtag) {
+  if (81 == point->idtag) {
     printf("!%s(%u): post-constraint tan: force = %g %g %g %g\n", me,
            point->idtag, force[0], force[1], force[2], force[3]);
     printf("   precap stepEnergy = %g\n", point->stepEnergy);
@@ -624,7 +616,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     }
   }
   /*
-  if (102 == point->idtag) {
+  if (81 == point->idtag) {
     printf("  postcap stepEnergy = %g\n", point->stepEnergy);
   }
   */
@@ -635,12 +627,11 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* try steps along force until we succcessfully lower energy */
   do {
     int constrFail;
-    
     giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       point->stepEnergy, force);
     /*
-    if (102 == point->idtag) {
+    if (81 == point->idtag) {
       printf("!%s(%u): (iter %u) try pos  = %g %g %g %g\n",
              me, point->idtag, task->pctx->iter,
              point->pos[0], point->pos[1],
@@ -662,7 +653,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       constrFail = AIR_FALSE;
     }
     /*
-    if (102 == point->idtag) {
+    if (81 == point->idtag) {
       printf("!%s(%u): post constr = %g %g %g %g (%d)\n", me,
              point->idtag,
              point->pos[0], point->pos[1],
@@ -675,7 +666,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
     /*
-    if (102 == point->idtag) {
+    if (81 == point->idtag) {
       printf("!%s(%u): energyNew = %g \n", me,
              point->idtag, energyNew);
     }
@@ -717,7 +708,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
   /*
-  if (102 == point->idtag) {
+  if (81 == point->idtag) {
     printf("!%s(%u):iter %u changed (%g,%g,%g,%g)->(%g,%g,%g,%g)\n",
            me, point->idtag, task->pctx->iter,
            posOld[0], posOld[1], posOld[2], posOld[3],

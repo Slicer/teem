@@ -399,16 +399,15 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      /** to find idtag of point at given location **
-      if (AIR_ABS(-0.194736  - point->pos[0]) < 0.001 &&
-          AIR_ABS(0.923997 - point->pos[1]) < 0.001 &&
-          AIR_ABS(0.000107472  - point->pos[2]) < 0.001) {
+      /** to find idtag of point at given location **/
+      if (AIR_ABS(0.149152  - point->pos[0]) < 0.01 &&
+          AIR_ABS(0.941291  - point->pos[1]) < 0.01 &&
+          AIR_ABS(0.208097  - point->pos[ 3 ]) < 0.01) {
         printf("!%s: point %u at (%g,%g,%g,%g) ##############\n",
                me, point->idtag,
                point->pos[0], point->pos[1], 
                point->pos[2], point->pos[3]);
       }
-      */
       if (nPosOut) {
         ELL_4V_COPY(posOut + 4*outIdx, point->pos);
       }
