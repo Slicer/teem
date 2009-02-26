@@ -435,14 +435,21 @@ typedef struct gageParm_t {
 ******** gagePoint struct
 **
 ** stores location of last query location, which is used to determine
-** whether the ctx->fsl, ctx->fw values can be re-used (based on the 
+** whether the ctx->fsl, ctx->fw values can be re-used (based on the
 ** "Frac" values), and, whether all the pvl->iv3 have to be refilled
-** (based on the "Idx" values).  The last index is for the stack,
-** and can safely stay 0 if the stack isn't being used.
+** (based on the "Idx" values).  The last index (frac[3] and idx[3])is
+** for the stack, and can safely stay 0 if the stack isn't being used.
+**
+** with stack usage, stackFwNonZeroNum records how many pvls had
+** non-zero stack filter weights, which is used to detect when
+** iv3s have to be refilled.  Looking at idx[3] alone is not 
+** sufficient for this.
 */
 typedef struct gagePoint_t {
   double frac[4];         /* last fractional voxel location */
-  unsigned int idx[4];    /* last integral voxel location */
+  unsigned int idx[4],    /* last integral voxel location */
+    stackFwNonZeroNum;    /* last number of non-zero values of stack filter
+                             weights (ctx->stackFslw) */
 } gagePoint;
 
 /*

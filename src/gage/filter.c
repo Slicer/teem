@@ -273,10 +273,18 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     _gageFwSet(ctx);
   }
 
+  if (ctx->verbose > 2 && ctx->parm.stackUse) {
+    printf("%s: point.frac[3] %f + idx[3] %u = %f %s stackIdx %f\n", me,
+           ctx->point.frac[3], ctx->point.idx[3],
+           ctx->point.frac[3] + ctx->point.idx[3],
+           (ctx->point.frac[3] + ctx->point.idx[3] == stackIdx
+            ? "==" : "NOT =="),
+           stackIdx);
+  }
   if (ctx->parm.stackUse
       && (ctx->point.frac[3] + ctx->point.idx[3] != stackIdx)) {
     double sum;
-    unsigned int ii;
+    unsigned int ii, nnz;
     NrrdKernelSpec *sksp;
 
     /* node-centered sampling of stack indices from 0 to ctx->pvlNum-2 */
@@ -303,9 +311,12 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
                me, ii, ctx->stackFslw[ii]);
       }
     }
+    /* have to compute stackFwNonZeroNum in either case! */
+    nnz = 0;
     if (ctx->parm.stackNormalizeRecon) {
       sum = 0;
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
+        nnz += !!ctx->stackFslw[ii];
         sum += ctx->stackFslw[ii];
       }
       if (!sum) {
@@ -324,14 +335,13 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
         }
       }
     } else {
-      /* still have to make sure there are non-zero weights */
+      /* w/out normalizing, we still have to make sure there are
+         some non-zero weights */
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        if (ctx->stackFslw[ii]) {
-          break;
-        }
+        nnz += !!ctx->stackFslw[ii];
       }
-      if (ii == ctx->pvlNum-1) {
-        sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
+      if (!nnz) {
+        sprintf(ctx->errStr, "%s: all stackFslw[] weights are zero, "
                 "can't do stack reconstruction", me);
         ctx->errNum = gageErrStackIntegral;
         return 1;
@@ -340,6 +350,7 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     ctx->point.idx[3] = AIR_CAST(unsigned int, stackIdx);
     ctx->point.idx[3] -= (stackIdx == ctx->pvlNum-2);
     ctx->point.frac[3] = stackIdx - ctx->point.idx[3];
+    ctx->point.stackFwNonZeroNum = nnz;
   }
   
   return 0;

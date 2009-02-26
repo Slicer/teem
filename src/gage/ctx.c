@@ -618,13 +618,14 @@ int
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
            double stackIdx) {
   char me[]="_gageProbe";
-  unsigned int oldIdx[4], pvlIdx;
+  unsigned int oldIdx[4], oldNnz=0, pvlIdx;
   int idxChanged;
 
   if (!ctx) {
     return 1;
   }
   ELL_4V_COPY(oldIdx, ctx->point.idx);
+  oldNnz = ctx->point.stackFwNonZeroNum;
   if (_gageLocationSet(ctx, _xi, _yi, _zi, stackIdx)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set;
        as they have just been set by _gageLocationSet() */
@@ -637,6 +638,22 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
                 oldIdx[2] != ctx->point.idx[2]);
   if (ctx->parm.stackUse) {
     idxChanged |= oldIdx[3] != ctx->point.idx[3];
+    /* this is subtle (and the source of a difficult bug): even if
+       point.idx[3] has not changed, you can still have a change in
+       which of the stackFslw[] are non-zero, which in turn determines
+       which iv3s have to be refilled.  For example, changing stackIdx
+       from 0.0 to 0.1, using tent or hermite reconstruction, will
+       newly require pvl[1]'s iv3 to be refilled.  To catch this kind
+       of situation, we could keep a list of which iv3s are active and
+       look for changes in that, or, we could just look for changes in
+       point.idx[3] AND changes in stackFwNonZeroNum */
+    idxChanged |= oldNnz != ctx->point.stackFwNonZeroNum;
+  }
+  if (ctx->verbose > 2) {
+    printf("%s: oldIdx %u %u %u %u, point.idx %u %u %u %u --> %d\n", me,
+           oldIdx[0], oldIdx[1], oldIdx[2], oldIdx[3],
+           ctx->point.idx[0], ctx->point.idx[1], 
+           ctx->point.idx[2], ctx->point.idx[3], idxChanged);
   }
   if (idxChanged) {
     if (!ctx->parm.stackUse) {
@@ -651,7 +668,16 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
            scale, instead of refilling all of them in the support of
            the stack recon */
         if (ctx->stackFslw[pvlIdx]) {
+          if (ctx->verbose > 2) {
+            printf("%s: stackFslw[%u] == %g -> iv3fill needed\n", me, 
+                   pvlIdx, ctx->stackFslw[pvlIdx]);
+          }
           gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+        } else {
+          if (ctx->verbose > 2) {
+            printf("%s: stackFslw[%u] == %g -> NO iv3fill\n", me, 
+                   pvlIdx, ctx->stackFslw[pvlIdx]);
+          }
         }
       }
     }

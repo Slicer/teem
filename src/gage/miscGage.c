@@ -124,6 +124,7 @@ gagePointReset(gagePoint *point) {
                AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
     big = AIR_CAST(unsigned int, -1);
     ELL_4V_SET(point->idx, big, big, big, big);
+    point->stackFwNonZeroNum = 0;
   }
   return;
 }
