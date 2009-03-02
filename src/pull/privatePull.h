@@ -48,9 +48,18 @@ extern "C" {
    values allow for more adventurous explorations... */
 #define _PULL_DIST_CAP_SCALE 2.0
 
+/* where along s axis to probe energySpecS to see if its attractive or
+   repulsive along scale */
+#define _PULL_TARGET_DIM_S_PROBE 0.05
+
+/* tentative new points aren't allowed to move further than this (in 
+   rs-normalized space) from the original old point */
+#define _PULL_NEWPNT_STRAY_DIST 1.7
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
+extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
 
 /* infoPull.c */
 extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];
@@ -80,6 +89,10 @@ extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
                                     double force[4]);
 extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
                                     pullPoint *point, int ignoreImage);
+extern double _pullEnergyInterParticle(pullTask *task,
+                                       pullPoint *me, pullPoint *she, 
+                                       double spaceDist, double scaleDist,
+                                       double egrad[4]);
 
 /* constraints.c */
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,

@@ -135,6 +135,55 @@ enum {
 };
 
 /*
+******** pullInterType* enum
+**
+** the different types of scale-space interaction that can happen
+** in scale-space.  The descriptions here overlook the normalization
+** by radiusScale and radiusSpace
+*/
+enum {
+  pullInterTypeUnknown,      /* 0 */
+  pullInterTypeJustR,        /* 1: phi(r,s) = phi_r(r) */
+  pullInterTypeUnivariate,   /* 2: phi(r,s) = phi_r(u); u = sqrt(r*r+s*s) */
+  pullInterTypeSeparable,    /* 3: phi(r,s) = phi_r(r)*phi_s(s) */
+  pullInterTypeAdditive,     /* 4: phi(r,s) = beta*phi_r(r)*win(s) 
+                                              + (1-beta)*win(r)*phi_s(s) */
+  pullInterTypeLast
+};
+#define PULL_INTER_TYPE_MAX     4
+
+/*
+******** pullEnergyType* enum
+**
+** the different shapes of potential energy profiles that can be used
+*/
+enum {
+  pullEnergyTypeUnknown,       /* 0 */
+  pullEnergyTypeSpring,        /* 1 */
+  pullEnergyTypeGauss,         /* 2 */
+  pullEnergyTypeButterworth,   /* 3 */
+  pullEnergyTypeCotan,         /* 4 */
+  pullEnergyTypeCubic,         /* 5 */
+  pullEnergyTypeQuartic,       /* 6 */
+  pullEnergyTypeCubicWell,     /* 7 */
+  pullEnergyTypeZero,          /* 8 */
+  pullEnergyTypeButterworthParabola, /* 9 */
+  pullEnergyTypeLast
+};
+#define PULL_ENERGY_TYPE_MAX      9
+#define PULL_ENERGY_PARM_NUM 3
+
+enum {
+  pullProcessModeUnknown,      /* 0 */
+  pullProcessModeDescent,      /* 1 */
+  pullProcessModeNeighLearn,   /* 2 */
+  pullProcessModeAdding,       /* 3 */
+  pullProcessModeNixing,       /* 4 */
+  pullProcessModeLast
+};
+#define PULL_PROCESS_MODE_MAX     4
+
+/*
 ** the conditions under which a point may find itself at some position 
 */
 enum {
@@ -216,36 +265,6 @@ typedef struct pullBin_t {
   struct pullBin_t **neighBin;  /* pre-computed NULL-terminated list of all
                                 neighboring bins, including myself */
 } pullBin;
-
-/*
-******** pullEnergyType* enum
-**
-** the different shapes of potential energy profiles that can be used
-*/
-enum {
-  pullEnergyTypeUnknown,       /* 0 */
-  pullEnergyTypeSpring,        /* 1 */
-  pullEnergyTypeGauss,         /* 2 */
-  pullEnergyTypeGaussHack,     /* 3 */
-  pullEnergyTypeCotan,         /* 4 */
-  pullEnergyTypeCubic,         /* 5 */
-  pullEnergyTypeQuartic,       /* 6 */
-  pullEnergyTypeCubicWell,     /* 7 */
-  pullEnergyTypeZero,          /* 8 */
-  pullEnergyTypeLast
-};
-#define PULL_ENERGY_TYPE_MAX      8
-#define PULL_ENERGY_PARM_NUM 3
-
-enum {
-  pullProcessModeUnknown,      /* 0 */
-  pullProcessModeDescent,      /* 1 */
-  pullProcessModeNeighLearn,   /* 2 */
-  pullProcessModeAdding,       /* 3 */
-  pullProcessModeNixing,       /* 4 */
-  pullProcessModeLast
-};
-#define PULL_PROCESS_MODE_MAX     4
 
 /*
 ******** pullEnergy
@@ -430,19 +449,22 @@ typedef struct pullContext_t {
                                       for enforcing each constraint */
     snap;                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
-  
-  pullEnergySpec *energySpec;      /* starting point for radial potential
-                                      energy function, phi(r) */
+
+  int interType;                   /* from the pullInterType* enum */
+  pullEnergySpec *energySpecR,     /* starting point for radial potential
+                                      energy function, phi_r */
+    *energySpecS,                  /* second energy potential function, for
+                                      scale-space behavior, phi_s */
+    *energySpecWin;                /* function used to window phi_r along s,
+                                      and phi_s along r, for use with 
+                                      pullInterTypeAdditive */
   double alpha,                    /* alpha = 0: only particle-image, 
                                       alpha = 1: only inter-particle */
-    beta,                          /* tuning parameter for amount of 
-                                      scale-space attraction */
+    beta,                          /* tuning parameter used for
+                                      pullInterAdditive */
     jitter;                        /* when using pointPerVoxel, how much to
                                       jitter the samples within the voxel;
                                       0: no jitter, 1: full jitter */
-  int radiusSingle;                /* if non-zero, combine scale-space 
-                                      offset into a single radius, else
-                                      use beta for Phi_{x-G}(r,s) */
   int binSingle;                   /* disable binning (for debugging) */
   unsigned int binIncr;            /* increment for per-bin airArray */
   void (*iter_cb)(void *data_cb);  /* callback to call once per iter
@@ -475,10 +497,17 @@ typedef struct pullContext_t {
     maxDistScale,                  /* max dist of point-point interaction 
                                       along scale */
     constraintDim,                 /* dimension (possibly non-integer) of
-				      constraint surface we're working on,
-				      or 0 if no constraint, or if we have a
-                                      constraint, but we're using tangent mode,
-                                      so the constraint dim is per-point*/
+				      (spatial) constraint surface we're
+                                      working on, or 0 if no constraint, or
+                                      if we have a constraint, but we're using
+                                      tangent mode, so the constraint dim is
+                                      per-point */
+    targetDim,                     /* dimension (possibly non-integer) of
+                                      surface we'd like to be sampling, which
+                                      can be different than constraintDim
+                                      because of scale-space, and either 
+                                      repulsive (+1) or attractive (+0)
+                                      behavior along scale */
     constraintVoxelSize;           /* if there's a constraint, mean voxel edge
                                       length, to use for limiting distance 
                                       to travel for constraint satisfaction */
@@ -516,16 +545,18 @@ PULL_EXPORT int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
 
 /* energy.c */
+PULL_EXPORT airEnum *pullInterType;
 PULL_EXPORT airEnum *pullEnergyType;
 PULL_EXPORT const pullEnergy *const pullEnergyUnknown;
 PULL_EXPORT const pullEnergy *const pullEnergySpring;
 PULL_EXPORT const pullEnergy *const pullEnergyGauss;
-PULL_EXPORT const pullEnergy *const pullEnergyGaussHack;
+PULL_EXPORT const pullEnergy *const pullEnergyButterworth;
 PULL_EXPORT const pullEnergy *const pullEnergyCotan;
 PULL_EXPORT const pullEnergy *const pullEnergyCubic;
 PULL_EXPORT const pullEnergy *const pullEnergyQuartic;
 PULL_EXPORT const pullEnergy *const pullEnergyCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
+PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
 PULL_EXPORT pullEnergySpec *pullEnergySpecNew();
 PULL_EXPORT int pullEnergySpecSet(pullEnergySpec *ensp,

@@ -68,11 +68,13 @@ pullContextNew(void) {
   pctx->constraintIterMax = 15;
   pctx->snap = 0;
   
-  pctx->energySpec = pullEnergySpecNew();
+  pctx->interType = pullInterTypeUnknown;
+  pctx->energySpecR = pullEnergySpecNew();
+  pctx->energySpecS = pullEnergySpecNew();
+  pctx->energySpecWin = pullEnergySpecNew();
   pctx->alpha = 0.5;
-  pctx->beta = 1.0;
+  pctx->beta = 0.5;
   pctx->jitter = 1.0;
-  pctx->radiusSingle = AIR_TRUE;
 
   pctx->binSingle = AIR_FALSE;
   pctx->binIncr = 32;
@@ -89,6 +91,7 @@ pullContextNew(void) {
   pctx->maxDistSpace = AIR_NAN;
   pctx->maxDistScale = AIR_NAN;
   pctx->constraintDim = AIR_NAN;
+  pctx->targetDim = AIR_NAN;
   pctx->constraintVoxelSize = AIR_NAN;
 
   pctx->bin = NULL;
@@ -131,7 +134,9 @@ pullContextNix(pullContext *pctx) {
         pctx->ispec[ii] = pullInfoSpecNix(pctx->ispec[ii]);
       }
     }
-    pctx->energySpec = pullEnergySpecNix(pctx->energySpec);
+    pctx->energySpecR = pullEnergySpecNix(pctx->energySpecR);
+    pctx->energySpecS = pullEnergySpecNix(pctx->energySpecS);
+    pctx->energySpecWin = pullEnergySpecNix(pctx->energySpecWin);
     /* handled elsewhere: bin, task, iterBarrierA, iterBarrierB */
     pctx->noutPos = nrrdNuke(pctx->noutPos);
     airFree(pctx);
@@ -314,6 +319,26 @@ _pullContextCheck(pullContext *pctx) {
             pctx->threadNum, PULL_THREAD_MAXNUM);
     biffAdd(PULL, err); return 1;
   }
+  if (airEnumValCheck(pullInterType, pctx->interType)) {
+    sprintf(err, "%s: pctx->interType %d not a valid %s", me,
+            pctx->interType, pullInterType->name);
+    biffAdd(PULL, err); return 1;
+  }
+  if (pullInterTypeJustR == pctx->interType
+      || pullInterTypeUnivariate == pctx->interType) {
+    if (pullEnergyZero != pctx->energySpecS->energy) {
+      sprintf(err, "%s: can't use scale energy %s with inter type %s", me,
+              pctx->energySpecS->energy->name, 
+              airEnumStr(pullInterType, pctx->interType));
+      biffAdd(PULL, err); return 1;
+    }
+  } else {
+    if (pullEnergyZero == pctx->energySpecS->energy) {
+      sprintf(err, "%s: need a non-zero scale energy for inter type %s", me,
+              airEnumStr(pullInterType, pctx->interType));
+      biffAdd(PULL, err); return 1;
+    }
+  }
 
 #define CHECK(thing, min, max)                                   \
   if (!( AIR_EXISTS(pctx->thing)                                 \
@@ -399,15 +424,17 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      /** to find idtag of point at given location **/
-      if (AIR_ABS(0.149152  - point->pos[0]) < 0.01 &&
-          AIR_ABS(0.941291  - point->pos[1]) < 0.01 &&
-          AIR_ABS(0.208097  - point->pos[ 3 ]) < 0.01) {
+      /** to find idtag of point at particular location **/
+      /*
+      if (AIR_ABS(84.2579  - point->pos[0]) < 0.5 &&
+          AIR_ABS(449.574 - point->pos[1]) < 0.5 &&
+          AIR_ABS(340.127  - point->pos[ 2 ]) < 0.5) {
         printf("!%s: point %u at (%g,%g,%g,%g) ##############\n",
                me, point->idtag,
                point->pos[0], point->pos[1], 
                point->pos[2], point->pos[3]);
       }
+      */
       if (nPosOut) {
         ELL_4V_COPY(posOut + 4*outIdx, point->pos);
       }

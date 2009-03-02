@@ -356,8 +356,8 @@ pullRun(pullContext *pctx) {
 	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
 	&& enrDecreaseAvg < pctx->energyDecreasePopCntlMin) {
       if (pctx->verbose) {
-	printf("%s: enr decrease %g < %g: trying pop cntl\n", me,
-	       enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
+	printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
+	       me, enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
       }
       if (_iterate(pctx, pullProcessModeNeighLearn)
           || _iterate(pctx, pullProcessModeAdding)

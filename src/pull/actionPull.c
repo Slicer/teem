@@ -117,13 +117,18 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
 ** egrad will be NULL if this is being called only to assess
 ** the energy at this point, rather than for learning how to move it
 */
-static double
-_energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
-                     double spaceDist, double scaleDist,
-                     /* output */
-                     double egrad[4]) {
-  char meme[]="_energyInterParticle";
-  double diff[4], spaceRad, scaleRad, rr, ss, enr, denr, *parm;
+double
+_pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
+                         double spaceDist, double scaleDist,
+                         /* output */
+                         double egrad[4]) {
+  char meme[]="pullEnergyInterParticle";
+  double diff[4], spaceRad, scaleRad, rr, ss, uu, beta,
+    en, den, enR, denR, enS, denS, enWR, enWS, denWR, denWS,
+    *parmR, *parmS, *parmW,
+    (*evalR)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]),
+    (*evalS)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]),
+    (*evalW)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]);
   int scaleSgn;
 
   /* the vector "diff" goes from her, to me, in both space and scale */
@@ -155,49 +160,90 @@ _energyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     }
     return 0;
   }
-
-  if (!task->pctx->haveScale) {
-    parm = task->pctx->energySpec->parm;
-    enr = task->pctx->energySpec->energy->eval(&denr, rr, parm);
+  
+  parmR = task->pctx->energySpecR->parm;
+  evalR = task->pctx->energySpecR->energy->eval;
+  parmS = task->pctx->energySpecS->parm;
+  evalS = task->pctx->energySpecS->energy->eval;
+  switch (task->pctx->interType) {
+  case pullInterTypeJustR:
+    /* _pullVolumeSetup makes sure that 
+       !task->pctx->haveScale iff pullInterTypeJustR == pctx->interType */
+    en = evalR(&denR, rr, parmR);
     if (egrad) {
-      denr *= 1.0/(spaceRad*spaceDist);
-      ELL_3V_SCALE(egrad, denr, diff);
+      denR *= 1.0/(spaceRad*spaceDist);
+      ELL_3V_SCALE(egrad, denR, diff);
       egrad[3] = 0;
     }
-  } else {
-#if 0
-    /*Implementation of Phi_{x-G}(r,s)*/
-    double enrs,frcs, enrg, frcg, beta;
-    parm = task->pctx->energySpec->parm;
-    enr = task->pctx->energySpec->energy->eval(&frc, rr, parm);
-    enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
-    enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
-    beta = task->pctx->beta;
-    frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
-    ELL_3V_SCALE(egrad,frc/spadist,diff);
-    frcs *= -1.0 * (beta * enr - (1-beta) * enrg) / (2*scalerad);
-    /*Compute final gradient*/
-    ELL_3V_SCALE(egrad,frc,diff);
-    egrad[3] = frcs;
-    enr = (beta * enr - (1-beta) * enrg) *enrs;
-    /* Implementation of Phi_x(r,x) */
-#endif 
-    double uu;
+    break;
+  case pullInterTypeUnivariate:
     uu = sqrt(rr*rr + ss*ss);
-    parm = task->pctx->energySpec->parm;
-    enr = task->pctx->energySpec->energy->eval(&denr, uu, parm);
+    en = evalR(&den, uu, parmR);
     if (egrad) {
-      ELL_3V_SCALE(egrad, denr/(uu*spaceRad*spaceRad), diff);
-      egrad[3] = scaleSgn*denr/(uu*scaleRad*scaleRad);
+      ELL_3V_SCALE(egrad, den/(uu*spaceRad*spaceRad), diff);
+      egrad[3] = den*diff[3]/(uu*scaleRad*scaleRad);
     }
+    break;
+  case pullInterTypeSeparable:
+    enR = evalR(&denR, rr, parmR);
+    enS = evalS(&denS, ss, parmS);
+    scaleSgn = airSgn(diff[3]);
+    en = enR*enS;
+    if (egrad) {
+      ELL_3V_SCALE(egrad, denR*enS/(spaceRad*spaceDist), diff);
+      egrad[3] = enR*scaleSgn*denS/scaleRad;
+    }
+    break;
+  case pullInterTypeAdditive:
+    parmW = task->pctx->energySpecWin->parm;
+    evalW = task->pctx->energySpecWin->energy->eval;
+    enR = evalR(&denR, rr, parmR);
+    enS = evalS(&denS, ss, parmS);
+    enWR = evalW(&denWR, rr, parmW);
+    enWS = evalW(&denWS, ss, parmW);
+    beta = task->pctx->beta;
+    en = AIR_LERP(beta, enR*enWS, enS*enWR);
+    if (egrad) {
+      double egradR[4], egradS[4];
+      ELL_3V_SCALE(egradR, denR*enWS/(spaceRad*spaceDist), diff);
+      ELL_3V_SCALE(egradS, denWR*enS/(spaceRad*spaceDist), diff);
+      egradR[3] = enR*scaleSgn*denWS/scaleRad;
+      egradS[3] = enWR*scaleSgn*denS/scaleRad;
+      ELL_4V_LERP(egrad, beta, egradR, egradS);
+    }
+    break;
+  default:
+    fprintf(stderr, "!%s: sorry, intertype %d unimplemented", meme, 
+            task->pctx->interType);
+    en = AIR_NAN;
+    if (egrad) {
+      ELL_4V_SET(egrad, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+    }
+    break;
   }
+#if 0
+  /*Implementation of Phi_{x-G}(r,s)*/
+  double enrs,frcs, enrg, frcg, beta;
+  parm = task->pctx->energySpecR->parm;
+  enr = task->pctx->energySpecR->energy->eval(&frc, rr, parm);
+  enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
+  enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
+  frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
+  ELL_3V_SCALE(egrad,frc/spadist,diff);
+  frcs *= -1.0 * (beta * enr - (1-beta) * enrg) / (2*scalerad);
+  /*Compute final gradient*/
+  ELL_3V_SCALE(egrad,frc,diff);
+  egrad[3] = frcs;
+  enr = (beta * enr - (1-beta) * enrg) *enrs;
+  /* Implementation of Phi_x(r,x) */
+#endif 
   /*
   printf("%s: %u <-- %u = %g,%g,%g -> egrad = %g,%g,%g, enr = %g\n",
          meme, me->idtag, she->idtag, 
          diff[0], diff[1], diff[2],
          egrad[0], egrad[1], egrad[2], enr);
   */
-  return enr;
+  return en;
 }
 
 /*
@@ -332,8 +378,8 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     spaDist = sqrt(spaDistSq);
     /* we pass spaDist to avoid recomputing sqrt(), and sclDist for
        stupid consistency  */
-    enr = _energyInterParticle(task, point, herPoint, spaDist, sclDist,
-                               egradSum ? egrad : NULL);
+    enr = _pullEnergyInterParticle(task, point, herPoint, spaDist, sclDist,
+                                   egradSum ? egrad : NULL);
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
          its not just a fluke zero-crossing of the potential profile */
@@ -537,7 +583,7 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
   double ret;
 
   if (point->neighDistMean == 0 /* no known neighbors from last iter */
-      || pullEnergyZero == task->pctx->energySpec->energy) {
+      || pullEnergyZero == task->pctx->energySpecR->energy) {
     ret = 1;
   } else {
     ret = _PULL_DIST_CAP_SCALE*point->neighDistMean;
@@ -555,7 +601,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   char me[]="pullPointProcessDescent", err[BIFF_STRLEN];
   double energyOld, energyNew, egrad[4], force[4], posOld[4];
   int stepBad, giveUp;
-
+ 
   if (!point->stepEnergy) {
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
@@ -594,7 +640,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     /* force[3] untouched */
   }
   /*
-  if (81 == point->idtag) {
+  if (crazy) {
     printf("!%s(%u): post-constraint tan: force = %g %g %g %g\n", me,
            point->idtag, force[0], force[1], force[2], force[3]);
     printf("   precap stepEnergy = %g\n", point->stepEnergy);
@@ -616,7 +662,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     }
   }
   /*
-  if (81 == point->idtag) {
+  if (crazy) {
     printf("  postcap stepEnergy = %g\n", point->stepEnergy);
   }
   */
@@ -626,12 +672,12 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   _pullPointHistAdd(point, pullCondOld);
   /* try steps along force until we succcessfully lower energy */
   do {
-    int constrFail;
+    int constrFail, energyIncr;
     giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       point->stepEnergy, force);
     /*
-    if (81 == point->idtag) {
+    if (crazy) {
       printf("!%s(%u): (iter %u) try pos  = %g %g %g %g\n",
              me, point->idtag, task->pctx->iter,
              point->pos[0], point->pos[1],
@@ -653,7 +699,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       constrFail = AIR_FALSE;
     }
     /*
-    if (81 == point->idtag) {
+    if (crazy) {
       printf("!%s(%u): post constr = %g %g %g %g (%d)\n", me,
              point->idtag,
              point->pos[0], point->pos[1],
@@ -665,14 +711,14 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
+    energyIncr = energyNew > energyOld + task->pctx->energyIncreasePermit;
     /*
-    if (81 == point->idtag) {
-      printf("!%s(%u): energyNew = %g \n", me,
-             point->idtag, energyNew);
+    if (crazy) {
+      printf("!%s(%u): constrFail %d; energyNew = %g -> energyIncr %d\n", me,
+             point->idtag, constrFail, energyNew, energyIncr);
     }
     */
-    stepBad = (constrFail 
-               || (energyNew > energyOld + task->pctx->energyIncreasePermit));
+    stepBad = (constrFail || energyIncr);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
       if (constrFail) {
@@ -708,7 +754,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
   /*
-  if (81 == point->idtag) {
+  if (crazy) {
     printf("!%s(%u):iter %u changed (%g,%g,%g,%g)->(%g,%g,%g,%g)\n",
            me, point->idtag, task->pctx->iter,
            posOld[0], posOld[1], posOld[2], posOld[3],
@@ -768,17 +814,19 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   unsigned int myPointIdx;
 
   if (task->pctx->verbose > 2) {
-    printf("%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
+    printf("%s(%s): doing bin %u\n", me, 
+           airEnumStr(pullProcessMode, task->processMode), myBinIdx);
   }
   myBin = task->pctx->bin + myBinIdx;
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
-    if (_pullPointProcess(task, myBin, myBin->point[myPointIdx])) {
+    pullPoint *point;
+    point = myBin->point[myPointIdx];
+    if (_pullPointProcess(task, myBin, point)) {
       sprintf(err, "%s: on point %u of bin %u\n", me, 
               myPointIdx, myBinIdx);
       biffAdd(PULL, err); return 1;
     }
-    task->stuckNum += (myBin->point[myPointIdx]->status
-                       & PULL_STATUS_STUCK_BIT);
+    task->stuckNum += (point->status & PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
 
   return 0;

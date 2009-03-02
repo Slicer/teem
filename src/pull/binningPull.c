@@ -249,13 +249,11 @@ _pullBinSetup(pullContext *pctx) {
   char me[]="_pullBinSetup", err[BIFF_STRLEN];
   unsigned ii;
   double volEdge[4], scl;
-  const pullEnergySpec *espec;
 
   scl = (pctx->radiusSpace ? pctx->radiusSpace : 0.1);
   pctx->maxDistSpace = 2*scl;
   scl = (pctx->radiusScale ? pctx->radiusScale : 0.1);
   pctx->maxDistScale = 2*scl;
-  espec = pctx->energySpec;
 
   printf("!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
          pctx->radiusSpace, pctx->maxDistSpace);

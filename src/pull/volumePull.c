@@ -315,6 +315,15 @@ _pullVolumeCopy(const pullVolume *volOrig) {
   return volNew;
 }
 
+int
+_pullInsideBBox(pullContext *pctx, double pos[4]) {
+
+  return (AIR_IN_CL(pctx->bboxMin[0], pos[0], pctx->bboxMax[0]) &&
+          AIR_IN_CL(pctx->bboxMin[1], pos[1], pctx->bboxMax[1]) &&
+          AIR_IN_CL(pctx->bboxMin[2], pos[2], pctx->bboxMax[2]) &&
+          AIR_IN_CL(pctx->bboxMin[3], pos[3], pctx->bboxMax[3]));
+}
+
 /*
 ** sets:
 ** pctx->haveScale
@@ -365,7 +374,25 @@ _pullVolumeSetup(pullContext *pctx) {
          pctx->bboxMin[2], pctx->bboxMin[3],
          pctx->bboxMax[0], pctx->bboxMax[1],
          pctx->bboxMax[2], pctx->bboxMax[3]);
-  
+
+  /* _energyInterParticle() depends on this error checking */
+  if (pctx->haveScale) {
+    if (pullInterTypeJustR == pctx->interType) {
+      sprintf(err, "%s: need scale-aware intertype (not %s) with "
+              "a scale-space volume",
+              me, airEnumStr(pullInterType, pullInterTypeJustR));
+      biffAdd(PULL, err); return 1;
+    }
+  } else {
+    /* don't have scale */
+    if (pullInterTypeJustR != pctx->interType) {
+      sprintf(err, "%s: can't use scale-aware intertype (%s) without "
+              "a scale-space volume",
+              me, airEnumStr(pullInterType, pctx->interType));
+      biffAdd(PULL, err); return 1;
+    }
+  }
+
   return 0;
 }
 

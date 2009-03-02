@@ -23,26 +23,67 @@
 #include "pull.h"
 #include "privatePull.h"
 
+char
+_pullInterTypeStr[PULL_INTER_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_inter)",
+  "justR",
+  "univariate",
+  "separable",
+  "additive"
+};
+
+char
+_pullInterTypeStrEqv[][AIR_STRLEN_SMALL] = {
+  "r", "justr",
+  "univariate", "univar", "uni",
+  "separable", "separ", "sep",
+  "additive", "add", 
+  ""
+};
+
+int
+_pullInterTypeValEqv[] = {
+  pullInterTypeJustR, pullInterTypeJustR,
+  pullInterTypeUnivariate, pullInterTypeUnivariate, pullInterTypeUnivariate,
+  pullInterTypeSeparable, pullInterTypeSeparable, pullInterTypeSeparable,
+  pullInterTypeAdditive, pullInterTypeAdditive
+};
+
+airEnum
+_pullInterType = {
+  "interaction type",
+  PULL_INTER_TYPE_MAX,
+  _pullInterTypeStr,  NULL,
+  NULL,
+  _pullInterTypeStrEqv, _pullInterTypeValEqv,
+  AIR_FALSE
+};
+airEnum *
+pullInterType = &_pullInterType;
+
+
 #define SPRING    "spring"
 #define GAUSS     "gauss"
-#define GAUSSHACK "ghack"
+#define BUTTER    "butter"
 #define COTAN     "cotan"
 #define CUBIC     "cubic"
 #define QUARTIC   "quartic"
 #define CWELL     "cwell"
 #define ZERO      "zero"
+#define BPARAB    "bparab"
 
 char
 _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
-  GAUSSHACK,
+  BUTTER,
   COTAN,
   CUBIC,
   QUARTIC,
   CWELL,
-  ZERO
+  ZERO,
+  BPARAB
 };
 
 char
@@ -174,35 +215,32 @@ const pullEnergy *const
 pullEnergyGauss = &_pullEnergyGauss;
 
 /* ----------------------------------------------------------------
-** ---------------------------- GAUSSHACK -------------------------
+** ------------------------------ BUTTER --------------------------
 ** ----------------------------------------------------------------
-** 0 parms: for simplicity we're now always cutting off at 4 sigmas
+** 2 parms: order (an integer) and "cut-ff" (where height==0.5)
 */
-/* HEY: copied from teem/src/nrrd/kernel.c */
-#define _GAUSSHACK(x, sig, cut) ( \
-   x >= sig*cut ? 0           \
-   : exp(-x*x*x*x*x*x/(2.0*sig*sig)))
-
-#define _DGAUSSHACK(x, sig, cut) ( \
-   x >= sig*cut ? 0            \
-   : -exp(-x*x*x*x*x*x/(2.0*sig*sig))*(3*x*x*x*x*x/(sig*sig)))
 
 double
-_pullEnergyGaussHackEval(double *denr, double dist, const double *parm) {
+_pullEnergyButterworthEval(double *denr, double x, const double *parm) {
+  int n;
+  double cut, denom, enr;
 
-  AIR_UNUSED(parm);
-  *denr = _DGAUSSHACK(dist, 0.25, 4);
-  return _GAUSSHACK(dist, 0.25, 4);
+  n = AIR_CAST(int, parm[0]);
+  cut = parm[1];
+  denom = 1 + airIntPow(x/cut, 2*n);
+  enr = 1/denom;
+  *denr = -2*n*airIntPow(x/cut, 2*n - 1)*enr*enr/cut;
+  return enr;
 }
 
 const pullEnergy
-_pullEnergyGaussHack = {
-  GAUSSHACK,
-  0,
-  _pullEnergyGaussHackEval
+_pullEnergyButterworth= {
+  BUTTER,
+  2,
+  _pullEnergyButterworthEval
 };
 const pullEnergy *const
-pullEnergyGaussHack = &_pullEnergyGaussHack;
+pullEnergyButterworth = &_pullEnergyButterworth;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
@@ -352,20 +390,44 @@ const pullEnergy *const
 pullEnergyZero = &_pullEnergyZero;
 
 /* ----------------------------------------------------------------
+** ------------------------------- BPARAB -------------------------
+** ----------------------------------------------------------------
+** 2 parms, just like butterworth
+*/
+double
+_pullEnergyBParabEval(double *denr, double x, const double *parm) {
+  double ben, dben;
+
+  ben = _pullEnergyButterworthEval(&dben, x, parm);
+  *denr = 2*x*ben + x*x*dben;
+  return x*x*ben;
+}
+
+const pullEnergy
+_pullEnergyButterworthParabola = {
+  BPARAB,
+  2,
+  _pullEnergyBParabEval
+};
+const pullEnergy *const
+pullEnergyButterworthParabola = &_pullEnergyButterworthParabola;
+
+/* ----------------------------------------------------------------
 ** ----------------------------------------------------------------
 ** ----------------------------------------------------------------
 */
 
 const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
-  &_pullEnergyUnknown,   /* 0 */
-  &_pullEnergySpring,    /* 1 */
-  &_pullEnergyGauss,     /* 2 */
-  &_pullEnergyGaussHack, /* 3 */
-  &_pullEnergyCotan,     /* 4 */
-  &_pullEnergyCubic,     /* 5 */
-  &_pullEnergyQuartic,   /* 6 */
-  &_pullEnergyCubicWell, /* 7 */
-  &_pullEnergyZero       /* 8 */
+  &_pullEnergyUnknown,     /* 0 */
+  &_pullEnergySpring,      /* 1 */
+  &_pullEnergyGauss,       /* 2 */
+  &_pullEnergyButterworth, /* 3 */
+  &_pullEnergyCotan,       /* 4 */
+  &_pullEnergyCubic,       /* 5 */
+  &_pullEnergyQuartic,     /* 6 */
+  &_pullEnergyCubicWell,   /* 7 */
+  &_pullEnergyZero,        /* 8 */
+  &_pullEnergyButterworthParabola /* 9 */
 };
 
 pullEnergySpec *

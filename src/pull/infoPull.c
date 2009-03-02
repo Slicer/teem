@@ -270,6 +270,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 ** pctx->constraint
 ** pctx->constraintVoxelSize
 ** pctx->constraintDim
+** pctx->targetDim (non-trivial logic for scale-space!)
 */
 int
 _pullInfoSetup(pullContext *pctx) {
@@ -312,12 +313,43 @@ _pullInfoSetup(pullContext *pctx) {
         biffAdd(PULL, err); return 1;
       }
     }
+    if (pctx->haveScale) {
+      double *parmS, denS,
+        (*evalS)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]);
+      switch (pctx->interType) {
+      case pullInterTypeUnivariate:
+      case pullInterTypeSeparable:
+        /* assume repulsive along both r and s */
+        pctx->targetDim = 1 + pctx->constraintDim;
+        break;
+      case pullInterTypeAdditive:
+        parmS = pctx->energySpecS->parm;
+        evalS = pctx->energySpecS->energy->eval;
+        evalS(&denS, _PULL_TARGET_DIM_S_PROBE, parmS);
+        if (denS > 0) {
+          /* at small positive s, derivative was positive ==> attractive */
+          pctx->targetDim = pctx->constraintDim;
+        } else {
+          /* derivative was negative ==> repulsive */
+          pctx->targetDim = 1 + pctx->constraintDim;
+        }
+        break;
+      default:
+        sprintf(err, "%s: sorry, intertype %s not handled here", me, 
+                airEnumStr(pullInterType, pctx->interType));
+        break;
+      }
+    } else {
+      pctx->targetDim = pctx->constraintDim;
+    }
   } else {
     pctx->constraintDim = 0;
+    pctx->targetDim = 0;
   }
   if (pctx->verbose) {
-    printf("!%s: infoTotalLen = %u, constr = %d, constrDim = %g\n", me,
-           pctx->infoTotalLen, pctx->constraint, pctx->constraintDim);
+    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %g,%g\n", 
+           me, pctx->infoTotalLen, pctx->constraint,
+           pctx->constraintDim, pctx->targetDim);
   }
   return 0;
 }

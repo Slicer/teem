@@ -64,12 +64,19 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   pullPoint *newpnt;
   int E;
 
-  if (point->neighPointNum && task->pctx->constraintDim) {
+  if (point->neighPointNum && task->pctx->targetDim) {
     unsigned int plenty;
-    /* HEY, doesn't take into account scale space! */
-    plenty = (2 == task->pctx->constraintDim
-              ? 7
-              : 3);
+    plenty = (1 == task->pctx->targetDim
+              ? 3
+              : (1.5 == task->pctx->targetDim
+                 ? 5
+                 : (2 == task->pctx->targetDim
+                    ? 7
+                    : (2.5 == task->pctx->targetDim
+                       ? 10
+                       : (3 == task->pctx->targetDim
+                          ? 13
+                          : 0 /* shouldn't get here */)))));
     if (point->neighPointNum >= plenty) {
       /* there's little chance that adding points will reduce energy */
       return 0;
@@ -93,7 +100,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
        don't try to add */
     return 0;
   }
-  /* else we'll try adding something */
+  /* else we'll try adding something, start by creating point */
   newpnt = pullPointNew(task->pctx);
   if (!newpnt) {
     sprintf(err, "%s: couldn't spawn new point from %u", me, point->idtag);
@@ -102,16 +109,19 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* set status to indicate this is an unbinned point, with no 
      knowledge of its neighbors */
   newpnt->status |= PULL_STATUS_NEWBIE_BIT;
-  if (pullEnergyCubicWell == task->pctx->energySpec->energy) {
-    newSpcDist = task->pctx->radiusSpace*task->pctx->energySpec->parm[0];
+  if (pullEnergyCubicWell == task->pctx->energySpecR->energy) {
+    newSpcDist = task->pctx->energySpecR->parm[0];
   } else {
-    newSpcDist = task->pctx->radiusSpace*_PULL_NEWPNT_DIST;
+    newSpcDist = _PULL_NEWPNT_DIST;
   }
   /* compute offset (normalized) direction from current point location */
   if (!point->neighPointNum) {
     /* we had no neighbors, have to pretend like we did */
     airNormalRand_r(noffavg + 0, noffavg + 1, task->rng);
     airNormalRand_r(noffavg + 2, noffavg + 3, task->rng);
+    if (!task->pctx->haveScale) {
+      noffavg[3] = 0;
+    }
   }
   if (task->pctx->constraint) {
     double proj[9], tmpvec[3];
@@ -119,16 +129,19 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     ELL_3MV_MUL(tmpvec, proj, noffavg);
     ELL_3V_COPY(noffavg, tmpvec);
   }
-  ELL_3V_NORM(noffavg, noffavg, tmp);
+  ELL_4V_NORM(noffavg, noffavg, tmp);
+  ELL_3V_SCALE(noffavg, task->pctx->radiusSpace, noffavg);
+  noffavg[3] *= task->pctx->radiusScale;
   /* set new point location */
-  ELL_3V_SCALE_ADD2(newpnt->pos, newSpcDist, noffavg,
-                    1.0, point->pos);
-  if (task->pctx->haveScale) {
-    /* HEY: should have a smarter way of placing along scale */
-    newpnt->pos[3] = (0.5*task->pctx->radiusScale*noffavg[3]
-                      + point->pos[3]);
-  } else {
-    newpnt->pos[3] = point->pos[3];
+  ELL_4V_ADD2(newpnt->pos, noffavg, point->pos);
+  if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
+    if (task->pctx->verbose > 2) {
+      printf("%s: newpnt %u started (%g,%g,%g,%g) outside bbox, nope\n",
+             me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
+             newpnt->pos[2], newpnt->pos[3]);
+    }
+    newpnt = pullPointNix(newpnt);
+    return 0;
   }
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
@@ -145,14 +158,57 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       pullPointNix(newpnt);
       return 0;
     }
+    if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
+      if (task->pctx->verbose > 2) {
+        printf("%s: post constr newpnt %u (%g,%g,%g,%g) outside bbox; nope\n",
+               me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
+               newpnt->pos[2], newpnt->pos[3]);
+      }
+      newpnt = pullPointNix(newpnt);
+      return 0;
+    }
   }
   /* do some descent, on this point only, which we do by sneakily
      changing the per-task process mode ... */
   task->processMode = pullProcessModeDescent;
   E = 0;
   for (iter=0; iter<task->pctx->popCntlPeriod; iter++) {
+    double diff[4];
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
                                           AIR_TRUE /* ignoreImage */);
+    if (newpnt->status & PULL_STATUS_STUCK_BIT) {
+      if (task->pctx->verbose > 2) {
+        printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me, 
+               newpnt->idtag, iter);
+      }
+      newpnt = pullPointNix(newpnt);
+      task->processMode = pullProcessModeAdding;
+      return 0;
+    }
+    if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
+      if (task->pctx->verbose > 2) {
+        printf("%s: newpnt %u went (%g,%g,%g,%g) outside bbox; nope\n",
+               me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
+               newpnt->pos[2], newpnt->pos[3]);
+      }
+      newpnt = pullPointNix(newpnt);
+      task->processMode = pullProcessModeAdding;
+      return 0;
+    }
+    ELL_4V_SUB(diff, newpnt->pos, point->pos);
+    ELL_3V_SCALE(diff, 1/task->pctx->radiusSpace, diff);
+    diff[3] /= task->pctx->radiusScale;
+    if (ELL_4V_LEN(diff) > _PULL_NEWPNT_STRAY_DIST) {
+      if (task->pctx->verbose > 2) {
+        printf("%s: newpnt %u went to far %g from old point %u; nope\n",
+               me, newpnt->idtag, ELL_4V_LEN(diff), point->idtag);
+      }
+      newpnt = pullPointNix(newpnt);
+      task->processMode = pullProcessModeAdding;
+      return 0;
+    }
+    /* still trying to descend */
+    newpnt->stepEnergy *= task->pctx->opporStepScale;
   }
   /* now that newbie point is final test location, learn neighbors */
   /* we have to add newpnt to add queue, just so that its neighbors
