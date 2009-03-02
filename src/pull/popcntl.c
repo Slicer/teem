@@ -60,7 +60,8 @@ int
 _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   char me[]="_pullPointProcessAdding", err[BIFF_STRLEN];
   unsigned int npi, iter, api;
-  double noffavg[4], enrWith, enrWithout, fracNixed, newSpcDist, tmp;
+  double noffavg[4], npos[4], enrWith, enrWithout,
+    fracNixed, newSpcDist, tmp;
   pullPoint *newpnt;
   int E;
 
@@ -100,15 +101,6 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
        don't try to add */
     return 0;
   }
-  /* else we'll try adding something, start by creating point */
-  newpnt = pullPointNew(task->pctx);
-  if (!newpnt) {
-    sprintf(err, "%s: couldn't spawn new point from %u", me, point->idtag);
-    biffAdd(PULL, err); return 1;
-  }
-  /* set status to indicate this is an unbinned point, with no 
-     knowledge of its neighbors */
-  newpnt->status |= PULL_STATUS_NEWBIE_BIT;
   if (pullEnergyCubicWell == task->pctx->energySpecR->energy) {
     newSpcDist = task->pctx->energySpecR->parm[0];
   } else {
@@ -133,16 +125,24 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   ELL_3V_SCALE(noffavg, task->pctx->radiusSpace, noffavg);
   noffavg[3] *= task->pctx->radiusScale;
   /* set new point location */
-  ELL_4V_ADD2(newpnt->pos, noffavg, point->pos);
-  if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
+  ELL_4V_ADD2(npos, noffavg, point->pos);
+  if (!_pullInsideBBox(task->pctx, npos)) {
     if (task->pctx->verbose > 2) {
-      printf("%s: newpnt %u started (%g,%g,%g,%g) outside bbox, nope\n",
-             me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
-             newpnt->pos[2], newpnt->pos[3]);
+      printf("%s: new pnt would start (%g,%g,%g,%g) outside bbox, nope\n",
+             me, npos[0], npos[1], npos[2], npos[3]);
     }
-    newpnt = pullPointNix(newpnt);
     return 0;
   }
+  /* initial pos is good, now we start getting serious */
+  newpnt = pullPointNew(task->pctx);
+  if (!newpnt) {
+    sprintf(err, "%s: couldn't spawn new point from %u", me, point->idtag);
+    biffAdd(PULL, err); return 1;
+  }
+  ELL_4V_COPY(newpnt->pos, npos);
+  /* set status to indicate this is an unbinned point, with no 
+     knowledge of its neighbors */
+  newpnt->status |= PULL_STATUS_NEWBIE_BIT;
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
     int constrFail;
@@ -168,7 +168,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
   }
-  /* do some descent, on this point only, which we do by sneakily
+  /* do some descent, on this point only, which (HACK!) we do by 
      changing the per-task process mode ... */
   task->processMode = pullProcessModeDescent;
   E = 0;
@@ -182,6 +182,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
                newpnt->idtag, iter);
       }
       newpnt = pullPointNix(newpnt);
+      /* if we don't change the mode back, then pullBinProcess() won't
+         know to try adding for the rest of the bins it sees, bad HACK */
       task->processMode = pullProcessModeAdding;
       return 0;
     }
@@ -207,11 +209,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       task->processMode = pullProcessModeAdding;
       return 0;
     }
-    /* still trying to descend */
+    /* still okay to continue descending */
     newpnt->stepEnergy *= task->pctx->opporStepScale;
   }
   /* now that newbie point is final test location, learn neighbors */
-  /* we have to add newpnt to add queue, just so that its neighbors
+  /* we have to add newpnt to task's add queue, just so that its neighbors
      can see it as a possible neighbor */
   api = airArrayLenIncr(task->addPointArr, 1);
   task->addPoint[api] = newpnt;
@@ -234,7 +236,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   } else {
     /* its not good to add the point, remove it from the add queue */
     airArrayLenIncr(task->addPointArr, -1);
-    /* ugh, have to signal to neighbors that its no longer their neighbor */
+    /* ugh, have to signal to neighbors that its no longer their neighbor
+       HEY this is the part that is totally screwed with multiple threads */
     task->processMode = pullProcessModeNeighLearn;
     newpnt->status |= PULL_STATUS_NIXME_BIT;
     for (npi=0; npi<newpnt->neighPointNum; npi++) {
