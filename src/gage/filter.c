@@ -140,7 +140,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 }
 
 void
-_gageFwSet(gageContext *ctx) {
+_gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
   char me[]="_gageFwSet";
   int kidx, fd;
   
@@ -179,7 +179,44 @@ _gageFwSet(gageContext *ctx) {
       _gagePrint_fslw(stdout, ctx);
     }
   }
-  
+
+  if (ctx->parm.stackUse && ctx->parm.stackNormalizeDeriv) {
+    unsigned int kidx, fd, j;
+    double scl, norm, *fwX, *fwY, *fwZ,
+      (*dgeval)(double x, const double *parm),
+      dgparm[2] = {0, 3};
+    
+    scl = AIR_AFFINE(0.0, sfrac, 1.0,
+                     ctx->stackPos[sidx],
+                     ctx->stackPos[sidx+1]);
+    dgeval = nrrdKernelDiscreteGaussian->eval1_d;
+    dgparm[0] = scl;
+    /* from Eq. (120) in T. Lindeberg. "Feature Detection with Automatic
+       Scale Selection." International Journal of Computer Vision,
+       1998, 30, 77-116 */
+    /* 0.7978845608 ~= sqrt(2)/sqrt(pi) */
+    norm = 0.7978845608/(dgeval(0.0, dgparm) + dgeval(1.0, dgparm));
+    fd = 2*ctx->radius;
+    kidx = gageKernel11;
+    fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
+    fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
+    fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
+    for (j=0; j<fd; j++) {
+      fwX[j] *= norm;
+      fwY[j] *= norm;
+      fwZ[j] *= norm;
+    }
+    kidx = gageKernel22;
+    fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
+    fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
+    fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
+    for (j=0; j<fd; j++) {
+      fwX[j] *= norm*norm;
+      fwY[j] *= norm*norm;
+      fwZ[j] *= norm*norm;
+    }
+  }
+
   return;
 }
 
@@ -199,13 +236,15 @@ _gageFwSet(gageContext *ctx) {
 ** ctx->errNum and sprints message into ctx->errStr.
 */
 int
-_gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
-                 double stackIdx) {
+_gageLocationSet(gageContext *ctx,
+                 double xif, double yif, double zif, double sif) {
   char me[]="_gageProbeLocationSet";
-  unsigned int top[3];  /* "top" x, y, z: highest valid index in volume */
-  int xi, yi, zi;       /* computed integral positions in volume */
-  double xf, yf, zf, min, max[3];
+  unsigned int top[3],  /* "top" x, y, z: highest valid index in volume */
+    idx[4];
+  int sdiff;      /* computed integral positions in volume */
+  double frac[4], min, max[3];
 
+  /* **** bounds checking **** */
   top[0] = ctx->shape->size[0] - 1;
   top[1] = ctx->shape->size[1] - 1;
   top[2] = ctx->shape->size[2] - 1;
@@ -220,69 +259,92 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
     max[1] = top[1] + 0.5;
     max[2] = top[2] + 0.5;
   }
-  if (!( AIR_IN_CL(min, _xi, max[0]) && 
-         AIR_IN_CL(min, _yi, max[1]) && 
-         AIR_IN_CL(min, _zi, max[2]) )) {
+  if (!( AIR_IN_CL(min, xif, max[0]) && 
+         AIR_IN_CL(min, yif, max[1]) && 
+         AIR_IN_CL(min, zif, max[2]) )) {
     sprintf(ctx->errStr, "%s: position (%g,%g,%g) outside (%s-centered) "
             "bounds [%g,%g]x[%g,%g]x[%g,%g]",
-            me, _xi, _yi, _zi,
+            me, xif, yif, zif,
             airEnumStr(nrrdCenter, ctx->shape->center),
             min, max[0], min, max[1], min, max[2]);
     ctx->errNum = gageErrBoundsSpace;
     return 1;
   }
   if (ctx->parm.stackUse) {
-    if (!( AIR_IN_CL(0, stackIdx, ctx->pvlNum-2) )) {
+    if (!( AIR_IN_CL(0, sif, ctx->pvlNum-2) )) {
       sprintf(ctx->errStr, "%s: stack position %g outside (%s-centered) "
-              "bounds [0,%u]", me,
-              stackIdx, airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum-2);
+              "bounds [0,%u]", me, sif,
+              airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum-2);
       ctx->errNum = gageErrBoundsStack;
       return 1;
     }
   }
+
+  /* **** computing integral and fractional sample locations **** */
   /* for cell-centered, [-0.5,0] --> 0 */
-  xi = AIR_CAST(unsigned int, _xi); 
-  yi = AIR_CAST(unsigned int, _yi);
-  zi = AIR_CAST(unsigned int, _zi);
+  ELL_3V_SET(idx, 
+             AIR_CAST(unsigned int, xif),
+             AIR_CAST(unsigned int, yif),
+             AIR_CAST(unsigned int, zif));
   /* these can only can kick in for node-centered, because that's when
      max[] has an integral value */
-  xi -= (xi == max[0]);  
-  yi -= (yi == max[1]);
-  zi -= (zi == max[2]);
-  xf = _xi - xi;
-  yf = _yi - yi;
-  zf = _zi - zi;
-  ctx->point.idx[0] = xi;
-  ctx->point.idx[1] = yi;
-  ctx->point.idx[2] = zi;
+  idx[0] -= (idx[0] == max[0]);  
+  idx[1] -= (idx[1] == max[1]);
+  idx[2] -= (idx[2] == max[2]);
+  ELL_3V_SET(frac,
+             xif - idx[0],
+             yif - idx[1],
+             zif - idx[2]);
+  ELL_3V_COPY(ctx->point.idx, idx);  /* not idx[3], yet */
+  if (ctx->parm.stackUse) {
+    idx[3] = AIR_CAST(unsigned int, sif);
+    idx[3] -= (idx[3] == ctx->pvlNum-2);
+    frac[3] = sif - idx[3];
+    sdiff = (ctx->point.idx[3] + ctx->point.frac[3] != sif);
+  } else {
+    idx[3] = 0;
+    frac[3] = 0;
+    sdiff = AIR_FALSE;
+  }
   if (ctx->verbose > 2) {
     printf("%s: \n"
-           "        pos (% 15.7f,% 15.7f,% 15.7f) \n"
-           "        -> i(%5d,%5d,%5d) \n"
-           "         + f(% 15.7f,% 15.7f,% 15.7f) \n",
-           me, _xi, _yi, _zi, xi, yi, zi, xf, yf, zf);
+           "        pos (% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n"
+           "        -> i(%5d,%5d,%5d,%5d) \n"
+           "         + f(% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n",
+           me, xif, yif, zif, sif, idx[0], idx[1], idx[2], idx[3],
+           frac[0], frac[1], frac[2], frac[3]);
   }
 
-  if (!( ctx->point.frac[0] == xf &&
-         ctx->point.frac[1] == yf &&
-         ctx->point.frac[2] == zf )) {
-    ELL_3V_SET(ctx->point.frac, xf, yf, zf);
+  /* **** compute *spatial* fsl and fw **** 
+     these have to be reconsidered if anything changes about the
+     fractional spatial position, or (if no fractional spatial change),
+     movement along scale AND using normalization based on scale */
+  if ( ctx->point.frac[0] != frac[0]
+       || ctx->point.frac[1] != frac[1]
+       || ctx->point.frac[2] != frac[2] 
+       || (ctx->parm.stackUse && sdiff && ctx->parm.stackNormalizeDeriv)) {
+    /* We don't yet record the scale position in ctx->point because
+       that's done below while setting stackFsl and stackFw. So, have
+       to pass stack pos info to _gageFwSet() */
+    ELL_3V_COPY(ctx->point.frac, frac);
     /* these may take some time (especially if using renormalization),
        hence the conditional above */
     _gageFslSet(ctx);
-    _gageFwSet(ctx);
+    _gageFwSet(ctx, idx[3], frac[3]);
   }
 
+  /* **** compute *stack* fsl and fw ****  */
   if (ctx->verbose > 2 && ctx->parm.stackUse) {
-    printf("%s: point.frac[3] %f + idx[3] %u = %f %s stackIdx %f\n", me,
+    printf("%s: point.frac[3] %f + idx[3] %u = %f %s sif %f\n", me,
            ctx->point.frac[3], ctx->point.idx[3],
            ctx->point.frac[3] + ctx->point.idx[3],
-           (ctx->point.frac[3] + ctx->point.idx[3] == stackIdx
-            ? "==" : "NOT =="),
-           stackIdx);
+           (sdiff ? "*NOT ==*" : "=="), sif);
   }
-  if (ctx->parm.stackUse
-      && (ctx->point.frac[3] + ctx->point.idx[3] != stackIdx)) {
+  if (!ctx->parm.stackUse) {
+    ctx->point.idx[3] = idx[3];
+    ctx->point.frac[3] = frac[3];
+    ctx->point.stackFwNonZeroNum = 0;
+  } else if (sdiff) {
     double sum;
     unsigned int ii, nnz;
     NrrdKernelSpec *sksp;
@@ -296,60 +358,57 @@ _gageLocationSet(gageContext *ctx, double _xi, double _yi, double _zi,
        all legit for nrrdKernelTent and nrrdKernelHermiteFlag, but is 
        pretty fishy otherwise */
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
-      ctx->stackFslw[ii] = stackIdx - ii;
+      ctx->stackFsl[ii] = sif - ii;
       if (ctx->verbose > 2) {
-        printf("%s: ctx->stackFslw[%u] (fsl) = %g\n", 
-               me, ii, ctx->stackFslw[ii]);
+        printf("%s: ctx->stackFsl[%u] = %g\n", 
+               me, ii, ctx->stackFsl[ii]);
       }
     }
     sksp = ctx->ksp[gageKernelStack];
-    sksp->kernel->evalN_d(ctx->stackFslw, ctx->stackFslw,
+    sksp->kernel->evalN_d(ctx->stackFw, ctx->stackFsl,
                           ctx->pvlNum-1, sksp->parm);
     if (ctx->verbose > 2) {
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        printf("%s: ctx->stackFslw[%u] (fw) = %g\n", 
-               me, ii, ctx->stackFslw[ii]);
+        printf("%s: ctx->stackFw[%u] = %g\n", 
+               me, ii, ctx->stackFw[ii]);
       }
     }
-    /* have to compute stackFwNonZeroNum in either case! */
+    /* compute stackFwNonZeroNum whether or not parm.stackNormalizeRecon! */
     nnz = 0;
     if (ctx->parm.stackNormalizeRecon) {
       sum = 0;
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        nnz += !!ctx->stackFslw[ii];
-        sum += ctx->stackFslw[ii];
+        nnz += !!ctx->stackFw[ii];
+        sum += ctx->stackFw[ii];
       }
       if (!sum) {
-        sprintf(ctx->errStr, "%s: integral of stackFslw[] is zero, "
+        sprintf(ctx->errStr, "%s: integral of stackFw[] is zero; "
                 "can't do stack reconstruction", me);
         ctx->errNum = gageErrStackIntegral;
         return 1;
       }
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        ctx->stackFslw[ii] /= sum;
+        ctx->stackFw[ii] /= sum;
       }
       if (ctx->verbose > 2) {
         for (ii=0; ii<ctx->pvlNum-1; ii++) {
-          printf("%s: ctx->stackFslw[%u] (fw) = %g\n", 
-                 me, ii, ctx->stackFslw[ii]);
+          printf("%s: ctx->stackFw[%u] = %g\n", me, ii, ctx->stackFw[ii]);
         }
       }
     } else {
-      /* w/out normalizing, we still have to make sure there are
-         some non-zero weights */
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        nnz += !!ctx->stackFslw[ii];
+        nnz += !!ctx->stackFw[ii];
       }
       if (!nnz) {
-        sprintf(ctx->errStr, "%s: all stackFslw[] weights are zero, "
+        sprintf(ctx->errStr, "%s: all stackFw[] weights are zero; "
                 "can't do stack reconstruction", me);
         ctx->errNum = gageErrStackIntegral;
         return 1;
       }
     }
-    ctx->point.idx[3] = AIR_CAST(unsigned int, stackIdx);
-    ctx->point.idx[3] -= (stackIdx == ctx->pvlNum-2);
-    ctx->point.frac[3] = stackIdx - ctx->point.idx[3];
+
+    ctx->point.idx[3] = idx[3];
+    ctx->point.frac[3] = frac[3];
     ctx->point.stackFwNonZeroNum = nnz;
   }
   

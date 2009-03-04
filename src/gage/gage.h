@@ -93,6 +93,7 @@ enum {
   gageParmKernelIntegralNearZero, /* double */
   gageParmDefaultCenter,          /* int */
   gageParmStackUse,               /* int */
+  gageParmStackNormalizeDeriv,    /* int; does NOT imply gageParmStackUse */
   gageParmStackNormalizeRecon,    /* int; does NOT imply gageParmStackUse */
   gageParmOrientationFromSpacing, /* int */
   gageParmLast
@@ -422,6 +423,10 @@ typedef struct gageParm_t {
                                  the weights used to reconstruct across
                                  stack samples are normalized to unit sum; not
                                  needed if the kernel is accurate enough */
+    stackNormalizeDeriv,      /* if non-zero (and if stackUse is non-zero):
+                                 derivatives at filter stage (before answer
+                                 stage) are renormalized based on the stack
+                                 position */
     orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
                                  but not full orientation info. If zero, the
                                  volume is crammed into the bi-unit cube.
@@ -434,22 +439,23 @@ typedef struct gageParm_t {
 /*
 ******** gagePoint struct
 **
-** stores location of last query location, which is used to determine
-** whether the ctx->fsl, ctx->fw values can be re-used (based on the
-** "Frac" values), and, whether all the pvl->iv3 have to be refilled
-** (based on the "Idx" values).  The last index (frac[3] and idx[3])is
-** for the stack, and can safely stay 0 if the stack isn't being used.
+** stores *Index Space* location of last query location, which is used
+** to determine whether the ctx->fsl, ctx->fw values can be re-used
+** (based on the "Frac" values), and, whether all the pvl->iv3 have to
+** be refilled (based on the "Idx" values).  The last index (frac[3]
+** and idx[3])is for the stack, and can safely stay 0 if the stack
+** isn't being used.
 **
 ** with stack usage, stackFwNonZeroNum records how many pvls had
 ** non-zero stack filter weights, which is used to detect when
-** iv3s have to be refilled.  Looking at idx[3] alone is not 
+** iv3s have to be refilled.  Looking at idx[3] alone is not always
 ** sufficient for this.
 */
 typedef struct gagePoint_t {
   double frac[4];         /* last fractional voxel location */
   unsigned int idx[4],    /* last integral voxel location */
     stackFwNonZeroNum;    /* last number of non-zero values of stack filter
-                             weights (ctx->stackFslw) */
+                             weights (ctx->stackFw) */
 } gagePoint;
 
 /*
@@ -576,7 +582,8 @@ typedef struct gageContext_t {
   /* if using stack: allocated for length pvlNum-1, and filter sample
      locations and weights for reconstruction along the stack.
      Otherwise NULL. */
-  double *stackFslw;
+  double *stackFsl;
+  double *stackFw;
 
   /* all the flags used by gageUpdate() used to describe what changed
      in this context */
@@ -747,6 +754,7 @@ GAGE_EXPORT double gageDefKernelIntegralNearZero;
 GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
+GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */

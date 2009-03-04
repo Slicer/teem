@@ -51,7 +51,8 @@ gageContextNew() {
       ctx->flag[i] = AIR_FALSE;
     }
     ctx->stackPos = NULL;
-    ctx->stackFslw = NULL;
+    ctx->stackFsl = NULL;
+    ctx->stackFw = NULL;
     ctx->needD[0] = ctx->needD[1] = ctx->needD[2] = AIR_FALSE;
     for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
       ctx->needK[i] = AIR_FALSE;
@@ -109,17 +110,23 @@ gageContextCopy(gageContext *ctx) {
       biffAdd(GAGE, err); return NULL;
     }
   }
-  if (ctx->stackPos && ctx->stackFslw) {
+  if (ctx->stackPos && ctx->stackFsl && ctx->stackFw) {
     ntx->stackPos = calloc(ctx->pvlNum-1, sizeof(double));
-    ntx->stackFslw = calloc(ctx->pvlNum-1, sizeof(double));
-    if (!( ntx->stackPos && ntx->stackFslw )) {
-      sprintf(err, "%s: couldn't allocate stackPos, stackFslw", me);
+    ntx->stackFsl = calloc(ctx->pvlNum-1, sizeof(double));
+    ntx->stackFw = calloc(ctx->pvlNum-1, sizeof(double));
+    if (!( ntx->stackPos && ntx->stackFsl && ntx->stackFw )) {
+      sprintf(err, "%s: couldn't allocate stack Pos, Fsl, Fw", me);
       biffAdd(GAGE, err); return NULL;
     }
     for (pvlIdx=0; pvlIdx<ntx->pvlNum-1; pvlIdx++) {
       ntx->stackPos[pvlIdx] = ctx->stackPos[pvlIdx];
-      ntx->stackFslw[pvlIdx] = ctx->stackFslw[pvlIdx];
+      ntx->stackFsl[pvlIdx] = ctx->stackFsl[pvlIdx];
+      ntx->stackFw[pvlIdx] = ctx->stackFw[pvlIdx];
     }
+  } else {
+    ntx->stackPos = NULL;
+    ntx->stackFsl = NULL;
+    ntx->stackFw = NULL;
   }
   ntx->shape = gageShapeCopy(ctx->shape);
   fd = 2*ntx->radius;
@@ -164,7 +171,8 @@ gageContextNix(gageContext *ctx) {
     airArrayNuke(ctx->pvlArr);
     ctx->shape = gageShapeNix(ctx->shape);
     ctx->stackPos = AIR_CAST(double *, airFree(ctx->stackPos));
-    ctx->stackFslw = AIR_CAST(double *, airFree(ctx->stackFslw));
+    ctx->stackFsl = AIR_CAST(double *, airFree(ctx->stackFsl));
+    ctx->stackFw = AIR_CAST(double *, airFree(ctx->stackFw));
     ctx->fw = AIR_CAST(double *, airFree(ctx->fw));
     ctx->fsl = AIR_CAST(double *, airFree(ctx->fsl));
     ctx->off = AIR_CAST(unsigned int *, airFree(ctx->off));
@@ -335,6 +343,9 @@ gageParmSet(gageContext *ctx, int which, double val) {
     break;
   case gageParmStackNormalizeRecon:
     ctx->parm.stackNormalizeRecon = AIR_CAST(int, val);
+    break;
+  case gageParmStackNormalizeDeriv:
+    ctx->parm.stackNormalizeDeriv = AIR_CAST(int, val);
     break;
   case gageParmOrientationFromSpacing:
     ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
@@ -615,8 +626,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 ** computed inside _gageLocationSet()
 */
 int
-_gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
-           double stackIdx) {
+_gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   char me[]="_gageProbe";
   unsigned int oldIdx[4], oldNnz=0, pvlIdx;
   int idxChanged;
@@ -626,22 +636,22 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
   }
   ELL_4V_COPY(oldIdx, ctx->point.idx);
   oldNnz = ctx->point.stackFwNonZeroNum;
-  if (_gageLocationSet(ctx, _xi, _yi, _zi, stackIdx)) {
+  if (_gageLocationSet(ctx, _xi, _yi, _zi, _si)) {
     /* we're outside the volume; leave gageErrStr and gageErrNum set;
        as they have just been set by _gageLocationSet() */
     return 1;
   }
   
   /* if necessary, refill the iv3 cache */
-  idxChanged = (oldIdx[0] != ctx->point.idx[0] ||
-                oldIdx[1] != ctx->point.idx[1] ||
-                oldIdx[2] != ctx->point.idx[2]);
+  idxChanged = (oldIdx[0] != ctx->point.idx[0]
+                || oldIdx[1] != ctx->point.idx[1]
+                || oldIdx[2] != ctx->point.idx[2]);
   if (ctx->parm.stackUse) {
     idxChanged |= oldIdx[3] != ctx->point.idx[3];
     /* this is subtle (and the source of a difficult bug): even if
        point.idx[3] has not changed, you can still have a change in
-       which of the stackFslw[] are non-zero, which in turn determines
-       which iv3s have to be refilled.  For example, changing stackIdx
+       which of the stackFw[] are non-zero, which in turn determines
+       which iv3s have to be refilled.  For example, changing _si
        from 0.0 to 0.1, using tent or hermite reconstruction, will
        newly require pvl[1]'s iv3 to be refilled.  To catch this kind
        of situation, we could keep a list of which iv3s are active and
@@ -667,16 +677,16 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi,
            only refill the iv3 that we have to, based on the change in
            scale, instead of refilling all of them in the support of
            the stack recon */
-        if (ctx->stackFslw[pvlIdx]) {
+        if (ctx->stackFw[pvlIdx]) {
           if (ctx->verbose > 2) {
-            printf("%s: stackFslw[%u] == %g -> iv3fill needed\n", me, 
-                   pvlIdx, ctx->stackFslw[pvlIdx]);
+            printf("%s: stackFw[%u] == %g -> iv3fill needed\n", me, 
+                   pvlIdx, ctx->stackFw[pvlIdx]);
           }
           gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         } else {
           if (ctx->verbose > 2) {
-            printf("%s: stackFslw[%u] == %g -> NO iv3fill\n", me, 
-                   pvlIdx, ctx->stackFslw[pvlIdx]);
+            printf("%s: stackFw[%u] == %g -> NO iv3fill\n", me, 
+                   pvlIdx, ctx->stackFw[pvlIdx]);
           }
         }
       }
@@ -743,7 +753,6 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
            clamp ? "WITH" : "w/out");
   }
   size = ctx->shape->size;
-  si = 0.0;
   if (indexSpace) {
     xi = xx;
     yi = yy;
@@ -751,7 +760,7 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     if (ctx->parm.stackUse) {
       si = ss;
     } else {
-      si = AIR_NAN;
+      si = 0;
     }
   } else {
     /* have to convert from world to index.  NOTE: the [4]s here are
@@ -791,6 +800,8 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       }
       si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
                       sidx, sidx+1);
+    } else {
+      si = 0;
     }
     /*
     printf("%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,

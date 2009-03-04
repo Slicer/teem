@@ -59,6 +59,9 @@ int
 gageDefStackNormalizeRecon = AIR_FALSE;
 
 int
+gageDefStackNormalizeDeriv = AIR_FALSE;
+
+int
 gageDefOrientationFromSpacing = AIR_FALSE;
 /* Before teem 1.10.0, gage behaved inconsistently: Derivatives were
    taken as if orientationFromSpacing were TRUE, the index space to

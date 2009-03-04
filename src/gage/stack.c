@@ -357,13 +357,16 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   }
   
   airFree(ctx->stackPos);
-  airFree(ctx->stackFslw);
+  airFree(ctx->stackFsl);
+  airFree(ctx->stackFw);
   ctx->stackPos = calloc(blnum, sizeof(double));
-  ctx->stackFslw = calloc(blnum, sizeof(double));
-  if (!( ctx->stackPos && ctx->stackFslw )) {
-    sprintf(err, "%s: couldn't allocate stack buffers (%p %p)", me,
+  ctx->stackFsl = calloc(blnum, sizeof(double));
+  ctx->stackFw = calloc(blnum, sizeof(double));
+  if (!( ctx->stackPos && ctx->stackFsl && ctx->stackFw )) {
+    sprintf(err, "%s: couldn't allocate stack buffers (%p %p %p)", me,
             AIR_CAST(void *, ctx->stackPos),
-            AIR_CAST(void *, ctx->stackFslw));
+            AIR_CAST(void *, ctx->stackFsl),
+            AIR_CAST(void *, ctx->stackFw));
     biffAdd(GAGE, err); return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
@@ -411,9 +414,9 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     /* find the interval in the pre-blurred volumes containing the
        desired scale location */
     for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
-      if (ctx->stackFslw[pvlIdx]) {
+      if (ctx->stackFw[pvlIdx]) {
         /* has to be non-zero somewhere, since _gageLocationSet()
-           gives an error if there aren't non-zero stackFslw[i] */
+           gives an error if there aren't non-zero stackFw[i] */
         break;
       }
     }
@@ -429,7 +432,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       /* by design, the hermite non-kernel generates the same values as
          the tent kernel (with scale forced == 1), so we can use those
          to control the interpolation */
-      xx = 1 - ctx->stackFslw[pvlIdx];
+      xx = 1 - ctx->stackFw[pvlIdx];
     }
     iv30 = ctx->pvl[blurIdx]->iv3;
     iv31 = ctx->pvl[blurIdx+1]->iv3;
@@ -474,7 +477,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
       val = 0;
       for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
-        wght = ctx->stackFslw[pvlIdx];
+        wght = ctx->stackFw[pvlIdx];
         val += (wght
                 ? wght*ctx->pvl[pvlIdx]->iv3[cacheIdx]
                 : 0);
@@ -518,5 +521,5 @@ gageStackProbeSpace(gageContext *ctx,
     ctx->errNum = 1;
     return 1;
   }
-  return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);;
+  return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);
 }
