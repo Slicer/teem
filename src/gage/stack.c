@@ -442,7 +442,8 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       for (zi=1; zi<fd-1; zi++) {
         for (yi=1; yi<fd-1; yi++) {
           for (xi=1; xi<fd-1; xi++) {
-            iii = xi + fd*(yi + fd*zi);
+            /* note that iv3 axis ordering is x, y, z, tuple */
+            iii = xi + fd*(yi + fd*(zi + fd*valIdx));
             val0 = iv30[iii];
             val1 = iv31[iii];
             lapl0 = (iv30[iii + 1]   + iv30[iii - 1] +
