@@ -78,6 +78,19 @@ hestCB probeKindHestCB = {
   probeParseKindDestroy
 }; 
 
+void
+printans(FILE *file, const double *ans, int len) {
+  int a;
+
+  AIR_UNUSED(file);
+  for (a=0; a<=len-1; a++) {
+    if (a) {
+      printf(", ");
+    }
+    printf("%g", ans[a]);
+  }
+}
+
 char *probeInfo = ("Shows off the functionality of the gage library. "
                    "Uses gageProbe() to query various kinds of volumes "
                    "to learn various measured or derived quantities. "
@@ -87,25 +100,28 @@ char *probeInfo = ("Shows off the functionality of the gage library. "
 int
 main(int argc, char *argv[]) {
   gageKind *kind;
-  char *me, *outS, *whatS, *err, hackKeyStr[]="TEEM_VPROBE_HACK_ZI",
-    *hackValStr, *stackReadFormat, *stackSaveFormat;
+  char *me, *whatS, *err, *outS, *stackReadFormat, *stackSaveFormat;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, otype, renorm, hackSet, SSuniform, verbose,
+  int what, E=0, renorm, SSuniform, verbose,
     orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN, *scalePos;
+  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN, *scalePos,
+    pntIdxPos[3];
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
+
+  char hackKeyStr[]="TEEM_VPROBE_HACK_ZI", *hackValStr;
+  int otype, hackSet;
 
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
@@ -151,6 +167,11 @@ main(int argc, char *argv[]) {
              "1.0 1.0 1.0",
              "scaling factor for resampling on each axis "
              "(>1.0 : supersampling)");
+  hestOptAdd(&hopt, "pp", "pos", airTypeDouble, 3, 3, pntIdxPos,
+             "nan nan nan",
+             "(hack) over-ride sampling the whole volume, and only sample "
+             "at this specified point in index space.  May still need to "
+             "use \"-ssw\" for stack position");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
              NULL, NULL, nrrdHestKernelSpec);
@@ -400,6 +421,23 @@ main(int argc, char *argv[]) {
             2*ctx->radius);
     fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
             rscl[0], rscl[1], rscl[2]);
+  }
+  if (ELL_3V_EXISTS(pntIdxPos)) {
+    if (numSS
+        ? gageStackProbe(ctx, pntIdxPos[0], pntIdxPos[1], pntIdxPos[2], idxSS)
+        : gageProbe(ctx, pntIdxPos[0], pntIdxPos[1], pntIdxPos[2])) {
+      fprintf(stderr, "%s: trouble probing: (errNum %d) %s\n", me,
+              ctx->errNum, ctx->errStr);
+      airMopError(mop);
+      return 1;
+    }
+    printf("%s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+           pntIdxPos[0], pntIdxPos[1], pntIdxPos[2]);
+    printans(stdout, answer, ansLen);
+    printf("\n");
+    /* we're done, get out of here */
+    airMopOkay(mop);
+    return 0;
   }
   if (ansLen > 1) {
     if (verbose) {
