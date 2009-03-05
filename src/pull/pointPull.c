@@ -605,7 +605,7 @@ _pullPointInitializeRandom(pullContext *pctx, Nrrd *npos) {
       posData[pointDim*pointIdx+3] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                                 pctx->bboxMin[3],
                                                 pctx->bboxMax[3]);
-      /* posData[pointDim*pointIdx+3] = 0.920071; */
+      /* posData[pointDim*pointIdx+3] = 0.0; */
     } else {
       posData[pointDim*pointIdx+3] = 0.0;
     }
@@ -805,7 +805,7 @@ _pullPointSetup(pullContext *pctx) {
       }
       reject = threshFail || constrFail;
       if (reject) {
-        if (threshFailCount + constrFailCount > 10000) {
+        if (threshFailCount + constrFailCount > 100000) {
           sprintf(err, "%s: failed too often placing %u "
                   "(thresh %s/%u, constr %s/%u)",
                   me, pointIdx,
@@ -866,6 +866,10 @@ _pullPointSetup(pullContext *pctx) {
   }
   
   pn = pullPointNumber(pctx);
+  if (!pn) {
+    sprintf(err, "%s: point initialization filed, no points!\n", me);
+    biffAdd(PULL, err); airMopError(mop); return 1;
+  }
   printf("%s: ended up with %u points\n", me, pn);
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));

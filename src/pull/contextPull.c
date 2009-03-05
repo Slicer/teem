@@ -183,6 +183,7 @@ _pullContextCheck(pullContext *pctx) {
     sprintf(err, "%s: have no volumes set", me);
     biffAdd(PULL, err); return 1;
   }
+  /*
   for (ii=0; ii<pctx->volNum; ii++) {
     if (pctx->vol[ii]->ninScale) {
       sclvi = ii;
@@ -195,6 +196,7 @@ _pullContextCheck(pullContext *pctx) {
       }
     }
   }
+  */
   gotConstr = 0;
   gotIspec = AIR_FALSE;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
@@ -392,14 +394,24 @@ _pullContextCheck(pullContext *pctx) {
 ** tensor output at this point is a hack created for vis purposes
 */
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
+              pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
-  double *posOut, *tenOut;
+  double *posOut, *tenOut, *strnOut;
   pullBin *bin;
   pullPoint *point;
 
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (nStrengthOut && !pctx->ispec[pullInfoStrength]) {
+    sprintf(err, "%s: can't save out %s info that hasn't been set",
+            me, airEnumStr(pullInfo, pullInfoStrength));
+    biffAdd(PULL, err); return 1;
+  }
   pointNum = pullPointNumber(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
@@ -412,12 +424,17 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
+  if (nStrengthOut) {
+    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1, 
+                           AIR_CAST(size_t, pointNum));
+  }
   if (E) {
     sprintf(err, "%s: trouble allocating outputs", me);
     biffMove(PULL, err, NRRD); return 1;
   }
   posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (double*)(nTenOut->data) : NULL;
+  strnOut = nStrengthOut ? (double*)(nStrengthOut->data) : NULL;
 
   outIdx = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -437,6 +454,10 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, pullContext *pctx) {
       */
       if (nPosOut) {
         ELL_4V_COPY(posOut + 4*outIdx, point->pos);
+      }
+      if (nStrengthOut) {
+        strnOut[outIdx] = _pullPointScalar(pctx, point, pullInfoStrength,
+                                           NULL, NULL);
       }
       if (nTenOut) {
         double scl, tout[7];

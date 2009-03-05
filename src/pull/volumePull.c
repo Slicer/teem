@@ -67,6 +67,7 @@ pullVolumeNew() {
     vol->ninScale = NULL;
     vol->scaleNum = 0;
     vol->scalePos = NULL;
+    vol->scaleDerivNorm = AIR_FALSE;
     vol->ksp00 = nrrdKernelSpecNew();
     vol->ksp11 = nrrdKernelSpecNew();
     vol->ksp22 = nrrdKernelSpecNew();
@@ -107,11 +108,13 @@ pullVolumeNix(pullVolume *vol) {
 */
 int
 _pullVolumeSet(pullContext *pctx, pullVolume *vol,
+               const gageKind *kind, 
                int verbose, const char *name,
                const Nrrd *ninSingle,
-               const Nrrd *const *ninScale, double *scalePos,
+               const Nrrd *const *ninScale, 
+               double *scalePos, 
                unsigned int ninNum,
-               const gageKind *kind, 
+               int scaleDerivNorm,
                const NrrdKernelSpec *ksp00,
                const NrrdKernelSpec *ksp11,
                const NrrdKernelSpec *ksp22,
@@ -151,6 +154,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
   /* because we're likely only using accurate kernels */
   gageParmSet(vol->gctx, gageParmStackNormalizeRecon, AIR_FALSE);
+  vol->scaleDerivNorm = scaleDerivNorm;
+  gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, scaleDerivNorm);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
@@ -224,8 +229,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
 */
 int
 pullVolumeSingleAdd(pullContext *pctx, 
+                    const gageKind *kind,
                     char *name, const Nrrd *nin,
-                    const gageKind *kind, 
                     const NrrdKernelSpec *ksp00,
                     const NrrdKernelSpec *ksp11,
                     const NrrdKernelSpec *ksp22) {
@@ -235,11 +240,10 @@ pullVolumeSingleAdd(pullContext *pctx,
   printf("!%s(%s): verbose %d\n", me, name, pctx->verbose);
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol,
+  if (_pullVolumeSet(pctx, vol, kind,
                      pctx->verbose, name,
                      nin,
-                     NULL, NULL, 0, 
-                     kind,
+                     NULL, NULL, 0, AIR_FALSE,
                      ksp00, ksp11, ksp22, NULL)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PULL, err); return 1;
@@ -257,11 +261,13 @@ pullVolumeSingleAdd(pullContext *pctx,
 */
 int
 pullVolumeStackAdd(pullContext *pctx,
+                   const gageKind *kind,
                    char *name,
                    const Nrrd *nin,
-                   const Nrrd *const *ninSS, double *scale,
+                   const Nrrd *const *ninSS,
+                   double *scalePos,
                    unsigned int ninNum,
-                   const gageKind *kind, 
+                   int scaleDerivNorm,
                    const NrrdKernelSpec *ksp00,
                    const NrrdKernelSpec *ksp11,
                    const NrrdKernelSpec *ksp22,
@@ -270,10 +276,10 @@ pullVolumeStackAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, pctx->verbose, name,
+  if (_pullVolumeSet(pctx, vol, kind, pctx->verbose, name,
                      nin, 
-                     ninSS, scale, ninNum, 
-                     kind, ksp00, ksp11, ksp22, kspSS)) {
+                     ninSS, scalePos, ninNum, scaleDerivNorm,
+                     ksp00, ksp11, ksp22, kspSS)) {
     sprintf(err, "%s: trouble", me);
     biffAdd(PULL, err); return 1;
   }
@@ -294,11 +300,13 @@ _pullVolumeCopy(const pullVolume *volOrig) {
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
-  if (_pullVolumeSet(NULL, volNew, volOrig->verbose, volOrig->name, 
+  if (_pullVolumeSet(NULL, volNew, volOrig->gpvl->kind,
+                     volOrig->verbose, volOrig->name, 
                      volOrig->ninSingle,
-                     volOrig->ninScale, volOrig->scalePos,
+                     volOrig->ninScale, 
+                     volOrig->scalePos,
                      volOrig->scaleNum,
-                     volOrig->gpvl->kind,
+                     volOrig->scaleDerivNorm, 
                      volOrig->ksp00, volOrig->ksp11,
                      volOrig->ksp22, volOrig->kspSS)) {
     sprintf(err, "%s: trouble creating new volume", me);

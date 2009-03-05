@@ -292,7 +292,7 @@ typedef struct {
 } pullEnergySpec;
 
 /*
-** In the interests of simplicity (rather than avoiding redundancy), 
+** In the interests of simplicity (and with the cost of some redundancy), 
 ** this is going to copied per-task, which is why it contains the gageContext
 ** The idea is that the first of these is somehow set up by the user
 ** or something, and the rest of them are created within pull per-task.
@@ -308,6 +308,7 @@ typedef struct {
                                   can be non-NULL */
   unsigned int scaleNum;       /* number of scale-space samples (volumes) */
   double *scalePos;            /* location of all samples in scale */
+  int scaleDerivNorm;          /* normalize derivatives based on scale */
   NrrdKernelSpec *ksp00,       /* for sampling tensor field */
     *ksp11,                    /* for gradient of mask, other 1st derivs */
     *ksp22,                    /* for 2nd derivatives */
@@ -571,18 +572,19 @@ PULL_EXPORT gageKind *pullGageKindParse(const char *str);
 PULL_EXPORT pullVolume *pullVolumeNew();
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
 PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, 
-                                    char *name, const Nrrd *nin,
                                     const gageKind *kind, 
+                                    char *name, const Nrrd *nin,
                                     const NrrdKernelSpec *ksp00,
                                     const NrrdKernelSpec *ksp11,
                                     const NrrdKernelSpec *ksp22);
 PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
+                                   const gageKind *kind, 
                                    char *name, 
                                    const Nrrd *nin,
                                    const Nrrd *const *ninSS,
-                                   double *scale,
+                                   double *scalePos,
                                    unsigned int ninNum,
-                                   const gageKind *kind, 
+                                   int scaleDerivNorm,
                                    const NrrdKernelSpec *ksp00,
                                    const NrrdKernelSpec *ksp11,
                                    const NrrdKernelSpec *ksp22,
@@ -600,6 +602,7 @@ PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
+                              Nrrd *nStrengthOut,
                               pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);

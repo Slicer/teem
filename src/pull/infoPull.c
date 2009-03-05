@@ -85,7 +85,7 @@ _pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "isoval", "iso",
   "isogradvec", "isogvec",
   "isohessian", "isohess",
-  "strength"
+  "strength", "strn"
 };
 
 int
@@ -106,7 +106,7 @@ _pullInfoValEqv[] = {
   pullInfoIsovalue, pullInfoIsovalue,
   pullInfoIsovalueGradient, pullInfoIsovalueGradient,
   pullInfoIsovalueHessian, pullInfoIsovalueHessian,
-  pullInfoStrength
+  pullInfoStrength, pullInfoStrength
 };
 
 airEnum
