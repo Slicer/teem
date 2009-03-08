@@ -182,13 +182,14 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
 
   if (ctx->parm.stackUse && ctx->parm.stackNormalizeDeriv) {
     unsigned int kidx, fd, j;
-    double scl, norm, *fwX, *fwY, *fwZ,
-      (*dgeval)(double x, const double *parm),
-      dgparm[2] = {0, 3};
+    double scl, norm, *fwX, *fwY, *fwZ;
     
     scl = AIR_AFFINE(0.0, sfrac, 1.0,
                      ctx->stackPos[sidx],
                      ctx->stackPos[sidx+1]);
+#if 0
+    double (*dgeval)(double x, const double *parm),
+      dgparm[2] = {0, 3};
     dgeval = nrrdKernelDiscreteGaussian->eval1_d;
     dgparm[0] = scl;
     /* from Eq. (120) in T. Lindeberg. "Feature Detection with Automatic
@@ -196,6 +197,10 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
        1998, 30, 77-116 */
     /* 0.7978845608 ~= sqrt(2)/sqrt(pi) */
     norm = 0.7978845608/(dgeval(0.0, dgparm) + dgeval(1.0, dgparm));
+#endif
+    /* really simple; no lindeberg normalization */
+    norm = scl;
+
     fd = 2*ctx->radius;
     kidx = gageKernel11;
     fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
