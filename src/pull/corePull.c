@@ -392,5 +392,47 @@ pullRun(pullContext *pctx) {
   pctx->timeRun += time1 - time0;
   pctx->energy = enrNew;
 
+  if (1) {
+    /* test inter-particle energy stuff */
+    unsigned int szimg=300, ri, si;
+    Nrrd *nout;
+    pullPoint *pa, *pb;
+    double rdir[3], len, r, s, *out, enr, egrad[4];
+    airRandMTState *rng;
+    rng = pctx->task[0]->rng;
+    nout = nrrdNew();
+    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3, 
+                      AIR_CAST(size_t, 3),
+                      AIR_CAST(size_t, szimg),
+                      AIR_CAST(size_t, szimg));
+    out = AIR_CAST(double *, nout->data);
+    pa = pullPointNew(pctx);
+    pb = pullPointNew(pctx);
+    airNormalRand_r(pa->pos + 0, pa->pos + 1, rng);
+    airNormalRand_r(pa->pos + 2, pa->pos + 3, rng);
+    airNormalRand_r(rdir + 0, rdir + 1, rng);
+    airNormalRand_r(rdir + 2, NULL, rng);
+    ELL_3V_NORM(rdir, rdir, len);
+    for (si=0; si<szimg; si++) {
+      s = AIR_AFFINE(0, si, szimg-1,
+                     -1.5*pctx->radiusScale, 1.5*pctx->radiusScale);
+      for (ri=0; ri<szimg; ri++) {
+        r = AIR_AFFINE(0, ri, szimg-1,
+                       -1.5*pctx->radiusSpace, 1.5*pctx->radiusSpace);
+        ELL_3V_SCALE_ADD2(pb->pos, 1.0, pa->pos, r, rdir);
+        pb->pos[3] = pa->pos[3] + s;
+        /* now points are in desired test positions */
+        enr = _pullEnergyInterParticle(pctx->task[0], pa, pb, 
+                                       AIR_ABS(r), AIR_ABS(s), egrad);
+        ELL_3V_SET(out + 3*(ri + szimg*si),
+                   enr, ELL_3V_DOT(egrad, rdir), egrad[3]);
+      }
+    }
+    nrrdSave("eprobe.nrrd", nout, NULL);
+    pullPointNix(pa);
+    pullPointNix(pb);
+    nrrdNuke(nout);
+  }
+
   return 0;
 }

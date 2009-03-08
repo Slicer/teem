@@ -85,18 +85,22 @@ enum {
   pullInfoHeightHessian,      /*  8: [9] */
   pullInfoHeightLaplacian,    /*  9: [1] for zero-crossing edge detection */
   pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
-  pullInfoTangent1,           /* 11: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 12: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2;
+  pullInfoLiveThresh,         /* 11: [1] scalar for thresholding extent 
+                                 particles, AND for future additions from
+                                 population control.  Will also be used
+                                 for seeding, when that's cleaned up */
+  pullInfoTangent1,           /* 12: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 13: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 14: [1] for morphing between co-dim 1 and 2;
                                  User must set scale so mode from -1 to 1
                                  means co-dim 1 (surface) to 2 (line) */
-  pullInfoIsovalue,           /* 14: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 15: [3] */
-  pullInfoIsovalueHessian,    /* 16: [9] */
-  pullInfoStrength,           /* 17: [1] */
+  pullInfoIsovalue,           /* 15: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 16: [3] */
+  pullInfoIsovalueHessian,    /* 17: [9] */
+  pullInfoStrength,           /* 18: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            17
+#define PULL_INFO_MAX            18
 
 /*
 ** the various properties of particles in the system 
@@ -231,8 +235,9 @@ typedef struct pullPoint_t {
                                  points with whom this point interacted,
                                  in rs-normalized space */
     neighMode;                /* some average of mode of nearby points */
-  unsigned int neighInterNum; /* number of particles with which I had some
+  unsigned int neighInterNum, /* number of particles with which I had some
 				 non-zero interaction on last iteration */
+    stuckIterNum;             /* how many iterations I've been stuck */
 #if PULL_PHIST
   double *phist;              /* history of positions tried in the last iter,
                                  in sets of 5 doubles: (x,y,z,t,info) */
@@ -421,6 +426,12 @@ typedef struct pullContext_t {
                                       particle energy to increase, in the
                                       context of gradient descent */
 
+  int energyFromStrength;          /* (something of a hack) if non-zero,
+                                      strength is a particle-image energy
+                                      term that is minimized by motion along
+                                      scale, which in turn requires extra
+                                      probing to determine the strength
+                                      gradient along scale. */
   int pointPerVoxel;               /* number of initial points per voxel, in
                                       seed thresh volume. If 0, then use old
                                       behavior of just finding pointNumInitial
@@ -463,6 +474,7 @@ typedef struct pullContext_t {
                                       alpha = 1: only inter-particle */
     beta,                          /* tuning parameter used for
                                       pullInterAdditive */
+    gamma,                         /* energy from strength scaling factor */
     jitter;                        /* when using pointPerVoxel, how much to
                                       jitter the samples within the voxel;
                                       0: no jitter, 1: full jitter */

@@ -75,6 +75,8 @@ pullVolumeNew() {
     vol->gctx = gageContextNew();
     vol->gpvl = NULL;
     vol->gpvlSS = NULL;
+    /* this is turned OFF in volumes that have infos that aren't seedthresh,
+       see pullInfoSpecAdd() */
     vol->seedOnly = AIR_TRUE;
   }
   return vol;
@@ -399,6 +401,12 @@ _pullVolumeSetup(pullContext *pctx) {
               me, airEnumStr(pullInterType, pctx->interType));
       biffAdd(PULL, err); return 1;
     }
+  }
+  if (pctx->energyFromStrength
+      && !(pctx->ispec[pullInfoStrength] && pctx->haveScale)) {
+    sprintf(err, "%s: sorry, can use energyFromStrength only with both "
+            "a scale-space volume, and a strength info", me);
+    biffAdd(PULL, err); return 1;
   }
 
   return 0;

@@ -212,7 +212,17 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     /* still okay to continue descending */
     newpnt->stepEnergy *= task->pctx->opporStepScale;
   }
-  /* now that newbie point is final test location, learn neighbors */
+  /* now that newbie point is final test location, see if it meets 
+     the live thresh, if there is one */
+  if (task->pctx->ispec[pullInfoLiveThresh]
+      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
+                              NULL, NULL)) {
+    /* didn't meet threshold */
+    newpnt = pullPointNix(newpnt);
+    task->processMode = pullProcessModeAdding;
+    return 0;
+  }
+  /* no problem with live thresh, test energy by first learn neighbors */
   /* we have to add newpnt to task's add queue, just so that its neighbors
      can see it as a possible neighbor */
   api = airArrayLenIncr(task->addPointArr, 1);
@@ -236,7 +246,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   } else {
     /* its not good to add the point, remove it from the add queue */
     airArrayLenIncr(task->addPointArr, -1);
-    /* ugh, have to signal to neighbors that its no longer their neighbor
+    /* ugh, have to signal to neighbors that its no longer their neighbor.
        HEY this is the part that is totally screwed with multiple threads */
     task->processMode = pullProcessModeNeighLearn;
     newpnt->status |= PULL_STATUS_NIXME_BIT;
@@ -253,6 +263,14 @@ int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   double enrWith, enrWithout, fracNixed;
 
+  /* if there's a live thresh, do we meet it? */
+  if (task->pctx->ispec[pullInfoLiveThresh]
+      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh,
+                              NULL, NULL)) {
+    point->status |= PULL_STATUS_NIXME_BIT;
+    return 0;
+  }
+  /* is energy lower without us around? */
   enrWith = (_pullEnergyFromPoints(task, bin, point, NULL)
              + _pointEnergyOfNeighbors(task, bin, point, &fracNixed));
   /* if many neighbors have been nixed, then system is far from convergence,
@@ -324,10 +342,9 @@ _pullIterFinishAdding(pullContext *pctx) {
   return 0;
 }
 
-int
-_pullIterFinishNixing(pullContext *pctx) {
-  char me[]="_pullIterFinishNixing";
-  unsigned int binIdx, taskIdx;
+void
+_pullNixTheNixed(pullContext *pctx) {
+  unsigned int binIdx;
 
   pctx->nixNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -349,6 +366,15 @@ _pullIterFinishNixing(pullContext *pctx) {
       }
     }
   }
+  return;
+}
+
+int
+_pullIterFinishNixing(pullContext *pctx) {
+  char me[]="_pullIterFinishNixing";
+  unsigned int taskIdx;
+
+  _pullNixTheNixed(pctx);
   /* finish nixing the things that we decided not to add */
   for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
     pullTask *task;

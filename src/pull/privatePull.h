@@ -56,6 +56,14 @@ extern "C" {
    rs-normalized space) from the original old point */
 #define _PULL_NEWPNT_STRAY_DIST 1.7
 
+/* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
+   for discrete differencing needed to find the gradient of strength */
+#define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.001
+
+/* number of iterations we allow something to be continuously stuck
+   before nixing it */
+#define _PULL_STUCK_ITER_NUM_MAX 5
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
@@ -127,6 +135,7 @@ extern int _pullPointProcessNixing(pullTask *task, pullBin *bin,
                                    pullPoint *point);
 extern int _pullIterFinishAdding(pullContext *pctx);
 extern int _pullIterFinishNixing(pullContext *pctx);
+extern void _pullNixTheNixed(pullContext *pctx);
 
 /* binningPull.c */
 extern void _pullBinInit(pullBin *bin, unsigned int incr);

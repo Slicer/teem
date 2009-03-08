@@ -340,6 +340,8 @@ _pullIterFinishDescent(pullContext *pctx) {
   pullBin *oldBin, *newBin;
   pullPoint *point;
 
+  _pullNixTheNixed(pctx);
+
   pctx->stuckNum = 0;
   for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
     pctx->stuckNum += pctx->task[taskIdx]->stuckNum;

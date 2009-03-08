@@ -53,15 +53,23 @@ _pullProcessMode = {
 airEnum *
 pullProcessMode = &_pullProcessMode;
 
+static double
+_pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
+  double diff[4];
+  ELL_4V_SUB(diff, AA->pos, BB->pos);
+  ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
+  diff[3] /= pctx->radiusScale;
+  return ELL_4V_DOT(diff, diff);
+}
+
 /*
 ** this sets, in task->neighPoint (*NOT* point->neighPoint), all the
 ** points in neighboring bins with which we might possibly interact,
-** and returns the number of such points.  At this phase there is no
-** attempt to be clever about ruling out interaction with too-distant
-** points
+** and returns the number of such points.
 */
 static unsigned int
-_neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
+_neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point,
+                double distTest) {
   char me[]="_neighBinPoints";
   unsigned int nn, herPointIdx, herBinIdx;
   pullBin *herBin;
@@ -79,6 +87,10 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
       /* can't interact with myself, or anything nixed */
       if (point != herPoint
           && !(herPoint->status & PULL_STATUS_NIXME_BIT)) {
+        if (distTest
+            && _pointDistSqrd(task->pctx, point, herPoint) > distTest) {
+          continue;
+        }
         if (nn+1 < _PULL_NEIGH_MAXNUM) {
           task->neighPoint[nn++] = herPoint;
           /*
@@ -97,11 +109,15 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point) {
   for (herPointIdx=0; herPointIdx<task->addPointNum; herPointIdx++) {
     herPoint = task->addPoint[herPointIdx];
     if (point != herPoint) {
+      if (distTest
+          && _pointDistSqrd(task->pctx, point, herPoint) > distTest) {
+        continue;
+      }
       if (nn+1 < _PULL_NEIGH_MAXNUM) {
         task->neighPoint[nn++] = herPoint;
       } else {
-        fprintf(stderr, "%s: hit max# (%u) poss. neighbors (from add queue)\n",
-                me, _PULL_NEIGH_MAXNUM);
+        fprintf(stderr, "%s: hit max# (%u) poss neighs (add queue len %u)\n",
+                me, _PULL_NEIGH_MAXNUM, task->addPointNum);
       }
     }
   }
@@ -322,7 +338,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (ntrue) {
     /* this finds the over-inclusive set of all possible interacting
        points, based on bin membership as well the task's add queue */
-    nnum = _neighBinPoints(task, bin, point);
+    nnum = _neighBinPoints(task, bin, point, 1.0);
     if (nopt) {
       airArrayLenSet(point->neighPointArr, 0);
     }
@@ -467,6 +483,31 @@ _energyFromImage(pullTask *task, pullPoint *point,
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
+  if (task->pctx->energyFromStrength
+      && task->pctx->ispec[pullInfoStrength]) {
+    double deltaScale, str0, str1, enr;
+    if (!egradSum) {
+      /* just need the strength */
+      MAYBEPROBE;
+      enr = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                             NULL, NULL);
+      energy += task->pctx->gamma*enr;
+    } else {
+      /* need strength and its gradient */
+      deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
+      deltaScale *= _PULL_STRENGTH_ENERGY_DELTA_SCALE;
+      point->pos[3] += deltaScale;
+      _pullProbe(task, point);
+      str1 = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                              NULL, NULL);
+      point->pos[3] -= deltaScale;
+      MAYBEPROBE;
+      str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                              NULL, NULL);
+      energy += task->pctx->gamma*str0;
+      egradSum[3] += task->pctx->gamma*(str1 - str0)/deltaScale;
+    }
+  }
   /* Note that height doesn't contribute to the energy if there is
      a constraint associated with it */
   if (task->pctx->ispec[pullInfoHeight]
@@ -493,7 +534,6 @@ _energyFromImage(pullTask *task, pullPoint *point,
       ELL_3V_SCALE_INCR(egradSum, 2*val, grad3);
     }
   }
-  /* HEY what about strength? */
   return energy;
 }
 #undef MAYBEPROBE
@@ -522,12 +562,16 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0);
   ELL_4V_SET(egradPt, 0, 0, 0, 0);
-  if (ignoreImage) {
-    enrIm = 0;
-  } else {
+  if (!ignoreImage && task->pctx->alpha < 1.0) {
     enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
+  } else {
+    enrIm = 0;
   }
-  enrPt = _pullEnergyFromPoints(task, bin, point, egrad ? egradPt : NULL);
+  if (task->pctx->alpha > 0.0) {
+    enrPt = _pullEnergyFromPoints(task, bin, point, egrad ? egradPt : NULL);
+  } else {
+    enrPt = 0;
+  }
   energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
   /*
   printf("!%s(%u): energy = lerp(%g, im %g, pt %g) = %g\n", me,
@@ -629,7 +673,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     point->energy = energyOld;
     return 0;
   }
-
+  
   if (task->pctx->constraint) {
     /* we have a constraint, so do something to get the force more
        tangential to the constraint surface (only in the spatial axes) */
@@ -730,8 +774,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
          ever seem to take a small enough step to reduce energy */
       if (point->stepEnergy < 0.000000000000001) {
         if (task->pctx->verbose > 1) {
-          printf("%s: %u STUCK; (%g,%g,%g,%g) stepEnr %g\n", me,
-                 point->idtag, 
+          printf("%s: %u STUCK (%u); (%g,%g,%g,%g) stepEnr %g\n", me,
+                 point->idtag, point->stuckIterNum,
                  point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                  point->stepEnergy);
         }
@@ -748,6 +792,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
         energyNew = energyOld; /* to be copied into point->energy below */
         point->stepEnergy = task->pctx->stepInitial;
         point->status |= PULL_STATUS_STUCK_BIT;
+        point->stuckIterNum += 1;
         giveUp = AIR_TRUE;
       }
     }
@@ -763,13 +808,20 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   */
   _pullPointHistAdd(point, pullCondNew);
   ELL_4V_COPY(point->force, force);
-
+  
   /* not recorded for the sake of this function, but for system accounting */
   point->energy = energyNew;
   if (!AIR_EXISTS(energyNew)) {
     sprintf(err, "%s: point %u has non-exist final energy %g\n", 
             me, point->idtag, energyNew);
     biffAdd(PULL, err); return 1;
+  }
+
+  /* if its not stuck, reset stuckIterNum */
+  if (!(point->status & PULL_STATUS_STUCK_BIT)) {
+    point->stuckIterNum = 0;
+  } else if (point->stuckIterNum > _PULL_STUCK_ITER_NUM_MAX) {
+    point->status |= PULL_STATUS_NIXME_BIT;
   }
 
   return 0;

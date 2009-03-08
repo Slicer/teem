@@ -36,6 +36,7 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
   "hghthessian",
   "hghtlapl",
   "seedthresh",
+  "livethresh",
   "tan1",
   "tan2",
   "tanmode",
@@ -48,23 +49,24 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
 int
 _pullInfoVal[] = {
   pullInfoUnknown,
-  pullInfoTensor,             /*  1: [7] tensor here */
-  pullInfoTensorInverse,      /*  2: [7] inverse of tensor here */
-  pullInfoHessian,            /*  3: [9] hessian used for force distortion */
-  pullInfoInside,             /*  4: [1] containment scalar */
-  pullInfoInsideGradient,     /*  5: [3] containment vector */
-  pullInfoHeight,             /*  6: [1] for gravity */
-  pullInfoHeightGradient,     /*  7: [3] for gravity */
-  pullInfoHeightHessian,      /*  8: [9] for gravity */
-  pullInfoHeightLaplacian,    /*  9 */
-  pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
-  pullInfoTangent1,           /* 11: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 12: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 13: [1] for morphing between co-dim 1 and 2 */
-  pullInfoIsovalue,           /* 14: [1] */
-  pullInfoIsovalueGradient,   /* 15: [3] */
-  pullInfoIsovalueHessian,    /* 16: [9] */
-  pullInfoStrength            /* 17: [1] */
+  pullInfoTensor,             /* [7] tensor here */
+  pullInfoTensorInverse,      /* [7] inverse of tensor here */
+  pullInfoHessian,            /* [9] hessian used for force distortion */
+  pullInfoInside,             /* [1] containment scalar */
+  pullInfoInsideGradient,     /* [3] containment vector */
+  pullInfoHeight,             /* [1] for gravity */
+  pullInfoHeightGradient,     /* [3] for gravity */
+  pullInfoHeightHessian,      /* [9] for gravity */
+  pullInfoHeightLaplacian,    /* [1]  */
+  pullInfoSeedThresh,         /* [1] scalar for thresholding seeding */
+  pullInfoLiveThresh,         /* [1] */ 
+  pullInfoTangent1,           /* [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* [1] for morphing between co-dim 1 and 2 */
+  pullInfoIsovalue,           /* [1] */
+  pullInfoIsovalueGradient,   /* [3] */
+  pullInfoIsovalueHessian,    /* [9] */
+  pullInfoStrength            /* [1] */
 };
 
 char
@@ -79,6 +81,7 @@ _pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "hghthessian", "hhess",
   "hghtlapl", "hlapl",
   "seedthresh", "sthr",
+  "livethresh", "lthr",
   "tan1",
   "tan2",
   "tanmode", "tmode",
@@ -100,6 +103,7 @@ _pullInfoValEqv[] = {
   pullInfoHeightHessian, pullInfoHeightHessian,
   pullInfoHeightLaplacian, pullInfoHeightLaplacian,
   pullInfoSeedThresh, pullInfoSeedThresh,
+  pullInfoLiveThresh, pullInfoLiveThresh,
   pullInfoTangent1,
   pullInfoTangent2,
   pullInfoTangentMode, pullInfoTangentMode,
@@ -134,6 +138,7 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   9, /* pullInfoHeightHessian */
   1, /* pullInfoHeightLaplacian */
   1, /* pullInfoSeedThresh */
+  1, /* pullInfoLiveThresh */
   3, /* pullInfoTangent1 */
   3, /* pullInfoTangent2 */
   1, /* pullInfoTangentMode */

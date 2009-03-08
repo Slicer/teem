@@ -58,6 +58,7 @@ pullContextNew(void) {
   pctx->constraintStepMin = 0.0001;
   pctx->wall = 1;
   pctx->energyIncreasePermit = 0.0;
+  pctx->energyFromStrength = AIR_FALSE;
 
   pctx->pointPerVoxel = 0;
   pctx->numSamplesScale = 0;
@@ -74,6 +75,7 @@ pullContextNew(void) {
   pctx->energySpecWin = pullEnergySpecNew();
   pctx->alpha = 0.5;
   pctx->beta = 0.5;
+  pctx->gamma = 1;
   pctx->jitter = 1.0;
 
   pctx->binSingle = AIR_FALSE;
@@ -147,7 +149,7 @@ pullContextNix(pullContext *pctx) {
 int
 _pullContextCheck(pullContext *pctx) {
   char me[]="_pullContextCheck", err[BIFF_STRLEN];
-  unsigned int ii, sclvi;
+  unsigned int ii;
   int gotIspec, gotConstr;
 
   if (!pctx) {
@@ -183,7 +185,7 @@ _pullContextCheck(pullContext *pctx) {
     sprintf(err, "%s: have no volumes set", me);
     biffAdd(PULL, err); return 1;
   }
-  /*
+  /* HEY: why was there this restriction to only one scale-space vol?
   for (ii=0; ii<pctx->volNum; ii++) {
     if (pctx->vol[ii]->ninScale) {
       sclvi = ii;
@@ -222,6 +224,7 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoHeight:
       case pullInfoHeightLaplacian:
       case pullInfoSeedThresh:
+      case pullInfoLiveThresh:
       case pullInfoTangentMode:
       case pullInfoIsovalue:
       case pullInfoStrength:
