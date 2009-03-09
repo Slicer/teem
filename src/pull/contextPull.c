@@ -94,7 +94,8 @@ pullContextNew(void) {
   pctx->maxDistScale = AIR_NAN;
   pctx->constraintDim = AIR_NAN;
   pctx->targetDim = AIR_NAN;
-  pctx->constraintVoxelSize = AIR_NAN;
+  pctx->voxelSizeSpace = AIR_NAN;
+  pctx->voxelSizeScale = AIR_NAN;
 
   pctx->bin = NULL;
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);

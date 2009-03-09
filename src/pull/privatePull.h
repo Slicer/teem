@@ -46,7 +46,10 @@ extern "C" {
 
 /* scaling factor between point->neighDistMean and distance cap; higher
    values allow for more adventurous explorations... */
-#define _PULL_DIST_CAP_SCALE 2.0
+#define _PULL_DIST_CAP_RSNORM 2.0
+
+/* travel distance limit in terms of voxelSizeSpace and voxelSizeScale */
+#define _PULL_DIST_CAP_VOXEL 1.5
 
 /* where along s axis to probe energySpecS to see if its attractive or
    repulsive along scale */

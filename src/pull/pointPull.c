@@ -870,7 +870,7 @@ _pullPointSetup(pullContext *pctx) {
   
   pn = pullPointNumber(pctx);
   if (!pn) {
-    sprintf(err, "%s: point initialization filed, no points!\n", me);
+    sprintf(err, "%s: point initialization failed, no points!\n", me);
     biffAdd(PULL, err); airMopError(mop); return 1;
   }
   printf("%s: ended up with %u points\n", me, pn);

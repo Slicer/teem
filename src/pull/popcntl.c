@@ -175,7 +175,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   for (iter=0; iter<task->pctx->popCntlPeriod; iter++) {
     double diff[4];
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
-                                          AIR_TRUE /* ignoreImage */);
+                                          AIR_FALSE /* ignoreImage */);
     if (newpnt->status & PULL_STATUS_STUCK_BIT) {
       if (task->pctx->verbose > 2) {
         printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me, 

@@ -521,9 +521,12 @@ typedef struct pullContext_t {
                                       because of scale-space, and either 
                                       repulsive (+1) or attractive (+0)
                                       behavior along scale */
-    constraintVoxelSize;           /* if there's a constraint, mean voxel edge
-                                      length, to use for limiting distance 
-                                      to travel for constraint satisfaction */
+    voxelSizeSpace,                /* mean spatial voxel edge length, for
+                                      limiting travel distance for descent
+                                      and constraint satisfaction */
+    voxelSizeScale;                /* mean voxel edge length in space, for
+                                      limiting travel (along scale) distance
+                                      during descent */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   unsigned int binsEdge[4],        /* # bins along each volume edge,
                                       determined by maxEval and scale */

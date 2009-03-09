@@ -337,14 +337,16 @@ _pullInsideBBox(pullContext *pctx, double pos[4]) {
 /*
 ** sets:
 ** pctx->haveScale
+** pctx->voxelSizeSpace, voxelSizeScale
 ** pctx->bboxMin  ([0] through [3], always)
 ** pctx->bboxMax  (same)
 */
 int
 _pullVolumeSetup(pullContext *pctx) {
   char me[]="_pullVolumeSetup", err[BIFF_STRLEN];
-  unsigned int ii;
+  unsigned int ii, numScale;
 
+  /* first see if there are any gage problems */
   for (ii=0; ii<pctx->volNum; ii++) {
     if (gageUpdate(pctx->vol[ii]->gctx)) {
       sprintf(err, "%s: trouble setting up gage on vol %u/%u",
@@ -352,22 +354,42 @@ _pullVolumeSetup(pullContext *pctx) {
       biffMove(PULL, err, GAGE); return 1;
     }
   }
-  gageShapeBoundingBox(pctx->bboxMin, pctx->bboxMax,
-                       pctx->vol[0]->gctx->shape);
-  for (ii=1; ii<pctx->volNum; ii++) {
+
+  pctx->voxelSizeSpace = 0.0;
+  for (ii=0; ii<pctx->volNum; ii++) {
     double min[3], max[3];
-    gageShapeBoundingBox(min, max, pctx->vol[ii]->gctx->shape);
-    ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
-    ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
+    gageContext *gctx;
+    gctx = pctx->vol[ii]->gctx;
+    gageShapeBoundingBox(min, max, gctx->shape);
+    if (!ii) {
+      ELL_3V_COPY(pctx->bboxMin, min);
+      ELL_3V_COPY(pctx->bboxMax, max);
+    } else {
+      ELL_3V_MIN(pctx->bboxMin, pctx->bboxMin, min);
+      ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
+    }
+    pctx->voxelSizeSpace += ELL_3V_LEN(gctx->shape->spacing)/sqrt(3.0);
   }
+  pctx->voxelSizeSpace /= pctx->volNum;
   /* have now computed bbox{Min,Max}[0,1,2]; now do bbox{Min,Max}[3] */
   pctx->bboxMin[3] = pctx->bboxMax[3] = 0.0;
   pctx->haveScale = AIR_FALSE;
+  pctx->voxelSizeScale = 0.0;
+  numScale = 0;
   for (ii=0; ii<pctx->volNum; ii++) {
     if (pctx->vol[ii]->ninScale) {
-      double sclMin, sclMax;
+      double sclMin, sclMax, sclStep;
+      unsigned int si;
+      numScale ++;
       sclMin = pctx->vol[ii]->scalePos[0];
       sclMax = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
+      sclStep = 0;
+      for (si=0; si<pctx->vol[ii]->scaleNum-1; si++) {
+        sclStep += (pctx->vol[ii]->scalePos[si+1]
+                    - pctx->vol[ii]->scalePos[si]);
+      }
+      sclStep /= pctx->vol[ii]->scaleNum-1;
+      pctx->voxelSizeScale += sclStep;
       if (!pctx->haveScale) {
         pctx->bboxMin[3] = sclMin;
         pctx->bboxMax[3] = sclMax;
@@ -379,11 +401,16 @@ _pullVolumeSetup(pullContext *pctx) {
       }
     }
   }
-  printf("!%s: bbox min (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
+  if (numScale) {
+    pctx->voxelSizeScale /= numScale;
+  }
+  printf("!%s: bboxMin (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
          pctx->bboxMin[0], pctx->bboxMin[1],
          pctx->bboxMin[2], pctx->bboxMin[3],
          pctx->bboxMax[0], pctx->bboxMax[1],
          pctx->bboxMax[2], pctx->bboxMax[3]);
+  printf("!%s: voxelSizeSpace %g Scale %g\n", me, 
+         pctx->voxelSizeSpace, pctx->voxelSizeScale);
 
   /* _energyInterParticle() depends on this error checking */
   if (pctx->haveScale) {

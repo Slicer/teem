@@ -485,7 +485,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
   }
   if (task->pctx->energyFromStrength
       && task->pctx->ispec[pullInfoStrength]) {
-    double deltaScale, str0, str1, enr;
+    double deltaScale, str0, str1, scl0, scl1, enr;
+    int sign;
     if (!egradSum) {
       /* just need the strength */
       MAYBEPROBE;
@@ -494,18 +495,19 @@ _energyFromImage(pullTask *task, pullPoint *point,
       energy += task->pctx->gamma*enr;
     } else {
       /* need strength and its gradient */
+      sign = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
-      deltaScale *= _PULL_STRENGTH_ENERGY_DELTA_SCALE;
-      point->pos[3] += deltaScale;
+      deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;
+      scl1 = point->pos[3] += deltaScale;
       _pullProbe(task, point);
       str1 = _pullPointScalar(task->pctx, point, pullInfoStrength,
                               NULL, NULL);
-      point->pos[3] -= deltaScale;
+      scl0 = point->pos[3] -= deltaScale;
       MAYBEPROBE;
       str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
-                              NULL, NULL);
+                             NULL, NULL);
       energy += task->pctx->gamma*str0;
-      egradSum[3] += task->pctx->gamma*(str1 - str0)/deltaScale;
+      egradSum[3] += task->pctx->gamma*(str1 - str0)/(scl1 - scl0);
     }
   }
   /* Note that height doesn't contribute to the energy if there is
@@ -630,7 +632,7 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
       || pullEnergyZero == task->pctx->energySpecR->energy) {
     ret = 1;
   } else {
-    ret = _PULL_DIST_CAP_SCALE*point->neighDistMean;
+    ret = _PULL_DIST_CAP_RSNORM*point->neighDistMean;
   }
   /* HEY: task->pctx->constraintVoxelSize might be considered here */
   return ret;
@@ -692,17 +694,32 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   */
   /* Cap particle motion. The point is only allowed to move at most unit
      distance in rs-normalized space, which may mean that motion in r
-     or s is effectively cramped by crowding in the other axis, oh well */
+     or s is effectively cramped by crowding in the other axis, oh well.
+     Also, particle motion is limited in terms of spatial voxel size,
+     and (if haveScale) the average distance between scale samples */
   if (1) {
-    double capvec[4], nspcLen, nsclLen, max, distLimit;
+    double capvec[4], spcLen, sclLen, max, distLimit;
     
+    /* limits based on distLimit in rs-normalized space */
     distLimit = _pullDistLimit(task, point);
     ELL_4V_SCALE(capvec, point->stepEnergy, force);
-    nspcLen = ELL_3V_LEN(capvec)/task->pctx->radiusSpace;
-    nsclLen = AIR_ABS(capvec[3])/task->pctx->radiusScale;
-    max = AIR_MAX(nspcLen, nsclLen);
+    spcLen = ELL_3V_LEN(capvec)/task->pctx->radiusSpace;
+    sclLen = AIR_ABS(capvec[3])/task->pctx->radiusScale;
+    max = AIR_MAX(spcLen, sclLen);
     if (max > distLimit) {
       point->stepEnergy *= distLimit/max;
+    }
+    /* limits based on voxelSizeSpace and voxelSizeScale */
+    ELL_4V_SCALE(capvec, point->stepEnergy, force);
+    spcLen = ELL_3V_LEN(capvec)/task->pctx->voxelSizeSpace;
+    if (task->pctx->haveScale) {
+      sclLen = AIR_ABS(capvec[3])/task->pctx->voxelSizeScale;
+      max = AIR_MAX(spcLen, sclLen);
+    } else {
+      max = spcLen;
+    }
+    if (max > _PULL_DIST_CAP_VOXEL) {
+      point->stepEnergy *= _PULL_DIST_CAP_VOXEL/max;
     }
   }
   /*

@@ -525,7 +525,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4],
     modeLine = AIR_NAN, modeSurf = AIR_NAN;
   
-  stepMax = task->pctx->constraintVoxelSize;
+  stepMax = task->pctx->voxelSizeSpace;
   iterMax = task->pctx->constraintIterMax;
   /*
   dlim = _pullDistLimit(task, point);

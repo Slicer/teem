@@ -273,7 +273,6 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 ** pctx->infoIdx[]
 ** pctx->infoTotalLen
 ** pctx->constraint
-** pctx->constraintVoxelSize
 ** pctx->constraintDim
 ** pctx->targetDim (non-trivial logic for scale-space!)
 */
@@ -300,11 +299,7 @@ _pullInfoSetup(pullContext *pctx) {
       if (pctx->ispec[ii]->constraint) {
         pullVolume *cvol;
         pctx->constraint = ii;
-        /* we set pctx->constraintVoxelSize here because we can.
-           _pullVolumeSetup() would be a better place, but we hadn't
-           set pctx->constraint yet. */
         cvol = pctx->vol[pctx->ispec[ii]->volIdx];
-        pctx->constraintVoxelSize = ELL_3V_LEN(cvol->gctx->shape->spacing);
       }
     }
   }
