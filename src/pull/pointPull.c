@@ -519,8 +519,10 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd *npos) {
 
   /* Loop through voxels */
   posData = AIR_CAST(double *, npos->data);
-  for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
+  pIdx = 0;
     unsigned int pitv; /* points in this voxel */
+
+  for (voxIdx=0; voxIdx<voxNum; voxIdx++) {
     if (tick < 100 || 0 == voxIdx % tick) {
       printf("%s", airDoneStr(0, voxIdx, voxNum, doneStr));
       fflush(stdout);
@@ -545,7 +547,6 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd *npos) {
       printf("%s: seeding for voxel = %u/%u = %u (%u,%u,%u)\n", me,
 	     voxIdx, voxNum, yzi, vidx[0], vidx[1], vidx[2]);
     }
-    pIdx = 0;
     for (pitvIdx=0; pitvIdx<pitv; pitvIdx++) {
       iPos[0] = vidx[0] + pctx->jitter*airDrandMT_r(rng) - 0.5;
       iPos[1] = vidx[1] + pctx->jitter*airDrandMT_r(rng) - 0.5;
@@ -556,22 +557,20 @@ _pullPointInitializePerVoxel(pullContext *pctx, Nrrd *npos) {
       if (pctx->haveScale) {
         /* Distrubute points along scale */
         for (sIdx=0; sIdx<pctx->numSamplesScale; sIdx++) {
-          posData[pIdx] = pos[0];
-          posData[pIdx+1]= pos[1];
-          posData[pIdx+2] = pos[2];
-          posData[pIdx+3] = sigmaValues[sIdx] + 
+          posData[0 + pIdx] = pos[0];
+          posData[1 + pIdx]= pos[1];
+          posData[2 + pIdx] = pos[2];
+          posData[3 + pIdx] = sigmaValues[sIdx] + 
                             pctx->jitter*airDrandMT_r(rng)*deltaS - deltaS/2;
-          pIdx++;
         }
       } else {
-        posData[pIdx] = pos[0];
-        posData[pIdx+1]= pos[1];
-        posData[pIdx+2] = pos[2];
-        posData[pIdx+3] = 0.0;
-        pIdx++;
+        posData[0 + pIdx] = pos[0];
+        posData[1 + pIdx]= pos[1];
+        posData[2 + pIdx] = pos[2];
+        posData[3 + pIdx] = 0.0;
       }
+      pIdx=pIdx+4;
     }
-    printf("%s\n", airDoneStr(0, voxIdx, voxNum, doneStr));
   }
   airMopOkay(mop);
   return;
@@ -738,7 +737,7 @@ _pullPointSetup(pullContext *pctx) {
 
   /* Enforce contraint and add points to bins */
   tick = totalNumPoints/1000;
-  posData = npos->data;
+  posData = AIR_CAST(double *,npos->data);
   point = NULL;
   unsigned int threshFailCount = 0, constrFailCount = 0;
   for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
@@ -763,7 +762,6 @@ _pullPointSetup(pullContext *pctx) {
       sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
       biffAdd(PULL, err); airMopError(mop); return 1;
     }
-    
     /* Apply constraint */
     /* Different constraints depending on the placing method */
     if (pctx->pointPerVoxel) {
@@ -792,7 +790,7 @@ _pullPointSetup(pullContext *pctx) {
         double val;
         val = _pullPointScalar(pctx, point, pullInfoSeedThresh,
                                NULL, NULL);
-        threshFailCount += (threshFail = val < 0);
+        threshFailCount += (threshFail = (val < 0));
       } else {
         threshFail = AIR_FALSE;
       }
