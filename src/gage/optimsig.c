@@ -26,7 +26,9 @@
 #define N -1
 
 /*
-** basic indexing idea: [sigma max][total # samples][which sample]
+** NOTE: This table was computed by Raul San Jose Estepar
+**
+** Basic indexing idea: [sigma max][total # samples][which sample]
 **
 ** "sigma max" can't be 0; smallest value is 1
 ** ==> index with (sigma max)-1
