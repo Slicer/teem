@@ -104,7 +104,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, renorm, SSuniform, verbose,
+  int what, E=0, renorm, SSuniform, SSoptim, verbose,
     orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
@@ -211,6 +211,9 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
              "do uniform samples along sigma, and not (by default) "
              "samples according to the effective diffusion scale");
+  hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &SSoptim, NULL,
+             "if not using \"-ssu\", use pre-computed optimal "
+             "sigmas when possible");
 
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
@@ -281,12 +284,25 @@ main(int argc, char *argv[]) {
         scalePos[vi] = AIR_AFFINE(0, vi, numSS-1, rangeSS[0], rangeSS[1]);
       }
     } else {
-      double rangeTau[2], tau;
-      rangeTau[0] = gageTauOfSig(rangeSS[0]);
-      rangeTau[1] = gageTauOfSig(rangeSS[1]);
-      for (vi=0; vi<numSS; vi++) {
-        tau = AIR_AFFINE(0, vi, numSS-1, rangeTau[0], rangeTau[1]);
-        scalePos[vi] = gageSigOfTau(tau);
+      if (SSoptim
+          && 0 == rangeSS[0] 
+          && rangeSS[1] == AIR_CAST(unsigned int, rangeSS[1])
+          && numSS <= GAGE_OPTIMSIG_SAMPLES_MAXNUM
+          && rangeSS[1] <= GAGE_OPTIMSIG_SIGMA_MAX) {
+        if (gageOptimalSigmaSet(scalePos, numSS, rangeSS[1])) {
+          airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+          fprintf(stderr, "%s: trouble w/ optimal sigmas:\n%s\n", me, err);
+          airMopError(mop); return 1;
+        }
+      } else {
+        /* non-optimal sigmas, uniform in tau */
+        double rangeTau[2], tau;
+        rangeTau[0] = gageTauOfSig(rangeSS[0]);
+        rangeTau[1] = gageTauOfSig(rangeSS[1]);
+        for (vi=0; vi<numSS; vi++) {
+          tau = AIR_AFFINE(0, vi, numSS-1, rangeTau[0], rangeTau[1]);
+          scalePos[vi] = gageSigOfTau(tau);
+        }
       }
     }
     if (verbose > 2) {
