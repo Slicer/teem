@@ -222,6 +222,13 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     task->processMode = pullProcessModeAdding;
     return 0;
   }
+  /* see if the new point should be nixed because its at a volume edge */
+  if (task->pctx->nixAtVolumeEdgeSpace
+      && (newpnt->status & PULL_STATUS_EDGE_BIT)) {
+    newpnt = pullPointNix(newpnt);
+    task->processMode = pullProcessModeAdding;
+    return 0;
+  }
   /* no problem with live thresh, test energy by first learn neighbors */
   /* we have to add newpnt to task's add queue, just so that its neighbors
      can see it as a possible neighbor */
@@ -355,6 +362,10 @@ _pullNixTheNixed(pullContext *pctx) {
     while (pointIdx < bin->pointNum) {
       pullPoint *point;
       point = bin->point[pointIdx];
+      if (pctx->nixAtVolumeEdgeSpace
+          && (point->status & PULL_STATUS_EDGE_BIT)) {
+        point->status |= PULL_STATUS_NIXME_BIT;
+      }
       if (point->status & PULL_STATUS_NIXME_BIT) {
         pullPointNix(point);
         /* copy last point pointer to this slot */

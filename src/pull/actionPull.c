@@ -508,6 +508,15 @@ _energyFromImage(pullTask *task, pullPoint *point,
                              NULL, NULL);
       energy += task->pctx->gamma*str0;
       egradSum[3] += task->pctx->gamma*(str1 - str0)/(scl1 - scl0);
+      /*
+      printf("%s: egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
+             me, task->pctx->gamma,
+             str1, str0, scl1, scl0,
+             str1 - str0, scl1 - scl0,
+             (str1 - str0)/(scl1 - scl0),
+             task->pctx->gamma*(str1 - str0)/(scl1 - scl0),
+             egradSum[3]);
+      */
     }
   }
   /* Note that height doesn't contribute to the energy if there is

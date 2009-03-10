@@ -135,6 +135,10 @@ enum {
                                     and don't look at me for energy 
                                     during this iteraction */
 #define PULL_STATUS_NIXME_BIT  (1<< 3)
+  pullStatusEdge,                /* 4: at the spatial edge of one of the
+                                    volumes: gage had to invent values for 
+                                    some samples in the kernel support */
+#define PULL_STATUS_EDGE_BIT   (1<< 4)
   pullStatusLast
 };
 
@@ -426,12 +430,16 @@ typedef struct pullContext_t {
                                       particle energy to increase, in the
                                       context of gradient descent */
 
-  int energyFromStrength;          /* (something of a hack) if non-zero,
+  int energyFromStrength,          /* (something of a hack) if non-zero,
                                       strength is a particle-image energy
                                       term that is minimized by motion along
                                       scale, which in turn requires extra
                                       probing to determine the strength
                                       gradient along scale. */
+    nixAtVolumeEdgeSpace;          /* if non-zero, nix points that got near
+                                      enough to the volume edge that gage
+                                      had to invent values for the kernel 
+                                      support */
   int pointPerVoxel;               /* number of initial points per voxel, in
                                       seed thresh volume. If 0, then use old
                                       behavior of just finding pointNumInitial

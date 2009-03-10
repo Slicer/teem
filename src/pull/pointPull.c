@@ -348,6 +348,7 @@ int
 _pullProbe(pullTask *task, pullPoint *point) {
   char me[]="_pullProbe", err[BIFF_STRLEN];
   unsigned int ii, gret=0;
+  int edge;
 
 #if 0
   static int logIdx=0, logDone=AIR_FALSE, logStarted=AIR_FALSE;
@@ -375,6 +376,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
   if (task->pctx->verbose > 3) {
     printf("%s: hello; probing %u volumes\n", me, task->pctx->volNum);
   }
+  edge = AIR_FALSE;
   for (ii=0; ii<task->pctx->volNum; ii++) {
     if (task->pctx->iter && task->vol[ii]->seedOnly) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
@@ -412,12 +414,18 @@ _pullProbe(pullTask *task, pullPoint *point) {
     if (gret) {
       break;
     }
+    edge |= !!task->vol[ii]->gctx->edgeFrac;
   }
   if (gret) {
     sprintf(err, "%s: probe failed on vol %u/%u: (%d) %s", me,
             ii, task->pctx->volNum,
             task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
     biffAdd(PULL, err); return 1;
+  }
+  if (edge) {
+    point->status |= PULL_STATUS_EDGE_BIT;
+  } else {
+    point->status &= ~PULL_STATUS_EDGE_BIT;
   }
 
   /* maybe is a little stupid to have the infos indexed this way, 
