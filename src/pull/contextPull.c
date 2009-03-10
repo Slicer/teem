@@ -60,6 +60,7 @@ pullContextNew(void) {
   pctx->energyIncreasePermit = 0.0;
   pctx->energyFromStrength = AIR_FALSE;
   pctx->nixAtVolumeEdgeSpace = AIR_FALSE;
+  pctx->constraintBeforeSeedThresh = AIR_FALSE;
 
   pctx->pointPerVoxel = 0;
   pctx->numSamplesScale = 0;

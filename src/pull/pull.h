@@ -439,10 +439,17 @@ typedef struct pullContext_t {
                                       scale, which in turn requires extra
                                       probing to determine the strength
                                       gradient along scale. */
-    nixAtVolumeEdgeSpace;          /* if non-zero, nix points that got near
+    nixAtVolumeEdgeSpace,          /* if non-zero, nix points that got near
                                       enough to the volume edge that gage
                                       had to invent values for the kernel 
                                       support */
+    constraintBeforeSeedThresh;    /* if non-zero, during initialization, try
+                                      constraint satisfaction (if there is a
+                                      constraint) before testing whether the
+                                      seedThresh is met.  Doing the constraint
+                                      will take longer, but a point is more
+                                      likely to meet a threshold based on
+                                      feature strength */
   int pointPerVoxel;               /* number of initial points per voxel, in
                                       seed thresh volume. If 0, then use old
                                       behavior of just finding pointNumInitial
