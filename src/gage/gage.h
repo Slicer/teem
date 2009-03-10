@@ -627,6 +627,11 @@ typedef struct gageContext_t {
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
   char errStr[AIR_STRLEN_LARGE];
   int errNum;                 /* takes values from the gageErr enum */
+  
+  /* what fraction of the values in the kernel support had to be invented
+     (by bleeding out the margin) in order to satisfy a probe that was near
+     the edge (any axis, either high or low) of the volume */
+  double edgeFrac;
 } gageContext;
 
 /*

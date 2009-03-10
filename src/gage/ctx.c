@@ -61,6 +61,9 @@ gageContextNew() {
     ctx->fsl = ctx->fw = NULL;
     ctx->off = NULL;
     gagePointReset(&ctx->point);
+    strcpy(ctx->errStr, "");
+    ctx->errNum = gageErrNone;
+    ctx->edgeFrac = 0;
   }
   return ctx;
 }
@@ -575,16 +578,22 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       }
       break;
     }
+    ctx->edgeFrac = 0;
   } else {
+    unsigned int edgeNum;
     /* the query requires samples which don't actually lie 
        within the volume- more care has to be taken */
     cacheIdx = 0;
+    edgeNum = 0;
     for (_zz=lz; _zz<=hz; _zz++) {
       zz = AIR_CLAMP(0, _zz, AIR_CAST(int, sz-1));
       for (_yy=ly; _yy<=hy; _yy++) {
         yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
           xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
+          edgeNum += ((AIR_CAST(int, zz) != _zz) 
+                      || (AIR_CAST(int, yy) != _yy) 
+                      || (AIR_CAST(int, xx) != _xx));
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
           if (ctx->verbose > 1) {
@@ -605,6 +614,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
         }
       }
     }
+    ctx->edgeFrac = AIR_CAST(double, edgeNum)/fddd;
   }
   if (ctx->verbose > 1) {
     printf("%s: bye\n", me);
