@@ -539,6 +539,11 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 /* increment for ctx->pvlArr airArray */
 #define GAGE_PERVOLUME_ARR_INCR 32
 
+/* extents of known information about optimal sigma samples for 
+   Hermite-spline-based scale-space reconstruction */
+#define GAGE_OPTIMSIG_SIGMA_MAX 20
+#define GAGE_OPTIMSIG_SAMPLES_MAXNUM 10
+
 /*
 ******** gageContext struct
 **
@@ -847,6 +852,10 @@ GAGE_EXPORT int gageQueryAdd(gageContext *ctx, gagePerVolume *pvl,
                              gageQuery query);
 GAGE_EXPORT int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl,
                                 int item);
+
+/* optimsig.c */
+GAGE_EXPORT int gageOptimalSigmaSet(double *scale, unsigned int num,
+                                    unsigned int sigmaMax);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);
