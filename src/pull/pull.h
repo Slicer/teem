@@ -84,23 +84,26 @@ enum {
   pullInfoHeightGradient,     /*  7: [3] */
   pullInfoHeightHessian,      /*  8: [9] */
   pullInfoHeightLaplacian,    /*  9: [1] for zero-crossing edge detection */
-  pullInfoSeedThresh,         /* 10: [1] scalar for thresholding seeding */
-  pullInfoLiveThresh,         /* 11: [1] scalar for thresholding extent 
+  pullInfoSeedPreThresh,      /* 10: [1] scalar for pre-thresholding seeding,
+                                 so that points can be quickly eliminated
+                                 (e.g. prior to constraint satisfaction) */
+  pullInfoSeedThresh,         /* 11: [1] scalar for thresholding seeding */
+  pullInfoLiveThresh,         /* 12: [1] scalar for thresholding extent 
                                  particles, AND for future additions from
                                  population control.  Will also be used
                                  for seeding, when that's cleaned up */
-  pullInfoTangent1,           /* 12: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 13: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 14: [1] for morphing between co-dim 1 and 2;
+  pullInfoTangent1,           /* 13: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 14: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 15: [1] for morphing between co-dim 1 and 2;
                                  User must set scale so mode from -1 to 1
                                  means co-dim 1 (surface) to 2 (line) */
-  pullInfoIsovalue,           /* 15: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 16: [3] */
-  pullInfoIsovalueHessian,    /* 17: [9] */
-  pullInfoStrength,           /* 18: [1] */
+  pullInfoIsovalue,           /* 16: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 17: [3] */
+  pullInfoIsovalueHessian,    /* 18: [9] */
+  pullInfoStrength,           /* 19: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            18
+#define PULL_INFO_MAX            19
 
 /*
 ** the various properties of particles in the system 

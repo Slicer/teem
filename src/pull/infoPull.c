@@ -35,6 +35,7 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
   "hghtgradvec",
   "hghthessian",
   "hghtlapl",
+  "seedprethresh",
   "seedthresh",
   "livethresh",
   "tan1",
@@ -58,6 +59,7 @@ _pullInfoVal[] = {
   pullInfoHeightGradient,     /* [3] for gravity */
   pullInfoHeightHessian,      /* [9] for gravity */
   pullInfoHeightLaplacian,    /* [1]  */
+  pullInfoSeedPreThresh,      /* [1] */
   pullInfoSeedThresh,         /* [1] scalar for thresholding seeding */
   pullInfoLiveThresh,         /* [1] */ 
   pullInfoTangent1,           /* [3] first tangent to constraint surf */
@@ -80,6 +82,7 @@ _pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "hghtgradvec", "hgvec",
   "hghthessian", "hhess",
   "hghtlapl", "hlapl",
+  "seedprethresh", "spthr",
   "seedthresh", "sthr",
   "livethresh", "lthr",
   "tan1",
@@ -102,6 +105,7 @@ _pullInfoValEqv[] = {
   pullInfoHeightGradient, pullInfoHeightGradient,
   pullInfoHeightHessian, pullInfoHeightHessian,
   pullInfoHeightLaplacian, pullInfoHeightLaplacian,
+  pullInfoSeedPreThresh, pullInfoSeedPreThresh,
   pullInfoSeedThresh, pullInfoSeedThresh,
   pullInfoLiveThresh, pullInfoLiveThresh,
   pullInfoTangent1,
@@ -137,6 +141,7 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   3, /* pullInfoHeightGradient */
   9, /* pullInfoHeightHessian */
   1, /* pullInfoHeightLaplacian */
+  1, /* pullInfoSeedPreThresh */
   1, /* pullInfoSeedThresh */
   1, /* pullInfoLiveThresh */
   3, /* pullInfoTangent1 */
@@ -256,7 +261,8 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   
   /* very tricky: seedOnly is initialized to true for everything, here
      is where we turn it off for anything info that's not seedthresh */
-  if (pullInfoSeedThresh != info) {
+  if (!( pullInfoSeedThresh == info
+         || pullInfoSeedPreThresh == info )) {
     pctx->vol[ii]->seedOnly = AIR_FALSE;
   }
   
