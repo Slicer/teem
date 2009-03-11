@@ -1,5 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -24,17 +24,26 @@
 #
 # TeemConfig.cmake - Teem CMake configuration file for external projects.
 #
-# This file is configured by Teem and used by the UseTeem.cmake module
+# This file is configured by Teem and used by the TeemUse.cmake module
 # to load Teem's settings for an external project.
 
-# The Teem source tree.
-SET(Teem_SOURCE_DIR "@Teem_SOURCE_DIR@")
+# The directory of TeemConfig.cmake is, by definition, Teem_DIR.
+# (this_dir == Teem_DIR)
+#
+GET_FILENAME_COMPONENT(this_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT(Teem_ROOT_DIR "${this_dir}/@Teem_CV_CONFIG_TO_ROOT@" ABSOLUTE)
 
-# The Teem include file directories.
-SET(Teem_EXECUTABLE_DIRS "@Teem_EXECUTABLE_DIRS@")
-SET(Teem_LIBRARY_DIRS "@Teem_LIBRARY_DIRS@")
-SET(Teem_LIBRARIES "@Teem_BUILT_LIBRARIES@")
-SET(Teem_INCLUDE_DIRS "@Teem_INCLUDE_DIRS@")
+# CMake files required to build client applications that use Teem.
+SET(Teem_BUILD_SETTINGS_FILE "@Teem_CV_BUILD_SETTINGS_FILE@")
+SET(Teem_USE_FILE "@Teem_CV_USE_FILE@")
+
+# The Teem directories.
+SET(Teem_EXECUTABLE_DIRS "@Teem_CV_EXECUTABLE_DIRS@")
+SET(Teem_LIBRARY_DIRS "@Teem_CV_LIBRARY_DIRS@")
+SET(Teem_INCLUDE_DIRS "@Teem_CV_INCLUDE_DIRS@")
+
+# The Teem libraries.
+SET(Teem_LIBRARIES "@Teem_CV_BUILT_LIBRARIES@")
 
 # The C flags added by Teem to the cmake-configured flags.
 SET(Teem_REQUIRED_C_FLAGS "@Teem_REQUIRED_C_FLAGS@")
@@ -46,16 +55,11 @@ SET(Teem_VERSION_PATCH "@Teem_VERSION_PATCH@")
 
 # Is Teem using shared libraries?
 SET(Teem_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
-SET(Teem_BUILD_SETTINGS_FILE "@Teem_BUILD_SETTINGS_FILE@")
-
-# The location of the UseTeem.cmake file.
-SET(Teem_USE_FILE "@Teem_USE_FILE@")
 
 # The list of tools in teem
 SET(Teem_TOOLS "@Teem_TOOLS@")
 
-# The ExodusII library dependencies.
+# The Teem library dependencies.
 IF(NOT Teem_NO_LIBRARY_DEPENDS)
-  INCLUDE("@Teem_LIBRARY_DEPENDS_FILE@")
+  INCLUDE("@Teem_CV_LIBRARY_DEPENDS_FILE@")
 ENDIF(NOT Teem_NO_LIBRARY_DEPENDS)
-

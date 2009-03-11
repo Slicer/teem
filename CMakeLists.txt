@@ -1,5 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -419,52 +419,64 @@ CMAKE_EXPORT_BUILD_SETTINGS(${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 SET(CFLAGS "${CMAKE_C_FLAGS}")
 SET(CC "${CMAKE_C_COMPILER}")
 
-# For build tree usage
-SET(Teem_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 SET(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH} CACHE INTERNAL "Single output directory for building all executables.")
-SET(Teem_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
-SET(Teem_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
-SET(Teem_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
-SET(Teem_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 
-SET(prefix "${Teem_BINARY_DIR}")
-SET(exec_prefix "${prefix}")
-SET(exec_prefix_set "no")
-SET(bindir "${prefix}/bin")
-SET(includedir "${prefix}")
-SET(libdir "${prefix}/bin")
-SET(srcdir "${Teem_SOURCE_DIR}")
+
+# Teem_CV_ prefixed variables are only used inside TeemConfig.cmake.in for
+# replacement during the following two CONFIGURE_FILE calls. One is for use
+# from the build tree, one is for use from the install tree.
+
+
+# For build tree usage
+
+# In the build tree, TeemConfig.cmake is in Teem_BINARY_DIR. The root of the
+# tree for finding include files relative to TeemConfig.cmake is "."
+# 
+SET(Teem_CV_CONFIG_TO_ROOT ".")
+SET(Teem_CV_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
+SET(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
+SET(Teem_CV_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
+SET(Teem_CV_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
+SET(Teem_CV_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
+SET(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+SET(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 CONFIGURE_FILE("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
   "${Teem_BINARY_DIR}/TeemConfig.cmake" @ONLY IMMEDIATE)
 
-# For installed tree usage
-SET(Teem_LIBRARY_DEPENDS_FILE ${CMAKE_INSTALL_PREFIX}/lib/Teem-${Teem_VERSION_STRING}/TeemLibraryDepends.cmake)
-SET(Teem_EXECUTABLE_DIRS "${CMAKE_INSTALL_PREFIX}/bin")
-SET(Teem_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib${EXTRA_INSTALL_PATH}")
-SET(Teem_USE_FILE "${CMAKE_INSTALL_PREFIX}/lib/Teem-${Teem_VERSION_STRING}/TeemUse.cmake")
-SET(Teem_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-SET(Teem_BUILD_SETTINGS_FILE ${CMAKE_INSTALL_PREFIX}/lib/Teem-${Teem_VERSION_STRING}/TeemBuildSettings.cmake)
-SET(Teem_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
-SET(prefix "${CMAKE_INSTALL_PREFIX}")
-SET(exec_prefix "${prefix}")
-SET(exec_prefix_set "no")
-SET(bindir "${prefix}/bin")
-SET(includedir "${prefix}")
-SET(libdir "${prefix}/lib${EXTRA_INSTALL_PATH}")
-SET(srcdir ".")
+
+# For install tree usage
+
+# In the install tree, TeemConfig.cmake is in lib or lib/Teem-X.Y based on the
+# value of Teem_USE_LIB_INSTALL_SUBDIR. The root of the tree for finding
+# include files relative to TeemConfig.cmake is therefore ".." or "../.."
+# 
+IF(Teem_USE_LIB_INSTALL_SUBDIR)
+  SET(Teem_CV_CONFIG_TO_ROOT "../..")
+ELSE(Teem_USE_LIB_INSTALL_SUBDIR)
+  SET(Teem_CV_CONFIG_TO_ROOT "..")
+ENDIF(Teem_USE_LIB_INSTALL_SUBDIR)
+
+SET(Teem_CV_LIBRARY_DEPENDS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemLibraryDepends.cmake")
+SET(Teem_CV_EXECUTABLE_DIRS "\${Teem_ROOT_DIR}/bin")
+SET(Teem_CV_LIBRARY_DIRS "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}")
+SET(Teem_CV_USE_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemUse.cmake")
+SET(Teem_CV_INCLUDE_DIRS "\${Teem_ROOT_DIR}/include")
+SET(Teem_CV_BUILD_SETTINGS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemBuildSettings.cmake")
+SET(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 CONFIGURE_FILE("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
   "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
 
+
 INSTALL(FILES ${Teem_INSTALLED_HEADER_FILES}
   DESTINATION include/teem
   )
+
 INSTALL(FILES
+  "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
   "${Teem_SOURCE_DIR}/CMake/TeemUse.cmake"
   "${Teem_BINARY_DIR}/TeemBuildSettings.cmake"
   "${Teem_BINARY_DIR}/TeemLibraryDepends.cmake"
-  "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
-  DESTINATION lib/Teem-${Teem_VERSION_STRING}
+  DESTINATION lib${EXTRA_INSTALL_PATH}
   )
-
