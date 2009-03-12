@@ -102,8 +102,8 @@ main(int argc, char *argv[]) {
     out[ii] = info[ii];
   }
   for (num=2; num<=sampleNumMax; num++) {
-    printf("\n%s: ============ optimizing %u/%u samples ============\n\n",
-           me, num, sampleNumMax);
+    printf("\n%s: ======= optimizing %u/%u samples (sigmaMax %g) \n\n",
+           me, num, sampleNumMax, sigmaMax);
     if (gageOptimSigCalculate(osparm, scalePos, num,
                               measr[0], measr[1], 
                               convEps, maxIter)) {

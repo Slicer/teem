@@ -622,7 +622,7 @@ _optsigrun(gageOptimSigParm *parm) {
   /* meaningful discrete difference for looking at error gradient is
      bounded by the resolution of the sampling we're doing along scale */
   sigeps = parm->sigmatru[1]/10;
-  oppor = 3;
+  oppor = 2;
   backoff = 0.1;
   for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
     parm->step[pnt] = 10;
@@ -631,9 +631,6 @@ _optsigrun(gageOptimSigParm *parm) {
     double limit, err1, grad, delta;
     unsigned int tryi;
     int zerodelta;
-    for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
-      parm->step[pnt] *= oppor;
-    }
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
     printf("%s: ***** iter %u; [[ err %g ]] %s\n", 
@@ -713,6 +710,7 @@ _optsigrun(gageOptimSigParm *parm) {
       printf("%s: _____ iter %u done; decavg = %g > %g\n", me,
              iter, decavg, parm->convEps);
     }
+    parm->step[pnt] *= oppor;
     lastErr = newErr;
   }
   if (iter == parm->maxIter) {
