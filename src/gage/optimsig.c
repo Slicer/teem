@@ -579,19 +579,49 @@ _scalePosSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
   gagePointReset(&(parm->gctx->point));
 }
 
+static char *
+_timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
+  
+  if (deltim < 60) {
+    sprintf(tstr, "%g secs", deltim);
+    return tstr;
+  }
+  deltim /= 60;
+  if (deltim < 60) {
+    sprintf(tstr, "%g mins", deltim);
+    return tstr;
+  }
+  deltim /= 60;
+  if (deltim < 24) {
+    sprintf(tstr, "%g hours", deltim);
+    return tstr;
+  }
+  deltim /= 24;
+  if (deltim < 7) {
+    sprintf(tstr, "%g days", deltim);
+    return tstr;
+  }
+  deltim /= 7;
+  sprintf(tstr, "%g weeks", deltim);
+  return tstr;
+}
+
 static int
 _optsigrun(gageOptimSigParm *parm) {
-  char me[]="_optsigrun", err[BIFF_STRLEN];
+  char me[]="_optsigrun", err[BIFF_STRLEN], tstr[AIR_STRLEN_MED];
   unsigned int iter, pnt;
-  double lastErr, newErr, sigeps, oppor, lastPos, backoff, decavg;
+  double lastErr, newErr, sigeps, oppor, lastPos, backoff, decavg, time0;
   int badStep;
 
+  time0 = airTime();
   lastErr = _errTotal(parm);
+  printf("%s: (%s for initial error measr)\n", me,
+         _timefmt(tstr, airTime() - time0));
   newErr = AIR_NAN;
   decavg = parm->sampleNum; /* hack */
   /* meaningful discrete difference for looking at error gradient is
      bounded by the resolution of the sampling we're doing along scale */
-  sigeps = parm->sigmatru[1]/4;
+  sigeps = parm->sigmatru[1]/10;
   oppor = 3;
   backoff = 0.1;
   for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
@@ -600,23 +630,31 @@ _optsigrun(gageOptimSigParm *parm) {
   for (iter=0; iter<parm->maxIter; iter++) {
     double limit, err1, grad, delta;
     unsigned int tryi;
+    int zerodelta;
     for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
       parm->step[pnt] *= oppor;
     }
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
-    printf("%s: ***** iter %u; [[ err %g ]] moving pnt %u (%g)\n",
-           me, iter, lastErr, pnt, lastPos);
+    printf("%s: ***** iter %u; [[ err %g ]] %s\n", 
+           me, iter, lastErr, _timefmt(tstr, airTime() - time0));
     limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
                     (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
+    printf(". pnt %u: pos %g, step %g\n", pnt, lastPos, parm->step[pnt]);
     printf(". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
            parm->scalePos[pnt], parm->scalePos[pnt-1],
            parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
     _scalePosSet(parm, pnt, lastPos + sigeps);
     err1 = _errTotal(parm);
+    _scalePosSet(parm, pnt, lastPos);
     grad = (err1 - lastErr)/sigeps;
     printf(". grad = %g\n", grad);
     delta = -grad*parm->step[pnt];
+    if (!AIR_EXISTS(delta)) {
+      sprintf(err, "%s: got non-exist delta %g on iter %u (pnt %u) err %g",
+              me, delta, iter, pnt, lastErr);
+      biffAdd(GAGE, err); return 1;
+    }
     if (AIR_ABS(delta) > limit) {
       parm->step[pnt] *= limit/AIR_ABS(delta);
       printf(". step *= %g/%g -> %g\n",
@@ -627,10 +665,17 @@ _optsigrun(gageOptimSigParm *parm) {
     tryi = 0;
     badStep = AIR_FALSE;
     do {
+      if (tryi == parm->maxIter) {
+        sprintf(err, "%s: confusion (tryi %u) on iter %u (pnt %u) err %g",
+                me, tryi, iter, pnt, lastErr);
+        biffAdd(GAGE, err); return 1;
+      }
       if (!delta) {
         printf("... try %u: delta = 0; nothing to do\n", tryi);
         newErr = lastErr;
+        zerodelta = AIR_TRUE;
       } else {
+        zerodelta = AIR_FALSE;
         _scalePosSet(parm, pnt, lastPos + delta);
         newErr = _errTotal(parm);
         badStep = newErr > lastErr;
@@ -641,19 +686,22 @@ _optsigrun(gageOptimSigParm *parm) {
                newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
           parm->step[pnt] *= backoff;
-          if (parm->step[pnt] < sigeps/100) {
+          if (parm->step[pnt] < sigeps/10) {
             /* step got so small its stupid to be moving this point */
             printf("... !! step %g < %g pointlessly small, moving on\n", 
-                   parm->step[pnt], sigeps/4);
+                   parm->step[pnt], sigeps/10);
+            _scalePosSet(parm, pnt, lastPos);
+            newErr = lastErr;
             badStep = AIR_FALSE;
+          } else {
+            delta = -grad*parm->step[pnt];
           }
-          delta = -grad*parm->step[pnt];
         }
       }
       tryi++;
     } while (badStep);
-    if (newErr < lastErr) {
-      /* only update decavg when there was a decrease */
+    if (!zerodelta) {
+      /* don't update decavg if we moved on because slope was EXACTLY zero */
       decavg = AIR_AFFINE(0, 1, parm->sampleNum,
                           decavg, (lastErr - newErr)/lastErr);
     }
