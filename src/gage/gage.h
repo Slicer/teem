@@ -798,6 +798,9 @@ typedef struct {
   gagePerVolume *pvl, **pvlSS; /* for gage; pvlSS allocation different than
                                   scalePos or nsampvol */
   gageContext *gctx;           /* context around nsamplevol */
+
+  /* OUTPUT ------------------------- */
+  double finalErr;             /* error of converged points */
 } gageOptimSigParm;
 
 /* defaultsGage.c */
@@ -926,7 +929,7 @@ GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], const double *scale,
                               const NrrdKernelSpec *kspec,
                               int boundary, int renormalize, int verbose);
 GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
-                                      gagePerVolume ***pvlP,
+                                      gagePerVolume **pvlStack,
                                       const Nrrd *const *nblur,
                                       unsigned int blnum,
                                       const gageKind *kind);

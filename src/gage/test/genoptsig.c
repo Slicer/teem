@@ -27,17 +27,18 @@ char *optsigInfo = ("Computes tables of optimal sigmas for hermite-spline "
 
 int
 main(int argc, char *argv[]) {
-  char *me, *outS;
+  char *me;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
 
-  char *err;
+  char *err, *outS;
   double sigmaMax, convEps, cutoff;
-  int E, measr[2];
-  unsigned int sampleNumMax, dim, measrSampleNum, maxIter;
+  int measr[2];
+  unsigned int sampleNumMax, dim, measrSampleNum, maxIter, num;
   gageOptimSigParm *osparm;
-  double *scalePos;
+  double *scalePos, *out;
+  Nrrd *nout;
 
   me = argv[0];
   mop = airMopNew();
@@ -56,15 +57,28 @@ main(int argc, char *argv[]) {
              "maximum # iterations");
   hestOptAdd(&hopt, "N", "# samp", airTypeUInt, 1, 1, &measrSampleNum, "300",
              "number of samples in the measurement of error across scales");
-  hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &convEps, "0.00001",
+  hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &convEps, "0.0001",
              "convergence threshold for optimization");
   hestOptAdd(&hopt, "m", "m1 m2", airTypeEnum, 2, 2, measr, "l2 l2",
              "how to measure error across image, and across scales",
              NULL, nrrdMeasure);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
+             "output array");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, optsigInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  nout = nrrdNew();
+  airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
+                        AIR_CAST(size_t, sampleNumMax+1),
+                        AIR_CAST(size_t, sampleNumMax+1))) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble allocating output:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  out = AIR_CAST(double *, nout->data);
 
   osparm = gageOptimSigParmNew(sampleNumMax);
   airMopAdd(mop, osparm, AIR_CAST(airMopper, gageOptimSigParmNix),
@@ -76,16 +90,29 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (gageOptimSigCalculate(osparm, scalePos, sampleNumMax,
-                            measr[0], measr[1], 
-                            maxIter, convEps)) {
-    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s", me, err);
-    airMopError(mop); return 1;
+
+  for (num=2; num<=sampleNumMax; num++) {
+    printf("\n%s: ============ optimizing %u samples ============\n\n",
+           me, num);
+    unsigned int ii;
+    if (gageOptimSigCalculate(osparm, scalePos, num,
+                              measr[0], measr[1], 
+                              maxIter, convEps)) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    out[sampleNumMax + (sampleNumMax+1)*num] = osparm->finalErr;
+    for (ii=0; ii<num; ii++) {
+      out[ii + (sampleNumMax+1)*num] = scalePos[ii];
+    }
+  }    
+  if (nrrdSave(outS, nout, NULL)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+    airMopError(mop);
+    return 1;
   }
-  
-  nrrdSave("true.nrrd", osparm->ntruth, NULL);
-  nrrdSave("err.nrrd", osparm->nerr, NULL);
 
   airMopOkay(mop);
   exit(0);

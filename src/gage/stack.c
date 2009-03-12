@@ -259,21 +259,20 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
 }
 
 /*
-** this is a little messy: the pvl array is both allocated and filled
-** here, because that's the most idiomatic extension of the way that
-** gagePerVolumeNew() is both the allocator and the initializer. sigh.
+** this is a little messy: the given pvlStack array has to be allocated
+** by the caller to hold blnum gagePerVolume pointers, BUT, the values
+** of pvlStack[i] shouldn't be set to anything: as with gagePerVolumeNew(),
+** gage allocates the pervolume itself.
 */
 int
 gageStackPerVolumeNew(gageContext *ctx,
-                      gagePerVolume ***pvlP,
+                      gagePerVolume **pvlStack,
                       const Nrrd *const *nblur, unsigned int blnum,
                       const gageKind *kind) {
   char me[]="gageStackPerVolumeNew", err[BIFF_STRLEN];
-  gagePerVolume **pvl;
-  airArray *mop;
   unsigned int blidx;
 
-  if (!( ctx && pvlP && nblur && kind )) {
+  if (!( ctx && pvlStack && nblur && kind )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(GAGE, err); return 1;
   }
@@ -282,23 +281,13 @@ gageStackPerVolumeNew(gageContext *ctx,
     biffAdd(GAGE, err); return 1;
   }
 
-  mop = airMopNew();
-  pvl = *pvlP = AIR_CAST(gagePerVolume **,
-                         calloc(blnum, sizeof(gagePerVolume *)));
-  if (!pvl) {
-    sprintf(err, "%s: couldn't allocate %u pvl pointers", me, blnum);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
-  }
-  airMopAdd(mop, pvlP, (airMopper)airSetNull, airMopOnError);
-  airMopAdd(mop, pvl, (airMopper)airFree, airMopOnError);
   for (blidx=0; blidx<blnum; blidx++) {
-    if (!( pvl[blidx] = gagePerVolumeNew(ctx, nblur[blidx], kind) )) {
+    if (!( pvlStack[blidx] = gagePerVolumeNew(ctx, nblur[blidx], kind) )) {
       sprintf(err, "%s: on pvl %u of %u", me, blidx, blnum);
-      biffAdd(GAGE, err); airMopError(mop); return 1;
+      biffAdd(GAGE, err); return 1;
     }
   }
 
-  airMopOkay(mop);
   return 0;
 }
 

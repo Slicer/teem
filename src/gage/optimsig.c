@@ -43,7 +43,7 @@
 ** ==> allocate for GAGE_OPTIMSIG_SAMPLES_MAXNUM-1
 **
 ** "which sample" ranges from 0 to GAGE_OPTIMSIG_SAMPLES_MAXNUM-1
-** ==> allocate for GAGE_OPTIMSIG_SAMPLES_MAXNUM-1
+** ==> allocate for GAGE_OPTIMSIG_SAMPLES_MAXNUM
 */
 static double
 _optimSigTable[GAGE_OPTIMSIG_SIGMA_MAX][GAGE_OPTIMSIG_SAMPLES_MAXNUM-1][GAGE_OPTIMSIG_SAMPLES_MAXNUM] = {
@@ -299,7 +299,8 @@ gageOptimSigParmNew(unsigned int sampleNumMax) {
       parm->nsampvol[si] = nrrdNew();
     }
     parm->pvl = NULL;
-    parm->pvlSS = NULL;
+    parm->pvlSS = AIR_CAST(gagePerVolume **,
+                           calloc(sampleNumMax, sizeof(gagePerVolume *)));
     parm->gctx = gageContextNew();
   }
   return parm;
@@ -322,6 +323,7 @@ gageOptimSigParmNix(gageOptimSigParm *parm) {
       nrrdNuke(parm->nsampvol[si]);
     }
     airFree(parm->nsampvol);
+    airFree(parm->pvlSS);
     gageContextNix(parm->gctx);
     airFree(parm);
   }
@@ -510,7 +512,6 @@ static double
 _errTotal(gageOptimSigParm *parm) {
   unsigned int ii;
   double *err, ret;
-  static unsigned int call;
 
   for (ii=0; ii<parm->sampleNum; ii++) {
     parm->gctx->stackPos[ii] = parm->scalePos[ii];
@@ -523,7 +524,8 @@ _errTotal(gageOptimSigParm *parm) {
                                    err, nrrdTypeDouble,
                                    parm->measrSampleNum,
                                    AIR_NAN, AIR_NAN);
-  if (1) {
+  if (0) {
+    static unsigned int call;
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "err-%04u.nrrd", call);
     nrrdSave(fname, parm->nerr, NULL);
@@ -532,12 +534,49 @@ _errTotal(gageOptimSigParm *parm) {
   return ret;
 }
 
+static int
+_gageSetup(gageOptimSigParm *parm) {
+  char me[]="_gageSetup", err[BIFF_STRLEN];
+  double kparm[NRRD_KERNEL_PARMS_NUM];
+  int E;
+
+  if (parm->gctx) {
+    gageContextNix(parm->gctx);
+  }
+  parm->gctx = gageContextNew();
+  gageParmSet(parm->gctx, gageParmVerbose, 0);
+  gageParmSet(parm->gctx, gageParmRenormalize, AIR_FALSE);
+  gageParmSet(parm->gctx, gageParmCheckIntegrals, AIR_FALSE);
+  gageParmSet(parm->gctx, gageParmOrientationFromSpacing, AIR_TRUE);
+  gageParmSet(parm->gctx, gageParmStackUse, AIR_TRUE);
+  E = 0;
+  if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
+                                              gageKindScl));
+  if (!E) E |= gageStackPerVolumeNew(parm->gctx, parm->pvlSS,
+                                     AIR_CAST(const Nrrd**, parm->nsampvol),
+                                     parm->sampleNum, gageKindScl);
+  if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
+                                        parm->scalePos, parm->sampleNum);
+  kparm[0] = 1;
+  if (!E) E |= gageKernelSet(parm->gctx, gageKernel00,
+                             nrrdKernelTent, kparm);
+  if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
+                             nrrdKernelHermiteFlag, kparm);
+  if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
+  if (!E) E |= gageUpdate(parm->gctx);
+  if (E) {
+    sprintf(err, "%s: problem setting up gage", me);
+    biffAdd(GAGE, err); return 1;
+  }
+  return 0;
+}
+
 static void
-_sampleSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
+_scalePosSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
 
   parm->scalePos[ii] = sigma;
   _volTrueBlur(parm->nsampvol[ii], parm->scalePos[ii], parm);
-  gagePointReset(&(parm->gctx->point));  /* doing anything? */
+  gagePointReset(&(parm->gctx->point));
 }
 
 static int
@@ -549,9 +588,12 @@ _optsigrun(gageOptimSigParm *parm) {
 
   lastErr = _errTotal(parm);
   newErr = AIR_NAN;
-  sigeps = -0.002*parm->sigmaMax;
-  oppor = 1.2;
-  backoff = 0.2;
+  decavg = 2;
+  /* meaningful discrete difference for looking at error gradient is
+     bounded by the resolution of the sampling we're doing along scale */
+  sigeps = parm->sigmatru[1]/4;
+  oppor = 3;
+  backoff = 0.1;
   for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
     parm->step[pnt] = 10;
   }
@@ -563,50 +605,60 @@ _optsigrun(gageOptimSigParm *parm) {
     }
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
-    printf("%s: iter %u; err %g; moving pnt %u (%g)\n",
+    printf("%s: ***** iter %u; err %g; moving pnt %u (%g)\n",
            me, iter, lastErr, pnt, lastPos);
     limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
                     (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
-    printf("    limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
+    printf(". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
            parm->scalePos[pnt], parm->scalePos[pnt-1],
            parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
-    parm->scalePos[pnt] = lastPos + sigeps;
+    _scalePosSet(parm, pnt, lastPos + sigeps);
     err1 = _errTotal(parm);
     grad = (err1 - lastErr)/sigeps;
-    printf("    grad = %g\n", grad);
+    printf(". grad = %g\n", grad);
     delta = -grad*parm->step[pnt];
     if (AIR_ABS(delta) > limit) {
       parm->step[pnt] *= limit/AIR_ABS(delta);
-      printf("    step *= %g/%g -> %g\n",
+      printf(". step *= %g/%g -> %g\n",
              limit, AIR_ABS(delta), parm->step[pnt]);
       delta = -grad*parm->step[pnt];
     }
-    printf("    delta = %g\n", delta);
+    printf(". delta = %g\n", delta);
     tryi = 0;
     badStep = AIR_FALSE;
     do {
-      parm->scalePos[pnt] = lastPos + delta;
-      newErr = _errTotal(parm);
-      badStep = newErr > lastErr;
-      printf("   try %u: pos[%u] -> %g + %g = %g; err -> %g: %s\n",
-             tryi, pnt, lastPos, delta,
-             parm->scalePos[pnt], newErr,
-             badStep ? "*BAD*" : "good");
-      if (badStep) {
-        parm->step[pnt] *= backoff;
-        delta = -grad*parm->step[pnt];
+      if (!delta) {
+        printf("... try %u: delta = 0; nothing to do\n", tryi);
+        newErr = lastErr;
+      } else {
+        _scalePosSet(parm, pnt, lastPos + delta);
+        newErr = _errTotal(parm);
+        badStep = newErr > lastErr;
+        printf("... try %u: pos[%u] %g + %g = %g;\n    err -> %g %s %g: %s\n",
+               tryi, pnt, lastPos, delta,
+               parm->scalePos[pnt], newErr,
+               newErr > lastErr ? ">" : "<=", lastErr,
+               badStep ? "*BAD*" : "good");
+        if (badStep) {
+          parm->step[pnt] *= backoff;
+          if (parm->step[pnt] < sigeps/4) {
+            /* step got so small its stupid to be moving this point */
+            badStep = AIR_FALSE;
+          }
+          delta = -grad*parm->step[pnt];
+        }
       }
       tryi++;
     } while (badStep);
-    if (!iter) {
-      decavg = 4*(lastErr - newErr)/lastErr;
-    } else {
-      decavg = AIR_LERP(0.25, decavg, (lastErr - newErr)/lastErr);
-    }
-    if (decavg  <= parm->convEps ) {
+    decavg = AIR_AFFINE(0, 1, parm->sampleNum,
+                        decavg, (lastErr - newErr)/lastErr);
+    if (decavg <= parm->convEps) {
       printf("%s: converged (%g <= %g) after %u iters\n", me,
              decavg, parm->convEps, iter);
       break;
+    } else {
+      printf("%s: _____ iter %u done; decavg = %g > %g\n", me,
+             iter, decavg, parm->convEps);
     }
     lastErr = newErr;
   }
@@ -614,6 +666,7 @@ _optsigrun(gageOptimSigParm *parm) {
     printf("%s: failed to converge (%g > %g) after %u iters\n", me,
            (lastErr - newErr)/lastErr, parm->convEps, iter);
   }
+  parm->finalErr = lastErr;
   return 0;
 }
 
@@ -624,8 +677,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
                       unsigned int maxIter, double convEps) {
   char me[]="gageOptimSigCalculate", err[BIFF_STRLEN];
   unsigned int ii;
-  double kparm[NRRD_KERNEL_PARMS_NUM], tauMax;
-  int E;
+  double tauMax;
 
   if (!( parm && scalePos && num )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -654,44 +706,24 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   for (ii=0; ii<parm->sampleNum; ii++) {
     double tau;
     tau = AIR_AFFINE(0, ii, parm->sampleNum-1, 0, tauMax);
-    _sampleSet(parm, ii, gageSigOfTau(tau));
+    _scalePosSet(parm, ii, gageSigOfTau(tau));
   }
   printf("done.\n");
 
   /* set up gage */
-  if (parm->gctx) {
-    gageContextNix(parm->gctx);
-  }
-  parm->gctx = gageContextNew();
-  gageParmSet(parm->gctx, gageParmVerbose, 0);
-  gageParmSet(parm->gctx, gageParmRenormalize, AIR_FALSE);
-  gageParmSet(parm->gctx, gageParmCheckIntegrals, AIR_FALSE);
-  gageParmSet(parm->gctx, gageParmOrientationFromSpacing, AIR_TRUE);
-  gageParmSet(parm->gctx, gageParmStackUse, AIR_TRUE);
-  E = 0;
-  if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
-                                              gageKindScl));
-  if (!E) E |= gageStackPerVolumeNew(parm->gctx, &(parm->pvlSS),
-                                     AIR_CAST(const Nrrd**, parm->nsampvol),
-                                     parm->sampleNum, gageKindScl);
-  if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
-                                        parm->scalePos, parm->sampleNum);
-  kparm[0] = 1;
-  if (!E) E |= gageKernelSet(parm->gctx, gageKernel00,
-                             nrrdKernelTent, kparm);
-  if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
-                             nrrdKernelHermiteFlag, kparm);
-  if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
-  if (!E) E |= gageUpdate(parm->gctx);
-  if (E) {
+  if (_gageSetup(parm)) {
     sprintf(err, "%s: problem setting up gage", me);
     biffAdd(GAGE, err); return 1;
   }
 
   /* run the optimization */
-  if (_optsigrun(parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;
+  if (num > 2) {
+    if (_optsigrun(parm)) {
+      sprintf(err, "%s: trouble", me);
+      biffAdd(GAGE, err); return 1;
+    }
+  } else {
+    parm->finalErr = _errTotal(parm);
   }
 
   /* save output */
