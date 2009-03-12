@@ -641,7 +641,8 @@ _optsigrun(gageOptimSigParm *parm) {
   for (iter=0; iter<parm->maxIter; iter++) {
     double limit, err1, grad, delta;
     unsigned int tryi;
-    int zerodelta;
+    int zerodelta, esgn;
+    esgn = 2*AIR_CAST(int, airRandInt(2)) - 1;
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
     printf("%s: ***** iter %u; [[ err %g ]] %s\n", 
@@ -652,10 +653,10 @@ _optsigrun(gageOptimSigParm *parm) {
     printf(". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
            parm->scalePos[pnt], parm->scalePos[pnt-1],
            parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
-    _scalePosSet(parm, pnt, lastPos + sigeps);
+    _scalePosSet(parm, pnt, lastPos + esgn*sigeps);
     err1 = _errTotal(parm);
     _scalePosSet(parm, pnt, lastPos);
-    grad = (err1 - lastErr)/sigeps;
+    grad = (err1 - lastErr)/(esgn*sigeps);
     printf(". grad = %g\n", grad);
     delta = -grad*parm->step[pnt];
     if (!AIR_EXISTS(delta)) {
@@ -694,10 +695,10 @@ _optsigrun(gageOptimSigParm *parm) {
                newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
           parm->step[pnt] *= backoff;
-          if (parm->step[pnt] < sigeps/10) {
+          if (parm->step[pnt] < sigeps/1000) {
             /* step got so small its stupid to be moving this point */
             printf("... !! step %g < %g pointlessly small, moving on\n", 
-                   parm->step[pnt], sigeps/10);
+                   parm->step[pnt], sigeps/1000);
             _scalePosSet(parm, pnt, lastPos);
             newErr = lastErr;
             badStep = AIR_FALSE;
