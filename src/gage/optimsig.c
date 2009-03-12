@@ -763,10 +763,12 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   printf("done.\n");
 
   /* set up gage */
+  printf("%s: setting up gage ... ", me); fflush(stdout);
   if (_gageSetup(parm)) {
     sprintf(err, "%s: problem setting up gage", me);
     biffAdd(GAGE, err); return 1;
   }
+  printf("done.\n");
 
   /* run the optimization */
   if (num > 2) {
@@ -775,9 +777,11 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
       biffAdd(GAGE, err); return 1;
     }
   } else {
+    printf("%s: num==2, no optimization, finding error ... ", me); fflush(stdout);
     parm->finalErr = _errTotal(parm);
+    printf("done.\n");
   }
-
+  
   /* save output */
   for (ii=0; ii<num; ii++) {
     scalePos[ii] = parm->scalePos[ii];
