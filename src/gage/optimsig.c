@@ -581,7 +581,7 @@ _scalePosSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
 
 static int
 _optsigrun(gageOptimSigParm *parm) {
-  char me[]="_optsigrun";
+  char me[]="_optsigrun", err[BIFF_STRLEN];
   unsigned int iter, pnt;
   double lastErr, newErr, sigeps, oppor, lastPos, backoff, decavg;
   int badStep;
@@ -643,6 +643,8 @@ _optsigrun(gageOptimSigParm *parm) {
           parm->step[pnt] *= backoff;
           if (parm->step[pnt] < sigeps/4) {
             /* step got so small its stupid to be moving this point */
+            printf("... !! step %g < %g pointlessly small, moving on\n", 
+                   parm->step[pnt], sigeps/4);
             badStep = AIR_FALSE;
           }
           delta = -grad*parm->step[pnt];
@@ -663,8 +665,9 @@ _optsigrun(gageOptimSigParm *parm) {
     lastErr = newErr;
   }
   if (iter == parm->maxIter) {
-    printf("%s: failed to converge (%g > %g) after %u iters\n", me,
-           (lastErr - newErr)/lastErr, parm->convEps, iter);
+    sprintf(err, "%s: failed to converge (%g > %g) after %u iters\n", me,
+            decavg, parm->convEps, iter);
+    biffAdd(GAGE, err); return 1;
   }
   parm->finalErr = lastErr;
   return 0;
@@ -674,7 +677,7 @@ int
 gageOptimSigCalculate(gageOptimSigParm *parm,
                       double *scalePos, unsigned int num,
                       int volMeasr, int lineMeasr,
-                      unsigned int maxIter, double convEps) {
+                      double convEps, unsigned int maxIter) {
   char me[]="gageOptimSigCalculate", err[BIFF_STRLEN];
   unsigned int ii;
   double tauMax;

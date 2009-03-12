@@ -916,7 +916,7 @@ GAGE_EXPORT int gageOptimSigTruthSet(gageOptimSigParm *parm,
 GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigParm *parm,
                                       double *scalePos, unsigned int num,
                                       int volMeasr, int lineMeasr,
-                                      unsigned int maxIter, double convEps);
+                                      double convEps, unsigned int maxIter);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);

@@ -35,9 +35,9 @@ main(int argc, char *argv[]) {
   char *err, *outS;
   double sigmaMax, convEps, cutoff;
   int measr[2];
-  unsigned int sampleNumMax, dim, measrSampleNum, maxIter, num;
+  unsigned int sampleNumMax, dim, measrSampleNum, maxIter, num, ii;
   gageOptimSigParm *osparm;
-  double *scalePos, *out;
+  double *scalePos, *out, info[512];
   Nrrd *nout;
 
   me = argv[0];
@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
              "sigma to use for top sample (using 0 for bottom sample)");
   hestOptAdd(&hopt, "cut", "cut", airTypeDouble, 1, 1, &cutoff, "4",
              "at how many sigmas to cut-off discrete gaussian");
-  hestOptAdd(&hopt, "mi", "max", airTypeUInt, 1, 1, &maxIter, "10000",
+  hestOptAdd(&hopt, "mi", "max", airTypeUInt, 1, 1, &maxIter, "1000",
              "maximum # iterations");
   hestOptAdd(&hopt, "N", "# samp", airTypeUInt, 1, 1, &measrSampleNum, "300",
              "number of samples in the measurement of error across scales");
@@ -91,13 +91,22 @@ main(int argc, char *argv[]) {
     airMopError(mop); return 1;
   }
 
+  /* hacky way of saving some of the computation information */
+  info[0] = cutoff;
+  info[1] = measrSampleNum;
+  info[2] = measr[0];
+  info[3] = measr[1];
+  info[4] = convEps;
+  info[5] = maxIter;
+  for (ii=0; ii<sampleNumMax+1; ii++) {
+    out[ii] = info[ii];
+  }
   for (num=2; num<=sampleNumMax; num++) {
     printf("\n%s: ============ optimizing %u samples ============\n\n",
            me, num);
-    unsigned int ii;
     if (gageOptimSigCalculate(osparm, scalePos, num,
                               measr[0], measr[1], 
-                              maxIter, convEps)) {
+                              convEps, maxIter)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, err);
       airMopError(mop); return 1;
