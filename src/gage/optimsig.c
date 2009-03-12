@@ -774,12 +774,12 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   printf("done.\n");
 
   /* set up gage */
-  printf("%s: setting up gage ... ", me); fflush(stdout);
+  printf("%s: setting up gage ... \n", me);
   if (_gageSetup(parm)) {
     sprintf(err, "%s: problem setting up gage", me);
     biffAdd(GAGE, err); return 1;
   }
-  printf("done.\n");
+  printf("%s: gage setup done.\n", me);
 
   /* run the optimization */
   if (num > 2) {
