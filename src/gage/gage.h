@@ -752,6 +752,54 @@ typedef struct {
   int item;                   /* the quantity to measure */
 } gageItemSpec;
 
+/*
+******** gageOptimSigParm struct
+**
+** a fairly disorganized mess of parameters.  under construction
+*/
+typedef struct {
+  /* INPUT ------------------------- */
+  /* these determine the allocation and (slow) computation of ntruth */
+  unsigned int dim;            /* either 1, 2, or 3 */
+  double sigmaMax,             /* highest sigma in current computation */
+    cutoff;                    /* parm[1] for discrete gaussian kernel */
+  unsigned int measrSampleNum; /* how many samples along sigma to use
+                                  for measurements of error */
+
+  /* these can be changed more often */
+  unsigned int sampleNum;      /* how many scale samples to optimize */
+  int volMeasr,                /* how to measure error at each reconstructed
+                                  scale (interpolated volume) */
+    lineMeasr;                 /* how to summarize errors across all scales */
+  unsigned int maxIter;        /* allowed iterations in optimization */
+  double convEps;              /* convergence threshold */
+
+  /* INTERNAL ------------------------- */
+  /* these related to the allocation and (slow) computation of ntruth */
+  unsigned int sx, sy, sz;     /* volume size for testing */
+  double *sigmatru,            /* sigmas for all lines of ntruth, allocated
+                                  for measrSampleNum */
+    *truth;                    /* data pointer of ntruth */
+  Nrrd *ntruth,                /* big array of all truth volumes, logically
+                                  a sx x sy x sz x measrSampleNum array */
+    *nerr,                     /* line of all errors, across scale */
+    *ntruline,                 /* *wrapper* around some scanline of ntruth */
+    *ninterp,                  /* last recon result */
+    *ndiff;                    /* diff between recon and truth, single vol */
+  /* most of these allocated according sampleNumMax */
+  unsigned int sampleNumMax;   /* largest number of SS samples to look at;
+                                  this is set at parm creation time and can't
+                                  be changed safely during parm lifetime */
+  double *scalePos,            /* current SS sample locations, allocated
+                                  for sampleNumMax */
+    *step;                     /* per-point stepsize for descent */
+  Nrrd **nsampvol;             /* current set of SS samples, allocated for
+                                  sampleNumMax */
+  gagePerVolume *pvl, **pvlSS; /* for gage; pvlSS allocation different than
+                                  scalePos or nsampvol */
+  gageContext *gctx;           /* context around nsamplevol */
+} gageOptimSigParm;
+
 /* defaultsGage.c */
 GAGE_EXPORT const char *gageBiffKey;
 GAGE_EXPORT int gageDefVerbose;
@@ -854,8 +902,18 @@ GAGE_EXPORT int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl,
                                 int item);
 
 /* optimsig.c */
-GAGE_EXPORT int gageOptimalSigmaSet(double *scale, unsigned int num,
-                                    unsigned int sigmaMax);
+GAGE_EXPORT int gageOptimSigSet(double *scale, unsigned int num,
+                                unsigned int sigmaMax);
+GAGE_EXPORT gageOptimSigParm *gageOptimSigParmNew(unsigned int sampleMaxNum);
+GAGE_EXPORT gageOptimSigParm *gageOptimSigParmNix(gageOptimSigParm *parm);
+GAGE_EXPORT int gageOptimSigTruthSet(gageOptimSigParm *parm,
+                                     unsigned int dim,
+                                     double sigmaMax, double cutoff,
+                                     unsigned int measrSampleNum);
+GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigParm *parm,
+                                      double *scalePos, unsigned int num,
+                                      int volMeasr, int lineMeasr,
+                                      unsigned int maxIter, double convEps);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);

@@ -52,7 +52,8 @@ $(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
         shape.o pvl.o update.o deconvolve.o \
 	print.o sclanswer.o sclprint.o sclfilter.o \
 	vecGage.o vecprint.o st.o filter.o ctx.o stack.o optimsig.o
-$(L).TESTS = test/ctfix test/demo test/vh test/aalias test/indx
+$(L).TESTS = test/ctfix test/demo test/vh test/aalias test/indx \
+        test/genoptsig
 ####
 ####
 ####

@@ -523,3 +523,66 @@ gageStackProbeSpace(gageContext *ctx,
   }
   return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);
 }
+
+double
+_gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
+  double si;
+
+  if (ctx && ctx->parm.stackUse && outside) {
+    unsigned int sidx;
+    if (swrl < ctx->stackPos[0]) {
+      /* we'll extrapolate from stackPos[0] and [1] */
+      sidx = 0;
+      *outside = AIR_TRUE;
+    } else if (swrl > ctx->stackPos[ctx->pvlNum-2]) {
+      /* extrapolate from stackPos[ctx->pvlNum-3] and [ctx->pvlNum-2];
+         gageStackPerVolumeAttach ensures that we there are at least two
+         blurrings pvls & one base pvl ==> pvlNum >= 3 ==> pvlNum-3 >= 0 */
+      sidx = ctx->pvlNum-3;
+      *outside = AIR_TRUE;
+    } else {
+      /* HEY: stupid linear search */
+      for (sidx=0; sidx<ctx->pvlNum-2; sidx++) {
+        if (AIR_IN_CL(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx+1])) {
+          break;
+        }
+      }
+      if (sidx == ctx->pvlNum-2) {
+        /* search failure */
+        *outside = AIR_FALSE;
+        return AIR_NAN;
+      }
+      *outside = AIR_FALSE;
+    }
+    si = AIR_AFFINE(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx+1],
+                    sidx, sidx+1);
+  } else {
+    si = AIR_NAN;
+  }
+  return si;
+}
+
+double
+_gageStackItoW(gageContext *ctx, double si, int *outside) {
+  unsigned int sidx;
+  double swrl, sfrac;
+
+  if (ctx && ctx->parm.stackUse && outside) {
+    if (si < 0) {
+      sidx = 0;
+      *outside = AIR_TRUE;
+    } else if (si > ctx->pvlNum-2) {
+      sidx = ctx->pvlNum-3;
+      *outside = AIR_TRUE;
+    } else {
+      sidx = AIR_CAST(unsigned int, si);
+      *outside = AIR_FALSE;
+    }
+    sfrac = si - sidx;
+    swrl = AIR_AFFINE(sidx, sfrac, sidx+1,
+                      ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
+  } else {
+    swrl = AIR_NAN;
+  }
+  return swrl;
+}
