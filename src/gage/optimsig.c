@@ -634,11 +634,11 @@ _optsigrun(gageOptimSigParm *parm) {
         _scalePosSet(parm, pnt, lastPos + delta);
         newErr = _errTotal(parm);
         badStep = newErr > lastErr;
-        printf("... try %u: pos[%u] %g + %g = %g;\n    err -> %g %s %g: %s\n",
+        printf("... try %u: pos[%u] %g + %g = %g;\n    %s: err %g %s %g\n",
                tryi, pnt, lastPos, delta,
-               parm->scalePos[pnt], newErr,
-               newErr > lastErr ? ">" : "<=", lastErr,
-               badStep ? "*BAD*" : "good");
+               parm->scalePos[pnt],
+               badStep ? "*BAD*" : "good",
+               newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
           parm->step[pnt] *= backoff;
           if (parm->step[pnt] < sigeps/4) {
