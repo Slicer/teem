@@ -538,46 +538,47 @@ _errTotal(gageOptimSigParm *parm) {
 static int
 _gageSetup(gageOptimSigParm *parm) {
   char me[]="_gageSetup", err[BIFF_STRLEN];
-  double kparm[NRRD_KERNEL_PARMS_NUM];
+  double kparm[NRRD_KERNEL_PARMS_NUM], time0;
   int E;
 
+  time0 = airTime();
   printf("%s: ... hi!\n", me);
   if (parm->gctx) {
     gageContextNix(parm->gctx);
   }
-  printf("%s: ... 0\n", me);
+  printf("%s: ... 0 %g\n", me, airTime() - time0);
   parm->gctx = gageContextNew();
   gageParmSet(parm->gctx, gageParmVerbose, 0);
   gageParmSet(parm->gctx, gageParmRenormalize, AIR_FALSE);
   gageParmSet(parm->gctx, gageParmCheckIntegrals, AIR_FALSE);
   gageParmSet(parm->gctx, gageParmOrientationFromSpacing, AIR_TRUE);
   gageParmSet(parm->gctx, gageParmStackUse, AIR_TRUE);
-  printf("%s: ... 1\n", me);
+  printf("%s: ... 1 %g\n", me, airTime() - time0);
   E = 0;
   if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
                                               gageKindScl));
-  printf("%s: ... 2\n", me);
+  printf("%s: ... 2 %g\n", me, airTime() - time0);
   if (!E) E |= gageStackPerVolumeNew(parm->gctx, parm->pvlSS,
                                      AIR_CAST(const Nrrd**, parm->nsampvol),
                                      parm->sampleNum, gageKindScl);
-  printf("%s: ... 3\n", me);
+  printf("%s: ... 3 %g\n", me, airTime() - time0);
   if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
                                         parm->scalePos, parm->sampleNum);
   kparm[0] = 1;
-  printf("%s: ... 4\n", me);
+  printf("%s: ... 4 %g\n", me, airTime() - time0);
   if (!E) E |= gageKernelSet(parm->gctx, gageKernel00,
                              nrrdKernelTent, kparm);
   if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
                              nrrdKernelHermiteFlag, kparm);
-  printf("%s: ... 5\n", me);
+  printf("%s: ... 5 %g\n", me, airTime() - time0);
   if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
   if (!E) E |= gageUpdate(parm->gctx);
-  printf("%s: ... 6\n", me);
+  printf("%s: ... 6 %g\n", me, airTime() - time0);
   if (E) {
     sprintf(err, "%s: problem setting up gage", me);
     biffAdd(GAGE, err); return 1;
   }
-  printf("%s: ... 7\n", me);
+  printf("%s: ... 7 %g\n", me, airTime() - time0);
   return 0;
 }
 
