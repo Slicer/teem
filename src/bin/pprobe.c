@@ -332,10 +332,12 @@ main(int argc, char *argv[]) {
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
     gageParmSet(ctx, gageParmStackNormalizeDeriv,
                 SSnormd ? AIR_TRUE : AIR_FALSE);
-    if (!E) E |= gageStackPerVolumeNew(ctx, &pvlSS,
+    if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
+                                    calloc(numSS, sizeof(gagePerVolume *))));
+    if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
+    if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
-    if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
     if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, scalePos, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
