@@ -173,13 +173,16 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     }
     gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
     if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
-    if (!E) E |= gageStackPerVolumeNew(vol->gctx, &(vol->gpvlSS),
+    vol->gpvlSS = AIR_CAST(gagePerVolume **,
+                           calloc(ninNum, sizeof(gagePerVolume *)));
+    if (!E) E |= gageStackPerVolumeNew(vol->gctx, vol->gpvlSS,
                                        ninScale, ninNum, kind);
     if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, vol->gpvlSS,
                                           scalePos, ninNum);
     if (!E) E |= gageKernelSet(vol->gctx, gageKernelStack,
                                kspSS->kernel, kspSS->parm);
   } else {
+    vol->gpvlSS = NULL;
     if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
     if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
   }
