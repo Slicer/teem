@@ -588,7 +588,7 @@ _optsigrun(gageOptimSigParm *parm) {
 
   lastErr = _errTotal(parm);
   newErr = AIR_NAN;
-  decavg = 2;
+  decavg = parm->sampleNum; /* hack */
   /* meaningful discrete difference for looking at error gradient is
      bounded by the resolution of the sampling we're doing along scale */
   sigeps = parm->sigmatru[1]/4;
@@ -605,7 +605,7 @@ _optsigrun(gageOptimSigParm *parm) {
     }
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
-    printf("%s: ***** iter %u; err %g; moving pnt %u (%g)\n",
+    printf("%s: ***** iter %u; [[ err %g ]] moving pnt %u (%g)\n",
            me, iter, lastErr, pnt, lastPos);
     limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
                     (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
@@ -641,7 +641,7 @@ _optsigrun(gageOptimSigParm *parm) {
                newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
           parm->step[pnt] *= backoff;
-          if (parm->step[pnt] < sigeps/4) {
+          if (parm->step[pnt] < sigeps/100) {
             /* step got so small its stupid to be moving this point */
             printf("... !! step %g < %g pointlessly small, moving on\n", 
                    parm->step[pnt], sigeps/4);
@@ -652,8 +652,11 @@ _optsigrun(gageOptimSigParm *parm) {
       }
       tryi++;
     } while (badStep);
-    decavg = AIR_AFFINE(0, 1, parm->sampleNum,
-                        decavg, (lastErr - newErr)/lastErr);
+    if (newErr < lastErr) {
+      /* only update decavg when there was a decrease */
+      decavg = AIR_AFFINE(0, 1, parm->sampleNum,
+                          decavg, (lastErr - newErr)/lastErr);
+    }
     if (decavg <= parm->convEps) {
       printf("%s: converged (%g <= %g) after %u iters\n", me,
              decavg, parm->convEps, iter);
