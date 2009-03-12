@@ -783,7 +783,7 @@ NRRD_EXPORT void nrrdAxisInfoSet_va(Nrrd *nin, int axInfo,
                                     ... /* const void* */);
 NRRD_EXPORT void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
 NRRD_EXPORT void nrrdAxisInfoGet_va(const Nrrd *nrrd, int axInfo,
-                                    ... /* void* */);
+                                    ... /* ??? */);
 NRRD_EXPORT double nrrdAxisInfoPos(const Nrrd *nrrd, unsigned int ax,
                                    double idx);
 NRRD_EXPORT double nrrdAxisInfoIdx(const Nrrd *nrrd, unsigned int ax,
