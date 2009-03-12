@@ -368,7 +368,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
                      unsigned int measrSampleNum) {
   char me[]="gageOptimSigTruthSet", err[BIFF_STRLEN],
     doneStr[AIR_STRLEN_SMALL];
-  double kparm[NRRD_KERNEL_PARMS_NUM];
+  double kparm[NRRD_KERNEL_PARMS_NUM], tauMax;
   unsigned int support, ii;
 
   if (!parm) {
@@ -448,15 +448,16 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
                        1.0, 1.0, 1.0);
   }
   printf("%s: computing reference blurrings ...       ", me);
+  tauMax =  gageTauOfSig(parm->sigmaMax);
   for (ii=0; ii<parm->measrSampleNum; ii++) {
-    double sigma;
-    if (!(ii%10)) {
+    double sigma, tau;
+    if (!(ii % 10)) {
       printf("%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
       fflush(stdout);
     }
     parm->ntruline->data = parm->truth + ii*parm->sx*parm->sy*parm->sz;
-    sigma = parm->sigmatru[ii] = AIR_AFFINE(0, ii, parm->measrSampleNum-1,
-                                            0.0, parm->sigmaMax);
+    tau = AIR_AFFINE(0, ii, parm->measrSampleNum-1, 0.0, tauMax);
+    sigma = parm->sigmatru[ii] = gageSigOfTau(tau);
     _volTrueBlur(parm->ntruline, sigma, parm);
   }
   printf("%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
@@ -622,8 +623,8 @@ _optsigrun(gageOptimSigParm *parm) {
   /* meaningful discrete difference for looking at error gradient is
      bounded by the resolution of the sampling we're doing along scale */
   sigeps = parm->sigmatru[1]/10;
-  oppor = 2;
-  backoff = 0.1;
+  oppor = 1.3333;
+  backoff = 0.25;
   for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
     parm->step[pnt] = 10;
   }
