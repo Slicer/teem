@@ -777,7 +777,8 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
       biffAdd(GAGE, err); return 1;
     }
   } else {
-    printf("%s: num==2, no optimization, finding error ... ", me); fflush(stdout);
+    printf("%s: num == 2, no optimization, finding error ... ", me);
+    fflush(stdout);
     parm->finalErr = _errTotal(parm);
     printf("done.\n");
   }
