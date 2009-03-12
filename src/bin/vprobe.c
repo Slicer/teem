@@ -289,7 +289,7 @@ main(int argc, char *argv[]) {
           && rangeSS[1] == AIR_CAST(unsigned int, rangeSS[1])
           && numSS <= GAGE_OPTIMSIG_SAMPLES_MAXNUM
           && rangeSS[1] <= GAGE_OPTIMSIG_SIGMA_MAX) {
-        if (gageOptimalSigmaSet(scalePos, numSS, rangeSS[1])) {
+        if (gageOptimSigSet(scalePos, numSS, rangeSS[1])) {
           airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
           fprintf(stderr, "%s: trouble w/ optimal sigmas:\n%s\n", me, err);
           airMopError(mop); return 1;
