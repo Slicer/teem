@@ -701,6 +701,7 @@ _optsigrun(gageOptimSigParm *parm) {
       /* don't update decavg if we moved on because slope was EXACTLY zero */
       decavg = AIR_AFFINE(0, 1, parm->sampleNum,
                           decavg, (lastErr - newErr)/lastErr);
+      parm->step[pnt] *= oppor;
     }
     if (decavg <= parm->convEps) {
       printf("%s: converged (%g <= %g) after %u iters\n", me,
@@ -710,7 +711,6 @@ _optsigrun(gageOptimSigParm *parm) {
       printf("%s: _____ iter %u done; decavg = %g > %g\n", me,
              iter, decavg, parm->convEps);
     }
-    parm->step[pnt] *= oppor;
     lastErr = newErr;
   }
   if (iter == parm->maxIter) {
