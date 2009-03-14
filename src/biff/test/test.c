@@ -63,6 +63,11 @@ main() {
   printf("%s\n", (tmp = biffGet("axis")));
   free(tmp);
   biffDone("axis");
+  
+  biffAddf("test", "%s: this is a test %d %f", "me", 1, 2.0);
+  printf("%s\n", (tmp = biffGet("test")));
+  free(tmp);
+  biffDone("test");
 
   exit(0);
 }

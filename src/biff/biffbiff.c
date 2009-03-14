@@ -21,6 +21,7 @@
 */
 
 #include "biff.h"
+#include <stdarg.h>
 
 /*
 ** This is mostly garbage.
@@ -302,6 +303,25 @@ biffAdd(const char *key, const char *err) {
   /* add the new message */
   _biffAddErr(ent, err);
   return;
+}
+
+/*
+******** biffAddf()
+**
+** Adds string "err" at key "key", whether or not there are any
+** existing messages there.  This version accepts a printf style
+** format string as input.
+*/
+void
+biffAddf(const char *key, const char *errfmt, ...) {
+  va_list args;
+  char errstr[BIFF_STRLEN];
+
+  va_start(args, errfmt);
+  vsprintf(errstr, errfmt, args);
+  va_end(args);
+
+  biffAdd(key, errstr);
 }
 
 /*

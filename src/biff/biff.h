@@ -52,6 +52,7 @@ extern "C" {
                                the null termination) */
 
 BIFF_EXPORT void biffAdd(const char *key, const char *err);
+BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...);
 BIFF_EXPORT void biffMaybeAdd(const char *key, const char *err, int useBiff);
 BIFF_EXPORT int biffCheck(const char *key);
 BIFF_EXPORT void biffDone(const char *key);
