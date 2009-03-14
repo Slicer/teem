@@ -191,7 +191,8 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
       }
     }
   }
-  strcpy(ident, _ident);
+  strncpy(ident, _ident, AIR_STRLEN_SMALL);
+  ident[AIR_STRLEN_SMALL-1] = '\0';
   if (!enm->sense) {
     airToLower(ident);
   }
