@@ -428,9 +428,8 @@ airTime() {
   return (double)clock()/CLOCKS_PER_SEC;
 #else
   struct timeval tv;
-  struct timezone tz;
 
-  gettimeofday(&tv, &tz); 
+  gettimeofday(&tv, NULL);
   return((double)(tv.tv_sec + tv.tv_usec/1000000.0));
 #endif
 }
