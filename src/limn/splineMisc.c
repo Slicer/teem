@@ -23,8 +23,8 @@
 
 #include "limn.h"
 
-char
-_limnSplineTypeStr[LIMN_SPLINE_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_limnSplineTypeStr[LIMN_SPLINE_TYPE_MAX+1] = {
   "(unknown_spline_type)",
   "linear",
   "timewarp",
@@ -33,8 +33,8 @@ _limnSplineTypeStr[LIMN_SPLINE_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "BC"
 };
 
-char
-_limnSplineTypeDesc[LIMN_SPLINE_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_limnSplineTypeDesc[LIMN_SPLINE_TYPE_MAX+1] = {
   "unknown spline type",
   "simple linear interpolation between control points",
   "pseudo-Hermite spline for warping time to uniform (integral) "
@@ -44,8 +44,8 @@ _limnSplineTypeDesc[LIMN_SPLINE_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "Mitchell-Netravalli BC-family of cubic splines"
 };
 
-char
-_limnSplineTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_limnSplineTypeStrEqv[] = {
   "linear", "lin", "line", "tent",
   "timewarp", "time-warp", "warp",
   "hermite",
@@ -54,7 +54,7 @@ _limnSplineTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _limnSplineTypeValEqv[] = {
   limnSplineTypeLinear, limnSplineTypeLinear, limnSplineTypeLinear,
       limnSplineTypeLinear,
@@ -77,8 +77,8 @@ _limnSplineType = {
 airEnum *
 limnSplineType = &_limnSplineType;
 
-char
-_limnSplineInfoStr[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_limnSplineInfoStr[LIMN_SPLINE_INFO_MAX+1] = {
   "(unknown_spline_info)",
   "scalar",
   "2vector",
@@ -88,8 +88,8 @@ _limnSplineInfoStr[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_SMALL] = {
   "quaternion"
 };
 
-char
-_limnSplineInfoDesc[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_limnSplineInfoDesc[LIMN_SPLINE_INFO_MAX+1] = {
   "unknown spline info",
   "scalar",
   "2-vector",
@@ -99,8 +99,8 @@ _limnSplineInfoDesc[LIMN_SPLINE_INFO_MAX+1][AIR_STRLEN_MED] = {
   "quaternion, interpolated in S^3"
 };
 
-char
-_limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_limnSplineInfoStrEqv[] = {
   "scalar", "scale", "s", "t",
   "2-vector", "2vector", "2vec", "2v", "v2", "vec2", "vector2", "vector-2",
   "3-vector", "3vector", "3vec", "3v", "v3", "vec3", "vector3", "vector-3",
@@ -117,7 +117,7 @@ _limnSplineInfoStrEqv[][AIR_STRLEN_SMALL] = {
 #define SI4V limnSplineInfo4Vector
 #define SIQQ limnSplineInfoQuaternion
 
-int
+const int
 _limnSplineInfoValEqv[] = {
   SISS, SISS, SISS, SISS,
   SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V,

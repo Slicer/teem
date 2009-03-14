@@ -24,8 +24,8 @@
 
 /* ------------------------------- jitter --------------------------- */
 
-char
-_echoJitterStr[ECHO_JITTER_NUM+1][AIR_STRLEN_SMALL] = {
+const char *
+_echoJitterStr[ECHO_JITTER_NUM+1] = {
   "(unknown_jitter)",
   "none",
   "grid",
@@ -33,7 +33,7 @@ _echoJitterStr[ECHO_JITTER_NUM+1][AIR_STRLEN_SMALL] = {
   "random"
 };
 
-int
+const int
 _echoJitterVal[ECHO_JITTER_NUM+1] = {
   echoJitterUnknown,
   echoJitterNone,
@@ -42,8 +42,8 @@ _echoJitterVal[ECHO_JITTER_NUM+1] = {
   echoJitterRandom
 };
 
-char
-_echoJitterDesc[ECHO_JITTER_NUM+1][AIR_STRLEN_MED] = {
+const char *
+_echoJitterDesc[ECHO_JITTER_NUM+1] = {
   "unknown jitter",
   "nothing- samples are ALWAYS at center of region",
   "no jittering- samples are at regular grid vertices",
@@ -51,8 +51,8 @@ _echoJitterDesc[ECHO_JITTER_NUM+1][AIR_STRLEN_MED] = {
   "samples are randomly located within region"
 };
 
-char
-_echoJitterStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_echoJitterStrEqv[] = {
   "none",
   "grid", "regular",
   "jitter",
@@ -60,7 +60,7 @@ _echoJitterStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _echoJitterValEqv[] = {
   echoJitterNone,
   echoJitterGrid, echoJitterGrid, 
@@ -82,8 +82,8 @@ echoJitter = &_echoJitter;
 
 /* ------------------------------- object type --------------------------- */
 
-char
-_echoTypeStr[ECHO_TYPE_NUM+1][AIR_STRLEN_SMALL] = {
+const char *
+_echoTypeStr[ECHO_TYPE_NUM+1] = {
   "(unknown_object)",
   "sphere",
   "cylinder",
@@ -99,7 +99,7 @@ _echoTypeStr[ECHO_TYPE_NUM+1][AIR_STRLEN_SMALL] = {
   "instance"
 };
 
-int
+const int
 _echoTypeVal[ECHO_TYPE_NUM+1] = {
   echoTypeUnknown,
   echoTypeSphere,
@@ -116,8 +116,8 @@ _echoTypeVal[ECHO_TYPE_NUM+1] = {
   echoTypeInstance
 };
 
-char
-_echoTypeDesc[ECHO_TYPE_NUM+1][AIR_STRLEN_MED] = {
+const char *
+_echoTypeDesc[ECHO_TYPE_NUM+1] = {
   "unknown_object",
   "sphere",
   "axis-aligned cylinder",
@@ -133,8 +133,8 @@ _echoTypeDesc[ECHO_TYPE_NUM+1][AIR_STRLEN_MED] = {
   "instance"
 };
 
-char
-_echoTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_echoTypeStrEqv[] = {
   "sphere",
   "cylinder", "cylind", "rod",
   "superquad", "squad",
@@ -150,7 +150,7 @@ _echoTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _echoTypeValEqv[] = {
   echoTypeSphere,
   echoTypeCylinder, echoTypeCylinder, echoTypeCylinder,
@@ -180,8 +180,8 @@ echoType = &_echoType;
 
 /* ------------------------------ material types --------------------------- */
 
-char
-_echoMatterStr[ECHO_MATTER_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_echoMatterStr[ECHO_MATTER_MAX+1] = {
   "(unknown_matter)",
   "phong",
   "glass",
@@ -189,8 +189,8 @@ _echoMatterStr[ECHO_MATTER_MAX+1][AIR_STRLEN_SMALL] = {
   "light"
 };
 
-char
-_echoMatterDesc[ECHO_MATTER_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_echoMatterDesc[ECHO_MATTER_MAX+1] = {
   "unknown material",
   "phong shaded surface",
   "glass",

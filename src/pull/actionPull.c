@@ -33,8 +33,8 @@ int _pullPraying = 0;
 ** how are force/energy along scale handled differently than in space?
 */
 
-char
-_pullProcessModeStr[PULL_PROCESS_MODE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_pullProcessModeStr[PULL_PROCESS_MODE_MAX+1] = {
   "(unknown_mode)",
   "descent",
   "nlearn",

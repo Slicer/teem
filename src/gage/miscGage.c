@@ -34,8 +34,8 @@
 double
 gageZeroNormal[3] = {0,0,0};
 
-char
-_gageKernelStr[][AIR_STRLEN_SMALL] = {
+const char *
+_gageKernelStr[] = {
   "(unknown_kernel)",
   "00",
   "10",
@@ -46,8 +46,8 @@ _gageKernelStr[][AIR_STRLEN_SMALL] = {
   "stack"
 };
 
-char
-_gageKernelDesc[][AIR_STRLEN_MED] = {
+const char *
+_gageKernelDesc[] = {
   "unknown kernel",
   "kernel for reconstructing values",
   "kernel for reconstruction values when doing 1st derivatives",
@@ -58,8 +58,8 @@ _gageKernelDesc[][AIR_STRLEN_MED] = {
   "kernel for reconstruction across a stack"
 };
 
-char
-_gageKernelStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_gageKernelStrEqv[] = {
   "00", "k00",
   "10", "k10",
   "11", "k11",
@@ -70,7 +70,7 @@ _gageKernelStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _gageKernelValEqv[] = {
   gageKernel00, gageKernel00,
   gageKernel10, gageKernel10,
@@ -158,8 +158,8 @@ gageItemSpecNix(gageItemSpec *isp) {
   return NULL;
 }
 
-char
-_gageErrStr[GAGE_ERR_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_gageErrStr[GAGE_ERR_MAX+1] = {
   "(unknown gageErr)",
   "none",
   "space bounds",

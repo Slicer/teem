@@ -22,8 +22,8 @@
 
 #include "coil.h"
 
-char
-_coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1] = {
   "(unknown_method)",
   "testing",
   "homogeneous",
@@ -34,8 +34,8 @@ _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "finish"
 };
 
-char
-_coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1] = {
   "unknown_method",
   "nothing, actually, just here for testing",
   "homogenous isotropic diffusion (Gaussian blurring)",
@@ -46,8 +46,8 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "finish a phd already"
 };
 
-char
-_coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_coilMethodTypeStrEqv[] = {
   "test", "testing",
   "iso", "homog", "homogeneous",
   "pm", "perona-malik",
@@ -58,7 +58,7 @@ _coilMethodTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _coilMethodTypeValEqv[] = {
   coilMethodTypeTesting, coilMethodTypeTesting,
   coilMethodTypeHomogeneous, coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
@@ -83,31 +83,31 @@ coilMethodType = &_coilMethodType;
 
 /* -------------------------------------------------- */
 
-char
-_coilKindTypeStr[COIL_KIND_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_coilKindTypeStr[COIL_KIND_TYPE_MAX+1] = {
   "(unknown_kind)",
   "scalar",
   "3color",
   "7tensor"
 };
 
-char
-_coilKindTypeDesc[COIL_KIND_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_coilKindTypeDesc[COIL_KIND_TYPE_MAX+1] = {
   "unknown_kind",
   "plain old scalar quantities",
   "3-component color",
   "ten-style 7-valued tensor"
 };
 
-char
-_coilKindTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_coilKindTypeStrEqv[] = {
   "scalar",
   "3color",
   "7tensor", "tensor",
   ""
 };
 
-int
+const int
 _coilKindTypeValEqv[] = {
   coilKindTypeScalar,
   coilKindType3Color,

@@ -35,8 +35,8 @@ ell_biff_key = "ell";
 int ell_debug = 0;
 
 
-char
-_ell_cubic_root_str[][AIR_STRLEN_SMALL] = {
+const char *
+_ell_cubic_root_str[] = {
   "(unknown ell_cubic_root)",
   "single",
   "triple",
@@ -44,8 +44,8 @@ _ell_cubic_root_str[][AIR_STRLEN_SMALL] = {
   "three"
 };
 
-char
-_ell_cubic_root_desc[][AIR_STRLEN_MED] = {
+const char *
+_ell_cubic_root_desc[] = {
   "(unknown ell_cubic_root)",
   "one single root",
   "one triple root",

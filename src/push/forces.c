@@ -29,8 +29,8 @@
 #define COTAN   "cotan"
 #define ZERO    "zero"
 
-char
-_pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
@@ -39,8 +39,8 @@ _pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   ZERO
 };
 
-char
-_pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",

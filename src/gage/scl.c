@@ -66,8 +66,8 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessMode,      1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE}
 };
 
-char
-_gageSclStr[][AIR_STRLEN_SMALL] = {
+const char *
+_gageSclStr[] = {
   "(unknown gageScl)",
   "value",
   "gradient vector",
@@ -103,8 +103,8 @@ _gageSclStr[][AIR_STRLEN_SMALL] = {
   "Hessian mode"
 };
 
-char
-_gageSclDesc[][AIR_STRLEN_MED] = {
+const char *
+_gageSclDesc[] = {
   "unknown gageScl query",
   "reconstructed scalar data value",
   "gradient vector, un-normalized",
@@ -210,8 +210,8 @@ _gageSclVal[] = {
 #define GS_HR  gageSclHessRidgeness
 #define GS_HM  gageSclHessMode
 
-char
-_gageSclStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_gageSclStrEqv[] = {
   "v", "val", "value", 
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
   "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
@@ -247,7 +247,7 @@ _gageSclStrEqv[][AIR_STRLEN_SMALL] = {
   "hmode", "hessmode"
 };
 
-int
+const int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
   GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 

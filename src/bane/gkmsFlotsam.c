@@ -264,8 +264,8 @@ baneGkmsUsage(char *me, hestParm *hparm) {
   }
 }
 
-char
-_baneGkmsMeasrStr[][AIR_STRLEN_SMALL] = {
+const char *
+_baneGkmsMeasrStr[] = {
   "(unknown measr)",
   "min",
   "max",
@@ -274,7 +274,7 @@ _baneGkmsMeasrStr[][AIR_STRLEN_SMALL] = {
   "mode"
 };
 
-int
+const int
 _baneGkmsMeasrVal[] = {
   nrrdMeasureUnknown,
   nrrdMeasureHistoMin,

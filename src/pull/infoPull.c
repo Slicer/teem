@@ -23,8 +23,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
-char
-_pullInfoStr[][AIR_STRLEN_SMALL] = {
+const char *
+_pullInfoStr[] = {
   "(unknown pullInfo)",
   "ten",
   "teni",
@@ -47,7 +47,7 @@ _pullInfoStr[][AIR_STRLEN_SMALL] = {
   "strength"
 };
 
-int
+const int
 _pullInfoVal[] = {
   pullInfoUnknown,
   pullInfoTensor,             /* [7] tensor here */
@@ -71,8 +71,8 @@ _pullInfoVal[] = {
   pullInfoStrength            /* [1] */
 };
 
-char
-_pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_pullInfoStrEqv[] = {
   "ten",
   "teni",
   "hess",
@@ -94,7 +94,7 @@ _pullInfoStrEqv[][AIR_STRLEN_SMALL] = {
   "strength", "strn"
 };
 
-int
+const int
 _pullInfoValEqv[] = {
   pullInfoTensor,
   pullInfoTensorInverse,

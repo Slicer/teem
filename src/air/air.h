@@ -97,7 +97,7 @@ typedef unsigned long long airULLong;
 
 /* enum.c: enum value <--> string conversion utility */  
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  const char *name;
                /* what are these things? */
   unsigned int M;
                /* If "val" is NULL, the the valid enum values are from 1 
@@ -107,15 +107,16 @@ typedef struct {
                   represented by strings str[1] through str[M]), and the
                   unknown/invalid value is val[0].  In both cases, str[0]
                   is the string to represent an unknown/invalid value */
-  char (*str)[AIR_STRLEN_SMALL]; 
+  const char **str; 
                /* "canonical" textual representation of the enum values */
-  int *val;    /* non-NULL iff valid values in the enum are not [1..M], and/or
+  const int *val;
+               /* non-NULL iff valid values in the enum are not [1..M], and/or
                   if value for unknown/invalid is not zero */
-  char (*desc)[AIR_STRLEN_MED];
+  const char **desc;
                /* desc[i] is a short description of the enum values represented
                   by str[i] (thereby starting with the unknown value), to be
                   used to by things like hest */
-  char (*strEqv)[AIR_STRLEN_SMALL];  
+  const char **strEqv;  
                /* All the variations in strings recognized in mapping from
                   string to value (the values in valEqv).  This **MUST** be
                   terminated by a zero-length string ("") so as to signify
@@ -123,7 +124,8 @@ typedef struct {
                   for unknown/invalid.  If "strEqv" is NULL, then mapping
                   from string to value is done by traversing "str", and 
                   "valEqv" is ignored. */
-  int *valEqv; /* The values corresponding to the strings in strEqv; there
+  const int *valEqv;
+               /* The values corresponding to the strings in strEqv; there
                   should be one integer for each non-zero-length string in
                   strEqv: strEqv[i] is a valid string representation for
                   value valEqv[i]. This should not contain the value for

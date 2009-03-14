@@ -22,35 +22,35 @@
 
 #include "air.h"
 
-char
-_airBoolStr[][AIR_STRLEN_SMALL] = {
+const char *
+_airBoolStr[] = {
   "(unknown bool)",
   "false",
   "true"
 };
 
-char
-_airBoolDesc[][AIR_STRLEN_MED] = {
+const char *
+_airBoolDesc[] = {
   "unknown boolean",
   "false",
   "true"
 };
 
-int
+const int
 _airBoolVal[] = {
   -1,
   AIR_FALSE,
   AIR_TRUE
 };
 
-char
-_airBoolStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_airBoolStrEqv[] = {
   "0", "no", "n", "false", "f", "off", "nope",
   "1", "yes", "y", "true", "t", "on", "yea",
   ""
 };
 
-int
+const int
 _airBoolValEqv[] = {
   AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE, AIR_FALSE,
   AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE

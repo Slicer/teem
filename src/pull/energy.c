@@ -23,8 +23,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
-char
-_pullInterTypeStr[PULL_INTER_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_pullInterTypeStr[PULL_INTER_TYPE_MAX+1] = {
   "(unknown_inter)",
   "justR",
   "univariate",
@@ -32,8 +32,8 @@ _pullInterTypeStr[PULL_INTER_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "additive"
 };
 
-char
-_pullInterTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_pullInterTypeStrEqv[] = {
   "r", "justr",
   "univariate", "univar", "uni",
   "separable", "separ", "sep",
@@ -41,7 +41,7 @@ _pullInterTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _pullInterTypeValEqv[] = {
   pullInterTypeJustR, pullInterTypeJustR,
   pullInterTypeUnivariate, pullInterTypeUnivariate, pullInterTypeUnivariate,
@@ -72,8 +72,8 @@ pullInterType = &_pullInterType;
 #define ZERO      "zero"
 #define BPARAB    "bparab"
 
-char
-_pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
@@ -86,8 +86,8 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   BPARAB
 };
 
-char
-_pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",

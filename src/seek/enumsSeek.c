@@ -25,8 +25,8 @@
 const char *
 seekBiffKey = "seek";
 
-char
-_seekTypeStr[SEEK_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_seekTypeStr[SEEK_TYPE_MAX+1] = {
   "(unknown_feature)",
   "isocontour",
   "ridge surface",
@@ -37,8 +37,8 @@ _seekTypeStr[SEEK_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "maximal surface",
 };
 
-char
-_seekTypeDesc[SEEK_TYPE_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_seekTypeDesc[SEEK_TYPE_MAX+1] = {
   "unknown_feature",
   "standard marching cubes surface",
   "ridge surface",
@@ -49,8 +49,8 @@ _seekTypeDesc[SEEK_TYPE_MAX+1][AIR_STRLEN_MED] = {
   "maximal surface",
 };
 
-char
-_seekTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_seekTypeStrEqv[] = {
   "isocontour",
   "ridge surface", "ridgesurface", "rs",
   "valley surface", "valleysurface", "vs",
@@ -61,7 +61,7 @@ _seekTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _seekTypeValEqv[] = {
   seekTypeIsocontour,
   seekTypeRidgeSurface, seekTypeRidgeSurface, seekTypeRidgeSurface,

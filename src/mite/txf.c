@@ -31,8 +31,8 @@
 char
 miteRangeChar[MITE_RANGE_NUM+1] = "ARGBEadsp";
 
-char
-_miteStageOpStr[][AIR_STRLEN_SMALL] = {
+const char *
+_miteStageOpStr[] = {
   "(unknown miteStageOp)",
   "min",
   "max",
@@ -40,7 +40,7 @@ _miteStageOpStr[][AIR_STRLEN_SMALL] = {
   "multiply"
 };
 
-int
+const int
 _miteStageOpVal[] = {
   miteStageOpUnknown,
   miteStageOpMin,
@@ -49,15 +49,15 @@ _miteStageOpVal[] = {
   miteStageOpMultiply
 };
 
-char
-_miteStageOpStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_miteStageOpStrEqv[] = {
   "min",
   "max",
   "add", "+",
   "multiply", "*", "x"
 };
 
-int
+const int
 _miteStageOpValEqv[] = {
   miteStageOpUnknown,
   miteStageOpMin,

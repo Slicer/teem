@@ -22,8 +22,8 @@
 
 #include "alan.h"
 
-char
-_alanStopStr[ALAN_STOP_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_alanStopStr[ALAN_STOP_MAX+1] = {
   "(unknown_stop)",
   "not",
   "iter",
@@ -32,8 +32,8 @@ _alanStopStr[ALAN_STOP_MAX+1][AIR_STRLEN_SMALL] = {
   "diverged"
 };
 
-char
-_alanStopDesc[ALAN_STOP_MAX+1][AIR_STRLEN_MED] = {
+const char *
+_alanStopDesc[ALAN_STOP_MAX+1] = {
   "unknown_stop",
   "there is no reason to stop",
   "hit the maximum number of iterations",

@@ -22,8 +22,8 @@
 
 #include "limn.h"
 
-char
-_limnSpaceStr[LIMN_SPACE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_limnSpaceStr[LIMN_SPACE_MAX+1] = {
   "(unknown space)",
   "world",
   "view",
@@ -45,8 +45,8 @@ limnSpace = &_limnSpace;
 
 /* ------------------------------------------------------------ */  
 
-char
-_limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
   "(unknown info)",
   "rgba",
   "norm",
@@ -67,31 +67,31 @@ limnPolyDataInfo = &_limnPolyDataInfo;
 
 /* ------------------------------------------------------------ */  
 
-char
-_limnCameraPathTrackStr[][AIR_STRLEN_SMALL] = {
+const char *
+_limnCameraPathTrackStr[] = {
   "(unknown limnCameraPathTrack)",
   "from",
   "at",
   "both"
 };
 
-char
-_limnCameraPathTrackDesc[][AIR_STRLEN_MED] = {
+const char *
+_limnCameraPathTrackDesc[] = {
   "unknown limnCameraPathTrack",
   "track through eye points, quaternions for camera orientation",
   "track through look-at points, quaternions for camera orientation",
   "track eye point, look-at point, and up vector with seperate splines"
 };
 
-char
-_limnCameraPathTrackStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_limnCameraPathTrackStrEqv[] = {
   "from", "fr",
   "at", "look-at", "lookat",
   "both",
   ""
 };
 
-int
+const int
 _limnCameraPathTrackValEqv[] = {
   limnCameraPathTrackFrom, limnCameraPathTrackFrom,
   limnCameraPathTrackAt, limnCameraPathTrackAt, limnCameraPathTrackAt,
@@ -112,8 +112,8 @@ limnCameraPathTrack = &_limnCameraPathTrack;
 
 /* ------------------------------------------------------------ */  
 
-char
-_limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
+const char *
+_limnPrimitiveStr[] = {
   "(unknown limnPrimitive)",
   "noop",
   "triangles",
@@ -124,8 +124,8 @@ _limnPrimitiveStr[][AIR_STRLEN_SMALL] = {
   "lines"
 };
 
-char
-_limnPrimitiveDesc[][AIR_STRLEN_MED] = {
+const char *
+_limnPrimitiveDesc[] = {
   "unknown limnPrimitive",
   "no-op",
   "triangle soup",
@@ -136,8 +136,8 @@ _limnPrimitiveDesc[][AIR_STRLEN_MED] = {
   "lines"
 };
 
-char
-_limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_limnPrimitiveStrEqv[] = {
   "noop",
   "triangles",
   "tristrip",
@@ -148,7 +148,7 @@ _limnPrimitiveStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _limnPrimitiveValEqv[] = {
   limnPrimitiveNoop,
   limnPrimitiveTriangles,

@@ -23,8 +23,8 @@
 #include "mite.h"
 #include "privateMite.h"
 
-char
-_miteValStr[][AIR_STRLEN_SMALL] = {
+const char *
+_miteValStr[] = {
   "(unknown miteVal)",
   "Xw",
   "Xi",
@@ -47,7 +47,7 @@ _miteValStr[][AIR_STRLEN_SMALL] = {
   "WdotD"
 };
 
-int
+const int
 _miteValVal[] = {
   miteValUnknown,
   miteValXw,
@@ -71,8 +71,8 @@ _miteValVal[] = {
   miteValWdotD,
 };
 
-char
-_miteValStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_miteValStrEqv[] = {
   "xw",
   "xi",
   "yw",

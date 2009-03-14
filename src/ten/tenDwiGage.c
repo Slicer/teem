@@ -29,8 +29,8 @@
 
 /* --------------------------------------------------------------------- */
 
-char
-_tenDwiGageStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenDwiGageStr[] = {
   "(unknown tenDwiGage)",
   "all",
   "b0",
@@ -69,7 +69,7 @@ _tenDwiGageStr[][AIR_STRLEN_SMALL] = {
   "2peledlminfo",
 };
 
-int
+const int
 _tenDwiGageVal[] = {
   tenDwiGageUnknown,
   tenDwiGageAll,

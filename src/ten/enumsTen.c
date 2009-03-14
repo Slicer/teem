@@ -25,8 +25,8 @@
 
 /* -------------------------------------------------------------- */
 
-char
-_tenAnisoStr[TEN_ANISO_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_tenAnisoStr[TEN_ANISO_MAX+1] = {
   "(unknown aniso)",
   "Conf",
   "Cl1",
@@ -73,8 +73,8 @@ tenAniso = &_tenAniso;
 
 /* --------------------------------------------------------------------- */
 
-char
-_tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1] = {
   "(unknown interp type)",
   "lin",
   "loglin",
@@ -88,8 +88,8 @@ _tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "qgeoloxr",
 };
 
-char
-_tenInterpTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenInterpTypeStrEqv[] = {
   "lin", "linear", "lerp",
   "loglin", "loglinear", "loglerp",
   "affinv",
@@ -103,7 +103,7 @@ _tenInterpTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenInterpTypeValEqv[] = {
   tenInterpTypeLinear, tenInterpTypeLinear, tenInterpTypeLinear,
   tenInterpTypeLogLinear, tenInterpTypeLogLinear, tenInterpTypeLogLinear,
@@ -131,8 +131,8 @@ tenInterpType = &_tenInterpType;
 
 /* --------------------------------------------------------------------- */
 
-char
-_tenGageStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenGageStr[] = {
   "(unknown tenGage)",
 
   "tensor",
@@ -315,8 +315,8 @@ _tenGageStr[][AIR_STRLEN_SMALL] = {
   "anisotropies"
 };
 
-char
-_tenGageDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenGageDesc[] = {
   "(unknown tenGage item)",
   "tensor",
   "confidence",
@@ -468,7 +468,7 @@ _tenGageDesc[][AIR_STRLEN_MED] = {
   "anisotropies"
 };
 
-int
+const int
 _tenGageVal[] = {
   tenGageUnknown,
   tenGageTensor,        /* "t", the reconstructed tensor: GT[7] */
@@ -630,8 +630,8 @@ _tenGageVal[] = {
   tenGageTensorGradRotE
 };
 
-char
-_tenGageStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenGageStrEqv[] = {
   "t", "ten", "tensor",
   "c", "conf",
   "tr", "trace",
@@ -786,7 +786,7 @@ _tenGageStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenGageValEqv[] = {
   tenGageTensor, tenGageTensor, tenGageTensor,
   tenGageConfidence, tenGageConfidence,
@@ -964,8 +964,8 @@ tenGage = &_tenGage;
 
 /* --------------------------------------------------------------------- */
 
-char
-_tenFiberTypeStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberTypeStr[] = {
   "(unknown tenFiberType)",
   "evec0",
   "evec1",
@@ -975,8 +975,8 @@ _tenFiberTypeStr[][AIR_STRLEN_SMALL] = {
   "zhukov"
 };
 
-char
-_tenFiberTypeDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenFiberTypeDesc[] = {
   "unknown tenFiber type",
   "simply follow principal eigenvector",
   "follow medium eigenvector",
@@ -986,8 +986,8 @@ _tenFiberTypeDesc[][AIR_STRLEN_MED] = {
   "Zhukov\'s oriented tensors"
 };
 
-char
-_tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberTypeStrEqv[] = {
   "ev0", "evec0",
   "ev1", "evec1",
   "ev2", "evec2",
@@ -997,7 +997,7 @@ _tenFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenFiberTypeValEqv[] = {
   tenFiberTypeEvec0, tenFiberTypeEvec0,
   tenFiberTypeEvec1, tenFiberTypeEvec1,
@@ -1021,31 +1021,31 @@ tenFiberType = &_tenFiberType;
 
 /* --------------------------------------------------------------------- */
 
-char
-_tenDwiFiberTypeStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenDwiFiberTypeStr[] = {
   "(unknown tenDwiFiberType)",
   "1evec0",
   "2evec0",
   "12BlendEvec0"
 };
 
-char
-_tenDwiFiberTypeDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenDwiFiberTypeDesc[] = {
   "unknown tenDwiFiber type",
   "single tensor evec0-based",
   "two-tensor evec0-based",
   "parameterized blend between 1- and 2-tensor fits"
 };
 
-char
-_tenDwiFiberTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenDwiFiberTypeStrEqv[] = {
   "1evec0", "1e0",
   "2evec0", "2e0",
   "12BlendEvec0", "12be0",
   ""
 };
 
-int
+const int
 _tenDwiFiberTypeValEqv[] = {
   tenDwiFiberType1Evec0, tenDwiFiberType1Evec0,
   tenDwiFiberType2Evec0, tenDwiFiberType2Evec0,
@@ -1066,8 +1066,8 @@ tenDwiFiberType = &_tenDwiFiberType;
 
 /* ----------------------------------------------------------------------- */
 
-char
-_tenFiberStopStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberStopStr[] = {
   "(unknown tenFiberStop)",
   "aniso",
   "length",
@@ -1081,8 +1081,8 @@ _tenFiberStopStr[][AIR_STRLEN_SMALL] = {
   "minsteps",
 };
 
-char
-_tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberStopStrEqv[] = {
   "aniso",
   "length", "len",
   "steps",
@@ -1096,7 +1096,7 @@ _tenFiberStopStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenFiberStopValEqv[] = {
   tenFiberStopAniso,
   tenFiberStopLength, tenFiberStopLength,
@@ -1110,8 +1110,8 @@ _tenFiberStopValEqv[] = {
   tenFiberStopMinNumSteps, tenFiberStopMinNumSteps,
 };
 
-char
-_tenFiberStopDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenFiberStopDesc[] = {
   "unknown tenFiber stop",
   "anisotropy went below threshold",
   "fiber length exceeded normalcy bounds",
@@ -1139,31 +1139,31 @@ tenFiberStop = &_tenFiberStop;
 
 /* ----------------------------------------------------------------------- */
 
-char
-_tenFiberIntgStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberIntgStr[] = {
   "(unknown tenFiberIntg)",
   "euler",
   "midpoint",
   "rk4"
 };
 
-char
-_tenFiberIntgStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenFiberIntgStrEqv[] = {
   "euler",
   "midpoint", "rk2",
   "rk4",
   ""
 };
 
-int
+const int
 _tenFiberIntgValEqv[] = {
   tenFiberIntgEuler,
   tenFiberIntgMidpoint, tenFiberIntgMidpoint,
   tenFiberIntgRK4
 };
 
-char
-_tenFiberIntgDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenFiberIntgDesc[] = {
   "unknown tenFiber intg",
   "plain Euler",
   "midpoint method, 2nd order Runge-Kutta",
@@ -1184,8 +1184,8 @@ tenFiberIntg = &_tenFiberIntg;
 
 /* ----------------------------------------------------------------------- */
 
-char
-_tenGlyphTypeStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenGlyphTypeStr[] = {
   "(unknown tenGlyphType)",
   "box",
   "sphere",
@@ -1198,8 +1198,8 @@ _tenGlyphTypeStr[][AIR_STRLEN_SMALL] = {
 #define CYL tenGlyphTypeCylinder
 #define SQD tenGlyphTypeSuperquad
 
-char
-_tenGlyphTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenGlyphTypeStrEqv[] = {
   "b", "box",
   "s", "sph", "sphere",
   "c", "cyl", "cylind", "cylinder",
@@ -1207,7 +1207,7 @@ _tenGlyphTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenGlyphTypeValEqv[] = {
   BOX, BOX,
   SPH, SPH, SPH,
@@ -1215,8 +1215,8 @@ _tenGlyphTypeValEqv[] = {
   SQD, SQD, SQD, SQD, SQD
 };
 
-char
-_tenGlyphTypeDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenGlyphTypeDesc[] = {
   "unknown tenGlyph type",
   "box/cube (rectangular prisms)",
   "sphere (ellipsoids)",
@@ -1238,8 +1238,8 @@ tenGlyphType = &_tenGlyphType;
 
 /* ---------------------------------------------- */
 
-char
-_tenEstimate1MethodStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenEstimate1MethodStr[] = {
   "(unknown tenEstimate1Method)",
   "LLS",
   "WLS",
@@ -1247,8 +1247,8 @@ _tenEstimate1MethodStr[][AIR_STRLEN_SMALL] = {
   "MLE"
 };
 
-char
-_tenEstimate1MethodDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenEstimate1MethodDesc[] = {
   "unknown tenEstimate1Method",
   "linear least-squares fit of log(DWI)",
   "weighted least-squares fit of log(DWI)",
@@ -1270,15 +1270,15 @@ tenEstimate1Method= &_tenEstimate1Method;
 
 /* ---------------------------------------------- */
 
-char
-_tenEstimate2MethodStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenEstimate2MethodStr[] = {
   "(unknown tenEstimate2Method)",
   "QSegLLS",
   "Peled"
 };
 
-char
-_tenEstimate2MethodDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenEstimate2MethodDesc[] = {
   "unknown tenEstimate2Method",
   "Q-ball segmentation",
   "Peled"
@@ -1298,8 +1298,8 @@ tenEstimate2Method= &_tenEstimate2Method;
 
 /* ---------------------------------------------- */
 
-char
-_tenTripleTypeStr[][AIR_STRLEN_SMALL] = {
+const char *
+_tenTripleTypeStr[] = {
   "(unknown tenTriple)",
   "eigenvalue",
   "moment",
@@ -1312,8 +1312,8 @@ _tenTripleTypeStr[][AIR_STRLEN_SMALL] = {
   "wheelParms"
 };
 
-char
-_tenTripleTypeDesc[][AIR_STRLEN_MED] = {
+const char *
+_tenTripleTypeDesc[] = {
   "unknown tenTriple",
   "eigenvalues sorted in descending order",
   "central moments (mu1,mu2,mu3)",
@@ -1326,8 +1326,8 @@ _tenTripleTypeDesc[][AIR_STRLEN_MED] = {
   "eigenvalue wheel (center,radius,angle)"
 };
 
-char
-_tenTripleTypeStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_tenTripleTypeStrEqv[] = {
   "eigenvalue", "eval", "ev",
   "moment", "mu",
   "XYZ",
@@ -1340,7 +1340,7 @@ _tenTripleTypeStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _tenTripleTypeValEqv[] = {
   tenTripleTypeEigenvalue, tenTripleTypeEigenvalue, tenTripleTypeEigenvalue,
   tenTripleTypeMoment, tenTripleTypeMoment,

@@ -34,21 +34,21 @@ const int airMyEndian = 1234;
 const int airMyEndian = 4321;
 #endif
 
-char
-_airEndianStr[][AIR_STRLEN_SMALL] = {
+const char *
+_airEndianStr[] = {
   "(unknown endian)",
   "little",
   "big"
 };
 
-char
-_airEndianDesc[][AIR_STRLEN_MED] = {
+const char *
+_airEndianDesc[] = {
   "unknown endianness",
   "Intel and compatible",
   "Everyone besides Intel and compatible"
 };
 
-int
+const int
 _airEndianVal[] = {
   airEndianUnknown,
   airEndianLittle,

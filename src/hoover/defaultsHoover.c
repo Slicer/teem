@@ -29,8 +29,8 @@ hooverDefVolCentering = nrrdCenterNode;
 int
 hooverDefImgCentering = nrrdCenterCell;
 
-char
-_hooverErrStr[HOOVER_ERR_MAX+1][AIR_STRLEN_SMALL] = {
+const char *
+_hooverErrStr[HOOVER_ERR_MAX+1] = {
   "(unknown_err)",
   "Initialization",
   "RenderBegin",

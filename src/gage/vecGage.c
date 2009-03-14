@@ -380,8 +380,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-char
-_gageVecStr[][AIR_STRLEN_SMALL] = {
+const char *
+_gageVecStr[] = {
   "(unknown gageVec)",
   "vector",
   "vector0",
@@ -413,8 +413,8 @@ _gageVecStr[][AIR_STRLEN_SMALL] = {
   "multigrad eigenvectors",
 };
 
-char
-_gageVecDesc[][AIR_STRLEN_MED] = {
+const char *
+_gageVecDesc[] = {
   "unknown gageVec query",
   "component-wise-interpolated vector",
   "vector[0]",
@@ -446,7 +446,7 @@ _gageVecDesc[][AIR_STRLEN_MED] = {
   "eigenvectors of multi-gradient"
 };
 
-int
+const int
 _gageVecVal[] = {
   gageVecUnknown,
   gageVecVector,
@@ -510,8 +510,8 @@ _gageVecVal[] = {
 #define GV_ML  gageVecMGEval
 #define GV_MC  gageVecMGEvec
 
-char
-_gageVecStrEqv[][AIR_STRLEN_SMALL] = {
+const char *
+_gageVecStrEqv[] = {
   "v", "vector", "vec",
   "v0", "vector0", "vec0",
   "v1", "vector1", "vec1",
@@ -544,7 +544,7 @@ _gageVecStrEqv[][AIR_STRLEN_SMALL] = {
   ""
 };
 
-int
+const int
 _gageVecValEqv[] = {
   GV_V, GV_V, GV_V,
   GV_V0, GV_V0, GV_V0,

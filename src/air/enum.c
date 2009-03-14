@@ -164,7 +164,8 @@ airEnumVal(const airEnum *enm, const char *str) {
 */
 char *
 airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
-  char *buff, *desc, ident[AIR_STRLEN_SMALL];
+  const char *desc;
+  char *buff, ident[AIR_STRLEN_SMALL];
   const char *_ident;
   int i;
   size_t len;
