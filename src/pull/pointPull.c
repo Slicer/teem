@@ -538,7 +538,7 @@ _pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointId
   if (pctx->haveScale) {
     tau0 = gageTauOfSig(pctx->bboxMin[3]);
     tau1 = gageTauOfSig(pctx->bboxMax[3]);
-    deltaS = (pctx->bboxMax[3]-pctx->bboxMax[3])/pctx->numSamplesScale;
+    deltaS = (pctx->bboxMax[3]-pctx->bboxMin[3])/pctx->numSamplesScale;
     sigmaValue = gageSigOfTau(tau0+(sidx+1)*(tau1-tau0)/(numScales+1));
   }
   /* Compute true point location from indexes */
