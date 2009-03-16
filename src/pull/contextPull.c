@@ -401,11 +401,12 @@ _pullContextCheck(pullContext *pctx) {
 */
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
+              const double _scaleVec[3],
               pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
-  double *posOut, *tenOut, *strnOut;
+  double *posOut, *tenOut, *strnOut, scaleVec[3], scaleDir[3], scaleMag;
   pullBin *bin;
   pullPoint *point;
 
@@ -417,6 +418,19 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
     sprintf(err, "%s: can't save out %s info that hasn't been set",
             me, airEnumStr(pullInfo, pullInfoStrength));
     biffAdd(PULL, err); return 1;
+  }
+  if (!_scaleVec) {
+    ELL_3V_SET(scaleVec, 0, 0, 0);
+    ELL_3V_SET(scaleDir, 0, 0, 0);
+    scaleMag = 0;
+  } else {
+    ELL_3V_COPY(scaleVec, _scaleVec);
+    if (ELL_3V_LEN(scaleVec)) {
+      ELL_3V_NORM(scaleDir, scaleVec, scaleMag);
+    } else {
+      ELL_3V_SET(scaleDir, 0, 0, 0);
+      scaleMag = 0;
+    }
   }
   pointNum = pullPointNumber(pctx);
   E = AIR_FALSE;
@@ -460,6 +474,15 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       */
       if (nPosOut) {
         ELL_4V_COPY(posOut + 4*outIdx, point->pos);
+        if (pctx->haveScale && scaleMag) {
+          double *tpos, tvec[3], sc;
+          tpos = posOut + 4*outIdx;
+          sc = ELL_3V_DOT(tpos, scaleDir);
+          ELL_3V_SCALE(tvec, sc, scaleDir);
+          ELL_3V_SUB(tpos, tpos, tvec);
+          ELL_3V_SCALE(tvec, scaleMag*tpos[3], scaleDir);
+          ELL_3V_ADD2(tpos, tpos, tvec);
+        }
       }
       if (nStrengthOut) {
         strnOut[outIdx] = _pullPointScalar(pctx, point, pullInfoStrength,

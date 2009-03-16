@@ -636,6 +636,7 @@ PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               Nrrd *nStrengthOut,
+                              const double scaleVec[3],
                               pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);

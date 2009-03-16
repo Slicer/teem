@@ -319,7 +319,7 @@ pullRun(pullContext *pctx) {
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
-      if (pullOutputGet(npos, NULL, NULL, pctx)) {
+      if (pullOutputGet(npos, NULL, NULL, NULL, pctx)) {
         sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
         biffAdd(PULL, err); return 1;
       }
