@@ -65,7 +65,7 @@ extern "C" {
 
 /* number of iterations we allow something to be continuously stuck
    before nixing it */
-#define _PULL_STUCK_ITER_NUM_MAX 5
+#define _PULL_STUCK_ITER_NUM_MAX 3
 
 /* maximum distance, in multiples of voxelSizeSpace, that a point is
    allowed to move between start and end of constraint satisfaction */

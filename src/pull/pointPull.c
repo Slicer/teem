@@ -58,9 +58,9 @@ pullPointNew(pullContext *pctx) {
   pnt->neighPoint = NULL;
   pnt->neighPointNum = 0;
   pnt->neighPointArr = airArrayNew(AIR_CAST(void**, &(pnt->neighPoint)),
-				   &(pnt->neighPointNum),
-				   sizeof(pullPoint *),
-				   PULL_POINT_NEIGH_INCR);
+                                   &(pnt->neighPointNum),
+                                   sizeof(pullPoint *),
+                                   PULL_POINT_NEIGH_INCR);
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDistMean = 0;
   pnt->neighMode = AIR_NAN;
@@ -70,8 +70,8 @@ pullPointNew(pullContext *pctx) {
   pnt->phist = NULL;
   pnt->phistNum = 0;
   pnt->phistArr = airArrayNew(AIR_CAST(void**, &(pnt->phist)), 
-			      &(pnt->phistNum),
-			      5*sizeof(double), 32);
+                              &(pnt->phistNum),
+                              5*sizeof(double), 32);
 #endif
   pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -487,22 +487,25 @@ _pullProbe(pullTask *task, pullPoint *point) {
 }
 
 int
-_pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointIdx,pullPoint *point)
-{
+_pullPointInitializePerVoxel(const pullContext *pctx,
+                             const unsigned int pointIdx,
+                             pullPoint *point) {
   char me[]="_pullPointInitializePerVoxel", err[BIFF_STRLEN];
-  unsigned int voxNum, voxIdx, pitvIdx, vidx[3], sidx, yzi, upointIdx;
+  unsigned int voxNum, vidx[3], sidx, yzi, upointIdx;
   unsigned int numScales;
-  double iPos[4], wPos[4], pos[4];
+  double iPos[3];
   airRandMTState *rng;
   pullVolume *seedVol;
   gageShape *seedShape;
   double sigmaValue;
-  double tau0, tau1, tau, deltaS=0.0;
-  int reject, constrFail;
+  double tau0, tau1, deltaS=0.0;
+  int reject, constrFail, taskOrder[3];
+  unsigned int k, task;
+
   seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
   seedShape = seedVol->gctx->shape; 
   voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
-
+  
   rng = pctx->task[0]->rng;
 
   if (pctx->haveScale) {
@@ -511,61 +514,64 @@ _pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointId
     numScales = 1;
   }
 
-  /*Compute factor to compensate for ppv */
-  double factor;
-  if (pctx->pointPerVoxel >0) {
-    /*round down */
-    factor = 1.0/pctx->pointPerVoxel;
-  }
-  else if (pctx->pointPerVoxel <0) {
-    factor = 1.0 * (-pctx->pointPerVoxel);
-  } else {
-    /* we should not be here. Maybe we should not have to check */
-    sprintf(err,"%s: got ppv = 0", me);
-    biffAdd(PULL,err); return 1;
-  }
-
   /* Obtain voxel and indexex from upointId */
   /* We assume that scale is the fastest axis, then x, then y and then z */
   sidx = pointIdx % numScales;
-  upointIdx = (int) (factor*(pointIdx - sidx)/numScales);
+  upointIdx = (pointIdx - sidx)/numScales;
+  if (pctx->pointPerVoxel > 0) {
+    upointIdx /= pctx->pointPerVoxel;
+  } else {
+    upointIdx *= -pctx->pointPerVoxel;
+  }
+  /*
+  printf("!%s: pointIdx %u ppv %d -> sidx %u -> upi %u\n", me,
+         pointIdx, pctx->pointPerVoxel, sidx, upointIdx);
+  */
   vidx[0] = upointIdx % seedShape->size[0];
   yzi = (upointIdx - vidx[0])/seedShape->size[0];
   vidx[1] = yzi % seedShape->size[1];
   vidx[2] = (yzi- vidx[1])/seedShape->size[1];
+  /*
+  printf("!%s: upi %u -> vidx %u %u %u\n", me, upointIdx,
+         vidx[0], vidx[1], vidx[2]);
+  */
 
-  /* Compute sigma value for sidx*/
+  /* Compute sigma value for sidx */
   if (pctx->haveScale) {
     tau0 = gageTauOfSig(pctx->bboxMin[3]);
     tau1 = gageTauOfSig(pctx->bboxMax[3]);
     deltaS = (pctx->bboxMax[3]-pctx->bboxMin[3])/pctx->numSamplesScale;
     sigmaValue = gageSigOfTau(tau0+(sidx+1)*(tau1-tau0)/(numScales+1));
+  } else {
+    sigmaValue = 0;
   }
   /* Compute true point location from indexes */
-  unsigned int k;
   for (k=0; k<3; k++) {
-    iPos[k] = vidx[k] + pctx->jitter*airDrandMT_r(rng) -0.5;
+    iPos[k] = vidx[k] + pctx->jitter*airDrandMT_r(rng) - 0.5;
   }
-  iPos[3] = 1;
-  ELL_4MV_MUL(wPos, seedShape->ItoW, iPos);
-  ELL_3V_COPY(point->pos, wPos);
+  gageShapeItoW(seedShape, point->pos, iPos);
   if (pctx->haveScale) {
-    point->pos[3]= sigmaValue + pctx->jitter*airDrandMT_r(rng)*deltaS - deltaS/2;
+    point->pos[3] = (sigmaValue 
+                     + pctx->jitter*airDrandMT_r(rng)*deltaS - deltaS/2);
   } else {
-    point->pos[3] =0.0;
+    point->pos[3] = 0.0;
   }
+  /*
+  printf("!%s: idx %u %u %u --> wrl %g %g %g %g\n", me, 
+         vidx[0], vidx[1], vidx[2],
+         point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+  */
 
-  /*Do a tentative probe */
+  /* Do a tentative probe */
   if (_pullProbe(pctx->task[0], point)) {
    sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
    biffAdd(PULL, err); return 1;
   }
 
-  /*Check that point is fit enough to be included */
-  /* Task = 0 ->PreThreshold;
+  /* Check that point is fit enough to be included */
+  /* Task = 0 -> PreThreshold;
      Task = 1 -> SeedThreshold;
      Task = 2 -> Constraint; */
-  int taskOrder[3];
   if (pctx->constraintBeforeSeedThresh) {
     taskOrder[0]=0;
     taskOrder[1]=2;
@@ -578,15 +584,14 @@ _pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointId
 
   constrFail = AIR_FALSE;
   reject = AIR_FALSE;
-  unsigned int task =0;
-  for (task =0; task<3; task++) {
+  for (task=0; task<3; task++) {
     switch (taskOrder[task]) {
       case 0:
         /* Check we pass pre-threshold */
         if (!reject && pctx->ispec[pullInfoSeedPreThresh]) {
         double seedv;
         seedv = _pullPointScalar(pctx, point, pullInfoSeedPreThresh, NULL, NULL);
-        reject = reject || (seedv<0);
+        reject = reject || (seedv < 0);
         }
         break;
       case 1:
@@ -611,7 +616,7 @@ _pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointId
         break;
      }
   }
-  /*Gather consensus */
+  /* Gather consensus */
   if (reject) {
     return 1;
   }
@@ -620,17 +625,21 @@ _pullPointInitializePerVoxel (const pullContext *pctx,const unsigned int pointId
 }
 
 int
-_pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pullPoint *point) {
+_pullPointInitializeRandom(pullContext *pctx,
+                           const unsigned int pointIdx,
+                           pullPoint *point) {
   char me[]="_pullPointInitializeRandom", err[BIFF_STRLEN];
   int reject, threshFail, constrFail;
   airRandMTState *rng;
+  unsigned int threshFailCount = 0, constrFailCount = 0;
+  int taskOrder[3];
+
   rng = pctx->task[0]->rng;
 
-  /*Check that point is fit enough to be included */
-  /* Task = 0 ->PreThreshold;
+  /* Check that point is fit enough to be included */
+  /* Task = 0 -> PreThreshold;
      Task = 1 -> SeedThreshold;
      Task = 2 -> Constraint; */
-  int taskOrder[3];
   if (pctx->constraintBeforeSeedThresh) {
     taskOrder[0]=0;
     taskOrder[1]=2;
@@ -641,11 +650,11 @@ _pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pull
     taskOrder[2]=2;
   }
 
-  unsigned int threshFailCount = 0, constrFailCount = 0;
   do {
+    unsigned int task;
     reject = AIR_FALSE;
     _pullPointHistInit(point);
-     // Populate tentative random point
+    /* Populate tentative random point */
     ELL_3V_SET(point->pos,
                AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                           pctx->bboxMin[0], pctx->bboxMax[0]),
@@ -661,7 +670,7 @@ _pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pull
       point->pos[3] = 0.0;
     }
     _pullPointHistAdd(point, pullCondOld);
-    /*Do a tentative probe */
+    /* Do a tentative probe */
     if (_pullProbe(pctx->task[0], point)) {
       sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
       biffAdd(PULL, err); return 1;
@@ -674,10 +683,9 @@ _pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pull
         continue;
       }
     }
-    // Enforce constrains and thresholds
+    /* Enforce constrains and thresholds */
     threshFail = AIR_FALSE;
-    unsigned int task;
-    for (task =0; task<2; task++) {
+    for (task=0; task<3; task++) {
       switch (taskOrder[task]) {
         case 0:
           /* Check we pass pre-threshold */
@@ -698,7 +706,7 @@ _pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pull
           reject = reject || threshFail;
           break;
         case 2:
-          // Avoid doing constraint if the threshold has already failed
+          /* Avoid doing constraint if the threshold has already failed */
           if (!reject && pctx->constraint) {
             if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
               sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
@@ -711,21 +719,21 @@ _pullPointInitializeRandom (pullContext *pctx, const unsigned int pointIdx, pull
           reject = reject || constrFail;
           break;
       }
-   }
-   /*Gather consensus from tasks */
-   if (reject) {
-     if (threshFailCount + constrFailCount > 1000) {
-         /*Very bad luck; we try enough times*/
-          sprintf(err, "%s: failed too often placing %u "
-                  "(thresh %s/%u, constr %s/%u)",
-                  me, pointIdx,
-                  threshFail ? "true" : "false", threshFailCount,
-                  constrFail ? "true" : "false", constrFailCount);
-          biffAdd(PULL, err); return 1;
+    }
+    /* Gather consensus from tasks */
+    if (reject) {
+      if (threshFailCount + constrFailCount > 1000) {
+        /* Very bad luck; we've too many times */
+        sprintf(err, "%s: failed too often placing %u "
+                "(thresh %s/%u, constr %s/%u)",
+                me, pointIdx,
+                threshFail ? "true" : "false", threshFailCount,
+                constrFail ? "true" : "false", constrFailCount);
+        biffAdd(PULL, err); return 1;
       }
-   }
-  } while(reject);
-
+    }
+  } while (reject);
+  
   return 0;
 }
 
@@ -753,7 +761,6 @@ _pullPointSetup(pullContext *pctx) {
   gageShape *seedShape;
   double factor;
   unsigned int totalNumPoints, voxNum;
-  int E;
 
   /* on using pullBinsPointMaybeAdd: This is used only in the context
      of constraints; it makes sense to be a little more selective
@@ -774,8 +781,8 @@ _pullPointSetup(pullContext *pctx) {
     }
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
       printf("%s: with npos, overriding both pointNumInitial (%u) "
-	     "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
-	     pctx->pointPerVoxel);
+             "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
+             pctx->pointPerVoxel);
     }
     pctx->pointNumInitial = npos->axis[1].size;
     pctx->pointPerVoxel = 0;
@@ -787,15 +794,17 @@ _pullPointSetup(pullContext *pctx) {
     posData = NULL;
     if (pctx->pointNumInitial) {
       printf("%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
-	     me, pctx->pointPerVoxel, pctx->pointNumInitial);
+             me, pctx->pointPerVoxel, pctx->pointNumInitial);
     }
     /* Obtain number of voxels */
     seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
     seedShape = seedVol->gctx->shape;
     voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
+    printf("%s: vol size %u %u %u -> voxNum %u\n", me, 
+           seedShape->size[0], seedShape->size[1], seedShape->size[2],
+           voxNum);
 
-    /* Compute tentative (conservative) total number of points
-       to allocate a temporary array of points */
+    /* Compute total number of points */
     if (pctx->pointPerVoxel > 0) {
       factor = pctx->pointPerVoxel;
     } else {
@@ -806,6 +815,8 @@ _pullPointSetup(pullContext *pctx) {
     } else {
       totalNumPoints = voxNum * factor;
     }
+    printf("%s: ppv %d -> factor %g -> tot # %u\n", me, 
+           pctx->pointPerVoxel, factor, totalNumPoints);
 
     /* Reset pointNumInitial to zero */
     pctx->pointNumInitial = 0;
@@ -813,6 +824,7 @@ _pullPointSetup(pullContext *pctx) {
   } else {
     /* using pctx->pointNumInitial */
     npos = NULL;
+    posData = NULL;
     totalNumPoints = pctx->pointNumInitial;
     random = AIR_TRUE;
   }
@@ -822,7 +834,6 @@ _pullPointSetup(pullContext *pctx) {
   /* Start adding points */
   tick = totalNumPoints/1000;
   point = NULL;
-  unsigned int threshFailCount = 0, constrFailCount = 0;
   for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
     if (tick < 100 || 0 == pointIdx % tick) {
       printf("%s", airDoneStr(0, pointIdx, totalNumPoints, doneStr));
@@ -839,28 +850,25 @@ _pullPointSetup(pullContext *pctx) {
       point = pullPointNew(pctx);
     }
 
-   /* Filling array according to initialization method */
+    /* Filling array according to initialization method */
     if (pctx->pointPerVoxel) {
-      createFail=_pullPointInitializePerVoxel(pctx, pointIdx, point);
-    } else { 
-      /* not pointPerVoxel, either npos or pointNumInitial */
-      if (random) {
-        /* random sampling */
-        createFail=_pullPointInitializeRandom(pctx, pointIdx, point);
-      } else {
-        /* npos is given to us */
-        /* Copy nrrd point into pullPoint */
-        ELL_4V_COPY(point->pos, posData + 4*pointIdx);
-        createFail=0;
-        /* even though we are dictating the point locations, we still have
-        to do the initial probe */
-        if (_pullProbe(pctx->task[0], point)) {
-         sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
-         biffAdd(PULL, err); airMopError(mop); return 1;
-        }
+      createFail = _pullPointInitializePerVoxel(pctx, pointIdx, point);
+    } else if (random) {
+      /* random sampling */
+      createFail = _pullPointInitializeRandom(pctx, pointIdx, point);
+    } else {
+      /* npos is given to us */
+      /* Copy nrrd point into pullPoint */
+      ELL_4V_COPY(point->pos, posData + 4*pointIdx);
+      createFail = AIR_FALSE;
+      /* even though we are dictating the point locations, we still have
+         to do the initial probe */
+      if (_pullProbe(pctx->task[0], point)) {
+        sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
+        biffAdd(PULL, err); airMopError(mop); return 1;
       }
     }
-
+    
     if (createFail) {
       /* We were not succesful creating a point */
       continue;

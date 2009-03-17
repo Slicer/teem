@@ -695,13 +695,13 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     ELL_3V_COPY(force, pfrc);
     /* force[3] untouched */
   }
-  /*
-  if (crazy) {
+
+  if (0) {
     printf("!%s(%u): post-constraint tan: force = %g %g %g %g\n", me,
            point->idtag, force[0], force[1], force[2], force[3]);
     printf("   precap stepEnergy = %g\n", point->stepEnergy);
   }
-  */
+
   /* Cap particle motion. The point is only allowed to move at most unit
      distance in rs-normalized space, which may mean that motion in r
      or s is effectively cramped by crowding in the other axis, oh well.
@@ -732,11 +732,10 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       point->stepEnergy *= _PULL_DIST_CAP_VOXEL/max;
     }
   }
-  /*
-  if (crazy) {
+  if (0) {
     printf("  postcap stepEnergy = %g\n", point->stepEnergy);
   }
-  */
+
   point->status &= ~PULL_STATUS_STUCK_BIT; /* turn off stuck bit */
   ELL_4V_COPY(posOld, point->pos);
   _pullPointHistInit(point);
@@ -747,14 +746,13 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       point->stepEnergy, force);
-    /*
-    if (crazy) {
+    if (0) {
       printf("!%s(%u): (iter %u) try pos  = %g %g %g %g\n",
              me, point->idtag, task->pctx->iter,
              point->pos[0], point->pos[1],
              point->pos[2], point->pos[3]);
     }
-    */
+
     if (task->pctx->haveScale) {
       point->pos[3] = AIR_CLAMP(task->pctx->bboxMin[3], 
                                 point->pos[3],
@@ -769,26 +767,25 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     } else {
       constrFail = AIR_FALSE;
     }
-    /*
-    if (crazy) {
+    if (0) {
       printf("!%s(%u): post constr = %g %g %g %g (%d)\n", me,
              point->idtag,
              point->pos[0], point->pos[1],
              point->pos[2], point->pos[3], constrFail);
     }
-    */
+
     if (constrFail) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
     energyIncr = energyNew > energyOld + task->pctx->energyIncreasePermit;
-    /*
-    if (crazy) {
+
+    if (0) {
       printf("!%s(%u): constrFail %d; energyNew = %g -> energyIncr %d\n", me,
              point->idtag, constrFail, energyNew, energyIncr);
     }
-    */
+
     stepBad = (constrFail || energyIncr);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
@@ -825,14 +822,13 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     }
   } while (stepBad && !giveUp);
   /* now: energy decreased, and, if we have one, constraint has been met */
-  /*
-  if (crazy) {
+  if (0) {
     printf("!%s(%u):iter %u changed (%g,%g,%g,%g)->(%g,%g,%g,%g)\n",
            me, point->idtag, task->pctx->iter,
            posOld[0], posOld[1], posOld[2], posOld[3],
            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
   }
-  */
+
   _pullPointHistAdd(point, pullCondNew);
   ELL_4V_COPY(point->force, force);
   
