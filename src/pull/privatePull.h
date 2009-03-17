@@ -61,11 +61,15 @@ extern "C" {
 
 /* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
    for discrete differencing needed to find the gradient of strength */
-#define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.001
+#define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.002
 
 /* number of iterations we allow something to be continuously stuck
    before nixing it */
 #define _PULL_STUCK_ITER_NUM_MAX 5
+
+/* maximum distance, in multiples of voxelSizeSpace, that a point is
+   allowed to move between start and end of constraint satisfaction */
+#define _PULL_CONSTRAINT_TRAVEL_MAX 2
 
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);

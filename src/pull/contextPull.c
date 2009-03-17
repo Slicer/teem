@@ -401,7 +401,7 @@ _pullContextCheck(pullContext *pctx) {
 */
 int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
-              const double _scaleVec[3],
+              const double _scaleVec[3], double scaleRad,
               pullContext *pctx) {
   char me[]="pullOutputGet", err[BIFF_STRLEN];
   unsigned int binIdx, pointNum, pointIdx, outIdx;
@@ -417,6 +417,10 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   if (nStrengthOut && !pctx->ispec[pullInfoStrength]) {
     sprintf(err, "%s: can't save out %s info that hasn't been set",
             me, airEnumStr(pullInfo, pullInfoStrength));
+    biffAdd(PULL, err); return 1;
+  }
+  if (!AIR_EXISTS(scaleRad)) {
+    sprintf(err, "%s: got non-existent scaleRad %g", me, scaleRad);
     biffAdd(PULL, err); return 1;
   }
   if (!_scaleVec) {
@@ -492,19 +496,38 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
         double scl, tout[7];
         scl = 1;
         if (pctx->ispec[pullInfoHeightHessian]) {
-          double *hess, eval[3], evec[9], eceil, maxeval;
+          double *hess, eval[3], evec[9], eceil, maxeval, elen;
+          unsigned int maxi;
           hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
           ell_3m_eigensolve_d(eval, evec, hess, 10);
           eval[0] = AIR_ABS(eval[0]);
           eval[1] = AIR_ABS(eval[1]);
           eval[2] = AIR_ABS(eval[2]);
-          eceil = 7/ELL_3V_LEN(eval);
-          eval[0] = AIR_MIN(eceil, 1.0/eval[0]);
-          eval[1] = AIR_MIN(eceil, 1.0/eval[1]);
-          eval[2] = AIR_MIN(eceil, 1.0/eval[2]);
-          maxeval = eval[ELL_MAX3_IDX(eval[0], eval[1], eval[2])];
+          elen = ELL_3V_LEN(eval);
+          eceil = elen ? 6/elen : 6;
+          eval[0] = eval[0] ? AIR_MIN(eceil, 1.0/eval[0]) : eceil;
+          eval[1] = eval[1] ? AIR_MIN(eceil, 1.0/eval[1]) : eceil;
+          eval[2] = eval[2] ? AIR_MIN(eceil, 1.0/eval[2]) : eceil;
+          maxi = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
+          maxeval = eval[maxi];
           ELL_3V_SCALE(eval, 1/maxeval, eval);
           tenMakeSingle_d(tout, 1, eval, evec);
+          if (scaleRad && pctx->ispec[pullInfoHeight]->constraint) {
+            double emin;
+            tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
+            emin = eval[2];
+            if (1.0 == pctx->constraintDim) {
+              eval[1] = scaleRad*point->pos[3] + emin/2;
+              eval[2] = scaleRad*point->pos[3] + emin/2;
+            } if (2.0 == pctx->constraintDim) {
+              double eavg;
+              eavg = (2*eval[0] + eval[2])/3;
+              eval[0] = eavg;
+              eval[1] = eavg;
+              eval[2] = scaleRad*point->pos[3] + emin/2;
+            }
+            tenMakeSingle_d(tout, 1, eval, evec);
+          }
         } else if (pctx->constraint
                    && (pctx->ispec[pullInfoHeightGradient]
                        || pctx->ispec[pullInfoIsovalueGradient])) {

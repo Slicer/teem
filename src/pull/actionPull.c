@@ -643,7 +643,8 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
   } else {
     ret = _PULL_DIST_CAP_RSNORM*point->neighDistMean;
   }
-  /* HEY: task->pctx->constraintVoxelSize might be considered here */
+  /* HEY: maybe task->pctx->voxelSizeSpace or voxelSizeScale should
+     be considered here? */
   return ret;
 }
 
@@ -909,3 +910,73 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
 
   return 0;
 }
+
+int
+pullGammaLearn(pullContext *pctx) {
+  char me[]="pullGammaLearn", err[BIFF_STRLEN];
+  unsigned int binIdx, pointIdx, pointNum;
+  pullBin *bin;
+  pullPoint *point;
+  pullTask *task;
+  double deltaScale, strdd;
+
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (!pctx->haveScale) {
+    sprintf(err, "%s: not using scale-space", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (pullInterTypeAdditive != pctx->interType) {
+    sprintf(err, "%s: need %s inter type, not %s", me,
+            airEnumStr(pullInterType, pullInterTypeAdditive),
+            airEnumStr(pullInterType, pctx->interType));
+    biffAdd(PULL, err); return 1;
+  }
+  if (pullEnergyButterworthParabola != pctx->energySpecS->energy) {
+    sprintf(err, "%s: want %s energy, not %s\n", me,
+            pullEnergyButterworthParabola->name,
+            pctx->energySpecS->energy->name);
+    biffAdd(PULL, err); return 1;
+  }
+
+  task = pctx->task[0];
+  strdd = 0;
+  pointNum = 0;
+  deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
+  deltaScale *= _PULL_STRENGTH_ENERGY_DELTA_SCALE;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      double str[3];
+      pointNum++;
+      point = bin->point[pointIdx];
+      point->pos[3] += deltaScale;
+      _pullProbe(task, point);
+      str[2] = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                                NULL, NULL);
+      point->pos[3] -= 2*deltaScale;
+      _pullProbe(task, point);
+      str[0] = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                                NULL, NULL);
+      point->pos[3] += deltaScale;
+      _pullProbe(task, point);
+      str[1] = _pullPointScalar(task->pctx, point, pullInfoStrength,
+                                NULL, NULL);
+      strdd = (str[0] - 2*str[1] + str[2])/(deltaScale*deltaScale);
+    }
+  }
+  if (!pointNum) {
+    sprintf(err, "%s: have no points!", me);
+    biffAdd(PULL, err); return 1;
+  }
+  strdd /= pointNum;
+
+  /* want to satisfy strdd = str''(s) = enr''(s) = gamma*2/(radiusScale)^2
+     ==> strdd*(radiusScale)^2/2 = gamma */
+  pctx->gamma = strdd*(pctx->radiusScale)*(pctx->radiusScale)/2;
+
+  return 0;
+}
+

@@ -392,7 +392,8 @@ pullEnergyZero = &_pullEnergyZero;
 /* ----------------------------------------------------------------
 ** ------------------------------- BPARAB -------------------------
 ** ----------------------------------------------------------------
-** 2 parms, just like butterworth
+** 3 parms, the first two are for butterworth, 
+** parm[2] is a shift (probably negative) on the parabola
 */
 double
 _pullEnergyBParabEval(double *denr, double x, const double *parm) {
@@ -400,13 +401,13 @@ _pullEnergyBParabEval(double *denr, double x, const double *parm) {
 
   ben = _pullEnergyButterworthEval(&dben, x, parm);
   *denr = 2*x*ben + x*x*dben;
-  return x*x*ben;
+  return (x*x + parm[2])*ben;
 }
 
 const pullEnergy
 _pullEnergyButterworthParabola = {
   BPARAB,
-  2,
+  3,
   _pullEnergyBParabEval
 };
 const pullEnergy *const

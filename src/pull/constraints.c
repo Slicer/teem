@@ -522,9 +522,11 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   double stepMax;
   unsigned int iterMax;
   int wantLine, wantSurf, failLine, failSurf;
-  double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4],
+  double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4], 
+    pos3Orig[3], pos3Diff[3], travel, 
     modeLine = AIR_NAN, modeSurf = AIR_NAN;
   
+  ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
   iterMax = task->pctx->constraintIterMax;
   /*
@@ -577,7 +579,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     ELL_4V_COPY(oldPos, point->pos);
     if (wantSurf) {
       if (constraintSatHght(task, point, AIR_FALSE,
-                            AIR_FALSE, stepMax, 2*iterMax, &failSurf)) {
+                            AIR_FALSE, stepMax, iterMax, &failSurf)) {
         sprintf(err, "%s: surf trouble", me);
         biffAdd(PULL, err); return 1;
       }
@@ -626,6 +628,11 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     fprintf(stderr, "%s: constraint on %s (%d) unimplemented!!\n", me,
             airEnumStr(pullInfo, task->pctx->constraint),
             task->pctx->constraint);
+  }
+  ELL_3V_SUB(pos3Diff, pos3Orig, point->pos);
+  travel = ELL_3V_LEN(pos3Diff)/task->pctx->voxelSizeSpace;
+  if (travel > _PULL_CONSTRAINT_TRAVEL_MAX) {
+    *constrFailP = AIR_TRUE;
   }
   /*
   printf("!%s(%u) bye, fail = %d, %g %g %g\n", me,
