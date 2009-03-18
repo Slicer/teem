@@ -266,6 +266,13 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       
       /* draw ALL edges */
       for (eii=0; eii<part->edgeIdxNum; eii++) {
+        /* hack to change contour of particular object/glyph
+        if (24 == partIdx) {
+          win->ps.lineWidth[limnEdgeTypeContour] = 1.2;
+        } else {
+          win->ps.lineWidth[limnEdgeTypeContour] = 0.4;
+        }
+        */
         edge = obj->edge + part->edgeIdx[eii];
         face0 = obj->face + edge->faceIdx[0];
         face1 = (-1 == edge->faceIdx[1]
