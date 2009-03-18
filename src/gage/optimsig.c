@@ -471,7 +471,7 @@ _volInterp(Nrrd *ninterp, double scale, gageOptimSigParm *parm) {
   unsigned int xi, yi, zi;
   int outside;
 
-  scaleIdx = _gageStackWtoI(parm->gctx, scale, &outside);
+  scaleIdx = gageStackWtoI(parm->gctx, scale, &outside);
   answer = gageAnswerPointer(parm->gctx, parm->pvl, gageSclValue);
   interp = AIR_CAST(double *, ninterp->data);
   for (zi=0; zi<parm->sz; zi++) {

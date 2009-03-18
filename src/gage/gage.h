@@ -938,6 +938,15 @@ GAGE_EXPORT int gageStackPerVolumeAttach(gageContext *ctx,
                                          gagePerVolume **pvlStack,
                                          const double *stackPos,
                                          unsigned int blnum);
+GAGE_EXPORT int gageStackProbe(gageContext *ctx,
+                               double xi, double yi, double zi, double si);
+GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
+                                    double x, double y, double z, double s,
+                                    int indexSpace, int clamp);
+GAGE_EXPORT double gageStackWtoI(gageContext *ctx, double swrl,
+                                 int *outside);
+GAGE_EXPORT double gageStackItoW(gageContext *ctx, double si,
+                                 int *outside);
 
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();
@@ -954,11 +963,6 @@ GAGE_EXPORT void gageKernelReset(gageContext *ctx);
 GAGE_EXPORT int gageProbe(gageContext *ctx, double xi, double yi, double zi);
 GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
                                int indexSpace, int clamp);
-GAGE_EXPORT int gageStackProbe(gageContext *ctx,
-                               double xi, double yi, double zi, double si);
-GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
-                                    double x, double y, double z, double s,
-                                    int indexSpace, int clamp);
 
 /* update.c */
 GAGE_EXPORT int gageUpdate(gageContext *ctx);

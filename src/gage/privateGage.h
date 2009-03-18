@@ -60,8 +60,6 @@ extern int _gageLocationSet(gageContext *ctx,
 
 /* stack.c */
 extern int _gageStackBaseIv3Fill(gageContext *ctx);
-extern double _gageStackWtoI(gageContext *ctx, double swrl, int *outside);
-extern double _gageStackItoW(gageContext *ctx, double si, int *outside);
 
 /* sclprint.c */
 extern void _gageSclIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);

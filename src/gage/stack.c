@@ -514,7 +514,7 @@ gageStackProbeSpace(gageContext *ctx,
 }
 
 double
-_gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
+gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
   double si;
 
   if (ctx && ctx->parm.stackUse && outside) {
@@ -552,7 +552,7 @@ _gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
 }
 
 double
-_gageStackItoW(gageContext *ctx, double si, int *outside) {
+gageStackItoW(gageContext *ctx, double si, int *outside) {
   unsigned int sidx;
   double swrl, sfrac;
 
