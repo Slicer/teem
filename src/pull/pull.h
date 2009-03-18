@@ -329,7 +329,9 @@ typedef struct {
   gageContext *gctx;           /* do own, and set based on info here */
   gagePerVolume *gpvl,         /* stupid gage API ... */
     **gpvlSS;                  /* stupid gage API ... */
-  int seedOnly;                /* volume only required for seeding */
+  int seedOnly;                /* volume only required for seeding, for
+                                  either pullInfoSeedThresh or
+                                  pullInfoSeedPreThresh */
 } pullVolume;
 
 /*
@@ -380,9 +382,11 @@ typedef struct pullTask_t {
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
   int verbose,                     /* blah blah blah */
-    permuteOnRebin;                /* permute points during rebinning between
+    permuteOnRebin,                /* permute points during rebinning between
                                       iters, so that they are visited in a
                                       randomized order */
+    allowUnequalShapes;            /* allow volumes to have different shapes;
+                                      which happens more often by mistake */
   unsigned int pointNumInitial;    /* number points to start simulation w/ */
   Nrrd *npos;                      /* positions (4xN array) to start with
                                       (overrides pointNumInitial) */

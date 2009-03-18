@@ -259,12 +259,16 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
   ispec->volIdx = ii;
   ispec->item = item;
   
-  /* very tricky: seedOnly is initialized to true for everything, here
-     is where we turn it off for anything info that's not seedthresh */
-  if (!( pullInfoSeedThresh == info
-         || pullInfoSeedPreThresh == info )) {
+  /* very tricky: seedOnly is initialized to true for everything */
+  if (pullInfoSeedThresh != info
+      && pullInfoSeedPreThresh != info) {
+    /* if the info is neither seedthreh nor seedprethresh, then the
+       volume will have to be probed after the first iter, so turn
+       off seedOnly */
     pctx->vol[ii]->seedOnly = AIR_FALSE;
   }
+  printf("!%s: vol[%u]->seedOnly %d\n", me, ii, 
+         pctx->vol[ii]->seedOnly);
   
   /* now set item in gage query */
   gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);

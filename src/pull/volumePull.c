@@ -372,6 +372,14 @@ _pullVolumeSetup(pullContext *pctx) {
       ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
     }
     pctx->voxelSizeSpace += ELL_3V_LEN(gctx->shape->spacing)/sqrt(3.0);
+    if (ii && !pctx->allowUnequalShapes) {
+      if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
+                          pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
+        sprintf(err, "%s: need equal shapes, but vol 0 and %u different", 
+                me, ii);
+        biffMove(PULL, err, GAGE); return 1;
+      }
+    }
   }
   pctx->voxelSizeSpace /= pctx->volNum;
   /* have now computed bbox{Min,Max}[0,1,2]; now do bbox{Min,Max}[3] */
