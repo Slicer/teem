@@ -392,8 +392,8 @@ pullRun(pullContext *pctx) {
   pctx->timeRun += time1 - time0;
   pctx->energy = enrNew;
 
-  if (1) {
-    /* test inter-particle energy stuff */
+  if (0) {
+    /* probe inter-particle energy function */
     unsigned int szimg=300, ri, si;
     Nrrd *nout;
     pullPoint *pa, *pb;
@@ -436,3 +436,74 @@ pullRun(pullContext *pctx) {
 
   return 0;
 }
+
+/*
+** HEY: this messes with the points' idtag, and pctx->idtagNext, 
+** even though it really shouldn't have to 
+*/
+int
+pullCCFind(pullContext *pctx) {
+  char me[]="pullCCFind", err[BIFF_STRLEN];
+  airArray *mop, *eqvArr;
+  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum, pointNum, *idmap;
+  pullBin *bin;
+  pullPoint *point, *her;
+  
+  if (!pctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(PULL, err); return 1;
+  }
+  if (_iterate(pctx, pullProcessModeNeighLearn)) {
+    sprintf(err, "%s: trouble with %s for CC", me,
+            airEnumStr(pullProcessMode, pullProcessModeNeighLearn));
+    biffAdd(PULL, err); return 1;
+  }
+
+  mop = airMopNew();
+  pointNum = pullPointNumber(pctx);
+  eqvArr = airArrayNew(NULL, NULL, 2*sizeof(unsigned int), pointNum);
+  airMopAdd(mop, eqvArr, (airMopper)airArrayNuke, airMopAlways);
+  idmap = AIR_CAST(unsigned int *, calloc(pointNum, sizeof(unsigned int)));
+  airMopAdd(mop, idmap, airFree, airMopAlways);
+
+  /* to be safe, renumber all points, so that we know that the
+     idtags are contiguous, starting at 0. HEY: this should handled
+     by having a map from real point->idtag to a point number assigned 
+     just for the sake of doing CCs */
+  pctx->idtagNext = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->idtag = pctx->idtagNext++;
+    }
+  }
+  
+  /* same stupidity copied from limn/polymod.c:limnPolyDataCCFind */
+  eqvNum = 0;
+  for (passIdx=0; passIdx<2; passIdx++) {
+    if (passIdx) {
+      airArrayLenPreSet(eqvArr, eqvNum);
+    }
+    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+      bin = pctx->bin + binIdx;
+      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+        point = bin->point[pointIdx];
+        for (neighIdx=0; neighIdx<point->neighPointNum; neighIdx++) {
+          if (0 == passIdx) {
+            ++eqvNum;
+          } else {
+            her = point->neighPoint[neighIdx];
+            airEqvAdd(eqvArr, point->idtag, her->idtag);
+          }
+        }
+      }
+    }
+  }
+  
+  airEqvMap(eqvArr, idmap, pointNum);
+  
+  airMopOkay(mop);
+  return 0;
+}
+

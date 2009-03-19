@@ -123,8 +123,13 @@ extern double _pullPointScalar(const pullContext *pctx,
                                double grad[4], double hess[9]);
 extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
                            unsigned int ilen);
+#if PULL_PHIST
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
+#else
+#define _pullPointHistInit(p)  
+#define _pullPointHistAdd(p, c) 
+#endif
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);

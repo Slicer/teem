@@ -233,7 +233,8 @@ typedef struct pullInfoSpec_t {
 **
 */
 typedef struct pullPoint_t {
-  unsigned int idtag;         /* unique point ID */
+  unsigned int idtag,         /* unique point ID */
+    idcc;                     /* id for connected component analysis */
   struct pullPoint_t **neighPoint; /* list of neighboring points */
   unsigned int neighPointNum;
   airArray *neighPointArr;    /* airArray around neighPoint and neighNum
@@ -670,6 +671,7 @@ PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 PULL_EXPORT int pullStart(pullContext *pctx);
 PULL_EXPORT int pullRun(pullContext *pctx);
 PULL_EXPORT int pullFinish(pullContext *pctx);
+PULL_EXPORT int pullCCFind(pullContext *pctx);
 
 #ifdef __cplusplus
 }

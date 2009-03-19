@@ -55,6 +55,7 @@ pullPointNew(pullContext *pctx) {
   }
 
   pnt->idtag = pctx->idtagNext++;
+  pnt->idcc = 0;
   pnt->neighPoint = NULL;
   pnt->neighPointNum = 0;
   pnt->neighPointArr = airArrayNew(AIR_CAST(void**, &(pnt->neighPoint)),
@@ -131,32 +132,25 @@ pullPointNix(pullPoint *pnt) {
   return NULL;
 }
 
+#if PULL_PHIST
 void
 _pullPointHistInit(pullPoint *point) {
 
-#if PULL_PHIST
   airArrayLenSet(point->phistArr, 0);
-#else
-  AIR_UNUSED(point);
-#endif
   return;
 }
 
 void
 _pullPointHistAdd(pullPoint *point, int cond) {
-#if PULL_PHIST
   unsigned int phistIdx;
 
   phistIdx = airArrayLenIncr(point->phistArr, 1);
   ELL_4V_COPY(point->phist + 5*phistIdx, point->pos);
   (point->phist + 5*phistIdx)[3] = 1.0;
   (point->phist + 5*phistIdx)[4] = cond;
-#else
-  AIR_UNUSED(point);
-  AIR_UNUSED(cond);
-#endif
   return;
 }
+#endif
 
 /*
 ** HEY: there should be something like a "map" over all the points,
