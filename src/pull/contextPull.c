@@ -230,6 +230,7 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoHeightLaplacian:
       case pullInfoSeedThresh:
       case pullInfoLiveThresh:
+      case pullInfoLiveThresh2:
       case pullInfoTangentMode:
       case pullInfoIsovalue:
       case pullInfoStrength:

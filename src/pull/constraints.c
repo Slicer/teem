@@ -329,12 +329,6 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 #define NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj)             \
   ELL_3MV_MUL(pgrad, proj, grad);                                     \
   ELL_3V_NORM(pdir, pgrad, plen);                                     \
-  if (!(plen)) {                                                      \
-    sprintf(err, "%s: got 0 pgrad at (%g,%g,%g,%g) on iter %u\n", me, \
-            point->pos[0], point->pos[1], point->pos[2],              \
-            point->pos[3], iter);                                     \
-    biffAdd(PULL, err); return 1;                                     \
-  }                                                                   \
   d1 = ELL_3V_DOT(grad, pdir);                                        \
   d2 = ELL_3MV_CONTR(hess, pdir)
 static int
@@ -391,6 +385,11 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   hack = 1;
   for (iter=1; iter<=iterMax; iter++) {
     NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj);
+    if (!plen) {
+      /* this use to be a biff error, which got to be annoying */
+      *constrFailP = AIR_TRUE;
+      return 0;
+    }
     step = (d2 <= 0 ? -plen : -d1/d2);
 #ifdef PRAYING
     if (_pullPraying) {

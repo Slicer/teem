@@ -275,6 +275,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoSeedPreThresh */
     0,                        /* pullInfoSeedThresh */
     0,                        /* pullInfoLiveThresh */
+    0,                        /* pullInfoLiveThresh2 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
     0,                        /* pullInfoTangentMode */
@@ -297,6 +298,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoSeedPreThresh */
     0,                        /* pullInfoSeedThresh */
     0,                        /* pullInfoLiveThresh */
+    0,                        /* pullInfoLiveThresh2 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
     0,                        /* pullInfoTangentMode */
@@ -494,91 +496,54 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
                              pullPoint *point, pullVolume *scaleVol,
                              int taskOrder[3]) {
   char me[]="_pullPointInitializePerVoxel", err[BIFF_STRLEN];
-  unsigned int voxNum, vidx[3], sidx, yzi, upointIdx;
-  unsigned int numScales;
+  unsigned int vidx[3], pix;
   double iPos[3];
   airRandMTState *rng;
   pullVolume *seedVol;
   gageShape *seedShape;
-  double sigmaValue;
-  double tau0, tau1, deltaS=0.0;
   int reject, constrFail;
   unsigned int k, task;
 
   seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
   seedShape = seedVol->gctx->shape; 
-  voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
-  
   rng = pctx->task[0]->rng;
 
-  if (pctx->haveScale) {
-    numScales = pctx->numSamplesScale;
-  } else {
-    numScales = 1;
-  }
-
-  /* Obtain voxel and indexex from upointId */
-  /* We assume that scale is the fastest axis, then x, then y and then z */
-  sidx = pointIdx % numScales;
-  upointIdx = (pointIdx - sidx)/numScales;
+  /* Obtain voxel and indices from pointIdx */
+  /* axis ordering for this is x, y, z, scale */
+  pix = pointIdx;
   if (pctx->pointPerVoxel > 0) {
-    upointIdx /= pctx->pointPerVoxel;
+    pix /= pctx->pointPerVoxel;
   } else {
-    upointIdx *= -pctx->pointPerVoxel;
+    pix *= -pctx->pointPerVoxel;
   }
-  /*
-  printf("!%s: pointIdx %u ppv %d -> sidx %u -> upi %u\n", me,
-         pointIdx, pctx->pointPerVoxel, sidx, upointIdx);
-  */
-  vidx[0] = upointIdx % seedShape->size[0];
-  yzi = (upointIdx - vidx[0])/seedShape->size[0];
-  vidx[1] = yzi % seedShape->size[1];
-  vidx[2] = (yzi- vidx[1])/seedShape->size[1];
-  /*
-  printf("!%s: upi %u -> vidx %u %u %u\n", me, upointIdx,
-         vidx[0], vidx[1], vidx[2]);
-  */
-
-  /* Compute sigma value for sidx */
-  if (pctx->haveScale) {
-    tau0 = gageTauOfSig(pctx->bboxMin[3]);
-    tau1 = gageTauOfSig(pctx->bboxMax[3]);
-    deltaS = (pctx->bboxMax[3]-pctx->bboxMin[3])/pctx->numSamplesScale;
-    sigmaValue = gageSigOfTau(tau0+(sidx+1)*(tau1-tau0)/(numScales+1));
-  } else {
-    sigmaValue = 0;
-  }
-  /* Compute true point location from indexes */
-  for (k=0; k<3; k++) {
-    iPos[k] = vidx[k] + pctx->jitter*airDrandMT_r(rng) - 0.5;
+  vidx[0] = pix % seedShape->size[0];
+  pix = (pix - vidx[0])/seedShape->size[0];
+  vidx[1] = pix % seedShape->size[1];
+  pix = (pix - vidx[1])/seedShape->size[1];
+  vidx[2] = pix % seedShape->size[2];
+  pix = (pix - vidx[2])/seedShape->size[2];
+  for (k=0; k<=2; k++) {
+    iPos[k] = vidx[k] + pctx->jitter*(airDrandMT_r(rng)-0.5);
   }
   gageShapeItoW(seedShape, point->pos, iPos);
+
+  /* Compute sigma coordinate from pix */
   if (pctx->haveScale) {
-    point->pos[3] = (sigmaValue 
-                     + pctx->jitter*airDrandMT_r(rng)*deltaS - deltaS/2);
+    int outside;
+    double sidx;
+    /* pix should already be integer in [0, pctx->numSamplesScale-1)]. */
+    sidx = pix + pctx->jitter*(airDrandMT_r(rng)-0.5);
+    sidx = AIR_AFFINE(-0.5, sidx, pctx->numSamplesScale-0.5, 
+                      0.0, scaleVol->scaleNum-1);
+    point->pos[3] = gageStackItoW(scaleVol->gctx, sidx, &outside);
   } else {
-    point->pos[3] = 0.0;
+    point->pos[3] = 0;
   }
-  /*
-  printf("!%s: idx %u %u %u --> wrl %g %g %g %g\n", me, 
-         vidx[0], vidx[1], vidx[2],
-         point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-  */
 
   /* Do a tentative probe */
   if (_pullProbe(pctx->task[0], point)) {
    sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
    biffAdd(PULL, err); return 1;
-  }
-
-  /* Check that point is fit enough to be included */
-  /* Task = 0 -> PreThreshold;
-     Task = 1 -> SeedThreshold;
-     Task = 2 -> Constraint; */
-  if (pctx->constraintBeforeSeedThresh) {
-    ELL_3V_SET(taskOrder, 0, 2, 1);
-  } else {
-    ELL_3V_SET(taskOrder, 0, 1, 2);
   }
 
   constrFail = AIR_FALSE;
@@ -637,24 +602,20 @@ _pullPointInitializeRandom(pullContext *pctx,
   /* Check that point is fit enough to be included */
   do {
     unsigned int task;
-    double rx, ry, rz;
     reject = AIR_FALSE;
     _pullPointHistInit(point);
     /* Populate tentative random point */
-    rx = airDrandMT_r(rng);
-    ry = airDrandMT_r(rng);
-    rz = airDrandMT_r(rng);
-    point->pos[0] = AIR_AFFINE(0.0, rx, 1.0,
+    point->pos[0] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                pctx->bboxMin[0], pctx->bboxMax[0]);
-    point->pos[1] = AIR_AFFINE(0.0, ry, 1.0,
+    point->pos[1] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                pctx->bboxMin[1], pctx->bboxMax[1]);
-    point->pos[2] = AIR_AFFINE(0.0, rz, 1.0,
+    point->pos[2] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
                                pctx->bboxMin[2], pctx->bboxMax[2]);
     if (pctx->haveScale) {
-      double sridx;
+      double sridx, rnd;
       int outside;
-      sridx = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                         0, scaleVol->scaleNum-1);
+      rnd = airDrandMT_r(rng);
+      sridx = AIR_AFFINE(0.0, rnd, 1.0, 0, scaleVol->scaleNum-1);
       point->pos[3] = gageStackItoW(scaleVol->gctx, sridx, &outside);
     } else {
       point->pos[3] = 0.0;

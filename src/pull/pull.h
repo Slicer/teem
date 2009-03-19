@@ -90,20 +90,20 @@ enum {
   pullInfoSeedThresh,         /* 11: [1] scalar for thresholding seeding */
   pullInfoLiveThresh,         /* 12: [1] scalar for thresholding extent 
                                  particles, AND for future additions from
-                                 population control.  Will also be used
-                                 for seeding, when that's cleaned up */
-  pullInfoTangent1,           /* 13: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 14: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 15: [1] for morphing between co-dim 1 and 2;
+                                 population control */
+  pullInfoLiveThresh2,        /* 13: [1] another pullInfoLiveThresh */
+  pullInfoTangent1,           /* 14: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 15: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 16: [1] for morphing between co-dim 1 and 2;
                                  User must set scale so mode from -1 to 1
                                  means co-dim 1 (surface) to 2 (line) */
-  pullInfoIsovalue,           /* 16: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 17: [3] */
-  pullInfoIsovalueHessian,    /* 18: [9] */
-  pullInfoStrength,           /* 19: [1] */
+  pullInfoIsovalue,           /* 17: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 18: [3] */
+  pullInfoIsovalueHessian,    /* 19: [9] */
+  pullInfoStrength,           /* 20: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            19
+#define PULL_INFO_MAX            20
 
 /*
 ** the various properties of particles in the system 
