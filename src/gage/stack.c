@@ -568,8 +568,12 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
       *outside = AIR_FALSE;
     }
     sfrac = si - sidx;
-    swrl = AIR_AFFINE(sidx, sfrac, sidx+1,
-                      ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
+    swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
+    /*
+    printf("!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
+           si, ctx->pvlNum, sidx, sfrac, 
+           ctx->stackPos[sidx], ctx->stackPos[sidx+1], swrl);
+    */
   } else {
     swrl = AIR_NAN;
   }
