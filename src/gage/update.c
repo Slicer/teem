@@ -321,7 +321,10 @@ gageUpdate(gageContext *ctx) {
     haveQuery |= GAGE_QUERY_NONZERO(ctx->pvl[pi]->query);
   }
   if (!haveQuery) {
-    sprintf(err, "%s: all pervolumes have no query items set", me);
+    sprintf(err, "%s: no query item set in %s", me,
+            (ctx->pvlNum == 1 
+             ? "the pervolume" 
+             : "any of the pervolumes"));
     biffAdd(GAGE, err); return 1;
   }
 
