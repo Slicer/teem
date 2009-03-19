@@ -597,7 +597,8 @@ airDStore(void *v, int t, double d) {
 ** mapping downward so that the range is a contiguous set of uints
 ** starting at 0.
 **
-** returns the highest mapping output value, after the settling.
+** returns the number of different uints; previous version returned one
+** less than this (the highest mapping output value, after the settling)
 **
 ** honestly this doesn't necessarily have anything to do with processing
 ** equivalence classes, but its an operation that is nice to have in
@@ -622,13 +623,11 @@ airEqvSettle(unsigned int *map, unsigned int len) {
       count += 1;
     }
   }
-  max = 0;
   for (i=0; i<len; i++) {
     map[i] = hit[map[i]];
-    max = AIR_MAX(max, map[i]);
   }
   free(hit);
-  return max;
+  return count;
 }
 
 /*
@@ -643,7 +642,7 @@ airEqvSettle(unsigned int *map, unsigned int len) {
 **  - when resolving ancestors, map to the one with the lower index.
 **  - applies settling to resulting map 
 **
-** returns the highest class id in the mapping
+** returns the number of different class IDs
 */
 unsigned int
 airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len) {

@@ -1336,7 +1336,7 @@ limnPolyDataCCFind(limnPolyData *pld) {
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
   }
   triMap = AIR_CAST(unsigned int*, nTriMap->data);
-  primNumNew = 1 + airEqvMap(eqvArr, triMap, realTriNum);
+  primNumNew = airEqvMap(eqvArr, triMap, realTriNum);
   if (nrrdHisto(nccSize, nTriMap, NULL, NULL, primNumNew, nrrdTypeUInt)) {
     sprintf(err, "%s: couldn't histogram CC map", me);
     biffMove(LIMN, err, NRRD); airMopError(mop); return 1;

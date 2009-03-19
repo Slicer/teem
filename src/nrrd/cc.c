@@ -278,7 +278,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
   char me[]="nrrdCCFind", func[]="ccfind", err[BIFF_STRLEN];
   Nrrd *nfpid;  /* first-pass IDs */
   airArray *mop, *eqvArr;
-  unsigned int *fpid, numid, maxid, *map,
+  unsigned int *fpid, numid, numsettleid, *map,
     (*lup)(const void *, size_t), (*ins)(void *, size_t, unsigned int);
   int ret;
   size_t I, NN;
@@ -352,7 +352,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
 
   map = (unsigned int*)calloc(numid, sizeof(unsigned int));
   airMopAdd(mop, map, airFree, airMopAlways);
-  maxid = airEqvMap(eqvArr, map, numid);
+  numsettleid = airEqvMap(eqvArr, map, numid);
   /* convert fpid values to final id values */
   fpid = (unsigned int*)(nfpid->data);
   NN = nrrdElementNumber(nfpid);
@@ -364,7 +364,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
       *nvalP = nrrdNew();
     }
     if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1,
-                          AIR_CAST(size_t, maxid+1))) {
+                          AIR_CAST(size_t, numsettleid))) {
       sprintf(err, "%s: couldn't allocate output value list", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -381,15 +381,15 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
   }
 
   if (nrrdTypeDefault != type) {
-    if (maxid > nrrdTypeMax[type]) {
-      sprintf(err, "%s: max cc id %d is too large to fit in output type %s",
-              me, numid, airEnumStr(nrrdType, type));
+    if (numsettleid-1 > nrrdTypeMax[type]) {
+      sprintf(err, "%s: max cc id %u is too large to fit in output type %s",
+              me, numsettleid-1, airEnumStr(nrrdType, type));
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
   } else {
-    type = (maxid <= nrrdTypeMax[nrrdTypeUChar]
+    type = (numsettleid-1 <= nrrdTypeMax[nrrdTypeUChar]
             ? nrrdTypeUChar
-            : (maxid <= nrrdTypeMax[nrrdTypeUShort]
+            : (numsettleid-1 <= nrrdTypeMax[nrrdTypeUShort]
                ? nrrdTypeUShort
                : nrrdTypeUInt));
   }
