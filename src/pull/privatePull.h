@@ -71,6 +71,16 @@ extern "C" {
    allowed to move between start and end of constraint satisfaction */
 #define _PULL_CONSTRAINT_TRAVEL_MAX 2
 
+/* the main _iterate() function does progress indication if the number of
+   points is larger than this */
+#define _PULL_PROGRESS_POINT_NUM_MIN 100
+
+/* way of reducing the number of periods printed in progress indication */
+#define _PULL_PROGRESS_BIN_MOD 40
+
+/* limit on number of times we allow random (non-ppv) seeding to fail */
+#define _PULL_RANDOM_SEED_TRY_MAX 2000
+
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);

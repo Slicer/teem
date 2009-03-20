@@ -35,6 +35,7 @@ pullContextNew(void) {
   }
   
   pctx->verbose = 0;
+  pctx->liveThresholdInit = AIR_FALSE;
   pctx->permuteOnRebin = AIR_FALSE;
   pctx->allowUnequalShapes = AIR_FALSE;
   pctx->pointNumInitial = 0;
@@ -117,6 +118,7 @@ pullContextNew(void) {
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
   pctx->stuckNum = 0;
+  pctx->pointNum = 0;
   pctx->iter = 0;
   pctx->energy = AIR_NAN;
   pctx->noutPos = nrrdNew();
@@ -611,6 +613,11 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     size[0] = pointNum;
     typeOut = nrrdTypeUInt;
     break;
+  case pullPropIdcc:
+    dim = 1;
+    size[0] = pointNum;
+    typeOut = nrrdTypeUInt;
+    break;
   case pullPropStuck:
     dim = 1;
     size[0] = pointNum;
@@ -658,6 +665,9 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropIdtag:
         out_ui[outIdx] = point->idtag;
+        break;
+      case pullPropIdcc:
+        out_ui[outIdx] = point->idcc;
         break;
       case pullPropStuck:
         out_uc[outIdx] = (point->status & PULL_STATUS_STUCK_BIT);

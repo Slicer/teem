@@ -232,6 +232,7 @@ _iterate(pullContext *pctx, int mode) {
   }
 
   time0 = airTime();
+  pctx->pointNum = pullPointNumber(pctx);
 
   /* the _pullWorker checks finished after iterBarrierA */
   pctx->finished = AIR_FALSE;
@@ -259,6 +260,9 @@ _iterate(pullContext *pctx, int mode) {
       biffAdd(PULL, err); 
     }
     return 1;
+  }
+  if (pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN) {
+    printf("\n"); /* finishing line of period progress indicators */
   }
 
   /* depending on mode, run one of the iteration finishers */
@@ -442,10 +446,11 @@ pullRun(pullContext *pctx) {
 ** even though it really shouldn't have to 
 */
 int
-pullCCFind(pullContext *pctx) {
+pullCCFind(pullContext *pctx, unsigned int *ccNumP) {
   char me[]="pullCCFind", err[BIFF_STRLEN];
   airArray *mop, *eqvArr;
-  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum, pointNum, *idmap;
+  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum,
+    pointNum, *idmap, ccNum;
   pullBin *bin;
   pullPoint *point, *her;
   
@@ -500,8 +505,21 @@ pullCCFind(pullContext *pctx) {
       }
     }
   }
-  
-  airEqvMap(eqvArr, idmap, pointNum);
+
+  /* do the CC analysis */
+  ccNum = airEqvMap(eqvArr, idmap, pointNum);
+  if (ccNumP) {
+    *ccNumP = ccNum;
+  }
+
+  /* assign idcc's */
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->idcc = idmap[point->idtag];
+    }
+  }
   
   airMopOkay(mop);
   return 0;

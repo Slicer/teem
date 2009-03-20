@@ -113,13 +113,14 @@ enum {
 enum {
   pullPropUnknown,            /*  0: nobody knows */
   pullPropIdtag,              /*  1: [1] idtag (unsigned int) */
-  pullPropEnergy,             /*  2: [1] energy from last iteration */
-  pullPropStepEnergy,         /*  3: [1] step size for minimizing energy */
-  pullPropStepConstr,         /*  4: [1] step size for constraint satis. */
-  pullPropStuck,              /*  5: [1] (0 or 1) got stuck last iter */
-  pullPropPosition,           /*  6: [4] position */
-  pullPropForce,              /*  7: [4] force accumulation */
-  pullPropNeighDistMean,      /*  8: [1] "mean distance" to neighbors */
+  pullPropIdcc,               /*  2: [1] idcc (unsigned int) */
+  pullPropEnergy,             /*  3: [1] energy from last iteration */
+  pullPropStepEnergy,         /*  4: [1] step size for minimizing energy */
+  pullPropStepConstr,         /*  5: [1] step size for constraint satis. */
+  pullPropStuck,              /*  6: [1] (0 or 1) got stuck last iter */
+  pullPropPosition,           /*  7: [4] position */
+  pullPropForce,              /*  8: [4] force accumulation */
+  pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
   pullPropLast
 };
 
@@ -383,6 +384,7 @@ typedef struct pullTask_t {
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
   int verbose,                     /* blah blah blah */
+    liveThresholdInit,             /* apply the liveThresh(s) on init */
     permuteOnRebin,                /* permute points during rebinning between
                                       iters, so that they are visited in a
                                       randomized order */
@@ -575,6 +577,7 @@ typedef struct pullContext_t {
   unsigned int addNum,             /* # prtls added by PopCntl in last iter */
     nixNum,                        /* # prtls nixed by PopCntl in last iter */
     stuckNum,                      /* # stuck particles in last iter */
+    pointNum,                      /* total # particles */
     iter;                          /* how many iterations were needed */
   Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
@@ -671,7 +674,7 @@ PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 PULL_EXPORT int pullStart(pullContext *pctx);
 PULL_EXPORT int pullRun(pullContext *pctx);
 PULL_EXPORT int pullFinish(pullContext *pctx);
-PULL_EXPORT int pullCCFind(pullContext *pctx);
+PULL_EXPORT int pullCCFind(pullContext *pctx, unsigned int *ccNumP);
 
 #ifdef __cplusplus
 }
