@@ -45,7 +45,8 @@ _pullInfoStr[] = {
   "isoval",
   "isogradvec",
   "isohessian",
-  "strength"
+  "strength",
+  "quality"
 };
 
 const int
@@ -70,7 +71,8 @@ _pullInfoVal[] = {
   pullInfoIsovalue,           /* [1] */
   pullInfoIsovalueGradient,   /* [3] */
   pullInfoIsovalueHessian,    /* [9] */
-  pullInfoStrength            /* [1] */
+  pullInfoStrength,           /* [1] */
+  pullInfoQuality             /* [1] */
 };
 
 const char *
@@ -94,7 +96,8 @@ _pullInfoStrEqv[] = {
   "isoval", "iso",
   "isogradvec", "isogvec",
   "isohessian", "isohess",
-  "strength", "strn"
+  "strength", "strn",
+  "quality", "qual"
 };
 
 const int
@@ -118,7 +121,8 @@ _pullInfoValEqv[] = {
   pullInfoIsovalue, pullInfoIsovalue,
   pullInfoIsovalueGradient, pullInfoIsovalueGradient,
   pullInfoIsovalueHessian, pullInfoIsovalueHessian,
-  pullInfoStrength, pullInfoStrength
+  pullInfoStrength, pullInfoStrength,
+  pullInfoQuality, pullInfoQuality
 };
 
 airEnum
@@ -156,6 +160,7 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   3, /* pullInfoIsovalueGradient */
   9, /* pullInfoIsovalueHessian */
   1, /* pullInfoStrength */
+  1, /* pullInfoQuality */
 }; 
 
 unsigned int

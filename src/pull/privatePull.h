@@ -174,6 +174,7 @@ extern void _pullBinFinish(pullContext *pctx);
 /* corePull.c */
 extern int _pullProcess(pullTask *task);
 extern void *_pullWorker(void *_task);
+extern int _pullIterate(pullContext *pctx, int mode);
 
 #ifdef __cplusplus
 }

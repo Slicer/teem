@@ -101,9 +101,10 @@ enum {
   pullInfoIsovalueGradient,   /* 18: [3] */
   pullInfoIsovalueHessian,    /* 19: [9] */
   pullInfoStrength,           /* 20: [1] */
+  pullInfoQuality,            /* 21: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            20
+#define PULL_INFO_MAX            21
 
 /*
 ** the various properties of particles in the system 
@@ -113,7 +114,7 @@ enum {
 enum {
   pullPropUnknown,            /*  0: nobody knows */
   pullPropIdtag,              /*  1: [1] idtag (unsigned int) */
-  pullPropIdcc,               /*  2: [1] idcc (unsigned int) */
+  pullPropIdCC,               /*  2: [1] idcc (unsigned int) */
   pullPropEnergy,             /*  3: [1] energy from last iteration */
   pullPropStepEnergy,         /*  4: [1] step size for minimizing energy */
   pullPropStepConstr,         /*  5: [1] step size for constraint satis. */
@@ -235,7 +236,7 @@ typedef struct pullInfoSpec_t {
 */
 typedef struct pullPoint_t {
   unsigned int idtag,         /* unique point ID */
-    idcc;                     /* id for connected component analysis */
+    idCC;                     /* id for connected component analysis */
   struct pullPoint_t **neighPoint; /* list of neighboring points */
   unsigned int neighPointNum;
   airArray *neighPointArr;    /* airArray around neighPoint and neighNum
@@ -388,6 +389,7 @@ typedef struct pullContext_t {
     permuteOnRebin,                /* permute points during rebinning between
                                       iters, so that they are visited in a
                                       randomized order */
+    noPopCntlWithZeroAlpha,        /* like it says */
     allowUnequalShapes;            /* allow volumes to have different shapes;
                                       which happens more often by mistake */
   unsigned int pointNumInitial;    /* number points to start simulation w/ */
@@ -578,6 +580,7 @@ typedef struct pullContext_t {
     nixNum,                        /* # prtls nixed by PopCntl in last iter */
     stuckNum,                      /* # stuck particles in last iter */
     pointNum,                      /* total # particles */
+    CCNum,                         /* # connected components */
     iter;                          /* how many iterations were needed */
   Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
@@ -674,11 +677,13 @@ PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 PULL_EXPORT int pullStart(pullContext *pctx);
 PULL_EXPORT int pullRun(pullContext *pctx);
 PULL_EXPORT int pullFinish(pullContext *pctx);
-PULL_EXPORT int pullCCFind(pullContext *pctx, unsigned int *ccNumP);
+PULL_EXPORT int pullCCFind(pullContext *pctx);
+PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas,
+                              int measrInfo);
+PULL_EXPORT int pullCCSort(pullContext *pctx, int measr);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* PULL_HAS_BEEN_INCLUDED */
-

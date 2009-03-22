@@ -203,9 +203,9 @@ pullFinish(pullContext *pctx) {
 **
 ** NB: this implements the body of thread 0, the master thread
 */
-static int
-_iterate(pullContext *pctx, int mode) {
-  char me[]="_iterate", err[BIFF_STRLEN];
+int
+_pullIterate(pullContext *pctx, int mode) {
+  char me[]="_pullIterate", err[BIFF_STRLEN];
   double time0;
   int myError, E;
   unsigned int ti;
@@ -310,7 +310,7 @@ pullRun(pullContext *pctx) {
     printf("%s: doing priming iteration (iter now %u)\n", me,
            pctx->iter);
   }
-  if (_iterate(pctx, pullProcessModeDescent)) {
+  if (_pullIterate(pctx, pullProcessModeDescent)) {
     sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
     biffAdd(PULL, err); return 1;
   }
@@ -334,7 +334,7 @@ pullRun(pullContext *pctx) {
       npos = nrrdNuke(npos);
     }
 
-    if (_iterate(pctx, pullProcessModeDescent)) {
+    if (_pullIterate(pctx, pullProcessModeDescent)) {
       sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
       biffAdd(PULL, err); return 1;
     }
@@ -358,14 +358,15 @@ pullRun(pullContext *pctx) {
     }
     if (pctx->popCntlPeriod
 	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
-	&& enrDecreaseAvg < pctx->energyDecreasePopCntlMin) {
+	&& enrDecreaseAvg < pctx->energyDecreasePopCntlMin
+        && (pctx->alpha != 0 || !pctx->noPopCntlWithZeroAlpha)) {
       if (pctx->verbose) {
 	printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
 	       me, enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
       }
-      if (_iterate(pctx, pullProcessModeNeighLearn)
-          || _iterate(pctx, pullProcessModeAdding)
-          || _iterate(pctx, pullProcessModeNixing)) {
+      if (_pullIterate(pctx, pullProcessModeNeighLearn)
+          || _pullIterate(pctx, pullProcessModeAdding)
+          || _pullIterate(pctx, pullProcessModeNixing)) {
 	sprintf(err, "%s: trouble with %s for pop cntl on iter %u", me,
 		airEnumStr(pullProcessMode, pctx->task[0]->processMode),
                 pctx->iter);
@@ -438,90 +439,6 @@ pullRun(pullContext *pctx) {
     nrrdNuke(nout);
   }
 
-  return 0;
-}
-
-/*
-** HEY: this messes with the points' idtag, and pctx->idtagNext, 
-** even though it really shouldn't have to 
-*/
-int
-pullCCFind(pullContext *pctx, unsigned int *ccNumP) {
-  char me[]="pullCCFind", err[BIFF_STRLEN];
-  airArray *mop, *eqvArr;
-  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum,
-    pointNum, *idmap, ccNum;
-  pullBin *bin;
-  pullPoint *point, *her;
-  
-  if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
-  }
-  if (_iterate(pctx, pullProcessModeNeighLearn)) {
-    sprintf(err, "%s: trouble with %s for CC", me,
-            airEnumStr(pullProcessMode, pullProcessModeNeighLearn));
-    biffAdd(PULL, err); return 1;
-  }
-
-  mop = airMopNew();
-  pointNum = pullPointNumber(pctx);
-  eqvArr = airArrayNew(NULL, NULL, 2*sizeof(unsigned int), pointNum);
-  airMopAdd(mop, eqvArr, (airMopper)airArrayNuke, airMopAlways);
-  idmap = AIR_CAST(unsigned int *, calloc(pointNum, sizeof(unsigned int)));
-  airMopAdd(mop, idmap, airFree, airMopAlways);
-
-  /* to be safe, renumber all points, so that we know that the
-     idtags are contiguous, starting at 0. HEY: this should handled
-     by having a map from real point->idtag to a point number assigned 
-     just for the sake of doing CCs */
-  pctx->idtagNext = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-    bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-      point = bin->point[pointIdx];
-      point->idtag = pctx->idtagNext++;
-    }
-  }
-  
-  /* same stupidity copied from limn/polymod.c:limnPolyDataCCFind */
-  eqvNum = 0;
-  for (passIdx=0; passIdx<2; passIdx++) {
-    if (passIdx) {
-      airArrayLenPreSet(eqvArr, eqvNum);
-    }
-    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-      bin = pctx->bin + binIdx;
-      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-        point = bin->point[pointIdx];
-        for (neighIdx=0; neighIdx<point->neighPointNum; neighIdx++) {
-          if (0 == passIdx) {
-            ++eqvNum;
-          } else {
-            her = point->neighPoint[neighIdx];
-            airEqvAdd(eqvArr, point->idtag, her->idtag);
-          }
-        }
-      }
-    }
-  }
-
-  /* do the CC analysis */
-  ccNum = airEqvMap(eqvArr, idmap, pointNum);
-  if (ccNumP) {
-    *ccNumP = ccNum;
-  }
-
-  /* assign idcc's */
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
-    bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-      point = bin->point[pointIdx];
-      point->idcc = idmap[point->idtag];
-    }
-  }
-  
-  airMopOkay(mop);
   return 0;
 }
 

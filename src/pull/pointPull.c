@@ -55,7 +55,7 @@ pullPointNew(pullContext *pctx) {
   }
 
   pnt->idtag = pctx->idtagNext++;
-  pnt->idcc = 0;
+  pnt->idCC = 0;
   pnt->neighPoint = NULL;
   pnt->neighPointNum = 0;
   pnt->neighPointArr = airArrayNew(AIR_CAST(void**, &(pnt->neighPoint)),
