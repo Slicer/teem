@@ -390,6 +390,9 @@ typedef struct pullContext_t {
                                       iters, so that they are visited in a
                                       randomized order */
     noPopCntlWithZeroAlpha,        /* like it says */
+    restrictiveAddToBins,          /* whether or not to deny adding points
+                                      to bins where there are close points
+                                      already */
     allowUnequalShapes;            /* allow volumes to have different shapes;
                                       which happens more often by mistake */
   unsigned int pointNumInitial;    /* number points to start simulation w/ */
@@ -647,8 +650,7 @@ PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
 PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               Nrrd *nStrengthOut,
-                              const double scaleVec[3],
-                              double scaleRad,
+                              const double scaleVec[3], double scaleRad,
                               pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
@@ -680,7 +682,7 @@ PULL_EXPORT int pullFinish(pullContext *pctx);
 PULL_EXPORT int pullCCFind(pullContext *pctx);
 PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas,
                               int measrInfo);
-PULL_EXPORT int pullCCSort(pullContext *pctx, int measr);
+PULL_EXPORT int pullCCSort(pullContext *pctx, int measrInfo, double rho);
 
 #ifdef __cplusplus
 }

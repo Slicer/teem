@@ -39,6 +39,7 @@ pullContextNew(void) {
   pctx->permuteOnRebin = AIR_FALSE;
   pctx->noPopCntlWithZeroAlpha = AIR_FALSE;
   pctx->allowUnequalShapes = AIR_FALSE;
+  pctx->restrictiveAddToBins = AIR_TRUE;
   pctx->pointNumInitial = 0;
   pctx->npos = NULL;
   for (ii=0; ii<PULL_VOLUME_MAXNUM; ii++) {

@@ -111,7 +111,7 @@ pullCCFind(pullContext *pctx) {
 ** it can be a scalar pullInfo
 */
 int
-pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas, int measrInfo) {
+pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeasr, int measrInfo) {
   char me[]="pullCCMeasure", err[BIFF_STRLEN];
   airArray *mop;
   unsigned int *size, binIdx, pointIdx, ii;
@@ -119,7 +119,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas, int measrInfo) {
   pullBin *bin;
   pullPoint *point;
   
-  if (!( pctx && nmeas )) {
+  if (!( pctx && nmeasr )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(PULL, err); return 1;
   }
@@ -139,13 +139,18 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas, int measrInfo) {
               pullInfoAnswerLen(measrInfo));
       biffAdd(PULL, err); return 1;
     }
+    if (!pctx->ispec[measrInfo]) {
+      sprintf(err, "%s: no ispec set for measrInfo %s (%d)", me,
+              airEnumStr(pullInfo, measrInfo), measrInfo);
+      biffAdd(PULL, err); return 1;
+    }
   } /* else measrInfo is zero, they want to know # points */
-  if (nrrdMaybeAlloc_va(nmeas, nrrdTypeDouble, 1, 
+  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, 
                         AIR_CAST(size_t, pctx->CCNum))) {
-    sprintf(err, "%s: couldn't alloc nmeas", me);
+    sprintf(err, "%s: couldn't alloc nmeasr", me);
     biffMove(PULL, err, NRRD); return 1;
   }
-  meas = AIR_CAST(double *, nmeas->data);
+  meas = AIR_CAST(double *, nmeasr->data);
 
   mop = airMopNew();
   if (nsize) {
@@ -188,18 +193,36 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas, int measrInfo) {
   return 0;
 }
 
-#if 0
 typedef struct {
   unsigned int i;
   double d;
 } ccpair;
 
+/* we intend to sort in *descending* order */
+static int
+ccpairCompare(const void *_a, const void *_b) {
+  ccpair *a, *b;
+  
+  a = AIR_CAST(ccpair *, _a);
+  b = AIR_CAST(ccpair *, _b);
+  return (a->d < b->d
+          ? +1
+          : (a->d > b->d
+             ? -1
+             : 0));
+}
+
 int
-pullCCSort(pullContext *pctx, int measrInfo, double ) {
+pullCCSort(pullContext *pctx, int measrInfo, double rho) {
   char me[]="pullCCSort", err[BIFF_STRLEN];
   ccpair *pair;
+  Nrrd *nmeasr, *nsize;
   airArray *mop;
-  unsigned int ii;
+  unsigned int ii, *size, *revm, *revb, *revz, binIdx, pointIdx;
+  double *measr;
+  pullBin *bin;
+  pullPoint *point;
+  int E;
   
   if (!pctx) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -209,20 +232,82 @@ pullCCSort(pullContext *pctx, int measrInfo, double ) {
     sprintf(err, "%s: haven't yet learned CCs?", me);
     biffAdd(PULL, err); return 1;
   }
-
+  
+#define CALLOC(T) (AIR_CAST(T *, calloc(pctx->CCNum, sizeof(T))))
   mop = airMopNew();
-  pair = AIR_CAST(ccpair *, calloc(2*pctx->CCNum, sizeof(ccpair)));
-
-  measr = AIR_CAST(double *, calloc(2*pctx->CCNum, sizeof(double)));
-  size  = AIR_CAST(double *, calloc(2*pctx->CCNum, sizeof(double)));
-  blend = AIR_CAST(double *, calloc(2*pctx->CCNum, sizeof(double)));
-  if (!( ccmap = AIR_CAST(double *, ) )) {
-    sprintf(err, "%s: couldn't alloc buff", me);
-    biffAdd(PULL, err); return 1;
+  if (!(nmeasr = nrrdNew())
+      || airMopAdd(mop, nmeasr, (airMopper)nrrdNuke, airMopAlways)
+      || !(nsize = nrrdNew())
+      || airMopAdd(mop, nsize, (airMopper)nrrdNuke, airMopAlways)
+      || !(pair = CALLOC(ccpair))
+      || airMopAdd(mop, pair, airFree, airMopAlways)
+      || !(revm = CALLOC(unsigned int))
+      || airMopAdd(mop, revm, airFree, airMopAlways)
+      || !(revz = CALLOC(unsigned int))
+      || airMopAdd(mop, revz, airFree, airMopAlways)
+      || !(revb = CALLOC(unsigned int))
+      || airMopAdd(mop, revb, airFree, airMopAlways)) {
+    sprintf(err, "%s: couldn't allocate everything", me);
+    biffAdd(PULL, err); airMopError(mop); return 1;
   }
-  airMopAdd(mop, ccmap, airFree, airMopAlways);
+#undef CALLOC
+  if (!measrInfo) {
+    /* sorting by size */
+    E = pullCCMeasure(pctx, NULL, nmeasr, 0);
+    size = NULL;
+  } else {
+    /* sorting by some blend of size and pullInfo */
+    E = pullCCMeasure(pctx, nsize, nmeasr, measrInfo);
+    size  = AIR_CAST(unsigned int *, nsize->data);
+  }
+  if (E) {
+    sprintf(err, "%s: problem measuring CCs", me);
+    biffAdd(PULL, err); airMopError(mop); return 1;
+  }
+
+  measr = AIR_CAST(double *, nmeasr->data);
+  for (ii=0; ii<pctx->CCNum; ii++) {
+    pair[ii].i = ii;
+    pair[ii].d = measr[ii];
+  }
+  qsort(pair, pctx->CCNum, sizeof(ccpair), ccpairCompare);
+  for (ii=0; ii<pctx->CCNum; ii++) {
+    revm[pair[ii].i] = ii;
+  }
+  if (!measrInfo) {
+    /* sorting by size; we're done */
+    for (ii=0; ii<pctx->CCNum; ii++) {
+      revb[ii] = revm[ii];
+    }
+  } else {
+    /* sorting by some blend of size and the measurement */
+    for (ii=0; ii<pctx->CCNum; ii++) {
+      pair[ii].i = ii;
+      pair[ii].d = size[ii];
+    }
+    qsort(pair, pctx->CCNum, sizeof(ccpair), ccpairCompare);
+    for (ii=0; ii<pctx->CCNum; ii++) {
+      revz[pair[ii].i] = ii;
+    }
+    for (ii=0; ii<pctx->CCNum; ii++) {
+      pair[ii].i = ii;
+      pair[ii].d = AIR_LERP(rho, revz[ii], revm[ii]);
+    }
+    /* actually this is the opposite of the ordering we want */
+    qsort(pair, pctx->CCNum, sizeof(ccpair), ccpairCompare);
+    for (ii=0; ii<pctx->CCNum; ii++) {
+      revb[pair[pctx->CCNum-1-ii].i] = ii;
+    }
+  }
+
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      point->idCC = revb[point->idCC];
+    }
+  }
   
   airMopOkay(mop);
   return 0;
 }
-#endif

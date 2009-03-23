@@ -223,23 +223,28 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   if (binP) {
     *binP = bin;
   }
-  okay = AIR_TRUE;
-  for (idx=0; idx<bin->pointNum; idx++) {
-    double diff[4], len;
-    ELL_4V_SUB(diff, point->pos, bin->point[idx]->pos);
-    ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
-    diff[3] /= pctx->radiusScale;
-    len = ELL_4V_LEN(diff);
-    if (len < _PULL_BINNING_MAYBE_ADD_THRESH) {
-      okay = AIR_FALSE;
-      break;
+  if (pctx->restrictiveAddToBins) {
+    okay = AIR_TRUE;
+    for (idx=0; idx<bin->pointNum; idx++) {
+      double diff[4], len;
+      ELL_4V_SUB(diff, point->pos, bin->point[idx]->pos);
+      ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
+      diff[3] /= pctx->radiusScale;
+      len = ELL_4V_LEN(diff);
+      if (len < _PULL_BINNING_MAYBE_ADD_THRESH) {
+        okay = AIR_FALSE;
+        break;
+      }
     }
-  }
-  if (okay) {
+    if (okay) {
+      _pullBinPointAdd(pctx, bin, point);
+      *added = AIR_TRUE;
+    } else {
+      *added = AIR_FALSE;
+    }
+  } else {
     _pullBinPointAdd(pctx, bin, point);
     *added = AIR_TRUE;
-  } else {
-    *added = AIR_FALSE;
   }
   return 0;
 }
