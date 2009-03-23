@@ -569,7 +569,7 @@ typedef struct {
   int when;          /* from the airMopWhen enum */
 } airMop;
 AIR_EXPORT airArray *airMopNew(void);
-AIR_EXPORT void airMopAdd(airArray *arr, void *ptr, airMopper mop, int when);
+AIR_EXPORT int airMopAdd(airArray *arr, void *ptr, airMopper mop, int when);
 AIR_EXPORT void airMopSub(airArray *arr, void *ptr, airMopper mop);
 AIR_EXPORT void airMopMem(airArray *arr, void *_ptrP, int when);
 AIR_EXPORT void airMopUnMem(airArray *arr, void *_ptrP);
@@ -857,7 +857,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 */
 #ifdef __APPLE__
 #  define _AIR_SIZE_T_CNV "%lu"
-#  define _AIR_PTRDIFF_T_CNV "%d"
+#  define _AIR_PTRDIFF_T_CNV "%ld"
 #else
 #  if TEEM_32BIT == 0
 #    ifdef _WIN64
