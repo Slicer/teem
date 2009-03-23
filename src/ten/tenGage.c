@@ -158,6 +158,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFAValleySurfaceStrength, 1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
   {tenGageFALaplacian,             1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
   {tenGageFAHessianEvalMode,       1,  2,  {tenGageFAHessianEval},                                               0,        0,     AIR_FALSE},
+  {tenGageFARidgeLineAlignment,    1,  2,  {tenGageEvec0, tenGageFAHessianEvec0, tenGageFAHessianEvalMode},      0,        0,     AIR_FALSE},
+  {tenGageFARidgeSurfaceAlignment, 1,  2,  {tenGageEvec0, tenGageFAHessianEvec2, tenGageFAHessianEvalMode},      0,        0,     AIR_FALSE},
   {tenGageFA2ndDD,                 1,  2,  {tenGageFAHessian, tenGageFANormal},                                  0,        0,     AIR_FALSE},
 
   {tenGageFAGeomTens,              9,  2,  {tenGageFAHessian, tenGageFAGradMag, tenGageFANormal},                0,        0,     AIR_FALSE},
@@ -1029,6 +1031,24 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     double *heval;
     heval = pvl->directAnswer[tenGageFAHessianEval];
     pvl->directAnswer[tenGageFAHessianEvalMode][0] = airMode3_d(heval);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFARidgeLineAlignment)) {
+    double *hev0, *dev0, dot, mde;
+    hev0 = pvl->directAnswer[tenGageFAHessianEvec0];
+    dev0 = pvl->directAnswer[tenGageEvec0];
+    dot = ELL_3V_DOT(hev0, dev0);
+    mde = pvl->directAnswer[tenGageFAHessianEvalMode][0];
+    mde = AIR_AFFINE(-1, mde, 1, 0, 1);
+    pvl->directAnswer[tenGageFARidgeLineAlignment][0] = mde*AIR_ABS(dot);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFARidgeSurfaceAlignment)) {
+    double *hev2, *dev0, dot, mde;
+    hev2 = pvl->directAnswer[tenGageFAHessianEvec2];
+    dev0 = pvl->directAnswer[tenGageEvec0];
+    dot = ELL_3V_DOT(hev2, dev0);
+    mde = pvl->directAnswer[tenGageFAHessianEvalMode][0];
+    mde = AIR_AFFINE(-1, mde, 1, 1, 0);
+    pvl->directAnswer[tenGageFARidgeSurfaceAlignment][0]= mde*(1-AIR_ABS(dot));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFA2ndDD)) {
     double *hess, *norm, tmpv[3];

@@ -363,62 +363,64 @@ enum {
   tenGageFAHessianEvec0,   /*  93: "fahessevec0": [3] */
   tenGageFAHessianEvec1,   /*  94: "fahessevec1": [3] */
   tenGageFAHessianEvec2,   /*  95: "fahessevec2": [3] */
-  tenGageFARidgeSurfaceStrength,  /*  96: "farsurf": [1] */
-  tenGageFAValleySurfaceStrength, /*  97: "favsurf": [1] */
+  tenGageFARidgeSurfaceStrength,  /*  96: "farsurfstrn": [1] */
+  tenGageFAValleySurfaceStrength, /*  97: "favsurfstrn": [1] */
   tenGageFALaplacian,      /*  98: "falapl": [1] */
   tenGageFAHessianEvalMode,/*  99: "fahessevalmode": [1] */
-  tenGageFA2ndDD,          /* 100: "fa2d": [1] */
+  tenGageFARidgeLineAlignment,    /* 100: "farlinealn": [1] */
+  tenGageFARidgeSurfaceAlignment, /* 101: "farsurfaln": [1] */
+  tenGageFA2ndDD,          /* 102: "fa2d": [1] */
 
-  tenGageFAGeomTens,       /* 101: "fagten", sym. matx w/ evals {0, K1, K2} 
+  tenGageFAGeomTens,       /* 103: "fagten", sym. matx w/ evals {0, K1, K2} 
                                    and evecs {grad, cdir0, cdir1}: [9] */
-  tenGageFAKappa1,         /* 102: "fak1", 1st princ curv: [1] */
-  tenGageFAKappa2,         /* 103: "fak2", 2nd princ curv (k2 <= k1): [1] */
-  tenGageFATotalCurv,      /* 104: "fatc", L2 norm(K1,K2): [1] */
-  tenGageFAShapeIndex,     /* 105: "fasi", Koen.'s shape index, ("S"): [1] */
-  tenGageFAMeanCurv,       /* 106: "famc", mean curvature (K1 + K2)/2: [1] */
-  tenGageFAGaussCurv,      /* 107: "fagc", gaussian curvature K1*K2: [1] */
-  tenGageFACurvDir1,       /* 108: "facdir1", 1st princ curv direction: [3] */
-  tenGageFACurvDir2,       /* 109: "facdir2", 2nd princ curv direction: [3] */
-  tenGageFAFlowlineCurv,   /* 110: "fafc", curv of normal streamline: [1] */
+  tenGageFAKappa1,         /* 104: "fak1", 1st princ curv: [1] */
+  tenGageFAKappa2,         /* 105: "fak2", 2nd princ curv (k2 <= k1): [1] */
+  tenGageFATotalCurv,      /* 106: "fatc", L2 norm(K1,K2): [1] */
+  tenGageFAShapeIndex,     /* 107: "fasi", Koen.'s shape index, ("S"): [1] */
+  tenGageFAMeanCurv,       /* 108: "famc", mean curvature (K1 + K2)/2: [1] */
+  tenGageFAGaussCurv,      /* 109: "fagc", gaussian curvature K1*K2: [1] */
+  tenGageFACurvDir1,       /* 110: "facdir1", 1st princ curv direction: [3] */
+  tenGageFACurvDir2,       /* 111: "facdir2", 2nd princ curv direction: [3] */
+  tenGageFAFlowlineCurv,   /* 112: "fafc", curv of normal streamline: [1] */
 
-  tenGageRHessian,         /* 111: "rhess": [9] */
+  tenGageRHessian,         /* 113: "rhess": [9] */
 
-  tenGageModeHessian,      /* 112: "mhess": [9] */
-  tenGageModeHessianEval,  /* 113: "mhesseval": [3] */
-  tenGageModeHessianEval0, /* 114: "mhesseval0": [1] */
-  tenGageModeHessianEval1, /* 115: "mhesseval1": [1] */
-  tenGageModeHessianEval2, /* 116: "mhesseval2": [1] */
-  tenGageModeHessianEvec,  /* 117: "mhessevec": [9] */
-  tenGageModeHessianEvec0, /* 118: "mhessevec0": [3] */
-  tenGageModeHessianEvec1, /* 119: "mhessevec1": [3] */
-  tenGageModeHessianEvec2, /* 120: "mhessevec2": [3] */
+  tenGageModeHessian,      /* 114: "mhess": [9] */
+  tenGageModeHessianEval,  /* 115: "mhesseval": [3] */
+  tenGageModeHessianEval0, /* 116: "mhesseval0": [1] */
+  tenGageModeHessianEval1, /* 117: "mhesseval1": [1] */
+  tenGageModeHessianEval2, /* 118: "mhesseval2": [1] */
+  tenGageModeHessianEvec,  /* 119: "mhessevec": [9] */
+  tenGageModeHessianEvec0, /* 120: "mhessevec0": [3] */
+  tenGageModeHessianEvec1, /* 121: "mhessevec1": [3] */
+  tenGageModeHessianEvec2, /* 122: "mhessevec2": [3] */
 
-  tenGageOmegaHessian,     /* 121: "omhess": [9] */
-  tenGageOmegaHessianEval, /* 122: "omhesseval": [3] */
-  tenGageOmegaHessianEval0,/* 123: "omhesseval0": [1] */
-  tenGageOmegaHessianEval1,/* 124: "omhesseval1": [1] */
-  tenGageOmegaHessianEval2,/* 125: "omhesseval2": [1] */
-  tenGageOmegaHessianEvec, /* 126: "omhessevec": [9] */
-  tenGageOmegaHessianEvec0,/* 127: "omhessevec0": [3] */
-  tenGageOmegaHessianEvec1,/* 128: "omhessevec1": [3] */
-  tenGageOmegaHessianEvec2,/* 129: "omhessevec2": [3] */
-  tenGageOmegaLaplacian,   /* 130: "omlapl": [1] */
-  tenGageOmega2ndDD,       /* 131: "om2d": [1] */
+  tenGageOmegaHessian,     /* 123: "omhess": [9] */
+  tenGageOmegaHessianEval, /* 124: "omhesseval": [3] */
+  tenGageOmegaHessianEval0,/* 125: "omhesseval0": [1] */
+  tenGageOmegaHessianEval1,/* 126: "omhesseval1": [1] */
+  tenGageOmegaHessianEval2,/* 127: "omhesseval2": [1] */
+  tenGageOmegaHessianEvec, /* 128: "omhessevec": [9] */
+  tenGageOmegaHessianEvec0,/* 129: "omhessevec0": [3] */
+  tenGageOmegaHessianEvec1,/* 130: "omhessevec1": [3] */
+  tenGageOmegaHessianEvec2,/* 131: "omhessevec2": [3] */
+  tenGageOmegaLaplacian,   /* 132: "omlapl": [1] */
+  tenGageOmega2ndDD,       /* 133: "om2d": [1] */
 
-  tenGageTraceGradVecDotEvec0,   /* 132: "trgvdotevec0": [1] */
-  tenGageTraceDiffusionAlign,    /* 133: "datr": [1] */
-  tenGageTraceDiffusionFraction, /* 134: "dftr": [1] */
-  tenGageFAGradVecDotEvec0,      /* 135: "fagvdotevec0": [1] */
-  tenGageFADiffusionAlign,       /* 136: "dafa": [1] */
-  tenGageFADiffusionFraction,    /* 137: "dffa": [1] */
-  tenGageOmegaGradVecDotEvec0,   /* 138: "omgvdotevec0": [1] */
-  tenGageOmegaDiffusionAlign,    /* 139: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 140: "daom": [1] */
-  tenGageConfGradVecDotEvec0,    /* 141: "cnfgvdotevec0": [1] */
-  tenGageConfDiffusionAlign,     /* 142: "dacnf": [1] */
-  tenGageConfDiffusionFraction,  /* 143: "dfcnf": [1] */
+  tenGageTraceGradVecDotEvec0,   /* 134: "trgvdotevec0": [1] */
+  tenGageTraceDiffusionAlign,    /* 135: "datr": [1] */
+  tenGageTraceDiffusionFraction, /* 136: "dftr": [1] */
+  tenGageFAGradVecDotEvec0,      /* 137: "fagvdotevec0": [1] */
+  tenGageFADiffusionAlign,       /* 138: "dafa": [1] */
+  tenGageFADiffusionFraction,    /* 139: "dffa": [1] */
+  tenGageOmegaGradVecDotEvec0,   /* 140: "omgvdotevec0": [1] */
+  tenGageOmegaDiffusionAlign,    /* 141: "daom": [1] */
+  tenGageOmegaDiffusionFraction, /* 142: "daom": [1] */
+  tenGageConfGradVecDotEvec0,    /* 143: "cnfgvdotevec0": [1] */
+  tenGageConfDiffusionAlign,     /* 144: "dacnf": [1] */
+  tenGageConfDiffusionFraction,  /* 145: "dfcnf": [1] */
 
-  tenGageCovariance, /* 144: "cov" 4rth order covariance tensor: [21]
+  tenGageCovariance, /* 146: "cov" 4rth order covariance tensor: [21]
                         in order of appearance:
                         0:xxxx  1:xxxy  2:xxxz  3:xxyy  4:xxyz  5:xxzz
                                 6:xyxy  7:xyxz  8:xyyy  9:xyyz 10:xyzz
@@ -426,28 +428,28 @@ enum {
                                                15:yyyy 16:yyyz 17:yyzz
                                                        18:yzyz 19:yzzz
                                                                20:zzzz */
-  tenGageCovarianceRGRT, /* 145: "covr" covariance tensor expressed in frame
+  tenGageCovarianceRGRT, /* 147: "covr" covariance tensor expressed in frame
                             of R invariant gradients and rotation tangents */
-  tenGageCovarianceKGRT, /* 146: "covk" covariance tensor expressed in frame
+  tenGageCovarianceKGRT, /* 148: "covk" covariance tensor expressed in frame
                             of K invariant gradients and rotation tangents */
-  tenGageTensorLogEuclidean,     /* 147: log-euclidean interpolation */
-  tenGageTensorQuatGeoLoxK,      /* 148: QGL-K interpolation */
-  tenGageTensorQuatGeoLoxR,      /* 149: QGL-R interpolation */
+  tenGageTensorLogEuclidean,     /* 149: log-euclidean interpolation */
+  tenGageTensorQuatGeoLoxK,      /* 150: QGL-K interpolation */
+  tenGageTensorQuatGeoLoxR,      /* 152: QGL-R interpolation */
 
-  tenGageAniso,            /* 150: "an", all anisos: [TEN_ANISO_MAX+1] */
-  tenGageCl1GradVec,       /* 151: gradient vector of cl1: [3] */
-  tenGageCl1GradMag,       /* 152: gradient magnitude of cl1: [1] */
-  tenGageCp1GradVec,       /* 153: gradient vector of cp1: [3] */
-  tenGageCp1GradMag,       /* 154: gradient magnitude of cp1: [1] */
-  tenGageCa1GradVec,       /* 155: gradient vector of ca1: [3] */
-  tenGageCa1GradMag,       /* 156: gradient magnitude of ca1: [1] */
-  tenGageTensorGradRotE,   /* 157: all tensor component gradients,
+  tenGageAniso,            /* 152: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageCl1GradVec,       /* 153: gradient vector of cl1: [3] */
+  tenGageCl1GradMag,       /* 154: gradient magnitude of cl1: [1] */
+  tenGageCp1GradVec,       /* 155: gradient vector of cp1: [3] */
+  tenGageCp1GradMag,       /* 156: gradient magnitude of cp1: [1] */
+  tenGageCa1GradVec,       /* 157: gradient vector of ca1: [3] */
+  tenGageCa1GradMag,       /* 158: gradient magnitude of ca1: [1] */
+  tenGageTensorGradRotE,   /* 159: all tensor component gradients,
                               starting with confidence gradient.
                               Rotated such that eigenvalue
                               derivatives are on the diagonal: [21] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     157
+#define TEN_GAGE_ITEM_MAX     159
 
 /*
 ******** tenDwiGage* enum
