@@ -25,25 +25,25 @@
 
 int
 nrrdCCValid(const Nrrd *nin) {
-  char me[]="nrrdCCValid", err[BIFF_STRLEN];
+  static const char me[]="nrrdCCValid";
   
   if (nrrdCheck(nin)) {
-    sprintf(err, "%s: basic validity check failed", me);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: basic validity check failed", me);
+    return 0;
   }
   if (!( nrrdTypeIsIntegral[nin->type] )) {
-    sprintf(err, "%s: need an integral type (not %s)", me,
-            airEnumStr(nrrdType, nin->type));
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: need an integral type (not %s)", me,
+             airEnumStr(nrrdType, nin->type));
+    return 0;
   }
   if (!( nrrdTypeSize[nin->type] <= 2 ||
          nrrdTypeInt == nin->type ||
          nrrdTypeUInt == nin->type )) {
-    sprintf(err, "%s: valid connected component types are 1- and 2-byte "
-            "integers, and %s and %s", me,
-            airEnumStr(nrrdType, nrrdTypeInt),
-            airEnumStr(nrrdType, nrrdTypeUInt));
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: valid connected component types are 1- and 2-byte "
+             "integers, and %s and %s", me,
+             airEnumStr(nrrdType, nrrdTypeInt),
+             airEnumStr(nrrdType, nrrdTypeUInt));
+    return 0;
   }
   return 1;
 }
@@ -57,19 +57,19 @@ nrrdCCValid(const Nrrd *nin) {
 
 unsigned int
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
-  char me[]="nrrdCCSize", func[]="ccsize", err[BIFF_STRLEN];
+  static const char me[]="nrrdCCSize", func[]="ccsize";
   unsigned int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
   if (!( nout && nrrdCCValid(nin) )) {
-    sprintf(err, "%s: invalid args", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: invalid args", me);
+    return 1;
   }
   maxid = nrrdCCMax(nin);
   if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, maxid+1))) {
-    sprintf(err, "%s: can't allocate output", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't allocate output", me);
+    return 1;
   }
   out = (unsigned int *)(nout->data);
   lup = nrrdUILookup[nin->type];
@@ -78,8 +78,8 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     out[lup(nin->data, I)] += 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "")) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   
   return 0;

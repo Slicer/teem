@@ -39,7 +39,8 @@ _nrrdFormatEPS_nameLooksLike(const char *filename) {
 int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatEPS_fitsInto", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatEPS_fitsInto";
+  char err[BIFF_STRLEN];
   int ret;
 
   AIR_UNUSED(encoding);
@@ -94,19 +95,18 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
 int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatEPS_read", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatEPS_read";
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  sprintf(err, "%s: sorry, this is a write-only format", me);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: sorry, this is a write-only format", me);
   return 1;
 }
 
 int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatEPS_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatEPS_write";
   int color, cmyk, sx, sy;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;
@@ -115,13 +115,13 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    sprintf(err, "%s: couldn't make private copy", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: couldn't make private copy", me);
+    airMopError(mop); return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s:", me);
+      airMopError(mop); return 1;
     }
   }
   color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size 

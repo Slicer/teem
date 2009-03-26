@@ -49,7 +49,8 @@ _nrrdFormatPNG_nameLooksLike(const char *filename) {
 int
 _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatPNG_fitsInto", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatPNG_fitsInto";
+  char err[BIFF_STRLEN];
 
 #if !TEEM_PNG  /* ------------------------------------------- */
 
@@ -115,10 +116,9 @@ _nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 void
 _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 {
-  char me[]="_nrrdErrorHandlerPNG", err[BIFF_STRLEN];
+  static const char me[]="_nrrdErrorHandlerPNG";
   /* add PNG error message to biff */
-  sprintf(err, "%s: PNG error: %s", me, message);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: PNG error: %s", me, message);
   /* longjmp back to the setjmp, return 1 */
   longjmp(png->jmpbuf, 1);
 }
@@ -126,11 +126,10 @@ _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 void
 _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 {
-  char me[]="_nrrdWarningHandlerPNG", err[BIFF_STRLEN];
+  static const char me[]="_nrrdWarningHandlerPNG";
   AIR_UNUSED(png);
   /* add the png warning message to biff */
-  sprintf(err, "%s: PNG warning: %s", me, message);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: PNG warning: %s", me, message);
   /* no longjump, execution continues */
 }
 
@@ -163,7 +162,7 @@ _nrrdFlushDataPNG (png_structp png)
 
 int
 _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNG_read", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatPNG_read";
 #if TEEM_PNG
   png_structp png;
   png_infop info;
@@ -178,9 +177,9 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
-    sprintf(err, "%s: this doesn't look like a %s file", me, 
-            nrrdFormatPNG->name);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
+             nrrdFormatPNG->name);
+    return 1;
   }
 
 #if TEEM_PNG
@@ -189,15 +188,15 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
                                _nrrdErrorHandlerPNG,
                                _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    sprintf(err, "%s: failed to create PNG read struct", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to create PNG read struct", me);
+    return 1;
   }
   /* create image info struct */
   info = png_create_info_struct(png);
   if (info == NULL) {
     png_destroy_read_struct(&png, NULL, NULL);
-    sprintf(err, "%s: failed to create PNG image info struct", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to create PNG image info struct", me);
+    return 1;
   }
   /* set up png style error handling */
   if (setjmp(png->jmpbuf)) {
@@ -279,8 +278,8 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     break;
   default:
     png_destroy_read_struct(&png, &info, NULL);
-    sprintf(err, "%s: unknown png type: %d", me, type);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: unknown png type: %d", me, type);
+    return 1;
     break;
   }
   if (nio->oldData
@@ -292,16 +291,16 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (ret) {
     png_destroy_read_struct(&png, &info, NULL);
-    sprintf(err, "%s: failed to allocate nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to allocate nrrd", me);
+    return 1;
   }
   /* query row size */
   rowsize = png_get_rowbytes(png, info);
   /* check byte size */
   if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
     png_destroy_read_struct(&png, &info, NULL);
-    sprintf(err, "%s: size mismatch", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: size mismatch", me);
+    return 1;
   }
   /* set up row pointers */
   row = (png_bytep*)malloc(sizeof(png_bytep)*height);
@@ -351,9 +350,9 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       plain:
         if (!ret) {
           if (nrrdCommentAdd(nrrd, nio->line)) {
-            sprintf(err, "%s: couldn't add comment", me);
             png_destroy_read_struct(&png, &info, NULL);
-            biffAdd(NRRD, err); return 1;
+            biffAddf(NRRD, "%s: couldn't add comment", me);
+            return 1;
           }
         }
       }
@@ -362,17 +361,17 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       c = airStrtok(txt[i].text, "\n", &p);
       while (c) {
         if (nrrdCommentAdd(nrrd, c)) {
-          sprintf(err, "%s: couldn't add comment", me);
           png_destroy_read_struct(&png, &info, NULL);
-          biffAdd(NRRD, err); return 1;
+          biffAddf(NRRD, "%s: couldn't add comment", me);
+          return 1;
         }
         c = airStrtok(NULL, "\n", &p);
       }
     } else {
       if (nrrdKeyValueAdd(nrrd, txt[i].key, txt[i].text)) {
-        sprintf(err, "%s: couldn't add key/value pair", me);
         png_destroy_read_struct(&png, &info, NULL);
-        biffAdd(NRRD, err); return 1;
+        biffAddf(NRRD, "%s: couldn't add key/value pair", me);
+        return 1;
       }
     }
   }
@@ -384,15 +383,14 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   return 0;
 #else
-  sprintf(err, "%s: Sorry, this nrrd not compiled with PNG enabled", me);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: Sorry, this nrrd not compiled with PNG enabled", me);
   return 1;
 #endif
 }
 
 int
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNG_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatPNG_write";
 #if TEEM_PNG
   int fi, depth, type, csize;
   unsigned int jj, numtxt, txtidx;
@@ -409,15 +407,15 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
                                 _nrrdErrorHandlerPNG,
                                 _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    sprintf(err, "%s: failed to create PNG write struct", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to create PNG write struct", me);
+    return 1;
   }
   /* create image info struct */
   info = png_create_info_struct(png);
   if (info == NULL) {
     png_destroy_write_struct(&png, NULL);
-    sprintf(err, "%s: failed to create PNG image info struct", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to create PNG image info struct", me);
+    return 1;
   }
   /* set up error png style error handling */
   if (setjmp(png->jmpbuf))
@@ -460,17 +458,18 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       type = PNG_COLOR_TYPE_RGB_ALPHA;
       break;
       default:
-      sprintf(err, "%s: nrrd->axis[0].size (" _AIR_SIZE_T_CNV 
-              ") not compatible with PNG", me, nrrd->axis[0].size);
       png_destroy_write_struct(&png, &info);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: nrrd->axis[0].size (" _AIR_SIZE_T_CNV 
+               ") not compatible with PNG", me, nrrd->axis[0].size);
+      return 1;
       break;
     }
     break;
     default:
-    sprintf(err, "%s: dimension (%d) not compatible with PNG", me, nrrd->dim);
     png_destroy_write_struct(&png, &info);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: dimension (%d) not compatible with PNG",
+             me, nrrd->dim);
+    return 1;
     break;
   }
   /* set image header info */
@@ -573,8 +572,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  sprintf(err, "%s: Sorry, this nrrd not compiled with PNG enabled", me);
-  biffAdd(NRRD, err); return 1;
+  biffAddf(NRRD, "%s: Sorry, this nrrd not compiled with PNG enabled", me);
+  return 1;
 #endif
 }
 

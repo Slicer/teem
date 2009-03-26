@@ -28,7 +28,7 @@ void
 _nrrdMeasureUnknown(void *ans, int ansType,
                     const void *line, int lineType,
                     size_t len, double axmin, double axmax) {
-  char me[]="_nrrdMeasureUnknown";
+  static const char me[]="_nrrdMeasureUnknown";
   
   AIR_UNUSED(line);
   AIR_UNUSED(lineType);
@@ -914,7 +914,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
 
 int
 _nrrdMeasureType(const Nrrd *nin, int measr) {
-  char me[]="_nrrdMeasureType";
+  static const char me[]="_nrrdMeasureType";
   int type=nrrdTypeUnknown;
 
   switch(measr) {
@@ -972,7 +972,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
 int
 nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
             int measr, int type) {
-  char me[]="nrrdProject", func[]="project", err[BIFF_STRLEN];
+  static const char me[]="nrrdProject", func[]="project";
   int iType, oType, axmap[NRRD_DIM_MAX];
   unsigned int ai, ei;
   size_t iElSz, oElSz, iSize[NRRD_DIM_MAX], oSize[NRRD_DIM_MAX], linLen,
@@ -983,39 +983,39 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   airArray *mop;
   
   if (!(nin && nout)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: can't project nrrd type %s", me,
+    biffAddf(NRRD, "%s: can't project nrrd type %s", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
   if (!AIR_IN_OP(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
-    sprintf(err, "%s: measure %d not recognized", me, measr);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: measure %d not recognized", me, measr);
+    return 1;
   }
   /* without this check, the loops below cause segfaults, because
      nin->dim is now unsigned */
   if (!( 2 <= nin->dim )) {
-    sprintf(err, "%s: sorry, currently need at least 2-D array to project", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: sorry, currently need at least 2-D array to project", me);
+    return 1;
   }
   /* HEY: at some point, as a convenience, it would be nice to handle
      projecting a single 1-D scanline down into a 1-D single-sample,
      even though this would clearly be a special case */
   if (!( axis <= nin->dim-1 )) {
-    sprintf(err, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
+    return 1;
   }
   if (nrrdTypeDefault != type) {
     if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
-      sprintf(err, "%s: got invalid target type %d", me, type);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: got invalid target type %d", me, type);
+      return 1;
     }
   }
   
@@ -1044,16 +1044,16 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     oSize[ai] = iSize[axmap[ai]];
   }
   if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
-    sprintf(err, "%s: failed to create output", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: failed to create output", me);
+    airMopError(mop); return 1;
   }
 
   /* allocate a scanline buffer */
   if (!(line = (char*)calloc(linLen, iElSz))) {
-    sprintf(err, "%s: couldn't calloc(" _AIR_SIZE_T_CNV "," 
+    biffAddf(NRRD, "%s: couldn't calloc(" _AIR_SIZE_T_CNV "," 
             _AIR_SIZE_T_CNV ") scanline buffer",
             me, linLen, iElSz);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, line, airFree, airMopAlways);
 
@@ -1076,13 +1076,13 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
-    sprintf(err, "%s:", me); 
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s:", me); 
+    airMopError(mop); return 1;
   }
   if (nrrdContentSet_va(nout, func, nin,
                         "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
-    sprintf(err, "%s:", me); 
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s:", me); 
+    airMopError(mop); return 1;
   }
   /* this will copy the space origin over directly, which is reasonable */
   if (nrrdBasicInfoCopy(nout, nin,
@@ -1095,8 +1095,8 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s:", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

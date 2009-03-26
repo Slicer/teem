@@ -38,7 +38,7 @@
 int
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
                const NrrdRange *_range, double gamma) {
-  char me[]="nrrdArithGamma", func[]="gamma", err[BIFF_STRLEN];
+  static const char me[]="nrrdArithGamma", func[]="gamma";
   double val, min, max;
   size_t I, num;
   NrrdRange *range;
@@ -48,22 +48,22 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
 
   if (!(nout && nin)) {
     /* _range can be NULL */
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( AIR_EXISTS(gamma) )) {
-    sprintf(err, "%s: gamma doesn't exist", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: gamma doesn't exist", me);
+    return 1;
   }
   if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
-    sprintf(err, "%s: can't deal with %s type", me,
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't deal with %s type", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: couldn't initialize by copy to output", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: couldn't initialize by copy to output", me);
+      return 1;
     }
   }
   mop = airMopNew();
@@ -103,8 +103,8 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
     }
   }
   if (nrrdContentSet_va(nout, func, nin, "%g,%g,%g", min, max, gamma)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s:", me);
+    airMopError(mop); return 1;
   }
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
@@ -204,29 +204,29 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
 
 int
 nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
-  char me[]="nrrdArithUnaryOp", err[BIFF_STRLEN];
+  static const char me[]="nrrdArithUnaryOp";
   size_t N, I;
   int size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d), 
     (*lookup)(const void *v, size_t I), (*uop)(double), val;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: can't operate on type %s", me,
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't operate on type %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   if (airEnumValCheck(nrrdUnaryOp, op)) {
-    sprintf(err, "%s: unary op %d invalid", me, op);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: unary op %d invalid", me, op);
+    return 1;
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
   }
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
@@ -240,8 +240,8 @@ nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
     insert(nout->data, I, uop(val));
   }
   if (nrrdContentSet_va(nout, airEnumStr(nrrdUnaryOp, op), nin, "")) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   nrrdBasicInfoInit(nout,
                     NRRD_BASIC_INFO_ALL ^ (NRRD_BASIC_INFO_OLDMIN_BIT
@@ -315,39 +315,40 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 */
 int
 nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
-  char me[]="nrrdArithBinaryOp", err[BIFF_STRLEN], *contA, *contB;
+  static const char me[]="nrrdArithBinaryOp";
+  char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d),
     (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
     (*bop)(double a, double b), valA, valB;
 
   if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) )) {
-    sprintf(err, "%s: NULL pointer or invalid args", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: NULL pointer or invalid args", me);
+    return 1;
   }
   if (nrrdTypeBlock == ninA->type || nrrdTypeBlock == ninB->type) {
-    sprintf(err, "%s: can't operate on type %s", me,
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't operate on type %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   if (!nrrdSameSize(ninA, ninB, AIR_TRUE)) {
-    sprintf(err, "%s: size mismatch between arguments", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: size mismatch between arguments", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdBinaryOp, op)) {
-    sprintf(err, "%s: binary op %d invalid", me, op);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: binary op %d invalid", me, op);
+    return 1;
   }
   
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB)) {
     if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
-      sprintf(err, "%s: couldn't allocate output nrrd", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
+      return 1;
     }
     if (nrrdAxisInfoCopy(nout, ninA, NULL, NRRD_AXIS_INFO_NONE)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
     nrrdBasicInfoCopy(nout, ninA, (NRRD_BASIC_INFO_DATA_BIT
                                    | NRRD_BASIC_INFO_TYPE_BIT
@@ -377,8 +378,8 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   contB = _nrrdContentGet(ninB);
   if (_nrrdContentSet_va(nout, airEnumStr(nrrdBinaryOp, op),
                          contA, "%s", contB)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(contA); free(contB); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(contA); free(contB); return 1;
   }
   free(contA);
   free(contB); 
@@ -387,7 +388,8 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
 
 int
 nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  char me[]="nrrdArithIterBinaryOp", err[BIFF_STRLEN], *contA, *contB;
+  static const char me[]="nrrdArithIterBinaryOp";
+  char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
   double (*insert)(void *v, size_t I, double d), 
@@ -395,26 +397,26 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   const Nrrd *nin;
 
   if (!(nout && inA && inB)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdBinaryOp, op)) {
-    sprintf(err, "%s: binary op %d invalid", me, op);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: binary op %d invalid", me, op);
+    return 1;
   }
   nin = (_NRRD_ITER_NRRD(inA) 
          ? _NRRD_ITER_NRRD(inA) 
          : _NRRD_ITER_NRRD(inB));
   if (!nin) {
-    sprintf(err, "%s: can't operate on two fixed values", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't operate on two fixed values", me);
+    return 1;
   }
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate output nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
+    return 1;
   }
   nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
                                 | NRRD_BASIC_INFO_TYPE_BIT
@@ -444,8 +446,8 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   contB = nrrdIterContent(inB);
   if (_nrrdContentSet_va(nout, airEnumStr(nrrdBinaryOp, op),
                          contA, "%s", contB)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(contA); free(contB); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(contA); free(contB); return 1;
   }
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
@@ -526,7 +528,8 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
 int
 nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, 
                    const Nrrd *ninB, const Nrrd *ninC) {
-  char me[]="nrrdArithTernaryOp", err[BIFF_STRLEN], *contA, *contB, *contC;
+  static const char me[]="nrrdArithTernaryOp";
+  char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d),
     (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
@@ -534,28 +537,28 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
     (*top)(double a, double b, double c), valA, valB, valC;
 
   if (!( nout && !nrrdCheck(ninA) && !nrrdCheck(ninB) && !nrrdCheck(ninC) )) {
-    sprintf(err, "%s: NULL pointer or invalid args", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: NULL pointer or invalid args", me);
+    return 1;
   }
   if (!( nrrdSameSize(ninA, ninB, AIR_TRUE) &&
          nrrdSameSize(ninA, ninC, AIR_TRUE) )) {
-    sprintf(err, "%s: size mismatch between arguments", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: size mismatch between arguments", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdTernaryOp, op)) {
-    sprintf(err, "%s: ternary op %d invalid", me, op);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: ternary op %d invalid", me, op);
+    return 1;
   }
   
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB || nout == ninC)) {
     if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
-      sprintf(err, "%s: couldn't allocate output nrrd", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
+      return 1;
     }
     if (nrrdAxisInfoCopy(nout, ninA, NULL, NRRD_AXIS_INFO_NONE)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
     nrrdBasicInfoCopy(nout, ninA, (NRRD_BASIC_INFO_DATA_BIT
                                    | NRRD_BASIC_INFO_TYPE_BIT
@@ -588,8 +591,8 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   contC = _nrrdContentGet(ninC);
   if (_nrrdContentSet_va(nout, airEnumStr(nrrdTernaryOp, op),
                          contA, "%s,%s", contB, contC)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(contA); free(contB); free(contC); return 1;
   }
   free(contA);
   free(contB); 
@@ -601,8 +604,8 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
 int
 nrrdArithIterTernaryOp(Nrrd *nout, int op,
                        NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  char me[]="nrrdArithIterTernaryOp", err[BIFF_STRLEN],
-    *contA, *contB, *contC;
+  static const char me[]="nrrdArithIterTernaryOp";
+  char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
   double (*insert)(void *v, size_t I, double d), 
@@ -610,12 +613,12 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   const Nrrd *nin;
 
   if (!(nout && inA && inB && inC)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdTernaryOp, op)) {
-    sprintf(err, "%s: ternary op %d invalid", me, op);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: ternary op %d invalid", me, op);
+    return 1;
   }
   nin = (_NRRD_ITER_NRRD(inA) 
          ? _NRRD_ITER_NRRD(inA) 
@@ -623,14 +626,14 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
             ? _NRRD_ITER_NRRD(inB) 
             : _NRRD_ITER_NRRD(inC)));
   if (!nin) {
-    sprintf(err, "%s: can't operate on three fixed values", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't operate on three fixed values", me);
+    return 1;
   }
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate output nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
+    return 1;
   }
   nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
                                 | NRRD_BASIC_INFO_TYPE_BIT
@@ -669,8 +672,8 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   contC = nrrdIterContent(inC);
   if (_nrrdContentSet_va(nout, airEnumStr(nrrdTernaryOp, op),
                          contA, "%s,%s", contB, contC)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(contA); free(contB); free(contC); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(contA); free(contB); free(contC); return 1;
   }
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);

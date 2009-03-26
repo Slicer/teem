@@ -32,7 +32,7 @@ _nrrdEncodingRaw_available(void) {
 int
 _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingRaw_read", err[BIFF_STRLEN];
+  static const char me[]="_nrrdEncodingRaw_read";
   size_t ret, bsize;
   int fd, dio, car;
   long savePos;
@@ -51,11 +51,11 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     }
     ret = airDioRead(fd, data, bsize);
     if (ret != bsize) {
-      sprintf(err, "%s: airDioRead got read only "
-              _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
-              "(%g%% of expected)", me,
-              ret, bsize, 100.0*ret/bsize);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: airDioRead got read only "
+               _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
+               "(%g%% of expected)", me,
+               ret, bsize, 100.0*ret/bsize);
+      return 1;
     }
   } else {
     if (2 <= nrrdStateVerboseIO) {
@@ -65,12 +65,12 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     }
     ret = fread(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
-      sprintf(err, "%s: fread got read only "
-              _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
-              _AIR_SIZE_T_CNV " (%g%% of expected)", me,
-              ret, nrrdElementSize(nrrd), elementNum,
-              100.0*ret/elementNum);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: fread got read only "
+               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+               ret, nrrdElementSize(nrrd), elementNum,
+               100.0*ret/elementNum);
+      return 1;
     }
     car = fgetc(file);
     if (1 <= nrrdStateVerboseIO && EOF != car) {
@@ -94,7 +94,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
 int
 _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingRaw_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdEncodingRaw_write";
   int fd, dio;
   size_t ret, bsize;
   
@@ -112,11 +112,11 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     }
     ret = airDioWrite(fd, data, bsize);
     if (ret != bsize) {
-      sprintf(err, "%s: airDioWrite wrote only "
+      biffAddf(NRRD, "%s: airDioWrite wrote only "
               _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
               "(%g%% of expected)", me,
               ret, bsize, 100.0*ret/bsize);
-      biffAdd(NRRD, err); return 1;
+      return 1;
     }
   } else {
     if (2 <= nrrdStateVerboseIO) {
@@ -126,18 +126,18 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     }
     ret = fwrite(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
-      sprintf(err, "%s: fwrite wrote read only "
+      biffAddf(NRRD, "%s: fwrite wrote read only "
               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not " 
               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
               ret, nrrdElementSize(nrrd), elementNum,
               100.0*ret/elementNum);
-      biffAdd(NRRD, err); return 1;
+      return 1;
     }
     fflush(file);
     /*
     if (ferror(file)) {
-      sprintf(err, "%s: ferror returned non-zero", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: ferror returned non-zero", me);
+      return 1;
     }
     */
   }

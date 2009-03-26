@@ -62,7 +62,8 @@ _nrrdFormatUnknown_nameLooksLike(const char *filename) {
 int
 _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                             int useBiff) {
-  char me[]="_nrrdFormatUnknown_fitsInto", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatUnknown_fitsInto";
+  char err[BIFF_STRLEN];
   
   if (!(nrrd && encoding)) {
     sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
@@ -88,30 +89,28 @@ _nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
 int
 _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
                         NrrdIoState *nio) {
-  char me[]="_nrrdFormatUnknown_read", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatUnknown_read";
 
   /* insert code here, and remove error handling below */
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  sprintf(err, "%s: ERROR!!! trying to read unknown format", me);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: ERROR!!! trying to read unknown format", me);
   return 1;
 }
 
 int
 _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
                          NrrdIoState *nio) {
-  char me[]="_nrrdFormatUnknown_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatUnknown_write";
 
   /* insert code here, and remove error handling below */
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  sprintf(err, "%s: ERROR!!! trying to write unknown format", me);
-  biffAdd(NRRD, err);
+  biffAddf(NRRD, "%s: ERROR!!! trying to write unknown format", me);
   return 1;
 }
 

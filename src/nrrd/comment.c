@@ -33,7 +33,8 @@
 */
 int
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
-  char /* me[]="nrrdCommentAdd", err[512], */ *str;
+  /* static const char me[]="nrrdCommentAdd";*/
+  char *str;
   int i;
   
   if (!(nrrd && _str)) {
@@ -98,7 +99,7 @@ nrrdCommentClear(Nrrd *nrrd) {
 */
 int
 nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
-  /* char me[]="nrrdCommentCopy", err[512]; */
+  /* static const char me[]="nrrdCommentCopy"; */
   int numc, i, E;
 
   if (!(nout && nin)) {

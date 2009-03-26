@@ -32,7 +32,7 @@
 int
 nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
            unsigned int axis, size_t pos) {
-  char me[]="nrrdSplice", func[]="splice", err[BIFF_STRLEN];
+  static const char me[]="nrrdSplice", func[]="splice";
   size_t 
     I, 
     rowLen,                  /* length of segment */
@@ -42,66 +42,66 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   char *src, *dest, *sliceCont;
 
   if (!(nin && nout && nslice)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nslice) {
-    sprintf(err, "%s: nout==nslice disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nslice disallowed", me);
+    return 1;
   }
 
   /* check that desired slice location is legit */
   if (!( axis < nin->dim )) {
-    sprintf(err, "%s: slice axis %d out of bounds (0 to %d)", 
-            me, axis, nin->dim-1);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+             me, axis, nin->dim-1);
+    return 1;
   }
   if (!( pos < nin->axis[axis].size )) {
-    sprintf(err, "%s: position " _AIR_SIZE_T_CNV 
-            " out of bounds (0 to " _AIR_SIZE_T_CNV ")", 
-            me, pos, nin->axis[axis].size-1);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: position " _AIR_SIZE_T_CNV 
+             " out of bounds (0 to " _AIR_SIZE_T_CNV ")", 
+             me, pos, nin->axis[axis].size-1);
+    return 1;
   }
 
   /* check that slice will fit in nin */
   if (nrrdCheck(nslice) || nrrdCheck(nin)) {
-    sprintf(err, "%s: input or slice not valid nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: input or slice not valid nrrd", me);
+    return 1;
   }
   if (!( nin->dim-1 == nslice->dim )) {
-    sprintf(err, "%s: dim of slice (%d) not one less than dim of input (%d)",
+    biffAddf(NRRD, "%s: dim of slice (%d) not one less than dim of input (%d)",
             me, nslice->dim, nin->dim);
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
   if (!( nin->type == nslice->type )) {
-    sprintf(err, "%s: type of slice (%s) != type of input (%s)",
-            me, airEnumStr(nrrdType, nslice->type),
-            airEnumStr(nrrdType, nin->type));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: type of slice (%s) != type of input (%s)",
+             me, airEnumStr(nrrdType, nslice->type),
+             airEnumStr(nrrdType, nin->type));
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     if (!( nin->blockSize == nslice->blockSize )) {
-      sprintf(err, "%s: input's blockSize (" _AIR_SIZE_T_CNV 
+      biffAddf(NRRD, "%s: input's blockSize (" _AIR_SIZE_T_CNV 
               ") != subvolume's blockSize (" _AIR_SIZE_T_CNV ")",
               me, nin->blockSize, nslice->blockSize);
-      biffAdd(NRRD, err); return 1;
+      return 1;
     }
   }
   for (ai=0; ai<nslice->dim; ai++) {
     if (!( nin->axis[ai + (ai >= axis)].size == nslice->axis[ai].size )) {
-      sprintf(err, "%s: input's axis %d size (" _AIR_SIZE_T_CNV
-              ") != slices axis %d size (" _AIR_SIZE_T_CNV ")",
-              me, ai + (ai >= axis),
-              nin->axis[ai + (ai >= axis)].size, ai, 
-              nslice->axis[ai].size);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: input's axis %d size (" _AIR_SIZE_T_CNV
+               ") != slices axis %d size (" _AIR_SIZE_T_CNV ")",
+               me, ai + (ai >= axis),
+               nin->axis[ai + (ai >= axis)].size, ai, 
+               nslice->axis[ai].size);
+      return 1;
     }
   }
 
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
   } 
   /* else we're going to splice in place */
@@ -133,8 +133,8 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   sliceCont = _nrrdContentGet(nslice);
   if (nrrdContentSet_va(nout, func, nin, "%s,%d," _AIR_SIZE_T_CNV, 
                         sliceCont, axis, pos)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(sliceCont); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(sliceCont); return 1;
   }
   free(sliceCont);
   /* basic info copied by nrrdCopy above */
@@ -151,8 +151,8 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
 */
 int
 nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
-  char me[]="nrrdInset", func[] = "inset", err[BIFF_STRLEN],
-    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
+  static const char me[]="nrrdInset", func[] = "inset";
+  char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
   size_t I,
     lineSize,                /* #bytes in one scanline to be copied */
@@ -167,55 +167,55 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
 
   /* errors */
   if (!(nout && nin && nsub && min)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nsub) {
-    sprintf(err, "%s: nout==nsub disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nsub disallowed", me);
+    return 1;
   }
   if (nrrdCheck(nin)) {
-    sprintf(err, "%s: input not valid nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: input not valid nrrd", me);
+    return 1;
   }
   if (nrrdCheck(nsub)) {
-    sprintf(err, "%s: subvolume not valid nrrd", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: subvolume not valid nrrd", me);
+    return 1;
   }
   if (!( nin->dim == nsub->dim )) {
-    sprintf(err, "%s: input's dim (%d) != subvolume's dim (%d)",
-            me, nin->dim, nsub->dim);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: input's dim (%d) != subvolume's dim (%d)",
+             me, nin->dim, nsub->dim);
+    return 1;
   }
   if (!( nin->type == nsub->type )) {
-    sprintf(err, "%s: input's type (%s) != subvolume's type (%s)", me,
-            airEnumStr(nrrdType, nin->type),
-            airEnumStr(nrrdType, nsub->type));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: input's type (%s) != subvolume's type (%s)", me,
+             airEnumStr(nrrdType, nin->type),
+             airEnumStr(nrrdType, nsub->type));
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     if (!( nin->blockSize == nsub->blockSize )) {
-      sprintf(err, "%s: input's blockSize (" _AIR_SIZE_T_CNV
-              ") != subvolume's blockSize (" _AIR_SIZE_T_CNV ")",
-              me, nin->blockSize, nsub->blockSize);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: input's blockSize (" _AIR_SIZE_T_CNV
+               ") != subvolume's blockSize (" _AIR_SIZE_T_CNV ")",
+               me, nin->blockSize, nsub->blockSize);
+      return 1;
     }
   }
   for (ai=0; ai<nin->dim; ai++) {
     if (!( min[ai] + nsub->axis[ai].size - 1 <= nin->axis[ai].size - 1)) {
-      sprintf(err, "%s: axis %d range of inset indices [" _AIR_SIZE_T_CNV 
-              "," _AIR_SIZE_T_CNV  "] not within "
-              "input indices [0," _AIR_SIZE_T_CNV "]", me, ai,
-              min[ai], min[ai] + nsub->axis[ai].size - 1,
-              nin->axis[ai].size - 1);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: axis %d range of inset indices [" _AIR_SIZE_T_CNV 
+               "," _AIR_SIZE_T_CNV  "] not within "
+               "input indices [0," _AIR_SIZE_T_CNV "]", me, ai,
+               min[ai], min[ai] + nsub->axis[ai].size - 1,
+               nin->axis[ai].size - 1);
+      return 1;
     }
   }
   
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
   } 
   /* else we're going to inset in place */
@@ -260,8 +260,8 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   strcat(buff1, "]");
   subCont = _nrrdContentGet(nsub);
   if (nrrdContentSet_va(nout, func, nin, "%s,%s", subCont, buff1)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(subCont); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(subCont); return 1;
   }
   free(subCont); 
   /* basic info copied by nrrdCopy above */
@@ -277,8 +277,8 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
 int
 nrrdPad_va(Nrrd *nout, const Nrrd *nin,
            const ptrdiff_t *min, const ptrdiff_t *max, int boundary, ...) {
-  char me[]="nrrdPad_va", func[]="pad", err[BIFF_STRLEN],
-    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
+  static const char me[]="nrrdPad_va", func[]="pad";
+  char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
   int outside;
   unsigned int ai;
@@ -295,27 +295,27 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   char *dataIn, *dataOut;
   
   if (!(nout && nin && min && max)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
   }
   if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
-    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: boundary behavior %d invalid", me, boundary);
+    return 1;
   }
   if (nrrdBoundaryWeight == boundary) {
-    sprintf(err, "%s: boundary strategy %s not applicable here", me,
-            airEnumStr(nrrdBoundary, boundary));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: boundary strategy %s not applicable here", me,
+             airEnumStr(nrrdBoundary, boundary));
+    return 1;
   }
   if (nrrdTypeBlock == nin->type && nrrdBoundaryPad == boundary) {
-    sprintf(err, "%s: with nrrd type %s, boundary %s not valid", me,
-            airEnumStr(nrrdType, nrrdTypeBlock),
-            airEnumStr(nrrdBoundary, nrrdBoundaryPad));
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: with nrrd type %s, boundary %s not valid", me,
+             airEnumStr(nrrdType, nrrdTypeBlock),
+             airEnumStr(nrrdBoundary, nrrdBoundaryPad));
+    return 1;
   }
   va_start(ap, boundary);
   if (nrrdBoundaryPad == boundary) {
@@ -338,21 +338,21 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   for (ai=0; ai<nin->dim; ai++) {
     if (!( min[ai] <= 0 )) {
-      sprintf(err, "%s: axis %d min (" _AIR_SIZE_T_CNV ") not <= 0",
-              me, ai, (size_t)min[ai]);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV ") not <= 0",
+               me, ai, (size_t)min[ai]);
+      return 1;
     }
     if (!( (size_t)max[ai] >= szIn[ai]-1)) {
-      sprintf(err, "%s: axis %d max (" _AIR_SIZE_T_CNV
-              ") not >= size-1 (" _AIR_SIZE_T_CNV ")", 
-              me, ai, (size_t)max[ai], szIn[ai]-1);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: axis %d max (" _AIR_SIZE_T_CNV
+               ") not >= size-1 (" _AIR_SIZE_T_CNV ")", 
+               me, ai, (size_t)max[ai], szIn[ai]-1);
+      return 1;
     }
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    return 1;
   }
 
   /* allocate */
@@ -362,8 +362,8 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   
   /* the skinny */
@@ -415,8 +415,8 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
                                          NRRD_AXIS_INFO_MIN_BIT |
                                          NRRD_AXIS_INFO_MAX_BIT ))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
@@ -441,8 +441,8 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     strcpy(buff2, airEnumStr(nrrdBoundary, boundary));
   }
   if (nrrdContentSet_va(nout, func, nin, "%s,%s", buff1, buff2)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT
@@ -454,8 +454,8 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   /* copy origin, then shift it along the spatial axes */
   nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
@@ -480,12 +480,12 @@ int
 nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
             const ptrdiff_t *min, const ptrdiff_t *max,
             int boundary, double padValue) {
-  char me[]="nrrdPad_nva", err[BIFF_STRLEN];
+  static const char me[]="nrrdPad_nva";
   int E;
 
   if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
-    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: boundary behavior %d invalid", me, boundary);
+    return 1;
   }
   if (nrrdBoundaryPad == boundary) {
     E = nrrdPad_va(nout, nin, min, max, boundary, padValue);
@@ -493,8 +493,8 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
     E = nrrdPad_va(nout, nin, min, max, boundary);
   }
   if (E) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   
   return 0;
@@ -508,7 +508,7 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
 int
 nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
                  int boundary, ...) {
-  char me[]="nrrdSimplePad_va", err[BIFF_STRLEN];
+  static const char me[]="nrrdSimplePad_va";
   unsigned ai;
   int ret;
   ptrdiff_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
@@ -516,8 +516,8 @@ nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
   va_list ap;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     min[ai] = -AIR_CAST(ptrdiff_t, pad);
@@ -532,8 +532,8 @@ nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
   }
   va_end(ap);
   if (ret) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   return 0;
 }
@@ -547,12 +547,12 @@ nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad,
 int
 nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
                   int boundary, double padValue) {
-  char me[]="nrrdSimplePad_nva", err[BIFF_STRLEN];
+  static const char me[]="nrrdSimplePad_nva";
   int E;
 
   if (!AIR_IN_OP(nrrdBoundaryUnknown, boundary, nrrdBoundaryLast)) {
-    sprintf(err, "%s: boundary behavior %d invalid", me, boundary);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: boundary behavior %d invalid", me, boundary);
+    return 1;
   }
   if (nrrdBoundaryPad == boundary) {
     E = nrrdSimplePad_va(nout, nin, pad, boundary, padValue);
@@ -560,8 +560,8 @@ nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
     E = nrrdSimplePad_va(nout, nin, pad, boundary);
   }
   if (E) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
 
   return 0;

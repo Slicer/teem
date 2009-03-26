@@ -45,7 +45,7 @@ _nrrdEncodingGzip_available(void) {
 int
 _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
                        Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingGzip_read", err[BIFF_STRLEN];
+  static const char me[]="_nrrdEncodingGzip_read";
 #if TEEM_ZLIB
   size_t sizeData, sizeRed, sizeChunk;
   int error;
@@ -59,8 +59,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   /* Create the gzFile for reading in the gzipped data. */
   if ((gzfin = _nrrdGzOpen(file, "rb")) == Z_NULL) {
     /* there was a problem */
-    sprintf(err, "%s: error opening gzFile", me);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: error opening gzFile", me);
     return 1;
   }
 
@@ -88,8 +87,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     buffArr = airArrayNew(hack.v, NULL, 1, 2*sizeChunk);
     airArrayLenSet(buffArr, sizeChunk);
     if (!( buffArr && buffArr->data )) {
-      sprintf(err, "%s: couldn't initialize airArray\n", me);
-      biffAdd(NRRD, err);
+      biffAddf(NRRD, "%s: couldn't initialize airArray\n", me);
       return 1;
     }
     
@@ -108,22 +106,20 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
            more, so we need to make our temp buffer bigger */
         airArrayLenIncr(buffArr, sizeChunk);
         if (!buffArr->data) {
-          sprintf(err, "%s: couldn't re-allocate data buffer", me);
-          biffAdd(NRRD, err);
+          biffAddf(NRRD, "%s: couldn't re-allocate data buffer", me);
           return 1;
         }
       }
     }
     if (error) {
-      sprintf(err, "%s: error reading from gzFile", me);
-      biffAdd(NRRD, err);
+      biffAddf(NRRD, "%s: error reading from gzFile", me);
       return 1;
     }
     if (sizeRed < sizeData + (-nio->byteSkip - 1)) {
-      sprintf(err, "%s: expected " _AIR_SIZE_T_CNV " bytes and received only "
-              _AIR_SIZE_T_CNV " bytes", me,
-              AIR_CAST(size_t, sizeData + (-nio->byteSkip - 1)), sizeRed);
-      biffAdd(NRRD, err);
+      biffAddf(NRRD, "%s: expected " _AIR_SIZE_T_CNV
+               " bytes and received only "
+               _AIR_SIZE_T_CNV " bytes", me,
+               AIR_CAST(size_t, sizeData + (-nio->byteSkip - 1)), sizeRed);
       return 1;
     }
     /* also handles nio->byteSkip == -N-1 signifying extra N bytes at end */
@@ -137,9 +133,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
         unsigned char b;
         /* Check to see if a single byte was able to be read. */
         if (_nrrdGzRead(gzfin, &b, 1, &read) != 0 || read != 1) {
-          sprintf(err, "%s: hit an error skipping byte %ld of %ld",
-                  me, bi, nio->byteSkip);
-          biffAdd(NRRD, err);
+          biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld",
+                   me, bi, nio->byteSkip);
           return 1;
         }
       }
@@ -161,16 +156,14 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       }
     }
     if (error) {
-      sprintf(err, "%s: error reading from gzFile", me);
-      biffAdd(NRRD, err);
+      biffAddf(NRRD, "%s: error reading from gzFile", me);
       return 1;
     }
     /* Check to see if we got out as much as we thought we should. */
     if (sizeRed != sizeData) {
-      sprintf(err, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
-              _AIR_SIZE_T_CNV " bytes",
-              me, sizeData, sizeRed);
-      biffAdd(NRRD, err);
+      biffAddf(NRRD, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
+               _AIR_SIZE_T_CNV " bytes",
+               me, sizeData, sizeRed);
       return 1;
     }
   }
@@ -178,8 +171,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
      will not encounter problems when dataFile is closed later. */
   if (_nrrdGzClose(gzfin)) {
-    sprintf(err, "%s: error closing gzFile", me);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: error closing gzFile", me);
     return 1;
   }
   
@@ -190,15 +182,14 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   AIR_UNUSED(elNum);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
-  biffAdd(NRRD, err); return 1;
+  biffAddf(NRRD, "%s: sorry, this nrrd not compiled with gzip enabled", me);
 #endif
 }
 
 int
 _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
                         const Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdEncodingGzip_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdEncodingGzip_write";
 #if TEEM_ZLIB
   size_t sizeData, sizeWrit, sizeChunk;
   int fmt_i=0, error;
@@ -228,8 +219,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* Create the gzFile for writing in the gzipped data. */
   if ((gzfout = _nrrdGzOpen(file, fmt)) == Z_NULL) {
     /* there was a problem */
-    sprintf(err, "%s: error opening gzFile", me);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: error opening gzFile", me);
     return 1;
   }
 
@@ -262,25 +252,22 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   }
   
   if (error) {
-    sprintf(err, "%s: error writing to gzFile", me);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: error writing to gzFile", me);
     return 1;
   }
 
   /* Check to see if we wrote out as much as we thought we should. */
   if (sizeWrit != sizeData) {
-    sprintf(err, "%s: expected to write " _AIR_SIZE_T_CNV " bytes, but only "
-            "wrote " _AIR_SIZE_T_CNV,
-            me, sizeData, sizeWrit);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: expected to write " _AIR_SIZE_T_CNV " bytes, but only "
+             "wrote " _AIR_SIZE_T_CNV,
+             me, sizeData, sizeWrit);
     return 1;
   }
   
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
      will not encounter problems when dataFile is closed later. */
   if (_nrrdGzClose(gzfout)) {
-    sprintf(err, "%s: error closing gzFile", me);
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: error closing gzFile", me);
     return 1;
   }
   
@@ -291,9 +278,8 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   AIR_UNUSED(elNum);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  sprintf(err, "%s: sorry, this nrrd not compiled with zlib "
-          "(needed for gzip) enabled", me);
-  biffAdd(NRRD, err); return 1;
+  biffAddf(NRRD, "%s: sorry, this nrrd not compiled with zlib "
+           "(needed for gzip) enabled", me);
 #endif
 }
 

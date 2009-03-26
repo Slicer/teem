@@ -101,7 +101,7 @@ void
 _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                    int radius, float wght,
                    int bins, int mode, float *hist) {
-  /* char me[]="_nrrdCheapMedian1D"; */
+  /* static const char me[]="_nrrdCheapMedian1D"; */
   size_t num;
   int X, I, idx, diam;
   float half, *wt;
@@ -153,7 +153,7 @@ void
 _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                    int radius, float wght,
                    int bins, int mode, float *hist) {
-  /* char me[]="_nrrdCheapMedian2D"; */
+  /* static const char me[]="_nrrdCheapMedian2D"; */
   int X, Y, I, J;
   int sx, sy, idx, diam;
   float half, *wt;
@@ -216,7 +216,8 @@ void
 _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                    int radius, float wght,
                    int bins, int mode, float *hist) {
-  char me[]="_nrrdCheapMedian3D", done[13];
+  static const char me[]="_nrrdCheapMedian3D";
+  char done[13];
   int X, Y, Z, I, J, K;
   int sx, sy, sz, idx, diam;
   float half, *wt;
@@ -307,7 +308,7 @@ int
 nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
                 int pad, int mode,
                 unsigned int radius, float wght, unsigned int bins) {
-  char me[]="nrrdCheapMedian", func[]="cmedian", err[BIFF_STRLEN];
+  static const char me[]="nrrdCheapMedian", func[]="cmedian";
   NrrdRange *range;
   float *hist;
   Nrrd *nout, *nin;
@@ -315,21 +316,21 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   unsigned int minsize;
 
   if (!(_nin && _nout)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(radius >= 1)) {
-    sprintf(err, "%s: need radius >= 1 (got %d)", me, radius);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: need radius >= 1 (got %d)", me, radius);
+    return 1;
   }
   if (!(bins >= 1)) {
-    sprintf(err, "%s: need bins >= 1 (got %d)", me, bins);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: need bins >= 1 (got %d)", me, bins);
+    return 1;
   }
   if (!(AIR_IN_CL(1, _nin->dim, 3))) {
-    sprintf(err, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
+    biffAddf(NRRD, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
             me, _nin->dim);
-    biffAdd(NRRD, err); return 1;    
+    return 1;    
   }
   minsize = _nin->axis[0].size;
   if (_nin->dim > 1) {
@@ -339,19 +340,19 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     minsize = AIR_MIN(minsize, _nin->axis[2].size);
   }
   if (!pad && minsize < 2*radius+1) {
-    sprintf(err, "%s: minimum nrrd size (%d) smaller than filtering window "
+    biffAddf(NRRD, "%s: minimum nrrd size (%d) smaller than filtering window "
             "size (%d) with radius %d; must enable padding", me,
             minsize, 2*radius+1, radius);
-    biffAdd(NRRD, err); return 1;    
+    return 1;    
   }
   if (_nout == _nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
   }
   if (nrrdTypeBlock == _nin->type) {
-    sprintf(err, "%s: can't filter nrrd type %s", me,
+    biffAddf(NRRD, "%s: can't filter nrrd type %s", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
 
   mop = airMopNew();
@@ -360,25 +361,25 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
   if (pad) {
     airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdSimplePad_va(nin, _nin, radius, nrrdBoundaryBleed)) {
-      sprintf(err, "%s: trouble padding input", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: trouble padding input", me);
+      airMopError(mop); return 1;
     }
   } else {
     if (nrrdCopy(nin, _nin)) {
-      sprintf(err, "%s: trouble copying input", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: trouble copying input", me);
+      airMopError(mop); return 1;
     }
     nout = _nout;
   }
   if (nrrdCopy(nout, nin)) {
-    sprintf(err, "%s: failed to create initial copy of input", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: failed to create initial copy of input", me);
+    airMopError(mop); return 1;
   }
   range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (!(hist = (float*)calloc(bins, sizeof(float)))) {
-    sprintf(err, "%s: couldn't allocate histogram (%d bins)", me, bins);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: couldn't allocate histogram (%d bins)", me, bins);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, hist, airFree, airMopAlways);
   if (!AIR_EXISTS(wght)) {
@@ -395,24 +396,24 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     _nrrdCheapMedian3D(nout, nin, range, radius, wght, bins, mode, hist);
     break;
   default:
-    sprintf(err, "%s: sorry, %d-dimensional median unimplemented",
+    biffAddf(NRRD, "%s: sorry, %d-dimensional median unimplemented",
             me, nin->dim);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    airMopError(mop); return 1;
   }
 
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdContentSet_va(nout, func, nin, "%d,%d,%g,%d",
                         mode, radius, wght, bins)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s:", me);
+    airMopError(mop); return 1;
   }
   /* basic info handled by nrrdCopy above */
 
   /* set _nout based on nout */
   if (pad) {
     if (nrrdSimpleCrop(_nout, nout, radius)) {
-      sprintf(err, "%s: trouble cropping output", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: trouble cropping output", me);
+      airMopError(mop); return 1;
     }
   } else {
     /* we've already set output in _nout == nout */
@@ -500,7 +501,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
 
 static int
 distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
-  char me[]="distanceL2Sqrd", err[BIFF_STRLEN];
+  static const char me[]="distanceL2Sqrd";
   size_t sizeMax;           /* max size of all axes */
   Nrrd *ntmpA, *ntmpB, *npass[NRRD_DIM_MAX+1];
   int spcSomeExist, spcSomeNonExist;
@@ -511,10 +512,13 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   airArray *mop;
 
   if (!( nrrdTypeFloat == ndist->type || nrrdTypeDouble == ndist->type )) {
-    sprintf(err, "%s: sorry, can only process type %s or %s (not %s)", me,
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nrrdTypeDouble),
-            airEnumStr(nrrdType, ndist->type));
+    /* MWC: This error condition was/is being ignored. */
+    /*    biffAddf(NRRD, "%s: sorry, can only process type %s or %s (not %s)",
+                   me,
+                   airEnumStr(nrrdType, nrrdTypeFloat),
+                   airEnumStr(nrrdType, nrrdTypeDouble),
+                   airEnumStr(nrrdType, ndist->type));
+    */
   }
 
   spcSomeExist = AIR_FALSE;
@@ -525,8 +529,8 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
     spcSomeNonExist |= !AIR_EXISTS(spc[di]);
   }
   if (spcSomeExist && spcSomeNonExist) {
-    sprintf(err, "%s: axis spacings must all exist or all non-exist", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: axis spacings must all exist or all non-exist", me);
+    return 1;
   }
   if (!spcSomeExist) {
     for (di=0; di<ndist->dim; di++) {
@@ -556,7 +560,7 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   }
   if (nrrdCopy(ntmpA, ndist)
       || (ndist->dim > 2 && nrrdCopy(ntmpB, ndist))) {
-    sprintf(err, "%s: couldn't allocate image buffers", me);
+    biffAddf(NRRD, "%s: couldn't allocate image buffers", me);
   }
   dd = AIR_CAST(double *, calloc(sizeMax, sizeof(double)));
   ff = AIR_CAST(double *, calloc(sizeMax, sizeof(double)));
@@ -567,7 +571,8 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   airMopAdd(mop, zz, airFree, airMopAlways);
   airMopAdd(mop, vv, airFree, airMopAlways);
   if (!( dd && ff && zz && vv )) {
-    sprintf(err, "%s: couldn't allocate scanline buffers", me);
+    /* MWC: This error condition was/is being ignored. */
+    /* biffAddf(NRRD, "%s: couldn't allocate scanline buffers", me); */
   }
 
   /* set up array of buffers */
@@ -631,39 +636,39 @@ int
 nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
                int typeOut, const int *axisDo,
                double thresh, int insideHigher) {
-  char me[]="nrrdDistanceL2", err[BIFF_STRLEN];
+  static const char me[]="nrrdDistanceL2";
   size_t ii, nn; 
   double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
   double spcMean;
 
   if (!( nout && nin )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: need scalar type for distance transform (not %s)", me,
+    biffAddf(NRRD, "%s: need scalar type for distance transform (not %s)", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
   if (!( nrrdTypeDouble == typeOut || nrrdTypeFloat == typeOut )) {
-    sprintf(err, "%s: sorry, can only transform to type %s or %s (not %s)", me,
+    biffAddf(NRRD, "%s: sorry, can only transform to type %s or %s (not %s)", me,
             airEnumStr(nrrdType, nrrdTypeFloat),
             airEnumStr(nrrdType, nrrdTypeDouble),
             airEnumStr(nrrdType, typeOut));
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
   if (axisDo) {
-    sprintf(err, "%s: sorry, selective axis transform not implemented", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: sorry, selective axis transform not implemented", me);
+    return 1;
   }
   if (!AIR_EXISTS(thresh)) {
-    sprintf(err, "%s: threshold (%g) doesn't exist", me, thresh);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: threshold (%g) doesn't exist", me, thresh);
+    return 1;
   }
 
   if (nrrdConvert(nout, nin, typeOut)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
   lup = nrrdDLookup[nout->type];
   ins = nrrdDInsert[nout->type];
@@ -680,8 +685,8 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
   }
 
   if (distanceL2Sqrd(nout, &spcMean)) {
-    sprintf(err, "%s: trouble doing transform", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: trouble doing transform", me);
+    return 1;
   }
 
   for (ii=0; ii<nn; ii++) {
@@ -697,13 +702,13 @@ int
 nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
                      int typeOut, const int *axisDo,
                      double thresh, int insideHigher) {
-  char me[]="nrrdDistanceL2Signed", err[BIFF_STRLEN];
+  static const char me[]="nrrdDistanceL2Signed";
   airArray *mop;
   Nrrd *ninv;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
 
   mop = airMopNew();
@@ -714,8 +719,8 @@ nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
       || nrrdDistanceL2(ninv, nin, typeOut, axisDo, thresh, !insideHigher)
       || nrrdArithUnaryOp(ninv, nrrdUnaryOpNegative, ninv)
       || nrrdArithBinaryOp(nout, nrrdBinaryOpAdd, nout, ninv)) {
-    sprintf(err, "%s: trouble doing or combining transforms", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: trouble doing or combining transforms", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

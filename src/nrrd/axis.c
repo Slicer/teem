@@ -79,7 +79,7 @@ nrrdKindIsDomain(int kind) {
 */
 unsigned int
 nrrdKindSize(int kind) {
-  char me[]="nrrdKindSize";
+  static const char me[]="nrrdKindSize";
   int ret;
   
   if (!( AIR_IN_OP(nrrdKindUnknown, kind, nrrdKindLast) )) {
@@ -1103,19 +1103,19 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
 int
 nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
                       int setMinsFromOrigin) {
-  char me[]="nrrdOrientationReduce", err[BIFF_STRLEN];
+  static const char me[]="nrrdOrientationReduce";
   unsigned int spatialAxisNum, spatialAxisIdx[NRRD_DIM_MAX], saxii;
   NrrdAxisInfo *axis;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL spacing", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL spacing", me);
+    return 1;
   }
 
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: trouble doing initial copying", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: trouble doing initial copying", me);
+      return 1;
     }
 
   }

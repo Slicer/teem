@@ -44,7 +44,8 @@ _nrrdFormatPNM_nameLooksLike(const char *filename) {
 int
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
-  char me[]="_nrrdFormatPNM_fitsInto", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatPNM_fitsInto";
+  char err[BIFF_STRLEN];
   int ret;
   
   if (!( nrrd && encoding )) {
@@ -102,15 +103,16 @@ _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
 
 int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNM_read", err[BIFF_STRLEN], *perr;
+  static const char me[]="_nrrdFormatPNM_read";
   const char *fs;
+  char *perr;
   int color, got, want, ret, val[5], sx, sy, max, magic;
   unsigned int i, llen;
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
-    sprintf(err, "%s: this doesn't look like a %s file", me, 
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
             nrrdFormatPNM->name);
-    biffAdd(NRRD, err); return 1;
+    return 1;
   }
   nrrd->type = nrrdTypeUChar;
   if (!strcmp(MAGIC_P6, nio->line)) {
@@ -123,7 +125,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     magic = 2;
   } else {
     fprintf(stderr, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
+    return 1;
   }
 
   switch(magic) {
@@ -148,8 +151,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrd->dim = 3;
     break;
   default:
-    sprintf(err, "%s: sorry, PNM magic %d not implemented", me, magic);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: sorry, PNM magic %d not implemented", me, magic);
+    return 1;
     break;
   }
   val[0] = val[1] = val[2] = 0;
@@ -158,13 +161,13 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (got < want) {
     nio->pos = 0;
     if (_nrrdOneLine(&llen, nio, file)) {
-      sprintf(err, "%s: failed to get line from PNM header", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: failed to get line from PNM header", me);
+      return 1;
     }
     if (!(0 < llen)) {
-      sprintf(err, "%s: hit EOF in header with %d of %d ints parsed",
-              me, got, want);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: hit EOF in header with %d of %d ints parsed",
+               me, got, want);
+      return 1;
     }
     if ('#' == nio->line[0]) {
       if (strncmp(nio->line, NRRD_PNM_COMMENT, strlen(NRRD_PNM_COMMENT))) {
@@ -211,8 +214,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     plain:
       if (!ret) {
         if (nrrdCommentAdd(nrrd, nio->line+1)) {
-          sprintf(err, "%s: couldn't add comment", me);
-          biffAdd(NRRD, err); return 1;
+          biffAddf(NRRD, "%s: couldn't add comment", me);
+          return 1;
         }
       }
       continue;
@@ -236,9 +239,9 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     for (i=0; i<=strlen(nio->line)-1 && isspace(nio->line[i]); i++)
       ;
     if (i != strlen(nio->line)) {
-      sprintf(err, "%s: \"%s\" has no integers but isn't just whitespace", 
-              me, nio->line);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: \"%s\" has no integers but isn't just whitespace", 
+               me, nio->line);
+      return 1;
     }
   }
   /* this assumes 3 == want */
@@ -246,13 +249,13 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   sy = val[1];
   max = val[2];
   if (!(sx > 0 && sy > 0 && max > 0)) {
-    sprintf(err, "%s: sx,sy,max of %d,%d,%d has problem", me, sx, sy, max);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: sx,sy,max of %d,%d,%d has problem", me, sx, sy, max);
+    return 1;
   }
   if (255 != max) {
-    sprintf(err, "%s: sorry, can only deal with max value 255 (not %d)", 
-            me, max);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: sorry, can only deal with max value 255 (not %d)", 
+             me, max);
+    return 1;
   }
 
   /* we know what we need in order to set nrrd fields and read data */
@@ -268,13 +271,13 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (!nio->skipData) {
     if (_nrrdCalloc(nrrd, nio, file)) {
-      sprintf(err, "%s: couldn't allocate memory for data", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
+      return 1;
     }
     if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
                             nrrd, nio)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s:", me);
+      return 1;
     }
   } else {
     nrrd->data = NULL;
@@ -285,7 +288,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 int
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  char me[]="_nrrdFormatPNM_write", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFormatPNM_write";
   int color, sx, sy, magic, fi;
   unsigned int ci;
   Nrrd *nrrd;
@@ -294,13 +297,13 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    sprintf(err, "%s: couldn't make private copy", me);
-    biffAdd(NRRD, err); airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: couldn't make private copy", me);
+    airMopError(mop); return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s:", me);
+      airMopError(mop); return 1;
     }
   }
   color = (3 == nrrd->dim);
@@ -330,8 +333,8 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (!nio->skipData) {
     if (nio->encoding->write(file, nrrd->data, nrrdElementNumber(nrrd),
                              nrrd, nio)) {
-      sprintf(err, "%s:", me);
-      biffAdd(NRRD, err); airMopError(mop); return 1;
+      biffAddf(NRRD, "%s:", me);
+      airMopError(mop); return 1;
     }
   }
   

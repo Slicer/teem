@@ -38,7 +38,7 @@
 */
 int
 nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
-  char me[]="nrrdSlice", func[]="slice", err[BIFF_STRLEN];
+  static const char me[]="nrrdSlice", func[]="slice";
   size_t 
     I, 
     rowLen,                  /* length of segment */
@@ -50,32 +50,32 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   char *src, *dest;
 
   if (!(nin && nout)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
   }
   if (1 == nin->dim) {
-    sprintf(err, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]", me);
+    return 1;
   }
   if (!( saxi < nin->dim )) {
-    sprintf(err, "%s: slice axis %d out of bounds (0 to %d)", 
-            me, saxi, nin->dim-1);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+             me, saxi, nin->dim-1);
+    return 1;
   }
   if (!( pos < nin->axis[saxi].size )) {
-    sprintf(err, "%s: position " _AIR_SIZE_T_CNV 
-            " out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
-            me, pos, nin->axis[saxi].size-1);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: position " _AIR_SIZE_T_CNV 
+             " out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
+             me, pos, nin->axis[saxi].size-1);
+    return 1;
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    return 1;
   }
 
   /* set up control variables */
@@ -97,8 +97,8 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, outdim, szOut)) {
-    sprintf(err, "%s: failed to create slice", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: failed to create slice", me);
+    return 1;
   }
 
   /* the skinny */
@@ -114,12 +114,12 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
 
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "%d,%d", saxi, pos)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT
@@ -132,8 +132,8 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   /* translate origin if this was a spatial axis, otherwise copy */
   /* note that if there is no spatial info at all, this is all harmless */
@@ -156,8 +156,8 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
 */
 int
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
-  char me[]="nrrdCrop", func[] = "crop", err[BIFF_STRLEN],
-    buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
+  static const char me[]="nrrdCrop", func[] = "crop";
+  char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
   size_t I,
     lineSize,                /* #bytes in one scanline to be copied */
@@ -172,32 +172,32 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 
   /* errors */
   if (!(nout && nin && min && max)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nout == nin) {
-    sprintf(err, "%s: nout==nin disallowed", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     if (!(min[ai] <= max[ai])) {
-      sprintf(err, "%s: axis %d min (" _AIR_SIZE_T_CNV 
-              ") not <= max (" _AIR_SIZE_T_CNV ")", 
-              me, ai, min[ai], max[ai]);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV 
+               ") not <= max (" _AIR_SIZE_T_CNV ")", 
+               me, ai, min[ai], max[ai]);
+      return 1;
     }
     if (!( min[ai] < nin->axis[ai].size && max[ai] < nin->axis[ai].size )) {
-      sprintf(err, "%s: axis %d min (" _AIR_SIZE_T_CNV  
-              ") or max (" _AIR_SIZE_T_CNV  ") out of bounds [0," 
-              _AIR_SIZE_T_CNV  "]",
-              me, ai, min[ai], max[ai], nin->axis[ai].size-1);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV  
+               ") or max (" _AIR_SIZE_T_CNV  ") out of bounds [0," 
+               _AIR_SIZE_T_CNV  "]",
+               me, ai, min[ai], max[ai], nin->axis[ai].size-1);
+      return 1;
     }
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    return 1;
   }
 
   /* allocate */
@@ -211,8 +211,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   lineSize = szOut[0]*nrrdElementSize(nin);
   
@@ -250,8 +250,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
                                          NRRD_AXIS_INFO_MIN_BIT |
                                          NRRD_AXIS_INFO_MAX_BIT ))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
@@ -303,8 +303,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     strcat(buff1, buff2);
   }
   if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT
@@ -317,8 +317,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   /* copy origin, then shift it along the spatial axes */
   nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
@@ -344,28 +344,28 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 */
 int
 nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
-  char me[]="nrrdSample_nva", err[BIFF_STRLEN];
+  static const char me[]="nrrdSample_nva";
   size_t I, size[NRRD_DIM_MAX], typeSize;
   unsigned int ai;
   
   if (!(nrrd && coord && val)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    return 1;
   }
   
   typeSize = nrrdElementSize(nrrd);
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   for (ai=0; ai<nrrd->dim; ai++) {
     if (!( coord[ai] < size[ai] )) {
-      sprintf(err, "%s: coordinate " _AIR_SIZE_T_CNV 
-              " on axis %d out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
-              me, coord[ai], ai, size[ai]-1);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: coordinate " _AIR_SIZE_T_CNV 
+               " on axis %d out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
+               me, coord[ai], ai, size[ai]-1);
+      return 1;
     }
   }
 
@@ -382,14 +382,14 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 */
 int
 nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
-  char me[]="nrrdSample_va", err[BIFF_STRLEN];
+  static const char me[]="nrrdSample_va";
   unsigned int ai;
   size_t coord[NRRD_DIM_MAX];
   va_list ap;
   
   if (!(nrrd && val)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
 
   va_start(ap, nrrd);
@@ -399,8 +399,8 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   va_end(ap);
   
   if (nrrdSample_nva(val, nrrd, coord)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   return 0;
 }
@@ -411,21 +411,21 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
 */
 int
 nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
-  char me[]="nrrdSimpleCrop", err[BIFF_STRLEN];
+  static const char me[]="nrrdSimpleCrop";
   unsigned int ai;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     min[ai] = crop;
     max[ai] = nin->axis[ai].size-1 - crop;
   }
   if (nrrdCrop(nout, nin, min, max)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   return 0;
 }

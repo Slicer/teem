@@ -39,7 +39,7 @@ nrrdBiffKey = "nrrd";
 */
 unsigned int
 nrrdSpaceDimension(int space) {
-  char me[]="nrrdSpaceDimension";
+  static const char me[]="nrrdSpaceDimension";
   int ret;
 
   if (!( AIR_IN_OP(nrrdSpaceUnknown, space, nrrdSpaceLast) )) {
@@ -79,12 +79,12 @@ nrrdSpaceDimension(int space) {
 */
 int
 nrrdSpaceSet(Nrrd *nrrd, int space) {
-  char me[]="nrrdSpaceSet", err[BIFF_STRLEN];
+  static const char me[]="nrrdSpaceSet";
   unsigned axi, saxi;
   
   if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdSpaceUnknown == space) {
     nrrd->space = nrrdSpaceUnknown;
@@ -99,8 +99,8 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
     nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
   } else {
     if (airEnumValCheck(nrrdSpace, space)) {
-      sprintf(err, "%s: given space (%d) not valid", me, space);
-      biffAdd(NRRD, err); return 1;
+      biffAddf(NRRD, "%s: given space (%d) not valid", me, space);
+      return 1;
     }
     nrrd->space = space;
     nrrd->spaceDim = nrrdSpaceDimension(space);
@@ -116,15 +116,15 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
 */
 int
 nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim) {
-  char me[]="nrrdSpaceDimensionSet", err[BIFF_STRLEN];
+  static const char me[]="nrrdSpaceDimensionSet";
   
   if (!nrrd) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( spaceDim <= NRRD_SPACE_DIM_MAX )) {
-    sprintf(err, "%s: given spaceDim (%u) not valid", me, spaceDim);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: given spaceDim (%u) not valid", me, spaceDim);
+    return 1;
   }
   nrrd->space = nrrdSpaceUnknown;
   nrrd->spaceDim = spaceDim;
@@ -168,16 +168,16 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
 int
 nrrdSpaceOriginSet(Nrrd *nrrd,
                    double vector[NRRD_SPACE_DIM_MAX]) {
-  char me[]="nrrdSpaceOriginSet", err[BIFF_STRLEN];
+  static const char me[]="nrrdSpaceOriginSet";
   unsigned int sdi;
 
   if (!( nrrd && vector )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( 0 < nrrd->spaceDim && nrrd->spaceDim <= NRRD_SPACE_DIM_MAX )) {
-    sprintf(err, "%s: set spaceDim %d not valid", me, nrrd->spaceDim);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: set spaceDim %d not valid", me, nrrd->spaceDim);
+    return 1;
   }
 
   for (sdi=0; sdi<nrrd->spaceDim; sdi++) {
@@ -382,7 +382,7 @@ nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
 */
 char *
 _nrrdContentGet(const Nrrd *nin) {
-  char me[]="_nrrdContentGet";
+  static const char me[]="_nrrdContentGet";
   char *ret;
   
   ret = ((nin && nin->content) ? 
@@ -398,12 +398,13 @@ _nrrdContentGet(const Nrrd *nin) {
 int
 _nrrdContentSet_nva(Nrrd *nout, const char *func,
                     char *content, const char *format, va_list arg) {
-  char me[]="_nrrdContentSet_nva", err[BIFF_STRLEN], *buff;
+  static const char me[]="_nrrdContentSet_nva";
+  char *buff;
 
   buff = (char *)malloc(128*AIR_STRLEN_HUGE);
   if (!buff) {
-    sprintf(err, "%s: couln't alloc buffer!", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: couln't alloc buffer!", me);
+    return 1;
   }
   nout->content = (char *)airFree(nout->content);
 
@@ -420,8 +421,8 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
                                  + 1                      /* ')' */
                                  + 1, sizeof(char));      /* '\0' */
   if (!nout->content) {
-    sprintf(err, "%s: couln't alloc output content!", me);
-    biffAdd(NRRD, err); airFree(buff); return 1;
+    biffAddf(NRRD, "%s: couln't alloc output content!", me);
+    airFree(buff); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
           airStrlen(buff) ? "," : "", buff);
@@ -432,13 +433,13 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
 int
 _nrrdContentSet_va(Nrrd *nout, const char *func,
                    char *content, const char *format, ...) {
-  char me[]="_nrrdContentSet_va", err[BIFF_STRLEN];
+  static const char me[]="_nrrdContentSet_va";
   va_list ap;
   
   va_start(ap, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); free(content); return 1;
+    biffAddf(NRRD, "%s:", me);
+    free(content); return 1;
   }
   va_end(ap);
 
@@ -461,13 +462,13 @@ _nrrdContentSet_va(Nrrd *nout, const char *func,
 int
 nrrdContentSet_va(Nrrd *nout, const char *func,
                   const Nrrd *nin, const char *format, ...) {
-  char me[]="nrrdContentSet_va", err[BIFF_STRLEN];
+  static const char me[]="nrrdContentSet_va";
   va_list ap;
   char *content;
   
   if (!(nout && func && nin && format)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdStateDisableContent) {
     /* we kill content always */
@@ -485,8 +486,8 @@ nrrdContentSet_va(Nrrd *nout, const char *func,
   content = _nrrdContentGet(nin);
   va_start(ap, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); va_end(ap); free(content); return 1;
+    biffAddf(NRRD, "%s:", me);
+    va_end(ap); free(content); return 1;
   }
   va_end(ap);
   free(content); 
@@ -563,7 +564,8 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
 */
 int
 _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheckSpaceInfo", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheckSpaceInfo";
+  char err[BIFF_STRLEN];
   unsigned int dd, ii;
   int exists;
 
@@ -690,7 +692,8 @@ _nrrdFieldCheck_noop(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_type", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_type";
+  char err[BIFF_STRLEN];
   
   if (airEnumValCheck(nrrdType, nrrd->type)) {
     sprintf(err, "%s: type (%d) is not valid", me, nrrd->type);
@@ -701,7 +704,8 @@ _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_block_size", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_block_size";
+  char err[BIFF_STRLEN];
   
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     sprintf(err, "%s: type is %s but nrrd->blockSize (" 
@@ -721,7 +725,8 @@ _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_dimension(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_dimension", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_dimension";
+  char err[BIFF_STRLEN];
   
   if (!AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX)) {
     sprintf(err, "%s: dimension %u is outside valid range [1,%d]",
@@ -733,7 +738,8 @@ _nrrdFieldCheck_dimension(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_space(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_space", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_space";
+  char err[BIFF_STRLEN];
 
   if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
@@ -744,7 +750,8 @@ _nrrdFieldCheck_space(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_space_dimension(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_space_dimension", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_space_dimension";
+  char err[BIFF_STRLEN];
   
   if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: trouble", me);
@@ -755,7 +762,8 @@ _nrrdFieldCheck_space_dimension(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_sizes(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_sizes", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_sizes";
+  char err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX];
   
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
@@ -768,7 +776,8 @@ _nrrdFieldCheck_sizes(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_spacings(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_spacings", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_spacings";
+  char err[BIFF_STRLEN];
   double val[NRRD_DIM_MAX];
   unsigned int ai;
 
@@ -788,7 +797,8 @@ _nrrdFieldCheck_spacings(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_thicknesses(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_thicknesses", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_thicknesses";
+  char err[BIFF_STRLEN];
   double val[NRRD_DIM_MAX];
   unsigned int ai;
 
@@ -806,7 +816,8 @@ _nrrdFieldCheck_thicknesses(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_axis_mins(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_axis_mins", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_axis_mins";
+  char err[BIFF_STRLEN];
   double val[NRRD_DIM_MAX];
   unsigned int ai;
   int ret;
@@ -829,7 +840,8 @@ _nrrdFieldCheck_axis_mins(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_axis_maxs(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_axis_maxs", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_axis_maxs";
+  char err[BIFF_STRLEN];
   double val[NRRD_DIM_MAX];
   unsigned int ai;
   int ret;
@@ -852,7 +864,8 @@ _nrrdFieldCheck_axis_maxs(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_space_directions(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_space_directions", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_space_directions";
+  char err[BIFF_STRLEN];
 
   if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
@@ -863,7 +876,8 @@ _nrrdFieldCheck_space_directions(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_centers", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_centers";
+  char err[BIFF_STRLEN];
   unsigned int ai;
   int val[NRRD_DIM_MAX];
 
@@ -880,7 +894,8 @@ _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_kinds", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_kinds";
+  char err[BIFF_STRLEN];
   int val[NRRD_DIM_MAX];
   unsigned int wantLen, ai;
 
@@ -904,7 +919,7 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_labels(const Nrrd *nrrd, int useBiff) {
-  /* char me[]="_nrrdFieldCheck_labels", err[BIFF_STRLEN]; */
+  /* char me[]="_nrrdFieldCheck_labels"; */
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(useBiff);
@@ -918,7 +933,8 @@ _nrrdFieldCheck_labels(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_units(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_units", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_units";
+  char err[BIFF_STRLEN];
 
   /* as with labels- the strings themselves don't need checking themselves */
   /* but per-axis units cannot be set for axes with space directions ... */
@@ -931,7 +947,8 @@ _nrrdFieldCheck_units(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_old_min(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_old_min", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_old_min";
+  char err[BIFF_STRLEN];
   int ret;
 
   if ((ret=airIsInf_d(nrrd->oldMin))) {
@@ -944,7 +961,8 @@ _nrrdFieldCheck_old_min(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_old_max(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_old_max", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_old_max";
+  char err[BIFF_STRLEN];
   int ret;
 
   if ((ret=airIsInf_d(nrrd->oldMax))) {
@@ -957,7 +975,7 @@ _nrrdFieldCheck_old_max(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_keyvalue(const Nrrd *nrrd, int useBiff) {
-  /* char me[]="_nrrdFieldCheck_keyvalue", err[BIFF_STRLEN]; */
+  /* char me[]="_nrrdFieldCheck_keyvalue"; */
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(useBiff);
@@ -970,7 +988,8 @@ _nrrdFieldCheck_keyvalue(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_space_units(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_space_units", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_space_units";
+  char err[BIFF_STRLEN];
 
   /* not sure if there's anything to specifically check for the
      space units themselves ... */
@@ -983,7 +1002,8 @@ _nrrdFieldCheck_space_units(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_space_origin", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_space_origin";
+  char err[BIFF_STRLEN];
 
   /* pre-Fri Feb 11 04:25:36 EST 2005, I thought that 
      the spaceOrigin must be known to describe the 
@@ -998,7 +1018,8 @@ _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
 
 int
 _nrrdFieldCheck_measurement_frame(const Nrrd *nrrd, int useBiff) {
-  char me[]="_nrrdFieldCheck_measurement_frame", err[BIFF_STRLEN];
+  static const char me[]="_nrrdFieldCheck_measurement_frame";
+  char err[BIFF_STRLEN];
   
   if (_nrrdFieldCheckSpaceInfo(nrrd, useBiff)) {
     sprintf(err, "%s: space info problem", me);
@@ -1046,7 +1067,8 @@ int
 
 int
 _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
-  char me[]="_nrrdCheck", err[BIFF_STRLEN];
+  static const char me[]="_nrrdCheck";
+  char err[BIFF_STRLEN];
   int fi;
 
   if (!nrrd) {
@@ -1082,11 +1104,11 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
 */
 int
 nrrdCheck(const Nrrd *nrrd) {
-  char me[]="nrrdCheck", err[BIFF_STRLEN];
+  static const char me[]="nrrdCheck";
 
   if (_nrrdCheck(nrrd, AIR_TRUE, AIR_TRUE)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -1103,7 +1125,8 @@ nrrdCheck(const Nrrd *nrrd) {
 */
 int
 nrrdSameSize (const Nrrd *n1, const Nrrd *n2, int useBiff) {
-  char me[]="nrrdSameSize", err[BIFF_STRLEN];
+  static const char me[]="nrrdSameSize";
+  char err[BIFF_STRLEN];
   unsigned int ai;
 
   if (!(n1 && n2)) {
@@ -1264,8 +1287,8 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
 
 int
 _nrrdCheckEnums(void) {
-  char me[]="_nrrdCheckEnums", err[BIFF_STRLEN],
-    which[AIR_STRLEN_SMALL];
+  static const char me[]="_nrrdCheckEnums";
+  char which[AIR_STRLEN_SMALL];
 
   if (nrrdFormatTypeLast-1 != NRRD_FORMAT_TYPE_MAX) {
     strcpy(which, "nrrdFormat"); goto err;
@@ -1311,8 +1334,8 @@ _nrrdCheckEnums(void) {
   return 0;
 
  err:
-  sprintf(err, "%s: Last vs. MAX incompatibility for %s enum", me, which);
-  biffAdd(NRRD, err); return 1;
+  biffAddf(NRRD, "%s: Last vs. MAX incompatibility for %s enum", me, which);
+  return 1;
 }
 
 /*
@@ -1325,7 +1348,7 @@ _nrrdCheckEnums(void) {
 */
 int
 nrrdSanity(void) {
-  char me[]="nrrdSanity", err[BIFF_STRLEN];
+  static const char me[]="nrrdSanity";
   int aret, type;
   size_t maxsize;
   airLLong tmpLLI;
@@ -1344,55 +1367,54 @@ nrrdSanity(void) {
   aret = airSanity();
   if (aret != airInsane_not) {
     if (airInsane_32Bit == aret) {
-      sprintf(err, "%s: (sizeof(size_t) == %u, not %u)", me, 
-	      AIR_CAST(unsigned int, sizeof(size_t)),
-	      AIR_32BIT ? 4 : 8);
-      biffAdd(NRRD, err); 
+      biffAddf(NRRD, "%s: (sizeof(size_t) == %u, not %u)", me, 
+               AIR_CAST(unsigned int, sizeof(size_t)),
+               AIR_32BIT ? 4 : 8);
     }
-    sprintf(err, "%s: airSanity() failed: %s", me, airInsaneErr(aret));
-    biffAdd(NRRD, err);
+    biffAddf(NRRD, "%s: airSanity() failed: %s", me, airInsaneErr(aret));
     return 0;
   }
 
   if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
-    sprintf(err, "%s: nrrdDefaultWriteEncodingType (%d) not in valid "
-            "range [%d,%d]", me, nrrdDefaultWriteEncodingType,
-            nrrdEncodingTypeUnknown+1, nrrdEncodingTypeLast-1);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: nrrdDefaultWriteEncodingType (%d) not in valid "
+             "range [%d,%d]", me, nrrdDefaultWriteEncodingType,
+             nrrdEncodingTypeUnknown+1, nrrdEncodingTypeLast-1);
+    return 0;
   }
   if (airEnumValCheck(nrrdCenter, nrrdDefaultCenter)) {
-    sprintf(err, "%s: nrrdDefaultCenter (%d) not in valid range [%d,%d]",
-            me, nrrdDefaultCenter,
-            nrrdCenterUnknown+1, nrrdCenterLast-1);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: nrrdDefaultCenter (%d) not in valid range [%d,%d]",
+             me, nrrdDefaultCenter,
+             nrrdCenterUnknown+1, nrrdCenterLast-1);
+    return 0;
   }
   /* ---- BEGIN non-NrrdIO */
   if (!( nrrdTypeDefault == nrrdDefaultResampleType
          || !airEnumValCheck(nrrdType, nrrdDefaultResampleType) )) {
-    sprintf(err, "%s: nrrdDefaultResampleType (%d) not in valid range [%d,%d]",
-            me, nrrdDefaultResampleType,
-            nrrdTypeUnknown, nrrdTypeLast-1);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD,
+             "%s: nrrdDefaultResampleType (%d) not in valid range [%d,%d]",
+             me, nrrdDefaultResampleType,
+             nrrdTypeUnknown, nrrdTypeLast-1);
+    return 0;
   }
   if (airEnumValCheck(nrrdBoundary, nrrdDefaultResampleBoundary)) {
-    sprintf(err, "%s: nrrdDefaultResampleBoundary (%d) "
+    biffAddf(NRRD, "%s: nrrdDefaultResampleBoundary (%d) "
             "not in valid range [%d,%d]",
             me, nrrdDefaultResampleBoundary,
             nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
-    biffAdd(NRRD, err); return 0;
+    return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureType)) {
-    sprintf(err, "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
-            me, nrrdStateMeasureType,
-            nrrdTypeUnknown+1, nrrdTypeLast-1);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
+             me, nrrdStateMeasureType,
+             nrrdTypeUnknown+1, nrrdTypeLast-1);
+    return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureHistoType)) {
-    sprintf(err,
-            "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
-            me, nrrdStateMeasureType,
-            nrrdTypeUnknown+1, nrrdTypeLast-1);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD,
+             "%s: nrrdStateMeasureHistoType (%d) not in valid range [%d,%d]",
+             me, nrrdStateMeasureType,
+             nrrdTypeUnknown+1, nrrdTypeLast-1);
+    return 0;
   }
   /* ---- END non-NrrdIO */
 
@@ -1406,30 +1428,30 @@ nrrdSanity(void) {
          && nrrdTypeSize[nrrdTypeULLong] == sizeof(airULLong)
          && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
          && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
-    sprintf(err, "%s: sizeof() for nrrd types has problem: "
-            "expected (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) "
-            "but got (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)", me,
-            (int)nrrdTypeSize[nrrdTypeChar],
-            (int)nrrdTypeSize[nrrdTypeUChar],
-            (int)nrrdTypeSize[nrrdTypeShort],
-            (int)nrrdTypeSize[nrrdTypeUShort],
-            (int)nrrdTypeSize[nrrdTypeInt],
-            (int)nrrdTypeSize[nrrdTypeUInt],
-            (int)nrrdTypeSize[nrrdTypeLLong],
-            (int)nrrdTypeSize[nrrdTypeULLong],
-            (int)nrrdTypeSize[nrrdTypeFloat],
-            (int)nrrdTypeSize[nrrdTypeDouble],
-            (int)sizeof(char),
-            (int)sizeof(unsigned char),
-            (int)sizeof(short),
-            (int)sizeof(unsigned short),
-            (int)sizeof(int),
-            (int)sizeof(unsigned int),
-            (int)sizeof(airLLong),
-            (int)sizeof(airULLong),
-            (int)sizeof(float),
-            (int)sizeof(double));
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: sizeof() for nrrd types has problem: "
+             "expected (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d) "
+             "but got (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d)", me,
+             (int)nrrdTypeSize[nrrdTypeChar],
+             (int)nrrdTypeSize[nrrdTypeUChar],
+             (int)nrrdTypeSize[nrrdTypeShort],
+             (int)nrrdTypeSize[nrrdTypeUShort],
+             (int)nrrdTypeSize[nrrdTypeInt],
+             (int)nrrdTypeSize[nrrdTypeUInt],
+             (int)nrrdTypeSize[nrrdTypeLLong],
+             (int)nrrdTypeSize[nrrdTypeULLong],
+             (int)nrrdTypeSize[nrrdTypeFloat],
+             (int)nrrdTypeSize[nrrdTypeDouble],
+             (int)sizeof(char),
+             (int)sizeof(unsigned char),
+             (int)sizeof(short),
+             (int)sizeof(unsigned short),
+             (int)sizeof(int),
+             (int)sizeof(unsigned int),
+             (int)sizeof(airLLong),
+             (int)sizeof(airULLong),
+             (int)sizeof(float),
+             (int)sizeof(double));
+    return 0;
   }
 
   /* check on NRRD_TYPE_SIZE_MAX */
@@ -1438,65 +1460,66 @@ nrrdSanity(void) {
     maxsize = AIR_MAX(maxsize, nrrdTypeSize[type]);
   }
   if (maxsize != NRRD_TYPE_SIZE_MAX) {
-    sprintf(err, "%s: actual max type size is %d != %d == NRRD_TYPE_SIZE_MAX",
-            me, (int)maxsize, NRRD_TYPE_SIZE_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD,
+             "%s: actual max type size is %d != %d == NRRD_TYPE_SIZE_MAX",
+             me, (int)maxsize, NRRD_TYPE_SIZE_MAX);
+    return 0;
   }
 
   /* check on NRRD_TYPE_BIGGEST */
   if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
-    sprintf(err, "%s: actual max type size is %d != "
-            "%d == sizeof(NRRD_TYPE_BIGGEST)",
-            me, (int)maxsize, (int)sizeof(NRRD_TYPE_BIGGEST));
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: actual max type size is %d != "
+             "%d == sizeof(NRRD_TYPE_BIGGEST)",
+             me, (int)maxsize, (int)sizeof(NRRD_TYPE_BIGGEST));
+    return 0;
   }
   
   /* nrrd-defined type min/max values */
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
-    sprintf(err, "%s: long long int can't hold NRRD_LLONG_MAX ("
-            AIR_ULLONG_FMT ")", me,
-            NRRD_LLONG_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
+             AIR_ULLONG_FMT ")", me,
+             NRRD_LLONG_MAX);
+    return 0;
   }
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
-    sprintf(err, "%s: long long int min (" AIR_LLONG_FMT ") or max ("
-            AIR_LLONG_FMT ") incorrect", me,
-            NRRD_LLONG_MIN, NRRD_LLONG_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: long long int min (" AIR_LLONG_FMT ") or max ("
+             AIR_LLONG_FMT ") incorrect", me,
+             NRRD_LLONG_MIN, NRRD_LLONG_MAX);
+    return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
   if (tmpULLI != NRRD_ULLONG_MAX) {
-    sprintf(err, 
+    biffAddf(NRRD, 
             "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
             AIR_ULLONG_FMT ")",
             me, NRRD_ULLONG_MAX);
-    biffAdd(NRRD, err); return 0;
+    return 0;
   }
   tmpULLI += 1;
   if (tmpULLI != 0) {
-    sprintf(err, "%s: unsigned long long int max (" AIR_ULLONG_FMT 
-            ") incorrect", me,
-            NRRD_ULLONG_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: unsigned long long int max (" AIR_ULLONG_FMT 
+             ") incorrect", me,
+             NRRD_ULLONG_MAX);
+    return 0;
   }
 
   if (_nrrdCheckEnums()) {
-    sprintf(err, "%s: problem with enum definition", me);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: problem with enum definition", me);
+    return 0;
   }
   
   if (!( NRRD_DIM_MAX >= 3 )) {
-    sprintf(err, "%s: NRRD_DIM_MAX == %d seems awfully small, doesn't it?",
-            me, NRRD_DIM_MAX);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: NRRD_DIM_MAX == %d seems awfully small, doesn't it?",
+             me, NRRD_DIM_MAX);
+    return 0;
   }
 
   if (!nrrdTypeIsIntegral[nrrdTypeBlock]) {
-    sprintf(err, "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
-            "could get wacky", me);
-    biffAdd(NRRD, err); return 0;
+    biffAddf(NRRD, "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
+             "could get wacky", me);
+    return 0;
   }
 
   /* HEY: any other assumptions built into Teem? */
