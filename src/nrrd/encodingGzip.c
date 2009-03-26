@@ -183,6 +183,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
   biffAddf(NRRD, "%s: sorry, this nrrd not compiled with gzip enabled", me);
+  return 1;
 #endif
 }
 
@@ -280,6 +281,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   AIR_UNUSED(nio);
   biffAddf(NRRD, "%s: sorry, this nrrd not compiled with zlib "
            "(needed for gzip) enabled", me);
+  return 1;
 #endif
 }
 
