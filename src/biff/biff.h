@@ -58,6 +58,8 @@ BIFF_EXPORT int biffCheck(const char *key);
 BIFF_EXPORT void biffDone(const char *key);
 BIFF_EXPORT void biffMove(const char *destKey, const char *err,
                           const char *srcKey);
+BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
+                           const char *errfmt, ...);
 BIFF_EXPORT char *biffGet(const char *key);
 BIFF_EXPORT int biffGetStrlen(const char *key);
 BIFF_EXPORT void biffSetStr(char *str, const char *key);

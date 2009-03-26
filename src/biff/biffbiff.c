@@ -555,6 +555,18 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
   return;
 }
 
+void
+biffMovef(const char *destKey, const char *srcKey, const char *errfmt, ...) {
+  va_list args;
+  char errstr[BIFF_STRLEN];
+
+  va_start(args, errfmt);
+  vsprintf(errstr, errfmt, args);
+  va_end(args);
+
+  biffMove(destKey, errstr, srcKey);
+}
+
 char *
 biffGetDone(const char *key) {
   char *ret;
