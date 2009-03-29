@@ -659,8 +659,14 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   int stepBad, giveUp;
  
   if (!point->stepEnergy) {
+    fprintf(stderr, "\n%s: whoa, point %u step is zero!!\n\n",
+            me, point->idtag);
+    /*
+    HEY: need to track down how this can originate! 
     sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
     biffAdd(PULL, err); return 1;
+    */
+    point->stepEnergy = task->pctx->stepInitial/100;
   }
   
   /* learn the energy at existing location, and the energy gradient */
@@ -975,7 +981,9 @@ pullGammaLearn(pullContext *pctx) {
 
   /* want to satisfy strdd = str''(s) = enr''(s) = gamma*2/(radiusScale)^2
      ==> strdd*(radiusScale)^2/2 = gamma */
-  pctx->gamma = strdd*(pctx->radiusScale)*(pctx->radiusScale)/2;
+  /* pctx->gamma = strdd*(pctx->radiusScale)*(pctx->radiusScale)/2; */
+  printf("!%s: strdd = %g\n", me, strdd);
+  pctx->gamma = 2/(strdd*(pctx->radiusScale)*(pctx->radiusScale));
 
   return 0;
 }

@@ -489,8 +489,11 @@ typedef struct pullContext_t {
 				      or, 0 to say: "no pop cntl" */
     constraintIterMax,             /* if non-zero, max number of iterations
                                       for enforcing each constraint */
-    snap;                          /* if non-zero, interval between iterations
+    snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
+    ppvZRange[2];                  /* range of indices along Z to do seeding
+                                      by pointPerVoxel, or, {0,0} to do the
+                                      whole volume as normal */
 
   int interType;                   /* from the pullInterType* enum */
   pullEnergySpec *energySpecR,     /* starting point for radial potential

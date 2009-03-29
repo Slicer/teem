@@ -75,6 +75,8 @@ pullContextNew(void) {
   pctx->popCntlPeriod = 20;
   pctx->constraintIterMax = 15;
   pctx->snap = 0;
+  pctx->ppvZRange[0] = 1;
+  pctx->ppvZRange[1] = 0;
   
   pctx->interType = pullInterTypeUnknown;
   pctx->energySpecR = pullEnergySpecNew();
@@ -384,7 +386,7 @@ _pullContextCheck(pullContext *pctx) {
             me, pctx->constraintIterMax, 1, 50);
     biffAdd(PULL, err); return 1;
   }
-  if (pctx->pointPerVoxel < -30 || pctx->pointPerVoxel > 10) {
+  if (pctx->pointPerVoxel < -100 || pctx->pointPerVoxel > 10) {
     sprintf(err, "%s: pointPerVoxel %d unreasonable", me,
             pctx->pointPerVoxel);
     biffAdd(PULL, err); return 1;
@@ -510,8 +512,9 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           eval[0] = AIR_ABS(eval[0]);
           eval[1] = AIR_ABS(eval[1]);
           eval[2] = AIR_ABS(eval[2]);
-          elen = ELL_3V_LEN(eval);
-          eceil = elen ? 6/elen : 6;
+          /* elen = ELL_3V_LEN(eval); */
+          elen = (eval[0]+eval[1]+eval[2]);
+          eceil = elen ? 10/elen : 10;
           eval[0] = eval[0] ? AIR_MIN(eceil, 1.0/eval[0]) : eceil;
           eval[1] = eval[1] ? AIR_MIN(eceil, 1.0/eval[1]) : eceil;
           eval[2] = eval[2] ? AIR_MIN(eceil, 1.0/eval[2]) : eceil;

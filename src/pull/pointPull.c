@@ -369,7 +369,14 @@ _pullProbe(pullTask *task, pullPoint *point) {
   if (!ELL_4V_EXISTS(point->pos)) {
     sprintf(err, "%s: got non-exist pos (%g,%g,%g,%g)", me, 
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    biffAdd(PULL, err); return 1;
+    fprintf(stderr, "\n\n%s!!!\n\n\n", err);
+    /*  HEY: NEED TO track down how this can happen!
+      biffAdd(PULL, err); return 1;
+    */
+    /* can't probe, but make it go away as quickly as possible */
+    ELL_4V_SET(point->pos, 0, 0, 0, 0);
+    point->status |= PULL_STATUS_NIXME_BIT;
+    return 0;
   }
   if (task->pctx->verbose > 3) {
     printf("%s: hello; probing %u volumes\n", me, task->pctx->volNum);
@@ -516,8 +523,15 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   pix = (pix - vidx[0])/seedShape->size[0];
   vidx[1] = pix % seedShape->size[1];
   pix = (pix - vidx[1])/seedShape->size[1];
-  vidx[2] = pix % seedShape->size[2];
-  pix = (pix - vidx[2])/seedShape->size[2];
+  if (pctx->ppvZRange[1] >= pctx->ppvZRange[0]) {
+    unsigned int zrn;
+    zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
+    vidx[2] = (pix % zrn) + pctx->ppvZRange[0];
+    pix = (pix - vidx[2])/zrn;
+  } else {
+    vidx[2] = pix % seedShape->size[2];
+    pix = (pix - vidx[2])/seedShape->size[2];
+  }
   for (k=0; k<=2; k++) {
     iPos[k] = vidx[k] + pctx->jitter*(airDrandMT_r(rng)-0.5);
   }
@@ -816,10 +830,27 @@ _pullPointSetup(pullContext *pctx) {
     /* Obtain number of voxels */
     seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
     seedShape = seedVol->gctx->shape;
-    voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
-    printf("%s: vol size %u %u %u -> voxNum %u\n", me, 
-           seedShape->size[0], seedShape->size[1], seedShape->size[2],
-           voxNum);
+    if (pctx->ppvZRange[1] >= pctx->ppvZRange[0]) {
+      unsigned int zrn;
+      if (!( pctx->ppvZRange[0] < seedShape->size[2]
+             && pctx->ppvZRange[1] < seedShape->size[2] )) {
+        sprintf(err, "%s: ppvZRange[%u,%u] outside volume [0,%u]", me,
+                pctx->ppvZRange[0], pctx->ppvZRange[1],
+                seedShape->size[2]-1);
+        biffAdd(PULL, err); airMopError(mop); return 1;
+      }
+      zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
+      voxNum = seedShape->size[0]*seedShape->size[1]*zrn;
+      printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me, 
+             seedShape->size[0], seedShape->size[1],
+             pctx->ppvZRange[0], pctx->ppvZRange[1],
+             voxNum);
+    } else {
+      voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
+      printf("%s: vol size %u %u %u -> voxNum %u\n", me, 
+             seedShape->size[0], seedShape->size[1], seedShape->size[2],
+             voxNum);
+    }
 
     /* Compute total number of points */
     if (pctx->pointPerVoxel > 0) {
