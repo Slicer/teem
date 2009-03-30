@@ -527,7 +527,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
     unsigned int zrn;
     zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
     vidx[2] = (pix % zrn) + pctx->ppvZRange[0];
-    pix = (pix - vidx[2])/zrn;
+    pix = (pix - (pix % zrn))/zrn;
   } else {
     vidx[2] = pix % seedShape->size[2];
     pix = (pix - vidx[2])/seedShape->size[2];
@@ -536,16 +536,27 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
     iPos[k] = vidx[k] + pctx->jitter*(airDrandMT_r(rng)-0.5);
   }
   gageShapeItoW(seedShape, point->pos, iPos);
+  /*
+  printf("!%s: pointIdx %u -> vidx %u %u %u (%u)\n"
+         "       -> iPos %g %g %g -> wPos %g %g %g\n",
+         me, pointIdx, vidx[0], vidx[1], vidx[2], pix,
+         iPos[0], iPos[1], iPos[2], 
+         point->pos[0], point->pos[1], point->pos[2]);
+  */
 
   /* Compute sigma coordinate from pix */
   if (pctx->haveScale) {
     int outside;
-    double sidx;
+    double aidx, bidx;
     /* pix should already be integer in [0, pctx->numSamplesScale-1)]. */
-    sidx = pix + pctx->jitter*(airDrandMT_r(rng)-0.5);
-    sidx = AIR_AFFINE(-0.5, sidx, pctx->numSamplesScale-0.5, 
+    aidx = pix + pctx->jitter*(airDrandMT_r(rng)-0.5);
+    bidx = AIR_AFFINE(-0.5, aidx, pctx->numSamplesScale-0.5, 
                       0.0, scaleVol->scaleNum-1);
-    point->pos[3] = gageStackItoW(scaleVol->gctx, sidx, &outside);
+    point->pos[3] = gageStackItoW(scaleVol->gctx, bidx, &outside);
+    /*
+    printf("!%s: pix %u -> a %g b %g -> wpos %g\n", me, 
+           pix, aidx, bidx, point->pos[3]);
+    */
   } else {
     point->pos[3] = 0;
   }
@@ -766,6 +777,10 @@ _pullPointInitializePos(pullContext *pctx,
   } else {
     *createFailP = AIR_FALSE;
   }
+  printf("!%s(%u) %g %g %g %g -> %s\n", me, pointIdx, 
+         (posData + 4*pointIdx)[0], (posData + 4*pointIdx)[1],
+         (posData + 4*pointIdx)[2], (posData + 4*pointIdx)[3],
+         *createFailP ? "FAILED" : "good");
 
   return 0;
 }
