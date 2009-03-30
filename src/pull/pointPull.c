@@ -777,10 +777,6 @@ _pullPointInitializePos(pullContext *pctx,
   } else {
     *createFailP = AIR_FALSE;
   }
-  printf("!%s(%u) %g %g %g %g -> %s\n", me, pointIdx, 
-         (posData + 4*pointIdx)[0], (posData + 4*pointIdx)[1],
-         (posData + 4*pointIdx)[2], (posData + 4*pointIdx)[3],
-         *createFailP ? "FAILED" : "good");
 
   return 0;
 }
