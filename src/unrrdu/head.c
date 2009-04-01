@@ -33,31 +33,30 @@ char *_unrrdu_headInfoL =
 
 int
 unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
-  char err[BIFF_STRLEN];
   airArray *mop;
   unsigned int len;
   FILE *fin;
 
   mop = airMopNew();
   if (!( fin = airFopen(inS, stdin, "rb") )) {
-    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
-            me, inS, strerror(errno));
-    biffAdd(me, err); airMopError(mop); return 1;
+    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", 
+             me, inS, strerror(errno));
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
 
   if (_nrrdOneLine(&len, nio, fin)) {
-    sprintf(err, "%s: error getting first line of file \"%s\"", me, inS);
-    biffAdd(me, err); airMopError(mop); return 1;
+    biffAddf(me, "%s: error getting first line of file \"%s\"", me, inS);
+    airMopError(mop); return 1;
   }
   if (!len) {
-    sprintf(err, "%s: immediately hit EOF\n", me);
-    biffAdd(me, err); airMopError(mop); return 1;
+    biffAddf(me, "%s: immediately hit EOF\n", me);
+    airMopError(mop); return 1;
   }
   if (!( nrrdFormatNRRD->contentStartsLike(nio) )) {
-    sprintf(err, "%s: first line (\"%s\") isn't a nrrd magic\n", 
-            me, nio->line);
-    biffAdd(me, err); airMopError(mop); return 1;
+    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n", 
+             me, nio->line);
+    airMopError(mop); return 1;
   }
   while (len > 1) {
     fprintf(fout, "%s\n", nio->line);

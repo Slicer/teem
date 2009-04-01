@@ -101,7 +101,7 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
 int
 tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
                     double *bb, double *ww, int iterMax, double eps) {
-  char me[]="tenBVecNonLinearFit", err[BIFF_STRLEN];
+  static const char me[]="tenBVecNonLinearFit";
   int map[NRRD_DIM_MAX], vecSize, iter;
   size_t ii, size[NRRD_DIM_MAX], vecI, vecNum;
   char *vec;
@@ -109,35 +109,35 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     (*vecLup)(const void *v, size_t I);
 
   if (!( nout && nin && bb && ww )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   
   if (!( nin->dim >= 2 )) {
-    sprintf(err, "%s: nin->dim (%d) not >= 2", me, nin->dim);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: nin->dim (%d) not >= 2", me, nin->dim);
+    return 1;
   }
   if (!( nin->axis[0].size < AIR_STRLEN_SMALL )) {
-    sprintf(err, "%s: sorry need nin->axis[0].size (" 
-            _AIR_SIZE_T_CNV ") < %d", 
-            me, nin->axis[0].size, AIR_STRLEN_SMALL);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: sorry need nin->axis[0].size (" 
+             _AIR_SIZE_T_CNV ") < %d", 
+             me, nin->axis[0].size, AIR_STRLEN_SMALL);
+    return 1;
   }
 
   /* allocate/set-up output */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[0] = 3;
   if (nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, nin->dim, size)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
   for (ii=1; ii<nin->dim; ii++) {
     map[ii] = ii;
   }
   map[0] = -1;
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
-    sprintf(err, "%s: couldn't copy axis info", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
+    return 1;
   }
 
   /* process all b vectors */

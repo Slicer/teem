@@ -33,7 +33,7 @@
 */
 int
 _pushTensorFieldSetup(pushContext *pctx) {
-  char me[]="_pushTensorFieldSetup", err[BIFF_STRLEN];
+  static const char me[]="_pushTensorFieldSetup";
   NrrdRange *nrange;
   airArray *mop;
   Nrrd *ntmp;
@@ -71,8 +71,8 @@ _pushTensorFieldSetup(pushContext *pctx) {
   if (!E) E |= nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
   if (E) {
-    sprintf(err, "%s: trouble creating 3D tensor input", me);
-    biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
+    biffMovef(PUSH, NRRD, "%s: trouble creating 3D tensor input", me);
+    airMopError(mop); return 1;
   }
   _ten = (float*)pctx->nten->data;
   _inv = (float*)pctx->ninv->data;
@@ -92,14 +92,14 @@ _pushTensorFieldSetup(pushContext *pctx) {
 
   if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
   if (E) {
-    sprintf(err, "%s: trouble creating mask", me);
-    biffMove(PUSH, err, NRRD); airMopError(mop); return 1;
+    biffMovef(PUSH, NRRD, "%s: trouble creating mask", me);
+    airMopError(mop); return 1;
   }
   nrange = nrrdRangeNewSet(pctx->nmask, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, nrange, (airMopper)nrrdRangeNix, airMopAlways);
   if (AIR_ABS(1.0 - nrange->max) > 0.005) {
-    sprintf(err, "%s: tensor mask max %g not close 1.0", me, nrange->max);
-    biffAdd(PUSH, err); airMopError(mop); return 1;
+    biffAddf(PUSH, "%s: tensor mask max %g not close 1.0", me, nrange->max);
+    airMopError(mop); return 1;
   }
 
   pctx->nten->axis[1].center = nrrdCenterCell;
@@ -122,7 +122,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
 */
 int
 _pushGageSetup(pushContext *pctx) {
-  char me[]="_pushGageSetup", err[BIFF_STRLEN];
+  static const char me[]="_pushGageSetup";
   gagePerVolume *mpvl;
   int E;
 
@@ -160,8 +160,8 @@ _pushGageSetup(pushContext *pctx) {
   /* HEY: seed threshold item should possibly be turned off later! */
   if (!E) E |= gageUpdate(pctx->gctx);
   if (E) {
-    sprintf(err, "%s: trouble setting up gage", me);
-    biffMove(PUSH, err, GAGE); return 1;
+    biffMovef(PUSH, GAGE, "%s: trouble setting up gage", me);
+    return 1;
   }
 
   return 0;
@@ -169,15 +169,15 @@ _pushGageSetup(pushContext *pctx) {
 
 pushTask *
 _pushTaskNew(pushContext *pctx, int threadIdx) {
-  char me[]="_pushTaskNew", err[BIFF_STRLEN];
+  static const char me[]="_pushTaskNew";
   pushTask *task;
 
   task = (pushTask *)calloc(1, sizeof(pushTask));
   if (task) {
     task->pctx = pctx;
     if (!(task->gctx = gageContextCopy(pctx->gctx))) {
-      sprintf(err, "%s: trouble copying main gageContext", me);
-      biffMove(PUSH, err, GAGE); return NULL;
+      biffMovef(PUSH, GAGE, "%s: trouble copying main gageContext", me);
+      return NULL;
     }
     /* 
     ** HEY: its a limitation in gage that we have to know a priori
@@ -239,13 +239,13 @@ _pushTaskNix(pushTask *task) {
 */
 int
 _pushTaskSetup(pushContext *pctx) {
-  char me[]="_pushTaskSetup", err[BIFF_STRLEN];
+  static const char me[]="_pushTaskSetup";
   unsigned int tidx;
 
   pctx->task = (pushTask **)calloc(pctx->threadNum, sizeof(pushTask *));
   if (!(pctx->task)) {
-    sprintf(err, "%s: couldn't allocate array of tasks", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: couldn't allocate array of tasks", me);
+    return 1;
   }
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
     if (pctx->verbose) {
@@ -253,8 +253,8 @@ _pushTaskSetup(pushContext *pctx) {
     }
     pctx->task[tidx] = _pushTaskNew(pctx, tidx);
     if (!(pctx->task[tidx])) {
-      sprintf(err, "%s: couldn't allocate task %d", me, tidx);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: couldn't allocate task %d", me, tidx);
+      return 1;
     }
   }
   return 0;
@@ -269,7 +269,7 @@ _pushTaskSetup(pushContext *pctx) {
 */
 int
 _pushBinSetup(pushContext *pctx) {
-  char me[]="_pushBinSetup", err[BIFF_STRLEN];
+  static const char me[]="_pushBinSetup";
   float eval[3], *tdata;
   unsigned int ii, nn, count;
   double col[3][4], volEdge[3];
@@ -343,8 +343,8 @@ _pushBinSetup(pushContext *pctx) {
   }
   pctx->bin = (pushBin *)calloc(pctx->binNum, sizeof(pushBin));
   if (!( pctx->bin )) {
-    sprintf(err, "%s: trouble allocating bin arrays", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: trouble allocating bin arrays", me);
+    return 1;
   }
   for (ii=0; ii<pctx->binNum; ii++) {
     pushBinInit(pctx->bin + ii, pctx->binIncr);
@@ -365,7 +365,7 @@ _pushBinSetup(pushContext *pctx) {
 */
 int
 _pushPointSetup(pushContext *pctx) {
-  char me[]="_pushPointSetup", err[BIFF_STRLEN];
+  static const char me[]="_pushPointSetup";
   double (*lup)(const void *v, size_t I), maxDet;
   unsigned int pointIdx;
   pushPoint *point;
@@ -397,8 +397,8 @@ _pushPointSetup(pushContext *pctx) {
                  lup(pctx->npos->data, 1 + 3*pointIdx),
                  lup(pctx->npos->data, 2 + 3*pointIdx));
       if (_pushProbe(pctx->task[0], point)) {
-        sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
-        biffAdd(PUSH, err); return 1;
+        biffAddf(PUSH, "%s: probing pointIdx %u of npos", me, pointIdx);
+        return 1;
       }
     } else {
       /*
@@ -429,8 +429,8 @@ _pushPointSetup(pushContext *pctx) {
                 point->pos[0], point->pos[1], point->pos[2]);
         */
         if (_pushProbe(pctx->task[0], point)) {
-          sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
-          biffAdd(PUSH, err); return 1;
+          biffAddf(PUSH, "%s: probing pointIdx %u of world", me, pointIdx);
+          return 1;
         }
         detProbe = TEN_T_DET(point->ten);
 
@@ -465,8 +465,8 @@ _pushPointSetup(pushContext *pctx) {
                );
     }
     if (pushBinPointAdd(pctx, point)) {
-      sprintf(err, "%s: trouble binning point %u", me, point->ttaagg);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: trouble binning point %u", me, point->ttaagg);
+      return 1;
     }
   }
   fprintf(stderr, "!%s: ... seeding DONE\n", me);

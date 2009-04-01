@@ -59,16 +59,16 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
-  char me[]="_tenEMBimodalInit", err[BIFF_STRLEN];
+  static const char me[]="_tenEMBimodalInit";
   int i, median;
   Nrrd *nhisto;
   double medianD, sum;
   airArray *mop;
 
   if (!( biparm->maxIteration > 5 )) {
-    sprintf(err, "%s: biparm->maxIteration = %d too small", me, 
-            biparm->maxIteration);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: biparm->maxIteration = %d too small", me, 
+             biparm->maxIteration);
+    return 1;
   }
   
   mop = airMopNew();
@@ -76,8 +76,8 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   airMopAdd(mop, nhisto, (airMopper)nrrdNuke, airMopOnError);
   airMopAdd(mop, nhisto, (airMopper)nrrdNix, airMopOnOkay);
   if (nrrdConvert(nhisto, _nhisto, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting histogram to double", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble converting histogram to double", me);
+    airMopError(mop); return 1;
   }
   biparm->N = nhisto->axis[0].size;
   biparm->histo = (double*)(nhisto->data);
@@ -100,16 +100,17 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     biparm->histo[i] /= sum;
   }
   if (!AIR_EXISTS(medianD)) {
-    sprintf(err, "%s: got empty histogram? (median calculation failed)", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD,
+              "%s: got empty histogram? (median calculation failed)", me);
+    airMopError(mop); return 1;
   }
   median = (int)medianD;
 
   biparm->pp1 = (double*)calloc(biparm->N, sizeof(double));
   biparm->pp2 = (double*)calloc(biparm->N, sizeof(double));
   if (!( biparm->pp1 && biparm->pp2 )) {
-    sprintf(err, "%s: couldn't allocate posterior prob. buffers", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: couldn't allocate posterior prob. buffers", me);
+    airMopError(mop); return 1;
   }
 
   /* get mean and stdv of bins below median */
@@ -305,7 +306,7 @@ _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
-  char me[]="_tenEMBimodalIterate";
+  static const char me[]="_tenEMBimodalIterate";
   double om1, os1, om2, os2, of1, m1, s1, m2, s2, f1;
 
   /* copy old values */
@@ -348,7 +349,7 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
-  char me[]="_tenEMBimodalConfThresh", err[BIFF_STRLEN];
+  static const char me[]="_tenEMBimodalConfThresh";
   double m1, s1, m2, s2, f1, f2, A, B, C, D, t1, t2;
 
   biparm->confidence = ((biparm->mean2 - biparm->mean1)
@@ -364,8 +365,8 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   C = s1*s1*m2*m2 - s2*s2*m1*m1 + 4*s1*s1*s2*s2*log(s2*f1/(s1*f2));
   D = B*B - 4*A*C;
   if (D < 0) {
-    sprintf(err, "%s: threshold descriminant went negative (%g)", me, D);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: threshold descriminant went negative (%g)", me, D);
+    return 1;
   }
   t1 = (-B + sqrt(D))/(2*A);
   if (AIR_IN_OP(m1, t1, m2)) {
@@ -375,9 +376,10 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
     if (AIR_IN_OP(m1, t2, m2)) {
       biparm->threshold = t2;
     } else {
-      sprintf(err, "%s: neither computed threshold %g,%g inside open interval "
-              "between means (%g,%g)", me, t1, t2, m1, m2);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN,
+               "%s: neither computed threshold %g,%g inside open interval "
+               "between means (%g,%g)", me, t1, t2, m1, m2);
+      return 1;
     }
   }
 
@@ -390,55 +392,55 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
 
 int
 _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
-  char me[]="_tenEMBimodalCheck", err[BIFF_STRLEN];
+  static const char me[]="_tenEMBimodalCheck";
 
   if (!( biparm->confidence > biparm->minConfidence )) {
-    sprintf(err, "%s: confidence %g went below threshold %g", me,
-            biparm->confidence, biparm->minConfidence);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: confidence %g went below threshold %g", me,
+             biparm->confidence, biparm->minConfidence);
+    return 1;
   }
   if (!( biparm->stdv1 > 0 && biparm->stdv2 > 0 )) {
-    sprintf(err, "%s: stdv of material 1 (%g) or 2 (%g) went negative", me,
-            biparm->stdv1, biparm->stdv2);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: stdv of material 1 (%g) or 2 (%g) went negative", me,
+             biparm->stdv1, biparm->stdv2);
+    return 1;
   }
   if (!( biparm->mean1 > 0 && biparm->mean1 < biparm->N-1
          && biparm->mean2 > 0 && biparm->mean2 < biparm->N-1 )) {
-    sprintf(err, "%s: mean of material 1 (%g) or 2 (%g) went outside "
-            "given histogram range [0 .. %d]", me,
-            biparm->mean1, biparm->mean2, biparm->N-1);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: mean of material 1 (%g) or 2 (%g) went outside "
+             "given histogram range [0 .. %d]", me,
+             biparm->mean1, biparm->mean2, biparm->N-1);
+    return 1;
   }
   if (biparm->fraction1 < biparm->minFraction) {
-    sprintf(err, "%s: material 1 fraction (%g) fell below threshold %g", me,
-            biparm->fraction1, biparm->minFraction);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: material 1 fraction (%g) fell below threshold %g", me,
+             biparm->fraction1, biparm->minFraction);
+    return 1;
   }
   if (1 - biparm->fraction1 < biparm->minFraction) {
-    sprintf(err, "%s: material 2 fraction (%g) fell below threshold %g", me,
-            1 - biparm->fraction1, biparm->minFraction);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: material 2 fraction (%g) fell below threshold %g", me,
+             1 - biparm->fraction1, biparm->minFraction);
+    return 1;
   }
   return 0;
 }
 
 int
 tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
-  char me[]="tenEMBimodal", err[BIFF_STRLEN];
+  static const char me[]="tenEMBimodal";
   int done, _iter;
   
   if (!(biparm && _nhisto)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( 1 == _nhisto->dim )) {
-    sprintf(err, "%s: histogram must be 1-D, not %d-D", me, _nhisto->dim);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: histogram must be 1-D, not %d-D", me, _nhisto->dim);
+    return 1;
   }
 
   if (_tenEMBimodalInit(biparm, _nhisto)) {
-    sprintf(err, "%s: trouble initializing parameters", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble initializing parameters", me);
+    return 1;
   }
 
   done = AIR_FALSE;
@@ -452,9 +454,9 @@ tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
       if (_tenEMBimodalIterate(biparm)    /* sets delta */
           || _tenEMBimodalConfThresh(biparm)
           || _tenEMBimodalCheck(biparm)) {
-        sprintf(err, "%s: problem with fitting (iter=%d)", me,
-                biparm->iteration);
-        biffAdd(TEN, err); return 1;
+        biffAddf(TEN, "%s: problem with fitting (iter=%d)", me,
+                 biparm->iteration);
+        return 1;
       }
       if (biparm->delta < biparm->minDelta
           && (!biparm->twoStage || 1 == biparm->stage || _iter > 10) ) {
@@ -464,9 +466,9 @@ tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     }
   }
   if (!done) {
-    sprintf(err, "%s: didn't converge after %d iterations", me, 
-            biparm->maxIteration);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't converge after %d iterations", me, 
+             biparm->maxIteration);
+    return 1;
   }
   
   return 0;

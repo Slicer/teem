@@ -347,7 +347,7 @@ _tenQGLInterpNEval(double evalOut[3],
                    const double *wght,   /* size NN */
                    unsigned int NN,
                    int ptype, tenInterpParm *tip) {
-  char me[]="_tenQGLInterpNEval", err[BIFF_STRLEN];
+  static const char me[]="_tenQGLInterpNEval";
   double RTh_Out[3], elen;
   unsigned int ii, iter;
   int rttype;
@@ -355,8 +355,8 @@ _tenQGLInterpNEval(double evalOut[3],
   void (*lexp)(double RTh_B[3], const double RTh_A[3], const double lg[3]);
 
   if (!(evalOut && evalIn && tip)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   /* convert to (R,Th,_) and initialize RTh_Out */
   if (tenInterpTypeQuatGeoLoxK == ptype) {
@@ -398,10 +398,10 @@ _tenQGLInterpNEval(double evalOut[3],
   } while ((!tip->maxIter || iter < tip->maxIter) && elen > tip->convEps);
 
   if (elen > tip->convEps) {
-    sprintf(err, "%s: still have error %g (> eps %g) after max %d iters", me,
-            elen, tip->convEps, tip->maxIter);
     ELL_3V_SET(evalOut, AIR_NAN, AIR_NAN, AIR_NAN);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: still have error %g (> eps %g) after max %d iters", me,
+             elen, tip->convEps, tip->maxIter);
+    return 1;
   }
 
   /* finish, convert to eval */
@@ -459,13 +459,13 @@ _tenQGLInterpNEvec(double evecOut[9],
                    const double *wght,   /* size NN */
                    unsigned int NN,
                    tenInterpParm *tip) {
-  char me[]="_tenQGLInterpNEvec", err[BIFF_STRLEN];
+  static const char me[]="_tenQGLInterpNEvec";
   double qOut[4], maxWght, len, odsum, dsum, rot[9];
   unsigned int ii, centerIdx=0, fix, qiter;
 
   if (!( evecOut && evecIn && tip )) {
-    sprintf(err, "%s: got NULL pointer", me); 
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me); 
+    return 1;
   }
   /* convert to quaternions */
   for (ii=0; ii<NN; ii++) {
@@ -510,10 +510,10 @@ _tenQGLInterpNEvec(double evecOut[9],
     }
     dsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN);
     if (tip->maxIter && qiter > tip->maxIter) {
-      sprintf(err, "%s: q tightening unconverged after %u iters; "
-              "interdot = %g -> maxfix = %u; center = %u\n", 
-              me, tip->maxIter, dsum, fix, centerIdx);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: q tightening unconverged after %u iters; "
+               "interdot = %g -> maxfix = %u; center = %u\n", 
+               me, tip->maxIter, dsum, fix, centerIdx);
+      return 1;
     }
     qiter++;
   } while (fix);
@@ -528,8 +528,8 @@ _tenQGLInterpNEvec(double evecOut[9],
   /* compute iterated weighted mean, stored in qOut */
   if (ell_q_avgN_d(qOut, &qiter, tip->qIn, tip->qBuff, wght,
                    NN, tip->convEps, tip->maxIter)) {
-    sprintf(err, "%s: problem doing quaternion mean", me);
-    biffMove(TEN, err, ELL); return 1;
+    biffMovef(TEN, ELL, "%s: problem doing quaternion mean", me);
+    return 1;
   }
   /*
   fprintf(stderr, "!%s: q avg converged in %u\n", me, qiter);

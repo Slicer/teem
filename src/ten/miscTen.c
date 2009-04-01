@@ -27,7 +27,7 @@
 int
 tenEvecRGB(Nrrd *nout, const Nrrd *nin,
            const tenEvecRGBParm *rgbp) {
-  char me[]="tenEvecRGB", err[BIFF_STRLEN];
+  static const char me[]="tenEvecRGB";
   size_t size[NRRD_DIM_MAX];
   float (*lup)(const void *, size_t), (*ins)(void *, size_t, float);
   float ten[7], eval[3], evec[9], RGB[3];
@@ -36,18 +36,18 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   unsigned short *odataUS;
   
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer (%p,%p)",
+    biffAddf(TEN, "%s: got NULL pointer (%p,%p)",
             me, AIR_CAST(void *, nout), AIR_CAST(void *, nin));
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
   if (tenEvecRGBParmCheck(rgbp)) {
-    sprintf(err, "%s: RGB parm trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: RGB parm trouble", me);
+    return 1;
   }
   if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
-    sprintf(err, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 (not "
+    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 (not "
             _AIR_SIZE_T_CNV ")", me, nin->dim, nin->axis[0].size);
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
 
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
@@ -55,8 +55,8 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   if (nrrdMaybeAlloc_nva(nout, (nrrdTypeDefault == rgbp->typeOut
                                 ? nin->type 
                                 : rgbp->typeOut), nin->dim, size)) {
-    sprintf(err, "%s: couldn't alloc output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
+    return 1;
   }
   odataUC = AIR_CAST(unsigned char *, nout->data);
   odataUS = AIR_CAST(unsigned short *, nout->data);
@@ -99,14 +99,14 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     }
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
-    sprintf(err, "%s: couldn't copy axis info", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
+    return 1;
   }
   nout->axis[0].kind = nrrdKind3Color;
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s:", me);
+    return 1;
   }
   
   return 0;
@@ -116,7 +116,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
 
 short
 tenEvqSingle(float vec[3], float scl) {
-  char me[]="tenEvqSingle";
+  static const char me[]="tenEvqSingle";
   float tmp, L1;
   int mi, bins, base, vi, ui;
   short ret;
@@ -151,7 +151,7 @@ tenEvqSingle(float vec[3], float scl) {
 int
 tenEvqVolume(Nrrd *nout,
              const Nrrd *nin, int which, int aniso, int scaleByAniso) {
-  char me[]="tenEvqVolume", err[BIFF_STRLEN];
+  static const char me[]="tenEvqVolume";
   int map[3];
   short *qdata;
   const float *tdata;
@@ -159,30 +159,30 @@ tenEvqVolume(Nrrd *nout,
   size_t N, I, sx, sy, sz;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(AIR_IN_CL(0, which, 2))) {
-    sprintf(err, "%s: eigenvector index %d not in range [0..2]", me, which);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: eigenvector index %d not in range [0..2]", me, which);
+    return 1;
   }
   if (scaleByAniso) {
     if (airEnumValCheck(tenAniso, aniso)) {
-      sprintf(err, "%s: anisotropy metric %d not valid", me, aniso);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: anisotropy metric %d not valid", me, aniso);
+      return 1;
     }
   }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a valid DT volume", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get a valid DT volume", me);
+    return 1;
   }
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeShort, 3,
                         sx, sy, sz)) {
-    sprintf(err, "%s: can't allocate output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: can't allocate output", me);
+    return 1;
   }
   N = sx*sy*sz;
   tdata = (float *)nin->data;
@@ -200,13 +200,13 @@ tenEvqVolume(Nrrd *nout,
   ELL_3V_SET(map, 1, 2, 3);
   if (nrrdAxisInfoCopy(nout, nin, map, (NRRD_AXIS_INFO_SIZE_BIT
                                         | NRRD_AXIS_INFO_KIND_BIT) )) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble", me);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s:", me);
+    return 1;
   }
   
   return 0;
@@ -214,33 +214,33 @@ tenEvqVolume(Nrrd *nout,
 
 int
 tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
-  char me[]="tenBMatrixCheck", err[BIFF_STRLEN];
+  static const char me[]="tenBMatrixCheck";
 
   if (nrrdCheck(nbmat)) {
-    sprintf(err, "%s: basic validity check failed", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
+    return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
-    sprintf(err, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
-            "x? %d-D array)",
-            me, nbmat->axis[0].size, nbmat->dim);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
+             "x? %d-D array)",
+             me, nbmat->axis[0].size, nbmat->dim);
+    return 1;
   }
   if (nrrdTypeDefault != type && type != nbmat->type) {
-    sprintf(err, "%s: requested type %s but got type %s", me,
-            airEnumStr(nrrdType, type), airEnumStr(nrrdType, nbmat->type));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: requested type %s but got type %s", me,
+             airEnumStr(nrrdType, type), airEnumStr(nrrdType, nbmat->type));
+    return 1;
   }
   if (nrrdTypeBlock == nbmat->type) {
-    sprintf(err, "%s: sorry, can't use %s type", me, 
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: sorry, can't use %s type", me, 
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   if (!( minnum <= nbmat->axis[1].size )) {
-    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " B-matrices, "
-            "need at least %d",
-            me, nbmat->axis[1].size, minnum);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: have only " _AIR_SIZE_T_CNV " B-matrices, "
+             "need at least %d",
+             me, nbmat->axis[1].size, minnum);
+    return 1;
   }
 
   return 0;
@@ -258,7 +258,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
 */
 int
 _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
-  char me[]="_tenFindValley", err[BIFF_STRLEN];
+  static const char me[]="_tenFindValley";
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
   float *hist, *histD, *histDD;
@@ -292,8 +292,8 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
                             nrrdKernelBCCubicD, dparm, &bins, NULL)
       || nrrdSimpleResample(nhistDD, ntmpB,
                             nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
-    sprintf(err, "%s: trouble processing histogram", me);
-    biffMove(TEN, err, NRRD), airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble processing histogram", me);
+    airMopError(mop); return 1;
   }
   if (save) {
     nrrdSave("tmp-histA.nrrd", ntmpA, NULL);
@@ -318,8 +318,8 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
     }
   }
   if (bb == bins-1) {
-    sprintf(err, "%s: never saw a satisfactory zero crossing", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: never saw a satisfactory zero crossing", me);
+    airMopError(mop); return 1;
   }
 
   *valP = nrrdAxisInfoPos(nhist, 0, AIR_AFFINE(0, tweak, 1, maxbb, bb));

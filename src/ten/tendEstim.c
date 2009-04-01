@@ -35,7 +35,7 @@ char *_tend_estimInfoL =
 
 int
 tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
-  char me[]="tend_estimThresholdFind", err[BIFF_STRLEN];
+  static const char me[]="tend_estimThresholdFind";
   Nrrd **ndwi;
   airArray *mop;
   unsigned int slIdx, slNum, dwiAx, dwiNum,
@@ -46,12 +46,12 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
   mop = airMopNew();
 
   if (!(threshP && nbmat && nin4d)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    airMopError(mop); return 1;
   }
   if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
-    sprintf(err, "%s: problem within given b-matrix", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: problem within given b-matrix", me);
+    airMopError(mop); return 1;
   }
 
   /* HEY: copied from tenEpiRegister4D() */
@@ -63,9 +63,9 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     /* thankfully there's exactly one range axis */
     dwiAx = rangeAxisIdx[0];
   } else {
-    sprintf(err, "%s: have %u range axes instead of 1, don't know which "
-            "is DWI axis", me, rangeAxisNum);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: have %u range axes instead of 1, don't know which "
+             "is DWI axis", me, rangeAxisNum);
+    airMopError(mop); return 1;
   }
 
   slNum = nin4d->axis[dwiAx].size;
@@ -81,8 +81,8 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     bmat += 6;
   }
   if (0 == dwiNum) {
-    sprintf(err, "%s: somehow got zero DWIs", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: somehow got zero DWIs", me);
+    airMopError(mop); return 1;
   }
   ndwi = AIR_CAST(Nrrd **, calloc(dwiNum, sizeof(Nrrd *)));
   airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
@@ -99,15 +99,15 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
       ndwi[dwiIdx] = nrrdNew();
       airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdSlice(ndwi[dwiIdx], nin4d, dwiAx, slIdx)) {
-        sprintf(err, "%s: trouble slicing DWI at index %u", me, slIdx);
-        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+        biffMovef(TEN, NRRD, "%s: trouble slicing DWI at index %u", me, slIdx);
+        airMopError(mop); return 1;
       }
     }
     bmat += 6;
   }
   if (_tenEpiRegThresholdFind(threshP, ndwi, dwiNum, AIR_FALSE, 1.5)) {
-    sprintf(err, "%s: trouble finding thresh", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: trouble finding thresh", me);
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);

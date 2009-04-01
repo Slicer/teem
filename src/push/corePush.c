@@ -29,7 +29,7 @@
 */
 int
 _pushProcess(pushTask *task) {
-  char me[]="_pushProcess", err[BIFF_STRLEN];
+  static const char me[]="_pushProcess";
   unsigned int binIdx;
   
   while (task->pctx->binIdx < task->pctx->binNum) {
@@ -53,9 +53,9 @@ _pushProcess(pushTask *task) {
     }
     
     if (pushBinProcess(task, binIdx)) {
-      sprintf(err, "%s(%u): had trouble on bin %u", me,
-              task->threadIdx, binIdx);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s(%u): had trouble on bin %u", me,
+               task->threadIdx, binIdx);
+      return 1;
     }
 
   }
@@ -65,7 +65,7 @@ _pushProcess(pushTask *task) {
 /* the main loop for each worker thread */
 void *
 _pushWorker(void *_task) {
-  char me[]="_pushWorker", err[BIFF_STRLEN];
+  static const char me[]="_pushWorker";
   pushTask *task;
   
   task = (pushTask *)_task;
@@ -89,8 +89,7 @@ _pushWorker(void *_task) {
     }
     if (_pushProcess(task)) {
       /* HEY clearly not threadsafe ... */
-      sprintf(err, "%s: thread %u trouble", me, task->threadIdx);
-      biffAdd(PUSH, err); 
+      biffAddf(PUSH, "%s: thread %u trouble", me, task->threadIdx);
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
@@ -105,80 +104,80 @@ _pushWorker(void *_task) {
 
 int
 _pushContextCheck(pushContext *pctx) {
-  char me[]="_pushContextCheck", err[BIFF_STRLEN];
+  static const char me[]="_pushContextCheck";
   unsigned int numSingle;
   
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( pctx->pointNum >= 1 )) {
-    sprintf(err, "%s: pctx->pointNum (%d) not >= 1\n", me, pctx->pointNum);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: pctx->pointNum (%d) not >= 1\n", me, pctx->pointNum);
+    return 1;
   }
   if (!( AIR_IN_CL(1, pctx->threadNum, PUSH_THREAD_MAXNUM) )) {
-    sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
-            pctx->threadNum, PUSH_THREAD_MAXNUM);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
+             pctx->threadNum, PUSH_THREAD_MAXNUM);
+    return 1;
   }
 
   if (nrrdCheck(pctx->nin)) {
-    sprintf(err, "%s: got a broken input nrrd", me);
-    biffMove(PUSH, err, NRRD); return 1;
+    biffMovef(PUSH, NRRD, "%s: got a broken input nrrd", me);
+    return 1;
   }
   if (!( (4 == pctx->nin->dim && 7 == pctx->nin->axis[0].size) )) {
-    sprintf(err, "%s: input doesn't look like 3D masked tensor volume", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: input doesn't look like 3D masked tensor volume", me);
+    return 1;
   }
   numSingle = 0;
   numSingle += (1 == pctx->nin->axis[1].size);
   numSingle += (1 == pctx->nin->axis[2].size);
   numSingle += (1 == pctx->nin->axis[3].size);
   if (numSingle > 1) {
-    sprintf(err, "%s: can have a single sample along at most one axis", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: can have a single sample along at most one axis", me);
+    return 1;
   }
 
   if (pctx->npos) {
     if (nrrdCheck(pctx->npos)) {
-      sprintf(err, "%s: got a broken position nrrd", me);
-      biffMove(PUSH, err, NRRD); return 1;
+      biffMovef(PUSH, NRRD, "%s: got a broken position nrrd", me);
+      return 1;
     }
     if (!( 2 == pctx->npos->dim 
            && 3 == pctx->npos->axis[0].size )) {
-      sprintf(err, "%s: position nrrd not 2-D 3-by-N", me);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: position nrrd not 2-D 3-by-N", me);
+      return 1;
     }
   }
   if (tenGageUnknown != pctx->gravItem) {
     if (airEnumValCheck(tenGage, pctx->gravItem)) {
-      sprintf(err, "%s: gravity item %u invalid", me, pctx->gravItem);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: gravity item %u invalid", me, pctx->gravItem);
+      return 1;
     }
     if (1 != tenGageKind->table[pctx->gravItem].answerLength) {
-      sprintf(err, "%s: answer length of gravity item %s is %u, not 1", me,
-              airEnumStr(tenGage, pctx->gravItem),
-              tenGageKind->table[pctx->gravItem].answerLength);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: answer length of gravity item %s is %u, not 1", me,
+               airEnumStr(tenGage, pctx->gravItem),
+               tenGageKind->table[pctx->gravItem].answerLength);
+      return 1;
     }
     if (airEnumValCheck(tenGage, pctx->gravGradItem)) {
-      sprintf(err, "%s: gravity gradient item %u invalid",
-              me, pctx->gravGradItem);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: gravity gradient item %u invalid",
+               me, pctx->gravGradItem);
+      return 1;
     }
     if (3 != tenGageKind->table[pctx->gravGradItem].answerLength) {
-      sprintf(err, "%s: answer length of gravity grad item %s is %u, not 3",
-              me, airEnumStr(tenGage, pctx->gravGradItem),
-              tenGageKind->table[pctx->gravGradItem].answerLength);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: answer length of gravity grad item %s is %u, not 3",
+               me, airEnumStr(tenGage, pctx->gravGradItem),
+               tenGageKind->table[pctx->gravGradItem].answerLength);
+      return 1;
     }
     if (!AIR_EXISTS(pctx->gravScl)) {
-      sprintf(err, "%s: gravity scaling doesn't exist", me);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: gravity scaling doesn't exist", me);
+      return 1;
     }
     if (!AIR_EXISTS(pctx->gravZero)) {
-      sprintf(err, "%s: gravity zero doesn't exist", me);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: gravity zero doesn't exist", me);
+      return 1;
     }
   }
   return 0;
@@ -186,12 +185,12 @@ _pushContextCheck(pushContext *pctx) {
 
 int
 pushStart(pushContext *pctx) {
-  char me[]="pushStart", err[BIFF_STRLEN];
+  static const char me[]="pushStart";
   unsigned int tidx;
 
   if (_pushContextCheck(pctx)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: trouble", me);
+    return 1;
   }
 
   airSrandMT(pctx->seedRNG);
@@ -204,8 +203,8 @@ pushStart(pushContext *pctx) {
       || _pushTaskSetup(pctx)
       || _pushBinSetup(pctx)
       || _pushPointSetup(pctx)) {
-    sprintf(err, "%s: trouble setting up context", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: trouble setting up context", me);
+    return 1;
   }
   fprintf(stderr, "!%s: setup done-ish\n", me);
 
@@ -240,14 +239,14 @@ pushStart(pushContext *pctx) {
 */
 int
 pushIterate(pushContext *pctx) {
-  char me[]="pushIterate", err[BIFF_STRLEN];
+  static const char me[]="pushIterate";
   unsigned int ti, pointNum;
   double time0, time1;
   int myError;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: got NULL pointer", me);
+    return 1;
   }
   
   if (pctx->verbose) {
@@ -274,8 +273,7 @@ pushIterate(pushContext *pctx) {
   }
   myError = AIR_FALSE;
   if (_pushProcess(pctx->task[0])) {
-    sprintf(err, "%s: master thread trouble w/ iter %u", me, pctx->iter);
-    biffAdd(PUSH, err);
+    biffAddf(PUSH, "%s: master thread trouble w/ iter %u", me, pctx->iter);
     pctx->finished = AIR_TRUE;
     myError = AIR_TRUE;
   }
@@ -285,8 +283,7 @@ pushIterate(pushContext *pctx) {
   if (pctx->finished) {
     if (!myError) {
       /* we didn't set finished- one of the workers must have */
-      sprintf(err, "%s: worker error on iter %u", me, pctx->iter);
-      biffAdd(PUSH, err); 
+      biffAddf(PUSH, "%s: worker error on iter %u", me, pctx->iter);
     }
     return 1;
   }
@@ -301,8 +298,8 @@ pushIterate(pushContext *pctx) {
   }
   pctx->deltaFrac /= pointNum;
   if (pushRebin(pctx)) {
-    sprintf(err, "%s: problem with new point locations", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: problem with new point locations", me);
+    return 1;
   }
 
   time1 = airTime();
@@ -315,15 +312,15 @@ pushIterate(pushContext *pctx) {
 
 int
 pushRun(pushContext *pctx) {
-  char me[]="pushRun", err[BIFF_STRLEN],
-    poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
+  static const char me[]="pushRun";
+  char poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
   Nrrd *npos, *nten;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
   
   if (pushIterate(pctx)) {
-    sprintf(err, "%s: trouble on starting iteration", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: trouble on starting iteration", me);
+    return 1;
   }
   fprintf(stderr, "!%s: starting pctx->energySum = %g\n", me, pctx->energySum);
 
@@ -332,8 +329,8 @@ pushRun(pushContext *pctx) {
   do {
     enrLast = pctx->energySum;
     if (pushIterate(pctx)) {
-      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: trouble on iter %d", me, pctx->iter);
+      return 1;
     }
     if (pctx->snap && !(pctx->iter % pctx->snap)) {
       nten = nrrdNew();
@@ -341,13 +338,15 @@ pushRun(pushContext *pctx) {
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
       sprintf(toutS, "snap.%06d.ten.nrrd", pctx->iter);
       if (pushOutputGet(npos, nten, NULL, pctx)) {
-        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
-        biffAdd(PUSH, err); return 1;
+        biffAddf(PUSH, "%s: couldn't get snapshot for iter %d",
+                 me, pctx->iter);
+        return 1;
       }
       if (nrrdSave(poutS, npos, NULL)
           || nrrdSave(toutS, nten, NULL)) {
-        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
-        biffMove(PUSH, err, NRRD); return 1;
+        biffMovef(PUSH, NRRD, "%s: couldn't save snapshot for iter %d",
+                  me, pctx->iter);
+        return 1;
       }
       nten = nrrdNuke(nten);
       npos = nrrdNuke(npos);
@@ -408,12 +407,12 @@ pushRun(pushContext *pctx) {
 */
 int
 pushFinish(pushContext *pctx) {
-  char me[]="pushFinish", err[BIFF_STRLEN];
+  static const char me[]="pushFinish";
   unsigned int ii, tidx;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: got NULL pointer", me);
+    return 1;
   }
 
   pctx->finished = AIR_TRUE;

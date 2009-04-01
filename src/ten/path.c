@@ -66,7 +66,7 @@ tenInterpParmNew(void) {
 */
 int
 tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
-  char me[]="tenInterpParmBufferAlloc", err[BIFF_STRLEN];
+  static const char me[]="tenInterpParmBufferAlloc";
 
   if (0 == num) {
     /* user wants to free buffers for some reason */
@@ -79,8 +79,8 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
     tip->qInter = airFree(tip->qInter);
     tip->allocLen = 0;
   } else if (1 == num) {
-    sprintf(err, "%s: need num >= 2 (not %u)", me, num);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need num >= 2 (not %u)", me, num);
+    return 1;
   } else if (num != tip->allocLen) {
     tip->eval = airFree(tip->eval);
     tip->evec = airFree(tip->evec);
@@ -99,12 +99,12 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
     if (!(tip->eval && tip->evec && 
           tip->rtIn && tip->rtLog &&
           tip->qIn && tip->qBuff && tip->qInter)) {
-      sprintf(err, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
+      biffAddf(TEN, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
               AIR_CAST(void *, tip->eval), AIR_CAST(void *, tip->evec),
               AIR_CAST(void *, tip->rtIn), AIR_CAST(void *, tip->rtLog),
               AIR_CAST(void *, tip->qIn), AIR_CAST(void *, tip->qBuff),
               AIR_CAST(void *, tip->qInter));
-      biffAdd(TEN, err); return 1;
+      return 1;
     }
     tip->allocLen = num;
   } 
@@ -113,7 +113,7 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
 
 tenInterpParm *
 tenInterpParmCopy(tenInterpParm *tip) {
-  char me[]="tenInterpParmCopy", err[BIFF_STRLEN];
+  static const char me[]="tenInterpParmCopy";
   tenInterpParm *newtip;
   unsigned int num;
 
@@ -131,8 +131,8 @@ tenInterpParmCopy(tenInterpParm *tip) {
     newtip->qBuff = NULL;
     newtip->qInter = NULL;
     if (tenInterpParmBufferAlloc(newtip, num)) {
-      sprintf(err, "%s: trouble allocating output", me);
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: trouble allocating output", me);
+      return NULL;
     }
     memcpy(newtip->eval, tip->eval, 3*num*sizeof(double));
     memcpy(newtip->evec, tip->evec, 9*num*sizeof(double));
@@ -179,7 +179,7 @@ tenInterpTwo_d(double oten[7],
                const double tenA[7], const double tenB[7],
                int ptype, double aa,
                tenInterpParm *tip) {
-  char me[]="tenInterpTwo_d";
+  static const char me[]="tenInterpTwo_d";
   double logA[7], logB[7], tmp1[7], tmp2[7], logMean[7],
     mat1[9], mat2[9], mat3[9], sqrtA[7], isqrtA[7],
     mean[7], sqrtB[7], isqrtB[7],
@@ -282,7 +282,7 @@ int
 tenInterpN_d(double tenOut[7],
              const double *tenIn, const double *wght,
              unsigned int num, int ptype, tenInterpParm *tip) {
-  char me[]="tenInterpN_d", err[BIFF_STRLEN];
+  static const char me[]="tenInterpN_d";
   unsigned int ii;
   double ww, cc, tenErr[7], tmp[7], wghtSum, eval[3], evec[9];
 
@@ -290,16 +290,16 @@ tenInterpN_d(double tenOut[7],
             AIR_NAN, AIR_NAN, AIR_NAN);
   /* wght can be NULL ==> equal 1/num weight for all */
   if (!(tenOut && tenIn && tip)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( num >= 2 )) {
-    sprintf(err, "%s: need num >= 2 (not %u)", me, num);
-    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    biffAddf(TEN, "%s: need num >= 2 (not %u)", me, num);
+    TEN_T_COPY(tenOut, tenErr); return 1;
   }
   if (airEnumValCheck(tenInterpType, ptype)) {
-    sprintf(err, "%s: invalid %s %d", me, tenInterpType->name, ptype);
-    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    biffAddf(TEN, "%s: invalid %s %d", me, tenInterpType->name, ptype);
+    TEN_T_COPY(tenOut, tenErr); return 1;
   }
   wghtSum = 0;
   for (ii=0; ii<num; ii++) {
@@ -307,9 +307,9 @@ tenInterpN_d(double tenOut[7],
     wghtSum += ww;
   }
   if (!( AIR_IN_CL(1 - tip->wghtSumEps, wghtSum, 1 + tip->wghtSumEps) )) {
-    sprintf(err, "%s: wght sum %g not within %g of 1.0", me,
-            wghtSum, tip->wghtSumEps);
-    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    biffAddf(TEN, "%s: wght sum %g not within %g of 1.0", me,
+             wghtSum, tip->wghtSumEps);
+    TEN_T_COPY(tenOut, tenErr); return 1;
   }
 
   switch (ptype) {
@@ -338,22 +338,22 @@ tenInterpN_d(double tenOut[7],
     break;
   case tenInterpTypeAffineInvariant:
   case tenInterpTypeWang:
-    sprintf(err, "%s: sorry, not implemented", me);
-    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    biffAddf(TEN, "%s: sorry, not implemented", me);
+    TEN_T_COPY(tenOut, tenErr); return 1;
     break;
   case tenInterpTypeGeoLoxK:
   case tenInterpTypeGeoLoxR:
   case tenInterpTypeLoxK:
   case tenInterpTypeLoxR:
-    sprintf(err, "%s: %s doesn't support averaging multiple tensors", me, 
-            airEnumStr(tenInterpType, ptype));
-    biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+    biffAddf(TEN, "%s: %s doesn't support averaging multiple tensors", me, 
+             airEnumStr(tenInterpType, ptype));
+    TEN_T_COPY(tenOut, tenErr); return 1;
     break;
   case tenInterpTypeQuatGeoLoxK:
   case tenInterpTypeQuatGeoLoxR:
     if (tenInterpParmBufferAlloc(tip, num)) {
-      sprintf(err, "%s: trouble getting buffers", me);
-      biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+      biffAddf(TEN, "%s: trouble getting buffers", me);
+      TEN_T_COPY(tenOut, tenErr); return 1;
     } else {
       cc = 0;
       for (ii=0; ii<num; ii++) {
@@ -363,8 +363,8 @@ tenInterpN_d(double tenOut[7],
       }
       if (_tenQGLInterpNEval(eval, tip->eval, wght, num, ptype, tip)
           || _tenQGLInterpNEvec(evec, tip->evec, wght, num, tip)) {
-        sprintf(err, "%s: trouble computing", me);
-        biffAdd(TEN, err); TEN_T_COPY(tenOut, tenErr); return 1;
+        biffAddf(TEN, "%s: trouble computing", me);
+        TEN_T_COPY(tenOut, tenErr); return 1;
       }
       tenMakeSingle_d(tenOut, cc, eval, evec);
     }
@@ -378,7 +378,7 @@ int
 _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
                        unsigned int ii, int rotnoop, double scl,
                        tenInterpParm *tip) {
-  char me[]="_tenInterpGeoLoxRelaxOne", err[BIFF_STRLEN];
+  static const char me[]="_tenInterpGeoLoxRelaxOne";
   double *tdata, *odata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7],
     len02, len24, tmp, tng[7], correct, half, update[7];
   unsigned int jj, NN;
@@ -472,8 +472,8 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
   */
 
   if (!TEN_T_EXISTS(update)) {
-    sprintf(err, "%s: computed non-existant update (step-size too big?)", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: computed non-existant update (step-size too big?)", me);
+    return 1;
   }
 
   TEN_T_ADD(odata + 7*(2*ii + 0), tt[2], update);
@@ -484,7 +484,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
 void
 _tenInterpGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop,
                    double minnorm) {
-  /* char me[]="_tenInterpGeoLoxIGRT"; */
+  /* static const char me[]="_tenInterpGeoLoxIGRT"; */
   double eval[3], evec[9];
 
   if (useK) {
@@ -563,7 +563,7 @@ tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
 
 double
 _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
-  /* char me[]="_tenPathSpacingEqualize"; */
+  /* static const char me[]="_tenPathSpacingEqualize"; */
   double *in, *out, len, diff[7],
     lenTotal,  /* total length of input */
     lenStep,   /* correct length on input polyline between output vertices */
@@ -639,19 +639,19 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
                          const double tenA[7], const double tenB[7],
                          unsigned int NN, int useK, int rotnoop,
                          tenInterpParm *tip) {
-  char me[]="_tenInterpGeoLoxPolyLine", err[BIFF_STRLEN];
+  static const char me[]="_tenInterpGeoLoxPolyLine";
   Nrrd *nigrt, *ntt, *nss, *nsub;
   double *igrt, *geod, *tt, len, newlen;
   unsigned int ii;
   airArray *mop;
 
   if (!(ngeod && numIter && tenA && tenB)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(NN >= 2)) {
-    sprintf(err, "%s: # steps %u too small", me, NN);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: # steps %u too small", me, NN);
+    return 1;
   }
 
   mop = airMopNew();
@@ -673,8 +673,8 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, 6),
                            AIR_CAST(size_t, 2*NN + 1))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    airMopError(mop); return 1;
   }
   geod = AIR_CAST(double *, ngeod->data);
   tt = AIR_CAST(double *, ntt->data);
@@ -689,8 +689,8 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     /* recurse and find geodesic with smaller number of vertices */
     if (_tenInterpGeoLoxPolyLine(nsub, &subIter, tenA, tenB,
                                  NN/2, useK, rotnoop, tip)) {
-      sprintf(err, "%s: problem with recursive call", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: problem with recursive call", me);
+      airMopError(mop); return 1;
     }
     /* upsample coarse geodesic to higher resolution */
     rsmc = nrrdResampleContextNew();
@@ -707,8 +707,8 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     if (!E) E |= nrrdResampleRenormalizeSet(rsmc, AIR_TRUE);
     if (!E) E |= nrrdResampleExecute(rsmc, ntt);
     if (E) {
-      sprintf(err, "%s: problem upsampling course solution", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      biffMovef(TEN, NRRD, "%s: problem upsampling course solution", me);
+      airMopError(mop); return 1;
     }
     *numIter += subIter;
   } else {
@@ -745,8 +745,8 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
       sclHack = ii*4.0/NN - ii*ii*4.0/NN/NN;
       if (_tenInterpGeoLoxRelaxOne(nss, ntt, nigrt, ii, rotnoop,
                                    sclHack*tip->convStep, tip)) {
-        sprintf(err, "%s: problem on vert %u, iter %u\n", me, ii, *numIter);
-        biffAdd(TEN, err); return 1;
+        biffAddf(TEN, "%s: problem on vert %u, iter %u\n", me, ii, *numIter);
+        return 1;
       }
     }
     newlen = _tenPathSpacingEqualize(ntt, nss);
@@ -776,20 +776,20 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
                        const double tenA[7], const double tenB[7],
                        int ptype, unsigned int num,
                        tenInterpParm *_tip) {
-  char me[]="tenInterpTwoDiscrete_d", err[BIFF_STRLEN];
+  static const char me[]="tenInterpTwoDiscrete_d";
   double *out;
   unsigned int ii;
   airArray *mop;
   tenInterpParm *tip;
 
   if (!nout) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(tenInterpType, ptype)) {
-    sprintf(err, "%s: path type %d not a valid %s", me, ptype, 
+    biffAddf(TEN, "%s: path type %d not a valid %s", me, ptype, 
             tenInterpType->name);
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
 
   mop = airMopNew();
@@ -800,14 +800,14 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     airMopAdd(mop, tip, (airMopper)tenInterpParmNix, airMopAlways);
   }
   if (!( num >= 2 )) {
-    sprintf(err, "%s: need num >= 2 (not %u)", me, num);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: need num >= 2 (not %u)", me, num);
+    airMopError(mop); return 1;
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, num))) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
+    airMopError(mop); return 1;
   }
   out = AIR_CAST(double *, nout->data);
 
@@ -840,13 +840,13 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     if (_tenInterpGeoLoxPolyLine(nout, &numIter,
                                  tenA, tenB,
                                  num, useK, rotnoop, tip)) {
-      sprintf(err, "%s: trouble finding path", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: trouble finding path", me);
+      airMopError(mop); return 1;
     }
   } else {
-    sprintf(err, "%s: sorry, interp for path %s not implemented", me,
-            airEnumStr(tenInterpType, ptype));
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: sorry, interp for path %s not implemented", me,
+             airEnumStr(tenInterpType, ptype));
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop); 
@@ -856,7 +856,8 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
 double
 tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7],
                     int ptype, tenInterpParm *_tip) {
-  char me[]="tenInterpDistanceTwo_d", *err;
+  static const char me[]="tenInterpDistanceTwo_d";
+  char *err;
   tenInterpParm *tip;
   airArray *mop;
   double ret, diff[7], logA[7], logB[7], invA[7], det, siA[7],
@@ -936,7 +937,7 @@ tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7],
 int
 tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
                  unsigned int ninLen, int ptype, tenInterpParm *_tip) {
-  char me[]="tenInterpMulti3D", err[BIFF_STRLEN];
+  static const char me[]="tenInterpMulti3D";
   unsigned int ninIdx;
   size_t II, NN;
   double (*lup)(const void *, size_t), (*ins)(void *, size_t, double),
@@ -946,52 +947,52 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
 
   /* allow NULL wght, to signify equal weighting */
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( ninLen > 0 )) {
-    sprintf(err, "%s: need at least 1 nin, not 0", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need at least 1 nin, not 0", me);
+    return 1;
   }
   if (airEnumValCheck(tenInterpType, ptype)) {
-    sprintf(err, "%s: invalid %s %d", me, 
-            tenInterpType->name, ptype);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: invalid %s %d", me, 
+             tenInterpType->name, ptype);
+    return 1;
   }
 
   if (tenTensorCheck(nin[0], nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
-    sprintf(err, "%s: first nrrd not a tensor array", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: first nrrd not a tensor array", me);
+    return 1;
   }
   if (!( nrrdTypeFloat == nin[0]->type ||
          nrrdTypeDouble == nin[0]->type )) {
-    sprintf(err, "%s: need type %s or %s (not %s) in first nrrd", me,
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nrrdTypeDouble),
-            airEnumStr(nrrdType, nin[0]->type));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need type %s or %s (not %s) in first nrrd", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nrrdTypeDouble),
+             airEnumStr(nrrdType, nin[0]->type));
+    return 1;
   }
   for (ninIdx=1; ninIdx<ninLen; ninIdx++) {
     if (tenTensorCheck(nin[ninIdx], nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
-      sprintf(err, "%s: nin[%u] not a tensor array", me, ninIdx);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: nin[%u] not a tensor array", me, ninIdx);
+      return 1;
     }
     if (!nrrdSameSize(nin[0], nin[ninIdx], AIR_TRUE)) {
-      sprintf(err, "%s: nin[0] doesn't match nin[%u]", me, ninIdx);
-      biffMove(TEN, err, NRRD); return 1;
+      biffMovef(TEN, NRRD, "%s: nin[0] doesn't match nin[%u]", me, ninIdx);
+      return 1;
     }
     if (nin[0]->type != nin[ninIdx]->type) {
-      sprintf(err, "%s: nin[0] type (%s) != nin[%u] type (%s)", me, 
-              airEnumStr(nrrdType, nin[0]->type),
-              ninIdx, airEnumStr(nrrdType, nin[ninIdx]->type));
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: nin[0] type (%s) != nin[%u] type (%s)", me, 
+               airEnumStr(nrrdType, nin[0]->type),
+               ninIdx, airEnumStr(nrrdType, nin[ninIdx]->type));
+      return 1;
     }
   }
 
   mop = airMopNew();
   if (nrrdCopy(nout, nin[0])) {
-    sprintf(err, "%s: couldn't initialize output", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't initialize output", me);
+    airMopError(mop); return 1;
   }
   if (_tip) {
     tip = _tip;
@@ -1001,8 +1002,8 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
   }
   tbuff = AIR_CAST(double *, calloc(7*ninLen, sizeof(double)));
   if (!tbuff) {
-    sprintf(err, "%s: couldn't allocate tensor buff", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: couldn't allocate tensor buff", me);
+    airMopError(mop); return 1;
   }
   ins = nrrdDInsert[nin[0]->type];
   lup = nrrdDLookup[nin[0]->type];
@@ -1016,8 +1017,8 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       }
     }
     if (tenInterpN_d(tenOut, tbuff, wght, ninLen, ptype, tip)) {
-      sprintf(err, "%s: trouble on sample " _AIR_SIZE_T_CNV, me, II);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: trouble on sample " _AIR_SIZE_T_CNV, me, II);
+      airMopError(mop); return 1;
     }
     for (tt=0; tt<7; tt++) {
       ins(nout->data, tt + 7*II, tenOut[tt]);

@@ -113,7 +113,8 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
               float thick, float bnd, float bndRm, float evsc, int torus) {
-  char me[]="tend_satinGen", err[BIFF_STRLEN], buff[AIR_STRLEN_SMALL];
+  static const char me[]="tend_satinGen";
+  char buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
   size_t xi, yi, zi, size[3];
@@ -134,8 +135,8 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
                         AIR_CAST(size_t, 3), size[0], size[1], size[2]) ||
       nrrdMaybeAlloc_va(nevec=nrrdNew(), nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 9), size[0], size[1], size[2])) {
-    sprintf(err, "%s: trouble allocating temp nrrds", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble allocating temp nrrds", me);
+    return 1;
   }
 
   conf = (float *)nconf->data;
@@ -167,8 +168,8 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   }
 
   if (tenMake(nout, nconf, neval, nevec)) {
-    sprintf(err, "%s: trouble generating output", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble generating output", me);
+    return 1;
   }
 
   nrrdNuke(nconf);

@@ -68,7 +68,7 @@ pushEnergyType = &_pushEnergyType;
 void
 _pushEnergyUnknownEval(double *enr, double *frc,
                        double dist, const double *parm) {
-  char me[]="_pushEnergyUnknownEval";
+  static const char me[]="_pushEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -80,7 +80,7 @@ _pushEnergyUnknownEval(double *enr, double *frc,
 
 double
 _pushEnergyUnknownSupport(const double *parm) {
-  char me[]="_pushEnergyUnknownSupport";
+  static const char me[]="_pushEnergyUnknownSupport";
 
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
@@ -108,7 +108,7 @@ pushEnergyUnknown = &_pushEnergyUnknown;
 void
 _pushEnergySpringEval(double *enr, double *frc,
                       double dist, const double *parm) {
-  /* char me[]="_pushEnergySpringEval"; */
+  /* static const char me[]="_pushEnergySpringEval"; */
   double xx, pull;
 
   pull = parm[0];
@@ -343,7 +343,7 @@ pushEnergySpecNix(pushEnergySpec *ensp) {
 
 int
 pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
-  char me[]="pushEnergySpecParse", err[BIFF_STRLEN];
+  static const char me[]="pushEnergySpecParse";
   char *str, *col, *_pstr, *pstr;
   int etype;
   unsigned int pi, haveParm;
@@ -351,8 +351,8 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
   double pval;
 
   if (!( ensp && _str )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: got NULL pointer", me);
+    return 1;
   }
 
   /* see if its the name of something that needs no parameters */
@@ -361,9 +361,9 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
     /* the string is the name of some energy */
     ensp->energy = pushEnergyAll[etype];
     if (0 != ensp->energy->parmNum) {
-      sprintf(err, "%s: need %u parms for %s energy, but got none", me,
-              ensp->energy->parmNum, ensp->energy->name);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: need %u parms for %s energy, but got none", me,
+               ensp->energy->parmNum, ensp->energy->name);
+      return 1;
     }
     /* the energy needs 0 parameters */
     for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
@@ -378,23 +378,23 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
   col = strchr(str, ':');
   if (!col) {
-    sprintf(err, "%s: \"%s\" isn't a parameter-free energy, but it has no "
-            "\":\" separator to indicate parameters", me, str);
-    biffAdd(PUSH, err); airMopError(mop); return 1;
+    biffAddf(PUSH, "%s: \"%s\" isn't a parameter-free energy, but it has no "
+             "\":\" separator to indicate parameters", me, str);
+    airMopError(mop); return 1;
   }
   *col = '\0';
   etype = airEnumVal(pushEnergyType, str);
   if (pushEnergyTypeUnknown == etype) {
-    sprintf(err, "%s: didn't recognize \"%s\" as a %s", me,
-            str, pushEnergyType->name);
-    biffAdd(PUSH, err); airMopError(mop); return 1;
+    biffAddf(PUSH, "%s: didn't recognize \"%s\" as a %s", me,
+             str, pushEnergyType->name);
+    airMopError(mop); return 1;
   }
 
   ensp->energy = pushEnergyAll[etype];
   if (0 == ensp->energy->parmNum) {
-    sprintf(err, "%s: \"%s\" energy has no parms, but got something", me,
-            ensp->energy->name);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: \"%s\" energy has no parms, but got something", me,
+             ensp->energy->name);
+    return 1;
   }
 
   _pstr = pstr = col+1;
@@ -404,32 +404,32 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
       break;
     }
     if (1 != sscanf(pstr, "%lg", &pval)) {
-      sprintf(err, "%s: trouble parsing \"%s\" as double (in \"%s\")",
-              me, _pstr, _str);
-      biffAdd(PUSH, err); airMopError(mop); return 1;
+      biffAddf(PUSH, "%s: trouble parsing \"%s\" as double (in \"%s\")",
+               me, _pstr, _str);
+      airMopError(mop); return 1;
     }
     ensp->parm[haveParm] = pval;
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {
-        sprintf(err, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-                me, _pstr, _str);
-        biffAdd(PUSH, err); airMopError(mop); return 1;
+        biffAddf(PUSH, "%s: nothing after last comma in \"%s\" (in \"%s\")",
+                 me, _pstr, _str);
+        airMopError(mop); return 1;
       }
     }
   }
   /* haveParm is now the number of parameters that were parsed. */
   if (haveParm < ensp->energy->parmNum) {
-    sprintf(err, "%s: parsed only %u of %u required parms (for %s energy)"
-            "from \"%s\" (in \"%s\")",
-            me, haveParm, ensp->energy->parmNum,
-            ensp->energy->name, _pstr, _str);
-    biffAdd(PUSH, err); airMopError(mop); return 1;
+    biffAddf(PUSH, "%s: parsed only %u of %u required parms (for %s energy)"
+             "from \"%s\" (in \"%s\")",
+             me, haveParm, ensp->energy->parmNum,
+             ensp->energy->name, _pstr, _str);
+    airMopError(mop); return 1;
   } else {
     if (pstr) {
-      sprintf(err, "%s: \"%s\" (in \"%s\") has more than %u doubles",
-              me, _pstr, _str, ensp->energy->parmNum);
-      biffAdd(PUSH, err); airMopError(mop); return 1;
+      biffAddf(PUSH, "%s: \"%s\" (in \"%s\") has more than %u doubles",
+               me, _pstr, _str, ensp->energy->parmNum);
+      airMopError(mop); return 1;
     }
   }
   
@@ -440,7 +440,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
 int
 _pushHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   pushEnergySpec **enspP;
-  char me[]="_pushHestForceParse", *perr;
+  static const char me[]="_pushHestForceParse", *perr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);

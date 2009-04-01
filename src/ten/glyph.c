@@ -72,79 +72,82 @@ tenGlyphParmNix(tenGlyphParm *parm) {
 int
 tenGlyphParmCheck(tenGlyphParm *parm,
                   const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  char me[]="tenGlyphParmCheck", err[BIFF_STRLEN];
+  static const char me[]="tenGlyphParmCheck";
   int duh;
   size_t tenSize[3];
 
   if (!(parm && nten)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(tenAniso, parm->anisoType)) {
-    sprintf(err, "%s: unset (or invalid) anisoType (%d)", me, parm->anisoType);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: unset (or invalid) anisoType (%d)",
+             me, parm->anisoType);
+    return 1;
   }
   if (airEnumValCheck(tenAniso, parm->colAnisoType)) {
-    sprintf(err, "%s: unset (or invalid) colAnisoType (%d)",
-            me, parm->colAnisoType);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: unset (or invalid) colAnisoType (%d)",
+             me, parm->colAnisoType);
+    return 1;
   }
   if (!( parm->facetRes >= 3 )) {
-    sprintf(err, "%s: facet resolution %d not >= 3", me, parm->facetRes);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: facet resolution %d not >= 3", me, parm->facetRes);
+    return 1;
   }
   if (!( AIR_IN_OP(tenGlyphTypeUnknown, parm->glyphType,
                    tenGlyphTypeLast) )) {
-    sprintf(err, "%s: unset (or invalid) glyphType (%d)", me, parm->glyphType);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: unset (or invalid) glyphType (%d)",
+             me, parm->glyphType);
+    return 1;
   }
   if (!( parm->glyphScale > 0)) {
-    sprintf(err, "%s: glyphScale must be > 0 (not %g)", me, parm->glyphScale);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: glyphScale must be > 0 (not %g)", me, parm->glyphScale);
+    return 1;
   }
   if (parm->nmask) {
     if (npos) {
-      sprintf(err, "%s: can't do masking with explicit coordinate list", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: can't do masking with explicit coordinate list", me);
+      return 1;
     }
     if (!( 3 == parm->nmask->dim
            && parm->nmask->axis[0].size == nten->axis[1].size
            && parm->nmask->axis[1].size == nten->axis[2].size
            && parm->nmask->axis[2].size == nten->axis[3].size )) {
-      sprintf(err, "%s: mask isn't 3-D or doesn't have sizes ("
-              _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", me,
-              nten->axis[1].size, nten->axis[2].size, nten->axis[3].size);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: mask isn't 3-D or doesn't have sizes ("
+               _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", me,
+               nten->axis[1].size, nten->axis[2].size, nten->axis[3].size);
+      return 1;
     }
     if (!(AIR_EXISTS(parm->maskThresh))) {
-      sprintf(err, "%s: maskThresh hasn't been set", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: maskThresh hasn't been set", me);
+      return 1;
     }
   }
   if (!( AIR_EXISTS(parm->anisoThresh)
          && AIR_EXISTS(parm->confThresh) )) {
-    sprintf(err, "%s: anisoThresh and confThresh haven't both been set", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: anisoThresh and confThresh haven't both been set", me);
+    return 1;
   }
   if (parm->doSlice) {
     if (npos) {
-      sprintf(err, "%s: can't do slice with explicit coordinate list", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: can't do slice with explicit coordinate list", me);
+      return 1;
     }
     if (!( parm->sliceAxis <=2 )) {
-      sprintf(err, "%s: slice axis %d invalid", me, parm->sliceAxis);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: slice axis %d invalid", me, parm->sliceAxis);
+      return 1;
     }
     if (!( parm->slicePos < nten->axis[1+parm->sliceAxis].size )) {
-      sprintf(err, "%s: slice pos " _AIR_SIZE_T_CNV 
-              " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
-              parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: slice pos " _AIR_SIZE_T_CNV 
+               " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
+               parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
+      return 1;
     }
     if (nslc) {
       if (2 != nslc->dim) {
-        sprintf(err, "%s: explicit slice must be 2-D (not %d)", me, nslc->dim);
-        biffAdd(TEN, err); return 1;
+        biffAddf(TEN, "%s: explicit slice must be 2-D (not %d)",
+                 me, nslc->dim);
+        return 1;
       }
       tenSize[0] = nten->axis[1].size;
       tenSize[1] = nten->axis[2].size;
@@ -154,18 +157,18 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       }
       if (!( tenSize[0] == nslc->axis[0].size
              && tenSize[1] == nslc->axis[1].size )) {
-        sprintf(err, "%s: axis %u slice of " 
-                _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV 
-                " volume is not " _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV , me,
-                parm->sliceAxis, nten->axis[1].size, nten->axis[2].size,
-                nten->axis[3].size, nslc->axis[0].size, nslc->axis[1].size);
-        biffAdd(TEN, err); return 1;
+        biffAddf(TEN, "%s: axis %u slice of " 
+                 _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV 
+                 " volume is not " _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV , me,
+                 parm->sliceAxis, nten->axis[1].size, nten->axis[2].size,
+                 nten->axis[3].size, nslc->axis[0].size, nslc->axis[1].size);
+        return 1;
       }
     } else {
       if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
-        sprintf(err, "%s: unset (or invalid) sliceAnisoType (%d)",
-                me, parm->sliceAnisoType);
-        biffAdd(TEN, err); return 1;
+        biffAddf(TEN, "%s: unset (or invalid) sliceAnisoType (%d)",
+                 me, parm->sliceAnisoType);
+        return 1;
       }
     }
   }
@@ -176,7 +179,7 @@ int
 tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
             tenGlyphParm *parm,
             const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  char me[]="tenGlyphGen", err[BIFF_STRLEN];
+  static const char me[]="tenGlyphGen";
   gageShape *shape;
   airArray *mop;
   float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16],
@@ -195,8 +198,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   */
 
   if (!( (glyphsLimn || glyphsEcho) && nten && parm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   mop = airMopNew();
   shape = gageShapeNew();
@@ -204,36 +207,36 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   airMopAdd(mop, shape, (airMopper)gageShapeNix, airMopAlways);
   if (npos) {
     if (!( 2 == nten->dim && 7 == nten->axis[0].size )) {
-      sprintf(err, "%s: nten isn't 2-D 7-by-N array", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: nten isn't 2-D 7-by-N array", me);
+      airMopError(mop); return 1;
     }
     if (!( 2 == npos->dim && 3 == npos->axis[0].size
            && nten->axis[1].size == npos->axis[1].size )) {
-      sprintf(err, "%s: npos isn't 2-D 3-by-" _AIR_SIZE_T_CNV " array", 
-              me, nten->axis[1].size);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: npos isn't 2-D 3-by-" _AIR_SIZE_T_CNV " array", 
+               me, nten->axis[1].size);
+      airMopError(mop); return 1;
     }
     if (!( nrrdTypeFloat == nten->type && nrrdTypeFloat == npos->type )) {
-      sprintf(err, "%s: nten and npos must be %s, not %s and %s", me,
-              airEnumStr(nrrdType, nrrdTypeFloat),
-              airEnumStr(nrrdType, nten->type),
-              airEnumStr(nrrdType, npos->type));
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: nten and npos must be %s, not %s and %s", me,
+               airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nten->type),
+               airEnumStr(nrrdType, npos->type));
+      airMopError(mop); return 1;
     }
   } else {
     if (tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-      sprintf(err, "%s: didn't get a valid DT volume", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: didn't get a valid DT volume", me);
+      airMopError(mop); return 1;
     }
   }
   if (tenGlyphParmCheck(parm, nten, npos, nslc)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    airMopError(mop); return 1;
   }
   if (!npos) {
     if (gageShapeSet(shape, nten, tenGageKind->baseDim)) {
-      sprintf(err, "%s: trouble", me);
-      biffMove(TEN, err, GAGE); airMopError(mop); return 1;
+      biffMovef(TEN, GAGE, "%s: trouble", me);
+      airMopError(mop); return 1;
     }
   }
   if (parm->doSlice) {

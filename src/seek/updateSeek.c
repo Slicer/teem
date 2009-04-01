@@ -25,7 +25,7 @@
 
 static int
 updateNinEtAl(seekContext *sctx) {
-  char me[]="updateNinEtAl", err[BIFF_STRLEN];
+  static const char me[]="updateNinEtAl";
 
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
@@ -33,8 +33,8 @@ updateNinEtAl(seekContext *sctx) {
   }
 
   if (!( sctx->ninscl || sctx->pvl )) {
-    sprintf(err, "%s: data never set", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: data never set", me);
+    return 1;
   }
 
   if (sctx->flag[flagData]) {
@@ -42,8 +42,8 @@ updateNinEtAl(seekContext *sctx) {
       sctx->nin = sctx->ninscl;
       sctx->baseDim = 0;
       if (gageShapeSet(sctx->_shape, sctx->ninscl, 0)) {
-        sprintf(err, "%s: trouble with scalar volume", me);
-        biffMove(SEEK, err, GAGE); return 1;
+        biffMovef(SEEK, GAGE, "%s: trouble with scalar volume", me);
+        return 1;
       }
       sctx->shape = sctx->_shape;
     } else {
@@ -59,7 +59,7 @@ updateNinEtAl(seekContext *sctx) {
 
 static int
 updateAnswerPointers(seekContext *sctx) {
-  char me[]="updateAnswerPointers", err[BIFF_STRLEN];
+  static const char me[]="updateAnswerPointers";
 
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
@@ -86,8 +86,8 @@ updateAnswerPointers(seekContext *sctx) {
   }
 
   if (seekTypeUnknown == sctx->type) {
-    sprintf(err, "%s: feature type never set", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: feature type never set", me);
+    return 1;
   }
   
   if (sctx->flag[flagItemValue]
@@ -103,8 +103,8 @@ updateAnswerPointers(seekContext *sctx) {
     /* this is apt regardless of feature type */
     if (sctx->strengthUse) {
       if (-1 == sctx->stngItem) {
-        sprintf(err, "%s: need to set strength item to use strength", me);
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: need to set strength item to use strength", me);
+        return 1;
       }
       sctx->stngAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
                                          sctx->stngItem));
@@ -115,17 +115,17 @@ updateAnswerPointers(seekContext *sctx) {
     switch (sctx->type) {
     case seekTypeIsocontour:
       if (!( sctx->ninscl || -1 != sctx->sclvItem )) {
-        sprintf(err, "%s: need either scalar volume or value item set for %s",
+        biffAddf(SEEK, "%s: need either scalar volume or value item set for %s",
                 me, airEnumStr(seekType, seekTypeIsocontour));
-        biffAdd(SEEK, err); return 1;
+        return 1;
       }
       if (sctx->normalsFind) {
         /* NOTE simplifying assumption described in seek.h */
         if (!( sctx->ninscl || -1 != sctx->normItem )) {
-          sprintf(err, "%s: need either scalar volume or "
+          biffAddf(SEEK, "%s: need either scalar volume or "
                   "normal item set for normals for %s",
                   me, airEnumStr(seekType, seekTypeIsocontour));
-          biffAdd(SEEK, err); return 1;
+          return 1;
         }
       }
       if (sctx->ninscl) {
@@ -141,9 +141,9 @@ updateAnswerPointers(seekContext *sctx) {
       }
       if (sctx->flag[flagItemGradient]
           || sctx->flag[flagItemEigensystem]) {
-        sprintf(err, "%s: can't set gradient or eigensystem for %s",
-                me, airEnumStr(seekType, seekTypeIsocontour));
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: can't set gradient or eigensystem for %s",
+                 me, airEnumStr(seekType, seekTypeIsocontour));
+        return 1;
       }
       sctx->gradAns = NULL;
       sctx->evalAns = NULL;
@@ -154,22 +154,22 @@ updateAnswerPointers(seekContext *sctx) {
     case seekTypeMaximalSurface:
     case seekTypeMinimalSurface:
       if ( !sctx->pvl ) {
-        sprintf(err, "%s: can't find %s without a gage context",
-                me, airEnumStr(seekType, sctx->type));
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: can't find %s without a gage context",
+                 me, airEnumStr(seekType, sctx->type));
+        return 1;
       }
       if (!( -1 != sctx->gradItem
              && -1 != sctx->evalItem
              && -1 != sctx->evecItem )) {
-        sprintf(err, "%s: grad, eval, evec items not all set", me);
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: grad, eval, evec items not all set", me);
+        return 1;
       }
       if (sctx->normalsFind) {
         /* NOTE simplifying assumption described in seek.h */
         if (-1 == sctx->normItem) {
-          sprintf(err, "%s: need normal item set for normals for %s",
-                  me, airEnumStr(seekType, sctx->type));
-          biffAdd(SEEK, err); return 1;
+          biffAddf(SEEK, "%s: need normal item set for normals for %s",
+                   me, airEnumStr(seekType, sctx->type));
+          return 1;
         }
         sctx->normAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
                                            sctx->normItem));
@@ -182,10 +182,9 @@ updateAnswerPointers(seekContext *sctx) {
       sctx->evecAns = gageAnswerPointer(sctx->gctx, sctx->pvl, sctx->evecItem);
       break;
     default:
-      sprintf(err, "%s: sorry, %s extraction not implemented", me,
-              airEnumStr(seekType, sctx->type));
-      biffAdd(SEEK, err); return 1;
-      break;
+      biffAddf(SEEK, "%s: sorry, %s extraction not implemented", me,
+               airEnumStr(seekType, sctx->type));
+      return 1;
     }
 
     sctx->flag[flagItemValue] = AIR_FALSE;
@@ -202,7 +201,7 @@ updateAnswerPointers(seekContext *sctx) {
 
 static int
 updateSxSySz(seekContext *sctx) {
-  char me[]="updateSxSySz", err[BIFF_STRLEN];
+  static const char me[]="updateSxSySz";
   size_t sizeIn[3], sizeOut[3];
   double min, max, scl[3], off[3];
   unsigned int axi;
@@ -225,15 +224,15 @@ updateSxSySz(seekContext *sctx) {
       ELL_3V_COPY(sizeOut, sizeIn);
     } else {
       if (!sctx->pvl) {
-        sprintf(err, "%s: can't specify # samples (%u,%u,%u) independent of "
-                "volume dimensions (%u,%u,%u) without a gage context", me,
-                AIR_CAST(unsigned int, sctx->samples[0]),
-                AIR_CAST(unsigned int, sctx->samples[1]),
-                AIR_CAST(unsigned int, sctx->samples[2]),
-                AIR_CAST(unsigned int, sizeIn[0]),
-                AIR_CAST(unsigned int, sizeIn[1]),
-                AIR_CAST(unsigned int, sizeIn[2]));
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: can't specify # samples (%u,%u,%u) independent of "
+                 "volume dimensions (%u,%u,%u) without a gage context", me,
+                 AIR_CAST(unsigned int, sctx->samples[0]),
+                 AIR_CAST(unsigned int, sctx->samples[1]),
+                 AIR_CAST(unsigned int, sctx->samples[2]),
+                 AIR_CAST(unsigned int, sizeIn[0]),
+                 AIR_CAST(unsigned int, sizeIn[1]),
+                 AIR_CAST(unsigned int, sizeIn[2]));
+        return 1;
       }
       ELL_3V_COPY(sizeOut, sctx->samples);
     }
@@ -269,7 +268,7 @@ updateSxSySz(seekContext *sctx) {
 
 static int
 updateReverse(seekContext *sctx) {
-  char me[]="updateReverse" /* , err[BIFF_STRLEN] */;
+  static const char me[]="updateReverse";
 
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
@@ -296,7 +295,7 @@ updateReverse(seekContext *sctx) {
 
 static int
 updateTxfNormal(seekContext *sctx) {
-  char me[]="updateTxfNormal" /*, err[BIFF_STRLEN] */ ;
+  static const char me[]="updateTxfNormal";
 
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
@@ -324,7 +323,7 @@ updateTxfNormal(seekContext *sctx) {
 
 static int
 updateSlabCacheAlloc(seekContext *sctx) {
-  char me[]="updateSlabCacheAlloc", err[BIFF_STRLEN];
+  static const char me[]="updateSlabCacheAlloc";
   int E;
 
   if (sctx->verbose > 5) {
@@ -396,8 +395,8 @@ updateSlabCacheAlloc(seekContext *sctx) {
     sctx->flag[flagSlabCacheAlloc] = AIR_TRUE;
   }
   if (E) {
-    sprintf(err, "%s: couldn't allocate all slab caches", me);
-    biffMove(SEEK, err, NRRD); return 1;
+    biffMovef(SEEK, NRRD, "%s: couldn't allocate all slab caches", me);
+    return 1;
   }
   sctx->flag[flagStrengthUse] = AIR_FALSE;
   sctx->flag[flagSxSySz] = AIR_FALSE;
@@ -406,7 +405,8 @@ updateSlabCacheAlloc(seekContext *sctx) {
 
 static int
 updateSclDerived(seekContext *sctx) {
-  char me[]="updateSclDerived", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
+  static const char me[]="updateSclDerived";
+  char doneStr[AIR_STRLEN_SMALL];
   double *scl, idxIn[4], idxOut[4], val;
   unsigned int xi, yi, zi;
 
@@ -426,8 +426,9 @@ updateSclDerived(seekContext *sctx) {
     } else {
       if (nrrdMaybeAlloc_va(sctx->nsclDerived, nrrdTypeDouble, 3,
                             sctx->sx, sctx->sy, sctx->sz)) {
-        sprintf(err, "%s: couldn't allocated derived scalar volume", me);
-        biffMove(SEEK, err, NRRD); return 1;
+        biffMovef(SEEK, NRRD,
+                  "%s: couldn't allocated derived scalar volume", me);
+        return 1;
       }
       scl = AIR_CAST(double*, sctx->nsclDerived->data);
       if (sctx->verbose) {
@@ -446,9 +447,9 @@ updateSclDerived(seekContext *sctx) {
             gageProbe(sctx->gctx, idxIn[0], idxIn[1], idxIn[2]);
             val = sctx->sclvAns[0];
             if (!AIR_EXISTS(val)) {
-              sprintf(err, "%s: probed scalar[%u,%u,%u] %g doesn't exist", me,
-                      xi, yi, zi, val);
-              biffAdd(SEEK, err); return 1;
+              biffAddf(SEEK, "%s: probed scalar[%u,%u,%u] %g doesn't exist",
+                       me, xi, yi, zi, val);
+              return 1;
             }
             scl[xi + sctx->sx*(yi + sctx->sy*zi)] = val;
           }
@@ -466,7 +467,7 @@ updateSclDerived(seekContext *sctx) {
 
 static int
 updateSpanSpaceHist(seekContext *sctx) {
-  char me[]="updateSpanSpaceHist", err[BIFF_STRLEN];
+  static const char me[]="updateSpanSpaceHist";
   unsigned int sx, sy, sz, ss, xi, yi, zi, vi, si, minI, maxI, *spanHist;
   double min, max, val;
   const void *data;
@@ -494,8 +495,8 @@ updateSpanSpaceHist(seekContext *sctx) {
                    (sctx->ninscl ? sctx->ninscl : sctx->nsclDerived),
                    nrrdBlind8BitRangeFalse);
       if (sctx->range->hasNonExist) {
-        sprintf(err, "%s: scalar volume has non-existent values", me);
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: scalar volume has non-existent values", me);
+        return 1;
       }
       sctx->nspanHist->axis[0].min = sctx->range->min;
       sctx->nspanHist->axis[1].min = sctx->range->min;
@@ -514,8 +515,9 @@ updateSpanSpaceHist(seekContext *sctx) {
       if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2, 
                             AIR_CAST(size_t, sctx->spanSize), 
                             AIR_CAST(size_t, sctx->spanSize))) {
-        sprintf(err, "%s: couldn't allocate space space histogram", me);
-        biffMove(SEEK, err, NRRD); return 1;
+        biffMovef(SEEK, NRRD,
+                  "%s: couldn't allocate space space histogram", me);
+        return 1;
       }
       spanHist = AIR_CAST(unsigned int*, sctx->nspanHist->data);
       sx = sctx->sx;
@@ -567,7 +569,7 @@ updateSpanSpaceHist(seekContext *sctx) {
 
 static int
 updateResult(seekContext *sctx) {
-  char me[]="updateResult", err[BIFF_STRLEN];
+  static const char me[]="updateResult";
 
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
@@ -591,15 +593,16 @@ updateResult(seekContext *sctx) {
 
   if (seekTypeIsocontour != sctx->type
       && sctx->flag[flagIsovalue]) {
-    sprintf(err, "%s: can't set isovalue for %s (only %s)", me,
-            airEnumStr(seekType, sctx->type),
-            airEnumStr(seekType, seekTypeIsocontour));
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: can't set isovalue for %s (only %s)", me,
+             airEnumStr(seekType, sctx->type),
+             airEnumStr(seekType, seekTypeIsocontour));
+    return 1;
   }
 
   if (sctx->strengthUse && !sctx->stngAns) {
-    sprintf(err, "%s: can't use feature strength without a strength item", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: can't use feature strength without a strength item",
+             me);
+    return 1;
   }
 
   /* this seems to be a very pointless exercise */
@@ -642,12 +645,12 @@ updateResult(seekContext *sctx) {
 */
 int
 seekUpdate(seekContext *sctx) {
-  char me[]="seekUpdate", err[BIFF_STRLEN];
+  static const char me[]="seekUpdate";
   int E;
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   E = 0;
   if (!E) E |= updateNinEtAl(sctx);
@@ -660,8 +663,8 @@ seekUpdate(seekContext *sctx) {
   if (!E) E |= updateSpanSpaceHist(sctx);
   if (!E) E |= updateResult(sctx);
   if (E) {
-    sprintf(err, "%s: trouble updating", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble updating", me);
+    return 1;
   }
   
   return 0;

@@ -42,7 +42,7 @@ char *_tend_glyphInfoL =
 int
 _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
                    unsigned int *numCamsP, FILE *fin) {
-  char me[]="_tendGlyphReadCams", err[BIFF_STRLEN];
+  static const char me[]="_tendGlyphReadCams";
   char line[AIR_STRLEN_HUGE];
   int ki;
   double di, dn, df, fr[3], at[3], up[3], va, dwell;
@@ -50,16 +50,16 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
   
   if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
          && !strcmp(_LIMNMAGIC, line) )) {
-    sprintf(err, "%s: couldn't read first line or it wasn't \"%s\"",
-            me, _LIMNMAGIC);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: couldn't read first line or it wasn't \"%s\"",
+             me, _LIMNMAGIC);
+    return 1;
   }
   if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
          && 2 == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
                   sscanf(line, "imgSize %d %d", imgSize+0, imgSize+1)) )) {
-    sprintf(err, "%s: couldn't read second line or it wasn't "
-            "\"imgSize <sizeX> <sizeY>\"", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: couldn't read second line or it wasn't "
+             "\"imgSize <sizeX> <sizeY>\"", me);
+    return 1;
   }
   
   mop = airMopNew();
@@ -75,8 +75,8 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP,
                      &di, at+0, at+1, at+2,
                      up+0, up+1, up+2, &dn, &df, &va,
                      &dwell, fr+0, fr+1, fr+2)) {
-      sprintf(err, "%s: trouble parsing line %d: \"%s\"", me, ki, line);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: trouble parsing line %d: \"%s\"", me, ki, line);
+      airMopError(mop); return 1;
     }
     (*camP)[ki].neer = dn;
     (*camP)[ki].faar = df;

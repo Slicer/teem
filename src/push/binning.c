@@ -60,14 +60,14 @@ pushBinDone(pushBin *bin) {
 */
 pushBin *
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
-  char me[]="_pushBinLocate", err[BIFF_STRLEN];
+  static const char char me[]="_pushBinLocate";
   double posWorld[4], posIdx[4];
   unsigned int axi, eidx[3], binIdx;
 
   if (!ELL_3V_EXISTS(_posWorld)) {
-    sprintf(err, "%s: non-existant position (%g,%g,%g)", me,
-            _posWorld[0], _posWorld[1], _posWorld[2]);
-    biffAdd(PUSH, err); return NULL;
+    biffAddf(PUSH, "%s: non-existant position (%g,%g,%g)", me,
+             _posWorld[0], _posWorld[1], _posWorld[2]);
+    return NULL;
   }
 
   if (pctx->binSingle) {
@@ -137,7 +137,7 @@ _pushBinNeighborSet(pushBin *bin, pushBin **nei, unsigned int num) {
 
 void
 pushBinAllNeighborSet(pushContext *pctx) {
-  /* char me[]="pushBinAllNeighborSet"; */
+  /* static const char me[]="pushBinAllNeighborSet"; */
   pushBin *nei[3*3*3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;
@@ -180,13 +180,13 @@ pushBinAllNeighborSet(pushContext *pctx) {
 
 int
 pushBinPointAdd(pushContext *pctx, pushPoint *point) {
-  char me[]="pushBinPointAdd", err[BIFF_STRLEN];
+  static const char me[]="pushBinPointAdd";
   pushBin *bin;
   
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: can't locate point %p %u",
-            me, AIR_CAST(void*, point), point->ttaagg);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: can't locate point %p %u",
+             me, AIR_CAST(void*, point), point->ttaagg);
+    return 1;
   }
   _pushBinPointAdd(pctx, bin, point);
   return 0;
@@ -198,7 +198,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 */
 int
 pushRebin(pushContext *pctx) {
-  char me[]="pushRebin", err[BIFF_STRLEN];
+  static const char me[]="pushRebin";
   unsigned int oldBinIdx, pointIdx;
   pushBin *oldBin, *newBin;
   pushPoint *point;
@@ -211,9 +211,9 @@ pushRebin(pushContext *pctx) {
         point = oldBin->point[pointIdx];
         newBin = _pushBinLocate(pctx, point->pos);
         if (!newBin) {
-          sprintf(err, "%s: can't locate point %p %u",
-                  me, AIR_CAST(void*, point), point->ttaagg);
-          biffAdd(PUSH, err); return 1;
+          biffAddf(PUSH, "%s: can't locate point %p %u",
+                   me, AIR_CAST(void*, point), point->ttaagg);
+          return 1;
         }
         if (oldBin != newBin) {
           _pushBinPointRemove(pctx, oldBin, pointIdx);

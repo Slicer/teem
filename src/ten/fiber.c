@@ -52,7 +52,7 @@
 int
 _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
                double wPos[3], int seedProbe) {
-  char me[]="_tenFiberProbe", err[BIFF_STRLEN];
+  static const char me[]="_tenFiberProbe";
   double iPos[3];
   int ret = 0;
   double tens2[2][7];
@@ -189,10 +189,10 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
       }
       break;
     default:
-      sprintf(err, "%s: %s %s (%d) unimplemented!", me, 
+      biffAddf(TEN, "%s: %s %s (%d) unimplemented!", me, 
               tenDwiFiberType->name,
               airEnumStr(tenDwiFiberType, tfx->fiberType), tfx->fiberType);
-      biffAdd(TEN, err); ret = 1;
+      ret = 1;
     } /* switch (tfx->fiberType) */
   }
   if (tfx->verbose > 2) {
@@ -205,7 +205,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
 
 int
 _tenFiberStopCheck(tenFiberContext *tfx) {
-  char me[]="_tenFiberStopCheck";
+  static const char me[]="_tenFiberStopCheck";
   
   if (tfx->numSteps[tfx->halfIdx] >= TEN_FIBER_NUM_STEPS_MAX) {
     fprintf(stderr, "%s: numSteps[%d] exceeded sanity check value of %d!!\n",
@@ -255,7 +255,7 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
 
 void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
-  char me[]="_tenFiberAlign";
+  static const char me[]="_tenFiberAlign";
   double scale, dot;
   
   if (tfx->verbose > 2) {
@@ -366,7 +366,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
 
 void
 _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
-  char me[]="_tenFiberStep_PureLine";
+  static const char me[]="_tenFiberStep_PureLine";
 
   AIR_UNUSED(tfx);
   AIR_UNUSED(step);
@@ -375,7 +375,7 @@ _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
 
 void
 _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
-  char me[]="_tenFiberStep_Zhukov";
+  static const char me[]="_tenFiberStep_Zhukov";
 
   AIR_UNUSED(tfx);
   AIR_UNUSED(step);
@@ -484,7 +484,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
                  double *buff, unsigned int halfBuffLen,
                  unsigned int *startIdxP, unsigned int *endIdxP,
                  double seed[3]) {
-  char me[]="tenFiberTraceSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberTraceSet";
   airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
                                 fiber points */
   double *fpts[2];           /* arrays storing forward and backward
@@ -501,20 +501,20 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   airArray *mop;
   
   if (!(tfx)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   /* HEY: a hack to preserve the state inside tenFiberContext so that
      we have fewer side effects (tfx->maxNumSteps may still be set) */
   oldStop = tfx->stop;
   if (!nfiber) {
     if (!( buff && halfBuffLen > 0 && startIdxP && startIdxP )) {
-      sprintf(err, "%s: need either non-NULL nfiber or fpts buffer info", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: need either non-NULL nfiber or fpts buffer info", me);
+      return 1;
     }
     if (tenFiberStopSet(tfx, tenFiberStopNumSteps, halfBuffLen)) {
-      sprintf(err, "%s: error setting new fiber stop", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: error setting new fiber stop", me);
+      return 1;
     }
   }
 
@@ -533,14 +533,14 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
     ELL_3V_COPY(tmp, seed);
   }
   if (_tenFiberProbe(tfx, &gret, tmp, AIR_TRUE)) {
-    sprintf(err, "%s: first _tenFiberProbe failed", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: first _tenFiberProbe failed", me);
+    return 1;
   }
   if (gret) {
     if (gageErrBoundsSpace != tfx->gtx->errNum) {
-      sprintf(err, "%s: gage problem on first _tenFiberProbe: %s (%d)",
+      biffAddf(TEN, "%s: gage problem on first _tenFiberProbe: %s (%d)",
               me, tfx->gtx->errStr, tfx->gtx->errNum);
-      biffAdd(TEN, err); return 1;
+      return 1;
     } else {
       /* the problem on the first probe was that it was out of bounds,
          which is not a catastrophe; its handled the same as below */
@@ -739,8 +739,8 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
                             AIR_CAST(size_t, 3),
                             AIR_CAST(size_t, (fptsArr[0]->len
                                               + fptsArr[1]->len - 1)))) {
-        sprintf(err, "%s: couldn't allocate fiber nrrd", me);
-        biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+        biffMovef(TEN, NRRD, "%s: couldn't allocate fiber nrrd", me);
+        airMopError(mop); return 1;
       }
       fiber = (double*)(nfiber->data);
       outIdx = 0;
@@ -771,11 +771,11 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 */
 int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
-  char me[]="tenFiberTrace", err[BIFF_STRLEN];
+  static const char me[]="tenFiberTrace";
   
   if (tenFiberTraceSet(tfx, nfiber, NULL, 0, NULL, NULL, seed)) {
-    sprintf(err, "%s: problem computing tract", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: problem computing tract", me);
+    return 1;
   }
 
   return 0;
@@ -791,12 +791,12 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
 */
 unsigned int
 tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
-  char me[]="tenFiberDirectionNumber", err[BIFF_STRLEN];
+  static const char me[]="tenFiberDirectionNumber";
   unsigned int ret;
 
   if (!(tfx && seed)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 0;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 0;
   }
 
   /* HEY: eventually this stuff will be specific to the seedpoint ... */
@@ -810,13 +810,13 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
       ret = 2;
       break;
     case tenDwiFiberType12BlendEvec0:
-      sprintf(err, "%s: sorry, type %s not yet implemented", me,
+      biffAddf(TEN, "%s: sorry, type %s not yet implemented", me,
               airEnumStr(tenDwiFiberType, tenDwiFiberType12BlendEvec0));
-      biffAdd(TEN, err); ret = 0;
+      ret = 0;
       break;
     default: 
-      sprintf(err, "%s: type %d unknown!", me, tfx->fiberType);
-      biffAdd(TEN, err); ret = 0;
+      biffAddf(TEN, "%s: type %d unknown!", me, tfx->fiberType);
+      ret = 0;
       break;
     }
   } else {
@@ -839,11 +839,11 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
 int
 tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
                     double seed[3], unsigned int which) {
-  char me[]="tenFiberSingleTrace", err[BIFF_STRLEN];
+  static const char me[]="tenFiberSingleTrace";
 
   if (!(tfx && tfbs && seed)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
 
   /* set input fields in tfbs */
@@ -855,8 +855,8 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
   /* no harm in setting this even when there are no multiple fibers */
   tfx->ten2Which = which;
   if (tenFiberTraceSet(tfx, tfbs->nvert, NULL, 0, NULL, NULL, seed)) {
-    sprintf(err, "%s: problem computing tract", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: problem computing tract", me);
+    return 1;
   }
 
   /* set other fields based on tfx output */
@@ -876,7 +876,7 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
 /* uses biff */
 tenFiberMulti *
 tenFiberMultiNew() {
-  char me[]="tenFiberMultiNew", err[BIFF_STRLEN];
+  static const char me[]="tenFiberMultiNew";
   tenFiberMulti *ret;
 
   ret = AIR_CAST(tenFiberMulti *, calloc(1, sizeof(tenFiberMulti)));
@@ -891,32 +891,32 @@ tenFiberMultiNew() {
                        AIR_CAST(void (*)(void *), tenFiberSingleInit),
                        AIR_CAST(void (*)(void *), tenFiberSingleDone));
     } else {
-      sprintf(err, "%s: couldn't create airArray", me);
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: couldn't create airArray", me);
+      return NULL;
     }
   } else {
-    sprintf(err, "%s: couldn't create tenFiberMulti", me);
-    biffAdd(TEN, err); return NULL;
+    biffAddf(TEN, "%s: couldn't create tenFiberMulti", me);
+    return NULL;
   }
   return ret;
 }
 
 int
 tenFiberMultiCheck(airArray *arr) {
-  char me[]="tenFiberMultiCheck", err[BIFF_STRLEN];
+  static const char me[]="tenFiberMultiCheck";
 
   if (!arr) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (sizeof(tenFiberSingle) != arr->unit) {
-    sprintf(err, "%s: given airArray cannot be for fibers", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: given airArray cannot be for fibers", me);
+    return 1;
   }
   if (!(AIR_CAST(void (*)(void *), tenFiberSingleInit) == arr->initCB
         && AIR_CAST(void (*)(void *), tenFiberSingleDone) == arr->doneCB)) {
-    sprintf(err, "%s: given airArray not set up with fiber callbacks", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: given airArray not set up with fiber callbacks", me);
+    return 1;
   }
   return 0;
 }
@@ -945,7 +945,7 @@ tenFiberMultiNix(tenFiberMulti *tfm) {
 int
 tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
                    const Nrrd *_nseed) {
-  char me[]="tenFiberMultiTrace", err[BIFF_STRLEN];
+  static const char me[]="tenFiberMultiTrace";
   airArray *mop;
   const double *seedData;
   double seed[3];
@@ -953,18 +953,18 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
   Nrrd *nseed;
 
   if (!(tfx && tfml && _nseed)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (tenFiberMultiCheck(tfml->fiberArr)) {
-    sprintf(err, "%s: problem with fiber array", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: problem with fiber array", me);
+    return 1;
   }
   if (!(2 == _nseed->dim && 3 == _nseed->axis[0].size)) {
-    sprintf(err, "%s: seed list should be a 2-D (not %u-D) "
+    biffAddf(TEN, "%s: seed list should be a 2-D (not %u-D) "
             "3-by-X (not %u-by-X) array", me, _nseed->dim,
             AIR_CAST(unsigned int, _nseed->axis[0].size));
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
 
   mop = airMopNew();
@@ -976,8 +976,8 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
     nseed = nrrdNew();
     airMopAdd(mop, nseed, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(nseed, _nseed, nrrdTypeDouble)) {
-      sprintf(err, "%s: couldn't convert seed list", me);
-      biffMove(TEN, err, NRRD); return 1;
+      biffMovef(TEN, NRRD, "%s: couldn't convert seed list", me);
+      return 1;
     }
     seedData = AIR_CAST(const double *, nseed->data);
   }
@@ -987,9 +987,9 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
   for (seedIdx=0; seedIdx<seedNum; seedIdx++) {
     dirNum = tenFiberDirectionNumber(tfx, seed);
     if (!dirNum) {
-      sprintf(err, "%s: couldn't learn dirNum at seed (%g,%g,%g)", me,
+      biffAddf(TEN, "%s: couldn't learn dirNum at seed (%g,%g,%g)", me,
               seed[0], seed[1], seed[2]);
-      biffAdd(TEN, err); return 1;
+      return 1;
     }
     for (dirIdx=0; dirIdx<dirNum; dirIdx++) {
       if (tfx->verbose > 1) {
@@ -1006,9 +1006,9 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
       tfml->fiber[fibrNum].dirNum = dirNum;
       ELL_3V_COPY(seed, seedData + 3*seedIdx);
       if (tenFiberSingleTrace(tfx, &(tfml->fiber[fibrNum]), seed, dirIdx)) {
-        sprintf(err, "%s: trouble on seed (%g,%g,%g) %u/%u, dir %u/%u", me, 
+        biffAddf(TEN, "%s: trouble on seed (%g,%g,%g) %u/%u, dir %u/%u", me, 
                 seed[0], seed[1], seed[2], seedIdx, seedNum, dirIdx, dirNum);
-        biffAdd(TEN, err); return 1;
+        return 1;
       }
       if (tfx->verbose) {
         if (tenFiberStopUnknown == tfml->fiber[fibrNum].whyNowhere) {
@@ -1051,16 +1051,16 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
 int
 tenFiberMultiPolyData(tenFiberContext *tfx, 
                       limnPolyData *lpld, tenFiberMulti *tfml) {
-  char me[]="tenFiberMultiPolyData", err[BIFF_STRLEN];
+  static const char me[]="tenFiberMultiPolyData";
   unsigned int seedIdx, vertTotalNum, fiberNum, fiberIdx, vertTotalIdx;
 
   if (!(tfx && lpld && tfml)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (tenFiberMultiCheck(tfml->fiberArr)) {
-    sprintf(err, "%s: problem with fiber array", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: problem with fiber array", me);
+    return 1;
   }
 
   /* we have to count the real fibers that went somewhere, excluding
@@ -1077,8 +1077,8 @@ tenFiberMultiPolyData(tenFiberContext *tfx,
 
   if (limnPolyDataAlloc(lpld, 0, /* no extra per-vertex info */
                         vertTotalNum, vertTotalNum, fiberNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, LIMN); return 1;
+    biffAddf(TEN, LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
     
   fiberIdx = 0;

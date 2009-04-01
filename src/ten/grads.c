@@ -64,33 +64,33 @@ tenGradientParmNix(tenGradientParm *tgparm) {
 
 int
 tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
-  char me[]="tenGradientCheck", err[BIFF_STRLEN];
+  static const char me[]="tenGradientCheck";
   
   if (nrrdCheck(ngrad)) {
-    sprintf(err, "%s: basic validity check failed", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
+    return 1;
   }
   if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
-    sprintf(err, "%s: need a 3xN 2-D array (not a " _AIR_SIZE_T_CNV 
-            "x? %u-D array)",
-            me, ngrad->axis[0].size, ngrad->dim);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need a 3xN 2-D array (not a " _AIR_SIZE_T_CNV 
+             "x? %u-D array)",
+             me, ngrad->axis[0].size, ngrad->dim);
+    return 1;
   }
   if (nrrdTypeDefault != type && type != ngrad->type) {
-    sprintf(err, "%s: requested type %s but got type %s", me,
-            airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: requested type %s but got type %s", me,
+             airEnumStr(nrrdType, type), airEnumStr(nrrdType, ngrad->type));
+    return 1;
   }
   if (nrrdTypeBlock == ngrad->type) {
-    sprintf(err, "%s: sorry, can't use %s type", me, 
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: sorry, can't use %s type", me, 
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   if (!( minnum <= ngrad->axis[1].size )) {
-    sprintf(err, "%s: have only " _AIR_SIZE_T_CNV " gradients, "
-            "need at least %d",
-            me, ngrad->axis[1].size, minnum);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: have only " _AIR_SIZE_T_CNV " gradients, "
+             "need at least %d",
+             me, ngrad->axis[1].size, minnum);
+    return 1;
   }
 
   return 0;
@@ -103,14 +103,14 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
 */
 int
 tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
-  char me[]="tenGradientRandom", err[BIFF_STRLEN];
+  static const char me[]="tenGradientRandom";
   double *grad, len;
   unsigned int gi;
   
   if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 3), AIR_CAST(size_t, num))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
   airSrandMT(seed);
   grad = AIR_CAST(double*, ngrad->data);
@@ -149,17 +149,17 @@ tenGradientIdealEdge(unsigned int N, int single) {
 */
 int
 tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
-  char me[]="tenGradientJitter", err[BIFF_STRLEN];
+  static const char me[]="tenGradientJitter";
   double *grad, perp0[3], perp1[3], len, theta, cc, ss, edge;
   unsigned int gi, num;
 
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting input to double", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble converting input to double", me);
+    return 1;
   }
   if (tenGradientCheck(nout, nrrdTypeDouble, 3)) {
-    sprintf(err, "%s: didn't get valid gradients", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get valid gradients", me);
+    return 1;
   }
   grad = AIR_CAST(double*, nout->data);
   num = nout->axis[1].size;
@@ -184,7 +184,7 @@ void
 tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
                     const Nrrd *npos, tenGradientParm *tgparm,
                     int edgeNormalize) {
-  /* char me[]="tenGradientMeasure"; */
+  /* static const char me[]="tenGradientMeasure"; */
   double diff[3], *pos, atmp=0, ptmp, edge, len;
   int ii, jj, num;
 
@@ -277,7 +277,7 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
 int
 _tenGradientUpdate(double *meanVel, double *edgeMin,
                    Nrrd *npos, double edge, tenGradientParm *tgparm) {
-  /* char me[]="_tenGradientUpdate"; */
+  /* static const char me[]="_tenGradientUpdate"; */
   double *pos, newpos[3], grad[3], ngrad[3],
     dir[3], len, rep, step, diff[3], limit, expo;
   int num, ii, jj, E;
@@ -378,17 +378,17 @@ party(Nrrd *npos, airRandMTState *rstate) {
 int
 tenGradientBalance(Nrrd *nout, const Nrrd *nin,
                    tenGradientParm *tgparm) {
-  char me[]="tenGradientBalance", err[BIFF_STRLEN];
+  static const char me[]="tenGradientBalance";
   double len, lastLen, improv;
   airRandMTState *rstate;
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2)) {
-    sprintf(err, "%s: got NULL pointer or invalid input", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer or invalid input", me);
+    return 1;
   }
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
-    sprintf(err, "%s: can't initialize output with input", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: can't initialize output with input", me);
+    return 1;
   }
 
   rstate = airRandMTStateNew(tgparm->seed);
@@ -430,8 +430,8 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
 int
 tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                       tenGradientParm *tgparm) {
-  char me[]="tenGradientDistribute", err[BIFF_STRLEN],
-    filename[AIR_STRLEN_SMALL];
+  static const char me[]="tenGradientDistribute";
+  char filename[AIR_STRLEN_SMALL];
   unsigned int ii, num, iter, oldIdx, newIdx, edgeShrink;
   airArray *mop;
   Nrrd *npos[2];
@@ -440,8 +440,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   int E;
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2) || !tgparm) {
-    sprintf(err, "%s: got NULL pointer or invalid input", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer or invalid input", me);
+    return 1;
   }
 
   num = nin->axis[1].size;
@@ -452,8 +452,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, npos[1], (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(npos[0], nin, nrrdTypeDouble)
       || nrrdConvert(npos[1], nin, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble allocating temp buffers", me);
-    biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble allocating temp buffers", me);
+    airMopError(mop); return 1;
   }
 
   pos = (double*)(npos[0]->data);
@@ -463,8 +463,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   }
   if (tgparm->jitter) {
     if (tenGradientJitter(npos[0], npos[0], tgparm->jitter)) {
-      sprintf(err, "%s: problem jittering input", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: problem jittering input", me);
+      airMopError(mop); return 1;
     }
   }
 
@@ -501,9 +501,9 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
                              npos[newIdx], edge, tgparm);
       if (E) {
         if (edgeShrink > tgparm->maxEdgeShrink) {
-          sprintf(err, "%s: %u > %u edge shrinks (%g), update still failed",
+          biffAddf(TEN, "%s: %u > %u edge shrinks (%g), update still failed",
                   me, edgeShrink, tgparm->maxEdgeShrink, edge);
-          biffAdd(TEN, err); airMopError(mop); return 1;
+          airMopError(mop); return 1;
         }
         edgeShrink++;
         /* re-initialize positions (HEY ugly code logic) */
@@ -589,15 +589,15 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       && !tgparm->single) {
     fprintf(stderr, "%s: optimizing balance:\n", me);
     if (tenGradientBalance(nout, npos[oldIdx], tgparm)) {
-      sprintf(err, "%s: failed to minimize vector sum of gradients", me);
-      biffAdd(TEN, err); airMopError(mop); return 1;
+      biffAddf(TEN, "%s: failed to minimize vector sum of gradients", me);
+      airMopError(mop); return 1;
     }
     fprintf(stderr, "%s: .......................... done balancing.\n", me);
   } else {
     fprintf(stderr, "%s: .......................... (no balancing)\n", me);
     if (nrrdConvert(nout, npos[oldIdx], nrrdTypeDouble)) {
-      sprintf(err, "%s: couldn't set output", me);
-      biffMove(TEN, err, NRRD); airMopError(mop); return 1;
+      biffMovef(TEN, NRRD, "%s: couldn't set output", me);
+      airMopError(mop); return 1;
     }
   }
 
@@ -607,18 +607,18 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
 
 int
 tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
-  char me[]="tenGradientGenerate", err[BIFF_STRLEN];
+  static const char me[]="tenGradientGenerate";
   Nrrd *nin;
   airArray *mop;
 
   if (!(nout && tgparm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( num >= 3 )) {
-    sprintf(err, "%s: can generate minimum of 3 gradient directions "
+    biffAddf(TEN, "%s: can generate minimum of 3 gradient directions "
             "(not %d)", me, num);
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
   mop = airMopNew();
   nin = nrrdNew();
@@ -626,8 +626,8 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
 
   if (tenGradientRandom(nin, num, tgparm->seed)
       || tenGradientDistribute(nout, nin, tgparm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); airMopError(mop); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

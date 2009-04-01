@@ -76,9 +76,9 @@ baggageNew(seekContext *sctx) {
     bag->modeSign = +1;
     break;
   default:
-    /* sprintf(err, "%s: feature type %s not handled", me,
+    /* biffAddf(SEEK, "%s: feature type %s not handled", me,
             airEnumStr(seekType, sctx->type));
-    biffAdd(SEEK, err); return 1;
+       return 1;
     */
     /* without biff, we get as nasty as possible */
     bag->esIdx = UINT_MAX;
@@ -120,7 +120,7 @@ baggageNix(baggage *bag) {
 
 static int
 outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  char me[]="outputInit", err[BIFF_STRLEN];
+  static const char me[]="outputInit";
   unsigned int estVertNum, estFaceNum, minI, maxI, valI, *spanHist;
   int E;
 
@@ -153,8 +153,8 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   /* initialize limnPolyData with estimated # faces and vertices */
   /* we will manage the innards of the limnPolyData entirely ourselves */
   if (limnPolyDataAlloc(lpld, 0, 0, 0, 0)) {
-    sprintf(err, "%s: trouble emptying given polydata", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble emptying given polydata", me);
+    return 1;
   }
   bag->xyzwArr = airArrayNew((void**)&(lpld->xyzw), &(lpld->xyzwNum),
                              4*sizeof(float), sctx->pldArrIncr);
@@ -182,11 +182,11 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   airArrayLenPreSet(bag->indxArr, 3*estFaceNum);
   E |= !(bag->indxArr->data);
   if (E) {
-    sprintf(err, "%s: couldn't pre-allocate contour geometry (%p %p %p)", me,
-            bag->xyzwArr->data,
-            (sctx->normalsFind ? bag->normArr->data : NULL),
-            bag->indxArr->data);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: couldn't pre-allocate contour geometry (%p %p %p)", me,
+             bag->xyzwArr->data,
+             (sctx->normalsFind ? bag->normArr->data : NULL),
+             bag->indxArr->data);
+    return 1;
   }
 
   /* initialize output summary info */
@@ -230,7 +230,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
               signed char *flip,  /* OUTPUT HERE */
               unsigned int xi, unsigned int yi, unsigned int ziOff,
               unsigned int dx, unsigned int dy, unsigned int dz) {
-  char me[]="evecFlipProbe", err[BIFF_STRLEN];
+  static const char me[]="evecFlipProbe";
   unsigned int sx, sy, sz, si;
   double stngA, stngB, u, du, dot, strength, wantDot, minDu, mode;
   double current[3], next[3], posNext[3], posA[3], posB[3], evecA[3], evecB[3];
@@ -305,14 +305,12 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
       /* angle between current and next is too big; reduce step */
       du /= 2;
       if (du < minDu) {
-        sprintf(err, "%s: evector wild @ u=%g: du=%g < minDu=%g; "
+        fprintf(stderr, "%s: evector wild @ u=%g: du=%g < minDu=%g; "
                 "dot=%g; stngA,B = %g,%g; strength = %g; mode = %g; "
                 "(xi,yi,zi)=(%u,%u,%u+%u); (dx,dy,dz)=(%u,%u,%u) ",
                 me, u, du, minDu,
                 dot, stngA, stngB, strength, mode,
                 xi, yi, bag->zi, ziOff, dx, dy, dz);
-        /* biffAdd(SEEK, err); return 1; */
-        fprintf(stderr, "%s\n", err);
         *flip = 0;
         return 0;
       }
@@ -326,8 +324,8 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   u = 1.0;
   SETNEXT(u);
   if (dot < wantDot) {
-    sprintf(err, "%s: confused at end of edge", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: confused at end of edge", me);
+    return 1;
   }
   ELL_3V_COPY(current, next);
 
@@ -349,7 +347,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
 */
 static int
 evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
-  char me[]="evecFlipShuffleProbe", err[BIFF_STRLEN];
+  static const char me[]="evecFlipShuffleProbe";
   unsigned int xi, yi, sx, sy, si;
   signed char flipA, flipB, flipC;
 
@@ -369,8 +367,8 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
         /* ----------------- set/probe top of initial slab */
         if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 1, 0, 0)
             || evecFlipProbe(sctx, bag, &flipB, xi, yi, 0, 0, 1, 0)) {
-          sprintf(err, "%s: problem at (xi,yi) = (%u,%u), zi=0", me, xi, yi);
-          biffAdd(SEEK, err); return 1;
+          biffAddf(SEEK, "%s: problem at (xi,yi) = (%u,%u), zi=0", me, xi, yi);
+          return 1;
         }
         sctx->flip[0 + 5*si] = flipA;
         sctx->flip[1 + 5*si] = flipB;
@@ -383,9 +381,9 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
       if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 0, 0, 1)
           || evecFlipProbe(sctx, bag, &flipB, xi, yi, 1, 1, 0, 0)
           || evecFlipProbe(sctx, bag, &flipC, xi, yi, 1, 0, 1, 0)) {
-        sprintf(err, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
-                xi, yi, bag->zi);
-        biffAdd(SEEK, err); return 1;
+        biffAddf(SEEK, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
+                 xi, yi, bag->zi);
+        return 1;
       }
       sctx->flip[2 + 5*si] = flipA;
       sctx->flip[3 + 5*si] = flipB;
@@ -399,7 +397,7 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
 
 static int
 shuffleProbe(seekContext *sctx, baggage *bag) {
-  char me[]="shuffleProbe", err[BIFF_STRLEN];
+  static const char me[]="shuffleProbe";
   unsigned int xi, yi, sx, sy, si, spi;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -519,8 +517,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
       || seekTypeMaximalSurface == sctx->type
       || seekTypeMinimalSurface == sctx->type) {
     if (evecFlipShuffleProbe(sctx, bag)) {
-      sprintf(err, "%s: trouble at zi=%u\n", me, bag->zi);
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: trouble at zi=%u\n", me, bag->zi);
+      return 1;
     }
   }
 
@@ -613,7 +611,7 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
 static void
 vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
             unsigned int xi, unsigned int yi) {
-  /* char me[]="vvalSurfSet"; */
+  /* static const char me[]="vvalSurfSet"; */
   double eval[8][3], evec[8][3], grad[8][3], stng[8], minStrength=0;
   signed char flip[12], flipProd;
   unsigned int sx, sy, si, vi, ei, vrti[8];
@@ -673,7 +671,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
 
 static int
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  /* char me[]="triangulate"; */
+  /* static const char me[]="triangulate"; */
   unsigned xi, yi, sx, sy, si, spi;
   /* ========================================================== */
   /* NOTE: these things must agree with information in tables.c */
@@ -823,7 +821,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 
 static int
 surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
-  char me[]="surfaceExtract", err[BIFF_STRLEN], done[AIR_STRLEN_SMALL];
+  static const char me[]="surfaceExtract";
+  char done[AIR_STRLEN_SMALL];
   unsigned int zi, sz;
   baggage *bag;
 
@@ -832,8 +831,8 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
 
   /* this creates the airArrays in bag */
   if (outputInit(sctx, bag, lpld)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
 
   if (sctx->verbose > 2) {
@@ -847,8 +846,8 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     bag->zi = zi;
     if (shuffleProbe(sctx, bag)
         || triangulate(sctx, bag, lpld)) {
-      sprintf(err, "%s: trouble on zi = %u", me, zi);
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: trouble on zi = %u", me, zi);
+      return 1;
     }
   }
   if (sctx->verbose > 2) {
@@ -863,20 +862,20 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
 
 int
 seekExtract(seekContext *sctx, limnPolyData *lpld) {
-  char me[]="seekExtract", err[BIFF_STRLEN];
+  static const char me[]="seekExtract";
   double time0;
   int E;
 
   if (!( sctx && lpld )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
 
   if (seekTypeIsocontour == sctx->type) {
     if (!AIR_EXISTS(sctx->isovalue)) {
-      sprintf(err, "%s: didn't seem to ever set isovalue (now %g)", me,
-              sctx->isovalue);
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: didn't seem to ever set isovalue (now %g)", me,
+               sctx->isovalue);
+      return 1;
     }
   }
 
@@ -901,14 +900,14 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
     E = surfaceExtract(sctx, lpld);
     break;
   default:
-    sprintf(err, "%s: sorry, %s extraction not implemented", me,
-            airEnumStr(seekType, sctx->type));
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: sorry, %s extraction not implemented", me,
+             airEnumStr(seekType, sctx->type));
+    return 1;
     break;
   }
   if (E) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
 
   /* end time */

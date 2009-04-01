@@ -78,13 +78,13 @@ tenFiberContext *
 _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
                           double thresh, double soft, double valueMin,
                           int ten1method, int ten2method) {
-  char me[]="_tenFiberContextCommonNew", err[BIFF_STRLEN];
+  static const char me[]="_tenFiberContextCommonNew";
   tenFiberContext *tfx;
   gageKind *kind;
 
   if (!( tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext)) )) {
-    sprintf(err, "%s: couldn't allocate new context", me);
-    biffAdd(TEN, err); return NULL;
+    biffAddf(TEN, "%s: couldn't allocate new context", me);
+    return NULL;
   }
 
   if (useDwi) {
@@ -97,20 +97,20 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     tfx->fiberType = tenDwiFiberTypeUnknown;
     
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, vol)) {
-      sprintf(err, "%s: trouble parsing DWI info", me );
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: trouble parsing DWI info", me );
+      return NULL;
     }
     if (skipNum) {
-      sprintf(err, "%s: sorry, can't do DWI skipping here", me);
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: sorry, can't do DWI skipping here", me);
+      return NULL;
     }
     kind = tenDwiGageKindNew();
     if (tenDwiGageKindSet(kind,
                           thresh, soft, bval, valueMin,
                           ngrad, NULL,
                           ten1method, ten2method, 42)) {
-      sprintf(err, "%s: trouble setting DWI kind", me);
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: trouble setting DWI kind", me);
+      return NULL;
     }
   } else {
     /* it should be a tensor volume */
@@ -118,8 +118,8 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     /* default fiber type */
     tfx->fiberType = tenFiberTypeUnknown;
     if (tenTensorCheck(vol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
-      sprintf(err, "%s: didn't get a tensor volume", me);
-      biffAdd(TEN, err); return NULL;
+      biffAddf(TEN, "%s: didn't get a tensor volume", me);
+      return NULL;
     }
     kind = tenGageKind;
   }
@@ -127,20 +127,20 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   if ( !(tfx->gtx = gageContextNew())
        || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, vol, kind))
        || (gagePerVolumeAttach(tfx->gtx, tfx->pvl)) ) {
-    sprintf(err, "%s: gage trouble", me);
-    biffMove(TEN, err, GAGE); free(tfx); return NULL;
+    biffMovef(TEN, GAGE, "%s: gage trouble", me);
+    free(tfx); return NULL;
   }
 
   tfx->nin = vol;
   tfx->ksp = nrrdKernelSpecNew();
   if (nrrdKernelSpecParse(tfx->ksp, tenDefFiberKernel)) {
-    sprintf(err, "%s: couldn't parse tenDefFiberKernel \"%s\"",
-            me,  tenDefFiberKernel);
-    biffMove(TEN, err, NRRD); return NULL;
+    biffMovef(TEN, NRRD, "%s: couldn't parse tenDefFiberKernel \"%s\"",
+              me,  tenDefFiberKernel);
+    return NULL;
   }
   if (tenFiberKernelSet(tfx, tfx->ksp->kernel, tfx->ksp->parm)) {
-    sprintf(err, "%s: couldn't set default kernel", me);
-    biffAdd(TEN, err); return NULL;
+    biffAddf(TEN, "%s: couldn't set default kernel", me);
+    return NULL;
   }
   /* looks to GK like GK says that we must set some stop criterion */
   tfx->intg = tenDefFiberIntg;
@@ -197,29 +197,29 @@ tenFiberContext *
 tenFiberContextDwiNew(const Nrrd *dwivol,
                       double thresh, double soft, double valueMin,
                       int ten1method, int ten2method) {
-  char me[]="tenFiberContextDwiNew", err[BIFF_STRLEN];
+  static const char me[]="tenFiberContextDwiNew";
   tenFiberContext *tfx;
 
   if (!( tfx = _tenFiberContextCommonNew(dwivol, AIR_TRUE,
                                          thresh, soft, valueMin,
                                          ten1method, ten2method) )) {
-    sprintf(err, "%s: couldn't create new context", me);
-    biffAdd(TEN, err); return NULL;
+    biffAddf(TEN, "%s: couldn't create new context", me);
+    return NULL;
   }
   return tfx;
 }
 
 tenFiberContext *
 tenFiberContextNew(const Nrrd *dtvol) {
-  char me[]="tenFiberContextNew", err[BIFF_STRLEN];
+  static const char me[]="tenFiberContextNew";
   tenFiberContext *tfx;
 
   if (!( tfx = _tenFiberContextCommonNew(dtvol, AIR_FALSE,
                                          AIR_NAN, AIR_NAN, AIR_NAN,
                                          tenEstimate1MethodUnknown,
                                          tenEstimate2MethodUnknown) )) {
-    sprintf(err, "%s: couldn't create new context", me);
-    biffAdd(TEN, err); return NULL;
+    biffAddf(TEN, "%s: couldn't create new context", me);
+    return NULL;
   }
 
   return tfx;
@@ -236,11 +236,11 @@ tenFiberVerboseSet(tenFiberContext *tfx, int verbose) {
 
 int
 tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
-  char me[]="tenFiberTypeSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberTypeSet";
 
   if (!tfx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (tfx->useDwi) {
     fprintf(stderr, "!%s(%d)--- hello\n", me, ftype);
@@ -266,9 +266,9 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
                                         tenDwiGage2TensorPeled);
       break;
     default:
-      sprintf(err, "%s: unimplemented %s %d", me,
+      biffAddf(TEN, "%s: unimplemented %s %d", me,
               tenDwiFiberType->name, ftype); 
-      biffAdd(TEN, err); return 1;
+      return 1;
       break;
     }
     tfx->gageEval = NULL;
@@ -325,12 +325,12 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
       GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
       break;
     case tenFiberTypeZhukov:
-      sprintf(err, "%s: sorry, Zhukov oriented tensors not implemented", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: sorry, Zhukov oriented tensors not implemented", me);
+      return 1;
       break;
     default:
-      sprintf(err, "%s: fiber type %d not recognized", me, ftype);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: fiber type %d not recognized", me, ftype);
+      return 1;
       break;
     }  /* switch */
     if (tenFiberTypeEvec0 == ftype
@@ -377,14 +377,14 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
 */
 int
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
-  char me[]="tenFiberStopSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberStopSet";
   va_list ap;
   int ret=0;
   int anisoGage;
 
   if (!tfx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   va_start(ap, stop);
   switch(stop) {
@@ -392,13 +392,13 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     tfx->anisoStopType = va_arg(ap, int);
     tfx->anisoThresh = va_arg(ap, double);
     if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStopType, tenAnisoLast))) {
-      sprintf(err, "%s: given aniso stop type %d not valid", me,
+      biffAddf(TEN, "%s: given aniso stop type %d not valid", me,
               tfx->anisoStopType);
-      biffAdd(TEN, err); ret = 1; goto end;
+      ret = 1; goto end;
     }
     if (!(AIR_EXISTS(tfx->anisoThresh))) {
-      sprintf(err, "%s: given aniso threshold doesn't exist", me);
-      biffAdd(TEN, err); ret = 1; goto end;
+      biffAddf(TEN, "%s: given aniso threshold doesn't exist", me);
+      ret = 1; goto end;
     }
     if (tfx->useDwi) {
       /* the tensor of which we measure anisotropy can come from lots of
@@ -435,9 +435,9 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
         anisoGage = tenGageClpmin2;
         break;
       default:
-        sprintf(err, "%s: sorry, currently don't have fast %s computation "
+        biffAddf(TEN, "%s: sorry, currently don't have fast %s computation "
                 "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
-        biffAdd(TEN, err); ret = 1; goto end;
+        ret = 1; goto end;
         break;
       }
       /* NOTE: we are no longer computing ALL anisotropy measures ...
@@ -454,26 +454,26 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   case tenFiberStopLength:
     tfx->maxHalfLen = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->maxHalfLen) && tfx->maxHalfLen > 0.0 )) {
-      sprintf(err, "%s: given maxHalfLen %g doesn't exist or isn't > 0.0",
+      biffAddf(TEN, "%s: given maxHalfLen %g doesn't exist or isn't > 0.0",
               me, tfx->maxHalfLen);
-      biffAdd(TEN, err); ret = 1; goto end;
+      ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
   case tenFiberStopMinLength:
     tfx->minWholeLen = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->minWholeLen) && tfx->minWholeLen >= 0.0 )) {
-      sprintf(err, "%s: given minWholeLen %g doesn't exist or isn't >= 0.0",
+      biffAddf(TEN, "%s: given minWholeLen %g doesn't exist or isn't >= 0.0",
               me, tfx->minWholeLen);
-      biffAdd(TEN, err); ret = 1; goto end;
+      ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
   case tenFiberStopNumSteps:
     tfx->maxNumSteps = va_arg(ap, unsigned int);
     if (!( tfx->maxNumSteps > 0 )) {
-      sprintf(err, "%s: given maxNumSteps isn't > 0.0", me);
-      biffAdd(TEN, err); ret = 1; goto end;
+      biffAddf(TEN, "%s: given maxNumSteps isn't > 0.0", me);
+      ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
@@ -484,16 +484,16 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   case tenFiberStopConfidence:
     tfx->confThresh = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->confThresh) )) {
-      sprintf(err, "%s: given confThresh doesn't exist", me);
-      biffAdd(TEN, err); ret = 1; goto end;
+      biffAddf(TEN, "%s: given confThresh doesn't exist", me);
+      ret = 1; goto end;
     }
     GAGE_QUERY_ITEM_ON(tfx->query, tenGageTensor);
     break;
   case tenFiberStopRadius:
     tfx->minRadius = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->minRadius) )) {
-      sprintf(err, "%s: given minimum radius doesn't exist", me);
-      biffAdd(TEN, err); ret = 1; goto end;
+      biffAddf(TEN, "%s: given minimum radius doesn't exist", me);
+      ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
@@ -502,14 +502,14 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     break;
   case tenFiberStopFraction:
     if (!tfx->useDwi) {
-      sprintf(err, "%s: can only use %s-based termination in DWI tractography",
+      biffAddf(TEN, "%s: can only use %s-based termination in DWI tractography",
               me, airEnumStr(tenFiberStop, tenFiberStopFraction));
-      biffAdd(TEN, err); ret = 1; goto end;
+      ret = 1; goto end;
     }
     tfx->minFraction = va_arg(ap, double);
     if (!( AIR_EXISTS(tfx->minFraction) )) {
-      sprintf(err, "%s: given minimum fraction doesn't exist", me);
-      biffAdd(TEN, err); ret = 1; goto end;
+      biffAddf(TEN, "%s: given minimum fraction doesn't exist", me);
+      ret = 1; goto end;
     }
     /* no query modifications needed */
     break;
@@ -518,8 +518,8 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     /* no query modifications needed */
     break;
   default:
-    sprintf(err, "%s: stop criterion %d not recognized", me, stop);
-    biffAdd(TEN, err); ret = 1; goto end;
+    biffAddf(TEN, "%s: stop criterion %d not recognized", me, stop);
+    ret = 1; goto end;
   }
   tfx->stop = tfx->stop | (1 << stop);
  end:
@@ -530,11 +530,11 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
 /* to avoid var-args */
 int
 tenFiberStopAnisoSet(tenFiberContext *tfx, int anisoType, double anisoThresh) {
-  char me[]="tenFiberStopAnisoSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberStopAnisoSet";
 
   if (tenFiberStopSet(tfx, tenFiberStopAniso, anisoType, anisoThresh)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -542,7 +542,7 @@ tenFiberStopAnisoSet(tenFiberContext *tfx, int anisoType, double anisoThresh) {
 /* to avoid var-args */
 int
 tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
-  char me[]="tenFiberStopDoubleSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberStopDoubleSet";
 
   switch (stop) {
   case tenFiberStopLength:
@@ -551,14 +551,14 @@ tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
   case tenFiberStopRadius:
   case tenFiberStopFraction:
     if (tenFiberStopSet(tfx, stop, val)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: trouble", me);
+      return 1;
     }
     break;
   default:
-    sprintf(err, "%s: given stop criterion %d (%s) isn't a double", me,
+    biffAddf(TEN, "%s: given stop criterion %d (%s) isn't a double", me,
             stop, airEnumStr(tenFiberStop, stop));
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
   return 0;
 }
@@ -566,20 +566,20 @@ tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
 /* to avoid var-args */
 int
 tenFiberStopUIntSet(tenFiberContext *tfx, int stop, unsigned int val) {
-  char me[]="tenFiberStopUIntSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberStopUIntSet";
 
   switch (stop) {
   case tenFiberStopNumSteps:
   case tenFiberStopMinNumSteps:
     if (tenFiberStopSet(tfx, stop, val)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: trouble", me);
+      return 1;
     }
     break;
   default:
-    sprintf(err, "%s: given stop criterion %d (%s) isn't an unsigned int", me,
+    biffAddf(TEN, "%s: given stop criterion %d (%s) isn't an unsigned int", me,
             stop, airEnumStr(tenFiberStop, stop));
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
   return 0;
 }
@@ -614,12 +614,12 @@ tenFiberStopReset(tenFiberContext *tfx) {
 int
 tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
                       double lerp, double thresh, double soft) {
-  char me[]="tenFiberAnisoSpeedSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberAnisoSpeedSet";
   int anisoGage;
 
   if (!tfx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   
   if (tfx->useDwi) {
@@ -628,8 +628,8 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
   }
   
   if (airEnumValCheck(tenAniso, aniso)) {
-    sprintf(err, "%s: aniso %d not valid", me, aniso);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: aniso %d not valid", me, aniso);
+    return 1;
   }
   switch(aniso) {
   case tenAniso_FA:
@@ -654,9 +654,9 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
     anisoGage = tenGageCa2;
     break;
   default:
-    sprintf(err, "%s: sorry, currently don't have fast %s computation "
+    biffAddf(TEN, "%s: sorry, currently don't have fast %s computation "
             "via gage", me, airEnumStr(tenAniso, tfx->anisoStopType));
-    biffAdd(TEN, err); return 1;
+    return 1;
     break;
   }
   tfx->anisoSpeedType = aniso;
@@ -676,11 +676,11 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso,
 
 int
 tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
-  char me[]="tenFiberAnisoSpeedReset", err[BIFF_STRLEN];
+  static const char me[]="tenFiberAnisoSpeedReset";
 
   if (!tfx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   tfx->anisoSpeedType = tenAnisoUnknown;
   /* HEY: GAGE_QUERY_ITEM_OFF something? */
@@ -693,17 +693,17 @@ int
 tenFiberKernelSet(tenFiberContext *tfx,
                   const NrrdKernel *kern,
                   const double parm[NRRD_KERNEL_PARMS_NUM]) {
-  char me[]="tenFiberKernelSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberKernelSet";
 
   if (!(tfx && kern)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
   if (gageKernelSet(tfx->gtx, gageKernel00,
                     tfx->ksp->kernel, tfx->ksp->parm)) {
-    sprintf(err, "%s: problem setting kernel", me);
-    biffMove(TEN, err, GAGE); return 1;
+    biffMovef(TEN, GAGE, "%s: problem setting kernel", me);
+    return 1;
   }
 
   return 0;
@@ -711,15 +711,15 @@ tenFiberKernelSet(tenFiberContext *tfx,
 
 int
 tenFiberIntgSet(tenFiberContext *tfx, int intg) {
-  char me[]="tenFiberIntTypeSet", err[BIFF_STRLEN];
+  static const char me[]="tenFiberIntTypeSet";
 
   if (!(tfx)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( AIR_IN_OP(tenFiberIntgUnknown, intg, tenFiberIntgLast) )) {
-    sprintf(err, "%s: got invalid integration type %d", me, intg);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got invalid integration type %d", me, intg);
+    return 1;
   }
   tfx->intg = intg;
 
@@ -728,7 +728,7 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
 
 int
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
-  char me[]="tenFiberParmSet";
+  static const char me[]="tenFiberParmSet";
 
   if (tfx) {
     switch(parm) {
@@ -755,43 +755,43 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
 
 int
 tenFiberUpdate(tenFiberContext *tfx) {
-  char me[]="tenFiberUpdate", err[BIFF_STRLEN];
+  static const char me[]="tenFiberUpdate";
 
   if (!tfx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (tenFiberTypeUnknown == tfx->fiberType) {
-    sprintf(err, "%s: fiber type not set", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: fiber type not set", me);
+    return 1;
   }
   if (!( AIR_IN_OP(tenFiberTypeUnknown, tfx->fiberType, tenFiberTypeLast) )) {
-    sprintf(err, "%s: tfx->fiberType set to bogus value (%d)", me,
+    biffAddf(TEN, "%s: tfx->fiberType set to bogus value (%d)", me,
             tfx->fiberType);
-    biffAdd(TEN, err); return 1;
+    return 1;
   }
   if (tenFiberIntgUnknown == tfx->intg) {
-    sprintf(err, "%s: integration type not set", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: integration type not set", me);
+    return 1;
   }
   if (!( AIR_IN_OP(tenFiberIntgUnknown, tfx->intg, tenFiberIntgLast) )) {
-    sprintf(err, "%s: tfx->intg set to bogus value (%d)", me, tfx->intg);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: tfx->intg set to bogus value (%d)", me, tfx->intg);
+    return 1;
   }
   if (0 == tfx->stop) {
-    sprintf(err, "%s: no fiber stopping criteria set", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: no fiber stopping criteria set", me);
+    return 1;
   }
   if (gageQuerySet(tfx->gtx, tfx->pvl, tfx->query)
       || gageUpdate(tfx->gtx)) {
-    sprintf(err, "%s: trouble with gage", me);
-    biffMove(TEN, err, GAGE); return 1;
+    biffMovef(TEN, GAGE, "%s: trouble with gage", me);
+    return 1;
   }
   if (tfx->useDwi) {
     if (!(0 == tfx->ten2Which || 1 == tfx->ten2Which)) {
-      sprintf(err, "%s: ten2Which must be 0 or 1 (not %u)",
-              me, tfx->ten2Which);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: ten2Which must be 0 or 1 (not %u)",
+               me, tfx->ten2Which);
+      return 1;
     }
   }
   return 0;
@@ -804,7 +804,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
 */
 tenFiberContext *
 tenFiberContextCopy(tenFiberContext *oldTfx) {
-  char me[]="tenFiberContextCopy";
+  static const char me[]="tenFiberContextCopy";
   tenFiberContext *tfx;
 
   if (oldTfx->useDwi) {

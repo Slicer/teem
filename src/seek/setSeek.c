@@ -56,39 +56,40 @@ seekVerboseSet(seekContext *sctx, int verbose) {
 int
 seekDataSet(seekContext *sctx, const Nrrd *ninscl,
             gageContext *gctx, unsigned int pvlIdx) {
-  char me[]="seekDataSet", err[BIFF_STRLEN];
+  static const char me[]="seekDataSet";
 
   if (!( sctx && (ninscl || gctx) )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (ninscl && gctx) {
-    sprintf(err, "%s: must give ninscl or gctx, but not both", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: must give ninscl or gctx, but not both", me);
+    return 1;
   }
 
   if (ninscl) {
     if (nrrdCheck(ninscl)) {
-      sprintf(err, "%s: problem with volume", me);
-      biffMove(SEEK, err, NRRD); return 1;
+      biffMovef(SEEK, NRRD, "%s: problem with volume", me);
+      return 1;
     }
     if (3 != ninscl->dim) {
-      sprintf(err, "%s: vanilla scalar volume must be 3-D (not %d-D)",
-              me, ninscl->dim);
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: vanilla scalar volume must be 3-D (not %d-D)",
+               me, ninscl->dim);
+      return 1;
     }
     if (nrrdTypeBlock == ninscl->type) {
-      sprintf(err, "%s: can't work with %s type values", me, 
-              airEnumStr(nrrdType, nrrdTypeBlock));
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: can't work with %s type values", me, 
+               airEnumStr(nrrdType, nrrdTypeBlock));
+      return 1;
     }
     sctx->ninscl = ninscl;
     sctx->gctx = NULL;
     sctx->pvl = NULL;
   } else {
     if (!( pvlIdx < gctx->pvlNum )) {
-      sprintf(err, "%s: pvlIdx %u not < pvlNum %u", me, pvlIdx, gctx->pvlNum);
-      biffAdd(SEEK, err); return 1;
+      biffAddf(SEEK, "%s: pvlIdx %u not < pvlNum %u",
+               me, pvlIdx, gctx->pvlNum);
+      return 1;
     }
     /* we assume that caller has done a gageUpdate(), so no other error
        checking is required (or really possible) here */
@@ -114,23 +115,23 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 */
 int
 seekSamplesSet(seekContext *sctx, size_t samples[3]) {
-  char me[]="seekSamplesSet", err[BIFF_STRLEN];
+  static const char me[]="seekSamplesSet";
   unsigned int numZero;
 
   if (!(sctx && samples)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   numZero = 0;
   numZero += 0 == samples[0];
   numZero += 0 == samples[1];
   numZero += 0 == samples[2];
   if (!( 0 == numZero || 3 == numZero )) {
-    sprintf(err, "%s: samples (%u,%u,%u) must all be 0 or !=0 together", me,
-            AIR_CAST(unsigned int, samples[0]),
-            AIR_CAST(unsigned int, samples[1]),
-            AIR_CAST(unsigned int, samples[2]));
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: samples (%u,%u,%u) must all be 0 or !=0 together", me,
+             AIR_CAST(unsigned int, samples[0]),
+             AIR_CAST(unsigned int, samples[1]),
+             AIR_CAST(unsigned int, samples[2]));
+    return 1;
   }
   if (sctx->samples[0] != samples[0]
       || sctx->samples[1] != samples[1]
@@ -150,15 +151,15 @@ seekSamplesSet(seekContext *sctx, size_t samples[3]) {
 */
 int
 seekTypeSet(seekContext *sctx, int type) {
-  char me[]="seekTypeSet", err[BIFF_STRLEN];
+  static const char me[]="seekTypeSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(seekType, type)) {
-    sprintf(err, "%s: %d not a valid %s", me, type, seekType->name);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: %d not a valid %s", me, type, seekType->name);
+    return 1;
   }
   if (sctx->type != type) {
     sctx->type = type;
@@ -174,11 +175,11 @@ seekTypeSet(seekContext *sctx, int type) {
 */
 int
 seekLowerInsideSet(seekContext *sctx, int lowerInside) {
-  char me[]="seekLowerInsideSet", err[BIFF_STRLEN];
+  static const char me[]="seekLowerInsideSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (sctx->lowerInside != lowerInside) {
     sctx->lowerInside = lowerInside;
@@ -194,11 +195,11 @@ seekLowerInsideSet(seekContext *sctx, int lowerInside) {
 */
 int
 seekNormalsFindSet(seekContext *sctx, int normalsFind) {
-  char me[]="seekNormalsFindSet", err[BIFF_STRLEN];
+  static const char me[]="seekNormalsFindSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (sctx->normalsFind != normalsFind) {
     sctx->normalsFind = normalsFind;
@@ -209,11 +210,11 @@ seekNormalsFindSet(seekContext *sctx, int normalsFind) {
 
 int
 seekStrengthUseSet(seekContext *sctx, int doit) {
-  char me[]="seekStrengthUseSet", err[BIFF_STRLEN];
+  static const char me[]="seekStrengthUseSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (sctx->strengthUse != doit) {
     sctx->strengthUse = doit;
@@ -225,20 +226,20 @@ seekStrengthUseSet(seekContext *sctx, int doit) {
 int
 seekStrengthSet(seekContext *sctx, int strengthSign,
                 double strengthMin, double strength) {
-  char me[]="seekStrengthSet", err[BIFF_STRLEN];
+  static const char me[]="seekStrengthSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(1 == strengthSign || -1 == strengthSign)) {
-    sprintf(err, "%s: strengthSign (%d) not +1 or -1", me, strengthSign);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: strengthSign (%d) not +1 or -1", me, strengthSign);
+    return 1;
   }
   if (!(AIR_EXISTS(strengthMin) && AIR_EXISTS(strength))) {
-    sprintf(err, "%s: strength %g or %g doesn't exist", me,
-            strengthMin, strength);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: strength %g or %g doesn't exist", me,
+             strengthMin, strength);
+    return 1;
   }
   if (sctx->strengthSign != strengthSign) {
     sctx->strengthSign = strengthSign;
@@ -257,31 +258,31 @@ seekStrengthSet(seekContext *sctx, int strengthSign,
 
 static int
 itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
-  char me[]="itemCheck", err[BIFF_STRLEN];
+  static const char me[]="itemCheck";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(sctx->gctx && sctx->pvl)) {
-    sprintf(err, "%s: don't have a gage context", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: don't have a gage context", me);
+    return 1;
   }
   if (airEnumValCheck(sctx->pvl->kind->enm, item)) {
-    sprintf(err, "%s: %d not valid %s item", me, item,
-            sctx->pvl->kind->enm->name);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: %d not valid %s item", me, item,
+             sctx->pvl->kind->enm->name);
+    return 1;
   }
   if (!GAGE_QUERY_ITEM_TEST(sctx->pvl->query, item)) {
-    sprintf(err, "%s: item \"%s\" (%d) not set in query", me,
-            airEnumStr(sctx->pvl->kind->enm, item), item);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: item \"%s\" (%d) not set in query", me,
+             airEnumStr(sctx->pvl->kind->enm, item), item);
+    return 1;
   }
   if (sctx->pvl->kind->table[item].answerLength != wantLen) {
-    sprintf(err, "%s: item %s has length %u, not wanted %u", me,
-            airEnumStr(sctx->pvl->kind->enm, item),
-            sctx->pvl->kind->table[item].answerLength, wantLen);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: item %s has length %u, not wanted %u", me,
+             airEnumStr(sctx->pvl->kind->enm, item),
+             sctx->pvl->kind->table[item].answerLength, wantLen);
+    return 1;
   }
   return 0;
 }
@@ -293,11 +294,11 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
 */
 int
 seekItemScalarSet(seekContext *sctx, int item) {
-  char me[]="seekItemScalarSet", err[BIFF_STRLEN];
+  static const char me[]="seekItemScalarSet";
 
   if (itemCheck(sctx, item, 1)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->sclvItem != item) {
     sctx->sclvItem = item;
@@ -312,11 +313,11 @@ seekItemScalarSet(seekContext *sctx, int item) {
 */
 int
 seekItemStrengthSet(seekContext *sctx, int item) {
-  char me[]="seekItemStrengthSet", err[BIFF_STRLEN];
+  static const char me[]="seekItemStrengthSet";
 
   if (itemCheck(sctx, item, 1)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->stngItem != item) {
     sctx->stngItem = item;
@@ -332,11 +333,11 @@ seekItemStrengthSet(seekContext *sctx, int item) {
 */
 int
 seekItemGradientSet(seekContext *sctx, int item) {
-  char me[]="seekItemGradientSet", err[BIFF_STRLEN];
+  static const char me[]="seekItemGradientSet";
 
   if (itemCheck(sctx, item, 3)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->gradItem != item) {
     sctx->gradItem = item;
@@ -353,11 +354,11 @@ seekItemGradientSet(seekContext *sctx, int item) {
 */
 int
 seekItemNormalSet(seekContext *sctx, int item) {
-  char me[]="seekItemNormalSet", err[BIFF_STRLEN];
+  static const char me[]="seekItemNormalSet";
 
   if (itemCheck(sctx, item, 3)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->normItem != item) {
     sctx->normItem = item;
@@ -374,15 +375,15 @@ seekItemNormalSet(seekContext *sctx, int item) {
 */
 int
 seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
-  char me[]="seekItemEigenvectorSet", err[BIFF_STRLEN];
+  static const char me[]="seekItemEigenvectorSet";
 
   if (itemCheck(sctx, evalItem, 3)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (itemCheck(sctx, evecItem, 9)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->evalItem != evalItem
       || sctx->evecItem != evecItem) {
@@ -404,15 +405,15 @@ seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
 */
 int
 seekIsovalueSet(seekContext *sctx, double isovalue) {
-  char me[]="seekIsovalueSet", err[BIFF_STRLEN];
+  static const char me[]="seekIsovalueSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!AIR_EXISTS(isovalue)) {
-    sprintf(err, "%s: given isovalue %g doesn't exit", me, isovalue);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: given isovalue %g doesn't exit", me, isovalue);
+    return 1;
   }
   if (sctx->isovalue != isovalue) {
     sctx->isovalue = isovalue;

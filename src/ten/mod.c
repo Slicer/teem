@@ -48,28 +48,28 @@ enum {
 
 static int
 theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
-  char me[]="theFunc", err[BIFF_STRLEN];
+  static const char me[]="theFunc";
   float *tin, *tout, eval[3], evec[9], weight[3], size, mean;
   size_t NN, II;
   unsigned int ri;
 
   if (!AIR_IN_OP(funcUnknown, func, funcLast)) {
-    sprintf(err, "%s: given func %d out of range [%d,%d]", me, func,
-            funcUnknown+1, funcLast-1);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: given func %d out of range [%d,%d]", me, func,
+             funcUnknown+1, funcLast-1);
+    return 1;
   }
   if (!(nout && nin && parm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_FALSE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a tensor nrrd", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get a tensor nrrd", me);
+    return 1;
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: couldn't allocate output", me);
-      biffMove(TEN, err, NRRD); return 1;
+      biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+      return 1;
     }
   }
 
@@ -81,8 +81,8 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     ELL_3V_COPY_TT(weight, float, parm->weight);
     size = weight[0] + weight[1] + weight[2];
     if (!size) {
-      sprintf(err, "%s: some of eigenvalue weights is zero", me);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: some of eigenvalue weights is zero", me);
+      return 1;
     }
     weight[0] /= size;
     weight[1] /= size;
@@ -223,28 +223,28 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
 int
 tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
                  double amount, double target) {
-  char me[]="tenSizeNormalize", err[BIFF_STRLEN];
+  static const char me[]="tenSizeNormalize";
   funcParm parm;
 
   ELL_3V_COPY(parm.weight, _weight);
   parm.amount = amount;
   parm.target = target;
   if (theFunc(nout, nin, funcSizeNormalize, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
 
 int
 tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
-  char me[]="tenSizeScale", err[BIFF_STRLEN];
+  static const char me[]="tenSizeScale";
   funcParm parm;
 
   parm.amount = amount;
   if (theFunc(nout, nin, funcSizeScale, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -258,15 +258,15 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
 int
 tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
               int fixDet, int makePositive) {
-  char me[]="tenAnisoScale", err[BIFF_STRLEN];
+  static const char me[]="tenAnisoScale";
   funcParm parm;
 
   parm.scale = scale;
   parm.fixDet = fixDet;
   parm.makePositive = makePositive;
   if (theFunc(nout, nin, funcAnisoScale, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -278,14 +278,14 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
 */
 int
 tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
-  char me[]="tenEigenvalueClamp", err[BIFF_STRLEN];
+  static const char me[]="tenEigenvalueClamp";
   funcParm parm;
 
   parm.min = min;
   parm.max = max;
   if (theFunc(nout, nin, funcEigenvalueClamp, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -297,13 +297,13 @@ tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
 */
 int
 tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
-  char me[]="tenEigenvaluePower", err[BIFF_STRLEN];
+  static const char me[]="tenEigenvaluePower";
   funcParm parm;
 
   parm.expo = expo;
   if (theFunc(nout, nin, funcEigenvaluePower, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -315,13 +315,13 @@ tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
 */
 int
 tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
-  char me[]="tenEigenvalueAdd", err[BIFF_STRLEN];
+  static const char me[]="tenEigenvalueAdd";
   funcParm parm;
   
   parm.val = val;
   if (theFunc(nout, nin, funcEigenvalueAdd, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -333,12 +333,12 @@ tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
 */
 int
 tenLog(Nrrd *nout, const Nrrd *nin) {
-  char me[]="tenLog", err[BIFF_STRLEN];
+  static const char me[]="tenLog";
   funcParm parm;
 
   if (theFunc(nout, nin, funcLog, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -350,12 +350,12 @@ tenLog(Nrrd *nout, const Nrrd *nin) {
 */
 int
 tenExp(Nrrd *nout, const Nrrd *nin) {
-  char me[]="tenExp", err[BIFF_STRLEN];
+  static const char me[]="tenExp";
   funcParm parm;
 
   if (theFunc(nout, nin, funcExp, &parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }

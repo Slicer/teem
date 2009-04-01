@@ -329,7 +329,7 @@ _convert[TEN_TRIPLE_TYPE_MAX+1][TEN_TRIPLE_TYPE_MAX+1] = {
 void
 tenTripleConvertSingle_d(double dst[3], int dstType,
                          const double src[3], const int srcType) {
-  char me[]="tenTripleConvertSingle_d";
+  static const char me[]="tenTripleConvertSingle_d";
   int direct;
 
   if (airEnumValCheck(tenTripleType, dstType)
@@ -418,36 +418,36 @@ tenTripleCalcSingle_f(float dst[3], int ttype, float ten[7]) {
 
 int
 tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
-  char me[]="tenTripleCalc", err[BIFF_STRLEN];
+  static const char me[]="tenTripleCalc";
   size_t II, NN, size[NRRD_DIM_MAX];
   double (*ins)(void *, size_t, double), (*lup)(const void *, size_t);
 
   if (!( nout && nten )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(tenTripleType, ttype)) {
-    sprintf(err, "%s: got invalid %s (%d)", me,
-            tenTripleType->name, ttype);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got invalid %s (%d)", me,
+             tenTripleType->name, ttype);
+    return 1;
   }
   if (tenTensorCheck(nten, nrrdTypeDefault, AIR_FALSE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a valid DT array", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get a valid DT array", me);
+    return 1;
   }
   if (!( nrrdTypeFloat == nten->type ||
          nrrdTypeDouble == nten->type )) {
-    sprintf(err, "%s: need input type %s or %s, not %s\n", me, 
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nten->type));
+    biffAddf(TEN, "%s: need input type %s or %s, not %s\n", me, 
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nten->type));
   }
   
   nrrdAxisInfoGet_nva(nten, nrrdAxisInfoSize, size);
   size[0] = 3;
   if (nrrdMaybeAlloc_nva(nout, nten->type, nten->dim, size)) {
-    sprintf(err, "%s: couldn't alloc output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
+    return 1;
   }
 
   NN = nrrdElementNumber(nten)/7;
@@ -465,14 +465,14 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
     }
   }
   if (nrrdAxisInfoCopy(nout, nten, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
-    sprintf(err, "%s: couldn't copy axis info", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
+    return 1;
   }
   nout->axis[0].kind = nrrdKindUnknown;
   if (nrrdBasicInfoCopy(nout, nten,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(TEN, "%s:", me);
+    return 1;
   }
 
   return 0;
@@ -481,34 +481,34 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
 int
 tenTripleConvert(Nrrd *nout, int dstType,
                  const Nrrd *nin, int srcType) {
-  char me[]="tenTripleConvert", err[BIFF_STRLEN];
+  static const char me[]="tenTripleConvert";
   size_t II, NN;
   double (*ins)(void *, size_t, double), (*lup)(const void *, size_t);
 
   if (!( nout && nin )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if ( airEnumValCheck(tenTripleType, dstType) ||
        airEnumValCheck(tenTripleType, srcType) ) {
-    sprintf(err, "%s: got invalid %s dst (%d) or src (%d)", me, 
-            tenTripleType->name, dstType, srcType);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got invalid %s dst (%d) or src (%d)", me, 
+             tenTripleType->name, dstType, srcType);
+    return 1;
   }
   if (3 != nin->axis[0].size) {
-    sprintf(err, "%s: need axis[0].size 3, not " _AIR_SIZE_T_CNV, me,
-            nin->axis[0].size);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need axis[0].size 3, not " _AIR_SIZE_T_CNV, me,
+             nin->axis[0].size);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: input has non-scalar %s type",
-            me, airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: input has non-scalar %s type",
+             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
 
   if (nrrdCopy(nout, nin)) {
-    sprintf(err, "%s: couldn't initialize output", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: couldn't initialize output", me);
+    return 1;
   }
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];

@@ -977,7 +977,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
 int
 tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
              int hflip, int whole, int nanout) {
-  char me[]="tenAnisoMap", err[BIFF_STRLEN];
+  static const char me[]="tenAnisoMap";
   float *out, tmp;
   unsigned int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
@@ -986,17 +986,17 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
                                               barycentric coordinates */
 
   if (airEnumValCheck(tenAniso, aniso)) {
-    sprintf(err, "%s: invalid aniso (%d)", me, aniso);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: invalid aniso (%d)", me, aniso);
+    return 1;
   }
   if (!(res > 2)) {
-    sprintf(err, "%s: resolution (%d) invalid", me, res);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: resolution (%d) invalid", me, res);
+    return 1;
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, res), AIR_CAST(size_t, res))) {
-    sprintf(err, "%s: ", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: ", me);
+    return 1;
   }
   out = (float *)nout->data;
   if (whole) {
@@ -1037,19 +1037,19 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
 
 int
 tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
-  char me[]="tenAnisoVolume", err[BIFF_STRLEN];
+  static const char me[]="tenAnisoVolume";
   size_t N, I;
   float *out, *in, *tensor;
   int map[NRRD_DIM_MAX];
   size_t sx, sy, sz, size[3];
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a tensor nrrd", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get a tensor nrrd", me);
+    return 1;
   }
   if (airEnumValCheck(tenAniso, aniso)) {
-    sprintf(err, "%s: invalid aniso (%d)", me, aniso);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: invalid aniso (%d)", me, aniso);
+    return 1;
   }
   confThresh = AIR_CLAMP(0.0, confThresh, 1.0);
 
@@ -1058,8 +1058,8 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   size[2] = sz = nin->axis[3].size;
   N = sx*sy*sz;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble", me);
+    return 1;
   }
   out = (float *)nout->data;
   in = (float *)nin->data;
@@ -1075,11 +1075,11 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
       copyI = I;
       NRRD_COORD_GEN(coord, size, 3, copyI);
-      sprintf(err, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
-              "%d = (%d,%d,%d)",
-              me, eval[0], eval[1], eval[2], (int)I,
-              (int)coord[0], (int)coord[1], (int)coord[2]);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
+               "%d = (%d,%d,%d)",
+               me, eval[0], eval[1], eval[2], (int)I,
+               (int)coord[0], (int)coord[1], (int)coord[2]);
+      return 1;
     }
     */
     out[I] = tenAnisoTen_f(tensor, aniso);
@@ -1087,27 +1087,27 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
       size_t copyI, coord[3];
       copyI = I;
       NRRD_COORD_GEN(coord, size, 3, copyI);
-      sprintf(err, "%s: generated non-existent aniso %g from tensor "
-              "(%g) %g %g %g   %g %g   %g at sample %u = (%u,%u,%u)", me,
-              out[I],
-              tensor[0], tensor[1], tensor[2], tensor[3],
-              tensor[4], tensor[5], tensor[6],
-              AIR_CAST(unsigned int, I),
-              AIR_CAST(unsigned int, coord[0]),
-              AIR_CAST(unsigned int, coord[1]),
-              AIR_CAST(unsigned int, coord[2]));
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: generated non-existent aniso %g from tensor "
+               "(%g) %g %g %g   %g %g   %g at sample %u = (%u,%u,%u)", me,
+               out[I],
+               tensor[0], tensor[1], tensor[2], tensor[3],
+               tensor[4], tensor[5], tensor[6],
+               AIR_CAST(unsigned int, I),
+               AIR_CAST(unsigned int, coord[0]),
+               AIR_CAST(unsigned int, coord[1]),
+               AIR_CAST(unsigned int, coord[2]));
+      return 1;
     }
   }
   ELL_3V_SET(map, 1, 2, 3);
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_SIZE_BIT)) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble", me);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    sprintf(err, "%s:", me);
-    biffAdd(NRRD, err); return 1;
+    biffAddf(NRRD, "%s:", me);
+    return 1;
   }
 
   return 0;
@@ -1116,7 +1116,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
 int
 tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
                   int right, int version, unsigned int res) {
-  char me[]="tenAnisoHistogram", err[BIFF_STRLEN];
+  static const char me[]="tenAnisoHistogram";
   size_t N, I;
   int csIdx, clIdx, cpIdx;
   float *tdata, *out, eval[3],
@@ -1124,30 +1124,30 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
   unsigned int yres, xi, yi;
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    sprintf(err, "%s: didn't get a tensor nrrd", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: didn't get a tensor nrrd", me);
+    return 1;
   }
   if (nwght) {
     if (nrrdCheck(nwght)) {
-      sprintf(err, "%s: trouble with weighting nrrd", me);
-      biffMove(TEN, err, NRRD); return 1;
+      biffMovef(TEN, NRRD, "%s: trouble with weighting nrrd", me);
+      return 1;
     }
     if (nrrdElementNumber(nwght)
         != nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix) ) {
-      sprintf(err, "%s: # elements in weight nrrd (" _AIR_SIZE_T_CNV 
-              ") != # tensors (" _AIR_SIZE_T_CNV ")", me,
-              nrrdElementNumber(nwght),
-              nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix));
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: # elements in weight nrrd (" _AIR_SIZE_T_CNV 
+               ") != # tensors (" _AIR_SIZE_T_CNV ")", me,
+               nrrdElementNumber(nwght),
+               nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix));
+      return 1;
     }
   }
   if (!( 1 == version || 2 == version )) {
-    sprintf(err, "%s: version (%d) wasn't 1 or 2", me, version);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: version (%d) wasn't 1 or 2", me, version);
+    return 1;
   }
   if (!(res > 10)) {
-    sprintf(err, "%s: resolution (%d) invalid", me, res);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: resolution (%d) invalid", me, res);
+    return 1;
   }
   if (right) {
     yres = AIR_CAST(unsigned int, AIR_CAST(double, res)/sqrt(3));
@@ -1161,8 +1161,8 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, res), AIR_CAST(size_t, yres))) {
-    sprintf(err, "%s: ", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: ", me);
+    return 1;
   }
   out = (float *)nout->data;
   tdata = (float *)nin->data;
@@ -1229,24 +1229,24 @@ tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
 
 int
 tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp) {
-  char me[]="tenEvecRGBParmCheck", err[BIFF_STRLEN];
+  static const char me[]="tenEvecRGBParmCheck";
 
   if (!rgbp) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( rgbp->which <= 2 )) {
-    sprintf(err, "%s: which must be 0, 1, or 2 (not %u)", me, rgbp->which);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: which must be 0, 1, or 2 (not %u)", me, rgbp->which);
+    return 1;
   }
   if (airEnumValCheck(tenAniso, rgbp->aniso)) {
-    sprintf(err, "%s: anisotropy metric %d not valid", me, rgbp->aniso);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: anisotropy metric %d not valid", me, rgbp->aniso);
+    return 1;
   }
   if (nrrdTypeDefault != rgbp->typeOut
       && airEnumValCheck(nrrdType, rgbp->typeOut)) {
-    sprintf(err, "%s: output type (%d) not valid", me, rgbp->typeOut);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: output type (%d) not valid", me, rgbp->typeOut);
+    return 1;
   }
   return 0;
 }

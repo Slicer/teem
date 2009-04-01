@@ -38,7 +38,7 @@ _pushPointTotal(pushContext *pctx) {
 
 int
 _pushProbe(pushTask *task, pushPoint *point) {
-  char me[]="_pushProbe", err[BIFF_STRLEN];
+  static const char me[]="_pushProbe";
   double posWorld[4], posIdx[4];
 
   ELL_3V_COPY(posWorld, point->pos); posWorld[3] = 1.0;
@@ -49,9 +49,9 @@ _pushProbe(pushTask *task, pushPoint *point) {
   posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
 
   if (gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2])) {
-    sprintf(err, "%s: gageProbe failed:\n (%d) %s\n", me,
-            task->gctx->errNum, task->gctx->errStr);
-    biffAdd(PUSH, err); return 1;
+    biffAddf(PUSH, "%s: gageProbe failed:\n (%d) %s\n", me,
+             task->gctx->errNum, task->gctx->errStr);
+    return 1;
   }
     
   TEN_T_COPY(point->ten, task->tenAns);
@@ -70,7 +70,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
 int
 pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
               pushContext *pctx) {
-  char me[]="pushOutputGet", err[BIFF_STRLEN];
+  static const char me[]="pushOutputGet";
   unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
   float *posOut, *tenOut, *enrOut;
@@ -95,8 +95,8 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
-    sprintf(err, "%s: trouble allocating outputs", me);
-    biffMove(PUSH, err, NRRD); return 1;
+    biffMovef(PUSH, NRRD, "%s: trouble allocating outputs", me);
+    return 1;
   }
   posOut = nPosOut ? (float*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (float*)(nTenOut->data) : NULL;
@@ -133,7 +133,7 @@ _pushPairwiseEnergy(pushTask *task,
                     pushEnergySpec *ensp,
                     pushPoint *myPoint, pushPoint *herPoint,
                     double YY[3], double iscl) {
-  char me[]="_pushPairwiseEnergy", err[BIFF_STRLEN];
+  static const char me[]="_pushPairwiseEnergy";
   double inv[7], XX[3], nXX[3], rr, mag, WW[3];
 
   if (task->pctx->midPntSmp) {
@@ -143,9 +143,9 @@ _pushPairwiseEnergy(pushTask *task,
                       0.5, myPoint->pos,
                       0.5, herPoint->pos);
     if (_pushProbe(task, &_tmpPoint)) {
-      sprintf(err, "%s: at midpoint of %u and %u", me,
-              myPoint->ttaagg, herPoint->ttaagg);
-      biffAdd(PUSH, err); *enrP = AIR_NAN; return 1;
+      biffAddf(PUSH, "%s: at midpoint of %u and %u", me,
+               myPoint->ttaagg, herPoint->ttaagg);
+      *enrP = AIR_NAN; return 1;
     }
     TEN_T_INV(inv, _tmpPoint.ten, det);
   } else {
@@ -173,7 +173,7 @@ _pushPairwiseEnergy(pushTask *task,
 
 int
 pushBinProcess(pushTask *task, unsigned int myBinIdx) {
-  char me[]="pushBinProcess", err[BIFF_STRLEN];
+  static const char me[]="pushBinProcess";
   pushBin *myBin, *herBin, **neighbor;
   unsigned int myPointIdx, herPointIdx;
   pushPoint *myPoint, *herPoint;
@@ -213,9 +213,9 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
           }
           if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
                                   myPoint, herPoint, diff, iscl)) {
-            sprintf(err, "%s: between points %u and %u, A", me,
-                    myPoint->ttaagg, herPoint->ttaagg);
-            biffAdd(PUSH, err); return 1;
+            biffAddf(PUSH, "%s: between points %u and %u, A", me,
+                     myPoint->ttaagg, herPoint->ttaagg);
+            return 1;
           }
           myPoint->enr += enr/2;
           if (ELL_3V_DOT(frc, frc)) {
@@ -227,10 +227,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
             }
           }
           if (!ELL_3V_EXISTS(myPoint->frc)) {
-            sprintf(err, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
-                    myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
-                    herBin);
-            biffAdd(PUSH, err); return 1;
+            biffAddf(PUSH, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
+                     myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
+                     herBin);
+            return 1;
           }
         }
         neighbor++;
@@ -245,18 +245,18 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
         if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
                                 myPoint, herPoint, diff, iscl)) {
-          sprintf(err, "%s: between points %u and %u, B", me,
-                  myPoint->ttaagg, herPoint->ttaagg);
-          biffAdd(PUSH, err); return 1;
+          biffAddf(PUSH, "%s: between points %u and %u, B", me,
+                   myPoint->ttaagg, herPoint->ttaagg);
+          return 1;
         }
         myPoint->enr += enr/2;
         ELL_3V_INCR(myPoint->frc, frc);
       }
     }
     if (!ELL_3V_EXISTS(myPoint->frc)) {
-      sprintf(err, "%s: post-nei myPoint->frc (%g,%g,%g) doesn't exist", me,
-              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: post-nei myPoint->frc (%g,%g,%g) doesn't exist", me,
+               myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      return 1;
     }
 
     /* each point sees containment forces */
@@ -272,9 +272,9 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_3V_INCR(myPoint->frc, frc);
     }      
     if (!ELL_3V_EXISTS(myPoint->frc)) {
-      sprintf(err, "%s: post-grav myPoint->frc (%g,%g,%g) doesn't exist", me,
-              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: post-grav myPoint->frc (%g,%g,%g) doesn't exist", me,
+               myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      return 1;
     }
 
     /* each point in this thing also maybe experiences wall forces */
@@ -317,9 +317,9 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       myPoint->enr += ELL_3V_LEN(enrWorld);
     } /* wall */
     if (!ELL_3V_EXISTS(myPoint->frc)) {
-      sprintf(err, "%s: post-wall myPoint->frc (%g,%g,%g) doesn't exist", me,
-              myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: post-wall myPoint->frc (%g,%g,%g) doesn't exist", me,
+               myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
+      return 1;
     }
 
     task->energySum += myPoint->enr;
@@ -331,9 +331,9 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
     if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
-      sprintf(err, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist", me,
-              deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
-      biffAdd(PUSH, err); return 1;
+      biffAddf(PUSH, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist",
+               me, deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
+      return 1;
     }
     if (deltaLen) {
       double newDelta;
@@ -346,11 +346,11 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       task->deltaFracSum += newDelta/deltaLen;
       ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
       if (!ELL_3V_EXISTS(myPoint->pos)) {
-        sprintf(err, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
-                "doesn't exist", me,
-                newDelta, deltaNorm[0], deltaNorm[1], deltaNorm[2],
-                myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
-        biffAdd(PUSH, err); return 1;
+        biffAddf(PUSH, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
+                 "doesn't exist", me,
+                 newDelta, deltaNorm[0], deltaNorm[1], deltaNorm[2],
+                 myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+        return 1;
       }
     }
     if (2 == task->pctx->dimIn) {
@@ -362,18 +362,18 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
       ELL_34V_HOMOG(myPoint->pos, posWorld);
       if (!ELL_3V_EXISTS(myPoint->pos)) {
-        sprintf(err, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
-                "doesn't exist", me,
-                posOrig[0], posOrig[1], posOrig[2], 
-                myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
-        biffAdd(PUSH, err); return 1;
+        biffAddf(PUSH, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
+                 "doesn't exist", me,
+                 posOrig[0], posOrig[1], posOrig[2], 
+                 myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+        return 1;
       }
     }
     if (1.0 <= task->pctx->probeProb
         || airDrandMT_r(task->rng) <= task->pctx->probeProb) {
       if (_pushProbe(task, myPoint)) {
-        sprintf(err, "%s: probing at new field pos", me);
-        biffAdd(PUSH, err); return 1;
+        biffAddf(PUSH, "%s: probing at new field pos", me);
+        return 1;
       }
     }
     

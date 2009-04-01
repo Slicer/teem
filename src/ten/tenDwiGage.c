@@ -184,7 +184,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
 
 void
 _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenDwiGageIv3Print";
+  static const char me[]="_tenDwiGageIv3Print";
 
   AIR_UNUSED(ctx);
   AIR_UNUSED(pvl);
@@ -194,7 +194,7 @@ _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenDwiGageFilter";
+  static const char me[]="_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
   int fd;
   tenDwiGageKindData *kindData;
@@ -288,7 +288,7 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
 */
 void
 _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
-  /* char me[]="_tenLevmarPeledCB"; */
+  /* static const char me[]="_tenLevmarPeledCB"; */
   double tenA[7], tenB[7];
   int ii;
   tenDwiGagePvlData *pvlData;
@@ -322,7 +322,7 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
 
 void
 _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenDwiGageAnswer";
+  static const char me[]="_tenDwiGageAnswer";
   unsigned int dwiIdx;
   tenDwiGageKindData *kindData;
   tenDwiGagePvlData *pvlData;
@@ -740,7 +740,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 /* note use of the GAGE biff key */
 void *
 _tenDwiGagePvlDataNew(const gageKind *kind) {
-  char me[]="_tenDwiGagePvlDataNew", err[BIFF_STRLEN];
+  static const char me[]="_tenDwiGagePvlDataNew";
   tenDwiGagePvlData *pvlData;
   tenDwiGageKindData *kindData;
   const int segcount = 2;
@@ -748,16 +748,16 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   int E;
   
   if (tenDwiGageKindCheck(kind)) {
-    sprintf(err, "%s: kindData not ready for use", me);
-    biffMove(GAGE, err, TEN); return NULL;
+    biffMovef(GAGE, TEN, "%s: kindData not ready for use", me);
+    return NULL;
   }
   kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
   
   pvlData = AIR_CAST(tenDwiGagePvlData *,
                      malloc(sizeof(tenDwiGagePvlData)));
   if (!pvlData) {
-    sprintf(err, "%s: couldn't allocate pvl data!", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't allocate pvl data!", me);
+    return NULL;
   }
   pvlData->tec1 = tenEstimateContextNew();
   pvlData->tec2 = tenEstimateContextNew();
@@ -782,8 +782,8 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
                                          kindData->thresh, kindData->soft);
     if (!E) E |= tenEstimateUpdate(tec);
     if (E) {
-      fprintf(stderr, "%s: trouble setting %u estimation", me, num);
-      biffMove(GAGE, err, TEN); return NULL;
+      biffMovef(GAGE, TEN, "%s: trouble setting %u estimation", me, num);
+      return NULL;
     }
   }
   pvlData->vbuf = AIR_CAST(double *,
@@ -830,8 +830,8 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   /* this is needed to make sure that the tenDwiGage2TensorPeledLevmarInfo
      item definition above is valid */
   if (5 != LM_OPTS_SZ) {
-    sprintf(err, "%s: LM_OPTS_SZ (%d) != expected 5\n", me, LM_OPTS_SZ);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: LM_OPTS_SZ (%d) != expected 5\n", me, LM_OPTS_SZ);
+    return NULL;
   }
 #endif
   pvlData->levmarUseFastExp = AIR_FALSE;
@@ -882,7 +882,7 @@ int
 _tenDwiGagePvlDataUpdate(const gageKind *kind,
                          const gageContext *ctx,
                          const gagePerVolume *pvl, const void *_pvlData) {
-  /* char me[]="_tenDwiGagePvlDataUpdate"; */
+  /* static const char me[]="_tenDwiGagePvlDataUpdate"; */
   tenDwiGagePvlData *pvlData;
 
   AIR_UNUSED(ctx);
@@ -1038,26 +1038,26 @@ tenDwiGageKindSet(gageKind *dwiKind,
                   const Nrrd *nbmat,
                   int e1method, int e2method,
                   unsigned int randSeed) {
-  char me[]="tenDwiGageKindSet", err[BIFF_STRLEN];
+  static const char me[]="tenDwiGageKindSet";
   tenDwiGageKindData *kindData;
   double grad[3], (*lup)(const void *, size_t);
   unsigned int gi;
 
   if (!dwiKind) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 0;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 0;
   }
   if (!( !!(ngrad) ^ !!(nbmat) )) {
-    sprintf(err, "%s: need exactly one non-NULL in {ngrad,nbmat}", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: need exactly one non-NULL in {ngrad,nbmat}", me);
+    return 1;
   }
   if (nbmat) {
-    sprintf(err, "%s: sorry, B-matrices temporarily disabled", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: sorry, B-matrices temporarily disabled", me);
+    return 1;
   }
   if (tenGradientCheck(ngrad, nrrdTypeDefault, 7)) {
-    sprintf(err, "%s: problem with given gradients", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: problem with given gradients", me);
+    return 1;
   }
   /* make sure that gradient lengths are as expected */
   lup = nrrdDLookup[ngrad->type];
@@ -1065,35 +1065,35 @@ tenDwiGageKindSet(gageKind *dwiKind,
   grad[1] = lup(ngrad->data, 1);
   grad[2] = lup(ngrad->data, 2);
   if (0.0 != ELL_3V_LEN(grad)) {
-    sprintf(err, "%s: sorry, currently need grad[0] to be len 0 (not %g)",
-            me, ELL_3V_LEN(grad));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: sorry, currently need grad[0] to be len 0 (not %g)",
+             me, ELL_3V_LEN(grad));
+    return 1;
   }
   for (gi=1; gi<ngrad->axis[1].size; gi++) {
     grad[0] = lup(ngrad->data, 0 + 3*gi);
     grad[1] = lup(ngrad->data, 1 + 3*gi);
     grad[2] = lup(ngrad->data, 2 + 3*gi);
     if (0.0 == ELL_3V_LEN(grad)) {
-      sprintf(err, "%s: sorry, all but first gradient must be non-zero "
-              "(%u is zero)", me, gi);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: sorry, all but first gradient must be non-zero "
+               "(%u is zero)", me, gi);
+      return 1;
     }
   }
   if (airEnumValCheck(tenEstimate1Method, e1method)) {
-    sprintf(err, "%s: e1method %d is not a valid %s", me, 
-            e1method, tenEstimate1Method->name);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: e1method %d is not a valid %s", me, 
+             e1method, tenEstimate1Method->name);
+    return 1;
   }
   if (airEnumValCheck(tenEstimate2Method, e2method)) {
-    sprintf(err, "%s: emethod %d is not a valid %s", me, 
-            e2method, tenEstimate2Method->name);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: emethod %d is not a valid %s", me, 
+             e2method, tenEstimate2Method->name);
+    return 1;
   }
 
   kindData = AIR_CAST(tenDwiGageKindData *, dwiKind->data);
   if (nrrdConvert(kindData->ngrad, ngrad, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting", me);
-    biffMove(TEN, err, NRRD); return 1;
+    biffMovef(TEN, NRRD, "%s: trouble converting", me);
+    return 1;
   }
   dwiKind->valLen = kindData->ngrad->axis[1].size;
 
@@ -1145,10 +1145,10 @@ tenDwiGageKindSet(gageKind *dwiKind,
       = tenDwiGageTensorMLELikelihood;
     break;
   default:
-    sprintf(err, "%s: unimplemented %s: %s (%d)", me,
-            tenEstimate1Method->name,
-            airEnumStr(tenEstimate1Method, e1method), e1method);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: unimplemented %s: %s (%d)", me,
+             tenEstimate1Method->name,
+             airEnumStr(tenEstimate1Method, e1method), e1method);
+    return 1;
     break;
   }
   kindData->thresh = thresh;
@@ -1163,24 +1163,24 @@ tenDwiGageKindSet(gageKind *dwiKind,
 
 int
 tenDwiGageKindCheck(const gageKind *kind) {
-  char me[]="tenDwiGageKindCheck", err[BIFF_STRLEN];
+  static const char me[]="tenDwiGageKindCheck";
   
   if (!kind) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (strcmp(kind->name, TEN_DWI_GAGE_KIND_NAME)) {
-    sprintf(err, "%s: got \"%s\" kind, not \"%s\"", me,
-            kind->name, TEN_DWI_GAGE_KIND_NAME);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: got \"%s\" kind, not \"%s\"", me,
+             kind->name, TEN_DWI_GAGE_KIND_NAME);
+    return 1;
   }
   if (0 == kind->valLen) {
-    sprintf(err, "%s: don't yet know valLen", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: don't yet know valLen", me);
+    return 1;
   }
   if (!kind->data) {
-    sprintf(err, "%s: kind->data is NULL", me);
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: kind->data is NULL", me);
+    return 1;
   }
   return 0;
 }
