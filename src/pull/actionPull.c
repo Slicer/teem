@@ -802,7 +802,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       }
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
-      if (point->stepEnergy < 0.000000000000001) {
+      if (point->stepEnergy < 0.00000000000000001) {
         if (task->pctx->verbose > 1) {
           printf("%s: %u STUCK (%u); (%g,%g,%g,%g) stepEnr %g\n", me,
                  point->idtag, point->stuckIterNum,

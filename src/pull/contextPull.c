@@ -609,6 +609,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   case pullPropEnergy:
   case pullPropStepEnergy:
   case pullPropStepConstr:
+  case pullPropScale:
     dim = 1;
     size[0] = pointNum;
     typeOut = nrrdTypeDouble;
@@ -685,6 +686,9 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropNeighDistMean:
         out_d[outIdx] = point->neighDistMean;
+        break;
+      case pullPropScale:
+        out_d[outIdx] = point->pos[3];
         break;
       }
       ++outIdx;

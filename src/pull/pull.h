@@ -49,7 +49,7 @@ extern "C" {
 #define PULL_THREAD_MAXNUM 512
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
-#define PULL_BIN_MAXNUM 128*128*128 /* sanity check on max number bins */
+#define PULL_BIN_MAXNUM 128*128*128*30 /* sanity check on max number bins */
 #define POINT_NUM_INCR 1024
 
 #define PULL_PHIST 0
@@ -122,6 +122,7 @@ enum {
   pullPropPosition,           /*  7: [4] position */
   pullPropForce,              /*  8: [4] force accumulation */
   pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
+  pullPropScale,              /* 10: [1] scale position */
   pullPropLast
 };
 
