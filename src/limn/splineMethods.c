@@ -25,13 +25,13 @@
 
 limnSplineTypeSpec *
 limnSplineTypeSpecNew(int type, ...) {
-  char me[]="limnSplineTypeSpecNew", err[BIFF_STRLEN];
+  static const char me[]="limnSplineTypeSpecNew";
   limnSplineTypeSpec *spec;
   va_list ap;
 
   if (airEnumValCheck(limnSplineType, type)) {
-    sprintf(err, "%s: given type %d not a valid limnSplineType", me, type);
-    biffAdd(LIMN, err); return NULL;
+    biffAddf(LIMN, "%s: given type %d not a valid limnSplineType", me, type);
+    return NULL;
   }
   spec = (limnSplineTypeSpec *)calloc(1, sizeof(limnSplineTypeSpec));
   spec->type = type;
@@ -58,7 +58,7 @@ limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 */
 int
 _limnSplineTimeWarpSet(limnSpline *spline) {
-  char me[]="_limnSplineTimeWarpSet", err[BIFF_STRLEN];
+  static const char me[]="_limnSplineTimeWarpSet";
   double *cpt, *time, ss;
   int ii, N;
 
@@ -68,13 +68,13 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 
   for (ii=0; ii<N; ii++) {
     if (!AIR_EXISTS(time[ii])) {
-      sprintf(err, "%s: time[%d] doesn't exist", me, ii);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: time[%d] doesn't exist", me, ii);
+      return 1;
     }
     if (ii && !(time[ii-1] < time[ii])) {
-      sprintf(err, "%s: time[%d] = %g not < time[%d] = %g", me,
-              ii-1, time[ii-1], ii, time[ii]);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: time[%d] = %g not < time[%d] = %g", me,
+               ii-1, time[ii-1], ii, time[ii]);
+      return 1;
     }
     /* this will be used below */
     /* HEY: is there any way or reason to do any other kind of time warp? */
@@ -125,7 +125,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 */
 limnSpline *
 limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
-  char me[]="limnSplineNew", err[BIFF_STRLEN];
+  static const char me[]="limnSplineNew";
   limnSpline *spline;
   size_t N;
   unsigned int size;
@@ -133,45 +133,46 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   Nrrd *nin;
   
   if (airEnumValCheck(limnSplineInfo, info)) {
-    sprintf(err, "%s: info %d not a valid limnSplineInfo", me, info);
-    biffAdd(LIMN, err); return NULL;
+    biffAddf(LIMN, "%s: info %d not a valid limnSplineInfo", me, info);
+    return NULL;
   }
   if (nrrdCheck(_ncpt)) {
-    sprintf(err, "%s: given nrrd has problems", me);
-    biffMove(LIMN, err, NRRD); return NULL;
+    biffMovef(LIMN, NRRD, "%s: given nrrd has problems", me);
+    return NULL;
   }
   if (limnSplineTypeTimeWarp == spec->type) {
     if (!(limnSplineInfoScalar == info)) {
-      sprintf(err, "%s: can only time warp scalars", me);
-      biffAdd(LIMN, err); return NULL;
+      biffAddf(LIMN, "%s: can only time warp scalars", me);
+      return NULL;
     }
     if (!( 1 == _ncpt->dim )) {
-      sprintf(err, "%s: given nrrd has dimension %d, not 1", me, _ncpt->dim);
+      biffAddf(LIMN, "%s: given nrrd has dimension %d, not 1", me, _ncpt->dim);
+      return NULL;
     }
     N = _ncpt->axis[0].size;
   } else {
     if (!( 3 == _ncpt->dim )) {
-      sprintf(err, "%s: given nrrd has dimension %d, not 3", me, _ncpt->dim);
-      biffAdd(LIMN, err); return NULL;
+      biffAddf(LIMN, "%s: given nrrd has dimension %d, not 3", me, _ncpt->dim);
+      return NULL;
     }
     size = limnSplineInfoSize[info];
     if (!( size == _ncpt->axis[0].size && 3 == _ncpt->axis[1].size )) {
-      sprintf(err, "%s: expected %ux3xN nrrd, not "
-              _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "xN", me,
-              size, _ncpt->axis[0].size, _ncpt->axis[1].size);
-      biffAdd(LIMN, err); return NULL;
+      biffAddf(LIMN, "%s: expected %ux3xN nrrd, not "
+               _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "xN", me,
+               size, _ncpt->axis[0].size, _ncpt->axis[1].size);
+      return NULL;
     }
     N = _ncpt->axis[2].size;
   }
   if (1 == N) {
-    sprintf(err, "%s: need at least two control points", me);
-    biffAdd(LIMN, err); return NULL;
+    biffAddf(LIMN, "%s: need at least two control points", me);
+    return NULL;
   }
   
   mop = airMopNew();
   if (!( spline = (limnSpline*)calloc(1, sizeof(limnSpline)) )) {
-    sprintf(err, "%s: couldn't allocate new spline", me);
-    biffAdd(LIMN, err); airMopError(mop); return NULL;
+    biffAddf(LIMN, "%s: couldn't allocate new spline", me);
+    airMopError(mop); return NULL;
   }
   
   airMopAdd(mop, spline, (airMopper)limnSplineNix, airMopOnError);
@@ -185,8 +186,8 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdConvert(nin, _ncpt, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble allocating internal nrrd", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return NULL;
+    biffMovef(LIMN, NRRD, "%s: trouble allocating internal nrrd", me);
+    airMopError(mop); return NULL;
   }
   if (limnSplineTypeTimeWarp == spec->type) {
     /* set the time array to the data of the double-converted nin,
@@ -200,13 +201,13 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
                           AIR_CAST(size_t, 1),
                           AIR_CAST(size_t, 3),
                           _ncpt->axis[0].size)) {
-      sprintf(err, "%s: trouble allocating real control points", me);
-      biffMove(LIMN, err, NRRD); airMopError(mop); return NULL;
+      biffMovef(LIMN, NRRD, "%s: trouble allocating real control points", me);
+      airMopError(mop); return NULL;
     }
     /* and set it all to something useful */
     if (_limnSplineTimeWarpSet(spline)) {
-      sprintf(err, "%s: trouble setting time warp", me);
-      biffAdd(LIMN, err); airMopError(mop); return NULL;
+      biffAddf(LIMN, "%s: trouble setting time warp", me);
+      airMopError(mop); return NULL;
     }
   } else {
     /* we set the control point to the double-converted nin, and we're done */
@@ -246,7 +247,7 @@ limnSplineNix(limnSpline *spline) {
 */
 int
 limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
-  char me[]="limnSplineNrrdCleverFix", err[BIFF_STRLEN];
+  static const char me[]="limnSplineNrrdCleverFix";
   ptrdiff_t min[3], max[3];
   size_t N;
   unsigned int wantSize;
@@ -254,17 +255,18 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   airArray *mop;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me); 
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me); 
+    return 1;
   }
   if (airEnumValCheck(limnSplineInfo, info)
       || airEnumValCheck(limnSplineType, type)) {
-    sprintf(err, "%s: invalid spline info (%d) or type (%d)", me, info, type);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: invalid spline info (%d) or type (%d)",
+             me, info, type);
+    return 1;
   }
   if (nrrdCheck(nin)) {
-    sprintf(err, "%s: nrrd has problems", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: nrrd has problems", me);
+    return 1;
   }
 
   mop = airMopNew();
@@ -275,24 +277,24 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   case 3:
     /* we assume that things are okay */
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: trouble setting output", me);
-      biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+      biffMovef(LIMN, NRRD, "%s: trouble setting output", me);
+      airMopError(mop); return 1;
     }
     break;
   case 2:
     N = nin->axis[1].size;
     if (wantSize != nin->axis[0].size) {
-      sprintf(err, "%s: expected axis[0].size %d for info %s, but got "
-              _AIR_SIZE_T_CNV, 
-              me, wantSize, airEnumStr(limnSplineInfo, info),
-              nin->axis[0].size);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      biffAddf(LIMN, "%s: expected axis[0].size %d for info %s, but got "
+               _AIR_SIZE_T_CNV, 
+               me, wantSize, airEnumStr(limnSplineInfo, info),
+               nin->axis[0].size);
+      airMopError(mop); return 1;
     }
     if (limnSplineTypeTimeWarp == type) {
       /* time-warp handled differently */
       if (nrrdAxesDelete(nout, nin, 0)) {
-        sprintf(err, "%s: couldn't make data 1-D", me);
-        biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        biffMovef(LIMN, NRRD, "%s: couldn't make data 1-D", me);
+        airMopError(mop); return 1;
       }
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
@@ -300,24 +302,25 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_3V_SET(max, wantSize-1, 1, N-1); 
         if (nrrdAxesInsert(ntmpA, nin, 1)
             || nrrdPad_va(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
-          sprintf(err, "%s: trouble with axinsert/pad", me);
-          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/pad", me);
+          airMopError(mop); return 1;
         }
       } else {
         /* the post- and pre- point information may be interlaced with the 
            main control point values */
         if (1 != AIR_MOD((int)N, 3)) {
-          sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-                  "interlaced tangent information, not " _AIR_SIZE_T_CNV,
-                  me, N);
-          biffAdd(LIMN, err); airMopError(mop); return 1;
+          biffAddf(LIMN,
+                   "%s: axis[1].size must be 1+(multiple of 3) when using "
+                   "interlaced tangent information, not " _AIR_SIZE_T_CNV,
+                   me, N);
+          airMopError(mop); return 1;
         }
         ELL_2V_SET(min, 0, -1);
         ELL_2V_SET(max, wantSize-1, N);
         if (nrrdPad_va(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpA, 1, 3, (N+2)/3)) {
-          sprintf(err, "%s: trouble with pad/axsplit", me);
-          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+          biffMovef(LIMN, NRRD, "%s: trouble with pad/axsplit", me);
+          airMopError(mop); return 1;
         }
       }
     }
@@ -325,15 +328,15 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   case 1:
     N = nin->axis[0].size;
     if (limnSplineInfoScalar != info) {
-      sprintf(err, "%s: can't have %s spline with 1-D nrrd", me,
-              airEnumStr(limnSplineInfo, info));
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      biffAddf(LIMN, "%s: can't have %s spline with 1-D nrrd", me,
+               airEnumStr(limnSplineInfo, info));
+      airMopError(mop); return 1;
     }
     if (limnSplineTypeTimeWarp == type) {
       /* nothing fancey needed for time-warp */
       if (nrrdCopy(nout, nin)) {
-        sprintf(err, "%s: trouble setting output", me);
-        biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+        biffMovef(LIMN, NRRD, "%s: trouble setting output", me);
+        airMopError(mop); return 1;
       }
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
@@ -342,36 +345,37 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdAxesInsert(ntmpB, ntmpA, 0)
             || nrrdPad_va(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
-          sprintf(err, "%s: trouble with axinsert/axinsert/pad", me);
-          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/axinsert/pad", me);
+          airMopError(mop); return 1;
         }
       } else {
         /* the post- and pre- point information may be interlaced with the 
            main control point values */
         if (1 != AIR_MOD((int)N, 3)) {
-          sprintf(err, "%s: axis[1].size must be 1+(multiple of 3) when using "
-                  "interlaced tangent information, not " _AIR_SIZE_T_CNV, 
-                  me, N);
-          biffAdd(LIMN, err); airMopError(mop); return 1;
+          biffAddf(LIMN,
+                   "%s: axis[1].size must be 1+(multiple of 3) when using "
+                   "interlaced tangent information, not " _AIR_SIZE_T_CNV, 
+                   me, N);
+          airMopError(mop); return 1;
         }
         ELL_2V_SET(min, 0, -1);
         ELL_2V_SET(max, 0, N+1);
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdPad_va(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpB, 1, 3, (N+2)/3)) {
-          sprintf(err, "%s: trouble with axinsert/pad/axsplit", me);
-          biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/pad/axsplit", me);
+          airMopError(mop); return 1;
         }
       }
     }
     break;
   default:
-    sprintf(err, "%s: input nrrd dim %d baffling", me, nin->dim);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: input nrrd dim %d baffling", me, nin->dim);
+    return 1;
   }
   if (nrrdCheck(nout)) {
-    sprintf(err, "%s: oops: didn't create valid output", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: oops: didn't create valid output", me);
+    airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;
@@ -379,24 +383,24 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
 
 limnSpline *
 limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
-  char me[]="limnSplineCleverNew", err[BIFF_STRLEN];
+  static const char me[]="limnSplineCleverNew";
   limnSpline *spline;
   Nrrd *ntmp;
   airArray *mop;
 
   if (!( ncpt && spec )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return NULL;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return NULL;
   }
   mop = airMopNew();
   airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (limnSplineNrrdCleverFix(ntmp, ncpt, info, spec->type)) {
-    sprintf(err, "%s: couldn't fix up given control point nrrd", me);
-    biffAdd(LIMN, err); airMopError(mop); return NULL;
+    biffAddf(LIMN, "%s: couldn't fix up given control point nrrd", me);
+    airMopError(mop); return NULL;
   }
   if (!( spline = limnSplineNew(ntmp, info, spec) )) {
-    sprintf(err, "%s: couldn't create spline", me);
-    biffAdd(LIMN, err); airMopError(mop); return NULL;
+    biffAddf(LIMN, "%s: couldn't create spline", me);
+    airMopError(mop); return NULL;
   }
 
   airMopOkay(mop);
@@ -405,32 +409,32 @@ limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
 
 int
 limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
-  char me[]="limnSplineUpdate", err[BIFF_STRLEN];
+  static const char me[]="limnSplineUpdate";
   Nrrd *ntmp;
 
   if (!(spline && _ncpt)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdCheck(_ncpt)) {
-    sprintf(err, "%s: given nrrd has problems", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: given nrrd has problems", me);
+    return 1;
   }
   if (limnSplineTypeTimeWarp == spline->type) {
     if (!( 1 == _ncpt->dim )) {
-      sprintf(err, "%s: given nrrd has dimension %d, not 1", me, _ncpt->dim);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: given nrrd has dimension %d, not 1", me, _ncpt->dim);
+      return 1;
     }
     if (!( spline->ncpt->axis[2].size == _ncpt->axis[0].size )) {
-      sprintf(err, "%s: have " _AIR_SIZE_T_CNV " time points, but got "
-              _AIR_SIZE_T_CNV, me,
-              spline->ncpt->axis[2].size, _ncpt->axis[0].size);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: have " _AIR_SIZE_T_CNV " time points, but got "
+               _AIR_SIZE_T_CNV, me,
+               spline->ncpt->axis[2].size, _ncpt->axis[0].size);
+      return 1;
     }
   } else {
     if (!( nrrdSameSize(spline->ncpt, _ncpt, AIR_TRUE) )) {
-      sprintf(err, "%s: given ncpt doesn't match original one", me);
-      biffMove(LIMN, err, NRRD); return 1;
+      biffMovef(LIMN, NRRD, "%s: given ncpt doesn't match original one", me);
+      return 1;
     }
   }
 
@@ -439,18 +443,18 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     if (nrrdWrap_va(ntmp, spline->time, nrrdTypeDouble, 1,
                     _ncpt->axis[0].size)
         || nrrdConvert(ntmp, _ncpt, nrrdTypeDouble)) {
-      sprintf(err, "%s: trouble copying info", me);
-      biffMove(LIMN, err, NRRD); nrrdNix(ntmp); return 1;
+      biffMovef(LIMN, NRRD, "%s: trouble copying info", me);
+      nrrdNix(ntmp); return 1;
     }
     if (_limnSplineTimeWarpSet(spline)) {
-      sprintf(err, "%s: trouble setting time warp", me);
-      biffAdd(LIMN, err); nrrdNix(ntmp); return 1;
+      biffAddf(LIMN, "%s: trouble setting time warp", me);
+      nrrdNix(ntmp); return 1;
     }
     nrrdNix(ntmp); 
   } else {
     if (nrrdConvert(spline->ncpt, _ncpt, nrrdTypeDouble)) {
-      sprintf(err, "%s: trouble converting to internal nrrd", me);
-      biffMove(LIMN, err, NRRD); return 1;
+      biffMovef(LIMN, NRRD, "%s: trouble converting to internal nrrd", me);
+      return 1;
     }
   }  
 

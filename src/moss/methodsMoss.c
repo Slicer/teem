@@ -52,11 +52,11 @@ mossSamplerNew (void) {
 
 int
 mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
-  char me[]="_mossSamplerFill", err[BIFF_STRLEN];
+  static const char me[]="_mossSamplerFill";
 
   if (!(smplr)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer", me);
+    return 1;
   }
   smplr->ivc = (float*)calloc(fdiam*fdiam*ncol, sizeof(float));
   smplr->xFslw = (double*)calloc(fdiam, sizeof(double));
@@ -65,8 +65,8 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
   smplr->yIdx = (int*)calloc(fdiam, sizeof(int));
   if (!( smplr->ivc && smplr->xFslw && smplr->yFslw 
          && smplr->xIdx && smplr->yIdx )) {
-    sprintf(err, "%s: couldn't allocate buffers", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: couldn't allocate buffers", me);
+    return 1;
   }
   smplr->fdiam = fdiam;
   smplr->ncol = ncol;
@@ -101,17 +101,17 @@ mossSamplerNix (mossSampler *smplr) {
 
 int
 mossImageCheck (Nrrd *image) {
-  char me[]="mossImageCheck", err[BIFF_STRLEN];
+  static const char me[]="mossImageCheck";
 
   if (nrrdCheck(image)) {
-    sprintf(err, "%s: given nrrd invalid", me);
-    biffMove(MOSS, err, NRRD); return 1;
+    biffMovef(MOSS, NRRD, "%s: given nrrd invalid", me);
+    return 1;
   }
   if (!( (2 == image->dim || 3 == image->dim)
          && nrrdTypeBlock != image->type )) {
-    sprintf(err, "%s: image has invalid dimension (%d) or type (%s)", me,
-            image->dim, airEnumStr(nrrdType, image->type));
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: image has invalid dimension (%d) or type (%s)", me,
+             image->dim, airEnumStr(nrrdType, image->type));
+    return 1;
   }
   
   return 0;
@@ -119,13 +119,13 @@ mossImageCheck (Nrrd *image) {
 
 int
 mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
-  char me[]="mossImageAlloc", err[BIFF_STRLEN];
+  static const char me[]="mossImageAlloc";
   int ret;
 
   if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock)
         && sx > 0 && sy > 0 && ncol > 0)) {
-    sprintf(err, "%s: got NULL pointer or bad args", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer or bad args", me);
+    return 1;
   }
   if (1 == ncol) {
     ret = nrrdMaybeAlloc_va(image, type, 2,
@@ -138,8 +138,8 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
                             AIR_CAST(size_t, sy));
   }
   if (ret) {
-    sprintf(err, "%s: couldn't allocate image", me);
-    biffMove(MOSS, err, NRRD); return 1;
+    biffMovef(MOSS, NRRD, "%s: couldn't allocate image", me);
+    return 1;
   }
   
   

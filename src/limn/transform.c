@@ -25,14 +25,14 @@
 
 int
 limnObjectWorldHomog(limnObject *obj) {
-  char me[]="limnObjectWorldHomog", err[BIFF_STRLEN];
+  static const char me[]="limnObjectWorldHomog";
   unsigned int vertIdx;
   limnVertex *vert;
   float h;
 
   if (!obj) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
@@ -47,17 +47,17 @@ limnObjectWorldHomog(limnObject *obj) {
 
 int
 limnObjectFaceNormals(limnObject *obj, int space) {
-  char me[]="limnObjectFaceNormals", err[BIFF_STRLEN];
+  static const char me[]="limnObjectFaceNormals";
   unsigned int vii, faceIdx;
   limnFace *face;
   limnVertex *vert0, *vert1, *vert2;
   float vec1[3], vec2[3], cross[3], nn[3], norm;
 
   if (space != limnSpaceWorld && space != obj->vertSpace) {
-    sprintf(err, "%s: desired (%s) != object (%s) space", me,
-            airEnumStr(limnSpace, space),
-            airEnumStr(limnSpace, obj->vertSpace));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: desired (%s) != object (%s) space", me,
+             airEnumStr(limnSpace, space),
+             airEnumStr(limnSpace, obj->vertSpace));
+    return 1;
   }
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
@@ -103,7 +103,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
 
 int
 limnObjectVertexNormals(limnObject *obj) {
-  /* char me[]="limnObjectVertexNormals", err[BIFF_STRLEN]; */
+  /* static const char me[]="limnObjectVertexNormals"; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
   limnVertex *vert;
   limnFace *face;
@@ -150,16 +150,16 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
 
 int
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
-  char me[]="_limnObjectScreenTransform", err[BIFF_STRLEN];
+  static const char me[]="_limnObjectScreenTransform";
   unsigned int vertIdx;
   limnVertex *vert;
   float d;
 
   if (limnSpaceView != obj->vertSpace) {
-    sprintf(err, "%s: object's verts in %s (not %s) space", me,
-            airEnumStr(limnSpace, obj->vertSpace),
-            airEnumStr(limnSpace, limnSpaceView));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
+             airEnumStr(limnSpace, obj->vertSpace),
+             airEnumStr(limnSpace, limnSpaceView));
+    return 1;
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
@@ -181,16 +181,16 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
 int
 _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
                            limnWindow *win) {
-  char me[]="_limnObjectDeviceTransform", err[BIFF_STRLEN];
+  static const char me[]="_limnObjectDeviceTransform";
   unsigned int vertIdx;
   limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
   
   if (limnSpaceScreen != obj->vertSpace) {
-    sprintf(err, "%s: object's verts in %s (not %s) space", me,
-            airEnumStr(limnSpace, obj->vertSpace),
-            airEnumStr(limnSpace, limnSpaceScreen));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
+             airEnumStr(limnSpace, obj->vertSpace),
+             airEnumStr(limnSpace, limnSpaceScreen));
+    return 1;
   }
   wx0 = 0;
   wx1 = AIR_CAST(float, (cam->uRange[1] - cam->uRange[0])*win->scale);
@@ -219,7 +219,7 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
 int
 limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
                       limnWindow *win, int space) {
-  char me[]="limnObjectSpaceTransform", err[BIFF_STRLEN];
+  static const char me[]="limnObjectSpaceTransform";
   int E=0;
 
   /* HEY: deal with cam->orthographic */
@@ -234,13 +234,13 @@ limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
     E = _limnObjectDeviceTransform(obj, cam, win);
     break;
   default:
-    sprintf(err, "%s: space %d unknown or unimplemented\n", me, space);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: space %d unknown or unimplemented\n", me, space);
+    return 1;
     break;
   }
   if (E) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble", me);
+    return 1;
   }
 
   return 0;
@@ -346,23 +346,23 @@ limnObjectDepthSortFaces(limnObject *obj) {
 
 int
 limnObjectFaceReverse(limnObject *obj) {
-  char me[]="limnObjectFaceReverse", err[BIFF_STRLEN];
+  static const char me[]="limnObjectFaceReverse";
   limnFace *face;
   unsigned int faceIdx, sii;
   int *buff;
 
   if (!obj) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   buff = NULL;
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     buff = (int *)calloc(face->sideNum, sizeof(int));
     if (!(buff)) {
-      sprintf(err, "%s: couldn't allocate %d side buffer for face %d\n", 
-              me, face->sideNum, faceIdx);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: couldn't allocate %d side buffer for face %d\n", 
+               me, face->sideNum, faceIdx);
+      return 1;
     }
     memcpy(buff, face->vertIdx, face->sideNum*sizeof(int));
     for (sii=0; sii<face->sideNum; sii++) {

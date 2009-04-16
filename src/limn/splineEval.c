@@ -26,7 +26,7 @@
 void
 _limnSplineIntervalFind_Unknown(int *ii, double *ff,
                                 limnSpline *spline, double tt) {
-  char me[]="_limnSplineIntervalFind_Unknown";
+  static const char me[]="_limnSplineIntervalFind_Unknown";
 
   AIR_UNUSED(ii);
   AIR_UNUSED(ff);
@@ -83,7 +83,7 @@ _limnSplineIntervalFind[LIMN_SPLINE_TYPE_MAX+1] = {
 
 void
 _limnSplineWeightsFind_Unknown(double *wght, limnSpline *spline, double f) {
-  char me[]="_limnSplineWeights_Unknown";
+  static const char me[]="_limnSplineWeights_Unknown";
 
   AIR_UNUSED(wght);
   AIR_UNUSED(spline);
@@ -211,7 +211,7 @@ _limnSplineIndexFind(int *idx, limnSpline *spline, int ii) {
 void
 _limnSplineFinish_Unknown(double *out, limnSpline *spline,
                           int ii, double *wght) {
-  char me[]="_limnSplineFinish_Unknown";
+  static const char me[]="_limnSplineFinish_Unknown";
   
   AIR_UNUSED(out);
   AIR_UNUSED(spline);
@@ -342,14 +342,14 @@ limnSplineEvaluate(double *out, limnSpline *spline, double tt) {
 
 int
 limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
-  char me[]="limnSplineNrrdEvaluate", err[BIFF_STRLEN];
+  static const char me[]="limnSplineNrrdEvaluate";
   double tt, *out, (*lup)(const void *, size_t);
   int odim, infoSize;
   size_t I, M, size[NRRD_DIM_MAX+1];
 
   if (!(nout && spline && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (limnSplineInfoScalar == spline->info) {
     nrrdAxisInfoGet_va(nin, nrrdAxisInfoSize, size);
@@ -361,8 +361,8 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
     odim = 1 + nin->dim;
   }
   if (nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, odim, size)) {
-    sprintf(err, "%s: output allocation failed", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: output allocation failed", me);
+    return 1;
   }
   lup = nrrdDLookup[nin->type];
   out = (double*)(nout->data);
@@ -381,30 +381,30 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
 int
 limnSplineSample(Nrrd *nout, limnSpline *spline,
                  double minT, size_t M, double maxT) {
-  char me[]="limnSplineSample", err[BIFF_STRLEN];
+  static const char me[]="limnSplineSample";
   airArray *mop;
   Nrrd *ntt;
   double *tt;
   size_t I;
 
   if (!(nout && spline)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   mop = airMopNew();
   airMopAdd(mop, ntt=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 1,
                         M)) {
-    sprintf(err, "%s: trouble allocating tmp nrrd", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: trouble allocating tmp nrrd", me);
+    airMopError(mop); return 1;
   }
   tt = (double*)(ntt->data);
   for (I=0; I<M; I++) {
     tt[I] = AIR_AFFINE(0, I, M-1, minT, maxT);
   }
   if (limnSplineNrrdEvaluate(nout, spline, ntt)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: trouble", me);
+    airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;

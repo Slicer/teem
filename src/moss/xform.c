@@ -145,35 +145,36 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
                      double xMin, double xMax,
                      double yMin, double yMax,
                      int xSize, int ySize) {
-  char me[]="mossLinearTransform", err[BIFF_STRLEN];
+  static const char me[]="mossLinearTransform";
   int ncol, xi, yi, ci, ax0, xCent, yCent;
   float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
   double inv[6], xInPos, xOutPos, yInPos, yOutPos;
 
   if (!(nout && nin && mat && msp && !mossImageCheck(nin))) {
-    sprintf(err, "%s: got NULL pointer or bad image", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer or bad image", me);
+    return 1;
   }
   if (mossSamplerImageSet(msp, nin, bg) || mossSamplerUpdate(msp)) {
-    sprintf(err, "%s: trouble with sampler", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: trouble with sampler", me);
+    return 1;
   }
   if (!( xMin != xMax && yMin != yMax && xSize > 1 && ySize > 1 )) {
-    sprintf(err, "%s: bad args: {x,y}Min == {x,y}Max or {x,y}Size <= 1", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: bad args: {x,y}Min == {x,y}Max or {x,y}Size <= 1", me);
+    return 1;
   }
   ax0 = MOSS_AXIS0(nin);
   if (!( AIR_EXISTS(nin->axis[ax0+0].min)
          && AIR_EXISTS(nin->axis[ax0+0].max)
          && AIR_EXISTS(nin->axis[ax0+1].min)
          && AIR_EXISTS(nin->axis[ax0+1].max) )) {
-    sprintf(err, "%s: input axis min,max not set on axes %d and %d", me,
-            ax0+0, ax0+1); biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: input axis min,max not set on axes %d and %d", me,
+             ax0+0, ax0+1);
+    return 1;
   }
 
   ncol = MOSS_NCOL(nin);
   if (mossImageAlloc(nout, nin->type, xSize, ySize, ncol)) {
-    sprintf(err, "%s: ", me); biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: ", me); return 1;
   }
   val = (float*)calloc(ncol, sizeof(float));
   if (nrrdCenterUnknown == nout->axis[ax0+0].center)
@@ -190,8 +191,8 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
   clamp = nrrdFClamp[nin->type];
   
   if (mossSamplerSample(val, msp, 0, 0)) {
-    sprintf(err, "%s: trouble in sampler", me);
-    free(val); biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: trouble in sampler", me);
+    free(val); return 1;
   }
 
   mossMatInvert(inv, mat);

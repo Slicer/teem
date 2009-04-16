@@ -91,24 +91,24 @@ alanContextNix(alanContext *actx) {
 
 #define GOT_NULL \
   if (!actx) { \
-    sprintf(err, "%s: got NULL pointer", me); \
-    biffAdd(ALAN, err); return 1; \
+    biffAddf(ALAN, "%s: got NULL pointer", me); \
+    return 1; \
   }
 
 #define DIM_SET \
   if (0 == actx->dim) { \
-    sprintf(err, "%s: dimension of texture not set", me); \
-    biffAdd(ALAN, err); return 1; \
+    biffAddf(ALAN, "%s: dimension of texture not set", me); \
+    return 1; \
   }
 
 int
 alanDimensionSet(alanContext *actx, int dim) {
-  char me[]="alanDimensionSet", err[BIFF_STRLEN];
+  static const char me[]="alanDimensionSet";
 
   GOT_NULL;
   if (!( dim == 2 || dim == 3 )) {
-    sprintf(err, "%s: dimension must be 2 or 3, not %d", me, dim);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: dimension must be 2 or 3, not %d", me, dim);
+    return 1;
   }
 
   actx->dim = dim;
@@ -118,17 +118,17 @@ alanDimensionSet(alanContext *actx, int dim) {
 
 int
 alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
-  char me[]="alan2DSizeSet", err[BIFF_STRLEN];
+  static const char me[]="alan2DSizeSet";
 
   GOT_NULL;
   DIM_SET;
   if (2 != actx->dim) {
-    sprintf(err, "%s: texture not two-dimensional", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: texture not two-dimensional", me);
+    return 1;
   }
   if (!( sizeX >= 10 && sizeY >= 10 )) {
-    sprintf(err, "%s: sizes (%d,%d) invalid (too small?)", me, sizeX, sizeY);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: sizes (%d,%d) invalid (too small?)", me, sizeX, sizeY);
+    return 1;
   }
 
   actx->size[0] = sizeX;
@@ -138,18 +138,18 @@ alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
 
 int
 alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
-  char me[]="alan2DSizeSet", err[BIFF_STRLEN];
+  static const char me[]="alan2DSizeSet";
 
   GOT_NULL;
   DIM_SET;
   if (3 != actx->dim) {
-    sprintf(err, "%s: texture not three-dimensional", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: texture not three-dimensional", me);
+    return 1;
   }
   if (!( sizeX >= 10 && sizeY >= 10 && sizeZ >= 10 )) {
-    sprintf(err, "%s: sizes (%d,%d,%d) invalid (too small?)",
-            me, sizeX, sizeY, sizeZ);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: sizes (%d,%d,%d) invalid (too small?)",
+             me, sizeX, sizeY, sizeZ);
+    return 1;
   }
 
   actx->size[0] = sizeX;
@@ -160,39 +160,39 @@ alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
 
 int
 alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
-  char me[]="alanTensorSet", err[BIFF_STRLEN];
+  static const char me[]="alanTensorSet";
 
   if (!( actx && nten )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: got NULL pointer", me);
+    return 1;
   }
   DIM_SET;
   if (!( oversample > 0 )) {
-    sprintf(err, "%s: oversample %d invalid", me, oversample);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: oversample %d invalid", me, oversample);
+    return 1;
   }
   if (2 == actx->dim) {
     if (!( 3 == nten->dim && 4 == nten->axis[0].size )) {
-      sprintf(err, "%s: didn't get 3-D (4,X,Y) nrrd", me);
-      biffAdd(ALAN, err); return 1;
+      biffAddf(ALAN, "%s: didn't get 3-D (4,X,Y) nrrd", me);
+      return 1;
     }
   } else {
     if (!( 4 == nten->dim && 7 == nten->axis[0].size )) {
-      sprintf(err, "%s: didn't get 4-D (7,X,Y,Z) nrrd", me);
-      biffAdd(ALAN, err); return 1;
+      biffAddf(ALAN, "%s: didn't get 4-D (7,X,Y,Z) nrrd", me);
+      return 1;
     }
   }
 
   if (1 != oversample) {
-    sprintf(err, "%s: sorry, can only handle oversample==1 now", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: sorry, can only handle oversample==1 now", me);
+    return 1;
   }
 
   actx->nten = nrrdNuke(actx->nten);
   actx->nten = nrrdNew();
   if (nrrdConvert(actx->nten, nten, alan_nt)) {
-    sprintf(err, "%s: trouble converting tensors to alan_t", me);
-    biffMove(ALAN, err, NRRD); return 1;
+    biffMovef(ALAN, NRRD, "%s: trouble converting tensors to alan_t", me);
+    return 1;
   }
   actx->size[0] = oversample*nten->axis[1].size;
   actx->size[1] = oversample*nten->axis[2].size;
@@ -207,7 +207,7 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
 
 int
 alanParmSet(alanContext *actx, int whichParm, double parm) {
-  char me[]="alanParmSet", err[BIFF_STRLEN];
+  static const char me[]="alanParmSet";
   int parmI;
 
   GOT_NULL;
@@ -233,8 +233,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
       actx->diffB = 0.00002f;
       break;
     default:
-      sprintf(err, "%s: texture type %d invalid", me, parmI);
-      biffAdd(ALAN, err); return 1;
+      biffAddf(ALAN, "%s: texture type %d invalid", me, parmI);
+      return 1;
       break;
     }
     actx->textureType = parmI;
@@ -309,8 +309,8 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->wrap = parmI;
     break;
   default:
-    sprintf(err, "%s: parameter %d invalid", me, whichParm);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: parameter %d invalid", me, whichParm);
+    return 1;
     break;
   }
 

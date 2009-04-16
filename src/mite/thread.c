@@ -25,20 +25,20 @@
 
 miteThread *
 miteThreadNew() {
-  char me[]="miteThreadNew", err[BIFF_STRLEN];
+  static const char me[]="miteThreadNew";
   miteThread *mtt;
   int ii;
   
   mtt = (miteThread *)calloc(1, sizeof(miteThread));
   if (!mtt) {
-    sprintf(err, "%s: couldn't calloc miteThread", me);
-    biffAdd(MITE, err); return NULL;
+    biffAddf(MITE, "%s: couldn't calloc miteThread", me);
+    return NULL;
   }
 
   mtt->rmop = airMopNew();
   if (!mtt->rmop) {
-    sprintf(err, "%s: couldn't calloc thread's mop", me);
-    biffAdd(MITE, err); airFree(mtt); return NULL;
+    biffAddf(MITE, "%s: couldn't calloc thread's mop", me);
+    airFree(mtt); return NULL;
   }
   mtt->gctx = NULL;
   mtt->ansScl = mtt->ansVec = mtt->ansTen = NULL;
@@ -55,8 +55,8 @@ miteThreadNew() {
   mtt->directAnsMiteVal = 
     (double **)calloc(miteValGageKind->itemMax+1, sizeof(double*));
   if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
-    sprintf(err, "%s: couldn't calloc miteVal answer arrays", me);
-    biffAdd(MITE, err); return NULL;
+    biffAddf(MITE, "%s: couldn't calloc miteVal answer arrays", me);
+    return NULL;
   }
   for (ii=0; ii<=miteValGageKind->itemMax; ii++) {
     mtt->directAnsMiteVal[ii] = mtt->ansMiteVal 
@@ -94,7 +94,7 @@ miteThreadNix(miteThread *mtt) {
 int 
 miteThreadBegin(miteThread **mttP, miteRender *mrr,
                 miteUser *muu, int whichThread) {
-  char me[]="miteThreadBegin", err[BIFF_STRLEN];
+  static const char me[]="miteThreadBegin";
 
   /* all the miteThreads have already been allocated */
   (*mttP) = mrr->tt[whichThread];
@@ -106,8 +106,8 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     /* we have to generate a new gageContext */
     (*mttP)->gctx = gageContextCopy(muu->gctx0);
     if (!(*mttP)->gctx) {
-      sprintf(err, "%s: couldn't set up thread %d", me, whichThread);
-      biffMove(MITE, err, GAGE); return 1;
+      biffMovef(MITE, GAGE, "%s: couldn't set up thread %d", me, whichThread);
+      return 1;
     }
   }
 
@@ -150,15 +150,15 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     (*mttP)->shadeScl1 = _miteAnswerPointer(*mttP, mrr->shadeSpec->scl1);
     break;
   default:
-    sprintf(err, "%s: shade method %d not implemented!",
+    biffAddf(MITE, "%s: shade method %d not implemented!",
             me, mrr->shadeSpec->method);
-    biffAdd(MITE, err); return 1;
+    return 1;
     break;
   }
 
   if (_miteStageSet(*mttP, mrr)) {
-    sprintf(err, "%s: trouble setting up stage array", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: trouble setting up stage array", me);
+    return 1;
   }
   return 0;
 }

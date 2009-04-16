@@ -24,23 +24,23 @@
 
 int
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
-  char me[]="coilVolumeCheck", err[BIFF_STRLEN];
+  static const char me[]="coilVolumeCheck";
   unsigned int baseDim;
   
   if (!(nin && kind)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: can only operate on scalar types, not %s", me,
-            airEnumStr(nrrdType, nrrdTypeBlock));
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: can only operate on scalar types, not %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
   }
   baseDim = (1 == kind->valLen ? 0 : 1);
   if (3 + baseDim != nin->dim) {
-    sprintf(err, "%s: dim of input must be 3+%d (3 + baseDim), not %d", 
-            me, baseDim, nin->dim);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: dim of input must be 3+%d (3 + baseDim), not %d", 
+             me, baseDim, nin->dim);
+    return 1;
   }
 
   return 0;
@@ -71,7 +71,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
                   const coilKind *kind, const coilMethod *method,
                   unsigned int radius, unsigned int numThreads, int verbose,
                   double parm[COIL_PARMS_NUM]) {
-  char me[]="coilContextAllSet", err[BIFF_STRLEN];
+  static const char me[]="coilContextAllSet";
   int someExist, allExist, baseDim, pi;
   size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
@@ -79,28 +79,28 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   
   cctx->verbose = verbose;
   if (!( cctx && nin && kind && method )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (coilVolumeCheck(nin, kind)) {
-    sprintf(err, "%s: input volume not usable as %s", me, kind->name);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: input volume not usable as %s", me, kind->name);
+    return 1;
   }
   if (!( radius >= 1 && numThreads >= 1 )) {
-    sprintf(err, "%s: radius (%d) not >= 1 or numThreads (%d) not >= 1", me,
-            radius, numThreads);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: radius (%d) not >= 1 or numThreads (%d) not >= 1", me,
+             radius, numThreads);
+    return 1;
   }
   if (!( AIR_IN_OP(coilMethodTypeUnknown, method->type,
                    coilMethodTypeLast) )) {
-    sprintf(err, "%s: method->type %d not valid", me, method->type);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: method->type %d not valid", me, method->type);
+    return 1;
   }
   
   if (!kind->filter[method->type]) {
-    sprintf(err, "%s: sorry, %s filtering not available on %s kind",
-            me, method->name, kind->name);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: sorry, %s filtering not available on %s kind",
+             me, method->name, kind->name);
+    return 1;
   }
 
   /* warn if we can't do the multiple threads user wants */
@@ -115,9 +115,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   /* set parms */
   for (pi=0; pi<method->numParm; pi++) {
     if (!AIR_EXISTS(parm[pi])) {
-      sprintf(err, "%s: parm[%d] (need %d) doesn't exist",
-              me, pi, method->numParm);
-      biffAdd(COIL, err); airMopError(mop); return 1;
+      biffAddf(COIL, "%s: parm[%d] (need %d) doesn't exist",
+               me, pi, method->numParm);
+      airMopError(mop); return 1;
     }
     cctx->parm[pi] = parm[pi];
   }
@@ -146,9 +146,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     zsp = 1;
   } else {
     if ( !allExist ) {
-      sprintf(err, "%s: spacings (%g,%g,%g) not uniformly existant", 
-              me, xsp, ysp, zsp);
-      biffAdd(COIL, err); airMopError(mop); return 1;
+      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existant", 
+               me, xsp, ysp, zsp);
+      airMopError(mop); return 1;
     }
   }
   ELL_3V_SET(cctx->spacing, xsp, ysp, zsp);
@@ -165,8 +165,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   }
   cctx->nvol = nrrdNew();
   if (nrrdMaybeAlloc_nva(cctx->nvol, coil_nrrdType, 4 + baseDim, size)) {
-    sprintf(err, "%s: couldn't allocate internal processing volume", me);
-    biffMove(COIL, err, NRRD); airMopError(mop); return 1;
+    biffMovef(COIL, NRRD,
+              "%s: couldn't allocate internal processing volume", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, cctx->nvol, (airMopper)nrrdNuke, airMopOnError);
   
@@ -194,18 +195,18 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 */
 int
 coilOutputGet(Nrrd *nout, coilContext *cctx) {
-  char me[]="coilOutputGet", err[BIFF_STRLEN];
+  static const char me[]="coilOutputGet";
   int baseDim;
 
   if (!(nout && cctx)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
   baseDim = (1 == cctx->kind->valLen ? 0 : 1);
   if (nrrdSlice(nout, cctx->nvol, baseDim, 0)
       || nrrdAxisInfoCopy(nout, cctx->nin, NULL, NRRD_AXIS_INFO_NONE)) {
-    sprintf(err, "%s: trouble getting output", me);
-    biffMove(COIL, err, NRRD); return 1;
+    biffMovef(COIL, NRRD, "%s: trouble getting output", me);
+    return 1;
   }
   return 0;
 }

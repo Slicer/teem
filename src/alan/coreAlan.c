@@ -30,28 +30,28 @@
 
 int
 _alanCheck(alanContext *actx) {
-  char me[]="alanCheck", err[BIFF_STRLEN];
+  static const char me[]="alanCheck";
 
   if (!actx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (0 == actx->dim) {
-    sprintf(err, "%s: dimension of texture not set", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: dimension of texture not set", me);
+    return 1;
   }
   if (alanTextureTypeUnknown == actx->textureType) {
-    sprintf(err, "%s: texture type not set", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: texture type not set", me);
+    return 1;
   }
   if (!( actx->size[0] > 0 && actx->size[1] > 0
          && (2 == actx->dim || actx->size[2] > 0) )) {
-    sprintf(err, "%s: texture sizes invalid", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: texture sizes invalid", me);
+    return 1;
   }
   if (0 == actx->deltaT) {
-    sprintf(err, "%s: deltaT == 0", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: deltaT == 0", me);
+    return 1;
   }
 
   return 0;
@@ -59,16 +59,16 @@ _alanCheck(alanContext *actx) {
 
 int
 alanUpdate(alanContext *actx) {
-  char me[]="alanUpdate", err[BIFF_STRLEN];
+  static const char me[]="alanUpdate";
   int ret;
 
   if (_alanCheck(actx)) {
-    sprintf(err, "%s: ", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: ", me);
+    return 1;
   }
   if (actx->_nlev[0] || actx->_nlev[0]) {
-    sprintf(err, "%s: confusion: _nlev[0,1] already allocated?", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: confusion: _nlev[0,1] already allocated?", me);
+    return 1;
   }
   actx->_nlev[0] = nrrdNew();
   actx->_nlev[1] = nrrdNew();
@@ -97,8 +97,8 @@ alanUpdate(alanContext *actx) {
                                 AIR_CAST(size_t, actx->size[2])));
   }
   if (ret) {
-    sprintf(err, "%s: trouble allocating buffers", me);
-    biffMove(ALAN, err, NRRD); return 1;
+    biffMovef(ALAN, NRRD, "%s: trouble allocating buffers", me);
+    return 1;
   }
   
   return 0;
@@ -106,23 +106,23 @@ alanUpdate(alanContext *actx) {
 
 int 
 alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
-  char me[]="alanInit", err[BIFF_STRLEN];
+  static const char me[]="alanInit";
   alan_t *levInit=NULL, *lev0, *parmInit=NULL, *parm;
   size_t I, N;
 
   if (_alanCheck(actx)) {
-    sprintf(err, "%s: ", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: ", me);
+    return 1;
   }
   if (!( actx->_nlev[0] && actx->_nlev[0] && actx->nparm )) {
-    sprintf(err, "%s: _nlev[0,1] not allocated: call alanUpdate", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: _nlev[0,1] not allocated: call alanUpdate", me);
+    return 1;
   }
   
   if (nlevInit) {
     if (nrrdCheck(nlevInit)) {
-      sprintf(err, "%s: given nlevInit has problems", me);
-      biffMove(ALAN, err, NRRD); return 1;
+      biffMovef(ALAN, NRRD, "%s: given nlevInit has problems", me);
+      return 1;
     }
     if (!( alan_nt == nlevInit->type 
            && nlevInit->dim == 1 + actx->dim
@@ -130,15 +130,15 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
            && actx->size[0] == nlevInit->axis[1].size
            && actx->size[1] == nlevInit->axis[2].size 
            && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
-      sprintf(err, "%s: type/size mismatch with given nlevInit", me);
-      biffAdd(ALAN, err); return 1;
+      biffAddf(ALAN, "%s: type/size mismatch with given nlevInit", me);
+      return 1;
     }
     levInit = (alan_t*)(nlevInit->data);
   }
   if (nparmInit) {
     if (nrrdCheck(nparmInit)) {
-      sprintf(err, "%s: given nparmInit has problems", me);
-      biffMove(ALAN, err, NRRD); return 1;
+      biffMovef(ALAN, NRRD, "%s: given nparmInit has problems", me);
+      return 1;
     }
     if (!( alan_nt == nparmInit->type 
            && nparmInit->dim == 1 + actx->dim
@@ -146,8 +146,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
            && actx->size[0] == nparmInit->axis[1].size
            && actx->size[1] == nparmInit->axis[2].size 
            && (2 == actx->dim || actx->size[2] == nparmInit->axis[3].size) )) {
-      sprintf(err, "%s: type/size mismatch with given nparmInit", me);
-      biffAdd(ALAN, err); return 1;
+      biffAddf(ALAN, "%s: type/size mismatch with given nparmInit", me);
+      return 1;
     }
     parmInit = (alan_t*)(nparmInit->data);
   }
@@ -182,7 +182,8 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
 
 int
 _alanPerIteration(alanContext *actx, int iter) {
-  char me[]="_alanPerIteration", fname[AIR_STRLEN_MED];
+  static const char me[]="_alanPerIteration";
+  char fname[AIR_STRLEN_MED];
   Nrrd *nslc, *nimg;
   
   if (!(actx->saveInterval || actx->frameInterval)) {
@@ -465,18 +466,18 @@ _alanTuringWorker(void *_task) {
 
 int
 alanRun(alanContext *actx) {
-  char me[]="alanRun", err[BIFF_STRLEN];
+  static const char me[]="alanRun";
   int tid, hack=AIR_FALSE;
   alanTask task[ALAN_THREAD_MAX];
 
   if (_alanCheck(actx)) {
-    sprintf(err, "%s: ", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: ", me);
+    return 1;
   }
   if (!( actx->_nlev[0] && actx->_nlev[0] )) {
-    sprintf(err, "%s: _nlev[0,1] not allocated: "
-            "call alanUpdate + alanInit", me);
-    biffAdd(ALAN, err); return 1;
+    biffAddf(ALAN, "%s: _nlev[0,1] not allocated: "
+             "call alanUpdate + alanInit", me);
+    return 1;
   }
 
   if (!airThreadCapable && 1 == actx->numThreads) {

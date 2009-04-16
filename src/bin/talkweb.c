@@ -130,20 +130,20 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
 
 int
 tkwbReadTemplate(char **tmplSP, char *filename) {
-  char me[]="tkwbReadTemplate", err[BIFF_STRLEN];
+  char me[]="tkwbReadTemplate";
   FILE *file;
   airArray *mop;
   
   mop = airMopNew();
   if (!( file = airFopen(filename, stdin, "rb") )) {
-    sprintf(err, "%s: couldn't open %s: %s", me, filename, strerror(errno));
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: couldn't open %s: %s", me, filename, strerror(errno));
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (tkwbReadFileToString(tmplSP, NULL, file, NULL)) {
-    sprintf(err, "%s: couldn't read in template file %s", me, filename);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: couldn't read in template file %s", me, filename);
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);
@@ -152,7 +152,7 @@ tkwbReadTemplate(char **tmplSP, char *filename) {
 
 int
 tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
-  char me[]="tkwbReadSlides", err[BIFF_STRLEN];
+  static const char me[]="tkwbReadSlides";
   FILE *file;
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
@@ -163,15 +163,15 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   
   mop = airMopNew();
   if (!( file = airFopen(filename, stdin, "rb") )) {
-    sprintf(err, "%s: couldn't open %s: %s", me, filename, strerror(errno));
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: couldn't open %s: %s", me, filename, strerror(errno));
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   len = airOneLine(file, stop, AIR_STRLEN_HUGE);
   if (!( len > 1 )) {
-    sprintf(err, "%s: didn't get a stop delimiter from %s", me, filename);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: didn't get a stop delimiter from %s", me, filename);
+    airMopError(mop); return 1;
   }
 
   uu.ps = &slide;
@@ -194,15 +194,16 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     }
     image = airStrdup(line);
     if (tkwbReadFileToString(&text, &hitEOF, file, stop)) {
-      sprintf(err, "%s: couldn't read in slide %d", me, slideIdx);
-      biffAdd(TKWB, err); airMopError(mop); return 1;
+      biffAddf(TKWB, "%s: couldn't read in slide %d", me, slideIdx);
+      airMopError(mop); return 1;
     }
     slide[slideIdx] = tkwbSlideNew(title, image, text);
     airMopAdd(pmop, slide[slideIdx], (airMopper)tkwbSlideNix, airMopAlways);
   }
   if (!hitEOF && !notReally) {
-    sprintf(err, "%s: got incomplete slide info for slide %d\n", me, slideIdx);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: got incomplete slide info for slide %d\n",
+             me, slideIdx);
+    airMopError(mop); return 1;
   }
   if (!notReally) {
     slideIdx = airArrayLenIncr(slideArr, 1); /* HEY error checking */
@@ -216,7 +217,8 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
 
 int
 tkwbExpandImageInfo(tkwbSlide **slide) {
-  char me[]="tkwbExpandImageInfo", err[BIFF_STRLEN], *image;
+  static const char me[]="tkwbExpandImageInfo";
+  char *image;
   Nrrd *nimg;
   int si, sx, sy, len;
   airArray *mop;
@@ -226,14 +228,15 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
   for (si=0; slide[si]; si++) {
     if (nrrdLoad(nimg, slide[si]->image, NULL)) {
-      sprintf(err, "%s: trouble reading slide image \"%s\"",
-              me, slide[si]->image);
-      biffMove(TKWB, err, NRRD); airMopError(mop); return 1;
+      biffMovef(TKWB, NRRD, "%s: trouble reading slide image \"%s\"",
+                me, slide[si]->image);
+      airMopError(mop); return 1;
     }
     if (!nrrdFormatPNG->fitsInto(nimg, nrrdEncodingGzip, AIR_TRUE)) {
-      sprintf(err, "%s: slide image \"%s\" doesn't seem to be an image",
-              me, slide[si]->image);
-      biffMove(TKWB, err, NRRD); airMopError(mop); return 1;
+      biffMovef(TKWB, NRRD,
+                "%s: slide image \"%s\" doesn't seem to be an image",
+                me, slide[si]->image);
+      airMopError(mop); return 1;
     }
     sx = nimg->axis[nimg->dim-2].size;
     sy = nimg->axis[nimg->dim-1].size;
@@ -252,13 +255,13 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
 
 int
 tkwbWriteStringToFile(char *filename, char *content) {
-  char me[]="tkwbWriteStringToFile", err[BIFF_STRLEN];
+  static const char me[]="tkwbWriteStringToFile";
   FILE *file;
 
   if (!(file = fopen(filename, "wb"))) {
-    sprintf(err, "%s: trouble opening file \"%s\": %s", 
-            me, filename, strerror(errno));
-    biffAdd(TKWB, err); return 1;
+    biffAddf(TKWB, "%s: trouble opening file \"%s\": %s", 
+             me, filename, strerror(errno));
+    return 1;
   }
   fprintf(file, "%s", content);
   fclose(file);
@@ -301,8 +304,8 @@ tkwbStringSubst(char **sP,  /* string to search in */
 
 int
 tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
-  char me[]="tkwbWriteIndex", err[BIFF_STRLEN],
-    *repl, *index, tmp[AIR_STRLEN_MED];
+  static const char me[]="tkwbWriteIndex";
+  char *repl, *index, tmp[AIR_STRLEN_MED];
   int replLen, si;
   airArray *mop;
   
@@ -316,8 +319,8 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   replLen += strlen("</ol>\n");
   
   if (!(repl = (char*)calloc(replLen+1, sizeof(char)))) {
-    sprintf(err, "%s: couldn't allocate link buffer!", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: couldn't allocate link buffer!", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, repl, airFree, airMopAlways);
 
@@ -333,8 +336,8 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   tkwbStringSubst(&index, tag[TKWB_TAG_TOC], repl);
   airMopAdd(mop, index, airFree, airMopAlways);
   if (tkwbWriteStringToFile("index.html", index)) {
-    sprintf(err, "%s: couldn't write \"index.html\"", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: couldn't write \"index.html\"", me);
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);
@@ -344,7 +347,7 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
 int
 tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl, 
                 char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  char me[]="tkwbWriteSlides", err[BIFF_STRLEN];
+  static const char me[]="tkwbWriteSlides";
   char *text, name[AIR_STRLEN_MED], frst[AIR_STRLEN_MED], prev[AIR_STRLEN_MED],
     next[AIR_STRLEN_MED], last[AIR_STRLEN_MED];
   int si;
@@ -371,8 +374,8 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
     airMopAdd(mop, text, airFree, airMopAlways);
     sprintf(name, "slide%03d.html", si+1);
     if (tkwbWriteStringToFile(name, text)) {
-      sprintf(err, "%s: couldn't write \"%s\"", me, name);
-      biffAdd(TKWB, err); airMopError(mop); return 1;
+      biffAddf(TKWB, "%s: couldn't write \"%s\"", me, name);
+      airMopError(mop); return 1;
     }
   }
   
@@ -383,7 +386,7 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
 int
 tkwbDoit(char *indexS, char *tmplS, char *scriptS,
          char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  char me[]="tkwbDoit", err[BIFF_STRLEN];
+  static const char me[]="tkwbDoit";
   char *index, *tmpl;
   tkwbSlide **slide;
   airArray *mop;
@@ -391,37 +394,37 @@ tkwbDoit(char *indexS, char *tmplS, char *scriptS,
   
   mop = airMopNew();
   if (tkwbReadTemplate(&index, indexS)) {
-    sprintf(err, "%s: trouble reading in index template file", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble reading in index template file", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, index, airFree, airMopAlways);
 
   if (tkwbReadTemplate(&tmpl, tmplS)) {
-    sprintf(err, "%s: trouble reading in slide template file", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble reading in slide template file", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, tmpl, airFree, airMopAlways);
 
   if (tkwbReadSlides(&slide, scriptS, mop)) {
-    sprintf(err, "%s: trouble reading in slide script", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble reading in slide script", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, slide, airFree, airMopAlways);
   
   if (tkwbExpandImageInfo(slide)) {
-    sprintf(err, "%s: trouble learning details of images", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble learning details of images", me);
+    airMopError(mop); return 1;
   }
 
   if (tkwbWriteIndex(index, slide, tag)) {
-    sprintf(err, "%s: trouble writing index.html", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble writing index.html", me);
+    airMopError(mop); return 1;
   }
   
   for (numSlides=0; slide[numSlides]; numSlides++);
   if (tkwbWriteSlides(slide, numSlides, tmpl, tag, link)) {
-    sprintf(err, "%s: trouble writing slide pages", me);
-    biffAdd(TKWB, err); airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: trouble writing slide pages", me);
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);

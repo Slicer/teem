@@ -33,12 +33,12 @@
 */
 int
 limnCameraUpdate(limnCamera *cam) {
-  char me[] = "limnCameraUpdate", err[BIFF_STRLEN];
+  static const char me[] = "limnCameraUpdate";
   double len, bb[4], uu[4], vv[4], nn[4], TT[16], RR[16];
 
   if (!cam) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
 
   ELL_4V_SET(uu, 0, 0, 0, 0);
@@ -48,9 +48,9 @@ limnCameraUpdate(limnCamera *cam) {
   ELL_3V_SUB(nn, cam->at, cam->from);
   len = ELL_3V_LEN(nn);
   if (!len) {
-    sprintf(err, "%s: cam->at (%g,%g,%g) == cam->from", me,
-            cam->at[0], cam->at[1], cam->at[2]);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: cam->at (%g,%g,%g) == cam->from", me,
+             cam->at[0], cam->at[1], cam->at[2]);
+    return 1;
   }
   if (cam->atRelative) {
     /* ctx->cam->{neer,dist} are "at" relative */
@@ -65,24 +65,24 @@ limnCameraUpdate(limnCamera *cam) {
     cam->vspDist = cam->dist;
   }
   if (!(cam->vspNeer > 0 && cam->vspDist > 0 && cam->vspFaar > 0)) {
-    sprintf(err, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0",
-            me, cam->vspNeer, cam->vspDist, cam->vspFaar);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: eye-relative near (%g), dist (%g), or far (%g) <= 0",
+             me, cam->vspNeer, cam->vspDist, cam->vspFaar);
+    return 1;
   }
   if (!(cam->vspNeer <= cam->vspFaar)) {
-    sprintf(err, "%s: eye-relative near (%g) further than far (%g)",
-            me, cam->vspNeer, cam->vspFaar);
-    biffAdd(LIMN, err); return 1 ;
+    biffAddf(LIMN, "%s: eye-relative near (%g) further than far (%g)",
+             me, cam->vspNeer, cam->vspFaar);
+    return 1 ;
   }
   if (AIR_EXISTS(cam->fov)) {
     if (!( AIR_IN_OP(0.0, cam->fov, 180.0) )) {
-      sprintf(err, "%s: cam->fov (%g) not in valid range between 0 and 180",
-              me, cam->fov);
-      biffAdd(LIMN, err); return 1 ;
+      biffAddf(LIMN, "%s: cam->fov (%g) not in valid range between 0 and 180",
+               me, cam->fov);
+      return 1 ;
     }
     if (!AIR_EXISTS(cam->aspect)) {
-      sprintf(err, "%s: cam->fov set, but cam->aspect isn't", me);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: cam->fov set, but cam->aspect isn't", me);
+      return 1;
     }
     /* "fov" is half vertical angle */
     cam->vRange[0] = -tan(cam->fov*AIR_PI/360)*(cam->vspDist); 
@@ -97,8 +97,8 @@ limnCameraUpdate(limnCamera *cam) {
   ELL_3V_CROSS(uu, nn, cam->up);
   len = ELL_3V_LEN(uu);
   if (!len) {
-    sprintf(err, "%s: cam->up is co-linear with view direction", me);
-    biffAdd(LIMN, err); return 1 ;
+    biffAddf(LIMN, "%s: cam->up is co-linear with view direction", me);
+    return 1 ;
   }
   ELL_3V_SCALE(uu, 1.0/len, uu);
 
@@ -132,19 +132,19 @@ limnCameraUpdate(limnCamera *cam) {
 */
 int
 limnCameraAspectSet(limnCamera *cam, int horz, int vert, int centering) {
-  char me[] = "limnCameraAspectSet", err[BIFF_STRLEN];
+  static const char me[] = "limnCameraAspectSet";
 
   if (!cam) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( horz > 0 && vert > 0 )) {
-    sprintf(err, "%s: bad image dimensions %dx%d", me, horz, vert);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: bad image dimensions %dx%d", me, horz, vert);
+    return 1;
   }
   if (airEnumValCheck(nrrdCenter, centering)) {
-    sprintf(err, "%s: centering %d not valid", me, centering);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: centering %d not valid", me, centering);
+    return 1;
   }
 
   if (nrrdCenterCell == centering) {
@@ -196,7 +196,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
                    limnSplineTypeSpec *posType,
                    limnSplineTypeSpec *distType,
                    limnSplineTypeSpec *viewType) {
-  char me[]="limnCameraPathMake", err[BIFF_STRLEN];
+  static const char me[]="limnCameraPathMake";
   char which[AIR_STRLEN_MED];
   airArray *mop;
   Nrrd *nquat, *nfrom, *natpt, *nupvc, *ndist, *nfova, *ntime, *nsample;
@@ -208,20 +208,20 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   int ii, E;
   
   if (!( cam && keycam && time && posType && distType && viewType )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( AIR_IN_OP(limnCameraPathTrackUnknown, trackWhat,
                    limnCameraPathTrackLast) )) {
-    sprintf(err, "%s: trackWhat %d not in valid range [%d,%d]", me,
-            trackWhat, limnCameraPathTrackUnknown+1,
-            limnCameraPathTrackLast-1);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trackWhat %d not in valid range [%d,%d]", me,
+             trackWhat, limnCameraPathTrackUnknown+1,
+             limnCameraPathTrackLast-1);
+    return 1;
   }
   if (limnCameraPathTrackBoth != trackWhat && !quatType) {
-    sprintf(err, "%s: need the quaternion limnSplineTypeSpec if not "
-            "doing trackBoth", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: need the quaternion limnSplineTypeSpec if not "
+             "doing trackBoth", me);
+    return 1;
   }
 
   /* create and allocate nrrds.  For the time being, we're allocating
@@ -239,8 +239,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   airMopAdd(mop, ntime = nrrdNew(), (airMopper)nrrdNix, airMopAlways);
   if (nrrdWrap_va(ntime, time, nrrdTypeDouble, 1,
                   AIR_CAST(size_t, numKeys))) {
-    sprintf(err, "%s: trouble wrapping time values", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: trouble wrapping time values", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, nsample = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   timeType = limnSplineTypeSpecNew(limnSplineTypeTimeWarp);
@@ -257,8 +257,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
                            AIR_CAST(size_t, 4), AIR_CAST(size_t, numKeys))
       || nrrdMaybeAlloc_va(nfova, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 2), AIR_CAST(size_t, numKeys))) {
-    sprintf(err, "%s: couldn't allocate buffer nrrds", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate buffer nrrds", me);
+    airMopError(mop); return 1;
   }
   quat = (double*)(nquat->data);
   from = (double*)(nfrom->data);
@@ -270,12 +270,13 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   /* check cameras, and put camera information into nrrds */
   for (ii=0; ii<numKeys; ii++) {
     if (limnCameraUpdate(keycam + ii)) {
-      sprintf(err, "%s: trouble with camera at keyframe %d\n", me, ii);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      biffAddf(LIMN, "%s: trouble with camera at keyframe %d\n", me, ii);
+      airMopError(mop); return 1;
     }
     if (!( AIR_EXISTS(keycam[ii].fov) && AIR_EXISTS(keycam[ii].aspect) )) {
-      sprintf(err, "%s: fov, aspect not both defined on keyframe %d", me, ii);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      biffAddf(LIMN, "%s: fov, aspect not both defined on keyframe %d",
+               me, ii);
+      airMopError(mop); return 1;
     }
     ell_4m_to_q_d(quat + 4*ii, keycam[ii].W2V);
     if (ii) {
@@ -308,8 +309,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
              limnSplineCleverNew(nfova, limnSplineInfo2Vector, viewType))
          && (strcpy(which, "time warp"), timeSpline = 
              limnSplineCleverNew(ntime, limnSplineInfoScalar, timeType)) )) {
-    sprintf(err, "%s: trouble creating %s spline", me, which);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: trouble creating %s spline", me, which);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, quatSpline, (airMopper)limnSplineNix, airMopAlways);
   airMopAdd(mop, fromSpline, (airMopper)limnSplineNix, airMopAlways);
@@ -357,8 +358,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   if (!E) E |= limnSplineNrrdEvaluate(nfova, fovaSpline, nsample);
   if (!E) fova = (double*)(nfova->data);
   if (E) {
-    sprintf(err, "%s: trouble evaluating splines", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: trouble evaluating splines", me);
+    airMopError(mop); return 1;
   }
 
   /* copy information from nrrds back into cameras */
@@ -392,8 +393,8 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
     cam[ii].fov = (fova + 2*ii)[0];
     cam[ii].aspect = (fova + 2*ii)[1];
     if (limnCameraUpdate(cam + ii)) {
-      sprintf(err, "%s: trouble with output camera %d\n", me, ii);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      biffAddf(LIMN, "%s: trouble with output camera %d\n", me, ii);
+      airMopError(mop); return 1;
     }
   }
   

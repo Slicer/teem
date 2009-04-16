@@ -51,34 +51,36 @@ hooverContextNew() {
 
 int
 hooverContextCheck(hooverContext *ctx) {
-  char me[]="hooverContextCheck", err[BIFF_STRLEN];
+  static const char me[]="hooverContextCheck";
   int sxe, sye, sze, minSize;
 
   if (!ctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
-    sprintf(err, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: pixel centering (%d) invalid",
+             me, ctx->imgCentering);
+    return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->volCentering)) {
-    sprintf(err, "%s: voxel centering (%d) invalid", me, ctx->volCentering);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: voxel centering (%d) invalid",
+             me, ctx->volCentering);
+    return 1;
   }
   if (limnCameraAspectSet(ctx->cam,
                           ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
       || limnCameraUpdate(ctx->cam)) {
-    sprintf(err, "%s: trouble setting up camera", me);
-    biffMove(HOOVER, err, LIMN); return 1;
+    biffMovef(HOOVER, LIMN, "%s: trouble setting up camera", me);
+    return 1;
   }
   minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
   if (!(ctx->volSize[0] >= minSize
         && ctx->volSize[1] >= minSize 
         && ctx->volSize[2] >= minSize)) {
-    sprintf(err, "%s: volume dimensions (%dx%dx%d) too small", me,
-            ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
+             ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
+    return 1;
   }
   sxe = AIR_EXISTS(ctx->volSpacing[0]);
   sye = AIR_EXISTS(ctx->volSpacing[1]);
@@ -98,57 +100,57 @@ hooverContextCheck(hooverContext *ctx) {
     if (!(ctx->volSpacing[0] > 0.0
           && ctx->volSpacing[1] > 0.0
           && ctx->volSpacing[2] > 0.0)) {
-      sprintf(err, "%s: volume spacing (%gx%gx%g) invalid", me,
-              ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
-      biffAdd(HOOVER, err); return 1;
+      biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me,
+               ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+      return 1;
     }
   } else {
     /* some existed, some didn't */
-    sprintf(err, "%s: spacings %g, %g, %g don't all exist or not", me,
-            ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: spacings %g, %g, %g don't all exist or not", me,
+             ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+    return 1;
   }
   if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
-    sprintf(err, "%s: image dimensions (%dx%d) invalid", me,
-            ctx->imgSize[0], ctx->imgSize[1]);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me,
+             ctx->imgSize[0], ctx->imgSize[1]);
+    return 1;
   }
   if (!(ctx->numThreads >= 1)) {
-    sprintf(err, "%s: number threads (%d) invalid", me, ctx->numThreads);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: number threads (%d) invalid", me, ctx->numThreads);
+    return 1;
   }
   if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
-    sprintf(err, "%s: sorry, number threads (%d) > max (%d)", me, 
-            ctx->numThreads, HOOVER_THREAD_MAX);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me, 
+             ctx->numThreads, HOOVER_THREAD_MAX);
+    return 1;
   }
   if (!ctx->renderBegin) {
-    sprintf(err, "%s: need a non-NULL begin rendering callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL begin rendering callback", me);
+    return 1;
   }
   if (!ctx->rayBegin) {
-    sprintf(err, "%s: need a non-NULL begin ray callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL begin ray callback", me);
+    return 1;
   }
   if (!ctx->threadBegin) {
-    sprintf(err, "%s: need a non-NULL begin thread callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL begin thread callback", me);
+    return 1;
   }
   if (!ctx->sample) {
-    sprintf(err, "%s: need a non-NULL sampler callback function", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL sampler callback function", me);
+    return 1;
   }
   if (!ctx->rayEnd) {
-    sprintf(err, "%s: need a non-NULL end ray callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL end ray callback", me);
+    return 1;
   }
   if (!ctx->threadEnd) {
-    sprintf(err, "%s: need a non-NULL end thread callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL end thread callback", me);
+    return 1;
   }
   if (!ctx->renderEnd) {
-    sprintf(err, "%s: need a non-NULL end render callback", me);
-    biffAdd(HOOVER, err); return 1;
+    biffAddf(HOOVER, "%s: need a non-NULL end render callback", me);
+    return 1;
   }
 
   return 0;

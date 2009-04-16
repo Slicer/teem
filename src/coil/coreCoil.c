@@ -146,7 +146,7 @@ _coilThisZGet(coilTask *task, int doFilter) {
 
 void
 _coilProcess(coilTask *task, int doFilter) {
-  char me[]="_coilProcess";
+  static const char me[]="_coilProcess";
   int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
   void (*filter)(coil_t *delta, coil_t **iv3, 
@@ -245,7 +245,7 @@ _coilTaskNix(coilTask *task) {
 
 void *
 _coilWorker(void *_task) {
-  char me[]="_coilWorker";
+  static const char me[]="_coilWorker";
   coilTask *task;
 
   task = (coilTask *)_task;
@@ -291,19 +291,19 @@ _coilWorker(void *_task) {
 
 int
 coilStart(coilContext *cctx) {
-  char me[]="coilStart", err[BIFF_STRLEN];
+  static const char me[]="coilStart";
   int valIdx, valLen;
   coil_t (*lup)(const void*, size_t), *val;
   unsigned tidx, elIdx;
 
   if (!cctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
   cctx->task = (coilTask **)calloc(cctx->numThreads, sizeof(coilTask *));
   if (!(cctx->task)) {
-    sprintf(err, "%s: couldn't allocate array of tasks", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: couldn't allocate array of tasks", me);
+    return 1;
   }
   
   /* we create tasks for ALL threads, including me, thread 0 */
@@ -311,8 +311,8 @@ coilStart(coilContext *cctx) {
   for (tidx=0; tidx<cctx->numThreads; tidx++) {
     cctx->task[tidx] = _coilTaskNew(cctx, tidx);
     if (!(cctx->task[tidx])) {
-      sprintf(err, "%s: couldn't allocate task %d", me, tidx);
-      biffAdd(COIL, err); return 1;
+      biffAddf(COIL, "%s: couldn't allocate task %d", me, tidx);
+      return 1;
     }
   }
   
@@ -367,13 +367,13 @@ coilStart(coilContext *cctx) {
 */
 int
 coilIterate(coilContext *cctx, int numIterations) {
-  char me[]="coilIterate", err[BIFF_STRLEN];
+  static const char me[]="coilIterate";
   int iter;
   double time0, time1;
 
   if (!cctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
   
   time0 = airTime();
@@ -414,12 +414,12 @@ coilIterate(coilContext *cctx, int numIterations) {
 
 int
 coilFinish(coilContext *cctx) {
-  char me[]="coilFinish", err[BIFF_STRLEN];
+  static const char me[]="coilFinish";
   unsigned int tidx;
 
   if (!cctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(COIL, err); return 1;
+    biffAddf(COIL, "%s: got NULL pointer", me);
+    return 1;
   }
 
   if (cctx->verbose > 1) {

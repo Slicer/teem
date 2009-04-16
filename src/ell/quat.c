@@ -473,19 +473,19 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
              const double _q3[4], const double _q4[4],
              const double _wght[4], 
              const double eps, const unsigned int maxIter) {
-  char me[]="ell_q_avg4_d", err[BIFF_STRLEN];
+  static const char me[]="ell_q_avg4_d";
   double N, elen, a[4], b[4], c[4], d[4], 
     tmp[4], la[4], lb[4], lc[4], ld[4], u[4], wght[4];
   unsigned int iter;
   
   /* *iterP optional */
   if (!( m && _q1 && _q2 && _q3 && _q4 && _wght )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( eps >= 0 )) {
-    sprintf(err, "%s: need eps >= 0 (not %g)", me, eps);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: need eps >= 0 (not %g)", me, eps);
+    return 1;
   }
 
   /* normalize (wrt L2) all given quaternions */
@@ -518,9 +518,9 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
     iter++;
   } while ((!maxIter || iter < maxIter) && elen > eps);
   if (elen > eps) {
-    sprintf(err, "%s: still have error %g after max %d iters", me,
-            elen, maxIter);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: still have error %g after max %d iters", me,
+             elen, maxIter);
+    return 1;
   }
   
   if (iterP) {
@@ -538,19 +538,19 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
              const double *qq, double *qlog,
              const double *wght, const unsigned int NN,
              const double eps, const unsigned int maxIter) {
-  char me[]="ell_q_avgN_d", err[BIFF_STRLEN];
+  static const char me[]="ell_q_avgN_d";
   double tmp, qdiv[4], elen;
   unsigned int ii, iter;
 
   /* iterP optional */
   /* wght optional, to signify equal 1/NN weighting for all */
   if (!( mm && qq )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( eps >= 0 )) {
-    sprintf(err, "%s: need eps >= 0 (not %g)", me, eps);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: need eps >= 0 (not %g)", me, eps);
+    return 1;
   }
 
   /* initialize with euclidean mean */
@@ -584,9 +584,9 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
     iter++;
   } while ((!maxIter || iter < maxIter) && elen > eps);
   if (elen > eps) {
-    sprintf(err, "%s: still have error %g (> eps %g) after max %d iters", me,
-            elen, eps, maxIter);
-    biffAdd(ELL, err); return 1;
+    biffAddf(ELL, "%s: still have error %g (> eps %g) after max %d iters", me,
+             elen, eps, maxIter);
+    return 1;
   }
   
   if (iterP) {

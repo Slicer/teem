@@ -68,7 +68,7 @@ limnPolyDataNix(limnPolyData *pld) {
 int
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
                        unsigned int vertNum) {
-  char me[]="_limnPolyDataInfoAlloc", err[BIFF_STRLEN];
+  static const char me[]="_limnPolyDataInfoAlloc";
   
   if (vertNum != pld->rgbaNum
       && ((1 << limnPolyDataInfoRGBA) & infoBitFlag)) {
@@ -76,8 +76,8 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     if (vertNum) {
       pld->rgba = (unsigned char *)calloc(vertNum, 4*sizeof(unsigned char));
       if (!pld->rgba) {
-        sprintf(err, "%s: couldn't allocate %u rgba", me, vertNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u rgba", me, vertNum);
+        return 1;
       }
     }
     pld->rgbaNum = vertNum;
@@ -89,8 +89,8 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     if (vertNum) {
       pld->norm = (float *)calloc(vertNum, 4*sizeof(float));
       if (!pld->norm) {
-        sprintf(err, "%s: couldn't allocate %u norm", me, vertNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u norm", me, vertNum);
+        return 1;
       }
     }
     pld->normNum = vertNum;
@@ -102,8 +102,8 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     if (vertNum) {
       pld->tex2 = (float *)calloc(vertNum, 4*sizeof(float));
       if (!pld->tex2) {
-        sprintf(err, "%s: couldn't allocate %u tex2", me, vertNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u tex2", me, vertNum);
+        return 1;
       }
     }
     pld->tex2Num = vertNum;
@@ -137,34 +137,34 @@ limnPolyDataAlloc(limnPolyData *pld,
                   unsigned int vertNum,
                   unsigned int indxNum,
                   unsigned int primNum) {
-  char me[]="limnPolyDataAlloc", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataAlloc";
   
   if (!pld) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (vertNum != pld->xyzwNum) {
     pld->xyzw = (float *)airFree(pld->xyzw);
     if (vertNum) {
       pld->xyzw = (float *)calloc(vertNum, 4*sizeof(float));
       if (!pld->xyzw) {
-        sprintf(err, "%s: couldn't allocate %u xyzw", me, vertNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u xyzw", me, vertNum);
+        return 1;
       }
     }
     pld->xyzwNum = vertNum;
   }
   if (_limnPolyDataInfoAlloc(pld, infoBitFlag, vertNum)) {
-    sprintf(err, "%s: couldn't allocate info", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate info", me);
+    return 1;
   }
   if (indxNum != pld->indxNum) {
     pld->indx = (unsigned int *)airFree(pld->indx);
     if (indxNum) {
       pld->indx = (unsigned int *)calloc(indxNum, sizeof(unsigned int));
       if (!pld->indx) {
-        sprintf(err, "%s: couldn't allocate %u indices", me, indxNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u indices", me, indxNum);
+        return 1;
       }
     }
     pld->indxNum = indxNum;
@@ -176,8 +176,8 @@ limnPolyDataAlloc(limnPolyData *pld,
       pld->type = (unsigned char *)calloc(primNum, sizeof(unsigned char));
       pld->icnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
       if (!(pld->type && pld->icnt)) {
-        sprintf(err, "%s: couldn't allocate %u primitives", me, primNum);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: couldn't allocate %u primitives", me, primNum);
+        return 1;
       }
     }
     pld->primNum = primNum;
@@ -209,16 +209,16 @@ limnPolyDataSize(const limnPolyData *pld) {
 
 int
 limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
-  char me[]="limnPolyDataCopy", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCopy";
 
   if (!( pldB && pldA )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA),
                         pldA->xyzwNum, pldA->indxNum, pldA->primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
   memcpy(pldB->xyzw, pldA->xyzw, pldA->xyzwNum*sizeof(float)*4);
   if (pldA->rgba) {
@@ -239,19 +239,19 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
 int
 limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                   unsigned int num) {
-  char me[]="limnPolyDataCopyN", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCopyN";
   unsigned int ii, jj, size;
 
   if (!( pldB && pldA )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (limnPolyDataAlloc(pldB, limnPolyDataInfoBitFlag(pldA),
                         num*pldA->xyzwNum,
                         num*pldA->indxNum,
                         num*pldA->primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
   for (ii=0; ii<num; ii++) {
     /* fprintf(stderr, "!%s: ii = %u/%u\n", me, ii, num); */
@@ -374,7 +374,7 @@ limnPolyDataPolygonNumber(const limnPolyData *pld) {
 
 int
 limnPolyDataVertexNormals(limnPolyData *pld) { 
-  char me[]="limnPolyDataVertexNormals", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataVertexNormals";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
   float len;
 
@@ -384,8 +384,8 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
                         pld->xyzwNum,
                         pld->indxNum,
                         pld->primNum)) {
-    sprintf(err, "%s: couldn't alloc polydata normals", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't alloc polydata normals", me);
+    return 1;
   }
 
   for (normIdx=0; normIdx<pld->normNum; normIdx++) {
@@ -444,17 +444,17 @@ limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
 
 int
 limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) { 
-  char me[]="limnPolyDataPrimitiveVertexNumber", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPrimitiveVertexNumber";
   unsigned int *vnum, pidx;
   
   if (!(nout && pld)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, pld->primNum))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
 
   vnum = AIR_CAST(unsigned int *, nout->data);
@@ -467,20 +467,20 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
 
 int
 limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) { 
-  char me[]="limnPolyDataPrimitiveArea", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPrimitiveArea";
   unsigned int primIdx, baseVertIdx;
   unsigned int triNum, triIdx, *indx, ii;
   float vert[3][3], edgeA[3], edgeB[3], cross[3];
   double *area;
 
   if (!(nout && pld)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1,
                         AIR_CAST(size_t, pld->primNum))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
 
   area = AIR_CAST(double *, nout->data);
@@ -507,9 +507,10 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
     case limnPrimitiveTriangleStrip:
     case limnPrimitiveTriangleFan:
     case limnPrimitiveQuads:
-      sprintf(err, "%s: sorry, haven't implemented area(prim[%u]=%s) yet", me,
-              primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN,
+               "%s: sorry, haven't implemented area(prim[%u]=%s) yet", me,
+               primIdx, airEnumStr(limnPrimitive, pld->type[primIdx]));
+      return 1;
       break;
     case limnPrimitiveLineStrip:
       /* lines have no area */
@@ -528,35 +529,35 @@ int
 limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
                       double min[3], double max[3],
                       size_t size[3], int type) {
-  char me[]="limnPolyDataRasterize", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataRasterize";
   size_t xi, yi, zi;
   unsigned int vertIdx;
   double (*ins)(void *, size_t, double);
 
   if (!(nout && pld && min && max && size)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdType, type)) {
-    sprintf(err, "%s: got invalid %s %d", me, nrrdType->name, type);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got invalid %s %d", me, nrrdType->name, type);
+    return 1;
   }
   if (nrrdTypeBlock == type) {
-    sprintf(err, "%s: can't use output type %s", me,
-            airEnumStr(nrrdType, type));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: can't use output type %s", me,
+             airEnumStr(nrrdType, type));
+    return 1;
   }
   if (!( min[0] < max[0] && 
          min[1] < max[1] && 
          min[2] < max[2] )) {
-    sprintf(err, "%s min (%g,%g,%g) not < max (%g,%g,%g)", me,
-            min[0], min[1], min[2], max[0], max[1], max[2]);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s min (%g,%g,%g) not < max (%g,%g,%g)", me,
+             min[0], min[1], min[2], max[0], max[1], max[2]);
+    return 1;
   }
 
   if (nrrdMaybeAlloc_nva(nout, type, 3, size)) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: trouble allocating output", me);
+    return 1;
   }
   ins = nrrdDInsert[type];
   

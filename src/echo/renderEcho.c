@@ -26,11 +26,11 @@
 int
 echoThreadStateInit(int threadIdx, echoThreadState *tstate,
                     echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoThreadStateInit", err[BIFF_STRLEN];
+  static const char me[]="echoThreadStateInit";
 
   if (!(tstate && parm && gstate)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: got NULL pointer", me);
+    return 1;
   }
   /* tstate->thread set by echoThreadStateNew() */
   tstate->gstate = gstate;
@@ -40,8 +40,9 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   if (nrrdMaybeAlloc_va(tstate->nperm, nrrdTypeInt, 2,
                         AIR_CAST(size_t, ECHO_JITTABLE_NUM),
                         AIR_CAST(size_t, parm->numSamples))) {
-    sprintf(err, "%s: couldn't allocate jitter permutation array", me);
-    biffMove(ECHO, err, NRRD); return 1;
+    biffMovef(ECHO, NRRD,
+              "%s: couldn't allocate jitter permutation array", me);
+    return 1;
   }
   nrrdAxisInfoSet_va(tstate->nperm, nrrdAxisInfoLabel,
                      "jittable", "sample");
@@ -50,8 +51,8 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
                         AIR_CAST(size_t, 2),
                         AIR_CAST(size_t, ECHO_JITTABLE_NUM),
                         AIR_CAST(size_t, parm->numSamples))) {
-    sprintf(err, "%s: couldn't allocate jitter array", me);
-    biffMove(ECHO, err, NRRD); return 1;
+    biffMovef(ECHO, NRRD, "%s: couldn't allocate jitter array", me);
+    return 1;
   }
   nrrdAxisInfoSet_va(tstate->njitt, nrrdAxisInfoLabel,
                      "x,y", "jittable", "sample");
@@ -59,15 +60,15 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   tstate->permBuff = AIR_CAST(unsigned int *, airFree(tstate->permBuff));
   if (!(tstate->permBuff = AIR_CAST(unsigned int *,
                                     calloc(parm->numSamples, sizeof(int))))) {
-    sprintf(err, "%s: couldn't allocate permutation buffer", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: couldn't allocate permutation buffer", me);
+    return 1;
   }
   tstate->chanBuff = (echoCol_t *)airFree(tstate->chanBuff);
   if (!( tstate->chanBuff =
          (echoCol_t*)calloc(ECHO_IMG_CHANNELS * parm->numSamples,
                             sizeof(echoCol_t)) )) {
-    sprintf(err, "%s: couldn't allocate img channel sample buffer", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: couldn't allocate img channel sample buffer", me);
+    return 1;
   }
 
   airSrandMT_r(tstate->rst, AIR_CAST(unsigned int, (parm->seedRand
@@ -143,39 +144,39 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 int
 echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
                   echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoRTRenderCheck", err[BIFF_STRLEN];
+  static const char me[]="echoRTRenderCheck";
   int tmp;
 
   if (!(nraw && cam && scene && parm && gstate)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: got NULL pointer", me);
+    return 1;
   }
   if (limnCameraUpdate(cam)) {
-    sprintf(err, "%s: camera trouble", me);
-    biffMove(ECHO, err, LIMN); return 1;
+    biffMovef(ECHO, LIMN, "%s: camera trouble", me);
+    return 1;
   }
   if (scene->envmap) {
     if (limnEnvMapCheck(scene->envmap)) {
-      sprintf(err, "%s: environment map not valid", me);
-      biffMove(ECHO, err, LIMN); return 1;
+      biffMovef(ECHO, LIMN, "%s: environment map not valid", me);
+      return 1;
     }
   }
   if (airEnumValCheck(echoJitter, parm->jitterType)) {
-    sprintf(err, "%s: jitter method (%d) invalid", me, parm->jitterType);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: jitter method (%d) invalid", me, parm->jitterType);
+    return 1;
   }
   if (!(parm->numSamples > 0)) {
-    sprintf(err, "%s: # samples (%d) invalid", me, parm->numSamples);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: # samples (%d) invalid", me, parm->numSamples);
+    return 1;
   }
   if (!(parm->imgResU > 0 && parm->imgResV)) {
-    sprintf(err, "%s: image dimensions (%dx%d) invalid", me,
-            parm->imgResU, parm->imgResV);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: image dimensions (%dx%d) invalid", me,
+             parm->imgResU, parm->imgResV);
+    return 1;
   }
   if (!AIR_EXISTS(parm->aperture)) {
-    sprintf(err, "%s: aperture doesn't exist", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: aperture doesn't exist", me);
+    return 1;
   }
   
   switch (parm->jitterType) {
@@ -186,17 +187,18 @@ echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   case echoJitterJitter:
     tmp = (int)sqrt(parm->numSamples);
     if (tmp*tmp != parm->numSamples) {
-      sprintf(err, "%s: need a square # samples for %s jitter method (not %d)",
-              me, airEnumStr(echoJitter, parm->jitterType), parm->numSamples);
-      biffAdd(ECHO, err); return 1;
+      biffAddf(ECHO,
+               "%s: need a square # samples for %s jitter method (not %d)",
+               me, airEnumStr(echoJitter, parm->jitterType), parm->numSamples);
+      return 1;
     }
     break;
   }
 
   /* for the time being things are hard-coded to be r,g,b,a,time */
   if (ECHO_IMG_CHANNELS != 5) {
-    sprintf(err, "%s: ECHO_IMG_CHANNELS != 5", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: ECHO_IMG_CHANNELS != 5", me);
+    return 1;
   }
   
   /* all is well */
@@ -237,7 +239,7 @@ echoChannelAverage(echoCol_t *img,
 void
 echoRayColor(echoCol_t *chan, echoRay *ray,
              echoScene *scene, echoRTParm *parm, echoThreadState *tstate) {
-  char me[]="echoRayColor";
+  static const char me[]="echoRayColor";
   echoCol_t rgba[4];
   echoIntx intx;
   
@@ -423,14 +425,14 @@ _echoRTRenderThreadBody(void *_arg) {
 int
 echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
              echoRTParm *parm, echoGlobalState *gstate) {
-  char me[]="echoRTRender", err[BIFF_STRLEN];
+  static const char me[]="echoRTRender";
   int tid, ret;
   airArray *mop;
   echoThreadState *tstate[ECHO_THREAD_MAX];
 
   if (echoRTRenderCheck(nraw, cam, scene, parm, gstate)) {
-    sprintf(err, "%s: problem with input", me);
-    biffAdd(ECHO, err); return 1;
+    biffAddf(ECHO, "%s: problem with input", me);
+    return 1;
   }
   gstate->nraw = nraw;
   gstate->cam = cam;
@@ -441,8 +443,8 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
                         AIR_CAST(size_t, ECHO_IMG_CHANNELS),
                         AIR_CAST(size_t, parm->imgResU),
                         AIR_CAST(size_t, parm->imgResV))) {
-    sprintf(err, "%s: couldn't allocate output image", me);
-    biffMove(ECHO, err, NRRD); airMopError(mop); return 1;
+    biffMovef(ECHO, NRRD, "%s: couldn't allocate output image", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, nraw, (airMopper)nrrdNix, airMopOnError);
   nrrdAxisInfoSet_va(nraw, nrrdAxisInfoLabel,
@@ -462,12 +464,12 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   }
   for (tid=0; tid<parm->numThreads; tid++) {
     if (!( tstate[tid] = echoThreadStateNew() )) {
-      sprintf(err, "%s: failed to create thread state %d", me, tid);
-      biffAdd(ECHO, err); airMopError(mop); return 1;
+      biffAddf(ECHO, "%s: failed to create thread state %d", me, tid);
+      airMopError(mop); return 1;
     }
     if (echoThreadStateInit(tid, tstate[tid], parm, gstate)) {
-      sprintf(err, "%s: failed to initialized thread state %d", me, tid);
-      biffAdd(ECHO, err); airMopError(mop); return 1;
+      biffAddf(ECHO, "%s: failed to initialized thread state %d", me, tid);
+      airMopError(mop); return 1;
     }
     airMopAdd(mop, tstate[tid], (airMopper)echoThreadStateNix, airMopAlways);
   }
@@ -476,15 +478,15 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
   for (tid=0; tid<parm->numThreads; tid++) {
     if (( ret = airThreadStart(tstate[tid]->thread, _echoRTRenderThreadBody,
                                (void *)(tstate[tid])) )) {
-      sprintf(err, "%s: thread[%d] failed to start: %d", me, tid, ret);
-      biffAdd(ECHO, err); airMopError(mop); return 1;
+      biffAddf(ECHO, "%s: thread[%d] failed to start: %d", me, tid, ret);
+      airMopError(mop); return 1;
     }
   }
   for (tid=0; tid<parm->numThreads; tid++) {
     if (( ret = airThreadJoin(tstate[tid]->thread,
                               (void **)(&(tstate[tid]->returnPtr))) )) {
-      sprintf(err, "%s: thread[%d] failed to join: %d", me, tid, ret);
-      biffAdd(ECHO, err); airMopError(mop); return 1;
+      biffAddf(ECHO, "%s: thread[%d] failed to join: %d", me, tid, ret);
+      airMopError(mop); return 1;
     }
   }
 

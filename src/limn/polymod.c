@@ -64,7 +64,7 @@ static void
 flipNeighborsGet(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                  unsigned int neighGot[3], unsigned int neighInfo[3][3],
                  unsigned int *intxBuff, unsigned int triIdx) {
-  /* char me[]="flipNeighborsGet"; */
+  /* static const char me[]="flipNeighborsGet"; */
   unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert,
     *vertWithTri, *triWithVert;
   int ii;
@@ -142,7 +142,7 @@ neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                    unsigned char *triDone, airArray *okayArr,
                    unsigned int *intxBuff, airArray *splitArr,
                    unsigned int triIdx, int splitting) {
-  /* char me[]="neighborsCheckPush"; */
+  /* static const char me[]="neighborsCheckPush"; */
   unsigned int neighGot[3], neighInfo[3][3], ii, *okay, okayIdx,
     *vertWithTri, pushedNum;
 
@@ -247,27 +247,27 @@ maxTrianglePerPrimitive(limnPolyData *pld) {
 */
 static int
 triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) { 
-  char me[]="triangleWithVertex", err[BIFF_STRLEN];
+  static const char me[]="triangleWithVertex";
   unsigned int *triWithVertNum,   /* vert ii has triWithVertNum[ii] tris */
     *triWithVert, baseVertIdx, primIdx, vertIdx, 
     maxTriPerVert, totTriIdx;
   airArray *mop;
 
   if (!(nTriWithVert && pld)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   triWithVertNum = AIR_CAST(unsigned int*,
                             calloc(pld->xyzwNum, sizeof(unsigned int)));
   if (!triWithVertNum) {
-    sprintf(err, "%s: couldn't allocate temp array", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate temp array", me);
+    return 1;
   }
   mop = airMopNew();
   airMopAdd(mop, triWithVertNum, airFree, airMopAlways);
@@ -294,8 +294,8 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 1 + maxTriPerVert),
                         AIR_CAST(size_t, pld->xyzwNum))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    airMopError(mop); return 1;
   }
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
 
@@ -325,25 +325,25 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
 */
 static int
 vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) { 
-  char me[]="vertexWithTriangle", err[BIFF_STRLEN];
+  static const char me[]="vertexWithTriangle";
   unsigned int baseVertIdx, primIdx, *vertWithTri, triNum;
 
   if (!(nVertWithTri && pld)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   triNum = limnPolyDataPolygonNumber(pld);
   if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, triNum))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    return 1;
   }
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   
@@ -368,7 +368,7 @@ static int
 splitListExtract(unsigned int *listLenP, 
                  airArray *edgeArr, unsigned char *hitCount,
                  unsigned int firstVertIdx, unsigned int edgeDoneNum) {
-  char me[]="splitListExtract", err[BIFF_STRLEN];
+  static const char me[]="splitListExtract";
   unsigned int *edgeData, edgeNum, *edgeLine, edgeIdx, edgeTmp[5],
     tmp, nextVertIdx, listLen;
 
@@ -385,8 +385,8 @@ splitListExtract(unsigned int *listLenP,
     }
   }
   if (edgeIdx == edgeNum) {
-    sprintf(err, "%s: never found first vertex %u", me, firstVertIdx);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: never found first vertex %u", me, firstVertIdx);
+    return 1;
   }
   if (edgeLine[3] == firstVertIdx) {
     ELL_SWAP2(edgeLine[2], edgeLine[3], tmp);
@@ -516,7 +516,7 @@ splitTriSweep(unsigned int *sweep,
               unsigned int vertPivot, unsigned int vertStart,
               unsigned int triStop0, unsigned int triStop1,
               Nrrd *nTriWithVert, Nrrd *nVertWithTri) {
-  /* char me[]="splitTriSweep"; */
+  /* static const char me[]="splitTriSweep"; */
   unsigned int sweepLen;
   unsigned int maxTriPerVert, *triWithVert,
     *vertWithTri, *triLine, *vertLine, triCurr, vertLast, vertNext;
@@ -593,7 +593,7 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
               Nrrd *nTriWithVert, Nrrd *nVertWithTri,
               airArray *edgeArr, unsigned startIdx, unsigned int listLen,
               int looping) {
-  char me[]="splitTriTrack", err[BIFF_STRLEN];
+  static const char me[]="splitTriTrack";
   unsigned int len0, len1, *edgeData, *edgeLine, edgeIdx, triIdx,
     maxTriPerVert, *triWithVert, *vertWithTri,
     sweepLen, loopEnd0, loopEnd1, loopStart0, loopStart1;
@@ -742,10 +742,10 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
         doBack0 = AIR_TRUE;
         doBack1 = AIR_FALSE;
       } else {
-        sprintf(err, "%s: edge %u/%u, sweep ends %u,%u != want %u,%u", me,
-                edgeIdx, listLen, track0[len0-1], track1[len1-1],
-                nextLine[0], nextLine[1]);
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: edge %u/%u, sweep ends %u,%u != want %u,%u", me,
+                 edgeIdx, listLen, track0[len0-1], track1[len1-1],
+                 nextLine[0], nextLine[1]);
+        return 1;
       }
     } else {
       doBack0 = doBack1 = AIR_FALSE;
@@ -766,7 +766,7 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
              unsigned int edgeDoneNum, unsigned int listLen,
              unsigned int *track, unsigned int trackLen,
              int looping) {
-  char me[]="splitVertDup", err[BIFF_STRLEN];
+  static const char me[]="splitVertDup";
   unsigned int *vixLut, ii, vixLutLen, oldVertNum, newVertNum, *edgeData,
     bitflag, trackIdx, vert0, vert1;
   airArray *mop;
@@ -817,8 +817,8 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
   }
   if (limnPolyDataAlloc(pld, bitflag, newVertNum,
                         pld->indxNum, pld->primNum)) {
-    sprintf(err, "%s: couldn't allocate new vert # %u", me, newVertNum);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate new vert # %u", me, newVertNum);
+    airMopError(mop); return 1;
   }
 
   /* copy old data */
@@ -906,7 +906,7 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
 static int
 doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
             airArray *edgeArr) {
-  char me[]="doSplitting", err[BIFF_STRLEN];
+  static const char me[]="doSplitting";
   unsigned int edgeNum, edgeIdx, *edgeData,
     *edgeLine=NULL, vertIdx, vertNum, splitNum, edgeDoneNum, listLen=0, 
     *track0, track0Len=0, *track1, *sweep, track1Len=0, maxTriPerVert;
@@ -935,8 +935,8 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
   sweep = AIR_CAST(unsigned int *, calloc(maxTriPerVert,
                                           sizeof(unsigned int)));
   if (!(hitCount && track0 && track1 && sweep)) {
-    sprintf(err, "%s: couldn't alloc buffers", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't alloc buffers", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, hitCount, airFree, airMopAlways);
   airMopAdd(mop, track0, airFree, airMopAlways);
@@ -953,9 +953,9 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
     ha = hitCount[edgeLine[2]]++;
     hb = hitCount[edgeLine[3]]++;
     if (ha > 2 || hb > 2) {
-      sprintf(err, "%s: edge %u (vert %u %u) created hit counts %u %u", me,
+      biffAddf(LIMN, "%s: edge %u (vert %u %u) created hit counts %u %u", me,
               edgeIdx, edgeLine[2], edgeLine[3], ha, hb);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+      airMopError(mop); return 1;
     }
   }
   
@@ -1043,9 +1043,9 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
       if (!E) E |= splitVertDup(pld, edgeArr, edgeDoneNum, listLen,
                                 track0, track0Len, passIdx);
       if (E) {
-        sprintf(err, "%s: trouble on split %u (done %u/%u)", me,
-                splitNum, edgeDoneNum, AIR_CAST(unsigned int, edgeArr->len));
-        biffAdd(LIMN, err); return 1;
+        biffAddf(LIMN, "%s: trouble on split %u (done %u/%u)", me,
+                 splitNum, edgeDoneNum, AIR_CAST(unsigned int, edgeArr->len));
+        return 1;
       }
       edgeDoneNum += listLen;
       /*
@@ -1066,7 +1066,7 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
 
 int
 _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) { 
-  char me[]="limnPolyDataVertexWindingProcess", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataVertexWindingProcess";
   unsigned int
     primIdx,         /* for indexing through primitives */
     triIdx,          /* for indexing through triangles in each primitive */
@@ -1102,8 +1102,8 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   fprintf(stderr, "!%s: hi\n", me);
   */
   if (!pld) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
 
   if (!(pld->xyzwNum && pld->primNum)) {
@@ -1112,9 +1112,9 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   }
 
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   maxTriPerPrim = maxTrianglePerPrimitive(pld);
@@ -1125,8 +1125,8 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
                                              sizeof(unsigned char)));
   airMopAdd(mop, triDone, airFree, airMopAlways);
   if (!triDone) {
-    sprintf(err, "%s: couldn't allocate temp array", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate temp array", me);
+    airMopError(mop); return 1;
   }
 
   /* allocate TriWithVert, VertWithTri, intxBuff */
@@ -1136,8 +1136,8 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   airMopAdd(mop, nVertWithTri, (airMopper)nrrdNuke, airMopAlways);
   if (triangleWithVertex(nTriWithVert, pld)
       || vertexWithTriangle(nVertWithTri, pld)) {
-    sprintf(err, "%s: couldn't set nTriWithVert or nVertWithTri", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't set nTriWithVert or nVertWithTri", me);
+    airMopError(mop); return 1;
   }
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
@@ -1146,8 +1146,8 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   intxBuff = AIR_CAST(unsigned int*, calloc(maxTriPerVert,
                                             sizeof(unsigned int)));
   if (!intxBuff) {
-    sprintf(err, "%s: failed to alloc an itty bitty buffer", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: failed to alloc an itty bitty buffer", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, intxBuff, airFree, airMopAlways);
 
@@ -1210,8 +1210,8 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
 
   if (splitting) {
     if (doSplitting(pld, nTriWithVert, nVertWithTri, splitArr)) {
-      sprintf(err, "%s: problem doing vertex splitting", me);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: problem doing vertex splitting", me);
+      return 1;
     }
   } else {
     /* Copy from nVertWithTri back into polydata */
@@ -1245,18 +1245,18 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
 */
 int
 limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) { 
-  char me[]="limnPolyDataVertexWindingFix", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataVertexWindingFix";
 
   if (!splitting) {
     if (_limnPolyDataVertexWindingProcess(pld, AIR_FALSE)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: trouble", me);
+      return 1;
     }
   } else {
     if (_limnPolyDataVertexWindingProcess(pld, AIR_FALSE)
         || _limnPolyDataVertexWindingProcess(pld, AIR_TRUE)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: trouble", me);
+      return 1;
     }
   }
   return 0;
@@ -1264,7 +1264,7 @@ limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) {
 
 int
 limnPolyDataCCFind(limnPolyData *pld) { 
-  char me[]="limnPolyDataCCFind", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCCFind";
   unsigned int realTriNum, *triMap, *triWithVert, vertIdx, *ccSize,
     *indxOld, *indxNew, primNumOld, *icntOld, *icntNew, *baseIndx,
     primIdxNew, primNumNew, passIdx, eqvNum=0;
@@ -1273,8 +1273,8 @@ limnPolyDataCCFind(limnPolyData *pld) {
   airArray *mop, *eqvArr;
   
   if (!pld) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(pld->xyzwNum && pld->primNum)) {
     /* this is empty? */
@@ -1282,9 +1282,9 @@ limnPolyDataCCFind(limnPolyData *pld) {
   }
 
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   mop = airMopNew();
@@ -1298,8 +1298,8 @@ limnPolyDataCCFind(limnPolyData *pld) {
   nTriWithVert = nrrdNew();
   airMopAdd(mop, nTriWithVert, (airMopper)nrrdNuke, airMopAlways);
   if (triangleWithVertex(nTriWithVert, pld)) {
-    sprintf(err, "%s: couldn't set nTriWithVert", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't set nTriWithVert", me);
+    airMopError(mop); return 1;
   }
 
   /* simple profiling showed that stupid amount of time was spent
@@ -1332,14 +1332,14 @@ limnPolyDataCCFind(limnPolyData *pld) {
   airMopAdd(mop, nccSize, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_va(nTriMap, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, realTriNum))) {
-    sprintf(err, "%s: couldn't allocate equivalence map", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate equivalence map", me);
+    airMopError(mop); return 1;
   }
   triMap = AIR_CAST(unsigned int*, nTriMap->data);
   primNumNew = airEqvMap(eqvArr, triMap, realTriNum);
   if (nrrdHisto(nccSize, nTriMap, NULL, NULL, primNumNew, nrrdTypeUInt)) {
-    sprintf(err, "%s: couldn't histogram CC map", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't histogram CC map", me);
+    airMopError(mop); return 1;
   }
   ccSize = AIR_CAST(unsigned int*, nccSize->data);
 
@@ -1347,10 +1347,10 @@ limnPolyDataCCFind(limnPolyData *pld) {
   indxOld = pld->indx;
   primNumOld = pld->primNum;
   if (1 != primNumOld) {
-    sprintf(err, "%s: sorry! stupid implementation can't "
-            "do primNum %u (only 1)",
-            me, primNumOld);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: sorry! stupid implementation can't "
+             "do primNum %u (only 1)",
+             me, primNumOld);
+    airMopError(mop); return 1;
   }
   typeOld = pld->type;
   icntOld = pld->icnt;
@@ -1361,8 +1361,8 @@ limnPolyDataCCFind(limnPolyData *pld) {
   icntNew = AIR_CAST(unsigned int*,
                      calloc(primNumNew, sizeof(unsigned int)));
   if (!(indxNew && typeNew && icntNew)) {
-    sprintf(err, "%s: couldn't allocate new polydata arrays", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate new polydata arrays", me);
+    airMopError(mop); return 1;
   }
   pld->indx = indxNew;
   pld->primNum = primNumNew;
@@ -1394,7 +1394,7 @@ limnPolyDataCCFind(limnPolyData *pld) {
 
 int
 limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) { 
-  char me[]="limnPolyDataPrimitiveSort", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPrimitiveSort";
   Nrrd *nval, *nrec;
   const Nrrd *ntwo[2];
   airArray *mop;
@@ -1404,18 +1404,18 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   int E;
   
   if (!(pld && _nval)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(1 == _nval->dim
         && nrrdTypeBlock != _nval->type
         && _nval->axis[0].size == pld->primNum)) {
-    sprintf(err, "%s: need 1-D %u-len scalar nrrd "
-            "(not %u-D type %s, axis[0].size %u)", me,
-            pld->primNum,
-            _nval->dim, airEnumStr(nrrdType, _nval->type),
-            AIR_CAST(unsigned int, _nval->axis[0].size));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: need 1-D %u-len scalar nrrd "
+             "(not %u-D type %s, axis[0].size %u)", me,
+             pld->primNum,
+             _nval->dim, airEnumStr(nrrdType, _nval->type),
+             AIR_CAST(unsigned int, _nval->axis[0].size));
+    return 1;
   }
 
   mop = airMopNew();
@@ -1429,8 +1429,8 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   ntwo[1] = nval;
   if (!E) E |= nrrdJoin(nrec, ntwo, 2, 0, AIR_TRUE);
   if (E) {
-    sprintf(err, "%s: problem creating records", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: problem creating records", me);
+    airMopError(mop); return 1;
   }
   rec = AIR_CAST(double *, nrec->data);
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -1448,8 +1448,8 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   typeNew = AIR_CAST(unsigned char*, calloc(pld->primNum,
                                             sizeof(unsigned char)));
   if (!(startIndx && indxNew && icntNew && typeNew)) {
-    sprintf(err, "%s: couldn't allocated temp buffers", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocated temp buffers", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, startIndx, airFree, airMopAlways);
 
@@ -1482,17 +1482,17 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
 
 int
 limnPolyDataVertexWindingFlip(limnPolyData *pld) { 
-  char me[]="limnPolyDataVertexWindingFlip", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataVertexWindingFlip";
   unsigned int baseVertIdx, primIdx;
 
   if (!pld) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   baseVertIdx = 0;
@@ -1513,7 +1513,7 @@ int
 limnPolyDataPrimitiveSelect(limnPolyData *pldOut, 
                             const limnPolyData *pldIn,
                             const Nrrd *_nmask) {
-  char me[]="limnPolyDataPrimitiveSelect", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPrimitiveSelect";
   Nrrd *nmask;
   double *mask;
   unsigned int oldBaseVertIdx, oldPrimIdx, oldVertIdx, bitflag, 
@@ -1523,26 +1523,26 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
   airArray *mop;
 
   if (!(pldOut && pldIn && _nmask)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(1 == _nmask->dim
         && nrrdTypeBlock != _nmask->type
         && _nmask->axis[0].size == pldIn->primNum)) {
-    sprintf(err, "%s: need 1-D %u-len scalar nrrd "
-            "(not %u-D type %s, axis[0].size %u)", me,
-            pldIn->primNum, _nmask->dim, airEnumStr(nrrdType, _nmask->type),
-            AIR_CAST(unsigned int, _nmask->axis[0].size));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: need 1-D %u-len scalar nrrd "
+             "(not %u-D type %s, axis[0].size %u)", me,
+             pldIn->primNum, _nmask->dim, airEnumStr(nrrdType, _nmask->type),
+             AIR_CAST(unsigned int, _nmask->axis[0].size));
+    return 1;
   }
 
   mop = airMopNew();
   nmask = nrrdNew();
   airMopAdd(mop, nmask, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nmask, _nmask, nrrdTypeDouble)) {
-    sprintf(err, "%s: trouble converting mask to %s", me,
-            airEnumStr(nrrdType, nrrdTypeDouble));
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: trouble converting mask to %s", me,
+              airEnumStr(nrrdType, nrrdTypeDouble));
+    return 1;
   }
   mask = AIR_CAST(double *, nmask->data);
 
@@ -1593,8 +1593,8 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
   /* allocate output polydata */
   bitflag = limnPolyDataInfoBitFlag(pldIn);
   if (limnPolyDataAlloc(pldOut, bitflag, newVertNum, newIndxNum, newPrimNum)) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble allocating output", me);
+    return 1;
   }
 
   /* transfer per-primitive information from old to new */
@@ -1647,7 +1647,7 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
 */
 int
 limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
-  char me[]="limnPolyDataClip", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataClip";
   airArray *mop;
   unsigned char *keepVert=NULL, *keepTri=NULL;
   unsigned int oldBaseTriIdx, newBaseTriIdx, 
@@ -1660,24 +1660,24 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   int E;
 
   if (!(pld && nval)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
 
   if (nrrdTypeBlock == nval->type) {
-    sprintf(err, "%s: need scalar type (not %s)", me, 
-            airEnumStr(nrrdType, nval->type));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: need scalar type (not %s)", me, 
+             airEnumStr(nrrdType, nval->type));
+    return 1;
   }
   if (pld->xyzwNum != nrrdElementNumber(nval)) {
-    sprintf(err, "%s: # verts %u != # values %u", me,
-            pld->xyzwNum, AIR_CAST(unsigned int, nrrdElementNumber(nval)));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: # verts %u != # values %u", me,
+             pld->xyzwNum, AIR_CAST(unsigned int, nrrdElementNumber(nval)));
+    return 1;
   }
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
 
   oldVertNum = pld->xyzwNum;
@@ -1708,8 +1708,8 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   }
   E |= !vimap;
   if (E) {
-    sprintf(err, "%s: couldn't allocate buffers", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate buffers", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, vimap, airFree, airMopAlways);
 
@@ -1833,8 +1833,8 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   pld->primNum = 0;
   if (limnPolyDataAlloc(pld, bitflag, newVertNum,
                         3*newTriNum, newPrimNum)) {
-    sprintf(err, "%s: couldn't allocate new vert # %u", me, newVertNum);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate new vert # %u", me, newVertNum);
+    airMopError(mop); return 1;
   }
 
   /* set type[], icnt[], and indx[] */
@@ -1919,27 +1919,27 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
 int
 limnPolyDataEdgeHalve(limnPolyData *pldOut, 
                       const limnPolyData *pldIn) {
-  char me[]="limnPolyDataEdgeHalve", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataEdgeHalve";
   Nrrd *nnewvert;
   unsigned int *newvert, nvold, nvidx, triidx, trinum, vlo, vhi, bitflag;
   airArray *mop;
 
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pldIn)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveTriangles));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveTriangles));
+    return 1;
   }
   if (1 != pldIn->primNum) {
-    sprintf(err, "%s: sorry, can only handle a single primitive", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle a single primitive", me);
+    return 1;
   }
   mop = airMopNew();
   nnewvert = nrrdNew();
   airMopAdd(mop, nnewvert, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
   nvold = pldIn->xyzwNum;
   if (nrrdMaybeAlloc_va(nnewvert, nrrdTypeUInt, 2, nvold, nvold)) {
-    sprintf(err, "%s: couldn't allocate buffer", me);
-    biffMove(LIMN, err, NRRD); airMopError(mop); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't allocate buffer", me);
+    airMopError(mop); return 1;
   }
   newvert = AIR_CAST(unsigned int*, nnewvert->data);
 
@@ -1967,8 +1967,8 @@ limnPolyDataEdgeHalve(limnPolyData *pldOut,
   /* allocate output */
   bitflag = limnPolyDataInfoBitFlag(pldIn);
   if (limnPolyDataAlloc(pldOut, bitflag, nvidx, 3*4*trinum, 1)) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffAdd(LIMN, err); airMopError(mop); return 1;
+    biffAddf(LIMN, "%s: trouble allocating output", me);
+    airMopError(mop); return 1;
   }
   pldOut->type[0] = limnPrimitiveTriangles;
   pldOut->icnt[0] = 3*4*trinum;

@@ -151,32 +151,34 @@ dyeColorNix(dyeColor *col) {
 
 int
 dyeColorParse(dyeColor *col, char *_str) {
-  char me[]="dyeColorParse", err[128], *str;
+  static const char me[]="dyeColorParse";
+  char *str;
   char *colon, *valS;
   float v0, v1, v2;
   int spc;
   
   if (!(col && _str)) {
-    sprintf(err, "%s: got NULL pointer", me); biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(str = airStrdup(_str))) {
-    sprintf(err, "%s: couldn't strdup!", me);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: couldn't strdup!", me);
+    return 1;
   }
   if (!(colon = strchr(str, ':'))) {
-    sprintf(err, "%s: given string \"%s\" didn't contain colon", me, str);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: given string \"%s\" didn't contain colon", me, str);
+    return 1;
   }
   *colon = '\0';
   valS = colon+1;
   if (3 != sscanf(valS, "%g,%g,%g", &v0, &v1, &v2)) {
-    sprintf(err, "%s: couldn't parse three floats from \"%s\"", me, valS);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: couldn't parse three floats from \"%s\"", me, valS);
+    return 1;
   }
   spc = dyeStrToSpace(str);
   if (dyeSpaceUnknown == spc) {
-    sprintf(err, "%s: couldn't parse colorspace from \"%s\"", me, str);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: couldn't parse colorspace from \"%s\"", me, str);
+    return 1;
   }
   str = (char *)airFree(str);
 

@@ -323,23 +323,24 @@ dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 */
 int
 dyeConvert(dyeColor *col, int outSpace) {
-  char me[] = "dyeConvert", err[128];
+  static const char me[] = "dyeConvert";
   float i0, i1, i2, o0, o1, o2;
   dyeConverter simple;
   int inSpace, E;
 
   E = 0;
   if (!col) {
-    sprintf(err, "%s: got NULL pointer", me); biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: got NULL pointer", me);
+    return 1;
   }
   inSpace = dyeColorGet(&i0, &i1, &i2, col);
   if (!DYE_VALID_SPACE(inSpace)) {
-    sprintf(err, "%s: invalid input space #%d\n", me, inSpace);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: invalid input space #%d\n", me, inSpace);
+    return 1;
   }
   if (!DYE_VALID_SPACE(outSpace)) {
-    sprintf(err, "%s: invalid output space #%d\n", me, outSpace);
-    biffAdd(DYE, err); return 1;
+    biffAddf(DYE, "%s: invalid output space #%d\n", me, outSpace);
+    return 1;
   }
 
   if ( (simple = dyeSimpleConvert[inSpace][outSpace]) ) {
@@ -371,9 +372,8 @@ dyeConvert(dyeColor *col, int outSpace) {
           if (!E) E |= dyeConvert(col, outSpace);
         }
         else {
-          sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
-                  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
-          biffAdd(DYE, err);
+          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n",
+                   me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
           E = 1;
         }
       }
@@ -388,9 +388,8 @@ dyeConvert(dyeColor *col, int outSpace) {
           if (!E) E |= dyeConvert(col, dyeSpaceRGB);
         }
         else {
-          sprintf(err, "%s: CONFUSED! can't go %s -> %s\n",
-                  me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
-          biffAdd(DYE, err);
+          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n",
+                   me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
           E = 1;
         }
       }

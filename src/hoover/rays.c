@@ -332,7 +332,7 @@ typedef union {
 */
 int
 hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
-  char me[]="hooverRender", err[BIFF_STRLEN];
+  static const char me[]="hooverRender";
   _hooverExtraContext *ec;
   _hooverThreadArg args[HOOVER_THREAD_MAX];
   _hooverThreadArg *errArg;
@@ -345,23 +345,20 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   int threadIdx;
 
   if (!( errCodeP && errThreadP )) {
-    sprintf(err, "%s: got NULL int return pointer", me);
-    biffAdd(HOOVER, err);
+    biffAddf(HOOVER, "%s: got NULL int return pointer", me);
     return hooverErrInit;
   }
   
   /* this calls limnCameraUpdate() */
   if (hooverContextCheck(ctx)) {
-    sprintf(err, "%s: problem detected in given context", me);
-    biffAdd(HOOVER, err);
+    biffAddf(HOOVER, "%s: problem detected in given context", me);
     *errCodeP = 0;
     *errThreadP = 0;
     return hooverErrInit;
   }
 
   if (!(ec = _hooverExtraContextNew(ctx))) {
-    sprintf(err, "%s: problem creating thread context", me);
-    biffAdd(HOOVER, err);
+    biffAddf(HOOVER, "%s: problem creating thread context", me);
     *errCodeP = 0;
     *errThreadP = 0;
     return hooverErrInit;

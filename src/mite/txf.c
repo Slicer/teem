@@ -99,13 +99,14 @@ miteStageOp = &_miteStageOp;
 */
 int
 miteVariableParse(gageItemSpec *isp, const char *label) {
-  char me[]="miteVariableParse", err[BIFF_STRLEN], *buff, *endparen,
-    *kqstr, *col, *kstr, *qstr;
+  static const char me[]="miteVariableParse";
+
+  char *buff, *endparen, *kqstr, *col, *kstr, *qstr;
   airArray *mop;
   
   if (!( isp && label )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (0 == strlen(label)) {
     /* nothing was specified; we try to indicate that by mimicking 
@@ -118,15 +119,15 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
   mop = airMopNew();
   buff = airStrdup(label);
   if (!buff) {
-    sprintf(err, "%s: couldn't strdup label!", me);
-    biffAdd(MITE, err); airMopError(mop); return 1;
+    biffAddf(MITE, "%s: couldn't strdup label!", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, buff, airFree, airMopAlways);
   if (strstr(buff, "gage(") == buff) {
     /* txf domain variable is to be measured directly by gage */
     if (!(endparen = strstr(buff, ")"))) {
-      sprintf(err, "%s: didn't see close paren after \"gage(\"", me);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: didn't see close paren after \"gage(\"", me);
+      airMopError(mop); return 1;
     }
     *endparen = 0;
     kqstr = buff + strlen("gage(");
@@ -142,9 +143,9 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
       /* should be of form "<kind>:<item>" */
       col = strstr(kqstr, ":");
       if (!col) {
-        sprintf(err, "%s: didn't see \":\" seperator between gage "
-                "kind and item", me);
-        biffAdd(MITE, err); airMopError(mop); return 1;
+        biffAddf(MITE, "%s: didn't see \":\" seperator between gage "
+                 "kind and item", me);
+        airMopError(mop); return 1;
       }
       *col = 0;
       kstr = kqstr;
@@ -156,29 +157,29 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
       } else if (!strcmp(tenGageKind->name, kstr)) {
         isp->kind = tenGageKind;
       } else {
-        sprintf(err, "%s: don't recognized \"%s\" gage kind", me, kstr);
-        biffAdd(MITE, err); airMopError(mop); return 1;
+        biffAddf(MITE, "%s: don't recognized \"%s\" gage kind", me, kstr);
+        airMopError(mop); return 1;
       }
       isp->item = airEnumVal(isp->kind->enm, qstr);
       if (0 == isp->item) {
-        sprintf(err, "%s: couldn't parse \"%s\" as a %s variable",
-                me, qstr, isp->kind->name);
-        biffAdd(MITE, err); airMopError(mop); return 1;
+        biffAddf(MITE, "%s: couldn't parse \"%s\" as a %s variable",
+                 me, qstr, isp->kind->name);
+        airMopError(mop); return 1;
       }
     }
   } else if (strstr(buff, "mite(") == buff) {
     /* txf domain variable is *not* directly measured by gage */
     if (!(endparen = strstr(buff, ")"))) {
-      sprintf(err, "%s: didn't see close paren after \"mite(\"", me);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: didn't see close paren after \"mite(\"", me);
+      airMopError(mop); return 1;
     }
     *endparen = 0;
     qstr = buff + strlen("mite(");
     isp->item = airEnumVal(miteVal, qstr);
     if (0 == isp->item) {
-      sprintf(err, "%s: couldn't parse \"%s\" as a miteVal variable",
-              me, qstr);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as a miteVal variable",
+               me, qstr);
+      airMopError(mop); return 1;
     }
     isp->kind = miteValGageKind;
   } else {
@@ -191,8 +192,8 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
               "\"%s\"; should use \"mite(%s)\" instead\n\n",
               me, label, label);
     } else {
-      sprintf(err, "%s: \"%s\" not a recognized variable", me, label);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" not a recognized variable", me, label);
+      airMopError(mop); return 1;
     }
   }
   airMopOkay(mop);
@@ -201,7 +202,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
 
 void
 miteVariablePrint(char *buff, const gageItemSpec *isp) {
-  char me[]="miteVariablePrint";
+  static const char me[]="miteVariablePrint";
 
   if (!(isp->kind)) {
     strcpy(buff, "");
@@ -221,98 +222,99 @@ miteVariablePrint(char *buff, const gageItemSpec *isp) {
 
 int
 miteNtxfCheck(const Nrrd *ntxf) {
-  char me[]="miteNtxfCheck", err[BIFF_STRLEN], *rangeStr, *domStr;
+  static const char me[]="miteNtxfCheck";
+  char *rangeStr, *domStr;
   gageItemSpec isp;
   int log2;
   unsigned int rii, axi;
 
   if (nrrdCheck(ntxf)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(MITE, err, NRRD); return 1;
+    biffMovef(MITE, NRRD, "%s: basic nrrd validity check failed", me);
+    return 1;
   }
   if (!( nrrdTypeFloat == ntxf->type || 
          nrrdTypeDouble == ntxf->type || 
          nrrdTypeUChar == ntxf->type )) {
-    sprintf(err, "%s: need a type %s, %s or %s nrrd (not %s)", me,
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, nrrdTypeDouble),
-            airEnumStr(nrrdType, nrrdTypeUChar),
-            airEnumStr(nrrdType, ntxf->type));
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: need a type %s, %s or %s nrrd (not %s)", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nrrdTypeDouble),
+             airEnumStr(nrrdType, nrrdTypeUChar),
+             airEnumStr(nrrdType, ntxf->type));
+    return 1;
   }
   if (!( 2 <= ntxf->dim )) {
-    sprintf(err, "%s: nrrd dim (%d) isn't at least 2 (for a 1-D txf)",
-            me, ntxf->dim);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: nrrd dim (%d) isn't at least 2 (for a 1-D txf)",
+             me, ntxf->dim);
+    return 1;
   }
   rangeStr = ntxf->axis[0].label;
   if (0 == airStrlen(rangeStr)) {
-    sprintf(err, "%s: axis[0]'s label doesn't specify txf range", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: axis[0]'s label doesn't specify txf range", me);
+    return 1;
   }
   if (airStrlen(rangeStr) != ntxf->axis[0].size) {
-    sprintf(err, "%s: axis[0]'s size is " _AIR_SIZE_T_CNV 
-            ", but label specifies " _AIR_SIZE_T_CNV " values",
-            me, ntxf->axis[0].size, airStrlen(rangeStr));
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: axis[0]'s size is " _AIR_SIZE_T_CNV 
+             ", but label specifies " _AIR_SIZE_T_CNV " values",
+             me, ntxf->axis[0].size, airStrlen(rangeStr));
+    return 1;
   }
   for (rii=0; rii<airStrlen(rangeStr); rii++) {
     if (!strchr(miteRangeChar, rangeStr[rii])) {
-      sprintf(err, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
-              "transfer function range specifier (not in \"%s\")",
-              me, rii, rangeStr[rii], miteRangeChar);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: char %d of axis[0]'s label (\"%c\") isn't a valid "
+               "transfer function range specifier (not in \"%s\")",
+               me, rii, rangeStr[rii], miteRangeChar);
+      return 1;
     }
   }
   for (axi=1; axi<ntxf->dim; axi++) {
     if (1 == ntxf->axis[axi].size) {
-      sprintf(err, "%s: # samples on axis %d must be > 1", me, axi);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: # samples on axis %d must be > 1", me, axi);
+      return 1;
     }
     domStr = ntxf->axis[axi].label;
     if (0 == airStrlen(domStr)) {
-      sprintf(err, "%s: axis[%d] of txf didn't specify a domain variable",
-              me, axi);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: axis[%d] of txf didn't specify a domain variable",
+               me, axi);
+      return 1;
     }
     if (miteVariableParse(&isp, domStr)) {
-      sprintf(err, "%s: couldn't parse txf domain \"%s\" for axis %d\n", 
-              me, domStr, axi);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: couldn't parse txf domain \"%s\" for axis %d\n", 
+               me, domStr, axi);
+      return 1;
     }
     if (!( 1 == isp.kind->table[isp.item].answerLength ||
            3 == isp.kind->table[isp.item].answerLength )) {
-      sprintf(err, "%s: %s (item %d) not a scalar or vector "
-              "(answerLength = %d): "
-              "can't be a txf domain variable", me, domStr, isp.item,
-              isp.kind->table[isp.item].answerLength);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: %s (item %d) not a scalar or vector "
+               "(answerLength = %d): "
+               "can't be a txf domain variable", me, domStr, isp.item,
+               isp.kind->table[isp.item].answerLength);
+      return 1;
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
       log2 = airLog2(ntxf->axis[axi].size);
       if (-1 == log2) {
-        sprintf(err, "%s: txf axis size for %s must be power of 2 (not "
-                _AIR_SIZE_T_CNV ")",
-                me, domStr, ntxf->axis[axi].size);
-        biffAdd(MITE, err); return 1;
+        biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not "
+                 _AIR_SIZE_T_CNV ")",
+                 me, domStr, ntxf->axis[axi].size);
+        return 1;
       } else {
         if (!( AIR_IN_CL(8, log2, 16) )) {
-          sprintf(err, "%s: log_2 of txf axis size for %s should be in "
-                  "range [8,16] (not %d)", me, domStr, log2);
-          biffAdd(MITE, err); return 1;
+          biffAddf(MITE, "%s: log_2 of txf axis size for %s should be in "
+                   "range [8,16] (not %d)", me, domStr, log2);
+          return 1;
         }
       }
     } else {
       if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
              AIR_EXISTS(ntxf->axis[axi].max) )) {
-        sprintf(err, "%s: min and max of axis %d aren't both set", me, axi);
-        biffAdd(MITE, err); return 1;
+        biffAddf(MITE, "%s: min and max of axis %d aren't both set", me, axi);
+        return 1;
       }
       if (!( ntxf->axis[axi].min < ntxf->axis[axi].max )) {
-        sprintf(err, "%s: min (%g) not less than max (%g) on axis %d", 
-                me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
-        biffAdd(MITE, err); return 1;
+        biffAddf(MITE, "%s: min (%g) not less than max (%g) on axis %d", 
+                 me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
+        return 1;
       }
     }
   }
@@ -344,7 +346,7 @@ void
 miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
              gageQuery queryTen, gageQuery queryMite,
              gageItemSpec *isp) {
-  char me[]="miteQueryAdd";
+  static const char me[]="miteQueryAdd";
   
   if (NULL == isp->kind) {
     /* nothing to add */
@@ -391,13 +393,13 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
 
 int
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
-  char me[]="_miteNtxfCopy", err[BIFF_STRLEN];
+  static const char me[]="_miteNtxfCopy";
   int ni, E;
   
   mrr->ntxf = (Nrrd **)calloc(muu->ntxfNum, sizeof(Nrrd *));
   if (!mrr->ntxf) {
-    sprintf(err, "%s: couldn't calloc %d ntxf pointers", me, muu->ntxfNum);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: couldn't calloc %d ntxf pointers", me, muu->ntxfNum);
+    return 1;
   }
   mrr->ntxfNum = muu->ntxfNum;
   airMopAdd(mrr->rmop, mrr->ntxf, airFree, airMopAlways);
@@ -409,12 +411,13 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
     if (!( nrrdTypeUChar == muu->ntxf[ni]->type 
            || nrrdTypeFloat == muu->ntxf[ni]->type 
            || nrrdTypeDouble == muu->ntxf[ni]->type )) {
-      sprintf(err, "%s: sorry, can't handle txf of type %s (only %s, %s, %s)",
-              me, airEnumStr(nrrdType, muu->ntxf[ni]->type),
-              airEnumStr(nrrdType, nrrdTypeUChar),
-              airEnumStr(nrrdType, nrrdTypeFloat),
-              airEnumStr(nrrdType, nrrdTypeDouble));
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE,
+               "%s: sorry, can't handle txf of type %s (only %s, %s, %s)",
+               me, airEnumStr(nrrdType, muu->ntxf[ni]->type),
+               airEnumStr(nrrdType, nrrdTypeUChar),
+               airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nrrdTypeDouble));
+      return 1;
     }
     /* note that key/values need to be copied for the sake of
        identifying a non-default miteStageOp */
@@ -433,22 +436,22 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
     }
   }
   if (E) {
-    sprintf(err, "%s: troubling copying/converting all ntxfs", me);
-    biffMove(MITE, err, NRRD); return 1;
+    biffMovef(MITE, NRRD, "%s: troubling copying/converting all ntxfs", me);
+    return 1;
   }
   return 0;
 }
 
 int
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
-  char me[]="_miteNtxfAlphaAdjust", err[BIFF_STRLEN];
+  static const char me[]="_miteNtxfAlphaAdjust";
   int ni, ei, ri, nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
   
   if (_miteNtxfCopy(mrr, muu)) {
-    sprintf(err, "%s: trouble copying/converting transfer functions", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: trouble copying/converting transfer functions", me);
+    return 1;
   }
   frac = muu->rayStep/muu->refStep;
   for (ni=0; ni<mrr->ntxfNum; ni++) {
@@ -503,7 +506,7 @@ _miteStageInit(miteStage *stage) {
 
 double *
 _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
-  char me[]="_miteAnswerPointer";
+  static const char me[]="_miteAnswerPointer";
   double *ret;
 
   if (!isp->kind) {
@@ -536,7 +539,8 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 */
 int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
-  char me[]="_miteStageSet", err[BIFF_STRLEN], *value;
+  static const char me[]="_miteStageSet";
+  char *value;
   int ni, di, stageIdx, rii, stageNum, log2;
   Nrrd *ntxf;
   miteStage *stage;
@@ -547,8 +551,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
   /* fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum); */
   mtt->stage = (miteStage *)calloc(stageNum, sizeof(miteStage));
   if (!mtt->stage) {
-    sprintf(err, "%s: couldn't alloc array of %d stages", me, stageNum);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: couldn't alloc array of %d stages", me, stageNum);
+    return 1;
   }
   airMopAdd(mtt->rmop, mtt->stage, airFree, airMopAlways);
   mtt->stageNum = stageNum;
@@ -596,18 +600,18 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
           case 15: stage->qn = limnVtoQN_d[limnQN15octa]; break;
           case 16: stage->qn = limnVtoQN_d[limnQN16octa]; break;
           default:
-            sprintf(err, "%s: txf axis %d size " _AIR_SIZE_T_CNV 
-                    " not usable for vector txf domain variable %s", me,
-                    di, ntxf->axis[di].size, ntxf->axis[di].label);
-            biffAdd(MITE, err); return 1;
+            biffAddf(MITE, "%s: txf axis %d size " _AIR_SIZE_T_CNV 
+                     " not usable for vector txf domain variable %s", me,
+                     di, ntxf->axis[di].size, ntxf->axis[di].label);
+            return 1;
             break;
           }
         } else {
-          sprintf(err, "%s: %s not scalar or vector (len = %d): can't be "
-                  "a txf domain variable", me,
-                  ntxf->axis[di].label,
-                  isp.kind->table[isp.item].answerLength);
-          biffAdd(MITE, err); return 1;
+          biffAddf(MITE, "%s: %s not scalar or vector (len = %d): can't be "
+                   "a txf domain variable", me,
+                   ntxf->axis[di].label,
+                   isp.kind->table[isp.item].answerLength);
+          return 1;
         }
         stage->rangeNum = ntxf->axis[0].size;
         for (rii=0; rii<stage->rangeNum; rii++) {
@@ -627,7 +631,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 
 void
 _miteStageRun(miteThread *mtt, miteUser *muu) {
-  char me[]="_miteStageRun";
+  static const char me[]="_miteStageRun";
   int stageIdx, ri, rii, txfIdx, finalIdx;
   miteStage *stage;
   mite_t *rangeData;

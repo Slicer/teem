@@ -25,7 +25,7 @@
 
 int
 limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
-  char me[]="limnObjectRender", err[BIFF_STRLEN];
+  static const char me[]="limnObjectRender";
   int E;
   
   E = 0;
@@ -43,8 +43,8 @@ limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   if (!E) E |= limnObjectFaceNormals(obj, limnSpaceScreen);
   if (!E) E |= limnObjectSpaceTransform(obj, cam, win, limnSpaceDevice);
   if (E) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -183,7 +183,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
 int
 limnObjectPSDraw(limnObject *obj, limnCamera *cam,
                  Nrrd *nmap, limnWindow *win) {
-  char me[]="limnObjectPSDraw", err[BIFF_STRLEN];
+  static const char me[]="limnObjectPSDraw";
   int inside;
   float angle;
   limnFace *face, *face0, *face1; unsigned int fii;
@@ -192,15 +192,15 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   limnVertex *vert; unsigned int vii;
 
   if (limnSpaceDevice != obj->vertSpace) {
-    sprintf(err, "%s: object's verts in %s (not %s) space", me,
-            airEnumStr(limnSpace, obj->vertSpace),
-            airEnumStr(limnSpace, limnSpaceDevice));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
+             airEnumStr(limnSpace, obj->vertSpace),
+             airEnumStr(limnSpace, limnSpaceDevice));
+    return 1;
   }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
-      sprintf(err, "%s: trouble", me); 
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: trouble", me); 
+      return 1;
     }
   }
   
@@ -316,22 +316,22 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 int
 limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
                      Nrrd *nmap, limnWindow *win) {
-  char me[]="limnObjectPSDrawConcave", err[BIFF_STRLEN];
+  static const char me[]="limnObjectPSDrawConcave";
   float angle;
   limnPart *part;
   limnFace *face, *face0, *face1; unsigned int faceIdx;
   limnEdge *edge; unsigned int edgeIdx, eii;
 
   if (limnSpaceDevice != obj->vertSpace) {
-    sprintf(err, "%s: object's verts in %s (not %s) space", me,
-            airEnumStr(limnSpace, obj->vertSpace),
-            airEnumStr(limnSpace, limnSpaceDevice));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
+             airEnumStr(limnSpace, obj->vertSpace),
+             airEnumStr(limnSpace, limnSpaceDevice));
+    return 1;
   }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
-      sprintf(err, "%s: trouble", me); 
-      biffAdd(LIMN, err); return 1;
+      biffAddf(LIMN, "%s: trouble", me); 
+      return 1;
     }
   }
   

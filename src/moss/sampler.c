@@ -25,16 +25,16 @@
 
 int 
 mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
-  char me[]="mossSamplerImageSet", err[BIFF_STRLEN];
+  static const char me[]="mossSamplerImageSet";
   int ci, ncol;
   
   if (!(smplr && image)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer", me);
+    return 1;
   }
   if (mossImageCheck(image)) {
-    sprintf(err, "%s: ", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: ", me);
+    return 1;
   }
   smplr->image = image;
   smplr->flag[mossFlagImage] = AIR_TRUE;
@@ -52,12 +52,12 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
 int
 mossSamplerKernelSet (mossSampler *smplr, 
                       const NrrdKernel *kernel, double *kparm) {
-  char me[]="mossSamplerKernelSet", err[BIFF_STRLEN];
+  static const char me[]="mossSamplerKernelSet";
   unsigned int ki;
 
   if (!(smplr && kernel && kparm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer", me);
+    return 1;
   }
   smplr->kernel = kernel;
   for (ki=0; ki<kernel->numParm; ki++) {
@@ -69,12 +69,12 @@ mossSamplerKernelSet (mossSampler *smplr,
 
 int
 mossSamplerUpdate (mossSampler *smplr) {
-  char me[]="mossSamplerUpdate", err[BIFF_STRLEN];
+  static const char me[]="mossSamplerUpdate";
   int ncol=0, fdiam=0;
 
   if (!(smplr)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer", me);
+    return 1;
   }
   
   if (smplr->flag[mossFlagImage]) {
@@ -93,14 +93,14 @@ mossSamplerUpdate (mossSampler *smplr) {
   }
   if (!(smplr->ivc)) {
     if (mossSamplerFill(smplr, fdiam, ncol)) {
-      sprintf(err, "%s: ", me);
-      biffAdd(MOSS, err); return 1;
+      biffAddf(MOSS, "%s: ", me);
+      return 1;
     }
   }
   if (nrrdBoundaryPad == smplr->boundary && !smplr->bg) {
-    sprintf(err, "%s: want %s boundary behavior, but bg vector is NULL",
-            me, airEnumStr(nrrdBoundary, nrrdBoundaryPad));
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: want %s boundary behavior, but bg vector is NULL",
+             me, airEnumStr(nrrdBoundary, nrrdBoundaryPad));
+    return 1;
   }
 
   return 0;
@@ -108,18 +108,18 @@ mossSamplerUpdate (mossSampler *smplr) {
 
 int
 mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
-  char me[]="mossSamplerSample", err[BIFF_STRLEN];
+  static const char me[]="mossSamplerSample";
   int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
   double xf, yf, tmp;
   float (*lup)(const void *v, size_t I);
   
   if (!(val && smplr)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!(smplr->ivc)) {
-    sprintf(err, "%s: given sampler not ready (no caches)", me);
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: given sampler not ready (no caches)", me);
+    return 1;
   }
 
   /* set {x,y}Idx, set {x,y}Fslw to sample locations */
@@ -163,9 +163,9 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
     /* this is handled later */
     break;
   default:
-    sprintf(err, "%s: sorry, %s boundary not implemented", me,
-            airEnumStr(nrrdBoundary, smplr->boundary));
-    biffAdd(MOSS, err); return 1;
+    biffAddf(MOSS, "%s: sorry, %s boundary not implemented", me,
+             airEnumStr(nrrdBoundary, smplr->boundary));
+    return 1;
   }
   if (mossVerbose) {
     fprintf(stderr, " --> xIdx: %d %d ; xFsl %g %g\n",

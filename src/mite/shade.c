@@ -69,20 +69,20 @@ miteShadeSpecNix(miteShadeSpec *shpec) {
 */
 int
 miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
-  char me[]="miteShadeSpecParse", err[BIFF_STRLEN],
-    *buff, *qstr, *tok, *state;
+  static const char me[]="miteShadeSpecParse";
+  char *buff, *qstr, *tok, *state;
   airArray *mop;
   int ansLength;
 
   mop = airMopNew();
   if (!( shpec && airStrlen(shadeStr) )) {
-    sprintf(err, "%s: got NULL pointer and/or empty string", me);
-    biffAdd(MITE, err); airMopError(mop); return 1;
+    biffAddf(MITE, "%s: got NULL pointer and/or empty string", me);
+    airMopError(mop); return 1;
   }
   buff = airToLower(airStrdup(shadeStr));
   if (!buff) {
-    sprintf(err, "%s: couldn't strdup shading spec", me);
-    biffAdd(MITE, err); airMopError(mop); return 1;
+    biffAddf(MITE, "%s: couldn't strdup shading spec", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, buff, airFree, airMopAlways);
   shpec->method = miteShadeMethodUnknown;
@@ -92,14 +92,14 @@ miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
     shpec->method = miteShadeMethodPhong;
     qstr = buff + strlen("phong:");
     if (miteVariableParse(shpec->vec0, qstr)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as shading vector", me, qstr);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as shading vector", me, qstr);
+      airMopError(mop); return 1;
     }
     ansLength = shpec->vec0->kind->table[shpec->vec0->item].answerLength;
     if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-              me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
+               me, qstr, ansLength);
+      airMopError(mop); return 1;
     }
     shpec->method = miteShadeMethodPhong;
   } else if (buff == strstr(buff, "litten:")) {
@@ -107,60 +107,60 @@ miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
     /* ---- first vector */
     tok = airStrtok(qstr, ",", &state);
     if (miteVariableParse(shpec->vec0, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as first lit-tensor vector",
-              me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as first lit-tensor vector",
+               me, tok);
+      airMopError(mop); return 1;
     }
     ansLength = shpec->vec0->kind->table[shpec->vec0->item].answerLength;
     if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-              me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
+               me, qstr, ansLength);
+      airMopError(mop); return 1;
     }
     /* ---- second vector */
     tok = airStrtok(qstr, ",", &state);
     if (miteVariableParse(shpec->vec1, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as second lit-tensor vector",
-              me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as second lit-tensor vector",
+               me, tok);
+      airMopError(mop); return 1;
     }
     ansLength = shpec->vec1->kind->table[shpec->vec1->item].answerLength;
     if (3 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
-              me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" isn't a vector (answer length is %d, not 3)",
+               me, qstr, ansLength);
+      airMopError(mop); return 1;
     }
     /* ---- first scalar */
     tok = airStrtok(qstr, ",", &state);
     if (miteVariableParse(shpec->scl0, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as first lit-tensor scalar",
-              me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as first lit-tensor scalar",
+               me, tok);
+      airMopError(mop); return 1;
     }
     ansLength = shpec->scl0->kind->table[shpec->scl0->item].answerLength;
     if (1 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
-              me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
+               me, qstr, ansLength);
+      airMopError(mop); return 1;
     }
     /* ---- second scalar */
     tok = airStrtok(qstr, ",", &state);
     if (miteVariableParse(shpec->scl1, tok)) {
-      sprintf(err, "%s: couldn't parse \"%s\" as second lit-tensor scalar",
-              me, tok);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: couldn't parse \"%s\" as second lit-tensor scalar",
+               me, tok);
+      airMopError(mop); return 1;
     }
     ansLength = shpec->scl1->kind->table[shpec->scl1->item].answerLength;
     if (1 != ansLength) {
-      sprintf(err, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
-              me, qstr, ansLength);
-      biffAdd(MITE, err); airMopError(mop); return 1;
+      biffAddf(MITE, "%s: \"%s\" isn't a scalar (answer length is %d, not 1)",
+               me, qstr, ansLength);
+      airMopError(mop); return 1;
     }
     shpec->method = miteShadeMethodLitTen;
   } else {
-    sprintf(err, "%s: shading specification \"%s\" not understood",
-            me, shadeStr);
-    biffAdd(MITE, err); airMopError(mop); return 1;
+    biffAddf(MITE, "%s: shading specification \"%s\" not understood",
+             me, shadeStr);
+    airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;
@@ -168,7 +168,8 @@ miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
 
 void
 miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec) {
-  char me[]="miteShadeSpecPrint", var[4][AIR_STRLEN_MED];
+  static const char me[]="miteShadeSpecPrint";
+  char var[4][AIR_STRLEN_MED];
 
   if (buff && shpec) {
     switch(shpec->method) {

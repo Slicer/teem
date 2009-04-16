@@ -24,18 +24,18 @@
 
 int
 limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
-  char me[]="limnEnvMapFill", err[128];
+  static const char me[]="limnEnvMapFill";
   int sx, sy;
   int qn;
   float vec[3], *mapData;
 
   if (!(map && cb)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!AIR_IN_OP(limnQNUnknown, qnMethod, limnQNLast)) {
-    sprintf(err, "%s: QN method %d invalid", me, qnMethod);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: QN method %d invalid", me, qnMethod);
+    return 1;
   }
   switch(qnMethod) {
   case limnQN16checker:
@@ -75,15 +75,15 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
     sy = 32;
     break;
   default:
-    sprintf(err, "%s: sorry, QN method %d not implemented", me, qnMethod);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, QN method %d not implemented", me, qnMethod);
+    return 1;
   }
   if (nrrdMaybeAlloc_va(map, nrrdTypeFloat, 3,
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, sx),
                         AIR_CAST(size_t, sy))) {
-    sprintf(err, "%s: couldn't alloc output", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: couldn't alloc output", me);
+    return 1;
   }
   mapData = (float *)map->data;
   for (qn=0; qn<sx*sy; qn++) {
@@ -122,33 +122,33 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
 
 int
 limnEnvMapCheck(Nrrd *envMap) {
-  char me[]="limnEnvMapCheck", err[BIFF_STRLEN];
+  static const char me[]="limnEnvMapCheck";
 
   if (nrrdCheck(envMap)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(LIMN, err, NRRD); return 1;
+    biffMovef(LIMN, NRRD, "%s: basic nrrd validity check failed", me);
+    return 1;
   }
   if (!(nrrdTypeFloat == envMap->type)) {
-    sprintf(err, "%s: type should be %s, not %s", me,
-            airEnumStr(nrrdType, nrrdTypeFloat),
-            airEnumStr(nrrdType, envMap->type));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: type should be %s, not %s", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, envMap->type));
+    return 1;
   }
   if (!(3 == envMap->dim)) {
-    sprintf(err, "%s: dimension should be 3, not %d", me, envMap->dim);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: dimension should be 3, not %d", me, envMap->dim);
+    return 1;
   }
   if (!(3 == envMap->axis[0].size
         && 256 == envMap->axis[1].size
         && 256 == envMap->axis[2].size)) {
-    sprintf(err, "%s: dimension should be 3x256x256, not " 
-            _AIR_SIZE_T_CNV "x" 
-            _AIR_SIZE_T_CNV "x" 
-            _AIR_SIZE_T_CNV, me,
-            envMap->axis[0].size, 
-            envMap->axis[1].size, 
-            envMap->axis[2].size);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: dimension should be 3x256x256, not " 
+             _AIR_SIZE_T_CNV "x" 
+             _AIR_SIZE_T_CNV "x" 
+             _AIR_SIZE_T_CNV, me,
+             envMap->axis[0].size, 
+             envMap->axis[1].size, 
+             envMap->axis[2].size);
+    return 1;
   }
   return 0;
 }

@@ -27,7 +27,7 @@ int
 limnPolyDataCube(limnPolyData *pld,
                  unsigned int infoBitFlag,
                  int sharpEdge) {
-  char me[]="limnPolyDataCube", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCube";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
   float cn;
 
@@ -35,8 +35,8 @@ limnPolyDataCube(limnPolyData *pld,
   primNum = 1;
   indxNum = 6*4;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
   
   vertIdx = 0;
@@ -138,7 +138,7 @@ int
 limnPolyDataCylinder(limnPolyData *pld,
                      unsigned int infoBitFlag,
                      unsigned int thetaRes, int sharpEdge) {
-  char me[]="limnPolyDataCylinder", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCylinder";
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   double theta, cth, sth, sq2;
 
@@ -149,8 +149,8 @@ limnPolyDataCylinder(limnPolyData *pld,
   primNum = 3;
   indxNum = 2*thetaRes + 2*(thetaRes+1);  /* 2 fans + 1 strip */
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me); 
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    return 1;
   }
   
   vertIdx = 0;
@@ -254,7 +254,7 @@ int
 limnPolyDataCone(limnPolyData *pld,
                  unsigned int infoBitFlag,
                  unsigned int thetaRes, int sharpEdge) {
-  char me[]="limnPolyDataCone", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataCone";
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   double theta, cth, sth;
 
@@ -265,8 +265,8 @@ limnPolyDataCone(limnPolyData *pld,
   primNum = 2;
   indxNum = thetaRes + 2*(thetaRes+1);  /* 1 fans + 1 strip */
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me); 
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    return 1;
   }
 
   /* top point(s) */
@@ -360,7 +360,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
                          unsigned int infoBitFlag,
                          float alpha, float beta,
                          unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSuperquadric", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataSuperquadric";
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
   double theta, phi;
@@ -377,8 +377,8 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   primNum = fanNum + stripNum;
   indxNum = (thetaRes+2)*fanNum + 2*(thetaRes+1)*stripNum;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
 
   vertIdx = 0;
@@ -486,7 +486,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
                                unsigned int infoBitFlag,
                                float alpha, float beta,
                                unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSuperquadric", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataSpiralSuperquadric";
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
@@ -498,8 +498,8 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
   vertNum = thetaRes*phiRes + 1;
   indxNum = 2*thetaRes*(phiRes+1) - 2;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, 1)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
 
   vertIdx = 0;
@@ -594,12 +594,12 @@ int
 limnPolyDataPolarSphere(limnPolyData *pld,
                         unsigned int infoBitFlag,
                         unsigned int thetaRes, unsigned int phiRes) {
-  char me[]="limnPolyDataPolarSphere", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPolarSphere";
 
   if (limnPolyDataSuperquadric(pld, infoBitFlag,
                                1.0, 1.0, thetaRes, phiRes)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble", me);
+    return 1;
   }                              
   return 0;
 }
@@ -609,12 +609,12 @@ limnPolyDataSpiralSphere(limnPolyData *pld,
                          unsigned int infoBitFlag,
                          unsigned int thetaRes,
                          unsigned int phiRes) {
-  char me[]="limnPolyDataSpiralSphere", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataSpiralSphere";
 
   if (limnPolyDataSpiralSuperquadric(pld, infoBitFlag,
                                      1.0, 1.0, thetaRes, phiRes)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble", me);
+    return 1;
   }                              
   return 0;
 }
@@ -623,7 +623,7 @@ int
 limnPolyDataPlane(limnPolyData *pld,
                   unsigned int infoBitFlag,
                   unsigned int uRes, unsigned int vRes) {
-  char me[]="limnPolyDataPlane", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataPlane";
   unsigned int vertNum, indxNum, primNum, uIdx, vIdx, vertIdx, primIdx;
   float uu, vv;
 
@@ -635,8 +635,8 @@ limnPolyDataPlane(limnPolyData *pld,
   primNum = vRes-1;
   indxNum = primNum*2*uRes;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    sprintf(err, "%s: couldn't allocate output", me); 
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    return 1;
   }
   
   vertIdx = 0;

@@ -72,7 +72,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
 void
 _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
               miteThread *mtt, miteRender *mrr, miteUser *muu) {
-  char me[]="_miteRGBACalc";
+  static const char me[]="_miteRGBACalc";
   mite_t tmp,
     ad[3],                          /* ambient+diffuse light contribution */
     s[3] = {0,0,0},                 /* specular light contribution */
@@ -156,7 +156,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
            int num, double rayT, int inside,
            double samplePosWorld[3],
            double samplePosIndex[3]) {
-  char me[]="miteSample", err[BIFF_STRLEN];
+  static const char me[]="miteSample";
   mite_t R, G, B, A;
   double *NN;
   double NdotV, kn[3], knd[3], ref[3], len, *dbg=NULL;
@@ -188,9 +188,9 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
                 samplePosIndex[0],
                 samplePosIndex[1],
                 samplePosIndex[2])) {
-    sprintf(err, "%s: gage trouble: %s (%d)", me,
-            mtt->gctx->errStr, mtt->gctx->errNum);
-    biffAdd(MITE, err); return AIR_NAN;
+    biffAddf(MITE, "%s: gage trouble: %s (%d)", me,
+             mtt->gctx->errStr, mtt->gctx->errNum);
+    return AIR_NAN;
   }
   
   if (mrr->queryMiteNonzero) {

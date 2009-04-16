@@ -28,7 +28,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                            unsigned int infoBitFlag, Nrrd *nvertmap,
                            unsigned int tubeFacet, unsigned int endFacet,
                            double radius) {
-  char me[]="limnPolyDataSpiralTubeWrap", err[BIFF_STRLEN];
+  static const char me[]="limnPolyDataSpiralTubeWrap";
   double *cost, *sint;
   unsigned int tubeVertNum = 0, tubeIndxNum = 0, primIdx, pi, *vertmap;
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
@@ -36,13 +36,13 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   airArray *mop;
 
   if (!( pldOut && pldIn )) {
-    sprintf(err, "%s: got NULL pointer", me);
+    biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
   if ((1 << limnPrimitiveLineStrip) != limnPolyDataPrimitiveTypes(pldIn)) {
-    sprintf(err, "%s: sorry, can only handle %s primitives", me,
-            airEnumStr(limnPrimitive, limnPrimitiveLineStrip));
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: sorry, can only handle %s primitives", me,
+             airEnumStr(limnPrimitive, limnPrimitiveLineStrip));
+    return 1;
   }
   
   for (primIdx=0; primIdx<pldIn->primNum; primIdx++) {
@@ -57,14 +57,14 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                            of vertex position calc */
                         (infoBitFlag | (1 << limnPolyDataInfoNorm)),
                         tubeVertNum, tubeIndxNum, pldIn->primNum)) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: trouble allocating output", me);
+    return 1;
   }
   if (nvertmap) {
     if (nrrdMaybeAlloc_va(nvertmap, nrrdTypeUInt, 1,
                           AIR_CAST(size_t, tubeVertNum))) {
-      sprintf(err, "%s: trouble allocating vert map", me);
-      biffMove(LIMN, err, NRRD); return 1;
+      biffMovef(LIMN, NRRD, "%s: trouble allocating vert map", me);
+      return 1;
     }
     vertmap = AIR_CAST(unsigned int *, nvertmap->data);
   } else {
@@ -77,8 +77,8 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   cost = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
   sint = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
   if (!(cost && sint)) {
-    sprintf(err, "%s: couldn't allocate lookup tables", me);
-    biffAdd(LIMN, err); return 1;
+    biffAddf(LIMN, "%s: couldn't allocate lookup tables", me);
+    return 1;
   }
   airMopAdd(mop, cost, airFree, airMopAlways);
   airMopAdd(mop, sint, airFree, airMopAlways);

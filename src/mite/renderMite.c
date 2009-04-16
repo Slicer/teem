@@ -64,7 +64,7 @@ _miteRenderNix(miteRender *mrr) {
 
 int 
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
-  char me[]="miteRenderBegin", err[BIFF_STRLEN];
+  static const char me[]="miteRenderBegin";
   gagePerVolume *pvl;
   int E, T, thr, pvlIdx;
   gageQuery queryScl, queryVec, queryTen;
@@ -72,20 +72,20 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   unsigned int axi;
  
   if (!(mrrP && muu)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (_miteUserCheck(muu)) {
-    sprintf(err, "%s: problem with user-set parameters", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: problem with user-set parameters", me);
+    return 1;
   }
   if (!( *mrrP = _miteRenderNew() )) {
-    sprintf(err, "%s: couldn't alloc miteRender", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: couldn't alloc miteRender", me);
+    return 1;
   }
   if (_miteNtxfAlphaAdjust(*mrrP, muu)) {
-    sprintf(err, "%s: trouble copying and alpha-adjusting txfs", me);
-    biffAdd(MITE, err); return 1;
+    biffAddf(MITE, "%s: trouble copying and alpha-adjusting txfs", me);
+    return 1;
   }
 
   GAGE_QUERY_RESET(queryScl);
@@ -137,8 +137,8 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
                              muu->ksp[gageKernel22]->parm);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
-    sprintf(err, "%s: gage trouble", me);
-    biffMove(MITE, err, GAGE); return 1;
+    biffMovef(MITE, GAGE, "%s: gage trouble", me);
+    return 1;
   }
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
           me, 2*muu->gctx0->radius);
@@ -147,8 +147,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
                         AIR_CAST(size_t, 5) /* RGBAZ */ ,
                         AIR_CAST(size_t, muu->hctx->imgSize[0]),
                         AIR_CAST(size_t, muu->hctx->imgSize[1]))) {
-    sprintf(err, "%s: nrrd trouble", me);
-    biffMove(MITE, err, NRRD);
+    biffMovef(MITE, NRRD, "%s: nrrd trouble", me);
     return 1;
   }
   muu->nout->axis[1].center = nrrdCenterCell;
@@ -161,8 +160,8 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   for (thr=0; thr<muu->hctx->numThreads; thr++) {
     (*mrrP)->tt[thr] = miteThreadNew();
     if (!((*mrrP)->tt[thr])) {
-      sprintf(err, "%s: couldn't allocate thread[%d]", me, thr);
-      biffAdd(MITE, err); return 1;
+      biffAddf(MITE, "%s: couldn't allocate thread[%d]", me, thr);
+      return 1;
     }
     airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr],
               (airMopper)miteThreadNix, airMopAlways);

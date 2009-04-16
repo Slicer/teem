@@ -31,7 +31,7 @@
 
 int
 fixproj(Nrrd *nproj[3], Nrrd *nvol) {
-  char me[]="fixproj", err[BIFF_STRLEN];
+  static const char me[]="fixproj";
   airArray *mop;
   Nrrd *ntmp[3], *nt;
   int sz[3], ii, map[3], h[3], E, mi;
@@ -43,8 +43,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
   if (!( ELL_3V_EXISTS(nvol->axis[0].spaceDirection)
          && ELL_3V_EXISTS(nvol->axis[1].spaceDirection)
          && ELL_3V_EXISTS(nvol->axis[2].spaceDirection) )) {
-    sprintf(err, "%s: space directions don't exist for all 3 axes", me);
-    biffAdd(NINSPECT, err);
+    biffAddf(NINSPECT, "%s: space directions don't exist for all 3 axes", me);
     airMopError(mop); return 1;
   }
 
@@ -76,8 +75,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     }
   }
   if (E) {
-    sprintf(err, "%s: trouble with nrrd operations", me);
-    biffMove(NINSPECT, err, NRRD);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
   E = 0;
@@ -100,8 +98,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     if (!E) E |= nrrdCopy(ntmp[1], nt);
   }
   if (E) {
-    sprintf(err, "%s: trouble with nrrd operations", me);
-    biffMove(NINSPECT, err, NRRD);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
 
@@ -128,19 +125,18 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
 
 int
 ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
-  char me[]="ninspect_proj", err[BIFF_STRLEN];
+  static const char me[]="ninspect_proj";
   airArray *mop;
   Nrrd *ntmpA, *ntmpB, *nrgb[3];
   int bins;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NINSPECT, err);
+    biffAddf(NINSPECT, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( AIR_IN_CL(0, axis, 2) )) {
-    sprintf(err, "%s: given axis %d outside valid range [0,1,2]", me, axis);
-    biffAdd(NINSPECT, err);
+    biffAddf(NINSPECT, "%s: given axis %d outside valid range [0,1,2]",
+             me, axis);
     return 1;
   }
 
@@ -171,8 +167,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
       || nrrdProject(ntmpA, nin, axis, nrrdMeasureMax, nrrdTypeDefault)
       || nrrdQuantize(nrgb[2], ntmpA, NULL, 8)
       || nrrdJoin(nout, (const Nrrd**)nrgb, 3, 0, AIR_TRUE)) {
-    sprintf(err, "%s: trouble with nrrd operations", me);
-    biffMove(NINSPECT, err, NRRD);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
 
@@ -182,20 +177,19 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
 
 int
 doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
-  char me[]="doit", err[BIFF_STRLEN];
+  static const char me[]="doit";
   Nrrd *nproj[3];
   airArray *mop;
   int axis, srl, sap, ssi, E, margin, which;
   size_t min[3];
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NINSPECT, err);
+    biffAddf(NINSPECT, "%s: got NULL pointer", me);
     return 1;
   }
   if (!(3 == nin->dim)) {
-    sprintf(err, "%s: given nrrd has dimension %d, not 3\n", me, nin->dim);
-    biffAdd(NINSPECT, err);
+    biffAddf(NINSPECT, "%s: given nrrd has dimension %d, not 3\n",
+             me, nin->dim);
     return 1;
   }
   
@@ -213,8 +207,8 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
     fflush(stderr);
     if (ninspect_proj(nproj[axis], nin, axis, smart, amount)) {
       fprintf(stderr, "ERROR\n");
-      sprintf(err, "%s: trouble doing projections for axis %d", me, axis);
-      biffAdd(NINSPECT, err);
+      biffAddf(NINSPECT, "%s: trouble doing projections for axis %d",
+               me, axis);
       airMopError(mop); return 1;
     }
     fprintf(stderr, "done\n");
@@ -223,8 +217,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   if (nrrdSpaceRightAnteriorSuperior == nin->space) {
     if (fixproj(nproj, nin)) {
       fprintf(stderr, "ERROR\n");
-      sprintf(err, "%s: trouble orienting projections", me);
-      biffAdd(NINSPECT, err);
+      biffAddf(NINSPECT, "%s: trouble orienting projections", me);
       airMopError(mop); return 1;
     }
   }
@@ -239,8 +232,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, srl + 3*margin + sap),
                         AIR_CAST(size_t, ssi + 3*margin + sap))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(NINSPECT, err, NRRD);
+    biffMovef(NINSPECT, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
 
@@ -254,9 +246,8 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   if (!E) { min[1] = 2*margin + srl; min[2] = margin; which = 3; }
   if (!E) E |= nrrdInset(nout, nout, nproj[0], min);
   if (E) {
-    sprintf(err, "%s: couldn't composite output (which = %d)", 
-            me, which);
-    biffMove(NINSPECT, err, NRRD);
+    biffAddf(NINSPECT, NRRD, "%s: couldn't composite output (which = %d)", 
+             me, which);
     airMopError(mop); return 1;
   }
 

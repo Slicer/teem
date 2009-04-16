@@ -31,7 +31,7 @@
 
 int
 probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "probeParseKind";
+  static const char me[] = "probeParseKind";
   gageKind **kindP;
   
   if (!(ptr && str)) {
@@ -134,26 +134,26 @@ mrendUserNix(mrendUser *uu) {
 
 int
 mrendUserCheck(mrendUser *uu) {
-  char me[]="mrendUserCheck", err[BIFF_STRLEN];
+  static const char me[]="mrendUserCheck";
   
   if (3 + uu->kind->baseDim != uu->nin->dim) {
-    sprintf(err, "%s: input nrrd needs %d dimensions, not %d", 
-            me,  + uu->kind->baseDim, uu->nin->dim);
-    biffAdd(MREND, err); return 1;
+    biffAddf(MREND, "%s: input nrrd needs %d dimensions, not %d", 
+             me,  + uu->kind->baseDim, uu->nin->dim);
+    return 1;
   }
   if (!( uu->nin->axis[0].center == uu->nin->axis[1].center &&
          uu->nin->axis[0].center == uu->nin->axis[2].center )) {
-    sprintf(err, "%s: axes 0,1,2 centerings (%s,%s,%s) not equal", me,
-            airEnumStr(nrrdCenter, uu->nin->axis[0].center),
-            airEnumStr(nrrdCenter, uu->nin->axis[1].center),
-            airEnumStr(nrrdCenter, uu->nin->axis[2].center));
-    biffAdd(MREND, err); return 1;
+    biffAddf(MREND, "%s: axes 0,1,2 centerings (%s,%s,%s) not equal", me,
+             airEnumStr(nrrdCenter, uu->nin->axis[0].center),
+             airEnumStr(nrrdCenter, uu->nin->axis[1].center),
+             airEnumStr(nrrdCenter, uu->nin->axis[2].center));
+    return 1;
   }
   if (1 != uu->kind->table[uu->whatq].answerLength) {
-    sprintf(err, "%s: quantity %s (in %s volumes) isn't a scalar; "
-            "can't render it",
-            me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
-    biffAdd(MREND, err); return 1;
+    biffAddf(MREND, "%s: quantity %s (in %s volumes) isn't a scalar; "
+             "can't render it",
+             me, airEnumStr(uu->kind->enm, uu->whatq), uu->kind->name);
+    return 1;
   }
   
   return 0;
@@ -188,7 +188,7 @@ typedef struct mrendThread_t {
 
 int
 mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
-  char me[]="mrendRenderBegin", err[BIFF_STRLEN];
+  static const char me[]="mrendRenderBegin";
   gagePerVolume *pvl;
   int E, thr;
   
@@ -215,8 +215,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (!E) E |= gageQueryItemOn(uu->gctx0, pvl, uu->whatq);
   if (!E) E |= gageUpdate(uu->gctx0);
   if (E) {
-    sprintf(err, "%s: gage trouble", me);
-    biffMove(MREND, err, GAGE);
+    biffMovef(MREND, GAGE, "%s: gage trouble", me);
     return 1;
   }
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
@@ -225,8 +224,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeDouble, 2,
                         AIR_CAST(size_t, uu->hctx->imgSize[0]),
                         AIR_CAST(size_t, uu->hctx->imgSize[1]))) {
-    sprintf(err, "%s: nrrd trouble", me);
-    biffMove(MREND, err, NRRD);
+    biffMovef(MREND, NRRD, "%s: nrrd trouble", me);
     return 1;
   }
   (*rrP)->nout->axis[0].min = uu->hctx->cam->uRange[0];
@@ -248,7 +246,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
 
 int
 mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
-  char me[]="mrendRenderEnd", err[BIFF_STRLEN];
+  static const char me[]="mrendRenderEnd";
   int thr;
   
   /* add up # samples from all threads */
@@ -264,8 +262,7 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
   fprintf(stderr, "%s: sampling rate = %g KHz\n", me,
           rr->totalSamples/(1000.0*(rr->time1 - rr->time0)));
   if (nrrdSave(uu->outS, rr->nout, NULL)) {
-    sprintf(err, "%s: trouble saving image", me);
-    biffMove(MREND, err, NRRD);
+    biffMovef(MREND, NRRD, "%s: trouble saving image", me);
     return 1;
   }
   
@@ -387,7 +384,7 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
             int inside,
             double samplePosWorld[3],
             double samplePosIndex[3]) {
-  char me[]="mrendSample", err[BIFF_STRLEN];
+  static const char me[]="mrendSample";
 
   AIR_UNUSED(rr);
   AIR_UNUSED(uu);
@@ -400,9 +397,8 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
                   samplePosIndex[0],
                   samplePosIndex[1],
                   samplePosIndex[2])) {
-      sprintf(err, "%s: gage trouble: %s (%d)", me,
-              tt->gctx->errStr, tt->gctx->errNum);
-      biffAdd(MREND, err);
+      biffAddf(MREND, "%s: gage trouble: %s (%d)", me,
+               tt->gctx->errStr, tt->gctx->errNum);
       return AIR_NAN;
     }
     tt->val[tt->valNum++] = *(tt->answer);
