@@ -33,13 +33,13 @@ static int
 probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
          double pos[3],
          stateIso *state) {
-  char me[]="probeIso", err[BIFF_STRLEN];
+  static const char me[]="probeIso";
   
   ELL_3V_COPY(point->pos, pos);  / * NB: not touching point->pos[3] * /
   _pullPointHistAdd(point, cond);
   if (_pullProbe(task, point)) {
-    sprintf(err, "%s: on iter %u", me, iter);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: on iter %u", me, iter);
+    return 1;
   }
   state->val = _pullPointScalar(task->pctx, point,
                                 pullInfoIsovalue,
@@ -53,10 +53,10 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
 #define NORMALIZE(dir, grad, len)                                        \
   ELL_3V_NORM((dir), (grad), (len));                                     \
   if (!(len)) {                                                          \
-    sprintf(err, "%s: got zero grad at (%g,%g,%g,%g) on iter %u\n", me,  \
-            point->pos[0], point->pos[1], point->pos[2],                 \
-            point->pos[3], iter);                                        \
-    biffAdd(PULL, err); return 1;                                        \
+    biffAddf(PULL, "%s: got zero grad at (%g,%g,%g,%g) on iter %u\n", me,\
+             point->pos[0], point->pos[1], point->pos[2],                \
+             point->pos[3], iter);                                       \
+    return 1;                                                            \
   }
 
 
@@ -65,8 +65,8 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
 
 
 #define PROBE(v, av, g)  if (_pullProbe(task, point)) {        \
-      sprintf(err, "%s: on iter %u", me, iter);                \
-      biffAdd(PULL, err); return 1;                            \
+      biffAddf(PULL, "%s: on iter %u", me, iter);              \
+      return 1;                                                \
     }                                                          \
     (v) = _pullPointScalar(task->pctx, point,                  \
                            pullInfoIsovalue, (g), NULL);       \
@@ -87,7 +87,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
                  double stepMax, unsigned int iterMax,
                  /* output */
                  int *constrFailP) {
-  char me[]="constraintSatIso", err[BIFF_STRLEN];
+  static const char me[]="constraintSatIso";
   double 
     step,         /* current step size */
     val, aval,    /* last and current function values */
@@ -138,8 +138,8 @@ constraintSatIso(pullTask *task, pullPoint *point,
 
 
 #define PROBE(l)  if (_pullProbe(task, point)) {                   \
-      sprintf(err, "%s: on iter %u", me, iter);                    \
-      biffAdd(PULL, err); return 1;                                \
+      biffAddf(PULL, "%s: on iter %u", me, iter);                  \
+      return 1;                                                    \
     }                                                              \
     (l) = _pullPointScalar(task->pctx, point,                      \
                            pullInfoHeightLaplacian, NULL, NULL);
@@ -152,7 +152,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
                   double stepMax, unsigned int iterMax,
                   /* output */
                   int *constrFailP) {
-  char me[]="constraintSatLapl", err[BIFF_STRLEN];
+  static const char me[]="constraintSatLapl";
   double 
     step,         /* current step size */
     valLast, val, /* last and current function values */
@@ -258,11 +258,11 @@ static int
 probeHeight(pullTask *task, pullPoint *point, 
             /* output */
             double *heightP, double grad[3], double hess[9]) {
-  char me[]="probeHeight", err[BIFF_STRLEN];
+  static const char me[]="probeHeight";
 
   if (_pullProbe(task, point)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble", me);
+    return 1;
   }                             
   *heightP = _pullPointScalar(task->pctx, point, pullInfoHeight, grad, hess);
   return 0;
@@ -273,7 +273,7 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
            /* output */
            double proj[9]) {
 #ifdef PRAYING
-  char me[]="creaseProj";
+  static const char me[]="creaseProj";
 #endif
   double *tng;
 
@@ -310,8 +310,8 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 #define PROBE(height, grad, hess, proj)                 \
   if (probeHeight(task, point,                          \
                   &(height), (grad), (hess))) {         \
-    sprintf(err, "%s: trouble on iter %u", me, iter);   \
-    biffAdd(PULL, err); return 1;                       \
+    biffAddf(PULL, "%s: trouble on iter %u", me, iter); \
+    return 1;                                           \
   }                                                     \
   creaseProj(task, point, tang2Use, modeUse, proj)
 #define SAVE(state, height, grad, hess, proj, pos) \
@@ -335,7 +335,7 @@ static int
 constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
                   double stepMax, unsigned int iterMax,
                   int *constrFailP) {
-  char me[]="constraintSatHght", err[BIFF_STRLEN];
+  static const char me[]="constraintSatHght";
   double val, grad[3], hess[9], proj[9],
     state[1+3+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
@@ -458,7 +458,7 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 static int
 _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
                 pullContext *pctx, pullTask *task, pullPoint *point) {
-  char me[]="_wantLineOrSurf", err[BIFF_STRLEN];
+  static const char me[]="_wantLineOrSurf";
 
   *wantSurf = *wantLine = AIR_FALSE;
   if (pctx->ispec[pullInfoTangentMode]) {
@@ -466,13 +466,13 @@ _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
     if (!(task && point)) {
       /* rare use of biff for error that can only happen due to 
 	 bugs in pull, rather than system-achievable configurations */
-      sprintf(err, "%s: have mode, but got NULL task %p or point %p", me,
-	      task, point);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: have mode, but got NULL task %p or point %p", me,
+               task, point);
+      return 1;
     }
     if (_pullProbe(task, point)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble", me);
+      return 1;
     }
     *mode = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
                              NULL, NULL);
@@ -503,9 +503,9 @@ _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
     }
   }
   if (!( *wantLine || *wantSurf )) {
-    sprintf(err, "%s: confusion, should want line (%d) or surf (%d)", me,
-            *wantLine, *wantSurf);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: confusion, should want line (%d) or surf (%d)", me,
+             *wantLine, *wantSurf);
+    return 1;
   }
   return 0;
 }
@@ -517,7 +517,7 @@ int
 _pullConstraintSatisfy(pullTask *task, pullPoint *point, 
                        /* output */
                        int *constrFailP) {
-  char me[]="_pullConstraintSatisfy", err[BIFF_STRLEN];
+  static const char me[]="_pullConstraintSatisfy";
   double stepMax;
   unsigned int iterMax;
   int wantLine, wantSurf, failLine, failSurf;
@@ -542,14 +542,14 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   switch (task->pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
     if (constraintSatLapl(task, point, stepMax/4, 4*iterMax, constrFailP)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble", me);
+      return 1;
     }
     break;
   case pullInfoIsovalue:
     if (constraintSatIso(task, point, stepMax, iterMax, constrFailP)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble", me);
+      return 1;
     }
     break;
   case pullInfoHeight:
@@ -562,15 +562,15 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                            ? AIR_TRUE
                            : AIR_FALSE),
                           stepMax/2, 2*iterMax, constrFailP)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble", me);
+      return 1;
     }
     */
 
     if (_wantLineOrSurf(&wantLine, &wantSurf, &mode,
 			task->pctx, task, point)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble", me);
+      return 1;
     }
 
     ELL_4V_SET(posSurf, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -579,8 +579,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     if (wantSurf) {
       if (constraintSatHght(task, point, AIR_FALSE,
                             AIR_FALSE, stepMax, iterMax, &failSurf)) {
-        sprintf(err, "%s: surf trouble", me);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: surf trouble", me);
+        return 1;
       }
       if (wantLine) {
         modeSurf = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
@@ -593,8 +593,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     if (wantLine) {
       if (constraintSatHght(task, point, AIR_TRUE,
                             AIR_FALSE, stepMax, iterMax, &failLine)) {
-        sprintf(err, "%s: line trouble", me);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: line trouble", me);
+        return 1;
       }
       if (wantSurf) {
         modeLine = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
@@ -693,7 +693,7 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 */
 double
 _pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
-  char me[]="_pullConstraintDim", err[BIFF_STRLEN];
+  static const char me[]="_pullConstraintDim";
   int wantSurf, wantLine;
   double ret, 
     mode; /* although we never use it */
@@ -707,8 +707,8 @@ _pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
     break;
   case pullInfoHeight:
     if (_wantLineOrSurf(&wantLine, &wantSurf, &mode, pctx, task, point)) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(PULL, err); return 0.0;
+      biffAddf(PULL, "%s: trouble", me);
+      return 0.0;
     }
     if (wantSurf && wantLine) {
       /* HEY: the logic here should ideally depend failSurf and failLine */
@@ -720,9 +720,9 @@ _pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
     }
     break;
   default:
-    sprintf(err, "%s: constraint on %s (%d) unimplemented", me,
-            airEnumStr(pullInfo, pctx->constraint), pctx->constraint);
-    biffAdd(PULL, err); return 0.0;
+    biffAddf(PULL, "%s: constraint on %s (%d) unimplemented", me,
+             airEnumStr(pullInfo, pctx->constraint), pctx->constraint);
+    return 0.0;
   }
   return ret;
 }

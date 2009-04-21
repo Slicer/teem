@@ -117,7 +117,7 @@ pullEnergyType = &_pullEnergyType;
 */
 double
 _pullEnergyUnknownEval(double *denr, double dist, const double *parm) {
-  char me[]="_pullEnergyUnknownEval";
+  static const char me[]="_pullEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -147,7 +147,7 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 */
 double
 _pullEnergySpringEval(double *denr, double dist, const double *parm) {
-  /* char me[]="_pullEnergySpringEval"; */
+  /* static const char me[]="_pullEnergySpringEval"; */
   double enr, xx, pull;
 
   pull = parm[0];
@@ -449,12 +449,12 @@ pullEnergySpecNew() {
 int
 pullEnergySpecSet(pullEnergySpec *ensp, const pullEnergy *energy,
                   const double parm[PULL_ENERGY_PARM_NUM]) {
-  char me[]="pullEnergySpecSet", err[BIFF_STRLEN];
+  static const char me[]="pullEnergySpecSet";
   unsigned int pi;
 
   if (!( ensp && energy )) {
-    sprintf(err, "%s: got NULL pointer", me); 
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me); 
+    return 1;
   }
   if (ensp && energy && parm) {
     ensp->energy = energy;
@@ -474,7 +474,7 @@ pullEnergySpecNix(pullEnergySpec *ensp) {
 
 int
 pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
-  char me[]="pullEnergySpecParse", err[BIFF_STRLEN];
+  static const char me[]="pullEnergySpecParse";
   char *str, *col, *_pstr, *pstr;
   int etype;
   unsigned int pi, haveParm;
@@ -482,8 +482,8 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   double pval;
 
   if (!( ensp && _str )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
 
   /* see if its the name of something that needs no parameters */
@@ -492,9 +492,9 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
     /* the string is the name of some energy */
     ensp->energy = pullEnergyAll[etype];
     if (0 != ensp->energy->parmNum) {
-      sprintf(err, "%s: need %u parms for %s energy, but got none", me,
-              ensp->energy->parmNum, ensp->energy->name);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: need %u parms for %s energy, but got none", me,
+               ensp->energy->parmNum, ensp->energy->name);
+      return 1;
     }
     /* the energy needs 0 parameters */
     for (pi=0; pi<PULL_ENERGY_PARM_NUM; pi++) {
@@ -509,24 +509,24 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
   col = strchr(str, ':');
   if (!col) {
-    sprintf(err, "%s: either \"%s\" is not a recognized energy, "
-            "or it is an energy with parameters, and there's no "
-            "\":\" separator to indicate parameters", me, str);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: either \"%s\" is not a recognized energy, "
+             "or it is an energy with parameters, and there's no "
+             "\":\" separator to indicate parameters", me, str);
+    airMopError(mop); return 1;
   }
   *col = '\0';
   etype = airEnumVal(pullEnergyType, str);
   if (pullEnergyTypeUnknown == etype) {
-    sprintf(err, "%s: didn't recognize \"%s\" as a %s", me,
-            str, pullEnergyType->name);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: didn't recognize \"%s\" as a %s", me,
+             str, pullEnergyType->name);
+    airMopError(mop); return 1;
   }
 
   ensp->energy = pullEnergyAll[etype];
   if (0 == ensp->energy->parmNum) {
-    sprintf(err, "%s: \"%s\" energy has no parms, but got something", me,
-            ensp->energy->name);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: \"%s\" energy has no parms, but got something", me,
+             ensp->energy->name);
+    return 1;
   }
 
   _pstr = pstr = col+1;
@@ -536,32 +536,32 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
       break;
     }
     if (1 != sscanf(pstr, "%lg", &pval)) {
-      sprintf(err, "%s: trouble parsing \"%s\" as double (in \"%s\")",
-              me, _pstr, _str);
-      biffAdd(PULL, err); airMopError(mop); return 1;
+      biffAddf(PULL, "%s: trouble parsing \"%s\" as double (in \"%s\")",
+               me, _pstr, _str);
+      airMopError(mop); return 1;
     }
     ensp->parm[haveParm] = pval;
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {
-        sprintf(err, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-                me, _pstr, _str);
-        biffAdd(PULL, err); airMopError(mop); return 1;
+        biffAddf(PULL, "%s: nothing after last comma in \"%s\" (in \"%s\")",
+                 me, _pstr, _str);
+        airMopError(mop); return 1;
       }
     }
   }
   /* haveParm is now the number of parameters that were parsed. */
   if (haveParm < ensp->energy->parmNum) {
-    sprintf(err, "%s: parsed only %u of %u required parms (for %s energy)"
-            "from \"%s\" (in \"%s\")",
-            me, haveParm, ensp->energy->parmNum,
-            ensp->energy->name, _pstr, _str);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: parsed only %u of %u required parms (for %s energy)"
+             "from \"%s\" (in \"%s\")",
+             me, haveParm, ensp->energy->parmNum,
+             ensp->energy->name, _pstr, _str);
+    airMopError(mop); return 1;
   } else {
     if (pstr) {
-      sprintf(err, "%s: \"%s\" (in \"%s\") has more than %u doubles",
-              me, _pstr, _str, ensp->energy->parmNum);
-      biffAdd(PULL, err); airMopError(mop); return 1;
+      biffAddf(PULL, "%s: \"%s\" (in \"%s\") has more than %u doubles",
+               me, _pstr, _str, ensp->energy->parmNum);
+      airMopError(mop); return 1;
     }
   }
   
@@ -571,8 +571,9 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
 
 int
 _pullHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[]="_pullHestForceParse";
   pullEnergySpec **enspP;
-  char me[]="_pullHestForceParse", *perr;
+  char *perr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);

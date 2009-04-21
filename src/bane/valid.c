@@ -26,36 +26,37 @@
 
 int
 baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneInputCheck", err[BIFF_STRLEN];
+  static const char me[]="baneInputCheck";
   int i;
 
   if (nrrdCheck(nin)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: basic nrrd validity check failed", me);
+    return 1;
   }
   if (3 != nin->dim) {
-    sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: can't operate on block type", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: can't operate on block type", me);
+    return 1;
   }
   if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0 &&
          AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
          AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
-    sprintf(err, "%s: must have non-zero existant spacing for all 3 axes", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: must have non-zero existant spacing for all 3 axes",
+             me);
+    return 1;
   }
   for (i=0; i<=2; i++) {
     if (_baneAxisCheck(hvp->axis + i)) {
-      sprintf(err, "%s: trouble with axis %d", me, i);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: trouble with axis %d", me, i);
+      return 1;
     }
   }
   if (!hvp->clip) {
-    sprintf(err, "%s: got NULL baneClip", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL baneClip", me);
+    return 1;
   }
 
   /* all okay */
@@ -64,42 +65,42 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
 
 int
 baneHVolCheck (Nrrd *hvol) {
-  char me[]="baneHVolCheck", err[BIFF_STRLEN];
+  static const char me[]="baneHVolCheck";
 
   if (3 != hvol->dim) {
-    sprintf(err, "%s: need dimension to be 3 (not %d)", me, hvol->dim);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need dimension to be 3 (not %d)", me, hvol->dim);
+    return 1;
   }
   if (nrrdTypeUChar != hvol->type) {
-    sprintf(err, "%s: need type to be %s (not %s)", 
-            me, airEnumStr(nrrdType, nrrdTypeUChar),
-            airEnumStr(nrrdType, hvol->type));
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need type to be %s (not %s)", 
+             me, airEnumStr(nrrdType, nrrdTypeUChar),
+             airEnumStr(nrrdType, hvol->type));
+    return 1;
   }
   if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 
          AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) && 
          AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
-    sprintf(err, "%s: axisMin and axisMax must be set for all axes", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: axisMin and axisMax must be set for all axes", me);
+    return 1;
   }
   /* 
   ** NOTE: For the time being, I'm giving up on enforcing a 
   ** particular kind of histogram volume ...
   if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
-    sprintf(err, "%s: expected \"%s\" on axis 0 label",
-            me, baneMeasrGradMag->name);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: expected \"%s\" on axis 0 label",
+             me, baneMeasrGradMag->name);
+    return 1;
   }
   if (strcmp(hvol->axis[1].label, baneMeasrLapl->name) &&
       strcmp(hvol->axis[1].label, baneMeasrHess->name)) {
-    sprintf(err, "%s: expected a 2nd deriv. measr on axis 1 (%s or %s)",
-            me, baneMeasrHess->name, baneMeasrLapl->name);
-    biffAdd(BANE, err); return 1;    
+    biffAddf(BANE, "%s: expected a 2nd deriv. measr on axis 1 (%s or %s)",
+             me, baneMeasrHess->name, baneMeasrLapl->name);
+    return 1;    
   }
   if (strcmp(hvol->axis[2].label, baneMeasrVal->name)) {
-    sprintf(err, "%s: expected \"%s\" on axis 2",
-            me, baneMeasrVal->name);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: expected \"%s\" on axis 2",
+             me, baneMeasrVal->name);
+    return 1;
   }
   */
   return 0;
@@ -107,71 +108,71 @@ baneHVolCheck (Nrrd *hvol) {
 
 int
 baneInfoCheck (Nrrd *info, int wantDim) {
-  char me[]="baneInfoCheck", err[BIFF_STRLEN];
+  static const char me[]="baneInfoCheck";
   int gotDim;
 
   if (!info) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   gotDim = info->dim;
   if (wantDim) {
     if (!(1 == wantDim || 2 == wantDim)) {
-      sprintf(err, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
+      return 1;
     }
     if (wantDim+1 != gotDim) {
-      sprintf(err, "%s: dim is %d, not %d", me, gotDim, wantDim+1);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: dim is %d, not %d", me, gotDim, wantDim+1);
+      return 1;
     }
   }
   else {
     if (!(2 == gotDim || 3 == gotDim)) {
-      sprintf(err, "%s: dim is %d, not 2 or 3", me, gotDim);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: dim is %d, not 2 or 3", me, gotDim);
+      return 1;
     }
   }
   if (nrrdTypeFloat != info->type) {
-    sprintf(err, "%s: need data of type float", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need data of type float", me);
+    return 1;
   }
   if (2 != info->axis[0].size) {
-    sprintf(err, "%s: 1st axis needs size 2 (not " _AIR_SIZE_T_CNV ")", 
-            me, info->axis[0].size);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: 1st axis needs size 2 (not " _AIR_SIZE_T_CNV ")", 
+             me, info->axis[0].size);
+    return 1;
   }
   return 0;
 }
 
 int
 banePosCheck (Nrrd *pos, int wantDim) {
-  char me[]="banePosCheck", err[BIFF_STRLEN];
+  static const char me[]="banePosCheck";
   int gotDim;
 
   if (!pos) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   gotDim = pos->dim;
   if (wantDim) {
     if (!(1 == wantDim || 2 == wantDim)) {
-      sprintf(err, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
+      return 1;
     }
     if (wantDim != gotDim) {
-      sprintf(err, "%s: dim is %d, not %d", me, gotDim, wantDim);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: dim is %d, not %d", me, gotDim, wantDim);
+      return 1;
     }
   }
   else {
     if (!(1 == gotDim || 2 == gotDim)) {
-      sprintf(err, "%s: dim is %d, not 1 or 2", me, gotDim);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: dim is %d, not 1 or 2", me, gotDim);
+      return 1;
     }
   }
   if (nrrdTypeFloat != pos->type) {
-    sprintf(err, "%s: need data of type float", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need data of type float", me);
+    return 1;
   }
   /* HEY? check for values in axisMin[0] and axisMax[0] ? */
   /* HEY? check for values in axisMin[0] and axisMax[0] ? */
@@ -181,30 +182,30 @@ banePosCheck (Nrrd *pos, int wantDim) {
 
 int
 baneBcptsCheck (Nrrd *Bcpts) {
-  char me[]="baneBcptsCheck", err[BIFF_STRLEN];
+  static const char me[]="baneBcptsCheck";
   int i, len;
   float *data;
 
   if (2 != Bcpts->dim) {
-    sprintf(err, "%s: need 2-dimensional (not %d)", me, Bcpts->dim);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need 2-dimensional (not %d)", me, Bcpts->dim);
+    return 1;
   }
   if (2 != Bcpts->axis[0].size) {
-    sprintf(err, "%s: axis#0 needs size 2 (not " _AIR_SIZE_T_CNV ")",
-            me, Bcpts->axis[0].size);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: axis#0 needs size 2 (not " _AIR_SIZE_T_CNV ")",
+             me, Bcpts->axis[0].size);
+    return 1;
   }
   if (nrrdTypeFloat != Bcpts->type) {
-    sprintf(err, "%s: need data of type float", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need data of type float", me);
+    return 1;
   }
   len = Bcpts->axis[1].size;
   data = (float *)Bcpts->data;
   for (i=0; i<=len-2; i++) {
     if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {
-      sprintf(err, "%s: value coord %d (%g) not <= coord %d (%g)", me,
-              i, data[0 + 2*i], i+1, data[0 + 2*(i+1)]);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: value coord %d (%g) not <= coord %d (%g)", me,
+               i, data[0 + 2*i], i+1, data[0 + 2*(i+1)]);
+      return 1;
     }
   }
   return 0;

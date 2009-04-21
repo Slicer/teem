@@ -58,7 +58,7 @@ _pointEnergyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
 
 int
 _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
-  char me[]="_pullPointProcessAdding", err[BIFF_STRLEN];
+  static const char me[]="_pullPointProcessAdding";
   unsigned int npi, iter, api;
   double noffavg[4], npos[4], enrWith, enrWithout,
     fracNixed, newSpcDist, tmp;
@@ -136,8 +136,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* initial pos is good, now we start getting serious */
   newpnt = pullPointNew(task->pctx);
   if (!newpnt) {
-    sprintf(err, "%s: couldn't spawn new point from %u", me, point->idtag);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: couldn't spawn new point from %u", me, point->idtag);
+    return 1;
   }
   ELL_4V_COPY(newpnt->pos, npos);
   /* set status to indicate this is an unbinned point, with no 
@@ -147,9 +147,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   if (task->pctx->constraint) {
     int constrFail;
     if (_pullConstraintSatisfy(task, newpnt, &constrFail)) {
-      sprintf(err, "%s: on newbie point %u (spawned from %u)", me,
-              newpnt->idtag, point->idtag);
-      biffAdd(PULL, err); pullPointNix(newpnt); return 1;
+      biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me,
+               newpnt->idtag, point->idtag);
+      pullPointNix(newpnt); return 1;
     }
     if (constrFail) {
       /* constraint satisfaction failed, which isn't an error for us,
@@ -315,7 +315,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullIterFinishAdding(pullContext *pctx) {
-  char me[]="_pullIterFinishAdding", err[BIFF_STRLEN];
+  static const char me[]="_pullIterFinishAdding";
   unsigned int taskIdx;
   
   pctx->addNum = 0;
@@ -331,8 +331,8 @@ _pullIterFinishAdding(pullContext *pctx) {
         point = task->addPoint[pointIdx];
         point->status &= ~PULL_STATUS_NEWBIE_BIT;
         if (pullBinsPointMaybeAdd(pctx, point, &bin, &added)) {
-          sprintf(err, "%s: trouble binning new point %u", me, point->idtag);
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: trouble binning new point %u", me, point->idtag);
+          return 1;
         }
         if (added) {
           pctx->addNum++;
@@ -396,7 +396,7 @@ _pullNixTheNixed(pullContext *pctx) {
 
 int
 _pullIterFinishNixing(pullContext *pctx) {
-  char me[]="_pullIterFinishNixing";
+  static const char me[]="_pullIterFinishNixing";
   unsigned int taskIdx;
 
   _pullNixTheNixed(pctx);

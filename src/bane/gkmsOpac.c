@@ -32,7 +32,7 @@ char *_baneGkms_opacInfoL =
 int
 baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[BIFF_STRLEN], *befS;
+  char *outS, *perr, *befS;
   Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;
   airArray *mop;
   int pret, radius, idim;
@@ -88,20 +88,20 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (baneInfoCheck(ninfo, AIR_FALSE)) {
-    sprintf(err, "%s: didn't get a valid histogram info file", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: didn't get a valid histogram info file", me);
+    airMopError(mop); return 1;
   }
   idim = ninfo->dim-1;
   if (nbef->ptr && airStrlen(befS)) {
     if (nrrdSave(befS, nbef, NULL)) {
-      sprintf(err, "%s: trouble saving boundary emphasis", me);
-      biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+      biffMovef(BANE, NRRD, "%s: trouble saving boundary emphasis", me);
+      airMopError(mop); return 1;
     }
   }
   if (!AIR_EXISTS(sigma)) {
     if (baneSigmaCalc(&sigma, ninfo)) {
-      sprintf(err, "%s: trouble calculating sigma", me);
-      biffAdd(BANE, err); airMopError(mop); return 1;
+      biffAddf(BANE, "%s: trouble calculating sigma", me);
+      airMopError(mop); return 1;
     }
     fprintf(stderr, "%s: calculated sigma = %g\n", me, sigma);
   }
@@ -113,8 +113,8 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
     else {
       if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax, nrrdTypeDefault)) {
-        sprintf(err, "%s: couldn't do max projection of 1D histo-info", me);
-        biffAdd(BANE, err); airMopError(mop); return 1;
+        biffAddf(BANE, "%s: couldn't do max projection of 1D histo-info", me);
+        airMopError(mop); return 1;
       }
       gthresh = gthrInfo[1]*nrrdFLookup[nmax->type](nmax->data, 0);
     }
@@ -122,23 +122,23 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (banePosCalc(npos, sigma, gthresh, ninfo)
       || baneOpacCalc(nopac, nbef, npos)) {
-    sprintf(err, "%s: trouble calculating position or opacity", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble calculating position or opacity", me);
+    airMopError(mop); return 1;
   }
   if (radius) {
     if (nrrdCheapMedian(nout, nopac, AIR_TRUE, AIR_FALSE, radius, 1.0, 2048)) {
-      sprintf(err, "%s: error in median filtering", me);
-      biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+      biffMovef(BANE, NRRD, "%s: error in median filtering", me);
+      airMopError(mop); return 1;
     }
   } else {
     if (nrrdCopy(nout, nopac)) {
-      sprintf(err, "%s: error in copying output", me);
-      biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+      biffMovef(BANE, NRRD, "%s: error in copying output", me);
+      airMopError(mop); return 1;
     }
   }
   if (nrrdSave(outS, nout, NULL)) {
-    sprintf(err, "%s: trouble saving opacity function", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

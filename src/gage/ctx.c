@@ -81,15 +81,15 @@ gageContextNew() {
 */
 gageContext *
 gageContextCopy(gageContext *ctx) {
-  char me[]="gageContextCopy", err[BIFF_STRLEN];
+  static const char me[]="gageContextCopy";
   gageContext *ntx;
   unsigned int fd, pvlIdx;
   int ki;
 
   ntx = (gageContext*)calloc(1, sizeof(gageContext));
   if (!ntx) {
-    sprintf(err, "%s: couldn't make a gageContext", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't make a gageContext", me);
+    return NULL;
   }
   /* we should probably restrict ourselves to gage API calls, but given the
      constant state of gage construction, this seems much simpler.
@@ -103,14 +103,14 @@ gageContextCopy(gageContext *ctx) {
                             GAGE_PERVOLUME_ARR_INCR);
   airArrayLenSet(ntx->pvlArr, ctx->pvlNum);
   if (!ntx->pvl) {
-    sprintf(err, "%s: couldn't allocate new pvl array", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't allocate new pvl array", me);
+    return NULL;
   }
   for (pvlIdx=0; pvlIdx<ntx->pvlNum; pvlIdx++) {
     ntx->pvl[pvlIdx] = _gagePerVolumeCopy(ctx->pvl[pvlIdx], 2*ctx->radius);
     if (!ntx->pvl[pvlIdx]) {
-      sprintf(err, "%s: trouble copying pervolume %u", me, pvlIdx);
-      biffAdd(GAGE, err); return NULL;
+      biffAddf(GAGE, "%s: trouble copying pervolume %u", me, pvlIdx);
+      return NULL;
     }
   }
   if (ctx->stackPos && ctx->stackFsl && ctx->stackFw) {
@@ -118,8 +118,8 @@ gageContextCopy(gageContext *ctx) {
     ntx->stackFsl = calloc(ctx->pvlNum-1, sizeof(double));
     ntx->stackFw = calloc(ctx->pvlNum-1, sizeof(double));
     if (!( ntx->stackPos && ntx->stackFsl && ntx->stackFw )) {
-      sprintf(err, "%s: couldn't allocate stack Pos, Fsl, Fw", me);
-      biffAdd(GAGE, err); return NULL;
+      biffAddf(GAGE, "%s: couldn't allocate stack Pos, Fsl, Fw", me);
+      return NULL;
     }
     for (pvlIdx=0; pvlIdx<ntx->pvlNum-1; pvlIdx++) {
       ntx->stackPos[pvlIdx] = ctx->stackPos[pvlIdx];
@@ -137,9 +137,9 @@ gageContextCopy(gageContext *ctx) {
   ntx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
   ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!( ntx->fsl && ntx->fw && ntx->off )) {
-    sprintf(err, "%s: couldn't allocate new filter caches for fd=%d",
-            me, fd);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't allocate new filter caches for fd=%d",
+             me, fd);
+    return NULL;
   }
   /* the content of the offset array needs to be copied because
      it won't be refilled simply by calls to gageProbe() */
@@ -162,7 +162,7 @@ gageContextCopy(gageContext *ctx) {
 */
 gageContext *
 gageContextNix(gageContext *ctx) {
-  /* char me[]="gageContextNix"; */
+  /* static const char me[]="gageContextNix"; */
   unsigned int pvlIdx;
 
   if (ctx) {
@@ -197,18 +197,18 @@ gageContextNix(gageContext *ctx) {
 int
 gageKernelSet(gageContext *ctx, 
               int which, const NrrdKernel *k, const double *kparm) {
-  char me[]="gageKernelSet", err[BIFF_STRLEN];
+  static const char me[]="gageKernelSet";
   int numParm;
   double support, integral;
 
   if (!(ctx && k && kparm)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(gageKernel, which)) {
-    sprintf(err, "%s: \"which\" (%d) not in range [%d,%d]", me,
-            which, gageKernelUnknown+1, gageKernelLast-1);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: \"which\" (%d) not in range [%d,%d]", me,
+             which, gageKernelUnknown+1, gageKernelLast-1);
+    return 1;
   }
   if (ctx->verbose) {
     printf("%s: which = %d -> %s\n", me, which,
@@ -216,14 +216,14 @@ gageKernelSet(gageContext *ctx,
   }
   numParm = k->numParm;
   if (!(AIR_IN_CL(0, numParm, NRRD_KERNEL_PARMS_NUM))) {
-    sprintf(err, "%s: kernel's numParm (%d) not in range [%d,%d]",
-            me, numParm, 0, NRRD_KERNEL_PARMS_NUM);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: kernel's numParm (%d) not in range [%d,%d]",
+             me, numParm, 0, NRRD_KERNEL_PARMS_NUM);
+    return 1;
   }
   support = k->support(kparm);
   if (!( support > 0 )) {
-    sprintf(err, "%s: kernel's support (%g) not > 0", me, support);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: kernel's support (%g) not > 0", me, support);
+    return 1;
   }
   if (ctx->parm.checkIntegrals) {
     integral = k->integral(kparm);
@@ -232,17 +232,17 @@ gageKernelSet(gageContext *ctx,
         gageKernel20 == which ||
         gageKernelStack == which) {
       if (!( integral > 0 )) {
-        sprintf(err, "%s: reconstruction kernel's integral (%g) not > 0.0",
-                me, integral);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: reconstruction kernel's integral (%g) not > 0.0",
+                 me, integral);
+        return 1;
       }
     } else {
       /* its a derivative, so integral must be near zero */
       if (!( AIR_ABS(integral) <= ctx->parm.kernelIntegralNearZero )) {
-        sprintf(err, "%s: derivative kernel's integral (%g) not within "
-                "%g of 0.0",
-                me, integral, ctx->parm.kernelIntegralNearZero);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: derivative kernel's integral (%g) not within "
+                 "%g of 0.0",
+                 me, integral, ctx->parm.kernelIntegralNearZero);
+        return 1;
       }
     }
   }
@@ -264,7 +264,7 @@ gageKernelSet(gageContext *ctx,
 */
 void
 gageKernelReset(gageContext *ctx) {
-  /* char me[]="gageKernelReset"; */
+  /* static const char me[]="gageKernelReset"; */
   int i;
 
   if (ctx) {
@@ -285,7 +285,7 @@ gageKernelReset(gageContext *ctx) {
 */
 void
 gageParmSet(gageContext *ctx, int which, double val) {
-  char me[]="gageParmSet";
+  static const char me[]="gageParmSet";
   unsigned int pvlIdx;
   
   switch (which) {
@@ -387,17 +387,17 @@ gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
 */
 int
 gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gagePerVolumeAttach", err[BIFF_STRLEN];
+  static const char me[]="gagePerVolumeAttach";
   gageShape *shape;
   unsigned int newidx;
 
   if (!( ctx && pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (gagePerVolumeIsAttached(ctx, pvl)) {
-    sprintf(err, "%s: given pervolume already attached", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: given pervolume already attached", me);
+    return 1;
   }
 
   if (0 == ctx->pvlNum) {
@@ -405,8 +405,8 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
        everything else (handled by gageUpdate()), it does not effect
        the kind or amount of padding done */
     if (_gageShapeSet(ctx, ctx->shape, pvl->nin, pvl->kind->baseDim)) {
-      sprintf(err, "%s: trouble", me); 
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: trouble", me); 
+      return 1;
     }
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
   } else {
@@ -415,20 +415,20 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
        should match each other */
     shape = gageShapeNew();
     if (_gageShapeSet(ctx, shape, pvl->nin, pvl->kind->baseDim)) {
-      sprintf(err, "%s: trouble", me); 
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: trouble", me); 
+      return 1;
     }
     if (!gageShapeEqual(ctx->shape, "existing context", shape, "new volume")) {
-      sprintf(err, "%s: trouble", me);
-      biffAdd(GAGE, err); gageShapeNix(shape); return 1;
+      biffAddf(GAGE, "%s: trouble", me);
+      gageShapeNix(shape); return 1;
     }
     gageShapeNix(shape); 
   }
   /* here we go */
   newidx = airArrayLenIncr(ctx->pvlArr, 1);
   if (!ctx->pvl) {
-    sprintf(err, "%s: couldn't increase length of pvl", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: couldn't increase length of pvl", me);
+    return 1;
   }
   ctx->pvl[newidx] = pvl;
   pvl->verbose = ctx->verbose;
@@ -445,16 +445,16 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
 */
 int
 gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gagePerVolumeDetach", err[BIFF_STRLEN];
+  static const char me[]="gagePerVolumeDetach";
   unsigned int pvlIdx, foundIdx=0;
 
   if (!( ctx && pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!gagePerVolumeIsAttached(ctx, pvl)) {
-    sprintf(err, "%s: given pervolume not currently attached", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: given pervolume not currently attached", me);
+    return 1;
   }
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     if (pvl == ctx->pvl[pvlIdx]) {
@@ -489,7 +489,7 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 */
 void
 gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gageIv3Fill";
+  static const char me[]="gageIv3Fill";
   int lx, ly, lz, hx, hy, hz, _xx, _yy, _zz;
   unsigned int xx, yy, zz, 
     fr, cacheIdx, dataIdx, fddd;
@@ -637,7 +637,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 */
 int
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
-  char me[]="_gageProbe";
+  static const char me[]="_gageProbe";
   unsigned int oldIdx[4], oldNnz=0, pvlIdx;
   int idxChanged;
 
@@ -753,7 +753,7 @@ gageProbe(gageContext *ctx, double xi, double yi, double zi) {
 int
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                int indexSpace, int clamp) {
-  char me[]="_gageProbeSpace";
+  static const char me[]="_gageProbeSpace";
   unsigned int *size;
   double xi, yi, zi, si;
 

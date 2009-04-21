@@ -26,11 +26,11 @@
 int
 _baneRangePositive_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangePositive_Answer", err[BIFF_STRLEN];
+  static const char me[]="_baneRangePositive_Answer";
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
-    sprintf(err, "%s: imin and imax don't both exist", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: imin and imax don't both exist", me);
+    return 1;
   }
   *ominP = 0;
   *omaxP = imax;
@@ -40,11 +40,11 @@ _baneRangePositive_Answer(double *ominP, double *omaxP,
 int
 _baneRangeNegative_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangeNegative_Answer", err[BIFF_STRLEN];
+  static const char me[]="_baneRangeNegative_Answer";
   
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
-    sprintf(err, "%s: imin and imax don't both exist", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: imin and imax don't both exist", me);
+    return 1;
   }
   *ominP = imin;
   *omaxP = 0;
@@ -62,11 +62,11 @@ _baneRangeNegative_Answer(double *ominP, double *omaxP,
 int
 _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
                               double imin, double imax) {
-  char me[]="_baneRangeZeroCentered_Answer", err[BIFF_STRLEN];
+  static const char me[]="_baneRangeZeroCentered_Answer";
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
-    sprintf(err, "%s: imin and imax don't both exist", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: imin and imax don't both exist", me);
+    return 1;
   }
   imin = AIR_MIN(imin, 0);
   imax = AIR_MAX(imax, 0);
@@ -79,11 +79,11 @@ _baneRangeZeroCentered_Answer(double *ominP, double *omaxP,
 int
 _baneRangeAnywhere_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
-  char me[]="_baneRangeAnywhere_Answer", err[BIFF_STRLEN];
+  static const char me[]="_baneRangeAnywhere_Answer";
 
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
-    sprintf(err, "%s: imin and imax don't both exist", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: imin and imax don't both exist", me);
+    return 1;
   }
   *ominP = imin;
   *omaxP = imax;
@@ -92,17 +92,17 @@ _baneRangeAnywhere_Answer(double *ominP, double *omaxP,
 
 baneRange *
 baneRangeNew(int type) {
-  char me[]="baneRangeNew", err[BIFF_STRLEN];
+  static const char me[]="baneRangeNew";
   baneRange *range = NULL;
   
   if (!AIR_IN_OP(baneRangeUnknown, type, baneRangeLast)) {
-    sprintf(err, "%s: baneRange %d not valid", me, type);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: baneRange %d not valid", me, type);
+    return NULL;
   }
   range = (baneRange *)calloc(1, sizeof(baneRange));
   if (!range) {
-    sprintf(err, "%s: couldn't allocate baneRange!", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't allocate baneRange!", me);
+    return NULL;
   }
   range->type = type;
   range->center = AIR_NAN;
@@ -124,21 +124,21 @@ baneRangeNew(int type) {
     range->answer = _baneRangeAnywhere_Answer;
     break;
   default:
-    sprintf(err, "%s: Sorry, baneRange %d not implemented", me, type);
-    biffAdd(BANE, err); baneRangeNix(range); return NULL;
+    biffAddf(BANE, "%s: Sorry, baneRange %d not implemented", me, type);
+    baneRangeNix(range); return NULL;
   }
   return range;
 }
 
 baneRange *
 baneRangeCopy(baneRange *range) {
-  char me[]="baneRangeCopy", err[BIFF_STRLEN];
+  static const char me[]="baneRangeCopy";
   baneRange *ret = NULL;
   
   ret = baneRangeNew(range->type);
   if (!ret) {
-    sprintf(err, "%s: couldn't make new range", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't make new range", me);
+    return NULL;
   }
   ret->center = range->center;
   return ret;
@@ -148,15 +148,15 @@ int
 baneRangeAnswer(baneRange *range,
                 double *ominP, double *omaxP,
                 double imin, double imax) {
-  char me[]="baneRangeAnswer", err[BIFF_STRLEN];
+  static const char me[]="baneRangeAnswer";
   
   if (!(range && ominP && omaxP)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (range->answer(ominP, omaxP, imin, imax)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }

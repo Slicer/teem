@@ -38,19 +38,19 @@
 
 int
 _baneAxisCheck (baneAxis *ax) {
-  char me[]="_baneAxisCheck", err[BIFF_STRLEN];
+  static const char me[]="_baneAxisCheck";
   
   if (!(ax->res >= 2)) {
-    sprintf(err, "%s: need resolution at least 2 (not %d)", me, ax->res);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need resolution at least 2 (not %d)", me, ax->res);
+    return 1;
   }
   if (!ax->measr) {
-    sprintf(err, "%s: have NULL baneMeasr", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: have NULL baneMeasr", me);
+    return 1;
   }
   if (!ax->inc) {
-    sprintf(err, "%s: have NULL baneInc", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: have NULL baneInc", me);
+    return 1;
   }
 
   /* all okay */
@@ -88,7 +88,8 @@ baneProbe(double val[3],
 int
 baneFindInclusion(double min[3], double max[3], 
                   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
-  char me[]="baneFindInclusion", err[BIFF_STRLEN], prog[13],
+  static const char me[]="baneFindInclusion";
+  char prog[13],
     aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
   int sx, sy, sz, x, y, z, E, ai;
   baneInc *inc[3];
@@ -142,9 +143,9 @@ baneFindInclusion(double min[3], double max[3],
                             AIR_CAST(size_t, sx),
                             AIR_CAST(size_t, sy),
                             AIR_CAST(size_t, sz))) {
-        sprintf(err, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                me, sx, sy, sz);
-        biffMove(BANE, err, NRRD); return 1;
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
+                  me, sx, sy, sz);
+        return 1;
       }
     }
     for (z=0; z<sz; z++) {
@@ -191,9 +192,9 @@ baneFindInclusion(double min[3], double max[3],
                             AIR_CAST(size_t, sx),
                             AIR_CAST(size_t, sy),
                             AIR_CAST(size_t, sz))) {
-        sprintf(err, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                me, sx, sy, sz);
-        biffMove(BANE, err, NRRD); return 1;
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
+                  me, sx, sy, sz);
+        return 1;
       }
     }
     for (z=0; z<sz; z++) {
@@ -244,9 +245,9 @@ baneFindInclusion(double min[3], double max[3],
     E |= baneIncAnswer(inc[2], 2 + min, 2 + max);
   }
   if (E) {
-    sprintf(err, "%s: problem calculating inclusion for axis %d (%s)",
-            me, ai, aname[ai]);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: problem calculating inclusion for axis %d (%s)",
+             me, ai, aname[ai]);
+    return 1;
   }
   if (hvp->verbose)
     fprintf(stderr, "done\n");
@@ -261,7 +262,8 @@ baneFindInclusion(double min[3], double max[3],
 
 int
 baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
-  char me[]="baneMakeHVol", err[BIFF_STRLEN], prog[13];
+  static const char me[]="baneMakeHVol";
+  char prog[13];
   gageContext *ctx;
   gagePerVolume *pvl;
   int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
@@ -276,12 +278,12 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   airArray *mop;
 
   if (!(hvol && nin && hvp)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (baneInputCheck(nin, hvp)) {
-    sprintf(err, "%s: something wrong with input volume or parameters", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: something wrong with input volume or parameters", me);
+    return 1;
   }
 
   /* set up */
@@ -297,8 +299,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   gageParmSet(ctx, gageParmRenormalize, hvp->renormalize);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
-    sprintf(err, "%s: code currently assumes k3pack", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: code currently assumes k3pack", me);
+    airMopError(mop); return 1;
   }
   gageParmSet(ctx, gageParmK3Pack, hvp->k3pack);
   E = 0;
@@ -315,31 +317,31 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[2].measr->query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
-    sprintf(err, "%s: trouble setting up gage", me);
-    biffMove(BANE, err, GAGE); airMopError(mop); return 1;
+    biffMovef(BANE, GAGE, "%s: trouble setting up gage", me);
+    airMopError(mop); return 1;
   }
   pad = ctx->radius;
   
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
-    sprintf(err, "%s: trouble finding inclusion ranges", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble finding inclusion ranges", me);
+    airMopError(mop); return 1;
   }
   if (max[0] == min[0]) {
     max[0] += 1;
     if (hvp->verbose)
-      sprintf(err, "%s: fixing range 0 [%g,%g] --> [%g,%g]\n",
+      fprintf(stderr, "%s: fixing range 0 [%g,%g] --> [%g,%g]\n",
               me, min[0], min[0], min[0], max[0]);
   }
   if (max[1] == min[1]) {
     max[1] += 1;
     if (hvp->verbose)
-      sprintf(err, "%s: fixing range 1 [%g,%g] --> [%g,%g]\n",
+      fprintf(stderr, "%s: fixing range 1 [%g,%g] --> [%g,%g]\n",
               me, min[1], min[1], min[1], max[1]);
   }
   if (max[2] == min[2]) {
     max[2] += 1;
     if (hvp->verbose)
-      sprintf(err, "%s: fixing range 2 [%g,%g] --> [%g,%g]\n",
+      fprintf(stderr, "%s: fixing range 2 [%g,%g] --> [%g,%g]\n",
               me, min[2], min[2], min[2], max[2]);
   }
   if (hvp->verbose)
@@ -358,9 +360,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
                         AIR_CAST(size_t, shx),
                         AIR_CAST(size_t, shy),
                         AIR_CAST(size_t, shz))) {
-    sprintf(err, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
-            shx, shy, shz);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't allocate raw histovol (%dx%dx%d)", me,
+              shx, shy, shz);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
   rhvdata = (int *)rawhvol->data;
@@ -394,9 +396,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   fracIncluded = (float)included/((sz-2*pad)*(sy-2*pad)*(sx-2*pad));
   if (fracIncluded < hvp->incLimit) {
-    sprintf(err, "%s: included only %g%% of data, wanted at least %g%%",
-            me, 100*fracIncluded, 100*hvp->incLimit);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: included only %g%% of data, wanted at least %g%%",
+             me, 100*fracIncluded, 100*hvp->incLimit);
+    airMopError(mop); return 1;
   }
   if (hvp->verbose) {
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
@@ -406,8 +408,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   
   /* determine the clipping value and produce the final histogram volume */
   if (baneClipAnswer(&clipVal, hvp->clip, rawhvol)) {
-    sprintf(err, "%s: trouble determining clip value", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble determining clip value", me);
+    airMopError(mop); return 1;
   }
   if (hvp->verbose)
     fprintf(stderr, "%s: will clip at %d\n", me, clipVal);
@@ -419,8 +421,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
                         AIR_CAST(size_t, shx),
                         AIR_CAST(size_t, shy),
                         AIR_CAST(size_t, shz))) {
-    sprintf(err, "%s: couldn't alloc finished histovol", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't alloc finished histovol", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, hvol, (airMopper)nrrdEmpty, airMopOnError);
   hvol->axis[0].min = min[0];
@@ -458,21 +460,21 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
 
 Nrrd *
 baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
-  char me[]="baneGKMSHVol", err[BIFF_STRLEN];
+  static const char me[]="baneGKMSHVol";
   baneHVolParm *hvp;
   Nrrd *hvol;
   
   if (!(hvp = baneHVolParmNew())) {
-    sprintf(err, "%s: couldn't get hvol parm struct", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't get hvol parm struct", me);
+    return NULL;
   }
   baneHVolParmGKMSInit(hvp);
   hvp->axis[0].inc->parm[1] = gradPerc;
   hvp->axis[1].inc->parm[1] = hessPerc;
   hvol = nrrdNew();
   if (baneMakeHVol(hvol, nin, hvp)) {
-    sprintf(err, "%s: trouble making GKMS histogram volume", me);
-    biffAdd(BANE, err); free(hvp); return NULL;
+    biffAddf(BANE, "%s: trouble making GKMS histogram volume", me);
+    free(hvp); return NULL;
   }
   baneHVolParmNix(hvp);
   return hvol;
@@ -481,26 +483,26 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
 /*
 int
 baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
-  char me[]="baneApplyMeasr", err[BIFF_STRLEN];
+  static const char me[]="baneApplyMeasr";
   int sx, sy, sz, x, y, z, marg;
   baneMeasrType msr;
   nrrdBigInt idx;
   float (*insert)(void *, nrrdBigInt, float);
   
   if (3 != nin->dim) {
-    sprintf(err, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
+    return 1;
   }
   if (!( AIR_IN_OP(nrrdTypeUnknown, nin->type, nrrdTypeLast) &&
          nin->type != nrrdTypeBlock )) {
-    sprintf(err, "%s: must have a scalar type nrrd", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: must have a scalar type nrrd", me);
+    return 1;
   }
   if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing > 0 &&
          AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing > 0 &&
          AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing > 0 )) {
-    sprintf(err, "%s: must have positive spacing for all three axes", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: must have positive spacing for all three axes", me);
+    return 1;
   }
 
   sx = nin->axis[0].size;
@@ -513,8 +515,8 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
                         AIR_CAST(size_t, sx),
                         AIR_CAST(size_t, sy),
                         AIR_CAST(size_t, sz))) {
-    sprintf(err, "%s: couldn't alloc output nrrd", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't alloc output nrrd", me);
+    return 1;
   }
   nout->axis[0].spacing = nin->axis[0].spacing;
   nout->axis[1].spacing = nin->axis[1].spacing;

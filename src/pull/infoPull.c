@@ -205,34 +205,34 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 int
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
                 int info, const char *volName, int item) {
-  char me[]="pullInfoSpecAdd", err[BIFF_STRLEN];
+  static const char me[]="pullInfoSpecAdd";
   unsigned int ii, haveLen, needLen;
   const gageKind *kind;
   
   if (!( pctx && ispec && volName )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(pullInfo, info)) {
-    sprintf(err, "%s: %d not a valid %s value", me, info, pullInfo->name);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: %d not a valid %s value", me, info, pullInfo->name);
+    return 1;
   }
   if (pctx->ispec[info]) {
-    sprintf(err, "%s: already set info %s (%d)", me, 
-            airEnumStr(pullInfo, info), info);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: already set info %s (%d)", me, 
+             airEnumStr(pullInfo, info), info);
+    return 1;
   }
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
-      sprintf(err, "%s(%s): already got ispec %p as ispec[%u]", me,
-              airEnumStr(pullInfo, info), ispec, ii);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s(%s): already got ispec %p as ispec[%u]", me,
+               airEnumStr(pullInfo, info), ispec, ii);
+      return 1;
     }
   }
   if (0 == pctx->volNum) {
-    sprintf(err, "%s(%s): given context has no volumes", me,
-            airEnumStr(pullInfo, info));
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s(%s): given context has no volumes", me,
+             airEnumStr(pullInfo, info));
+    return 1;
   }
   for (ii=0; ii<pctx->volNum; ii++) {
     if (!strcmp(pctx->vol[ii]->name, volName)) {
@@ -240,28 +240,28 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     }
   }
   if (ii == pctx->volNum) {
-    sprintf(err, "%s(%s): no volume has name \"%s\"", me,
-            airEnumStr(pullInfo, info), volName);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s(%s): no volume has name \"%s\"", me,
+             airEnumStr(pullInfo, info), volName);
+    return 1;
   }
   kind = pctx->vol[ii]->kind;
   if (airEnumValCheck(kind->enm, item)) {
-    sprintf(err, "%s(%s): %d not a valid \"%s\" item", me, 
-            airEnumStr(pullInfo, info), item, kind->name);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
+             airEnumStr(pullInfo, info), item, kind->name);
+    return 1;
   }
   needLen = pullInfoAnswerLen(info);
   haveLen = kind->table[item].answerLength;
   if (needLen != haveLen) {
-    sprintf(err, "%s(%s): needs len %u, but \"%s\" item \"%s\" has len %u",
-            me, airEnumStr(pullInfo, info), needLen,
-            kind->name, airEnumStr(kind->enm, item), haveLen);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s(%s): needs len %u, but \"%s\" item \"%s\" has len %u",
+             me, airEnumStr(pullInfo, info), needLen,
+             kind->name, airEnumStr(kind->enm, item), haveLen);
+    return 1;
   }
   if (haveLen > 9) {
-    sprintf(err, "%s: sorry, answer length (%u) > 9 unsupported", me,
-            haveLen);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: sorry, answer length (%u) > 9 unsupported", me,
+             haveLen);
+    return 1;
   }
 
   ispec->info = info;
@@ -298,7 +298,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
 */
 int
 _pullInfoSetup(pullContext *pctx) {
-  char me[]="_pullInfoSetup", err[BIFF_STRLEN];
+  static const char me[]="_pullInfoSetup";
   unsigned int ii;
 
   pctx->infoTotalLen = 0;
@@ -313,8 +313,8 @@ _pullInfoSetup(pullContext *pctx) {
       }
       pctx->infoTotalLen += pullInfoAnswerLen(ii);
       if (!pullInfoAnswerLen(ii)) {
-        sprintf(err, "%s: got zero-length answer for ispec[%u]", me, ii);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: got zero-length answer for ispec[%u]", me, ii);
+        return 1;
       }
       if (pctx->ispec[ii]->constraint) {
         pullVolume *cvol;
@@ -329,8 +329,8 @@ _pullInfoSetup(pullContext *pctx) {
     } else {
       pctx->constraintDim = _pullConstraintDim(pctx, NULL, NULL);
       if (!pctx->constraintDim) {
-        sprintf(err, "%s: got constr dim 0.0", me);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: got constr dim 0.0", me);
+        return 1;
       }
     }
     if (pctx->haveScale) {
@@ -355,8 +355,8 @@ _pullInfoSetup(pullContext *pctx) {
         }
         break;
       default:
-        sprintf(err, "%s: sorry, intertype %s not handled here", me, 
-                airEnumStr(pullInterType, pctx->interType));
+        biffAddf(PULL, "%s: sorry, intertype %s not handled here", me, 
+                 airEnumStr(pullInterType, pctx->interType));
         break;
       }
     } else {

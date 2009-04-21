@@ -35,7 +35,7 @@
 */
 int
 _pullProcess(pullTask *task) {
-  char me[]="_pullProcess", err[BIFF_STRLEN];
+  static const char me[]="_pullProcess";
   unsigned int binIdx;
 
   while (task->pctx->binNextIdx < task->pctx->binNum) {
@@ -59,9 +59,9 @@ _pullProcess(pullTask *task) {
       break;
     }
     if (pullBinProcess(task, binIdx)) {
-      sprintf(err, "%s(%u): had trouble on bin %u", me,
-              task->threadIdx, binIdx);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s(%u): had trouble on bin %u", me,
+               task->threadIdx, binIdx);
+      return 1;
     }
   }
   return 0;
@@ -70,7 +70,7 @@ _pullProcess(pullTask *task) {
 /* the main loop for each worker thread */
 void *
 _pullWorker(void *_task) {
-  char me[]="_pushWorker", err[BIFF_STRLEN];
+  static const char me[]="_pushWorker";
   pullTask *task;
   
   task = (pullTask *)_task;
@@ -94,8 +94,7 @@ _pullWorker(void *_task) {
     }
     if (_pullProcess(task)) {
       /* HEY clearly not threadsafe to have errors ... */
-      sprintf(err, "%s: thread %u trouble", me, task->threadIdx);
-      biffAdd(PULL, err); 
+      biffAddf(PULL, "%s: thread %u trouble", me, task->threadIdx);
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
@@ -110,7 +109,7 @@ _pullWorker(void *_task) {
 
 int
 pullStart(pullContext *pctx) {
-  char me[]="pullStart", err[BIFF_STRLEN];
+  static const char me[]="pullStart";
   unsigned int tidx;
 
   printf("!%s: hello %p\n", me, pctx);
@@ -124,8 +123,8 @@ pullStart(pullContext *pctx) {
       || _pullTaskSetup(pctx)
       || _pullBinSetup(pctx)
       || _pullPointSetup(pctx)) {
-    sprintf(err, "%s: trouble setting up context", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble setting up context", me);
+    return 1;
   }
 
   if (pctx->threadNum > 1) {
@@ -160,12 +159,12 @@ pullStart(pullContext *pctx) {
 */
 int
 pullFinish(pullContext *pctx) {
-  char me[]="pullFinish", err[BIFF_STRLEN];
+  static const char me[]="pullFinish";
   unsigned int tidx;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
 
   pctx->finished = AIR_TRUE;
@@ -205,18 +204,18 @@ pullFinish(pullContext *pctx) {
 */
 int
 _pullIterate(pullContext *pctx, int mode) {
-  char me[]="_pullIterate", err[BIFF_STRLEN];
+  static const char me[]="_pullIterate";
   double time0;
   int myError, E;
   unsigned int ti;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (airEnumValCheck(pullProcessMode, mode)) {
-    sprintf(err, "%s: process mode %d unrecognized", me, mode);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: process mode %d unrecognized", me, mode);
+    return 1;
   }
 
   /* tell all tasks what mode they're in */
@@ -245,8 +244,7 @@ _pullIterate(pullContext *pctx, int mode) {
   }
   myError = AIR_FALSE;
   if (_pullProcess(pctx->task[0])) {
-    sprintf(err, "%s: master thread trouble w/ iter %u", me, pctx->iter);
-    biffAdd(PULL, err);
+    biffAddf(PULL, "%s: master thread trouble w/ iter %u", me, pctx->iter);
     pctx->finished = AIR_TRUE;
     myError = AIR_TRUE;
   }
@@ -256,8 +254,7 @@ _pullIterate(pullContext *pctx, int mode) {
   if (pctx->finished) {
     if (!myError) {
       /* we didn't set finished- one of the workers must have */
-      sprintf(err, "%s: worker error on iter %u", me, pctx->iter);
-      biffAdd(PULL, err); 
+      biffAddf(PULL, "%s: worker error on iter %u", me, pctx->iter);
     }
     return 1;
   }
@@ -281,8 +278,8 @@ _pullIterate(pullContext *pctx, int mode) {
     E = _pullIterFinishNixing(pctx);
     break;
   default:
-    sprintf(err, "%s: process mode %d unrecognized", me, mode);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: process mode %d unrecognized", me, mode);
+    return 1;
     break;
   }
 
@@ -293,8 +290,8 @@ _pullIterate(pullContext *pctx, int mode) {
 
 int
 pullRun(pullContext *pctx) {
-  char me[]="pullRun", err[BIFF_STRLEN],
-    poutS[AIR_STRLEN_MED];
+  static const char me[]="pullRun";
+  char poutS[AIR_STRLEN_MED];
   Nrrd *npos;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrDecrease=AIR_NAN, enrDecreaseAvg=AIR_NAN;
@@ -311,8 +308,8 @@ pullRun(pullContext *pctx) {
            pctx->iter);
   }
   if (_pullIterate(pctx, pullProcessModeDescent)) {
-    sprintf(err, "%s: trouble on priming iter %u", me, pctx->iter);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble on priming iter %u", me, pctx->iter);
+    return 1;
   }
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
@@ -324,19 +321,21 @@ pullRun(pullContext *pctx) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
       if (pullOutputGet(npos, NULL, NULL, NULL, 0.0, pctx)) {
-        sprintf(err, "%s: couldn't get snapshot for iter %d", me, pctx->iter);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: couldn't get snapshot for iter %d",
+                 me, pctx->iter);
+        return 1;
       }
       if (nrrdSave(poutS, npos, NULL)) {
-        sprintf(err, "%s: couldn't save snapshot for iter %d", me, pctx->iter);
-        biffMove(PULL, err, NRRD); return 1;
+        biffMovef(PULL, NRRD,
+                  "%s: couldn't save snapshot for iter %d", me, pctx->iter);
+        return 1;
       }
       npos = nrrdNuke(npos);
     }
 
     if (_pullIterate(pctx, pullProcessModeDescent)) {
-      sprintf(err, "%s: trouble on iter %d", me, pctx->iter);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: trouble on iter %d", me, pctx->iter);
+      return 1;
     }
     enrNew = _pullEnergyTotal(pctx);
     enrDecrease = _DECREASE(enrLast, enrNew);
@@ -367,10 +366,10 @@ pullRun(pullContext *pctx) {
       if (_pullIterate(pctx, pullProcessModeNeighLearn)
           || _pullIterate(pctx, pullProcessModeAdding)
           || _pullIterate(pctx, pullProcessModeNixing)) {
-	sprintf(err, "%s: trouble with %s for pop cntl on iter %u", me,
-		airEnumStr(pullProcessMode, pctx->task[0]->processMode),
-                pctx->iter);
-	biffAdd(PULL, err); return 1;
+	biffAddf(PULL, "%s: trouble with %s for pop cntl on iter %u", me,
+                 airEnumStr(pullProcessMode, pctx->task[0]->processMode),
+                 pctx->iter);
+	return 1;
       }
     }
     pctx->iter += 1;

@@ -25,21 +25,21 @@
 
 pullTask *
 _pullTaskNew(pullContext *pctx, int threadIdx) {
-  char me[]="_pullTaskNew", err[BIFF_STRLEN];
+  static const char me[]="_pullTaskNew";
   pullTask *task;
   unsigned int ii, offset;
 
   task = (pullTask *)calloc(1, sizeof(pullTask));
   if (!task) {
-    sprintf(err, "%s: couldn't allocate task", me);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: couldn't allocate task", me);
+    return NULL;
   }    
 
   task->pctx = pctx;
   for (ii=0; ii<pctx->volNum; ii++) {
     if (!(task->vol[ii] = _pullVolumeCopy(pctx->vol[ii]))) {
-      sprintf(err, "%s: trouble copying vol %u/%u", me, ii, pctx->volNum);
-      biffAdd(PULL, err); return NULL;
+      biffAddf(PULL, "%s: trouble copying vol %u/%u", me, ii, pctx->volNum);
+      return NULL;
     }
   }
   if (0) {
@@ -134,13 +134,13 @@ _pullTaskNix(pullTask *task) {
 */
 int
 _pullTaskSetup(pullContext *pctx) {
-  char me[]="_pullTaskSetup", err[BIFF_STRLEN];
+  static const char me[]="_pullTaskSetup";
   unsigned int tidx;
 
   pctx->task = (pullTask **)calloc(pctx->threadNum, sizeof(pullTask *));
   if (!(pctx->task)) {
-    sprintf(err, "%s: couldn't allocate array of tasks", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: couldn't allocate array of tasks", me);
+    return 1;
   }
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
     if (pctx->verbose) {
@@ -148,8 +148,8 @@ _pullTaskSetup(pullContext *pctx) {
     }
     pctx->task[tidx] = _pullTaskNew(pctx, tidx);
     if (!(pctx->task[tidx])) {
-      sprintf(err, "%s: couldn't allocate task %d", me, tidx);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: couldn't allocate task %d", me, tidx);
+      return 1;
     }
   }
   return 0;

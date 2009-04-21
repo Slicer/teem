@@ -159,42 +159,42 @@ pullContextNix(pullContext *pctx) {
 
 int
 _pullContextCheck(pullContext *pctx) {
-  char me[]="_pullContextCheck", err[BIFF_STRLEN];
+  static const char me[]="_pullContextCheck";
   unsigned int ii;
   int gotIspec, gotConstr;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (pctx->npos) {
     if (nrrdCheck(pctx->npos)) {
-      sprintf(err, "%s: got a broken npos", me);
-      biffMove(PULL, err, NRRD); return 1;
+      biffMovef(PULL, NRRD, "%s: got a broken npos", me);
+      return 1;
     }
     if (!( 2 == pctx->npos->dim 
            && 4 == pctx->npos->axis[0].size
            && (nrrdTypeDouble == pctx->npos->type 
                || nrrdTypeFloat == pctx->npos->type) )) {
-      sprintf(err, "%s: npos not a 2-D 4-by-N array of %s or %s"
-              "(got %u-D %u-by-X of %s)", me,
-              airEnumStr(nrrdType, nrrdTypeFloat),
-              airEnumStr(nrrdType, nrrdTypeDouble),
-              pctx->npos->dim,
-              AIR_CAST(unsigned int, pctx->npos->axis[0].size),
-              airEnumStr(nrrdType, pctx->npos->type));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: npos not a 2-D 4-by-N array of %s or %s"
+               "(got %u-D %u-by-X of %s)", me,
+               airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nrrdTypeDouble),
+               pctx->npos->dim,
+               AIR_CAST(unsigned int, pctx->npos->axis[0].size),
+               airEnumStr(nrrdType, pctx->npos->type));
+      return 1;
     }
   } else {
     if (!( pctx->pointNumInitial >= 1 )) {
-      sprintf(err, "%s: pctx->pointNumInitial (%d) not >= 1\n", me,
-              pctx->pointNumInitial);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: pctx->pointNumInitial (%d) not >= 1\n", me,
+               pctx->pointNumInitial);
+      return 1;
     }
   }
   if (!pctx->volNum) {
-    sprintf(err, "%s: have no volumes set", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: have no volumes set", me);
+    return 1;
   }
   /* HEY: why was there this restriction to only one scale-space vol?
   for (ii=0; ii<pctx->volNum; ii++) {
@@ -202,9 +202,9 @@ _pullContextCheck(pullContext *pctx) {
       sclvi = ii;
       for (ii=sclvi+1; ii<pctx->volNum; ii++) {
         if (pctx->vol[ii]->ninScale) {
-          sprintf(err, "%s: can have only 1 scale volume (not both %u and %u)",
+          biffAddf(PULL, "%s: can have only 1 scale volume (not both %u and %u)",
                   me, ii, sclvi);
-          biffAdd(PULL, err); return 1;
+          return 1;
         }
       }
     }
@@ -216,15 +216,15 @@ _pullContextCheck(pullContext *pctx) {
     if (pctx->ispec[ii]) {
       if (pctx->ispec[ii]->constraint) {
         if (1 != pullInfoAnswerLen(ii)) {
-          sprintf(err, "%s: can't use non-scalar (len %u) %s as constraint",
-                  me, pullInfoAnswerLen(ii), airEnumStr(pullInfo, ii));
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: can't use non-scalar (len %u) %s as constraint",
+                   me, pullInfoAnswerLen(ii), airEnumStr(pullInfo, ii));
+          return 1;
         }
         if (gotConstr) {
-          sprintf(err, "%s: can't also have %s constraint, already have "
-                  "constraint on %s ", me, airEnumStr(pullInfo, ii),
-                  airEnumStr(pullInfo, gotConstr));
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: can't also have %s constraint, already have "
+                   "constraint on %s ", me, airEnumStr(pullInfo, ii),
+                   airEnumStr(pullInfo, gotConstr));
+          return 1;
         }
         /* elso no problems having constraint on ii */
         gotConstr = ii;
@@ -242,10 +242,10 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
                && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
-          sprintf(err, "%s: %s info needs scale (%g) and zero (%g)", me, 
-                  airEnumStr(pullInfo, ii),
-                  pctx->ispec[ii]->scale, pctx->ispec[ii]->zero);
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: %s info needs scale (%g) and zero (%g)", me, 
+                   airEnumStr(pullInfo, ii),
+                   pctx->ispec[ii]->scale, pctx->ispec[ii]->zero);
+          return 1;
         }
         break;
       }
@@ -254,115 +254,115 @@ _pullContextCheck(pullContext *pctx) {
   }
 
   if (!gotIspec) {
-    sprintf(err, "%s: have no infos set", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: have no infos set", me);
+    return 1;
   }
   if (pctx->ispec[pullInfoInside]) {
     if (!pctx->ispec[pullInfoInsideGradient]) {
-      sprintf(err, "%s: want %s but don't have %s set", me, 
-              airEnumStr(pullInfo, pullInfoInside),
-              airEnumStr(pullInfo, pullInfoInsideGradient));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+               airEnumStr(pullInfo, pullInfoInside),
+               airEnumStr(pullInfo, pullInfoInsideGradient));
+      return 1;
     }
   }
   if (pctx->ispec[pullInfoTangent2]) {
     if (!pctx->ispec[pullInfoTangent1]) {
-      sprintf(err, "%s: want %s but don't have %s set", me, 
-              airEnumStr(pullInfo, pullInfoTangent2),
-              airEnumStr(pullInfo, pullInfoTangent1));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+               airEnumStr(pullInfo, pullInfoTangent2),
+               airEnumStr(pullInfo, pullInfoTangent1));
+      return 1;
     }
   }
   if (pctx->ispec[pullInfoTangentMode]) {
     if (!( pctx->ispec[pullInfoTangent1]
            && pctx->ispec[pullInfoTangent2] )) {
-      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
-              airEnumStr(pullInfo, pullInfoTangentMode),
-              airEnumStr(pullInfo, pullInfoTangent1),
-              airEnumStr(pullInfo, pullInfoTangent2));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s and %s set", me, 
+               airEnumStr(pullInfo, pullInfoTangentMode),
+               airEnumStr(pullInfo, pullInfoTangent1),
+               airEnumStr(pullInfo, pullInfoTangent2));
+      return 1;
     }
   }
   if (pctx->ispec[pullInfoHeight]) {
     if (!( pctx->ispec[pullInfoHeightGradient] )) {
-      sprintf(err, "%s: want %s but don't have %s set", me, 
-              airEnumStr(pullInfo, pullInfoHeight),
-              airEnumStr(pullInfo, pullInfoHeightGradient));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+               airEnumStr(pullInfo, pullInfoHeight),
+               airEnumStr(pullInfo, pullInfoHeightGradient));
+      return 1;
     }
     if (pctx->ispec[pullInfoHeight]->constraint) {
       if (!pctx->ispec[pullInfoHeightHessian]) {
-        sprintf(err, "%s: want constrained %s but don't have %s set", me,
-                airEnumStr(pullInfo, pullInfoHeight),
-                airEnumStr(pullInfo, pullInfoHeightHessian));
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: want constrained %s but don't have %s set", me,
+                 airEnumStr(pullInfo, pullInfoHeight),
+                 airEnumStr(pullInfo, pullInfoHeightHessian));
+        return 1;
       }
       if (!pctx->ispec[pullInfoTangent1]) {
-        sprintf(err, "%s: want constrained %s but need at least %s set", me,
-                airEnumStr(pullInfo, pullInfoHeight),
-                airEnumStr(pullInfo, pullInfoTangent1));
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: want constrained %s but need at least %s set", me,
+                 airEnumStr(pullInfo, pullInfoHeight),
+                 airEnumStr(pullInfo, pullInfoTangent1));
+        return 1;
       }
     }
   }
   if (pctx->ispec[pullInfoHeightLaplacian]) {
     if (!( pctx->ispec[pullInfoHeight] )) {
-      sprintf(err, "%s: want %s but don't have %s set", me, 
-              airEnumStr(pullInfo, pullInfoHeightLaplacian),
-              airEnumStr(pullInfo, pullInfoHeight));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+               airEnumStr(pullInfo, pullInfoHeightLaplacian),
+               airEnumStr(pullInfo, pullInfoHeight));
+      return 1;
     }
   }
   if (pctx->ispec[pullInfoIsovalue]) {
     if (!( pctx->ispec[pullInfoIsovalueGradient]
            && pctx->ispec[pullInfoIsovalueHessian] )) {
-      sprintf(err, "%s: want %s but don't have %s and %s set", me, 
-              airEnumStr(pullInfo, pullInfoIsovalue),
-              airEnumStr(pullInfo, pullInfoIsovalueGradient),
-              airEnumStr(pullInfo, pullInfoIsovalueHessian));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: want %s but don't have %s and %s set", me, 
+               airEnumStr(pullInfo, pullInfoIsovalue),
+               airEnumStr(pullInfo, pullInfoIsovalueGradient),
+               airEnumStr(pullInfo, pullInfoIsovalueHessian));
+      return 1;
     }
   }
   if (pctx->pointPerVoxel) {
     if (!( pctx->ispec[pullInfoSeedThresh] )) {
-      sprintf(err, "%s: sorry, need %s info set to use pointPerVoxel",
-              me, airEnumStr(pullInfo, pullInfoSeedThresh));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: sorry, need %s info set to use pointPerVoxel",
+               me, airEnumStr(pullInfo, pullInfoSeedThresh));
+      return 1;
     }
   }
   
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
-    sprintf(err, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
-            pctx->threadNum, PULL_THREAD_MAXNUM);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
+             pctx->threadNum, PULL_THREAD_MAXNUM);
+    return 1;
   }
   if (airEnumValCheck(pullInterType, pctx->interType)) {
-    sprintf(err, "%s: pctx->interType %d not a valid %s", me,
-            pctx->interType, pullInterType->name);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: pctx->interType %d not a valid %s", me,
+             pctx->interType, pullInterType->name);
+    return 1;
   }
   if (pullInterTypeJustR == pctx->interType
       || pullInterTypeUnivariate == pctx->interType) {
     if (pullEnergyZero != pctx->energySpecS->energy) {
-      sprintf(err, "%s: can't use scale energy %s with inter type %s", me,
-              pctx->energySpecS->energy->name, 
-              airEnumStr(pullInterType, pctx->interType));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: can't use scale energy %s with inter type %s", me,
+               pctx->energySpecS->energy->name, 
+               airEnumStr(pullInterType, pctx->interType));
+      return 1;
     }
   } else {
     if (pullEnergyZero == pctx->energySpecS->energy) {
-      sprintf(err, "%s: need a non-zero scale energy for inter type %s", me,
-              airEnumStr(pullInterType, pctx->interType));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: need a non-zero scale energy for inter type %s", me,
+               airEnumStr(pullInterType, pctx->interType));
+      return 1;
     }
   }
 
 #define CHECK(thing, min, max)                                   \
   if (!( AIR_EXISTS(pctx->thing)                                 \
          && min <= pctx->thing && pctx->thing <= max )) {        \
-    sprintf(err, "%s: pctx->" #thing " %g not in range [%g,%g]", \
+    biffAddf(PULL, "%s: pctx->" #thing " %g not in range [%g,%g]", \
             me, pctx->thing, min, max);                          \
-    biffAdd(PULL, err); return 1;                                \
+    return 1;                                                    \
   }
   /* these reality-check bounds are somewhat arbitrary */
   CHECK(radiusScale, 0.000001, 25.0);
@@ -382,23 +382,23 @@ _pullContextCheck(pullContext *pctx) {
 #undef CHECK
   if (!( 1 <= pctx->constraintIterMax
          && pctx->constraintIterMax <= 50 )) {
-    sprintf(err, "%s: pctx->constraintIterMax %u not in range [%u,%u]",
-            me, pctx->constraintIterMax, 1, 50);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: pctx->constraintIterMax %u not in range [%u,%u]",
+             me, pctx->constraintIterMax, 1, 50);
+    return 1;
   }
   if (pctx->pointPerVoxel < -100 || pctx->pointPerVoxel > 10) {
-    sprintf(err, "%s: pointPerVoxel %d unreasonable", me,
-            pctx->pointPerVoxel);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
+             pctx->pointPerVoxel);
+    return 1;
   }
   if (-1 == pctx->pointPerVoxel) {
-    sprintf(err, "%s: pointPerVoxel should be < -1 or >= 1", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: pointPerVoxel should be < -1 or >= 1", me);
+    return 1;
   }
   if (0 == pctx->jitter && 1 < pctx->pointPerVoxel) {
-    sprintf(err, "%s: must have jitter > 0 if pointPerVoxel (%d) > 1", me,
-            pctx->pointPerVoxel);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: must have jitter > 0 if pointPerVoxel (%d) > 1", me,
+             pctx->pointPerVoxel);
+    return 1;
   }
   
   return 0;
@@ -412,7 +412,7 @@ int
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
               const double _scaleVec[3], double scaleRad,
               pullContext *pctx) {
-  char me[]="pullOutputGet", err[BIFF_STRLEN];
+  static const char me[]="pullOutputGet";
   unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
   double *posOut, *tenOut, *strnOut, scaleVec[3], scaleDir[3], scaleMag;
@@ -420,17 +420,17 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   pullPoint *point;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (nStrengthOut && !pctx->ispec[pullInfoStrength]) {
-    sprintf(err, "%s: can't save out %s info that hasn't been set",
-            me, airEnumStr(pullInfo, pullInfoStrength));
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: can't save out %s info that hasn't been set",
+             me, airEnumStr(pullInfo, pullInfoStrength));
+    return 1;
   }
   if (!AIR_EXISTS(scaleRad)) {
-    sprintf(err, "%s: got non-existent scaleRad %g", me, scaleRad);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got non-existent scaleRad %g", me, scaleRad);
+    return 1;
   }
   if (!_scaleVec) {
     ELL_3V_SET(scaleVec, 0, 0, 0);
@@ -462,8 +462,8 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
-    sprintf(err, "%s: trouble allocating outputs", me);
-    biffMove(PULL, err, NRRD); return 1;
+    biffMovef(PULL, NRRD, "%s: trouble allocating outputs", me);
+    return 1;
   }
   posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
   tenOut = nTenOut ? (double*)(nTenOut->data) : NULL;
@@ -595,7 +595,7 @@ pullVerboseSet(pullContext *pctx, int verbose) {
 
 int
 pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
-  char me[]="pullPropGet", err[BIFF_STRLEN];
+  static const char me[]="pullPropGet";
   int typeOut;
   size_t size[2];
   unsigned int dim, pointNum, pointIdx, binIdx, *out_ui, outIdx;
@@ -642,13 +642,13 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     typeOut = nrrdTypeDouble;
     break;
   default:
-    sprintf(err, "%s: prop %d unrecognized", me, prop);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: prop %d unrecognized", me, prop);
+    return 1;
     break;
   }
   if (nrrdMaybeAlloc_nva(nprop, typeOut, dim, size)) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffMove(PULL, err, NRRD); return 1;
+    biffMovef(PULL, NRRD, "%s: trouble allocating output", me);
+    return 1;
   }
   out_d = AIR_CAST(double *, nprop->data);
   out_ui = AIR_CAST(unsigned int *, nprop->data);
@@ -700,7 +700,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
 
 int
 pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
-  char me[]="pullPositionHistoryGet", err[BIFF_STRLEN];
+  static const char me[]="pullPositionHistoryGet";
 #if PULL_PHIST
   pullBin *bin;
   pullPoint *point;
@@ -708,8 +708,8 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
     primIdx, phistIdx, phistNum;
 
   if (!(pld && pctx)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
 
   pointNum = 0;
@@ -724,8 +724,8 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
   }
   if (limnPolyDataAlloc(pld, 1 << limnPolyDataInfoRGBA,
                         vertNum, vertNum, pointNum)) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(PULL, err, LIMN); return 1;
+    biffMovef(PULL, LIMN, "%s: couldn't allocate output", me);
+    return 1;
   }
   primIdx = 0;
   vertIdx = 0;
@@ -779,8 +779,7 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
 #else 
   AIR_UNUSED(pld);
   AIR_UNUSED(pctx);
-  sprintf(err, "%s: sorry, not compiled with PULL_PHIST", me);
-  biffAdd(PULL, err);
+  biffAddf(PULL, "%s: sorry, not compiled with PULL_PHIST", me);
   return 1;
 #endif
 }

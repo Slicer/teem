@@ -32,20 +32,20 @@ _baneMeasr_StockAnswer(baneMeasr *measr, double *san, double *parm) {
 
 baneMeasr *
 baneMeasrNew(int type, double *parm) {
-  char me[]="baneMeasrNew", err[BIFF_STRLEN];
+  static const char me[]="baneMeasrNew";
   baneMeasr *measr;
   int item;
 
   AIR_UNUSED(parm);
   if (!( AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast) )) {
-    sprintf(err, "%s: baneMeasr %d invalid", me, type);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: baneMeasr %d invalid", me, type);
+    return NULL;
   }
   /* for now, parm is ignored ... */
   measr = (baneMeasr*)calloc(1, sizeof(baneMeasr));
   if (!measr) {
-    sprintf(err, "%s: couldn't allocate baneMeasr!", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't allocate baneMeasr!", me);
+    return NULL;
   }
   measr->type = type;
   measr->range = NULL;
@@ -125,15 +125,15 @@ baneMeasrNew(int type, double *parm) {
     break;
     /* --------------------------------------------------------------- */
   default:    
-    sprintf(err, "%s: Sorry, baneMeasr %d not implemented", me, type);
-    biffAdd(BANE, err); baneMeasrNix(measr); return NULL;
+    biffAddf(BANE, "%s: Sorry, baneMeasr %d not implemented", me, type);
+    baneMeasrNix(measr); return NULL;
   }
   return measr;
 }
 
 double
 baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
-  char me[]="baneMeasrAnswer";
+  static const char me[]="baneMeasrAnswer";
   double ret;
   
   if (measr && gctx && 1 == gctx->pvlNum) {
@@ -147,13 +147,13 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
 
 baneMeasr *
 baneMeasrCopy(baneMeasr *measr) {
-  char me[]="baneMeasrCopy", err[BIFF_STRLEN];
+  static const char me[]="baneMeasrCopy";
   baneMeasr *ret = NULL;
   
   ret = baneMeasrNew(measr->type, measr->parm);
   if (!ret) {
-    sprintf(err, "%s: couldn't make new measr", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't make new measr", me);
+    return NULL;
   }
   return ret;
 }

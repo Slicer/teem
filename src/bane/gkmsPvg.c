@@ -54,14 +54,14 @@ float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
 
 Nrrd *
 _baneGkmsDonNew(int invert) {
-  char me[]="_baneGkmsDonNew", err[BIFF_STRLEN];
+  static const char me[]="_baneGkmsDonNew";
   Nrrd *ret;
   float *data;
 
   if (nrrdMaybeAlloc_va(ret=nrrdNew(), nrrdTypeFloat, 2,
                         AIR_CAST(size_t, 4), AIR_CAST(size_t, 23))) {
-    sprintf(err, "%s: can't create output", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: can't create output", me);
+    return NULL;
   }
   data = (float *)ret->data;
   memcpy(data, _baneGkmsDonData, 4*23*sizeof(float));
@@ -89,7 +89,7 @@ char *_baneGkms_pvgInfoL =
 int
 baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[BIFF_STRLEN], *mapS;
+  char *outS, *perr, *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
   NrrdIoState *nio;
   airArray *mop;
@@ -123,8 +123,8 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {
-      sprintf(err, "%s: trouble saving colormap", me);
-      biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+      biffMovef(BANE, NRRD, "%s: trouble saving colormap", me);
+      airMopError(mop); return 1;
     }
   }
 
@@ -133,8 +133,8 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
      gthresh = 0.0: we want to see everything, and Simian has taught
      us that there can be boundaries at extremely low gradients */
   if (banePosCalc(nposA, 1.0, 0.0, ninfo)) {
-    sprintf(err, "%s: trouble calculating position", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble calculating position", me);
+    airMopError(mop); return 1;
   }
   sv = nposA->axis[0].size;
   sg = nposA->axis[1].size;
@@ -165,12 +165,12 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   }
   if (!AIR_EXISTS(min)) {
-    sprintf(err, "%s: didn't see any real data in position array", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: didn't see any real data in position array", me);
+    airMopError(mop); return 1;
   }
   if (nrrdHistoEq(nposB, nposA, NULL, PVG_HISTEQ_BINS, 3, 1.0)) {
-    sprintf(err, "%s: trouble doing histo-eq on p(v,g)", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble doing histo-eq on p(v,g)", me);
+    airMopError(mop); return 1;
   }
 
   /* warp position values that pos[smlI] gets mapped back to zero,
@@ -200,14 +200,14 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nrrdFlip(nposA, nposB, 1) ||
       nrrdApply1DIrregMap(npvg, nposA, range, ndon,
                           NULL, nrrdTypeUChar, AIR_TRUE)) {
-    sprintf(err, "%s: trouble applying colormap", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble applying colormap", me);
+    airMopError(mop); return 1;
   }
 
   nio->format = nrrdFormatPNM;
   if (nrrdSave(outS, npvg, nio)) {
-    sprintf(err, "%s: trouble saving pvg image", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble saving pvg image", me);
+    airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;

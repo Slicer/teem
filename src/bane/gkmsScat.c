@@ -33,7 +33,7 @@ char *_baneGkms_scatInfoL =
 int
 baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out[2], *perr, err[BIFF_STRLEN];
+  char *out[2], *perr;
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;
   NrrdRange *vgRange, *vhRange;
   airArray *mop;
@@ -67,8 +67,8 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nvgQuant, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nvhQuant, (airMopper)nrrdNuke, airMopAlways);
   if (baneRawScatterplots(nvgRaw, nvhRaw, hvol, AIR_TRUE)) {
-    sprintf(err, "%s: trouble creating raw scatterplots", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble creating raw scatterplots", me);
+    airMopError(mop); return 1;
   }
   vgRange = nrrdRangeNewSet(nvgRaw, nrrdBlind8BitRangeFalse);
   vhRange = nrrdRangeNewSet(nvhRaw, nrrdBlind8BitRangeFalse);
@@ -80,15 +80,15 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= nrrdQuantize(nvgQuant, nvgRaw, vgRange, 8);
   if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, vhRange, 8);
   if (E) {
-    sprintf(err, "%s: trouble doing gamma or quantization", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble doing gamma or quantization", me);
+    airMopError(mop); return 1;
   }
 
   if (!E) E |= nrrdSave(out[0], nvgQuant, NULL);
   if (!E) E |= nrrdSave(out[1], nvhQuant, NULL);
   if (E) {
-    sprintf(err, "%s: trouble saving scatterplot images", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble saving scatterplot images", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

@@ -70,7 +70,7 @@ _pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
 static unsigned int
 _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point,
                 double distTest) {
-  char me[]="_neighBinPoints";
+  static const char me[]="_neighBinPoints";
   unsigned int nn, herPointIdx, herBinIdx;
   pullBin *herBin;
   pullPoint *herPoint;
@@ -279,7 +279,7 @@ double
 _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
                       /* output */
                       double egradSum[4]) {
-  char me[]="_pullEnergyFromPoints";
+  static const char me[]="_pullEnergyFromPoints";
   double energySum, spaDistSqMax, modeWghtSum;
   int nopt,     /* optimiziation: we enable the re-use of neighbor lists
                    between interations, or at system start, creation of
@@ -452,7 +452,7 @@ static double
 _energyFromImage(pullTask *task, pullPoint *point,
                  /* output */
                  double egradSum[4]) {
-  char me[]="_energyFromImage";
+  static const char me[]="_energyFromImage";
   double energy, grad3[3];
   int probed;
 
@@ -568,7 +568,7 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
                       int ignoreImage,
                       /* output */
                       double egrad[4]) {
-  char me[]="_pullPointEnergyTotal";
+  static const char me[]="_pullPointEnergyTotal";
   double enrIm, enrPt, egradIm[4], egradPt[4], energy;
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0);
@@ -654,7 +654,7 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
 int
 _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                          int ignoreImage) {
-  char me[]="pullPointProcessDescent", err[BIFF_STRLEN];
+  static const char me[]="pullPointProcessDescent";
   double energyOld, energyNew, egrad[4], force[4], posOld[4];
   int stepBad, giveUp;
  
@@ -663,8 +663,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
             me, point->idtag);
     /*
     HEY: need to track down how this can originate! 
-    sprintf(err, "%s: whoa, point %u step is zero!", me, point->idtag);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: whoa, point %u step is zero!", me, point->idtag);
+    return 1;
     */
     point->stepEnergy = task->pctx->stepInitial/100;
   }
@@ -673,8 +673,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   energyOld = _pullPointEnergyTotal(task, bin, point, ignoreImage, egrad);
   ELL_4V_SCALE(force, -1, egrad);
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
-    sprintf(err, "%s: point %u non-exist energy or force", me, point->idtag);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: point %u non-exist energy or force", me, point->idtag);
+    return 1;
   }
   /*
   if (81 == point->idtag) {
@@ -767,8 +767,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     _pullPointHistAdd(point, pullCondEnergyTry);
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point, &constrFail)) {
-        sprintf(err, "%s: trouble", me);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: trouble", me);
+        return 1;
       }
     } else {
       constrFail = AIR_FALSE;
@@ -814,10 +814,10 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
            effectively frozen */
         ELL_4V_COPY(point->pos, posOld);
         if (_pullProbe(task, point)) {
-          sprintf(err, "%s: problem returning %u to %g %g %g %g", me,
-                  point->idtag, point->pos[0], point->pos[1],
-                  point->pos[2], point->pos[3]);
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: problem returning %u to %g %g %g %g", me,
+                   point->idtag, point->pos[0], point->pos[1],
+                   point->pos[2], point->pos[3]);
+          return 1;
         }
         energyNew = energyOld; /* to be copied into point->energy below */
         point->stepEnergy = task->pctx->stepInitial;
@@ -841,9 +841,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* not recorded for the sake of this function, but for system accounting */
   point->energy = energyNew;
   if (!AIR_EXISTS(energyNew)) {
-    sprintf(err, "%s: point %u has non-exist final energy %g\n", 
-            me, point->idtag, energyNew);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: point %u has non-exist final energy %g\n", 
+             me, point->idtag, energyNew);
+    return 1;
   }
 
   /* if its not stuck, reset stuckIterNum */
@@ -858,7 +858,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
 
 int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
-  char me[]="_pullPointProcess", err[BIFF_STRLEN];
+  static const char me[]="_pullPointProcess";
   int E;
 
   E = 0;
@@ -877,20 +877,20 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     E = _pullPointProcessNixing(task, bin, point);
     break;
   default:
-    sprintf(err, "%s: process mode %d unrecognized", me, task->processMode);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: process mode %d unrecognized", me, task->processMode);
+    return 1;
     break;
   }
   if (E) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
 
 int
 pullBinProcess(pullTask *task, unsigned int myBinIdx) {
-  char me[]="pullBinProcess", err[BIFF_STRLEN];
+  static const char me[]="pullBinProcess";
   pullBin *myBin;
   unsigned int myPointIdx;
 
@@ -907,9 +907,9 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     }
     point = myBin->point[myPointIdx];
     if (_pullPointProcess(task, myBin, point)) {
-      sprintf(err, "%s: on point %u of bin %u\n", me, 
-              myPointIdx, myBinIdx);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: on point %u of bin %u\n", me, 
+               myPointIdx, myBinIdx);
+      return 1;
     }
     task->stuckNum += (point->status & PULL_STATUS_STUCK_BIT);
   } /* for myPointIdx */
@@ -919,7 +919,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
 
 int
 pullGammaLearn(pullContext *pctx) {
-  char me[]="pullGammaLearn", err[BIFF_STRLEN];
+  static const char me[]="pullGammaLearn";
   unsigned int binIdx, pointIdx, pointNum;
   pullBin *bin;
   pullPoint *point;
@@ -927,24 +927,24 @@ pullGammaLearn(pullContext *pctx) {
   double deltaScale, strdd;
 
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!pctx->haveScale) {
-    sprintf(err, "%s: not using scale-space", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: not using scale-space", me);
+    return 1;
   }
   if (pullInterTypeAdditive != pctx->interType) {
-    sprintf(err, "%s: need %s inter type, not %s", me,
-            airEnumStr(pullInterType, pullInterTypeAdditive),
-            airEnumStr(pullInterType, pctx->interType));
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: need %s inter type, not %s", me,
+             airEnumStr(pullInterType, pullInterTypeAdditive),
+             airEnumStr(pullInterType, pctx->interType));
+    return 1;
   }
   if (pullEnergyButterworthParabola != pctx->energySpecS->energy) {
-    sprintf(err, "%s: want %s energy, not %s\n", me,
-            pullEnergyButterworthParabola->name,
-            pctx->energySpecS->energy->name);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: want %s energy, not %s\n", me,
+             pullEnergyButterworthParabola->name,
+             pctx->energySpecS->energy->name);
+    return 1;
   }
 
   task = pctx->task[0];
@@ -974,8 +974,8 @@ pullGammaLearn(pullContext *pctx) {
     }
   }
   if (!pointNum) {
-    sprintf(err, "%s: have no points!", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: have no points!", me);
+    return 1;
   }
   strdd /= pointNum;
 

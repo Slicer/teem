@@ -95,12 +95,12 @@ int
 _baneIncAnswer_RangeRatio(double *minP, double *maxP, 
                           Nrrd *hist, double *incParm,
                           baneRange *range) {
-  char me[]="_baneIncAnwer_RangeRatio", err[BIFF_STRLEN];
+  static const char me[]="_baneIncAnwer_RangeRatio";
   double mid;
   
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: trouble", me);
+    return 1;
   }
   
   if (baneRangeAnywhere == range->type) {
@@ -126,7 +126,7 @@ int
 _baneIncAnswer_Percentile(double *minP, double *maxP,
                           Nrrd *nhist, double *incParm,
                           baneRange *range) {
-  char me[]="_baneIncAnswer_Percentile", err[BIFF_STRLEN];
+  static const char me[]="_baneIncAnswer_Percentile";
   int *hist, i, histSize, sum;
   float minIncr, maxIncr, out, outsofar, mid, minIdx, maxIdx;
   double min, max;
@@ -139,8 +139,8 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
     sum += hist[i];
   }
   if (!sum) {
-    sprintf(err, "%s: integral of histogram is zero", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: integral of histogram is zero", me);
+    return 1;
   }
   /*
   sprintf(err, "%03d-histo.nrrd", baneHack); nrrdSave(err, nhist, NULL);
@@ -150,7 +150,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me,
           histSize, sum, out);
   if (range->answer(&min, &max, nhist->axis[0].min, nhist->axis[0].max)) {
-    sprintf(err, "%s:", me); biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s:", me); return 1;
   }
   fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n",
           me, nhist->axis[0].min, nhist->axis[0].max,
@@ -179,8 +179,8 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
     maxIncr = AIR_CAST(float, (max-mid)/(mid-min));
   }
   if (!( AIR_EXISTS(minIncr) && AIR_EXISTS(maxIncr) )) {
-    sprintf(err, "%s: minIncr, maxIncr don't both exist", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: minIncr, maxIncr don't both exist", me);
+    return 1;
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
   minIdx = AIR_CAST(float,
@@ -200,9 +200,9 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
     minIdx += minIncr;
     maxIdx -= maxIncr;
     if (minIdx > maxIdx) {
-      sprintf(err, "%s: minIdx (%g) passed maxIdx (%g) during "
-              "histogram traversal", me, minIdx, maxIdx);
-      biffAdd(BANE, err); return 1;
+      biffAddf(BANE, "%s: minIdx (%g) passed maxIdx (%g) during "
+               "histogram traversal", me, minIdx, maxIdx);
+      return 1;
     }
   }
   *minP = AIR_AFFINE(0, minIdx, histSize-1,
@@ -259,28 +259,28 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
 
 baneInc *
 baneIncNew(int type, baneRange *range, double *parm) {
-  char me[]="baneIncNew", err[BIFF_STRLEN];
+  static const char me[]="baneIncNew";
   baneInc *inc;
 
   if (!(AIR_IN_OP(baneIncUnknown, type, baneIncLast))) {
-    sprintf(err, "%s: baneInc %d invalid", me, type);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: baneInc %d invalid", me, type);
+    return NULL;
   }
   if (!(range && parm)) {
-    sprintf(err, "%s: got NULL baneRange or parm", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: got NULL baneRange or parm", me);
+    return NULL;
   }
   inc = (baneInc*)calloc(1, sizeof(baneInc));
   if (!inc) {
-    sprintf(err, "%s: couldn't allocated baneInc!", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't allocated baneInc!", me);
+    return NULL;
   }
   inc->S = inc->SS = 0;
   inc->num = 0;
   inc->range = baneRangeCopy(range);
   if (!inc->range) {
-    sprintf(err, "%s: couldn't copy baneRange!", me);
-    biffAdd(BANE, err); baneIncNix(inc); return NULL;
+    biffAddf(BANE, "%s: couldn't copy baneRange!", me);
+    baneIncNix(inc); return NULL;
   }
   inc->type = type;
   switch (type) {
@@ -289,8 +289,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     sprintf(inc->name, "absolute");
     inc->nhist = NULL;
     if (!( AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]) )) {
-      sprintf(err, "%s: parm[0] and parm[1] don't both exist", me);
-      biffAdd(BANE, err); baneIncNix(inc); return NULL;
+      biffAddf(BANE, "%s: parm[0] and parm[1] don't both exist", me);
+      baneIncNix(inc); return NULL;
     }
     inc->parm[0] = parm[0];  /* enforced min */
     inc->parm[1] = parm[1];  /* enforced max */
@@ -303,8 +303,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     sprintf(inc->name, "range ratio");
     inc->nhist = nrrdNew();
     if (!AIR_EXISTS(parm[0])) {
-      sprintf(err, "%s: parm[0] doesn't exist", me);
-      biffAdd(BANE, err); baneIncNix(inc); return NULL;
+      biffAddf(BANE, "%s: parm[0] doesn't exist", me);
+      baneIncNix(inc); return NULL;
     }
     inc->parm[0] = parm[0];  /* scaling on range */
     inc->process[0] = NULL;
@@ -316,14 +316,14 @@ baneIncNew(int type, baneRange *range, double *parm) {
     sprintf(inc->name, "percentile");
     inc->nhist = nrrdNew();
     if (!( AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]) )) {
-      sprintf(err, "%s: parm[0] and parm[1] don't both exist", me);
-      biffAdd(BANE, err); baneIncNix(inc); return NULL;
+      biffAddf(BANE, "%s: parm[0] and parm[1] don't both exist", me);
+      baneIncNix(inc); return NULL;
     }
     inc->parm[0] = parm[0];  /* size of histogram */
     if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1,
                           AIR_CAST(size_t, parm[0]))) {
-      sprintf(err, "%s: couldn't allocate histogram", me);
-      biffMove(BANE, err, NRRD); baneIncNix(inc); return NULL;
+      biffMovef(BANE, NRRD, "%s: couldn't allocate histogram", me);
+      baneIncNix(inc); return NULL;
     }
     inc->parm[1] = parm[1];  /* percentile to exclude */
     inc->process[0] = _baneIncProcess_LearnMinMax;
@@ -335,8 +335,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     sprintf(inc->name, "stdv");
     inc->nhist = NULL;
     if (!AIR_EXISTS(parm[0])) {
-      sprintf(err, "%s: parm[0] doesn't exist", me);
-      biffAdd(BANE, err); baneIncNix(inc); return NULL;
+      biffAddf(BANE, "%s: parm[0] doesn't exist", me);
+      baneIncNix(inc); return NULL;
     }
     inc->parm[0] = parm[0];  /* multiple of standard dev to use */
     inc->process[0] = NULL;
@@ -345,8 +345,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     break;
     /* --------------------------------------------------------- */
   default:
-    sprintf(err, "%s: Sorry, baneInc %d not implemented", me, type);
-    biffAdd(BANE, err); baneIncNix(inc); return NULL;
+    biffAddf(BANE, "%s: Sorry, baneInc %d not implemented", me, type);
+    baneIncNix(inc); return NULL;
   }
   return inc;
 }
@@ -362,28 +362,28 @@ baneIncProcess(baneInc *inc, int passIdx, double val) {
 
 int
 baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
-  char me[]="baneIncAnswer", err[BIFF_STRLEN];
+  static const char me[]="baneIncAnswer";
 
   if (!( inc && minP && maxP )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (inc->answer(minP, maxP, inc->nhist, inc->parm, inc->range)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
 
 baneInc *
 baneIncCopy(baneInc *inc) {
-  char me[]="baneIncCopy", err[BIFF_STRLEN];
+  static const char me[]="baneIncCopy";
   baneInc *ret = NULL;
   
   ret = baneIncNew(inc->type, inc->range, inc->parm);
   if (!ret) {
-    sprintf(err, "%s: couldn't make new inc", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't make new inc", me);
+    return NULL;
   }
   return ret;
 }

@@ -34,7 +34,7 @@ char *_baneGkms_hvolInfoL =
 int
 baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *perr, err[BIFF_STRLEN];
+  char *out, *perr;
   Nrrd *nin, *nout;
   airArray *mop;
   int pret, dim[3], lapl, slow, gz = AIR_FALSE;
@@ -120,14 +120,14 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdKernelParmSet(&hvp->k[gageKernel11], hvp->kparm[gageKernel11], ksp11);
   nrrdKernelParmSet(&hvp->k[gageKernel22], hvp->kparm[gageKernel22], ksp22);
   if (baneMakeHVol(nout, nin, hvp)) {
-    sprintf(err, "%s: trouble making histogram volume", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble making histogram volume", me);
+    airMopError(mop); return 1;
   }
 
   nio->encoding = gz ? nrrdEncodingGzip : nrrdEncodingRaw;
   if (nrrdSave(out, nout, nio)) {
-    sprintf(err, "%s: error saving histogram volume", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: error saving histogram volume", me);
+    airMopError(mop); return 1;
   }
   airMopOkay(mop);
   return 0;

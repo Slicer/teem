@@ -32,7 +32,7 @@ char *_baneGkms_infoInfoL =
 int
 baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *outS, *perr, err[BIFF_STRLEN];
+  char *outS, *perr;
   Nrrd *hvol, *nout;
   airArray *mop;
   int pret, one, measr;
@@ -62,13 +62,13 @@ baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (baneOpacInfo(nout, hvol, one ? 1 : 2, measr)) {
-    sprintf(err, "%s: trouble distilling histogram info", me);
-    biffAdd(BANE, err); airMopError(mop); return 1;
+    biffAddf(BANE, "%s: trouble distilling histogram info", me);
+    airMopError(mop); return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    sprintf(err, "%s: trouble saving info file", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble saving info file", me);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);

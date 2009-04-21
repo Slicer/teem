@@ -86,7 +86,7 @@ _gageCacheProbe(gageContext *ctx, double *grad,
 int
 gageStructureTensor(Nrrd *nout, const Nrrd *nin,
                     int dScale, int iScale, int dsmp) {
-  char me[]="gageStructureTensor", err[BIFF_STRLEN];
+  static const char me[]="gageStructureTensor";
   NrrdKernelSpec *gk0, *gk1, *ik0;
   int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
     _ixi, _iyi, _izi, ixi, iyi, izi, wi, *coordCache;
@@ -98,25 +98,25 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   double xs, ys, zs, ms;
 
   if (!(nout && nin)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, me); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( 3 == nin->dim && nrrdTypeBlock != nin->type )) {
-    sprintf(err, "%s: nin isn't a 3D non-block type nrrd", me);
-    biffAdd(GAGE, me); return 1;
+    biffAddf(GAGE, "%s: nin isn't a 3D non-block type nrrd", me);
+    return 1;
   }
   /*
   if (!( AIR_EXISTS(nin->axis[0].spacing) 
          && AIR_EXISTS(nin->axis[1].spacing) 
          && AIR_EXISTS(nin->axis[2].spacing) )) {
-    sprintf(err, "%s: nin's axis 0,1,2 spacings don't all exist", me);
-    biffAdd(GAGE, me); return 1;
+    biffAddf(GAGE, "%s: nin's axis 0,1,2 spacings don't all exist", me);
+    return 1;
   }
   */
   if (!( dScale >= 1 && iScale >= 1 && dsmp >= 1 )) {
-    sprintf(err, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1", 
-            me, dScale, iScale, dsmp);
-    biffAdd(GAGE, me); return 1;
+    biffAddf(GAGE, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1", 
+             me, dScale, iScale, dsmp);
+    return 1;
   }
 
   mop = airMopNew();
@@ -129,8 +129,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   if ( nrrdKernelSpecParse(gk0, "cubic:1,0")
        || nrrdKernelSpecParse(gk1, "cubicd:1,0")
        || nrrdKernelSpecParse(ik0, "cubic:1,0")) {
-    sprintf(err, "%s: couldn't set up kernels", me);
-    biffMove(GAGE, me, NRRD); airMopError(mop); return 1;
+    biffMovef(GAGE, NRRD, "%s: couldn't set up kernels", me);
+    airMopError(mop); return 1;
   }
   /* manually set scale parameters */
   gk0->parm[0] = dScale;
@@ -149,8 +149,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   if (!E) E |= gageQuerySet(ctx, pvl, query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
-    sprintf(err, "%s: ", me);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
+    biffAddf(GAGE, "%s: ", me);
+    airMopError(mop); return 1;
   }
   grad = _gageAnswerPointer(ctx, pvl, gageSclGradVec);
   
@@ -180,8 +180,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   iyw = (double*)calloc(diam, sizeof(double));
   izw = (double*)calloc(diam, sizeof(double));
   if (!(ixw && iyw && izw)) {
-    sprintf(err, "%s: couldn't allocate grad vector or weight buffers", me);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
+    biffAddf(GAGE, "%s: couldn't allocate grad vector or weight buffers", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, ixw, airFree, airMopAlways);
   airMopAdd(mop, iyw, airFree, airMopAlways);
@@ -194,8 +194,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   gradCache = (double*)calloc(3*GAGE_CACHE_LEN, sizeof(double));
   coordCache = (int*)calloc(3*GAGE_CACHE_LEN, sizeof(int));
   if (!(gradCache && coordCache)) {
-    sprintf(err, "%s: couldn't allocate caches", me);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
+    biffAddf(GAGE, "%s: couldn't allocate caches", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, gradCache, airFree, airMopAlways);
   airMopAdd(mop, coordCache, airFree, airMopAlways);
@@ -224,8 +224,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
                         AIR_CAST(size_t, osx),
                         AIR_CAST(size_t, osy),
                         AIR_CAST(size_t, osz))) {
-    sprintf(err, "%s: couldn't allocate output", me);
-    biffMove(GAGE, err, NRRD); airMopError(mop); return 1;
+    biffAddf(GAGE, NRRD, "%s: couldn't allocate output", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, nout, (airMopper)nrrdEmpty, airMopOnError);
 

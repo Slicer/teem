@@ -27,16 +27,16 @@
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   Nrrd *gA, *hA, *gB, *hB;
-  char me[]="baneRawScatterplots", err[BIFF_STRLEN];
+  static const char me[]="baneRawScatterplots";
   int E;
   
   if (!( nvg && nvh && hvol )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (baneHVolCheck(hvol)) {
-    sprintf(err, "%s: didn't get a valid histogram volume", me);
-    biffAdd(BANE, err); return 1;
+    biffAddf(BANE, "%s: didn't get a valid histogram volume", me);
+    return 1;
   }
 
   gA = nrrdNew(); gB = nrrdNew();
@@ -46,8 +46,8 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum, nrrdTypeDefault);
   if (!E) E |= nrrdProject(hA, hvol, 0, nrrdMeasureSum, nrrdTypeDefault);
   if (E) {
-    sprintf(err, "%s: trouble creating raw scatterplots", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble creating raw scatterplots", me);
+    return 1;
   }
 
   /* do histogram equalization on them */
@@ -61,8 +61,8 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     if (!E) E |= nrrdCopy(hB, hA);
   }
   if (E) {
-    sprintf(err, "%s: couldn't histogram equalize or copy", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't histogram equalize or copy", me);
+    return 1;
   }
 
   /* re-orient them so they look correct on the screen */
@@ -71,15 +71,15 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   if (!E) E |= nrrdFlip(gB, gA, 1);
   if (!E) E |= nrrdFlip(hB, hA, 1);
   if (E) {
-    sprintf(err, "%s: couldn't re-orient scatterplots", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't re-orient scatterplots", me);
+    return 1;
   }
   
   if (!E) E |= nrrdCopy(nvg, gB);
   if (!E) E |= nrrdCopy(nvh, hB);
   if (E) {
-    sprintf(err, "%s: trouble saving results to given nrrds", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: trouble saving results to given nrrds", me);
+    return 1;
   }
 
   nrrdNuke(gA); nrrdNuke(gB);

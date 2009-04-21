@@ -31,27 +31,27 @@
 */
 pullPoint *
 pullPointNew(pullContext *pctx) {
-  char me[]="pullPointNew", err[BIFF_STRLEN];
+  static const char me[]="pullPointNew";
   pullPoint *pnt;
   unsigned int ii;
   size_t pntSize;
   
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return NULL;
   }
   if (!pctx->infoTotalLen) {
-    sprintf(err, "%s: can't allocate points w/out infoTotalLen set\n", me);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: can't allocate points w/out infoTotalLen set\n", me);
+    return NULL;
   }
   /* Allocate the pullPoint so that it has pctx->infoTotalLen doubles.
      The pullPoint declaration has info[1], hence the "- 1" below */
   pntSize = sizeof(pullPoint) + sizeof(double)*(pctx->infoTotalLen - 1);
   pnt = AIR_CAST(pullPoint *, calloc(1, pntSize));
   if (!pnt) {
-    sprintf(err, "%s: couldn't allocate point (info len %u)\n", me, 
-            pctx->infoTotalLen - 1);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: couldn't allocate point (info len %u)\n", me, 
+             pctx->infoTotalLen - 1);
+    return NULL;
   }
 
   pnt->idtag = pctx->idtagNext++;
@@ -344,7 +344,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
 
 int
 _pullProbe(pullTask *task, pullPoint *point) {
-  char me[]="_pullProbe", err[BIFF_STRLEN];
+  static const char me[]="_pullProbe";
   unsigned int ii, gret=0;
   int edge;
 
@@ -367,11 +367,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
 #endif
 
   if (!ELL_4V_EXISTS(point->pos)) {
-    sprintf(err, "%s: got non-exist pos (%g,%g,%g,%g)", me, 
+    fprintf(stderr, "%s: got non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n", me, 
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    fprintf(stderr, "\n\n%s!!!\n\n\n", err);
     /*  HEY: NEED TO track down how this can happen!
-      biffAdd(PULL, err); return 1;
+      biffAddfPULL, err); return 1;
     */
     /* can't probe, but make it go away as quickly as possible */
     ELL_4V_SET(point->pos, 0, 0, 0, 0);
@@ -422,10 +421,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
     edge |= !!task->vol[ii]->gctx->edgeFrac;
   }
   if (gret) {
-    sprintf(err, "%s: probe failed on vol %u/%u: (%d) %s", me,
-            ii, task->pctx->volNum,
-            task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
+             ii, task->pctx->volNum,
+             task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
+    return 1;
   }
   if (edge) {
     point->status |= PULL_STATUS_EDGE_BIT;
@@ -498,7 +497,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
                              int taskOrder[3],
                              /* output */
                              int *createFailP) {
-  char me[]="_pullPointInitializePerVoxel", err[BIFF_STRLEN];
+  static const char me[]="_pullPointInitializePerVoxel";
   unsigned int vidx[3], pix;
   double iPos[3];
   airRandMTState *rng;
@@ -563,8 +562,8 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
 
   /* Do a tentative probe */
   if (_pullProbe(pctx->task[0], point)) {
-   sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
-   biffAdd(PULL, err); return 1;
+   biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
+   return 1;
   }
 
   constrFail = AIR_FALSE;
@@ -604,9 +603,9 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
     case 2:
       if (!reject && pctx->constraint) {
         if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
-          sprintf(err, "%s: on pnt %u",
-                  me, pointIdx);
-          biffAdd(PULL, err); return 1;
+          biffAddf(PULL, "%s: on pnt %u",
+                   me, pointIdx);
+          return 1;
         }
       } else {
         constrFail = AIR_FALSE;
@@ -632,7 +631,7 @@ _pullPointInitializeRandom(pullContext *pctx,
                            int taskOrder[3],
                            /* output */
                            int *createFailP) {
-  char me[]="_pullPointInitializeRandom", err[BIFF_STRLEN];
+  static const char me[]="_pullPointInitializeRandom";
   int reject, threshFail, constrFail;
   airRandMTState *rng;
   unsigned int threshFailCount = 0, constrFailCount = 0;
@@ -662,8 +661,8 @@ _pullPointInitializeRandom(pullContext *pctx,
     _pullPointHistAdd(point, pullCondOld);
     /* Do a tentative probe */
     if (_pullProbe(pctx->task[0], point)) {
-      sprintf(err, "%s: probing pointIdx %u of world", me, pointIdx);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
+      return 1;
     }
     /* Enforce constrains and thresholds */
     threshFail = AIR_FALSE;
@@ -708,8 +707,8 @@ _pullPointInitializeRandom(pullContext *pctx,
         /* Avoid doing constraint if the threshold has already failed */
         if (!reject && pctx->constraint) {
           if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
-            sprintf(err, "%s: trying constraint on point %u", me, pointIdx);
-            biffAdd(PULL, err); return 1;
+            biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
+            return 1;
           }
           constrFailCount += constrFail;
         } else {
@@ -723,12 +722,12 @@ _pullPointInitializeRandom(pullContext *pctx,
     if (reject) {
       if (threshFailCount + constrFailCount > _PULL_RANDOM_SEED_TRY_MAX) {
         /* Very bad luck; we've too many times */
-        sprintf(err, "%s: failed too often (%u times) placing %u "
-                "(failed on thresh %s/%u, constr %s/%u)",
-                me, _PULL_RANDOM_SEED_TRY_MAX, pointIdx,
-                threshFail ? "true" : "false", threshFailCount,
-                constrFail ? "true" : "false", constrFailCount);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: failed too often (%u times) placing %u "
+                 "(failed on thresh %s/%u, constr %s/%u)",
+                 me, _PULL_RANDOM_SEED_TRY_MAX, pointIdx,
+                 threshFail ? "true" : "false", threshFailCount,
+                 constrFail ? "true" : "false", constrFailCount);
+        return 1;
       }
     }
   } while (reject);
@@ -747,7 +746,7 @@ _pullPointInitializePos(pullContext *pctx,
                         pullPoint *point,
                         /* output */
                         int *createFailP) {
-  char me[]="_pullPointInitializePos", err[BIFF_STRLEN];
+  static const char me[]="_pullPointInitializePos";
   double seedv;
   int reject;
 
@@ -756,8 +755,8 @@ _pullPointInitializePos(pullContext *pctx,
   /* we're dictating positions, but still have to do initial probe,
      and possibly liveThresholding */
   if (_pullProbe(pctx->task[0], point)) {
-    sprintf(err, "%s: probing pointIdx %u of npos", me, pointIdx);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: probing pointIdx %u of npos", me, pointIdx);
+    return 1;
   }
   reject = AIR_FALSE;
   if (pctx->liveThresholdInit) {
@@ -793,7 +792,8 @@ _pullPointInitializePos(pullContext *pctx,
 */
 int
 _pullPointSetup(pullContext *pctx) {
-  char me[]="_pullPointSetup", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
+  static const char me[]="_pullPointSetup";
+  char doneStr[AIR_STRLEN_SMALL];
   unsigned int pointIdx, binIdx, tick, pn;
   pullPoint *point;
   pullBin *bin;
@@ -819,8 +819,8 @@ _pullPointSetup(pullContext *pctx) {
     npos = nrrdNew();
     airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(npos, pctx->npos, nrrdTypeDouble)) {
-      sprintf(err, "%s: trouble converting npos", me);
-      biffMove(PULL, err, NRRD); airMopError(mop); return 1;
+      biffMovef(PULL, NRRD, "%s: trouble converting npos", me);
+      airMopError(mop); return 1;
     }
     posData = AIR_CAST(double *, npos->data);
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
@@ -845,10 +845,10 @@ _pullPointSetup(pullContext *pctx) {
       unsigned int zrn;
       if (!( pctx->ppvZRange[0] < seedShape->size[2]
              && pctx->ppvZRange[1] < seedShape->size[2] )) {
-        sprintf(err, "%s: ppvZRange[%u,%u] outside volume [0,%u]", me,
-                pctx->ppvZRange[0], pctx->ppvZRange[1],
-                seedShape->size[2]-1);
-        biffAdd(PULL, err); airMopError(mop); return 1;
+        biffAddf(PULL, "%s: ppvZRange[%u,%u] outside volume [0,%u]", me,
+                 pctx->ppvZRange[0], pctx->ppvZRange[1],
+                 seedShape->size[2]-1);
+        airMopError(mop); return 1;
       }
       zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
       voxNum = seedShape->size[0]*seedShape->size[1]*zrn;
@@ -934,9 +934,9 @@ _pullPointSetup(pullContext *pctx) {
                                      taskOrder, &createFail);
     }
     if (E) {
-      sprintf(err, "%s: trouble trying point %u (id %u)", me,
-              pointIdx, point->idtag);
-      biffAdd(PULL, err); airMopError(mop); return 1;
+      biffAddf(PULL, "%s: trouble trying point %u (id %u)", me,
+               pointIdx, point->idtag);
+      airMopError(mop); return 1;
     }
     
     if (createFail) {
@@ -947,8 +947,8 @@ _pullPointSetup(pullContext *pctx) {
     /* else, the point is ready for binning */
     if (pctx->constraint) {
       if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
-        sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-        biffAdd(PULL, err); airMopError(mop); return 1;
+        biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
+        airMopError(mop); return 1;
       }
       if (added) {
         point = NULL;
@@ -958,8 +958,8 @@ _pullPointSetup(pullContext *pctx) {
       }
     } else {
       if (pullBinsPointAdd(pctx, point, NULL)) {
-          sprintf(err, "%s: trouble binning point %u", me, point->idtag);
-          biffAdd(PULL, err); airMopError(mop); return 1;
+          biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
+          airMopError(mop); return 1;
       }
       point = NULL;
       if (pctx->pointPerVoxel || pctx->npos) {
@@ -978,15 +978,15 @@ _pullPointSetup(pullContext *pctx) {
   
   /* Final check: do we have any points? */
   if (!pctx->pointNumInitial) {
-    sprintf(err, "%s: seeding never succeeded (bad seedthresh? %g)",
-            me, pctx->ispec[pullInfoSeedThresh]->zero);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: seeding never succeeded (bad seedthresh? %g)",
+             me, pctx->ispec[pullInfoSeedThresh]->zero);
+    airMopError(mop); return 1;
   }
   /* HEY this is redundant */
   pn = pullPointNumber(pctx);
   if (!pn) {
-    sprintf(err, "%s: point initialization failed, no points!\n", me);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: point initialization failed, no points!\n", me);
+    airMopError(mop); return 1;
   }
   printf("%s: ended up with %u points\n", me, pn);
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
@@ -994,9 +994,9 @@ _pullPointSetup(pullContext *pctx) {
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,
                                 calloc(pn, sizeof(unsigned int)));
   if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-    sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
-            pctx->tmpPointPtr, pctx->tmpPointPerm);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me, 
+             pctx->tmpPointPtr, pctx->tmpPointPerm);
+    airMopError(mop); return 1;
   }
   pctx->tmpPointNum = pn;
   

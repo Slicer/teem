@@ -84,9 +84,9 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
               const Nrrd *nin, unsigned int baseDim,
               const NrrdKernelSpec *_kspec,
               int boundary, int renormalize, int verbose) {
-  char me[]="gageStackBlur", err[BIFF_STRLEN],
-    key[3][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel"},
-    val[3][AIR_STRLEN_LARGE] = {"true", "" /* below */, "" /* below */};
+  static const char me[]="gageStackBlur";
+  char key[3][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel"};
+  char val[3][AIR_STRLEN_LARGE] = {"true", "" /* below */, "" /* below */};
   unsigned int blidx, axi;
   size_t sizeIn[NRRD_DIM_MAX], sizeOut[NRRD_DIM_MAX];
   NrrdResampleContext *rsmc;
@@ -95,41 +95,41 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   int E;
 
   if (!(nblur && scale && nin && _kspec)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( blnum >= 2)) {
-    sprintf(err, "%s: need blnum >= 2, not %u", me, blnum);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: need blnum >= 2, not %u", me, blnum);
+    return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
     if (!AIR_EXISTS(scale[blidx])) {
-      sprintf(err, "%s: scale[%u] = %g doesn't exist", me, blidx,
-              scale[blidx]);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: scale[%u] = %g doesn't exist", me, blidx,
+               scale[blidx]);
+      return 1;
     }
     if (blidx) {
       if (!( scale[blidx-1] < scale[blidx] )) {
-        sprintf(err, "%s: scale[%u] = %g not < scale[%u] = %g", me,
-                blidx, scale[blidx-1], blidx+1, scale[blidx]);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: scale[%u] = %g not < scale[%u] = %g", me,
+                 blidx, scale[blidx-1], blidx+1, scale[blidx]);
+        return 1;
       }
     }
     /* see if all nblur[] are plausibly set to some Nrrd */
     if (!nblur[blidx]) {
-      sprintf(err, "%s: got NULL nblur[%u]", me, blidx);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: got NULL nblur[%u]", me, blidx);
+      return 1;
     }
   }
   if (3 + baseDim != nin->dim) {
-    sprintf(err, "%s: need nin->dim %u (not %u) with baseDim %u", me,
-            3 + baseDim, nin->dim, baseDim);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: need nin->dim %u (not %u) with baseDim %u", me,
+             3 + baseDim, nin->dim, baseDim);
+    return 1;
   }
   if (airEnumValCheck(nrrdBoundary, boundary)) {
-    sprintf(err, "%s: %d not a valid %s value", me,
-            boundary, nrrdBoundary->name);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: %d not a valid %s value", me,
+             boundary, nrrdBoundary->name);
+    return 1;
   }
   /* strictly speaking, only used with checkPreblurredOutput */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, sizeIn);
@@ -137,8 +137,8 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   mop = airMopNew();
   kspec = nrrdKernelSpecCopy(_kspec);
   if (!kspec) {
-    sprintf(err, "%s: problem copying kernel spec", me);
-    biffAdd(GAGE, err); airMopError(mop); return 1;
+    biffAddf(GAGE, "%s: problem copying kernel spec", me);
+    airMopError(mop); return 1;
   }
   airMopAdd(mop, kspec, (airMopper)nrrdKernelSpecNix, airMopAlways);
   rsmc = nrrdResampleContextNew();
@@ -163,8 +163,8 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
     if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
     if (!E) E |= nrrdResampleRenormalizeSet(rsmc, renormalize);
     if (E) {
-      sprintf(err, "%s: trouble setting up resampling", me);
-      biffAdd(GAGE, err); airMopError(mop); return 1;
+      biffAddf(GAGE, "%s: trouble setting up resampling", me);
+      airMopError(mop); return 1;
     }
   }
   for (blidx=0; blidx<blnum; blidx++) {
@@ -185,29 +185,29 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
         if (verbose) {
           printf("problem!\n");
         }
-        sprintf(err, "%s: trouble resampling %u of %u (scale %g)",
-                me, blidx, blnum, scale[blidx]);
-        biffAdd(GAGE, err); airMopError(mop); return 1;
+        biffAddf(GAGE, "%s: trouble resampling %u of %u (scale %g)",
+                 me, blidx, blnum, scale[blidx]);
+        airMopError(mop); return 1;
       }
     } else {
       /* check to see if nblur[blidx] is as expected */
       unsigned int axi;
       if (nrrdCheck(nblur[blidx])) {
-        sprintf(err, "%s: basic problem with nblur[%u]", me, blidx);
-        biffMove(GAGE, err, NRRD); airMopError(mop); return 1;
+        biffMovef(GAGE, NRRD, "%s: basic problem with nblur[%u]", me, blidx);
+        airMopError(mop); return 1;
       }
       if (nblur[blidx]->dim != nin->dim) {
-        sprintf(err, "%s: nblur[%u]->dim %u != nin->dim %u", me,
-                blidx, nblur[blidx]->dim, nin->dim);
-        biffAdd(GAGE, err); airMopError(mop); return 1;
+        biffAddf(GAGE, "%s: nblur[%u]->dim %u != nin->dim %u", me,
+                 blidx, nblur[blidx]->dim, nin->dim);
+        airMopError(mop); return 1;
       }
       nrrdAxisInfoGet_nva(nblur[blidx], nrrdAxisInfoSize, sizeOut);
       for (axi=0; axi<nin->dim; axi++) {
         if (sizeIn[axi] != sizeOut[axi]) {
-          sprintf(err, "%s: nblur[%u]->axis[%u].size " _AIR_SIZE_T_CNV
-                  " != nin->axis[%u].size " _AIR_SIZE_T_CNV, me,
-                  blidx, axi, sizeOut[axi], axi, sizeIn[axi]);
-          biffAdd(GAGE, err); airMopError(mop); return 1;
+          biffAddf(GAGE, "%s: nblur[%u]->axis[%u].size " _AIR_SIZE_T_CNV
+                   " != nin->axis[%u].size " _AIR_SIZE_T_CNV, me,
+                   blidx, axi, sizeOut[axi], axi, sizeIn[axi]);
+          airMopError(mop); return 1;
         }
       }
     }
@@ -224,9 +224,9 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
         if (!checkPreblurredOutput && verbose) {
           printf("problem!\n");
         }
-        sprintf(err, "%s: trouble adding KVP to %u of %u (scale %g)",
-                me, blidx, blnum, scale[blidx]);
-        biffAdd(GAGE, err); airMopError(mop); return 1;
+        biffAddf(GAGE, "%s: trouble adding KVP to %u of %u (scale %g)",
+                 me, blidx, blnum, scale[blidx]);
+        airMopError(mop); return 1;
       }
       if (verbose) {
         printf("done.\n");
@@ -237,14 +237,14 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
         char *tmpval;
         tmpval = nrrdKeyValueGet(nblur[blidx], key[kvpIdx]);
         if (!tmpval) {
-          sprintf(err, "%s: didn't see key \"%s\" in nblur[%u]", me,
-                  key[kvpIdx], blidx);
-          biffAdd(GAGE, err); airMopError(mop); return 1;
+          biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
+                   key[kvpIdx], blidx);
+          airMopError(mop); return 1;
         }
         if (strcmp(tmpval, val[kvpIdx])) {
-          sprintf(err, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
-                  key[kvpIdx], tmpval, val[kvpIdx]);
-          biffAdd(GAGE, err); airMopError(mop); return 1;
+          biffAddf(GAGE, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
+                   key[kvpIdx], tmpval, val[kvpIdx]);
+          airMopError(mop); return 1;
         }
         /* else it did match, move on */
         if (!nrrdStateKeyValueReturnInternalPointers) {
@@ -269,22 +269,22 @@ gageStackPerVolumeNew(gageContext *ctx,
                       gagePerVolume **pvlStack,
                       const Nrrd *const *nblur, unsigned int blnum,
                       const gageKind *kind) {
-  char me[]="gageStackPerVolumeNew", err[BIFF_STRLEN];
+  static const char me[]="gageStackPerVolumeNew";
   unsigned int blidx;
 
   if (!( ctx && pvlStack && nblur && kind )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!blnum) {
-    sprintf(err, "%s: need non-zero num", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: need non-zero num", me);
+    return 1;
   }
 
   for (blidx=0; blidx<blnum; blidx++) {
     if (!( pvlStack[blidx] = gagePerVolumeNew(ctx, nblur[blidx], kind) )) {
-      sprintf(err, "%s: on pvl %u of %u", me, blidx, blnum);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: on pvl %u of %u", me, blidx, blnum);
+      return 1;
     }
   }
 
@@ -298,37 +298,37 @@ int
 gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
                          gagePerVolume **pvlStack, const double *stackPos,
                          unsigned int blnum) {
-  char me[]="gageStackPerVolumeAttach", err[BIFF_STRLEN];
+  static const char me[]="gageStackPerVolumeAttach";
   unsigned int blidx;
 
   if (!(ctx && pvlBase && pvlStack && stackPos)) { 
-    sprintf(err, "%s: got NULL pointer %p %p %p %p", me,
-            ctx, pvlBase, pvlStack, stackPos);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me,
+             ctx, pvlBase, pvlStack, stackPos);
+    return 1;
   }
   if (!( blnum >= 2 )) {
     /* this constraint is important for the logic of stack reconstruction:
        minimum number of node-centered samples is 2, and the number of
        pvls has to be at least 3 (two blurrings + one base pvl) */
-    sprintf(err, "%s: need at least two samples along stack", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: need at least two samples along stack", me);
+    return 1;
   }
   if (ctx->pvlNum) {
-    sprintf(err, "%s: can't have pre-existing volumes (%u) "
-            "prior to stack attachment", me, ctx->pvlNum);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: can't have pre-existing volumes (%u) "
+             "prior to stack attachment", me, ctx->pvlNum);
+    return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
     if (!AIR_EXISTS(stackPos[blidx])) {
-      sprintf(err, "%s: stackPos[%u] = %g doesn't exist", me, blidx, 
-              stackPos[blidx]);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blidx, 
+               stackPos[blidx]);
+      return 1;
     }
     if (blidx < blnum-1) {
       if (!( stackPos[blidx] < stackPos[blidx+1] )) {
-        sprintf(err, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me,
-                blidx, stackPos[blidx], blidx+1, stackPos[blidx+1]);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me,
+                 blidx, stackPos[blidx], blidx+1, stackPos[blidx+1]);
+        return 1;
       }
     }
   }
@@ -336,13 +336,13 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   /* the base volume is LAST, after all the stack samples */
   for (blidx=0; blidx<blnum; blidx++) {
     if (gagePerVolumeAttach(ctx, pvlStack[blidx])) {
-      sprintf(err, "%s: on pvl %u of %u", me, blidx, blnum);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: on pvl %u of %u", me, blidx, blnum);
+      return 1;
     }
   }
   if (gagePerVolumeAttach(ctx, pvlBase)) {
-    sprintf(err, "%s: on base pvl", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: on base pvl", me);
+    return 1;
   }
   
   airFree(ctx->stackPos);
@@ -352,11 +352,11 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   ctx->stackFsl = calloc(blnum, sizeof(double));
   ctx->stackFw = calloc(blnum, sizeof(double));
   if (!( ctx->stackPos && ctx->stackFsl && ctx->stackFw )) {
-    sprintf(err, "%s: couldn't allocate stack buffers (%p %p %p)", me,
-            AIR_CAST(void *, ctx->stackPos),
-            AIR_CAST(void *, ctx->stackFsl),
-            AIR_CAST(void *, ctx->stackFw));
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: couldn't allocate stack buffers (%p %p %p)", me,
+             AIR_CAST(void *, ctx->stackPos),
+             AIR_CAST(void *, ctx->stackFsl),
+             AIR_CAST(void *, ctx->stackFw));
+    return 1;
   }
   for (blidx=0; blidx<blnum; blidx++) {
     ctx->stackPos[blidx] = stackPos[blidx];
@@ -374,7 +374,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 */
 int
 _gageStackBaseIv3Fill(gageContext *ctx) {
-  char me[]="_gageStackBaseIv3Fill";
+  static const char me[]="_gageStackBaseIv3Fill";
   unsigned int fd, pvlIdx, cacheIdx, cacheLen, baseIdx, valLen;
 
   fd = 2*ctx->radius;
@@ -483,7 +483,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
 int
 gageStackProbe(gageContext *ctx,
                double xi, double yi, double zi, double stackIdx) {
-  char me[]="gageStackProbe";
+  static const char me[]="gageStackProbe";
 
   if (!ctx) {
     return 1;
@@ -500,7 +500,7 @@ int
 gageStackProbeSpace(gageContext *ctx,
                     double xx, double yy, double zz, double ss,
                     int indexSpace, int clamp) {
-  char me[]="gageStackProbeSpace";
+  static const char me[]="gageStackProbeSpace";
 
   if (!ctx) {
     return 1;

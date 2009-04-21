@@ -56,7 +56,7 @@ _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
 */
 void
 _gagePvlNeedDUpdate(gageContext *ctx) {
-  char me[]="_gagePvlNeedDUpdate";
+  static const char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
   int que, needD[3];
   unsigned int pvlIdx;
@@ -93,7 +93,7 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
 */
 void
 _gageNeedDUpdate(gageContext *ctx) {
-  char me[]="_gageNeedDUpdate";
+  static const char me[]="_gageNeedDUpdate";
   gagePerVolume *pvl;
   int needD[3];
   unsigned int pvlIdx;
@@ -124,7 +124,7 @@ _gageNeedDUpdate(gageContext *ctx) {
 */
 void
 _gageNeedKUpdate(gageContext *ctx) {
-  char me[]="_gageNeedKUpdate";
+  static const char me[]="_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
   
   if (ctx->verbose) printf("%s: hello\n", me);
@@ -177,7 +177,7 @@ _gageNeedKUpdate(gageContext *ctx) {
 */
 int
 _gageRadiusUpdate(gageContext *ctx) {
-  char me[]="_gageRadiusUpdate", err[BIFF_STRLEN];
+  static const char me[]="_gageRadiusUpdate";
   unsigned int kernIdx, radius;
   double maxRad, rad;
   NrrdKernelSpec *ksp;
@@ -188,9 +188,9 @@ _gageRadiusUpdate(gageContext *ctx) {
     if (ctx->needK[kernIdx]) {
       ksp = ctx->ksp[kernIdx];
       if (!ksp) {
-        sprintf(err, "%s: need kernel %s but it hasn't been set", 
-                me, airEnumStr(gageKernel, kernIdx));
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: need kernel %s but it hasn't been set", 
+                 me, airEnumStr(gageKernel, kernIdx));
+        return 1;
       }
       rad = ksp->kernel->support(ksp->parm);
       maxRad = AIR_MAX(maxRad, rad);
@@ -229,15 +229,15 @@ _gageRadiusUpdate(gageContext *ctx) {
 
 int
 _gageCacheSizeUpdate(gageContext *ctx) {
-  char me[]="_gageCacheSizeUpdate", err[BIFF_STRLEN];
+  static const char me[]="_gageCacheSizeUpdate";
   int fd;
   gagePerVolume *pvl;
   unsigned int pvlIdx;
 
   if (ctx->verbose) printf("%s: hello (radius = %d)\n", me, ctx->radius);
   if (!( ctx->radius > 0 )) {
-    sprintf(err, "%s: have bad radius %d", me, ctx->radius);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: have bad radius %d", me, ctx->radius);
+    return 1;
   }
   fd = 2*ctx->radius;
   ctx->fsl = (double *)airFree(ctx->fsl);
@@ -247,8 +247,8 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   ctx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
   ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
   if (!(ctx->fsl && ctx->fw && ctx->off)) {
-    sprintf(err, "%s: couldn't allocate filter caches for fd=%d", me, fd);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: couldn't allocate filter caches for fd=%d", me, fd);
+    return 1;
   }
   /* note that all pvls get caches allocated for the same size, even if
      their queries don't involve the largest-size kernels. This is actually
@@ -262,9 +262,9 @@ _gageCacheSizeUpdate(gageContext *ctx) {
     pvl->iv2 = (double *)calloc(fd*fd*pvl->kind->valLen, sizeof(double));
     pvl->iv1 = (double *)calloc(fd*pvl->kind->valLen, sizeof(double));
     if (!(pvl->iv3 && pvl->iv2 && pvl->iv1)) {
-      sprintf(err, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
-              me, pvlIdx, fd);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
+               me, pvlIdx, fd);
+      return 1;
     }
   }
   if (ctx->verbose) printf("%s: bye\n", me);
@@ -274,7 +274,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 
 void
 _gageOffValueUpdate(gageContext *ctx) {
-  char me[]="_gageOffValueUpdate";
+  static const char me[]="_gageOffValueUpdate";
   int fd, i, j, k;
   unsigned int sx, sy;
 
@@ -304,46 +304,46 @@ _gageOffValueUpdate(gageContext *ctx) {
 */
 int
 gageUpdate(gageContext *ctx) {
-  char me[]="gageUpdate", err[BIFF_STRLEN];
+  static const char me[]="gageUpdate";
   unsigned int pi;
   int i, haveQuery;
 
   if (!( ctx )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (0 == ctx->pvlNum) {
-    sprintf(err, "%s: context has no attached pervolumes", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: context has no attached pervolumes", me);
+    return 1;
   }
   haveQuery = AIR_FALSE;
   for (pi=0; pi<ctx->pvlNum; pi++) {
     haveQuery |= GAGE_QUERY_NONZERO(ctx->pvl[pi]->query);
   }
   if (!haveQuery) {
-    sprintf(err, "%s: no query item set in %s", me,
-            (ctx->pvlNum == 1 
-             ? "the pervolume" 
-             : "any of the pervolumes"));
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: no query item set in %s", me,
+             (ctx->pvlNum == 1 
+              ? "the pervolume" 
+              : "any of the pervolumes"));
+    return 1;
   }
 
   /* HEY: shouldn't there be some more logic/state for this? */
   if (ctx->parm.stackUse) {
     if (!ctx->ksp[gageKernelStack]) {
-      sprintf(err, "%s: can't do stack without ksp[%s]", me,
-              airEnumStr(gageKernel, gageKernelStack));
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: can't do stack without ksp[%s]", me,
+               airEnumStr(gageKernel, gageKernelStack));
+      return 1;
     }
     if (!( 2 <= ctx->pvlNum )) {
-      sprintf(err, "%s: need at least 2 pervolumes for stack", me);
-      biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: need at least 2 pervolumes for stack", me);
+      return 1;
     }
     for (pi=1; pi<ctx->pvlNum; pi++) {
       if (!( ctx->pvl[0]->kind == ctx->pvl[pi]->kind )) {
-        sprintf(err, "%s: pvl[%u] kind (%s) != pvl[0] kind (%s)", me,
-                pi, ctx->pvl[pi]->kind->name, ctx->pvl[0]->kind->name);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: pvl[%u] kind (%s) != pvl[0] kind (%s)", me,
+                 pi, ctx->pvl[pi]->kind->name, ctx->pvl[0]->kind->name);
+        return 1;
       }
     }
   }
@@ -377,7 +377,7 @@ gageUpdate(gageContext *ctx) {
   }
   if (ctx->flag[gageCtxFlagKernel] || ctx->flag[gageCtxFlagNeedK]) {
     if (_gageRadiusUpdate(ctx)) {
-      sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: trouble", me); return 1;
     }
     ctx->flag[gageCtxFlagKernel] = AIR_FALSE;
     ctx->flag[gageCtxFlagNeedK] = AIR_FALSE;
@@ -390,7 +390,7 @@ gageUpdate(gageContext *ctx) {
          just because a new pervolume was attached ... */
       || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)) {
     if (_gageCacheSizeUpdate(ctx)) {
-      sprintf(err, "%s: trouble", me); biffAdd(GAGE, err); return 1;
+      biffAddf(GAGE, "%s: trouble", me); return 1;
     }
   }
   if (ctx->flag[gageCtxFlagRadius]
@@ -412,8 +412,8 @@ gageUpdate(gageContext *ctx) {
                                             ctx,
                                             ctx->pvl[pi],
                                             ctx->pvl[pi]->data)) {
-        sprintf(err, "%s: pvlDataUpdate(pvl[%u]) failed", me, pi);
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: pvlDataUpdate(pvl[%u]) failed", me, pi);
+        return 1;
       }
     }
   }

@@ -51,14 +51,14 @@ _baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
 
 int
 _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipAnswer_Percentile", err[BIFF_STRLEN];
+  static const char me[]="_baneClipAnswer_Percentile";
   Nrrd *ncopy;
   int *hits, clip;
   size_t num, sum, out, outsofar, hi;
 
   if (nrrdCopy(ncopy=nrrdNew(), hvol)) {
-    sprintf(err, "%s: couldn't create copy of histovol", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
+    return 1;
   }
   hits = (int *)ncopy->data;
   num = nrrdElementNumber(ncopy);
@@ -82,14 +82,14 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
 
 int
 _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
-  char me[]="_baneClipAnwer_TopN", err[BIFF_STRLEN];
+  static const char me[]="_baneClipAnwer_TopN";
   Nrrd *copy;
   int *hits, tmp;
   size_t num;
 
   if (nrrdCopy(copy=nrrdNew(), hvol)) {
-    sprintf(err, "%s: couldn't create copy of histovol", me);
-    biffMove(BANE, err, NRRD); return 1;
+    biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
+    return 1;
   }
   hits = (int *)copy->data;
   num = nrrdElementNumber(copy);
@@ -103,25 +103,25 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
 
 baneClip *
 baneClipNew(int type, double *parm) {
-  char me[]="baneClipNew", err[BIFF_STRLEN];
+  static const char me[]="baneClipNew";
   baneClip *clip;
 
   if (!( AIR_IN_OP(baneClipUnknown, type, baneClipLast) )) {
-    sprintf(err, "%s: baneClip %d invalid", me, type);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: baneClip %d invalid", me, type);
+    return NULL;
   }
   if (!parm) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return NULL;
   }
   if (!(AIR_EXISTS(parm[0]))) {
-    sprintf(err, "%s: parm[0] doesn't exist", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: parm[0] doesn't exist", me);
+    return NULL;
   }
   clip = (baneClip*)calloc(1, sizeof(baneClip));
   if (!clip) {
-    sprintf(err, "%s: couldn't allocate baneClip!", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't allocate baneClip!", me);
+    return NULL;
   }
   clip->parm[0] = parm[0];
   clip->type = type;
@@ -143,8 +143,8 @@ baneClipNew(int type, double *parm) {
     clip->answer = _baneClipAnswer_TopN;
     break;
   default:
-    sprintf(err, "%s: sorry, baneClip %d not implemented", me, type);
-    biffAdd(BANE, err); baneClipNix(clip); return NULL;
+    biffAddf(BANE, "%s: sorry, baneClip %d not implemented", me, type);
+    baneClipNix(clip); return NULL;
     break;
   }
   return clip;
@@ -152,28 +152,28 @@ baneClipNew(int type, double *parm) {
 
 int
 baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
-  char me[]="baneClipAnswer", err[BIFF_STRLEN];
+  static const char me[]="baneClipAnswer";
 
   if (!( countP && clip && hvol )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(BANE, err); return 0;
+    biffAddf(BANE, "%s: got NULL pointer", me);
+    return 0;
   }
   if (clip->answer(countP, hvol, clip->parm)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(BANE, err); return 0;
+    biffAddf(BANE, "%s: trouble", me);
+    return 0;
   }
   return 0;
 }
 
 baneClip *
 baneClipCopy(baneClip *clip) {
-  char me[]="baneClipCopy", err[BIFF_STRLEN];
+  static const char me[]="baneClipCopy";
   baneClip *ret = NULL;
   
   ret = baneClipNew(clip->type, clip->parm);
   if (!ret) {
-    sprintf(err, "%s: couldn't make new clip", me);
-    biffAdd(BANE, err); return NULL;
+    biffAddf(BANE, "%s: couldn't make new clip", me);
+    return NULL;
   }
   return ret;
 }

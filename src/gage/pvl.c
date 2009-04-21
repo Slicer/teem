@@ -36,13 +36,13 @@
 int
 gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
                 const gageKind *kind) {
-  char me[]="gageVolumeCheck", err[BIFF_STRLEN];
+  static const char me[]="gageVolumeCheck";
   gageShape shape;
 
   gageShapeReset(&shape);
   if (_gageShapeSet(ctx, &shape, nin, kind->baseDim)) {
-    sprintf(err, "%s: trouble setting volume as %s kind", me, kind->name);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: trouble setting volume as %s kind", me, kind->name);
+    return 1;
   }
   return 0;
 }
@@ -57,22 +57,22 @@ gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
 */
 gagePerVolume *
 gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
-  char me[]="gagePerVolumeNew", err[BIFF_STRLEN];
+  static const char me[]="gagePerVolumeNew";
   gagePerVolume *pvl;
   int ii;
 
   if (!( nin && kind )) {
-    sprintf(err, "%s: got NULL pointer", me);
+    biffAddf(GAGE, "%s: got NULL pointer", me);
     return NULL;
   }
   if (gageVolumeCheck(ctx, nin, kind)) {
-    sprintf(err, "%s: problem with given volume", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: problem with given volume", me);
+    return NULL;
   }
   pvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
   if (!pvl) {
-    sprintf(err, "%s: couldn't alloc gagePerVolume", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't alloc gagePerVolume", me);
+    return NULL;
   }
   pvl->verbose = gageDefVerbose;
   pvl->kind = kind;
@@ -88,8 +88,8 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
                                  sizeof(double));
   pvl->directAnswer = (double **)calloc(kind->itemMax+1, sizeof(double*));
   if (!(pvl->answer && pvl->directAnswer)) {
-    sprintf(err, "%s: couldn't alloc answer and directAnswer arrays", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't alloc answer and directAnswer arrays", me);
+    return NULL;
   }
   for (ii=1; ii<=kind->itemMax; ii++) {
     pvl->directAnswer[ii] = pvl->answer + gageKindAnswerOffset(kind, ii);
@@ -97,8 +97,8 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   pvl->flag[gagePvlFlagVolume] = AIR_TRUE;
   if (kind->pvlDataNew) {
     if (!(pvl->data = kind->pvlDataNew(kind))) {
-      sprintf(err, "%s: double creating gagePerVolume data", me);
-      biffAdd(GAGE, err); return NULL;
+      biffAddf(GAGE, "%s: double creating gagePerVolume data", me);
+      return NULL;
     }
   } else {
     pvl->data = NULL;
@@ -115,14 +115,14 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 */
 gagePerVolume *
 _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
-  char me[]="gagePerVolumeCopy", err[BIFF_STRLEN];
+  static const char me[]="gagePerVolumeCopy";
   gagePerVolume *nvl;
   int ii;
   
   nvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
   if (!nvl) {
-    sprintf(err, "%s: couldn't create new pervolume", me);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't create new pervolume", me);
+    return NULL;
   }
   /* we should probably restrict ourselves to gage API calls, but given the
      constant state of gage construction, this seems much simpler.
@@ -137,19 +137,19 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
                                         sizeof(double*));
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
          && nvl->answer && nvl->directAnswer )) {
-    sprintf(err, "%s: couldn't allocate all caches "
-            "(fd=%u, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
-            fd, nvl->kind->valLen, gageKindTotalAnswerLength(nvl->kind),
-            nvl->kind->itemMax);
-    biffAdd(GAGE, err); return NULL;
+    biffAddf(GAGE, "%s: couldn't allocate all caches "
+             "(fd=%u, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
+             fd, nvl->kind->valLen, gageKindTotalAnswerLength(nvl->kind),
+             nvl->kind->itemMax);
+    return NULL;
   }
   for (ii=1; ii<=pvl->kind->itemMax; ii++) {
     nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
   }
   if (pvl->kind->pvlDataCopy) {
     if (!(nvl->data = pvl->kind->pvlDataCopy(pvl->kind, pvl->data))) {
-      sprintf(err, "%s: double copying gagePerVolume data", me);
-      biffAdd(GAGE, err); return NULL;
+      biffAddf(GAGE, "%s: double copying gagePerVolume data", me);
+      return NULL;
     }
   } else {
     nvl->data = NULL;
@@ -230,12 +230,12 @@ gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 
 int
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="gageQueryReset", err[BIFF_STRLEN];
+  static const char me[]="gageQueryReset";
 
   AIR_UNUSED(ctx);
   if (!( pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
 
   GAGE_QUERY_RESET(pvl->query);
@@ -257,14 +257,14 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
 */
 int
 gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
-  char me[]="gageQuerySet", err[BIFF_STRLEN];
+  static const char me[]="gageQuerySet";
   gageQuery lastQuery;
   int pi, ii;
   
   AIR_UNUSED(ctx);
   if (!( pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   GAGE_QUERY_COPY(pvl->query, query);
   if (pvl->verbose) {
@@ -300,9 +300,9 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     for (ii=1; ii<=pvl->kind->itemMax; ii++) {
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)
           && pvl->kind->table[ii].needData) {
-        sprintf(err, "%s: item %d (%s) needs data, but pvl->data is NULL", 
-                me, ii, airEnumStr(pvl->kind->enm, ii));
-        biffAdd(GAGE, err); return 1;
+        biffAddf(GAGE, "%s: item %d (%s) needs data, but pvl->data is NULL", 
+                 me, ii, airEnumStr(pvl->kind->enm, ii));
+        return 1;
       }
     }
   }
@@ -314,17 +314,17 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
 
 int
 gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
-  char me[]="gageQueryAdd", err[BIFF_STRLEN];
+  static const char me[]="gageQueryAdd";
 
   if (!( pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
 
   GAGE_QUERY_ADD(pvl->query, query);
   if (gageQuerySet(ctx, pvl, pvl->query)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: trouble", me);
+    return 1;
   }
 
   return 0;
@@ -332,22 +332,22 @@ gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
 
 int
 gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
-  char me[]="gageQueryItemOn", err[BIFF_STRLEN];
+  static const char me[]="gageQueryItemOn";
 
   if (!( pvl )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
 
   if (airEnumValCheck(pvl->kind->enm, item)) {
-    sprintf(err, "%s: %d not a valid %s value", me,
-            item, pvl->kind->enm->name);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: %d not a valid %s value", me,
+             item, pvl->kind->enm->name);
+    return 1;
   }
   GAGE_QUERY_ITEM_ON(pvl->query, item);
   if (gageQuerySet(ctx, pvl, pvl->query)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: trouble", me);
+    return 1;
   }
 
   return 0;

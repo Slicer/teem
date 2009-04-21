@@ -98,7 +98,7 @@ shapeUnitItoW(gageShape *shape, double world[3], double index[3],
 int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
-  char me[]="_gageShapeSet", err[BIFF_STRLEN];
+  static const char me[]="_gageShapeSet";
   int ai, cx, cy, cz, statCalc[3], status;
   unsigned int minsize;
   const NrrdAxisInfo *ax[3];
@@ -107,24 +107,24 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
   /* ------ basic error checking */
   if (!( shape && nin )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err);  if (shape) { gageShapeReset(shape); }
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    if (shape) { gageShapeReset(shape); }
     return 1;
   }
   if (nrrdCheck(nin)) {
-    sprintf(err, "%s: basic nrrd validity check failed", me);
-    biffMove(GAGE, err, NRRD); gageShapeReset(shape);
+    biffMovef(GAGE, NRRD, "%s: basic nrrd validity check failed", me);
+    gageShapeReset(shape);
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    sprintf(err, "%s: need a non-block type nrrd", me);
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: need a non-block type nrrd", me);
+    gageShapeReset(shape);
     return 1;
   }
   if (!(nin->dim == 3 + baseDim)) {
-    sprintf(err, "%s: nrrd should be %u-D, not %u-D",
-            me, 3 + baseDim, nin->dim);
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: nrrd should be %u-D, not %u-D",
+             me, 3 + baseDim, nin->dim);
+    gageShapeReset(shape);
     return 1;
   }
   ax[0] = &(nin->axis[baseDim+0]);
@@ -141,68 +141,68 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   if (nrrdSpacingStatusUnknown == statCalc[0]
       || nrrdSpacingStatusUnknown == statCalc[1]
       || nrrdSpacingStatusUnknown == statCalc[2]) {
-    sprintf(err, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
-            me, baseDim + 0, baseDim + 1, baseDim + 2);
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
+             me, baseDim + 0, baseDim + 1, baseDim + 2);
+    gageShapeReset(shape);
     return 1;
   }
   if (!( statCalc[0] == statCalc[1] && statCalc[1] == statCalc[2] )) {
-    sprintf(err, "%s: inconsistent spacing information on axes "
-            "%u (%s), %u (%s), and %u (%s)", me,
-            baseDim + 0, airEnumDesc(nrrdSpacingStatus, statCalc[0]),
-            baseDim + 1, airEnumDesc(nrrdSpacingStatus, statCalc[1]),
-            baseDim + 2, airEnumDesc(nrrdSpacingStatus, statCalc[2]));
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: inconsistent spacing information on axes "
+             "%u (%s), %u (%s), and %u (%s)", me,
+             baseDim + 0, airEnumDesc(nrrdSpacingStatus, statCalc[0]),
+             baseDim + 1, airEnumDesc(nrrdSpacingStatus, statCalc[1]),
+             baseDim + 2, airEnumDesc(nrrdSpacingStatus, statCalc[2]));
+    gageShapeReset(shape);
     return 1;
   }
   /* this simplifies reasoning in the code that follows */
   status = statCalc[0];
   /* zero spacing would be problematic */
   if (0 == spcCalc[0] && 0 == spcCalc[1] && 0 == spcCalc[2]) {
-    sprintf(err, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
-            "non-zero", me, spcCalc[1], spcCalc[1], spcCalc[2],
-            baseDim+0, baseDim+1, baseDim+2);
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
+             "non-zero", me, spcCalc[1], spcCalc[1], spcCalc[2],
+             baseDim+0, baseDim+1, baseDim+2);
+    gageShapeReset(shape);
     return 1;
   }
 
   /* error checking based on status */
   if (nrrdSpacingStatusScalarWithSpace == status) {
-    sprintf(err, "%s: sorry, can't handle per-axis spacing that isn't part "
-            "of a surrounding world space (%s)",
-            me, airEnumStr(nrrdSpacingStatus, status));
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: sorry, can't handle per-axis spacing that isn't part "
+             "of a surrounding world space (%s)",
+             me, airEnumStr(nrrdSpacingStatus, status));
+    gageShapeReset(shape);
     return 1;
   }
   /* we no longer allow a nrrd to come in with no spacing info at all */
   if (nrrdSpacingStatusNone == status) {
-    sprintf(err, "%s: sorry, need some spacing info for spatial axes "
-            "%u, %u, %u", me,
-            baseDim+0, baseDim+1, baseDim+2); 
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: sorry, need some spacing info for spatial axes "
+             "%u, %u, %u", me,
+             baseDim+0, baseDim+1, baseDim+2); 
+    gageShapeReset(shape);
     return 1;
   }
   /* actually, there shouldn't be any other options for spacing status
      besides these too; this is just being careful */
   if (!( nrrdSpacingStatusDirection == status
          || nrrdSpacingStatusScalarNoSpace == status )) {
-    sprintf(err, "%s: sorry, can only handle spacing status %d (%s) "
-            "or %d (%s), not %d (%s)", me,
-            nrrdSpacingStatusDirection,
-            airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusDirection),
-            nrrdSpacingStatusScalarNoSpace,
-            airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusScalarNoSpace),
-            status, airEnumStr(nrrdSpacingStatus, status));
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: sorry, can only handle spacing status %d (%s) "
+             "or %d (%s), not %d (%s)", me,
+             nrrdSpacingStatusDirection,
+             airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusDirection),
+             nrrdSpacingStatusScalarNoSpace,
+             airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusScalarNoSpace),
+             status, airEnumStr(nrrdSpacingStatus, status));
+    gageShapeReset(shape);
     return 1;
   }
 
   if (nrrdSpacingStatusDirection == status) {
     shape->fromOrientation = AIR_TRUE;
     if (3 != nin->spaceDim) {
-      sprintf(err, "%s: orientation space dimension %d != 3",
-              me, nin->spaceDim);
-      biffAdd(GAGE, err); gageShapeReset(shape);
+      biffAddf(GAGE, "%s: orientation space dimension %d != 3",
+               me, nin->spaceDim);
+      gageShapeReset(shape);
       return 1;
     }
   } else {
@@ -219,12 +219,12 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   cy = ax[1]->center;
   cz = ax[2]->center;
   if (!( cx == cy && cy == cz )) {
-    sprintf(err, "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal", me,
-            baseDim+0, baseDim+1, baseDim+2,
-            airEnumStr(nrrdCenter, cx),
-            airEnumStr(nrrdCenter, cy),
-            airEnumStr(nrrdCenter, cz));
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal", me,
+             baseDim+0, baseDim+1, baseDim+2,
+             airEnumStr(nrrdCenter, cx),
+             airEnumStr(nrrdCenter, cy),
+             airEnumStr(nrrdCenter, cz));
+    gageShapeReset(shape);
     return 1;
   }
   /* HEY: this logic is a little odd; we hope that
@@ -246,11 +246,11 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   if (!(shape->size[0] >= minsize 
         && shape->size[1] >= minsize
         && shape->size[2] >= minsize )) {
-    sprintf(err, "%s: sizes (%u,%u,%u) must all be >= %u "
-            "(min number of %s-centered samples)", me, 
-            shape->size[0], shape->size[1], shape->size[2],
-            minsize, airEnumStr(nrrdCenter, shape->center));
-    biffAdd(GAGE, err); gageShapeReset(shape);
+    biffAddf(GAGE, "%s: sizes (%u,%u,%u) must all be >= %u "
+             "(min number of %s-centered samples)", me, 
+             shape->size[0], shape->size[1], shape->size[2],
+             minsize, airEnumStr(nrrdCenter, shape->center));
+    gageShapeReset(shape);
     return 1;
   }
 
@@ -362,11 +362,11 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
 
 int
 gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
-  char me[]="gageShapeSet", err[BIFF_STRLEN];
+  static const char me[]="gageShapeSet";
 
   if (_gageShapeSet(NULL, shape, nin, baseDim)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(GAGE, err); return 1;
+    biffAddf(GAGE, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
@@ -393,7 +393,7 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
 
 void
 gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
-  /* char me[]="gageShapeWtoI"; */
+  /* static const char me[]="gageShapeWtoI"; */
   double index[4], world[4];
 
   /*
@@ -419,49 +419,49 @@ gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
 int
 gageShapeEqual(gageShape *shape1, char *_name1,
                gageShape *shape2, char *_name2) {
-  char me[]="_gageShapeEqual", err[BIFF_STRLEN],
-    *name1, *name2, what[] = "???";
+  static const char me[]="_gageShapeEqual";
+  char *name1, *name2, what[] = "???";
 
   name1 = _name1 ? _name1 : what;
   name2 = _name2 ? _name2 : what;
   if (!( shape1->fromOrientation == shape2->fromOrientation )) {
-    sprintf(err, "%s: fromOrientation of %s (%s) != %s's (%s)", me,
-            name1, shape1->fromOrientation ? "true" : "false",
-            name2, shape2->fromOrientation ? "true" : "false");
-    biffAdd(GAGE, err); return 0;
+    biffAddf(GAGE, "%s: fromOrientation of %s (%s) != %s's (%s)", me,
+             name1, shape1->fromOrientation ? "true" : "false",
+             name2, shape2->fromOrientation ? "true" : "false");
+    return 0;
   }
   if (!( shape1->size[0] == shape2->size[0] &&
          shape1->size[1] == shape2->size[1] &&
          shape1->size[2] == shape2->size[2] )) {
-    sprintf(err, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
-            name1, 
-            shape1->size[0], shape1->size[1], shape1->size[2],
-            name2,
-            shape2->size[0], shape2->size[1], shape2->size[2]);
-    biffAdd(GAGE, err); return 0;
+    biffAddf(GAGE, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
+             name1, 
+             shape1->size[0], shape1->size[1], shape1->size[2],
+             name2,
+             shape2->size[0], shape2->size[1], shape2->size[2]);
+    return 0;
   }
   if (shape1->fromOrientation) {
     if (!( ELL_4M_EQUAL(shape1->ItoW, shape2->ItoW) )) {
-      sprintf(err, "%s: ItoW matrices of %s and %s not the same", me,
-              name1, name2);
-      biffAdd(GAGE, err); return 0;
+      biffAddf(GAGE, "%s: ItoW matrices of %s and %s not the same", me,
+               name1, name2);
+      return 0;
     }
   } else {
     if (!( shape1->spacing[0] == shape2->spacing[0] &&
            shape1->spacing[1] == shape2->spacing[1] &&
            shape1->spacing[2] == shape2->spacing[2] )) {
-      sprintf(err, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
-              name1,
-              shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
-              name2,
-              shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
-      biffAdd(GAGE, err); return 0;
+      biffAddf(GAGE, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
+               name1,
+               shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
+               name2,
+               shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
+      return 0;
     }
     if (!( shape1->center == shape2->center )) {
-      sprintf(err, "%s: centering of %s (%s) != %s's (%s)", me,
-              name1, airEnumStr(nrrdCenter, shape1->center),
-              name2, airEnumStr(nrrdCenter, shape2->center));
-      biffAdd(GAGE, err); return 0;
+      biffAddf(GAGE, "%s: centering of %s (%s) != %s's (%s)", me,
+               name1, airEnumStr(nrrdCenter, shape1->center),
+               name2, airEnumStr(nrrdCenter, shape2->center));
+      return 0;
     }
   }
 
@@ -471,7 +471,7 @@ gageShapeEqual(gageShape *shape1, char *_name1,
 void
 gageShapeBoundingBox(double min[3], double max[3],
                      gageShape *shape) {
-  /* char me[]="gageShapeBoundingBox"; */
+  /* static const char me[]="gageShapeBoundingBox"; */
   double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
   unsigned int ii;
   

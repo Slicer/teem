@@ -59,13 +59,13 @@ _pullBinDone(pullBin *bin) {
 */
 pullBin *
 _pullBinLocate(pullContext *pctx, double *posWorld) {
-  char me[]="_pullBinLocate", err[BIFF_STRLEN];
+  static const char me[]="_pullBinLocate";
   unsigned int axi, eidx[3], binIdx;
 
   if (!ELL_4V_EXISTS(posWorld)) {
-    sprintf(err, "%s: non-existant position (%g,%g,%g,%g)", me,
-            posWorld[0], posWorld[1], posWorld[2], posWorld[3]);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: non-existant position (%g,%g,%g,%g)", me,
+             posWorld[0], posWorld[1], posWorld[2], posWorld[3]);
+    return NULL;
   }
 
   if (pctx->binSingle) {
@@ -131,7 +131,7 @@ _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
 
 void
 pullBinsAllNeighborSet(pullContext *pctx) {
-  /* char me[]="pullBinsAllNeighborSet"; */
+  /* static const char me[]="pullBinsAllNeighborSet"; */
   pullBin *nei[3*3*3*3];
   unsigned int neiNum, xi, yi, zi, si, xx, yy, zz, ss, 
     xmax, ymax, zmax, smax, binIdx;
@@ -181,16 +181,16 @@ pullBinsAllNeighborSet(pullContext *pctx) {
 
 int
 pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
-  char me[]="pullBinsPointAdd", err[BIFF_STRLEN];
+  static const char me[]="pullBinsPointAdd";
   pullBin *bin;
   
   if (binP) {
     *binP = NULL;
   }
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: can't locate point %p %u",
-            me, AIR_CAST(void*, point), point->idtag);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: can't locate point %p %u",
+             me, AIR_CAST(void*, point), point->idtag);
+    return 1;
   }
   if (binP) {
     *binP = bin;
@@ -203,7 +203,7 @@ int
 pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
                       /* output */
                       pullBin **binP, int *added) {
-  char me[]="pullBinsPointMaybeAdd", err[BIFF_STRLEN];
+  static const char me[]="pullBinsPointMaybeAdd";
   pullBin *bin;
   unsigned int idx;
   int okay;
@@ -212,13 +212,13 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
     *binP = NULL;
   }
   if (!(pctx && point && added)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
-    sprintf(err, "%s: can't locate point %p %u",
-            me, AIR_CAST(void*, point), point->idtag);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: can't locate point %p %u",
+             me, AIR_CAST(void*, point), point->idtag);
+    return 1;
   }
   if (binP) {
     *binP = bin;
@@ -251,7 +251,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
 
 int
 _pullBinSetup(pullContext *pctx) {
-  char me[]="_pullBinSetup", err[BIFF_STRLEN];
+  static const char me[]="_pullBinSetup";
   unsigned ii;
   double volEdge[4], scl;
 
@@ -301,14 +301,14 @@ _pullBinSetup(pullContext *pctx) {
   }
   printf("!%s: binNum = %u\n", me, pctx->binNum);
   if (pctx->binNum > PULL_BIN_MAXNUM) {
-    sprintf(err, "%s: #bins %u > PULL_BIN_MAXNUM %u, problem?", me,
-            pctx->binNum, PULL_BIN_MAXNUM);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: #bins %u > PULL_BIN_MAXNUM %u, problem?", me,
+             pctx->binNum, PULL_BIN_MAXNUM);
+    return 1;
   }
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
-    sprintf(err, "%s: couln't allocate %u bins", me, pctx->binNum);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: couln't allocate %u bins", me, pctx->binNum);
+    return 1;
   }
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii, pctx->binIncr);
@@ -340,7 +340,7 @@ _pullBinFinish(pullContext *pctx) {
 */
 int
 _pullIterFinishDescent(pullContext *pctx) {
-  char me[]="_pullIterFinishDescent", err[BIFF_STRLEN];
+  static const char me[]="_pullIterFinishDescent";
   unsigned int oldBinIdx, pointIdx, taskIdx, runIdx, pointNum;
   pullBin *oldBin, *newBin;
   pullPoint *point;
@@ -367,9 +367,9 @@ _pullIterFinishDescent(pullContext *pctx) {
     pctx->tmpPointPerm = AIR_CAST(unsigned int *,
                                   calloc(pointNum, sizeof(unsigned int)));
     if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-      sprintf(err, "%s: couldn't allocate tmp buffers %p %p", me, 
-              pctx->tmpPointPtr, pctx->tmpPointPerm);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me, 
+               pctx->tmpPointPtr, pctx->tmpPointPerm);
+      return 1;
     }
     pctx->tmpPointNum = pointNum;
   }
@@ -397,9 +397,9 @@ _pullIterFinishDescent(pullContext *pctx) {
     */
     newBin = _pullBinLocate(pctx, point->pos);
     if (!newBin) {
-      sprintf(err, "%s: can't locate point %p %u",
-              me, AIR_CAST(void*, point), point->idtag);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: can't locate point %p %u",
+               me, AIR_CAST(void*, point), point->idtag);
+      return 1;
     }
     _pullBinPointAdd(pctx, newBin, point);
     pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;

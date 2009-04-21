@@ -26,12 +26,13 @@
 
 gageKind *
 pullGageKindParse(const char *_str) {
-  char me[]="pullGageKindParse", err[BIFF_STRLEN], *str;
+  static const char me[]="pullGageKindParse";
+  char *str;
   gageKind *ret;
   airArray *mop;
   
   if (!_str) {
-    sprintf(err, "%s: got NULL pointer", me);
+    biffAddf(PULL, "%s: got NULL pointer", me);
     return NULL;
   }
   mop = airMopNew();
@@ -45,8 +46,8 @@ pullGageKindParse(const char *_str) {
   } else if (!strcmp(tenGageKind->name, str)) {
     ret = tenGageKind;
   } else /* not allowing DWIs for now */ {
-    sprintf(err, "%s: not \"%s\", \"%s\", or \"%s\"", me,
-            gageKindScl->name, gageKindVec->name, tenGageKind->name);
+    biffAddf(PULL, "%s: not \"%s\", \"%s\", or \"%s\"", me,
+             gageKindScl->name, gageKindVec->name, tenGageKind->name);
     airMopError(mop); return NULL;
   }
 
@@ -121,34 +122,34 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
                const NrrdKernelSpec *ksp11,
                const NrrdKernelSpec *ksp22,
                const NrrdKernelSpec *kspSS) {
-  char me[]="_pullVolumeSet", err[BIFF_STRLEN];
+  static const char me[]="_pullVolumeSet";
   int E;
   unsigned int vi;
 
   if (!( vol && ninSingle && kind 
          && airStrlen(name) && ksp00 && ksp11 && ksp22 )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (pctx) {
     for (vi=0; vi<pctx->volNum; vi++) {
       if (pctx->vol[vi] == vol) {
-        sprintf(err, "%s: already got vol %p as vol[%u]", me, vol, vi);
-        biffAdd(PULL, err); return 1;
+        biffAddf(PULL, "%s: already got vol %p as vol[%u]", me, vol, vi);
+        return 1;
       }
     }
   }
   if (ninScale && !scalePos) {
-    sprintf(err, "%s: need scalePos array if using scale-space", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: need scalePos array if using scale-space", me);
+    return 1;
   }
   if (ninScale && !(ninNum >= 2)) {
-    sprintf(err, "%s: need at least 2 volumes (not %u)", me, ninNum);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: need at least 2 volumes (not %u)", me, ninNum);
+    return 1;
   }
   if (!(vol->gctx)) {
-    sprintf(err, "%s: got NULL vol->gageContext", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL vol->gageContext", me);
+    return 1;
   }
   vol->verbose = verbose;
   gageParmSet(vol->gctx, gageParmVerbose,
@@ -168,8 +169,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
                              ksp22->kernel, ksp22->parm);
   if (ninScale) {
     if (!kspSS) {
-      sprintf(err, "%s: got NULL kspSS", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: got NULL kspSS", me);
+      return 1;
     }
     gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
     if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
@@ -187,15 +188,15 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
   }
   if (E) {
-    sprintf(err, "%s: trouble", me);
-    biffMove(PULL, err, GAGE); return 1;
+    biffMovef(PULL, GAGE, "%s: trouble", me);
+    return 1;
   }
 
   vol->name = airStrdup(name);
   if (!vol->name) {
-    sprintf(err, "%s: couldn't strdup name (len %u)", me,
-            AIR_CAST(unsigned int, airStrlen(name)));
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: couldn't strdup name (len %u)", me,
+             AIR_CAST(unsigned int, airStrlen(name)));
+    return 1;
   }
   printf("!%s: vol=%p, name = %p = |%s|\n", me, vol, 
          vol->name, vol->name);
@@ -209,8 +210,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     vol->scaleNum = ninNum;
     vol->scalePos = AIR_CAST(double *, calloc(ninNum, sizeof(double)));
     if (!vol->scalePos) {
-      sprintf(err, "%s: couldn't calloc scalePos", me);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: couldn't calloc scalePos", me);
+      return 1;
     }
     for (vi=0; vi<ninNum; vi++) {
       vol->scalePos[vi] = scalePos[vi];
@@ -239,7 +240,7 @@ pullVolumeSingleAdd(pullContext *pctx,
                     const NrrdKernelSpec *ksp00,
                     const NrrdKernelSpec *ksp11,
                     const NrrdKernelSpec *ksp22) {
-  char me[]="pullVolumeSingleSet", err[BIFF_STRLEN];
+  static const char me[]="pullVolumeSingleSet";
   pullVolume *vol;
 
   printf("!%s(%s): verbose %d\n", me, name, pctx->verbose);
@@ -250,8 +251,8 @@ pullVolumeSingleAdd(pullContext *pctx,
                      nin,
                      NULL, NULL, 0, AIR_FALSE,
                      ksp00, ksp11, ksp22, NULL)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble", me);
+    return 1;
   }
 
   /* add this volume to context */
@@ -277,7 +278,7 @@ pullVolumeStackAdd(pullContext *pctx,
                    const NrrdKernelSpec *ksp11,
                    const NrrdKernelSpec *ksp22,
                    const NrrdKernelSpec *kspSS) {
-  char me[]="pullVolumeStackSet", err[BIFF_STRLEN];
+  static const char me[]="pullVolumeStackSet";
   pullVolume *vol;
 
   vol = pullVolumeNew();
@@ -285,8 +286,8 @@ pullVolumeStackAdd(pullContext *pctx,
                      nin, 
                      ninSS, scalePos, ninNum, scaleDerivNorm,
                      ksp00, ksp11, ksp22, kspSS)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble", me);
+    return 1;
   }
 
   /* add this volume to context */
@@ -301,7 +302,7 @@ pullVolumeStackAdd(pullContext *pctx,
 */
 pullVolume *
 _pullVolumeCopy(const pullVolume *volOrig) {
-  char me[]="pullVolumeCopy", err[BIFF_STRLEN];
+  static const char me[]="pullVolumeCopy";
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
@@ -314,16 +315,16 @@ _pullVolumeCopy(const pullVolume *volOrig) {
                      volOrig->scaleDerivNorm, 
                      volOrig->ksp00, volOrig->ksp11,
                      volOrig->ksp22, volOrig->kspSS)) {
-    sprintf(err, "%s: trouble creating new volume", me);
-    biffAdd(PULL, err); return NULL;
+    biffAddf(PULL, "%s: trouble creating new volume", me);
+    return NULL;
   }
   volNew->seedOnly = volOrig->seedOnly;
   /* we just created a new (per-task) gageContext, and it will not learn
      the items from the info specs, so we have to add query here */
   if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
       || gageUpdate(volNew->gctx)) {
-    sprintf(err, "%s: trouble with new volume gctx", me);
-    biffMove(PULL, err, GAGE); return NULL;
+    biffMovef(PULL, GAGE, "%s: trouble with new volume gctx", me);
+    return NULL;
   }
   return volNew;
 }
@@ -346,15 +347,15 @@ _pullInsideBBox(pullContext *pctx, double pos[4]) {
 */
 int
 _pullVolumeSetup(pullContext *pctx) {
-  char me[]="_pullVolumeSetup", err[BIFF_STRLEN];
+  static const char me[]="_pullVolumeSetup";
   unsigned int ii, numScale;
 
   /* first see if there are any gage problems */
   for (ii=0; ii<pctx->volNum; ii++) {
     if (gageUpdate(pctx->vol[ii]->gctx)) {
-      sprintf(err, "%s: trouble setting up gage on vol %u/%u",
-              me, ii, pctx->volNum);
-      biffMove(PULL, err, GAGE); return 1;
+      biffAddf(PULL, GAGE, "%s: trouble setting up gage on vol %u/%u",
+               me, ii, pctx->volNum);
+      return 1;
     }
   }
 
@@ -375,9 +376,10 @@ _pullVolumeSetup(pullContext *pctx) {
     if (ii && !pctx->allowUnequalShapes) {
       if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
                           pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
-        sprintf(err, "%s: need equal shapes, but vol 0 and %u different", 
-                me, ii);
-        biffMove(PULL, err, GAGE); return 1;
+        biffMovef(PULL, GAGE,
+                  "%s: need equal shapes, but vol 0 and %u different", 
+                  me, ii);
+        return 1;
       }
     }
   }
@@ -426,25 +428,25 @@ _pullVolumeSetup(pullContext *pctx) {
   /* _energyInterParticle() depends on this error checking */
   if (pctx->haveScale) {
     if (pullInterTypeJustR == pctx->interType) {
-      sprintf(err, "%s: need scale-aware intertype (not %s) with "
-              "a scale-space volume",
-              me, airEnumStr(pullInterType, pullInterTypeJustR));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: need scale-aware intertype (not %s) with "
+               "a scale-space volume",
+               me, airEnumStr(pullInterType, pullInterTypeJustR));
+      return 1;
     }
   } else {
     /* don't have scale */
     if (pullInterTypeJustR != pctx->interType) {
-      sprintf(err, "%s: can't use scale-aware intertype (%s) without "
-              "a scale-space volume",
-              me, airEnumStr(pullInterType, pctx->interType));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: can't use scale-aware intertype (%s) without "
+               "a scale-space volume",
+               me, airEnumStr(pullInterType, pctx->interType));
+      return 1;
     }
   }
   if (pctx->energyFromStrength
       && !(pctx->ispec[pullInfoStrength] && pctx->haveScale)) {
-    sprintf(err, "%s: sorry, can use energyFromStrength only with both "
-            "a scale-space volume, and a strength info", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: sorry, can use energyFromStrength only with both "
+             "a scale-space volume, and a strength info", me);
+    return 1;
   }
 
   return 0;

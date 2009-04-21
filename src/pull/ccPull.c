@@ -29,7 +29,7 @@
 */
 int
 pullCCFind(pullContext *pctx) {
-  char me[]="pullCCFind", err[BIFF_STRLEN];
+  static const char me[]="pullCCFind";
   airArray *mop, *eqvArr;
   unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum,
     pointNum, *idmap;
@@ -37,13 +37,13 @@ pullCCFind(pullContext *pctx) {
   pullPoint *point, *her;
   
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (_pullIterate(pctx, pullProcessModeNeighLearn)) {
-    sprintf(err, "%s: trouble with %s for CC", me,
-            airEnumStr(pullProcessMode, pullProcessModeNeighLearn));
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: trouble with %s for CC", me,
+             airEnumStr(pullProcessMode, pullProcessModeNeighLearn));
+    return 1;
   }
 
   mop = airMopNew();
@@ -112,7 +112,7 @@ pullCCFind(pullContext *pctx) {
 */
 int
 pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeasr, int measrInfo) {
-  char me[]="pullCCMeasure", err[BIFF_STRLEN];
+  static const char me[]="pullCCMeasure";
   airArray *mop;
   unsigned int *size, binIdx, pointIdx, ii;
   double *meas;
@@ -120,35 +120,35 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeasr, int measrInfo) {
   pullPoint *point;
   
   if (!( pctx && nmeasr )) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!pctx->CCNum) {
-    sprintf(err, "%s: CCNum == 0: haven't yet learned CCs?", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: CCNum == 0: haven't yet learned CCs?", me);
+    return 1;
   }
   if (measrInfo) {
     if (airEnumValCheck(pullInfo, measrInfo)) {
-      sprintf(err, "%s: measrInfo %d not a valid %s", me,
-              measrInfo, pullInfo->name);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: measrInfo %d not a valid %s", me,
+               measrInfo, pullInfo->name);
+      return 1;
     }
     if (1 != pullInfoAnswerLen(measrInfo)) {
-      sprintf(err, "%s: measrInfo %s (%d) isn't a scalar (len %u)", me,
-              airEnumStr(pullInfo, measrInfo), measrInfo,
-              pullInfoAnswerLen(measrInfo));
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: measrInfo %s (%d) isn't a scalar (len %u)", me,
+               airEnumStr(pullInfo, measrInfo), measrInfo,
+               pullInfoAnswerLen(measrInfo));
+      return 1;
     }
     if (!pctx->ispec[measrInfo]) {
-      sprintf(err, "%s: no ispec set for measrInfo %s (%d)", me,
-              airEnumStr(pullInfo, measrInfo), measrInfo);
-      biffAdd(PULL, err); return 1;
+      biffAddf(PULL, "%s: no ispec set for measrInfo %s (%d)", me,
+               airEnumStr(pullInfo, measrInfo), measrInfo);
+      return 1;
     }
   } /* else measrInfo is zero, they want to know # points */
   if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, 
                         AIR_CAST(size_t, pctx->CCNum))) {
-    sprintf(err, "%s: couldn't alloc nmeasr", me);
-    biffMove(PULL, err, NRRD); return 1;
+    biffMovef(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
+    return 1;
   }
   meas = AIR_CAST(double *, nmeasr->data);
 
@@ -156,8 +156,8 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeasr, int measrInfo) {
   if (nsize) {
     if (nrrdMaybeAlloc_va(nsize, nrrdTypeUInt, 1, 
                           AIR_CAST(size_t, pctx->CCNum))) {
-      sprintf(err, "%s: couldn't alloc nsize", me);
-      biffMove(PULL, err, NRRD); airMopError(mop); return 1;
+      biffMovef(PULL, NRRD, "%s: couldn't alloc nsize", me);
+      airMopError(mop); return 1;
     }
     size = AIR_CAST(unsigned int *, nsize->data);
   } else {
@@ -165,8 +165,8 @@ pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeasr, int measrInfo) {
        if measrInfo == 0 */
     if (!(size = AIR_CAST(unsigned int *,
                           calloc(pctx->CCNum, sizeof(unsigned int))))) {
-      sprintf(err, "%s: couldn't alloc size", me);
-      biffAdd(PULL, err); airMopError(mop); return 1;
+      biffAddf(PULL, "%s: couldn't alloc size", me);
+      airMopError(mop); return 1;
     }
     airMopAdd(mop, size, airFree, airMopAlways);
   }
@@ -214,7 +214,7 @@ ccpairCompare(const void *_a, const void *_b) {
 
 int
 pullCCSort(pullContext *pctx, int measrInfo, double rho) {
-  char me[]="pullCCSort", err[BIFF_STRLEN];
+  static const char me[]="pullCCSort";
   ccpair *pair;
   Nrrd *nmeasr, *nsize;
   airArray *mop;
@@ -225,12 +225,12 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
   int E;
   
   if (!pctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!pctx->CCNum) {
-    sprintf(err, "%s: haven't yet learned CCs?", me);
-    biffAdd(PULL, err); return 1;
+    biffAddf(PULL, "%s: haven't yet learned CCs?", me);
+    return 1;
   }
   
 #define CALLOC(T) (AIR_CAST(T *, calloc(pctx->CCNum, sizeof(T))))
@@ -247,8 +247,8 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
       || airMopAdd(mop, revz, airFree, airMopAlways)
       || !(revb = CALLOC(unsigned int))
       || airMopAdd(mop, revb, airFree, airMopAlways)) {
-    sprintf(err, "%s: couldn't allocate everything", me);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: couldn't allocate everything", me);
+    airMopError(mop); return 1;
   }
 #undef CALLOC
   if (!measrInfo) {
@@ -261,8 +261,8 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
     size  = AIR_CAST(unsigned int *, nsize->data);
   }
   if (E) {
-    sprintf(err, "%s: problem measuring CCs", me);
-    biffAdd(PULL, err); airMopError(mop); return 1;
+    biffAddf(PULL, "%s: problem measuring CCs", me);
+    airMopError(mop); return 1;
   }
 
   measr = AIR_CAST(double *, nmeasr->data);
