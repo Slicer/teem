@@ -855,20 +855,25 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** no expectation that other projects which use Teem will be defining
 ** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
 */
-#if TEEM_32BIT == 0
-#  ifdef _WIN64
-#    define _AIR_SIZE_T_CNV "%I64u"
-#    define _AIR_PTRDIFF_T_CNV "%I64d"
-#  else
-#    define _AIR_SIZE_T_CNV "%lu"
-#    define _AIR_PTRDIFF_T_CNV "%ld"
-#  endif
-#elif TEEM_32BIT == 1
-#  define _AIR_SIZE_T_CNV "%u"
-#  define _AIR_PTRDIFF_T_CNV "%d"
+#ifdef __APPLE__
+#  define _AIR_SIZE_T_CNV "%lu"
+#  define _AIR_PTRDIFF_T_CNV "%ld"
 #else
-#  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
-#  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
+#  if TEEM_32BIT == 0
+#    ifdef _WIN64
+#      define _AIR_SIZE_T_CNV "%I64u"
+#      define _AIR_PTRDIFF_T_CNV "%I64d"
+#    else
+#      define _AIR_SIZE_T_CNV "%lu"
+#      define _AIR_PTRDIFF_T_CNV "%ld"
+#    endif
+#  elif TEEM_32BIT == 1
+#    define _AIR_SIZE_T_CNV "%u"
+#    define _AIR_PTRDIFF_T_CNV "%d"
+#  else
+#    define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
+#    define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
+#  endif
 #endif
 
 #ifdef __cplusplus
