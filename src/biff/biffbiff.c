@@ -373,7 +373,9 @@ biffGet(const char *key) {
   if (!ent) {
     /* error: not a key we remember seeing */
     fprintf(stderr, "%s: WARNING: no information for key \"%s\"\n", me, key);
-    return NULL;
+    ret = (char*)calloc(BIFF_STRLEN, sizeof(char));
+    snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+    return ret;
   }
 
   _biffFindMaxAndSum(&max, &sum, ent);
