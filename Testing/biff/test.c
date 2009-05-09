@@ -27,7 +27,6 @@ int
 main() {
   char *tmp;
 
-  /*
   biffAdd("axis", "the first error axis");
   biffAdd("axis", "the second error axis");
   biffAdd("axis", "the third error axis");
@@ -54,7 +53,7 @@ main() {
   biffAdd("harold", "the third error harold");
   printf("%s\n", (tmp = biffGet("harold")));
   free(tmp);
-  */
+
   biffAdd("axis", "the first error axis");
   biffAdd("axis", "the second error axis");
   biffAdd("axis", "the third error axis");
@@ -63,6 +62,17 @@ main() {
   printf("%s\n", (tmp = biffGet("axis")));
   free(tmp);
   biffDone("axis");
+
+  biffAddf("test", "%s: this is a test of biffAddf %d %f", "me", 1, 2.0);
+  printf("%s\n", (tmp = biffGet("test")));
+  free(tmp);
+  biffDone("test");
+
+  biffAddf("test2", "%s: this is a test of biffAddf %d %f", "me", 1, 2.0);
+  biffMovef("test3", "test2", "%s: testing biffMove %d.", "me", 69);
+  printf("%s\n", (tmp = biffGet("test3")));
+  free(tmp);
+  biffDone("test3");
 
   exit(0);
 }
