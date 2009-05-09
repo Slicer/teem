@@ -374,6 +374,11 @@ biffGet(const char *key) {
     /* error: not a key we remember seeing */
     fprintf(stderr, "%s: WARNING: no information for key \"%s\"\n", me, key);
     ret = (char*)calloc(BIFF_STRLEN, sizeof(char));
+    if (!ret)
+    {
+      fprintf(stderr, "%s: PANIC: unable to allocate buffers\n", me);
+      exit(1);
+    }
     snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
     return ret;
   }
