@@ -52,14 +52,20 @@ extern "C" {
                                the null termination) */
 
 BIFF_EXPORT void biffAdd(const char *key, const char *err);
-BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...);
 BIFF_EXPORT void biffMaybeAdd(const char *key, const char *err, int useBiff);
 BIFF_EXPORT int biffCheck(const char *key);
 BIFF_EXPORT void biffDone(const char *key);
 BIFF_EXPORT void biffMove(const char *destKey, const char *err,
                           const char *srcKey);
+#ifdef __GNUC__
+BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...) __attribute__ ((format(printf,2,3)));
+BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
+                           const char *errfmt, ...) __attribute__ ((format(printf,3,4)));
+#else
+BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...);
 BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
                            const char *errfmt, ...);
+#endif
 BIFF_EXPORT char *biffGet(const char *key);
 BIFF_EXPORT int biffGetStrlen(const char *key);
 BIFF_EXPORT void biffSetStr(char *str, const char *key);
