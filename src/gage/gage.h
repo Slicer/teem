@@ -541,8 +541,8 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 
 /* extents of known information about optimal sigma samples for 
    Hermite-spline-based scale-space reconstruction */
-#define GAGE_OPTIMSIG_SIGMA_MAX 20
-#define GAGE_OPTIMSIG_SAMPLES_MAXNUM 10
+#define GAGE_OPTIMSIG_SIGMA_MAX 11
+#define GAGE_OPTIMSIG_SAMPLES_MAXNUM 11
 
 /*
 ******** gageContext struct
@@ -770,7 +770,9 @@ typedef struct {
   unsigned int sampleNum;      /* how many scale samples to optimize */
   int volMeasr,                /* how to measure error at each reconstructed
                                   scale (interpolated volume) */
-    lineMeasr;                 /* how to summarize errors across all scales */
+    lineMeasr,                 /* how to summarize errors across all scales */
+    plotting,                  /* we're plotting, not optimizing */
+    tentRecon;                 /* for plotting: use tent instead of hermite */
   unsigned int maxIter;        /* allowed iterations in optimization */
   double convEps;              /* convergence threshold */
 
@@ -917,6 +919,9 @@ GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigParm *parm,
                                       double *scalePos, unsigned int num,
                                       int volMeasr, int lineMeasr,
                                       double convEps, unsigned int maxIter);
+GAGE_EXPORT int gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
+                                 const double *plotpos, unsigned int plotPosNum,
+                                 int volMeasr, int tentRecon);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);
