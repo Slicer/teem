@@ -576,6 +576,9 @@ extern "C" {
 #define ELL_4V_GET(a, b, c, d, v) \
   ((a) = (v)[0], (b) = (v)[1], (c) = (v)[2], (d) = (v)[3])
 
+#define ELL_4V_EQUAL(a, b) \
+  ((a)[0]==(b)[0] && (a)[1]==(b)[1] && (a)[2]==(b)[2] && (a)[3]==(b)[3])
+
 #define ELL_4V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0],       \
    (v2)[1] = (v1)[1],       \
