@@ -247,6 +247,17 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
                      nrrdCenterCell, nrrdCenterCell);
   shape = gageShapeNew();
   airMopAdd(mop, shape, (airMopper)gageShapeNix, airMopAlways);
+  /* this is a weird mix of new and legacy code.  At some point
+     prior to Wed May 27 19:23:55 CDT 2009, it was okay to pass
+     in a volume to gageShapeSet that had absolutely no notion
+     of spacing or orientation.  Then gageShapeSet was used to
+     get a plausible set of space directions and space origin.
+     Now, we're setting some spacings, so that gageShapeSet can
+     do its thing, then (below) nan-ing out those spacings so
+     that the nrrd is self-consistent */
+  nout->axis[1].spacing = 1.0;
+  nout->axis[2].spacing = 1.0;
+  nout->axis[3].spacing = 1.0;
   if (gageShapeSet(shape, nout, tenGageKind->baseDim)) {
     airMopAdd(mop, err=biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing shape:\n%s\n", me, err);
@@ -263,6 +274,9 @@ tend_satinMain(int argc, char **argv, char *me, hestParm *hparm) {
   nrrdSpaceOriginSet(nout, orig);
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoSpaceDirection,
                      spd[0], spd[1], spd[2], spd[3]);
+  nout->axis[1].spacing = AIR_NAN;
+  nout->axis[2].spacing = AIR_NAN;
+  nout->axis[3].spacing = AIR_NAN;
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoKind,
                      nrrdKind3DMaskedSymMatrix, nrrdKindSpace,
                      nrrdKindSpace, nrrdKindSpace);
