@@ -581,7 +581,6 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-
   return 0;
 }
 

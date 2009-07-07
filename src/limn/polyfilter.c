@@ -76,12 +76,12 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   mop = airMopNew();
   cost = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
   sint = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
-  if (!(cost && sint)) {
-    biffAddf(LIMN, "%s: couldn't allocate lookup tables", me);
-    return 1;
-  }
   airMopAdd(mop, cost, airFree, airMopAlways);
   airMopAdd(mop, sint, airFree, airMopAlways);
+  if (!(cost && sint)) {
+    biffAddf(LIMN, "%s: couldn't allocate lookup tables", me);
+    airMopError(mop); return 1;
+  }
   for (pi=0; pi<tubeFacet; pi++) {
     double angle;
     angle = AIR_AFFINE(0, pi, tubeFacet, 0, 2*AIR_PI);
@@ -278,5 +278,6 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
     }
   }
 
+  airMopOkay(mop);
   return 0;
 }
