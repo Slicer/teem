@@ -118,7 +118,9 @@ airEnumVal(const airEnum *enm, const char *str) {
   }
 
   if (enm->strEqv) {
-    for (ii=0; airStrlen(enm->strEqv[ii]); ii++) {
+    /* want strlen and not airStrlen here because the strEqv array
+       should be terminated by a non-null empty string */
+    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
       strncpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
       test[AIR_STRLEN_SMALL-1] = '\0';
       if (!enm->sense) {
