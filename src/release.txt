@@ -25,6 +25,8 @@ cp src/CHANGES.txt ~/teemdoc/html/tree/src/
 cp src/TODO.txt ~/teemdoc/html/tree/src/
 cp src/LICENSE.txt ~/teemdoc/html/tree/src/
 (cd ~/teemdoc; cvs commit -m "pre-release text file update")
+sftp kindlmann,teem@web.sourceforge.net
+is one way of putting files onto the web server
 
 1) Check namespace safety
   a) Make sure all library symbols are properly prefixed.  On linux,
