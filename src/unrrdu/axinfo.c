@@ -32,9 +32,9 @@ char *_unrrdu_axinfoInfoL =
 int
 unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label, *units, *centerStr;
+  char *out, *err, *label, *units, *centerStr, *kindStr;
   Nrrd *nin, *nout;
-  int pret, center;
+  int pret, center, kind;
   unsigned int axis;
   double mm[2], spc;
   airArray *mop;
@@ -64,6 +64,9 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "c,center", "center", airTypeString, 1, 1, &centerStr, "",
              "axis centering: \"cell\" or \"node\".  Not using this option "
              "leaves the centering as it is on input");
+  hestOptAdd(&opt, "k,kind", "kind", airTypeString, 1, 1, &kindStr, "",
+             "axis kind. Not using this option "
+             "leaves the kind as it is on input");
 
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
@@ -120,6 +123,15 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
       return 1;
     }
     nout->axis[axis].center = center;
+  }
+  if (airStrlen(kindStr)) {
+    if (!(kind = airEnumVal(nrrdKind, kindStr))) {
+      fprintf(stderr, "%s: couldn't parse \"%s\" as %s", me,
+              kindStr, nrrdKind->name);
+      airMopError(mop);
+      return 1;
+    }
+    nout->axis[axis].kind = kind;
   }
 
   SAVE(out, nout, NULL);
