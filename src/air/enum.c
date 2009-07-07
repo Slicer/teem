@@ -118,7 +118,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   }
 
   if (enm->strEqv) {
-    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
+    for (ii=0; airStrlen(enm->strEqv[ii]); ii++) {
       strncpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
       test[AIR_STRLEN_SMALL-1] = '\0';
       if (!enm->sense) {
@@ -178,15 +178,15 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
   }
   _ident = airEnumStr(enm, val);
   if (!canon && enm->strEqv) {
-    len = strlen(_ident);
-    for (i=0; strlen(enm->strEqv[i]); i++) {
+    len = airStrlen(_ident);
+    for (i=0; airStrlen(enm->strEqv[i]); i++) {
       if (val != enm->valEqv[i]) {
         /* this isn't a string representing the value we care about */
         continue;
       }
-      if (strlen(enm->strEqv[i]) < len) {
+      if (airStrlen(enm->strEqv[i]) < len) {
         /* this one is shorter */
-        len = strlen(enm->strEqv[i]);
+        len = airStrlen(enm->strEqv[i]);
         _ident = enm->strEqv[i];
       }
     }
@@ -197,7 +197,8 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
     airToLower(ident);
   }
   desc = enm->desc[_airEnumIndex(enm, val)];
-  buff = (char *)calloc(strlen(fmt) + strlen(ident) + strlen(desc) + 1,
+  buff = (char *)calloc(airStrlen(fmt) + airStrlen(ident) +
+                        airStrlen(desc) + 1,
                         sizeof(char));
   if (buff) {
     sprintf(buff, fmt, ident, desc);
