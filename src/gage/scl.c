@@ -244,7 +244,8 @@ _gageSclStrEqv[] = {
   "med", "median",
   "hvalley", "hessvalley",
   "hridge", "hessridge",
-  "hmode", "hessmode"
+  "hmode", "hessmode",
+  ""
 };
 
 const int
