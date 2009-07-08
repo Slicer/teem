@@ -227,9 +227,17 @@ main(int argc, char *argv[]) {
   muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
   muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
   muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
-  muu->hctx->volSpacing[0] = nin->axis[baseDim+0].spacing;
-  muu->hctx->volSpacing[1] = nin->axis[baseDim+1].spacing;
-  muu->hctx->volSpacing[2] = nin->axis[baseDim+2].spacing;
+
+  if ( airIsNaN ( nin->axis[baseDim+0].spacing ) ) {
+      // Assume we set the space vector appropriately
+      muu->hctx->volSpacing[0] = ELL_3V_LEN ( nin->axis[baseDim+0].spaceDirection );
+      muu->hctx->volSpacing[1] = ELL_3V_LEN ( nin->axis[baseDim+1].spaceDirection );
+      muu->hctx->volSpacing[2] = ELL_3V_LEN ( nin->axis[baseDim+2].spaceDirection );
+    } else {
+      muu->hctx->volSpacing[0] = nin->axis[baseDim+0].spacing;
+      muu->hctx->volSpacing[1] = nin->axis[baseDim+1].spacing;
+      muu->hctx->volSpacing[2] = nin->axis[baseDim+2].spacing;
+    }
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
