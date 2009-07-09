@@ -41,6 +41,7 @@ main(int argc, char *argv[]) {
   int E, Ecode, Ethread;
   float ads[3], isScale;
   double turn, eye[3], eyedist, gmc;
+  double v[NRRD_SPACE_DIM_MAX];
   Nrrd *nin;
   
   me = argv[0];
@@ -228,16 +229,10 @@ main(int argc, char *argv[]) {
   muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
   muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
 
-  if ( airIsNaN ( nin->axis[baseDim+0].spacing ) ) {
-      // Assume we set the space vector appropriately
-      muu->hctx->volSpacing[0] = ELL_3V_LEN ( nin->axis[baseDim+0].spaceDirection );
-      muu->hctx->volSpacing[1] = ELL_3V_LEN ( nin->axis[baseDim+1].spaceDirection );
-      muu->hctx->volSpacing[2] = ELL_3V_LEN ( nin->axis[baseDim+2].spaceDirection );
-    } else {
-      muu->hctx->volSpacing[0] = nin->axis[baseDim+0].spacing;
-      muu->hctx->volSpacing[1] = nin->axis[baseDim+1].spacing;
-      muu->hctx->volSpacing[2] = nin->axis[baseDim+2].spacing;
-    }
+  /* Get the proper spacing from the NRRD volume */
+  nrrdSpacingCalculate ( nin, baseDim+0, &(muu->hctx->volSpacing[0]), v );
+  nrrdSpacingCalculate ( nin, baseDim+1, &(muu->hctx->volSpacing[1]), v );
+  nrrdSpacingCalculate ( nin, baseDim+2, &(muu->hctx->volSpacing[2]), v );
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
