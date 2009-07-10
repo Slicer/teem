@@ -379,7 +379,11 @@ biffGet(const char *key) {
       fprintf(stderr, "%s: PANIC: unable to allocate buffers\n", me);
       exit(1);
     }
-    snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+#if defined(WIN32) || defined(_WIN32)
+    _snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+#else
+	snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+#endif
     return ret;
   }
 
