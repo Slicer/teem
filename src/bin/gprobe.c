@@ -198,11 +198,14 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     }
     ELL_4V_COPY(pos, grid + 1 + 5*0);
     for (aidx=0; aidx<gridDim; aidx++) {
-      ELL_4V_SCALE_ADD2(pos, 1, pos, coordOut[aidx], grid + 1 + 5*(1+aidx));
+      ELL_4V_SCALE_ADD2(pos, 1, pos,
+                        coordOut[aidx + baseDim], grid + 1 + 5*(1+aidx));
     }
     /*
-    printf("%s: %u -> %g %g %g %g (%s)\n", me,
+    printf("%s: %u -> (%u %u) -> %g %g %g %g (%s)\n", me,
            AIR_CAST(unsigned int, II),
+           AIR_CAST(unsigned int, coordOut[0+baseDim]),
+           AIR_CAST(unsigned int, coordOut[1+baseDim]),
            pos[0], pos[1], pos[2], pos[3],
            indexSpace ? "index" : "world");
     */
