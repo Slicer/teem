@@ -108,11 +108,10 @@ main(int argc, char *argv[]) {
     orientationFromSpacing;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
-  Nrrd *nin, *_npos, *npos, *nout, **ninSS=NULL;
+  Nrrd *nin, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN, *scalePos,
-    pntIdxPos[3];
+  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN, *scalePos;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
@@ -167,15 +166,6 @@ main(int argc, char *argv[]) {
              "1.0 1.0 1.0",
              "scaling factor for resampling on each axis "
              "(>1.0 : supersampling)");
-  hestOptAdd(&hopt, "pi", "nrrd", airTypeOther, 1, 1, &_npos, "",
-             "overrides normal behavior of probing input at a volume "
-             "of points, and instead probes at this list of 3-vec or "
-             "4-vec positions in index space", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "pp", "pos", airTypeDouble, 3, 3, pntIdxPos,
-             "nan nan nan",
-             "over-rides both \"-pi\" and normal sampling, and only sample "
-             "at this specified point in index space.  May still need to "
-             "use \"-ssw\" for stack position");
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
              NULL, NULL, nrrdHestKernelSpec);
@@ -324,7 +314,7 @@ main(int argc, char *argv[]) {
         airMopError(mop); return 1;
       }
       if (gageStackBlur(ninSS, scalePos, numSS, AIR_TRUE,
-                        nin, kind->baseDim, kSSblur, 
+                        nin, kind, kSSblur, 
                         nrrdBoundaryBleed, AIR_TRUE,
                         verbose)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -334,7 +324,7 @@ main(int argc, char *argv[]) {
       }
     } else {
       if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE,
-                        nin, kind->baseDim, kSSblur, 
+                        nin, kind, kSSblur, 
                         nrrdBoundaryBleed, AIR_TRUE,
                         verbose)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -443,55 +433,6 @@ main(int argc, char *argv[]) {
             2*ctx->radius);
     fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
             rscl[0], rscl[1], rscl[2]);
-  }
-  if (_npos) {
-    double *pos;
-    size_t II, NN;
-    if (!(2 == _npos->dim
-          && (3 == _npos->axis[0].size || 4 == _npos->axis[0].size))) {
-      fprintf(stderr, "%s: need npos 2-D 3-by-N or 4-by-N "
-              "(not %u-D %u-by-N)\n", me, _npos->dim,
-              AIR_CAST(unsigned int, _npos->axis[0].size));
-      airMopError(mop); return 1;
-    }
-    if ((numSS && 3 == _npos->axis[0].size) 
-        || (!numSS && 4 == _npos->axis[0].size)) {
-      fprintf(stderr, "%s: have %u point coords but %s using scale-space", 
-              me, AIR_CAST(unsigned int, _npos->axis[0].size),
-              numSS ? "are" : "are not");
-      airMopError(mop); return 1;
-    }
-    npos = nrrdNew();
-    airMopAdd(mop, npos, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
-    if (nrrdConvert(npos, _npos, nrrdTypeDouble)) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble converting npos:\n%s\n", me, err);
-      airMopError(mop); return 1;
-    }
-    pos = AIR_CAST(double *, npos->data);
-    NN = _npos->axis[1].size;
-    for (II=0; II<NN; II++) {
-      
-    }
-    /* we're done, get out of here */
-    airMopOkay(mop);
-    exit(0);
-  } else if (ELL_3V_EXISTS(pntIdxPos)) {
-    if (numSS
-        ? gageStackProbe(ctx, pntIdxPos[0], pntIdxPos[1], pntIdxPos[2], idxSS)
-        : gageProbe(ctx, pntIdxPos[0], pntIdxPos[1], pntIdxPos[2])) {
-      fprintf(stderr, "%s: trouble probing: (errNum %d) %s\n", me,
-              ctx->errNum, ctx->errStr);
-      airMopError(mop);
-      return 1;
-    }
-    printf("%s: %s(%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
-           pntIdxPos[0], pntIdxPos[1], pntIdxPos[2]);
-    printans(stdout, answer, ansLen);
-    printf("\n");
-    /* we're done, get out of here */
-    airMopOkay(mop);
-    return 0;
   }
   /* else, normal volume probing */
   if (ansLen > 1) {
