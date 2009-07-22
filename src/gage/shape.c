@@ -104,7 +104,20 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   const NrrdAxisInfo *ax[3];
   double vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
-
+  
+  /*
+  fprintf(stderr, "!%s: ctx = %p (%s, %s)\n", me, ctx,
+          (ctx 
+           ? (ctx->shape->fromOrientation
+              ? "YES from orient"
+              : "not from orient")
+           : "???"),
+          (ctx 
+           ? (ctx->parm.orientationFromSpacing
+              ? "YES ofs"
+              : "not ofs")
+           : "???"));
+  */
   /* ------ basic error checking */
   if (!( shape && nin )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -305,6 +318,16 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
            spcCalc[1], vecCalc[1][0], vecCalc[1][1], vecCalc[1][2]);
     printf("%s: %g (%g,%g,%g)\n", me,
            spcCalc[2], vecCalc[2][0], vecCalc[2][1], vecCalc[2][2]);
+    */
+    /*
+    fprintf(stderr, "%s: ItoW = %g %g %g %g\n", me,
+           shape->ItoW[ 0], shape->ItoW[ 1], shape->ItoW[ 2], shape->ItoW[ 3]);
+    fprintf(stderr, "%s:        %g %g %g %g\n", me,
+           shape->ItoW[ 4], shape->ItoW[ 5], shape->ItoW[ 6], shape->ItoW[ 7]);
+    fprintf(stderr, "%s:        %g %g %g %g\n", me,
+           shape->ItoW[ 8], shape->ItoW[ 9], shape->ItoW[10], shape->ItoW[11]);
+    fprintf(stderr, "%s:        %g %g %g %g\n", me,
+           shape->ItoW[12], shape->ItoW[13], shape->ItoW[14], shape->ItoW[15]);
     */
   } else {
     double maxLen, volHalfLen[3];

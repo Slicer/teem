@@ -81,7 +81,7 @@ gageTauOfSig(double sig) {
 int
 gageStackBlur(Nrrd *const nblur[], const double *scale,
               unsigned int blnum, int checkPreblurredOutput,
-              const Nrrd *nin, unsigned int baseDim,
+              const Nrrd *nin, const gageKind *kind,
               const NrrdKernelSpec *_kspec,
               int boundary, int renormalize, int verbose) {
   static const char me[]="gageStackBlur";
@@ -89,6 +89,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   char val[3][AIR_STRLEN_LARGE] = {"true", "" /* below */, "" /* below */};
   unsigned int blidx, axi;
   size_t sizeIn[NRRD_DIM_MAX], sizeOut[NRRD_DIM_MAX];
+  gageShape *shapeOld, *shapeNew;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *kspec;
   airArray *mop;
@@ -121,9 +122,9 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
       return 1;
     }
   }
-  if (3 + baseDim != nin->dim) {
+  if (3 + kind->baseDim != nin->dim) {
     biffAddf(GAGE, "%s: need nin->dim %u (not %u) with baseDim %u", me,
-             3 + baseDim, nin->dim, baseDim);
+             3 + kind->baseDim, nin->dim, kind->baseDim);
     return 1;
   }
   if (airEnumValCheck(nrrdBoundary, boundary)) {
@@ -148,16 +149,16 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   if (!checkPreblurredOutput) {
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
     if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
-    if (baseDim) {
+    if (kind->baseDim) {
       unsigned int bai;
-      for (bai=0; bai<baseDim; bai++) {
+      for (bai=0; bai<kind->baseDim; bai++) {
         if (!E) E |= nrrdResampleKernelSet(rsmc, bai, NULL, NULL);
       }
     }
     for (axi=0; axi<3; axi++) {
-      if (!E) E |= nrrdResampleSamplesSet(rsmc, baseDim + axi,
-                                          nin->axis[baseDim + axi].size);
-      if (!E) E |= nrrdResampleRangeFullSet(rsmc, baseDim + axi);
+      if (!E) E |= nrrdResampleSamplesSet(rsmc, kind->baseDim + axi,
+                                          nin->axis[kind->baseDim + axi].size);
+      if (!E) E |= nrrdResampleRangeFullSet(rsmc, kind->baseDim + axi);
     }
     if (!E) E |= nrrdResampleBoundarySet(rsmc, boundary);
     if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
@@ -166,13 +167,23 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
       biffAddf(GAGE, "%s: trouble setting up resampling", me);
       airMopError(mop); return 1;
     }
+    shapeOld = shapeNew = NULL;
+  } else {
+    shapeNew = gageShapeNew();
+    airMopAdd(mop, shapeNew, (airMopper)gageShapeNix, airMopAlways);
+    if (gageShapeSet(shapeNew, nin, kind->baseDim)) {
+      biffAddf(GAGE, "%s: trouble setting up reference shape", me);
+      airMopError(mop); return 1;
+    }
+    shapeOld = gageShapeNew();
+    airMopAdd(mop, shapeOld, (airMopper)gageShapeNix, airMopAlways);
   }
   for (blidx=0; blidx<blnum; blidx++) {
     unsigned int kvpIdx;
     kspec->parm[0] = scale[blidx];
     if (!checkPreblurredOutput) {
       for (axi=0; axi<3; axi++) {
-        if (!E) E |= nrrdResampleKernelSet(rsmc, baseDim + axi,
+        if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
                                            kspec->kernel, kspec->parm);
       }
       if (verbose) {
@@ -192,6 +203,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
     } else {
       /* check to see if nblur[blidx] is as expected */
       unsigned int axi;
+      gageShape *shape0, *shape1;
       if (nrrdCheck(nblur[blidx])) {
         biffMovef(GAGE, NRRD, "%s: basic problem with nblur[%u]", me, blidx);
         airMopError(mop); return 1;
@@ -201,6 +213,18 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
                  blidx, nblur[blidx]->dim, nin->dim);
         airMopError(mop); return 1;
       }
+      if (gageShapeSet(shapeOld, nblur[blidx], kind->baseDim)) {
+        /* oops- this isn't a report of how the shape is different;
+           its an actual error; hopefully other things would go 
+           wrong at this point ... */
+        biffAddf(GAGE, "%s: trouble setting up shape %u", me, blidx);
+        airMopError(mop); return 1;
+      }
+      if (!gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
+        biffAddf(GAGE, "%s: nblur[%u] shape != nin shape", me, blidx);
+        airMopError(mop); return 1;
+      }
+      /*
       nrrdAxisInfoGet_nva(nblur[blidx], nrrdAxisInfoSize, sizeOut);
       for (axi=0; axi<nin->dim; axi++) {
         if (sizeIn[axi] != sizeOut[axi]) {
@@ -210,6 +234,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
           airMopError(mop); return 1;
         }
       }
+      */
     }
     /* fill out the 2nd and 3rd values for the KVPs */
     sprintf(val[1], "%g", scale[blidx]);
@@ -578,4 +603,164 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
     swrl = AIR_NAN;
   }
   return swrl;
+}
+
+/*
+******** gageStackVolumeGet
+**
+** will try to load pre-blurred volumes, or will recompute them
+** as needed
+**
+** with respect to biff usage, this is an unusual function, because
+** it is very rare for biffGetDone() to be called inside a Teem library 
+*/
+int
+gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP, int *recomputedP,
+                   unsigned int numSS, const double rangeSS[2],
+                   int uniformSS, int optimSS,
+                   const char *formatSS, unsigned int numStart,
+                   const Nrrd *nin, const gageKind *kind,
+                   const NrrdKernelSpec *kSSblur, int verbose) {
+  char me[]="gageStackVolumeGet", *suberr;
+  char *fname;
+  FILE *file;
+  unsigned int ssi;
+  airArray *mop;
+  int firstExists, recompute;
+  double *scalePos;
+  Nrrd **ninSS;
+
+  if (!(ninSSP && scalePosP && recomputedP)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+
+  /* allocate ninSS and scalePos */
+  *ninSSP = NULL;
+  *scalePosP = NULL;
+  scalePos = AIR_CAST(double *, calloc(numSS, sizeof(double)));
+  airMopAdd(mop, scalePos, airFree, airMopOnError);
+  ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
+  airMopAdd(mop, ninSS, airFree, airMopOnError);
+  if (!(scalePos && ninSS)) {
+    biffAddf(GAGE, "%s: couldn't alloc %u doubles,Nrrd*s", me, numSS);
+    return 1;
+  }
+  *ninSSP = ninSS;
+  *scalePosP = scalePos;
+
+  /* set scalePos */
+  if (uniformSS) {
+    for (ssi=0; ssi<numSS; ssi++) {
+      scalePos[ssi] = AIR_AFFINE(0, ssi, numSS-1, rangeSS[0], rangeSS[1]);
+    }
+  } else {
+    if (optimSS
+        && 0 == rangeSS[0]
+        && rangeSS[1] == AIR_CAST(unsigned int, rangeSS[1])
+        && numSS <= GAGE_OPTIMSIG_SAMPLES_MAXNUM
+        && rangeSS[1] <= GAGE_OPTIMSIG_SIGMA_MAX) {
+      if (gageOptimSigSet(scalePos, numSS, rangeSS[1])) {
+        biffAddf(GAGE, "%s: trouble w/ optimal sigmas", me);
+        airMopError(mop); return 1;
+      }
+    } else {
+      double tau0, tau1, tau;
+      tau0 = gageTauOfSig(rangeSS[0]);
+      tau1 = gageTauOfSig(rangeSS[1]);
+      for (ssi=0; ssi<numSS; ssi++) {
+        tau = AIR_AFFINE(0, ssi, numSS-1, tau0, tau1);
+        scalePos[ssi] = gageSigOfTau(tau);
+      }
+    }
+  }
+  for (ssi=0; ssi<numSS; ssi++) {
+    ninSS[ssi] = nrrdNew();
+  }
+
+  /* set recompute flag */
+  if (!airStrlen(formatSS)) {
+    /* no info about files to load, obviously have to recompute */
+    if (verbose) {
+      printf("%s: no file info, must compute blurrings\n", me);
+    }
+    recompute = AIR_TRUE;
+  } else {
+    /* do have info about files to load, but may fail in many ways */
+    fname = AIR_CAST(char *, calloc(strlen(formatSS) + AIR_STRLEN_SMALL, 
+                                    sizeof(char)));
+    if (!fname) {
+      biffAddf(GAGE, "%s: couldn't allocate fname", me);
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, fname, airFree, airMopAlways);
+    /* see if we can get the first file */
+    sprintf(fname, formatSS, 0);
+    firstExists = !!(file = fopen(fname, "r"));
+    airFclose(file);
+    if (!firstExists) {
+      if (verbose) {
+        printf("%s: no file \"%s\"; will recompute blurrings\n", me, fname);
+      }
+      recompute = AIR_TRUE;
+    } else if (nrrdLoadMulti(ninSS, numSS, formatSS, numStart, NULL)) {
+      airMopAdd(mop, suberr = biffGetDone(NRRD), airFree, airMopAlways);
+      if (verbose) {
+        printf("%s: will recompute blurrings that couldn't be "
+               "read:\n%s\n", me, suberr);
+      }
+      recompute = AIR_TRUE;
+    } else if (gageStackBlur(ninSS, scalePos, numSS,
+                             AIR_TRUE /* do just check */,
+                             nin, kind, kSSblur, 
+                             nrrdBoundaryBleed, AIR_TRUE /* do renorm */,
+                             verbose)) {
+      airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
+      if (verbose) {
+        printf("%s: will recompute blurrings that didn't match:\n%s\n",
+               me, suberr);
+      }
+      recompute = AIR_TRUE;
+    } else {
+      /* else precomputed blurrings could all be read, and did match */
+      if (verbose) {
+        fprintf(stderr, "%s: will re-use %s pre-blurrings.\n", me, formatSS);
+      }
+      recompute = AIR_FALSE;
+    }
+  }
+  if (recompute) {
+    if (gageStackBlur(ninSS, scalePos, numSS,
+                      AIR_FALSE /* not check, recomputing */,
+                      nin, kind, kSSblur, 
+                      nrrdBoundaryBleed, AIR_TRUE /* do renorm */,
+                      verbose)) {
+      biffAddf(GAGE, "%s: trouble computing blurrings", me);
+      airMopError(mop); return 1;
+    }
+    /*
+    NrrdIoState *nio;
+    int E;
+    ... blur ...
+    E = 0;
+    if (nrrdEncodingGzip->available()) {
+      nio = nrrdIoStateNew();
+      airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
+      E = nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
+    } else {
+      nio = NULL;
+    }
+    if (!E) E |= nrrdSaveMulti(formatSS, AIR_CAST(const Nrrd *const *,
+                                                  vspec->ninSS),
+                               vspec->numSS, 0, nio);
+    if (E) {
+      sprintf(err, "%s: trouble saving pre-computed blurrings", me);
+      biffMove(PULL, err, NRRD); airMopError(mop); return 1;
+    }
+    */
+  }
+  airMopOkay(mop);
+  *recomputedP = recompute;
+  return 0;
 }

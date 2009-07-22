@@ -930,7 +930,7 @@ GAGE_EXPORT double gageSigOfTau(double tau);
 GAGE_EXPORT double gageTauOfSig(double sig);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], const double *scale,
                               unsigned int num, int checkPreblurredOutput,
-                              const Nrrd *nin, unsigned int baseDim,
+                              const Nrrd *nin, const gageKind *kind,
                               const NrrdKernelSpec *kspec,
                               int boundary, int renormalize, int verbose);
 GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
@@ -952,6 +952,13 @@ GAGE_EXPORT double gageStackWtoI(gageContext *ctx, double swrl,
                                  int *outside);
 GAGE_EXPORT double gageStackItoW(gageContext *ctx, double si,
                                  int *outside);
+GAGE_EXPORT int gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP,
+                                   int *recomputedP,
+                                   unsigned int numSS, const double rangeSS[2],
+                                   int uniformSS, int optimSS,
+                                   const char *formatSS, unsigned int numStart,
+                                   const Nrrd *nin, const gageKind *kind,
+                                   const NrrdKernelSpec *kSSblur, int verbose);
 
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();
