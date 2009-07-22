@@ -38,6 +38,7 @@ CREATE_EXEC(overrgb overrgb.c nrrd)
 CREATE_EXEC(mrender mrender.c "hoover;gage;ten")
 CREATE_EXEC(miter miter.c mite)
 CREATE_EXEC(vprobe vprobe.c ten)
+CREATE_EXEC(gprobe gprobe.c ten)
 CREATE_EXEC(unu unu.c unrrdu) 
 CREATE_EXEC(tend tend.c ten)
 
