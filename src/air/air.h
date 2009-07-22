@@ -836,6 +836,8 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 */
 #define AIR_ROUNDUP(x)   ((int)(floor((x)+0.5)))
 #define AIR_ROUNDDOWN(x) ((int)(ceil((x)-0.5)))
+#define AIR_ROUNDUP_UI(x)   ((unsigned int)(floor((x)+0.5)))
+#define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
 
 /*
 ******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV, 
