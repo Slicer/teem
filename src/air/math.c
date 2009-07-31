@@ -513,6 +513,23 @@ airLogBesselI0(double x) {
 }
 
 /*
+******** airLogRician
+**
+** natural logarithm of Rician distribution
+** tru is "true" underlying value
+** mes is measured value
+** sig is sigma of 2-D Gaussian
+*/
+double
+airLogRician(double tru, double mes, double sig) {
+  double lb, ss;
+  
+  ss = sig*sig;
+  lb = airLogBesselI0(mes*tru/ss);
+  return lb + log(mes/ss) - (mes*mes + tru*tru)/(2*ss);
+}
+
+/*
 ******** airBesselI1By0
 **
 ** the quotient airBesselI1(x)/airBesselI0(x)
@@ -595,7 +612,7 @@ airBesselIn(int nn, double xx) {
 }
 
 /*
-******** airBesselIn
+******** airBesselInExpScaled
 **
 ** modified Bessel function of the first kind, order n,
 ** scaled by exp(-abs(x))
