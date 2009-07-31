@@ -519,6 +519,7 @@ AIR_EXPORT double airBesselI0ExpScaled(double x);
 AIR_EXPORT double airBesselI1ExpScaled(double x);
 AIR_EXPORT double airLogBesselI0(double x);
 AIR_EXPORT double airLogRician(double mes, double tru, double sig);
+AIR_EXPORT double airRician(double mes, double tru, double sig);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
 AIR_EXPORT double airBesselInExpScaled(int n, double x);

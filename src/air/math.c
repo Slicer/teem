@@ -529,6 +529,11 @@ airLogRician(double mes, double tru, double sig) {
   return lb + log(mes/ss) - (mes*mes + tru*tru)/(2*ss);
 }
 
+double
+airRician(double mes, double tru, double sig) {
+  return exp(airLogRician(mes, tru, sig));
+}
+
 /*
 ******** airBesselI1By0
 **
