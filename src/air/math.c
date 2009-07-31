@@ -516,12 +516,12 @@ airLogBesselI0(double x) {
 ******** airLogRician
 **
 ** natural logarithm of Rician distribution
-** tru is "true" underlying value
 ** mes is measured value
+** tru is "true" underlying value
 ** sig is sigma of 2-D Gaussian
 */
 double
-airLogRician(double tru, double mes, double sig) {
+airLogRician(double mes, double tru, double sig) {
   double lb, ss;
   
   ss = sig*sig;
