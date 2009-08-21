@@ -33,7 +33,7 @@ rho(double r) {
 
 double
 genvolFunc(double x, double y, double z) {
-  double phi, Rbig, Rlit, sig0=0.3, sig1=0.04, a, b, ret;
+  double phi, Rbig, Rlit, sig0=0.17, sig1=0.04, a, b, ret;
 
   /* ridge surface is a Mobius aka Moebius strip */
   Rbig = sqrt(x*x + y*y);
