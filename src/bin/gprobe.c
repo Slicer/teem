@@ -191,7 +191,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
         fprintf(stderr, "z = ");
       }
       fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
-              coordOut[2], sizeOut[2]-1); fflush(stderr);
+              coordOut[2], sizeOut[2]); fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
       }
@@ -250,7 +250,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   int what, E=0, renorm, uniformSS, optimSS, verbose,
-    orientationFromSpacing, probeSpaceIndex;
+    orientationFromSpacing, probeSpaceIndex, normdSS;
   unsigned int iBaseDim, oBaseDim, axi, numSS, seed;
   const double *answer;
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
@@ -345,6 +345,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &optimSS, NULL,
              "if not using \"-ssu\", use pre-computed optimal "
              "sigmas when possible");
+  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
+             "normalize derivatives by scale");
   hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1,
              &stackFnameFormat, "",
              "printf-style format (including a \"%u\") for the "
@@ -475,7 +477,7 @@ main(int argc, char *argv[]) {
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    /* HEY: possible set gageParmStackNormalizeRecon ? */
+    gageParmSet(ctx, gageParmStackNormalizeDeriv, normdSS);
     if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
                                     calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
