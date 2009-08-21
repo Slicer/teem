@@ -208,6 +208,11 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
 **  0.0137642  1.7565432 -0.0062296
 **  0.0152975 -0.0062296  1.7700019
 ** (actually, this is prior to tenEigensolve's isotropic removal)
+**
+** HEY: tenEigensolve_d and tenEigensolve_f start by removing the
+** isotropic part of the tensor.  It may be that that smarts should
+** be migrated here, but GLK is uncertain how it would change the
+** handling of non-symmetric matrices.
 */
 int
 ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
