@@ -88,7 +88,7 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
   char key[3][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel"};
   char val[3][AIR_STRLEN_LARGE] = {"true", "" /* below */, "" /* below */};
   unsigned int blidx, axi;
-  size_t sizeIn[NRRD_DIM_MAX], sizeOut[NRRD_DIM_MAX];
+  size_t sizeIn[NRRD_DIM_MAX];
   gageShape *shapeOld, *shapeNew;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *kspec;
@@ -203,7 +203,6 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
     } else {
       /* check to see if nblur[blidx] is as expected */
       unsigned int axi;
-      gageShape *shape0, *shape1;
       if (nrrdCheck(nblur[blidx])) {
         biffMovef(GAGE, NRRD, "%s: basic problem with nblur[%u]", me, blidx);
         airMopError(mop); return 1;
@@ -661,7 +660,7 @@ gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP, int *recomputedP,
         && rangeSS[1] == AIR_CAST(unsigned int, rangeSS[1])
         && numSS <= GAGE_OPTIMSIG_SAMPLES_MAXNUM
         && rangeSS[1] <= GAGE_OPTIMSIG_SIGMA_MAX) {
-      if (gageOptimSigSet(scalePos, numSS, rangeSS[1])) {
+      if (gageOptimSigSet(scalePos, numSS, AIR_CAST(unsigned int, rangeSS[1]))) {
         biffAddf(GAGE, "%s: trouble w/ optimal sigmas", me);
         airMopError(mop); return 1;
       }
