@@ -202,7 +202,6 @@ gageStackBlur(Nrrd *const nblur[], const double *scale,
       }
     } else {
       /* check to see if nblur[blidx] is as expected */
-      unsigned int axi;
       if (nrrdCheck(nblur[blidx])) {
         biffMovef(GAGE, NRRD, "%s: basic problem with nblur[%u]", me, blidx);
         airMopError(mop); return 1;
