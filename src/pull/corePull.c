@@ -355,21 +355,35 @@ pullRun(pullContext *pctx) {
              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
-    if (pctx->popCntlPeriod
-	&& (pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
-	&& enrDecreaseAvg < pctx->energyDecreasePopCntlMin
-        && (pctx->alpha != 0 || !pctx->noPopCntlWithZeroAlpha)) {
-      if (pctx->verbose) {
-	printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
-	       me, enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
-      }
-      if (_pullIterate(pctx, pullProcessModeNeighLearn)
-          || _pullIterate(pctx, pullProcessModeAdding)
-          || _pullIterate(pctx, pullProcessModeNixing)) {
-	biffAddf(PULL, "%s: trouble with %s for pop cntl on iter %u", me,
-                 airEnumStr(pullProcessMode, pctx->task[0]->processMode),
-                 pctx->iter);
-	return 1;
+    if (pctx->popCntlPeriod) {
+      if ((pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
+          && enrDecreaseAvg < pctx->energyDecreasePopCntlMin
+          && (pctx->alpha != 0 || !pctx->noPopCntlWithZeroAlpha)) {
+        if (pctx->verbose) {
+          printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
+                 me, enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
+        }
+        if (_pullIterate(pctx, pullProcessModeNeighLearn)
+            || _pullIterate(pctx, pullProcessModeAdding)
+            || _pullIterate(pctx, pullProcessModeNixing)) {
+          biffAddf(PULL, "%s: trouble with %s for pop cntl on iter %u", me,
+                   airEnumStr(pullProcessMode, pctx->task[0]->processMode),
+                   pctx->iter);
+          return 1;
+        }
+      } else {
+        if (pctx->verbose > 2) {
+          printf("%s: ***** no pop cntl:\n", me);
+          printf("    iter=%u %% period=%u = %u != %u\n",
+                 pctx->iter, pctx->popCntlPeriod,
+                 pctx->iter % pctx->popCntlPeriod,
+                 pctx->popCntlPeriod - 1);
+          printf("    en dec avg = %g >= %g\n",
+                 enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
+          printf("    npcwza %s && alpha = %g\n",
+                 pctx->noPopCntlWithZeroAlpha ? "true" : "false",
+                 pctx->alpha);
+        }
       }
     }
     pctx->iter += 1;

@@ -75,9 +75,6 @@ extern "C" {
    points is larger than this */
 #define _PULL_PROGRESS_POINT_NUM_MIN 100
 
-/* way of reducing the number of periods printed in progress indication */
-#define _PULL_PROGRESS_BIN_MOD 40
-
 /* limit on number of times we allow random (non-ppv) seeding to fail */
 #define _PULL_RANDOM_SEED_TRY_MAX 2000
 

@@ -446,12 +446,11 @@ typedef struct pullContext_t {
                                       particle energy to increase, in the
                                       context of gradient descent */
 
-  int energyFromStrength,          /* (something of a hack) if non-zero,
-                                      strength is a particle-image energy
-                                      term that is minimized by motion along
-                                      scale, which in turn requires extra
-                                      probing to determine the strength
-                                      gradient along scale. */
+  int energyFromStrength,          /* if non-zero, strength is a particle-
+                                      image energy term that is minimized by
+                                      motion along scale, which in turn
+                                      requires extra probing to determine the
+                                      strength gradient along scale. */
     nixAtVolumeEdgeSpace,          /* if non-zero, nix points that got near
                                       enough to the volume edge that gage
                                       had to invent values for the kernel 
@@ -492,9 +491,13 @@ typedef struct pullContext_t {
                                       for enforcing each constraint */
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
-    ppvZRange[2];                  /* range of indices along Z to do seeding
+    ppvZRange[2],                  /* range of indices along Z to do seeding
                                       by pointPerVoxel, or, {0,0} to do the
                                       whole volume as normal */
+    progressBinMod;                /* progress indication by printing "."
+                                      is given when the bin index mod'd by
+                                      this is zero; higher numbers give
+                                      less feedback */
 
   int interType;                   /* from the pullInterType* enum */
   pullEnergySpec *energySpecR,     /* starting point for radial potential
@@ -506,9 +509,11 @@ typedef struct pullContext_t {
                                       pullInterTypeAdditive */
   double alpha,                    /* alpha = 0: only particle-image, 
                                       alpha = 1: only inter-particle */
-    beta,                          /* tuning parameter used for
-                                      pullInterAdditive */
-    gamma,                         /* energy from strength scaling factor */
+    beta,                          /* for tuning pullInterAdditive:
+                                      beta = 0: only spatial repulsion
+                                      beta = 1: only scale attraction */
+    gamma,                         /* when energyFromStrength is non-zero:
+                                      scaling factor on energy from strength */
     jitter;                        /* when using pointPerVoxel, how much to
                                       jitter the samples within the voxel;
                                       0: no jitter, 1: full jitter */
@@ -683,6 +688,8 @@ PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 PULL_EXPORT int pullStart(pullContext *pctx);
 PULL_EXPORT int pullRun(pullContext *pctx);
 PULL_EXPORT int pullFinish(pullContext *pctx);
+
+/* ccPull.c */
 PULL_EXPORT int pullCCFind(pullContext *pctx);
 PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas,
                               int measrInfo);

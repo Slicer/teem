@@ -77,6 +77,7 @@ pullContextNew(void) {
   pctx->snap = 0;
   pctx->ppvZRange[0] = 1;
   pctx->ppvZRange[1] = 0;
+  pctx->progressBinMod = 50;
   
   pctx->interType = pullInterTypeUnknown;
   pctx->energySpecR = pullEnergySpecNew();

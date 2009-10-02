@@ -902,7 +902,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     pullPoint *point;
     if (task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
-        && 0 == myBinIdx % _PULL_PROGRESS_BIN_MOD) {
+        && 0 == myBinIdx % task->pctx->progressBinMod) {
       printf("."); fflush(stdout);
     }
     point = myBin->point[myPointIdx];

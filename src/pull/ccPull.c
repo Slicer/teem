@@ -281,6 +281,7 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
     }
   } else {
     /* sorting by some blend of size and the measurement */
+    /* this may be a too-clever is dumb scenario; its impossible to debug */
     for (ii=0; ii<pctx->CCNum; ii++) {
       pair[ii].i = ii;
       pair[ii].d = size[ii];

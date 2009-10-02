@@ -825,7 +825,7 @@ _pullPointSetup(pullContext *pctx) {
     posData = AIR_CAST(double *, npos->data);
     if (pctx->pointNumInitial || pctx->pointPerVoxel) {
       printf("%s: with npos, overriding both pointNumInitial (%u) "
-             "and pointPerVoxel (%d)", me, pctx->pointNumInitial,
+             "and pointPerVoxel (%d)\n", me, pctx->pointNumInitial,
              pctx->pointPerVoxel);
     }
     pctx->pointNumInitial = 0;
