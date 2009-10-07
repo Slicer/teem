@@ -204,7 +204,17 @@ coilOutputGet(Nrrd *nout, coilContext *cctx) {
   }
   baseDim = (1 == cctx->kind->valLen ? 0 : 1);
   if (nrrdSlice(nout, cctx->nvol, baseDim, 0)
-      || nrrdAxisInfoCopy(nout, cctx->nin, NULL, NRRD_AXIS_INFO_NONE)) {
+      || nrrdAxisInfoCopy(nout, cctx->nin, NULL, NRRD_AXIS_INFO_NONE)
+      || nrrdBasicInfoCopy(nout, cctx->nin,
+                           NRRD_BASIC_INFO_DATA_BIT
+                           | NRRD_BASIC_INFO_TYPE_BIT
+                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | NRRD_BASIC_INFO_CONTENT_BIT
+                           | NRRD_BASIC_INFO_COMMENTS_BIT
+                           | (nrrdStateKeyValuePairsPropagate
+                              ? 0
+                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffMovef(COIL, NRRD, "%s: trouble getting output", me);
     return 1;
   }
