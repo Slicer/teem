@@ -1178,6 +1178,10 @@ NRRD_EXPORT int nrrdCheapMedian(Nrrd *nout, const Nrrd *nin,
 NRRD_EXPORT int nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
                                int typeOut, const int *axisDo,
                                double thresh, int insideHigher);
+NRRD_EXPORT int nrrdDistanceL2Biased(Nrrd *nout, const Nrrd *nin,
+                                     int typeOut, const int *axisDo,
+                                     double thresh, double bias,
+                                     int insideHigher);
 NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
                                      int typeOut, const int *axisDo,
                                      double thresh, int insideHigher);

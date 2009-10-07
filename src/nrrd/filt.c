@@ -619,24 +619,14 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
 }
 
 /*
-******** nrrdDistanceL2
-**
-** computes euclidean (L2) distance transform of input image, after
-** thresholding at "thresh". 
-**
-** NOTE: the output of this is slightly offset from what one might
-** expect; decreased by half of the average (over all axes) sample
-** spacing.  The reason for this is so that when the transform is
-** applied to the inverted image and negated, to create a full 
-** signed distance map, the transition from interior to exterior
-** distance values is smooth.  Without this trick, there is a 
-** small little plateau at the transition.
+** helper function for distance transforms, is called by things that want to do
+** specific kinds of transforms.
 */
 int
-nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
-               int typeOut, const int *axisDo,
-               double thresh, int insideHigher) {
-  static const char me[]="nrrdDistanceL2";
+_distanceBase(Nrrd *nout, const Nrrd *nin,
+              int typeOut, const int *axisDo,
+              double thresh, double bias, int insideHigher) {
+  static const char me[]="_distanceBase";
   size_t ii, nn; 
   double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
   double spcMean;
@@ -675,12 +665,14 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
 
   nn = nrrdElementNumber(nout);
   for (ii=0; ii<nn; ii++) {
-    double val;
+    double val, bb;
     val = lup(nout->data, ii);
     if (insideHigher) {
-      ins(nout->data, ii, val >= thresh ? 0 : FLT_MAX);
+      bb = bias*(val - thresh);
+      ins(nout->data, ii, val > thresh ? bb*bb : FLT_MAX);
     } else {
-      ins(nout->data, ii, val < thresh ? 0 : FLT_MAX);
+      bb = bias*(thresh - val);
+      ins(nout->data, ii, val <= thresh ? bb*bb : FLT_MAX);
     }
   }
 
@@ -692,9 +684,50 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
   for (ii=0; ii<nn; ii++) {
     double val;
     val = sqrt(lup(nout->data, ii));
+    /* here's where the distance is tweaked downwards by half a sample width */
     ins(nout->data, ii, AIR_MAX(0, val - spcMean/2));
   }
 
+  return 0;
+}
+
+/*
+******** nrrdDistanceL2
+**
+** computes euclidean (L2) distance transform of input image, after
+** thresholding at "thresh". 
+**
+** NOTE: the output of this is slightly offset from what one might
+** expect; decreased by half of the average (over all axes) sample
+** spacing.  The reason for this is so that when the transform is
+** applied to the inverted image and negated, to create a full 
+** signed distance map, the transition from interior to exterior
+** distance values is smooth.  Without this trick, there is a 
+** small little plateau at the transition.
+*/
+int
+nrrdDistanceL2(Nrrd *nout, const Nrrd *nin,
+               int typeOut, const int *axisDo,
+               double thresh, int insideHigher) {
+  static const char me[]="nrrdDistanceL2";
+
+  if (_distanceBase(nout, nin, typeOut, axisDo, thresh, 0, insideHigher)) {
+    biffAddf(NRRD, "%s: trouble doing distance transform", me);
+    return 1;
+  }
+  return 0;
+}
+
+int
+nrrdDistanceL2Biased(Nrrd *nout, const Nrrd *nin,
+                     int typeOut, const int *axisDo,
+                     double thresh, double bias, int insideHigher) {
+  static const char me[]="nrrdDistanceL2Biased";
+
+  if (_distanceBase(nout, nin, typeOut, axisDo, thresh, bias, insideHigher)) {
+    biffAddf(NRRD, "%s: trouble doing distance transform", me);
+    return 1;
+  }
   return 0;
 }
 
@@ -726,4 +759,3 @@ nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
   airMopOkay(mop);
   return 0;
 }
-
