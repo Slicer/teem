@@ -42,11 +42,14 @@ unrrdu_distMain(int argc, char **argv, char *me, hestParm *hparm) {
   int pret;
 
   int E, typeOut, invert, sign;
-  double thresh;
+  double thresh, bias;
   airArray *mop;
 
   hestOptAdd(&opt, "th,thresh", "val", airTypeDouble, 1, 1, &thresh, NULL,
              "threshold value to separate inside from outside");
+  hestOptAdd(&opt, "b,bias", "val", airTypeDouble, 1, 1, &bias, "0.0",
+             "if non-zero, bias the distance transform by this amount "
+             "times the difference in value from the threshold");
   hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &typeOut, "float",
              "type to save output in", NULL, nrrdType);
   hestOptAdd(&opt, "sgn", NULL, airTypeInt, 0, 0, &sign, NULL,
@@ -69,10 +72,21 @@ unrrdu_distMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  if (bias && sign) {
+    fprintf(stderr, "%s: sorry, signed and biased transform not "
+            "yet implemented\n", me);
+    airMopError(mop);
+    return 1;
+  }
+
   if (sign) {
     E = nrrdDistanceL2Signed(nout, nin, typeOut, NULL, thresh, !invert);
   } else {
-    E = nrrdDistanceL2(nout, nin, typeOut, NULL, thresh, !invert);
+    if (bias) {
+      E = nrrdDistanceL2Biased(nout, nin, typeOut, NULL, thresh, bias, !invert);
+    } else {
+      E = nrrdDistanceL2(nout, nin, typeOut, NULL, thresh, !invert);
+    }
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
