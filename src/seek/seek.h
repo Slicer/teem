@@ -65,9 +65,13 @@ enum {
   seekTypeValleyLine,     /* 5: */
   seekTypeMinimalSurface, /* 6: */
   seekTypeMaximalSurface, /* 7: */
+  seekTypeRidgeSurfaceOP, /* 8: ridge surface, using outer product rule */
+  seekTypeRidgeSurfaceT,  /* 9: ridge surface, based on tensor T */
+  seekTypeValleySurfaceOP, /* 10: valley surface, using outer product rule */
+  seekTypeValleySurfaceT,  /* 11: valley surface, based on tensor T */
   seekTypeLast
 };
-#define SEEK_TYPE_MAX        7
+#define SEEK_TYPE_MAX        11
 
 typedef struct {
   /* ------- input ------- */
@@ -79,7 +83,7 @@ typedef struct {
   int sclvItem,
     gradItem, normItem,
     evalItem, evecItem,
-    stngItem;                   /* "stng" == strength */
+    stngItem, hessItem;         /* "stng" == strength */
   int lowerInside,              /* lower values are logically inside
                                    isosurfaces, not outside */
     normalsFind,                /* find normals for isosurface vertices, either
@@ -100,7 +104,7 @@ typedef struct {
   double isovalue,              /* for seekTypeIsocontour */
     strength,                   /* if strengthUse, feature needs to satisfy
                                    strengthAns*strengthSign > strength */
-    strengthMin;
+    evalDiffThresh;		/* threshold for eigenvalue difference */
   size_t samples[3];            /* user-requested dimensions of feature grid */
   double facesPerVoxel,         /* approximate; for pre-allocating geometry */
     vertsPerVoxel;              /* approximate; for pre-allocating geometry */
@@ -117,7 +121,7 @@ typedef struct {
   const double *sclvAns,
     *gradAns, *normAns,
     *evalAns, *evecAns,
-    *stngAns;
+    *stngAns, *hessAns;
   int reverse;                  /* for seekTypeIsocontour: need to reverse
                                    sign of scalar field normal to get the 
                                    "right" isocontour normal */
@@ -132,11 +136,13 @@ typedef struct {
   double txfIdx[16];            /* transforms from the index space of the 
                                    feature sampling grid to the index space
                                    of the underlying volume */
-  int *vidx;                    /* 5 * sx * sy array of vertex index
+  int *vidx,                    /* 15 * sx * sy array of vertex index
                                    offsets, to support re-using of vertices
                                    across voxels and slices. Yes, this means
                                    there is allocation for edges in the voxels
                                    beyond the positive X and Y edges */
+    *facevidx;			/* 4 * sx * sy array of vertex indices for
+				   degenerate points */
   double *sclv,                 /* 4 * (sx+2) * (sy+2) scalar value cache,
                                    with Z as fastest axis, and one sample
                                    of padding on all sides, as needed for
@@ -145,17 +151,45 @@ typedef struct {
                                    crease feature extraction; axis ordering
                                    (vec,z,x,y) */
     *eval,                      /* 3 * 2 * sx * sy array of eigenvalues */
-    *evec;                      /* 9 * 2 * sx * sy array of eigenvectors */
-  signed char *flip;            /* 2 * 5 * sx * sy record of how eigenvector(s)
+    *evec,                      /* 9 * 2 * sx * sy array of eigenvectors */
+    *hess,			/* 9 * 2 * sx * sy array of hessian matrices */
+    *t,				/* 9 * 2 * sx * sy array of T tensors */
+    *edgealpha,			/* 5 * 3 * sx * sy position of edge
+				   intersections */
+    *edgenorm,			/* 5 * 9 * sx * sy normal at edge
+				   intersection */
+    *edgeicoord,		/* 5 * 9 * sx * sy index coordinates of edge
+				   intersection */
+    *facecoord,			/* 4 * 2 * sx * sy coordinates of degenerate
+				   point on face */
+    *facenorm,			/* 4 * 3 * sx * sy normal at degeneracy */
+    *faceicoord,		/* 4 * 3 * sx * sy index coordinates of edge
+				   intersection */
+    *gradcontext,		/* 3 * 2 * sx * sy spat. context of gradients */
+    *hesscontext,		/* 9 * 2 * sx * sy spat. context of hessians */
+    *tcontext,			/* 9 * 2 * sx * sy spat. context of T tensors */
+    *stngcontext;		/* sx * sy lookahead for strength values */
+  signed char *flip,            /* 2 * 5 * sx * sy record of how eigenvector(s)
                                    of interest flip along the 5 voxel edges
                                    that are unique to each voxel.  Fastest axis
                                    is the two eigensystem indices that are
                                    tracked, in the case of crease lines */
+    *pairs,			/* 4 * 12 * sx * sy connectivity on faces */
+    *treated;			/* sx * sy mask; when strength is used, tells
+				 * us if edges need to be treated (and if they
+				 * were treated already) */
   double *stng;                 /* 2 * sx * sy array of strength */
   Nrrd *nvidx, *nsclv,          /* nrrd wrappers around arrays above */
     *ngrad, *neval,
     *nevec, *nflip,
-    *nstng;
+    *nstng, *nhess, *nt,
+    *nfacevidx, *nedgealpha,
+    *nedgenorm, *nfacecoord,
+    *nfacenorm, *npairs,
+    *nedgeicoord, *nfaceicoord,
+    *ngradcontext, *nhesscontext,
+    *ntcontext, *nstngcontext,
+    *ntreated;
   /* ------ output ----- */
   unsigned int
     voxNum, vertNum, faceNum;   /* number of voxels contributing to latest
@@ -185,7 +219,7 @@ SEEK_EXPORT int seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 SEEK_EXPORT int seekNormalsFindSet(seekContext *sctx, int doit);
 SEEK_EXPORT int seekStrengthUseSet(seekContext *sctx, int doit);
 SEEK_EXPORT int seekStrengthSet(seekContext *sctx, int strengthSign,
-                                double strengthMin, double strength);
+                                double strength);
 SEEK_EXPORT int seekSamplesSet(seekContext *sctx, size_t samples[3]);
 SEEK_EXPORT int seekTypeSet(seekContext *sctx, int type);
 SEEK_EXPORT int seekLowerInsideSet(seekContext *sctx, int lowerInside);
@@ -195,13 +229,38 @@ SEEK_EXPORT int seekItemNormalSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemGradientSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekItemEigensystemSet(seekContext *sctx,
                                        int evalItem, int evecItem);
+SEEK_EXPORT int seekItemHessSet(seekContext *sctx, int item);
 SEEK_EXPORT int seekIsovalueSet(seekContext *sctx, double isovalue);
+SEEK_EXPORT int seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh);
 
 /* updateSeek */
 SEEK_EXPORT int seekUpdate(seekContext *sctx);
 
 /* extract.c */
 SEEK_EXPORT int seekExtract(seekContext *sctx, limnPolyData *lpld);
+
+/* descend.c */
+SEEK_EXPORT int seekDescendToDeg(double *coord,
+				 double *botleft, double *botright,
+				 double *topleft, double *topright,
+				 int maxiter, double eps, char type);
+SEEK_EXPORT int seekDescendToDegCell(double *coord,
+				     double *Hbfl, double *Hbfr,
+				     double *Hbbl, double *Hbbr,
+				     double *Htfl, double *Htfr,
+				     double *Htbl, double *Htbr,
+				     int maxiter, double eps, char type);
+SEEK_EXPORT int seekDescendToRidge(double *coord,
+				   double *Hbfl, double *gbfl,
+				   double *Hbfr, double *gbfr,
+				   double *Hbbl, double *gbbl,
+				   double *Hbbr, double *gbbr,
+				   double *Htfl, double *gtfl,
+				   double *Htfr, double *gtfr,
+				   double *Htbl, double *gtbl,
+				   double *Htbr, double *gtbr,
+				   int maxiter, double eps,
+				   char ridge, const double evalDiffThresh);
 
 #ifdef __cplusplus
 }

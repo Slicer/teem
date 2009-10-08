@@ -23,16 +23,6 @@
 #include "seek.h"
 #include "privateSeek.h"
 
-typedef struct {
-  int evti[12];  /* edge vertex index */
-  double (*scllup)(const void *, size_t);
-  unsigned int esIdx,  /* eigensystem index */
-    zi;     /* slice index we're currently on */
-  int modeSign;
-  const void *scldata;
-  airArray *xyzwArr, *normArr, *indxArr;
-} baggage;
-
 static baggage *
 baggageNew(seekContext *sctx) {
   baggage *bag;
@@ -60,10 +50,14 @@ baggageNew(seekContext *sctx) {
 
   switch (sctx->type) {
   case seekTypeRidgeSurface:
+  case seekTypeRidgeSurfaceOP:
+  case seekTypeRidgeSurfaceT:
     bag->esIdx = 2;
     bag->modeSign = -1;
     break;
   case seekTypeValleySurface:
+  case seekTypeValleySurfaceOP:
+  case seekTypeValleySurfaceT:
     bag->esIdx = 0;
     bag->modeSign = +1;
     break;
@@ -205,8 +199,9 @@ sclGet(seekContext *sctx, baggage *bag,
   return bag->scllup(bag->scldata, xi + sctx->sx*(yi + sctx->sy*zi));
 }
 
-static void
-idxProbe(seekContext *sctx, baggage *bag, double xi, double yi, double zi) {
+void
+_seekIdxProbe(seekContext *sctx, baggage *bag,
+	      double xi, double yi, double zi) {
   double idxOut[4], idxIn[4];
   AIR_UNUSED(bag);
 
@@ -232,7 +227,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
               unsigned int dx, unsigned int dy, unsigned int dz) {
   static const char me[]="evecFlipProbe";
   unsigned int sx, sy, sz, si;
-  double stngA, stngB, u, du, dot, strength, wantDot, minDu, mode;
+  double u, du, dot, wantDot, minDu, mode;
   double current[3], next[3], posNext[3], posA[3], posB[3], evecA[3], evecB[3];
 
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -248,19 +243,10 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
     return 0;
   }
 
-  if (sctx->strengthUse) {
-    stngA = sctx->stng[ziOff    + 2*(xi    + sx*yi)];
-    stngB = sctx->stng[ziOff+dz + 2*(xi+dx + sx*(yi+dy))];
-    if (!( stngA > sctx->strengthMin && stngB > sctx->strengthMin )) {
-      *flip = 0;
-      return 0;
-    }
-  } else {
-    stngA = 0;
-    stngB = 0;
-  }
+  /* Note: Strength checking is no longer performed here.
+   * TS 2009-08-18 */
 
-  /* this edge is in bounds, and the endpoints meet strengthMin (if we care) */
+  /* this edge is in bounds */
 
   ELL_3V_SET(posA, xi, yi, bag->zi+ziOff);
   ELL_3V_SET(posB, xi+dx, yi+dy, bag->zi+ziOff+dz);
@@ -271,18 +257,13 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
 
 #define SETNEXT(uu) \
   ELL_3V_SCALE_ADD2(posNext, 1.0-(uu), posA, (uu), posB); \
-  idxProbe(sctx, bag, posNext[0], posNext[1], posNext[2]); \
+  _seekIdxProbe(sctx, bag, posNext[0], posNext[1], posNext[2]); \
   ELL_3V_COPY(next, sctx->evecAns + 3*bag->esIdx); \
   if (ELL_3V_DOT(current, next) < 0) { \
     ELL_3V_SCALE(next, -1, next); \
   } \
   dot = ELL_3V_DOT(current, next); \
-  mode = bag->modeSign*airMode3_d(sctx->evalAns); \
-  if (sctx->strengthUse) { \
-    strength = sctx->strengthSign*sctx->stngAns[0]; \
-  } else { \
-    strength = 0; \
-  }
+  mode = bag->modeSign*airMode3_d(sctx->evalAns);
 
   ELL_3V_COPY(current, evecA);
   u = 0;
@@ -291,12 +272,10 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   minDu = 0.0002;
   while (u + du < 1.0) {
     SETNEXT(u+du);
-    if (sctx->strengthUse && strength < sctx->strengthMin) {
-      /* sorry, strength got too weak along this edge */
-      *flip = 0;
-      return 0;
-    }
-    if (mode < -0.8) {
+    /* Note: This was set to -0.8 in the original code. Again, I found
+     * that increasing it could eliminate spurious holes in the
+     * mesh. TS 2009-08-18 */
+    if (mode < -0.99) {
       /* sorry, eigenvalue mode got too close to 2nd order isotropy */
       *flip = 0;
       return 0;
@@ -306,15 +285,20 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
       du /= 2;
       if (du < minDu) {
         fprintf(stderr, "%s: evector wild @ u=%g: du=%g < minDu=%g; "
-                "dot=%g; stngA,B = %g,%g; strength = %g; mode = %g; "
+                "dot=%g; mode = %g; "
                 "(xi,yi,zi)=(%u,%u,%u+%u); (dx,dy,dz)=(%u,%u,%u) ",
                 me, u, du, minDu,
-                dot, stngA, stngB, strength, mode,
+                dot, mode,
                 xi, yi, bag->zi, ziOff, dx, dy, dz);
         *flip = 0;
         return 0;
       }
       SETNEXT(u+du);
+      if (mode < -0.99) {
+	/* sorry, eigenvalue mode got too close to 2nd order isotropy */
+	*flip = 0;
+	return 0;
+      }
     }
     /* current and next have a small angle between them */
     ELL_3V_COPY(current, next);
@@ -343,7 +327,9 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
 ** !!! this has to be done as a separate second pass because of how
 ** !!! the flip quantities correspond to the edges between voxels
 **
-** I backed out of an effort to track two eigenvectors at once...
+** For efficiency, evecFlipProbe is only executed on request (by
+** setting sctx->treated: 0x01 requests all edges of this voxel, 0x02
+** states that unique edge 3 was treated, 0x04 for unique edge 4) TS
 */
 static int
 evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
@@ -363,31 +349,59 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
       /* ================================================= */
-      if (!bag->zi) {
-        /* ----------------- set/probe top of initial slab */
-        if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 1, 0, 0)
-            || evecFlipProbe(sctx, bag, &flipB, xi, yi, 0, 0, 1, 0)) {
+      if (sctx->treated[si]&0x02) { /* has been treated, just copy result */
+	sctx->flip[0 + 5*si] = sctx->flip[3 + 5*si];
+      } else if (sctx->treated[si]&0x01 ||
+ 		 (yi!=0 && sctx->treated[xi+sx*(yi-1)]&0x01)) {
+ 	/* need to treat this */
+	if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 1, 0, 0)) {
           biffAddf(SEEK, "%s: problem at (xi,yi) = (%u,%u), zi=0", me, xi, yi);
           return 1;
         }
         sctx->flip[0 + 5*si] = flipA;
+      }
+      if (sctx->treated[si]&0x04) { /* has been treated, just copy */
+ 	sctx->flip[1 + 5*si] = sctx->flip[4 + 5*si];
+      } else if (sctx->treated[si]&0x01 ||
+ 		 (xi!=0 && sctx->treated[xi-1+sx*yi]&0x01)) {
+	if (evecFlipProbe(sctx, bag, &flipB, xi, yi, 0, 0, 1, 0)) {
+	  biffAddf(SEEK, "%s: problem at (xi,yi) = (%u,%u), zi=0", me, xi, yi);
+	  return 1;
+	}
         sctx->flip[1 + 5*si] = flipB;
-      } else {
-        /* ------------------- shuffle to top from bottom of slab */
-        sctx->flip[0 + 5*si] = sctx->flip[3 + 5*si];
-        sctx->flip[1 + 5*si] = sctx->flip[4 + 5*si];
       }
-      /* ----------------------- set/probe bottom of slab */
-      if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 0, 0, 1)
-          || evecFlipProbe(sctx, bag, &flipB, xi, yi, 1, 1, 0, 0)
-          || evecFlipProbe(sctx, bag, &flipC, xi, yi, 1, 0, 1, 0)) {
-        biffAddf(SEEK, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
-                 xi, yi, bag->zi);
-        return 1;
+      if (sctx->treated[si]&0x01 || (xi!=0 && sctx->treated[xi-1+sx*yi]&0x01) ||
+ 	  (yi!=0 && sctx->treated[xi+sx*(yi-1)]&0x01) ||
+ 	  (xi!=0 && yi!=0 && sctx->treated[xi-1+sx*(yi-1)]&0x01)) {
+ 	if (evecFlipProbe(sctx, bag,    &flipA, xi, yi, 0, 0, 0, 1)) {
+	  biffAddf(SEEK, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
+		   xi, yi, bag->zi);
+ 	  return 1;
+ 	}
+ 	sctx->flip[2 + 5*si] = flipA;
       }
-      sctx->flip[2 + 5*si] = flipA;
-      sctx->flip[3 + 5*si] = flipB;
-      sctx->flip[4 + 5*si] = flipC;
+      if (sctx->treated[si]&0x01 ||
+	  (yi!=0 && sctx->treated[xi+sx*(yi-1)]&0x01)) {
+ 	if (evecFlipProbe(sctx, bag, &flipB, xi, yi, 1, 1, 0, 0)) {
+ 	  biffAddf(SEEK, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
+		   xi, yi, bag->zi);
+ 	  return 1;
+ 	}
+ 	sctx->flip[3 + 5*si] = flipB;
+ 	sctx->treated[si]|=0x02;
+      } else
+ 	sctx->treated[si]&=0xFD;
+      if (sctx->treated[si]&0x01 ||
+ 	  (xi!=0 && sctx->treated[xi-1+sx*yi]&0x01)) {
+ 	if (evecFlipProbe(sctx, bag, &flipC, xi, yi, 1, 0, 1, 0)) {
+ 	  biffAddf(SEEK, "%s: problem at (xi,yi,zi) = (%u,%u,%u)", me,
+		   xi, yi, bag->zi);
+ 	  return 1;
+ 	}
+ 	sctx->flip[4 + 5*si] = flipC;
+ 	sctx->treated[si]|=0x04;
+      } else
+ 	sctx->treated[si]&=0xFB;
       /* ================================================= */
     }
   }
@@ -403,17 +417,33 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
   sx = AIR_CAST(unsigned int, sctx->sx);
   sy = AIR_CAST(unsigned int, sctx->sy);
 
+  if (!sctx->strengthUse) { /* just request all edges */
+    memset(sctx->treated, 0x01, sizeof(char)*sctx->sx*sctx->sy);
+  } else {
+    if (!bag->zi) {
+      /* clear full treated array */
+      memset(sctx->treated, 0, sizeof(char)*sctx->sx*sctx->sy);
+    } else {
+      /* only clear requests for edge orientation */
+      for (yi=0; yi<sy; yi++) {
+	for (xi=0; xi<sx; xi++) {
+	  sctx->treated[xi+sx*yi] &= 0xFE;
+	}
+      }
+    }
+  }
+
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
       spi = (xi+1) + (sx+2)*(yi+1);
       /* ================================================= */
       if (!bag->zi) {
-        /* ----------------- set/probe top of initial slab */
-        sctx->vidx[0 + 5*si] = -1;
-        sctx->vidx[1 + 5*si] = -1;
+        /* ----------------- set/probe bottom of initial slab */
+	sctx->vidx[0 + 5*si] = -1;
+	sctx->vidx[1 + 5*si] = -1;
         if (sctx->gctx) { /* HEY: need this check, what's the right way? */
-          idxProbe(sctx, bag, xi, yi, 0);
+          _seekIdxProbe(sctx, bag, xi, yi, 0);
         }
         if (sctx->strengthUse) {
           sctx->stng[0 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
@@ -436,15 +466,17 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         case seekTypeValleySurface:
         case seekTypeMaximalSurface:
         case seekTypeMinimalSurface:
+	case seekTypeRidgeSurfaceOP:
+	case seekTypeValleySurfaceOP:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->gradAns);
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->evalAns);
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evecAns);
           break;
         }
       } else {
-        /* ------------------- shuffle to top from bottom of slab */
-        sctx->vidx[0 + 5*si] = sctx->vidx[3 + 5*si];
-        sctx->vidx[1 + 5*si] = sctx->vidx[4 + 5*si];
+        /* ------------------- shuffle to bottom from top of slab */
+	sctx->vidx[0 + 5*si] = sctx->vidx[3 + 5*si];
+	sctx->vidx[1 + 5*si] = sctx->vidx[4 + 5*si];
         if (sctx->strengthUse) {
           sctx->stng[0 + 2*si] = sctx->stng[1 + 2*si];
         }
@@ -458,23 +490,33 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
         case seekTypeValleySurface:
         case seekTypeMaximalSurface:
         case seekTypeMinimalSurface:
+	case seekTypeRidgeSurfaceOP:
+	case seekTypeValleySurfaceOP:
           ELL_3V_COPY(sctx->grad + 3*(0 + 2*si), sctx->grad + 3*(1 + 2*si));
           ELL_3V_COPY(sctx->eval + 3*(0 + 2*si), sctx->eval + 3*(1 + 2*si));
           ELL_3M_COPY(sctx->evec + 9*(0 + 2*si), sctx->evec + 9*(1 + 2*si));
           break;
         }
       }
-      /* ----------------------- set/probe bottom of slab */
+      /* ----------------------- set/probe top of slab */
       sctx->vidx[2 + 5*si] = -1;
       sctx->vidx[3 + 5*si] = -1;
       sctx->vidx[4 + 5*si] = -1;
       if (sctx->gctx) { /* HEY: need this check, what's the right way? */
-        idxProbe(sctx, bag, xi, yi, bag->zi+1);
+        _seekIdxProbe(sctx, bag, xi, yi, bag->zi+1);
       }
       if (sctx->strengthUse) {
         sctx->stng[1 + 2*si] = sctx->strengthSign*sctx->stngAns[0];
         sctx->strengthSeenMax = AIR_MAX(sctx->strengthSeenMax,
                                         sctx->stng[1 + 2*si]);
+	if (sctx->stng[0+2*si]>sctx->strength ||
+	    sctx->stng[1+2*si]>sctx->strength) {
+	  /* mark up to four voxels as needed */
+	  sctx->treated[si] |= 0x01;
+	  if (xi!=0) sctx->treated[xi-1+sx*yi] |= 0x01;
+	  if (yi!=0) sctx->treated[xi+sx*(yi-1)] |= 0x01;
+	  if (xi!=0 && yi!=0) sctx->treated[xi-1+sx*(yi-1)] |= 0x01;
+	}
       }
       switch (sctx->type) {
       case seekTypeIsocontour:
@@ -485,6 +527,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
       case seekTypeValleySurface:
       case seekTypeMaximalSurface:
       case seekTypeMinimalSurface:
+      case seekTypeRidgeSurfaceOP:
+      case seekTypeValleySurfaceOP:
         ELL_3V_COPY(sctx->grad + 3*(1 + 2*si), sctx->gradAns);
         ELL_3V_COPY(sctx->eval + 3*(1 + 2*si), sctx->evalAns);
         ELL_3M_COPY(sctx->evec + 9*(1 + 2*si), sctx->evecAns);
@@ -598,7 +642,7 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
     s = sctx->stng[1 + 2*(0 + 1*sx + si)]; ACCUM(6);
     s = sctx->stng[1 + 2*(1 + 1*sx + si)]; ACCUM(7);
 #undef ACCUM
-    if (ssum/wsum < sctx->strengthMin) {
+    if (ssum/wsum < sctx->strength) {
       for (vi=0; vi<8; vi++) {
         vval[vi] = 0;
       }
@@ -612,7 +656,7 @@ static void
 vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
             unsigned int xi, unsigned int yi) {
   /* static const char me[]="vvalSurfSet"; */
-  double eval[8][3], evec[8][3], grad[8][3], stng[8], minStrength=0;
+  double eval[8][3], evec[8][3], grad[8][3], stng[8], maxStrength=0;
   signed char flip[12], flipProd;
   unsigned int sx, sy, si, vi, ei, vrti[8];
 
@@ -628,6 +672,9 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
   vrti[6] = 1 + 2*(xi + 0 + sx*(yi + 1));
   vrti[7] = 1 + 2*(xi + 1 + sx*(yi + 1));
 
+  /* Our strategy is to create all triangles of which at least some
+   * part meets the strength criterion, and to trim them in a
+   * post-process.  This avoids ragged boundaries */
   for (vi=0; vi<8; vi++) {
     ELL_3V_COPY(grad[vi], sctx->grad + 3*vrti[vi]);
     ELL_3V_COPY(evec[vi], sctx->evec + 3*(bag->esIdx + 3*vrti[vi]));
@@ -635,19 +682,22 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
     if (sctx->strengthUse) {
       stng[vi] = sctx->stng[vrti[vi]];
       if (!vi) {
-        minStrength = stng[vi];
+        maxStrength = stng[vi];
       } else {
-        minStrength = AIR_MIN(minStrength, stng[vi]);
+        maxStrength = AIR_MAX(maxStrength, stng[vi]);
       }
     }
   }
   flipProd = 1;
-  for (ei=0; ei<12; ei++) {
-    flip[ei] = sctx->flip[bag->evti[ei] + 5*si];
-    flipProd *= flip[ei];
+  if (sctx->type!=seekTypeRidgeSurfaceOP &&
+      sctx->type!=seekTypeValleySurfaceOP) {
+    for (ei=0; ei<12; ei++) {
+      flip[ei] = sctx->flip[bag->evti[ei] + 5*si];
+      flipProd *= flip[ei];
+    }
   }
 
-  if ((sctx->strengthUse && minStrength < sctx->strengthMin)
+  if ((sctx->strengthUse && maxStrength < sctx->strength)
       || !flipProd) {
     /* either the corners this voxel don't meet strength,
        or something else is funky */
@@ -655,13 +705,29 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
       vval[vi] = 0;
     }
   } else {
-    ELL_3V_SCALE(evec[1], flip[0],                  evec[1]);
-    ELL_3V_SCALE(evec[2], flip[1],                  evec[2]);
-    ELL_3V_SCALE(evec[3], flip[0]*flip[2],          evec[3]);
-    ELL_3V_SCALE(evec[4], flip[4],                  evec[4]);
-    ELL_3V_SCALE(evec[5], flip[4]*flip[8],          evec[5]);
-    ELL_3V_SCALE(evec[6], flip[4]*flip[9],          evec[6]);
-    ELL_3V_SCALE(evec[7], flip[4]*flip[8]*flip[10], evec[7]);
+    if (sctx->type==seekTypeRidgeSurfaceOP ||
+	sctx->type==seekTypeValleySurfaceOP) {
+      /* find orientation based on outer product rule */
+      double outer[9];
+      double outerevals[3],outerevecs[9];
+      ELL_3MV_OUTER(outer,evec[0],evec[0]);
+      for (vi=1; vi<8; ++vi) {
+	ELL_3MV_OUTER_INCR(outer,evec[vi],evec[vi]);
+      }
+      ell_3m_eigensolve_d(outerevals, outerevecs, outer, AIR_TRUE);
+      for (vi=0; vi<8; ++vi) {
+	if (ELL_3V_DOT(evec[vi],outerevecs)<0)
+	  ELL_3V_SCALE(evec[vi], -1.0, evec[vi]);
+      }
+    } else {
+      ELL_3V_SCALE(evec[1], flip[0],                  evec[1]);
+      ELL_3V_SCALE(evec[2], flip[1],                  evec[2]);
+      ELL_3V_SCALE(evec[3], flip[0]*flip[2],          evec[3]);
+      ELL_3V_SCALE(evec[4], flip[4],                  evec[4]);
+      ELL_3V_SCALE(evec[5], flip[4]*flip[8],          evec[5]);
+      ELL_3V_SCALE(evec[6], flip[4]*flip[9],          evec[6]);
+      ELL_3V_SCALE(evec[7], flip[4]*flip[8]*flip[10], evec[7]);
+    }
     for (vi=0; vi<8; vi++) {
       vval[vi] = ELL_3V_DOT(grad[vi], evec[vi]);
     }
@@ -721,6 +787,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
       case seekTypeValleySurface:
       case seekTypeMaximalSurface:
       case seekTypeMinimalSurface:
+      case seekTypeRidgeSurfaceOP:
+      case seekTypeValleySurfaceOP:
         vvalSurfSet(sctx, bag, vval, xi, yi);
         break;
       }
@@ -839,13 +907,23 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     fprintf(stderr, "%s: extracting ...       ", me);
   }
   for (zi=0; zi<sz-1; zi++) {
+    char trouble=0;
     if (sctx->verbose > 2) {
       fprintf(stderr, "%s", airDoneStr(0, zi, sz-2, done));
       fflush(stderr);
     }
     bag->zi = zi;
-    if (shuffleProbe(sctx, bag)
-        || triangulate(sctx, bag, lpld)) {
+    if (sctx->type==seekTypeRidgeSurfaceT ||
+ 	sctx->type==seekTypeValleySurfaceT) {
+      if (_seekShuffleProbeT(sctx, bag) ||
+ 	  _seekTriangulateT(sctx, bag, lpld))
+	trouble = 1;
+    } else {
+      if (shuffleProbe(sctx, bag) ||
+ 	  triangulate(sctx, bag, lpld))
+ 	trouble = 1;
+    }
+    if (trouble) {
       biffAddf(SEEK, "%s: trouble on zi = %u", me, zi);
       return 1;
     }
@@ -897,6 +975,10 @@ seekExtract(seekContext *sctx, limnPolyData *lpld) {
   case seekTypeValleySurface:
   case seekTypeMinimalSurface:
   case seekTypeMaximalSurface:
+  case seekTypeRidgeSurfaceOP:
+  case seekTypeRidgeSurfaceT:
+  case seekTypeValleySurfaceOP:
+  case seekTypeValleySurfaceT:
     E = surfaceExtract(sctx, lpld);
     break;
   default:

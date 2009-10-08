@@ -104,6 +104,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
   sctx->gradItem = -1;
   sctx->evalItem = -1;
   sctx->evecItem = -1;
+  sctx->hessItem = -1;
 
   return 0;
 }
@@ -225,7 +226,7 @@ seekStrengthUseSet(seekContext *sctx, int doit) {
 
 int
 seekStrengthSet(seekContext *sctx, int strengthSign,
-                double strengthMin, double strength) {
+                double strength) {
   static const char me[]="seekStrengthSet";
 
   if (!sctx) {
@@ -236,17 +237,12 @@ seekStrengthSet(seekContext *sctx, int strengthSign,
     biffAddf(SEEK, "%s: strengthSign (%d) not +1 or -1", me, strengthSign);
     return 1;
   }
-  if (!(AIR_EXISTS(strengthMin) && AIR_EXISTS(strength))) {
-    biffAddf(SEEK, "%s: strength %g or %g doesn't exist", me,
-             strengthMin, strength);
+  if (!AIR_EXISTS(strength)) {
+    biffAddf(SEEK, "%s: strength %g doesn't exist", me, strength);
     return 1;
   }
   if (sctx->strengthSign != strengthSign) {
     sctx->strengthSign = strengthSign;
-    sctx->flag[flagStrength] = AIR_TRUE;
-  }
-  if (sctx->strengthMin != strengthMin) {
-    sctx->strengthMin = strengthMin;
     sctx->flag[flagStrength] = AIR_TRUE;
   }
   if (sctx->strength != strength) {
@@ -322,6 +318,25 @@ seekItemStrengthSet(seekContext *sctx, int item) {
   if (sctx->stngItem != item) {
     sctx->stngItem = item;
     sctx->flag[flagItemStrength] = AIR_TRUE;
+  }
+  return 0;
+}
+
+/*
+******** seekItemHessSet
+**
+*/
+int
+seekItemHessSet(seekContext *sctx, int item) {
+  char me[]="seekItemHessSet", err[BIFF_STRLEN];
+
+  if (itemCheck(sctx, item, 9)) {
+    sprintf(err, "%s: trouble", me);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (sctx->hessItem != item) {
+    sctx->hessItem = item;
+    sctx->flag[flagItemHess] = AIR_TRUE;
   }
   return 0;
 }
@@ -418,6 +433,33 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
   if (sctx->isovalue != isovalue) {
     sctx->isovalue = isovalue;
     sctx->flag[flagIsovalue] = AIR_TRUE;
+  }
+  return 0;
+}
+
+/*
+******** seekEvalDiffThreshSet
+**
+** sets: difference threshold from which two eigenvalues are
+** considered "similar" (cf. Eq. (4) in TVCG paper by
+** Schultz/Theisel/Seidel)
+*/
+int
+seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh) {
+  char me[]="seekEvalDiffThreshSet", err[BIFF_STRLEN];
+
+  if (!sctx) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (!AIR_EXISTS(evalDiffThresh)) {
+    sprintf(err, "%s: given eigenvalue difference threshold %g doesn't exit",
+	    me, evalDiffThresh);
+    biffAdd(SEEK, err); return 1;
+  }
+  if (sctx->evalDiffThresh != evalDiffThresh) {
+    sctx->evalDiffThresh = evalDiffThresh;
+    sctx->flag[flagEvalDiffThresh] = AIR_TRUE;
   }
   return 0;
 }

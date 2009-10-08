@@ -41,13 +41,15 @@ seekContextNew(void) {
     sctx->evalItem = -1;
     sctx->evecItem = -1;
     sctx->stngItem = -1;
+    sctx->hessItem = -1;
     sctx->lowerInside = AIR_FALSE;
     sctx->normalsFind = AIR_FALSE;
     sctx->strengthUse = AIR_FALSE;
     sctx->strengthSign = 1;
     sctx->isovalue = AIR_NAN;
+    sctx->evalDiffThresh = 1.0; /* roughly reasonable for uchar data;
+				 * really should depend on dynamic range */
     sctx->strength = 0.0;
-    sctx->strengthMin = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
     /* these two magic values assume a certain level of surface smoothness,
        which certainly does not apply to all cases */
@@ -70,6 +72,7 @@ seekContextNew(void) {
     sctx->evalAns = NULL;
     sctx->evecAns = NULL;
     sctx->stngAns = NULL;
+    sctx->hessAns = NULL;
     sctx->reverse = AIR_FALSE;
     ELL_3M_IDENTITY_SET(sctx->txfNormal);
     sctx->spanSize = 300;
@@ -86,6 +89,21 @@ seekContextNew(void) {
     sctx->nevec = nrrdNew();
     sctx->nflip = nrrdNew();
     sctx->nstng = nrrdNew();
+    sctx->nhess = nrrdNew();
+    sctx->nt = nrrdNew();
+    sctx->nfacevidx = nrrdNew();
+    sctx->nedgealpha = nrrdNew();
+    sctx->nedgenorm = nrrdNew();
+    sctx->nedgeicoord = nrrdNew();
+    sctx->nfacecoord = nrrdNew();
+    sctx->nfacenorm = nrrdNew();
+    sctx->nfaceicoord = nrrdNew();
+    sctx->npairs = nrrdNew();
+    sctx->ngradcontext = nrrdNew();
+    sctx->nhesscontext = nrrdNew();
+    sctx->ntcontext = nrrdNew();
+    sctx->nstngcontext = nrrdNew();
+    sctx->ntreated = nrrdNew();
     sctx->vidx = NULL;
     sctx->sclv = NULL;
     sctx->grad = NULL;
@@ -118,6 +136,21 @@ seekContextNix(seekContext *sctx) {
     sctx->nevec = nrrdNuke(sctx->nevec);
     sctx->nflip = nrrdNuke(sctx->nflip);
     sctx->nstng = nrrdNuke(sctx->nstng);
+    sctx->nhess = nrrdNuke(sctx->nhess);
+    sctx->nt = nrrdNuke(sctx->nt);
+    sctx->nfacevidx = nrrdNuke(sctx->nfacevidx);
+    sctx->nedgealpha = nrrdNuke(sctx->nedgealpha);
+    sctx->nedgenorm = nrrdNuke(sctx->nedgenorm);
+    sctx->nedgeicoord = nrrdNuke(sctx->nedgeicoord);
+    sctx->nfacecoord = nrrdNuke(sctx->nfacecoord);
+    sctx->nfacenorm = nrrdNuke(sctx->nfacenorm);
+    sctx->nfaceicoord = nrrdNuke(sctx->nfaceicoord);
+    sctx->npairs = nrrdNuke(sctx->npairs);
+    sctx->ngradcontext = nrrdNuke(sctx->ngradcontext);
+    sctx->nhesscontext = nrrdNuke(sctx->nhesscontext);
+    sctx->ntcontext = nrrdNuke(sctx->ntcontext);
+    sctx->nstngcontext = nrrdNuke(sctx->nstngcontext);
+    sctx->ntreated = nrrdNuke(sctx->ntreated);
     airFree(sctx);
   }
   return NULL;

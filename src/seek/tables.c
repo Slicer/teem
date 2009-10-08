@@ -49,6 +49,9 @@
 **                                               1 hexagonal surface
 */
 
+/* According to this layout, in the code comments, "right" denotes
+ * positive x, "back" denotes positive y, "top" denotes positive z */
+
 /*
 ** the seekContext's vidx cache uses this numbering
 **      (.)--------(.) 
@@ -63,6 +66,21 @@
 **   |/         |/     
 **  (X)----0---(.)     
 */
+
+/* We now only need a numbering of faces. It is:
+ * 0: xy plane, z=0
+ * 1: xz plane, y=0
+ * 2: yz plane, x=1
+ * 3: xz plane, y=1
+ * 4: yz plane, x=0
+ * 5: xy plane, z=1
+ *
+ * There are four unique faces to each voxel (e.g., in facevidx):
+ * 0: xy plane, z=0
+ * 1: xz plane, y=0
+ * 2: yz plane, x=0
+ * 3: xy plane, z=1
+ */
 
 const int
 seekContour3DTopoHackEdge[256] = {

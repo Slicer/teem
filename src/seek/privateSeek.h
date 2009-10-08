@@ -34,7 +34,9 @@ enum {
   flagItemNormal,
   flagItemGradient,
   flagItemEigensystem,
+  flagItemHess,
   flagIsovalue,
+  flagEvalDiffThresh,
 
   flagNinEtAl,
   flagAnswerPointers,
@@ -49,3 +51,32 @@ enum {
   flagLast
 };
 
+typedef struct {
+  int evti[12];  /* edge vertex index */
+  double (*scllup)(const void *, size_t);
+  unsigned int esIdx,  /* eigensystem index */
+    zi;     /* slice index we're currently on */
+  int modeSign;
+  const void *scldata;
+  airArray *xyzwArr, *normArr, *indxArr;
+} baggage;
+
+/* extract.c: This one is also needed in textract.c: */
+extern void
+_seekIdxProbe(seekContext *sctx, baggage *bag,
+	      double xi, double yi, double zi);
+
+/* textract.c: Some routines that are also used in descend.c */
+extern void
+_seekHess2T(double *T, const double *evals, const double *evecs,
+	    const double evalDiffThresh, const char ridge);
+extern void
+_seekHessder2Tder(double *Tder, const double *hessder, const double *evals,
+		  const double *evecs, const double evalDiffThresh,
+		  const char ridge);
+
+extern int
+_seekShuffleProbeT(seekContext *sctx, baggage *bag);
+
+extern int
+_seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld);

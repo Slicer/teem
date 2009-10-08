@@ -35,6 +35,10 @@ _seekTypeStr[SEEK_TYPE_MAX+1] = {
   "valley line",
   "minimal surface",
   "maximal surface",
+  "OP ridge surface",
+  "T ridge surface",
+  "OP valley surface",
+  "T valley surface"
 };
 
 const char *
@@ -47,6 +51,10 @@ _seekTypeDesc[SEEK_TYPE_MAX+1] = {
   "valley line",
   "minimal surface",
   "maximal surface",
+  "ridge surface using outer product rule",
+  "ridge surface using tensor T",
+  "valley surface using outer product rule",
+  "valley surface using tensor T"
 };
 
 const char *
@@ -58,6 +66,10 @@ _seekTypeStrEqv[] = {
   "valley line", "valleyline", "vl",
   "minimal surface", "mins",
   "maximal surface", "maxs",
+  "OP ridge surface", "ridgesurfaceop", "rsop",
+  "T ridge surface", "ridgesurfacet", "rst",
+  "OP valley surface", "valleysurfaceop", "vsop",
+  "T valley surface", "valleysurfacet", "vst",
   ""
 };
 
@@ -70,6 +82,10 @@ _seekTypeValEqv[] = {
   seekTypeValleyLine, seekTypeValleyLine, seekTypeValleyLine,
   seekTypeMinimalSurface, seekTypeMinimalSurface,
   seekTypeMaximalSurface, seekTypeMaximalSurface,
+  seekTypeRidgeSurfaceOP, seekTypeRidgeSurfaceOP, seekTypeRidgeSurfaceOP,
+  seekTypeRidgeSurfaceT, seekTypeRidgeSurfaceT, seekTypeRidgeSurfaceT,
+  seekTypeValleySurfaceOP, seekTypeValleySurfaceOP, seekTypeValleySurfaceOP,
+  seekTypeValleySurfaceT, seekTypeValleySurfaceT, seekTypeValleySurfaceT
 };
 
 airEnum
