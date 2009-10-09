@@ -63,6 +63,37 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
         fprintf(stderr, "with fread(), not DIO: %s ...", airNoDioErr(dio));
       }
     }
+
+    /* HEY: There's a bug in fread/fwrite in gcc 4.2.1 (with SnowLeopard).
+            When it reads/writes a >=2GB data array, it pretends to succeed
+            (i.e. the return value is the right number) but it hasn't
+            actually read/written the data.  The work-around is to loop
+            over the data, reading/writing 1GB (or smaller) chunks.         */
+    ret = 0;
+    char *data_c = (char *)data;
+    size_t elementSize = nrrdElementSize(nrrd);
+    size_t maxChunkSize = 1024 * 1024 * 1024 / elementSize;
+    while(ret < elementNum) {
+      size_t remainder = elementNum-ret;
+      size_t chunkSize;
+      if (remainder < maxChunkSize) {
+	chunkSize = remainder;
+      } else {
+	chunkSize = maxChunkSize;
+      }
+      size_t retTmp = 
+	fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+      ret += retTmp;
+      if (retTmp != chunkSize) {
+	biffAddf(NRRD, "%s: fread got read only "
+		 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+		 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+		 ret, nrrdElementSize(nrrd), elementNum,
+		 100.0*ret/elementNum);
+	return 1;
+      }
+    }
+    /* HEY: Here's the old version of the above code.
     ret = fread(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
       biffAddf(NRRD, "%s: fread got read only "
@@ -72,6 +103,8 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                100.0*ret/elementNum);
       return 1;
     }
+    */
+
     car = fgetc(file);
     if (1 <= nrrdStateVerboseIO && EOF != car) {
       fprintf(stderr, "%s: WARNING: finished reading raw data, "
@@ -124,15 +157,48 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
         fprintf(stderr, "with fread(), not DIO: %s ...", airNoDioErr(dio));
       }
     }
+
+    /* HEY: There's a bug in fread/fwrite in gcc 4.2.1 (with SnowLeopard).
+            When it reads/writes a >=2GB data array, it pretends to succeed
+            (i.e. the return value is the right number) but it hasn't
+            actually read/written the data.  The work-around is to loop
+            over the data, reading/writing 1GB (or smaller) chunks.         */
+    ret = 0;
+    char *data_c = (char *)data;
+    size_t elementSize = nrrdElementSize(nrrd);
+    size_t maxChunkSize = 1024 * 1024 * 1024 / elementSize;
+    while(ret < elementNum) {
+      size_t remainder = elementNum-ret;
+      size_t chunkSize;
+      if (remainder < maxChunkSize) {
+	chunkSize = remainder;
+      } else {
+	chunkSize = maxChunkSize;
+      }
+      size_t retTmp = 
+	fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+      ret += retTmp;
+      if (retTmp != chunkSize) {
+	biffAddf(NRRD, "%s: fwrite wrote only "
+		 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+		 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+		 ret, nrrdElementSize(nrrd), elementNum,
+		 100.0*ret/elementNum);
+	return 1;
+      }
+    }
+    /* HEY: Here's the old version of the above code.
     ret = fwrite(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
-      biffAddf(NRRD, "%s: fwrite wrote read only "
+      biffAddf(NRRD, "%s: fwrite wrote only "
               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not " 
               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
               ret, nrrdElementSize(nrrd), elementNum,
               100.0*ret/elementNum);
       return 1;
     }
+    */
+
     fflush(file);
     /*
     if (ferror(file)) {
