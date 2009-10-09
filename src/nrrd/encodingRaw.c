@@ -132,6 +132,9 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
   static const char me[]="_nrrdEncodingRaw_write";
   int fd, dio;
   size_t ret, bsize;
+  char *data_c;
+  size_t elementSize, maxChunkSize, remainder, chunkSize;
+  size_t retTmp;
   
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
@@ -166,18 +169,17 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
             actually read/written the data.  The work-around is to loop
             over the data, reading/writing 1GB (or smaller) chunks.         */
     ret = 0;
-    char *data_c = (char *)data;
-    size_t elementSize = nrrdElementSize(nrrd);
-    size_t maxChunkSize = 1024 * 1024 * 1024 / elementSize;
+    data_c = (char *)data;
+    elementSize = nrrdElementSize(nrrd);
+    maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {
-      size_t remainder = elementNum-ret;
-      size_t chunkSize;
+      remainder = elementNum-ret;
       if (remainder < maxChunkSize) {
 	chunkSize = remainder;
       } else {
 	chunkSize = maxChunkSize;
       }
-      size_t retTmp = 
+      retTmp = 
 	fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
