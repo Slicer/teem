@@ -580,7 +580,7 @@ _gageVecValEqv[] = {
 airEnum
 _gageVec = {
   "gageVec",
-  GAGE_VEC_ITEM_MAX+1,
+  GAGE_VEC_ITEM_MAX,
   _gageVecStr, _gageVecVal,
   _gageVecDesc,
   _gageVecStrEqv, _gageVecValEqv,

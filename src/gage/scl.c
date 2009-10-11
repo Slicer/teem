@@ -287,7 +287,7 @@ _gageSclValEqv[] = {
 airEnum
 _gageScl = {
   "gageScl",
-  GAGE_SCL_ITEM_MAX+1,
+  GAGE_SCL_ITEM_MAX,
   _gageSclStr, _gageSclVal,
   _gageSclDesc,
   _gageSclStrEqv, _gageSclValEqv,
