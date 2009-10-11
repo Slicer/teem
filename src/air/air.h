@@ -141,6 +141,8 @@ AIR_EXPORT const char *airEnumDesc(const airEnum *enm, int val);
 AIR_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 AIR_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
+AIR_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
+
 
 /*
 ******** airEndian enum

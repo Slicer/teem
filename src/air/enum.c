@@ -207,3 +207,57 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
   }
   return buff;
 }
+
+static void
+_enumPrintVal(FILE *file, const airEnum *enm, unsigned int ii) {
+
+  if (enm->desc) {
+    fprintf(file, "desc: %s\n", enm->desc[ii]);
+  }
+  if (enm->strEqv) {
+    unsigned int jj=0;
+    fprintf(file, "eqv:");
+    while (enm->strEqv[jj]) {
+      if (enm->val[ii] == enm->valEqv[jj]) {
+        fprintf(file, " \"%s\"", enm->strEqv[jj]);
+      }
+      jj++;
+    }
+    fprintf(file, "\n");
+  }
+}
+
+void
+airEnumPrint(FILE *file, const airEnum *enm) {
+  unsigned int ii;
+
+  if (!(file && enm)) {
+    return;
+  }
+
+  if (airStrlen(enm->name)) {
+    fprintf(file, "airEnum \"%s\":\n", enm->name);
+  } else {
+    fprintf(file, "airEnum (NO NAME!):\n");
+  }
+  fprintf(file, "(%s case sensitive)\n", (enm->sense ? "yes, is" : "is not"));
+  if (enm->val) {
+    fprintf(file, "Values (%u valid) given explicitly\n", enm->M);
+    fprintf(file, "--- (0) %u: \"%s\"\n", enm->val[0], enm->str[0]);
+    for (ii=1; ii<=enm->M; ii++) {
+      fprintf(file, "--- (%u) %u: \"%s\" == \"%s\"\n", ii, enm->val[ii], enm->str[ii],
+              airEnumStr(enm, enm->val[ii]));
+      _enumPrintVal(file, enm, ii);
+    }
+  } else {
+    /* enm->val NULL */
+    fprintf(file, "Values implicit; [1,%u] valid\n", enm->M);
+    fprintf(file, "--- 0: \"%s\"\n", enm->str[0]);
+    for (ii=1; ii<=enm->M; ii++) {
+      fprintf(file, "--- %u: %s == %s\n", ii, enm->str[ii],
+              airEnumStr(enm, ii));
+      _enumPrintVal(file, enm, ii);
+    }
+  }
+  return;
+}
