@@ -112,7 +112,7 @@ _tenDwiGageVal[] = {
 airEnum
 _tenDwiGage = {
   "tenDwiGage",
-  TEN_DWI_GAGE_ITEM_MAX+1,
+  TEN_DWI_GAGE_ITEM_MAX,
   _tenDwiGageStr, _tenDwiGageVal,
   NULL,
   NULL, NULL,

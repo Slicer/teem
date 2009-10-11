@@ -415,10 +415,10 @@ enum {
   tenGageFADiffusionFraction,    /* 139: "dffa": [1] */
   tenGageOmegaGradVecDotEvec0,   /* 140: "omgvdotevec0": [1] */
   tenGageOmegaDiffusionAlign,    /* 141: "daom": [1] */
-  tenGageOmegaDiffusionFraction, /* 142: "daom": [1] */
-  tenGageConfGradVecDotEvec0,    /* 143: "cnfgvdotevec0": [1] */
-  tenGageConfDiffusionAlign,     /* 144: "dacnf": [1] */
-  tenGageConfDiffusionFraction,  /* 145: "dfcnf": [1] */
+  tenGageOmegaDiffusionFraction, /* 142: "dfom": [1] */
+  tenGageConfGradVecDotEvec0,    /* 143: "confgvdotevec0": [1] */
+  tenGageConfDiffusionAlign,     /* 144: "daconf": [1] */
+  tenGageConfDiffusionFraction,  /* 145: "dfconf": [1] */
 
   tenGageCovariance, /* 146: "cov" 4rth order covariance tensor: [21]
                         in order of appearance:
@@ -432,21 +432,22 @@ enum {
                             of R invariant gradients and rotation tangents */
   tenGageCovarianceKGRT, /* 148: "covk" covariance tensor expressed in frame
                             of K invariant gradients and rotation tangents */
-  tenGageTensorLogEuclidean,     /* 149: log-euclidean interpolation */
-  tenGageTensorQuatGeoLoxK,      /* 150: QGL-K interpolation */
-  tenGageTensorQuatGeoLoxR,      /* 152: QGL-R interpolation */
+  tenGageTensorLogEuclidean,     /* 149: "logeuc" log-euclidean interp */
+  tenGageTensorQuatGeoLoxK,      /* 150: "qglk" QGL-K interpolation */
+  tenGageTensorQuatGeoLoxR,      /* 151: "qglr" QGL-R interpolation */
 
-  tenGageAniso,            /* 152: "an", all anisos: [TEN_ANISO_MAX+1] */
-  tenGageCl1GradVec,       /* 153: gradient vector of cl1: [3] */
-  tenGageCl1GradMag,       /* 154: gradient magnitude of cl1: [1] */
-  tenGageCp1GradVec,       /* 155: gradient vector of cp1: [3] */
-  tenGageCp1GradMag,       /* 156: gradient magnitude of cp1: [1] */
-  tenGageCa1GradVec,       /* 157: gradient vector of ca1: [3] */
-  tenGageCa1GradMag,       /* 158: gradient magnitude of ca1: [1] */
-  tenGageTensorGradRotE,   /* 159: all tensor component gradients,
+  tenGageCl1GradVec,       /* 152: "cl1gv" gradient vector of cl1: [3] */
+  tenGageCl1GradMag,       /* 153: "cl1gm" gradient magnitude of cl1: [1] */
+  tenGageCp1GradVec,       /* 154: "cp1gv" gradient vector of cp1: [3] */
+  tenGageCp1GradMag,       /* 155: "cp1gm" gradient magnitude of cp1: [1] */
+  tenGageCa1GradVec,       /* 156: "ca1gv" gradient vector of ca1: [3] */
+  tenGageCa1GradMag,       /* 157: "ca1gm" gradient magnitude of ca1: [1] */
+  tenGageTensorGradRotE,   /* 158: "tgrote" all tensor component gradients,
                               starting with confidence gradient.
                               Rotated such that eigenvalue
                               derivatives are on the diagonal: [21] */
+
+  tenGageAniso,            /* 159: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
 #define TEN_GAGE_ITEM_MAX     159

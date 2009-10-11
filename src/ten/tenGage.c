@@ -229,7 +229,6 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageTensorQuatGeoLoxK,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxR,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
 
-  {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE},
 
   {tenGageCl1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCl1GradMag,              1,  1,  {tenGageCl1GradVec},                                                  0,        0,     AIR_FALSE},
@@ -237,7 +236,8 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageCp1GradMag,              1,  1,  {tenGageCp1GradVec},                                                  0,        0,     AIR_FALSE},
   {tenGageCa1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCa1GradMag,              1,  1,  {tenGageCa1GradVec},                                                  0,        0,     AIR_FALSE},
-  {tenGageTensorGradRotE, 21, 1, {tenGageTensorGrad, tenGageEval, tenGageEvec}, 0, 0, AIR_FALSE}
+  {tenGageTensorGradRotE, 21, 1, {tenGageTensorGrad, tenGageEval, tenGageEvec}, 0, 0, AIR_FALSE},
+  {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE},
 };
 
 void

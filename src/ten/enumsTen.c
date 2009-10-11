@@ -314,6 +314,14 @@ _tenGageStr[] = {
   "qglk",
   "qglr",
 
+  "cl1gv",
+  "cl1gm",
+  "cp1gv",
+  "cp1gm",
+  "ca1gv",
+  "ca1gm",
+  "tgrote",
+
   "anisotropies"
 };
 
@@ -395,9 +403,11 @@ _tenGageDesc[] = {
   "linear anisotropy (1)",
   "planar anisotropy (1)",
   "linear+planar anisotropy (1)",
+  "min(linear,planar) anisotropy (1)",
   "linear anisotropy (2)",
   "planar anisotropy (2)",
   "linear+planar anisotropy (2)",
+  "min(linear,planar) anisotropy (2)",
   "hessian",
   "trace hessian",
   "B hessian",
@@ -469,6 +479,15 @@ _tenGageDesc[] = {
   "log-euclidean",
   "QuatGeoLoxK",
   "QuatGeoLoxR",
+  "gradient vector of cl1",
+  "gradient magnitude of cl1",
+  "gradient vector of cp1",
+  "gradient magnitude of cp1",
+  "gradient vector of ca1",
+  "gradient magnitude of ca1",
+  "all tensor component gradients, starting with confidence gradient, "
+  /* !! CONCAT !! */
+  "rotated such that eigenvalue derivatives are on the diagonal",
   "anisotropies"
 };
 
@@ -596,7 +615,7 @@ _tenGageVal[] = {
   tenGageModeHessianEvec,
   tenGageModeHessianEvec0,
   tenGageModeHessianEvec1,
-  tenGageOmegaHessianEvec2,
+  tenGageModeHessianEvec2,
   tenGageOmegaHessian,
   tenGageOmegaHessianEval,
   tenGageOmegaHessianEval0,
@@ -626,14 +645,14 @@ _tenGageVal[] = {
   tenGageTensorLogEuclidean,
   tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR,
-  tenGageAniso,
   tenGageCl1GradVec,
   tenGageCl1GradMag,
   tenGageCp1GradVec,
   tenGageCp1GradMag,
   tenGageCa1GradVec,
   tenGageCa1GradMag,
-  tenGageTensorGradRotE
+  tenGageTensorGradRotE,
+  tenGageAniso,
 };
 
 const char *
@@ -784,12 +803,24 @@ _tenGageStrEqv[] = {
   "omgvdotevec0",
   "daom",
   "dfom",
+  "confgvdotevec0",
+  "daconf",
+  "dfconf",
   "cov",
   "covr",
   "covk",
   "logeuclidean", "logeuc",
   "quatgeoloxk", "qglk",
   "quatgeoloxr", "qglr",
+
+  "cl1gv",
+  "cl1gm",
+  "cp1gv",
+  "cp1gm",
+  "ca1gv",
+  "ca1gm",
+  "tgrote",
+
   "an", "aniso", "anisotropies",
   ""
 };
@@ -957,13 +988,21 @@ _tenGageValEqv[] = {
   tenGageTensorQuatGeoLoxK, tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR, tenGageTensorQuatGeoLoxR,
 
+  tenGageCl1GradVec,
+  tenGageCl1GradMag,
+  tenGageCp1GradVec,
+  tenGageCp1GradMag,
+  tenGageCa1GradVec,
+  tenGageCa1GradMag,
+  tenGageTensorGradRotE,
+
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
 airEnum
 _tenGage = {
   "tenGage",
-  TEN_GAGE_ITEM_MAX+1,
+  TEN_GAGE_ITEM_MAX,
   _tenGageStr, _tenGageVal,
   _tenGageDesc,
   _tenGageStrEqv, _tenGageValEqv,
