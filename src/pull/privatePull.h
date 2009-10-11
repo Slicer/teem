@@ -61,11 +61,7 @@ extern "C" {
 
 /* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
    for discrete differencing needed to find the gradient of strength */
-#define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.002
-
-/* number of iterations we allow something to be continuously stuck
-   before nixing it */
-#define _PULL_STUCK_ITER_NUM_MAX 3
+#define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.0002
 
 /* maximum distance, in multiples of voxelSizeSpace, that a point is
    allowed to move between start and end of constraint satisfaction */
@@ -134,8 +130,8 @@ extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
 #else
-#define _pullPointHistInit(p)  
-#define _pullPointHistAdd(p, c) 
+#define _pullPointHistInit(p)    /* no-op */
+#define _pullPointHistAdd(p, c)  /* no-op */
 #endif
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);

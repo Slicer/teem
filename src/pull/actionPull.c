@@ -495,6 +495,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       energy += task->pctx->gamma*enr;
     } else {
       /* need strength and its gradient */
+      /* randomize choice between forward and backward difference */
       sign = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
       deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;
@@ -505,17 +506,19 @@ _energyFromImage(pullTask *task, pullPoint *point,
       scl0 = point->pos[3] -= deltaScale;
       MAYBEPROBE;
       str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
-                             NULL, NULL);
+                              NULL, NULL);
       energy += task->pctx->gamma*str0;
       egradSum[3] += task->pctx->gamma*(str1 - str0)/(scl1 - scl0);
       /*
-      printf("%s: egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
-             me, task->pctx->gamma,
-             str1, str0, scl1, scl0,
-             str1 - str0, scl1 - scl0,
-             (str1 - str0)/(scl1 - scl0),
-             task->pctx->gamma*(str1 - str0)/(scl1 - scl0),
-             egradSum[3]);
+      if (4819 == point->idtag || 4828 == point->idtag) {
+        printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
+               me, point->idtag, task->pctx->gamma,
+               str1, str0, scl1, scl0,
+               str1 - str0, scl1 - scl0,
+               (str1 - str0)/(scl1 - scl0),
+               task->pctx->gamma*(str1 - str0)/(scl1 - scl0),
+               egradSum[3]);
+      }
       */
     }
   }
@@ -656,20 +659,18 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                          int ignoreImage) {
   static const char me[]="pullPointProcessDescent";
   double energyOld, energyNew, egrad[4], force[4], posOld[4];
-  int stepBad, giveUp;
+  int stepBad, giveUp, hailMary;
  
   if (!point->stepEnergy) {
     fprintf(stderr, "\n%s: whoa, point %u step is zero!!\n\n",
             me, point->idtag);
-    /*
-    HEY: need to track down how this can originate! 
-    biffAddf(PULL, "%s: whoa, point %u step is zero!", me, point->idtag);
+    /* HEY: need to track down how this can originate! */
+    biffAddf(PULL, "%s: point %u step is zero!", me, point->idtag);
     return 1;
-    */
-    point->stepEnergy = task->pctx->stepInitial/100;
+    /* point->stepEnergy = task->pctx->stepInitial/100; */
   }
   
-  /* learn the energy at existing location, and the energy gradient */
+  /* learn the energy at old location, and the energy gradient */
   energyOld = _pullPointEnergyTotal(task, bin, point, ignoreImage, egrad);
   ELL_4V_SCALE(force, -1, egrad);
   if (!( AIR_EXISTS(energyOld) && ELL_4V_EXISTS(force) )) {
@@ -677,7 +678,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     return 1;
   }
   /*
-  if (81 == point->idtag) {
+  if (4819 == point->idtag || 4828 == point->idtag) {
     printf("!%s(%u): old pos = %g %g %g %g\n", me, point->idtag,
            point->pos[0], point->pos[1],
            point->pos[2], point->pos[3]);
@@ -685,7 +686,6 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
            point->idtag, energyOld, force[0], force[1], force[2], force[3]);
   }
   */
-  
   if (!ELL_4V_DOT(force, force)) {
     /* this particle has no reason to go anywhere; we're done with it */
     point->energy = energyOld;
@@ -701,13 +701,13 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     ELL_3V_COPY(force, pfrc);
     /* force[3] untouched */
   }
-
-  if (0) {
+  /*
+  if (4819 == point->idtag || 4828 == point->idtag) {
     printf("!%s(%u): post-constraint tan: force = %g %g %g %g\n", me,
            point->idtag, force[0], force[1], force[2], force[3]);
     printf("   precap stepEnergy = %g\n", point->stepEnergy);
   }
-
+  */
   /* Cap particle motion. The point is only allowed to move at most unit
      distance in rs-normalized space, which may mean that motion in r
      or s is effectively cramped by crowding in the other axis, oh well.
@@ -738,27 +738,32 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       point->stepEnergy *= _PULL_DIST_CAP_VOXEL/max;
     }
   }
-  if (0) {
+  /*
+  if (4819 == point->idtag || 4828 == point->idtag) {
     printf("  postcap stepEnergy = %g\n", point->stepEnergy);
   }
-
-  point->status &= ~PULL_STATUS_STUCK_BIT; /* turn off stuck bit */
+  */
+  /* turn off stuck bit, will turn it on again if needed */
+  point->status &= ~PULL_STATUS_STUCK_BIT; 
   ELL_4V_COPY(posOld, point->pos);
   _pullPointHistInit(point);
   _pullPointHistAdd(point, pullCondOld);
   /* try steps along force until we succcessfully lower energy */
+  hailMary = AIR_FALSE;
   do {
     int constrFail, energyIncr;
     giveUp = AIR_FALSE;
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       point->stepEnergy, force);
-    if (0) {
-      printf("!%s(%u): (iter %u) try pos  = %g %g %g %g\n",
+    /*
+    if (4819 == point->idtag || 4828 == point->idtag) {
+      printf("!%s(%u): (iter %u) try pos = %g %g %g %g%s\n",
              me, point->idtag, task->pctx->iter,
              point->pos[0], point->pos[1],
-             point->pos[2], point->pos[3]);
+             point->pos[2], point->pos[3],
+             hailMary ? " (Hail Mary)" : "");
     }
-
+    */
     if (task->pctx->haveScale) {
       point->pos[3] = AIR_CLAMP(task->pctx->bboxMin[3], 
                                 point->pos[3],
@@ -773,25 +778,26 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     } else {
       constrFail = AIR_FALSE;
     }
-    if (0) {
+    /*
+    if (4819 == point->idtag || 4828 == point->idtag) {
       printf("!%s(%u): post constr = %g %g %g %g (%d)\n", me,
              point->idtag,
              point->pos[0], point->pos[1],
              point->pos[2], point->pos[3], constrFail);
     }
-
+    */
     if (constrFail) {
       energyNew = AIR_NAN;
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
     energyIncr = energyNew > energyOld + task->pctx->energyIncreasePermit;
-
-    if (0) {
-      printf("!%s(%u): constrFail %d; energyNew = %g -> energyIncr %d\n", me,
-             point->idtag, constrFail, energyNew, energyIncr);
+    /*
+    if (4819 == point->idtag || 4828 == point->idtag) {
+      printf("!%s(%u): constrFail %d; enr Old New = %g %g -> enrIncr %d\n",
+             me, point->idtag, constrFail, energyOld, energyNew, energyIncr);
     }
-
+    */
     stepBad = (constrFail || energyIncr);
     if (stepBad) {
       point->stepEnergy *= task->pctx->stepScale;
@@ -802,39 +808,63 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       }
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
-      if (point->stepEnergy < 0.00000000000000001) {
+      if (point->stepEnergy < 0.00000001) {
+        /* this can happen if the force is due to a derivative of
+           feature strength with respect to scale, which is measured
+           WITHOUT enforcing the constraint, while particle updates
+           are done WITH the constraint, in which case the computed
+           force can be completely misleading. Thus, as a last-ditch
+           effort, we try moving in the opposite direction (against
+           the force) to see if that helps */
         if (task->pctx->verbose > 1) {
-          printf("%s: %u STUCK (%u); (%g,%g,%g,%g) stepEnr %g\n", me,
-                 point->idtag, point->stuckIterNum,
+          printf("%s: %u %s (%u); (%g,%g,%g,%g) stepEnr %g\n", me,
+                 point->idtag, hailMary ? "STUCK!" : "stuck?", point->stuckIterNum,
                  point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                  point->stepEnergy);
         }
-        /* This point is fuct, may as well reset its step, maybe things
-           will go better next time.  Without this resetting, it will stay
-           effectively frozen */
-        ELL_4V_COPY(point->pos, posOld);
-        if (_pullProbe(task, point)) {
-          biffAddf(PULL, "%s: problem returning %u to %g %g %g %g", me,
-                   point->idtag, point->pos[0], point->pos[1],
-                   point->pos[2], point->pos[3]);
-          return 1;
+        if (!hailMary) {
+          ELL_4V_SCALE(force, -1, force);
+          /*
+          if (4819 == point->idtag || 4828 == point->idtag) {
+            printf("!%s(%u): force now %g %g %g %g\n", me, point->idtag,
+                   force[0], force[1], force[2], force[3]);
+          }
+          */
+          hailMary = AIR_TRUE;
+        } else {
+          /* The hail Mary pass missed too; something is really odd.
+             This can happen when the previous iteration did a sloppy job
+             enforcing the constraint, so before we move on, we enforce
+             it, twice for good measure so that things may be better next
+             time around */
+          if (task->pctx->constraint) {
+            if (_pullConstraintSatisfy(task, point, &constrFail)
+                || _pullConstraintSatisfy(task, point, &constrFail)) {
+              biffAddf(PULL, "%s: trouble", me);
+              return 1;
+            }
+          }
+          energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
+          point->stepEnergy = task->pctx->stepInitial;
+          point->status |= PULL_STATUS_STUCK_BIT;
+          point->stuckIterNum += 1;
+          giveUp = AIR_TRUE;
         }
-        energyNew = energyOld; /* to be copied into point->energy below */
-        point->stepEnergy = task->pctx->stepInitial;
-        point->status |= PULL_STATUS_STUCK_BIT;
-        point->stuckIterNum += 1;
-        giveUp = AIR_TRUE;
       }
     }
   } while (stepBad && !giveUp);
-  /* now: energy decreased, and, if we have one, constraint has been met */
-  if (0) {
+  /* Hail Mary worked if (hailMary && !stepBad). It does sometimes work. */
+
+  /* now: unless we gave up, energy decreased, and,
+     if we have one, constraint has been met */
+  /*
+  if (4819 == point->idtag || 4828 == point->idtag) {
     printf("!%s(%u):iter %u changed (%g,%g,%g,%g)->(%g,%g,%g,%g)\n",
            me, point->idtag, task->pctx->iter,
            posOld[0], posOld[1], posOld[2], posOld[3],
            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
   }
-
+  */
   _pullPointHistAdd(point, pullCondNew);
   ELL_4V_COPY(point->force, force);
   
@@ -849,7 +879,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* if its not stuck, reset stuckIterNum */
   if (!(point->status & PULL_STATUS_STUCK_BIT)) {
     point->stuckIterNum = 0;
-  } else if (point->stuckIterNum > _PULL_STUCK_ITER_NUM_MAX) {
+  } else if (task->pctx->stuckIterMax
+             && point->stuckIterNum > task->pctx->stuckIterMax) {
     point->status |= PULL_STATUS_NIXME_BIT;
   }
 

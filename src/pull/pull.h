@@ -118,7 +118,7 @@ enum {
   pullPropEnergy,             /*  3: [1] energy from last iteration */
   pullPropStepEnergy,         /*  4: [1] step size for minimizing energy */
   pullPropStepConstr,         /*  5: [1] step size for constraint satis. */
-  pullPropStuck,              /*  6: [1] (0 or 1) got stuck last iter */
+  pullPropStuck,              /*  6: [1] how many iters its been stuck */
   pullPropPosition,           /*  7: [4] position */
   pullPropForce,              /*  8: [4] force accumulation */
   pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
@@ -489,6 +489,9 @@ typedef struct pullContext_t {
 				      or, 0 to say: "no pop cntl" */
     constraintIterMax,             /* if non-zero, max number of iterations
                                       for enforcing each constraint */
+    stuckIterMax,                  /* if non-zero, max number of iterations we
+                                      allow something to be continuously stuck
+                                      before nixing it */
     snap,                          /* if non-zero, interval between iterations
                                       at which output snapshots are saved */
     ppvZRange[2],                  /* range of indices along Z to do seeding
@@ -691,8 +694,8 @@ PULL_EXPORT int pullFinish(pullContext *pctx);
 
 /* ccPull.c */
 PULL_EXPORT int pullCCFind(pullContext *pctx);
-PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nsize, Nrrd *nmeas,
-                              int measrInfo);
+PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nmeas,
+                              int measrInfo, double rho);
 PULL_EXPORT int pullCCSort(pullContext *pctx, int measrInfo, double rho);
 
 #ifdef __cplusplus

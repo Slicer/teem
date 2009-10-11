@@ -352,9 +352,11 @@ _pullVolumeSetup(pullContext *pctx) {
 
   /* first see if there are any gage problems */
   for (ii=0; ii<pctx->volNum; ii++) {
+    printf("!%s: gageUpdate(vol[%u])\n", me, ii);
     if (gageUpdate(pctx->vol[ii]->gctx)) {
-      biffAddf(PULL, GAGE, "%s: trouble setting up gage on vol %u/%u",
-               me, ii, pctx->volNum);
+      biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
+                "%u/%u (\"%s\")",  me, ii, pctx->volNum,
+                pctx->vol[ii]->name);
       return 1;
     }
   }

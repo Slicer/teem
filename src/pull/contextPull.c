@@ -74,6 +74,7 @@ pullContextNew(void) {
   pctx->iterMax = 0;
   pctx->popCntlPeriod = 20;
   pctx->constraintIterMax = 15;
+  pctx->stuckIterMax = 4;
   pctx->snap = 0;
   pctx->ppvZRange[0] = 1;
   pctx->ppvZRange[1] = 0;
@@ -477,9 +478,9 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       point = bin->point[pointIdx];
       /** to find idtag of point at particular location **/
       /*
-      if (AIR_ABS(84.2579  - point->pos[0]) < 0.5 &&
-          AIR_ABS(449.574 - point->pos[1]) < 0.5 &&
-          AIR_ABS(340.127  - point->pos[ 2 ]) < 0.5) {
+      if (AIR_ABS(514.113  - point->pos[0]) < 0.5 &&
+          AIR_ABS(453.519 - point->pos[1]) < 0.5 &&
+          AIR_ABS(606.723  - point->pos[ 2 ]) < 0.5) {
         printf("!%s: point %u at (%g,%g,%g,%g) ##############\n",
                me, point->idtag,
                point->pos[0], point->pos[1], 
@@ -628,6 +629,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   case pullPropStuck:
     dim = 1;
     size[0] = pointNum;
+    /* HEY should be nrrdTypeUInt, no? */
     typeOut = nrrdTypeUChar;
     break;
   case pullPropPosition:
@@ -677,7 +679,9 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         out_ui[outIdx] = point->idCC;
         break;
       case pullPropStuck:
-        out_uc[outIdx] = (point->status & PULL_STATUS_STUCK_BIT);
+        out_uc[outIdx] = ((point->status & PULL_STATUS_STUCK_BIT)
+                          ? point->stuckIterNum
+                          : 0);
         break;
       case pullPropPosition:
         ELL_4V_COPY(out_d + 4*outIdx, point->pos);
