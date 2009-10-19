@@ -256,7 +256,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ansLen, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], *scalePosSS, *pntPos, scale[3], posSS;
+  double bval=0, eps, gmc, rangeSS[2], *scalePosSS, *pntPos, scale[3], posSS;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
@@ -374,6 +374,11 @@ main(int argc, char *argv[]) {
              "nan nan nan",
              "overrides \"-pi\": only sample at this specified point",
              &pntPosNum);
+  hestOptAdd(&hopt, "eps", "epsilon", airTypeDouble, 1, 1, &eps, "0",
+             "if non-zero, and if query is a scalar, and if using \"pp\" "
+             "to query at a single point, then do epsilon offset probes "
+             "to calculate discrete differences, to find the numerical "
+             "gradient and hessian (for debugging)");
   hestOptAdd(&hopt, "psi", "p", airTypeBool, 1, 1, &probeSpaceIndex, "true",
              "whether the probe location specification (by any of "
              "the four previous flags) are in index space");
@@ -543,6 +548,50 @@ main(int argc, char *argv[]) {
     printans(stdout, answer, ansLen);
     printf("\n");
     /* we're done, get out of here */
+    /* except if we're supposed to debug derivatives */
+    if (eps && 1 == ansLen) {
+      double v[3][3][3], fes, ee;
+      int xo, yo, zo;
+      if (probeSpaceIndex) {
+        fprintf(stderr, "\n%s: WARNING!!: not probing in world-space (via "
+                "\"-wsp\") likely leads to errors in estimated "
+                "derivatives\n\n", me);
+      }
+      gageParmSet(ctx, gageParmVerbose, 0);
+#define PROBE(x, y, z)                                                  \
+      ((numSS                                                           \
+        ? gageStackProbeSpace(ctx, x, y, z, posSS,                      \
+                              probeSpaceIndex, AIR_FALSE)               \
+        : gageProbeSpace(ctx, x, y, z, probeSpaceIndex,                 \
+                         AIR_FALSE)),answer[0])
+      for (xo=0; xo<=2; xo++) {
+        for (yo=0; yo<=2; yo++) {
+          for (zo=0; zo<=2; zo++) {
+            v[xo][yo][zo] = PROBE(pntPos[0] + (xo-1)*eps,
+                                  pntPos[1] + (yo-1)*eps,
+                                  pntPos[2] + (zo-1)*eps);
+          }
+        }
+      }
+      printf("%s: approx gradient(%s) at (%g,%g,%g) = %f %f %f\n", me,
+             airEnumStr(kind->enm, what), pntPos[0], pntPos[1], pntPos[2],
+             (v[2][1][1] - v[0][1][1])/(2*eps),
+             (v[1][2][1] - v[1][0][1])/(2*eps),
+             (v[1][1][2] - v[1][1][0])/(2*eps));
+      fes = 4*eps*eps;
+      ee = eps*eps;
+      printf("%s: approx hessian(%s) at (%g,%g,%g) = \n"
+             "%f %f %f\n"
+             "   %f %f\n"
+             "      %f\n", me,
+             airEnumStr(kind->enm, what), pntPos[0], pntPos[1], pntPos[2],
+             (v[0][1][1] - 2*v[1][1][1] + v[2][1][1])/ee,
+             (v[2][2][1] - v[0][2][1] - v[2][0][1] + v[0][0][1])/fes,
+             (v[2][1][2] - v[0][1][2] - v[2][1][0] + v[0][1][0])/fes,
+             (v[1][2][1] - 2*v[1][1][1] + v[1][0][1])/ee,
+             (v[1][2][2] - v[1][0][2] - v[1][2][0] + v[1][0][0])/fes,
+             (v[1][1][2] - 2*v[1][1][1] + v[1][1][0])/ee);
+    }
     airMopOkay(mop); return 0;
   }
 
