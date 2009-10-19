@@ -690,7 +690,6 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3V_SCALE_ADD2(vecTmp,
                       (1+mode)/2, faGrad,
                       fa/2, modeGrad);
-    ELL_3V_SCALE(vecTmp, (1+mode)/2, faGrad);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaGradMag)) {
     magTmp = pvl->directAnswer[tenGageOmegaGradMag][0] = ELL_3V_LEN(vecTmp);
@@ -1195,7 +1194,8 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_ZERO_SET(matTmp);
     ELL_3M_SCALE_INCR(matTmp, (1+mode)/2, faHess);
     ELL_3M_SCALE_INCR(matTmp, fa/2, modeHess);
-    ELL_3MV_OUTER_INCR(matTmp, modeGrad, faGrad);
+    ELL_3MV_SCALE_OUTER_INCR(matTmp, 0.5, modeGrad, faGrad);
+    ELL_3MV_SCALE_OUTER_INCR(matTmp, 0.5, faGrad, modeGrad);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianEvec)) {
     /* HEY: cut-and-paste from tenGageFAHessianEvec */
