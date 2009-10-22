@@ -44,7 +44,7 @@ _hooverErrStr[HOOVER_ERR_MAX+1] = {
   "RenderEnd"
 };
 
-airEnum
+const airEnum
 _hooverErr = {
   "error",
   HOOVER_ERR_MAX,
@@ -53,7 +53,7 @@ _hooverErr = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 hooverErr = &_hooverErr;
 
 

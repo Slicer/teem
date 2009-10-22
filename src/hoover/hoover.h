@@ -264,7 +264,7 @@ enum {
 HOOVER_EXPORT const char *hooverBiffKey;
 HOOVER_EXPORT int hooverDefVolCentering;
 HOOVER_EXPORT int hooverDefImgCentering;
-HOOVER_EXPORT airEnum *hooverErr;
+HOOVER_EXPORT const airEnum *const hooverErr;
 
 /* methodsHoover.c */
 HOOVER_EXPORT hooverContext *hooverContextNew();
