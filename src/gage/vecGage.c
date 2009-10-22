@@ -396,6 +396,7 @@ _gageVecStr[] = {
   "helicity",
   "normalized helicity",
   "lambda2",
+  "imag",
   "vector hessian",
   "div gradient",
   "curl gradient",
@@ -429,6 +430,7 @@ _gageVecDesc[] = {
   "helicity: dot(vector,curl)",
   "normalized helicity",
   "lambda2 value for vortex characterization",
+  "imaginary part of complex-conjugate eigenvalues of Jacobian",
   "3x3x3 second-order vector derivative",
   "gradient of divergence",
   "3x3 derivative of curl",
@@ -577,7 +579,7 @@ _gageVecValEqv[] = {
   GV_MC, GV_MC, GV_MC
 };
 
-airEnum
+const airEnum
 _gageVec = {
   "gageVec",
   GAGE_VEC_ITEM_MAX,
@@ -586,7 +588,7 @@ _gageVec = {
   _gageVecStrEqv, _gageVecValEqv,
   AIR_FALSE
 };
-airEnum *const
+const airEnum *const
 gageVec = &_gageVec;
 
 gageKind

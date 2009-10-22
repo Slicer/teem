@@ -304,7 +304,7 @@ enum {
   gageVecNormHelicity,    /* 12: "nh", normalized helicity: [1] */
   gageVecLambda2,         /* 13: "lambda2", lambda2 criterion: [1] */
   gageVecImaginaryPart,   /* 14: "imag", imag. part of jacobian's
-                                eigenv: [1] */
+                                  complex-conjugate eigenvalues: [1] */
   gageVecHessian,         /* 15: "vh", second-order derivative: [27] 
                                  HEY: indices here need to be double checked
                                  0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
@@ -702,7 +702,7 @@ typedef struct gageKind_t {
   int dynamicAlloc;                 /* non-zero if this kind struct was
                                        dynamically allocated */
   char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
-  airEnum *enm;                     /* such as gageScl.  NB: the "unknown"
+  const airEnum *enm;               /* such as gageScl.  NB: the "unknown"
                                        value in the enum should be 0. */
   unsigned int baseDim,             /* dimension that x,y,z axes start on
                                        (e.g. 0 for scalars, 1 for vectors) */
@@ -822,8 +822,8 @@ GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */
 GAGE_EXPORT double gageZeroNormal[3];
-GAGE_EXPORT airEnum *gageErr;
-GAGE_EXPORT airEnum *gageKernel;
+GAGE_EXPORT const airEnum *const gageErr;
+GAGE_EXPORT const airEnum *const gageKernel;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
 GAGE_EXPORT void gagePointReset(gagePoint *point);
 GAGE_EXPORT gageItemSpec *gageItemSpecNew(void);
@@ -858,13 +858,13 @@ GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
                                   int doV, int doD1, int doD2);
 
 /* scl.c */
-GAGE_EXPORT airEnum *const gageScl;
+GAGE_EXPORT const airEnum *const gageScl;
 GAGE_EXPORT gageKind *const gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it
    takes to create a new gageKind) */
-GAGE_EXPORT airEnum *const gageVec;
+GAGE_EXPORT const airEnum *const gageVec;
 GAGE_EXPORT gageKind *const gageKindVec;
 
 /* shape.c */

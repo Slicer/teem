@@ -81,7 +81,7 @@ _gageKernelValEqv[] = {
   gageKernelStack, gageKernelStack, gageKernelStack
 };
 
-airEnum
+const airEnum
 _gageKernel_enum = {
   "kernel",
   GAGE_KERNEL_MAX,
@@ -90,7 +90,7 @@ _gageKernel_enum = {
   _gageKernelStrEqv, _gageKernelValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 gageKernel = &_gageKernel_enum;
 
 void
@@ -168,7 +168,7 @@ _gageErrStr[GAGE_ERR_MAX+1] = {
   "stack search"
 };
 
-airEnum
+const airEnum
 _gageErr = {
   "gageErr",
   GAGE_ERR_MAX,
@@ -177,5 +177,5 @@ _gageErr = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 gageErr = &_gageErr;

@@ -284,7 +284,7 @@ _gageSclValEqv[] = {
   GS_HM, GS_HM
 };
 
-airEnum
+const airEnum
 _gageScl = {
   "gageScl",
   GAGE_SCL_ITEM_MAX,
@@ -293,7 +293,7 @@ _gageScl = {
   _gageSclStrEqv, _gageSclValEqv,
   AIR_FALSE
 };
-airEnum *const
+const airEnum *const
 gageScl = &_gageScl;
 
 gageKind
