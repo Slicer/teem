@@ -705,20 +705,20 @@ NRRD_EXPORT void nrrdStateGetenv(void);
 ** name is best used for the airEnums here
 */
 /* enumsNrrd.c */
-NRRD_EXPORT airEnum *nrrdFormatType;
-NRRD_EXPORT airEnum *nrrdType;
-NRRD_EXPORT airEnum *nrrdEncodingType;
-NRRD_EXPORT airEnum *nrrdCenter;
-NRRD_EXPORT airEnum *nrrdKind;
-NRRD_EXPORT airEnum *nrrdField;
-NRRD_EXPORT airEnum *nrrdSpace;
-NRRD_EXPORT airEnum *nrrdSpacingStatus;
+NRRD_EXPORT const airEnum *const nrrdFormatType;
+NRRD_EXPORT const airEnum *const nrrdType;
+NRRD_EXPORT const airEnum *const nrrdEncodingType;
+NRRD_EXPORT const airEnum *const nrrdCenter;
+NRRD_EXPORT const airEnum *const nrrdKind;
+NRRD_EXPORT const airEnum *const nrrdField;
+NRRD_EXPORT const airEnum *const nrrdSpace;
+NRRD_EXPORT const airEnum *const nrrdSpacingStatus;
 /* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT airEnum *nrrdBoundary;
-NRRD_EXPORT airEnum *nrrdMeasure;
-NRRD_EXPORT airEnum *nrrdUnaryOp;
-NRRD_EXPORT airEnum *nrrdBinaryOp;
-NRRD_EXPORT airEnum *nrrdTernaryOp;
+NRRD_EXPORT const airEnum *const nrrdBoundary;
+NRRD_EXPORT const airEnum *const nrrdMeasure;
+NRRD_EXPORT const airEnum *const nrrdUnaryOp;
+NRRD_EXPORT const airEnum *const nrrdBinaryOp;
+NRRD_EXPORT const airEnum *const nrrdTernaryOp;
 /* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */

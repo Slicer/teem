@@ -98,7 +98,7 @@ _nrrdFormatType = {
   _nrrdFormatTypeStrEqv, _nrrdFormatTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdFormatType = &_nrrdFormatType;
 
 /* ------------------------ nrrdType ------------------------- */
@@ -189,7 +189,7 @@ _nrrdType = {
   _nrrdTypeStrEqv, _nrrdTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdType = &_nrrdType;
 
 /* ------------------------ nrrdEncodingType ------------------------- */
@@ -244,7 +244,7 @@ _nrrdEncodingType = {
   _nrrdEncodingTypeStrEqv, _nrrdEncodingTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdEncodingType = &_nrrdEncodingType;
 
 /* ------------------------ nrrdCenter ------------------------- */
@@ -272,7 +272,7 @@ _nrrdCenter_enum = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdCenter = &_nrrdCenter_enum;
 
 /* ------------------------ nrrdKind ------------------------- */
@@ -484,7 +484,7 @@ _nrrdKind_enum = {
   _nrrdKindStr_Eqv, _nrrdKindVal_Eqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdKind = &_nrrdKind_enum;
 
 /* ------------------------ nrrdField ------------------------- */
@@ -645,7 +645,7 @@ _nrrdField = {
   _nrrdFieldStrEqv, _nrrdFieldValEqv, 
   AIR_FALSE  /* field identifiers not case sensitive */
 };
-airEnum *
+const airEnum *const
 nrrdField = &_nrrdField;
 
 /* ------------------------ nrrdSpace ------------------------- */
@@ -761,7 +761,7 @@ _nrrdSpace = {
   _nrrdSpaceStrEqv, _nrrdSpaceValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdSpace = &_nrrdSpace;
 
 /* ------------------------ nrrdSpacingStatus ------------------------- */
@@ -793,7 +793,7 @@ _nrrdSpacingStatus = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdSpacingStatus = &_nrrdSpacingStatus;
 
 /* ---- BEGIN non-NrrdIO */
@@ -827,7 +827,7 @@ _nrrdBoundary = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdBoundary = &_nrrdBoundary;
 
 /* ------------------------ nrrdMeasure ------------------------- */
@@ -967,7 +967,7 @@ _nrrdMeasure = {
   _nrrdMeasureStrEqv, _nrrdMeasureValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdMeasure = &_nrrdMeasure;
 
 /* ------------------------ nrrdUnaryOp ---------------------- */
@@ -1141,7 +1141,7 @@ _nrrdUnaryOp_enum = {
   _nrrdUnaryOpStrEqv, _nrrdUnaryOpValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdUnaryOp = &_nrrdUnaryOp_enum;
 
 /* ------------------------ nrrdBinaryOp ---------------------- */
@@ -1279,7 +1279,7 @@ _nrrdBinaryOp_enum = {
   _nrrdBinaryOpStrEqv, _nrrdBinaryOpValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdBinaryOp = &_nrrdBinaryOp_enum;
 
 /* ------------------------ nrrdTernaryOp ---------------------- */
@@ -1355,7 +1355,7 @@ _nrrdTernaryOp_enum = {
   _nrrdTernaryOpStrEqv, _nrrdTernaryOpValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 nrrdTernaryOp = &_nrrdTernaryOp_enum;
 
 /* ---- END non-NrrdIO */
