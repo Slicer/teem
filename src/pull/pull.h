@@ -605,8 +605,8 @@ PULL_EXPORT int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
 
 /* energy.c */
-PULL_EXPORT airEnum *pullInterType;
-PULL_EXPORT airEnum *pullEnergyType;
+PULL_EXPORT const airEnum *const pullInterType;
+PULL_EXPORT const airEnum *const pullEnergyType;
 PULL_EXPORT const pullEnergy *const pullEnergyUnknown;
 PULL_EXPORT const pullEnergy *const pullEnergySpring;
 PULL_EXPORT const pullEnergy *const pullEnergyGauss;
@@ -650,7 +650,7 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    const NrrdKernelSpec *kspSS);
 
 /* infoPull.c */
-PULL_EXPORT airEnum *const pullInfo;
+PULL_EXPORT const airEnum *const pullInfo;
 PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
@@ -683,7 +683,7 @@ PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
 PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 
 /* actionPull.c */
-PULL_EXPORT airEnum *pullProcessMode;
+PULL_EXPORT const airEnum *const pullProcessMode;
 PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
 PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 

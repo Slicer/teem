@@ -97,7 +97,8 @@ _pullInfoStrEqv[] = {
   "isogradvec", "isogvec",
   "isohessian", "isohess",
   "strength", "strn",
-  "quality", "qual"
+  "quality", "qual",
+  ""
 };
 
 const int
@@ -125,16 +126,16 @@ _pullInfoValEqv[] = {
   pullInfoQuality, pullInfoQuality
 };
 
-airEnum
+const airEnum
 _pullInfo = {
   "pullInfo",
-  PULL_INFO_MAX+1,
+  PULL_INFO_MAX,
   _pullInfoStr, _pullInfoVal,
   NULL,
   _pullInfoStrEqv, _pullInfoValEqv,
   AIR_FALSE
 };
-airEnum *const
+const airEnum *const
 pullInfo = &_pullInfo;
 
 unsigned int

@@ -42,7 +42,7 @@ _pullProcessModeStr[PULL_PROCESS_MODE_MAX+1] = {
   "nixing"
 };
 
-airEnum
+const airEnum
 _pullProcessMode = {
   "process mode",
   PULL_PROCESS_MODE_MAX,
@@ -50,7 +50,7 @@ _pullProcessMode = {
   NULL, NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 pullProcessMode = &_pullProcessMode;
 
 static double

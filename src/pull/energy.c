@@ -49,7 +49,7 @@ _pullInterTypeValEqv[] = {
   pullInterTypeAdditive, pullInterTypeAdditive
 };
 
-airEnum
+const airEnum
 _pullInterType = {
   "interaction type",
   PULL_INTER_TYPE_MAX,
@@ -58,7 +58,7 @@ _pullInterType = {
   _pullInterTypeStrEqv, _pullInterTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 pullInterType = &_pullInterType;
 
 
@@ -96,10 +96,11 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "Cubic thing",
   "Quartic thing",
   "Piecewice cubic with tunable well location and depth",
-  "no energy"
+  "no energy",
+  "butterworth-windowed spatial repel and scale attract"
 };
 
-airEnum
+const airEnum
 _pullEnergyType = {
   "energy",
   PULL_ENERGY_TYPE_MAX,
@@ -108,7 +109,7 @@ _pullEnergyType = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 pullEnergyType = &_pullEnergyType;
 
 /* ----------------------------------------------------------------
