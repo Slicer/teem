@@ -53,8 +53,8 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   if (uk) {
     for (i=0; i<=2; i++) {
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = " _AIR_SIZE_T_CNV " -> need = %d --> ", 
-              me, i, nin->axis[i].size, need);
+      fprintf(stderr, "%s: sz[%d] = %u -> need = %d --> ", 
+              me, i, AIR_CAST(unsigned int, nin->axis[i].size), need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> %s resample\n", need, need ? "WILL" : "won't");
       if (need) {
@@ -95,8 +95,9 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       fprintf(stderr, "%d --> ", need);
       padMin[i] = 0 - (int)floor(need/2.0);
       padMax[i] = nin->axis[i].size - 1 + (int)ceil(need/2.0);
-      fprintf(stderr, "pad indices: [" _AIR_PTRDIFF_T_CNV ".." _AIR_PTRDIFF_T_CNV "]\n",
-              padMin[i], padMax[i]);
+      fprintf(stderr, "pad indices: [%d..%d]\n",
+              AIR_CAST(int, padMin[i]),
+              AIR_CAST(int, padMax[i]));
     }
     if (anyneed) {
       fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
