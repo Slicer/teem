@@ -33,12 +33,12 @@
 #include <teem/ell.h>
 #include <teem/unrrdu.h>
 #include <teem/dye.h>
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/moss.h>
 #include <teem/alan.h>
 #endif
 #include <teem/gage.h>
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/bane.h>
 #endif
 #include <teem/limn.h>
@@ -47,7 +47,7 @@
 #include <teem/echo.h>
 #include <teem/ten.h>
 #include <teem/mite.h>
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/coil.h>
 #include <teem/push.h>
 #include <teem/pull.h>
@@ -73,7 +73,7 @@ extern "C" {
 /* enumsall.c */
 MEET_EXPORT const char *meetBiffKey;
 MEET_EXPORT const airEnum **meetAirEnumAll();
-MEET_EXPORT void meetAirEnumPrintAll(FILE *file);
+MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
 
 #ifdef __cplusplus
 }

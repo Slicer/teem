@@ -61,7 +61,7 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = ell_cubic_root;
   /* unrrdu: no airEnums */
   /* dye: no airEnums */
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* moss: no airEnums */
   enm[airArrayLenIncr(arr, 1)] = alanStop;
 #endif
@@ -69,7 +69,7 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = gageKernel;
   enm[airArrayLenIncr(arr, 1)] = gageScl;
   enm[airArrayLenIncr(arr, 1)] = gageVec;
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   enm[airArrayLenIncr(arr, 1)] = baneGkmsMeasr;
 #endif
   enm[airArrayLenIncr(arr, 1)] = limnSpace;
@@ -96,7 +96,7 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = tenTripleType;
   enm[airArrayLenIncr(arr, 1)] = miteVal;
   enm[airArrayLenIncr(arr, 1)] = miteStageOp;
-#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   enm[airArrayLenIncr(arr, 1)] = coilMethodType;
   enm[airArrayLenIncr(arr, 1)] = coilKindType;
   enm[airArrayLenIncr(arr, 1)] = pushEnergyType;
@@ -111,7 +111,7 @@ meetAirEnumAll() {
 };
 
 void
-meetAirEnumPrintAll(FILE *file) {
+meetAirEnumAllPrint(FILE *file) {
   const airEnum **enm, *ee;
   unsigned int ei;
 
