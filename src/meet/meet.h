@@ -33,19 +33,25 @@
 #include <teem/ell.h>
 #include <teem/unrrdu.h>
 #include <teem/dye.h>
+#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/moss.h>
+#include <teem/alan.h>
+#endif
 #include <teem/gage.h>
+#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/bane.h>
+#endif
 #include <teem/limn.h>
 #include <teem/seek.h>
 #include <teem/hoover.h>
-#include <teem/alan.h>
 #include <teem/echo.h>
 #include <teem/ten.h>
 #include <teem/mite.h>
+#if defined(GLKGNU) || defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #include <teem/coil.h>
 #include <teem/push.h>
 #include <teem/pull.h>
+#endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(meet_EXPORTS) || defined(teem_EXPORTS)
