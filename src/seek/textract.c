@@ -41,9 +41,8 @@
 void
 _seekHess2T(double *T, const double *evals, const double *evecs,
 	    const double evalDiffThresh, const char ridge) {
-  double lambdas[3];
+  double lambdas[3]={0.0,0.0,0.0};
   double tmpMat[9], diag[9], evecsT[9];
-  double Tten[7];
   if (ridge) {
     double diff = evals[1]-evals[2];
     lambdas[0]=lambdas[1]=1.0;
@@ -967,7 +966,7 @@ findConnectivity(signed char *pairs, double *bestval, int ct, char *idcs,
  * now refines the search if it couldn't find a degenerate point */
 static void
 connectFace(seekContext *sctx, baggage *bag,
-	    unsigned int xi, unsigned int yi, char faceid) {
+	    unsigned int xi, unsigned int yi, unsigned char faceid) {
   int edgeid[4][4]={{0, 2, 3, 1}, /* which edges belong to which unique face? */
 		    {0, 5, 8, 4},
 		    {1, 6, 9, 4},
@@ -1049,7 +1048,7 @@ connectFace(seekContext *sctx, baggage *bag,
 				      dpthresh[pass]);
       if (interct>3) interct=3;
       for (i=0; i<interct; i++) {
-	double x, y, z; unsigned int xb, yb, idb;
+	double x=0, y=0, z=0; unsigned int xb=0, yb=0, idb=0;
 	sctx->edgealpha[3*(bag->evti[edgeid[faceid][j]]+5*si)+i] = interpos[i];
 	switch (edgeid[faceid][j]) {
 	case 0: x=xi+interpos[i]; y=yi; z=bag->zi;
@@ -1223,8 +1222,7 @@ connectFace(seekContext *sctx, baggage *bag,
 static void
 intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si, six, siy, sixy;
-  int interct, i;
-  double interpos[4];
+  int i;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
   sy = AIR_CAST(unsigned int, sctx->sy);
@@ -1328,7 +1326,7 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
 /* special triangulation routine for use with T-based extraction */
 int
 _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  unsigned xi, yi, sx, sy, si, fi, i;
+  unsigned xi, yi, sx, sy, si, i;
 
   /* map edge indices w.r.t. faces (as used in sctx->pairs) back to
    * edge indices w.r.t. voxel */
@@ -1556,7 +1554,7 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 	if (connections[2*i]!=-1) {
 	  /* extract polygon from connections array */
 	  signed char polygon[42];
-	  char polyct=0;
+	  unsigned char polyct=0;
 	  char this=i;
 	  char next=connections[2*i];
 	  polygon[polyct++]=i;
@@ -1752,7 +1750,6 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 
 static void
 shuffleT(seekContext *sctx, baggage *bag) {
-  char me[]="shuffleT", err[BIFF_STRLEN];
   unsigned int xi, yi, sx, sy, si;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -1817,7 +1814,6 @@ shuffleT(seekContext *sctx, baggage *bag) {
 
 static void
 probeT(seekContext *sctx, baggage *bag, double zi) {
-  char me[]="probeT", err[BIFF_STRLEN];
   unsigned int xi, yi, sx, sy, si;
 
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -1851,9 +1847,6 @@ probeT(seekContext *sctx, baggage *bag, double zi) {
  * this only duplicates little (and trivial) code */
 int
 _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
-  char me[]="shuffleProbeT", err[BIFF_STRLEN];
-  unsigned int sz = AIR_CAST(unsigned int, sctx->sz);
-
   /* for high-quality normal estimation, we need two slices of data
    * context; to keep the code simple, separate shuffle and probe
    * operations - let's hope this doesn't destroy cache performance */
