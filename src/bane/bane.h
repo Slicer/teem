@@ -389,7 +389,7 @@ F(opac) \
 F(mite) \
 F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
-BANE_EXPORT airEnum *baneGkmsMeasr;
+BANE_EXPORT const airEnum *const baneGkmsMeasr;
 BANE_EXPORT unrrduCmd *baneGkmsCmdList[]; 
 BANE_EXPORT void baneGkmsUsage(char *me, hestParm *hparm);
 BANE_EXPORT hestCB *baneGkmsHestIncStrategy;

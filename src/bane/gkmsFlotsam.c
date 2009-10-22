@@ -284,7 +284,7 @@ _baneGkmsMeasrVal[] = {
   nrrdMeasureHistoMode
 };
 
-airEnum
+const airEnum
 _baneGkmsMeasr = {
   "measurement",
   5,
@@ -294,5 +294,5 @@ _baneGkmsMeasr = {
   AIR_FALSE
 };
 
-airEnum *
+const airEnum *const
 baneGkmsMeasr = &_baneGkmsMeasr;
