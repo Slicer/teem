@@ -1,3 +1,8 @@
+unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
+  -m bbody.txt -blind8 false -max 193 -o tmp.nrrd
+why the f-ing NaNs?
+
+
 large-scale fix: when using sizeof with memcpy or memset, should be using
 the variable name itself instead of type as argument to sizeof()
 
