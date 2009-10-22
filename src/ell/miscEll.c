@@ -62,7 +62,7 @@ _ell_cubic_root = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 ell_cubic_root = &_ell_cubic_root;
 
 

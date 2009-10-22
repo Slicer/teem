@@ -92,7 +92,7 @@ enum {
 
 /* miscEll.c */
 ELL_EXPORT const char *ell_biff_key;
-ELL_EXPORT airEnum *ell_cubic_root;
+ELL_EXPORT const airEnum *const ell_cubic_root;
 ELL_EXPORT int ell_debug;
 ELL_EXPORT void ell_3m_print_f(FILE *f, const float s[9]);
 ELL_EXPORT void ell_3v_print_f(FILE *f, const float s[3]);
