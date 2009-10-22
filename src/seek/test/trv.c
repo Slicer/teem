@@ -154,7 +154,7 @@ main(int argc, char *argv[]) {
                                       gageSclHessEvec);
   if (!E) E |= seekItemNormalSet(sctx, gageSclHessEvec2);
   if (!E) E |= seekStrengthUseSet(sctx, AIR_TRUE);
-  if (!E) E |= seekStrengthSet(sctx, -1, strength/2, strength);
+  if (!E) E |= seekStrengthSet(sctx, -1, strength);
   if (!E) E |= seekItemStrengthSet(sctx, gageSclHessEval2);
   if (!E) E |= seekNormalsFindSet(sctx, AIR_TRUE);
   if (!E) E |= seekTypeSet(sctx, seekTypeRidgeSurface);

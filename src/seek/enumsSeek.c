@@ -88,7 +88,7 @@ _seekTypeValEqv[] = {
   seekTypeValleySurfaceT, seekTypeValleySurfaceT, seekTypeValleySurfaceT
 };
 
-airEnum
+const airEnum
 _seekType = {
   "format",
   SEEK_TYPE_MAX,
@@ -97,6 +97,6 @@ _seekType = {
   _seekTypeStrEqv, _seekTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 seekType = &_seekType;
 

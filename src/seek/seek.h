@@ -202,7 +202,7 @@ typedef struct {
 
 /* enumsSeek.c */
 SEEK_EXPORT const char *seekBiffKey;
-SEEK_EXPORT airEnum *seekType;
+SEEK_EXPORT const airEnum *const seekType;
 
 /* tables.c */
 SEEK_EXPORT const int seekContour3DTopoHackEdge[256];
