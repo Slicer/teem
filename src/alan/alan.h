@@ -168,7 +168,7 @@ ALAN_EXPORT int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 ALAN_EXPORT int alanParmSet(alanContext *actx, int whichParm, double parm);
 
 /* enumsAlan.c */
-ALAN_EXPORT airEnum *alanStop;
+ALAN_EXPORT const airEnum *const alanStop;
 
 /* coreAlan.c */
 ALAN_EXPORT int alanUpdate(alanContext *actx);

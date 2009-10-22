@@ -42,7 +42,7 @@ _alanStopDesc[ALAN_STOP_MAX+1] = {
   "simulation hit divergent instability"
 };
 
-airEnum
+const airEnum
 _alanStop = {
   "stop",
   ALAN_STOP_MAX,
@@ -51,5 +51,5 @@ _alanStop = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 alanStop = &_alanStop;
