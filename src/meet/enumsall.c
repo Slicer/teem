@@ -30,6 +30,10 @@ meetBiffKey = "meet";
 **
 ** ALLOCATES and returns a NULL-terminated array of 
 ** pointers to all the airEnums in Teem 
+**
+** It would be better if this array could be created at compile-time,
+** but efforts at doing this resulted in lots of "initializer is not const"
+** errors...
 */
 const airEnum **
 meetAirEnumAll() {
