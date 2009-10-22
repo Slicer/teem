@@ -1169,7 +1169,8 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "neq",
   "exists",
   "if",
-  "nrand"
+  "nrand",
+  "rrand",
 };
 
 const char *
@@ -1196,6 +1197,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
   "if exists(a), then a, else b",
   "if a, then a, else b",
   "a + b*gaussianNoise",
+  "sample of Rician with mu a and sigma b"
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1242,6 +1244,7 @@ _nrrdBinaryOpStrEqv[] = {
   "exists",
   "if",
   "nrand",
+  "rrand",
   ""
 };
 
@@ -1267,7 +1270,8 @@ _nrrdBinaryOpValEqv[] = {
   nbNeq, nbNeq, nbNeq, nbNeq,
   nbExt,
   nbIf,
-  nrrdBinaryOpNormalRandScaleAdd
+  nrrdBinaryOpNormalRandScaleAdd,
+  nrrdBinaryOpRicianRand,
 };
 
 airEnum

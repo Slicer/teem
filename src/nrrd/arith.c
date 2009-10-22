@@ -279,6 +279,13 @@ static double _nrrdBinaryOpNormalRandScaleAdd(double a, double b) {
   airNormalRand(&v, NULL);
   return a + b*v;
 }
+static double _nrrdBinaryOpRicianRand(double a, double b) {
+  double vr, vi, rr, ri;
+  airNormalRand(&rr, &ri);
+  vr = a + b*rr;
+  vi = b*ri;
+  return sqrt(vr*vr + vi*vi);
+}
 
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
@@ -303,7 +310,8 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpNotEqual,
   _nrrdBinaryOpExists,
   _nrrdBinaryOpIf,
-  _nrrdBinaryOpNormalRandScaleAdd
+  _nrrdBinaryOpNormalRandScaleAdd,
+  _nrrdBinaryOpRicianRand
 };
 
 /*

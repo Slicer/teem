@@ -664,9 +664,10 @@ enum {
   nrrdBinaryOpExists,     /* 19 */
   nrrdBinaryOpIf,         /* 20 */
   nrrdBinaryOpNormalRandScaleAdd, /* 21 */
+  nrrdBinaryOpRicianRand, /* 22 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   21
+#define NRRD_BINARY_OP_MAX   22
 
 /*
 ******** nrrdTernaryOp
