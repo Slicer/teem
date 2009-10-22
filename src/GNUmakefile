@@ -193,10 +193,9 @@ else
   BIN_CFLAGS += $(STATIC_CFLAG)
 endif
 
-## The "GLKGNU" define allows code to see that is being built by
-## GLK's old GNU makefiles, which do not implement the notion of
-## "EXPERIMENTAL" libraries as supported by Teem's CMake
-CFLAGS += -DGLKGNU $(OPT_CFLAG) $(ARCH_CFLAG)
+## The -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something that 
+## would otherwise come from CMake files
+CFLAGS += -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
 ## The AIR_SIZE_T_FMT macro requires knowing TEEM_32BIT for all
