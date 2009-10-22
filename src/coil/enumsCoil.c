@@ -69,7 +69,7 @@ _coilMethodTypeValEqv[] = {
   coilMethodTypeFinish,
 };
 
-airEnum
+const airEnum
 _coilMethodType = {
   "method",
   COIL_METHOD_TYPE_MAX,
@@ -78,7 +78,7 @@ _coilMethodType = {
   _coilMethodTypeStrEqv, _coilMethodTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 coilMethodType = &_coilMethodType;
 
 /* -------------------------------------------------- */
@@ -114,7 +114,7 @@ _coilKindTypeValEqv[] = {
   coilKindType7Tensor, coilKindType7Tensor
 };
 
-airEnum
+const airEnum
 _coilKindType = {
   "kind",
   COIL_KIND_TYPE_MAX,
@@ -123,5 +123,5 @@ _coilKindType = {
   _coilKindTypeStrEqv, _coilKindTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 coilKindType = &_coilKindType;

@@ -219,8 +219,8 @@ COIL_EXPORT int coilDefaultRadius;
 COIL_EXPORT int coilVerbose;
 
 /* enumsCoil.c */
-COIL_EXPORT airEnum *coilMethodType;
-COIL_EXPORT airEnum *coilKindType;
+COIL_EXPORT const airEnum *const coilMethodType;
+COIL_EXPORT const airEnum *const coilKindType;
 
 /* scalarCoil.c */
 COIL_EXPORT const coilKind *coilKindScalar;
