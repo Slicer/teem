@@ -40,7 +40,7 @@ tend_fiberMain(int argc, char **argv, char *me, hestParm *hparm) {
   tenFiberSingle *tfbs;
   NrrdKernelSpec *ksp;
   double start[3], step, *_stop, *stop;
-  airEnum *ftypeEnum;
+  const airEnum *ftypeEnum;
   char *ftypeS;
   int E, intg, useDwi, allPaths, verbose, worldSpace, worldSpaceOut,
     ftype, ftypeDef;

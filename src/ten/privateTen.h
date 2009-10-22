@@ -147,6 +147,15 @@ extern int tenQGLInterpN(double tenOut[7],
                          const double *wght, 
                          unsigned int NN, int ptype, tenInterpParm *tip);
 
+/* modelUtil.c */
+TEN_EXPORT double _tenModel_sqe(const double *dwiMeas,
+                                const double *dwiSim,
+                                const tenExperSpec *espec);
+TEN_EXPORT double _tenModel_nll(const double *dwiMeas,
+                                const double *dwiSim,
+                                const tenExperSpec *espec,
+                                int rician, double sigma);
+
 #ifdef __cplusplus
 }
 #endif

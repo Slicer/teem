@@ -53,8 +53,9 @@ tenDWMRISkipKeyFmt = "DWMRI_skip_%04u";
 ** Parses through key-value pairs in the NRRD header to determine the
 ** list of diffusion-sensitizing gradient directions, or B-matrices
 ** (depending to what was found), according the NAMIC conventions.
-** This requires, among other things, that ndwi be have exactly one axis
-** with kind nrrdKindList, which is taken to be the DWI axis.
+** This requires, among other things, that ndwi be have exactly one
+** axis with kind nrrdKindList (or nrrdKindVector), which is taken to
+** be the DWI axis.
 **
 ** Either *ngradP or *nbmatP is set to a newly- allocated nrrd
 ** containing this information, and the other one is set to NULL

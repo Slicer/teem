@@ -1001,7 +1001,6 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
                                  const Nrrd *nB0, const Nrrd *nten,
                                  int outType, int keyValueSet) {
   static const char me[]="tenEstimate1TensorSimulateVolume";
-  char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
   size_t sizeTen, sizeX, sizeY, sizeZ, NN, II;
   double (*tlup)(const void *, size_t), (*blup)(const void *, size_t),
     (*lup)(const void *, size_t), ten_d[7], *dwi_d, B0;
@@ -1098,6 +1097,8 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
     airMopError(mop); return 1;
   }
   if (keyValueSet) {
+    char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
+
     nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
     sprintf(valstr, "%g", bValue);
     nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);

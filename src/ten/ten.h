@@ -1075,6 +1075,68 @@ typedef struct {
   double lengthShape, lengthOrient;
 } tenInterpParm;
 
+/* the idea is that there should be a uniform way of describing
+   DWI experiments, and as a result of calling one of the Set() 
+   functions below, the information is set in tenExperSpec so that
+   combined with a diffusion model spec, DWIs can be simulated */
+typedef struct {
+  int set;               /* has been set */
+  unsigned imgNum;       /* total number of images, dwi or not */
+  double *bval,          /* all b values: imgNum doubles */
+    *wght,               /* all weights: imgNum doubles */
+    *grad;               /* all gradients: 3 x imgNum doubles */
+} tenExperSpec;
+
+typedef struct {
+  char name[AIR_STRLEN_SMALL]; /* name */
+  double min, max;             /* bounds */
+  int vec3;                    /* non-zero if this is one coeff of 3-vector */
+  unsigned int idx;            /* if 3-vector, index into it */
+} tenModelParmDesc;
+
+#define TEN_MODEL_PARM_MAXNUM 15 /* adjust as needed */
+#define TEN_MODEL_B0_MAX 65536   /* pretty arbitrary */
+#define TEN_MODEL_DIFF_MAX 0.004 /* in units of mm^2/sec */
+
+/*
+******** struct tenModel
+**
+** container for information about how DWI values arise,
+** with functions that help in fitting and evaluating models
+**
+** NOTE: the current convention is to *always* have the non-DW
+** T2 image value ("B0") be the first parameter in the model.
+** The B0 value will probably be found by trivial means (i.e copied
+** from the image data), or by a different method than the rest
+** of the model parameters, but (1) its very handy to have in one
+** place all the information that, when combined with the 
+** tenExperSpec, gives you a DWI value, and (2) sometimes B0 does
+** have to be estimated at the same time as the rest of the model,
+** and it would be dumb to double the number of models to be able
+** to capture this.
+*/
+typedef struct {
+  char name[AIR_STRLEN_SMALL];
+  unsigned int parmNum;
+  tenModelParmDesc parmDesc[TEN_MODEL_PARM_MAXNUM];
+  /* noise free simulation */
+  void (*simulate)(double *dwiSim, const double *parm,
+                   const tenExperSpec *espec);
+  /* "sqe" == squared error in DWI values */
+  double (*sqe)(double *parm, const tenExperSpec *espec,
+                double *dwiBuff, const double *dwiMeas);
+  int (*sqeFit)(double *parm, const tenExperSpec *espec, 
+                const double *dwiMeas, const double *parmInit,
+                int knownB0);
+  /* "nll" == negative log likelihood */
+  double (*nll)(double *parm, const tenExperSpec *espec,
+                double *dwiBuff, const double *dwiMeas,
+                int rician, double sigma);
+  int (*nllFit)(double *parm, const tenExperSpec *espec, 
+                const double *dwiMeas, const double *parmInit,
+                int rician, double sigma, int knownB0);
+} tenModel;
+
 /* defaultsTen.c */
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
@@ -1125,18 +1187,18 @@ TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
                                    tenGradientParm *tgparm);
 
 /* enumsTen.c */
-TEN_EXPORT airEnum *tenAniso;
-TEN_EXPORT airEnum *tenInterpType;
-TEN_EXPORT airEnum _tenGage;
-TEN_EXPORT airEnum *tenGage;
-TEN_EXPORT airEnum *tenFiberType;
-TEN_EXPORT airEnum *tenDwiFiberType;
-TEN_EXPORT airEnum *tenFiberStop;
-TEN_EXPORT airEnum *tenFiberIntg;
-TEN_EXPORT airEnum *tenGlyphType;
-TEN_EXPORT airEnum *tenEstimate1Method;
-TEN_EXPORT airEnum *tenEstimate2Method;
-TEN_EXPORT airEnum *tenTripleType;
+TEN_EXPORT const airEnum *const tenAniso;
+TEN_EXPORT const airEnum *const tenInterpType;
+TEN_EXPORT const airEnum _tenGage;
+TEN_EXPORT const airEnum *const tenGage;
+TEN_EXPORT const airEnum *const tenFiberType;
+TEN_EXPORT const airEnum *const tenDwiFiberType;
+TEN_EXPORT const airEnum *const tenFiberStop;
+TEN_EXPORT const airEnum *const tenFiberIntg;
+TEN_EXPORT const airEnum *const tenGlyphType;
+TEN_EXPORT const airEnum *const tenEstimate1Method;
+TEN_EXPORT const airEnum *const tenEstimate2Method;
+TEN_EXPORT const airEnum *const tenTripleType;
 
 /* path.c */
 TEN_EXPORT tenInterpParm *tenInterpParmNew();
@@ -1434,6 +1496,58 @@ TEN_EXPORT int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
                                 int doCC,
                                 const NrrdKernel *kern, double *kparm,
                                 int progress, int verbose);
+
+/* experspec.c */
+TEN_EXPORT tenExperSpec* tenExperSpecNew(void);
+TEN_EXPORT int tenExperSpecGradSingleBValSet(tenExperSpec *espec,
+                                             unsigned int imgNum,
+                                             double bval,
+                                             const double *grad);
+TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
+                                       unsigned int imgNum,
+                                       const double *bval,
+                                       const double *grad);
+TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
+                                           unsigned int imgNum,
+                                           const double *bval,
+                                           const double *grad,
+                                           const double *wght);
+TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec,
+                                           const Nrrd *ndwi);
+TEN_EXPORT tenExperSpec* tenExperSpecNix(tenExperSpec *espec);
+TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
+                                                const tenExperSpec *espec);
+TEN_EXPORT double tenExperSpecKnownB0Get(const tenExperSpec *espec,
+                                         const double *dwi);
+
+/* modelTen.c */
+TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0,
+                             const char *_str);
+TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
+                                tenExperSpec *espec,
+                                const tenModel *model,
+                                const Nrrd *nB0, /* maybe NULL */
+                                const Nrrd *nparm,
+                                int keyValueSet);
+TEN_EXPORT int tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
+                              const tenModel *model,
+                              const tenExperSpec *espec, const Nrrd *ndwi,
+                              int knownB0);
+TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
+                              const tenModel *model,
+                              const tenExperSpec *espec, const Nrrd *ndwi,
+                              int rician, double sigma, int knownB0);
+  
+
+/* have to keep in sync with modelUtil.c/tenModelParse() */
+/* modelBall.c */
+TEN_EXPORT const tenModel *const tenModelBall;
+/* modelBall1Stick.c */
+TEN_EXPORT const tenModel *const tenModelBall1Stick;
+/* modelCylinder.c */
+TEN_EXPORT const tenModel *const tenModelCylinder;
+/* modelTensor2.c */
+TEN_EXPORT const tenModel *const tenModelTensor2;
 
 /* mod.c */
 TEN_EXPORT int tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double weight[3],

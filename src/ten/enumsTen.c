@@ -59,7 +59,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1] = {
   "eval2"
 };
 
-airEnum
+const airEnum
 _tenAniso = {
   "anisotropy metric",
   TEN_ANISO_MAX,
@@ -68,7 +68,7 @@ _tenAniso = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenAniso = &_tenAniso;
 
 /* --------------------------------------------------------------------- */
@@ -117,7 +117,7 @@ _tenInterpTypeValEqv[] = {
   tenInterpTypeQuatGeoLoxR, tenInterpTypeQuatGeoLoxR,
 };
 
-airEnum
+const airEnum
 _tenInterpType = {
   "interp type",
   TEN_INTERP_TYPE_MAX,
@@ -126,7 +126,7 @@ _tenInterpType = {
   _tenInterpTypeStrEqv, _tenInterpTypeValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenInterpType = &_tenInterpType;
 
 /* --------------------------------------------------------------------- */
@@ -999,7 +999,7 @@ _tenGageValEqv[] = {
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
-airEnum
+const airEnum
 _tenGage = {
   "tenGage",
   TEN_GAGE_ITEM_MAX,
@@ -1008,7 +1008,7 @@ _tenGage = {
   _tenGageStrEqv, _tenGageValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenGage = &_tenGage;
 
 /* --------------------------------------------------------------------- */
@@ -1056,7 +1056,7 @@ _tenFiberTypeValEqv[] = {
   tenFiberTypeZhukov, tenFiberTypeZhukov
 };
 
-airEnum
+const airEnum
 _tenFiberType = {
   "tenFiberType",
   TEN_FIBER_TYPE_MAX,
@@ -1065,7 +1065,7 @@ _tenFiberType = {
   _tenFiberTypeStrEqv, _tenFiberTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenFiberType = &_tenFiberType;
 
 /* --------------------------------------------------------------------- */
@@ -1101,7 +1101,7 @@ _tenDwiFiberTypeValEqv[] = {
   tenDwiFiberType12BlendEvec0, tenDwiFiberType12BlendEvec0
 };
 
-airEnum
+const airEnum
 _tenDwiFiberType = {
   "tenDwiFiberType",
   TEN_DWI_FIBER_TYPE_MAX,
@@ -1110,7 +1110,7 @@ _tenDwiFiberType = {
   _tenDwiFiberTypeStrEqv, _tenDwiFiberTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenDwiFiberType = &_tenDwiFiberType;
 
 /* ----------------------------------------------------------------------- */
@@ -1174,7 +1174,7 @@ _tenFiberStopDesc[] = {
   "whole fiber has too few numbers of steps"
 };
 
-airEnum
+const airEnum
 _tenFiberStop = {
   "fiber stopping criteria",
   TEN_FIBER_STOP_MAX,
@@ -1183,7 +1183,7 @@ _tenFiberStop = {
   _tenFiberStopStrEqv, _tenFiberStopValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenFiberStop = &_tenFiberStop;
 
 /* ----------------------------------------------------------------------- */
@@ -1219,7 +1219,7 @@ _tenFiberIntgDesc[] = {
   "4rth order Runge-Kutta"
 };
 
-airEnum
+const airEnum
 _tenFiberIntg = {
   "fiber integration method",
   TEN_FIBER_INTG_MAX,
@@ -1228,7 +1228,7 @@ _tenFiberIntg = {
   _tenFiberIntgStrEqv, _tenFiberIntgValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenFiberIntg = &_tenFiberIntg;
 
 /* ----------------------------------------------------------------------- */
@@ -1273,7 +1273,7 @@ _tenGlyphTypeDesc[] = {
   "superquadric (superellipsoids)"
 };
 
-airEnum
+const airEnum
 _tenGlyphType = {
   "tenGlyphType",
   TEN_GLYPH_TYPE_MAX,
@@ -1282,7 +1282,7 @@ _tenGlyphType = {
   _tenGlyphTypeStrEqv, _tenGlyphTypeValEqv, 
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenGlyphType = &_tenGlyphType;
 
 /* ---------------------------------------------- */
@@ -1305,7 +1305,7 @@ _tenEstimate1MethodDesc[] = {
   "maximum likelihood estimate from DWI"
 };
 
-airEnum
+const airEnum
 _tenEstimate1Method = {
   "single-tensor-estimation",
   TEN_ESTIMATE_1_METHOD_MAX,
@@ -1314,7 +1314,7 @@ _tenEstimate1Method = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenEstimate1Method= &_tenEstimate1Method;
 
 /* ---------------------------------------------- */
@@ -1333,7 +1333,7 @@ _tenEstimate2MethodDesc[] = {
   "Peled"
 };
 
-airEnum
+const airEnum
 _tenEstimate2Method = {
   "two-tensor-estimation",
   TEN_ESTIMATE_2_METHOD_MAX,
@@ -1342,7 +1342,7 @@ _tenEstimate2Method = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenEstimate2Method= &_tenEstimate2Method;
 
 /* ---------------------------------------------- */
@@ -1402,7 +1402,7 @@ _tenTripleTypeValEqv[] = {
   tenTripleTypeWheelParm, tenTripleTypeWheelParm
 };
 
-airEnum
+const airEnum
 _tenTripleType = {
   "tenTripleType",
   TEN_TRIPLE_TYPE_MAX,
@@ -1411,5 +1411,5 @@ _tenTripleType = {
   _tenTripleTypeStrEqv, _tenTripleTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenTripleType = &_tenTripleType;

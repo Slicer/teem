@@ -62,6 +62,12 @@ SET(TEN_SOURCES
   tendUnmf.c
   tensor.c
   triple.c
+  experSpec.c
+  modelTen.c
+  modelBall.c
+  modelBall1Stick.c
+  modelCylinder.c
+  modelTensor2.c
   )
 
 ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})
