@@ -54,7 +54,8 @@ _miteStageOpStrEqv[] = {
   "min",
   "max",
   "add", "+",
-  "multiply", "*", "x"
+  "multiply", "*", "x",
+  ""
 };
 
 const int
@@ -66,16 +67,16 @@ _miteStageOpValEqv[] = {
   miteStageOpMultiply, miteStageOpMultiply, miteStageOpMultiply
 };
 
-airEnum
+const airEnum
 _miteStageOp = {
   "miteStageOp",
-  MITE_STAGE_OP_MAX+1,
+  MITE_STAGE_OP_MAX,
   _miteStageOpStr, _miteStageOpVal,
   NULL,
   _miteStageOpStrEqv, _miteStageOpValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 miteStageOp = &_miteStageOp;
 
 /*

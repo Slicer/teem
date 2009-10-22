@@ -118,16 +118,16 @@ _miteValValEqv[] = {
   miteValWdotD
 };
 
-airEnum
+const airEnum
 _miteVal = {
   "miteVal",
-  MITE_VAL_ITEM_MAX+1,
+  MITE_VAL_ITEM_MAX,
   _miteValStr, _miteValVal,
   NULL,
   _miteValStrEqv, _miteValValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 miteVal = &_miteVal;
 
 /*
