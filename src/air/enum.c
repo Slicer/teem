@@ -215,10 +215,13 @@ _enumPrintVal(FILE *file, const airEnum *enm, unsigned int ii) {
     fprintf(file, "desc: %s\n", enm->desc[ii]);
   }
   if (enm->strEqv) {
-    unsigned int jj=0;
-    fprintf(file, "eqv:");
-    while (enm->strEqv[jj]) {
-      if (enm->val[ii] == enm->valEqv[jj]) {
+    unsigned int jj;
+    fprintf(file, "eqv:"); fflush(file);
+    jj = 0;
+    while (airStrlen(enm->strEqv[jj])) {
+      if (enm->valEqv[jj] == (enm->val
+                              ? enm->val[ii]
+                              : ii)) {
         fprintf(file, " \"%s\"", enm->strEqv[jj]);
       }
       jj++;
@@ -243,9 +246,10 @@ airEnumPrint(FILE *file, const airEnum *enm) {
   fprintf(file, "(%s case sensitive)\n", (enm->sense ? "yes, is" : "is not"));
   if (enm->val) {
     fprintf(file, "Values (%u valid) given explicitly\n", enm->M);
-    fprintf(file, "--- (0) %u: \"%s\"\n", enm->val[0], enm->str[0]);
+    fprintf(file, "--- (0) %d: \"%s\"\n", enm->val[0], enm->str[0]);
     for (ii=1; ii<=enm->M; ii++) {
-      fprintf(file, "--- (%u) %u: \"%s\" == \"%s\"\n", ii, enm->val[ii], enm->str[ii],
+      fprintf(file, "--- (%u) %d: \"%s\" == \"%s\"\n", ii,
+              enm->val[ii], enm->str[ii],
               airEnumStr(enm, enm->val[ii]));
       _enumPrintVal(file, enm, ii);
     }
@@ -254,7 +258,7 @@ airEnumPrint(FILE *file, const airEnum *enm) {
     fprintf(file, "Values implicit; [1,%u] valid\n", enm->M);
     fprintf(file, "--- 0: \"%s\"\n", enm->str[0]);
     for (ii=1; ii<=enm->M; ii++) {
-      fprintf(file, "--- %u: %s == %s\n", ii, enm->str[ii],
+      fprintf(file, "--- %d: %s == %s\n", AIR_CAST(int, ii), enm->str[ii],
               airEnumStr(enm, ii));
       _enumPrintVal(file, enm, ii);
     }
