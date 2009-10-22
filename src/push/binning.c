@@ -60,7 +60,7 @@ pushBinDone(pushBin *bin) {
 */
 pushBin *
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
-  static const char char me[]="_pushBinLocate";
+  static const char me[]="_pushBinLocate";
   double posWorld[4], posIdx[4];
   unsigned int axi, eidx[3], binIdx;
 

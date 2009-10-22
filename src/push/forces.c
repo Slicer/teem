@@ -440,7 +440,8 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
 int
 _pushHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   pushEnergySpec **enspP;
-  static const char me[]="_pushHestForceParse", *perr;
+  static const char me[]="_pushHestForceParse";
+  char *perr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
