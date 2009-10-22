@@ -234,9 +234,9 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu gage limn seek hoover echo ten dye mite)
+SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu dye gage limn seek hoover echo ten mite)
 IF(BUILD_EXPERIMENTAL_LIBS)
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} bane moss coil alan pull)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} moss alan bane coil push pull meet)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 
 SET(Teem_HEADER_FILES
@@ -250,6 +250,7 @@ SET(Teem_HEADER_FILES
   ell/ell.h
   ell/ellMacros.h
   unrrdu/unrrdu.h
+  dye/dye.h
   gage/gage.h
   limn/limn.h
   seek/seek.h
@@ -257,16 +258,17 @@ SET(Teem_HEADER_FILES
   echo/echo.h
   ten/ten.h
   ten/tenMacros.h
-  dye/dye.h
   mite/mite.h
   )
 IF(BUILD_EXPERIMENTAL_LIBS)
   SET(Teem_HEADER_FILES ${Teem_HEADER_FILES}
-    bane/bane.h
     moss/moss.h
-    coil/coil.h
     alan/alan.h
+    bane/bane.h
+    coil/coil.h
+    push/push.h
     pull/pull.h
+    meet/meet.h
     )
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 SET(Teem_INSTALLED_HEADER_FILES)
