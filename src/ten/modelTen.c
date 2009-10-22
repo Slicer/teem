@@ -79,10 +79,37 @@ tenModelParse(const tenModel **model, int *plusB0, const char *_str) {
   return 0;
 }
 
+int
+tenModelFromAxisLearn(const tenModel **modelP,
+                      const NrrdAxisInfo *axinfo) {
+  static const char me[]="tenModelFromAxisLearn";
+  
+  if (!(modelP && axinfo)) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  /* first try to learn model from "kind" */
+  if (nrrdKind3DSymMatrix == axinfo->kind
+      || nrrdKind3DMaskedSymMatrix == axinfo->kind) {
+    *modelP = tenModelTensor2;
+  } else if (airStrlen(axinfo->label)) {
+    /* try to parse from label */
+    
+  } else {
+    biffAddf(TEN, "%s: don't have kind or label info to learn model", me);
+    *modelP = NULL;
+    return 1;
+  }
+
+  return 0;
+}
+
 /*
 ** if nB0 is given, and if parm vector is short by one (seems to be
 ** missing B0), then use that instead.  Otherwise parm vector has to
 ** be length that includes B0
+**
+** basic and axis info is derived from _nparm
 */
 int
 tenModelSimulate(Nrrd *ndwi, int typeOut,
@@ -103,10 +130,14 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   airArray *mop;
   unsigned int gpsze, /* given parm size */
     ii;
-  int useB0, needPad;
+  int useB0, needPad, axmap[NRRD_DIM_MAX];
   
   if (!(ndwi && espec && model /* _nB0 can be NULL */ && _nparm)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!espec->imgNum) {
+    biffAddf(TEN, "%s: given espec wants 0 images, unset?", me);
     return 1;
   }
 
@@ -114,15 +145,17 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   if (model->parmNum - 1 == gpsze) {
     /* got one less than needed parm #, see if we got B0 */
     if (!_nB0) {
-      biffAddf(TEN, "%s: got %u parms, need %u, but didn't get B0 vol", 
-               me, gpsze, model->parmNum);
+      biffAddf(TEN, "%s: got %u parms, need %u (for %s), "
+               "but didn't get B0 vol", 
+               me, gpsze, model->parmNum, model->name);
       return 1;
     }
     useB0 = AIR_TRUE;
     needPad = AIR_TRUE;
   } else if (model->parmNum != gpsze) {
-    biffAddf(TEN, "%s: mismatch between getting %u parms, needing %u\n",
-             me, gpsze, model->parmNum);
+    biffAddf(TEN, "%s: mismatch between getting %u parms, "
+             "needing %u (for %s)\n",
+             me, gpsze, model->parmNum, model->name);
     return 1;
   } else {
     /* model->parmNum == gpsze */
@@ -190,11 +223,14 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     nparm = ntmp;
   }
   
-  /* allocate output */
+  /* allocate output (and set axmap) */
   for (ii=0; ii<nparm->dim; ii++) {
     szOut[ii] = (!ii 
                  ? espec->imgNum
                  : nparm->axis[ii].size);
+    axmap[ii] = (!ii
+                 ? -1
+                 : AIR_CAST(int, ii));
   }
   if (nrrdMaybeAlloc_nva(ndwi, typeOut, nparm->dim, szOut)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
@@ -227,7 +263,20 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     }
   }
 
-  /* set basic info */
+  if (nrrdAxisInfoCopy(ndwi, _nparm, axmap, NRRD_AXIS_INFO_SIZE_BIT)
+      || nrrdBasicInfoCopy(ndwi, _nparm, 
+                           NRRD_BASIC_INFO_DATA_BIT
+                           | NRRD_BASIC_INFO_TYPE_BIT
+                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | NRRD_BASIC_INFO_CONTENT_BIT
+                           | NRRD_BASIC_INFO_COMMENTS_BIT
+                           | (nrrdStateKeyValuePairsPropagate
+                              ? 0
+                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    airMopError(mop); return 1;
+  }
 
   airMopOkay(mop);
   return 0;

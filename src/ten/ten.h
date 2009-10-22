@@ -1515,14 +1515,17 @@ TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
 TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec,
                                            const Nrrd *ndwi);
 TEN_EXPORT tenExperSpec* tenExperSpecNix(tenExperSpec *espec);
-TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
-                                                const tenExperSpec *espec);
 TEN_EXPORT double tenExperSpecKnownB0Get(const tenExperSpec *espec,
                                          const double *dwi);
+TEN_EXPORT double tenExperSpecMaxBGet(const tenExperSpec *espec);
+TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
+                                                const tenExperSpec *espec);
 
 /* modelTen.c */
 TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0,
                              const char *_str);
+TEN_EXPORT int tenModelFromAxisLearn(const tenModel **model,
+                                     const NrrdAxisInfo *axinfo);
 TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
                                 tenExperSpec *espec,
                                 const tenModel *model,
@@ -1538,7 +1541,6 @@ TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int rician, double sigma, int knownB0);
   
-
 /* have to keep in sync with modelUtil.c/tenModelParse() */
 /* modelBall.c */
 TEN_EXPORT const tenModel *const tenModelBall;
@@ -1605,6 +1607,7 @@ F(grads) \
 F(epireg) \
 F(bmat) \
 F(estim) \
+F(msim) \
 F(sim) \
 F(make) \
 F(avg) \

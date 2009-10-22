@@ -23,7 +23,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define PARM_NUM 6
+#define PARM_NUM 7
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {

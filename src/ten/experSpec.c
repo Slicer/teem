@@ -34,6 +34,7 @@ _experAlloc(tenExperSpec* espec, unsigned int num) {
     biffAddf(TEN, "%s: need a non-zero number of images", me);
     return 1;
   }
+  espec->imgNum = num;
   espec->bval = AIR_CAST(double *, calloc(num, sizeof(double)));
   espec->grad = AIR_CAST(double *, calloc(3*num, sizeof(double)));
   espec->wght = AIR_CAST(double *, calloc(num, sizeof(double)));
@@ -243,44 +244,27 @@ int
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
   static char me[]="tenDWMRIKeyValueFromExperSpecSet"; 
   char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
+  double maxb, bb;
+  unsigned int ii;
 
   if (!(ndwi && espec)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
 
-  AIR_UNUSED(keystr);
-  AIR_UNUSED(valstr);
-
-  /*
   nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
-  sprintf(valstr, "%g", espec->);
-    nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);
-    if (tec->_ngrad) {
-      lup = nrrdDLookup[tec->_ngrad->type];
-      for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-        sprintf(keystr, tenDWMRIGradKeyFmt, allIdx);
-        sprintf(valstr, "%g %g %g",
-                lup(tec->_ngrad->data, 0 + 3*allIdx),
-                lup(tec->_ngrad->data, 1 + 3*allIdx),
-                lup(tec->_ngrad->data, 2 + 3*allIdx));
-        nrrdKeyValueAdd(ndwi, keystr, valstr);
-      }
-    } else {
-      lup = nrrdDLookup[tec->_nbmat->type];
-      for (allIdx=0; allIdx<tec->allNum; allIdx++) {
-        sprintf(keystr, tenDWMRIBmatKeyFmt, allIdx);
-        sprintf(valstr, "%g %g %g %g %g %g",
-                lup(tec->_nbmat->data, 0 + 6*allIdx),
-                lup(tec->_nbmat->data, 1 + 6*allIdx),
-                lup(tec->_nbmat->data, 2 + 6*allIdx),
-                lup(tec->_nbmat->data, 3 + 6*allIdx),
-                lup(tec->_nbmat->data, 4 + 6*allIdx),
-                lup(tec->_nbmat->data, 5 + 6*allIdx));
-        nrrdKeyValueAdd(ndwi, keystr, valstr);
-      }
-    }
-  */
+  maxb = tenExperSpecMaxBGet(espec);
+  sprintf(valstr, "%g", maxb);
+  nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);
+  for (ii=0; ii<espec->imgNum; ii++) {
+    double vec[3];
+    sprintf(keystr, tenDWMRIGradKeyFmt, ii);
+    ELL_3V_COPY(vec, espec->grad + 3*ii);
+    bb = espec->bval[ii];
+    ELL_3V_SCALE(vec, sqrt(bb/maxb), vec);
+    sprintf(valstr, "%g %g %g", vec[0], vec[1], vec[2]);
+    nrrdKeyValueAdd(ndwi, keystr, valstr);
+  }
 
   return 0;
 }
@@ -305,3 +289,18 @@ tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   return b0/nb;
 }
 
+double
+tenExperSpecMaxBGet(const tenExperSpec *espec) {
+  unsigned int ii;
+  double bval;
+  
+  if (!( espec )) {
+    return AIR_NAN;
+  }
+
+  bval = -1;
+  for (ii=0; ii<espec->imgNum; ii++) {
+    bval = AIR_MAX(bval, espec->bval[ii]);
+  }
+  return bval;
+}
