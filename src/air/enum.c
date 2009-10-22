@@ -209,7 +209,7 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
 }
 
 static void
-_enumPrintVal(FILE *file, const airEnum *enm, unsigned int ii) {
+_enumPrintVal(FILE *file, const airEnum *enm, int ii) {
 
   if (enm->desc) {
     fprintf(file, "desc: %s\n", enm->desc[ii]);
@@ -232,7 +232,9 @@ _enumPrintVal(FILE *file, const airEnum *enm, unsigned int ii) {
 
 void
 airEnumPrint(FILE *file, const airEnum *enm) {
-  unsigned int ii;
+  int ii; /* this should arguable be unsigned int, but 
+             airEnum values were kept as "int", even after
+             the great unsigned conversion */
 
   if (!(file && enm)) {
     return;
@@ -247,8 +249,8 @@ airEnumPrint(FILE *file, const airEnum *enm) {
   if (enm->val) {
     fprintf(file, "Values (%u valid) given explicitly\n", enm->M);
     fprintf(file, "--- (0) %d: \"%s\"\n", enm->val[0], enm->str[0]);
-    for (ii=1; ii<=enm->M; ii++) {
-      fprintf(file, "--- (%u) %d: \"%s\" == \"%s\"\n", ii,
+    for (ii=1; ii<=AIR_CAST(int, enm->M); ii++) {
+      fprintf(file, "--- (%d) %d: \"%s\" == \"%s\"\n", ii,
               enm->val[ii], enm->str[ii],
               airEnumStr(enm, enm->val[ii]));
       _enumPrintVal(file, enm, ii);
@@ -257,8 +259,8 @@ airEnumPrint(FILE *file, const airEnum *enm) {
     /* enm->val NULL */
     fprintf(file, "Values implicit; [1,%u] valid\n", enm->M);
     fprintf(file, "--- 0: \"%s\"\n", enm->str[0]);
-    for (ii=1; ii<=enm->M; ii++) {
-      fprintf(file, "--- %d: %s == %s\n", AIR_CAST(int, ii), enm->str[ii],
+    for (ii=1; ii<=AIR_CAST(int, enm->M); ii++) {
+      fprintf(file, "--- %d: %s == %s\n", ii, enm->str[ii],
               airEnumStr(enm, ii));
       _enumPrintVal(file, enm, ii);
     }
