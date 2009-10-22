@@ -513,10 +513,10 @@ LIMN_EXPORT int limnDefCameraOrthographic;
 LIMN_EXPORT int limnDefCameraRightHanded;
 
 /* enumsLimn.c */
-LIMN_EXPORT airEnum *limnSpace;
-LIMN_EXPORT airEnum *limnPolyDataInfo;
-LIMN_EXPORT airEnum *limnCameraPathTrack;
-LIMN_EXPORT airEnum *limnPrimitive;
+LIMN_EXPORT const airEnum *const limnSpace;
+LIMN_EXPORT const airEnum *const limnPolyDataInfo;
+LIMN_EXPORT const airEnum *const limnCameraPathTrack;
+LIMN_EXPORT const airEnum *const limnPrimitive;
 
 /* qn.c */
 LIMN_EXPORT int limnQNBins[LIMN_QN_MAX+1];
@@ -756,8 +756,8 @@ LIMN_EXPORT limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
 LIMN_EXPORT int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
 
 /* splineMisc.c */
-LIMN_EXPORT airEnum *limnSplineType;
-LIMN_EXPORT airEnum *limnSplineInfo;
+LIMN_EXPORT const airEnum *const limnSplineType;
+LIMN_EXPORT const airEnum *const limnSplineInfo;
 LIMN_EXPORT limnSpline *limnSplineParse(char *str);
 LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
 LIMN_EXPORT hestCB *limnHestSpline;

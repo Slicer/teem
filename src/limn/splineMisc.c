@@ -65,7 +65,7 @@ _limnSplineTypeValEqv[] = {
   limnSplineTypeBC, limnSplineTypeBC
 };
 
-airEnum
+const airEnum
 _limnSplineType = {
   "spline-type",
   LIMN_SPLINE_TYPE_MAX,
@@ -74,7 +74,7 @@ _limnSplineType = {
   _limnSplineTypeStrEqv, _limnSplineTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnSplineType = &_limnSplineType;
 
 const char *
@@ -127,7 +127,7 @@ _limnSplineInfoValEqv[] = {
   SIQQ, SIQQ, SIQQ
 };
 
-airEnum
+const airEnum
 _limnSplineInfo = {
   "spline-info",
   LIMN_SPLINE_INFO_MAX,
@@ -136,7 +136,7 @@ _limnSplineInfo = {
   _limnSplineInfoStrEqv, _limnSplineInfoValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnSplineInfo = &_limnSplineInfo;
 
 /*

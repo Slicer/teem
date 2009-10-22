@@ -31,7 +31,7 @@ _limnSpaceStr[LIMN_SPACE_MAX+1] = {
   "device"
 };
 
-airEnum
+const airEnum
 _limnSpace = {
   "limn space",
   LIMN_SPACE_MAX,
@@ -40,7 +40,7 @@ _limnSpace = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnSpace = &_limnSpace;
 
 /* ------------------------------------------------------------ */  
@@ -53,7 +53,7 @@ _limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
   "tex2d"
 };
 
-airEnum
+const airEnum
 _limnPolyDataInfo = {
   "limn polydata info",
   LIMN_POLY_DATA_INFO_MAX,
@@ -62,7 +62,7 @@ _limnPolyDataInfo = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnPolyDataInfo = &_limnPolyDataInfo;
 
 /* ------------------------------------------------------------ */  
@@ -98,7 +98,7 @@ _limnCameraPathTrackValEqv[] = {
   limnCameraPathTrackBoth
 };
 
-airEnum
+const airEnum
 _limnCameraPathTrack = {
   "limnCameraPathTrack",
   LIMN_CAMERA_PATH_TRACK_MAX,
@@ -107,7 +107,7 @@ _limnCameraPathTrack = {
   _limnCameraPathTrackStrEqv, _limnCameraPathTrackValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnCameraPathTrack = &_limnCameraPathTrack;
 
 /* ------------------------------------------------------------ */  
@@ -159,7 +159,7 @@ _limnPrimitiveValEqv[] = {
   limnPrimitiveLines
 };
 
-airEnum
+const airEnum
 _limnPrimitive = {
   "limnPrimitive",
   LIMN_PRIMITIVE_MAX,
@@ -168,5 +168,5 @@ _limnPrimitive = {
   _limnPrimitiveStrEqv, _limnPrimitiveValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 limnPrimitive = &_limnPrimitive;
