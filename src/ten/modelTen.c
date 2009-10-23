@@ -23,25 +23,26 @@
 #include "ten.h"
 #include "privateTen.h"
 
+const char *
+tenModelPrefixStr = "DWMRI_model";
+
 static const tenModel *
 str2model(const char *str) {
   const tenModel *ret = NULL;
 
-  if (!strcmp(str, "ball"))            ret = tenModelBall;
-
-  if (!strcmp(str, "ball1stick"))      ret = tenModelBall1Stick;
-
-  if (!strcmp(str, "cyl"))             ret = tenModelCylinder;
-  if (!strcmp(str, "cylinder"))        ret = tenModelCylinder;
-
-  if (!strcmp(str, "tensor2"))         ret = tenModelTensor2;
+  if (!strcmp(str, TEN_MODEL_STR_BALL))       ret = tenModelBall;
+  if (!strcmp(str, TEN_MODEL_STR_1STICK))     ret = tenModel1Stick;
+  if (!strcmp(str, TEN_MODEL_STR_BALL1STICK)) ret = tenModelBall1Stick;
+  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))   ret = tenModelCylinder;
+  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))    ret = tenModelTensor2;
   return ret;
 }
 
 int
-tenModelParse(const tenModel **model, int *plusB0, const char *_str) {
+tenModelParse(const tenModel **model, int *plusB0, 
+              int requirePrefix, const char *_str) {
   static const char me[]="tenModelParse";
-  char *str, *modstr;
+  char *str, *modstr, prefix[AIR_STRLEN_MED], *pre;
   airArray *mop;
 
   if (!( model && plusB0 && _str)) {
@@ -53,9 +54,20 @@ tenModelParse(const tenModel **model, int *plusB0, const char *_str) {
     biffAddf(TEN, "%s: couldn't strdup", me);
     return 1;
   }
-
   mop = airMopNew();
   airMopAdd(mop, str, airFree, airMopAlways);
+  sprintf(prefix, "%s:", tenModelPrefixStr);
+  pre = strstr(str, prefix);
+  if (pre) {
+    str += strlen(prefix);
+  } else {
+    if (requirePrefix) {
+      biffAddf(TEN, "%s: didn't see prefix \"%s\" in \"%s\"", me,
+               prefix, _str);
+      airMopError(mop); return 1;
+    }
+  }
+
   if ((modstr = strchr(str, '+'))) {
     *modstr = '\0';
     ++modstr;
@@ -81,20 +93,26 @@ tenModelParse(const tenModel **model, int *plusB0, const char *_str) {
 
 int
 tenModelFromAxisLearn(const tenModel **modelP,
+                      int *plusB0,
                       const NrrdAxisInfo *axinfo) {
   static const char me[]="tenModelFromAxisLearn";
   
-  if (!(modelP && axinfo)) {
+  if (!(modelP && plusB0 && axinfo)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
+  *plusB0 = AIR_FALSE;
   /* first try to learn model from "kind" */
   if (nrrdKind3DSymMatrix == axinfo->kind
       || nrrdKind3DMaskedSymMatrix == axinfo->kind) {
     *modelP = tenModelTensor2;
   } else if (airStrlen(axinfo->label)) {
     /* try to parse from label */
-    
+    if (tenModelParse(modelP, plusB0, AIR_TRUE, axinfo->label)) {
+      biffAddf(TEN, "%s: couldn't parse label \"%s\"", me, axinfo->label);
+      *modelP = NULL;
+      return 1;
+    }    
   } else {
     biffAddf(TEN, "%s: don't have kind or label info to learn model", me);
     *modelP = NULL;
