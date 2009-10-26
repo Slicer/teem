@@ -1,7 +1,7 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
 SET(MEET_SOURCES
-  enumsall.c
+  enumall.c
   meet.h
   )
 

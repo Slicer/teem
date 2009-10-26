@@ -45,9 +45,9 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = air hest biff nrrd ell unrrdu dye moss gage bane limn seek hoover alan echo ten mite coil push pull
+$(L).NEED = air hest biff nrrd ell unrrdu dye moss alan gage bane limn seek hoover echo ten mite coil push pull
 $(L).PUBLIC_HEADERS = meet.h
-$(L).OBJS = enumsall.o
+$(L).OBJS = enumall.o
 $(L).TESTS = 
 ####
 ####
