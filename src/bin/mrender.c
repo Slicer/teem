@@ -28,38 +28,7 @@
 #include <teem/limn.h>
 #include <teem/hoover.h>
 #include <teem/ten.h>
-
-int
-probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  static const char me[] = "probeParseKind";
-  gageKind **kindP;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  kindP = (gageKind **)ptr;
-  airToLower(str);
-  if (!strcmp("scalar", str)) {
-    *kindP = gageKindScl;
-  } else if (!strcmp("vector", str)) {
-    *kindP = gageKindVec;
-  } else if (!strcmp("tensor", str)) {
-    *kindP = tenGageKind;
-  } else {
-    sprintf(err, "%s: not \"scalar\", \"vector\", or \"tensor\"", me);
-    return 1;
-  }
-  
-  return 0;
-}
-
-hestCB probeKindHestCB = {
-  sizeof(gageKind *),
-  "kind",
-  probeParseKind,
-  NULL
-}; 
+#include <teem/meet.h>
 
 #define MREND "mrender"
 
@@ -479,7 +448,7 @@ main(int argc, char *argv[]) {
              "input nrrd to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &(uu->kind), NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
-             NULL, NULL, &probeKindHestCB);
+             NULL, NULL, meetHestGageKind);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam,
                        NULL, "0 0 0", "0 0 1",
                        NULL, NULL, NULL,

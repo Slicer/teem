@@ -28,55 +28,7 @@
 #include <teem/nrrd.h>
 #include <teem/gage.h>
 #include <teem/ten.h>
-
-int
-probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "probeParseKind";
-  gageKind **kindP;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  kindP = (gageKind **)ptr;
-  airToLower(str);
-  if (!strcmp(gageKindScl->name, str)) {
-    *kindP = gageKindScl;
-  } else if (!strcmp(gageKindVec->name, str)) {
-    *kindP = gageKindVec;
-  } else if (!strcmp(tenGageKind->name, str)) {
-    *kindP = tenGageKind;
-  } else if (!strcmp(TEN_DWI_GAGE_KIND_NAME, str)) {
-    *kindP = tenDwiGageKindNew();
-  } else {
-    sprintf(err, "%s: not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
-            gageKindScl->name, gageKindVec->name,
-            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
-    return 1;
-  }
-
-  return 0;
-}
-
-void *
-probeParseKindDestroy(void *ptr) {
-  gageKind *kind;
-  
-  if (ptr) {
-    kind = AIR_CAST(gageKind *, ptr);
-    if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
-      tenDwiGageKindNix(kind);
-    }
-  }
-  return NULL;
-}
-
-hestCB probeKindHestCB = {
-  sizeof(gageKind *),
-  "kind",
-  probeParseKind,
-  probeParseKindDestroy
-}; 
+#include <teem/meet.h>
 
 void
 printans(FILE *file, const double *ans, int len) {
@@ -300,7 +252,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
-             NULL, NULL, &probeKindHestCB);
+             NULL, NULL, meetHestGageKind);
   hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,

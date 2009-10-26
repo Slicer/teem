@@ -27,8 +27,9 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 #include <teem/gage.h>
-#include <teem/ten.h>
 #include <teem/limn.h>
+#include <teem/ten.h>
+#include <teem/meet.h>
 
 #define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
 
@@ -40,55 +41,6 @@
    (l)[4] = (m)[4],          \
    (l)[5] = (m)[7],          \
    (l)[6] = (m)[8] )
-
-int
-probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "probeParseKind";
-  gageKind **kindP;
-  
-  if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    return 1;
-  }
-  kindP = (gageKind **)ptr;
-  airToLower(str);
-  if (!strcmp(gageKindScl->name, str)) {
-    *kindP = gageKindScl;
-  } else if (!strcmp(gageKindVec->name, str)) {
-    *kindP = gageKindVec;
-  } else if (!strcmp(tenGageKind->name, str)) {
-    *kindP = tenGageKind;
-  } else if (!strcmp(TEN_DWI_GAGE_KIND_NAME, str)) {
-    *kindP = tenDwiGageKindNew();
-  } else {
-    sprintf(err, "%s: not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
-            gageKindScl->name, gageKindVec->name,
-            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
-    return 1;
-  }
-
-  return 0;
-}
-
-void *
-probeParseKindDestroy(void *ptr) {
-  gageKind *kind;
-  
-  if (ptr) {
-    kind = AIR_CAST(gageKind *, ptr);
-    if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
-      tenDwiGageKindNix(kind);
-    }
-  }
-  return NULL;
-}
-
-hestCB probeKindHestCB = {
-  sizeof(gageKind *),
-  "kind",
-  probeParseKind,
-  probeParseKindDestroy
-}; 
 
 void
 printans(FILE *file, const double *ans, int len) {
@@ -137,7 +89,7 @@ main(int argc, char *argv[]) {
              "input volume", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
-             NULL, NULL, &probeKindHestCB);
+             NULL, NULL, meetHestGageKind);
   hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
              "the position in space at which to probe");
   hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
