@@ -2,6 +2,7 @@
 # Add new source files here.
 SET(MEET_SOURCES
   enumall.c
+  kindall.c
   meet.h
   )
 
