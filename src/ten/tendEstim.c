@@ -27,7 +27,7 @@
 char *_tend_estimInfoL =
   (INFO
    ". The tensor coefficient weightings associated with "
-   "each of the DWIs, the B-matrix, is given either as a seperate array, "
+   "each of the DWIs, the B-matrix, is given either as a separate array, "
    "(see \"tend bmat\" usage info for details), or by the key-value pairs "
    "in the DWI nrrd header.  A \"confidence\" value is computed with the "
    "tensor, based on a soft thresholding of the sum of all the DWIs, "
@@ -193,7 +193,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "nan",
              "\"b\" diffusion-weighting factor (units of sec/mm^2)");
   hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
-             "Determines of the B=0 non-diffusion-weighted reference image "
+             "Indicates if the B=0 non-diffusion-weighted reference image "
              "is known, or if it has to be estimated along with the tensor "
              "elements.\n "
              "\b\bo if \"true\": in the given list of diffusion gradients or "
@@ -203,7 +203,7 @@ tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
              "images among the input; the B=0 image value is going to be "
              "estimated along with the diffusion model");
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, "-",
-             "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
+             "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
              "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
              &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",

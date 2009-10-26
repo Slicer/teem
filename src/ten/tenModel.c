@@ -75,8 +75,7 @@ tenModelParse(const tenModel **model, int *plusB0,
       *plusB0 = AIR_TRUE;
     } else {
       biffAddf(TEN, "%s: string (\"%s\") prior to \"+\" not \"b0\"", me, str);
-      airMopError(mop); 
-      return 1;
+      airMopError(mop); return 1;
     }
   } else {
     *plusB0 = AIR_FALSE;
@@ -84,8 +83,7 @@ tenModelParse(const tenModel **model, int *plusB0,
   }
   if (!(*model = str2model(modstr))) {
     biffAddf(TEN, "%s: didn't recognize \"%s\" as model", me, str);
-    airMopError(mop); 
-    return 1;
+    airMopError(mop); return 1;
   }
   airMopOkay(mop); 
   return 0;
@@ -304,15 +302,94 @@ int
 tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
                const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi,
-               int knownB0) {
+               int knownB0, int saveB0, int typeOut,
+               unsigned int maxIter, double convEps) {
+  static const char me[]="tenModelSqeFit";
+  double *ddwi, *dwibuff, dparm[TEN_MODEL_PARM_MAXNUM],
+    (*ins)(void *v, size_t I, double d),
+    (*lup)(const void *v, size_t I);
+  airArray *mop;
+  unsigned int saveParmNum, dwiNum, ii;
+  size_t szOut[NRRD_DIM_MAX], II, numSamp;
+  int axmap[NRRD_DIM_MAX];
+  const char *dwi;
+  char *parm;
 
-  AIR_UNUSED(nparm);
-  AIR_UNUSED(nsqeP);
-  AIR_UNUSED(model);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(ndwi);
-  AIR_UNUSED(knownB0);
+  if (!( nparm && model && espec && ndwi )) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( nrrdTypeFloat == typeOut || nrrdTypeDouble == typeOut )) {
+    biffAddf(TEN, "%s: typeOut must be %s or %s, not %s", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nrrdTypeDouble),
+             airEnumStr(nrrdType, typeOut));
+    return 1;
+  }
+  dwiNum = ndwi->axis[0].size;
+  if (!( espec->imgNum != dwiNum )) {
+    biffAddf(TEN, "%s: espec expects %u images but dwi has %u on axis 0", 
+             me, espec->imgNum, AIR_CAST(unsigned int, dwiNum));
+    return 1;
+  }
+  
+  /* allocate output (and set axmap) */
+  saveParmNum = saveB0 ? model->parmNum : model->parmNum-1;
+  for (ii=0; ii<nparm->dim; ii++) {
+    szOut[ii] = (!ii 
+                 ? saveParmNum
+                 : ndwi->axis[ii].size);
+    axmap[ii] = (!ii
+                 ? -1
+                 : AIR_CAST(int, ii));
+  }
+  if (nrrdMaybeAlloc_nva(nparm, typeOut, ndwi->dim, szOut)) {
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    airMopError(mop); return 1;
+  }
+  ddwi = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double)));
+  dwibuff = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double)));
+  if (!(ddwi && dwibuff)) {
+    biffAddf(TEN, "%s: couldn't allocate dwi buffers", me);
+    airMopError(mop); return 1;
+  }
+  airMopAdd(mop, ddwi, airFree, airMopAlways);
+  airMopAdd(mop, dwibuff, airFree, airMopAlways);
 
+  /* set output */
+  numSamp = nrrdElementNumber(ndwi)/ndwi->axis[0].size;
+  ins = nrrdDInsert[typeOut];
+  lup = nrrdDLookup[ndwi->type];
+  parm = AIR_CAST(char *, nparm->data);
+  dwi = AIR_CAST(char *, ndwi->data);
+  for (II=0; II<numSamp; II++) {
+    for (ii=0; ii<dwiNum; ii++) {
+      ddwi[ii] = lup(dwi, ii);
+    }
+    /* fit to dparm */
+    for (ii=0; ii<saveParmNum; ii++) {
+      ins(parm, ii, dparm[ii]);
+    }
+    parm += saveParmNum*nrrdTypeSize[typeOut];
+    dwi += espec->imgNum*nrrdTypeSize[ndwi->type];
+  }
+
+  if (nrrdAxisInfoCopy(nparm, ndwi, axmap, NRRD_AXIS_INFO_SIZE_BIT)
+      || nrrdBasicInfoCopy(nparm, ndwi,
+                           NRRD_BASIC_INFO_DATA_BIT
+                           | NRRD_BASIC_INFO_TYPE_BIT
+                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | NRRD_BASIC_INFO_CONTENT_BIT
+                           | NRRD_BASIC_INFO_COMMENTS_BIT
+                           | (nrrdStateKeyValuePairsPropagate
+                              ? 0
+                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    airMopError(mop); return 1;
+  }
+
+  airMopOkay(mop);
   return 0;
 }
 

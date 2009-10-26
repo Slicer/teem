@@ -56,6 +56,7 @@ SET(TEN_SOURCES
   tendShrink.c
   tendSim.c
   tendMsim.c
+  tendMfit.c
   tendSlice.c
   tendSten.c
   tendTconv.c
@@ -64,8 +65,9 @@ SET(TEN_SOURCES
   tensor.c
   triple.c
   experSpec.c
-  modelTen.c
+  tenModel.c
   modelBall.c
+  model1Stick.c
   modelBall1Stick.c
   modelCylinder.c
   modelTensor2.c

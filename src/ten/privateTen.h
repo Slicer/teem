@@ -156,6 +156,35 @@ TEN_EXPORT double _tenModel_nll(const double *dwiMeas,
                                 const tenExperSpec *espec,
                                 int rician, double sigma);
 
+/* model*.c */
+/*
+** NOTE: these functions rely on the "simulate" function defined
+** per-model (which is why these functions can't all use the same
+** underlying function definition, unless the simulate function
+** was passed as a callback, which would incur some more function
+** call overhead)
+*/
+#define SQE                                             \
+static double                                           \
+sqe(const double *parm, const tenExperSpec *espec,      \
+    double *dwiBuff, const double *dwiMeas) {           \
+                                                        \
+  simulate(dwiBuff, parm, espec);                       \
+  return _tenModel_sqe(dwiMeas, dwiBuff, espec);        \
+}
+
+#define NLL                                                     \
+static double                                                   \
+nll(const double *parm, const tenExperSpec *espec,              \
+    double *dwiBuff, const double *dwiMeas,                     \
+    int rician, double sigma) {                                 \
+                                                                \
+  simulate(dwiBuff, parm, espec);                               \
+  return _tenModel_nll(dwiMeas, dwiBuff, espec, rician, sigma); \
+}
+
+
+
 #ifdef __cplusplus
 }
 #endif

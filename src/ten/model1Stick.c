@@ -23,15 +23,14 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define PARM_NUM 6
-#define PARM_DESC                                               \
-  {                                                             \
-    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},                \
-    {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},     \
-    {"fraction", 0.0, 1.0, AIR_FALSE, 0},                       \
-    {"x", -1.0, 1.0, AIR_TRUE, 0},                              \
-    {"y", -1.0, 1.0, AIR_TRUE, 1},                              \
-    {"z", -1.0, 1.0, AIR_TRUE, 2}                               \
+#define PARM_NUM 5
+#define PARM_DESC \
+  {                                                           \
+    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},              \
+    {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},   \
+    {"x", -1.0, 1.0, AIR_TRUE, 0},                            \
+    {"y", -1.0, 1.0, AIR_TRUE, 1},                            \
+    {"z", -1.0, 1.0, AIR_TRUE, 2},                            \
   }
 static const tenModelParmDesc
 const pdesc[TEN_MODEL_PARM_MAXNUM] = PARM_DESC;
@@ -39,20 +38,17 @@ const pdesc[TEN_MODEL_PARM_MAXNUM] = PARM_DESC;
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, diff, frac, vec[3];
+  double b0, diff, vec[3];
 
   b0 = parm[0];
   diff = parm[1];
-  frac = parm[2];
-  vec[0] = parm[3];
-  vec[1] = parm[4];
-  vec[2] = parm[5];
+  vec[0] = parm[2];
+  vec[1] = parm[3];
+  vec[2] = parm[4];
   for (ii=0; ii<espec->imgNum; ii++) {
-    double dwiBall, dwiStck, dot;
-    dwiBall = exp(-espec->bval[ii]*diff);
+    double dot;
     dot = ELL_3V_DOT(vec, espec->grad + 3*ii);
-    dwiStck = exp(-espec->bval[ii]*diff*dot*dot);
-    dwiSim[ii] = b0*((1-frac)*dwiBall + frac*dwiStck);
+    dwiSim[ii] = b0*exp(-espec->bval[ii]*diff*dot*dot);
   }
   return;
 }
@@ -74,7 +70,7 @@ prand(double *parm, airRandMTState *rng) {
       parm[ii + 0] = xx;
       parm[ii + 1] = yy;
       parm[ii + 2] = zz;
-      /* bump ii by 2, anticipating completion of this for-loop iter */
+      /* bump ii by 2; next for loop will increment past */
       ii += 2;
     } else {
       parm[ii] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
@@ -150,8 +146,8 @@ nllFit(double *parm, const tenExperSpec *espec,
 }
 
 tenModel
-_tenModelBall1Stick = {
-  TEN_MODEL_STR_BALL1STICK,
+_tenModel1Stick = {
+  TEN_MODEL_STR_1STICK,
   PARM_NUM,
   PARM_DESC,
   simulate,
@@ -159,4 +155,4 @@ _tenModelBall1Stick = {
   sqe, sqeGrad, sqeFit,
   nll, nllGrad, nllFit
 };
-const tenModel *const tenModelBall1Stick = &_tenModelBall1Stick;
+const tenModel *const tenModel1Stick = &_tenModel1Stick;

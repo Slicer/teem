@@ -1122,16 +1122,26 @@ typedef struct {
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
                    const tenExperSpec *espec);
+  /* random parameter vector */
+  void (*random)(double *parm, airRandMTState *rng);
   /* "sqe" == squared error in DWI values */
-  double (*sqe)(double *parm, const tenExperSpec *espec,
+  double (*sqe)(const double *parm, const tenExperSpec *espec,
                 double *dwiBuff, const double *dwiMeas);
-  int (*sqeFit)(double *parm, const tenExperSpec *espec, 
-                const double *dwiMeas, const double *parmInit,
-                int knownB0);
+  void (*sqeGrad)(double *grad, const double *parm,
+                  const tenExperSpec *espec,
+                  double *dwiBuff, const double *dwiMeas);
+  int (*sqeFit)(double *parm, double *convFrac, const tenExperSpec *espec, 
+                double *dwiBuff, const double *dwiMeas,
+                const double *parmInit, int knownB0,
+                unsigned int maxIter, double convEps);
   /* "nll" == negative log likelihood */
-  double (*nll)(double *parm, const tenExperSpec *espec,
+  double (*nll)(const double *parm, const tenExperSpec *espec,
                 double *dwiBuff, const double *dwiMeas,
                 int rician, double sigma);
+  void (*nllGrad)(double *grad, const double *parm,
+                  const tenExperSpec *espec,
+                  double *dwiBuff, const double *dwiMeas,
+                  int rician, double sigma);
   int (*nllFit)(double *parm, const tenExperSpec *espec, 
                 const double *dwiMeas, const double *parmInit,
                 int rician, double sigma, int knownB0);
@@ -1521,10 +1531,11 @@ TEN_EXPORT double tenExperSpecMaxBGet(const tenExperSpec *espec);
 TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
                                                 const tenExperSpec *espec);
 
-/* modelTen.c */
+/* tenModel.c */
+TEN_EXPORT const char *tenModelPrefixStr;
 TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0,
-                             const char *_str);
-TEN_EXPORT int tenModelFromAxisLearn(const tenModel **model,
+                             int requirePrefix, const char *_str);
+TEN_EXPORT int tenModelFromAxisLearn(const tenModel **model, int *plusB0,
                                      const NrrdAxisInfo *axinfo);
 TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
                                 tenExperSpec *espec,
@@ -1535,20 +1546,28 @@ TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
 TEN_EXPORT int tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
-                              int knownB0);
+                              int knownB0, int saveB0, int typeOut,
+                              unsigned int maxIter, double convEps);
 TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int rician, double sigma, int knownB0);
   
-/* have to keep in sync with modelUtil.c/tenModelParse() */
+/* have to keep in sync with modelTen.c/tenModelParse() */
 /* modelBall.c */
+#define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;
+/* model1Stick.c */
+#define TEN_MODEL_STR_1STICK "1stick"
+TEN_EXPORT const tenModel *const tenModel1Stick;
 /* modelBall1Stick.c */
+#define TEN_MODEL_STR_BALL1STICK "ball1stick"
 TEN_EXPORT const tenModel *const tenModelBall1Stick;
 /* modelCylinder.c */
+#define TEN_MODEL_STR_CYLINDER "cylinder"
 TEN_EXPORT const tenModel *const tenModelCylinder;
 /* modelTensor2.c */
+#define TEN_MODEL_STR_TENSOR2 "tensor2"
 TEN_EXPORT const tenModel *const tenModelTensor2;
 
 /* mod.c */
@@ -1607,8 +1626,9 @@ F(grads) \
 F(epireg) \
 F(bmat) \
 F(estim) \
-F(msim) \
 F(sim) \
+F(mfit) \
+F(msim) \
 F(make) \
 F(avg) \
 F(helix) \

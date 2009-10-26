@@ -24,6 +24,13 @@
 #include "privateTen.h"
 
 #define PARM_NUM 2
+#define PARM_DESC                                               \
+  {                                                             \
+    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},                \
+    {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}      \
+  }
+static const tenModelParmDesc
+const pdesc[TEN_MODEL_PARM_MAXNUM] = PARM_DESC;
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
@@ -38,12 +45,27 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   return;
 }
 
-static double
-sqe(double *parm, const tenExperSpec *espec,
-    double *dwiBuff, const double *dwiMeas) {
+static void
+prand(double *parm, airRandMTState *rng) {
 
-  simulate(dwiBuff, parm, espec);
-  return _tenModel_sqe(dwiMeas, dwiBuff, espec);
+  parm[0] = AIR_AFFINE(0, airDrandMT_r(rng), 1, pdesc[0].min, pdesc[0].max);
+  parm[1] = AIR_AFFINE(0, airDrandMT_r(rng), 1, pdesc[1].min, pdesc[1].max);
+  return;
+}
+
+SQE;
+
+static void
+sqeGrad(double *grad, const double *parm,
+        const tenExperSpec *espec,
+        double *dwiBuff, const double *dwiMeas) {
+  
+  AIR_UNUSED(grad);
+  AIR_UNUSED(parm);
+  AIR_UNUSED(espec);
+  AIR_UNUSED(dwiBuff);
+  AIR_UNUSED(dwiMeas);
+  return;
 }
 
 static int
@@ -61,13 +83,22 @@ sqeFit(double *parm, const tenExperSpec *espec,
   return 0;
 }
 
-static double
-nll(double *parm, const tenExperSpec *espec,
-    double *dwiBuff, const double *dwiMeas,
-    int rician, double sigma) {
+NLL;
 
-  simulate(dwiBuff, parm, espec);
-  return _tenModel_nll(dwiMeas, dwiBuff, espec, rician, sigma);
+static void
+nllGrad(double *grad, const double *parm,
+        const tenExperSpec *espec,
+        double *dwiBuff, const double *dwiMeas,
+        int rician, double sigma) {
+
+  AIR_UNUSED(grad);
+  AIR_UNUSED(parm);
+  AIR_UNUSED(espec);
+  AIR_UNUSED(dwiBuff);
+  AIR_UNUSED(dwiMeas);
+  AIR_UNUSED(rician);
+  AIR_UNUSED(sigma);
+  return;
 }
 
 static int
@@ -89,16 +120,12 @@ nllFit(double *parm, const tenExperSpec *espec,
 
 tenModel
 _tenModelBall = {
-  "ball",
+  TEN_MODEL_STR_BALL,
   PARM_NUM,
-  {
-    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
-    {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}
-  },
+  PARM_DESC,
   simulate,
-  sqe,
-  sqeFit,
-  nll,
-  nllFit
+  prand,
+  sqe, sqeGrad, sqeFit,
+  nll, nllGrad, nllFit
 };
 const tenModel *const tenModelBall = &_tenModelBall;

@@ -137,11 +137,35 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
 int
 tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
   static const char me[]="tenExperSpecFromKeyValueSet";
-  unsigned int *skip, skipNum, ii, imgNum;
+  unsigned int *skip, skipNum, ii, imgNum, dwiax;
   Nrrd *ngrad, *nbmat;
   airArray *mop;
   double len, singleBval, *bval, *grad;
 
+  for (dwiax=0; dwiax<ndwi->dim; dwiax++) {
+    if (nrrdKindList == ndwi->axis[dwiax].kind
+        || nrrdKindVector == ndwi->axis[dwiax].kind) {
+      break;
+    }
+  }
+  if (0 != dwiax) {
+    biffAddf(TEN, "%s: need dwis (kind %s or %s) along axis 0, not %u", me,
+             airEnumStr(nrrdKind, nrrdKindList),
+             airEnumStr(nrrdKind, nrrdKindVector), dwiax);
+    return 1;
+  }
+  for (ii=dwiax+1; ii<ndwi->dim; ii++) {
+    if (nrrdKindList == ndwi->axis[ii].kind
+        || nrrdKindVector == ndwi->axis[ii].kind) {
+      break;
+    }
+  }
+  if (ii < ndwi->dim) {
+    biffAddf(TEN, "%s: saw on %u another %s or %s kind axis, after 0", me,
+             ii, airEnumStr(nrrdKind, nrrdKindList),
+             airEnumStr(nrrdKind, nrrdKindVector));
+    return 1;
+  }
   if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &singleBval,
                             &skip, &skipNum, ndwi)) {
     biffAddf(TEN, "%s: trouble parsing DWI info from key/value pairs", me);

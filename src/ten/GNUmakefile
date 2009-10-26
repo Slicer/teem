@@ -51,14 +51,15 @@ $(L).PRIVATE_HEADERS = privateTen.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
-	triple.o experSpec.o modelTen.o modelBall.o modelBall1Stick.o \
-	modelCylinder.o modelTensor2.o \
+	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
+	modelBall1Stick.o modelCylinder.o modelTensor2.o \
 	tendAbout.o \
 	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \
 	tendTriple.o tendTconv.o tendAvg.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
-	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o tendMsim.o \
+	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o \
+	tendMsim.o tendMfit.o \
 	tendSlice.o tendEllipse.o tendEvecrgb.o tendNorm.o tendAnscale.o \
 	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendHelix.o tendBfit.o \
 	tendUnmf.o tendLog.o tendExp.o
