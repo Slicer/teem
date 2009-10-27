@@ -24,6 +24,7 @@
 #define PULL_HAS_BEEN_INCLUDED
 
 #include <teem/air.h>
+#include <teem/hest.h>
 #include <teem/biff.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
