@@ -61,34 +61,21 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   return;
 }
 
-static void
-prand(double *parm, airRandMTState *rng) {
-  unsigned int ii;
-
-  for (ii=0; ii<PARM_NUM; ii++) {
-    if (pdesc[ii].vec3) {
-      /* its unit vector */
-      double xx, yy, zz, theta, rr;
-      
-      zz = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0, -1.0, 1.0);
-      theta = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0, 0.0, 2*AIR_PI);
-      rr = sqrt(1 - zz*zz);
-      xx = rr*cos(theta);
-      yy = rr*sin(theta);
-      parm[ii + 0] = xx;
-      parm[ii + 1] = yy;
-      parm[ii + 2] = zz;
-      /* bump ii by 2, anticipating completion of this for-loop iter */
-      ii += 2;
-    } else {
-      parm[ii] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                            pdesc[ii].min, pdesc[ii].max);
-    }
-  }
-  return;
+static char *
+parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
+  sprintf(str, "(%g) [%g %g %g;  %g %g;   %g]", parm[0],
+          parm[1], parm[2], parm[3],
+          parm[4], parm[5],
+          parm[6]);
+  return str;
 }
 
-SQE;
+_TEN_PARM_RAND
+_TEN_PARM_STEP
+_TEN_PARM_DIST
+_TEN_PARM_COPY
+
+_TEN_SQE
 
 static void
 sqeGrad(double *grad, const double *parm0,
@@ -102,11 +89,11 @@ sqeGrad(double *grad, const double *parm0,
   for (ii=i0; ii<PARM_NUM; ii++) {
     parm1[ii] = parm0[ii];
   }
-  sqe0 = sqe(parm0, espec, dwiBuff, dwiMeas);
+  sqe0 = sqe(parm0, espec, dwiBuff, dwiMeas, knownB0);
   for (ii=i0; ii<PARM_NUM; ii++) {
-    dp = (pdesc[ii].max - pdesc[ii].min)/3000;
+    dp = (pdesc[ii].max - pdesc[ii].min)*_TEN_PARM_GRAD_EPS;
     parm1[ii] += dp;
-    sqe1 = sqe(parm1, espec, dwiBuff, dwiMeas);
+    sqe1 = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
     grad[ii] = (sqe1 - sqe0)/dp;
     parm1[ii] = parm0[ii];
   }
@@ -116,136 +103,64 @@ sqeGrad(double *grad, const double *parm0,
   return;
 }
 
-static void
-parmAdd(double *parm1, const double scl,
-        const double *grad, const double *parm0) {
-  unsigned int ii;
-
-  for (ii=0; ii<PARM_NUM; ii++) {
-    parm1[ii] = scl*grad[ii] + parm0[ii];
-    parm1[ii] = AIR_CLAMP(pdesc[ii].min, parm1[ii], pdesc[ii].max);
-  }
-}
-
-static double
-parmDist(const double *parmA, const double *parmB) {
-  unsigned int ii;
-  double dist, dd;
-
-  dist = 0;
-  for (ii=0; ii<PARM_NUM; ii++) {
-    dd = (parmA[ii] - parmB[ii])/(pdesc[ii].max - pdesc[ii].min);
-    dist += dd*dd;
-  }
-  return sqrt(dist);
-}
-
-static char *
-parmSprint(char str[AIR_STRLEN_MED], double *parm) {
-  sprintf(str, "(%g) [%g %g %g;  %g %g;   %g]", parm[0],
-          parm[1], parm[2], parm[3],
-          parm[4], parm[5],
-          parm[6]);
-  return str;
-}
-
-#define PARM_COPY(A, B)                         \
-  {                                             \
-    unsigned int pidx;                          \
-    for (pidx=0; pidx<PARM_NUM; pidx++) {       \
-      A[pidx] = B[pidx];                        \
-    }                                           \
-  }
-
 static double
 sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,
        double *dwiBuff, const double *dwiMeas,
        const double *parmInit, int knownB0,
-       unsigned int maxIter, double convEps) {
+       unsigned int minIter, unsigned int maxIter, double convEps) {
   static const char me[]= TEN_MODEL_STR_TENSOR2 ":sqeFit";
-  unsigned int ii, i0, iter;
+  unsigned int i0, iter;
   double step, bak, opp, val, tval,
     dist, tparm[PARM_NUM], grad[PARM_NUM];
   char str[AIR_STRLEN_MED];
+  int done;
 
   i0 = knownB0 ? 1 : 0;
-  PARM_COPY(parm, parmInit);
-  val = sqe(parm, espec, dwiBuff, dwiMeas);
+  parmCopy(parm, parmInit);
+  val = sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
   sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
-  step = 0;
-  for (ii=i0; ii<PARM_NUM; ii++) {
-    step += (pdesc[ii].max - pdesc[ii].min)/(10*grad[ii]);
-  }
-  step /= (PARM_NUM - i0);
-  fprintf(stderr, "!%s: at %s\n", me, parmSprint(str, parm));
-  fprintf(stderr, "!%s: initial step = %g\n", me, step);
+  step = 10;
+  fprintf(stderr, "!%s: -------- at %s\n", me, parmSprint(str, parm));
+  fprintf(stderr, "!%s: initial step = %g, convEps = %g\n",
+          me, step, convEps);
 
-  opp = 1.5;
+  opp = 1.1;
   bak = 0.1;
   iter = 0;
   do {
     do {
-      parmAdd(tparm, -step, grad, parm);
-      tval = sqe(tparm, espec, dwiBuff, dwiMeas);
+      parmStep(tparm, -step, grad, parm);
+      tval = sqe(tparm, espec, dwiBuff, dwiMeas, knownB0);
       if (tval > val) {
         step *= bak;
+        fprintf(stderr, "!%s(%u): tval %g > val %g ==> step -> %g\n", 
+                me, iter, tval, val, step);
       }
     } while (tval > val);
-    fprintf(stderr, "!%s: step %g got to tval %g at %s\n", me,
-            step, tval, parmSprint(str, tparm));
     dist = parmDist(tparm, parm);
+    fprintf(stderr, "!%s(%u): step %g (dist %g) -> %g @ %s\n", me, iter,
+            step, dist, tval, parmSprint(str, tparm));
     val = tval;
-    PARM_COPY(parm, tparm);
+    parmCopy(parm, tparm);
+    sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
     step *= opp;
     iter++;
-  } while ((iter < maxIter) && (dist > convEps));
+    done = (iter < minIter
+            ? AIR_FALSE
+            : (iter > maxIter) || dist < convEps);
+  } while (!done);
   *convFrac = dist/convEps;
   return val;
 }
 
-NLL;
+_TEN_NLL
+_TEN_NLL_GRAD_STUB
+_TEN_NLL_FIT_STUB
 
-static void
-nllGrad(double *grad, const double *parm,
-        const tenExperSpec *espec,
-        double *dwiBuff, const double *dwiMeas,
-        int rician, double sigma) {
-
-  AIR_UNUSED(grad);
-  AIR_UNUSED(parm);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiBuff);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(rician);
-  AIR_UNUSED(sigma);
-  return;
-}
-
-static int
-nllFit(double *parm, const tenExperSpec *espec,
-       const double *dwiMeas, const double *parmInit,
-       int rician, double sigma, int knownB0) {
-  unsigned int pp;
-
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(rician);
-  AIR_UNUSED(sigma);
-  AIR_UNUSED(knownB0);
-  for (pp=0; pp<PARM_NUM; pp++) {
-    parm[pp] = parmInit[pp];
-  }
-  return 0;
-}
 
 tenModel
 _tenModelTensor2 = {
   TEN_MODEL_STR_TENSOR2,
-  PARM_NUM,
-  PARM_DESC,
-  simulate,
-  prand,
-  sqe, sqeGrad, sqeFit,
-  nll, nllGrad, nllFit
+  _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModelTensor2 = &_tenModelTensor2;

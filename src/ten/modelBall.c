@@ -45,45 +45,22 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   return;
 }
 
-static void
-prand(double *parm, airRandMTState *rng) {
-
-  parm[0] = AIR_AFFINE(0, airDrandMT_r(rng), 1, pdesc[0].min, pdesc[0].max);
-  parm[1] = AIR_AFFINE(0, airDrandMT_r(rng), 1, pdesc[1].min, pdesc[1].max);
-  return;
+static char *
+parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
+  sprintf(str, "(%g) %g", parm[0], parm[1]);
+  return str;
 }
 
-SQE;
+_TEN_PARM_RAND
+_TEN_PARM_STEP
+_TEN_PARM_DIST
+_TEN_PARM_COPY
 
-static void
-sqeGrad(double *grad, const double *parm,
-        const tenExperSpec *espec,
-        double *dwiBuff, const double *dwiMeas) {
-  
-  AIR_UNUSED(grad);
-  AIR_UNUSED(parm);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiBuff);
-  AIR_UNUSED(dwiMeas);
-  return;
-}
+_TEN_SQE
+_TEN_SQE_GRAD_STUB
+_TEN_SQE_FIT_STUB
 
-static int
-sqeFit(double *parm, const tenExperSpec *espec,
-       const double *dwiMeas, const double *parmInit,
-       int knownB0) {
-  unsigned int pp;
-
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(knownB0);
-  for (pp=0; pp<PARM_NUM; pp++) {
-    parm[pp] = parmInit[pp];
-  }
-  return 0;
-}
-
-NLL;
+_TEN_NLL
 
 static void
 nllGrad(double *grad, const double *parm,
@@ -101,7 +78,7 @@ nllGrad(double *grad, const double *parm,
   return;
 }
 
-static int
+static double
 nllFit(double *parm, const tenExperSpec *espec,
        const double *dwiMeas, const double *parmInit,
        int rician, double sigma, int knownB0) {
@@ -121,11 +98,6 @@ nllFit(double *parm, const tenExperSpec *espec,
 tenModel
 _tenModelBall = {
   TEN_MODEL_STR_BALL,
-  PARM_NUM,
-  PARM_DESC,
-  simulate,
-  prand,
-  sqe, sqeGrad, sqeFit,
-  nll, nllGrad, nllFit
+  _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModelBall = &_tenModelBall;

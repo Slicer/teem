@@ -36,25 +36,39 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   airArray *mop;
 
   Nrrd *nin, *nout;
-  char *outS;
-  int EE, knownB0, verbose, mlfit;
-  unsigned int maxIter;
-  double valueMin, thresh, sigma;
+  char *outS, *modS;
+  int knownB0, saveB0, verbose, mlfit, typeOut;
+  unsigned int maxIter, minIter, starts;
+  double sigma, eps;
   const tenModel *model;
+  tenExperSpec *espec;
 
   hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
+  hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
+             "which model to fit. Use optional \"b0+\" prefix to "
+             "indicate that the B0 image should also be saved.");
+  hestOptAdd(&hopt, "ns", "# starts", airTypeUInt, 1, 1, &starts, "1",
+             "number of random starting points at which to initialize "
+             "fitting");
   hestOptAdd(&hopt, "ml", NULL, airTypeInt, 0, 0, &mlfit, NULL,
              "do ML fitting, rather than least-squares, which also "
              "requires setting \"-sigma\"");
   hestOptAdd(&hopt, "sigma", "sigma", airTypeDouble, 1, 1, &sigma, "nan",
              "Rician noise parameter");
-  hestOptAdd(&hopt, "maxi", "max iters", airTypeUInt, 1, 1, &maxIter, "10",
-             "maximum allowable iterations for fitting.");
+  hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &eps, "0.01",
+             "convergence epsilon");
+  hestOptAdd(&hopt, "mini", "min iters", airTypeUInt, 1, 1, &minIter, "3",
+             "minimum required # iterations for fitting.");
+  hestOptAdd(&hopt, "maxi", "max iters", airTypeUInt, 1, 1, &maxIter, "100",
+             "maximum allowable # iterations for fitting.");
   hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
              "Indicates if the B=0 non-diffusion-weighted reference image "
              "is known (\"true\"), or if it has to be estimated along with "
              "the other model parameters (\"false\")");
+  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
+             "output type of DWIs",
+             NULL, nrrdType);
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &nin, "-",
              "all the diffusion-weighted images in one 4D nrrd",
              NULL, NULL, nrrdHestNrrd);
@@ -67,27 +81,28 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
+  espec = tenExperSpecNew();
+  airMopAdd(mop, espec, (airMopper)tenExperSpecNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
-  /*  
-  if (tenModelSqeFit(nout, NULL, 
-                              const tenModel *model,
-                              const tenExperSpec *espec, const Nrrd *ndwi,
-                              int knownB0, int saveB0, int typeOut,
-                              unsigned int maxIter, double convEps);
-
-  if (tenEstimate1TensorVolume4D(tec, nout, &nB0,
-                                 airStrlen(terrS) 
-                                 ? &nterr 
-                                 : NULL, 
-                                 nin4d, nrrdTypeFloat)) {
+  if (tenModelParse(&model, &saveB0, AIR_FALSE, modS)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);
+    fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me, modS, err);
     airMopError(mop); return 1;
   }
+  if (tenExperSpecFromKeyValueSet(espec, nin)) {
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble getting exper from kvp:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }  
+  if (tenModelSqeFit(nout, NULL, model, espec, nin,
+                     knownB0, saveB0, typeOut, 
+                     minIter, maxIter, starts, eps, NULL)) {
+    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble fitting:\n%s\n", me, err);
+    airMopError(mop); return 1;
+  }  
 
-  */
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

@@ -1083,7 +1083,7 @@ typedef struct {
   int set;               /* has been set */
   unsigned imgNum;       /* total number of images, dwi or not */
   double *bval,          /* all b values: imgNum doubles */
-    *wght,               /* all weights: imgNum doubles */
+  /* *wght,                 all weights, but not yet used */
     *grad;               /* all gradients: 3 x imgNum doubles */
 } tenExperSpec;
 
@@ -1091,11 +1091,11 @@ typedef struct {
   char name[AIR_STRLEN_SMALL]; /* name */
   double min, max;             /* bounds */
   int vec3;                    /* non-zero if this is one coeff of 3-vector */
-  unsigned int idx;            /* if 3-vector, index into it */
+  unsigned int vecIdx;         /* if 3-vector, index into it */
 } tenModelParmDesc;
 
 #define TEN_MODEL_PARM_MAXNUM 15 /* adjust as needed */
-#define TEN_MODEL_B0_MAX 65536   /* pretty arbitrary */
+#define TEN_MODEL_B0_MAX 10000   /* HEY: completely arbitrary! */
 #define TEN_MODEL_DIFF_MAX 0.004 /* in units of mm^2/sec */
 
 /*
@@ -1122,29 +1122,37 @@ typedef struct {
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
                    const tenExperSpec *espec);
-  /* random parameter vector */
-  void (*random)(double *parm, airRandMTState *rng);
+  /* parameter vector operations */
+  char *(*sprint)(char str[AIR_STRLEN_MED], const double *parm);
+  void (*rand)(double *parm, airRandMTState *rng, int knownB0); 
+  void (*step)(double *parm1, const double scl,
+               const double *grad, const double *parm0);
+  double (*dist)(const double *parmA, const double *parmB);
+  void (*copy)(double *parmA, const double *parmB);
+
   /* "sqe" == squared error in DWI values */
   double (*sqe)(const double *parm, const tenExperSpec *espec,
-                double *dwiBuff, const double *dwiMeas);
+                double *dwiBuff, const double *dwiMeas, int knownB0);
   void (*sqeGrad)(double *grad, const double *parm,
                   const tenExperSpec *espec,
-                  double *dwiBuff, const double *dwiMeas);
-  int (*sqeFit)(double *parm, double *convFrac, const tenExperSpec *espec, 
-                double *dwiBuff, const double *dwiMeas,
-                const double *parmInit, int knownB0,
-                unsigned int maxIter, double convEps);
+                  double *dwiBuff, const double *dwiMeas,
+                  int knownB0);
+  double (*sqeFit)(double *parm, double *convFrac, const tenExperSpec *espec, 
+                   double *dwiBuff, const double *dwiMeas,
+                   const double *parmInit, int knownB0,
+                   unsigned int minIter, unsigned int maxIter,
+                   double convEps);
   /* "nll" == negative log likelihood */
   double (*nll)(const double *parm, const tenExperSpec *espec,
                 double *dwiBuff, const double *dwiMeas,
-                int rician, double sigma);
+                int rician, double sigma, int knownB0);
   void (*nllGrad)(double *grad, const double *parm,
                   const tenExperSpec *espec,
                   double *dwiBuff, const double *dwiMeas,
                   int rician, double sigma);
-  int (*nllFit)(double *parm, const tenExperSpec *espec, 
-                const double *dwiMeas, const double *parmInit,
-                int rician, double sigma, int knownB0);
+  double (*nllFit)(double *parm, const tenExperSpec *espec, 
+                   const double *dwiMeas, const double *parmInit,
+                   int rician, double sigma, int knownB0);
 } tenModel;
 
 /* defaultsTen.c */
@@ -1517,11 +1525,13 @@ TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
                                        unsigned int imgNum,
                                        const double *bval,
                                        const double *grad);
+/*
 TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                                            unsigned int imgNum,
                                            const double *bval,
                                            const double *grad,
                                            const double *wght);
+*/
 TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec,
                                            const Nrrd *ndwi);
 TEN_EXPORT tenExperSpec* tenExperSpecNix(tenExperSpec *espec);
@@ -1547,7 +1557,9 @@ TEN_EXPORT int tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int knownB0, int saveB0, int typeOut,
-                              unsigned int maxIter, double convEps);
+                              unsigned int minIter, unsigned int maxIter,
+                              unsigned int starts, double convEps, 
+                              airRandMTState *rng);
 TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,

@@ -29,7 +29,7 @@ _experAlloc(tenExperSpec* espec, unsigned int num) {
   
   espec->bval = airFree(espec->bval);
   espec->grad = airFree(espec->grad);
-  espec->wght = airFree(espec->wght);
+  /* espec->wght = airFree(espec->wght); */
   if (!num) {
     biffAddf(TEN, "%s: need a non-zero number of images", me);
     return 1;
@@ -37,8 +37,8 @@ _experAlloc(tenExperSpec* espec, unsigned int num) {
   espec->imgNum = num;
   espec->bval = AIR_CAST(double *, calloc(num, sizeof(double)));
   espec->grad = AIR_CAST(double *, calloc(3*num, sizeof(double)));
-  espec->wght = AIR_CAST(double *, calloc(num, sizeof(double)));
-  if (!( espec->bval && espec->grad && espec->wght )) {
+  /* espec->wght = AIR_CAST(double *, calloc(num, sizeof(double))); */
+  if (!( espec->bval && espec->grad /* && espec->wght */ )) {
     biffAddf(TEN, "%s: couldn't allocate for %u images", me, num);
     return 1;
   }
@@ -54,7 +54,7 @@ tenExperSpecNew(void) {
   espec->imgNum = 0;
   espec->bval = NULL;
   espec->grad = NULL;
-  espec->wght = NULL;
+  /* espec->wght = NULL; */
   return espec;
 }
 
@@ -77,7 +77,7 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
   for (ii=0; ii<imgNum; ii++) {
     espec->bval[ii] = bval;
     ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
-    espec->wght[ii] = 1.0;
+    /* espec->wght[ii] = 1.0; */
   }
 
   return 0;
@@ -102,12 +102,13 @@ tenExperSpecGradBValSet(tenExperSpec *espec,
   for (ii=0; ii<imgNum; ii++) {
     espec->bval[ii] = bval[ii];
     ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
-    espec->wght[ii] = 1.0;
+    /* espec->wght[ii] = 1.0; */
   }
 
   return 0;
 }
 
+/*
 int
 tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                             unsigned int imgNum,
@@ -133,6 +134,7 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
 
   return 0;
 }
+*/
 
 int
 tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
@@ -219,37 +221,51 @@ tenExperSpecNix(tenExperSpec *espec) {
   if (espec) {
     espec->bval = airFree(espec->bval);
     espec->grad = airFree(espec->grad);
-    espec->wght = airFree(espec->wght);
+    /* espec->wght = airFree(espec->wght); */
     airFree(espec);
   }
   return NULL;
 }
 
 double
-_tenModel_sqe(const double *dwiMeas, const double *dwiSim,
-              const tenExperSpec *espec) {
+_tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim,
+                  const tenExperSpec *espec, int knownB0) {
   unsigned int ii;
   double sqe;
 
   sqe = 0;
-  for (ii=0; ii<espec->imgNum; ii++) {
-    double dd;
-    dd = dwiMeas[ii] - dwiSim[ii];
-    sqe += dd*dd;
+  if (knownB0) {
+    for (ii=0; ii<espec->imgNum; ii++) {
+      double dd;
+      if (!espec->bval[ii]) {
+        continue;
+      }
+      dd = dwiMeas[ii] - dwiSim[ii];
+      sqe += dd*dd;
+    }
+  } else {
+    for (ii=0; ii<espec->imgNum; ii++) {
+      double dd;
+      dd = dwiMeas[ii] - dwiSim[ii];
+      sqe += dd*dd;
+    }
   }
   return sqe;
 }
 
 double
-_tenModel_nll(const double *dwiMeas, const double *dwiSim,
-              const tenExperSpec *espec,
-              int rician, double sigma) {
+_tenExperSpec_nll(const double *dwiMeas, const double *dwiSim,
+                  const tenExperSpec *espec,
+                  int rician, double sigma, int knownB0) {
   double nll;
   unsigned int ii;
 
   nll = 0;
   if (rician) {
     for (ii=0; ii<espec->imgNum; ii++) {
+      if (knownB0 && !espec->bval[ii]) {
+        continue;
+      }
       nll += -airLogRician(dwiMeas[ii], dwiSim[ii], sigma);
     }
   } else {
@@ -257,6 +273,9 @@ _tenModel_nll(const double *dwiMeas, const double *dwiSim,
     ladd = log(sigma*sqrt(2*AIR_PI));
     denom = 1.0/(2*sigma*sigma);
     for (ii=0; ii<espec->imgNum; ii++) {
+      if (knownB0 && !espec->bval[ii]) {
+        continue;
+      }
       dd = dwiMeas[ii] - dwiSim[ii];
       nll += dd*dd*denom + ladd;
     }

@@ -303,20 +303,28 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi,
                int knownB0, int saveB0, int typeOut,
-               unsigned int maxIter, double convEps) {
+               unsigned int minIter, unsigned int maxIter, 
+               unsigned int starts, double convEps, airRandMTState *_rng) {
   static const char me[]="tenModelSqeFit";
-  double *ddwi, *dwibuff, dparm[TEN_MODEL_PARM_MAXNUM],
+  double *ddwi, *dwibuff, sqe, sqeBest, convFrac,
+    dparm[TEN_MODEL_PARM_MAXNUM], 
+    dparmBest[TEN_MODEL_PARM_MAXNUM], 
     (*ins)(void *v, size_t I, double d),
     (*lup)(const void *v, size_t I);
   airArray *mop;
-  unsigned int saveParmNum, dwiNum, ii;
+  unsigned int saveParmNum, dwiNum, ii, lablen;
   size_t szOut[NRRD_DIM_MAX], II, numSamp;
   int axmap[NRRD_DIM_MAX];
   const char *dwi;
   char *parm;
+  airRandMTState *rng;
 
   if (!( nparm && model && espec && ndwi )) {
     biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( starts > 0 )) {
+    biffAddf(TEN, "%s: need non-zero starts", me);
     return 1;
   }
   if (!( nrrdTypeFloat == typeOut || nrrdTypeDouble == typeOut )) {
@@ -327,15 +335,16 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     return 1;
   }
   dwiNum = ndwi->axis[0].size;
-  if (!( espec->imgNum != dwiNum )) {
+  if (espec->imgNum != dwiNum) {
     biffAddf(TEN, "%s: espec expects %u images but dwi has %u on axis 0", 
              me, espec->imgNum, AIR_CAST(unsigned int, dwiNum));
     return 1;
   }
   
   /* allocate output (and set axmap) */
+  mop = airMopNew();
   saveParmNum = saveB0 ? model->parmNum : model->parmNum-1;
-  for (ii=0; ii<nparm->dim; ii++) {
+  for (ii=0; ii<ndwi->dim; ii++) {
     szOut[ii] = (!ii 
                  ? saveParmNum
                  : ndwi->axis[ii].size);
@@ -357,19 +366,46 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   airMopAdd(mop, dwibuff, airFree, airMopAlways);
 
   /* set output */
+  airRandMTStateGlobalInit();
+  rng = _rng ? _rng : airRandMTStateGlobal;
   numSamp = nrrdElementNumber(ndwi)/ndwi->axis[0].size;
-  ins = nrrdDInsert[typeOut];
   lup = nrrdDLookup[ndwi->type];
+  ins = nrrdDInsert[typeOut];
   parm = AIR_CAST(char *, nparm->data);
   dwi = AIR_CAST(char *, ndwi->data);
   for (II=0; II<numSamp; II++) {
+    char pstr[AIR_STRLEN_MED];
+    unsigned int ss;
     for (ii=0; ii<dwiNum; ii++) {
       ddwi[ii] = lup(dwi, ii);
     }
-    /* fit to dparm */
-    for (ii=0; ii<saveParmNum; ii++) {
-      ins(parm, ii, dparm[ii]);
+    sqeBest = DBL_MAX;
+    for (ss=0; ss<starts; ss++) {
+      fprintf(stderr, "!%s: II %u ss %u -------\n",
+              me, AIR_CAST(unsigned int, II), ss);
+      if (knownB0) {
+        dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
+        fprintf(stderr, "!%s:   b0 = %g\n", me, dparm[0]);
+      }
+      model->rand(dparm, rng, knownB0);
+      fprintf(stderr, "!%s:    rand -> %s\n", me,
+              model->sprint(pstr, dparm));
+      sqe = model->sqeFit(dparm, &convFrac, espec, dwibuff, ddwi, 
+                          dparm, knownB0, minIter, maxIter, convEps);
+      if (sqe < sqeBest) {
+        fprintf(stderr, "!%s:   %g < %g --> %s\n", me, 
+                sqe, sqeBest, model->sprint(pstr, dparm));
+        sqeBest = sqe;
+        model->copy(dparmBest, dparm);
+      }
     }
+    for (ii=0; ii<saveParmNum; ii++) {
+      ins(parm, ii, saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
+      fprintf(stderr, "!%s:   saving parm[%u] = %g\n", me,
+              saveB0 ? ii : ii+1,
+              saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
+    }
+    /* possibly save sqeBest */
     parm += saveParmNum*nrrdTypeSize[typeOut];
     dwi += espec->imgNum*nrrdTypeSize[ndwi->type];
   }
@@ -388,6 +424,16 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
   }
+  lablen = (strlen(tenModelPrefixStr)
+            + strlen(":")
+            + (saveB0 ? strlen("B0+") : 0)
+            + strlen(model->name)
+            + 1);
+  nparm->axis[0].label = AIR_CAST(char *, calloc(lablen, sizeof(char)));
+  sprintf(nparm->axis[0].label, "%s:%s%s",
+          tenModelPrefixStr,
+          saveB0 ? "B0+" : "",
+          model->name);
 
   airMopOkay(mop);
   return 0;
