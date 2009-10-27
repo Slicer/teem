@@ -1958,6 +1958,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   }
   fflush(stderr);
   tick = NN / 200;
+  tick = AIR_MAX(1, tick);
   for (II=0; II<NN; II++) {
     if (tec->progress && 0 == II%tick) {
       fprintf(stderr, "%s", airDoneStr(0, II, NN-1, doneStr));
