@@ -209,6 +209,22 @@ airDrandMT53_r(airRandMTState *rng) {
     airSrandMT(AIR_RANDMT_DEFAULT_SEED); \
   } \
 
+/*
+******** airRandMTStateGlobalInit
+**
+** Allocates and initializes airRandMTStateGlobal if it was not already
+** allocated and initialized.  However, this does not need to be called
+** except if the user wants to use the airRandMTStateGlobal pointer.
+** The allocation and initialization is done as necessary inside the
+** the airSrandMT(), airDrandMT(), etc functions (all the functions
+** that use airRandMTStateGlobal
+*/
+void
+airRandMTStateGlobalInit() {
+  _GLOBAL_ALLOC;
+  _GLOBAL_INIT;
+}
+
 void
 airSrandMT(unsigned int seed) {
   _GLOBAL_ALLOC;

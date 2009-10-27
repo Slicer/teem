@@ -347,6 +347,7 @@ typedef struct {
 } airRandMTState;
 /* randMT.c */
 AIR_EXPORT airRandMTState *airRandMTStateGlobal;
+AIR_EXPORT void airRandMTStateGlobalInit(void);
 AIR_EXPORT airRandMTState *airRandMTStateNew(unsigned int seed);
 AIR_EXPORT airRandMTState *airRandMTStateNix(airRandMTState *state);
 AIR_EXPORT void airSrandMT_r(airRandMTState *state, unsigned int seed);
