@@ -86,6 +86,7 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = tenAniso;
   enm[airArrayLenIncr(arr, 1)] = tenInterpType;
   enm[airArrayLenIncr(arr, 1)] = tenGage;
+  enm[airArrayLenIncr(arr, 1)] = tenDwiGage;
   enm[airArrayLenIncr(arr, 1)] = tenFiberType;
   enm[airArrayLenIncr(arr, 1)] = tenDwiFiberType;
   enm[airArrayLenIncr(arr, 1)] = tenFiberStop;
