@@ -29,10 +29,10 @@ python ${CTYPES}/scripts/h2xml.py `pwd`/teemincl/all.h -I teemincl -o teem.xml
 
 echo === DYLD_LIBRARY_PATH is obviously Mac specific, please fix
 setenv DYLD_LIBRARY_PATH ${TEEM}/lib
-python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o teem.py -m stdio \
+python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o pre-teem.py -m stdio \
         -r "(air|hest|biff|nrrd|ell|unrrdu|dye|moss|alan|gage|bane|limn|seek|hoover|echo|ten|mite|coil|push|pull|meet).*"
 
 
-echo === At this point GLK does emacs stuff to make teem.py into what is 
-echo === currently svn committed, this urgently needs to be automated...
-
+echo === At this point GLK does emacs stuff to make pre-teem.py into what is
+echo === the currently svn committed teem.py
+echo === Obviously, this really needs to be automated...
