@@ -100,7 +100,7 @@ parmConvert(double *parmDst, const double *parmSrc,
     len = parmSrc[1];
     rad = parmSrc[2];
     TEN_T3V_OUTER(stick, parmSrc + 3);
-    TEN_T_SCALE(stick, len, stick);
+    TEN_T_SCALE(stick, len-rad, stick);
     TEN_T_SET(ball, 1, rad, 0, 0, rad, 0, rad);
     TEN_T_ADD(parmDst, ball, stick);
     parmDst[0] = parmSrc[0];

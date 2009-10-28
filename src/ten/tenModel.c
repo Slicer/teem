@@ -434,7 +434,6 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   parm = AIR_CAST(char *, nparm->data);
   dwi = AIR_CAST(char *, ndwi->data);
   for (II=0; II<numSamp; II++) {
-    char pstr[AIR_STRLEN_MED];
     unsigned int ss;
     for (ii=0; ii<dwiNum; ii++) {
       ddwi[ii] = lup(dwi, ii);
@@ -519,7 +518,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
     (*ins)(void *v, size_t I, double d);
   size_t szOut[NRRD_DIM_MAX], II, NN, tsize;
   airArray *mop;
-  int withB0, axmap[NRRD_DIM_MAX], convRet;
+  int withB0, axmap[NRRD_DIM_MAX], convRet=0;
   unsigned int parmNumDst, parmNumSrc, ii, lablen;
   const char *parmSrc;
   char *parmDst;
@@ -589,7 +588,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
       airMopError(mop); return 1;
     }
     for (ii=0; ii<parmNumDst; ii++) {
-      ins(parmDst, ii, dpdst[ii]);
+      ins(parmDst, ii, dpdst[withB0 ? ii : ii+1]);
     }
     parmSrc += parmNumSrc*tsize;
     parmDst += parmNumDst*tsize;
