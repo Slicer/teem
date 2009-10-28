@@ -307,8 +307,7 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                unsigned int starts, double convEps, airRandMTState *_rng) {
   static const char me[]="tenModelSqeFit";
   double *ddwi, *dwibuff, sqe, sqeBest, convFrac,
-    dparm[TEN_MODEL_PARM_MAXNUM], 
-    dparmBest[TEN_MODEL_PARM_MAXNUM], 
+    *dparm, *dparmBest,
     (*ins)(void *v, size_t I, double d),
     (*lup)(const void *v, size_t I);
   airArray *mop;
@@ -342,7 +341,15 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   }
   
   /* allocate output (and set axmap) */
+  dparm = AIR_CAST(double *, calloc(model->parmNum, sizeof(double)));
+  dparmBest = AIR_CAST(double *, calloc(model->parmNum, sizeof(double)));
+  if (!( dparm && dparmBest )) {
+    biffAddf(TEN, "%s: couldn't allocate parm vecs", me);
+    return 1;
+  }
   mop = airMopNew();
+  airMopAdd(mop, dparm, airFree, airMopAlways);
+  airMopAdd(mop, dparmBest, airFree, airMopAlways);
   saveParmNum = saveB0 ? model->parmNum : model->parmNum-1;
   for (ii=0; ii<ndwi->dim; ii++) {
     szOut[ii] = (!ii 
@@ -381,29 +388,19 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     }
     sqeBest = DBL_MAX;
     for (ss=0; ss<starts; ss++) {
-      fprintf(stderr, "!%s: II %u ss %u -------\n",
-              me, AIR_CAST(unsigned int, II), ss);
       if (knownB0) {
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
-        fprintf(stderr, "!%s:   b0 = %g\n", me, dparm[0]);
       }
       model->rand(dparm, rng, knownB0);
-      fprintf(stderr, "!%s:    rand -> %s\n", me,
-              model->sprint(pstr, dparm));
       sqe = model->sqeFit(dparm, &convFrac, espec, dwibuff, ddwi, 
                           dparm, knownB0, minIter, maxIter, convEps);
       if (sqe < sqeBest) {
-        fprintf(stderr, "!%s:   %g < %g --> %s\n", me, 
-                sqe, sqeBest, model->sprint(pstr, dparm));
         sqeBest = sqe;
         model->copy(dparmBest, dparm);
       }
     }
     for (ii=0; ii<saveParmNum; ii++) {
       ins(parm, ii, saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
-      fprintf(stderr, "!%s:   saving parm[%u] = %g\n", me,
-              saveB0 ? ii : ii+1,
-              saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
     }
     /* possibly save sqeBest */
     parm += saveParmNum*nrrdTypeSize[typeOut];

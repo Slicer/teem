@@ -159,9 +159,6 @@ TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas,
                                     int knownB0);
 
 /* model*.c */
-
-#define _TEN_PARM_GRAD_EPS 0.0001
-
 /*
 ** NOTE: these functions rely on per-model information (like PARM_NUM)
 ** or functions (like "simulate"), which is why these functions can't
@@ -175,7 +172,7 @@ parmRand(double *parm, airRandMTState *rng, int knownB0) {              \
   unsigned int ii;                                                      \
                                                                         \
   for (ii=knownB0 ? 1 : 0; ii<PARM_NUM; ii++) {                         \
-    if (pdesc[ii].vec3) {                                               \
+    if (parmDesc[ii].vec3) {                                            \
       /* its unit vector */                                             \
       double xx, yy, zz, theta, rr;                                     \
                                                                         \
@@ -191,7 +188,7 @@ parmRand(double *parm, airRandMTState *rng, int knownB0) {              \
       ii += 2;                                                          \
     } else {                                                            \
       parm[ii] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,                \
-                            pdesc[ii].min, pdesc[ii].max);              \
+                            parmDesc[ii].min, parmDesc[ii].max);        \
     }                                                                   \
   }                                                                     \
   return;                                                               \
@@ -205,8 +202,8 @@ parmStep(double *parm1, const double scl,                               \
                                                                         \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
     parm1[ii] = scl*grad[ii] + parm0[ii];                               \
-    parm1[ii] = AIR_CLAMP(pdesc[ii].min, parm1[ii], pdesc[ii].max);     \
-    if (pdesc[ii].vec3 && 2 == pdesc[ii].vecIdx) {                      \
+    parm1[ii] = AIR_CLAMP(parmDesc[ii].min, parm1[ii], parmDesc[ii].max); \
+    if (parmDesc[ii].vec3 && 2 == parmDesc[ii].vecIdx) {                \
       double len;                                                       \
       ELL_3V_NORM(parm1 + ii - 2, parm1 + ii - 2, len);                 \
     }                                                                   \
@@ -221,7 +218,7 @@ parmDist(const double *parmA, const double *parmB) {                    \
                                                                         \
   dist = 0;                                                             \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
-    dd = (parmA[ii] - parmB[ii])/(pdesc[ii].max - pdesc[ii].min);       \
+    dd = (parmA[ii] - parmB[ii])/(parmDesc[ii].max - parmDesc[ii].min); \
     dist += dd*dd;                                                      \
   }                                                                     \
   return sqrt(dist);                                                    \
@@ -332,7 +329,7 @@ nllFit(double *parm, const tenExperSpec *espec,         \
 }
 
 #define _TEN_MODEL_FIELDS                             \
-  PARM_NUM, PARM_DESC,                                \
+  PARM_NUM, parmDesc,                                 \
   simulate,                                           \
   parmSprint, parmRand, parmStep, parmDist, parmCopy, \
   sqe, sqeGrad, sqeFit,                               \

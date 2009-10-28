@@ -26,36 +26,28 @@
 #define PARM_NUM 7
 /* 1/sqrt(2) */
 #define OST 0.70710678118654752440
-#define PARM_DESC                                                           \
-  {                                                                         \
-    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},                            \
-    {"Dxx", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0}, \
-    {"Dxy", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0}, \
-    {"Dxz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0}, \
-    {"Dyy", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0}, \
-    {"Dyz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0}, \
-    {"Dzz", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0}, \
-  }
 static const tenModelParmDesc
-const pdesc[TEN_MODEL_PARM_MAXNUM] = PARM_DESC;
+const parmDesc[] = {
+  {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
+  {"Dxx", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0},
+  {"Dxy", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
+  {"Dxz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
+  {"Dyy", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0},
+  {"Dyz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
+  {"Dzz", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0}
+};
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, ten[7];
+  double b0;
 
   b0 = parm[0];
-  ten[0] = 1;
-  ten[1] = parm[1];
-  ten[2] = parm[2];
-  ten[3] = parm[3];
-  ten[4] = parm[4];
-  ten[5] = parm[5];
-  ten[6] = parm[6];
   for (ii=0; ii<espec->imgNum; ii++) {
     double adc, bb;
     bb = espec->bval[ii];
-    adc = TEN_T3V_CONTR(ten, espec->grad + 3*ii);
+    /* safe because TEN_T3V_CONTR never looks at parm[0] */
+    adc = TEN_T3V_CONTR(parm, espec->grad + 3*ii);
     dwiSim[ii] = b0*exp(-bb*adc);
   }
   return;
@@ -75,30 +67,40 @@ _TEN_PARM_STEP
 _TEN_PARM_DIST
 _TEN_PARM_COPY
 
-_TEN_SQE
+static double
+sqe(const double *parm, const tenExperSpec *espec,
+    double *dwiBuff, const double *dwiMeas, int knownB0) {
+
+  simulate(dwiBuff, parm, espec);
+  return _tenExperSpec_sqe(dwiBuff, dwiMeas, espec, knownB0);
+}
 
 static void
 sqeGrad(double *grad, const double *parm0,
         const tenExperSpec *espec,
         double *dwiBuff, const double *dwiMeas,
         int knownB0) {
-  double parm1[PARM_NUM], sqe0, sqe1, dp;
+  double parm1[PARM_NUM], sqeForw, sqeBack, dp;
   unsigned int ii, i0;
 
   i0 = knownB0 ? 1 : 0;
-  for (ii=i0; ii<PARM_NUM; ii++) {
+  for (ii=0; ii<PARM_NUM; ii++) {
+    /* have to copy all parms, even B0 with knownB0, and even if we
+       aren't going to diddle these values, because the
+       simulation depends on knowing the values */
     parm1[ii] = parm0[ii];
   }
-  sqe0 = sqe(parm0, espec, dwiBuff, dwiMeas, knownB0);
   for (ii=i0; ii<PARM_NUM; ii++) {
-    dp = (pdesc[ii].max - pdesc[ii].min)*_TEN_PARM_GRAD_EPS;
-    parm1[ii] += dp;
-    sqe1 = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
-    grad[ii] = (sqe1 - sqe0)/dp;
+    dp = (parmDesc[ii].max - parmDesc[ii].min)*TEN_MODEL_PARM_GRAD_EPS;
+    parm1[ii] = parm0[ii] + dp;
+    sqeForw = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
+    parm1[ii] = parm0[ii] - dp;
+    sqeBack = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
+    grad[ii] = (sqeForw - sqeBack)/(2*dp);
     parm1[ii] = parm0[ii];
   }
   if (knownB0) {
-    grad[ii] = 0;
+    grad[0] = 0;
   }
   return;
 }
@@ -108,40 +110,31 @@ sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,
        double *dwiBuff, const double *dwiMeas,
        const double *parmInit, int knownB0,
        unsigned int minIter, unsigned int maxIter, double convEps) {
-  static const char me[]= TEN_MODEL_STR_TENSOR2 ":sqeFit";
-  unsigned int i0, iter;
-  double step, bak, opp, val, tval,
-    dist, tparm[PARM_NUM], grad[PARM_NUM];
-  char str[AIR_STRLEN_MED];
+  /* static const char me[]= TEN_MODEL_STR_TENSOR2 ":sqeFit"; */
+  unsigned int iter;
+  double step, bak, opp, val, testval,
+    dist, testparm[PARM_NUM], grad[PARM_NUM];
   int done;
 
-  i0 = knownB0 ? 1 : 0;
+  step = 1;
   parmCopy(parm, parmInit);
   val = sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
   sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
-  step = 10;
-  fprintf(stderr, "!%s: -------- at %s\n", me, parmSprint(str, parm));
-  fprintf(stderr, "!%s: initial step = %g, convEps = %g\n",
-          me, step, convEps);
 
-  opp = 1.1;
+  opp = 2;
   bak = 0.1;
   iter = 0;
   do {
     do {
-      parmStep(tparm, -step, grad, parm);
-      tval = sqe(tparm, espec, dwiBuff, dwiMeas, knownB0);
-      if (tval > val) {
+      parmStep(testparm, -step, grad, parm);
+      testval = sqe(testparm, espec, dwiBuff, dwiMeas, knownB0);
+      if (testval > val) {
         step *= bak;
-        fprintf(stderr, "!%s(%u): tval %g > val %g ==> step -> %g\n", 
-                me, iter, tval, val, step);
       }
-    } while (tval > val);
-    dist = parmDist(tparm, parm);
-    fprintf(stderr, "!%s(%u): step %g (dist %g) -> %g @ %s\n", me, iter,
-            step, dist, tval, parmSprint(str, tparm));
-    val = tval;
-    parmCopy(parm, tparm);
+    } while (testval > val);
+    dist = parmDist(testparm, parm);
+    val = testval;
+    parmCopy(parm, testparm);
     sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
     step *= opp;
     iter++;

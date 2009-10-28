@@ -24,13 +24,11 @@
 #include "privateTen.h"
 
 #define PARM_NUM 2
-#define PARM_DESC                                               \
-  {                                                             \
-    {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},                \
-    {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}      \
-  }
 static const tenModelParmDesc
-const pdesc[TEN_MODEL_PARM_MAXNUM] = PARM_DESC;
+const parmDesc[] = {
+  {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
+  {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}
+};
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {

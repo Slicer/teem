@@ -242,6 +242,10 @@ _tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim,
       }
       dd = dwiMeas[ii] - dwiSim[ii];
       sqe += dd*dd;
+      /*
+      fprintf(stderr, "!%s: dwi[%u]: %g - %g -> %g\n", "_tenExperSpec_sqe",
+              ii, dwiMeas[ii], dwiSim[ii], sqe);
+      */
     }
   } else {
     for (ii=0; ii<espec->imgNum; ii++) {

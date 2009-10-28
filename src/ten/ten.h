@@ -1094,9 +1094,9 @@ typedef struct {
   unsigned int vecIdx;         /* if 3-vector, index into it */
 } tenModelParmDesc;
 
-#define TEN_MODEL_PARM_MAXNUM 15 /* adjust as needed */
-#define TEN_MODEL_B0_MAX 10000   /* HEY: completely arbitrary! */
-#define TEN_MODEL_DIFF_MAX 0.004 /* in units of mm^2/sec */
+#define TEN_MODEL_B0_MAX 10000    /* HEY: completely arbitrary! */
+#define TEN_MODEL_DIFF_MAX 0.004  /* in units of mm^2/sec */
+#define TEN_MODEL_PARM_GRAD_EPS 0.00002 /* for gradient calculations */
 
 /*
 ******** struct tenModel
@@ -1118,7 +1118,7 @@ typedef struct {
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
-  tenModelParmDesc parmDesc[TEN_MODEL_PARM_MAXNUM];
+  const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
                    const tenExperSpec *espec);
