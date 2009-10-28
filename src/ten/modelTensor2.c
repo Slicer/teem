@@ -62,89 +62,65 @@ parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
   return str;
 }
 
+_TEN_PARM_ALLOC
 _TEN_PARM_RAND
 _TEN_PARM_STEP
 _TEN_PARM_DIST
 _TEN_PARM_COPY
 
-static double
-sqe(const double *parm, const tenExperSpec *espec,
-    double *dwiBuff, const double *dwiMeas, int knownB0) {
+static int
+parmConvert(double *parmDst, const double *parmSrc,
+            const tenModel *modelSrc) {
+  int ret;
 
-  simulate(dwiBuff, parm, espec);
-  return _tenExperSpec_sqe(dwiBuff, dwiMeas, espec, knownB0);
+  if (modelSrc == tenModelBall) {
+    TEN_T_SET(parmDst, parmSrc[0],
+              parmSrc[1], 0, 0,
+              parmSrc[1], 0,
+              parmSrc[1]);
+    ret = 0;
+  } else if (modelSrc == tenModel1Stick) {
+    double ten[7];
+    TEN_T3V_OUTER(ten, parmSrc + 2);
+    TEN_T_SCALE(parmDst, parmSrc[1], ten);
+    parmDst[0] = parmSrc[0];
+    ret = 0;
+  } else if (modelSrc == tenModelBall1Stick) {
+    double stick[7], ball[7], diff, frac;
+    diff = parmSrc[1];
+    frac = parmSrc[2];
+    TEN_T3V_OUTER(stick, parmSrc + 3);
+    TEN_T_SCALE(stick, diff, stick);
+    TEN_T_SET(ball, 1, diff, 0, 0, diff, 0, diff);
+    TEN_T_LERP(parmDst, frac, ball, stick);
+    parmDst[0] = parmSrc[0];
+    ret = 1;
+  } else if (modelSrc == tenModelCylinder) {
+    double stick[7], ball[7], len, rad;
+    len = parmSrc[1];
+    rad = parmSrc[2];
+    TEN_T3V_OUTER(stick, parmSrc + 3);
+    TEN_T_SCALE(stick, len, stick);
+    TEN_T_SET(ball, 1, rad, 0, 0, rad, 0, rad);
+    TEN_T_ADD(parmDst, ball, stick);
+    parmDst[0] = parmSrc[0];
+    ret = 0;
+  } else if (modelSrc == tenModelTensor2) {
+    parmCopy(parmDst, parmSrc);
+    ret = 0;
+  } else {
+    unsigned int ii;
+    for (ii=0; ii<PARM_NUM; ii++) {
+      parmDst[ii] = AIR_NAN;
+    }
+    ret = 2;
+  }
+  return ret;
 }
 
-static void
-sqeGrad(double *grad, const double *parm0,
-        const tenExperSpec *espec,
-        double *dwiBuff, const double *dwiMeas,
-        int knownB0) {
-  double parm1[PARM_NUM], sqeForw, sqeBack, dp;
-  unsigned int ii, i0;
-
-  i0 = knownB0 ? 1 : 0;
-  for (ii=0; ii<PARM_NUM; ii++) {
-    /* have to copy all parms, even B0 with knownB0, and even if we
-       aren't going to diddle these values, because the
-       simulation depends on knowing the values */
-    parm1[ii] = parm0[ii];
-  }
-  for (ii=i0; ii<PARM_NUM; ii++) {
-    dp = (parmDesc[ii].max - parmDesc[ii].min)*TEN_MODEL_PARM_GRAD_EPS;
-    parm1[ii] = parm0[ii] + dp;
-    sqeForw = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
-    parm1[ii] = parm0[ii] - dp;
-    sqeBack = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);
-    grad[ii] = (sqeForw - sqeBack)/(2*dp);
-    parm1[ii] = parm0[ii];
-  }
-  if (knownB0) {
-    grad[0] = 0;
-  }
-  return;
-}
-
-static double
-sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,
-       double *dwiBuff, const double *dwiMeas,
-       const double *parmInit, int knownB0,
-       unsigned int minIter, unsigned int maxIter, double convEps) {
-  /* static const char me[]= TEN_MODEL_STR_TENSOR2 ":sqeFit"; */
-  unsigned int iter;
-  double step, bak, opp, val, testval,
-    dist, testparm[PARM_NUM], grad[PARM_NUM];
-  int done;
-
-  step = 1;
-  parmCopy(parm, parmInit);
-  val = sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
-  sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
-
-  opp = 2;
-  bak = 0.1;
-  iter = 0;
-  do {
-    do {
-      parmStep(testparm, -step, grad, parm);
-      testval = sqe(testparm, espec, dwiBuff, dwiMeas, knownB0);
-      if (testval > val) {
-        step *= bak;
-      }
-    } while (testval > val);
-    dist = parmDist(testparm, parm);
-    val = testval;
-    parmCopy(parm, testparm);
-    sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
-    step *= opp;
-    iter++;
-    done = (iter < minIter
-            ? AIR_FALSE
-            : (iter > maxIter) || dist < convEps);
-  } while (!done);
-  *convFrac = dist/convEps;
-  return val;
-}
+_TEN_SQE
+_TEN_SQE_GRAD_CENTDIFF
+_TEN_SQE_FIT(tenModelTensor2)
 
 _TEN_NLL
 _TEN_NLL_GRAD_STUB

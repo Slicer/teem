@@ -158,14 +158,35 @@ TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas,
                                     int rician, double sigma,
                                     int knownB0);
 
+/* tenModel.c */
+TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, 
+                                        double *testParm, double *grad,
+                                        double *parm, double *convFrac,
+                                        const tenExperSpec *espec,
+                                        double *dwiBuff,
+                                        const double *dwiMeas,
+                                        const double *parmInit,
+                                        int knownB0,
+                                        unsigned int minIter,
+                                        unsigned int maxIter,
+                                        double convEps);
+
 /* model*.c */
 /*
 ** NOTE: these functions rely on per-model information (like PARM_NUM)
-** or functions (like "simulate"), which is why these functions can't
-** all use same common underlying function, since more information would
+** or functions (like "simulate"), which is why these functions don't
+** all use some common underlying function: more information would
 ** have to be passed (annoying for rapid hacking), and the function
 ** call overhead might be doubled
 */
+
+#define _TEN_PARM_ALLOC                                         \
+static double *                                                 \
+parmAlloc(void) {                                               \
+                                                                \
+  return AIR_CAST(double *, calloc(PARM_NUM, sizeof(double)));  \
+}
+
 #define _TEN_PARM_RAND                                                  \
 static void                                                             \
 parmRand(double *parm, airRandMTState *rng, int knownB0) {              \
@@ -244,20 +265,59 @@ sqe(const double *parm, const tenExperSpec *espec,              \
   return _tenExperSpec_sqe(dwiMeas, dwiBuff, espec, knownB0);   \
 }
 
-#define _TEN_SQE_GRAD_STUB                      \
-static void                                     \
-sqeGrad(double *grad, const double *parm,       \
-        const tenExperSpec *espec,              \
-        double *dwiBuff, const double *dwiMeas, \
-         int knownB0) {                         \
-                                                \
-  AIR_UNUSED(grad);                             \
-  AIR_UNUSED(parm);                             \
-  AIR_UNUSED(espec);                            \
-  AIR_UNUSED(dwiBuff);                          \
-  AIR_UNUSED(dwiMeas);                          \
-  AIR_UNUSED(knownB0);                          \
-  return;                                       \
+#define _TEN_SQE_GRAD_CENTDIFF                                          \
+static void                                                             \
+sqeGrad(double *grad, const double *parm0,                              \
+        const tenExperSpec *espec,                                      \
+        double *dwiBuff, const double *dwiMeas,                         \
+        int knownB0) {                                                  \
+  double parm1[PARM_NUM], sqeForw, sqeBack, dp;                         \
+  unsigned int ii, i0;                                                  \
+                                                                        \
+  i0 = knownB0 ? 1 : 0;                                                 \
+  for (ii=0; ii<PARM_NUM; ii++) {                                       \
+    /* have to copy all parms, even B0 with knownB0, and even if we     \
+       aren't going to diddle these values, because the                 \
+       simulation depends on knowing the values */                      \
+    parm1[ii] = parm0[ii];                                              \
+  }                                                                     \
+  for (ii=i0; ii<PARM_NUM; ii++) {                                      \
+    dp = (parmDesc[ii].max - parmDesc[ii].min)*TEN_MODEL_PARM_GRAD_EPS; \
+    parm1[ii] = parm0[ii] + dp;                                         \
+    sqeForw = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);             \
+    parm1[ii] = parm0[ii] - dp;                                         \
+    sqeBack = sqe(parm1, espec, dwiBuff, dwiMeas, knownB0);             \
+    grad[ii] = (sqeForw - sqeBack)/(2*dp);                              \
+    parm1[ii] = parm0[ii];                                              \
+    if (parmDesc[ii].vec3 && 2 == parmDesc[ii].vecIdx) {                \
+      double dot, *gg;                                                  \
+      const double *vv;                                                 \
+      gg = grad + ii - 2;                                               \
+      vv = parm0 + ii - 2;                                              \
+      dot = ELL_3V_DOT(gg, vv);                                         \
+      ELL_3V_SCALE_INCR(gg, -dot, vv);                                  \
+    }                                                                   \
+  }                                                                     \
+  if (knownB0) {                                                        \
+    grad[0] = 0;                                                        \
+  }                                                                     \
+  return;                                                               \
+}
+
+#define _TEN_SQE_FIT(model)                                             \
+static double                                                           \
+sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,       \
+       double *dwiBuff, const double *dwiMeas,                          \
+       const double *parmInit, int knownB0,                             \
+       unsigned int minIter, unsigned int maxIter, double convEps) {    \
+  double testparm[PARM_NUM], grad[PARM_NUM];                            \
+                                                                        \
+  return _tenModelSqeFitSingle((model),                                 \
+                               testparm, grad,                          \
+                               parm, convFrac,                          \
+                               espec, dwiBuff, dwiMeas,                 \
+                               parmInit, knownB0,                       \
+                               minIter, maxIter, convEps);              \
 }
 
 #define _TEN_SQE_FIT_STUB                                              \
@@ -328,12 +388,13 @@ nllFit(double *parm, const tenExperSpec *espec,         \
   return 0;                                             \
 }
 
-#define _TEN_MODEL_FIELDS                             \
-  PARM_NUM, parmDesc,                                 \
-  simulate,                                           \
-  parmSprint, parmRand, parmStep, parmDist, parmCopy, \
-  sqe, sqeGrad, sqeFit,                               \
-  nll, nllGrad, nllFit 
+#define _TEN_MODEL_FIELDS                                           \
+  PARM_NUM, parmDesc,                                               \
+  simulate,                                                         \
+  parmSprint, parmAlloc, parmRand,                                  \
+  parmStep, parmDist, parmCopy, parmConvert,                        \
+  sqe, sqeGrad, sqeFit,                                             \
+  nll, nllGrad, nllFit
 
 #ifdef __cplusplus
 }

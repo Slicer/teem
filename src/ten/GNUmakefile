@@ -59,7 +59,7 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	tendTriple.o tendTconv.o tendAvg.o \
 	tendAnhist.o tendMake.o tendSatin.o tendShrink.o tendGlyph.o \
 	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o \
-	tendMsim.o tendMfit.o \
+	tendMsim.o tendMfit.o tendMconv.o \
 	tendSlice.o tendEllipse.o tendEvecrgb.o tendNorm.o tendAnscale.o \
 	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendHelix.o tendBfit.o \
 	tendUnmf.o tendLog.o tendExp.o

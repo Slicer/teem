@@ -24,7 +24,7 @@
 #include "privateTen.h"
 
 const char *
-tenModelPrefixStr = "DWMRI_model";
+tenModelPrefixStr = "DWMRI_model:";
 
 static const tenModel *
 str2model(const char *str) {
@@ -42,31 +42,31 @@ int
 tenModelParse(const tenModel **model, int *plusB0, 
               int requirePrefix, const char *_str) {
   static const char me[]="tenModelParse";
-  char *str, *modstr, prefix[AIR_STRLEN_MED], *pre;
+  char *str, *modstr, *pre;
   airArray *mop;
 
   if (!( model && plusB0 && _str)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
-  str = airToLower(airStrdup(_str));
+  str = airStrdup(_str);
   if (!str) {
     biffAddf(TEN, "%s: couldn't strdup", me);
     return 1;
   }
   mop = airMopNew();
   airMopAdd(mop, str, airFree, airMopAlways);
-  sprintf(prefix, "%s:", tenModelPrefixStr);
-  pre = strstr(str, prefix);
+  pre = strstr(str, tenModelPrefixStr);
   if (pre) {
-    str += strlen(prefix);
+    str += strlen(tenModelPrefixStr);
   } else {
     if (requirePrefix) {
       biffAddf(TEN, "%s: didn't see prefix \"%s\" in \"%s\"", me,
-               prefix, _str);
+               tenModelPrefixStr, _str);
       airMopError(mop); return 1;
     }
   }
+  airToLower(str);
 
   if ((modstr = strchr(str, '+'))) {
     *modstr = '\0';
@@ -100,7 +100,8 @@ tenModelFromAxisLearn(const tenModel **modelP,
     return 1;
   }
   *plusB0 = AIR_FALSE;
-  /* first try to learn model from "kind" */
+  /* first try to learn model from axis "kind" */
+  /* HEY should probably also support 3 vector for stick? */
   if (nrrdKind3DSymMatrix == axinfo->kind
       || nrrdKind3DMaskedSymMatrix == axinfo->kind) {
     *modelP = tenModelTensor2;
@@ -298,6 +299,58 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   return 0;
 }
 
+/*
+** _tenModelSqeFitSingle
+**
+** callable function (as opposed to tenModel method) for doing 
+** sqe fitting.  Requires PARM_NUM length buffers testParm and grad
+*/
+double
+_tenModelSqeFitSingle(const tenModel *model, 
+                      double *testParm, double *grad,
+                      double *parm, double *convFrac,
+                      const tenExperSpec *espec,
+                      double *dwiBuff, const double *dwiMeas,
+                      const double *parmInit, int knownB0,
+                      unsigned int minIter, unsigned int maxIter,
+                      double convEps) {
+  /* static const char me[]="_tenModelSqeFitSingle"; */
+  unsigned int iter;
+  double step, bak, opp, val, testval, dist, td;
+  int done;
+
+  step = 1;
+  model->copy(parm, parmInit);
+  val = model->sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
+  model->sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
+
+  opp = 2;
+  bak = 0.1;
+  iter = 0;
+  dist = convEps*8;
+  do {
+    do {
+      model->step(testParm, -step, grad, parm);
+      testval = model->sqe(testParm, espec, dwiBuff, dwiMeas, knownB0);
+      if (testval > val) {
+        step *= bak;
+      }
+    } while (testval > val);
+    td = model->dist(testParm, parm);
+    dist = (td + dist)/2;
+    val = testval;
+    model->copy(parm, testParm);
+    model->sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
+    step *= opp;
+    iter++;
+    done = (iter < minIter
+            ? AIR_FALSE
+            : (iter > maxIter) || dist < convEps);
+  } while (!done);
+  *convFrac = dist/convEps;
+  return val;
+}
+
 int
 tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
                const tenModel *model,
@@ -422,12 +475,11 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     airMopError(mop); return 1;
   }
   lablen = (strlen(tenModelPrefixStr)
-            + strlen(":")
             + (saveB0 ? strlen("B0+") : 0)
             + strlen(model->name)
             + 1);
   nparm->axis[0].label = AIR_CAST(char *, calloc(lablen, sizeof(char)));
-  sprintf(nparm->axis[0].label, "%s:%s%s",
+  sprintf(nparm->axis[0].label, "%s%s%s",
           tenModelPrefixStr,
           saveB0 ? "B0+" : "",
           model->name);
@@ -451,5 +503,126 @@ tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
   AIR_UNUSED(sigma);
   AIR_UNUSED(knownB0);
 
+  return 0;
+}
+
+/*
+** copy the B0 info if we have it 
+** use the same type on the way out.
+*/
+int
+tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
+                const Nrrd *nparmSrc, const tenModel *_modelSrc) {
+  static char me[]="tenModelConvert";
+  const tenModel *modelSrc;
+  double *dpdst, *dpsrc, (*lup)(const void *v, size_t I),
+    (*ins)(void *v, size_t I, double d);
+  size_t szOut[NRRD_DIM_MAX], II, NN, tsize;
+  airArray *mop;
+  int withB0, axmap[NRRD_DIM_MAX], convRet;
+  unsigned int parmNumDst, parmNumSrc, ii, lablen;
+  const char *parmSrc;
+  char *parmDst;
+
+  if (!( nparmDst && modelDst && nparmSrc )) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!_modelSrc) {
+    /* we have to try to learn the source model from the nrrd */
+    if (tenModelFromAxisLearn(&modelSrc, &withB0, nparmSrc->axis + 0)) {
+      biffAddf(TEN, "%s: couldn't learn model from src nparm", me);
+      return 1;
+    }
+  } else {
+    modelSrc = _modelSrc;
+    if (modelSrc->parmNum == nparmSrc->axis[0].size) {
+      withB0 = AIR_TRUE;
+    } if (modelSrc->parmNum-1 == nparmSrc->axis[0].size) {
+      withB0 = AIR_FALSE;
+    } else {
+      biffAddf(TEN, "%s: axis[0].size %u is not \"%s\" parmnum %u or 1 less",
+               me, AIR_CAST(unsigned int, nparmSrc->axis[0].size),
+               modelSrc->name, modelSrc->parmNum);
+      return 1;
+    }
+  }
+
+  mop = airMopNew();
+  dpdst = modelDst->alloc();
+  airMopAdd(mop, dpdst, airFree, airMopAlways);
+  dpsrc = modelSrc->alloc();
+  airMopAdd(mop, dpsrc, airFree, airMopAlways);
+  lup = nrrdDLookup[nparmSrc->type];
+  ins = nrrdDInsert[nparmSrc->type];
+  parmNumDst = withB0 ? modelDst->parmNum : modelDst->parmNum-1;
+  parmNumSrc = nparmSrc->axis[0].size;
+  for (ii=0; ii<nparmSrc->dim; ii++) {
+    szOut[ii] = (!ii 
+                 ? parmNumDst
+                 : nparmSrc->axis[ii].size);
+    axmap[ii] = (!ii
+                 ? -1
+                 : AIR_CAST(int, ii));
+  }
+  if (nrrdMaybeAlloc_nva(nparmDst, nparmSrc->type, nparmSrc->dim, szOut)) {
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    airMopError(mop); return 1;
+  }
+
+  NN = nrrdElementNumber(nparmSrc)/nparmSrc->axis[0].size;
+  tsize = nrrdTypeSize[nparmSrc->type];
+  parmSrc = AIR_CAST(char *, nparmSrc->data);
+  parmDst = AIR_CAST(char *, nparmDst->data);
+  if (!withB0) {
+    dpsrc[0] = 0;
+  }
+  /* do first one for error check */
+  for (II=0; II<NN; II++) {
+    for (ii=0; ii<parmNumSrc; ii++) {
+      dpsrc[withB0 ? ii : ii+1] = lup(parmSrc, ii);
+    }
+    convRet = modelDst->convert(dpdst, dpsrc, modelSrc);
+    if (2 == convRet) {  /* HEY should be enum for this value */
+      biffAddf(TEN, "%s: error converting from \"%s\" to \"%s\"", me,
+               modelSrc->name, modelDst->name);
+      airMopError(mop); return 1;
+    }
+    for (ii=0; ii<parmNumDst; ii++) {
+      ins(parmDst, ii, dpdst[ii]);
+    }
+    parmSrc += parmNumSrc*tsize;
+    parmDst += parmNumDst*tsize;
+  }
+  if (convRetP) {
+    *convRetP = convRet;
+  }
+
+  if (nrrdAxisInfoCopy(nparmDst, nparmSrc, axmap, NRRD_AXIS_INFO_SIZE_BIT)
+      || nrrdBasicInfoCopy(nparmDst, nparmSrc,
+                           NRRD_BASIC_INFO_DATA_BIT
+                           | NRRD_BASIC_INFO_TYPE_BIT
+                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                           | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | NRRD_BASIC_INFO_CONTENT_BIT
+                           | NRRD_BASIC_INFO_COMMENTS_BIT
+                           | (nrrdStateKeyValuePairsPropagate
+                              ? 0
+                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    airMopError(mop); return 1;
+  }
+  /* HEY: COPY AND PASTE! from above. perhaps make helper functions? */
+  lablen = (strlen(tenModelPrefixStr)
+            + (withB0 ? strlen("B0+") : 0)
+            + strlen(modelDst->name)
+            + 1);
+  nparmDst->axis[0].label = AIR_CAST(char *, calloc(lablen, sizeof(char)));
+  sprintf(nparmDst->axis[0].label, "%s%s%s",
+          tenModelPrefixStr,
+          withB0 ? "B0+" : "",
+          modelDst->name);
+
+  airMopOkay(mop);
   return 0;
 }

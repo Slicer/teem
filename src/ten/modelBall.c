@@ -26,8 +26,8 @@
 #define PARM_NUM 2
 static const tenModelParmDesc
 const parmDesc[] = {
-  {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
-  {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}
+  /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
+  /* 1 */ {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}
 };
 
 static void 
@@ -49,14 +49,41 @@ parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
   return str;
 }
 
+_TEN_PARM_ALLOC
 _TEN_PARM_RAND
 _TEN_PARM_STEP
 _TEN_PARM_DIST
 _TEN_PARM_COPY
 
+static int
+parmConvert(double *parmDst, const double *parmSrc,
+            const tenModel *modelSrc) {
+  int ret;
+
+  parmDst[0] = parmSrc[0];
+  if (modelSrc == tenModelBall) {
+    
+  } else if (modelSrc == tenModel1Stick) {
+
+  } else if (modelSrc == tenModelBall1Stick) {
+
+  } else if (modelSrc == tenModelCylinder) {
+
+  } else if (modelSrc == tenModelTensor2) {
+
+  } else {
+    unsigned int ii;
+    for (ii=0; ii<PARM_NUM; ii++) {
+      parmDst[ii] = AIR_NAN;
+    }
+    ret = 2;
+  }
+  return ret;
+}
+
 _TEN_SQE
-_TEN_SQE_GRAD_STUB
-_TEN_SQE_FIT_STUB
+_TEN_SQE_GRAD_CENTDIFF
+_TEN_SQE_FIT(tenModelBall)
 
 _TEN_NLL
 

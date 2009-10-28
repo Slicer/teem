@@ -1115,7 +1115,7 @@ typedef struct {
 ** and it would be dumb to double the number of models to be able
 ** to capture this.
 */
-typedef struct {
+typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
   const tenModelParmDesc *parmDesc;
@@ -1124,11 +1124,14 @@ typedef struct {
                    const tenExperSpec *espec);
   /* parameter vector operations */
   char *(*sprint)(char str[AIR_STRLEN_MED], const double *parm);
+  double *(*alloc)(void);
   void (*rand)(double *parm, airRandMTState *rng, int knownB0); 
   void (*step)(double *parm1, const double scl,
                const double *grad, const double *parm0);
   double (*dist)(const double *parmA, const double *parmB);
   void (*copy)(double *parmA, const double *parmB);
+  int (*convert)(double *parmDst, const double *parmSrc,
+                 const struct tenModel_t *modelSrc);
 
   /* "sqe" == squared error in DWI values */
   double (*sqe)(const double *parm, const tenExperSpec *espec,
@@ -1564,8 +1567,16 @@ TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int rician, double sigma, int knownB0);
-  
-/* have to keep in sync with modelTen.c/tenModelParse() */
+TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
+                               const tenModel *modelDst,
+                               const Nrrd *nparmSrc, 
+                               const tenModel *modelSrc);
+
+/* 
+** Have to keep this list of model declarations in sync with:
+** * modelTen.c/tenModelParse()
+** * all model*.c/parmConvert()
+*/
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;
@@ -1640,6 +1651,7 @@ F(bmat) \
 F(estim) \
 F(sim) \
 F(mfit) \
+F(mconv) \
 F(msim) \
 F(make) \
 F(avg) \

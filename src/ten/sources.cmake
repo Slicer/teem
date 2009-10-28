@@ -57,6 +57,7 @@ SET(TEN_SOURCES
   tendSim.c
   tendMsim.c
   tendMfit.c
+  tendMconv.c
   tendSlice.c
   tendSten.c
   tendTconv.c
