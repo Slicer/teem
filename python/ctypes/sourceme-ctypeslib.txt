@@ -31,6 +31,7 @@ echo === DYLD_LIBRARY_PATH is obviously Mac specific, please fix
 setenv DYLD_LIBRARY_PATH ${TEEM}/lib
 python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o pre-teem.py -m stdio \
         -r "(air|hest|biff|nrrd|ell|unrrdu|dye|moss|alan|gage|bane|limn|seek|hoover|echo|ten|mite|coil|push|pull|meet).*"
+rm -rf teemincl
 
 
 echo === At this point GLK does emacs stuff to make pre-teem.py into what is
