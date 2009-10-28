@@ -66,7 +66,7 @@ tenModelParse(const tenModel **model, int *plusB0,
       airMopError(mop); return 1;
     }
   }
-  airToLower(str);
+  airToLower(str); /* for sake of "b0" and str2model below */
 
   if ((modstr = strchr(str, '+'))) {
     *modstr = '\0';
