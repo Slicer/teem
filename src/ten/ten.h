@@ -1090,8 +1090,9 @@ typedef struct {
 typedef struct {
   char name[AIR_STRLEN_SMALL]; /* name */
   double min, max;             /* bounds */
-  int vec3;                    /* non-zero if this is one coeff of 3-vector */
-  unsigned int vecIdx;         /* if 3-vector, index into it */
+  int vec3;                    /* non-zero if this is a coefficient
+                                  of a UNIT-LENGTH 3-vector */
+  unsigned int vecIdx;         /* if part of vector, index into it */
 } tenModelParmDesc;
 
 #define TEN_MODEL_B0_MAX 10000    /* HEY: completely arbitrary! */

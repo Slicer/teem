@@ -576,7 +576,6 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
   if (!withB0) {
     dpsrc[0] = 0;
   }
-  /* do first one for error check */
   for (II=0; II<NN; II++) {
     for (ii=0; ii<parmNumSrc; ii++) {
       dpsrc[withB0 ? ii : ii+1] = lup(parmSrc, ii);
