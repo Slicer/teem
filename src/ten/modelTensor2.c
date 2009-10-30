@@ -27,7 +27,7 @@
 /* 1/sqrt(2) */
 #define OST 0.70710678118654752440
 static const tenModelParmDesc
-const parmDesc[] = {
+parmDesc[] = {
   {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
   {"Dxx", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0},
   {"Dxy", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},

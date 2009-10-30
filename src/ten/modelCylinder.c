@@ -25,7 +25,7 @@
 
 #define PARM_NUM 6
 static const tenModelParmDesc
-const parmDesc[] = {
+parmDesc[] = {
   /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
   /* 1 */ {"length", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
   /* 2 */ {"radius", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
@@ -73,8 +73,9 @@ parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
 static int
 parmConvert(double *parmDst, const double *parmSrc,
             const tenModel *modelSrc) {
-  int lossy;
+  int ret;
 
+  ret = 0;
   parmDst[0] = parmSrc[0];
   if (modelSrc == tenModelBall) {
     
@@ -91,8 +92,9 @@ parmConvert(double *parmDst, const double *parmSrc,
     for (ii=0; ii<PARM_NUM; ii++) {
       parmDst[ii] = AIR_NAN;
     }
+    ret = 2;
   }
-  return lossy;
+  return ret;
 }
 
 _TEN_SQE

@@ -25,7 +25,7 @@
 
 #define PARM_NUM 2
 static const tenModelParmDesc
-const parmDesc[] = {
+parmDesc[] = {
   /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
   /* 1 */ {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0}
 };
@@ -60,6 +60,7 @@ parmConvert(double *parmDst, const double *parmSrc,
             const tenModel *modelSrc) {
   int ret;
 
+  ret = 0;
   parmDst[0] = parmSrc[0];
   if (modelSrc == tenModelBall) {
     
