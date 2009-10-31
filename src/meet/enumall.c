@@ -86,7 +86,6 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = tenAniso;
   enm[airArrayLenIncr(arr, 1)] = tenInterpType;
   enm[airArrayLenIncr(arr, 1)] = tenGage;
-  enm[airArrayLenIncr(arr, 1)] = tenDwiGage;
   enm[airArrayLenIncr(arr, 1)] = tenFiberType;
   enm[airArrayLenIncr(arr, 1)] = tenDwiFiberType;
   enm[airArrayLenIncr(arr, 1)] = tenFiberStop;
@@ -95,6 +94,7 @@ meetAirEnumAll() {
   enm[airArrayLenIncr(arr, 1)] = tenEstimate1Method;
   enm[airArrayLenIncr(arr, 1)] = tenEstimate2Method;
   enm[airArrayLenIncr(arr, 1)] = tenTripleType;
+  enm[airArrayLenIncr(arr, 1)] = tenDwiGage;
   enm[airArrayLenIncr(arr, 1)] = miteVal;
   enm[airArrayLenIncr(arr, 1)] = miteStageOp;
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
