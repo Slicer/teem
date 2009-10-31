@@ -2010,16 +2010,17 @@ limnPolyDataEdgeHalve(limnPolyData *pldOut,
                   pldIn->xyzw + 4*vlo,
                   pldIn->xyzw + 4*vhi);
       if ((1 << limnPolyDataInfoRGBA) & bitflag) {
-        ELL_4V_LERP(pldOut->rgba + 4*mid, 0.5f,
-                    pldIn->rgba + 4*vlo,
-                    pldIn->rgba + 4*vhi);
+        ELL_4V_LERP_TT(pldOut->rgba + 4*mid, unsigned char, 0.5f,
+                       pldIn->rgba + 4*vlo,
+                       pldIn->rgba + 4*vhi);
       }
       if ((1 << limnPolyDataInfoNorm) & bitflag) {
         float tmp;
         ELL_3V_LERP(pldOut->norm + 3*mid, 0.5f,
                     pldIn->norm + 3*vlo,
                     pldIn->norm + 3*vhi);
-        ELL_3V_NORM(pldOut->norm + 3*mid, pldOut->norm + 3*mid, tmp);
+        ELL_3V_NORM_TT(pldOut->norm + 3*mid, float,
+                       pldOut->norm + 3*mid, tmp);
       }
       if ((1 << limnPolyDataInfoTex2) & bitflag) {
         ELL_2V_LERP(pldOut->tex2 + 2*mid, 0.5f,
