@@ -1598,8 +1598,8 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 		  if (sctx->normalsFind) {
 		    double len=ELL_3V_LEN(sctx->edgenorm+3*eidx);
 		    airArrayLenIncr(bag->normArr, 1);
-		    ELL_3V_SCALE(lpld->norm + 3*ovi, 1.0/len,
-				 sctx->edgenorm+3*eidx);
+		    ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, 1.0/len,
+                                    sctx->edgenorm+3*eidx);
 		  }
 		  
 		  sctx->vertNum++;
@@ -1624,8 +1624,8 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 		  if (sctx->normalsFind) {
 		    double len=ELL_3V_LEN(sctx->facenorm+3*fidx);
 		    airArrayLenIncr(bag->normArr, 1);
-		    ELL_3V_SCALE(lpld->norm + 3*ovi, 1.0/len,
-				 sctx->facenorm+3*fidx);
+		    ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, 1.0/len,
+                                    sctx->facenorm+3*fidx);
 		  }
 
 		  sctx->vertNum++;		  
@@ -1671,7 +1671,7 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 	      if (sctx->normalsFind) {
 		double len=ELL_3V_LEN(normsum);
 		airArrayLenIncr(bag->normArr, 1);
-		ELL_3V_SCALE(lpld->norm + 3*ovi, 1.0/len, normsum);
+		ELL_3V_SCALE_TT(lpld->norm + 3*ovi, float, 1.0/len, normsum);
 	      }
 	      sctx->vertNum++;
 
