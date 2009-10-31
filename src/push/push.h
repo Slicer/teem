@@ -273,7 +273,7 @@ PUSH_EXPORT pushContext *pushContextNew(void);
 PUSH_EXPORT pushContext *pushContextNix(pushContext *pctx);
 
 /* forces.c (legacy name for info about (derivatives of) energy functions) */
-PUSH_EXPORT airEnum *pushEnergyType;
+PUSH_EXPORT const airEnum *const pushEnergyType;
 PUSH_EXPORT const pushEnergy *const pushEnergyUnknown;
 PUSH_EXPORT const pushEnergy *const pushEnergySpring;
 PUSH_EXPORT const pushEnergy *const pushEnergyGauss;

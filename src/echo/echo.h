@@ -421,9 +421,9 @@ typedef struct {
 } echoIntx;
 
 /* enumsEcho.c ------------------------------------------ */
-ECHO_EXPORT airEnum *echoJitter;
-ECHO_EXPORT airEnum *echoType;
-ECHO_EXPORT airEnum *echoMatter;
+ECHO_EXPORT const airEnum *const echoJitter;
+ECHO_EXPORT const airEnum *const echoType;
+ECHO_EXPORT const airEnum *const echoMatter;
 
 /* methodsEcho.c --------------------------------------- */
 ECHO_EXPORT const char *echoBiffKey;
