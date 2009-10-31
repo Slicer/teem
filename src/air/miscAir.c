@@ -250,6 +250,27 @@ const int airMy32Bit = 0;
 
 /* ---- BEGIN non-NrrdIO */
 
+/*
+******** airStderr, airStdout, airStdin
+**
+** these exist only to give uniform access to FILE *s that might be
+** annoying to access in higher-level language wrappings around Teem.
+*/
+FILE *
+airStderr(void) {
+  return stderr;
+}
+
+FILE *
+airStdout(void) {
+  return stdout;
+}
+
+FILE *
+airStdin(void) {
+  return stdin;
+}
+
 #if TEEM_32BIT == 1
 const char airMyFmt_size_t[] = "%u";
 #else
