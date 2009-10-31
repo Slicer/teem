@@ -651,6 +651,12 @@ extern "C" {
    (v3)[2] = AIR_LERP((w), (v1)[2], (v2)[2]), \
    (v3)[3] = AIR_LERP((w), (v1)[3], (v2)[3]))
 
+#define ELL_4V_LERP_TT(v3, TT, w, v1, v2)                      \
+  ((v3)[0] = AIR_CAST(TT, AIR_LERP((w), (v1)[0], (v2)[0])),    \
+   (v3)[1] = AIR_CAST(TT, AIR_LERP((w), (v1)[1], (v2)[1])),    \
+   (v3)[2] = AIR_CAST(TT, AIR_LERP((w), (v1)[2], (v2)[2])),    \
+   (v3)[3] = AIR_CAST(TT, AIR_LERP((w), (v1)[3], (v2)[3])))
+
 #define ELL_4V_EXISTS(v) \
    (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]) \
     && AIR_EXISTS((v)[2]) && AIR_EXISTS((v)[3]))
