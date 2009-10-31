@@ -1621,7 +1621,7 @@ TEN_EXPORT gageKind *tenGageKind;
    dynamically allocated, but at least we can declare a cannonical
    name (HEY: ugly) */
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
-TEN_EXPORT airEnum _tenDwiGage;
+TEN_EXPORT const airEnum _tenDwiGage;
 TEN_EXPORT const airEnum *const tenDwiGage;
 TEN_EXPORT gageKind *tenDwiGageKindNew();
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);

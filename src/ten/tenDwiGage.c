@@ -109,7 +109,7 @@ _tenDwiGageVal[] = {
   tenDwiGage2TensorPeledLevmarInfo
 };
 
-airEnum
+const airEnum
 _tenDwiGage = {
   "tenDwiGage",
   TEN_DWI_GAGE_ITEM_MAX,
@@ -118,7 +118,7 @@ _tenDwiGage = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 tenDwiGage = &_tenDwiGage;
 
 /* --------------------------------------------------------------------- */

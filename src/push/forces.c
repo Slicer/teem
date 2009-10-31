@@ -49,7 +49,7 @@ _pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1] = {
   "no energy"
 };
 
-airEnum
+const airEnum
 _pushEnergyType = {
   "energy",
   PUSH_ENERGY_TYPE_MAX,
@@ -58,7 +58,7 @@ _pushEnergyType = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 pushEnergyType = &_pushEnergyType;
 
 /* ----------------------------------------------------------------

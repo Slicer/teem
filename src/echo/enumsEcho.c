@@ -68,7 +68,7 @@ _echoJitterValEqv[] = {
   echoJitterRandom
 };
 
-airEnum
+const airEnum
 _echoJitter = {
   "jitter",
   ECHO_JITTER_NUM,
@@ -77,7 +77,7 @@ _echoJitter = {
   _echoJitterStrEqv, _echoJitterValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 echoJitter = &_echoJitter;
 
 /* ------------------------------- object type --------------------------- */
@@ -166,7 +166,7 @@ _echoTypeValEqv[] = {
   echoTypeInstance
 };
 
-airEnum
+const airEnum
 _echoType = {
   "object type",
   ECHO_TYPE_NUM,
@@ -175,7 +175,7 @@ _echoType = {
   _echoTypeStrEqv, _echoTypeValEqv,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 echoType = &_echoType;
 
 /* ------------------------------ material types --------------------------- */
@@ -198,7 +198,7 @@ _echoMatterDesc[ECHO_MATTER_MAX+1] = {
   "light emitter"
 };
 
-airEnum
+const airEnum
 _echoMatter = {
   "matter",
   ECHO_MATTER_MAX,
@@ -207,5 +207,5 @@ _echoMatter = {
   NULL, NULL,
   AIR_FALSE
 };
-airEnum *
+const airEnum *const
 echoMatter = &_echoMatter;
