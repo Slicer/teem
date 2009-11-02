@@ -230,12 +230,21 @@ main(int argc, char *argv[]) {
         scalePos[vi] = AIR_AFFINE(0, vi, numSS-1, rangeSS[0], rangeSS[1]);
       }
     } else {
-      if (SSoptim
-          && 0 == rangeSS[0] 
-          && rangeSS[1] == AIR_CAST(unsigned int, rangeSS[1])
-          && numSS <= GAGE_OPTIMSIG_SAMPLES_MAXNUM
-          && rangeSS[1] <= GAGE_OPTIMSIG_SIGMA_MAX) {
-        if (gageOptimSigSet(scalePos, numSS, rangeSS[1])) {
+      if (SSoptim) {
+        unsigned int rss[2];
+        rss[0] = AIR_CAST(unsigned int, rangeSS[0]);
+        rss[1] = AIR_CAST(unsigned int, rangeSS[1]);
+        if (!( rss[0] == rangeSS[0] && rss[1] == rangeSS[1] )) {
+          fprintf(stderr, "%s: w/ optsim, can use only integral scale "
+                  "limits (not [%g,%g])\n", me, rangeSS[0], rangeSS[1]);
+          airMopError(mop); return 1;
+        }
+        if (0 != rss[0]) {
+          fprintf(stderr, "%s: w/ optsim, need lower scale limit 0 (not %u)",
+                  me, rss[0]);
+          airMopError(mop); return 1;
+        }
+        if (gageOptimSigSet(scalePos, numSS, rss[1])) {
           airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
           fprintf(stderr, "%s: trouble w/ optimal sigmas:\n%s\n", me, err);
           airMopError(mop); return 1;
