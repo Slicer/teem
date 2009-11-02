@@ -859,6 +859,10 @@ GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
 
 /* scl.c */
 GAGE_EXPORT const airEnum *const gageScl;
+/* HEY: this should perhaps be a "const gageKind", but pointers for
+   general kinds may want to point to this, or to the return of 
+   a dynamic kind generator like tenDwiGageKindNew(), which is
+   most certainly not "const gageKind". */
 GAGE_EXPORT gageKind *const gageKindScl;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
@@ -920,7 +924,8 @@ GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigParm *parm,
                                       int volMeasr, int lineMeasr,
                                       double convEps, unsigned int maxIter);
 GAGE_EXPORT int gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
-                                 const double *plotpos, unsigned int plotPosNum,
+                                 const double *plotpos,
+                                 unsigned int plotPosNum,
                                  int volMeasr, int tentRecon);
 
 /* stack.c */
