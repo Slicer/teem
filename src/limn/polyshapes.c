@@ -534,8 +534,8 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
         yy = (pld->xyzw + 4*vertIdx)[1];
         rr = sqrt(xx*xx + yy*yy);
         if (rr < 0.1 && rr) {
-          (pld->xyzw + 4*vertIdx)[0] *= 0.1f/rr;
-          (pld->xyzw + 4*vertIdx)[1] *= 0.1f/rr;
+          (pld->xyzw + 4*vertIdx)[0] *= AIR_CAST(double, 0.1/rr);
+          (pld->xyzw + 4*vertIdx)[1] *= AIR_CAST(double, 0.1/rr);
         }
       }
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
