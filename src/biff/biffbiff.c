@@ -380,9 +380,9 @@ biffGet(const char *key) {
       exit(1);
     }
 #if defined(WIN32) || defined(_WIN32)
-    _snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+    _snprintf(ret, BIFF_STRLEN, "[%s] No information for this key!", key);
 #else
-	snprintf(ret, BIFF_STRLEN, "[%s] no information", key);
+    snprintf(ret, BIFF_STRLEN, "[%s] No information for this key!", key);
 #endif
     return ret;
   }
