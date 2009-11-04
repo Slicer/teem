@@ -316,12 +316,42 @@ _tenGageStr[] = {
 
   "cl1gv",
   "cl1gm",
+  "cl1gn",
   "cp1gv",
   "cp1gm",
+  "cp1gn",
   "ca1gv",
   "ca1gm",
+  "ca1gn",
   "tgrote",
-
+  "eval hessian",
+  "cl1 hessian",
+  "cl1 hessian evals",
+  "cl1 hessian eval 0",
+  "cl1 hessian eval 1",
+  "cl1 hessian eval 2",
+  "cl1 hessian evecs",
+  "cl1 hessian evec 0",
+  "cl1 hessian evec 1",
+  "cl1 hessian evec 2",
+  "cp1 hessian",
+  "cp1 hessian evals",
+  "cp1 hessian eval 0",
+  "cp1 hessian eval 1",
+  "cp1 hessian eval 2",
+  "cp1 hessian evecs",
+  "cp1 hessian evec 0",
+  "cp1 hessian evec 1",
+  "cp1 hessian evec 2",
+  "ca1 hessian",
+  "ca1 hessian evals",
+  "ca1 hessian eval 0",
+  "ca1 hessian eval 1",
+  "ca1 hessian eval 2",
+  "ca1 hessian evecs",
+  "ca1 hessian evec 0",
+  "ca1 hessian evec 1",
+  "ca1 hessian evec 2",
   "anisotropies"
 };
 
@@ -481,13 +511,44 @@ _tenGageDesc[] = {
   "QuatGeoLoxR",
   "gradient vector of cl1",
   "gradient magnitude of cl1",
+  "normal of cl1",
   "gradient vector of cp1",
   "gradient magnitude of cp1",
+  "normal of cp1",
   "gradient vector of ca1",
   "gradient magnitude of ca1",
+  "normal of ca1",
   "all tensor component gradients, starting with confidence gradient, "
   /* !! CONCAT !! */
   "rotated such that eigenvalue derivatives are on the diagonal",
+  "eigenvalue hessians",
+  "cl1 hessian",
+  "cl1 hessian evals",
+  "cl1 hessian eval 0",
+  "cl1 hessian eval 1",
+  "cl1 hessian eval 2",
+  "cl1 hessian evecs",
+  "cl1 hessian evec 0",
+  "cl1 hessian evec 1",
+  "cl1 hessian evec 2",
+  "cp1 hessian",
+  "cp1 hessian evals",
+  "cp1 hessian eval 0",
+  "cp1 hessian eval 1",
+  "cp1 hessian eval 2",
+  "cp1 hessian evecs",
+  "cp1 hessian evec 0",
+  "cp1 hessian evec 1",
+  "cp1 hessian evec 2",
+  "ca1 hessian",
+  "ca1 hessian evals",
+  "ca1 hessian eval 0",
+  "ca1 hessian eval 1",
+  "ca1 hessian eval 2",
+  "ca1 hessian evecs",
+  "ca1 hessian evec 0",
+  "ca1 hessian evec 1",
+  "ca1 hessian evec 2",
   "anisotropies"
 };
 
@@ -647,11 +708,42 @@ _tenGageVal[] = {
   tenGageTensorQuatGeoLoxR,
   tenGageCl1GradVec,
   tenGageCl1GradMag,
+  tenGageCl1Normal,
   tenGageCp1GradVec,
   tenGageCp1GradMag,
+  tenGageCp1Normal,
   tenGageCa1GradVec,
   tenGageCa1GradMag,
+  tenGageCa1Normal,
   tenGageTensorGradRotE,
+  tenGageEvalHessian,	   /* Hessian of the eigenvalues: [27] */
+  tenGageCl1Hessian,	   /* Hessian of cl1: [9] */
+  tenGageCl1HessianEval,   /* Hessian eigenvalues of cl1: [3] */
+  tenGageCl1HessianEval0,  /* First Hessian eigenvalue of cl1: [1] */
+  tenGageCl1HessianEval1,  /* Second Hessian eigenvalue of cl1: [1] */
+  tenGageCl1HessianEval2,  /* Third Hessian eigenvalue of cl1: [1] */
+  tenGageCl1HessianEvec,   /* Hessian eigenvectors of cl1: [9] */
+  tenGageCl1HessianEvec0,  /* First Hessian eigenvector of cl1: [3] */
+  tenGageCl1HessianEvec1,  /* Second Hessian eigenvector of cl1: [3] */
+  tenGageCl1HessianEvec2,  /* Third Hessian eigenvector of cl1: [3] */
+  tenGageCp1Hessian,	   /* Hessian of cp1: [9] */
+  tenGageCp1HessianEval,   /* Hessian eigenvalues of cp1: [3] */
+  tenGageCp1HessianEval0,  /* First Hessian eigenvalue of cp1: [1] */
+  tenGageCp1HessianEval1,  /* Second Hessian eigenvalue of cp1: [1] */
+  tenGageCp1HessianEval2,  /* Third Hessian eigenvalue of cp1: [1] */
+  tenGageCp1HessianEvec,   /* Hessian eigenvectors of cp1: [9] */
+  tenGageCp1HessianEvec0,  /* First Hessian eigenvector of cp1: [3] */
+  tenGageCp1HessianEvec1,  /* Second Hessian eigenvector of cp1: [3] */
+  tenGageCp1HessianEvec2,  /* Third Hessian eigenvector of cp1: [3] */
+  tenGageCa1Hessian,	   /* Hessian of cp1: [9] */
+  tenGageCa1HessianEval,   /* Hessian eigenvalues of cp1: [3] */
+  tenGageCa1HessianEval0,  /* First Hessian eigenvalue of cp1: [1] */
+  tenGageCa1HessianEval1,  /* Second Hessian eigenvalue of cp1: [1] */
+  tenGageCa1HessianEval2,  /* Third Hessian eigenvalue of cp1: [1] */
+  tenGageCa1HessianEvec,   /* Hessian eigenvectors of cp1: [9] */
+  tenGageCa1HessianEvec0,  /* First Hessian eigenvector of cp1: [3] */
+  tenGageCa1HessianEvec1,  /* Second Hessian eigenvector of cp1: [3] */
+  tenGageCa1HessianEvec2,   /* Third Hessian eigenvector of cp1: [3] */
   tenGageAniso,
 };
 
@@ -815,12 +907,42 @@ _tenGageStrEqv[] = {
 
   "cl1gv",
   "cl1gm",
+  "cl1gn",
   "cp1gv",
   "cp1gm",
+  "cp1gn",
   "ca1gv",
   "ca1gm",
+  "ca1gn",
   "tgrote",
-
+  "evalhess",
+  "cl1hess",
+  "cl1hesseval",
+  "cl1hesseval1",
+  "cl1hesseval2",
+  "cl1hesseval3",
+  "cl1hessevec",
+  "cl1hessevec1",
+  "cl1hessevec2",
+  "cl1hessevec3",
+  "cp1hess",
+  "cp1hesseval",
+  "cp1hesseval1",
+  "cp1hesseval2",
+  "cp1hesseval3",
+  "cp1hessevec",
+  "cp1hessevec1",
+  "cp1hessevec2",
+  "cp1hessevec3",
+  "ca1hess",
+  "ca1hesseval",
+  "ca1hesseval1",
+  "ca1hesseval2",
+  "ca1hesseval3",
+  "ca1hessevec",
+  "ca1hessevec1",
+  "ca1hessevec2",
+  "ca1hessevec3",
   "an", "aniso", "anisotropies",
   ""
 };
@@ -987,15 +1109,45 @@ _tenGageValEqv[] = {
   tenGageTensorLogEuclidean, tenGageTensorLogEuclidean,
   tenGageTensorQuatGeoLoxK, tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR, tenGageTensorQuatGeoLoxR,
-
+  
   tenGageCl1GradVec,
   tenGageCl1GradMag,
+  tenGageCl1Normal,
   tenGageCp1GradVec,
   tenGageCp1GradMag,
+  tenGageCp1Normal,
   tenGageCa1GradVec,
   tenGageCa1GradMag,
+  tenGageCa1Normal,
   tenGageTensorGradRotE,
-
+  tenGageEvalHessian,
+  tenGageCl1Hessian,
+  tenGageCl1HessianEval,
+  tenGageCl1HessianEval0,
+  tenGageCl1HessianEval1,
+  tenGageCl1HessianEval2,
+  tenGageCl1HessianEvec,
+  tenGageCl1HessianEvec0,
+  tenGageCl1HessianEvec1,
+  tenGageCl1HessianEvec2,
+  tenGageCp1Hessian,
+  tenGageCp1HessianEval,
+  tenGageCp1HessianEval0,
+  tenGageCp1HessianEval1,
+  tenGageCp1HessianEval2,
+  tenGageCp1HessianEvec,
+  tenGageCp1HessianEvec0,
+  tenGageCp1HessianEvec1,
+  tenGageCp1HessianEvec2,
+  tenGageCa1Hessian,
+  tenGageCa1HessianEval,
+  tenGageCa1HessianEval0,
+  tenGageCa1HessianEval1,
+  tenGageCa1HessianEval2,
+  tenGageCa1HessianEvec,
+  tenGageCa1HessianEvec0,
+  tenGageCa1HessianEvec1,
+  tenGageCa1HessianEvec2,
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 

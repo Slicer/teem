@@ -228,16 +228,45 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageTensorLogEuclidean,      7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxK,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxR,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
-
-
   {tenGageCl1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCl1GradMag,              1,  1,  {tenGageCl1GradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageCl1Normal,    3,  1,  {tenGageCl1GradVec, tenGageCl1GradMag},				0,	  0,     AIR_FALSE},
   {tenGageCp1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCp1GradMag,              1,  1,  {tenGageCp1GradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageCp1Normal,    3,  1,  {tenGageCp1GradVec, tenGageCp1GradMag},				0,	  0,     AIR_FALSE},
   {tenGageCa1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCa1GradMag,              1,  1,  {tenGageCa1GradVec},                                                  0,        0,     AIR_FALSE},
+  {tenGageCa1Normal,    3,  1,  {tenGageCa1GradVec, tenGageCa1GradMag},				0,	  0,     AIR_FALSE},
   {tenGageTensorGradRotE, 21, 1, {tenGageTensorGrad, tenGageEval, tenGageEvec}, 0, 0, AIR_FALSE},
-  {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE},
+  {tenGageEvalHessian,	27,  2,  {tenGageTensorGradRotE, tenGageHessian, tenGageEval}, 0, 0, AIR_FALSE },
+  {tenGageCl1Hessian,	9,  2, {tenGageTensorGradRotE, tenGageEvalHessian}, 0, 0, AIR_FALSE },
+  {tenGageCl1HessianEval,   3,  2, {tenGageCl1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCl1HessianEval0,  1,  2,  {tenGageCl1HessianEval},                            tenGageCl1HessianEval,        0,     AIR_FALSE},
+  {tenGageCl1HessianEval1,  1,  2,  {tenGageCl1HessianEval},                            tenGageCl1HessianEval,        1,     AIR_FALSE},
+  {tenGageCl1HessianEval2,  1,  2,  {tenGageCl1HessianEval},                            tenGageCl1HessianEval,        2,     AIR_FALSE},
+  {tenGageCl1HessianEvec,   9,  2, {tenGageCl1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCl1HessianEvec0,          3,  2,  {tenGageCl1HessianEvec},                            tenGageCl1HessianEvec,        0,     AIR_FALSE},
+  {tenGageCl1HessianEvec1,          3,  2,  {tenGageCl1HessianEvec},                            tenGageCl1HessianEvec,        3,     AIR_FALSE},
+  {tenGageCl1HessianEvec2,          3,  2,  {tenGageCl1HessianEvec},                            tenGageCl1HessianEvec,        6,     AIR_FALSE},
+  {tenGageCp1Hessian,	9,  2, {tenGageTensorGradRotE, tenGageEvalHessian}, 0, 0, AIR_FALSE },
+  {tenGageCp1HessianEval,   3,  2, {tenGageCp1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCp1HessianEval0,  1,  2,  {tenGageCp1HessianEval},                            tenGageCp1HessianEval,        0,     AIR_FALSE},
+  {tenGageCp1HessianEval1,  1,  2,  {tenGageCp1HessianEval},                            tenGageCp1HessianEval,        1,     AIR_FALSE},
+  {tenGageCp1HessianEval2,  1,  2,  {tenGageCp1HessianEval},                            tenGageCp1HessianEval,        2,     AIR_FALSE},
+  {tenGageCp1HessianEvec,   9,  2, {tenGageCp1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCp1HessianEvec0,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        0,     AIR_FALSE},
+  {tenGageCp1HessianEvec1,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        3,     AIR_FALSE},
+  {tenGageCp1HessianEvec2,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        6,     AIR_FALSE},
+  {tenGageCa1Hessian,	9,  2, {tenGageTensorGradRotE, tenGageEvalHessian}, 0, 0, AIR_FALSE },
+  {tenGageCa1HessianEval,   3,  2, {tenGageCa1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCa1HessianEval0,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        0,     AIR_FALSE},
+  {tenGageCa1HessianEval1,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        1,     AIR_FALSE},
+  {tenGageCa1HessianEval2,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        2,     AIR_FALSE},
+  {tenGageCa1HessianEvec,   9,  2, {tenGageCa1Hessian}, 0, 0, AIR_FALSE },
+  {tenGageCa1HessianEvec0,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        0,     AIR_FALSE},
+  {tenGageCa1HessianEvec1,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        3,     AIR_FALSE},
+  {tenGageCa1HessianEvec2,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        6,     AIR_FALSE},
+  {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
 void
@@ -998,16 +1027,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_SCALE(matTmp, 3.0/2, matTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAHessianEvec)) {
-    /* HEY: cut-and-paste from tenGageEvec, with minimal changes */
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageFAHessian]);
-    tenEigensolve_d(pvl->directAnswer[tenGageFAHessianEval],
-                    pvl->directAnswer[tenGageFAHessianEvec], fakeTen);
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageFAHessianEval],
+			pvl->directAnswer[tenGageFAHessianEvec],
+			pvl->directAnswer[tenGageFAHessian], AIR_TRUE);
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAHessianEval)) {
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageFAHessian]);
-    /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
-    tenEigensolve_d(pvl->directAnswer[tenGageFAHessianEval], NULL, fakeTen);
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageFAHessianEval],
+			 pvl->directAnswer[tenGageFAHessian], AIR_TRUE);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFARidgeSurfaceStrength)) {
     double ev;
@@ -1170,16 +1195,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3M_SCALE(matTmp, tmp0, matTmp);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageModeHessianEvec)) {
-    /* HEY: cut-and-paste from tenGageFAHessianEvec */
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageModeHessian]);
-    tenEigensolve_d(pvl->directAnswer[tenGageModeHessianEval],
-                    pvl->directAnswer[tenGageModeHessianEvec], fakeTen);
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageModeHessianEval],
+			pvl->directAnswer[tenGageModeHessianEvec],
+			pvl->directAnswer[tenGageModeHessian], AIR_TRUE);
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageModeHessianEval)) {
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageModeHessian]);
-    /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
-    tenEigensolve_d(pvl->directAnswer[tenGageModeHessianEval], NULL, fakeTen);
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageModeHessianEval],
+			 pvl->directAnswer[tenGageModeHessian], AIR_TRUE);
   }
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessian)) {
@@ -1198,16 +1219,12 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     ELL_3MV_SCALE_OUTER_INCR(matTmp, 0.5, faGrad, modeGrad);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianEvec)) {
-    /* HEY: cut-and-paste from tenGageFAHessianEvec */
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageOmegaHessian]);
-    tenEigensolve_d(pvl->directAnswer[tenGageOmegaHessianEval],
-                    pvl->directAnswer[tenGageOmegaHessianEvec], fakeTen);
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageOmegaHessianEval],
+			pvl->directAnswer[tenGageOmegaHessianEvec],
+			pvl->directAnswer[tenGageOmegaHessian], AIR_TRUE);
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianEval)) {
-    double fakeTen[7];
-    TEN_M2T(fakeTen, pvl->directAnswer[tenGageOmegaHessian]);
-    /* else eigenvectors are NOT needed, but eigenvalues ARE needed */
-    tenEigensolve_d(pvl->directAnswer[tenGageOmegaHessianEval], NULL, fakeTen);
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageOmegaHessianEval],
+			 pvl->directAnswer[tenGageOmegaHessian], AIR_TRUE);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaLaplacian)) {
     double *hess;
@@ -1465,7 +1482,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1GradMag)) {
-    pvl->directAnswer[tenGageCl1GradMag][0] = ELL_3V_LEN(vecTmp);
+    magTmp = pvl->directAnswer[tenGageCl1GradMag][0] = ELL_3V_LEN(vecTmp);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1Normal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageCl1Normal],
+                 magTmp ? 1/magTmp : 0, vecTmp);
   }
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1GradVec)) {
@@ -1486,7 +1507,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1GradMag)) {
-    pvl->directAnswer[tenGageCp1GradMag][0] = ELL_3V_LEN(vecTmp);
+    magTmp = pvl->directAnswer[tenGageCp1GradMag][0] = ELL_3V_LEN(vecTmp);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1Normal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageCp1Normal],
+                 magTmp ? 1/magTmp : 0, vecTmp);
   }
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1GradVec)) {
@@ -1504,7 +1529,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                /(pvl->directAnswer[tenGageTrace][0]*pvl->directAnswer[tenGageTrace][0]));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1GradMag)) {
-    pvl->directAnswer[tenGageCa1GradMag][0] = ELL_3V_LEN(vecTmp);
+    magTmp = pvl->directAnswer[tenGageCa1GradMag][0] = ELL_3V_LEN(vecTmp);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1Normal)) {
+    ELL_3V_SCALE(pvl->directAnswer[tenGageCa1Normal],
+		 magTmp ? 1/magTmp : 0, vecTmp);
   }
 
   /* --- tensor gradient, rotated into eigenframe of the tensor itself --- */
@@ -1678,6 +1707,240 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         pvl->directAnswer[tenGageTensorGradRotE][3*tci+evi] = tmp2[tci];
       }
     }
+  }
+
+  /* --- Eigenvalue Hessians: rotate partial second derivatives into
+   * eigenframe and take into account correction factor based on
+   * eigenvector derivatives --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageEvalHessian)) {
+    /* some aliases for convenience: */
+    double *thess = pvl->directAnswer[tenGageHessian];
+    double *evhess = pvl->directAnswer[tenGageEvalHessian];
+    double *tgradE = pvl->directAnswer[tenGageTensorGradRotE];
+    int dira, dirb; /* directions of first/second partial derivative */
+    int k; /* number of the eigenvalue */
+    double evecsT[9], tmp[9];
+    /* HEY: some copy-paste from tenGageEvalGrads */
+    double eps=0.05; /* treshold for handling degeneracies */
+    double rel1, rel2, rel3, w1, w2;
+    /* interpolation weights from relative eigenvalue distance */
+    rel1=evalAns[0]*evalAns[0]+evalAns[1]*evalAns[1];
+    if (rel1>1e-10)
+      rel1=(evalAns[0]-evalAns[1])*(evalAns[0]-evalAns[1])/rel1;
+    rel2=evalAns[0]*evalAns[0]+evalAns[2]*evalAns[2];
+    if (rel2>1e-10)
+      rel2=(evalAns[0]-evalAns[2])*(evalAns[0]-evalAns[2])/rel2;
+    rel3=evalAns[1]*evalAns[1]+evalAns[2]*evalAns[2];
+    if (rel3>1e-10)
+      rel3=(evalAns[1]-evalAns[2])*(evalAns[1]-evalAns[2])/rel3;
+    w1=rel1/eps-1;
+    w1*=w1;
+    w2=rel2/eps-1;
+    w2*=w2;
+    
+    ELL_3M_TRANSPOSE(evecsT,evecAns);
+    for (dira=0; dira<3; dira++) {
+      for (dirb=0; dirb<=dira; dirb++) { /* exploit symmetry of Hessian */
+	double rdiff1,rdiff2;
+	double l1res, l2res, l3res;
+	/* collect second partial derivatives in dira,dirb */
+	double H[9];
+	ELL_3V_SET(H, thess[9+3*dirb+dira], thess[18+3*dirb+dira],
+		   thess[27+3*dirb+dira]);
+	ELL_3V_SET(H+3, thess[18+3*dirb+dira], thess[36+3*dirb+dira],
+		   thess[45+3*dirb+dira]);
+	ELL_3V_SET(H+6, thess[27+3*dirb+dira], thess[45+3*dirb+dira],
+		   thess[54+3*dirb+dira]);
+	/* rotate into eigenframe of value */
+	ell_3m_mul_d(tmp,H,evecsT);
+	ell_3m_mul_d(H,evecAns,tmp);
+
+	/* we have to divide by rdiff=lambda_1-lambda_2; the following
+	 * is a heuristic to avoid numerical problems in case rdiff is
+	 * near zero */
+	if (rel1>eps) rdiff1=1.0/(evalAns[0]-evalAns[1]);
+	else if (rel1>1e-10) rdiff1=(rel1/eps)/(evalAns[0]-evalAns[1]);
+	else rdiff1=0;
+
+	if (rel2>eps) rdiff2=1.0/(evalAns[0]-evalAns[2]);
+	else if (rel2>1e-10) rdiff2=(rel2/eps)/(evalAns[0]-evalAns[2]);
+	else rdiff2=0;
+
+	l1res=H[0]+2*(tgradE[6+dira]*tgradE[6+dirb]*rdiff1+
+		      tgradE[9+dira]*tgradE[9+dirb]*rdiff2);
+
+	if (rel1>eps) rdiff1=1.0/(evalAns[1]-evalAns[0]);
+	else if (rel1>1e-10) rdiff1=(rel1/eps)/(evalAns[1]-evalAns[0]);
+	else rdiff1=0;
+
+	if (rel3>eps) rdiff2=1.0/(evalAns[1]-evalAns[2]);
+	else if (rel3>1e-10) rdiff2=(rel3/eps)/(evalAns[1]-evalAns[2]);
+	else rdiff2=0;
+	l2res=H[4]+2*(tgradE[6+dira]*tgradE[6+dirb]*rdiff1+
+		      tgradE[15+dira]*tgradE[15+dirb]*rdiff2);
+
+	if (rel2>eps) rdiff1=1.0/(evalAns[2]-evalAns[0]);
+	else if (rel2>1e-10) rdiff1=(rel2/eps)/(evalAns[2]-evalAns[0]);
+	else rdiff1=0;
+
+	if (rel3>eps) rdiff2=1.0/(evalAns[2]-evalAns[1]);
+	else if (rel3>1e-10) rdiff2=(rel3/eps)/(evalAns[2]-evalAns[1]);
+	else rdiff2=0;
+
+	l3res=H[8]+2*(tgradE[9+dira]*tgradE[9+dirb]*rdiff1+
+		      tgradE[15+dira]*tgradE[15+dirb]*rdiff2);
+
+	if (rel1>eps)
+	  evhess[3*dirb+dira]=l1res;
+	else {
+	  if (rel2>eps)
+	    evhess[3*dirb+dira]=(1-0.5*w1)*l1res+0.5*w1*l2res;
+	  else
+	    evhess[3*dirb+dira]=(1-0.5*w1-w1*w2/6.0)*l1res+
+	      (0.5*w1-w1*w2/6.0)*l2res+
+	      w1*w2/3.0*l3res;
+	}
+	
+	if (rel2>eps)
+	  evhess[18+3*dirb+dira]=l3res;
+	else {
+	  if (rel1>eps)
+	    evhess[18+3*dirb+dira]=(1-0.5*w2)*l3res+0.5*w2*l2res;
+	  else
+	    evhess[18+3*dirb+dira]=(1-0.5*w2-w1*w2/6.0)*l3res+
+	      (0.5*w2-w1*w2/6.0)*l2res+
+	      w1*w2/3.0*l1res;
+	}
+	evhess[9+3*dirb+dira]=l1res+l2res+l3res - evhess[3*dirb+dira] -
+	  evhess[18+3*dirb+dira];
+      }
+    }
+    for (dira=0; dira<2; dira++) {
+      for (dirb=dira+1; dirb<3; dirb++) { /* copy over symmetric values */
+	for (k=0; k<3; k++) {
+	  evhess[9*k+3*dirb+dira]=evhess[9*k+3*dira+dirb];
+	}
+      }
+    }
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1Hessian)) {
+    int dira, dirb;
+    double *cl1hess = pvl->directAnswer[tenGageCl1Hessian];
+    double *tgradE = pvl->directAnswer[tenGageTensorGradRotE];
+    double *evhess = pvl->directAnswer[tenGageEvalHessian];
+    /* A and B come out of the quotient rule; cf. appendix of Schultz
+     * et al., TVCG 2010 for more details */
+    double B = (evalAns[0]+evalAns[1]+evalAns[2])*
+      (evalAns[0]+evalAns[1]+evalAns[2]);
+    for (dira=0; dira<3; dira++) {
+      for (dirb=0; dirb<=dira; dirb++) { /* again, exploit Hessian symmetry */
+	double A = evalAns[0]*(-2*tgradE[12+dira]-tgradE[18+dira])+
+	  evalAns[1]*(2*tgradE[3+dira]+tgradE[18+dira])+
+	  evalAns[2]*(tgradE[3+dira]-tgradE[12+dira]);
+	double Ad = tgradE[3+dirb]*(-2*tgradE[12+dira]-tgradE[18+dira])+
+	  evalAns[0]*(-2*evhess[9+3*dirb+dira]-evhess[18+3*dirb+dira])+
+	  tgradE[12+dirb]*(2*tgradE[3+dira]+tgradE[18+dira])+
+	  evalAns[1]*(2*evhess[3*dirb+dira]+evhess[18+3*dirb+dira])+
+	  tgradE[18+dirb]*(tgradE[3+dira]-tgradE[12+dira])+
+	  evalAns[2]*(evhess[3*dirb+dira]-evhess[9+3*dirb+dira]);
+	double Bd = 2*(evalAns[0]+evalAns[1]+evalAns[2])*
+	  (tgradE[3+dirb]+tgradE[12+dirb]+tgradE[18+dirb]);
+	cl1hess[3*dirb+dira]=Ad/B-A/B*Bd/B;
+      }
+    }
+    for (dira=0; dira<2; dira++) {
+      for (dirb=dira+1; dirb<3; dirb++) { /* copy over symmetric values */
+	cl1hess[3*dirb+dira]=cl1hess[3*dira+dirb];
+      }
+    }
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1HessianEvec)) {
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageCl1HessianEval],
+			pvl->directAnswer[tenGageCl1HessianEvec],
+			pvl->directAnswer[tenGageCl1Hessian], AIR_TRUE);
+  } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1HessianEval)) {
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageCl1HessianEval],
+			 pvl->directAnswer[tenGageCl1Hessian], AIR_TRUE);
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1Hessian)) {
+    int dira, dirb;
+    double *cp1hess = pvl->directAnswer[tenGageCp1Hessian];
+    double *tgradE = pvl->directAnswer[tenGageTensorGradRotE];
+    double *evhess = pvl->directAnswer[tenGageEvalHessian];
+    double B = (evalAns[0]+evalAns[1]+evalAns[2])*
+      (evalAns[0]+evalAns[1]+evalAns[2]);
+    for (dira=0; dira<3; dira++) {
+      for (dirb=0; dirb<=dira; dirb++) { /* again, exploit Hessian symmetry */
+	double A = 2*(evalAns[0]*(tgradE[12+dira]-tgradE[18+dira])+
+		      evalAns[1]*(-tgradE[3+dira]-2*tgradE[18+dira])+
+		      evalAns[2]*(tgradE[3+dira]+2*tgradE[12+dira]));
+	double Ad=2*(evalAns[0]*(evhess[9+3*dirb+dira]-evhess[18+3*dirb+dira])+
+		     evalAns[1]*(-evhess[3*dirb+dira]-2*evhess[18+3*dirb+dira])+
+		     evalAns[2]*(evhess[3*dirb+dira]+2*evhess[9+3*dirb+dira])+
+		     tgradE[3+dirb]*(tgradE[12+dira]-tgradE[18+dira])+
+		     tgradE[12+dirb]*(-tgradE[3+dira]-2*tgradE[18+dira])+
+		     tgradE[18+dirb]*(tgradE[3+dira]+2*tgradE[12+dira]));
+	double Bd = 2*(evalAns[0]+evalAns[1]+evalAns[2])*
+	  (tgradE[3+dirb]+tgradE[12+dirb]+tgradE[18+dirb]);
+	cp1hess[3*dirb+dira]=Ad/B-A/B*Bd/B;
+      }
+    }
+    for (dira=0; dira<2; dira++) {
+      for (dirb=dira+1; dirb<3; dirb++) { /* copy over symmetric values */
+	cp1hess[3*dirb+dira]=cp1hess[3*dira+dirb];
+      }
+    }
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1HessianEvec)) {
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageCp1HessianEval],
+			pvl->directAnswer[tenGageCp1HessianEvec],
+			pvl->directAnswer[tenGageCp1Hessian], AIR_TRUE);
+  } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCp1HessianEval)) {
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageCp1HessianEval],
+			 pvl->directAnswer[tenGageCp1Hessian], AIR_TRUE);
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1Hessian)) {
+    int dira, dirb;
+    double *ca1hess = pvl->directAnswer[tenGageCa1Hessian];
+    double *tgradE = pvl->directAnswer[tenGageTensorGradRotE];
+    double *evhess = pvl->directAnswer[tenGageEvalHessian];
+    double B = (evalAns[0]+evalAns[1]+evalAns[2])*
+      (evalAns[0]+evalAns[1]+evalAns[2]);
+    for (dira=0; dira<3; dira++) {
+      for (dirb=0; dirb<=dira; dirb++) { /* again, exploit Hessian symmetry */
+	double A = 3*(evalAns[0]*tgradE[18+dira]+evalAns[1]*tgradE[18+dira]+
+		      evalAns[2]*(-tgradE[3+dira]-tgradE[12+dira]));
+	double Ad = 3*(tgradE[3+dirb]*tgradE[18+dira]+
+		       tgradE[12+dirb]*tgradE[18+dira]+
+		       tgradE[18+dirb]*(-tgradE[3+dira]-tgradE[12+dira])+
+		       evalAns[0]*evhess[18+3*dirb+dira]+
+		       evalAns[1]*evhess[18+3*dirb+dira]+
+		       evalAns[2]*(-evhess[3*dirb+dira]-evhess[9+3*dirb+dira]));
+	double Bd = 2*(evalAns[0]+evalAns[1]+evalAns[2])*
+	  (tgradE[3+dirb]+tgradE[12+dirb]+tgradE[18+dirb]);
+	/* above formulas are true for cs, so flip sign here */
+	ca1hess[3*dirb+dira]=-Ad/B+A/B*Bd/B;
+      }
+    }
+    for (dira=0; dira<2; dira++) {
+      for (dirb=dira+1; dirb<3; dirb++) { /* copy over symmetric values */
+	ca1hess[3*dirb+dira]=ca1hess[3*dira+dirb];
+      }
+    }
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1HessianEvec)) {
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageCa1HessianEval],
+			pvl->directAnswer[tenGageCa1HessianEvec],
+			pvl->directAnswer[tenGageCa1Hessian], AIR_TRUE);
+  } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1HessianEval)) {
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageCa1HessianEval],
+			 pvl->directAnswer[tenGageCa1Hessian], AIR_TRUE);
   }
 
   return;
