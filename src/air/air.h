@@ -610,6 +610,14 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_CAST(t, v) ((t)(v))
 
 /*
+******** AIR_CALLOC
+**
+** slightly simpler wrapper around AIR_CAST and calloc
+**
+*/
+#define AIR_CALLOC(N, T) AIR_CAST((T)*, calloc((N), sizeof(T)))
+
+/*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
 ** These reflect particulars of hardware which we're running on.
@@ -662,10 +670,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** (80-bit) floating point registers, such as Intel chips- where the
 ** same initial value 1) directly read from the register, versus 2)
 ** saved to memory and loaded back, may end up being different.  I
-** have yet to produce this behavior, or convince myself it can't
-** happen.  If you have problems, then use the version of the macro
-** which is a function call to airExists_d(), and please email me:
-** gk@bwh.harvard.edu
+** have yet to produce this behavior, or convince myself it can't happen.
 **
 ** The reason to #define AIR_EXISTS as airExists_d is that on some
 ** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
@@ -850,7 +855,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 /*
 ******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV, 
 **
-** Conversion sequence to use when printf/fprintf/sprintf-ing a value of
+** Format specifiers to use when printf/fprintf/sprintf-ing a value of
 ** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
 ** respectively.
 **
@@ -860,10 +865,12 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** format string.  Therefore, unlike the definition of AIR_ENDIAN,
 ** AIR_DIO, etc, _AIR_SIZE_T_CNV can NOT just refer to a const variable
 ** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
-** ALL source files which want to use _AIR_SIZE_T_CNV, and to be
-** conservative, that's all Teem files.  The converse is, since there is
-** no expectation that other projects which use Teem will be defining
+** ALL source files which want to use _AIR_SIZE_T_CNV, and to be safe,
+** that's all Teem files.  The converse is, since there is no
+** expectation that other projects which use Teem will be defining
 ** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
+**
+** HEY: consider using __LP64__ for apple stuff
 */
 #ifdef __APPLE__
 #  define _AIR_SIZE_T_CNV "%lu"
