@@ -63,13 +63,14 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN, *scalePos;
+  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
+  gageStackBlurParm *sbp;
 
   char hackKeyStr[]="TEEM_VPROBE_HACK_ZI", *hackValStr;
   int otype, hackSet;
@@ -215,9 +216,10 @@ main(int argc, char *argv[]) {
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
     unsigned int vi;
+    sbp = gageStackBlurParmNew();
+    airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
-    scalePos = AIR_CAST(double *, calloc(numSS, sizeof(double)));
-    if (!(ninSS && scalePos)) {
+    if (!ninSS) {
       fprintf(stderr, "%s: couldn't allocate ninSS", me);
       airMopError(mop); return 1;
     }
@@ -225,47 +227,13 @@ main(int argc, char *argv[]) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (SSuniform) {
-      for (vi=0; vi<numSS; vi++) {
-        scalePos[vi] = AIR_AFFINE(0, vi, numSS-1, rangeSS[0], rangeSS[1]);
-      }
-    } else {
-      if (SSoptim) {
-        unsigned int rss[2];
-        rss[0] = AIR_CAST(unsigned int, rangeSS[0]);
-        rss[1] = AIR_CAST(unsigned int, rangeSS[1]);
-        if (!( rss[0] == rangeSS[0] && rss[1] == rangeSS[1] )) {
-          fprintf(stderr, "%s: w/ optsim, can use only integral scale "
-                  "limits (not [%g,%g])\n", me, rangeSS[0], rangeSS[1]);
-          airMopError(mop); return 1;
-        }
-        if (0 != rss[0]) {
-          fprintf(stderr, "%s: w/ optsim, need lower scale limit 0 (not %u)",
-                  me, rss[0]);
-          airMopError(mop); return 1;
-        }
-        if (gageOptimSigSet(scalePos, numSS, rss[1])) {
-          airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-          fprintf(stderr, "%s: trouble w/ optimal sigmas:\n%s\n", me, err);
-          airMopError(mop); return 1;
-        }
-      } else {
-        /* non-optimal sigmas, uniform in tau */
-        double rangeTau[2], tau;
-        rangeTau[0] = gageTauOfSig(rangeSS[0]);
-        rangeTau[1] = gageTauOfSig(rangeSS[1]);
-        for (vi=0; vi<numSS; vi++) {
-          tau = AIR_AFFINE(0, vi, numSS-1, rangeTau[0], rangeTau[1]);
-          scalePos[vi] = gageSigOfTau(tau);
-        }
-      }
-    }
-    if (verbose > 2) {
-      fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
-              rangeSS[0], rangeSS[1], SSuniform ? "" : "non-");
-      for (vi=0; vi<numSS; vi++) {
-        fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
-      }
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
+                                  SSuniform, SSoptim)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                      AIR_TRUE, verbose)) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with stack blur info:\n%s\n", me, err);
+      airMopError(mop); return 1;
     }
     if (airStrlen(stackReadFormat)) {
       if (nrrdLoadMulti(ninSS, numSS,
@@ -274,20 +242,14 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "%s: trouble loading blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
-      if (gageStackBlur(ninSS, scalePos, numSS, AIR_TRUE,
-                        nin, kind, kSSblur, 
-                        nrrdBoundaryBleed, AIR_TRUE,
-                        verbose)) {
+      if (gageStackBlurCheck(AIR_CAST(const Nrrd **, ninSS),
+                             sbp, nin, kind)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-        fprintf(stderr, "%s: given pre-computed blurrings don't match:\n%s\n",
-                me, err);
+        fprintf(stderr, "%s: trouble:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
     } else {
-      if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE,
-                        nin, kind, kSSblur, 
-                        nrrdBoundaryBleed, AIR_TRUE,
-                        verbose)) {
+      if (gageStackBlur(ninSS, sbp, nin, kind)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
@@ -311,24 +273,25 @@ main(int argc, char *argv[]) {
        So here, we have to actually replicate work that is done by
        _gageProbeSpace() in converting from world to index space */
     for (vi=0; vi<numSS-1; vi++) {
-      if (AIR_IN_CL(scalePos[vi], wrlSS, scalePos[vi+1])) {
-        idxSS = vi + AIR_AFFINE(scalePos[vi], wrlSS, scalePos[vi+1], 0, 1);
+      if (AIR_IN_CL(sbp->scale[vi], wrlSS, sbp->scale[vi+1])) {
+        idxSS = vi + AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1);
         if (verbose > 1) {
           fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
                   wrlSS, idxSS, vi, 
-                  AIR_AFFINE(scalePos[vi], wrlSS, scalePos[vi+1], 0, 1));
+                  AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1));
         }
         break;
       }
     }
     if (vi == numSS-1) {
       fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me,
-              wrlSS, rangeSS[0], scalePos[0], rangeSS[1], scalePos[numSS-1]);
+              wrlSS, rangeSS[0], sbp->scale[0],
+              rangeSS[1], sbp->scale[numSS-1]);
       airMopError(mop); return 1;
     }
   } else {
     ninSS = NULL;
-    scalePos = NULL;
+    sbp = NULL;
   }
 
   /***
@@ -358,7 +321,7 @@ main(int argc, char *argv[]) {
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, scalePos, numSS);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);

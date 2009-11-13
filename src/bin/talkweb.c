@@ -228,14 +228,14 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
   for (si=0; slide[si]; si++) {
     if (nrrdLoad(nimg, slide[si]->image, NULL)) {
-      biffMovef(TKWB, NRRD, "%s: trouble reading slide image \"%s\"",
-                me, slide[si]->image);
+      biffMove_va(TKWB, NRRD, "%s: trouble reading slide image \"%s\"",
+                  me, slide[si]->image);
       airMopError(mop); return 1;
     }
     if (!nrrdFormatPNG->fitsInto(nimg, nrrdEncodingGzip, AIR_TRUE)) {
-      biffMovef(TKWB, NRRD,
-                "%s: slide image \"%s\" doesn't seem to be an image",
-                me, slide[si]->image);
+      biffMove_va(TKWB, NRRD,
+                  "%s: slide image \"%s\" doesn't seem to be an image",
+                  me, slide[si]->image);
       airMopError(mop); return 1;
     }
     sx = nimg->axis[nimg->dim-2].size;

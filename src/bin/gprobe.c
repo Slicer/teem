@@ -88,7 +88,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   airMopAdd(mop, ngrid, (airMopper)nrrdNuke, airMopAlways);
   if (ctx->stackPos) {
     if (nrrdConvert(ngrid, _ngrid, nrrdTypeDouble)) {
-      biffMovef(GAGE, NRRD, "%s: trouble converting ngrid", me);
+      biffMove_va(GAGE, NRRD, "%s: trouble converting ngrid", me);
       airMopError(mop); return 1;
     }
   } else {
@@ -101,7 +101,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _ngrid, nrrdTypeDouble)
         || nrrdPad_nva(ngrid, ntmp, minIdx, maxIdx, nrrdBoundaryPad, 0.0)) {
-      biffMovef(GAGE, NRRD, "%s: trouble converting/padding ngrid", me);
+      biffMove_va(GAGE, NRRD, "%s: trouble converting/padding ngrid", me);
       airMopError(mop); return 1;
     }
   }
@@ -132,7 +132,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     coordOut[aidx + baseDim] = 0;
   }
   if (nrrdMaybeAlloc_nva(nout, typeOut, dim, sizeOut)) {
-    biffMovef(GAGE, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(GAGE, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   ins = nrrdDInsert[nout->type];
@@ -377,6 +377,7 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
+#if 0
     unsigned int vi;
     int recompute;
     
@@ -408,6 +409,7 @@ main(int argc, char *argv[]) {
         airMopError(mop); return 1;
       }
     }
+#endif
   } else {
     ninSS = NULL;
     scalePosSS = NULL;

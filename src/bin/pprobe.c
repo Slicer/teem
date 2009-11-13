@@ -212,10 +212,11 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
-    unsigned int vi;
+    gageStackBlurParm *sbp;
+    sbp = gageStackBlurParmNew();
+    airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
-    scalePos = AIR_CAST(double *, calloc(numSS, sizeof(double)));
-    if (!(ninSS && scalePos)) {
+    if (!ninSS) {
       fprintf(stderr, "%s: couldn't allocate ninSS", me);
       airMopError(mop); return 1;
     }
@@ -223,30 +224,11 @@ main(int argc, char *argv[]) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (SSuniform) {
-      for (vi=0; vi<numSS; vi++) {
-        scalePos[vi] = AIR_AFFINE(0, vi, numSS-1, rangeSS[0], rangeSS[1]);
-      }
-    } else {
-      double rangeTau[2], tau;
-      rangeTau[0] = gageTauOfSig(rangeSS[0]);
-      rangeTau[1] = gageTauOfSig(rangeSS[1]);
-      for (vi=0; vi<numSS; vi++) {
-        tau = AIR_AFFINE(0, vi, numSS-1, rangeTau[0], rangeTau[1]);
-        scalePos[vi] = gageSigOfTau(tau);
-      }
-    }
-    if (verbose > 2) {
-      fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
-              rangeSS[0], rangeSS[1], SSuniform ? "" : "non-");
-      for (vi=0; vi<numSS; vi++) {
-        fprintf(stderr, "    scalePos[%u] = %g\n", vi, scalePos[vi]);
-      }
-    }
-    if (gageStackBlur(ninSS, scalePos, numSS, AIR_FALSE, 
-                      nin, kind, kSSblur, 
-                      nrrdBoundaryBleed, AIR_TRUE,
-                      verbose)) {
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
+                                  SSuniform, AIR_FALSE)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed, 
+                                      AIR_TRUE, verbose)
+        || gageStackBlur(ninSS, sbp, nin, kind)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
       airMopError(mop); return 1;

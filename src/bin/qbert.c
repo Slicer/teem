@@ -40,7 +40,7 @@ int qbertSaveAll = AIR_FALSE;  /* can be used to save output of every stage */
 int
 qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
             NrrdKernelSpec *uk) {
-  char me[]="qbertSizeUp", err[BIFF_STRLEN];
+  char me[]="qbertSizeUp";
   int i, anyneed, need;
   ptrdiff_t padMin[3], padMax[3];
   NrrdResampleInfo *rsi;
@@ -81,8 +81,8 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       rsi->clamp = AIR_TRUE;
       fprintf(stderr, "%s: resampling ... ", me); fflush(stderr);
       if (nrrdSpatialResample(nout, nin, rsi)) {
-        sprintf(err, "%s: trouble upsampling", me);
-        biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+        biffMove_va(QBERT, NRRD, "%s: trouble upsampling", me);
+        airMopError(mop); return 1;
       }
       fprintf(stderr, "done\n");
     }
@@ -102,16 +102,16 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     if (anyneed) {
       fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
       if (nrrdPad_va(nout, nin, padMin, padMax, nrrdBoundaryPad, 0.0)) {
-        sprintf(err, "%s: trouble padding", me);
-        biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+        biffMove_va(QBERT, NRRD, "%s: trouble padding", me);
+        airMopError(mop); return 1;
       }
       fprintf(stderr, "done\n");
     }
   }
   if (!anyneed) {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: trouble copying", me);
-      biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+      biffMove_va(QBERT, NRRD, "%s: trouble copying", me);
+      airMopError(mop); return 1;
     }
   }
   if (qbertSaveAll) {
@@ -128,7 +128,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
 int
 qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
               NrrdKernelSpec *dk) {
-  char me[]="qbertSizeDown", err[BIFF_STRLEN];
+  char me[]="qbertSizeDown";
   NrrdResampleInfo *rsi;
   int need;
   unsigned int i;
@@ -167,15 +167,15 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   if (need) {
     fprintf(stderr, "%s: resampling ... ", me); fflush(stderr);
     if (nrrdSpatialResample(nout, nin, rsi)) {
-      sprintf(err, "%s: trouble resampling", me);
-      biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+      biffMove_va(QBERT, NRRD, "%s: trouble resampling", me);
+      airMopError(mop); return 1;
     }
     fprintf(stderr, "done\n");
   }
   else {
     if (nrrdCopy(nout, nin)) {
-      sprintf(err, "%s: trouble copying", me);
-      biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+      biffMove_va(QBERT, NRRD, "%s: trouble copying", me);
+      airMopError(mop); return 1;
     }
   }
   if (qbertSaveAll) {
@@ -194,7 +194,7 @@ int
 qbertProbe(Nrrd *nout, Nrrd *nin,
            NrrdKernelSpec *k00, NrrdKernelSpec *k11, NrrdKernelSpec *k22,
            int doH, unsigned int *sz) {
-  char me[]="qbertProbe", err[BIFF_STRLEN], prog[AIR_STRLEN_SMALL];
+  char me[]="qbertProbe", prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
   const double *val, *gmag, *scnd;
@@ -212,8 +212,8 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   nin->axis[1].center = nrrdCenterNode;
   nin->axis[2].center = nrrdCenterNode;
   if (!(pvl = gagePerVolumeNew(ctx, nin, gageKindScl))) {
-    sprintf(err, "%s: gage trouble", me);
-    biffMove(QBERT, err, GAGE); airMopError(mop); return 1;
+    biffMove_va(QBERT, GAGE, "%s: gage trouble", me);
+    airMopError(mop); return 1;
   }
   gageParmSet(ctx, gageParmVerbose, 0);
   gageParmSet(ctx, gageParmRenormalize, AIR_TRUE);
@@ -234,8 +234,8 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
   }
   if (!E) E |= gageUpdate(ctx);
   if (E) {
-    sprintf(err, "%s: gage trouble", me);
-    biffMove(QBERT, err, GAGE); airMopError(mop); return 1;
+    biffMove_va(QBERT, GAGE, "%s: gage trouble", me);
+    airMopError(mop); return 1;
   }
   gageParmSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
@@ -246,9 +246,10 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
                         AIR_CAST(size_t, sz[0]),
                         AIR_CAST(size_t, sz[1]),
                         AIR_CAST(size_t, sz[2]))) {
-    sprintf(err, "%s: couldn't allocate floating point VG%s volume",
-            me, doH ? "H" : "");
-    biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(QBERT, NRRD,
+                "%s: couldn't allocate floating point VG%s volume",
+                me, doH ? "H" : "");
+    airMopError(mop); return 1;
   }
   vghF = (float *)nout->data;
   fprintf(stderr, "%s: probing ...       ", me); fflush(stderr);
@@ -287,7 +288,7 @@ int
 qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
                   unsigned int *sz, int bins,
                   Nrrd *nvghF, Nrrd *nin) {
-  char me[]="qbertMakeVghHists", err[BIFF_STRLEN];
+  char me[]="qbertMakeVghHists";
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   float *vghF;
   unsigned int i;
@@ -343,9 +344,9 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
                                    AIR_CAST(size_t, bins));
   }
   if (E) {
-    sprintf(err, "%s: couldn't allocate %d %d-bin histograms",
-            me, nval, bins);
-    biffMove(QBERT, err, NRRD); return 1;
+    biffMove_va(QBERT, NRRD, "%s: couldn't allocate %d %d-bin histograms",
+                me, nval, bins);
+    return 1;
   }
   nvhist->axis[0].min = minv;   nvhist->axis[0].max = maxv;
   nghist->axis[0].min = ming;   nghist->axis[0].max = maxg;
@@ -389,7 +390,7 @@ int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
              unsigned int *sz, float *perc,
              Nrrd *nvghF) {
-  char me[]="qbertMakeVgh", err[BIFF_STRLEN], cmt[AIR_STRLEN_SMALL];
+  char me[]="qbertMakeVgh", cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   int lose, *vhist, *ghist, *hhist=NULL, bins, vi, gi, hi, nval, doH;
   unsigned int i;
@@ -455,9 +456,9 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
                         AIR_CAST(size_t, sz[0]),
                         AIR_CAST(size_t, sz[1]),
                         AIR_CAST(size_t, sz[2]))) {
-    sprintf(err, "%s: couldn't allocate 8-bit VG%s volume",
-            me, doH ? "H" : "");
-    biffMove(QBERT, err, NRRD); return 1;
+    biffMove_va(QBERT, NRRD, "%s: couldn't allocate 8-bit VG%s volume",
+                me, doH ? "H" : "");
+    return 1;
   }
   vgh = (unsigned char*)nvgh->data;
   vghF = (float*)nvghF->data;
@@ -495,7 +496,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   
 int
 qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
-  char me[]="qbertScat", err[BIFF_STRLEN];
+  char me[]="qbertScat";
   Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
   size_t bins[2];
@@ -527,10 +528,10 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   if (!E) E |= nrrdFlip(nscA, nscB, 1);
   if (!E) E |= nrrdSave(name, nscA, NULL);
   if (E) {
-    sprintf(err, "%s: trouble generating/saving scatterplot", me);
-    biffMove(QBERT, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(QBERT, NRRD, "%s: trouble generating/saving scatterplot", me);
+    airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
