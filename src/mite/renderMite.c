@@ -137,7 +137,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
                              muu->ksp[gageKernel22]->parm);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
-    biffMovef(MITE, GAGE, "%s: gage trouble", me);
+    biffMove_va(MITE, GAGE, "%s: gage trouble", me);
     return 1;
   }
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
@@ -147,7 +147,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
                         AIR_CAST(size_t, 5) /* RGBAZ */ ,
                         AIR_CAST(size_t, muu->hctx->imgSize[0]),
                         AIR_CAST(size_t, muu->hctx->imgSize[1]))) {
-    biffMovef(MITE, NRRD, "%s: nrrd trouble", me);
+    biffMove_va(MITE, NRRD, "%s: nrrd trouble", me);
     return 1;
   }
   muu->nout->axis[1].center = nrrdCenterCell;
