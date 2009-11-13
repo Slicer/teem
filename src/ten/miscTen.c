@@ -55,7 +55,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   if (nrrdMaybeAlloc_nva(nout, (nrrdTypeDefault == rgbp->typeOut
                                 ? nin->type 
                                 : rgbp->typeOut), nin->dim, size)) {
-    biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
   odataUC = AIR_CAST(unsigned char *, nout->data);
@@ -99,7 +99,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     }
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
-    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't copy axis info", me);
     return 1;
   }
   nout->axis[0].kind = nrrdKind3Color;
@@ -181,7 +181,7 @@ tenEvqVolume(Nrrd *nout,
   sz = nin->axis[3].size;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeShort, 3,
                         sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: can't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: can't allocate output", me);
     return 1;
   }
   N = sx*sy*sz;
@@ -200,7 +200,7 @@ tenEvqVolume(Nrrd *nout,
   ELL_3V_SET(map, 1, 2, 3);
   if (nrrdAxisInfoCopy(nout, nin, map, (NRRD_AXIS_INFO_SIZE_BIT
                                         | NRRD_AXIS_INFO_KIND_BIT) )) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
@@ -217,7 +217,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
   static const char me[]="tenBMatrixCheck";
 
   if (nrrdCheck(nbmat)) {
-    biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
+    biffMove_va(TEN, NRRD, "%s: basic validity check failed", me);
     return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
@@ -292,7 +292,7 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
                             nrrdKernelBCCubicD, dparm, &bins, NULL)
       || nrrdSimpleResample(nhistDD, ntmpB,
                             nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
-    biffMovef(TEN, NRRD, "%s: trouble processing histogram", me);
+    biffMove_va(TEN, NRRD, "%s: trouble processing histogram", me);
     airMopError(mop); return 1;
   }
   if (save) {

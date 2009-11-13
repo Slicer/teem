@@ -99,7 +99,8 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
       ndwi[dwiIdx] = nrrdNew();
       airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdSlice(ndwi[dwiIdx], nin4d, dwiAx, slIdx)) {
-        biffMovef(TEN, NRRD, "%s: trouble slicing DWI at index %u", me, slIdx);
+        biffMove_va(TEN, NRRD,
+                    "%s: trouble slicing DWI at index %u", me, slIdx);
         airMopError(mop); return 1;
       }
     }

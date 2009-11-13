@@ -446,10 +446,10 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
   nrrdAxisInfoGet_nva(nten, nrrdAxisInfoSize, size);
   size[0] = 3;
   if (nrrdMaybeAlloc_nva(nout, nten->type, nten->dim, size)) {
-    biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
-
+  
   NN = nrrdElementNumber(nten)/7;
   lup = nrrdDLookup[nten->type];
   ins = nrrdDInsert[nten->type];
@@ -465,7 +465,7 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
     }
   }
   if (nrrdAxisInfoCopy(nout, nten, NULL, (NRRD_AXIS_INFO_SIZE_BIT))) {
-    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't copy axis info", me);
     return 1;
   }
   nout->axis[0].kind = nrrdKindUnknown;
@@ -507,7 +507,7 @@ tenTripleConvert(Nrrd *nout, int dstType,
   }
 
   if (nrrdCopy(nout, nin)) {
-    biffMovef(TEN, NRRD, "%s: couldn't initialize output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't initialize output", me);
     return 1;
   }
   lup = nrrdDLookup[nin->type];

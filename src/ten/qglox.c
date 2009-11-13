@@ -528,7 +528,7 @@ _tenQGLInterpNEvec(double evecOut[9],
   /* compute iterated weighted mean, stored in qOut */
   if (ell_q_avgN_d(qOut, &qiter, tip->qIn, tip->qBuff, wght,
                    NN, tip->convEps, tip->maxIter)) {
-    biffMovef(TEN, ELL, "%s: problem doing quaternion mean", me);
+    biffMove_va(TEN, ELL, "%s: problem doing quaternion mean", me);
     return 1;
   }
   /*

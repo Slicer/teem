@@ -67,7 +67,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
   static const char me[]="tenGradientCheck";
   
   if (nrrdCheck(ngrad)) {
-    biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
+    biffMove_va(TEN, NRRD, "%s: basic validity check failed", me);
     return 1;
   }
   if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
@@ -109,7 +109,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
   
   if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 3), AIR_CAST(size_t, num))) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   airSrandMT(seed);
@@ -154,7 +154,7 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
   unsigned int gi, num;
 
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: trouble converting input to double", me);
+    biffMove_va(TEN, NRRD, "%s: trouble converting input to double", me);
     return 1;
   }
   if (tenGradientCheck(nout, nrrdTypeDouble, 3)) {
@@ -387,10 +387,10 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: can't initialize output with input", me);
+    biffMove_va(TEN, NRRD, "%s: can't initialize output with input", me);
     return 1;
   }
-
+  
   rstate = airRandMTStateNew(tgparm->seed);
   lastLen = 1.0;
   do {
@@ -452,10 +452,10 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, npos[1], (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(npos[0], nin, nrrdTypeDouble)
       || nrrdConvert(npos[1], nin, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: trouble allocating temp buffers", me);
+    biffMove_va(TEN, NRRD, "%s: trouble allocating temp buffers", me);
     airMopError(mop); return 1;
   }
-
+  
   pos = (double*)(npos[0]->data);
   for (ii=0; ii<num; ii++) {
     ELL_3V_NORM(pos, pos, len);
@@ -596,7 +596,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   } else {
     fprintf(stderr, "%s: .......................... (no balancing)\n", me);
     if (nrrdConvert(nout, npos[oldIdx], nrrdTypeDouble)) {
-      biffMovef(TEN, NRRD, "%s: couldn't set output", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't set output", me);
       airMopError(mop); return 1;
     }
   }

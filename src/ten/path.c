@@ -673,7 +673,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, 6),
                            AIR_CAST(size_t, 2*NN + 1))) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   geod = AIR_CAST(double *, ngeod->data);
@@ -707,7 +707,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     if (!E) E |= nrrdResampleRenormalizeSet(rsmc, AIR_TRUE);
     if (!E) E |= nrrdResampleExecute(rsmc, ntt);
     if (E) {
-      biffMovef(TEN, NRRD, "%s: problem upsampling course solution", me);
+      biffMove_va(TEN, NRRD, "%s: problem upsampling course solution", me);
       airMopError(mop); return 1;
     }
     *numIter += subIter;
@@ -806,7 +806,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, num))) {
-    biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
+    biffMove_va(TEN, NRRD, "%s: trouble allocating output", me);
     airMopError(mop); return 1;
   }
   out = AIR_CAST(double *, nout->data);
@@ -978,7 +978,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       return 1;
     }
     if (!nrrdSameSize(nin[0], nin[ninIdx], AIR_TRUE)) {
-      biffMovef(TEN, NRRD, "%s: nin[0] doesn't match nin[%u]", me, ninIdx);
+      biffMove_va(TEN, NRRD, "%s: nin[0] doesn't match nin[%u]", me, ninIdx);
       return 1;
     }
     if (nin[0]->type != nin[ninIdx]->type) {
@@ -991,7 +991,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
 
   mop = airMopNew();
   if (nrrdCopy(nout, nin[0])) {
-    biffMovef(TEN, NRRD, "%s: couldn't initialize output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't initialize output", me);
     airMopError(mop); return 1;
   }
   if (_tip) {

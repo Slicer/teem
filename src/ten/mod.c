@@ -68,7 +68,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
       return 1;
     }
   }

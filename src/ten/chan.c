@@ -166,7 +166,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
   if (nrrdMaybeAlloc_va(ninfo, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, valNum),
                         AIR_CAST(size_t, dwiNum))) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   info = (double *)(ninfo->data);
@@ -352,10 +352,10 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
       || nrrdMaybeAlloc_va(nbmat, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 6), ngrad->axis[1].size)) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     airMopError(mop); return 1;
   }
-
+  
   DD = ngrad->axis[1].size;
   G = (double*)(ngrad->data);
   bmat = (double*)(nbmat->data);
@@ -398,19 +398,19 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (knownB0) {
     if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
-      biffMovef(TEN, NRRD, "%s: couldn't convert given bmat to doubles", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't convert given bmat to doubles", me);
       airMopError(mop); return 1;
     }
   } else {
     airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _nbmat, nrrdTypeDouble)) {
-      biffMovef(TEN, NRRD, "%s: couldn't convert given bmat to doubles", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't convert given bmat to doubles", me);
       airMopError(mop); return 1;
     }
     ELL_2V_SET(padmin, 0, 0);
     ELL_2V_SET(padmax, 6, _nbmat->axis[1].size-1);
     if (nrrdPad_nva(nbmat, ntmp, padmin, padmax, nrrdBoundaryPad, -1)) {
-      biffMovef(TEN, NRRD, "%s: couldn't pad given bmat", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't pad given bmat", me);
       airMopError(mop); return 1;
     }
   }
@@ -423,7 +423,7 @@ tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
     bmat += nbmat->axis[0].size;
   }
   if (ell_Nm_pseudo_inv(nemat, nbmat)) {
-    biffMovef(TEN, ELL, "%s: trouble pseudo-inverting B-matrix", me);
+    biffMove_va(TEN, ELL, "%s: trouble pseudo-inverting B-matrix", me);
     airMopError(mop); return 1;
   }
   airMopOkay(mop);
@@ -588,10 +588,10 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   ndwi = nrrdNew();
   airMopAdd(mop, ndwi, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdJoin(ndwi, (const Nrrd**)_ndwi, dwiLen, 0, AIR_TRUE)) {
-    biffMovef(TEN, NRRD, "%s: trouble joining inputs", me);
+    biffMove_va(TEN, NRRD, "%s: trouble joining inputs", me);
     airMopError(mop); return 1;
   }
-
+  
   nrrdAxisInfoCopy(ndwi, _ndwi[0], amap, NRRD_AXIS_INFO_NONE);
   if (tenEstimateLinear4D(nten, nterrP, nB0P, 
                           ndwi, _nbmat, knownB0, thresh, soft, b)) {
@@ -668,7 +668,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   mop = airMopNew();
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: trouble converting to doubles", me);
+    biffMove_va(TEN, NRRD, "%s: trouble converting to doubles", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, nemat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -699,8 +699,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
                            (int)AIR_MIN(1024, range->max - range->min + 1),
                            nrrdTypeFloat);
     if (E) {
-      biffMovef(TEN, NRRD,
-                "%s: trouble histograming to find DW threshold", me);
+      biffMove_va(TEN, NRRD,
+                  "%s: trouble histograming to find DW threshold", me);
       airMopError(mop); return 1;
     }
     if (_tenFindValley(&thresh, nhist, 0.75, AIR_FALSE)) {
@@ -711,7 +711,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 7), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   if (nterrP) {
@@ -875,7 +875,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   mop = airMopNew();
   airMopAdd(mop, nbmat=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nbmat, _nbmat, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: couldn't convert B matrix", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't convert B matrix", me);
     return 1;
   }
   
@@ -897,7 +897,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   }
   if (nrrdMaybeAlloc_va(ndwi, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, DD), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   dwi = (float*)(ndwi->data);
@@ -1049,7 +1049,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version,
   sz = nin->axis[3].size;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 7), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
   nout->axis[0].label = airStrdup("c,Dxx,Dxy,Dxz,Dyy,Dyz,Dzz");

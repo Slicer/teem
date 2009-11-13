@@ -36,12 +36,12 @@ _tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
   } else {
     airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdJoin(nout, (const Nrrd**)nmulti, len, 0, AIR_TRUE)) {
-      biffMovef(TEN, NRRD, "%s: couldn't join %s for output", me, desc);
+      biffMove_va(TEN, NRRD, "%s: couldn't join %s for output", me, desc);
       airMopError(mop); return 1;
     }
   }
   if (nrrdSave(fname, nout, NULL)) {
-    biffMovef(TEN, NRRD, "%s: trouble saving %s to \"%s\"", me, desc, fname);
+    biffMove_va(TEN, NRRD, "%s: trouble saving %s to \"%s\"", me, desc, fname);
     airMopError(mop); return 1;
   }
   fprintf(stderr, "%s: saved %s to \"%s\"\n", me, desc, fname);
@@ -79,12 +79,12 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
       return 1;
     }
     if (nrrdCheck(ndwi[ni])) {
-      biffMovef(TEN, NRRD,
-                "%s: basic nrrd validity failed on ndwi[%d]", me, ni);
+      biffMove_va(TEN, NRRD,
+                  "%s: basic nrrd validity failed on ndwi[%d]", me, ni);
       return 1;
     }
     if (!nrrdSameSize(ndwi[0], ndwi[ni], AIR_TRUE)) {
-      biffMovef(TEN, NRRD, "%s: ndwi[%d] is different from ndwi[0]", me, ni);
+      biffMove_va(TEN, NRRD, "%s: ndwi[%d] is different from ndwi[0]", me, ni);
       return 1;
     }
   }
@@ -132,8 +132,8 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
         fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
       }
       if (nrrdCopy(nblur[ni], ndwi[ni])) {
-        biffMovef(TEN, NRRD, "%s: trouble copying ndwi[%u]",
-                  me, (unsigned int)ni);
+        biffMove_va(TEN, NRRD, "%s: trouble copying ndwi[%u]",
+                    me, (unsigned int)ni);
         return 1;
       }
     }
@@ -183,8 +183,8 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
     ndwi[ni]->axis[0].min = 0; ndwi[ni]->axis[0].max = sx-1;
     ndwi[ni]->axis[1].min = 0; ndwi[ni]->axis[1].max = sy-1;
     if (nrrdSpatialResample(nblur[ni], ndwi[ni], rinfo)) {
-      biffMovef(TEN, NRRD, "%s: trouble blurring ndwi[%u]",
-                me, (unsigned int)ni);
+      biffMove_va(TEN, NRRD, "%s: trouble blurring ndwi[%u]",
+                  me, (unsigned int)ni);
       airMopError(mop); return 1;
     }
     ndwi[ni]->axis[0].min = savemin[0]; ndwi[ni]->axis[0].max = savemax[0]; 
@@ -227,7 +227,8 @@ _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen,
   ntmp->axis[0].max = max;
   for (ni=0; ni<ninLen; ni++) {
     if (nrrdHisto(ntmp, nin[ni], NULL, NULL, bins, nrrdTypeFloat)) {
-      biffMovef(TEN, NRRD, "%s: problem forming histogram of DWI %d", me, ni);
+      biffMove_va(TEN, NRRD,
+                  "%s: problem forming histogram of DWI %d", me, ni);
       airMopError(mop); return 1;
     }
     if (!ni) {
@@ -236,8 +237,9 @@ _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen,
       E = nrrdArithBinaryOp(nhist, nrrdBinaryOpAdd, nhist, ntmp);
     }
     if (E) {
-      biffMovef(TEN, NRRD, "%s: problem updating histogram sum on DWI %d",
-                me, ni);
+      biffMove_va(TEN, NRRD,
+                  "%s: problem updating histogram sum on DWI %d",
+                  me, ni);
       airMopError(mop); return 1;
     }
   }
@@ -251,10 +253,10 @@ _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen,
   }
   */
   if (nrrdHistoThresholdOtsu(DWthrP, nhist, expo)) {
-    biffMovef(TEN, NRRD, "%s: problem finding DWI threshold", me);
+    biffMove_va(TEN, NRRD, "%s: problem finding DWI threshold", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -289,8 +291,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     }
     if (nrrdMaybeAlloc_va(nthresh[ni], nrrdTypeUChar, 3,
                           sx, sy, sz)) {
-      biffMovef(TEN, NRRD, "%s: trouble allocating threshold %u",
-                me, (unsigned int)ni);
+      biffMove_va(TEN, NRRD, "%s: trouble allocating threshold %u",
+                  me, (unsigned int)ni);
       airMopError(mop); return 1;
     }
     thr = (unsigned char *)(nthresh[ni]->data);
@@ -358,8 +360,8 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
         || nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny)
         || nrrdCCRevalue(nthr[ni], ncc, nval)) {
       if (big) {
-        biffMovef(TEN, NRRD,
-                  "%s: trouble with 3-D processing nthr[%d]", me, ni);
+        biffMove_va(TEN, NRRD,
+                    "%s: trouble with 3-D processing nthr[%d]", me, ni);
         return 1;
       } else {
         biffAddf(TEN, "%s: got size 0 for biggest bright CC of nthr[%d]",
@@ -377,8 +379,8 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
            || nrrdCCRevalue(nslc, ncc, nval)
            || nrrdSplice(nthr[ni], nthr[ni], nslc, 2, z) ) {
         if (big) {
-          biffMovef(TEN, NRRD, "%s: trouble processing slice %d of nthr[%d]",
-                    me, z, ni);
+          biffMove_va(TEN, NRRD, "%s: trouble processing slice %d of nthr[%d]",
+                      me, z, ni);
           return 1;
         } else {
           /* biggest bright CC on this slice had size 0
@@ -431,8 +433,8 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
     }
     if (nrrdMaybeAlloc_va(nmom[ni], nrrdTypeDouble, 2,
                           AIR_CAST(size_t, 5), sz)) {
-      biffMovef(TEN, NRRD,
-                "%s: couldn't allocate nmom[%u]", me, (unsigned int)ni);
+      biffMove_va(TEN, NRRD,
+                  "%s: couldn't allocate nmom[%u]", me, (unsigned int)ni);
       return 1;
     }
     nrrdAxisInfoSet_va(nmom[ni], nrrdAxisInfoLabel, "mx,my,h,s,t", "z");
@@ -523,7 +525,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
                         AIR_CAST(size_t, sz),
                         AIR_CAST(size_t, ninLen),
                         AIR_CAST(size_t, ninLen))) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate transform nrrd", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate transform nrrd", me);
     return 1;
   }
   nrrdAxisInfoSet_va(npxfr, nrrdAxisInfoLabel,
@@ -574,7 +576,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
     if (nrrdMaybeAlloc_va(nmat[z], nrrdTypeDouble, 2,
                           AIR_CAST(size_t, (1 == order ? 3 : 9)),
                           AIR_CAST(size_t, npairs))) {
-      biffMovef(TEN, NRRD, "%s: couldn't allocate fitting matrices", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't allocate fitting matrices", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, ninv[z]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -587,7 +589,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       || nrrdMaybeAlloc_va(nvec, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 1),
                            AIR_CAST(size_t, npairs))) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate HST nrrd", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate HST nrrd", me);
     airMopError(mop); return 1;
   }
   nrrdAxisInfoSet_va(nhst, nrrdAxisInfoLabel,
@@ -644,7 +646,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       }
     } else {
       if (ell_Nm_pseudo_inv(ninv[z], nmat[z])) {
-        biffMovef(TEN, ELL, "%s: trouble estimating model (slice %d)", me, z);
+        biffMove_va(TEN, ELL, "%s: trouble estimating model (slice %d)", me, z);
         airMopError(mop); return 1;
       }
     }
@@ -668,9 +670,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       }
     }
     if (ell_Nm_mul(nans, ninv[z], nvec)) {
-      biffMovef(TEN, ELL,
-                "%s: trouble estimating model (slice %d): Sx, Sy, Sz",
-                me, z);
+      biffMove_va(TEN, ELL,
+                  "%s: trouble estimating model (slice %d): Sx, Sy, Sz",
+                  me, z);
       airMopError(mop); return 1;
     }
     ans = (double *)(nans->data);
@@ -727,9 +729,9 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
       }
     }
     if (ell_Nm_mul(nans, ninv[z], nvec)) {
-      biffMovef(TEN, ELL,
-                "%s: trouble estimating model (slice %d): Tx, Ty, Tz",
-                me, z);
+      biffMove_va(TEN, ELL,
+                  "%s: trouble estimating model (slice %d): Tx, Ty, Tz",
+                  me, z);
       airMopError(mop); return 1;
     }
     ans = (double *)(nans->data);
@@ -776,7 +778,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
       || nrrdProject(ntB, ntA, 0, nrrdMeasureSum, nrrdTypeFloat)
       || nrrdProject(nl2, ntB, 0, nrrdMeasureSum, nrrdTypeFloat)
       || nrrdArithBinaryOp(ntA, nrrdBinaryOpDivide, nsd, nl2)) {
-    biffMovef(TEN, NRRD, "%s: trouble doing CC projections", me);
+    biffMove_va(TEN, NRRD, "%s: trouble doing CC projections", me);
     airMopError(mop); return 1;
   }
   if (verb) {
@@ -784,7 +786,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   }
   if (prog && _tenEpiRegSave("regtmp-messy.txt", ntA,
                              NULL, 0, "segmentation uncertainty")) {
-    biffMovef(TEN, NRRD, "%s: EpiRegSave failed", me);
+    biffMove_va(TEN, NRRD, "%s: EpiRegSave failed", me);
     airMopError(mop); return 1;
   }
   /* now ntA stores the per-slice messiness */
@@ -999,7 +1001,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
       || nrrdMaybeAlloc_va(nidx, nrrdTypeInt, 2,
                            AIR_CAST(size_t, 2*supp),
                            AIR_CAST(size_t, sy))) {
-    biffMovef(TEN, NRRD, "%s: trouble allocating buffers", me);
+    biffMove_va(TEN, NRRD, "%s: trouble allocating buffers", me);
     airMopError(mop); return 1;
   }
   for (ni=0; ni<ninLen; ni++) {
@@ -1010,7 +1012,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
         || ((!ni) && nrrdSlice(nslcB, ndone[ni], 2, 0)) /* only when 0==ni */
         || nrrdAxesSwap(ntmp, nin[ni], 0, 1)
         || nrrdConvert(nfin, ntmp, nrrdTypeFloat)) {
-      biffMovef(TEN, NRRD, "%s: trouble prepping at ni=%d", me, ni);
+      biffMove_va(TEN, NRRD, "%s: trouble prepping at ni=%d", me, ni);
       airMopError(mop); return 1;
     }
     for (zi=0; zi<sz; zi++) {
@@ -1020,7 +1022,7 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
           || _tenEpiRegSliceWarp(nslcB, nslcA, nwght, nidx, kern, kparm,
                                  hh, ss, tt, cx, cy)
           || nrrdSplice(ndone[ni], ndone[ni], nslcB, 2, zi)) {
-        biffMovef(TEN, NRRD, "%s: trouble on slice %d if ni=%d", me, zi, ni);
+        biffMove_va(TEN, NRRD, "%s: trouble on slice %d if ni=%d", me, zi, ni);
         /* because the _tenEpiReg calls above don't use biff */
         airMopError(mop); return 1;
       }
@@ -1077,10 +1079,10 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
   airMopAdd(mop, nhst = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ngrad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)) {
-    biffMovef(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
+    biffMove_va(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
     airMopError(mop); return 1;
   }
-
+  
   /* ------ blur */
   if (_tenEpiRegBlur(nbuffA, nin, ninLen, bwX, bwY, verbose)) {
     biffAddf(TEN, "%s: trouble %s", me, (bwX || bwY) ? "blurring" : "copying");
@@ -1233,10 +1235,10 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   airMopAdd(mop, ndwigrad, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
       || nrrdConvert(ndwigrad, _ngrad, nrrdTypeDouble)) { /* HACK applies */
-    biffMovef(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
+    biffMove_va(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
     airMopError(mop); return 1;
   }
-
+  
   nin = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
   ndwi = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
   nout = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
@@ -1265,8 +1267,8 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
       airMopAdd(mop, ndwiOut[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdSlice(ndwi[dwiIdx], _nin, dwiAx,
                     AIR_CAST(unsigned int, ninIdx))) {
-        biffMovef(TEN, NRRD, "%s: trouble slicing at %d on axis %u",
-                  me, ninIdx, dwiAx);
+        biffMove_va(TEN, NRRD, "%s: trouble slicing at %d on axis %u",
+                    me, ninIdx, dwiAx);
         airMopError(mop); return 1;
       }
       /* NOTE: this works because dwiIdx <= ninIdx */
@@ -1308,8 +1310,8 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
       nout[ninIdx] = nrrdNew();
       airMopAdd(mop, nout[ninIdx], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdSlice(nout[ninIdx], _nin, dwiAx, ninIdx)) {
-        biffMovef(TEN, NRRD, "%s: trouble slicing at %d on axis %u",
-                  me, dwiIdx, dwiAx);
+        biffMove_va(TEN, NRRD, "%s: trouble slicing at %d on axis %u",
+                    me, dwiIdx, dwiAx);
         airMopError(mop); return 1;
       }
       /*
@@ -1318,7 +1320,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     }
   }
   if (nrrdJoin(_nout, (const Nrrd**)nout, ninLen, dwiAx, AIR_TRUE)) {
-    biffMovef(TEN, NRRD, "%s: trouble joining output", me);
+    biffMove_va(TEN, NRRD, "%s: trouble joining output", me);
     airMopError(mop); return 1;
   }
   nrrdAxisInfoCopy(_nout, _nin, NULL, NRRD_AXIS_INFO_NONE);
@@ -1332,7 +1334,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     /* note that we're ALWAYS copying the key/value pairs- its just
        too annoying to have to set nrrdStateKeyValuePairsPropagate
        in order for the DWI-specific key/value pairs to be set */
-    biffMovef(TEN, NRRD, "%s:", me);
+    biffMove_va(TEN, NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   

@@ -739,7 +739,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
                             AIR_CAST(size_t, 3),
                             AIR_CAST(size_t, (fptsArr[0]->len
                                               + fptsArr[1]->len - 1)))) {
-        biffMovef(TEN, NRRD, "%s: couldn't allocate fiber nrrd", me);
+        biffMove_va(TEN, NRRD, "%s: couldn't allocate fiber nrrd", me);
         airMopError(mop); return 1;
       }
       fiber = (double*)(nfiber->data);
@@ -976,7 +976,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
     nseed = nrrdNew();
     airMopAdd(mop, nseed, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(nseed, _nseed, nrrdTypeDouble)) {
-      biffMovef(TEN, NRRD, "%s: couldn't convert seed list", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't convert seed list", me);
       return 1;
     }
     seedData = AIR_CAST(const double *, nseed->data);

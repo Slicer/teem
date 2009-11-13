@@ -173,7 +173,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   N = sx*sy*sz;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, 
                         AIR_CAST(size_t, 9), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   for (I=0; I<=N-1; I++) {
@@ -188,7 +188,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL,
                        NRRD_AXIS_INFO_SIZE_BIT)) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   /* by call above we just copied axis-0 kind, which might be wrong;
@@ -250,7 +250,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   }
   if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 7), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
+    biffMove_va(TEN, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   seven = (float *)tseven->data;
@@ -265,7 +265,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   }
   if (nrrdAxisInfoCopy(tseven, tnine, NULL,
                        NRRD_AXIS_INFO_SIZE_BIT)) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   /* by call above we just copied axis-0 kind, which might be wrong;
@@ -471,7 +471,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
     return 1;
   }
   if (nrrdCheck(nconf) || nrrdCheck(neval) || nrrdCheck(nevec)) {
-    biffMovef(TEN, NRRD, "%s: didn't get three valid nrrds", me);
+    biffMove_va(TEN, NRRD, "%s: didn't get three valid nrrds", me);
     return 1;
   }
   if (!( 3 == nconf->dim && nrrdTypeFloat == nconf->type )) {
@@ -525,7 +525,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   /* finally */
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 7), sx, sy, sz)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   N = sx*sy*sz;
@@ -542,7 +542,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   }
   ELL_4V_SET(map, -1, 0, 1, 2);
   if (nrrdAxisInfoCopy(nout, nconf, map, NRRD_AXIS_INFO_SIZE_BIT)) {
-    biffMovef(TEN, NRRD, "%s: trouble", me);
+    biffMove_va(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
@@ -558,10 +558,10 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffMovef(TEN, NRRD, "%s:", me);
+    biffMove_va(TEN, NRRD, "%s:", me);
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -607,7 +607,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
   if (3 == dim) {
     if (nrrdSlice(nslice, nten, axis+1, pos)
         || nrrdAxesInsert(nout, nslice, axis+1)) {
-      biffMovef(TEN, NRRD, "%s: trouble making slice", me);
+      biffMove_va(TEN, NRRD, "%s: trouble making slice", me);
       airMopError(mop); return 1;
     }
   } else {
@@ -636,7 +636,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
         || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
         || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
         || nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
-      biffMovef(TEN, NRRD, "%s: trouble collecting coefficients", me);
+      biffMove_va(TEN, NRRD, "%s: trouble collecting coefficients", me);
       airMopError(mop); return 1;
     }
   }

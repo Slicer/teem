@@ -639,7 +639,7 @@ _tenEstimateDwiAllocUpdate(tenEstimateContext *tec) {
     if (!E) size[1] = tec->dwiNum;
     if (!E) E |= nrrdMaybeAlloc_nva(tec->nwght, nrrdTypeDouble, 2, size);
     if (E) {
-      biffMovef(TEN, NRRD, "%s: couldn't allocate dwi nrrds", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't allocate dwi nrrds", me);
       return 1;
     }
     /* nrrdSave("0-nbmat.txt", tec->nbmat, NULL); */
@@ -738,9 +738,9 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
     if (!tec->simulate) {
       /* HEY: ignores weights! */
       if (ell_Nm_pseudo_inv(tec->nemat, tec->nbmat)) {
-        biffMovef(TEN, ELL, "%s: trouble pseudo-inverting %ux%u B-matrix", me,
-                  AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-                  AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
+        biffMove_va(TEN, ELL, "%s: trouble pseudo-inverting %ux%u B-matrix", me,
+                    AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
+                    AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
         return 1;
       }
     }
@@ -1053,7 +1053,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
   }
   if (nrrdMaybeAlloc_va(ndwi, outType, 4,
                      AIR_CAST(size_t, tec->allNum), sizeX, sizeY, sizeZ)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate DWI output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate DWI output", me);
     airMopError(mop); return 1;
   }
   NN = sizeX * sizeY * sizeZ;
@@ -1093,7 +1093,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
   ndwi->axis[0].kind = nrrdKindList;
   if (nrrdBasicInfoCopy(ndwi, nten,
                         NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    biffMovef(TEN, NRRD, "%s:", me);
+    biffMove_va(TEN, NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   if (keyValueSet) {
@@ -1221,10 +1221,10 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
     wght[dwiIdx + tec->dwiNum*dwiIdx] = dwi*dwi/sum;
   }
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
-    biffMovef(TEN, ELL, "%s(1): trouble wght-pseudo-inverting %ux%u B-matrix",
-              me,
-              AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-              AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
+    biffMove_va(TEN, ELL,
+                "%s(1): trouble wght-pseudo-inverting %ux%u B-matrix", me,
+                AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
+                AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
     return 1;
   }
   /*
@@ -1266,9 +1266,9 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
       nrrdSave("nbmat.txt", tec->nbmat, NULL);
       nrrdSave("nwght.txt", tec->nwght, NULL);
       */
-      biffMovef(TEN, ELL, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
-                AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-                AIR_CAST(unsigned int, tec->nbmat->axis[0].size), iter);
+      biffMove_va(TEN, ELL, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
+                  AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
+                  AIR_CAST(unsigned int, tec->nbmat->axis[0].size), iter);
       return 1;
     }
     _tenEstimate1Tensor_LLS(tec);
@@ -1856,7 +1856,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     return 1;
   }
   if (nrrdCheck(ndwi)) {
-    biffMovef(TEN, NRRD, "%s: DWI volume not valid", me);
+    biffMove_va(TEN, NRRD, "%s: DWI volume not valid", me);
     return 1;
   }
   if (!( 4 == ndwi->dim && 7 <= ndwi->axis[0].size )) {
@@ -1914,14 +1914,14 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
 
   if (nrrdMaybeAlloc_va(nten, outType, 4,
                         sizeTen, sizeX, sizeY, sizeZ)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate tensor output", me);
+    biffMove_va(TEN, NRRD, "%s: couldn't allocate tensor output", me);
     airMopError(mop); return 1;
   }
   if (nB0P) {
     *nB0P = nrrdNew();
     if (nrrdMaybeAlloc_va(*nB0P, outType, 3,
                           sizeX, sizeY, sizeZ)) {
-      biffMovef(TEN, NRRD, "%s: couldn't allocate B0 output", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't allocate B0 output", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, *nB0P, (airMopper)nrrdNuke, airMopOnError);
@@ -1942,7 +1942,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
                              | (nrrdStateKeyValuePairsPropagate
                                 ? 0
                                 : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      biffMovef(TEN, NRRD, "%s: couldn't creatting fitting error output", me);
+      biffMove_va(TEN, NRRD, "%s: couldn't creatting fitting error output", me);
       airMopError(mop); return 1;
     }
     ELL_3V_SET(axmap, 1, 2, 3);

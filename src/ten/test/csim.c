@@ -28,7 +28,7 @@ csimDo(double tm[7], double tcov[21], double rm[3], double rv[3],
        Nrrd *ntbuff, tenEstimateContext *tec, double *dwibuff, double sigma,
        double bvalue, double B0, unsigned int NN, int randrot,
        double _tenOrig[7]) {
-  char me[]="csimDo", err[BIFF_STRLEN];
+  char me[]="csimDo";
   double *tbuff;
   unsigned int II, taa, tbb, cc;
 
@@ -37,9 +37,8 @@ csimDo(double tm[7], double tcov[21], double rm[3], double rv[3],
         && 2 == ntbuff->dim
         && 7 == ntbuff->axis[0].size
         && NN == ntbuff->axis[1].size)) {
-    sprintf(err, "%s: ntbuff not allocated for 2-by-%u array of %s", me,
-            NN, airEnumStr(nrrdType, nrrdTypeDouble));
-    biffAdd(TEN, err); return 1;
+    biffAddf(TEN, "%s: ntbuff not allocated for 2-by-%u array of %s", me,
+             NN, airEnumStr(nrrdType, nrrdTypeDouble)); return 1;
   }
 
   /* find all tensors from simulated DWIs */
@@ -77,8 +76,7 @@ csimDo(double tm[7], double tcov[21], double rm[3], double rv[3],
     if (tenEstimate1TensorSimulateSingle_d(tec, dwibuff, sigma,
                                            bvalue, B0, tenOrig)
         || tenEstimate1TensorSingle_d(tec, tbuff, dwibuff)) {
-      sprintf(err, "%s: trouble on exp %u/%u", me, II, NN);
-      biffAdd(TEN, err); return 1;
+      biffAddf(TEN, "%s: trouble on exp %u/%u", me, II, NN); return 1;
     }
     if (randrot) {
       TEN_T2M(matA, tbuff);
