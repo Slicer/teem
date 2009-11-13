@@ -322,7 +322,7 @@ baneIncNew(int type, baneRange *range, double *parm) {
     inc->parm[0] = parm[0];  /* size of histogram */
     if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1,
                           AIR_CAST(size_t, parm[0]))) {
-      biffMovef(BANE, NRRD, "%s: couldn't allocate histogram", me);
+      biffMove_va(BANE, NRRD, "%s: couldn't allocate histogram", me);
       baneIncNix(inc); return NULL;
     }
     inc->parm[1] = parm[1];  /* percentile to exclude */

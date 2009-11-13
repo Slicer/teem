@@ -126,7 +126,7 @@ baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   nio->encoding = gz ? nrrdEncodingGzip : nrrdEncodingRaw;
   if (nrrdSave(out, nout, nio)) {
-    biffMovef(BANE, NRRD, "%s: error saving histogram volume", me);
+    biffMove_va(BANE, NRRD, "%s: error saving histogram volume", me);
     airMopError(mop); return 1;
   }
   airMopOkay(mop);

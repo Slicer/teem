@@ -33,7 +33,7 @@ char *_baneGkms_txfInfoL =
 int
 baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *perr, err[BIFF_STRLEN];
+  char *out, *perr;
   Nrrd *nout;
   airArray *mop;
   int pret, E, res[2], vi, gi, step;
@@ -91,8 +91,8 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
                              AIR_NAN, (double)max[0], (double)max[1]);
   if (!E) E |= !(nout->axis[2].label = airStrdup("gage(scalar:gm)"));
   if (E) {
-    sprintf(err, "%s: trouble creating opacity function nrrd", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(BANE, NRRD, "%s: trouble creating opacity function nrrd", me);
+    airMopError(mop); return 1;
   }
   data = (float *)nout->data;
   tvl = top[0] - width/2; 
@@ -122,8 +122,8 @@ baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   }
   if (nrrdSave(out, nout, NULL)) {
-    sprintf(err, "%s: trouble saving opacity function", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(BANE, NRRD, "%s: trouble saving opacity function", me);
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);

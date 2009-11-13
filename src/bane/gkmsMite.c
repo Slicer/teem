@@ -33,7 +33,7 @@ char *_baneGkms_miteInfoL =
 int
 baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *perr, err[BIFF_STRLEN];
+  char *out, *perr;
   Nrrd *nin, *nout;
   airArray *mop;
   int pret, E;
@@ -66,15 +66,16 @@ baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
       if (!E) E |= !(nout->axis[2].label = airStrdup("gage(gm)"));
     }
     if (E) {
-      sprintf(err, "%s: trouble modifying opacity function nrrd", me);
-      biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+      biffMove_va(BANE, NRRD,
+                  "%s: trouble modifying opacity function nrrd", me);
+      airMopError(mop); return 1;
     }
   }
   if (nrrdSave(out, nout, NULL)) {
-    sprintf(err, "%s: trouble saving opacity function", me);
-    biffMove(BANE, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(BANE, NRRD, "%s: trouble saving opacity function", me);
+    airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
