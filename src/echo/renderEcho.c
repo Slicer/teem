@@ -40,8 +40,8 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
   if (nrrdMaybeAlloc_va(tstate->nperm, nrrdTypeInt, 2,
                         AIR_CAST(size_t, ECHO_JITTABLE_NUM),
                         AIR_CAST(size_t, parm->numSamples))) {
-    biffMovef(ECHO, NRRD,
-              "%s: couldn't allocate jitter permutation array", me);
+    biffMove_va(ECHO, NRRD,
+                "%s: couldn't allocate jitter permutation array", me);
     return 1;
   }
   nrrdAxisInfoSet_va(tstate->nperm, nrrdAxisInfoLabel,
@@ -51,7 +51,7 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
                         AIR_CAST(size_t, 2),
                         AIR_CAST(size_t, ECHO_JITTABLE_NUM),
                         AIR_CAST(size_t, parm->numSamples))) {
-    biffMovef(ECHO, NRRD, "%s: couldn't allocate jitter array", me);
+    biffMove_va(ECHO, NRRD, "%s: couldn't allocate jitter array", me);
     return 1;
   }
   nrrdAxisInfoSet_va(tstate->njitt, nrrdAxisInfoLabel,
@@ -152,12 +152,12 @@ echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene,
     return 1;
   }
   if (limnCameraUpdate(cam)) {
-    biffMovef(ECHO, LIMN, "%s: camera trouble", me);
+    biffMove_va(ECHO, LIMN, "%s: camera trouble", me);
     return 1;
   }
   if (scene->envmap) {
     if (limnEnvMapCheck(scene->envmap)) {
-      biffMovef(ECHO, LIMN, "%s: environment map not valid", me);
+      biffMove_va(ECHO, LIMN, "%s: environment map not valid", me);
       return 1;
     }
   }
@@ -443,7 +443,7 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene,
                         AIR_CAST(size_t, ECHO_IMG_CHANNELS),
                         AIR_CAST(size_t, parm->imgResU),
                         AIR_CAST(size_t, parm->imgResV))) {
-    biffMovef(ECHO, NRRD, "%s: couldn't allocate output image", me);
+    biffMove_va(ECHO, NRRD, "%s: couldn't allocate output image", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, nraw, (airMopper)nrrdNix, airMopOnError);
