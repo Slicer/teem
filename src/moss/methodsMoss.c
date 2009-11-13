@@ -104,7 +104,7 @@ mossImageCheck (Nrrd *image) {
   static const char me[]="mossImageCheck";
 
   if (nrrdCheck(image)) {
-    biffMovef(MOSS, NRRD, "%s: given nrrd invalid", me);
+    biffMove_va(MOSS, NRRD, "%s: given nrrd invalid", me);
     return 1;
   }
   if (!( (2 == image->dim || 3 == image->dim)
@@ -138,7 +138,7 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
                             AIR_CAST(size_t, sy));
   }
   if (ret) {
-    biffMovef(MOSS, NRRD, "%s: couldn't allocate image", me);
+    biffMove_va(MOSS, NRRD, "%s: couldn't allocate image", me);
     return 1;
   }
   
