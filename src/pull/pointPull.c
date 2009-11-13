@@ -819,7 +819,7 @@ _pullPointSetup(pullContext *pctx) {
     npos = nrrdNew();
     airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(npos, pctx->npos, nrrdTypeDouble)) {
-      biffMovef(PULL, NRRD, "%s: trouble converting npos", me);
+      biffMove_va(PULL, NRRD, "%s: trouble converting npos", me);
       airMopError(mop); return 1;
     }
     posData = AIR_CAST(double *, npos->data);

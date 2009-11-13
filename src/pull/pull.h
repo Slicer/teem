@@ -628,7 +628,6 @@ PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
 
 /* volumePull.c */
-PULL_EXPORT gageKind *pullGageKindParse(const char *str);
 PULL_EXPORT pullVolume *pullVolumeNew();
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
 PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, 

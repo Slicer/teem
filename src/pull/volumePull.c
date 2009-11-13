@@ -24,37 +24,6 @@
 #include "pull.h"
 #include "privatePull.h"
 
-gageKind *
-pullGageKindParse(const char *_str) {
-  static const char me[]="pullGageKindParse";
-  char *str;
-  gageKind *ret;
-  airArray *mop;
-  
-  if (!_str) {
-    biffAddf(PULL, "%s: got NULL pointer", me);
-    return NULL;
-  }
-  mop = airMopNew();
-  str = airStrdup(_str);
-  airMopAdd(mop, str, airFree, airMopAlways);
-  airToLower(str);
-  if (!strcmp(gageKindScl->name, str)) {
-    ret = gageKindScl;
-  } else if (!strcmp(gageKindVec->name, str)) {
-    ret = gageKindVec;
-  } else if (!strcmp(tenGageKind->name, str)) {
-    ret = tenGageKind;
-  } else /* not allowing DWIs for now */ {
-    biffAddf(PULL, "%s: not \"%s\", \"%s\", or \"%s\"", me,
-             gageKindScl->name, gageKindVec->name, tenGageKind->name);
-    airMopError(mop); return NULL;
-  }
-
-  airMopOkay(mop);
-  return ret;
-}
-
 pullVolume *
 pullVolumeNew() {
   pullVolume *vol;
@@ -188,10 +157,10 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
   }
   if (E) {
-    biffMovef(PULL, GAGE, "%s: trouble", me);
+    biffMove_va(PULL, GAGE, "%s: trouble", me);
     return 1;
   }
-
+  
   vol->name = airStrdup(name);
   if (!vol->name) {
     biffAddf(PULL, "%s: couldn't strdup name (len %u)", me,
@@ -323,7 +292,7 @@ _pullVolumeCopy(const pullVolume *volOrig) {
      the items from the info specs, so we have to add query here */
   if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
       || gageUpdate(volNew->gctx)) {
-    biffMovef(PULL, GAGE, "%s: trouble with new volume gctx", me);
+    biffMove_va(PULL, GAGE, "%s: trouble with new volume gctx", me);
     return NULL;
   }
   return volNew;
@@ -354,9 +323,9 @@ _pullVolumeSetup(pullContext *pctx) {
   for (ii=0; ii<pctx->volNum; ii++) {
     printf("!%s: gageUpdate(vol[%u])\n", me, ii);
     if (gageUpdate(pctx->vol[ii]->gctx)) {
-      biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
-                "%u/%u (\"%s\")",  me, ii, pctx->volNum,
-                pctx->vol[ii]->name);
+      biffMove_va(PULL, GAGE, "%s: trouble setting up gage on vol "
+                  "%u/%u (\"%s\")",  me, ii, pctx->volNum,
+                  pctx->vol[ii]->name);
       return 1;
     }
   }
@@ -378,9 +347,9 @@ _pullVolumeSetup(pullContext *pctx) {
     if (ii && !pctx->allowUnequalShapes) {
       if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
                           pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
-        biffMovef(PULL, GAGE,
-                  "%s: need equal shapes, but vol 0 and %u different", 
-                  me, ii);
+        biffMove_va(PULL, GAGE,
+                    "%s: need equal shapes, but vol 0 and %u different", 
+                    me, ii);
         return 1;
       }
     }

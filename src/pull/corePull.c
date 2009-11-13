@@ -326,8 +326,9 @@ pullRun(pullContext *pctx) {
         return 1;
       }
       if (nrrdSave(poutS, npos, NULL)) {
-        biffMovef(PULL, NRRD,
-                  "%s: couldn't save snapshot for iter %d", me, pctx->iter);
+        biffMove_va(PULL, NRRD,
+                    "%s: couldn't save snapshot for iter %d",
+                    me, pctx->iter);
         return 1;
       }
       npos = nrrdNuke(npos);

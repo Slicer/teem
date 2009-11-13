@@ -171,7 +171,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->npos) {
     if (nrrdCheck(pctx->npos)) {
-      biffMovef(PULL, NRRD, "%s: got a broken npos", me);
+      biffMove_va(PULL, NRRD, "%s: got a broken npos", me);
       return 1;
     }
     if (!( 2 == pctx->npos->dim 
@@ -464,7 +464,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
-    biffMovef(PULL, NRRD, "%s: trouble allocating outputs", me);
+    biffMove_va(PULL, NRRD, "%s: trouble allocating outputs", me);
     return 1;
   }
   posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
@@ -650,7 +650,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     break;
   }
   if (nrrdMaybeAlloc_nva(nprop, typeOut, dim, size)) {
-    biffMovef(PULL, NRRD, "%s: trouble allocating output", me);
+    biffMove_va(PULL, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   out_d = AIR_CAST(double *, nprop->data);
@@ -729,7 +729,7 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
   }
   if (limnPolyDataAlloc(pld, 1 << limnPolyDataInfoRGBA,
                         vertNum, vertNum, pointNum)) {
-    biffMovef(PULL, LIMN, "%s: couldn't allocate output", me);
+    biffMove_va(PULL, LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
   primIdx = 0;
