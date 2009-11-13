@@ -2,6 +2,7 @@
 # Add new source files here.
 SET(BIFF_SOURCES
   biff.h
+  biffmsg.c
   biffbiff.c
   )
 

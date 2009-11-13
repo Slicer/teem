@@ -25,7 +25,8 @@
 
 int
 main() {
-  char *tmp;
+  char *tmp, *s1, *s2;
+  biffMsg *msg1, *msg2;
 
   /*
   biffAdd("axis", "the first error axis");
@@ -55,19 +56,52 @@ main() {
   printf("%s\n", (tmp = biffGet("harold")));
   free(tmp);
   */
+
   biffAdd("axis", "the first error axis");
   biffAdd("axis", "the second error axis");
   biffAdd("axis", "the third error axis");
   biffAdd("axis", "the fourth error axis");
   biffAdd("axis", "the fifth error axis");
-  printf("%s\n", (tmp = biffGet("axis")));
+  printf("%s", (tmp = biffGet("axis")));
   free(tmp);
   biffDone("axis");
+
+  biffAdd("axo", "the first error axis");
+  biffAdd("axo", "the second error axis");
+  biffAdd("axo", "the third error axis");
+  biffAdd("axo", "the fourth error axis");
+  biffAdd("axo", "the fifth error axis");
+  printf("%s", (tmp = biffGetDone("axo")));
+  free(tmp);
+
+  printf("=================================\n");
+  msg1 = biffMsgNew("roberts");
+  biffMsgAdd(msg1, "biffMsgAdd hello, said roberts");
+  biffMsgAdd_va(msg1, "biffMsgAdd_va: there's an int %d and a float %g", 
+                42, AIR_PI);
+  s1 = biffMsgStrGet(msg1);
+  printf("from msg1:\n%s", s1);
+  s1 = airFree(s1);
+  msg2 = biffMsgNew("sue");
+  biffMsgAdd(msg2, "biffMsgAdd hi from sue");
+  biffMsgAdd_va(msg2, "biffMsgAdd_va: another float %g", AIR_PI*AIR_PI);
+  s2 = biffMsgStrGet(msg2);
+  printf("from msg2:\n%s", s2);
+  s2 = airFree(s2);
+  biffMsgMove_va(msg1, msg2, "biffMsgMove_va: good int %d", 10);
+  s1 = biffMsgStrGet(msg1);
+  printf("from msg1:\n%s", s1);
+  s1 = airFree(s1);
+  printf("=================================\n");
+  msg1 = biffMsgNix(msg1);
+  msg2 = biffMsgNix(msg2);
   
-  biffAddf("test", "%s: this is a test %d %f", "me", 1, 2.0);
+  /*
+  biffAdd_va("test", "%s: this is a test %d %f", "me", 1, 2.0);
   printf("%s\n", (tmp = biffGet("test")));
   free(tmp);
   biffDone("test");
+  */
 
   exit(0);
 }
