@@ -239,7 +239,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
   airMopAdd(mop, ntime = nrrdNew(), (airMopper)nrrdNix, airMopAlways);
   if (nrrdWrap_va(ntime, time, nrrdTypeDouble, 1,
                   AIR_CAST(size_t, numKeys))) {
-    biffMovef(LIMN, NRRD, "%s: trouble wrapping time values", me);
+    biffMove_va(LIMN, NRRD, "%s: trouble wrapping time values", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, nsample = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -257,7 +257,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames,
                            AIR_CAST(size_t, 4), AIR_CAST(size_t, numKeys))
       || nrrdMaybeAlloc_va(nfova, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 2), AIR_CAST(size_t, numKeys))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate buffer nrrds", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate buffer nrrds", me);
     airMopError(mop); return 1;
   }
   quat = (double*)(nquat->data);

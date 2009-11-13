@@ -294,7 +294,7 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 1 + maxTriPerVert),
                         AIR_CAST(size_t, pld->xyzwNum))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
@@ -342,7 +342,7 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
   if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, 
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, triNum))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
@@ -1332,13 +1332,13 @@ limnPolyDataCCFind(limnPolyData *pld) {
   airMopAdd(mop, nccSize, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_va(nTriMap, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, realTriNum))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate equivalence map", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate equivalence map", me);
     airMopError(mop); return 1;
   }
   triMap = AIR_CAST(unsigned int*, nTriMap->data);
   primNumNew = airEqvMap(eqvArr, triMap, realTriNum);
   if (nrrdHisto(nccSize, nTriMap, NULL, NULL, primNumNew, nrrdTypeUInt)) {
-    biffMovef(LIMN, NRRD, "%s: couldn't histogram CC map", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't histogram CC map", me);
     airMopError(mop); return 1;
   }
   ccSize = AIR_CAST(unsigned int*, nccSize->data);
@@ -1429,7 +1429,7 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   ntwo[1] = nval;
   if (!E) E |= nrrdJoin(nrec, ntwo, 2, 0, AIR_TRUE);
   if (E) {
-    biffMovef(LIMN, NRRD, "%s: problem creating records", me);
+    biffMove_va(LIMN, NRRD, "%s: problem creating records", me);
     airMopError(mop); return 1;
   }
   rec = AIR_CAST(double *, nrec->data);
@@ -1540,8 +1540,8 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
   nmask = nrrdNew();
   airMopAdd(mop, nmask, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nmask, _nmask, nrrdTypeDouble)) {
-    biffMovef(LIMN, NRRD, "%s: trouble converting mask to %s", me,
-              airEnumStr(nrrdType, nrrdTypeDouble));
+    biffMove_va(LIMN, NRRD, "%s: trouble converting mask to %s", me,
+                airEnumStr(nrrdType, nrrdTypeDouble));
     return 1;
   }
   mask = AIR_CAST(double *, nmask->data);
@@ -1938,7 +1938,7 @@ limnPolyDataEdgeHalve(limnPolyData *pldOut,
   airMopAdd(mop, nnewvert, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
   nvold = pldIn->xyzwNum;
   if (nrrdMaybeAlloc_va(nnewvert, nrrdTypeUInt, 2, nvold, nvold)) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate buffer", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate buffer", me);
     airMopError(mop); return 1;
   }
   newvert = AIR_CAST(unsigned int*, nnewvert->data);

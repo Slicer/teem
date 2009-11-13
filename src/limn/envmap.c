@@ -82,7 +82,7 @@ limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, sx),
                         AIR_CAST(size_t, sy))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't alloc output", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
   mapData = (float *)map->data;
@@ -125,7 +125,7 @@ limnEnvMapCheck(Nrrd *envMap) {
   static const char me[]="limnEnvMapCheck";
 
   if (nrrdCheck(envMap)) {
-    biffMovef(LIMN, NRRD, "%s: basic nrrd validity check failed", me);
+    biffMove_va(LIMN, NRRD, "%s: basic nrrd validity check failed", me);
     return 1;
   }
   if (!(nrrdTypeFloat == envMap->type)) {

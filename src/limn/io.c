@@ -515,7 +515,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   fprintf(file, "%s%s\n", DEMARK_STR, INDX_STR);
   if (nrrdWrap_va(nrrd, pld->indx, nrrdTypeUInt, 1, pld->indxNum)
       || nrrdWrite(file, nrrd, NULL)) {
-    biffMovef(LIMN, NRRD, "%s: problem saving indx array", me);
+    biffMove_va(LIMN, NRRD, "%s: problem saving indx array", me);
     airMopError(mop); return 1;
   }
   fflush(file);
@@ -524,7 +524,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   fprintf(file, "%s%s\n", DEMARK_STR, XYZW_STR);
   if (nrrdWrap_va(nrrd, pld->xyzw, nrrdTypeFloat, 2, 4, pld->xyzwNum)
       || nrrdWrite(file, nrrd, NULL)) {
-    biffMovef(LIMN, NRRD, "%s: problem saving xyzw array", me);
+    biffMove_va(LIMN, NRRD, "%s: problem saving xyzw array", me);
     airMopError(mop); return 1;
   }
   fflush(file);
@@ -555,8 +555,8 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
           break;
         }
         if (E || nrrdWrite(file, nrrd, NULL)) {
-          biffMovef(LIMN, NRRD, "%s: problem saving %s info",
-                    me, airEnumStr(limnPolyDataInfo, bit));
+          biffMove_va(LIMN, NRRD, "%s: problem saving %s info",
+                      me, airEnumStr(limnPolyDataInfo, bit));
           airMopError(mop); return 1;
         }
         fflush(file);
@@ -739,7 +739,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   hackhack = nrrdStateVerboseIO;
   nrrdStateVerboseIO = 0;
   if (nrrdRead(nrrd, file, NULL)) {
-    biffMovef(LIMN, NRRD, "%s: trouble reading %s data", me, name);
+    biffMove_va(LIMN, NRRD, "%s: trouble reading %s data", me, name);
     airMopError(mop); return 1;
   }
   if (!(nrrdTypeUInt == nrrd->type
@@ -777,7 +777,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (nrrdRead(nrrd, file, NULL)) {
-    biffMovef(LIMN, NRRD, "%s: trouble reading %s data", me, name);
+    biffMove_va(LIMN, NRRD, "%s: trouble reading %s data", me, name);
     airMopError(mop); return 1;
   }
   if (!(nrrdTypeFloat == nrrd->type
@@ -829,8 +829,8 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         return 1;
       }
       if (nrrdRead(nrrd, file, NULL)) {
-        biffMovef(LIMN, NRRD, "%s: trouble reading %s %s data",
-                  me, INFO_STR, tmp);
+        biffMove_va(LIMN, NRRD, "%s: trouble reading %s %s data",
+                    me, INFO_STR, tmp);
         airMopError(mop); return 1;
       }
       switch (info) {

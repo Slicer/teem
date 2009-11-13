@@ -453,10 +453,10 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, pld->primNum))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-
+  
   vnum = AIR_CAST(unsigned int *, nout->data);
   for (pidx=0; pidx<pld->primNum; pidx++) {
     vnum[pidx] = pld->icnt[pidx];
@@ -479,10 +479,10 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1,
                         AIR_CAST(size_t, pld->primNum))) {
-    biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
+    biffMove_va(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-
+  
   area = AIR_CAST(double *, nout->data);
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -556,7 +556,7 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
   }
 
   if (nrrdMaybeAlloc_nva(nout, type, 3, size)) {
-    biffMovef(LIMN, NRRD, "%s: trouble allocating output", me);
+    biffMove_va(LIMN, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   ins = nrrdDInsert[type];
