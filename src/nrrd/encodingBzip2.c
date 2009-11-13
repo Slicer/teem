@@ -54,8 +54,8 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   bzfin = BZ2_bzReadOpen(&bzerror, file, 0, 0, NULL, 0);
   if (bzerror != BZ_OK) {
     /* there was a problem */
-    biffAddf(NRRD, "%s: error opening BZFILE: %s", me, 
-             BZ2_bzerror(bzfin, &bzerror));
+    biffAdd_va(NRRD, "%s: error opening BZFILE: %s", me, 
+               BZ2_bzerror(bzfin, &bzerror));
     BZ2_bzReadClose(&bzerror, bzfin);
     return 1;
   }
@@ -66,8 +66,8 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
     /* Check to see if a single byte was able to be read. */
     read = BZ2_bzRead(&bzerror, bzfin, &b, 1);
     if (read != 1 || bzerror != BZ_OK) {
-      biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld: %s",
-               me, bi, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
+      biffAdd_va(NRRD, "%s: hit an error skipping byte %ld of %ld: %s",
+                 me, bi, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
       return 1;
     }
   }
@@ -106,24 +106,24 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   }
   
   if (!( BZ_OK == bzerror || BZ_STREAM_END == bzerror )) {
-    biffAddf(NRRD, "%s: error reading from BZFILE: %s",
-             me, BZ2_bzerror(bzfin, &bzerror));
+    biffAdd_va(NRRD, "%s: error reading from BZFILE: %s",
+               me, BZ2_bzerror(bzfin, &bzerror));
     return 1;
   }
 
   /* Close the BZFILE. */
   BZ2_bzReadClose(&bzerror, bzfin);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error closing BZFILE: %s", me,
-             BZ2_bzerror(bzfin, &bzerror));
+    biffAdd_va(NRRD, "%s: error closing BZFILE: %s", me,
+               BZ2_bzerror(bzfin, &bzerror));
     return 1;
   }
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_read != bsize) {
-    biffAddf(NRRD, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
-             _AIR_SIZE_T_CNV " bytes",
-             me, bsize, total_read);
+    biffAdd_va(NRRD, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
+               _AIR_SIZE_T_CNV " bytes",
+               me, bsize, total_read);
     return 1;
   }
   
@@ -134,7 +134,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   AIR_UNUSED(elNum);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  biffAddf(NRRD, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
+  biffAdd_va(NRRD, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
   return 1;
 #endif
 }
@@ -161,8 +161,8 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
      to default values. */
   bzfout = BZ2_bzWriteOpen(&bzerror, file, bs, 0, 0);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error opening BZFILE: %s", me, 
-             BZ2_bzerror(bzfout, &bzerror));
+    biffAdd_va(NRRD, "%s: error opening BZFILE: %s", me, 
+               BZ2_bzerror(bzfout, &bzerror));
     BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
     return 1;
   }
@@ -201,24 +201,24 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
   }
 
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error writing to BZFILE: %s",
-             me, BZ2_bzerror(bzfout, &bzerror));
+    biffAdd_va(NRRD, "%s: error writing to BZFILE: %s",
+               me, BZ2_bzerror(bzfout, &bzerror));
     return 1;
   }
 
   /* Close the BZFILE. */
   BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error closing BZFILE: %s", me,
-             BZ2_bzerror(bzfout, &bzerror));
+    biffAdd_va(NRRD, "%s: error closing BZFILE: %s", me,
+               BZ2_bzerror(bzfout, &bzerror));
     return 1;
   }
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != bsize) {
-    biffAddf(NRRD, "%s: expected to write " _AIR_SIZE_T_CNV " bytes, but only "
-             "wrote " _AIR_SIZE_T_CNV,
-             me, bsize, total_written);
+    biffAdd_va(NRRD, "%s: expected to write " _AIR_SIZE_T_CNV 
+               " bytes, but only wrote " _AIR_SIZE_T_CNV,
+               me, bsize, total_written);
     return 1;
   }
   
@@ -229,7 +229,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
   AIR_UNUSED(elNum);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  biffAddf(NRRD, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
+  biffAdd_va(NRRD, "%s: sorry, this nrrd not compiled with bzip2 enabled", me);
   return 1;
 #endif
 }

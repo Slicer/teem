@@ -1956,7 +1956,7 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
     *val = -1;
   } else {
     if (1 != sscanf(str, "%d", val)) {
-      biffAddf(NRRD, "%s: couldn't parse \"%s\" as int", me, str);
+      biffAdd_va(NRRD, "%s: couldn't parse \"%s\" as int", me, str);
       return 1;
     }
   }
@@ -1973,10 +1973,10 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   unsigned int haveParm, needParm;
   
   if (!(kernelP && parm && _str)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-
+  
   /* [jorik] (if i understood this correctly) parm is always of length
   ** NRRD_KERNEL_PARMS_NUM. We have to clear all parameters here, since
   ** nrrdKernelSet copies all arguments into its own array later, and
@@ -2001,38 +2001,38 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     if (4 == airParseStrS(tmfStr, pstr, ",", 4)) {
       /* a TMF with a parameter: D,C,A,a */
       if (1 != sscanf(tmfStr[3], "%lg", parm)) {
-        biffAddf(NRRD, "%s: couldn't parse TMF parameter \"%s\" as double",
-                 me, tmfStr[3]);
+        biffAdd_va(NRRD, "%s: couldn't parse TMF parameter \"%s\" as double",
+                   me, tmfStr[3]);
         return 1;
       }
     } else if (3 == airParseStrS(tmfStr, pstr, ",", 3)) {
       /* a TMF without a parameter: D,C,A */
       parm[0] = 0.0;
     } else {
-      biffAddf(NRRD, "%s: TMF kernels require 3 arguments D, C, A "
-               "in the form tmf:D,C,A", me);
+      biffAdd_va(NRRD, "%s: TMF kernels require 3 arguments D, C, A "
+                 "in the form tmf:D,C,A", me);
       return 1;
     }
     if (_nrrdKernelParseTMFInt(&tmfD, tmfStr[0])
         || _nrrdKernelParseTMFInt(&tmfC, tmfStr[1])
         || _nrrdKernelParseTMFInt(&tmfA, tmfStr[2])) {
-      biffAddf(NRRD, "%s: problem parsing \"%s,%s,%s\" as D,C,A "
-               "for TMF kernel", me, tmfStr[0], tmfStr[1], tmfStr[2]);
+      biffAdd_va(NRRD, "%s: problem parsing \"%s,%s,%s\" as D,C,A "
+                 "for TMF kernel", me, tmfStr[0], tmfStr[1], tmfStr[2]);
       return 1;
     }
     if (!AIR_IN_CL(-1, tmfD, (int)nrrdKernelTMF_maxD)) {
-      biffAddf(NRRD, "%s: derivative value %d outside range [-1,%d]",
-               me, tmfD, nrrdKernelTMF_maxD);
+      biffAdd_va(NRRD, "%s: derivative value %d outside range [-1,%d]",
+                 me, tmfD, nrrdKernelTMF_maxD);
       return 1;
     }
     if (!AIR_IN_CL(-1, tmfC, (int)nrrdKernelTMF_maxC)) {
-      biffAddf(NRRD, "%s: continuity value %d outside range [-1,%d]",
-               me, tmfC, nrrdKernelTMF_maxC);
+      biffAdd_va(NRRD, "%s: continuity value %d outside range [-1,%d]",
+                 me, tmfC, nrrdKernelTMF_maxC);
       return 1;
     }
     if (!AIR_IN_CL(1, tmfA, (int)nrrdKernelTMF_maxA)) {
-      biffAddf(NRRD, "%s: accuracy value %d outside range [1,%d]",
-               me, tmfA, nrrdKernelTMF_maxA);
+      biffAdd_va(NRRD, "%s: accuracy value %d outside range [1,%d]",
+                 me, tmfA, nrrdKernelTMF_maxA);
       return 1;
     }
     /*
@@ -2043,12 +2043,12 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   } else {
     /* its not a TMF */
     if (!(*kernelP = _nrrdKernelStrToKern(kstr))) {
-      biffAddf(NRRD, "%s: kernel \"%s\" not recognized", me, kstr);
+      biffAdd_va(NRRD, "%s: kernel \"%s\" not recognized", me, kstr);
       return 1;
     }
     if ((*kernelP)->numParm > NRRD_KERNEL_PARMS_NUM) {
-      biffAddf(NRRD, "%s: kernel \"%s\" requests %d parameters > max %d",
-               me, kstr, (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
+      biffAdd_va(NRRD, "%s: kernel \"%s\" requests %d parameters > max %d",
+                 me, kstr, (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
       return 1;
     }
     if (*kernelP == nrrdKernelGaussian ||
@@ -2067,33 +2067,33 @@ nrrdKernelParse(const NrrdKernel **kernelP,
                   : 0);
     }
     if (needParm > 0 && !pstr) {
-      biffAddf(NRRD, "%s: didn't get any of %d required doubles after "
-               "colon in \"%s\"",
-               me, needParm, kstr);
+      biffAdd_va(NRRD, "%s: didn't get any of %d required doubles after "
+                 "colon in \"%s\"",
+                 me, needParm, kstr);
       return 1;
     }
     for (haveParm=0; haveParm<(*kernelP)->numParm; haveParm++) {
       if (!pstr)
         break;
       if (1 != sscanf(pstr, "%lg", parm+haveParm)) {
-        biffAddf(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")",
-                 me, _pstr, _str);
+        biffAdd_va(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")",
+                   me, _pstr, _str);
         return 1;
       }
       if ((pstr = strchr(pstr, ','))) {
         pstr++;
         if (!*pstr) {
-          biffAddf(NRRD, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-                   me, _pstr, _str);
+          biffAdd_va(NRRD, "%s: nothing after last comma in \"%s\" (in \"%s\")",
+                     me, _pstr, _str);
           return 1;
         }
       }
     }
     /* haveParm is now the number of parameters that were parsed. */
     if (haveParm < needParm) {
-      biffAddf(NRRD, "%s: parsed only %d of %d required doubles "
-               "from \"%s\" (in \"%s\")",
-               me, haveParm, needParm, _pstr, _str);
+      biffAdd_va(NRRD, "%s: parsed only %d of %d required doubles "
+                 "from \"%s\" (in \"%s\")",
+                 me, haveParm, needParm, _pstr, _str);
       return 1;
     } else if (haveParm == needParm &&
                needParm == (*kernelP)->numParm-1) {
@@ -2104,8 +2104,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       parm[0] = nrrdDefaultKernelParm0;
     } else {
       if (pstr) {
-        biffAddf(NRRD, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-                 me, _pstr, _str, (*kernelP)->numParm);
+        biffAdd_va(NRRD, "%s: \"%s\" (in \"%s\") has more than %d doubles",
+                   me, _pstr, _str, (*kernelP)->numParm);
         return 1;
       }
     }
@@ -2124,11 +2124,11 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
   double kparm[NRRD_KERNEL_PARMS_NUM];
   
   if (!( ksp && str )) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdKernelParse(&kern, kparm, str)) {
-    biffAddf(NRRD, "%s: ", me);
+    biffAdd_va(NRRD, "%s: ", me);
     return 1;
   }
   nrrdKernelSpecSet(ksp, kern, kparm);
@@ -2145,14 +2145,14 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], NrrdKernelSpec *ksp) {
   unsigned int warnLen = AIR_STRLEN_LARGE/2;
 
   if (!( str && ksp )) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-
+  
   if (strlen(ksp->kernel->name) > warnLen) {
-    biffAddf(NRRD, "%s: kernel name (len " _AIR_SIZE_T_CNV 
-             ") might lead to overflow", me,
-             strlen(ksp->kernel->name));
+    biffAdd_va(NRRD, "%s: kernel name (len " _AIR_SIZE_T_CNV 
+               ") might lead to overflow", me,
+               strlen(ksp->kernel->name));
     return 1;
   }
   strcpy(str, ksp->kernel->name);
@@ -2162,7 +2162,7 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], NrrdKernelSpec *ksp) {
     for (ki=0; ki<ksp->kernel->numParm; ki++) {
       sprintf(sp, "%c%g", (!ki ? ':' : ','), ksp->parm[ki]);
       if (strlen(str) + strlen(sp) > warnLen) {
-        biffAddf(NRRD, "%s: kernel parm %u might lead to overflow", me, ki);
+        biffAdd_va(NRRD, "%s: kernel parm %u might lead to overflow", me, ki);
         return 1;
       }
       strcat(str, sp);

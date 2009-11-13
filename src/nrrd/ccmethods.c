@@ -28,21 +28,21 @@ nrrdCCValid(const Nrrd *nin) {
   static const char me[]="nrrdCCValid";
   
   if (nrrdCheck(nin)) {
-    biffAddf(NRRD, "%s: basic validity check failed", me);
+    biffAdd_va(NRRD, "%s: basic validity check failed", me);
     return 0;
   }
   if (!( nrrdTypeIsIntegral[nin->type] )) {
-    biffAddf(NRRD, "%s: need an integral type (not %s)", me,
-             airEnumStr(nrrdType, nin->type));
+    biffAdd_va(NRRD, "%s: need an integral type (not %s)", me,
+               airEnumStr(nrrdType, nin->type));
     return 0;
   }
   if (!( nrrdTypeSize[nin->type] <= 2 ||
          nrrdTypeInt == nin->type ||
          nrrdTypeUInt == nin->type )) {
-    biffAddf(NRRD, "%s: valid connected component types are 1- and 2-byte "
-             "integers, and %s and %s", me,
-             airEnumStr(nrrdType, nrrdTypeInt),
-             airEnumStr(nrrdType, nrrdTypeUInt));
+    biffAdd_va(NRRD, "%s: valid connected component types are 1- and 2-byte "
+               "integers, and %s and %s", me,
+               airEnumStr(nrrdType, nrrdTypeInt),
+               airEnumStr(nrrdType, nrrdTypeUInt));
     return 0;
   }
   return 1;
@@ -62,13 +62,13 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
   size_t I, NN;
 
   if (!( nout && nrrdCCValid(nin) )) {
-    biffAddf(NRRD, "%s: invalid args", me);
+    biffAdd_va(NRRD, "%s: invalid args", me);
     return 1;
   }
   maxid = nrrdCCMax(nin);
   if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
                         AIR_CAST(size_t, maxid+1))) {
-    biffAddf(NRRD, "%s: can't allocate output", me);
+    biffAdd_va(NRRD, "%s: can't allocate output", me);
     return 1;
   }
   out = (unsigned int *)(nout->data);
@@ -78,7 +78,7 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     out[lup(nin->data, I)] += 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "")) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   

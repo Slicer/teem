@@ -58,14 +58,14 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
   unsigned ai;
 
   if (!(nout && nin && kernel && (samples || scalings))) {
-    biffAddf(NRRD, "%s: not NULL pointer", me);
+    biffAdd_va(NRRD, "%s: not NULL pointer", me);
     return 1;
   }
   if (!(info = nrrdResampleInfoNew())) {
-    biffAddf(NRRD, "%s: can't allocate resample info struct", me);
+    biffAdd_va(NRRD, "%s: can't allocate resample info struct", me);
     return 1;
   }
-
+  
   np = kernel->numParm;
   for (ai=0; ai<nin->dim; ai++) {
     info->kernel[ai] = kernel;
@@ -92,10 +92,10 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
      for all the remaining fields */
 
   if (nrrdSpatialResample(nout, nin, info)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
-
+  
   info = nrrdResampleInfoNix(info);
   return 0;
 }
@@ -115,17 +115,17 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   unsigned int ai, minsmp;
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
-    biffAddf(NRRD, "%s: can't resample to or from type %s", me,
-             airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd_va(NRRD, "%s: can't resample to or from type %s", me,
+               airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (nrrdBoundaryUnknown == info->boundary) {
-    biffAddf(NRRD, "%s: didn't set boundary behavior\n", me);
+    biffAdd_va(NRRD, "%s: didn't set boundary behavior\n", me);
     return 1;
   }
   if (nrrdBoundaryPad == info->boundary && !AIR_EXISTS(info->padValue)) {
-    biffAddf(NRRD,
-             "%s: asked for boundary padding, but no pad value set\n", me);
+    biffAdd_va(NRRD,
+               "%s: asked for boundary padding, but no pad value set\n", me);
     return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
@@ -134,35 +134,35 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
     if (!k)
       continue;
     if (!(info->samples[ai] > 0)) {
-      biffAddf(NRRD, "%s: axis %d # samples (" _AIR_SIZE_T_CNV ") invalid", 
-               me, ai, info->samples[ai]);
+      biffAdd_va(NRRD, "%s: axis %d # samples (" _AIR_SIZE_T_CNV ") invalid", 
+                 me, ai, info->samples[ai]);
       return 1;
     }
     if (!( AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max) )) {
-      biffAddf(NRRD, "%s: input nrrd's axis %d min,max have not both been set",
-               me, ai);
+      biffAdd_va(NRRD, "%s: input nrrd's axis %d min,max have not "
+                 "both been set", me, ai);
       return 1;
     }
     if (!( AIR_EXISTS(info->min[ai]) && AIR_EXISTS(info->max[ai]) )) {
-      biffAddf(NRRD, "%s: info's axis %d min,max not both set", me, ai);
+      biffAdd_va(NRRD, "%s: info's axis %d min,max not both set", me, ai);
       return 1;
     }
     np = k->numParm;
     for (p=0; p<np; p++) {
       if (!AIR_EXISTS(info->parm[ai][p])) {
-        biffAddf(NRRD, "%s: didn't set parameter %d (of %d) for axis %d\n",
-                 me, p, np, ai);
+        biffAdd_va(NRRD, "%s: didn't set parameter %d (of %d) for axis %d\n",
+                   me, p, np, ai);
         return 1;
       }
     }
     center = _nrrdCenter(nin->axis[ai].center);
     minsmp = nrrdCenterCell == center ? 1 : 2;
     if (!( nin->axis[ai].size >= minsmp && info->samples[ai] >= minsmp )) {
-      biffAddf(NRRD, "%s: axis %d # input samples (" _AIR_SIZE_T_CNV 
-               ") or output samples (" _AIR_SIZE_T_CNV ") "
-               " invalid for %s centering",
-               me, ai, nin->axis[ai].size, info->samples[ai],
-               airEnumStr(nrrdCenter, center));
+      biffAdd_va(NRRD, "%s: axis %d # input samples (" _AIR_SIZE_T_CNV 
+                 ") or output samples (" _AIR_SIZE_T_CNV ") "
+                 " invalid for %s centering",
+                 me, ai, nin->axis[ai].size, info->samples[ai],
+                 airEnumStr(nrrdCenter, center));
       return 1;
     }
   }
@@ -285,10 +285,10 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   int e, i;
 
   if (!(info->kernel[ai])) {
-    biffAddf(NRRD, "%s: don't see a kernel for dimension %d", me, ai);
+    biffAdd_va(NRRD, "%s: don't see a kernel for dimension %d", me, ai);
     *weightP = NULL; *indexP = NULL; return 0;
   }
-
+  
   center = _nrrdCenter(nin->axis[ai].center);
   sizeIn = nin->axis[ai].size;
   sizeOut = info->samples[ai];
@@ -328,10 +328,10 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   weight = (nrrdResample_t*)calloc(sizeOut*dotLen, sizeof(nrrdResample_t));
   index = (int*)calloc(sizeOut*dotLen, sizeof(int));
   if (!(weight && index)) {
-    biffAddf(NRRD, "%s: can't allocate weight and index arrays", me);
+    biffAdd_va(NRRD, "%s: can't allocate weight and index arrays", me);
     *weightP = NULL; *indexP = NULL; return 0;
   }
-
+  
   /* calculate sample locations and do first pass on indices */
   halfLen = dotLen/2;
   for (i=0; i<sizeOut; i++) {
@@ -381,8 +381,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
         idx = AIR_MOD(idx, sizeIn);
         break;
       default:
-        biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", 
-                 me, info->boundary);
+        biffAdd_va(NRRD, "%s: boundary behavior %d unknown/unimplemented", 
+                   me, info->boundary);
         *weightP = NULL; *indexP = NULL; return 0;
       }
       index[i] = idx;
@@ -569,19 +569,19 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   airArray *mop;              /* for cleaning up */
   
   if (!(nout && nin && info)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdBoundaryUnknown == info->boundary) {
-    biffAddf(NRRD, "%s: need to specify a boundary behavior", me);
+    biffAdd_va(NRRD, "%s: need to specify a boundary behavior", me);
     return 1;
   }
-
+  
   typeIn = nin->type;
   typeOut = nrrdTypeDefault == info->type ? typeIn : info->type;
 
   if (_nrrdResampleCheckInfo(nin, info)) {
-    biffAddf(NRRD, "%s: problem with arguments", me);
+    biffAdd_va(NRRD, "%s: problem with arguments", me);
     return 1;
   }
   
@@ -606,7 +606,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
        but with the clamping that we normally do at the end of resampling */
     nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, sz[0]);
     if (nrrdMaybeAlloc_nva(nout, typeOut, nin->dim, sz[0])) {
-      biffAddf(NRRD, "%s: couldn't allocate output", me);
+      biffAdd_va(NRRD, "%s: couldn't allocate output", me);
       return 1;
     }
     numOut = nrrdElementNumber(nout);
@@ -618,7 +618,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     /* HEY: need to create textual representation of resampling parameters */
     if (nrrdContentSet_va(nout, func, nin, "")) {
-      biffAddf(NRRD, "%s:", me);
+      biffAdd_va(NRRD, "%s:", me);
       return 1;
     }
     if (nrrdBasicInfoCopy(nout, nin,
@@ -631,7 +631,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                           | (nrrdStateKeyValuePairsPropagate
                              ? 0
                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      biffAddf(NRRD, "%s:", me);
+      biffAdd_va(NRRD, "%s:", me);
       return 1;
     }
     return 0;
@@ -641,7 +641,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   /* convert input nrrd to nrrdResample_t if necessary */
   if (nrrdResample_nrrdType != typeIn) {
     if (nrrdConvert(floatNin = nrrdNew(), nin, nrrdResample_nrrdType)) {
-      biffAddf(NRRD, "%s: couldn't create float copy of input", me);
+      biffAdd_va(NRRD, "%s: couldn't create float copy of input", me);
       airMopError(mop); return 1;
     }
     array[0] = (nrrdResample_t*)floatNin->data;
@@ -715,9 +715,9 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     /* allocate output volume */
     array[pi+1] = (nrrdResample_t*)calloc(numOut, sizeof(nrrdResample_t));
     if (!array[pi+1]) {
-      biffAddf(NRRD, "%s: couldn't create array of " _AIR_SIZE_T_CNV 
-               " nrrdResample_t's for output of pass %d",
-               me, numOut, pi);
+      biffAdd_va(NRRD, "%s: couldn't create array of " _AIR_SIZE_T_CNV 
+                 " nrrdResample_t's for output of pass %d",
+                 me, numOut, pi);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, array[pi+1], airFree, airMopAlways);
@@ -737,8 +737,8 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     dotLen = _nrrdResampleMakeWeightIndex(&weight, &index, &ratio,
                                           nin, info, ai);
     if (!dotLen) {
-      biffAddf(NRRD, "%s: trouble creating weight and index vector arrays",
-               me);
+      biffAdd_va(NRRD, "%s: trouble creating weight and index vector arrays",
+                 me);
       airMopError(mop); return 1;
     }
     ratios[ai] = ratio;
@@ -823,7 +823,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   
   /* create output nrrd and set axis info */
   if (nrrdMaybeAlloc_nva(nout, typeOut, nin->dim, sz[passes])) {
-    biffAddf(NRRD, "%s: couldn't allocate final output nrrd", me);
+    biffAdd_va(NRRD, "%s: couldn't allocate final output nrrd", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopOnError);
@@ -868,10 +868,10 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   }
   /* HEY: need to create textual representation of resampling parameters */
   if (nrrdContentSet_va(nout, func, nin, "")) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
-
+  
   /* copy the resampling final result into the output nrrd, maybe
      rounding as we go to make sure that 254.9999 is saved as 255
      in uchar output, and maybe clamping as we go to insure that
@@ -911,10 +911,10 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
-
+  
   /* enough already */
   airMopOkay(mop);
   return 0;

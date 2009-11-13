@@ -50,34 +50,35 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   char *src, *dest;
 
   if (!(nin && nout)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   if (1 == nin->dim) {
-    biffAddf(NRRD, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]", me);
+    biffAdd_va(NRRD, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]",
+               me);
     return 1;
   }
   if (!( saxi < nin->dim )) {
-    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
-             me, saxi, nin->dim-1);
+    biffAdd_va(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+               me, saxi, nin->dim-1);
     return 1;
   }
   if (!( pos < nin->axis[saxi].size )) {
-    biffAddf(NRRD, "%s: position " _AIR_SIZE_T_CNV 
-             " out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
-             me, pos, nin->axis[saxi].size-1);
+    biffAdd_va(NRRD, "%s: position " _AIR_SIZE_T_CNV 
+               " out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
+               me, pos, nin->axis[saxi].size-1);
     return 1;
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
-    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    biffAdd_va(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-
+  
   /* set up control variables */
   rowLen = colLen = 1;
   for (ai=0; ai<nin->dim; ai++) {
@@ -97,10 +98,10 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, outdim, szOut)) {
-    biffAddf(NRRD, "%s: failed to create slice", me);
+    biffAdd_va(NRRD, "%s: failed to create slice", me);
     return 1;
   }
-
+  
   /* the skinny */
   src = (char *)nin->data;
   dest = (char *)nout->data;
@@ -114,11 +115,11 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
 
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "%d,%d", saxi, pos)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
@@ -132,7 +133,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   /* translate origin if this was a spatial axis, otherwise copy */
@@ -172,34 +173,34 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 
   /* errors */
   if (!(nout && nin && min && max)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
     if (!(min[ai] <= max[ai])) {
-      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV 
-               ") not <= max (" _AIR_SIZE_T_CNV ")", 
-               me, ai, min[ai], max[ai]);
+      biffAdd_va(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV 
+                 ") not <= max (" _AIR_SIZE_T_CNV ")", 
+                 me, ai, min[ai], max[ai]);
       return 1;
     }
     if (!( min[ai] < nin->axis[ai].size && max[ai] < nin->axis[ai].size )) {
-      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV  
-               ") or max (" _AIR_SIZE_T_CNV  ") out of bounds [0," 
-               _AIR_SIZE_T_CNV  "]",
-               me, ai, min[ai], max[ai], nin->axis[ai].size-1);
+      biffAdd_va(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV  
+                 ") or max (" _AIR_SIZE_T_CNV  ") out of bounds [0," 
+                 _AIR_SIZE_T_CNV  "]",
+                 me, ai, min[ai], max[ai], nin->axis[ai].size-1);
       return 1;
     }
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
-    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    biffAdd_va(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-
+  
   /* allocate */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   numLines = 1;
@@ -211,7 +212,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   nout->blockSize = nin->blockSize;
   if (nrrdMaybeAlloc_nva(nout, nin->type, nin->dim, szOut)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   lineSize = szOut[0]*nrrdElementSize(nin);
@@ -250,7 +251,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
                                          NRRD_AXIS_INFO_MIN_BIT |
                                          NRRD_AXIS_INFO_MAX_BIT ))) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
@@ -303,7 +304,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     strcat(buff1, buff2);
   }
   if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
@@ -317,7 +318,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   /* copy origin, then shift it along the spatial axes */
@@ -349,12 +350,12 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
   unsigned int ai;
   
   if (!(nrrd && coord && val)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nrrd)) {
-    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
+    biffAdd_va(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
   
@@ -362,9 +363,9 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   for (ai=0; ai<nrrd->dim; ai++) {
     if (!( coord[ai] < size[ai] )) {
-      biffAddf(NRRD, "%s: coordinate " _AIR_SIZE_T_CNV 
-               " on axis %d out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
-               me, coord[ai], ai, size[ai]-1);
+      biffAdd_va(NRRD, "%s: coordinate " _AIR_SIZE_T_CNV 
+                 " on axis %d out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
+                 me, coord[ai], ai, size[ai]-1);
       return 1;
     }
   }
@@ -388,10 +389,10 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   va_list ap;
   
   if (!(nrrd && val)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-
+  
   va_start(ap, nrrd);
   for (ai=0; ai<nrrd->dim; ai++) {
     coord[ai] = va_arg(ap, size_t);
@@ -399,7 +400,7 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   va_end(ap);
   
   if (nrrdSample_nva(val, nrrd, coord)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   return 0;
@@ -416,7 +417,7 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 
   if (!(nout && nin)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   for (ai=0; ai<nin->dim; ai++) {
@@ -424,7 +425,7 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
     max[ai] = nin->axis[ai].size-1 - crop;
   }
   if (nrrdCrop(nout, nin, min, max)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   return 0;

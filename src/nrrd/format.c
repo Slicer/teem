@@ -63,12 +63,10 @@ int
 _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                             int useBiff) {
   static const char me[]="_nrrdFormatUnknown_fitsInto";
-  char err[BIFF_STRLEN];
   
   if (!(nrrd && encoding)) {
-    sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-            me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding)); 
     return AIR_FALSE;
   }
 
@@ -96,7 +94,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAddf(NRRD, "%s: ERROR!!! trying to read unknown format", me);
+  biffAdd_va(NRRD, "%s: ERROR!!! trying to read unknown format", me);
   return 1;
 }
 
@@ -110,7 +108,7 @@ _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAddf(NRRD, "%s: ERROR!!! trying to write unknown format", me);
+  biffAdd_va(NRRD, "%s: ERROR!!! trying to write unknown format", me);
   return 1;
 }
 

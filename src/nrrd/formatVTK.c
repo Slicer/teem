@@ -43,18 +43,15 @@ int
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatVTK_fitsInto";
-  char err[BIFF_STRLEN];
   
   if (!( nrrd && encoding )) {
-    sprintf(err, "%s: got NULL nrrd (%p) or encoding (%p)",
-            me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
-    sprintf(err, "%s: encoding can only be %s or %s", me,
-            nrrdEncodingRaw->name, nrrdEncodingAscii->name);
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
+                    nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type
@@ -65,17 +62,16 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
          || nrrdTypeInt == nrrd->type
          || nrrdTypeFloat == nrrd->type
          || nrrdTypeDouble == nrrd->type )) {
-    sprintf(err, "%s: type %s doesn't fit in VTK (as currently implemented)",
-            me, airEnumStr(nrrdType, nrrd->type));
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD,
+                    "%s: type %s doesn't fit in VTK (as currently implemented)",
+                    me, airEnumStr(nrrdType, nrrd->type));
     return AIR_FALSE;
   }
   if (!( 3 == nrrd->dim
          || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
          || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
-    sprintf(err, "%s: nrrd didn't look like a volume of scalars, "
-            "vectors, or matrices", me);
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: nrrd didn't look like a volume of "
+                    "scalars, vectors, or matrices", me); 
     return AIR_FALSE;
   }
   return AIR_TRUE;
@@ -99,25 +95,25 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   unsigned int llen;
 
   if (!_nrrdFormatVTK_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
-             nrrdFormatVTK->name);
+    biffAdd_va(NRRD, "%s: this doesn't look like a %s file", me, 
+               nrrdFormatVTK->name);
     return 1;
   }
 
-#define GETLINE(what) \
-  do { \
-    ret = _nrrdOneLine(&llen, nio, file); \
-  } while (!ret && (1 == llen)); \
-  if (ret || !llen) { \
-    biffAddf(NRRD, "%s: couldn't get " #what " line", me); \
-    return 1; \
+#define GETLINE(what)                                        \
+  do {                                                       \
+    ret = _nrrdOneLine(&llen, nio, file);                    \
+  } while (!ret && (1 == llen));                             \
+  if (ret || !llen) {                                        \
+    biffAdd_va(NRRD, "%s: couldn't get " #what " line", me); \
+    return 1;                                                \
   }
-
+  
   /* read in content */
   GETLINE(content);
   if (strcmp(NRRD_UNKNOWN, nio->line)) {
     if (!(nrrd->content = airStrdup(nio->line))) {
-      biffAddf(NRRD, "%s: couldn't read or copy content string", me);
+      biffAdd_va(NRRD, "%s: couldn't read or copy content string", me);
       return 1;
     }
   }
@@ -127,63 +123,65 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   } else if (!strcmp("BINARY", nio->line)) {
     nio->encoding = nrrdEncodingRaw;
   } else {
-    biffAddf(NRRD, "%s: encoding \"%s\" wasn't \"ASCII\" or \"BINARY\"",
-             me, nio->line);
+    biffAdd_va(NRRD, "%s: encoding \"%s\" wasn't \"ASCII\" or \"BINARY\"",
+               me, nio->line);
     return 1;
   }
   GETLINE(DATASET); airToUpper(nio->line);
   if (!strstr(nio->line, "STRUCTURED_POINTS")) {
-    biffAddf(NRRD, "%s: sorry, only STRUCTURED_POINTS data is nrrd-ready", me);
+    biffAdd_va(NRRD,
+               "%s: sorry, only STRUCTURED_POINTS data is nrrd-ready", me);
     return 1;
   }
   GETLINE(DIMENSIONS); airToUpper(nio->line);
   if (!strstr(nio->line, "DIMENSIONS")
       || 3 != sscanf(nio->line, "DIMENSIONS %d %d %d", &sx, &sy, &sz)) {
-    biffAddf(NRRD, "%s: couldn't parse DIMENSIONS line (\"%s\")",
-             me, nio->line);
+    biffAdd_va(NRRD, "%s: couldn't parse DIMENSIONS line (\"%s\")",
+               me, nio->line);
     return 1;
   }
   GETLINE(next); airToUpper(nio->line);
   while (!strstr(nio->line, "POINT_DATA")) {
     if (strstr(nio->line, "ORIGIN")) {
       if (3 != sscanf(nio->line, "ORIGIN %lf %lf %lf", &xm, &ym, &zm)) {
-        biffAddf(NRRD, "%s: couldn't parse ORIGIN line (\"%s\")",
-                 me, nio->line);
+        biffAdd_va(NRRD, "%s: couldn't parse ORIGIN line (\"%s\")",
+                   me, nio->line);
         return 1;
       }
     } else if (strstr(nio->line, "SPACING")) {
       if (3 != sscanf(nio->line, "SPACING %lf %lf %lf",
                       &xs, &ys, &zs)) {
-        biffAddf(NRRD, "%s: couldn't parse SPACING line (\"%s\")",
-                 me, nio->line);
+        biffAdd_va(NRRD, "%s: couldn't parse SPACING line (\"%s\")",
+                   me, nio->line);
         return 1;
       }      
     } else if (strstr(nio->line, "ASPECT_RATIO")) {
       if (3 != sscanf(nio->line, "ASPECT_RATIO %lf %lf %lf",
                       &xs, &ys, &zs)) {
-        biffAddf(NRRD, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
-                 me, nio->line);
+        biffAdd_va(NRRD, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
+                   me, nio->line);
         return 1;
       }      
     }
     GETLINE(next); airToUpper(nio->line);
   }
   if (1 != sscanf(nio->line, "POINT_DATA %d", &N)) {
-    biffAddf(NRRD, "%s: couldn't parse POINT_DATA line (\"%s\")",
-             me, nio->line);
+    biffAdd_va(NRRD, "%s: couldn't parse POINT_DATA line (\"%s\")",
+               me, nio->line);
     return 1;
   }
   if (N != sx*sy*sz) {
-    biffAddf(NRRD, "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)", 
-             me, sx, sy, sz, sx*sy*sz, N);
+    biffAdd_va(NRRD,
+               "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)", 
+               me, sx, sy, sz, sx*sy*sz, N);
     return 1;
   }
   GETLINE(attribute declaration);
   mop = airMopNew();
   if (3 != airParseStrS(three, nio->line, AIR_WHITESPACE, 3, AIR_FALSE)) {
-    biffAddf(NRRD,
-             "%s: didn't see three words in attribute declaration \"%s\"",
-             me, nio->line);
+    biffAdd_va(NRRD,
+               "%s: didn't see three words in attribute declaration \"%s\"",
+               me, nio->line);
     return 1;
   }
   airMopAdd(mop, three[0], airFree, airMopAlways);
@@ -196,7 +194,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
               "unsigned char\n", me);
       nrrd->type = nrrdTypeUChar;
     } else {
-      biffAddf(NRRD, "%s: can't read in \"bit\"-type data as BINARY", me);
+      biffAdd_va(NRRD, "%s: can't read in \"bit\"-type data as BINARY", me);
       return 1;
     }
   } else if (!strcmp(three[2], "unsigned_char")) {
@@ -219,14 +217,15 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     /* "unsigned_long" and "long" fall in here- I don't know what
        the VTK people mean by these types, since always mean different
        things on 32-bit versus 64-bit architectures */
-    biffAddf(NRRD, "%s: type \"%s\" not recognized", me, three[2]);
+    biffAdd_va(NRRD, "%s: type \"%s\" not recognized", me, three[2]);
     airMopError(mop); return 1;
   }
   airToUpper(three[0]);
   if (!strncmp("SCALARS", three[0], strlen("SCALARS"))) {
     GETLINE(LOOKUP_TABLE); airToUpper(nio->line);
     if (strcmp(nio->line, "LOOKUP_TABLE DEFAULT")) {
-      biffAddf(NRRD, "%s: sorry, can only deal with default LOOKUP_TABLE", me);
+      biffAdd_va(NRRD,
+                 "%s: sorry, can only deal with default LOOKUP_TABLE", me);
       airMopError(mop); return 1;
     }
     nrrd->dim = 3;
@@ -257,20 +256,20 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoMin, AIR_NAN, xm, ym, zm);
     nrrd->axis[0].kind = nrrdKind3DMatrix;
   } else {
-    biffAddf(NRRD,
-             "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
-             "currently, so couldn't parse attribute declaration \"%s\"",
-             me, nio->line);
+    biffAdd_va(NRRD,
+               "%s: sorry, can only deal with SCALARS, VECTORS, and TENSORS "
+               "currently, so couldn't parse attribute declaration \"%s\"",
+               me, nio->line);
     airMopError(mop); return 1;
   }
   if (!nio->skipData) {
     if (_nrrdCalloc(nrrd, nio, file)) {
-      biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
+      biffAdd_va(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }
     if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
                             nrrd, nio)) {
-      biffAddf(NRRD, "%s:", me);
+      biffAdd_va(NRRD, "%s:", me);
       return 1;
     }
     if (1 < nrrdElementSize(nrrd)
@@ -301,13 +300,13 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    biffAddf(NRRD, "%s: couldn't make private copy", me);
+    biffAdd_va(NRRD, "%s: couldn't make private copy", me);
     airMopError(mop); return 1;
   }
   if (!( 3 == nrrd->dim || 
          (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
                              9 == nrrd->axis[0].size)) )) {
-    biffAddf(NRRD, "%s: doesn't seem to be scalar, vector, or matrix", me);
+    biffAdd_va(NRRD, "%s: doesn't seem to be scalar, vector, or matrix", me);
     airMopError(mop); return 1;
   }
   sax = nrrd->dim - 3;
@@ -353,8 +352,8 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     strcpy(type, "double");
     break;
   default:
-    biffAddf(NRRD, "%s: can't put %s-type nrrd into VTK", me, 
-             airEnumStr(nrrdType, nrrd->type));
+    biffAdd_va(NRRD, "%s: can't put %s-type nrrd into VTK", me, 
+               airEnumStr(nrrdType, nrrd->type));
     airMopError(mop); return 1;
   }
   fprintf(file, "%s\n", MAGIC3);
@@ -399,10 +398,10 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   }
   if (nio->encoding->write(file, nrrd->data, nrrdElementNumber(nrrd),
                            nrrd, nio)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-
+  
   airMopOkay(mop); 
   return 0;
 }

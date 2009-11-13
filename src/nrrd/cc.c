@@ -249,7 +249,7 @@ _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   AIR_UNUSED(eqvArr);
   AIR_UNUSED(nin);
   AIR_UNUSED(conny);
-  biffAddf(NRRD, "%s: sorry, not implemented yet", me);
+  biffAdd_va(NRRD, "%s: sorry, not implemented yet", me);
   return 1;
 }
 
@@ -286,44 +286,44 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
   
   if (!(nout && nin)) {
     /* NULL nvalP okay */
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAdd_va(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAddf(NRRD, "%s: nout == nin disallowed", me);
+    biffAdd_va(NRRD, "%s: nout == nin disallowed", me);
     return 1;
   }
   if (!( nrrdTypeIsIntegral[nin->type] 
          && nrrdTypeIsUnsigned[nin->type] 
          && nrrdTypeSize[nin->type] <= 4 )) {
-    biffAddf(NRRD, "%s: can only find connected components in 1, 2, or 4 byte "
-             "unsigned integral values (not %s)",
-             me, airEnumStr(nrrdType, nin->type));
+    biffAdd_va(NRRD, "%s: can only find connected components in "
+               "1, 2, or 4 byte unsigned integral values (not %s)",
+               me, airEnumStr(nrrdType, nin->type));
     return 1;
   }
   if (nrrdTypeDefault != type) {
     if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
-      biffAddf(NRRD, "%s: got invalid target type %d", me, type);
+      biffAdd_va(NRRD, "%s: got invalid target type %d", me, type);
       return 1;
     }
     if (!( nrrdTypeIsIntegral[type]
            && nrrdTypeIsUnsigned[nin->type] 
            && nrrdTypeSize[type] <= 4 )) {
-      biffAddf(NRRD,
-               "%s: can only save connected components to 1, 2, or 4 byte "
-               "unsigned integral values (not %s)",
-               me, airEnumStr(nrrdType, type));
+      biffAdd_va(NRRD,
+                 "%s: can only save connected components to 1, 2, or 4 byte "
+                 "unsigned integral values (not %s)",
+                 me, airEnumStr(nrrdType, type));
       return 1;
     }
   }
   if (!( conny <= nin->dim )) {
-    biffAddf(NRRD, "%s: connectivity value must be in [1..%d] for %d-D "
-             "data (not %d)", me, nin->dim, nin->dim, conny);
+    biffAdd_va(NRRD, "%s: connectivity value must be in [1..%d] for %d-D "
+               "data (not %d)", me, nin->dim, nin->dim, conny);
     return 1;
   }
   if (nrrdConvert(nfpid=nrrdNew(), nin, nrrdTypeUInt)) {
-    biffAddf(NRRD, "%s: couldn't allocate fpid %s array to match input size",
-             me, airEnumStr(nrrdType, nrrdTypeUInt));
+    biffAdd_va(NRRD, "%s: couldn't allocate fpid %s array to match input size",
+               me, airEnumStr(nrrdType, nrrdTypeUInt));
     return 1;
   }
 
@@ -347,10 +347,10 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     break;
   }
   if (ret) {
-    biffAddf(NRRD, "%s: initial pass failed", me);
+    biffAdd_va(NRRD, "%s: initial pass failed", me);
     airMopError(mop); return 1;
   }
-
+  
   map = (unsigned int*)calloc(numid, sizeof(unsigned int));
   airMopAdd(mop, map, airFree, airMopAlways);
   numsettleid = airEqvMap(eqvArr, map, numid);
@@ -366,7 +366,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     }
     if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1,
                           AIR_CAST(size_t, numsettleid))) {
-      biffAddf(NRRD, "%s: couldn't allocate output value list", me);
+      biffAdd_va(NRRD, "%s: couldn't allocate output value list", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
@@ -383,8 +383,9 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
 
   if (nrrdTypeDefault != type) {
     if (numsettleid-1 > nrrdTypeMax[type]) {
-      biffAddf(NRRD, "%s: max cc id %u is too large to fit in output type %s",
-               me, numsettleid-1, airEnumStr(nrrdType, type));
+      biffAdd_va(NRRD,
+                 "%s: max cc id %u is too large to fit in output type %s",
+                 me, numsettleid-1, airEnumStr(nrrdType, type));
       airMopError(mop); return 1;
     }
   } else {
@@ -395,12 +396,12 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
                : nrrdTypeUInt));
   }
   if (nrrdConvert(nout, nfpid, type)) {
-    biffAddf(NRRD, "%s: trouble converting to final output", me);
+    biffAdd_va(NRRD, "%s: trouble converting to final output", me);
     airMopError(mop); return 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "%s,%d",
                         airEnumStr(nrrdType, type), conny)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   if (nout != nin) {
@@ -525,7 +526,7 @@ _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin,
   AIR_UNUSED(numid);
   AIR_UNUSED(nin);
   AIR_UNUSED(conny);
-  biffAddf(NRRD, "%s: sorry, not implemented", me);
+  biffAdd_va(NRRD, "%s: sorry, not implemented", me);
   return 1;
 }
 
@@ -537,23 +538,23 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   unsigned char *out;
 
   if (!( nout && nrrdCCValid(nin) )) {
-    biffAddf(NRRD, "%s: invalid args", me);
+    biffAdd_va(NRRD, "%s: invalid args", me);
     return 1;
   }
   if (nout == nin) {
-    biffAddf(NRRD, "%s: nout == nin disallowed", me);
+    biffAdd_va(NRRD, "%s: nout == nin disallowed", me);
     return 1;
   }
   if (!( AIR_IN_CL(1, conny, nin->dim) )) {
-    biffAddf(NRRD, "%s: connectivity value must be in [1..%d] for %d-D "
-             "data (not %d)", me, nin->dim, nin->dim, conny);
+    biffAdd_va(NRRD, "%s: connectivity value must be in [1..%d] for %d-D "
+               "data (not %d)", me, nin->dim, nin->dim, conny);
     return 1;
   }
   maxid = nrrdCCMax(nin);
   if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 2,
                         AIR_CAST(size_t, maxid+1),
                         AIR_CAST(size_t, maxid+1))) {
-    biffAddf(NRRD, "%s: trouble allocating output", me);
+    biffAdd_va(NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   out = (unsigned char *)(nout->data);
@@ -573,7 +574,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
     break;
   }
   if (ret) {
-    biffAddf(NRRD, "%s: trouble", me);
+    biffAdd_va(NRRD, "%s: trouble", me);
     return 1;
   }
   /* this goofiness is just so that histo-based projections
@@ -582,7 +583,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   nout->axis[0].min = nout->axis[1].min = -0.5;
   nout->axis[0].max = nout->axis[1].max = maxid + 0.5;
   if (nrrdContentSet_va(nout, func, nin, "%d", conny)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     return 1;
   }
   
@@ -647,20 +648,20 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
     /* _nval can be NULL */
-    biffAddf(NRRD, "%s: invalid args", me);
+    biffAdd_va(NRRD, "%s: invalid args", me);
     airMopError(mop); return 1;
   }
   if (valDir) {
     airMopAdd(mop, nval = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(nval, _nval, nrrdTypeUInt)) {
-      biffAddf(NRRD, "%s: value-directed merging needs usable nval", me);
+      biffAdd_va(NRRD, "%s: value-directed merging needs usable nval", me);
       airMopError(mop); return 1;
     }
     val = (unsigned int*)(nval->data);
   }
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      biffAddf(NRRD, "%s:", me);
+      biffAdd_va(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }
@@ -671,7 +672,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   if (nrrdCCSize(nsize, nin)
       || nrrdCopy(nnn, nsize)  /* just to allocate to right size and type */
       || nrrdCCAdjacency(nadj, nin, conny)) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   size = (unsigned int*)(nsize->data);
@@ -689,7 +690,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   hit = (unsigned int*)calloc(numid, sizeof(unsigned int));
   sizeId = (unsigned int*)calloc(2*numid, sizeof(unsigned int));
   if (!(map && id && hit && sizeId)) {
-    biffAddf(NRRD, "%s: couldn't allocate buffers", me);
+    biffAdd_va(NRRD, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, map, airFree, airMopAlways);
@@ -760,7 +761,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
        ||
        (!valDir && nrrdContentSet_va(nout, func, nin, ".,%d,%d,%d",
                                      maxSize, maxNeighbor, conny)) ) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   /* basic info handled by nrrdCopy */
@@ -783,11 +784,11 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
     (*ins)(void *, size_t, unsigned int);
   
   if (!( nout && nrrdCCValid(nin) && nval )) {
-    biffAddf(NRRD, "%s: invalid args", me);
+    biffAdd_va(NRRD, "%s: invalid args", me);
     return 1;
   }
   if (nrrdConvert(nout, nin, nval->type)) {
-    biffAddf(NRRD, "%s: couldn't initialize output", me);
+    biffAdd_va(NRRD, "%s: couldn't initialize output", me);
     return 1;
   }
   NN = nrrdElementNumber(nin);
@@ -813,11 +814,11 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
     /* nvalP can be NULL */
-    biffAddf(NRRD, "%s: invalid args", me);
+    biffAdd_va(NRRD, "%s: invalid args", me);
     airMopError(mop); return 1;
   }
   if (nrrdCopy(nout, nin)) {
-    biffAddf(NRRD, "%s: initial copy failed", me);
+    biffAdd_va(NRRD, "%s: initial copy failed", me);
     airMopError(mop); return 1;
   }
   maxid = nrrdCCMax(nin);
@@ -826,7 +827,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   NN = nrrdElementNumber(nin);
   map = (unsigned int *)calloc(maxid+1, sizeof(unsigned int));
   if (!map) {
-    biffAddf(NRRD, "%s: couldn't allocate internal LUT", me);
+    biffAdd_va(NRRD, "%s: couldn't allocate internal LUT", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, map, airFree, airMopAlways);
@@ -844,7 +845,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     }
     if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1,
                           AIR_CAST(size_t, numid))) {
-      biffAddf(NRRD, "%s: couldn't allocate output value list", me);
+      biffAdd_va(NRRD, "%s: couldn't allocate output value list", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, nvalP, (airMopper)airSetNull, airMopOnError);
@@ -866,7 +867,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   }
 
   if (nrrdContentSet_va(nout, func, nin, "")) {
-    biffAddf(NRRD, "%s:", me);
+    biffAdd_va(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   /* basic info handled by nrrdCopy */

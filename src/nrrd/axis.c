@@ -1108,16 +1108,16 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
   NrrdAxisInfo *axis;
 
   if (!(nout && nin)) {
-    biffAddf(NRRD, "%s: got NULL spacing", me);
+    biffAdd_va(NRRD, "%s: got NULL spacing", me);
     return 1;
   }
-
+  
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      biffAddf(NRRD, "%s: trouble doing initial copying", me);
+      biffAdd_va(NRRD, "%s: trouble doing initial copying", me);
       return 1;
     }
-
+    
   }
   if (!nout->spaceDim) {
     /* we're done! */

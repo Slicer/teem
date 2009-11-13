@@ -41,18 +41,16 @@ int
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
   static const char me[]="_nrrdFormatText_fitsInto";
-  char err[BIFF_STRLEN];
   
   AIR_UNUSED(encoding);
   /* encoding ignored- always ascii */
   if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
-    sprintf(err, "%s: dimension is %d, not 1 or 2", me, nrrd->dim);
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: dimension is %d, not 1 or 2",
+                    me, nrrd->dim); 
     return AIR_FALSE;
   }
   if (nrrdTypeBlock == nrrd->type) {
-    sprintf(err, "%s: can't save blocks to plain text", me);
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: can't save blocks to plain text", me);
     return AIR_FALSE;
   }
   /* NOTE: type of array not guaranteed to survive */
@@ -86,8 +84,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   _fppu u;
   
   if (!_nrrdFormatText_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
-             nrrdFormatText->name);
+    biffAdd_va(NRRD, "%s: this doesn't look like a %s file", me, 
+               nrrdFormatText->name);
     return 1;
   }
 
@@ -165,16 +163,16 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   plain:
     if (!fidx) {
       if (nrrdCommentAdd(nrrd, nio->line + 1)) {
-        biffAddf(NRRD, "%s: couldn't add comment", me);
+        biffAdd_va(NRRD, "%s: couldn't add comment", me);
         UNSETTWO; return 1;
       }
     }
     if (_nrrdOneLine(&llen, nio, file)) {
-      biffAddf(NRRD, "%s: error getting a line", me);
+      biffAdd_va(NRRD, "%s: error getting a line", me);
       UNSETTWO; return 1;
     }
     if (!llen) {
-      biffAddf(NRRD, "%s: hit EOF before any numbers parsed", me);
+      biffAdd_va(NRRD, "%s: hit EOF before any numbers parsed", me);
       UNSETTWO; return 1;
     }
     line++;
@@ -182,14 +180,14 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we supposedly have a line of numbers, see how many there are */
   if (!airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1)) {
-    biffAddf(NRRD, "%s: couldn't parse a single number on line "
-             _AIR_SIZE_T_CNV, me, line);
+    biffAdd_va(NRRD, "%s: couldn't parse a single number on line "
+               _AIR_SIZE_T_CNV, me, line);
     UNSETTWO; return 1;
   }
   u.f = &fl;
   flArr = airArrayNew(u.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
-    biffAddf(NRRD, "%s: couldn't create array for first line values", me);
+    biffAdd_va(NRRD, "%s: couldn't create array for first line values", me);
     UNSETTWO; return 1;
   }
   for (sx=1; 1; sx++) {
@@ -197,8 +195,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
        be parsed from a single finite line of input text */
     airArrayLenSet(flArr, sx);
     if (!flArr->data) {
-      biffAddf(NRRD, "%s: couldn't alloc space for " _AIR_SIZE_T_CNV 
-               " values", me, sx);
+      biffAdd_va(NRRD, "%s: couldn't alloc space for " _AIR_SIZE_T_CNV 
+                 " values", me, sx);
       UNSETTWO; return 1;
     }
     if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, sx)) {
@@ -210,8 +208,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   flArr = airArrayNuke(flArr);
   if (1 == nrrd->dim && 1 != sx) {
-    biffAddf(NRRD, "%s: wanted 1-D nrrd, but got " _AIR_SIZE_T_CNV 
-            " values on 1st line", me, sx);
+    biffAdd_va(NRRD, "%s: wanted 1-D nrrd, but got " _AIR_SIZE_T_CNV 
+               " values on 1st line", me, sx);
     UNSETTWO; return 1;
   }
   /* else sx == 1 when nrrd->dim == 1 */
@@ -220,28 +218,28 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   u.f = &al;
   alArr = airArrayNew(u.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
   if (!alArr) {
-    biffAddf(NRRD, "%s: couldn't create data buffer", me);
+    biffAdd_va(NRRD, "%s: couldn't create data buffer", me);
     UNSETTWO; return 1;
   }
   sy = 0;
   while (llen) {
     airArrayLenIncr(alArr, 1);
     if (!alArr->data) {
-      biffAddf(NRRD, "%s: couldn't create scanline of " _AIR_SIZE_T_CNV
-              " values", me, sx);
+      biffAdd_va(NRRD, "%s: couldn't create scanline of " _AIR_SIZE_T_CNV
+                 " values", me, sx);
       UNSETTWO; return 1;
     }
     plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, sx);
     if (sx > plen) {
-      biffAddf(NRRD, "%s: could only parse %d values (not " 
-              _AIR_SIZE_T_CNV ") on line " _AIR_SIZE_T_CNV,
-              me, plen, sx, line);
+      biffAdd_va(NRRD, "%s: could only parse %d values (not " 
+                 _AIR_SIZE_T_CNV ") on line " _AIR_SIZE_T_CNV,
+                 me, plen, sx, line);
       UNSETTWO; return 1;
     }
     sy++;
     line++;
     if (_nrrdOneLine(&llen, nio, file)) {
-      biffAddf(NRRD, "%s: error getting a line", me);
+      biffAdd_va(NRRD, "%s: error getting a line", me);
       UNSETTWO; return 1;
     }
   }
@@ -268,7 +266,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nret = nrrdMaybeAlloc_nva(nrrd, nrrdTypeFloat, nrrd->dim, size);
   }
   if (nret) {
-    biffAddf(NRRD, "%s: couldn't create nrrd for plain text data", me);
+    biffAdd_va(NRRD, "%s: couldn't create nrrd for plain text data", me);
     UNSETTWO; return 1;
   }
   memcpy(nrrd->data, al, sx*sy*sizeof(float));

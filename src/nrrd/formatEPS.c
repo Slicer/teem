@@ -40,21 +40,19 @@ int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatEPS_fitsInto";
-  char err[BIFF_STRLEN];
   int ret;
 
   AIR_UNUSED(encoding);
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
-    sprintf(err, "%s: got NULL nrrd (%p)", me, AIR_CAST(void*, nrrd));
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p)",
+                    me, AIR_CAST(void*, nrrd)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
-    sprintf(err, "%s: type must be %s (not %s)", me,
-            airEnumStr(nrrdType, nrrdTypeUChar),
-            airEnumStr(nrrdType, nrrd->type));
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: type must be %s (not %s)", me,
+                    airEnumStr(nrrdType, nrrdTypeUChar),
+                    airEnumStr(nrrdType, nrrd->type)); 
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -72,14 +70,14 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      sprintf(err, "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
-              ", not 1, 3, or 4", me, nrrd->axis[0].size);
-      biffMaybeAdd(NRRD, err, useBiff); 
+      biffMaybeAdd_va(useBiff, NRRD,
+                      "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
+                      ", not 1, 3, or 4", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
   } else {
-    sprintf(err, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
-    biffMaybeAdd(NRRD, err, useBiff); 
+    biffMaybeAdd_va(useBiff, NRRD, "%s: dimension is %d, not 2 or 3",
+                    me, nrrd->dim); 
     return AIR_FALSE;
   }
   return ret;
@@ -100,7 +98,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  biffAddf(NRRD, "%s: sorry, this is a write-only format", me);
+  biffAdd_va(NRRD, "%s: sorry, this is a write-only format", me);
   return 1;
 }
 
@@ -115,12 +113,12 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    biffAddf(NRRD, "%s: couldn't make private copy", me);
+    biffAdd_va(NRRD, "%s: couldn't make private copy", me);
     airMopError(mop); return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
-      biffAddf(NRRD, "%s:", me);
+      biffAdd_va(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }

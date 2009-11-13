@@ -54,10 +54,10 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     }
     ret = airDioRead(fd, data, bsize);
     if (ret != bsize) {
-      biffAddf(NRRD, "%s: airDioRead got read only "
-               _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
-               "(%g%% of expected)", me,
-               ret, bsize, 100.0*ret/bsize);
+      biffAdd_va(NRRD, "%s: airDioRead got read only "
+                 _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
+                 "(%g%% of expected)", me,
+                 ret, bsize, 100.0*ret/bsize);
       return 1;
     }
   } else {
@@ -87,22 +87,22 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
 	fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-	biffAddf(NRRD, "%s: fread got read only "
-		 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
-		 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
-		 ret, nrrdElementSize(nrrd), elementNum,
-		 100.0*ret/elementNum);
+	biffAdd_va(NRRD, "%s: fread got read only "
+                   _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+                   _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                   ret, nrrdElementSize(nrrd), elementNum,
+                   100.0*ret/elementNum);
 	return 1;
       }
     }
-    /* HEY: Here's the old version of the above code.
+    /* HEY: Here's the old version of the above code. 
     ret = fread(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
-      biffAddf(NRRD, "%s: fread got read only "
-               _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
-               _AIR_SIZE_T_CNV " (%g%% of expected)", me,
-               ret, nrrdElementSize(nrrd), elementNum,
-               100.0*ret/elementNum);
+      biffAdd_va(NRRD, "%s: fread got read only "
+                 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+                 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                 ret, nrrdElementSize(nrrd), elementNum,
+                 100.0*ret/elementNum);
       return 1;
     }
     */
@@ -150,10 +150,10 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     }
     ret = airDioWrite(fd, data, bsize);
     if (ret != bsize) {
-      biffAddf(NRRD, "%s: airDioWrite wrote only "
-              _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
-              "(%g%% of expected)", me,
-              ret, bsize, 100.0*ret/bsize);
+      biffAdd_va(NRRD, "%s: airDioWrite wrote only "
+                 _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV " bytes "
+                 "(%g%% of expected)", me,
+                 ret, bsize, 100.0*ret/bsize);
       return 1;
     }
   } else {
@@ -183,22 +183,22 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
 	fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-	biffAddf(NRRD, "%s: fwrite wrote only "
-		 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
-		 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
-		 ret, nrrdElementSize(nrrd), elementNum,
-		 100.0*ret/elementNum);
+	biffAdd_va(NRRD, "%s: fwrite wrote only "
+                   _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
+                   _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                   ret, nrrdElementSize(nrrd), elementNum,
+                   100.0*ret/elementNum);
 	return 1;
       }
     }
     /* HEY: Here's the old version of the above code.
     ret = fwrite(data, nrrdElementSize(nrrd), elementNum, file);
     if (ret != elementNum) {
-      biffAddf(NRRD, "%s: fwrite wrote only "
-              _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not " 
-              _AIR_SIZE_T_CNV " (%g%% of expected)", me,
-              ret, nrrdElementSize(nrrd), elementNum,
-              100.0*ret/elementNum);
+      biffAdd_va(NRRD, "%s: fwrite wrote only "
+                 _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not " 
+                 _AIR_SIZE_T_CNV " (%g%% of expected)", me,
+                 ret, nrrdElementSize(nrrd), elementNum,
+                 100.0*ret/elementNum);
       return 1;
     }
     */
@@ -206,7 +206,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     fflush(file);
     /*
     if (ferror(file)) {
-      biffAddf(NRRD, "%s: ferror returned non-zero", me);
+      biffAdd_va(NRRD, "%s: ferror returned non-zero", me);
       return 1;
     }
     */

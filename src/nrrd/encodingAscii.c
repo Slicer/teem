@@ -40,34 +40,34 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
 
   AIR_UNUSED(nio);
   if (nrrdTypeBlock == nrrd->type) {
-    biffAddf(NRRD, "%s: can't read nrrd type %s from %s", me,
-             airEnumStr(nrrdType, nrrdTypeBlock),
-             nrrdEncodingAscii->name);
+    biffAdd_va(NRRD, "%s: can't read nrrd type %s from %s", me,
+               airEnumStr(nrrdType, nrrdTypeBlock),
+               nrrdEncodingAscii->name);
     return 1;
   }
   data = (char*)_data;
   for (I=0; I<elNum; I++) {
     if (1 != fscanf(file, "%s", numbStr)) {
-      biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
-               " of " _AIR_SIZE_T_CNV, me, I+1, elNum);
+      biffAdd_va(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
+                 " of " _AIR_SIZE_T_CNV, me, I+1, elNum);
       return 1;
     }
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
       if (1 != airSingleSscanf(numbStr, nrrdTypePrintfStr[nrrd->type], 
                                (void*)(data + I*nrrdElementSize(nrrd)))) {
-        biffAddf(NRRD, "%s: couln't parse %s " _AIR_SIZE_T_CNV
-                 " of " _AIR_SIZE_T_CNV " (\"%s\")", me,
-                 airEnumStr(nrrdType, nrrd->type),
-                 I+1, elNum, numbStr);
+        biffAdd_va(NRRD, "%s: couln't parse %s " _AIR_SIZE_T_CNV
+                   " of " _AIR_SIZE_T_CNV " (\"%s\")", me,
+                   airEnumStr(nrrdType, nrrd->type),
+                   I+1, elNum, numbStr);
         return 1;
       }
     } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(numbStr, "%d", &tmp)) {
-        biffAddf(NRRD, "%s: couln't parse element " _AIR_SIZE_T_CNV
-                 " of " _AIR_SIZE_T_CNV " (\"%s\")",
-                 me, I+1, elNum, numbStr);
+        biffAdd_va(NRRD, "%s: couln't parse element " _AIR_SIZE_T_CNV
+                   " of " _AIR_SIZE_T_CNV " (\"%s\")",
+                   me, I+1, elNum, numbStr);
         return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
@@ -87,9 +87,9 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
   size_t I;
   
   if (nrrdTypeBlock == nrrd->type) {
-    biffAddf(NRRD, "%s: can't write nrrd type %s to %s", me,
-             airEnumStr(nrrdType, nrrdTypeBlock),
-             nrrdEncodingAscii->name);
+    biffAdd_va(NRRD, "%s: can't write nrrd type %s to %s", me,
+               airEnumStr(nrrdType, nrrdTypeBlock),
+               nrrdEncodingAscii->name);
     return 1;
   }
   data = (char*)_data;
