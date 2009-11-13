@@ -95,7 +95,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
-    biffMovef(PUSH, NRRD, "%s: trouble allocating outputs", me);
+    biffMove_va(PUSH, NRRD, "%s: trouble allocating outputs", me);
     return 1;
   }
   posOut = nPosOut ? (float*)(nPosOut->data) : NULL;

@@ -122,7 +122,7 @@ _pushContextCheck(pushContext *pctx) {
   }
 
   if (nrrdCheck(pctx->nin)) {
-    biffMovef(PUSH, NRRD, "%s: got a broken input nrrd", me);
+    biffMove_va(PUSH, NRRD, "%s: got a broken input nrrd", me);
     return 1;
   }
   if (!( (4 == pctx->nin->dim && 7 == pctx->nin->axis[0].size) )) {
@@ -140,7 +140,7 @@ _pushContextCheck(pushContext *pctx) {
 
   if (pctx->npos) {
     if (nrrdCheck(pctx->npos)) {
-      biffMovef(PUSH, NRRD, "%s: got a broken position nrrd", me);
+      biffMove_va(PUSH, NRRD, "%s: got a broken position nrrd", me);
       return 1;
     }
     if (!( 2 == pctx->npos->dim 
@@ -344,8 +344,8 @@ pushRun(pushContext *pctx) {
       }
       if (nrrdSave(poutS, npos, NULL)
           || nrrdSave(toutS, nten, NULL)) {
-        biffMovef(PUSH, NRRD, "%s: couldn't save snapshot for iter %d",
-                  me, pctx->iter);
+        biffMove_va(PUSH, NRRD, "%s: couldn't save snapshot for iter %d",
+                    me, pctx->iter);
         return 1;
       }
       nten = nrrdNuke(nten);
