@@ -71,7 +71,7 @@ hooverContextCheck(hooverContext *ctx) {
   if (limnCameraAspectSet(ctx->cam,
                           ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
       || limnCameraUpdate(ctx->cam)) {
-    biffMovef(HOOVER, LIMN, "%s: trouble setting up camera", me);
+    biffMove_va(HOOVER, LIMN, "%s: trouble setting up camera", me);
     return 1;
   }
   minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
