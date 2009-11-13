@@ -69,7 +69,7 @@ airArrayNew(void **dataP, unsigned int *lenP, size_t unit, unsigned int incr) {
     return NULL;
   }
   
-  a = (airArray *)calloc(1, sizeof(airArray));
+  a = AIR_CALLOC(1, airArray);
   if (!a) {
     return NULL;
   }
