@@ -97,7 +97,7 @@ alanUpdate(alanContext *actx) {
                                 AIR_CAST(size_t, actx->size[2])));
   }
   if (ret) {
-    biffMovef(ALAN, NRRD, "%s: trouble allocating buffers", me);
+    biffMove_va(ALAN, NRRD, "%s: trouble allocating buffers", me);
     return 1;
   }
   
@@ -121,7 +121,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   
   if (nlevInit) {
     if (nrrdCheck(nlevInit)) {
-      biffMovef(ALAN, NRRD, "%s: given nlevInit has problems", me);
+      biffMove_va(ALAN, NRRD, "%s: given nlevInit has problems", me);
       return 1;
     }
     if (!( alan_nt == nlevInit->type 
@@ -137,7 +137,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   }
   if (nparmInit) {
     if (nrrdCheck(nparmInit)) {
-      biffMovef(ALAN, NRRD, "%s: given nparmInit has problems", me);
+      biffMove_va(ALAN, NRRD, "%s: given nparmInit has problems", me);
       return 1;
     }
     if (!( alan_nt == nparmInit->type 
