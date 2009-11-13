@@ -1,0 +1,378 @@
+/*
+  Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public License
+  (LGPL) as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also
+  include exceptions to the LGPL that facilitate static linking.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this library; if not, write to Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include "gage.h"
+#include "privateGage.h"
+
+/*
+** does not use biff
+*/
+gageStackBlurParm *
+gageStackBlurParmNew() {
+  gageStackBlurParm *parm;
+
+  parm = AIR_CAST(gageStackBlurParm *, calloc(1, sizeof(gageStackBlurParm)));
+  if (parm) {
+    parm->scale = NULL;
+    parm->kspec = NULL;
+  }
+  return parm;
+}
+
+gageStackBlurParm *
+gageStackBlurParmNix(gageStackBlurParm *sbp) {
+
+  if (sbp) {
+    airFree(sbp->scale);
+    nrrdKernelSpecNix(sbp->kspec);
+  }
+  return sbp;
+}
+
+int
+gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
+                          double scaleMin, double scaleMax,
+                          int uniform, int optim) {
+  static const char me[]="gageStackBlurParmScaleSet";
+  unsigned int ii;
+
+  if (!( sbp )) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  sbp->scale = airFree(sbp->scale);
+  if (!( scaleMin < scaleMax )) {
+    biffAddf(GAGE, "%s: scaleMin %g not < scaleMax %g", me,
+             scaleMin, scaleMax);
+    return 1;
+  }
+  sbp->scale = AIR_CAST(double *, calloc(num, sizeof(double)));
+  if (!sbp->scale) {
+    biffAddf(GAGE, "%s: couldn't alloc scale for %u", me, num);
+    return 1;
+  }
+  sbp->num = num;
+
+  if (uniform) {
+    for (ii=0; ii<num; ii++) {
+      sbp->scale[ii] = AIR_AFFINE(0, ii, num-1, scaleMin, scaleMax);
+    }
+  } else if (!optim) {
+    double tau0, tau1, tau;
+    tau0 = gageTauOfSig(scaleMin);
+    tau1 = gageTauOfSig(scaleMax);
+    for (ii=0; ii<num; ii++) {
+      tau = AIR_AFFINE(0, ii, num-1, tau0, tau1);
+      sbp->scale[ii] = gageSigOfTau(tau);
+    }
+  } else {
+    unsigned int sigmax;
+    sigmax = AIR_CAST(unsigned int, scaleMax);
+    if (!( 0 == scaleMin && sigmax == scaleMax )) {
+      biffAddf(GAGE, "%s: range [%g,%g] not [0,N] w/ integral N", me,
+               scaleMin, scaleMax);
+      return 1;
+    }
+    if (gageOptimSigSet(sbp->scale, num, sigmax)) {
+      biffAddf(GAGE, "%s: trouble w/ optimal sigmas", me);
+      return 1;
+    }
+  }
+  
+  return 0;
+}
+                          
+int
+gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
+                           const NrrdKernelSpec *kspec,
+                           int boundary, int renormalize, int verbose) {
+  static const char me[]="gageStackBlurParmKernelSet";
+
+  if (!( sbp && kspec )) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (airEnumValCheck(nrrdBoundary, boundary)) {
+    biffAddf(GAGE, "%s: %d not a known %s", me, 
+             boundary, nrrdBoundary->name);
+    return 1;
+  }
+  nrrdKernelSpecNix(sbp->kspec);
+  sbp->kspec = nrrdKernelSpecCopy(kspec);
+  sbp->boundary = boundary;
+  sbp->renormalize = renormalize;
+  sbp->verbose = verbose;
+  return 0;
+}
+
+int
+gageStackBlurParmCheck(gageStackBlurParm *sbp) {
+  static const char me[]="gageStackBlurParmCheck";
+  unsigned int ii;
+
+  if (!sbp) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( sbp->scale && sbp->kspec )) {
+    biffAddf(GAGE, "%s: scale and kernel aren't set", me);
+    return 1;
+  }
+  if (!( sbp->num >= 2)) {
+    biffAddf(GAGE, "%s: need num >= 2, not %u", me, sbp->num);
+    return 1;
+  }
+  for (ii=0; ii<sbp->num; ii++) {
+    if (!AIR_EXISTS(sbp->scale[ii])) {
+      biffAddf(GAGE, "%s: scale[%u] = %g doesn't exist", me, ii,
+               sbp->scale[ii]);
+      return 1;
+    }
+    if (ii) {
+      if (!( sbp->scale[ii-1] < sbp->scale[ii] )) {
+        biffAddf(GAGE, "%s: scale[%u] = %g not < scale[%u] = %g", me,
+                 ii, sbp->scale[ii-1], ii+1, sbp->scale[ii]);
+        return 1;
+      }
+    }
+  }
+  if (airEnumValCheck(nrrdBoundary, sbp->boundary)) {
+    biffAddf(GAGE, "%s: %d not a known %s", me,
+             sbp->boundary, nrrdBoundary->name);
+    return 1;
+  }
+  return 0;
+}
+
+static int
+_checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[],
+           unsigned int blNum, int checking,
+           const Nrrd *nin, const gageKind *kind) {
+  static const char me[]="_checkNrrd";
+  unsigned int blIdx;
+
+  for (blIdx=0; blIdx<blNum; blIdx++) {
+    if (checking) {
+      if (nrrdCheck(ncheck[blIdx])) {
+        biffMove_va(GAGE, NRRD, "%s: bad ncheck[%u]", me, blIdx);
+        return 1;
+      }
+    } else {
+      if (!nblur[blIdx]) {
+        biffAddf(GAGE, "%s: NULL blur[%u]", me, blIdx);
+        return 1;
+      }
+    }
+  }
+  if (3 + kind->baseDim != nin->dim) {
+    biffAddf(GAGE, "%s: need nin->dim %u (not %u) with baseDim %u", me,
+             3 + kind->baseDim, nin->dim, kind->baseDim);
+    return 1;
+  }
+  return 0;
+}
+
+#define KVP_NUM 5
+
+static const char                      /*    0             1         2          3            4     */
+_blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel", "boundary", "renormalize"};
+
+typedef struct {
+  char val[KVP_NUM][AIR_STRLEN_LARGE];
+} blurVal_t;
+
+static blurVal_t *
+_blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
+  static const char me[]="_blurValAlloc";
+  blurVal_t *blurVal;
+  unsigned int blIdx;
+
+  blurVal = AIR_CAST(blurVal_t *, calloc(sbp->num, sizeof(blurVal_t)));
+  if (!blurVal) {
+    biffAddf(GAGE, "%s: couldn't alloc blurVal for %u", me, sbp->num);
+    return NULL;
+  }
+  for (blIdx=0; blIdx<sbp->num; blIdx++) {
+    sbp->kspec->parm[0] = sbp->scale[blIdx];
+    sprintf(blurVal[blIdx].val[0], "true");
+    sprintf(blurVal[blIdx].val[1], "%g", sbp->scale[blIdx]);
+    nrrdKernelSpecSprint(blurVal[blIdx].val[2], sbp->kspec);
+    sprintf(blurVal[blIdx].val[3], "%s", sbp->renormalize ? "true" : "false");
+    sprintf(blurVal[blIdx].val[4], "%s",
+            airEnumStr(nrrdBoundary, sbp->boundary));
+  }
+  airMopAdd(mop, blurVal, airFree, airMopAlways);
+  return blurVal;
+}
+
+/*
+** little helper function to do pre-blurring of a given nrrd 
+** of the sort that might be useful for scale-space gage use
+**
+** nblur has to already be allocated for "blNum" Nrrd*s, AND, they all
+** have to point to valid (possibly empty) Nrrds, so they can hold the
+** results of blurring. 
+*/
+int
+gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
+              const Nrrd *nin, const gageKind *kind) {
+  static const char me[]="gageStackBlur";
+  unsigned int blIdx, axi;
+  NrrdResampleContext *rsmc;
+  blurVal_t *blurVal;
+  airArray *mop;
+  int E;
+
+  if (!(nblur && sbp && nin && kind)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+  if (gageStackBlurParmCheck(sbp)
+      || _checkNrrd(nblur, NULL, sbp->num, AIR_FALSE, nin, kind)
+      || (!( blurVal = _blurValAlloc(mop, sbp) )) ) {
+    biffAddf(GAGE, "%s: problem", me);
+    airMopError(mop); return 1;
+  }
+  rsmc = nrrdResampleContextNew();
+  airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
+
+  E = 0;
+  if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
+  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+  if (kind->baseDim) {
+    unsigned int bai;
+    for (bai=0; bai<kind->baseDim; bai++) {
+      if (!E) E |= nrrdResampleKernelSet(rsmc, bai, NULL, NULL);
+    }
+  }
+  for (axi=0; axi<3; axi++) {
+    if (!E) E |= nrrdResampleSamplesSet(rsmc, kind->baseDim + axi,
+                                        nin->axis[kind->baseDim + axi].size);
+    if (!E) E |= nrrdResampleRangeFullSet(rsmc, kind->baseDim + axi);
+  }
+  if (!E) E |= nrrdResampleBoundarySet(rsmc, sbp->boundary);
+  if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
+  if (!E) E |= nrrdResampleRenormalizeSet(rsmc, sbp->renormalize);
+  if (E) {
+    biffAddf(GAGE, "%s: trouble setting up resampling", me);
+    airMopError(mop); return 1;
+  }
+
+  for (blIdx=0; blIdx<sbp->num; blIdx++) {
+    unsigned int kvpIdx;
+    if (sbp->verbose) {
+      fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blIdx,
+              sbp->num, sbp->scale[blIdx]);
+      fflush(stderr);
+    }
+    for (axi=0; axi<3; axi++) {
+      if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                         sbp->kspec->kernel,
+                                         sbp->kspec->parm);
+    }
+    if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
+    if (E) {
+      if (sbp->verbose) {
+        fprintf(stderr, "problem!\n");
+      }
+      biffAddf(GAGE, "%s: trouble w/ %u of %u (scale %g)",
+               me, blIdx, sbp->num, sbp->scale[blIdx]);
+      airMopError(mop); return 1;
+    }
+    if (sbp->verbose) {
+      fprintf(stderr, "done.\n");
+    }
+    /* add the KVPs to document how these were blurred */
+    for (kvpIdx=0; kvpIdx<KVP_NUM; kvpIdx++) {
+      if (!E) E |= nrrdKeyValueAdd(nblur[blIdx], _blurKey[kvpIdx],
+                                   blurVal[blIdx].val[kvpIdx]);
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+int
+gageStackBlurCheck(const Nrrd *const nblur[], 
+                   gageStackBlurParm *sbp,
+                   const Nrrd *nin, const gageKind *kind) {
+  static const char me[]="gageStackBlurCheck";
+  gageShape *shapeOld, *shapeNew;
+  blurVal_t *blurVal;
+  airArray *mop;
+  unsigned int blIdx, kvpIdx;
+
+  if (!(nblur && sbp && nin && kind)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+  if (gageStackBlurParmCheck(sbp)
+      || _checkNrrd(NULL, nblur, sbp->num, AIR_TRUE, nin, kind)
+      || (!( blurVal = _blurValAlloc(mop, sbp) )) ) {
+    biffAddf(GAGE, "%s: problem", me);
+    airMopError(mop); return 1;
+  }
+
+  shapeNew = gageShapeNew();
+  airMopAdd(mop, shapeNew, (airMopper)gageShapeNix, airMopAlways);
+  if (gageShapeSet(shapeNew, nin, kind->baseDim)) {
+    biffAddf(GAGE, "%s: trouble setting up reference shape", me);
+    airMopError(mop); return 1;
+  }
+  shapeOld = gageShapeNew();
+  airMopAdd(mop, shapeOld, (airMopper)gageShapeNix, airMopAlways);
+
+  for (blIdx=0; blIdx<sbp->num; blIdx++) {
+    /* check to see if nblur[blIdx] is as expected */
+    if (gageShapeSet(shapeOld, nblur[blIdx], kind->baseDim)) {
+      biffAddf(GAGE, "%s: trouble checking shape %u", me, blIdx);
+      airMopError(mop); return 1;
+    }
+    if (gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
+      biffAddf(GAGE, "%s: trouble assessing nblur[%u] shape != nin shape",
+               me, blIdx);
+      airMopError(mop); return 1;
+    }
+    /* see if the KVPs are already there */
+    for (kvpIdx=0; kvpIdx<KVP_NUM; kvpIdx++) {
+      char *tmpval;
+      tmpval = nrrdKeyValueGet(nblur[blIdx], _blurKey[kvpIdx]);
+      if (!tmpval) {
+        biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
+                 _blurKey[kvpIdx], blIdx);
+        airMopOkay(mop); return 0;
+      }
+      airMopAdd(mop, tmpval, airFree, airMopAlways);
+      if (strcmp(tmpval, blurVal[blIdx].val[kvpIdx])) {
+        biffAddf(GAGE, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
+                 _blurKey[kvpIdx], tmpval, blurVal[blIdx].val[kvpIdx]);
+        airMopOkay(mop); return 0;
+      }
+    }
+  }
+
+  return 0;
+}
+
