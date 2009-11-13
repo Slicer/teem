@@ -98,11 +98,11 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   double xs, ys, zs, ms;
 
   if (!(nout && nin)) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( 3 == nin->dim && nrrdTypeBlock != nin->type )) {
-    biffAddf(GAGE, "%s: nin isn't a 3D non-block type nrrd", me);
+    biffAdd_va(GAGE, "%s: nin isn't a 3D non-block type nrrd", me);
     return 1;
   }
   /*
@@ -129,7 +129,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   if ( nrrdKernelSpecParse(gk0, "cubic:1,0")
        || nrrdKernelSpecParse(gk1, "cubicd:1,0")
        || nrrdKernelSpecParse(ik0, "cubic:1,0")) {
-    biffMovef(GAGE, NRRD, "%s: couldn't set up kernels", me);
+    biffMove_va(GAGE, NRRD, "%s: couldn't set up kernels", me);
     airMopError(mop); return 1;
   }
   /* manually set scale parameters */

@@ -18,6 +18,7 @@ SET(GAGE_SOURCES
   shape.c
   st.c
   stack.c
+  stackBlur.c
   update.c
   vecGage.c
   vecprint.c

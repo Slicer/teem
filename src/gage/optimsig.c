@@ -180,18 +180,18 @@ gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
   unsigned int si;
   
   if (!scale) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!AIR_IN_CL(2, num, GAGE_OPTIMSIG_SAMPLES_MAXNUM)) {
-    biffAddf(GAGE,
-             "%s: requested # sigma samples %u not in known range [2,%u]",
-             me, num, GAGE_OPTIMSIG_SAMPLES_MAXNUM);
+    biffAdd_va(GAGE,
+               "%s: requested # sigma samples %u not in known range [2,%u]",
+               me, num, GAGE_OPTIMSIG_SAMPLES_MAXNUM);
     return 1;
   }
   if (!AIR_IN_CL(1, sigmaMax, GAGE_OPTIMSIG_SIGMA_MAX)) {
-    biffAddf(GAGE, "%s: requested sigma max %u not in known range [1,%u]",
-             me, sigmaMax, GAGE_OPTIMSIG_SIGMA_MAX);
+    biffAdd_va(GAGE, "%s: requested sigma max %u not in known range [1,%u]",
+               me, sigmaMax, GAGE_OPTIMSIG_SIGMA_MAX);
     return 1;
   }
 
@@ -299,23 +299,23 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
   unsigned int support, ii;
 
   if (!parm) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!AIR_IN_CL(1, dim, 3)) {
-    biffAddf(GAGE, "%s: dim %u not 1, 2, or 3", me, dim);
+    biffAdd_va(GAGE, "%s: dim %u not 1, 2, or 3", me, dim);
     return 1;
   }
   if (!(sigmaMax > 0 && cutoff > 0)) {
-    biffAddf(GAGE, "%s: sigmaMax %g, cutoff %g not both > 0", me, 
-             sigmaMax, cutoff);
+    biffAdd_va(GAGE, "%s: sigmaMax %g, cutoff %g not both > 0", me, 
+               sigmaMax, cutoff);
     return 1;
   }
   if (!(measrSampleNum >= 3)) {
-    biffAddf(GAGE, "%s: measrSampleNum %u not >= 3", me, measrSampleNum);
+    biffAdd_va(GAGE, "%s: measrSampleNum %u not >= 3", me, measrSampleNum);
     return 1;
   }
-
+  
   parm->dim = dim;
   kparm[0] = parm->sigmaMax = sigmaMax;
   kparm[1] = parm->cutoff = cutoff;
@@ -327,7 +327,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
   airFree(parm->sigmatru);
   parm->sigmatru = AIR_CAST(double *, calloc(measrSampleNum, sizeof(double)));
   if (!parm->sigmatru) {
-    biffAddf(GAGE, "%s: couldn't alloc sigmatru buffer", me);
+    biffAdd_va(GAGE, "%s: couldn't alloc sigmatru buffer", me);
     return 1;
   }
   if (nrrdMaybeAlloc_va(parm->ntruth, nrrdTypeDouble, 4,
@@ -351,7 +351,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
                            AIR_CAST(size_t, parm->sx),
                            AIR_CAST(size_t, parm->sy),
                            AIR_CAST(size_t, parm->sz))) {
-    biffMovef(GAGE, NRRD, "%s: couldn't allocate truth", me);
+    biffMove_va(GAGE, NRRD, "%s: couldn't allocate truth", me);
     return 1;
   }
   parm->truth = AIR_CAST(double *, parm->ntruth->data);
@@ -368,7 +368,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
                           AIR_CAST(size_t, parm->sx),
                           AIR_CAST(size_t, parm->sy),
                           AIR_CAST(size_t, parm->sz))) {
-      biffMovef(GAGE, NRRD, "%s: couldn't allocate vol[%u]", me, ii);
+      biffMove_va(GAGE, NRRD, "%s: couldn't allocate vol[%u]", me, ii);
       return 1;
     }
     nrrdAxisInfoSet_va(parm->nsampvol[ii], nrrdAxisInfoSpacing,
@@ -505,7 +505,7 @@ _gageSetup(gageOptimSigParm *parm) {
   if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
   if (!E) E |= gageUpdate(parm->gctx);
   if (E) {
-    biffAddf(GAGE, "%s: problem setting up gage", me);
+    biffAdd_va(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
   return 0;
@@ -590,8 +590,8 @@ _optsigrun(gageOptimSigParm *parm) {
     printf(". grad = %g\n", grad);
     delta = -grad*parm->step[pnt];
     if (!AIR_EXISTS(delta)) {
-      biffAddf(GAGE, "%s: got non-exist delta %g on iter %u (pnt %u) err %g",
-               me, delta, iter, pnt, lastErr);
+      biffAdd_va(GAGE, "%s: got non-exist delta %g on iter %u (pnt %u) err %g",
+                 me, delta, iter, pnt, lastErr);
       return 1;
     }
     if (AIR_ABS(delta) > limit) {
@@ -605,8 +605,8 @@ _optsigrun(gageOptimSigParm *parm) {
     badStep = AIR_FALSE;
     do {
       if (tryi == parm->maxIter) {
-        biffAddf(GAGE, "%s: confusion (tryi %u) on iter %u (pnt %u) err %g",
-                 me, tryi, iter, pnt, lastErr);
+        biffAdd_va(GAGE, "%s: confusion (tryi %u) on iter %u (pnt %u) err %g",
+                   me, tryi, iter, pnt, lastErr);
         return 1;
       }
       if (!delta) {
@@ -656,8 +656,8 @@ _optsigrun(gageOptimSigParm *parm) {
     lastErr = newErr;
   }
   if (iter == parm->maxIter) {
-    biffAddf(GAGE, "%s: failed to converge (%g > %g) after %u iters\n", me,
-             decavg, parm->convEps, iter);
+    biffAdd_va(GAGE, "%s: failed to converge (%g > %g) after %u iters\n", me,
+               decavg, parm->convEps, iter);
     return 1;
   }
   parm->finalErr = lastErr;
@@ -674,17 +674,17 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   double tauMax;
 
   if (!( parm && scalePos && num )) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( AIR_IN_CL(1, parm->dim, 3)
          && parm->ntruth->data )) {
-    biffAddf(GAGE, "%s: incomplete parm setup?", me);
+    biffAdd_va(GAGE, "%s: incomplete parm setup?", me);
     return 1;
   }
   if (num > parm->sampleNumMax) {
-    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me, 
-             parm->sampleNumMax, num);
+    biffAdd_va(GAGE, "%s: parm setup for max %u samples, not %u", me, 
+               parm->sampleNumMax, num);
     return 1;
   }
   /* copy remaining input parms */
@@ -707,7 +707,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   /* set up gage */
   printf("%s: setting up gage ... \n", me);
   if (_gageSetup(parm)) {
-    biffAddf(GAGE, "%s: problem setting up gage", me);
+    biffAdd_va(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
   printf("%s: gage setup done.\n", me);
@@ -715,7 +715,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   /* run the optimization */
   if (num > 2) {
     if (_optsigrun(parm)) {
-      biffAddf(GAGE, "%s: trouble", me);
+      biffAdd_va(GAGE, "%s: trouble", me);
       return 1;
     }
   } else {
@@ -737,28 +737,28 @@ int
 gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
                  const double *plotPos, unsigned int plotPosNum,
                  int volMeasr, int tentRecon) {
-  char me[]="gageOptimSigPlot", err[BIFF_STRLEN], doneStr[AIR_STRLEN_SMALL];
+  char me[]="gageOptimSigPlot", doneStr[AIR_STRLEN_SMALL];
   unsigned int ii;
   double *out;
 
   if (!(parm && nout && plotPos)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(GAGE, err); return 1;
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!( plotPosNum >= 2 )) {
-    sprintf(err, "%s: need plotPosNum >= 2 (not %u)", me, plotPosNum);
-    biffAdd(GAGE, err); return 1;
+    biffAdd_va(GAGE, "%s: need plotPosNum >= 2 (not %u)", me, plotPosNum);
+    return 1;
   }
   /* HEY: copy and paste from above */
   if (!( AIR_IN_CL(1, parm->dim, 3)
          && parm->ntruth->data )) {
-    sprintf(err, "%s: incomplete parm setup?", me);
-    biffAdd(GAGE, err); return 1;
+    biffAdd_va(GAGE, "%s: incomplete parm setup?", me);
+    return 1;
   }
   if (plotPosNum > parm->sampleNumMax) {
-    sprintf(err, "%s: parm setup for max %u samples, not %u", me, 
-            parm->sampleNumMax, plotPosNum);
-    biffAdd(GAGE, err); return 1;
+    biffAdd_va(GAGE, "%s: parm setup for max %u samples, not %u", me, 
+               parm->sampleNumMax, plotPosNum);
+    return 1;
   }
   /* copy remaining input parms */
   parm->sampleNum = plotPosNum;
@@ -766,8 +766,8 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
   parm->tentRecon = tentRecon;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1, 
                         AIR_CAST(size_t, parm->measrSampleNum))) {
-    sprintf(err, "%s: trouble allocating output", me);
-    biffMove(GAGE, err, NRRD); return 1;
+    biffMove_va(GAGE, NRRD, "%s: trouble allocating output", me);
+    return 1;
   }
   out = AIR_CAST(double *, nout->data);
 
@@ -776,8 +776,8 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
     _scalePosSet(parm, ii, plotPos[ii]);
   }
   if (_gageSetup(parm)) {
-    sprintf(err, "%s: problem setting up gage", me);
-    biffAdd(GAGE, err); return 1;
+    biffAdd_va(GAGE, "%s: problem setting up gage", me);
+    return 1;
   }
   printf("%s: working ...       ", me);
   for (ii=0; ii<parm->measrSampleNum; ii++) {

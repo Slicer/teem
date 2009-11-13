@@ -753,6 +753,20 @@ typedef struct {
 } gageItemSpec;
 
 /*
+******** gageStackBlurParm struct
+**
+** all parameters associated with blurring one volume to form a "stack"
+*/
+typedef struct {
+  unsigned int num;            /* # of blurring scales == # volumes */
+  double *scale;
+  NrrdKernelSpec *kspec;       /* parm[0] will get over-written */
+  int boundary,
+    renormalize,
+    verbose;
+} gageStackBlurParm;
+
+/*
 ******** gageOptimSigParm struct
 **
 ** a fairly disorganized mess of parameters.  under construction
@@ -933,11 +947,10 @@ GAGE_EXPORT double gageTauOfTee(double tee);
 GAGE_EXPORT double gageTeeOfTau(double tau);
 GAGE_EXPORT double gageSigOfTau(double tau);
 GAGE_EXPORT double gageTauOfSig(double sig);
-GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], const double *scale,
-                              unsigned int num, int checkPreblurredOutput,
-                              const Nrrd *nin, const gageKind *kind,
-                              const NrrdKernelSpec *kspec,
-                              int boundary, int renormalize, int verbose);
+GAGE_EXPORT double gageStackWtoI(gageContext *ctx, double swrl,
+                                 int *outside);
+GAGE_EXPORT double gageStackItoW(gageContext *ctx, double si,
+                                 int *outside);
 GAGE_EXPORT int gageStackPerVolumeNew(gageContext *ctx,
                                       gagePerVolume **pvlStack,
                                       const Nrrd *const *nblur,
@@ -953,10 +966,25 @@ GAGE_EXPORT int gageStackProbe(gageContext *ctx,
 GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
                                     double x, double y, double z, double s,
                                     int indexSpace, int clamp);
-GAGE_EXPORT double gageStackWtoI(gageContext *ctx, double swrl,
-                                 int *outside);
-GAGE_EXPORT double gageStackItoW(gageContext *ctx, double si,
-                                 int *outside);
+
+/* stackBlur.c */
+GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNew(void);
+GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNix(gageStackBlurParm *sbp);
+GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
+                                          unsigned int num,
+                                          double scaleMin, double scaleMax,
+                                          int uniform, int optim);
+GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
+                                           const NrrdKernelSpec *kspec,
+                                           int boundary, int renormalize,
+                                           int verbose);
+GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
+GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
+                              const Nrrd *nin, const gageKind *kind);
+GAGE_EXPORT int gageStackBlurCheck(const Nrrd *const nblur[],
+                                   gageStackBlurParm *sbp,
+                                   const Nrrd *nin, const gageKind *kind);
+/*
 GAGE_EXPORT int gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP,
                                    int *recomputedP,
                                    unsigned int numSS, const double rangeSS[2],
@@ -964,6 +992,7 @@ GAGE_EXPORT int gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP,
                                    const char *formatSS, unsigned int numStart,
                                    const Nrrd *nin, const gageKind *kind,
                                    const NrrdKernelSpec *kSSblur, int verbose);
+*/
 
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();

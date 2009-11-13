@@ -25,7 +25,8 @@
 
 void
 gageShapeReset(gageShape *shape) {
-  
+
+  /* NOTE this guards against NULL */
   if (shape) {
     shape->defaultCenter = gageDefDefaultCenter;
     ELL_3V_SET(shape->size, 0, 0, 0);
@@ -34,6 +35,15 @@ gageShapeReset(gageShape *shape) {
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
   }
   return;
+}
+
+static void *
+_mopShapeReset(void *_shape) {
+  gageShape *shape;
+
+  shape = AIR_CAST(gageShape *, _shape);
+  gageShapeReset(shape);
+  return NULL;
 }
 
 gageShape *
@@ -82,6 +92,7 @@ shapeUnitItoW(gageShape *shape, double world[3], double index[3],
     }
   }
 }
+
 /*
 ** _gageShapeSet
 **
@@ -104,6 +115,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   const NrrdAxisInfo *ax[3];
   double vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
     spcCalc[3], vecCalc[3][NRRD_SPACE_DIM_MAX], orig[NRRD_SPACE_DIM_MAX];
+  airArray *mop;
   
   /*
   fprintf(stderr, "!%s: ctx = %p (%s, %s)\n", me, ctx,
@@ -119,26 +131,24 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
            : "???"));
   */
   /* ------ basic error checking */
+  mop = airMopNew();
+  airMopAdd(mop, shape, _mopShapeReset, airMopOnError);
   if (!( shape && nin )) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
-    if (shape) { gageShapeReset(shape); }
-    return 1;
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
+    airMopError(mop); return 1;
   }
   if (nrrdCheck(nin)) {
-    biffMovef(GAGE, NRRD, "%s: basic nrrd validity check failed", me);
-    gageShapeReset(shape);
-    return 1;
+    biffMove_va(GAGE, NRRD, "%s: basic nrrd validity check failed", me);
+    airMopError(mop); return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    biffAddf(GAGE, "%s: need a non-block type nrrd", me);
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: need a non-block type nrrd", me);
+    airMopError(mop); return 1;
   }
   if (!(nin->dim == 3 + baseDim)) {
-    biffAddf(GAGE, "%s: nrrd should be %u-D, not %u-D",
-             me, 3 + baseDim, nin->dim);
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: nrrd should be %u-D, not %u-D",
+               me, 3 + baseDim, nin->dim);
+    airMopError(mop); return 1;
   }
   ax[0] = &(nin->axis[baseDim+0]);
   ax[1] = &(nin->axis[baseDim+1]);
@@ -154,69 +164,62 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   if (nrrdSpacingStatusUnknown == statCalc[0]
       || nrrdSpacingStatusUnknown == statCalc[1]
       || nrrdSpacingStatusUnknown == statCalc[2]) {
-    biffAddf(GAGE, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
-             me, baseDim + 0, baseDim + 1, baseDim + 2);
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: nrrdSpacingCalculate trouble on axis %d, %d, or %d",
+               me, baseDim + 0, baseDim + 1, baseDim + 2);
+    airMopError(mop); return 1;
   }
   if (!( statCalc[0] == statCalc[1] && statCalc[1] == statCalc[2] )) {
-    biffAddf(GAGE, "%s: inconsistent spacing information on axes "
-             "%u (%s), %u (%s), and %u (%s)", me,
-             baseDim + 0, airEnumDesc(nrrdSpacingStatus, statCalc[0]),
-             baseDim + 1, airEnumDesc(nrrdSpacingStatus, statCalc[1]),
-             baseDim + 2, airEnumDesc(nrrdSpacingStatus, statCalc[2]));
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: inconsistent spacing information on axes "
+               "%u (%s), %u (%s), and %u (%s)", me,
+               baseDim + 0, airEnumDesc(nrrdSpacingStatus, statCalc[0]),
+               baseDim + 1, airEnumDesc(nrrdSpacingStatus, statCalc[1]),
+               baseDim + 2, airEnumDesc(nrrdSpacingStatus, statCalc[2]));
+    airMopError(mop); return 1;
   }
   /* this simplifies reasoning in the code that follows */
   status = statCalc[0];
   /* zero spacing would be problematic */
   if (0 == spcCalc[0] && 0 == spcCalc[1] && 0 == spcCalc[2]) {
-    biffAddf(GAGE, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
-             "non-zero", me, spcCalc[1], spcCalc[1], spcCalc[2],
-             baseDim+0, baseDim+1, baseDim+2);
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: spacings (%g,%g,%g) for axes %d,%d,%d not all "
+               "non-zero", me, spcCalc[1], spcCalc[1], spcCalc[2],
+               baseDim+0, baseDim+1, baseDim+2);
+    airMopError(mop); return 1;
   }
 
   /* error checking based on status */
   if (nrrdSpacingStatusScalarWithSpace == status) {
-    biffAddf(GAGE, "%s: sorry, can't handle per-axis spacing that isn't part "
-             "of a surrounding world space (%s)",
-             me, airEnumStr(nrrdSpacingStatus, status));
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: sorry, can't handle per-axis spacing that isn't part "
+               "of a surrounding world space (%s)",
+               me, airEnumStr(nrrdSpacingStatus, status));
+    airMopError(mop); return 1;
   }
   /* we no longer allow a nrrd to come in with no spacing info at all */
   if (nrrdSpacingStatusNone == status) {
-    biffAddf(GAGE, "%s: sorry, need some spacing info for spatial axes "
-             "%u, %u, %u", me,
-             baseDim+0, baseDim+1, baseDim+2); 
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: sorry, need some spacing info for spatial axes "
+               "%u, %u, %u", me,
+               baseDim+0, baseDim+1, baseDim+2); 
+    airMopError(mop); return 1;
   }
   /* actually, there shouldn't be any other options for spacing status
      besides these too; this is just being careful */
   if (!( nrrdSpacingStatusDirection == status
          || nrrdSpacingStatusScalarNoSpace == status )) {
-    biffAddf(GAGE, "%s: sorry, can only handle spacing status %d (%s) "
-             "or %d (%s), not %d (%s)", me,
-             nrrdSpacingStatusDirection,
-             airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusDirection),
-             nrrdSpacingStatusScalarNoSpace,
-             airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusScalarNoSpace),
-             status, airEnumStr(nrrdSpacingStatus, status));
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: sorry, can only handle spacing status %d (%s) "
+               "or %d (%s), not %d (%s)", me,
+               nrrdSpacingStatusDirection,
+               airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusDirection),
+               nrrdSpacingStatusScalarNoSpace,
+               airEnumStr(nrrdSpacingStatus, nrrdSpacingStatusScalarNoSpace),
+               status, airEnumStr(nrrdSpacingStatus, status));
+    airMopError(mop); return 1;
   }
 
   if (nrrdSpacingStatusDirection == status) {
     shape->fromOrientation = AIR_TRUE;
     if (3 != nin->spaceDim) {
-      biffAddf(GAGE, "%s: orientation space dimension %d != 3",
-               me, nin->spaceDim);
-      gageShapeReset(shape);
-      return 1;
+      biffAdd_va(GAGE, "%s: orientation space dimension %d != 3",
+                 me, nin->spaceDim);
+      airMopError(mop); return 1;
     }
   } else {
     shape->fromOrientation = AIR_FALSE;
@@ -232,13 +235,13 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   cy = ax[1]->center;
   cz = ax[2]->center;
   if (!( cx == cy && cy == cz )) {
-    biffAddf(GAGE, "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal", me,
-             baseDim+0, baseDim+1, baseDim+2,
-             airEnumStr(nrrdCenter, cx),
-             airEnumStr(nrrdCenter, cy),
-             airEnumStr(nrrdCenter, cz));
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE,
+               "%s: axes %d,%d,%d centerings (%s,%s,%s) not all equal", 
+               me, baseDim+0, baseDim+1, baseDim+2,
+               airEnumStr(nrrdCenter, cx),
+               airEnumStr(nrrdCenter, cy),
+               airEnumStr(nrrdCenter, cz));
+    airMopError(mop); return 1;
   }
   /* HEY: this logic is a little odd; we hope that
      shape->defaultCenter never disagrees w/ ctx->parm.defaultCenter! */
@@ -259,12 +262,11 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   if (!(shape->size[0] >= minsize 
         && shape->size[1] >= minsize
         && shape->size[2] >= minsize )) {
-    biffAddf(GAGE, "%s: sizes (%u,%u,%u) must all be >= %u "
-             "(min number of %s-centered samples)", me, 
-             shape->size[0], shape->size[1], shape->size[2],
-             minsize, airEnumStr(nrrdCenter, shape->center));
-    gageShapeReset(shape);
-    return 1;
+    biffAdd_va(GAGE, "%s: sizes (%u,%u,%u) must all be >= %u "
+               "(min number of %s-centered samples)", me, 
+               shape->size[0], shape->size[1], shape->size[2],
+               minsize, airEnumStr(nrrdCenter, shape->center));
+    airMopError(mop); return 1;
   }
 
   /* ------ find spacings[0,1,2] and ItoW matrix */
@@ -380,6 +382,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   ell_3m_inv_d(shape->ItoWSubInv, matA);
   ELL_3M_TRANSPOSE(shape->ItoWSubInvTransp, shape->ItoWSubInv);
 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -388,7 +391,7 @@ gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
   static const char me[]="gageShapeSet";
 
   if (_gageShapeSet(NULL, shape, nin, baseDim)) {
-    biffAddf(GAGE, "%s: trouble", me);
+    biffAdd_va(GAGE, "%s: trouble", me);
     return 1;
   }
   return 0;
@@ -439,51 +442,66 @@ gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
   ELL_3V_SCALE(_world, 1.0/world[3], world);
 }
 
+/*
+******** gageShapeEqual
+**
+** shapes not being equal is a biffable error, 
+** returning 0 signifies this "error"
+** returning 1 means no error, they ARE equal
+*/
 int
 gageShapeEqual(gageShape *shape1, char *_name1,
-               gageShape *shape2, char *_name2) {
-  static const char me[]="_gageShapeEqual";
+                gageShape *shape2, char *_name2) {
+  static const char me[]="gageShapeEqual";
   char *name1, *name2, what[] = "???";
 
+  if (!( shape1 && shape2 )) {
+    biffAdd_va(GAGE, "%s: can't judge equality w/ NULL pointer", me);
+    return 0;
+  }
   name1 = _name1 ? _name1 : what;
   name2 = _name2 ? _name2 : what;
   if (!( shape1->fromOrientation == shape2->fromOrientation )) {
-    biffAddf(GAGE, "%s: fromOrientation of %s (%s) != %s's (%s)", me,
-             name1, shape1->fromOrientation ? "true" : "false",
-             name2, shape2->fromOrientation ? "true" : "false");
+    biffAdd_va(GAGE,
+               "%s: fromOrientation of %s (%s) != %s's (%s)", me,
+               name1, shape1->fromOrientation ? "true" : "false",
+               name2, shape2->fromOrientation ? "true" : "false");
     return 0;
   }
   if (!( shape1->size[0] == shape2->size[0] &&
          shape1->size[1] == shape2->size[1] &&
          shape1->size[2] == shape2->size[2] )) {
-    biffAddf(GAGE, "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", me,
-             name1, 
-             shape1->size[0], shape1->size[1], shape1->size[2],
-             name2,
-             shape2->size[0], shape2->size[1], shape2->size[2]);
+    biffAdd_va(GAGE,
+               "%s: dimensions of %s (%u,%u,%u) != %s's (%u,%u,%u)", 
+               me, name1, 
+               shape1->size[0], shape1->size[1], shape1->size[2],
+               name2,
+               shape2->size[0], shape2->size[1], shape2->size[2]);
     return 0;
   }
   if (shape1->fromOrientation) {
     if (!( ELL_4M_EQUAL(shape1->ItoW, shape2->ItoW) )) {
-      biffAddf(GAGE, "%s: ItoW matrices of %s and %s not the same", me,
-               name1, name2);
+      biffAdd_va(GAGE, "%s: ItoW matrices of %s and %s not the same", me,
+                 name1, name2);
       return 0;
     }
   } else {
     if (!( shape1->spacing[0] == shape2->spacing[0] &&
            shape1->spacing[1] == shape2->spacing[1] &&
            shape1->spacing[2] == shape2->spacing[2] )) {
-      biffAddf(GAGE, "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)", me,
-               name1,
-               shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
-               name2,
-               shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
+      biffAdd_va(GAGE,
+                 "%s: spacings of %s (%g,%g,%g) != %s's (%g,%g,%g)",
+                 me, name1,
+                 shape1->spacing[0], shape1->spacing[1], shape1->spacing[2],
+                 name2,
+                 shape2->spacing[0], shape2->spacing[1], shape2->spacing[2]);
       return 0;
     }
     if (!( shape1->center == shape2->center )) {
-      biffAddf(GAGE, "%s: centering of %s (%s) != %s's (%s)", me,
-               name1, airEnumStr(nrrdCenter, shape1->center),
-               name2, airEnumStr(nrrdCenter, shape2->center));
+      biffAdd_va(GAGE,
+                 "%s: centering of %s (%s) != %s's (%s)", me,
+                 name1, airEnumStr(nrrdCenter, shape1->center),
+                 name2, airEnumStr(nrrdCenter, shape2->center));
       return 0;
     }
   }

@@ -38,54 +38,55 @@ gageKindCheck(const gageKind *kind) {
   gageItemEntry *item;
 
   if (!kind) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (kind->itemMax > GAGE_ITEM_MAX) {
-    biffAddf(GAGE, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d", 
-             me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
+    biffAdd_va(GAGE, "%s: kind \"%s\" item max %d > GAGE_ITEM_MAX %d", 
+               me, kind->name, kind->itemMax, GAGE_ITEM_MAX);
     return 1;
   }
   for (ii=1; ii<=kind->itemMax; ii++) {
     item = kind->table + ii;
     if (ii != item->enumVal) {
-      biffAddf(GAGE,
-               "%s: \"%s\"-kind \"%s\" (item %d) has enumVal %d (not %d)",
-               me, kind->name, airEnumStr(kind->enm, ii),
-               ii, item->enumVal, ii);
+      biffAdd_va(GAGE,
+                 "%s: \"%s\"-kind \"%s\" (item %d) has enumVal %d (not %d)",
+                 me, kind->name, airEnumStr(kind->enm, ii),
+                 ii, item->enumVal, ii);
       return 1;
     }
     alen = item->answerLength;
     if (!(1 <= alen)) {
       if (kind->dynamicAlloc) {
-        biffAddf(GAGE, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
-                 "answerLength (%d) not set?",
-                 me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
+        biffAdd_va(GAGE, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
+                   "answerLength (%d) not set?",
+                   me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
       } else {
-        biffAddf(GAGE, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
-                 "answerLength %d",
-                 me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
+        biffAdd_va(GAGE, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
+                   "answerLength %d",
+                   me, kind->name, airEnumStr(kind->enm, ii), ii, alen);
       }
       return 1;
     }
     if (!(AIR_IN_CL(0, item->needDeriv, 2))) {
-      biffAddf(GAGE,
-               "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d",
-               me, kind->name, airEnumStr(kind->enm, ii), ii, item->needDeriv);
+      biffAdd_va(GAGE,
+                 "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d",
+                 me, kind->name, airEnumStr(kind->enm, ii),
+                 ii, item->needDeriv);
       return 1;
     }
     for (pi=0; pi<GAGE_ITEM_PREREQ_MAXNUM; pi++) {
       if (!( 0 <= item->prereq[pi] )) {
         if (kind->dynamicAlloc) {
-          biffAddf(GAGE, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
-                   "prereq %d (%d) not set?",
-                   me, kind->name, airEnumStr(kind->enm, ii), ii,
-                   pi, item->prereq[pi]);
+          biffAdd_va(GAGE, "%s: (dynamic) \"%s\"-kind \"%s\" (item %d) "
+                     "prereq %d (%d) not set?",
+                     me, kind->name, airEnumStr(kind->enm, ii), ii,
+                     pi, item->prereq[pi]);
         } else {
-          biffAddf(GAGE, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
-                   "prereq %d (%d)",
-                   me, kind->name, airEnumStr(kind->enm, ii), ii,
-                   pi, item->prereq[pi]);
+          biffAdd_va(GAGE, "%s: \"%s\"-kind \"%s\" (item %d) has invalid "
+                     "prereq %d (%d)",
+                     me, kind->name, airEnumStr(kind->enm, ii), ii,
+                     pi, item->prereq[pi]);
         }
         return 1;
       }
@@ -94,31 +95,32 @@ gageKindCheck(const gageKind *kind) {
     pindex = item->parentIndex;
     if (0 != pitem) {
       if (0 == ii) {
-        biffAddf(GAGE, "%s: first item (index 0) of \"%s\"-kind can't "
-                 "be a sub-item (wanted parent index %d)", 
-                 me, kind->name, pitem);
+        biffAdd_va(GAGE, "%s: first item (index 0) of \"%s\"-kind can't "
+                   "be a sub-item (wanted parent index %d)", 
+                   me, kind->name, pitem);
         return 1;
       }
       if (!(AIR_IN_CL(1, pitem, kind->itemMax))) {
-        biffAddf(GAGE, "%s: item %d of \"%s\"-kind wants parent item %d "
-                 "outside valid range [0..%d]",
-                 me, ii, kind->name, pitem, kind->itemMax);
+        biffAdd_va(GAGE, "%s: item %d of \"%s\"-kind wants parent item %d "
+                   "outside valid range [0..%d]",
+                   me, ii, kind->name, pitem, kind->itemMax);
         return 1;
       }
       if (0 != kind->table[pitem].parentItem) {
-        biffAddf(GAGE, "%s: item %d of \"%s\"-kind has parent %d which "
-                 "wants to have parent %d: can't have sub-sub-items", 
-                 me, ii, kind->name, pitem, kind->table[pitem].parentItem);
+        biffAdd_va(GAGE, "%s: item %d of \"%s\"-kind has parent %d which "
+                   "wants to have parent %d: can't have sub-sub-items", 
+                   me, ii, kind->name, pitem, kind->table[pitem].parentItem);
         return 1;
       }
       if (!( 0 <= pindex
              && ((unsigned int)pindex + alen 
                  <= kind->table[pitem].answerLength) )) {
-        biffAddf(GAGE, "%s: item %d of \"%s\"-kind wants index range [%d,%d] "
-                 "of parent %d, which isn't in valid range [0,%d]",
-                 me, ii, kind->name,
-                 pindex, pindex + alen - 1,
-                 pitem, kind->table[pitem].answerLength - 1);
+        biffAdd_va(GAGE,
+                   "%s: item %d of \"%s\"-kind wants index range [%d,%d] "
+                   "of parent %d, which isn't in valid range [0,%d]",
+                   me, ii, kind->name,
+                   pindex, pindex + alen - 1,
+                   pitem, kind->table[pitem].answerLength - 1);
         return 1;
       }
     }
@@ -218,33 +220,33 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
   static const char me[]="gageKindVolumeCheck";
 
   if (!(kind && nrrd)) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAdd_va(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdCheck(nrrd)) {
-    biffMovef(GAGE, NRRD, "%s: problem with nrrd", me);
+    biffMove_va(GAGE, NRRD, "%s: problem with nrrd", me);
     return 1;
   }
   if (!(nrrd->dim == 3 + kind->baseDim)) {
-    biffAddf(GAGE, "%s: nrrd should be %u-D, not %u-D",
-             me, 3 + kind->baseDim, nrrd->dim);
+    biffAdd_va(GAGE, "%s: nrrd should be %u-D, not %u-D",
+               me, 3 + kind->baseDim, nrrd->dim);
     return 1;
   }
   if (nrrdTypeBlock == nrrd->type) {
-    biffAddf(GAGE, "%s: can't handle %s-type volumes", me,
-             airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAdd_va(GAGE, "%s: can't handle %s-type volumes", me,
+               airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (1 == kind->baseDim && (kind->valLen != nrrd->axis[0].size)) {
-    biffAddf(GAGE, "%s: kind requires %u axis 0 values, not " 
-             _AIR_SIZE_T_CNV, me, kind->valLen, nrrd->axis[0].size);
+    biffAdd_va(GAGE, "%s: kind requires %u axis 0 values, not " 
+               _AIR_SIZE_T_CNV, me, kind->valLen, nrrd->axis[0].size);
     return 1;
   }
   /* this eventually calls _gageShapeSet(), which, for purely historical
      reasons, does the brunt of the error checking, some of which is almost
      certainly redundant with checks above ... */
   if (gageVolumeCheck(NULL, nrrd, kind)) {
-    biffAddf(GAGE, "%s: trouble", me);
+    biffAdd_va(GAGE, "%s: trouble", me);
     return 1;
   }
   return 0;
