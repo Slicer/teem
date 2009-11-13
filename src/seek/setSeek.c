@@ -69,7 +69,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 
   if (ninscl) {
     if (nrrdCheck(ninscl)) {
-      biffMovef(SEEK, NRRD, "%s: problem with volume", me);
+      biffMove_va(SEEK, NRRD, "%s: problem with volume", me);
       return 1;
     }
     if (3 != ninscl->dim) {
@@ -328,11 +328,10 @@ seekItemStrengthSet(seekContext *sctx, int item) {
 */
 int
 seekItemHessSet(seekContext *sctx, int item) {
-  char me[]="seekItemHessSet", err[BIFF_STRLEN];
+  char me[]="seekItemHessSet";
 
   if (itemCheck(sctx, item, 9)) {
-    sprintf(err, "%s: trouble", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: trouble", me); return 1;
   }
   if (sctx->hessItem != item) {
     sctx->hessItem = item;
@@ -446,16 +445,14 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
 */
 int
 seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh) {
-  char me[]="seekEvalDiffThreshSet", err[BIFF_STRLEN];
+  char me[]="seekEvalDiffThreshSet";
 
   if (!sctx) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me); return 1;
   }
   if (!AIR_EXISTS(evalDiffThresh)) {
-    sprintf(err, "%s: given eigenvalue difference threshold %g doesn't exit",
-	    me, evalDiffThresh);
-    biffAdd(SEEK, err); return 1;
+    biffAddf(SEEK, "%s: given eigenvalue difference threshold %g doesn't exit",
+             me, evalDiffThresh); return 1;
   }
   if (sctx->evalDiffThresh != evalDiffThresh) {
     sctx->evalDiffThresh = evalDiffThresh;
