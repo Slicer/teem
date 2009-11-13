@@ -165,8 +165,8 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   }
   cctx->nvol = nrrdNew();
   if (nrrdMaybeAlloc_nva(cctx->nvol, coil_nrrdType, 4 + baseDim, size)) {
-    biffMovef(COIL, NRRD,
-              "%s: couldn't allocate internal processing volume", me);
+    biffMove_va(COIL, NRRD,
+                "%s: couldn't allocate internal processing volume", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, cctx->nvol, (airMopper)nrrdNuke, airMopOnError);
@@ -215,7 +215,7 @@ coilOutputGet(Nrrd *nout, coilContext *cctx) {
                            | (nrrdStateKeyValuePairsPropagate
                               ? 0
                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffMovef(COIL, NRRD, "%s: trouble getting output", me);
+    biffMove_va(COIL, NRRD, "%s: trouble getting output", me);
     return 1;
   }
   return 0;
