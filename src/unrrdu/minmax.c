@@ -31,7 +31,6 @@ char *_unrrdu_minmaxInfoL =
 
 int
 unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
-  char err[BIFF_STRLEN];
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;
@@ -39,10 +38,10 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
   mop = airMopNew();
   airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nrrd, inS, NULL)) {
-    sprintf(err, "%s: trouble loading \"%s\"", me, inS);
-    biffMove(me, err, NRRD); airMopError(mop); return 1;
+    biffMove_va(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
+    airMopError(mop); return 1;
   }
-
+  
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   airSinglePrintf(fout, NULL, "min: %g\n", range->min);
