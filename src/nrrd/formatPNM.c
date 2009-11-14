@@ -106,8 +106,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   unsigned int i, llen;
 
   if (!_nrrdFormatPNM_contentStartsLike(nio)) {
-    biffAdd_va(NRRD, "%s: this doesn't look like a %s file", me, 
-               nrrdFormatPNM->name);
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
+             nrrdFormatPNM->name);
     return 1;
   }
   nrrd->type = nrrdTypeUChar;
@@ -121,7 +121,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     magic = 2;
   } else {
     fprintf(stderr, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
-    biffAdd_va(NRRD, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
+    biffAddf(NRRD, "%s: PANIC: magic \"%s\" not handled\n", me, nio->line);
     return 1;
   }
   
@@ -147,7 +147,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrd->dim = 3;
     break;
   default:
-    biffAdd_va(NRRD, "%s: sorry, PNM magic %d not implemented", me, magic);
+    biffAddf(NRRD, "%s: sorry, PNM magic %d not implemented", me, magic);
     return 1;
     break;
   }
@@ -157,12 +157,12 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (got < want) {
     nio->pos = 0;
     if (_nrrdOneLine(&llen, nio, file)) {
-      biffAdd_va(NRRD, "%s: failed to get line from PNM header", me);
+      biffAddf(NRRD, "%s: failed to get line from PNM header", me);
       return 1;
     }
     if (!(0 < llen)) {
-      biffAdd_va(NRRD, "%s: hit EOF in header with %d of %d ints parsed",
-                 me, got, want);
+      biffAddf(NRRD, "%s: hit EOF in header with %d of %d ints parsed",
+               me, got, want);
       return 1;
     }
     if ('#' == nio->line[0]) {
@@ -210,7 +210,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     plain:
       if (!ret) {
         if (nrrdCommentAdd(nrrd, nio->line+1)) {
-          biffAdd_va(NRRD, "%s: couldn't add comment", me);
+          biffAddf(NRRD, "%s: couldn't add comment", me);
           return 1;
         }
       }
@@ -235,8 +235,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     for (i=0; i<=strlen(nio->line)-1 && isspace(nio->line[i]); i++)
       ;
     if (i != strlen(nio->line)) {
-      biffAdd_va(NRRD, "%s: \"%s\" has no integers but isn't just whitespace", 
-                 me, nio->line);
+      biffAddf(NRRD, "%s: \"%s\" has no integers but isn't just whitespace", 
+               me, nio->line);
       return 1;
     }
   }
@@ -245,12 +245,12 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   sy = val[1];
   max = val[2];
   if (!(sx > 0 && sy > 0 && max > 0)) {
-    biffAdd_va(NRRD, "%s: sx,sy,max of %d,%d,%d has problem", me, sx, sy, max);
+    biffAddf(NRRD, "%s: sx,sy,max of %d,%d,%d has problem", me, sx, sy, max);
     return 1;
   }
   if (255 != max) {
-    biffAdd_va(NRRD, "%s: sorry, can only deal with max value 255 (not %d)", 
-               me, max);
+    biffAddf(NRRD, "%s: sorry, can only deal with max value 255 (not %d)", 
+             me, max);
     return 1;
   }
 
@@ -267,12 +267,12 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (!nio->skipData) {
     if (_nrrdCalloc(nrrd, nio, file)) {
-      biffAdd_va(NRRD, "%s: couldn't allocate memory for data", me);
+      biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }
     if (nio->encoding->read(file, nrrd->data, nrrdElementNumber(nrrd),
                             nrrd, nio)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       return 1;
     }
   } else {
@@ -293,12 +293,12 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    biffAdd_va(NRRD, "%s: couldn't make private copy", me);
+    biffAddf(NRRD, "%s: couldn't make private copy", me);
     airMopError(mop); return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }
@@ -329,7 +329,7 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (!nio->skipData) {
     if (nio->encoding->write(file, nrrd->data, nrrdElementNumber(nrrd),
                              nrrd, nio)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }

@@ -169,12 +169,12 @@ nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleDefaultCenterSet";
 
   if (!( rsmc )) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!(nrrdCenterNode == center
         || nrrdCenterCell == center)) {
-    biffAdd_va(NRRD, "%s: got invalid center (%d)", me, center);
+    biffAddf(NRRD, "%s: got invalid center (%d)", me, center);
     return 1;
   }
   
@@ -192,16 +192,16 @@ nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
   unsigned int axIdx, kpIdx;
 
   if (!( rsmc && nin )) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdCheck(nin)) {
-    biffAdd_va(NRRD, "%s: problems with given nrrd", me);
+    biffAddf(NRRD, "%s: problems with given nrrd", me);
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    biffAdd_va(NRRD, "%s: can't resample from type %s", me,
-               airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: can't resample from type %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
 
@@ -230,18 +230,18 @@ nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
   return 0;
 }
 
-#define PER_AXIS_ERROR_CHECK \
-  if (!rsmc) { \
-    biffAdd_va(NRRD, "%s: got NULL pointer", me); \
-    return 1;                                     \
-  }                                               \
-  if (!rsmc->nin) {                                         \
-    biffAdd_va(NRRD, "%s: haven't set input nrrd yet", me); \
-    return 1;                                               \
-  }                                                         \
+#define PER_AXIS_ERROR_CHECK                                            \
+  if (!rsmc) {                                                          \
+    biffAddf(NRRD, "%s: got NULL pointer", me);                         \
+    return 1;                                                           \
+  }                                                                     \
+  if (!rsmc->nin) {                                                     \
+    biffAddf(NRRD, "%s: haven't set input nrrd yet", me);               \
+    return 1;                                                           \
+  }                                                                     \
   if (!( axIdx < rsmc->nin->dim )) {                                    \
-    biffAdd_va(NRRD, "%s: axis %u >= nin->dim %u",                      \
-               me, axIdx, rsmc->nin->dim);                              \
+    biffAddf(NRRD, "%s: axis %u >= nin->dim %u",                        \
+             me, axIdx, rsmc->nin->dim);                                \
     return 1;                                                           \
   }
 
@@ -289,7 +289,7 @@ nrrdResampleRangeSet(NrrdResampleContext *rsmc,
 
   PER_AXIS_ERROR_CHECK;
   if (!(AIR_EXISTS(min) && AIR_EXISTS(max) && min != max)) {
-    biffAdd_va(NRRD, "%s: need min != max and both to exist", me);
+    biffAddf(NRRD, "%s: need min != max and both to exist", me);
     return 1;
   }
   if (!(rsmc->axis[axIdx].min == min
@@ -347,11 +347,11 @@ nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleBoundarySet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (airEnumValCheck(nrrdBoundary, boundary)) {
-    biffAdd_va(NRRD, "%s: invalid boundary %d", me, boundary);
+    biffAddf(NRRD, "%s: invalid boundary %d", me, boundary);
     return 1;
   }
   
@@ -369,7 +369,7 @@ nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResamplePadValueSet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   
@@ -387,7 +387,7 @@ nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleRenormalizeSet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   
@@ -405,16 +405,16 @@ nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleTypeOutSet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdTypeDefault != type && airEnumValCheck(nrrdType, type)) {
-    biffAdd_va(NRRD, "%s: invalid type %d", me, type);
+    biffAddf(NRRD, "%s: invalid type %d", me, type);
     return 1;
   }
   if (nrrdTypeBlock == type) {
-    biffAdd_va(NRRD, "%s: can't output %s type", me,
-               airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: can't output %s type", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
 
@@ -432,7 +432,7 @@ nrrdResampleRoundSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleRoundSet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   
@@ -450,7 +450,7 @@ nrrdResampleClampSet(NrrdResampleContext *rsmc,
   static const char me[]="nrrdResampleClampSet";
 
   if (!rsmc) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   
@@ -532,7 +532,7 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
       } else {
         if (nrrdMaybeAlloc_va(axis->nline, nrrdResample_nt, 1, 
                               AIR_CAST(size_t, 1 + axis->sizeIn))) {
-          biffAdd_va(NRRD, "%s: couldn't allocate scanline buffer", me);
+          biffAddf(NRRD, "%s: couldn't allocate scanline buffer", me);
           return 1;
         }
       }
@@ -560,22 +560,22 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       }
       /* check user-set parameters */
       if (!( AIR_EXISTS(axis->min) && AIR_EXISTS(axis->max) )) {
-        biffAdd_va(NRRD, "%s: don't have min, max set on axis %u", me, axIdx);
+        biffAddf(NRRD, "%s: don't have min, max set on axis %u", me, axIdx);
         return 1;
       }
       for (kpIdx=0; kpIdx<axis->kernel->numParm; kpIdx++) {
         if (!AIR_EXISTS(axis->kparm[kpIdx])) {
-          biffAdd_va(NRRD, "%s: didn't set kernel parm %u on axis %u",
-                     me, kpIdx, axIdx);
+          biffAddf(NRRD, "%s: didn't set kernel parm %u on axis %u",
+                   me, kpIdx, axIdx);
           return 1;
         }
       }
       minSamples = (nrrdCenterCell == axis->center ? 1 : 2);
       if (!( axis->samples >= minSamples )) {
-        biffAdd_va(NRRD, "%s: need at least %u output samples (not %u) for "
-                   "%s-centered sampling along axis %u", me, minSamples,
-                   AIR_CAST(unsigned int, axis->samples),
-                   airEnumStr(nrrdCenter, axis->center), axIdx);
+        biffAddf(NRRD, "%s: need at least %u output samples (not %u) for "
+                 "%s-centered sampling along axis %u", me, minSamples,
+                 AIR_CAST(unsigned int, axis->samples),
+                 airEnumStr(nrrdCenter, axis->center), axIdx);
         return 1;
       }
       /* compute support (spacingIn == 1.0 by definition) */
@@ -603,8 +603,8 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
           || nrrdMaybeAlloc_va(axis->nindex, nrrdTypeInt, 2,
                                AIR_CAST(size_t, dotLen),
                                AIR_CAST(size_t, axis->samples))) {
-        biffAdd_va(NRRD, "%s: trouble allocating index and weighting vectors",
-                   me);
+        biffAddf(NRRD, "%s: trouble allocating index and weighting vectors",
+                 me);
         return 1;
       }
     }
@@ -718,8 +718,8 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
             rawIdx = AIR_MOD(rawIdx, AIR_CAST(int, axis->sizeIn));
             break;
           default:
-            biffAdd_va(NRRD, "%s: boundary behavior %d unknown/unimplemented", 
-                       me, rsmc->boundary);
+            biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", 
+                     me, rsmc->boundary);
             return 0;
           }
           indexData[dotIdx] = rawIdx;
@@ -999,7 +999,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout,
 
   nrrdAxisInfoGet_nva(rsmc->nin, nrrdAxisInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->nin->dim, size)) {
-    biffAdd_va(NRRD, "%s: couldn't allocate output", me);
+    biffAddf(NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   valNum = nrrdElementNumber(rsmc->nin);
@@ -1086,8 +1086,8 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
          airMopAdd(mop, axisOut->nrsmp, (airMopper)nrrdNuke, airMopAlways); */
       if (nrrdMaybeAlloc_nva(axisOut->nrsmp, nrrdResample_nt, rsmc->dim,
                              axisOut->sizePerm)) {
-        biffAdd_va(NRRD, "%s: trouble allocating output of pass %u", me,
-                   passIdx);
+        biffAddf(NRRD, "%s: trouble allocating output of pass %u", me,
+                 passIdx);
         airMopError(mop); return 1;
       }
       if (rsmc->verbose) {
@@ -1098,7 +1098,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       }
     } else {
       if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
-        biffAdd_va(NRRD, "%s: trouble allocating final output", me);
+        biffAddf(NRRD, "%s: trouble allocating final output", me);
         airMopError(mop); return 1;
       }
       if (rsmc->verbose) {
@@ -1256,20 +1256,20 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout,
     if (0 == rsmc->passNum) {
       if (_nrrdResampleTrivial(rsmc, nout, typeOut, doRound,
                                lup, clamp, ins)) {
-        biffAdd_va(NRRD, "%s: trouble", me);
+        biffAddf(NRRD, "%s: trouble", me);
         return 1;
       }
     } else {
       if (_nrrdResampleCore(rsmc, nout, typeOut, doRound,
                             lup, clamp, ins)) {
-        biffAdd_va(NRRD, "%s: trouble", me);
+        biffAddf(NRRD, "%s: trouble", me);
         return 1;
       }
     }
 
     /* HEY: need to create textual representation of resampling parameters */
     if (nrrdContentSet_va(nout, func, rsmc->nin, "")) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       return 1;
     }
     
@@ -1346,7 +1346,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout,
                           | (nrrdStateKeyValuePairsPropagate
                              ? 0
                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       return 1;
     }
     
@@ -1369,14 +1369,14 @@ nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
   double time0;
 
   if (!(rsmc && nout)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   
   /* any other error checking?  Do we need a _nrrdResampleContextCheck() ? */
   if (nrrdBoundaryPad == rsmc->boundary && !AIR_EXISTS(rsmc->padValue)) {
-    biffAdd_va(NRRD, "%s: asked for boundary padding, "
-               "but no pad value set", me);
+    biffAddf(NRRD, "%s: asked for boundary padding, "
+             "but no pad value set", me);
     return 1;
   }
   
@@ -1390,7 +1390,7 @@ nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
       || _nrrdResampleVectorFillUpdate(rsmc)
       || _nrrdResamplePermutationUpdate(rsmc)
       || _nrrdResampleOutputUpdate(rsmc, nout, func)) {
-    biffAdd_va(NRRD, "%s: trouble", me);
+    biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
   rsmc->time = airTime() - time0;

@@ -48,33 +48,33 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
   if (!(nin && nout)) {
     /* _range and nwght can be NULL */
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   if (!(bins > 0)) {
-    biffAdd_va(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
+    biffAddf(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
-    biffAdd_va(NRRD, "%s: invalid nrrd type %d", me, type);
+    biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
     return 1;
   }
   if (nwght) {
     if (nout==nwght) {
-      biffAdd_va(NRRD, "%s: nout==nwght disallowed", me);
+      biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
     }
     if (nrrdTypeBlock == nwght->type) {
-      biffAdd_va(NRRD, "%s: nwght type %s invalid", me,
-                 airEnumStr(nrrdType, nrrdTypeBlock));
+      biffAddf(NRRD, "%s: nwght type %s invalid", me,
+               airEnumStr(nrrdType, nrrdTypeBlock));
       return 1;
     }
     if (!nrrdSameSize(nin, nwght, AIR_TRUE)) {
-      biffAdd_va(NRRD, "%s: nwght size mismatch with nin", me);
+      biffAddf(NRRD, "%s: nwght size mismatch with nin", me);
       return 1;
     }
     lup = nrrdDLookup[nwght->type];
@@ -83,8 +83,8 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
 
   if (nrrdMaybeAlloc_va(nout, type, 1, bins)) {
-    biffAdd_va(NRRD, "%s: failed to alloc histo array (len " _AIR_SIZE_T_CNV
-               ")", me, bins);
+    biffAddf(NRRD, "%s: failed to alloc histo array (len " _AIR_SIZE_T_CNV
+             ")", me, bins);
     return 1;
   }
   mop = airMopNew();
@@ -141,7 +141,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
 
   if (nrrdContentSet_va(nout, func, nin, "%d", bins)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
@@ -159,25 +159,25 @@ nrrdHistoCheck(const Nrrd *nhist) {
   static const char me[]="nrrdHistoCheck";
 
   if (!nhist) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdTypeBlock == nhist->type) {
-    biffAdd_va(NRRD, "%s: has non-scalar %s type",
-               me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: has non-scalar %s type",
+             me, airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (nrrdHasNonExist(nhist)) {
-    biffAdd_va(NRRD, "%s: has non-existent values", me);
+    biffAddf(NRRD, "%s: has non-existent values", me);
     return 1;
   }
   if (1 != nhist->dim) {
-    biffAdd_va(NRRD, "%s: dim == %u != 1", 
-               me, nhist->dim);
+    biffAddf(NRRD, "%s: dim == %u != 1", 
+             me, nhist->dim);
     return 1;
   }
   if (!(nhist->axis[0].size > 1)) {
-    biffAdd_va(NRRD, "%s: has single sample along sole axis", me);
+    biffAddf(NRRD, "%s: has single sample along sole axis", me);
     return 1;
   }
   
@@ -196,21 +196,21 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   airArray *mop;
 
   if (!(nin && nout && sy > 0)) {
-    biffAdd_va(NRRD, "%s: invalid args", me);
+    biffAddf(NRRD, "%s: invalid args", me);
     return 1;
   }
   if (nout == nin) {
-    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   if (nrrdHistoCheck(nin)) {
-    biffAdd_va(NRRD, "%s: input nrrd not a histogram", me);
+    biffAddf(NRRD, "%s: input nrrd not a histogram", me);
     return 1;
   }
   sx = nin->axis[0].size;
   nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_DATA_BIT);
   if (nrrdPGM(nout, sx, sy)) {
-    biffAdd_va(NRRD, "%s: failed to allocate histogram image", me);
+    biffAddf(NRRD, "%s: failed to allocate histogram image", me);
     return 1;
   }
   /* perhaps I should be using nrrdAxisInfoCopy */
@@ -246,7 +246,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   logY = (unsigned int*)calloc(sx, sizeof(unsigned int));
   airMopMem(mop, &logY, airMopAlways);
   if (!(ticks && Y && logY)) {
-    biffAdd_va(NRRD, "%s: failed to allocate temp arrays", me);
+    biffAddf(NRRD, "%s: failed to allocate temp arrays", me);
     airMopError(mop); return 1;
   }
   for (k=0; k<numticks; k++) {
@@ -297,7 +297,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (!E) E |= nrrdContentSet_va(nout, func, nin, "%d", sy);
   if (E) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   
@@ -334,24 +334,24 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   NrrdRange *range;
 
   if (!(nin && nout)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   if (!(bins > 0)) {
-    biffAdd_va(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
+    biffAddf(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
-    biffAdd_va(NRRD, "%s: invalid nrrd type %d", me, type);
+    biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
     return 1;
   }
   if (!( hax <= nin->dim-1 )) {
-    biffAdd_va(NRRD, "%s: axis %d is not in range [0,%d]",
-               me, hax, nin->dim-1);
+    biffAddf(NRRD, "%s: axis %d is not in range [0,%d]",
+             me, hax, nin->dim-1);
     return 1;
   }
   mop = airMopNew();
@@ -365,7 +365,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[hax] = bins;
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
-    biffAdd_va(NRRD, "%s: failed to alloc output nrrd", me);
+    biffAddf(NRRD, "%s: failed to alloc output nrrd", me);
     airMopError(mop); return 1;
   }
   
@@ -388,7 +388,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     if (nout->axis[hax].label) {
       sprintf(nout->axis[hax].label, "histax(%s)", nin->axis[hax].label);
     } else {
-      biffAdd_va(NRRD, "%s: couldn't allocate output label", me);
+      biffAddf(NRRD, "%s: couldn't allocate output label", me);
       airMopError(mop); return 1;
     }
   } else {
@@ -422,7 +422,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
 
   if (nrrdContentSet_va(nout, func, nin, "%d,%d", hax, bins)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
@@ -449,35 +449,35 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   /* error checking */
   /* nwght can be NULL -> weighting is constant 1.0 */
   if (!(nout && nin && bins && clamp)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!(numNin >= 1)) {
-    biffAdd_va(NRRD, "%s: need numNin >= 1 (not %d)", me, numNin);
+    biffAddf(NRRD, "%s: need numNin >= 1 (not %d)", me, numNin);
     return 1;
   }
   if (numNin > NRRD_DIM_MAX) {
-    biffAdd_va(NRRD, "%s: can only deal with up to %d nrrds (not %d)", me,
-               NRRD_DIM_MAX, numNin);
+    biffAddf(NRRD, "%s: can only deal with up to %d nrrds (not %d)", me,
+             NRRD_DIM_MAX, numNin);
     return 1;
   }
   for (nii=0; nii<numNin; nii++) {
     if (!(nin[nii])) {
-      biffAdd_va(NRRD, "%s: input nrrd #%u NULL", me, nii);
+      biffAddf(NRRD, "%s: input nrrd #%u NULL", me, nii);
       return 1;
     }
     if (nout==nin[nii]) {
-      biffAdd_va(NRRD, "%s: nout==nin[%d] disallowed", me, nii);
+      biffAddf(NRRD, "%s: nout==nin[%d] disallowed", me, nii);
       return 1;
     }
     if (nrrdTypeBlock == nin[nii]->type) {
-      biffAdd_va(NRRD, "%s: nin[%d] type %s invalid", me, nii,
-                 airEnumStr(nrrdType, nrrdTypeBlock));
+      biffAddf(NRRD, "%s: nin[%d] type %s invalid", me, nii,
+               airEnumStr(nrrdType, nrrdTypeBlock));
       return 1;
     }
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
-    biffAdd_va(NRRD, "%s: invalid nrrd type %d", me, type);
+    biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
     return 1;
   }
   mop = airMopNew();
@@ -494,16 +494,16 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   }
   for (ai=0; ai<numNin; ai++) {
     if (!nin[ai]) {
-      biffAdd_va(NRRD, "%s: input nrrd[%d] NULL", me, ai);
+      biffAddf(NRRD, "%s: input nrrd[%d] NULL", me, ai);
       return 1;
     }
     if (!(bins[ai] >= 1)) {
-      biffAdd_va(NRRD, "%s: need bins[%u] >= 1 (not " _AIR_SIZE_T_CNV ")",
-                 me, ai, bins[ai]);
+      biffAddf(NRRD, "%s: need bins[%u] >= 1 (not " _AIR_SIZE_T_CNV ")",
+               me, ai, bins[ai]);
       return 1;
     }
     if (ai && !nrrdSameSize(nin[0], nin[ai], AIR_TRUE)) {
-      biffAdd_va(NRRD, "%s: nin[%u] size mismatch with nin[0]", me, ai);
+      biffAddf(NRRD, "%s: nin[%u] size mismatch with nin[0]", me, ai);
       return 1;
     }
   }
@@ -511,16 +511,16 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   /* check nwght */
   if (nwght) {
     if (nout==nwght) {
-      biffAdd_va(NRRD, "%s: nout==nwght disallowed", me);
+      biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
     }
     if (nrrdTypeBlock == nwght->type) {
-      biffAdd_va(NRRD, "%s: nwght type %s invalid", me,
-                 airEnumStr(nrrdType, nrrdTypeBlock));
+      biffAddf(NRRD, "%s: nwght type %s invalid", me,
+               airEnumStr(nrrdType, nrrdTypeBlock));
       return 1;
     }
     if (!nrrdSameSize(nin[0], nwght, AIR_TRUE)) {
-      biffAdd_va(NRRD, "%s: nwght size mismatch with nin[0]", me);
+      biffAddf(NRRD, "%s: nwght size mismatch with nin[0]", me);
       return 1;
     }
     lup = nrrdDLookup[nwght->type];
@@ -530,7 +530,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 
   /* allocate output nrrd */
   if (nrrdMaybeAlloc_nva(nout, type, numNin, bins)) {
-    biffAdd_va(NRRD, "%s: couldn't allocate output histogram", me);
+    biffAddf(NRRD, "%s: couldn't allocate output histogram", me);
     return 1;
   }
   hadContent = 0;
@@ -556,7 +556,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
         sprintf(nout->axis[ai].label, "histo(%s," _AIR_SIZE_T_CNV ")",
                 nin[ai]->content, bins[ai]);
       } else {
-        biffAdd_va(NRRD, "%s: couldn't allocate output label #%u", me, ai);
+        biffAddf(NRRD, "%s: couldn't allocate output label #%u", me, ai);
         return 1;
       }
     } else {
@@ -615,7 +615,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
       }
       nout->content[len+1] = '\0';
     } else {
-      biffAdd_va(NRRD, "%s: couldn't allocate output content", me);
+      biffAddf(NRRD, "%s: couldn't allocate output content", me);
       return 1;
     }
   }
@@ -641,11 +641,11 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   airArray *mop;
 
   if (!(threshP && _nhist)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdHistoCheck(_nhist)) {
-    biffAdd_va(NRRD, "%s: input nrrd not a histogram", me);
+    biffAddf(NRRD, "%s: input nrrd not a histogram", me);
     return 1;
   }
   
@@ -654,7 +654,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   airMopAdd(mop, nbvar = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nhist, _nhist, nrrdTypeDouble)
       || nrrdCopy(nbvar, nhist)) {
-    biffAdd_va(NRRD, "%s: making local copies", me);
+    biffAddf(NRRD, "%s: making local copies", me);
     airMopError(mop); return 1;
   }
   hist = AIR_CAST(double*, nhist->data);

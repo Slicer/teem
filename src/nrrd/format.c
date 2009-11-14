@@ -94,7 +94,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAdd_va(NRRD, "%s: ERROR!!! trying to read unknown format", me);
+  biffAddf(NRRD, "%s: ERROR!!! trying to read unknown format", me);
   return 1;
 }
 
@@ -108,7 +108,7 @@ _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAdd_va(NRRD, "%s: ERROR!!! trying to write unknown format", me);
+  biffAddf(NRRD, "%s: ERROR!!! trying to write unknown format", me);
   return 1;
 }
 

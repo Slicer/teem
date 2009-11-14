@@ -983,39 +983,39 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   airArray *mop;
   
   if (!(nin && nout)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nout == nin) {
-    biffAdd_va(NRRD, "%s: nout==nin disallowed", me);
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    biffAdd_va(NRRD, "%s: can't project nrrd type %s", me,
-               airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: can't project nrrd type %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (!AIR_IN_OP(nrrdMeasureUnknown, measr, nrrdMeasureLast)) {
-    biffAdd_va(NRRD, "%s: measure %d not recognized", me, measr);
+    biffAddf(NRRD, "%s: measure %d not recognized", me, measr);
     return 1;
   }
   /* without this check, the loops below cause segfaults, because
      nin->dim is now unsigned */
   if (!( 2 <= nin->dim )) {
-    biffAdd_va(NRRD, "%s: sorry, currently need at least 2-D "
-               "array to project", me);
+    biffAddf(NRRD, "%s: sorry, currently need at least 2-D "
+             "array to project", me);
     return 1;
   }
   /* HEY: at some point, as a convenience, it would be nice to handle
      projecting a single 1-D scanline down into a 1-D single-sample,
      even though this would clearly be a special case */
   if (!( axis <= nin->dim-1 )) {
-    biffAdd_va(NRRD, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
+    biffAddf(NRRD, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
     return 1;
   }
   if (nrrdTypeDefault != type) {
     if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
-      biffAdd_va(NRRD, "%s: got invalid target type %d", me, type);
+      biffAddf(NRRD, "%s: got invalid target type %d", me, type);
       return 1;
     }
   }
@@ -1045,15 +1045,15 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     oSize[ai] = iSize[axmap[ai]];
   }
   if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
-    biffAdd_va(NRRD, "%s: failed to create output", me);
+    biffAddf(NRRD, "%s: failed to create output", me);
     airMopError(mop); return 1;
   }
   
   /* allocate a scanline buffer */
   if (!(line = (char*)calloc(linLen, iElSz))) {
-    biffAdd_va(NRRD, "%s: couldn't calloc(" _AIR_SIZE_T_CNV "," 
-               _AIR_SIZE_T_CNV ") scanline buffer",
-               me, linLen, iElSz);
+    biffAddf(NRRD, "%s: couldn't calloc(" _AIR_SIZE_T_CNV "," 
+             _AIR_SIZE_T_CNV ") scanline buffer",
+             me, linLen, iElSz);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, line, airFree, airMopAlways);
@@ -1077,12 +1077,12 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
-    biffAdd_va(NRRD, "%s:", me); 
+    biffAddf(NRRD, "%s:", me); 
     airMopError(mop); return 1;
   }
   if (nrrdContentSet_va(nout, func, nin,
                         "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
-    biffAdd_va(NRRD, "%s:", me); 
+    biffAddf(NRRD, "%s:", me); 
     airMopError(mop); return 1;
   }
   /* this will copy the space origin over directly, which is reasonable */
@@ -1096,7 +1096,7 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
                         | (nrrdStateKeyValuePairsPropagate
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   

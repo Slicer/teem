@@ -75,11 +75,11 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   airMopAdd(mop, (void*)fileP, (airMopper)airSetNull, airMopOnError);
 
   if (!fileP) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     airMopError(mop); return 1;
   }
   if (!_nrrdDataFNNumber(nio)) {
-    biffAdd_va(NRRD, "%s: there appear to be zero datafiles!", me);
+    biffAddf(NRRD, "%s: there appear to be zero datafiles!", me);
     airMopError(mop); return 1;
   }
   
@@ -107,12 +107,12 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
       }
     }
     if (needPath && !airStrlen(nio->path)) {
-      biffAdd_va(NRRD, "%s: need nio->path for header-relative datafiles", me);
+      biffAddf(NRRD, "%s: need nio->path for header-relative datafiles", me);
       airMopError(mop); return 1;
     }
     fname = (char*)malloc(airStrlen(nio->path) + strlen("/") + maxl + 1);
     if (!fname) {
-      biffAdd_va(NRRD, "%s: couldn't allocate filename buffer", me);
+      biffAddf(NRRD, "%s: couldn't allocate filename buffer", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, fname, airFree, airMopAlways);
@@ -154,9 +154,9 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   if (nio->dataFNFormat || nio->dataFNArr->len) {
     *fileP = airFopen(fname, reading ? stdin : stdout, reading ? "rb" : "wb");
     if (!(*fileP)) {
-      biffAdd_va(NRRD, "%s: couldn't open \"%s\" (data file %d of %d) for %s",
-                 me, fname, nio->dataFNIndex+1, (int)_nrrdDataFNNumber(nio),
-                 reading ? "reading" : "writing");
+      biffAddf(NRRD, "%s: couldn't open \"%s\" (data file %d of %d) for %s",
+               me, fname, nio->dataFNIndex+1, (int)_nrrdDataFNNumber(nio),
+               reading ? "reading" : "writing");
       airMopError(mop); return 1;
     }
   } else {
@@ -259,20 +259,20 @@ _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
   if (checkSeen) {
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
       if (_nrrdFieldRequired[i] && !nio->seen[i]) {
-        biffAdd_va(NRRD, "%s: didn't see required field: %s",
-                   me, airEnumStr(nrrdField, i));
+        biffAddf(NRRD, "%s: didn't see required field: %s",
+                 me, airEnumStr(nrrdField, i));
         return 1;
       }
     }
   }
   if (nrrdTypeBlock == nrrd->type && !nrrd->blockSize) {
-    biffAdd_va(NRRD, "%s: type is %s, but missing field: %s", me,
-               airEnumStr(nrrdType, nrrdTypeBlock),
-               airEnumStr(nrrdField, nrrdField_block_size));
+    biffAddf(NRRD, "%s: type is %s, but missing field: %s", me,
+             airEnumStr(nrrdType, nrrdTypeBlock),
+             airEnumStr(nrrdField, nrrdField_block_size));
     return 1;
   }
   if (!nrrdElementSize(nrrd)) {
-    biffAdd_va(NRRD, "%s: nrrd reports zero element size!", me);
+    biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
   /* _nrrdReadNrrdParse_sizes() checks axis[i].size, which completely
@@ -280,10 +280,10 @@ _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
   if (airEndianUnknown == nio->endian
       && nio->encoding->endianMatters
       && 1 != nrrdElementSize(nrrd)) {
-    biffAdd_va(NRRD, "%s: type (%s) and encoding (%s) require %s info", me,
-               airEnumStr(nrrdType, nrrd->type),
-               nio->encoding->name,
-               airEnumStr(nrrdField, nrrdField_endian));
+    biffAddf(NRRD, "%s: type (%s) and encoding (%s) require %s info", me,
+             airEnumStr(nrrdType, nrrd->type),
+             nio->encoding->name,
+             airEnumStr(nrrdField, nrrdField_endian));
     return 1;    
   }
 
@@ -325,29 +325,29 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* nio->headerStringRead is NULL whenever IO from string is not being done */
   if (file || nio->headerStringRead) {
     if (!_nrrdFormatNRRD_contentStartsLike(nio)) {
-      biffAdd_va(NRRD, "%s: this doesn't look like a %s file", me,
-                  nrrdFormatNRRD->name);
+      biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
+               nrrdFormatNRRD->name);
       return 1;
     }
     /* parse all the header lines */
     do {
       nio->pos = 0;
       if (_nrrdOneLine(&llen, nio, file)) {
-        biffAdd_va(NRRD, "%s: trouble getting line of header", me);
+        biffAddf(NRRD, "%s: trouble getting line of header", me);
         return 1;
       }
       if (llen > 1) {
         ret = _nrrdReadNrrdParseField(nio, AIR_TRUE);
         if (!ret) {
-          biffAdd_va(NRRD, "%s: trouble parsing field in \"%s\"",
-                     me, nio->line);
+          biffAddf(NRRD, "%s: trouble parsing field in \"%s\"",
+                   me, nio->line);
           return 1;
         }
         /* comments and key/values are allowed multiple times */
         if (nio->seen[ret]
             && !(ret == nrrdField_comment || ret == nrrdField_keyvalue)) {
-          biffAdd_va(NRRD, "%s: already set field %s", me, 
-                     airEnumStr(nrrdField, ret));
+          biffAddf(NRRD, "%s: already set field %s", me, 
+                   airEnumStr(nrrdField, ret));
           return 1;
         }
         if (nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
@@ -355,8 +355,8 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
              per-axis fields, not just the first
              HEY: if your stupid parsing functions didn't modify
              nio->line then you wouldn't have this problem ... */
-          biffAdd_va(NRRD, "%s: trouble parsing %s info \"%s\"", me,
-                     airEnumStr(nrrdField, ret), nio->line + nio->pos);
+          biffAddf(NRRD, "%s: trouble parsing %s info \"%s\"", me,
+                   airEnumStr(nrrdField, ret), nio->line + nio->pos);
           return 1;
         }
         nio->seen[ret] = AIR_TRUE;
@@ -371,15 +371,15 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         && 0 == nio->dataFNArr->len) { 
       /* we're at EOF, we're not reading from a string, but there's
          apparently no seperate data file */
-      biffAdd_va(NRRD, "%s: hit end of header, but no \"%s\" given", me,
-                 airEnumStr(nrrdField, nrrdField_data_file));
+      biffAddf(NRRD, "%s: hit end of header, but no \"%s\" given", me,
+               airEnumStr(nrrdField, nrrdField_data_file));
       return 1;
     }
   }
   if (_nrrdHeaderCheck(nrrd, nio, !!file)) {
-    biffAdd_va(NRRD, "%s: %s", me, 
-               (llen ? "finished reading header, but there were problems"
-                : "hit EOF before seeing a complete valid header"));
+    biffAddf(NRRD, "%s: %s", me, 
+             (llen ? "finished reading header, but there were problems"
+              : "hit EOF before seeing a complete valid header"));
     return 1;
   }
 
@@ -388,7 +388,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   nrrdIoStateDataFileIterBegin(nio);
   /* NOTE: if nio->headerStringRead, this may set dataFile to NULL */
   if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
-    biffAdd_va(NRRD, "%s: couldn't open the first datafile", me);
+    biffAddf(NRRD, "%s: couldn't open the first datafile", me);
     return 1;
   }
   if (nio->skipData) {
@@ -396,7 +396,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     data = NULL;
   } else {
     if (_nrrdCalloc(nrrd, nio, dataFile)) {
-      biffAdd_va(NRRD, "%s: couldn't allocate memory for data", me);
+      biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }
     data = (char*)nrrd->data;
@@ -410,14 +410,14 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (dataFile) {
     /* ---------------- skip, if need be */
     if (nrrdLineSkip(dataFile, nio)) {
-      biffAdd_va(NRRD, "%s: couldn't skip lines", me);
+      biffAddf(NRRD, "%s: couldn't skip lines", me);
       return 1;
     }
     if (!nio->encoding->isCompression) {
       /* bytes are skipped here for non-compression encodings, but are
          skipped within the decompressed stream for compression encodings */
       if (nrrdByteSkip(dataFile, nrrd, nio)) {
-        biffAdd_va(NRRD, "%s: couldn't skip bytes", me);
+        biffAddf(NRRD, "%s: couldn't skip bytes", me);
         return 1;
       }
     }
@@ -431,7 +431,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         if (2 <= nrrdStateVerboseIO) {
           fprintf(stderr, "error!\n");
         }
-        biffAdd_va(NRRD, "%s:", me);
+        biffAddf(NRRD, "%s:", me);
         return 1;
       }
     }
@@ -448,7 +448,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     data += valsPerPiece*nrrdElementSize(nrrd);
     if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
-      biffAdd_va(NRRD, "%s: couldn't get the next datafile", me);
+      biffAddf(NRRD, "%s: couldn't get the next datafile", me);
       return 1;
     }
   }
@@ -490,14 +490,14 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   if (!(file
         || nio->headerStringWrite
         || nio->learningHeaderStrlen)) {
-    biffAdd_va(NRRD, "%s: have no file or string to write to, nor are "
-               "learning header string length", me);
+    biffAddf(NRRD, "%s: have no file or string to write to, nor are "
+             "learning header string length", me);
     airMopError(mop); return 1;
   }
   if (nrrdTypeBlock == nrrd->type && nrrdEncodingAscii == nio->encoding) {
-    biffAdd_va(NRRD, "%s: can't write nrrd type %s with %s encoding", me,
-               airEnumStr(nrrdType, nrrdTypeBlock),
-               nrrdEncodingAscii->name);
+    biffAddf(NRRD, "%s: can't write nrrd type %s with %s encoding", me,
+             airEnumStr(nrrdType, nrrdTypeBlock),
+             nrrdEncodingAscii->name);
     airMopError(mop); return 1;
   }
 
@@ -523,15 +523,15 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
        which is a useful way for the user to explicitly set the output
        data filename (as with unu make -od) */
     if (!( !!airStrlen(nio->path) && !!airStrlen(nio->base) )) {
-      biffAdd_va(NRRD, "%s: can't create data file name: nio's "
-                 "path and base empty", me);
+      biffAddf(NRRD, "%s: can't create data file name: nio's "
+               "path and base empty", me);
       airMopError(mop); return 1;
     }
     tmp = (char*)malloc(strlen(nio->base) 
                         + strlen(".")
                         + strlen(nio->encoding->suffix) + 1);
     if (!tmp) {
-      biffAdd_va(NRRD, "%s: couldn't allocate data filename", me);
+      biffAddf(NRRD, "%s: couldn't allocate data filename", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, tmp, airFree, airMopOnError);
@@ -637,7 +637,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   if (file && !nio->skipData) {
     nrrdIoStateDataFileIterBegin(nio);
     if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_FALSE)) {
-      biffAdd_va(NRRD, "%s: couldn't write the first datafile", me);
+      biffAddf(NRRD, "%s: couldn't write the first datafile", me);
       airMopError(mop); return 1;
     }
     
@@ -653,7 +653,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
         if (2 <= nrrdStateVerboseIO) {
           fprintf(stderr, "error!\n");
         }
-        biffAdd_va(NRRD, "%s: couldn't write %s data", me, nio->encoding->name);
+        biffAddf(NRRD, "%s: couldn't write %s data", me, nio->encoding->name);
         airMopError(mop); return 1;
       }
       if (2 <= nrrdStateVerboseIO) {
@@ -665,7 +665,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       }
       data += valsPerPiece*nrrdElementSize(nrrd);
       if (nrrdIoStateDataFileIterNext(&dataFile, nio, AIR_TRUE)) {
-        biffAdd_va(NRRD, "%s: couldn't get the next datafile", me);
+        biffAddf(NRRD, "%s: couldn't get the next datafile", me);
         airMopError(mop); return 1;
       }
     } while (dataFile);

@@ -98,7 +98,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  biffAdd_va(NRRD, "%s: sorry, this is a write-only format", me);
+  biffAddf(NRRD, "%s: sorry, this is a write-only format", me);
   return 1;
 }
 
@@ -113,12 +113,12 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
-    biffAdd_va(NRRD, "%s: couldn't make private copy", me);
+    biffAddf(NRRD, "%s: couldn't make private copy", me);
     airMopError(mop); return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }

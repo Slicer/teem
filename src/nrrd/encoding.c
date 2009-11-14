@@ -35,7 +35,7 @@
 **     or vice versa.
 ** -- respect nrrdStateVerboseIO with messages to stderr, if possible
 ** -- in case of error, put text error messages into biff via
-**    biffAdd_va(NRRD, <error char*> ...)
+**    biffAddf(NRRD, <error char*> ...)
 **
 ** The "unknown" encoding below is intended to serve as a template for 
 ** any new encodings being developed.
@@ -62,7 +62,7 @@ _nrrdEncodingUnknown_read(FILE *file, void *data,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAdd_va(NRRD, "%s: ERROR!!! trying to read unknown encoding", me);
+  biffAddf(NRRD, "%s: ERROR!!! trying to read unknown encoding", me);
   return 1;
 }
 
@@ -79,7 +79,7 @@ _nrrdEncodingUnknown_write(FILE *file, const void *data,
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
 
-  biffAdd_va(NRRD, "%s: ERROR!!! trying to write unknown encoding", me);
+  biffAddf(NRRD, "%s: ERROR!!! trying to write unknown encoding", me);
   return 1;
 }
 

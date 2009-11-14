@@ -33,12 +33,12 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   static const char me[]="nrrdIoStateSet";
   
   if (!nio) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( AIR_IN_OP(nrrdIoStateUnknown, parm, nrrdIoStateLast) )) {
-    biffAdd_va(NRRD, "%s: identifier %d not in valid range [%d,%d]", me,
-               parm, nrrdIoStateUnknown+1, nrrdIoStateLast-1);
+    biffAddf(NRRD, "%s: identifier %d not in valid range [%d,%d]", me,
+             parm, nrrdIoStateUnknown+1, nrrdIoStateLast-1);
     return 1;
   }
   switch (parm) {
@@ -50,14 +50,14 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
     break;
   case nrrdIoStateCharsPerLine:
     if (value < 40) {
-      biffAdd_va(NRRD, "%s: %d charsPerLine is awfully small", me, value);
+      biffAddf(NRRD, "%s: %d charsPerLine is awfully small", me, value);
       return 1;
     }
     nio->charsPerLine = value;
     break;
   case nrrdIoStateValsPerLine:
     if (value < 4) {
-      biffAdd_va(NRRD, "%s: %d valsPerLine is awfully small", me, value);
+      biffAddf(NRRD, "%s: %d valsPerLine is awfully small", me, value);
       return 1;
     }
     nio->valsPerLine = value;
@@ -70,21 +70,21 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
     break;
   case nrrdIoStateZlibLevel:
     if (!( AIR_IN_CL(-1, value, 9) )) {
-      biffAdd_va(NRRD, "%s: zlibLevel %d invalid", me, value);
+      biffAddf(NRRD, "%s: zlibLevel %d invalid", me, value);
       return 1;
     }
     nio->zlibLevel = value;
     break;
   case nrrdIoStateZlibStrategy:
     if (!( AIR_IN_OP(nrrdZlibStrategyUnknown, value, nrrdZlibStrategyLast) )) {
-      biffAdd_va(NRRD, "%s: zlibStrategy %d invalid", me, value);
+      biffAddf(NRRD, "%s: zlibStrategy %d invalid", me, value);
       return 1;
     }
     nio->zlibStrategy = value;
     break;
   case nrrdIoStateBzip2BlockSize:
     if (!( AIR_IN_CL(-1, value, 9) )) {
-      biffAdd_va(NRRD, "%s: bzip2BlockSize %d invalid", me, value);
+      biffAddf(NRRD, "%s: bzip2BlockSize %d invalid", me, value);
       return 1;
     }
     nio->bzip2BlockSize = value;
@@ -104,13 +104,13 @@ nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
     if (nio) {
       nio->encoding = nrrdEncodingUnknown;
     }
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!encoding->available()) {
     nio->encoding = nrrdEncodingUnknown;
-    biffAdd_va(NRRD, "%s: %s encoding isn't actually available", me,
-               encoding->name);
+    biffAddf(NRRD, "%s: %s encoding isn't actually available", me,
+             encoding->name);
     return 1;
   }
   nio->encoding = encoding;
@@ -125,13 +125,13 @@ nrrdIoStateFormatSet(NrrdIoState *nio, const NrrdFormat *format) {
     if (nio) {
       nio->format = nrrdFormatUnknown;
     }
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!format->available()) {
     nio->format = nrrdFormatUnknown;
-    biffAdd_va(NRRD, "%s: %s format isn't actually available", me,
-               format->name);
+    biffAddf(NRRD, "%s: %s format isn't actually available", me,
+             format->name);
     return 1;
   }
   nio->format = format;
@@ -758,19 +758,19 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingMaybeSet";
 
   if (!nio) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!nio->encoding) {
-    biffAdd_va(NRRD, "%s: invalid (NULL) encoding", me);
+    biffAddf(NRRD, "%s: invalid (NULL) encoding", me);
     return 1;
   }
   if (nrrdEncodingUnknown == nio->encoding) {
     nio->encoding = nrrdEncodingArray[nrrdDefaultWriteEncodingType];
   }
   if (!nio->encoding->available()) {
-    biffAdd_va(NRRD, "%s: %s encoding not available in this Teem build", 
-               me, nio->encoding->name);
+    biffAddf(NRRD, "%s: %s encoding not available in this Teem build", 
+             me, nio->encoding->name);
     return 1;
   }
   return 0;
@@ -790,7 +790,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
   int fi, guessed, available, fits;
 
   if (!nio->format) {
-    biffAdd_va(NRRD, "%s: got invalid (NULL) format", me);
+    biffAddf(NRRD, "%s: got invalid (NULL) format", me);
     return 1;
   }
   if (nrrdFormatUnknown == nio->format) {
@@ -825,7 +825,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio,
       nio->format = nrrdFormatNRRD;
     } else {
       /* problem: this was the format someone explicitly requested */
-      biffAdd_va(NRRD, "%s: %s", me, mesg);
+      biffAddf(NRRD, "%s: %s", me, mesg);
       return 1;
     }
   }
@@ -838,15 +838,15 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
   static const char me[]="_nrrdFormatMaybeSet";
 
   if (!nio->format) {
-    biffAdd_va(NRRD, "%s: invalid (NULL) format", me);
+    biffAddf(NRRD, "%s: invalid (NULL) format", me);
     return 1;
   }
   if (nrrdFormatUnknown == nio->format) {
     nio->format = nrrdFormatNRRD;
   }
   if (!nio->format->available()) {
-    biffAdd_va(NRRD, "%s: %s format not available in this Teem build", 
-               me, nio->format->name);
+    biffAddf(NRRD, "%s: %s format not available in this Teem build", 
+             me, nio->format->name);
     return 1;
   }
   return 0;
@@ -868,15 +868,15 @@ _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   airArray *mop;
 
   if (!((file || stringP) && nrrd)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (file && stringP) {
-    biffAdd_va(NRRD, "%s: can't write to both file and string", me);
+    biffAddf(NRRD, "%s: can't write to both file and string", me);
     return 1;
   }
   if (nrrdCheck(nrrd)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     return 1;
   }
   mop = airMopNew();
@@ -885,52 +885,52 @@ _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   } else {
     nio = nrrdIoStateNew();
     if (!nio) {
-      biffAdd_va(NRRD, "%s: couldn't alloc local NrrdIoState", me);
+      biffAddf(NRRD, "%s: couldn't alloc local NrrdIoState", me);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
   if (_nrrdEncodingMaybeSet(nio)
       || _nrrdFormatMaybeSet(nio)) {
-    biffAdd_va(NRRD, "%s: ", me);
+    biffAddf(NRRD, "%s: ", me);
     airMopError(mop); return 1;
   }
   if (nio->byteSkip || nio->lineSkip) {
     /* NOTE: unu make bypasses this by calling nrrdFormatNRRD->write()
        directly */
-    biffAdd_va(NRRD, "%s: can't generate line or byte skips on data write", me);
+    biffAddf(NRRD, "%s: can't generate line or byte skips on data write", me);
     airMopError(mop); return 1;
   }
   
   if (stringP) {
     if (nrrdFormatNRRD != nio->format) {
-      biffAdd_va(NRRD, "%s: sorry, can only write %s files to strings (not %s)",
-                 me, nrrdFormatNRRD->name, nio->format->name);
+      biffAddf(NRRD, "%s: sorry, can only write %s files to strings (not %s)",
+               me, nrrdFormatNRRD->name, nio->format->name);
       airMopError(mop); return 1;
     }
     /* we do this in two passes; first see how much room is needed
        for the header, then allocate, then write the header */
     nio->learningHeaderStrlen = AIR_TRUE;
     if (nio->format->write(NULL, nrrd, nio)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
     *stringP = (char*)malloc(nio->headerStrlen + 1);
     if (!*stringP) {
-      biffAdd_va(NRRD, "%s: couldn't allocate header string (%u len )",
-                 me, nio->headerStrlen);
+      biffAddf(NRRD, "%s: couldn't allocate header string (%u len )",
+               me, nio->headerStrlen);
       airMopError(mop); return 1;
     }
     nio->learningHeaderStrlen = AIR_FALSE;
     nio->headerStringWrite = *stringP;
     if (nio->format->write(NULL, nrrd, nio)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   } else {
     /* call the writer appropriate for the format */
     if (nio->format->write(file, nrrd, nio)) {
-      biffAdd_va(NRRD, "%s:", me);
+      biffAddf(NRRD, "%s:", me);
       airMopError(mop); return 1;
     }
   }
@@ -949,7 +949,7 @@ nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[]="nrrdWrite";
 
   if (_nrrdWrite(file, NULL, nrrd, _nio)) {
-    biffAdd_va(NRRD, "%s: trouble", me);
+    biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
   return 0;
@@ -965,7 +965,7 @@ nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[]="nrrdStringWrite";
 
   if (_nrrdWrite(NULL, stringP, nrrd, _nio)) {
-    biffAdd_va(NRRD, "%s: trouble", me);
+    biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
   return 0;
@@ -988,21 +988,21 @@ nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   airArray *mop;
 
   if (!(nrrd && filename)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   mop = airMopNew();
   if (!nio) {
     nio = nrrdIoStateNew();
     if (!nio) {
-      biffAdd_va(NRRD, "%s: couldn't alloc local NrrdIoState", me);
+      biffAddf(NRRD, "%s: couldn't alloc local NrrdIoState", me);
       return 1;
     }
     airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   }
   if (_nrrdEncodingMaybeSet(nio)
       || _nrrdFormatMaybeGuess(nrrd, nio, filename)) {
-    biffAdd_va(NRRD, "%s: ", me);
+    biffAddf(NRRD, "%s: ", me);
     airMopError(mop); return 1;
   }
   
@@ -1018,14 +1018,14 @@ nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   if (!( file = airFopen(filename, stdout, "wb") )) {
-    biffAdd_va(NRRD, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
-               me, filename, strerror(errno));
+    biffAddf(NRRD, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
+             me, filename, strerror(errno));
     airMopError(mop); return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (nrrdWrite(file, nrrd, nio)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
   
@@ -1042,13 +1042,13 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
   unsigned int nii; 
 
   if (!( fnameFormat && nin )) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( _nrrdContainsPercentThisAndMore(fnameFormat, 'u') )) {
-    biffAdd_va(NRRD, "%s: given format \"%s\" doesn't seem to "
-               "have the \"%%u\" conversion specification to sprintf "
-               "an unsigned int\n", me, fnameFormat);
+    biffAddf(NRRD, "%s: given format \"%s\" doesn't seem to "
+             "have the \"%%u\" conversion specification to sprintf "
+             "an unsigned int\n", me, fnameFormat);
     return 1;
   }
 
@@ -1056,7 +1056,7 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
   /* should be big enough for the number replacing the format sequence */
   fname = AIR_CAST(char *, malloc(strlen(fnameFormat) + 128));
   if (!(fname)) {
-    biffAdd_va(NRRD, "%s: couldn't allocate local fname buffer", me);
+    biffAddf(NRRD, "%s: couldn't allocate local fname buffer", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, fname, airFree, airMopAlways);
@@ -1066,7 +1066,7 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin,
     num = numStart + nii;
     sprintf(fname, fnameFormat, num);
     if (nrrdSave(fname, nin[nii], nio)) {
-      biffAdd_va(NRRD, "%s: trouble saving nin[%u] to %s", me, nii, fname);
+      biffAddf(NRRD, "%s: trouble saving nin[%u] to %s", me, nii, fname);
       airMopError(mop); return 1;
     }
     /* HEY: GLK hopes that the nio doesn't have any state that needs

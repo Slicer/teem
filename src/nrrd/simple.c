@@ -83,7 +83,7 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
   unsigned axi, saxi;
   
   if (!nrrd) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdSpaceUnknown == space) {
@@ -99,7 +99,7 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
     nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
   } else {
     if (airEnumValCheck(nrrdSpace, space)) {
-      biffAdd_va(NRRD, "%s: given space (%d) not valid", me, space);
+      biffAddf(NRRD, "%s: given space (%d) not valid", me, space);
       return 1;
     }
     nrrd->space = space;
@@ -119,11 +119,11 @@ nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim) {
   static const char me[]="nrrdSpaceDimensionSet";
   
   if (!nrrd) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( spaceDim <= NRRD_SPACE_DIM_MAX )) {
-    biffAdd_va(NRRD, "%s: given spaceDim (%u) not valid", me, spaceDim);
+    biffAddf(NRRD, "%s: given spaceDim (%u) not valid", me, spaceDim);
     return 1;
   }
   nrrd->space = nrrdSpaceUnknown;
@@ -172,11 +172,11 @@ nrrdSpaceOriginSet(Nrrd *nrrd,
   unsigned int sdi;
 
   if (!( nrrd && vector )) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (!( 0 < nrrd->spaceDim && nrrd->spaceDim <= NRRD_SPACE_DIM_MAX )) {
-    biffAdd_va(NRRD, "%s: set spaceDim %d not valid", me, nrrd->spaceDim);
+    biffAddf(NRRD, "%s: set spaceDim %d not valid", me, nrrd->spaceDim);
     return 1;
   }
   
@@ -403,7 +403,7 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
 
   buff = (char *)malloc(128*AIR_STRLEN_HUGE);
   if (!buff) {
-    biffAdd_va(NRRD, "%s: couln't alloc buffer!", me);
+    biffAddf(NRRD, "%s: couln't alloc buffer!", me);
     return 1;
   }
   nout->content = (char *)airFree(nout->content);
@@ -421,7 +421,7 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
                                  + 1                      /* ')' */
                                  + 1, sizeof(char));      /* '\0' */
   if (!nout->content) {
-    biffAdd_va(NRRD, "%s: couln't alloc output content!", me);
+    biffAddf(NRRD, "%s: couln't alloc output content!", me);
     airFree(buff); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
@@ -438,7 +438,7 @@ _nrrdContentSet_va(Nrrd *nout, const char *func,
   
   va_start(ap, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     free(content); return 1;
   }
   va_end(ap);
@@ -467,7 +467,7 @@ nrrdContentSet_va(Nrrd *nout, const char *func,
   char *content;
   
   if (!(nout && func && nin && format)) {
-    biffAdd_va(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdStateDisableContent) {
@@ -486,7 +486,7 @@ nrrdContentSet_va(Nrrd *nout, const char *func,
   content = _nrrdContentGet(nin);
   va_start(ap, format);
   if (_nrrdContentSet_nva(nout, func, content, format, ap)) {
-    biffAdd_va(NRRD, "%s:", me);
+    biffAddf(NRRD, "%s:", me);
     va_end(ap); free(content); return 1;
   }
   va_end(ap);
@@ -1106,7 +1106,7 @@ nrrdCheck(const Nrrd *nrrd) {
   static const char me[]="nrrdCheck";
 
   if (_nrrdCheck(nrrd, AIR_TRUE, AIR_TRUE)) {
-    biffAdd_va(NRRD, "%s: trouble", me);
+    biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
   return 0;
@@ -1330,7 +1330,7 @@ _nrrdCheckEnums(void) {
   return 0;
 
  err:
-  biffAdd_va(NRRD, "%s: Last vs. MAX incompatibility for %s enum", me, which);
+  biffAddf(NRRD, "%s: Last vs. MAX incompatibility for %s enum", me, which);
   return 1;
 }
 
@@ -1365,57 +1365,57 @@ nrrdSanity(void) {
   aret = airSanity();
   if (aret != airInsane_not) {
     if (airInsane_32Bit == aret) {
-      biffAdd_va(NRRD, "%s: (sizeof(size_t) == %u, not %u)", me, 
-                 AIR_CAST(unsigned int, sizeof(size_t)),
-                 AIR_32BIT ? 4 : 8);
+      biffAddf(NRRD, "%s: (sizeof(size_t) == %u, not %u)", me, 
+               AIR_CAST(unsigned int, sizeof(size_t)),
+               AIR_32BIT ? 4 : 8);
     }
-    biffAdd_va(NRRD, "%s: airSanity() failed: %s", me,
-               airInsaneErr(aret));
+    biffAddf(NRRD, "%s: airSanity() failed: %s", me,
+             airInsaneErr(aret));
     return 0;
   }
 
   if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
-    biffAdd_va(NRRD,
-               "%s: nrrdDefaultWriteEncodingType (%d) not in valid "
-               "range [%d,%d]", me, nrrdDefaultWriteEncodingType,
-               nrrdEncodingTypeUnknown+1, nrrdEncodingTypeLast-1);
+    biffAddf(NRRD,
+             "%s: nrrdDefaultWriteEncodingType (%d) not in valid "
+             "range [%d,%d]", me, nrrdDefaultWriteEncodingType,
+             nrrdEncodingTypeUnknown+1, nrrdEncodingTypeLast-1);
     return 0;
   }
   if (airEnumValCheck(nrrdCenter, nrrdDefaultCenter)) {
-    biffAdd_va(NRRD,
-               "%s: nrrdDefaultCenter (%d) not in valid range [%d,%d]",
-               me, nrrdDefaultCenter,
-               nrrdCenterUnknown+1, nrrdCenterLast-1);
+    biffAddf(NRRD,
+             "%s: nrrdDefaultCenter (%d) not in valid range [%d,%d]",
+             me, nrrdDefaultCenter,
+             nrrdCenterUnknown+1, nrrdCenterLast-1);
     return 0;
   }
   /* ---- BEGIN non-NrrdIO */
   if (!( nrrdTypeDefault == nrrdDefaultResampleType
          || !airEnumValCheck(nrrdType, nrrdDefaultResampleType) )) {
-    biffAdd_va(NRRD,
-               "%s: nrrdDefaultResampleType (%d) not in valid range [%d,%d]",
-               me, nrrdDefaultResampleType,
-               nrrdTypeUnknown, nrrdTypeLast-1);
+    biffAddf(NRRD,
+             "%s: nrrdDefaultResampleType (%d) not in valid range [%d,%d]",
+             me, nrrdDefaultResampleType,
+             nrrdTypeUnknown, nrrdTypeLast-1);
     return 0;
   }
   if (airEnumValCheck(nrrdBoundary, nrrdDefaultResampleBoundary)) {
-    biffAdd_va(NRRD, "%s: nrrdDefaultResampleBoundary (%d) "
-               "not in valid range [%d,%d]",
-               me, nrrdDefaultResampleBoundary,
-               nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
+    biffAddf(NRRD, "%s: nrrdDefaultResampleBoundary (%d) "
+             "not in valid range [%d,%d]",
+             me, nrrdDefaultResampleBoundary,
+             nrrdBoundaryUnknown+1, nrrdBoundaryLast-1);
     return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureType)) {
-    biffAdd_va(NRRD,
-               "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
-               me, nrrdStateMeasureType,
-               nrrdTypeUnknown+1, nrrdTypeLast-1);
+    biffAddf(NRRD,
+             "%s: nrrdStateMeasureType (%d) not in valid range [%d,%d]",
+             me, nrrdStateMeasureType,
+             nrrdTypeUnknown+1, nrrdTypeLast-1);
     return 0;
   }
   if (airEnumValCheck(nrrdType, nrrdStateMeasureHistoType)) {
-    biffAdd_va(NRRD,
-               "%s: nrrdStateMeasureHistoType (%d) not in "
-               "valid range [%d,%d]", me, nrrdStateMeasureType,
-               nrrdTypeUnknown+1, nrrdTypeLast-1);
+    biffAddf(NRRD,
+             "%s: nrrdStateMeasureHistoType (%d) not in "
+             "valid range [%d,%d]", me, nrrdStateMeasureType,
+             nrrdTypeUnknown+1, nrrdTypeLast-1);
     return 0;
   }
   /* ---- END non-NrrdIO */
@@ -1430,29 +1430,29 @@ nrrdSanity(void) {
          && nrrdTypeSize[nrrdTypeULLong] == sizeof(airULLong)
          && nrrdTypeSize[nrrdTypeFloat] == sizeof(float)
          && nrrdTypeSize[nrrdTypeDouble] == sizeof(double) )) {
-    biffAdd_va(NRRD, "%s: sizeof() for nrrd types has problem: "
-               "expected (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u) "
-               "but got (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u)", me,
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeChar]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUChar]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeShort]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUShort]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeInt]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUInt]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeLLong]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeULLong]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeFloat]),
-               AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeDouble]),
-               AIR_CAST(unsigned int, sizeof(char)),
-               AIR_CAST(unsigned int, sizeof(unsigned char)),
-               AIR_CAST(unsigned int, sizeof(short)),
-               AIR_CAST(unsigned int, sizeof(unsigned short)),
-               AIR_CAST(unsigned int, sizeof(int)),
-               AIR_CAST(unsigned int, sizeof(unsigned int)),
-               AIR_CAST(unsigned int, sizeof(airLLong)),
-               AIR_CAST(unsigned int, sizeof(airULLong)),
-               AIR_CAST(unsigned int, sizeof(float)),
-               AIR_CAST(unsigned int, sizeof(double)));
+    biffAddf(NRRD, "%s: sizeof() for nrrd types has problem: "
+             "expected (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u) "
+             "but got (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u)", me,
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeChar]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUChar]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeShort]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUShort]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeInt]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUInt]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeLLong]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeULLong]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeFloat]),
+             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeDouble]),
+             AIR_CAST(unsigned int, sizeof(char)),
+             AIR_CAST(unsigned int, sizeof(unsigned char)),
+             AIR_CAST(unsigned int, sizeof(short)),
+             AIR_CAST(unsigned int, sizeof(unsigned short)),
+             AIR_CAST(unsigned int, sizeof(int)),
+             AIR_CAST(unsigned int, sizeof(unsigned int)),
+             AIR_CAST(unsigned int, sizeof(airLLong)),
+             AIR_CAST(unsigned int, sizeof(airULLong)),
+             AIR_CAST(unsigned int, sizeof(float)),
+             AIR_CAST(unsigned int, sizeof(double)));
     return 0;
   }
   
@@ -1462,68 +1462,68 @@ nrrdSanity(void) {
     maxsize = AIR_MAX(maxsize, nrrdTypeSize[type]);
   }
   if (maxsize != NRRD_TYPE_SIZE_MAX) {
-    biffAdd_va(NRRD,
-               "%s: actual max type size is %u != %u == NRRD_TYPE_SIZE_MAX",
-               me, AIR_CAST(unsigned int, maxsize), NRRD_TYPE_SIZE_MAX);
+    biffAddf(NRRD,
+             "%s: actual max type size is %u != %u == NRRD_TYPE_SIZE_MAX",
+             me, AIR_CAST(unsigned int, maxsize), NRRD_TYPE_SIZE_MAX);
     return 0;
   }
 
   /* check on NRRD_TYPE_BIGGEST */
   if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
-    biffAdd_va(NRRD, "%s: actual max type size is %u != "
-               "%u == sizeof(NRRD_TYPE_BIGGEST)",
-               me, AIR_CAST(unsigned int, maxsize),
-               AIR_CAST(unsigned int, sizeof(NRRD_TYPE_BIGGEST)));
+    biffAddf(NRRD, "%s: actual max type size is %u != "
+             "%u == sizeof(NRRD_TYPE_BIGGEST)",
+             me, AIR_CAST(unsigned int, maxsize),
+             AIR_CAST(unsigned int, sizeof(NRRD_TYPE_BIGGEST)));
     return 0;
   }
   
   /* nrrd-defined type min/max values */
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
-    biffAdd_va(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
-               AIR_ULLONG_FMT ")", me,
-               NRRD_LLONG_MAX);
+    biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
+             AIR_ULLONG_FMT ")", me,
+             NRRD_LLONG_MAX);
     return 0;
   }
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
-    biffAdd_va(NRRD, "%s: long long int min (" AIR_LLONG_FMT 
-               ") or max (" AIR_LLONG_FMT ") incorrect", me,
-               NRRD_LLONG_MIN, NRRD_LLONG_MAX);
+    biffAddf(NRRD, "%s: long long int min (" AIR_LLONG_FMT 
+             ") or max (" AIR_LLONG_FMT ") incorrect", me,
+             NRRD_LLONG_MIN, NRRD_LLONG_MAX);
     return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
   if (tmpULLI != NRRD_ULLONG_MAX) {
-    biffAdd_va(NRRD, 
-               "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
-               AIR_ULLONG_FMT ")",
-               me, NRRD_ULLONG_MAX);
+    biffAddf(NRRD, 
+             "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
+             AIR_ULLONG_FMT ")",
+             me, NRRD_ULLONG_MAX);
     return 0;
   }
   tmpULLI += 1;
   if (tmpULLI != 0) {
-    biffAdd_va(NRRD,
-               "%s: unsigned long long int max (" AIR_ULLONG_FMT 
-               ") incorrect", me, NRRD_ULLONG_MAX);
+    biffAddf(NRRD,
+             "%s: unsigned long long int max (" AIR_ULLONG_FMT 
+             ") incorrect", me, NRRD_ULLONG_MAX);
     return 0;
   }
 
   if (_nrrdCheckEnums()) {
-    biffAdd_va(NRRD, "%s: problem with enum definition", me);
+    biffAddf(NRRD, "%s: problem with enum definition", me);
     return 0;
   }
   
   if (!( NRRD_DIM_MAX >= 3 )) {
-    biffAdd_va(NRRD, 
-               "%s: NRRD_DIM_MAX == %u seems awfully small, doesn't it?",
-               me, NRRD_DIM_MAX);
+    biffAddf(NRRD, 
+             "%s: NRRD_DIM_MAX == %u seems awfully small, doesn't it?",
+             me, NRRD_DIM_MAX);
     return 0;
   }
 
   if (!nrrdTypeIsIntegral[nrrdTypeBlock]) {
-    biffAdd_va(NRRD,
-               "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
-               "could get wacky", me);
+    biffAddf(NRRD,
+             "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
+             "could get wacky", me);
     return 0;
   }
 

@@ -166,13 +166,13 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
   char *m = fmode;
     
   if (!mode) {
-    biffAdd_va(NRRD, "%s: no file mode specified", me);
+    biffAddf(NRRD, "%s: no file mode specified", me);
     return Z_NULL;
   }
   /* allocate stream struct */
   s = (_NrrdGzStream *)calloc(1, sizeof(_NrrdGzStream));
   if (!s) {
-    biffAdd_va(NRRD, "%s: failed to allocate stream buffer", me);
+    biffAddf(NRRD, "%s: failed to allocate stream buffer", me);
     return Z_NULL;
   }
   /* initialize stream struct */
@@ -204,7 +204,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
     }
   } while (*p++ && m != fmode + sizeof(fmode));
   if (s->mode == '\0') {
-    biffAdd_va(NRRD, "%s: invalid file mode", me);
+    biffAddf(NRRD, "%s: invalid file mode", me);
     return _nrrdGzDestroy(s), (gzFile)Z_NULL;
   }
   
@@ -216,7 +216,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
 
     s->stream.next_out = s->outbuf = (Byte*)calloc(1, _NRRD_Z_BUFSIZE);
     if (error != Z_OK || s->outbuf == Z_NULL) {
-      biffAdd_va(NRRD, "%s: stream init failed", me);
+      biffAddf(NRRD, "%s: stream init failed", me);
       return _nrrdGzDestroy(s), (gzFile)Z_NULL;
     }
   } else {
@@ -230,7 +230,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
      * present after the compressed stream.
      */
     if (error != Z_OK || s->inbuf == Z_NULL) {
-      biffAdd_va(NRRD, "%s: stream init failed", me);
+      biffAddf(NRRD, "%s: stream init failed", me);
       return _nrrdGzDestroy(s), (gzFile)Z_NULL;
     }
   }
@@ -238,7 +238,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
   errno = 0;
   s->file = fd;
   if (s->file == NULL) {
-    biffAdd_va(NRRD, "%s: null file pointer", me);
+    biffAddf(NRRD, "%s: null file pointer", me);
     return _nrrdGzDestroy(s), (gzFile)Z_NULL;
   }
   if (s->mode == 'w') {
@@ -275,13 +275,13 @@ _nrrdGzClose (gzFile file) {
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL) {
-    biffAdd_va(NRRD, "%s: invalid stream", me);
+    biffAddf(NRRD, "%s: invalid stream", me);
     return 1;
   }
   if (s->mode == 'w') {
     error = _nrrdGzDoFlush(file, Z_FINISH);
     if (error != Z_OK) {
-      biffAdd_va(NRRD, "%s: failed to flush pending data", me);
+      biffAddf(NRRD, "%s: failed to flush pending data", me);
       return _nrrdGzDestroy((_NrrdGzStream*)file);
     }
     _nrrdGzPutLong(s->file, s->crc);
@@ -304,13 +304,13 @@ _nrrdGzRead(gzFile file, voidp buf, unsigned int len, unsigned int* read) {
   Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
 
   if (s == NULL || s->mode != 'r') {
-    biffAdd_va(NRRD, "%s: invalid stream or file mode", me);
+    biffAddf(NRRD, "%s: invalid stream or file mode", me);
     *read = 0;
     return 1;
   }
 
   if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) {
-    biffAdd_va(NRRD, "%s: data read error", me);
+    biffAddf(NRRD, "%s: data read error", me);
     *read = 0;
     return 1;
   }
@@ -410,7 +410,7 @@ _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL || s->mode != 'w') {
-    biffAdd_va(NRRD, "%s: invalid stream or file mode", me);
+    biffAddf(NRRD, "%s: invalid stream or file mode", me);
     *written = 0;
     return 1;
   }
@@ -423,7 +423,7 @@ _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
       s->stream.next_out = s->outbuf;
       if (fwrite(s->outbuf, 1, _NRRD_Z_BUFSIZE, s->file) != _NRRD_Z_BUFSIZE) {
         s->z_err = Z_ERRNO;
-        biffAdd_va(NRRD, "%s: failed to write to file", me);
+        biffAddf(NRRD, "%s: failed to write to file", me);
         break;
       }
       s->stream.avail_out = _NRRD_Z_BUFSIZE;
@@ -455,7 +455,7 @@ _nrrdGzGetByte(_NrrdGzStream *s) {
     if (s->stream.avail_in == 0) {
       s->z_eof = 1;
       if (ferror(s->file)) {
-        biffAdd_va(NRRD, "%s: failed to read from file", me);
+        biffAddf(NRRD, "%s: failed to read from file", me);
         s->z_err = Z_ERRNO;
       }
       return EOF;
@@ -501,7 +501,7 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
   method = _nrrdGzGetByte(s);
   flags = _nrrdGzGetByte(s);
   if (method != Z_DEFLATED || (flags & _NRRD_RESERVED) != 0) {
-    biffAdd_va(NRRD, "%s: gzip compression method is not deflate", me);
+    biffAddf(NRRD, "%s: gzip compression method is not deflate", me);
     s->z_err = Z_DATA_ERROR;
     return;
   }
@@ -540,7 +540,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
   int error = Z_OK;
 
   if (s == NULL) {
-    biffAdd_va(NRRD, "%s: invalid stream", me);
+    biffAddf(NRRD, "%s: invalid stream", me);
     return 1;
   }
   s->msg = (char *)airFree(s->msg);
@@ -552,11 +552,11 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     }
   }
   if (error != Z_OK) {
-    biffAdd_va(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAddf(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
   }
   if (s->z_err < 0) error = s->z_err;
   if (error != Z_OK) {
-    biffAdd_va(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAddf(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
   }
   s->inbuf = (Byte *)airFree(s->inbuf);
   s->outbuf = (Byte *)airFree(s->outbuf);
@@ -578,7 +578,7 @@ _nrrdGzDoFlush(gzFile file, int flush) {
   _NrrdGzStream *s = (_NrrdGzStream*)file;
 
   if (s == NULL || s->mode != 'w') {
-    biffAdd_va(NRRD, "%s: invalid stream or file mode", me);
+    biffAddf(NRRD, "%s: invalid stream or file mode", me);
     return Z_STREAM_ERROR;
   }
   

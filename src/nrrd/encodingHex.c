@@ -72,7 +72,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
   nibIdx = 0;
   nibNum = 2*elNum*nrrdElementSize(nrrd);
   if (nibNum/elNum != 2*nrrdElementSize(nrrd)) {
-    biffAdd_va(NRRD, "%s: size_t can't hold 2*(#bytes in array)\n", me);
+    biffAddf(NRRD, "%s: size_t can't hold 2*(#bytes in array)\n", me);
     return 1;
   }
   while (nibIdx < nibNum) {
@@ -93,13 +93,13 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
   }
   if (nibIdx != nibNum) {
     if (EOF == car) {
-      biffAdd_va(NRRD, "%s: hit EOF getting "
-                 "byte " _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV,
-                 me, nibIdx/2, nibNum/2);
+      biffAddf(NRRD, "%s: hit EOF getting "
+               "byte " _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV,
+               me, nibIdx/2, nibNum/2);
     } else {
-      biffAdd_va(NRRD, "%s: hit invalid character ('%c') getting "
-                 "byte " _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV,
-                 me, car, nibIdx/2, nibNum/2);
+      biffAddf(NRRD, "%s: hit invalid character ('%c') getting "
+               "byte " _AIR_SIZE_T_CNV " of " _AIR_SIZE_T_CNV,
+               me, car, nibIdx/2, nibNum/2);
     }
     return 1;
   }
