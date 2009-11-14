@@ -33,7 +33,7 @@ updateNinEtAl(seekContext *sctx) {
   }
 
   if (!( sctx->ninscl || sctx->pvl )) {
-    biffAdd_va(SEEK, "%s: data never set", me);
+    biffAddf(SEEK, "%s: data never set", me);
     return 1;
   }
   
@@ -88,7 +88,7 @@ updateAnswerPointers(seekContext *sctx) {
   }
 
   if (seekTypeUnknown == sctx->type) {
-    biffAdd_va(SEEK, "%s: feature type never set", me);
+    biffAddf(SEEK, "%s: feature type never set", me);
     return 1;
   }
   
@@ -106,7 +106,7 @@ updateAnswerPointers(seekContext *sctx) {
     /* this is apt regardless of feature type */
     if (sctx->strengthUse) {
       if (-1 == sctx->stngItem) {
-        biffAdd_va(SEEK, "%s: need to set strength item to use strength", me);
+        biffAddf(SEEK, "%s: need to set strength item to use strength", me);
         return 1;
       }
       sctx->stngAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
@@ -118,17 +118,17 @@ updateAnswerPointers(seekContext *sctx) {
     switch (sctx->type) {
     case seekTypeIsocontour:
       if (!( sctx->ninscl || -1 != sctx->sclvItem )) {
-        biffAdd_va(SEEK,
-                   "%s: need either scalar volume or value item set for %s",
-                   me, airEnumStr(seekType, seekTypeIsocontour));
+        biffAddf(SEEK,
+                 "%s: need either scalar volume or value item set for %s",
+                 me, airEnumStr(seekType, seekTypeIsocontour));
         return 1;
       }
       if (sctx->normalsFind) {
         /* NOTE simplifying assumption described in seek.h */
         if (!( sctx->ninscl || -1 != sctx->normItem )) {
-          biffAdd_va(SEEK, "%s: need either scalar volume or "
-                     "normal item set for normals for %s",
-                     me, airEnumStr(seekType, seekTypeIsocontour));
+          biffAddf(SEEK, "%s: need either scalar volume or "
+                   "normal item set for normals for %s",
+                   me, airEnumStr(seekType, seekTypeIsocontour));
           return 1;
         }
       }
@@ -146,9 +146,9 @@ updateAnswerPointers(seekContext *sctx) {
       if (sctx->flag[flagItemGradient]
           || sctx->flag[flagItemEigensystem]
 	  || sctx->flag[flagItemHess]) {
-        biffAdd_va(SEEK,
-                   "%s: can't set gradient, Hessian, or eigensystem for %s",
-                   me, airEnumStr(seekType, seekTypeIsocontour));
+        biffAddf(SEEK,
+                 "%s: can't set gradient, Hessian, or eigensystem for %s",
+                 me, airEnumStr(seekType, seekTypeIsocontour));
         return 1;
       }
       sctx->gradAns = NULL;
@@ -165,27 +165,27 @@ updateAnswerPointers(seekContext *sctx) {
     case seekTypeValleySurfaceOP:
     case seekTypeValleySurfaceT:
       if ( !sctx->pvl ) {
-        biffAdd_va(SEEK, "%s: can't find %s without a gage context",
-                   me, airEnumStr(seekType, sctx->type));
+        biffAddf(SEEK, "%s: can't find %s without a gage context",
+                 me, airEnumStr(seekType, sctx->type));
         return 1;
       }
       if (!( -1 != sctx->gradItem
              && -1 != sctx->evalItem
              && -1 != sctx->evecItem )) {
-        biffAdd_va(SEEK, "%s: grad, eval, evec items not all set", me);
+        biffAddf(SEEK, "%s: grad, eval, evec items not all set", me);
         return 1;
       }
       if ((sctx->type==seekTypeRidgeSurfaceT ||
 	   sctx->type==seekTypeValleySurfaceT) &&
 	  -1 == sctx->hessItem) {
-	biffAdd_va(SEEK, "%s: hess item not set", me);
+	biffAddf(SEEK, "%s: hess item not set", me);
 	return 1;
       }
       if (sctx->normalsFind) {
         /* NOTE simplifying assumption described in seek.h */
         if (-1 == sctx->normItem) {
-          biffAdd_va(SEEK, "%s: need normal item set for normals for %s",
-                     me, airEnumStr(seekType, sctx->type));
+          biffAddf(SEEK, "%s: need normal item set for normals for %s",
+                   me, airEnumStr(seekType, sctx->type));
           return 1;
         }
         sctx->normAns = (gageAnswerPointer(sctx->gctx, sctx->pvl,
@@ -205,8 +205,8 @@ updateAnswerPointers(seekContext *sctx) {
 	sctx->hessAns = NULL;
       break;
     default:
-      biffAdd_va(SEEK, "%s: sorry, %s extraction not implemented", me,
-                 airEnumStr(seekType, sctx->type));
+      biffAddf(SEEK, "%s: sorry, %s extraction not implemented", me,
+               airEnumStr(seekType, sctx->type));
       return 1;
     }
 
@@ -248,15 +248,15 @@ updateSxSySz(seekContext *sctx) {
       ELL_3V_COPY(sizeOut, sizeIn);
     } else {
       if (!sctx->pvl) {
-        biffAdd_va(SEEK,
-                   "%s: can't specify # samples (%u,%u,%u) independent of "
-                   "volume dimensions (%u,%u,%u) without a gage context", me,
-                   AIR_CAST(unsigned int, sctx->samples[0]),
-                   AIR_CAST(unsigned int, sctx->samples[1]),
-                   AIR_CAST(unsigned int, sctx->samples[2]),
-                   AIR_CAST(unsigned int, sizeIn[0]),
-                   AIR_CAST(unsigned int, sizeIn[1]),
-                   AIR_CAST(unsigned int, sizeIn[2]));
+        biffAddf(SEEK,
+                 "%s: can't specify # samples (%u,%u,%u) independent of "
+                 "volume dimensions (%u,%u,%u) without a gage context", me,
+                 AIR_CAST(unsigned int, sctx->samples[0]),
+                 AIR_CAST(unsigned int, sctx->samples[1]),
+                 AIR_CAST(unsigned int, sctx->samples[2]),
+                 AIR_CAST(unsigned int, sizeIn[0]),
+                 AIR_CAST(unsigned int, sizeIn[1]),
+                 AIR_CAST(unsigned int, sizeIn[2]));
         return 1;
       }
       ELL_3V_COPY(sizeOut, sctx->samples);
@@ -587,8 +587,8 @@ updateSclDerived(seekContext *sctx) {
             gageProbe(sctx->gctx, idxIn[0], idxIn[1], idxIn[2]);
             val = sctx->sclvAns[0];
             if (!AIR_EXISTS(val)) {
-              biffAdd_va(SEEK, "%s: probed scalar[%u,%u,%u] %g doesn't exist",
-                         me, xi, yi, zi, val);
+              biffAddf(SEEK, "%s: probed scalar[%u,%u,%u] %g doesn't exist",
+                       me, xi, yi, zi, val);
               return 1;
             }
             scl[xi + sctx->sx*(yi + sctx->sy*zi)] = val;
@@ -635,7 +635,7 @@ updateSpanSpaceHist(seekContext *sctx) {
                    (sctx->ninscl ? sctx->ninscl : sctx->nsclDerived),
                    nrrdBlind8BitRangeFalse);
       if (sctx->range->hasNonExist) {
-        biffAdd_va(SEEK, "%s: scalar volume has non-existent values", me);
+        biffAddf(SEEK, "%s: scalar volume has non-existent values", me);
         return 1;
       }
       sctx->nspanHist->axis[0].min = sctx->range->min;
@@ -733,15 +733,15 @@ updateResult(seekContext *sctx) {
 
   if (seekTypeIsocontour != sctx->type
       && sctx->flag[flagIsovalue]) {
-    biffAdd_va(SEEK, "%s: can't set isovalue for %s (only %s)", me,
-               airEnumStr(seekType, sctx->type),
-               airEnumStr(seekType, seekTypeIsocontour));
+    biffAddf(SEEK, "%s: can't set isovalue for %s (only %s)", me,
+             airEnumStr(seekType, sctx->type),
+             airEnumStr(seekType, seekTypeIsocontour));
     return 1;
   }
 
   if (sctx->strengthUse && !sctx->stngAns) {
-    biffAdd_va(SEEK, "%s: can't use feature strength without a strength item",
-               me);
+    biffAddf(SEEK, "%s: can't use feature strength without a strength item",
+             me);
     return 1;
   }
 
@@ -791,7 +791,7 @@ seekUpdate(seekContext *sctx) {
   int E;
 
   if (!sctx) {
-    biffAdd_va(SEEK, "%s: got NULL pointer", me);
+    biffAddf(SEEK, "%s: got NULL pointer", me);
     return 1;
   }
   E = 0;
@@ -805,7 +805,7 @@ seekUpdate(seekContext *sctx) {
   if (!E) E |= updateSpanSpaceHist(sctx);
   if (!E) E |= updateResult(sctx);
   if (E) {
-    biffAdd_va(SEEK, "%s: trouble updating", me);
+    biffAddf(SEEK, "%s: trouble updating", me);
     return 1;
   }
   
