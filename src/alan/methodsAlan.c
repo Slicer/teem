@@ -191,7 +191,7 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
   actx->nten = nrrdNuke(actx->nten);
   actx->nten = nrrdNew();
   if (nrrdConvert(actx->nten, nten, alan_nt)) {
-    biffMove_va(ALAN, NRRD, "%s: trouble converting tensors to alan_t", me);
+    biffMovef(ALAN, NRRD, "%s: trouble converting tensors to alan_t", me);
     return 1;
   }
   actx->size[0] = oversample*nten->axis[1].size;
