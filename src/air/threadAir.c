@@ -50,7 +50,7 @@ airThread *
 airThreadNew(void) {
   airThread *thread;
 
-  thread = (airThread *)calloc(1, sizeof(airThread));
+  thread = AIR_CALLOC(1, airThread);
   /* HEY: not sure if this can be usefully initialized */
   return thread;
 }
@@ -83,7 +83,7 @@ airThreadMutex *
 airThreadMutexNew(void) {
   airThreadMutex *mutex;
   
-  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
+  mutex = AIR_CALLOC(1, airThreadMutex);
   if (mutex) {
     if (pthread_mutex_init(&(mutex->id), NULL)) {
       mutex = (airThreadMutex *)airFree(mutex);
@@ -120,7 +120,7 @@ airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
   
-  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
+  cond = AIR_CALLOC(1, airThreadCond);
   if (cond) {
     if (pthread_cond_init(&(cond->id), NULL)) {
       /* there was an error */
@@ -195,7 +195,7 @@ airThread *
 airThreadNew(void) {
   airThread *thread;
 
-  thread = (airThread *)calloc(1, sizeof(airThread));
+  thread = AIR_CALLOC(1, airThread);
   /* HEY: any useful way to initialized a HANDLE? */
   thread->handle = NULL;
   thread->body = NULL;
@@ -249,7 +249,7 @@ airThreadMutex *
 airThreadMutexNew() {
   airThreadMutex *mutex;
 
-  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
+  mutex = AIR_CALLOC(1, airThreadMutex);
   if (mutex) {
     if (!(mutex->handle = CreateMutex(NULL, FALSE, NULL))) { 
       return airFree(mutex);
@@ -282,7 +282,7 @@ airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
 
-  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
+  cond = AIR_CALLOC(1, airThreadCond);
   if (cond) {
     cond->count = 0;
     cond->broadcast = 0;
@@ -430,7 +430,7 @@ airThread *
 airThreadNew(void) {
   airThread *thread;
 
-  thread = (airThread *)calloc(1, sizeof(airThread));
+  thread = AIR_CALLOC(1, airThread);
   thread->ret = NULL;
   return thread;
 }
@@ -462,7 +462,7 @@ airThreadMutex *
 airThreadMutexNew(void) {
   airThreadMutex *mutex;
 
-  mutex = (airThreadMutex *)calloc(1, sizeof(airThreadMutex));
+  mutex = AIR_CALLOC(1, airThreadMutex);
   return mutex;
 }
 
@@ -499,7 +499,7 @@ airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
   
-  cond = (airThreadCond *)calloc(1, sizeof(airThreadCond));
+  cond = AIR_CALLOC(1, airThreadCond);
   return cond;
 }
 
@@ -552,7 +552,7 @@ airThreadBarrier *
 airThreadBarrierNew(unsigned int numUsers) {
   airThreadBarrier *barrier;
   
-  barrier = (airThreadBarrier *)calloc(1, sizeof(airThreadBarrier));
+  barrier = AIR_CALLOC(1, airThreadBarrier);
   if (barrier) {
     barrier->numUsers = numUsers;
     barrier->numDone = 0;

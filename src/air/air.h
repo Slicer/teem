@@ -612,12 +612,12 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 /*
 ******** AIR_CALLOC
 **
-** slightly simpler wrapper around AIR_CAST and calloc
+** slightly simpler wrapper around cast and calloc
 **
-** HEY note that "T" is not guarded by parentheses, as arguments in
-** Teem macros normally are
+** HEY note that "T" is not guarded by parentheses in its first usage,
+** as arguments in Teem macros normally are
 */
-#define AIR_CALLOC(N, T) AIR_CAST(T*, calloc((N), sizeof(T)))
+#define AIR_CALLOC(N, T) (T*)(calloc((N), sizeof(T)))
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO

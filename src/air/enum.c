@@ -199,9 +199,8 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
     airToLower(ident);
   }
   desc = enm->desc[_airEnumIndex(enm, val)];
-  buff = (char *)calloc(airStrlen(fmt) + airStrlen(ident) +
-                        airStrlen(desc) + 1,
-                        sizeof(char));
+  buff = AIR_CALLOC(airStrlen(fmt) + airStrlen(ident) +
+                    airStrlen(desc) + 1, char);
   if (buff) {
     sprintf(buff, fmt, ident, desc);
   }
