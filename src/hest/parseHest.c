@@ -1059,7 +1059,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
      ridiculous safety we have to find the biggest things which can appear
      in the string. */
   big = _hestErrStrlen(opt, _argc, _argv);
-  if (!(err = (char *)calloc(big, sizeof(char)))) {
+  if (!( err = AIR_CALLOC(big, char) )) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
     exit(1);
@@ -1084,13 +1084,13 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
 
   /* -------- Create all the local arrays used to save state during
      the processing of all the different options */
-  nprm = (unsigned int *)calloc(numOpts, sizeof(unsigned int));
+  nprm = AIR_CALLOC(numOpts, unsigned int);
   airMopMem(mop, &nprm, airMopAlways);
-  appr = (int *)calloc(numOpts, sizeof(int));
+  appr = AIR_CALLOC(numOpts, int);
   airMopMem(mop, &appr, airMopAlways);
-  udflt = (int *)calloc(numOpts, sizeof(int));
+  udflt = AIR_CALLOC(numOpts, int);
   airMopMem(mop, &udflt, airMopAlways);
-  prms = (char **)calloc(numOpts, sizeof(char*));
+  prms = AIR_CALLOC(numOpts, char *);
   airMopMem(mop, &prms, airMopAlways);
   for (a=0; a<numOpts; a++) {
     prms[a] = NULL;
@@ -1109,7 +1109,7 @@ hestParse(hestOpt *opt, int _argc, char **_argv,
     printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", 
            me, nrf, argr, _argc, argc);
   }
-  argv = (char **)calloc(argc+1, sizeof(char*));
+  argv = AIR_CALLOC(argc+1, char *);
   airMopMem(mop, &argv, airMopAlways);
 
   /* -------- process response files (if any) and set the remaining

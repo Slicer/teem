@@ -28,7 +28,7 @@ hestParm *
 hestParmNew() {
   hestParm *parm;
   
-  parm = (hestParm *)calloc(1, sizeof(hestParm));
+  parm = AIR_CALLOC(1, hestParm);
   if (parm) {
     parm->verbosity = hestVerbosity;
     parm->respFileEnable = hestRespFileEnable;
@@ -80,7 +80,7 @@ hestOpt *
 hestOptNew(void) {
   hestOpt *opt;
   
-  opt = calloc(1, sizeof(hestOpt));
+  opt = AIR_CALLOC(1, hestOpt);
   if (opt) {
     _hestOptInit(opt);
     opt->min = 1;
@@ -103,7 +103,7 @@ hestOptAdd(hestOpt **optP,
     return;
 
   num = *optP ? _hestNumOpts(*optP) : 0;
-  if (!(ret = (hestOpt *)calloc(num+2, sizeof(hestOpt)))) {
+  if (!( ret = AIR_CALLOC(num+2, hestOpt) )) {
     return;
   }
   if (num)
@@ -183,7 +183,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
   int big;
 
   big = _hestErrStrlen(opt, 0, NULL);
-  if (!(err = (char *)calloc(big, sizeof(char)))) {
+  if (!( err = AIR_CALLOC(big, char) )) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
     exit(1);
@@ -396,7 +396,7 @@ _hestExtract(int *argcP, char **argv, int a, int np) {
     }
   }
   len += np;
-  ret = (char *)calloc(len, sizeof(char));
+  ret = AIR_CALLOC(len, char);
   strcpy(ret, "");
   for (n=0; n<np; n++) {
     /* if a single element of argv has spaces in it, someone went
