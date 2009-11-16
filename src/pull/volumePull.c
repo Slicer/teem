@@ -157,7 +157,9 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
   }
   if (E) {
-    biffMovef(PULL, GAGE, "%s: trouble", me);
+    biffMovef(PULL, GAGE, "%s: trouble (%s %s)", me,
+              ninSingle ? "ninSingle" : "",
+              ninScale ? "ninScale" : "");
     return 1;
   }
   
