@@ -137,7 +137,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     return NULL;
   }
   if (nrrdCheck(_ncpt)) {
-    biffMove_va(LIMN, NRRD, "%s: given nrrd has problems", me);
+    biffMovef(LIMN, NRRD, "%s: given nrrd has problems", me);
     return NULL;
   }
   if (limnSplineTypeTimeWarp == spec->type) {
@@ -186,7 +186,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdConvert(nin, _ncpt, nrrdTypeDouble)) {
-    biffMove_va(LIMN, NRRD, "%s: trouble allocating internal nrrd", me);
+    biffMovef(LIMN, NRRD, "%s: trouble allocating internal nrrd", me);
     airMopError(mop); return NULL;
   }
   if (limnSplineTypeTimeWarp == spec->type) {
@@ -201,8 +201,8 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
                           AIR_CAST(size_t, 1),
                           AIR_CAST(size_t, 3),
                           _ncpt->axis[0].size)) {
-      biffMove_va(LIMN, NRRD,
-                  "%s: trouble allocating real control points", me);
+      biffMovef(LIMN, NRRD,
+                "%s: trouble allocating real control points", me);
       airMopError(mop); return NULL;
     }
     /* and set it all to something useful */
@@ -266,7 +266,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     return 1;
   }
   if (nrrdCheck(nin)) {
-    biffMove_va(LIMN, NRRD, "%s: nrrd has problems", me);
+    biffMovef(LIMN, NRRD, "%s: nrrd has problems", me);
     return 1;
   }
   
@@ -278,7 +278,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   case 3:
     /* we assume that things are okay */
     if (nrrdCopy(nout, nin)) {
-      biffMove_va(LIMN, NRRD, "%s: trouble setting output", me);
+      biffMovef(LIMN, NRRD, "%s: trouble setting output", me);
       airMopError(mop); return 1;
     }
     break;
@@ -294,7 +294,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     if (limnSplineTypeTimeWarp == type) {
       /* time-warp handled differently */
       if (nrrdAxesDelete(nout, nin, 0)) {
-        biffMove_va(LIMN, NRRD, "%s: couldn't make data 1-D", me);
+        biffMovef(LIMN, NRRD, "%s: couldn't make data 1-D", me);
         airMopError(mop); return 1;
       }
     } else {
@@ -303,7 +303,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_3V_SET(max, wantSize-1, 1, N-1); 
         if (nrrdAxesInsert(ntmpA, nin, 1)
             || nrrdPad_va(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
-          biffMove_va(LIMN, NRRD, "%s: trouble with axinsert/pad", me);
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/pad", me);
           airMopError(mop); return 1;
         }
       } else {
@@ -320,7 +320,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         ELL_2V_SET(max, wantSize-1, N);
         if (nrrdPad_va(ntmpA, nin, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpA, 1, 3, (N+2)/3)) {
-          biffMove_va(LIMN, NRRD, "%s: trouble with pad/axsplit", me);
+          biffMovef(LIMN, NRRD, "%s: trouble with pad/axsplit", me);
           airMopError(mop); return 1;
         }
       }
@@ -336,7 +336,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     if (limnSplineTypeTimeWarp == type) {
       /* nothing fancey needed for time-warp */
       if (nrrdCopy(nout, nin)) {
-        biffMove_va(LIMN, NRRD, "%s: trouble setting output", me);
+        biffMovef(LIMN, NRRD, "%s: trouble setting output", me);
         airMopError(mop); return 1;
       }
     } else {
@@ -346,7 +346,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdAxesInsert(ntmpB, ntmpA, 0)
             || nrrdPad_va(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
-          biffMove_va(LIMN, NRRD, "%s: trouble with axinsert/axinsert/pad", me);
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/axinsert/pad", me);
           airMopError(mop); return 1;
         }
       } else {
@@ -364,7 +364,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdPad_va(ntmpB, ntmpA, min, max, nrrdBoundaryPad, 0.0)
             || nrrdAxesSplit(nout, ntmpB, 1, 3, (N+2)/3)) {
-          biffMove_va(LIMN, NRRD, "%s: trouble with axinsert/pad/axsplit", me);
+          biffMovef(LIMN, NRRD, "%s: trouble with axinsert/pad/axsplit", me);
           airMopError(mop); return 1;
         }
       }
@@ -375,7 +375,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     return 1;
   }
   if (nrrdCheck(nout)) {
-    biffMove_va(LIMN, NRRD, "%s: oops: didn't create valid output", me);
+    biffMovef(LIMN, NRRD, "%s: oops: didn't create valid output", me);
     airMopError(mop); return 1;
   }
   airMopOkay(mop);
@@ -418,7 +418,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     return 1;
   }
   if (nrrdCheck(_ncpt)) {
-    biffMove_va(LIMN, NRRD, "%s: given nrrd has problems", me);
+    biffMovef(LIMN, NRRD, "%s: given nrrd has problems", me);
     return 1;
   }
   if (limnSplineTypeTimeWarp == spline->type) {
@@ -434,7 +434,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     }
   } else {
     if (!( nrrdSameSize(spline->ncpt, _ncpt, AIR_TRUE) )) {
-      biffMove_va(LIMN, NRRD, "%s: given ncpt doesn't match original one", me);
+      biffMovef(LIMN, NRRD, "%s: given ncpt doesn't match original one", me);
       return 1;
     }
   }
@@ -444,7 +444,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     if (nrrdWrap_va(ntmp, spline->time, nrrdTypeDouble, 1,
                     _ncpt->axis[0].size)
         || nrrdConvert(ntmp, _ncpt, nrrdTypeDouble)) {
-      biffMove_va(LIMN, NRRD, "%s: trouble copying info", me);
+      biffMovef(LIMN, NRRD, "%s: trouble copying info", me);
       nrrdNix(ntmp); return 1;
     }
     if (_limnSplineTimeWarpSet(spline)) {
@@ -454,7 +454,7 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
     nrrdNix(ntmp); 
   } else {
     if (nrrdConvert(spline->ncpt, _ncpt, nrrdTypeDouble)) {
-      biffMove_va(LIMN, NRRD, "%s: trouble converting to internal nrrd", me);
+      biffMovef(LIMN, NRRD, "%s: trouble converting to internal nrrd", me);
       return 1;
     }
   }  

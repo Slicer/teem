@@ -184,7 +184,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (!E) E |= gageQueryItemOn(uu->gctx0, pvl, uu->whatq);
   if (!E) E |= gageUpdate(uu->gctx0);
   if (E) {
-    biffMove_va(MREND, GAGE, "%s: gage trouble", me);
+    biffMovef(MREND, GAGE, "%s: gage trouble", me);
     return 1;
   }
   fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
@@ -193,7 +193,7 @@ mrendRenderBegin(mrendRender **rrP, mrendUser *uu) {
   if (nrrdMaybeAlloc_va((*rrP)->nout=nrrdNew(), nrrdTypeDouble, 2,
                         AIR_CAST(size_t, uu->hctx->imgSize[0]),
                         AIR_CAST(size_t, uu->hctx->imgSize[1]))) {
-    biffMove_va(MREND, NRRD, "%s: nrrd trouble", me);
+    biffMovef(MREND, NRRD, "%s: nrrd trouble", me);
     return 1;
   }
   (*rrP)->nout->axis[0].min = uu->hctx->cam->uRange[0];
@@ -231,7 +231,7 @@ mrendRenderEnd(mrendRender *rr, mrendUser *uu) {
   fprintf(stderr, "%s: sampling rate = %g KHz\n", me,
           rr->totalSamples/(1000.0*(rr->time1 - rr->time0)));
   if (nrrdSave(uu->outS, rr->nout, NULL)) {
-    biffMove_va(MREND, NRRD, "%s: trouble saving image", me);
+    biffMovef(MREND, NRRD, "%s: trouble saving image", me);
     return 1;
   }
   

@@ -65,7 +65,7 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
              scaleMin, scaleMax);
     return 1;
   }
-  sbp->scale = AIR_CAST(double *, calloc(num, sizeof(double)));
+  sbp->scale = AIR_CALLOC(num, double);
   if (!sbp->scale) {
     biffAddf(GAGE, "%s: couldn't alloc scale for %u", me, num);
     return 1;
@@ -173,7 +173,7 @@ _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[],
   for (blIdx=0; blIdx<blNum; blIdx++) {
     if (checking) {
       if (nrrdCheck(ncheck[blIdx])) {
-        biffMove_va(GAGE, NRRD, "%s: bad ncheck[%u]", me, blIdx);
+        biffMovef(GAGE, NRRD, "%s: bad ncheck[%u]", me, blIdx);
         return 1;
       }
     } else {
@@ -376,3 +376,164 @@ gageStackBlurCheck(const Nrrd *const nblur[],
   return 0;
 }
 
+int
+gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
+                 gageStackBlurParm *sbp,
+                 const char *format,
+                 const Nrrd *nin, const gageKind *kind) {
+  static const char me[]="gageStackBlurGet";
+  airArray *mop;
+  int recompute;
+  unsigned int ii;
+
+  if (!( nblur && sbp && nin && kind )) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  for (ii=0; ii<sbp->num; ii++) {
+    if (!nblur[ii]) {
+      biffAddf(GAGE, "%s: nblur[%u] NULL", me, ii);
+      return 1;
+    }
+  }
+  if (gageStackBlurParmCheck(sbp)) {
+    biffAddf(GAGE, "%s: trouble with blur parms", me);
+    return 1;
+  }
+  mop = airMopNew();
+
+  /* set recompute flag */
+  if (!airStrlen(format)) {
+    /* no info about files to load, obviously have to recompute */
+    if (sbp->verbose) {
+      fprintf(stderr, "%s: no file info, must recompute blurrings\n", me);
+    }
+    recompute = AIR_TRUE;
+  } else {
+    char *fname, *suberr;
+    int firstExists;
+    FILE *file;
+    /* do have info about files to load, but may fail in many ways */
+    fname = AIR_CALLOC(strlen(format) + AIR_STRLEN_SMALL, char);
+    if (!fname) {
+      biffAddf(GAGE, "%s: couldn't allocate fname", me);
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, fname, airFree, airMopAlways);
+    /* see if we can get the first file (number 0) */
+    sprintf(fname, format, 0);
+    firstExists = !!(file = fopen(fname, "r"));
+    airFclose(file);
+    if (!firstExists) {
+      if (sbp->verbose) {
+        fprintf(stderr, "%s: no file \"%s\"; will recompute blurrings\n",
+                me, fname);
+      }
+      recompute = AIR_TRUE;
+    } else if (nrrdLoadMulti(nblur, sbp->num, format, 0, NULL)) {
+      airMopAdd(mop, suberr = biffGetDone(NRRD), airFree, airMopAlways);
+      if (sbp->verbose) {
+        printf("%s: will recompute blurrings that couldn't be "
+               "read:\n%s\n", me, suberr);
+      }
+      recompute = AIR_TRUE;
+    } else if (gageStackBlurCheck(AIR_CAST(const Nrrd**, nblur),
+                                  sbp, nin, kind)) {
+      airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
+      if (sbp->verbose) {
+        printf("%s: will recompute blurrings that don't "
+               "match:\n%s\n", me, suberr);
+      }
+      recompute = AIR_TRUE;
+    } else {
+      /* else precomputed blurrings could all be read, and did match */
+      if (sbp->verbose) {
+        fprintf(stderr, "%s: will re-use %s pre-blurrings.\n", me, format);
+      }
+      recompute = AIR_FALSE;
+    }
+  }
+  if (recompute) {
+    if (gageStackBlur(nblur, sbp, nin, kind)) {
+      biffAddf(GAGE, "%s: trouble computing blurrings", me);
+      airMopError(mop); return 1;
+    }
+  }
+  if (recomputedP) {
+    *recomputedP = recompute;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** gageStackBlurManage
+**
+** does the work of gageStackBlurGet and then some:
+** allocates the array of Nrrds, and saves output if recomputed
+*/
+int
+gageStackBlurManage(Nrrd ***nblurP, int *recomputedP, 
+                    gageStackBlurParm *sbp,
+                    const char *format,
+                    int saveIfComputed, NrrdEncoding *enc,
+                    const Nrrd *nin, const gageKind *kind) {
+  static const char me[]="gageStackBlurManage";
+  Nrrd **nblur;
+  unsigned int ii;
+  airArray *mop;
+  int recomputed;
+  
+  if (!( nblurP && sbp && nin && kind )) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  nblur = *nblurP = AIR_CALLOC(sbp->num, Nrrd *);
+  if (!nblurP) {
+    biffAddf(GAGE, "%s: couldn't alloc %u Nrrd*s", me, sbp->num);
+    return 1;
+  }
+
+  mop = airMopNew();
+  airMopAdd(mop, nblurP, (airMopper)airSetNull, airMopOnError);
+  airMopAdd(mop, *nblurP, airFree, airMopOnError);
+  for (ii=0; ii<sbp->num; ii++) {
+    nblur[ii] = nrrdNew();
+    airMopAdd(mop, nblur[ii], (airMopper)nrrdNuke, airMopOnError);
+  }
+  if (gageStackBlurGet(nblur, &recomputed, sbp, format, nin, kind)) {
+    biffAddf(GAGE, "%s: trouble getting nblur", me);
+    airMopError(mop); return 1;
+  }
+  if (recomputedP) {
+    *recomputedP = recomputed;
+  }
+  if (recomputed && format && saveIfComputed) {
+    NrrdIoState *nio;
+    int E;
+    E = 0;
+    if (enc) {
+      if (!enc->available()) {
+        biffAddf(GAGE, "%s: requested %s encoding which is not "
+                 "available in this build", me, enc->name);
+        airMopError(mop); return 1;
+      }
+      nio = nrrdIoStateNew();
+      airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
+      if (!E) E |= nrrdIoStateEncodingSet(nio, nrrdEncodingGzip);
+    } else {
+      nio = NULL;
+    }
+    if (!E) E |= nrrdSaveMulti(format, AIR_CAST(const Nrrd *const *,
+                                                nblur),
+                               sbp->num, 0, nio);
+    if (E) {
+      biffMovef(GAGE, NRRD, "%s: trouble saving blurrings", me);
+      airMopError(mop); return 1;
+    }
+  }
+  
+  airMopOkay(mop);
+  return 0;
+}

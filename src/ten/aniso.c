@@ -995,7 +995,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, res), AIR_CAST(size_t, res))) {
-    biffMove_va(TEN, NRRD, "%s: ", me);
+    biffMovef(TEN, NRRD, "%s: ", me);
     return 1;
   }
   out = (float *)nout->data;
@@ -1058,7 +1058,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   size[2] = sz = nin->axis[3].size;
   N = sx*sy*sz;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz)) {
-    biffMove_va(TEN, NRRD, "%s: trouble", me);
+    biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   out = (float *)nout->data;
@@ -1101,7 +1101,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   }
   ELL_3V_SET(map, 1, 2, 3);
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_SIZE_BIT)) {
-    biffMove_va(TEN, NRRD, "%s: trouble", me);
+    biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
@@ -1129,7 +1129,7 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
   }
   if (nwght) {
     if (nrrdCheck(nwght)) {
-      biffMove_va(TEN, NRRD, "%s: trouble with weighting nrrd", me);
+      biffMovef(TEN, NRRD, "%s: trouble with weighting nrrd", me);
       return 1;
     }
     if (nrrdElementNumber(nwght)
@@ -1161,7 +1161,7 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
   }
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, res), AIR_CAST(size_t, yres))) {
-    biffMove_va(TEN, NRRD, "%s: ", me);
+    biffMovef(TEN, NRRD, "%s: ", me);
     return 1;
   }
   out = (float *)nout->data;

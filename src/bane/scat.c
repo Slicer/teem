@@ -49,7 +49,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: trouble creating raw scatterplots", me);
     return 1;
   }
-
+  
   /* do histogram equalization on them */
   if (histEq) {
     if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
@@ -64,7 +64,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: couldn't histogram equalize or copy", me);
     return 1;
   }
-
+  
   /* re-orient them so they look correct on the screen */
   if (!E) E |= nrrdAxesSwap(gA, gB, 0, 1);
   if (!E) E |= nrrdAxesSwap(hA, hB, 0, 1);
@@ -81,7 +81,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: trouble saving results to given nrrds", me);
     return 1;
   }
-
+  
   nrrdNuke(gA); nrrdNuke(gB);
   nrrdNuke(hA); nrrdNuke(hB);
   return 0;

@@ -83,7 +83,7 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   if (inverse) {
-    iperm = (unsigned int*)calloc(permLen, sizeof(unsigned int));
+    iperm = AIR_CALLOC(permLen, unsigned int);
     airMopAdd(mop, iperm, airFree, airMopAlways);
     if (nrrdInvertPerm(iperm, perm, permLen)) {
       fprintf(stderr,
@@ -96,7 +96,7 @@ unrrdu_shuffleMain(int argc, char **argv, char *me, hestParm *hparm) {
     whichperm = perm;
   }
   
-  realperm = (size_t*)calloc(permLen, sizeof(size_t));
+  realperm = AIR_CALLOC(permLen, size_t);
   airMopAdd(mop, realperm, airFree, airMopAlways);
   for (di=0; di<permLen; di++) {
     realperm[di] = whichperm[di];

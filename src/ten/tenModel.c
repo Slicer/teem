@@ -188,8 +188,8 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _nparm, nrrdTypeDouble)) {
-      biffMove_va(TEN, NRRD, "%s: couldn't convert parm to %s", me, 
-                  airEnumStr(nrrdType, nrrdTypeDouble));
+      biffMovef(TEN, NRRD, "%s: couldn't convert parm to %s", me, 
+                airEnumStr(nrrdType, nrrdTypeDouble));
       airMopError(mop); return 1;
     }
     ndparm = ntmp;
@@ -208,7 +208,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
       max[ax] = ndparm->axis[ax].size-1;
     }
     if (nrrdPad_nva(ntmp, ndparm, min, max, nrrdBoundaryBleed, 0.0)) {
-      biffMove_va(TEN, NRRD, "%s: couldn't pad", me);
+      biffMovef(TEN, NRRD, "%s: couldn't pad", me);
       airMopError(mop); return 1;
     }
     ndpparm = ntmp;
@@ -223,8 +223,8 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
       ntmp = nrrdNew();
       airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdConvert(ntmp, _nB0, nrrdTypeDouble)) {
-        biffMove_va(TEN, NRRD, "%s: couldn't convert B0 to %s", me, 
-                    airEnumStr(nrrdType, nrrdTypeDouble));
+        biffMovef(TEN, NRRD, "%s: couldn't convert B0 to %s", me, 
+                  airEnumStr(nrrdType, nrrdTypeDouble));
         airMopError(mop); return 1;
       }
       nB0 = ntmp;
@@ -234,7 +234,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdSplice(ntmp, ndpparm, nB0, 0, 0)) {
-      biffMove_va(TEN, NRRD, "%s: couldn't splice in B0", me);
+      biffMovef(TEN, NRRD, "%s: couldn't splice in B0", me);
       airMopError(mop); return 1;
     }
     nparm = ntmp;
@@ -250,7 +250,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
                  : AIR_CAST(int, ii));
   }
   if (nrrdMaybeAlloc_nva(ndwi, typeOut, nparm->dim, szOut)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   if (!(ddwi = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double))))) {
@@ -291,7 +291,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
                            | (nrrdStateKeyValuePairsPropagate
                               ? 0
                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffMove_va(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
   }
   
@@ -413,7 +413,7 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                  : AIR_CAST(int, ii));
   }
   if (nrrdMaybeAlloc_nva(nparm, typeOut, ndwi->dim, szOut)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   ddwi = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double)));
@@ -470,7 +470,7 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                            | (nrrdStateKeyValuePairsPropagate
                               ? 0
                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffMove_va(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
   }
   lablen = (strlen(tenModelPrefixStr)
@@ -565,7 +565,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
                  : AIR_CAST(int, ii));
   }
   if (nrrdMaybeAlloc_nva(nparmDst, nparmSrc->type, nparmSrc->dim, szOut)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   
@@ -607,7 +607,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
                            | (nrrdStateKeyValuePairsPropagate
                               ? 0
                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-    biffMove_va(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
   }
   /* HEY: COPY AND PASTE! from above. perhaps make helper functions? */

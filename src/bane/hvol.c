@@ -143,8 +143,8 @@ baneFindInclusion(double min[3], double max[3],
                             AIR_CAST(size_t, sx),
                             AIR_CAST(size_t, sy),
                             AIR_CAST(size_t, sz))) {
-        biffMove_va(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                    me, sx, sy, sz);
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
+                  me, sx, sy, sz);
         return 1;
       }
     }
@@ -192,8 +192,8 @@ baneFindInclusion(double min[3], double max[3],
                             AIR_CAST(size_t, sx),
                             AIR_CAST(size_t, sy),
                             AIR_CAST(size_t, sz))) {
-        biffMove_va(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                    me, sx, sy, sz);
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
+                  me, sx, sy, sz);
         return 1;
       }
     }
@@ -317,7 +317,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[2].measr->query);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
-    biffMove_va(BANE, GAGE, "%s: trouble setting up gage", me);
+    biffMovef(BANE, GAGE, "%s: trouble setting up gage", me);
     airMopError(mop); return 1;
   }
   pad = ctx->radius;
@@ -360,9 +360,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
                         AIR_CAST(size_t, shx),
                         AIR_CAST(size_t, shy),
                         AIR_CAST(size_t, shz))) {
-    biffMove_va(BANE, NRRD,
-                "%s: couldn't allocate raw histovol (%dx%dx%d)", 
-                me, shx, shy, shz);
+    biffMovef(BANE, NRRD,
+              "%s: couldn't allocate raw histovol (%dx%dx%d)", 
+              me, shx, shy, shz);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
@@ -422,7 +422,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
                         AIR_CAST(size_t, shx),
                         AIR_CAST(size_t, shy),
                         AIR_CAST(size_t, shz))) {
-    biffMove_va(BANE, NRRD, "%s: couldn't alloc finished histovol", me);
+    biffMovef(BANE, NRRD, "%s: couldn't alloc finished histovol", me);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, hvol, (airMopper)nrrdEmpty, airMopOnError);
@@ -516,7 +516,7 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
                         AIR_CAST(size_t, sx),
                         AIR_CAST(size_t, sy),
                         AIR_CAST(size_t, sz))) {
-    biffMove_va(BANE, NRRD, "%s: couldn't alloc output nrrd", me);
+    biffMovef(BANE, NRRD, "%s: couldn't alloc output nrrd", me);
     return 1;
   }
   nout->axis[0].spacing = nin->axis[0].spacing;

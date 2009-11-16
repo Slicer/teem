@@ -45,14 +45,14 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   AIR_UNUSED(encoding);
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p)",
-                    me, AIR_CAST(void*, nrrd)); 
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p)",
+                  me, AIR_CAST(void*, nrrd)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: type must be %s (not %s)", me,
-                    airEnumStr(nrrdType, nrrdTypeUChar),
-                    airEnumStr(nrrdType, nrrd->type)); 
+    biffMaybeAddf(useBiff, NRRD, "%s: type must be %s (not %s)", me,
+                  airEnumStr(nrrdType, nrrdTypeUChar),
+                  airEnumStr(nrrdType, nrrd->type)); 
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -70,14 +70,14 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      biffMaybeAdd_va(useBiff, NRRD,
-                      "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
-                      ", not 1, 3, or 4", me, nrrd->axis[0].size); 
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV
+                    ", not 1, 3, or 4", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
   } else {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: dimension is %d, not 2 or 3",
-                    me, nrrd->dim); 
+    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 2 or 3",
+                  me, nrrd->dim); 
     return AIR_FALSE;
   }
   return ret;

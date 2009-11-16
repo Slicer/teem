@@ -135,7 +135,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
                         AIR_CAST(size_t, 3), size[0], size[1], size[2]) ||
       nrrdMaybeAlloc_va(nevec=nrrdNew(), nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 9), size[0], size[1], size[2])) {
-    biffMove_va(TEN, NRRD, "%s: trouble allocating temp nrrds", me);
+    biffMovef(TEN, NRRD, "%s: trouble allocating temp nrrds", me);
     return 1;
   }
   

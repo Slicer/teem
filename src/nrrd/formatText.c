@@ -45,12 +45,12 @@ _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   AIR_UNUSED(encoding);
   /* encoding ignored- always ascii */
   if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: dimension is %d, not 1 or 2",
-                    me, nrrd->dim); 
+    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 1 or 2",
+                  me, nrrd->dim); 
     return AIR_FALSE;
   }
   if (nrrdTypeBlock == nrrd->type) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: can't save blocks to plain text", me);
+    biffMaybeAddf(useBiff, NRRD, "%s: can't save blocks to plain text", me);
     return AIR_FALSE;
   }
   /* NOTE: type of array not guaranteed to survive */

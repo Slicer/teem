@@ -66,13 +66,13 @@ baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
       if (!E) E |= !(nout->axis[2].label = airStrdup("gage(gm)"));
     }
     if (E) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble modifying opacity function nrrd", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble modifying opacity function nrrd", me);
       airMopError(mop); return 1;
     }
   }
   if (nrrdSave(out, nout, NULL)) {
-    biffMove_va(BANE, NRRD, "%s: trouble saving opacity function", me);
+    biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
     airMopError(mop); return 1;
   }
   

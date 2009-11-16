@@ -230,7 +230,7 @@ miteNtxfCheck(const Nrrd *ntxf) {
   unsigned int rii, axi;
 
   if (nrrdCheck(ntxf)) {
-    biffMove_va(MITE, NRRD, "%s: basic nrrd validity check failed", me);
+    biffMovef(MITE, NRRD, "%s: basic nrrd validity check failed", me);
     return 1;
   }
   if (!( nrrdTypeFloat == ntxf->type || 
@@ -437,7 +437,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
     }
   }
   if (E) {
-    biffMove_va(MITE, NRRD, "%s: troubling copying/converting all ntxfs", me);
+    biffMovef(MITE, NRRD, "%s: troubling copying/converting all ntxfs", me);
     return 1;
   }
   return 0;

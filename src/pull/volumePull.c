@@ -157,7 +157,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
   }
   if (E) {
-    biffMove_va(PULL, GAGE, "%s: trouble", me);
+    biffMovef(PULL, GAGE, "%s: trouble", me);
     return 1;
   }
   
@@ -292,7 +292,7 @@ _pullVolumeCopy(const pullVolume *volOrig) {
      the items from the info specs, so we have to add query here */
   if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
       || gageUpdate(volNew->gctx)) {
-    biffMove_va(PULL, GAGE, "%s: trouble with new volume gctx", me);
+    biffMovef(PULL, GAGE, "%s: trouble with new volume gctx", me);
     return NULL;
   }
   return volNew;
@@ -323,9 +323,9 @@ _pullVolumeSetup(pullContext *pctx) {
   for (ii=0; ii<pctx->volNum; ii++) {
     printf("!%s: gageUpdate(vol[%u])\n", me, ii);
     if (gageUpdate(pctx->vol[ii]->gctx)) {
-      biffMove_va(PULL, GAGE, "%s: trouble setting up gage on vol "
-                  "%u/%u (\"%s\")",  me, ii, pctx->volNum,
-                  pctx->vol[ii]->name);
+      biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
+                "%u/%u (\"%s\")",  me, ii, pctx->volNum,
+                pctx->vol[ii]->name);
       return 1;
     }
   }
@@ -347,9 +347,9 @@ _pullVolumeSetup(pullContext *pctx) {
     if (ii && !pctx->allowUnequalShapes) {
       if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
                           pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
-        biffMove_va(PULL, GAGE,
-                    "%s: need equal shapes, but vol 0 and %u different", 
-                    me, ii);
+        biffMovef(PULL, GAGE,
+                  "%s: need equal shapes, but vol 0 and %u different", 
+                  me, ii);
         return 1;
       }
     }

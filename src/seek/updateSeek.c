@@ -42,7 +42,7 @@ updateNinEtAl(seekContext *sctx) {
       sctx->nin = sctx->ninscl;
       sctx->baseDim = 0;
       if (gageShapeSet(sctx->_shape, sctx->ninscl, 0)) {
-        biffMove_va(SEEK, GAGE, "%s: trouble with scalar volume", me);
+        biffMovef(SEEK, GAGE, "%s: trouble with scalar volume", me);
         return 1;
       }
       sctx->shape = sctx->_shape;
@@ -535,7 +535,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
     sctx->flag[flagSlabCacheAlloc] = AIR_TRUE;
   }
   if (E) {
-    biffMove_va(SEEK, NRRD, "%s: couldn't allocate all slab caches", me);
+    biffMovef(SEEK, NRRD, "%s: couldn't allocate all slab caches", me);
     return 1;
   }
   sctx->flag[flagStrengthUse] = AIR_FALSE;
@@ -566,8 +566,8 @@ updateSclDerived(seekContext *sctx) {
     } else {
       if (nrrdMaybeAlloc_va(sctx->nsclDerived, nrrdTypeDouble, 3,
                             sctx->sx, sctx->sy, sctx->sz)) {
-        biffMove_va(SEEK, NRRD,
-                    "%s: couldn't allocated derived scalar volume", me);
+        biffMovef(SEEK, NRRD,
+                  "%s: couldn't allocated derived scalar volume", me);
         return 1;
       }
       scl = AIR_CAST(double*, sctx->nsclDerived->data);
@@ -655,8 +655,8 @@ updateSpanSpaceHist(seekContext *sctx) {
       if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2, 
                             AIR_CAST(size_t, sctx->spanSize), 
                             AIR_CAST(size_t, sctx->spanSize))) {
-        biffMove_va(SEEK, NRRD,
-                    "%s: couldn't allocate space space histogram", me);
+        biffMovef(SEEK, NRRD,
+                  "%s: couldn't allocate space space histogram", me);
         return 1;
       }
       spanHist = AIR_CAST(unsigned int*, sctx->nspanHist->data);

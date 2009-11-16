@@ -75,7 +75,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     }
   }
   if (E) {
-    biffMove_va(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
   E = 0;
@@ -98,7 +98,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
     if (!E) E |= nrrdCopy(ntmp[1], nt);
   }
   if (E) {
-    biffMove_va(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
   
@@ -167,7 +167,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
       || nrrdProject(ntmpA, nin, axis, nrrdMeasureMax, nrrdTypeDefault)
       || nrrdQuantize(nrgb[2], ntmpA, NULL, 8)
       || nrrdJoin(nout, (const Nrrd**)nrgb, 3, 0, AIR_TRUE)) {
-    biffMove_va(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
+    biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }
   
@@ -232,7 +232,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
                         AIR_CAST(size_t, 3),
                         AIR_CAST(size_t, srl + 3*margin + sap),
                         AIR_CAST(size_t, ssi + 3*margin + sap))) {
-    biffMove_va(NINSPECT, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(NINSPECT, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   

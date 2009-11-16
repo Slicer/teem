@@ -71,7 +71,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
   if (!E) E |= nrrdConvert(pctx->nten, pctx->nin, nrrdTypeFloat);
   if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
   if (E) {
-    biffMove_va(PUSH, NRRD, "%s: trouble creating 3D tensor input", me);
+    biffMovef(PUSH, NRRD, "%s: trouble creating 3D tensor input", me);
     airMopError(mop); return 1;
   }
   _ten = (float*)pctx->nten->data;
@@ -92,7 +92,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
 
   if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
   if (E) {
-    biffMove_va(PUSH, NRRD, "%s: trouble creating mask", me);
+    biffMovef(PUSH, NRRD, "%s: trouble creating mask", me);
     airMopError(mop); return 1;
   }
   nrange = nrrdRangeNewSet(pctx->nmask, nrrdBlind8BitRangeFalse);
@@ -160,7 +160,7 @@ _pushGageSetup(pushContext *pctx) {
   /* HEY: seed threshold item should possibly be turned off later! */
   if (!E) E |= gageUpdate(pctx->gctx);
   if (E) {
-    biffMove_va(PUSH, GAGE, "%s: trouble setting up gage", me);
+    biffMovef(PUSH, GAGE, "%s: trouble setting up gage", me);
     return 1;
   }
   
@@ -176,7 +176,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
   if (task) {
     task->pctx = pctx;
     if (!(task->gctx = gageContextCopy(pctx->gctx))) {
-      biffMove_va(PUSH, GAGE, "%s: trouble copying main gageContext", me);
+      biffMovef(PUSH, GAGE, "%s: trouble copying main gageContext", me);
       return NULL;
     }
     /* 

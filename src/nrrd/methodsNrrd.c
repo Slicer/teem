@@ -588,14 +588,14 @@ _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
   pre = num = 1;
   for (ai=0; ai<dim; ai++) {
     if (!size[ai]) {
-      biffMaybeAdd_va(useBiff, NRRD, "%s: axis %u size is zero!", me, ai);
+      biffMaybeAddf(useBiff, NRRD, "%s: axis %u size is zero!", me, ai);
       return 1;
     }
     num *= size[ai];
     if (num/size[ai] != pre) {
-      biffMaybeAdd_va(useBiff, NRRD,
-                      "%s: total # of elements too large to be represented in "
-                      "type size_t, so too large for current architecture", me);
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: total # of elements too large to be represented in "
+                    "type size_t, so too large for current architecture", me);
       return 1;
     }
     pre *= size[ai];

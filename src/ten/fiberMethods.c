@@ -127,15 +127,15 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   if ( !(tfx->gtx = gageContextNew())
        || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, vol, kind))
        || (gagePerVolumeAttach(tfx->gtx, tfx->pvl)) ) {
-    biffMove_va(TEN, GAGE, "%s: gage trouble", me);
+    biffMovef(TEN, GAGE, "%s: gage trouble", me);
     free(tfx); return NULL;
   }
   
   tfx->nin = vol;
   tfx->ksp = nrrdKernelSpecNew();
   if (nrrdKernelSpecParse(tfx->ksp, tenDefFiberKernel)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't parse tenDefFiberKernel \"%s\"",
-                me,  tenDefFiberKernel);
+    biffMovef(TEN, NRRD, "%s: couldn't parse tenDefFiberKernel \"%s\"",
+              me,  tenDefFiberKernel);
     return NULL;
   }
   if (tenFiberKernelSet(tfx, tfx->ksp->kernel, tfx->ksp->parm)) {
@@ -702,7 +702,7 @@ tenFiberKernelSet(tenFiberContext *tfx,
   nrrdKernelSpecSet(tfx->ksp, kern, parm);
   if (gageKernelSet(tfx->gtx, gageKernel00,
                     tfx->ksp->kernel, tfx->ksp->parm)) {
-    biffMove_va(TEN, GAGE, "%s: problem setting kernel", me);
+    biffMovef(TEN, GAGE, "%s: problem setting kernel", me);
     return 1;
   }
   
@@ -784,7 +784,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
   }
   if (gageQuerySet(tfx->gtx, tfx->pvl, tfx->query)
       || gageUpdate(tfx->gtx)) {
-    biffMove_va(TEN, GAGE, "%s: trouble with gage", me);
+    biffMovef(TEN, GAGE, "%s: trouble with gage", me);
     return 1;
   }
   if (tfx->useDwi) {

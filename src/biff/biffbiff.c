@@ -173,64 +173,53 @@ biffAdd(const char *key, const char *err) {
 }
 
 void
-biffAddV(const char *key, const char *errfmt, va_list args) {
+biffAddVL(const char *key, const char *errfmt, va_list args) {
   biffMsg *msg;
 
   _bmsgStart();
   msg = _bmsgAdd(key);
-  biffMsgAddV(msg, errfmt, args);
+  biffMsgAddVL(msg, errfmt, args);
   return;
 }
 
 /*
-******** biffAdd_va()
+******** biffAddf()
 **
 ** Adds string "err" at key "key", whether or not there are any
 ** existing messages there.  This version accepts a printf style
 ** format string as input.
 */
 void
-biffAdd_va(const char *key, const char *errfmt, ...) {
-  va_list args;
-
-  va_start(args, errfmt);
-  biffAddV(key, errfmt, args);
-  va_end(args);
-  return;
-}
-
-/*
-******** biffAdd_eva
-**
-** calls (eventually) biffMsgAdd if msg is non-NULL, otherwise calls
-** biffAdd if msg is NULL.  This dual behavior helps implement the
-** body of functions that have two front-ends, with (ending in "_e")
-** and without (not ending in "_e") a passed biffMsg
-*/
-void
-biffAdd_eva(biffMsg *msg, const char *key, const char *errfmt, ...) {
-  va_list args;
-
-  va_start(args, errfmt);
-  if (msg) {
-    biffMsgAddV(msg, errfmt, args);
-  } else {
-    biffAddV(key, errfmt, args);
-  }
-  va_end(args);
-  return;
-}
-
-/* HEY COPY & PASTE but this function is going away anyway ... */
-void
 biffAddf(const char *key, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
-  biffAddV(key, errfmt, args);
+  biffAddVL(key, errfmt, args);
   va_end(args);
   return;
 }
+
+#if 0
+/*
+******** biffAddf_e
+**
+** calls (eventually) biffMsgAdd if msg is non-NULL, otherwise calls
+** biffAdd if msg is NULL.
+*/
+void
+biffAddf_e(biffMsg *msg, const char *key, const char *errfmt, ...) {
+  va_list args;
+
+  va_start(args, errfmt);
+  if (msg) {
+    biffMsgAddVL(msg, errfmt, args);
+  } else {
+    biffAddVL(key, errfmt, args);
+  }
+  va_end(args);
+  return;
+}
+#endif
 
 /*
 ******** biffMaybeAdd()
@@ -247,25 +236,12 @@ biffMaybeAdd(const char *key, const char *err, int useBiff) {
 }
 
 void
-biffMaybeAdd_va(int useBiff, const char *key, const char *errfmt, ...) {
-  va_list args;
-
-  va_start(args, errfmt);
-  if (useBiff) {
-    biffAddV(key, errfmt, args);
-  }
-  va_end(args);
-  return;
-}
-
-/* HEY COPY & PASTE but this function is going away anyway ... */
-void
 biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
   if (useBiff) {
-    biffAddV(key, errfmt, args);
+    biffAddVL(key, errfmt, args);
   }
   va_end(args);
   return;
@@ -436,8 +412,8 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
 }
 
 void
-biffMoveV(const char *destKey, const char *srcKey,
-          const char *errfmt, va_list args) {
+biffMoveVL(const char *destKey, const char *srcKey,
+           const char *errfmt, va_list args) {
   static const char me[]="biffMovev";
   biffMsg *dest, *src;
 
@@ -448,29 +424,17 @@ biffMoveV(const char *destKey, const char *srcKey,
     fprintf(stderr, "%s: WARNING: key \"%s\" unknown\n", me, srcKey);
     return;
   }
-  biffMsgMoveV(dest, src, errfmt, args);
+  biffMsgMoveVL(dest, src, errfmt, args);
   return;
 }
 
-void
-biffMove_va(const char *destKey, const char *srcKey,
-            const char *errfmt, ...) {
-  va_list args;
-
-  va_start(args, errfmt);
-  biffMoveV(destKey, srcKey, errfmt, args);
-  va_end(args);
-  return;
-}
-
-/* HEY COPY & PASTE but this function is going away anyway ... */
 void
 biffMovef(const char *destKey, const char *srcKey,
           const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
-  biffMoveV(destKey, srcKey, errfmt, args);
+  biffMoveVL(destKey, srcKey, errfmt, args);
   va_end(args);
   return;
 }

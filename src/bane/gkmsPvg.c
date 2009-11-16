@@ -123,7 +123,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {
-      biffMove_va(BANE, NRRD, "%s: trouble saving colormap", me);
+      biffMovef(BANE, NRRD, "%s: trouble saving colormap", me);
       airMopError(mop); return 1;
     }
   }
@@ -169,7 +169,7 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }
   if (nrrdHistoEq(nposB, nposA, NULL, PVG_HISTEQ_BINS, 3, 1.0)) {
-    biffMove_va(BANE, NRRD, "%s: trouble doing histo-eq on p(v,g)", me);
+    biffMovef(BANE, NRRD, "%s: trouble doing histo-eq on p(v,g)", me);
     airMopError(mop); return 1;
   }
   
@@ -200,13 +200,13 @@ baneGkms_pvgMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (nrrdFlip(nposA, nposB, 1) ||
       nrrdApply1DIrregMap(npvg, nposA, range, ndon,
                           NULL, nrrdTypeUChar, AIR_TRUE)) {
-    biffMove_va(BANE, NRRD, "%s: trouble applying colormap", me);
+    biffMovef(BANE, NRRD, "%s: trouble applying colormap", me);
     airMopError(mop); return 1;
   }
   
   nio->format = nrrdFormatPNM;
   if (nrrdSave(outS, npvg, nio)) {
-    biffMove_va(BANE, NRRD, "%s: trouble saving pvg image", me);
+    biffMovef(BANE, NRRD, "%s: trouble saving pvg image", me);
     airMopError(mop); return 1;
   }
   airMopOkay(mop);

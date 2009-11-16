@@ -106,8 +106,8 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     /* we have to generate a new gageContext */
     (*mttP)->gctx = gageContextCopy(muu->gctx0);
     if (!(*mttP)->gctx) {
-      biffMove_va(MITE, GAGE,
-                  "%s: couldn't set up thread %d", me, whichThread);
+      biffMovef(MITE, GAGE,
+                "%s: couldn't set up thread %d", me, whichThread);
       return 1;
     }
   }

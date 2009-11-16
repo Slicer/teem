@@ -38,7 +38,7 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
   mop = airMopNew();
   airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nrrd, inS, NULL)) {
-    biffMove_va(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
+    biffMovef(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
     airMopError(mop); return 1;
   }
   

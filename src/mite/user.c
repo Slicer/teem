@@ -187,22 +187,22 @@ _miteUserCheck(miteUser *muu) {
   /* check appropriateness of given volumes */
   if (muu->nsin) {
     if (gageVolumeCheck(muu->gctx0, muu->nsin, gageKindScl)) {
-      biffMove_va(MITE, GAGE, "%s: trouble with input %s volume",
-                  me, gageKindScl->name);
+      biffMovef(MITE, GAGE, "%s: trouble with input %s volume",
+                me, gageKindScl->name);
       airMopError(mop); return 1;
     }
   }
   if (muu->nvin) {
     if (gageVolumeCheck(muu->gctx0, muu->nvin, gageKindVec)) {
-      biffMove_va(MITE, GAGE, "%s: trouble with input %s volume", 
-                  me, gageKindVec->name);
+      biffMovef(MITE, GAGE, "%s: trouble with input %s volume", 
+                me, gageKindVec->name);
       airMopError(mop); return 1;
     }
   }
   if (muu->ntin) {
     if (gageVolumeCheck(muu->gctx0, muu->ntin, tenGageKind)) {
-      biffMove_va(MITE, GAGE, "%s: trouble with input %s volume", 
-                  me, tenGageKind->name);
+      biffMovef(MITE, GAGE, "%s: trouble with input %s volume", 
+                me, tenGageKind->name);
       airMopError(mop); return 1;
     }
   }

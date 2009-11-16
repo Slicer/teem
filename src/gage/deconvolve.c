@@ -40,20 +40,20 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
-    biffAdd_va(GAGE, "%s: got NULL pointer", me);
+    biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!(nrrdTypeDefault == typeOut
         || !airEnumValCheck(nrrdType, typeOut))) {
-    biffAdd_va(GAGE, "%s: typeOut %d not valid", me, typeOut);
+    biffAddf(GAGE, "%s: typeOut %d not valid", me, typeOut);
     return 1;
   }
   if (!( maxIter >= 1 )) {
-    biffAdd_va(GAGE, "%s: need maxIter >= 1 (not %u)", me, maxIter);
+    biffAddf(GAGE, "%s: need maxIter >= 1 (not %u)", me, maxIter);
     return 1;
   }
   if (!( epsilon >= 0 )) {
-    biffAdd_va(GAGE, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
+    biffAddf(GAGE, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
     return 1;
   }
   
@@ -65,8 +65,8 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     nout[iter] = nrrdNew();
     airMopAdd(mop, nout[iter], (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(nout[iter], nin, nrrdTypeDouble)) {
-      biffMove_va(GAGE, NRRD, "%s: couldn't allocate working buffer %u",
-                  me, iter);
+      biffMovef(GAGE, NRRD, "%s: couldn't allocate working buffer %u",
+                me, iter);
       airMopError(mop); return 1;
     }
     ctx[iter] = gageContextNew();
@@ -79,7 +79,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     if (!E) E |= gageQueryItemOn(ctx[iter], pvl[iter], valItem);
     if (!E) E |= gageUpdate(ctx[iter]);
     if (E) {
-      biffAdd_va(GAGE, "%s: trouble setting up context %u", me, iter);
+      biffAddf(GAGE, "%s: trouble setting up context %u", me, iter);
       airMopError(mop); return 1;
     }
     out[iter] = AIR_CAST(double*, nout[iter]->data);
@@ -130,8 +130,8 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   }
   if (iter == maxIter) {
     if (!saveAnyway) {
-      biffAdd_va(GAGE, "%s: failed to converge in %u iterations, meandiff = %g",
-                 me, maxIter, meandiff);
+      biffAddf(GAGE, "%s: failed to converge in %u iterations, meandiff = %g",
+               me, maxIter, meandiff);
       airMopError(mop); return 1;
     } else {
       if (verbose) {
@@ -144,7 +144,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   if (nrrdClampConvert(_nout, nout[this], (nrrdTypeDefault == typeOut
                                            ? nin->type
                                            : typeOut))) {
-    biffAdd_va(GAGE, "%s: couldn't create output", me);
+    biffAddf(GAGE, "%s: couldn't create output", me);
     airMopError(mop); return 1;
   }
   *lastDiffP = meandiff;

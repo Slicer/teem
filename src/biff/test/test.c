@@ -97,7 +97,7 @@ main() {
   msg2 = biffMsgNix(msg2);
   
   /*
-  biffAdd_va("test", "%s: this is a test %d %f", "me", 1, 2.0);
+  biffAddf("test", "%s: this is a test %d %f", "me", 1, 2.0);
   printf("%s\n", (tmp = biffGet("test")));
   free(tmp);
   biffDone("test");

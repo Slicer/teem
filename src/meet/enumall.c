@@ -39,74 +39,75 @@ const airEnum **
 meetAirEnumAll() {
   airArray *arr;
   const airEnum **enm;
+  unsigned int ii;
 
   arr = airArrayNew(AIR_CAST(void **, &enm), NULL, sizeof(airEnum *), 2);
-  enm[airArrayLenIncr(arr, 1)] = airEndian;
-  enm[airArrayLenIncr(arr, 1)] = airBool;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = airEndian;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = airBool;
   /* hest: no airEnums */
   /* biff: no airEnums */
-  enm[airArrayLenIncr(arr, 1)] = nrrdFormatType;
-  enm[airArrayLenIncr(arr, 1)] = nrrdType;
-  enm[airArrayLenIncr(arr, 1)] = nrrdEncodingType;
-  enm[airArrayLenIncr(arr, 1)] = nrrdCenter;
-  enm[airArrayLenIncr(arr, 1)] = nrrdKind;
-  enm[airArrayLenIncr(arr, 1)] = nrrdField;
-  enm[airArrayLenIncr(arr, 1)] = nrrdSpace;
-  enm[airArrayLenIncr(arr, 1)] = nrrdSpacingStatus;
-  enm[airArrayLenIncr(arr, 1)] = nrrdBoundary;
-  enm[airArrayLenIncr(arr, 1)] = nrrdMeasure;
-  enm[airArrayLenIncr(arr, 1)] = nrrdUnaryOp;
-  enm[airArrayLenIncr(arr, 1)] = nrrdBinaryOp;
-  enm[airArrayLenIncr(arr, 1)] = nrrdTernaryOp;
-  enm[airArrayLenIncr(arr, 1)] = ell_cubic_root;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdEncodingType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdCenter;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdKind;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdField;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpace;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpacingStatus;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBoundary;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMeasure;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdUnaryOp;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBinaryOp;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdTernaryOp;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
   /* unrrdu: no airEnums */
   /* dye: no airEnums */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* moss: no airEnums */
-  enm[airArrayLenIncr(arr, 1)] = alanStop;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = alanStop;
 #endif
-  enm[airArrayLenIncr(arr, 1)] = gageErr;
-  enm[airArrayLenIncr(arr, 1)] = gageKernel;
-  enm[airArrayLenIncr(arr, 1)] = gageScl;
-  enm[airArrayLenIncr(arr, 1)] = gageVec;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageErr;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageKernel;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  enm[airArrayLenIncr(arr, 1)] = baneGkmsMeasr;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = baneGkmsMeasr;
 #endif
-  enm[airArrayLenIncr(arr, 1)] = limnSpace;
-  enm[airArrayLenIncr(arr, 1)] = limnPolyDataInfo;
-  enm[airArrayLenIncr(arr, 1)] = limnCameraPathTrack;
-  enm[airArrayLenIncr(arr, 1)] = limnPrimitive;
-  enm[airArrayLenIncr(arr, 1)] = limnSplineType;
-  enm[airArrayLenIncr(arr, 1)] = limnSplineInfo;
-  enm[airArrayLenIncr(arr, 1)] = seekType;
-  enm[airArrayLenIncr(arr, 1)] = hooverErr;
-  enm[airArrayLenIncr(arr, 1)] = echoJitter;
-  enm[airArrayLenIncr(arr, 1)] = echoType;
-  enm[airArrayLenIncr(arr, 1)] = echoMatter;
-  enm[airArrayLenIncr(arr, 1)] = tenAniso;
-  enm[airArrayLenIncr(arr, 1)] = tenInterpType;
-  enm[airArrayLenIncr(arr, 1)] = tenGage;
-  enm[airArrayLenIncr(arr, 1)] = tenFiberType;
-  enm[airArrayLenIncr(arr, 1)] = tenDwiFiberType;
-  enm[airArrayLenIncr(arr, 1)] = tenFiberStop;
-  enm[airArrayLenIncr(arr, 1)] = tenFiberIntg;
-  enm[airArrayLenIncr(arr, 1)] = tenGlyphType;
-  enm[airArrayLenIncr(arr, 1)] = tenEstimate1Method;
-  enm[airArrayLenIncr(arr, 1)] = tenEstimate2Method;
-  enm[airArrayLenIncr(arr, 1)] = tenTripleType;
-  enm[airArrayLenIncr(arr, 1)] = tenDwiGage;
-  enm[airArrayLenIncr(arr, 1)] = miteVal;
-  enm[airArrayLenIncr(arr, 1)] = miteStageOp;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSpace;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnPolyDataInfo;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnCameraPathTrack;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnPrimitive;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineInfo;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = seekType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = hooverErr;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = echoJitter;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = echoType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = echoMatter;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenAniso;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenInterpType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenGage;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiFiberType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberStop;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberIntg;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenGlyphType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenEstimate1Method;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenEstimate2Method;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenTripleType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiGage;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = miteVal;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = miteStageOp;
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  enm[airArrayLenIncr(arr, 1)] = coilMethodType;
-  enm[airArrayLenIncr(arr, 1)] = coilKindType;
-  enm[airArrayLenIncr(arr, 1)] = pushEnergyType;
-  enm[airArrayLenIncr(arr, 1)] = pullInterType;
-  enm[airArrayLenIncr(arr, 1)] = pullEnergyType;
-  enm[airArrayLenIncr(arr, 1)] = pullInfo;
-  enm[airArrayLenIncr(arr, 1)] = pullProcessMode;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = coilMethodType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = coilKindType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pushEnergyType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullEnergyType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInfo;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
 #endif
-  enm[airArrayLenIncr(arr, 1)] = NULL;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
   airArrayNix(arr);
   return enm;
 };
@@ -126,6 +127,6 @@ meetAirEnumAllPrint(FILE *file) {
     fprintf(file, "\n");
     ei++;
   }
-  free(enm);
+  free(AIR_CAST(void *, enm));
   return;
 }

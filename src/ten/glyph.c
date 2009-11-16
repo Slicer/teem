@@ -235,7 +235,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   }
   if (!npos) {
     if (gageShapeSet(shape, nten, tenGageKind->baseDim)) {
-      biffMove_va(TEN, GAGE, "%s: trouble", me);
+      biffMovef(TEN, GAGE, "%s: trouble", me);
       airMopError(mop); return 1;
     }
   }

@@ -80,14 +80,14 @@ baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (!E) E |= nrrdQuantize(nvgQuant, nvgRaw, vgRange, 8);
   if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, vhRange, 8);
   if (E) {
-    biffMove_va(BANE, NRRD, "%s: trouble doing gamma or quantization", me);
+    biffMovef(BANE, NRRD, "%s: trouble doing gamma or quantization", me);
     airMopError(mop); return 1;
   }
   
   if (!E) E |= nrrdSave(out[0], nvgQuant, NULL);
   if (!E) E |= nrrdSave(out[1], nvhQuant, NULL);
   if (E) {
-    biffMove_va(BANE, NRRD, "%s: trouble saving scatterplot images", me);
+    biffMovef(BANE, NRRD, "%s: trouble saving scatterplot images", me);
     airMopError(mop); return 1;
   }
   

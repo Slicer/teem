@@ -30,7 +30,7 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
   int i;
 
   if (nrrdCheck(nin)) {
-    biffMove_va(BANE, NRRD, "%s: basic nrrd validity check failed", me);
+    biffMovef(BANE, NRRD, "%s: basic nrrd validity check failed", me);
     return 1;
   }
   if (3 != nin->dim) {

@@ -361,7 +361,7 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
     odim = 1 + nin->dim;
   }
   if (nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, odim, size)) {
-    biffMove_va(LIMN, NRRD, "%s: output allocation failed", me);
+    biffMovef(LIMN, NRRD, "%s: output allocation failed", me);
     return 1;
   }
   lup = nrrdDLookup[nin->type];
@@ -395,7 +395,7 @@ limnSplineSample(Nrrd *nout, limnSpline *spline,
   airMopAdd(mop, ntt=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 1,
                         M)) {
-    biffMove_va(LIMN, NRRD, "%s: trouble allocating tmp nrrd", me);
+    biffMovef(LIMN, NRRD, "%s: trouble allocating tmp nrrd", me);
     airMopError(mop); return 1;
   }
   tt = (double*)(ntt->data);

@@ -100,7 +100,7 @@ biffMsgAdd(biffMsg *msg, const char *err) {
 }
 
 void
-biffMsgAddV(biffMsg *msg, const char *errfmt, va_list args) {
+biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
   char errstr[_HACK_STRLEN];
 
   vsprintf(errstr, errfmt, args);
@@ -109,11 +109,11 @@ biffMsgAddV(biffMsg *msg, const char *errfmt, va_list args) {
 }
 
 void
-biffMsgAdd_va(biffMsg *msg, const char *errfmt, ...) {
+biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
-  biffMsgAddV(msg, errfmt, args);
+  biffMsgAddVL(msg, errfmt, args);
   va_end(args);
   return;
 }
@@ -189,8 +189,8 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
 }
 
 void
-biffMsgMoveV(biffMsg *dest, biffMsg *src,
-             const char *errfmt, va_list args) {
+biffMsgMoveVL(biffMsg *dest, biffMsg *src,
+              const char *errfmt, va_list args) {
   char errstr[_HACK_STRLEN];
   
   vsprintf(errstr, errfmt, args);
@@ -199,11 +199,11 @@ biffMsgMoveV(biffMsg *dest, biffMsg *src,
 }
 
 void
-biffMsgMove_va(biffMsg *dest, biffMsg *src, const char *errfmt, ...) {
+biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...) {
   va_list args;
   
   va_start(args, errfmt);
-  biffMsgMoveV(dest, src, errfmt, args);
+  biffMsgMoveVL(dest, src, errfmt, args);
   va_end(args);
   return;
 }

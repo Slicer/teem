@@ -88,7 +88,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   airMopAdd(mop, ngrid, (airMopper)nrrdNuke, airMopAlways);
   if (ctx->stackPos) {
     if (nrrdConvert(ngrid, _ngrid, nrrdTypeDouble)) {
-      biffMove_va(GAGE, NRRD, "%s: trouble converting ngrid", me);
+      biffMovef(GAGE, NRRD, "%s: trouble converting ngrid", me);
       airMopError(mop); return 1;
     }
   } else {
@@ -101,7 +101,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _ngrid, nrrdTypeDouble)
         || nrrdPad_nva(ngrid, ntmp, minIdx, maxIdx, nrrdBoundaryPad, 0.0)) {
-      biffMove_va(GAGE, NRRD, "%s: trouble converting/padding ngrid", me);
+      biffMovef(GAGE, NRRD, "%s: trouble converting/padding ngrid", me);
       airMopError(mop); return 1;
     }
   }
@@ -132,7 +132,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     coordOut[aidx + baseDim] = 0;
   }
   if (nrrdMaybeAlloc_nva(nout, typeOut, dim, sizeOut)) {
-    biffMove_va(GAGE, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(GAGE, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
   ins = nrrdDInsert[nout->type];
@@ -208,12 +208,13 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ansLen, six, siy, siz, sox, soy, soz;
-  double bval=0, eps, gmc, rangeSS[2], *scalePosSS, *pntPos, scale[3], posSS;
+  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int *skip, skipNum, pntPosNum;
+  gageStackBlurParm *sbp;
 
   int otype;
 
@@ -377,42 +378,33 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
-#if 0
     unsigned int vi;
     int recompute;
-    
-    if (gageStackVolumeGet(&ninSS, &scalePosSS, &recompute,
-                           numSS, rangeSS,
-                           uniformSS, optimSS,
-                           stackFnameFormat, 0,
-                           nin, kind,
-                           kSSblur, AIR_TRUE /* verbose */)) {
+
+    sbp = gageStackBlurParmNew();
+    airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
+                                  uniformSS, optimSS)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                      AIR_TRUE, verbose)
+        || gageStackBlurManage(&ninSS, &recompute, sbp,
+                               stackFnameFormat, AIR_TRUE, NULL,
+                               nin, kind)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble getting volume stack:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, ninSS, airFree, airMopAlways);
-    airMopAdd(mop, scalePosSS, airFree, airMopAlways);
     if (verbose > 2) {
       fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
               rangeSS[0], rangeSS[1], uniformSS ? "" : "non-");
       for (vi=0; vi<numSS; vi++) {
-        fprintf(stderr, "    scalePosSS[%u] = %g\n", vi, scalePosSS[vi]);
+        fprintf(stderr, "    scalePos[%u] = %g\n", vi, sbp->scale[vi]);
       }
     }
-    if (recompute && airStrlen(stackFnameFormat)) {
-      if (nrrdSaveMulti(stackFnameFormat,
-                        AIR_CAST(const Nrrd *const *, ninSS),
-                        numSS, 0, NULL)) {
-        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
-        airMopError(mop); return 1;
-      }
-    }
-#endif
   } else {
     ninSS = NULL;
-    scalePosSS = NULL;
+    sbp = NULL;
   }
 
   /***
@@ -443,7 +435,7 @@ main(int argc, char *argv[]) {
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, scalePosSS, numSS);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);
@@ -654,13 +646,13 @@ main(int argc, char *argv[]) {
            defined. So, we have to actually replicate work that is done
            by _gageProbeSpace() in converting from world to index space */
         for (vi=0; vi<numSS-1; vi++) {
-          if (AIR_IN_CL(scalePosSS[vi], posSS, scalePosSS[vi+1])) {
-            idxSS = vi + AIR_AFFINE(scalePosSS[vi], posSS, scalePosSS[vi+1],
+          if (AIR_IN_CL(sbp->scale[vi], posSS, sbp->scale[vi+1])) {
+            idxSS = vi + AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
                                     0, 1);
             if (verbose > 1) {
               fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
                       posSS, idxSS, vi, 
-                      AIR_AFFINE(scalePosSS[vi], posSS, scalePosSS[vi+1],
+                      AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
                                  0, 1));
             }
             break;
@@ -668,8 +660,8 @@ main(int argc, char *argv[]) {
         }
         if (vi == numSS-1) {
           fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me,
-                  posSS, rangeSS[0], scalePosSS[0],
-                  rangeSS[1], scalePosSS[numSS-1]);
+                  posSS, rangeSS[0], sbp->scale[0],
+                  rangeSS[1], sbp->scale[numSS-1]);
           airMopError(mop); return 1;
         }
         grid[4 + 5*0] = idxSS;

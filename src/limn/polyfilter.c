@@ -63,7 +63,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   if (nvertmap) {
     if (nrrdMaybeAlloc_va(nvertmap, nrrdTypeUInt, 1,
                           AIR_CAST(size_t, tubeVertNum))) {
-      biffMove_va(LIMN, NRRD, "%s: trouble allocating vert map", me);
+      biffMovef(LIMN, NRRD, "%s: trouble allocating vert map", me);
       return 1;
     }
     vertmap = AIR_CAST(unsigned int *, nvertmap->data);

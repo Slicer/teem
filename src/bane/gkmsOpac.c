@@ -94,7 +94,7 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   idim = ninfo->dim-1;
   if (nbef->ptr && airStrlen(befS)) {
     if (nrrdSave(befS, nbef, NULL)) {
-      biffMove_va(BANE, NRRD, "%s: trouble saving boundary emphasis", me);
+      biffMovef(BANE, NRRD, "%s: trouble saving boundary emphasis", me);
       airMopError(mop); return 1;
     }
   }
@@ -127,17 +127,17 @@ baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   if (radius) {
     if (nrrdCheapMedian(nout, nopac, AIR_TRUE, AIR_FALSE, radius, 1.0, 2048)) {
-      biffMove_va(BANE, NRRD, "%s: error in median filtering", me);
+      biffMovef(BANE, NRRD, "%s: error in median filtering", me);
       airMopError(mop); return 1;
     }
   } else {
     if (nrrdCopy(nout, nopac)) {
-      biffMove_va(BANE, NRRD, "%s: error in copying output", me);
+      biffMovef(BANE, NRRD, "%s: error in copying output", me);
       airMopError(mop); return 1;
     }
   }
   if (nrrdSave(outS, nout, NULL)) {
-    biffMove_va(BANE, NRRD, "%s: trouble saving opacity function", me);
+    biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
     airMopError(mop); return 1;
   }
   

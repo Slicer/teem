@@ -748,7 +748,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   int E;
   
   if (tenDwiGageKindCheck(kind)) {
-    biffMove_va(GAGE, TEN, "%s: kindData not ready for use", me);
+    biffMovef(GAGE, TEN, "%s: kindData not ready for use", me);
     return NULL;
   }
   kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
@@ -782,7 +782,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
                                          kindData->thresh, kindData->soft);
     if (!E) E |= tenEstimateUpdate(tec);
     if (E) {
-      biffMove_va(GAGE, TEN, "%s: trouble setting %u estimation", me, num);
+      biffMovef(GAGE, TEN, "%s: trouble setting %u estimation", me, num);
       return NULL;
     }
   }
@@ -1092,7 +1092,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
 
   kindData = AIR_CAST(tenDwiGageKindData *, dwiKind->data);
   if (nrrdConvert(kindData->ngrad, ngrad, nrrdTypeDouble)) {
-    biffMove_va(TEN, NRRD, "%s: trouble converting", me);
+    biffMovef(TEN, NRRD, "%s: trouble converting", me);
     return 1;
   }
   dwiKind->valLen = kindData->ngrad->axis[1].size;

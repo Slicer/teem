@@ -55,9 +55,9 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(encoding);
-  biffMaybeAdd_va(useBiff, NRRD,
-                  "%s: %s format not available in this Teem build",
-                  me, nrrdFormatPNG->name); 
+  biffMaybeAddf(useBiff, NRRD,
+                "%s: %s format not available in this Teem build",
+                me, nrrdFormatPNG->name); 
   return AIR_FALSE;
 
 #else  /* ------------------------------------------- */
@@ -65,16 +65,16 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   int ret;
 
   if (!( nrrd && encoding )) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
-    biffMaybeAdd_va(useBiff, NRRD,
-                    "%s: type must be %s or %s (not %s)", me,
-                    airEnumStr(nrrdType, nrrdTypeUChar),
-                    airEnumStr(nrrdType, nrrdTypeUShort),
-                    airEnumStr(nrrdType, nrrd->type));
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: type must be %s or %s (not %s)", me,
+                  airEnumStr(nrrdType, nrrdTypeUChar),
+                  airEnumStr(nrrdType, nrrdTypeUShort),
+                  airEnumStr(nrrdType, nrrd->type));
     return AIR_FALSE;
   }
   /* else */
@@ -87,16 +87,16 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
            || 2 == nrrd->axis[0].size
            || 3 == nrrd->axis[0].size
            || 4 == nrrd->axis[0].size )) {
-      biffMaybeAdd_va(useBiff, NRRD,
-                      "%s: 1st axis size is " _AIR_SIZE_T_CNV 
-                      ", not 1, 2, 3, or 4", me, nrrd->axis[0].size); 
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: 1st axis size is " _AIR_SIZE_T_CNV 
+                    ", not 1, 2, 3, or 4", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
     /* else */
     ret = AIR_TRUE;
   } else {
-    biffMaybeAdd_va(useBiff, NRRD,
-                    "%s: dimension is %d, not 2 or 3", me, nrrd->dim); 
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: dimension is %d, not 2 or 3", me, nrrd->dim); 
     return AIR_FALSE;
   }
   return ret;

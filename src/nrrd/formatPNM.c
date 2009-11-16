@@ -48,19 +48,19 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   int ret;
   
   if (!( nrrd && encoding )) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding)); 
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: type must be %s (not %s)", me,
-                    airEnumStr(nrrdType, nrrdTypeUChar),
-                    airEnumStr(nrrdType, nrrd->type)); 
+    biffMaybeAddf(useBiff, NRRD, "%s: type must be %s (not %s)", me,
+                  airEnumStr(nrrdType, nrrdTypeUChar),
+                  airEnumStr(nrrdType, nrrd->type)); 
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
-                    nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
+    biffMaybeAddf(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
+                  nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -75,14 +75,14 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
-      biffMaybeAdd_va(useBiff, NRRD,
-                      "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV 
-                      ", not 1 or 3", me, nrrd->axis[0].size); 
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV 
+                    ", not 1 or 3", me, nrrd->axis[0].size); 
       return AIR_FALSE;
     }
   } else {
-    biffMaybeAdd_va(useBiff, NRRD,
-                    "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
     return AIR_FALSE;
   }
   return ret;

@@ -2,7 +2,8 @@
 # Add new source files here.
 SET(MEET_SOURCES
   enumall.c
-  kindall.c
+  meetGage.c
+  meetPull.c
   meet.h
   )
 

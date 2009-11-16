@@ -59,7 +59,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     if (nrrdMaybeAlloc_va(info, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 2),
                           AIR_CAST(size_t, len))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me);
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
     info->axis[1].min = hvol->axis[2].min;
@@ -69,14 +69,14 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     /* sum up along 2nd deriv for each data value, grad mag */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1,
                     nrrdMeasureSum, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting out 2nd deriv. for g(v)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting out 2nd deriv. for g(v)", me);
       return 1;
     }
     /* now determine average gradient at each value (0: grad, 1: value) */
     if (nrrdProject(proj1=nrrdNew(), proj2, 0, measr, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting along gradient for g(v)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting along gradient for g(v)", me);
       return 1;
     }
     for (i=0; i<len; i++) {
@@ -88,14 +88,14 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     /* sum up along gradient for each data value, 2nd deriv */
     if (nrrdProject(proj2 = nrrdNew(), hvol, 0,
                     nrrdMeasureSum, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting out gradient for h(v)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting out gradient for h(v)", me);
       return 1;
     }
     /* now determine average gradient at each value (0: 2nd deriv, 1: value) */
     if (nrrdProject(proj1 = nrrdNew(), proj2, 0, measr, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting along 2nd deriv. for h(v)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting along 2nd deriv. for h(v)", me);
       return 1;
     }
     for (i=0; i<len; i++) {
@@ -113,7 +113,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
                           AIR_CAST(size_t, 2),
                           AIR_CAST(size_t, sv),
                           AIR_CAST(size_t, sg))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me);
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
     info->axis[1].min = hvol->axis[2].min;
@@ -124,13 +124,13 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
 
     /* first create h(v,g) */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1, measr, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting (step 1) to create h(v,g)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting (step 1) to create h(v,g)", me);
       return 1;
     }
     if (nrrdAxesSwap(projT=nrrdNew(), proj2, 0, 1)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting (step 2) to create h(v,g)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting (step 2) to create h(v,g)", me);
       return 1;
     }
     for (i=0; i<sv*sg; i++) {
@@ -142,13 +142,13 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     /* then create #hits(v,g) */
     if (nrrdProject(proj2=nrrdNew(), hvol, 1,
                     nrrdMeasureSum, nrrdTypeDefault)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting (step 1) to create #(v,g)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting (step 1) to create #(v,g)", me);
       return 1;
     }
     if (nrrdAxesSwap(projT=nrrdNew(), proj2, 0, 1)) {
-      biffMove_va(BANE, NRRD,
-                  "%s: trouble projecting (step 2) to create #(v,g)", me);
+      biffMovef(BANE, NRRD,
+                "%s: trouble projecting (step 2) to create #(v,g)", me);
       return 1;
     }
     for (i=0; i<sv*sg; i++) {
@@ -191,7 +191,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   if (nrrdMaybeAlloc_va(info1D, nrrdTypeFloat, 2, 
                         AIR_CAST(size_t, 2),
                         AIR_CAST(size_t, len))) {
-    biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me);
+    biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
     return 1;
   }
   info1D->axis[1].min = info2D->axis[1].min;
@@ -292,7 +292,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     len = info->axis[1].size;
     if (nrrdMaybeAlloc_va(pos,  nrrdTypeFloat, 1,
                           AIR_CAST(size_t, len))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me); 
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me); 
       return 1;
     }
     pos->axis[0].min = info->axis[1].min;
@@ -318,7 +318,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     if (nrrdMaybeAlloc_va(pos, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, sv),
                           AIR_CAST(size_t, sg))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
     }
     pos->axis[0].min = info->axis[1].min;
     pos->axis[0].max = info->axis[1].max;
@@ -454,7 +454,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     len = pos->axis[0].size;
     if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 1,
                           AIR_CAST(size_t, len))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
     }
     opac->axis[0].min = pos->axis[0].min;
     opac->axis[0].max = pos->axis[0].max;
@@ -470,7 +470,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, sv),
                           AIR_CAST(size_t, sg))) {
-      biffMove_va(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me); return 1;
     }
     opac->axis[0].min = pos->axis[0].min;
     opac->axis[0].max = pos->axis[0].max;

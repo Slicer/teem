@@ -57,7 +57,7 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
   size_t num, sum, out, outsofar, hi;
 
   if (nrrdCopy(ncopy=nrrdNew(), hvol)) {
-    biffMove_va(BANE, NRRD, "%s: couldn't create copy of histovol", me);
+    biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
     return 1;
   }
   hits = (int *)ncopy->data;
@@ -88,7 +88,7 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
   size_t num;
 
   if (nrrdCopy(copy=nrrdNew(), hvol)) {
-    biffMove_va(BANE, NRRD, "%s: couldn't create copy of histovol", me);
+    biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
     return 1;
   }
   hits = (int *)copy->data;

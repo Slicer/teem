@@ -306,7 +306,7 @@ limnSplineParse(char *_str) {
   tmpS = col+1;
   airMopAdd(mop, ninA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(ninA, fnameS, NULL)) {
-    biffMove_va(LIMN, NRRD, "%s: couldn't read control point nrrd:\n", me);
+    biffMovef(LIMN, NRRD, "%s: couldn't read control point nrrd:\n", me);
     airMopError(mop); return NULL;
   }
   

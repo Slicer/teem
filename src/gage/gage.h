@@ -984,15 +984,15 @@ GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
 GAGE_EXPORT int gageStackBlurCheck(const Nrrd *const nblur[],
                                    gageStackBlurParm *sbp,
                                    const Nrrd *nin, const gageKind *kind);
-/*
-GAGE_EXPORT int gageStackVolumeGet(Nrrd ***ninSSP, double **scalePosP,
-                                   int *recomputedP,
-                                   unsigned int numSS, const double rangeSS[2],
-                                   int uniformSS, int optimSS,
-                                   const char *formatSS, unsigned int numStart,
-                                   const Nrrd *nin, const gageKind *kind,
-                                   const NrrdKernelSpec *kSSblur, int verbose);
-*/
+GAGE_EXPORT int gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
+                                 gageStackBlurParm *sbp,
+                                 const char *format,
+                                 const Nrrd *nin, const gageKind *kind);
+GAGE_EXPORT int gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
+                                    gageStackBlurParm *sbp,
+                                    const char *format,
+                                    int saveIfComputed, NrrdEncoding *enc,
+                                    const Nrrd *nin, const gageKind *kind);
 
 /* ctx.c */
 GAGE_EXPORT gageContext *gageContextNew();

@@ -128,7 +128,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[0] = 3;
   if (nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, nin->dim, size)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
   for (ii=1; ii<nin->dim; ii++) {
@@ -136,7 +136,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
   }
   map[0] = -1;
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
-    biffMove_va(TEN, NRRD, "%s: couldn't copy axis info", me);
+    biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
     return 1;
   }
   

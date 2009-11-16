@@ -45,13 +45,13 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   static const char me[]="_nrrdFormatVTK_fitsInto";
   
   if (!( nrrd && encoding )) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     return AIR_FALSE;
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
-                    nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
+    biffMaybeAddf(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
+                  nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type
@@ -62,16 +62,16 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
          || nrrdTypeInt == nrrd->type
          || nrrdTypeFloat == nrrd->type
          || nrrdTypeDouble == nrrd->type )) {
-    biffMaybeAdd_va(useBiff, NRRD,
-                    "%s: type %s doesn't fit in VTK (as currently implemented)",
-                    me, airEnumStr(nrrdType, nrrd->type));
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: type %s doesn't fit in VTK (as currently implemented)",
+                  me, airEnumStr(nrrdType, nrrd->type));
     return AIR_FALSE;
   }
   if (!( 3 == nrrd->dim
          || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
          || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: nrrd didn't look like a volume of "
-                    "scalars, vectors, or matrices", me); 
+    biffMaybeAddf(useBiff, NRRD, "%s: nrrd didn't look like a volume of "
+                  "scalars, vectors, or matrices", me); 
     return AIR_FALSE;
   }
   return AIR_TRUE;

@@ -69,7 +69,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 
   if (ninscl) {
     if (nrrdCheck(ninscl)) {
-      biffMove_va(SEEK, NRRD, "%s: problem with volume", me);
+      biffMovef(SEEK, NRRD, "%s: problem with volume", me);
       return 1;
     }
     if (3 != ninscl->dim) {

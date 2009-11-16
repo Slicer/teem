@@ -67,7 +67,7 @@ baneGkms_infoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    biffMove_va(BANE, NRRD, "%s: trouble saving info file", me);
+    biffMovef(BANE, NRRD, "%s: trouble saving info file", me);
     airMopError(mop); return 1;
   }
   

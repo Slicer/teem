@@ -218,8 +218,8 @@ _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   static const char me[]="_nrrdFormatNRRD_fitsInto";
 
   if (!( nrrd && encoding )) {
-    biffMaybeAdd_va(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                    me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
+                  me, AIR_CAST(void*, nrrd), AIR_CAST(void*, encoding));
     return AIR_FALSE;
   }
 

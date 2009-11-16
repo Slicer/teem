@@ -70,13 +70,54 @@ extern "C" {
 
 #define MEET meetBiffKey
 
+/*
+******** meetPullVol
+**
+** this is information that somehow precedes the full pullVolume; it
+** is more likely to have been by the user, and is not everything that
+** a pullVolume is ("Vol" vs "Volume").  Does provide a way of parsing
+** a string to specify all this info (useful for command-line).  Note
+** that the nrrds inside are owned by this, in contrast to the
+** pullVolume.
+**
+** One constraint that motivates putting this in meet (instead of
+** pull) is that this has to be general WRT gageKind; and will
+** ultimately rely on meetConstGageKindParse.  So, either
+** meetConstGageKindParse gets passed to pull as a callback, or this
+** functionality moves up to meet.  Also, given the weird leeching
+** tricks that are being enabled here, perhaps it is better for this
+** to be properly outside of pull.
+*/
+typedef struct {
+  const gageKind *kind;
+  char *fileName,
+    *volName;
+  int scaleDerivNorm,          /* normalize derivatives based on scale */
+    leeching;
+  unsigned int numSS;
+  double rangeSS[2], *scalePos;
+  Nrrd *nin;                             /* we DO own */
+  Nrrd **ninSS;                          /* we DO own */
+} meetPullVol;
+
 /* enumall.c */
 MEET_EXPORT const char *meetBiffKey;
 MEET_EXPORT const airEnum **meetAirEnumAll();
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
 
-/* kindall.c */
+/* meetGage.c */
+MEET_EXPORT gageKind *meetGageKindParse(const char *str);
+MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
 MEET_EXPORT hestCB *meetHestGageKind;
+MEET_EXPORT hestCB *meetHestConstGageKind;
+
+/* meetPull.c */
+MEET_EXPORT meetPullVol *meetPullVolNew();
+MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
+MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
+                                     const meetPullVol *lchr);
+MEET_EXPORT meetPullVol *meetPullVolNuke(meetPullVol *pvol);
+MEET_EXPORT hestCB *meetHestPullVol;
 
 #ifdef __cplusplus
 }

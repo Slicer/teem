@@ -66,7 +66,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   float pos[3], lineInfo[4];
-  double gmc, rangeSS[2], posSS, *scalePos;
+  double gmc, rangeSS[2], posSS;
   unsigned int ansLen, numSS, ninSSIdx, lineStepNum;
   int what, E=0, renorm, SSnormd, SSuniform, verbose, orientationFromSpacing;
   const double *answer;
@@ -79,6 +79,7 @@ main(int argc, char *argv[]) {
   Nrrd *ngrad=NULL, *nbmat=NULL;
   double bval, eps;
   unsigned int *skip, skipNum;
+  gageStackBlurParm *sbp;
 
   mop = airMopNew();
   me = argv[0];
@@ -212,7 +213,6 @@ main(int argc, char *argv[]) {
 
   /* for setting up pre-blurred scale-space samples */
   if (numSS) {
-    gageStackBlurParm *sbp;
     sbp = gageStackBlurParmNew();
     airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
@@ -245,8 +245,8 @@ main(int argc, char *argv[]) {
       }
     }
   } else {
+    sbp = NULL;
     ninSS = NULL;
-    scalePos = NULL;
   }
   
   ctx = gageContextNew();
@@ -272,7 +272,7 @@ main(int argc, char *argv[]) {
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd**, ninSS),
                                        numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, scalePos, numSS);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);

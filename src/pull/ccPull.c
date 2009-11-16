@@ -148,7 +148,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
   /* in any case nmeasr is allocated for doubles */
   if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, 
                         AIR_CAST(size_t, pctx->CCNum))) {
-    biffMove_va(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
+    biffMovef(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
     return 1;
   }
   meas = AIR_CAST(double *, nmeasr->data);
