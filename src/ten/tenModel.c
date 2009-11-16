@@ -253,7 +253,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
-  if (!(ddwi = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double))))) {
+  if (!( ddwi = AIR_CALLOC(espec->imgNum, double)) {
     biffAddf(TEN, "%s: couldn't allocate dwi buffer", me);
     airMopError(mop); return 1;
   }
@@ -394,8 +394,8 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   }
   
   /* allocate output (and set axmap) */
-  dparm = AIR_CAST(double *, calloc(model->parmNum, sizeof(double)));
-  dparmBest = AIR_CAST(double *, calloc(model->parmNum, sizeof(double)));
+  dparm = AIR_CALLOC(model->parmNum, double);
+  dparmBest = AIR_CALLOC(model->parmNum, double);
   if (!( dparm && dparmBest )) {
     biffAddf(TEN, "%s: couldn't allocate parm vecs", me);
     return 1;
@@ -416,8 +416,8 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
-  ddwi = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double)));
-  dwibuff = AIR_CAST(double *, calloc(espec->imgNum, sizeof(double)));
+  ddwi = AIR_CALLOC(espec->imgNum, double);
+  dwibuff = AIR_CALLOC(espec->imgNum, double);
   if (!(ddwi && dwibuff)) {
     biffAddf(TEN, "%s: couldn't allocate dwi buffers", me);
     airMopError(mop); return 1;
@@ -477,7 +477,7 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
             + (saveB0 ? strlen("B0+") : 0)
             + strlen(model->name)
             + 1);
-  nparm->axis[0].label = AIR_CAST(char *, calloc(lablen, sizeof(char)));
+  nparm->axis[0].label = AIR_CALLOC(lablen, char);
   sprintf(nparm->axis[0].label, "%s%s%s",
           tenModelPrefixStr,
           saveB0 ? "B0+" : "",
@@ -615,7 +615,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
             + (withB0 ? strlen("B0+") : 0)
             + strlen(modelDst->name)
             + 1);
-  nparmDst->axis[0].label = AIR_CAST(char *, calloc(lablen, sizeof(char)));
+  nparmDst->axis[0].label = AIR_CALLOC(lablen, char);
   sprintf(nparmDst->axis[0].label, "%s%s%s",
           tenModelPrefixStr,
           withB0 ? "B0+" : "",
