@@ -382,8 +382,8 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
 ** kernels are not part of the meetPullVol, so have to be passed in here
 */
 int
-meetPullVolAddMulti(meetPullVol **mpv, unsigned int mpvNum,
-                    pullContext *pctx,
+meetPullVolAddMulti(pullContext *pctx,
+                    meetPullVol **mpv, unsigned int mpvNum,
                     const NrrdKernelSpec *k00,
                     const NrrdKernelSpec *k11,
                     const NrrdKernelSpec *k22,

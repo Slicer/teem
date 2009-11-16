@@ -128,8 +128,8 @@ MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
                                      char *cachePath, NrrdKernelSpec *kSSblur,
                                      int verbose);
-MEET_EXPORT int meetPullVolAddMulti(meetPullVol **mpv, unsigned int mpvNum,
-                                    pullContext *pctx,
+MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
+                                    meetPullVol **mpv, unsigned int mpvNum,
                                     const NrrdKernelSpec *k00,
                                     const NrrdKernelSpec *k11,
                                     const NrrdKernelSpec *k22,
