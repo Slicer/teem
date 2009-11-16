@@ -92,10 +92,17 @@ typedef struct {
   const gageKind *kind;
   char *fileName,
     *volName;
-  int scaleDerivNorm,          /* normalize derivatives based on scale */
-    leeching;
+  int derivNormSS,             /* normalize derivatives based on scale */
+    uniformSS,                 /* uniform sampling along scale */
+    optimSS,                   /* optimal (non-uniform) sampling of scale */
+    leeching,                  /* non-zero iff using the same nin and ninSS
+                                  as another meetPullVol (so as to avoid
+                                  redundant copies in memory) */
+    recomputedSS;              /* (OUTPUT) non-zero if meetPullVolLoadMulti
+                                  had to recompute these, versus being read
+                                  from disk */
   unsigned int numSS;
-  double rangeSS[2], *scalePos;
+  double rangeSS[2], *posSS;
   Nrrd *nin;                             /* we DO own */
   Nrrd **ninSS;                          /* we DO own */
 } meetPullVol;
@@ -118,6 +125,15 @@ MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
                                      const meetPullVol *lchr);
 MEET_EXPORT meetPullVol *meetPullVolNuke(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
+MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
+                                     char *cachePath, NrrdKernelSpec *kSSblur,
+                                     int verbose);
+MEET_EXPORT int meetPullVolAddMulti(meetPullVol **mpv, unsigned int mpvNum,
+                                    pullContext *pctx,
+                                    const NrrdKernelSpec *k00,
+                                    const NrrdKernelSpec *k11,
+                                    const NrrdKernelSpec *k22,
+                                    const NrrdKernelSpec *kSSrecon);
 
 #ifdef __cplusplus
 }
