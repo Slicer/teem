@@ -247,7 +247,7 @@ pullVolumeStackAdd(pullContext *pctx,
                    const NrrdKernelSpec *ksp11,
                    const NrrdKernelSpec *ksp22,
                    const NrrdKernelSpec *kspSS) {
-  static const char me[]="pullVolumeStackSet";
+  static const char me[]="pullVolumeStackAdd";
   pullVolume *vol;
 
   vol = pullVolumeNew();
