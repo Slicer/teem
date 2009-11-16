@@ -285,6 +285,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
               sbp->num, sbp->scale[blIdx]);
       fflush(stderr);
     }
+    sbp->kspec->parm[0] = sbp->scale[blIdx];
     for (axi=0; axi<3; axi++) {
       if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
                                          sbp->kspec->kernel,
@@ -346,12 +347,9 @@ gageStackBlurCheck(const Nrrd *const nblur[],
 
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
     /* check to see if nblur[blIdx] is as expected */
-    if (gageShapeSet(shapeOld, nblur[blIdx], kind->baseDim)) {
-      biffAddf(GAGE, "%s: trouble checking shape %u", me, blIdx);
-      airMopError(mop); return 1;
-    }
-    if (gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
-      biffAddf(GAGE, "%s: trouble assessing nblur[%u] shape != nin shape",
+    if (gageShapeSet(shapeOld, nblur[blIdx], kind->baseDim)
+        || !gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
+      biffAddf(GAGE, "%s: trouble, or nblur[%u] shape != nin shape",
                me, blIdx);
       airMopError(mop); return 1;
     }
@@ -441,8 +439,8 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
                                   sbp, nin, kind)) {
       airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
       if (sbp->verbose) {
-        printf("%s: will recompute blurrings that don't "
-               "match:\n%s\n", me, suberr);
+        printf("%s: will recompute blurrings (from \"%s\") that don't "
+               "match:\n%s\n", me, format, suberr);
       }
       recompute = AIR_TRUE;
     } else {
@@ -471,7 +469,8 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
 ******** gageStackBlurManage
 **
 ** does the work of gageStackBlurGet and then some:
-** allocates the array of Nrrds, and saves output if recomputed
+** allocates the array of Nrrds, allocates an array of doubles for scale,
+** and saves output if recomputed
 */
 int
 gageStackBlurManage(Nrrd ***nblurP, int *recomputedP, 
@@ -490,7 +489,7 @@ gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
     return 1;
   }
   nblur = *nblurP = AIR_CALLOC(sbp->num, Nrrd *);
-  if (!nblurP) {
+  if (!nblur) {
     biffAddf(GAGE, "%s: couldn't alloc %u Nrrd*s", me, sbp->num);
     return 1;
   }
