@@ -1076,7 +1076,8 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   }
   if (checkData) {
     if (!(nrrd->data)) {
-      biffMaybeAddf(useBiff, NRRD, "%s: nrrd has NULL data pointer", me);
+      biffMaybeAddf(useBiff, NRRD, "%s: nrrd %p has NULL data pointer", 
+                    me, nrrd);
       return 1;
     }
   }
