@@ -70,6 +70,18 @@ extern "C" {
 
 #define MEET meetBiffKey
 
+/* enumall.c */
+MEET_EXPORT const char *meetBiffKey;
+MEET_EXPORT const airEnum **meetAirEnumAll();
+MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
+
+/* meetGage.c */
+MEET_EXPORT gageKind *meetGageKindParse(const char *str);
+MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
+MEET_EXPORT hestCB *meetHestGageKind;
+MEET_EXPORT hestCB *meetHestConstGageKind;
+
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 /*
 ******** meetPullVol
 **
@@ -107,17 +119,6 @@ typedef struct {
   Nrrd **ninSS;                          /* we DO own */
 } meetPullVol;
 
-/* enumall.c */
-MEET_EXPORT const char *meetBiffKey;
-MEET_EXPORT const airEnum **meetAirEnumAll();
-MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
-
-/* meetGage.c */
-MEET_EXPORT gageKind *meetGageKindParse(const char *str);
-MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
-MEET_EXPORT hestCB *meetHestGageKind;
-MEET_EXPORT hestCB *meetHestConstGageKind;
-
 /* meetPull.c */
 MEET_EXPORT meetPullVol *meetPullVolNew();
 MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
@@ -128,7 +129,6 @@ MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
                                      char *cachePath, NrrdKernelSpec *kSSblur,
                                      int verbose);
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     meetPullVol **mpv, unsigned int mpvNum,
                                     const NrrdKernelSpec *k00,
@@ -136,6 +136,7 @@ MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     const NrrdKernelSpec *k22,
                                     const NrrdKernelSpec *kSSrecon);
 #endif
+
 #ifdef __cplusplus
 }
 #endif

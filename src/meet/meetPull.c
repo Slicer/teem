@@ -22,6 +22,10 @@
 
 #include "meet.h"
 
+/* 
+** including something in here regardless of 
+** TEEM_BUILD_EXPERIMENTAL_LIBS to avoid no symbol warnings
+*/
 
 meetPullVol *
 meetPullVolNew(void) {
@@ -43,6 +47,8 @@ meetPullVolNew(void) {
   }
   return ret;
 }
+
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 
 /*
 ******** meetPullVolParse
@@ -381,7 +387,6 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
 ** the spatial (k00, k11, k22) and scale (kSSrecon) reconstruction 
 ** kernels are not part of the meetPullVol, so have to be passed in here
 */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 int
 meetPullVolAddMulti(pullContext *pctx,
                     meetPullVol **mpv, unsigned int mpvNum,
@@ -414,4 +419,5 @@ meetPullVolAddMulti(pullContext *pctx,
   }
   return 0;
 }
+
 #endif
