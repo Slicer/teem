@@ -27,6 +27,13 @@
 ** TEEM_BUILD_EXPERIMENTAL_LIBS to avoid no symbol warnings
 */
 
+#if !defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+void* meetPullVolNew(void) {
+  return NULL;
+}
+#endif
+
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 meetPullVol *
 meetPullVolNew(void) {
   meetPullVol *ret;
@@ -48,7 +55,6 @@ meetPullVolNew(void) {
   return ret;
 }
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 
 /*
 ******** meetPullVolParse
