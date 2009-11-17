@@ -253,7 +253,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
-  if (!( ddwi = AIR_CALLOC(espec->imgNum, double)) {
+  if (!( ddwi = AIR_CALLOC(espec->imgNum, double))) {
     biffAddf(TEN, "%s: couldn't allocate dwi buffer", me);
     airMopError(mop); return 1;
   }
