@@ -22,18 +22,15 @@
 
 #include "meet.h"
 
-/* 
-** including something in here regardless of 
-** TEEM_BUILD_EXPERIMENTAL_LIBS to avoid no symbol warnings
-*/
-
 #if !defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-void* meetPullVolNew(void) {
+/* have something to avoid "no symbols" warnings */
+void*
+meetPullVolNew(void) {
   return NULL;
 }
-#endif
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#else /* TEEM_BUILD_EXPERIMENTAL_LIBS */
+
 meetPullVol *
 meetPullVolNew(void) {
   meetPullVol *ret;
@@ -427,4 +424,4 @@ meetPullVolAddMulti(pullContext *pctx,
   return 0;
 }
 
-#endif
+#endif /* TEEM_BUILD_EXPERIMENTAL_LIBS */
