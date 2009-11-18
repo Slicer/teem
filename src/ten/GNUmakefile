@@ -61,7 +61,8 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	tendFiber.o tendEpireg.o tendBmat.o tendEstim.o tendSim.o \
 	tendMsim.o tendMfit.o tendMconv.o \
 	tendSlice.o tendEllipse.o tendEvecrgb.o tendNorm.o tendAnscale.o \
-	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendHelix.o tendBfit.o \
+	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendEvalmult.o \
+	tendHelix.o tendBfit.o \
 	tendUnmf.o tendLog.o tendExp.o
 $(L).TESTS = test/roistat test/tg test/tt test/tem test/rotedge \
 	test/tsoid test/odf-hist test/to test/tensorDotDat \

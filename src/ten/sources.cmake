@@ -36,6 +36,7 @@ SET(TEN_SOURCES
   tendEstim.c
   tendEval.c
   tendEvaladd.c
+  tendEvalmult.c
   tendEvalclamp.c
   tendEvalpow.c
   tendEvec.c

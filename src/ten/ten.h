@@ -1635,6 +1635,7 @@ TEN_EXPORT int tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo);
 TEN_EXPORT int tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin,
                                   double min, double max);
 TEN_EXPORT int tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val);
+TEN_EXPORT int tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val);
 TEN_EXPORT int tenLog(Nrrd *nout, const Nrrd *nin);
 TEN_EXPORT int tenExp(Nrrd *nout, const Nrrd *nin);
 
@@ -1705,6 +1706,7 @@ F(eval) \
 F(evalpow) \
 F(evalclamp) \
 F(evaladd) \
+F(evalmult) \
 F(log) \
 F(exp) \
 F(evec) \

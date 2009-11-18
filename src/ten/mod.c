@@ -41,6 +41,7 @@ enum {
   funcEigenvalueClamp,
   funcEigenvaluePower,
   funcEigenvalueAdd,
+  funcEigenvalueMultiply,
   funcLog,
   funcExp,
   funcLast
@@ -190,6 +191,19 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
       tout += 7;
     }
     break;
+  case funcEigenvalueMultiply:
+    for (II=0; II<=NN-1; II++) {
+      /* HEY: this doesn't require eigensolve */
+      tenEigensolve_f(eval, evec, tin); 
+      ELL_3V_SET_TT(eval, float,
+                    eval[0]*parm->val,
+                    eval[1]*parm->val,
+                    eval[2]*parm->val);
+      tenMakeSingle_f(tout, tin[0], eval, evec);
+      tin += 7;
+      tout += 7;
+    }
+    break;
   case funcLog:
     for (II=0; II<=NN-1; II++) {
       tenEigensolve_f(eval, evec, tin);
@@ -320,6 +334,24 @@ tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
   
   parm.val = val;
   if (theFunc(nout, nin, funcEigenvalueAdd, &parm)) {
+    biffAddf(TEN, "%s: trouble", me);
+    return 1;
+  }
+  return 0;
+}
+
+/*
+******** tenEigenvalueMultiply
+**
+** multiplies eigenvalues by something
+*/
+int
+tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
+  static const char me[]="tenEigenvalueMultiply";
+  funcParm parm;
+  
+  parm.val = val;
+  if (theFunc(nout, nin, funcEigenvalueMultiply, &parm)) {
     biffAddf(TEN, "%s: trouble", me);
     return 1;
   }
