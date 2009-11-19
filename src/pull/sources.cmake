@@ -16,6 +16,7 @@ SET(PULL_SOURCES
   volumePull.c
   popcntl.c
   ccPull.c
+  kindPull.c
   )
 
 ADD_TEEM_LIBRARY(pull ${PULL_SOURCES})

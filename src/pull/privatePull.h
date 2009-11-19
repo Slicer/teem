@@ -78,6 +78,8 @@ extern "C" {
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
 extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
+extern unsigned int _pullVolumeIndex(const pullContext *pctx,
+                                     const char *volName);
 
 /* infoPull.c */
 extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];

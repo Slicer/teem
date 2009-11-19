@@ -108,6 +108,19 @@ enum {
 #define PULL_INFO_MAX            21
 
 /*
+******** pullVal* enum
+**
+** the item values for the pseudo gageKind pullVal
+*/
+enum {
+  pullValUnknown,             /* 0 */
+  pullValSlice,               /* 1: position along slice axis */
+  pullValSliceGradVec,        /* 2: gradient of slice pos == slice normal */
+  pullValLast
+};
+#define PULL_VAL_ITEM_MAX        2
+
+/*
 ** the various properties of particles in the system 
 **
 ** consider adding: dot between normalized directions of force and movmt 
@@ -518,9 +531,12 @@ typedef struct pullContext_t {
                                       beta = 1: only scale attraction */
     gamma,                         /* when energyFromStrength is non-zero:
                                       scaling factor on energy from strength */
-    jitter;                        /* when using pointPerVoxel, how much to
+    jitter,                        /* when using pointPerVoxel, how much to
                                       jitter the samples within the voxel;
                                       0: no jitter, 1: full jitter */
+    sliceNormal[3];                /* until this is set per-volume as it
+                                      should be, it lives here. Zero-length
+                                      normal means "not set". */
   int binSingle;                   /* disable binning (for debugging) */
   unsigned int binIncr;            /* increment for per-bin airArray */
   void (*iter_cb)(void *data_cb);  /* callback to call once per iter
@@ -576,6 +592,9 @@ typedef struct pullContext_t {
     binNum,                        /* total # bins in grid */
     binNextIdx;                    /* next bin of points to be processed,
                                       we're done when binNextIdx == binNum */
+  double _sliceNormal[3];          /* normalized version of sliceNormal.
+                                      Still, zero-length means "not set". */
+
   unsigned int *tmpPointPerm;
   pullPoint **tmpPointPtr;
   unsigned int tmpPointNum;
@@ -648,14 +667,19 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    const NrrdKernelSpec *ksp11,
                                    const NrrdKernelSpec *ksp22,
                                    const NrrdKernelSpec *kspSS);
+PULL_EXPORT const pullVolume *pullVolumeLookup(const pullContext *pctx,
+                                               const char *volName);
+
+/* kindPull.c */
+PULL_EXPORT const airEnum *const pullVal;
+PULL_EXPORT gageKind *pullValGageKind;
 
 /* infoPull.c */
 PULL_EXPORT const airEnum *const pullInfo;
 PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
-PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                                int info, const char *volName, int item);
+PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);

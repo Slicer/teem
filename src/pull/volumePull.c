@@ -425,3 +425,47 @@ _pullVolumeSetup(pullContext *pctx) {
   return 0;
 }
 
+/*
+** basis of pullVolumeLookup
+**
+** uses biff, returns UINT_MAX in case of error
+*/
+unsigned int
+_pullVolumeIndex(const pullContext *pctx,
+                 const char *volName) {
+  static const char me[]="_pullVolumeIndex";
+  unsigned int vi;
+  
+  if (!( pctx && volName )) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return UINT_MAX;
+  }
+  if (0 == pctx->volNum) {
+    biffAddf(PULL, "%s: given context has no volumes", me);
+    return UINT_MAX;
+  }
+  for (vi=0; vi<pctx->volNum; vi++) {
+    if (!strcmp(pctx->vol[vi]->name, volName)) {
+      break;
+    }
+  }
+  if (vi == pctx->volNum) {
+    biffAddf(PULL, "%s: no volume has name \"%s\"", me, volName);
+    return UINT_MAX;
+  }
+  return vi;
+}
+
+const pullVolume *
+pullVolumeLookup(const pullContext *pctx,
+                 const char *volName) {
+  static const char me[]="pullVolumeLookup";
+  unsigned int vi;
+
+  vi = _pullVolumeIndex(pctx, volName);
+  if (UINT_MAX == vi) {
+    biffAddf(PULL, "%s: trouble looking up \"%s\"", me, volName);
+    return NULL;
+  }
+  return pctx->vol[vi];
+}

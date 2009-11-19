@@ -88,6 +88,7 @@ pullContextNew(void) {
   pctx->beta = 0.5;
   pctx->gamma = 1;
   pctx->jitter = 1.0;
+  ELL_3V_SET(pctx->sliceNormal, 0.0, 0.0, 0.0);
 
   pctx->binSingle = AIR_FALSE;
   pctx->binIncr = 32;
@@ -112,6 +113,8 @@ pullContextNew(void) {
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
+  
+  ELL_3V_SET(pctx->_sliceNormal, 0.0, 0.0, 0.0);
 
   pctx->tmpPointPerm = NULL;
   pctx->tmpPointPtr = NULL;

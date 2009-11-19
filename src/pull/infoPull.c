@@ -204,59 +204,50 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 }
 
 int
-pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
-                int info, const char *volName, int item) {
+pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   static const char me[]="pullInfoSpecAdd";
-  unsigned int ii, haveLen, needLen;
+  unsigned int ii, vi, haveLen, needLen;
   const gageKind *kind;
   
-  if (!( pctx && ispec && volName )) {
+  if (!( pctx && ispec )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
-  if (airEnumValCheck(pullInfo, info)) {
-    biffAddf(PULL, "%s: %d not a valid %s value", me, info, pullInfo->name);
+  if (airEnumValCheck(pullInfo, ispec->info)) {
+    biffAddf(PULL, "%s: %d not a valid %s value", me,
+             ispec->info, pullInfo->name);
     return 1;
   }
-  if (pctx->ispec[info]) {
+  if (pctx->ispec[ispec->info]) {
     biffAddf(PULL, "%s: already set info %s (%d)", me, 
-             airEnumStr(pullInfo, info), info);
+             airEnumStr(pullInfo, ispec->info), ispec->info);
     return 1;
   }
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
       biffAddf(PULL, "%s(%s): already got ispec %p as ispec[%u]", me,
-               airEnumStr(pullInfo, info), ispec, ii);
+               airEnumStr(pullInfo, ispec->info), ispec, ii);
       return 1;
     }
   }
-  if (0 == pctx->volNum) {
-    biffAddf(PULL, "%s(%s): given context has no volumes", me,
-             airEnumStr(pullInfo, info));
-    return 1;
-  }
-  for (ii=0; ii<pctx->volNum; ii++) {
-    if (!strcmp(pctx->vol[ii]->name, volName)) {
-      break;
-    }
-  }
-  if (ii == pctx->volNum) {
+  vi = _pullVolumeIndex(pctx, ispec->volName);
+  if (UINT_MAX == vi) {
     biffAddf(PULL, "%s(%s): no volume has name \"%s\"", me,
-             airEnumStr(pullInfo, info), volName);
+             airEnumStr(pullInfo, ispec->info), ispec->volName);
     return 1;
   }
-  kind = pctx->vol[ii]->kind;
-  if (airEnumValCheck(kind->enm, item)) {
+  kind = pctx->vol[vi]->kind;
+  if (airEnumValCheck(kind->enm, ispec->item)) {
     biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
-             airEnumStr(pullInfo, info), item, kind->name);
+             airEnumStr(pullInfo, ispec->info), ispec->item, kind->name);
     return 1;
   }
-  needLen = pullInfoAnswerLen(info);
-  haveLen = kind->table[item].answerLength;
+  needLen = pullInfoAnswerLen(ispec->info);
+  haveLen = kind->table[ispec->item].answerLength;
   if (needLen != haveLen) {
     biffAddf(PULL, "%s(%s): needs len %u, but \"%s\" item \"%s\" has len %u",
-             me, airEnumStr(pullInfo, info), needLen,
-             kind->name, airEnumStr(kind->enm, item), haveLen);
+             me, airEnumStr(pullInfo, ispec->info), needLen,
+             kind->name, airEnumStr(kind->enm, ispec->item), haveLen);
     return 1;
   }
   if (haveLen > 9) {
@@ -265,26 +256,24 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec,
     return 1;
   }
 
-  ispec->info = info;
-  ispec->volName = airStrdup(volName);
-  ispec->volIdx = ii;
-  ispec->item = item;
-  
   /* very tricky: seedOnly is initialized to true for everything */
-  if (pullInfoSeedThresh != info
-      && pullInfoSeedPreThresh != info) {
+  if (pullInfoSeedThresh != ispec->info
+      && pullInfoSeedPreThresh != ispec->info) {
     /* if the info is neither seedthreh nor seedprethresh, then the
        volume will have to be probed after the first iter, so turn
        off seedOnly */
-    pctx->vol[ii]->seedOnly = AIR_FALSE;
+    pctx->vol[vi]->seedOnly = AIR_FALSE;
   }
-  printf("!%s: vol[%u]->seedOnly %d\n", me, ii, 
-         pctx->vol[ii]->seedOnly);
   
   /* now set item in gage query */
-  gageQueryItemOn(pctx->vol[ii]->gctx, pctx->vol[ii]->gpvl, item);
+  if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl, ispec->item)) {
+    biffMovef(PULL, GAGE, "%s: trouble adding item %u to vol %u", me,
+              ispec->item, vi);
+    return 1;
+  }
 
-  pctx->ispec[info] = ispec;
+  ispec->volIdx = vi;
+  pctx->ispec[ispec->info] = ispec;
   
   return 0;
 }
