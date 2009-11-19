@@ -119,8 +119,21 @@ typedef struct {
   Nrrd **ninSS;                          /* we DO own */
 } meetPullVol;
 
+/*
+******** meetPullInfo
+**
+** information that helps define a pullInfoSpec
+*/
+typedef struct {
+  int info,                    /* which pullInfo is being defined */
+    constraint;                /* this info should be a constraint */
+  char *volName,               /* name of volume from which info is measured */
+    *itemStr;                  /* which item in that volume gives the info */
+  double zero, scale;          /* affine mapping of scalar info */
+} meetPullInfo;
+
 /* meetPull.c */
-MEET_EXPORT meetPullVol *meetPullVolNew();
+MEET_EXPORT meetPullVol *meetPullVolNew(void);
 MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
 MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
                                      const meetPullVol *lchr);
@@ -135,6 +148,14 @@ MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     const NrrdKernelSpec *k11,
                                     const NrrdKernelSpec *k22,
                                     const NrrdKernelSpec *kSSrecon);
+MEET_EXPORT meetPullInfo *meetPullInfoNew(void);
+MEET_EXPORT meetPullInfo *meetPullInfoNix(meetPullInfo *minf);
+MEET_EXPORT int meetPullInfoParse(meetPullInfo *minf, const char *str);
+MEET_EXPORT hestCB *meetHestPullInfo;
+MEET_EXPORT int meetPullInfoAddMulti(pullContext *pctx,
+                                     meetPullInfo **minf,
+                                     unsigned int minfNum);
+
 #endif
 
 #ifdef __cplusplus

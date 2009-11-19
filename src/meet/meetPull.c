@@ -63,7 +63,7 @@ int
 meetPullVolParse(meetPullVol *mpv, const char *_str) {
   static const char me[]="meetPullVolParse";
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
-#define SFMT "<minScl>-<#smp>-<maxScl>[-SN]"
+#define SFMT "<minScl>-<#smp>-<maxScl>[-onu]"
 #define VFMT_LONG "<fileName>:<kind>:" SFMT ":<volName>"
   char *str, *ctok, *clast=NULL, *dtok, *dlast=NULL;
   airArray *mop;
@@ -201,9 +201,9 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, mpvP, (airMopper)airSetNull, airMopOnError);
   airMopAdd(mop, mpv, (airMopper)meetPullVolNuke, airMopOnError);
   if (meetPullVolParse(mpv, str)) {
-    char *err;
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopOnError);
-    strncpy(err, err, AIR_STRLEN_HUGE-1);
+    char *ler;
+    airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
+    strncpy(err, ler, AIR_STRLEN_HUGE-1);
     airMopError(mop);
     return 1;
   }
@@ -225,12 +225,16 @@ meetPullVolNuke(meetPullVol *mpv) {
     }
     if (mpv->numSS) {
       unsigned int ssi;
-      for (ssi=0; ssi<mpv->numSS; ssi++) {
-        if (!mpv->leeching) {
-          nrrdNuke(mpv->ninSS[ssi]);
+      if (mpv->ninSS) {
+        /* need this check because the mpv may not have benefitted
+           from meetPullVolLoadMulti, so it might be incomplete */
+        for (ssi=0; ssi<mpv->numSS; ssi++) {
+          if (!mpv->leeching) {
+            nrrdNuke(mpv->ninSS[ssi]);
+          }
         }
+        airFree(mpv->ninSS);
       }
-      airFree(mpv->ninSS);
       airFree(mpv->posSS);
     }
     airFree(mpv->fileName);
@@ -320,7 +324,6 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
   airArray *mop;
   meetPullVol *vol;
 
-  fprintf(stderr, "!%s: mpvNum = %u\n", me, mpvNum);
   if (!( mpv && cachePath && kSSblur )) {
     biffAddf(MEET, "%s: got NULL pointer", me);
     return 1;
@@ -400,6 +403,10 @@ meetPullVolAddMulti(pullContext *pctx,
   static const char me[]="meetPullVolAddMulti";
   unsigned int mpvIdx;
 
+  if (!( pctx && mpv )) {
+    biffAddf(MEET, "%s: got NULL pointer", me);
+    return 1;
+  }
   for (mpvIdx=0; mpvIdx<mpvNum; mpvIdx++) {
     meetPullVol *vol;
     int E;
@@ -423,5 +430,181 @@ meetPullVolAddMulti(pullContext *pctx,
   
   return 0;
 }
+
+meetPullInfo *
+meetPullInfoNew(void) {
+  meetPullInfo *ret;
+
+  ret = AIR_CALLOC(1, meetPullInfo);
+  if (ret) {
+    ret->info = 0;
+    ret->constraint = AIR_FALSE;
+    ret->volName = ret->itemStr = NULL;
+    ret->zero = ret->scale = AIR_NAN;
+  }
+  return ret;
+}
+
+meetPullInfo *
+meetPullInfoNix(meetPullInfo *minf) {
+  
+  if (minf) {
+    minf->volName = airFree(minf->volName);
+    minf->itemStr = airFree(minf->itemStr);
+    free(minf);
+  }
+  return NULL;
+}
+
+int
+meetPullInfoParse(meetPullInfo *minf, const char *_str) {
+  static const char me[]="meetPullInfoParse";
+#define IFMT "<info>[-c]:<volname>:<item>[:<zero>:<scale>]"
+  char *str, *tok, *last=NULL, *iflags;
+  airArray *mop;
+  int haveZS;
+
+  if (!(minf && _str)) {
+    biffAddf(MEET, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( 3 == airStrntok(_str, ":") || 5 == airStrntok(_str, ":") )) {
+    biffAddf(MEET, "%s: \"%s\" not of form " IFMT, me, _str);
+    return 1;
+  }
+  haveZS = (5 == airStrntok(_str, ":"));
+  
+  mop = airMopNew();
+  if (!( str = airStrdup(_str) )) {
+    biffAddf(MEET, "%s: couldn't strdup input", me);
+    return 1;
+  }
+  airMopAdd(mop, str, airFree, airMopAlways);
+
+  tok = airStrtok(str, ":", &last);
+  iflags = strchr(tok, '-');
+  if (iflags) {
+    *iflags = '\0';
+    iflags++;
+  }
+  if (!(minf->info = airEnumVal(pullInfo, tok))) {
+    biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
+             me, tok, pullInfo->name);
+    airMopError(mop); return 1;
+  }
+  if (iflags) {
+    if (strchr(iflags, 'c')) {
+      minf->constraint = AIR_TRUE;
+    }
+  }
+  tok = airStrtok(NULL, ":", &last);
+  airFree(minf->volName);
+  minf->volName = airStrdup(tok);
+  airMopAdd(mop, minf->volName, airFree, airMopOnError);
+  tok = airStrtok(NULL, ":", &last);
+  airFree(minf->itemStr);
+  minf->itemStr = airStrdup(tok);
+  airMopAdd(mop, minf->itemStr, airFree, airMopOnError);
+  if (haveZS) {
+    tok = airStrtok(NULL, ":", &last);
+    if (1 != sscanf(tok, "%lf", &(minf->zero))) {
+      biffAddf(MEET, "%s: couldn't parse %s as zero (double)", me, tok);
+      airMopError(mop); return 1;
+    }
+    tok = airStrtok(NULL, ":", &last);
+    if (1 != sscanf(tok, "%lf", &(minf->scale))) {
+      biffAddf(MEET, "%s: couldn't parse %s as scale (double)", me, tok);
+      airMopError(mop); return 1;
+    }
+  } else {
+    minf->zero = minf->scale = AIR_NAN;
+  }
+  
+  airMopOkay(mop);
+  return 0;
+}
+
+int
+meetHestPullInfoParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[]="meetHestPullInfoParse";
+  airArray *mop;
+  meetPullInfo **minfP, *minf;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+  minfP = AIR_CAST(meetPullInfo **, ptr);
+  *minfP = minf = meetPullInfoNew();
+  airMopAdd(mop, minfP, (airMopper)airSetNull, airMopOnError);
+  airMopAdd(mop, minf, (airMopper)meetPullInfoNix, airMopOnError);
+  if (meetPullInfoParse(minf, str)) {
+    char *ler;
+    airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
+    strncpy(err, ler, AIR_STRLEN_HUGE-1);
+    airMopError(mop);
+    return 1;
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+hestCB
+_meetHestPullInfo = {
+  sizeof(meetPullInfo *),
+  "meetPullInfo",
+  meetHestPullInfoParse,
+  (airMopper)meetPullInfoNix
+}; 
+
+hestCB *
+meetHestPullInfo = &_meetHestPullInfo;
+
+int
+meetPullInfoAddMulti(pullContext *pctx,
+                     meetPullInfo **minf, unsigned int minfNum) {
+  static const char me[]="meetPullInfoAddMulti";
+  const pullVolume *vol;
+  unsigned int ii;
+  airArray *mop;
+
+  if (!( pctx && minf )) {
+    biffAddf(MEET, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  mop = airMopNew();
+  for (ii=0; ii<minfNum; ii++) {
+    pullInfoSpec *ispec;
+    ispec = pullInfoSpecNew();
+    airMopAdd(mop, ispec, (airMopper)pullInfoSpecNix, airMopOnError);
+    ispec->volName = airStrdup(minf[ii]->volName);
+    ispec->info = minf[ii]->info;
+    ispec->zero = minf[ii]->zero;
+    ispec->scale = minf[ii]->scale;
+    ispec->constraint = minf[ii]->constraint;
+    /* the item is the one thing that takes some work to recover;
+       we need to find the volume and find the item from its kind->enm */
+    if (!( vol = pullVolumeLookup(pctx, minf[ii]->volName) )) {
+      biffMovef(MEET, PULL, "%s: can't find volName \"%s\" for minf[%u]",
+                me, minf[ii]->volName, ii);
+      airMopError(mop); return 1;
+    }
+    if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
+      fprintf(stderr, "%s: can't parse %s as item of %s kind (minf[%u])\n",
+              me, minf[ii]->itemStr, vol->kind->name, ii);
+      airMopError(mop); return 1;
+    }
+    if (pullInfoSpecAdd(pctx, ispec)) {
+      biffMovef(MEET, PULL, "%s: trouble adding ispec from minf[%u]", me, ii);
+      airMopError(mop); return 1;
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
 
 #endif /* TEEM_BUILD_EXPERIMENTAL_LIBS */
