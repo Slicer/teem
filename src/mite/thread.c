@@ -49,11 +49,10 @@ miteThreadNew() {
   mtt->shadeScl1 = NULL;
   /* were miteVal a full-fledged gageKind, the following would
      be done by gagePerVolumeNew */
-  mtt->ansMiteVal = 
-    (double *)calloc(gageKindTotalAnswerLength(miteValGageKind), 
-                     sizeof(double));
-  mtt->directAnsMiteVal = 
-    (double **)calloc(miteValGageKind->itemMax+1, sizeof(double*));
+  mtt->ansMiteVal = AIR_CALLOC(gageKindTotalAnswerLength(miteValGageKind),
+                               double);
+  mtt->directAnsMiteVal = AIR_CALLOC(miteValGageKind->itemMax+1,
+                                     double *);
   if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
     biffAddf(MITE, "%s: couldn't calloc miteVal answer arrays", me);
     return NULL;

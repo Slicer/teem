@@ -397,7 +397,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   static const char me[]="_miteNtxfCopy";
   int ni, E;
   
-  mrr->ntxf = (Nrrd **)calloc(muu->ntxfNum, sizeof(Nrrd *));
+  mrr->ntxf = AIR_CALLOC(muu->ntxfNum, Nrrd *);
   if (!mrr->ntxf) {
     biffAddf(MITE, "%s: couldn't calloc %d ntxf pointers", me, muu->ntxfNum);
     return 1;
@@ -550,7 +550,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
   
   stageNum = _miteStageNum(mrr);
   /* fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum); */
-  mtt->stage = (miteStage *)calloc(stageNum, sizeof(miteStage));
+  mtt->stage = AIR_CALLOC(stageNum, miteStage);
   if (!mtt->stage) {
     biffAddf(MITE, "%s: couldn't alloc array of %d stages", me, stageNum);
     return 1;
