@@ -479,8 +479,11 @@ typedef struct gagePoint_t {
 **
 ** Tue Nov  7 19:51:05 EST 2006; tenGage items now pushing 127,
 ** guardedly changing GAGE_QUERY_BYTES_NUM to 24 --> max item 191
+**
+** Wed Nov 18 17:53:23 CST 2009; yikes, tenGage items now at 190,
+** changing GAGE_QUERY_BYTES_NUM to 32 --> max item 255
 */
-#define GAGE_QUERY_BYTES_NUM 24
+#define GAGE_QUERY_BYTES_NUM 32
 #define GAGE_ITEM_MAX ((8*GAGE_QUERY_BYTES_NUM)-1)
 typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 
