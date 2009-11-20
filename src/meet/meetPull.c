@@ -22,15 +22,6 @@
 
 #include "meet.h"
 
-#if !defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-/* have something to avoid "no symbols" warnings */
-void*
-meetPullVolNew(void) {
-  return NULL;
-}
-
-#else /* TEEM_BUILD_EXPERIMENTAL_LIBS */
-
 meetPullVol *
 meetPullVolNew(void) {
   meetPullVol *ret;
@@ -51,7 +42,6 @@ meetPullVolNew(void) {
   }
   return ret;
 }
-
 
 /*
 ******** meetPullVolParse
@@ -605,6 +595,3 @@ meetPullInfoAddMulti(pullContext *pctx,
   airMopOkay(mop);
   return 0;
 }
-
-
-#endif /* TEEM_BUILD_EXPERIMENTAL_LIBS */

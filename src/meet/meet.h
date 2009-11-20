@@ -34,12 +34,12 @@
 #include <teem/unrrdu.h>
 #include <teem/dye.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#include <teem/moss.h>
-#include <teem/alan.h>
+#  include <teem/moss.h>
+#  include <teem/alan.h>
 #endif
 #include <teem/gage.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#include <teem/bane.h>
+#  include <teem/bane.h>
 #endif
 #include <teem/limn.h>
 #include <teem/seek.h>
@@ -48,10 +48,10 @@
 #include <teem/ten.h>
 #include <teem/mite.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#include <teem/coil.h>
-#include <teem/push.h>
-#include <teem/pull.h>
+#  include <teem/coil.h>
+#  include <teem/push.h>
 #endif
+#include <teem/pull.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(meet_EXPORTS) || defined(teem_EXPORTS)
@@ -81,7 +81,6 @@ MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
 MEET_EXPORT hestCB *meetHestGageKind;
 MEET_EXPORT hestCB *meetHestConstGageKind;
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 /*
 ******** meetPullVol
 **
@@ -156,7 +155,6 @@ MEET_EXPORT int meetPullInfoAddMulti(pullContext *pctx,
                                      meetPullInfo **minf,
                                      unsigned int minfNum);
 
-#endif
 
 #ifdef __cplusplus
 }
