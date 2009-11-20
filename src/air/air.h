@@ -45,13 +45,13 @@
 ** occur with changes in patch level, only with major or minor version
 ** changes.
 **
-** NOTE: ../CMakeLists.txt's TEEM_VERSION variables must be in sync
+** NOTE: ../../CMakeLists.txt's Teem_VERSION variables must be in sync
 */
 #define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
-#define TEEM_VERSION_MINOR      10   /* 1 or 2 digits */
+#define TEEM_VERSION_MINOR      11   /* 1 or 2 digits */
 #define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
-#define TEEM_VERSION         11000   /* can be easily compared numerically */
-#define TEEM_VERSION_STRING "1.10.0" /* cannot be so easily compared */
+#define TEEM_VERSION         11100   /* can be easily compared numerically */
+#define TEEM_VERSION_STRING "1.11.0" /* cannot be so easily compared */
 
 /* NrrdIO-hack-000 */
 
