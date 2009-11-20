@@ -128,8 +128,8 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   fixY = sqrt(posY/negY);
   fixZ = sqrt(posZ/negZ);
   if (ctx->verbose > 2) {
-    printf("%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
-           me, (float)fixX, (float)fixY, (float)fixZ);
+    fprintf(stderr, "%s: fixX = % 10.4f, fixY = % 10.4f, fixX = % 10.4f\n",
+            me, (float)fixX, (float)fixY, (float)fixZ);
   }
   for (i=0; i<fd; i++) {
     if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
@@ -155,8 +155,8 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
   }
   
   if (ctx->verbose > 2) {
-    printf("%s: filter weights after kernel evaluation:\n", me);
-    _gagePrint_fslw(stdout, ctx);
+    fprintf(stderr, "%s: filter weights after kernel evaluation:\n", me);
+    _gagePrint_fslw(stderr, ctx);
   }
   if (ctx->parm.renormalize) {
     for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
@@ -175,8 +175,8 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
       }
     }
     if (ctx->verbose > 2) {
-      printf("%s: filter weights after renormalization:\n", me);
-      _gagePrint_fslw(stdout, ctx);
+      fprintf(stderr, "%s: filter weights after renormalization:\n", me);
+      _gagePrint_fslw(stderr, ctx);
     }
   }
 
@@ -312,12 +312,12 @@ _gageLocationSet(gageContext *ctx,
     sdiff = AIR_FALSE;
   }
   if (ctx->verbose > 2) {
-    printf("%s: \n"
-           "        pos (% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n"
-           "        -> i(%5d,%5d,%5d,%5d) \n"
-           "         + f(% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n",
-           me, xif, yif, zif, sif, idx[0], idx[1], idx[2], idx[3],
-           frac[0], frac[1], frac[2], frac[3]);
+    fprintf(stderr, "%s: \n"
+            "        pos (% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n"
+            "        -> i(%5d,%5d,%5d,%5d) \n"
+            "         + f(% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n",
+            me, xif, yif, zif, sif, idx[0], idx[1], idx[2], idx[3],
+            frac[0], frac[1], frac[2], frac[3]);
   }
 
   /* **** compute *spatial* fsl and fw **** 
@@ -340,10 +340,10 @@ _gageLocationSet(gageContext *ctx,
 
   /* **** compute *stack* fsl and fw ****  */
   if (ctx->verbose > 2 && ctx->parm.stackUse) {
-    printf("%s: point.frac[3] %f + idx[3] %u = %f %s sif %f\n", me,
-           ctx->point.frac[3], ctx->point.idx[3],
-           ctx->point.frac[3] + ctx->point.idx[3],
-           (sdiff ? "*NOT ==*" : "=="), sif);
+    fprintf(stderr, "%s: point.frac[3] %f + idx[3] %u = %f %s sif %f\n", me,
+            ctx->point.frac[3], ctx->point.idx[3],
+            ctx->point.frac[3] + ctx->point.idx[3],
+            (sdiff ? "*NOT ==*" : "=="), sif);
   }
   if (!ctx->parm.stackUse) {
     ctx->point.idx[3] = idx[3];
@@ -365,8 +365,8 @@ _gageLocationSet(gageContext *ctx,
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFsl[ii] = sif - ii;
       if (ctx->verbose > 2) {
-        printf("%s: ctx->stackFsl[%u] = %g\n", 
-               me, ii, ctx->stackFsl[ii]);
+        fprintf(stderr, "%s: ctx->stackFsl[%u] = %g\n", 
+                me, ii, ctx->stackFsl[ii]);
       }
     }
     sksp = ctx->ksp[gageKernelStack];
@@ -374,8 +374,8 @@ _gageLocationSet(gageContext *ctx,
                           ctx->pvlNum-1, sksp->parm);
     if (ctx->verbose > 2) {
       for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        printf("%s: ctx->stackFw[%u] = %g\n", 
-               me, ii, ctx->stackFw[ii]);
+        fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n", 
+                me, ii, ctx->stackFw[ii]);
       }
     }
     /* compute stackFwNonZeroNum whether or not parm.stackNormalizeRecon! */
@@ -397,7 +397,8 @@ _gageLocationSet(gageContext *ctx,
       }
       if (ctx->verbose > 2) {
         for (ii=0; ii<ctx->pvlNum-1; ii++) {
-          printf("%s: ctx->stackFw[%u] = %g\n", me, ii, ctx->stackFw[ii]);
+          fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n", me,
+                  ii, ctx->stackFw[ii]);
         }
       }
     } else {

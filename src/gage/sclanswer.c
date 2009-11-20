@@ -51,15 +51,15 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclValue)) {
     /* done if doV */
     if (ctx->verbose > 2) {
-      printf("%s: val = % 15.7f\n", me, 
-             (double)(pvl->directAnswer[gageSclValue][0]));
+      fprintf(stderr, "%s: val = % 15.7f\n", me, 
+              (double)(pvl->directAnswer[gageSclValue][0]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradVec)) {
     /* done if doD1 */
     if (ctx->verbose > 2) {
-      printf("%s: gvec = ", me);
-      ell_3v_print_d(stdout, gvec);
+      fprintf(stderr, "%s: gvec = ", me);
+      ell_3v_print_d(stderr, gvec);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGradMag)) {
@@ -92,16 +92,16 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessian)) {
     /* done if doD2 */
     if (ctx->verbose > 2) {
-      printf("%s: hess = \n", me);
-      ell_3m_print_d(stdout, hess);
+      fprintf(stderr, "%s: hess = \n", me);
+      ell_3m_print_d(stderr, hess);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclLaplacian)) {
     pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose > 2) {
-      printf("%s: lapl = %g + %g + %g  = %g\n", me,
-             hess[0], hess[4], hess[8], 
-             pvl->directAnswer[gageSclLaplacian][0]);
+      fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
+              hess[0], hess[4], hess[8], 
+              pvl->directAnswer[gageSclLaplacian][0]);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessFrob)) {
@@ -174,20 +174,20 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_MUL(gten, nPerp, tmpMat);
 
       if (ctx->verbose > 2) {
-        printf("%s: gten: \n", me);
-        ell_3m_print_d(stdout, gten);
+        fprintf(stderr, "%s: gten: \n", me);
+        ell_3m_print_d(stderr, gten);
         ELL_3MV_MUL(tmpVec, gten, norm);
         len = ELL_3V_LEN(tmpVec);
-        printf("%s: should be small: %30.15f\n", me, (double)len);
+        fprintf(stderr, "%s: should be small: %30.15f\n", me, (double)len);
         ell_3v_perp_d(gp1, norm);
         ELL_3MV_MUL(tmpVec, gten, gp1);
         len = ELL_3V_LEN(tmpVec);
-        printf("%s: should be bigger: %30.15f\n", me, (double)len);
+        fprintf(stderr, "%s: should be bigger: %30.15f\n", me, (double)len);
         ELL_3V_CROSS(gp2, gp1, norm);
         ELL_3MV_MUL(tmpVec, gten, gp2);
         len = ELL_3V_LEN(tmpVec);
-        printf("%s: should (also) be bigger: %30.15f\n",
-               me, (double)len);
+        fprintf(stderr, "%s: should (also) be bigger: %30.15f\n",
+                me, (double)len);
       }
     } else {
       ELL_3M_ZERO_SET(gten);
@@ -209,11 +209,11 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     D = 2*N*N - T*T;
     /*
     if (D < -0.0000001) {
-      printf("%s: %g %g\n", me, T, N);
-      printf("%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
-      printf("%s: gten: \n", me);
-      ell_3m_print_d(stdout, gten);
-    }
+      fprintf(stderr, "%s: %g %g\n", me, T, N);
+      fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
+      fprintf(stderr, "%s: gten: \n", me);
+      ell_3m_print_d(stderr, gten);
+      }
     */
     D = AIR_MAX(D, 0);
     D = sqrt(D);

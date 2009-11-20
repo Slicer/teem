@@ -109,7 +109,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   jac  = pvl->directAnswer[gageVecJacobian];
   hes  = pvl->directAnswer[gageVecHessian];
   if (!ctx->parm.k3pack) {
-    printf("!%s: sorry, 6pack filtering not implemented\n", me);
+    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
     return;
   }
   fw00 = ctx->fw + fd*3*gageKernel00;
@@ -163,8 +163,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecVector)) {
     /* done if doV */
     if (ctx->verbose) {
-      printf("vec = ");
-      ell_3v_print_d(stdout, vecAns);
+      fprintf(stderr, "vec = ");
+      ell_3v_print_d(stderr, vecAns);
     }
   }
   /* done if doV 
@@ -189,16 +189,16 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       6:dv_z/dx  7:dv_z/dy  8:dv_z/dz
     */
     if (ctx->verbose) {
-      printf("%s: jac = \n", me);
-      ell_3m_print_d(stdout, jacAns);
+      fprintf(stderr, "%s: jac = \n", me);
+      ell_3m_print_d(stderr, jacAns);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecDivergence)) {
     pvl->directAnswer[gageVecDivergence][0] = jacAns[0] + jacAns[4] + jacAns[8];
     if (ctx->verbose) {
-      printf("%s: div = %g + %g + %g  = %g\n", me,
-             jacAns[0], jacAns[4], jacAns[8],
-             pvl->directAnswer[gageVecDivergence][0]);
+      fprintf(stderr, "%s: div = %g + %g + %g  = %g\n", me,
+              jacAns[0], jacAns[4], jacAns[8],
+              pvl->directAnswer[gageVecDivergence][0]);
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecCurl)) {
@@ -252,8 +252,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
         24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz
       */
     if (ctx->verbose) {
-      printf("%s: hes = \n", me);
-      ell_3m_print_d(stdout, hesAns); /* ?? */
+      fprintf(stderr, "%s: hes = \n", me);
+      ell_3m_print_d(stderr, hesAns); /* ?? */
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecDivGradient)) {

@@ -431,16 +431,16 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
     } else if (nrrdLoadMulti(nblur, sbp->num, format, 0, NULL)) {
       airMopAdd(mop, suberr = biffGetDone(NRRD), airFree, airMopAlways);
       if (sbp->verbose) {
-        printf("%s: will recompute blurrings that couldn't be "
-               "read:\n%s\n", me, suberr);
+        fprintf(stderr, "%s: will recompute blurrings that couldn't be "
+                "read:\n%s\n", me, suberr);
       }
       recompute = AIR_TRUE;
     } else if (gageStackBlurCheck(AIR_CAST(const Nrrd**, nblur),
                                   sbp, nin, kind)) {
       airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
       if (sbp->verbose) {
-        printf("%s: will recompute blurrings (from \"%s\") that don't "
-               "match:\n%s\n", me, format, suberr);
+        fprintf(stderr, "%s: will recompute blurrings (from \"%s\") "
+                "that don't match:\n%s\n", me, format, suberr);
       }
       recompute = AIR_TRUE;
     } else {

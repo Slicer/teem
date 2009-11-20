@@ -165,9 +165,9 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   xs /= ms;
   ys /= ms;
   zs /= ms;
-  printf("iScale = %d, xs, ys, zs = %g, %g, %g\n",
-         iScale, xs, ys, xs);
-
+  fprintf(stderr, "iScale = %d, xs, ys, zs = %g, %g, %g\n",
+          iScale, xs, ys, xs);
+  
   rad = 0;
   ik0->parm[0] = iScale/xs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
@@ -212,8 +212,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
     iyw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
     ik0->parm[0] = iScale/zs;
     izw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
-    printf("%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
-           wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
+    fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
+            wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
   }
 
   osx = (nin->axis[0].size)/dsmp;
@@ -231,7 +231,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
 
   out = (double *)nout->data;
   for (ozi=0; ozi<osz; ozi++) {
-    printf("%s: z = %d/%d\n", me, ozi+1, osz);
+    fprintf(stderr, "%s: z = %d/%d\n", me, ozi+1, osz);
     for (oyi=0; oyi<osy; oyi++) {
       for (oxi=0; oxi<osx; oxi++) {
 

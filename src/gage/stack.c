@@ -119,9 +119,9 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
     sfrac = si - sidx;
     swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
     /*
-    printf("!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
-           si, ctx->pvlNum, sidx, sfrac, 
-           ctx->stackPos[sidx], ctx->stackPos[sidx+1], swrl);
+    fprintf(stderr, "!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
+            si, ctx->pvlNum, sidx, sfrac, 
+            ctx->stackPos[sidx], ctx->stackPos[sidx+1], swrl);
     */
   } else {
     swrl = AIR_NAN;
@@ -253,7 +253,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
   baseIdx = ctx->pvlNum - 1; 
   cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
   if (ctx->verbose > 2) {
-    printf("%s: cacheLen = %u\n", me, cacheLen);
+    fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
   if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int xi, yi, zi, blurIdx, valIdx, fdd;

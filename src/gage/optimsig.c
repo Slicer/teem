@@ -323,7 +323,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
   support = AIR_ROUNDUP(nrrdKernelDiscreteGaussian->support(kparm));
   /* may later allow different shaped volumes */
   parm->sx = parm->sy = parm->sz = 2*support - 1;
-  printf("!%s: support = %u, vol size = %u\n", me, support, parm->sx);
+  fprintf(stderr, "!%s: support = %u, vol size = %u\n", me, support, parm->sx);
   airFree(parm->sigmatru);
   parm->sigmatru = AIR_CAST(double *, calloc(measrSampleNum, sizeof(double)));
   if (!parm->sigmatru) {
@@ -374,13 +374,13 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
     nrrdAxisInfoSet_va(parm->nsampvol[ii], nrrdAxisInfoSpacing,
                        1.0, 1.0, 1.0);
   }
-  printf("%s: computing reference blurrings ...       ", me);
+  fprintf(stderr, "%s: computing reference blurrings ...       ", me);
   tauMax =  gageTauOfSig(parm->sigmaMax);
   for (ii=0; ii<parm->measrSampleNum; ii++) {
     double sigma;
     if (!(ii % 10)) {
-      printf("%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-      fflush(stdout);
+      fprintf(stderr, "%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
+      fflush(stderr);
     }
     parm->ntruline->data = parm->truth + ii*parm->sx*parm->sy*parm->sz;
     if (parm->plotting) {
@@ -393,7 +393,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
     parm->sigmatru[ii] = sigma;
     _volTrueBlur(parm->ntruline, sigma, parm);
   }
-  printf("%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
+  fprintf(stderr, "%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
   return 0;
 }
 
@@ -556,8 +556,8 @@ _optsigrun(gageOptimSigParm *parm) {
 
   time0 = airTime();
   lastErr = _errTotal(parm);
-  printf("%s: (%s for initial error measr)\n", me,
-         _timefmt(tstr, airTime() - time0));
+  fprintf(stderr, "%s: (%s for initial error measr)\n", me,
+          _timefmt(tstr, airTime() - time0));
   newErr = AIR_NAN;
   decavg = parm->sampleNum; /* hack */
   /* meaningful discrete difference for looking at error gradient is
@@ -575,19 +575,20 @@ _optsigrun(gageOptimSigParm *parm) {
     esgn = 2*AIR_CAST(int, airRandInt(2)) - 1;
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
-    printf("%s: ***** iter %u; [[ err %g ]] %s\n", 
-           me, iter, lastErr, _timefmt(tstr, airTime() - time0));
+    fprintf(stderr, "%s: ***** iter %u; [[ err %g ]] %s\n", 
+            me, iter, lastErr, _timefmt(tstr, airTime() - time0));
     limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
                     (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
-    printf(". pnt %u: pos %g, step %g\n", pnt, lastPos, parm->step[pnt]);
-    printf(". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
-           parm->scalePos[pnt], parm->scalePos[pnt-1],
-           parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
+    fprintf(stderr, ". pnt %u: pos %g, step %g\n",
+            pnt, lastPos, parm->step[pnt]);
+    fprintf(stderr, ". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
+            parm->scalePos[pnt], parm->scalePos[pnt-1],
+            parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
     _scalePosSet(parm, pnt, lastPos + esgn*sigeps);
     err1 = _errTotal(parm);
     _scalePosSet(parm, pnt, lastPos);
     grad = (err1 - lastErr)/(esgn*sigeps);
-    printf(". grad = %g\n", grad);
+    fprintf(stderr, ". grad = %g\n", grad);
     delta = -grad*parm->step[pnt];
     if (!AIR_EXISTS(delta)) {
       biffAddf(GAGE, "%s: got non-exist delta %g on iter %u (pnt %u) err %g",
@@ -596,11 +597,11 @@ _optsigrun(gageOptimSigParm *parm) {
     }
     if (AIR_ABS(delta) > limit) {
       parm->step[pnt] *= limit/AIR_ABS(delta);
-      printf(". step *= %g/%g -> %g\n",
-             limit, AIR_ABS(delta), parm->step[pnt]);
+      fprintf(stderr, ". step *= %g/%g -> %g\n",
+              limit, AIR_ABS(delta), parm->step[pnt]);
       delta = -grad*parm->step[pnt];
     }
-    printf(". delta = %g\n", delta);
+    fprintf(stderr, ". delta = %g\n", delta);
     tryi = 0;
     badStep = AIR_FALSE;
     do {
@@ -610,7 +611,7 @@ _optsigrun(gageOptimSigParm *parm) {
         return 1;
       }
       if (!delta) {
-        printf("... try %u: delta = 0; nothing to do\n", tryi);
+        fprintf(stderr, "... try %u: delta = 0; nothing to do\n", tryi);
         newErr = lastErr;
         zerodelta = AIR_TRUE;
       } else {
@@ -618,17 +619,18 @@ _optsigrun(gageOptimSigParm *parm) {
         _scalePosSet(parm, pnt, lastPos + delta);
         newErr = _errTotal(parm);
         badStep = newErr > lastErr;
-        printf("... try %u: pos[%u] %g + %g = %g;\n    %s: err %g %s %g\n",
-               tryi, pnt, lastPos, delta,
-               parm->scalePos[pnt],
+        fprintf(stderr, "... try %u: pos[%u] %g + %g = %g;\n"
+                "%s: err %g %s %g\n",
+                tryi, pnt, lastPos, delta,
+                parm->scalePos[pnt],
                badStep ? "*BAD*" : "good",
                newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
           parm->step[pnt] *= backoff;
           if (parm->step[pnt] < sigeps/1000) {
             /* step got so small its stupid to be moving this point */
-            printf("... !! step %g < %g pointlessly small, moving on\n", 
-                   parm->step[pnt], sigeps/1000);
+            fprintf(stderr, "... !! step %g < %g pointlessly small, "
+                    "moving on\n", parm->step[pnt], sigeps/1000);
             _scalePosSet(parm, pnt, lastPos);
             newErr = lastErr;
             badStep = AIR_FALSE;
@@ -646,12 +648,12 @@ _optsigrun(gageOptimSigParm *parm) {
       parm->step[pnt] *= oppor;
     }
     if (decavg <= parm->convEps) {
-      printf("%s: converged (%g <= %g) after %u iters\n", me,
-             decavg, parm->convEps, iter);
+      fprintf(stderr, "%s: converged (%g <= %g) after %u iters\n", me,
+              decavg, parm->convEps, iter);
       break;
     } else {
-      printf("%s: _____ iter %u done; decavg = %g > %g\n", me,
-             iter, decavg, parm->convEps);
+      fprintf(stderr, "%s: _____ iter %u done; decavg = %g > %g\n", me,
+              iter, decavg, parm->convEps);
     }
     lastErr = newErr;
   }
@@ -695,23 +697,23 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
   parm->convEps = convEps;
 
   /* initialize the scalePos[] array to uniform samples in tau */
-  printf("%s: initializing samples ... ", me); fflush(stdout);
+  fprintf(stderr, "%s: initializing samples ... ", me); fflush(stderr);
   tauMax = gageTauOfSig(parm->sigmaMax);
   for (ii=0; ii<parm->sampleNum; ii++) {
     double tau;
     tau = AIR_AFFINE(0, ii, parm->sampleNum-1, 0, tauMax);
     _scalePosSet(parm, ii, gageSigOfTau(tau));
   }
-  printf("done.\n");
-
+  fprintf(stderr, "done.\n");
+  
   /* set up gage */
-  printf("%s: setting up gage ... \n", me);
+  fprintf(stderr, "%s: setting up gage ... \n", me);
   if (_gageSetup(parm)) {
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
-  printf("%s: gage setup done.\n", me);
-
+  fprintf(stderr, "%s: gage setup done.\n", me);
+  
   /* run the optimization */
   if (num > 2) {
     if (_optsigrun(parm)) {
@@ -719,10 +721,10 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
       return 1;
     }
   } else {
-    printf("%s: num == 2, no optimization, finding error ... ", me);
-    fflush(stdout);
+    fprintf(stderr, "%s: num == 2, no optimization, finding error ... ", me);
+    fflush(stderr);
     parm->finalErr = _errTotal(parm);
-    printf("done.\n");
+    fprintf(stderr, "done.\n");
   }
   
   /* save output */
@@ -779,13 +781,13 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
-  printf("%s: working ...       ", me);
+  fprintf(stderr, "%s: working ...       ", me);
   for (ii=0; ii<parm->measrSampleNum; ii++) {
     printf("%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-    fflush(stdout);
+    fflush(stderr);
     out[ii] = _errSingle(parm, ii);
   }
-  printf("%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-
+  fprintf(stderr, "%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
+  
   return 0;
 }

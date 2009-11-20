@@ -268,8 +268,8 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   }
   GAGE_QUERY_COPY(pvl->query, query);
   if (pvl->verbose) {
-    printf("%s: original ", me);
-    gageQueryPrint(stdout, pvl->kind, pvl->query);
+    fprintf(stderr, "%s: original ", me);
+    gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
   /* recursive expansion of prerequisites */
   do {
@@ -287,8 +287,8 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     } while (ii);
   } while (!GAGE_QUERY_EQUAL(pvl->query, lastQuery));
   if (pvl->verbose) {
-    printf("%s: expanded ", me);
-    gageQueryPrint(stdout, pvl->kind, pvl->query);
+    fprintf(stderr, "%s: expanded ", me);
+    gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
 
   /* doing this kind of error checking here is not really

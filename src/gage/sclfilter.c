@@ -211,21 +211,6 @@ gageScl3PFilter4(gageShape *shape,
   /* x0y0z0 */
   if (doV) {
     *val = VL_4( 0,Z);                          /* f */
-    /* What on earth was this for? 
-    if (AIR_ABS(505.6159668 - *val) < 0.0001) {
-      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-             ivY[ 0], ivY[ 1], ivY[ 2], ivY[ 3]);
-      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-             ivY[ 4], ivY[ 5], ivY[ 6], ivY[ 7]);
-      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-             ivY[ 8], ivY[ 9], ivY[10], ivY[11]);
-      printf("ivY =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-             ivY[12], ivY[13], ivY[14], ivY[15]);
-      printf("--> \nivZ =   % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
-             ivZ[ 0], ivZ[ 1], ivZ[ 2], ivZ[ 3]);
-      printf("--> *val = % 10.4f\n", (float)(*val));
-    }
-    */
   }
 
   if (!( doD1 || doD2 ))
