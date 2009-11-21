@@ -482,6 +482,9 @@ typedef struct gagePoint_t {
 **
 ** Wed Nov 18 17:53:23 CST 2009; yikes, tenGage items now at 190,
 ** changing GAGE_QUERY_BYTES_NUM to 32 --> max item 255
+**
+** NOTE: increasing GAGE_QUERY_BYTES_NUM means that the macros below
+** have to be redefined as well!
 */
 #define GAGE_QUERY_BYTES_NUM 32
 #define GAGE_ITEM_MAX ((8*GAGE_QUERY_BYTES_NUM)-1)
@@ -501,7 +504,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   q[ 8] = q[ 9] = q[10] = q[11] = \
   q[12] = q[13] = q[14] = q[15] = \
   q[16] = q[17] = q[18] = q[19] = \
-  q[20] = q[21] = q[22] = q[23] = 0
+  q[20] = q[21] = q[22] = q[23] = \
+  q[24] = q[25] = q[26] = q[27] = \
+  q[28] = q[29] = q[30] = q[31] = 0
 
 #define GAGE_QUERY_COPY(p, q) \
   p[ 0] = q[ 0]; p[ 1] = q[ 1]; p[ 2] = q[ 2]; p[ 3] = q[ 3]; \
@@ -509,7 +514,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   p[ 8] = q[ 8]; p[ 9] = q[ 9]; p[10] = q[10]; p[11] = q[11]; \
   p[12] = q[12]; p[13] = q[13]; p[14] = q[14]; p[15] = q[15]; \
   p[16] = q[16]; p[17] = q[17]; p[18] = q[18]; p[19] = q[19]; \
-  p[20] = q[20]; p[21] = q[21]; p[22] = q[22]; p[23] = q[23]
+  p[20] = q[20]; p[21] = q[21]; p[22] = q[22]; p[23] = q[23]; \
+  p[24] = q[24]; p[25] = q[25]; p[26] = q[26]; p[27] = q[27]; \
+  p[28] = q[28]; p[29] = q[29]; p[30] = q[30]; p[31] = q[31]
 
 #define GAGE_QUERY_ADD(p, q) \
   p[ 0] |= q[ 0]; p[ 1] |= q[ 1]; p[ 2] |= q[ 2]; p[ 3] |= q[ 3]; \
@@ -517,7 +524,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   p[ 8] |= q[ 8]; p[ 9] |= q[ 9]; p[10] |= q[10]; p[11] |= q[11]; \
   p[12] |= q[12]; p[13] |= q[13]; p[14] |= q[14]; p[15] |= q[15]; \
   p[16] |= q[16]; p[17] |= q[17]; p[18] |= q[18]; p[19] |= q[19]; \
-  p[20] |= q[20]; p[21] |= q[21]; p[22] |= q[22]; p[23] |= q[23]
+  p[20] |= q[20]; p[21] |= q[21]; p[22] |= q[22]; p[23] |= q[23]; \
+  p[24] |= q[24]; p[25] |= q[25]; p[26] |= q[26]; p[27] |= q[27]; \
+  p[28] |= q[28]; p[29] |= q[29]; p[30] |= q[30]; p[31] |= q[31]
 
 #define GAGE_QUERY_EQUAL(p, q) ( \
   p[ 0] == q[ 0] && p[ 1] == q[ 1] && p[ 2] == q[ 2] && p[ 3] == q[ 3] && \
@@ -525,7 +534,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   p[ 8] == q[ 8] && p[ 9] == q[ 9] && p[10] == q[10] && p[11] == q[11] && \
   p[12] == q[12] && p[13] == q[13] && p[14] == q[14] && p[15] == q[15] && \
   p[16] == q[16] && p[17] == q[17] && p[18] == q[18] && p[19] == q[19] && \
-  p[20] == q[20] && p[21] == q[21] && p[22] == q[22] && p[23] == q[23])
+  p[20] == q[20] && p[21] == q[21] && p[22] == q[22] && p[23] == q[23] && \
+  p[24] == q[24] && p[25] == q[25] && p[26] == q[26] && p[27] == q[27] && \
+  p[28] == q[28] && p[29] == q[29] && p[30] == q[30] && p[31] == q[31] )
 
 #define GAGE_QUERY_NONZERO(q) ( \
   q[ 0] | q[ 1] | q[ 2] | q[ 3] | \
@@ -533,7 +544,9 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   q[ 8] | q[ 9] | q[10] | q[11] | \
   q[12] | q[13] | q[14] | q[15] | \
   q[16] | q[17] | q[18] | q[19] | \
-  q[20] | q[21] | q[22] | q[23] )
+  q[20] | q[21] | q[22] | q[23] | \
+  q[24] | q[25] | q[26] | q[27] | \
+  q[28] | q[29] | q[30] | q[31] )
 
 #define GAGE_QUERY_ITEM_TEST(q, i) (q[i/8] & (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))
