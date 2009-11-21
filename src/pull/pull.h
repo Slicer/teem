@@ -344,6 +344,9 @@ typedef struct {
     *ksp22,                    /* for 2nd derivatives */
     *kspSS;                    /* for reconstructing from scale-space
                                   samples */
+  gageQuery queryPullVal;      /* if this is a pullValGageKind volume,
+                                  then we don't have a real gageContext,
+                                  and we have to manage our own query */
   gageContext *gctx;           /* do own, and set based on info here */
   gagePerVolume *gpvl,         /* stupid gage API ... */
     **gpvlSS;                  /* stupid gage API ... */

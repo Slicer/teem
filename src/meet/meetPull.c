@@ -75,9 +75,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
              "not of form " VFMT_SHRT " or " VFMT_LONG , me, _str);
     airMopError(mop); return 1;
   }
-  mpv->nin = nrrdNew();
-  airMopAdd(mop, &(mpv->nin), (airMopper)airSetNull, airMopOnError);
-  airMopAdd(mop, mpv->nin, (airMopper)nrrdNuke, airMopOnError);
+  /* mpv->nin is set elsewhere */
   wantSS = (4 == airStrntok(str, ":"));
   
   ctok = airStrtok(str, ":", &clast);
@@ -88,7 +86,10 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   airMopAdd(mop, &(mpv->fileName), (airMopper)airSetNull, airMopOnError);
   airMopAdd(mop, mpv->fileName, airFree, airMopOnError);
   ctok = airStrtok(NULL, ":", &clast);
-  if (!(mpv->kind = meetConstGageKindParse(ctok))) {
+  if (!strcmp(ctok, "pull")) {
+    /* its the special pull non-kind */
+    mpv->kind = pullValGageKind;
+  } else if (!(mpv->kind = meetConstGageKindParse(ctok))) {
     biffAddf(MEET, "%s: couldn't parse \"%s\" as kind", me, ctok);
     airMopError(mop); return 1;
   }
@@ -204,13 +205,13 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 /*
 ******** meetPullVolNix
 **
-** this frees stuff allocated by ???
+** this frees stuff allocated meetPullVolParse and meetPullVolLoadMulti
 */
 meetPullVol *
 meetPullVolNuke(meetPullVol *mpv) {
 
   if (mpv) {
-    if (!mpv->leeching) {
+    if (!mpv->leeching && mpv->nin) {
       nrrdNuke(mpv->nin);
     }
     if (mpv->numSS) {
@@ -258,6 +259,7 @@ meetPullVolLeechable(const meetPullVol *lchr,
   can = !!strcmp(orig->fileName, "-");  /* can, if not reading from stdin */
   can &= !strcmp(orig->fileName, lchr->fileName);  /* come from same file */
   can &= (orig->kind == lchr->kind);               /* same kind */
+  can &= (orig->kind != pullValGageKind);          /* but not pull's "kind" */
   /* need to have different volname */
   can &= (orig->numSS == lchr->numSS);             /* same scale space */
   if (lchr->numSS) {
@@ -347,26 +349,47 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
       fprintf(stderr, "%s: vspec[%u] (%s) cannot leech\n",
               me, mpvIdx, vol->volName);
     }
-    if (nrrdLoad(vol->nin, vol->fileName, NULL)) {
-      biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")", 
-                me, mpvIdx, vol->volName);
-      airMopError(mop); return 1;
-    }
-    if (vol->numSS) {
-      sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
-              cachePath, vol->volName, vol->numSS);
-      if (gageStackBlurParmScaleSet(sbp, vol->numSS,
-                                    vol->rangeSS[0], vol->rangeSS[1], 
-                                    vol->uniformSS, vol->optimSS)
-          || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
-                                        AIR_TRUE, verbose)
-          || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
-                                 formatSS, AIR_TRUE, NULL,
-                                 vol->nin, vol->kind)) {
-        biffMovef(MEET, NRRD, "%s: trouble getting volume stack (\"%s\")",
-                  me, formatSS);
+    /* if this is the pull we only have to learn the scale samples,
+       but these might even be used */
+    if (pullValGageKind == vol->kind) {
+      vol->nin = NULL;
+      vol->ninSS = NULL;
+      if (vol->numSS) {
+        if (gageStackBlurParmScaleSet(sbp, vol->numSS,
+                                      vol->rangeSS[0], vol->rangeSS[1], 
+                                      vol->uniformSS, vol->optimSS)) {
+          biffMovef(MEET, GAGE, "%s: trouble setting stack", me);
+          airMopError(mop); return 1;
+        }
+      }
+    } else {
+      vol->nin = nrrdNew();
+      airMopAdd(mop, &(vol->nin), (airMopper)airSetNull, airMopOnError);
+      airMopAdd(mop, vol->nin, (airMopper)nrrdNuke, airMopOnError);
+      if (nrrdLoad(vol->nin, vol->fileName, NULL)) {
+        biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")", 
+                  me, mpvIdx, vol->volName);
         airMopError(mop); return 1;
       }
+      if (vol->numSS) {
+        sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
+                cachePath, vol->volName, vol->numSS);
+        if (gageStackBlurParmScaleSet(sbp, vol->numSS,
+                                      vol->rangeSS[0], vol->rangeSS[1], 
+                                      vol->uniformSS, vol->optimSS)
+            || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                          AIR_TRUE, verbose)
+            || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
+                                   formatSS, AIR_TRUE, NULL,
+                                   vol->nin, vol->kind)) {
+          biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
+                    me, formatSS);
+          airMopError(mop); return 1;
+        }
+      }
+    }
+    /* allocate and set vol->posSS from sbp-scale regardless of kind */
+    if (vol->numSS) {
       vol->posSS = AIR_CALLOC(sbp->num, double);
       for (ssi=0; ssi<sbp->num; ssi++) {
         vol->posSS[ssi] = sbp->scale[ssi];

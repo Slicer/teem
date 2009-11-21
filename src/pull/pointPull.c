@@ -382,49 +382,57 @@ _pullProbe(pullTask *task, pullPoint *point) {
   }
   edge = AIR_FALSE;
   for (ii=0; ii<task->pctx->volNum; ii++) {
-    if (task->pctx->iter && task->vol[ii]->seedOnly) {
+    pullVolume *vol;
+    vol = task->vol[ii];
+    if (task->pctx->iter && vol->seedOnly) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
       continue;
     }
-    if (!task->vol[ii]->ninScale) {
-      /*
-      if (81 == point->idtag) {
-        printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
-               point->pos[0], point->pos[1], point->pos[2]);
+    if (pullValGageKind == vol->kind) {
+      /* we don't use gage for this */
+      continue;
+    } else { /* pullValGageKind != vol->kind */
+      if (!task->vol[ii]->ninScale) {
+        /*
+          if (81 == point->idtag) {
+          printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
+          point->pos[0], point->pos[1], point->pos[2]);
+          }
+        */
+        gret = gageProbeSpace(task->vol[ii]->gctx,
+                              point->pos[0], point->pos[1], point->pos[2],
+                              AIR_FALSE /* index-space */,
+                              AIR_TRUE /* clamp */);
+      } else {
+        if (task->pctx->verbose > 3) {
+          printf("%s: vol[%u] has scale (%u)-> "
+                 "gageStackProbeSpace(%p) (v %d)\n",
+                 me, ii, task->vol[ii]->scaleNum,
+                 task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
+        }
+        /*
+          if (81 == point->idtag) {
+          printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
+          point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+          }
+        */
+        gret = gageStackProbeSpace(task->vol[ii]->gctx,
+                                   point->pos[0], point->pos[1],
+                                   point->pos[2], point->pos[3],
+                                   AIR_FALSE /* index-space */,
+                                   AIR_TRUE /* clamp */);
       }
-      */
-      gret = gageProbeSpace(task->vol[ii]->gctx,
-                            point->pos[0], point->pos[1], point->pos[2],
-                            AIR_FALSE /* index-space */,
-                            AIR_TRUE /* clamp */);
-    } else {
-      if (task->pctx->verbose > 3) {
-        printf("%s: vol[%u] has scale (%u)-> gageStackProbeSpace(%p) (v %d)\n",
-               me, ii, task->vol[ii]->scaleNum,
-               task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
+      if (gret) {
+        break;
       }
-      /*
-      if (81 == point->idtag) {
-        printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
-               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-      }
-      */
-      gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                 point->pos[0], point->pos[1],
-                                 point->pos[2], point->pos[3],
-                                 AIR_FALSE /* index-space */,
-                                 AIR_TRUE /* clamp */);
-    }
+      edge |= !!task->vol[ii]->gctx->edgeFrac;
+    } /* else pullValGageKind != vol->kind */
     if (gret) {
-      break;
+      biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
+               ii, task->pctx->volNum,
+               task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
+      return 1;
     }
-    edge |= !!task->vol[ii]->gctx->edgeFrac;
-  }
-  if (gret) {
-    biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
-             ii, task->pctx->volNum,
-             task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
-    return 1;
   }
   if (edge) {
     point->status |= PULL_STATUS_EDGE_BIT;

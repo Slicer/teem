@@ -42,7 +42,8 @@ pullVolumeNew() {
     vol->ksp11 = nrrdKernelSpecNew();
     vol->ksp22 = nrrdKernelSpecNew();
     vol->kspSS = nrrdKernelSpecNew();
-    vol->gctx = gageContextNew();
+    GAGE_QUERY_RESET(vol->queryPullVal);
+    vol->gctx = NULL;
     vol->gpvl = NULL;
     vol->gpvlSS = NULL;
     /* this is turned OFF in volumes that have infos that aren't seedthresh,
@@ -62,7 +63,9 @@ pullVolumeNix(pullVolume *vol) {
     vol->ksp11 = nrrdKernelSpecNix(vol->ksp11);
     vol->ksp22 = nrrdKernelSpecNix(vol->ksp22);
     vol->kspSS = nrrdKernelSpecNix(vol->kspSS);
-    vol->gctx = gageContextNix(vol->gctx);
+    if (vol->gctx) {
+      vol->gctx = gageContextNix(vol->gctx);
+    }
     airFree(vol->gpvlSS);
     airFree(vol);
   }
@@ -95,9 +98,12 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   int E;
   unsigned int vi;
 
-  if (!( vol && ninSingle && kind 
-         && airStrlen(name) && ksp00 && ksp11 && ksp22 )) {
+  if (!( vol && kind && airStrlen(name) && ksp00 && ksp11 && ksp22 )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (pullValGageKind != kind && !ninSingle) {
+    biffAddf(PULL, "%s: needed non-NULL ninSingle", me);
     return 1;
   }
   if (pctx) {
@@ -108,61 +114,70 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
       }
     }
   }
-  if (ninScale && !scalePos) {
-    biffAddf(PULL, "%s: need scalePos array if using scale-space", me);
-    return 1;
-  }
-  if (ninScale && !(ninNum >= 2)) {
-    biffAddf(PULL, "%s: need at least 2 volumes (not %u)", me, ninNum);
-    return 1;
-  }
-  if (!(vol->gctx)) {
-    biffAddf(PULL, "%s: got NULL vol->gageContext", me);
-    return 1;
-  }
-  vol->verbose = verbose;
-  gageParmSet(vol->gctx, gageParmVerbose,
-              vol->verbose > 0 ? vol->verbose - 1 : 0);
-  gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
-  /* because we're likely only using accurate kernels */
-  gageParmSet(vol->gctx, gageParmStackNormalizeRecon, AIR_FALSE);
-  vol->scaleDerivNorm = scaleDerivNorm;
-  gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, scaleDerivNorm);
-  gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
-  E = 0;
-  if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
-                             ksp00->kernel, ksp00->parm);
-  if (!E) E |= gageKernelSet(vol->gctx, gageKernel11,
-                             ksp11->kernel, ksp11->parm); 
-  if (!E) E |= gageKernelSet(vol->gctx, gageKernel22,
-                             ksp22->kernel, ksp22->parm);
-  if (ninScale) {
-    if (!kspSS) {
-      biffAddf(PULL, "%s: got NULL kspSS", me);
+  if (ninNum) {
+    if (!( ninNum >= 2 )) {
+      biffAddf(PULL, "%s: need at least 2 volumes (not %u)", me, ninNum);
       return 1;
     }
-    gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
-    if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
-    vol->gpvlSS = AIR_CAST(gagePerVolume **,
-                           calloc(ninNum, sizeof(gagePerVolume *)));
-    if (!E) E |= gageStackPerVolumeNew(vol->gctx, vol->gpvlSS,
-                                       ninScale, ninNum, kind);
-    if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, vol->gpvlSS,
-                                          scalePos, ninNum);
-    if (!E) E |= gageKernelSet(vol->gctx, gageKernelStack,
-                               kspSS->kernel, kspSS->parm);
-  } else {
-    vol->gpvlSS = NULL;
-    if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
-    if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
+    if (!scalePos) {
+      biffAddf(PULL, "%s: need non-NULL scalePos with ninNum %u", me, ninNum);
+      return 1;
+    }
+    if (pullValGageKind != kind && !ninScale) {
+      biffAddf(PULL, "%s: need non-NULL ninScale with ninNum %u", me, ninNum);
+      return 1;
+    }
   }
-  if (E) {
-    biffMovef(PULL, GAGE, "%s: trouble (%s %s)", me,
-              ninSingle ? "ninSingle" : "",
-              ninScale ? "ninScale" : "");
-    return 1;
-  }
-  
+
+  vol->verbose = verbose;
+  vol->kind = kind;
+  if (pullValGageKind != kind) {
+    vol->gctx = gageContextNew();
+    gageParmSet(vol->gctx, gageParmVerbose,
+                vol->verbose > 0 ? vol->verbose - 1 : 0);
+    gageParmSet(vol->gctx, gageParmRenormalize, AIR_FALSE);
+    /* because we're likely only using accurate kernels */
+    gageParmSet(vol->gctx, gageParmStackNormalizeRecon, AIR_FALSE);
+    vol->scaleDerivNorm = scaleDerivNorm;
+    gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, scaleDerivNorm);
+    gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
+    E = 0;
+    if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
+                               ksp00->kernel, ksp00->parm);
+    if (!E) E |= gageKernelSet(vol->gctx, gageKernel11,
+                               ksp11->kernel, ksp11->parm); 
+    if (!E) E |= gageKernelSet(vol->gctx, gageKernel22,
+                               ksp22->kernel, ksp22->parm);
+    if (ninScale) {
+      if (!kspSS) {
+        biffAddf(PULL, "%s: got NULL kspSS", me);
+        return 1;
+      }
+      gageParmSet(vol->gctx, gageParmStackUse, AIR_TRUE);
+      if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
+      vol->gpvlSS = AIR_CAST(gagePerVolume **,
+                             calloc(ninNum, sizeof(gagePerVolume *)));
+      if (!E) E |= gageStackPerVolumeNew(vol->gctx, vol->gpvlSS,
+                                         ninScale, ninNum, kind);
+      if (!E) E |= gageStackPerVolumeAttach(vol->gctx, vol->gpvl, vol->gpvlSS,
+                                            scalePos, ninNum);
+      if (!E) E |= gageKernelSet(vol->gctx, gageKernelStack,
+                                 kspSS->kernel, kspSS->parm);
+    } else {
+      vol->gpvlSS = NULL;
+      if (!E) E |= !(vol->gpvl = gagePerVolumeNew(vol->gctx, ninSingle, kind));
+      if (!E) E |= gagePerVolumeAttach(vol->gctx, vol->gpvl);
+    }
+    if (E) {
+      biffMovef(PULL, GAGE, "%s: trouble (%s %s)", me,
+                ninSingle ? "ninSingle" : "",
+                ninScale ? "ninScale" : "");
+      return 1;
+    }
+    gageQueryReset(vol->gctx, vol->gpvl);
+    /* the query is the single thing remaining unset in the gageContext */
+  } /* if (pullValGageKind != kind) */
+
   vol->name = airStrdup(name);
   if (!vol->name) {
     biffAddf(PULL, "%s: couldn't strdup name (len %u)", me,
@@ -171,7 +186,6 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   }
   printf("!%s: vol=%p, name = %p = |%s|\n", me, vol, 
          vol->name, vol->name);
-  vol->kind = kind;
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);
   nrrdKernelSpecSet(vol->ksp22, ksp22->kernel, ksp22->parm);
@@ -195,9 +209,6 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     /* leave kspSS as is (unset) */
   }
   
-  gageQueryReset(vol->gctx, vol->gpvl);
-  /* the query is the single thing remaining unset in the gageContext */
-
   return 0;
 }
 
@@ -277,7 +288,7 @@ _pullVolumeCopy(const pullVolume *volOrig) {
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
-  if (_pullVolumeSet(NULL, volNew, volOrig->gpvl->kind,
+  if (_pullVolumeSet(NULL, volNew, volOrig->kind,
                      volOrig->verbose, volOrig->name, 
                      volOrig->ninSingle,
                      volOrig->ninScale, 
@@ -290,12 +301,17 @@ _pullVolumeCopy(const pullVolume *volOrig) {
     return NULL;
   }
   volNew->seedOnly = volOrig->seedOnly;
-  /* we just created a new (per-task) gageContext, and it will not learn
-     the items from the info specs, so we have to add query here */
-  if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
-      || gageUpdate(volNew->gctx)) {
-    biffMovef(PULL, GAGE, "%s: trouble with new volume gctx", me);
-    return NULL;
+  if (pullValGageKind == volOrig->kind) {
+    GAGE_QUERY_COPY(volNew->queryPullVal, volOrig->queryPullVal);
+  } else {
+    /* _pullVolumeSet just created a new (per-task) gageContext, and
+     it will not learn the items from the info specs, so we have to
+     add query here */
+    if (gageQuerySet(volNew->gctx, volNew->gpvl, volOrig->gpvl->query)
+        || gageUpdate(volNew->gctx)) {
+      biffMovef(PULL, GAGE, "%s: trouble with new volume gctx", me);
+      return NULL;
+    }
   }
   return volNew;
 }
@@ -319,24 +335,37 @@ _pullInsideBBox(pullContext *pctx, double pos[4]) {
 int
 _pullVolumeSetup(pullContext *pctx) {
   static const char me[]="_pullVolumeSetup";
-  unsigned int ii, numScale;
+  unsigned int ii, numScale, realVolNum;
 
   /* first see if there are any gage problems */
   for (ii=0; ii<pctx->volNum; ii++) {
     printf("!%s: gageUpdate(vol[%u])\n", me, ii);
-    if (gageUpdate(pctx->vol[ii]->gctx)) {
-      biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
-                "%u/%u (\"%s\")",  me, ii, pctx->volNum,
-                pctx->vol[ii]->name);
-      return 1;
+    if (pctx->vol[ii]->gctx) {
+      if (gageUpdate(pctx->vol[ii]->gctx)) {
+        biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
+                  "%u/%u (\"%s\")",  me, ii, pctx->volNum,
+                  pctx->vol[ii]->name);
+        return 1;
+      }
+    } else {
+      if (pullValGageKind != pctx->vol[ii]->kind) {
+        biffAddf(PULL, "%s: vol[%u] has kind %s (not %s) but NULL gctx", me,
+                 ii, pctx->vol[ii]->kind->name, pullValGageKind->name);
+      }
     }
   }
 
   pctx->voxelSizeSpace = 0.0;
+  realVolNum = 0;
   for (ii=0; ii<pctx->volNum; ii++) {
     double min[3], max[3];
     gageContext *gctx;
     gctx = pctx->vol[ii]->gctx;
+    if (!gctx) {
+      /* we've verified above that this is a pullValGageKind volume */
+      continue;
+    }
+    realVolNum += 1;
     gageShapeBoundingBox(min, max, gctx->shape);
     if (!ii) {
       ELL_3V_COPY(pctx->bboxMin, min);
@@ -356,7 +385,12 @@ _pullVolumeSetup(pullContext *pctx) {
       }
     }
   }
-  pctx->voxelSizeSpace /= pctx->volNum;
+  if (!realVolNum) {
+    biffAddf(PULL, "%s: sorry, need at least one non-%s (gage-based) volume", 
+             me, pullValGageKind->name);
+    return 1;
+  }
+  pctx->voxelSizeSpace /= realVolNum;
   /* have now computed bbox{Min,Max}[0,1,2]; now do bbox{Min,Max}[3] */
   pctx->bboxMin[3] = pctx->bboxMax[3] = 0.0;
   pctx->haveScale = AIR_FALSE;
