@@ -37,7 +37,7 @@ PROJECT(Teem)
 #-----------------------------------------------------------------------------
 # Teem version number.  Must reflect the values in teem/src/air/air.h
 SET(Teem_VERSION_MAJOR "1")
-SET(Teem_VERSION_MINOR "10")
+SET(Teem_VERSION_MINOR "11")
 SET(Teem_VERSION_PATCH "0")
 
 # Version string should not include patch level.  The major.minor is
@@ -234,13 +234,13 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu dye gage limn seek hoover echo ten mite meet)
+SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu dye gage limn seek hoover echo ten mite pull meet)
 IF(BUILD_EXPERIMENTAL_LIBS)
   # This list of the "experimental" libraries must be kept in sync with:
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
   # * teem/src/meet/enumsall.c 
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} moss alan bane coil push pull)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} moss alan bane coil push)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 
@@ -264,6 +264,7 @@ SET(Teem_HEADER_FILES
   ten/ten.h
   ten/tenMacros.h
   mite/mite.h
+  pull/pull.h
   meet/meet.h
   )
 IF(BUILD_EXPERIMENTAL_LIBS)
@@ -273,7 +274,6 @@ IF(BUILD_EXPERIMENTAL_LIBS)
     bane/bane.h
     coil/coil.h
     push/push.h
-    pull/pull.h
     )
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 SET(Teem_INSTALLED_HEADER_FILES)
