@@ -102,11 +102,11 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = coilMethodType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = coilKindType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pushEnergyType;
+#endif
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullEnergyType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInfo;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
-#endif
   ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
   airArrayNix(arr);
   return enm;
