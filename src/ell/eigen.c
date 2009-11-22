@@ -412,6 +412,7 @@ _maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
     *sumon += AIR_ABS(mat[rrI][rrI]);
   }
   maxm = -1;
+  maxI[0] = maxI[1] = 0;
   for (rrI=0; rrI<5; rrI++) {
     for (ccI=rrI+1; ccI<6; ccI++) {
       tmp = AIR_ABS(mat[rrI][ccI]);
@@ -513,11 +514,8 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
     fprintf(stderr, "\n");
   }
   */
+  maxI[0] = maxI[1] = UINT_MAX; /* quiet warnings about using maxI unset */
   _maxI_sum_find(maxI, &sumon, &sumoff, mat[0]);
-  /*
-  maxI[0] = 0;
-  maxI[1] = 3;
-  */
   cur = 1;         /* fake out anticipating first line of loop */
   iter = 0;
   while (sumoff/sumon > eps) {
