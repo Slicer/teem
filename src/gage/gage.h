@@ -862,7 +862,7 @@ GAGE_EXPORT gageItemSpec *gageItemSpecNix(gageItemSpec *isp);
 
 /* kind.c */
 GAGE_EXPORT int gageKindCheck(const gageKind *kind);
-GAGE_EXPORT int gageKindTotalAnswerLength(const gageKind *kind);
+GAGE_EXPORT unsigned int gageKindTotalAnswerLength(const gageKind *kind);
 GAGE_EXPORT unsigned int gageKindAnswerLength(const gageKind *kind, int item);
 GAGE_EXPORT int gageKindAnswerOffset(const gageKind *kind, int item);
 GAGE_EXPORT int gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd);

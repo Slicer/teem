@@ -128,11 +128,12 @@ gageKindCheck(const gageKind *kind) {
   return 0;
 }
 
-int
+unsigned int
 gageKindTotalAnswerLength(const gageKind *kind) {
   static const char me[]="gageKindTotalAnswerLength";
   char *err;
-  int ii, alen;
+  unsigned int alen;
+  int ii;
 
   if (gageKindCheck(kind)) {
     err = biffGetDone(GAGE); 
