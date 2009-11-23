@@ -29,6 +29,7 @@ gageShapeReset(gageShape *shape) {
   /* NOTE this guards against NULL */
   if (shape) {
     shape->defaultCenter = gageDefDefaultCenter;
+    shape->orientationFromSpacing = gageDefOrientationFromSpacing;
     ELL_3V_SET(shape->size, 0, 0, 0);
     shape->center = nrrdCenterUnknown;
     shape->fromOrientation = AIR_FALSE;
@@ -110,7 +111,7 @@ int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
               const Nrrd *nin, unsigned int baseDim) {
   static const char me[]="_gageShapeSet";
-  int ai, cx, cy, cz, statCalc[3], status;
+  int ai, cx, cy, cz, statCalc[3], status, ofspc;
   unsigned int minsize;
   const NrrdAxisInfo *ax[3];
   double vecA[4], vecB[3], vecC[3], vecD[4], matA[9],
@@ -228,9 +229,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   /* ------ find centering (set shape->center) */
   /* NOTE: when the volume is being crammed in a bi-unit cube, the centering
      will actually affect the positions of the samples.  Otherwise,
-     (having full orientation, or using ctx->parm.orientationFromSpacing)
-     the centering will only affect the probe-able bounds of the volume,
-     but the sample positions in space don't depend on centering */
+     (having full orientation, or using orientationFromSpacing), the
+     centering will only affect the probe-able bounds of the volume, but
+     the sample positions in space don't depend on centering */
   cx = ax[0]->center;
   cy = ax[1]->center;
   cz = ax[2]->center;
@@ -243,8 +244,8 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
              airEnumStr(nrrdCenter, cz));
     airMopError(mop); return 1;
   }
-  /* HEY: this logic is a little odd; we hope that
-     shape->defaultCenter never disagrees w/ ctx->parm.defaultCenter! */
+  /* Hopefully, ctx->parm.defaultCenter == shape->defaultCenter; and this
+     worry will be moot if ctx->parm.defaultCenter goes away */
   shape->center = (nrrdCenterUnknown != cx
                    ? cx /* cx == cy == cz, by above */
                    : (ctx 
@@ -270,9 +271,13 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
   }
 
   /* ------ find spacings[0,1,2] and ItoW matrix */
-  if (shape->fromOrientation
-      || (ctx && ctx->parm.orientationFromSpacing)) {
-    if (ctx && ctx->parm.orientationFromSpacing) {
+  /* Hopefully, ctx->parm.orientationFromSpacing and
+     shape->orientationFromSpacing don't represent competing interests; 
+     this worry will be moot if ctx->parm.orientationFromSpacing goes away */
+  ofspc = ((ctx && ctx->parm.orientationFromSpacing)
+           || shape->orientationFromSpacing);
+  if (shape->fromOrientation || ofspc) {
+    if (ofspc) {
       /* need abs() in case an axis had negative spacing */
       ELL_3V_ABS(shape->spacing, spcCalc);
       ELL_3V_SET(vecCalc[0], airSgn(spcCalc[0]), 0.0, 0.0);
@@ -331,7 +336,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
     fprintf(stderr, "%s:        %g %g %g %g\n", me,
            shape->ItoW[12], shape->ItoW[13], shape->ItoW[14], shape->ItoW[15]);
     */
-  } else {
+  } else { /* not (shape->fromOrientation || ofspc) */
     double maxLen, volHalfLen[3];
     size_t num[3];
     /* ------ learn lengths for bounding nrrd in bi-unit cube */

@@ -348,11 +348,18 @@ struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 ** nrrd's full orientation information if it is known.
 */
 typedef struct gageShape_t {
+  /* ========= INPUT ========= (controls for _gageShapeSet) */
   int defaultCenter,          /* default centering to use when given volume
-                                 has no centering set. *NOTE* this is the 
-                                 only "input" field in the gageShape, all the
-                                 rest are set by _gageShapeSet */
-    center,                   /* the sample centering of the volume(s)- this
+                                 has no centering set. */
+    orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
+                                 but not full orientation info. If zero, the
+                                 volume is crammed into the bi-unit cube.
+                                 If non-zero, gage treats the volume as if it
+                                 had axis-aligned spaceDirection vectors, with
+                                 the non-zero values determined by the given
+                                 per-axis spacing. */
+  /* ======== OUTPUT ========= (set by _gageShapeSet) */
+  int center,                 /* the sample centering of the volume(s)- this
                                  determines the extent of the locations
                                  that may be probed */
     fromOrientation;          /* non-zero iff the spaceDirections and
