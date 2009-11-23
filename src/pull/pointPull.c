@@ -342,6 +342,23 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   return scl;
 }
 
+void
+_pullValProbe(pullTask *task, pullVolume *vol,
+              double xx, double yy, double zz, double ss) {
+  double pos[4];
+  
+  ELL_4V_SET(pos, xx, yy, zz, ss);
+  if (GAGE_QUERY_ITEM_TEST(vol->pullValQuery, pullValSlice)) {
+    task->pullValDirectAnswer[pullValSlice][0] =
+      ELL_3V_DOT(pos, task->pctx->_sliceNormal);
+  }
+  if (GAGE_QUERY_ITEM_TEST(vol->pullValQuery, pullValSliceGradVec)) {
+    ELL_3V_COPY(task->pullValDirectAnswer[pullValSliceGradVec],
+                task->pctx->_sliceNormal);
+  }
+  return;
+}
+
 int
 _pullProbe(pullTask *task, pullPoint *point) {
   static const char me[]="_pullProbe";
@@ -389,9 +406,13 @@ _pullProbe(pullTask *task, pullPoint *point) {
       continue;
     }
     if (pullValGageKind == vol->kind) {
-      /* we don't use gage for this */
+      /* we don't use gage for this, its a pull "kind" */
+      _pullValProbe(task, task->vol[ii],
+                    point->pos[0], point->pos[1], point->pos[2],
+                    task->vol[ii]->scaleNum ? point->pos[3] : 0.0);
       continue;
     } else { /* pullValGageKind != vol->kind */
+      /* HEY should task->vol[ii]->scaleNum be the using-scale-space test? */
       if (!task->vol[ii]->ninScale) {
         /*
           if (81 == point->idtag) {
@@ -423,16 +444,13 @@ _pullProbe(pullTask *task, pullPoint *point) {
                                    AIR_TRUE /* clamp */);
       }
       if (gret) {
-        break;
+        biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
+                 ii, task->pctx->volNum,
+                 task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
+        return 1;
       }
       edge |= !!task->vol[ii]->gctx->edgeFrac;
     } /* else pullValGageKind != vol->kind */
-    if (gret) {
-      biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
-               ii, task->pctx->volNum,
-               task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
-      return 1;
-    }
   }
   if (edge) {
     point->status |= PULL_STATUS_EDGE_BIT;

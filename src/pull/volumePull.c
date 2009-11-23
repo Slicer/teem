@@ -42,7 +42,7 @@ pullVolumeNew() {
     vol->ksp11 = nrrdKernelSpecNew();
     vol->ksp22 = nrrdKernelSpecNew();
     vol->kspSS = nrrdKernelSpecNew();
-    GAGE_QUERY_RESET(vol->queryPullVal);
+    GAGE_QUERY_RESET(vol->pullValQuery);
     vol->gctx = NULL;
     vol->gpvl = NULL;
     vol->gpvlSS = NULL;
@@ -302,7 +302,7 @@ _pullVolumeCopy(const pullVolume *volOrig) {
   }
   volNew->seedOnly = volOrig->seedOnly;
   if (pullValGageKind == volOrig->kind) {
-    GAGE_QUERY_COPY(volNew->queryPullVal, volOrig->queryPullVal);
+    GAGE_QUERY_COPY(volNew->pullValQuery, volOrig->pullValQuery);
   } else {
     /* _pullVolumeSet just created a new (per-task) gageContext, and
      it will not learn the items from the info specs, so we have to

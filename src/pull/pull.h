@@ -344,7 +344,7 @@ typedef struct {
     *ksp22,                    /* for 2nd derivatives */
     *kspSS;                    /* for reconstructing from scale-space
                                   samples */
-  gageQuery queryPullVal;      /* if this is a pullValGageKind volume,
+  gageQuery pullValQuery;      /* if this is a pullValGageKind volume,
                                   then we don't have a real gageContext,
                                   and we have to manage our own query */
   gageContext *gctx;           /* do own, and set based on info here */
@@ -366,10 +366,15 @@ typedef struct pullTask_t {
                                    tasks assign themselves bins to do work */
   pullVolume
     *vol[PULL_VOLUME_MAXNUM];   /* volumes copied from parent */
+  double *pullValAnswer;        /* buffer for holding answers to all pullVal
+                                   items (like gagePerVolume->answer) */
+  double **pullValDirectAnswer; /* convenience pointers into pullValAnswer
+                                   (like gagePerVolume->directAnswer) */
   const double
     *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
-                                   pointing into per-task per-volume gctxs,
-                                   or: NULL if that info is not being used */
+                                   pointing into per-task per-volume gctxs
+                                   (or into above per-task pullValAnswer),
+                                   OR: NULL if that info is not being used */
   int processMode;              /* what kind of point processing is being
                                    done by this task right now */
   airThread *thread;            /* my thread */

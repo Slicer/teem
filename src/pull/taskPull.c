@@ -28,8 +28,9 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   static const char me[]="_pullTaskNew";
   pullTask *task;
   unsigned int ii, offset;
+  int item;
 
-  task = (pullTask *)calloc(1, sizeof(pullTask));
+  task = AIR_CALLOC(1, pullTask);
   if (!task) {
     biffAddf(PULL, "%s: couldn't allocate task", me);
     return NULL;
@@ -64,19 +65,42 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
              pos[0], pos[1], pos[2], *ans);
     }
   }
+  /* we have to emulate what's normally happening in gagePerVolumeNew */
+  task->pullValAnswer = AIR_CALLOC(gageKindTotalAnswerLength(pullValGageKind),
+                                   double);
+  task->pullValDirectAnswer = AIR_CALLOC(pullValGageKind->itemMax+1,
+                                         double *);
+  if (!( task->pullValAnswer && task->pullValDirectAnswer )) {
+    biffAddf(PULL, "%s: couldn't allocate pullVal buffers", me);
+    return NULL;
+  }
+  for (item=0; item<=pullValGageKind->itemMax; item++) {
+    if (pullValUnknown == item) {
+      task->pullValDirectAnswer[item] = NULL;
+    } else {
+      task->pullValDirectAnswer[item] = 
+        task->pullValAnswer + gageKindAnswerOffset(pullValGageKind, item);
+    }
+  }
+  /* now set up all pointers for per-task pullInfos */
   offset = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
-    unsigned int volIdx;
+    const pullVolume *vol;
     if (pctx->ispec[ii]) {
-      volIdx = pctx->ispec[ii]->volIdx;
-      task->ans[ii] = gageAnswerPointer(task->vol[volIdx]->gctx,
-                                        task->vol[volIdx]->gpvl,
-                                        pctx->ispec[ii]->item);
-      printf("!%s: task->ans[%u] = %p\n", me, ii, task->ans[ii]);
+      vol = task->vol[pctx->ispec[ii]->volIdx];
+      if (pullValGageKind == vol->kind) {
+        task->ans[ii] = task->pullValDirectAnswer[pctx->ispec[ii]->item];
+      } else {
+        task->ans[ii] = gageAnswerPointer(vol->gctx, vol->gpvl,
+                                          pctx->ispec[ii]->item);
+      }
+      printf("!%s: task->ans[%u] = (%s) %p\n", me, ii,
+             vol->kind->name, task->ans[ii]);
     } else {
       task->ans[ii] = NULL;
     }
   }
+  /* HEY: any idea where there is so little error checking in the below? */
   /* initialize to descent because that's what's needed for the end of point
      initialization, when initial energy must be learned */
   task->processMode = pullProcessModeDescent;
