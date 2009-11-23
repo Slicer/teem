@@ -896,9 +896,10 @@ _pullPointSetup(pullContext *pctx) {
       factor = -1.0/pctx->pointPerVoxel;
     }
     if (pctx->haveScale) {
-      totalNumPoints = voxNum * factor * pctx->numSamplesScale;
+      totalNumPoints = AIR_CAST(unsigned int,
+                                voxNum * factor * pctx->numSamplesScale);
     } else {
-      totalNumPoints = voxNum * factor;
+      totalNumPoints = AIR_CAST(unsigned int, voxNum * factor);
     }
     printf("!%s: ppv %d -> factor %g -> tot # %u\n", me, 
            pctx->pointPerVoxel, factor, totalNumPoints);
