@@ -871,6 +871,9 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** that's all Teem files.  The converse is, since there is no
 ** expectation that other projects which use Teem will be defining
 ** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
+**
+** http://www.viva64.com/art-1-2-710804781.html
+** Windows is LLP64, everyone else is LP64.
 */
 #if TEEM_32BIT == 0
 #  ifdef _WIN64
@@ -881,8 +884,8 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #    define _AIR_PTRDIFF_T_CNV "%ld"
 #  endif
 #elif TEEM_32BIT == 1
-#  define _AIR_SIZE_T_CNV "%u"
-#  define _AIR_PTRDIFF_T_CNV "%d"
+#  define _AIR_SIZE_T_CNV "%lu"
+#  define _AIR_PTRDIFF_T_CNV "%ld"
 #else
 #  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
 #  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
