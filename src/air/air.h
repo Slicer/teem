@@ -872,8 +872,9 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** expectation that other projects which use Teem will be defining
 ** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
 **
-** http://www.viva64.com/art-1-2-710804781.html
-** Windows is LLP64, everyone else is LP64.
+** http://www.viva64.com/art-1-2-710804781.html for size conventions.
+**
+** It appears that 32 bit APPLE uses ld for size_t and int for ptrdiff.
 */
 #if TEEM_32BIT == 0
 #  ifdef _WIN64
@@ -884,8 +885,13 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #    define _AIR_PTRDIFF_T_CNV "%ld"
 #  endif
 #elif TEEM_32BIT == 1
-#  define _AIR_SIZE_T_CNV "%lu"
-#  define _AIR_PTRDIFF_T_CNV "%ld"
+#  ifdef __APPLE__
+#    define _AIR_SIZE_T_CNV "%lu"
+#    define _AIR_PTRDIFF_T_CNV "%d"
+#  else
+#    define _AIR_SIZE_T_CNV "%u"
+#    define _AIR_PTRDIFF_T_CNV "%d"
+#  endif
 #else
 #  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
 #  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
