@@ -766,7 +766,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** defined by the first and third arguments
 ** 
 ** AIR_IN_OP is new name for old AIR_BETWEEN
-** AIR_IN_CL is new name for odl AIR_INSIDE
+** AIR_IN_CL is new name for old AIR_INSIDE
 */
 #define AIR_IN_OP(a,b,c) ((a) < (b) && (b) < (c))     /* closed interval */
 #define AIR_IN_CL(a,b,c) ((a) <= (b) && (b) <= (c))   /* open interval */
