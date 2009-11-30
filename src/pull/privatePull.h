@@ -41,7 +41,7 @@ extern "C" {
 
 /* don't nix a point if this (or greater) fraction of its neighbors
    have already been nixed */
-#define _PULL_FRAC_NIXED_THRESH 0.4
+#define _PULL_FRAC_NIXED_THRESH 0.5
 
 /* only try adding a point if the normalized neighbor offset sum is 
    greater than this (making this too small only wastes time, by descending
