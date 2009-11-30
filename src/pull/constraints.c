@@ -527,7 +527,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   
   ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
-  iterMax = task->pctx->iterParm.constraintIterMax;
+  iterMax = task->pctx->iterParm.constraintMax;
   /*
   dlim = _pullDistLimit(task, point);
   if (iterMax*stepMax > dlim) {

@@ -316,7 +316,7 @@ pullRun(pullContext *pctx) {
   printf("!%s: starting system energy = %g\n", me, enrLast);
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
-  while ((!pctx->iterParm.iterMax || pctx->iter < pctx->iterParm.iterMax) 
+  while ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max) 
          && !converged) {
     if (pctx->iterParm.snap && !(pctx->iter % pctx->iterParm.snap)) {
       npos = nrrdNew();
@@ -408,7 +408,7 @@ pullRun(pullContext *pctx) {
   }
   printf("%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
          "%u stuck\n", me,
-         !pctx->iterParm.iterMax, pctx->iter < pctx->iterParm.iterMax,
+         !pctx->iterParm.max, pctx->iter < pctx->iterParm.max,
          !converged,
          pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
   time1 = airTime();

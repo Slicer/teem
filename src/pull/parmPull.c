@@ -27,10 +27,10 @@
 void
 _pullIterParmInit(pullIterParm *iterParm) {
 
-  iterParm->iterMax = 0;
+  iterParm->max = 0;
   iterParm->popCntlPeriod = 10;
-  iterParm->constraintIterMax = 15;
-  iterParm->stuckIterMax = 4;
+  iterParm->constraintMax = 15;
+  iterParm->stuckMax = 4;
   iterParm->snap = 0;
   return;
 }
@@ -39,10 +39,10 @@ int
 _pullIterParmCheck(pullIterParm *iterParm) {
   static const char me[]="_pullIterParmCheck";
 
-  if (!( 1 <= iterParm->constraintIterMax
-         && iterParm->constraintIterMax <= 50 )) {
-    biffAddf(PULL, "%s: iterParm->constraintIterMax %u not in range [%u,%u]",
-             me, iterParm->constraintIterMax, 1, _PULL_CONSTRAINT_ITER_MAX);
+  if (!( 1 <= iterParm->constraintMax
+         && iterParm->constraintMax <= 50 )) {
+    biffAddf(PULL, "%s: iterParm->constraintMax %u not in range [%u,%u]",
+             me, iterParm->constraintMax, 1, _PULL_CONSTRAINT_ITER_MAX);
     return 1;
   }
   return 0;
@@ -61,14 +61,14 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     return 1;
   }
   switch(which) {
-  case pullIterParmIterMax:
-    pctx->iterParm.iterMax = pval;
+  case pullIterParmMax:
+    pctx->iterParm.max = pval;
     break;
-  case pullIterParmStuckIterMax:
-    pctx->iterParm.stuckIterMax = pval;
+  case pullIterParmStuckMax:
+    pctx->iterParm.stuckMax = pval;
     break;
-  case pullIterParmConstraintIterMax:
-    pctx->iterParm.constraintIterMax = pval;
+  case pullIterParmConstraintMax:
+    pctx->iterParm.constraintMax = pval;
     break;
   case pullIterParmPopCntlPeriod:
     pctx->iterParm.popCntlPeriod = pval;

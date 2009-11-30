@@ -883,8 +883,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* if its not stuck, reset stuckIterNum */
   if (!(point->status & PULL_STATUS_STUCK_BIT)) {
     point->stuckIterNum = 0;
-  } else if (task->pctx->iterParm.stuckIterMax
-             && point->stuckIterNum > task->pctx->iterParm.stuckIterMax) {
+  } else if (task->pctx->iterParm.stuckMax
+             && point->stuckIterNum > task->pctx->iterParm.stuckMax) {
     point->status |= PULL_STATUS_NIXME_BIT;
   }
 

@@ -450,14 +450,14 @@ enum {
 
   /* if non-zero, max number of iterations for whole system. 
      if zero: no explicit on the number of iterations */
-  pullIterParmIterMax,
+  pullIterParmMax,
   
   /* if non-zero, max number of iterations we allow something to be
      continuously stuck before nixing it */
-  pullIterParmStuckIterMax,
+  pullIterParmStuckMax,
 
   /* if non-zero, max number of iterations for enforcing each constraint */
-  pullIterParmConstraintIterMax,
+  pullIterParmConstraintMax,
 
   /* how many intervals to wait between attemps at population control,
      or, 0 to say: "no pop cntl" */
@@ -469,11 +469,10 @@ enum {
 };
 
 typedef struct {
-  unsigned int 
-    iterMax,
+  unsigned int max,
     popCntlPeriod,
-    constraintIterMax,
-    stuckIterMax,
+    constraintMax,
+    stuckMax,
     snap;
 } pullIterParm;
 
@@ -623,32 +622,42 @@ typedef struct {
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
 
-  pullInitParm initParm;           /* parms for initialization */
-  pullIterParm iterParm;           /* parms about iterations and periods */
-  pullSysParm sysParm;             /* continuous parameters for system */
-  pullFlag flag;                   /* all flags */
-  int verbose;                     /* verbosity level */
-  unsigned int threadNum,          /* number of threads to use */
+  pullInitParm initParm;           /* parms for initialization, set with
+                                      the pullInit*Set() functions */
+  pullIterParm iterParm;           /* parms about iterations and periods, set 
+                                      with pullIterParmSet() */
+  pullSysParm sysParm;             /* continuous parameters for system, set
+                                      with pullSysParmSet() */
+  pullFlag flag;                   /* all flags, set with pullFlagSet() */
+  int verbose;                     /* verbosity level, set with 
+                                      pullVerboseSet() */
+  unsigned int threadNum,          /* number of threads to use, set with
+                                      pullThreadNumSet() */
     rngSeed,                       /* seed value for random number generator,
                                       NOT directly related to seed point
-                                      placement*/
+                                      placement (as name might suggest),
+                                      set with pullRngSeedSet() */
     progressBinMod;                /* progress indication by printing "."
                                       is given when the bin index mod'd by
                                       this is zero; higher numbers give
-                                      less feedback */
-  double sliceNormal[3];           /* until this is set per-volume as it
-                                      should be, it lives here. Zero-length
-                                      normal means "not set". */
+                                      less feedback, set with
+                                      pullProgressBinModSet() */
   void (*iter_cb)(void *data_cb);  /* callback to call once per iter
-                                      from pullRun() */
+                                      from pullRun().  This and data_cb are
+                                      set with pullCallbackSet() */
   void *data_cb;                   /* data to pass to callback */
   pullVolume 
-    *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN) */
+    *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN),
+                                      set by either pullVolumeSingleAdd()
+                                      or pullVolumeStackAdd() */
   unsigned int volNum;             /* actual length of vol[] used */
   pullInfoSpec
     *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
-                                      non-NULL (and we DO OWN ispec[ii]) */
-  int interType;                   /* from the pullInterType* enum */
+                                      non-NULL (and we DO OWN ispec[ii]),
+                                      set by pullInfoSpecAdd() */
+  int interType;                   /* from the pullInterType* enum.  This
+                                      and the energy specs below are set by
+                                      pullInterEnergySet() */
   pullEnergySpec *energySpecR,     /* starting point for radial potential
                                       energy function, phi_r */
     *energySpecS,                  /* second energy potential function, for
@@ -656,6 +665,12 @@ typedef struct pullContext_t {
     *energySpecWin;                /* function used to window phi_r along s,
                                       and phi_s along r, for use with 
                                       pullInterTypeAdditive */
+
+  double sliceNormal[3];           /* until this is set per-volume as it
+                                      should be, it lives here. Zero-length
+                                      normal means "not set". NOTE: Since this
+                                      is currently a hack, there isn't a 
+                                      pull*Set() function for it */
 
   /* INTERNAL -------------------------- */
 
