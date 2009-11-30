@@ -447,23 +447,27 @@ pullEnergySpecNew() {
   return ensp;
 }
 
-int
+void
 pullEnergySpecSet(pullEnergySpec *ensp, const pullEnergy *energy,
                   const double parm[PULL_ENERGY_PARM_NUM]) {
-  static const char me[]="pullEnergySpecSet";
   unsigned int pi;
 
-  if (!( ensp && energy )) {
-    biffAddf(PULL, "%s: got NULL pointer", me); 
-    return 1;
-  }
   if (ensp && energy && parm) {
     ensp->energy = energy;
     for (pi=0; pi<PULL_ENERGY_PARM_NUM; pi++) {
       ensp->parm[pi] = parm[pi];
     }
   }
-  return 0;
+  return;
+}
+
+void
+pullEnergySpecCopy(pullEnergySpec *esDst, const pullEnergySpec *esSrc) {
+
+  if (esDst && esSrc) {
+    pullEnergySpecSet(esDst, esSrc->energy, esSrc->parm);
+  }
+  return;
 }
 
 pullEnergySpec *

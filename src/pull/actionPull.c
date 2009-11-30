@@ -57,8 +57,8 @@ static double
 _pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
   double diff[4];
   ELL_4V_SUB(diff, AA->pos, BB->pos);
-  ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
-  diff[3] /= pctx->radiusScale;
+  ELL_3V_SCALE(diff, 1/pctx->sysParm.radiusSpace, diff);
+  diff[3] /= pctx->sysParm.radiusScale;
   return ELL_4V_DOT(diff, diff);
 }
 
@@ -151,8 +151,8 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   ELL_4V_SUB(diff, me->pos, she->pos);
   /* computed by caller: spaceDist = ELL_3V_LEN(diff); */
   /* computed by caller: scaleDist = AIR_ABS(diff[3]); */ 
-  spaceRad = task->pctx->radiusSpace;
-  scaleRad = task->pctx->radiusScale;
+  spaceRad = task->pctx->sysParm.radiusSpace;
+  scaleRad = task->pctx->sysParm.radiusScale;
   rr = spaceDist/spaceRad;
   if (task->pctx->haveScale) {
     ss = scaleDist/scaleRad;
@@ -217,7 +217,7 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     enS = evalS(&denS, ss, parmS);
     enWR = evalW(&denWR, rr, parmW);
     enWS = evalW(&denWS, ss, parmW);
-    beta = task->pctx->beta;
+    beta = task->pctx->sysParm.beta;
     en = AIR_LERP(beta, enR*enWS, enS*enWR);
     if (egrad) {
       double egradR[4], egradS[4];
@@ -303,14 +303,15 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     nopt = AIR_TRUE;
     ntrue = AIR_FALSE;
   } else if (pullProcessModeDescent == task->processMode) {
-    if (task->pctx->neighborTrueProb < 1) {
+    if (task->pctx->sysParm.neighborTrueProb < 1) {
       nopt = AIR_TRUE;
       if (egradSum) {
         /* We allow the neighbor list optimization only when we're also
            asked to compute the energy gradient, since that's the first
            part of moving the particle. */
         ntrue = (0 == task->pctx->iter
-                 || airDrandMT_r(task->rng) < task->pctx->neighborTrueProb);
+                 || (airDrandMT_r(task->rng) 
+                     < task->pctx->sysParm.neighborTrueProb));
       } else {
         /* When we're not getting the energy gradient, we're being
            called to test the waters at possible new locations, in which
@@ -353,10 +354,10 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   }
 
   /* loop through neighbor points */
-  spaDistSqMax = task->pctx->radiusSpace*task->pctx->radiusSpace;
+  spaDistSqMax = task->pctx->sysParm.radiusSpace*task->pctx->sysParm.radiusSpace;
   /*
   printf("%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
-         task->pctx->radiusSpace, spaDistSqMax);
+         task->pctx->sysParm.radiusSpace, spaDistSqMax);
   */
   modeWghtSum = 0;
   energySum = 0;
@@ -388,7 +389,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       continue;
     }
     sclDist = AIR_ABS(diff[3]);
-    if (sclDist > task->pctx->radiusScale) {
+    if (sclDist > task->pctx->sysParm.radiusScale) {
       continue;
     }
     spaDist = sqrt(spaDistSq);
@@ -409,9 +410,9 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       }
       energySum += enr;
       point->neighInterNum++;
-      nspaDist = spaDist/task->pctx->radiusSpace;
+      nspaDist = spaDist/task->pctx->sysParm.radiusSpace;
       if (task->pctx->haveScale) {
-        nsclDist = sclDist/task->pctx->radiusScale;
+        nsclDist = sclDist/task->pctx->sysParm.radiusScale;
         ndist = sqrt(nspaDist*nspaDist + nsclDist*nsclDist);
       } else {
         ndist = nspaDist;
@@ -483,7 +484,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
-  if (task->pctx->energyFromStrength
+  if (task->pctx->flag.energyFromStrength
       && task->pctx->ispec[pullInfoStrength]) {
     double deltaScale, str0, str1, scl0, scl1, enr;
     int sign;
@@ -492,7 +493,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       enr = _pullPointScalar(task->pctx, point, pullInfoStrength,
                              NULL, NULL);
-      energy += task->pctx->gamma*enr;
+      energy += task->pctx->sysParm.gamma*enr;
     } else {
       /* need strength and its gradient */
       /* randomize choice between forward and backward difference */
@@ -507,16 +508,16 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
                               NULL, NULL);
-      energy += task->pctx->gamma*str0;
-      egradSum[3] += task->pctx->gamma*(str1 - str0)/(scl1 - scl0);
+      energy += task->pctx->sysParm.gamma*str0;
+      egradSum[3] += task->pctx->sysParm.gamma*(str1 - str0)/(scl1 - scl0);
       /*
       if (4819 == point->idtag || 4828 == point->idtag) {
         printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
-               me, point->idtag, task->pctx->gamma,
+               me, point->idtag, task->pctx->sysParm.gamma,
                str1, str0, scl1, scl0,
                str1 - str0, scl1 - scl0,
                (str1 - str0)/(scl1 - scl0),
-               task->pctx->gamma*(str1 - str0)/(scl1 - scl0),
+               task->pctx->sysParm.gamma*(str1 - str0)/(scl1 - scl0),
                egradSum[3]);
       }
       */
@@ -576,23 +577,23 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0);
   ELL_4V_SET(egradPt, 0, 0, 0, 0);
-  if (!ignoreImage && task->pctx->alpha < 1.0) {
+  if (!ignoreImage && task->pctx->sysParm.alpha < 1.0) {
     enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
   } else {
     enrIm = 0;
   }
-  if (task->pctx->alpha > 0.0) {
+  if (task->pctx->sysParm.alpha > 0.0) {
     enrPt = _pullEnergyFromPoints(task, bin, point, egrad ? egradPt : NULL);
   } else {
     enrPt = 0;
   }
-  energy = AIR_LERP(task->pctx->alpha, enrIm, enrPt);
+  energy = AIR_LERP(task->pctx->sysParm.alpha, enrIm, enrPt);
   /*
   printf("!%s(%u): energy = lerp(%g, im %g, pt %g) = %g\n", me,
-         point->idtag, task->pctx->alpha, enrIm, enrPt, energy);
+         point->idtag, task->pctx->sysParm.alpha, enrIm, enrPt, energy);
   */
   if (egrad) {
-    ELL_4V_LERP(egrad, task->pctx->alpha, egradIm, egradPt);
+    ELL_4V_LERP(egrad, task->pctx->sysParm.alpha, egradIm, egradPt);
     /*
     printf("!%s(%u): egradIm = %g %g %g %g\n", me, point->idtag,
            egradIm[0], egradIm[1], egradIm[2], egradIm[3]);
@@ -602,7 +603,7 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
            point->idtag, force[0], force[1], force[2], force[3]);
     */
   }
-  if (task->pctx->wall) {
+  if (task->pctx->sysParm.wall) {
     unsigned int axi;
     double dwe; /* derivative of wall energy */
     for (axi=0; axi<4; axi++) {
@@ -615,9 +616,9 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
           dwe = 0;
         }
       } 
-      energy += task->pctx->wall*dwe*dwe/2;
+      energy += task->pctx->sysParm.wall*dwe*dwe/2;
       if (egrad) {
-        egrad[axi] += task->pctx->wall*dwe;
+        egrad[axi] += task->pctx->sysParm.wall*dwe;
       }
     }
   }
@@ -719,8 +720,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     /* limits based on distLimit in rs-normalized space */
     distLimit = _pullDistLimit(task, point);
     ELL_4V_SCALE(capvec, point->stepEnergy, force);
-    spcLen = ELL_3V_LEN(capvec)/task->pctx->radiusSpace;
-    sclLen = AIR_ABS(capvec[3])/task->pctx->radiusScale;
+    spcLen = ELL_3V_LEN(capvec)/task->pctx->sysParm.radiusSpace;
+    sclLen = AIR_ABS(capvec[3])/task->pctx->sysParm.radiusScale;
     max = AIR_MAX(spcLen, sclLen);
     if (max > distLimit) {
       point->stepEnergy *= distLimit/max;
@@ -791,7 +792,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     } else {
       energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
     }
-    energyIncr = energyNew > energyOld + task->pctx->energyIncreasePermit;
+    energyIncr = energyNew > (energyOld 
+                              + task->pctx->sysParm.energyIncreasePermit);
     /*
     if (4819 == point->idtag || 4828 == point->idtag) {
       printf("!%s(%u): constrFail %d; enr Old New = %g %g -> enrIncr %d\n",
@@ -800,7 +802,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     */
     stepBad = (constrFail || energyIncr);
     if (stepBad) {
-      point->stepEnergy *= task->pctx->stepScale;
+      point->stepEnergy *= task->pctx->sysParm.stepScale;
       if (constrFail) {
         _pullPointHistAdd(point, pullCondConstraintFail);
       } else {
@@ -818,7 +820,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
            the force) to see if that helps */
         if (task->pctx->verbose > 1) {
           printf("%s: %u %s (%u); (%g,%g,%g,%g) stepEnr %g\n", me,
-                 point->idtag, hailMary ? "STUCK!" : "stuck?", point->stuckIterNum,
+                 point->idtag, hailMary ? "STUCK!" : "stuck?",
+                 point->stuckIterNum,
                  point->pos[0], point->pos[1], point->pos[2], point->pos[3],
                  point->stepEnergy);
         }
@@ -844,8 +847,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
               return 1;
             }
           }
-          energyNew = _pullPointEnergyTotal(task, bin, point, ignoreImage, NULL);
-          point->stepEnergy = task->pctx->stepInitial;
+          energyNew = _pullPointEnergyTotal(task, bin, point,
+                                            ignoreImage, NULL);
+          point->stepEnergy = task->pctx->sysParm.stepInitial;
           point->status |= PULL_STATUS_STUCK_BIT;
           point->stuckIterNum += 1;
           giveUp = AIR_TRUE;
@@ -879,8 +883,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* if its not stuck, reset stuckIterNum */
   if (!(point->status & PULL_STATUS_STUCK_BIT)) {
     point->stuckIterNum = 0;
-  } else if (task->pctx->stuckIterMax
-             && point->stuckIterNum > task->pctx->stuckIterMax) {
+  } else if (task->pctx->iterParm.stuckIterMax
+             && point->stuckIterNum > task->pctx->iterParm.stuckIterMax) {
     point->status |= PULL_STATUS_NIXME_BIT;
   }
 
@@ -955,7 +959,7 @@ pullGammaLearn(pullContext *pctx) {
   pullBin *bin;
   pullPoint *point;
   pullTask *task;
-  double deltaScale, strdd;
+  double deltaScale, strdd, scl;
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -1012,9 +1016,10 @@ pullGammaLearn(pullContext *pctx) {
 
   /* want to satisfy strdd = str''(s) = enr''(s) = gamma*2/(radiusScale)^2
      ==> strdd*(radiusScale)^2/2 = gamma */
-  /* pctx->gamma = strdd*(pctx->radiusScale)*(pctx->radiusScale)/2; */
-  printf("!%s: strdd = %g\n", me, strdd);
-  pctx->gamma = 2/(strdd*(pctx->radiusScale)*(pctx->radiusScale));
+  /* pctx->gamma = (strdd*(pctx->sysParm.radiusScale)
+                   *(pctx->sysParm.radiusScale)/2;) */
+  scl = pctx->sysParm.radiusScale;
+  pctx->sysParm.gamma = 2/(strdd*scl*scl);
 
   return 0;
 }

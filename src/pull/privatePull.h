@@ -24,6 +24,14 @@
 extern "C" {
 #endif
 
+/*
+** These heuristics/parameters have been adjusted, and don't seem any
+** further tweaking in order to work for all the datasets used so far
+*/
+
+/* size/allocation increment for per-bin airArray */
+#define _PULL_BIN_INCR 32
+
 /* this has to be big enough to do experiments where binning is turned off */
 #define _PULL_NEIGH_MAXNUM 4096
 
@@ -67,12 +75,26 @@ extern "C" {
    allowed to move between start and end of constraint satisfaction */
 #define _PULL_CONSTRAINT_TRAVEL_MAX 2
 
+/* max reasonable value of iterParm->constraintIterMax */
+#define _PULL_CONSTRAINT_ITER_MAX 50
+
 /* the main _iterate() function does progress indication if the number of
    points is larger than this */
 #define _PULL_PROGRESS_POINT_NUM_MIN 100
 
 /* limit on number of times we allow random (non-ppv) seeding to fail */
 #define _PULL_RANDOM_SEED_TRY_MAX 2000
+
+/* initPull.c */
+extern void _pullInitParmInit(pullInitParm *initParm);
+extern int _pullInitParmCheck(pullInitParm *iparm);
+
+/* parmPull.c */
+extern void _pullIterParmInit(pullIterParm *iterParm);
+extern int _pullIterParmCheck(pullIterParm *iterParm);
+extern void _pullSysParmInit(pullSysParm *sysParm);
+extern int _pullSysParmCheck(pullSysParm *sysParm);
+extern void _pullFlagInit(pullFlag *flag);
 
 /* volumePull.c */
 extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);

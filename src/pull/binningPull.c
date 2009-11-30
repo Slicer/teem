@@ -68,7 +68,7 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
     return NULL;
   }
 
-  if (pctx->binSingle) {
+  if (pctx->flag.binSingle) {
     binIdx = 0;
   } else {
     for (axi=0; axi<4; axi++) {
@@ -137,7 +137,7 @@ pullBinsAllNeighborSet(pullContext *pctx) {
     xmax, ymax, zmax, smax, binIdx;
   int xmin, ymin, zmin, smin;
 
-  if (pctx->binSingle) {
+  if (pctx->flag.binSingle) {
     neiNum = 0;
     nei[neiNum++] = pctx->bin + 0;
     _pullBinNeighborSet(pctx->bin + 0, nei, neiNum);
@@ -223,13 +223,13 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   if (binP) {
     *binP = bin;
   }
-  if (pctx->restrictiveAddToBins) {
+  if (pctx->flag.restrictiveAddToBins) {
     okay = AIR_TRUE;
     for (idx=0; idx<bin->pointNum; idx++) {
       double diff[4], len;
       ELL_4V_SUB(diff, point->pos, bin->point[idx]->pos);
-      ELL_3V_SCALE(diff, 1/pctx->radiusSpace, diff);
-      diff[3] /= pctx->radiusScale;
+      ELL_3V_SCALE(diff, 1/pctx->sysParm.radiusSpace, diff);
+      diff[3] /= pctx->sysParm.radiusScale;
       len = ELL_4V_LEN(diff);
       if (len < _PULL_BINNING_MAYBE_ADD_THRESH) {
         okay = AIR_FALSE;
@@ -255,17 +255,17 @@ _pullBinSetup(pullContext *pctx) {
   unsigned ii;
   double volEdge[4], scl;
 
-  scl = (pctx->radiusSpace ? pctx->radiusSpace : 0.1);
+  scl = (pctx->sysParm.radiusSpace ? pctx->sysParm.radiusSpace : 0.1);
   pctx->maxDistSpace = 2*scl;
-  scl = (pctx->radiusScale ? pctx->radiusScale : 0.1);
+  scl = (pctx->sysParm.radiusScale ? pctx->sysParm.radiusScale : 0.1);
   pctx->maxDistScale = 2*scl;
 
   printf("!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
-         pctx->radiusSpace, pctx->maxDistSpace);
+         pctx->sysParm.radiusSpace, pctx->maxDistSpace);
   printf("!%s: radiusScale = %g --> maxDistScale = %g\n", me, 
-         pctx->radiusScale, pctx->maxDistScale);
+         pctx->sysParm.radiusScale, pctx->maxDistScale);
 
-  if (pctx->binSingle) {
+  if (pctx->flag.binSingle) {
     pctx->binsEdge[0] = 1;
     pctx->binsEdge[1] = 1;
     pctx->binsEdge[2] = 1;
@@ -311,7 +311,7 @@ _pullBinSetup(pullContext *pctx) {
     return 1;
   }
   for (ii=0; ii<pctx->binNum; ii++) {
-    _pullBinInit(pctx->bin + ii, pctx->binIncr);
+    _pullBinInit(pctx->bin + ii, _PULL_BIN_INCR);
   }
   pullBinsAllNeighborSet(pctx);
   return 0;
@@ -384,8 +384,8 @@ _pullIterFinishDescent(pullContext *pctx) {
     }
   }
   airShuffle_r(pctx->task[0]->rng,
-               pctx->tmpPointPerm, pointNum, pctx->permuteOnRebin);
-  if (pctx->permuteOnRebin && pctx->verbose) {
+               pctx->tmpPointPerm, pointNum, pctx->flag.permuteOnRebin);
+  if (pctx->flag.permuteOnRebin && pctx->verbose) {
     printf("%s: permuting %u points\n", me, pointNum);
   }
   for (pointIdx=0; pointIdx<pointNum; pointIdx++) {

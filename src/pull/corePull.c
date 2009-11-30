@@ -227,7 +227,7 @@ _pullIterate(pullContext *pctx, int mode) {
 	   me, airEnumStr(pullProcessMode, mode),
 	   pctx->iter, pctx->threadNum,
            pullPointNumber(pctx), _pullEnergyTotal(pctx),
-           (pctx->permuteOnRebin ? " (por)" : ""));
+           (pctx->flag.permuteOnRebin ? " (por)" : ""));
   }
 
   time0 = airTime();
@@ -316,8 +316,9 @@ pullRun(pullContext *pctx) {
   printf("!%s: starting system energy = %g\n", me, enrLast);
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
-  while ((!pctx->iterMax || pctx->iter < pctx->iterMax) && !converged) {
-    if (pctx->snap && !(pctx->iter % pctx->snap)) {
+  while ((!pctx->iterParm.iterMax || pctx->iter < pctx->iterParm.iterMax) 
+         && !converged) {
+    if (pctx->iterParm.snap && !(pctx->iter % pctx->iterParm.snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
       if (pullOutputGet(npos, NULL, NULL, NULL, 0.0, pctx)) {
@@ -356,13 +357,15 @@ pullRun(pullContext *pctx) {
              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
-    if (pctx->popCntlPeriod) {
-      if ((pctx->popCntlPeriod - 1) == (pctx->iter % pctx->popCntlPeriod)
-          && enrDecreaseAvg < pctx->energyDecreasePopCntlMin
-          && (pctx->alpha != 0 || !pctx->noPopCntlWithZeroAlpha)) {
+    if (pctx->iterParm.popCntlPeriod) {
+      if ((pctx->iterParm.popCntlPeriod - 1) 
+          == (pctx->iter % pctx->iterParm.popCntlPeriod)
+          && enrDecreaseAvg < pctx->sysParm.energyDecreasePopCntlMin
+          && (pctx->sysParm.alpha != 0 
+              || !pctx->flag.noPopCntlWithZeroAlpha)) {
         if (pctx->verbose) {
           printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
-                 me, enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
+                 me, enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
         }
         if (_pullIterate(pctx, pullProcessModeNeighLearn)
             || _pullIterate(pctx, pullProcessModeAdding)
@@ -376,14 +379,14 @@ pullRun(pullContext *pctx) {
         if (pctx->verbose > 2) {
           printf("%s: ***** no pop cntl:\n", me);
           printf("    iter=%u %% period=%u = %u != %u\n",
-                 pctx->iter, pctx->popCntlPeriod,
-                 pctx->iter % pctx->popCntlPeriod,
-                 pctx->popCntlPeriod - 1);
+                 pctx->iter, pctx->iterParm.popCntlPeriod,
+                 pctx->iter % pctx->iterParm.popCntlPeriod,
+                 pctx->iterParm.popCntlPeriod - 1);
           printf("    en dec avg = %g >= %g\n",
-                 enrDecreaseAvg, pctx->energyDecreasePopCntlMin);
+                 enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
           printf("    npcwza %s && alpha = %g\n",
-                 pctx->noPopCntlWithZeroAlpha ? "true" : "false",
-                 pctx->alpha);
+                 pctx->flag.noPopCntlWithZeroAlpha ? "true" : "false",
+                 pctx->sysParm.alpha);
         }
       }
     }
@@ -391,12 +394,13 @@ pullRun(pullContext *pctx) {
     enrLast = enrNew;
     converged = (!pctx->addNum
                  && !pctx->nixNum
-                 && AIR_IN_OP(0, enrDecreaseAvg, pctx->energyDecreaseMin));
+                 && AIR_IN_OP(0, enrDecreaseAvg,
+                              pctx->sysParm.energyDecreaseMin));
     if (converged && pctx->verbose) {
       printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
-	     enrDecreaseAvg, pctx->energyDecreaseMin);
+	     enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
     }
-    _pullPointStepEnergyScale(pctx, pctx->opporStepScale);
+    _pullPointStepEnergyScale(pctx, pctx->sysParm.opporStepScale);
     /* call the callback */
     if (pctx->iter_cb) {
       pctx->iter_cb(pctx->data_cb);
@@ -404,7 +408,8 @@ pullRun(pullContext *pctx) {
   }
   printf("%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
          "%u stuck\n", me,
-         !pctx->iterMax, pctx->iter < pctx->iterMax, !converged,
+         !pctx->iterParm.iterMax, pctx->iter < pctx->iterParm.iterMax,
+         !converged,
          pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
   time1 = airTime();
 
@@ -434,10 +439,12 @@ pullRun(pullContext *pctx) {
     ELL_3V_NORM(rdir, rdir, len);
     for (si=0; si<szimg; si++) {
       s = AIR_AFFINE(0, si, szimg-1,
-                     -1.5*pctx->radiusScale, 1.5*pctx->radiusScale);
+                     -1.5*pctx->sysParm.radiusScale,
+                     1.5*pctx->sysParm.radiusScale);
       for (ri=0; ri<szimg; ri++) {
         r = AIR_AFFINE(0, ri, szimg-1,
-                       -1.5*pctx->radiusSpace, 1.5*pctx->radiusSpace);
+                       -1.5*pctx->sysParm.radiusSpace,
+                       1.5*pctx->sysParm.radiusSpace);
         ELL_3V_SCALE_ADD2(pb->pos, 1.0, pa->pos, r, rdir);
         pb->pos[3] = pa->pos[3] + s;
         /* now points are in desired test positions */

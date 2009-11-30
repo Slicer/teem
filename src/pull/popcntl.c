@@ -88,9 +88,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     double off[4];
     ELL_4V_SUB(off, point->pos, point->neighPoint[npi]->pos);
     /* normalize the offset */
-    ELL_3V_SCALE(off, 1/task->pctx->radiusSpace, off);
+    ELL_3V_SCALE(off, 1/task->pctx->sysParm.radiusSpace, off);
     if (task->pctx->haveScale) {
-      off[3] /= task->pctx->radiusScale;
+      off[3] /= task->pctx->sysParm.radiusScale;
     }
     ELL_4V_INCR(noffavg, off);
   }
@@ -122,8 +122,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     ELL_3V_COPY(noffavg, tmpvec);
   }
   ELL_4V_NORM(noffavg, noffavg, tmp);
-  ELL_3V_SCALE(noffavg, task->pctx->radiusSpace, noffavg);
-  noffavg[3] *= task->pctx->radiusScale;
+  ELL_3V_SCALE(noffavg, task->pctx->sysParm.radiusSpace, noffavg);
+  noffavg[3] *= task->pctx->sysParm.radiusScale;
   /* set new point location */
   ELL_4V_ADD2(npos, noffavg, point->pos);
   if (!_pullInsideBBox(task->pctx, npos)) {
@@ -172,7 +172,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
      changing the per-task process mode ... */
   task->processMode = pullProcessModeDescent;
   E = 0;
-  for (iter=0; iter<task->pctx->popCntlPeriod; iter++) {
+  for (iter=0; iter<task->pctx->iterParm.popCntlPeriod; iter++) {
     double diff[4];
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
                                           AIR_FALSE /* ignoreImage */);
@@ -198,8 +198,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
     ELL_4V_SUB(diff, newpnt->pos, point->pos);
-    ELL_3V_SCALE(diff, 1/task->pctx->radiusSpace, diff);
-    diff[3] /= task->pctx->radiusScale;
+    ELL_3V_SCALE(diff, 1/task->pctx->sysParm.radiusSpace, diff);
+    diff[3] /= task->pctx->sysParm.radiusScale;
     if (ELL_4V_LEN(diff) > _PULL_NEWPNT_STRAY_DIST) {
       if (task->pctx->verbose > 2) {
         printf("%s: newpnt %u went to far %g from old point %u; nope\n",
@@ -210,7 +210,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
     /* still okay to continue descending */
-    newpnt->stepEnergy *= task->pctx->opporStepScale;
+    newpnt->stepEnergy *= task->pctx->sysParm.opporStepScale;
   }
   /* now that newbie point is final test location, see if it meets 
      the live thresh, if there is one */
@@ -231,7 +231,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     return 0;
   }
   /* see if the new point should be nixed because its at a volume edge */
-  if (task->pctx->nixAtVolumeEdgeSpace
+  if (task->pctx->flag.nixAtVolumeEdgeSpace
       && (newpnt->status & PULL_STATUS_EDGE_BIT)) {
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
@@ -255,7 +255,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   newpnt->status |= PULL_STATUS_NIXME_BIT;
   enrWithout = _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed);
   newpnt->status &= ~PULL_STATUS_NIXME_BIT;
-  if (enrWith <= enrWithout + task->pctx->energyIncreasePermit) {
+  if (enrWith <= enrWithout + task->pctx->sysParm.energyIncreasePermit) {
     /* energy is lower (or the same) *with* newpnt, so we keep it, which
        means keeping it in the add queue where it already is */
   } else {
@@ -300,7 +300,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   if (fracNixed < _PULL_FRAC_NIXED_THRESH) {
     point->status |= PULL_STATUS_NIXME_BIT;
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
-    if (enrWith <= enrWithout + task->pctx->energyIncreasePermit) {
+    if (enrWith <= enrWithout + task->pctx->sysParm.energyIncreasePermit) {
       /* Energy isn't distinctly lowered without the point, so keep it;
          turn off nixing.  If enrWith == enrWithout == 0, as happens to
          isolated points, then the difference between "<=" and "<" 
@@ -376,7 +376,7 @@ _pullNixTheNixed(pullContext *pctx) {
     while (pointIdx < bin->pointNum) {
       pullPoint *point;
       point = bin->point[pointIdx];
-      if (pctx->nixAtVolumeEdgeSpace
+      if (pctx->flag.nixAtVolumeEdgeSpace
           && (point->status & PULL_STATUS_EDGE_BIT)) {
         point->status |= PULL_STATUS_NIXME_BIT;
       }

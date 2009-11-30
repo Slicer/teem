@@ -398,132 +398,256 @@ typedef struct pullTask_t {
 } pullTask;
 
 /*
+******** pullInitMethod* enum
+**
+** the different ways pull can be initialized
+*/
+enum {
+  pullInitMethodUnknown,
+  pullInitMethodRandom,
+  pullInitMethodPointPerVoxel,
+  pullInitMethodGivenPos,
+  pullInitMethodLast
+};
+
+/*
+******** pullInitParm
+**
+** none of this is directly user-set
+*/
+typedef struct {
+  int method;               /* from pullInitMethod* enum */
+  int liveThreshUse,        /* use the liveThresh info as a criterion
+                               for seeding */
+    unequalShapesAllow;     /* when taking in volumes, allow their shapes
+                               to be unuequal.  Some confusing usage problems
+                               are due to using differently shaped volumes */
+  double jitter;            /* w/ PointPerVoxel,
+                               how much to jitter index space positions */
+  unsigned int numInitial,  /* w/ Random, # pts to start with */
+    samplesAlongScaleNum,   /* w/ PointPerVoxel,
+                               # of samples along scale (distributed
+                               uniformly in scale's *index* space*/
+    ppvZRange[2];           /* w/ PointPerVoxel,
+                               range of indices along Z to do seeding
+                               by pointPerVoxel, or, {1,0} to do the
+                               whole volume as normal */
+  int pointPerVoxel;        /* w/ PointPerVoxel,
+                               if this (ppv) is > 0, then use
+                               ppv points per voxel. If ppv < 0, then jitter
+                               point point every -ppv'th voxel
+                               (so ppv=-1 is same as ppv=1) */
+  const Nrrd *npos;         /* positions (4xN array) to start with */
+} pullInitParm;
+
+/*
+******** pullIterParm* enum
+**
+** parameters that related to iterations and their periods
+*/
+enum {
+  pullIterParmUnknown,
+
+  /* if non-zero, max number of iterations for whole system. 
+     if zero: no explicit on the number of iterations */
+  pullIterParmIterMax,
+  
+  /* if non-zero, max number of iterations we allow something to be
+     continuously stuck before nixing it */
+  pullIterParmStuckIterMax,
+
+  /* if non-zero, max number of iterations for enforcing each constraint */
+  pullIterParmConstraintIterMax,
+
+  /* how many intervals to wait between attemps at population control,
+     or, 0 to say: "no pop cntl" */
+  pullIterParmPopCntlPeriod,
+
+  /* if non-zero, interval between iters at which output snapshots are saved */
+  pullIterParmSnap,
+  pullIterParmLast
+};
+
+typedef struct {
+  unsigned int 
+    iterMax,
+    popCntlPeriod,
+    constraintIterMax,
+    stuckIterMax,
+    snap;
+} pullIterParm;
+
+/*
+******** pullSysParm* enum
+**
+** various continuous parameters.  It should be understood that the number
+** of these is a reflection of the experimentation and exploration that
+** went into the creation of these particles systems, rather than a need
+** for onerous parameter tweaking in order to get something useful done.
+** Except for alpha, beta, and gamma, these have reasonable defaults.
+*/
+enum {
+  pullSysParmUnknown,
+
+  /* balance between particle-image energy E_i and inter-particle energy E_ij,
+     the most important parameter in the governing equation of the system.
+     alpha = 0: only particle-image; alpha = 1: only inter-particle */
+  pullSysParmAlpha,
+
+  /* when using pullInterAdditive inter-particle energy, determine the 
+     balance between spatial repulsion and scale attraction.
+     beta = 0: only spatial repulsion; beta = 1: only scale attraction */
+  pullSysParmBeta,
+
+  /* when energyFromStrength is non-zero: scaling factor on energy
+     from strength */
+  pullSysParmGamma,
+
+  /* initial (time) step for dynamics */
+  pullSysParmStepInitial,
+
+  /* radius/scaling of inter-particle interactions in the spatial domain */
+  pullSysParmRadiusSpace,
+
+  /* radius/scaling of inter-particle interactions in the scale domain */
+  pullSysParmRadiusScale,
+
+  /* probability that we find the true neighbors of the particle, as
+     opposed to using a cached list */
+  pullSysParmNeighborTrueProb,
+
+  /* probability that we do image probing to find out what's really going on */
+  pullSysParmProbeProb,
+
+  /* (>= 1.0) how much to opportunistically scale up step size (for
+     energy minimization) with every iteration */
+  pullSysParmOpporStepScale,
+
+  /* (< 1.0) when energy goes up instead of down, or when constraint
+     satisfaction seems to be going the wrong way, how to scale (down)
+     step size */
+  pullSysParmStepScale,
+
+  /* pseudo-convergence threshold that controls when population control is
+     activated (has to be higher than (less strict) energyDecreaseMin */
+  pullSysParmEnergyDecreasePopCntlMin,
+
+  /* epsilon amount by which its okay for particle energy to increase,
+     in the context of gradient descent */
+  pullSysParmEnergyIncreasePermit,
+  
+  /* convergence threshold: stop when fractional improvement
+     (decrease) in total system energy dips below this */
+  pullSysParmEnergyDecreaseMin,
+
+  /* convergence threshold for constraint satisfaction: finished if
+     stepsize goes below this times constraintVoxelSize */
+  pullSysParmConstraintStepMin,
+  
+  /* spring constant on bbox wall */
+  pullSysParmWall,
+
+  pullSysParmLast
+};
+
+typedef struct {
+  double alpha, beta, gamma, wall,
+    radiusSpace, radiusScale,
+    neighborTrueProb, probeProb,
+    stepInitial, opporStepScale, stepScale, constraintStepMin,
+    energyDecreaseMin,
+    energyDecreasePopCntlMin,
+    energyIncreasePermit;
+} pullSysParm;  
+
+/*
+******** pullFlag* enum
+**
+** the various booleans
+*/
+enum {
+  pullFlagUnknown,
+
+  /* permute points during rebinning between iters, to randomize their
+     ordering within their bin (bins are still processed in scanline
+     order) */
+  pullFlagPermuteOnRebin,
+
+  /* when alpha is exactly zero, perhaps with the purpose of migrating
+     particles along scale towards the scale of maximal strength while
+     avoiding all inter-particle interaction, don't do any population
+     control */
+  pullFlagNoPopCntlWithZeroAlpha,
+
+  /* whether or not to deny adding points to bins where there are
+     close points already */
+  pullFlagRestrictiveAddToBins,   
+
+  /* if non-zero, strength is a particle- image energy term that is
+     minimized by motion along scale, which in turn requires extra
+     probing to determine the strength gradient along scale. */
+  pullFlagEnergyFromStrength,
+
+  /* if non-zero, nix points that got near enough to the volume edge
+     that gage had to invent values for the kernel support */
+  pullFlagNixAtVolumeEdgeSpace,
+
+  /* if non-zero, during initialization, try constraint satisfaction
+     (if there is a constraint) before testing whether the seedThresh
+     is met.  Doing the constraint will take longer, but a point is
+     more likely to meet a threshold based on feature strength */
+  pullFlagConstraintBeforeSeedThresh,
+
+  /* no binning: all particles can potentially interact (for debugging) */
+  pullFlagBinSingle,
+
+  pullFlagLast
+};
+
+typedef struct {
+  int permuteOnRebin,
+    noPopCntlWithZeroAlpha,
+    restrictiveAddToBins,
+    energyFromStrength,
+    nixAtVolumeEdgeSpace,
+    constraintBeforeSeedThresh,
+    binSingle;
+} pullFlag;
+
+/*
 ******** pullContext
 **
 ** everything for doing one computation
 **
-** NOTE: right now there is no API for setting the input fields (as there
-** is in gage and tenFiber) eventually there will be...
 */
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
-  int verbose,                     /* blah blah blah */
-    liveThresholdInit,             /* apply the liveThresh(s) on init */
-    permuteOnRebin,                /* permute points during rebinning between
-                                      iters, so that they are visited in a
-                                      randomized order */
-    noPopCntlWithZeroAlpha,        /* like it says */
-    restrictiveAddToBins,          /* whether or not to deny adding points
-                                      to bins where there are close points
-                                      already */
-    allowUnequalShapes;            /* allow volumes to have different shapes;
-                                      which happens more often by mistake */
-  unsigned int pointNumInitial;    /* number points to start simulation w/ */
-  Nrrd *npos;                      /* positions (4xN array) to start with
-                                      (overrides pointNumInitial) */
-  pullVolume 
-    *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN) */
-  unsigned int volNum;             /* actual length of vol[] used */
 
-  pullInfoSpec
-    *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
-                                      non-NULL (and we DO OWN ispec[ii]) */
-  
-  double stepInitial,              /* initial (time) step for dynamics */
-    radiusSpace,                   /* radius/scaling of inter-particle
-                                      interactions in the spatial domain */
-    radiusScale,                   /* radius/scaling of inter-particle
-                                      interactions in the scale domain */
-
-  /* concerning the probability-based optimizations */
-    neighborTrueProb,              /* probability that we find the true
-                                      neighbors of the particle, as opposed to
-                                      using a cached list */
-    probeProb,                     /* probability that we do image probing
-                                      to find out what's really going on */
-
-  /* how the (per-point) time-step is adaptively varied to reach convergence:
-     moveFrac is computed for each particle as the fraction of distance
-     actually travelled, to the distance that it wanted to travel, but 
-     couldn't due to the moveLimit */
-    opporStepScale,                /* (>= 1.0) how much to opportunistically
-                                      scale up step size (for energy
-                                      minimization) with every iteration */
-    stepScale,                     /* (< 1.0) when energy goes up instead of
-                                      down, or when constraint satisfaction
-                                      seems to be going the wrong way, how to
-                                      scale (down) step size */
-    energyDecreaseMin,             /* convergence threshold: stop when
-                                      fractional improvement (decrease) in
-                                      total system energy dips below this */
-    energyDecreasePopCntlMin,      /* pseudo-convergence threshold that 
-				      controls when population control is
-				      activated (has to be higher than (less
-				      strict) energyDecreaseMin */
-    constraintStepMin,             /* convergence threshold for constraint
-                                      satisfaction: finished if stepsize goes
-                                      below this times constraintVoxelSize */
-    wall,                          /* spring constant on bbox wall */
-    energyIncreasePermit;          /* epsilon amount by which its okay for
-                                      particle energy to increase, in the
-                                      context of gradient descent */
-
-  int energyFromStrength,          /* if non-zero, strength is a particle-
-                                      image energy term that is minimized by
-                                      motion along scale, which in turn
-                                      requires extra probing to determine the
-                                      strength gradient along scale. */
-    nixAtVolumeEdgeSpace,          /* if non-zero, nix points that got near
-                                      enough to the volume edge that gage
-                                      had to invent values for the kernel 
-                                      support */
-    constraintBeforeSeedThresh;    /* if non-zero, during initialization, try
-                                      constraint satisfaction (if there is a
-                                      constraint) before testing whether the
-                                      seedThresh is met.  Doing the constraint
-                                      will take longer, but a point is more
-                                      likely to meet a threshold based on
-                                      feature strength */
-  int pointPerVoxel;               /* number of initial points per voxel, in
-                                      seed thresh volume. If 0, then use old
-                                      behavior of just finding pointNumInitial
-                                      (see above) seedpoint locations randomly.
-                                      Non-zero overrides pointNumInitial.
-                                      > 0 : jitter pointPerVox seed points in
-                                      very sample of the seed threshold volume
-                                      < 0 : jitter 1 seed point in every
-                                      pointPerVox-th voxel (so -1 same as 1)*/
-
-  unsigned int numSamplesScale,    /* number of samples along the scale axis.
-                                      This value is used only if pointPerVoxel
-                                      is != 0. nSS samples are placed along
-                                      through the scale extent of the volumes,
-                                      as indicated by bboxMin[3], bboxMax[3],
-                                      and are uniform in effective scale tau */
+  pullInitParm initParm;           /* parms for initialization */
+  pullIterParm iterParm;           /* parms about iterations and periods */
+  pullSysParm sysParm;             /* continuous parameters for system */
+  pullFlag flag;                   /* all flags */
+  int verbose;                     /* verbosity level */
+  unsigned int threadNum,          /* number of threads to use */
     rngSeed,                       /* seed value for random number generator,
                                       NOT directly related to seed point
                                       placement*/
-    threadNum,                     /* number of threads to use */
-    iterMax,                       /* if non-zero, max number of iterations
-                                      for whole system */
-    popCntlPeriod,                 /* how many intervals to wait between
-				      attemps at population control, 
-				      or, 0 to say: "no pop cntl" */
-    constraintIterMax,             /* if non-zero, max number of iterations
-                                      for enforcing each constraint */
-    stuckIterMax,                  /* if non-zero, max number of iterations we
-                                      allow something to be continuously stuck
-                                      before nixing it */
-    snap,                          /* if non-zero, interval between iterations
-                                      at which output snapshots are saved */
-    ppvZRange[2],                  /* range of indices along Z to do seeding
-                                      by pointPerVoxel, or, {0,0} to do the
-                                      whole volume as normal */
     progressBinMod;                /* progress indication by printing "."
                                       is given when the bin index mod'd by
                                       this is zero; higher numbers give
                                       less feedback */
-
+  double sliceNormal[3];           /* until this is set per-volume as it
+                                      should be, it lives here. Zero-length
+                                      normal means "not set". */
+  void (*iter_cb)(void *data_cb);  /* callback to call once per iter
+                                      from pullRun() */
+  void *data_cb;                   /* data to pass to callback */
+  pullVolume 
+    *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN) */
+  unsigned int volNum;             /* actual length of vol[] used */
+  pullInfoSpec
+    *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
+                                      non-NULL (and we DO OWN ispec[ii]) */
   int interType;                   /* from the pullInterType* enum */
   pullEnergySpec *energySpecR,     /* starting point for radial potential
                                       energy function, phi_r */
@@ -532,24 +656,6 @@ typedef struct pullContext_t {
     *energySpecWin;                /* function used to window phi_r along s,
                                       and phi_s along r, for use with 
                                       pullInterTypeAdditive */
-  double alpha,                    /* alpha = 0: only particle-image, 
-                                      alpha = 1: only inter-particle */
-    beta,                          /* for tuning pullInterAdditive:
-                                      beta = 0: only spatial repulsion
-                                      beta = 1: only scale attraction */
-    gamma,                         /* when energyFromStrength is non-zero:
-                                      scaling factor on energy from strength */
-    jitter,                        /* when using pointPerVoxel, how much to
-                                      jitter the samples within the voxel;
-                                      0: no jitter, 1: full jitter */
-    sliceNormal[3];                /* until this is set per-volume as it
-                                      should be, it lives here. Zero-length
-                                      normal means "not set". */
-  int binSingle;                   /* disable binning (for debugging) */
-  unsigned int binIncr;            /* increment for per-bin airArray */
-  void (*iter_cb)(void *data_cb);  /* callback to call once per iter
-                                      from pullRun() */
-  void *data_cb;                   /* data to pass to callback */
 
   /* INTERNAL -------------------------- */
 
@@ -602,14 +708,12 @@ typedef struct pullContext_t {
                                       we're done when binNextIdx == binNum */
   double _sliceNormal[3];          /* normalized version of sliceNormal.
                                       Still, zero-length means "not set". */
-
-  unsigned int *tmpPointPerm;
+  unsigned int *tmpPointPerm;      /* storing points during rebinning */
   pullPoint **tmpPointPtr;
   unsigned int tmpPointNum;
 
   airThreadMutex *binMutex;        /* mutex around bin, needed because bins
                                       are the unit of work for the tasks */
-
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
@@ -625,12 +729,40 @@ typedef struct pullContext_t {
     pointNum,                      /* total # particles */
     CCNum,                         /* # connected components */
     iter;                          /* how many iterations were needed */
-  Nrrd *noutPos;                   /* list of 4D positions */
 } pullContext;
 
 /* defaultsPull.c */
 PULL_EXPORT int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
+
+/* initPull.c */
+PULL_EXPORT int pullInitRandomSet(pullContext *pctx, unsigned int numInitial);
+PULL_EXPORT int pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
+                                         unsigned int zSlcMin,
+                                         unsigned int zSlcMax,
+                                         unsigned int alongScaleNum,
+                                         double jitter);
+PULL_EXPORT int pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos);
+PULL_EXPORT int pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse);
+PULL_EXPORT int pullInitUnequalShapesAllowSet(pullContext *pctx, int allow);
+
+/* parmPull.c */
+PULL_EXPORT int pullIterParmSet(pullContext *pctx, int which,
+                                unsigned int pval);
+PULL_EXPORT int pullSysParmSet(pullContext *pctx, int which,
+                               double pval);
+PULL_EXPORT int pullFlagSet(pullContext *pctx, int which, int flag);
+PULL_EXPORT int pullVerboseSet(pullContext *pctx, int verbose);
+PULL_EXPORT int pullThreadNumSet(pullContext *pctx, unsigned int threadNum);
+PULL_EXPORT int pullRngSeedSet(pullContext *pctx, unsigned int rngSeed);
+PULL_EXPORT int pullProgressBinModSet(pullContext *pctx, unsigned int bmod);
+PULL_EXPORT int pullCallbackSet(pullContext *pctx,
+                                void (*iter_cb)(void *data_cb),
+                                void *data_cb);
+PULL_EXPORT int pullInterEnergySet(pullContext *pctx, int interType,
+                                   const pullEnergySpec *enspR,
+                                   const pullEnergySpec *enspS,
+                                   const pullEnergySpec *enspWin);
 
 /* energy.c */
 PULL_EXPORT const airEnum *const pullInterType;
@@ -647,9 +779,11 @@ PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
 PULL_EXPORT pullEnergySpec *pullEnergySpecNew();
-PULL_EXPORT int pullEnergySpecSet(pullEnergySpec *ensp,
-                                  const pullEnergy *energy,
-                                  const double parm[PULL_ENERGY_PARM_NUM]);
+PULL_EXPORT void pullEnergySpecSet(pullEnergySpec *ensp,
+                                   const pullEnergy *energy,
+                                   const double parm[PULL_ENERGY_PARM_NUM]);
+PULL_EXPORT void pullEnergySpecCopy(pullEnergySpec *esDst,
+                                    const pullEnergySpec *esSrc);
 PULL_EXPORT pullEnergySpec *pullEnergySpecNix(pullEnergySpec *ensp);
 PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
@@ -698,7 +832,6 @@ PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
-PULL_EXPORT void pullVerboseSet(pullContext *pctx, int verbose);
 
 /* pointPull.c */
 PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);

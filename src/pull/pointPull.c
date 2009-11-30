@@ -78,8 +78,8 @@ pullPointNew(pullContext *pctx) {
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  pnt->stepEnergy = pctx->stepInitial;
-  pnt->stepConstr = pctx->stepInitial;
+  pnt->stepEnergy = pctx->sysParm.stepInitial;
+  pnt->stepConstr = pctx->sysParm.stepInitial;
   for (ii=0; ii<pctx->infoTotalLen; ii++) {
     pnt->info[ii] = AIR_NAN;
   }
@@ -539,26 +539,26 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   /* Obtain voxel and indices from pointIdx */
   /* axis ordering for this is x, y, z, scale */
   pix = pointIdx;
-  if (pctx->pointPerVoxel > 0) {
-    pix /= pctx->pointPerVoxel;
+  if (pctx->initParm.pointPerVoxel > 0) {
+    pix /= pctx->initParm.pointPerVoxel;
   } else {
-    pix *= -pctx->pointPerVoxel;
+    pix *= -pctx->initParm.pointPerVoxel;
   }
   vidx[0] = pix % seedShape->size[0];
   pix = (pix - vidx[0])/seedShape->size[0];
   vidx[1] = pix % seedShape->size[1];
   pix = (pix - vidx[1])/seedShape->size[1];
-  if (pctx->ppvZRange[1] >= pctx->ppvZRange[0]) {
+  if (pctx->initParm.ppvZRange[0] <= pctx->initParm.ppvZRange[1]) {
     unsigned int zrn;
-    zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
-    vidx[2] = (pix % zrn) + pctx->ppvZRange[0];
+    zrn = pctx->initParm.ppvZRange[1] - pctx->initParm.ppvZRange[0] + 1;
+    vidx[2] = (pix % zrn) + pctx->initParm.ppvZRange[0];
     pix = (pix - (pix % zrn))/zrn;
   } else {
     vidx[2] = pix % seedShape->size[2];
     pix = (pix - vidx[2])/seedShape->size[2];
   }
   for (k=0; k<=2; k++) {
-    iPos[k] = vidx[k] + pctx->jitter*(airDrandMT_r(rng)-0.5);
+    iPos[k] = vidx[k] + pctx->initParm.jitter*(airDrandMT_r(rng)-0.5);
   }
   gageShapeItoW(seedShape, point->pos, iPos);
   /*
@@ -573,9 +573,9 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   if (pctx->haveScale) {
     int outside;
     double aidx, bidx;
-    /* pix should already be integer in [0, pctx->numSamplesScale-1)]. */
-    aidx = pix + pctx->jitter*(airDrandMT_r(rng)-0.5);
-    bidx = AIR_AFFINE(-0.5, aidx, pctx->numSamplesScale-0.5, 
+    /* pix should already be integer in [0, pctx->samplesAlongScaleNum-1)]. */
+    aidx = pix + pctx->initParm.jitter*(airDrandMT_r(rng)-0.5);
+    bidx = AIR_AFFINE(-0.5, aidx, pctx->initParm.samplesAlongScaleNum-0.5, 
                       0.0, scaleVol->scaleNum-1);
     point->pos[3] = gageStackItoW(scaleVol->gctx, bidx, &outside);
     /*
@@ -611,7 +611,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
         seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh, NULL, NULL);
         reject |= (seedv < 0);
       }
-      if (pctx->liveThresholdInit) {
+      if (pctx->initParm.liveThreshUse) {
         if (!reject && pctx->ispec[pullInfoLiveThresh]) {
           double seedv;
           seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
@@ -711,7 +711,7 @@ _pullPointInitializeRandom(pullContext *pctx,
           threshFail = AIR_FALSE;
         }
         reject |= threshFail;
-        if (pctx->liveThresholdInit) {
+        if (pctx->initParm.liveThreshUse) {
           if (!reject && pctx->ispec[pullInfoLiveThresh]) {
             seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
                                      NULL, NULL);
@@ -785,7 +785,7 @@ _pullPointInitializePos(pullContext *pctx,
     return 1;
   }
   reject = AIR_FALSE;
-  if (pctx->liveThresholdInit) {
+  if (pctx->initParm.liveThreshUse) {
     if (!reject && pctx->ispec[pullInfoLiveThresh]) {
       seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
                                NULL, NULL);
@@ -808,8 +808,6 @@ _pullPointInitializePos(pullContext *pctx,
 
 /*
 ** _pullPointSetup sets:
-**** pctx->pointNumInitial (in case pctx->npos)
-**** pctx->pointPerVoxel (in case pctx->npos)
 **
 ** This is only called by the master thread
 ** 
@@ -841,46 +839,47 @@ _pullPointSetup(pullContext *pctx) {
      will be well-sampled (with respect to pctx->radiusSpace) to start
      with */
   mop = airMopNew();
-  if (pctx->npos) {
+  switch (pctx->initParm.method) {
+  case pullInitMethodGivenPos:
     npos = nrrdNew();
     airMopAdd(mop, npos, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdConvert(npos, pctx->npos, nrrdTypeDouble)) {
+    /* even if npos came in as double, we have to copy it */
+    if (nrrdConvert(npos, pctx->initParm.npos, nrrdTypeDouble)) {
       biffMovef(PULL, NRRD, "%s: trouble converting npos", me);
       airMopError(mop); return 1;
     }
     posData = AIR_CAST(double *, npos->data);
-    if (pctx->pointNumInitial || pctx->pointPerVoxel) {
-      printf("%s: with npos, overriding both pointNumInitial (%u) "
-             "and pointPerVoxel (%d)\n", me, pctx->pointNumInitial,
-             pctx->pointPerVoxel);
+    if (pctx->initParm.numInitial || pctx->initParm.pointPerVoxel) {
+      printf("%s: with npos, overriding both numInitial (%u) "
+             "and pointPerVoxel (%d)\n", me, pctx->initParm.numInitial,
+             pctx->initParm.pointPerVoxel);
     }
-    pctx->pointNumInitial = 0;
-    pctx->pointPerVoxel = 0;
     totalNumPoints = npos->axis[1].size;
-  } else if (pctx->pointPerVoxel) {
+    break;
+  case pullInitMethodPointPerVoxel:
     npos = NULL;
     posData = NULL;
-    if (pctx->pointNumInitial) {
-      printf("%s: pointPerVoxel %d overrides pointNumInitial (%u)\n",
-             me, pctx->pointPerVoxel, pctx->pointNumInitial);
+    if (pctx->initParm.numInitial) {
+      printf("%s: pointPerVoxel %d overrides numInitial (%u)\n", me,
+             pctx->initParm.pointPerVoxel, pctx->initParm.numInitial);
     }
     /* Obtain number of voxels */
     seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
     seedShape = seedVol->gctx->shape;
-    if (pctx->ppvZRange[1] >= pctx->ppvZRange[0]) {
+    if (pctx->initParm.ppvZRange[0] <= pctx->initParm.ppvZRange[1]) {
       unsigned int zrn;
-      if (!( pctx->ppvZRange[0] < seedShape->size[2]
-             && pctx->ppvZRange[1] < seedShape->size[2] )) {
+      if (!( pctx->initParm.ppvZRange[0] < seedShape->size[2]
+             && pctx->initParm.ppvZRange[1] < seedShape->size[2] )) {
         biffAddf(PULL, "%s: ppvZRange[%u,%u] outside volume [0,%u]", me,
-                 pctx->ppvZRange[0], pctx->ppvZRange[1],
+                 pctx->initParm.ppvZRange[0], pctx->initParm.ppvZRange[1],
                  seedShape->size[2]-1);
         airMopError(mop); return 1;
       }
-      zrn = pctx->ppvZRange[1] - pctx->ppvZRange[0] + 1;
+      zrn = pctx->initParm.ppvZRange[1] - pctx->initParm.ppvZRange[0] + 1;
       voxNum = seedShape->size[0]*seedShape->size[1]*zrn;
       printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me, 
              seedShape->size[0], seedShape->size[1],
-             pctx->ppvZRange[0], pctx->ppvZRange[1],
+             pctx->initParm.ppvZRange[0], pctx->initParm.ppvZRange[1],
              voxNum);
     } else {
       voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
@@ -890,25 +889,31 @@ _pullPointSetup(pullContext *pctx) {
     }
 
     /* Compute total number of points */
-    if (pctx->pointPerVoxel > 0) {
-      factor = pctx->pointPerVoxel;
+    if (pctx->initParm.pointPerVoxel > 0) {
+      factor = pctx->initParm.pointPerVoxel;
     } else {
-      factor = -1.0/pctx->pointPerVoxel;
+      factor = -1.0/pctx->initParm.pointPerVoxel;
     }
     if (pctx->haveScale) {
-      totalNumPoints = AIR_CAST(unsigned int,
-                                voxNum * factor * pctx->numSamplesScale);
+      unsigned int sasn;
+      sasn = pctx->initParm.samplesAlongScaleNum;
+      totalNumPoints = AIR_CAST(unsigned int, voxNum * factor * sasn);
     } else {
       totalNumPoints = AIR_CAST(unsigned int, voxNum * factor);
     }
     printf("!%s: ppv %d -> factor %g -> tot # %u\n", me, 
-           pctx->pointPerVoxel, factor, totalNumPoints);
-    pctx->pointNumInitial = 0;
-  } else {
-    /* *using* pctx->pointNumInitial */
+           pctx->initParm.pointPerVoxel, factor, totalNumPoints);
+    break;
+  case pullInitMethodRandom:
     npos = NULL;
     posData = NULL;
-    totalNumPoints = pctx->pointNumInitial;
+    totalNumPoints = pctx->initParm.numInitial;
+    break;
+  default:
+    biffAddf(PULL, "%s: pullInitMethod %d not handled!", me,
+             pctx->initParm.method);
+    airMopError(mop); return 1;
+    break;
   }
   printf("!%s: initializing/seeding ...       ", me);
   fflush(stdout);
@@ -925,7 +930,7 @@ _pullPointSetup(pullContext *pctx) {
   /* Task = 0 -> PreThreshold;
      Task = 1 -> SeedThreshold;
      Task = 2 -> Constraint; */
-  if (pctx->constraintBeforeSeedThresh) {
+  if (pctx->flag.constraintBeforeSeedThresh) {
     ELL_3V_SET(taskOrder, 0, 2, 1);
   } else {
     ELL_3V_SET(taskOrder, 0, 1, 2);
@@ -949,10 +954,10 @@ _pullPointSetup(pullContext *pctx) {
       point = pullPointNew(pctx);
     }
     /* Filling array according to initialization method */
-    if (pctx->npos) {
+    if (pctx->initParm.npos) {
       E = _pullPointInitializePos(pctx, posData, pointIdx, point,
                                   &createFail);
-    } else if (pctx->pointPerVoxel) {
+    } else if (pctx->initParm.pointPerVoxel) {
       E = _pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
                                        taskOrder, &createFail);
     } else {
@@ -967,10 +972,10 @@ _pullPointSetup(pullContext *pctx) {
     }
     
     if (createFail) {
-      /* We were not succesful creating a point */
+      /* We were not successful in creating a point */
       continue;
     }
- 
+    
     /* else, the point is ready for binning */
     if (pctx->constraint) {
       if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
@@ -979,9 +984,6 @@ _pullPointSetup(pullContext *pctx) {
       }
       if (added) {
         point = NULL;
-        if (pctx->pointPerVoxel || pctx->npos) {
-          pctx->pointNumInitial += 1;
-        }
       }
     } else {
       if (pullBinsPointAdd(pctx, point, NULL)) {
@@ -989,9 +991,6 @@ _pullPointSetup(pullContext *pctx) {
           airMopError(mop); return 1;
       }
       point = NULL;
-      if (pctx->pointPerVoxel || pctx->npos) {
-        pctx->pointNumInitial += 1;
-      }
     }
   } /* Done looping through total number of points */
   printf("%s\n", airDoneStr(0, pointIdx, totalNumPoints,
@@ -1004,18 +1003,16 @@ _pullPointSetup(pullContext *pctx) {
   }
   
   /* Final check: do we have any points? */
-  if (!pctx->pointNumInitial) {
-    biffAddf(PULL, "%s: seeding never succeeded (bad seedthresh? %g)",
-             me, pctx->ispec[pullInfoSeedThresh]->zero);
-    airMopError(mop); return 1;
-  }
-  /* HEY this is redundant */
   pn = pullPointNumber(pctx);
   if (!pn) {
-    biffAddf(PULL, "%s: point initialization failed, no points!\n", me);
+    if (pctx->ispec[pullInfoSeedThresh]) {
+      biffAddf(PULL, "%s: zero points: seeding failed (bad seedthresh? %g)",
+               me, pctx->ispec[pullInfoSeedThresh]->zero);
+    } else {
+      biffAddf(PULL, "%s: zero points: seeding failed", me);
+    }
     airMopError(mop); return 1;
   }
-  printf("%s: ended up with %u points\n", me, pn);
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,

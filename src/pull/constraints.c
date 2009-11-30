@@ -108,14 +108,14 @@ constraintSatIso(pullTask *task, pullPoint *point,
     _pullPointHistAdd(point, pullCondConstraintSatA);
     PROBE(val, aval, grad);
     if (aval <= state[0]) {  /* we're no further from the root */
-      if (AIR_ABS(step) < stepMax*task->pctx->constraintStepMin) {
+      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
         /* we have converged! */
         break;
       }
       SAVE(state, aval, val, grad, point->pos);
       hack = 1;
     } else { /* oops, try again, don't update dir or len, reset val */
-      hack *= task->pctx->stepScale;
+      hack *= task->pctx->sysParm.stepScale;
       RESTORE(aval, val, grad, point->pos, state);
     }
   }
@@ -227,7 +227,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
       side = -1;
     }
     diff = (b - a)*len;
-    if (AIR_ABS(diff) < stepMax*task->pctx->constraintStepMin) {
+    if (AIR_ABS(diff) < stepMax*task->pctx->sysParm.constraintStepMin) {
       /* converged! */
       break;
     }
@@ -426,14 +426,14 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
     */
     PROBE(val, grad, hess, proj);
     if (val <= state[0]) {
-      if (AIR_ABS(step) < stepMax*task->pctx->constraintStepMin) {
+      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
         /* we have converged! */
         break;
       }
       SAVE(state, val, grad, hess, proj, point->pos);
       hack = 1;
     } else { /* oops, try again */
-      hack *= task->pctx->stepScale;
+      hack *= task->pctx->sysParm.stepScale;
       RESTORE(val, grad, hess, proj, point->pos, state);
     }
   }
@@ -527,7 +527,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   
   ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
-  iterMax = task->pctx->constraintIterMax;
+  iterMax = task->pctx->iterParm.constraintIterMax;
   /*
   dlim = _pullDistLimit(task, point);
   if (iterMax*stepMax > dlim) {

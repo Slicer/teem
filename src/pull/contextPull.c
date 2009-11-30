@@ -33,15 +33,19 @@ pullContextNew(void) {
   if (!pctx) {
     return NULL;
   }
-  
+
+  _pullInitParmInit(&(pctx->initParm));
+  _pullIterParmInit(&(pctx->iterParm));
+  _pullSysParmInit(&(pctx->sysParm));
+  _pullFlagInit(&(pctx->flag));
   pctx->verbose = 0;
-  pctx->liveThresholdInit = AIR_FALSE;
-  pctx->permuteOnRebin = AIR_FALSE;
-  pctx->noPopCntlWithZeroAlpha = AIR_FALSE;
-  pctx->allowUnequalShapes = AIR_FALSE;
-  pctx->restrictiveAddToBins = AIR_TRUE;
-  pctx->pointNumInitial = 0;
-  pctx->npos = NULL;
+  pctx->threadNum = 1;
+  pctx->rngSeed = 42;
+  pctx->progressBinMod = 50;
+  ELL_3V_SET(pctx->sliceNormal, 0.0, 0.0, 0.0);
+  pctx->iter_cb = NULL;
+  pctx->data_cb = NULL;
+
   for (ii=0; ii<PULL_VOLUME_MAXNUM; ii++) {
     pctx->vol[ii] = NULL;
   }
@@ -50,50 +54,10 @@ pullContextNew(void) {
     pctx->ispec[ii] = NULL;
     pctx->infoIdx[ii] = UINT_MAX;
   }
-
-  pctx->stepInitial = 1;
-  pctx->radiusSpace = 1;
-  pctx->radiusScale = 1;
-  pctx->neighborTrueProb = 1.0;
-  pctx->probeProb = 1.0;
-  pctx->opporStepScale = 1.0;
-  pctx->stepScale = 0.5;
-  pctx->energyDecreaseMin = 0.001;
-  pctx->energyDecreasePopCntlMin = 0.02;
-  pctx->constraintStepMin = 0.0001;
-  pctx->wall = 1;
-  pctx->energyIncreasePermit = 0.0;
-  pctx->energyFromStrength = AIR_FALSE;
-  pctx->nixAtVolumeEdgeSpace = AIR_FALSE;
-  pctx->constraintBeforeSeedThresh = AIR_FALSE;
-
-  pctx->pointPerVoxel = 0;
-  pctx->numSamplesScale = 0;
-  pctx->rngSeed = 42;
-  pctx->threadNum = 1;
-  pctx->iterMax = 0;
-  pctx->popCntlPeriod = 20;
-  pctx->constraintIterMax = 15;
-  pctx->stuckIterMax = 4;
-  pctx->snap = 0;
-  pctx->ppvZRange[0] = 1;
-  pctx->ppvZRange[1] = 0;
-  pctx->progressBinMod = 50;
-  
   pctx->interType = pullInterTypeUnknown;
   pctx->energySpecR = pullEnergySpecNew();
   pctx->energySpecS = pullEnergySpecNew();
   pctx->energySpecWin = pullEnergySpecNew();
-  pctx->alpha = 0.5;
-  pctx->beta = 0.5;
-  pctx->gamma = 1;
-  pctx->jitter = 1.0;
-  ELL_3V_SET(pctx->sliceNormal, 0.0, 0.0, 0.0);
-
-  pctx->binSingle = AIR_FALSE;
-  pctx->binIncr = 32;
-  pctx->iter_cb = NULL;
-  pctx->data_cb = NULL;
 
   ELL_4V_SET(pctx->bboxMin, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_4V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -113,24 +77,23 @@ pullContextNew(void) {
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
-  
   ELL_3V_SET(pctx->_sliceNormal, 0.0, 0.0, 0.0);
 
   pctx->tmpPointPerm = NULL;
   pctx->tmpPointPtr = NULL;
   pctx->tmpPointNum = 0;
 
+  /* pctx->binMutex setup my pullStart */
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
+  pctx->energy = AIR_NAN;
   pctx->stuckNum = 0;
   pctx->pointNum = 0;
   pctx->iter = 0;
-  pctx->energy = AIR_NAN;
-  pctx->noutPos = nrrdNew();
   return pctx;
 }
 
@@ -156,10 +119,47 @@ pullContextNix(pullContext *pctx) {
     pctx->energySpecS = pullEnergySpecNix(pctx->energySpecS);
     pctx->energySpecWin = pullEnergySpecNix(pctx->energySpecWin);
     /* handled elsewhere: bin, task, iterBarrierA, iterBarrierB */
-    pctx->noutPos = nrrdNuke(pctx->noutPos);
     airFree(pctx);
   }
   return NULL;
+}
+
+int
+_pullMiscParmCheck(pullContext *pctx) {
+  static const char me[]="_pullMiscParmCheck";
+
+  if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
+    biffAddf(PULL, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
+             pctx->threadNum, PULL_THREAD_MAXNUM);
+    return 1;
+  }
+  if (airEnumValCheck(pullInterType, pctx->interType)) {
+    biffAddf(PULL, "%s: pctx->interType %d not a valid %s", me,
+             pctx->interType, pullInterType->name);
+    return 1;
+  }
+  /* HEY: error checking on energySpec's seems rather spotty ... */
+  if (pullEnergyUnknown == pctx->energySpecR->energy) {
+    biffAddf(PULL, "%s: need to set space energy", me);
+    return 1;
+  }
+  if (pullInterTypeJustR == pctx->interType
+      || pullInterTypeUnivariate == pctx->interType) {
+    if (pullEnergyZero != pctx->energySpecS->energy) {
+      biffAddf(PULL, "%s: can't use scale energy %s with inter type %s", me,
+               pctx->energySpecS->energy->name, 
+               airEnumStr(pullInterType, pctx->interType));
+      return 1;
+    }
+  } else {
+    if (pullEnergyZero == pctx->energySpecS->energy) {
+      biffAddf(PULL, "%s: need a non-zero scale energy for inter type %s", me,
+               airEnumStr(pullInterType, pctx->interType));
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 int
@@ -172,49 +172,18 @@ _pullContextCheck(pullContext *pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
-  if (pctx->npos) {
-    if (nrrdCheck(pctx->npos)) {
-      biffMovef(PULL, NRRD, "%s: got a broken npos", me);
-      return 1;
-    }
-    if (!( 2 == pctx->npos->dim 
-           && 4 == pctx->npos->axis[0].size
-           && (nrrdTypeDouble == pctx->npos->type 
-               || nrrdTypeFloat == pctx->npos->type) )) {
-      biffAddf(PULL, "%s: npos not a 2-D 4-by-N array of %s or %s"
-               "(got %u-D %u-by-X of %s)", me,
-               airEnumStr(nrrdType, nrrdTypeFloat),
-               airEnumStr(nrrdType, nrrdTypeDouble),
-               pctx->npos->dim,
-               AIR_CAST(unsigned int, pctx->npos->axis[0].size),
-               airEnumStr(nrrdType, pctx->npos->type));
-      return 1;
-    }
-  } else {
-    if (!( pctx->pointNumInitial >= 1 )) {
-      biffAddf(PULL, "%s: pctx->pointNumInitial (%d) not >= 1\n", me,
-               pctx->pointNumInitial);
-      return 1;
-    }
+  if (_pullInitParmCheck(&(pctx->initParm))
+      || _pullIterParmCheck(&(pctx->iterParm))
+      || _pullSysParmCheck(&(pctx->sysParm))
+      || _pullMiscParmCheck(pctx)) {
+    biffAddf(PULL, "%s: problem with parameters", me);
+    return 1;
   }
+
   if (!pctx->volNum) {
     biffAddf(PULL, "%s: have no volumes set", me);
     return 1;
   }
-  /* HEY: why was there this restriction to only one scale-space vol?
-  for (ii=0; ii<pctx->volNum; ii++) {
-    if (pctx->vol[ii]->ninScale) {
-      sclvi = ii;
-      for (ii=sclvi+1; ii<pctx->volNum; ii++) {
-        if (pctx->vol[ii]->ninScale) {
-          biffAddf(PULL, "%s: can have only 1 scale volume (not both %u and %u)",
-                  me, ii, sclvi);
-          return 1;
-        }
-      }
-    }
-  }
-  */
   gotConstr = 0;
   gotIspec = AIR_FALSE;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
@@ -328,82 +297,12 @@ _pullContextCheck(pullContext *pctx) {
       return 1;
     }
   }
-  if (pctx->pointPerVoxel) {
+  if (pullInitMethodPointPerVoxel == pctx->initParm.method) {
     if (!( pctx->ispec[pullInfoSeedThresh] )) {
       biffAddf(PULL, "%s: sorry, need %s info set to use pointPerVoxel",
                me, airEnumStr(pullInfo, pullInfoSeedThresh));
       return 1;
     }
-  }
-  
-  if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
-    biffAddf(PULL, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
-             pctx->threadNum, PULL_THREAD_MAXNUM);
-    return 1;
-  }
-  if (airEnumValCheck(pullInterType, pctx->interType)) {
-    biffAddf(PULL, "%s: pctx->interType %d not a valid %s", me,
-             pctx->interType, pullInterType->name);
-    return 1;
-  }
-  if (pullInterTypeJustR == pctx->interType
-      || pullInterTypeUnivariate == pctx->interType) {
-    if (pullEnergyZero != pctx->energySpecS->energy) {
-      biffAddf(PULL, "%s: can't use scale energy %s with inter type %s", me,
-               pctx->energySpecS->energy->name, 
-               airEnumStr(pullInterType, pctx->interType));
-      return 1;
-    }
-  } else {
-    if (pullEnergyZero == pctx->energySpecS->energy) {
-      biffAddf(PULL, "%s: need a non-zero scale energy for inter type %s", me,
-               airEnumStr(pullInterType, pctx->interType));
-      return 1;
-    }
-  }
-
-#define CHECK(thing, min, max)                                   \
-  if (!( AIR_EXISTS(pctx->thing)                                 \
-         && min <= pctx->thing && pctx->thing <= max )) {        \
-    biffAddf(PULL, "%s: pctx->" #thing " %g not in range [%g,%g]", \
-            me, pctx->thing, min, max);                          \
-    return 1;                                                    \
-  }
-  /* these reality-check bounds are somewhat arbitrary */
-  CHECK(radiusScale, 0.000001, 25.0);
-  CHECK(radiusSpace, 0.000001, 25.0);
-  CHECK(neighborTrueProb, 0.02, 1.0);
-  CHECK(probeProb, 0.02, 1.0);
-  CHECK(opporStepScale, 1.0, 10.0);
-  CHECK(stepScale, 0.01, 0.99);
-  CHECK(energyDecreaseMin, -0.2, 1.0);
-  CHECK(energyDecreasePopCntlMin, -1.0, 1.0);
-  CHECK(constraintStepMin, 0.00000000000000001, 0.1);
-  CHECK(wall, 0.0, 100.0);
-  CHECK(energyIncreasePermit, 0.0, 1.0);
-  CHECK(alpha, 0.0, 1.0);
-  CHECK(beta, 0.0, 1.0);
-  CHECK(jitter, 0.0, 1.0);
-#undef CHECK
-  if (!( 1 <= pctx->constraintIterMax
-         && pctx->constraintIterMax <= 50 )) {
-    biffAddf(PULL, "%s: pctx->constraintIterMax %u not in range [%u,%u]",
-             me, pctx->constraintIterMax, 1, 50);
-    return 1;
-  }
-  if (pctx->pointPerVoxel < -100 || pctx->pointPerVoxel > 10) {
-    biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
-             pctx->pointPerVoxel);
-    return 1;
-  }
-  if (-1 == pctx->pointPerVoxel) {
-    biffAddf(PULL, "%s: pointPerVoxel should be < -1 or >= 1", me);
-    return 1;
-  }
-  if (0 == pctx->jitter && 1 < pctx->pointPerVoxel) {
-    biffAddf(PULL, "%s: must have jitter > 0 if pointPerVoxel (%d) > 1", me,
-             pctx->pointPerVoxel);
-    return 1;
   }
   
   return 0;
@@ -569,33 +468,6 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   }
 
   return 0;
-}
-
-/*
-** HEY: its really confusing to have the array of per-CONTEXT volumes.
-** I know they're there to be copied upon task creation to create the
-** per-TASK volumes, but its easy to think that one is supposed to be
-** doing something with them, or that changes to them will have some
-** effect ...
-*/
-void
-pullVerboseSet(pullContext *pctx, int verbose) {
-  unsigned int volIdx, taskIdx;
-
-  pctx->verbose = verbose;
-  for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
-    int v;
-    v = verbose > 0 ? verbose - 1 : 0;
-    gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, v);
-  }
-  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
-    for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
-      int v;
-      v = verbose > 0 ? verbose - 1 : 0;
-      gageParmSet(pctx->task[taskIdx]->vol[volIdx]->gctx, gageParmVerbose, v);
-    }
-  }
-  return;
 }
 
 int
@@ -791,3 +663,4 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
   return 1;
 #endif
 }
+

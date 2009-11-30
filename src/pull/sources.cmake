@@ -5,6 +5,8 @@ SET(PULL_SOURCES
   binningPull.c
   constraints.c
   contextPull.c
+  parmPull.c
+  initPull.c
   corePull.c
   defaultsPull.c
   energy.c

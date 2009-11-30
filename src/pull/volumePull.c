@@ -375,7 +375,7 @@ _pullVolumeSetup(pullContext *pctx) {
       ELL_3V_MIN(pctx->bboxMax, pctx->bboxMax, max);
     }
     pctx->voxelSizeSpace += ELL_3V_LEN(gctx->shape->spacing)/sqrt(3.0);
-    if (ii && !pctx->allowUnequalShapes) {
+    if (ii && !pctx->initParm.unequalShapesAllow) {
       if (!gageShapeEqual(pctx->vol[0]->gctx->shape, pctx->vol[0]->name,
                           pctx->vol[ii]->gctx->shape, pctx->vol[ii]->name)) {
         biffMovef(PULL, GAGE,
@@ -449,7 +449,7 @@ _pullVolumeSetup(pullContext *pctx) {
       return 1;
     }
   }
-  if (pctx->energyFromStrength
+  if (pctx->flag.energyFromStrength
       && !(pctx->ispec[pullInfoStrength] && pctx->haveScale)) {
     biffAddf(PULL, "%s: sorry, can use energyFromStrength only with both "
              "a scale-space volume, and a strength info", me);
