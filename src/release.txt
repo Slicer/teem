@@ -1,3 +1,4 @@
+
 Things for Gordon to do with each teem release:
 
 -3) make sure that all the files have the right pre-ambles
@@ -83,9 +84,8 @@ is one way of putting files onto the web server
 
 2.5) svn "tag":
 setenv VERSION <<version>>
-cd ~/teem
 svn copy https://teem.svn.sourceforge.net/svnroot/teem/teem/trunk \
-         https://teem.svn.sourceforge.net/svnroot/teem/teem/tags/${VERSION}
+         https://teem.svn.sourceforge.net/svnroot/teem/teem/branches/Teem-${VERSION}
 
 3) Create source-only tgz:
 svn co http://teem.svn.sourceforge.net/svnroot/teem/teem/trunk teem
