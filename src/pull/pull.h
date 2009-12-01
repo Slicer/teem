@@ -403,10 +403,10 @@ typedef struct pullTask_t {
 ** the different ways pull can be initialized
 */
 enum {
-  pullInitMethodUnknown,
-  pullInitMethodRandom,
-  pullInitMethodPointPerVoxel,
-  pullInitMethodGivenPos,
+  pullInitMethodUnknown,       /* 0 */
+  pullInitMethodRandom,        /* 1 */
+  pullInitMethodPointPerVoxel, /* 2 */
+  pullInitMethodGivenPos,      /* 3 */
   pullInitMethodLast
 };
 
