@@ -901,8 +901,6 @@ _pullPointSetup(pullContext *pctx) {
     } else {
       totalNumPoints = AIR_CAST(unsigned int, voxNum * factor);
     }
-    printf("!%s: ppv %d -> factor %g -> tot # %u\n", me, 
-           pctx->initParm.pointPerVoxel, factor, totalNumPoints);
     break;
   case pullInitMethodRandom:
     npos = NULL;
@@ -954,16 +952,19 @@ _pullPointSetup(pullContext *pctx) {
       point = pullPointNew(pctx);
     }
     /* Filling array according to initialization method */
-    if (pctx->initParm.npos) {
-      E = _pullPointInitializePos(pctx, posData, pointIdx, point,
-                                  &createFail);
-    } else if (pctx->initParm.pointPerVoxel) {
-      E = _pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
-                                       taskOrder, &createFail);
-    } else {
-      /* random */
+    switch(pctx->initParm.method) {
+    case pullInitMethodRandom:
       E = _pullPointInitializeRandom(pctx, pointIdx, point, scaleVol,
                                      taskOrder, &createFail);
+      break;
+    case pullInitMethodPointPerVoxel:
+      E = _pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
+                                       taskOrder, &createFail);
+      break;
+    case pullInitMethodGivenPos:
+      E = _pullPointInitializePos(pctx, posData, pointIdx, point,
+                                  &createFail);
+      break;
     }
     if (E) {
       biffAddf(PULL, "%s: trouble trying point %u (id %u)", me,
