@@ -60,7 +60,7 @@ _pullBinDone(pullBin *bin) {
 pullBin *
 _pullBinLocate(pullContext *pctx, double *posWorld) {
   static const char me[]="_pullBinLocate";
-  unsigned int axi, eidx[3], binIdx;
+  unsigned int axi, eidx[4], binIdx;
 
   if (!ELL_4V_EXISTS(posWorld)) {
     biffAddf(PULL, "%s: non-existant position (%g,%g,%g,%g)", me,
@@ -82,10 +82,6 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
                     eidx[1] + pctx->binsEdge[1]*(
                          eidx[2] + pctx->binsEdge[2] * eidx[3])));
   }
-  /*
-  printf("!%s: bin(%g,%g,%g) = %u\n", me, 
-         _posWorld[0], _posWorld[1], _posWorld[2], binIdx);
-  */
 
   return pctx->bin + binIdx;
 }
