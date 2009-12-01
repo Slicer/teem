@@ -217,6 +217,10 @@ _pullIterate(pullContext *pctx, int mode) {
     biffAddf(PULL, "%s: process mode %d unrecognized", me, mode);
     return 1;
   }
+  if (!pctx->task) {
+    biffAddf(PULL, "%s: NULL task array, didn't call pullStart()?", me);
+    return 1;
+  }
 
   /* tell all tasks what mode they're in */
   for (ti=0; ti<pctx->threadNum; ti++) {
