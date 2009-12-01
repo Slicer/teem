@@ -952,6 +952,7 @@ _pullPointSetup(pullContext *pctx) {
       point = pullPointNew(pctx);
     }
     /* Filling array according to initialization method */
+    E = 0;
     switch(pctx->initParm.method) {
     case pullInitMethodRandom:
       E = _pullPointInitializeRandom(pctx, pointIdx, point, scaleVol,
