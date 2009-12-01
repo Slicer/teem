@@ -24,6 +24,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/* the Init() functions are up here for easier reference */
+
 void
 _pullIterParmInit(pullIterParm *iterParm) {
 
@@ -32,6 +34,40 @@ _pullIterParmInit(pullIterParm *iterParm) {
   iterParm->constraintMax = 15;
   iterParm->stuckMax = 4;
   iterParm->snap = 0;
+  return;
+}
+
+void
+_pullSysParmInit(pullSysParm *sysParm) {
+
+  sysParm->alpha = 0.5;
+  sysParm->beta = 0.5;
+  sysParm->gamma = 1;
+  sysParm->wall = 1;
+  sysParm->radiusSpace = 1;
+  sysParm->radiusScale = 1;
+  sysParm->neighborTrueProb = 1.0;
+  sysParm->probeProb = 1.0;
+  sysParm->stepInitial = 1;
+  sysParm->opporStepScale = 1.0;
+  sysParm->stepScale = 0.5;
+  sysParm->constraintStepMin = 0.0001;
+  sysParm->energyDecreaseMin = 0.001;
+  sysParm->energyDecreasePopCntlMin = 0.02;
+  sysParm->energyIncreasePermit = 0.0;
+  return;
+}
+
+void
+_pullFlagInit(pullFlag *flag) {
+
+  flag->permuteOnRebin = AIR_FALSE;
+  flag->noPopCntlWithZeroAlpha = AIR_FALSE;
+  flag->restrictiveAddToBins = AIR_TRUE;
+  flag->energyFromStrength = AIR_FALSE;
+  flag->nixAtVolumeEdgeSpace = AIR_FALSE;
+  flag->constraintBeforeSeedThresh = AIR_FALSE;
+  flag->binSingle = AIR_FALSE;
   return;
 }
 
@@ -81,27 +117,6 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     return 1;
   }
   return 0;
-}
-
-void
-_pullSysParmInit(pullSysParm *sysParm) {
-
-  sysParm->alpha = 0.5;
-  sysParm->beta = 0.5;
-  sysParm->gamma = 1;
-  sysParm->wall = 1;
-  sysParm->radiusSpace = 1;
-  sysParm->radiusScale = 1;
-  sysParm->neighborTrueProb = 1.0;
-  sysParm->probeProb = 1.0;
-  sysParm->stepInitial = 1;
-  sysParm->opporStepScale = 1.0;
-  sysParm->stepScale = 0.5;
-  sysParm->constraintStepMin = 0.0001;
-  sysParm->energyDecreaseMin = 0.001;
-  sysParm->energyDecreasePopCntlMin = 0.02;
-  sysParm->energyIncreasePermit = 0.0;
-  return;
 }
 
 #define CHECK(thing, min, max)                                         \
@@ -204,19 +219,6 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     return 1;
   }
   return 0;
-}
-
-void
-_pullFlagInit(pullFlag *flag) {
-
-  flag->permuteOnRebin = AIR_FALSE;
-  flag->noPopCntlWithZeroAlpha = AIR_FALSE;
-  flag->restrictiveAddToBins = AIR_TRUE;
-  flag->energyFromStrength = AIR_FALSE;
-  flag->nixAtVolumeEdgeSpace = AIR_FALSE;
-  flag->constraintBeforeSeedThresh = AIR_FALSE;
-  flag->binSingle = AIR_FALSE;
-  return;
 }
 
 /*
