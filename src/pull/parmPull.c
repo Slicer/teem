@@ -50,7 +50,7 @@ _pullSysParmInit(pullSysParm *sysParm) {
   sysParm->probeProb = 1.0;
   sysParm->stepInitial = 1;
   sysParm->opporStepScale = 1.0;
-  sysParm->energyStepScale = 0.5;
+  sysParm->backStepScale = 0.5;
   sysParm->constraintStepMin = 0.0001;
   sysParm->energyDecreaseMin = 0.001;
   sysParm->energyDecreasePopCntlMin = 0.02;
@@ -147,7 +147,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
     return 1;
   }
   CHECK(opporStepScale, 1.0, 5.0);
-  CHECK(energyStepScale, 0.01, 0.99);
+  CHECK(backStepScale, 0.01, 0.99);
   CHECK(constraintStepMin, 0.00000000000000001, 0.1);
   CHECK(energyDecreaseMin, -0.2, 1.0);
   CHECK(energyDecreasePopCntlMin, -1.0, 1.0);
@@ -196,8 +196,8 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
   case pullSysParmOpporStepScale:
     pctx->sysParm.opporStepScale = pval;
     break;
-  case pullSysParmEnergyStepScale:
-    pctx->sysParm.energyStepScale = pval;
+  case pullSysParmBackStepScale:
+    pctx->sysParm.backStepScale = pval;
     break;
   case pullSysParmEnergyDecreasePopCntlMin:
     pctx->sysParm.energyDecreasePopCntlMin = pval;

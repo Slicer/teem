@@ -802,7 +802,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     */
     stepBad = (constrFail || energyIncr);
     if (stepBad) {
-      point->stepEnergy *= task->pctx->sysParm.energyStepScale;
+      point->stepEnergy *= task->pctx->sysParm.backStepScale;
       if (constrFail) {
         _pullPointHistAdd(point, pullCondConstraintFail);
       } else {

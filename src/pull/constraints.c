@@ -115,7 +115,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
       SAVE(state, aval, val, grad, point->pos);
       hack = 1;
     } else { /* oops, try again, don't update dir or len, reset val */
-      hack *= task->pctx->sysParm.energyStepScale;
+      hack *= task->pctx->sysParm.backStepScale;
       RESTORE(aval, val, grad, point->pos, state);
     }
   }
@@ -433,7 +433,7 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
       SAVE(state, val, grad, hess, proj, point->pos);
       hack = 1;
     } else { /* oops, try again */
-      hack *= task->pctx->sysParm.energyStepScale;
+      hack *= task->pctx->sysParm.backStepScale;
       RESTORE(val, grad, hess, proj, point->pos, state);
     }
   }
