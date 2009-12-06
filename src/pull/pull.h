@@ -525,7 +525,7 @@ enum {
   /* (< 1.0) when energy goes up instead of down, or when constraint
      satisfaction seems to be going the wrong way, how to scale (down)
      step size */
-  pullSysParmStepScale,
+  pullSysParmEnergyStepScale,
 
   /* pseudo-convergence threshold that controls when population control is
      activated (has to be higher than (less strict) energyDecreaseMin */
@@ -553,7 +553,7 @@ typedef struct {
   double alpha, beta, gamma, wall,
     radiusSpace, radiusScale,
     neighborTrueProb, probeProb,
-    stepInitial, opporStepScale, stepScale, constraintStepMin,
+    stepInitial, opporStepScale, energyStepScale, constraintStepMin,
     energyDecreaseMin,
     energyDecreasePopCntlMin,
     energyIncreasePermit;

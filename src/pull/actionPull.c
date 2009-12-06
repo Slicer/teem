@@ -802,7 +802,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     */
     stepBad = (constrFail || energyIncr);
     if (stepBad) {
-      point->stepEnergy *= task->pctx->sysParm.stepScale;
+      point->stepEnergy *= task->pctx->sysParm.energyStepScale;
       if (constrFail) {
         _pullPointHistAdd(point, pullCondConstraintFail);
       } else {
@@ -937,6 +937,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     pullPoint *point;
     if (task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
+        && !task->pctx->flag.binSingle
         && 0 == myBinIdx % task->pctx->progressBinMod) {
       printf("."); fflush(stdout);
     }
