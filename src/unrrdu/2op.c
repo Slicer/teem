@@ -60,7 +60,7 @@ unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
              "\b\bo \"exists\": if 1st value exists, use it, "
              "else use 2nd value\n "
              "\b\bo \"nrand\": scale unit-stdv Gaussian noise by 2nd value "
-             "and add to first value"
+             "and add to first value\n "
              "\b\bo \"rrand\": sample Rician distribution with 1st value "
              "for \"true\" mean, and 2nd value for sigma",
              NULL, nrrdBinaryOp);
