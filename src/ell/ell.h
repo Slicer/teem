@@ -104,6 +104,7 @@ ELL_EXPORT void ell_4m_print_d(FILE *f, const double s[16]);
 ELL_EXPORT void ell_4v_print_d(FILE *f, const double s[4]);
 
 /* vecEll.c */
+ELL_EXPORT void ell_4v_norm_f(float bv[4], const float av[4]);
 ELL_EXPORT void ell_3v_perp_f(float p[3], const float v[3]);
 ELL_EXPORT void ell_3v_perp_d(double p[3], const double v[3]);
 ELL_EXPORT void ell_3mv_mul_f(float v2[3],

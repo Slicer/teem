@@ -23,6 +23,15 @@
 
 #include "ell.h"
 
+void
+ell_4v_norm_f(float bv[4], const float av[4]) {
+  float len;
+
+  len = AIR_CAST(float, ELL_4V_LEN(av));
+  ELL_4V_SCALE(bv, 1.0f/len, av);
+  return;
+}
+
 #define PERP \
   idx = 0; \
   if (b[0]*b[0] < b[1]*b[1]) \
