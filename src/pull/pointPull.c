@@ -432,10 +432,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
                  task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
         }
         /*
-          if (81 == point->idtag) {
+        if (81 == point->idtag) {
           printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
-          point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-          }
+                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+        }
         */
         gret = gageStackProbeSpace(task->vol[ii]->gctx,
                                    point->pos[0], point->pos[1],
@@ -1014,6 +1014,9 @@ _pullPointSetup(pullContext *pctx) {
       biffAddf(PULL, "%s: zero points: seeding failed", me);
     }
     airMopError(mop); return 1;
+  }
+  if (pctx->verbose) {
+    fprintf(stderr, "%s: initialized to %u points\n", me, pn);
   }
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));

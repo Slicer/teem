@@ -454,7 +454,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
                  /* output */
                  double egradSum[4]) {
   static const char me[]="_energyFromImage";
-  double energy, grad3[3];
+  double energy, grad3[3], gamma;
   int probed;
 
   /* not sure I have the logic for this right 
@@ -480,6 +480,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
     probed = AIR_TRUE; \
   }
 
+  gamma = task->pctx->sysParm.gamma;
   energy = 0;
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
@@ -493,7 +494,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       enr = _pullPointScalar(task->pctx, point, pullInfoStrength,
                              NULL, NULL);
-      energy += task->pctx->sysParm.gamma*enr;
+      energy += -gamma*enr;
     } else {
       /* need strength and its gradient */
       /* randomize choice between forward and backward difference */
@@ -508,8 +509,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
                               NULL, NULL);
-      energy += task->pctx->sysParm.gamma*str0;
-      egradSum[3] += task->pctx->sysParm.gamma*(str1 - str0)/(scl1 - scl0);
+      energy += -task->pctx->sysParm.gamma*str0;
+      egradSum[3] += -task->pctx->sysParm.gamma*(str1 - str0)/(scl1 - scl0);
       /*
       if (4819 == point->idtag || 4828 == point->idtag) {
         printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
@@ -838,7 +839,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
           /* The hail Mary pass missed too; something is really odd.
              This can happen when the previous iteration did a sloppy job
              enforcing the constraint, so before we move on, we enforce
-             it, twice for good measure so that things may be better next
+             it, twice for good measure, so that things may be better next
              time around */
           if (task->pctx->constraint) {
             if (_pullConstraintSatisfy(task, point, &constrFail)
@@ -991,7 +992,7 @@ pullGammaLearn(pullContext *pctx) {
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-      double str[3];
+      double str[3], _ss;
       pointNum++;
       point = bin->point[pointIdx];
       point->pos[3] += deltaScale;
@@ -1006,7 +1007,12 @@ pullGammaLearn(pullContext *pctx) {
       _pullProbe(task, point);
       str[1] = _pullPointScalar(task->pctx, point, pullInfoStrength,
                                 NULL, NULL);
-      strdd = (str[0] - 2*str[1] + str[2])/(deltaScale*deltaScale);
+      _ss = (str[0] - 2*str[1] + str[2])/(deltaScale*deltaScale);
+      /*
+      printf("!%s: strdd = %g (%g %g %g)\n", me, _ss, 
+             str[0], str[1], str[2]);
+      */
+      strdd += _ss;
     }
   }
   if (!pointNum) {
@@ -1015,12 +1021,18 @@ pullGammaLearn(pullContext *pctx) {
   }
   strdd /= pointNum;
 
-  /* want to satisfy strdd = str''(s) = enr''(s) = gamma*2/(radiusScale)^2
-     ==> strdd*(radiusScale)^2/2 = gamma */
-  /* pctx->gamma = (strdd*(pctx->sysParm.radiusScale)
-                   *(pctx->sysParm.radiusScale)/2;) */
+  /* want to satisfy str''(s) = enr''(s)
+   *        ==> -gamma*strdd = 2*beta/(radiusScale)^2
+   *               ==> gamma = -2*beta/(strdd*(radiusScale)^2) 
+   *               ~~> gamma = -2/(strdd*(radiusScale)^2) 
+   * NOTE: The difference from what is in the paper is a factor of 2,
+   * and the use of a weighted average of the strength second derivative
+   * (weigthed by the strength), instead of plain average */
   scl = pctx->sysParm.radiusScale;
-  pctx->sysParm.gamma = 2/(strdd*scl*scl);
+  pctx->sysParm.gamma = -2/(strdd*scl*scl);
+  if (pctx->verbose) {
+    printf("%s: learned gamma %g\n", me, pctx->sysParm.gamma);
+  }
 
   return 0;
 }

@@ -167,6 +167,7 @@ _pullContextCheck(pullContext *pctx) {
   static const char me[]="_pullContextCheck";
   unsigned int ii;
   int gotIspec, gotConstr;
+  const pullInfoSpec *lthr, *strn;
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -297,14 +298,20 @@ _pullContextCheck(pullContext *pctx) {
       return 1;
     }
   }
-  if (pullInitMethodPointPerVoxel == pctx->initParm.method) {
-    if (!( pctx->ispec[pullInfoSeedThresh] )) {
-      biffAddf(PULL, "%s: sorry, need %s info set to use pointPerVoxel",
-               me, airEnumStr(pullInfo, pullInfoSeedThresh));
-      return 1;
-    }
+  if ((lthr = pctx->ispec[pullInfoLiveThresh])
+      && (strn = pctx->ispec[pullInfoStrength])
+      && lthr->volIdx == strn->volIdx
+      && lthr->item == strn->item
+      && lthr->scale*strn->scale < 0) {
+    biffAddf(PULL, "%s: %s and %s refer to same item (%s in %s), but have "
+             "scaling factors with different signs (%g and %g); really?", me,
+             airEnumStr(pullInfo, pullInfoLiveThresh),
+             airEnumStr(pullInfo, pullInfoStrength), 
+             airEnumStr(pctx->vol[lthr->volIdx]->kind->enm, lthr->item),
+             lthr->volName, lthr->scale, strn->scale);
+    return 1;
   }
-  
+
   return 0;
 }
 
