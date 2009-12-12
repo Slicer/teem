@@ -332,7 +332,7 @@ main(int argc, char *argv[]) {
              "to query at a single point, then do epsilon offset probes "
              "to calculate discrete differences, to find the numerical "
              "gradient and hessian (for debugging)");
-  hestOptAdd(&hopt, "psi", "p", airTypeBool, 1, 1, &probeSpaceIndex, "true",
+  hestOptAdd(&hopt, "psi", "p", airTypeBool, 1, 1, &probeSpaceIndex, "false",
              "whether the probe location specification (by any of "
              "the four previous flags) are in index space");
 
@@ -543,8 +543,9 @@ main(int argc, char *argv[]) {
 
   if (_npos) {
     /* given a nrrd of probe locations */
-    double *pos;
+    double *pos, (*ins)(void *v, size_t I, double d);
     size_t II, NN;
+    unsigned int aidx;
     if (!(2 == _npos->dim
           && (3 == _npos->axis[0].size || 4 == _npos->axis[0].size))) {
       fprintf(stderr, "%s: need npos 2-D 3-by-N or 4-by-N "
@@ -559,18 +560,59 @@ main(int argc, char *argv[]) {
               numSS ? "are" : "are not");
       airMopError(mop); return 1;
     }
+    NN = _npos->axis[1].size;
     npos = nrrdNew();
     airMopAdd(mop, npos, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
-    if (nrrdConvert(npos, _npos, nrrdTypeDouble)) {
+    nout = nrrdNew();
+    airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
+    if (nrrdConvert(npos, _npos, nrrdTypeDouble)
+        || nrrdMaybeAlloc_va(nout, otype, 2, 
+                             AIR_CAST(size_t, ansLen),
+                             AIR_CAST(size_t, NN))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble converting npos:\n%s\n", me, err);
+      fprintf(stderr, "%s: trouble with npos or nout:\n%s\n", me, err);
       airMopError(mop); return 1;
     }
+
     pos = AIR_CAST(double *, npos->data);
-    NN = _npos->axis[1].size;
+    ins = nrrdDInsert[nout->type];
     for (II=0; II<NN; II++) {
-      fprintf(stderr, "%s: sorry, not yet implemented\n", me);
+      if (numSS) {
+        gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
+                            probeSpaceIndex, AIR_TRUE);
+      } else {
+        gageProbeSpace(ctx, pos[0], pos[1], pos[2],
+                       probeSpaceIndex, AIR_TRUE);
+      }
+      if (1 == ansLen) {
+        ins(nout->data, II, *answer);
+      } else {
+        for (aidx=0; aidx<ansLen; aidx++) {
+          ins(nout->data, aidx + ansLen*II, answer[aidx]);
+        }
+      }
+      /*
+      if (numSS) {
+        printf("%s: %s(%s:%g,%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+               probeSpaceIndex ? "index" : "world",
+               pos[0], pos[1], pos[2], pos[3]);
+      } else {
+        printf("%s: %s(%s:%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
+               probeSpaceIndex ? "index" : "world",
+               pos[0], pos[1], pos[2]);
+      }
+      printans(stdout, answer, ansLen);
+      printf("\n");
+      */
+      pos += _npos->axis[0].size;
     }
+    if (nrrdSave(outS, nout, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
+    }
+
     /* we're done, get out of here */
     airMopOkay(mop);
     exit(0);
