@@ -132,7 +132,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
 void 
 ell_q_to_3m_f(float m[9], const float q[4]) {
   float u[4], w, x, y, z;
-  w = AIR_CAST(float, ELL_3V_LEN(q));
+  w = AIR_CAST(float, ELL_4V_LEN(q));
   ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_3M(float);
 }
