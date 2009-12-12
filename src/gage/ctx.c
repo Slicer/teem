@@ -810,6 +810,11 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       }
       si = AIR_AFFINE(ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
                       sidx, sidx+1);
+      if (ctx->verbose > 3) {
+        fprintf(stderr, "%s: si = affine(%g, %g, %g  -> %u %u) = %g\n", me,
+                ctx->stackPos[sidx], ss, ctx->stackPos[sidx+1],
+                sidx, sidx+1, si);
+      }
     } else {
       si = 0;
     }

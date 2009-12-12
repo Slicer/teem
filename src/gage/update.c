@@ -419,6 +419,13 @@ gageUpdate(gageContext *ctx) {
     }
   }
 
+  if (ctx->verbose > 3 && ctx->stackPos) {
+    fprintf(stderr, "%s: pvlNum = %u -> stack of %u [0,%u]\n", me, 
+            ctx->pvlNum, ctx->pvlNum-1, ctx->pvlNum-2);
+    for (pi=0; pi<ctx->pvlNum-1; pi++) {
+      fprintf(stderr, "%s: stackPos[%u] = %g\n", me, pi, ctx->stackPos[pi]);
+    }    
+  }
   if (ctx->verbose) fprintf(stderr, "%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
   
   return 0;
