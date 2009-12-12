@@ -26,6 +26,19 @@
 
 int tenVerbose = 0;
 
+void
+tenRotateSingle_f(float tenOut[7], const float rot[9], const float tenIn[7]) {
+  float rotT[9], matIn[9], tmp[9], matOut[9];
+
+  ELL_3M_TRANSPOSE(rotT, rot);
+  TEN_T2M(matIn, tenIn);
+  ELL_3M_MUL(tmp, matIn, rotT);
+  ELL_3M_MUL(matOut, rot, tmp);
+  TEN_M2T(tenOut, matOut);
+  tenOut[0] = tenIn[0];
+  return;
+}
+
 /*
 ******** tenTensorCheck()
 **
