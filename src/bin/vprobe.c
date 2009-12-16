@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
   int what, E=0, renorm, SSuniform, SSoptim, verbose,
-    orientationFromSpacing;
+    orientationFromSpacing, SSnormd;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
   Nrrd *nin, *nout, **ninSS=NULL;
@@ -161,6 +161,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &SSoptim, NULL,
              "if not using \"-ssu\", use pre-computed optimal "
              "sigmas when possible");
+  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &SSnormd, NULL,
+             "normalize derivatives by scale");
 
   hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
              "renormalize kernel weights at each new sample location. "
@@ -314,7 +316,7 @@ main(int argc, char *argv[]) {
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    /* HEY: possible set gageParmStackNormalizeRecon ? */
+    gageParmSet(ctx, gageParmStackNormalizeDeriv, SSnormd);
     if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
                                     calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
