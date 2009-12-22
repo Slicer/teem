@@ -352,6 +352,10 @@ _tenGageStr[] = {
   "ca1 hessian evec 0",
   "ca1 hessian evec 1",
   "ca1 hessian evec 2",
+
+  "fiber curving index",
+  "fiber dispersion index",
+
   "anisotropies"
 };
 
@@ -549,6 +553,8 @@ _tenGageDesc[] = {
   "ca1 hessian evec 0",
   "ca1 hessian evec 1",
   "ca1 hessian evec 2",
+  "fiber curving",
+  "fiber dispersion",
   "anisotropies"
 };
 
@@ -744,6 +750,8 @@ _tenGageVal[] = {
   tenGageCa1HessianEvec0,  /* First Hessian eigenvector of cp1: [3] */
   tenGageCa1HessianEvec1,  /* Second Hessian eigenvector of cp1: [3] */
   tenGageCa1HessianEvec2,   /* Third Hessian eigenvector of cp1: [3] */
+  tenGageFiberCurving,
+  tenGageFiberDispersion,
   tenGageAniso,
 };
 
@@ -943,6 +951,10 @@ _tenGageStrEqv[] = {
   "ca1hessevec1",
   "ca1hessevec2",
   "ca1hessevec3",
+
+  "fcurv", "fibcurv", "fiber curving",
+  "fdisp", "fibdisp", "fiber dispersion",
+
   "an", "aniso", "anisotropies",
   ""
 };
@@ -1148,6 +1160,10 @@ _tenGageValEqv[] = {
   tenGageCa1HessianEvec0,
   tenGageCa1HessianEvec1,
   tenGageCa1HessianEvec2,
+
+  tenGageFiberCurving, tenGageFiberCurving, tenGageFiberCurving,
+  tenGageFiberDispersion, tenGageFiberDispersion, tenGageFiberDispersion,
+
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 

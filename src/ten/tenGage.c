@@ -254,18 +254,20 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageCp1HessianEval1,  1,  2,  {tenGageCp1HessianEval},                            tenGageCp1HessianEval,        1,     AIR_FALSE},
   {tenGageCp1HessianEval2,  1,  2,  {tenGageCp1HessianEval},                            tenGageCp1HessianEval,        2,     AIR_FALSE},
   {tenGageCp1HessianEvec,   9,  2, {tenGageCp1Hessian}, 0, 0, AIR_FALSE },
-  {tenGageCp1HessianEvec0,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        0,     AIR_FALSE},
-  {tenGageCp1HessianEvec1,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        3,     AIR_FALSE},
-  {tenGageCp1HessianEvec2,          3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        6,     AIR_FALSE},
-  {tenGageCa1Hessian,	9,  2, {tenGageTensorGradRotE, tenGageEvalHessian}, 0, 0, AIR_FALSE },
+  {tenGageCp1HessianEvec0,  3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        0,     AIR_FALSE},
+  {tenGageCp1HessianEvec1,  3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        3,     AIR_FALSE},
+  {tenGageCp1HessianEvec2,  3,  2,  {tenGageCp1HessianEvec},                            tenGageCp1HessianEvec,        6,     AIR_FALSE},
+  {tenGageCa1Hessian,	    9,  2, {tenGageTensorGradRotE, tenGageEvalHessian}, 0, 0, AIR_FALSE },
   {tenGageCa1HessianEval,   3,  2, {tenGageCa1Hessian}, 0, 0, AIR_FALSE },
   {tenGageCa1HessianEval0,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        0,     AIR_FALSE},
   {tenGageCa1HessianEval1,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        1,     AIR_FALSE},
   {tenGageCa1HessianEval2,  1,  2,  {tenGageCa1HessianEval},                            tenGageCa1HessianEval,        2,     AIR_FALSE},
   {tenGageCa1HessianEvec,   9,  2, {tenGageCa1Hessian}, 0, 0, AIR_FALSE },
-  {tenGageCa1HessianEvec0,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        0,     AIR_FALSE},
-  {tenGageCa1HessianEvec1,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        3,     AIR_FALSE},
-  {tenGageCa1HessianEvec2,          3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        6,     AIR_FALSE},
+  {tenGageCa1HessianEvec0,  3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        0,     AIR_FALSE},
+  {tenGageCa1HessianEvec1,  3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        3,     AIR_FALSE},
+  {tenGageCa1HessianEvec2,  3,  2,  {tenGageCa1HessianEvec},                            tenGageCa1HessianEvec,        6,     AIR_FALSE},
+  {tenGageFiberCurving,     1,  1, {tenGageRotTans, tenGageEvec}, 0, 0, AIR_FALSE },
+  {tenGageFiberDispersion,  1,  1, {tenGageRotTans, tenGageEvec}, 0, 0, AIR_FALSE },
   {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
@@ -1456,13 +1458,6 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     }
   }
 
-  /* --- Aniso --- */
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
-    for (ci=tenAnisoUnknown+1; ci<=TEN_ANISO_MAX; ci++) {
-      pvl->directAnswer[tenGageAniso][ci] = tenAnisoEval_d(evalAns, ci);
-    }
-  }
-
   /* --- cl/cp/ca gradients --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCl1GradVec)) {
     vecTmp = pvl->directAnswer[tenGageCl1GradVec];
@@ -1941,6 +1936,31 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageCa1HessianEval)) {
     ell_3m_eigenvalues_d(pvl->directAnswer[tenGageCa1HessianEval],
 			 pvl->directAnswer[tenGageCa1Hessian], AIR_TRUE);
+  }
+
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFiberCurving)
+      || GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFiberDispersion)) {
+    double rtout[7], evout[7];
+    TEN_T3V_OUTER(rtout, pvl->directAnswer[tenGageRotTans] + 1*3);
+    TEN_T3V_OUTER_INCR(rtout, pvl->directAnswer[tenGageRotTans] + 2*3);
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFiberCurving)) {
+      TEN_T3V_OUTER(evout, pvl->directAnswer[tenGageEvec0]);
+      pvl->directAnswer[tenGageFiberCurving][0] = TEN_T_DOT(rtout, evout);
+      /* pvl->directAnswer[tenGageFiberCurving][0] *= 100000; */
+    }
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFiberDispersion)) {
+      TEN_T3V_OUTER(evout, pvl->directAnswer[tenGageEvec1]);
+      TEN_T3V_OUTER_INCR(evout, pvl->directAnswer[tenGageEvec2]);
+      pvl->directAnswer[tenGageFiberDispersion][0] = TEN_T_DOT(rtout, evout);
+      /* pvl->directAnswer[tenGageFiberDispersion][0] *= 100000; */
+    }
+  }
+
+  /* --- Aniso --- */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageAniso)) {
+    for (ci=tenAnisoUnknown+1; ci<=TEN_ANISO_MAX; ci++) {
+      pvl->directAnswer[tenGageAniso][ci] = tenAnisoEval_d(evalAns, ci);
+    }
   }
 
   return;

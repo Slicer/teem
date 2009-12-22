@@ -477,11 +477,12 @@ enum {
   tenGageCa1HessianEvec0,/* 187: "ca1hessevec1" First Hess evec of ca1: [3] */
   tenGageCa1HessianEvec1,/* 188: "ca1hessevec2" Second Hess evec of ca1: [3] */
   tenGageCa1HessianEvec2,/* 189: "ca1hessevec3" Third Hess evec of ca1: [3] */
-
-  tenGageAniso,          /* 190: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageFiberCurving,   /* 190: "fibcurv" Savadjiev et al. fiber curving */
+  tenGageFiberDispersion,/* 191: "fibdisp" Savadjiev et al. fiber dispersion */
+  tenGageAniso,          /* 192: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     190
+#define TEN_GAGE_ITEM_MAX     192
 
 /*
 ******** tenDwiGage* enum
