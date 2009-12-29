@@ -130,10 +130,10 @@ gamma = 0
 ## way of getting arguments that allows for checking whether
 ## there were any bogus options
 def a(args, a, default=None):
-    if default:
-        ret = args.get(a, default)
-    else:
+    if default is None:
         ret = args.get(a)
+    else:
+        ret = args.get(a, default)
     if a in args:
         del args[a]
     return ret
@@ -157,7 +157,7 @@ def run(nposOut, **args):
     verbose = a(args, 'verbose', 1)
     rngSeed = a(args, 'rngSeed', 42)
     nave = a(args, 'nave', True)
-    cbstr = a(args, 'cbstr', True)
+    cbst = a(args, 'cbst', True)
     ratb = a(args, 'ratb', True)
     lti = a(args, 'lti', False)
     npcwza = a(args, 'npcwza', False)
@@ -199,7 +199,7 @@ def run(nposOut, **args):
         teem.pullRngSeedSet(pctx, rngSeed) or
         teem.pullFlagSet(pctx, teem.pullFlagNixAtVolumeEdgeSpace, nave) or
         teem.pullFlagSet(pctx, teem.pullFlagConstraintBeforeSeedThresh, 
-                         cbstr) or
+                         cbst) or
         teem.pullFlagSet(pctx, teem.pullFlagEnergyFromStrength, efs) or
         teem.pullFlagSet(pctx, teem.pullFlagRestrictiveAddToBins, ratb) or
         teem.pullFlagSet(pctx, teem.pullFlagNoPopCntlWithZeroAlpha, npcwza) or
