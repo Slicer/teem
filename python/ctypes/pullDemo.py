@@ -166,6 +166,7 @@ def run(nposOut, **args):
     eip = args.get('eip', 0.00005)
     edmin = args.get('edmin', 0.00001)
     edpcmin = args.get('edpcmin', 0.01)
+    maxci = args.get('maxci', 15)
 
     # create pullContext and set up all its state.  Its kind of silly that
     # the pullContext is created anew everytime we want to run it, but thats
@@ -185,6 +186,7 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagNoPopCntlWithZeroAlpha, npcwza) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
         teem.pullIterParmSet(pctx, teem.pullIterParmSnap, snap) or
+        teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
         teem.pullIterParmSet(pctx, teem.pullIterParmPopCntlPeriod, pcp) or
         teem.pullSysParmSet(pctx, teem.pullSysParmStepInitial, stepInitial) or
         teem.pullSysParmSet(pctx, teem.pullSysParmRadiusSpace, radSpace) or
