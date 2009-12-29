@@ -282,6 +282,7 @@ def run(nposOut, **args):
             print "problem learning gamma:\n%s" % estr
             sys.exit(1)
         gamma = pctx.contents.sysParm.gamma
+        print "pullGammaLearn returned", gamma
 
     teem.nrrdKernelSpecNix(k00)
     teem.nrrdKernelSpecNix(k11)
