@@ -24,11 +24,14 @@
 
 '''
 This is really hastily written, and doesn't conform in the least
-to good conventions of Python coding. None of the "API" here, such as
-it is, should be expected to survive in a future Teem version. The
-code here is mainly to serve as a demo of using the pull library in Teem
-(whose API should be largely stable), and to simplify documenting
-using pull to produce typical results.
+to good conventions of Python coding. The worst part is using exit()
+instead of raising exceptions when tings go wrong. 
+
+None of this "API" (to this python interface to the pull library), 
+should be expected to survive in a future Teem version. The code here is
+mainly to serve as a demo of using the pull library in Teem
+(whose API should be quite stable), and to simplify documenting using
+pull to produce typical results.
 '''
 
 import teem
@@ -124,6 +127,17 @@ def initSet(pctx, info):
 ## place for storing pullContext->sysParm.gamma
 gamma = 0
 
+## way of getting arguments that allows for checking whether
+## there were any bogus options
+def a(args, a, default=None):
+    if default:
+        ret = args.get(a, default)
+    else:
+        ret = args.get(a)
+    if a in args:
+        del args[a]
+    return ret
+
 ##
 ## All the set-up and commands that are required to do a pullContext run
 ##
@@ -134,39 +148,44 @@ def run(nposOut, **args):
         sys.exit(1)
         
     # learn args, with defaults
-    vol = args.get('vol')
-    infoStr = args.get('info')
-    efs = args.get('efs')
-    init = args.get('init', [teem.pullInitMethodRandom, 100])
-    energyDict = args.get('energy', {'type':teem.pullInterTypeJustR, 
-                                     'r':'cwell:0.6,-0.002'})
-    verbose = args.get('verbose', 1)
-    rngSeed = args.get('rngSeed', 42)
-    nave = args.get('nave', True)
-    cbstr = args.get('cbstr', True)
-    ratb = args.get('ratb', True)
-    lti = args.get('lti', False)
-    npcwza = args.get('npcwza', False)
-    iterMax = args.get('iterMax', 100)
-    snap = args.get('snap', 0)
-    pcp = args.get('pcp', 5)
-    radSpace = args.get('radSpace', 1)
-    radScale = args.get('radScale', 1)
-    alpha = args.get('alpha', 0.5)
-    beta = args.get('beta', 0.5)
-    gamma = args.get('gamma', 1)
-    stepInitial = args.get('step', 1)
-    ssBack = args.get('ssBack', 0.2)
-    ssOppor = args.get('ssOppor', 1.1)
-    pbm = args.get('pbm', 50)
-    k00Str = args.get('k00', 'c4h')
-    k11Str = args.get('k11', 'c4hd')
-    k22Str = args.get('k22', 'c4hdd')
-    kSSreconStr = args.get('kSSrecon', 'hermite')
-    eip = args.get('eip', 0.00005)
-    edmin = args.get('edmin', 0.00001)
-    edpcmin = args.get('edpcmin', 0.01)
-    maxci = args.get('maxci', 15)
+    vol = a(args, 'vol')
+    infoStr = a(args, 'info')
+    efs = a(args, 'efs')
+    init = a(args, 'init', [teem.pullInitMethodRandom, 100])
+    energyDict = a(args, 'energy', {'type':teem.pullInterTypeJustR, 
+                                    'r':'cwell:0.6,-0.002'})
+    verbose = a(args, 'verbose', 1)
+    rngSeed = a(args, 'rngSeed', 42)
+    nave = a(args, 'nave', True)
+    cbstr = a(args, 'cbstr', True)
+    ratb = a(args, 'ratb', True)
+    lti = a(args, 'lti', False)
+    npcwza = a(args, 'npcwza', False)
+    iterMax = a(args, 'iterMax', 100)
+    snap = a(args, 'snap', 0)
+    pcp = a(args, 'pcp', 5)
+    radSpace = a(args, 'radSpace', 1)
+    radScale = a(args, 'radScale', 1)
+    alpha = a(args, 'alpha', 0.5)
+    beta = a(args, 'beta', 0.5)
+    gamma = a(args, 'gamma', 1)
+    stepInitial = a(args, 'step', 1)
+    ssBack = a(args, 'ssBack', 0.2)
+    ssOppor = a(args, 'ssOppor', 1.1)
+    pbm = a(args, 'pbm', 50)
+    k00Str = a(args, 'k00', 'c4h')
+    k11Str = a(args, 'k11', 'c4hd')
+    k22Str = a(args, 'k22', 'c4hdd')
+    kSSreconStr = a(args, 'kSSrecon', 'hermite')
+    eip = a(args, 'eip', 0.00005)
+    edmin = a(args, 'edmin', 0.00001)
+    edpcmin = a(args, 'edpcmin', 0.01)
+    maxci = a(args, 'maxci', 15)
+    if args:
+        print
+        print "sorry, got unrecognized arguments:"
+        print args
+        sys.exit(1)
 
     # create pullContext and set up all its state.  Its kind of silly that
     # the pullContext is created anew everytime we want to run it, but thats
