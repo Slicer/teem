@@ -27,11 +27,14 @@ This is really hastily written, and doesn't conform in the least
 to good conventions of Python coding. The worst part is using exit()
 instead of raising exceptions when tings go wrong. 
 
-None of this "API" (to this python interface to the pull library), 
-should be expected to survive in a future Teem version. The code here is
-mainly to serve as a demo of using the pull library in Teem
-(whose API should be quite stable), and to simplify documenting using
-pull to produce typical results.
+The "API" here (this python interface to the pull library) is not well
+thought-out, and won't be helpful for integrating particles in other
+applications.  Better designed interfaces should come in the future,
+as more and more of Teem develops idiomatic python interfaces.
+
+The code here is mainly to serve as a demo of using the pull library
+in Teem (whose API should be quite stable), and to simplify
+documenting using pull to produce typical results.
 '''
 
 import teem
