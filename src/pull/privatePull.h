@@ -35,13 +35,13 @@ extern "C" {
 /* this has to be big enough to do experiments where binning is turned off */
 #define _PULL_NEIGH_MAXNUM 4096
 
-/* used by pullBinsPointMaybeAdd; don't add a point of its (normalized)
+/* used by pullBinsPointMaybeAdd; don't add a point if its (normalized)
    distance to an existing point is less than this */
-#define _PULL_BINNING_MAYBE_ADD_THRESH 0.15
+#define _PULL_BINNING_MAYBE_ADD_THRESH 0.1
 
 /* don't nix a point if this (or greater) fraction of its neighbors
    have already been nixed */
-#define _PULL_FRAC_NIXED_THRESH 0.4
+#define _PULL_FRAC_NIXED_THRESH 0.3
 
 /* only try adding a point if the normalized neighbor offset sum is 
    greater than this (making this too small only wastes time, by descending
@@ -83,11 +83,12 @@ extern "C" {
 #define _PULL_PROGRESS_POINT_NUM_MIN 100
 
 /* limit on number of times we allow random (non-ppv) seeding to fail */
-#define _PULL_RANDOM_SEED_TRY_MAX 2000
+#define _PULL_RANDOM_SEED_TRY_MAX 4000
 
 /* initPull.c */
 extern void _pullInitParmInit(pullInitParm *initParm);
 extern int _pullInitParmCheck(pullInitParm *iparm);
+extern FILE *_pullPointAddLog;
 
 /* parmPull.c */
 extern void _pullIterParmInit(pullIterParm *iterParm);
@@ -131,8 +132,8 @@ extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
                                     double force[4]);
 extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
                                     pullPoint *point, int ignoreImage);
-extern double _pullEnergyInterParticle(pullTask *task,
-                                       pullPoint *me, pullPoint *she, 
+extern double _pullEnergyInterParticle(pullContext *pctx,
+                                       pullPoint *me, pullPoint *she,
                                        double spaceDist, double scaleDist,
                                        double egrad[4]);
 
