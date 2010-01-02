@@ -109,6 +109,8 @@ pullCCFind(pullContext *pctx) {
 **
 ** measrInfo can be 0 to say "measure # particles in CC", or
 ** it can be a scalar pullInfo
+**
+** rho == 0: only size, rho == 1: only measrInfo
 */
 int
 pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
