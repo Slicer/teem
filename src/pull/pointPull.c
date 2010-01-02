@@ -785,7 +785,11 @@ _pullPointInitializePos(pullContext *pctx,
     return 1;
   }
   reject = AIR_FALSE;
-  if (pctx->initParm.liveThreshUse) {
+  if (pctx->flag.nixAtVolumeEdgeSpace
+      && (point->status & PULL_STATUS_EDGE_BIT)) {
+    reject = AIR_TRUE;
+  }
+  if (!reject && pctx->initParm.liveThreshUse) {
     if (!reject && pctx->ispec[pullInfoLiveThresh]) {
       seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
                                NULL, NULL);
