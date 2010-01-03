@@ -202,7 +202,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     diff[3] /= task->pctx->sysParm.radiusScale;
     if (ELL_4V_LEN(diff) > _PULL_NEWPNT_STRAY_DIST) {
       if (task->pctx->verbose > 2) {
-        printf("%s: newpnt %u went to far %g from old point %u; nope\n",
+        printf("%s: newpnt %u went too far %g from old point %u; nope\n",
                me, newpnt->idtag, ELL_4V_LEN(diff), point->idtag);
       }
       newpnt = pullPointNix(newpnt);
@@ -258,6 +258,14 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   if (enrWith <= enrWithout + task->pctx->sysParm.energyIncreasePermit) {
     /* energy is lower (or the same) *with* newpnt, so we keep it, which
        means keeping it in the add queue where it already is */
+    if (_pullPointAddLog) {
+      double posdiff[4];
+      ELL_4V_SUB(posdiff, newpnt->pos, point->pos);
+      fprintf(_pullPointAddLog, "%u %g %g %g %g %g %g\n", newpnt->idtag,
+              ELL_3V_LEN(posdiff)/task->pctx->sysParm.radiusSpace,
+              AIR_ABS(posdiff[3])/task->pctx->sysParm.radiusScale,
+              newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
+    }
   } else {
     /* its not good to add the point, remove it from the add queue */
     airArrayLenIncr(task->addPointArr, -1);
