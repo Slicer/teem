@@ -252,11 +252,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   task->processMode = pullProcessModeAdding;
   enrWith = (_pullEnergyFromPoints(task, bin, newpnt, NULL)
              + _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed));
-  newpnt->status |= PULL_STATUS_NIXME_BIT;
+  newpnt->status |= PULL_STATUS_NIXME_BIT;  /* turn nixme on */
   enrWithout = _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed);
-  newpnt->status &= ~PULL_STATUS_NIXME_BIT;
-  if (enrWith <= enrWithout + task->pctx->sysParm.energyIncreasePermit) {
-    /* energy is lower (or the same) *with* newpnt, so we keep it, which
+  newpnt->status &= ~PULL_STATUS_NIXME_BIT; /* turn nixme off */
+  if (enrWith < enrWithout) {
+    /* energy is clearly lower *with* newpnt, so we want to add it, which
        means keeping it in the add queue where it already is */
     if (_pullPointAddLog) {
       double posdiff[4];
@@ -267,7 +267,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
               newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
     }
   } else {
-    /* its not good to add the point, remove it from the add queue */
+    /* adding point is not an improvement, remove it from the add queue */
     airArrayLenIncr(task->addPointArr, -1);
     /* ugh, have to signal to neighbors that its no longer their neighbor.
        HEY this is the part that is totally screwed with multiple threads */
@@ -306,14 +306,14 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
      so the energy is a less meaningful description of the neighborhood,
      and so its a bad idea to try to nix this point */
   if (fracNixed < _PULL_FRAC_NIXED_THRESH) {
-    point->status |= PULL_STATUS_NIXME_BIT;
+    point->status |= PULL_STATUS_NIXME_BIT;    /* turn nixme on */
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
-    if (enrWith <= enrWithout + task->pctx->sysParm.energyIncreasePermit) {
+    if (enrWith <= enrWithout) {
       /* Energy isn't distinctly lowered without the point, so keep it;
          turn off nixing.  If enrWith == enrWithout == 0, as happens to
          isolated points, then the difference between "<=" and "<" 
-         keeps them from getting nixed */
-      point->status &= ~PULL_STATUS_NIXME_BIT;
+         keeps the isolated points from getting nixed */
+      point->status &= ~PULL_STATUS_NIXME_BIT; /* turn nixme off */
     } 
     /* else energy is certainly higher with the point, do nix it */
   }
