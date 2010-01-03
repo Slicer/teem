@@ -864,6 +864,9 @@ PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 
 /* actionPull.c */
 PULL_EXPORT const airEnum *const pullProcessMode;
+PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
+                               double xx, double yy, double zz,
+                               unsigned int res);
 PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
 PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 
