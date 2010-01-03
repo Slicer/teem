@@ -452,7 +452,7 @@ pullRun(pullContext *pctx) {
         ELL_3V_SCALE_ADD2(pb->pos, 1.0, pa->pos, r, rdir);
         pb->pos[3] = pa->pos[3] + s;
         /* now points are in desired test positions */
-        enr = _pullEnergyInterParticle(pctx->task[0], pa, pb, 
+        enr = _pullEnergyInterParticle(pctx, pa, pb, 
                                        AIR_ABS(r), AIR_ABS(s), egrad);
         ELL_3V_SET(out + 3*(ri + szimg*si),
                    enr, ELL_3V_DOT(egrad, rdir), egrad[3]);
