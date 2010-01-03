@@ -134,7 +134,7 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point,
 ** the energy at this point, rather than for learning how to move it
 */
 double
-_pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she, 
+_pullEnergyInterParticle(pullContext *pctx, pullPoint *me, pullPoint *she, 
                          double spaceDist, double scaleDist,
                          /* output */
                          double egrad[4]) {
@@ -151,10 +151,10 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
   ELL_4V_SUB(diff, me->pos, she->pos);
   /* computed by caller: spaceDist = ELL_3V_LEN(diff); */
   /* computed by caller: scaleDist = AIR_ABS(diff[3]); */ 
-  spaceRad = task->pctx->sysParm.radiusSpace;
-  scaleRad = task->pctx->sysParm.radiusScale;
+  spaceRad = pctx->sysParm.radiusSpace;
+  scaleRad = pctx->sysParm.radiusScale;
   rr = spaceDist/spaceRad;
-  if (task->pctx->haveScale) {
+  if (pctx->haveScale) {
     ss = scaleDist/scaleRad;
     scaleSgn = airSgn(diff[3]);
   } else {
@@ -177,17 +177,18 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     return 0;
   }
   
-  parmR = task->pctx->energySpecR->parm;
-  evalR = task->pctx->energySpecR->energy->eval;
-  parmS = task->pctx->energySpecS->parm;
-  evalS = task->pctx->energySpecS->energy->eval;
-  switch (task->pctx->interType) {
+  parmR = pctx->energySpecR->parm;
+  evalR = pctx->energySpecR->energy->eval;
+  parmS = pctx->energySpecS->parm;
+  evalS = pctx->energySpecS->energy->eval;
+  switch (pctx->interType) {
   case pullInterTypeJustR:
     /* _pullVolumeSetup makes sure that 
-       !task->pctx->haveScale iff pullInterTypeJustR == pctx->interType */
+       !pctx->haveScale iff pullInterTypeJustR == pctx->interType */
     en = evalR(&denR, rr, parmR);
     if (egrad) {
       denR *= 1.0/(spaceRad*spaceDist);
+      /* HEY: GLK wonders if this diff should be unit-length ?!? */
       ELL_3V_SCALE(egrad, denR, diff);
       egrad[3] = 0;
     }
@@ -211,13 +212,13 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     }
     break;
   case pullInterTypeAdditive:
-    parmW = task->pctx->energySpecWin->parm;
-    evalW = task->pctx->energySpecWin->energy->eval;
+    parmW = pctx->energySpecWin->parm;
+    evalW = pctx->energySpecWin->energy->eval;
     enR = evalR(&denR, rr, parmR);
     enS = evalS(&denS, ss, parmS);
     enWR = evalW(&denWR, rr, parmW);
     enWS = evalW(&denWS, ss, parmW);
-    beta = task->pctx->sysParm.beta;
+    beta = pctx->sysParm.beta;
     en = AIR_LERP(beta, enR*enWS, enS*enWR);
     if (egrad) {
       double egradR[4], egradS[4];
@@ -230,7 +231,7 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
     break;
   default:
     fprintf(stderr, "!%s: sorry, intertype %d unimplemented", meme, 
-            task->pctx->interType);
+            pctx->interType);
     en = AIR_NAN;
     if (egrad) {
       ELL_4V_SET(egrad, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -240,8 +241,8 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
 #if 0
   /*Implementation of Phi_{x-G}(r,s)*/
   double enrs,frcs, enrg, frcg, beta;
-  parm = task->pctx->energySpecR->parm;
-  enr = task->pctx->energySpecR->energy->eval(&frc, rr, parm);
+  parm = pctx->energySpecR->parm;
+  enr = pctx->energySpecR->energy->eval(&frc, rr, parm);
   enrs = pullEnergyGauss->eval(&frcs, rrs, NULL);
   enrg = pullEnergyGauss->eval(&frcg, rr, NULL);
   frc = -1.0 * (beta * frc - (1-beta) * frcg) * enrs * (1.0/(2*sparad));
@@ -260,6 +261,60 @@ _pullEnergyInterParticle(pullTask *task, pullPoint *me, pullPoint *she,
          egrad[0], egrad[1], egrad[2], enr);
   */
   return en;
+}
+
+int
+pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
+               double xx, double yy, double zz,
+               unsigned int res) {
+  static const char meme[]="pullEnergyPlot";
+  pullPoint *me, *she;
+  airArray *mop;
+  double dir[3], len, *plot, _rr, _ss, rr, ss, enr, egrad[4];
+  size_t size[3];
+  unsigned int ri, si;
+  
+  if (!( pctx && nplot )) {
+    biffAddf(PULL, "%s: got NULL pointer", meme);
+    return 1;
+  }
+  ELL_3V_SET(dir, xx, yy, zz);
+  if (!ELL_3V_LEN(dir)) {
+    biffAddf(PULL, "%s: need non-zero length dir", meme);
+    return 1;
+  }
+  ELL_3V_NORM(dir, dir, len);
+  ELL_3V_SET(size, 5, res, res);
+  if (nrrdMaybeAlloc_nva(nplot, nrrdTypeDouble, 3, size)) {
+    biffMovef(PULL, NRRD, "%s: trouble allocating output", meme);
+    return 1;
+  }
+  
+  mop = airMopNew();
+  me = pullPointNew(pctx);
+  she = pullPointNew(pctx);
+  airMopAdd(mop, me, (airMopper)pullPointNix, airMopAlways);
+  airMopAdd(mop, she, (airMopper)pullPointNix, airMopAlways);
+  ELL_4V_SET(me->pos, 0, 0, 0, 0);
+  plot = AIR_CAST(double *, nplot->data);
+  for (si=0; si<res; si++) {
+    _ss = AIR_AFFINE(0, si, res-1, -1.0, 1.0);
+    ss = _ss*pctx->sysParm.radiusScale;
+    for (ri=0; ri<res; ri++) {
+      _rr = AIR_AFFINE(0, ri, res-1, -1.0, 1.0);
+      rr = _rr*pctx->sysParm.radiusSpace;
+      ELL_3V_SCALE(she->pos, rr, dir);
+      she->pos[3] = ss;
+      enr = _pullEnergyInterParticle(pctx, me, she,
+                                     AIR_ABS(rr), AIR_ABS(ss), egrad);
+      plot[0] = enr;
+      ELL_4V_COPY(plot + 1, egrad);
+      plot += 5;
+    }
+  }
+  
+  airMopOkay(mop);
+  return 0;
 }
 
 /*
@@ -395,7 +450,8 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     spaDist = sqrt(spaDistSq);
     /* we pass spaDist to avoid recomputing sqrt(), and sclDist for
        stupid consistency  */
-    enr = _pullEnergyInterParticle(task, point, herPoint, spaDist, sclDist,
+    enr = _pullEnergyInterParticle(task->pctx, point, herPoint,
+                                   spaDist, sclDist,
                                    egradSum ? egrad : NULL);
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
