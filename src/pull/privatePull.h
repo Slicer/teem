@@ -50,7 +50,7 @@ extern "C" {
 
 /* how far to place new points from isolated points (as a fraction of
    radiusSpace), when not using cubic well energy */
-#define _PULL_NEWPNT_DIST 0.5
+#define _PULL_NEWPNT_DIST 0.6
 
 /* scaling factor between point->neighDistMean and distance cap; higher
    values allow for more adventurous explorations... */
@@ -65,7 +65,7 @@ extern "C" {
 
 /* tentative new points aren't allowed to move further than this (in 
    rs-normalized space) from the original old point */
-#define _PULL_NEWPNT_STRAY_DIST 1.7
+#define _PULL_NEWPNT_STRAY_DIST 1.3
 
 /* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
    for discrete differencing needed to find the gradient of strength */
