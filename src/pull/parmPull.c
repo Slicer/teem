@@ -31,6 +31,7 @@ _pullIterParmInit(pullIterParm *iterParm) {
 
   iterParm->max = 0;
   iterParm->popCntlPeriod = 10;
+  iterParm->addDescent = 10;
   iterParm->constraintMax = 15;
   iterParm->stuckMax = 4;
   iterParm->snap = 0;
@@ -46,6 +47,7 @@ _pullSysParmInit(pullSysParm *sysParm) {
   sysParm->wall = 1;
   sysParm->radiusSpace = 1;
   sysParm->radiusScale = 1;
+  sysParm->binWidthSpace = 1.001; /* supersititious */
   sysParm->neighborTrueProb = 1.0;
   sysParm->probeProb = 1.0;
   sysParm->stepInitial = 1;
@@ -63,6 +65,7 @@ _pullFlagInit(pullFlag *flag) {
 
   flag->permuteOnRebin = AIR_FALSE;
   flag->noPopCntlWithZeroAlpha = AIR_FALSE;
+  flag->useBetaForGammaLearn = AIR_FALSE;
   flag->restrictiveAddToBins = AIR_TRUE;
   flag->energyFromStrength = AIR_FALSE;
   flag->nixAtVolumeEdgeSpace = AIR_FALSE;
@@ -109,6 +112,9 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
   case pullIterParmPopCntlPeriod:
     pctx->iterParm.popCntlPeriod = pval;
     break;
+  case pullIterParmAddDescent:
+    pctx->iterParm.addDescent = pval;
+    break;
   case pullIterParmSnap:
     pctx->iterParm.snap = pval;
     break;
@@ -138,6 +144,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(wall, 0.0, 100.0);
   CHECK(radiusSpace, 0.000001, 25.0);
   CHECK(radiusScale, 0.000001, 25.0);
+  CHECK(binWidthSpace, 1.0, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
   if (!( AIR_EXISTS(sysParm->stepInitial)
@@ -186,6 +193,9 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     break;
   case pullSysParmRadiusScale:
     pctx->sysParm.radiusScale = pval;
+    break;
+  case pullSysParmBinWidthSpace:
+    pctx->sysParm.binWidthSpace = pval;
     break;
   case pullSysParmNeighborTrueProb:
     pctx->sysParm.neighborTrueProb = pval;
@@ -244,6 +254,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagNoPopCntlWithZeroAlpha:
     pctx->flag.noPopCntlWithZeroAlpha = flag;
+    break;
+  case pullFlagUseBetaForGammaLearn:
+    pctx->flag.useBetaForGammaLearn = flag;
     break;
   case pullFlagRestrictiveAddToBins:
     pctx->flag.restrictiveAddToBins = flag;

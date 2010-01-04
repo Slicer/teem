@@ -32,6 +32,19 @@
 #include <teem/limn.h>
 #include <teem/ten.h>
 
+/*
+** This library implements the research and methods of:
+**
+** Gordon L. Kindlmann, Ra{\'u}l San Jos{\'e} Est{\'e}par,
+** Stephen M. Smith, Carl-Fredrik Westin.
+** Sampling and Visualizing Creases with Scale-Space Particles.
+** IEEE Trans. on Visualization and Computer Graphics, 
+** 15(6):1415-1424 (2009)
+**
+** Further information and usage examples:
+** http://people.cs.uchicago.edu/~glk/ssp/
+*/
+
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(pull_EXPORTS) || defined(teem_EXPORTS)
 #    define PULL_EXPORT extern __declspec(dllexport)
@@ -50,7 +63,7 @@ extern "C" {
 #define PULL_THREAD_MAXNUM 512
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
-#define PULL_BIN_MAXNUM 128*128*128*30 /* sanity check on max number bins */
+#define PULL_BIN_MAXNUM 20000000 /* sanity check on max number bins */
 #define POINT_NUM_INCR 1024
 
 #define PULL_PHIST 0
@@ -463,6 +476,12 @@ enum {
      or, 0 to say: "no pop cntl" */
   pullIterParmPopCntlPeriod,
 
+  /* how many iterations for which to run descent on tentative new
+     points during population control, so that they end up at a good
+     location, at which we can meaningfully test whether adding the
+     point will reducing system energy */
+  pullIterParmAddDescent,
+
   /* if non-zero, interval between iters at which output snapshots are saved */
   pullIterParmSnap,
   pullIterParmLast
@@ -471,6 +490,7 @@ enum {
 typedef struct {
   unsigned int max,
     popCntlPeriod,
+    addDescent,
     constraintMax,
     stuckMax,
     snap;
@@ -493,8 +513,9 @@ enum {
      alpha = 0: only particle-image; alpha = 1: only inter-particle */
   pullSysParmAlpha,
 
-  /* when using pullInterAdditive inter-particle energy, determine the 
-     balance between spatial repulsion and scale attraction.
+  /* when using pullInterAdditive ("Phi_2") inter-particle energy, beta
+     sets the balance between spatial repulsion and scale attraction.
+     (if not using this energy, this is moot)
      beta = 0: only spatial repulsion; beta = 1: only scale attraction */
   pullSysParmBeta,
 
@@ -511,6 +532,16 @@ enum {
   /* radius/scaling of inter-particle interactions in the scale domain */
   pullSysParmRadiusScale,
 
+  /* spatial width of bin, as multiple of pullSysParmRadiusSpace (the
+     width along scale is set to pullSysParmRadiusScale). Can't be
+     lower than 1, but may need to be greater that 1 in order to not
+     run out of memory just to allocate the bin array.  This is a
+     problem with the current scheme of allocating a fixed array of
+     pre-allocated bins; future schemes may be less memory intensive.
+     The spatial axes are handled differently because there are usually
+     10-100 times more bins along each axis of space than along scale */
+  pullSysParmBinWidthSpace,
+  
   /* probability that we find the true neighbors of the particle, as
      opposed to using a cached list */
   pullSysParmNeighborTrueProb,
@@ -542,7 +573,7 @@ enum {
   /* convergence threshold for constraint satisfaction: finished if
      stepsize goes below this times constraintVoxelSize */
   pullSysParmConstraintStepMin,
-  
+
   /* spring constant on bbox wall */
   pullSysParmWall,
 
@@ -551,7 +582,7 @@ enum {
 
 typedef struct {
   double alpha, beta, gamma, wall,
-    radiusSpace, radiusScale,
+    radiusSpace, radiusScale, binWidthSpace,
     neighborTrueProb, probeProb,
     stepInitial, opporStepScale, backStepScale, constraintStepMin,
     energyDecreaseMin,
@@ -572,11 +603,15 @@ enum {
      order) */
   pullFlagPermuteOnRebin,
 
-  /* when alpha is exactly zero, perhaps with the purpose of migrating
+  /* when alpha is exactly zero, probably with the purpose of migrating
      particles along scale towards the scale of maximal strength while
-     avoiding all inter-particle interaction, don't do any population
+     avoiding all inter-particle interaction, don't try any population
      control */
   pullFlagNoPopCntlWithZeroAlpha,
+
+  /* when learning gamma via Eq. 26 of the paper, also use beta to
+     more accurately reflect the 2nd derivative of energy wrt scale */
+  pullFlagUseBetaForGammaLearn,
 
   /* whether or not to deny adding points to bins where there are
      close points already */
@@ -606,6 +641,7 @@ enum {
 typedef struct {
   int permuteOnRebin,
     noPopCntlWithZeroAlpha,
+    useBetaForGammaLearn,
     restrictiveAddToBins,
     energyFromStrength,
     nixAtVolumeEdgeSpace,

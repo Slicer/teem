@@ -249,16 +249,22 @@ int
 _pullBinSetup(pullContext *pctx) {
   static const char me[]="_pullBinSetup";
   unsigned ii;
-  double volEdge[4], scl;
+  double volEdge[4], width;
 
-  scl = (pctx->sysParm.radiusSpace ? pctx->sysParm.radiusSpace : 0.1);
-  pctx->maxDistSpace = 2*scl;
-  scl = (pctx->sysParm.radiusScale ? pctx->sysParm.radiusScale : 0.1);
-  pctx->maxDistScale = 2*scl;
+  /* the maximum distance of interaction is when one particle is sitting
+     on the edge of another particle's sphere of influence, *NOT*, when
+     the spheres of influence of two particles are tangent: particles
+     interact with potential fields of other particles, but there is
+     no interaction between potential fields. */
+  width = (pctx->sysParm.radiusSpace ? pctx->sysParm.radiusSpace : 0.1);
+  pctx->maxDistSpace = pctx->sysParm.binWidthSpace*width;
+  width = (pctx->sysParm.radiusScale ? pctx->sysParm.radiusScale : 0.1);
+  pctx->maxDistScale = 1*width;
 
-  printf("!%s: radiusSpace = %g --> maxDistSpace = %g\n", me, 
-         pctx->sysParm.radiusSpace, pctx->maxDistSpace);
-  printf("!%s: radiusScale = %g --> maxDistScale = %g\n", me, 
+  printf("!%s: radiusSpace = %g -(%g)-> maxDistSpace = %g\n", me, 
+         pctx->sysParm.radiusSpace, pctx->sysParm.binWidthSpace,
+         pctx->maxDistSpace);
+  printf("!%s: radiusScale = %g ----> maxDistScale = %g\n", me, 
          pctx->sysParm.radiusScale, pctx->maxDistScale);
 
   if (pctx->flag.binSingle) {
@@ -295,17 +301,19 @@ _pullBinSetup(pullContext *pctx) {
     pctx->binNum = (pctx->binsEdge[0]*pctx->binsEdge[1]
                     *pctx->binsEdge[2]*pctx->binsEdge[3]);
   }
-  printf("!%s: binNum = %u\n", me, pctx->binNum);
   if (pctx->binNum > PULL_BIN_MAXNUM) {
-    biffAddf(PULL, "%s: #bins %u > PULL_BIN_MAXNUM %u, problem?", me,
-             pctx->binNum, PULL_BIN_MAXNUM);
+    biffAddf(PULL, "%s: sorry, #bins %u > PULL_BIN_MAXNUM %u. Try "
+             "increasing pctx->sysParm.binWidthSpace (%g)", me,
+             pctx->binNum, PULL_BIN_MAXNUM, pctx->sysParm.binWidthSpace);
     return 1;
   }
+  printf("!%s: trying to allocate binNum = %u ... \n", me, pctx->binNum);
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
     biffAddf(PULL, "%s: couln't allocate %u bins", me, pctx->binNum);
     return 1;
   }
+  printf("!%s: done.\n", me);
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii, _PULL_BIN_INCR);
   }

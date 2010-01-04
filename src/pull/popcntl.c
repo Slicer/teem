@@ -124,6 +124,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   ELL_4V_NORM(noffavg, noffavg, tmp);
   ELL_3V_SCALE(noffavg, task->pctx->sysParm.radiusSpace, noffavg);
   noffavg[3] *= task->pctx->sysParm.radiusScale;
+  ELL_4V_SCALE(noffavg, _PULL_NEWPNT_DIST, noffavg);
   /* set new point location */
   ELL_4V_ADD2(npos, noffavg, point->pos);
   if (!_pullInsideBBox(task->pctx, npos)) {
@@ -172,7 +173,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
      changing the per-task process mode ... */
   task->processMode = pullProcessModeDescent;
   E = 0;
-  for (iter=0; iter<task->pctx->iterParm.popCntlPeriod; iter++) {
+  for (iter=0; iter<task->pctx->iterParm.addDescent; iter++) {
     double diff[4];
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
                                           AIR_FALSE /* ignoreImage */);

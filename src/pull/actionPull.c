@@ -336,30 +336,29 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                       double egradSum[4]) {
   static const char me[]="_pullEnergyFromPoints";
   double energySum, spaDistSqMax, modeWghtSum;
-  int nopt,     /* optimiziation: we enable the re-use of neighbor lists
-                   between interations, or at system start, creation of
-                   neighbor lists */
+  int nlist,    /* we enable the re-use of neighbor lists between inters, or,
+                   at system start, creation of neighbor lists */
     ntrue;      /* we search all possible neighbors availble in the bins
-                   (either because !nopt, or, this iter we learn true
+                   (either because !nlist, or, this iter we learn true
                    subset of interacting neighbors).  This could also
                    be called "dontreuse" or something like that */
   unsigned int nidx,
     nnum;       /* how much of task->neigh[] we use */
 
-  /* set nopt and ntrue */
+  /* set nlist and ntrue */
   if (pullProcessModeNeighLearn == task->processMode) {
     /* we're here to both learn and store the true interacting neighbors */
-    nopt = AIR_TRUE;
+    nlist = AIR_TRUE;
     ntrue = AIR_TRUE;
   } else if (pullProcessModeAdding == task->processMode
              || pullProcessModeNixing == task->processMode) {
     /* we assume that the work of learning neighbors has already been 
        done, so we can reuse them now */
-    nopt = AIR_TRUE;
+    nlist = AIR_TRUE;
     ntrue = AIR_FALSE;
   } else if (pullProcessModeDescent == task->processMode) {
     if (task->pctx->sysParm.neighborTrueProb < 1) {
-      nopt = AIR_TRUE;
+      nlist = AIR_TRUE;
       if (egradSum) {
         /* We allow the neighbor list optimization only when we're also
            asked to compute the energy gradient, since that's the first
@@ -375,7 +374,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       }
     } else {
       /* never trying neighborhood caching */
-      nopt = AIR_FALSE;
+      nlist = AIR_FALSE;
       ntrue = AIR_TRUE;
     }
   } else {
@@ -384,22 +383,28 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     return AIR_NAN;
   }
 
-  /* NOTE that you can't have both nopt and ntrue be false, specifically,
-     ntrue can be false only when nopt is true */
+  /* NOTE: can't have both nlist and ntrue false. possibilities are:
+  **
+  **                    nlist:
+  **                true     false
+  **         true    X         X
+  ** ntrue:
+  **        false    X
+  */
   /*
-  printf("!%s(%u), nopt = %d, ntrue = %d\n", me, point->idtag,
-         nopt, ntrue);
+  printf("!%s(%u), nlist = %d, ntrue = %d\n", me, point->idtag,
+         nlist, ntrue);
   */
   /* set nnum and task->neigh[] */
   if (ntrue) {
     /* this finds the over-inclusive set of all possible interacting
        points, based on bin membership as well the task's add queue */
     nnum = _neighBinPoints(task, bin, point, 1.0);
-    if (nopt) {
+    if (nlist) {
       airArrayLenSet(point->neighPointArr, 0);
     }
   } else {
-    /* (nopt true) this iter we re-use this point's existing neighbor
+    /* (nlist true) this iter we re-use this point's existing neighbor
        list, copying it into the the task's neighbor list to simulate
        the action of _neighBinPoints() */
     nnum = point->neighPointNum;
@@ -409,7 +414,8 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   }
 
   /* loop through neighbor points */
-  spaDistSqMax = task->pctx->sysParm.radiusSpace*task->pctx->sysParm.radiusSpace;
+  spaDistSqMax = (task->pctx->sysParm.radiusSpace
+                  * task->pctx->sysParm.radiusSpace);
   /*
   printf("%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
          task->pctx->sysParm.radiusSpace, spaDistSqMax);
@@ -458,7 +464,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
          its not just a fluke zero-crossing of the potential profile */
       double nsclDist, nspaDist, ndist, ww;
 
-      if (nopt && ntrue) {
+      if (nlist && ntrue) {
         unsigned int ii;
         /* we have to record that we had an interaction with this point */
         ii = airArrayLenIncr(point->neighPointArr, 1);
@@ -1017,7 +1023,7 @@ pullGammaLearn(pullContext *pctx) {
   pullBin *bin;
   pullPoint *point;
   pullTask *task;
-  double deltaScale, strdd, scl;
+  double deltaScale, strdd, scl, beta;
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -1078,14 +1084,17 @@ pullGammaLearn(pullContext *pctx) {
   strdd /= pointNum;
 
   /* want to satisfy str''(s) = enr''(s)
-   *        ==> -gamma*strdd = 2*beta/(radiusScale)^2
-   *               ==> gamma = -2*beta/(strdd*(radiusScale)^2) 
-   *               ~~> gamma = -2/(strdd*(radiusScale)^2) 
-   * NOTE: The difference from what is in the paper is a factor of 2,
-   * and the use of a weighted average of the strength second derivative
-   * (weigthed by the strength), instead of plain average */
+  **        ==> -gamma*strdd = 2*beta/(radiusScale)^2
+  **               ==> gamma = -2*beta/(strdd*(radiusScale)^2) 
+  **    (beta = 1) ==> gamma = -2/(strdd*(radiusScale)^2) 
+  ** NOTE: The difference from what is in the paper is a factor of 2,
+  ** and the ability to include the influence of beta
+  */
   scl = pctx->sysParm.radiusScale;
-  pctx->sysParm.gamma = -2/(strdd*scl*scl);
+  beta = (pctx->flag.useBetaForGammaLearn
+          ? pctx->sysParm.beta
+          : 1.0);
+  pctx->sysParm.gamma = -2*beta/(strdd*scl*scl);
   if (pctx->verbose) {
     printf("%s: learned gamma %g\n", me, pctx->sysParm.gamma);
   }
