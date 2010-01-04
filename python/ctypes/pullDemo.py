@@ -159,6 +159,7 @@ def run(nposOut, **args):
                                     'r':'cwell:0.6,-0.002'})
     verbose = a(args, 'verbose', 1)
     rngSeed = a(args, 'rngSeed', 42)
+    nobin = a(args, 'nobin', False)
     nave = a(args, 'nave', True)
     cbst = a(args, 'cbst', True)
     ratb = a(args, 'ratb', True)
@@ -167,6 +168,7 @@ def run(nposOut, **args):
     iterMax = a(args, 'iterMax', 100)
     snap = a(args, 'snap', 0)
     pcp = a(args, 'pcp', 5)
+    iad = a(args, 'iad', 10)
     radSpace = a(args, 'radSpace', 1)
     radScale = a(args, 'radScale', 1)
     alpha = a(args, 'alpha', 0.5)
@@ -206,10 +208,12 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagEnergyFromStrength, efs) or
         teem.pullFlagSet(pctx, teem.pullFlagRestrictiveAddToBins, ratb) or
         teem.pullFlagSet(pctx, teem.pullFlagNoPopCntlWithZeroAlpha, npcwza) or
+        teem.pullFlagSet(pctx, teem.pullFlagBinSingle, nobin) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
         teem.pullIterParmSet(pctx, teem.pullIterParmSnap, snap) or
         teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
         teem.pullIterParmSet(pctx, teem.pullIterParmPopCntlPeriod, pcp) or
+        teem.pullIterParmSet(pctx, teem.pullIterParmAddDescent, iad) or
         teem.pullSysParmSet(pctx, teem.pullSysParmStepInitial, stepInitial) or
         teem.pullSysParmSet(pctx, teem.pullSysParmRadiusSpace, radSpace) or
         teem.pullSysParmSet(pctx, teem.pullSysParmRadiusScale, radScale) or
