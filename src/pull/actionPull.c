@@ -284,7 +284,7 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
     return 1;
   }
   ELL_3V_NORM(dir, dir, len);
-  ELL_3V_SET(size, 5, res, res);
+  ELL_3V_SET(size, 3, res, res);
   if (nrrdMaybeAlloc_nva(nplot, nrrdTypeDouble, 3, size)) {
     biffMovef(PULL, NRRD, "%s: trouble allocating output", meme);
     return 1;
@@ -308,8 +308,9 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
       enr = _pullEnergyInterParticle(pctx, me, she,
                                      AIR_ABS(rr), AIR_ABS(ss), egrad);
       plot[0] = enr;
-      ELL_4V_COPY(plot + 1, egrad);
-      plot += 5;
+      plot[1] = ELL_3V_DOT(egrad, dir);
+      plot[2] = egrad[3];
+      plot += 3;
     }
   }
   
@@ -1001,6 +1002,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     pullPoint *point;
     if (task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
         && !task->pctx->flag.binSingle
+        && task->pctx->progressBinMod
         && 0 == myBinIdx % task->pctx->progressBinMod) {
       printf("."); fflush(stdout);
     }
