@@ -184,8 +184,10 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
              AIR_CAST(unsigned int, airStrlen(name)));
     return 1;
   }
-  printf("!%s: vol=%p, name = %p = |%s|\n", me, vol, 
-         vol->name, vol->name);
+  if (vol->verbose) {
+    printf("%s: vol=%p, name = %p = |%s|\n", me, vol, 
+           vol->name, vol->name);
+  }
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);
   nrrdKernelSpecSet(vol->ksp22, ksp22->kernel, ksp22->parm);
@@ -225,8 +227,6 @@ pullVolumeSingleAdd(pullContext *pctx,
   static const char me[]="pullVolumeSingleSet";
   pullVolume *vol;
 
-  printf("!%s(%s): verbose %d\n", me, name, pctx->verbose);
-
   vol = pullVolumeNew();
   if (_pullVolumeSet(pctx, vol, kind,
                      pctx->verbose, name,
@@ -238,7 +238,9 @@ pullVolumeSingleAdd(pullContext *pctx,
   }
 
   /* add this volume to context */
-  printf("!%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
+  if (pctx->verbose) {
+    printf("%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
+  }
   pctx->vol[pctx->volNum] = vol;
   pctx->volNum++;
   return 0;
@@ -339,7 +341,9 @@ _pullVolumeSetup(pullContext *pctx) {
 
   /* first see if there are any gage problems */
   for (ii=0; ii<pctx->volNum; ii++) {
-    printf("!%s: gageUpdate(vol[%u])\n", me, ii);
+    if (pctx->verbose) {
+      printf("%s: gageUpdate(vol[%u])\n", me, ii);
+    }
     if (pctx->vol[ii]->gctx) {
       if (gageUpdate(pctx->vol[ii]->gctx)) {
         biffMovef(PULL, GAGE, "%s: trouble setting up gage on vol "
@@ -424,13 +428,15 @@ _pullVolumeSetup(pullContext *pctx) {
   if (numScale) {
     pctx->voxelSizeScale /= numScale;
   }
-  printf("!%s: bboxMin (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
-         pctx->bboxMin[0], pctx->bboxMin[1],
-         pctx->bboxMin[2], pctx->bboxMin[3],
-         pctx->bboxMax[0], pctx->bboxMax[1],
-         pctx->bboxMax[2], pctx->bboxMax[3]);
-  printf("!%s: voxelSizeSpace %g Scale %g\n", me, 
-         pctx->voxelSizeSpace, pctx->voxelSizeScale);
+  if (pctx->verbose) {
+    printf("%s: bboxMin (%g,%g,%g,%g) max (%g,%g,%g,%g)\n", me,
+           pctx->bboxMin[0], pctx->bboxMin[1],
+           pctx->bboxMin[2], pctx->bboxMin[3],
+           pctx->bboxMax[0], pctx->bboxMax[1],
+           pctx->bboxMax[2], pctx->bboxMax[3]);
+    printf("%s: voxelSizeSpace %g Scale %g\n", me, 
+           pctx->voxelSizeSpace, pctx->voxelSizeScale);
+  }
 
   /* _energyInterParticle() depends on this error checking */
   if (pctx->haveScale) {

@@ -94,8 +94,10 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
         task->ans[ii] = gageAnswerPointer(vol->gctx, vol->gpvl,
                                           pctx->ispec[ii]->item);
       }
-      printf("!%s: task->ans[%u] = (%s) %p\n", me, ii,
-             vol->kind->name, task->ans[ii]);
+      if (pctx->verbose) {
+        printf("%s: task->ans[%u] = (%s) %p\n", me, ii,
+               vol->kind->name, task->ans[ii]);
+      }
     } else {
       task->ans[ii] = NULL;
     }

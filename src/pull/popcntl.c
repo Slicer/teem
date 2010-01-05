@@ -259,10 +259,10 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   if (enrWith < enrWithout) {
     /* energy is clearly lower *with* newpnt, so we want to add it, which
        means keeping it in the add queue where it already is */
-    if (_pullPointAddLog) {
+    if (task->pctx->logAdd) {
       double posdiff[4];
       ELL_4V_SUB(posdiff, newpnt->pos, point->pos);
-      fprintf(_pullPointAddLog, "%u %g %g %g %g %g %g\n", newpnt->idtag,
+      fprintf(task->pctx->logAdd, "%u %g %g %g %g %g %g\n", newpnt->idtag,
               ELL_3V_LEN(posdiff)/task->pctx->sysParm.radiusSpace,
               AIR_ABS(posdiff[3])/task->pctx->sysParm.radiusScale,
               newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);

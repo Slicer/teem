@@ -33,7 +33,7 @@
 #include <teem/ten.h>
 
 /*
-** This library implements the research and methods of:
+** This library was created to implement the research and methods of:
 **
 ** Gordon L. Kindlmann, Ra{\'u}l San Jos{\'e} Est{\'e}par,
 ** Stephen M. Smith, Carl-Fredrik Westin.
@@ -43,6 +43,11 @@
 **
 ** Further information and usage examples:
 ** http://people.cs.uchicago.edu/~glk/ssp/
+**
+** The library is still being actively developed to support research on
+** particle systems for general feature sampling.  At some point, for
+** example, it should subsume the "push" library for glyph packing in
+** tensor fields.
 */
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
@@ -482,6 +487,9 @@ enum {
      point will reducing system energy */
   pullIterParmAddDescent,
 
+  /* periodicity with which to call the pullContext->iter_cb */
+  pullIterParmCallback,
+
   /* if non-zero, interval between iters at which output snapshots are saved */
   pullIterParmSnap,
   pullIterParmLast
@@ -493,6 +501,7 @@ typedef struct {
     addDescent,
     constraintMax,
     stuckMax,
+    callback,
     snap;
 } pullIterParm;
 
@@ -673,14 +682,14 @@ typedef struct pullContext_t {
                                       NOT directly related to seed point
                                       placement (as name might suggest),
                                       set with pullRngSeedSet() */
-    progressBinMod;                /* progress indication by printing "."
-                                      is given when the bin index mod'd by
-                                      this is zero; higher numbers give
-                                      less feedback, set with
+    progressBinMod;                /* if non-zero, progress indication by
+                                      printing "." is given when the bin index
+                                      is a multiple of this; higher numbers
+                                      give less feedback, set with
                                       pullProgressBinModSet() */
-  void (*iter_cb)(void *data_cb);  /* callback to call once per iter
-                                      from pullRun().  This and data_cb are
-                                      set with pullCallbackSet() */
+  void (*iter_cb)(void *data_cb);  /* callback to call from pullRun() every
+                                      iterParm.callback iterations. This and
+                                      data_cb are set w/ pullCallbackSet() */
   void *data_cb;                   /* data to pass to callback */
   pullVolume 
     *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN),
@@ -769,6 +778,10 @@ typedef struct pullContext_t {
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
 
+  FILE *logAdd;                    /* text-file record of all the particles
+                                      that have been added (certainly not
+                                      thread-safe) */
+
   /* OUTPUT ---------------------------- */
 
   double timeIteration,            /* time needed for last (single) iter */
@@ -814,6 +827,7 @@ PULL_EXPORT int pullInterEnergySet(pullContext *pctx, int interType,
                                    const pullEnergySpec *enspR,
                                    const pullEnergySpec *enspS,
                                    const pullEnergySpec *enspWin);
+PULL_EXPORT int pullLogAddSet(pullContext *pctx, FILE *log);
 
 /* energy.c */
 PULL_EXPORT const airEnum *const pullInterType;

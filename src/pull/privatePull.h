@@ -88,7 +88,6 @@ extern "C" {
 /* initPull.c */
 extern void _pullInitParmInit(pullInitParm *initParm);
 extern int _pullInitParmCheck(pullInitParm *iparm);
-extern FILE *_pullPointAddLog;
 
 /* parmPull.c */
 extern void _pullIterParmInit(pullIterParm *iterParm);

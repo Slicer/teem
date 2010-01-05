@@ -112,7 +112,9 @@ pullStart(pullContext *pctx) {
   static const char me[]="pullStart";
   unsigned int tidx;
 
-  printf("!%s: hello %p\n", me, pctx);
+  if (pctx->verbose) {
+    printf("%s: hello %p\n", me, pctx);
+  }
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 
   /* the ordering of steps below is important! e.g. gage context has
@@ -144,7 +146,9 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierA = NULL;
     pctx->iterBarrierB = NULL;
   }
-  printf("!%s: setup for %u threads done\n", me, pctx->threadNum);
+  if (pctx->verbose) {
+    printf("%s: setup for %u threads done\n", me, pctx->threadNum);
+  }
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
@@ -262,8 +266,10 @@ _pullIterate(pullContext *pctx, int mode) {
     }
     return 1;
   }
-  if (pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN) {
-    printf("\n"); /* finishing line of period progress indicators */
+  if (pctx->verbose) {
+    if (pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN) {
+      printf(".\n"); /* finishing line of period progress indicators */
+    }
   }
 
   /* depending on mode, run one of the iteration finishers */
@@ -317,7 +323,9 @@ pullRun(pullContext *pctx) {
   }
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
-  printf("!%s: starting system energy = %g\n", me, enrLast);
+  if (pctx->verbose) {
+    printf("%s: starting system energy = %g\n", me, enrLast);
+  }
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
   while ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max) 
@@ -406,15 +414,18 @@ pullRun(pullContext *pctx) {
     }
     _pullPointStepEnergyScale(pctx, pctx->sysParm.opporStepScale);
     /* call the callback */
-    if (pctx->iter_cb) {
+    if (!(pctx->iter % pctx->iterParm.callback)
+        && pctx->iter_cb) {
       pctx->iter_cb(pctx->data_cb);
     }
   }
-  printf("%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
-         "%u stuck\n", me,
-         !pctx->iterParm.max, pctx->iter < pctx->iterParm.max,
-         !converged,
-         pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
+  if (pctx->verbose) {
+    printf("%s: done ((%d|%d)&%d) @iter %u: enr %g, enrDec = %g,%g "
+           "%u stuck\n", me,
+           !pctx->iterParm.max, pctx->iter < pctx->iterParm.max,
+           !converged,
+           pctx->iter, enrNew, enrDecrease, enrDecreaseAvg, pctx->stuckNum);
+  }
   time1 = airTime();
 
   pctx->timeRun += time1 - time0;

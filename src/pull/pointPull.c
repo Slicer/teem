@@ -917,8 +917,10 @@ _pullPointSetup(pullContext *pctx) {
     airMopError(mop); return 1;
     break;
   }
-  printf("!%s: initializing/seeding ...       ", me);
-  fflush(stdout);
+  if (pctx->verbose) {
+    printf("!%s: initializing/seeding ...       ", me);
+    fflush(stdout);
+  }
 
   /* find first scale volume, if there is one; this is used by some
      seeders to determine placement along the scale axis */
@@ -943,9 +945,11 @@ _pullPointSetup(pullContext *pctx) {
   point = NULL;
   for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
     int E;
-    if (tick < 100 || 0 == pointIdx % tick) {
-      printf("%s", airDoneStr(0, pointIdx, totalNumPoints, doneStr));
-      fflush(stdout);
+    if (pctx->verbose) {
+      if (tick < 100 || 0 == pointIdx % tick) {
+        printf("%s", airDoneStr(0, pointIdx, totalNumPoints, doneStr));
+        fflush(stdout);
+      }
     }
     if (pctx->verbose > 5) {
       printf("\n%s: setting up point = %u/%u\n", me,
@@ -999,8 +1003,10 @@ _pullPointSetup(pullContext *pctx) {
       point = NULL;
     }
   } /* Done looping through total number of points */
-  printf("%s\n", airDoneStr(0, pointIdx, totalNumPoints,
-                            doneStr));
+  if (pctx->verbose) {
+    printf("%s\n", airDoneStr(0, pointIdx, totalNumPoints,
+                              doneStr));
+  }
   if (point) {
     /* we created a new test point, but it was never placed in the volume */
     /* so, HACK: undo pullPointNew ... */

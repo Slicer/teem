@@ -30,10 +30,11 @@ void
 _pullIterParmInit(pullIterParm *iterParm) {
 
   iterParm->max = 0;
+  iterParm->stuckMax = 4;
+  iterParm->constraintMax = 15;
   iterParm->popCntlPeriod = 10;
   iterParm->addDescent = 10;
-  iterParm->constraintMax = 15;
-  iterParm->stuckMax = 4;
+  iterParm->callback = 1;
   iterParm->snap = 0;
   return;
 }
@@ -114,6 +115,9 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     break;
   case pullIterParmAddDescent:
     pctx->iterParm.addDescent = pval;
+    break;
+  case pullIterParmCallback:
+    pctx->iterParm.callback = pval;
     break;
   case pullIterParmSnap:
     pctx->iterParm.snap = pval;
@@ -435,3 +439,18 @@ pullInterEnergySet(pullContext *pctx, int interType,
   return 0;
 }
 
+/*
+** you can pass in a NULL FILE* if you want
+*/
+int
+pullLogAddSet(pullContext *pctx, FILE *log) {
+  static const char me[]="pullLogAddSet";
+  
+  if (!(pctx)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  pctx->logAdd = log;
+  return 0;
+}

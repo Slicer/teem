@@ -261,11 +261,13 @@ _pullBinSetup(pullContext *pctx) {
   width = (pctx->sysParm.radiusScale ? pctx->sysParm.radiusScale : 0.1);
   pctx->maxDistScale = 1*width;
 
-  printf("!%s: radiusSpace = %g -(%g)-> maxDistSpace = %g\n", me, 
-         pctx->sysParm.radiusSpace, pctx->sysParm.binWidthSpace,
-         pctx->maxDistSpace);
-  printf("!%s: radiusScale = %g ----> maxDistScale = %g\n", me, 
-         pctx->sysParm.radiusScale, pctx->maxDistScale);
+  if (pctx->verbose) {
+    printf("%s: radiusSpace = %g -(%g)-> maxDistSpace = %g\n", me, 
+           pctx->sysParm.radiusSpace, pctx->sysParm.binWidthSpace,
+           pctx->maxDistSpace);
+    printf("%s: radiusScale = %g ----> maxDistScale = %g\n", me, 
+           pctx->sysParm.radiusScale, pctx->maxDistScale);
+  }
 
   if (pctx->flag.binSingle) {
     pctx->binsEdge[0] = 1;
@@ -278,8 +280,10 @@ _pullBinSetup(pullContext *pctx) {
     volEdge[1] = pctx->bboxMax[1] - pctx->bboxMin[1];
     volEdge[2] = pctx->bboxMax[2] - pctx->bboxMin[2];
     volEdge[3] = pctx->bboxMax[3] - pctx->bboxMin[3];
-    printf("!%s: volEdge = %g %g %g %g\n", me,
-           volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
+    if (pctx->verbose) {
+      printf("%s: volEdge = %g %g %g %g\n", me,
+             volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
+    }
     pctx->binsEdge[0] = AIR_CAST(unsigned int,
                                  floor(volEdge[0]/pctx->maxDistSpace));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
@@ -295,9 +299,11 @@ _pullBinSetup(pullContext *pctx) {
     /* hack to observe things at bin boundaries
     ELL_3V_SET(pctx->binsEdge, 3, 3, 3);
     */
-    printf("!%s: binsEdge=(%u,%u,%u,%u)\n", me,
-           pctx->binsEdge[0], pctx->binsEdge[1],
-           pctx->binsEdge[2], pctx->binsEdge[3]);
+    if (pctx->verbose) {
+      printf("%s: binsEdge=(%u,%u,%u,%u)\n", me,
+             pctx->binsEdge[0], pctx->binsEdge[1],
+             pctx->binsEdge[2], pctx->binsEdge[3]);
+    }
     pctx->binNum = (pctx->binsEdge[0]*pctx->binsEdge[1]
                     *pctx->binsEdge[2]*pctx->binsEdge[3]);
   }
@@ -307,13 +313,17 @@ _pullBinSetup(pullContext *pctx) {
              pctx->binNum, PULL_BIN_MAXNUM, pctx->sysParm.binWidthSpace);
     return 1;
   }
-  printf("!%s: trying to allocate binNum = %u ... \n", me, pctx->binNum);
+  if (pctx->verbose) {
+    printf("%s: trying to allocate binNum = %u ... \n", me, pctx->binNum);
+  }
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
     biffAddf(PULL, "%s: couln't allocate %u bins", me, pctx->binNum);
     return 1;
   }
-  printf("!%s: done.\n", me);
+  if (pctx->verbose) {
+    printf("%s: done.\n", me);
+  }
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii, _PULL_BIN_INCR);
   }

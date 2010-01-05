@@ -87,6 +87,7 @@ pullContextNew(void) {
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
+  pctx->logAdd = NULL;
 
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
