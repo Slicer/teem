@@ -124,7 +124,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   ELL_4V_NORM(noffavg, noffavg, tmp);
   ELL_3V_SCALE(noffavg, task->pctx->sysParm.radiusSpace, noffavg);
   noffavg[3] *= task->pctx->sysParm.radiusScale;
-  ELL_4V_SCALE(noffavg, _PULL_NEWPNT_DIST, noffavg);
+  ELL_4V_SCALE(noffavg, newSpcDist, noffavg);
   /* set new point location */
   ELL_4V_ADD2(npos, noffavg, point->pos);
   if (!_pullInsideBBox(task->pctx, npos)) {
