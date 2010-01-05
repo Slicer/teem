@@ -34,6 +34,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingAscii_read";
   char numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
+  char *nstr;
   size_t I;
   char *data;
   int tmp;
@@ -46,32 +47,40 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
     return 1;
   }
   data = (char*)_data;
-  for (I=0; I<elNum; I++) {
+  I = 0;
+  while (I < elNum) {
     if (1 != fscanf(file, "%s", numbStr)) {
       biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
                " of " _AIR_SIZE_T_CNV, me, I+1, elNum);
       return 1;
     }
+    if (!strcmp(",", numbStr)) {
+      /* its an isolated comma, not a value, pass over this */
+      continue;
+    }
+    /* get past any commas prefixing a number (without space) */
+    nstr = numbStr + strspn(numbStr, ",");
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
-      if (1 != airSingleSscanf(numbStr, nrrdTypePrintfStr[nrrd->type], 
+      if (1 != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type], 
                                (void*)(data + I*nrrdElementSize(nrrd)))) {
         biffAddf(NRRD, "%s: couln't parse %s " _AIR_SIZE_T_CNV
                  " of " _AIR_SIZE_T_CNV " (\"%s\")", me,
                  airEnumStr(nrrdType, nrrd->type),
-                 I+1, elNum, numbStr);
+                 I+1, elNum, nstr);
         return 1;
       }
     } else {
       /* sscanf value into an int first */
-      if (1 != airSingleSscanf(numbStr, "%d", &tmp)) {
+      if (1 != airSingleSscanf(nstr, "%d", &tmp)) {
         biffAddf(NRRD, "%s: couln't parse element " _AIR_SIZE_T_CNV
                  " of " _AIR_SIZE_T_CNV " (\"%s\")",
-                 me, I+1, elNum, numbStr);
+                 me, I+1, elNum, nstr);
         return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
     }
+    I++;
   }
   
   return 0;
