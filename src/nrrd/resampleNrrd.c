@@ -356,15 +356,6 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     ******** */
   }
 
-  /*
-  nrrdBoundaryPad,      1: fill with some user-specified value
-  nrrdBoundaryBleed,    2: copy the last/first value out as needed
-  nrrdBoundaryWrap,     3: wrap-around
-  nrrdBoundaryWeight,   4: normalize the weighting on the existing samples;
-                        ONLY sensible for a strictly positive kernel
-                        which integrates to unity (as in blurring)
-  */
-
   /* figure out what to do with the out-of-range indices */
   for (i=0; i<dotLen*sizeOut; i++) {
     idx = index[i];
@@ -379,6 +370,9 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
         break;
       case nrrdBoundaryWrap:
         idx = AIR_MOD(idx, sizeIn);
+        break;
+      case nrrdBoundaryMirror:
+        idx = _nrrdMirror_32(sizeIn, idx);
         break;
       default:
         biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", 

@@ -807,6 +807,7 @@ _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1] = {
   "bleed",
   "wrap",
   "weight",
+  "mirror"
 };
 
 const char *
@@ -816,6 +817,7 @@ _nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1] = {
   "copy values from edge outward as needed",
   "wrap around to other end of axis",
   "re-weight (by normalization) samples within axis range",
+  "mirror folding"
 };
 
 airEnum

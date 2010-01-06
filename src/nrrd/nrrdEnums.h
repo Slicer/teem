@@ -86,9 +86,10 @@ enum {
   nrrdBoundaryWeight,   /* 4: normalize the weighting on the existing samples;
                            ONLY sensible for a strictly positive kernel
                            which integrates to unity (as in blurring) */
+  nrrdBoundaryMirror,   /* 5: mirror folding */
   nrrdBoundaryLast
 };
-#define NRRD_BOUNDARY_MAX  4
+#define NRRD_BOUNDARY_MAX  5
 
 /*
 ******** nrrdType* enum

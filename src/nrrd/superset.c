@@ -269,6 +269,37 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   return 0;
 }
 
+#define MIRROR(N, I, M) \
+  M = (I < 0 ? -I : I); \
+  M = M % (2*N);        \
+  M = (M >= N           \
+       ? 2*N - 1 - M    \
+       : M)             \
+
+size_t
+_nrrdMirror_64(size_t N, ptrdiff_t I) {
+  size_t M;
+
+  M = (I < 0 ? -I : I);
+  M = M % (2*N);
+  M = (M >= N
+       ? 2*N - 1 - M
+       : M);
+  return M;
+}
+
+unsigned int
+_nrrdMirror_32(unsigned int N, int I) {
+  unsigned int M;
+
+  M = (I < 0 ? -I : I);
+  M = M % (2*N);
+  M = (M >= N
+       ? 2*N - 1 - M
+       : M);
+  return M;
+}
+
 /*
 ******** nrrdPad_va()
 **
@@ -280,7 +311,9 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   static const char me[]="nrrdPad_va", func[]="pad";
   char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_MED];
   double padValue=AIR_NAN;
-  int outside;
+  int outside; /* whether current sample in output has any coordinates
+                  that are outside the input volume (this is per-sample,
+                  not per-axis) */
   unsigned int ai;
   ptrdiff_t
     cIn[NRRD_DIM_MAX];       /* coords for line start, in input */
@@ -326,10 +359,12 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   case nrrdBoundaryPad:
   case nrrdBoundaryBleed:
   case nrrdBoundaryWrap:
+  case nrrdBoundaryMirror:
     break;
   default:
-    fprintf(stderr, "%s: PANIC: boundary %d unimplemented\n", 
-            me, boundary); exit(1); break;
+    biffAddf(NRRD, "%s: sorry boundary %s (%d) unimplemented\n",
+             me, airEnumStr(nrrdBoundary, boundary), boundary); 
+    return 1;
   }
   /*
   printf("!%s: boundary = %d, padValue = %g\n", me, boundary, padValue);
@@ -378,7 +413,8 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     for (ai=0; ai<nin->dim; ai++) {
       cIn[ai] = cOut[ai] + min[ai];
       switch(boundary) {
-      case nrrdBoundaryPad:
+      case nrrdBoundaryPad: /* HEY, this shouldn't result in any
+                               input coordinate being set */
       case nrrdBoundaryBleed:
         if (!AIR_IN_CL(0, cIn[ai], (ptrdiff_t)szIn[ai]-1)) {
           cIn[ai] = AIR_CLAMP(0, cIn[ai], (ptrdiff_t)szIn[ai]-1);
@@ -387,7 +423,14 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
         break;
       case nrrdBoundaryWrap:
         if (!AIR_IN_CL(0, cIn[ai], (ptrdiff_t)szIn[ai]-1)) {
+          /* HEY: shouldn't have to cast szIn[ai] to ptrdiff_t */
           cIn[ai] = AIR_MOD(cIn[ai], (ptrdiff_t)szIn[ai]);
+          outside = 1;
+        }
+        break;
+      case nrrdBoundaryMirror:
+        if (!AIR_IN_CL(0, cIn[ai], (ptrdiff_t)szIn[ai]-1)) {
+          cIn[ai] = _nrrdMirror_64(szIn[ai], cIn[ai]);
           outside = 1;
         }
         break;
