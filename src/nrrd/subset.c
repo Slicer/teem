@@ -141,7 +141,8 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   if (AIR_EXISTS(nin->axis[saxi].spaceDirection[0])) {
     nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                           1.0, nin->spaceOrigin,
-                          pos, nin->axis[saxi].spaceDirection);
+                          AIR_CAST(double, pos), 
+						  nin->axis[saxi].spaceDirection);
   } else {
     nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
   }
@@ -256,7 +257,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
-                         nin, ai, min[ai], max[ai]);
+                         nin, ai, AIR_CAST(double, min[ai]), 
+						 AIR_CAST(double, max[ai]));
     /* do the safe thing first */
     nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_FALSE);
     /* try cleverness */
@@ -327,7 +329,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
       nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                             1.0, nout->spaceOrigin,
-                            min[ai], nin->axis[ai].spaceDirection);
+                            AIR_CAST(double, min[ai]), 
+							nin->axis[ai].spaceDirection);
     }
   }
                          
