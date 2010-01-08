@@ -172,8 +172,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         goto plain;
       }
       /* else this PNM comment is trying to tell us something */
-      nio->pos = strlen(NRRD_PNM_COMMENT);
-      nio->pos += strspn(nio->line + nio->pos, _nrrdFieldSep);
+      nio->pos = AIR_CAST(int, strlen(NRRD_PNM_COMMENT));
+      nio->pos += AIR_CAST(int, strspn(nio->line + nio->pos, _nrrdFieldSep));
       ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);
       if (!ret) {
         if (1 <= nrrdStateVerboseIO) {
@@ -305,12 +305,12 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   color = (3 == nrrd->dim);
   if (!color) {
     magic = (nrrdEncodingAscii == nio->encoding ? 2 : 5);
-    sx = nrrd->axis[0].size;
-    sy = nrrd->axis[1].size;
+    sx = AIR_CAST(int, nrrd->axis[0].size);
+    sy = AIR_CAST(int, nrrd->axis[1].size);
   } else {
     magic = (nrrdEncodingAscii == nio->encoding ? 3 : 6);
-    sx = nrrd->axis[1].size;
-    sy = nrrd->axis[2].size;
+    sx = AIR_CAST(int, nrrd->axis[1].size);
+    sy = AIR_CAST(int, nrrd->axis[2].size);
   }
   
   fprintf(file, "P%d\n", magic);
