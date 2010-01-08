@@ -265,7 +265,7 @@ biffGet(const char *key) {
   msg = _bmsgFind(key);
   if (!msg) {
     static const char err[]="[%s] No information for this key!";
-    unsigned int errlen;
+    size_t errlen;
     fprintf(stderr, "%s: WARNING: no information for key \"%s\"\n", me, key);
     errlen = strlen(err)+strlen(key)+1;
     ret = AIR_CALLOC(errlen, char);
