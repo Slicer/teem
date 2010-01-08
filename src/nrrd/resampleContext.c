@@ -672,7 +672,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       /* calculate sample locations and do first pass on indices */
       indexData = (int *)axis->nindex->data;
       weightData = (nrrdResample_t *)axis->nweight->data;
-      dotLen = axis->nweight->axis[0].size;
+      dotLen = AIR_CAST(unsigned int, axis->nweight->axis[0].size);
       halfLen = dotLen/2;
       for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
         idx = AIR_CAST(nrrdResample_t,
@@ -709,7 +709,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
           switch(rsmc->boundary) {
           case nrrdBoundaryPad:
           case nrrdBoundaryWeight:  /* this will be further handled later */
-            rawIdx = axis->sizeIn;
+            rawIdx = AIR_CAST(int, axis->sizeIn);
             break;
           case nrrdBoundaryBleed:
             rawIdx = AIR_CLAMP(0, rawIdx, AIR_CAST(int, axis->sizeIn)-1);
@@ -718,7 +718,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
             rawIdx = AIR_MOD(rawIdx, AIR_CAST(int, axis->sizeIn));
             break;
           case nrrdBoundaryMirror:
-            rawIdx = _nrrdMirror_32(axis->sizeIn, rawIdx);
+            rawIdx = _nrrdMirror_32(AIR_CAST(unsigned int, axis->sizeIn), rawIdx);
             break;
           default:
             biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", 
