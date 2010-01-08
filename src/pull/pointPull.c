@@ -858,7 +858,7 @@ _pullPointSetup(pullContext *pctx) {
              "and pointPerVoxel (%d)\n", me, pctx->initParm.numInitial,
              pctx->initParm.pointPerVoxel);
     }
-    totalNumPoints = npos->axis[1].size;
+    totalNumPoints = AIR_CAST(unsigned int, npos->axis[1].size);
     break;
   case pullInitMethodPointPerVoxel:
     npos = NULL;
