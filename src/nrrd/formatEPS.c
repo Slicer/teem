@@ -126,11 +126,11 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
                                || 4 == nrrd->axis[0].size);
   cmyk = color && 4 == nrrd->axis[0].size;
   if (color) {
-    sx = nrrd->axis[1].size;
-    sy = nrrd->axis[2].size;
+    sx = AIR_CAST(int, nrrd->axis[1].size);
+    sy = AIR_CAST(int, nrrd->axis[2].size);
   } else {
-    sx = nrrd->axis[0].size;
-    sy = nrrd->axis[1].size;
+    sx = AIR_CAST(int, nrrd->axis[0].size);
+    sy = AIR_CAST(int, nrrd->axis[1].size);
   }
   aspect = AIR_CAST(double, sx)/sy;
   if (aspect > 7.5/10) {
