@@ -322,9 +322,9 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (!( AIR_EXISTS(xm) && AIR_EXISTS(ym) && AIR_EXISTS(zm) )) {
     xm = ym = zm = 0.0;
   }
-  sx = nrrd->axis[sax+0].size;
-  sy = nrrd->axis[sax+1].size;
-  sz = nrrd->axis[sax+2].size;
+  sx = AIR_CAST(int, nrrd->axis[sax+0].size);
+  sy = AIR_CAST(int, nrrd->axis[sax+1].size);
+  sz = AIR_CAST(int, nrrd->axis[sax+2].size);
 
   switch(nrrd->type) {
   case nrrdTypeUChar:
