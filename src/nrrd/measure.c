@@ -449,7 +449,7 @@ _nrrdMeasureLineFit(double *intc, double *slope,
   lup = nrrdDLookup[lineType];
   if (!( AIR_EXISTS(axmin) && AIR_EXISTS(axmax) )) {
     axmin = 0;
-    axmax = len-1;
+    axmax = AIR_CAST(double, len-1);
   }
   if (1 == len) {
     *slope = 0;
@@ -500,7 +500,7 @@ _nrrdMeasureLineError(void *ans, int ansType,
 
   if (!( AIR_EXISTS(axmin) && AIR_EXISTS(axmax) )) {
     axmin = 0;
-    axmax = len-1;
+    axmax = AIR_CAST(double, len-1);
   }
   lup = nrrdDLookup[lineType];
   for (ii=0; ii<len; ii++) {
@@ -628,7 +628,7 @@ _nrrdMeasureHistoMedian(void *ans, int ansType,
       break;
     }
   }
-  ansD = ii;
+  ansD = AIR_CAST(double, ii);
   if (AIR_EXISTS(axmin) && AIR_EXISTS(axmax)) {
     ansD = NRRD_CELL_POS(axmin, axmax, len, ansD);
   }
