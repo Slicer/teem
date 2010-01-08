@@ -86,7 +86,7 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
   
     /* skip whitespace prior to start of first field descriptor */
     next += strspn(next, _nrrdFieldSep);
-    nio->pos = next - nio->line;
+    nio->pos = AIR_CAST(int, next - nio->line);
 
     ret = fld;
   }
