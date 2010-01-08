@@ -119,7 +119,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
              me, nounStr[kind]);
     return 1;
   }
-  entLen = mapAxis ? nmap->axis[0].size : 1;
+  entLen = mapAxis ? AIR_CAST(unsigned int, nmap->axis[0].size) : 1;
   if (mapAxis + nin->dim - 1 > NRRD_DIM_MAX) {
     biffAddf(NRRD, "%s: input nrrd dim %d through non-scalar %s exceeds "
              "NRRD_DIM_MAX %d",
@@ -225,19 +225,19 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
                                        /* high end of map domain */
   domMax0 = _nrrdApplyDomainMax(nmap, ramps, mapAxis + 0);
   domMax1 = _nrrdApplyDomainMax(nmap, ramps, mapAxis + 1);
-  mapLen0 = nmap->axis[mapAxis+0].size;   /* number of entries in map axis 0 */
-  mapLen1 = nmap->axis[mapAxis+1].size;   /* number of entries in map axis 1 */
+  mapLen0 = AIR_CAST(unsigned int, nmap->axis[mapAxis+0].size);   /* number of entries in map axis 0 */
+  mapLen1 = AIR_CAST(unsigned int, nmap->axis[mapAxis+1].size);   /* number of entries in map axis 1 */
   mapLup = nrrdDLookup[nmap->type];    /* how to get doubles out of map */
   inData = (char *)nin->data;          /* input data, as char* */
   inLoad = nrrdDLoad[nin->type];       /* how to get doubles out of nin */
-  inSize = nrrdElementSize(nin);       /* size of one input value */
+  inSize = AIR_CAST(unsigned int, nrrdElementSize(nin));       /* size of one input value */
   outData = (char *)nout->data;        /* output data, as char* */
   outInsert = nrrdDInsert[nout->type]; /* putting doubles into output */
   entLen = (mapAxis                    /* number of elements in one entry */
-            ? nmap->axis[0].size
+            ? AIR_CAST(unsigned int, nmap->axis[0].size)
             : 1);
-  outSize = entLen*nrrdElementSize(nout); /* size of entry in output */
-  entSize = entLen*nrrdElementSize(nmap); /* size of entry in map */
+  outSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nout)); /* size of entry in output */
+  entSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nmap)); /* size of entry in map */
 
   /*
   fprintf(stderr, "!%s: entLen = %u, mapLen = %u,%u\n", me,
