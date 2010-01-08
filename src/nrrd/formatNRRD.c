@@ -547,7 +547,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     sprintf(nio->headerStringWrite, "%s%04d\n",
             MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
   } else {
-    nio->headerStrlen = strlen(MAGIC) + strlen("0000") + 1;
+    nio->headerStrlen = AIR_CAST(unsigned int, strlen(MAGIC) + strlen("0000")) + 1;
   }
 
   /* write the advertisement about where to get the file format */
@@ -580,8 +580,8 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       } else {
         _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
         if (strptr) {
-          nio->headerStrlen += strlen(strptr);
-          nio->headerStrlen += strlen("\n");
+          nio->headerStrlen += AIR_CAST(unsigned int, strlen(strptr));
+          nio->headerStrlen += AIR_CAST(unsigned int, strlen("\n"));
           free(strptr);
           strptr = NULL;
         }
@@ -601,8 +601,8 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       free(strptr);
       strptr = NULL;
     } else {
-      nio->headerStrlen += (1 + strlen(" ") 
-                            + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
+      nio->headerStrlen += (1 + AIR_CAST(unsigned int, strlen(" ") 
+                            + strlen(nrrd->cmt[jj]) + strlen("\n")) + 1);
     }
   }
   for (jj=0; jj<nrrd->kvpArr->len; jj++) {
@@ -621,7 +621,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       _nrrdKeyValueWrite(NULL, &strptr,
                          NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
       if (strptr) {
-        nio->headerStrlen += strlen(strptr);
+        nio->headerStrlen += AIR_CAST(unsigned int, strlen(strptr));
         free(strptr);
         strptr = NULL;
       }
