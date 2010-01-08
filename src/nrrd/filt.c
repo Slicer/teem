@@ -33,7 +33,7 @@ _nrrdCM_median(const float *hist, float half) {
   while(sum < half)
     sum += *hpt++;
   
-  return hpt - 1 - hist;
+  return AIR_CAST(int, hpt - 1 - hist);
 }
 
 int
@@ -160,8 +160,8 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   double val, (*lup)(const void *, size_t);
 
   diam = 2*radius + 1;
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin->axis[1].size);
   lup = nrrdDLookup[nin->type];
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
@@ -224,9 +224,9 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   double val, (*lup)(const void *, size_t);
 
   diam = 2*radius + 1;
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_CAST(int, nin->axis[0].size);
+  sy = AIR_CAST(int, nin->axis[1].size);
+  sz = AIR_CAST(int, nin->axis[2].size);
   lup = nrrdDLookup[nin->type];
   fprintf(stderr, "%s: ...       ", me);
   if (1 == wght) {
@@ -332,12 +332,12 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
              me, _nin->dim);
     return 1;    
   }
-  minsize = _nin->axis[0].size;
+  minsize = AIR_CAST(unsigned int, _nin->axis[0].size);
   if (_nin->dim > 1) {
-    minsize = AIR_MIN(minsize, _nin->axis[1].size);
+    minsize = AIR_MIN(minsize, AIR_CAST(unsigned int, _nin->axis[1].size));
   }
   if (_nin->dim > 2) {
-    minsize = AIR_MIN(minsize, _nin->axis[2].size);
+    minsize = AIR_MIN(minsize, AIR_CAST(unsigned int, _nin->axis[2].size));
   }
   if (!pad && minsize < 2*radius+1) {
     biffAddf(NRRD, "%s: minimum nrrd size (%d) smaller than filtering "
