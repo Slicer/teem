@@ -145,8 +145,8 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     *nparm;           /* final parm as doubles, padded, w/ correct B0 values */
   Nrrd *ntmp;         /* non-const pointer for working */
   airArray *mop;
-  unsigned int gpsze, /* given parm size */
-    ii;
+  size_t gpsze; /* given parm size */
+  unsigned int ii;
   int useB0, needPad, axmap[NRRD_DIM_MAX];
   
   if (!(ndwi && espec && model /* _nB0 can be NULL */ && _nparm)) {
@@ -364,8 +364,8 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     (*ins)(void *v, size_t I, double d),
     (*lup)(const void *v, size_t I);
   airArray *mop;
-  unsigned int saveParmNum, dwiNum, ii, lablen;
-  size_t szOut[NRRD_DIM_MAX], II, numSamp;
+  unsigned int saveParmNum, ii;
+  size_t szOut[NRRD_DIM_MAX], II, numSamp, dwiNum, lablen;
   int axmap[NRRD_DIM_MAX];
   const char *dwi;
   char *parm;
@@ -516,10 +516,10 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
   const tenModel *modelSrc;
   double *dpdst, *dpsrc, (*lup)(const void *v, size_t I),
     (*ins)(void *v, size_t I, double d);
-  size_t szOut[NRRD_DIM_MAX], II, NN, tsize;
+  size_t szOut[NRRD_DIM_MAX], II, NN, tsize, parmNumSrc, lablen;
   airArray *mop;
   int withB0, axmap[NRRD_DIM_MAX], convRet=0;
-  unsigned int parmNumDst, parmNumSrc, ii, lablen;
+  unsigned int parmNumDst, ii;
   const char *parmSrc;
   char *parmDst;
 
