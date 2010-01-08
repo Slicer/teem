@@ -66,7 +66,7 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
   
   ret = nmap->axis[mapAxis].max;
   if (!AIR_EXISTS(ret)) {
-    ret = nmap->axis[mapAxis].size;
+    ret = AIR_CAST(double, nmap->axis[mapAxis].size);
     ret = ramps ? ret-1 : ret;
   }
   return ret;
@@ -171,7 +171,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                me, multi ? mnounStr[kind] : nounStr[kind]);
       return 1;
     }
-    entLen = mapAxis ? nmap->axis[0].size : 1;
+    entLen = mapAxis ? AIR_CAST(unsigned int, nmap->axis[0].size) : 1;
   } else {
     if (multi) {
       biffAddf(NRRD, "%s: sorry, multi irregular maps not implemented", me);
@@ -185,7 +185,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     /* mapAxis has no meaning for irregular maps, but we'll pretend ... */
     mapAxis = nmap->axis[0].size == 2 ? 0 : 1;
     copyMapAxis0 = AIR_TRUE;
-    entLen = nmap->axis[0].size-1;
+    entLen = AIR_CAST(unsigned int, nmap->axis[0].size-1);
   }
   if (mapAxis + nin->dim > NRRD_DIM_MAX) {
     biffAddf(NRRD, "%s: input nrrd dim %d through non-scalar %s exceeds "
@@ -299,18 +299,18 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   domMin = _nrrdApplyDomainMin(nmap, ramps, mapAxis);
                                        /* high end of map domain */
   domMax = _nrrdApplyDomainMax(nmap, ramps, mapAxis);
-  mapLen = nmap->axis[mapAxis].size;   /* number of entries in map */
+  mapLen = AIR_CAST(unsigned int, nmap->axis[mapAxis].size);   /* number of entries in map */
   mapLup = nrrdDLookup[nmap->type];    /* how to get doubles out of map */
   inData = (char *)nin->data;          /* input data, as char* */
   inLoad = nrrdDLoad[nin->type];       /* how to get doubles out of nin */
-  inSize = nrrdElementSize(nin);       /* size of one input value */
+  inSize = AIR_CAST(unsigned int, nrrdElementSize(nin));       /* size of one input value */
   outData = (char *)nout->data;        /* output data, as char* */
   outInsert = nrrdDInsert[nout->type]; /* putting doubles into output */
   entLen = (mapAxis                    /* number of elements in one entry */
-            ? nmap->axis[0].size
+            ? AIR_CAST(unsigned int, nmap->axis[0].size)
             : 1);
-  outSize = entLen*nrrdElementSize(nout); /* size of entry in output */
-  entSize = entLen*nrrdElementSize(nmap); /* size of entry in map */
+  outSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nout)); /* size of entry in output */
+  entSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nmap)); /* size of entry in map */
 
   N = nrrdElementNumber(nin);       /* the number of values to be mapped */
   if (ramps) {
@@ -610,8 +610,8 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
              me, nmap->dim);
     return 1;
   }
-  entLen = nmap->axis[0].size;
-  mapLen = nmap->axis[1].size;
+  entLen = AIR_CAST(unsigned int,nmap->axis[0].size);
+  mapLen = AIR_CAST(unsigned int,nmap->axis[1].size);
   if (!( entLen >= 2 && mapLen >= 2 )) {
     biffAddf(NRRD, "%s: both map's axes sizes should be >= 2 (not %d,%d)",
              me, entLen, mapLen);
@@ -726,8 +726,8 @@ _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
   if (baseIP) {
     *baseIP = baseI;
   }
-  entLen = nmap->axis[0].size;
-  posLen = nmap->axis[1].size - baseI;
+  entLen = AIR_CAST(unsigned int,nmap->axis[0].size);
+  posLen = AIR_CAST(unsigned int,nmap->axis[1].size) - baseI;
   if (posLenP) {
     *posLenP = posLen;
   }
@@ -909,7 +909,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   
   if (nacl) {
     acl = (int *)nacl->data;
-    aclLen = nacl->axis[1].size;
+    aclLen = AIR_CAST(unsigned int,nacl->axis[1].size);
   } else {
     acl = NULL;
     aclLen = 0;
@@ -924,11 +924,11 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   
   inData = (char *)nin->data;
   inLoad = nrrdDLoad[nin->type];
-  inSize = nrrdElementSize(nin);
+  inSize = AIR_CAST(unsigned int,nrrdElementSize(nin));
   mapLup = nrrdDLookup[nmap->type];
-  entLen = nmap->axis[0].size;    /* entLen is really 1 + entry length */
-  entSize = entLen*nrrdElementSize(nmap);
-  colSize = (entLen-1)*nrrdTypeSize[typeOut];
+  entLen = AIR_CAST(unsigned int,nmap->axis[0].size);    /* entLen is really 1 + entry length */
+  entSize = entLen*AIR_CAST(unsigned int,nrrdElementSize(nmap));
+  colSize = (entLen-1)*AIR_CAST(unsigned int,nrrdTypeSize[typeOut]);
   outData = (char *)nout->data;
   outInsert = nrrdDInsert[nout->type];
   domMin = pos[0];
