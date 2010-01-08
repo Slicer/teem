@@ -290,8 +290,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   }
   
   center = _nrrdCenter(nin->axis[ai].center);
-  sizeIn = nin->axis[ai].size;
-  sizeOut = info->samples[ai];
+  sizeIn = AIR_CAST(int, nin->axis[ai].size);
+  sizeOut = AIR_CAST(int, info->samples[ai]);
   minIn = AIR_CAST(nrrdResample_t, nin->axis[ai].min);
   maxIn = AIR_CAST(nrrdResample_t, nin->axis[ai].max);
   minOut = AIR_CAST(nrrdResample_t, info->min[ai]);
@@ -670,8 +670,8 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
         numLines *= sz[pi][ai];
       }
     }
-    sizeIn = sz[pi][topRax];
-    sizeOut = sz[pi+1][botRax];
+    sizeIn = AIR_CAST(int, sz[pi][topRax]);
+    sizeOut = AIR_CAST(int, sz[pi+1][botRax]);
     numOut = numLines*sizeOut;
     /* for the rest of the loop body, d is the original "dimension"
        for the axis being resampled */
