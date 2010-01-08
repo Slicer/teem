@@ -44,7 +44,8 @@ typedef union {
 unsigned int
 _nrrdHeaderStringOneLineStrlen(NrrdIoState *nio) {
 
-  return strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep);
+  return AIR_CAST(unsigned int, 
+	  strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
 }
 
 /*
@@ -58,7 +59,8 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
   strncpy(nio->line, nio->headerStringRead + nio->headerStrpos, len1);
   nio->line[len1] = '\0';
   nio->headerStrpos += len1;
-  len2 = strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep);
+  len2 = AIR_CAST(unsigned int, 
+	  strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
   nio->headerStrpos += len2;
   return len1;
 }
