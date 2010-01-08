@@ -95,7 +95,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we only get here with the first line already in nio->line */
   line = 1;
-  llen = strlen(nio->line);
+  llen = AIR_CAST(unsigned int, strlen(nio->line));
   
   if (0 == nrrd->dim) {
     settwo = nrrd->dim;
@@ -104,7 +104,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* first, we get through comments */
   while (NRRD_COMMENT_CHAR == nio->line[0]) {
     nio->pos = 1;
-    nio->pos += strspn(nio->line + nio->pos, _nrrdFieldSep);
+    nio->pos += AIR_CAST(int, strspn(nio->line + nio->pos, _nrrdFieldSep));
     fidx = _nrrdReadNrrdParseField(nio, AIR_FALSE);
     /* could we parse anything? */
     if (!fidx) {
@@ -193,13 +193,13 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   for (sx=1; 1; sx++) {
     /* there is obviously a limit to the number of numbers that can 
        be parsed from a single finite line of input text */
-    airArrayLenSet(flArr, sx);
+    airArrayLenSet(flArr, AIR_CAST(unsigned int, sx));
     if (!flArr->data) {
       biffAddf(NRRD, "%s: couldn't alloc space for " _AIR_SIZE_T_CNV 
                " values", me, sx);
       UNSETTWO; return 1;
     }
-    if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, sx)) {
+    if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
       /* We asked for sx ints and got less.  We know that we successfully
          got one value, so we did succeed in parsing sx-1 values */
       sx--;
@@ -229,7 +229,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
                " values", me, sx);
       UNSETTWO; return 1;
     }
-    plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, sx);
+    plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx));
     if (sx > plen) {
       biffAddf(NRRD, "%s: could only parse %d values (not " 
                _AIR_SIZE_T_CNV ") on line " _AIR_SIZE_T_CNV,
@@ -299,11 +299,11 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   if (1 == nrrd->dim) {
     sx = 1;
-    sy = nrrd->axis[0].size;
+    sy = AIR_CAST(int, nrrd->axis[0].size);
   }
   else {
-    sx = nrrd->axis[0].size;
-    sy = nrrd->axis[1].size;
+    sx = AIR_CAST(int, nrrd->axis[0].size);
+    sy = AIR_CAST(int, nrrd->axis[1].size);
   }
   data = nrrd->data;
   I = 0;
