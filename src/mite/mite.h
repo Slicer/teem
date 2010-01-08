@@ -302,8 +302,8 @@ typedef struct {
                                    pervolumes, or into ansMiteVal in the
                                    miteThread.  It can be either a scalar
                                    or a vector */
-  int size,                     /* number of entries along this txf axis */
-    op,                         /* from miteStageOp* enum.  Note that this
+  size_t size;                     /* number of entries along this txf axis */
+  int  op,                         /* from miteStageOp* enum.  Note that this
                                    operation applies to ALL the range variables
                                    adjusted by this txf (can't add color while
                                    multiplying opacity) */
@@ -315,9 +315,9 @@ typedef struct {
                                    from corresponding axis of the nrrd */
   mite_t *data;                 /* pointer to txf data.  If non-NULL, the
                                    following fields are meaningful */
-  int rangeIdx[MITE_RANGE_NUM], /* indices into miteThread's range, so that
+  size_t rangeIdx[MITE_RANGE_NUM]; /* indices into miteThread's range, so that
                                    we know which quantities to update */
-    rangeNum;                   /* number of range variables set by the txf
+  size_t  rangeNum;             /* number of range variables set by the txf
                                    == number of pointers in range[] to use */
   char *label;                  /* pointer into axis label identifying txf
                                    domain variable, NOT COPIED */

@@ -293,7 +293,7 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
-      log2 = airLog2(ntxf->axis[axi].size);
+      log2 = airLog2(AIR_CAST(double, ntxf->axis[axi].size));
       if (-1 == log2) {
         biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not "
                  _AIR_SIZE_T_CNV ")",
@@ -446,7 +446,8 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
 int
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   static const char me[]="_miteNtxfAlphaAdjust";
-  int ni, ei, ri, nnum, rnum;
+  int ni, ei, ri;
+  size_t nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
   
@@ -589,7 +590,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
         if (1 == isp.kind->table[isp.item].answerLength) {
           stage->qn = NULL;
         } else if (3 == isp.kind->table[isp.item].answerLength) {
-          log2 = airLog2(ntxf->axis[di].size);
+          log2 = airLog2(AIR_CAST(double, ntxf->axis[di].size));
           switch(log2) {
           case 8:  stage->qn = limnVtoQN_d[ limnQN8octa]; break;
           case 9:  stage->qn = limnVtoQN_d[ limnQN9octa]; break;
@@ -633,7 +634,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 void
 _miteStageRun(miteThread *mtt, miteUser *muu) {
   static const char me[]="_miteStageRun";
-  int stageIdx, ri, rii, txfIdx, finalIdx;
+  int stageIdx, rii, txfIdx;
+  size_t ri, finalIdx;
   miteStage *stage;
   mite_t *rangeData;
   double *dbg=NULL;
@@ -651,7 +653,7 @@ _miteStageRun(miteThread *mtt, miteUser *muu) {
     } else {
       /* its a scalar txf domain variable */
       txfIdx = airIndexClamp(stage->min, *(stage->val),
-                             stage->max, stage->size);
+                             stage->max, AIR_CAST(unsigned int, stage->size));
       if (mtt->verbose) {
         fprintf(stderr, "!%s: %s=%g in [%g,%g]/%u -> %u\n", me,
                 stage->label, *(stage->val),
