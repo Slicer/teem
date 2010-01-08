@@ -42,7 +42,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   out[0] = id = 0;
   *numid = 1;
   
-  sx = nin->axis[0].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
   lval = lup(nin->data, 0);
   for (I=1; I<sx; I++) {
     val = lup(nin->data, I);
@@ -77,8 +77,8 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   id = 0; /* sssh! compiler warnings */
   lup = nrrdUILookup[nin->type];
   out = AIR_CAST(unsigned int*, nout->data);
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin->axis[1].size);
 #define GETV_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? lup(nin->data, (x) + sx*(y)) \
@@ -169,9 +169,9 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   id = 0; /* sssh! compiler warnings */
   lup = nrrdUILookup[nin->type];
   out = AIR_CAST(unsigned int*, nout->data);
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sz = AIR_CAST(unsigned int, nin->axis[2].size);
 #define GETV_3(x,y,z) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))   \
                        && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1)) \
                        && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
@@ -429,8 +429,8 @@ _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
   double pid[5]={0,0,0,0,0};
   
   lup = nrrdUILookup[nin->type];
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin->axis[1].size);
   for (y=0; y<sy; y++) {
     for (x=0; x<sx; x++) {
       if (!x) {
@@ -468,9 +468,9 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
   double pid[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   
   lup = nrrdUILookup[nin->type];
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sz = AIR_CAST(unsigned int, nin->axis[2].size);
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
@@ -678,7 +678,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   size = (unsigned int*)(nsize->data);
   adj = (unsigned char*)(nadj->data);
   nn = (unsigned int*)(nnn->data);
-  numid = nsize->axis[0].size;
+  numid = AIR_CAST(unsigned int, nsize->axis[0].size);
   for (i=0; i<numid; i++) {
     nn[i] = 0;
     for (j=0; j<numid; j++) {
