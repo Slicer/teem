@@ -586,6 +586,11 @@ enum {
   /* spring constant on bbox wall */
   pullSysParmWall,
 
+  /* when doing population control nixing, don't nix a particle if this
+     fraction of its neighbors have already been nixed (Section 3.5 of
+     paper implies that this value should be 0.5; lower values also work) */
+  pullSysParmFracNeighNixedMax,
+
   pullSysParmLast
 };
 
@@ -596,7 +601,8 @@ typedef struct {
     stepInitial, opporStepScale, backStepScale, constraintStepMin,
     energyDecreaseMin,
     energyDecreasePopCntlMin,
-    energyIncreasePermit;
+    energyIncreasePermit,
+    fracNeighNixedMax;
 } pullSysParm;  
 
 /*
@@ -641,6 +647,9 @@ enum {
      more likely to meet a threshold based on feature strength */
   pullFlagConstraintBeforeSeedThresh,
 
+  /* do no adding during population control */
+  pullFlagNoAdd,
+
   /* no binning: all particles can potentially interact (for debugging) */
   pullFlagBinSingle,
 
@@ -655,6 +664,7 @@ typedef struct {
     energyFromStrength,
     nixAtVolumeEdgeSpace,
     constraintBeforeSeedThresh,
+    noAdd,
     binSingle;
 } pullFlag;
 

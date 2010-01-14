@@ -39,10 +39,6 @@ extern "C" {
    distance to an existing point is less than this */
 #define _PULL_BINNING_MAYBE_ADD_THRESH 0.1
 
-/* don't nix a point if this (or greater) fraction of its neighbors
-   have already been nixed */
-#define _PULL_FRAC_NIXED_THRESH 0.3
-
 /* only try adding a point if the normalized neighbor offset sum is 
    greater than this (making this too small only wastes time, by descending
    and testing a point that can't help reduce energy */

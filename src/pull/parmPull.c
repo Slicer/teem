@@ -58,6 +58,7 @@ _pullSysParmInit(pullSysParm *sysParm) {
   sysParm->energyDecreaseMin = 0.001;
   sysParm->energyDecreasePopCntlMin = 0.02;
   sysParm->energyIncreasePermit = 0.0;
+  sysParm->fracNeighNixedMax = 0.25;
   return;
 }
 
@@ -71,6 +72,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->energyFromStrength = AIR_FALSE;
   flag->nixAtVolumeEdgeSpace = AIR_FALSE;
   flag->constraintBeforeSeedThresh = AIR_FALSE;
+  flag->noAdd = AIR_FALSE;
   flag->binSingle = AIR_FALSE;
   return;
 }
@@ -163,6 +165,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(energyDecreaseMin, -0.2, 1.0);
   CHECK(energyDecreasePopCntlMin, -1.0, 1.0);
   CHECK(energyIncreasePermit, 0.0, 1.0);
+  CHECK(fracNeighNixedMax, 0.01, 0.99);
   return 0;
 }
 #undef CHECK
@@ -225,6 +228,9 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
   case pullSysParmEnergyIncreasePermit:
     pctx->sysParm.energyIncreasePermit = pval;
     break;
+  case pullSysParmFracNeighNixedMax:
+    pctx->sysParm.fracNeighNixedMax = pval;
+    break;
   case pullSysParmWall:
     pctx->sysParm.wall = pval;
     break;
@@ -273,6 +279,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagConstraintBeforeSeedThresh:
     pctx->flag.constraintBeforeSeedThresh = flag;
+    break;
+  case pullFlagNoAdd:
+    pctx->flag.noAdd = flag;
     break;
   case pullFlagBinSingle:
     pctx->flag.binSingle = flag;

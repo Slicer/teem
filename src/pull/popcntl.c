@@ -65,6 +65,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   pullPoint *newpnt;
   int E;
 
+  /* HEY this is probably not the best place for this */
+  if (task->pctx->flag.noAdd) {
+    return 0;
+  }
+
   if (point->neighPointNum && task->pctx->targetDim) {
     unsigned int plenty;
     plenty = (1 == task->pctx->targetDim
@@ -306,7 +311,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   /* if many neighbors have been nixed, then system is far from convergence,
      so the energy is a less meaningful description of the neighborhood,
      and so its a bad idea to try to nix this point */
-  if (fracNixed < _PULL_FRAC_NIXED_THRESH) {
+  if (fracNixed < task->pctx->sysParm.fracNeighNixedMax) {
     point->status |= PULL_STATUS_NIXME_BIT;    /* turn nixme on */
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
     if (enrWith <= enrWithout) {
