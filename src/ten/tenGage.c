@@ -228,6 +228,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageTensorLogEuclidean,      7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxK,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTensorQuatGeoLoxR,       7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
+  {tenGageTensorRThetaPhiLinear,   7,  0,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageCl1GradVec,              3,  1,  {tenGageTrace, tenGageEval, tenGageEvalGrads},                        0,        0,     AIR_FALSE},
   {tenGageCl1GradMag,              1,  1,  {tenGageCl1GradVec},                                                  0,        0,     AIR_FALSE},
   {tenGageCl1Normal,    3,  1,  {tenGageCl1GradVec, tenGageCl1GradMag},				0,	  0,     AIR_FALSE},
@@ -1410,7 +1411,8 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
      be better supported by the gage API ... */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorLogEuclidean) ||
       GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxK) ||
-      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR)) {
+      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorQuatGeoLoxR) ||
+      GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorRThetaPhiLinear)) {
     unsigned int vijk, vii, vjj, vkk, fd, fddd;
     _tenGagePvlData *pvlData;
     double *ans;
@@ -1450,6 +1452,11 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ans = pvl->directAnswer[tenGageTensorQuatGeoLoxR];
       qret= tenInterpN_d(ans, pvlData->buffTen, pvlData->buffWght, fddd,
                          tenInterpTypeQuatGeoLoxR, pvlData->tip);
+    }
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTensorRThetaPhiLinear)) {
+      ans = pvl->directAnswer[tenGageTensorRThetaPhiLinear];
+      qret= tenInterpN_d(ans, pvlData->buffTen, pvlData->buffWght, fddd,
+                         tenInterpTypeRThetaPhiLinear, pvlData->tip);
     }
     if (qret) {
       char *lerr;

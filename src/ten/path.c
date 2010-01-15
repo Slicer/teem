@@ -263,8 +263,29 @@ tenInterpTwo_d(double oten[7],
   case tenInterpTypeGeoLoxR:
   case tenInterpTypeLoxK:
   case tenInterpTypeLoxR:
-  default:
     /* (currently) no closed-form expression for these */
+    TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
+              AIR_NAN, AIR_NAN, AIR_NAN);
+    break;
+  case tenInterpTypeRThetaPhiLinear:
+    if (1) {
+      double rtpA[3], rtpB[3], rtpM[3], eval[3], tenM[7];
+      tenEigensolve_d(eval, NULL, tenA);
+      tenTripleConvertSingle_d(rtpA, tenTripleTypeRThetaPhi,
+                               eval, tenTripleTypeEigenvalue);
+      tenEigensolve_d(eval, NULL, tenB);
+      tenTripleConvertSingle_d(rtpB, tenTripleTypeRThetaPhi,
+                               eval, tenTripleTypeEigenvalue);
+      TEN_T_LERP(tenM, aa, tenA, tenB);
+      tenEigensolve_d(eval, oevec, tenM);
+      ELL_3V_LERP(rtpM, aa, rtpA, rtpB);
+      tenTripleConvertSingle_d(oeval, tenTripleTypeEigenvalue,
+                               rtpM, tenTripleTypeRThetaPhi);
+    }
+    tenMakeSingle_d(oten, AIR_LERP(aa, tenA[0], tenB[0]), oeval, oevec);
+    break;
+  default:
+    /* error */
     TEN_T_SET(oten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
               AIR_NAN, AIR_NAN, AIR_NAN);
     break;
@@ -284,7 +305,7 @@ tenInterpN_d(double tenOut[7],
              unsigned int num, int ptype, tenInterpParm *tip) {
   static const char me[]="tenInterpN_d";
   unsigned int ii;
-  double ww, cc, tenErr[7], tmp[7], wghtSum, eval[3], evec[9];
+  double ww, cc, tenErr[7], tmpTen[7], wghtSum, eval[3], evec[9], rtp[3];
 
   TEN_T_SET(tenErr, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, 
             AIR_NAN, AIR_NAN, AIR_NAN);
@@ -328,13 +349,13 @@ tenInterpN_d(double tenOut[7],
     cc = 0;
     for (ii=0; ii<num; ii++) {
       ww = wght ? wght[ii] : 1.0/num;
-      tenLogSingle_d(tmp, tenIn + 7*ii);
-      TEN_T_SCALE_INCR(tenOut, ww, tmp);
+      tenLogSingle_d(tmpTen, tenIn + 7*ii);
+      TEN_T_SCALE_INCR(tenOut, ww, tmpTen);
       cc += ww*(tenIn + 7*ii)[0];
     }
     tenOut[0] = cc;
-    TEN_T_COPY(tmp, tenOut);
-    tenExpSingle_d(tenOut, tmp);
+    TEN_T_COPY(tmpTen, tenOut);
+    tenExpSingle_d(tenOut, tmpTen);
     break;
   case tenInterpTypeAffineInvariant:
   case tenInterpTypeWang:
@@ -369,6 +390,28 @@ tenInterpN_d(double tenOut[7],
       tenMakeSingle_d(tenOut, cc, eval, evec);
     }
     break;
+  case tenInterpTypeRThetaPhiLinear:
+    TEN_T_SET(tmpTen, 0,   0, 0, 0,   0, 0,   0);
+    ELL_3V_SET(rtp, 0, 0, 0);
+    for (ii=0; ii<num; ii++) {
+      double tmpeval[3], tmprtp[3];
+      tenEigensolve_d(tmpeval, NULL, tenIn + 7*ii);
+      tenTripleConvertSingle_d(tmprtp, tenTripleTypeRThetaPhi,
+                               tmpeval, tenTripleTypeEigenvalue);
+      ww = wght ? wght[ii] : 1.0/num;
+      TEN_T_SCALE_INCR(tmpTen, ww, tenIn + 7*ii);
+      ELL_3V_SCALE_INCR(rtp, ww, tmprtp);
+    }
+    tenEigensolve_d(eval, evec, tmpTen); /* only care about evec */
+    tenTripleConvertSingle_d(eval, tenTripleTypeEigenvalue,
+                             rtp, tenTripleTypeRThetaPhi);
+    tenMakeSingle_d(tenOut, tmpTen[0], eval, evec);
+    break;
+  default:
+    biffAddf(TEN, "%s: sorry, interp type %s (%d) not implemented",
+             me, airEnumStr(tenInterpType, ptype), ptype);
+    TEN_T_COPY(tenOut, tenErr);
+    return 1;
   }
   
   return 0;
@@ -816,7 +859,10 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
       || ptype == tenInterpTypeAffineInvariant
       || ptype == tenInterpTypeWang
       || ptype == tenInterpTypeQuatGeoLoxK
-      || ptype == tenInterpTypeQuatGeoLoxR) {
+      || ptype == tenInterpTypeQuatGeoLoxR
+      || ptype == tenInterpTypeRThetaPhiLinear) {
+    /* we have fast ways of doing interpolation
+       between two tensors for these path types */
     for (ii=0; ii<num; ii++) {
       double *oten;
       oten = out + 7*ii;

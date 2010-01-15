@@ -86,6 +86,7 @@ _tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1] = {
   "loxr",
   "qgeoloxk",
   "qgeoloxr",
+  "rtplin"
 };
 
 const char *
@@ -100,6 +101,7 @@ _tenInterpTypeStrEqv[] = {
   "loxr",
   "qgeoloxk", "qglk",
   "qgeoloxr", "qglr",
+  "rtplin",
   ""
 };
 
@@ -115,6 +117,7 @@ _tenInterpTypeValEqv[] = {
   tenInterpTypeLoxR,
   tenInterpTypeQuatGeoLoxK, tenInterpTypeQuatGeoLoxK,
   tenInterpTypeQuatGeoLoxR, tenInterpTypeQuatGeoLoxR,
+  tenInterpTypeRThetaPhiLinear
 };
 
 const airEnum
@@ -513,6 +516,7 @@ _tenGageDesc[] = {
   "log-euclidean",
   "QuatGeoLoxK",
   "QuatGeoLoxR",
+  "RThetaPhiLinear interp",
   "gradient vector of cl1",
   "gradient magnitude of cl1",
   "normal of cl1",
@@ -712,6 +716,7 @@ _tenGageVal[] = {
   tenGageTensorLogEuclidean,
   tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR,
+  tenGageTensorRThetaPhiLinear,
   tenGageCl1GradVec,
   tenGageCl1GradMag,
   tenGageCl1Normal,
@@ -912,6 +917,7 @@ _tenGageStrEqv[] = {
   "logeuclidean", "logeuc",
   "quatgeoloxk", "qglk",
   "quatgeoloxr", "qglr",
+  "rtpl",
 
   "cl1gv",
   "cl1gm",
@@ -1121,6 +1127,7 @@ _tenGageValEqv[] = {
   tenGageTensorLogEuclidean, tenGageTensorLogEuclidean,
   tenGageTensorQuatGeoLoxK, tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR, tenGageTensorQuatGeoLoxR,
+  tenGageTensorRThetaPhiLinear,
   
   tenGageCl1GradVec,
   tenGageCl1GradMag,

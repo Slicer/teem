@@ -119,9 +119,11 @@ enum {
   tenInterpTypeLoxR,            /*  8: total loxodrome on R_i invariants */
   tenInterpTypeQuatGeoLoxK,     /*  9: geodesic-loxodrome on K_i invariants */
   tenInterpTypeQuatGeoLoxR,     /* 10: geodesic-loxodrome on R_i invariants */
+  tenInterpTypeRThetaPhiLinear, /* 11: linear interpolation of (R,theta,phi),
+                                   oriented by eigensystem of linear avg */
   tenInterpTypeLast
 };
-#define TEN_INTERP_TYPE_MAX        10
+#define TEN_INTERP_TYPE_MAX        11
 
 /*
 ******** tenGlyphType* enum
@@ -435,54 +437,55 @@ enum {
   tenGageTensorLogEuclidean,     /* 149: "logeuc" log-euclidean interp */
   tenGageTensorQuatGeoLoxK,      /* 150: "qglk" QGL-K interpolation */
   tenGageTensorQuatGeoLoxR,      /* 151: "qglr" QGL-R interpolation */
+  tenGageTensorRThetaPhiLinear,  /* 152: "rtpl" RThetaPhiLinear interp */
 
-  tenGageCl1GradVec,       /* 152: "cl1gv" gradient vector of cl1: [3] */
-  tenGageCl1GradMag,       /* 153: "cl1gm" gradient magnitude of cl1: [1] */
-  tenGageCl1Normal,	   /* 154: "cl1gn" normal of cl1: [3] */
-  tenGageCp1GradVec,       /* 155: "cp1gv" gradient vector of cp1: [3] */
-  tenGageCp1GradMag,       /* 156: "cp1gm" gradient magnitude of cp1: [1] */
-  tenGageCp1Normal,	   /* 157: "cl1gn" normal of cp1: [3] */
-  tenGageCa1GradVec,       /* 158: "ca1gv" gradient vector of ca1: [3] */
-  tenGageCa1GradMag,       /* 159: "ca1gm" gradient magnitude of ca1: [1] */
-  tenGageCa1Normal,	   /* 160: "cl1gn" normal of ca1: [3] */
-  tenGageTensorGradRotE,   /* 161: "tgrote" all tensor component gradients,
+  tenGageCl1GradVec,       /* 153: "cl1gv" gradient vector of cl1: [3] */
+  tenGageCl1GradMag,       /* 154: "cl1gm" gradient magnitude of cl1: [1] */
+  tenGageCl1Normal,	   /* 155: "cl1gn" normal of cl1: [3] */
+  tenGageCp1GradVec,       /* 156: "cp1gv" gradient vector of cp1: [3] */
+  tenGageCp1GradMag,       /* 157: "cp1gm" gradient magnitude of cp1: [1] */
+  tenGageCp1Normal,	   /* 158: "cl1gn" normal of cp1: [3] */
+  tenGageCa1GradVec,       /* 159: "ca1gv" gradient vector of ca1: [3] */
+  tenGageCa1GradMag,       /* 150: "ca1gm" gradient magnitude of ca1: [1] */
+  tenGageCa1Normal,	   /* 161: "cl1gn" normal of ca1: [3] */
+  tenGageTensorGradRotE,   /* 162: "tgrote" all tensor component gradients,
                               starting with confidence gradient.
                               Rotated such that eigenvalue
                               derivatives are on the diagonal: [21] */
-  tenGageEvalHessian,	 /* 162: "evalhess" Hessian of the eigenvalues: [27] */
-  tenGageCl1Hessian,	 /* 163: "cl1hess" Hessian of cl1: [9] */
-  tenGageCl1HessianEval, /* 164: "cl1hesseval" Hessian evals of cl1: [3] */
-  tenGageCl1HessianEval0,/* 165: "cl1hesseval0" First Hess eval of cl1: [1] */
-  tenGageCl1HessianEval1,/* 166: "cl1hesseval1" Second Hess eval of cl1: [1] */
-  tenGageCl1HessianEval2,/* 167: "cl1hesseval2" Third Hess eval of cl1: [1] */
-  tenGageCl1HessianEvec, /* 168: "cl1hessevec" Hessian evecs of cl1: [9] */
-  tenGageCl1HessianEvec0,/* 169: "cl1hessevec0" First Hess evec of cl1: [3] */
-  tenGageCl1HessianEvec1,/* 170: "cl1hessevec1" Second Hess evec of cl1: [3] */
-  tenGageCl1HessianEvec2,/* 171: "cl1hessevec2" Third Hess evec of cl1: [3] */
-  tenGageCp1Hessian,	 /* 172: "cp1hess" Hessian of cp1: [9] */
-  tenGageCp1HessianEval, /* 173: "cp1hesseval" Hessian evals of cp1: [3] */
-  tenGageCp1HessianEval0,/* 174: "cp1hesseval0" First Hess eval of cp1: [1] */
-  tenGageCp1HessianEval1,/* 175: "cp1hesseval1" Second Hess eval of cp1: [1] */
-  tenGageCp1HessianEval2,/* 176: "cp1hesseval2" Third Hess eval of cp1: [1] */
-  tenGageCp1HessianEvec, /* 177: "cp1hessevec" Hessian evecs of cp1: [9] */
-  tenGageCp1HessianEvec0,/* 178: "cp1hessevec0" First Hess evec of cp1: [3] */
-  tenGageCp1HessianEvec1,/* 179: "cp1hessevec1" Second Hess evec of cp1: [3] */
-  tenGageCp1HessianEvec2,/* 180: "cp1hessevec2" Third Hess evec of cp1: [3] */
-  tenGageCa1Hessian,	 /* 181: "ca1hess" Hessian of ca1: [9] */
-  tenGageCa1HessianEval, /* 182: "ca1hesseval" Hessian evals of ca1: [3] */
-  tenGageCa1HessianEval0,/* 183: "ca1hesseval0" First Hess eval of ca1: [1] */
-  tenGageCa1HessianEval1,/* 184: "ca1hesseval1" Second Hess eval of ca1: [1] */
-  tenGageCa1HessianEval2,/* 185: "ca1hesseval2" Third Hess eval of ca1: [1] */
-  tenGageCa1HessianEvec, /* 186: "ca1hessevec" Hessian evecs of ca1: [9] */
-  tenGageCa1HessianEvec0,/* 187: "ca1hessevec0" First Hess evec of ca1: [3] */
-  tenGageCa1HessianEvec1,/* 188: "ca1hessevec1" Second Hess evec of ca1: [3] */
-  tenGageCa1HessianEvec2,/* 189: "ca1hessevec2" Third Hess evec of ca1: [3] */
-  tenGageFiberCurving,   /* 190: "fibcurv" Savadjiev et al. fiber curving */
-  tenGageFiberDispersion,/* 191: "fibdisp" Savadjiev et al. fiber dispersion */
-  tenGageAniso,          /* 192: "an", all anisos: [TEN_ANISO_MAX+1] */
+  tenGageEvalHessian,	 /* 163: "evalhess" Hessian of the eigenvalues: [27] */
+  tenGageCl1Hessian,	 /* 164: "cl1hess" Hessian of cl1: [9] */
+  tenGageCl1HessianEval, /* 165: "cl1hesseval" Hessian evals of cl1: [3] */
+  tenGageCl1HessianEval0,/* 166: "cl1hesseval0" First Hess eval of cl1: [1] */
+  tenGageCl1HessianEval1,/* 167: "cl1hesseval1" Second Hess eval of cl1: [1] */
+  tenGageCl1HessianEval2,/* 168: "cl1hesseval2" Third Hess eval of cl1: [1] */
+  tenGageCl1HessianEvec, /* 169: "cl1hessevec" Hessian evecs of cl1: [9] */
+  tenGageCl1HessianEvec0,/* 160: "cl1hessevec0" First Hess evec of cl1: [3] */
+  tenGageCl1HessianEvec1,/* 171: "cl1hessevec1" Second Hess evec of cl1: [3] */
+  tenGageCl1HessianEvec2,/* 172: "cl1hessevec2" Third Hess evec of cl1: [3] */
+  tenGageCp1Hessian,	 /* 173: "cp1hess" Hessian of cp1: [9] */
+  tenGageCp1HessianEval, /* 174: "cp1hesseval" Hessian evals of cp1: [3] */
+  tenGageCp1HessianEval0,/* 175: "cp1hesseval0" First Hess eval of cp1: [1] */
+  tenGageCp1HessianEval1,/* 176: "cp1hesseval1" Second Hess eval of cp1: [1] */
+  tenGageCp1HessianEval2,/* 177: "cp1hesseval2" Third Hess eval of cp1: [1] */
+  tenGageCp1HessianEvec, /* 178: "cp1hessevec" Hessian evecs of cp1: [9] */
+  tenGageCp1HessianEvec0,/* 179: "cp1hessevec0" First Hess evec of cp1: [3] */
+  tenGageCp1HessianEvec1,/* 170: "cp1hessevec1" Second Hess evec of cp1: [3] */
+  tenGageCp1HessianEvec2,/* 181: "cp1hessevec2" Third Hess evec of cp1: [3] */
+  tenGageCa1Hessian,	 /* 182: "ca1hess" Hessian of ca1: [9] */
+  tenGageCa1HessianEval, /* 183: "ca1hesseval" Hessian evals of ca1: [3] */
+  tenGageCa1HessianEval0,/* 184: "ca1hesseval0" First Hess eval of ca1: [1] */
+  tenGageCa1HessianEval1,/* 185: "ca1hesseval1" Second Hess eval of ca1: [1] */
+  tenGageCa1HessianEval2,/* 186: "ca1hesseval2" Third Hess eval of ca1: [1] */
+  tenGageCa1HessianEvec, /* 187: "ca1hessevec" Hessian evecs of ca1: [9] */
+  tenGageCa1HessianEvec0,/* 188: "ca1hessevec0" First Hess evec of ca1: [3] */
+  tenGageCa1HessianEvec1,/* 189: "ca1hessevec1" Second Hess evec of ca1: [3] */
+  tenGageCa1HessianEvec2,/* 180: "ca1hessevec2" Third Hess evec of ca1: [3] */
+  tenGageFiberCurving,   /* 191: "fibcurv" Savadjiev et al. fiber curving */
+  tenGageFiberDispersion,/* 192: "fibdisp" Savadjiev et al. fiber dispersion */
+  tenGageAniso,          /* 193: "an", all anisos: [TEN_ANISO_MAX+1] */
   tenGageLast
 };
-#define TEN_GAGE_ITEM_MAX     192
+#define TEN_GAGE_ITEM_MAX     193
 
 /*
 ******** tenDwiGage* enum
