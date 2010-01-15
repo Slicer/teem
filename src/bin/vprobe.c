@@ -350,6 +350,16 @@ main(int argc, char *argv[]) {
   sox = AIR_CAST(size_t, scale[0]*six);
   soy = AIR_CAST(size_t, scale[1]*siy);
   soz = AIR_CAST(size_t, scale[2]*siz);
+  if (verbose) {
+    fprintf(stderr, "%s: six,y,z = %u %u %u\n", me,
+            AIR_CAST(unsigned int, six),
+            AIR_CAST(unsigned int, siy),
+            AIR_CAST(unsigned int, siz));
+    fprintf(stderr, "%s: sox,y,z = %u %u %u\n", me,
+            AIR_CAST(unsigned int, sox),
+            AIR_CAST(unsigned int, soy),
+            AIR_CAST(unsigned int, soz));
+  }
   rscl[0] = AIR_CAST(double, six)/sox;
   rscl[1] = AIR_CAST(double, siy)/soy;
   rscl[2] = AIR_CAST(double, siz)/soz;
@@ -408,7 +418,7 @@ main(int argc, char *argv[]) {
   }
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
-  gageParmSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmVerbose, verbose/10);
   for (zi=0; zi<soz; zi++) {
     if (verbose) {
       if (verbose > 1) {
@@ -443,7 +453,6 @@ main(int argc, char *argv[]) {
         }
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
         idx = xi + sox*(yi + soy*zi);
-        ctx->verbose = 0*(32 == xi && 16 == yi && 16 == zi);
         E = (numSS
              ? gageStackProbe(ctx, x, y, z, idxSS)
              : gageProbe(ctx, x, y, z));
