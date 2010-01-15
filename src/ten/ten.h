@@ -1627,8 +1627,8 @@ TEN_EXPORT const tenModel *const tenModelBall1Stick;
 /* modelCylinder.c */
 #define TEN_MODEL_STR_CYLINDER "cylinder"
 TEN_EXPORT const tenModel *const tenModelCylinder;
-/* modelTensor2.c */
-#define TEN_MODEL_STR_TENSOR2 "tensor2"
+/* modelTensor2.c: 2nd-order tensor (one of them), not two-tensor */
+#define TEN_MODEL_STR_TENSOR2 "tensor2" 
 TEN_EXPORT const tenModel *const tenModelTensor2;
 
 /* mod.c */
