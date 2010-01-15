@@ -501,9 +501,10 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   sy = ctx->shape->size[1];
   sz = ctx->shape->size[2];
   fr = ctx->radius;
-  lx = ctx->point.idx[0] - (fr - 1);
-  ly = ctx->point.idx[1] - (fr - 1);
-  lz = ctx->point.idx[2] - (fr - 1);
+  /* idx[0]-1: see Thu Jan 14 comment in filter.c */
+  lx = ctx->point.idx[0]-1 - (fr - 1); 
+  ly = ctx->point.idx[1]-1 - (fr - 1);
+  lz = ctx->point.idx[2]-1 - (fr - 1);
   hx = lx + 2*fr - 1;
   hy = ly + 2*fr - 1;
   hz = lz + 2*fr - 1;

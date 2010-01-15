@@ -460,7 +460,8 @@ typedef struct gageParm_t {
 */
 typedef struct gagePoint_t {
   double frac[4];         /* last fractional voxel location */
-  unsigned int idx[4],    /* last integral voxel location */
+  unsigned int idx[4],    /* last integral voxel location; actually the
+                             *upper* corner of the containing voxel */
     stackFwNonZeroNum;    /* last number of non-zero values of stack filter
                              weights (ctx->stackFw) */
 } gagePoint;

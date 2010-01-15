@@ -260,9 +260,9 @@ _gageLocationSet(gageContext *ctx,
     max[2] = top[2];
   } else {
     min = -0.5;
-    max[0] = top[0] + 0.5;
-    max[1] = top[1] + 0.5;
-    max[2] = top[2] + 0.5;
+    max[0] = AIR_CAST(double, top[0]) + 0.5;
+    max[1] = AIR_CAST(double, top[1]) + 0.5;
+    max[2] = AIR_CAST(double, top[2]) + 0.5;
   }
   if (!( AIR_IN_CL(min, xif, max[0]) && 
          AIR_IN_CL(min, yif, max[1]) && 
@@ -286,20 +286,39 @@ _gageLocationSet(gageContext *ctx,
   }
 
   /* **** computing integral and fractional sample locations **** */
-  /* for cell-centered, [-0.5,0] --> 0 */
+  /* Thu Jan 14 19:46:53 CST 2010: detected that along the low edge
+     (next to sample 0) in cell centered, the rounding behavior of
+     AIR_CAST(unsigned int, xif), namely [-0.5,0] --> 0, meant that
+     the low edge was not treated symmetrically with the high edge.
+     This motivated the change from using idx to store the lower
+     corner of the containing voxel, to the upper corner.  So, the new
+     "idx" is always +1 of what the old idx was.  Code here and in
+     ctx.c (since idx is saved into ctx->point.idx) has been changed
+     accordingly */
   ELL_3V_SET(idx, 
-             AIR_CAST(unsigned int, xif),
-             AIR_CAST(unsigned int, yif),
-             AIR_CAST(unsigned int, zif));
+             AIR_CAST(unsigned int, xif+1), /* +1: see above */
+             AIR_CAST(unsigned int, yif+1),
+             AIR_CAST(unsigned int, zif+1));
+  if (ctx->verbose > 5) {
+    fprintf(stderr, "%s: (%g,%g,%g,%g) -%s-> mm [%g, %g/%g/%g]\n"
+            "        --> idx %u %u %u\n", 
+            me, xif, yif, zif, sif,
+            airEnumStr(nrrdCenter, ctx->shape->center),
+            min, max[0], max[1], max[2], idx[0], idx[1], idx[2]);
+  }
   /* these can only can kick in for node-centered, because that's when
      max[] has an integral value */
-  idx[0] -= (idx[0] == max[0]);  
-  idx[1] -= (idx[1] == max[1]);
-  idx[2] -= (idx[2] == max[2]);
+  idx[0] -= (idx[0]-1 == max[0]);  
+  idx[1] -= (idx[1]-1 == max[1]);
+  idx[2] -= (idx[2]-1 == max[2]);
+  if (ctx->verbose > 5) {
+    fprintf(stderr, "%s:          --> idx %u %u %u\n", 
+            me, idx[0], idx[1], idx[2]);
+  }
   ELL_3V_SET(frac,
-             xif - idx[0],
-             yif - idx[1],
-             zif - idx[2]);
+             xif - (idx[0]-1),
+             yif - (idx[1]-1),
+             zif - (idx[2]-1));
   ELL_3V_COPY(ctx->point.idx, idx);  /* not idx[3], yet */
   if (ctx->parm.stackUse) {
     idx[3] = AIR_CAST(unsigned int, sif);
