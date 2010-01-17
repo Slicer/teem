@@ -160,11 +160,13 @@ def run(nposOut, **args):
     verbose = a(args, 'verbose', 1)
     rngSeed = a(args, 'rngSeed', 42)
     nobin = a(args, 'nobin', False)
+    noadd = a(args, 'noadd', False)
     nave = a(args, 'nave', True)
     cbst = a(args, 'cbst', True)
     ratb = a(args, 'ratb', True)
     lti = a(args, 'lti', False)
     npcwza = a(args, 'npcwza', False)
+    ubfgl = a(args, 'ubfgl', False)
     iterMax = a(args, 'iterMax', 100)
     snap = a(args, 'snap', 0)
     pcp = a(args, 'pcp', 5)
@@ -183,6 +185,7 @@ def run(nposOut, **args):
     k22Str = a(args, 'k22', 'c4hdd')
     kSSreconStr = a(args, 'kSSrecon', 'hermite')
     eip = a(args, 'eip', 0.00005)
+    fnnm = a(args, 'fnnm', 0.25)
     edmin = a(args, 'edmin', 0.00001)
     edpcmin = a(args, 'edpcmin', 0.01)
     maxci = a(args, 'maxci', 15)
@@ -208,7 +211,9 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagEnergyFromStrength, efs) or
         teem.pullFlagSet(pctx, teem.pullFlagRestrictiveAddToBins, ratb) or
         teem.pullFlagSet(pctx, teem.pullFlagNoPopCntlWithZeroAlpha, npcwza) or
+        teem.pullFlagSet(pctx, teem.pullFlagUseBetaForGammaLearn, ubfgl) or
         teem.pullFlagSet(pctx, teem.pullFlagBinSingle, nobin) or
+        teem.pullFlagSet(pctx, teem.pullFlagNoAdd, noadd) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
         teem.pullIterParmSet(pctx, teem.pullIterParmSnap, snap) or
         teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
@@ -221,6 +226,7 @@ def run(nposOut, **args):
         teem.pullSysParmSet(pctx, teem.pullSysParmBeta, beta) or
         teem.pullSysParmSet(pctx, teem.pullSysParmGamma, gamma) or
         teem.pullSysParmSet(pctx, teem.pullSysParmEnergyIncreasePermit, eip) or
+        teem.pullSysParmSet(pctx, teem.pullSysParmFracNeighNixedMax, fnnm) or
         teem.pullSysParmSet(pctx, teem.pullSysParmEnergyDecreaseMin, edmin) or
         teem.pullSysParmSet(pctx, teem.pullSysParmEnergyDecreasePopCntlMin,
                             edpcmin) or
