@@ -137,7 +137,7 @@ _gageSclDesc[] = {
   "median of iv3 cache (not weighted by any filter (yet))",
   "measure of valleyness of Hessian",
   "measure of ridgeness of Hessian",
-  "mode of Hessian"
+  "mode of Hessian eigenvalues"
 };
 
 int
