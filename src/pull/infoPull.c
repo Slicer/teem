@@ -39,6 +39,7 @@ _pullInfoStr[] = {
   "seedthresh",
   "livethresh",
   "livethresh2",
+  "livethresh3",
   "tan1",
   "tan2",
   "tanmode",
@@ -65,6 +66,7 @@ _pullInfoVal[] = {
   pullInfoSeedThresh,         /* [1] scalar for thresholding seeding */
   pullInfoLiveThresh,         /* [1] */ 
   pullInfoLiveThresh2,        /* [1] */ 
+  pullInfoLiveThresh3,        /* [1] */ 
   pullInfoTangent1,           /* [3] first tangent to constraint surf */
   pullInfoTangent2,           /* [3] second tangent to constraint surf */
   pullInfoTangentMode,        /* [1] for morphing between co-dim 1 and 2 */
@@ -90,6 +92,7 @@ _pullInfoStrEqv[] = {
   "seedthresh", "sthr",
   "livethresh", "lthr",
   "livethresh2", "lthr2",
+  "livethresh3", "lthr3",
   "tan1",
   "tan2",
   "tanmode", "tmode",
@@ -116,6 +119,7 @@ _pullInfoValEqv[] = {
   pullInfoSeedThresh, pullInfoSeedThresh,
   pullInfoLiveThresh, pullInfoLiveThresh,
   pullInfoLiveThresh2, pullInfoLiveThresh2,
+  pullInfoLiveThresh3, pullInfoLiveThresh3,
   pullInfoTangent1,
   pullInfoTangent2,
   pullInfoTangentMode, pullInfoTangentMode,
@@ -154,6 +158,7 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
   1, /* pullInfoSeedThresh */
   1, /* pullInfoLiveThresh */
   1, /* pullInfoLiveThresh2 */
+  1, /* pullInfoLiveThresh3 */
   3, /* pullInfoTangent1 */
   3, /* pullInfoTangent2 */
   1, /* pullInfoTangentMode */

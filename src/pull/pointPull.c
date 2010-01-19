@@ -270,6 +270,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoSeedThresh */
     0,                        /* pullInfoLiveThresh */
     0,                        /* pullInfoLiveThresh2 */
+    0,                        /* pullInfoLiveThresh3 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
     0,                        /* pullInfoTangentMode */
@@ -293,6 +294,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoSeedThresh */
     0,                        /* pullInfoLiveThresh */
     0,                        /* pullInfoLiveThresh2 */
+    0,                        /* pullInfoLiveThresh3 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
     0,                        /* pullInfoTangentMode */
@@ -618,9 +620,17 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
                                    NULL, NULL);
           reject |= (seedv < 0);
         }
-        if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
+        /* HEY copy & paste */
+        if (!reject && pctx->ispec[pullInfoLiveThresh2]) { 
           double seedv;
           seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
+                                   NULL, NULL);
+          reject |= (seedv < 0);
+        }
+        /* HEY copy & paste */
+        if (!reject && pctx->ispec[pullInfoLiveThresh3]) { 
+          double seedv;
+          seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
                                    NULL, NULL);
           reject |= (seedv < 0);
         }
@@ -658,7 +668,7 @@ _pullPointInitializeRandom(pullContext *pctx,
                            /* output */
                            int *createFailP) {
   static const char me[]="_pullPointInitializeRandom";
-  int reject, threshFail, constrFail;
+  int reject, threshFail, constrFail, verbo;
   airRandMTState *rng;
   unsigned int threshFailCount = 0, constrFailCount = 0;
   rng = pctx->task[0]->rng;
@@ -684,13 +694,24 @@ _pullPointInitializeRandom(pullContext *pctx,
     } else {
       point->pos[3] = 0.0;
     }
+    /*
+    verbo = (AIR_ABS(-0.246015 - point->pos[0]) < 0.1 &&
+             AIR_ABS(-144.78 - point->pos[0]) < 0.1 &&
+             AIR_ABS(-85.3813 - point->pos[0]) < 0.1);
+    */
+    verbo = AIR_FALSE;
+    if (verbo) {
+      fprintf(stderr, "%s: verbo on for point %u at %g %g %g %g\n", me,
+              point->idtag, point->pos[0], point->pos[1],
+              point->pos[2], point->pos[3]);
+    }
     _pullPointHistAdd(point, pullCondOld);
     /* Do a tentative probe */
     if (_pullProbe(pctx->task[0], point)) {
       biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
       return 1;
     }
-    /* Enforce constrains and thresholds */
+    /* Enforce constraints and thresholds */
     threshFail = AIR_FALSE;
     for (task=0; task<3; task++) {
       double seedv;
@@ -702,6 +723,7 @@ _pullPointInitializeRandom(pullContext *pctx,
                                    NULL, NULL);
           reject |= (seedv < 0);
         }
+        break;
       case 1:
         if (!reject && pctx->ispec[pullInfoSeedThresh]) {
           seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh,
@@ -719,8 +741,17 @@ _pullPointInitializeRandom(pullContext *pctx,
           } else {
             threshFail = AIR_FALSE;
           }
+          /* HEY copy & paste */
           if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
             seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
+                                     NULL, NULL);
+            threshFailCount += (threshFail = (seedv < 0));
+          } else {
+            threshFail = AIR_FALSE;
+          }
+          /* HEY copy & paste */
+          if (!reject && pctx->ispec[pullInfoLiveThresh3]) {
+            seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
                                      NULL, NULL);
             threshFailCount += (threshFail = (seedv < 0));
           } else {
@@ -795,8 +826,15 @@ _pullPointInitializePos(pullContext *pctx,
                                NULL, NULL);
       reject |= (seedv < 0);
     }
+    /* HEY copy & paste */
     if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
       seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
+                               NULL, NULL);
+      reject |= (seedv < 0);
+    }
+    /* HEY copy & paste */
+    if (!reject && pctx->ispec[pullInfoLiveThresh3]) {
+      seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
                                NULL, NULL);
       reject |= (seedv < 0);
     }

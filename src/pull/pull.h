@@ -111,19 +111,20 @@ enum {
                                  particles, AND for future additions from
                                  population control */
   pullInfoLiveThresh2,        /* 13: [1] another pullInfoLiveThresh */
-  pullInfoTangent1,           /* 14: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 15: [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* 16: [1] for morphing between co-dim 1 and 2;
+  pullInfoLiveThresh3,        /* 14: [1] yet another pullInfoLiveThresh */
+  pullInfoTangent1,           /* 15: [3] first tangent to constraint surf */
+  pullInfoTangent2,           /* 16: [3] second tangent to constraint surf */
+  pullInfoTangentMode,        /* 17: [1] for morphing between co-dim 1 and 2;
                                  User must set scale so mode from -1 to 1
                                  means co-dim 1 (surface) to 2 (line) */
-  pullInfoIsovalue,           /* 17: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 18: [3] */
-  pullInfoIsovalueHessian,    /* 19: [9] */
-  pullInfoStrength,           /* 20: [1] */
-  pullInfoQuality,            /* 21: [1] */
+  pullInfoIsovalue,           /* 18: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 19: [3] */
+  pullInfoIsovalueHessian,    /* 20: [9] */
+  pullInfoStrength,           /* 21: [1] */
+  pullInfoQuality,            /* 22: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            21
+#define PULL_INFO_MAX            22
 
 /*
 ******** pullVal* enum

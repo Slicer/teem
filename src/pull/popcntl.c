@@ -236,6 +236,14 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     task->processMode = pullProcessModeAdding;
     return 0;
   }
+  if (task->pctx->ispec[pullInfoLiveThresh3] /* HEY: copy & paste */
+      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
+                              NULL, NULL)) {
+    /* didn't meet threshold */
+    newpnt = pullPointNix(newpnt);
+    task->processMode = pullProcessModeAdding;
+    return 0;
+  }
   /* see if the new point should be nixed because its at a volume edge */
   if (task->pctx->flag.nixAtVolumeEdgeSpace
       && (newpnt->status & PULL_STATUS_EDGE_BIT)) {
@@ -299,8 +307,16 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
+  /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh2]
       && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
+                              NULL, NULL)) {
+    point->status |= PULL_STATUS_NIXME_BIT;
+    return 0;
+  }
+  /* HEY copy & paste */
+  if (task->pctx->ispec[pullInfoLiveThresh3]
+      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
                               NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
