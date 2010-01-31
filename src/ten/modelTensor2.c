@@ -25,6 +25,7 @@
 
 /* NOTE: this model is a single 2nd-order tensor, not a two-tensor model */
 
+#define DOF_NUM 6
 #define PARM_NUM 7
 /* 1/sqrt(2) */
 #define OST 0.70710678118654752440

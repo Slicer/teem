@@ -1153,7 +1153,7 @@ typedef struct {
 */
 typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
-  unsigned int parmNum;
+  unsigned int parmNum, dofNum;
   const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,

@@ -389,7 +389,7 @@ nllFit(double *parm, const tenExperSpec *espec,         \
 }
 
 #define _TEN_MODEL_FIELDS                                           \
-  PARM_NUM, parmDesc,                                               \
+  DOF_NUM, PARM_NUM, parmDesc,                                      \
   simulate,                                                         \
   parmSprint, parmAlloc, parmRand,                                  \
   parmStep, parmDist, parmCopy, parmConvert,                        \

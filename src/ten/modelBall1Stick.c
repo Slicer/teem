@@ -23,6 +23,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
+#define DOF_NUM 5
 #define PARM_NUM 6
 static const tenModelParmDesc
 parmDesc[] = {
