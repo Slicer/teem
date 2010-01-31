@@ -161,6 +161,7 @@ def run(nposOut, **args):
     rngSeed = a(args, 'rngSeed', 42)
     nobin = a(args, 'nobin', False)
     noadd = a(args, 'noadd', False)
+    usa = a(args, 'usa', False)
     nave = a(args, 'nave', True)
     cbst = a(args, 'cbst', True)
     ratb = a(args, 'ratb', True)
@@ -214,6 +215,7 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagUseBetaForGammaLearn, ubfgl) or
         teem.pullFlagSet(pctx, teem.pullFlagBinSingle, nobin) or
         teem.pullFlagSet(pctx, teem.pullFlagNoAdd, noadd) or
+        teem.pullInitUnequalShapesAllowSet(pctx, usa) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
         teem.pullIterParmSet(pctx, teem.pullIterParmSnap, snap) or
         teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
