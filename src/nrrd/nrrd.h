@@ -1286,6 +1286,11 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBlackman,     /* Blackman windowed sinc */
   *const nrrdKernelBlackmanD,    /* 1st derivative of Blackman windowed sinc */
   *const nrrdKernelBlackmanDD;   /* 2nd derivative */
+/* bsplKernel.c : b-splines of various orders */
+NRRD_EXPORT NrrdKernel
+  *const nrrdKernelBSpline3,
+  *const nrrdKernelBSpline3D,
+  *const nrrdKernelBSpline3DD;
 /* kernel.c */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */

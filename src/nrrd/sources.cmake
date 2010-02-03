@@ -53,6 +53,7 @@ SET(NRRD_SOURCES
   superset.c
   tmfKernel.c
   winKernel.c
+  bsplKernel.c
   write.c
   )
 

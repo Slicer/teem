@@ -52,11 +52,11 @@ $(L).OBJS = \
 	accessors.o  arith.o     arraysNrrd.o   apply1D.o apply2D.o \
 	axis.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
 	endianNrrd.o enumsNrrd.o filt.o         gzio.o           \
-	hestNrrd.o   histogram.o iter.o         kernel.o         \
+	hestNrrd.o   histogram.o iter.o         kernel.o   	 \
 	map.o        measure.o   methodsNrrd.o  parseNrrd.o      \
 	read.o       write.o        reorder.o   resampleNrrd.o \
 	simple.o     subset.o     superset.o  tmfKernel.o      \
-	winKernel.o  ccmethods.o  cc.o        range.o          \
+	winKernel.o  bsplKernel.o  ccmethods.o  cc.o        range.o  \
         encoding.o   encodingRaw.o  encodingAscii.o  encodingHex.o \
 	encodingGzip.o   encodingBzip2.o  \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \

@@ -1942,6 +1942,9 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bkmndd", str))     return nrrdKernelBlackmanDD;
   if (!strcmp("blackdd", str))    return nrrdKernelBlackmanDD;
   if (!strcmp("blackmandd", str)) return nrrdKernelBlackmanDD;
+  if (!strcmp("bspl3", str))      return nrrdKernelBSpline3;
+  if (!strcmp("bspl3d", str))     return nrrdKernelBSpline3D;
+  if (!strcmp("bspl3dd", str))    return nrrdKernelBSpline3DD;
   return NULL;
 }
 
