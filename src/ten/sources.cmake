@@ -71,6 +71,7 @@ SET(TEN_SOURCES
   modelBall.c
   model1Stick.c
   modelBall1Stick.c
+  modelBall1Cylinder.c
   modelCylinder.c
   modelTensor2.c
   )

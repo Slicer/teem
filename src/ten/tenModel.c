@@ -30,11 +30,12 @@ static const tenModel *
 str2model(const char *str) {
   const tenModel *ret = NULL;
 
-  if (!strcmp(str, TEN_MODEL_STR_BALL))       ret = tenModelBall;
-  if (!strcmp(str, TEN_MODEL_STR_1STICK))     ret = tenModel1Stick;
-  if (!strcmp(str, TEN_MODEL_STR_BALL1STICK)) ret = tenModelBall1Stick;
-  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))   ret = tenModelCylinder;
-  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))    ret = tenModelTensor2;
+  if (!strcmp(str, TEN_MODEL_STR_BALL))          ret = tenModelBall;
+  if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
+  if (!strcmp(str, TEN_MODEL_STR_BALL1STICK))    ret = tenModelBall1Stick;
+  if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) ret = tenModelBall1Cylinder;
+  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))      ret = tenModelCylinder;
+  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))       ret = tenModelTensor2;
   return ret;
 }
 
@@ -366,11 +367,13 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   airArray *mop;
   unsigned int saveParmNum, dwiNum, ii, lablen;
   size_t szOut[NRRD_DIM_MAX], II, numSamp;
-  int axmap[NRRD_DIM_MAX];
+  int axmap[NRRD_DIM_MAX], erraxmap[NRRD_DIM_MAX];
   const char *dwi;
   char *parm;
   airRandMTState *rng;
+  Nrrd *nsqe;
 
+  /* nsqeP can be NULL */
   if (!( nparm && model && espec && ndwi )) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -394,8 +397,8 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   }
   
   /* allocate output (and set axmap) */
-  dparm = AIR_CALLOC(model->parmNum, double);
-  dparmBest = AIR_CALLOC(model->parmNum, double);
+  dparm = model->alloc();
+  dparmBest = model->alloc();
   if (!( dparm && dparmBest )) {
     biffAddf(TEN, "%s: couldn't allocate parm vecs", me);
     return 1;
@@ -411,10 +414,26 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     axmap[ii] = (!ii
                  ? -1
                  : AIR_CAST(int, ii));
+    if (ii) {
+      erraxmap[ii-1] = AIR_CAST(int, ii);
+    }
   }
   if (nrrdMaybeAlloc_nva(nparm, typeOut, ndwi->dim, szOut)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
+  }
+  if (nsqeP) {
+    nsqe = *nsqeP;
+    if (!nsqe) {
+      nsqe = nrrdNew();
+      if (nrrdMaybeAlloc_nva(nsqe, typeOut, ndwi->dim-1, szOut+1)) {
+        biffMovef(TEN, NRRD, "%s: couldn't allocate error output", me);
+        airMopError(mop); return 1;
+      }
+      *nsqeP = nsqe;
+    }
+  } else {
+    nsqe = NULL;
   }
   ddwi = AIR_CALLOC(espec->imgNum, double);
   dwibuff = AIR_CALLOC(espec->imgNum, double);
@@ -426,8 +445,12 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   airMopAdd(mop, dwibuff, airFree, airMopAlways);
 
   /* set output */
-  airRandMTStateGlobalInit();
-  rng = _rng ? _rng : airRandMTStateGlobal;
+  if (_rng) {
+    rng = _rng;
+  } else {
+    airRandMTStateGlobalInit();
+    rng = airRandMTStateGlobal;
+  }
   numSamp = nrrdElementNumber(ndwi)/ndwi->axis[0].size;
   lup = nrrdDLookup[ndwi->type];
   ins = nrrdDInsert[typeOut];
@@ -454,6 +477,9 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     for (ii=0; ii<saveParmNum; ii++) {
       ins(parm, ii, saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
     }
+    if (nsqeP) {
+      ins(nsqe->data, II, sqeBest);
+    }
     /* possibly save sqeBest */
     parm += saveParmNum*nrrdTypeSize[typeOut];
     dwi += espec->imgNum*nrrdTypeSize[ndwi->type];
@@ -472,6 +498,23 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
+  }
+  if (nsqeP) {
+    if (nrrdAxisInfoCopy(nsqe, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
+        || nrrdBasicInfoCopy(nsqe, ndwi,
+                             NRRD_BASIC_INFO_DATA_BIT
+                             | NRRD_BASIC_INFO_TYPE_BIT
+                             | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                             | NRRD_BASIC_INFO_DIMENSION_BIT
+                             | NRRD_BASIC_INFO_CONTENT_BIT
+                             | NRRD_BASIC_INFO_COMMENTS_BIT
+                             | (nrrdStateKeyValuePairsPropagate
+                                ? 0
+                                : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      biffMovef(TEN, NRRD,
+                "%s: couldn't copy axis or basic info to error out", me);
+      airMopError(mop); return 1;
+    }
   }
   lablen = (strlen(tenModelPrefixStr)
             + (saveB0 ? strlen("B0+") : 0)

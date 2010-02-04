@@ -35,8 +35,8 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nin, *nout;
-  char *outS, *modS;
+  Nrrd *nin, *nout, *nterr;
+  char *outS, *terrS, *modS;
   int knownB0, saveB0, verbose, mlfit, typeOut;
   unsigned int maxIter, minIter, starts;
   double sigma, eps;
@@ -67,13 +67,16 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
              "is known (\"true\"), or if it has to be estimated along with "
              "the other model parameters (\"false\")");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
-             "output type of DWIs",
+             "output type of model parameters",
              NULL, nrrdType);
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &nin, "-",
              "all the diffusion-weighted images in one 4D nrrd",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output tensor volume");
+  hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
+             "Giving a filename here allows you to save out the per-sample "
+             "fitting error.  By default, no such error is saved.");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -81,6 +84,7 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
   JUSTPARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
+  nterr = NULL;
   espec = tenExperSpecNew();
   airMopAdd(mop, espec, (airMopper)tenExperSpecNix, airMopAlways);
   nout = nrrdNew();
@@ -95,7 +99,9 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble getting exper from kvp:\n%s\n", me, err);
     airMopError(mop); return 1;
   }  
-  if (tenModelSqeFit(nout, NULL, model, espec, nin,
+  if (tenModelSqeFit(nout, 
+                     airStrlen(terrS) ? &nterr : NULL, 
+                     model, espec, nin,
                      knownB0, saveB0, typeOut, 
                      minIter, maxIter, starts, eps, NULL)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -103,9 +109,10 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
     airMopError(mop); return 1;
   }  
 
-  if (nrrdSave(outS, nout, NULL)) {
+  if (nrrdSave(outS, nout, NULL)
+      || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
+    fprintf(stderr, "%s: trouble writing output:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
 

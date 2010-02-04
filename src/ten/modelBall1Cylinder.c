@@ -23,37 +23,43 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define DOF_NUM 5
-#define PARM_NUM 6
+#define DOF_NUM 7
+#define PARM_NUM 8
 static const tenModelParmDesc
 parmDesc[] = {
   /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
-  /* 1 */ {"length", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
-  /* 2 */ {"radius", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
-  /* 3 */ {"x", -1.0, 1.0, AIR_TRUE, 0},
-  /* 4 */ {"y", -1.0, 1.0, AIR_TRUE, 1},
-  /* 5 */ {"z", -1.0, 1.0, AIR_TRUE, 2}
+  /* 1 */ {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
+  /* 2 */ {"fraction", 0.0, 1.0, AIR_FALSE, 0},
+  /* 3 */ {"length", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
+  /* 4 */ {"radius", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, 0},
+  /* 5 */ {"x", -1.0, 1.0, AIR_TRUE, 0},
+  /* 6 */ {"y", -1.0, 1.0, AIR_TRUE, 1},
+  /* 7 */ {"z", -1.0, 1.0, AIR_TRUE, 2}
 };
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, length, radius, vec[3], ten[7],
+  double b0, diffBall, frac, length, radius, vec[3], ten[7],
     ident[7] = {1, 1, 0, 0, 1, 0, 1};
 
   b0 = parm[0];
-  length = parm[1];
-  radius = parm[2];
-  vec[0] = parm[3];
-  vec[1] = parm[4];
-  vec[2] = parm[5];
+  diffBall = parm[1];
+  frac = parm[2];
+  length = parm[3];
+  radius = parm[4];
+  vec[0] = parm[5];
+  vec[1] = parm[6];
+  vec[2] = parm[7];
   TEN_T3V_OUTER(ten, vec);
   TEN_T_SCALE_ADD2(ten, length - radius, ten, radius, ident);
   for (ii=0; ii<espec->imgNum; ii++) {
-    double adc, bb;
+    double adc, dwiBall, dwiCyl, bb;
     bb = espec->bval[ii];
     adc = TEN_T3V_CONTR(ten, espec->grad + 3*ii);
-    dwiSim[ii] = b0*exp(-bb*adc);
+    dwiCyl = b0*exp(-bb*adc);
+    dwiBall = b0*exp(-bb*diffBall);
+    dwiSim[ii] = AIR_LERP(frac, dwiBall, dwiCyl);
   }
   return;
 }
@@ -66,8 +72,9 @@ _TEN_PARM_COPY
 
 static char *
 parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
-  sprintf(str, "(%g) %gX%g (%g,%g,%g)", parm[0],
-          parm[1], parm[2], parm[3], parm[4], parm[5]);
+  sprintf(str, "(%g) [(1-f) %g + (f=%g) %gX%g (%g,%g,%g)]", parm[0],
+          parm[1], parm[2], parm[3], parm[4],
+          parm[5], parm[6], parm[7]);
   return str;
 }
 
@@ -100,15 +107,15 @@ parmConvert(double *parmDst, const double *parmSrc,
 
 _TEN_SQE
 _TEN_SQE_GRAD_CENTDIFF
-_TEN_SQE_FIT(tenModelCylinder)
+_TEN_SQE_FIT(tenModelBall1Cylinder)
 
 _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
 tenModel
-_tenModelCylinder = {
-  TEN_MODEL_STR_CYLINDER,
+_tenModelBall1Cylinder = {
+  TEN_MODEL_STR_BALL1CYLINDER,
   _TEN_MODEL_FIELDS
 };
-const tenModel *const tenModelCylinder = &_tenModelCylinder;
+const tenModel *const tenModelBall1Cylinder = &_tenModelBall1Cylinder;

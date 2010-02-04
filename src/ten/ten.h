@@ -1153,7 +1153,7 @@ typedef struct {
 */
 typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
-  unsigned int parmNum, dofNum;
+  unsigned int dofNum, parmNum;
   const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
@@ -1624,6 +1624,9 @@ TEN_EXPORT const tenModel *const tenModel1Stick;
 /* modelBall1Stick.c */
 #define TEN_MODEL_STR_BALL1STICK "ball1stick"
 TEN_EXPORT const tenModel *const tenModelBall1Stick;
+/* modelBall1Cylinder.c */
+#define TEN_MODEL_STR_BALL1CYLINDER "ball1cylinder"
+TEN_EXPORT const tenModel *const tenModelBall1Cylinder;
 /* modelCylinder.c */
 #define TEN_MODEL_STR_CYLINDER "cylinder"
 TEN_EXPORT const tenModel *const tenModelCylinder;
