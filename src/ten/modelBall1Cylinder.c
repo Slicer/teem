@@ -91,9 +91,9 @@ parmConvert(double *parmDst, const double *parmSrc,
 
   } else if (modelSrc == tenModelBall1Stick) {
 
-  } else if (modelSrc == tenModelCylinder) {
+  } else if (modelSrc == tenModel1Cylinder) {
 
-  } else if (modelSrc == tenModelTensor2) {
+  } else if (modelSrc == tenModel1Tensor2) {
 
   } else {
     unsigned int ii;

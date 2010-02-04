@@ -34,8 +34,8 @@ str2model(const char *str) {
   if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
   if (!strcmp(str, TEN_MODEL_STR_BALL1STICK))    ret = tenModelBall1Stick;
   if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) ret = tenModelBall1Cylinder;
-  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))      ret = tenModelCylinder;
-  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))       ret = tenModelTensor2;
+  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))      ret = tenModel1Cylinder;
+  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))       ret = tenModel1Tensor2;
   return ret;
 }
 
@@ -105,7 +105,7 @@ tenModelFromAxisLearn(const tenModel **modelP,
   /* HEY should probably also support 3 vector for stick? */
   if (nrrdKind3DSymMatrix == axinfo->kind
       || nrrdKind3DMaskedSymMatrix == axinfo->kind) {
-    *modelP = tenModelTensor2;
+    *modelP = tenModel1Tensor2;
   } else if (airStrlen(axinfo->label)) {
     /* try to parse from label */
     if (tenModelParse(modelP, plusB0, AIR_TRUE, axinfo->label)) {

@@ -84,9 +84,9 @@ parmConvert(double *parmDst, const double *parmSrc,
 
   } else if (modelSrc == tenModelBall1Stick) {
 
-  } else if (modelSrc == tenModelCylinder) {
+  } else if (modelSrc == tenModel1Cylinder) {
 
-  } else if (modelSrc == tenModelTensor2) {
+  } else if (modelSrc == tenModel1Tensor2) {
 
   } else {
     unsigned int ii;
@@ -100,15 +100,15 @@ parmConvert(double *parmDst, const double *parmSrc,
 
 _TEN_SQE
 _TEN_SQE_GRAD_CENTDIFF
-_TEN_SQE_FIT(tenModelCylinder)
+_TEN_SQE_FIT(tenModel1Cylinder)
 
 _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
 tenModel
-_tenModelCylinder = {
+_tenModel1Cylinder = {
   TEN_MODEL_STR_CYLINDER,
   _TEN_MODEL_FIELDS
 };
-const tenModel *const tenModelCylinder = &_tenModelCylinder;
+const tenModel *const tenModel1Cylinder = &_tenModel1Cylinder;

@@ -72,8 +72,8 @@ SET(TEN_SOURCES
   model1Stick.c
   modelBall1Stick.c
   modelBall1Cylinder.c
-  modelCylinder.c
-  modelTensor2.c
+  model1Cylinder.c
+  model1Tensor2.c
   )
 
 ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})

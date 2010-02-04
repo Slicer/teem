@@ -1627,12 +1627,12 @@ TEN_EXPORT const tenModel *const tenModelBall1Stick;
 /* modelBall1Cylinder.c */
 #define TEN_MODEL_STR_BALL1CYLINDER "ball1cylinder"
 TEN_EXPORT const tenModel *const tenModelBall1Cylinder;
-/* modelCylinder.c */
-#define TEN_MODEL_STR_CYLINDER "cylinder"
-TEN_EXPORT const tenModel *const tenModelCylinder;
-/* modelTensor2.c: 2nd-order tensor (one of them), not two-tensor */
-#define TEN_MODEL_STR_TENSOR2 "tensor2" 
-TEN_EXPORT const tenModel *const tenModelTensor2;
+/* model1Cylinder.c */
+#define TEN_MODEL_STR_CYLINDER "1cylinder"
+TEN_EXPORT const tenModel *const tenModel1Cylinder;
+/* model1Tensor2.c: 2nd-order tensor (one of them), not two-tensor */
+#define TEN_MODEL_STR_TENSOR2 "1tensor2" 
+TEN_EXPORT const tenModel *const tenModel1Tensor2;
 
 /* mod.c */
 TEN_EXPORT int tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double weight[3],

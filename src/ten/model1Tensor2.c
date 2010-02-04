@@ -98,7 +98,7 @@ parmConvert(double *parmDst, const double *parmSrc,
     TEN_T_LERP(parmDst, frac, ball, stick);
     parmDst[0] = parmSrc[0];
     ret = 1;
-  } else if (modelSrc == tenModelCylinder) {
+  } else if (modelSrc == tenModel1Cylinder) {
     double stick[7], ball[7], len, rad;
     len = parmSrc[1];
     rad = parmSrc[2];
@@ -108,7 +108,7 @@ parmConvert(double *parmDst, const double *parmSrc,
     TEN_T_ADD(parmDst, ball, stick);
     parmDst[0] = parmSrc[0];
     ret = 0;
-  } else if (modelSrc == tenModelTensor2) {
+  } else if (modelSrc == tenModel1Tensor2) {
     parmCopy(parmDst, parmSrc);
     ret = 0;
   } else {
@@ -123,7 +123,7 @@ parmConvert(double *parmDst, const double *parmSrc,
 
 _TEN_SQE
 _TEN_SQE_GRAD_CENTDIFF
-_TEN_SQE_FIT(tenModelTensor2)
+_TEN_SQE_FIT(tenModel1Tensor2)
 
 _TEN_NLL
 _TEN_NLL_GRAD_STUB
@@ -131,8 +131,8 @@ _TEN_NLL_FIT_STUB
 
 
 tenModel
-_tenModelTensor2 = {
+_tenModel1Tensor2 = {
   TEN_MODEL_STR_TENSOR2,
   _TEN_MODEL_FIELDS
 };
-const tenModel *const tenModelTensor2 = &_tenModelTensor2;
+const tenModel *const tenModel1Tensor2 = &_tenModel1Tensor2;
