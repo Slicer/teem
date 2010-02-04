@@ -1615,6 +1615,10 @@ TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
 ** * tenModel.c/str2model()
 ** * all model*.c/parmConvert()  (fallen behind here)
 ** * sources.cmake, GNUmakefile
+**
+** Note that the TEN_MODEL_STR_* strings should be all lowercase,
+** as long as we want the model parsing to be case insensitive, and
+** as long as the logic in tenModel.c/str2model() is so simplistic
 */
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
@@ -1623,7 +1627,7 @@ TEN_EXPORT const tenModel *const tenModelBall;
 #define TEN_MODEL_STR_1STICK "1stick"
 TEN_EXPORT const tenModel *const tenModel1Stick;
 /* modelBall1StickEMD.c */
-#define TEN_MODEL_STR_BALL1STICKEMD "ball1stickEMD"
+#define TEN_MODEL_STR_BALL1STICKEMD "ball1stickemd"
 TEN_EXPORT const tenModel *const tenModelBall1StickEMD;
 /* modelBall1Stick.c */
 #define TEN_MODEL_STR_BALL1STICK "ball1stick"

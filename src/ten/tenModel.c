@@ -84,7 +84,7 @@ tenModelParse(const tenModel **model, int *plusB0,
     modstr = str;
   }
   if (!(*model = str2model(modstr))) {
-    biffAddf(TEN, "%s: didn't recognize \"%s\" as model", me, str);
+    biffAddf(TEN, "%s: didn't recognize \"%s\" as model", me, modstr);
     airMopError(mop); return 1;
   }
   airMopOkay(mop); 
