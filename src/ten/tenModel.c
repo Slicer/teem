@@ -32,6 +32,7 @@ str2model(const char *str) {
 
   if (!strcmp(str, TEN_MODEL_STR_BALL))          ret = tenModelBall;
   if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
+  if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) ret = tenModelBall1StickEMD;
   if (!strcmp(str, TEN_MODEL_STR_BALL1STICK))    ret = tenModelBall1Stick;
   if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) ret = tenModelBall1Cylinder;
   if (!strcmp(str, TEN_MODEL_STR_CYLINDER))      ret = tenModel1Cylinder;

@@ -52,8 +52,8 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
 	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
-	modelBall1Stick.o modelBall1Cylinder.o model1Cylinder.o \
-	model1Tensor2.o \
+	modelBall1Stick.o modelBall1StickEMD.o modelBall1Cylinder.o \
+	model1Cylinder.o model1Tensor2.o \
 	tendAbout.o \
 	tendFlotsam.o tendGrads.o tendAnplot.o tendAnvol.o tendEval.o \
 	tendEvec.o tendSten.o tendExpand.o tendEvq.o tendPoint.o \

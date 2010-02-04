@@ -54,12 +54,12 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   TEN_T3V_OUTER(ten, vec);
   TEN_T_SCALE_ADD2(ten, length - radius, ten, radius, ident);
   for (ii=0; ii<espec->imgNum; ii++) {
-    double adc, dwiBall, dwiCyl, bb;
+    double diffCyl, dwiBall, dwiCyl, bb;
     bb = espec->bval[ii];
-    adc = TEN_T3V_CONTR(ten, espec->grad + 3*ii);
-    dwiCyl = b0*exp(-bb*adc);
-    dwiBall = b0*exp(-bb*diffBall);
-    dwiSim[ii] = AIR_LERP(frac, dwiBall, dwiCyl);
+    diffCyl = TEN_T3V_CONTR(ten, espec->grad + 3*ii);
+    dwiCyl = exp(-bb*diffCyl);
+    dwiBall = exp(-bb*diffBall);
+    dwiSim[ii] = b0*AIR_LERP(frac, dwiBall, dwiCyl);
   }
   return;
 }

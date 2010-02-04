@@ -1612,8 +1612,9 @@ TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
 
 /* 
 ** Have to keep this list of model declarations in sync with:
-** * modelTen.c/tenModelParse()
-** * all model*.c/parmConvert()
+** * tenModel.c/str2model()
+** * all model*.c/parmConvert()  (fallen behind here)
+** * sources.cmake, GNUmakefile
 */
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
@@ -1621,6 +1622,9 @@ TEN_EXPORT const tenModel *const tenModelBall;
 /* model1Stick.c */
 #define TEN_MODEL_STR_1STICK "1stick"
 TEN_EXPORT const tenModel *const tenModel1Stick;
+/* modelBall1StickEMD.c */
+#define TEN_MODEL_STR_BALL1STICKEMD "ball1stickEMD"
+TEN_EXPORT const tenModel *const tenModelBall1StickEMD;
 /* modelBall1Stick.c */
 #define TEN_MODEL_STR_BALL1STICK "ball1stick"
 TEN_EXPORT const tenModel *const tenModelBall1Stick;
