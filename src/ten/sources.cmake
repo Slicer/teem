@@ -70,7 +70,7 @@ SET(TEN_SOURCES
   tenModel.c
   modelBall.c
   model1Stick.c
-  model1StickEMD.c
+  modelBall1StickEMD.c
   modelBall1Stick.c
   modelBall1Cylinder.c
   model1Cylinder.c
