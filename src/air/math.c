@@ -58,12 +58,61 @@ airFastExp(double val) {
   eco.nn[1-EXPI] = 0;
   ret = (eco.dd > 0.0
          ? eco.dd
-         : exp(val)); /* else result is implausible, use real exp() */
+         /* seems that only times this happens is when the real exp()
+            returns either 0 or +inf */
+         : (val < 0 ? 0 : AIR_POS_INF));
   return ret;
 }
 #undef EXPA
 #undef EXPC
 #undef EXPI
+
+/* 
+** based on MiniMaxApproximation, but this has failed in its goal
+** of being faster than libc's exp(), so should be considered
+** a work-in-progress
+*/
+double
+airExp(double x) {
+  double num, den, ee;
+  unsigned int pp;
+  
+  if (AIR_IN_CL(-1, x, 1)) {
+    num = 1 + x*(0.500241 + x*(0.107193 + (0.0118938 + 0.000591457*x)*x));
+    den = 1 + x*(-0.499759 + x*(0.106952 + (-0.0118456 + 0.000587495*x)*x));
+    ee = num/den;
+  } else if (x > 1) {
+    pp = 0;
+    while (x > 2) {
+      x /= 2;
+      pp += 1;
+    }
+    num = 1 + x*(0.552853 + x*(0.135772 + (0.0183685 + 0.00130944*x)*x));
+    den = 1 + x*(-0.44714 + x*(0.0828937 + (-0.00759541 + 0.000291662*x)*x));
+    ee = num/den;
+    while (pp) {
+      ee *= ee;
+      pp -= 1;
+    }
+  } else if (x < -1) {
+    pp = 0;
+    while (x < -2) {
+      x /= 2;
+      pp += 1;
+    }
+    num = 0.999999+x*(0.44726+x*(0.0829439 + (0.00760326 + 0.000292122*x)*x));
+    den = 1 + x*(-0.552732 + x*(0.135702 + (-0.0183511 + 0.00130689*x)*x));
+    ee = num/den;
+    while (pp) {
+      ee *= ee;
+      pp -= 1;
+    }
+  } else {
+    /* x is probably not finite */
+    ee = exp(x);
+  }
+  return ee;
+}
 
 /*
 ******** airNormalRand
