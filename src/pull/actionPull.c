@@ -561,6 +561,9 @@ _energyFromImage(pullTask *task, pullPoint *point,
     } else {
       /* need strength and its gradient */
       /* randomize choice between forward and backward difference */
+      /* HEY: since you only need one bit of random, you could re-used
+         a random int and look through its bits to determine forw vs
+         back differences, but this is probably not the bottleneck */
       sign = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
       deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;

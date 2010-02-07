@@ -69,6 +69,7 @@ pullInterType = &_pullInterType;
 #define CUBIC     "cubic"
 #define QUARTIC   "quartic"
 #define CWELL     "cwell"
+#define BWELL     "bwell"
 #define ZERO      "zero"
 #define BPARAB    "bparab"
 
@@ -82,6 +83,7 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1] = {
   CUBIC,
   QUARTIC,
   CWELL,
+  BWELL,
   ZERO,
   BPARAB
 };
@@ -96,6 +98,7 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "Cubic thing",
   "Quartic thing",
   "Piecewice cubic with tunable well location and depth",
+  "Better piecewice cubic with tunable well location and depth",
   "no energy",
   "butterworth-windowed spatial repel and scale attract"
 };
@@ -368,6 +371,52 @@ const pullEnergy *const
 pullEnergyCubicWell = &_pullEnergyCubicWell;
 
 /* ----------------------------------------------------------------
+** --------------- better tunable piece-wise cubic ----------------
+** ----------------------------------------------------------------
+** 2 parm: wellX, wellY
+*/
+double
+_pullEnergyBetterCubicWellEval(double *denr, double x, const double *parm) {
+  double a, b, c, d, e, f, g, wx, wy, xmo, xmoo, xmooo, enr;
+
+  /* HEY: it would be good if there was a place to store these 
+     intermediate values, so that they don't need to be computed
+     for *every*single* inter-particle interaction */
+  wx = parm[0];
+  wy = parm[1];
+  xmo = wx-1;
+  xmoo = xmo*xmo;
+  xmooo = xmoo*xmo;
+  a = -3*(xmoo + (-1 + 2*wx)*wy)/(xmoo*wx);
+  b = 3*(xmoo + (-1 + wx*(2 + wx))*wy)/(xmoo*wx*wx);
+  c = (-1 + wy - wx*(-2 + wx + 2*(1 + wx)*wy))/(xmoo*wx*wx*wx);
+  d = ((-1 + 3*wx)*wy)/xmooo;
+  e = -(6*wx*wy)/xmooo;
+  f = (3*(1 + wx)*wy)/xmooo;
+  g = -(2*wy)/xmooo;
+  if (x < wx) {
+    enr = 1 + x*(a + x*(b + x*c));
+    *denr = a + x*(2*b + x*3*c);
+  } else if (x < 1) {
+    enr = d + x*(e + x*(f + x*g));
+    *denr = e + x*(2*f + x*3*g);
+  } else {
+    enr = 0;
+    *denr = 0;
+  }
+  return enr;
+}
+
+const pullEnergy
+_pullEnergyBetterCubicWell = {
+  BWELL,
+  2,
+  _pullEnergyBetterCubicWellEval
+};
+const pullEnergy *const
+pullEnergyBetterCubicWell = &_pullEnergyBetterCubicWell;
+
+/* ----------------------------------------------------------------
 ** ------------------------------- ZERO ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms:
@@ -420,16 +469,17 @@ pullEnergyButterworthParabola = &_pullEnergyButterworthParabola;
 */
 
 const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
-  &_pullEnergyUnknown,     /* 0 */
-  &_pullEnergySpring,      /* 1 */
-  &_pullEnergyGauss,       /* 2 */
-  &_pullEnergyButterworth, /* 3 */
-  &_pullEnergyCotan,       /* 4 */
-  &_pullEnergyCubic,       /* 5 */
-  &_pullEnergyQuartic,     /* 6 */
-  &_pullEnergyCubicWell,   /* 7 */
-  &_pullEnergyZero,        /* 8 */
-  &_pullEnergyButterworthParabola /* 9 */
+  &_pullEnergyUnknown,            /* 0 */
+  &_pullEnergySpring,             /* 1 */
+  &_pullEnergyGauss,              /* 2 */
+  &_pullEnergyButterworth,        /* 3 */
+  &_pullEnergyCotan,              /* 4 */
+  &_pullEnergyCubic,              /* 5 */
+  &_pullEnergyQuartic,            /* 6 */
+  &_pullEnergyCubicWell,          /* 7 */
+  &_pullEnergyBetterCubicWell,    /* 8 */
+  &_pullEnergyZero,               /* 9 */
+  &_pullEnergyButterworthParabola /* 10 */
 };
 
 pullEnergySpec *

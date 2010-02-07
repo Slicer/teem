@@ -205,19 +205,20 @@ enum {
 ** the different shapes of potential energy profiles that can be used
 */
 enum {
-  pullEnergyTypeUnknown,       /* 0 */
-  pullEnergyTypeSpring,        /* 1 */
-  pullEnergyTypeGauss,         /* 2 */
-  pullEnergyTypeButterworth,   /* 3 */
-  pullEnergyTypeCotan,         /* 4 */
-  pullEnergyTypeCubic,         /* 5 */
-  pullEnergyTypeQuartic,       /* 6 */
-  pullEnergyTypeCubicWell,     /* 7 */
-  pullEnergyTypeZero,          /* 8 */
-  pullEnergyTypeButterworthParabola, /* 9 */
+  pullEnergyTypeUnknown,             /* 0 */
+  pullEnergyTypeSpring,              /* 1 */
+  pullEnergyTypeGauss,               /* 2 */
+  pullEnergyTypeButterworth,         /* 3 */
+  pullEnergyTypeCotan,               /* 4 */
+  pullEnergyTypeCubic,               /* 5 */
+  pullEnergyTypeQuartic,             /* 6 */
+  pullEnergyTypeCubicWell,           /* 7 */
+  pullEnergyTypeBetterCubicWell,     /* 8 */
+  pullEnergyTypeZero,                /* 9 */
+  pullEnergyTypeButterworthParabola, /* 10 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX      9
+#define PULL_ENERGY_TYPE_MAX            10
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
@@ -851,6 +852,7 @@ PULL_EXPORT const pullEnergy *const pullEnergyCotan;
 PULL_EXPORT const pullEnergy *const pullEnergyCubic;
 PULL_EXPORT const pullEnergy *const pullEnergyQuartic;
 PULL_EXPORT const pullEnergy *const pullEnergyCubicWell;
+PULL_EXPORT const pullEnergy *const pullEnergyBetterCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];

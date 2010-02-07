@@ -128,6 +128,7 @@ pullContextNix(pullContext *pctx) {
 int
 _pullMiscParmCheck(pullContext *pctx) {
   static const char me[]="_pullMiscParmCheck";
+  double denr;
 
   if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
     biffAddf(PULL, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
@@ -158,6 +159,13 @@ _pullMiscParmCheck(pullContext *pctx) {
                airEnumStr(pullInterType, pctx->interType));
       return 1;
     }
+  }
+  /* make sure that spatial repulsion is really repulsive at r=0 */
+  pctx->energySpecR->energy->eval(&denr, 0.0000001, pctx->energySpecR->parm);
+  if (!( denr < 0 )) {
+    biffAddf(PULL, "%s: spatial energy doesn't have negative slope near r=0",
+             me);
+    return 1;
   }
 
   return 0;
