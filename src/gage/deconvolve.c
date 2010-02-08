@@ -152,3 +152,178 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   airMopOkay(mop);
   return 0;
 }
+
+/*
+*******************************
+** all the following functionality should at some point be
+** pushed down to nrrd ...
+*/
+
+static void
+deconvLine(double *line, unsigned int len) {
+
+  /* Add as many other parameters to this as you want,
+     like number and location of poles, or whatever other
+     buffers you think you need (they should be passed,
+     not allocated and freed on a per-line basis) */
+
+  /* comment these out when there is a real function body */
+  AIR_UNUSED(line);
+  AIR_UNUSED(len);
+
+  return;
+}
+
+static int
+deconvTrivial(const NrrdKernelSpec *ksp) {
+  int ret;
+
+  if (1 == ksp->parm[0] &&
+      (ksp->kernel == nrrdKernelHann ||
+       ksp->kernel == nrrdKernelBlackman ||
+       ksp->kernel == nrrdKernelBox ||
+       ksp->kernel == nrrdKernelCheap ||
+       ksp->kernel == nrrdKernelTent)) {
+    ret = AIR_TRUE;
+  } else {
+    ret = AIR_FALSE;
+  }
+  return ret;
+}
+
+int
+gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
+  int ret;
+
+  if (!ksp) {
+    ret = 0;
+  } else if (deconvTrivial(ksp)
+             || nrrdKernelBSpline3 == ksp->kernel
+             /* || nrrdKernelBSpline4 == ksp->kernel
+                || nrrdKernelBSpline5 == ksp->kernel ... */) {
+    ret = 1;
+  } else {
+    ret = 0;
+  }
+  return ret;
+}
+
+int
+gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
+                        const gageKind *kind,
+                        const NrrdKernelSpec *ksp,
+                        int typeOut) {
+  static const char me[]="gageDeconvolveSeparable";
+  double *line, (*lup)(const void *, size_t),
+    (*ins)(void *, size_t, double);
+  airArray *mop;
+  size_t lineLen, sx, sy, sz, idx, ii, jj;
+  unsigned int vi, valLen;
+
+  if (!(nout && nin && kind && ksp)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!(nrrdTypeDefault == typeOut
+        || !airEnumValCheck(nrrdType, typeOut))) {
+    biffAddf(GAGE, "%s: typeOut %d not valid", me, typeOut);
+    return 1;
+  }
+  if (!gageDeconvolveSeparableKnown(ksp)) {
+    biffAddf(GAGE, "%s: seperable deconv not known for %s kernel",
+             me, ksp->kernel->name);
+    return 1;
+  }
+  if (gageKindVolumeCheck(kind, nin)) {
+    biffAddf(GAGE, "%s: given volume doesn't fit %s kind", 
+             me, kind->name);
+    return 1;
+  }
+  if (nrrdTypeDefault == typeOut
+      ? nrrdCopy(nout, nin)
+      : nrrdConvert(nout, nin, typeOut)) {
+    biffMovef(GAGE, NRRD, "%s: problem allocating output", me);
+    return 1;
+  }
+
+  valLen = kind->valLen;
+  sx = nin->axis[kind->baseDim + 0].size;
+  sy = nin->axis[kind->baseDim + 1].size;
+  sz = nin->axis[kind->baseDim + 2].size;
+  lineLen = sx;
+  lineLen = AIR_MAX(lineLen, sy);
+  lineLen = AIR_MAX(lineLen, sz);
+  lup = nrrdDLookup[nin->type];
+  ins = nrrdDInsert[nout->type];
+  
+  mop = airMopNew();
+  line = AIR_CALLOC(lineLen*valLen, double);
+  airMopAdd(mop, line, airFree, airMopAlways);
+
+  /* process along X scanlines */
+  for (jj=0; jj<sy*sz; jj++) {
+    /* xi = 0, yi = jj%sy, zi = jj/sy
+       ==> xi + sx*(yi + sy*zi)
+       == 0 + sx*(jj%sy + sy*(jj/sy)) */
+    idx = 0 + valLen*(0 + sx*jj);
+    for (ii=0; ii<sx; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        line[ii + sx*vi] = lup(nin->data, idx + vi + valLen*ii);
+      }
+    }
+    for (vi=0; vi<valLen; vi++) {
+      deconvLine(line + sx*vi, lineLen);
+    }
+    for (ii=0; ii<sx; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        ins(nout->data, idx + vi + valLen*ii, line[ii + sx*vi]);
+      }
+    }
+  }
+
+  /* process along Y scanlines */
+  for (jj=0; jj<sx*sz; jj++) {
+    /* xi = jj%sx, yi = 0, zi = jj/sx
+       ==> xi + sx*(yi + sy*zi)
+       == jj%sx + sx*(0 + sy*jj/sx) */
+    idx = 0 + valLen*((jj%sx) + sx*(0 + sy*(jj/sx)));
+    for (ii=0; ii<sy; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        line[ii + sy*vi] = lup(nin->data, idx + vi + valLen*sx*ii);
+      }
+    }
+    for (vi=0; vi<valLen; vi++) {
+      deconvLine(line + sy*vi, lineLen);
+    }
+    for (ii=0; ii<sx; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        ins(nout->data, idx + vi + valLen*sx*ii, line[ii + sy*vi]);
+      }
+    }
+  }
+
+  /* process along Z scanlines */
+  for (jj=0; jj<sx*sy; jj++) {
+    /* xi = jj%sx, yi = jj/sx, zi = 0
+       ==> xi + sx*(yi + sy*zi)
+       == jj%sx + sx*(jj/sx + sy*0)
+       == jj%sx + sx*(jj/sx) == jj */
+    idx = 0 + valLen*jj;
+    for (ii=0; ii<sz; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        line[ii + sz*vi] = lup(nin->data, idx + vi + valLen*sx*sy*ii);
+      }
+    }
+    for (vi=0; vi<valLen; vi++) {
+      deconvLine(line + sz*vi, lineLen);
+    }
+    for (ii=0; ii<sx; ii++) {
+      for (vi=0; vi<valLen; vi++) {
+        ins(nout->data, idx + vi + valLen*sx*sy*ii, line[ii + sz*vi]);
+      }
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}

@@ -1047,6 +1047,11 @@ GAGE_EXPORT int gageDeconvolve(Nrrd *nout, double *lastDiffP,
                                const NrrdKernelSpec *ksp, int typeOut,
                                unsigned int maxIter, int saveAnyway,
                                double step, double epsilon, int verbose);
+GAGE_EXPORT int gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp);
+GAGE_EXPORT int gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
+                                        const gageKind *kind,
+                                        const NrrdKernelSpec *ksp,
+                                        int typeOut);
 
 #ifdef __cplusplus
 }
