@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *ksp;
-  int otype;
+  int otype, separ, ret;
   unsigned int maxIter;
   double epsilon, lastDiff, step;
   Nrrd *nin, *nout;
@@ -81,6 +81,9 @@ main(int argc, char *argv[]) {
              "type to save output as. By default (not using this option), "
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd(&hopt, "sep", "bool", airTypeBool, 1, 1, &separ, "false",
+             "use fast separable deconvolution instead of brain-dead "
+             "brute-force iterative method");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output volume");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -91,11 +94,16 @@ main(int argc, char *argv[]) {
   nout = nrrdNew();
   airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
 
-  if (gageDeconvolve(nout, &lastDiff,
-                     nin, kind,
-                     ksp, otype,
-                     maxIter, AIR_TRUE,
-                     step, epsilon, 1)) {
+  if (separ) {
+    ret = gageDeconvolveSeparable(nout, nin, kind, ksp, otype);
+  } else {
+    ret = gageDeconvolve(nout, &lastDiff,
+                         nin, kind,
+                         ksp, otype,
+                         maxIter, AIR_TRUE,
+                         step, epsilon, 1);
+  }
+  if (ret) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);
