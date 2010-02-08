@@ -70,6 +70,7 @@ pullInterType = &_pullInterType;
 #define QUARTIC   "quartic"
 #define CWELL     "cwell"
 #define BWELL     "bwell"
+#define QWELL     "qwell"
 #define ZERO      "zero"
 #define BPARAB    "bparab"
 
@@ -84,6 +85,7 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1] = {
   QUARTIC,
   CWELL,
   BWELL,
+  QWELL,
   ZERO,
   BPARAB
 };
@@ -99,6 +101,7 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "Quartic thing",
   "Piecewice cubic with tunable well location and depth",
   "Better piecewice cubic with tunable well location and depth",
+  "Single quartic with tunable well location",
   "no energy",
   "butterworth-windowed spatial repel and scale attract"
 };
@@ -417,6 +420,34 @@ const pullEnergy *const
 pullEnergyBetterCubicWell = &_pullEnergyBetterCubicWell;
 
 /* ----------------------------------------------------------------
+** ----------------- tunable single quartic well ------------------
+** ----------------------------------------------------------------
+** 1 parm: well radius
+*/
+double
+_pullEnergyQuarticWellEval(double *denr, double x, const double *parm) {
+  double a, b, c, d, w, enr;
+
+  w = parm[0];
+  a = (12*w)/(1 - 4*w);
+  b = 3 + 9/(-1 + 4*w);
+  c = (8 + 4*w)/(1 - 4*w);
+  d = 3/(-1 + 4*w);
+  enr = 1 + x*(a + x*(b + x*(c + x*d)));
+  *denr = a + x*(2*b + x*(3*c + x*4*d));
+  return enr;
+}
+
+const pullEnergy
+_pullEnergyQuarticWell = {
+  QWELL,
+  1,
+  _pullEnergyQuarticWellEval
+};
+const pullEnergy *const
+pullEnergyQuarticWell = &_pullEnergyQuarticWell;
+
+/* ----------------------------------------------------------------
 ** ------------------------------- ZERO ---------------------------
 ** ----------------------------------------------------------------
 ** 0 parms:
@@ -478,8 +509,9 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
   &_pullEnergyQuartic,            /* 6 */
   &_pullEnergyCubicWell,          /* 7 */
   &_pullEnergyBetterCubicWell,    /* 8 */
-  &_pullEnergyZero,               /* 9 */
-  &_pullEnergyButterworthParabola /* 10 */
+  &_pullEnergyQuarticWell,        /* 9 */
+  &_pullEnergyZero,               /* 10 */
+  &_pullEnergyButterworthParabola /* 11 */
 };
 
 pullEnergySpec *

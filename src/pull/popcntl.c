@@ -106,7 +106,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
        don't try to add */
     return 0;
   }
-  if (pullEnergyCubicWell == task->pctx->energySpecR->energy) {
+  if (pullEnergyCubicWell == task->pctx->energySpecR->energy
+      || pullEnergyBetterCubicWell == task->pctx->energySpecR->energy
+      || pullEnergyQuarticWell == task->pctx->energySpecR->energy) {
     newSpcDist = task->pctx->energySpecR->parm[0];
   } else {
     newSpcDist = _PULL_NEWPNT_DIST;

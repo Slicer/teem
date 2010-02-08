@@ -214,11 +214,12 @@ enum {
   pullEnergyTypeQuartic,             /* 6 */
   pullEnergyTypeCubicWell,           /* 7 */
   pullEnergyTypeBetterCubicWell,     /* 8 */
-  pullEnergyTypeZero,                /* 9 */
-  pullEnergyTypeButterworthParabola, /* 10 */
+  pullEnergyTypeQuarticWell,         /* 9 */
+  pullEnergyTypeZero,                /* 10 */
+  pullEnergyTypeButterworthParabola, /* 11 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX            10
+#define PULL_ENERGY_TYPE_MAX            11
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
@@ -853,6 +854,7 @@ PULL_EXPORT const pullEnergy *const pullEnergyCubic;
 PULL_EXPORT const pullEnergy *const pullEnergyQuartic;
 PULL_EXPORT const pullEnergy *const pullEnergyCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyBetterCubicWell;
+PULL_EXPORT const pullEnergy *const pullEnergyQuarticWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
