@@ -170,6 +170,7 @@ deconvLine(double *line, unsigned int len, const NrrdKernelSpec *ksp) {
   /* comment these out when there is a real function body */
   AIR_UNUSED(line);
   AIR_UNUSED(len);
+  AIR_UNUSED(ksp);
 
   return;
 }
