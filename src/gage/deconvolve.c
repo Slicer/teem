@@ -160,7 +160,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
 */
 
 static void
-deconvLine(double *line, unsigned int len) {
+deconvLine(double *line, unsigned int len, const NrrdKernelSpec *ksp) {
 
   /* Add as many other parameters to this as you want,
      like number and location of poles, or whatever other
@@ -245,7 +245,12 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
     biffMovef(GAGE, NRRD, "%s: problem allocating output", me);
     return 1;
   }
-
+  if (deconvTrivial(ksp)) {
+    /* if there's no real work for the deconvolution, then by
+       copying the values we're already done; bye */
+    return 0;
+  }
+  
   valLen = kind->valLen;
   sx = nin->axis[kind->baseDim + 0].size;
   sy = nin->axis[kind->baseDim + 1].size;
@@ -264,7 +269,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
   for (jj=0; jj<sy*sz; jj++) {
     /* xi = 0, yi = jj%sy, zi = jj/sy
        ==> xi + sx*(yi + sy*zi)
-       == 0 + sx*(jj%sy + sy*(jj/sy)) */
+       == 0 + sx*(jj%sy + sy*(jj/sy)) == 0 + sx*jj */
     idx = 0 + valLen*(0 + sx*jj);
     for (ii=0; ii<sx; ii++) {
       for (vi=0; vi<valLen; vi++) {
@@ -272,7 +277,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
       }
     }
     for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sx*vi, lineLen);
+      deconvLine(line + sx*vi, sx, ksp);
     }
     for (ii=0; ii<sx; ii++) {
       for (vi=0; vi<valLen; vi++) {
@@ -293,7 +298,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
       }
     }
     for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sy*vi, lineLen);
+      deconvLine(line + sy*vi, sy, ksp);
     }
     for (ii=0; ii<sx; ii++) {
       for (vi=0; vi<valLen; vi++) {
@@ -315,7 +320,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
       }
     }
     for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sz*vi, lineLen);
+      deconvLine(line + sz*vi, sz, ksp);
     }
     for (ii=0; ii<sx; ii++) {
       for (vi=0; vi<valLen; vi++) {
