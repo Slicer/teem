@@ -319,17 +319,18 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
 }
 
 /*
-** the "egradSum" argument is where the sum (over neighboring points) of
-** the energy gradient goes, but it is also effectively a flag for the
-** kind of computation that happens here:
+** computes energy from neighboring points. The non-NULLity of
+** "egradSum" determines the energy *gradient* is computed (with
+** possible constraint modifications) and stored there
 **
-** non-NULL egradSum: besides computing current energy, compute energy
-** gradient (with possible constraint modifications) so that we can update
-** the system.  point->neighInterNum will be computed, and thus so will
-** point->neighDistMean and point->neighMode
+** always computed:
+** point->neighInterNum
+** point->neighDistMean
 **
-** NULL egradSum: just tell me what the energy is; and do NOT compute:
-** point->neighInterNum, point->neighDistMean, point->neighMode
+** if task->pctx->ispec[pullInfoTangentMode]:
+**   point->neighMode 
+** if pullProcessModeNeighLearn == task->processMode:
+**   point->neighCovar
 */
 double
 _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
@@ -426,6 +427,9 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   point->neighInterNum = 0;
   point->neighDistMean = 0.0;
   point->neighMode = 0.0;
+  if (pullProcessModeNeighLearn == task->processMode) {
+    ELL_10V_ZERO_SET(point->neighCovar);
+  }
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
   }
@@ -463,8 +467,9 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
          its not just a fluke zero-crossing of the potential profile */
-      double nsclDist, nspaDist, ndist, ww;
+      double ndist, ww;
 
+      point->neighInterNum++;
       if (nlist && ntrue) {
         unsigned int ii;
         /* we have to record that we had an interaction with this point */
@@ -472,15 +477,26 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         point->neighPoint[ii] = herPoint;
       }
       energySum += enr;
-      point->neighInterNum++;
-      nspaDist = spaDist/task->pctx->sysParm.radiusSpace;
+      ELL_3V_SCALE(diff, 1.0/task->pctx->sysParm.radiusSpace, diff);
       if (task->pctx->haveScale) {
-        nsclDist = sclDist/task->pctx->sysParm.radiusScale;
-        ndist = sqrt(nspaDist*nspaDist + nsclDist*nsclDist);
-      } else {
-        ndist = nspaDist;
+        diff[3] /= task->pctx->sysParm.radiusScale;
       }
+      ndist = ELL_4V_LEN(diff);
       point->neighDistMean += ndist;
+      if (pullProcessModeNeighLearn == task->processMode) {
+        float outer[16];
+        ELL_4MV_OUTER_TT(outer, float, diff, diff);
+        point->neighCovar[0] += outer[0];
+        point->neighCovar[1] += outer[1];
+        point->neighCovar[2] += outer[2];
+        point->neighCovar[3] += outer[3];
+        point->neighCovar[4] += outer[5];
+        point->neighCovar[5] += outer[6];
+        point->neighCovar[6] += outer[7];
+        point->neighCovar[7] += outer[10];
+        point->neighCovar[8] += outer[11];
+        point->neighCovar[9] += outer[15];
+      }
       if (task->pctx->ispec[pullInfoTangentMode]) {
         double mm;
         mm = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
@@ -501,12 +517,17 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (task->pctx->ispec[pullInfoTangentMode]) {
       point->neighMode /= modeWghtSum;
     }
+    if (pullProcessModeNeighLearn == task->processMode) {
+      ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
+                    point->neighCovar);
+    }
   } else {
     /* we had no neighbors at all */
     point->neighDistMean = 0.0; /* shouldn't happen in any normal case */
     if (task->pctx->ispec[pullInfoTangentMode]) {
       point->neighMode = AIR_NAN;
     }
+    /* point->neighCovar stays set at all zeros */
   }
 
   return energySum;

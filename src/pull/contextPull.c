@@ -494,6 +494,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   size_t size[2];
   unsigned int dim, pointNum, pointIdx, binIdx, *out_ui, outIdx;
   double *out_d;
+  float *out_f;
   unsigned char *out_uc;
   pullBin *bin;
   pullPoint *point;
@@ -536,6 +537,18 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     size[0] = pointNum;
     typeOut = nrrdTypeDouble;
     break;
+  case pullPropNeighCovar:
+    dim = 2;
+    size[0] = 10;
+    size[1] = pointNum;
+    typeOut = nrrdTypeFloat;
+    break;
+  case pullPropNeighCovar7Ten:
+    dim = 2;
+    size[0] = 7;
+    size[1] = pointNum;
+    typeOut = nrrdTypeFloat;
+    break;
   default:
     biffAddf(PULL, "%s: prop %d unrecognized", me, prop);
     return 1;
@@ -546,6 +559,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     return 1;
   }
   out_d = AIR_CAST(double *, nprop->data);
+  out_f = AIR_CAST(float *, nprop->data);
   out_ui = AIR_CAST(unsigned int *, nprop->data);
   out_uc = AIR_CAST(unsigned char *, nprop->data);
 
@@ -586,6 +600,18 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropScale:
         out_d[outIdx] = point->pos[3];
+        break;
+      case pullPropNeighCovar:
+        ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar); 
+        break;
+      case pullPropNeighCovar7Ten:
+        TEN_T_SET(out_f + 7*outIdx, 1.0f,
+                  point->neighCovar[0],
+                  point->neighCovar[1],
+                  point->neighCovar[2],
+                  point->neighCovar[4],
+                  point->neighCovar[5],
+                  point->neighCovar[7]);
         break;
       }
       ++outIdx;

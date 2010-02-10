@@ -65,6 +65,7 @@ pullPointNew(pullContext *pctx) {
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDistMean = 0;
   pnt->neighMode = AIR_NAN;
+  ELL_10V_ZERO_SET(pnt->neighCovar);
   pnt->neighInterNum = 0;
   pnt->stuckIterNum = 0;
 #if PULL_PHIST
@@ -103,6 +104,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighPointArr = src->neighPointArr;
   dst->neighDistMean = src->neighDistMean;
   dst->neighMode = src->neighMode;
+  ELL_10V_COPY(dst->neighCovar, src->neighCovar);
   dst->neighInterNum = src->neighInterNum;
 #if PULL_PHIST
   dst->phist = src->phist;
@@ -797,13 +799,13 @@ _pullPointInitializeRandom(pullContext *pctx,
 }
 
 int
-_pullPointInitializePos(pullContext *pctx,
-                        const double *posData,
-                        const unsigned int pointIdx,
-                        pullPoint *point,
-                        /* output */
-                        int *createFailP) {
-  static const char me[]="_pullPointInitializePos";
+_pullPointInitializeGivenPos(pullContext *pctx,
+                             const double *posData,
+                             const unsigned int pointIdx,
+                             pullPoint *point,
+                             /* output */
+                             int *createFailP) {
+  static const char me[]="_pullPointInitializeGivenPos";
   double seedv;
   int reject;
 
@@ -1009,8 +1011,8 @@ _pullPointSetup(pullContext *pctx) {
                                        taskOrder, &createFail);
       break;
     case pullInitMethodGivenPos:
-      E = _pullPointInitializePos(pctx, posData, pointIdx, point,
-                                  &createFail);
+      E = _pullPointInitializeGivenPos(pctx, posData, pointIdx, point,
+                                       &createFail);
       break;
     }
     if (E) {

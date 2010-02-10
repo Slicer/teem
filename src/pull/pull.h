@@ -156,6 +156,12 @@ enum {
   pullPropForce,              /*  8: [4] force accumulation */
   pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
   pullPropScale,              /* 10: [1] scale position */
+  pullPropNeighCovar,         /* 11: [10] unique coeffs of covariance matrix
+                                 of offsets to all interacting neighbors, 
+                                 updated only during
+                                 pullProcessModeNeighLearn */
+  pullPropNeighCovar7Ten,     /* 12: [7] spatial component of covariance,
+                                 formatted as ten-compatible 7-tensor */
   pullPropLast
 };
 
@@ -281,6 +287,8 @@ typedef struct pullPoint_t {
                                  points with whom this point interacted,
                                  in rs-normalized space */
     neighMode;                /* some average of mode of nearby points */
+  float neighCovar[10];       /* unique coeffs in 4x4 covariance matrix of
+                                 neighbors with whom this point interacted */
   unsigned int neighInterNum, /* number of particles with which I had some
 				 non-zero interaction on last iteration */
     stuckIterNum;             /* how many iterations I've been stuck */
