@@ -615,7 +615,13 @@ extern "C" {
 #define ELL_4V_SCALE(v2, a, v1) \
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
-
+  
+#define ELL_4V_SCALE_TT(v2, TT, a, v1)   \
+  ((v2)[0] = AIR_CAST(TT, (v1)[0]*(a)),  \
+   (v2)[1] = AIR_CAST(TT, (v1)[1]*(a)),  \
+   (v2)[2] = AIR_CAST(TT, (v1)[2]*(a)),  \
+   (v2)[3] = AIR_CAST(TT, (v1)[3]*(a)))
+  
 #define ELL_4V_SCALE_ADD2(v2, s0, v0, s1, v1) \
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
@@ -949,6 +955,24 @@ extern "C" {
                            (m)[ 8], (m)[ 9], (m)[10], \
                            (m)[12], (m)[13], (m)[14]))
 
+#define ELL_4MV_OUTER(m, v1, v2)        \
+  (ELL_4V_SCALE((m)+ 0, (v1)[0], (v2)), \
+   ELL_4V_SCALE((m)+ 4, (v1)[1], (v2)), \
+   ELL_4V_SCALE((m)+ 8, (v1)[2], (v2)), \
+   ELL_4V_SCALE((m)+12, (v1)[3], (v2)))
+
+#define ELL_4MV_OUTER_TT(m, TT, v1, v2) \
+  (ELL_4V_SCALE_TT((m)+ 0, TT, (v1)[0], (v2)),   \
+   ELL_4V_SCALE_TT((m)+ 4, TT, (v1)[1], (v2)),    \
+   ELL_4V_SCALE_TT((m)+ 8, TT, (v1)[2], (v2)),     \
+   ELL_4V_SCALE_TT((m)+12, TT, (v1)[3], (v2)))
+
+#define ELL_4MV_OUTER_INCR(m, v1, v2)        \
+  (ELL_4V_SCALE_INCR((m)+ 0, (v1)[0], (v2)), \
+   ELL_4V_SCALE_INCR((m)+ 4, (v1)[1], (v2)), \
+   ELL_4V_SCALE_INCR((m)+ 8, (v1)[2], (v2)), \
+   ELL_4V_SCALE_INCR((m)+12, (v1)[3], (v2)))
+
 #define ELL_Q_MUL(q3, q1, q2)                                            \
   ELL_4V_SET((q3),                                                       \
   (q1)[0]*(q2)[0] - (q1)[1]*(q2)[1] - (q1)[2]*(q2)[2] - (q1)[3]*(q2)[3], \
@@ -1070,6 +1094,40 @@ extern "C" {
    (v1)[6]*(v2)[6] +       \
    (v1)[7]*(v2)[7] +       \
    (v1)[8]*(v2)[8])
+
+#define ELL_10V_ZERO_SET(v)                         \
+  ((v)[0]=0, (v)[1]=0, (v)[2]=0,                    \
+   (v)[3]=0, (v)[4]=0, (v)[5]=0,                    \
+   (v)[6]=0, (v)[7]=0, (v)[8]=0, (v)[9]=0)
+
+#define ELL_10V_SET(v, a, b, c, d, e, f, g, h, i, j)      \
+  ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c),                    \
+   (v)[3]=(d), (v)[4]=(e), (v)[5]=(f),                    \
+   (v)[6]=(g), (v)[7]=(h), (v)[8]=(i), (v)[9]=(j))
+
+#define ELL_10V_COPY(v2, v1) \
+  ((v2)[0] = (v1)[0],       \
+   (v2)[1] = (v1)[1],       \
+   (v2)[2] = (v1)[2],       \
+   (v2)[3] = (v1)[3],       \
+   (v2)[4] = (v1)[4],       \
+   (v2)[5] = (v1)[5],       \
+   (v2)[6] = (v1)[6],       \
+   (v2)[7] = (v1)[7],       \
+   (v2)[8] = (v1)[8],       \
+   (v2)[9] = (v1)[9])
+
+#define ELL_10V_SCALE(v2, a, v1) \
+  ((v2)[0] = (a)*(v1)[0],        \
+   (v2)[1] = (a)*(v1)[1],        \
+   (v2)[2] = (a)*(v1)[2],        \
+   (v2)[3] = (a)*(v1)[3],        \
+   (v2)[4] = (a)*(v1)[4],        \
+   (v2)[5] = (a)*(v1)[5],        \
+   (v2)[6] = (a)*(v1)[6],        \
+   (v2)[7] = (a)*(v1)[7],        \
+   (v2)[8] = (a)*(v1)[8],        \
+   (v2)[9] = (a)*(v1)[9])
 
 #ifdef __cplusplus
    }
