@@ -157,10 +157,14 @@ enum {
   pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
   pullPropScale,              /* 10: [1] scale position */
   pullPropNeighCovar,         /* 11: [10] unique coeffs of covariance matrix
-                                 of offsets to all interacting neighbors, 
-                                 updated only during
-                                 pullProcessModeNeighLearn */
-  pullPropNeighCovar7Ten,     /* 12: [7] spatial component of covariance,
+                                 of offsets to all interacting neighbors,
+                                 in rs-normalized space, updated only during
+                                 pullProcessModeNeighLearn. The layout is:
+                                 0:xx 1:xy 2:xz 3:xs
+                                 .    4:yy 5:yz 6:ys
+                                 .         7:zz 8:zs
+                                 .              9:ss */
+  pullPropNeighCovar7Ten,     /* 12: [7] spatial 3x3 submatrix of covariance,
                                  formatted as ten-compatible 7-tensor */
   pullPropLast
 };
@@ -221,11 +225,12 @@ enum {
   pullEnergyTypeCubicWell,           /* 7 */
   pullEnergyTypeBetterCubicWell,     /* 8 */
   pullEnergyTypeQuarticWell,         /* 9 */
-  pullEnergyTypeZero,                /* 10 */
-  pullEnergyTypeButterworthParabola, /* 11 */
+  pullEnergyTypeHepticWell,          /* 10 */
+  pullEnergyTypeZero,                /* 11 */
+  pullEnergyTypeButterworthParabola, /* 12 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX            11
+#define PULL_ENERGY_TYPE_MAX            12
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
@@ -863,6 +868,7 @@ PULL_EXPORT const pullEnergy *const pullEnergyQuartic;
 PULL_EXPORT const pullEnergy *const pullEnergyCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyBetterCubicWell;
 PULL_EXPORT const pullEnergy *const pullEnergyQuarticWell;
+PULL_EXPORT const pullEnergy *const pullEnergyHepticWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
