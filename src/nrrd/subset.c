@@ -258,7 +258,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
                          nin, ai, AIR_CAST(double, min[ai]), 
-						 AIR_CAST(double, max[ai]));
+                         AIR_CAST(double, max[ai]));
     /* do the safe thing first */
     nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_FALSE);
     /* try cleverness */
@@ -330,7 +330,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
       nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                             1.0, nout->spaceOrigin,
                             AIR_CAST(double, min[ai]), 
-							nin->axis[ai].spaceDirection);
+                            nin->axis[ai].spaceDirection);
     }
   }
                          
