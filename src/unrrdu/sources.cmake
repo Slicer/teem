@@ -51,6 +51,7 @@ SET(UNRRDU_SOURCES
   save.c
   shuffle.c
   slice.c
+  sselect.c
   splice.c
   subst.c
   swap.c

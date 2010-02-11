@@ -53,8 +53,8 @@ $(L).OBJS = flotsam.o
 # The source for unu command xxx must define a unuCmd "unu_xxxCmd".
 # This applies to every .o file below.
 #
-$(L).OBJS  += flip.o slice.o convert.o crop.o pad.o permute.o histo.o \
-	resample.o cmedian.o reshape.o shuffle.o minmax.o quantize.o \
+$(L).OBJS  += flip.o slice.o sselect.o convert.o crop.o pad.o permute.o \
+	histo.o resample.o cmedian.o reshape.o shuffle.o minmax.o quantize.o \
 	unquantize.o block.o unblock.o project.o swap.o join.o dhisto.o \
 	jhisto.o dice.o heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o \
 	lut.o subst.o rmap.o imap.o lut2.o save.o head.o data.o splice.o \

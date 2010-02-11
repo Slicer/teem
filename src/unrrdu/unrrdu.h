@@ -117,6 +117,7 @@ F(quantize) \
 F(unquantize) \
 F(project) \
 F(slice) \
+F(sselect) \
 F(dice) \
 F(splice) \
 F(join) \
