@@ -64,6 +64,9 @@ nrrdRangeReset(NrrdRange *range) {
   }
 }
 
+/*
+** not using biff (obviously)
+*/
 void
 nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   NRRD_TYPE_BIGGEST _min, _max;
@@ -119,6 +122,9 @@ nrrdRangeSafeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   return;
 }
 
+/*
+** does not use biff
+*/
 NrrdRange *
 nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
   NrrdRange *range;
