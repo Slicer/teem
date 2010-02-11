@@ -341,6 +341,211 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 /* ---- BEGIN non-NrrdIO */
 
 /*
+******** nrrdSliceSelect
+**
+** selects slices along axis "axi" from "nin", according to whether
+** line[i] is above or below thresh:
+**
+** line[i] >= thresh: slice i goes into noutAbove
+** line[i] < thresh:  slice i goes into noutBelow
+*/
+int
+nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
+                unsigned int saxi, Nrrd *_nline, double thresh) {
+  static const char me[]="nrrdSliceSelect";
+  airArray *mop;
+  Nrrd *nline, *nslice;
+  NrrdRange *rng;
+  double *line;
+  size_t II, LL, numAbove, numBelow, stride,
+    sizeAbove[NRRD_DIM_MAX], sizeBelow[NRRD_DIM_MAX];
+  unsigned int aa, bb;
+  int axmap[NRRD_DIM_MAX];
+  char *above, *below;
+  
+  if (!( (noutAbove || noutBelow) && nin && _nline )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!AIR_EXISTS(thresh)) {
+    biffAddf(NRRD, "%s: thresh %g doesn't exist", me, thresh);
+    return 1;
+  }
+  if (!(saxi < nin->dim)) {
+    biffAddf(NRRD, "%s: can't select axis %u of a %u-D input nrrd", me,
+             saxi, nin->dim);
+    return 1;
+  }
+  if (nrrdCheck(nin) || nrrdCheck(_nline)) {
+    biffAddf(NRRD, "%s: basic problems with nin or nline", me);
+    return 1;
+  }
+  if (nrrdTypeBlock == nin->type) {
+    /* no good reason for this except that GLK forgets out to
+       set the blocksize in output */
+    biffAddf(NRRD, "%s: sorry, can't handle type %s input", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
+  }
+  if (!( nrrdTypeBlock != _nline->type
+         && 1 == _nline->dim)) {
+    biffAddf(NRRD, "%s: nline must be 1-D array of scalars (not %u-D of %s)",
+             me, _nline->dim, airEnumStr(nrrdType, _nline->type));
+    return 1;
+  }
+  if (!( _nline->axis[0].size == nin->axis[saxi].size )) {
+    biffAddf(NRRD, "%s: line length (" _AIR_SIZE_T_CNV 
+             ") != axis[%u].size (" _AIR_SIZE_T_CNV ")", me,
+             _nline->axis[0].size, saxi, nin->axis[saxi].size);
+    return 1;
+  }
+  if (1 == nin->dim) {
+    biffAddf(NRRD, "%s: sorry, slice-based implementation requires input "
+             "dimension > 1", me);
+    return 1;
+  }
+  
+  mop = airMopNew();
+  rng = nrrdRangeNewSet(_nline, AIR_FALSE);
+  airMopAdd(mop, rng, (airMopper)nrrdRangeNix, airMopAlways);
+  if (rng->hasNonExist) {
+    biffAddf(NRRD, "%s: had non-existent values in line", me);
+    airMopError(mop); return 1;
+  }
+
+  nslice = nrrdNew();
+  airMopAdd(mop, nslice, (airMopper)nrrdNix, airMopAlways);
+  nline = nrrdNew();
+  airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdConvert(nline, _nline, nrrdTypeDouble)) {
+    biffAddf(NRRD, "%s: problem copying line", me);
+    airMopError(mop); return 1;
+  }
+
+  line = AIR_CAST(double *, nline->data);
+  LL = nline->axis[0].size;
+  numAbove = numBelow = 0;
+  for (II=0; II<LL; II++) {
+    if (line[II] >= thresh) {
+      numAbove++;
+    } else {
+      numBelow++;
+    }
+  }
+  if (noutAbove && !numAbove) {
+    biffAddf(NRRD, "%s: want slices for val >= thresh %g, "
+             "but highest value is %g < %g\n", me, thresh,
+             rng->max, thresh);
+    airMopError(mop); return 1;
+  }
+  if (noutBelow && !numBelow) {
+    biffAddf(NRRD, "%s: want slices for val < thresh %g, "
+             "but lowest value is %g >= %g\n", me, thresh,
+             rng->min, thresh);
+    airMopError(mop); return 1;
+  }
+
+  nslice->dim = nin->dim-1;
+  nslice->type = nin->type;
+  bb = 0;
+  stride = nrrdElementSize(nin);
+  for (aa=0; aa<nin->dim; aa++) {
+    sizeAbove[aa] = sizeBelow[aa] = nin->axis[aa].size;
+    if (aa != saxi) {
+      axmap[aa] = aa;
+      nslice->axis[bb].size = nin->axis[aa].size;
+      if (aa < saxi) {
+        stride *= nin->axis[aa].size;
+      }
+      fprintf(stderr, "!%s: slice axis[%u].size = %u\n", me,
+              bb, AIR_CAST(unsigned int, nslice->axis[bb].size));
+      bb++;
+    } else {
+      axmap[aa] = -1;
+    }
+  }
+  sizeAbove[saxi] = numAbove;
+  sizeBelow[saxi] = numBelow;
+  if ((noutAbove 
+       && nrrdMaybeAlloc_nva(noutAbove, nin->type, nin->dim, sizeAbove))
+      ||
+      (noutBelow
+       && nrrdMaybeAlloc_nva(noutBelow, nin->type, nin->dim, sizeBelow))) {
+    biffAddf(NRRD, "%s: trouble allocating output", me);
+    airMopError(mop); return 1;
+  }
+  if (noutAbove) {
+    above = AIR_CAST(char *, noutAbove->data);
+  } else {
+    above = NULL;
+  }
+  if (noutBelow) {
+    below = AIR_CAST(char *, noutBelow->data);
+  } else {
+    below = NULL;
+  }
+
+  /* the skinny */
+  for (II=0; II<LL; II++) {
+    if (line[II] >= thresh) {
+      if (noutAbove) {
+        nslice->data = above;
+        if (nrrdSlice(nslice, nin, saxi, II)) {
+          biffAddf(NRRD, "%s: trouble slicing (above) at" _AIR_SIZE_T_CNV,
+                   me, II);
+          airMopError(mop); return 1;
+        }
+        above += stride;
+      }
+    } else {
+      if (noutBelow) {
+        nslice->data = below;
+        if (nrrdSlice(nslice, nin, saxi, II)) {
+          biffAddf(NRRD, "%s: trouble slicing (below) at" _AIR_SIZE_T_CNV,
+                   me, II);
+          airMopError(mop); return 1;
+        }
+        below += stride;
+      }
+    }
+  }
+  
+  if (noutAbove) {
+    nrrdAxisInfoCopy(noutAbove, nin, axmap, NRRD_AXIS_INFO_NONE);
+    if (nrrdBasicInfoCopy(noutAbove, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                             ? 0
+                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      biffAddf(NRRD, "%s:", me);
+      return 1;
+    }
+  }
+  if (noutBelow) {
+    nrrdAxisInfoCopy(noutBelow, nin, axmap, NRRD_AXIS_INFO_NONE);
+    if (nrrdBasicInfoCopy(noutBelow, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                             ? 0
+                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      biffAddf(NRRD, "%s:", me);
+      return 1;
+    }
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
 ******** nrrdSample_nva()
 **
 ** given coordinates within a nrrd, copies the 

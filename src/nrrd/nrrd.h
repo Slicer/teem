@@ -1098,6 +1098,9 @@ NRRD_EXPORT int nrrdSlice(Nrrd *nout, const Nrrd *nin,
 NRRD_EXPORT int nrrdCrop(Nrrd *nout, const Nrrd *nin,
                          size_t *min, size_t *max);
 /* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT int nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow,
+                                const Nrrd *nin, unsigned int axi,
+                                Nrrd *nline, double thresh);
 NRRD_EXPORT int nrrdSample_nva(void *val, const Nrrd *nin,
                                const size_t *coord);
 NRRD_EXPORT int nrrdSample_va(void *val, const Nrrd *nin,
