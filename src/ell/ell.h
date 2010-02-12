@@ -162,7 +162,7 @@ ELL_EXPORT void ell_3m_rotate_between_d(double rot[9], double from[3],
 **   w  x  y  z
 **   0  1  2  3
 **
-**  where w is the real component and (x,y,z) is the imaginary component
+** where w is the real component and (x,y,z) is the imaginary component
 **
 ** Nowhere in ell is there the assumption that any given quaternion is
 ** a unit-length quaternion.  Sometimes returned quaternions will be 
@@ -257,9 +257,6 @@ ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
                             const double mat[9], const int newton);
 ELL_EXPORT int ell_6ms_eigensolve_d(double eval[6], double evec[36],
                                     const double mat[21], const double eps);
-
-/* bessy.c */
-
 
 #ifdef __cplusplus
 }
