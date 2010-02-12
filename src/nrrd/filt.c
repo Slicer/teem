@@ -461,7 +461,7 @@ static void
 distanceL2Sqrd1D(double *dd, const double *ff, 
                  double *zz, unsigned int *vv,
                  size_t len, double spc) {
-  unsigned int kk, qq;
+  size_t kk, qq;
 
   if (!( dd && ff && zz && vv && len > 0 )) {
     /* error */
@@ -475,7 +475,10 @@ distanceL2Sqrd1D(double *dd, const double *ff,
   for (qq=1; qq<len; qq++) {
     double ss;
     ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
-    while (ss <= zz[kk]) {
+    /* while (ss <= zz[kk]) { 
+    ** HEY this can have kk going to -1 and into memory errors!
+    */
+    while (ss <= zz[kk] && kk) {
       kk--;
       ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
     }

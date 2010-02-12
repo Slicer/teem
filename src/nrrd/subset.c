@@ -457,8 +457,6 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
       if (aa < saxi) {
         stride *= nin->axis[aa].size;
       }
-      fprintf(stderr, "!%s: slice axis[%u].size = %u\n", me,
-              bb, AIR_CAST(unsigned int, nslice->axis[bb].size));
       bb++;
     } else {
       axmap[aa] = -1;

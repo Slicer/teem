@@ -1,3 +1,6 @@
+unu dist -i dist-prob.nrrd -th 0.5 -o d.nrrd
+will segfault if the hack check isn't turned on; fix this
+
 
 get back verbose IO messages about fread-vs-directIO
 
