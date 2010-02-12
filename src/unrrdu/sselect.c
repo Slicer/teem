@@ -46,7 +46,7 @@ unrrdu_sselectMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "s,selector", "nline", airTypeOther, 1, 1, &nline, NULL,
              "the 1-D nrrd of values to compare with threshold",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "t", "thresh", airTypeDouble, 1, 1, &thresh,
+  hestOptAdd(&opt, "th", "thresh", airTypeDouble, 1, 1, &thresh,
              NULL, "threshold on selector line");
   hestOptAdd(&opt, "o,output", "above below", airTypeString, 2, 2,
              outS, "- x",
