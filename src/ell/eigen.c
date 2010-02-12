@@ -457,9 +457,10 @@ _compar(const void *A_void, const void *B_void) {
 ******* ell_6ms_eigensolve_d
 **
 ** uses Jacobi iterations to find eigensystem of 6x6 symmetric matrix,
-** given in sym[21].  Puts eigenvalues, in descending order, in eval[6],
-** and corresponding eigenvectors in _evec+0, _evec+6, ..., _evec+30.
-** NOTE: you can pass a NULL _evec if eigenvectors aren't needed.
+** given in sym[21], to within convergence threshold eps.  Puts
+** eigenvalues, in descending order, in eval[6], and corresponding
+** eigenvectors in _evec+0, _evec+6, ..., _evec+30.  NOTE: you can
+** pass a NULL _evec if eigenvectors aren't needed.
 ** 
 ** does NOT use biff
 */
