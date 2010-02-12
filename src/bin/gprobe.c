@@ -555,7 +555,7 @@ main(int argc, char *argv[]) {
     }
     if ((numSS && 3 == _npos->axis[0].size) 
         || (!numSS && 4 == _npos->axis[0].size)) {
-      fprintf(stderr, "%s: have %u point coords but %s using scale-space", 
+      fprintf(stderr, "%s: have %u point coords but %s using scale-space\n", 
               me, AIR_CAST(unsigned int, _npos->axis[0].size),
               numSS ? "are" : "are not");
       airMopError(mop); return 1;
