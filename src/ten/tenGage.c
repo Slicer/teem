@@ -1066,7 +1066,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     dot = ELL_3V_DOT(hev0, dev0);
     mde = pvl->directAnswer[tenGageFAHessianEvalMode][0];
     mde = AIR_AFFINE(-1, mde, 1, 0, 1);
-    pvl->directAnswer[tenGageFARidgeLineAlignment][0] = mde*AIR_ABS(dot);
+    pvl->directAnswer[tenGageFARidgeLineAlignment][0] = mde*dot*dot;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFARidgeSurfaceAlignment)) {
     double *hev2, *dev0, dot, mde;
@@ -1075,7 +1075,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     dot = ELL_3V_DOT(hev2, dev0);
     mde = pvl->directAnswer[tenGageFAHessianEvalMode][0];
     mde = AIR_AFFINE(-1, mde, 1, 1, 0);
-    pvl->directAnswer[tenGageFARidgeSurfaceAlignment][0]= mde*(1-AIR_ABS(dot));
+    pvl->directAnswer[tenGageFARidgeSurfaceAlignment][0]= mde*(1-dot*dot);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFA2ndDD)) {
     double *hess, *norm, tmpv[3];
