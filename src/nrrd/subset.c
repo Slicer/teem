@@ -348,6 +348,12 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 **
 ** line[i] >= thresh: slice i goes into noutAbove
 ** line[i] < thresh:  slice i goes into noutBelow
+**
+** Either noutAbove or noutBelow (but not both) can be passed
+** as NULL if you aren't interested in the output.  It is a
+** biff-able error if the threshold is outside the range of
+** errors and a non-Null nrrd was passed for the correspondingly
+** empty output.
 */
 int
 nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
