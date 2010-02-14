@@ -467,6 +467,11 @@ extern "C" {
    ELL_3V_SCALE((m)+3, (v1)[1], (v2)), \
    ELL_3V_SCALE((m)+6, (v1)[2], (v2)))
 
+#define ELL_3MV_OUTER_TT(m, T, v1, v2)  \
+  (ELL_3V_SCALE_TT((m)+0, T, (v1)[0], (v2)),        \
+   ELL_3V_SCALE_TT((m)+3, T, (v1)[1], (v2)),         \
+   ELL_3V_SCALE_TT((m)+6, T, (v1)[2], (v2)))
+
 #define ELL_3MV_OUTER_INCR(m, v1, v2) \
   (ELL_3V_SCALE_INCR((m)+0, (v1)[0], (v2)), \
    ELL_3V_SCALE_INCR((m)+3, (v1)[1], (v2)), \
@@ -1027,6 +1032,8 @@ extern "C" {
 
 #define ELL_6V_SET(v, a, b, c, d, e, f) \
   ((v)[0]=(a), (v)[1]=(b), (v)[2]=(c), (v)[3]=(d), (v)[4]=(e), (v)[5]=(f))
+
+#define ELL_6V_ZERO_SET(v) ELL_6V_SET(v, 0, 0, 0, 0, 0, 0)
 
 #define ELL_6V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0],       \
