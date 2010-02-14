@@ -88,43 +88,6 @@ pullPointNew(pullContext *pctx) {
   return pnt;
 }
 
-/*
-** this is NOT supposed to make a self-contained point- its
-** just to make a back-up of the variable values (and whats below
-** is certainly overkill) when doing probing for finding discrete
-** differences along scale
-*/
-void
-_pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
-  unsigned int ii;
-
-  /* HEY: shouldn't I just do a memcpy? */
-  dst->idtag = src->idtag;
-  dst->neighPoint = src->neighPoint;
-  dst->neighPointNum = src->neighPointNum;
-  dst->neighPointArr = src->neighPointArr;
-  dst->neighDistMean = src->neighDistMean;
-  dst->neighMode = src->neighMode;
-  ELL_10V_COPY(dst->neighCovar, src->neighCovar);
-  ELL_6V_COPY(dst->neighTanCovar, src->neighTanCovar);
-  dst->neighInterNum = src->neighInterNum;
-#if PULL_PHIST
-  dst->phist = src->phist;
-  dst->phistNum = src->phistNum;
-  dst->phistArr = src->phistArr;
-#endif
-  dst->status = src->status;
-  ELL_4V_COPY(dst->pos, src->pos);
-  dst->energy = src->energy;
-  ELL_4V_COPY(dst->force, src->force);
-  dst->stepEnergy = src->stepEnergy;
-  dst->stepConstr = src->stepConstr;
-  for (ii=0; ii<ilen; ii++) {
-    dst->info[ii] = src->info[ii];
-  }
-  return;
-}
-
 pullPoint *
 pullPointNix(pullPoint *pnt) {
 

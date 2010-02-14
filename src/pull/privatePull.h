@@ -144,8 +144,7 @@ extern double _pullConstraintDim(pullContext *pctx,
 extern double _pullPointScalar(const pullContext *pctx,
                                const pullPoint *point, int sclInfo,
                                double grad[4], double hess[9]);
-extern void _pullPointCopy(pullPoint *dst, const pullPoint *src,
-                           unsigned int ilen);
+
 #if PULL_PHIST
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
