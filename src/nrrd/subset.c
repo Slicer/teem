@@ -643,4 +643,30 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   return 0;
 }
 
+/*
+int
+nrrdCropAuto(Nrrd *nout, const Nrrd *nin, 
+             size_t _min[NRRD_DIM_MAX], size_t _max[NRRD_DIM_MAX],
+             int _axkeep[NRRD_DIM_MAX],
+             int measr, double frac, int offset) {
+  static const char me[]="nrrdCropAuto";
+  size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
+  int axkeep[NRRD_DIM_MAX];
+  airArray *mop;
+
+  if (!( nout && nin  )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (airEnumValCheck(nrrdMeasure, measr)) {
+    biffAddf(NRRD, "%s: invalid %s measr %d", me,
+             nrrdMeasure->name, measr);
+    return 1;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+*/
+
 /* ---- END non-NrrdIO */
