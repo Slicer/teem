@@ -331,6 +331,7 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
 **   point->neighMode 
 ** if pullProcessModeNeighLearn == task->processMode:
 **   point->neighCovar
+**   point->neighTanCovar
 */
 double
 _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
@@ -429,6 +430,18 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   point->neighMode = 0.0;
   if (pullProcessModeNeighLearn == task->processMode) {
     ELL_10V_ZERO_SET(point->neighCovar);
+    if (task->pctx->ispec[pullInfoTangent1]) {
+      double *tng;
+      float outer[9];
+      tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
+      ELL_3MV_OUTER_TT(outer, float, tng, tng);
+      point->neighTanCovar[0] = outer[0];
+      point->neighTanCovar[1] = outer[1];
+      point->neighTanCovar[2] = outer[2];
+      point->neighTanCovar[3] = outer[4];
+      point->neighTanCovar[4] = outer[5];
+      point->neighTanCovar[5] = outer[8];
+    }
   }
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
@@ -496,6 +509,17 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         point->neighCovar[7] += outer[10];
         point->neighCovar[8] += outer[11];
         point->neighCovar[9] += outer[15];
+        if (task->pctx->ispec[pullInfoTangent1]) {
+          double *tng;
+          tng = herPoint->info + task->pctx->infoIdx[pullInfoTangent1];
+          ELL_3MV_OUTER_TT(outer, float, tng, tng);
+          point->neighTanCovar[0] += outer[0];
+          point->neighTanCovar[1] += outer[1];
+          point->neighTanCovar[2] += outer[2];
+          point->neighTanCovar[3] += outer[4];
+          point->neighTanCovar[4] += outer[5];
+          point->neighTanCovar[5] += outer[8];
+        }
       }
       if (task->pctx->ispec[pullInfoTangentMode]) {
         double mm;
@@ -520,6 +544,9 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (pullProcessModeNeighLearn == task->processMode) {
       ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
                     point->neighCovar);
+      /* using 1 + # neigh because this includes tan1 of point itself */
+      ELL_6V_SCALE(point->neighTanCovar, 1.0f/(1 + point->neighInterNum),
+                   point->neighTanCovar);
     }
   } else {
     /* we had no neighbors at all */
@@ -527,7 +554,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (task->pctx->ispec[pullInfoTangentMode]) {
       point->neighMode = AIR_NAN;
     }
-    /* point->neighCovar stays set at all zeros */
+    /* point->neighCovar,neighTanCovar stay as initialized above */
   }
 
   return energySum;

@@ -226,14 +226,19 @@ _pullIterate(pullContext *pctx, int mode) {
     return 1;
   }
 
+  /* if this is descent, pull down eip a bit */
+  if (pullProcessModeDescent == mode) {
+    pctx->sysParm.energyIncreasePermit *= pctx->eipScale;
+  }
+
   /* tell all tasks what mode they're in */
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->processMode = mode;
   }
   if (pctx->verbose) {
-    printf("%s(%s): iter %d goes w/ %u thrd, %u pnts, enr %g%s\n",
+    printf("%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
 	   me, airEnumStr(pullProcessMode, mode),
-	   pctx->iter, pctx->threadNum,
+	   pctx->iter, pctx->sysParm.energyIncreasePermit,
            pullPointNumber(pctx), _pullEnergyTotal(pctx),
            (pctx->flag.permuteOnRebin ? " (por)" : ""));
   }

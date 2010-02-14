@@ -66,6 +66,7 @@ pullPointNew(pullContext *pctx) {
   pnt->neighDistMean = 0;
   pnt->neighMode = AIR_NAN;
   ELL_10V_ZERO_SET(pnt->neighCovar);
+  ELL_6V_ZERO_SET(pnt->neighTanCovar);
   pnt->neighInterNum = 0;
   pnt->stuckIterNum = 0;
 #if PULL_PHIST
@@ -105,6 +106,7 @@ _pullPointCopy(pullPoint *dst, const pullPoint *src, unsigned int ilen) {
   dst->neighDistMean = src->neighDistMean;
   dst->neighMode = src->neighMode;
   ELL_10V_COPY(dst->neighCovar, src->neighCovar);
+  ELL_6V_COPY(dst->neighTanCovar, src->neighTanCovar);
   dst->neighInterNum = src->neighInterNum;
 #if PULL_PHIST
   dst->phist = src->phist;

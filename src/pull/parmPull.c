@@ -36,6 +36,7 @@ _pullIterParmInit(pullIterParm *iterParm) {
   iterParm->addDescent = 10;
   iterParm->callback = 1;
   iterParm->snap = 0;
+  iterParm->energyIncreasePermitHalfLife = 0;
   return;
 }
 
@@ -73,6 +74,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->nixAtVolumeEdgeSpace = AIR_FALSE;
   flag->constraintBeforeSeedThresh = AIR_FALSE;
   flag->noAdd = AIR_FALSE;
+  flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
   flag->binSingle = AIR_FALSE;
   return;
 }
@@ -123,6 +125,14 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     break;
   case pullIterParmSnap:
     pctx->iterParm.snap = pval;
+    break;
+  case pullIterParmEnergyIncreasePermitHalfLife:
+    pctx->iterParm.energyIncreasePermitHalfLife = pval;
+    if (pval) {
+      pctx->eipScale = pow(0.5, 1.0/pval);
+    } else {
+      pctx->eipScale = 1;
+    }
     break;
   default:
     biffAddf(me, "%s: sorry, iter parm %d valid but not handled?", me, which);
@@ -282,6 +292,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagNoAdd:
     pctx->flag.noAdd = flag;
+    break;
+  case pullFlagPopCntlEnoughTest:
+    pctx->flag.popCntlEnoughTest = flag;
     break;
   case pullFlagBinSingle:
     pctx->flag.binSingle = flag;

@@ -112,8 +112,10 @@ enum {
                                  population control */
   pullInfoLiveThresh2,        /* 13: [1] another pullInfoLiveThresh */
   pullInfoLiveThresh3,        /* 14: [1] yet another pullInfoLiveThresh */
-  pullInfoTangent1,           /* 15: [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* 16: [3] second tangent to constraint surf */
+  pullInfoTangent1,           /* 15: [3] first tangent to motion allowed
+                                 for constraint satisfaction */
+  pullInfoTangent2,           /* 16: [3] second tangent to motion allowed
+                                 for constraint satisfaction */
   pullInfoTangentMode,        /* 17: [1] for morphing between co-dim 1 and 2;
                                  User must set scale so mode from -1 to 1
                                  means co-dim 1 (surface) to 2 (line) */
@@ -166,6 +168,9 @@ enum {
                                  .              9:ss */
   pullPropNeighCovar7Ten,     /* 12: [7] spatial 3x3 submatrix of covariance,
                                  formatted as ten-compatible 7-tensor */
+  pullPropNeighTanCovar,      /* 13: [6] covariance of "tangents" of neighbors,
+                                 (e.g. pullInfoTangent1 for crease surfaces)
+                                 including point itself */
   pullPropLast
 };
 
@@ -292,8 +297,9 @@ typedef struct pullPoint_t {
                                  points with whom this point interacted,
                                  in rs-normalized space */
     neighMode;                /* some average of mode of nearby points */
-  float neighCovar[10];       /* unique coeffs in 4x4 covariance matrix of
+  float neighCovar[10],       /* unique coeffs in 4x4 covariance matrix of
                                  neighbors with whom this point interacted */
+    neighTanCovar[6];         /* covariance of "tangent" info of neighbors */
   unsigned int neighInterNum, /* number of particles with which I had some
 				 non-zero interaction on last iteration */
     stuckIterNum;             /* how many iterations I've been stuck */
@@ -508,6 +514,11 @@ enum {
 
   /* if non-zero, interval between iters at which output snapshots are saved */
   pullIterParmSnap,
+
+  /* the half-life of energyIncreasePermit, in terms of iterations, or
+     0 if no such decay is wanted */
+  pullIterParmEnergyIncreasePermitHalfLife,
+
   pullIterParmLast
 };
 
@@ -518,7 +529,8 @@ typedef struct {
     constraintMax,
     stuckMax,
     callback,
-    snap;
+    snap,
+    energyIncreasePermitHalfLife;
 } pullIterParm;
 
 /*
@@ -666,6 +678,13 @@ enum {
   /* do no adding during population control */
   pullFlagNoAdd,
 
+  /* use the targetDim-based "enough" heuristic to guess whether
+     adding a point could usefully reduce system energy.  On by
+     default; turn this off when using a large-support energy that
+     involves more neighbors than the single-neighbor-deep energies
+     that are normally used (like cwell:0.66,x or qwell:0.64) */
+  pullFlagPopCntlEnoughTest,
+
   /* no binning: all particles can potentially interact (for debugging) */
   pullFlagBinSingle,
 
@@ -680,6 +699,7 @@ typedef struct {
     energyFromStrength,
     nixAtVolumeEdgeSpace,
     constraintBeforeSeedThresh,
+    popCntlEnoughTest,
     noAdd,
     binSingle;
 } pullFlag;
@@ -783,9 +803,12 @@ typedef struct pullContext_t {
     voxelSizeSpace,                /* mean spatial voxel edge length, for
                                       limiting travel distance for descent
                                       and constraint satisfaction */
-    voxelSizeScale;                /* mean voxel edge length in space, for
+    voxelSizeScale,                /* mean voxel edge length in space, for
                                       limiting travel (along scale) distance
                                       during descent */
+    eipScale;                      /* how to scale energyIncreasePermit
+                                      at each iteration, in accordance with
+                                      energyIncreasePermitHalfLife */
   pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
   unsigned int binsEdge[4],        /* # bins along each volume edge,
                                       determined by maxEval and scale */

@@ -72,6 +72,7 @@ pullContextNew(void) {
   pctx->targetDim = AIR_NAN;
   pctx->voxelSizeSpace = AIR_NAN;
   pctx->voxelSizeScale = AIR_NAN;
+  pctx->eipScale = 1.0;
 
   pctx->bin = NULL;
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
@@ -544,6 +545,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     typeOut = nrrdTypeFloat;
     break;
   case pullPropNeighCovar7Ten:
+  case pullPropNeighTanCovar:
     dim = 2;
     size[0] = 7;
     size[1] = pointNum;
@@ -612,6 +614,15 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
                   point->neighCovar[4],
                   point->neighCovar[5],
                   point->neighCovar[7]);
+        break;
+      case pullPropNeighTanCovar:
+        TEN_T_SET(out_f + 7*outIdx, 1.0f,
+                  point->neighTanCovar[0],
+                  point->neighTanCovar[1],
+                  point->neighTanCovar[2],
+                  point->neighTanCovar[3],
+                  point->neighTanCovar[4],
+                  point->neighTanCovar[5]);
         break;
       }
       ++outIdx;

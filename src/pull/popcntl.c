@@ -70,7 +70,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     return 0;
   }
 
-  if (point->neighPointNum && task->pctx->targetDim) {
+  if (point->neighPointNum && task->pctx->targetDim
+      && task->pctx->flag.popCntlEnoughTest) {
     unsigned int plenty;
     plenty = (1 == task->pctx->targetDim
               ? 3
