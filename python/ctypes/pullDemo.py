@@ -186,6 +186,7 @@ def run(nposOut, **args):
     k22Str = a(args, 'k22', 'c4hdd')
     kSSreconStr = a(args, 'kSSrecon', 'hermite')
     eip = a(args, 'eip', 0.00005)
+    eiphl = a(args, 'eiphl', 0)
     fnnm = a(args, 'fnnm', 0.25)
     edmin = a(args, 'edmin', 0.00001)
     edpcmin = a(args, 'edpcmin', 0.01)
@@ -221,6 +222,9 @@ def run(nposOut, **args):
         teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
         teem.pullIterParmSet(pctx, teem.pullIterParmPopCntlPeriod, pcp) or
         teem.pullIterParmSet(pctx, teem.pullIterParmAddDescent, iad) or
+        teem.pullIterParmSet(pctx,
+                             teem.pullIterParmEnergyIncreasePermitHalfLife,
+                             eiphl) or
         teem.pullSysParmSet(pctx, teem.pullSysParmStepInitial, stepInitial) or
         teem.pullSysParmSet(pctx, teem.pullSysParmRadiusSpace, radSpace) or
         teem.pullSysParmSet(pctx, teem.pullSysParmRadiusScale, radScale) or
