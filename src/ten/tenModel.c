@@ -30,6 +30,7 @@ static const tenModel *
 str2model(const char *str) {
   const tenModel *ret = NULL;
 
+  if (!strcmp(str, TEN_MODEL_STR_ZERO))          ret = tenModelZero;
   if (!strcmp(str, TEN_MODEL_STR_BALL))          ret = tenModelBall;
   if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
   if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) ret = tenModelBall1StickEMD;

@@ -1620,6 +1620,9 @@ TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
 ** as long as we want the model parsing to be case insensitive, and
 ** as long as the logic in tenModel.c/str2model() is so simplistic
 */
+/* modelZero.c */
+#define TEN_MODEL_STR_ZERO "zero"
+TEN_EXPORT const tenModel *const tenModelZero;
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;
