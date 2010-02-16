@@ -643,7 +643,7 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   return 0;
 }
 
-/*
+#if 0
 int
 nrrdCropAuto(Nrrd *nout, const Nrrd *nin, 
              size_t _min[NRRD_DIM_MAX], size_t _max[NRRD_DIM_MAX],
@@ -653,8 +653,20 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   int axkeep[NRRD_DIM_MAX];
   airArray *mop;
+  Nrrd *nperm, *nline;
+  unsigned int axIdx, keepNum;
 
-  if (!( nout && nin  )) {
+#define RECORD_MINMAX                           \
+  for (axIdx=0; axIdx<nin->dim; axIdx++) {      \
+    if (_min) {                                 \
+      _min[axIdx] = min[axIdx];                 \
+    }                                           \
+    if (_max) {                                 \
+      _max[axIdx] = max[axIdx];                 \
+    }                                           \
+  }
+
+  if (!( nout && nin )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -664,9 +676,45 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
 
+  keepNum = 0;
+  for (axIdx=0; axIdx<nin->dim; axIdx++) {
+    if (_axkeep) {
+      axkeep[axIdx] = _axkeep[axIdx];
+      keepNum++;
+    } else {
+      axkeep[axIdx] = AIR_FALSE;
+    }
+  }
+  if (keepNum == nin->dim) {
+    /* odd, every axis is to be preserved exactly, okay .. */
+    if (nrrdCopy(nout, nin)) {
+      biffAddf(NRRD, "%s: trouble copying (no cropping)", me);
+      return 1;
+    }
+    RECORD_MINMAX;
+    return 0;
+  }
+
+  /* else there's work to do */
+  mop = airMopNew();
+  nperm = nrrdNew();
+  airMopAdd(mop, nperm, (airMopper)nrrdNuke, airMopAlways);
+  nline = nrrdNew();
+  airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
+  for (axIdx=0; axIdx<nin->dim; axIdx++) {
+    if (axkeep[axIdx]) {
+      min[axIdx] = 0;
+      max[axIdx] = nin->axis[axIdx].size-1;
+      continue;
+    }
+    /* else some analysis is required for this axis */
+    
+  }
+
+  RECORD_MINMAX;
   airMopOkay(mop);
   return 0;
 }
-*/
+#endif
 
 /* ---- END non-NrrdIO */
