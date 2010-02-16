@@ -234,13 +234,13 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu dye gage limn seek hoover echo ten mite pull meet)
+SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu dye moss gage limn seek hoover echo ten mite pull meet)
 IF(BUILD_EXPERIMENTAL_LIBS)
   # This list of the "experimental" libraries must be kept in sync with:
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
   # * teem/src/meet/enumsall.c 
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} moss alan bane coil push)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} alan bane coil push)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 
@@ -256,6 +256,7 @@ SET(Teem_HEADER_FILES
   ell/ellMacros.h
   unrrdu/unrrdu.h
   dye/dye.h
+  moss/moss.h
   gage/gage.h
   limn/limn.h
   seek/seek.h
@@ -269,7 +270,6 @@ SET(Teem_HEADER_FILES
   )
 IF(BUILD_EXPERIMENTAL_LIBS)
   SET(Teem_HEADER_FILES ${Teem_HEADER_FILES}
-    moss/moss.h
     alan/alan.h
     bane/bane.h
     coil/coil.h
