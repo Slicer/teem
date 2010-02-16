@@ -40,7 +40,7 @@ main(int argc, char *argv[]) {
   double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
     min[2], max[2];
   int d, bound, ax0, size[2];
-  unsigned int matListLen, _bkgLen, i;
+  unsigned int matListLen, _bkgLen, i, avgNum;
   float *bkg, *_bkg, scale[4];
   
   me = argv[0];
@@ -102,6 +102,9 @@ main(int argc, char *argv[]) {
              " the number input samples; multiplied by <float>\n "
              "\b\bo \"<int>\": specify exact number of samples",
              NULL, NULL, &unrrduHestScaleCB);
+  hestOptAdd(&hopt, "a", "avg #", airTypeUInt, 1, 1, &avgNum, "0",
+             "number of averages (if there there is only one "
+             "rotation)");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
@@ -193,13 +196,67 @@ main(int argc, char *argv[]) {
   if (!AIR_EXISTS(nin->axis[ax0+1].min) || !AIR_EXISTS(nin->axis[ax0+1].max)) {
     nrrdAxisInfoMinMaxSet(nin, ax0+1, mossDefCenter);
   }
-  if (mossLinearTransform(nout, nin, bkg,
-                          mat, msp,
-                          min[0], max[0], min[1], max[1],
-                          size[0], size[1])) {
-    fprintf(stderr, "%s: problem doing transform:\n%s\n",
-            me, errS = biffGetDone(MOSS)); free(errS);
-    airMopError(mop); return 1;
+  if (avgNum > 1) {
+    unsigned int ai;
+    double angleMax, angle, mrot[6];
+    Nrrd *ntmp, *nacc;
+    NrrdIter *itA, *itB;
+    int E;
+
+    ntmp = nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+    nacc = nrrdNew();
+    airMopAdd(mop, nacc, (airMopper)nrrdNuke, airMopAlways);
+    itA = nrrdIterNew();
+    airMopAdd(mop, itA, (airMopper)nrrdIterNix, airMopAlways);
+    itB = nrrdIterNew();
+    airMopAdd(mop, itB, (airMopper)nrrdIterNix, airMopAlways);
+    E = 0;
+    angleMax = atan2(mat[3], mat[0]);
+    for (ai=0; ai<avgNum; ai++) {
+      angle = (180/AIR_PI)*AIR_AFFINE(0, ai, avgNum-1, angleMax, -angleMax);
+      fprintf(stderr, "%s: angle %u/%u = %g ... ", me, ai, avgNum, angle);
+      mossMatIdentitySet(mat);
+      mossMatLeftMultiply(mat, origMat);
+      mossMatRotateSet(mrot, angle);
+      mossMatLeftMultiply(mat, mrot);
+      mossMatLeftMultiply(mat, origInvMat);
+      if (mossLinearTransform(ntmp, nin, bkg,
+                              mat, msp,
+                              min[0], max[0], min[1], max[1],
+                              size[0], size[1])) {
+        fprintf(stderr, "%s: problem doing transform:\n%s\n",
+                me, errS = biffGetDone(MOSS)); free(errS);
+        airMopError(mop); return 1;
+      }
+      if (!ai) {
+        if (!E) E |= nrrdCopy(nacc, ntmp);
+      } else {
+        if (!E) E |= nrrdArithBinaryOp(nacc, nrrdBinaryOpAdd, nacc, ntmp);
+      }
+      fprintf(stderr, "\n");
+      if (E) {
+        break;
+      }
+    }
+    nrrdIterSetNrrd(itA, nacc);
+    nrrdIterSetValue(itB, avgNum);
+    if (!E) E |= nrrdArithIterBinaryOp(nout, nrrdBinaryOpDivide,
+                                       itA, itB);
+    if (E) {
+      fprintf(stderr, "%s: problem making output:\n%s\n",
+              me, errS = biffGetDone(NRRD)); free(errS);
+      airMopError(mop); return 1;
+    }
+  } else {
+    if (mossLinearTransform(nout, nin, bkg,
+                            mat, msp,
+                            min[0], max[0], min[1], max[1],
+                            size[0], size[1])) {
+      fprintf(stderr, "%s: problem doing transform:\n%s\n",
+              me, errS = biffGetDone(MOSS)); free(errS);
+      airMopError(mop); return 1;
+    }
   }
 
   if (nrrdSave(outS, nout, NULL)) {
