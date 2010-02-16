@@ -64,6 +64,16 @@ coilMethodModifiedCurvature = &_coilMethodModifiedCurvature;
 
 /* ------------------------------------------ */
 const coilMethod
+_coilMethodModifiedCurvatureRings = {
+  "modified-curvature-rings",
+  coilMethodTypeModifiedCurvatureRings,
+  6
+};
+const coilMethod*
+coilMethodModifiedCurvatureRings = &_coilMethodModifiedCurvatureRings;
+
+/* ------------------------------------------ */
+const coilMethod
 _coilMethodSelf = {
   "self",
   coilMethodTypeSelf,
@@ -90,6 +100,7 @@ coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   &_coilMethodHomogeneous,
   &_coilMethodPeronaMalik,
   &_coilMethodModifiedCurvature,
+  &_coilMethodModifiedCurvatureRings,
   NULL,
   &_coilMethodSelf,
   &_coilMethodFinish

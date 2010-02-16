@@ -52,10 +52,14 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
 }
 
 void
-_coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3, 
-                              double spacing[3],
+_coilKind7TensorFilterTesting(coil_t *delta,
+                              int xi, int yi, int zi,
+                              coil_t **iv3, double spacing[3],
                               double parm[COIL_PARMS_NUM]) {
 
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   AIR_UNUSED(iv3);
   AIR_UNUSED(spacing);
   AIR_UNUSED(parm);
@@ -124,11 +128,15 @@ _coilKind7TensorFilterTesting(coil_t *delta, coil_t **iv3,
    + rspsqZ*(IND(iv3, vi, 1, 1, 0) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 1, 1, 2)))
 
 void
-_coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3, 
-                                  double spacing[3],
+_coilKind7TensorFilterHomogeneous(coil_t *delta,
+                                  int xi, int yi, int zi,
+                                  coil_t **iv3, double spacing[3],
                                   double parm[COIL_PARMS_NUM]) {
   coil_t rspsqX, rspsqY, rspsqZ, parm0;
   
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   rspsqX = AIR_CAST(coil_t, 1.0/(spacing[0]*spacing[0]));
   rspsqY = AIR_CAST(coil_t, 1.0/(spacing[1]*spacing[1]));
   rspsqZ = AIR_CAST(coil_t, 1.0/(spacing[2]*spacing[2]));
@@ -162,12 +170,16 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta, coil_t **iv3,
 ** watch out for false advertising!
 */
 void
-_coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3, 
-                           double spacing[3],
+_coilKind7TensorFilterSelf(coil_t *delta,
+                           int xi, int yi, int zi,
+                           coil_t **iv3, double spacing[3],
                            double parm[COIL_PARMS_NUM]) {
   coil_t hess[7], rspX, rspY, rspZ, parm0;
   float eval[3], evec[9], tens[7], lin;
 
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
   rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
   rspZ = AIR_CAST(coil_t, 1.0/spacing[2]);
@@ -186,8 +198,9 @@ _coilKind7TensorFilterSelf(coil_t *delta, coil_t **iv3,
 }
 
 void
-_coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3, 
-                             double spacing[3],
+_coilKind7TensorFilterFinish(coil_t *delta,
+                             int xi, int yi, int zi,
+                             coil_t **iv3, double spacing[3],
                              double parm[COIL_PARMS_NUM]) {
   coil_t rspX, rspY, rspZ,
     rspsqX, rspsqY, rspsqZ;
@@ -195,6 +208,9 @@ _coilKind7TensorFilterFinish(coil_t *delta, coil_t **iv3,
     cnd,
     dmu1[7], dmu2[7], dskw[7], phi3[7];
 
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]); rspsqX = rspX*rspX;
   rspY = AIR_CAST(coil_t, 1.0/spacing[1]); rspsqY = rspY*rspY;
   rspZ = AIR_CAST(coil_t, 1.0/spacing[2]); rspsqZ = rspZ*rspZ;
@@ -260,6 +276,7 @@ _coilKind7Tensor = {
   {NULL,
    _coilKind7TensorFilterTesting,
    _coilKind7TensorFilterHomogeneous,
+   NULL,
    NULL,
    NULL,
    NULL,

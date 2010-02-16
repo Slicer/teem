@@ -29,6 +29,7 @@ _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1] = {
   "homogeneous",
   "perona-malik",
   "modified curvature",
+  "modified curvature rings",
   "curvature flow",
   "self",
   "finish"
@@ -41,6 +42,7 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1] = {
   "homogenous isotropic diffusion (Gaussian blurring)",
   "Perona-Malik",
   "modified curvature diffusion",
+  "modified curvature diffusion rings",
   "curvature flow",
   "self-diffusion of diffusion tensors",
   "finish a phd already"
@@ -52,6 +54,7 @@ _coilMethodTypeStrEqv[] = {
   "iso", "homog", "homogeneous",
   "pm", "perona-malik",
   "mcde",
+  "mcder",
   "flow",
   "self",
   "finish",
@@ -64,6 +67,7 @@ _coilMethodTypeValEqv[] = {
   coilMethodTypeHomogeneous, coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
   coilMethodTypePeronaMalik, coilMethodTypePeronaMalik,
   coilMethodTypeModifiedCurvature,
+  coilMethodTypeModifiedCurvatureRings,
   coilMethodTypeCurvatureFlow,
   coilMethodTypeSelf,
   coilMethodTypeFinish,

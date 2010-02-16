@@ -149,8 +149,8 @@ _coilProcess(coilTask *task, int doFilter) {
   static const char me[]="_coilProcess";
   int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
-  void (*filter)(coil_t *delta, coil_t **iv3, 
-                 double spacing[3],
+  void (*filter)(coil_t *delta, int xi, int yi, int zi,
+                 coil_t **iv3, double spacing[3],
                  double parm[COIL_PARMS_NUM]);
   
   sizeX = task->cctx->size[0];
@@ -174,7 +174,7 @@ _coilProcess(coilTask *task, int doFilter) {
         for (xi=0; xi<sizeX; xi++) {
           task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
                         xi, yi, thisZ, sizeX, sizeY, sizeZ);
-          filter(here + 1*valLen, task->iv3,
+          filter(here + 1*valLen, xi, yi, thisZ, task->iv3, 
                  task->cctx->spacing, task->cctx->parm);
           here += 2*valLen;
         }

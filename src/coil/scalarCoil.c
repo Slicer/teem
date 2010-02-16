@@ -48,9 +48,13 @@ _coilLaplacian3(coil_t **iv3, double spacing[3]) {
 }
 
 void
-_coilKindScalarFilterTesting(coil_t *delta, coil_t **iv3, 
-                             double spacing[3],
+_coilKindScalarFilterTesting(coil_t *delta,
+                             int xi, int yi, int zi,
+                             coil_t **iv3, double spacing[3],
                              double parm[COIL_PARMS_NUM]) {
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   AIR_UNUSED(iv3);
   AIR_UNUSED(spacing);
   AIR_UNUSED(parm);
@@ -58,10 +62,14 @@ _coilKindScalarFilterTesting(coil_t *delta, coil_t **iv3,
 }
 
 void
-_coilKindScalarFilterHomogeneous(coil_t *delta, coil_t **iv3,
-                                 double spacing[3],
+_coilKindScalarFilterHomogeneous(coil_t *delta, 
+                                 int xi, int yi, int zi,
+                                 coil_t **iv3, double spacing[3],
                                  double parm[COIL_PARMS_NUM]) {
-  
+
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
   delta[0] = AIR_CAST(coil_t, parm[0])*_coilLaplacian3(iv3, spacing);
 }
 
@@ -108,11 +116,16 @@ _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
 */
 
 void
-_coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
-                                 double spacing[3],
+_coilKindScalarFilterPeronaMalik(coil_t *delta,
+                                 int xi, int yi, int zi,
+                                 coil_t **iv3, double spacing[3],
                                  double parm[COIL_PARMS_NUM]) {
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
     KK, rspX, rspY, rspZ;
+
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
 
   /* reciprocals of spacings in X, Y, and Z */
   rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
@@ -139,13 +152,23 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta, coil_t **iv3,
                                         + rspZ*(forwZ[2] - backZ[2]));
 }
 
+/*
+** parm vector:
+**   0    1    2   (3)
+** step   K  lerp
+*/
 void
-_coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
-                                       double spacing[3],
+_coilKindScalarFilterModifiedCurvature(coil_t *delta,
+                                       int xi, int yi, int zi,
+                                       coil_t **iv3, double spacing[3],
                                        double parm[COIL_PARMS_NUM]) {
   /* char me[]="_coilKindScalarFilterModifiedCurvature"; */
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
+
+  AIR_UNUSED(xi);
+  AIR_UNUSED(yi);
+  AIR_UNUSED(zi);
 
   /*
   if (coilVerbose) {
@@ -182,7 +205,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   }
   */
   /* compute fluxes */
-  eps = 0.000001f;
+  eps = 0.0000000001f;
   KK = AIR_CAST(coil_t, parm[1]*parm[1]);
   LL = ELL_3V_DOT(forwX, forwX);
   denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
@@ -216,6 +239,81 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta, coil_t **iv3,
   */
 }
 
+/*
+** parm vector:
+**   0      1      2     3       4      5      (6)
+** step  K_perp  K_tan  lerp  X_ring  Y_ring
+*/
+void
+_coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
+                                            int xi, int yi, int zi,
+                                            coil_t **iv3, double spacing[3],
+                                            double parm[COIL_PARMS_NUM]) {
+  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
+    grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
+  double bas0[3], bas1[3], bas2[3], len, norm[3], sk;
+
+  AIR_UNUSED(zi);
+
+  ELL_3V_SET(bas0, 0, 0, 1);
+  ELL_3V_SET(bas1, xi - parm[4], yi - parm[5], 0);
+  ELL_3V_NORM(bas1, bas1, len);
+  ELL_3V_CROSS(bas2, bas0, bas1);
+
+  rspX = AIR_CAST(coil_t, 1.0/spacing[0]);
+  rspY = AIR_CAST(coil_t, 1.0/spacing[1]);
+  rspZ = AIR_CAST(coil_t, 1.0/spacing[2]);
+
+  _coilKindScalar3x3x3Gradients(forwX, backX,
+                                forwY, backY,
+                                forwZ, backZ,
+                                iv3,
+                                rspX, rspY, rspZ);
+  grad[0] = rspX*(iv3[2][4] - iv3[0][4]);
+  grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
+  grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
+  gm = AIR_CAST(coil_t, ELL_3V_LEN(grad));
+  
+  if (gm) {
+    double tc, rcsq;
+    ELL_3V_SCALE(norm, 1.0/gm, grad);
+    tc = ELL_3V_DOT(norm, bas2);
+    rcsq = 1 - tc*tc;
+    sk = AIR_LERP(rcsq, parm[1], parm[2]);
+  } else {
+    sk = parm[1];
+  }
+
+  /* compute fluxes */
+  eps = 0.0000000001f;
+  KK = AIR_CAST(coil_t, sk*sk);
+  LL = ELL_3V_DOT(forwX, forwX);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  forwX[0] *= _COIL_CONDUCT(LL, KK)*denom;
+  LL = ELL_3V_DOT(forwY, forwY);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  forwY[1] *= _COIL_CONDUCT(LL, KK)*denom;
+  LL = ELL_3V_DOT(forwZ, forwZ);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  forwZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
+  LL = ELL_3V_DOT(backX, backX);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  backX[0] *= _COIL_CONDUCT(LL, KK)*denom;
+  LL = ELL_3V_DOT(backY, backY);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  backY[1] *= _COIL_CONDUCT(LL, KK)*denom;
+  LL = ELL_3V_DOT(backZ, backZ);
+  denom = AIR_CAST(coil_t, 1.0/(eps + sqrt(LL)));
+  backZ[2] *= _COIL_CONDUCT(LL, KK)*denom;
+
+  lerp = AIR_CAST(coil_t, parm[2]);
+  delta[0] = (lerp*_coilLaplacian3(iv3, spacing)
+              + (1-lerp)*gm*(rspX*(forwX[0] - backX[0])
+                             + rspY*(forwY[1] - backY[1])
+                             + rspZ*(forwZ[2] - backZ[2])));
+  delta[0] *= AIR_CAST(coil_t, parm[0]);
+}
+
 void
 _coilKindScalarUpdate(coil_t *val, coil_t *delta) {
   
@@ -231,6 +329,7 @@ _coilKindScalar = {
    _coilKindScalarFilterHomogeneous,
    _coilKindScalarFilterPeronaMalik,
    _coilKindScalarFilterModifiedCurvature,
+   _coilKindScalarFilterModifiedCurvatureRings,
    NULL,
    NULL,
    NULL},

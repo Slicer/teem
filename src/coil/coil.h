@@ -77,7 +77,7 @@ typedef float coil_t;
 ** maximum number of parameters that may be needed by any coil-driven
 ** filtering method
 */
-#define COIL_PARMS_NUM 5
+#define COIL_PARMS_NUM 6
 
 /*
 ******** coilMethodType* enum
@@ -85,17 +85,18 @@ typedef float coil_t;
 ** enumerated possibilities for different filtering methods
 */
 enum {
-  coilMethodTypeUnknown,            /* 0 */
-  coilMethodTypeTesting,            /* 1: basically a no-op */
-  coilMethodTypeHomogeneous,        /* 2 */
-  coilMethodTypePeronaMalik,        /* 3 */
-  coilMethodTypeModifiedCurvature,  /* 4 */
-  coilMethodTypeCurvatureFlow,      /* 5 */
-  coilMethodTypeSelf,               /* 6 */
-  coilMethodTypeFinish,             /* 7 */
+  coilMethodTypeUnknown,                 /* 0 */
+  coilMethodTypeTesting,                 /* 1: basically a no-op */
+  coilMethodTypeHomogeneous,             /* 2 */
+  coilMethodTypePeronaMalik,             /* 3 */
+  coilMethodTypeModifiedCurvature,       /* 4 */
+  coilMethodTypeModifiedCurvatureRings,  /* 5 */
+  coilMethodTypeCurvatureFlow,           /* 6 */
+  coilMethodTypeSelf,                    /* 7 */
+  coilMethodTypeFinish,                  /* 8 */
   coilMethodTypeLast
 };
-#define COIL_METHOD_TYPE_MAX           7
+#define COIL_METHOD_TYPE_MAX                8
 
 /*
 ******** coilMethod struct
@@ -141,8 +142,9 @@ typedef struct {
                                        1 for plain scalars (baseDim=0),
                                        or something else (baseDim=1) */
                                     /* all the available methods */
-  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta, coil_t **iv3,
-                                         double spacing[3],
+  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta, 
+                                         int xi, int yi, int zi,
+                                         coil_t **iv3, double spacing[3],
                                          double parm[COIL_PARMS_NUM]);
   void (*update)(coil_t *val, coil_t *delta); /* how to apply update */
 } coilKind;
