@@ -213,9 +213,10 @@ main(int argc, char *argv[]) {
     airMopAdd(mop, itB, (airMopper)nrrdIterNix, airMopAlways);
     E = 0;
     angleMax = atan2(mat[3], mat[0]);
+    fprintf(stderr, "%s: %u angles ", me, avgNum);
     for (ai=0; ai<avgNum; ai++) {
+      fprintf(stderr, "."); fflush(stderr);
       angle = (180/AIR_PI)*AIR_AFFINE(0, ai, avgNum-1, angleMax, -angleMax);
-      fprintf(stderr, "%s: angle %u/%u = %g ... ", me, ai, avgNum, angle);
       mossMatIdentitySet(mat);
       mossMatLeftMultiply(mat, origMat);
       mossMatRotateSet(mrot, angle);
@@ -234,11 +235,11 @@ main(int argc, char *argv[]) {
       } else {
         if (!E) E |= nrrdArithBinaryOp(nacc, nrrdBinaryOpAdd, nacc, ntmp);
       }
-      fprintf(stderr, "\n");
       if (E) {
         break;
       }
     }
+    fprintf(stderr, "\n");
     nrrdIterSetNrrd(itA, nacc);
     nrrdIterSetValue(itB, avgNum);
     if (!E) E |= nrrdArithIterBinaryOp(nout, nrrdBinaryOpDivide,
