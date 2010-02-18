@@ -117,16 +117,27 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
     }
     conf = tdata[0];
     if (conf > cthresh) {
+      double eval0, eval1, dd;
       Dxx = tdata[1];
       Dxy = tdata[2];
       Dyy = tdata[3];
+      dd = Dxx - Dyy;
+      eval0 = 0.5*(-Dxx + sqrt(4*Dxy*Dxy + dd*dd) - Dyy);
+      eval1 = 0.5*(-Dxx - sqrt(4*Dxy*Dxy + dd*dd) - Dyy);
       fprintf(file, "gsave\n");
       fprintf(file, "matrix currentmatrix\n");
       fprintf(file, "[%g %g %g %g %g %g] concat\n",
               Dxx, -Dxy, -Dxy, Dyy, px, py);
       fprintf(file, "0 0 %g 0 360 arc closepath\n", gscale);
       fprintf(file, "setmatrix\n");
-      fprintf(file, "fill\n");
+      if (eval0 * eval1 < 0) {
+        fprintf(file, "gsave\n");
+        fprintf(file, "0.15 setgray\n");
+        fprintf(file, "fill\n");
+        fprintf(file, "grestore\n");
+      } else {
+        fprintf(file, "fill\n");
+      }
       fprintf(file, "grestore\n");
     }
     tdata += 4;
