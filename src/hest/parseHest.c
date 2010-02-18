@@ -726,12 +726,13 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
           strcpy(cberr, "");
           ret = opt[op].CB->parse(vP, prms[op], cberr);
           if (ret) {
-            if (strlen(cberr))
+            if (strlen(cberr)) {
               sprintf(err, "%serror parsing \"%s\" as %s for %s:\n%s", 
                       ME, prms[op], opt[op].CB->type, ident, cberr);
-            else 
+            } else {
               sprintf(err, "%serror parsing \"%s\" as %s for %s: returned %d", 
                       ME, prms[op], opt[op].CB->type, ident, ret);
+            }
             return ret;
           }
           if (opt[op].CB->destroy) {
