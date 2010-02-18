@@ -104,7 +104,7 @@ in the error messages.
 
 #define PARSE() \
   if ((pret=hestParse(opt, argc, argv, &err, hparm))) { \
-    if (1 == pret) { \
+    if (1 == pret || 2 == pret) { \
       fprintf(stderr, "%s: %s\n", me, err); free(err); \
       hestUsage(stderr, opt, me, hparm); \
       hestGlossary(stderr, opt, hparm); \
