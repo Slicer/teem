@@ -198,8 +198,8 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
     /* 0.7978845608 ~= sqrt(2)/sqrt(pi) */
     norm = 0.7978845608/(dgeval(0.0, dgparm) + dgeval(1.0, dgparm));
 #endif
-    /* really simple; no lindeberg normalization */
-    norm = scl;
+    /* really simple; no lindeberg normalization, possible bias */
+    norm = scl + ctx->parm.stackNormalizeDerivBias;
 
     fd = 2*ctx->radius;
     kidx = gageKernel11;

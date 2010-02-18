@@ -107,6 +107,7 @@ gageParmReset(gageParm *parm) {
     parm->stackUse = gageDefStackUse;
     parm->stackNormalizeRecon = gageDefStackNormalizeRecon;
     parm->stackNormalizeDeriv = gageDefStackNormalizeDeriv;
+    parm->stackNormalizeDerivBias = gageDefStackNormalizeDerivBias;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
   }
   return;

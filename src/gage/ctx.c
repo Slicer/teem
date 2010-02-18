@@ -350,6 +350,9 @@ gageParmSet(gageContext *ctx, int which, double val) {
   case gageParmStackNormalizeDeriv:
     ctx->parm.stackNormalizeDeriv = AIR_CAST(int, val);
     break;
+  case gageParmStackNormalizeDerivBias:
+    ctx->parm.stackNormalizeDerivBias = val;
+    break;
   case gageParmOrientationFromSpacing:
     ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
     /* affects future calls to _gageShapeSet */

@@ -78,24 +78,25 @@ extern "C" {
 ** The following things have to agree:
 ** - gageParm* enum
 ** - fields of gageParm struct
-** - analagous gageDef* defaults (their declaration and setting)
-** - action of gageParmSet
-** - action of gageParmReset
+** - analogous gageDef* defaults (their declaration and setting)
+** - action of gageParmSet (ctx.c)
+** - action of gageParmReset (miscGage.c)
 */
 enum {
   gageParmUnknown,
-  gageParmVerbose,                /* non-boolean int */
-  gageParmRenormalize,            /* int */
-  gageParmCheckIntegrals,         /* int */
-  gageParmK3Pack,                 /* int */
-  gageParmGradMagCurvMin,         /* double */
-  gageParmCurvNormalSide,         /* int */
-  gageParmKernelIntegralNearZero, /* double */
-  gageParmDefaultCenter,          /* int */
-  gageParmStackUse,               /* int */
-  gageParmStackNormalizeDeriv,    /* int; does NOT imply gageParmStackUse */
-  gageParmStackNormalizeRecon,    /* int; does NOT imply gageParmStackUse */
-  gageParmOrientationFromSpacing, /* int */
+  gageParmVerbose,                 /* non-boolean int */
+  gageParmRenormalize,             /* int */
+  gageParmCheckIntegrals,          /* int */
+  gageParmK3Pack,                  /* int */
+  gageParmGradMagCurvMin,          /* double */
+  gageParmCurvNormalSide,          /* int */
+  gageParmKernelIntegralNearZero,  /* double */
+  gageParmDefaultCenter,           /* int */
+  gageParmStackUse,                /* int */
+  gageParmStackNormalizeDeriv,     /* int; does NOT imply gageParmStackUse */
+  gageParmStackNormalizeDerivBias, /* double; does NOT imply ... */
+  gageParmStackNormalizeRecon,     /* int; does NOT imply gageParmStackUse */
+  gageParmOrientationFromSpacing,  /* int */
   gageParmLast
 };
 
@@ -407,8 +408,11 @@ typedef struct gageParm_t {
                                  gradient magnitude is less than this. Yes,
                                  this is scalar-kind-specific, but there's
                                  no other good place for it */
-    kernelIntegralNearZero;   /* tolerance with checkIntegrals on derivative
+    kernelIntegralNearZero,   /* tolerance with checkIntegrals on derivative
                                  kernels */
+    stackNormalizeDerivBias;  /* when using stackNormalizeDeriv, a bias
+                                 on the effective scale, used for the 
+                                 normalization */
   int curvNormalSide,         /* determines direction of gradient that is used
                                  as normal in curvature calculations, exactly
                                  the same as miteUser's normalSide: 1 for
@@ -856,6 +860,7 @@ GAGE_EXPORT int gageDefDefaultCenter;
 GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
 GAGE_EXPORT int gageDefStackNormalizeDeriv;
+GAGE_EXPORT double gageDefStackNormalizeDerivBias;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */

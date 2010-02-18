@@ -61,6 +61,9 @@ gageDefStackNormalizeRecon = AIR_FALSE;
 int
 gageDefStackNormalizeDeriv = AIR_FALSE;
 
+double
+gageDefStackNormalizeDerivBias = 0.0;
+
 int
 gageDefOrientationFromSpacing = AIR_FALSE;
 /* Before teem 1.10.0, gage behaved inconsistently: Derivatives were
