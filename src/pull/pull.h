@@ -379,6 +379,7 @@ typedef struct {
   unsigned int scaleNum;       /* number of scale-space samples (volumes) */
   double *scalePos;            /* location of all samples in scale */
   int scaleDerivNorm;          /* normalize derivatives based on scale */
+  double scaleDerivNormBias;   /* bias on derivative normalization by scale */
   NrrdKernelSpec *ksp00,       /* for sampling tensor field */
     *ksp11,                    /* for gradient of mask, other 1st derivs */
     *ksp22,                    /* for 2nd derivatives */
@@ -922,6 +923,7 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    double *scalePos,
                                    unsigned int ninNum,
                                    int scaleDerivNorm,
+                                   double scaleDerivNormBias,
                                    const NrrdKernelSpec *ksp00,
                                    const NrrdKernelSpec *ksp11,
                                    const NrrdKernelSpec *ksp22,

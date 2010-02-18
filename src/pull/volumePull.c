@@ -38,6 +38,7 @@ pullVolumeNew() {
     vol->scaleNum = 0;
     vol->scalePos = NULL;
     vol->scaleDerivNorm = AIR_FALSE;
+    vol->scaleDerivNormBias = 0.0;
     vol->ksp00 = nrrdKernelSpecNew();
     vol->ksp11 = nrrdKernelSpecNew();
     vol->ksp22 = nrrdKernelSpecNew();
@@ -90,6 +91,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
                double *scalePos, 
                unsigned int ninNum,
                int scaleDerivNorm,
+               double scaleDerivNormBias,
                const NrrdKernelSpec *ksp00,
                const NrrdKernelSpec *ksp11,
                const NrrdKernelSpec *ksp22,
@@ -140,6 +142,9 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     gageParmSet(vol->gctx, gageParmStackNormalizeRecon, AIR_FALSE);
     vol->scaleDerivNorm = scaleDerivNorm;
     gageParmSet(vol->gctx, gageParmStackNormalizeDeriv, scaleDerivNorm);
+    vol->scaleDerivNormBias = scaleDerivNormBias;
+    gageParmSet(vol->gctx, gageParmStackNormalizeDerivBias,
+                scaleDerivNormBias);
     gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
     E = 0;
     if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
@@ -231,7 +236,7 @@ pullVolumeSingleAdd(pullContext *pctx,
   if (_pullVolumeSet(pctx, vol, kind,
                      pctx->verbose, name,
                      nin,
-                     NULL, NULL, 0, AIR_FALSE,
+                     NULL, NULL, 0, AIR_FALSE, 0.0,
                      ksp00, ksp11, ksp22, NULL)) {
     biffAddf(PULL, "%s: trouble", me);
     return 1;
@@ -258,6 +263,7 @@ pullVolumeStackAdd(pullContext *pctx,
                    double *scalePos,
                    unsigned int ninNum,
                    int scaleDerivNorm,
+                   double scaleDerivNormBias,
                    const NrrdKernelSpec *ksp00,
                    const NrrdKernelSpec *ksp11,
                    const NrrdKernelSpec *ksp22,
@@ -268,7 +274,8 @@ pullVolumeStackAdd(pullContext *pctx,
   vol = pullVolumeNew();
   if (_pullVolumeSet(pctx, vol, kind, pctx->verbose, name,
                      nin, 
-                     ninSS, scalePos, ninNum, scaleDerivNorm,
+                     ninSS, scalePos, ninNum,
+                     scaleDerivNorm, scaleDerivNormBias,
                      ksp00, ksp11, ksp22, kspSS)) {
     biffAddf(PULL, "%s: trouble", me);
     return 1;
@@ -296,7 +303,8 @@ _pullVolumeCopy(const pullVolume *volOrig) {
                      volOrig->ninScale, 
                      volOrig->scalePos,
                      volOrig->scaleNum,
-                     volOrig->scaleDerivNorm, 
+                     volOrig->scaleDerivNorm,
+                     volOrig->scaleDerivNormBias,
                      volOrig->ksp00, volOrig->ksp11,
                      volOrig->ksp22, volOrig->kspSS)) {
     biffAddf(PULL, "%s: trouble creating new volume", me);
