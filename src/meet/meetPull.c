@@ -36,6 +36,7 @@ meetPullVolNew(void) {
     ret->leeching = AIR_FALSE;
     ret->numSS = 0;
     ret->rangeSS[0] = ret->rangeSS[1] = AIR_NAN;
+    ret->derivNormBiasSS = 0.0;
     ret->posSS = NULL;
     ret->nin = NULL;
     ret->ninSS = NULL;
@@ -125,8 +126,9 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     mpv->derivNormSS = AIR_FALSE;
     mpv->uniformSS = AIR_FALSE;
     mpv->optimSS = AIR_FALSE;
+    mpv->derivNormBiasSS = 0.0;
     if (haveFlags) {
-      char *flags;
+      char *flags, *bias;
       /* look for various things in flags */
       flags = airToLower(airStrdup(airStrtok(NULL, "-", &dlast)));
       airMopAdd(mop, flags, airFree, airMopAlways);
@@ -143,6 +145,16 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
         biffAddf(MEET, "%s: can't have both optimal ('o') and uniform ('u') "
                  "flags set in \"%s\"", me, flags);
         airMopError(mop); return 1;
+      }
+      if ((bias = strchr(flags, '+'))) {
+        /* indicating a bias, unfortunately only a positive one is
+           possible here, because of the way that other fields are 
+           tokenized by '-' */
+        bias++;
+        if (1 != sscanf(bias, "%lf", &(mpv->derivNormBiasSS))) {
+          biffAddf(MEET, "%s: couldn't parse bias \"%s\"", me, bias);
+          airMopError(mop); return 1;
+        }
       }
     }
     /* mpv->ninSS and mpv->posSS are allocated and filled elsewhere */
@@ -431,7 +443,8 @@ meetPullVolAddMulti(pullContext *pctx,
       E = pullVolumeStackAdd(pctx, vol->kind, vol->volName, vol->nin,
                              AIR_CAST(const Nrrd *const *,
                                       vol->ninSS),
-                             vol->posSS, vol->numSS, vol->derivNormSS,
+                             vol->posSS, vol->numSS,
+                             vol->derivNormSS, vol->derivNormBiasSS,
                              k00, k11, k22, kSSrecon);
     }
     if (E) {

@@ -113,7 +113,7 @@ typedef struct {
                                   had to recompute these, versus being read
                                   from disk */
   unsigned int numSS;
-  double rangeSS[2], *posSS;
+  double rangeSS[2], derivNormBiasSS, *posSS;
   Nrrd *nin;                             /* we DO own */
   Nrrd **ninSS;                          /* we DO own */
 } meetPullVol;
