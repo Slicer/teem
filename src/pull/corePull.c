@@ -369,9 +369,10 @@ pullRun(pullContext *pctx) {
       enrDecreaseAvg = (2*enrDecreaseAvg + enrDecrease)/3;
     }
     if (pctx->verbose) {
-      printf("%s: ________ done iter %u: "
-             "e=%g,%g, de=%g,%g, s=%g,%g\n",
+      printf("%s: ___ done iter %u: "
+             "e=%g,%g, de=%g,%g (%g), s=%g,%g\n",
              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
+             pctx->sysParm.energyDecreaseMin,
              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->iterParm.popCntlPeriod) {
@@ -409,10 +410,17 @@ pullRun(pullContext *pctx) {
     }
     pctx->iter += 1;
     enrLast = enrNew;
-    converged = (!pctx->addNum
-                 && !pctx->nixNum
+    converged = ((!pctx->iterParm.popCntlPeriod
+                  || (!pctx->addNum && !pctx->nixNum))
                  && AIR_IN_OP(0, enrDecreaseAvg,
                               pctx->sysParm.energyDecreaseMin));
+    if (pctx->verbose) {
+      printf("%s: converged %d = (%d || (%d && %d)) && (0 < %g < %g)=%d\n",
+             me, converged, !pctx->iterParm.popCntlPeriod,
+             !pctx->addNum, !pctx->nixNum, 
+             enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
+             AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
+    }
     if (converged && pctx->verbose) {
       printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
 	     enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);

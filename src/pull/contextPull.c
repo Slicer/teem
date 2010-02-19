@@ -93,6 +93,8 @@ pullContextNew(void) {
   pctx->timeIteration = 0;
   pctx->timeRun = 0;
   pctx->energy = AIR_NAN;
+  pctx->addNum = 0;
+  pctx->nixNum = 0;
   pctx->stuckNum = 0;
   pctx->pointNum = 0;
   pctx->iter = 0;
