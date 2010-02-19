@@ -65,6 +65,7 @@ meetAirEnumAll() {
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* moss: no airEnums */
   ii = airArrayLenIncr(arr, 1); enm[ii] = alanStop;
+  /* tijk: no airEnums */
 #endif
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageErr;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageKernel;

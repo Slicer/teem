@@ -130,12 +130,29 @@ extern "C" {
   ((v2)[0] = (a)*(v1)[0],       \
    (v2)[1] = (a)*(v1)[1])
 
+#define ELL_2V_SCALE_ADD2(v2, s0, v0, s1, v1) \
+  ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],     \
+   (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1])
+
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
 
 #define _ELL_2M_DET(a,b,c,d) ((a)*(d) - (b)*(c))
 
 #define ELL_2M_DET(m) _ELL_2M_DET((m)[0],(m)[1],(m)[2],(m)[3])
+
+#define ELL_2M_TRANSPOSE(m2, m1) \
+  ((m2)[0] = (m1)[0], 		 \
+   (m2)[1] = (m1)[2],		 \
+   (m2)[2] = (m1)[1],		 \
+   (m2)[3] = (m1)[3])
+
+#define ELL_2M_MUL(m3, m1, m2)			\
+  ((m3)[0] = (m1)[0]*(m2)[0] + (m1)[1]*(m2)[2], \
+   (m3)[1] = (m1)[0]*(m2)[1] + (m1)[1]*(m2)[3], \
+   						\
+   (m3)[2] = (m1)[2]*(m2)[0] + (m1)[3]*(m2)[2], \
+   (m3)[3] = (m1)[2]*(m2)[1] + (m1)[3]*(m2)[3])
 
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:

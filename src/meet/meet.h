@@ -36,6 +36,7 @@
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/moss.h>
 #  include <teem/alan.h>
+#  include <teem/tijk.h>
 #endif
 #include <teem/gage.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
