@@ -174,7 +174,7 @@ extern void _nrrdTraverse(Nrrd *nrrd);
 #if TEEM_VTK_MANGLE
 #include "vtk_zlib_mangle.h"
 #endif
-#include <zlib.h>
+#include <zlib.h> /* NrrdIO-hack-004 */
 
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);
