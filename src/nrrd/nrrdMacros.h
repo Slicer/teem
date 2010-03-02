@@ -132,17 +132,18 @@ do {                                           \
 {                                               \
   int d;                                        \
   d = (dim) - 1;                                \
-  if ( (d) >= 0 )                               \
-  {                                             \
+  if ((d) >= 0) {                               \
     (I) = (coord)[d];                           \
     d--;                                        \
-    while( d >= 0 )                             \
-    {                                           \
-    (I) = (coord)[d] + (size)[d] * (I);         \
-    d--;                                        \
+    while (d >= 0) {                            \
+      (I) = (coord)[d] + (size)[d] * (I);       \
+      d--;                                      \
     }                                           \
+  } else {                                      \
+    (I) = 0;                                    \
   }                                             \
 }
+
 /*
 ******** NRRD_COORD_GEN
 **
