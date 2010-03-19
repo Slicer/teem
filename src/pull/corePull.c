@@ -333,8 +333,10 @@ pullRun(pullContext *pctx) {
   }
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
-  while ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max) 
-         && !converged) {
+  while ((pctx->iterParm.min && pctx->iter <= pctx->iterParm.min) 
+         ||
+         ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max)
+          && !converged)) {
     if (pctx->iterParm.snap && !(pctx->iter % pctx->iterParm.snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);

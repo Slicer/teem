@@ -489,10 +489,13 @@ typedef struct {
 enum {
   pullIterParmUnknown,
 
-  /* if non-zero, max number of iterations for whole system. 
-     if zero: no explicit on the number of iterations */
-  pullIterParmMax,
+  /* if non-zero, minimum number of iterations for whole system. */
+  pullIterParmMin,
   
+  /* if non-zero, max number of iterations for whole system. 
+     if zero: no explicit limit on the number of iterations */
+  pullIterParmMax,
+
   /* if non-zero, max number of iterations we allow something to be
      continuously stuck before nixing it */
   pullIterParmStuckMax,
@@ -524,7 +527,7 @@ enum {
 };
 
 typedef struct {
-  unsigned int max,
+  unsigned int min, max,
     popCntlPeriod,
     addDescent,
     constraintMax,

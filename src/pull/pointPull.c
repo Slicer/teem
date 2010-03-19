@@ -166,6 +166,8 @@ _pullPointStepEnergyScale(pullContext *pctx, double scale) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->stepEnergy *= scale;
+      point->stepEnergy = AIR_MIN(point->stepEnergy,
+                                  _PULL_STEP_ENERGY_MAX);
     }
   }
   return;
@@ -353,15 +355,19 @@ _pullProbe(pullTask *task, pullPoint *point) {
 #endif
 
   if (!ELL_4V_EXISTS(point->pos)) {
-    fprintf(stderr, "%s: got non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n", me, 
-            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    /*  HEY: NEED TO track down how this can happen!
-      biffAddfPULL, err); return 1;
-    */
+    fprintf(stderr, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n", 
+            me, point->idtag, point->pos[0], point->pos[1],
+            point->pos[2], point->pos[3]);
+    biffAddf(PULL, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n",
+             me, point->idtag, point->pos[0], point->pos[1],
+             point->pos[2], point->pos[3]);
+    return 1;
     /* can't probe, but make it go away as quickly as possible */
+    /*
     ELL_4V_SET(point->pos, 0, 0, 0, 0);
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
+    */
   }
   if (task->pctx->verbose > 3) {
     printf("%s: hello; probing %u volumes\n", me, task->pctx->volNum);

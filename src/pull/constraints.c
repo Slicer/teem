@@ -50,13 +50,19 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
 */
 
 /* NOTE: this assumes variables "iter" (uint) and "me" (char*) */
-#define NORMALIZE(dir, grad, len)                                        \
+#define NORMALIZE_ERR(dir, grad, len)                                    \
   ELL_3V_NORM((dir), (grad), (len));                                     \
   if (!(len)) {                                                          \
     biffAddf(PULL, "%s: got zero grad at (%g,%g,%g,%g) on iter %u\n", me,\
              point->pos[0], point->pos[1], point->pos[2],                \
              point->pos[3], iter);                                       \
     return 1;                                                            \
+  }
+
+#define NORMALIZE(dir, grad, len)                                        \
+  ELL_3V_NORM((dir), (grad), (len));                                     \
+  if (!(len)) {                                                          \
+    ELL_3V_SET((dir), 0, 0, 0) ;                                         \
   }
 
 
@@ -102,6 +108,12 @@ constraintSatIso(pullTask *task, pullPoint *point,
   for (iter=1; iter<=iterMax; iter++) {
     /* consider? http://en.wikipedia.org/wiki/Halley%27s_method */
     NORMALIZE(dir, grad, len);
+    if (!len) {
+      /* no gradient; back off */
+      hack *= task->pctx->sysParm.backStepScale;
+      RESTORE(aval, val, grad, point->pos, state);
+      continue;
+    }
     step = -val/len; /* the newton-raphson step */
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
@@ -166,7 +178,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
   PROBEG(val, grad);
   if (0 == val) {
     /* already exactly at the zero, we're done. This actually happens! */
-    printf("!%s: a lapl == 0!\n", me);
+    /* printf("!%s: a lapl == 0!\n", me); */
     return 0;
   }
   valLast = val;

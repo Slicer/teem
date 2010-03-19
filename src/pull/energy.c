@@ -61,7 +61,6 @@ _pullInterType = {
 const airEnum *const
 pullInterType = &_pullInterType;
 
-
 #define SPRING    "spring"
 #define GAUSS     "gauss"
 #define BUTTER    "butter"

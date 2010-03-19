@@ -626,8 +626,9 @@ _energyFromImage(pullTask *task, pullPoint *point,
       energy += -task->pctx->sysParm.gamma*str0;
       egradSum[3] += -task->pctx->sysParm.gamma*(str1 - str0)/(scl1 - scl0);
       /*
-      if (4819 == point->idtag || 4828 == point->idtag) {
-        printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g) = %g -> %g\n",
+      if (1560 < task->pctx->iter && 2350 == point->idtag) {
+        printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g)"
+               " = %g -> %g\n",
                me, point->idtag, task->pctx->sysParm.gamma,
                str1, str0, scl1, scl0,
                str1 - str0, scl1 - scl0,
@@ -778,12 +779,14 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   int stepBad, giveUp, hailMary;
  
   if (!point->stepEnergy) {
-    fprintf(stderr, "\n%s: whoa, point %u step is zero!!\n\n",
+    fprintf(stderr, "\n\n\n%s: whoa, point %u step is zero!!\n\n\n\n",
             me, point->idtag);
     /* HEY: need to track down how this can originate! */
+    /*
     biffAddf(PULL, "%s: point %u step is zero!", me, point->idtag);
     return 1;
-    /* point->stepEnergy = task->pctx->stepInitial/100; */
+    */
+    point->stepEnergy = task->pctx->sysParm.stepInitial/100;
   }
   
   /* learn the energy at old location, and the energy gradient */
@@ -794,7 +797,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     return 1;
   }
   /*
-  if (4819 == point->idtag || 4828 == point->idtag) {
+  if (1560 < task->pctx->iter && 2350 == point->idtag) {
     printf("!%s(%u): old pos = %g %g %g %g\n", me, point->idtag,
            point->pos[0], point->pos[1],
            point->pos[2], point->pos[3]);
@@ -818,7 +821,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     /* force[3] untouched */
   }
   /*
-  if (4819 == point->idtag || 4828 == point->idtag) {
+  if (1560 < task->pctx->iter && 2350 == point->idtag) {
     printf("!%s(%u): post-constraint tan: force = %g %g %g %g\n", me,
            point->idtag, force[0], force[1], force[2], force[3]);
     printf("   precap stepEnergy = %g\n", point->stepEnergy);
@@ -855,7 +858,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     }
   }
   /*
-  if (4819 == point->idtag || 4828 == point->idtag) {
+  if (1560 < task->pctx->iter && 2350 == point->idtag) {
     printf("  postcap stepEnergy = %g\n", point->stepEnergy);
   }
   */
@@ -872,7 +875,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     ELL_4V_SCALE_ADD2(point->pos, 1.0, posOld,
                       point->stepEnergy, force);
     /*
-    if (4819 == point->idtag || 4828 == point->idtag) {
+    if (1560 < task->pctx->iter && 2350 == point->idtag) {
       printf("!%s(%u): (iter %u) try pos = %g %g %g %g%s\n",
              me, point->idtag, task->pctx->iter,
              point->pos[0], point->pos[1],
@@ -895,7 +898,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       constrFail = AIR_FALSE;
     }
     /*
-    if (4819 == point->idtag || 4828 == point->idtag) {
+    if (1560 < task->pctx->iter && 2350 == point->idtag) {
       printf("!%s(%u): post constr = %g %g %g %g (%d)\n", me,
              point->idtag,
              point->pos[0], point->pos[1],
@@ -910,7 +913,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     energyIncr = energyNew > (energyOld 
                               + task->pctx->sysParm.energyIncreasePermit);
     /*
-    if (4819 == point->idtag || 4828 == point->idtag) {
+    if (1560 < task->pctx->iter && 2350 == point->idtag) {
       printf("!%s(%u): constrFail %d; enr Old New = %g %g -> enrIncr %d\n",
              me, point->idtag, constrFail, energyOld, energyNew, energyIncr);
     }
@@ -977,7 +980,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   /* now: unless we gave up, energy decreased, and,
      if we have one, constraint has been met */
   /*
-  if (4819 == point->idtag || 4828 == point->idtag) {
+  if (1560 < task->pctx->iter && 2350 == point->idtag) {
     printf("!%s(%u):iter %u changed (%g,%g,%g,%g)->(%g,%g,%g,%g)\n",
            me, point->idtag, task->pctx->iter,
            posOld[0], posOld[1], posOld[2], posOld[3],

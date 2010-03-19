@@ -51,7 +51,7 @@ $(L).PRIVATE_HEADERS = privatePull.h
 $(L).OBJS = defaultsPull.o energy.o infoPull.o volumePull.o taskPull.o  \
     binningPull.o corePull.o contextPull.o actionPull.o constraints.o \
     pointPull.o popcntl.o ccPull.o kindPull.o parmPull.o initPull.o
-$(L).TESTS = test/eparse
+$(L).TESTS = test/eparse test/circ
 ####
 ####
 ####

@@ -29,6 +29,7 @@
 void
 _pullIterParmInit(pullIterParm *iterParm) {
 
+  iterParm->min = 0;
   iterParm->max = 0;
   iterParm->stuckMax = 4;
   iterParm->constraintMax = 15;
@@ -105,6 +106,9 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     return 1;
   }
   switch(which) {
+  case pullIterParmMin:
+    pctx->iterParm.min = pval;
+    break;
   case pullIterParmMax:
     pctx->iterParm.max = pval;
     break;

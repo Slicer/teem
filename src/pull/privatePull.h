@@ -81,6 +81,9 @@ extern "C" {
 /* limit on number of times we allow random (non-ppv) seeding to fail */
 #define _PULL_RANDOM_SEED_TRY_MAX 4000
 
+/* limit on stepEnergy */
+#define _PULL_STEP_ENERGY_MAX FLT_MAX
+
 /* initPull.c */
 extern void _pullInitParmInit(pullInitParm *initParm);
 extern int _pullInitParmCheck(pullInitParm *iparm);
