@@ -477,16 +477,16 @@ limnPolyDataSuperquadric(limnPolyData *pld,
 }
 
 /*
-******** limnPolyDataSpiralSuperquadric
+******** limnPolyDataSpiralBetterquadric
 **
-** puts a superquadric into a single spiral triangle strip
+** puts a "betterquadric" into a single spiral triangle strip
 */
 int
-limnPolyDataSpiralSuperquadric(limnPolyData *pld,
-                               unsigned int infoBitFlag,
-                               float alpha, float beta,
-                               unsigned int thetaRes, unsigned int phiRes) {
-  static const char me[]="limnPolyDataSpiralSuperquadric";
+limnPolyDataSpiralBetterquadric(limnPolyData *pld,
+                                unsigned int infoBitFlag,
+                                float alpha, float beta, float cee, float minRad,
+                                unsigned int thetaRes, unsigned int phiRes) {
+  static const char me[]="limnPolyDataSpiralBetterquadric";
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
 
   /* sanity bounds */
@@ -516,36 +516,41 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
       xx = airSgnPow(cost,alpha) * airSgnPow(sinp,beta);
       yy = airSgnPow(sint,alpha) * airSgnPow(sinp,beta);
       zz = airSgnPow(cosp,beta);
-      if (0) {
-        /* expand profile along x axis to match having beta=bp */
-        double bp=2, phip, xp, xmax;
-        phip = acos(airSgnPow(zz, 1/bp));
-        xp = airSgnPow(sin(phip), bp);
-        xmax = airSgnPow(sinp, beta);
-        if (xmax) {
-          xx *= xp/xmax;
+      if (cee != beta) {
+        /* expand profile along x axis to match having beta=cee */
+        double yp, ymax;
+        yp = airSgnPow(sin(acos(airSgnPow(zz, 1/cee))), cee);
+        ymax = airSgnPow(sinp, beta);
+        if (ymax) {
+          yy *= yp/ymax;
         }
       }
       ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float, xx, yy, zz, 1.0);
-      if (0) {
+      if (minRad > 0.0) {
         /* add thickness to small radius */
         double xx, yy, rr;
         xx = (pld->xyzw + 4*vertIdx)[0];
         yy = (pld->xyzw + 4*vertIdx)[1];
         rr = sqrt(xx*xx + yy*yy);
-        if (rr < 0.1 && rr) {
-          (pld->xyzw + 4*vertIdx)[0] *= AIR_CAST(float, 0.1/rr);
-          (pld->xyzw + 4*vertIdx)[1] *= AIR_CAST(float, 0.1/rr);
+        if (rr) {
+          (pld->xyzw + 4*vertIdx)[0] *= AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr);
+          (pld->xyzw + 4*vertIdx)[1] *= AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr);
         }
       }
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
         if (1 == alpha && 1 == beta) {
           ELL_3V_COPY(pld->norm + 3*vertIdx, pld->xyzw + 4*vertIdx);
         } else {
-          ELL_3V_SET_TT(pld->norm + 3*vertIdx, float,
-                        2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta,
-                        2*airSgnPow(cosp,2-beta)/beta);
+          if (!vertIdx) {
+            ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, 1);
+          } else {
+            ELL_3V_SET_TT(pld->norm + 3*vertIdx, float,
+                          (2*airSgnPow(cost,2-alpha)
+                           * airSgnPow(sinp,2-beta)/beta),
+                          (2*airSgnPow(sint,2-alpha)
+                           * airSgnPow(sinp,2-beta)/beta),
+                          2*airSgnPow(cosp,2-beta)/beta);
+          }
         }
       }
       ++vertIdx;
@@ -575,12 +580,41 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
     pld->indx[vertIdx++] = (phiRes - 1)*thetaRes + thetaIdx;
     pld->indx[vertIdx++] = (phiRes - 0)*thetaRes;
   }
-
+#if 0
+  if ( (cee != beta || minRad > 0.0)
+       && ((1 << limnPolyDataInfoNorm) & infoBitFlag) ) {
+    /* have deformed object in some way that confounds analytic normals */
+    if (limnPolyDataVertexNormals(pld)) {
+      biffAddf(LIMN, "%s: trouble getting normals", me); return 1;
+    }
+  }
+#endif
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
+
+  return 0;
+}
+
+/*
+******** limnPolyDataSpiralSuperquadric
+**
+** puts a superquadric into a single spiral triangle strip
+*/
+int
+limnPolyDataSpiralSuperquadric(limnPolyData *pld,
+                               unsigned int infoBitFlag,
+                               float alpha, float beta,
+                               unsigned int thetaRes, unsigned int phiRes) {
+  static const char me[]="limnPolyDataSpiralSuperquadric";
+
+  if (limnPolyDataSpiralBetterquadric(pld, infoBitFlag,
+                                      alpha, beta, beta, 0.0,
+                                      thetaRes, phiRes)) {
+    biffAddf(LIMN, "%s: trouble", me); return 1;
+  }                              
   return 0;
 }
 

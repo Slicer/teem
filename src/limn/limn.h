@@ -647,6 +647,12 @@ LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld,
                                          float A, float B,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
+LIMN_EXPORT int limnPolyDataSpiralBetterquadric(limnPolyData *pld,
+                                                unsigned int infoBitFlag,
+                                                float alpha, float beta,
+                                                float cee, float minRad,
+                                                unsigned int thetaRes,
+                                                unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataSpiralSuperquadric(limnPolyData *pld,
                                                unsigned int infoBitFlag,
                                                float A, float B,
