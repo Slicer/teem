@@ -671,3 +671,111 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   airMopOkay(mop);
   return 0;
 }
+
+unsigned int
+tenGlyphBqdZoneEval(const double eval[3]) {
+  double x, y, z;
+  unsigned int zone;
+
+  x = eval[0];
+  y = eval[1];
+  z = eval[2];
+  if (y > 0) {   /* 0 1 2 3 4 */
+    if (z > 0) { /* 0 1 */
+      if (x - y > y - z) {
+        zone = 0;
+      } else {
+        zone = 1;
+      }
+    } else {     /* 2 3 4 */
+      if (y > -z) {
+        zone = 2;
+      } else if (x > -z) {
+        zone = 3;
+      } else {
+        zone = 4;
+      }
+    }
+  } else {       /* 5 6 7 8 9 */
+    if (x > 0) { /* 5 6 7 */
+      if (x > -z) {
+        zone = 5;
+      } else if (x > -y) {
+        zone = 6;
+      } else {
+        zone = 7;
+      }
+    } else {     /* 8 9 */
+      if (x - y > y - z) {
+        zone = 8;
+      } else {
+        zone = 9;
+      }
+    }
+  }
+  return zone;
+}
+
+void
+tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
+  double xx, yy, zz, ax, ay, az, mm;
+
+  ax = AIR_ABS(eval[0]);
+  ay = AIR_ABS(eval[1]);
+  az = AIR_ABS(eval[2]);
+  mm = AIR_MAX(ax, AIR_MAX(ay, az));
+  xx = eval[0]/mm;
+  yy = eval[1]/mm;
+  zz = eval[2]/mm;
+  uv[0] = AIR_AFFINE(-1, yy, 1, 0, 1);
+  if (xx > -zz) {
+    uv[1] = AIR_AFFINE(-1, zz, 1, 0, 1) - uv[0] + 1;
+  } else {
+    uv[1] = AIR_AFFINE(-1, xx, 1, -1, 0) - uv[0] + 1;
+  }
+  return;
+}
+
+unsigned int
+tenGlyphBqdZoneUv(const double uv[2]) {
+  double u, v;
+  unsigned int zone;
+  
+  u = uv[0];
+  v = uv[1];
+  if (u > 0.5) {       /* 0 1 2 3 4 */
+    if (u + v > 1.5) { /* 0 1 */
+      if (u < v) {
+        zone = 0;
+      } else {
+        zone = 1;
+      }
+    } else {           /* 2 3 4 */
+      if (2*u + v > 2) {
+        zone = 2;
+      } else if (u + v > 1) {
+        zone = 3;
+      } else {
+        zone = 4;
+      }
+    }
+  } else {             /* 5 6 7 8 9 */
+    if (u + v > 0.5) { /* 5 6 7 */
+      if (u + v > 1) {
+        zone = 5;
+      } else if (2*u + v > 1) {
+        zone = 6;
+      } else {
+        zone = 7;
+      }
+    } else {           /* 8 9 */
+      if (u < v) {
+        zone = 8;
+      } else {
+        zone = 9;
+      }
+    }
+  }
+  return zone;
+}
+

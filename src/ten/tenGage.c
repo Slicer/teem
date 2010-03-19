@@ -200,6 +200,10 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageOmegaLaplacian,          1,  2,  {tenGageOmegaHessian},                                                0,        0,     AIR_FALSE},
   {tenGageOmega2ndDD,              1,  2,  {tenGageOmegaHessian, tenGageOmegaNormal},                            0,        0,     AIR_FALSE},
 
+  {tenGageOmegaHessianContrTenEvec0, 1, 2, {tenGageOmegaHessian, tenGageEvec0},                                  0,        0,     AIR_FALSE},
+  {tenGageOmegaHessianContrTenEvec1, 1, 2, {tenGageOmegaHessian, tenGageEvec1},                                  0,        0,     AIR_FALSE},
+  {tenGageOmegaHessianContrTenEvec2, 1, 2, {tenGageOmegaHessian, tenGageEvec2},                                  0,        0,     AIR_FALSE},
+
   {tenGageTraceGradVecDotEvec0,    1,  1,  {tenGageTraceGradVec, tenGageEvec0},                                  0,        0,     AIR_FALSE},
   {tenGageTraceDiffusionAlign,     1,  1,  {tenGageTraceNormal, tenGageEvec0},                                   0,        0,     AIR_FALSE},
   {tenGageTraceDiffusionFraction,  1,  1,  {tenGageTraceNormal, tenGageTensor},                                  0,        0,     AIR_FALSE},
@@ -1240,6 +1244,29 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     norm = pvl->directAnswer[tenGageOmegaNormal];
     ELL_3MV_MUL(tmpv, hess, norm);
     pvl->directAnswer[tenGageOmega2ndDD][0] = ELL_3V_DOT(norm, tmpv);
+  }
+
+  /* the copy-and-paste nature of this is really getting out of control ... */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianContrTenEvec0)) {
+    double *hess, *evec, tmpv[3];
+    hess = pvl->directAnswer[tenGageOmegaHessian];
+    evec = pvl->directAnswer[tenGageEvec0];
+    ELL_3MV_MUL(tmpv, hess, evec);
+    pvl->directAnswer[tenGageOmegaHessianContrTenEvec0][0] = ELL_3V_DOT(evec, tmpv);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianContrTenEvec1)) {
+    double *hess, *evec, tmpv[3];
+    hess = pvl->directAnswer[tenGageOmegaHessian];
+    evec = pvl->directAnswer[tenGageEvec1];
+    ELL_3MV_MUL(tmpv, hess, evec);
+    pvl->directAnswer[tenGageOmegaHessianContrTenEvec1][0] = ELL_3V_DOT(evec, tmpv);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessianContrTenEvec2)) {
+    double *hess, *evec, tmpv[3];
+    hess = pvl->directAnswer[tenGageOmegaHessian];
+    evec = pvl->directAnswer[tenGageEvec2];
+    ELL_3MV_MUL(tmpv, hess, evec);
+    pvl->directAnswer[tenGageOmegaHessianContrTenEvec2][0] = ELL_3V_DOT(evec, tmpv);
   }
 
   /* --- evec0 dot products */

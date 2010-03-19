@@ -295,6 +295,9 @@ _tenGageStr[] = {
   "omega hessian evec 2",
   "omega laplacian",
   "omega 2nd DD",
+  "omega hessian contracted with ten evec 0",
+  "omega hessian contracted with ten evec 1",
+  "omega hessian contracted with ten evec 2",
 
   "trace gradvec dot evec0",
   "diffusionAlign(trace)",
@@ -498,6 +501,9 @@ _tenGageDesc[] = {
   "omega hessian evec 2",
   "omega laplacian",
   "omega 2nd DD",
+  "omega hessian contracted with ten evec 0",
+  "omega hessian contracted with ten evec 1",
+  "omega hessian contracted with ten evec 2",
   "trace gradvec dot evec0",
   "diffusion align of trace",
   "diffusion fraction of trace",
@@ -698,6 +704,9 @@ _tenGageVal[] = {
   tenGageOmegaHessianEvec2,
   tenGageOmegaLaplacian,
   tenGageOmega2ndDD,
+  tenGageOmegaHessianContrTenEvec0,
+  tenGageOmegaHessianContrTenEvec1,
+  tenGageOmegaHessianContrTenEvec2,
   tenGageTraceGradVecDotEvec0,
   tenGageTraceDiffusionAlign,
   tenGageTraceDiffusionFraction,
@@ -899,6 +908,9 @@ _tenGageStrEqv[] = {
   "omhessevec2",
   "omlapl",
   "om2d", "om2dd",
+  "omhesscte0",
+  "omhesscte1",
+  "omhesscte2",
   "trgvdotevec0",
   "datr",
   "dftr",
@@ -1103,6 +1115,9 @@ _tenGageValEqv[] = {
   tenGageOmegaHessianEvec2,
   tenGageOmegaLaplacian,
   tenGageOmega2ndDD, tenGageOmega2ndDD,
+  tenGageOmegaHessianContrTenEvec0,
+  tenGageOmegaHessianContrTenEvec1,
+  tenGageOmegaHessianContrTenEvec2,
 
   tenGageTraceGradVecDotEvec0,
   tenGageTraceDiffusionAlign,
@@ -1414,7 +1429,8 @@ _tenGlyphTypeStr[] = {
   "box",
   "sphere",
   "cylinder",
-  "superquad"
+  "superquad",
+  "betterquad",
 };
 
 #define BOX tenGlyphTypeBox
@@ -1428,6 +1444,7 @@ _tenGlyphTypeStrEqv[] = {
   "s", "sph", "sphere",
   "c", "cyl", "cylind", "cylinder",
   "q", "superq", "sqd", "superquad", "superquadric",
+  "bqd", "betterquad",
   ""
 };
 
@@ -1436,7 +1453,8 @@ _tenGlyphTypeValEqv[] = {
   BOX, BOX,
   SPH, SPH, SPH,
   CYL, CYL, CYL, CYL,
-  SQD, SQD, SQD, SQD, SQD
+  SQD, SQD, SQD, SQD, SQD,
+  tenGlyphTypeBetterquad, tenGlyphTypeBetterquad
 };
 
 const char *
@@ -1445,7 +1463,8 @@ _tenGlyphTypeDesc[] = {
   "box/cube (rectangular prisms)",
   "sphere (ellipsoids)",
   "cylinders aligned along major eigenvector",
-  "superquadric (superellipsoids)"
+  "superquadric (superellipsoids)",
+  "better superquadric",
 };
 
 const airEnum
