@@ -38,6 +38,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclNormal,        3,  1,  {gageSclGradVec, gageSclGradMag},               0,               0,   AIR_FALSE},
   {gageSclNPerp,         9,  1,  {gageSclNormal},                                0,               0,   AIR_FALSE},
   {gageSclHessian,       9,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
+  {gageSclHessianTen,    7,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
   {gageSclLaplacian,     1,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
   {gageSclHessFrob,      1,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
   {gageSclHessEval,      3,  2,  {gageSclHessian},                               0,               0,   AIR_FALSE},
@@ -75,6 +76,7 @@ _gageSclStr[] = {
   "normalized gradient",
   "tangent projector",
   "Hessian",
+  "HessianTen",
   "Laplacian",
   "Frob(Hessian)",
   "Hessian eigenvalues",
@@ -112,6 +114,7 @@ _gageSclDesc[] = {
   "projection into tangent (perp space of normal)",
   "normalized gradient vector",
   "3x3 Hessian matrix",
+  "7-element Hessian tensor",
   "Laplacian",
   "Frobenius norm of Hessian",
   "Hessian's eigenvalues",
@@ -149,6 +152,7 @@ _gageSclVal[] = {
   gageSclNormal,
   gageSclNPerp,
   gageSclHessian,
+  gageSclHessianTen,
   gageSclLaplacian,
   gageSclHessFrob,
   gageSclHessEval,
@@ -183,6 +187,7 @@ _gageSclVal[] = {
 #define GS_N   gageSclNormal
 #define GS_NP  gageSclNPerp
 #define GS_H   gageSclHessian
+#define GS_HT  gageSclHessianTen
 #define GS_L   gageSclLaplacian
 #define GS_HF  gageSclHessFrob
 #define GS_HA  gageSclHessEval
@@ -219,6 +224,7 @@ _gageSclStrEqv[] = {
        "norm grad", "normalized gradient",
   "np", "nperp", 
   "h", "hess", "hessian",
+  "ht", "hessten",
   "l", "lapl", "laplacian",
   "hf",
   "heval", "hesseval", "hessian eval", "hessian eigenvalues",
@@ -256,6 +262,7 @@ _gageSclValEqv[] = {
   GS_N,  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_NP, GS_NP,
   GS_H, GS_H, GS_H, 
+  GS_HT, GS_HT,
   GS_L, GS_L, GS_L, 
   GS_HF,
   GS_HA, GS_HA, GS_HA, GS_HA, 
