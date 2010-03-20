@@ -394,13 +394,46 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
 
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, *indxLine, ii;
+    unsigned int triNum, indxLine[3], ii;
     float pos[3][3], edgeA[3], edgeB[3], norm[3];
-    
-    triNum = pld->icnt[primIdx]/3;
+
+    switch (pld->type[primIdx]) {
+    case limnPrimitiveTriangles:
+      triNum = pld->icnt[primIdx]/3;
+      break;
+    case limnPrimitiveTriangleStrip:
+    case limnPrimitiveTriangleFan:
+      triNum = pld->icnt[primIdx]-2;
+      break;
+    case limnPrimitiveNoop:
+      break;
+    default:
+      biffAddf(LIMN, "%s: came across unsupported limnPrimitive \"%s\"", me,
+	       airEnumStr(limnPrimitive, pld->type[primIdx]));
+      return 1;      
+    }
+
     if (limnPrimitiveNoop != pld->type[primIdx]) {
       for (triIdx=0; triIdx<triNum; triIdx++) {
-        indxLine = pld->indx + baseVertIdx + 3*triIdx;
+	switch (pld->type[primIdx]) {
+	case limnPrimitiveTriangles:
+	  ELL_3V_COPY(indxLine, pld->indx + baseVertIdx + 3*triIdx);
+	  break;
+	case limnPrimitiveTriangleStrip:
+	  if (triIdx%2==0) {
+	    ELL_3V_COPY(indxLine, pld->indx+baseVertIdx+triIdx);
+	  } else {
+	    ELL_3V_SET(indxLine, pld->indx[baseVertIdx+triIdx+1],
+		       pld->indx[baseVertIdx+triIdx],
+		       pld->indx[baseVertIdx+triIdx+2]);
+	  }
+	  break;
+	case limnPrimitiveTriangleFan:
+	  ELL_3V_SET(indxLine, pld->indx[baseVertIdx],
+		     pld->indx[baseVertIdx+triIdx+1],
+		     pld->indx[baseVertIdx+triIdx+2]);
+	  break;
+	}
         for (ii=0; ii<3; ii++) {
           ELL_34V_HOMOG(pos[ii], pld->xyzw + 4*indxLine[ii]);
         }
@@ -419,7 +452,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
         }
       }
     }
-    baseVertIdx += 3*triNum;
+    baseVertIdx += pld->icnt[primIdx];
   }
 
   for (normIdx=0; normIdx<pld->normNum; normIdx++) {
