@@ -333,6 +333,11 @@ extern "C" {
    (m1)[7] == (m2)[7] &&     \
    (m1)[8] == (m2)[8])
 
+#define ELL_3M_SET(m, a, b, c, d, e, f, g, h, i) \
+  (ELL_3V_SET(m + 0*3, a, b, c),                 \
+   ELL_3V_SET(m + 1*3, d, e, f),                 \
+   ELL_3V_SET(m + 2*3, g, h, i))
+
 #define ELL_3M_SCALE(m2, s, m1) \
   (ELL_3V_SCALE((m2)+0, (s), (m1)+0), \
    ELL_3V_SCALE((m2)+3, (s), (m1)+3), \
