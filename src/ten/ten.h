@@ -1303,6 +1303,7 @@ TEN_EXPORT int tenGlyphGen(limnObject *glyphs, echoScene *scene,
                            const Nrrd *nslc);
 TEN_EXPORT unsigned int tenGlyphBqdZoneEval(const double eval[3]);
 TEN_EXPORT void tenGlyphBqdUvEval(double uv[2], const double eval[3]);
+TEN_EXPORT void tenGlyphBqdEvalUv(double eval[3], const double uv[2]);
 TEN_EXPORT unsigned int tenGlyphBqdZoneUv(const double uv[2]);
 
 /* tensor.c */

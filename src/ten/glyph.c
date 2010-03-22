@@ -736,6 +736,23 @@ tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
   return;
 }
 
+void
+tenGlyphBqdEvalUv(double eval[3], const double uv[2]) {
+  double xx, yy, zz, ll;
+
+  yy = AIR_AFFINE(0, uv[0], 1, -1, 1);
+  if (uv[0] + uv[1] > 1) {
+    zz = AIR_AFFINE(0, uv[1], 1, -1, 1) - 1 + yy;
+    xx = 1;
+  } else {
+    xx = AIR_AFFINE(0, uv[1], 1, -1, 1) + yy + 1;
+    zz = -1;
+  }
+  ELL_3V_SET(eval, xx, yy, zz);
+  ELL_3V_NORM(eval, eval, ll);
+  return;
+}
+
 unsigned int
 tenGlyphBqdZoneUv(const double uv[2]) {
   double u, v;
@@ -778,4 +795,3 @@ tenGlyphBqdZoneUv(const double uv[2]) {
   }
   return zone;
 }
-
