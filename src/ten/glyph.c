@@ -672,6 +672,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   return 0;
 }
 
+/*
+** Zone from Eval
+*/
 unsigned int
 tenGlyphBqdZoneEval(const double eval[3]) {
   double x, y, z;
@@ -716,6 +719,9 @@ tenGlyphBqdZoneEval(const double eval[3]) {
   return zone;
 }
 
+/*
+** UV from Eval
+*/
 void
 tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
   double xx, yy, zz, ax, ay, az, mm;
@@ -736,6 +742,9 @@ tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
   return;
 }
 
+/*
+** Eval from UV
+*/
 void
 tenGlyphBqdEvalUv(double eval[3], const double uv[2]) {
   double xx, yy, zz, ll;
@@ -753,6 +762,9 @@ tenGlyphBqdEvalUv(double eval[3], const double uv[2]) {
   return;
 }
 
+/*
+** Zone from UV
+*/
 unsigned int
 tenGlyphBqdZoneUv(const double uv[2]) {
   double u, v;
