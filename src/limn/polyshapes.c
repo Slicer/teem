@@ -38,10 +38,11 @@ limnPolyDataCube(limnPolyData *pld,
     biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
+  pld->type[0] = limnPrimitiveQuads;
+  pld->icnt[0] = indxNum;
   
   vertIdx = 0;
   cnum = sharpEdge ? 3 : 1;
-  cn = AIR_CAST(float, sqrt(3.0));
   for (ci=0; ci<cnum; ci++) {
     ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,  -1,  1); vertIdx++;
   }
@@ -84,6 +85,7 @@ limnPolyDataCube(limnPolyData *pld,
     ELL_4V_SET(pld->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
   }
 
+  cn = AIR_CAST(float, sqrt(3.0));
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       ELL_3V_SET(pld->norm +  3*0,  0,  0, -1);
@@ -121,9 +123,6 @@ limnPolyDataCube(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*7,  cn, -cn,  cn);
     }
   }
-
-  pld->type[0] = limnPrimitiveQuads;
-  pld->icnt[0] = indxNum;
   
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
@@ -131,6 +130,119 @@ limnPolyDataCube(limnPolyData *pld,
     }
   }
 
+  return 0;
+}
+
+int
+limnPolyDataOctahedron(limnPolyData *pld,
+                       unsigned int infoBitFlag,
+                       int sharpEdge) {
+  static const char me[]="limnPolyDataOctahedron";
+  unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
+  float cn;
+
+  vertNum = sharpEdge ? 4*6 : 6;
+  primNum = 1;
+  indxNum = 8*3;
+  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
+  }
+  pld->type[0] = limnPrimitiveTriangles;
+  pld->icnt[0] = indxNum;
+  
+  vertIdx = 0;
+  cnum = sharpEdge ? 4 : 1;
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  0,  0,  1,  1); vertIdx++; /* 0 */
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  0,  1,  0,  1); vertIdx++; /* 1 */
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  1,  0,  0,  1); vertIdx++; /* 2 */
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  0, -1,  0,  1); vertIdx++; /* 3 */
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx, -1,  0,  0,  1); vertIdx++; /* 4 */
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  0,  0, -1,  1); vertIdx++; /* 5 */
+  }
+
+  vertIdx = 0;
+  if (sharpEdge) {
+    ELL_3V_SET(pld->indx + vertIdx,  0,  8,  4); vertIdx += 3; /* 0 */
+    ELL_3V_SET(pld->indx + vertIdx,  1, 15,  9); vertIdx += 3; /* 1 */
+    ELL_3V_SET(pld->indx + vertIdx,  2, 16, 12); vertIdx += 3; /* 2 */
+    ELL_3V_SET(pld->indx + vertIdx,  3,  6, 19); vertIdx += 3; /* 3 */
+    ELL_3V_SET(pld->indx + vertIdx,  5, 11, 23); vertIdx += 3; /* 4 */
+    ELL_3V_SET(pld->indx + vertIdx, 10, 14, 20); vertIdx += 3; /* 5 */
+    ELL_3V_SET(pld->indx + vertIdx, 17, 21, 13); vertIdx += 3; /* 6 */
+    ELL_3V_SET(pld->indx + vertIdx,  7, 22, 18); vertIdx += 3; /* 7 */
+  } else {
+    ELL_3V_SET(pld->indx + vertIdx,  0,  2,  1); vertIdx += 3; /* 0 */
+    ELL_3V_SET(pld->indx + vertIdx,  0,  3,  2); vertIdx += 3; /* 1 */
+    ELL_3V_SET(pld->indx + vertIdx,  0,  4,  3); vertIdx += 3; /* 2 */
+    ELL_3V_SET(pld->indx + vertIdx,  0,  1,  4); vertIdx += 3; /* 3 */
+    ELL_3V_SET(pld->indx + vertIdx,  1,  2,  5); vertIdx += 3; /* 4 */
+    ELL_3V_SET(pld->indx + vertIdx,  2,  3,  5); vertIdx += 3; /* 5 */
+    ELL_3V_SET(pld->indx + vertIdx,  4,  5,  3); vertIdx += 3; /* 6 */
+    ELL_3V_SET(pld->indx + vertIdx,  1,  5,  4); vertIdx += 3; /* 7 */
+  }
+
+  cn = AIR_CAST(float, 1.0/sqrt(3));
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    if (sharpEdge) {
+      /* 0 */
+      ELL_3V_SET(pld->norm +  3*0,  cn,  cn,  cn);
+      ELL_3V_SET(pld->norm +  3*8,  cn,  cn,  cn);
+      ELL_3V_SET(pld->norm +  3*4,  cn,  cn,  cn);
+      /* 1 */
+      ELL_3V_SET(pld->norm +  3*1,  cn, -cn,  cn);
+      ELL_3V_SET(pld->norm + 3*15,  cn, -cn,  cn);
+      ELL_3V_SET(pld->norm +  3*9,  cn, -cn,  cn);
+      /* 2 */
+      ELL_3V_SET(pld->norm +  3*2, -cn, -cn,  cn);
+      ELL_3V_SET(pld->norm + 3*16, -cn, -cn,  cn);
+      ELL_3V_SET(pld->norm + 3*12, -cn, -cn,  cn);
+      /* 3 */
+      ELL_3V_SET(pld->norm +  3*3, -cn,  cn,  cn);
+      ELL_3V_SET(pld->norm +  3*6, -cn,  cn,  cn);
+      ELL_3V_SET(pld->norm + 3*19, -cn,  cn,  cn);
+      /* 4 */
+      ELL_3V_SET(pld->norm +  3*5,  cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*11,  cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*23,  cn,  cn, -cn);
+      /* 5 */
+      ELL_3V_SET(pld->norm + 3*10,  cn, -cn, -cn);
+      ELL_3V_SET(pld->norm + 3*14,  cn, -cn, -cn);
+      ELL_3V_SET(pld->norm + 3*20,  cn, -cn, -cn);
+      /* 6 */
+      ELL_3V_SET(pld->norm + 3*17, -cn, -cn, -cn);
+      ELL_3V_SET(pld->norm + 3*21, -cn, -cn, -cn);
+      ELL_3V_SET(pld->norm + 3*13, -cn, -cn, -cn);
+      /* 7 */
+      ELL_3V_SET(pld->norm +  3*7, -cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*22, -cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*18, -cn,  cn, -cn);
+    } else {
+      ELL_3V_SET(pld->norm + 3*0,  0,  0,  1); /* 0 */
+      ELL_3V_SET(pld->norm + 3*1,  0,  1,  0); /* 1 */
+      ELL_3V_SET(pld->norm + 3*2,  1,  0,  0); /* 2 */
+      ELL_3V_SET(pld->norm + 3*3,  0, -1,  0); /* 3 */
+      ELL_3V_SET(pld->norm + 3*4, -1,  0,  0); /* 4 */
+      ELL_3V_SET(pld->norm + 3*5,  0,  0, -1); /* 5 */
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
+      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
+    }
+  }
   return 0;
 }
 

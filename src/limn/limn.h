@@ -636,6 +636,9 @@ LIMN_EXPORT void limnPolyDataColorSet(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
                                  unsigned int infoBitFlag,
                                  int sharpEdge);
+LIMN_EXPORT int limnPolyDataOctahedron(limnPolyData *pld,
+                                       unsigned int infoBitFlag,
+                                       int sharpEdge);
 LIMN_EXPORT int limnPolyDataCone(limnPolyData *pld,
                                  unsigned int infoBitFlag,
                                  unsigned int res, int sharpEdge);
@@ -671,6 +674,8 @@ LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int uRes, unsigned int vRes);
 
 /* polymod.c */
+LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut, 
+                                      const limnPolyData *pldIn);
 LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
                                              int allowSplitting);
 LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);

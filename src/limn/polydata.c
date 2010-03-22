@@ -406,6 +406,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
       triNum = pld->icnt[primIdx]-2;
       break;
     case limnPrimitiveNoop:
+      triNum = 0;
       break;
     default:
       biffAddf(LIMN, "%s: came across unsupported limnPrimitive \"%s\"", me,
