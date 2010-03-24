@@ -27,7 +27,7 @@ limnPolyData *
 limnPolyDataNew(void) {
   limnPolyData *pld;
 
-  pld = (limnPolyData *)calloc(1, sizeof(limnPolyData));
+  pld = AIR_CALLOC(1, limnPolyData);
   if (pld) {
     pld->xyzw = NULL;
     pld->xyzwNum = 0;
@@ -74,7 +74,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
       && ((1 << limnPolyDataInfoRGBA) & infoBitFlag)) {
     pld->rgba = (unsigned char *)airFree(pld->rgba);
     if (vertNum) {
-      pld->rgba = (unsigned char *)calloc(vertNum, 4*sizeof(unsigned char));
+      pld->rgba = AIR_CALLOC(vertNum*4, unsigned char);
       if (!pld->rgba) {
         biffAddf(LIMN, "%s: couldn't allocate %u rgba", me, vertNum);
         return 1;
@@ -87,7 +87,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
       && ((1 << limnPolyDataInfoNorm) & infoBitFlag)) {
     pld->norm = (float *)airFree(pld->norm);
     if (vertNum) {
-      pld->norm = (float *)calloc(vertNum, 4*sizeof(float));
+      pld->norm = AIR_CALLOC(vertNum*4, float);
       if (!pld->norm) {
         biffAddf(LIMN, "%s: couldn't allocate %u norm", me, vertNum);
         return 1;
@@ -100,7 +100,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
       && ((1 << limnPolyDataInfoTex2) & infoBitFlag)) {
     pld->tex2 = (float *)airFree(pld->tex2);
     if (vertNum) {
-      pld->tex2 = (float *)calloc(vertNum, 4*sizeof(float));
+      pld->tex2 = AIR_CALLOC(vertNum*2, float);
       if (!pld->tex2) {
         biffAddf(LIMN, "%s: couldn't allocate %u tex2", me, vertNum);
         return 1;
@@ -146,7 +146,7 @@ limnPolyDataAlloc(limnPolyData *pld,
   if (vertNum != pld->xyzwNum) {
     pld->xyzw = (float *)airFree(pld->xyzw);
     if (vertNum) {
-      pld->xyzw = (float *)calloc(vertNum, 4*sizeof(float));
+      pld->xyzw = AIR_CALLOC(vertNum*4, float);
       if (!pld->xyzw) {
         biffAddf(LIMN, "%s: couldn't allocate %u xyzw", me, vertNum);
         return 1;
@@ -161,7 +161,7 @@ limnPolyDataAlloc(limnPolyData *pld,
   if (indxNum != pld->indxNum) {
     pld->indx = (unsigned int *)airFree(pld->indx);
     if (indxNum) {
-      pld->indx = (unsigned int *)calloc(indxNum, sizeof(unsigned int));
+      pld->indx = AIR_CALLOC(indxNum, unsigned int);
       if (!pld->indx) {
         biffAddf(LIMN, "%s: couldn't allocate %u indices", me, indxNum);
         return 1;
@@ -173,8 +173,8 @@ limnPolyDataAlloc(limnPolyData *pld,
     pld->type = (unsigned char *)airFree(pld->type);
     pld->icnt = (unsigned int *)airFree(pld->icnt);
     if (primNum) {
-      pld->type = (unsigned char *)calloc(primNum, sizeof(unsigned char));
-      pld->icnt = (unsigned int *)calloc(primNum, sizeof(unsigned int));
+      pld->type = AIR_CALLOC(primNum, unsigned char);
+      pld->icnt = AIR_CALLOC(primNum, unsigned int);
       if (!(pld->type && pld->icnt)) {
         biffAddf(LIMN, "%s: couldn't allocate %u primitives", me, primNum);
         return 1;
