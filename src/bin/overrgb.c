@@ -123,6 +123,10 @@ main(int argc, char *argv[]) {
       E = nrrdCopy(nbg, _nbg);
     } else {
       /* have to resample background image to fit ... */
+      /* because we're using the old resampler, we have to kill off any
+         space direction information, which is incompatible with 
+         setting per-axis min and max, as is required by the old resampler */
+      nrrdOrientationReduce(_nbg, _nbg, AIR_FALSE);
       rinfo = nrrdResampleInfoNew();
       airMopAdd(mop, rinfo, (airMopper)nrrdResampleInfoNix, airMopAlways);
       rinfo->kernel[0] = NULL;
