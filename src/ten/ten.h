@@ -137,9 +137,10 @@ enum {
   tenGlyphTypeCylinder,   /* 3 */
   tenGlyphTypeSuperquad,  /* 4 */
   tenGlyphTypeBetterquad, /* 5 */
+  tenGlyphTypePolarPlot,  /* 6 */
   tenGlyphTypeLast
 };
-#define TEN_GLYPH_TYPE_MAX   5
+#define TEN_GLYPH_TYPE_MAX   6
 
 /*
 ******** tenGlyphParm struct

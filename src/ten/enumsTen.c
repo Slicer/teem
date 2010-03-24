@@ -1431,6 +1431,7 @@ _tenGlyphTypeStr[] = {
   "cylinder",
   "superquad",
   "betterquad",
+  "polarplot"
 };
 
 #define BOX tenGlyphTypeBox
@@ -1445,6 +1446,7 @@ _tenGlyphTypeStrEqv[] = {
   "c", "cyl", "cylind", "cylinder",
   "q", "superq", "sqd", "superquad", "superquadric",
   "bqd", "betterquad",
+  "pplot", "polarplot",
   ""
 };
 
@@ -1454,7 +1456,8 @@ _tenGlyphTypeValEqv[] = {
   SPH, SPH, SPH,
   CYL, CYL, CYL, CYL,
   SQD, SQD, SQD, SQD, SQD,
-  tenGlyphTypeBetterquad, tenGlyphTypeBetterquad
+  tenGlyphTypeBetterquad, tenGlyphTypeBetterquad,
+  tenGlyphTypePolarPlot, tenGlyphTypePolarPlot
 };
 
 const char *
@@ -1465,6 +1468,7 @@ _tenGlyphTypeDesc[] = {
   "cylinders aligned along major eigenvector",
   "superquadric (superellipsoids)",
   "better superquadric",
+  "polar plot",
 };
 
 const airEnum
