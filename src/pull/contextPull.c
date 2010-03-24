@@ -428,40 +428,53 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       if (nTenOut) {
         double scl, tout[7];
         scl = 1;
-        if (pctx->ispec[pullInfoHeightHessian]) {
+        if (pctx->ispec[pullInfoTensor]) { 
+          TEN_T_COPY(tout, point->info + pctx->infoIdx[pullInfoTensor]);
+        } else if (pctx->ispec[pullInfoHeightHessian]) {
           double *hess, eval[3], evec[9], eceil, maxeval, elen;
           unsigned int maxi;
           hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
-          ell_3m_eigensolve_d(eval, evec, hess, 10);
-          eval[0] = AIR_ABS(eval[0]);
-          eval[1] = AIR_ABS(eval[1]);
-          eval[2] = AIR_ABS(eval[2]);
-          /* elen = ELL_3V_LEN(eval); */
-          elen = (eval[0]+eval[1]+eval[2]);
-          eceil = elen ? 10/elen : 10;
-          eval[0] = eval[0] ? AIR_MIN(eceil, 1.0/eval[0]) : eceil;
-          eval[1] = eval[1] ? AIR_MIN(eceil, 1.0/eval[1]) : eceil;
-          eval[2] = eval[2] ? AIR_MIN(eceil, 1.0/eval[2]) : eceil;
-          maxi = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
-          maxeval = eval[maxi];
-          ELL_3V_SCALE(eval, 1/maxeval, eval);
-          tenMakeSingle_d(tout, 1, eval, evec);
-          if (scaleRad && pctx->ispec[pullInfoHeight]->constraint) {
-            double emin;
-            tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
-            emin = eval[2];
-            if (1.0 == pctx->constraintDim) {
-              eval[1] = scaleRad*point->pos[3] + emin/2;
-              eval[2] = scaleRad*point->pos[3] + emin/2;
-            } if (2.0 == pctx->constraintDim) {
-              double eavg;
-              eavg = (2*eval[0] + eval[2])/3;
-              eval[0] = eavg;
-              eval[1] = eavg;
-              eval[2] = scaleRad*point->pos[3] + emin/2;
-            }
+          if (1) {
+            TEN_M2T(tout, hess);
+            tout[0] = 1.0;
+          } else {
+            ell_3m_eigensolve_d(eval, evec, hess, 10);
+            eval[0] = AIR_ABS(eval[0]);
+            eval[1] = AIR_ABS(eval[1]);
+            eval[2] = AIR_ABS(eval[2]);
+            /* elen = ELL_3V_LEN(eval); */
+            elen = (eval[0]+eval[1]+eval[2]);
+            eceil = elen ? 10/elen : 10;
+            eval[0] = eval[0] ? AIR_MIN(eceil, 1.0/eval[0]) : eceil;
+            eval[1] = eval[1] ? AIR_MIN(eceil, 1.0/eval[1]) : eceil;
+            eval[2] = eval[2] ? AIR_MIN(eceil, 1.0/eval[2]) : eceil;
+            maxi = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
+            maxeval = eval[maxi];
+            ELL_3V_SCALE(eval, 1/maxeval, eval);
             tenMakeSingle_d(tout, 1, eval, evec);
+            if (scaleRad && pctx->ispec[pullInfoHeight]->constraint) {
+              double emin;
+              tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
+              emin = eval[2];
+              if (1.0 == pctx->constraintDim) {
+                eval[1] = scaleRad*point->pos[3] + emin/2;
+                eval[2] = scaleRad*point->pos[3] + emin/2;
+              } if (2.0 == pctx->constraintDim) {
+                double eavg;
+                eavg = (2*eval[0] + eval[2])/3;
+                eval[0] = eavg;
+                eval[1] = eavg;
+                eval[2] = scaleRad*point->pos[3] + emin/2;
+              }
+              tenMakeSingle_d(tout, 1, eval, evec);
+            }
           }
+        } else if (pctx->constraint
+                   && (pctx->ispec[pullInfoIsovalueHessian])) {
+          double *hess;
+          hess = point->info + pctx->infoIdx[pullInfoIsovalueHessian];
+          TEN_M2T(tout, hess);
+          tout[0] = 1.0;
         } else if (pctx->constraint
                    && (pctx->ispec[pullInfoHeightGradient]
                        || pctx->ispec[pullInfoIsovalueGradient])) {
