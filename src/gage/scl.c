@@ -51,6 +51,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessEvec2,     3,  2,  {gageSclHessEvec},                              gageSclHessEvec, 6,   AIR_FALSE},
   {gageScl2ndDD,         1,  2,  {gageSclHessian, gageSclNormal},                0,               0,   AIR_FALSE},
   {gageSclGeomTens,      9,  2,  {gageSclHessian, gageSclNPerp, gageSclGradMag}, 0,               0,   AIR_FALSE},
+  {gageSclGeomTensTen,   7,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
   {gageSclK1,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace},          0,               0,   AIR_FALSE},
   {gageSclK2,            1,  2,  {gageSclTotalCurv, gageSclShapeTrace},          0,               0,   AIR_FALSE},
   {gageSclTotalCurv,     1,  2,  {gageSclGeomTens},                              0,               0,   AIR_FALSE},
@@ -89,6 +90,7 @@ _gageSclStr[] = {
   "Hessian eigenvector[2]",
   "2nd DD along gradient",
   "geometry tensor",
+  "geometry tensor tensor", /* HEY this is really silly, should be fixed for Teem 2.0 */
   "kappa1",
   "kappa2",
   "total curvature",
@@ -127,6 +129,7 @@ _gageSclDesc[] = {
   "Hessian's 3rd eigenvector",
   "2nd directional derivative along gradient",
   "geometry tensor",
+  "7-element geometry tensor",
   "1st principal curvature (K1)",
   "2nd principal curvature (K2)",
   "total curvature (L2 norm of K1, K2)",
@@ -165,6 +168,7 @@ _gageSclVal[] = {
   gageSclHessEvec2,
   gageScl2ndDD,
   gageSclGeomTens,
+  gageSclGeomTensTen,
   gageSclK1,
   gageSclK2,
   gageSclTotalCurv,
@@ -200,6 +204,7 @@ _gageSclVal[] = {
 #define GS_HE2 gageSclHessEvec2
 #define GS_2D  gageScl2ndDD
 #define GS_GT  gageSclGeomTens
+#define GS_GTT gageSclGeomTensTen
 #define GS_K1  gageSclK1
 #define GS_K2  gageSclK2
 #define GS_TC  gageSclTotalCurv
@@ -237,6 +242,7 @@ _gageSclStrEqv[] = {
   "hevec2", "hessevec2",
   "2d", "2dd", "2nddd", "2nd", "2nd dd", "2nd dd along gradient",
   "gt", "gten", "geoten", "geomten", "geometry tensor",
+  "gtenten",
   "k1", "kap1", "kappa1",
   "k2", "kap2", "kappa2",
   "total curv", "totalcurv", "total curvature", "tc", "cv", "curvedness",
@@ -274,7 +280,8 @@ _gageSclValEqv[] = {
   GS_HE1, GS_HE1,
   GS_HE2, GS_HE2,
   GS_2D, GS_2D, GS_2D, GS_2D, GS_2D, GS_2D,
-  GS_GT, GS_GT, GS_GT, GS_GT, GS_GT, 
+  GS_GT, GS_GT, GS_GT, GS_GT, GS_GT,
+  GS_GTT,
   GS_K1, GS_K1, GS_K1,
   GS_K2, GS_K2, GS_K2,
   GS_TC, GS_TC, GS_TC, GS_TC, GS_TC, GS_TC,

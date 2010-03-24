@@ -23,6 +23,15 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* HEY copied from ten.h */
+#define TEN_M2T(t, m) ( \
+   (t)[1] = (m)[0], \
+   (t)[2] = ((m)[1]+(m)[3])/2.0, \
+   (t)[3] = ((m)[2]+(m)[6])/2.0, \
+   (t)[4] = (m)[4], \
+   (t)[5] = ((m)[5]+(m)[7])/2.0, \
+   (t)[6] = (m)[8]) 
+
 void
 _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageSclAnswer";
@@ -96,20 +105,11 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ell_3m_print_d(stderr, hess);
     }
   }
-  /* HEY copied from ten.h */
-#define TEN_M2T(t, m) ( \
-   (t)[1] = (m)[0], \
-   (t)[2] = ((m)[1]+(m)[3])/2.0, \
-   (t)[3] = ((m)[2]+(m)[6])/2.0, \
-   (t)[4] = (m)[4], \
-   (t)[5] = ((m)[5]+(m)[7])/2.0, \
-   (t)[6] = (m)[8]) 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessianTen)) {
     pvl->directAnswer[gageSclHessianTen][0] = 1.0;
     TEN_M2T(pvl->directAnswer[gageSclHessianTen],
             pvl->directAnswer[gageSclHessian]);
   }
-#undef TEN_M2T
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclLaplacian)) {
     pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose > 2) {
@@ -206,6 +206,11 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     } else {
       ELL_3M_ZERO_SET(gten);
     }
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGeomTensTen)) {
+    pvl->directAnswer[gageSclGeomTensTen][0] = 1.0;
+    TEN_M2T(pvl->directAnswer[gageSclGeomTensTen],
+            pvl->directAnswer[gageSclGeomTens]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclTotalCurv)) {
     curv = pvl->directAnswer[gageSclTotalCurv][0] = ELL_3M_FROB(gten);
@@ -312,3 +317,4 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
+#undef TEN_M2T

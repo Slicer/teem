@@ -263,23 +263,24 @@ enum {
   gageScl2ndDD,        /* 18: "2d", 2nd dir.deriv. along gradient: [1] */
   gageSclGeomTens,     /* 19: "gten", sym. matx w/ evals {0, K1, K2} and
                               evecs {grad, cdir0, cdir1}: [9] */
-  gageSclK1,           /* 20: "k1", 1st principle curvature: [1] */
-  gageSclK2,           /* 21: "k2", 2nd principle curvature (k2 <= k1): [1] */
-  gageSclTotalCurv,    /* 22: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
-  gageSclShapeTrace,   /* 23, "st", (K1+K2)/Curvedness: [1] */
-  gageSclShapeIndex,   /* 24: "si", Koen.'s shape index, ("S"): [1] */
-  gageSclMeanCurv,     /* 25: "mc", mean curvature (K1 + K2)/2: [1] */
-  gageSclGaussCurv,    /* 26: "gc", gaussian curvature K1*K2: [1] */
-  gageSclCurvDir1,     /* 27: "cdir1", 1st principle curv direction: [3] */
-  gageSclCurvDir2,     /* 28: "cdir2", 2nd principle curv direction: [3] */
-  gageSclFlowlineCurv, /* 29: "fc", curvature of normal streamline: [1] */
-  gageSclMedian,       /* 30: "med", median filter */
-  gageSclHessValleyness,   /* 31: "hvalley", vallyness measure: [1] */
-  gageSclHessRidgeness,    /* 32: "hridge", ridgeness measure: [1] */
-  gageSclHessMode,     /* 33: "hmode", Hessian's mode: [1] */
+  gageSclGeomTensTen,  /* 20: "gtenten", 7-element geometry tensor [7] */
+  gageSclK1,           /* 21: "k1", 1st principle curvature: [1] */
+  gageSclK2,           /* 22: "k2", 2nd principle curvature (k2 <= k1): [1] */
+  gageSclTotalCurv,    /* 23: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
+  gageSclShapeTrace,   /* 24, "st", (K1+K2)/Curvedness: [1] */
+  gageSclShapeIndex,   /* 25: "si", Koen.'s shape index, ("S"): [1] */
+  gageSclMeanCurv,     /* 26: "mc", mean curvature (K1 + K2)/2: [1] */
+  gageSclGaussCurv,    /* 27: "gc", gaussian curvature K1*K2: [1] */
+  gageSclCurvDir1,     /* 28: "cdir1", 1st principle curv direction: [3] */
+  gageSclCurvDir2,     /* 29: "cdir2", 2nd principle curv direction: [3] */
+  gageSclFlowlineCurv, /* 30: "fc", curvature of normal streamline: [1] */
+  gageSclMedian,       /* 31: "med", median filter */
+  gageSclHessValleyness,   /* 32: "hvalley", vallyness measure: [1] */
+  gageSclHessRidgeness,    /* 33: "hridge", ridgeness measure: [1] */
+  gageSclHessMode,     /* 34: "hmode", Hessian's mode: [1] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX  33
+#define GAGE_SCL_ITEM_MAX 34
 
 /*
 ******** gageVec* enum
