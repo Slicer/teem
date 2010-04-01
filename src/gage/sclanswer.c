@@ -31,6 +31,14 @@
    (t)[4] = (m)[4], \
    (t)[5] = ((m)[5]+(m)[7])/2.0, \
    (t)[6] = (m)[8]) 
+#define TEN_T_SCALE(a, s, b) ( \
+   (a)[0] = (b)[0],               \
+   (a)[1] = (s)*(b)[1],           \
+   (a)[2] = (s)*(b)[2],           \
+   (a)[3] = (s)*(b)[3],           \
+   (a)[4] = (s)*(b)[4],           \
+   (a)[5] = (s)*(b)[5],           \
+   (a)[6] = (s)*(b)[6])
 
 void
 _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
@@ -211,6 +219,8 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageSclGeomTensTen][0] = 1.0;
     TEN_M2T(pvl->directAnswer[gageSclGeomTensTen],
             pvl->directAnswer[gageSclGeomTens]);
+    TEN_T_SCALE(pvl->directAnswer[gageSclGeomTensTen], -1,
+                pvl->directAnswer[gageSclGeomTensTen]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclTotalCurv)) {
     curv = pvl->directAnswer[gageSclTotalCurv][0] = ELL_3M_FROB(gten);
@@ -318,3 +328,4 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
 }
 
 #undef TEN_M2T
+#undef TEN_T_SCALE
