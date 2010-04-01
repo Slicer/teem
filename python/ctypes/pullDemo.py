@@ -168,6 +168,7 @@ def run(nposOut, **args):
     lti = a(args, 'lti', False)
     npcwza = a(args, 'npcwza', False)
     ubfgl = a(args, 'ubfgl', False)
+    iterMin = a(args, 'iterMin', 0)
     iterMax = a(args, 'iterMax', 100)
     snap = a(args, 'snap', 0)
     pcp = a(args, 'pcp', 5)
@@ -217,6 +218,7 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagBinSingle, nobin) or
         teem.pullFlagSet(pctx, teem.pullFlagNoAdd, noadd) or
         teem.pullInitUnequalShapesAllowSet(pctx, usa) or
+        teem.pullIterParmSet(pctx, teem.pullIterParmMin, iterMin) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
         teem.pullIterParmSet(pctx, teem.pullIterParmSnap, snap) or
         teem.pullIterParmSet(pctx, teem.pullIterParmConstraintMax, maxci) or
