@@ -807,3 +807,106 @@ tenGlyphBqdZoneUv(const double uv[2]) {
   }
   return zone;
 }
+
+static void
+baryFind(double bcoord[3], const double uvp[2],
+         const double uv0[2],
+         const double uv1[2],
+         const double uv2[2]) {
+  double mat[9], a, a01, a02, a12;
+  
+  ELL_3M_SET(mat,
+             uv0[0], uv0[1], 1,
+             uv1[0], uv1[1], 1,
+             uvp[0], uvp[1], 1);
+  a01 = ELL_3M_DET(mat); a01 = AIR_ABS(a01);
+  
+  ELL_3M_SET(mat,
+             uv0[0], uv0[1], 1,
+             uv2[0], uv2[1], 1,
+             uvp[0], uvp[1], 1);
+  a02 = ELL_3M_DET(mat); a02 = AIR_ABS(a02);
+  
+  ELL_3M_SET(mat,
+             uv1[0], uv1[1], 1,
+             uv2[0], uv2[1], 1,
+             uvp[0], uvp[1], 1);
+  a12 = ELL_3M_DET(mat); a12 = AIR_ABS(a12);
+
+  a = a01 + a02 + a12;
+  ELL_3V_SET(bcoord, a12/a, a02/a, a01/a);
+  return;
+}
+
+static void
+baryBlend(double abc[3], const double co[3],
+          const double abc0[3],
+          const double abc1[3],
+          const double abc2[3]) {
+  unsigned int ii;
+
+  for (ii=0; ii<3; ii++) {
+    abc[ii] = co[0]*abc0[ii] + co[1]*abc1[ii] + co[2]*abc2[ii];
+  }
+  return;
+}
+
+void
+tenGlyphBqdAbcUv(double abc[3], const double uv[2]) {
+  static const unsigned int vertsZone[10][3] = {{0, 1, 2},   /* 0 */
+                                                {0, 2, 3},   /* 1 */
+                                                {1, 3, 4},   /* 2 */
+                                                {1, 4, 5},   /* 3 */
+                                                {4, 5, 9},   /* 4 */
+                                                {1, 5, 6},   /* 5 */
+                                                {5, 6, 9},   /* 6 */
+                                                {6, 7, 9},   /* 7 */
+                                                {7, 8, 10},  /* 8 */
+                                                {8, 9, 10}}; /* 9 */
+  static const double uvVert[11][2] = {{1.00, 1.00},   /* 0 */
+                                       {0.50, 1.00},   /* 1 */
+                                       {0.75, 0.75},   /* 2 */
+                                       {1.00, 0.50},   /* 3 */
+                                       {1.00, 0.00},   /* 4 */
+                                       {0.50, 0.50},   /* 5 */
+                                       {0.00, 1.00},   /* 6 */
+                                       {0.00, 0.50},   /* 7 */
+                                       {0.25, 0.25},   /* 8 */
+                                       {0.50, 0.00},   /* 9 */
+                                       {0.00, 0.00}};  /* 10 */
+  static const double abcBall[3]={1,1,1};
+  static const double abcCyli[3]={1,0,0};
+  static const double abcFunk[3]={0,3,2}; /* only one with c != b  */
+  static const double abcThrn[3]={1,3,3};
+  static const double abcOcta[3]={0,2,2};
+  static const double abcCone[3]={1,2,2};
+  static const double abcHalf[3]={0.5,0.5,0.5}; /* alpha is half-way between
+                                                   alpha of octa and cone
+                                                   and beta has to be the
+                                                   same as alpha at for the
+                                                   seam to be shape-continuous */
+  static const double *abcAll[10][11] = {
+    /* zone \ vert 0      1        2        3        4        5        6        7        8        9       10    */
+    /*  0 */ {abcBall, abcCyli, abcHalf,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+    /*  1 */ {abcBall,  NULL,   abcHalf, abcCyli,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+    /*  2 */ { NULL,   abcOcta,  NULL,   abcCone, abcThrn,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+    /*  3 */ { NULL,   abcOcta,  NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,    NULL,    NULL   },
+    /*  4 */ { NULL,    NULL,    NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,   abcCone,  NULL   },
+    /*  5 */ { NULL,   abcCone,  NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,    NULL,    NULL   },
+    /*  6 */ { NULL,    NULL,    NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,   abcOcta,  NULL   },
+    /*  7 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcThrn, abcCone,  NULL,   abcOcta,  NULL   },
+    /*  8 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcCyli, abcHalf,  NULL,   abcBall },
+    /*  9 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcHalf, abcCyli, abcBall }};
+  unsigned int pvi[3], zone;
+  double bcoord[3];
+
+  zone = tenGlyphBqdZoneUv(uv);
+  ELL_3V_COPY(pvi, vertsZone[zone]);
+  baryFind(bcoord, uv, uvVert[pvi[0]], uvVert[pvi[1]], uvVert[pvi[2]]);
+  baryBlend(abc, bcoord,
+            abcAll[zone][pvi[0]],
+            abcAll[zone][pvi[1]],
+            abcAll[zone][pvi[2]]);
+  return;
+}
+
