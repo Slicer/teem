@@ -70,12 +70,14 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecLength,          1,  0,   {gageVecVector},                                                    0,      0,       AIR_FALSE},
   {gageVecNormalized,      3,  0,   {gageVecVector, gageVecLength},                                     0,      0,       AIR_FALSE},
   {gageVecJacobian,        9,  1,   {0},                                                                0,      0,       AIR_FALSE},
+  {gageVecStrain,	   9,  1,   {gageVecJacobian},							0,	0,	 AIR_FALSE},
   {gageVecDivergence,      1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurl,            3,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurlNorm,        1,  1,   {gageVecCurl},                                                      0,      0,       AIR_FALSE},
   {gageVecHelicity,        1,  1,   {gageVecVector, gageVecCurl},                                       0,      0,       AIR_FALSE},
   {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl},                                   0,      0,       AIR_FALSE},
-  {gageVecLambda2,         1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
+   {gageVecSOmega,	   9,  1,   {gageVecJacobian,gageVecStrain},					0,	0,	 AIR_FALSE},
+  {gageVecLambda2,         1,  1,   {gageVecSOmega},                                                  0,      0,       AIR_FALSE},
   {gageVecImaginaryPart,   1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE}, 
   {gageVecHessian,        27,  2,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecDivGradient,     3,  1,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
@@ -145,14 +147,17 @@ void
 _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   char me[]="_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
-  double symm[9], asym[9], tran[9], eval[3], tmpVec[3], norm;
-  double *vecAns, *normAns, *jacAns, *curlAns, *hesAns, *curlGradAns, 
+  double asym[9], tran[9], eval[3], tmpVec[3], norm;
+  double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,
+    	 *curlAns, *hesAns, *curlGradAns, 
          *helGradAns, *dirHelDirAns, *curlnormgradAns;
   /* int asw; */
 
   vecAns          = pvl->directAnswer[gageVecVector];
   normAns         = pvl->directAnswer[gageVecNormalized];
   jacAns          = pvl->directAnswer[gageVecJacobian];
+  strainAns	  = pvl->directAnswer[gageVecStrain];
+  somegaAns	  = pvl->directAnswer[gageVecSOmega];
   curlAns         = pvl->directAnswer[gageVecCurl];
   hesAns          = pvl->directAnswer[gageVecHessian];
   curlGradAns     = pvl->directAnswer[gageVecCurlGradient];
@@ -219,21 +224,25 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageVecNormHelicity][0] =
       cmag ? ELL_3V_DOT(normAns, curlAns)/cmag : 0;
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecStrain)) {
       ELL_3M_TRANSPOSE(tran, jacAns);
       /* symmetric part */
-      ELL_3M_SCALE_ADD2(symm, 0.5, jacAns,  0.5, tran);
+      ELL_3M_SCALE_ADD2(strainAns, 0.5, jacAns,  0.5, tran);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecSOmega)) {
       /* antisymmetric part */
       ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
       /* square symmetric part */
-      ELL_3M_MUL(tmpMat, symm, symm);
-      ELL_3M_COPY(symm, tmpMat);
+      ELL_3M_MUL(tmpMat, strainAns, strainAns);
+      ELL_3M_COPY(somegaAns, tmpMat);
       /* square antisymmetric part */
       ELL_3M_MUL(tmpMat, asym, asym);
       /* sum of both */
-      ELL_3M_ADD2(symm, symm, tmpMat);
+      ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
       /* get eigenvalues in sorted order */
-      /* asw = */ ell_3m_eigenvalues_d(eval, symm, AIR_TRUE);
+      /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
       pvl->directAnswer[gageVecLambda2][0] = eval[1];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
@@ -390,11 +399,13 @@ _gageVecStr[] = {
   "length",
   "normalized",
   "Jacobian",
+  "strain",
   "divergence",
   "curl",
   "curl norm",
   "helicity",
   "normalized helicity",
+  "SOmega",
   "lambda2",
   "imag",
   "vector hessian",
@@ -424,12 +435,14 @@ _gageVecDesc[] = {
   "length of vector",
   "normalized vector",
   "3x3 Jacobian",
+  "rate-of-strain tensor",
   "divergence",
   "curl",
   "curl magnitude",
   "helicity: dot(vector,curl)",
   "normalized helicity",
-  "lambda2 value for vortex characterization",
+  "S squared plus Omega squared for vortex characterization",
+  "lambda2 value of SOmega",
   "imaginary part of complex-conjugate eigenvalues of Jacobian",
   "3x3x3 second-order vector derivative",
   "gradient of divergence",
@@ -458,11 +471,13 @@ _gageVecVal[] = {
   gageVecLength,
   gageVecNormalized,
   gageVecJacobian,
+  gageVecStrain,
   gageVecDivergence,
   gageVecCurl,
   gageVecCurlNorm,
   gageVecHelicity,
   gageVecNormHelicity,
+  gageVecSOmega,
   gageVecLambda2,
   gageVecImaginaryPart,
   gageVecHessian,
@@ -489,11 +504,13 @@ _gageVecVal[] = {
 #define GV_L   gageVecLength
 #define GV_N   gageVecNormalized
 #define GV_J   gageVecJacobian
+#define GV_S   gageVecStrain
 #define GV_D   gageVecDivergence
 #define GV_C   gageVecCurl
 #define GV_CM  gageVecCurlNorm
 #define GV_H   gageVecHelicity
 #define GV_NH  gageVecNormHelicity
+#define GV_SO  gageVecSOmega
 #define GV_LB  gageVecLambda2
 #define GV_IM  gageVecImaginaryPart
 #define GV_VH  gageVecHessian
@@ -521,11 +538,13 @@ _gageVecStrEqv[] = {
   "l", "length", "len",
   "n", "normalized", "normalized vector",
   "jacobian", "jac", "j",
+  "strain", "S",
   "divergence", "div", "d",
   "curl", "c",
   "curlnorm", "curl magnitude", "cm",
   "h", "hel", "hell",
   "nh", "nhel", "normhel", "normhell",
+  "SOmega", "somega",
   "lbda2", "lambda2",
   "imag", "imagpart",
   "vh", "vhes", "vhessian", "vector hessian",
@@ -555,11 +574,13 @@ _gageVecValEqv[] = {
   GV_L, GV_L, GV_L,
   GV_N, GV_N, GV_N,
   GV_J, GV_J, GV_J,
+  GV_S, GV_S,
   GV_D, GV_D, GV_D,
   GV_C, GV_C,
   GV_CM, GV_CM, GV_CM,
   GV_H, GV_H, GV_H,
   GV_NH, GV_NH, GV_NH, GV_NH,
+  GV_SO, GV_SO,
   GV_LB, GV_LB,
   GV_IM, GV_IM,
   GV_VH, GV_VH, GV_VH, GV_VH,

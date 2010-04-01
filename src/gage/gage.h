@@ -303,15 +303,17 @@ enum {
                                 0:dv_x/dx  1:dv_x/dy  2:dv_x/dz
                                 3:dv_y/dx  4:dv_y/dy  5:dv_y/dz
                                 6:dv_z/dx  7:dv_z/dy  8:dv_z/dz */
-  gageVecDivergence,      /*  8: "d", divergence (based on Jacobian): [1] */
-  gageVecCurl,            /*  9: "c", curl (based on Jacobian): [3] */
-  gageVecCurlNorm,        /* 10: "cm", curl magnitude: [1] */
-  gageVecHelicity,        /* 11: "h", helicity: vec . curl: [1] */
-  gageVecNormHelicity,    /* 12: "nh", normalized helicity: [1] */
-  gageVecLambda2,         /* 13: "lambda2", lambda2 criterion: [1] */
-  gageVecImaginaryPart,   /* 14: "imag", imag. part of jacobian's
+  gageVecStrain,	  /*  8: "S", rate-of-strain tensor: [9] */
+  gageVecDivergence,      /*  9: "d", divergence (based on Jacobian): [1] */
+  gageVecCurl,            /* 10: "c", curl (based on Jacobian): [3] */
+  gageVecCurlNorm,        /* 11: "cm", curl magnitude: [1] */
+  gageVecHelicity,        /* 12: "h", helicity: vec . curl: [1] */
+  gageVecNormHelicity,    /* 13: "nh", normalized helicity: [1] */
+  gageVecSOmega,	  /* 14: "somega", S squared + Omega squared: [9] */
+  gageVecLambda2,         /* 15: "lambda2", lambda2 criterion: [1] */
+  gageVecImaginaryPart,   /* 16: "imag", imag. part of jacobian's
                                   complex-conjugate eigenvalues: [1] */
-  gageVecHessian,         /* 15: "vh", second-order derivative: [27] 
+  gageVecHessian,         /* 17: "vh", second-order derivative: [27] 
                                  HEY: indices here need to be double checked
                                  0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
                                  3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
@@ -319,24 +321,24 @@ enum {
                                  9:d2v_y/dxdx       [..]
                                     [..]
                                 24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz */
-  gageVecDivGradient,     /* 16: "dg", divergence gradient: [3] */
-  gageVecCurlGradient,    /* 17: "cg", curl gradient: [9] */
-  gageVecCurlNormGrad,    /* 18: "cng", curl norm gradient: [3] */
-  gageVecNCurlNormGrad,   /* 19: "ncng", normalized curl norm gradient: [3] */
-  gageVecHelGradient,     /* 20: "hg", helicity gradient: [3] */
-  gageVecDirHelDeriv,     /* 21: "dhd", directional derivative
+  gageVecDivGradient,     /* 18: "dg", divergence gradient: [3] */
+  gageVecCurlGradient,    /* 19: "cg", curl gradient: [9] */
+  gageVecCurlNormGrad,    /* 20: "cng", curl norm gradient: [3] */
+  gageVecNCurlNormGrad,   /* 21: "ncng", normalized curl norm gradient: [3] */
+  gageVecHelGradient,     /* 22: "hg", helicity gradient: [3] */
+  gageVecDirHelDeriv,     /* 23: "dhd", directional derivative
                                  of helicity: [1] */ 
-  gageVecProjHelGradient, /* 22: "phg", projected helicity gradient: [3] */
-  gageVecGradient0,       /* 23: "g0", gradient of 1st coeff of vector: [3] */
-  gageVecGradient1,       /* 24: "g1", gradient of 2nd coeff of vector: [3] */
-  gageVecGradient2,       /* 25: "g2", gradient of 3rd coeff of vector: [3] */
-  gageVecMultiGrad,       /* 26: "mg", sum of outer products of grads: [9] */
-  gageVecMGFrob,          /* 27: "mgfrob", frob norm of multi-gradient: [1] */
-  gageVecMGEval,          /* 28: "mgeval", evals of multi-gradient: [3] */
-  gageVecMGEvec,          /* 29: "mgevec", evecs of multi-gradient: [9] */
+  gageVecProjHelGradient, /* 24: "phg", projected helicity gradient: [3] */
+  gageVecGradient0,       /* 25: "g0", gradient of 1st coeff of vector: [3] */
+  gageVecGradient1,       /* 26: "g1", gradient of 2nd coeff of vector: [3] */
+  gageVecGradient2,       /* 27: "g2", gradient of 3rd coeff of vector: [3] */
+  gageVecMultiGrad,       /* 28: "mg", sum of outer products of grads: [9] */
+  gageVecMGFrob,          /* 29: "mgfrob", frob norm of multi-gradient: [1] */
+  gageVecMGEval,          /* 30: "mgeval", evals of multi-gradient: [3] */
+  gageVecMGEvec,          /* 31: "mgevec", evecs of multi-gradient: [9] */
   gageVecLast
 };
-#define GAGE_VEC_ITEM_MAX     29
+#define GAGE_VEC_ITEM_MAX     31
 
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
