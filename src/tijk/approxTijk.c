@@ -110,6 +110,35 @@ _TIJK_INIT_RANK1(float, f, 2)
 _TIJK_INIT_RANK1(double, d, 3)
 _TIJK_INIT_RANK1(float, f, 3)
 
+#define _TIJK_INIT_MAX(TYPE, SUF, DIM)					\
+  int									\
+  tijk_init_max_##DIM##d_##SUF(TYPE *s, TYPE *v, TYPE *ten,		\
+			       const tijk_type *type) {			\
+    TYPE max=0;								\
+    unsigned int i;							\
+    TYPE *candidate=_candidates_##DIM##d_##SUF;				\
+    if (type->dim!=DIM || type->sym==NULL)				\
+      return 1;								\
+    *s=max=(*type->sym->s_form_##SUF)(ten, candidate);			\
+    ELL_##DIM##V_COPY(v, candidate);					\
+    for (i=1; i<_tijk_max_candidates_##DIM##d; i++) {			\
+      TYPE val;								\
+      candidate+=DIM;							\
+      val=(*type->sym->s_form_##SUF)(ten, candidate);			\
+      if (val>max) {							\
+	max=val;							\
+	*s=val;								\
+	ELL_##DIM##V_COPY(v, candidate);				\
+      }									\
+    }									\
+    return 0;								\
+  }
+
+_TIJK_INIT_MAX(double, d, 2)
+_TIJK_INIT_MAX(float, f, 2)
+_TIJK_INIT_MAX(double, d, 3)
+_TIJK_INIT_MAX(float, f, 3)
+
 #define _TIJK_REFINE_RANK1(TYPE, SUF, DIM)				\
   int									\
   tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, TYPE *ten,		\
@@ -157,7 +186,7 @@ _TIJK_INIT_RANK1(float, f, 3)
 	}								\
 	alpha *= gamma; /* try again with decreased stepsize */		\
       }									\
-      if (sign*(val-oldval)<=1e-6*anisonorm) {				\
+      if (sign*(val-oldval)<=1e-4*anisonorm) {				\
 	break; /* declare convergence */				\
       }									\
       oldval=val;							\
@@ -204,7 +233,7 @@ _TIJK_REFINE_RANK1(float, f, 3)
       if (currank>1 && ratios!=NULL) {					\
 	/* make sure the desired ratio is fulfilled */			\
 	TYPE largest=fabs(lstmp[0]), smallest=largest;			\
-	int i;								\
+	unsigned int i;							\
 	for (i=1; i<currank; i++) {					\
 	  if (fabs(lstmp[i])>largest) largest=fabs(lstmp[i]);		\
 	  if (fabs(lstmp[i])<smallest) smallest=fabs(lstmp[i]);		\
@@ -242,7 +271,7 @@ _TIJK_APPROX_RANKK(float, f, 3)
 				   const tijk_type *type, unsigned int k) \
   {									\
     TYPE newnorm=(*resnorm);						\
-    int i, j;								\
+    unsigned int i;							\
     if (type->dim!=DIM || type->sym==NULL)				\
       return 1;								\
     if (*resnorm<TIJK_EPS || k==0) {					\
@@ -262,7 +291,7 @@ _TIJK_APPROX_RANKK(float, f, 3)
 	tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
       }									\
       newnorm=(*type->norm_##SUF)(res);					\
-    } while (newnorm<0.999*(*resnorm));					\
+    } while (newnorm<0.9999*(*resnorm));				\
     return 0;								\
   }
 
@@ -270,3 +299,46 @@ _TIJK_REFINE_RANKK(double, d, 2)
 _TIJK_REFINE_RANKK(float, f, 2)
 _TIJK_REFINE_RANKK(double, d, 3)
 _TIJK_REFINE_RANKK(float, f, 3)
+
+#define _TIJK_REFINE_POS_RANKK(TYPE, SUF, DIM)				\
+  int									\
+  tijk_refine_pos_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *tens,	\
+				       TYPE *res, TYPE *resnorm,	\
+				       const tijk_type *type, unsigned int k) \
+  {									\
+    TYPE newnorm=(*resnorm);						\
+    unsigned int i;							\
+    if (type->dim!=DIM || type->sym==NULL)				\
+      return 1;								\
+    if (*resnorm<TIJK_EPS || k==0) {					\
+      return 0; /* nothing to do */					\
+    }									\
+    do {								\
+      *resnorm=newnorm;							\
+      for (i=0; i<k; i++) {						\
+	if (ls[i]!=0.0) { /* refine an existing term */			\
+	  tijk_incr_##SUF(res, tens+i*type->num, type);			\
+	  ls[i]=(*type->sym->s_form_##SUF)(res, vs+DIM*i);		\
+	  if (ls[i]<0.0) { /* try a new one */				\
+	    tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	  }								\
+	} else { /* add a new term */					\
+	  tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	}								\
+	tijk_refine_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	if (ls[i]>0.0) {						\
+	  (*type->sym->make_rank1_##SUF)(tens+i*type->num, ls[i], vs+DIM*i); \
+	  tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
+	} else {							\
+	  ls[i]=0.0;							\
+	}								\
+      }									\
+      newnorm=(*type->norm_##SUF)(res);					\
+    } while (newnorm<0.9999*(*resnorm));				\
+    return 0;								\
+  }
+
+_TIJK_REFINE_POS_RANKK(double, d, 2)
+_TIJK_REFINE_POS_RANKK(float, f, 2)
+_TIJK_REFINE_POS_RANKK(double, d, 3)
+_TIJK_REFINE_POS_RANKK(float, f, 3)

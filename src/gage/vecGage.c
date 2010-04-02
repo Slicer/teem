@@ -228,22 +228,23 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ELL_3M_TRANSPOSE(tran, jacAns);
       /* symmetric part */
       ELL_3M_SCALE_ADD2(strainAns, 0.5, jacAns,  0.5, tran);
-  }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecSOmega)) {
-      /* antisymmetric part */
-      ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
-      /* square symmetric part */
-      ELL_3M_MUL(tmpMat, strainAns, strainAns);
-      ELL_3M_COPY(somegaAns, tmpMat);
-      /* square antisymmetric part */
-      ELL_3M_MUL(tmpMat, asym, asym);
-      /* sum of both */
-      ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
-  }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
-      /* get eigenvalues in sorted order */
-      /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
-      pvl->directAnswer[gageVecLambda2][0] = eval[1];
+      /* nested these ifs to make dependency explicit to the compiler */
+      if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecSOmega)) {
+	/* antisymmetric part */
+	ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
+	/* square symmetric part */
+	ELL_3M_MUL(tmpMat, strainAns, strainAns);
+	ELL_3M_COPY(somegaAns, tmpMat);
+	/* square antisymmetric part */
+	ELL_3M_MUL(tmpMat, asym, asym);
+	/* sum of both */
+	ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
+	if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
+	  /* get eigenvalues in sorted order */
+	  /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
+	  pvl->directAnswer[gageVecLambda2][0] = eval[1];
+	}
+      }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
       pvl->directAnswer[gageVecImaginaryPart][0] =

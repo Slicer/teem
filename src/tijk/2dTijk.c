@@ -495,23 +495,6 @@ _tijk_4o2d_sym_norm_f (const float *A) {
   return sqrtf(_TIJK_4O2D_SYM_TSP(A,A));
 }
 
-void
-_tijk_4o2d_sym_trans_d (double *res, const double *A, const double *M) {
-  /* this code should be optimized at some point */
-  double tmp[16], tmpout[16];
-  _tijk_4o2d_sym_convert_d(tmp, tijk_4o2d_unsym, A);
-  _tijk_4o2d_unsym_trans_d(tmpout, tmp, M);
-  _tijk_4o2d_unsym_approx_d(res, tijk_4o2d_sym, tmpout);
-}
-
-void
-_tijk_4o2d_sym_trans_f (float *res, const float *A, const float *M) {
-  float tmp[16], tmpout[16];
-  _tijk_4o2d_sym_convert_f(tmp, tijk_4o2d_unsym, A);
-  _tijk_4o2d_unsym_trans_f(tmpout, tmp, M);
-  _tijk_4o2d_unsym_approx_f(res, tijk_4o2d_sym, tmpout);
-}
-
 #define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)				\
   int									\
   _tijk_4o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
@@ -550,6 +533,23 @@ _TIJK_4O2D_SYM_CONVERT(float, f)
 
 _TIJK_4O2D_SYM_APPROX(double, d)
 _TIJK_4O2D_SYM_APPROX(float, f)
+
+void
+_tijk_4o2d_sym_trans_d (double *res, const double *A, const double *M) {
+  /* this code should be optimized at some point */
+  double tmp[16], tmpout[16];
+  _tijk_4o2d_sym_convert_d(tmp, tijk_4o2d_unsym, A);
+  _tijk_4o2d_unsym_trans_d(tmpout, tmp, M);
+  _tijk_4o2d_unsym_approx_d(res, tijk_4o2d_sym, tmpout);
+}
+
+void
+_tijk_4o2d_sym_trans_f (float *res, const float *A, const float *M) {
+  float tmp[16], tmpout[16];
+  _tijk_4o2d_sym_convert_f(tmp, tijk_4o2d_unsym, A);
+  _tijk_4o2d_unsym_trans_f(tmpout, tmp, M);
+  _tijk_4o2d_unsym_approx_f(res, tijk_4o2d_sym, tmpout);
+}
 
 double
 _tijk_4o2d_sym_s_form_d (const double *A, const double *v) {

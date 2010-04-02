@@ -26,7 +26,10 @@
 #define DOF_NUM 0
 #define PARM_NUM 0
 static const tenModelParmDesc 
-parmDesc[] = {};
+parmDesc[] = {
+  /* dummy to avoid compiler error */
+  {"dummy", 0.0, 0.0, AIR_FALSE, 0},
+};
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {

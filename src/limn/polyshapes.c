@@ -629,7 +629,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
       yy = airSgnPow(sint,alpha) * airSgnPow(sinp,beta);
       zz = airSgnPow(cosp,beta);
       if (cee != beta) {
-        /* expand profile along x axis to match having beta=cee */
+        /* expand profile along y axis to match having beta=cee */
         double yp, ymax;
         yp = airSgnPow(sin(acos(airSgnPow(zz, 1/cee))), cee);
         ymax = airSgnPow(sinp, beta);

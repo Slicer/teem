@@ -205,6 +205,16 @@ TIJK_EXPORT int tijk_init_rank1_3d_d(double *s, double *v, double *ten,
 TIJK_EXPORT int tijk_init_rank1_3d_f(float *s, float *v, float *ten,
 				     const tijk_type *type);
 
+TIJK_EXPORT int tijk_init_max_2d_d(double *s, double *v, double *ten,
+				   const tijk_type *type);
+TIJK_EXPORT int tijk_init_max_2d_f(float *s, float *v, float *ten,
+				   const tijk_type *type);
+
+TIJK_EXPORT int tijk_init_max_3d_d(double *s, double *v, double *ten,
+				   const tijk_type *type);
+TIJK_EXPORT int tijk_init_max_3d_f(float *s, float *v, float *ten,
+				   const tijk_type *type);
+
 /* For ANSI C compatibility, these routines rely on
  * type->num<=TIJK_TYPE_MAX_NUM !*/
 TIJK_EXPORT int tijk_refine_rank1_2d_d(double *s, double *v, double *ten,
@@ -245,6 +255,24 @@ TIJK_EXPORT int tijk_refine_rankk_3d_d(double *ls, double *vs, double *tens,
 TIJK_EXPORT int tijk_refine_rankk_3d_f(float *ls, float *vs, float *tens,
 				       float *res, float *resnorm,
 				       const tijk_type *type, unsigned int k);
+
+TIJK_EXPORT int tijk_refine_pos_rankk_2d_d(double *ls, double *vs,
+					   double *tens, double *res,
+					   double *resnorm,
+					   const tijk_type *type,
+					   unsigned int k);
+TIJK_EXPORT int tijk_refine_pos_rankk_2d_f(float *ls, float *vs, float *tens,
+					   float *res, float *resnorm,
+					   const tijk_type *type,
+					   unsigned int k);
+TIJK_EXPORT int tijk_refine_pos_rankk_3d_d(double *ls, double *vs, double *tens,
+					   double *res, double *resnorm,
+					   const tijk_type *type,
+					   unsigned int k);
+TIJK_EXPORT int tijk_refine_pos_rankk_3d_f(float *ls, float *vs, float *tens,
+					   float *res, float *resnorm,
+					   const tijk_type *type,
+					   unsigned int k);
 
 /* shTijk.c */
 TIJK_EXPORT int tijk_eval_esh_basis_d(double *res, int order,

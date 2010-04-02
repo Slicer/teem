@@ -136,24 +136,6 @@ _tijk_2o3d_sym_norm_f (const float *A) {
   return sqrtf(_TIJK_2O3D_SYM_TSP(A,A));
 }
 
-void
-_tijk_2o3d_sym_trans_d (double *res, const double *A, const double *M) {
-  /* this code could be optimized at some point */
-  double tmp[9], tmpout[9];
-  _tijk_2o3d_sym_convert_d(tmp, tijk_2o3d_unsym, A);
-  _tijk_2o3d_unsym_trans_d(tmpout, tmp, M);
-  _tijk_2o3d_unsym_approx_d(res, tijk_2o3d_sym, tmpout);
-}
-
-void
-_tijk_2o3d_sym_trans_f (float *res, const float *A, const float *M) {
-  /* this code could be optimized at some point */
-  float tmp[9], tmpout[9];
-  _tijk_2o3d_sym_convert_f(tmp, tijk_2o3d_unsym, A);
-  _tijk_2o3d_unsym_trans_f(tmpout, tmp, M);
-  _tijk_2o3d_unsym_approx_f(res, tijk_2o3d_sym, tmpout);
-}
-
 #define _TIJK_2O3D_SYM_CONVERT(TYPE, SUF)				\
   int									\
   _tijk_2o3d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
@@ -174,8 +156,7 @@ _tijk_2o3d_sym_trans_f (float *res, const float *A, const float *M) {
       tijk_esh_to_3d_sym_##SUF (res, tmp, res_type->order);		\
     } else if (NULL!=res_type->_convert_from_##SUF)			\
       return (*res_type->_convert_from_##SUF)(res,A,tijk_2o3d_sym);	\
-    else								\
-      return 1;								\
+    return 1;								\
   }
 
 _TIJK_2O3D_SYM_CONVERT(double, d)
@@ -193,6 +174,24 @@ _TIJK_2O3D_SYM_CONVERT(float, f)
 
 _TIJK_2O3D_SYM_APPROX(double, d)
 _TIJK_2O3D_SYM_APPROX(float, f)
+
+void
+_tijk_2o3d_sym_trans_d (double *res, const double *A, const double *M) {
+  /* this code could be optimized at some point */
+  double tmp[9], tmpout[9];
+  _tijk_2o3d_sym_convert_d(tmp, tijk_2o3d_unsym, A);
+  _tijk_2o3d_unsym_trans_d(tmpout, tmp, M);
+  _tijk_2o3d_unsym_approx_d(res, tijk_2o3d_sym, tmpout);
+}
+
+void
+_tijk_2o3d_sym_trans_f (float *res, const float *A, const float *M) {
+  /* this code could be optimized at some point */
+  float tmp[9], tmpout[9];
+  _tijk_2o3d_sym_convert_f(tmp, tijk_2o3d_unsym, A);
+  _tijk_2o3d_unsym_trans_f(tmpout, tmp, M);
+  _tijk_2o3d_unsym_approx_f(res, tijk_2o3d_sym, tmpout);
+}
 
 double
 _tijk_2o3d_sym_s_form_d (const double *A, const double *v) {
@@ -366,24 +365,6 @@ _tijk_2o3d_asym_norm_f (const float *A) {
   return sqrtf(2*ELL_3V_DOT(A,A));
 }
 
-void
-_tijk_2o3d_asym_trans_d (double *res, const double *A, const double *M) {
-  /* this code could be optimized at some point */
-  double tmp[9], tmpout[9];
-  _tijk_2o3d_asym_convert_d(tmp, tijk_2o3d_unsym, A);
-  _tijk_2o3d_unsym_trans_d(tmpout, tmp, M);
-  _tijk_2o3d_unsym_approx_d(res, tijk_2o3d_asym, tmpout);
-}
-
-void
-_tijk_2o3d_asym_trans_f (float *res, const float *A, const float *M) {
-  /* this code could be optimized at some point */
-  float tmp[9], tmpout[9];
-  _tijk_2o3d_asym_convert_f(tmp, tijk_2o3d_unsym, A);
-  _tijk_2o3d_unsym_trans_f(tmpout, tmp, M);
-  _tijk_2o3d_unsym_approx_f(res, tijk_2o3d_asym, tmpout);
-}
-
 #define _TIJK_2O3D_ASYM_CONVERT(TYPE, SUF)				\
   int									\
   _tijk_2o3d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
@@ -417,6 +398,24 @@ _TIJK_2O3D_ASYM_CONVERT(float, f)
 
 _TIJK_2O3D_ASYM_APPROX(double, d)
 _TIJK_2O3D_ASYM_APPROX(float, f)
+
+void
+_tijk_2o3d_asym_trans_d (double *res, const double *A, const double *M) {
+  /* this code could be optimized at some point */
+  double tmp[9], tmpout[9];
+  _tijk_2o3d_asym_convert_d(tmp, tijk_2o3d_unsym, A);
+  _tijk_2o3d_unsym_trans_d(tmpout, tmp, M);
+  _tijk_2o3d_unsym_approx_d(res, tijk_2o3d_asym, tmpout);
+}
+
+void
+_tijk_2o3d_asym_trans_f (float *res, const float *A, const float *M) {
+  /* this code could be optimized at some point */
+  float tmp[9], tmpout[9];
+  _tijk_2o3d_asym_convert_f(tmp, tijk_2o3d_unsym, A);
+  _tijk_2o3d_unsym_trans_f(tmpout, tmp, M);
+  _tijk_2o3d_unsym_approx_f(res, tijk_2o3d_asym, tmpout);
+}
 
 TIJK_TYPE(2o3d_asym, 2, 3, 3)
 
@@ -462,7 +461,7 @@ _tijk_4o3d_sym_norm_f (const float *A) {
    * For efficiency, we transform mode by mode; the intermediate results \
    * have incomplete symmetries! */					\
   TYPE tmps[30], tmpl[36];						\
-  int i,j;								\
+  int i;								\
   { /* mode 4 */							\
   int m[30]={0,3,6,0,3,6,0,3,6,0,3,6,0,3,6,0,3,6,0,3,6,0,3,6,0,3,6,0,3,6};\
   int idx[90]={0,1,2,0,1,2,0,1,2,1,3,4,1,3,4,1,3,4,2,4,5,2,4,5,2,4,5,3,6,7,3,6,7,3,6,7,4,7,8,4,7,8,4,7,8,5,8,9,5,8,9,5,8,9,6,10,11,6,10,11,6,10,11,7,11,12,7,11,12,7,11,12,8,12,13,8,12,13,8,12,13,9,13,14,9,13,14,9,13,14}; \
@@ -515,8 +514,7 @@ _TIJK_4O3D_SYM_TRANS(float, f)
     tijk_esh_to_3d_sym_##SUF (res, tmp, res_type->order);		\
   } else if (NULL!=res_type->_convert_from_##SUF)			\
     return (*res_type->_convert_from_##SUF)(res,A,tijk_4o3d_sym);	\
-  else									\
-    return 1;								\
+  return 1;								\
   }
 
 _TIJK_4O3D_SYM_CONVERT(double, d)
@@ -801,7 +799,7 @@ _tijk_6o3d_sym_norm_f (const float *A) {
    * For efficiency, we transform mode by mode; the intermediate results \
    * have incomplete symmetries! */					\
   TYPE tmpl[100], tmpr[100];						\
-  int i,j;								\
+  int i;								\
   { /* mode 6 */							\
   int m[3]={0,3,6};							\
   int idx[189]={0,1,2,0,1,2,0,1,2,1,3,4,1,3,4,1,3,4,2,4,5,2,4,5,2,4,5,3,6,7,3,6,7,3,6,7,4,7,8,4,7,8,4,7,8,5,8,9,5,8,9,5,8,9,6,10,11,6,10,11,6,10,11,7,11,12,7,11,12,7,11,12,8,12,13,8,12,13,8,12,13,9,13,14,9,13,14,9,13,14,10,15,16,10,15,16,10,15,16,11,16,17,11,16,17,11,16,17,12,17,18,12,17,18,12,17,18,13,18,19,13,18,19,13,18,19,14,19,20,14,19,20,14,19,20,15,21,22,15,21,22,15,21,22,16,22,23,16,22,23,16,22,23,17,23,24,17,23,24,17,23,24,18,24,25,18,24,25,18,24,25,19,25,26,19,25,26,19,25,26,20,26,27,20,26,27,20,26,27}; \
@@ -864,8 +862,7 @@ _TIJK_6O3D_SYM_TRANS(float, f)
     return 0;								\
   } else if (NULL!=res_type->_convert_from_##SUF)			\
     return (*res_type->_convert_from_##SUF)(res,A,tijk_6o3d_sym);	\
-  else									\
-    return 1;								\
+  return 1;								\
   }
 
 _TIJK_6O3D_SYM_CONVERT(double, d)
@@ -905,8 +902,7 @@ _TIJK_6O3D_SYM_CONVERT(float, f)
 		       3*(A[3]+A[10])-18*(A[5]+A[23])-36*A[12]);	\
   } else if (NULL!=res_type->_approx_from_##SUF)			\
     return (*res_type->_approx_from_##SUF)(res,A,tijk_6o3d_sym);	\
-  else									\
-    return 1;								\
+  return 1;								\
   }
 
 _TIJK_6O3D_SYM_APPROX(double, d)
@@ -996,14 +992,92 @@ _tijk_6o3d_sym_mean_f (const float *A) {
 
 double
 _tijk_6o3d_sym_var_d (const double *A) {
-  /* TODO - MATHEMATICA couldn't finish the computation */
-  return 0;
+  double mean=(A[0]+A[21]+A[27]+
+	       3*(A[3]+A[5]+A[10]+A[14]+A[23]+A[25])+
+	       6*A[12])/7.0;
+  return -mean*mean + (1.0/3003.0)*
+    (+ 10*A[21]*A[27]
+     + 30*(A[14]*A[21]+A[27]*A[3])
+     + 210*(A[21]*(A[3]+A[25])+A[23]*A[27])
+     + 231*(A[0]*A[0]+A[21]*A[21]+A[27]*A[27])
+     + 270*A[25]*A[3]
+     + 420*A[12]*(A[21]+A[27])
+     + 450*(A[14]*(A[3]+A[23])+A[23]*A[3])
+     + 630*(A[21]*A[23]+A[14]*A[27]+A[25]*A[27])
+     + 1050*A[14]*A[25]
+     + 1575*(A[3]*A[3]+A[5]*A[5]+A[10]*A[10]+A[14]*A[14]+
+	     A[23]*A[23]+A[25]*A[25])
+     + 2250*A[23]*A[25]
+     + 2700*A[12]*(A[3]+A[14]+A[23]+A[25])
+     + 4860*A[12]*A[12]
+     + 30*A[5]*(90*A[12]+ 75*A[14]+ A[21]+ 9*A[23]+ 15*A[25]+ 7*A[27]+ 35*A[3])
+     + 30*A[10]*(90*A[12]+9*A[14]+21*A[21]+35*A[23]+15*A[25]+A[27]+75*A[3]+
+		 15*A[5])
+     + 10*A[0]*(21*A[10]+42*A[12]+21*A[14]+A[21]+3*A[23]+3*A[25]+A[27]+
+		63*(A[3]+A[5]))
+     + 4*(+30*A[1]*(3*A[15] + 6*A[17] + 3*A[19] + 14*(A[6] + A[8]))
+	  +60*(A[8]*(3*(A[15] + 6*A[17] + 5*A[19]) + 10*A[6])+
+	       A[9]*(3*A[16] + 10*A[18] + 7*(A[2] + A[20]) + 10*A[7])+
+	       A[11]*(18*A[13] + 7*A[22] + 10*A[24] + 3*A[26] + 15*A[4])+
+	       A[13]*(3*A[22] + 10*A[24] + 7*A[26] + 15*A[4])+
+	       A[18]*(3*A[2]+7*A[20]+18*A[7]))
+	  +90*(A[2]*A[20]+A[15]*A[19]+A[22]*A[26]+
+	       A[4]*(A[22]+2*A[24]+A[26])+
+	       A[16]*(10*A[18]+A[2]+A[20]+10*A[7]))
+	  +180*(A[20]*A[7]+A[19]*A[6])
+	  +189*(A[1]*A[1]+A[2]*A[2]+A[15]*A[15]+A[20]*A[20]+
+		A[22]*A[22]+A[26]*A[26])
+	  +420*(A[2]*A[7]+A[15]*A[17]+A[22]*A[24]+A[24]*A[26]+A[15]*A[6])
+	  +500*(A[9]*A[9]+A[24]*A[24]+A[6]*A[6])
+	  +525*(A[4]*A[4]+A[16]*A[16]+A[19]*A[19])
+	  +600*A[17]*A[6]
+	  +900*(A[7]*A[7]+A[8]*A[8]+A[11]*A[11]+A[13]*A[13]+A[17]*A[17]+
+		A[18]*A[18]+A[17]*A[19])));
 }
 
 float
 _tijk_6o3d_sym_var_f (const float *A) {
-  /* TODO - MATHEMATICA couldn't finish the computation */
-  return 0;
+  float mean=(A[0]+A[21]+A[27]+
+	      3*(A[3]+A[5]+A[10]+A[14]+A[23]+A[25])+
+	      6*A[12])/7.0;
+  return -mean*mean + (1.0/3003.0)*
+    (+ 10*A[21]*A[27]
+     + 30*(A[14]*A[21]+A[27]*A[3])
+     + 210*(A[21]*(A[3]+A[25])+A[23]*A[27])
+     + 231*(A[0]*A[0]+A[21]*A[21]+A[27]*A[27])
+     + 270*A[25]*A[3]
+     + 420*A[12]*(A[21]+A[27])
+     + 450*(A[14]*(A[3]+A[23])+A[23]*A[3])
+     + 630*(A[21]*A[23]+A[14]*A[27]+A[25]*A[27])
+     + 1050*A[14]*A[25]
+     + 1575*(A[3]*A[3]+A[5]*A[5]+A[10]*A[10]+A[14]*A[14]+
+	     A[23]*A[23]+A[25]*A[25])
+     + 2250*A[23]*A[25]
+     + 2700*A[12]*(A[3]+A[14]+A[23]+A[25])
+     + 4860*A[12]*A[12]
+     + 30*A[5]*(90*A[12]+ 75*A[14]+ A[21]+ 9*A[23]+ 15*A[25]+ 7*A[27]+ 35*A[3])
+     + 30*A[10]*(90*A[12]+9*A[14]+21*A[21]+35*A[23]+15*A[25]+A[27]+75*A[3]+
+		 15*A[5])
+     + 10*A[0]*(21*A[10]+42*A[12]+21*A[14]+A[21]+3*A[23]+3*A[25]+A[27]+
+		63*(A[3]+A[5]))
+     + 4*(+30*A[1]*(3*A[15] + 6*A[17] + 3*A[19] + 14*(A[6] + A[8]))
+	  +60*(A[8]*(3*(A[15] + 6*A[17] + 5*A[19]) + 10*A[6])+
+	       A[9]*(3*A[16] + 10*A[18] + 7*(A[2] + A[20]) + 10*A[7])+
+	       A[11]*(18*A[13] + 7*A[22] + 10*A[24] + 3*A[26] + 15*A[4])+
+	       A[13]*(3*A[22] + 10*A[24] + 7*A[26] + 15*A[4])+
+	       A[18]*(3*A[2]+7*A[20]+18*A[7]))
+	  +90*(A[2]*A[20]+A[15]*A[19]+A[22]*A[26]+
+	       A[4]*(A[22]+2*A[24]+A[26])+
+	       A[16]*(10*A[18]+A[2]+A[20]+10*A[7]))
+	  +180*(A[20]*A[7]+A[19]*A[6])
+	  +189*(A[1]*A[1]+A[2]*A[2]+A[15]*A[15]+A[20]*A[20]+
+		A[22]*A[22]+A[26]*A[26])
+	  +420*(A[2]*A[7]+A[15]*A[17]+A[22]*A[24]+A[24]*A[26]+A[15]*A[6])
+	  +500*(A[9]*A[9]+A[24]*A[24]+A[6]*A[6])
+	  +525*(A[4]*A[4]+A[16]*A[16]+A[19]*A[19])
+	  +600*A[17]*A[6]
+	  +900*(A[7]*A[7]+A[8]*A[8]+A[11]*A[11]+A[13]*A[13]+A[17]*A[17]+
+		A[18]*A[18]+A[17]*A[19])));
 }
 
 #define _TIJK_6O3D_SYM_V_FORM(TYPE, SUF)				\

@@ -28,7 +28,7 @@
 void
 tijk_add_d (double *res, const double *A, const double *B,
 	    const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)+*(B++);
 }
@@ -36,7 +36,7 @@ tijk_add_d (double *res, const double *A, const double *B,
 void
 tijk_add_f (float *res, const float *A, const float *B,
 	    const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)+*(B++);
 }
@@ -44,7 +44,7 @@ tijk_add_f (float *res, const float *A, const float *B,
 void
 tijk_sub_d (double *res, const double *A, const double *B,
 	    const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)-*(B++);
 }
@@ -52,63 +52,63 @@ tijk_sub_d (double *res, const double *A, const double *B,
 void
 tijk_sub_f (float *res, const float *A, const float *B,
 	    const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)-*(B++);
 }
 
 void
 tijk_incr_d (double *res, const double *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)+=*(A++);
 }
 
 void
 tijk_incr_f (float *res, const float *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)+=*(A++);
 }
 
 void
 tijk_negate_d (double *res, const double *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=-*(A++);
 }
 
 void
 tijk_negate_f (float *res, const float *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=-*(A++);
 }
 
 void
 tijk_zero_d (double *res, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=0.0;
 }
 
 void
 tijk_zero_f (float *res, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=0.0;
 }
 
 void
 tijk_copy_d (double *res, const double *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++);
 }
 
 void
 tijk_copy_f (float *res, const float *A, const tijk_type *type) {
-  int i;
+  unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++);
 }
