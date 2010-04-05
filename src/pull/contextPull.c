@@ -324,6 +324,14 @@ _pullContextCheck(pullContext *pctx) {
              lthr->volName, lthr->scale, strn->scale);
     return 1;
   }
+  if (pullInitMethodPointPerVoxel == pctx->initParm.method) {
+    if (!( pctx->ispec[pullInfoSeedThresh] )) {
+      biffAddf(PULL, "%s: sorry, need to have %s info set with %s init",
+               me, airEnumStr(pullInfo, pullInfoSeedThresh),
+               "point-per-voxel" /* HEY no airEnum for this */);
+      return 1;
+    }
+  }
 
   return 0;
 }
