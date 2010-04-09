@@ -44,7 +44,7 @@ _tijk_2o3d_unsym_norm_d (const double *A) {
 
 float
 _tijk_2o3d_unsym_norm_f (const float *A) {
-  return sqrtf(ELL_3V_DOT(A,A)+ELL_3V_DOT(A+3,A+3)+ELL_3V_DOT(A+6,A+6));
+  return sqrt(ELL_3V_DOT(A,A)+ELL_3V_DOT(A+3,A+3)+ELL_3V_DOT(A+6,A+6));
 }
 
 void
@@ -133,7 +133,7 @@ _tijk_2o3d_sym_norm_d (const double *A) {
 
 float
 _tijk_2o3d_sym_norm_f (const float *A) {
-  return sqrtf(_TIJK_2O3D_SYM_TSP(A,A));
+  return sqrt(_TIJK_2O3D_SYM_TSP(A,A));
 }
 
 #define _TIJK_2O3D_SYM_CONVERT(TYPE, SUF)				\
@@ -362,7 +362,7 @@ _tijk_2o3d_asym_norm_d (const double *A) {
 
 float
 _tijk_2o3d_asym_norm_f (const float *A) {
-  return sqrtf(2*ELL_3V_DOT(A,A));
+  return sqrt(2*ELL_3V_DOT(A,A));
 }
 
 #define _TIJK_2O3D_ASYM_CONVERT(TYPE, SUF)				\
@@ -451,7 +451,7 @@ _tijk_4o3d_sym_norm_d (const double *A) {
 
 float
 _tijk_4o3d_sym_norm_f (const float *A) {
-  return sqrtf(_TIJK_4O3D_SYM_TSP(A,A));
+  return sqrt(_TIJK_4O3D_SYM_TSP(A,A));
 }
 
 #define _TIJK_4O3D_SYM_TRANS(TYPE, SUF)		\
@@ -789,7 +789,7 @@ _tijk_6o3d_sym_norm_d (const double *A) {
 
 float
 _tijk_6o3d_sym_norm_f (const float *A) {
-  return sqrtf(_TIJK_6O3D_SYM_TSP(A,A));
+  return sqrt(_TIJK_6O3D_SYM_TSP(A,A));
 }
 
 #define _TIJK_6O3D_SYM_TRANS(TYPE, SUF)		\

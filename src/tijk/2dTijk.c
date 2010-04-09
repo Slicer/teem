@@ -44,7 +44,7 @@ _tijk_2o2d_unsym_norm_d (const double *A) {
 
 float
 _tijk_2o2d_unsym_norm_f (const float *A) {
-  return sqrtf(ELL_4V_DOT(A,A));
+  return sqrt(ELL_4V_DOT(A,A));
 }
 
 void
@@ -128,7 +128,7 @@ _tijk_2o2d_sym_norm_d (const double *A) {
 
 float
 _tijk_2o2d_sym_norm_f (const float *A) {
-  return sqrtf(_TIJK_2O2D_SYM_TSP(A,A));
+  return sqrt(_TIJK_2O2D_SYM_TSP(A,A));
 }
 
 void
@@ -319,7 +319,7 @@ _tijk_2o2d_asym_norm_d (const double *A) {
 
 float
 _tijk_2o2d_asym_norm_f (const float *A) {
-  return sqrtf(2*A[0]*A[0]);
+  return sqrt(2*A[0]*A[0]);
 }
 
 void
@@ -492,7 +492,7 @@ _tijk_4o2d_sym_norm_d (const double *A) {
 
 float
 _tijk_4o2d_sym_norm_f (const float *A) {
-  return sqrtf(_TIJK_4O2D_SYM_TSP(A,A));
+  return sqrt(_TIJK_4O2D_SYM_TSP(A,A));
 }
 
 #define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)				\
