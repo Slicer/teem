@@ -221,7 +221,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     png_set_palette_to_rgb(png);
   /* expand grayscale images to 8 bits from 1, 2, or 4 bits */
   if (type == PNG_COLOR_TYPE_GRAY && depth < 8)
-    png_set_gray_1_2_4_to_8(png);
+    png_set_expand_gray_1_2_4_to_8(png);
   /* expand paletted or rgb images with transparency to full alpha
      channels so the data will be available as rgba quartets */
   if (png_get_valid(png, info, PNG_INFO_tRNS))
