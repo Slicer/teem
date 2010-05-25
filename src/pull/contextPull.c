@@ -442,7 +442,8 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           double *hess, eval[3], evec[9], eceil, maxeval, elen;
           unsigned int maxi;
           hess = point->info + pctx->infoIdx[pullInfoHeightHessian];
-          if (1) {
+          if (0) {
+            /* do this if using general symmetric tensor glyphs */
             TEN_M2T(tout, hess);
             tout[0] = 1.0;
           } else {
@@ -477,7 +478,8 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
               tenMakeSingle_d(tout, 1, eval, evec);
             }
           }
-        } else if (pctx->constraint
+        } else if (0   /* another hack for general symmetric tensor glyphs */
+                   && pctx->constraint
                    && (pctx->ispec[pullInfoIsovalueHessian])) {
           double *hess;
           hess = point->info + pctx->infoIdx[pullInfoIsovalueHessian];
