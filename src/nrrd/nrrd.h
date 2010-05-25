@@ -850,6 +850,7 @@ NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
 NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT void nrrdZeroSet(Nrrd *nout);
 
 /******** comments related */
 /* comment.c */

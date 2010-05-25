@@ -1534,3 +1534,12 @@ nrrdSanity(void) {
   return 1;
 }
 
+void
+nrrdZeroSet(Nrrd *nout) {
+
+  if (!_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
+    memset(nout->data, 0, nrrdElementNumber(nout)*nrrdElementSize(nout));
+  }
+  return;
+}
+
