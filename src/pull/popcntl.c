@@ -84,6 +84,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
                        : (3 == task->pctx->targetDim
                           ? 13
                           : 0 /* shouldn't get here */)))));
+    /*
+    if (0 == (point->idtag % 100)) {
+      printf("%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
+    }
+    */
     if (point->neighPointNum >= plenty) {
       /* there's little chance that adding points will reduce energy */
       return 0;
@@ -100,12 +105,20 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     ELL_4V_INCR(noffavg, off);
   }
-  if (point->neighPointNum
-      && (ELL_4V_LEN(noffavg)/point->neighPointNum 
-          < _PULL_NEIGH_OFFSET_SUM_THRESH)) {
-    /* we have neighbors, and they seem to be balanced well enough;
-       don't try to add */
-    return 0;
+  if (point->neighPointNum) {
+    /*
+    if (0 == (point->idtag % 100)) {
+      printf("%s: len(offavg) %g >?= thresh %g\n", me,
+             ELL_4V_LEN(noffavg)/point->neighPointNum, 
+             _PULL_NEIGH_OFFSET_SUM_THRESH);
+    }
+    */
+    if (ELL_4V_LEN(noffavg)/point->neighPointNum 
+        < _PULL_NEIGH_OFFSET_SUM_THRESH) {
+      /* we have neighbors, and they seem to be balanced well enough;
+         don't try to add */
+      return 0;
+    }
   }
   if (pullEnergyCubicWell == task->pctx->energySpecR->energy
       || pullEnergyBetterCubicWell == task->pctx->energySpecR->energy

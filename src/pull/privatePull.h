@@ -42,7 +42,7 @@ extern "C" {
 /* only try adding a point if the normalized neighbor offset sum is 
    greater than this (making this too small only wastes time, by descending
    and testing a point that can't help reduce energy */
-#define _PULL_NEIGH_OFFSET_SUM_THRESH 0.1
+#define _PULL_NEIGH_OFFSET_SUM_THRESH 0.2
 
 /* how far to place new points from isolated points (as a fraction of
    radiusSpace), when not using cubic well energy */
