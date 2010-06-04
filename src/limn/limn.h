@@ -669,6 +669,9 @@ LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
                                          unsigned int infoBitFlag,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
+LIMN_EXPORT int limnPolyDataIcoSphere(limnPolyData *pld,
+				      unsigned int infoBitFlag,
+				      unsigned int level);
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);

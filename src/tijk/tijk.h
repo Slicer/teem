@@ -68,7 +68,8 @@ typedef struct tijk_sym_fun_t {
   /* make a symmetric rank-1 tensor from the given scalar and vector */
   void (*make_rank1_d) (double *res, const double s, const double *v);
   void (*make_rank1_f) (float *res, const float s, const float *v);
-  /* make a symmetric isotropic tensor from the given scalar */
+  /* make a symmetric isotropic tensor from the given scalar;
+   * NULL if order is odd (i.e., only isotropic tensor is the zero tensor) */
   void (*make_iso_d) (double *res, const double s);
   void (*make_iso_f) (float *res, const float s);
 } tijk_sym_fun;
@@ -136,7 +137,7 @@ typedef struct tijk_type_t {
 
   /* convert/approximate from a different tensor type.
    * This should not be called in user code (instead, use convert/approx).
-   * Needed if libraries other than ell want to define new tensor types.
+   * Needed if libraries other than tijk want to define new tensor types.
    */
   int (*_convert_from_d) (double *res, const double *A,
 			  const struct tijk_type_t *from_type);
@@ -162,6 +163,8 @@ TIJK_EXPORT const tijk_type *const tijk_4o2d_sym;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_asym;
+TIJK_EXPORT const tijk_type *const tijk_3o3d_unsym;
+TIJK_EXPORT const tijk_type *const tijk_3o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_4o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_6o3d_sym;
 
@@ -298,4 +301,4 @@ TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_f(float *res,
 }
 #endif
 
-#endif /* ELL_HAS_BEEN_INCLUDED */
+#endif /* TIJK_HAS_BEEN_INCLUDED */

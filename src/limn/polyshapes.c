@@ -764,6 +764,256 @@ limnPolyDataSpiralSphere(limnPolyData *pld,
   return 0;
 }
 
+/* Geometry for an icosahedron */
+#define ICO_ONE 0.5257311121
+#define ICO_TAU 0.8506508084
+static float icovertices[36] = {
+  0.0, ICO_ONE, ICO_TAU,  0.0, -ICO_ONE, -ICO_TAU,
+  0.0, -ICO_ONE, ICO_TAU,  0.0, ICO_ONE, -ICO_TAU,
+  ICO_ONE, ICO_TAU, 0.0,  -ICO_ONE, -ICO_TAU, 0.0,
+  ICO_ONE, -ICO_TAU, 0.0, -ICO_ONE, ICO_TAU, 0.0,
+  ICO_TAU, 0.0, ICO_ONE,  -ICO_TAU, 0.0, -ICO_ONE,
+  -ICO_TAU, 0.0, ICO_ONE,  ICO_TAU, 0.0, -ICO_ONE
+};
+#undef ICO_ONE
+#undef ICO_TAU
+
+static unsigned int icoedges[60] = {
+  0, 2,  1, 3,  0, 4,  1, 5,  0, 8,  1, 9,  0, 10,  1, 11, /* 0-7 */
+  0, 7,  1, 6,  2, 6,  3, 7,  2, 8,  3, 9,  2, 10,  3, 11, /* 8-15 */
+  2, 5,  3, 4,  4, 8,  5, 9,  4, 7,  5, 6,  4, 11,  5, 10, /* 16-23*/
+  6, 8,  7, 9,  6, 11,  7, 10,  8, 11,  9, 10 /* 24-29 */
+};
+
+static unsigned int icofaces[60] = {
+  0, 4, 12,   1, 5, 13,   0, 6, 14,   1, 7, 15,
+  6, 8, 27,   7, 9, 26,   2, 4, 18,   3, 5, 19,
+  10, 12, 24,   11, 13, 25,   14, 16, 23,   15, 17, 22,
+  2, 8, 20,   3, 9, 21,   10, 16, 21,   11, 17, 20,
+  24, 26, 28,   25, 27, 29,   18, 22, 28,   19, 23, 29
+};
+
+/*
+******** limnPolyDataIcoSphere
+**
+** Makes a unit sphere, centered at the origin, by refining an icosahedron
+** level times. Each refinement step subdivides each edge at its center,
+** turning each triangle into four smaller ones.
+**
+** In the output, vertex 2*i and 2*i+1 are antipodal points, which allows for
+** a more efficient implementation of operations that produce the same or
+** a mirrored result for antipodal points (e.g., tensor glyphs).
+*/
+
+int
+limnPolyDataIcoSphere(limnPolyData *pld,
+		      unsigned int infoBitFlag,
+		      unsigned int level) {
+  static const char me[]="limnPolyDataIcoSphere";
+  unsigned int vertNum=12, edgeNum=30, faceNum=20, center;
+  float *verts, *xyzwp, *vertp;
+  unsigned char *rgbap;
+  unsigned int *edges, *faces;
+  unsigned int i,e,f; /* loop counters */
+  airArray *mop; /* free memory in case of allocation error */
+
+  /* sanity checks */
+  if (!pld) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+
+  /* x/y/z positions */
+  verts = (float *) malloc (sizeof(float)*12*3);
+  if (verts==NULL) goto error_and_exit;
+  airMopAdd(mop, verts, airFree, airMopAlways);
+  memcpy(verts,icovertices,sizeof(float)*12*3);
+  /* endpoints for each edge */
+  edges = (unsigned int *) malloc (sizeof(unsigned int)*30*2);
+  if (edges==NULL) goto error_and_exit;
+  airMopAdd(mop, edges, airFree, airMopAlways);
+  memcpy(edges,icoedges,sizeof(unsigned int)*60);
+  /* vertices of each face */
+  faces = (unsigned int *) malloc (sizeof(unsigned int)*20*3);
+  if (faces==NULL) goto error_and_exit;
+  airMopAdd(mop, faces, airFree, airMopAlways);
+  memcpy(faces,icofaces,sizeof(unsigned int)*60);
+
+  for (i=0; i<level; ++i) {
+    /* subdivision step */
+    unsigned int nvertNum=vertNum+edgeNum;
+    unsigned int nedgeNum=2*edgeNum+3*faceNum;
+    unsigned int nfaceNum=4*faceNum;
+    float *newverts;
+    unsigned int *newedges, *newfaces;
+    newverts = (float *) malloc(sizeof(float)*3*nvertNum);
+    if (newverts==NULL) goto error_and_exit;
+    airMopAdd(mop, newverts, airFree, airMopAlways);
+    newedges = (unsigned int *) malloc(sizeof(unsigned int)*2*nedgeNum);
+    if (newedges==NULL) goto error_and_exit;
+    airMopAdd(mop, newedges, airFree, airMopAlways);
+    newfaces = (unsigned int *) malloc(sizeof(unsigned int)*3*nfaceNum);
+    if (newfaces==NULL) goto error_and_exit;
+    airMopAdd(mop, newfaces, airFree, airMopAlways);
+    memcpy(newverts, verts, sizeof(float)*3*vertNum);
+    for (e=0; e<edgeNum; e+=2) { /* split both edge and anti-edge */
+      float norm;
+      ELL_3V_ADD2(newverts+3*(vertNum+e), verts+3*(edges[2*e]),
+		  verts+3*(edges[2*e+1]));
+      /* project new vertex to unit sphere */
+      ELL_3V_NORM(newverts+3*(vertNum+e),newverts+3*(vertNum+e),norm);
+      ELL_3V_SCALE(newverts+3*(vertNum+e+1),-1.0, newverts+3*(vertNum+e));
+      /* split the edges such that anti-edge follows edge */
+      newedges[4*e]=edges[2*e];
+      newedges[4*e+1]=vertNum+e;
+      newedges[4*e+2]=edges[2*e+2];
+      newedges[4*e+3]=vertNum+e+1;
+
+      newedges[4*e+4]=vertNum+e;
+      newedges[4*e+5]=edges[2*e+1];
+      newedges[4*e+6]=vertNum+e+1;
+      newedges[4*e+7]=edges[2*e+3];
+    }
+    for (f=0; f<faceNum; f+=2) { /* split both face and anti-face */
+      unsigned int oldedge11=faces[3*f], oldedge12=faces[3*f+1],
+	oldedge13=faces[3*f+2], oldedge21=faces[3*f+3],
+	oldedge22=faces[3*f+4], oldedge23=faces[3*f+5];
+      unsigned int eidx=2*edgeNum+3*f; /* index of the first edge to add */
+      char pol11=0, pol12=0, pol13=0, pol21=0, pol22=0, pol23=0; /* polarity */
+      /* add three edges per face - anti-edge has to follow edge! */
+      newedges[2*eidx]=newedges[2*eidx+9]=vertNum+oldedge11;
+      newedges[2*eidx+1]=newedges[2*eidx+4]=vertNum+oldedge12;
+      newedges[2*eidx+5]=newedges[2*eidx+8]=vertNum+oldedge13;
+      newedges[2*eidx+2]=newedges[2*eidx+11]=vertNum+oldedge21;
+      newedges[2*eidx+3]=newedges[2*eidx+6]=vertNum+oldedge22;
+      newedges[2*eidx+7]=newedges[2*eidx+10]=vertNum+oldedge23;
+      /* split the faces - we do not have directed half-edges!
+       * determine the "polarity" of the edges (0 forward / 2 backward) */
+      if (edges[2*oldedge11+1]==edges[2*oldedge13+1] ||
+	  edges[2*oldedge11+1]==edges[2*oldedge13])
+	pol11=2;
+      if (edges[2*oldedge12+1]==edges[2*oldedge11+1] ||
+	  edges[2*oldedge12+1]==edges[2*oldedge11])
+	pol12=2;
+      if (edges[2*oldedge13+1]==edges[2*oldedge12+1] ||
+	  edges[2*oldedge13+1]==edges[2*oldedge12])
+	pol13=2;
+      if (edges[2*oldedge21+1]==edges[2*oldedge23+1] ||
+	  edges[2*oldedge21+1]==edges[2*oldedge23])
+	pol21=2;
+      if (edges[2*oldedge22+1]==edges[2*oldedge21+1] ||
+	  edges[2*oldedge22+1]==edges[2*oldedge21])
+	pol22=2;
+      if (edges[2*oldedge23+1]==edges[2*oldedge22+1] ||
+	  edges[2*oldedge23+1]==edges[2*oldedge22])
+	pol23=2;
+
+      newfaces[12*f] = 2*oldedge11-(oldedge11%2)+pol11; /* bottom/left */
+      newfaces[12*f+1] = eidx+4;
+      newfaces[12*f+2] = 2*oldedge13-(oldedge13%2)+2-pol13;
+      newfaces[12*f+3] = 2*oldedge21-(oldedge21%2)+pol21; /* anti */
+      newfaces[12*f+4] = eidx+5;
+      newfaces[12*f+5] = 2*oldedge23-(oldedge23%2)+2-pol23;
+
+      newfaces[12*f+6] = 2*oldedge11-(oldedge11%2)+2-pol11; /* bottom/right */
+      newfaces[12*f+7] = 2*oldedge12-(oldedge12%2)+pol12;
+      newfaces[12*f+8] = eidx;
+      newfaces[12*f+9] = 2*oldedge21-(oldedge21%2)+2-pol21; /* anti */
+      newfaces[12*f+10]= 2*oldedge22-(oldedge22%2)+pol22;
+      newfaces[12*f+11]= eidx+1;
+
+      newfaces[12*f+12]= 2*oldedge12-(oldedge12%2)+2-pol12; /* top */
+      newfaces[12*f+13]= 2*oldedge13-(oldedge13%2)+pol13;
+      newfaces[12*f+14]= eidx+2;
+      newfaces[12*f+15]= 2*oldedge22-(oldedge22%2)+2-pol22; /* anti */
+      newfaces[12*f+16]= 2*oldedge23-(oldedge23%2)+pol23;
+      newfaces[12*f+17]= eidx+3;
+
+      newfaces[12*f+18]= eidx; /* center */
+      newfaces[12*f+19]= eidx+2;
+      newfaces[12*f+20]= eidx+4;
+      newfaces[12*f+21]= eidx+1; /* anti */
+      newfaces[12*f+22]= eidx+3;
+      newfaces[12*f+23]= eidx+5;
+    }
+    /* make subdivided mesh the current one */
+    airMopSub(mop, verts, airFree);
+    airMopSub(mop, edges, airFree);
+    airMopSub(mop, faces, airFree);
+    free(verts); free(edges); free(faces);
+    verts=newverts; edges=newedges; faces=newfaces;
+    vertNum=nvertNum; edgeNum=nedgeNum; faceNum=nfaceNum;
+  }
+  /* done; now copy to a limnPolyData struct */
+  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, 3*faceNum, 1)) {
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
+  }
+  xyzwp=pld->xyzw; vertp=verts;
+  for (i=0; i<vertNum; i++) {
+    ELL_4V_SET(xyzwp, vertp[0], vertp[1], vertp[2], 1.0);
+    xyzwp+=4; vertp+=3;
+  }
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    /* normals equal the vertex coordinates */
+    memcpy(pld->norm, verts, sizeof(float)*3*vertNum);
+  }
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    /* RGB encode the vertex coordinates */
+    rgbap=pld->rgba; vertp=verts;
+    for (i=0; i<vertNum; i++) {
+      ELL_4V_SET_TT(rgbap, unsigned char, 255*abs(vertp[0]), 255*abs(vertp[1]),
+		    255*abs(vertp[2]), 255);
+      rgbap+=4; vertp+=3;
+    }
+  }
+
+  /* We need to replace reference to edges in faces with references to
+   * vertices. Make sure that they are ordered CCW */
+  pld->type[0] = limnPrimitiveTriangles;
+  pld->icnt[0] = faceNum*3;
+  for (f=0; f<faceNum; ++f) {
+    unsigned int vertices[3]; /* find the right vertices */
+    float diff1[3],diff2[3],cross[3];
+    vertices[0]=edges[2*faces[3*f]];
+    vertices[1]=edges[2*faces[3*f]+1];
+    if (edges[2*faces[3*f+1]]==vertices[0] ||
+	edges[2*faces[3*f+1]]==vertices[1])
+      vertices[2]=edges[2*faces[3*f+1]+1];
+    else
+      vertices[2]=edges[2*faces[3*f+1]];
+    /* put them into correct order */
+    ELL_3V_SUB(diff1,verts+3*vertices[1],verts+3*vertices[0]);
+    ELL_3V_SUB(diff2,verts+3*vertices[2],verts+3*vertices[0]);
+    ELL_3V_CROSS(cross,diff1,diff2);
+    pld->indx[3*f]=vertices[0];
+    if (ELL_3V_DOT(cross,verts+3*vertices[0])<0) {
+      pld->indx[3*f+1]=vertices[2];
+      pld->indx[3*f+2]=vertices[1];
+    } else {
+      pld->indx[3*f+1]=vertices[1];
+      pld->indx[3*f+2]=vertices[2];
+    }
+  }
+  /* re-order the triangles */
+  center=3*(faceNum/2);
+  for (i=0; i<faceNum/2; i++) {
+    ELL_3V_COPY(faces+3*i,pld->indx+6*i);
+    ELL_3V_COPY(faces+center+3*i,pld->indx+6*i+3);
+  }
+  airMopAdd(mop, pld->indx, airFree, airMopAlways);
+  airMopSub(mop, faces, airFree);
+  pld->indx=faces;
+  /* done */
+  airMopOkay(mop);
+  return 0;
+ error_and_exit:
+  biffAddf(LIMN, "%s: memory allocation failed", me);
+  airMopError(mop);
+  return 1;
+}
+
 int
 limnPolyDataPlane(limnPolyData *pld,
                   unsigned int infoBitFlag,
@@ -812,4 +1062,3 @@ limnPolyDataPlane(limnPolyData *pld,
 
   return 0;
 }
-
