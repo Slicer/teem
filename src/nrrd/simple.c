@@ -374,6 +374,16 @@ nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
   return;
 }
 
+void
+nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
+  int di;
+
+  for (di=0; di<NRRD_SPACE_DIM_MAX; di++) {
+    vec[di] = 0;
+  }
+  return;
+}
+
 /*
 ** _nrrdContentGet
 **
@@ -554,6 +564,17 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
     }
     fprintf(file, "\n");
   }
+}
+
+int
+nrrdSpaceVecExists(int sdim, double vec[NRRD_SPACE_DIM_MAX]) {
+  int ii, exists;
+
+  exists = AIR_EXISTS(vec[0]);
+  for (ii=1; ii<sdim; ii++) {
+    exists &= AIR_EXISTS(vec[ii]);
+  }
+  return exists;
 }
 
 /*

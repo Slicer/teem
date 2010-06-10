@@ -387,6 +387,9 @@ typedef struct NrrdIoState_t {
                                datafiles).  Warning: can result in broken
                                noncomformant files.
                                (be careful with this) */
+    skipFormatURL,          /* if non-zero for NRRD format ON WRITE:
+                               skip the comment lines that document where
+                               to find the NRRD file format specs */
     keepNrrdDataFileOpen,   /* ON READ: when there is only a single dataFile,
                                don't close nio->dataFile when
                                you otherwise would, when reading the
@@ -849,7 +852,10 @@ NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
                                    const double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT int nrrdSpaceVecExists(int sdim,
+                                   double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT void nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdZeroSet(Nrrd *nout);
 
 /******** comments related */

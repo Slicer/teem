@@ -89,6 +89,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->charsPerLine = nrrdDefaultWriteCharsPerLine;
     nio->valsPerLine = nrrdDefaultWriteValsPerLine;
     nio->skipData = AIR_FALSE;
+    nio->skipFormatURL = AIR_FALSE;
     nio->keepNrrdDataFileOpen = AIR_FALSE;
     nio->zlibLevel = -1;
     nio->zlibStrategy = nrrdZlibStrategyDefault;

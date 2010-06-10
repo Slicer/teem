@@ -551,17 +551,19 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   /* write the advertisement about where to get the file format */
-  if (file) {
-    fprintf(file, "# %s\n", _nrrdFormatURLLine0);
-    fprintf(file, "# %s\n", _nrrdFormatURLLine1);
-  } else if (nio->headerStringWrite) {
-    sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
-    strcat(nio->headerStringWrite, strbuf);
-    sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
-    strcat(nio->headerStringWrite, strbuf);
-  } else {
-    nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
-    nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
+  if (!nio->skipFormatURL) {
+    if (file) {
+      fprintf(file, "# %s\n", _nrrdFormatURLLine0);
+      fprintf(file, "# %s\n", _nrrdFormatURLLine1);
+    } else if (nio->headerStringWrite) {
+      sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
+      strcat(nio->headerStringWrite, strbuf);
+      sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
+      strcat(nio->headerStringWrite, strbuf);
+    } else {
+      nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine0);
+      nio->headerStrlen += sprintf(strbuf, "# %s\n", _nrrdFormatURLLine1);
+    }
   }
 
   /* this is where the majority of the header printing happens */
