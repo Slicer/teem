@@ -20,12 +20,17 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#include "../nrrd.h"
+#ifdef DIDEROT
+#  include <teem/air.h>
+#  include <teem/biff.h>
+#  include <teem/nrrd.h>
+#else
+#  include "../nrrd.h"
+#endif
 
 char *dnormInfo = ("Normalizes nrrd representation for Diderot. "
                    "Forces information about kind and orientation into "
-                   "a consistent form, and nixes other information. ");
+                   "a consistent form, and nixes various other fields. ");
 
 int
 main(int argc, char **argv) {
@@ -54,6 +59,13 @@ main(int argc, char **argv) {
                  me, dnormInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  /* can't deal with block type */
+  if (nrrdTypeBlock == nin->type) {
+    fprintf(stderr, "%s: can only have scalar kinds (not %s)\n", me,
+            airEnumStr(nrrdType, nrrdTypeBlock));
+    airMopError(mop); exit(1);
+  }
 
   /* make sure all kinds are set to something */
   /* see if there's a range kind, verify that there's only one */
@@ -106,7 +118,7 @@ main(int argc, char **argv) {
     kindOut = nrrdKindUnknown;
   }
 
-  /* prepare output (this may eventually to cropping or something else) */
+  /* prepare output (this may eventually be cropping or something else) */
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nout, nin)) {
