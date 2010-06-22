@@ -27,7 +27,8 @@
 
 # all the architectures currently supported
 KNOWN_ARCH = irix6.n32 irix6.64 linux.32 linux.ia64 linux.amd64 \
-  darwin.32 darwin.64 cygwin solaris aix
+  darwin.32 darwin.64 cygwin solaris aix \
+  netbsd.32 netbsd.ia64 netbsd.amd64 \
 
 # there is no default architecture
 checkArchSet = $(if $(TEEM_ARCH),,\
@@ -59,6 +60,17 @@ $(warning *)\
 $(warning * Sorry: the $(TEEM_ARCH) TEEM_ARCH has split into:)\
 $(warning * "linux.ia64" for 64-bit Itanium (Intel))\
 $(warning * "linux.amd64" for 64-bit Athlon (AMD))\
+$(warning *)\
+$(warning *)\
+$(error Make quitting))
+
+# see if they were looking for netbsd.64
+checkArchNetbsd64 = $(if $(findstring $(TEEM_ARCH),netbsd.64),\
+$(warning *)\
+$(warning *)\
+$(warning * Sorry: the $(TEEM_ARCH) TEEM_ARCH has split into:)\
+$(warning * "netbsd.ia64" for 64-bit Itanium (Intel))\
+$(warning * "netbsd.amd64" for 64-bit Athlon (AMD))\
 $(warning *)\
 $(warning *)\
 $(error Make quitting))
