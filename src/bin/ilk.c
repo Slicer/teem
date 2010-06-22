@@ -99,7 +99,7 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 x1",
              "For each axis, information about how many samples in output:\n "
              "\b\bo \"x<float>\": number of output samples is some scaling of "
-             " the number input samples; multiplied by <float>\n "
+             " the number input of samples; multiplied by <float>\n "
              "\b\bo \"<int>\": specify exact number of samples",
              NULL, NULL, &unrrduHestScaleCB);
   hestOptAdd(&hopt, "a", "avg #", airTypeUInt, 1, 1, &avgNum, "0",
