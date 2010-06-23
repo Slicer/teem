@@ -28,6 +28,12 @@
 #  include "../nrrd.h"
 #endif
 
+/*
+** have to assert
+** and add this to dnorm-format.txt
+** document kernels
+*/
+
 char *dnormInfo = ("Normalizes nrrd representation for Diderot. "
                    "Forces information about kind and orientation into "
                    "a consistent form, and nixes various other fields. ");
@@ -43,7 +49,7 @@ main(int argc, char **argv) {
   Nrrd *nin, *nout;
   NrrdIoState *nio;
   int kindIn, kindOut;
-  unsigned int kindAxis, axi;
+  unsigned int kindAxis, axi, si, sj;
   
   me = argv[0];
   mop = airMopNew();
@@ -133,6 +139,13 @@ main(int argc, char **argv) {
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   nio->skipFormatURL = AIR_TRUE;
   nrrdCommentClear(nout);
+
+  /* no measurement frame */
+  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
+    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+      nout->measurementFrame[si][sj] = AIR_NAN;
+    }
+  }
   
   /* no key/value pairs */
   nrrdKeyValueClear(nout);
@@ -201,6 +214,15 @@ main(int argc, char **argv) {
       }
     }
     nout->spaceDim = saxi;
+  }
+  /* probably should be asserted earlier */
+  if (nout->dim != nout->spaceDim + !!kindOut) {
+    fprintf(stderr, "%s: output dim %d != spaceDim %d + %d %s%s%s\n",
+            me, nout->dim, nout->spaceDim, !!kindOut,
+            kindOut ? "for non-scalar (" : "(scalar data)",
+            kindOut ? airEnumStr(nrrdKind, kindOut) : "",
+            kindOut ? ") data" : "");
+    airMopError(mop); exit(1);
   }
 
   if (nrrdSave(outS, nout, nio)) {
