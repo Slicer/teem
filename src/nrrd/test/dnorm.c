@@ -28,12 +28,6 @@
 #  include "../nrrd.h"
 #endif
 
-/*
-** have to assert
-** and add this to dnorm-format.txt
-** document kernels
-*/
-
 char *dnormInfo = ("Normalizes nrrd representation for Diderot. "
                    "Forces information about kind and orientation into "
                    "a consistent form, and nixes various other fields. ");
