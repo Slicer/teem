@@ -2,6 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -960,11 +961,9 @@ limnPolyDataIcoSphere(limnPolyData *pld,
     memcpy(pld->norm, verts, sizeof(float)*3*vertNum);
   }
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-    /* RGB encode the vertex coordinates */
     rgbap=pld->rgba; vertp=verts;
     for (i=0; i<vertNum; i++) {
-      ELL_4V_SET_TT(rgbap, unsigned char, 255*abs(vertp[0]), 255*abs(vertp[1]),
-		    255*abs(vertp[2]), 255);
+      ELL_4V_SET_TT(rgbap, unsigned char, 255, 255, 255, 255);
       rgbap+=4; vertp+=3;
     }
   }

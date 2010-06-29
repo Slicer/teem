@@ -69,9 +69,7 @@ _tijk_2o3d_unsym_trans_f (float *res, const float *A, const float *M) {
   _tijk_2o3d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
 				 const TYPE *A) {			\
     if (res_type==tijk_2o3d_unsym) { /* copy over */			\
-      ELL_3V_COPY(res, A);						\
-      ELL_3V_COPY(res+3, A+3);						\
-      ELL_3V_COPY(res+6, A+6);						\
+      ELL_3M_COPY(res, A);						\
       return 0;								\
     } else if (NULL!=res_type->_convert_from_##SUF)			\
       return (*res_type->_convert_from_##SUF)(res,A,tijk_2o3d_unsym);	\
@@ -1558,7 +1556,7 @@ _TIJK_6O3D_SYM_V_FORM(float, f)
     6*A[12]*v1122+							\
     4*A[13]*v1222+							\
     A[14]*v2222;							\
-  res[1] = res[3] = A[1]*v0000+						\
+  res[1] = A[1]*v0000+						\
     4*A[3]*v0001+							\
     4*A[4]*v0002+							\
     6*A[6]*v0011+							\
@@ -1573,7 +1571,7 @@ _TIJK_6O3D_SYM_V_FORM(float, f)
     6*A[17]*v1122+							\
     4*A[18]*v1222+							\
     A[19]*v2222;							\
-  res[2] = res[6] = A[2]*v0000+						\
+  res[2] = A[2]*v0000+						\
     4*A[4]*v0001+							\
     4*A[5]*v0002+							\
     6*A[7]*v0011+							\
@@ -1588,7 +1586,7 @@ _TIJK_6O3D_SYM_V_FORM(float, f)
     6*A[18]*v1122+							\
     4*A[19]*v1222+							\
     A[20]*v2222;							\
-  res[4] = A[3]*v0000+							\
+  res[3] = A[3]*v0000+							\
     4*A[6]*v0001+							\
     4*A[7]*v0002+							\
     6*A[10]*v0011+							\
@@ -1603,7 +1601,7 @@ _TIJK_6O3D_SYM_V_FORM(float, f)
     6*A[23]*v1122+							\
     4*A[24]*v1222+							\
     A[25]*v2222;							\
-  res[5] = res[7] = A[4]*v0000+						\
+  res[4] = A[4]*v0000+						\
     4*A[7]*v0001+							\
     4*A[8]*v0002+							\
     6*A[11]*v0011+							\
@@ -1618,7 +1616,7 @@ _TIJK_6O3D_SYM_V_FORM(float, f)
     6*A[24]*v1122+							\
     4*A[25]*v1222+							\
     A[26]*v2222;							\
-  res[8] = A[5]*v0000+							\
+  res[5] = A[5]*v0000+							\
     4*A[8]*v0001+							\
     4*A[9]*v0002+							\
     6*A[12]*v0011+							\

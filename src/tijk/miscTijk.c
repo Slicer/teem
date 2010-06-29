@@ -86,6 +86,22 @@ tijk_negate_f (float *res, const float *A, const tijk_type *type) {
 }
 
 void
+tijk_scale_d (double *res, const double s,
+	      const double *A, const tijk_type *type) {
+  unsigned int i;
+  for (i=0; i<type->num; i++)
+    *(res++)=s*(*A++);
+}
+
+void
+tijk_scale_f (float *res, const float s,
+	      const float *A, const tijk_type *type) {
+  unsigned int i;
+  for (i=0; i<type->num; i++)
+    *(res++)=s*(*A++);
+}
+
+void
 tijk_zero_d (double *res, const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)

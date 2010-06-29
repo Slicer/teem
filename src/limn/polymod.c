@@ -2,6 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2010  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -2034,3 +2035,175 @@ limnPolyDataEdgeHalve(limnPolyData *pldOut,
   return 0;
 }
 
+/* helper function for the limnPolyDataNeighborList below */
+static void
+registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb,
+		 unsigned int u, unsigned int v) {
+  unsigned int idx=nblist[u], pointer=u, depth=1;
+  while (idx!=0) {
+    if (nblist[idx]==v)
+      return; /* has already been registered */
+    pointer=idx+1;
+    idx=nblist[pointer];
+    depth++;
+  }
+  if (depth>*maxnb)
+    *maxnb=depth;
+  /* do the registration */
+  nblist[pointer]=*len;
+  nblist[*len]=v;
+  nblist[*len+1]=0;
+  (*len)+=2;
+  /* now the other way around */
+  idx=nblist[v]; pointer=v;
+  while (idx!=0) {
+    /* do not have to check nblist[idx]==u due to symmetry */
+    pointer=idx+1;
+    idx=nblist[pointer];
+  }
+  nblist[pointer]=*len;
+  nblist[*len]=u;
+  nblist[*len+1]=0;
+  (*len)+=2;
+}
+
+/* Mallocs *nblist and fills it with a linked list that contains all neighbors
+ * of all n vertices in the given limnPolyData. The format is as follows:
+ * For v<n, (*nblist)[v] is an index i (i>=n) into *nblist, or 0 if vertex v
+ *   does not have any neighbors.
+ * For an index i obtained this way, (*nblist)[i] is a neighbor of v,
+ *   (*nblist)[i+1] is the index of the next list element (or 0).
+ * If non-NULL, *len is set to the required size of *nblist - the initial malloc
+ *   makes a conservative guess and you may want to realloc the result to *len
+ *   bytes in order to free memory that ended up unused
+ * If non-NULL, *m is set to the maximum number of neighbors (over all vertices)
+ * Return value is 0 upon success, -1 upon error. Biff is used for errors.
+ */
+int
+limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
+			 unsigned int *maxnb, limnPolyData *pld) {
+  static const char me[]="limnPolyDataNeighborList";
+  unsigned int i, j, m, estimate=0, *indx;
+  size_t last;
+  /* estimate the maximum number of neighborhood relations */
+  for (i=0; i<pld->primNum; i++) {
+    switch (pld->type[i]) {
+    case limnPrimitiveTriangles:
+    case limnPrimitiveQuads:
+      estimate+=pld->icnt[i]*2;
+      break;
+    case limnPrimitiveTriangleStrip:
+    case limnPrimitiveTriangleFan:
+      estimate+=4*(pld->icnt[i]-2)+2;
+      break;
+    case limnPrimitiveLineStrip:
+      estimate+=2*(pld->icnt[i]-1);
+      break;
+    case limnPrimitiveLines:
+      estimate+=pld->icnt[i];
+      break;
+    default: /* should be a noop; silently ignore it */
+      break;
+    }
+  }
+  /* allocate *nblist */
+  *nblist = (unsigned int*) malloc(sizeof(unsigned int)*
+				   (pld->xyzwNum+2*estimate));
+  if (*nblist==NULL) {
+    biffAddf(LIMN, "%s: couldn't allocate nblist buffer", me);
+    return -1;
+  }
+  /* populate the list */
+  memset(*nblist, 0, sizeof(unsigned int)*pld->xyzwNum);
+  last=pld->xyzwNum; m=0; indx=pld->indx;
+  for (i=0; i<pld->primNum; i++) {
+    switch (pld->type[i]) {
+    case limnPrimitiveTriangles:
+      for (j=0; j<pld->icnt[i]; j+=3) { /* go through all triangles */
+	registerNeighbor(*nblist, &last, &m, indx[j], indx[j+1]);
+	registerNeighbor(*nblist, &last, &m, indx[j+1], indx[j+2]);
+	registerNeighbor(*nblist, &last, &m, indx[j+2], indx[j]);
+      }
+      break;
+    case limnPrimitiveTriangleStrip:
+      if (pld->icnt[i]>0)
+	registerNeighbor(*nblist, &last, &m, indx[0], indx[1]);
+      for (j=0; j<pld->icnt[i]-2; j++) {
+	registerNeighbor(*nblist, &last, &m, indx[j], indx[j+2]);
+	registerNeighbor(*nblist, &last, &m, indx[j+1], indx[j+2]);
+      }
+      break;
+    case limnPrimitiveTriangleFan:
+      if (pld->icnt[i]>0)
+	registerNeighbor(*nblist, &last, &m, indx[0], indx[1]);
+      for (j=0; j<pld->icnt[i]-2; j++) {
+	registerNeighbor(*nblist, &last, &m, indx[0], indx[j+2]);
+	registerNeighbor(*nblist, &last, &m, indx[j+1], indx[j+2]);
+      }
+      break;
+    case limnPrimitiveQuads:
+      for (j=0; j<pld->icnt[i]; j+=4) { /* go through all quads */
+	registerNeighbor(*nblist, &last, &m, indx[j], indx[j+1]);
+	registerNeighbor(*nblist, &last, &m, indx[j+1], indx[j+2]);
+	registerNeighbor(*nblist, &last, &m, indx[j+2], indx[j+3]);
+	registerNeighbor(*nblist, &last, &m, indx[j+3], indx[j]);
+      }
+      break;
+    case limnPrimitiveLineStrip:
+      for (j=0; j<pld->icnt[i]-1; j++) {
+	registerNeighbor(*nblist, &last, &m, indx[j], indx[j+1]);
+      }
+      break;
+    case limnPrimitiveLines:
+      for (j=0; j<pld->icnt[i]; j+=2) {
+	registerNeighbor(*nblist, &last, &m, indx[j], indx[j+1]);
+      }
+      break;
+    default: /* should be a noop; silently ignore it */
+      break;
+    }
+    indx+=pld->icnt[i];
+  }
+  if (len!=NULL) *len=last*sizeof(unsigned int);
+  if (maxnb!=NULL) *maxnb=m;
+  return 0;
+}
+
+/* Over the set of all n vertices in a given limnPolyData, finds the
+ * maximum number m of neighbors. Sets *neighbors to a malloc'ed block
+ * of (n*m) indices and lists the neighbors of vertex v at position
+ * (v*m) of the list, padded with -1s.
+ * *maxnb will be set to m (and is assumed to be non-NULL!)
+ * Returns -1 and adds a biff error if there was a problem allocating memory.
+ */
+int
+limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
+			  limnPolyData *pld) {
+  static const char me[]="limnPolyDataNeighborArray";
+  unsigned int i, *nblist, m;
+  /* get the neighbors as a linked list */
+  if (-1==limnPolyDataNeighborList(&nblist, NULL, &m, pld)) {
+    return -1;
+  }
+  /* convert the result into an array */
+  *neighbors = (int *) malloc(sizeof(int)*m*pld->xyzwNum);
+  if (NULL==*neighbors) {
+    biffAddf(LIMN, "%s: couldn't allocate neighbors buffer", me);
+    free(nblist); return -1;
+  }
+  for (i=0; i<pld->xyzwNum; i++) {
+    unsigned int aidx=0, lidx=nblist[i];
+    while (lidx!=0) {
+      (*neighbors)[m*i+aidx]=nblist[lidx];
+      lidx=nblist[lidx+1];
+      aidx++;
+    }
+    while (aidx<m) {
+      (*neighbors)[m*i+aidx]=-1;
+      aidx++;
+    }
+  }
+  *maxnb=m;
+  free(nblist);
+  return 0;
+}

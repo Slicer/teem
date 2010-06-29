@@ -730,6 +730,10 @@ tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
   ay = AIR_ABS(eval[1]);
   az = AIR_ABS(eval[2]);
   mm = AIR_MAX(ax, AIR_MAX(ay, az));
+  if (mm==0) { /* do not divide */
+    uv[0]=uv[1]=0;
+    return;
+  }
   xx = eval[0]/mm;
   yy = eval[1]/mm;
   zz = eval[2]/mm;

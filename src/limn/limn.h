@@ -2,6 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2010  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -688,6 +689,11 @@ LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
 LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut, 
                                             const limnPolyData *pldIn,
                                             const Nrrd *nmask);
+LIMN_EXPORT int limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
+					 unsigned int *maxnb,
+					 limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
+					  limnPolyData *pld);
 
 /* polyfilter.c */
 LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,

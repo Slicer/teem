@@ -51,7 +51,8 @@ typedef struct tijk_sym_fun_t {
   double (*var_d) (const double *A);
   float  (*var_f) (const float  *A);
   /* vector- and matrix-valued forms, proportional to gradient and
-   * Hessian of scalar homogeneous forms */
+   * Hessian of scalar homogeneous forms
+   * res and v should not point to the same data! */
   void (*v_form_d) (double *res, const double *A, const double *v);
   void (*v_form_f) (float  *res, const float  *A, const float  *v);
   /* returns a symmetric matrix (in non-redundant representation) */
@@ -188,6 +189,11 @@ TIJK_EXPORT void tijk_negate_d(double *res, const double *A,
 				     const tijk_type *type);
 TIJK_EXPORT void tijk_negate_f(float *res, const float *A,
 				     const tijk_type *type);
+
+TIJK_EXPORT void tijk_scale_d(double *res, const double s, const double *A,
+			      const tijk_type *type);
+TIJK_EXPORT void tijk_scale_f(float *res, const float s, const float *A,
+			      const tijk_type *type);
 
 TIJK_EXPORT void tijk_zero_d(double *res, const tijk_type *type);
 TIJK_EXPORT void tijk_zero_f(float *res, const tijk_type *type);
