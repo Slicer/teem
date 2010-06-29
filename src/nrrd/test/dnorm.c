@@ -42,7 +42,7 @@ main(int argc, char **argv) {
   char *err;
   Nrrd *nin, *nout;
   NrrdIoState *nio;
-  int kindIn, kindOut;
+  int kindIn, kindOut, headerOnly;
   unsigned int kindAxis, axi, si, sj;
   
   me = argv[0];
@@ -50,6 +50,8 @@ main(int argc, char **argv) {
   hparm = hestParmNew();
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  hestOptAdd(&hopt, "h,header", NULL, airTypeInt, 0, 0, &headerOnly, NULL,
+             "output header of nrrd file only, not the data itself");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -132,6 +134,9 @@ main(int argc, char **argv) {
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
   nio->skipFormatURL = AIR_TRUE;
+  if (headerOnly) {
+    nio->skipData = AIR_TRUE;
+  }
   nrrdCommentClear(nout);
 
   /* no measurement frame */
@@ -201,7 +206,10 @@ main(int argc, char **argv) {
     for (axi=0; axi<nout->dim; axi++) {
       if (nrrdKindUnknown == kindOut || kindAxis != axi) {
         nrrdSpaceVecSetZero(nout->axis[axi].spaceDirection);
-        nout->axis[axi].spaceDirection[saxi] = 1.0;
+        nout->axis[axi].spaceDirection[saxi] 
+          = (AIR_EXISTS(nin->axis[axi].spacing)
+             ? nin->axis[axi].spacing
+             : 1.0);
         saxi++;
       } else {
         nrrdSpaceVecSetNaN(nout->axis[axi].spaceDirection);
