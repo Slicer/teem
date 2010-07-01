@@ -83,9 +83,14 @@ const unsigned int _tijk_max_candidates_3d=30;
 _CANDIDATES_3D(double, d)
 _CANDIDATES_3D(float, f)
 
+/* Produces a rough estimate of the position and value of the ABSOLUTE
+ * maximum of the homogeneous form.
+ * s and v will be set to the corresponding value and (unit-length) direction.
+ * ten is the input tensor, type is its type.
+ * returns 0 upon success, 1 upon erroneous parameters. */
 #define _TIJK_INIT_RANK1(TYPE, SUF, DIM)				\
   int									\
-  tijk_init_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, TYPE *ten,		\
+  tijk_init_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
 				 const tijk_type *type) {		\
     TYPE absmax=-1;							\
     unsigned int i;							\
@@ -110,9 +115,15 @@ _TIJK_INIT_RANK1(float, f, 2)
 _TIJK_INIT_RANK1(double, d, 3)
 _TIJK_INIT_RANK1(float, f, 3)
 
+/* Produces a rough estimate of the position and value of the SIGNED
+ * maximum of the homogeneous form.
+ * s and v will be set to the corresponding value and (unit-length) direction.
+ * ten is the input tensor, type is its type.
+ * returns 0 upon success, 1 upon erroneous parameters.
+ */
 #define _TIJK_INIT_MAX(TYPE, SUF, DIM)					\
   int									\
-  tijk_init_max_##DIM##d_##SUF(TYPE *s, TYPE *v, TYPE *ten,		\
+  tijk_init_max_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
 			       const tijk_type *type) {			\
     TYPE max=0;								\
     unsigned int i;							\
@@ -139,54 +150,88 @@ _TIJK_INIT_MAX(float, f, 2)
 _TIJK_INIT_MAX(double, d, 3)
 _TIJK_INIT_MAX(float, f, 3)
 
+static const tijk_refine_rank1_parm refine_rank1_parm_default = {
+  1e-10, 1e-4, 0.3, 0.9, 0.5, 50};
+
+tijk_refine_rank1_parm *tijk_refine_rank1_parm_new() {
+  tijk_refine_rank1_parm *parm;
+  parm = (tijk_refine_rank1_parm *)malloc(sizeof(tijk_refine_rank1_parm));
+  if (parm) {
+    memcpy(parm,&refine_rank1_parm_default,sizeof(tijk_refine_rank1_parm));
+  }
+  return parm;
+}
+
+tijk_refine_rank1_parm 
+*tijk_refine_rank1_parm_nix(tijk_refine_rank1_parm *parm) {
+  airFree(parm);
+  return NULL;
+}
+
+/* Refines a given rank-1 tensor to a locally optimal rank-1 approximation,
+ * using a gradient descent scheme with Armijo stepsize.
+ * s and v are scalar and (unit-len) vector part of the rank-1 tensor and
+ *   will be updated by this function.
+ * ten is the input tensor, type is its type.
+ * parm: if non-NULL, used to change the default optimization parameters
+ * returns 0 upon success
+ *         1 when given wrong parameters
+ *         2 when the Armijo scheme failed to produce a valid stepsize
+ */
 #define _TIJK_REFINE_RANK1(TYPE, SUF, DIM)				\
   int									\
-  tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, TYPE *ten,		\
-				   const tijk_type *type) {		\
-    TYPE isoten[TIJK_TYPE_MAX_NUM], tmpten[TIJK_TYPE_MAX_NUM];		\
-    TYPE der[DIM], iso, anisonorm, anisonorminv, oldval=*s;		\
+  tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
+				   const tijk_type *type,		\
+				   const tijk_refine_rank1_parm *parm) { \
+    TYPE isoten[TIJK_TYPE_MAX_NUM], anisoten[TIJK_TYPE_MAX_NUM];	\
+    TYPE der[DIM], iso, anisonorm, anisonorminv, oldval;		\
     char sign=(*s>0)?1:-1;						\
+    TYPE alpha, beta;							\
     if (type->dim!=DIM || type->sym==NULL)				\
       return 1;								\
-    /* determine anisonorminv */					\
+    if (parm==NULL) parm=&refine_rank1_parm_default;			\
+    /* It's easier to do the optimization on the deviatoric */		\
     iso=(*type->sym->mean_##SUF)(ten);					\
     (*type->sym->make_iso_##SUF)(isoten, iso);				\
-    tijk_sub_##SUF(tmpten, ten, isoten, type);				\
-    anisonorm=(*type->norm_##SUF)(tmpten);				\
-    if (anisonorm<TIJK_EPS) {						\
+    tijk_sub_##SUF(anisoten, ten, isoten, type);			\
+    anisonorm=(*type->norm_##SUF)(anisoten);				\
+    if (anisonorm<parm->eps_start) {					\
       return 0; /* nothing to do */					\
     } else {								\
       anisonorminv=1.0/anisonorm;					\
     }									\
+    alpha=beta=parm->beta*anisonorminv;					\
+    oldval=*s-iso;							\
     /* set initial derivative */					\
-    (*type->sym->grad_##SUF)(der, ten, v);				\
+    (*type->sym->grad_##SUF)(der, anisoten, v);				\
     while (1) { /* refine until convergence */				\
-      TYPE beta=anisonorminv, gamma=0.9, sigma=0.5;			\
-      TYPE alpha=sign*beta;						\
+      /* stepsize needs to depend on norm to make the descent */	\
+      /* scale invariant */						\
       unsigned int armijoct=0;						\
       TYPE testv[DIM], val;						\
       TYPE dist, derlen=ELL_##DIM##V_LEN(der);				\
       /* determine stepsize based on Armijo's rule */			\
       while (1) {							\
 	++armijoct;							\
-	if (armijoct>50) {						\
+	if (armijoct>parm->maxtry) {					\
 	  /* failed to find a valid stepsize */				\
 	  return 2;							\
 	}								\
-	ELL_##DIM##V_SCALE_ADD2(testv,1.0,v,alpha,der);			\
+	ELL_##DIM##V_SCALE_ADD2(testv,1.0,v,sign*alpha,der);		\
 	ELL_##DIM##V_NORM(testv,testv,dist);				\
 	dist=1-ELL_##DIM##V_DOT(v,testv);				\
-	val=(*type->sym->s_form_##SUF)(ten,testv);			\
-	if (sign*val>=sign*oldval+sigma*derlen*dist) {			\
+	val=(*type->sym->s_form_##SUF)(anisoten,testv);			\
+	if (sign*val>=sign*oldval+parm->sigma*derlen*dist) {		\
 	  /* accept step */						\
 	  ELL_##DIM##V_COPY(v,testv);					\
-	  *s=val;							\
-	  (*type->sym->grad_##SUF)(der, ten, v);			\
+	  *s=val+iso;							\
+	  (*type->sym->grad_##SUF)(der, anisoten, v);			\
+	  if (alpha<beta) alpha /= parm->gamma;				\
 	  break;							\
 	}								\
-	alpha *= gamma; /* try again with decreased stepsize */		\
+	alpha *= parm->gamma; /* try again with decreased stepsize */	\
       }									\
-      if (sign*(val-oldval)<=1e-4*anisonorm) {				\
+      if (sign*(val-oldval)<=parm->eps_impr*anisonorm) {		\
 	break; /* declare convergence */				\
       }									\
       oldval=val;							\
@@ -199,21 +244,143 @@ _TIJK_REFINE_RANK1(float, f, 2)
 _TIJK_REFINE_RANK1(double, d, 3)
 _TIJK_REFINE_RANK1(float, f, 3)
 
-#define _TIJK_APPROX_RANKK(TYPE, SUF, DIM)				\
+static const tijk_refine_rankk_parm refine_rankk_parm_default = {
+  1e-10, 1e-4, 0, NULL};
+
+tijk_refine_rankk_parm *tijk_refine_rankk_parm_new() {
+  tijk_refine_rankk_parm *parm;
+  parm = (tijk_refine_rankk_parm *)malloc(sizeof(tijk_refine_rankk_parm));
+  if (parm) {
+    memcpy(parm,&refine_rankk_parm_default,sizeof(tijk_refine_rankk_parm));
+  }
+  return parm;
+}
+
+tijk_refine_rankk_parm 
+*tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm) {
+  if (parm!=NULL) {
+    parm->rank1_parm=tijk_refine_rank1_parm_nix(parm->rank1_parm);
+    free(parm);
+  }
+  return NULL;
+}
+
+/* Refines an existing rank-k approximation, using the iterative algorithm
+ * described in Schultz and Seidel, TVCG/Vis 2008.
+ * This is mostly used as a helper routine for tijk_approx_heur and
+ * tijk_approx_rankk. It should only appear in user code if you know
+ * what you are doing.
+ *
+ * ls and vs are the scalar and (unit-len) vector parts of the rank-1 tensors.
+ * tens has the rank-1 tensors themselves (same information as ls and vs, but
+ *   "multiplied out").
+ * res is the approximation residual.
+ * resnorm is the norm of the approximation residual.
+ * orignorm is the original norm of the tensor
+ * type is its type of tens and res
+ * k is the rank (determines the length of ls, vs, and tens.
+ * returns 0 upon success, 1 upon erroneous parameters.
+ */
+#define _TIJK_REFINE_RANKK(TYPE, SUF, DIM)				\
   int									\
-  tijk_approx_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *res,	\
-				   TYPE *ten, const tijk_type *type,	\
-				   unsigned int k, TYPE rankthresh,	\
-				   TYPE *ratios)			\
+  tijk_refine_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *tens,	\
+				   TYPE *res, TYPE *resnorm,		\
+				   const TYPE orignorm,			\
+				   const tijk_type *type,		\
+				   const unsigned int k,		\
+				   const tijk_refine_rankk_parm *parm)	\
+  {									\
+    TYPE newnorm=(*resnorm);						\
+    unsigned int i;							\
+    if (type->dim!=DIM || type->sym==NULL)				\
+      return 1;								\
+    if (parm==NULL) parm=&refine_rankk_parm_default;			\
+    if (*resnorm<parm->eps_res || k==0) {				\
+      return 0; /* nothing to do */					\
+    }									\
+    do {								\
+      *resnorm=newnorm;							\
+      for (i=0; i<k; i++) {						\
+	if (ls[i]!=0.0) { /* refine an existing term */			\
+	  tijk_incr_##SUF(res, tens+i*type->num, type);			\
+	  ls[i]=(*type->sym->s_form_##SUF)(res, vs+DIM*i);		\
+	  if (parm->pos && ls[i]<0.0) { /* try a new one */		\
+	    tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	  }								\
+	} else { /* add a new term */					\
+	  if (parm->pos)						\
+	    tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	  else								\
+	    tijk_init_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
+	}								\
+	tijk_refine_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type,	\
+					 parm->rank1_parm);		\
+	if (parm->pos || ls[i]>0.0) {					\
+	  (*type->sym->make_rank1_##SUF)(tens+i*type->num, ls[i], vs+DIM*i); \
+	  tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
+	} else {							\
+	  ls[i]=0.0;							\
+	}								\
+      }									\
+      newnorm=(*type->norm_##SUF)(res);					\
+    } while (newnorm>parm->eps_res &&					\
+	     (*resnorm)-newnorm>parm->eps_impr*orignorm);		\
+    *resnorm=newnorm;							\
+    return 0;								\
+  }
+
+_TIJK_REFINE_RANKK(double, d, 2)
+_TIJK_REFINE_RANKK(float, f, 2)
+_TIJK_REFINE_RANKK(double, d, 3)
+_TIJK_REFINE_RANKK(float, f, 3)
+
+static const tijk_approx_heur_parm approx_heur_parm_default = {
+  1e-10, 1e-4, NULL, NULL};
+
+tijk_approx_heur_parm *tijk_approx_heur_parm_new() {
+  tijk_approx_heur_parm *parm;
+  parm = (tijk_approx_heur_parm *)malloc(sizeof(tijk_approx_heur_parm));
+  if (parm) {
+    memcpy(parm,&approx_heur_parm_default,sizeof(tijk_approx_heur_parm));
+  }
+  return parm;
+}
+
+tijk_approx_heur_parm 
+*tijk_approx_heur_parm_nix(tijk_approx_heur_parm *parm) {
+  if (parm!=NULL) {
+    parm->refine_parm=tijk_refine_rankk_parm_nix(parm->refine_parm);
+    free(parm);
+  }
+  return NULL;
+}
+
+/* Approximates a given tensor with a rank-k approximation, guessing the best
+ * rank by using the heuristic described in Schultz and Seidel, TVCG/Vis 2008.
+ * ls and vs are the scalar and (unit-len) vector parts of the rank-1 tensors.
+ * res is the approximation residual.
+ * ten is the input tensor, type is its type.
+ * k is the maximum rank that should be used (ls and vs need to have enough
+ *   space for k and DIM*k values, respectively).
+ * parms: if non-NULL, allows to modify the parameters of the heuristic
+ * returns the rank determined by the heuristic.
+ */
+#define _TIJK_APPROX_HEUR(TYPE, SUF, DIM)				\
+  int									\
+  tijk_approx_heur_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *res,	\
+				   const TYPE *ten, const tijk_type *type, \
+				   const unsigned int k,		\
+				   const tijk_approx_heur_parm *parm)	\
   {									\
     TYPE *lstmp=NULL, *vstmp=NULL, *tens=NULL, *restmp=NULL;		\
-    TYPE oldnorm, newnorm;						\
+    TYPE oldnorm, newnorm, orignorm;					\
     unsigned int currank=1;						\
     if (type->dim!=DIM || type->sym==NULL)				\
       return 0;								\
+    if (parm==NULL) parm=&approx_heur_parm_default;			\
     /* initializations */						\
-    newnorm=oldnorm=(*type->norm_##SUF)(ten);				\
-    if (oldnorm<TIJK_EPS || k==0) {					\
+    orignorm=newnorm=oldnorm=(*type->norm_##SUF)(ten);			\
+    if (oldnorm<parm->eps_res || k==0) {				\
       if (res!=NULL) memcpy(res,ten,sizeof(TYPE)*type->num);		\
       return 0; /* nothing to do */					\
     }									\
@@ -228,9 +395,10 @@ _TIJK_REFINE_RANK1(float, f, 3)
     memcpy(restmp, ten, sizeof(TYPE)*type->num);			\
     for (currank=1; currank<=k; currank++) {				\
       int accept=1;							\
-      tijk_refine_rankk_##DIM##d_##SUF(lstmp, vstmp, tens, restmp, &newnorm, \
-				       type, currank);			\
-      if (currank>1 && ratios!=NULL) {					\
+      tijk_refine_rankk_##DIM##d_##SUF(lstmp, vstmp, tens, restmp,	\
+				       &newnorm, orignorm, type,	\
+				       currank, parm->refine_parm);	\
+      if (currank>1 && parm->ratios!=NULL) {				\
 	/* make sure the desired ratio is fulfilled */			\
 	TYPE largest=fabs(lstmp[0]), smallest=largest;			\
 	unsigned int i;							\
@@ -238,10 +406,10 @@ _TIJK_REFINE_RANK1(float, f, 3)
 	  if (fabs(lstmp[i])>largest) largest=fabs(lstmp[i]);		\
 	  if (fabs(lstmp[i])<smallest) smallest=fabs(lstmp[i]);		\
 	}								\
-	if (largest/smallest>ratios[currank-2])				\
+	if (largest/smallest>parm->ratios[currank-2])			\
 	  accept=0;							\
       }									\
-      if (accept && newnorm<rankthresh*oldnorm) { /* copy over */	\
+      if (accept && oldnorm-newnorm>parm->eps_impr) { /* copy over */	\
 	memcpy(vs, vstmp, sizeof(TYPE)*DIM*currank);			\
 	memcpy(ls, lstmp, sizeof(TYPE)*currank);			\
 	if (res!=NULL)							\
@@ -259,86 +427,79 @@ cleanup_and_exit:							\
  return currank-1;							\
   }
 
+_TIJK_APPROX_HEUR(double, d, 2)
+_TIJK_APPROX_HEUR(float, f, 2)
+_TIJK_APPROX_HEUR(double, d, 3)
+_TIJK_APPROX_HEUR(float, f, 3)
+
+/* Approximates a given tensor with a rank-k approximation, using the
+ * iterative algorithm described in Schultz and Seidel, TVCG/Vis 2008.
+ * ls and vs are the scalar and (unit-len) vector parts of the rank-1 tensors.
+ *   They can be NULL if you're just interested in the residual.
+ * res is the approximation residual. Can be NULL if you're not interested.
+ * ten is the input tensor, type is its type.
+ * k is the rank that should be used (if ls and vs are non-NULL, they need
+ *   to have enough space for k and DIM*k values, respectively).
+ * returns 0 upon success, 1 upon error
+ */
+#define _TIJK_APPROX_RANKK(TYPE, SUF, DIM)				\
+  int									\
+  tijk_approx_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *res,	\
+				   const TYPE *ten, const tijk_type *type, \
+				   const unsigned int k,		\
+				   const tijk_refine_rankk_parm *parm)	\
+  {									\
+    char hadls=1, hadvs=1, hadres=1;					\
+    TYPE *tens=NULL;							\
+    TYPE newnorm, orignorm;						\
+    int retval=0;							\
+    if (type->dim!=DIM || type->sym==NULL)				\
+      return 1;								\
+    if (parm==NULL) parm=&refine_rankk_parm_default;			\
+    /* initializations */						\
+    orignorm=newnorm=(*type->norm_##SUF)(ten);				\
+    if (orignorm<parm->eps_res || k==0) {				\
+      if (ls!=NULL) {							\
+	unsigned int i;							\
+	for (i=0; i<k; i++)						\
+	  ls[i]=0.0;							\
+      }									\
+      if (res!=NULL) memcpy(res,ten,sizeof(TYPE)*type->num);		\
+      return 0; /* nothing to do */					\
+    }									\
+    if (ls==NULL) {							\
+      ls=AIR_CALLOC(k,TYPE);						\
+      if (ls==NULL) {retval=1; goto cleanup_and_exit;}			\
+      hadls=0;								\
+    } else {								\
+      unsigned int i;							\
+      for (i=0; i<k; i++)						\
+	ls[i]=0.0;							\
+    }									\
+    if (vs==NULL) {							\
+      vs=AIR_CALLOC(DIM*k, TYPE);					\
+      if (vs==NULL) {retval=1; goto cleanup_and_exit;}			\
+      hadvs=0;								\
+    }									\
+    if (res==NULL) {							\
+      res=AIR_CALLOC(type->num,TYPE);					\
+      if (res==NULL) {retval=1; goto cleanup_and_exit;}			\
+      hadres=0;								\
+    }									\
+    tens=AIR_CALLOC(k*type->num,TYPE);					\
+    if (tens==NULL) {retval=1; goto cleanup_and_exit;}			\
+    memcpy(res, ten, sizeof(TYPE)*type->num);				\
+    tijk_refine_rankk_##DIM##d_##SUF(ls, vs, tens, res, &newnorm,	\
+				     orignorm, type, k, parm);		\
+  cleanup_and_exit:							\
+    if (!hadls) free(ls);						\
+    if (!hadvs) free(vs);						\
+    if (!hadres) free(res);						\
+    if (tens!=NULL) free(tens);						\
+    return retval;							\
+  }
+
 _TIJK_APPROX_RANKK(double, d, 2)
 _TIJK_APPROX_RANKK(float, f, 2)
 _TIJK_APPROX_RANKK(double, d, 3)
 _TIJK_APPROX_RANKK(float, f, 3)
-
-#define _TIJK_REFINE_RANKK(TYPE, SUF, DIM)				\
-  int									\
-  tijk_refine_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *tens,	\
-				   TYPE *res, TYPE *resnorm,		\
-				   const tijk_type *type, unsigned int k) \
-  {									\
-    TYPE newnorm=(*resnorm);						\
-    unsigned int i;							\
-    if (type->dim!=DIM || type->sym==NULL)				\
-      return 1;								\
-    if (*resnorm<TIJK_EPS || k==0) {					\
-      return 0; /* nothing to do */					\
-    }									\
-    do {								\
-      *resnorm=newnorm;							\
-      for (i=0; i<k; i++) {						\
-	if (ls[i]!=0.0) { /* refine an existing term */			\
-	  tijk_incr_##SUF(res, tens+i*type->num, type);			\
-	  ls[i]=(*type->sym->s_form_##SUF)(res, vs+DIM*i);		\
-	} else { /* add a new term */					\
-	  tijk_init_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
-	}								\
-	tijk_refine_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
-	(*type->sym->make_rank1_##SUF)(tens+i*type->num, ls[i], vs+DIM*i); \
-	tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
-      }									\
-      newnorm=(*type->norm_##SUF)(res);					\
-    } while (newnorm<0.9999*(*resnorm));				\
-    return 0;								\
-  }
-
-_TIJK_REFINE_RANKK(double, d, 2)
-_TIJK_REFINE_RANKK(float, f, 2)
-_TIJK_REFINE_RANKK(double, d, 3)
-_TIJK_REFINE_RANKK(float, f, 3)
-
-#define _TIJK_REFINE_POS_RANKK(TYPE, SUF, DIM)				\
-  int									\
-  tijk_refine_pos_rankk_##DIM##d_##SUF(TYPE *ls, TYPE *vs, TYPE *tens,	\
-				       TYPE *res, TYPE *resnorm,	\
-				       const tijk_type *type, unsigned int k) \
-  {									\
-    TYPE newnorm=(*resnorm);						\
-    unsigned int i;							\
-    if (type->dim!=DIM || type->sym==NULL)				\
-      return 1;								\
-    if (*resnorm<TIJK_EPS || k==0) {					\
-      return 0; /* nothing to do */					\
-    }									\
-    do {								\
-      *resnorm=newnorm;							\
-      for (i=0; i<k; i++) {						\
-	if (ls[i]!=0.0) { /* refine an existing term */			\
-	  tijk_incr_##SUF(res, tens+i*type->num, type);			\
-	  ls[i]=(*type->sym->s_form_##SUF)(res, vs+DIM*i);		\
-	  if (ls[i]<0.0) { /* try a new one */				\
-	    tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
-	  }								\
-	} else { /* add a new term */					\
-	  tijk_init_max_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
-	}								\
-	tijk_refine_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type);	\
-	if (ls[i]>0.0) {						\
-	  (*type->sym->make_rank1_##SUF)(tens+i*type->num, ls[i], vs+DIM*i); \
-	  tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
-	} else {							\
-	  ls[i]=0.0;							\
-	}								\
-      }									\
-      newnorm=(*type->norm_##SUF)(res);					\
-    } while (newnorm<0.9999*(*resnorm));				\
-    return 0;								\
-  }
-
-_TIJK_REFINE_POS_RANKK(double, d, 2)
-_TIJK_REFINE_POS_RANKK(float, f, 2)
-_TIJK_REFINE_POS_RANKK(double, d, 3)
-_TIJK_REFINE_POS_RANKK(float, f, 3)

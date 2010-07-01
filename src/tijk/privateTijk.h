@@ -23,9 +23,6 @@
 #ifndef TIJK_PRIVATE_HAS_BEEN_INCLUDED
 #define TIJK_PRIVATE_HAS_BEEN_INCLUDED
 
-/* tensors with a norm<eps are negligible */
-#define TIJK_EPS 1.0e-10
-
 /* macros to facilitate definition of new tensor types */
 
 /* for unsymmetric tensors */

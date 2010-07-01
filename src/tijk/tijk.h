@@ -204,84 +204,147 @@ TIJK_EXPORT void tijk_copy_f(float *res, const float *A,
 			       const tijk_type *type);
 
 /* approxTijk.c */
-TIJK_EXPORT int tijk_init_rank1_2d_d(double *s, double *v, double *ten,
+
+/* These parameters control optimization of rank-1 terms */
+typedef struct tijk_refine_rank1_parm_t {
+  /* only do optimization if norm of deviatoric is larger than eps_start */
+  double eps_start;
+  /* declare convergence if improvement is less than eps_impr times the
+   * norm of deviatoric */
+  double eps_impr;
+  /* Parameters associated with Armijo stepsize control */
+  double beta; /* initial stepsize (divided by norm of deviatoric) */
+  double gamma; /* stepsize reduction factor (0,1) */
+  double sigma; /* corridor of values that lead to acceptance (0,1) */
+  unsigned int maxtry; /* number of stepsize reductions before giving up */
+} tijk_refine_rank1_parm;
+
+TIJK_EXPORT tijk_refine_rank1_parm *tijk_refine_rank1_parm_new();
+TIJK_EXPORT tijk_refine_rank1_parm 
+  *tijk_refine_rank1_parm_nix(tijk_refine_rank1_parm *parm);
+
+/* These parameters control optimization of rank-k approximations */
+typedef struct tijk_refine_rankk_parm_t {
+  double eps_res; /* stop optimization if the residual is smaller than this */
+  /* declare convergence if tensor norm improved less than eps_impr times
+   * the original norm */
+  double eps_impr;
+  char pos; /* if non-zero, allow positive terms only */
+  tijk_refine_rank1_parm *rank1_parm; /* used for rank1-optimization */
+} tijk_refine_rankk_parm;
+
+TIJK_EXPORT tijk_refine_rankk_parm *tijk_refine_rankk_parm_new();
+TIJK_EXPORT tijk_refine_rankk_parm 
+  *tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm);
+
+typedef struct tijk_approx_heur_parm_t {
+  double eps_res; /* stop adding terms if the residual is smaller than this */
+  double eps_impr; /* stop adding terms if it would reduce the residual
+		    * less than this */
+  /* If ratios is non-NULL, it should have k-1 entries for a rank-k approx.
+   * Do not add the ith rank-1 term when the ratio of largest/smallest
+   * coefficient would be greater than ratios[i-2] */
+  double *ratios;
+  tijk_refine_rankk_parm *refine_parm; /* used for rank-k refinement */
+} tijk_approx_heur_parm;
+
+TIJK_EXPORT tijk_approx_heur_parm *tijk_approx_heur_parm_new();
+TIJK_EXPORT tijk_approx_heur_parm 
+  *tijk_approx_heur_parm_nix(tijk_approx_heur_parm *parm);
+
+TIJK_EXPORT int tijk_init_rank1_2d_d(double *s, double *v, const double *ten,
 				     const tijk_type *type);
-TIJK_EXPORT int tijk_init_rank1_2d_f(float *s, float *v, float *ten,
+TIJK_EXPORT int tijk_init_rank1_2d_f(float *s, float *v, const float *ten,
 				     const tijk_type *type);
 
-TIJK_EXPORT int tijk_init_rank1_3d_d(double *s, double *v, double *ten,
+TIJK_EXPORT int tijk_init_rank1_3d_d(double *s, double *v, const double *ten,
 				     const tijk_type *type);
-TIJK_EXPORT int tijk_init_rank1_3d_f(float *s, float *v, float *ten,
+TIJK_EXPORT int tijk_init_rank1_3d_f(float *s, float *v, const float *ten,
 				     const tijk_type *type);
 
-TIJK_EXPORT int tijk_init_max_2d_d(double *s, double *v, double *ten,
+TIJK_EXPORT int tijk_init_max_2d_d(double *s, double *v, const double *ten,
 				   const tijk_type *type);
-TIJK_EXPORT int tijk_init_max_2d_f(float *s, float *v, float *ten,
+TIJK_EXPORT int tijk_init_max_2d_f(float *s, float *v, const float *ten,
 				   const tijk_type *type);
 
-TIJK_EXPORT int tijk_init_max_3d_d(double *s, double *v, double *ten,
+TIJK_EXPORT int tijk_init_max_3d_d(double *s, double *v, const double *ten,
 				   const tijk_type *type);
-TIJK_EXPORT int tijk_init_max_3d_f(float *s, float *v, float *ten,
+TIJK_EXPORT int tijk_init_max_3d_f(float *s, float *v, const float *ten,
 				   const tijk_type *type);
 
 /* For ANSI C compatibility, these routines rely on
  * type->num<=TIJK_TYPE_MAX_NUM !*/
-TIJK_EXPORT int tijk_refine_rank1_2d_d(double *s, double *v, double *ten,
-				       const tijk_type *type);
-TIJK_EXPORT int tijk_refine_rank1_2d_f(float *s, float *v, float *ten,
-				       const tijk_type *type);
-TIJK_EXPORT int tijk_refine_rank1_3d_d(double *s, double *v, double *ten,
-				       const tijk_type *type);
-TIJK_EXPORT int tijk_refine_rank1_3d_f(float *s, float *v, float *ten,
-				       const tijk_type *type);
+TIJK_EXPORT int tijk_refine_rank1_2d_d(double *s, double *v, const double *ten,
+				       const tijk_type *type,
+				       const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_rank1_2d_f(float *s, float *v, const float *ten,
+				       const tijk_type *type,
+				       const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_rank1_3d_d(double *s, double *v, const double *ten,
+				       const tijk_type *type,
+				       const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_rank1_3d_f(float *s, float *v, const float *ten,
+				       const tijk_type *type,
+				       const tijk_refine_rank1_parm *parm);
+
+TIJK_EXPORT int tijk_refine_rankk_2d_d(double *ls, double *vs,
+				       double *tens, double *res,
+				       double *resnorm, double orignorm,
+				       const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
+TIJK_EXPORT int tijk_refine_rankk_2d_f(float *ls, float *vs,
+				       float *tens, float *res,
+				       float *resnorm, float orignorm,
+				       const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
+TIJK_EXPORT int tijk_refine_rankk_3d_d(double *ls, double *vs,
+				       double *tens, double *res,
+				       double *resnorm, double orignorm,
+				       const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
+TIJK_EXPORT int tijk_refine_rankk_3d_f(float *ls, float *vs,
+				       float *tens, float *res,
+				       float *resnorm, float orignorm,
+				       const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
 
 TIJK_EXPORT int tijk_approx_rankk_2d_d(double *ls, double *vs, double *res,
-				       double *ten, const tijk_type *type,
-				       unsigned int k, double rankthresh,
-				       double *ratios);
+				       const double *ten, const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
 TIJK_EXPORT int tijk_approx_rankk_2d_f(float *ls, float *vs, float *res,
-				       float *ten, const tijk_type *type,
-				       unsigned int k, float rankthresh,
-				       float *ratios);
+				       const float *ten, const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
 TIJK_EXPORT int tijk_approx_rankk_3d_d(double *ls, double *vs, double *res,
-				       double *ten, const tijk_type *type,
-				       unsigned int k, double rankthresh,
-				       double *ratios);
+				       const double *ten, const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
 TIJK_EXPORT int tijk_approx_rankk_3d_f(float *ls, float *vs, float *res,
-				       float *ten, const tijk_type *type,
-				       unsigned int k, float rankthresh,
-				       float *ratios);
+				       const float *ten, const tijk_type *type,
+				       const unsigned int k,
+				       const tijk_refine_rankk_parm *parm);
 
-TIJK_EXPORT int tijk_refine_rankk_2d_d(double *ls, double *vs, double *tens,
-				       double *res, double *resnorm,
-				       const tijk_type *type, unsigned int k);
-TIJK_EXPORT int tijk_refine_rankk_2d_f(float *ls, float *vs, float *tens,
-				       float *res, float *resnorm,
-				       const tijk_type *type, unsigned int k);
-TIJK_EXPORT int tijk_refine_rankk_3d_d(double *ls, double *vs, double *tens,
-				       double *res, double *resnorm,
-				       const tijk_type *type, unsigned int k);
-TIJK_EXPORT int tijk_refine_rankk_3d_f(float *ls, float *vs, float *tens,
-				       float *res, float *resnorm,
-				       const tijk_type *type, unsigned int k);
-
-TIJK_EXPORT int tijk_refine_pos_rankk_2d_d(double *ls, double *vs,
-					   double *tens, double *res,
-					   double *resnorm,
-					   const tijk_type *type,
-					   unsigned int k);
-TIJK_EXPORT int tijk_refine_pos_rankk_2d_f(float *ls, float *vs, float *tens,
-					   float *res, float *resnorm,
-					   const tijk_type *type,
-					   unsigned int k);
-TIJK_EXPORT int tijk_refine_pos_rankk_3d_d(double *ls, double *vs, double *tens,
-					   double *res, double *resnorm,
-					   const tijk_type *type,
-					   unsigned int k);
-TIJK_EXPORT int tijk_refine_pos_rankk_3d_f(float *ls, float *vs, float *tens,
-					   float *res, float *resnorm,
-					   const tijk_type *type,
-					   unsigned int k);
+TIJK_EXPORT int tijk_approx_heur_2d_d(double *ls, double *vs, double *res,
+				      const double *ten, const tijk_type *type,
+				      const unsigned int k,
+				      const tijk_approx_heur_parm *parm);
+TIJK_EXPORT int tijk_approx_heur_2d_f(float *ls, float *vs, float *res,
+				      const float *ten, const tijk_type *type,
+				      const unsigned int k,
+				      const tijk_approx_heur_parm *parm);
+TIJK_EXPORT int tijk_approx_heur_3d_d(double *ls, double *vs, double *res,
+				      const double *ten, const tijk_type *type,
+				      const unsigned int k,
+				      const tijk_approx_heur_parm *parm);
+TIJK_EXPORT int tijk_approx_heur_3d_f(float *ls, float *vs, float *res,
+				      const float *ten, const tijk_type *type,
+				      const unsigned int k,
+				      const tijk_approx_heur_parm *parm);
 
 /* shTijk.c */
 TIJK_EXPORT int tijk_eval_esh_basis_d(double *res, int order,
