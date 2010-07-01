@@ -240,7 +240,7 @@ IF(BUILD_EXPERIMENTAL_LIBS)
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
   # * teem/src/meet/enumsall.c 
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} alan bane coil push tijk)
+  SET(Teem_LIBRARIES ${Teem_LIBRARIES} alan bane coil push tijk elf)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 
@@ -275,6 +275,7 @@ IF(BUILD_EXPERIMENTAL_LIBS)
     coil/coil.h
     push/push.h
     tijk/tijk.h
+    elf/elf.h
     )
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
 SET(Teem_INSTALLED_HEADER_FILES)

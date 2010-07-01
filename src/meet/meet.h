@@ -51,6 +51,7 @@
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/coil.h>
 #  include <teem/push.h>
+#  include <teem/elf.h>
 #endif
 #include <teem/pull.h>
 

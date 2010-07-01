@@ -315,7 +315,7 @@ tijk_refine_rankk_parm
 	}								\
 	tijk_refine_rank1_##DIM##d_##SUF(ls+i, vs+DIM*i, res, type,	\
 					 parm->rank1_parm);		\
-	if (parm->pos || ls[i]>0.0) {					\
+	if (!parm->pos || ls[i]>0.0) {					\
 	  (*type->sym->make_rank1_##SUF)(tens+i*type->num, ls[i], vs+DIM*i); \
 	  tijk_sub_##SUF(res, res, tens+i*type->num, type);		\
 	} else {							\

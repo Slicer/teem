@@ -98,9 +98,9 @@ include $(TEEM_SRC)/make/externals.mk
 ## RNUMS: in link order, and "top-dep" order needed by bin/GNUmakefile
 ## {R}NUM/LIBS: used for craziness below
 ##
-LIBS = air hest biff nrrd ell tijk unrrdu dye moss alan gage bane limn seek hoover echo ten mite coil push pull meet
-NUMS =  0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K
-RNUMS = K J I H G F E D C B A 9 8 7 6 5 4 3 2 1 0
+LIBS = air hest biff nrrd ell tijk unrrdu dye moss alan gage bane limn seek hoover echo ten elf mite coil push pull meet
+NUMS =  0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M
+RNUMS = M L K J I H G F E D C B A 9 8 7 6 5 4 3 2 1 0
 
 NUM/LIBS = $(join $(NUMS),$(LIBS:%=/%))
 RNUM/LIBS = $(join $(RNUMS),$(LIBS:%=/%))
