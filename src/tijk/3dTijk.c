@@ -25,6 +25,180 @@
 #include "tijk.h"
 #include "privateTijk.h"
 
+/* 1st order 3D - a simple vector */
+
+/* (un)symmetric doesn't really mean anything in this case */
+unsigned int _tijk_1o3d_mult[3]={1,1,1};
+int _tijk_1o3d_unsym2uniq[3] = {1,2,3};
+int _tijk_1o3d_uniq2unsym[3] = {1,2,3};
+unsigned int _tijk_1o3d_uniq_idx[3] = {0,1,2};
+
+double
+_tijk_1o3d_tsp_d (const double *A, const double *B) {
+  return ELL_3V_DOT(A,B);
+}
+
+float
+_tijk_1o3d_tsp_f (const float *A, const float *B) {
+  return ELL_3V_DOT(A,B);
+}
+
+double
+_tijk_1o3d_norm_d (const double *A) {
+  return sqrt(ELL_3V_DOT(A,A));
+}
+
+float
+_tijk_1o3d_norm_f (const float *A) {
+  return sqrt(ELL_3V_DOT(A,A));
+}
+
+void
+_tijk_1o3d_trans_d (double *res, const double *A, const double *M) {
+  ell_3mv_mul_d(res,M,A);
+}
+
+void
+_tijk_1o3d_trans_f (float *res, const float *A, const float *M) {
+  ell_3mv_mul_f(res,M,A);
+}
+
+/* macro-based pseudo-template for type-generic code */
+#define _TIJK_1O3D_CONVERT(TYPE, SUF)					\
+  int									\
+  _tijk_1o3d_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
+			    const TYPE *A) {				\
+    if (res_type==tijk_1o3d) { /* copy over */				\
+      ELL_3V_COPY(res, A);						\
+      return 0;								\
+    } else if (res_type==tijk_3o3d_sym) {				\
+      res[0]=A[0]; res[1]=A[1]/3.0; res[2]=A[2]/3.0;			\
+      res[3]=A[0]/3.0; res[4]=0; res[5]=A[0]/3.0; res[6]=A[1];		\
+      res[7]=A[2]/3.0; res[8]=A[1]/3.0; res[9]=A[2];			\
+      return 0;								\
+    } else if (NULL!=res_type->_convert_from_##SUF)			\
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_1o3d);		\
+    else								\
+      return 1;								\
+  }
+
+_TIJK_1O3D_CONVERT(double, d)
+_TIJK_1O3D_CONVERT(float, f)
+
+#define _TIJK_1O3D_APPROX(TYPE, SUF)					\
+  int									\
+  _tijk_1o3d_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
+			   const TYPE *A) {				\
+    if (NULL!=res_type->_approx_from_##SUF)				\
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_1o3d);		\
+    else								\
+      return 1;								\
+  }
+
+_TIJK_1O3D_APPROX(double, d)
+_TIJK_1O3D_APPROX(float, f)
+
+double
+_tijk_1o3d_s_form_d (const double *A, const double *v) {
+  return ELL_3V_DOT(A,v);
+}
+
+float
+_tijk_1o3d_s_form_f (const float *A, const float *v) {
+  return ELL_3V_DOT(A,v);
+}
+
+double
+_tijk_1o3d_mean_d (const double *A) {
+  (void) A; /* odd order; mean does not depend on coeffs */
+  return 0.0;
+}
+
+float
+_tijk_1o3d_mean_f (const float *A) {
+  (void) A; /* odd order; mean does not depend on coeffs */
+  return 0.0f;
+}
+
+double
+_tijk_1o3d_var_d (const double *A) {
+  /* result from MATHEMATICA */
+  return ELL_3V_DOT(A,A)/3.0;
+}
+
+float
+_tijk_1o3d_var_f (const float *A) {
+  /* result from MATHEMATICA */
+  return ELL_3V_DOT(A,A)/3.0;
+}
+
+void
+_tijk_1o3d_v_form_d (double *res, const double *A, const double *v) {
+  (void) v; /* not used in this case */
+  ELL_3V_COPY(res,A);
+}
+
+void
+_tijk_1o3d_v_form_f (float *res, const float *A, const float *v) {
+  (void) v; /* not used in this case */
+  ELL_3V_COPY(res,A);
+}
+
+void
+_tijk_1o3d_m_form_d (double *res, const double *A, const double *v) {
+  (void) A; (void) v; /* not used in this case */
+  ELL_3V_SET(res,0,0,0);
+  ELL_3V_SET(res+3,0,0,0);
+}
+
+void
+_tijk_1o3d_m_form_f (float *res, const float *A, const float *v) {
+  (void) A; (void) v; /* not used in this case */
+  ELL_3V_SET(res,0,0,0);
+  ELL_3V_SET(res+3,0,0,0);
+}
+
+void
+_tijk_1o3d_make_rank1_d (double *res, const double s, const double *v) {
+  ELL_3V_SCALE(res,s,v);
+}
+
+void
+_tijk_1o3d_make_rank1_f (float *res, const float s, const float *v) {
+  ELL_3V_SCALE(res,s,v);
+}
+
+#define _tijk_1o3d_make_iso_d NULL
+#define _tijk_1o3d_make_iso_f NULL
+
+void
+_tijk_1o3d_grad_d (double *res, const double *A, const double *v) {
+  (void) v; /* not used in this case */
+  ELL_3V_COPY(res,A);
+}
+
+void
+_tijk_1o3d_grad_f (float *res, const float *A, const float *v) {
+  (void) v; /* not used in this case */
+  ELL_3V_COPY(res,A);
+}
+
+void
+_tijk_1o3d_hess_d (double *res, const double *A, const double *v) {
+  (void) A; (void) v; /* not used in this case */
+  ELL_3V_SET(res,0,0,0);
+  ELL_3V_SET(res+3,0,0,0);
+}
+
+void
+_tijk_1o3d_hess_f (float *res, const float *A, const float *v) {
+  (void) A; (void) v; /* not used in this case */
+  ELL_3V_SET(res,0,0,0);
+  ELL_3V_SET(res+3,0,0,0);
+}
+
+TIJK_TYPE_SYM(1o3d, 1, 3, 3)
+
 /* 2nd order 3D unsymmetric */
 
 double
@@ -152,6 +326,7 @@ _tijk_2o3d_sym_norm_f (const float *A) {
       memset(tmp,0,sizeof(tmp));					\
       tijk_3d_sym_to_esh_##SUF (tmp, A, tijk_2o3d_sym);			\
       tijk_esh_to_3d_sym_##SUF (res, tmp, res_type->order);		\
+      return 0;								\
     } else if (NULL!=res_type->_convert_from_##SUF)			\
       return (*res_type->_convert_from_##SUF)(res,A,tijk_2o3d_sym);	\
     return 1;								\
@@ -585,6 +760,7 @@ _tijk_3o3d_sym_norm_f (const float *A) {
     for (i=0; i<27; i++) {						\
       res[i]=A[_tijk_3o3d_sym_unsym2uniq[i]-1];				\
     }									\
+    return 0;								\
   } else if (NULL!=res_type->_convert_from_##SUF)			\
     return (*res_type->_convert_from_##SUF)(res,A,tijk_3o3d_sym);	\
   return 1;								\
@@ -594,10 +770,15 @@ _TIJK_3O3D_SYM_CONVERT(double, d)
 _TIJK_3O3D_SYM_CONVERT(float, f)
 
 #define _TIJK_3O3D_SYM_APPROX(TYPE, SUF)	\
-  int						\
+  int									\
   _tijk_3o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
 			       const TYPE *A){				\
-  if (NULL!=res_type->_approx_from_##SUF)				\
+  if (res_type==tijk_1o3d) {						\
+    res[0]=0.6*(A[0]+A[3]+A[5]);					\
+    res[1]=0.6*(A[1]+A[6]+A[8]);					\
+    res[2]=0.6*(A[2]+A[7]+A[9]);					\
+    return 0;								\
+  } else if (NULL!=res_type->_approx_from_##SUF)			\
     return (*res_type->_approx_from_##SUF)(res,A,tijk_3o3d_sym);	\
   else									\
     return 1;								\
@@ -628,7 +809,7 @@ double
 _tijk_3o3d_sym_s_form_d (const double *A, const double *v) {
   double v00=v[0]*v[0], v11=v[1]*v[1], v22=v[2]*v[2];
   return A[0]*v00*v[0]+3*A[1]*v00*v[1]+3*A[2]*v00*v[2]+3*A[3]*v11*v[0]+
-    6*A[4]*v[0]*v[1]*v[2]+3*A[5]*v22*v[0]+A[6]*v11*v[1]+A[7]*v11*v[2]+
+    6*A[4]*v[0]*v[1]*v[2]+3*A[5]*v22*v[0]+A[6]*v11*v[1]+3*A[7]*v11*v[2]+
     3*A[8]*v[1]*v22+A[9]*v22*v[2];
 }
 
@@ -636,7 +817,7 @@ float
 _tijk_3o3d_sym_s_form_f (const float *A, const float *v) {
   float v00=v[0]*v[0], v11=v[1]*v[1], v22=v[2]*v[2];
   return A[0]*v00*v[0]+3*A[1]*v00*v[1]+3*A[2]*v00*v[2]+3*A[3]*v11*v[0]+
-    6*A[4]*v[0]*v[1]*v[2]+3*A[5]*v22*v[0]+A[6]*v11*v[1]+A[7]*v11*v[2]+
+    6*A[4]*v[0]*v[1]*v[2]+3*A[5]*v22*v[0]+A[6]*v11*v[1]+3*A[7]*v11*v[2]+
     3*A[8]*v[1]*v22+A[9]*v22*v[2];
 }
 
@@ -884,6 +1065,7 @@ _TIJK_4O3D_SYM_TRANS(float, f)
     memset(tmp,0,sizeof(tmp));						\
     tijk_3d_sym_to_esh_##SUF (tmp, A, tijk_4o3d_sym);			\
     tijk_esh_to_3d_sym_##SUF (res, tmp, res_type->order);		\
+    return 0;								\
   } else if (NULL!=res_type->_convert_from_##SUF)			\
     return (*res_type->_convert_from_##SUF)(res,A,tijk_4o3d_sym);	\
   return 1;								\
@@ -1272,6 +1454,7 @@ _TIJK_6O3D_SYM_CONVERT(float, f)
     res[13]=5.0/22.0*(5*A[26]+4*(A[24]+A[13])-A[22]-A[4]-2*A[11]);	\
     res[14]=5.0/231.0*(43*A[27]+A[0]+A[21]+24*(A[14]+A[25])+		\
 		       3*(A[3]+A[10])-18*(A[5]+A[23])-36*A[12]);	\
+    return 0;								\
   } else if (NULL!=res_type->_approx_from_##SUF)			\
     return (*res_type->_approx_from_##SUF)(res,A,tijk_6o3d_sym);	\
   return 1;								\

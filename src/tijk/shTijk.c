@@ -239,7 +239,6 @@ TIJK_3D_SYM_TO_ESH(float, f)
     const double *m; /* conversion matrix */				\
     const tijk_type *type;						\
     unsigned int i, j, n;						\
-    n=_tijk_sh_len[order/2];						\
     switch (order) {							\
     case 2:								\
       m=_tijk_esh2sym_o2;						\
@@ -256,6 +255,7 @@ TIJK_3D_SYM_TO_ESH(float, f)
     default:								\
       return NULL; /* cannot do the conversion */			\
     }									\
+    n=_tijk_sh_len[order/2];						\
     for (i=0; i<n; i++) {						\
       res[i]=0;								\
       for (j=0; j<n; j++) {						\

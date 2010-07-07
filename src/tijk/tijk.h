@@ -161,6 +161,7 @@ TIJK_EXPORT const tijk_type *const tijk_4o2d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_4o2d_sym;
 
 /* 3dTijk.c */
+TIJK_EXPORT const tijk_type *const tijk_1o3d;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_2o3d_asym;
@@ -366,6 +367,23 @@ TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_d(double *res,
 						  const double *sh, int order);
 TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_f(float *res,
 						  const float *sh, int order);
+
+/* fsTijk.c */
+TIJK_EXPORT int tijk_eval_efs_basis_d(double *res, int order, double phi);
+TIJK_EXPORT int tijk_eval_efs_basis_f(float *res, int order, float phi);
+
+TIJK_EXPORT double tijk_eval_efs_d(double *coeffs, int order, double phi);
+TIJK_EXPORT float tijk_eval_efs_f(float *coeffs, int order, float phi);
+
+TIJK_EXPORT int tijk_2d_sym_to_efs_d(double *res, const double *ten,
+				     const tijk_type *type);
+TIJK_EXPORT int tijk_2d_sym_to_efs_f(float *res, const float *ten,
+				     const tijk_type *type);
+
+TIJK_EXPORT const tijk_type *tijk_efs_to_2d_sym_d(double *res,
+						  const double *fs, int order);
+TIJK_EXPORT const tijk_type *tijk_efs_to_2d_sym_f(float *res,
+						  const float *fs, int order);
 #ifdef __cplusplus
 }
 #endif

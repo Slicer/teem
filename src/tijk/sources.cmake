@@ -6,6 +6,7 @@ SET(TIJK_SOURCES
   approxTijk.c
   miscTijk.c
   shTijk.c
+  fsTijk.c
   privateTijk.h
   tijk.h
   )
