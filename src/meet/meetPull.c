@@ -54,7 +54,7 @@ int
 meetPullVolParse(meetPullVol *mpv, const char *_str) {
   static const char me[]="meetPullVolParse";
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
-#define SFMT "<minScl>-<#smp>-<maxScl>[-onu]"
+#define SFMT "<minScl>-<#smp>-<maxScl>[-no|u]"
 #define VFMT_LONG "<fileName>:<kind>:" SFMT ":<volName>"
   char *str, *ctok, *clast=NULL, *dtok, *dlast=NULL;
   airArray *mop;
