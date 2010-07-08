@@ -73,8 +73,8 @@ main(int argc, char *argv[]) {
   hestOptAdd(&hopt, "mi", "max # iters", airTypeUInt, 1, 1, &maxIter, "100",
              "maximum number of iterations with which to compute the "
              "deconvolution");
-  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, "0.000001",
-             "convergence threshold");
+  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, 
+             "0.00000001", "convergence threshold");
   hestOptAdd(&hopt, "s", "step", airTypeDouble, 1, 1, &step, "1.0",
              "scaling of value update");
   hestOptAdd(&hopt, "t", "type", airTypeOther, 1, 1, &otype, "default",
