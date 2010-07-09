@@ -61,6 +61,7 @@ typedef struct {
      in order to do the proper error checking- hest can't do the
      error checking that we need... */
   NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
+  gageShape *shape;     /* used to document ItoW transform */
   gageContext *gctx0;   /* gage input and parent thread state */
   hooverContext *hctx;  /* hoover input and state */
   char *outS;           /* (managed by hest) output filename */
@@ -82,10 +83,12 @@ mrendUserNew() {
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     uu->ksp[i] = NULL;
   }
+  uu->shape = gageShapeNew();
   uu->gctx0 = gageContextNew();
   uu->hctx = hooverContextNew();
   uu->outS = NULL;
   uu->mrmop = airMopNew();
+  airMopAdd(uu->mrmop, uu->shape, (airMopper)gageShapeNix, airMopAlways);
   airMopAdd(uu->mrmop, uu->gctx0, (airMopper)gageContextNix, airMopAlways);
   airMopAdd(uu->mrmop, uu->hctx, (airMopper)hooverContextNix, airMopAlways);
   return uu;
@@ -264,6 +267,7 @@ mrendThreadBegin(mrendThread **ttP,
   (*ttP)->rayLen = 0;
   (*ttP)->thrid = whichThread;
   (*ttP)->numSamples = 0;
+  (*ttP)->verbose = 0;
   return 0;
 }
 
@@ -291,6 +295,7 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
               double rayStartIndex[3],
               double rayDirWorld[3],
               double rayDirIndex[3]) {
+  static const char me[]="mrendRayBegin";
   int newLen;
 
   AIR_UNUSED(rr);
@@ -302,9 +307,13 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   tt->vi = vIndex;
   if (!( -1 == uu->verbPixel[0] && -1 == uu->verbPixel[1] )) {
     if (uIndex == uu->verbPixel[0] && vIndex == uu->verbPixel[1]) {
-      gageParmSet(uu->gctx0, gageParmVerbose, AIR_TRUE);
+      fprintf(stderr, "\n%s: verbose for pixel (%d,%d)\n", me, 
+              uu->verbPixel[0], uu->verbPixel[1]);
+      gageParmSet(tt->gctx, gageParmVerbose, 3);
+      tt->verbose = 3;
     } else {
-      gageParmSet(uu->gctx0, gageParmVerbose, AIR_FALSE);
+      gageParmSet(tt->gctx, gageParmVerbose, AIR_FALSE);
+      tt->verbose = 0;
     }
   }
   tt->rayLen = rayLen;
@@ -361,6 +370,12 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   AIR_UNUSED(rayT);
   AIR_UNUSED(samplePosWorld);
 
+  if (tt->verbose) {
+    fprintf(stderr, "%s: wrld(%g,%g,%g) -> indx(%g,%g,%g) -> %s\n", me,
+            samplePosWorld[0], samplePosWorld[1], samplePosWorld[2],
+            samplePosIndex[0], samplePosIndex[1], samplePosIndex[2],
+            inside ? "INSIDE" : "(outside)");
+  }
   if (inside) {
     if (gageProbe(tt->gctx,
                   samplePosIndex[0],
@@ -429,7 +444,7 @@ int
 main(int argc, char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
-  int E, Ecode, Ethread, renorm, base, offfr;
+  int E, Ecode, Ethread, renorm, offfr;
   char *me, *errS, *whatS;
   mrendUser *uu;
   airArray *mop;
@@ -516,13 +531,19 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  
   if (mrendUserCheck(uu)) {
     fprintf(stderr, "%s: problem with input parameters:\n%s\n",
             me, errS = biffGetDone(MREND)); free(errS);
     airMopError(mop);
     return 1;
   }
+  if (gageShapeSet(uu->shape, uu->nin, uu->kind->baseDim)) {
+    fprintf(stderr, "%s: problem with shape:\n%s\n",
+            me, errS = biffGetDone(GAGE)); free(errS);
+    airMopError(mop);
+    return 1;
+  }
+
   gageParmSet(uu->gctx0, gageParmGradMagCurvMin, gmc);
   /* gageParmSet(uu->gctx0, gageParmRequireAllSpacings, AIR_FALSE); */
   gageParmSet(uu->gctx0, gageParmRenormalize, renorm);
@@ -568,20 +589,27 @@ main(int argc, char *argv[]) {
   */
   
   /* set remaining fields of hoover context */
-  base = uu->kind->baseDim;
-  uu->hctx->volSize[0] = uu->nin->axis[base+0].size;
-  uu->hctx->volSize[1] = uu->nin->axis[base+1].size;
-  uu->hctx->volSize[2] = uu->nin->axis[base+2].size;
-  uu->hctx->volSpacing[0] = uu->nin->axis[base+0].spacing;
-  uu->hctx->volSpacing[1] = uu->nin->axis[base+1].spacing;
-  uu->hctx->volSpacing[2] = uu->nin->axis[base+2].spacing;
-  if (nrrdCenterUnknown != uu->nin->axis[base].center) {
-    uu->hctx->volCentering = uu->nin->axis[base].center;
-    fprintf(stderr, "%s: setting volCentering to %s\n", me,
-            airEnumStr(nrrdCenter, uu->nin->axis[base].center));
+  if (0) {
+    /* this is the old code that assumed everything about orientation
+       was determined by per-axis spacing (pre-gageShape) */
+    unsigned int base;
+    base = uu->kind->baseDim;
+    uu->hctx->volSize[0] = uu->nin->axis[base+0].size;
+    uu->hctx->volSize[1] = uu->nin->axis[base+1].size;
+    uu->hctx->volSize[2] = uu->nin->axis[base+2].size;
+    uu->hctx->volSpacing[0] = uu->nin->axis[base+0].spacing;
+    uu->hctx->volSpacing[1] = uu->nin->axis[base+1].spacing;
+    uu->hctx->volSpacing[2] = uu->nin->axis[base+2].spacing;
+    if (nrrdCenterUnknown != uu->nin->axis[base].center) {
+      uu->hctx->volCentering = uu->nin->axis[base].center;
+      fprintf(stderr, "%s: setting volCentering to %s\n", me,
+              airEnumStr(nrrdCenter, uu->nin->axis[base].center));
+    }
+    fprintf(stderr, "!%s: uu->hctx->volCentering = %d\n",
+            me, uu->hctx->volCentering);
+  } else {
+    uu->hctx->shape = uu->shape;
   }
-  fprintf(stderr, "!%s: uu->hctx->volCentering = %d\n",
-          me, uu->hctx->volCentering);
   /* this is reasonable for now */
   uu->hctx->imgCentering = nrrdCenterCell;
   uu->hctx->user = uu;
