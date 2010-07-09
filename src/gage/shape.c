@@ -28,12 +28,19 @@ gageShapeReset(gageShape *shape) {
 
   /* NOTE this guards against NULL */
   if (shape) {
+    /* input */
     shape->defaultCenter = gageDefDefaultCenter;
     shape->orientationFromSpacing = gageDefOrientationFromSpacing;
-    ELL_3V_SET(shape->size, 0, 0, 0);
+    /* output; setting this in ways that can be used to test
+       whether the shape has been set */
     shape->center = nrrdCenterUnknown;
     shape->fromOrientation = AIR_FALSE;
+    ELL_3V_SET(shape->size, 0, 0, 0);
     ELL_3V_SET(shape->spacing, AIR_NAN, AIR_NAN, AIR_NAN);
+    ELL_4M_NAN_SET(shape->ItoW);
+    ELL_4M_NAN_SET(shape->WtoI);
+    ELL_3M_NAN_SET(shape->ItoWSubInvTransp);
+    ELL_3M_NAN_SET(shape->ItoWSubInv);
   }
   return;
 }
@@ -59,7 +66,7 @@ gageShapeNew() {
 }
 
 gageShape *
-gageShapeCopy(gageShape *shp) {
+gageShapeCopy(const gageShape *shp) {
   gageShape *nhp;
 
   if ((nhp = gageShapeNew())) {
@@ -77,8 +84,8 @@ gageShapeNix(gageShape *shape) {
 }
 
 static void
-shapeUnitItoW(gageShape *shape, double world[3], double index[3],
-              double volHalfLen[3]) {
+shapeUnitItoW(const gageShape *shape, double world[3],
+              const double index[3], const double volHalfLen[3]) {
   unsigned int i;
   
   if (nrrdCenterNode == shape->center) {
@@ -423,7 +430,8 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
 */
 
 void
-gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
+gageShapeWtoI(const gageShape *shape,
+              double _index[3], const double _world[3]) {
   /* static const char me[]="gageShapeWtoI"; */
   double index[4], world[4];
 
@@ -438,7 +446,8 @@ gageShapeWtoI(gageShape *shape, double _index[3], double _world[3]) {
 }
 
 void
-gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
+gageShapeItoW(const gageShape *shape,
+              double _world[3], const double _index[3]) {
   double world[4], index[4];
 
   ELL_3V_COPY(index, _index);
@@ -455,10 +464,10 @@ gageShapeItoW(gageShape *shape, double _world[3], double _index[3]) {
 ** returning 1 means no error, they ARE equal
 */
 int
-gageShapeEqual(gageShape *shape1, char *_name1,
-                gageShape *shape2, char *_name2) {
+gageShapeEqual(const gageShape *shape1, const char *_name1,
+               const gageShape *shape2, const char *_name2) {
   static const char me[]="gageShapeEqual";
-  char *name1, *name2, what[] = "???";
+  const char *name1, *name2, what[] = "???";
 
   if (!( shape1 && shape2 )) {
     biffAddf(GAGE, "%s: can't judge equality w/ NULL pointer", me);
@@ -515,7 +524,7 @@ gageShapeEqual(gageShape *shape1, char *_name1,
 
 void
 gageShapeBoundingBox(double min[3], double max[3],
-                     gageShape *shape) {
+                     const gageShape *shape) {
   /* static const char me[]="gageShapeBoundingBox"; */
   double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
   unsigned int ii;

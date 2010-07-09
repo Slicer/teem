@@ -924,17 +924,17 @@ GAGE_EXPORT gageKind *const gageKindVec;
 /* shape.c */
 GAGE_EXPORT void gageShapeReset(gageShape *shp);
 GAGE_EXPORT gageShape *gageShapeNew();
-GAGE_EXPORT gageShape *gageShapeCopy(gageShape *shp);
+GAGE_EXPORT gageShape *gageShapeCopy(const gageShape *shp);
 GAGE_EXPORT gageShape *gageShapeNix(gageShape *shape);
 GAGE_EXPORT int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
-GAGE_EXPORT void gageShapeWtoI(gageShape *shape,
-                               double index[3], double world[3]);
-GAGE_EXPORT void gageShapeItoW(gageShape *shape,
-                               double world[3], double index[3]);
-GAGE_EXPORT int gageShapeEqual(gageShape *shp1, char *name1,
-                               gageShape *shp2, char *name2);
+GAGE_EXPORT void gageShapeWtoI(const gageShape *shape,
+                               double index[3], const double world[3]);
+GAGE_EXPORT void gageShapeItoW(const gageShape *shape,
+                               double world[3], const double index[3]);
+GAGE_EXPORT int gageShapeEqual(const gageShape *shp1, const char *name1,
+                               const gageShape *shp2, const char *name2);
 GAGE_EXPORT void gageShapeBoundingBox(double min[3], double max[3],
-                                      gageShape *shape);
+                                      const gageShape *shape);
 
 /* the organization of the next two files used to be according to
    what the first argument is, not what appears in the function name,
