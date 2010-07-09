@@ -312,13 +312,13 @@ _gageLocationSet(gageContext *ctx,
   idx[1] -= (idx[1]-1 == max[1]);
   idx[2] -= (idx[2]-1 == max[2]);
   if (ctx->verbose > 5) {
-    fprintf(stderr, "%s:          --> idx %u %u %u\n", 
+    fprintf(stderr, "%s:        ----> idx %u %u %u\n", 
             me, idx[0], idx[1], idx[2]);
   }
   ELL_3V_SET(frac,
-             xif - (idx[0]-1),
-             yif - (idx[1]-1),
-             zif - (idx[2]-1));
+             xif - (AIR_CAST(float, idx[0])-1),
+             yif - (AIR_CAST(float, idx[1])-1),
+             zif - (AIR_CAST(float, idx[2])-1));
   ELL_3V_COPY(ctx->point.idx, idx);  /* not idx[3], yet */
   if (ctx->parm.stackUse) {
     idx[3] = AIR_CAST(unsigned int, sif);
