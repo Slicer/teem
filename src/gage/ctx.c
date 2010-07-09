@@ -600,7 +600,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
                       || (AIR_CAST(int, xx) != _xx));
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
-          if (ctx->verbose > 1) {
+          if (ctx->verbose > 2) {
             fprintf(stderr, "%s: (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
                     _xx, _yy, _zz, xx, yy, zz);
             fprintf(stderr, "    --> dataIdx = %d; data = %p -> here = %p\n",
@@ -608,7 +608,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
           }
           for (tup=0; tup<pvl->kind->valLen; tup++) {
             pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
-            if (ctx->verbose > 2) {
+            if (ctx->verbose > 3) {
               fprintf(stderr, "%s: iv3[%u + %u*%u=%u] = %g\n", me,
                       cacheIdx, fddd, tup, cacheIdx + fddd*tup,
                       pvl->iv3[cacheIdx + fddd*tup]);
