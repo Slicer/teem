@@ -1948,6 +1948,12 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln3d", str))    return nrrdKernelBSpline3D;
   if (!strcmp("bspl3dd", str))    return nrrdKernelBSpline3DD;
   if (!strcmp("bspln3dd", str))   return nrrdKernelBSpline3DD;
+  if (!strcmp("bspl5", str))      return nrrdKernelBSpline5;
+  if (!strcmp("bspln5", str))     return nrrdKernelBSpline5;
+  if (!strcmp("bspl5d", str))     return nrrdKernelBSpline5D;
+  if (!strcmp("bspln5d", str))    return nrrdKernelBSpline5D;
+  if (!strcmp("bspl5dd", str))    return nrrdKernelBSpline5DD;
+  if (!strcmp("bspln5dd", str))   return nrrdKernelBSpline5DD;
   return NULL;
 }
 
