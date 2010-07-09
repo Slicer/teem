@@ -279,17 +279,17 @@ _tijk_2o2d_sym_grad_f (float *res, const float *A, const float *v) {
 
 void
 _tijk_2o2d_sym_hess_d (double *res, const double *A, const double *v) {
-  double tang[2];
-  double s=2*_tijk_2o2d_sym_s_form_d(A,tang)-2*_tijk_2o2d_sym_s_form_d(A, v);
+  double tang[2], s;
   ELL_2V_SET(tang,v[1],-v[0]);
+  s=2*_tijk_2o2d_sym_s_form_d(A,tang)-2*_tijk_2o2d_sym_s_form_d(A, v);
   _tijk_2o2d_sym_make_rank1_d(res, s, tang);
 }
 
 void
 _tijk_2o2d_sym_hess_f (float *res, const float *A, const float *v) {
-  float tang[2];
-  float s=2*_tijk_2o2d_sym_s_form_f(A,tang)-2*_tijk_2o2d_sym_s_form_f(A, v);
+  float tang[2], s;
   ELL_2V_SET(tang,v[1],-v[0]);
+  s=2*_tijk_2o2d_sym_s_form_f(A,tang)-2*_tijk_2o2d_sym_s_form_f(A, v);
   _tijk_2o2d_sym_make_rank1_f(res, s, tang);
 }
 
