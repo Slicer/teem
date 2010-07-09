@@ -32,6 +32,7 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 #include <teem/limn.h>
+#include <teem/gage.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(hoover_EXPORTS) || defined(teem_EXPORTS)
@@ -91,7 +92,7 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 ******** hooverContext struct
 **
 ** Everything that hooverRender() needs to do its thing, and no more.
-** This is all read-only informaiton.
+** This is all read-only information.
 ** 1) camera information
 ** 3) volume information
 ** 4) image information
@@ -104,10 +105,13 @@ typedef struct {
   /******** 1) camera information */
   limnCamera *cam;           /* camera info */
 
-  /******** 2) volume information: size and spacing, centering */
+  /******** 2) volume information: size and spacing, centering, or
+            a gageShape that sets everything */
   int volSize[3];            /* X,Y,Z resolution of volume */
   double volSpacing[3];      /* distance between samples in X,Y,Z direction */
   int volCentering;          /* either nrrdCenterNode or nrrdCenterCell */
+  const gageShape *shape;    /* if non-NULL, use this gageShape
+                                (which we do not own) */
   
   /******** 3) image information: dimensions + centering */
   int imgSize[2],            /* # samples of image along U and V axes */

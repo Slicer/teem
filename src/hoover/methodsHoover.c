@@ -32,6 +32,7 @@ hooverContextNew() {
     ELL_3V_SET(ctx->volSize, 0, 0, 0);
     ELL_3V_SET(ctx->volSpacing, AIR_NAN, AIR_NAN, AIR_NAN);
     ctx->volCentering = hooverDefVolCentering;
+    ctx->shape = NULL;
     ctx->imgSize[0] = ctx->imgSize[1] = 0;
     ctx->imgCentering = hooverDefImgCentering;
     ctx->user = NULL;
@@ -74,41 +75,48 @@ hooverContextCheck(hooverContext *ctx) {
     biffMovef(HOOVER, LIMN, "%s: trouble setting up camera", me);
     return 1;
   }
-  minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
-  if (!(ctx->volSize[0] >= minSize
-        && ctx->volSize[1] >= minSize 
-        && ctx->volSize[2] >= minSize)) {
-    biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
-             ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
-    return 1;
-  }
-  sxe = AIR_EXISTS(ctx->volSpacing[0]);
-  sye = AIR_EXISTS(ctx->volSpacing[1]);
-  sze = AIR_EXISTS(ctx->volSpacing[2]);
-  if (!sxe && !sye && !sze) {
-    /* none of the incoming spacings existed, we'll go out on a limb
-       and assume unit spacing */
-    ctx->volSpacing[0] = nrrdDefaultSpacing;
-    ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
-    fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
-            me, ctx->volSpacing[0]);
-    /* HEY : nrrdDefaultSpacing need not be the same as gageParm's 
-       defaultSpacing, but we don't know anything about gage here,
-       so what else can we do? */
-  } else if (sxe && sye && sze) {
-    /* all existed */
-    if (!(ctx->volSpacing[0] > 0.0
-          && ctx->volSpacing[1] > 0.0
-          && ctx->volSpacing[2] > 0.0)) {
-      biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me,
-               ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+  if (ctx->shape) {
+    if (!ELL_4M_EXISTS(ctx->shape->ItoW)) {
+      biffAddf(HOOVER, "%s: given shape doesn't seem to be set", me);
       return 1;
     }
   } else {
-    /* some existed, some didn't */
-    biffAddf(HOOVER, "%s: spacings %g, %g, %g don't all exist or not", me,
-             ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
-    return 1;
+    minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
+    if (!(ctx->volSize[0] >= minSize
+          && ctx->volSize[1] >= minSize 
+          && ctx->volSize[2] >= minSize)) {
+      biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
+               ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
+      return 1;
+    }
+    sxe = AIR_EXISTS(ctx->volSpacing[0]);
+    sye = AIR_EXISTS(ctx->volSpacing[1]);
+    sze = AIR_EXISTS(ctx->volSpacing[2]);
+    if (!sxe && !sye && !sze) {
+      /* none of the incoming spacings existed, we'll go out on a limb
+         and assume unit spacing */
+      ctx->volSpacing[0] = nrrdDefaultSpacing;
+      ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
+      fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
+              me, ctx->volSpacing[0]);
+      /* HEY : nrrdDefaultSpacing need not be the same as gageParm's 
+         defaultSpacing, but we don't know anything about gage here,
+         so what else can we do? */
+    } else if (sxe && sye && sze) {
+      /* all existed */
+      if (!(ctx->volSpacing[0] > 0.0
+            && ctx->volSpacing[1] > 0.0
+            && ctx->volSpacing[2] > 0.0)) {
+        biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me,
+                 ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+        return 1;
+      }
+    } else {
+      /* some existed, some didn't */
+      biffAddf(HOOVER, "%s: spacings %g, %g, %g don't all exist or not", me,
+               ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+      return 1;
+    }
   }
   if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
     biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me,

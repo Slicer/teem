@@ -39,9 +39,7 @@
 **
 ** volHLen[i] is the HALF the length of the volume along axis i
 **
-** NOTE: at some point this will be replaced by gageShapeUnitLengths,
-** but that will mean API changes for hoover, since right now nothing
-** uses or cares about the gageShape struct
+** NOTE: none of this comes into play if we have ctx->shape
 */
 void
 _hooverLearnLengths(double volHLen[3], double voxLen[3], hooverContext *ctx) {
@@ -95,7 +93,12 @@ _hooverExtraContextNew(hooverContext *ctx) {
   
   ec = (_hooverExtraContext *)calloc(1, sizeof(_hooverExtraContext));
   if (ec) {
-    _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
+    if (ctx->shape) {
+      ELL_3V_NAN_SET(ec->volHLen);
+      ELL_3V_NAN_SET(ec->voxLen);
+    } else {
+      _hooverLearnLengths(ec->volHLen, ec->voxLen, ctx);
+    }
     ELL_3V_SCALE_ADD2(ec->rayZero,
                       1.0, ctx->cam->from,
                       ctx->cam->vspNeer, ctx->cam->N);
@@ -175,26 +178,49 @@ _hooverThreadBody(void *_arg) {
     arg->whichErr = hooverErrThreadBegin;
     return arg;
   }
-  lx = arg->ec->volHLen[0];
-  ly = arg->ec->volHLen[1];
-  lz = arg->ec->volHLen[2];
-  if (nrrdCenterNode == arg->ctx->volCentering) {
-    mm = 0;
-    Mx = arg->ctx->volSize[0]-1;
-    My = arg->ctx->volSize[1]-1;
-    Mz = arg->ctx->volSize[2]-1;
+  if (arg->ctx->shape) {
+    lx = ly = lz = AIR_NAN;
+    if (nrrdCenterNode == arg->ctx->shape->center) {
+      mm = 0;
+      Mx = arg->ctx->shape->size[0]-1;
+      My = arg->ctx->shape->size[1]-1;
+      Mz = arg->ctx->shape->size[2]-1;
+    } else {
+      mm = -0.5;
+      Mx = arg->ctx->shape->size[0]-0.5;
+      My = arg->ctx->shape->size[1]-0.5;
+      Mz = arg->ctx->shape->size[2]-0.5;
+    }    
   } else {
-    mm = -0.5;
-    Mx = arg->ctx->volSize[0]-0.5;
-    My = arg->ctx->volSize[1]-0.5;
-    Mz = arg->ctx->volSize[2]-0.5;
+    lx = arg->ec->volHLen[0];
+    ly = arg->ec->volHLen[1];
+    lz = arg->ec->volHLen[2];
+    if (nrrdCenterNode == arg->ctx->volCentering) {
+      mm = 0;
+      Mx = arg->ctx->volSize[0]-1;
+      My = arg->ctx->volSize[1]-1;
+      Mz = arg->ctx->volSize[2]-1;
+    } else {
+      mm = -0.5;
+      Mx = arg->ctx->volSize[0]-0.5;
+      My = arg->ctx->volSize[1]-0.5;
+      Mz = arg->ctx->volSize[2]-0.5;
+    }
   }
   
   if (arg->ctx->cam->orthographic) {
     ELL_3V_COPY(rayDirW, arg->ctx->cam->N);
-    rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
-    rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
-    rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
+    if (arg->ctx->shape) {
+      double zeroW[3], zeroI[3];
+      ELL_3V_SET(zeroW, 0, 0, 0);
+      gageShapeWtoI(arg->ctx->shape, zeroI, zeroW);
+      gageShapeWtoI(arg->ctx->shape, rayDirI, rayDirW);
+      ELL_3V_SUB(rayDirI, rayDirI, zeroI);
+    } else {
+      rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
+      rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
+      rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
+    }
     rayLen = arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer;
     uvScale = 1.0;
   } else {
@@ -241,15 +267,27 @@ _hooverThreadBody(void *_arg) {
       }
       ELL_3V_SCALE(uOff, u, arg->ctx->cam->U);
       ELL_3V_ADD3(rayStartW, uOff, vOff, arg->ec->rayZero);
-      rayStartI[0] = AIR_AFFINE(-lx, rayStartW[0], lx, mm, Mx);
-      rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, mm, My);
-      rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, mm, Mz);
+      if (arg->ctx->shape) {
+        gageShapeWtoI(arg->ctx->shape, rayStartI, rayStartW);
+      } else {
+        rayStartI[0] = AIR_AFFINE(-lx, rayStartW[0], lx, mm, Mx);
+        rayStartI[1] = AIR_AFFINE(-ly, rayStartW[1], ly, mm, My);
+        rayStartI[2] = AIR_AFFINE(-lz, rayStartW[2], lz, mm, Mz);
+      }
       if (!arg->ctx->cam->orthographic) {
         ELL_3V_SUB(rayDirW, rayStartW, arg->ctx->cam->from);
         ELL_3V_NORM(rayDirW, rayDirW, tmp);
-        rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
-        rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
-        rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
+        if (arg->ctx->shape) {
+          double zeroW[3], zeroI[3];
+          ELL_3V_SET(zeroW, 0, 0, 0);
+          gageShapeWtoI(arg->ctx->shape, zeroI, zeroW);
+          gageShapeWtoI(arg->ctx->shape, rayDirI, rayDirW);
+          ELL_3V_SUB(rayDirI, rayDirI, zeroI);
+        } else {
+          rayDirI[0] = AIR_DELTA(-lx, rayDirW[0], lx, mm, Mx);
+          rayDirI[1] = AIR_DELTA(-ly, rayDirW[1], ly, mm, My);
+          rayDirI[2] = AIR_DELTA(-lz, rayDirW[2], lz, mm, Mz);
+        }
         rayLen = ((arg->ctx->cam->vspFaar - arg->ctx->cam->vspNeer)/
                   ELL_3V_DOT(rayDirW, arg->ctx->cam->N));
       }
@@ -268,7 +306,11 @@ _hooverThreadBody(void *_arg) {
       rayT = 0;
       while (1) {
         ELL_3V_SCALE_ADD2(rayPosW, 1.0, rayStartW, rayT, rayDirW);
-        ELL_3V_SCALE_ADD2(rayPosI, 1.0, rayStartI, rayT, rayDirI);
+        if (arg->ctx->shape) {
+          gageShapeWtoI(arg->ctx->shape, rayPosI, rayPosW);
+        } else {
+          ELL_3V_SCALE_ADD2(rayPosI, 1.0, rayStartI, rayT, rayDirI);
+        }
         inside = (AIR_IN_CL(mm, rayPosI[0], Mx) &&
                   AIR_IN_CL(mm, rayPosI[1], My) &&
                   AIR_IN_CL(mm, rayPosI[2], Mz));
