@@ -322,6 +322,11 @@ extern "C" {
   (v2)[1] = AIR_ABS((v1)[1]), \
   (v2)[2] = AIR_ABS((v1)[2]))
 
+#define ELL_3V_NAN_SET(v) ( \
+  (v)[0] = AIR_NAN, \
+  (v)[1] = AIR_NAN, \
+  (v)[2] = AIR_NAN)
+
 #define ELL_3M_EQUAL(m1, m2) \
   ((m1)[0] == (m2)[0] &&     \
    (m1)[1] == (m2)[1] &&     \
@@ -409,6 +414,11 @@ extern "C" {
   (ELL_3V_SET((m)+0,  0 ,  0 ,  0), \
    ELL_3V_SET((m)+3,  0 ,  0 ,  0), \
    ELL_3V_SET((m)+6,  0 ,  0 ,  0))
+
+#define ELL_3M_NAN_SET(m) \
+  (ELL_3V_NAN_SET((m)+0), \
+   ELL_3V_NAN_SET((m)+3), \
+   ELL_3V_NAN_SET((m)+6))
 
 #define ELL_3M_DIAG_SET(m, a, b, c) \
   ((m)[0] = (a), (m)[4] = (b), (m)[8] = (c))
@@ -593,6 +603,12 @@ extern "C" {
 
 #define ELL_4V_SET(v, a, b, c, d) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c), (v)[3] = (d))
+
+#define ELL_4V_NAN_SET(v) ( \
+  (v)[0] = AIR_NAN, \
+  (v)[1] = AIR_NAN, \
+  (v)[2] = AIR_NAN, \
+  (v)[3] = AIR_NAN)
 
 #define ELL_4V_SET_TT(v, TT, a, b, c, d) \
   ((v)[0] = AIR_CAST(TT, (a)), \
@@ -894,6 +910,12 @@ extern "C" {
    ELL_4V_SET((m)+ 8,  0 ,  0 ,  1 , 0), \
    ELL_4V_SET((m)+12,  0 ,  0 ,  0 , 1))
 
+#define ELL_4M_EXISTS(m) \
+  (ELL_4V_EXISTS((m) + 0) \
+   && ELL_4V_EXISTS((m) + 4) \
+   && ELL_4V_EXISTS((m) + 8) \
+   && ELL_4V_EXISTS((m) + 12))
+  
 #define ELL_4M_ZERO_SET(m) \
   (ELL_4V_SET((m)+ 0,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  0 ,  0 , 0), \
@@ -930,6 +952,12 @@ extern "C" {
    ELL_4V_SET((m)+ 8,     0    ,     0    ,  1 , 0), \
    ELL_4V_SET((m)+12,     0    ,     0    ,  0 , 1))
 
+#define ELL_4M_NAN_SET(m)   \
+  (ELL_4V_NAN_SET((m)+ 0),  \
+   ELL_4V_NAN_SET((m)+ 4),  \
+   ELL_4V_NAN_SET((m)+ 8),  \
+   ELL_4V_NAN_SET((m)+ 12))
+  
 #define ELL_4M_MUL(n, l, m)                                                 \
   ((n)[ 0]=(l)[ 0]*(m)[ 0]+(l)[ 1]*(m)[ 4]+(l)[ 2]*(m)[ 8]+(l)[ 3]*(m)[12], \
    (n)[ 1]=(l)[ 0]*(m)[ 1]+(l)[ 1]*(m)[ 5]+(l)[ 2]*(m)[ 9]+(l)[ 3]*(m)[13], \
