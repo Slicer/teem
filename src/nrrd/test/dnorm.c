@@ -120,14 +120,13 @@ main(int argc, char **argv) {
     kindOut = nrrdKindUnknown;
   }
 
-  /* prepare output (this may eventually be cropping or something else) */
+  /* initialize output by copying */
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nout, nin)) {
     airMopAdd(mop, err = biffGet(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble copying:\n%s", me, err);
     airMopError(mop); exit(1);
-    
   }
 
   /* no comments, either advertising the format URL or anything else */
@@ -185,6 +184,8 @@ main(int argc, char **argv) {
   */
   if (nout->spaceDim) {
     int saxi = 0;
+    /* we use only the space dimension, not any named space */
+    nout->space = nrrdSpaceUnknown;
     if (!nrrdSpaceVecExists(nout->spaceDim, nout->spaceOrigin)) {
       nrrdSpaceVecSetZero(nout->spaceOrigin);
     }
