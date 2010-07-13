@@ -153,6 +153,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
 }
 
 /*
+** (mcde)
 ** parm vector:
 **   0    1    2   (3)
 ** step   K  lerp
