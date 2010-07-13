@@ -172,6 +172,7 @@ typedef struct {
     vectorD[3];          /* some vector to use for something */
   /* local initial copies of kernels, later passed to gageKernelSet */
   NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
+  gageShape *shape;      /* used just for setting hooverContext->shape */
   gageContext *gctx0;    /* context and input for all gage-related things,
                             including all kernels.  This is gageContextCopy'd
                             for multi-threaded use (hence the 0) */

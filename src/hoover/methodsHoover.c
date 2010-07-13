@@ -53,7 +53,7 @@ hooverContextNew() {
 int
 hooverContextCheck(hooverContext *ctx) {
   static const char me[]="hooverContextCheck";
-  int sxe, sye, sze, minSize;
+  int sxe, sye, sze, minSize, centr;
 
   if (!ctx) {
     biffAddf(HOOVER, "%s: got NULL pointer", me);
@@ -64,9 +64,9 @@ hooverContextCheck(hooverContext *ctx) {
              me, ctx->imgCentering);
     return 1;
   }
-  if (airEnumValCheck(nrrdCenter, ctx->volCentering)) {
-    biffAddf(HOOVER, "%s: voxel centering (%d) invalid",
-             me, ctx->volCentering);
+  centr = (ctx->shape ? ctx->shape->center : ctx->volCentering);
+  if (airEnumValCheck(nrrdCenter, centr)) {
+    biffAddf(HOOVER, "%s: voxel centering (%d) invalid", me, centr);
     return 1;
   }
   if (limnCameraAspectSet(ctx->cam,
@@ -81,7 +81,7 @@ hooverContextCheck(hooverContext *ctx) {
       return 1;
     }
   } else {
-    minSize = (nrrdCenterCell == ctx->volCentering ? 1 : 2);
+    minSize = (nrrdCenterCell == centr ? 1 : 2);
     if (!(ctx->volSize[0] >= minSize
           && ctx->volSize[1] >= minSize 
           && ctx->volSize[2] >= minSize)) {

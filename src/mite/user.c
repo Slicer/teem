@@ -60,7 +60,9 @@ miteUserNew() {
   for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
     muu->ksp[i] = NULL;
   }
+  muu->shape = gageShapeNew();
   muu->gctx0 = gageContextNew();
+  airMopAdd(muu->umop, muu->shape, (airMopper)gageShapeNix, airMopAlways);
   airMopAdd(muu->umop, muu->gctx0, (airMopper)gageContextNix, airMopAlways);
   /* gageParmSet(muu->gctx0, gageParmRequireAllSpacings, AIR_FALSE); */
   muu->lit = limnLightNew();
