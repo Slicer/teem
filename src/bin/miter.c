@@ -225,14 +225,23 @@ main(int argc, char *argv[]) {
   strncpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED-1);
   strncpy(muu->normalStr, normalStr, AIR_STRLEN_MED-1);
   muu->shadeStr[AIR_STRLEN_MED-1] = 0;
-  muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
-  muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
-  muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
-
-  /* Get the proper spacing from the NRRD volume */
-  nrrdSpacingCalculate ( nin, baseDim+0, &(muu->hctx->volSpacing[0]), v );
-  nrrdSpacingCalculate ( nin, baseDim+1, &(muu->hctx->volSpacing[1]), v );
-  nrrdSpacingCalculate ( nin, baseDim+2, &(muu->hctx->volSpacing[2]), v );
+  if (0) {
+    muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
+    muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
+    muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
+    /* Get the proper spacing from the NRRD volume */
+    nrrdSpacingCalculate ( nin, baseDim+0, &(muu->hctx->volSpacing[0]), v );
+    nrrdSpacingCalculate ( nin, baseDim+1, &(muu->hctx->volSpacing[1]), v );
+    nrrdSpacingCalculate ( nin, baseDim+2, &(muu->hctx->volSpacing[2]), v );
+  } else {
+    if (gageShapeSet(muu->shape, nin, baseDim)) {
+      fprintf(stderr, "%s: problem with shape:\n%s\n",
+              me, errS = biffGetDone(GAGE)); free(errS);
+      airMopError(mop);
+      return 1;
+    }
+    muu->hctx->shape = muu->shape;
+  }
   muu->hctx->user = muu;
   muu->hctx->renderBegin = (hooverRenderBegin_t *)miteRenderBegin;
   muu->hctx->threadBegin = (hooverThreadBegin_t *)miteThreadBegin;
