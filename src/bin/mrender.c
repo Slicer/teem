@@ -65,6 +65,8 @@ typedef struct {
   gageContext *gctx0;   /* gage input and parent thread state */
   hooverContext *hctx;  /* hoover input and state */
   char *outS;           /* (managed by hest) output filename */
+  double imgOrig[3],    /* output: set as extra info about camera */
+    imgU[3], imgV[3];
   
   airArray *mrmop;
 } mrendUser;
@@ -309,8 +311,8 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
     if (uIndex == uu->verbPixel[0] && vIndex == uu->verbPixel[1]) {
       fprintf(stderr, "\n%s: verbose for pixel (%d,%d)\n", me, 
               uu->verbPixel[0], uu->verbPixel[1]);
-      gageParmSet(tt->gctx, gageParmVerbose, 3);
-      tt->verbose = 3;
+      gageParmSet(tt->gctx, gageParmVerbose, 6);
+      tt->verbose = 6;
     } else {
       gageParmSet(tt->gctx, gageParmVerbose, AIR_FALSE);
       tt->verbose = 0;
@@ -329,6 +331,14 @@ mrendRayBegin(mrendThread *tt, mrendRender *rr, mrendUser *uu,
   if (!uIndex) {
     fprintf(stderr, "%d/%d ", vIndex, uu->hctx->imgSize[1]);
     fflush(stderr);
+  }
+
+  if (0 == uIndex && 0 == vIndex) {
+    ELL_3V_COPY(uu->imgOrig, rayStartWorld);
+  } else if (1 == uIndex && 0 == vIndex) {
+    ELL_3V_COPY(uu->imgU, rayStartWorld);  /* will fix later */
+  } else if (0 == uIndex && 1 == vIndex) {
+    ELL_3V_COPY(uu->imgV, rayStartWorld);  /* will fix later */
   }
   
   fflush(stderr);
@@ -385,7 +395,14 @@ mrendSample(mrendThread *tt, mrendRender *rr, mrendUser *uu,
                tt->gctx->errStr, tt->gctx->errNum);
       return AIR_NAN;
     }
+    if (tt->verbose) {
+      fprintf(stderr, "%s: val[%d] = %g\n", me, 
+              tt->valNum, *(tt->answer));
+    }
     tt->val[tt->valNum++] = *(tt->answer);
+    if (tt->verbose) {
+      fprintf(stderr, " ........ %g\n", tt->val[tt->valNum-1]);
+    }
     tt->numSamples++;
   }
   
@@ -642,6 +659,17 @@ main(int argc, char *argv[]) {
     }
     airMopError(mop);
     return 1;
+  }
+
+  if (1) {
+    ELL_3V_SUB(uu->imgU, uu->imgU, uu->imgOrig);
+    ELL_3V_SUB(uu->imgV, uu->imgV, uu->imgOrig);
+    fprintf(stderr, "%s: loc(0,0) = (%g,%g,%g)\n", me,
+            uu->imgOrig[0], uu->imgOrig[1], uu->imgOrig[2]);
+    fprintf(stderr, "%s: loc(1,0) - loc(0,0) = (%g,%g,%g)\n", me,
+            uu->imgU[0], uu->imgU[1], uu->imgU[2]);
+    fprintf(stderr, "%s: loc(0,1) - loc(0,0) = (%g,%g,%g)\n", me,
+            uu->imgV[0], uu->imgV[1], uu->imgV[2]);
   }
   
   airMopOkay(mop);
