@@ -200,8 +200,7 @@ gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
     ret = 0;
   } else if (deconvTrivial(ksp)
              || nrrdKernelBSpline3 == ksp->kernel
-             /* || nrrdKernelBSpline4 == ksp->kernel
-                || nrrdKernelBSpline5 == ksp->kernel ... */) {
+             || nrrdKernelBSpline5 == ksp->kernel) {
     ret = 1;
   } else {
     ret = 0;
