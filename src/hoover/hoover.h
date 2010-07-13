@@ -110,8 +110,9 @@ typedef struct {
   int volSize[3];            /* X,Y,Z resolution of volume */
   double volSpacing[3];      /* distance between samples in X,Y,Z direction */
   int volCentering;          /* either nrrdCenterNode or nrrdCenterCell */
-  const gageShape *shape;    /* if non-NULL, use this gageShape
-                                (which we do not own) */
+  const gageShape *shape;    /* if non-NULL, use this gageShape (which we do
+                                NOT own), which over-rides
+                                volSize, volSpacing, volCentering */
   
   /******** 3) image information: dimensions + centering */
   int imgSize[2],            /* # samples of image along U and V axes */
