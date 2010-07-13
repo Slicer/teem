@@ -156,11 +156,12 @@ def run(nposOut, **args):
     efs = a(args, 'efs')
     init = a(args, 'init', [teem.pullInitMethodRandom, 100])
     energyDict = a(args, 'energy', {'type':teem.pullInterTypeJustR, 
-                                    'r':'cwell:0.6,-0.002'})
+                                    'r':'qwell:0.68'})
     verbose = a(args, 'verbose', 1)
     rngSeed = a(args, 'rngSeed', 42)
     nobin = a(args, 'nobin', False)
     noadd = a(args, 'noadd', False)
+    ac3c = a(args, 'ac3c', False)
     usa = a(args, 'usa', False)
     nave = a(args, 'nave', True)
     cbst = a(args, 'cbst', True)
@@ -217,6 +218,9 @@ def run(nposOut, **args):
         teem.pullFlagSet(pctx, teem.pullFlagUseBetaForGammaLearn, ubfgl) or
         teem.pullFlagSet(pctx, teem.pullFlagBinSingle, nobin) or
         teem.pullFlagSet(pctx, teem.pullFlagNoAdd, noadd) or
+        teem.pullFlagSet(pctx,
+                         teem.pullFlagAllowCodimension3Constraints,
+                         ac3c) or
         teem.pullInitUnequalShapesAllowSet(pctx, usa) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMin, iterMin) or
         teem.pullIterParmSet(pctx, teem.pullIterParmMax, iterMax) or
