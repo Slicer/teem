@@ -77,6 +77,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->noAdd = AIR_FALSE;
   flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
   flag->binSingle = AIR_FALSE;
+  flag->allowCodimension3Constraints = AIR_FALSE;
   return;
 }
 
@@ -302,6 +303,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagBinSingle:
     pctx->flag.binSingle = flag;
+    break;
+  case pullFlagAllowCodimension3Constraints:
+    pctx->flag.allowCodimension3Constraints = flag;
     break;
   default:
     biffAddf(me, "%s: sorry, flag %d valid but not handled?", me, which);

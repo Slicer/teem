@@ -811,7 +811,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     return 0;
   }
   
-  if (task->pctx->constraint) {
+  if (task->pctx->constraint
+      && task->pctx->ispec[pullInfoTangent1]) {
     /* we have a constraint, so do something to get the force more
        tangential to the constraint surface (only in the spatial axes) */
     double proj[9], pfrc[3];

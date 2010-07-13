@@ -281,7 +281,8 @@ probeHeight(pullTask *task, pullPoint *point,
 }
 
 static void
-creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
+creaseProj(pullTask *task, pullPoint *point,
+           int tang1Use, int tang2Use, int modeUse,
            /* output */
            double proj[9]) {
 #ifdef PRAYING
@@ -289,13 +290,17 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
 #endif
   double *tng;
 
-  tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
+  if (tang1Use) {
+    tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
 #ifdef PRAYING
-  if (_pullPraying) {
-    printf("!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
-  }
+    if (_pullPraying) {
+      printf("!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
+    }
 #endif
-  ELL_3MV_OUTER(proj, tng, tng);
+    ELL_3MV_OUTER(proj, tng, tng);
+  } else {
+    ELL_3M_IDENTITY_SET(proj);
+  }
   if (tang2Use) {
     double proj2[9];
     tng = point->info + task->pctx->infoIdx[pullInfoTangent2];
@@ -325,7 +330,7 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
     biffAddf(PULL, "%s: trouble on iter %u", me, iter); \
     return 1;                                           \
   }                                                     \
-  creaseProj(task, point, tang2Use, modeUse, proj)
+  creaseProj(task, point, tang1Use, tang2Use, modeUse, proj)
 #define SAVE(state, height, grad, hess, proj, pos) \
   state[0] = height;                               \
   ELL_3V_COPY(state + 1, grad);                    \
@@ -344,7 +349,8 @@ creaseProj(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
   d1 = ELL_3V_DOT(grad, pdir);                                        \
   d2 = ELL_3MV_CONTR(hess, pdir)
 static int
-constraintSatHght(pullTask *task, pullPoint *point, int tang2Use, int modeUse,
+constraintSatHght(pullTask *task, pullPoint *point,
+                  int tang1Use, int tang2Use, int modeUse,
                   double stepMax, unsigned int iterMax,
                   int *constrFailP) {
   static const char me[]="constraintSatHght";
@@ -514,7 +520,8 @@ _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
       *wantSurf = AIR_TRUE;
     }
   }
-  if (!( *wantLine || *wantSurf )) {
+  if (!( pctx->flag.allowCodimension3Constraints
+         || *wantLine || *wantSurf )) {
     biffAddf(PULL, "%s: confusion, should want line (%d) or surf (%d)", me,
              *wantLine, *wantSurf);
     return 1;
@@ -589,7 +596,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     ELL_4V_SET(posLine, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
     ELL_4V_COPY(oldPos, point->pos);
     if (wantSurf) {
-      if (constraintSatHght(task, point, AIR_FALSE,
+      if (constraintSatHght(task, point,
+                            AIR_TRUE, AIR_FALSE,
                             AIR_FALSE, stepMax, iterMax, &failSurf)) {
         biffAddf(PULL, "%s: surf trouble", me);
         return 1;
@@ -603,7 +611,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     /* yes, the starting point of the line constraint is the 
        already-determined surface constraint */
     if (wantLine) {
-      if (constraintSatHght(task, point, AIR_TRUE,
+      if (constraintSatHght(task, point,
+                            AIR_TRUE, AIR_TRUE,
                             AIR_FALSE, stepMax, iterMax, &failLine)) {
         biffAddf(PULL, "%s: line trouble", me);
         return 1;
@@ -629,9 +638,19 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     } else if (wantSurf) {
       ELL_4V_COPY(point->pos, posSurf);
       *constrFailP = failSurf;
-    } else {
+    } else if (wantLine) {
       ELL_4V_COPY(point->pos, posLine);
       *constrFailP = failLine;
+    } else {
+      int failPoint;
+      /* want neither line nor surface, just the point minima */
+      if (constraintSatHght(task, point,
+                            AIR_FALSE, AIR_FALSE,
+                            AIR_FALSE, stepMax, iterMax, &failPoint)) {
+        biffAddf(PULL, "%s: point trouble", me);
+        return 1;
+      }
+      *constrFailP = failPoint;
     }
 
     break;
@@ -668,6 +687,9 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
   switch (task->pctx->constraint) {
   case pullInfoHeight:
     creaseProj(task, point,
+               (task->pctx->ispec[pullInfoTangent1]
+                ? AIR_TRUE
+                : AIR_FALSE),
                (task->pctx->ispec[pullInfoTangent2]
                 ? AIR_TRUE
                 : AIR_FALSE),
@@ -697,6 +719,7 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 
 /*
 ** returns the *dimension* (not codimension) of the constraint manifold:
+** 0.0 for points
 ** 1.0 for lines
 ** 2.0 for surfaces
 ** 1.5 for inbetween, to represent the weirdness between line/surf
@@ -727,8 +750,10 @@ _pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
       ret = 1.5;
     } else if (wantSurf) {
       ret = 2.0;
-    } else {
+    } else if (wantLine) {
       ret = 1.0;
+    } else {
+      ret = 0.0;
     }
     break;
   default:

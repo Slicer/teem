@@ -270,6 +270,11 @@ _pullContextCheck(pullContext *pctx) {
                airEnumStr(pullInfo, pullInfoTangent2));
       return 1;
     }
+    if (pctx->flag.allowCodimension3Constraints) {
+      biffAddf(PULL, "%s: can't use %s while allowing codim-3 constr",
+               me, airEnumStr(pullInfo, pullInfoTangentMode));
+      return 1;
+    }
   }
   if (pctx->ispec[pullInfoHeight]) {
     if (!( pctx->ispec[pullInfoHeightGradient] )) {
@@ -286,10 +291,14 @@ _pullContextCheck(pullContext *pctx) {
         return 1;
       }
       if (!pctx->ispec[pullInfoTangent1]) {
-        biffAddf(PULL, "%s: want constrained %s but need at least %s set", me,
-                 airEnumStr(pullInfo, pullInfoHeight),
-                 airEnumStr(pullInfo, pullInfoTangent1));
-        return 1;
+        if (!pctx->flag.allowCodimension3Constraints) {
+          biffAddf(PULL, "%s: want constrained %s but need at least %s set"
+                   " (maybe enable pullFlagAllowCodimension3Constraints?)",
+                   me,
+                   airEnumStr(pullInfo, pullInfoHeight),
+                   airEnumStr(pullInfo, pullInfoTangent1));
+          return 1;
+        }
       }
     }
   }

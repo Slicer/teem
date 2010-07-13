@@ -323,9 +323,11 @@ _pullInfoSetup(pullContext *pctx) {
       pctx->constraintDim = 1.5;
     } else {
       pctx->constraintDim = _pullConstraintDim(pctx, NULL, NULL);
-      if (!pctx->constraintDim) {
-        biffAddf(PULL, "%s: got constr dim 0.0", me);
-        return 1;
+      if (!pctx->flag.allowCodimension3Constraints) {
+        if (!pctx->constraintDim) {
+          biffAddf(PULL, "%s: got constr dim 0.0", me);
+          return 1;
+        }
       }
     }
     if (pctx->haveScale) {

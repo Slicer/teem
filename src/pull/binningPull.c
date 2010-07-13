@@ -314,7 +314,7 @@ _pullBinSetup(pullContext *pctx) {
     return 1;
   }
   if (pctx->verbose) {
-    printf("%s: trying to allocate binNum = %u ... \n", me, pctx->binNum);
+    printf("%s: trying to allocate %u bins ... \n", me, pctx->binNum);
   }
   pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
   if (!( pctx->bin )) {
@@ -322,12 +322,18 @@ _pullBinSetup(pullContext *pctx) {
     return 1;
   }
   if (pctx->verbose) {
-    printf("%s: done.\n", me);
+    printf("%s: done allocating. Initializing ... \n", me);
   }
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii, _PULL_BIN_INCR);
   }
+  if (pctx->verbose) {
+    printf("%s: done initializing; Setting neighbors ... \n", me);
+  }
   pullBinsAllNeighborSet(pctx);
+  if (pctx->verbose) {
+    printf("%s: done setting neighbors.\n", me);
+  }
   return 0;
 }
 

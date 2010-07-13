@@ -692,6 +692,10 @@ enum {
   /* no binning: all particles can potentially interact (for debugging) */
   pullFlagBinSingle,
 
+  /* whether to allow codimension-3 (point) constraint manifolds.
+     Typical uses of constraints are for extracting lines and surfaces */
+  pullFlagAllowCodimension3Constraints,
+
   pullFlagLast
 };
 
@@ -705,7 +709,8 @@ typedef struct {
     constraintBeforeSeedThresh,
     popCntlEnoughTest,
     noAdd,
-    binSingle;
+    binSingle,
+    allowCodimension3Constraints;
 } pullFlag;
 
 /*
@@ -721,8 +726,8 @@ typedef struct pullContext_t {
                                       the pullInit*Set() functions */
   pullIterParm iterParm;           /* parms about iterations and periods, set 
                                       with pullIterParmSet() */
-  pullSysParm sysParm;             /* continuous parameters for system, set
-                                      with pullSysParmSet() */
+  pullSysParm sysParm;             /* continuous parameters for system,
+                                      set with pullSysParmSet() */
   pullFlag flag;                   /* all flags, set with pullFlagSet() */
   int verbose;                     /* verbosity level, set with 
                                       pullVerboseSet() */

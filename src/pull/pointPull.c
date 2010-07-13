@@ -853,6 +853,11 @@ _pullPointSetup(pullContext *pctx) {
      control, and we can't always guarantee that constraint manifolds
      will be well-sampled (with respect to pctx->radiusSpace) to start
      with */
+  
+  if (pctx->verbose) {
+    printf("%s: beginning ... ", me);
+    fflush(stdout);
+  }
   mop = airMopNew();
   switch (pctx->initParm.method) {
   case pullInitMethodGivenPos:
@@ -1062,6 +1067,10 @@ _pullPointSetup(pullContext *pctx) {
     }
   }
 
+  if (pctx->verbose) {
+    printf("%s: all done. ", me);
+    fflush(stdout);
+  }
   airMopOkay(mop);
   return 0;
 }
