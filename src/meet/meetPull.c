@@ -266,22 +266,48 @@ meetHestPullVol = &_meetHestPullVol;
 int
 meetPullVolLeechable(const meetPullVol *lchr,
                      const meetPullVol *orig) {
-  int can;
+  static const char me[]="meetPullVolLeechable";
+  int can, verbose;
 
+  verbose = 0;
   can = !!strcmp(orig->fileName, "-");  /* can, if not reading from stdin */
+  if (verbose && !can) {
+    fprintf(stderr, "%s: no: from stdin\n", me);
+  }
   can &= !strcmp(orig->fileName, lchr->fileName);  /* come from same file */
+  if (verbose && !can) {
+    fprintf(stderr, "%s: no: not from same file\n", me);
+  }
   can &= (orig->kind == lchr->kind);               /* same kind */
+  if (verbose && !can) {
+    fprintf(stderr, "%s: no: not same kind\n", me);
+  }
   can &= (orig->kind != pullValGageKind);          /* but not pull's "kind" */
+  if (verbose && !can) {
+    fprintf(stderr, "%s: no: not from pull's \"kind\"\n", me);
+  }
   /* need to have different volname */
   can &= (orig->numSS == lchr->numSS);             /* same scale space */
+  if (verbose && !can) {
+    fprintf(stderr, "%s: no: not same scale space\n", me);
+  }
   if (lchr->numSS) {
     /* DO allow difference in derivNormSS (the main reason for leeching) */
     /* same SS sampling strategy */
     can &= (orig->uniformSS == lchr->uniformSS);
+    if (verbose && !can) {
+      fprintf(stderr, "%s: no: not same uniformSS\n", me);
+    }
     can &= (orig->optimSS == lchr->optimSS);
+    if (verbose && !can) {
+      fprintf(stderr, "%s: no: not same optimSS\n", me);
+    }
     /* same SS range */
     can &= (orig->rangeSS[0] == lchr->rangeSS[0]);
     can &= (orig->rangeSS[1] == lchr->rangeSS[1]);
+    if (verbose && !can) {
+      fprintf(stderr, "%s: no: not same rangeSS\n", me);
+    }
   }
   return can;
 }
@@ -618,7 +644,7 @@ meetPullInfoAddMulti(pullContext *pctx,
       airMopError(mop); return 1;
     }
     if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
-      fprintf(stderr, "%s: can't parse %s as item of %s kind (minf[%u])\n",
+      biffAddf(MEET, "%s: can't parse %s as item of %s kind (minf[%u])\n",
               me, minf[ii]->itemStr, vol->kind->name, ii);
       airMopError(mop); return 1;
     }
