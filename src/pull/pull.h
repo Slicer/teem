@@ -129,19 +129,6 @@ enum {
 #define PULL_INFO_MAX            22
 
 /*
-******** pullVal* enum
-**
-** the item values for the pseudo gageKind pullVal
-*/
-enum {
-  pullValUnknown,             /* 0 */
-  pullValSlice,               /* 1: position along slice axis */
-  pullValSliceGradVec,        /* 2: gradient of slice pos == slice normal */
-  pullValLast
-};
-#define PULL_VAL_ITEM_MAX        2
-
-/*
 ** the various properties of particles in the system 
 **
 ** consider adding: dot between normalized directions of force and movmt 
@@ -171,6 +158,7 @@ enum {
   pullPropNeighTanCovar,      /* 13: [6] covariance of "tangents" of neighbors,
                                  (e.g. pullInfoTangent1 for crease surfaces)
                                  including point itself */
+  pullPropScaleStability,     /* 14: [1] some measure of NeighCovar */
   pullPropLast
 };
 
@@ -263,14 +251,42 @@ enum {
   pullCondLast
 };
 
+/*
+** the places that "info" can be learned from.  Originally this was
+** strictly from gage and no where else; it can be handy to allow it
+** to originate from different places as well, but still flow through
+** the channels now organized around pullInfo
+*/
+enum {
+  pullSourceUnknown,  /* 0 */
+  pullSourceGage,     /* 1: measured from gage */
+  pullSourceProp,     /* 2: copied from a pullProp */
+  pullSourceLast
+}; 
+#define PULL_SOURCE_MAX  2
+
 /* 
-** how the gageItem for a pullInfo is specified
+** Defines how par-particle information can be learned.  This is
+** typically via measurements in the image by gage, but other sources
+** are possible (as indicated by the source field).
+**
+** There is a basic design decision in whether to make pullInfos the
+** most general representation of information (including referring to
+** pullProps), or, whether pullProps should be the general thing,
+** which can then refer to some pullInfo.  In the long run, these
+** should probably be merged.  In the short term, there is better
+** infrastructure for representing and parsing pullInfos, so that has
+** been leveraged to include other things as well.
 */
 typedef struct pullInfoSpec_t {
   /* ------ INPUT ------ */
-  int info;                     /* from the pullInfo* enum */
+  int info,                     /* from the pullInfo* enum: what is the
+                                   "info" that this infospec defines */
+    source;                     /* from the pullSource* enum: where does
+                                   this information come from */
   char *volName;                /* volume name */
-  int item;                     /* which item */
+  int item,                     /* which gage item (for pullSourceGage) */
+    prop;                       /* which pull property (for pullSourceProp) */
   double scale,                 /* scaling factor (including sign) */
     zero;                       /* for height and inside: where is zero,
                                    for seedThresh, threshold value */
@@ -279,7 +295,7 @@ typedef struct pullInfoSpec_t {
                                    per-iteration, not merely a contribution 
                                    to the point's energy */
   /* ------ INTERNAL ------ */
-  unsigned int volIdx;          /* which volume */
+  unsigned int volIdx;          /* which volume (for pullSourceGage) */
 } pullInfoSpec;
 
 /*
@@ -299,7 +315,8 @@ typedef struct pullPoint_t {
     neighMode;                /* some average of mode of nearby points */
   float neighCovar[10],       /* unique coeffs in 4x4 covariance matrix of
                                  neighbors with whom this point interacted */
-    neighTanCovar[6];         /* covariance of "tangent" info of neighbors */
+    neighTanCovar[6],         /* covariance of "tangent" info of neighbors */
+    stability;                /* the scalar stability measure */
   unsigned int neighInterNum, /* number of particles with which I had some
 				 non-zero interaction on last iteration */
     stuckIterNum;             /* how many iterations I've been stuck */
@@ -407,10 +424,6 @@ typedef struct pullTask_t {
                                    tasks assign themselves bins to do work */
   pullVolume
     *vol[PULL_VOLUME_MAXNUM];   /* volumes copied from parent */
-  double *pullValAnswer;        /* buffer for holding answers to all pullVal
-                                   items (like gagePerVolume->answer) */
-  double **pullValDirectAnswer; /* convenience pointers into pullValAnswer
-                                   (like gagePerVolume->directAnswer) */
   const double
     *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
                                    pointing into per-task per-volume gctxs
@@ -766,12 +779,6 @@ typedef struct pullContext_t {
                                       and phi_s along r, for use with 
                                       pullInterTypeAdditive */
 
-  double sliceNormal[3];           /* until this is set per-volume as it
-                                      should be, it lives here. Zero-length
-                                      normal means "not set". NOTE: Since this
-                                      is currently a hack, there isn't a 
-                                      pull*Set() function for it */
-
   /* INTERNAL -------------------------- */
 
   double bboxMin[4], bboxMax[4];   /* scale-space bounding box of all volumes:
@@ -824,8 +831,6 @@ typedef struct pullContext_t {
     binNum,                        /* total # bins in grid */
     binNextIdx;                    /* next bin of points to be processed,
                                       we're done when binNextIdx == binNum */
-  double _sliceNormal[3];          /* normalized version of sliceNormal.
-                                      Still, zero-length means "not set". */
   unsigned int *tmpPointPerm;      /* storing points during rebinning */
   pullPoint **tmpPointPtr;
   unsigned int tmpPointNum;
@@ -939,12 +944,13 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
 PULL_EXPORT const pullVolume *pullVolumeLookup(const pullContext *pctx,
                                                const char *volName);
 
-/* kindPull.c */
-PULL_EXPORT const airEnum *const pullVal;
-PULL_EXPORT gageKind *pullValGageKind;
+/* enumsPull.c */
+PULL_EXPORT const airEnum *const pullInfo;
+PULL_EXPORT const airEnum *const pullSource;
+PULL_EXPORT const airEnum *const pullProp;
+PULL_EXPORT const airEnum *const pullProcessMode;
 
 /* infoPull.c */
-PULL_EXPORT const airEnum *const pullInfo;
 PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
@@ -975,7 +981,6 @@ PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
 PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 
 /* actionPull.c */
-PULL_EXPORT const airEnum *const pullProcessMode;
 PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
                                double xx, double yy, double zz,
                                unsigned int res);
