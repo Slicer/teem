@@ -108,6 +108,8 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullEnergyType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInfo;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullSource;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullProp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
   ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
   airArrayNix(arr);
