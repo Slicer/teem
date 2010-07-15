@@ -158,9 +158,10 @@ enum {
   pullPropNeighTanCovar,      /* 13: [6] covariance of "tangents" of neighbors,
                                  (e.g. pullInfoTangent1 for crease surfaces)
                                  including point itself */
-  pullPropScaleStability,     /* 14: [1] some measure of NeighCovar */
+  pullPropStability,          /* 14: [1] some measure of NeighCovar */
   pullPropLast
 };
+#define PULL_PROP_MAX            14
 
 /*
 ** the components of a point's status that are set as a bitflag 
@@ -951,10 +952,12 @@ PULL_EXPORT const airEnum *const pullProp;
 PULL_EXPORT const airEnum *const pullProcessMode;
 
 /* infoPull.c */
-PULL_EXPORT unsigned int pullInfoAnswerLen(int info);
+PULL_EXPORT unsigned int pullPropLen(int prop);
+PULL_EXPORT unsigned int pullInfoLen(int info);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec);
+PULL_EXPORT int pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);

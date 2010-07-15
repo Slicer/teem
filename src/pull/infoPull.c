@@ -23,127 +23,10 @@
 #include "pull.h"
 #include "privatePull.h"
 
-const char *
-_pullInfoStr[] = {
-  "(unknown pullInfo)",
-  "ten",
-  "teni",
-  "hess",
-  "in",
-  "ingradvec",
-  "hght",
-  "hghtgradvec",
-  "hghthessian",
-  "hghtlapl",
-  "seedprethresh",
-  "seedthresh",
-  "livethresh",
-  "livethresh2",
-  "livethresh3",
-  "tan1",
-  "tan2",
-  "tanmode",
-  "isoval",
-  "isogradvec",
-  "isohessian",
-  "strength",
-  "quality"
-};
-
-const int
-_pullInfoVal[] = {
-  pullInfoUnknown,
-  pullInfoTensor,             /* [7] tensor here */
-  pullInfoTensorInverse,      /* [7] inverse of tensor here */
-  pullInfoHessian,            /* [9] hessian used for force distortion */
-  pullInfoInside,             /* [1] containment scalar */
-  pullInfoInsideGradient,     /* [3] containment vector */
-  pullInfoHeight,             /* [1] for gravity */
-  pullInfoHeightGradient,     /* [3] for gravity */
-  pullInfoHeightHessian,      /* [9] for gravity */
-  pullInfoHeightLaplacian,    /* [1]  */
-  pullInfoSeedPreThresh,      /* [1] */
-  pullInfoSeedThresh,         /* [1] scalar for thresholding seeding */
-  pullInfoLiveThresh,         /* [1] */ 
-  pullInfoLiveThresh2,        /* [1] */ 
-  pullInfoLiveThresh3,        /* [1] */ 
-  pullInfoTangent1,           /* [3] first tangent to constraint surf */
-  pullInfoTangent2,           /* [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* [1] for morphing between co-dim 1 and 2 */
-  pullInfoIsovalue,           /* [1] */
-  pullInfoIsovalueGradient,   /* [3] */
-  pullInfoIsovalueHessian,    /* [9] */
-  pullInfoStrength,           /* [1] */
-  pullInfoQuality             /* [1] */
-};
-
-const char *
-_pullInfoStrEqv[] = {
-  "ten",
-  "teni",
-  "hess",
-  "in",
-  "ingradvec",
-  "hght", "h",
-  "hghtgradvec", "hgvec",
-  "hghthessian", "hhess",
-  "hghtlapl", "hlapl",
-  "seedprethresh", "spthr",
-  "seedthresh", "sthr",
-  "livethresh", "lthr",
-  "livethresh2", "lthr2",
-  "livethresh3", "lthr3",
-  "tan1",
-  "tan2",
-  "tanmode", "tmode",
-  "isoval", "iso",
-  "isogradvec", "isogvec",
-  "isohessian", "isohess",
-  "strength", "strn",
-  "quality", "qual",
-  ""
-};
-
-const int
-_pullInfoValEqv[] = {
-  pullInfoTensor,
-  pullInfoTensorInverse,
-  pullInfoHessian,
-  pullInfoInside,
-  pullInfoInsideGradient,
-  pullInfoHeight, pullInfoHeight,
-  pullInfoHeightGradient, pullInfoHeightGradient,
-  pullInfoHeightHessian, pullInfoHeightHessian,
-  pullInfoHeightLaplacian, pullInfoHeightLaplacian,
-  pullInfoSeedPreThresh, pullInfoSeedPreThresh,
-  pullInfoSeedThresh, pullInfoSeedThresh,
-  pullInfoLiveThresh, pullInfoLiveThresh,
-  pullInfoLiveThresh2, pullInfoLiveThresh2,
-  pullInfoLiveThresh3, pullInfoLiveThresh3,
-  pullInfoTangent1,
-  pullInfoTangent2,
-  pullInfoTangentMode, pullInfoTangentMode,
-  pullInfoIsovalue, pullInfoIsovalue,
-  pullInfoIsovalueGradient, pullInfoIsovalueGradient,
-  pullInfoIsovalueHessian, pullInfoIsovalueHessian,
-  pullInfoStrength, pullInfoStrength,
-  pullInfoQuality, pullInfoQuality
-};
-
-const airEnum
-_pullInfo = {
-  "pullInfo",
-  PULL_INFO_MAX,
-  _pullInfoStr, _pullInfoVal,
-  NULL,
-  _pullInfoStrEqv, _pullInfoValEqv,
-  AIR_FALSE
-};
-const airEnum *const
-pullInfo = &_pullInfo;
+/* --------------------------------------------- */
 
 unsigned int
-_pullInfoAnswerLen[PULL_INFO_MAX+1] = {
+_pullInfoLen[PULL_INFO_MAX+1] = {
   0, /* pullInfoUnknown */
   7, /* pullInfoTensor */
   7, /* pullInfoTensorInverse */
@@ -170,13 +53,49 @@ _pullInfoAnswerLen[PULL_INFO_MAX+1] = {
 }; 
 
 unsigned int
-pullInfoAnswerLen(int info) {
+pullInfoLen(int info) {
   unsigned int ret;
   
   if (!airEnumValCheck(pullInfo, info)) {
-    ret = _pullInfoAnswerLen[info];
+    ret = _pullInfoLen[info];
   } else {
     ret = 0;
+  }
+  return ret;
+}
+
+unsigned int
+pullPropLen(int prop) {
+  unsigned int ret;
+  
+  switch (prop) {
+  case pullPropIdtag:
+  case pullPropIdCC:
+  case pullPropEnergy:
+  case pullPropStepEnergy:
+  case pullPropStepConstr:
+  case pullPropStuck:
+  case pullPropNeighDistMean:
+  case pullPropScale:
+  case pullPropStability:
+    ret = 1;
+    break;
+  case pullPropPosition:
+  case pullPropForce:
+    ret = 4;
+    break;
+  case pullPropNeighCovar:
+    ret = 10;
+    break;
+  case pullPropNeighCovar7Ten:
+    ret = 7;
+    break;
+  case pullPropNeighTanCovar:
+    ret = 6;
+    break;
+  default: 
+    ret = 0;
+    break;
   }
   return ret;
 }
@@ -188,8 +107,10 @@ pullInfoSpecNew(void) {
   ispec = AIR_CAST(pullInfoSpec *, calloc(1, sizeof(pullInfoSpec)));
   if (ispec) {
     ispec->info = pullInfoUnknown;
+    ispec->source = pullSourceUnknown;
     ispec->volName = NULL;
-    ispec->item = 0;
+    ispec->item = 0;  /* should be the unknown item for any kind */
+    ispec->prop = pullPropUnknown;
     ispec->scale = AIR_NAN;
     ispec->zero = AIR_NAN;
     ispec->constraint = AIR_FALSE;
@@ -223,6 +144,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
              ispec->info, pullInfo->name);
     return 1;
   }
+  if (airEnumValCheck(pullSource, ispec->source)) {
+    biffAddf(PULL, "%s: %d not a valid %s value", me,
+             ispec->source, pullSource->name);
+    return 1;
+  }
   if (pctx->ispec[ispec->info]) {
     biffAddf(PULL, "%s: already set info %s (%d)", me, 
              airEnumStr(pullInfo, ispec->info), ispec->info);
@@ -235,24 +161,55 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
       return 1;
     }
   }
-  vi = _pullVolumeIndex(pctx, ispec->volName);
-  if (UINT_MAX == vi) {
-    biffAddf(PULL, "%s(%s): no volume has name \"%s\"", me,
-             airEnumStr(pullInfo, ispec->info), ispec->volName);
-    return 1;
-  }
-  kind = pctx->vol[vi]->kind;
-  if (airEnumValCheck(kind->enm, ispec->item)) {
-    biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
-             airEnumStr(pullInfo, ispec->info), ispec->item, kind->name);
-    return 1;
-  }
-  needLen = pullInfoAnswerLen(ispec->info);
-  haveLen = kind->table[ispec->item].answerLength;
-  if (needLen != haveLen) {
-    biffAddf(PULL, "%s(%s): needs len %u, but \"%s\" item \"%s\" has len %u",
-             me, airEnumStr(pullInfo, ispec->info), needLen,
-             kind->name, airEnumStr(kind->enm, ispec->item), haveLen);
+  needLen = pullInfoLen(ispec->info);
+  if (pullSourceGage == ispec->source) {
+    vi = _pullVolumeIndex(pctx, ispec->volName);
+    if (UINT_MAX == vi) {
+      biffAddf(PULL, "%s(%s): no volume has name \"%s\"", me,
+               airEnumStr(pullInfo, ispec->info), ispec->volName);
+      return 1;
+    }
+    kind = pctx->vol[vi]->kind;
+    if (airEnumValCheck(kind->enm, ispec->item)) {
+      biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
+               airEnumStr(pullInfo, ispec->info), ispec->item, kind->name);
+      return 1;
+    }
+    haveLen = kind->table[ispec->item].answerLength;
+    if (needLen != haveLen) {
+      biffAddf(PULL, "%s(%s): need len %u, but \"%s\" item \"%s\" has len %u",
+               me, airEnumStr(pullInfo, ispec->info), needLen,
+               kind->name, airEnumStr(kind->enm, ispec->item), haveLen);
+      return 1;
+    }
+    /* very tricky: seedOnly is initialized to true for everything */
+    if (pullInfoSeedThresh != ispec->info
+        && pullInfoSeedPreThresh != ispec->info) {
+      /* if the info is neither seedthreh nor seedprethresh, then the
+         volume will have to be probed after the first iter, so turn
+         off seedOnly */
+      pctx->vol[vi]->seedOnly = AIR_FALSE;
+    }
+    /* now set item in gage query */
+    if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl,
+                        ispec->item)) {
+      biffMovef(PULL, GAGE, "%s: trouble adding item %u to vol %u", me,
+                ispec->item, vi);
+      return 1;
+    }
+    ispec->volIdx = vi;
+  } else if (pullSourceProp == ispec->source) {
+    haveLen = pullPropLen(ispec->prop);
+    if (needLen != haveLen) {
+      biffAddf(PULL, "%s: need len %u, but \"%s\" \"%s\" has len %u",
+               me, needLen, pullProp->name, 
+               airEnumStr(pullProp, ispec->prop), haveLen);
+      return 1;
+    }
+    
+  } else {
+    biffAddf(PULL, "%s: sorry, source %s unsupported", me,
+             airEnumStr(pullSource, ispec->source));
     return 1;
   }
   if (haveLen > 9) {
@@ -261,23 +218,6 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     return 1;
   }
 
-  /* very tricky: seedOnly is initialized to true for everything */
-  if (pullInfoSeedThresh != ispec->info
-      && pullInfoSeedPreThresh != ispec->info) {
-    /* if the info is neither seedthreh nor seedprethresh, then the
-       volume will have to be probed after the first iter, so turn
-       off seedOnly */
-    pctx->vol[vi]->seedOnly = AIR_FALSE;
-  }
-  
-  /* now set item in gage query */
-  if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl, ispec->item)) {
-    biffMovef(PULL, GAGE, "%s: trouble adding item %u to vol %u", me,
-              ispec->item, vi);
-    return 1;
-  }
-
-  ispec->volIdx = vi;
   pctx->ispec[ispec->info] = ispec;
   
   return 0;
@@ -306,8 +246,8 @@ _pullInfoSetup(pullContext *pctx) {
         printf("!%s: infoIdx[%u] (%s) = %u\n", me,
                ii, airEnumStr(pullInfo, ii), pctx->infoIdx[ii]);
       }
-      pctx->infoTotalLen += pullInfoAnswerLen(ii);
-      if (!pullInfoAnswerLen(ii)) {
+      pctx->infoTotalLen += pullInfoLen(ii);
+      if (!pullInfoLen(ii)) {
         biffAddf(PULL, "%s: got zero-length answer for ispec[%u]", me, ii);
         return 1;
       }
@@ -422,7 +362,7 @@ _infoCopy9(double *dst, const double *src) {
   dst[8] = src[8];
 }
 
-void (*_pullInfoAnswerCopy[10])(double *, const double *) = {
+void (*_pullInfoCopy[10])(double *, const double *) = {
   NULL,
   _infoCopy1,
   _infoCopy2,
@@ -435,3 +375,45 @@ void (*_pullInfoAnswerCopy[10])(double *, const double *) = {
   _infoCopy9
 };
 
+int
+pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
+  static const char me[]="pullInfoGet";
+  size_t size[2];
+  unsigned int dim, pointNum, pointIdx, binIdx, outIdx, alen, aidx;
+  double *out_d;
+  pullBin *bin;
+  pullPoint *point;
+
+  if (airEnumValCheck(pullInfo, info)) {
+    biffAddf(PULL, "%s: info %d not valid", me, info);
+    return 1;
+  }
+  pointNum = pullPointNumber(pctx);
+  alen = pullInfoLen(info);
+  aidx = pctx->infoIdx[info];
+  if (1 == alen) {
+    dim = 1;
+    size[0] = pointNum;
+  } else {
+    dim = 2;
+    size[0] = alen;
+    size[1] = pointNum;
+  }
+  if (nrrdMaybeAlloc_nva(ninfo, nrrdTypeDouble, dim, size)) {
+    biffMovef(PULL, NRRD, "%s: trouble allocating output", me);
+    return 1;
+  }
+  out_d = AIR_CAST(double *, ninfo->data);
+
+  outIdx = 0;
+  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    bin = pctx->bin + binIdx;
+    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      point = bin->point[pointIdx];
+      _pullInfoCopy[alen](out_d + outIdx, point->info + aidx);
+      outIdx += alen;
+    }
+  }
+  
+  return 0;
+}

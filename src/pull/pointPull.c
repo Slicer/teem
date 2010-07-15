@@ -66,6 +66,7 @@ pullPointNew(pullContext *pctx) {
   pnt->neighDistMean = 0;
   pnt->neighMode = AIR_NAN;
   ELL_10V_ZERO_SET(pnt->neighCovar);
+  pnt->stability = 0;
   ELL_6V_ZERO_SET(pnt->neighTanCovar);
   pnt->neighInterNum = 0;
   pnt->stuckIterNum = 0;
@@ -313,23 +314,6 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   return scl;
 }
 
-void
-_pullValProbe(pullTask *task, pullVolume *vol,
-              double xx, double yy, double zz, double ss) {
-  double pos[4];
-  
-  ELL_4V_SET(pos, xx, yy, zz, ss);
-  if (GAGE_QUERY_ITEM_TEST(vol->pullValQuery, pullValSlice)) {
-    task->pullValDirectAnswer[pullValSlice][0] =
-      ELL_3V_DOT(pos, task->pctx->_sliceNormal);
-  }
-  if (GAGE_QUERY_ITEM_TEST(vol->pullValQuery, pullValSliceGradVec)) {
-    ELL_3V_COPY(task->pullValDirectAnswer[pullValSliceGradVec],
-                task->pctx->_sliceNormal);
-  }
-  return;
-}
-
 int
 _pullProbe(pullTask *task, pullPoint *point) {
   static const char me[]="_pullProbe";
@@ -380,52 +364,44 @@ _pullProbe(pullTask *task, pullPoint *point) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
       continue;
     }
-    if (pullValGageKind == vol->kind) {
-      /* we don't use gage for this, its a pull "kind" */
-      _pullValProbe(task, task->vol[ii],
-                    point->pos[0], point->pos[1], point->pos[2],
-                    task->vol[ii]->scaleNum ? point->pos[3] : 0.0);
-      continue;
-    } else { /* pullValGageKind != vol->kind */
-      /* HEY should task->vol[ii]->scaleNum be the using-scale-space test? */
-      if (!task->vol[ii]->ninScale) {
-        /*
-          if (81 == point->idtag) {
-          printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
-          point->pos[0], point->pos[1], point->pos[2]);
-          }
-        */
-        gret = gageProbeSpace(task->vol[ii]->gctx,
-                              point->pos[0], point->pos[1], point->pos[2],
-                              AIR_FALSE /* index-space */,
-                              AIR_TRUE /* clamp */);
-      } else {
-        if (task->pctx->verbose > 3) {
-          printf("%s: vol[%u] has scale (%u)-> "
-                 "gageStackProbeSpace(%p) (v %d)\n",
-                 me, ii, task->vol[ii]->scaleNum,
-                 task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
-        }
-        /*
+    /* HEY should task->vol[ii]->scaleNum be the using-scale-space test? */
+    if (!task->vol[ii]->ninScale) {
+      /*
         if (81 == point->idtag) {
-          printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
-                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+        printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
+        point->pos[0], point->pos[1], point->pos[2]);
         }
-        */
-        gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                   point->pos[0], point->pos[1],
-                                   point->pos[2], point->pos[3],
-                                   AIR_FALSE /* index-space */,
-                                   AIR_TRUE /* clamp */);
+      */
+      gret = gageProbeSpace(task->vol[ii]->gctx,
+                            point->pos[0], point->pos[1], point->pos[2],
+                            AIR_FALSE /* index-space */,
+                            AIR_TRUE /* clamp */);
+    } else {
+      if (task->pctx->verbose > 3) {
+        printf("%s: vol[%u] has scale (%u)-> "
+               "gageStackProbeSpace(%p) (v %d)\n",
+               me, ii, task->vol[ii]->scaleNum,
+               task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
       }
-      if (gret) {
-        biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
-                 ii, task->pctx->volNum,
-                 task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
-        return 1;
-      }
-      edge |= !!task->vol[ii]->gctx->edgeFrac;
-    } /* else pullValGageKind != vol->kind */
+      /*
+        if (81 == point->idtag) {
+        printf("%s: probing vol[%u] @ %g %g %g %g\n", me, ii,
+        point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+        }
+      */
+      gret = gageStackProbeSpace(task->vol[ii]->gctx,
+                                 point->pos[0], point->pos[1],
+                                 point->pos[2], point->pos[3],
+                                 AIR_FALSE /* index-space */,
+                                 AIR_TRUE /* clamp */);
+    }
+    if (gret) {
+      biffAddf(PULL, "%s: probe failed on vol %u/%u: (%d) %s", me,
+               ii, task->pctx->volNum,
+               task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
+      return 1;
+    }
+    edge |= !!task->vol[ii]->gctx->edgeFrac;
   }
   if (edge) {
     point->status |= PULL_STATUS_EDGE_BIT;
@@ -438,33 +414,98 @@ _pullProbe(pullTask *task, pullPoint *point) {
      but at least the compiler can unroll it... */
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     unsigned int alen, aidx;
-    if (task->ans[ii]) {
-      alen = _pullInfoAnswerLen[ii];
+    const pullInfoSpec *ispec;
+    ispec = task->pctx->ispec[ii];
+    if (ispec) {
+      alen = _pullInfoLen[ii];
       aidx = task->pctx->infoIdx[ii];
-      _pullInfoAnswerCopy[alen](point->info + aidx, task->ans[ii]);
-      /*
-      if (81 == point->idtag) {
-        pullVolume *vol;
-        pullInfoSpec *isp;
-        isp = task->pctx->ispec[ii];
-        vol = task->pctx->vol[isp->volIdx];
-        if (1 == alen) {
-          printf("!%s: info[%u] %s: %s(\"%s\") = %g\n", me,
-                 ii, airEnumStr(pullInfo, ii),
-                 airEnumStr(vol->kind->enm, isp->item),
-                 vol->name, task->ans[ii][0]);
-        } else {
-          unsigned int vali;
-          printf("!%s: info[%u] %s: %s(\"%s\") =\n", me,
-                 ii, airEnumStr(pullInfo, ii),
-                 airEnumStr(vol->kind->enm, isp->item), vol->name);
-          for (vali=0; vali<alen; vali++) {
-            printf("!%s:    [%u]  %g\n", me, vali, 
-                   task->ans[ii][vali]);
+      if (pullSourceGage == ispec->source) {
+        _pullInfoCopy[alen](point->info + aidx, task->ans[ii]);
+        /*
+        if (81 == point->idtag) {
+          pullVolume *vol;
+          pullInfoSpec *isp;
+          isp = task->pctx->ispec[ii];
+          vol = task->pctx->vol[isp->volIdx];
+          if (1 == alen) {
+            printf("!%s: info[%u] %s: %s(\"%s\") = %g\n", me,
+                   ii, airEnumStr(pullInfo, ii),
+                   airEnumStr(vol->kind->enm, isp->item),
+                   vol->name, task->ans[ii][0]);
+          } else {
+            unsigned int vali;
+            printf("!%s: info[%u] %s: %s(\"%s\") =\n", me,
+                   ii, airEnumStr(pullInfo, ii),
+                   airEnumStr(vol->kind->enm, isp->item), vol->name);
+            for (vali=0; vali<alen; vali++) {
+              printf("!%s:    [%u]  %g\n", me, vali, 
+                     task->ans[ii][vali]);
+            }
           }
         }
+        */
+      } else if (pullSourceProp == ispec->source) {
+        switch (ispec->prop) {
+        case pullPropIdtag:
+          point->info[aidx] = point->idtag;
+          break;
+        case pullPropIdCC:
+          point->info[aidx] = point->idCC;
+          break;
+        case pullPropEnergy:
+          point->info[aidx] = point->energy;
+          break;
+        case pullPropStepEnergy:
+          point->info[aidx] = point->stepEnergy;
+          break;
+        case pullPropStepConstr:
+          point->info[aidx] = point->stepConstr;
+          break;
+        case pullPropStuck:
+          point->info[aidx] = ((point->status & PULL_STATUS_STUCK_BIT)
+                               ? point->stuckIterNum
+                               : 0);
+          break;
+        case pullPropPosition:
+          ELL_4V_COPY(point->info + aidx, point->pos);
+          break;
+        case pullPropForce:
+          ELL_4V_COPY(point->info + aidx, point->force);
+          break;
+        case pullPropNeighDistMean:
+          point->info[aidx] = point->neighDistMean;
+          break;
+        case pullPropScale:
+          point->info[aidx] = point->pos[3];
+          break;
+        case pullPropNeighCovar:
+          ELL_10V_COPY(point->info + aidx, point->neighCovar);
+          break;
+        case pullPropNeighCovar7Ten:
+          TEN_T_SET(point->info + aidx, 1.0f,
+                    point->neighCovar[0],
+                    point->neighCovar[1],
+                    point->neighCovar[2],
+                    point->neighCovar[4],
+                    point->neighCovar[5],
+                    point->neighCovar[7]);
+          break;
+        case pullPropNeighTanCovar:
+          TEN_T_SET(point->info + aidx, 1.0f,
+                    point->neighTanCovar[0],
+                    point->neighTanCovar[1],
+                    point->neighTanCovar[2],
+                    point->neighTanCovar[3],
+                    point->neighTanCovar[4],
+                    point->neighTanCovar[5]);
+          break;
+        case pullPropStability:
+          point->info[aidx] = point->stability;
+          break;
+        default:
+          break;
+        }
       }
-      */
     }
   }
 

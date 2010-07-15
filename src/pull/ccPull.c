@@ -135,10 +135,10 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
                measrInfo, pullInfo->name);
       return 1;
     }
-    if (1 != pullInfoAnswerLen(measrInfo)) {
+    if (1 != pullInfoLen(measrInfo)) {
       biffAddf(PULL, "%s: measrInfo %s (%d) isn't a scalar (len %u)", me,
                airEnumStr(pullInfo, measrInfo), measrInfo,
-               pullInfoAnswerLen(measrInfo));
+               pullInfoLen(measrInfo));
       return 1;
     }
     if (!pctx->ispec[measrInfo]) {

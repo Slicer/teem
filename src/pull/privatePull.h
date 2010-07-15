@@ -103,8 +103,8 @@ extern unsigned int _pullVolumeIndex(const pullContext *pctx,
                                      const char *volName);
 
 /* infoPull.c */
-extern unsigned int _pullInfoAnswerLen[PULL_INFO_MAX+1];
-extern void (*_pullInfoAnswerCopy[10])(double *, const double *);
+extern unsigned int _pullInfoLen[PULL_INFO_MAX+1];
+extern void (*_pullInfoCopy[10])(double *, const double *);
 extern int _pullInfoSetup(pullContext *pctx);
 
 /* contextPull.c */

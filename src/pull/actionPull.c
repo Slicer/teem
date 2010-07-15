@@ -33,26 +33,6 @@ int _pullPraying = 0;
 ** how are force/energy along scale handled differently than in space?
 */
 
-const char *
-_pullProcessModeStr[PULL_PROCESS_MODE_MAX+1] = {
-  "(unknown_mode)",
-  "descent",
-  "nlearn",
-  "adding",
-  "nixing"
-};
-
-const airEnum
-_pullProcessMode = {
-  "process mode",
-  PULL_PROCESS_MODE_MAX,
-  _pullProcessModeStr,  NULL,
-  NULL, NULL, NULL,
-  AIR_FALSE
-};
-const airEnum *const
-pullProcessMode = &_pullProcessMode;
-
 static double
 _pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
   double diff[4];
@@ -332,6 +312,11 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
 ** if pullProcessModeNeighLearn == task->processMode:
 **   point->neighCovar
 **   point->neighTanCovar
+**
+**  0=0  1=1   2=2   3=3
+**  (4)  4=5   5=6   6=7
+**  (8)   (9)  7=10  8=11
+** (12)  (13)  (14)  9=15
 */
 double
 _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point, 
@@ -430,6 +415,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   point->neighMode = 0.0;
   if (pullProcessModeNeighLearn == task->processMode) {
     ELL_10V_ZERO_SET(point->neighCovar);
+    point->stability = 0;
     if (task->pctx->ispec[pullInfoTangent1]) {
       double *tng;
       float outer[9];
@@ -534,7 +520,13 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       }
     }
   }
-  
+
+#define CNORM(M)                                               \
+  sqrt(M[0]*M[0] + 2*M[1]*M[1] + 2*M[2]*M[2] + 2*M[3]*M[3]     \
+       + M[4]*M[4] + 2*M[5]*M[5] + 2*M[6]*M[6]                 \
+       + M[7]*M[7] + 2*M[8]*M[8]                               \
+       + M[9]*M[9])
+
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
     point->neighDistMean /= point->neighInterNum;
@@ -542,8 +534,12 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       point->neighMode /= modeWghtSum;
     }
     if (pullProcessModeNeighLearn == task->processMode) {
+      double cnorm;
       ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
                     point->neighCovar);
+      /* HEY: this assumes that we have codim-3 features! */
+      cnorm = CNORM(point->neighCovar);
+      point->stability = cnorm ? point->neighCovar[9] : 0;
       /* using 1 + # neigh because this includes tan1 of point itself */
       ELL_6V_SCALE(point->neighTanCovar, 1.0f/(1 + point->neighInterNum),
                    point->neighTanCovar);
@@ -556,6 +552,8 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     }
     /* point->neighCovar,neighTanCovar stay as initialized above */
   }
+
+#undef CNORM
 
   return energySum;
 }

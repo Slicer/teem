@@ -42,7 +42,6 @@ pullContextNew(void) {
   pctx->threadNum = 1;
   pctx->rngSeed = 42;
   pctx->progressBinMod = 50;
-  ELL_3V_SET(pctx->sliceNormal, 0.0, 0.0, 0.0);
   pctx->iter_cb = NULL;
   pctx->data_cb = NULL;
 
@@ -78,7 +77,6 @@ pullContextNew(void) {
   ELL_4V_SET(pctx->binsEdge, 0, 0, 0, 0);
   pctx->binNum = 0;
   pctx->binNextIdx = 0;
-  ELL_3V_SET(pctx->_sliceNormal, 0.0, 0.0, 0.0);
 
   pctx->tmpPointPerm = NULL;
   pctx->tmpPointPtr = NULL;
@@ -202,9 +200,15 @@ _pullContextCheck(pullContext *pctx) {
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       if (pctx->ispec[ii]->constraint) {
-        if (1 != pullInfoAnswerLen(ii)) {
+        if (1 != pullInfoLen(ii)) {
           biffAddf(PULL, "%s: can't use non-scalar (len %u) %s as constraint",
-                   me, pullInfoAnswerLen(ii), airEnumStr(pullInfo, ii));
+                   me, pullInfoLen(ii), airEnumStr(pullInfo, ii));
+          return 1;
+        }
+        if (pullSourceGage != pctx->ispec[ii]->source) {
+          biffAddf(PULL, "%s: sorry, constraints can currently only "
+                   "come from %s", me,
+                   airEnumStr(pullSource, pullSourceGage));
           return 1;
         }
         if (gotConstr) {
@@ -244,6 +248,15 @@ _pullContextCheck(pullContext *pctx) {
   if (!gotIspec) {
     biffAddf(PULL, "%s: have no infos set", me);
     return 1;
+  }
+  if (pctx->ispec[pullInfoStrength]) {
+    if (pullSourceGage != pctx->ispec[pullInfoStrength]->source) {
+      biffAddf(PULL, "%s: %s info must come from %s (not %s)", me,
+               airEnumStr(pullInfo, pullInfoStrength),
+               airEnumStr(pullSource, pullSourceGage),
+               airEnumStr(pullSource, pctx->ispec[pullInfoStrength]->source));
+      return 1;
+    }
   }
   if (pctx->ispec[pullInfoInside]) {
     if (!pctx->ispec[pullInfoInsideGradient]) {

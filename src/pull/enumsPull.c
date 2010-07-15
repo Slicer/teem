@@ -183,14 +183,14 @@ _pullPropStr[] = {
   "neighCovar",
   "neighCovar7Ten",
   "neighTanCovar",
-  "scaleStability"
+  "stability"
 };
 
 static const airEnum
 _pullProp = {
   "pullProp",
   PULL_PROP_MAX,
-  _pullSourceStr, NULL,
+  _pullPropStr, NULL,
   NULL,
   NULL, NULL,
   AIR_FALSE
