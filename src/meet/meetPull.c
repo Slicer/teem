@@ -87,10 +87,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   airMopAdd(mop, &(mpv->fileName), (airMopper)airSetNull, airMopOnError);
   airMopAdd(mop, mpv->fileName, airFree, airMopOnError);
   ctok = airStrtok(NULL, ":", &clast);
-  if (!strcmp(ctok, "pull")) {
-    /* its the special pull non-kind */
-    mpv->kind = pullValGageKind;
-  } else if (!(mpv->kind = meetConstGageKindParse(ctok))) {
+  if (!(mpv->kind = meetConstGageKindParse(ctok))) {
     biffAddf(MEET, "%s: couldn't parse \"%s\" as kind", me, ctok);
     airMopError(mop); return 1;
   }
@@ -282,10 +279,6 @@ meetPullVolLeechable(const meetPullVol *lchr,
   if (verbose && !can) {
     fprintf(stderr, "%s: no: not same kind\n", me);
   }
-  can &= (orig->kind != pullValGageKind);          /* but not pull's "kind" */
-  if (verbose && !can) {
-    fprintf(stderr, "%s: no: not from pull's \"kind\"\n", me);
-  }
   /* need to have different volname */
   can &= (orig->numSS == lchr->numSS);             /* same scale space */
   if (verbose && !can) {
@@ -389,41 +382,28 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     }
     /* if this is the pull we only have to learn the scale samples,
        but these might even be used */
-    if (pullValGageKind == vol->kind) {
-      vol->nin = NULL;
-      vol->ninSS = NULL;
-      if (vol->numSS) {
-        if (gageStackBlurParmScaleSet(sbp, vol->numSS,
-                                      vol->rangeSS[0], vol->rangeSS[1], 
-                                      vol->uniformSS, vol->optimSS)) {
-          biffMovef(MEET, GAGE, "%s: trouble setting stack", me);
-          airMopError(mop); return 1;
-        }
-      }
-    } else {
-      vol->nin = nrrdNew();
-      airMopAdd(mop, &(vol->nin), (airMopper)airSetNull, airMopOnError);
-      airMopAdd(mop, vol->nin, (airMopper)nrrdNuke, airMopOnError);
-      if (nrrdLoad(vol->nin, vol->fileName, NULL)) {
-        biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")", 
-                  me, mpvIdx, vol->volName);
+    vol->nin = nrrdNew();
+    airMopAdd(mop, &(vol->nin), (airMopper)airSetNull, airMopOnError);
+    airMopAdd(mop, vol->nin, (airMopper)nrrdNuke, airMopOnError);
+    if (nrrdLoad(vol->nin, vol->fileName, NULL)) {
+      biffMovef(MEET, NRRD, "%s: trouble loading mpv[%u]->nin (\"%s\")", 
+                me, mpvIdx, vol->volName);
+      airMopError(mop); return 1;
+    }
+    if (vol->numSS) {
+      sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
+              cachePath, vol->volName, vol->numSS);
+      if (gageStackBlurParmScaleSet(sbp, vol->numSS,
+                                    vol->rangeSS[0], vol->rangeSS[1], 
+                                    vol->uniformSS, vol->optimSS)
+          || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
+                                        AIR_TRUE, verbose)
+          || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
+                                 formatSS, AIR_TRUE, NULL,
+                                 vol->nin, vol->kind)) {
+        biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
+                  me, formatSS);
         airMopError(mop); return 1;
-      }
-      if (vol->numSS) {
-        sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
-                cachePath, vol->volName, vol->numSS);
-        if (gageStackBlurParmScaleSet(sbp, vol->numSS,
-                                      vol->rangeSS[0], vol->rangeSS[1], 
-                                      vol->uniformSS, vol->optimSS)
-            || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
-                                          AIR_TRUE, verbose)
-            || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
-                                   formatSS, AIR_TRUE, NULL,
-                                   vol->nin, vol->kind)) {
-          biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
-                    me, formatSS);
-          airMopError(mop); return 1;
-        }
       }
     }
     /* allocate and set vol->posSS from sbp-scale regardless of kind */
@@ -490,6 +470,8 @@ meetPullInfoNew(void) {
   ret = AIR_CALLOC(1, meetPullInfo);
   if (ret) {
     ret->info = 0;
+    ret->source = pullSourceUnknown;
+    ret->prop = pullPropUnknown;
     ret->constraint = AIR_FALSE;
     ret->volName = ret->itemStr = NULL;
     ret->zero = ret->scale = AIR_NAN;
@@ -508,23 +490,55 @@ meetPullInfoNix(meetPullInfo *minf) {
   return NULL;
 }
 
+static int
+zeroScaleSet(meetPullInfo *minf, int haveZS, char **lastP) {
+  static const char me[]="_zeroScaleSet";
+  char *tok;
+
+  if (haveZS) {
+    tok = airStrtok(NULL, ":", lastP);
+    if (1 != sscanf(tok, "%lf", &(minf->zero))) {
+      biffAddf(MEET, "%s: couldn't parse %s as zero (double)", me, tok);
+      return 1;
+    }
+    tok = airStrtok(NULL, ":", lastP);
+    if (1 != sscanf(tok, "%lf", &(minf->scale))) {
+      biffAddf(MEET, "%s: couldn't parse %s as scale (double)", me, tok);
+      return 1;
+    }
+  } else {
+    minf->zero = minf->scale = AIR_NAN;
+  }
+  return 0;
+}
+
 int
 meetPullInfoParse(meetPullInfo *minf, const char *_str) {
   static const char me[]="meetPullInfoParse";
-#define IFMT "<info>[-c]:<volname>:<item>[:<zero>:<scale>]"
+#define IFMT_GAGE "<info>[-c]:<volname>:<item>[:<zero>:<scale>]"
+#define IFMT_PROP "<info>:prop=<prop>[:<zero>:<scale>]"
+#define PROP_PREFIX "prop="   /* has to end with = */
   char *str, *tok, *last=NULL, *iflags;
   airArray *mop;
-  int haveZS;
+  int haveZS, source;
 
   if (!(minf && _str)) {
     biffAddf(MEET, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( 3 == airStrntok(_str, ":") || 5 == airStrntok(_str, ":") )) {
-    biffAddf(MEET, "%s: \"%s\" not of form " IFMT, me, _str);
+  if ( (3 == airStrntok(_str, ":") || 5 == airStrntok(_str, ":"))
+       && 1 == airStrntok(_str, "=") ) {
+    source = pullSourceGage;
+    haveZS = (5 == airStrntok(_str, ":"));
+  } else if ( (2 == airStrntok(_str, ":") || 4 == airStrntok(_str, ":"))
+              && 2 == airStrntok(_str, "=") ) {
+    source = pullSourceProp;
+    haveZS = (4 == airStrntok(_str, ":"));
+  } else {
+    biffAddf(MEET, "%s: \"%s\" not of form " IFMT_GAGE " or " IFMT_PROP,
+             me, _str);
     return 1;
   }
-  haveZS = (5 == airStrntok(_str, ":"));
   
   mop = airMopNew();
   if (!( str = airStrdup(_str) )) {
@@ -533,43 +547,63 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
   }
   airMopAdd(mop, str, airFree, airMopAlways);
 
-  tok = airStrtok(str, ":", &last);
-  iflags = strchr(tok, '-');
-  if (iflags) {
-    *iflags = '\0';
-    iflags++;
-  }
-  if (!(minf->info = airEnumVal(pullInfo, tok))) {
-    biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
-             me, tok, pullInfo->name);
-    airMopError(mop); return 1;
-  }
-  if (iflags) {
-    if (strchr(iflags, 'c')) {
-      minf->constraint = AIR_TRUE;
+  minf->source = source;
+  if (pullSourceGage == source) {
+    tok = airStrtok(str, ":", &last);
+    iflags = strchr(tok, '-');
+    if (iflags) {
+      *iflags = '\0';
+      iflags++;
     }
-  }
-  tok = airStrtok(NULL, ":", &last);
-  airFree(minf->volName);
-  minf->volName = airStrdup(tok);
-  airMopAdd(mop, minf->volName, airFree, airMopOnError);
-  tok = airStrtok(NULL, ":", &last);
-  airFree(minf->itemStr);
-  minf->itemStr = airStrdup(tok);
-  airMopAdd(mop, minf->itemStr, airFree, airMopOnError);
-  if (haveZS) {
+    if (!(minf->info = airEnumVal(pullInfo, tok))) {
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
+               me, tok, pullInfo->name);
+      airMopError(mop); return 1;
+    }
+    if (iflags) {
+      if (strchr(iflags, 'c')) {
+        minf->constraint = AIR_TRUE;
+      }
+    }
     tok = airStrtok(NULL, ":", &last);
-    if (1 != sscanf(tok, "%lf", &(minf->zero))) {
-      biffAddf(MEET, "%s: couldn't parse %s as zero (double)", me, tok);
+    airFree(minf->volName);
+    minf->volName = airStrdup(tok);
+    airMopAdd(mop, minf->volName, airFree, airMopOnError);
+    tok = airStrtok(NULL, ":", &last);
+    airFree(minf->itemStr);
+    minf->itemStr = airStrdup(tok);
+    airMopAdd(mop, minf->itemStr, airFree, airMopOnError);
+    if (zeroScaleSet(minf, haveZS, &last)) {
+      biffAddf(MEET, "%s: couldn't parse zero or scale",  me);
+      airMopError(mop); return 1;
+    }
+  } else if (pullSourceProp == source) {
+    /* "<info>:prop=<prop>[:<zero>:<scale>]" */
+    tok = airStrtok(str, ":", &last);
+    if (!(minf->info = airEnumVal(pullInfo, tok))) {
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
+               me, tok, pullInfo->name);
       airMopError(mop); return 1;
     }
     tok = airStrtok(NULL, ":", &last);
-    if (1 != sscanf(tok, "%lf", &(minf->scale))) {
-      biffAddf(MEET, "%s: couldn't parse %s as scale (double)", me, tok);
+    if (strncmp(PROP_PREFIX, tok, strlen(PROP_PREFIX))) {
+      biffAddf(MEET, "%s: property info didn't start with %s", 
+               me, PROP_PREFIX);
+    }
+    tok += strlen(PROP_PREFIX);
+    if (!(minf->prop = airEnumVal(pullProp, tok))) {
+      biffAddf(MEET, "%s: couldn't parse \"%s\" as %s", 
+               me, tok, pullProp->name);
+      airMopError(mop); return 1;
+    }
+    if (zeroScaleSet(minf, haveZS, &last)) {
+      biffAddf(MEET, "%s: couldn't parse zero or scale",  me);
       airMopError(mop); return 1;
     }
   } else {
-    minf->zero = minf->scale = AIR_NAN;
+    biffAddf(MEET, "%s: sorry, source %s not handled", 
+             me, airEnumStr(pullSource, source));
+    airMopError(mop); return 1;
   }
   
   airMopOkay(mop);
@@ -632,21 +666,25 @@ meetPullInfoAddMulti(pullContext *pctx,
     ispec = pullInfoSpecNew();
     airMopAdd(mop, ispec, (airMopper)pullInfoSpecNix, airMopOnError);
     ispec->volName = airStrdup(minf[ii]->volName);
+    ispec->source = minf[ii]->source;
     ispec->info = minf[ii]->info;
+    ispec->prop = minf[ii]->prop;
     ispec->zero = minf[ii]->zero;
     ispec->scale = minf[ii]->scale;
     ispec->constraint = minf[ii]->constraint;
     /* the item is the one thing that takes some work to recover;
        we need to find the volume and find the item from its kind->enm */
-    if (!( vol = pullVolumeLookup(pctx, minf[ii]->volName) )) {
-      biffMovef(MEET, PULL, "%s: can't find volName \"%s\" for minf[%u]",
-                me, minf[ii]->volName, ii);
-      airMopError(mop); return 1;
-    }
-    if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
-      biffAddf(MEET, "%s: can't parse %s as item of %s kind (minf[%u])\n",
-              me, minf[ii]->itemStr, vol->kind->name, ii);
-      airMopError(mop); return 1;
+    if (pullSourceGage == ispec->source) {
+      if (!( vol = pullVolumeLookup(pctx, minf[ii]->volName) )) {
+        biffMovef(MEET, PULL, "%s: can't find volName \"%s\" for minf[%u]",
+                  me, minf[ii]->volName, ii);
+        airMopError(mop); return 1;
+      }
+      if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
+        biffAddf(MEET, "%s: can't parse %s as item of %s kind (minf[%u])\n",
+                 me, minf[ii]->itemStr, vol->kind->name, ii);
+        airMopError(mop); return 1;
+      }
     }
     if (pullInfoSpecAdd(pctx, ispec)) {
       biffMovef(MEET, PULL, "%s: trouble adding ispec from minf[%u]", me, ii);

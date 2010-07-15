@@ -123,10 +123,20 @@ typedef struct {
 /*
 ******** meetPullInfo
 **
-** information that helps define a pullInfoSpec
+** information that helps define a pullInfoSpec.
+**
+** The original reason that the pullInfo struct itself isn't being
+** used here is that we want a way of parsing and storing this
+** information from some source (e.g. command-line via hest), at a
+** point where we do not yet know, or not have access to all the
+** volumes and their gageKinds.  So, the gageItem information is
+** stored here only as a string, rather than the real integral item
+** number.
 */
 typedef struct {
   int info,                    /* which pullInfo is being defined */
+    source,                    /* the source (from pullSource* enum) */
+    prop,                      /* which property (if pullSourceProp) */
     constraint;                /* this info should be a constraint */
   char *volName,               /* name of volume from which info is measured */
     *itemStr;                  /* which item in that volume gives the info */
