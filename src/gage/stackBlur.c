@@ -360,13 +360,13 @@ gageStackBlurCheck(const Nrrd *const nblur[],
       if (!tmpval) {
         biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
                  _blurKey[kvpIdx], blIdx);
-        airMopOkay(mop); return 0;
+        airMopOkay(mop); return 1;
       }
       airMopAdd(mop, tmpval, airFree, airMopAlways);
       if (strcmp(tmpval, blurVal[blIdx].val[kvpIdx])) {
         biffAddf(GAGE, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
                  _blurKey[kvpIdx], tmpval, blurVal[blIdx].val[kvpIdx]);
-        airMopOkay(mop); return 0;
+        airMopOkay(mop); return 1;
       }
     }
   }
