@@ -343,10 +343,10 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
 {
   double discr=0; /* store discriminant value for previous point */
 
-  double Hfrontleft[9], Hbackleft[9];
-  double Hfrontright[9], Hbackright[9];
-  double Hleft[9], Hright[9];
-  double H[9];
+  double Hfrontleft[9]={0,0,0,0,0,0,0,0,0}, Hbackleft[9]={0,0,0,0,0,0,0,0,0};
+  double Hfrontright[9]={0,0,0,0,0,0,0,0,0}, Hbackright[9]={0,0,0,0,0,0,0,0,0};
+  double Hleft[9]={0,0,0,0,0,0,0,0,0}, Hright[9]={0,0,0,0,0,0,0,0,0};
+  double H[9]={0,0,0,0,0,0,0,0,0}; /* init takes care of compiler warnings */
   double optgrad[3]={0.0,0.0,0.0}; /* gradient for descent */
 
   int iter=0;
@@ -358,8 +358,8 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     double alpha=beta;
     int accept=0;
     double optgradsqr = ELL_3V_DOT(optgrad,optgrad);
-    int safetyct=0;
-    int maxct=30;
+    unsigned int safetyct=0;
+    const unsigned int maxct=30;
     double tsqr[6], ten[6];
     double cf[7], cft[42]; /* derive relative to tensor values, 7x6 matrix */
     double cfx[21]; /* spatial derivative of constraint functions, 7x3 matrix */

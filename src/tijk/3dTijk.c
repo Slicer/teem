@@ -430,13 +430,13 @@ _tijk_2o3d_sym_m_form_f (float *res, const float *A, const float *v) {
 
 void
 _tijk_2o3d_sym_make_rank1_d (double *res, const double s, const double *v) {
-  res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[1]*v[2];
+  res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[0]*v[2];
   res[3]=s*v[1]*v[1]; res[4]=s*v[1]*v[2]; res[5]=s*v[2]*v[2];
 }
 
 void
 _tijk_2o3d_sym_make_rank1_f (float *res, const float s, const float *v) {
-  res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[1]*v[2];
+  res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[0]*v[2];
   res[3]=s*v[1]*v[1]; res[4]=s*v[1]*v[2]; res[5]=s*v[2]*v[2];
 }
 
