@@ -31,6 +31,8 @@ extern "C" {
 ******** ELL_SWAP2, ELL_SWAP3
 **
 ** used to interchange 2 or 3 values, using the given temp variable
+** SWAP2: a <=> b
+** SWAP3: a <= b, b <= c, c <= a
 */
 #define ELL_SWAP2(a, b, t)    ((t)=(a),(a)=(b),(b)=(t))
 #define ELL_SWAP3(a, b, c, t) ((t)=(a),(a)=(b),(b)=(c),(c)=(t))
