@@ -1306,7 +1306,8 @@ TEN_EXPORT unsigned int tenGlyphBqdZoneEval(const double eval[3]);
 TEN_EXPORT void tenGlyphBqdUvEval(double uv[2], const double eval[3]);
 TEN_EXPORT void tenGlyphBqdEvalUv(double eval[3], const double uv[2]);
 TEN_EXPORT unsigned int tenGlyphBqdZoneUv(const double uv[2]);
-TEN_EXPORT void tenGlyphBqdAbcUv(double abc[3], const double uv[2]);
+TEN_EXPORT void tenGlyphBqdAbcUv(double abc[3], const double uv[2],
+                                 double betaMax);
 
 /* tensor.c */
 TEN_EXPORT int tenVerbose;
