@@ -206,7 +206,7 @@ SEEK_EXPORT const airEnum *const seekType;
 
 /* tables.c */
 SEEK_EXPORT const int seekContour3DTopoHackEdge[256];
-SEEK_EXPORT const int seekContour3DTopoHackTriangle[256][19];
+SEEK_EXPORT const int seekContour3DTopoHackTriangle[256][16];
 
 /* methodsSeek.c */
 SEEK_EXPORT seekContext *seekContextNew(void);
