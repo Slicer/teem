@@ -420,7 +420,6 @@ main(int argc, char *argv[]) {
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   gageParmSet(ctx, gageParmOrientationFromSpacing, orientationFromSpacing);
   E = 0;
-  fprintf(stderr, "!%s: calling gagePerVolumeNew\n", me);
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
