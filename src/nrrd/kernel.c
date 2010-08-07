@@ -1888,6 +1888,7 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("hermite", str))    return nrrdKernelHermiteFlag;
   if (!strcmp("herm", str))       return nrrdKernelHermiteFlag;
   if (!strcmp("tent", str))       return nrrdKernelTent;
+  if (!strcmp("tentd", str))      return nrrdKernelForwDiff;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
   if (!strcmp("fordif", str))     return nrrdKernelForwDiff;
   if (!strcmp("centdiff", str))   return nrrdKernelCentDiff;
