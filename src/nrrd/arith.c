@@ -789,9 +789,6 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
     biffAddf(NRRD, "%s:", me);
     free(contA); free(contB); free(contC); free(contD); free(contE); return 1;
   }
-  if (nout != nin) {
-    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
-  }
   free(contA); free(contB); free(contC); free(contD); free(contE); 
 
   return 0;
