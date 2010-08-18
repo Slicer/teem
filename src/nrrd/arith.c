@@ -691,3 +691,108 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   free(contC); 
   return 0;
 }
+
+int
+nrrdArithAffine(Nrrd *nout, double minIn,
+                const Nrrd *nin, double maxIn,
+                double minOut, double maxOut, int clamp) {
+  static const char me[]="nrrdArithAffine";
+  size_t I, N;
+  double (*ins)(void *v, size_t I, double d),
+    (*lup)(const void *v, size_t I);
+
+  if ( !nout || nrrdCheck(nin) ) {
+    biffAddf(NRRD, "%s: got NULL pointer or invalid input", me);
+    return 1;
+  }
+  if (nrrdCopy(nout, nin)) {
+    biffAddf(NRRD, "%s: couldn't initialize output", me);
+    return 1;
+  }
+  N = nrrdElementNumber(nin);
+  ins = nrrdDInsert[nout->type];
+  lup = nrrdDLookup[nin->type];
+  for (I=0; I<N; I++) {
+    double val;
+    val = lup(nin->data, I);
+    val = AIR_AFFINE(minIn, val, maxIn, minOut, maxOut);
+    if (clamp) {
+      val = AIR_CLAMP(minOut, val, maxOut);
+    }
+    ins(nout->data, I, val);
+  }
+  /* HEY: it would be much better if the ordering here was the same as in
+     AIR_AFFINE, but that's not easy with the way the content functions are
+     now set up */
+  if (nrrdContentSet_va(nout, "affine", nin, 
+                        "%g,%g,%g,%g", minIn, maxIn,
+                        minOut, maxOut)) {
+    biffAddf(NRRD, "%s:", me);
+  }
+  return 0;
+}
+
+int
+nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
+                    NrrdIter *in, NrrdIter *maxIn,
+                    NrrdIter *minOut, NrrdIter *maxOut, int clamp) {
+  static const char me[]="nrrdArithInterAffine";
+  double (*ins)(void *v, size_t I, double d),
+    mini, vin, maxi, mino, maxo, vout;
+  const Nrrd *nin;
+  char *contA, *contB, *contC, *contD, *contE;
+  size_t I, N;
+
+  if (!(nout && minIn && in && maxIn && minOut && maxOut)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  nin = (_NRRD_ITER_NRRD(in) 
+         ? _NRRD_ITER_NRRD(in) 
+         : (_NRRD_ITER_NRRD(minIn) 
+            ? _NRRD_ITER_NRRD(minIn) 
+            : (_NRRD_ITER_NRRD(maxIn) 
+               ? _NRRD_ITER_NRRD(maxIn) 
+               : (_NRRD_ITER_NRRD(minOut) 
+                  ? _NRRD_ITER_NRRD(minOut) 
+                  : _NRRD_ITER_NRRD(maxOut)))));
+  if (!nin) {
+    biffAddf(NRRD, "%s: can't operate solely on fixed values", me);
+    return 1;
+  }
+  if (nrrdCopy(nout, nin)) {
+    biffAddf(NRRD, "%s: couldn't initialize output", me);
+    return 1;
+  }
+  N = nrrdElementNumber(nin);
+  ins = nrrdDInsert[nout->type];
+  for (I=0; I<N; I++) {
+    mini = nrrdIterValue(minIn);
+    vin = nrrdIterValue(in);
+    maxi = nrrdIterValue(maxIn);
+    mino = nrrdIterValue(minOut);
+    maxo = nrrdIterValue(maxOut);
+    vout = AIR_AFFINE(mini, vin, maxi, mino, maxo);
+    if (clamp) {
+      vout = AIR_CLAMP(mino, vout, maxo);
+    }
+    ins(nout->data, I, vout);
+  }
+  contA = nrrdIterContent(in);
+  contB = nrrdIterContent(minIn);
+  contC = nrrdIterContent(maxIn);
+  contD = nrrdIterContent(maxOut);
+  contE = nrrdIterContent(maxOut);
+  /* HEY: same annoyance about order of arguments as in function above */
+  if (_nrrdContentSet_va(nout, "affine", contA, "%s,%s,%s,%s",
+                         contB, contC, contD, contE)) {
+    biffAddf(NRRD, "%s:", me);
+    free(contA); free(contB); free(contC); free(contD); free(contE); return 1;
+  }
+  if (nout != nin) {
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
+  }
+  free(contA); free(contB); free(contC); free(contD); free(contE); 
+
+  return 0;
+}
