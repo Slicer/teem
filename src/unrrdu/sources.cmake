@@ -4,6 +4,7 @@ SET(UNRRDU_SOURCES
   1op.c
   2op.c
   3op.c
+  affine.c
   about.c
   axdelete.c
   axinfo.c

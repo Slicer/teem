@@ -146,6 +146,7 @@ F(gamma) \
 F(1op) \
 F(2op) \
 F(3op) \
+F(affine) \
 F(lut) \
 F(mlut) \
 F(subst) \
