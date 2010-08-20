@@ -212,6 +212,39 @@ AIR_EXPORT unsigned int airArrayLenIncr(airArray *a, int delta);
 AIR_EXPORT airArray *airArrayNix(airArray *a);
 AIR_EXPORT airArray *airArrayNuke(airArray *a);
 
+/* heap.c: a (mostly) standard binary min-heap, built on top of airArray.
+ * Additional non-standard functionality includes storing additional
+ * data and addressing elements that are not at the top of the heap */
+
+typedef struct {
+  airArray *key_a; /* where the keys are */
+  airArray *data_a; /* where the data is */
+  airArray *idx_a; /* indices */
+  airArray *invidx_a; /* inverse indices, to access arbitrary elements */
+  double *key;
+  void *data;
+  unsigned int *idx;
+  unsigned int *invidx;
+} airHeap;
+
+AIR_EXPORT airHeap *airHeapNew(size_t dataUnit, unsigned int incr);
+AIR_EXPORT airHeap *airHeapFromArray(const airArray *key, const airArray *data);
+AIR_EXPORT airHeap *airHeapNuke(airHeap *h);
+
+AIR_EXPORT unsigned int airHeapLength(const airHeap *h);
+AIR_EXPORT unsigned int airHeapInsert(airHeap *h, double key, const void *data);
+AIR_EXPORT unsigned int airHeapMerge(airHeap *first, const airHeap *second);
+AIR_EXPORT double airHeapFrontPeek(const airHeap *h, void *data);
+AIR_EXPORT double airHeapFrontPop(airHeap *h, void *data);
+AIR_EXPORT int airHeapFrontUpdate(airHeap *h, double newKey,
+				  const void *newData);
+
+AIR_EXPORT int airHeapFind(const airHeap *h, unsigned int *ai,
+			   const void *data);
+AIR_EXPORT int airHeapRemove(airHeap *h, unsigned int ai);
+AIR_EXPORT int airHeapUpdate(airHeap *h, unsigned int ai,
+			     double newKey, const void *newData);
+
 /* ---- BEGIN non-NrrdIO */
 
 /* threadAir.c: simplistic wrapper functions for multi-threading  */

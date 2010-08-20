@@ -7,6 +7,7 @@ SET(AIR_SOURCES
   dio.c
   endianAir.c
   enum.c
+  heap.c
   math.c
   miscAir.c
   mop.c

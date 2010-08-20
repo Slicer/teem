@@ -114,7 +114,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
   airArrayNix(arr);
   return enm;
-};
+}
 
 void
 meetAirEnumAllPrint(FILE *file) {
