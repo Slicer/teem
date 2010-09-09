@@ -802,7 +802,15 @@ tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7],
   dot = TEN_T_DOT(R2, R1);
   TEN_T_SCALE_INCR(R2, -dot, R1);
   norm = TEN_T_NORM(R2);
-  TEN_T_SCALE(R2, 1.0/norm, R2);
+  if (norm < minnorm) {
+    /* Traceless tensor */
+    TEN_T_SET(R2, ten[0],
+              SQRT_2_OVER_3, 0, 0,
+              -SQRT_1_OVER_6, 0,
+              -SQRT_1_OVER_6);    
+  } else {
+    TEN_T_SCALE(R2, 1.0/norm, R2);
+  }
   _tenEvalSkewnessGradient_d(R3, R1, R2, ten, minnorm);
 
   return;
