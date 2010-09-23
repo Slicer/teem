@@ -45,6 +45,14 @@
 
 */
 
+/* learned: if you copy/paste the macros for these kernels into 
+** other code, you *have* to make sure that the arguments for the
+** kernels that are supposed to be reals, are not passed as an
+** integral type (had this problem trying to re-use _BCCUBIC
+** with constant B="1" and C="0" and had trouble figuring out
+** why the kernel was give garbage results
+*/
+
 /* ------------------------------------------------------------ */
 
 /* the "zero" kernel is here more as a template than for anything else */
