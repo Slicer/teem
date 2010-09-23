@@ -796,6 +796,8 @@ typedef struct {
   NrrdKernelSpec *ksp;  /* reconstruction kernel for tensors or DWIs */
   int useDwi,           /* we're working in a DWI, not a tensor, volume */    
     fiberType,          /* from tenFiberType* OR tenDwiFiberType* enum */
+    fiberProbeItem,     /* item to probe along fiber and possibly save in
+                           tenFiberSingle->nval */
     intg,               /* from tenFiberIntg* enum */
     anisoStopType,      /* which aniso we do a threshold on */
     anisoSpeedType,     /* base step size is function of this anisotropy */
@@ -1511,6 +1513,7 @@ TEN_EXPORT int tenFiberTypeSet(tenFiberContext *tfx, int type);
 TEN_EXPORT int tenFiberKernelSet(tenFiberContext *tfx,
                                  const NrrdKernel *kern,
                                  const double parm[NRRD_KERNEL_PARMS_NUM]);
+TEN_EXPORT int tenFiberProbeItemSet(tenFiberContext *tfx, int item);
 TEN_EXPORT int tenFiberIntgSet(tenFiberContext *tfx, int intg);
 TEN_EXPORT int tenFiberStopSet(tenFiberContext *tfx, int stop, ...);
 TEN_EXPORT int tenFiberStopAnisoSet(tenFiberContext *tfx,
@@ -1547,6 +1550,8 @@ TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
                                   const Nrrd *nseed);
 TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx, 
                                      limnPolyData *lpld, tenFiberMulti *tfml);
+TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx, 
+                                      Nrrd *nval, tenFiberMulti *tfml);
 
 /* epireg.c */
 TEN_EXPORT int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin,

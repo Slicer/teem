@@ -457,53 +457,60 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 };
 
 /*
-******** tenFiberTraceSet
-**
-** slightly more flexible API for fiber tracking than tenFiberTrace
-**
-** EITHER: pass a non-NULL nfiber, and NULL, 0, NULL, NULL for
-** the following arguments, and things are the same as with tenFiberTrace:
-** data inside the nfiber is allocated, and the tract vertices are copied
-** into it, having been stored in dynamically allocated airArrays
-**
-** OR: pass a NULL nfiber, and a buff allocated for 3*(2*halfBuffLen + 1)
-** (note the "+ 1" !!!) doubles.  The fiber tracking on each half will stop
-** at halfBuffLen points. The given seedpoint will be stored in
-** buff[0,1,2 + 3*halfBuffLen].  The linear (1-D) indices for the end of
-** the first tract half, and the end of the second tract half, will be set in
-** *startIdxP and *endIdxP respectively (this does not include a multiply
-** by 3)
-**
-** it is worth pointing out here that internally, all tractography is done
-** in gage's world space, regardless of tfx->useIndexSpace.  The conversion
-** from/to index is space (if tfx->useIndexSpace is non-zero) is only done
-** for seedpoints and when fiber vertices are saved out, respectively.
+** modified body of previous tenFiberTraceSet, in order to 
+** permit passing the nval for storing desired probed values 
 */
 int
-tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
-                 double *buff, unsigned int halfBuffLen,
-                 unsigned int *startIdxP, unsigned int *endIdxP,
-                 double seed[3]) {
-  static const char me[]="tenFiberTraceSet";
-  airArray *fptsArr[2];      /* airArrays of backward (0) and forward (1)
+_fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
+               double *buff, unsigned int halfBuffLen,
+               unsigned int *startIdxP, unsigned int *endIdxP,
+               double seed[3]) {
+  static const char me[]="_fiberTraceSet";
+  airArray *fptsArr[2],      /* airArrays of backward (0) and forward (1)
                                 fiber points */
-  double *fpts[2];           /* arrays storing forward and backward
+    *pansArr[2];             /* airArrays of backward (0) and forward (1)
+                                probed values */
+  double *fpts[2],           /* arrays storing forward and backward
                                 fiber points */
-  double
+    *pans[2],                /* arrays storing forward and backward
+                                probed values */
     tmp[3],
     iPos[3],
     currPoint[3],
     forwDir[3],
-    *fiber;                  /* array of both forward and backward points,
+    *fiber,                  /* array of both forward and backward points,
                                 when finished */
-  int gret, whyStop, buffIdx, fptsIdx, outIdx, oldStop, keepfiber;
-  unsigned int i;
+    *valOut;                 /* same for probed values */
+  const double *pansP;       /* pointer to gage's probed values */
+
+  int gret, whyStop, buffIdx, fptsIdx, pansIdx, outIdx, oldStop, keepfiber;
+  unsigned int i, pansLen;
   airArray *mop;
   
   if (!(tfx)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
+  if (nval) {
+    if (!tfx->fiberProbeItem) {
+      biffAddf(TEN, "%s: want to record probed values but no item set", me);
+      return 1;
+    }
+    pansLen = gageAnswerLength(tfx->gtx, tfx->pvl, tfx->fiberProbeItem);
+    pansP = gageAnswerPointer(tfx->gtx, tfx->pvl, tfx->fiberProbeItem);
+  } else {
+    pansLen = 0;
+    pansP = NULL;
+  }
+  /*
+  fprintf(stderr, "!%s: =========================== \n", me);
+  fprintf(stderr, "!%s: \n", me);
+  fprintf(stderr, "!%s: item %d -> pansLen = %u\n", me,
+          tfx->fiberProbeItem, pansLen);
+  fprintf(stderr, "!%s: \n", me);
+  fprintf(stderr, "!%s:  =========================== \n", me);
+  */
+
   /* HEY: a hack to preserve the state inside tenFiberContext so that
      we have fewer side effects (tfx->maxNumSteps may still be set) */
   oldStop = tfx->stop;
@@ -545,6 +552,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
       /* the problem on the first probe was that it was out of bounds,
          which is not a catastrophe; its handled the same as below */
       tfx->whyNowhere = tenFiberStopBounds;
+      if (nval) {
+        nrrdEmpty(nval);
+      }
       if (nfiber) {
         nrrdEmpty(nfiber);
       } else {
@@ -561,6 +571,9 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   if ((whyStop = _tenFiberStopCheck(tfx))) {
     /* stopped immediately at seed point, but that's not an error */
     tfx->whyNowhere = whyStop;
+    if (nval) {
+      nrrdEmpty(nval);
+    }
     if (nfiber) {
       nrrdEmpty(nfiber);
     } else {
@@ -573,22 +586,31 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   }
 
   /* airMop{Error,Okay}() can safely be called on NULL */
-  mop = nfiber ? airMopNew() : NULL;
+  mop = (nfiber || nval) ? airMopNew() : NULL;
 
   for (tfx->halfIdx=0; tfx->halfIdx<=1; tfx->halfIdx++) {
+    if (nval) {
+      pansArr[tfx->halfIdx] = airArrayNew((void**)&(pans[tfx->halfIdx]), NULL,
+                                          pansLen*sizeof(double),
+                                          TEN_FIBER_INCR);
+      airMopAdd(mop, pansArr[tfx->halfIdx],
+                (airMopper)airArrayNuke, airMopAlways);
+    } else {
+      pansArr[tfx->halfIdx] = NULL;
+    }
+    pansIdx = -1;
     if (nfiber) {
       fptsArr[tfx->halfIdx] = airArrayNew((void**)&(fpts[tfx->halfIdx]), NULL,
                                           3*sizeof(double), TEN_FIBER_INCR);
       airMopAdd(mop, fptsArr[tfx->halfIdx],
                 (airMopper)airArrayNuke, airMopAlways);
-      fptsIdx = -1;  /* will be over-written with 1st airArrayLenIncr */
       buffIdx = -1;
     } else {
       fptsArr[tfx->halfIdx] = NULL;
       fpts[tfx->halfIdx] = NULL;
-      fptsIdx = -1;
       buffIdx = halfBuffLen;
     }
+    fptsIdx = -1;
     tfx->halfLen[tfx->halfIdx] = 0;
     if (tfx->useIndexSpace) {
       ELL_3V_COPY(iPos, seed);
@@ -645,6 +667,17 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         ELL_3V_COPY(currPoint, iPos);
       } else {
         ELL_3V_COPY(currPoint, tfx->wPos);
+      }
+      if (nval) {
+        pansIdx = airArrayLenIncr(pansArr[tfx->halfIdx], 1);
+        /* HEY: speed this up */
+        memcpy(pans[tfx->halfIdx] + pansLen*pansIdx, pansP,
+               pansLen*sizeof(double));
+        /*
+        fprintf(stderr, "!%s: (dir %d) saving to %d: %g @ (%g,%g,%g)\n", me,
+                tfx->halfIdx, pansIdx, pansP[0],
+                currPoint[0], currPoint[1], currPoint[2]);
+        */
       }
       if (nfiber) {
         fptsIdx = airArrayLenIncr(fptsArr[tfx->halfIdx], 1);
@@ -728,12 +761,37 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
   if (!keepfiber) {
     /* for the curious, tfx->whyStop[0,1], tfx->numSteps[0,1], and
        tfx->halfLen[1,2] remain set, from above */
+    if (nval) {
+      nrrdEmpty(nval);
+    }
     if (nfiber) {
       nrrdEmpty(nfiber);
     } else {
       *startIdxP = *endIdxP = 0;
     }
   } else {
+    if (nval) {
+      if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2,
+                            AIR_CAST(size_t, pansLen),
+                            AIR_CAST(size_t, (pansArr[0]->len
+                                              + pansArr[1]->len - 1)))) {
+        biffMovef(TEN, NRRD, "%s: couldn't allocate probed value nrrd", me);
+        airMopError(mop); return 1;
+      }
+      valOut = AIR_CAST(double*, nval->data);
+      outIdx = 0;
+      /* HEY: speed up memcpy */
+      for (i=pansArr[0]->len-1; i>=1; i--) {
+        memcpy(valOut + pansLen*outIdx, pans[0] + pansLen*i,
+               pansLen*sizeof(double));
+        outIdx++;
+      }
+      for (i=0; i<=pansArr[1]->len-1; i++) {
+        memcpy(valOut + pansLen*outIdx, pans[1] + pansLen*i,
+               pansLen*sizeof(double));
+        outIdx++;
+      }
+    }
     if (nfiber) {
       if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2,
                             AIR_CAST(size_t, 3),
@@ -742,7 +800,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
         biffMovef(TEN, NRRD, "%s: couldn't allocate fiber nrrd", me);
         airMopError(mop); return 1;
       }
-      fiber = (double*)(nfiber->data);
+      fiber = AIR_CAST(double*, nfiber->data);
       outIdx = 0;
       for (i=fptsArr[0]->len-1; i>=1; i--) {
         ELL_3V_COPY(fiber + 3*outIdx, fpts[0] + 3*i);
@@ -764,6 +822,48 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 }
 
 /*
+******** tenFiberTraceSet
+**
+** slightly more flexible API for fiber tracking than tenFiberTrace
+**
+** EITHER: pass a non-NULL nfiber, and NULL, 0, NULL, NULL for
+** the following arguments, and things are the same as with tenFiberTrace:
+** data inside the nfiber is allocated, and the tract vertices are copied
+** into it, having been stored in dynamically allocated airArrays
+**
+** OR: pass a NULL nfiber, and a buff allocated for 3*(2*halfBuffLen + 1)
+** (note the "+ 1" !!!) doubles.  The fiber tracking on each half will stop
+** at halfBuffLen points. The given seedpoint will be stored in
+** buff[0,1,2 + 3*halfBuffLen].  The linear (1-D) indices for the end of
+** the first tract half, and the end of the second tract half, will be set in
+** *startIdxP and *endIdxP respectively (this does not include a multiply
+** by 3)
+**
+** it is worth pointing out here that internally, all tractography is done
+** in gage's world space, regardless of tfx->useIndexSpace.  The conversion
+** from/to index is space (if tfx->useIndexSpace is non-zero) is only done
+** for seedpoints and when fiber vertices are saved out, respectively.
+**
+** As of Sun Aug  1 20:40:55 CDT 2010 this is just a wrapper around
+** _fiberTraceSet; this will probably change in Teem 2.0
+*/
+int
+tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
+                 double *buff, unsigned int halfBuffLen,
+                 unsigned int *startIdxP, unsigned int *endIdxP,
+                 double seed[3]) {
+  static const char me[]="tenFiberTraceSet";
+
+  if (_fiberTraceSet(tfx, NULL, nfiber, buff, halfBuffLen,
+                     startIdxP, endIdxP, seed)) {
+    biffAddf(TEN, "%s: problem", me);
+    return 1;
+  }
+
+  return 0;
+}
+
+/*
 ******** tenFiberTrace
 **
 ** takes a starting position in index or world space, depending on the
@@ -773,7 +873,7 @@ int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
   static const char me[]="tenFiberTrace";
   
-  if (tenFiberTraceSet(tfx, nfiber, NULL, 0, NULL, NULL, seed)) {
+  if (_fiberTraceSet(tfx, NULL, nfiber, NULL, 0, NULL, NULL, seed)) {
     biffAddf(TEN, "%s: problem computing tract", me);
     return 1;
   }
@@ -854,7 +954,8 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
   /* set tfbs->nvert */
   /* no harm in setting this even when there are no multiple fibers */
   tfx->ten2Which = which;
-  if (tenFiberTraceSet(tfx, tfbs->nvert, NULL, 0, NULL, NULL, seed)) {
+  if (_fiberTraceSet(tfx, (tfx->fiberProbeItem ? tfbs->nval : NULL),
+                     tfbs->nvert, NULL, 0, NULL, NULL, seed)) {
     biffAddf(TEN, "%s: problem computing tract", me);
     return 1;
   }
@@ -868,7 +969,6 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
   tfbs->whyStop[0] = tfx->whyStop[0];
   tfbs->whyStop[1] = tfx->whyStop[1];
   tfbs->whyNowhere = tfx->whyNowhere;
-  /* no need to touch tfbs->nval or tfbs->measr */
 
   return 0;
 }
@@ -937,10 +1037,6 @@ tenFiberMultiNix(tenFiberMulti *tfm) {
 ** does tractography for a list of seedpoints 
 **
 ** tfml has been returned from tenFiberMultiNew()
-**
-** This is probably the first time that an airArray is being forced on
-** Teem API users in this way, since other container structs/classes
-** could probably be better here.  Alas.
 */
 int
 tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
@@ -1039,6 +1135,130 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
   return 0;
 }
 
+int
+_fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
+                   limnPolyData *lpld, tenFiberMulti *tfml) {
+  static const char me[]="_fiberMultiExtract";
+  unsigned int seedIdx, vertTotalNum, fiberNum, fiberIdx, vertTotalIdx,
+    pansLen, pvNum;
+  double *valOut;
+
+  if (!(tfx && (lpld || nval) && tfml)) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (tenFiberMultiCheck(tfml->fiberArr)) {
+    biffAddf(TEN, "%s: problem with fiber array", me);
+    return 1;
+  }
+  if (nval) {
+    if (!tfx->fiberProbeItem) {
+      biffAddf(TEN, "%s: want probed values but no item set", me);
+      return 1;
+    }
+    pansLen = gageAnswerLength(tfx->gtx, tfx->pvl, tfx->fiberProbeItem);
+  } else {
+    pansLen = 0;
+  }
+  /*
+  fprintf(stderr, "!%s: =========================== \n", me);
+  fprintf(stderr, "!%s: \n", me);
+  fprintf(stderr, "!%s: item %d -> pansLen = %u\n", me,
+          tfx->fiberProbeItem, pansLen);
+  fprintf(stderr, "!%s: \n", me);
+  fprintf(stderr, "!%s:  =========================== \n", me);
+  */
+
+  /* we have to count the real fibers that went somewhere, excluding
+     fibers that went nowhere (counted in tfml->fiberNum) */
+  vertTotalNum = 0;
+  fiberNum = 0;
+  pvNum = 0;
+  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
+    tenFiberSingle *tfs;
+    tfs = tfml->fiber + seedIdx;
+    if (!(tenFiberStopUnknown == tfs->whyNowhere)) {
+      continue;
+    }
+    if (nval) {
+      if (tfs->nval) {
+        if (!(2 == tfs->nval->dim
+              && pansLen == tfs->nval->axis[0].size
+              && tfs->nvert->axis[1].size == tfs->nval->axis[1].size)) {
+          biffAddf(TEN, "%s: fiber[%u]->nval seems wrong", me, seedIdx);
+          return 1;
+        }
+        pvNum++;
+      }
+    }
+    vertTotalNum += tfs->nvert->axis[1].size;
+    fiberNum++;
+  }
+  if (nval && pvNum != fiberNum) {
+    biffAddf(TEN, "%s: pvNum %u != fiberNum %u", me, pvNum, fiberNum);
+    return 1;
+  }
+  
+  if (nval) {
+    if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2,
+                          AIR_CAST(size_t, pansLen),
+                          AIR_CAST(size_t, vertTotalNum))) {
+      biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+      return 1;
+    }
+    valOut = AIR_CAST(double *, nval->data);
+  } else {
+    valOut = NULL;
+  }
+  if (lpld) {
+    if (limnPolyDataAlloc(lpld, 0, /* no extra per-vertex info */
+                          vertTotalNum, vertTotalNum, fiberNum)) {
+      biffMovef(TEN, LIMN, "%s: couldn't allocate output", me);
+      return 1;
+    }
+  }
+    
+  fiberIdx = 0;
+  vertTotalIdx = 0;
+  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
+    double *vert, *pans;
+    unsigned int vertIdx, vertNum;
+    tenFiberSingle *tfs;
+    tfs = tfml->fiber + seedIdx;
+    if (!(tenFiberStopUnknown == tfs->whyNowhere)) {
+      continue;
+    }
+    vertNum = tfs->nvert->axis[1].size;
+    pans = (nval
+            ? AIR_CAST(double*, tfs->nval->data)
+            : NULL);
+    vert = (lpld
+            ? AIR_CAST(double*, tfs->nvert->data)
+            : NULL);
+    for (vertIdx=0; vertIdx<vertNum; vertIdx++) {
+      if (lpld) {
+        ELL_3V_COPY_TT(lpld->xyzw + 4*vertTotalIdx, float, vert + 3*vertIdx);
+        (lpld->xyzw + 4*vertTotalIdx)[3] = 1.0;
+        lpld->indx[vertTotalIdx] = vertTotalIdx;
+      }
+      if (nval) {
+        /* HEY speed up memcpy */
+        memcpy(valOut + pansLen*vertTotalIdx,
+               pans + pansLen*vertIdx,
+               pansLen*sizeof(double));
+      }
+      vertTotalIdx++;
+    }
+    if (lpld) {
+      lpld->type[fiberIdx] = limnPrimitiveLineStrip;
+      lpld->icnt[fiberIdx] = vertNum;
+    }
+    fiberIdx++;
+  }
+
+  return 0;
+}
+
 /*
 ******** tenFiberMultiPolyData
 **
@@ -1052,56 +1272,23 @@ int
 tenFiberMultiPolyData(tenFiberContext *tfx, 
                       limnPolyData *lpld, tenFiberMulti *tfml) {
   static const char me[]="tenFiberMultiPolyData";
-  unsigned int seedIdx, vertTotalNum, fiberNum, fiberIdx, vertTotalIdx;
 
-  if (!(tfx && lpld && tfml)) {
-    biffAddf(TEN, "%s: got NULL pointer", me);
+  if (_fiberMultiExtract(tfx, NULL, lpld, tfml)) {
+    biffAddf(TEN, "%s: problem", me);
     return 1;
   }
-  if (tenFiberMultiCheck(tfml->fiberArr)) {
-    biffAddf(TEN, "%s: problem with fiber array", me);
-    return 1;
-  }
-
-  /* we have to count the real fibers that went somewhere, excluding
-     fibers that went nowhere (counted in tfml->fiberNum) */
-  vertTotalNum = 0;
-  fiberNum = 0;
-  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
-    if (!(tenFiberStopUnknown == tfml->fiber[seedIdx].whyNowhere)) {
-      continue;
-    }
-    vertTotalNum += tfml->fiber[seedIdx].nvert->axis[1].size;
-    fiberNum++;
-  }
-
-  if (limnPolyDataAlloc(lpld, 0, /* no extra per-vertex info */
-                        vertTotalNum, vertTotalNum, fiberNum)) {
-    biffAddf(TEN, LIMN, "%s: couldn't allocate output", me);
-    return 1;
-  }
-    
-  fiberIdx = 0;
-  vertTotalIdx = 0;
-  for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
-    double *vert;
-    unsigned int vertIdx, vertNum;
-    if (!(tenFiberStopUnknown == tfml->fiber[seedIdx].whyNowhere)) {
-      continue;
-    }
-    vertNum = tfml->fiber[seedIdx].nvert->axis[1].size;
-    vert = AIR_CAST(double*, tfml->fiber[seedIdx].nvert->data);
-    for (vertIdx=0; vertIdx<vertNum; vertIdx++) {
-      ELL_3V_COPY_TT(lpld->xyzw + 4*vertTotalIdx, float, vert + 3*vertIdx);
-      (lpld->xyzw + 4*vertTotalIdx)[3] = 1.0;
-      lpld->indx[vertTotalIdx] = vertTotalIdx;
-      vertTotalIdx++;
-    }
-    lpld->type[fiberIdx] = limnPrimitiveLineStrip;
-    lpld->icnt[fiberIdx] = vertNum;
-    fiberIdx++;
-  }
-
   return 0;
 }
 
+
+int
+tenFiberMultiProbeVals(tenFiberContext *tfx, 
+                       Nrrd *nval, tenFiberMulti *tfml) {
+  static const char me[]="tenFiberMultiProbeVals";
+  
+  if (_fiberMultiExtract(tfx, nval, NULL, tfml)) {
+    biffAddf(TEN, "%s: problem", me);
+    return 1;
+  }
+  return 0;
+}

@@ -142,6 +142,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     biffAddf(TEN, "%s: couldn't set default kernel", me);
     return NULL;
   }
+  tfx->fiberProbeItem = 0; /* unknown for any gageKind */
   /* looks to GK like GK says that we must set some stop criterion */
   tfx->intg = tenDefFiberIntg;
   tfx->anisoStopType = tenDefFiberAnisoStopType;
@@ -710,6 +711,18 @@ tenFiberKernelSet(tenFiberContext *tfx,
 }
 
 int
+tenFiberProbeItemSet(tenFiberContext *tfx, int item) {
+  static const char me[]="tenFiberProbeItemSet";
+
+  if (!tfx) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  tfx->fiberProbeItem = item;
+  return 0;
+}
+
+int
 tenFiberIntgSet(tenFiberContext *tfx, int intg) {
   static const char me[]="tenFiberIntTypeSet";
 
@@ -781,6 +794,10 @@ tenFiberUpdate(tenFiberContext *tfx) {
   if (0 == tfx->stop) {
     biffAddf(TEN, "%s: no fiber stopping criteria set", me);
     return 1;
+  }
+  /* HEY there should be a better place for setting this */
+  if (tfx->fiberProbeItem) {
+    GAGE_QUERY_ITEM_ON(tfx->query, tfx->fiberProbeItem);
   }
   if (gageQuerySet(tfx->gtx, tfx->pvl, tfx->query)
       || gageUpdate(tfx->gtx)) {
