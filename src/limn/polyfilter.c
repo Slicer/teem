@@ -300,6 +300,9 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                                radius,
                                pldOut->norm + 3*outVertTotalIdx);
           (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+          if (vertmap) {
+            vertmap[outVertTotalIdx] = inVertTotalIdx;
+          }
           outVertTotalIdx++;
           for (ei=0; ei<endFacet-1; ei++) {
             for (pi=0; pi<tubeFacet; pi++) {
