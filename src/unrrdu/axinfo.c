@@ -116,20 +116,30 @@ unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   */
   if (airStrlen(centerStr)) {
-    if (!(center = airEnumVal(nrrdCenter, centerStr))) {
-      fprintf(stderr, "%s: couldn't parse \"%s\" as %s", me,
-              centerStr, nrrdCenter->name);
-      airMopError(mop);
-      return 1;
+    if (!strcmp("none", centerStr)
+        || !strcmp("???", centerStr)) {
+      center = nrrdCenterUnknown;
+    } else {
+      if (!(center = airEnumVal(nrrdCenter, centerStr))) {
+        fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
+                centerStr, nrrdCenter->name);
+        airMopError(mop);
+        return 1;
+      }
     }
     nout->axis[axis].center = center;
   }
   if (airStrlen(kindStr)) {
-    if (!(kind = airEnumVal(nrrdKind, kindStr))) {
-      fprintf(stderr, "%s: couldn't parse \"%s\" as %s", me,
-              kindStr, nrrdKind->name);
-      airMopError(mop);
-      return 1;
+    if (!strcmp("none", kindStr)
+        || !strcmp("???", kindStr)) {
+      kind = nrrdKindUnknown;
+    } else {
+      if (!(kind = airEnumVal(nrrdKind, kindStr))) {
+        fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
+                kindStr, nrrdKind->name);
+        airMopError(mop);
+        return 1;
+      }
     }
     nout->axis[axis].kind = kind;
   }
