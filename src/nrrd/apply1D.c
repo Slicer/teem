@@ -23,8 +23,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* int _VV = 0; */
-
 /*
 ** learned: even when using doubles, because of limited floating point
 ** precision, you can get different results between quantizing 
@@ -885,6 +883,9 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   NrrdRange *range;
   airArray *mop;
 
+  /*
+  fprintf(stderr, "!%s: rescale = %d\n", me, rescale);
+  */
   if (!(nout && nmap && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -933,16 +934,18 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   outInsert = nrrdDInsert[nout->type];
   domMin = pos[0];
   domMax = pos[posLen-1];
+  /*
+  fprintf(stderr, "!%s: domMin, domMax = %g, %g\n", me, domMin, domMax);
+  */
   
   N = nrrdElementNumber(nin);
   for (I=0;
        I<N;
        I++, inData += inSize, outData += colSize) {
     val = inLoad(inData);
-    /* _VV = ( (AIR_EXISTS(val) && (21 == (int)(-val))) 
-       || 22400 < I ); */
-    /* if (_VV)
-       fprintf(stderr, "##%s: (%d) val = % 31.15f\n", me, (int)I, val); */
+    /*
+    fprintf(stderr, "!%s: (%d) val = % 31.15f\n", me, (int)I, val);
+    */
     if (!AIR_EXISTS(val)) {
       /* got a non-existant value */
       if (baseI) {
@@ -980,7 +983,6 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
       /* we have an existant value */
       if (rescale) {
         val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
-        /* if (_VV) fprintf(stderr, "   rescaled --> % 31.15f\n", val); */
       }
       val = AIR_CLAMP(domMin, val, domMax);
       if (acl) {
@@ -997,23 +999,27 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
         /* acl did its job ==> lo == hi */
         mapIdx = lo;
       }
+      /*
+      fprintf(stderr, "!%s:   --> val = %g; lo,hi = %d,%d, mapIdx = %d\n",
+              me, val, lo, hi, mapIdx);
+      */
     }
     mapIdxFrac = AIR_AFFINE(pos[mapIdx], val, pos[mapIdx+1], 0.0, 1.0);
-    /* if (_VV) fprintf(stderr, "##%s: val=\n% 31.15f --> "
-                     "mapIdx,frac = %d,\n% 31.15f\n",
-                     me, val, mapIdx, mapIdxFrac); */
+    /*
+    fprintf(stderr, "!%s:    mapIdxFrac = %g\n", me, mapIdxFrac);
+    */
     entData0 = (char*)(nmap->data) + (baseI+mapIdx)*entSize;
     entData1 = (char*)(nmap->data) + (baseI+mapIdx+1)*entSize;
-    /* if (_VV) fprintf(stderr, "##%s: 2; %d/\n% 31.15f --> entLen=%d "
-                     "baseI=%d -->\n",
-                     me, mapIdx, mapIdxFrac, entLen, baseI); */
     for (i=1; i<entLen; i++) {
       val = ((1-mapIdxFrac)*mapLup(entData0, i) +
              mapIdxFrac*mapLup(entData1, i));
-      /* if (_VV) fprintf(stderr, "% 31.15f\n", val); */
+      /*
+      fprintf(stderr, "!%s: %g * %g   +   %g * %g = %g\n", me,
+              1-mapIdxFrac, mapLup(entData0, i), 
+              mapIdxFrac, mapLup(entData1, i), val);
+      */
       outInsert(outData, i-1, val);
     }
-    /* if (_VV) fprintf(stderr, "##%s: 3\n", me); */
   }
   airMopOkay(mop);
   return 0;
