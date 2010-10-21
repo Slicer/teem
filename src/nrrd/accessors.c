@@ -313,6 +313,7 @@ nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *) = {
      in a 20% decrease in running time.  I learned this trick from       \
      Numerical Recipes in C, long time ago, but I can't find it          \
      anywhere in the book now ... */                                     \
+  if (N>1) /* size_t is unsigned, so N-2 may overflow */                 \
   for (I=0; I<=N-2; I+=2) {                                              \
     a = v[0 + I];                                                        \
     b = v[1 + I];                                                        \
