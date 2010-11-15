@@ -17,6 +17,7 @@ SET(GAGE_SOURCES
   sclprint.c
   shape.c
   st.c
+  multiGage.c
   stack.c
   stackBlur.c
   update.c

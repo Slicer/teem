@@ -854,6 +854,53 @@ typedef struct {
   double finalErr;             /* error of converged points */
 } gageOptimSigParm;
 
+/*
+******** gageMultiItem
+**
+** used (along with gageMultiQuery) to represent a list of items that
+** we want to learn from a single pervolume, at every point given in a
+** Nrrd of probe positions.  The answers for those items are
+** concatenated along axis 0 of the single output Nrrd "nans", which
+** for simplicity of access is stored within here as well.
+*/
+typedef struct {
+  const gageKind *kind;    /* the kind of volume for these items */
+  unsigned int itemNum;    /* number of items we want to learn, allocated
+                              length of item[], ansDirect[], and ansLen[] */
+  int *item;               /* all items for this pervolume */
+  /* ======== INTERNAL ==== */
+  double *ansDir;          /* ansDir[i] points to answer i */
+  unsigned int *ansLen;    /* ansLen[i] length of answer i */
+  /* ========= OUTPUT ======*/
+  Nrrd *nans;              /* output Nrrd */
+} gageMultiItem;
+
+/*
+******** gageMultiQuery
+**
+** used to represent queries, and the organization of those queries
+** that should be probed at a given Nrrd of probe positions.  The
+** basic idea is that we need to be able to represent *1* the goal of
+** having two or more answers concatenated together (along axis 0),
+** in a single Nrrd (of the sort that one might pass to nrrdApply2DLut)
+** AND *2* the goal of having different answers stored in different Nrrds.
+** This is handled by having, for each pervolume, an array (possibly
+** length 1) of queries, and generating one Nrrd per query.
+*/
+typedef struct {
+  unsigned int pvlNum,    /* number of perVolumes in the context for which
+                             we represent the queries; this is also the
+                             allocated length of queryNum[ii] and query[ii] */
+    *queryNum;            /* queryNum[ii] is the number of queries for pvl[ii];
+                             which is also (due to use of gageMultiItem)
+                             the number of answer Nrrds for pvl[ii] */
+  gageMultiItem ***query; /* query[ii] is array of gageMultiItem*s for pvl[ii],
+                             each is query[ii][nn]; nn = 0..queryNum[ii]-1 */
+  /* ======== OUTPUT ======*/
+  Nrrd *nidx;             /* nidx->data[ii] is the index into given npos
+                             to document which queries were inside */
+} gageMultiQuery;
+
 /* defaultsGage.c */
 GAGE_EXPORT const char *gageBiffKey;
 GAGE_EXPORT int gageDefVerbose;
@@ -1048,6 +1095,24 @@ GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
 
 /* update.c */
 GAGE_EXPORT int gageUpdate(gageContext *ctx);
+
+/* multig.c */
+gageMultiItem *gageMultiItemNew(const gageKind *kind);
+int gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
+                        ... /* itemNum items */);
+gageMultiItem *gageMultiItemNix(gageMultiItem *gmi);
+gageMultiItem *gageMultiItemNuke(gageMultiItem *gmi);
+
+gageMultiQuery *gageMultiQueryNew(gageContext *gctx);
+int gageMultiQueryAdd_va(gageMultiQuery *gmq, unsigned int pvlIdx,
+                        unsigned int queryNum,
+                        ... /* queryNum gageMultiItem* */);
+int gageMultiProbe(gageMultiQuery *gmq, gageContext *gctx,
+                  const Nrrd *npos);
+int gageMultiProbeSpace(gageMultiQuery *gmq, gageContext *gctx,
+                       const Nrrd *npos, int indexSpace, int clamp);
+gageMultiQuery *gageMultiQueryNix(gageMultiQuery *gmq);
+gageMultiQuery *gageMultiQueryNuke(gageMultiQuery *gmq);
 
 /* st.c */
 GAGE_EXPORT int gageStructureTensor(Nrrd *nout, const Nrrd *nin,
