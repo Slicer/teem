@@ -548,8 +548,9 @@ typedef struct {
   double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
   double min, max;           /* range in INDEX space of resampling */
   size_t samples;            /* number output samples on this axis (sizeOut) */
-  int center;                /* centering for this axis */
+  int overrideCenter;        /* possible explicit setting of centering */
   /* ----------- internal ---------- */
+  int center;                /* centering for this axis */
   size_t sizeIn,             /* number input samples on this axis */
     sizePerm[NRRD_DIM_MAX];  /* permutation of axis sizes for this pass */
   unsigned int axIdx,        /* what axis are we (redundant with other info) */
@@ -1244,6 +1245,9 @@ NRRD_EXPORT int nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
 NRRD_EXPORT int nrrdResampleRangeSet(NrrdResampleContext *rsmc,
                                      unsigned int axIdx,
                                      double min, double max);
+NRRD_EXPORT int nrrdResampleOverrideCenterSet(NrrdResampleContext *rsmc,
+                                              unsigned int axIdx,
+                                              int center);
 NRRD_EXPORT int nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
                                          unsigned int axIdx);
 NRRD_EXPORT int nrrdResampleBoundarySet(NrrdResampleContext *rsmc,

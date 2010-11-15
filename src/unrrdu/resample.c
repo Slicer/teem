@@ -42,7 +42,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm, older, E, defaultCenter, verbose;
+  int type, bb, pret, norenorm, older, E, defaultCenter, verbose, overrideCenter;
   unsigned int scaleLen, ai, samplesOut;
   airArray *mop;
   float *scale;
@@ -126,6 +126,10 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "default centering of axes when input nrrd "
              "axes don't have a known centering: \"cell\" or \"node\" ",
              NULL, nrrdCenter);
+  hestOptAdd(&opt, "co", NULL, airTypeInt, 0, 0, &overrideCenter, NULL,
+             "centering info specified via \"-c\" should *over-ride* "
+             "known centering, rather than simply be used when centering "
+             "is unknown.");
   hestOptAdd(&opt, "verbose", "v", airTypeInt, 1, 1, &verbose, "0",
              "(not available with \"-old\") verbosity level");
   OPT_ADD_NIN(nin, "input nrrd");
@@ -161,12 +165,18 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
         break;
       case 1:
         /* scaling of input # samples */
+        if (defaultCenter && overrideCenter) {
+          if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
+        }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         samplesOut = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       case 2:
         /* explicit # of samples */
+        if (defaultCenter && overrideCenter) {
+          if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
+        }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         samplesOut = (size_t)scale[1 + 2*ai];
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);

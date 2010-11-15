@@ -56,29 +56,30 @@
 */
 
 enum {
-  flagUnknown,        /*  0 */
-  flagDefaultCenter,  /*  1 */
-  flagNrrd,           /*  2 */
-  flagInputDimension, /*  3 */
-  flagInputCenters,   /*  4 */
-  flagInputSizes,     /*  5 */
-  flagKernels,        /*  6 */
-  flagSamples,        /*  7 */
-  flagRanges,         /*  8 */
-  flagBoundary,       /*  9 */
-  flagLineAllocate,   /* 10 */
-  flagLineFill,       /* 11 */
-  flagVectorAllocate, /* 12 */
-  flagPermutation,    /* 13 */
-  flagVectorFill,     /* 14 */
-  flagClamp,          /* 15 */
-  flagRound,          /* 16 */
-  flagTypeOut,        /* 17 */
-  flagPadValue,       /* 18 */
-  flagRenormalize,    /* 19 */
+  flagUnknown,         /*  0 */
+  flagDefaultCenter,   /*  1 */
+  flagNrrd,            /*  2 */
+  flagOverrideCenters, /*  3 */
+  flagInputDimension,  /*  4 */
+  flagInputCenters,    /*  5 */
+  flagInputSizes,      /*  6 */
+  flagKernels,         /*  7 */
+  flagSamples,         /*  8 */
+  flagRanges,          /*  9 */
+  flagBoundary,        /* 10 */
+  flagLineAllocate,    /* 11 */
+  flagLineFill,        /* 12 */
+  flagVectorAllocate,  /* 13 */
+  flagPermutation,     /* 14 */
+  flagVectorFill,      /* 15 */
+  flagClamp,           /* 16 */
+  flagRound,           /* 17 */
+  flagTypeOut,         /* 18 */
+  flagPadValue,        /* 19 */
+  flagRenormalize,     /* 20 */
   flagLast
 };
-#define FLAG_MAX         19
+#define FLAG_MAX          20
 
 void
 nrrdResampleContextInit(NrrdResampleContext *rsmc) {
@@ -111,6 +112,7 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
       }
       axis->min = axis->max = AIR_NAN;
       axis->samples = AIR_CAST(unsigned int, -1);
+      axis->overrideCenter = nrrdCenterUnknown;
       axis->center = nrrdCenterUnknown;
       axis->sizeIn = AIR_CAST(unsigned int, -1);
       axis->axIdx = axIdx;                         /* never changes */
@@ -302,6 +304,28 @@ nrrdResampleRangeSet(NrrdResampleContext *rsmc,
   return 0;
 }
 
+int
+nrrdResampleOverrideCenterSet(NrrdResampleContext *rsmc,
+                              unsigned int axIdx,
+                              int center) {
+  static const char me[]="nrrdResampleOverrideCenterSet";
+
+  PER_AXIS_ERROR_CHECK;
+  if (center) {
+    /* we do allow passing nrrdCenterUnknown, to turn off override */
+    if (airEnumValCheck(nrrdCenter, center)) {
+      biffAddf(NRRD, "%s: didn't get valid centering (%d)", me, center);
+      return 1;
+    }
+  }
+  if (center != rsmc->axis[axIdx].overrideCenter) {
+    rsmc->axis[axIdx].overrideCenter = center;
+    rsmc->flag[flagOverrideCenters] = AIR_TRUE;
+  }
+  
+  return 0;
+}
+
 void
 _nrrdResampleMinMaxFull(double *minP, double *maxP,
                         int center, size_t size) {
@@ -325,8 +349,8 @@ nrrdResampleRangeFullSet(NrrdResampleContext *rsmc,
 
   /* HEY trick is to figure out the axis's centering, and to
      make sure its the same code as used elsewhere */
-  center = (rsmc->axis[axIdx].center
-            ? rsmc->axis[axIdx].center
+  center = (rsmc->axis[axIdx].overrideCenter
+            ? rsmc->axis[axIdx].overrideCenter
             : (rsmc->nin->axis[axIdx].center
                ? rsmc->nin->axis[axIdx].center
                : rsmc->defaultCenter));
@@ -479,12 +503,13 @@ _nrrdResampleInputCentersUpdate(NrrdResampleContext *rsmc) {
   unsigned int axIdx;
   int center;
 
-  if (rsmc->flag[flagDefaultCenter]
+  if (rsmc->flag[flagOverrideCenters]
+      || rsmc->flag[flagDefaultCenter]
       || rsmc->flag[flagInputDimension]
       || rsmc->flag[flagNrrd]) {
     for (axIdx=0; axIdx<NRRD_DIM_MAX; axIdx++) {
-      center = (rsmc->axis[axIdx].center
-                ? rsmc->axis[axIdx].center
+      center = (rsmc->axis[axIdx].overrideCenter
+                ? rsmc->axis[axIdx].overrideCenter
                 : (rsmc->nin->axis[axIdx].center
                    ? rsmc->nin->axis[axIdx].center
                    : rsmc->defaultCenter));
@@ -493,6 +518,7 @@ _nrrdResampleInputCentersUpdate(NrrdResampleContext *rsmc) {
         rsmc->flag[flagInputCenters] = AIR_TRUE;
       }
     }  
+    rsmc->flag[flagOverrideCenters] = AIR_FALSE;
     rsmc->flag[flagDefaultCenter] = AIR_FALSE;
   }
 
