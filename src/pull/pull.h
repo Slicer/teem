@@ -266,6 +266,30 @@ enum {
 }; 
 #define PULL_SOURCE_MAX  2
 
+/*
+** the different kinds of computations and entitis that one could 
+** book-keeping and optimization purposes
+*/
+enum {
+  pullCountUnknown,             /*  0 */
+  pullCountDescent,             /*  1 */
+  pullCountTestStep,            /*  2 */
+  pullCountEnergyFromImage,     /*  3 */
+  pullCountForceFromImage,      /*  4 */
+  pullCountEnergyFromPoints,    /*  5 */
+  pullCountForceFromPoints,     /*  6 */
+  pullCountProbe,               /*  7 */
+  pullCountConstraintSatisfy,   /*  8 */
+  pullCountAdding,              /*  9 */
+  pullCountNixing,              /* 10 */
+  pullCountPointsStuck,         /* 11 */
+  pullCountPoints,              /* 12 */
+  pullCountCC,                  /* 13 */
+  pullCountIteration,           /* 14 */
+  pullCountLast
+};
+#define PULL_COUNT_MAX             14
+
 /* 
 ** Defines how par-particle information can be learned.  This is
 ** typically via measurements in the image by gage, but other sources
@@ -856,7 +880,9 @@ typedef struct pullContext_t {
     stuckNum,                      /* # stuck particles in last iter */
     pointNum,                      /* total # particles */
     CCNum,                         /* # connected components */
-    iter;                          /* how many iterations were needed */
+    iter,                          /* how many iterations were needed */
+  /* HEY: this should really be per-task, to be thread-safe!! */
+    count[PULL_COUNT_MAX+1];       /* all possible kinds of counts */
 } pullContext;
 
 /* defaultsPull.c */
@@ -950,6 +976,7 @@ PULL_EXPORT const airEnum *const pullInfo;
 PULL_EXPORT const airEnum *const pullSource;
 PULL_EXPORT const airEnum *const pullProp;
 PULL_EXPORT const airEnum *const pullProcessMode;
+PULL_EXPORT const airEnum *const pullCount;
 
 /* infoPull.c */
 PULL_EXPORT unsigned int pullPropLen(int prop);

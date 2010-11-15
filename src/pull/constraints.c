@@ -558,6 +558,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
          me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
          stepMax, iterMax);
   */
+  task->pctx->count[pullCountConstraintSatisfy] += 1;
   switch (task->pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
     if (constraintSatLapl(task, point, stepMax/4, 4*iterMax, constrFailP)) {

@@ -65,10 +65,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   pullPoint *newpnt;
   int E;
 
-  /* HEY this is probably not the best place for this */
-  if (task->pctx->flag.noAdd) {
-    return 0;
-  }
+  task->pctx->count[pullCountAdding] += 1;
 
   if (point->neighPointNum && task->pctx->targetDim
       && task->pctx->flag.popCntlEnoughTest) {
@@ -198,7 +195,10 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   for (iter=0; iter<task->pctx->iterParm.addDescent; iter++) {
     double diff[4];
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
-                                          AIR_FALSE /* ignoreImage */);
+                                          /* ignoreImage; actually it is
+                                           this use which motivated the
+                                          creation of ignoreImage */
+                                          AIR_TRUE);
     if (newpnt->status & PULL_STATUS_STUCK_BIT) {
       if (task->pctx->verbose > 2) {
         printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me, 
@@ -316,6 +316,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   double enrWith, enrWithout, fracNixed;
+
+  task->pctx->count[pullCountNixing] += 1;
 
   /* if there's a live thresh, do we meet it? */
   if (task->pctx->ispec[pullInfoLiveThresh]

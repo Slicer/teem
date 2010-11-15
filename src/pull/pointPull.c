@@ -357,6 +357,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
     printf("%s: hello; probing %u volumes\n", me, task->pctx->volNum);
   }
   edge = AIR_FALSE;
+  task->pctx->count[pullCountProbe] += 1;
   for (ii=0; ii<task->pctx->volNum; ii++) {
     pullVolume *vol;
     vol = task->vol[ii];
@@ -1103,7 +1104,8 @@ _pullPointSetup(pullContext *pctx) {
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
-                                            AIR_FALSE, /* ignoreImage */
+                                            /* ignoreImage */
+                                            !pctx->haveScale, 
                                             point->force);
     }
   }

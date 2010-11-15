@@ -220,3 +220,35 @@ _pullProcessMode = {
 const airEnum *const
 pullProcessMode = &_pullProcessMode;
 
+/* --------------------------------------------------------- */
+
+const char *
+_pullCountStr[] = {
+  "(unknown_countable)",
+  "descent",
+  "teststep",
+  "enrg(img)",
+  "frc(img)",
+  "enrg(pts)",
+  "frc(pts)",
+  "probe",
+  "constr",
+  "adding",
+  "nixing",
+  "pts stuck",
+  "pts",
+  "CC",
+  "iter"
+};
+
+const airEnum
+_pullCount = {
+  "countable",
+  PULL_COUNT_MAX,
+  _pullCountStr,  NULL,
+  NULL, NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+pullCount = &_pullCount;
+

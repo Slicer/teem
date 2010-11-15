@@ -691,13 +691,21 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
     
   ELL_4V_SET(egradIm, 0, 0, 0, 0);
   ELL_4V_SET(egradPt, 0, 0, 0, 0);
-  if (!ignoreImage && task->pctx->sysParm.alpha < 1.0) {
+  if (!( ignoreImage || 1.0 == task->pctx->sysParm.alpha )) {
     enrIm = _energyFromImage(task, point, egrad ? egradIm : NULL);
+    task->pctx->count[pullCountEnergyFromImage] += 1;
+    if (egrad) {
+      task->pctx->count[pullCountForceFromImage] += 1;
+    }
   } else {
     enrIm = 0;
   }
   if (task->pctx->sysParm.alpha > 0.0) {
     enrPt = _pullEnergyFromPoints(task, bin, point, egrad ? egradPt : NULL);
+    task->pctx->count[pullCountEnergyFromPoints] += 1;
+    if (egrad) {
+      task->pctx->count[pullCountForceFromPoints] += 1;
+    }
   } else {
     enrPt = 0;
   }
@@ -776,6 +784,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   double energyOld, energyNew, egrad[4], force[4], posOld[4];
   int stepBad, giveUp, hailMary;
  
+  task->pctx->count[pullCountDescent] += 1;
   if (!point->stepEnergy) {
     fprintf(stderr, "\n\n\n%s: whoa, point %u step is zero!!\n\n\n\n",
             me, point->idtag);
@@ -887,6 +896,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                                 point->pos[3],
                                 task->pctx->bboxMax[3]);
     }
+    task->pctx->count[pullCountTestStep] += 1;
     _pullPointHistAdd(point, pullCondEnergyTry);
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point, &constrFail)) {
@@ -1017,13 +1027,15 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   switch (task->processMode) {
   case pullProcessModeDescent:
     E = _pullPointProcessDescent(task, bin, point,
-                                 AIR_FALSE /* ignoreImage */);
+                                 !task->pctx->haveScale /* ignoreImage */);
     break;
   case pullProcessModeNeighLearn:
     E = _pullPointProcessNeighLearn(task, bin, point);
     break;
   case pullProcessModeAdding:
-    E = _pullPointProcessAdding(task, bin, point);
+    if (!task->pctx->flag.noAdd) {
+      E = _pullPointProcessAdding(task, bin, point);
+    }
     break;
   case pullProcessModeNixing:
     E = _pullPointProcessNixing(task, bin, point);

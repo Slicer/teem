@@ -96,6 +96,9 @@ pullContextNew(void) {
   pctx->stuckNum = 0;
   pctx->pointNum = 0;
   pctx->iter = 0;
+  for (ii=pullCountUnknown; ii<pullCountLast; ii++) {
+    pctx->count[ii] = 0;
+  }
   return pctx;
 }
 
