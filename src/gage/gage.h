@@ -1096,7 +1096,7 @@ GAGE_EXPORT int gageProbeSpace(gageContext *ctx, double x, double y, double z,
 /* update.c */
 GAGE_EXPORT int gageUpdate(gageContext *ctx);
 
-/* multig.c */
+/* multiGage.c */
 gageMultiItem *gageMultiItemNew(const gageKind *kind);
 int gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
                         ... /* itemNum items */);
