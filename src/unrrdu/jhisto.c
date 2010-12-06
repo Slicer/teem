@@ -38,9 +38,9 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd **nin, **nslice;
   Nrrd *nout, *nwght;
-  size_t *bin, dim;
+  size_t *bin, asize, binLen;
   int type, axis, clamp[NRRD_DIM_MAX], pret;
-  unsigned int binLen, minLen, maxLen, ninLen, ai;
+  unsigned int minLen, maxLen, ninLen, ai;
   airArray *mop;
   double *min, *max;
   NrrdRange **range;
@@ -86,10 +86,12 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   if (ninLen == 1) {
     /* Slice a nrrd on the fly */
     ninLen = binLen;
+    asize = nin[0]->axis[axis].size;
     /* Copy the original input nrrd completely */
-    if (dim = nin[0]->axis[axis].size < binLen) {
-      fprintf(stderr, "%s: dim of fast axis (%d) < # bin specifications (%d)\n",
-            me, dim, binLen);
+    if (asize != binLen) {
+      fprintf(stderr,
+              "%s: size of fast axis (%u) < # bin specifications (%u)\n", me,
+              AIR_CAST(unsigned int, asize), AIR_CAST(unsigned int, binLen));
       airMopError(mop);
       return 1;
     }
@@ -112,8 +114,9 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
     }
   } else {
     if (ninLen != binLen) {
-      fprintf(stderr, "%s: # input nrrds (%d) != # bin specifications (%d)\n",
-              me, ninLen, binLen);
+      fprintf(stderr,
+              "%s: # input nrrds (%u) != # bin specifications (%u)\n", me,
+              AIR_CAST(unsigned int, ninLen), AIR_CAST(unsigned int, binLen));
       airMopError(mop);
       return 1;
     }
