@@ -367,6 +367,215 @@ _TIJK_2O2D_ASYM_APPROX(float, f)
 
 TIJK_TYPE(2o2d_asym, 2, 2, 1)
 
+/* 3rd order 2D symmetric */
+/* unsymmetric counterpart currently not implemented */
+
+unsigned int _tijk_3o2d_sym_mult[4] = {1, 3, 3, 1};
+#define _tijk_3o2d_sym_unsym2uniq NULL
+#define _tijk_3o2d_sym_uniq2unsym NULL
+#define _tijk_3o2d_sym_uniq_idx NULL
+
+#define _TIJK_3O2D_SYM_TSP(A, B) \
+  ((A)[0]*(B)[0]+3*(A)[1]*(B)[1]+3*(A)[2]*(B)[2]+(A)[3]*(B)[3])
+
+double
+_tijk_3o2d_sym_tsp_d (const double *A, const double *B) {
+  return _TIJK_3O2D_SYM_TSP(A,B);
+}
+
+float
+_tijk_3o2d_sym_tsp_f (const float *A, const float *B) {
+  return _TIJK_3O2D_SYM_TSP(A,B);
+}
+
+double
+_tijk_3o2d_sym_norm_d (const double *A) {
+  return sqrt(_TIJK_3O2D_SYM_TSP(A,A));
+}
+
+float
+_tijk_3o2d_sym_norm_f (const float *A) {
+  return sqrt(_TIJK_3O2D_SYM_TSP(A,A));
+}
+
+#define _TIJK_3O2D_SYM_CONVERT(TYPE, SUF)				\
+  int									\
+  _tijk_3o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
+			      const TYPE *A) {				\
+    if (res_type==tijk_3o2d_sym) { /* copy over */			\
+      ELL_4V_COPY(res, A);						\
+      return 0;								\
+    } else if (NULL!=res_type->_convert_from_##SUF)			\
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_3o2d_sym);	\
+    else								\
+      return 1;								\
+  }
+
+_TIJK_3O2D_SYM_CONVERT(double, d)
+_TIJK_3O2D_SYM_CONVERT(float, f)
+
+#define _TIJK_3O2D_SYM_APPROX(TYPE, SUF)				\
+  int									\
+  _tijk_3o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
+			       const TYPE *A) {				\
+    if (NULL!=res_type->_approx_from_##SUF)				\
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_3o2d_sym);	\
+    else								\
+      return 1;								\
+  }
+
+_TIJK_3O2D_SYM_APPROX(double, d)
+_TIJK_3O2D_SYM_APPROX(float, f)
+
+void
+_tijk_3o2d_sym_trans_d (double *res, const double *A, const double *M) {
+  res[0]=M[0]*M[0]*M[0]*A[0]+3*M[0]*M[0]*M[1]*A[1]+
+    3*M[0]*M[1]*M[1]*A[2]+M[1]*M[1]*M[1]*A[3];
+  res[1]=M[0]*M[0]*M[2]*A[0]+(M[0]*M[0]*M[3]+2*M[0]*M[1]*M[2])*A[1]+
+    (2*M[0]*M[1]*M[3]+M[1]*M[1]*M[2])*A[2]+M[1]*M[1]*M[3]*A[3];
+  res[2]=M[0]*M[2]*M[2]*A[0]+(M[1]*M[2]*M[2]+2*M[0]*M[2]*M[3])*A[1]+
+    (2*M[1]*M[2]*M[3]+M[0]*M[3]*M[3])*A[2]+M[1]*M[3]*M[3]*A[3];
+  res[3]=M[2]*M[2]*M[2]*A[0]+3*M[2]*M[2]*M[3]*A[1]+
+    3*M[2]*M[3]*M[3]*A[2]+M[3]*M[3]*M[3]*A[3];
+}
+
+void
+_tijk_3o2d_sym_trans_f (float *res, const float *A, const float *M) {
+  res[0]=M[0]*M[0]*M[0]*A[0]+3*M[0]*M[0]*M[1]*A[1]+
+    3*M[0]*M[1]*M[1]*A[2]+M[1]*M[1]*M[1]*A[3];
+  res[1]=M[0]*M[0]*M[2]*A[0]+(M[0]*M[0]*M[3]+2*M[0]*M[1]*M[2])*A[1]+
+    (2*M[0]*M[1]*M[3]+M[1]*M[1]*M[2])*A[2]+M[1]*M[1]*M[3]*A[3];
+  res[2]=M[0]*M[2]*M[2]*A[0]+(M[1]*M[2]*M[2]+2*M[0]*M[2]*M[3])*A[1]+
+    (2*M[1]*M[2]*M[3]+M[0]*M[3]*M[3])*A[2]+M[1]*M[3]*M[3]*A[3];
+  res[3]=M[2]*M[2]*M[2]*A[0]+3*M[2]*M[2]*M[3]*A[1]+
+    3*M[2]*M[3]*M[3]*A[2]+M[3]*M[3]*M[3]*A[3];
+}
+
+double
+_tijk_3o2d_sym_s_form_d (const double *A, const double *v) {
+  return A[0]*v[0]*v[0]*v[0]+3*A[1]*v[0]*v[0]*v[1]+
+    3*A[2]*v[0]*v[1]*v[1]+A[3]*v[1]*v[1]*v[1];
+}
+
+float
+_tijk_3o2d_sym_s_form_f (const float *A, const float *v) {
+  return A[0]*v[0]*v[0]*v[0]+3*A[1]*v[0]*v[0]*v[1]+
+    3*A[2]*v[0]*v[1]*v[1]+A[3]*v[1]*v[1]*v[1];
+}
+
+double
+_tijk_3o2d_sym_mean_d (const double *A) {
+  (void) A; /* odd order; mean is zero irrespective of coefficients */
+  return 0;
+}
+
+float
+_tijk_3o2d_sym_mean_f (const float *A) {
+  (void) A; /* odd order; mean is zero irrespective of coefficients */
+  return 0;
+}
+
+double
+_tijk_3o2d_sym_var_d (const double *A) {
+  return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
+	  6*(A[0]*A[2]+A[1]*A[3]))/16.0;
+}
+
+float
+_tijk_3o2d_sym_var_f (const float *A) {
+  return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
+	  6*(A[0]*A[2]+A[1]*A[3]))/16.0;
+}
+
+void
+_tijk_3o2d_sym_v_form_d (double *res, const double *A, const double *v) {
+  double v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
+  res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
+  res[1]=A[1]*v00+2*A[2]*v01+A[3]*v11;
+}
+
+void
+_tijk_3o2d_sym_v_form_f (float *res, const float *A, const float *v) {
+  float v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
+  res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
+  res[1]=A[1]*v00+2*A[2]*v01+A[3]*v11;
+}
+
+void
+_tijk_3o2d_sym_m_form_d (double *res, const double *A, const double *v) {
+  res[0]=A[0]*v[0]+A[1]*v[1];
+  res[1]=A[1]*v[0]+A[2]*v[1];
+  res[2]=A[2]*v[0]+A[3]*v[1];
+}
+
+void
+_tijk_3o2d_sym_m_form_f (float *res, const float *A, const float *v) {
+  res[0]=A[0]*v[0]+A[1]*v[1];
+  res[1]=A[1]*v[0]+A[2]*v[1];
+  res[2]=A[2]*v[0]+A[3]*v[1];
+}
+
+void
+_tijk_3o2d_sym_make_rank1_d (double *res, const double s, const double *v) {
+  res[0]=s*v[0]*v[0]*v[0];
+  res[1]=s*v[0]*v[0]*v[1];
+  res[2]=s*v[0]*v[1]*v[1];
+  res[3]=s*v[1]*v[1]*v[1];
+}
+
+void
+_tijk_3o2d_sym_make_rank1_f (float *res, const float s, const float *v) {
+  res[0]=s*v[0]*v[0]*v[0];
+  res[1]=s*v[0]*v[0]*v[1];
+  res[2]=s*v[0]*v[1]*v[1];
+  res[3]=s*v[1]*v[1]*v[1];
+}
+
+#define _tijk_3o2d_sym_make_iso_d NULL
+#define _tijk_3o2d_sym_make_iso_f NULL
+
+void
+_tijk_3o2d_sym_grad_d (double *res, const double *A, const double *v) {
+  double proj, projv[2];
+  _tijk_3o2d_sym_v_form_d (res, A, v);
+  ELL_2V_SCALE(res,3.0,res);
+  proj=ELL_2V_DOT(res,v);
+  ELL_2V_SCALE(projv,-proj,v);
+  ELL_2V_INCR(res,projv);
+}
+
+void
+_tijk_3o2d_sym_grad_f (float *res, const float *A, const float *v) {
+  float proj, projv[2];
+  _tijk_3o2d_sym_v_form_f (res, A, v);
+  ELL_2V_SCALE(res,3.0,res);
+  proj=ELL_2V_DOT(res,v);
+  ELL_2V_SCALE(projv,-proj,v);
+  ELL_2V_INCR(res,projv);
+}
+
+void
+_tijk_3o2d_sym_hess_d (double *res, const double *A, const double *v) {
+  double tang[2];
+  double hess[3], s;
+  ELL_2V_SET(tang,v[1],-v[0]);
+  _tijk_3o2d_sym_m_form_d(hess,A,v);
+  s=6*_tijk_2o2d_sym_s_form_d(hess,tang)-3*_tijk_2o2d_sym_s_form_d(hess,v);
+  _tijk_2o2d_sym_make_rank1_d(res, s, tang);
+}
+
+void
+_tijk_3o2d_sym_hess_f (float *res, const float *A, const float *v) {
+  float tang[2];
+  float hess[3], s;
+  ELL_2V_SET(tang,v[1],-v[0]);
+  _tijk_3o2d_sym_m_form_f(hess,A,v);
+  s=6*_tijk_2o2d_sym_s_form_f(hess,tang)-3*_tijk_2o2d_sym_s_form_f(hess,v);
+  _tijk_2o2d_sym_make_rank1_f(res, s, tang);
+}
+
+TIJK_TYPE_SYM(3o2d_sym, 3, 2, 4)
+
 /* 4th order 2D unsymmetric */
 
 double

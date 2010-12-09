@@ -157,6 +157,7 @@ typedef struct tijk_type_t {
 TIJK_EXPORT const tijk_type *const tijk_2o2d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_2o2d_sym;
 TIJK_EXPORT const tijk_type *const tijk_2o2d_asym;
+TIJK_EXPORT const tijk_type *const tijk_3o2d_sym;
 TIJK_EXPORT const tijk_type *const tijk_4o2d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_4o2d_sym;
 
