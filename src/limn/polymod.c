@@ -2,7 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  Copyright (C) 2010  Thomas Schultz
+  Copyright (C) 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -1635,30 +1635,99 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
   return 0;
 }
 
+/* Helper function for limnPolyDataClipMulti - clips the edge between
+ * disc and kept that partially fulfills the thresholds and maintains
+ * a data structure that keeps track of edges we have clipped already,
+ * to avoid creating duplicate vertices.
+ */
+static int
+clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
+	 airArray *llistArr, limnPolyData *pld, unsigned int bitflag,
+	 limnPolyData *newpld, airArray *xyzwArr, airArray *rgbaArr,
+	 airArray *normArr, airArray *tex2Arr) {
+  int *ref=newIdx+disc, *llist=(int*)llistArr->data;
+  int next=*ref;
+  double alpha=0;
+  unsigned int i,q,p,nk;
+  double (*lup)(const void *v, size_t I)=nrrdDLookup[nval->type];
+  /* check if we clipped the edge previously */
+  while (next!=-1) {
+    if (llist[next]==kept) /* found the desired vertex */
+      return llist[next+1];
+    ref=llist+next+2;
+    next=*ref;
+  }
+  /* we need to interpolate - find the weight */
+  nk=(nval->dim==1)?1:nval->axis[0].size;
+  for (i=0; i<nk; i++) {
+    double discval = lup(nval->data, nk*disc+i);
+    double keptval = lup(nval->data, nk*kept+i);
+    double thisalpha = AIR_AFFINE(discval,thresh[i],keptval,0.0,1.0);
+    if (thisalpha>alpha)
+      alpha=thisalpha;
+  }
+  /* add interpolated vertex */
+  q=airArrayLenIncr(xyzwArr, 1);
+  ELL_4V_LERP(newpld->xyzw+4*q, alpha, pld->xyzw+4*disc, pld->xyzw+4*kept);
+  if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+    airArrayLenIncr(rgbaArr, 1);
+    ELL_4V_LERP(newpld->rgba+4*q, alpha, pld->rgba+4*disc, pld->rgba+4*kept);
+  }
+  if ((1 << limnPolyDataInfoNorm) & bitflag) {
+    float fnorm[3];
+    double len;
+    /* take special care to treat non-orientable surface normals correctly */
+    if (ELL_3V_DOT(pld->norm+3*disc, pld->norm+3*kept)<0) {
+      ELL_3V_SCALE(fnorm, -1.0, pld->norm+3*kept);
+    } else {
+      ELL_3V_COPY(fnorm, pld->norm+3*kept);
+    }
+    airArrayLenIncr(normArr, 1);
+    ELL_3V_LERP(newpld->norm+3*q, alpha, pld->norm+3*disc, fnorm);
+    /* re-normalize */
+    len=ELL_3V_LEN(newpld->norm+3*q);
+    if (len>1e-20) {
+      ELL_3V_SCALE(newpld->norm+3*q, 1.0/len, newpld->norm+3*q);
+    }
+  }
+  if ((1 << limnPolyDataInfoTex2) & bitflag) {
+    airArrayLenIncr(tex2Arr, 1);
+    ELL_2V_LERP(newpld->tex2+2*q, alpha, pld->tex2+2*disc, pld->tex2+2*kept);
+  }
+  /* add new vertex to linked list */
+  p=airArrayLenIncr(llistArr, 1);
+  llist=(int*)llistArr->data; /* update in case of re-allocation */
+  llist[3*p]=kept;
+  llist[3*p+1]=q;
+  llist[3*p+2]=-1;
+  *ref=3*p;
+  return q;
+}
+
 /*
-** tests:
-** everything stays
-** half of single prim stays
-** one prim stays, one prim goes
-** in multiple prims, mix of verts all staying, all going, part staying.
-*/
-/*
-** HEY: for the time being this is not actually clipping polygons:
-** its just dropping them or keeping them. True clipping to be done later.
-*/
+ * Clips the given triangles (limnPrimitiveTriangles) according to the
+ * input matrix nval and the threshold array thresh. First axis of
+ * nval are different clipping criteria, second axis are vertex
+ * indices. The length of thresh has to equal the size of the first
+ * axis, the vertex count in pld has to equal the size of the second
+ * axis. If nval is 1D, it is assumed to have a single criterion.
+ *
+ * A vertex is preserved if all values are >= the respective
+ * threshold; triangles with partially discarded vertices are clipped,
+ * potentially generating a quad that is then triangulated arbitrarily.
+ */
 int
-limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
-  static const char me[]="limnPolyDataClip";
+limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
+  static const char me[]="limnPolyDataClipMulti";
+  unsigned char *keepVert=NULL;
   airArray *mop;
-  unsigned char *keepVert=NULL, *keepTri=NULL;
-  unsigned int oldBaseTriIdx, newBaseTriIdx, 
-    oldVertIdx, oldVertNum, oldTriIdx, oldTriNum,
-    newVertIdx, newVertNum, newTriNum,
-    newPrimIdx, newPrimNum, oldPrimIdx, oldPrimNum, bitflag;
-  unsigned int *vimap=NULL;
+  unsigned int E, i, idx=0;
   double (*lup)(const void *v, size_t I);
-  limnPolyData ptmp;
-  int E;
+  airArray *xyzwArr, *rgbaArr=NULL, *normArr=NULL, *tex2Arr=NULL,
+    *indxArr, *typeArr, *icntArr, *llistArr;
+  limnPolyData *newpld;
+  int *newIdx=NULL, *llist=NULL;
+  unsigned int bitflag, nk, nvert;
 
   if (!(pld && nval)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
@@ -1670,9 +1739,18 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
              airEnumStr(nrrdType, nval->type));
     return 1;
   }
-  if (pld->xyzwNum != nrrdElementNumber(nval)) {
+
+  if (nval->dim==1) {
+    nk=1; nvert=nval->axis[0].size;
+  } else if (nval->dim==2) {
+    nk=nval->axis[0].size; nvert=nval->axis[1].size;
+  } else {
+    biffAddf(LIMN, "%s: need 1D or 2D input array, got %uD", me, nval->dim);
+    return 1;    
+  }
+  if (nvert!=pld->xyzwNum) {
     biffAddf(LIMN, "%s: # verts %u != # values %u", me,
-             pld->xyzwNum, AIR_CAST(unsigned int, nrrdElementNumber(nval)));
+             pld->xyzwNum, nvert);
     return 1;
   }
   if ((1 << limnPrimitiveTriangles) != limnPolyDataPrimitiveTypes(pld)) {
@@ -1681,240 +1759,225 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
     return 1;
   }
 
-  oldVertNum = pld->xyzwNum;
-  oldTriNum = limnPolyDataPolygonNumber(pld);
-  /*
-  fprintf(stderr, "!%s: old vert # %u, tri # %u\n", me,
-          oldVertNum, oldTriNum);
-  */
-  mop = airMopNew();
-  /* experimenting with being more diligent about combining error
-     checking into allocation; it certainly makes things longer */
+  /* Memory allocation in C IS a headache */
+  mop=airMopNew();
   E = AIR_FALSE;
   if (!E) {
-    keepVert = AIR_CAST(unsigned char *, calloc(oldVertNum,
-                                                sizeof(unsigned char)));
+    E|=!(keepVert = AIR_CAST(unsigned char *,
+			     calloc(pld->xyzwNum, sizeof(char))));
   }
-  E |= !keepVert;
   if (!E) {
     airMopAdd(mop, keepVert, airFree, airMopAlways);
-    keepTri = AIR_CAST(unsigned char *, calloc(oldTriNum,
-                                               sizeof(unsigned char)));
+    E|=!(newIdx = AIR_CAST(int *, malloc(pld->xyzwNum*sizeof(int))));
   }
-  E |= !keepTri;
   if (!E) {
-    airMopAdd(mop, keepTri, airFree, airMopAlways);
-    vimap = AIR_CAST(unsigned int *, calloc(oldVertNum,
-                                            sizeof(unsigned int)));
+    unsigned int incr;
+    airMopAdd(mop, newIdx, airFree, airMopAlways);
+    memset(newIdx, -1, sizeof(int)*pld->xyzwNum);
+    /* This setting of incr is arbitrary and was not optimized in any way: */
+    incr = pld->xyzwNum/10; /* 10% of previous vertex count... */
+    if (incr<50) incr=50; /* ...but at least 50. */
+    E|=!(llistArr=airArrayNew((void**)&llist, NULL, 3*sizeof(int), incr));
   }
-  E |= !vimap;
+  if (!E) {
+    airMopAdd(mop, llistArr, (airMopper)airArrayNuke, airMopAlways);
+    E|=!(newpld = limnPolyDataNew());
+  }
+  bitflag = limnPolyDataInfoBitFlag(pld);
+  if (!E) {
+    unsigned int incr;
+    airMopAdd(mop, newpld, airFree, airMopAlways); /* "shallow" free */
+    incr = pld->xyzwNum/20; /* 5% of previous vertex count... */
+    if (incr<10) incr=10; /* ...but at least 10. */
+    E|=!(xyzwArr=airArrayNew((void**)&(newpld->xyzw), &(newpld->xyzwNum),
+			     4*sizeof(float), incr));
+    if (!E) {
+      airMopAdd(mop, xyzwArr, (airMopper)airArrayNuke, airMopOnError);
+      airMopAdd(mop, xyzwArr, (airMopper)airArrayNix, airMopOnOkay);
+    }
+    if (!E && (1 << limnPolyDataInfoRGBA) & bitflag) {
+      E|=!(rgbaArr=airArrayNew((void**)&(newpld->rgba), &(newpld->rgbaNum),
+			       4*sizeof(unsigned char), incr));
+      if (!E) {
+	airMopAdd(mop, rgbaArr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, rgbaArr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+    }
+    if (!E && (1 << limnPolyDataInfoNorm) & bitflag) {
+      E|=!(normArr=airArrayNew((void**)&(newpld->norm), &(newpld->normNum),
+			       3*sizeof(float), incr));
+      if (!E) {
+	airMopAdd(mop, normArr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, normArr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+    }
+    if (!E && (1 << limnPolyDataInfoTex2) & bitflag) {
+      E|=!(tex2Arr=airArrayNew((void**)&(newpld->tex2), &(newpld->tex2Num),
+			       2*sizeof(float), incr));
+      if (!E) {
+	airMopAdd(mop, tex2Arr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, tex2Arr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+    }
+    if (!E) {
+      incr = pld->indxNum/20; /* 5% of previous index count... */
+      if (incr<10) incr=10; /* ...but at least 10. */
+      E|=!(indxArr=airArrayNew((void**)&(newpld->indx), &(newpld->indxNum),
+			       sizeof(unsigned int), incr));
+      if (!E) {
+	airMopAdd(mop, indxArr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, indxArr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+    }
+    if (!E) {
+      incr = pld->primNum/10; /* 10% of previous primNum... */
+      if (incr<1) incr=1; /* ...but at least 1. */
+      E|=!(typeArr=airArrayNew((void**)&(newpld->type), &(newpld->primNum),
+			       sizeof(unsigned char), incr));
+      if (!E) {
+	airMopAdd(mop, typeArr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, typeArr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+      E|=!(icntArr=airArrayNew((void**)&(newpld->icnt), NULL,
+			       sizeof(unsigned int), incr));
+      if (!E) {
+	airMopAdd(mop, icntArr, (airMopper)airArrayNuke, airMopOnError);
+	airMopAdd(mop, icntArr, (airMopper)airArrayNix, airMopOnOkay);
+      }
+    }
+  }
   if (E) {
     biffAddf(LIMN, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
-  airMopAdd(mop, vimap, airFree, airMopAlways);
 
-  /* initialize keepVert based on threshold */
+  /* mark vertices, leaving at 0 means "discard" */
   lup = nrrdDLookup[nval->type];
-  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
-    keepVert[oldVertIdx] = lup(nval->data, oldVertIdx) > thresh;
-  }
-
-  /* set keepTri: a triangle stays if any of its vertices met thresh */
-  newTriNum = 0;
-  for (oldTriIdx=0; oldTriIdx<oldTriNum; oldTriIdx++) {
-    unsigned int *line;
-    line = pld->indx + 3*oldTriIdx;
-    keepTri[oldTriIdx] = (keepVert[line[0]] 
-                          || keepVert[line[1]]
-                          || keepVert[line[2]]);
-    if (keepTri[oldTriIdx]) {
-      ++newTriNum;
-    }
-  }
-  /*
-  fprintf(stderr, "!%s: oldTriNum = %u, newTriNum = %u\n", me,
-          oldTriNum, newTriNum);
-  */
-
-  /* finalize keepVert: a vertex stays if any triangle needs it */
-  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
-    keepVert[oldVertIdx] = AIR_FALSE;
-  }
-  for (oldTriIdx=0; oldTriIdx<oldTriNum; oldTriIdx++) {
-    unsigned int *line;
-    line = pld->indx + 3*oldTriIdx;
-    /*
-    fprintf(stderr, "!%s: tri[%u] = %u %u %u\n", me, oldTriIdx,
-            line[0], line[1], line[2]);
-    */
-    keepVert[line[0]] |= keepTri[oldTriIdx];
-    keepVert[line[1]] |= keepTri[oldTriIdx];
-    keepVert[line[2]] |= keepTri[oldTriIdx];
-  }
-
-  /* set vimap */
-  newVertIdx = 0;
-  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
-    if (keepVert[oldVertIdx]) {
-      vimap[oldVertIdx] = newVertIdx++;
-    } else {
-      vimap[oldVertIdx] = UINT_MAX;
-    }
-    /*
-    fprintf(stderr, "!%s: vimap[%u] = %u\n", me,
-            oldVertIdx, vimap[oldVertIdx]);
-    */
-  }
-  newVertNum = newVertIdx;
-  /*
-  fprintf(stderr, "!%s: oldVertNum = %u, newVertNum = %u\n", me,
-          oldVertNum, newVertNum);
-  */
-
-  /* set newPrimNum: a primitive stays if any triangle of it stays */
-  newPrimNum = 0;
-  oldBaseTriIdx = 0;
-  oldPrimNum = pld->primNum;
-  for (oldPrimIdx=0; oldPrimIdx<oldPrimNum; oldPrimIdx++) {
-    int keep, trinum, tidx;
-    keep = AIR_FALSE;
-    trinum = pld->icnt[oldPrimIdx]/3;
-    for (tidx=0; tidx<trinum; tidx++) {
-      keep |= keepTri[oldBaseTriIdx + tidx];
+  for (i=0; i<pld->xyzwNum; i++) {
+    unsigned int j, keep = AIR_TRUE;
+    for (j=0; j<nk; j++, idx++) {
+      if (lup(nval->data, idx) < thresh[j])
+	keep = AIR_FALSE;
     }
     if (keep) {
-      newPrimNum++;
-    }
-    oldBaseTriIdx += trinum;
-  }
-  /*
-  fprintf(stderr, "!%s: oldPrimNum = %u, newPrimNum = %u\n", me,
-          oldPrimNum, newPrimNum);
-  */
-
-  /* quiet compiler warnings */
-  ptmp.rgba = NULL;
-  ptmp.norm = NULL;
-  ptmp.tex2 = NULL;
-  ptmp.indx = NULL;
-  ptmp.icnt = NULL;
-
-  /* HEY: sneakily preserve the old arrays; we own them now */
-  bitflag = limnPolyDataInfoBitFlag(pld);
-  ptmp.xyzw = pld->xyzw;
-  airMopAdd(mop, ptmp.xyzw, airFree, airMopAlways);
-  pld->xyzw = NULL;
-  pld->xyzwNum = 0;
-  if ((1 << limnPolyDataInfoRGBA) & bitflag) {
-    ptmp.rgba = pld->rgba;
-    airMopAdd(mop, ptmp.rgba, airFree, airMopAlways);
-    pld->rgba = NULL;
-    pld->rgbaNum = 0;
-  }
-  if ((1 << limnPolyDataInfoNorm) & bitflag) {
-    ptmp.norm = pld->norm;
-    airMopAdd(mop, ptmp.norm, airFree, airMopAlways);
-    pld->norm = NULL;
-    pld->normNum = 0;
-  }
-  if ((1 << limnPolyDataInfoTex2) & bitflag) {
-    ptmp.tex2 = pld->tex2;
-    airMopAdd(mop, ptmp.tex2, airFree, airMopAlways);
-    pld->tex2 = NULL;
-    pld->tex2Num = 0;
-  }
-  ptmp.indx = pld->indx;
-  airMopAdd(mop, ptmp.indx, airFree, airMopAlways);
-  pld->indx = NULL;
-  pld->indxNum = 0;
-  ptmp.icnt = pld->icnt;
-  airMopAdd(mop, ptmp.icnt, airFree, airMopAlways);
-  pld->icnt = NULL;
-  pld->primNum = 0;
-  if (limnPolyDataAlloc(pld, bitflag, newVertNum,
-                        3*newTriNum, newPrimNum)) {
-    biffAddf(LIMN, "%s: couldn't allocate new vert # %u", me, newVertNum);
-    airMopError(mop); return 1;
-  }
-
-  /* set type[], icnt[], and indx[] */
-  oldBaseTriIdx = 0;
-  newBaseTriIdx = 0;
-  newPrimIdx = 0;
-  for (oldPrimIdx=0; oldPrimIdx<oldPrimNum; oldPrimIdx++) {
-    int keep, oldtrinum, newtrinum, icnt, tidx;
-    keep = AIR_FALSE;
-    oldtrinum = ptmp.icnt[oldPrimIdx]/3;
-    /*
-    fprintf(stderr, "!%s: oldtrinum[%u] = %u\n", me, oldPrimIdx, oldtrinum);
-    */
-    newtrinum = 0;
-    icnt = 0;
-    for (tidx=0; tidx<oldtrinum; tidx++) {
-      /*
-      fprintf(stderr, "!%s: keepTri[%u + %u = %u] = %u\n", me,
-              oldBaseTriIdx, tidx, oldBaseTriIdx + tidx,
-              keepTri[oldBaseTriIdx + tidx]);
-      */
-      if (keepTri[oldBaseTriIdx + tidx]) {
-        unsigned int *iline;
-        keep = AIR_TRUE;
-        iline = ptmp.indx + 3*(oldBaseTriIdx + tidx);
-        /*
-        fprintf(stderr, "!%s: tri[%u] = %u %u %u --> [%u] %u %u %u\n", me,
-                oldBaseTriIdx + tidx, iline[0], iline[1], iline[2],
-                newBaseTriIdx + newtrinum, 
-                vimap[iline[0]], vimap[iline[1]], vimap[iline[2]]);
-        */
-        ELL_3V_SET(pld->indx + 3*(newBaseTriIdx + newtrinum),
-                   vimap[iline[0]], vimap[iline[1]], vimap[iline[2]]);
-        icnt += 3;
-        newtrinum += 1;
-      }
-    }
-    if (keep) {
-      pld->type[newPrimIdx] = limnPrimitiveTriangles;
-      pld->icnt[newPrimIdx] = 3*newtrinum;
-      /*
-      fprintf(stderr, "!%s: icnt[%u] = %u\n", me,
-              newPrimIdx, pld->icnt[newPrimIdx]);
-      */
-      newPrimIdx++;
-    }
-    oldBaseTriIdx += oldtrinum;
-    newBaseTriIdx += newtrinum;
-  }
-  /*
-  fprintf(stderr, "!%s: copying rgb %d, norm %d, tex2 %d\n", me,
-          (1 << limnPolyDataInfoRGBA) & bitflag,
-          (1 << limnPolyDataInfoNorm) & bitflag,
-          (1 << limnPolyDataInfoTex2) & bitflag);
-  */
-
-  /* copy pld's vertex information to duped vertices */
-  for (oldVertIdx=0; oldVertIdx<oldVertNum; oldVertIdx++) {
-    if (keepVert[oldVertIdx]) {
-      newVertIdx = vimap[oldVertIdx];
-      ELL_4V_COPY(pld->xyzw + 4*newVertIdx,
-                  ptmp.xyzw + 4*oldVertIdx);
-      if ((1 << limnPolyDataInfoRGBA) & bitflag) {
-        ELL_4V_COPY(pld->rgba + 4*newVertIdx,
-                    ptmp.rgba + 4*oldVertIdx);
-      }
-      if ((1 << limnPolyDataInfoNorm) & bitflag) {
-        ELL_3V_COPY(pld->norm + 3*newVertIdx,
-                    ptmp.norm + 3*oldVertIdx);
-      }
-      if ((1 << limnPolyDataInfoTex2) & bitflag) {
-        ELL_2V_COPY(pld->tex2 + 2*newVertIdx,
-                    ptmp.tex2 + 2*oldVertIdx);
-      }
+      keepVert[i]=AIR_TRUE;
     }
   }
+  
+  /* now, iterate over all primitives and triangles */
 
+  /* Note: If keepVert[i]==AIR_TRUE, newIdx[i] is its new index; else, it is
+   * an index j into llist, which is a linked list:
+   * llist[j] == other (kept) end of the edge
+   * llist[j+1] == index of new vertex for that edge
+   * llist[j+2] == next index into llist
+   */
+
+  /* TODO: All the airArray stuff should have allocation error checking */
+  idx=0;
+  for (i=0; i<pld->primNum; i++) {
+    int j, oldTriNum=pld->icnt[i]/3, newTriNum=0;
+    unsigned int kept=0, disck=0; /* index of last kept / discarded vertex */
+    for (j=0; j<oldTriNum; j++, idx+=3) {
+      unsigned int p, quad[4];
+      int k, keepN=0;
+      for (k=0; k<3; k++) {
+	unsigned int oldidx=pld->indx[idx+k];
+	if (keepVert[oldidx]) {
+	  keepN++; kept=oldidx;
+	  /* make sure the vertex is copied over */
+	  if (newIdx[oldidx]==-1) {
+	    unsigned int q=newIdx[oldidx]=airArrayLenIncr(xyzwArr, 1);
+	    ELL_4V_COPY(newpld->xyzw+4*q, pld->xyzw+4*oldidx);
+	    if ((1 << limnPolyDataInfoRGBA) & bitflag) {
+	      airArrayLenIncr(rgbaArr, 1);
+	      ELL_4V_COPY(newpld->rgba+4*q, pld->rgba+4*oldidx);
+	    }
+	    if ((1 << limnPolyDataInfoNorm) & bitflag) {
+	      airArrayLenIncr(normArr, 1);
+	      ELL_3V_COPY(newpld->norm+3*q, pld->norm+3*oldidx);
+	    }
+	    if ((1 << limnPolyDataInfoTex2) & bitflag) {
+	      airArrayLenIncr(tex2Arr, 1);
+	      ELL_2V_COPY(newpld->tex2+2*q, pld->tex2+2*oldidx);
+	    }	    
+	  }
+	} else {
+	  disck=k;
+	}
+      }
+      switch (keepN) {
+      case 0: /* nothing to be done; discard this triangle */
+	break;
+      case 1: /* result of clipping is a single triangle */
+	newTriNum++;
+	p=airArrayLenIncr(indxArr, 3);
+	for (k=0; k<3; k++) {
+	  if (keepVert[pld->indx[idx+k]])
+	    newpld->indx[p+k]=newIdx[pld->indx[idx+k]];
+	  else
+	    newpld->indx[p+k]=clipEdge(pld->indx[idx+k], kept, nval, thresh,
+				       newIdx, llistArr, pld, bitflag, newpld,
+				       xyzwArr, rgbaArr, normArr, tex2Arr);
+	}
+	break;
+      case 2: /* result of clipping is a quad, triangulate */
+	newTriNum+=2;
+	p=0;
+	for (k=0; k<3; k++) {
+	  if (keepVert[pld->indx[idx+k]]) quad[p++]=newIdx[pld->indx[idx+k]];
+	  else {
+	    quad[p++]=clipEdge(pld->indx[idx+k], pld->indx[idx+(disck+2)%3],
+			       nval, thresh, newIdx, llistArr,
+			       pld, bitflag, newpld, xyzwArr, rgbaArr,
+			       normArr, tex2Arr);
+	    quad[p++]=clipEdge(pld->indx[idx+k], pld->indx[idx+(disck+1)%3],
+			       nval, thresh, newIdx, llistArr,
+			       pld, bitflag, newpld, xyzwArr, rgbaArr,
+			       normArr, tex2Arr);
+	  }
+	}
+	p=airArrayLenIncr(indxArr, 6);
+	ELL_3V_SET(newpld->indx+p, quad[0], quad[1], quad[3]);
+	ELL_3V_SET(newpld->indx+p+3, quad[1], quad[2], quad[3]);
+	break;
+      case 3: /* simply copy the existing triangle */
+	newTriNum++;
+	p=airArrayLenIncr(indxArr, 3);
+	for (k=0; k<3; k++) {
+	  newpld->indx[p+k]=newIdx[pld->indx[idx+k]];
+	}
+	break;
+      }
+    }
+    if (newTriNum>0) {
+      unsigned int p=airArrayLenIncr(typeArr, 1);
+      airArrayLenIncr(icntArr, 1);
+      newpld->type[p]=limnPrimitiveTriangles;
+      newpld->icnt[p]=newTriNum*3;
+    }
+  }
+  
+  /* finally, replace contents of pld with new data */
+  airFree(pld->xyzw);
+  airFree(pld->rgba);
+  airFree(pld->norm);
+  airFree(pld->tex2);
+  airFree(pld->indx);
+  airFree(pld->type);
+  airFree(pld->icnt);
+  memcpy(pld, newpld, sizeof(limnPolyData));
+  
   airMopOkay(mop);
   return 0;
+}
+
+/* Simple wrapper around limnPolyDataClipMulti, in case of only one
+ * clipping criterion.
+ */
+int
+limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
+  return limnPolyDataClipMulti(pld, nval, &thresh);
 }
 
 int

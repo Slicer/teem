@@ -683,6 +683,8 @@ LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut,
 LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
                                              int allowSplitting);
 LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);
+LIMN_EXPORT int limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval,
+				      double *thresh);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
