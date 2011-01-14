@@ -1154,7 +1154,7 @@ nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
     return 0;
   }
   if (n1->dim != n2->dim) {
-    biffMaybeAddf(useBiff, NRRD, "%s: n1->dim (%d) != n2->dim (%d)",
+    biffMaybeAddf(useBiff, NRRD, "%s: n1->dim (%u) != n2->dim (%u)",
                   me, n1->dim, n2->dim); 
     return 0;
   }
