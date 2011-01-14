@@ -25,9 +25,6 @@ decide if <LIB>_EXPORT should just be TEEM_EXPORT
 Fix the "unu dist" segfault that I discovered awhile ago (I can
 provide the input file that triggers this)
 
-Fix the marching-cubes tables in seek; there's some evidence of a
-bug uncovered by the anisotropy crease research
-
 --------- teem 1.9 cut-off
 
 for cmake:
