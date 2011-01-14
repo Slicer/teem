@@ -36,11 +36,11 @@ int
 unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
-  Nrrd **nin, **nslice;
+  Nrrd **nin, **npass;
   Nrrd *nout, *nwght;
-  size_t *bin, asize, binLen;
-  int type, axis, clamp[NRRD_DIM_MAX], pret;
-  unsigned int minLen, maxLen, ninLen, ai;
+  size_t *bin, binLen;
+  int type, clamp[NRRD_DIM_MAX], pret;
+  unsigned int minLen, maxLen, ninLen, ai, diceax;
   airArray *mop;
   double *min, *max;
   NrrdRange **range;
@@ -70,10 +70,11 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
                "counts so that they never overflow a fixed-point type",
                "uint");
   hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, NULL,
-             "All input nrrds",
+             "list of nrrds (one for each axis of joint histogram), "
+             "or, single nrrd that will be sliced along specified axis.",
              &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "a,axis", "axis", airTypeInt, 1, 1, &axis, "0", 
-          "dimension (axis index) of the axis to use");
+  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0", 
+             "axis to slice along when working with single nrrd. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -85,34 +86,45 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
 
   if (ninLen == 1) {
     /* Slice a nrrd on the fly */
-    ninLen = binLen;
-    asize = nin[0]->axis[axis].size;
-    /* Copy the original input nrrd completely */
-    if (asize != binLen) {
-      fprintf(stderr,
-              "%s: size of fast axis (%u) < # bin specifications (%u)\n", me,
-              AIR_CAST(unsigned int, asize), AIR_CAST(unsigned int, binLen));
+    size_t asize;
+    if (!( diceax <= nin[0]->dim-1 )) {
+      fprintf(stderr, "%s: slice axis %u not valid for single %u-D nrrd", 
+              me, diceax, nin[0]->dim);
       airMopError(mop);
       return 1;
     }
-    /* Make sure there's enough room for all the new nrrds to be created */
-    if (!( nslice = AIR_CALLOC(ninLen, Nrrd*) )) {
-      fprintf(stderr, "%s PANIC: couldn't allocate nrrd array (size %d)\n",
-          me, ninLen);
+    asize = nin[0]->axis[diceax].size;
+    if (asize != binLen) {
+      fprintf(stderr,
+              "%s: size (%u) of slice axis %u != # bins given (%u)\n", me,
+              AIR_CAST(unsigned int, asize), diceax, 
+              AIR_CAST(unsigned int, binLen));
+      airMopError(mop);
+      return 1;
+    }
+    /* create buffer for slices */
+    if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
+      fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
+              me, ninLen);
       airMopError(mop); return 1;
     }
-    airMopMem(mop, &nslice, airMopAlways);
+    airMopMem(mop, &npass, airMopAlways);
     /* slice this nrrd, allocate new nrrds, and store the slices in nin */
     for (ai=0; ai<binLen; ai++) {
-      /* Allocate a nrrd */
-      nslice[ai] = nrrdNew();
-      /* Load the slice into the new nrrd
-          axis will always be the fastest one */
-      nrrdSlice(nslice[ai], (const Nrrd*)nin[0], axis, ai);
-      /* Schedule clean up */
-      airMopAdd(mop, nslice[ai], (airMopper)nrrdNuke, airMopAlways);
+      /* Allocate each slice nrrd */
+      if (!( npass[ai] = nrrdNew() )) {
+        fprintf(stderr, "%s: couldn't allocate npass[%u]\n", me, ai);
+        airMopError(mop); return 1;
+      }
+      airMopAdd(mop, npass[ai], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdSlice(npass[ai], nin[0], diceax, ai)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: error slicing:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
     }
   } else {
+    /* we were given multiple nrrds */
     if (ninLen != binLen) {
       fprintf(stderr,
               "%s: # input nrrds (%u) != # bin specifications (%u)\n", me,
@@ -120,8 +132,17 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
+    /* create buffer for slices (HEY copy and paste) */
+    if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
+      fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
+              me, ninLen);
+      airMopError(mop); return 1;
+    }
+    for (ai=0; ai<binLen; ai++) {
+      npass[ai] = nin[ai];
+    }
   }
-  range = (NrrdRange **)calloc(ninLen, sizeof(NrrdRange*));
+  range = AIR_CALLOC(binLen, NrrdRange*);
   airMopAdd(mop, range, airFree, airMopAlways);
   for (ai=0; ai<ninLen; ai++) {
     range[ai] = nrrdRangeNew(AIR_NAN, AIR_NAN);
@@ -154,8 +175,8 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoJoint(nout, (const Nrrd**)(ninLen == 1 ? nin : nslice), (const NrrdRange**)range,
-                     ninLen, nwght, bin, type, clamp)) {
+  if (nrrdHistoJoint(nout, (const Nrrd**)npass, (const NrrdRange**)range,
+                     binLen, nwght, bin, type, clamp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing joint histogram:\n%s", me, err);
     airMopError(mop);
