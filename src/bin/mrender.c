@@ -464,6 +464,7 @@ main(int argc, char *argv[]) {
   int E, Ecode, Ethread, renorm, offfr;
   char *me, *errS, *whatS;
   mrendUser *uu;
+  float isScale;
   airArray *mop;
   double gmc, turn, eye[3], eyedist;
   
@@ -494,6 +495,8 @@ main(int argc, char *argv[]) {
              "towards positive U (the right)");
   hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize,
              "256 256", "image dimensions");
+  hestOptAdd(&hopt, "iss", "scale", airTypeFloat, 1, 1, &isScale, "1.0",
+             "scaling of image size (from \"is\")");
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
              &(uu->ksp[gageKernel00]), "tent",
              "value reconstruction kernel",
@@ -537,6 +540,9 @@ main(int argc, char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  uu->hctx->imgSize[0] = AIR_CAST(int, isScale*uu->hctx->imgSize[0]);
+  uu->hctx->imgSize[1] = AIR_CAST(int, isScale*uu->hctx->imgSize[1]);
   
   uu->whatq = airEnumVal(uu->kind->enm, whatS);
   if (-1 == uu->whatq) {
