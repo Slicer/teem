@@ -503,7 +503,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
       return 1;
     }
     if (ai && !nrrdSameSize(nin[0], nin[ai], AIR_TRUE)) {
-      biffAddf(NRRD, "%s: nin[%u] size mismatch with nin[0]", me, ai);
+      biffAddf(NRRD, "%s: nin[0] (n1) mismatch with nin[%u] (n2)", me, ai);
       return 1;
     }
   }
