@@ -1663,7 +1663,7 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
     double discval = lup(nval->data, nk*disc+i);
     double keptval = lup(nval->data, nk*kept+i);
     double thisalpha = AIR_AFFINE(discval,thresh[i],keptval,0.0,1.0);
-    if (thisalpha>alpha)
+    if (thisalpha<1.0 && thisalpha>alpha)
       alpha=thisalpha;
   }
   /* add interpolated vertex */
@@ -1739,7 +1739,7 @@ limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
              airEnumStr(nrrdType, nval->type));
     return 1;
   }
-
+  
   if (nval->dim==1) {
     nk=1; nvert=nval->axis[0].size;
   } else if (nval->dim==2) {
