@@ -449,6 +449,10 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
          * degenerate triangles and gives reasonable results in
          * practice. */
         for (ii=0; ii<3; ii++) {
+	  /* this is required for non-orientable surfaces */
+	  if (ELL_3V_DOT(pld->norm + 3*indxLine[ii], norm)<0) {
+	    ELL_3V_SCALE(norm, -1.0, norm);
+	  }
           ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
         }
       }

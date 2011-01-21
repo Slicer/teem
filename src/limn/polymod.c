@@ -1724,8 +1724,8 @@ limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
   unsigned int E, i, idx=0;
   double (*lup)(const void *v, size_t I);
   airArray *xyzwArr, *rgbaArr=NULL, *normArr=NULL, *tex2Arr=NULL,
-    *indxArr, *typeArr, *icntArr, *llistArr;
-  limnPolyData *newpld;
+    *indxArr, *typeArr, *icntArr, *llistArr=NULL;
+  limnPolyData *newpld=NULL;
   int *newIdx=NULL, *llist=NULL;
   unsigned int bitflag, nk, nvert;
 

@@ -239,6 +239,10 @@ SEEK_EXPORT int seekUpdate(seekContext *sctx);
 /* extract.c */
 SEEK_EXPORT int seekExtract(seekContext *sctx, limnPolyData *lpld);
 
+/* textract.c */
+SEEK_EXPORT int seekVertexStrength(Nrrd *nval, seekContext *sctx,
+				   limnPolyData *pld);
+
 /* descend.c */
 SEEK_EXPORT int seekDescendToDeg(double *coord,
 				 double *botleft, double *botright,

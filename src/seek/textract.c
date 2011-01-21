@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -18,12 +19,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* This code was written by Thomas Schultz <t.schultz@uchicago.edu> */
-
 /* This file collects functions that implement extraction of crease
  * surfaces as proposed in Schultz / Theisel / Seidel, "Crease
  * Surfaces: From Theory to Extraction and Application to Diffusion
- * Tensor MRI", IEEE TVCG 2009 */
+ * Tensor MRI", IEEE TVCG 16(1):109-119, 2010 */
 
 #include "seek.h"
 #include "privateSeek.h"
@@ -1869,4 +1868,57 @@ _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
   intersectionShuffleProbe(sctx, bag);
 
   return 0;
+}
+
+/* For all vertices in pld, use sctx to probe the strength measure,
+ * and return the answer (times strengthSign) in nval. The intended
+ * use is postfiltering (with limnPolyDataClip), which is obligatory
+ * when using seekType*SurfaceT
+ *
+ * Returns 1 and adds a message to biff upon error
+ * Returns 0 on success, -n when probing n vertices failed (strength
+ * is set to AIR_NAN for those); note that positions outside the field
+ * are clamped to lie on its boundary.
+ *
+ * This routine assumes that a strength has been set in sctx and
+ * seekUpdate() has been run.
+ * This routine does not modify sctx->strengthSeenMax.
+ */
+int
+seekVertexStrength(Nrrd *nval, seekContext *sctx, limnPolyData *pld) {
+  static const char me[]="seekVertexStrength";
+  unsigned int i;
+  double *data;
+  int E=0;
+
+  if (!(nval && sctx && pld)) {
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!(sctx->gctx && sctx->pvl)) {
+    biffAddf(SEEK, "%s: need sctx with attached gageContext", me);
+    return 1;
+  }
+  if (!sctx->stngAns) {
+    biffAddf(SEEK, "%s: no strength item found. Did you enable strengthUse?",
+	     me);
+    return 1;
+  }
+  if (nrrdAlloc_va(nval, nrrdTypeDouble, 1, (size_t) pld->xyzwNum)) {
+    biffAddf(SEEK, "%s: could not allocate output", me);
+    return 1;
+  }
+  
+  data = (double*) nval->data;
+  for (i=0; i<pld->xyzwNum; i++) {
+    float homog[4];
+    ELL_4V_HOMOG(homog, pld->xyzw+4*i);
+    if (!gageProbeSpace(sctx->gctx,homog[0],homog[1],homog[2],0,1)) {
+      *(data++)=*(sctx->stngAns)*sctx->strengthSign;
+    } else {
+      *(data++)=AIR_NAN;
+      E--;
+    }
+  }
+  return E;
 }
