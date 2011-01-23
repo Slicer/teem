@@ -1645,8 +1645,8 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
 	 airArray *llistArr, limnPolyData *pld, unsigned int bitflag,
 	 limnPolyData *newpld, airArray *xyzwArr, airArray *rgbaArr,
 	 airArray *normArr, airArray *tex2Arr) {
-  int *ref=newIdx+disc, *llist=(int*)llistArr->data;
-  int next=*ref;
+  int ref=-1, *llist=(int*)llistArr->data;
+  int next=newIdx[disc];
   double alpha=0;
   unsigned int i,q,p,nk;
   double (*lup)(const void *v, size_t I)=nrrdDLookup[nval->type];
@@ -1654,8 +1654,8 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
   while (next!=-1) {
     if (llist[next]==kept) /* found the desired vertex */
       return llist[next+1];
-    ref=llist+next+2;
-    next=*ref;
+    ref=next+2;
+    next=llist[next+2];
   }
   /* we need to interpolate - find the weight */
   nk=(nval->dim==1)?1:nval->axis[0].size;
@@ -1700,7 +1700,8 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
   llist[3*p]=kept;
   llist[3*p+1]=q;
   llist[3*p+2]=-1;
-  *ref=3*p;
+  if (ref==-1) newIdx[disc]=3*p;
+  else llist[ref]=3*p;
   return q;
 }
 
