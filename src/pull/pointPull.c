@@ -218,6 +218,9 @@ _pullStepConstrAverage(const pullContext *pctx) {
 
 /*
 ** convenience function for learning a scalar AND its gradient or hessian 
+**
+** NOTE: this is where pullInfoSeedThresh and pullInfoLiveThresh are
+** adjusted according to sysParm.theta (kind of a hack)
 */
 double
 _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
@@ -279,6 +282,10 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   ispec = pctx->ispec[sclInfo];
   scl = point->info[infoIdx[sclInfo]];
   scl = (scl - ispec->zero)*ispec->scale;
+  if (pullInfoLiveThresh == sclInfo
+      || pullInfoSeedThresh == sclInfo) {
+    scl -= (pctx->sysParm.theta)*(point->pos[3]);
+  }
   /*
     learned: this wasn't thought through: the idea was that the height
     *laplacian* answer should be transformed by the *height* zero and

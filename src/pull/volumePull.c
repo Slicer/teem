@@ -188,8 +188,12 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     return 1;
   }
   if (vol->verbose) {
-    printf("%s: vol=%p, name = %p = |%s|\n", me, vol, 
+    printf("%s: ---- vol=%p, name = %p = |%s|\n", me, vol, 
            vol->name, vol->name);
+    if (0 != vol->scaleDerivNormBias) {
+      printf("%s: ---- scale deriv norm bias = %g\n", me, 
+             vol->scaleDerivNormBias);
+    }
   }
   nrrdKernelSpecSet(vol->ksp00, ksp00->kernel, ksp00->parm);
   nrrdKernelSpecSet(vol->ksp11, ksp11->kernel, ksp11->parm);

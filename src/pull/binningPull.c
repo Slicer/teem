@@ -28,12 +28,11 @@
 ** we have Init and Done functions (not New and Nix)
 */
 void
-_pullBinInit(pullBin *bin, unsigned int incr) {
+_pullBinInit(pullBin *bin) {
 
   bin->point = NULL;
   bin->pointNum = 0;
-  bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
-                              sizeof(pullPoint *), incr);
+  bin->pointArr = NULL;
   bin->neighBin = NULL;
   return;
 }
@@ -51,6 +50,55 @@ _pullBinDone(pullBin *bin) {
   bin->pointArr = airArrayNuke(bin->pointArr);
   bin->neighBin = (pullBin **)airFree(bin->neighBin);
   return;
+}
+
+int
+_pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
+  static const char me[]="_pullBinNeighborSet";
+  unsigned int neiIdx, neiNum, be[4], binIdx;
+  unsigned int xi, yi, zi, si, xx, yy, zz, ss,
+    xmax, ymax, zmax, smax;
+  pullBin *nei[3*3*3*3];
+  int xmin, ymin, zmin, smin;
+
+  binIdx = bin - pctx->bin;
+  /* annoyingly, have to recover the bin coordinates */
+  ELL_4V_COPY(be, pctx->binsEdge);
+  xi = binIdx % be[0];
+  binIdx = (binIdx - xi)/be[0];
+  yi = binIdx % be[1];
+  binIdx = (binIdx - yi)/be[1];
+  zi = binIdx % be[2];
+  si = (binIdx - zi)/be[2];
+  neiNum = 0;
+  bin->neighBin = (pullBin **)airFree(bin->neighBin);
+  smin = AIR_MAX(0, (int)si-1);
+  smax = AIR_MIN(si+1, be[3]-1);
+  zmin = AIR_MAX(0, (int)zi-1);
+  zmax = AIR_MIN(zi+1, be[2]-1);
+  ymin = AIR_MAX(0, (int)yi-1);
+  ymax = AIR_MIN(yi+1, be[1]-1);
+  xmin = AIR_MAX(0, (int)xi-1);
+  xmax = AIR_MIN(xi+1, be[0]-1);
+  for (ss=smin; ss<=smax; ss++) {
+    for (zz=zmin; zz<=zmax; zz++) {
+      for (yy=ymin; yy<=ymax; yy++) {
+        for (xx=xmin; xx<=xmax; xx++) {
+          nei[neiNum++] = pctx->bin + xx + be[0]*(yy + be[1]*(zz + be[2]*ss));
+        }
+      }
+    }
+  }
+  if (!( bin->neighBin = AIR_CALLOC(1+neiNum, pullBin*) )) {
+    biffAddf(PULL, "%s: couldn't calloc array of %u neighbor pointers", me, 1+neiNum);
+    return 1;
+  }
+  for (neiIdx=0; neiIdx<neiNum; neiIdx++) {
+    bin->neighBin[neiIdx] = nei[neiIdx];
+  }
+  /* NULL-terminate the bin array */
+  bin->neighBin[neiIdx] = NULL;
+  return 0;
 }
 
 /* 
@@ -89,14 +137,30 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
 /*
 ** this makes the bin the owner of the point
 */
-void
+int
 _pullBinPointAdd(pullContext *pctx, pullBin *bin, pullPoint *point) {
+  static const char me[]="_pullBinPointAdd";
   int pntI;
 
   AIR_UNUSED(pctx);
+  if (!(bin->pointArr)) {
+    bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
+                                sizeof(pullPoint *), _PULL_BIN_INCR);
+    if (!( bin->pointArr )) {
+      biffAddf(PULL, "%s: couldn't create point array", me);
+      return 1;
+    }
+  }
+  if (!( bin->neighBin )) {
+    /* set up neighbor bin vector if not done so already */
+    if (_pullBinNeighborSet(pctx, bin)) {
+      biffAddf(PULL, "%s: couldn't initialize neighbor bins", me);
+      return 1;
+    }
+  }
   pntI = airArrayLenIncr(bin->pointArr, 1);
   bin->point[pntI] = point;
-  return;
+  return 0;
 }
 
 /*
@@ -112,69 +176,9 @@ _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx) {
   return;
 }
 
-void
-_pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num) {
-  unsigned int neiI;
-
-  bin->neighBin = (pullBin **)airFree(bin->neighBin);
-  bin->neighBin = (pullBin **)calloc(1+num, sizeof(pullBin *));
-  for (neiI=0; neiI<num; neiI++) {
-    bin->neighBin[neiI] = nei[neiI];
-  }
-  bin->neighBin[neiI] = NULL;
-  return;
-}
-
-void
-pullBinsAllNeighborSet(pullContext *pctx) {
-  /* static const char me[]="pullBinsAllNeighborSet"; */
-  pullBin *nei[3*3*3*3];
-  unsigned int neiNum, xi, yi, zi, si, xx, yy, zz, ss, 
-    xmax, ymax, zmax, smax, binIdx;
-  int xmin, ymin, zmin, smin;
-
-  if (pctx->flag.binSingle) {
-    neiNum = 0;
-    nei[neiNum++] = pctx->bin + 0;
-    _pullBinNeighborSet(pctx->bin + 0, nei, neiNum);
-  } else {
-    for (si=0; si<pctx->binsEdge[3]; si++) {
-      smin = AIR_MAX(0, (int)si-1);
-      smax = AIR_MIN(si+1, pctx->binsEdge[3]-1);
-      for (zi=0; zi<pctx->binsEdge[2]; zi++) {
-        zmin = AIR_MAX(0, (int)zi-1);
-        zmax = AIR_MIN(zi+1, pctx->binsEdge[2]-1);
-        for (yi=0; yi<pctx->binsEdge[1]; yi++) {
-          ymin = AIR_MAX(0, (int)yi-1);
-          ymax = AIR_MIN(yi+1, pctx->binsEdge[1]-1);
-          for (xi=0; xi<pctx->binsEdge[0]; xi++) {
-            xmin = AIR_MAX(0, (int)xi-1);
-            xmax = AIR_MIN(xi+1, pctx->binsEdge[0]-1);
-            neiNum = 0;
-            for (ss=smin; ss<=smax; ss++) {
-              for (zz=zmin; zz<=zmax; zz++) {
-                for (yy=ymin; yy<=ymax; yy++) {
-                  for (xx=xmin; xx<=xmax; xx++) {
-                    binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*(zz + pctx->binsEdge[2]*ss));
-                    /*
-                    printf("!%s: nei[%u](%u,%u,%u) = (%u,%u,%u) = %u\n",
-                           me, neiNum, xi, yi, zi, xx, yy, zz, binIdx);
-                    */
-                    nei[neiNum++] = pctx->bin + binIdx;
-                  }
-                }
-              }
-            }
-            _pullBinNeighborSet(pctx->bin + xi + pctx->binsEdge[0]
-                                *(yi + pctx->binsEdge[1]*(zi + pctx->binsEdge[2]*si)), nei, neiNum);
-          }
-        }
-      }
-    }
-  }
-  return;
-}
-
+/*
+** adds point to context
+*/
 int
 pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   static const char me[]="pullBinsPointAdd";
@@ -191,7 +195,11 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   if (binP) {
     *binP = bin;
   }
-  _pullBinPointAdd(pctx, bin, point);
+  if (_pullBinPointAdd(pctx, bin, point)) {
+    biffAddf(PULL, "%s: trouble adding point %p %u",
+             me, AIR_CAST(void*, point), point->idtag);
+    return 1;
+  }
   return 0;
 }
 
@@ -233,13 +241,21 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
       }
     }
     if (okay) {
-      _pullBinPointAdd(pctx, bin, point);
+      if (_pullBinPointAdd(pctx, bin, point)) {
+        biffAddf(PULL, "%s: trouble adding point %p %u",
+                 me, AIR_CAST(void*, point), point->idtag);
+        return 1;
+      }
       *added = AIR_TRUE;
     } else {
       *added = AIR_FALSE;
     }
   } else {
-    _pullBinPointAdd(pctx, bin, point);
+    if (_pullBinPointAdd(pctx, bin, point)) {
+      biffAddf(PULL, "%s: trouble adding point %p %u",
+               me, AIR_CAST(void*, point), point->idtag);
+      return 1;
+    }
     *added = AIR_TRUE;
   }
   return 0;
@@ -316,7 +332,7 @@ _pullBinSetup(pullContext *pctx) {
   if (pctx->verbose) {
     printf("%s: trying to allocate %u bins ... \n", me, pctx->binNum);
   }
-  pctx->bin = (pullBin *)calloc(pctx->binNum, sizeof(pullBin));
+  pctx->bin = AIR_CALLOC(pctx->binNum, pullBin);
   if (!( pctx->bin )) {
     biffAddf(PULL, "%s: couln't allocate %u bins", me, pctx->binNum);
     return 1;
@@ -325,14 +341,18 @@ _pullBinSetup(pullContext *pctx) {
     printf("%s: done allocating. Initializing ... \n", me);
   }
   for (ii=0; ii<pctx->binNum; ii++) {
-    _pullBinInit(pctx->bin + ii, _PULL_BIN_INCR);
+    _pullBinInit(pctx->bin + ii);
   }
   if (pctx->verbose) {
-    printf("%s: done initializing; Setting neighbors ... \n", me);
+    printf("%s: done initializing.\n", me);
   }
-  pullBinsAllNeighborSet(pctx);
-  if (pctx->verbose) {
-    printf("%s: done setting neighbors.\n", me);
+  if (pctx->flag.binSingle) {
+    if (!( pctx->bin[0].neighBin = AIR_CALLOC(2, pullBin*) )) {
+      biffAddf(PULL, "%s: trouble allocating for single bin?", me);
+      return 1;
+    }
+    pctx->bin[0].neighBin[0] = pctx->bin + 0;
+    pctx->bin[0].neighBin[1] = NULL;
   }
   return 0;
 }
@@ -421,7 +441,11 @@ _pullIterFinishDescent(pullContext *pctx) {
                me, AIR_CAST(void*, point), point->idtag);
       return 1;
     }
-    _pullBinPointAdd(pctx, newBin, point);
+    if (_pullBinPointAdd(pctx, newBin, point)) {
+      biffAddf(PULL, "%s: trouble adding point %p %u",
+               me, AIR_CAST(void*, point), point->idtag);
+      return 1;
+    }
     pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;
   }
 

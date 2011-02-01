@@ -175,13 +175,10 @@ extern int _pullIterFinishNixing(pullContext *pctx);
 extern void _pullNixTheNixed(pullContext *pctx);
 
 /* binningPull.c */
-extern void _pullBinInit(pullBin *bin, unsigned int incr);
+extern void _pullBinInit(pullBin *bin);
 extern void _pullBinDone(pullBin *bin);
 extern pullBin *_pullBinLocate(pullContext *pctx, double *pos);
-extern void _pullBinPointAdd(pullContext *pctx,
-                             pullBin *bin, pullPoint *point);
 extern void _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx);
-extern void _pullBinNeighborSet(pullBin *bin, pullBin **nei, unsigned int num);
 extern int _pullBinSetup(pullContext *pctx);
 extern int _pullIterFinishDescent(pullContext *pctx);
 extern void _pullBinFinish(pullContext *pctx);

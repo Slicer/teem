@@ -374,8 +374,8 @@ typedef struct pullBin_t {
   unsigned int pointNum;     /* # of points in this bin */
   airArray *pointArr;        /* airArray around point and pointNum 
                                 (no callbacks used here) */
-  struct pullBin_t **neighBin;  /* pre-computed NULL-terminated list of all
-                                neighboring bins, including myself */
+  struct pullBin_t **neighBin;  /* NULL-terminated list of all
+                                   neighboring bins, including myself */
 } pullBin;
 
 /*
@@ -602,6 +602,13 @@ enum {
      from strength */
   pullSysParmGamma,
 
+  /* to be more selective for pullInfoSeedThresh and
+     pullInfoLiveThresh at higher scales, set theta > 0, and the
+     effective threshold will be base threshold + theta*scale.
+     HOWEVER, the way this is implemented is a hack: 
+     probing the value is decremented by theta*scale */
+  pullSysParmTheta,
+
   /* initial (time) step for dynamics */
   pullSysParmStepInitial,
 
@@ -665,7 +672,7 @@ enum {
 };
 
 typedef struct {
-  double alpha, beta, gamma, wall,
+  double alpha, beta, gamma, theta, wall,
     radiusSpace, radiusScale, binWidthSpace,
     neighborTrueProb, probeProb,
     stepInitial, opporStepScale, backStepScale, constraintStepMin,
@@ -1008,7 +1015,6 @@ PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point,
 PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
                                       /* output */
                                       pullBin **binUsed, int *added);
-PULL_EXPORT void pullBinsNeighborSet(pullContext *pctx);
 
 /* actionPull.c */
 PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
