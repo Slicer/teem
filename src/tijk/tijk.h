@@ -359,6 +359,9 @@ TIJK_EXPORT double tijk_eval_esh_d(double *coeffs, int order,
 TIJK_EXPORT float tijk_eval_esh_f(float *coeffs, int order,
 				      float theta, float phi);
 
+TIJK_EXPORT double tijk_esh_sp_d(double *A, double *B, int order);
+TIJK_EXPORT float  tijk_esh_sp_f(float  *A, float  *B, int order);
+
 TIJK_EXPORT int tijk_3d_sym_to_esh_d(double *res, const double *ten,
 					 const tijk_type *type);
 TIJK_EXPORT int tijk_3d_sym_to_esh_f(float *res, const float *ten,

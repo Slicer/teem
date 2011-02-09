@@ -93,6 +93,22 @@ TIJK_EVAL_ESH_BASIS(float, f)
 TIJK_EVAL_ESH(double, d)
 TIJK_EVAL_ESH(float, f)
 
+#define TIJK_ESH_SP(TYPE, SUF)				\
+  TYPE							\
+  tijk_esh_sp_##SUF(TYPE *A, TYPE *B, int order) {	\
+    TYPE res=0.0;					\
+    if (order<=(int)_tijk_max_sh_order) {		\
+      unsigned int i;					\
+      for (i=0; i<_tijk_sh_len[order/2]; i++) {		\
+	res+=A[i]*B[i];					\
+      }							\
+    }							\
+    return res;						\
+  }
+
+TIJK_ESH_SP(double, d)
+TIJK_ESH_SP(float, f)
+
 /* conversion matrices computed in Mathematica, stored in double precision */
 static const double _tijk_sym2esh_o2[6*6] ={
   1.1816359006036771806, 0, 0, 1.1816359006036771806, 0, 1.1816359006036771806, 
