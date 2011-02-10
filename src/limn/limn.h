@@ -622,6 +622,7 @@ LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
                                          const double homat[16]);
 LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexNormals(limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataVertexNormalsNO(limnPolyData *pld);
 LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout,
                                                   limnPolyData *pld);

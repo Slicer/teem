@@ -372,11 +372,13 @@ limnPolyDataPolygonNumber(const limnPolyData *pld) {
   return ret;
 }
 
-int
-limnPolyDataVertexNormals(limnPolyData *pld) { 
-  static const char me[]="limnPolyDataVertexNormals";
+static int
+limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) { 
+  static const char me[]="limnPolyDataVertexNormals_";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
   float len;
+  double *matrix;
+  airArray *mop;
 
   infoBitFlag = limnPolyDataInfoBitFlag(pld);
   if (limnPolyDataAlloc(pld, 
@@ -388,8 +390,21 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
     return 1;
   }
 
-  for (normIdx=0; normIdx<pld->normNum; normIdx++) {
-    ELL_3V_SET(pld->norm + 3*normIdx, 0, 0, 0);
+  mop = airMopNew();
+  if (nonorient) { /* we will accumulate outer products */
+    matrix = (double *) malloc(sizeof(double)*9*pld->xyzwNum);
+    if (matrix==NULL) {
+      biffAddf(LIMN, "%s: couldn't allocate matrix buffer", me);
+      return 1;
+    }
+    airMopAdd(mop, matrix, airFree, airMopAlways);
+    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+      ELL_3M_ZERO_SET(matrix + 9*normIdx);
+    }
+  } else {
+    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+      ELL_3V_SET(pld->norm + 3*normIdx, 0, 0, 0);
+    }
   }
 
   baseVertIdx = 0;
@@ -411,6 +426,7 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
     default:
       biffAddf(LIMN, "%s: came across unsupported limnPrimitive \"%s\"", me,
 	       airEnumStr(limnPrimitive, pld->type[primIdx]));
+      airMopError(mop);
       return 1;      
     }
 
@@ -448,23 +464,49 @@ limnPolyDataVertexNormals(limnPolyData *pld) {
          * ICCV 1995). This is efficient, avoids trouble with
          * degenerate triangles and gives reasonable results in
          * practice. */
-        for (ii=0; ii<3; ii++) {
-	  /* this is required for non-orientable surfaces */
-	  if (ELL_3V_DOT(pld->norm + 3*indxLine[ii], norm)<0) {
-	    ELL_3V_SCALE(norm, -1.0, norm);
+	if (nonorient) {
+	  double outer[9];
+	  ELL_3MV_OUTER(outer, norm, norm);
+	  len = ELL_3V_LEN(norm);
+	  /* re-scale so that we don't weight by square of area */
+	  for (ii=0; ii<3; ii++) {
+	    ELL_3M_SCALE_INCR(matrix+9*indxLine[ii], 1.0/len, outer);
 	  }
-          ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
-        }
+	} else {
+	  for (ii=0; ii<3; ii++) {
+	    ELL_3V_INCR(pld->norm + 3*indxLine[ii], norm);
+	  }
+	}
       }
     }
     baseVertIdx += pld->icnt[primIdx];
   }
 
-  for (normIdx=0; normIdx<pld->normNum; normIdx++) {
-    ELL_3V_NORM_TT(pld->norm + 3*normIdx, float, pld->norm + 3*normIdx, len);
+  if (nonorient) {
+    double eval[3], evec[9];
+    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+      ell_3m_eigensolve_d(eval, evec, matrix+9*normIdx, AIR_TRUE);
+      ELL_3V_COPY(pld->norm + 3*normIdx, evec);
+    }
+  } else {
+    for (normIdx=0; normIdx<pld->normNum; normIdx++) {
+      ELL_3V_NORM_TT(pld->norm + 3*normIdx, float, pld->norm + 3*normIdx, len);
+    }
   }
 
+  airMopOkay(mop);
   return 0;
+}
+
+int
+limnPolyDataVertexNormals(limnPolyData *pld) {
+  return limnPolyDataVertexNormals_(pld, 0);
+}
+
+/* counterpart for non-orientable surfaces */
+int
+limnPolyDataVertexNormalsNO(limnPolyData *pld) {
+  return limnPolyDataVertexNormals_(pld, 1);
 }
 
 unsigned int
