@@ -2,7 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  Copyright (C) 2010  Thomas Schultz
+  Copyright (C) 2011, 2010  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -697,6 +697,8 @@ LIMN_EXPORT int limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
 					 limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
 					  limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
+					      limnPolyData *pld);
 
 /* polyfilter.c */
 LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
@@ -706,7 +708,9 @@ LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
                                            unsigned int tubeFacet,
                                            unsigned int endFacet,
                                            double radius);
-
+LIMN_EXPORT int limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors,
+				     int *idx, double alpha, double beta,
+				     int iter);
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, const limnObject *obj);
 LIMN_EXPORT int limnObjectReadOFF(limnObject *obj, FILE *file);

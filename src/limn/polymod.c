@@ -2,7 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  Copyright (C) 2010, 2009, 2008  Thomas Schultz
+  Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -2131,6 +2131,17 @@ registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb,
   (*len)+=2;
 }
 
+/* Here's the thing with all these limnPolyDataNeighbor* functions:
+ *
+ * *List is used for building up the information and called by all others
+ * *Array is a great representation if all vertices have a similar number
+ *        of neighbors (in particular, no gross outliers)
+ *        The output of this is used by glyph coloring in elf.
+ * *ArrayComp is a compressed representation that is best if vertices have
+ *            a more variable number of neighbors
+ *            The output of this is used by surface smoothing in limn.
+ */
+
 /* Mallocs *nblist and fills it with a linked list that contains all neighbors
  * of all n vertices in the given limnPolyData. The format is as follows:
  * For v<n, (*nblist)[v] is an index i (i>=n) into *nblist, or 0 if vertex v
@@ -2269,5 +2280,52 @@ limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
   }
   *maxnb=m;
   free(nblist);
+  return 0;
+}
+
+/* Returns a compressed form of the above, rather than padding with -1s.
+ * *neighbors is malloc'ed to an array that holds the indices of all neighbors
+ * *idx is malloc'ed to an array of length pld->xyzwNum+1;
+ * (*idx)[i] will give you the position in *neighbors at which the neighbors of
+ * vertex i start
+ * Returns -1 and adds a biff error if there was a problem allocating memory.
+ */
+int
+limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
+			      limnPolyData *pld) {
+  static const char me[]="limnPolyDataNeighborArrayComp";
+  unsigned int i, ct, *nblist;
+  size_t len;
+  airArray *mop;
+  mop = airMopNew();
+  /* get the neighbors as a linked list */
+  if (-1==limnPolyDataNeighborList(&nblist, &len, NULL, pld)) {
+    return -1;
+  }
+  airMopAdd(mop, nblist, airFree, airMopAlways);
+  /* convert the result into compressed form */
+  *neighbors = (int *) malloc(sizeof(int)*(len-pld->xyzwNum)/2);
+  if (NULL==*neighbors) {
+    biffAddf(LIMN, "%s: couldn't allocate neighbors buffer", me);
+    airMopError(mop); return -1;
+  }
+  airMopAdd(mop, neighbors, airFree, airMopOnError);
+  *idx = (int *) malloc(sizeof(int)*(pld->xyzwNum+1));
+  if (NULL==*idx) {
+    biffAddf(LIMN, "%s: couldn't allocate index buffer", me);
+    airMopError(mop); return -1;
+  }
+  airMopAdd(mop, idx, airFree, airMopOnError);
+  for (ct=i=0; i<pld->xyzwNum; i++) {
+    unsigned int lidx=nblist[i];
+    (*idx)[i]=ct;
+    while (lidx!=0) {
+      (*neighbors)[ct]=nblist[lidx];
+      lidx=nblist[lidx+1];
+      ct++;
+    }
+  }
+  (*idx)[pld->xyzwNum]=ct;
+  airMopOkay(mop);
   return 0;
 }

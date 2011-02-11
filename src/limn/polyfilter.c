@@ -2,6 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2011  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -350,6 +351,95 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
     }
   }
 
+  airMopOkay(mop);
+  return 0;
+}
+
+/* Straightforward implementation of Laplacian+HC mesh smoothing, as
+ * described by Vollmer et al., Improved Laplacian Smoothing of Noisy
+ * Surface Meshes, Eurographics/CGF 18(3), 1999
+ *
+ * pld is the polydata you want smoothed
+ * neighbors / idx is from limnPolyDataNeighborArrayComp
+ * alpha / beta are parameters of the smoothing (try a=0,b=0.5)
+ * iter is the number of iterations you want to run (try iter=10)
+ *
+ * Returns -1 and leaves a message on biff upon error.
+ */
+int
+limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
+		     double alpha, double beta, int iter) {
+  static const char me[]="limnPolyDataSmoothHC";
+  float *orig, *in, *out, *b;
+  unsigned int v;
+  int i, nb;
+  airArray *mop;
+  mop=airMopNew();
+  if (pld==NULL || neighbors==NULL || idx==NULL) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    airMopError(mop); return -1;
+  }
+  if (alpha<0 || alpha>1 || beta<0 || beta>1) {
+    biffAddf(LIMN, "%s: alpha/beta outside parameter range [0,1]", me);
+    airMopError(mop); return -1;
+  }
+  orig = in = pld->xyzw;
+  out = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
+  if (out==NULL) {
+    biffAddf(LIMN, "%s: couldn't allocate output buffer", me);
+    airMopError(mop); return -1;
+  }
+  airMopAdd(mop, out, airFree, airMopOnError);
+  b = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
+  if (b==NULL) {
+    biffAddf(LIMN, "%s: couldn't allocate buffer b", me);
+    airMopError(mop); return -1;
+  }
+  airMopAdd(mop, b, airFree, airMopAlways);
+
+  for (i=0; i<iter; i++) {
+    /* Laplacian smoothing / compute bs */
+    for (v=0; v<pld->xyzwNum; v++) {
+      int p=4*v;
+      if (idx[v]==idx[v+1]) {
+	ELL_4V_COPY(out+p, in+p);
+      } else {
+	ELL_4V_SET(out+p,0,0,0,0);
+	for (nb=idx[v]; nb<idx[v+1]; nb++) {
+	  ELL_4V_INCR(out+p, in+4*neighbors[nb]);
+	}
+	ELL_4V_SCALE(out+p, 1.0/(idx[v+1]-idx[v]), out+p);
+      }
+      ELL_4V_SET(b+p, out[p]-(alpha*orig[p]+(1-alpha)*in[p]),
+		 out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
+		 out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
+		 out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
+    }
+    /* HC correction step */
+    for (v=0; v<pld->xyzwNum; v++) {
+      int p=4*v;
+      if (idx[v]<idx[v+1]) {
+	float avgb[4]={0,0,0,0};
+	for (nb=idx[v]; nb<idx[v+1]; nb++) {
+	  ELL_4V_INCR(avgb, b+4*neighbors[nb]);
+	}
+	ELL_4V_SCALE(avgb, 1.0/(idx[v+1]-idx[v]), avgb);
+	ELL_4V_LERP(avgb, beta, b+p, avgb);
+	ELL_4V_SUB(out+p,out+p,avgb);
+      }
+    }
+    if (i==0 && iter>1) {
+      in = out;
+      out = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
+    } else { /* swap */
+      float *tmp = in; in = out; out = tmp;
+    }
+  }
+
+  if (iter>1)
+    airFree(out);
+  airFree(pld->xyzw);
+  pld->xyzw = in;
   airMopOkay(mop);
   return 0;
 }
