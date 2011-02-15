@@ -118,7 +118,7 @@ _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
   /* add PNG error message to biff */
   biffAddf(NRRD, "%s: PNG error: %s", me, message);
   /* longjmp back to the setjmp, return 1 */
-  longjmp(png->jmpbuf, 1);
+  longjmp(png_jmpbuf(png), 1);
 }
 
 void
@@ -197,7 +197,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   /* set up png style error handling */
-  if (setjmp(png->jmpbuf)) {
+  if (setjmp(png_jmpbuf(png))) {
     /* the error is reported inside the handler, 
        but we still need to clean up and return */
     png_destroy_read_struct(&png, &info, NULL);
@@ -416,7 +416,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   /* set up error png style error handling */
-  if (setjmp(png->jmpbuf))
+  if (setjmp(png_jmpbuf(png)))
   {
     /* the error is reported inside the error handler, 
        but we still need to clean up an return with an error */
