@@ -82,7 +82,7 @@ typedef struct tijk_type_t {
   unsigned int order; /* number of tensor indices */
   unsigned int dim; /* dimension of each axis (only square tensors supported) */
   unsigned int num; /* unique number of components */
-#define TIJK_TYPE_MAX_NUM 29
+#define TIJK_TYPE_MAX_NUM 45
   const unsigned int *mult; /* multiplicity of each unique component;
 			     * NULL indicates that tensor is unsymmetric */
 
@@ -170,6 +170,7 @@ TIJK_EXPORT const tijk_type *const tijk_3o3d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_3o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_4o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_6o3d_sym;
+TIJK_EXPORT const tijk_type *const tijk_8o3d_sym; /* still VERY incomplete! */
 
 /* miscTijk.c */
 TIJK_EXPORT void tijk_add_d(double *res, const double *A,

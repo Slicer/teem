@@ -378,7 +378,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
   static const char me[]="limnPolyDataVertexNormals_";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
   float len;
-  double *matrix;
+  double *matrix=NULL;
   airArray *mop;
 
   infoBitFlag = limnPolyDataInfoBitFlag(pld);

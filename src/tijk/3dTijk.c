@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2010, 2009, 2008 Thomas Schultz
+  Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
   This library is free software; you can redistribute it and/or
@@ -1918,3 +1918,235 @@ _TIJK_6O3D_SYM_HESS(double,d)
 _TIJK_6O3D_SYM_HESS(float,f)
 
 TIJK_TYPE_SYM(6o3d_sym, 6, 3, 28)
+
+/* 8th order 3D symmetric */
+/* (unsymmetric counterpart currently not implemented) */
+
+unsigned int _tijk_8o3d_sym_mult[45]={1, 8, 8, 28, 56, 28, 56, 168, 168, 56, 70, 280, 420, 280, 70, 56, 280, 560, 560, 280, 56, 28, 168, 420, 560, 420, 168, 28, 8, 56, 168, 280, 280, 168, 56, 8, 1, 8, 28, 56, 70, 56, 28, 8, 1};
+#define _tijk_8o3d_sym_unsym2uniq NULL
+#define _tijk_8o3d_sym_uniq2unsym NULL
+#define _tijk_8o3d_sym_uniq_idx NULL
+
+double
+_tijk_8o3d_sym_tsp_d (const double *A, const double *B) {
+  double retval=0.0;
+  int i;
+  for (i=0; i<45; i++) {
+    retval+=_tijk_8o3d_sym_mult[i]*A[i]*B[i];
+  }
+  return retval;
+}
+
+float
+_tijk_8o3d_sym_tsp_f (const float *A, const float *B) {
+  float retval=0.0;
+  int i;
+  for (i=0; i<45; i++) {
+    retval+=_tijk_8o3d_sym_mult[i]*A[i]*B[i];
+  }
+  return retval;
+}
+
+double
+_tijk_8o3d_sym_norm_d (const double *A) {
+  return sqrt(_tijk_8o3d_sym_tsp_d(A,A));
+}
+
+float
+_tijk_8o3d_sym_norm_f (const float *A) {
+  return sqrt(_tijk_8o3d_sym_tsp_f(A,A));
+}
+
+/* many routines left to implement - trying to call them will cause a segfault! */
+#define _tijk_8o3d_sym_trans_f NULL
+#define _tijk_8o3d_sym_trans_d NULL
+
+#define _tijk_8o3d_sym_convert_f NULL
+#define _tijk_8o3d_sym_convert_d NULL
+
+#define _tijk_8o3d_sym_approx_f NULL
+#define _tijk_8o3d_sym_approx_d NULL
+
+double
+_tijk_8o3d_sym_s_form_d (const double *A, const double *v) {
+  double v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],
+    v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];
+  return A[0]*v00*v00*v00*v00+
+    A[36]*v11*v11*v11*v11+
+    A[44]*v22*v22*v22*v22+
+    8*(A[1]*v00*v00*v00*v01+
+       A[2]*v00*v00*v00*v02+
+       A[28]*v01*v11*v11*v11+
+       A[35]*v02*v22*v22*v22+
+       A[37]*v11*v11*v11*v12+
+       A[43]*v12*v22*v22*v22)+
+    28*(A[3]*v00*v00*v00*v11+
+	A[5]*v00*v00*v00*v22+
+	A[21]*v00*v11*v11*v11+
+	A[27]*v00*v22*v22*v22+
+	A[38]*v11*v11*v11*v22+
+	A[42]*v11*v22*v22*v22)+
+    56*(A[4]*v00*v00*v00*v12+
+	A[6]*v00*v00*v01*v11+
+	A[9]*v00*v00*v02*v22+
+	A[15]*v00*v01*v11*v11+
+	A[20]*v00*v02*v22*v22+
+	A[29]*v01*v11*v11*v12+
+	A[34]*v01*v22*v22*v22+
+	A[39]*v11*v11*v12*v22+
+	A[41]*v11*v12*v22*v22)+
+    70*(A[10]*v00*v00*v11*v11+
+	A[14]*v00*v00*v22*v22+
+	A[40]*v11*v11*v22*v22)+
+    168*(A[7]*v00*v00*v01*v12+
+	 A[8]*v00*v00*v01*v22+
+	 A[22]*v00*v11*v11*v12+
+	 A[26]*v00*v12*v22*v22+
+	 A[30]*v01*v11*v11*v22+
+	 A[33]*v01*v12*v22*v22)+
+    280*(A[11]*v00*v00*v11*v12+
+	 A[13]*v00*v00*v12*v22+
+	 A[16]*v00*v01*v11*v12+
+	 A[19]*v00*v01*v22*v22+
+	 A[31]*v01*v11*v12*v22+
+	 A[32]*v01*v11*v22*v22)+
+    420*(A[12]*v00*v00*v11*v22+
+	 A[23]*v00*v11*v11*v22+
+	 A[25]*v00*v11*v22*v22)+
+    560*(A[17]*v00*v01*v11*v22+
+	 A[18]*v00*v01*v12*v22+
+	 A[24]*v00*v11*v12*v22);
+}
+
+float
+_tijk_8o3d_sym_s_form_f (const float *A, const float *v) {
+  float v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],
+    v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];
+  return A[0]*v00*v00*v00*v00+
+    A[36]*v11*v11*v11*v11+
+    A[44]*v22*v22*v22*v22+
+    8*(A[1]*v00*v00*v00*v01+
+       A[2]*v00*v00*v00*v02+
+       A[28]*v01*v11*v11*v11+
+       A[35]*v02*v22*v22*v22+
+       A[37]*v11*v11*v11*v12+
+       A[43]*v12*v22*v22*v22)+
+    28*(A[3]*v00*v00*v00*v11+
+	A[5]*v00*v00*v00*v22+
+	A[21]*v00*v11*v11*v11+
+	A[27]*v00*v22*v22*v22+
+	A[38]*v11*v11*v11*v22+
+	A[42]*v11*v22*v22*v22)+
+    56*(A[4]*v00*v00*v00*v12+
+	A[6]*v00*v00*v01*v11+
+	A[9]*v00*v00*v02*v22+
+	A[15]*v00*v01*v11*v11+
+	A[20]*v00*v02*v22*v22+
+	A[29]*v01*v11*v11*v12+
+	A[34]*v01*v22*v22*v22+
+	A[39]*v11*v11*v12*v22+
+	A[41]*v11*v12*v22*v22)+
+    70*(A[10]*v00*v00*v11*v11+
+	A[14]*v00*v00*v22*v22+
+	A[40]*v11*v11*v22*v22)+
+    168*(A[7]*v00*v00*v01*v12+
+	 A[8]*v00*v00*v01*v22+
+	 A[22]*v00*v11*v11*v12+
+	 A[26]*v00*v12*v22*v22+
+	 A[30]*v01*v11*v11*v22+
+	 A[33]*v01*v12*v22*v22)+
+    280*(A[11]*v00*v00*v11*v12+
+	 A[13]*v00*v00*v12*v22+
+	 A[16]*v00*v01*v11*v12+
+	 A[19]*v00*v01*v22*v22+
+	 A[31]*v01*v11*v12*v22+
+	 A[32]*v01*v11*v22*v22)+
+    420*(A[12]*v00*v00*v11*v22+
+	 A[23]*v00*v11*v11*v22+
+	 A[25]*v00*v11*v22*v22)+
+    560*(A[17]*v00*v01*v11*v22+
+	 A[18]*v00*v01*v12*v22+
+	 A[24]*v00*v11*v12*v22);
+}
+
+double
+_tijk_8o3d_sym_mean_d (const double *A) {
+  return (A[0]+A[36]+A[44]+
+	  4*(A[3]+A[5]+A[21]+A[27]+A[38]+A[42])+
+	  6*(A[10]+A[14]+A[40])+
+	  12*(A[12]+A[23]+A[25]))/9.0;
+}
+
+float
+_tijk_8o3d_sym_mean_f (const float *A) {
+  return (A[0]+A[36]+A[44]+
+	  4*(A[3]+A[5]+A[21]+A[27]+A[38]+A[42])+
+	  6*(A[10]+A[14]+A[40])+
+	  12*(A[12]+A[23]+A[25]))/9.0;
+}
+
+#define _tijk_8o3d_sym_var_f NULL
+#define _tijk_8o3d_sym_var_d NULL
+
+#define _tijk_8o3d_sym_v_form_f NULL
+#define _tijk_8o3d_sym_v_form_d NULL
+
+#define _tijk_8o3d_sym_m_form_f NULL
+#define _tijk_8o3d_sym_m_form_d NULL
+
+#define _TIJK_8O3D_SYM_MAKE_RANK1(TYPE, SUF)				\
+  void									\
+  _tijk_8o3d_sym_make_rank1_##SUF (TYPE *res, const TYPE s, const TYPE *v) { \
+  TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],			\
+    v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];			\
+  res[0]=s*v00*v00*v00*v00; res[1]=s*v00*v00*v00*v01; res[2]=s*v00*v00*v00*v02;	\
+  res[3]=s*v00*v00*v00*v11; res[4]=s*v00*v00*v00*v12; res[5]=s*v00*v00*v00*v22;	\
+  res[6]=s*v00*v00*v01*v11; res[7]=s*v00*v00*v01*v12; res[8]=s*v00*v00*v01*v22;	\
+  res[9]=s*v00*v00*v02*v22; res[10]=s*v00*v00*v11*v11; res[11]=s*v00*v00*v11*v12; \
+  res[12]=s*v00*v00*v11*v22; res[13]=s*v00*v00*v12*v22; res[14]=s*v00*v00*v22*v22; \
+  res[15]=s*v00*v01*v11*v11; res[16]=s*v00*v01*v11*v12; res[17]=s*v00*v01*v11*v22; \
+  res[18]=s*v00*v01*v12*v22; res[19]=s*v00*v01*v22*v22; res[20]=s*v00*v02*v22*v22; \
+  res[21]=s*v00*v11*v11*v11; res[22]=s*v00*v11*v11*v12; res[23]=s*v00*v11*v11*v22; \
+  res[24]=s*v00*v11*v12*v22; res[25]=s*v00*v11*v22*v22; res[26]=s*v00*v12*v22*v22; \
+  res[27]=s*v00*v22*v22*v22; res[28]=s*v01*v11*v11*v11; res[29]=s*v01*v11*v11*v12; \
+  res[30]=s*v01*v11*v11*v22; res[31]=s*v01*v11*v12*v22; res[32]=s*v01*v11*v22*v22; \
+  res[33]=s*v01*v12*v22*v22; res[34]=s*v01*v22*v22*v22; res[35]=s*v02*v22*v22*v22; \
+  res[36]=s*v11*v11*v11*v11; res[37]=s*v11*v11*v11*v12; res[38]=s*v11*v11*v11*v22; \
+  res[39]=s*v11*v11*v12*v22; res[40]=s*v11*v11*v22*v22; res[41]=s*v11*v12*v22*v22; \
+  res[42]=s*v11*v22*v22*v22; res[43]=s*v12*v22*v22*v22; res[44]=s*v22*v22*v22*v22; \
+}
+
+_TIJK_8O3D_SYM_MAKE_RANK1(double, d)
+_TIJK_8O3D_SYM_MAKE_RANK1(float, f)
+
+void
+_tijk_8o3d_sym_make_iso_d (double *res, const double s) {
+  /* initialize to zero, then set non-zero elements */
+  unsigned int i;
+  for (i=0; i<45; i++)
+    res[i]=0;
+  res[0]=res[36]=res[44]=s;
+  res[3]=res[5]=res[21]=res[27]=res[38]=res[42]=s/7.0;
+  res[10]=res[14]=res[40]=0.085714285714285396*s;
+  res[12]=res[23]=res[25]=0.028571428571428508*s;
+}
+
+void
+_tijk_8o3d_sym_make_iso_f (float *res, const float s) {
+  /* initialize to zero, then set non-zero elements */
+  unsigned int i;
+  for (i=0; i<45; i++)
+    res[i]=0;
+  res[0]=res[36]=res[44]=s;
+  res[3]=res[5]=res[21]=res[27]=res[38]=res[42]=s/7.0;
+  res[10]=res[14]=res[40]=0.085714285714285396*s;
+  res[12]=res[23]=res[25]=0.028571428571428508*s;
+}
+
+#define _tijk_8o3d_sym_grad_f NULL
+#define _tijk_8o3d_sym_grad_d NULL
+
+#define _tijk_8o3d_sym_hess_f NULL
+#define _tijk_8o3d_sym_hess_d NULL
+
+TIJK_TYPE_SYM(8o3d_sym, 8, 3, 45)
