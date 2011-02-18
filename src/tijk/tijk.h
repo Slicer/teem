@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2010, 2009, 2008 Thomas Schultz
+  Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
   This library is free software; you can redistribute it and/or
@@ -350,6 +350,10 @@ TIJK_EXPORT int tijk_approx_heur_3d_f(float *ls, float *vs, float *res,
 				      const tijk_approx_heur_parm *parm);
 
 /* shTijk.c */
+/* number of coefficients for order i/2 */
+TIJK_EXPORT const unsigned int tijk_esh_len[];
+TIJK_EXPORT const unsigned int tijk_max_esh_order;
+
 TIJK_EXPORT int tijk_eval_esh_basis_d(double *res, int order,
 				     double theta, double phi);
 TIJK_EXPORT int tijk_eval_esh_basis_f(float *res, int order,

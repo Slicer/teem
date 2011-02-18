@@ -24,11 +24,11 @@
 
 #include "tijk.h"
 
-static const unsigned int _tijk_max_sh_order=8;
+const unsigned int tijk_max_esh_order=8;
 /* for order 8, the maximum number of coefficients is 45 */
-#define _TIJK_MAX_SH_LEN 45
+#define _TIJK_MAX_ESH_LEN 45
 /* number of coefficients for order i/2 */
-static const unsigned int _tijk_sh_len[5]={1,6,15,28,45};
+const unsigned int tijk_esh_len[5]={1,6,15,28,45};
 
 #define TIJK_EVAL_ESH_BASIS(TYPE, SUF)		\
   int						\
@@ -101,12 +101,12 @@ TIJK_EVAL_ESH_BASIS(float, f)
 #define TIJK_EVAL_ESH(TYPE, SUF)		\
   TYPE									\
   tijk_eval_esh_##SUF(TYPE *coeffs, int order, TYPE theta, TYPE phi) {	\
-    TYPE basis[_TIJK_MAX_SH_LEN];					\
+    TYPE basis[_TIJK_MAX_ESH_LEN];					\
     TYPE res=0.0;							\
     unsigned int i;							\
     if (order!=tijk_eval_esh_basis_##SUF(basis, order, theta, phi))	\
       return 0; /* there has been an error. */				\
-    for (i=0; i<_tijk_sh_len[order/2]; i++)				\
+    for (i=0; i<tijk_esh_len[order/2]; i++)				\
       res+=basis[i]*coeffs[i];						\
     return res;								\
   }
@@ -118,9 +118,9 @@ TIJK_EVAL_ESH(float, f)
   TYPE							\
   tijk_esh_sp_##SUF(TYPE *A, TYPE *B, int order) {	\
     TYPE res=0.0;					\
-    if (order<=(int)_tijk_max_sh_order) {		\
+    if (order<=(int)tijk_max_esh_order) {		\
       unsigned int i;					\
-      for (i=0; i<_tijk_sh_len[order/2]; i++) {		\
+      for (i=0; i<tijk_esh_len[order/2]; i++) {		\
 	res+=A[i]*B[i];					\
       }							\
     }							\
@@ -366,6 +366,7 @@ static const double _tijk_esh2sym_o8[45*45] ={
 TIJK_3D_SYM_TO_ESH(double, d)
 TIJK_3D_SYM_TO_ESH(float, f)
 
+/* DOES NOT work in-place (with res==sh) */
 #define TIJK_ESH_TO_3D_SYM(TYPE, SUF)					\
   const tijk_type*							\
   tijk_esh_to_3d_sym_##SUF(TYPE *res, const TYPE *sh, int order) {	\
@@ -392,7 +393,7 @@ TIJK_3D_SYM_TO_ESH(float, f)
     default:								\
       return NULL; /* cannot do the conversion */			\
     }									\
-    n=_tijk_sh_len[order/2];						\
+    n=tijk_esh_len[order/2];						\
     for (i=0; i<n; i++) {						\
       res[i]=0;								\
       for (j=0; j<n; j++) {						\
