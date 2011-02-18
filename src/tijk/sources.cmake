@@ -9,6 +9,7 @@ SET(TIJK_SOURCES
   fsTijk.c
   privateTijk.h
   tijk.h
+  shtables.h
   )
 
 ADD_TEEM_LIBRARY(tijk ${TIJK_SOURCES})

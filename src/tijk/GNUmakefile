@@ -47,7 +47,7 @@ $(L).SEEN := true
 ####
 $(L).NEED = ell nrrd biff air 
 $(L).PUBLIC_HEADERS = tijk.h
-$(L).PRIVATE_HEADERS = privateTijk.h
+$(L).PRIVATE_HEADERS = privateTijk.h shtables.h
 $(L).OBJS = 2dTijk.o 3dTijk.o approxTijk.o miscTijk.o shTijk.o fsTijk.o
 $(L).TESTS = 
 ####
