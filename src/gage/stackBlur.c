@@ -346,6 +346,12 @@ gageStackBlurCheck(const Nrrd *const nblur[],
   airMopAdd(mop, shapeOld, (airMopper)gageShapeNix, airMopAlways);
 
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
+    if (nin->type != nblur[blIdx]->type) {
+      biffAddf(GAGE, "%s: nblur[%u]->type %s != nin type %s\n", me,
+               blIdx, airEnumStr(nrrdType, nblur[blIdx]->type),
+               airEnumStr(nrrdType, nin->type));
+      airMopError(mop); return 1;
+    }
     /* check to see if nblur[blIdx] is as expected */
     if (gageShapeSet(shapeOld, nblur[blIdx], kind->baseDim)
         || !gageShapeEqual(shapeOld, "nblur", shapeNew, "nin")) {
