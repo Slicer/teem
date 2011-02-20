@@ -215,9 +215,8 @@ main(int argc, char *argv[]) {
   airArray *mop;
   unsigned int *skip, skipNum, pntPosNum;
   gageStackBlurParm *sbp;
-
   int otype;
-
+  
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
      or nrrdState* variables in a way that nrrdSanity() should see */
