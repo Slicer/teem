@@ -142,6 +142,7 @@ static double _nrrdUnaryOpLog1p(double a)      {
 static double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
 static double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
 static double _nrrdUnaryOpErf(double a)        {return airErf(a);}
+static double _nrrdUnaryOpNerf(double a)       {return (1+airErf(a))/2;}
 static double _nrrdUnaryOpCeil(double a)       {return ceil(a);}
 static double _nrrdUnaryOpFloor(double a)      {return floor(a);}
 static double _nrrdUnaryOpRoundUp(double a)    {return AIR_ROUNDUP(a);}
@@ -188,6 +189,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpSqrt,
   _nrrdUnaryOpCbrt,
   _nrrdUnaryOpErf,
+  _nrrdUnaryOpNerf,
   _nrrdUnaryOpCeil,
   _nrrdUnaryOpFloor,
   _nrrdUnaryOpRoundUp,
@@ -477,6 +479,11 @@ static double _nrrdTernaryOpMin(double a, double b, double c) {
   b = AIR_MIN(b, c);
   return AIR_MIN(a, b);
 }
+static double _nrrdTernaryOpMinSmooth(double x, double L, double H) { 
+  return (x < L
+          ? x
+          : (-L*L + H*x)/(H - 2*L + x));
+}
 static double _nrrdTernaryOpMax(double a, double b, double c) { 
   b = AIR_MAX(b, c);
   return AIR_MAX(a, b);
@@ -515,6 +522,7 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   _nrrdTernaryOpAdd,
   _nrrdTernaryOpMultiply,
   _nrrdTernaryOpMin,
+  _nrrdTernaryOpMinSmooth,
   _nrrdTernaryOpMax,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpIfElse,

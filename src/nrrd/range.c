@@ -103,6 +103,10 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   return;
 }
 
+/*
+** wrapper around nrrdRangeSet that (effectively) sets range->min
+** and range->min only if they didn't already exist
+*/
 void
 nrrdRangeSafeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   double minIn, maxIn;

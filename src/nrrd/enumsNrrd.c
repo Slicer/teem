@@ -990,6 +990,7 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuSqt nrrdUnaryOpSqrt
 #define nuCbt nrrdUnaryOpCbrt
 #define nuErf nrrdUnaryOpErf
+#define nuNerf nrrdUnaryOpNerf
 #define nuCil nrrdUnaryOpCeil
 #define nuFlr nrrdUnaryOpFloor
 #define nuRup nrrdUnaryOpRoundUp
@@ -1022,6 +1023,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1] = {
   "sqrt",
   "cbrt",
   "erf",
+  "nerf",
   "ceil",
   "floor",
   "roundup",
@@ -1087,6 +1089,7 @@ _nrrdUnaryOpStrEqv[] = {
   "sqrt",
   "cbrt",
   "erf",
+  "nerf",
   "ceil",
   "floor",
   "roundup", "rup",
@@ -1120,6 +1123,7 @@ _nrrdUnaryOpValEqv[] = {
   nuSqt,
   nuCbt,
   nuErf,
+  nuNerf,
   nuCil,
   nuFlr,
   nuRup, nuRup,
@@ -1296,6 +1300,7 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1] = {
   "add",
   "multiply",
   "min",
+  "min_smooth",
   "max",
   "clamp",
   "ifelse",
@@ -1311,6 +1316,7 @@ _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1] = {
   "add three values",
   "multiply three values",
   "minimum of three values",
+  "smooth minimum of 1st and 3rd value, starting at 2nd",
   "maximum of three values",
   "clamp 2nd value to closed interval between 1st and 3rd",
   "if 1st value is non-zero, then 2nd value, else 3rd value",
@@ -1328,6 +1334,7 @@ _nrrdTernaryOpStrEqv[] = {
   "+", "plus", "add",
   "x", "*", "times", "multiply", "product",
   "min",
+  "minsm", "min_smooth",
   "max",
   "clamp",
   "ifelse", "if",
@@ -1343,6 +1350,7 @@ _nrrdTernaryOpValEqv[] = {
   ntAdd, ntAdd, ntAdd,
   ntMul, ntMul, ntMul, ntMul, ntMul, 
   nrrdTernaryOpMin,
+  nrrdTernaryOpMinSmooth, nrrdTernaryOpMinSmooth,
   nrrdTernaryOpMax,
   nrrdTernaryOpClamp,
   nrrdTernaryOpIfElse, nrrdTernaryOpIfElse,

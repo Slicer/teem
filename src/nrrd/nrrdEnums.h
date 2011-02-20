@@ -621,21 +621,22 @@ enum {
   nrrdUnaryOpSqrt,       /* 14 */
   nrrdUnaryOpCbrt,       /* 15 */
   nrrdUnaryOpErf,        /* 16 */
-  nrrdUnaryOpCeil,       /* 17 */
-  nrrdUnaryOpFloor,      /* 18 */
-  nrrdUnaryOpRoundUp,    /* 19 */
-  nrrdUnaryOpRoundDown,  /* 20 */
-  nrrdUnaryOpAbs,        /* 21 */
-  nrrdUnaryOpSgn,        /* 22 */
-  nrrdUnaryOpExists,     /* 23 */
-  nrrdUnaryOpRand,       /* 24 */
-  nrrdUnaryOpNormalRand, /* 25 */
-  nrrdUnaryOpIf,         /* 26 */
-  nrrdUnaryOpZero,       /* 27 */
-  nrrdUnaryOpOne,        /* 28 */
+  nrrdUnaryOpNerf,       /* 17 */
+  nrrdUnaryOpCeil,       /* 18 */
+  nrrdUnaryOpFloor,      /* 19 */
+  nrrdUnaryOpRoundUp,    /* 20 */
+  nrrdUnaryOpRoundDown,  /* 21 */
+  nrrdUnaryOpAbs,        /* 22 */
+  nrrdUnaryOpSgn,        /* 23 */
+  nrrdUnaryOpExists,     /* 24 */
+  nrrdUnaryOpRand,       /* 25 */
+  nrrdUnaryOpNormalRand, /* 26 */
+  nrrdUnaryOpIf,         /* 27 */
+  nrrdUnaryOpZero,       /* 28 */
+  nrrdUnaryOpOne,        /* 29 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   28
+#define NRRD_UNARY_OP_MAX   29
 
 /*
 ******** nrrdBinaryOp enum
@@ -677,19 +678,20 @@ enum {
 */
 enum {
   nrrdTernaryOpUnknown,
-  nrrdTernaryOpAdd,      /*  1 */
-  nrrdTernaryOpMultiply, /*  2 */
-  nrrdTernaryOpMin,      /*  3 */
-  nrrdTernaryOpMax,      /*  4 */
-  nrrdTernaryOpClamp,    /*  5 */
-  nrrdTernaryOpIfElse,   /*  6 */
-  nrrdTernaryOpLerp,     /*  7 */
-  nrrdTernaryOpExists,   /*  8 */
-  nrrdTernaryOpInOpen,   /*  9 */
-  nrrdTernaryOpInClosed, /* 10 */
+  nrrdTernaryOpAdd,       /*  1 */
+  nrrdTernaryOpMultiply,  /*  2 */
+  nrrdTernaryOpMin,       /*  3 */
+  nrrdTernaryOpMinSmooth, /*  4 */
+  nrrdTernaryOpMax,       /*  5 */
+  nrrdTernaryOpClamp,     /*  6 */
+  nrrdTernaryOpIfElse,    /*  7 */
+  nrrdTernaryOpLerp,      /*  8 */
+  nrrdTernaryOpExists,    /*  9 */
+  nrrdTernaryOpInOpen,    /* 10 */
+  nrrdTernaryOpInClosed,  /* 11 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX 10
+#define NRRD_TERNARY_OP_MAX  11
 
 /* ---- END non-NrrdIO */
 
