@@ -66,6 +66,12 @@ tend_mfitMain(int argc, char **argv, char *me, hestParm *hparm) {
              "Indicates if the B=0 non-diffusion-weighted reference image "
              "is known (\"true\"), or if it has to be estimated along with "
              "the other model parameters (\"false\")");
+  /*
+  hestOptAdd(&hopt, "saveB0", "bool", airTypeBool, 1, 1, &saveB0, NULL,
+             "Indicates if the B=0 non-diffusion-weighted value "
+             "should be saved in output, regardless of whether it was "
+             "known or had to be esimated");
+  */
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
              "output type of model parameters",
              NULL, nrrdType);

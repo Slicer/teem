@@ -1639,6 +1639,9 @@ TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
 /* modelZero.c */
 #define TEN_MODEL_STR_ZERO "zero"
 TEN_EXPORT const tenModel *const tenModelZero;
+/* modelB0.c */
+#define TEN_MODEL_STR_B0 "b0"
+TEN_EXPORT const tenModel *const tenModelB0;
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;

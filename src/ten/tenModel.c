@@ -31,6 +31,7 @@ str2model(const char *str) {
   const tenModel *ret = NULL;
 
   if (!strcmp(str, TEN_MODEL_STR_ZERO))          ret = tenModelZero;
+  if (!strcmp(str, TEN_MODEL_STR_B0))            ret = tenModelB0;
   if (!strcmp(str, TEN_MODEL_STR_BALL))          ret = tenModelBall;
   if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
   if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) ret = tenModelBall1StickEMD;
@@ -421,7 +422,8 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     }
   }
   if (nrrdMaybeAlloc_nva(nparm, typeOut, ndwi->dim, szOut)) {
-    biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
+    biffMovef(TEN, NRRD, "%s: couldn't allocate output "
+              "(saveB0 %d, knownB0 %d)", me, saveB0, knownB0);
     airMopError(mop); return 1;
   }
   if (nsqeP) {

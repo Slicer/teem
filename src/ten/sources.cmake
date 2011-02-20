@@ -69,6 +69,7 @@ SET(TEN_SOURCES
   experSpec.c
   tenModel.c
   modelZero.c
+  modelB0.c
   modelBall.c
   model1Stick.c
   modelBall1StickEMD.c
