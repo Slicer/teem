@@ -38,9 +38,9 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   Nrrd **nin, **npass;
   Nrrd *nout, *nwght;
-  size_t *bin, binLen;
+  size_t *bin;
   int type, clamp[NRRD_DIM_MAX], pret;
-  unsigned int minLen, maxLen, ninLen, ai, diceax;
+  unsigned int minLen, maxLen, ninLen, binLen, ai, diceax;
   airArray *mop;
   double *min, *max;
   NrrdRange **range;
@@ -105,7 +105,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* create buffer for slices */
     if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
       fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
-              me, ninLen);
+              me, binLen);
       airMopError(mop); return 1;
     }
     airMopMem(mop, &npass, airMopAlways);
@@ -135,7 +135,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
     /* create buffer for slices (HEY copy and paste) */
     if (!( npass = AIR_CALLOC(binLen, Nrrd*) )) {
       fprintf(stderr, "%s: couldn't allocate nrrd array (size %u)\n",
-              me, ninLen);
+              me, binLen);
       airMopError(mop); return 1;
     }
     for (ai=0; ai<binLen; ai++) {
@@ -144,31 +144,31 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
   }
   range = AIR_CALLOC(binLen, NrrdRange*);
   airMopAdd(mop, range, airFree, airMopAlways);
-  for (ai=0; ai<ninLen; ai++) {
+  for (ai=0; ai<binLen; ai++) {
     range[ai] = nrrdRangeNew(AIR_NAN, AIR_NAN);
     airMopAdd(mop, range[ai], (airMopper)nrrdRangeNix, airMopAlways);
   }
   if (2 != minLen || (AIR_EXISTS(min[0]) || AIR_EXISTS(min[1]))) {
-    if (minLen != ninLen) {
+    if (minLen != binLen) {
       fprintf(stderr, "%s: # mins (%d) != # input nrrds (%d)\n", me,
-              minLen, ninLen);
+              minLen, binLen);
       airMopError(mop); return 1;
     }
-    for (ai=0; ai<ninLen; ai++) {
+    for (ai=0; ai<binLen; ai++) {
       range[ai]->min = min[ai];
     }
   }
   if (2 != maxLen || (AIR_EXISTS(max[0]) || AIR_EXISTS(max[1]))) {
-    if (maxLen != ninLen) {
+    if (maxLen != binLen) {
       fprintf(stderr, "%s: # maxs (%d) != # input nrrds (%d)\n", me,
-              maxLen, ninLen);
+              maxLen, binLen);
       airMopError(mop); return 1;
     }
-    for (ai=0; ai<ninLen; ai++) {
+    for (ai=0; ai<binLen; ai++) {
       range[ai]->max = max[ai];
     }
   }
-  for (ai=0; ai<ninLen; ai++) {
+  for (ai=0; ai<binLen; ai++) {
     clamp[ai] = 0;
   }
 
