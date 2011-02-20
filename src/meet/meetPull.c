@@ -340,7 +340,7 @@ meetPullVolLeech(meetPullVol *vol,
 int
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
                      char *cachePath, NrrdKernelSpec *kSSblur, int verbose) {
-  static const char me[]="meetPullVolReadMulti";
+  static const char me[]="meetPullVolLoadMulti";
   char formatSS[AIR_STRLEN_LARGE];
   unsigned int mpvIdx;
   gageStackBlurParm *sbp;
@@ -393,6 +393,9 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     if (vol->numSS) {
       sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
               cachePath, vol->volName, vol->numSS);
+      if (verbose) {
+        fprintf(stderr, "%s: managing %s ... \n", me, formatSS);
+      }
       if (gageStackBlurParmScaleSet(sbp, vol->numSS,
                                     vol->rangeSS[0], vol->rangeSS[1], 
                                     vol->uniformSS, vol->optimSS)
@@ -404,6 +407,9 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
         biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
                   me, formatSS);
         airMopError(mop); return 1;
+      }
+      if (verbose) {
+        fprintf(stderr, "%s: ... done\n", me);
       }
     }
     /* allocate and set vol->posSS from sbp-scale regardless of kind */
