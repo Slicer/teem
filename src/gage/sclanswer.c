@@ -137,6 +137,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {
     ELL_3M_COPY(pvl->directAnswer[gageSclHessEvec], hevec);
   }
+#if 1
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
     double A, B, S;
     if (heval[1] >0 || heval[2]>0) {
@@ -157,6 +158,37 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
         exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
     }
   }
+#else
+  /* alternative implementation by GLK, based on directly following
+     Frangi text.  Only significant difference from above is a
+     discontinuity at heval[0] = -heval[1] */
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
+    double ev[4], tmp;
+    ELL_3V_COPY(ev+1, heval);
+    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) { ELL_SWAP2(ev[2], ev[3], tmp); }
+    if (AIR_ABS(ev[1]) > AIR_ABS(ev[2])) { ELL_SWAP2(ev[1], ev[2], tmp); }
+    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) { ELL_SWAP2(ev[2], ev[3], tmp); }
+    if (ev[2] > 0 || ev[3] > 0) {
+      pvl->directAnswer[gageSclHessRidgeness][0] = 0;
+    } else {
+      double a1, a2, a3, RB, RA, SS, fa, fb, fg, aa, bb, gg, frangi;
+      a1 = AIR_ABS(ev[1]);
+      a2 = AIR_ABS(ev[2]);
+      a3 = AIR_ABS(ev[3]);
+      RB = a1/sqrt(a2*a3);
+      RA = a2/a3;
+      SS = sqrt(a1*a1 + a2*a2 + a3*a3);
+      aa = bb = 0.5;
+      gg = 1;
+      fa = 1 - exp(-RA*RA/(2*aa*aa));
+      fb = exp(-RB*RB/(2*bb*bb));
+      fg = 1 - exp(-SS*SS/(2*gg*gg));
+      frangi = fa*fb*fg;
+      if (!AIR_EXISTS(frangi)) { frangi = 0.0; }
+      pvl->directAnswer[gageSclHessRidgeness][0] = frangi;
+    }
+  }
+#endif
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessValleyness)) {
     double A, B, S;
     if (heval[0] <0 || heval[1]<0) {
