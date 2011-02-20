@@ -796,7 +796,11 @@ typedef struct {
   unsigned int num;            /* # of blurring scales == # volumes */
   double *scale;
   NrrdKernelSpec *kspec;       /* parm[0] will get over-written */
-  int boundary,
+  int dataCheck,               /* when checking given stack to see if its
+                                  the blurring of a volume, actually go in
+                                  and look at values of first (probably
+                                  the least blurred) volume */
+    boundary,
     renormalize,
     verbose;
 } gageStackBlurParm;

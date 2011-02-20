@@ -34,6 +34,10 @@ gageStackBlurParmNew() {
   if (parm) {
     parm->scale = NULL;
     parm->kspec = NULL;
+    parm->dataCheck = AIR_TRUE;
+    parm->boundary = nrrdBoundaryUnknown;
+    parm->renormalize = AIR_FALSE;
+    parm->verbose = 0;
   }
   return parm;
 }
@@ -375,6 +379,13 @@ gageStackBlurCheck(const Nrrd *const nblur[],
         airMopOkay(mop); return 1;
       }
     }
+  }
+  if (sbp->dataCheck) {
+    /* really need to check that the data values themselves are
+       correct; its too dangerous to have this unchecked, because
+       it means that experimental changes in volumes could 
+       mysteriously have no effect, because the cached pre-blurred
+       volumes from the old data are being re-used */
   }
 
   return 0;
