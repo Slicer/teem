@@ -318,6 +318,17 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   return 0;
 }
 
+/*
+******** gageStackBlurCheck
+**
+** (docs)
+**
+** on why sbp->dataCheck should be non-zero: really need to check that
+** the data values themselves are correct; its too dangerous to have
+** this unchecked, because it means that experimental changes in
+** volumes could mysteriously have no effect, because the cached
+** pre-blurred volumes from the old data are being re-used
+*/
 int
 gageStackBlurCheck(const Nrrd *const nblur[], 
                    gageStackBlurParm *sbp,
@@ -381,11 +392,27 @@ gageStackBlurCheck(const Nrrd *const nblur[],
     }
   }
   if (sbp->dataCheck) {
-    /* really need to check that the data values themselves are
-       correct; its too dangerous to have this unchecked, because
-       it means that experimental changes in volumes could 
-       mysteriously have no effect, because the cached pre-blurred
-       volumes from the old data are being re-used */
+    double (*lup)(const void *, size_t), vin, vbl;
+    size_t II, NN;
+    if (!(0.0 == sbp->scale[0])) {
+      biffAddf(GAGE, "%s: sorry, dataCheck w/ scale[0] %g "
+               "!= 0.0 not implemented", me, sbp->scale[0]);
+      airMopOkay(mop); return 1;
+      /* so the non-zero return here will be acted upon as though there
+         was a difference between the desired and the current stack, 
+         so things will be recomputed, which is conservative but costly */
+    }
+    lup = nrrdDLookup[nin->type];
+    NN = nrrdElementNumber(nin);
+    for (II=0; II<NN; II++) {
+      vin = lup(nin->data, II);
+      vbl = lup(nblur[0]->data, II);
+      if (vin != vbl) {
+        biffAddf(GAGE, "%s: value[%u] in nin %g != in nblur[0] %g\n", me,
+                 AIR_CAST(unsigned int, II), vin, vbl);
+        airMopOkay(mop); return 1;
+      }
+    }
   }
 
   return 0;
@@ -463,7 +490,8 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
     } else {
       /* else precomputed blurrings could all be read, and did match */
       if (sbp->verbose) {
-        fprintf(stderr, "%s: will re-use %s pre-blurrings.\n", me, format);
+        fprintf(stderr, "%s: will reuse %u %s pre-blurrings.\n", me, 
+                sbp->num, format);
       }
       recompute = AIR_FALSE;
     }
