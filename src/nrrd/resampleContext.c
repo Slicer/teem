@@ -96,7 +96,7 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
     rsmc->defaultCenter = nrrdDefaultCenter;
     rsmc->padValue = nrrdDefaultResamplePadValue;
     rsmc->dim = 0;
-    rsmc->passNum = AIR_CAST(unsigned int, -1);
+    rsmc->passNum = AIR_CAST(unsigned int, -1); /* 4294967295 */
     rsmc->topRax = AIR_CAST(unsigned int, -1);
     rsmc->botRax = AIR_CAST(unsigned int, -1);
     for (axIdx=0; axIdx<NRRD_DIM_MAX; axIdx++) {
@@ -261,6 +261,14 @@ nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx,
     for (kpIdx=0; kpIdx<kernel->numParm; kpIdx++) {
       rsmc->axis[axIdx].kparm[kpIdx] = kparm[kpIdx];
     }
+    if (rsmc->verbose) {
+      char kstr[AIR_STRLEN_LARGE];
+      NrrdKernelSpec ksp;
+      nrrdKernelSpecSet(&ksp, rsmc->axis[axIdx].kernel,
+                        rsmc->axis[axIdx].kparm);
+      nrrdKernelSpecSprint(kstr, &ksp);
+      fprintf(stderr, "%s: axis %u kernel %s\n", me, axIdx, kstr);
+    }
   }
   rsmc->flag[flagKernels] = AIR_TRUE;
 
@@ -276,6 +284,11 @@ nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
   PER_AXIS_ERROR_CHECK;
 
   if (rsmc->axis[axIdx].samples != samples) {
+    if (rsmc->verbose) {
+      fprintf(stderr, "%s: axis %u samples %u --> %u\n", me, axIdx,
+              AIR_CAST(unsigned int, rsmc->axis[axIdx].samples),
+              AIR_CAST(unsigned int, samples));
+    }
     rsmc->axis[axIdx].samples = samples;
     rsmc->flag[flagSamples] = AIR_TRUE;
   }
