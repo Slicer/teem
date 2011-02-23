@@ -283,6 +283,107 @@ _nrrdKernelBSpline3DD = {
 NrrdKernel *const
 nrrdKernelBSpline3DD = &_nrrdKernelBSpline3DD;
 
+/* ------------- order *3* approximate numerical inverse -------------- */
+/* still need to implement:
+**   Unser et al B-Spline Signal Processing: Part I & II, IEEE
+**   Transactions on Signal Processing, 1993, 41(2):821-833, 834--848
+** but until then here's a slower way of approximating the prefiltering,
+** which is still faster than doing iterative deconvolution.  These
+** weights were determined by GLK with Mathematica, by inverting the
+** matrix representing discrete convolution with the spline
+*/
+
+static double
+_bspl3_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 12.5;
+}
+
+static double
+_bspl3_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_bspl3_ANI_kvals[12] = {
+  2672279.0/1542841.0,
+  -(716035.0/1542841.0),
+  191861.0/1542841.0,
+  -(51409.0/1542841.0),
+  13775.0/1542841.0,
+  -(3691.0/1542841.0),
+  989.0/1542841.0,
+  -(265.0/1542841.0),
+  71.0/1542841.0,
+  -(19.0/1542841.0),
+  5.0/1542841.0,
+  -(1.0/1542841.0)};
+
+#define BSPL3_ANI(ret, tmp, x)                  \
+  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  if (tmp < 12) {                               \
+    ret = _bspl3_ANI_kvals[tmp];                \
+  } else {                                      \
+    ret = 0.0;                                  \
+  }
+
+static double
+_bspl3_ANI_1d(double x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL3_ANI(r, tmp, ax);
+  return r;
+}
+
+static float
+_bspl3_ANI_1f(float x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL3_ANI(r, tmp, ax);
+  return AIR_CAST(float, r);
+}
+
+static void
+_bspl3_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL3_ANI(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL3_ANI(r, tmp, ax);
+    f[i] = AIR_CAST(float, r);
+  }
+}
+
+NrrdKernel
+_nrrdKernelBSpline3ApproxInverse = {
+  "bspl3ai", 0,
+  _bspl3_ANI_sup, _bspl3_ANI_int,
+  _bspl3_ANI_1f, _bspl3_ANI_Nf,
+  _bspl3_ANI_1d, _bspl3_ANI_Nd
+};
+NrrdKernel *const
+nrrdKernelBSpline3ApproxInverse = &_nrrdKernelBSpline3ApproxInverse;
+
 /* ============================= order *4* ============================= */
 
 /*
@@ -530,3 +631,102 @@ _nrrdKernelBSpline5DD = {
 NrrdKernel *const
 nrrdKernelBSpline5DD = &_nrrdKernelBSpline5DD;
 
+/* ------------- order *5* approximate numerical inverse -------------- */
+
+static double
+_bspl5_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 19.5;
+}
+
+static double
+_bspl5_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_bspl5_ANI_kvals[19] = {
+  2.842170922021427870236333,
+  -1.321729472987239796417307,
+  0.5733258709611149890510146,
+  -0.2470419274010479815114381,
+  0.1063780046404650785440854,
+  -0.04580408418467518130037713,
+  0.01972212399699206014654736,
+  -0.008491860984275658620122180,
+  0.003656385950780789716770681,
+  -0.001574349495225446217828165,
+  0.0006778757185045443332966769,
+  -0.0002918757322635763049702028,
+  0.0001256725426338698784062181,
+  -0.00005410696497728715841372199,
+  0.00002328659592249373987497103,
+  -0.00001000218170092531503506361,
+  4.249940115067599514119408e-6,
+  -1.698979738236873388431330e-6,
+  4.475539012615912040164139e-7};
+
+#define BSPL5_ANI(ret, tmp, x)                  \
+  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  if (tmp < 19) {                               \
+    ret = _bspl5_ANI_kvals[tmp];                \
+  } else {                                      \
+    ret = 0.0;                                  \
+  }
+
+static double
+_bspl5_ANI_1d(double x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL5_ANI(r, tmp, ax);
+  return r;
+}
+
+static float
+_bspl5_ANI_1f(float x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL5_ANI(r, tmp, ax);
+  return AIR_CAST(float, r);
+}
+
+static void
+_bspl5_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL5_ANI(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL5_ANI(r, tmp, ax);
+    f[i] = AIR_CAST(float, r);
+  }
+}
+
+NrrdKernel
+_nrrdKernelBSpline5ApproxInverse = {
+  "bspl5ai", 0,
+  _bspl5_ANI_sup, _bspl5_ANI_int,
+  _bspl5_ANI_1f, _bspl5_ANI_Nf,
+  _bspl5_ANI_1d, _bspl5_ANI_Nd
+};
+NrrdKernel *const
+nrrdKernelBSpline5ApproxInverse = &_nrrdKernelBSpline5ApproxInverse;

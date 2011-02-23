@@ -1543,6 +1543,101 @@ _DDc4hex = {
 NrrdKernel *const
 nrrdKernelC4HexicDD = &_DDc4hex;
 
+
+/* ------------- approximate inverse of c4h ------------------------- */
+/* see comments around "_bspl3_ANI" in bsplKernel.c */
+
+static double
+_c4hex_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 12.5;
+}
+
+static double
+_c4hex_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_c4hex_ANI_kvals[12] = {
+  1.1906949847244948336,
+  -0.13537708971729194940,
+  0.047024535491780434571,
+  -0.0088462060502312555095,
+  0.0022443498051487024049,
+  -0.00048639680369511914410,
+  0.00011421848629250278186,
+  -0.000025727759438407893986,
+  5.9204264168395963454e-6,
+  -1.3468552403175349134e-6,
+  3.0637649910394681441e-7,
+  -5.5762487950611026674e-8};
+
+#define C4HEX_ANI(ret, tmp, x)                  \
+  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  if (tmp < 12) {                               \
+    ret = _c4hex_ANI_kvals[tmp];                \
+  } else {                                      \
+    ret = 0.0;                                  \
+  }
+
+static double
+_c4hex_ANI_1d(double x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  C4HEX_ANI(r, tmp, ax);
+  return r;
+}
+
+static float
+_c4hex_ANI_1f(float x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  C4HEX_ANI(r, tmp, ax);
+  return AIR_CAST(float, r);
+}
+
+static void
+_c4hex_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    C4HEX_ANI(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    C4HEX_ANI(r, tmp, ax);
+    f[i] = AIR_CAST(float, r);
+  }
+}
+
+NrrdKernel
+_nrrdKernelC4HexicApproxInverse = {
+  "c4hexai", 0,
+  _c4hex_ANI_sup, _c4hex_ANI_int,
+  _c4hex_ANI_1f, _c4hex_ANI_Nf,
+  _c4hex_ANI_1d, _c4hex_ANI_Nd
+};
+NrrdKernel *const
+nrrdKernelC4HexicApproxInverse = &_nrrdKernelC4HexicApproxInverse;
+
 /* ------------------------------------------------------------ */
 
 #define _GAUSS(x, sig, cut) ( \
@@ -1920,6 +2015,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c3quinticdd", str)) return nrrdKernelC3QuinticDD;
   if (!strcmp("c3qdd", str))      return nrrdKernelC3QuinticDD;
   if (!strcmp("c4hexic", str))    return nrrdKernelC4Hexic;
+  if (!strcmp("c4hai", str))      return nrrdKernelC4HexicApproxInverse;
+  if (!strcmp("c4hexicai", str))  return nrrdKernelC4HexicApproxInverse;
   if (!strcmp("c4h", str))        return nrrdKernelC4Hexic;
   if (!strcmp("c4hexicd", str))   return nrrdKernelC4HexicD;
   if (!strcmp("c4hd", str))       return nrrdKernelC4HexicD;
@@ -1953,12 +2050,16 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("blackmandd", str)) return nrrdKernelBlackmanDD;
   if (!strcmp("bspl3", str))      return nrrdKernelBSpline3;
   if (!strcmp("bspln3", str))     return nrrdKernelBSpline3;
+  if (!strcmp("bspl3ai", str))    return nrrdKernelBSpline3ApproxInverse;
+  if (!strcmp("bspln3ai", str))   return nrrdKernelBSpline3ApproxInverse;
   if (!strcmp("bspl3d", str))     return nrrdKernelBSpline3D;
   if (!strcmp("bspln3d", str))    return nrrdKernelBSpline3D;
   if (!strcmp("bspl3dd", str))    return nrrdKernelBSpline3DD;
   if (!strcmp("bspln3dd", str))   return nrrdKernelBSpline3DD;
   if (!strcmp("bspl5", str))      return nrrdKernelBSpline5;
   if (!strcmp("bspln5", str))     return nrrdKernelBSpline5;
+  if (!strcmp("bspl5ai", str))    return nrrdKernelBSpline5ApproxInverse;
+  if (!strcmp("bspln5ai", str))   return nrrdKernelBSpline5ApproxInverse;
   if (!strcmp("bspl5d", str))     return nrrdKernelBSpline5D;
   if (!strcmp("bspln5d", str))    return nrrdKernelBSpline5D;
   if (!strcmp("bspl5dd", str))    return nrrdKernelBSpline5DD;

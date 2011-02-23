@@ -1313,9 +1313,11 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline3,     /* 3rd order (cubic) B-spline */
   *const nrrdKernelBSpline3D,
   *const nrrdKernelBSpline3DD,
+  *const nrrdKernelBSpline3ApproxInverse,
   *const nrrdKernelBSpline5,     /* 5th order B-spline */
   *const nrrdKernelBSpline5D,
-  *const nrrdKernelBSpline5DD;
+  *const nrrdKernelBSpline5DD,
+  *const nrrdKernelBSpline5ApproxInverse;
 /* kernel.c */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */
@@ -1337,6 +1339,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelC4Hexic,      /* 0-parm C4 hex, support [-3,3] */
   *const nrrdKernelC4HexicD,     /* 1st deriv of C4Hexic */
   *const nrrdKernelC4HexicDD,    /* 2nd deriv of C4Hexic */
+  *const nrrdKernelC4HexicApproxInverse,
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
