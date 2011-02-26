@@ -42,11 +42,12 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm, older, E, defaultCenter, verbose, overrideCenter;
-  unsigned int scaleLen, ai, samplesOut;
+  int type, bb, pret, norenorm, older, E, defaultCenter, verbose,
+    overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE, offSet=AIR_FALSE;
+  unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen;
   airArray *mop;
   float *scale;
-  double padVal;
+  double padVal, *min, *max, *off;
   NrrdResampleInfo *info;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *unuk;
@@ -68,6 +69,22 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
              "the number of samples unchanged\n "
              "\b\bo \"<int>\": exact number of output samples",
              &scaleLen, NULL, &unrrduHestScaleCB);
+  hestOptAdd(&opt, "off,offset", "off0", airTypeDouble, 0, -1, &off, "",
+             "For each axis, an offset or shift to the position (in index "
+             "space) of the lower end of the sampling domain. "
+             "Either -off can be used, or -min and -max "
+             "together, or none of these, so that (by default), the full "
+             "domain of the axis is resampled.",  &offLen);
+  hestOptAdd(&opt, "min,minimum", "min0", airTypeDouble, 0, -1, &min, "",
+             "For each axis, the lower end (in index space) of the domain "
+             "of the resampling. Either -off can be used, or -min and -max "
+             "together, or none of these, so that (by default), the full "
+             "domain of the axis is resampled.",  &minLen);
+  hestOptAdd(&opt, "max,maximum", "max0", airTypeDouble, 0, -1, &max, "",
+             "For each axis, the upper end (in index space) of the domain "
+             "of the resampling. Either -off can be used, or -min and -max "
+             "together, or none of these, so that (by default), the full "
+             "domain of the axis is resampled.",  &maxLen);
   hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk,
              "cubic:0,0.5",
              "The kernel to use for resampling.  "
@@ -145,12 +162,82 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (scaleLen != nin->dim) {
-    fprintf(stderr, "%s: # sampling sizes (%d) != input nrrd dimension (%d)\n",
+    fprintf(stderr, "%s: # sampling sizes %d != input nrrd dimension %d\n",
             me, scaleLen, nin->dim);
     airMopError(mop);
     return 1;
   }
   if (!older) {
+    if (offLen >= 1 && AIR_EXISTS(off[0])) {
+      /* seems to want to set off[] */
+      if (offLen != scaleLen) {
+        fprintf(stderr, "%s: offLen %u != scaleLen %u\n", me,
+                offLen, scaleLen);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<offLen; ai++) {
+        if (!AIR_EXISTS(off[ai])) {
+          fprintf(stderr, "%s: off[%u] %g doesn't exist\n", me,
+                  ai, off[ai]);
+          airMopError(mop);
+          return 1;
+        }
+      }
+      offSet = AIR_TRUE;
+    } else {
+      offSet = AIR_FALSE;
+    }
+    if (minLen >= 1 && AIR_EXISTS(min[0])) { /* HEY copy and paste */
+      /* seems to want to set min[] */
+      if (minLen != scaleLen) {
+        fprintf(stderr, "%s: minLen %u != scaleLen %u\n", me,
+                minLen, scaleLen);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<minLen; ai++) {
+        if (!AIR_EXISTS(min[ai])) {
+          fprintf(stderr, "%s: min[%u] %g doesn't exist\n", me,
+                  ai, min[ai]);
+          airMopError(mop);
+          return 1;
+        }
+      }
+      minSet = AIR_TRUE;
+    } else {
+      minSet = AIR_FALSE;
+    }
+    if (maxLen >= 1 && AIR_EXISTS(max[0])) { /* HEY copy and paste */
+      /* seems to want to set max[] */
+      if (maxLen != scaleLen) {
+        fprintf(stderr, "%s: maxLen %u != scaleLen %u\n", me,
+                maxLen, scaleLen);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<maxLen; ai++) {
+        if (!AIR_EXISTS(max[ai])) {
+          fprintf(stderr, "%s: max[%u] %g doesn't exist\n", me,
+                  ai, max[ai]);
+          airMopError(mop);
+          return 1;
+        }
+      }
+      maxSet = AIR_TRUE;
+    } else {
+      maxSet = AIR_FALSE;
+    }
+    if (!( (minSet && maxSet) || (!minSet && !maxSet) )) {
+      fprintf(stderr, "%s: need -min and -max to be set consistently\n", me);
+      airMopError(mop);
+      return 1;
+    }
+    if (minSet && offSet) {
+      fprintf(stderr, "%s: can't use -off with -min and -max\n", me);
+      airMopError(mop);
+      return 1;
+    }
     rsmc = nrrdResampleContextNew();
     rsmc->verbose = verbose;
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
@@ -182,7 +269,19 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       }
-      if (!E) E |= nrrdResampleRangeFullSet(rsmc, ai);
+      if (minSet && maxSet) {
+        if (!E) E |= nrrdResampleRangeSet(rsmc, ai, min[ai], max[ai]);
+      } else {
+        if (!E) E |= nrrdResampleRangeFullSet(rsmc, ai);
+        if (offSet) {
+          /* HEY: this is a hack; We're reading out the information from
+             determined by nrrdResampleRangeFullSet, and benefitting from
+             the fact that it set one of the flags that are processed by
+             nrrdResampleExecute() */
+          rsmc->axis[ai].min += off[ai];
+          rsmc->axis[ai].max += off[ai];
+        }
+      }
     }
     if (!E) E |= nrrdResampleBoundarySet(rsmc, bb);
     if (!E) E |= nrrdResampleTypeOutSet(rsmc, type);
