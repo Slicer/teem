@@ -223,11 +223,11 @@ nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
 void
 nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
                   const double kparm[NRRD_KERNEL_PARMS_NUM]) {
-  int p;
+  unsigned int p;
 
   if (ksp && k && kparm) {
     ksp->kernel = k;
-    for (p=0; p<NRRD_KERNEL_PARMS_NUM; p++) {
+    for (p=0; p<(k->numParm); p++) {
       ksp->parm[p] = kparm[p];
     }
   }
