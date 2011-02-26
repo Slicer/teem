@@ -2262,7 +2262,7 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
 ** which is plenty big
 */
 int
-nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], NrrdKernelSpec *ksp) {
+nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
   static const char me[]="nrrdKernelSpecSprint";
   unsigned int warnLen = AIR_STRLEN_LARGE/2;
 
@@ -2289,6 +2289,20 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], NrrdKernelSpec *ksp) {
       }
       strcat(str, sp);
     }
+  }
+  return 0;
+}
+
+int
+nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
+                 const double kparm[NRRD_KERNEL_PARMS_NUM]) {
+  static const char me[]="nrrdKernelSprint";
+  NrrdKernelSpec ksp;
+
+  nrrdKernelSpecSet(&ksp, kernel, kparm);
+  if (nrrdKernelSpecSprint(str, &ksp)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
   }
   return 0;
 }
