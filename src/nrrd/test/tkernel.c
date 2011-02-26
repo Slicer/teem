@@ -91,6 +91,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: WARNING: support=%g => lower min (%g) or raise max (%g)\n",
             me, k->support(parm), min, max);
   }
+  printf("%s: support(%s) = %g\n", me, kstr, k->support(parm));
 
   /* see how many values are in the interval */
   len = 0;
