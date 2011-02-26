@@ -239,9 +239,11 @@ gageKernelSet(gageContext *ctx,
     } else {
       /* its a derivative, so integral must be near zero */
       if (!( AIR_ABS(integral) <= ctx->parm.kernelIntegralNearZero )) {
-        biffAddf(GAGE, "%s: derivative kernel's integral (%g) not within "
-                 "%g of 0.0",
-                 me, integral, ctx->parm.kernelIntegralNearZero);
+        char str[AIR_STRLEN_LARGE]="";
+        nrrdKernelSprint(str, k, kparm);
+        biffAddf(GAGE, "%s: derivative %s kernel (%s) integral %g not within "
+                 "%g of 0.0", me, airEnumStr(gageKernel, which), str,
+                 integral, ctx->parm.kernelIntegralNearZero);
         return 1;
       }
     }
