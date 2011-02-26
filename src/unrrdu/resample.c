@@ -168,7 +168,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
     return 1;
   }
   if (!older) {
-    if (offLen >= 1 && AIR_EXISTS(off[0])) {
+    if (offLen >= 1) {
       /* seems to want to set off[] */
       if (offLen != scaleLen) {
         fprintf(stderr, "%s: offLen %u != scaleLen %u\n", me,
@@ -177,7 +177,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
         return 1;
       }
       for (ai=0; ai<offLen; ai++) {
-        if (!AIR_EXISTS(off[ai])) {
+        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(off[ai])) {
           fprintf(stderr, "%s: off[%u] %g doesn't exist\n", me,
                   ai, off[ai]);
           airMopError(mop);
@@ -197,7 +197,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
         return 1;
       }
       for (ai=0; ai<minLen; ai++) {
-        if (!AIR_EXISTS(min[ai])) {
+        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(min[ai])) {
           fprintf(stderr, "%s: min[%u] %g doesn't exist\n", me,
                   ai, min[ai]);
           airMopError(mop);
@@ -217,7 +217,7 @@ unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
         return 1;
       }
       for (ai=0; ai<maxLen; ai++) {
-        if (!AIR_EXISTS(max[ai])) {
+        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(max[ai])) {
           fprintf(stderr, "%s: max[%u] %g doesn't exist\n", me,
                   ai, max[ai]);
           airMopError(mop);
