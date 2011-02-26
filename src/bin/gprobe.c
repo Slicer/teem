@@ -208,7 +208,7 @@ main(int argc, char *argv[]) {
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ansLen, six, siy, siz, sox, soy, soz;
-  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS;
+  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS, biasSS;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
@@ -299,6 +299,8 @@ main(int argc, char *argv[]) {
              "sigmas when possible");
   hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
              "normalize derivatives by scale");
+  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
+             "bias on scale-based derivative normalization");
   hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1,
              &stackFnameFormat, "",
              "printf-style format (including a \"%u\") for the "
@@ -426,6 +428,7 @@ main(int argc, char *argv[]) {
   if (numSS) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
+    gageParmSet(ctx, gageParmStackNormalizeDerivBias, biasSS);
     gageParmSet(ctx, gageParmStackNormalizeDeriv, normdSS);
     if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
                                     calloc(numSS, sizeof(gagePerVolume *))));
@@ -725,7 +728,7 @@ main(int argc, char *argv[]) {
   /* probe onto grid */
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  gageParmSet(ctx, gageParmVerbose, 0);
+  gageParmSet(ctx, gageParmVerbose, verbose);
   t0 = airTime();
   if (gridProbe(ctx, pvl, what, nout, otype, ngrid,
                 (_ngrid
