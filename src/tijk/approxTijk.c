@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2010, 2009, 2008 Thomas Schultz
+  Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
   This library is free software; you can redistribute it and/or
@@ -174,18 +174,22 @@ tijk_refine_rank1_parm
  *   will be updated by this function.
  * ten is the input tensor, type is its type.
  * parm: if non-NULL, used to change the default optimization parameters
+ * We improve the rank-1 approximation by moving s away from zero
+ * (unless refinemax is nonzero, in which case we try to make the
+ * signed value of s as large as possible)
  * returns 0 upon success
  *         1 when given wrong parameters
  *         2 when the Armijo scheme failed to produce a valid stepsize
  */
-#define _TIJK_REFINE_RANK1(TYPE, SUF, DIM)				\
+#define _TIJK_REFINE_RANK1ORMAX(TYPE, SUF, DIM)				\
   int									\
-  tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
+  _tijk_refine_rank1ormax_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten, \
 				   const tijk_type *type,		\
-				   const tijk_refine_rank1_parm *parm) { \
+				   const tijk_refine_rank1_parm *parm,	\
+				   const int refinemax) {		\
     TYPE isoten[TIJK_TYPE_MAX_NUM], anisoten[TIJK_TYPE_MAX_NUM];	\
     TYPE der[DIM], iso, anisonorm, anisonorminv, oldval;		\
-    char sign=(*s>0)?1:-1;						\
+    char sign=(refinemax || *s>0)?1:-1;					\
     TYPE alpha, beta;							\
     if (type->dim!=DIM || type->sym==NULL)				\
       return 1;								\
@@ -239,10 +243,36 @@ tijk_refine_rank1_parm
     return 0;								\
   }
 
+_TIJK_REFINE_RANK1ORMAX(double, d, 2)
+_TIJK_REFINE_RANK1ORMAX(float, f, 2)
+_TIJK_REFINE_RANK1ORMAX(double, d, 3)
+_TIJK_REFINE_RANK1ORMAX(float, f, 3)
+
+#define _TIJK_REFINE_RANK1(TYPE, SUF, DIM)				\
+  int									\
+  tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
+				   const tijk_type *type,		\
+				   const tijk_refine_rank1_parm *parm) { \
+    _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,0);	\
+  }
+
 _TIJK_REFINE_RANK1(double, d, 2)
 _TIJK_REFINE_RANK1(float, f, 2)
 _TIJK_REFINE_RANK1(double, d, 3)
 _TIJK_REFINE_RANK1(float, f, 3)
+
+#define _TIJK_REFINE_MAX(TYPE, SUF, DIM)				\
+  int									\
+  tijk_refine_max_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
+				 const tijk_type *type,			\
+				 const tijk_refine_rank1_parm *parm) {	\
+    _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,1);	\
+  }
+
+_TIJK_REFINE_MAX(double, d, 2)
+_TIJK_REFINE_MAX(float, f, 2)
+_TIJK_REFINE_MAX(double, d, 3)
+_TIJK_REFINE_MAX(float, f, 3)
 
 static const tijk_refine_rankk_parm refine_rankk_parm_default = {
   1e-10, 1e-4, 0, NULL};

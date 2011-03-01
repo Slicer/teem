@@ -290,6 +290,19 @@ TIJK_EXPORT int tijk_refine_rank1_3d_f(float *s, float *v, const float *ten,
 				       const tijk_type *type,
 				       const tijk_refine_rank1_parm *parm);
 
+TIJK_EXPORT int tijk_refine_max_2d_d(double *s, double *v, const double *ten,
+				     const tijk_type *type,
+				     const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_max_2d_f(float *s, float *v, const float *ten,
+				     const tijk_type *type,
+				     const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_max_3d_d(double *s, double *v, const double *ten,
+				     const tijk_type *type,
+				     const tijk_refine_rank1_parm *parm);
+TIJK_EXPORT int tijk_refine_max_3d_f(float *s, float *v, const float *ten,
+				     const tijk_type *type,
+				     const tijk_refine_rank1_parm *parm);
+
 TIJK_EXPORT int tijk_refine_rankk_2d_d(double *ls, double *vs,
 				       double *tens, double *res,
 				       double *resnorm, double orignorm,
