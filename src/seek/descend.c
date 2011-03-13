@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -18,8 +19,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/* This code was written by Thomas Schultz <t.schultz@uchicago.edu> */
-
 /* This file collects functions that implement various gradient
  * descents required in the context of extracting crease surfaces */
 
@@ -37,6 +36,8 @@
  * 	matrices at the corners of the face (input only)
  * maxiter is the maximum number of iterations allowed
  * eps is the accuracy up to which the discriminant should be zero
+ *     The discriminant scales with the Frobenius norm to the sixth power,
+ *     so the exact constraint is disc/|T|^6<eps
  * type can be 'l', 'p', or something else (=both)
  *
  * Returns 0 if the point was found up to the given accuracy
@@ -45,6 +46,7 @@
  * Returns 3 if we could not invert a matrix to find next gradient dir
  * Returns 4 if we found a point, but it does not have the desired type
  * Returns 5 if Armijo rule failed to find a valid stepsize
+ * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
 int seekDescendToDeg(double *coord, double *botleft, double *botright,
 		     double *topleft, double *topright,
@@ -57,6 +59,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
   double ten[6]; /* makes access more convenient */
   double tsqr[6]; /* squared tensor values, are used repeatedly */
   double cf[7]; /* constraint function vector */
+  double norm; /* Frobenius norm, for normalization */
   int i, j, iter; /* counting variables for loops */
 
   /* check initial point */
@@ -64,9 +67,12 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
   ELL_3M_LERP(hesstop,coord[0],topleft,topright);
   ELL_3M_LERP(hess,coord[1],hessbot,hesstop);
   
-  /* copy over */
-  ten[0] = hess[0]; ten[1] = hess[1]; ten[2] = hess[2];
-  ten[3] = hess[4]; ten[4] = hess[5]; ten[5] = hess[8];
+  /* normalize for scale invariance & to avoid numerical problems */
+  norm = sqrt(hess[0]*hess[0]+hess[4]*hess[4]+hess[8]*hess[8]+
+	      2*(hess[1]*hess[1]+hess[2]*hess[2]+hess[5]*hess[5]));
+  if (norm<1e-300) return 6;
+  ten[0] = hess[0]/norm; ten[1] = hess[1]/norm; ten[2] = hess[2]/norm;
+  ten[3] = hess[4]/norm; ten[4] = hess[5]/norm; ten[5] = hess[8]/norm;
   for (i=0; i<6; i++)
     tsqr[i] = ten[i]*ten[i];
   
@@ -90,19 +96,18 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
   discr = cf[0]*cf[0]+cf[1]*cf[1]+cf[2]*cf[2]+cf[3]*cf[3]+
     15*(cf[4]*cf[4]+cf[5]*cf[5]+cf[6]*cf[6]);
   if (discr<eps) {
-    /* check if type is correct */
-    double dev[9], det;
-    double mean = (ten[0]+ten[3]+ten[5])/3;
-    dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
-    dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
-    dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
-    det = ELL_3M_DET(dev);
-    if ((type!='l' && type!='p') ||
-	(type=='l' && det>0) ||
-	(type=='p' && det<0))
-      return 0;
-    
-    return 4; /* sufficient accuracy, but wrong type  */
+    if (type!='l' && type!='p') return 0;
+    else {
+      /* check if type is correct */
+      double dev[9], det;
+      double mean = (ten[0]+ten[3]+ten[5])/3;
+      dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
+      dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
+      dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
+      det = ELL_3M_DET(dev);
+      if ((type=='l' && det>0) || (type=='p' && det<0))	return 0;
+      else return 4; /* sufficient accuracy, but wrong type  */
+    }
   }
 
   for (iter=0; iter<maxiter; iter++) {
@@ -183,6 +188,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
     ELL_3M_LERP(hessleft,coord[1],botleft,topleft);
     ELL_3M_LERP(hessright,coord[1],botright,topright);
     ELL_3M_SUB(hessder,hessright,hessleft);
+    ELL_3M_SCALE(hessder,1.0/norm,hessder);
 
     tx[0] = hessder[0]; /* T00 / x */
     tx[2] = hessder[1]; /* T01 / x */
@@ -193,6 +199,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
     
     /* approximate Hessian derivative in z dir */
     ELL_3M_SUB(hessder,hesstop,hessbot);
+    ELL_3M_SCALE(hessder,1.0/norm,hessder);
 
     tx[1] = hessder[0]; /* T00 / z */
     tx[3] = hessder[1]; /* T01 / z */
@@ -257,9 +264,12 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
       ELL_3M_LERP(hesstop,newcoord[0],topleft,topright);
       ELL_3M_LERP(hess,newcoord[1],hessbot,hesstop);
       
+      norm = sqrt(hess[0]*hess[0]+hess[4]*hess[4]+hess[8]*hess[8]+
+		  2*(hess[1]*hess[1]+hess[2]*hess[2]+hess[5]*hess[5]));
+      if (norm<1e-300) return 6;
       /* copy over */
-      ten[0] = hess[0]; ten[1] = hess[1]; ten[2] = hess[2];
-      ten[3] = hess[4]; ten[4] = hess[5]; ten[5] = hess[8];
+      ten[0] = hess[0]/norm; ten[1] = hess[1]/norm; ten[2] = hess[2]/norm;
+      ten[3] = hess[4]/norm; ten[4] = hess[5]/norm; ten[5] = hess[8]/norm;
       for (i=0; i<6; i++)
 	tsqr[i] = ten[i]*ten[i];
       
@@ -283,19 +293,19 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
       newdiscr = cf[0]*cf[0]+cf[1]*cf[1]+cf[2]*cf[2]+cf[3]*cf[3]+
 	15*(cf[4]*cf[4]+cf[5]*cf[5]+cf[6]*cf[6]);
       if (newdiscr<eps) {
-	/* check if type is correct */
-	double dev[9], det;
-	double mean = (ten[0]+ten[3]+ten[5])/3;
-	dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
-	dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
-	dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
-	det = ELL_3M_DET(dev);
-	if ((type!='l' && type!='p') ||
-	    (type=='l' && det>0) ||
-	    (type=='p' && det<0))
-	  return 0;
-	
-	return 4; /* sufficient accuracy, but wrong type  */
+	coord[0]=newcoord[0]; coord[1]=newcoord[1]; /* update coord! */
+	if (type!='l' && type!='p') return 0;
+	else {
+	  /* check if type is correct */
+	  double dev[9], det;
+	  double mean = (ten[0]+ten[3]+ten[5])/3;
+	  dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
+	  dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
+	  dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
+	  det = ELL_3M_DET(dev);
+	  if ((type=='l' && det>0) || (type=='p' && det<0)) return 0;
+	  else return 4; /* sufficient accuracy, but wrong type  */
+	}
       }
 
       if (newdiscr<=discr-0.5*alpha*dxsqr) {
@@ -327,6 +337,8 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
  *      corners of the face (input only)
  * maxiter is the maximum number of iterations allowed
  * eps is the accuracy up to which the discriminant should be zero
+ *     The discriminant scales with the Frobenius norm to the sixth power,
+ *     so the exact constraint is disc/|T|^6<eps
  * type can be 'l', 'p' or something else (=both)
  *
  * Returns 0 if the point was found up to the given accuracy
@@ -335,6 +347,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
  * Returns 3 if we could not invert a matrix to find next gradient dir
  * Returns 4 if we found a point, but it does not have the desired type
  * Returns 5 if Armijo rule failed to find a valid stepsize
+ * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
 int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
 			 double *Hbbl, double *Hbbr,
@@ -360,7 +373,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     double optgradsqr = ELL_3V_DOT(optgrad,optgrad);
     unsigned int safetyct=0;
     const unsigned int maxct=30;
-    double tsqr[6], ten[6];
+    double tsqr[6], ten[6], norm;
     double cf[7], cft[42]; /* derive relative to tensor values, 7x6 matrix */
     double cfx[21]; /* spatial derivative of constraint functions, 7x3 matrix */
     double tx[18]; /* spatial derivative of tensor values, 6x3 matrix */
@@ -401,8 +414,11 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
       ELL_3M_LERP(Hright, newcoord[1], Hfrontright, Hbackright);
       
       ELL_3M_LERP(H, newcoord[0], Hleft, Hright);
-      ten[0]=H[0]; ten[1]=H[1]; ten[2]=H[2];
-      ten[3]=H[4]; ten[4]=H[5]; ten[5]=H[7];
+      norm = sqrt(H[0]*H[0]+H[4]*H[4]+H[8]*H[8]+
+		  2*(H[1]*H[1]+H[2]*H[2]+H[5]*H[5]));
+      if (norm<1e-300) return 6;
+      ten[0]=H[0]/norm; ten[1]=H[1]/norm; ten[2]=H[2]/norm;
+      ten[3]=H[4]/norm; ten[4]=H[5]/norm; ten[5]=H[7]/norm;
 
       for (i=0; i<6; i++)
 	tsqr[i] = ten[i]*ten[i];
@@ -429,19 +445,19 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
 	15*(cf[4]*cf[4]+cf[5]*cf[5]+cf[6]*cf[6]);
 
       if (newdiscr<eps) {
-	/* check if type is correct */
-	double dev[9], det;
-	double mean = (ten[0]+ten[3]+ten[5])/3;
-	dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
-	dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
-	dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
-	det = ELL_3M_DET(dev);
-	if ((type!='l' && type!='p') ||
-	    (type=='l' && det>0) ||
-	    (type=='p' && det<0))
-	  return 0;
-	
-	return 4; /* sufficient accuracy, but wrong type  */
+	ELL_3V_COPY(coord, newcoord); /* update coord for output */
+	if (type!='l' && type!='p') return 0;
+	else {
+	  /* check if type is correct */
+	  double dev[9], det;
+	  double mean = (ten[0]+ten[3]+ten[5])/3;
+	  dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
+	  dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
+	  dev[6] = ten[2]; dev[7]=ten[4]; dev[8]=ten[5]-mean;
+	  det = ELL_3M_DET(dev);
+	  if ((type=='l' && det>0) || (type=='p' && det<0)) return 0;
+	  else return 4; /* sufficient accuracy, but wrong type  */
+	}
       }
 
       if (iter==0 || newdiscr<=discr-0.5*alpha*optgradsqr) {
@@ -523,6 +539,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
 
     /* approximate Hessian derivative in x dir */
     ELL_3M_SUB(Hder, Hright, Hleft);
+    ELL_3M_SCALE(Hder,1.0/norm,Hder);
 
     tx[0] = Hder[0]; /* T00 / x */
     tx[3] = Hder[1]; /* T01 / x */
@@ -534,6 +551,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     ELL_3M_LERP(Hfront, coord[0], Hfrontleft, Hfrontright);
     ELL_3M_LERP(Hback, coord[0], Hbackleft, Hbackright);
     ELL_3M_SUB(Hder, Hback, Hfront); /* y dir */
+    ELL_3M_SCALE(Hder,1.0/norm,Hder);
 
     tx[1] = Hder[0]; /* T00 / y */
     tx[4] = Hder[1]; /* T01 / y */
@@ -550,6 +568,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     ELL_3M_LERP(Htop, coord[0], Htopleft, Htopright);
     ELL_3M_LERP(Hbot, coord[0], Hbotleft, Hbotright);
     ELL_3M_SUB(Hder, Htop, Hbot); /* z dir */
+    ELL_3M_SCALE(Hder,1.0/norm,Hder);
 
     tx[2] = Hder[0]; /* T00 / z */
     tx[5] = Hder[1]; /* T01 / z */
@@ -695,6 +714,7 @@ int seekDescendToRidge(double *coord,
       newdist = ELL_3V_DOT(diff,diff);
       
       if (newdist<eps) {
+	ELL_3V_COPY(coord, newcoord); /* update for output */
 	return 0; /* we are on the surface */
       }
 

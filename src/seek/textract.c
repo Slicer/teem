@@ -1104,7 +1104,7 @@ connectFace(seekContext *sctx, baggage *bag,
 			      sctx->hess + 9*verti[faceid][1],
 			      sctx->hess + 9*verti[faceid][2],
 			      sctx->hess + 9*verti[faceid][3],
-			      30, 1e-4, (bag->esIdx==2)?'l':'p')) {
+			      50, 1e-9, (bag->esIdx==2)?'l':'p')) {
 	  inter[interct++]=12; /* 12 means "deg. point on this face */
 	  break;
 	}
