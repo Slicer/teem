@@ -68,7 +68,7 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 $(L).TESTS = test/roistat test/tg test/tt test/tem test/rotedge \
 	test/tsoid test/odf-hist test/to test/tensorDotDat \
 	test/igrt test/cntr test/geode test/taniso test/csim \
-	test/ttriple test/tqgl
+	test/ttriple test/tqgl test/teigen
 ####
 ####
 ####

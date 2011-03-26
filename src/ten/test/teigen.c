@@ -32,20 +32,6 @@ char *info = ("tests tenEigensolve_d and new stand-alone function.");
 #define ROOT_THREE 4            /* ell_cubic_root_three */
 
 /*
-** makes sure that v+3*2 has a positive dot product with
-** cross product of v+3*0 and v+3*1
-*/
-void
-make_right_handed_d(double v[9]) {
-  double x[3];
-  
-  ELL_3V_CROSS(x, v+3*0, v+3*1);
-  if (0 > ELL_3V_DOT(x, v+3*2)) {
-    ELL_3V_SCALE(v+3*2, -1, v+3*2);
-  }
-}
-
-/*
 ** Stand-alone eigensolve for symmetric 3x3 matrix:
 **
 **  M00  M01  M02
@@ -79,7 +65,7 @@ eigensolve(double eval[3], double evec[9],
            double M00, double M01, double M02, 
            double M11, double M12, 
            double M22) {
-  double mean, norm, rnorm, B, C, Q, R, QQQ, D, sqrt_D, u, v, theta, t;
+  double mean, norm, rnorm, B, C, Q, R, QQQ, D, sqrt_D, u, theta, t;
   double epsilon = 1.0E-11;
   int roots;
 
@@ -161,7 +147,6 @@ eigensolve(double eval[3], double evec[9],
     /* HEY: this part still needs to be processed in order to be 
        make it as self-contained as possible */
     double n[9], m[9], e0, e1, e2;
-    double col[9];
     ELL_3M_SET(m, 
                M00, M01, M02,
                M01, M11, M12,
@@ -209,6 +194,11 @@ eigensolve(double eval[3], double evec[9],
       ELL_3V_SET(evec+3, AIR_NAN, AIR_NAN, AIR_NAN);
       ELL_3V_SET(evec+6, AIR_NAN, AIR_NAN, AIR_NAN);
       break;
+    }
+    /* to be nice, we always make sure its a right-handed frame */
+    ELL_3V_CROSS(x, evec+3*0, evec+3*1);
+    if (0 > ELL_3V_DOT(x, evec+3*2)) {
+      ELL_3V_SCALE(evec+3*2, -1, evec+3*2);
     }
   }
 
