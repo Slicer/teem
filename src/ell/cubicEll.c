@@ -34,11 +34,11 @@
 **
 ** returns information about the roots according to ellCubicRoot enum,
 ** the set the following values in given root[] array:
-**   ellCubicRootSingle: root[0], root[1] == root[2] == AIR_NAN
-**   ellCubicRootTriple: root[0] == root[1] == root[2]
-**   ellCubicRootSingleDouble: single root[0]; double root[1] == root[2]
-**                          or double root[0] == root[1], single root[2]
-**   ellCubicRootThree: root[0], root[1], root[2]
+**   ell_cubic_root_single: root[0], root[1] == root[2] == AIR_NAN
+**   ell_cubic_root_triple: root[0] == root[1] == root[2]
+**   ell_cubic_root_single_double: single root[0]; double root[1] == root[2]
+**                              or double root[0] == root[1], single root[2]
+**   ell_cubic_root_three: root[0], root[1], root[2]
 **
 ** The values stored in root[] are, in a change from the past, sorted
 ** in descending order!  No need to sort them any more!
@@ -51,12 +51,18 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der,
     u, v, x, theta, t, sub;
 
+  /*
+  printf("%s: A B C = %g %g %g\n", me, A, B, C);
+  */
   sub = A/3.0;
   AA = A*A;
   Q = (AA/3.0 - B)/3.0;
   R = (-2.0*A*AA/27.0 + A*B/3.0 - C)/2.0;
   QQQ = Q*Q*Q;
   D = R*R - QQQ;
+  /*
+  printf("%s: Q R D = %g %g %g\n", me, Q, R, D);
+  */
   if (D < -epsilon) {
     /* three distinct roots- this is the most common case, it has 
        been tested the most, its code should go first */

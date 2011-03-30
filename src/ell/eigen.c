@@ -222,6 +222,10 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   frob = ELL_3M_FROB(_m);
   scale = frob ? 1.0/frob : 1.0;
   ELL_3M_SCALE(m, scale, _m);
+  /*
+  printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "ell_3m_eigenvalues_d", 
+	 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
+  */
   /* 
   ** from gordon with mathematica; these are the coefficients of the
   ** cubic polynomial in x: det(x*I - M).  The full cubic is
@@ -234,6 +238,9 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   C = (m[6]*m[4] - m[3]*m[7])*m[2]
     + (m[0]*m[7] - m[6]*m[1])*m[5]
     + (m[3]*m[1] - m[0]*m[4])*m[8];
+  /*
+  printf("!%s: A B C = %g %g %g\n", "ell_3m_eigenvalues_d", A, B, C);
+  */
   roots = ell_cubic(eval, A, B, C, newton);
   /* no longer need to sort here */
   ELL_3V_SCALE(_eval, 1.0/scale, eval);
