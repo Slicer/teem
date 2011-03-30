@@ -41,7 +41,7 @@ _ell_cubic_root_str[] = {
   "single",
   "triple",
   "single and double",
-  "three"
+  "three distinct"
 };
 
 const char *
