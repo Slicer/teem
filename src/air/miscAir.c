@@ -441,7 +441,9 @@ airDoneStr(double start, double here, double end, char *str) {
 /*
 ******** airTime()
 **
-** returns current time in seconds (with millisecond resolution) as a double
+** returns current time in seconds (with millisecond resolution) as a double.
+** From "man gettimeofday": The time is expressed in seconds and microseconds
+** since midnight (0 hour), January 1, 1970.
 */
 double
 airTime() {
