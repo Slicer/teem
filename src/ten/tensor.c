@@ -375,6 +375,12 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   trc = ELL_3M_TRACE(m)/3.0;
   ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
   ELL_3M_ADD2(m, m, iso);
+  /*
+  printf("!%s: t = %g %g %g; %g %g; %g\n", "tenEigensolve_f", 
+	 t[1], t[2], t[3], t[4], t[5], t[6]);
+  printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "tenEigensolve_f", 
+	 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
+  */
   if (evec) {
     ret = ell_3m_eigensolve_d(eval, evec, m, AIR_TRUE);
     ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
