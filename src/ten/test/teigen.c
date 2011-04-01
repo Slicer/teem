@@ -153,7 +153,7 @@ nullspace2(double reta[3], double retb[3],
 ** Return value indicates something about the eigenvalue solution to
 ** the cubic characteristic equation; see ROOT_ #defines above
 **
-** Relies on the VEC_* macros above, as well as functions math functions
+** Relies on the ABS and VEC_* macros above, as well as math functions
 ** atan2(), sin(), cos(), sqrt(), and airCbrt(), defined as:
 
   double
@@ -165,15 +165,19 @@ nullspace2(double reta[3], double retb[3],
   #endif
   }
 
+** 
+** HEY: the numerical precision issues here are very subtle, and
+** merit some more scrutiny.  With evals (1.000001, 1, 1), for example,
+** whether it comes back as a single/double root, vs three distinct roots,
+** is determines by the comparison between "D" and "epsilon", and the 
+** setting of epsilon seems pretty arbitrary at this point...
+** 
 */
 int
 evals(double eval[3],
-      double M00, double M01, double M02, 
-      double M11, double M12, 
-      double M22) {
-  double mean, norm, rnorm, Q, R, QQQ, D, theta, M[6];
-  double epsilon = 1.0E-16;
-  int roots;
+      const double _M00, const double _M01, const double _M02, 
+      const double _M11, const double _M12, 
+      const double _M22) {
 
 #include "teigen-evals-A.c"
 
@@ -184,39 +188,38 @@ evals(double eval[3],
 
 int
 evals_evecs(double eval[3], double evec[9],
-	    double M00, double M01, double M02, 
-	    double M11, double M12, 
-	    double M22) {
-  double mean, norm, rnorm, Q, R, QQQ, D, theta, M[6];
+	    const double _M00, const double _M01, const double _M02, 
+	    const double _M11, const double _M12, 
+	    const double _M22) {
   double r0[3], r1[3], r2[3], crs[3], len, dot;
-  double epsilon = 1.0E-16;
-  int roots;
 
 #include "teigen-evals-A.c"
 
-  VEC_SET(r0, 0.0, M[1], M[2]);
-  VEC_SET(r1, M[1], 0.0, M[4]);
-  VEC_SET(r2, M[2], M[4], 0.0);
+  /* r0, r1, r2 are the vectors we manipulate to 
+     find the nullspaces of M - lambda*I */
+  VEC_SET(r0, 0.0, M01, M02);
+  VEC_SET(r1, M01, 0.0, M12);
+  VEC_SET(r2, M02, M12, 0.0);
   if (ROOT_THREE == roots) {
-    r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+    r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
     nullspace1(evec+0, r0, r1, r2);
-    r0[0] = M[0] - eval[1]; r1[1] = M[3] - eval[1]; r2[2] = M[5] - eval[1];
+    r0[0] = M00 - eval[1]; r1[1] = M11 - eval[1]; r2[2] = M22 - eval[1];
     nullspace1(evec+3, r0, r1, r2);
-    r0[0] = M[0] - eval[2]; r1[1] = M[3] - eval[2]; r2[2] = M[5] - eval[2];
+    r0[0] = M00 - eval[2]; r1[1] = M11 - eval[2]; r2[2] = M22 - eval[2];
     nullspace1(evec+6, r0, r1, r2);
   } else if (ROOT_SINGLE_DOUBLE == roots) {
-    if (eval[0] > eval[1]) {
-      /* one big (eval[0]) , two small (eval[1,2]) : more like a cigar */
-      r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+    if (eval[1] == eval[2]) {
+      /* one big (eval[0]) , two small (eval[1,2]) */
+      r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
       nullspace1(evec+0, r0, r1, r2);
-      r0[0] = M[0] - eval[1]; r1[1] = M[3] - eval[1]; r2[2] = M[5] - eval[1];
+      r0[0] = M00 - eval[1]; r1[1] = M11 - eval[1]; r2[2] = M22 - eval[1];
       nullspace2(evec+3, evec+6, r0, r1, r2);
     }
     else {
-      /* two big (eval[0,1]), one small (eval[2]): more like a pancake */
-      r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+      /* two big (eval[0,1]), one small (eval[2]) */
+      r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
       nullspace2(evec+0, evec+3, r0, r1, r2);
-      r0[0] = M[0] - eval[2]; r1[1] = M[3] - eval[2]; r2[2] = M[5] - eval[2];
+      r0[0] = M00 - eval[2]; r1[1] = M11 - eval[2]; r2[2] = M22 - eval[2];
       nullspace1(evec+6, r0, r1, r2);
     }
   } else {
@@ -225,15 +228,26 @@ evals_evecs(double eval[3], double evec[9],
     VEC_SET(evec+3, 0, 1, 0);
     VEC_SET(evec+6, 0, 0, 1);
   }
-  /* we always make sure its really orthonormal */
-  if (
-  /* HEY: should process evecs in reverse order if |eval2| > |eval0| */
-  VEC_NORM(evec+0, len);
-  dot = VEC_DOT(evec+0, evec+3); VEC_SCL_SUB(evec+3, dot, evec+0);
-  VEC_NORM(evec+3, len);
-  dot = VEC_DOT(evec+0, evec+6); VEC_SCL_SUB(evec+6, dot, evec+0);
-  dot = VEC_DOT(evec+3, evec+6); VEC_SCL_SUB(evec+6, dot, evec+3);
-  VEC_NORM(evec+6, len);
+  /* we always make sure its really orthonormal; keeping fixed the
+     eigenvector associated with the largest-magnitude eigenvalue */
+  if (ABS(eval[0]) > ABS(eval[2])) {
+    /* normalize evec+0 but don't move it */
+    VEC_NORM(evec+0, len);
+    dot = VEC_DOT(evec+0, evec+3); VEC_SCL_SUB(evec+3, dot, evec+0);
+    VEC_NORM(evec+3, len);
+    dot = VEC_DOT(evec+0, evec+6); VEC_SCL_SUB(evec+6, dot, evec+0);
+    dot = VEC_DOT(evec+3, evec+6); VEC_SCL_SUB(evec+6, dot, evec+3);
+    VEC_NORM(evec+6, len);
+  } else {
+    /* normalize evec+6 but don't move it */
+    VEC_NORM(evec+6, len);
+    dot = VEC_DOT(evec+6, evec+3); VEC_SCL_SUB(evec+3, dot, evec+6);
+    VEC_NORM(evec+3, len);
+    dot = VEC_DOT(evec+3, evec+0); VEC_SCL_SUB(evec+0, dot, evec+3);
+    dot = VEC_DOT(evec+6, evec+0); VEC_SCL_SUB(evec+0, dot, evec+6);
+    VEC_NORM(evec+0, len);
+  }
+    
   /* to be nice, make it right-handed */
   VEC_CROSS(crs, evec+0, evec+3);
   if (0 > VEC_DOT(crs, evec+6)) {
@@ -327,8 +341,11 @@ main(int argc, char *argv[]) {
   testeigen(tt, evalA, evecA);
 
   printf("================== new eigensolve ==================\n");
-  roots = eigensolve(evalB, evecB,
-                     tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
+  roots = evals(evalB, tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
+  printf("%s roots: %g %g %g\n", airEnumStr(ell_cubic_root, roots),
+	 evalB[0], evalB[1], evalB[2]);
+  roots = evals_evecs(evalB, evecB,
+		      tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
   printf("%s roots\n", airEnumStr(ell_cubic_root, roots));
   testeigen(tt, evalB, evecB);
 
