@@ -30,6 +30,7 @@ char *info = ("tests tenEigensolve_d and new stand-alone function.");
 #define ROOT_SINGLE_DOUBLE 3    /* ell_cubic_root_single_double */
 #define ROOT_THREE 4            /* ell_cubic_root_three */
 
+#define ABS(a) (((a) > 0.0f ? (a) : -(a)))
 #define VEC_SET(v, a, b, c) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
 #define VEC_DOT(v1, v2) \
@@ -138,9 +139,8 @@ nullspace2(double reta[3], double retb[3],
   return;
 }
 
-
 /*
-** Stand-alone eigensolve for symmetric 3x3 matrix:
+** Eigensolver for symmetric 3x3 matrix:
 **
 **  M00  M01  M02
 **  M01  M11  M12
@@ -167,136 +167,84 @@ nullspace2(double reta[3], double retb[3],
 
 */
 int
-eigensolve(double eval[3], double evec[9],
-           double M00, double M01, double M02, 
-           double M11, double M12, 
-           double M22) {
-  double mean, norm, rnorm, Q, R, QQQ, D, theta;
+evals(double eval[3],
+      double M00, double M01, double M02, 
+      double M11, double M12, 
+      double M22) {
+  double mean, norm, rnorm, Q, R, QQQ, D, theta, M[6];
   double epsilon = 1.0E-16;
   int roots;
 
-  /*
-  ** subtract out the eigenvalue mean (will add back to evals later);
-  ** helps with numerical stability
-  */
-  mean = (M00 + M11 + M22)/3.0;
-  M00 -= mean;
-  M11 -= mean;
-  M22 -= mean;
-  
-  /* 
-  ** divide out L2 norm of eigenvalues (will multiply back later);
-  ** this too seems to help with stability
-  */
-  norm = sqrt(M00*M00 + 2*M01*M01 + 2*M02*M02 +
-	      M11*M11 + 2*M12*M12 +
-	      M22*M22);
-  rnorm = norm ? 1.0/norm : 1.0;
-  M00 *= rnorm;
-  M01 *= rnorm;
-  M02 *= rnorm;
-  M11 *= rnorm;
-  M12 *= rnorm;
-  M22 *= rnorm;
+#include "teigen-evals-A.c"
 
-  /* this code is a mix of prior Teem code and ideas from Eberly's
-     "Eigensystems for 3 x 3 Symmetric Matrices (Revisited)" */
-  Q = (M01*M01 + M02*M02 + M12*M12 - M00*M11 - M00*M22 - M11*M22)/3.0;
-  QQQ = Q*Q*Q;
-  R = (-M02*M02*M11 + 2*M01*M02*M12 - M00*M12*M12 
-       - M01*M01*M22 + M00*M11*M22)/2.0;
-  D = R*R - QQQ;
-  if (D < -epsilon) {
-    /* three distinct roots- this is the most common case */
-    double mm, ss, cc;
-    theta = atan2(sqrt(-D), R)/3.0;
-    mm = sqrt(Q);
-    ss = sin(theta);
-    cc = cos(theta);
-    eval[0] = 2*mm*cc;
-    eval[1] = mm*(-cc + sqrt(3.0)*ss);
-    eval[2] = mm*(-cc - sqrt(3.0)*ss);
-    roots = ROOT_THREE;
-    /* else D is near enough to zero */
-  } else if (R < -epsilon || epsilon < R) {
-    double U;
-    /* one double root and one single root */
-    U = airCbrt(R); /* cube root function */
-    if (U > 0) {
-      eval[0] = 2*U;
-      eval[1] = -U;
-      eval[2] = -U;
-    } else {
-      eval[0] = -U;
-      eval[1] = -U;
-      eval[2] = 2*U;
-    }
-    roots = ROOT_SINGLE_DOUBLE;
-  } else {
-    /* a triple root! */
-    eval[0] = eval[1] = eval[2] = 0.0;
-    roots = ROOT_TRIPLE;
-  }
+#include "teigen-evals-B.c"
 
-  /* find eigenvectors, if requested */
-  if (evec) {
-    double r0[3], r1[3], r2[3], crs[3], len, dot;
-    VEC_SET(r0, 0.0, M01, M02);
-    VEC_SET(r1, M01, 0.0, M12);
-    VEC_SET(r2, M02, M12, 0.0);
-    if (ROOT_THREE == roots) {
-      r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
-      nullspace1(evec+0, r0, r1, r2);
-      r0[0] = M00 - eval[1]; r1[1] = M11 - eval[1]; r2[2] = M22 - eval[1];
-      nullspace1(evec+3, r0, r1, r2);
-      r0[0] = M00 - eval[2]; r1[1] = M11 - eval[2]; r2[2] = M22 - eval[2];
-      nullspace1(evec+6, r0, r1, r2);
-    } else if (ROOT_SINGLE_DOUBLE == roots) {
-      if (eval[0] > eval[1]) {
-        /* one big (eval[0]) , two small (eval[1,2]) : more like a cigar */
-	r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
-	nullspace1(evec+0, r0, r1, r2);
-	r0[0] = M00 - eval[1]; r1[1] = M11 - eval[1]; r2[2] = M22 - eval[1];
-	nullspace2(evec+3, evec+6, r0, r1, r2);
-      }
-      else {
-        /* two big (eval[0,1]), one small (eval[2]): more like a pancake */
-	r0[0] = M00 - eval[0]; r1[1] = M11 - eval[0]; r2[2] = M22 - eval[0];
-        nullspace2(evec+0, evec+3, r0, r1, r2);
-	r0[0] = M00 - eval[2]; r1[1] = M11 - eval[2]; r2[2] = M22 - eval[2];
-	nullspace1(evec+6, r0, r1, r2);
-      }
-    } else {
-      /* ROOT_TRIPLE == roots; use any basis for eigenvectors */
-      VEC_SET(evec+0, 1, 0, 0);
-      VEC_SET(evec+3, 0, 1, 0);
-      VEC_SET(evec+6, 0, 0, 1);
-    }
-    /* we always make sure its really orthonormal */
-    VEC_NORM(evec+0, len);
-    dot = VEC_DOT(evec+0, evec+3); VEC_SCL_SUB(evec+3, dot, evec+0);
-    VEC_NORM(evec+3, len);
-    dot = VEC_DOT(evec+0, evec+6); VEC_SCL_SUB(evec+6, dot, evec+0);
-    dot = VEC_DOT(evec+3, evec+6); VEC_SCL_SUB(evec+6, dot, evec+3);
-    VEC_NORM(evec+6, len);
-    /* to be nice, make it right-handed */
-    VEC_CROSS(crs, evec+0, evec+3);
-    if (0 > VEC_DOT(crs, evec+6)) {
-      VEC_SCL(evec+6, -1);
-    }
-  }
-
-  /* multiply back by eigenvalue L2 norm */
-  eval[0] /= rnorm;
-  eval[1] /= rnorm;
-  eval[2] /= rnorm;
-
-  /* add back in the eigenvalue mean */
-  eval[0] += mean;
-  eval[1] += mean;
-  eval[2] += mean;
   return roots;
 }
+
+int
+evals_evecs(double eval[3], double evec[9],
+	    double M00, double M01, double M02, 
+	    double M11, double M12, 
+	    double M22) {
+  double mean, norm, rnorm, Q, R, QQQ, D, theta, M[6];
+  double r0[3], r1[3], r2[3], crs[3], len, dot;
+  double epsilon = 1.0E-16;
+  int roots;
+
+#include "teigen-evals-A.c"
+
+  VEC_SET(r0, 0.0, M[1], M[2]);
+  VEC_SET(r1, M[1], 0.0, M[4]);
+  VEC_SET(r2, M[2], M[4], 0.0);
+  if (ROOT_THREE == roots) {
+    r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+    nullspace1(evec+0, r0, r1, r2);
+    r0[0] = M[0] - eval[1]; r1[1] = M[3] - eval[1]; r2[2] = M[5] - eval[1];
+    nullspace1(evec+3, r0, r1, r2);
+    r0[0] = M[0] - eval[2]; r1[1] = M[3] - eval[2]; r2[2] = M[5] - eval[2];
+    nullspace1(evec+6, r0, r1, r2);
+  } else if (ROOT_SINGLE_DOUBLE == roots) {
+    if (eval[0] > eval[1]) {
+      /* one big (eval[0]) , two small (eval[1,2]) : more like a cigar */
+      r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+      nullspace1(evec+0, r0, r1, r2);
+      r0[0] = M[0] - eval[1]; r1[1] = M[3] - eval[1]; r2[2] = M[5] - eval[1];
+      nullspace2(evec+3, evec+6, r0, r1, r2);
+    }
+    else {
+      /* two big (eval[0,1]), one small (eval[2]): more like a pancake */
+      r0[0] = M[0] - eval[0]; r1[1] = M[3] - eval[0]; r2[2] = M[5] - eval[0];
+      nullspace2(evec+0, evec+3, r0, r1, r2);
+      r0[0] = M[0] - eval[2]; r1[1] = M[3] - eval[2]; r2[2] = M[5] - eval[2];
+      nullspace1(evec+6, r0, r1, r2);
+    }
+  } else {
+    /* ROOT_TRIPLE == roots; use any basis for eigenvectors */
+    VEC_SET(evec+0, 1, 0, 0);
+    VEC_SET(evec+3, 0, 1, 0);
+    VEC_SET(evec+6, 0, 0, 1);
+  }
+  /* we always make sure its really orthonormal */
+  if (
+  /* HEY: should process evecs in reverse order if |eval2| > |eval0| */
+  VEC_NORM(evec+0, len);
+  dot = VEC_DOT(evec+0, evec+3); VEC_SCL_SUB(evec+3, dot, evec+0);
+  VEC_NORM(evec+3, len);
+  dot = VEC_DOT(evec+0, evec+6); VEC_SCL_SUB(evec+6, dot, evec+0);
+  dot = VEC_DOT(evec+3, evec+6); VEC_SCL_SUB(evec+6, dot, evec+3);
+  VEC_NORM(evec+6, len);
+  /* to be nice, make it right-handed */
+  VEC_CROSS(crs, evec+0, evec+3);
+  if (0 > VEC_DOT(crs, evec+6)) {
+    VEC_SCL(evec+6, -1);
+  }
+
+#include "teigen-evals-B.c"
+
+  return roots;
+}
+
 
 void
 testeigen(double tt[7], double eval[3], double evec[9]) {
