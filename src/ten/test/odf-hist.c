@@ -222,6 +222,7 @@ main(int argc, char *argv[]) {
       hist += bins;
     }
     hist = NULL;
+    free(mean);
   }
 
   if (nrrdSave(outS, nhist, NULL)) {
