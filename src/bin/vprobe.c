@@ -496,7 +496,11 @@ main(int argc, char *argv[]) {
                                 | NRRD_BASIC_INFO_COMMENTS_BIT
                                 | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
   if (ctx->shape->fromOrientation) {
-    nrrdSpaceSet(nout, nin->space);
+    if (nin->space) {
+      nrrdSpaceSet(nout, nin->space);
+    } else {
+      nrrdSpaceDimensionSet(nout, nin->spaceDim);
+    }
     nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
     for (axi=0; axi<3; axi++) {
       nrrdSpaceVecScale(nout->axis[axi+oBaseDim].spaceDirection,
