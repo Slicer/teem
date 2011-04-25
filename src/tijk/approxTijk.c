@@ -253,7 +253,7 @@ _TIJK_REFINE_RANK1ORMAX(float, f, 3)
   tijk_refine_rank1_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
 				   const tijk_type *type,		\
 				   const tijk_refine_rank1_parm *parm) { \
-    _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,0);	\
+    return _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,0);	\
   }
 
 _TIJK_REFINE_RANK1(double, d, 2)
@@ -266,7 +266,7 @@ _TIJK_REFINE_RANK1(float, f, 3)
   tijk_refine_max_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten,	\
 				 const tijk_type *type,			\
 				 const tijk_refine_rank1_parm *parm) {	\
-    _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,1);	\
+    return _tijk_refine_rank1ormax_##DIM##d_##SUF(s,v,ten,type,parm,1);	\
   }
 
 _TIJK_REFINE_MAX(double, d, 2)
