@@ -69,7 +69,7 @@ unrrdu_jhistoMain(int argc, char **argv, char *me, hestParm *hparm) {
                "counts in the joint histogram).  Clamping is done on hit "
                "counts so that they never overflow a fixed-point type",
                "uint");
-  hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, NULL,
+  hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, "-",
              "list of nrrds (one for each axis of joint histogram), "
              "or, single nrrd that will be sliced along specified axis.",
              &ninLen, NULL, nrrdHestNrrd);
