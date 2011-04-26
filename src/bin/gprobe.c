@@ -95,8 +95,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     Nrrd *ntmp;
     ptrdiff_t minIdx[2], maxIdx[2];
     minIdx[0] = minIdx[1] = 0;
-    maxIdx[0] = 4;
-    maxIdx[1] = _ngrid->axis[1].size-1;
+    maxIdx[0] = 4;                      /* pad by one sample */
+    maxIdx[1] = _ngrid->axis[1].size-1; /* a no-op */
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _ngrid, nrrdTypeDouble)
@@ -679,7 +679,7 @@ main(int argc, char *argv[]) {
                AIR_DELTA(min[2], 1, maxOut[2], min[2], maxIn[2]));
     if (numSS) {
       if (!probeSpaceIndex) {
-        double idxSS;
+        double idxSS = AIR_NAN;
         unsigned int vi;
         /* there's actually work to do here, weirdly: gageProbe can
            either work in index space, or in world space, but the
@@ -688,6 +688,7 @@ main(int argc, char *argv[]) {
            consistent with the way that the grid sampling will be
            defined. So, we have to actually replicate work that is done
            by _gageProbeSpace() in converting from world to index space */
+        /* HEY: the way that idxSS is set is very strange ... */
         for (vi=0; vi<numSS-1; vi++) {
           if (AIR_IN_CL(sbp->scale[vi], posSS, sbp->scale[vi+1])) {
             idxSS = vi + AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
@@ -716,6 +717,8 @@ main(int argc, char *argv[]) {
       grid[4 + 5*3] = 0;
     }
   } else {
+    /* we did get a grid, here we only copy from _ngrid to ngrid,
+       and let further massaging be done in gridProbe below */
     six = siy = siz = 0;
     sox = soy = soz = 0;
     if (nrrdCopy(ngrid, _ngrid)) {
