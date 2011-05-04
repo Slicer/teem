@@ -481,8 +481,10 @@ main(int argc, char *argv[]) {
   nrrdContentSet_va(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
 
   for (axi=0; axi<3; axi++) {
+    /* HEY: why not using nrrdAxisInfoCopy? */
     nout->axis[axi+oBaseDim].label = airStrdup(nin->axis[axi+iBaseDim].label);
     nout->axis[axi+oBaseDim].center = ctx->shape->center;
+    nout->axis[axi+oBaseDim].kind = nin->axis[axi+iBaseDim].kind;
   }
 
   nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
