@@ -365,7 +365,7 @@ _TIJK_REFINE_RANKK(double, d, 3)
 _TIJK_REFINE_RANKK(float, f, 3)
 
 static const tijk_approx_heur_parm approx_heur_parm_default = {
-  1e-10, 1e-4, NULL, NULL};
+  1e-10, 0.1, NULL, NULL};
 
 tijk_approx_heur_parm *tijk_approx_heur_parm_new() {
   tijk_approx_heur_parm *parm;
@@ -386,7 +386,7 @@ tijk_approx_heur_parm
 }
 
 /* Approximates a given tensor with a rank-k approximation, guessing the best
- * rank by using the heuristic described in Schultz and Seidel, TVCG/Vis 2008.
+ * rank by using a heuristic similar to Schultz and Seidel, TVCG/Vis 2008.
  * ls and vs are the scalar and (unit-len) vector parts of the rank-1 tensors.
  * res is the approximation residual.
  * ten is the input tensor, type is its type.
@@ -410,7 +410,7 @@ tijk_approx_heur_parm
     if (parm==NULL) parm=&approx_heur_parm_default;			\
     /* initializations */						\
     orignorm=newnorm=oldnorm=(*type->norm_##SUF)(ten);			\
-    if (oldnorm<parm->eps_res || k==0) {				\
+    if (k==0) {								\
       if (res!=NULL) memcpy(res,ten,sizeof(TYPE)*type->num);		\
       return 0; /* nothing to do */					\
     }									\
@@ -439,7 +439,8 @@ tijk_approx_heur_parm
 	if (largest/smallest>parm->ratios[currank-2])			\
 	  accept=0;							\
       }									\
-      if (accept && oldnorm-newnorm>parm->eps_impr) { /* copy over */	\
+      if (accept && oldnorm-newnorm>parm->eps_impr*orignorm) {		\
+	/* copy over */							\
 	memcpy(vs, vstmp, sizeof(TYPE)*DIM*currank);			\
 	memcpy(ls, lstmp, sizeof(TYPE)*currank);			\
 	if (res!=NULL)							\
@@ -447,6 +448,10 @@ tijk_approx_heur_parm
 	oldnorm=newnorm;						\
       } else {								\
 	break;								\
+      }									\
+      if (newnorm<parm->eps_res*orignorm) {				\
+	currank++;							\
+	break; /* mission accomplished */				\
       }									\
     }									\
 cleanup_and_exit:							\

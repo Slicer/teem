@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2010, 2009 Thomas Schultz
+  Copyright (C) 2011, 2010, 2009 Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -55,6 +55,35 @@ ELF_EXPORT int elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
 				   const int *neighbors, unsigned int nbstride,
 				   const float *ten, const tijk_type *type,
 				   const char modulate, const float gamma);
+
+/*
+********** elfMaximaContext
+**
+** Allows us to precompute and store information needed to find all maxima
+** of a given symmetric 3D tensor type. Should only be used through elfMaxima*
+*/
+typedef struct {
+  unsigned int num;
+  const tijk_type *type;
+  tijk_refine_rank1_parm *parm;
+  int refine;
+  int *neighbors;
+  unsigned int nbstride;
+  float *vertices_f; /* we're only storing the non-redundant ones */
+  double *vertices_d; /* only filled when needed */
+} elfMaximaContext;
+
+/* maximaElf.c */
+extern elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
+					     unsigned int level);
+extern elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc);
+extern void elfMaximaParmSet(elfMaximaContext *emc,
+			     tijk_refine_rank1_parm *parm);
+extern void elfMaximaRefineSet(elfMaximaContext *emc, int refine);
+extern int elfMaximaFind_d(double **ls, double **vs, const double *ten,
+			   elfMaximaContext *emc);
+extern int elfMaximaFind_f(float **ls, float **vs, const float *ten,
+			   elfMaximaContext *emc);
 
 #ifdef __cplusplus
 }

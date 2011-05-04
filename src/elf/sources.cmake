@@ -2,6 +2,7 @@
 # Add new source files here.
 SET(ELF_SOURCES
   glyphElf.c
+  maximaElf.c
   elf.h
   )
 

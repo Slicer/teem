@@ -213,7 +213,7 @@ typedef struct tijk_refine_rank1_parm_t {
   /* only do optimization if norm of deviatoric is larger than eps_start */
   double eps_start;
   /* declare convergence if improvement is less than eps_impr times the
-   * norm of deviatoric */
+   * norm of deviatoric (not residual) */
   double eps_impr;
   /* Parameters associated with Armijo stepsize control */
   double beta; /* initial stepsize (divided by norm of deviatoric) */
@@ -241,9 +241,10 @@ TIJK_EXPORT tijk_refine_rankk_parm
   *tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm);
 
 typedef struct tijk_approx_heur_parm_t {
-  double eps_res; /* stop adding terms if the residual is smaller than this */
+  double eps_res; /* stop adding terms if the residual is smaller than eps_res
+		   * times the original norm */
   double eps_impr; /* stop adding terms if it would reduce the residual
-		    * less than this */
+		    * less than eps_impr times the original norm */
   /* If ratios is non-NULL, it should have k-1 entries for a rank-k approx.
    * Do not add the ith rank-1 term when the ratio of largest/smallest
    * coefficient would be greater than ratios[i-2] */
