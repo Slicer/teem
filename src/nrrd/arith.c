@@ -479,14 +479,31 @@ static double _nrrdTernaryOpMin(double a, double b, double c) {
   b = AIR_MIN(b, c);
   return AIR_MIN(a, b);
 }
-static double _nrrdTernaryOpMinSmooth(double x, double L, double H) { 
-  return (x < L
-          ? x
-          : (-L*L + H*x)/(H - 2*L + x));
+/*
+** minsmooth(x, t, M) is like min(x,M), but starting at value t < M, values
+** are lowered (via erf), so that the output is asymptotic to M
+*/
+static double _nrrdTernaryOpMinSmooth(double x, double tran, double max) { 
+  return (tran < max          /* using the function as intended */
+          ? (x < tran
+             ? x
+             : airErf((x-tran)*0.886226925452758/(max - tran))*(max - tran) + tran)
+          : AIR_MIN(x, max)); /* transition in wrong place; revert to simple max() */
 }
 static double _nrrdTernaryOpMax(double a, double b, double c) { 
   b = AIR_MAX(b, c);
   return AIR_MAX(a, b);
+}
+/*
+** maxsmooth(m, t, x) is like max(m,x), but starting at value t > m, values
+** are raised (via erf), so that the output is asymptotic to m
+*/
+static double _nrrdTernaryOpMaxSmooth(double min, double tran, double x) { 
+  return (min < tran          /* using the function as intended */
+          ? (tran < x
+             ? x
+             : airErf((x-tran)*0.886226925452758/(min - tran))*(min - tran) + tran)
+          : AIR_MAX(x, min)); /* transition in wrong place; revert to simple max() */
 }
 static double _nrrdTernaryOpClamp(double a, double b, double c) {
   return AIR_CLAMP(a, b, c);
@@ -524,6 +541,7 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   _nrrdTernaryOpMin,
   _nrrdTernaryOpMinSmooth,
   _nrrdTernaryOpMax,
+  _nrrdTernaryOpMaxSmooth,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpIfElse,
   _nrrdTernaryOpLerp,

@@ -683,15 +683,16 @@ enum {
   nrrdTernaryOpMin,       /*  3 */
   nrrdTernaryOpMinSmooth, /*  4 */
   nrrdTernaryOpMax,       /*  5 */
-  nrrdTernaryOpClamp,     /*  6 */
-  nrrdTernaryOpIfElse,    /*  7 */
-  nrrdTernaryOpLerp,      /*  8 */
-  nrrdTernaryOpExists,    /*  9 */
-  nrrdTernaryOpInOpen,    /* 10 */
-  nrrdTernaryOpInClosed,  /* 11 */
+  nrrdTernaryOpMaxSmooth, /*  6 */
+  nrrdTernaryOpClamp,     /*  7 */
+  nrrdTernaryOpIfElse,    /*  8 */
+  nrrdTernaryOpLerp,      /*  9 */
+  nrrdTernaryOpExists,    /* 10 */
+  nrrdTernaryOpInOpen,    /* 11 */
+  nrrdTernaryOpInClosed,  /* 12 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  11
+#define NRRD_TERNARY_OP_MAX  12
 
 /* ---- END non-NrrdIO */
 
