@@ -690,9 +690,10 @@ enum {
   nrrdTernaryOpExists,    /* 10 */
   nrrdTernaryOpInOpen,    /* 11 */
   nrrdTernaryOpInClosed,  /* 12 */
+  nrrdTernaryOpGaussian,  /* 13 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  12
+#define NRRD_TERNARY_OP_MAX  13
 
 /* ---- END non-NrrdIO */
 

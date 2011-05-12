@@ -1308,6 +1308,7 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1] = {
   "exists",
   "in_op",
   "in_cl",
+  "gauss",
 };
 
 const char *
@@ -1325,6 +1326,7 @@ _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1] = {
   "if 1st value exists, the 2nd value, else the 3rd",
   "2nd value is inside OPEN interval range between 1st and 3rd",
   "2nd value is inside CLOSED interval range between 1st and 3rd",
+  "evaluate (at 1st value) gaussian with mean=2nd and stdv=3rd value"
 };
 
 #define ntAdd nrrdTernaryOpAdd
@@ -1344,6 +1346,7 @@ _nrrdTernaryOpStrEqv[] = {
   "exists",
   "in_op",
   "in_cl",
+  "gauss",
   ""
 };
 
@@ -1361,6 +1364,7 @@ _nrrdTernaryOpValEqv[] = {
   nrrdTernaryOpExists,
   nrrdTernaryOpInOpen,
   nrrdTernaryOpInClosed,
+  nrrdTernaryOpGaussian
 };
 
 airEnum
