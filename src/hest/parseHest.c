@@ -1264,8 +1264,8 @@ hestParseFree(hestOpt *opt) {
 **
 ** dumb little function which encapsulate a common usage of hest:
 ** first, make sure hestOpt is valid with hestOptCheck().  Then,
-** if argc is 0: maybe show info, usage, and glossary, all according
-**    to the given boolean flags, then exit(1)
+** if argc is 0 (and !parm->noArgsIsNoProblem): maybe show
+**    info, usage, and glossary, all according to given flags, then exit(1)
 ** if parsing failed: show error message, and maybe usage and glossary,
 **    again according to boolean flags, then exit(1)
 ** if parsing succeeded: return
@@ -1276,6 +1276,7 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                const char *me, const char *info,
                int doInfo, int doUsage, int doGlossary) {
   int E;
+  int argcBad;
   char *errS;
 
   if (opt) {
@@ -1284,7 +1285,9 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
       exit(1);
     }
     E = 0;
-    if ( (!argc) ||
+    argcBad = ((parm && parm->noArgsIsNoProblem)
+               || !argc);
+    if ( argcBad ||
          (E = hestParse(opt, argc, argv, &errS, parm)) ) {
       if (E) {
         if (!strcmp(argv[0], "--version")) {

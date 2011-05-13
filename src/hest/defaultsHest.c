@@ -33,6 +33,7 @@ int hestElideSingleNonExistFloatDefault = AIR_FALSE;
 int hestElideMultipleNonExistFloatDefault = AIR_FALSE;
 int hestElideSingleEmptyStringDefault = AIR_FALSE;
 int hestElideMultipleEmptyStringDefault = AIR_FALSE;
+int hestNoArgsIsNoProblem = AIR_FALSE;
 int hestGreedySingleString = AIR_TRUE;
 int hestCleverPluralizeOtherY = AIR_FALSE;
 char hestRespFileFlag = '@';

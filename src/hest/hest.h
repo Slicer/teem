@@ -145,6 +145,13 @@ typedef struct {
     elideSingleEmptyStringDefault, /* if default for a single string is empty
                                       (""), then don't display default */
     elideMultipleEmptyStringDefault,
+    noArgsIsNoProblem,  /* if non-zero, having no arguments to parse is not in
+                           and of itself a problem; this means that if all
+                           options have defaults, it would be *ok* to invoke
+                           the problem without any further command-line
+                           options. This is counter to pre-Teem-1.11
+                           behavior (for which no arguments *always* meant
+                           "show me usage info"). */
     greedySingleString, /* when parsing a single string, whether or not
                            to be greedy (as per airParseStrS) */
     cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
@@ -165,6 +172,8 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
+/* HEY: recent Teem conventions say these should all start with 
+   "hestDef" not just "hest" */
 HEST_EXPORT int hestVerbosity;
 HEST_EXPORT int hestRespFileEnable;
 HEST_EXPORT int hestElideSingleEnumType;
@@ -174,6 +183,7 @@ HEST_EXPORT int hestElideSingleNonExistFloatDefault;
 HEST_EXPORT int hestElideMultipleNonExistFloatDefault;
 HEST_EXPORT int hestElideSingleEmptyStringDefault;
 HEST_EXPORT int hestElideMultipleEmptyStringDefault;
+HEST_EXPORT int hestNoArgsIsNoProblem;
 HEST_EXPORT int hestGreedySingleString;
 HEST_EXPORT int hestCleverPluralizeOtherY;
 HEST_EXPORT int hestColumns;
