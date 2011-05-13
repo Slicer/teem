@@ -219,10 +219,9 @@ typedef struct {
 /*
 ** modifying the enums below (scalar, vector, etc query quantities)
 ** necesitates modifying:
-** - the central item table 
-** - the associated arrays in arrays.c
-** - the arrays in enums.c, 
-** - the "answer" method itself.
+** - the central item table in scl.c, vecGage.c
+** - the associated arrays in scl.c, vecGage.c
+** - the "answer" method itself in sclanswer.c, vecGage.c
 */
 
 /*
@@ -244,43 +243,44 @@ enum {
   gageSclGradVec,      /*  2: "grad", gradient vector, un-normalized: [3] */
   gageSclGradMag,      /*  3: "gm", gradient magnitude: [1] */
   gageSclNormal,       /*  4: "n", gradient vector, normalized: [3] */
-  gageSclNPerp,        /*  5: "np", projection onto tangent plane: [9] */
-  gageSclHessian,      /*  6: "h", Hessian: [9] (column-order) */
-  gageSclHessianTen,   /*  7: "ht", Hessian as 7-component tensor: [7]
+  gageSclNProj,        /*  5: "nproj", projection onto normal: [9] */
+  gageSclNPerp,        /*  6: "np", projection onto tangent plane: [9] */
+  gageSclHessian,      /*  7: "h", Hessian: [9] (column-order) */
+  gageSclHessianTen,   /*  8: "ht", Hessian as 7-component tensor: [7]
                            In principle this is a dependency inversion
                            since gage doesn't know about the ten library,
                            where the 7-element tensor is based. */
-  gageSclLaplacian,    /*  8: "l", Laplacian: Dxx + Dyy + Dzz: [1] */
-  gageSclHessFrob,     /*  9: "hf", Frobenius normal of Hessian: [1] */
-  gageSclHessEval,     /* 10: "heval", Hessian's eigenvalues: [3] */
-  gageSclHessEval0,    /* 11: "heval0", Hessian's 1st eigenvalue: [1] */
-  gageSclHessEval1,    /* 12: "heval1", Hessian's 2nd eigenvalue: [1] */
-  gageSclHessEval2,    /* 13: "heval2", Hessian's 3rd eigenvalue: [1] */
-  gageSclHessEvec,     /* 14: "hevec", Hessian's eigenvectors: [9] */
-  gageSclHessEvec0,    /* 15: "hevec0", Hessian's 1st eigenvector: [3] */
-  gageSclHessEvec1,    /* 16: "hevec1", Hessian's 2nd eigenvector: [3] */
-  gageSclHessEvec2,    /* 17: "hevec2", Hessian's 3rd eigenvector: [3] */
-  gageScl2ndDD,        /* 18: "2d", 2nd dir.deriv. along gradient: [1] */
-  gageSclGeomTens,     /* 19: "gten", sym. matx w/ evals {0, K1, K2} and
+  gageSclLaplacian,    /*  9: "l", Laplacian: Dxx + Dyy + Dzz: [1] */
+  gageSclHessFrob,     /* 10: "hf", Frobenius normal of Hessian: [1] */
+  gageSclHessEval,     /* 11: "heval", Hessian's eigenvalues: [3] */
+  gageSclHessEval0,    /* 12: "heval0", Hessian's 1st eigenvalue: [1] */
+  gageSclHessEval1,    /* 13: "heval1", Hessian's 2nd eigenvalue: [1] */
+  gageSclHessEval2,    /* 14: "heval2", Hessian's 3rd eigenvalue: [1] */
+  gageSclHessEvec,     /* 15: "hevec", Hessian's eigenvectors: [9] */
+  gageSclHessEvec0,    /* 16: "hevec0", Hessian's 1st eigenvector: [3] */
+  gageSclHessEvec1,    /* 17: "hevec1", Hessian's 2nd eigenvector: [3] */
+  gageSclHessEvec2,    /* 18: "hevec2", Hessian's 3rd eigenvector: [3] */
+  gageScl2ndDD,        /* 19: "2d", 2nd dir.deriv. along gradient: [1] */
+  gageSclGeomTens,     /* 20: "gten", sym. matx w/ evals {0, K1, K2} and
                               evecs {grad, cdir0, cdir1}: [9] */
-  gageSclGeomTensTen,  /* 20: "gtenten", 7-element geometry tensor [7] */
-  gageSclK1,           /* 21: "k1", 1st principle curvature: [1] */
-  gageSclK2,           /* 22: "k2", 2nd principle curvature (k2 <= k1): [1] */
-  gageSclTotalCurv,    /* 23: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
-  gageSclShapeTrace,   /* 24, "st", (K1+K2)/Curvedness: [1] */
-  gageSclShapeIndex,   /* 25: "si", Koen.'s shape index, ("S"): [1] */
-  gageSclMeanCurv,     /* 26: "mc", mean curvature (K1 + K2)/2: [1] */
-  gageSclGaussCurv,    /* 27: "gc", gaussian curvature K1*K2: [1] */
-  gageSclCurvDir1,     /* 28: "cdir1", 1st principle curv direction: [3] */
-  gageSclCurvDir2,     /* 29: "cdir2", 2nd principle curv direction: [3] */
-  gageSclFlowlineCurv, /* 30: "fc", curvature of normal streamline: [1] */
-  gageSclMedian,       /* 31: "med", median filter */
-  gageSclHessValleyness,   /* 32: "hvalley", vallyness measure: [1] */
-  gageSclHessRidgeness,    /* 33: "hridge", ridgeness measure: [1] */
-  gageSclHessMode,     /* 34: "hmode", Hessian's mode: [1] */
+  gageSclGeomTensTen,  /* 21: "gtenten", 7-element geometry tensor [7] */
+  gageSclK1,           /* 22: "k1", 1st principle curvature: [1] */
+  gageSclK2,           /* 23: "k2", 2nd principle curvature (k2 <= k1): [1] */
+  gageSclTotalCurv,    /* 24: "tc", L2 norm(K1,K2) (not Koen.'s "C"): [1] */
+  gageSclShapeTrace,   /* 25, "st", (K1+K2)/Curvedness: [1] */
+  gageSclShapeIndex,   /* 26: "si", Koen.'s shape index, ("S"): [1] */
+  gageSclMeanCurv,     /* 27: "mc", mean curvature (K1 + K2)/2: [1] */
+  gageSclGaussCurv,    /* 28: "gc", gaussian curvature K1*K2: [1] */
+  gageSclCurvDir1,     /* 29: "cdir1", 1st principle curv direction: [3] */
+  gageSclCurvDir2,     /* 30: "cdir2", 2nd principle curv direction: [3] */
+  gageSclFlowlineCurv, /* 31: "fc", curvature of normal streamline: [1] */
+  gageSclMedian,       /* 32: "med", median filter */
+  gageSclHessValleyness,   /* 33: "hvalley", vallyness measure: [1] */
+  gageSclHessRidgeness,    /* 34: "hridge", ridgeness measure: [1] */
+  gageSclHessMode,     /* 35: "hmode", Hessian's mode: [1] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX 34
+#define GAGE_SCL_ITEM_MAX 35
 
 /*
 ******** gageVec* enum

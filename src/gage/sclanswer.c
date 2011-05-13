@@ -97,6 +97,9 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ELL_3V_COPY(norm, gageZeroNormal);
     }
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNProj)) {
+    ELL_3MV_OUTER(pvl->directAnswer[gageSclNProj], norm, norm);
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNPerp)) {
     /* nPerp = I - outer(norm, norm) */
     /* NB: this sets both nPerp and nProj */
