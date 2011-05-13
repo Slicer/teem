@@ -207,8 +207,12 @@ hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
 
   parm = !_parm ? hestParmNew() : _parm;
   if (info) {
-    fprintf(file, "\n%s: ", argv0);
-    _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
+    if (argv0) {
+      fprintf(file, "\n%s: ", argv0);
+      _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
+    } else {
+      fprintf(file, "ERROR: hestInfo got NULL argv0\n");
+    }
   }
   parm = !_parm ? hestParmFree(parm) : NULL;
 }
