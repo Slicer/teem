@@ -1285,8 +1285,8 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
       exit(1);
     }
     E = 0;
-    argcBad = ((parm && parm->noArgsIsNoProblem)
-               || !argc);
+    /* argc is good if its non-zero, or (else) being zero is ok */
+    argcBad = !(argc || (parm && parm->noArgsIsNoProblem));
     if ( argcBad ||
          (E = hestParse(opt, argc, argv, &errS, parm)) ) {
       if (E) {
