@@ -23,6 +23,18 @@
 
 #include "../hest.h"
 
+/*
+** this example has been taken out of the build because GLK was sure 
+** Fri May 13 00:51:11 CDT 2011 how to handle these annoying warnings:
+
+../hest/test/ex1.c: In function 'main':
+../hest/test/ex1.c:34: warning: missing initializer
+../hest/test/ex1.c:34: warning: (near initialization for 'opt[0].sawP')
+../hest/test/ex1.c:36: warning: missing initializer
+../hest/test/ex1.c:36: warning: (near initialization for 'opt[1].sawP')
+
+*/
+
 int
 main(int argc, char **argv) {
   static int res[2], v, numIn;

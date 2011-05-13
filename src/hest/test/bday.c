@@ -43,12 +43,12 @@ char *info = ("simulates M people in a room finding out if two or more "
               "of days in the year.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   airArray *mop;
   hestOpt *hopt=NULL;
   int i, N, M, P, yes, *year;
   unsigned int E;
-  char *me;
+  const char *me;
   double crct;
   
   me = argv[0];

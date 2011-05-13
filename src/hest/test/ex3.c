@@ -24,7 +24,7 @@
 #include "../hest.h"
 
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
   int res[2], v, numIn;
   char **in, *out, *blah[3], *option = NULL;
   int n, *ints, numN;

@@ -194,12 +194,12 @@ HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
-HEST_EXPORT int hestParse(hestOpt *opt, int argc, char **argv,
+HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv,
                           char **errP, hestParm *parm);
 HEST_EXPORT void *hestParseFree(hestOpt *opt);
-HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, char **argv,
+HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                                 hestParm *parm,
-                                char *me, char *info,
+                                const char *me, const char *info,
                                 int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */

@@ -43,7 +43,7 @@ twice with differen values
 */
 int
 _hestArgsInResponseFiles(int *argcP, int *nrfP,
-                         char **argv, char *err, hestParm *parm) {
+                         const char **argv, char *err, hestParm *parm) {
   FILE *file;
   char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE], *pound;
   int ai, len;
@@ -90,7 +90,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 ** copies from the user's argc,argv to our local copy.
 */
 int
-_hestResponseFiles(char **newArgv, char **oldArgv,
+_hestResponseFiles(char **newArgv, const char **oldArgv,
                    hestParm *parm, airArray *pmop) {
   char line[AIR_STRLEN_HUGE], *pound;
   int len, newArgc, oldArgc, incr, ai;
@@ -105,9 +105,9 @@ _hestResponseFiles(char **newArgv, char **oldArgv,
     }
     if (!parm->respFileEnable
         || parm->respFileFlag != oldArgv[oldArgc][0]) {
-      /* nothing to do with a response file, just copy the arg over.
-         We are not allocating new memory in this case. */
-      newArgv[newArgc] = oldArgv[oldArgc];
+      /* nothing to do with a response file */
+      newArgv[newArgc] = airStrdup(oldArgv[oldArgc]);
+      airMopAdd(pmop, newArgv[newArgc], airFree, airMopAlways);
       newArgc += 1;
     }
     else {
@@ -345,7 +345,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 }
 
 int
-_hestErrStrlen(hestOpt *opt, int argc, char **argv) {
+_hestErrStrlen(hestOpt *opt, int argc, const char **argv) {
   int a, numOpts, ret, other;
 
   ret = 0;
@@ -1033,7 +1033,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
 ** documentation?
 */
 int
-hestParse(hestOpt *opt, int _argc, char **_argv,
+hestParse(hestOpt *opt, int _argc, const char **_argv,
           char **_errP, hestParm *_parm) {
   char me[]="hestParse: ";
   char **argv, **prms, *err;
@@ -1271,8 +1271,9 @@ hestParseFree(hestOpt *opt) {
 ** if parsing succeeded: return
 */
 void
-hestParseOrDie(hestOpt *opt, int argc, char **argv, hestParm *parm,
-               char *me, char *info,
+hestParseOrDie(hestOpt *opt, int argc, const char **argv,
+               hestParm *parm,
+               const char *me, const char *info,
                int doInfo, int doUsage, int doGlossary) {
   int E;
   char *errS;

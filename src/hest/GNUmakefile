@@ -49,7 +49,7 @@ $(L).NEED = air
 $(L).PUBLIC_HEADERS = hest.h
 $(L).PRIVATE_HEADERS = privateHest.h
 $(L).OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o
-$(L).TESTS = test/ex0 test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 \
+$(L).TESTS = test/ex2 test/ex3 test/ex4 test/ex5 \
 	test/strings test/bday test/tmpl
 ####
 ####

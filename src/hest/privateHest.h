@@ -40,7 +40,7 @@ extern int _hestMax(int max);
 
 /* parse.c */
 extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
-extern int _hestErrStrlen(hestOpt *opt, int argc, char **argv);
+extern int _hestErrStrlen(hestOpt *opt, int argc, const char **argv);
 
 #ifdef __cplusplus
 }

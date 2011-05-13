@@ -45,7 +45,7 @@ hestCB cbinfo = {
 };
 
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
   char *single, *triple[3], *maybe, **many;
   int howMany, i, N;
   hestOpt *opt = NULL;
