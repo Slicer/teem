@@ -30,7 +30,7 @@ char *_tend_tconvInfoL =
    "and lots of other things.");
 
 int
-tend_tconvMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_tconvMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

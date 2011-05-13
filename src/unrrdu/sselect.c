@@ -31,7 +31,7 @@ char *_unrrdu_sselectInfoL = (INFO
                               "below a given threshold.");
 
 int
-unrrdu_sselectMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_sselectMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   Nrrd *nin, *noutAbove, *noutBelow, *nline;

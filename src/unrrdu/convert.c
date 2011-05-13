@@ -35,7 +35,7 @@ char *_unrrdu_convertInfoL =
  "\"unu 2op x\", and \"unu 3op clamp\".");
 
 int
-unrrdu_convertMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_convertMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

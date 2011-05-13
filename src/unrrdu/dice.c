@@ -31,7 +31,7 @@ char *_unrrdu_diceInfoL =
  "file for each sample along that axis. ");
 
 int
-unrrdu_diceMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_diceMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, *err, fnout[AIR_STRLEN_MED], /* file name out */
     fffname[AIR_STRLEN_MED],  /* format for filename */

@@ -458,11 +458,12 @@ mrendGage(char *prefix) {
 #endif
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
   int E, Ecode, Ethread, renorm, offfr;
-  char *me, *errS, *whatS;
+  const char *me;
+  char *errS, *whatS;
   mrendUser *uu;
   float isScale;
   airArray *mop;

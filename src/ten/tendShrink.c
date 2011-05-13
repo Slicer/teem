@@ -30,7 +30,7 @@ char *_tend_shrinkInfoL =
    "or nrrdSplice() something else in its place later.");
 
 int
-tend_shrinkMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_shrinkMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -29,7 +29,7 @@ char *_tend_pointInfoL =
    ". ");
 
 int
-tend_pointMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_pointMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

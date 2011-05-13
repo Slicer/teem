@@ -62,7 +62,7 @@ char *_unrrdu_makeInfoL =
  "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).");
 
 int
-unrrdu_makeMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *outData, *err, 
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];

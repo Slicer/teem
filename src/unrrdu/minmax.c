@@ -58,7 +58,7 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
 }
 
 int
-unrrdu_minmaxMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_minmaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;

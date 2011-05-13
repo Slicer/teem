@@ -29,7 +29,7 @@ char *_tend_expInfoL =
    ", which is based on exp() of the eigenvalues.");
 
 int
-tend_expMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_expMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -32,7 +32,7 @@ char *_tend_unmfInfoL =
    "frame from the nrrd.");
 
 int
-tend_unmfMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_unmfMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

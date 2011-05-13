@@ -29,7 +29,7 @@ char *_tend_evalmultInfoL =
    ". The orientation of the tensor is unchanged.");
 
 int
-tend_evalmultMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_evalmultMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

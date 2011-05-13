@@ -33,7 +33,7 @@ char *_unrrdu_ccmergeInfoL =
  "and number of neighbors (\"-n\"). ");
 
 int
-unrrdu_ccmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_ccmergeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nout2, *nval;

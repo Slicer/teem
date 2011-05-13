@@ -36,7 +36,7 @@ char *_unrrdu_imapInfoL =
  "interpolating between value(s) from the map.");
 
 int
-unrrdu_imapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_imapMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;

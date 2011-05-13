@@ -29,7 +29,7 @@ char *_tend_stenInfoL =
    ".  Not a diffusion tensor, but it is symmetric and positive-definate.");
 
 int
-tend_stenMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_stenMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

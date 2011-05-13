@@ -35,7 +35,7 @@ char *_unrrdu_distInfoL =
  "Distances between non-isotropic samples are handled correctly.");
 
 int
-unrrdu_distMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_distMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

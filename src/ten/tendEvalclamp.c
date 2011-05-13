@@ -31,7 +31,7 @@ char *_tend_evalclampInfoL =
    "of the tensor.");
 
 int
-tend_evalclampMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_evalclampMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -34,7 +34,7 @@ char *_unrrdu_heqInfoL =
  "in the equalization histogram will produce poor results.");
 
 int
-unrrdu_heqMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_heqMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;

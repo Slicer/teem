@@ -28,7 +28,7 @@ char *_unrrdu_flipInfoL = (INFO
                        ". Special case of \"unu\tshuffle\".");
 
 int
-unrrdu_flipMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_flipMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

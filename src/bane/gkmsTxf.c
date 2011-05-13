@@ -31,7 +31,7 @@ char *_baneGkms_txfInfoL =
    "This doesn't strictly speaking belong in \"gkms\" but there's no "
    "other good place in Teem.");
 int
-baneGkms_txfMain(int argc, char **argv, char *me, hestParm *hparm) {
+baneGkms_txfMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nout;

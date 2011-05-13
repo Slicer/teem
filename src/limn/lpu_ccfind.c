@@ -29,7 +29,7 @@ static char *myinfo =
  ", and then sorts primitive according to area.");
 
 int
-limnpu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
+limnpu_ccfindMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;

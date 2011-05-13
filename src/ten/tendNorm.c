@@ -31,7 +31,7 @@ char *_tend_normInfoL =
    "some user-defined amount (\"-a\").");
 
 int
-tend_normMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_normMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

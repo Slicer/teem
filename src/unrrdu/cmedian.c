@@ -37,7 +37,7 @@ char *_unrrdu_cmedianInfoL =
  "by \"unu minmax\"). ");
 
 int
-unrrdu_cmedianMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_cmedianMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp, **mnout;

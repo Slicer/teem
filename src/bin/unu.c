@@ -25,9 +25,10 @@
 #define UNU "unu"
 
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
   int i, ret;
-  char *me, *argv0 = NULL, *err;
+  const char *me;
+  char *argv0 = NULL, *err;
   hestParm *hparm;
   airArray *mop;
 

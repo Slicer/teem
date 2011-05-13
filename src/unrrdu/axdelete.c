@@ -34,7 +34,7 @@ char *_unrrdu_axdeleteInfoL =
  "any and all singleton axes are removed.");
 
 int
-unrrdu_axdeleteMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_axdeleteMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp;

@@ -548,8 +548,9 @@ char qbertInfo[]="Generates volume datasets friendly to hardware-based "
 "VG and VH scatterplots can be generated at a specified resolution.";
 
 int
-main(int argc, char *argv[]) {
-  char *me, *outS, *errS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
   int E, i, ups, notdoH, useFloat, scat;
   unsigned int sz[3];

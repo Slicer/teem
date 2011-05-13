@@ -276,10 +276,11 @@ char *info = ("Quick way of seeing what's inside a 3D volume.  A color image "
               "upsampled (with box kernel) to have isotropic pixels.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
-  char *me, *outS, *err;
+  const char *me;
+  char *outS, *err;
   Nrrd *nin, *nout;
   NrrdIoState *nio;
   float heqamount;

@@ -31,7 +31,7 @@ char *_tend_bfitInfoL =
    "values along input axis 0, as a function of changing b values.  ");
 
 int
-tend_bfitMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_bfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -176,7 +176,7 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
 }
 
 int
-unrrdu_envMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_envMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);

@@ -38,7 +38,7 @@ char *_unrrdu_resampleInfoL =
  "node-centered data.");
 
 int
-unrrdu_resampleMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

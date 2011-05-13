@@ -29,7 +29,7 @@ char *_tend_evecrgbInfoL =
    ". ");
 
 int
-tend_evecrgbMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_evecrgbMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -29,7 +29,7 @@ static char *myinfo =
  ". Can either specify a range, or a list, or not, until implemented.");
 
 int
-limnpu_pselMain(int argc, char **argv, char *me, hestParm *hparm) {
+limnpu_pselMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;

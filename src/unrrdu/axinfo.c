@@ -30,7 +30,7 @@ char *_unrrdu_axinfoInfoL =
  "options are given.");
 
 int
-unrrdu_axinfoMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_axinfoMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *units, *centerStr, *kindStr;
   Nrrd *nin, *nout;

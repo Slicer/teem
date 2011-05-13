@@ -195,9 +195,10 @@ char *probeInfo = ("Shows off the functionality of the gage library. "
                    "to learn various measured or derived quantities.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   gageKind *kind;
-  char *me, *whatS, *err, *outS, *stackFnameFormat;
+  const char *me;
+  char *whatS, *err, *outS, *stackFnameFormat;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;

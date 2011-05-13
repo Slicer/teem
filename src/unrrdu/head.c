@@ -78,7 +78,7 @@ unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
 }
 
 int
-unrrdu_headMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_headMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   NrrdIoState *nio;

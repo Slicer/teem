@@ -34,7 +34,7 @@ char *_unrrdu_lut2InfoL =
  "lookup table.  In any case, axis 0 of the input must have length two.");
 
 int
-unrrdu_lut2Main(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_lut2Main(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout, *ntmp[2];

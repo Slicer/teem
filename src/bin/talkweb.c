@@ -432,8 +432,9 @@ tkwbDoit(char *indexS, char *tmplS, char *scriptS,
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *indexS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX+1],
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *indexS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX+1],
     *tag[AIR_STRLEN_MED],
     *frstLink, *prevLink, *nextLink, *lastLink, *link[4];
   hestOpt *hopt = NULL;

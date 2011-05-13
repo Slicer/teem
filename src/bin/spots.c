@@ -33,8 +33,9 @@ char *spotsInfo = ("Generate reaction-diffusion textures based on "
                    "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   hestOpt *hopt = NULL;
   airArray *mop;
 

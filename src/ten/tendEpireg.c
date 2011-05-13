@@ -37,7 +37,7 @@ char *_tend_epiregInfoL =
    "chosen kernel, with the seperate DWIs stacked along axis 0.");
 
 int
-tend_epiregMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret, rret;
   hestOpt *hopt = NULL;
   char *perr, *err;

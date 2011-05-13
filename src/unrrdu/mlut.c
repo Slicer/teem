@@ -33,7 +33,7 @@ char *_unrrdu_mlutInfoL =
  "resptectively. ");
 
 int
-unrrdu_mlutMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_mlutMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmlut, *nmlut, *nout;

@@ -25,7 +25,7 @@
 #define INFO "Information about this program and its use"
 
 int
-limnpu_aboutMain(int argc, char **argv, char *me, hestParm *hparm) {
+limnpu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_MED], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
     "\"lpu\" is a complete hack.\n";

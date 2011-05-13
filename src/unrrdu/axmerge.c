@@ -32,7 +32,7 @@ char *_unrrdu_axmergeInfoL =
  "shifted downwards as needed.");
 
 int
-unrrdu_axmergeMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_axmergeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout[2];

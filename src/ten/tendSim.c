@@ -36,7 +36,7 @@ char *_tend_simInfoL =
    "measurement frame. ");
 
 int
-tend_simMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_simMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

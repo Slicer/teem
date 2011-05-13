@@ -55,14 +55,15 @@ docontrast(double val, double cfp, double cpow) {
 }
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   Nrrd *nin, *nout,    /* initial input and final output */
     *ninD,             /* input converted to double */
     *_nbg,             /* given background image (optional) */
     *nbg,              /* resampled background image */
     *nrgbaD;           /* rgba input as double */
-  char *me, *outS, *errS;
+  const char *me;
+  char *outS, *errS;
   double gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
   int E;

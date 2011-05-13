@@ -59,9 +59,10 @@ char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
                    "at a single probe location.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   gageKind *kind;
-  char *me, *whatS, *err, *outS, *stackSavePath;
+  const char *me;
+  char *whatS, *err, *outS, *stackSavePath;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;

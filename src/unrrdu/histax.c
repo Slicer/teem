@@ -28,7 +28,7 @@ char *_unrrdu_histaxInfoL = (INFO
                          ". ");
 
 int
-unrrdu_histaxMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_histaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

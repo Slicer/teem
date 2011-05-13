@@ -31,7 +31,7 @@ char *_baneGkms_miteInfoL =
    "axis labels to identify the domain and range of the opacity function. "
    "The underlying opacity function is not modified.");
 int
-baneGkms_miteMain(int argc, char **argv, char *me, hestParm *hparm) {
+baneGkms_miteMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nin, *nout;

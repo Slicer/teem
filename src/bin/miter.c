@@ -31,12 +31,13 @@
 char *miteInfo = ("A simple but effective little volume renderer.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   airArray *mop;
   hestOpt *hopt=NULL;
   hestParm *hparm=NULL;
   miteUser *muu;
-  char *me, *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
+  const char *me;
+  char *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode, Ethread;
   float ads[3], isScale;

@@ -30,7 +30,7 @@ char *_unrrdu_ccfindInfoL =
  "4-byte ints.");
 
 int
-unrrdu_ccfindMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_ccfindMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;
   Nrrd *nin, *nout, *nval=NULL;

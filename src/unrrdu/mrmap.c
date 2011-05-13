@@ -32,7 +32,7 @@ char *_unrrdu_mrmapInfoL =
  "multiple nrrds, instead of just two.");
 
 int
-unrrdu_mrmapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_mrmapMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmmap, *nmmap, *nout;

@@ -46,7 +46,7 @@ typedef union {
 } _undosU;
 
 void
-undosConvert(char *me, char *name, int reverse, int mac,
+undosConvert(const char *me, char *name, int reverse, int mac,
              int quiet, int noAction) {
   airArray *mop;
   FILE *fin, *fout;
@@ -222,8 +222,9 @@ undosConvert(char *me, char *name, int reverse, int mac,
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, **name;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char **name;
   int lenName, ni, reverse, quiet, noAction, mac;
   hestOpt *hopt = NULL;
   airArray *mop;

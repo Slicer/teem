@@ -29,7 +29,7 @@ static char *myinfo =
  ". ");
 
 int
-limnpu_vertsMain(int argc, char **argv, char *me, hestParm *hparm) {
+limnpu_vertsMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;

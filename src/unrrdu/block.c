@@ -37,7 +37,7 @@ char *_unrrdu_blockInfoL =
  "is unchanged.");
 
 int
-unrrdu_blockMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_blockMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

@@ -31,7 +31,7 @@ char *_baneGkms_scatInfoL =
    "get an initial sense of what sorts of boundaries were present in the "
    "original volume.");
 int
-baneGkms_scatMain(int argc, char **argv, char *me, hestParm *hparm) {
+baneGkms_scatMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out[2], *perr;
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;

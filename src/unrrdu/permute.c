@@ -31,7 +31,7 @@ char *_unrrdu_permuteInfoL =
  "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
 
 int
-unrrdu_permuteMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_permuteMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

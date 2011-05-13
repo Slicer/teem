@@ -33,7 +33,7 @@ char *_unrrdu_affineInfoL =
  "that \"-\" can probably only be used once (reliably).");
 
 int
-unrrdu_affineMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_affineMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *minIn, *in, *maxIn, *minOut, *maxOut, *args[5];

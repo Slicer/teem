@@ -27,7 +27,7 @@
 char *_unrrdu_cropInfoL = INFO;
 
 int
-unrrdu_cropMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_cropMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

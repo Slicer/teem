@@ -213,7 +213,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
 }
 
 int
-tend_ellipseMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_ellipseMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr;

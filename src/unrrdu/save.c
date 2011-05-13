@@ -34,7 +34,7 @@ char *_unrrdu_saveInfoL =
  "inch margins.");
 
 int
-unrrdu_saveMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *outData,
     encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];

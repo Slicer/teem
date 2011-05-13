@@ -32,7 +32,7 @@ char *_unrrdu_2opInfoL =
  "that \"-\" can probably only be used once (reliably).");
 
 int
-unrrdu_2opMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   NrrdIter *in1, *in2;

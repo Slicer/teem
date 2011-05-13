@@ -44,9 +44,10 @@
 char *deconvInfo = ("Does deconvolution. ");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   gageKind *kind;
-  char *me, *outS, *err;
+  const char *me;
+  char *outS, *err;
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *ksp;

@@ -29,8 +29,9 @@ char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
                  "resampling. ");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *errS, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *errS, *outS;
   hestOpt *hopt=NULL;
   hestParm *hparm;
   airArray *mop;

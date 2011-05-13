@@ -116,7 +116,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
 }
 
 int
-tend_estimMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_estimMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

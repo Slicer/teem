@@ -33,7 +33,7 @@ char *_tend_expandInfoL =
    "threshold.");
 
 int
-tend_expandMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_expandMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

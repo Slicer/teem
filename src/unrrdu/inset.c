@@ -28,7 +28,7 @@ char *_unrrdu_insetInfoL =
 (INFO ". This is functionally the opposite of \"crop\".");
 
 int
-unrrdu_insetMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_insetMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nsub;

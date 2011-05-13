@@ -30,8 +30,8 @@ char *info = ("Converts from floating-point \"position\" to floating-point "
               "of intervals into which position has been quantized. ");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt = NULL;
   int center;
   double minPos, maxPos, pos, index, size;

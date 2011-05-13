@@ -37,7 +37,7 @@ char *_unrrdu_joinInfoL =
  "These can be use whether the join axis is new (because of \"-incr\") or not.");
 
 int
-unrrdu_joinMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_joinMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd **nin;

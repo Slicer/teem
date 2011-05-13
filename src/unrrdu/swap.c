@@ -28,7 +28,7 @@ char *_unrrdu_swapInfoL = (INFO
                        ". Special case of \"unu\tpermute\".");
 
 int
-unrrdu_swapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_swapMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

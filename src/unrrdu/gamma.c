@@ -31,7 +31,7 @@ char *_unrrdu_gammaInfoL =
  "the values.");
 
 int
-unrrdu_gammaMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_gammaMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

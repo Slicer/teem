@@ -32,13 +32,14 @@ char info[]="Gantry tilt be gone!  This program is actually of limited "
 "that (X,Y,Z) is a right-handed frame. ";
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   gageContext *ctx;
   gagePerVolume *pvl;
   Nrrd *nin, *nout;
-  char *me, *outS;
+  const char *me;
+  char *outS;
   float angle;
   double xs, ys, zs, y, z, padval;
   const double *val;

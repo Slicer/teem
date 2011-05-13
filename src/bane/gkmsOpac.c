@@ -30,7 +30,7 @@ char *_baneGkms_opacInfoL =
    "emphasis function\" to generate 1D or 2D (depending on info file) "
    "opacity functions. ");
 int
-baneGkms_opacMain(int argc, char **argv, char *me, hestParm *hparm) {
+baneGkms_opacMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *befS;
   Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;

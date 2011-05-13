@@ -39,7 +39,7 @@ char *_tend_gradsInfoL =
    "restarting with a different \"-seed\".");
 
 int
-tend_gradsMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_gradsMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -32,7 +32,7 @@ char *_baneGkms_hvolInfoL =
    "it is the first step in semi-automatic transfer function generation.  ");
 
 int
-baneGkms_hvolMain(int argc, char **argv, char *me, hestParm *hparm) {
+baneGkms_hvolMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nin, *nout;

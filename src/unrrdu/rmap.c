@@ -41,7 +41,7 @@ char *_unrrdu_rmapInfoL =
  "(\"color\").");
 
 int
-unrrdu_rmapMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_rmapMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nout;

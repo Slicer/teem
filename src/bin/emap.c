@@ -37,11 +37,12 @@ char *emapInfo = ("Creates environment maps based on limn's \"checker\" "
                   "X\tY\tZ position.");
 
 int
-main(int argc, char *argv[]) {
+main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   hestParm *hparm;
   Nrrd *nlight, *nmap, *ndebug;
-  char *me, *outS, *errS, *debugS;
+  const char *me;
+  char *outS, *errS, *debugS;
   airArray *mop;
   float amb[3], *linfo, *debug, *map;
   unsigned li, ui, vi;

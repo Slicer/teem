@@ -29,7 +29,7 @@ char *_tend_sliceInfoL =
    ". ");
 
 int
-tend_sliceMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_sliceMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -29,7 +29,7 @@ char *_tend_evecInfoL =
    ". ");
 
 int
-tend_evecMain(int argc, char **argv, char *me, hestParm *hparm) {
+tend_evecMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

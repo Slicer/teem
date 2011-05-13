@@ -38,7 +38,7 @@ char *_unrrdu_dataInfoL =
  "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"");
 
 int
-unrrdu_dataMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_dataMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, *inS=NULL;
   Nrrd *nin;

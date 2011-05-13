@@ -27,7 +27,7 @@
 char *_unrrdu_1opInfoL = (INFO);
 
 int
-unrrdu_1opMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_1opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   Nrrd *nin, *nout, *ntmp=NULL;

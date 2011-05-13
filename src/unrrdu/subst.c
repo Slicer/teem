@@ -34,7 +34,7 @@ char *_unrrdu_substInfoL =
  "the lut or map. ");
 
 int
-unrrdu_substMain(int argc, char **argv, char *me, hestParm *hparm) {
+unrrdu_substMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   int pret;
