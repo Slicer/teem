@@ -1,6 +1,3 @@
-unu dist -i dist-prob.nrrd -th 0.5 -o d.nrrd
-will segfault if the hack check isn't turned on; fix this
-
 
 get back verbose IO messages about fread-vs-directIO
 
@@ -108,9 +105,6 @@ verify that all axis and nrrd fields are accounted for
 debug and scrutinize current implementation of all "nhdr" related behavior
 
 clarify policy regarding when data in the nrrd will be free()ed
-
-determine a consistent policy regarding assumptions and expections
-surrounding use of the min and max fields, perhaps also oldMin and oldMax
 
 try to enforce the policy that variables which exist solely to be
 a local copy of values in nrrds should be **eliminated**.  This
