@@ -22,7 +22,7 @@
 
 #### 
 #### template.mk: Defines rules which have the same structure for each
-#### library, but which refer to the specific consituents and
+#### library, but which refer to the specific constituents and
 #### prerequisites of the library.  The rules defined here are
 #### effectively templated on the name of the library.  The variable L
 #### is assumed to contain the name of the library for which we're

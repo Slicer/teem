@@ -38,12 +38,6 @@ TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be
   we link against static libraries, in order to produce
   stand-alone-ish binaries
 
-TEEM_DEV: if set to "true", then a larger set of Teem libraries will be
-  build by the top-level make, more than just the standard stable ones.
-
-TEEM_PURIFY: if set to "true", run purify on all compiles and links
-  (the architecture-specific makefile must define PURIFY (see below)
-
 =========================
 The variables that can/must be set by the individual architecture
 .mk files.  Those which must be set are marked by a (*):
@@ -56,9 +50,6 @@ TEEM_ENDIAN (*): some things in the air library are too annoying to do
   4321: Big Endian (everyone else)
 
 CC, LD, AR, RM, INSTALL, CHMOD (*): programs used during make
-
-PURIFY:  the "purify" command name (with full path if needed).  This must
-  be set if TEEM_PURIFY is "true"
 
 SHEXT: the extension on the name of shared libraries (.so, .sl, .dll)
 

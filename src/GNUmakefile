@@ -39,7 +39,7 @@
 
 ## TEEM_ROOT: a relative path to the directory which contains the
 ## "src", "include", and all the architecture-specific directories
-## (which in turn contain "bin", "lib", "obj", and "purify"). Whether
+## (which in turn contain "bin", "lib", and "obj"). Whether
 ## make started on this makefile or on an individual library's
 ## makefile determines who gets to set TEEM_ROOT first.  Same for
 ## TEEM_SRC, a relative path to the "src" directory
@@ -88,9 +88,8 @@ SLEEP = sleep
 ##
 include $(TEEM_SRC)/make/$(ARCH).mk
 $(checkShext)
-$(checkPurify)
 
-## information about optional external libraries to link with
+## information about optional external ("xtern") libraries to link with
 ##
 include $(TEEM_SRC)/make/externals.mk
 
@@ -166,7 +165,6 @@ endif
 ## create IDEST/teem if necessary
 $(call create.if.missing,$(IDEST)/teem)
 ODEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/obj
-PCACHE = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/purify
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 ifneq (undefined,$(origin TEEM_DEST))
@@ -208,15 +206,6 @@ CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
 ## SGI's C pre-processor errors aren't fatal by default
 ##
 CFLAGS += $(TEEM_CPP_ERROR_DIE)
-
-## If using purify, set P to all the purify stuff that will prefix
-## compile and link commands
-## 
-ifneq (undefined,$(origin TEEM_PURIFY))
-  P = $(TEEM_PURIFY_CMD) \
-    -inuse-at-exit=yes -add-suppression-files=$(PCACHE)/.purify
-#    -always-use-cache-dir -cache-dir=$(PCACHE)
-endif
 
 #######################################
 ## "Functions"
@@ -305,7 +294,7 @@ banner = echo "--------------------" $(1) "--------------------"
 #used = $(call used.libs,$(1)) $(call used.hdrs,$(1))
 
 ## related to external optional libraries.  Called "xtern"s to avoid
-## similarities to library "ext"s above.
+## similarities to library filename extensions ("ext"s) above.
 ##
 ## wants.xtern(XTERN): returns XTERN if TEEM_<XTERN> has been set,
 ##   otherwise nothing

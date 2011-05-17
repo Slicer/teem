@@ -109,16 +109,6 @@ $(warning *)\
 $(warning *)\
 $(error Make quitting)))
 
-checkPurify = $(if $(filter undefined,$(origin TEEM_PURIFY)),,\
-$(if $(TEEM_PURIFY_CMD),,\
-$(warning *)\
-$(warning *)\
-$(warning * Purification requested, but TEEM_PURIFY_CMD not set)\
-$(warning * Set it in teem/make/$(ARCH).mk or as environment var)\
-$(warning *)\
-$(warning *)\
-$(error Make quitting)))
-
 checkTeemDest = $(if $(TEEM_DEST),\
 $(if $(filter-out /%,$(TEEM_DEST)),\
 $(warning *)\
