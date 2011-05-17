@@ -1,5 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images              
+# Copyright (C) 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -20,16 +21,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-# GK uses this to make sure that there are no filename clashes between
-# different libraries, a constraint introduced with the Windows port.
-# Currently this is very simple, perhaps a more sophisticated thing
-# will be written later.  Doubtful.
+# GLK uses this to make sure that there are no filename clashes
+# between different libraries, a constraint introduced with the
+# Windows port, and then enforced with the practice of putting all
+# object files into per-architecture "obj" directories.
 #
-# Usage is:
+# Currently this is very simple!  Usage is:
 #
-# cd src
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo,coil,push}/*.c | perl names.pl | sort | wc -l
-# ls -1 {air,hest,biff,ell,nrrd,unrrdu,dye,moss,gage,bane,limn,hoover,mite,alan,ten,echo,coil,push}/*.c | perl names.pl | sort | uniq | wc -l
+# ls -1 {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl names.pl | sort | wc -l
+# ls -1 {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl names.pl | sort | uniq | wc -l
+#
+# and then make sure the two numbers are the same.
 
 while (<>) {
     chomp;
