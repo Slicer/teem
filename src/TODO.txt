@@ -1,9 +1,3 @@
-echo "0 0 0 0 1 0 0 0 0" \
- | unu reshape -s 9 1 1 \
- | unu pad -min 0 0 0 -max 8 8 8 \
- | unu make -s 9 9 9 -t float -e ascii -ls 9 \
-   -spc LPS -orig "(0,0,0)" -dirs "(1,0,0) (0,1,0) (0,0,1)"
-
 
 
 unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
@@ -65,8 +59,6 @@ solved the problem...
   and fails at link-time with "<new macro> symbol undefined"
 - want seperate directories for static and shared libraries
 - want bin/dev and bin/install targets
-
-unu: jhisto works with axis[0] elements when given a single nrrd
 
 nrrd: add fft support
 nrrd: add support for VFF file format
