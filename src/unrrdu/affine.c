@@ -28,7 +28,8 @@ char *_unrrdu_affineInfoL =
 (INFO
  ". All the 5 arguments can be either nrrds or single "
  "floating-point values.  When all args are single values, this "
- "is subsuming the functionality the stand-alone \"affine\" program. "
+ "is subsuming the functionality of the previous stand-alone "
+ "\"affine\" program. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
  "that \"-\" can probably only be used once (reliably).");
