@@ -48,7 +48,7 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ## 
-BINS = airSanity affine cubic nrrdSanity overrgb emap undos talkweb \
+BINS = airSanity cubic nrrdSanity overrgb emap undos talkweb \
   unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
   tend spots ninspect deconv
 
@@ -84,7 +84,6 @@ bin/clobber: bin/clean
 ## link against.
 ##	
 airSanity.need  = $(call meneed,air)
-affine.need     = $(call meneed,air)
 cubic.need      = $(call meneed,ell)
 nrrdSanity.need = $(call meneed,nrrd biff)
 undos.need      = $(call meneed,hest air)
@@ -114,7 +113,6 @@ spots.need      = $(call meneed,alan nrrd ell biff hest air)
 ## mrender needs
 ##
 $(call _binDI,airSanity)  : $(call used,$(airSanity.need))
-$(call _binDI,affine)     : $(call used,$(affine.need))
 $(call _binDI,cubic)      : $(call used,$(cubic.need))
 $(call _binDI,nrrdSanity) : $(call used,$(nrrdSanity.need))
 $(call _binDI,undos)      : $(call used,$(undos.need))

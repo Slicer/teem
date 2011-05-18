@@ -47,7 +47,6 @@ CREATE_EXEC(tend tend.c)
 # CMakeLists.txt file
 IF(BUILD_EXPERIMENTAL_APPS)
   CREATE_EXEC(airSanity airSanity.c)
-  CREATE_EXEC(affine affine.c)
   CREATE_EXEC(cubic cubic.c)
   CREATE_EXEC(undos undos.c)
   CREATE_EXEC(qbert qbert.c)

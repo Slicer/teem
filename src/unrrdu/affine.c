@@ -23,11 +23,12 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Affine value mapping on 5 nrrds or constants"
+#define INFO "Affine (lerp) mapping on 5 nrrds or constants"
 char *_unrrdu_affineInfoL =
 (INFO
- ". All the 5 arguments can be either nrrds or single values, "
- "but at least one nrrd is required. "
+ ". All the 5 arguments can be either nrrds or single "
+ "floating-point values.  When all args are single values, this "
+ "is subsuming the functionality the stand-alone \"affine\" program. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
  "that \"-\" can probably only be used once (reliably).");
@@ -46,7 +47,7 @@ unrrdu_affineMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "Lower end of input value range.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in", airTypeOther, 1, 1, &in, NULL,
-             "Input values.",
+             "Input value.",
              NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "maxIn", airTypeOther, 1, 1, &maxIn, NULL,
              "Upper end of input value range.",
@@ -102,20 +103,33 @@ unrrdu_affineMain(int argc, const char **argv, char *me, hestParm *hparm) {
       return 1;
     }
   }
-  if (1 == nn && in->ownNrrd) {
-    E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val,
-                        minOut->val, maxOut->val, clamp);
+
+  if (0 == nn) {
+    /* actually, there are no nrrds; we represent the functionality
+       of the previous stand-alone binary "affine" */
+    double valOut;
+    valOut = AIR_AFFINE(minIn->val, in->val, maxIn->val,
+                        minOut->val, maxOut->val);
+    if (clamp) {
+      valOut = AIR_CLAMP(minOut->val, valOut, maxOut->val);
+    }
+    printf("%g\n", valOut);
   } else {
-    E = nrrdArithIterAffine(nout, minIn, in, maxIn, minOut, maxOut, clamp);
-  } 
-  if (E) {
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
-    airMopError(mop);
-    return 1;
+    /* we have a nrrd output */
+    if (1 == nn && in->ownNrrd) {
+      E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val,
+                          minOut->val, maxOut->val, clamp);
+    } else {
+      E = nrrdArithIterAffine(nout, minIn, in, maxIn, minOut, maxOut, clamp);
+    } 
+    if (E) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    SAVE(out, nout, NULL);
   }
-  
-  SAVE(out, nout, NULL);
 
   airMopOkay(mop);
   return 0;
