@@ -1,6 +1,8 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
 SET(UNRRDU_SOURCES
+  i2w.c
+  w2i.c
   1op.c
   2op.c
   3op.c

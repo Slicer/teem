@@ -105,6 +105,8 @@ typedef struct {
 #define UNRRDU_MAP(F) \
 F(about) \
 F(env) \
+F(i2w) \
+F(w2i) \
 F(make) \
 F(head) \
 F(data) \
