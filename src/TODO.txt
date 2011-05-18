@@ -16,9 +16,6 @@ Make sure the CMake and GNUMake agree on source files per-library
 
 decide if <LIB>_EXPORT should just be TEEM_EXPORT
 
-Fix the "unu dist" segfault that I discovered awhile ago (I can
-provide the input file that triggers this)
-
 --------- teem 1.9 cut-off
 
 for cmake:
