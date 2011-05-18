@@ -486,7 +486,7 @@ static double _nrrdTernaryOpMin(double a, double b, double c) {
 static double _nrrdTernaryOpMinSmooth(double x, double width, double max) {
   double tran;
   tran = max - width;
-  return (width > 0           /* using the function as intended */
+  return (tran < max          /* using the function as intended */
           ? (x < tran
              ? x
              : airErf((x-tran)*0.886226925452758/(max - tran))*(max - tran) + tran)
