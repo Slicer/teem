@@ -196,7 +196,7 @@ HEST_EXPORT char hestMultiFlagSep;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
 HEST_EXPORT void hestOptAdd(hestOpt **optP, 
-                            char *flag, char *name,
+                            const char *flag, const char *name,
                             int type, int min, int max,
                             void *valueP, const char *dflt, const char *info,
                             ... /* int *sawP, airEnum *enm , hestCB *CB */);

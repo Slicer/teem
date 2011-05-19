@@ -91,7 +91,7 @@ hestOptNew(void) {
 
 void
 hestOptAdd(hestOpt **optP, 
-           char *flag, char *name,
+           const char *flag, const char *name,
            int type, int min, int max,
            void *valueP, const char *dflt, const char *info, ...) {
   hestOpt *ret = NULL;
