@@ -312,7 +312,8 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
         info->samples[ai] = (size_t)scale[1 + 2*ai];
         break;
       }
-      memcpy(info->parm[ai], unuk->parm, NRRD_KERNEL_PARMS_NUM*sizeof(double));
+      memcpy(info->parm[ai], unuk->parm,
+             NRRD_KERNEL_PARMS_NUM*sizeof(*unuk->parm));
       if (info->kernel[ai] &&
           (!( AIR_EXISTS(nin->axis[ai].min) 
               && AIR_EXISTS(nin->axis[ai].max))) ) {
