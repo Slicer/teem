@@ -58,10 +58,10 @@ unrrdu_axmergeMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   airMopAdd(mop, nout[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nout[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-
+  
   if (axesLen > 1) {
     /* sort merge axes into ascending order */
-    qsort(axes, axesLen, sizeof(int), nrrdValCompare[nrrdTypeInt]);
+    qsort(axes, axesLen, sizeof(*axes), nrrdValCompare[nrrdTypeInt]);
   }
 
   ni = 0;
