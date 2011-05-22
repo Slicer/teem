@@ -68,8 +68,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
   size_t *size;
-  int buflen, bufLen,
-    headerOnly, pret, lineSkip, endian, type,
+  int bufLen, headerOnly, pret, lineSkip, endian, type,
     encodingType, gotSpacing, gotThickness, space, spaceDim, 
     spaceSet;
   long int byteSkip;
@@ -406,9 +405,9 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }
   if (airStrlen(kinds[0])) {
     /* have to allocate line then pass it to parsing */
-    buflen = 0;
+    bufLen = 0;
     for (ii=0; ii<sizeLen; ii++) {
-      buflen += airStrlen(" ") + airStrlen(kinds[ii]);
+      bufLen += airStrlen(" ") + airStrlen(kinds[ii]);
     }
     parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
@@ -432,9 +431,9 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }
   if (airStrlen(centerings[0])) {
     /* have to allocate line then pass it to parsing */
-    buflen = 0;
+    bufLen = 0;
     for (ii=0; ii<sizeLen; ii++) {
-      buflen += airStrlen(" ") + airStrlen(centerings[ii]);
+      bufLen += airStrlen(" ") + airStrlen(centerings[ii]);
     }
     parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
@@ -559,12 +558,11 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
       }
     }
     /* have to allocate line then pass it to parsing */
-    buflen = 0;
+    bufLen = 0;
     for (ii=0; ii<nrrd->spaceDim; ii++) {
-      buflen += airStrlen(" ") + airStrlen("\"\"") + airStrlen(spunits[ii]);
+      bufLen += airStrlen(" ") + airStrlen("\"\"") + airStrlen(spunits[ii]);
     }
-    buflen += 1;
-    parseBuf = (char *)calloc(buflen, sizeof(char));
+    parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<nrrd->spaceDim; ii++) {
