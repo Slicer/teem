@@ -323,7 +323,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
     for (ii=0; ii<nameLen; ii++) {
       bufLen += strlen(dataFileNames[ii]) + 1;
     }
-    parseBuf = (char*)calloc(bufLen + 1, sizeof(char));
+    parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<nameLen; ii++) {
@@ -410,8 +410,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
     for (ii=0; ii<sizeLen; ii++) {
       buflen += airStrlen(" ") + airStrlen(kinds[ii]);
     }
-    buflen += 1;
-    parseBuf = (char *)calloc(buflen, sizeof(char));
+    parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<sizeLen; ii++) {
@@ -437,8 +436,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
     for (ii=0; ii<sizeLen; ii++) {
       buflen += airStrlen(" ") + airStrlen(centerings[ii]);
     }
-    buflen += 1;
-    parseBuf = (char *)calloc(buflen, sizeof(char));
+    parseBuf = AIR_CALLOC(bufLen+1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
     for (ii=0; ii<sizeLen; ii++) {
