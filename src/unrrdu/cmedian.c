@@ -86,7 +86,7 @@ unrrdu_cmedianMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   if (chan) {
     nsize = nin->axis[0].size;
-    mnout = (Nrrd **)calloc(nsize, sizeof(Nrrd));
+    mnout = AIR_CALLOC(nsize, Nrrd*);
     airMopAdd(mop, mnout, airFree, airMopAlways);
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
