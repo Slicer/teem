@@ -656,14 +656,13 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
-** These reflect particulars of hardware which we're running on.
-** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
-** is that those are not by default defined for every source-file
-** compilation: the Teem library has to define NEED_ENDIAN, NEED_DIO, etc,
-** and these in turn generate appropriate compile command-line flags
-** by Common.mk. By having these defined here, they become available
-** to anyone who simply links against the air library (and includes air.h),
-** with no command-line flags required, and no usage of Common.mk required.
+** These reflect particulars of hardware which we're running on, as do
+** TEEM_ENDIAN, TEEM_DIO, etc.  The difference is that TEEM_ENDIAN etc
+** are set (by teem/src/GNUmakefile) to pass architecture-specific
+** information into compilation of source files (this is triggered by
+** setting $(L).NEED_ENDIAN in the per-library GNUmakefile). The point
+** of AIR_ENDIAN etc is to make this information externally available,
+** to anyone linking against libair (or libteem) and including air.h.
 */
 #define AIR_ENDIAN (airMyEndian)
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
