@@ -222,7 +222,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   typeSize = nrrdElementSize(nin);
   dataIn = (char *)nin->data;
   dataOut = (char *)nout->data;
-  memset(cOut, 0, NRRD_DIM_MAX*sizeof(unsigned int));
+  memset(cOut, 0, NRRD_DIM_MAX*sizeof(*cOut));
   /*
   printf("!%s: nin->dim = %d\n", me, nin->dim);
   printf("!%s: min  = %d %d %d\n", me, min[0], min[1], min[2]);
