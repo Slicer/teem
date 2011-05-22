@@ -1290,14 +1290,14 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
     if ( argcBad ||
          (E = hestParse(opt, argc, argv, &errS, parm)) ) {
       if (E) {
-        if (!strcmp(argv[0], "--version")) {
+        if (argv[0] && !strcmp(argv[0], "--version")) {
           /* print version info and bail */
           printf("Teem version %s (%s)\n",
                  airTeemVersion, airTeemReleaseDate);
           hestParmFree(parm);
           hestOptFree(opt);
           exit(0);
-        } else if (!strcmp(argv[0], "--help")) {
+        } else if (argv[0] && !strcmp(argv[0], "--help")) {
           /* actually, not an error, they were asking for help */
           E = 0;
         } else {
