@@ -644,13 +644,14 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_CAST(t, v) ((t)(v))
 
 /*
-******** AIR_CALLOC
+******** AIR_MALLOC, AIR_CALLOC
 **
-** slightly simpler wrapper around cast and calloc
+** slightly simpler wrapper around cast and malloc/calloc
 **
 ** HEY note that "T" is not guarded by parentheses in its first usage,
 ** as arguments in Teem macros normally are
 */
+#define AIR_MALLOC(N, T) (T*)(malloc((N)*sizeof(T)))
 #define AIR_CALLOC(N, T) (T*)(calloc((N), sizeof(T)))
 
 /*
