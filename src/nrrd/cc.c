@@ -351,7 +351,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     airMopError(mop); return 1;
   }
   
-  map = (unsigned int*)calloc(numid, sizeof(unsigned int));
+  map = AIR_MALLOC(numid, unsigned int);
   airMopAdd(mop, map, airFree, airMopAlways);
   numsettleid = airEqvMap(eqvArr, map, numid);
   /* convert fpid values to final id values */
@@ -685,18 +685,20 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
       nn[i] += adj[j + numid*i];
     }
   }
-  map = (unsigned int*)calloc(numid, sizeof(unsigned int));
-  id = (unsigned int*)calloc(numid, sizeof(unsigned int));
-  hit = (unsigned int*)calloc(numid, sizeof(unsigned int));
-  sizeId = (unsigned int*)calloc(2*numid, sizeof(unsigned int));
-  if (!(map && id && hit && sizeId)) {
-    biffAddf(NRRD, "%s: couldn't allocate buffers", me);
-    airMopError(mop); return 1;
-  }
+  map = AIR_MALLOC(numid, unsigned int);
+  id = AIR_MALLOC(numid, unsigned int);
+  hit = AIR_MALLOC(numid, unsigned int);
+  sizeId = AIR_MALLOC(2*numid, unsigned int);
+  /* we add to the mops BEFORE error checking so that anything non-NULL
+     will get airFree'd, and happily airFree is a no-op on NULL */
   airMopAdd(mop, map, airFree, airMopAlways);
   airMopAdd(mop, id, airFree, airMopAlways);
   airMopAdd(mop, hit, airFree, airMopAlways);
   airMopAdd(mop, sizeId, airFree, airMopAlways);
+  if (!(map && id && hit && sizeId)) {
+    biffAddf(NRRD, "%s: couldn't allocate buffers", me);
+    airMopError(mop); return 1;
+  }
   
   /* store and sort size/id pairs */
   for (i=0; i<numid; i++) {
@@ -825,7 +827,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   lup = nrrdUILookup[nin->type];
   ins = nrrdUIInsert[nin->type];
   NN = nrrdElementNumber(nin);
-  map = (unsigned int *)calloc(maxid+1, sizeof(unsigned int));
+  map = AIR_CALLOC(maxid+1, unsigned int);  /* we do need it zeroed out */
   if (!map) {
     biffAddf(NRRD, "%s: couldn't allocate internal LUT", me);
     airMopError(mop); return 1;

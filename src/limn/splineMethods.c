@@ -33,7 +33,7 @@ limnSplineTypeSpecNew(int type, ...) {
     biffAddf(LIMN, "%s: given type %d not a valid limnSplineType", me, type);
     return NULL;
   }
-  spec = (limnSplineTypeSpec *)calloc(1, sizeof(limnSplineTypeSpec));
+  spec = AIR_CALLOC(1, limnSplineTypeSpec);
   spec->type = type;
   va_start(ap, type);
   if (limnSplineTypeBC == type) {
@@ -170,7 +170,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   }
   
   mop = airMopNew();
-  if (!( spline = (limnSpline*)calloc(1, sizeof(limnSpline)) )) {
+  if (!( spline = AIR_CALLOC(1, limnSpline) )) {
     biffAddf(LIMN, "%s: couldn't allocate new spline", me);
     airMopError(mop); return NULL;
   }

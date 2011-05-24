@@ -326,7 +326,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   limnVertex *vert;
   unsigned int faceIdx, vii;
 
-  obj->faceSort = (limnFace **)calloc(obj->faceNum, sizeof(limnFace *));
+  obj->faceSort = AIR_MALLOC(obj->faceNum, limnFace *);
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     face->depth = 0;
