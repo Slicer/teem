@@ -53,6 +53,7 @@ unrrdu_padMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
              "\b\bo \"bleed\": extend border values outward\n "
+             "\b\bo \"mirror\": repeated reflections\n "
              "\b\bo \"wrap\": wrap-around to other side", 
              NULL, nrrdBoundary);
   hestOptAdd(&opt, "v,value", "val", airTypeDouble, 1, 1, &padVal, "0.0",

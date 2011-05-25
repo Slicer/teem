@@ -29,13 +29,16 @@ char *_unrrdu_resampleInfoL =
  ". Provides simplified access to nrrdSpatialResample() "
  "by assuming (among other things) that the same kernel "
  "is used for resampling "
- "every axis (every axis which is being resampled), and "
- "by assuming that the whole axis is being resampled "
- "(no cropping or padding).  Chances are, you should "
- "use defaults for \"-b\" and \"-v\" and worry only "
- "about the \"-s\" and \"-k\" options.  This resampling "
- "respects the difference between cell- and "
- "node-centered data.");
+ "every axis that is being resampled.  Only required option is "
+ "\"-s\" to specify which axes to resample and how many "
+ "output samples to generate.  Resampling kernel \"-k\" defaults "
+ "to an interpolating cubic, but many other choices are available. "
+ "Be default, resampling an axis resamples the full extent of its "
+ "samples, but it is possible to offset this range via \"-off\", "
+ "or to crop and/or pad via \"-min\" and \"-max\". "
+ "The resampling respects the difference between cell- and "
+ "node-centered data, but you can over-ride known centering "
+ "with \"-co\".");
 
 int
 unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -73,13 +76,13 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "For each axis, an offset or shift to the position (in index "
              "space) of the lower end of the sampling domain. "
              "Either -off can be used, or -min and -max "
-             "together, or none of these, so that (by default), the full "
-             "domain of the axis is resampled.",  &offLen);
+             "together, or none of these (so that, by default, the full "
+             "domain of the axis is resampled).",  &offLen);
   hestOptAdd(&opt, "min,minimum", "min0", airTypeDouble, 0, -1, &min, "",
              "For each axis, the lower end (in index space) of the domain "
              "of the resampling. Either -off can be used, or -min and -max "
-             "together, or none of these, so that (by default), the full "
-             "domain of the axis is resampled.",  &minLen);
+             "together, or none of these (so that, by default, the full "
+             "domain of the axis is resampled).",  &minLen);
   hestOptAdd(&opt, "max,maximum", "max0", airTypeDouble, 0, -1, &max, "",
              "For each axis, the upper end (in index space) of the domain "
              "of the resampling. Either -off can be used, or -min and -max "
@@ -101,23 +104,30 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "cubics:\n "
              "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
              "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
-             "\b\bo \"quartic:A\": 1-parameter family of "
-             "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
+             "\b\bo \"c4h\": 6-sample-support, C^4 continuous, accurate\n "
+             "\b\bo \"c4hai\": discrete pre-filter to make c4h interpolate\n "
+             "\b\bo \"bspl3\", \"bspl5\": cubic (same as cubic:1,0) "
+             "and quintic B-spline\n "
+             "\b\bo \"bspl3ai\", \"bspl5ai\": discrete pre-filters to make "
+             "bspl3 and bspl5 interpolate\n "
              "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
              "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
              "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
-             "S and cut-off at C standard deviations",
+             "S and cut-off at C standard deviations\n "
+             "\b\bo \"dgauss:S,C\": Lindeberg's discrete Gaussian.",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "nrn", NULL, airTypeInt, 0, 0, &norenorm, NULL,
-             "don't do per-pass kernel weight renormalization. "
-             "Doing the renormalization is not a big performance hit, and "
-             "is sometimes needed to avoid \"grating\" on non-integral "
+             "do NOT do per-pass kernel weight renormalization. "
+             "Doing the renormalization is not a performance hit (hence is "
+             "enabled by default), and the renormalization is sometimes "
+             "needed to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
   hestOptAdd(&opt, "b,boundary", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
              "\b\bo \"bleed\": extend border values outward\n "
+             "\b\bo \"mirror\": repeated reflections\n "
              "\b\bo \"wrap\": wrap-around to other side", 
              NULL, nrrdBoundary);
   hestOptAdd(&opt, "v,value", "value", airTypeDouble, 1, 1, &padVal, "0.0",
@@ -127,9 +137,9 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "the output type is the same as the input type",
              NULL, NULL, &unrrduHestMaybeTypeCB);
   hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
-             "DEPRECATED: the \"-k cheap\" option is the new (and more "
+             "[DEPRECATED: the \"-k cheap\" option is the new (and more "
              "reliable) way to access this functionality. \"-cheap\" is "
-             "only here for legacy use in combination with \"-old\".\n "
+             "only here for legacy use in combination with \"-old\".]\n "
              "When downsampling (reducing number of samples), don't "
              "try to do correct filtering by scaling kernel to match "
              "new (stretched) index space; keep it in old index space. "
@@ -143,7 +153,9 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "default centering of axes when input nrrd "
              "axes don't have a known centering: \"cell\" or \"node\" ",
              NULL, nrrdCenter);
-  hestOptAdd(&opt, "co", NULL, airTypeInt, 0, 0, &overrideCenter, NULL,
+  hestOptAdd(&opt, "co,center-override", NULL, airTypeInt, 0, 0,
+             &overrideCenter, NULL,
+             "(not available with \"-old\") "
              "centering info specified via \"-c\" should *over-ride* "
              "known centering, rather than simply be used when centering "
              "is unknown.");
