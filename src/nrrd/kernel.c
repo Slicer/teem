@@ -28,6 +28,10 @@
                              numParm  parm[0]   parm[1]   parm[2]
              nrrdKernelHann     2      scale    cut-off
          nrrdKernelBlackman     2      scale    cut-off
+         nrrdKernelBSpline3     0
+nrrdKernelBSpline3ApproxInverse 0
+         nrrdKernelBSpline5     0
+nrrdKernelBSpline5ApproxInverse 0
              nrrdKernelZero     1      scale
               nrrdKernelBox     1      scale
             nrrdKernelCheap     1      scale
@@ -39,6 +43,7 @@
          nrrdKernelAQuartic     2      scale       A
         nrrdKernelC3Quintic     1      scale
           nrrdKernelC4Hexic     1      scale
+nrrdKernelC4HexicApproxInverse  0
          nrrdKernelGaussian     2      sigma    cut-off
  nrrdKernelDiscreteGaussian     2      sigma    cut-off
         nrrdKernelTMF[][][]     1       a
