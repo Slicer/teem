@@ -36,8 +36,6 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 
 gage: re-modularize to facilitate probing bricked data
 
-nrrd: look into Pade approximations for windowed sinc() kernels
-
 make system really botched: change the size of the tenFiberContext
 (added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
 make install; make; and you'll STILL get memory errors due to seeing 
@@ -57,28 +55,13 @@ solved the problem...
 - want seperate directories for static and shared libraries
 - want bin/dev and bin/install targets
 
-nrrd: add fft support
-nrrd: add support for VFF file format
-nrrd: add support for NIFTI-1 file format
-
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
   and then enable the ftell() check after PNG magic read
 
-nrrd: generalize I/O so that magic needn't be on line by itself
-
 bin/unu: valgrid parsing of encoding stuff
 
 fix "gkms pvg": try to reproduce problem with mouse data
-
-qbert: downsmpl x+y, upsmplpad on Z error about unequal centers
-
-qbert on cygwin: running out of memory w/out error
-
-tend epireg: figure out how to do fitting without HST estimation
-
-mite big changes -----------------
-- do precomputation of opacity volume when required for tensor shading
 
 gage changes into bane:
 teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
@@ -86,7 +69,6 @@ teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
 - try gkms hvol with three explicit ranges
 - remove excess NULL pointer checks between answer and answer wrapper
 - valgrind
-
 
 finish big changes
 - ADD gkms back into teem bins!
@@ -110,17 +92,10 @@ Why not? I hate this crap.
 
 debug rendering of ML with windowed sinc
 
-hest: add { } commenting
-
-nrrd: have to add more internal types to stuff in arith.c for these:
-new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
-new nrrdUnaryOps: bit-wise not (^), expm1
-
+hest: add # commenting
 
 SEGFAULT:  in muse/usr/sci/data/Medical/cat-array/bisti/rend
 gkms hvol -s a:-1200,6000 a:0,3100 a:-1000,1000 -i CFC.nrrd -o CFC-hvol.nrrd 
-
-nrrd: speed up nrrdCCFind
 
 bane: finish updating tutorial
 
@@ -133,12 +108,6 @@ Banks's policy.txt:
 image registration tool for small translational errors
 
 air: make floating point stuff more like C++: lots of per-arch #defines
-
-echo: test textured lights
-
-bin/emap: allow generating envmaps useful for specular highlights
-
-mite: add diffuse and specular envmap
 
 make: figure out shared libraries on cygwin.
 make: Test that shared libraries work everywhere they should.
@@ -154,8 +123,6 @@ dye: colormaps
 dye: hest callbacks
 
 air:  think about implementing a fabs() and dabs() with bitmasking
-
-nrrd: figure out some framework for lazy evaluation stuff
 
 write a paper about nrrd!
 include a list of published papers using teem:
