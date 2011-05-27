@@ -33,7 +33,17 @@ meetBiffKey = "meet";
 **
 ** It would be better if this array could be created at compile-time,
 ** but efforts at doing this resulted in lots of "initializer is not const"
-** errors...
+** errors.
+**
+** NOTE: the order here reflects the library ordering of the LIBS
+** variable in teem/src/GNUMakefile, which is the canonical dependency
+** ordering of the libraries.  Can manually check completeness by:
+
+grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite}/*.h | grep EXPORT | more
+
+** could grep specifically for "const airEnum *const", but its good to
+** use this time to also make sure that all public airEnums are 
+** const airEnum *const.
 */
 const airEnum **
 meetAirEnumAll() {
@@ -42,10 +52,16 @@ meetAirEnumAll() {
   unsigned int ii;
 
   arr = airArrayNew(AIR_CAST(void **, &enm), NULL, sizeof(airEnum *), 2);
+
+  /* air */
   ii = airArrayLenIncr(arr, 1); enm[ii] = airEndian;
   ii = airArrayLenIncr(arr, 1); enm[ii] = airBool;
+
   /* hest: no airEnums */
+
   /* biff: no airEnums */
+
+  /* nrrd */
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdEncodingType;
@@ -59,33 +75,56 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdUnaryOp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBinaryOp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdTernaryOp;
+
+  /* ell */
   ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
+
   /* unrrdu: no airEnums */
-  /* dye: no airEnums */
+
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  /* moss: no airEnums */
+  /* alan */
   ii = airArrayLenIncr(arr, 1); enm[ii] = alanStop;
-  /* tijk: no airEnums */
-  /* elf: no airEnums */
 #endif
+
+  /* moss: no airEnums */
+
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  /* tijk: no airEnums */
+#endif
+
+  /* gage */
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageErr;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageKernel;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
+
+  /* dye: no airEnums */
+
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  /* bane */
   ii = airArrayLenIncr(arr, 1); enm[ii] = baneGkmsMeasr;
 #endif
+
+  /* limn */
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnSpace;
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnPolyDataInfo;
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnCameraPathTrack;
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnPrimitive;
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineInfo;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = seekType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = hooverErr;
+
+  /* echo */
   ii = airArrayLenIncr(arr, 1); enm[ii] = echoJitter;
   ii = airArrayLenIncr(arr, 1); enm[ii] = echoType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = echoMatter;
+
+  /* hoover */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = hooverErr;
+
+  /* seek */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = seekType;
+
+  /* ten */
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenAniso;
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenInterpType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenGage;
@@ -98,20 +137,37 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenEstimate2Method;
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenTripleType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiGage;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = miteVal;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = miteStageOp;
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  ii = airArrayLenIncr(arr, 1); enm[ii] = coilMethodType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = coilKindType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pushEnergyType;
-#endif
+
+  /* elf: no airEnums */
+
+  /* pull */
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullEnergyType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInfo;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullSource;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullCount;
+
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  /* coil */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = coilMethodType;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = coilKindType;
+
+  /* push */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pushEnergyType;
+#endif
+
+  /* mite */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = miteVal;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = miteStageOp;
+
+  /* meet: no new aiEnums of its own */
+
+  /* NULL-terminate the list */
   ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
+
+  /* nix, not nuke the airArray */
   airArrayNix(arr);
   return enm;
 }
