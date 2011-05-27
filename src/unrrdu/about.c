@@ -50,7 +50,7 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "vector fields (5-D arrays), and more.  Currently supported formats are "
     "plain text files (2-D float arrays), "
     "NRRD, VTK structured points, and PNG and PNM images.  "
-    "\"unu make -bs -1\" can read from DICOM files.  "
+    "\"unu make -bs -1\" can read from most DICOM files.  "
     "\"unu save\" can generate EPS files. "
     "Supported encodings are raw, ascii, hex, gzip, and bzip2.\n";
   char par3[] = "\t\t\t\t"
@@ -67,14 +67,11 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "  | unu heq -b 2000 -s 1 \\\n "
     "  | unu quantize -b 8 -o zsum.png"
     "\n";
-  /* blah blah blah
   char par5[] = "\t\t\t\t"
-    "Nrrd and unu have proven effective for processing "
-    "image and volume datasets, offering generality of type "
-    "and dimension, with minimal overhead for getting data in and out, "
-    "and a file format and data structure that represents important "
-    "essential meta-information.\n";
-  */
+    "The documentation for each unu command includes information about "
+    "the underling nrrd library calls that provide the essential "
+    "functionality. For example, \"unu slice\" indicates that it is based "
+    "on the nrrdSlice function in the nrrd library.\n";
   char par6[] = "\t\t\t\t"
     "If unu or nrrd repeatedly proves itself useful for your research, an "
     "acknowledgment to that effect in your publication would be greatly "
@@ -106,7 +103,7 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
   _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
   _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
   _hestPrintStr(stdout, 2, 0, 78, par4, AIR_FALSE);
-  /* _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE); */
+  _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE); 
   _hestPrintStr(stdout, 1, 0, 78, par6, AIR_FALSE);
   /* _hestPrintStr(stdout, 1, 0, 78, par8, AIR_FALSE); */
 
