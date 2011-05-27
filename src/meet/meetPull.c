@@ -199,7 +199,7 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   mpvP = AIR_CAST(meetPullVol **, ptr);
   *mpvP = mpv = meetPullVolNew();
   airMopAdd(mop, mpvP, (airMopper)airSetNull, airMopOnError);
-  airMopAdd(mop, mpv, (airMopper)meetPullVolNuke, airMopOnError);
+  airMopAdd(mop, mpv, (airMopper)meetPullVolNix, airMopOnError);
   if (meetPullVolParse(mpv, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
@@ -217,7 +217,7 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 ** this frees stuff allocated meetPullVolParse and meetPullVolLoadMulti
 */
 meetPullVol *
-meetPullVolNuke(meetPullVol *mpv) {
+meetPullVolNix(meetPullVol *mpv) {
 
   if (mpv) {
     if (!mpv->leeching && mpv->nin) {
@@ -249,7 +249,7 @@ _meetHestPullVol = {
   sizeof(meetPullVol *),
   "meetPullVol",
   meetHestPullVolParse,
-  (airMopper)meetPullVolNuke,
+  (airMopper)meetPullVolNix,
 }; 
 
 hestCB *
