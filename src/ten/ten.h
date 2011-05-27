@@ -136,7 +136,10 @@ enum {
   tenGlyphTypeSphere,     /* 2 */
   tenGlyphTypeCylinder,   /* 3 */
   tenGlyphTypeSuperquad,  /* 4 */
-  tenGlyphTypeBetterquad, /* 5 */
+  tenGlyphTypeBetterquad, /* 5: for T Schultz, GL Kindlmann.
+                             Superquadric Glyphs for Symmetric
+                             Second-Order Tensors. IEEE TVCG
+                             Nov/Dec 2010, 16(6):1595-1604 */
   tenGlyphTypePolarPlot,  /* 6 */
   tenGlyphTypeLast
 };
