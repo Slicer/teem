@@ -26,8 +26,9 @@ char *invInfo = ("Tests ell_Nm_inv and ell_Nm_pseudo_inv, "
                  "and ell_{3,4}inv_d where possible ");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *outS, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *outS, *err;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

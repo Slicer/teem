@@ -74,8 +74,8 @@ char *info = ("quaternion geo-lox hacking.  Actually all this does is "
               "geodesic part.");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 

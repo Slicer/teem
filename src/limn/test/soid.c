@@ -26,8 +26,9 @@
 char *info = ("Save a single ellipsoid or superquadric into an OFF file.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *outS;
   float p[3], q[4], mR[9], eval[3]={0,0,0}, scale[3], len, sh, cl, cp, qA, qB;
   float matA[16], matB[16], os, rad, AB[2];
   hestOpt *hopt=NULL;

@@ -23,8 +23,8 @@
 #include "../moss.h"
 
 int
-main(int argc, char *argv[]) {
-  char *me, *info="inverts a moss transform";
+main(int argc, const char *argv[]) {
+  const char *me, *info="inverts a moss transform";
   hestOpt *hopt=NULL;
   double *mat, inv[6];
   

@@ -94,8 +94,9 @@ genvolFunc(double x, double y, double z) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *out;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *out;
   int size[3], xi, yi, zi;
   hestOpt *hopt;
   hestParm *hparm;

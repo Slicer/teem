@@ -52,8 +52,9 @@ char *info = ("Test limnSplines by drawing postscript curves. "
               "The output is written to standard out.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   limnSpline *spline, *warp;
   hestOpt *hopt=NULL;
   airArray *mop;

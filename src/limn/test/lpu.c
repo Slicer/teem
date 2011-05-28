@@ -27,9 +27,10 @@
 /* massive copy and paste from teem/src/bin/tend.c ... */
 
 int
-main(int argc, char **argv) {
+main(int argc, const char **argv) {
   int i, ret;
-  char *me, *argv0 = NULL, *err;
+  const char *me;
+  char *err, *argv0 = NULL;
   hestParm *hparm;
   airArray *mop;
 

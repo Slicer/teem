@@ -50,8 +50,9 @@ test/tbc -s 0.95 -i s.txt -loop -n 13 -m 800 -t 55 170 > ! out.ps
 char *info = ("Visualize the space of BC cubics with a spline.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   limnSpline *spline;
   hestOpt *hopt=NULL;
   airArray *mop;

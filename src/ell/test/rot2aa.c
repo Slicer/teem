@@ -26,8 +26,9 @@ char *rot2aaInfo = ("converts a list of rotation matrices to a list of "
                     "angle axis specifications");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *outS, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *outS, *err;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

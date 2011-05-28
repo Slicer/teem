@@ -25,8 +25,8 @@
 char *es6Info = ("Tests ell_6ms_eigensolve_d");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

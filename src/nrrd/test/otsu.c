@@ -25,8 +25,8 @@
 char *otsuInfo = ("demonstrates nrrd's Otsu thresholding");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

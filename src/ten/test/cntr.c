@@ -27,8 +27,9 @@ char *info = ("does contraction between 2 2nd-order "
               "and 1 4rth-order tensor.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
 

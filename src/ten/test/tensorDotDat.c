@@ -26,8 +26,9 @@
 char *info = ("Compute the makings of a new tensor.dat file.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
 

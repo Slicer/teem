@@ -292,8 +292,8 @@ testeigen(double tt[7], double eval[3], double evec[9]) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 

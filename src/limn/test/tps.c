@@ -26,8 +26,9 @@
 char *info = ("Render something in postscript.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *outS;
   limnCamera *cam;
   float matA[16], matB[16], winscale, edgeWidth[5];
   hestOpt *hopt=NULL;

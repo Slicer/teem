@@ -28,8 +28,8 @@ char *info = ("Save a triangular piece of an image to an EPS file. "
               "-0 u:0,1 -b pad -bg 0 before you use this. ");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
 

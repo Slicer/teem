@@ -156,8 +156,9 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *out;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *out;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

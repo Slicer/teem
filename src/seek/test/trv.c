@@ -66,8 +66,9 @@ hestCB probeKindHestCB = {
 }; 
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
 
@@ -81,8 +82,8 @@ main(int argc, char *argv[]) {
   unsigned int ncc;
   size_t samples[3];
   gageKind *kind;
-  char *itemGradS, *itemEvalS[2], *itemEvecS[2];
-  int itemGrad, itemEval[2], itemEvec[2];
+  char *itemGradS; /* , *itemEvalS[2], *itemEvecS[2]; */
+  int itemGrad; /* , itemEval[2], itemEvec[2]; */
   int E;
   
   me = argv[0];

@@ -26,8 +26,9 @@
 char *info = ("Test EM bimodal histogram fitting.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
   Nrrd *nhisto;

@@ -28,8 +28,9 @@ char *info = ("dumb little demonstration of calculating the "
               "from, at, and up locations.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   limnCamera *cam;
   float mat[16];
   hestOpt *hopt=NULL;

@@ -126,8 +126,9 @@ wheelEpilog(wheelPS *wps) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *outS;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

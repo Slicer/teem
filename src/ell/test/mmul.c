@@ -25,8 +25,9 @@
 char *mulInfo = ("Tests ell_Nm_mul");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *outS, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *outS, *err;
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;

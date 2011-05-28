@@ -33,8 +33,9 @@ quadFunc(float x, float y, float z, float A, float B, float off) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *out;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *out;
   int size[3], xi, yi, zi;
   hestOpt *hopt;
   hestParm *hparm;

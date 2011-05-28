@@ -25,8 +25,9 @@
 char *info = ("test stupid cubes isosurfaces.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
   limnPolyData *pld;

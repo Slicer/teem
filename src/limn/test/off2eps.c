@@ -26,8 +26,9 @@
 char *info = ("Renders an OFF file to an EPS file.");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *inS, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *inS, *outS;
   limnCamera *cam;
   float bg[3], winscale, edgeWidth[5], creaseAngle;
   hestOpt *hopt=NULL;

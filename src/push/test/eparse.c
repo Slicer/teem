@@ -26,8 +26,8 @@
 char *info = ("Tests parsing of energy, and its methods.");
 
 int
-main(int argc, char *argv[]) {
-  char *me;
+main(int argc, const char *argv[]) {
+  const char *me;
   hestOpt *hopt=NULL;
   airArray *mop;
   

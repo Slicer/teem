@@ -23,11 +23,12 @@
 
 #include "../ten.h"
 
-char *info = ("does stupid geodesics");
+char *info = ("does geodesics");
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
 

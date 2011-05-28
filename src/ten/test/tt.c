@@ -119,8 +119,9 @@ washQtoM3(double m[9], double q[4]) {
 }
 
 int
-main(int argc, char *argv[]) {
-  char *me, *err, *outS;
+main(int argc, const char *argv[]) {
+  const char *me;
+  char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
   
