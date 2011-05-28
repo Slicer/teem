@@ -1,23 +1,32 @@
 
-Things for Gordon to do with each teem release:
+GLK's list of things to do for each release.  This started with an
+early version of Teem and has been only partially maintained since
+then; consider it a work-in-progress ...
 
--3.5) make sure that teem/src/meet/meetAirEnumAll() is up-to-date
+-3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
+ is up-to-date
 
--3) make sure that all the files have the right pre-ambles
+-3) make sure that all the files have the right copyright
+pre-ambles
 
 -2.5) make sure that there are no DOS files
+find . -name \*.c -exec undos -n {}  \;
+find . -name \*.h -exec undos -n {}  \;
+find . -name \*.txt -exec undos -n {} \;
 
 -2) make sure there are no tabs:
 cat > tab.txt
 (tab) (return)
 ^D
 
-find . -name \*.c -exec grep -f tab.txt {} \; -print
-find . -name \*.h -exec grep -f tab.txt {} \; -print
-find . -name \*.txt -exec grep -f tab.txt {} \; -print
+find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more
+find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
+find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt
 
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
+
+-0.5) regenerate teem/python/ctypes/teem.py
 
 0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
