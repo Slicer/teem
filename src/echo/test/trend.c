@@ -373,7 +373,7 @@ makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
 void
 makeSceneGlassTest(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *cube, *rect, *inst;
-  echoCol_t r, g, b;
+  echoCol_t r=0, g=0, b=0;
   Nrrd *ntext;
   int i, N;
   echoPos_t ma[16], mb[16];
@@ -789,7 +789,7 @@ makeSceneRainLights(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *sphere, *rect;
   int i, N;
   echoPos_t w;
-  float r, g, b;
+  float r=0, g=0, b=0;
 
   ELL_3V_SET(cam->from, 2.5, 0, 5);
   ELL_3V_SET(cam->at,   0, 0, 0);
