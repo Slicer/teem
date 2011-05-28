@@ -36,7 +36,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   const double *ans[2];
   Nrrd *nout[2];
   airArray *mop;
-  unsigned int sx, sy, sz, xi, yi, zi, anslen, this, last, inIdx, iter;
+  unsigned int sx, sy, sz, xi, yi, zi, anslen, this=0, last, inIdx, iter;
   int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
