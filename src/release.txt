@@ -1,6 +1,8 @@
 
 Things for Gordon to do with each teem release:
 
+-3.5) make sure that teem/src/meet/meetAirEnumAll() is up-to-date
+
 -3) make sure that all the files have the right pre-ambles
 
 -2.5) make sure that there are no DOS files
@@ -30,31 +32,43 @@ sftp kindlmann,teem@web.sourceforge.net
 is one way of putting files onto the web server
 
 1) Check namespace safety
-  a) Make sure all library symbols are properly prefixed.  On linux,
-  this should return nothing (actually this shows lots of Bzip2 stuff, why?):
-  cd teem/linux.32/lib
-  nm libteem.so \
-  | grep -v "gcc2_compiled." | grep -v " U " | grep -v " A " \
-  | grep -v " t Letext" \
-  | grep -v " air" | grep -v " _air" \
-  | grep -v " hest" | grep -v " _hest" \
-  | grep -v " biff" | grep -v " _biff" \
-  | grep -v " ell" | grep -v " _ell" \
-  | grep -v " nrrd" | grep -v " _nrrd" \
-  | grep -v " unrrdu" | grep -v " _unrrdu" \
-  | grep -v " dye" | grep -v " _dye" \
-  | grep -v " moss" | grep -v " _moss" \
-  | grep -v " gage" | grep -v " _gage" \
-  | grep -v " bane" | grep -v " _bane" \
-  | grep -v " limn" | grep -v " _limn" \
-  | grep -v " hoover" | grep -v " _hoover" \
-  | grep -v " mite" | grep -v " _mite" \
-  | grep -v " alan" | grep -v " _alan" \
-  | grep -v " coil" | grep -v " _coil" \
-  | grep -v " ten" | grep -v " _ten" \
-  | grep -v " echo" | grep -v " _echo" \
-  | grep -v " push" | grep -v " _push"
-  b) Make sure #defines in header files are properly prefixed:
+  a) Make sure all library symbols are properly prefixed.
+  On a 32-bit Mac, this should return nothing:
+
+  cd ~/teem/arch/darwin.32/lib
+  nm libteem.a \
+   | grep -v "libteem.a(" \
+   | grep -v "         U " \
+   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ t\  \
+   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ s\  \
+   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ d\  \
+   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ b\  \
+   | grep -v " _air"    | grep -v " __air" \
+   | grep -v " _hest"   | grep -v " __hest" \
+   | grep -v " _biff"   | grep -v " __biff" \
+   | grep -v " _nrrd"   | grep -v " __nrrd" \
+   | grep -v " _ell"    | grep -v " __ell" \
+   | grep -v " _unrrdu" | grep -v " __unrrdu" \
+   | grep -v " _alan"   | grep -v " __alan" \
+   | grep -v " _moss"   | grep -v " __moss" \
+   | grep -v " _tijk"   | grep -v " __tijk" \
+   | grep -v " _gage"   | grep -v " __gage" \
+   | grep -v " _dye"    | grep -v " __dye" \
+   | grep -v " _bane"   | grep -v " __bane" \
+   | grep -v " _limn"   | grep -v " __limn" \
+   | grep -v " _echo"   | grep -v " __echo" \
+   | grep -v " _hoover" | grep -v " __hoover" \
+   | grep -v " _seek"   | grep -v " __seek" \
+   | grep -v " _ten"    | grep -v " __ten" \
+   | grep -v " _elf"    | grep -v " __elf" \
+   | grep -v " _mite"   | grep -v " __mite" \
+   | grep -v " _pull"   | grep -v " __pull" \
+   | grep -v " _coil"   | grep -v " __coil" \
+   | grep -v " _push"   | grep -v " __push" \
+   | grep -v " _mite"   | grep -v " __mite" \
+   | grep -v " _meet"   | grep -v " __meet" \
+   | uniq
+
   cd ../../include
   grep #define teem/*.h | grep -v _export \
   | grep -v " echo" | grep -v " ell" | grep -v " gage" \
