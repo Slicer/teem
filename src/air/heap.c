@@ -125,7 +125,7 @@ airHeap *airHeapNew(size_t dataUnit, unsigned int incr) {
 
   if (h->key_a==NULL || (dataUnit>0 && h->data_a==NULL) || h->idx_a==NULL ||
       h->invidx_a==NULL) { /* allocation failed (partly) */
-    airHeapNuke(h);
+    airHeapNix(h);
     return NULL;
   }
   return h;
@@ -143,7 +143,7 @@ airHeap *airHeapFromArray(const airArray *key, const airArray *data) {
     return NULL; /* unusable input */
   h = airHeapNew((data==NULL)?0:data->unit, key->incr);
   if (heapLenIncr (h, key->len)) { /* could not allocate memory */
-    airHeapNuke(h);
+    airHeapNix(h);
     return NULL;
   }
   memcpy(h->key, key->data, key->len*sizeof(double));
@@ -157,7 +157,7 @@ airHeap *airHeapFromArray(const airArray *key, const airArray *data) {
 }
 
 /* Frees all memory associated with the heap and its data */
-airHeap *airHeapNuke(airHeap *h) {
+airHeap *airHeapNix(airHeap *h) {
   if (h!=NULL) {
     airArrayNuke(h->key_a);
     if (h->data_a!=NULL) airArrayNuke(h->data_a);

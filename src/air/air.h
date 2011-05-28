@@ -229,7 +229,7 @@ typedef struct {
 
 AIR_EXPORT airHeap *airHeapNew(size_t dataUnit, unsigned int incr);
 AIR_EXPORT airHeap *airHeapFromArray(const airArray *key, const airArray *data);
-AIR_EXPORT airHeap *airHeapNuke(airHeap *h);
+AIR_EXPORT airHeap *airHeapNix(airHeap *h);
 
 AIR_EXPORT unsigned int airHeapLength(const airHeap *h);
 AIR_EXPORT unsigned int airHeapInsert(airHeap *h, double key, const void *data);

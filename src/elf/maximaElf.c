@@ -142,7 +142,7 @@ int elfMaximaFind_d(double **ls, double **vs, const double *ten,
       (*ls)[i]=-airHeapFrontPop(heap, (*vs)+3*i);
     }
   }
-  heap=airHeapNuke(heap);
+  heap=airHeapNix(heap);
   free(vals);
   return retval;
 }
@@ -192,7 +192,7 @@ int elfMaximaFind_f(float **ls, float **vs, const float *ten,
       (*ls)[i]=-airHeapFrontPop(heap, (*vs)+3*i);
     }
   }
-  heap=airHeapNuke(heap);
+  heap=airHeapNix(heap);
   free(vals);
   return retval;
 }
