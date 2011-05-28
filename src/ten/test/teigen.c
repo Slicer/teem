@@ -48,8 +48,8 @@ char *info = ("tests tenEigensolve_d and new stand-alone function.");
    (v1)[1] -= (v2)[1], \
    (v1)[2] -= (v2)[2])
 #define VEC_SCL(v1, s)  \
-  ((v1)[0] *= (s),	\
-   (v1)[1] *= (s),	\
+  ((v1)[0] *= (s),      \
+   (v1)[1] *= (s),      \
    (v1)[2] *= (s))
 #define VEC_LEN(v) (sqrt(VEC_DOT(v,v)))
 #define VEC_NORM(v, len) ((len) = VEC_LEN(v), VEC_SCL(v, 1.0/len))
@@ -70,7 +70,7 @@ char *info = ("tests tenEigensolve_d and new stand-alone function.");
 */
 void
 nullspace1(double ret[3], 
-	   const double r0[3], const double r1[3], const double r2[3]) {
+           const double r0[3], const double r1[3], const double r2[3]) {
   double crs[3];
   
   /* ret = r0 x r1 */
@@ -101,7 +101,7 @@ nullspace1(double ret[3],
 */
 void
 nullspace2(double reta[3], double retb[3],
-	   const double r0[3], const double r1[3], const double r2[3]) {
+           const double r0[3], const double r1[3], const double r2[3]) {
   double sqr[3], sum[3];
   int idx;
 
@@ -188,9 +188,9 @@ evals(double eval[3],
 
 int
 evals_evecs(double eval[3], double evec[9],
-	    const double _M00, const double _M01, const double _M02, 
-	    const double _M11, const double _M12, 
-	    const double _M22) {
+            const double _M00, const double _M01, const double _M02, 
+            const double _M11, const double _M12, 
+            const double _M22) {
   double r0[3], r1[3], r2[3], crs[3], len, dot;
 
 #include "teigen-evals-A.c"
@@ -343,9 +343,9 @@ main(int argc, const char *argv[]) {
   printf("================== new eigensolve ==================\n");
   roots = evals(evalB, tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
   printf("%s roots: %g %g %g\n", airEnumStr(ell_cubic_root, roots),
-	 evalB[0], evalB[1], evalB[2]);
+         evalB[0], evalB[1], evalB[2]);
   roots = evals_evecs(evalB, evecB,
-		      tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
+                      tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
   printf("%s roots\n", airEnumStr(ell_cubic_root, roots));
   testeigen(tt, evalB, evecB);
 

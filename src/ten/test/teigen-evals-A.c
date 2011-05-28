@@ -25,8 +25,8 @@
   ** this too seems to help with stability
   */
   norm = sqrt(M00*M00 + 2*M01*M01 + 2*M02*M02 +
-	      M11*M11 + 2*M12*M12 +
-	      M22*M22);
+              M11*M11 + 2*M12*M12 +
+              M22*M22);
   rnorm = norm ? 1.0/norm : 1.0;
   M00 *= rnorm;
   M01 *= rnorm;

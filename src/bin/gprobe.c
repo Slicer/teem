@@ -262,8 +262,8 @@ main(int argc, const char *argv[]) {
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
-	     NULL, "If only per-axis spacing is available, use that to "
-	     "contrive full orientation info");
+             NULL, "If only per-axis spacing is available, use that to "
+             "contrive full orientation info");
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "RNG seed; mostly for debugging");
 

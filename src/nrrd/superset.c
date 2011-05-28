@@ -464,7 +464,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
                          nin, ai, AIR_CAST(double, min[ai]), 
-						 AIR_CAST(double, max[ai]));
+                         AIR_CAST(double, max[ai]));
     if (!nrrdStateKindNoop && nout->axis[ai].size == nin->axis[ai].size) {
       /* nothing changed along this axis; the kind should be preserved */
       nout->axis[ai].kind = nin->axis[ai].kind;
@@ -508,7 +508,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
       nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                             1.0, nout->spaceOrigin,
                             AIR_CAST(double, min[ai]), 
-							nin->axis[ai].spaceDirection);
+                            nin->axis[ai].spaceDirection);
     }
   }
 

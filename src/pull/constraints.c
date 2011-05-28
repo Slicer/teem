@@ -483,7 +483,7 @@ _wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
     double md;
     if (!(task && point)) {
       /* rare use of biff for error that can only happen due to 
-	 bugs in pull, rather than system-achievable configurations */
+         bugs in pull, rather than system-achievable configurations */
       biffAddf(PULL, "%s: have mode, but got NULL task %p or point %p", me,
                task, point);
       return 1;
@@ -588,7 +588,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     */
 
     if (_wantLineOrSurf(&wantLine, &wantSurf, &mode,
-			task->pctx, task, point)) {
+                        task->pctx, task, point)) {
       biffAddf(PULL, "%s: trouble", me);
       return 1;
     }

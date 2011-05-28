@@ -159,8 +159,8 @@ main(int argc, const char *argv[]) {
              "0.0", "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
   hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
-	     NULL, "If only per-axis spacing is available, use that to "
-	     "guess orientation info");
+             NULL, "If only per-axis spacing is available, use that to "
+             "guess orientation info");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output array, when probing on polydata vertices");
   hestParseOrDie(hopt, argc-1, argv+1, hparm,

@@ -224,7 +224,7 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   ELL_3M_SCALE(m, scale, _m);
   /*
   printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "ell_3m_eigenvalues_d", 
-	 m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
+         m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
   */
   /* 
   ** from gordon with mathematica; these are the coefficients of the

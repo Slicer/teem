@@ -142,7 +142,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                           1.0, nin->spaceOrigin,
                           AIR_CAST(double, pos), 
-						  nin->axis[saxi].spaceDirection);
+                          nin->axis[saxi].spaceDirection);
   } else {
     nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
   }

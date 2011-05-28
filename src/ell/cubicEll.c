@@ -62,7 +62,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   D = R*R - QQQ;
   /*
   printf(" R = %15.30f\n Q = %15.30f\n QQQ = %15.30f\n D = %15.30f\n",
-	 R, Q, QQQ, D);
+         R, Q, QQQ, D);
   */
   if (D < -epsilon) {
     /* three distinct roots- this is the most common case, it has 

@@ -24,10 +24,10 @@
 #include "privatePull.h"
 
 #define _DECREASE(ell, enn) (           \
-  2*((ell) - (enn))            \
-  / ( (AIR_ABS(ell) + AIR_ABS(enn))          \
-      ? (AIR_ABS(ell) + AIR_ABS(enn))          \
-      : 1 )				       \
+  2*((ell) - (enn))                     \
+  / ( (AIR_ABS(ell) + AIR_ABS(enn))     \
+      ? (AIR_ABS(ell) + AIR_ABS(enn))   \
+      : 1 )                             \
   )
 /*
 ** this is the core of the worker threads: as long as there are bins
@@ -237,8 +237,8 @@ _pullIterate(pullContext *pctx, int mode) {
   }
   if (pctx->verbose) {
     printf("%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
-	   me, airEnumStr(pullProcessMode, mode),
-	   pctx->iter, pctx->sysParm.energyIncreasePermit,
+           me, airEnumStr(pullProcessMode, mode),
+           pctx->iter, pctx->sysParm.energyIncreasePermit,
            pullPointNumber(pctx), _pullEnergyTotal(pctx),
            (pctx->flag.permuteOnRebin ? " (por)" : ""));
   }
@@ -425,7 +425,7 @@ pullRun(pullContext *pctx) {
     }
     if (converged && pctx->verbose) {
       printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
-	     enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
+             enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->sysParm.opporStepScale);
     /* call the callback */

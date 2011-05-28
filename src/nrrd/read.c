@@ -45,7 +45,7 @@ unsigned int
 _nrrdHeaderStringOneLineStrlen(NrrdIoState *nio) {
 
   return AIR_CAST(unsigned int, 
-	  strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
+                  strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
 }
 
 /*
@@ -60,7 +60,7 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
   nio->line[len1] = '\0';
   nio->headerStrpos += len1;
   len2 = AIR_CAST(unsigned int, 
-	  strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
+                  strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
   nio->headerStrpos += len2;
   return len1;
 }
