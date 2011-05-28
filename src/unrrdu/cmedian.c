@@ -34,7 +34,9 @@ char *_unrrdu_cmedianInfoL =
  "of bins in the histogram, which probably means a loss of precision for "
  "anything except 8-bit data.  Also, integral values can be recovered "
  "exactly only when the number of bins is exactly min-max+1 (as reported "
- "by \"unu minmax\"). ");
+ "by \"unu minmax\").\n "
+ "(Based on nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
+ "case of \"-c\")");
 
 int
 unrrdu_cmedianMain(int argc, const char **argv, char *me, hestParm *hparm) {

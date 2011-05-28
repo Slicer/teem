@@ -32,7 +32,8 @@ char *_unrrdu_convertInfoL =
  "clamping values to the representable range of the output type is possible. "
  "with \"-clamp\". "
  "See also \"unu quantize\","
- "\"unu 2op x\", and \"unu 3op clamp\".");
+ "\"unu 2op x\", and \"unu 3op clamp\".\n "
+ "(Based on: nrrdConvert, nrrdClampConvert)");
 
 int
 unrrdu_convertMain(int argc, const char **argv, char *me, hestParm *hparm) {

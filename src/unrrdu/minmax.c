@@ -27,7 +27,8 @@
 char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
  "prints to standard out the min and max values found in the input nrrd(s), "
- "and it also indicates if there are non-existant values.");
+ "and it also indicates if there are non-existant values.\n "
+ "(Based on nrrdRangeNewSet)");
 
 int
 unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
@@ -69,8 +70,9 @@ unrrdu_minmaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              "false", /* NOTE: not using nrrdStateBlind8BitRange here 
                          for consistency with previous behavior */
-             "whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127])");
+             "whether to blindly assert the range of 8-bit data, "
+             "without actually going through the data values, i.e. "
+             "uchar is always [0,255], signed char is [-128,127]");
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
              "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);

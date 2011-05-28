@@ -38,7 +38,8 @@ char *_unrrdu_resampleInfoL =
  "or to crop and/or pad via \"-min\" and \"-max\". "
  "The resampling respects the difference between cell- and "
  "node-centered data, but you can over-ride known centering "
- "with \"-co\".");
+ "with \"-co\".\n "
+ "(Based on nrrdResample* functions around nrrdResampleContext)");
 
 int
 unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
