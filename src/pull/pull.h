@@ -69,8 +69,6 @@ extern "C" {
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM 20000000 /* sanity check on max number bins */
-#define POINT_NUM_INCR 1024
-
 #define PULL_PHIST 0
 
 /*
