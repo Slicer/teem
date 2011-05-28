@@ -39,11 +39,12 @@ meetBiffKey = "meet";
 ** variable in teem/src/GNUMakefile, which is the canonical dependency
 ** ordering of the libraries.  Can manually check completeness by:
 
-grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite}/*.h | grep EXPORT | more
+grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite}/?*.h | grep EXPORT | more
 
-** could grep specifically for "const airEnum *const", but its good to
-** use this time to also make sure that all public airEnums are 
-** const airEnum *const.
+** (with the ? in "}/?*.h" to stop warnings about / * inside comment)
+** We could grep specifically for "const airEnum *const", but its good to
+** use this occasion to also make sure that all public airEnums are 
+** indeed const airEnum *const
 */
 const airEnum **
 meetAirEnumAll() {
