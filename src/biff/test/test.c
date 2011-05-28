@@ -77,18 +77,18 @@ main() {
   printf("=================================\n");
   msg1 = biffMsgNew("roberts");
   biffMsgAdd(msg1, "biffMsgAdd hello, said roberts");
-  biffMsgAdd_va(msg1, "biffMsgAdd_va: there's an int %d and a float %g", 
-                42, AIR_PI);
+  biffMsgAddf(msg1, "biffMsgAddf: there's an int %d and a float %g", 
+              42, AIR_PI);
   s1 = biffMsgStrGet(msg1);
   printf("from msg1:\n%s", s1);
   s1 = airFree(s1);
   msg2 = biffMsgNew("sue");
   biffMsgAdd(msg2, "biffMsgAdd hi from sue");
-  biffMsgAdd_va(msg2, "biffMsgAdd_va: another float %g", AIR_PI*AIR_PI);
+  biffMsgAddf(msg2, "biffMsgAddf: another float %g", AIR_PI*AIR_PI);
   s2 = biffMsgStrGet(msg2);
   printf("from msg2:\n%s", s2);
   s2 = airFree(s2);
-  biffMsgMove_va(msg1, msg2, "biffMsgMove_va: good int %d", 10);
+  biffMsgMovef(msg1, msg2, "biffMsgMovef: good int %d", 10);
   s1 = biffMsgStrGet(msg1);
   printf("from msg1:\n%s", s1);
   s1 = airFree(s1);
