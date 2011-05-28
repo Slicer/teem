@@ -460,7 +460,7 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 ** modified body of previous tenFiberTraceSet, in order to 
 ** permit passing the nval for storing desired probed values 
 */
-int
+static int
 _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
                double *buff, unsigned int halfBuffLen,
                unsigned int *startIdxP, unsigned int *endIdxP,
@@ -1135,7 +1135,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
   return 0;
 }
 
-int
+static int
 _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
                    limnPolyData *lpld, tenFiberMulti *tfml) {
   static const char me[]="_fiberMultiExtract";

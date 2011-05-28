@@ -570,7 +570,7 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
 }
 
 #define VAL(xx, yy, zz)  (val[4*( (xx) + (yy)*(sx+2) + spi) + (zz+1)])
-void
+static void
 voxelGrads(double vgrad[8][3], double *val, int sx, int spi) {
   ELL_3V_SET(vgrad[0],
              VAL( 1,  0,  0) - VAL(-1,  0,  0),

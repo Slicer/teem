@@ -625,7 +625,7 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
 ** helper function for distance transforms, is called by things that want to do
 ** specific kinds of transforms.
 */
-int
+static int
 _distanceBase(Nrrd *nout, const Nrrd *nin,
               int typeOut, const int *axisDo,
               double thresh, double bias, int insideHigher) {

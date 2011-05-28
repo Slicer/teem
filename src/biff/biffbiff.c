@@ -44,7 +44,7 @@ typedef union {
 **
 ** NOTE: Can be harmlessly called multiple times.
 */
-void
+static void
 _bmsgStart(void) {
   static const char me[]="[biff] _bmsgStart";
   _beu uu;
@@ -64,7 +64,7 @@ _bmsgStart(void) {
   return;
 }
 
-void
+static void
 _bmsgFinish(void) {
 
   if (_bmsgArr) {
@@ -81,7 +81,7 @@ _bmsgFinish(void) {
 ** returns the biffMsg (in _bmsg) of the entry with the given key, or
 ** NULL if it was not found
 */
-biffMsg *
+static biffMsg *
 _bmsgFind(const char *key) {
   static const char me[]="[biff] _bmsgFind";
   biffMsg *msg;
@@ -106,7 +106,7 @@ _bmsgFind(const char *key) {
 /*
 ** assumes that msg really is in _bmsg[]
 */
-unsigned int
+static unsigned int
 _bmsgFindIdx(biffMsg *msg) {
   unsigned int ii;
   
@@ -125,7 +125,7 @@ _bmsgFindIdx(biffMsg *msg) {
 ** otherise, adds a new biffMsg for given key to _bmsg, and returns it
 ** panics and exit(1)s if there is a problem
 */
-biffMsg *
+static biffMsg *
 _bmsgAdd(const char *key) {
   static const char me[]="[biff] _bmsgAdd";
   unsigned int ii;
