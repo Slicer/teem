@@ -24,9 +24,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Slice at a position along an axis"
-char *_unrrdu_sliceInfoL = (INFO
-                        ". Output nrrd dimension is one less than input nrrd "
-                        "dimension.  Per-axis information is preserved.");
+char *_unrrdu_sliceInfoL = 
+  (INFO
+   ". Output nrrd dimension is one less than input nrrd "
+   "dimension.  Per-axis information is preserved.\n "
+   "* Uses nrrdSlice");
 
 int
 unrrdu_sliceMain(int argc, const char **argv, char *me, hestParm *hparm) {
