@@ -25,7 +25,8 @@
 
 #define INFO "Replace a slice with a different nrrd"
 char *_unrrdu_spliceInfoL = 
-(INFO ". This is functionally the opposite of \"slice\".");
+  (INFO ". This is functionally the opposite of \"slice\".\n "
+   "* Uses nrrdSplice");
 
 int
 unrrdu_spliceMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -46,10 +47,10 @@ unrrdu_spliceMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "to the last sample on the axis (M == #samples-1).",
              NULL, NULL, &unrrduHestPosCB);
   hestOptAdd(&opt, "s,slice", "nslice", airTypeOther, 1, 1, &(nslice), NULL,
-             "slice nrrd.  This the slice to be inserted in \"nin\"",
+             "slice nrrd.  This is the slice to insert into \"nin\"",
              NULL, NULL, nrrdHestNrrd);
-  OPT_ADD_NIN(nin, "input nrrd.  This the nrrd into which the slice will "
-              "be inserted");
+  OPT_ADD_NIN(nin, "input nrrd.  This is the nrrd into which the slice is "
+              "inserted");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

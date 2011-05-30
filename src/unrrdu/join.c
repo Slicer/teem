@@ -34,7 +34,9 @@ char *_unrrdu_joinInfoL =
  "name this file as a response file (e.g. \"-i @slices.txt\"). "
  "This command now allows you to set the same pieces of information that "
  "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "
- "These can be use whether the join axis is new (because of \"-incr\") or not.");
+ "These can be use whether the join axis is new (because of \"-incr\") or "
+ "not.\n "
+ "* Uses nrrdJoin");
 
 int
 unrrdu_joinMain(int argc, const char **argv, char *me, hestParm *hparm) {

@@ -29,7 +29,8 @@ char *_unrrdu_reshapeInfoL =
  ". The underlying linear ordering of the samples is "
  "unchanged, but the reported dimension or axes sizes "
  "are changed.  Identical in concept to Matlab's "
- "\"reshape\" command.");
+ "\"reshape\" command.\n "
+ "* Uses nrrdReshape_nva");
 
 int
 unrrdu_reshapeMain(int argc, const char **argv, char *me, hestParm *hparm) {

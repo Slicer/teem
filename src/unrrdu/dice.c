@@ -28,7 +28,8 @@ char *_unrrdu_diceInfoL =
 (INFO
  ". Calls \"unu slice\" for each position "
  "along the indicated axis, and saves out a different "
- "file for each sample along that axis. ");
+ "file for each sample along that axis.\n "
+ "* Uses repeated calls to nrrdSlice and nrrdSave");
 
 int
 unrrdu_diceMain(int argc, const char **argv, char *me, hestParm *hparm) {

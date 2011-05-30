@@ -24,11 +24,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Select subset of slices along an axis"
-char *_unrrdu_sselectInfoL = (INFO
-                              ". The choice to keep or nix a slice is "
-                              "determined by whether the values in a "
-                              "given 1-D line of values is above or "
-                              "below a given threshold.");
+char *_unrrdu_sselectInfoL = 
+  (INFO ". The choice to keep or nix a slice is determined by whether the "
+   "values in a given 1-D line of values is above or below a given "
+   "threshold.\n "
+   "* Uses nrrdSliceSelect");
 
 int
 unrrdu_sselectMain(int argc, const char **argv, char *me, hestParm *hparm) {

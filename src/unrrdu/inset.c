@@ -25,7 +25,8 @@
 
 #define INFO "Replace a sub-region with a different nrrd"
 char *_unrrdu_insetInfoL = 
-(INFO ". This is functionally the opposite of \"crop\".");
+(INFO ". This is functionally the opposite of \"crop\".\n "
+ "* Uses nrrdInset");
 
 int
 unrrdu_insetMain(int argc, const char **argv, char *me, hestParm *hparm) {

@@ -24,7 +24,9 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Pad along each axis to make a bigger nrrd"
-char *_unrrdu_padInfoL = INFO;
+char *_unrrdu_padInfoL = 
+  (INFO ".\n "
+   "* Uses nrrdPad_nva");
 
 int
 unrrdu_padMain(int argc, const char **argv, char *me, hestParm *hparm) {
