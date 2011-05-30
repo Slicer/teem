@@ -59,7 +59,10 @@ char *_unrrdu_makeInfoL =
  "an empty string.  This creates a convenient way to convey something that "
  "the shell doesn't make it easy to convey.  Shell expansion weirdness "
  "also requires the use of quotes around the arguments to \"-orig\" (space "
- "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).");
+ "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).\n "
+ "\n "
+ "* Uses various components of file and data IO, but currently there is no "
+ "library function that encapsulates the functionality here.");
 
 int
 unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {

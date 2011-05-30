@@ -28,7 +28,7 @@ char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
  "prints to standard out the min and max values found in the input nrrd(s), "
  "and it also indicates if there are non-existant values.\n "
- "(Based on nrrdRangeNewSet)");
+ "* Uses nrrdRangeNewSet");
 
 int
 unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {

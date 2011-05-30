@@ -39,7 +39,7 @@ char *_unrrdu_resampleInfoL =
  "The resampling respects the difference between cell- and "
  "node-centered data, but you can over-ride known centering "
  "with \"-co\".\n "
- "(Based on nrrdResample* functions around nrrdResampleContext)");
+ "* Uses the many nrrdResample* functions operating on a nrrdResampleContext");
 
 int
 unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {

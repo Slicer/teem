@@ -27,7 +27,9 @@
 char *_unrrdu_envInfoL = (INFO
                           ". These environment variables provide a way of "
                           "setting global variables that can affect"
-                          " the way Nrrd operates.");
+                          " the way Nrrd operates.\n "
+                          "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
+                          "nrrdGetenvInt, and nrrdGetenvUInt");
 
 void
 _unrrdu_envBool(FILE *file, const char *envKey, int currVal,

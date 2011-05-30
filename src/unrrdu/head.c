@@ -29,7 +29,8 @@ char *_unrrdu_headInfoL =
  "headers.  This avoids the use of \"head -N\", where N has to be "
  "determined manually, which always risks printing raw binary data "
  "(following the header) to screen, which tends to clobber terminal "
- "settings, as well as be annoying.");
+ "settings, make pointless beeps, and be annoying.\n "
+ "* Uses _nrrdOneLine");
 
 int
 unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {

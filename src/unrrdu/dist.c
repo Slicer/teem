@@ -33,7 +33,7 @@ char *_unrrdu_distInfoL =
  "does the distance transform of the resulting binary image. "
  "The signed distance (negative values inside object) is also available. "
  "Distances between non-isotropic samples are handled correctly.\n "
- "(Based on nrrdDistanceL2 and nrrdDistanceL2Signed)");
+ "* Uses nrrdDistanceL2 or nrrdDistanceL2Signed");
 
 int
 unrrdu_distMain(int argc, const char **argv, char *me, hestParm *hparm) {

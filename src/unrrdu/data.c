@@ -35,7 +35,10 @@ char *_unrrdu_dataInfoL =
  "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
  "\n \n "
  "To make vol.raw contain the uncompressed data from vol.nrrd "
- "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"");
+ "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
+ "\n "
+ "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
+ "true in the NrrdIoState nio.");
 
 int
 unrrdu_dataMain(int argc, const char **argv, char *me, hestParm *hparm) {

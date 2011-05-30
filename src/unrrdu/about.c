@@ -32,7 +32,12 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "\"unu\" is a command-line interface to much of the functionality "
     "in \"nrrd\", a C library for raster data processing. Nrrd is one "
     "library in the \"Teem\" collection of libraries.  More information "
-    "about Teem is at <http://teem.sf.net>.\n";
+    "about Teem is at <http://teem.sf.net>.\n \n "
+    "* Running a unu command without additional arguments "
+    "(e.g. \"unu slice\") generates its description and usage information. "
+    "This includes information about the underling Nrrd library calls "
+    "(e.g. nrrdSlice()) that implement the basic functionality in "
+    "that unu command.\n ";
   char par7[] = "\t\t\t\t"
     "Users are strongly encouraged to join the teem-users mailing list: "
     "<http://lists.sourceforge.net/lists/listinfo/teem-users>. This is "
@@ -67,11 +72,6 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "  | unu heq -b 2000 -s 1 \\\n "
     "  | unu quantize -b 8 -o zsum.png"
     "\n";
-  char par5[] = "\t\t\t\t"
-    "The documentation for each unu command includes information about "
-    "the underling nrrd library calls that provide the essential "
-    "functionality. For example, \"unu slice\" indicates that it is based "
-    "on the nrrdSlice function in the nrrd library.\n";
   char par6[] = "\t\t\t\t"
     "If unu or nrrd repeatedly proves itself useful for your research, an "
     "acknowledgment to that effect in your publication would be greatly "
@@ -103,7 +103,6 @@ unrrdu_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
   _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
   _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
   _hestPrintStr(stdout, 2, 0, 78, par4, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE); 
   _hestPrintStr(stdout, 1, 0, 78, par6, AIR_FALSE);
   /* _hestPrintStr(stdout, 1, 0, 78, par8, AIR_FALSE); */
 

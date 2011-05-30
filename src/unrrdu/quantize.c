@@ -30,7 +30,8 @@ char *_unrrdu_quantizeInfoL =
  "they are quantized, so there is no risk of getting 255 where you expect 0 "
  "(with unsigned char output, for example).  This does not do any non-linear "
  "quantization.  See also \"unu convert\", \"unu 2op x\", and \"unu 3op "
- "clamp\".");
+ "clamp\".\n "
+ "* Uses nrrdQuantize");
 
 int
 unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {

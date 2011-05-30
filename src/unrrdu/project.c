@@ -31,7 +31,8 @@ char *_unrrdu_projectInfoL =
  "with some measure.  The output nrrd has dimension "
  "one less than input; the output type depends on "
  "the measure in a non-trivial way, or it can be set explicitly "
- "with the \"-t\" option.");
+ "with the \"-t\" option.\n "
+ "* Uses nrrdProject");
 
 int
 unrrdu_projectMain(int argc, const char **argv, char *me, hestParm *hparm) {

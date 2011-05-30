@@ -30,7 +30,8 @@ char *_unrrdu_w2iInfoL =
  "the range of positions, and the number of intervals into "
  "which position has been quantized. "
  "This is a demo/utility, which does not actually operate on any nrrds. "
-  "Previously available as the stand-alone pos2idx binary.");
+ "Previously available as the stand-alone pos2idx binary.\n "
+ "* Uses NRRD_IDX macro");
 
 int
 unrrdu_w2iMain(int argc, const char **argv, char *me, hestParm *hparm) {

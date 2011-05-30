@@ -24,7 +24,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Recover floating point values from quantized data"
-char *_unrrdu_unquantizeInfoL = INFO;
+char *_unrrdu_unquantizeInfoL = 
+  (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
+   "to regenerate approximate versions of the original unquantized values. "
+   "Can also override these with \"-min\" and \"-max\".\n "
+   "* Uses nrrdUnquantize");
 
 int
 unrrdu_unquantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -37,7 +41,11 @@ unrrdu_unquantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   /* mandatory arg so that "unu unquantize" produces usage info */
   hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd",
+             "input nrrd.  That this argument is required instead of "
+             "optional, as with most unu commands, is a quirk caused by the "
+             "need to have \"unu unquantize\" generate usage info, combined "
+             "with the fact that all the other arguments have sensible "
+             "defaults",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &oldMin, "nan",
              "Lowest value prior to quantization.  Defaults to "
