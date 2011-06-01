@@ -70,14 +70,14 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecLength,          1,  0,   {gageVecVector},                                                    0,      0,       AIR_FALSE},
   {gageVecNormalized,      3,  0,   {gageVecVector, gageVecLength},                                     0,      0,       AIR_FALSE},
   {gageVecJacobian,        9,  1,   {0},                                                                0,      0,       AIR_FALSE},
-  {gageVecStrain,	   9,  1,   {gageVecJacobian},							0,	0,	 AIR_FALSE},
+  {gageVecStrain,          9,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecDivergence,      1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurl,            3,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecCurlNorm,        1,  1,   {gageVecCurl},                                                      0,      0,       AIR_FALSE},
   {gageVecHelicity,        1,  1,   {gageVecVector, gageVecCurl},                                       0,      0,       AIR_FALSE},
   {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl},                                   0,      0,       AIR_FALSE},
-   {gageVecSOmega,	   9,  1,   {gageVecJacobian,gageVecStrain},					0,	0,	 AIR_FALSE},
-  {gageVecLambda2,         1,  1,   {gageVecSOmega},                                                  0,      0,       AIR_FALSE},
+  {gageVecSOmega,          9,  1,   {gageVecJacobian,gageVecStrain},                                    0,      0,       AIR_FALSE},
+  {gageVecLambda2,         1,  1,   {gageVecSOmega},                                                    0,      0,       AIR_FALSE},
   {gageVecImaginaryPart,   1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE}, 
   {gageVecHessian,        27,  2,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecDivGradient,     3,  1,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
@@ -149,15 +149,15 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double asym[9], tran[9], eval[3], tmpVec[3], norm;
   double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,
-    	 *curlAns, *hesAns, *curlGradAns, 
-         *helGradAns, *dirHelDirAns, *curlnormgradAns;
+    *curlAns, *hesAns, *curlGradAns, 
+    *helGradAns, *dirHelDirAns, *curlnormgradAns;
   /* int asw; */
 
   vecAns          = pvl->directAnswer[gageVecVector];
   normAns         = pvl->directAnswer[gageVecNormalized];
   jacAns          = pvl->directAnswer[gageVecJacobian];
-  strainAns	  = pvl->directAnswer[gageVecStrain];
-  somegaAns	  = pvl->directAnswer[gageVecSOmega];
+  strainAns       = pvl->directAnswer[gageVecStrain];
+  somegaAns       = pvl->directAnswer[gageVecSOmega];
   curlAns         = pvl->directAnswer[gageVecCurl];
   hesAns          = pvl->directAnswer[gageVecHessian];
   curlGradAns     = pvl->directAnswer[gageVecCurlGradient];
@@ -225,42 +225,42 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       cmag ? ELL_3V_DOT(normAns, curlAns)/cmag : 0;
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecStrain)) {
-      ELL_3M_TRANSPOSE(tran, jacAns);
-      /* symmetric part */
-      ELL_3M_SCALE_ADD2(strainAns, 0.5, jacAns,  0.5, tran);
-      /* nested these ifs to make dependency explicit to the compiler */
-      if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecSOmega)) {
-	/* antisymmetric part */
-	ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
-	/* square symmetric part */
-	ELL_3M_MUL(tmpMat, strainAns, strainAns);
-	ELL_3M_COPY(somegaAns, tmpMat);
-	/* square antisymmetric part */
-	ELL_3M_MUL(tmpMat, asym, asym);
-	/* sum of both */
-	ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
-	if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
-	  /* get eigenvalues in sorted order */
-	  /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
-	  pvl->directAnswer[gageVecLambda2][0] = eval[1];
-	}
+    ELL_3M_TRANSPOSE(tran, jacAns);
+    /* symmetric part */
+    ELL_3M_SCALE_ADD2(strainAns, 0.5, jacAns,  0.5, tran);
+    /* nested these ifs to make dependency explicit to the compiler */
+    if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecSOmega)) {
+      /* antisymmetric part */
+      ELL_3M_SCALE_ADD2(asym, 0.5, jacAns, -0.5, tran);
+      /* square symmetric part */
+      ELL_3M_MUL(tmpMat, strainAns, strainAns);
+      ELL_3M_COPY(somegaAns, tmpMat);
+      /* square antisymmetric part */
+      ELL_3M_MUL(tmpMat, asym, asym);
+      /* sum of both */
+      ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
+      if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
+        /* get eigenvalues in sorted order */
+        /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
+        pvl->directAnswer[gageVecLambda2][0] = eval[1];
       }
+    }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecImaginaryPart)) {
-      pvl->directAnswer[gageVecImaginaryPart][0] =
-        gage_imaginary_part_eigenvalues(jacAns);
+    pvl->directAnswer[gageVecImaginaryPart][0] =
+      gage_imaginary_part_eigenvalues(jacAns);
   }
   /* 2nd order vector derivative continued */ 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHessian)) {
-      /* done if doD2 */
-      /* the ordering is induced by the scalar hessian computation :
-         0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
-         3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
-         6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
-         9:d2v_y/dxdx       [...]
-             [...]
-        24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz
-      */
+    /* done if doD2 */
+    /* the ordering is induced by the scalar hessian computation :
+       0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
+       3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
+       6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
+       9:d2v_y/dxdx       [...]
+           [...]
+       24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz
+    */
     if (ctx->verbose) {
       fprintf(stderr, "%s: hes = \n", me);
       ell_3m_print_d(stderr, hesAns); /* ?? */

@@ -104,7 +104,7 @@ typedef struct {
   double isovalue,              /* for seekTypeIsocontour */
     strength,                   /* if strengthUse, feature needs to satisfy
                                    strengthAns*strengthSign > strength */
-    evalDiffThresh;		/* threshold for eigenvalue difference */
+    evalDiffThresh;             /* threshold for eigenvalue difference */
   size_t samples[3];            /* user-requested dimensions of feature grid */
   double facesPerVoxel,         /* approximate; for pre-allocating geometry */
     vertsPerVoxel;              /* approximate; for pre-allocating geometry */
@@ -141,8 +141,8 @@ typedef struct {
                                    across voxels and slices. Yes, this means
                                    there is allocation for edges in the voxels
                                    beyond the positive X and Y edges */
-    *facevidx;			/* 4 * sx * sy array of vertex indices for
-				   degenerate points */
+    *facevidx;                   /* 4 * sx * sy array of vertex indices for
+                                    degenerate points */
   double *sclv,                 /* 4 * (sx+2) * (sy+2) scalar value cache,
                                    with Z as fastest axis, and one sample
                                    of padding on all sides, as needed for
@@ -152,32 +152,32 @@ typedef struct {
                                    (vec,z,x,y) */
     *eval,                      /* 3 * 2 * sx * sy array of eigenvalues */
     *evec,                      /* 9 * 2 * sx * sy array of eigenvectors */
-    *hess,			/* 9 * 2 * sx * sy array of hessian matrices */
-    *t,				/* 9 * 2 * sx * sy array of T tensors */
-    *edgealpha,			/* 5 * 3 * sx * sy position of edge
-				   intersections */
-    *edgenorm,			/* 5 * 9 * sx * sy normal at edge
-				   intersection */
-    *edgeicoord,		/* 5 * 9 * sx * sy index coordinates of edge
-				   intersection */
-    *facecoord,			/* 4 * 2 * sx * sy coordinates of degenerate
-				   point on face */
-    *facenorm,			/* 4 * 3 * sx * sy normal at degeneracy */
-    *faceicoord,		/* 4 * 3 * sx * sy index coordinates of edge
-				   intersection */
-    *gradcontext,		/* 3 * 2 * sx * sy spat. context of gradients */
-    *hesscontext,		/* 9 * 2 * sx * sy spat. context of hessians */
-    *tcontext,			/* 9 * 2 * sx * sy spat. context of T tensors */
-    *stngcontext;		/* sx * sy lookahead for strength values */
+    *hess,                      /* 9 * 2 * sx * sy array of hessian matrices */
+    *t,                         /* 9 * 2 * sx * sy array of T tensors */
+    *edgealpha,                 /* 5 * 3 * sx * sy position of edge
+                                   intersections */
+    *edgenorm,                  /* 5 * 9 * sx * sy normal at edge
+                                   intersection */
+    *edgeicoord,                /* 5 * 9 * sx * sy index coordinates of edge
+                                   intersection */
+    *facecoord,                 /* 4 * 2 * sx * sy coordinates of degenerate
+                                   point on face */
+    *facenorm,                  /* 4 * 3 * sx * sy normal at degeneracy */
+    *faceicoord,                /* 4 * 3 * sx * sy index coordinates of edge
+                                   intersection */
+    *gradcontext,               /* 3 * 2 * sx * sy spat. context of gradients */
+    *hesscontext,               /* 9 * 2 * sx * sy spat. context of hessians */
+    *tcontext,                  /* 9 * 2 * sx * sy spat. context of T tensors */
+    *stngcontext;               /* sx * sy lookahead for strength values */
   signed char *flip,            /* 2 * 5 * sx * sy record of how eigenvector(s)
                                    of interest flip along the 5 voxel edges
                                    that are unique to each voxel.  Fastest axis
                                    is the two eigensystem indices that are
                                    tracked, in the case of crease lines */
-    *pairs,			/* 4 * 12 * sx * sy connectivity on faces */
-    *treated;			/* sx * sy mask; when strength is used, tells
-				 * us if edges need to be treated (and if they
-				 * were treated already) */
+    *pairs,                     /* 4 * 12 * sx * sy connectivity on faces */
+    *treated;                   /* sx * sy mask; when strength is used, tells
+                                 * us if edges need to be treated (and if they
+                                 * were treated already) */
   double *stng;                 /* 2 * sx * sy array of strength */
   Nrrd *nvidx, *nsclv,          /* nrrd wrappers around arrays above */
     *ngrad, *neval,
@@ -241,31 +241,31 @@ SEEK_EXPORT int seekExtract(seekContext *sctx, limnPolyData *lpld);
 
 /* textract.c */
 SEEK_EXPORT int seekVertexStrength(Nrrd *nval, seekContext *sctx,
-				   limnPolyData *pld);
-
+                                   limnPolyData *pld);
+  
 /* descend.c */
 SEEK_EXPORT int seekDescendToDeg(double *coord,
-				 double *botleft, double *botright,
-				 double *topleft, double *topright,
-				 int maxiter, double eps, char type);
+                                 double *botleft, double *botright,
+                                 double *topleft, double *topright,
+                                 int maxiter, double eps, char type);
 SEEK_EXPORT int seekDescendToDegCell(double *coord,
-				     double *Hbfl, double *Hbfr,
-				     double *Hbbl, double *Hbbr,
-				     double *Htfl, double *Htfr,
-				     double *Htbl, double *Htbr,
-				     int maxiter, double eps, char type);
+                                     double *Hbfl, double *Hbfr,
+                                     double *Hbbl, double *Hbbr,
+                                     double *Htfl, double *Htfr,
+                                     double *Htbl, double *Htbr,
+                                     int maxiter, double eps, char type);
 SEEK_EXPORT int seekDescendToRidge(double *coord,
-				   double *Hbfl, double *gbfl,
-				   double *Hbfr, double *gbfr,
-				   double *Hbbl, double *gbbl,
-				   double *Hbbr, double *gbbr,
-				   double *Htfl, double *gtfl,
-				   double *Htfr, double *gtfr,
-				   double *Htbl, double *gtbl,
-				   double *Htbr, double *gtbr,
-				   int maxiter, double eps,
-				   char ridge, const double evalDiffThresh);
-
+                                   double *Hbfl, double *gbfl,
+                                   double *Hbfr, double *gbfr,
+                                   double *Hbbl, double *gbbl,
+                                   double *Hbbr, double *gbbr,
+                                   double *Htfl, double *gtfl,
+                                   double *Htfr, double *gtfr,
+                                   double *Htbl, double *gtbl,
+                                   double *Htbr, double *gtbr,
+                                   int maxiter, double eps,
+                                   char ridge, const double evalDiffThresh);
+  
 #ifdef __cplusplus
 }
 #endif

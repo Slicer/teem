@@ -35,7 +35,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
   int color;
   airArray *mop;
-
+  
   if (!( pldOut && pldIn )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -104,7 +104,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       pldOut->icnt[primIdx] =
         2*tubeFacet*(1 + pldIn->icnt[primIdx]);
     }
-
+    
     for (inVertIdx=0;
          inVertIdx<pldIn->icnt[primIdx];
          inVertIdx++) {
@@ -350,7 +350,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       inVertTotalIdx++;
     }
   }
-
+  
   airMopOkay(mop);
   return 0;
 }
@@ -368,7 +368,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
  */
 int
 limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
-		     double alpha, double beta, int iter) {
+                     double alpha, double beta, int iter) {
   static const char me[]="limnPolyDataSmoothHC";
   float *orig, *in, *out, *b;
   unsigned int v;
@@ -396,36 +396,36 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
     airMopError(mop); return -1;
   }
   airMopAdd(mop, b, airFree, airMopAlways);
-
+  
   for (i=0; i<iter; i++) {
     /* Laplacian smoothing / compute bs */
     for (v=0; v<pld->xyzwNum; v++) {
       int p=4*v;
       if (idx[v]==idx[v+1]) {
-	ELL_4V_COPY(out+p, in+p);
+        ELL_4V_COPY(out+p, in+p);
       } else {
-	ELL_4V_SET(out+p,0,0,0,0);
-	for (nb=idx[v]; nb<idx[v+1]; nb++) {
-	  ELL_4V_INCR(out+p, in+4*neighbors[nb]);
-	}
-	ELL_4V_SCALE(out+p, 1.0/(idx[v+1]-idx[v]), out+p);
+        ELL_4V_SET(out+p,0,0,0,0);
+        for (nb=idx[v]; nb<idx[v+1]; nb++) {
+          ELL_4V_INCR(out+p, in+4*neighbors[nb]);
+        }
+        ELL_4V_SCALE(out+p, 1.0/(idx[v+1]-idx[v]), out+p);
       }
       ELL_4V_SET(b+p, out[p]-(alpha*orig[p]+(1-alpha)*in[p]),
-		 out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
-		 out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
-		 out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
+                 out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
+                 out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
+                 out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
     }
     /* HC correction step */
     for (v=0; v<pld->xyzwNum; v++) {
       int p=4*v;
       if (idx[v]<idx[v+1]) {
-	float avgb[4]={0,0,0,0};
-	for (nb=idx[v]; nb<idx[v+1]; nb++) {
-	  ELL_4V_INCR(avgb, b+4*neighbors[nb]);
-	}
-	ELL_4V_SCALE(avgb, 1.0/(idx[v+1]-idx[v]), avgb);
-	ELL_4V_LERP(avgb, beta, b+p, avgb);
-	ELL_4V_SUB(out+p,out+p,avgb);
+        float avgb[4]={0,0,0,0};
+        for (nb=idx[v]; nb<idx[v+1]; nb++) {
+          ELL_4V_INCR(avgb, b+4*neighbors[nb]);
+        }
+        ELL_4V_SCALE(avgb, 1.0/(idx[v+1]-idx[v]), avgb);
+        ELL_4V_LERP(avgb, beta, b+p, avgb);
+        ELL_4V_SUB(out+p,out+p,avgb);
       }
     }
     if (i==0 && iter>1) {
@@ -435,7 +435,7 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
       float *tmp = in; in = out; out = tmp;
     }
   }
-
+  
   if (iter>1)
     airFree(out);
   airFree(pld->xyzw);

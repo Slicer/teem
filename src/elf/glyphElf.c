@@ -35,9 +35,9 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
   for (f=0; f<faceno/2; f++) {
     float diff1[3],diff2[3],cross[3];
     ELL_3V_SUB(diff1,glyph->xyzw+4*faces[3*f+1],
-	       glyph->xyzw+4*faces[3*f]);
+               glyph->xyzw+4*faces[3*f]);
     ELL_3V_SUB(diff2,glyph->xyzw+4*faces[3*f+2],
-	       glyph->xyzw+4*faces[3*f]);
+               glyph->xyzw+4*faces[3*f]);
     ELL_3V_CROSS(cross,diff1,diff2);
     ELL_3V_INCR(glyph->norm+3*faces[3*f],cross);
     ELL_3V_INCR(glyph->norm+3*faces[3*f+1],cross);
@@ -45,22 +45,22 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
     /* same for anti-face */
     if (faces[3*f]%2==0)
       ELL_3V_SUB(glyph->norm+3*faces[3*f]+3,
-		 glyph->norm+3*faces[3*f]+3,cross);
+                 glyph->norm+3*faces[3*f]+3,cross);
     else
       ELL_3V_SUB(glyph->norm+3*faces[3*f]-3,
-		 glyph->norm+3*faces[3*f]-3,cross);
+                 glyph->norm+3*faces[3*f]-3,cross);
     if (faces[3*f+1]%2==0)
       ELL_3V_SUB(glyph->norm+3*faces[3*f+1]+3,
-		 glyph->norm+3*faces[3*f+1]+3,cross);
+                 glyph->norm+3*faces[3*f+1]+3,cross);
     else
       ELL_3V_SUB(glyph->norm+3*faces[3*f+1]-3,
-		 glyph->norm+3*faces[3*f+1]-3,cross);
+                 glyph->norm+3*faces[3*f+1]-3,cross);
     if (faces[3*f+2]%2==0)
       ELL_3V_SUB(glyph->norm+3*faces[3*f+2]+3,
-		 glyph->norm+3*faces[3*f+2]+3,cross);
+                 glyph->norm+3*faces[3*f+2]+3,cross);
     else
       ELL_3V_SUB(glyph->norm+3*faces[3*f+2]-3,
-		 glyph->norm+3*faces[3*f+2]-3,cross);
+                 glyph->norm+3*faces[3*f+2]-3,cross);
   }
   if (normalize) {
     float len;
@@ -100,10 +100,10 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 */
 float
 elfGlyphPolar(limnPolyData *glyph, const char antipodal,
-	      const float *ten, const tijk_type *type,
-	      char *isdef, const char clamp, const char normalize,
-	      const unsigned char *posColor,
-	      const unsigned char *negColor) {
+       const float *ten, const tijk_type *type,
+       char *isdef, const char clamp, const char normalize,
+       const unsigned char *posColor,
+       const unsigned char *negColor) {
   float *verts=glyph->xyzw;
   float max=0;
   unsigned int i, infoBitFlag;
@@ -115,25 +115,25 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
       if (posColor!=NULL) {
-	/* color by sign */
-	if (val<0) {
-	  ELL_4V_COPY(glyph->rgba+4*i, negColor);
-	  if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
-	} else {
-	  ELL_4V_COPY(glyph->rgba+4*i, posColor);
-	  if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
-	}
+        /* color by sign */
+        if (val<0) {
+          ELL_4V_COPY(glyph->rgba+4*i, negColor);
+          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
+        } else {
+          ELL_4V_COPY(glyph->rgba+4*i, posColor);
+          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
+        }
       } else {
-	/* RGB encode the vertex coordinates */
-	ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,
-		      255*fabs(verts[0]), 255*fabs(verts[1]),
-		      255*fabs(verts[2]), 255);
-	if (antipodal) {
-	  ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
-	}
+        /* RGB encode the vertex coordinates */
+        ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,
+                      255*fabs(verts[0]), 255*fabs(verts[1]),
+                      255*fabs(verts[2]), 255);
+        if (antipodal) {
+          ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
+        }
       }
     }
-
+    
     if (val<0) {
       def=0;
       if (clamp) val=0;
@@ -151,8 +151,8 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
   if (infoBitFlag & (1 << limnPolyDataInfoNorm)) {
     /* take care of normals */
     if (antipodal &&
-	glyph->primNum==1 &&
-	glyph->type[0]==limnPrimitiveTriangles) {
+        glyph->primNum==1 &&
+        glyph->type[0]==limnPrimitiveTriangles) {
       /* we can use our specialized, more efficient code */
       estimateNormalsAntipodal(glyph, normalize);
     } else { /* use standard limn routine */
@@ -191,8 +191,8 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
 */
 float
 elfGlyphHOME(limnPolyData *glyph, const char antipodal,
-	     const float *ten, const tijk_type *type,
-	     char *isdef, const char normalize) {
+             const float *ten, const tijk_type *type,
+             char *isdef, const char normalize) {
   float *verts=glyph->xyzw;
   float max=0;
   unsigned int i, infoBitFlag;
@@ -207,19 +207,19 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     ELL_3V_COPY(verts,HOMEpos);
     len=ELL_3V_LEN(HOMEpos);
     if (len>max) max=len;
-
+    
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
       float c[3];
       if (len>1e-18)
-	ELL_3V_SET(c,fabs(verts[0]/len),fabs(verts[1]/len),fabs(verts[2]/len));
+        ELL_3V_SET(c,fabs(verts[0]/len),fabs(verts[1]/len),fabs(verts[2]/len));
       else
-	ELL_3V_SET(c,0,0,0);
+        ELL_3V_SET(c,0,0,0);
       /* RGB encode the vertex coordinates */
       ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,
-		    255*c[0], 255*c[1], 255*c[2], 255);
+                    255*c[0], 255*c[1], 255*c[2], 255);
       if (antipodal) {
-	ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
+        ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
       }
     }
     
@@ -233,8 +233,8 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
   if (infoBitFlag & (1 << limnPolyDataInfoNorm)) {
     /* take care of normals */
     if (antipodal &&
-	glyph->primNum==1 &&
-	glyph->type[0]==limnPrimitiveTriangles) {
+        glyph->primNum==1 &&
+        glyph->type[0]==limnPrimitiveTriangles) {
       /* we can use our specialized faster code */
       estimateNormalsAntipodal(glyph, normalize);
     } else { /* use standard limn routine */
@@ -268,9 +268,9 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
 */
 int
 elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
-		    const int *neighbors, unsigned int nbstride,
-		    const float *ten, const tijk_type *type,
-		    const char modulate, const float gamma) {
+                    const int *neighbors, unsigned int nbstride,
+                    const float *ten, const tijk_type *type,
+                    const char modulate, const float gamma) {
   float *sqrdist, *verts, *newcol;
   char *processed, *id_ct, *diff_ct;
   int *path;
@@ -278,8 +278,8 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   airArray *mop;
   infoBitFlag = limnPolyDataInfoBitFlag(glyph);
   if (limnPolyDataAlloc(glyph, /* make sure we have a color buffer */
-			infoBitFlag | (1 << limnPolyDataInfoRGBA),
-			glyph->xyzwNum, glyph->indxNum, glyph->primNum)) {
+                        infoBitFlag | (1 << limnPolyDataInfoRGBA),
+                        glyph->xyzwNum, glyph->indxNum, glyph->primNum)) {
     return 1;
   }
   /* do the memory allocation */
@@ -302,7 +302,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
     airMopError(mop);
     return 1;
   }
-
+  
   /* initialize sqrdist / processed / path */
   verts=glyph->xyzw;
   if (antipodal) {
@@ -328,77 +328,77 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
     unsigned char color[3];
     
     if (processed[i]) continue;
-
+    
     path[pathno++]=vert;
     while (!foundmax) {
       int bestnb=-1;
       float maxdist=0;
       for (j=0; j<nbstride; ++j) {
-	int nb=neighbors[nbstride*vert+j];
-	float dist;
-	if (nb==-1) break;
-	dist=sqrdist[nb]-sqrdist[vert];
-	if (dist>maxdist) {
-	  maxdist=dist; bestnb=nb;
-	}
+        int nb=neighbors[nbstride*vert+j];
+        float dist;
+        if (nb==-1) break;
+        dist=sqrdist[nb]-sqrdist[vert];
+        if (dist>maxdist) {
+          maxdist=dist; bestnb=nb;
+        }
       }
       if (bestnb==-1) { /* we are at an unprocessed maximum */
-	/* find appropriate color */
-	float vertdir[3];
-	float norm;
-	float modfactor=1.0;
-	ELL_3V_COPY(vertdir,glyph->xyzw+4*vert);
-	norm=ELL_3V_LEN(vertdir);
-	if (norm>1e-18) {
-	  ELL_3V_SCALE(vertdir,1.0/norm,vertdir);
-	  if (modulate) {
-	    /* modulate by peak strength */
-	    float hess[7], val, evals[3];
-	    
-	    /* compute second derivatives */
-	    (*type->sym->hess_f)(hess+1,ten,vertdir);
-	    val=(*type->sym->s_form_f)(ten,vertdir);
-	    tenEigensolve_f(evals, NULL, hess);
-	    if (evals[1]>=0 || val<1e-10) {
-	      modfactor=0.0;
-	    } else {
-	      modfactor=-evals[1]/(type->order*val);
-	      if (modfactor>1.0) modfactor=1.0;
-	      else modfactor=pow(modfactor,gamma);
-	    }
-	  }
-	} else {
-	  ELL_3V_SET(vertdir,0,0,0);
-	}
-
-	ELL_3V_SET(color,
-		   (unsigned char) (AIR_LERP(modfactor, 1.0,
-					     fabs(vertdir[0]))*255),
-		   (unsigned char) (AIR_LERP(modfactor, 1.0,
-					     fabs(vertdir[1]))*255),
-		   (unsigned char) (AIR_LERP(modfactor, 1.0,
-					     fabs(vertdir[2]))*255));
-	foundmax=1;
+        /* find appropriate color */
+        float vertdir[3];
+        float norm;
+        float modfactor=1.0;
+        ELL_3V_COPY(vertdir,glyph->xyzw+4*vert);
+        norm=ELL_3V_LEN(vertdir);
+        if (norm>1e-18) {
+          ELL_3V_SCALE(vertdir,1.0/norm,vertdir);
+          if (modulate) {
+            /* modulate by peak strength */
+            float hess[7], val, evals[3];
+            
+            /* compute second derivatives */
+            (*type->sym->hess_f)(hess+1,ten,vertdir);
+            val=(*type->sym->s_form_f)(ten,vertdir);
+            tenEigensolve_f(evals, NULL, hess);
+            if (evals[1]>=0 || val<1e-10) {
+              modfactor=0.0;
+            } else {
+              modfactor=-evals[1]/(type->order*val);
+              if (modfactor>1.0) modfactor=1.0;
+              else modfactor=pow(modfactor,gamma);
+            }
+          }
+        } else {
+          ELL_3V_SET(vertdir,0,0,0);
+        }
+        
+        ELL_3V_SET(color,
+                   (unsigned char) (AIR_LERP(modfactor, 1.0,
+                                             fabs(vertdir[0]))*255),
+                   (unsigned char) (AIR_LERP(modfactor, 1.0,
+                                             fabs(vertdir[1]))*255),
+                   (unsigned char) (AIR_LERP(modfactor, 1.0,
+                                             fabs(vertdir[2]))*255));
+        foundmax=1;
       } else {
-	if (processed[bestnb]) {
-	  ELL_3V_COPY(color, glyph->rgba+4*bestnb);
-	  foundmax=1;
-	} else { /* add bestnb to the path and proceed */
-	  path[pathno++]=bestnb;
-	  vert=bestnb;
-	}
+        if (processed[bestnb]) {
+          ELL_3V_COPY(color, glyph->rgba+4*bestnb);
+          foundmax=1;
+        } else { /* add bestnb to the path and proceed */
+          path[pathno++]=bestnb;
+          vert=bestnb;
+        }
       }
     } /* end looking for maximum */
-
+    
     /* copy color to all vertices on the path */
     for (j=0; j<pathno; ++j) {
       processed[path[j]]=1;
       ELL_4V_SET(glyph->rgba+4*path[j], color[0], color[1], color[2], 255);
       if (antipodal) {
-	int antip=path[j]+1;
-	if (antip%2==0) antip-=2;
-	processed[antip]=1;
-	ELL_4V_COPY(glyph->rgba+4*antip, glyph->rgba+4*path[j]);
+        int antip=path[j]+1;
+        if (antip%2==0) antip-=2;
+        processed[antip]=1;
+        ELL_4V_COPY(glyph->rgba+4*antip, glyph->rgba+4*path[j]);
       }
     }
     if (antipodal) i++; /* we can skip over the next one */
@@ -408,33 +408,33 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   memset(newcol,0,sizeof(float)*3*glyph->xyzwNum);
   memset(id_ct,0,sizeof(char)*glyph->xyzwNum);
   memset(diff_ct,0,sizeof(char)*glyph->xyzwNum);
-
+  
   for (i=0; i<glyph->xyzwNum; i++) {
     for (j=0; j<nbstride; j++) {
       int nb=neighbors[nbstride*i+j];
       if (nb<0) break;
       if ((unsigned int)nb<i) continue; /* process each pair only once */
       if (ELL_3V_EQUAL(glyph->rgba+4*i, glyph->rgba+4*nb)) {
-	id_ct[i]++;
-	id_ct[nb]++;
+        id_ct[i]++;
+        id_ct[nb]++;
       } else {
-	ELL_3V_INCR(newcol+3*i, glyph->rgba+4*nb);
-	diff_ct[i]++;
-	ELL_3V_INCR(newcol+3*nb, glyph->rgba+4*i);
-	diff_ct[nb]++;
+        ELL_3V_INCR(newcol+3*i, glyph->rgba+4*nb);
+        diff_ct[i]++;
+        ELL_3V_INCR(newcol+3*nb, glyph->rgba+4*i);
+        diff_ct[nb]++;
       }
     }
   }
-
+  
   for (i=0; i<glyph->xyzwNum; i++) {
     if (diff_ct[i]>0) {
       ELL_3V_SCALE_INCR(newcol+3*i,1.0+id_ct[i],glyph->rgba+4*i);
       ELL_3V_SCALE_TT(glyph->rgba+4*i, unsigned char,
-		      1.0/(1.0+id_ct[i]+diff_ct[i]),
-		      newcol+3*i);
+                      1.0/(1.0+id_ct[i]+diff_ct[i]),
+                      newcol+3*i);
       if (antipodal) {
-	ELL_3V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
-	i++;
+        ELL_3V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
+        i++;
       }
     }
   }

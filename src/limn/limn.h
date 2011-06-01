@@ -672,8 +672,8 @@ LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
                                          unsigned int thetaRes,
                                          unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataIcoSphere(limnPolyData *pld,
-				      unsigned int infoBitFlag,
-				      unsigned int level);
+                                      unsigned int infoBitFlag,
+                                      unsigned int level);
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
@@ -685,7 +685,7 @@ LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
                                              int allowSplitting);
 LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);
 LIMN_EXPORT int limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval,
-				      double *thresh);
+                                      double *thresh);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
@@ -693,12 +693,12 @@ LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
                                             const limnPolyData *pldIn,
                                             const Nrrd *nmask);
 LIMN_EXPORT int limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
-					 unsigned int *maxnb,
-					 limnPolyData *pld);
+                                         unsigned int *maxnb,
+                                         limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
-					  limnPolyData *pld);
+                                          limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
-					      limnPolyData *pld);
+                                              limnPolyData *pld);
 
 /* polyfilter.c */
 LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
@@ -709,8 +709,8 @@ LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
                                            unsigned int endFacet,
                                            double radius);
 LIMN_EXPORT int limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors,
-				     int *idx, double alpha, double beta,
-				     int iter);
+                                     int *idx, double alpha, double beta,
+                                     int iter);
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, const limnObject *obj);
 LIMN_EXPORT int limnObjectReadOFF(limnObject *obj, FILE *file);

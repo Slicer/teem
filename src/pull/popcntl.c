@@ -434,7 +434,7 @@ _pullNixTheNixed(pullContext *pctx) {
         /* copy last point pointer to this slot */
         bin->point[pointIdx] = bin->point[bin->pointNum-1];
         airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
-	pctx->nixNum++;
+        pctx->nixNum++;
       } else {
         pointIdx++;
       }

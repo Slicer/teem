@@ -237,13 +237,13 @@ AIR_EXPORT unsigned int airHeapMerge(airHeap *first, const airHeap *second);
 AIR_EXPORT double airHeapFrontPeek(const airHeap *h, void *data);
 AIR_EXPORT double airHeapFrontPop(airHeap *h, void *data);
 AIR_EXPORT int airHeapFrontUpdate(airHeap *h, double newKey,
-				  const void *newData);
+                                  const void *newData);
 
 AIR_EXPORT int airHeapFind(const airHeap *h, unsigned int *ai,
-			   const void *data);
+                           const void *data);
 AIR_EXPORT int airHeapRemove(airHeap *h, unsigned int ai);
 AIR_EXPORT int airHeapUpdate(airHeap *h, unsigned int ai,
-			     double newKey, const void *newData);
+                             double newKey, const void *newData);
 
 /* ---- BEGIN non-NrrdIO */
 

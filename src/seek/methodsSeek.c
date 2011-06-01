@@ -48,7 +48,7 @@ seekContextNew(void) {
     sctx->strengthSign = 1;
     sctx->isovalue = AIR_NAN;
     sctx->evalDiffThresh = 1.0; /* roughly reasonable for uchar data;
-				 * really should depend on dynamic range */
+                                 * really should depend on dynamic range */
     sctx->strength = 0.0;
     ELL_3V_SET(sctx->samples, 0, 0, 0);
     /* these two magic values assume a certain level of surface smoothness,

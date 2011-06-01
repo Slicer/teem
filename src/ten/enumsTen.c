@@ -736,8 +736,8 @@ _tenGageVal[] = {
   tenGageCa1GradMag,
   tenGageCa1Normal,
   tenGageTensorGradRotE,
-  tenGageEvalHessian,	   /* Hessian of the eigenvalues: [27] */
-  tenGageCl1Hessian,	   /* Hessian of cl1: [9] */
+  tenGageEvalHessian,      /* Hessian of the eigenvalues: [27] */
+  tenGageCl1Hessian,       /* Hessian of cl1: [9] */
   tenGageCl1HessianEval,   /* Hessian eigenvalues of cl1: [3] */
   tenGageCl1HessianEval0,  /* First Hessian eigenvalue of cl1: [1] */
   tenGageCl1HessianEval1,  /* Second Hessian eigenvalue of cl1: [1] */
@@ -746,7 +746,7 @@ _tenGageVal[] = {
   tenGageCl1HessianEvec0,  /* First Hessian eigenvector of cl1: [3] */
   tenGageCl1HessianEvec1,  /* Second Hessian eigenvector of cl1: [3] */
   tenGageCl1HessianEvec2,  /* Third Hessian eigenvector of cl1: [3] */
-  tenGageCp1Hessian,	   /* Hessian of cp1: [9] */
+  tenGageCp1Hessian,       /* Hessian of cp1: [9] */
   tenGageCp1HessianEval,   /* Hessian eigenvalues of cp1: [3] */
   tenGageCp1HessianEval0,  /* First Hessian eigenvalue of cp1: [1] */
   tenGageCp1HessianEval1,  /* Second Hessian eigenvalue of cp1: [1] */
@@ -755,7 +755,7 @@ _tenGageVal[] = {
   tenGageCp1HessianEvec0,  /* First Hessian eigenvector of cp1: [3] */
   tenGageCp1HessianEvec1,  /* Second Hessian eigenvector of cp1: [3] */
   tenGageCp1HessianEvec2,  /* Third Hessian eigenvector of cp1: [3] */
-  tenGageCa1Hessian,	   /* Hessian of cp1: [9] */
+  tenGageCa1Hessian,       /* Hessian of cp1: [9] */
   tenGageCa1HessianEval,   /* Hessian eigenvalues of cp1: [3] */
   tenGageCa1HessianEval0,  /* First Hessian eigenvalue of cp1: [1] */
   tenGageCa1HessianEval1,  /* Second Hessian eigenvalue of cp1: [1] */

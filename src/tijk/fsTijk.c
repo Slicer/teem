@@ -30,37 +30,37 @@ static const unsigned int _tijk_max_fs_order=4;
 /* number of coefficients for order i/2 */
 static const unsigned int _tijk_fs_len[3]={1,3,5};
 
-#define TIJK_EVAL_EFS_BASIS(TYPE, SUF)				\
-  int								\
-  tijk_eval_efs_basis_##SUF(TYPE *res, int order, TYPE phi) {	\
-    if (order<0)						\
-      return -1;						\
-    res[0]=0.5;							\
-    if (order<2)						\
-      return 0;							\
-    res[1]=cos(phi);						\
-    res[2]=sin(phi);						\
-    if (order<4)						\
-      return 2;							\
-    res[3]=cos(2*phi);						\
-    res[4]=sin(2*phi);						\
-    return 4; /* higher orders not implemented. */		\
+#define TIJK_EVAL_EFS_BASIS(TYPE, SUF)                        \
+  int                                                         \
+  tijk_eval_efs_basis_##SUF(TYPE *res, int order, TYPE phi) { \
+    if (order<0)                                              \
+      return -1;                                              \
+    res[0]=0.5;                                               \
+    if (order<2)                                              \
+      return 0;                                               \
+    res[1]=cos(phi);                                          \
+    res[2]=sin(phi);                                          \
+    if (order<4)                                              \
+      return 2;                                               \
+    res[3]=cos(2*phi);                                        \
+    res[4]=sin(2*phi);                                        \
+    return 4; /* higher orders not implemented. */            \
   }
 
 TIJK_EVAL_EFS_BASIS(double, d)
 TIJK_EVAL_EFS_BASIS(float, f)
 
-#define TIJK_EVAL_EFS(TYPE, SUF)				\
-  TYPE								\
-  tijk_eval_efs_##SUF(TYPE *coeffs, int order, TYPE phi) {	\
-    TYPE basis[_TIJK_MAX_FS_LEN];				\
-    TYPE res=0.0;						\
-    unsigned int i;						\
-    if (order!=tijk_eval_efs_basis_##SUF(basis, order, phi))	\
-      return 0; /* there has been an error. */			\
-    for (i=0; i<_tijk_fs_len[order/2]; i++)			\
-      res+=basis[i]*coeffs[i];					\
-    return res;							\
+#define TIJK_EVAL_EFS(TYPE, SUF)                             \
+  TYPE                                                       \
+  tijk_eval_efs_##SUF(TYPE *coeffs, int order, TYPE phi) {   \
+    TYPE basis[_TIJK_MAX_FS_LEN];                            \
+    TYPE res=0.0;                                            \
+    unsigned int i;                                          \
+    if (order!=tijk_eval_efs_basis_##SUF(basis, order, phi)) \
+      return 0; /* there has been an error. */               \
+    for (i=0; i<_tijk_fs_len[order/2]; i++)                  \
+      res+=basis[i]*coeffs[i];                               \
+    return res;                                              \
   }
 
 TIJK_EVAL_EFS(double, d)
@@ -95,58 +95,58 @@ static const double _tijk_efs2sym_o4[5*5] = {
   0.5, -1.0, 0.0, 1.0, 0.0
 };
 
-#define TIJK_2D_SYM_TO_EFS(TYPE, SUF)					\
-  int									\
-  tijk_2d_sym_to_efs_##SUF(TYPE *res, const TYPE *ten,			\
-			   const tijk_type *type) {			\
-    const double *m; /* conversion matrix */				\
-    unsigned int i, j, n;						\
-    n=type->num;							\
-    if (type==tijk_2o2d_sym) {						\
-      m=_tijk_sym2efs_o2;						\
-    } else if (type==tijk_4o2d_sym) {					\
-      m=_tijk_sym2efs_o4;						\
-    } else {								\
-      return -1; /* cannot do conversion */				\
-    }									\
-    for (i=0; i<n; i++) {						\
-      res[i]=0;								\
-      for (j=0; j<n; j++) {						\
-	res[i]+=m[n*i+j]*ten[j];					\
-      }									\
-    }									\
-    return type->order;							\
+#define TIJK_2D_SYM_TO_EFS(TYPE, SUF)                    \
+  int                                                    \
+  tijk_2d_sym_to_efs_##SUF(TYPE *res, const TYPE *ten,   \
+                           const tijk_type *type) {      \
+    const double *m; /* conversion matrix */             \
+    unsigned int i, j, n;                                \
+    n=type->num;                                         \
+    if (type==tijk_2o2d_sym) {                           \
+      m=_tijk_sym2efs_o2;                                \
+    } else if (type==tijk_4o2d_sym) {                    \
+      m=_tijk_sym2efs_o4;                                \
+    } else {                                             \
+      return -1; /* cannot do conversion */              \
+    }                                                    \
+    for (i=0; i<n; i++) {                                \
+      res[i]=0;                                          \
+      for (j=0; j<n; j++) {                              \
+        res[i]+=m[n*i+j]*ten[j];                         \
+      }                                                  \
+    }                                                    \
+    return type->order;                                  \
   }
 
 TIJK_2D_SYM_TO_EFS(double, d)
 TIJK_2D_SYM_TO_EFS(float, f)
 
-#define TIJK_EFS_TO_2D_SYM(TYPE, SUF)					\
-  const tijk_type*							\
-  tijk_efs_to_2d_sym_##SUF(TYPE *res, const TYPE *fs, int order) {	\
-    const double *m; /* conversion matrix */				\
-    const tijk_type *type;						\
-    unsigned int i, j, n;						\
-    switch (order) {							\
-    case 2:								\
-      m=_tijk_efs2sym_o2;						\
-      type=tijk_2o2d_sym;						\
-      break;								\
-    case 4:								\
-      m=_tijk_efs2sym_o4;						\
-      type=tijk_4o2d_sym;						\
-      break;								\
-    default:								\
-      return NULL; /* cannot do the conversion */			\
-    }									\
-    n=_tijk_fs_len[order/2];						\
-    for (i=0; i<n; i++) {						\
-      res[i]=0;								\
-      for (j=0; j<n; j++) {						\
-	res[i]+=m[n*i+j]*fs[j];						\
-      }									\
-    }									\
-    return type;							\
+#define TIJK_EFS_TO_2D_SYM(TYPE, SUF)                              \
+  const tijk_type*                                                 \
+  tijk_efs_to_2d_sym_##SUF(TYPE *res, const TYPE *fs, int order) { \
+    const double *m; /* conversion matrix */                       \
+    const tijk_type *type;                                         \
+    unsigned int i, j, n;                                          \
+    switch (order) {                                               \
+    case 2:                                                        \
+      m=_tijk_efs2sym_o2;                                          \
+      type=tijk_2o2d_sym;                                          \
+      break;                                                       \
+    case 4:                                                        \
+      m=_tijk_efs2sym_o4;                                          \
+      type=tijk_4o2d_sym;                                          \
+      break;                                                       \
+    default:                                                       \
+      return NULL; /* cannot do the conversion */                  \
+    }                                                              \
+    n=_tijk_fs_len[order/2];                                       \
+    for (i=0; i<n; i++) {                                          \
+      res[i]=0;                                                    \
+      for (j=0; j<n; j++) {                                        \
+        res[i]+=m[n*i+j]*fs[j];                                    \
+      }                                                            \
+    }                                                              \
+    return type;                                                   \
   }
 
 TIJK_EFS_TO_2D_SYM(double, d)

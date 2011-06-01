@@ -303,13 +303,13 @@ enum {
                                 0:dv_x/dx  1:dv_x/dy  2:dv_x/dz
                                 3:dv_y/dx  4:dv_y/dy  5:dv_y/dz
                                 6:dv_z/dx  7:dv_z/dy  8:dv_z/dz */
-  gageVecStrain,	  /*  8: "S", rate-of-strain tensor: [9] */
+  gageVecStrain,          /*  8: "S", rate-of-strain tensor: [9] */
   gageVecDivergence,      /*  9: "d", divergence (based on Jacobian): [1] */
   gageVecCurl,            /* 10: "c", curl (based on Jacobian): [3] */
   gageVecCurlNorm,        /* 11: "cm", curl magnitude: [1] */
   gageVecHelicity,        /* 12: "h", helicity: vec . curl: [1] */
   gageVecNormHelicity,    /* 13: "nh", normalized helicity: [1] */
-  gageVecSOmega,	  /* 14: "somega", S squared + Omega squared: [9] */
+  gageVecSOmega,          /* 14: "somega", S squared + Omega squared: [9] */
   gageVecLambda2,         /* 15: "lambda2", lambda2 criterion: [1] */
   gageVecImaginaryPart,   /* 16: "imag", imag. part of jacobian's
                                   complex-conjugate eigenvalues: [1] */

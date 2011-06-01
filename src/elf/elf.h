@@ -41,20 +41,20 @@ extern "C" {
 
 /* glyphElf.c */
 ELF_EXPORT float elfGlyphHOME(limnPolyData *glyph, const char antipodal,
-			      const float *ten, const tijk_type *type,
-			      char *isdef, const char normalize);
+                              const float *ten, const tijk_type *type,
+                              char *isdef, const char normalize);
 
 ELF_EXPORT float elfGlyphPolar(limnPolyData *glyph, const char antipodal,
-			       const float *ten, const tijk_type *type,
-			       char *isdef, const char clamp,
-			       const char normalize,
-			       const unsigned char *posColor,
-			       const unsigned char *negColor);
+                               const float *ten, const tijk_type *type,
+                               char *isdef, const char clamp,
+                               const char normalize,
+                               const unsigned char *posColor,
+                               const unsigned char *negColor);
 
 ELF_EXPORT int elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
-				   const int *neighbors, unsigned int nbstride,
-				   const float *ten, const tijk_type *type,
-				   const char modulate, const float gamma);
+                                   const int *neighbors, unsigned int nbstride,
+                                   const float *ten, const tijk_type *type,
+                                   const char modulate, const float gamma);
 
 /*
 ********** elfMaximaContext
@@ -75,15 +75,15 @@ typedef struct {
 
 /* maximaElf.c */
 extern elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
-					     unsigned int level);
+                                             unsigned int level);
 extern elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc);
 extern void elfMaximaParmSet(elfMaximaContext *emc,
-			     tijk_refine_rank1_parm *parm);
+                             tijk_refine_rank1_parm *parm);
 extern void elfMaximaRefineSet(elfMaximaContext *emc, int refine);
 extern int elfMaximaFind_d(double **ls, double **vs, const double *ten,
-			   elfMaximaContext *emc);
+                           elfMaximaContext *emc);
 extern int elfMaximaFind_f(float **ls, float **vs, const float *ten,
-			   elfMaximaContext *emc);
+                           elfMaximaContext *emc);
 
 #ifdef __cplusplus
 }

@@ -30,7 +30,7 @@
  * sufficient. Larger levels reduce the risk of missing one of two (or
  * more) very close maxima, at increased computational cost. */
 elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
-				      unsigned int level) {
+                                      unsigned int level) {
   elfMaximaContext *retval;
   limnPolyData *sphere;
   unsigned int vert;
@@ -73,7 +73,7 @@ elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc) {
  * of the parm struct, i.e., it will be nix'ed along with the context
  * or when setting another parm */
 void elfMaximaParmSet(elfMaximaContext *emc,
-		      tijk_refine_rank1_parm *parm) {
+                      tijk_refine_rank1_parm *parm) {
   if (emc!=NULL) {
     if (emc->parm!=NULL)
       tijk_refine_rank1_parm_nix(emc->parm);
@@ -94,7 +94,7 @@ void elfMaximaRefineSet(elfMaximaContext *emc, int refine) {
  * distinct maxima, or -1 on error. ls are sorted in descending order.
  */
 int elfMaximaFind_d(double **ls, double **vs, const double *ten,
-		    elfMaximaContext *emc) {
+                    elfMaximaContext *emc) {
   unsigned int i;
   int retval;
   double *vals;
@@ -119,8 +119,8 @@ int elfMaximaFind_d(double **ls, double **vs, const double *ten,
     int ismax=1, nb;
     while (ni<emc->nbstride && (nb=emc->neighbors[emc->nbstride*2*i+ni])!=-1) {
       if (vals[i]<=vals[nb/2]) {
-	ismax=0;
-	break;
+        ismax=0;
+        break;
       }
       ni++;
     }
@@ -128,7 +128,7 @@ int elfMaximaFind_d(double **ls, double **vs, const double *ten,
       double s=vals[i], v[3];
       ELL_3V_COPY(v,emc->vertices_d+3*i);
       if (emc->refine) /* refine further */
-	tijk_refine_max_3d_d(&s, v, ten, emc->type, emc->parm);
+        tijk_refine_max_3d_d(&s, v, ten, emc->type, emc->parm);
       /* add to heap */
       airHeapInsert(heap, -s, v);
     }
@@ -150,7 +150,7 @@ int elfMaximaFind_d(double **ls, double **vs, const double *ten,
 /* Mostly copy-pasted from above :-/
  */
 int elfMaximaFind_f(float **ls, float **vs, const float *ten,
-		    elfMaximaContext *emc) {
+                    elfMaximaContext *emc) {
   unsigned int i;
   int retval;
   float *vals;
@@ -169,8 +169,8 @@ int elfMaximaFind_f(float **ls, float **vs, const float *ten,
     int ismax=1, nb;
     while (ni<emc->nbstride && (nb=emc->neighbors[emc->nbstride*2*i+ni])!=-1) {
       if (vals[i]<=vals[nb/2]) {
-	ismax=0;
-	break;
+        ismax=0;
+        break;
       }
       ni++;
     }
@@ -178,7 +178,7 @@ int elfMaximaFind_f(float **ls, float **vs, const float *ten,
       float s=vals[i], v[3];
       ELL_3V_COPY(v,emc->vertices_f+3*i);
       if (emc->refine) /* refine further */
-	tijk_refine_max_3d_f(&s, v, ten, emc->type, emc->parm);
+        tijk_refine_max_3d_f(&s, v, ten, emc->type, emc->parm);
       /* add to heap */
       airHeapInsert(heap, -s, v);
     }

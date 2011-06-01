@@ -341,7 +341,7 @@ typedef struct pullPoint_t {
     neighTanCovar[6],         /* covariance of "tangent" info of neighbors */
     stability;                /* the scalar stability measure */
   unsigned int neighInterNum, /* number of particles with which I had some
-				 non-zero interaction on last iteration */
+                                 non-zero interaction on last iteration */
     stuckIterNum;             /* how many iterations I've been stuck */
 #if PULL_PHIST
   double *phist;              /* history of positions tried in the last iter,
@@ -835,7 +835,7 @@ typedef struct pullContext_t {
     maxDistScale,                  /* max dist of point-point interaction 
                                       along scale */
     constraintDim,                 /* dimension (possibly non-integer) of
-				      (spatial) constraint surface we're
+                                      (spatial) constraint surface we're
                                       working on, or 0 if no constraint, or
                                       if we have a constraint, but we're using
                                       tangent mode, so the constraint dim is

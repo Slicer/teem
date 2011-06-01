@@ -141,7 +141,7 @@ extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
 extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
                                    double proj[9]);
 extern double _pullConstraintDim(pullContext *pctx,
-				 pullTask *task, pullPoint *point);
+                                 pullTask *task, pullPoint *point);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,

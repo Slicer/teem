@@ -449,19 +449,19 @@ enum {
 
   tenGageCl1GradVec,       /* 156: "cl1gv" gradient vector of cl1: [3] */
   tenGageCl1GradMag,       /* 157: "cl1gm" gradient magnitude of cl1: [1] */
-  tenGageCl1Normal,	   /* 158: "cl1gn" normal of cl1: [3] */
+  tenGageCl1Normal,        /* 158: "cl1gn" normal of cl1: [3] */
   tenGageCp1GradVec,       /* 159: "cp1gv" gradient vector of cp1: [3] */
   tenGageCp1GradMag,       /* 160: "cp1gm" gradient magnitude of cp1: [1] */
-  tenGageCp1Normal,	   /* 161: "cl1gn" normal of cp1: [3] */
+  tenGageCp1Normal,        /* 161: "cl1gn" normal of cp1: [3] */
   tenGageCa1GradVec,       /* 162: "ca1gv" gradient vector of ca1: [3] */
   tenGageCa1GradMag,       /* 163: "ca1gm" gradient magnitude of ca1: [1] */
-  tenGageCa1Normal,	   /* 164: "cl1gn" normal of ca1: [3] */
+  tenGageCa1Normal,        /* 164: "cl1gn" normal of ca1: [3] */
   tenGageTensorGradRotE,   /* 165: "tgrote" all tensor component gradients,
                               starting with confidence gradient.
                               Rotated such that eigenvalue
                               derivatives are on the diagonal: [21] */
-  tenGageEvalHessian,	 /* 166: "evalhess" Hessian of the eigenvalues: [27] */
-  tenGageCl1Hessian,	 /* 167: "cl1hess" Hessian of cl1: [9] */
+  tenGageEvalHessian,    /* 166: "evalhess" Hessian of the eigenvalues: [27] */
+  tenGageCl1Hessian,     /* 167: "cl1hess" Hessian of cl1: [9] */
   tenGageCl1HessianEval, /* 168: "cl1hesseval" Hessian evals of cl1: [3] */
   tenGageCl1HessianEval0,/* 169: "cl1hesseval0" First Hess eval of cl1: [1] */
   tenGageCl1HessianEval1,/* 170: "cl1hesseval1" Second Hess eval of cl1: [1] */
@@ -470,7 +470,7 @@ enum {
   tenGageCl1HessianEvec0,/* 173: "cl1hessevec0" First Hess evec of cl1: [3] */
   tenGageCl1HessianEvec1,/* 174: "cl1hessevec1" Second Hess evec of cl1: [3] */
   tenGageCl1HessianEvec2,/* 175: "cl1hessevec2" Third Hess evec of cl1: [3] */
-  tenGageCp1Hessian,	 /* 176: "cp1hess" Hessian of cp1: [9] */
+  tenGageCp1Hessian,     /* 176: "cp1hess" Hessian of cp1: [9] */
   tenGageCp1HessianEval, /* 177: "cp1hesseval" Hessian evals of cp1: [3] */
   tenGageCp1HessianEval0,/* 178: "cp1hesseval0" First Hess eval of cp1: [1] */
   tenGageCp1HessianEval1,/* 179: "cp1hesseval1" Second Hess eval of cp1: [1] */
@@ -479,7 +479,7 @@ enum {
   tenGageCp1HessianEvec0,/* 182: "cp1hessevec0" First Hess evec of cp1: [3] */
   tenGageCp1HessianEvec1,/* 183: "cp1hessevec1" Second Hess evec of cp1: [3] */
   tenGageCp1HessianEvec2,/* 184: "cp1hessevec2" Third Hess evec of cp1: [3] */
-  tenGageCa1Hessian,	 /* 185: "ca1hess" Hessian of ca1: [9] */
+  tenGageCa1Hessian,     /* 185: "ca1hess" Hessian of ca1: [9] */
   tenGageCa1HessianEval, /* 186: "ca1hesseval" Hessian evals of ca1: [3] */
   tenGageCa1HessianEval0,/* 187: "ca1hesseval0" First Hess eval of ca1: [1] */
   tenGageCa1HessianEval1,/* 188: "ca1hesseval1" Second Hess eval of ca1: [1] */

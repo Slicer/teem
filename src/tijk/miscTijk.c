@@ -27,7 +27,7 @@
 
 void
 tijk_add_d (double *res, const double *A, const double *B,
-	    const tijk_type *type) {
+            const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)+*(B++);
@@ -35,7 +35,7 @@ tijk_add_d (double *res, const double *A, const double *B,
 
 void
 tijk_add_f (float *res, const float *A, const float *B,
-	    const tijk_type *type) {
+            const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)+*(B++);
@@ -43,7 +43,7 @@ tijk_add_f (float *res, const float *A, const float *B,
 
 void
 tijk_sub_d (double *res, const double *A, const double *B,
-	    const tijk_type *type) {
+            const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)-*(B++);
@@ -51,7 +51,7 @@ tijk_sub_d (double *res, const double *A, const double *B,
 
 void
 tijk_sub_f (float *res, const float *A, const float *B,
-	    const tijk_type *type) {
+            const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=*(A++)-*(B++);
@@ -87,7 +87,7 @@ tijk_negate_f (float *res, const float *A, const tijk_type *type) {
 
 void
 tijk_scale_d (double *res, const double s,
-	      const double *A, const tijk_type *type) {
+              const double *A, const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=s*(*A++);
@@ -95,7 +95,7 @@ tijk_scale_d (double *res, const double s,
 
 void
 tijk_scale_f (float *res, const float s,
-	      const float *A, const tijk_type *type) {
+              const float *A, const tijk_type *type) {
   unsigned int i;
   for (i=0; i<type->num; i++)
     *(res++)=s*(*A++);

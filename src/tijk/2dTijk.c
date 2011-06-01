@@ -64,36 +64,36 @@ _tijk_2o2d_unsym_trans_f (float *res, const float *A, const float *M) {
 }
 
 /* macro-based pseudo-template for type-generic code */
-#define _TIJK_2O2D_UNSYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-				 const TYPE *A) {			\
-    if (res_type==tijk_2o2d_unsym) { /* copy over */			\
-      ELL_4V_COPY(res, A);						\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_unsym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_UNSYM_CONVERT(TYPE, SUF)                             \
+  int                                                                   \
+  _tijk_2o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                  const TYPE *A) {                      \
+    if (res_type==tijk_2o2d_unsym) { /* copy over */                    \
+      ELL_4V_COPY(res, A);                                              \
+      return 0;                                                         \
+    } else if (NULL!=res_type->_convert_from_##SUF)                     \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_unsym);   \
+    else                                                                \
+      return 1;                                                         \
   }
 
 _TIJK_2O2D_UNSYM_CONVERT(double, d)
 _TIJK_2O2D_UNSYM_CONVERT(float, f)
 
-#define _TIJK_2O2D_UNSYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-				 const TYPE *A) {			\
-    if (res_type==tijk_2o2d_sym) {					\
-      res[0]=A[0]; res[1]=0.5*(A[1]+A[2]); res[2]=A[3];			\
-      return 0;								\
-    } else if (res_type==tijk_2o2d_asym) {				\
-      res[0]=0.5*(A[1]-A[2]);						\
-      return 0;								\
-    } else if (NULL!=res_type->_approx_from_##SUF)			\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_unsym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_UNSYM_APPROX(TYPE, SUF)                             \
+  int                                                                  \
+  _tijk_2o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                                 const TYPE *A) {                      \
+    if (res_type==tijk_2o2d_sym) {                                     \
+      res[0]=A[0]; res[1]=0.5*(A[1]+A[2]); res[2]=A[3];                \
+      return 0;                                                        \
+    } else if (res_type==tijk_2o2d_asym) {                             \
+      res[0]=0.5*(A[1]-A[2]);                                          \
+      return 0;                                                        \
+    } else if (NULL!=res_type->_approx_from_##SUF)                     \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_unsym);   \
+    else                                                               \
+      return 1;                                                        \
   }
 
 _TIJK_2O2D_UNSYM_APPROX(double, d)
@@ -108,7 +108,7 @@ int _tijk_2o2d_sym_unsym2uniq[4] = {1, 2, 2, 3};
 int _tijk_2o2d_sym_uniq2unsym[4] = {1, 2, 3, 4};
 unsigned int _tijk_2o2d_sym_uniq_idx[3] = {0, 1, 3};
 
-#define _TIJK_2O2D_SYM_TSP(A, B) \
+#define _TIJK_2O2D_SYM_TSP(A, B)                \
   ((A)[0]*(B)[0]+2*(A)[1]*(B)[1]+(A)[2]*(B)[2])
 
 double
@@ -147,37 +147,37 @@ _tijk_2o2d_sym_trans_f (float *res, const float *A, const float *M) {
   res[2]=M[2]*M[2]*A[0]+2*M[2]*M[3]*A[1]+M[3]*M[3]*A[2];
 }
 
-#define _TIJK_2O2D_SYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-			       const TYPE *A) {				\
-    if (res_type==tijk_2o2d_sym) { /* copy over */			\
-      ELL_3V_COPY(res, A);						\
-      return 0;								\
-    } else if (res_type==tijk_2o2d_unsym) {				\
-      res[0]=A[0]; res[1]=res[2]=A[1]; res[3]=A[2];			\
-      return 0;								\
-    } else if (res_type==tijk_4o2d_sym) {				\
-      res[0]=A[0]; res[1]=res[3]=0.5*A[1];				\
-      res[2]=(A[0]+A[2])/6.0; res[4]=A[2];				\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_SYM_CONVERT(TYPE, SUF)                             \
+  int                                                                 \
+  _tijk_2o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                const TYPE *A) {                      \
+    if (res_type==tijk_2o2d_sym) { /* copy over */                    \
+      ELL_3V_COPY(res, A);                                            \
+      return 0;                                                       \
+    } else if (res_type==tijk_2o2d_unsym) {                           \
+      res[0]=A[0]; res[1]=res[2]=A[1]; res[3]=A[2];                   \
+      return 0;                                                       \
+    } else if (res_type==tijk_4o2d_sym) {                             \
+      res[0]=A[0]; res[1]=res[3]=0.5*A[1];                            \
+      res[2]=(A[0]+A[2])/6.0; res[4]=A[2];                            \
+      return 0;                                                       \
+    } else if (NULL!=res_type->_convert_from_##SUF)                   \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_sym);   \
+    else                                                              \
+      return 1;                                                       \
   }
 
 _TIJK_2O2D_SYM_CONVERT(double, d)
 _TIJK_2O2D_SYM_CONVERT(float, f)
 
-#define _TIJK_2O2D_SYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-			       const TYPE *A) {				\
-    if (NULL!=res_type->_approx_from_##SUF)				\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_SYM_APPROX(TYPE, SUF)                             \
+  int                                                                \
+  _tijk_2o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                               const TYPE *A) {                      \
+    if (NULL!=res_type->_approx_from_##SUF)                          \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_sym);   \
+    else                                                             \
+      return 1;                                                      \
   }
 
 _TIJK_2O2D_SYM_APPROX(double, d)
@@ -333,33 +333,33 @@ _tijk_2o2d_asym_trans_f (float *res, const float *A, const float *M) {
   res[0]=A[0]*(M[0]*M[3]-M[1]*M[2]);
 }
 
-#define _TIJK_2O2D_ASYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-				const TYPE *A) {			\
-    if (res_type==tijk_2o2d_asym) { /* copy over */			\
-      res[0]=A[0];							\
-      return 0;								\
-    } else if (res_type==tijk_2o2d_unsym) {				\
-      res[0]=0; res[1]=A[0]; res[2]=-A[0]; res[3]=0;			\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_asym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_ASYM_CONVERT(TYPE, SUF)                             \
+  int                                                                  \
+  _tijk_2o2d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                 const TYPE *A) {                      \
+    if (res_type==tijk_2o2d_asym) { /* copy over */                    \
+      res[0]=A[0];                                                     \
+      return 0;                                                        \
+    } else if (res_type==tijk_2o2d_unsym) {                            \
+      res[0]=0; res[1]=A[0]; res[2]=-A[0]; res[3]=0;                   \
+      return 0;                                                        \
+    } else if (NULL!=res_type->_convert_from_##SUF)                    \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_2o2d_asym);   \
+    else                                                               \
+      return 1;                                                        \
   }
 
 _TIJK_2O2D_ASYM_CONVERT(double, d)
 _TIJK_2O2D_ASYM_CONVERT(float, f)
 
-#define _TIJK_2O2D_ASYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_2o2d_asym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-				const TYPE *A) {			\
-    if (NULL!=res_type->_approx_from_##SUF)				\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_asym);	\
-    else								\
-      return 1;								\
+#define _TIJK_2O2D_ASYM_APPROX(TYPE, SUF)                             \
+  int                                                                 \
+  _tijk_2o2d_asym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                                const TYPE *A) {                      \
+    if (NULL!=res_type->_approx_from_##SUF)                           \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_2o2d_asym);   \
+    else                                                              \
+      return 1;                                                       \
   }
 
 _TIJK_2O2D_ASYM_APPROX(double, d)
@@ -375,7 +375,7 @@ unsigned int _tijk_3o2d_sym_mult[4] = {1, 3, 3, 1};
 #define _tijk_3o2d_sym_uniq2unsym NULL
 #define _tijk_3o2d_sym_uniq_idx NULL
 
-#define _TIJK_3O2D_SYM_TSP(A, B) \
+#define _TIJK_3O2D_SYM_TSP(A, B)                                \
   ((A)[0]*(B)[0]+3*(A)[1]*(B)[1]+3*(A)[2]*(B)[2]+(A)[3]*(B)[3])
 
 double
@@ -398,30 +398,30 @@ _tijk_3o2d_sym_norm_f (const float *A) {
   return sqrt(_TIJK_3O2D_SYM_TSP(A,A));
 }
 
-#define _TIJK_3O2D_SYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_3o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-			      const TYPE *A) {				\
-    if (res_type==tijk_3o2d_sym) { /* copy over */			\
-      ELL_4V_COPY(res, A);						\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_3o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_3O2D_SYM_CONVERT(TYPE, SUF)                             \
+  int                                                                 \
+  _tijk_3o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                const TYPE *A) {                      \
+    if (res_type==tijk_3o2d_sym) { /* copy over */                    \
+      ELL_4V_COPY(res, A);                                            \
+      return 0;                                                       \
+    } else if (NULL!=res_type->_convert_from_##SUF)                   \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_3o2d_sym);   \
+    else                                                              \
+      return 1;                                                       \
   }
 
 _TIJK_3O2D_SYM_CONVERT(double, d)
 _TIJK_3O2D_SYM_CONVERT(float, f)
 
-#define _TIJK_3O2D_SYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_3o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-			       const TYPE *A) {				\
-    if (NULL!=res_type->_approx_from_##SUF)				\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_3o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_3O2D_SYM_APPROX(TYPE, SUF)                             \
+  int                                                                \
+  _tijk_3o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                               const TYPE *A) {                      \
+    if (NULL!=res_type->_approx_from_##SUF)                          \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_3o2d_sym);   \
+    else                                                             \
+      return 1;                                                      \
   }
 
 _TIJK_3O2D_SYM_APPROX(double, d)
@@ -478,13 +478,13 @@ _tijk_3o2d_sym_mean_f (const float *A) {
 double
 _tijk_3o2d_sym_var_d (const double *A) {
   return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
-	  6*(A[0]*A[2]+A[1]*A[3]))/16.0;
+          6*(A[0]*A[2]+A[1]*A[3]))/16.0;
 }
 
 float
 _tijk_3o2d_sym_var_f (const float *A) {
   return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
-	  6*(A[0]*A[2]+A[1]*A[3]))/16.0;
+          6*(A[0]*A[2]+A[1]*A[3]))/16.0;
 }
 
 void
@@ -593,78 +593,78 @@ _tijk_4o2d_unsym_tsp_f (const float *A, const float *B) {
 double
 _tijk_4o2d_unsym_norm_d (const double *A) {
   return sqrt(ELL_4V_DOT(A,A)+ELL_4V_DOT(A+4,A+4)+
-	      ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
+              ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
 }
 
 float
 _tijk_4o2d_unsym_norm_f (const float *A) {
   return sqrt(ELL_4V_DOT(A,A)+ELL_4V_DOT(A+4,A+4)+
-	      ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
+              ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
 }
 
-#define _TIJK_4O2D_UNSYM_TRANS(TYPE, SUF)				\
-  void									\
+#define _TIJK_4O2D_UNSYM_TRANS(TYPE, SUF)                               \
+  void                                                                  \
   _tijk_4o2d_unsym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) \
-  { /* Tijkl = Mim Mjn Mko Mlp Tmnop					\
-     * For efficiency, we transform mode by mode, right to left */	\
-  TYPE tmp[16]={0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};			\
-  int i, init;								\
-  for (i=0; i<16; i+=2) { /* 4th mode */				\
-    tmp[i]  = M[0]*A[i] + M[1]*A[i+1];					\
-    tmp[i+1]= M[2]*A[i] + M[3]*A[i+1];					\
-  }									\
-  /* using res as additional tmp space */				\
-  for (init=0; init<2; init++) { /* 3rd mode */				\
-    for (i=init; i<16; i+=4) {						\
-      res[i]  = M[0]*tmp[i] + M[1]*tmp[i+2];				\
-      res[i+2]= M[2]*tmp[i] + M[3]*tmp[i+2];				\
-    }									\
-  }									\
-  for (init=0; init<4; init++) { /* 2nd mode */				\
-    for (i=init; i<16; i+=8) {						\
-      tmp[i]  = M[0]*res[i] + M[1]*res[i+4];				\
-      tmp[i+4]= M[2]*res[i] + M[3]*res[i+4];				\
-    }									\
-  }									\
-  for (i=0; i<8; i++) { /* 1st mode */					\
-    res[i]  = M[0]*tmp[i] + M[1]*tmp[i+8];				\
-    res[i+8]= M[2]*tmp[i] + M[3]*tmp[i+8];				\
-  }									\
+  { /* Tijkl = Mim Mjn Mko Mlp Tmnop                                    \
+     * For efficiency, we transform mode by mode, right to left */      \
+    TYPE tmp[16]={0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};                  \
+    int i, init;                                                        \
+    for (i=0; i<16; i+=2) { /* 4th mode */                              \
+      tmp[i]  = M[0]*A[i] + M[1]*A[i+1];                                \
+      tmp[i+1]= M[2]*A[i] + M[3]*A[i+1];                                \
+    }                                                                   \
+    /* using res as additional tmp space */                             \
+    for (init=0; init<2; init++) { /* 3rd mode */                       \
+      for (i=init; i<16; i+=4) {                                        \
+        res[i]  = M[0]*tmp[i] + M[1]*tmp[i+2];                          \
+        res[i+2]= M[2]*tmp[i] + M[3]*tmp[i+2];                          \
+      }                                                                 \
+    }                                                                   \
+    for (init=0; init<4; init++) { /* 2nd mode */                       \
+      for (i=init; i<16; i+=8) {                                        \
+        tmp[i]  = M[0]*res[i] + M[1]*res[i+4];                          \
+        tmp[i+4]= M[2]*res[i] + M[3]*res[i+4];                          \
+      }                                                                 \
+    }                                                                   \
+    for (i=0; i<8; i++) { /* 1st mode */                                \
+      res[i]  = M[0]*tmp[i] + M[1]*tmp[i+8];                            \
+      res[i+8]= M[2]*tmp[i] + M[3]*tmp[i+8];                            \
+    }                                                                   \
   }
 
 _TIJK_4O2D_UNSYM_TRANS(double, d)
 _TIJK_4O2D_UNSYM_TRANS(float, f)
 
-#define _TIJK_4O2D_UNSYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_4o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-				 const TYPE *A) {			\
-    if (res_type==tijk_4o2d_unsym) { /* copy over */			\
-      ELL_4V_COPY(res, A); ELL_4V_COPY(res+4, A+4);			\
-      ELL_4V_COPY(res+8, A+8); ELL_4V_COPY(res+12, A+12);		\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_4o2d_unsym);	\
-    else								\
-      return 1;								\
+#define _TIJK_4O2D_UNSYM_CONVERT(TYPE, SUF)                             \
+  int                                                                   \
+  _tijk_4o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                  const TYPE *A) {                      \
+    if (res_type==tijk_4o2d_unsym) { /* copy over */                    \
+      ELL_4V_COPY(res, A); ELL_4V_COPY(res+4, A+4);                     \
+      ELL_4V_COPY(res+8, A+8); ELL_4V_COPY(res+12, A+12);               \
+      return 0;                                                         \
+    } else if (NULL!=res_type->_convert_from_##SUF)                     \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_4o2d_unsym);   \
+    else                                                                \
+      return 1;                                                         \
   }
 
 _TIJK_4O2D_UNSYM_CONVERT(double, d)
 _TIJK_4O2D_UNSYM_CONVERT(float, f)
 
-#define _TIJK_4O2D_UNSYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_4o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-				 const TYPE *A) {			\
-    if (res_type==tijk_4o2d_sym) {					\
-      res[0]=A[0]; res[1]=0.25*(A[1]+A[2]+A[4]+A[8]);			\
-      res[2]=(A[3]+A[5]+A[6]+A[9]+A[10]+A[12])/6.0;			\
-      res[3]=0.25*(A[7]+A[11]+A[13]+A[14]); res[4]=A[15];		\
-      return 0;								\
-    } else if (NULL!=res_type->_approx_from_##SUF)			\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_4o2d_unsym);	\
-    else								\
-      return 1;								\
+#define _TIJK_4O2D_UNSYM_APPROX(TYPE, SUF)                             \
+  int                                                                  \
+  _tijk_4o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                                 const TYPE *A) {                      \
+    if (res_type==tijk_4o2d_sym) {                                     \
+      res[0]=A[0]; res[1]=0.25*(A[1]+A[2]+A[4]+A[8]);                  \
+      res[2]=(A[3]+A[5]+A[6]+A[9]+A[10]+A[12])/6.0;                    \
+      res[3]=0.25*(A[7]+A[11]+A[13]+A[14]); res[4]=A[15];              \
+      return 0;                                                        \
+    } else if (NULL!=res_type->_approx_from_##SUF)                     \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_4o2d_unsym);   \
+    else                                                               \
+      return 1;                                                        \
   }
 
 _TIJK_4O2D_UNSYM_APPROX(double, d)
@@ -676,12 +676,12 @@ TIJK_TYPE_UNSYM(4o2d_unsym, 4, 2, 16)
 
 unsigned int _tijk_4o2d_sym_mult[5] = {1, 4, 6, 4, 1};
 int _tijk_4o2d_sym_unsym2uniq[16] = {1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4,
-				    3, 4, 4, 5};
+                                     3, 4, 4, 5};
 int _tijk_4o2d_sym_uniq2unsym[16] = {1, 2, 3, 5, 9, 4, 6, 7, 10, 11, 13,
-				    8, 12, 14, 15, 16};
+                                     8, 12, 14, 15, 16};
 unsigned int _tijk_4o2d_sym_uniq_idx[5] = {0, 1, 5, 11, 15};
 
-#define _TIJK_4O2D_SYM_TSP(A, B) \
+#define _TIJK_4O2D_SYM_TSP(A, B)                                        \
   ((A)[0]*(B)[0]+4*(A)[1]*(B)[1]+6*(A)[2]*(B)[2]+4*(A)[3]*(B)[3]+(A)[4]*(B)[4])
 
 double
@@ -704,40 +704,40 @@ _tijk_4o2d_sym_norm_f (const float *A) {
   return sqrt(_TIJK_4O2D_SYM_TSP(A,A));
 }
 
-#define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)				\
-  int									\
-  _tijk_4o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type,	\
-			      const TYPE *A) {				\
-    if (res_type==tijk_4o2d_sym) { /* copy over */			\
-      ELL_4V_COPY(res, A); res[4]=A[4];					\
-      return 0;								\
-    } else if (res_type==tijk_4o2d_unsym) {				\
-      res[0]=A[0]; res[1]=res[2]=res[4]=res[8]=A[1];			\
-      res[3]=res[5]=res[6]=res[9]=res[10]=res[12]=A[2];			\
-      res[7]=res[11]=res[13]=res[14]=A[3]; res[15]=A[4];		\
-      return 0;								\
-    } else if (NULL!=res_type->_convert_from_##SUF)			\
-      return (*res_type->_convert_from_##SUF)(res,A,tijk_4o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)                             \
+  int                                                                 \
+  _tijk_4o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
+                                const TYPE *A) {                      \
+    if (res_type==tijk_4o2d_sym) { /* copy over */                    \
+      ELL_4V_COPY(res, A); res[4]=A[4];                               \
+      return 0;                                                       \
+    } else if (res_type==tijk_4o2d_unsym) {                           \
+      res[0]=A[0]; res[1]=res[2]=res[4]=res[8]=A[1];                  \
+      res[3]=res[5]=res[6]=res[9]=res[10]=res[12]=A[2];               \
+      res[7]=res[11]=res[13]=res[14]=A[3]; res[15]=A[4];              \
+      return 0;                                                       \
+    } else if (NULL!=res_type->_convert_from_##SUF)                   \
+      return (*res_type->_convert_from_##SUF)(res,A,tijk_4o2d_sym);   \
+    else                                                              \
+      return 1;                                                       \
   }
 
 _TIJK_4O2D_SYM_CONVERT(double, d)
 _TIJK_4O2D_SYM_CONVERT(float, f)
 
-#define _TIJK_4O2D_SYM_APPROX(TYPE, SUF)				\
-  int									\
-  _tijk_4o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,	\
-			       const TYPE *A) {				\
-    if (res_type==tijk_2o2d_sym) {					\
-      res[0]=0.875*A[0]+0.75*A[2]-0.125*A[4];				\
-      res[1]=A[1]+A[3];							\
-      res[2]=-0.125*A[0]+0.75*A[2]+0.875*A[4];				\
-      return 0;								\
-    } else if (NULL!=res_type->_approx_from_##SUF)			\
-      return (*res_type->_approx_from_##SUF)(res,A,tijk_4o2d_sym);	\
-    else								\
-      return 1;								\
+#define _TIJK_4O2D_SYM_APPROX(TYPE, SUF)                             \
+  int                                                                \
+  _tijk_4o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                               const TYPE *A) {                      \
+    if (res_type==tijk_2o2d_sym) {                                   \
+      res[0]=0.875*A[0]+0.75*A[2]-0.125*A[4];                        \
+      res[1]=A[1]+A[3];                                              \
+      res[2]=-0.125*A[0]+0.75*A[2]+0.875*A[4];                       \
+      return 0;                                                      \
+    } else if (NULL!=res_type->_approx_from_##SUF)                   \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_4o2d_sym);   \
+    else                                                             \
+      return 1;                                                      \
   }
 
 _TIJK_4O2D_SYM_APPROX(double, d)
