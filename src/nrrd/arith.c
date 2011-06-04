@@ -541,6 +541,9 @@ static double _nrrdTernaryOpInClosed(double a, double b, double c) {
 static double _nrrdTernaryOpGaussian(double x, double mu, double sig) {
   return airGaussian(x, mu, sig);
 }
+static double _nrrdTernaryOpRician(double x, double mu, double sig) {
+  return airRician(x, mu, sig);
+}
 double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpAdd,
@@ -555,7 +558,8 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   _nrrdTernaryOpExists,
   _nrrdTernaryOpInOpen,
   _nrrdTernaryOpInClosed,
-  _nrrdTernaryOpGaussian
+  _nrrdTernaryOpGaussian,
+  _nrrdTernaryOpRician
 };
 
 /*
