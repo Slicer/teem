@@ -64,6 +64,8 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "\b\bo \"in_cl\": 1 iff second value is >= first and <= "
              "third, 0 otherwise\n "
              "\b\bo \"gauss\": evaluate (at 1st value) Gaussian with mean=2nd "
+             "and stdv=3rd value\n "
+             "\b\bo \"rician\": evaluate (at 1st value) Rician with mean=2nd "
              "and stdv=3rd value",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
