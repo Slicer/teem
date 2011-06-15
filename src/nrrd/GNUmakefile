@@ -61,7 +61,7 @@ $(L).OBJS = \
 	encodingGzip.o   encodingBzip2.o  \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
 	formatVTK.o      formatText.o     formatEPS.o      \
-	keyvalue.o  resampleContext.o
+	keyvalue.o  resampleContext.o  fftNrrd.o
 $(L).TESTS = test/tread test/trand test/ax test/io test/strio test/texp \
 	test/minmax test/tkernel test/typestest test/tline test/genvol \
 	test/quadvol test/convo test/kv test/reuse test/histrad test/otsu \

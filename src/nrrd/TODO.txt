@@ -62,8 +62,6 @@ be sure to test all non-boolean state/default variables
 
 add one-line descriptions to function declarations in nrrd.h
 
-fftw integration!!
-
 2D rmaps
 
 see if the use of airSinglePrintf in accessors.c, with %.8g or whatever,

@@ -47,6 +47,7 @@ SET(NRRD_SOURCES
   read.c
   reorder.c
   resampleContext.c
+  fftNrrd.c
   resampleNrrd.c
   simple.c
   subset.c

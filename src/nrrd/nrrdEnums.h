@@ -696,6 +696,21 @@ enum {
 };
 #define NRRD_TERNARY_OP_MAX  14
 
+/*
+******** nrrdFFTWPlanRigor
+**
+** Different levels of rigor in FFTW planning
+*/
+enum {
+  nrrdFFTWPlanRigorUnknown,
+  nrrdFFTWPlanRigorEstimate,   /* 1 */
+  nrrdFFTWPlanRigorMeasure,    /* 2 */
+  nrrdFFTWPlanRigorPatient,    /* 3 */
+  nrrdFFTWPlanRigorExhaustive, /* 4 */
+  nrrdFFTWPlanRigorLast
+};
+#define NRRD_FFTW_PLAN_RIGOR_MAX  4
+
 /* ---- END non-NrrdIO */
 
 #ifdef __cplusplus

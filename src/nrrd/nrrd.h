@@ -723,6 +723,7 @@ NRRD_EXPORT const airEnum *const nrrdMeasure;
 NRRD_EXPORT const airEnum *const nrrdUnaryOp;
 NRRD_EXPORT const airEnum *const nrrdBinaryOp;
 NRRD_EXPORT const airEnum *const nrrdTernaryOp;
+NRRD_EXPORT const airEnum *const nrrdFFTWPlanRigor;
 /* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */
@@ -1290,6 +1291,15 @@ NRRD_EXPORT int nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *nval,
                             unsigned int maxNeighbor, unsigned int conny);
 NRRD_EXPORT int nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval);
 NRRD_EXPORT int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin);
+
+/******** FFT */
+/* fftNrrd.c */
+NRRD_EXPORT int nrrdFFTWEnabled;
+NRRD_EXPORT int nrrdFFTWWisdomRead(FILE *file);
+NRRD_EXPORT int nrrdFFT(Nrrd *nout, const Nrrd *nin,
+                        unsigned int *axes, unsigned int axesLen,
+                        int sign, int rescale, int preCompLevel);
+NRRD_EXPORT int nrrdFFTWWisdomWrite(FILE *file);
   
 /******** kernels (interpolation, 1st and 2nd derivatives) */
 /* tmfKernel.c

@@ -1383,4 +1383,53 @@ _nrrdTernaryOp_enum = {
 const airEnum *const
 nrrdTernaryOp = &_nrrdTernaryOp_enum;
 
+/* ------------------------ nrrdFFTWPlanRigor ---------------------- */
+
+const char *
+_nrrdFFTWPlanRigorStr[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
+  "(unknown_rigor)",
+  "estimate",
+  "measure",
+  "patient",
+  "exhaustive"
+};
+
+const char *
+_nrrdFFTWPlanRigorDesc[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
+  "unknown rigor",
+  "no machine-specific measurements, just estimate a plan",
+  "do several machine-specific measurements to determine plan",
+  "performs more measurements to find \"more optimal\" plan",
+  "considers even wider range of algorithms to find most optimal plan"
+};
+
+const char *
+_nrrdFFTWPlanRigorStrEqv[] = {
+  "e", "est", "estimate",
+  "m", "meas", "measure",
+  "p", "pat", "patient", 
+  "x", "ex", "exhaustive",
+  ""
+};
+
+const int
+_nrrdFFTWPlanRigorValEqv[] = {
+  nrrdFFTWPlanRigorEstimate, nrrdFFTWPlanRigorEstimate, nrrdFFTWPlanRigorEstimate,
+  nrrdFFTWPlanRigorMeasure, nrrdFFTWPlanRigorMeasure, nrrdFFTWPlanRigorMeasure,
+  nrrdFFTWPlanRigorPatient, nrrdFFTWPlanRigorPatient, nrrdFFTWPlanRigorPatient,
+  nrrdFFTWPlanRigorExhaustive, nrrdFFTWPlanRigorExhaustive, nrrdFFTWPlanRigorExhaustive
+};
+
+airEnum
+_nrrdFFTWPlanRigor_enum = {
+  "fftw plan rigor",
+  NRRD_FFTW_PLAN_RIGOR_MAX,
+  _nrrdFFTWPlanRigorStr, NULL,
+  _nrrdFFTWPlanRigorDesc,
+  _nrrdFFTWPlanRigorStrEqv, _nrrdFFTWPlanRigorValEqv, 
+  AIR_FALSE
+};
+const airEnum *const
+nrrdFFTWPlanRigor = &_nrrdFFTWPlanRigor_enum;
+
 /* ---- END non-NrrdIO */
