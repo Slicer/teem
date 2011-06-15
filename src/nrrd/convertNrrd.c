@@ -50,7 +50,7 @@ typedef size_t IT;
 ** I don't think that I can get out of defining this macro twice,
 ** because of the rules of C preprocessor macro expansion.  If
 ** you can figure out a way to not use two identical macros, then
-** email me (gk@bwh.harvard.edu) and I'll send you money for dinner.
+** email me (glk@uchicago.edu) and I'll send you money for dinner.
 **
 ** >>> MAP1 and MAP2 need to be identical <<<
 */
