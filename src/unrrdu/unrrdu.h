@@ -112,6 +112,7 @@ F(head) \
 F(data) \
 F(convert) \
 F(resample) \
+F(fft) \
 F(cmedian) \
 F(dist) \
 F(minmax) \
