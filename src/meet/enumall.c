@@ -76,6 +76,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdUnaryOp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBinaryOp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdTernaryOp;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFFTWPlanRigor;
 
   /* ell */
   ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
