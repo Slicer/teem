@@ -32,7 +32,7 @@
 ## external EXT is enabled during make, then TEEM_EXT will be defined
 ## as "1" during source file compilation.
 ##
-XTERNS = PNG ZLIB BZIP2 PTHREAD LEVMAR
+XTERNS = PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
 
 ## ZLIB: for the zlib library underlying gzip and the PNG image
 ## format.  Using zlib enables the "gzip" nrrd data encoding.  Header
@@ -81,3 +81,11 @@ air.XTERN += PTHREAD
 ## link lines, respectively.
 LEVMAR.LINK = -llevmar
 ten.XTERN += LEVMAR
+
+## FFTW3: FFTW version 3
+##
+## Arch-specific .mk files may need to set TEEM_FFTW3_IPATH and
+## TEEM_FFTW3_LPATH to "-I<path>" and "-L<path>" for the compile and
+## link lines, respectively.
+FFTW3.LINK = -lfftw3
+nrrd.XTERN += FFTW3
