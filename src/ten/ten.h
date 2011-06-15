@@ -1132,6 +1132,8 @@ typedef struct {
     *grad;               /* all gradients: 3 x imgNum doubles */
 } tenExperSpec;
 
+/* description of *one* parameter in the parameter vector that
+   defines one instance of a given model */
 typedef struct {
   char name[AIR_STRLEN_SMALL]; /* name */
   double min, max;             /* bounds */
