@@ -35,11 +35,25 @@ tend_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "\"tend\" is a command-line interface to much of the functionality "
     "in \"ten\", a C library for diffusion image processing. Ten is one "
     "library in the \"Teem\" collection of libraries.  More information "
-    "about Teem is at <http://teem.sourceforge.net>.\n";
+    "about Teem is at <http://teem.sf.net>. A checkout of Teem source "
+    "is available via:\n "
+    "svn co http://teem.svn.sf.net/svnroot/teem/teem/trunk teem\n ";
   char par2[] = "\t\t\t\t"
-    "Users are strongly encouraged to join the teem-users mailing list: "
+    "Long-term maintenance of this software depends on funding, and "
+    "funding depends on being able to document who is using it for what.  "
+    "If tend or Ten has helped in your research, including for simple one-off "
+    "experiments or mundane data hacking, the developers of Teem would love "
+    "to know. There are multiple ways of communicating this.  "
+    "In your publications, consider adding a line such as this "
+    "in the Acknowledgments: "
+    "\"Data processing performed with the tend tool, "
+    "part of the Teem toolkit available at "
+    "http://teem.sf.net\". "
+    "Alternatively, please email glk@uchicago.edu and briefly describe "
+    "how Teem software has helped in your work. "
+    "Please also consider joining the teem-users mailing list: "
     "<http://lists.sourceforge.net/lists/listinfo/teem-users>. This is "
-    "the primary forum for feedback, questions, and feature requests.\n";
+    "the primary forum for feedback, questions, and feature requests.\n ";
   char par3[] = "\t\t\t\t"
     "Like \"unu\", another Teem command-line binary, it is often useful "
     "to chain together invocations of tend with pipes, as in the "
@@ -50,13 +64,6 @@ tend_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
     "  | tend slice -a 2 -p 30 \\\n "
     "  | tend evecrgb -c 0 -a cl2 -gam 1.2 \\\n "
     "  | unu quantize -b 8 -min 0 -max 1 -o z30-rgb.png\n";
-  char par5[] = "\t\t\t\t"
-    "If tend repeatedly proves itself useful for your research, an "
-    "acknowledgment to that effect in your publication would be greatly "
-    "appreciated, such as (for LaTeX): "
-    "\"Dataset processing performed with the {\\tt tend} tool "
-    "part of the {\\tt Teem} toolkit available at "
-    "{\\tt\t$<$http://teem.sf.net$>$}\"\n ";
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
@@ -78,7 +85,6 @@ tend_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
   _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
   _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
   _hestPrintStr(stdout, 2, 0, 78, par4, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE);
 
   return 0;
 }
