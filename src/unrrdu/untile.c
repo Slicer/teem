@@ -33,7 +33,8 @@ char *_unrrdu_untileInfoL =
  "as demonstrated here for a 3-D array:\n "
  "\"unu untile -a 2 0 1\" undoes \"unu tile -a 2 0 1\"\n "
  "\"unu untile -a 1 0 1\" undoes \"unu tile -a 1 0 2\"\n "
- "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\". ");
+ "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\".\n "
+ "* Uses nrrdUntile2D");
 
 int
 unrrdu_untileMain(int argc, const char **argv, char *me, hestParm *hparm) {

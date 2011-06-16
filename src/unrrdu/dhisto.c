@@ -24,7 +24,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create (PGM) image of 1-D value histogram"
-char *_unrrdu_dhistoInfoL = INFO;
+char *_unrrdu_dhistoInfoL = 
+  (INFO
+   ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
+   "* Uses nrrdHistoDraw");
 
 int
 unrrdu_dhistoMain(int argc, const char **argv, char *me, hestParm *hparm) {

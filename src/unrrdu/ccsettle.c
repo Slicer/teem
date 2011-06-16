@@ -26,7 +26,8 @@
 #define INFO "Remap CC values down to lowest contiguous values"
 char *_unrrdu_ccsettleInfoL =
 (INFO
- ".");
+ ".\n "
+ "* Uses nrrdCCSettle");
 
 int
 unrrdu_ccsettleMain(int argc, const char **argv, char *me, hestParm *hparm) {

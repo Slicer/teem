@@ -24,7 +24,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create 1-D histogram of values in a nrrd"
-char *_unrrdu_histoInfoL = INFO;
+char *_unrrdu_histoInfoL = 
+  (INFO
+   ". Can explicitly set bounds of histogram domain or can learn these "
+   "from the data.\n "
+   "* Uses nrrdHisto");
 
 int
 unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {

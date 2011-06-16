@@ -34,7 +34,8 @@ char *_unrrdu_shuffleInfoL =
  "if you have to rearrange the many slices of a large "
  "dataset, you should probably store the permutation "
  "in a plain text file and use it as a "
- "\"response file\".");
+ "\"response file\".\n "
+ "* Uses nrrdShuffle");
 
 int
 unrrdu_shuffleMain(int argc, const char **argv, char *me, hestParm *hparm) {

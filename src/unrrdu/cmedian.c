@@ -35,7 +35,7 @@ char *_unrrdu_cmedianInfoL =
  "anything except 8-bit data.  Also, integral values can be recovered "
  "exactly only when the number of bins is exactly min-max+1 (as reported "
  "by \"unu minmax\").\n "
- "* Uses nrrdCheapMedian, plus nrrdSlice, nrrdJoin in "
+ "* Uses nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
  "case of \"-c\"");
 
 int

@@ -30,7 +30,8 @@ char *_unrrdu_mlutInfoL =
  "tables are stored in a nrrd with a dimension which is either 1 or 2 "
  "more than the dimension of the input nrrd, resulting in an output "
  "which has either the same or one more dimension than the input, "
- "resptectively. ");
+ "resptectively.\n "
+ "* Uses nrrdApplyMulti1DLut");
 
 int
 unrrdu_mlutMain(int argc, const char **argv, char *me, hestParm *hparm) {

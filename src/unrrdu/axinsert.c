@@ -28,7 +28,8 @@ char *_unrrdu_axinsertInfoL =
 (INFO
  ". The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
- "shifted upwards as needed.");
+ "shifted upwards as needed.\n "
+ "* Uses nrrdAxesInsert");
 
 int
 unrrdu_axinsertMain(int argc, const char **argv, char *me, hestParm *hparm) {

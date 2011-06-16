@@ -31,7 +31,8 @@ char *_unrrdu_axdeleteInfoL =
  "unchanged, and the information about the other axes is "
  "shifted downwards as needed.  As a total hack, if you give "
  "-1 as the axis, this will do a matlab-style \"squeeze\", in which "
- "any and all singleton axes are removed.");
+ "any and all singleton axes are removed.\n "
+ "* Uses nrrdAxesDelete");
 
 int
 unrrdu_axdeleteMain(int argc, const char **argv, char *me, hestParm *hparm) {

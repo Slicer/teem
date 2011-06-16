@@ -28,7 +28,8 @@ char *_unrrdu_permuteInfoL =
 (INFO
  ". The permutation gives the new ordering of the old "
  "axes (in 0-based numbering). For example, the "
- "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".");
+ "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".\n "
+ "* Uses nrrdAxesPermute");
 
 int
 unrrdu_permuteMain(int argc, const char **argv, char *me, hestParm *hparm) {

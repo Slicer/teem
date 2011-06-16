@@ -29,7 +29,8 @@ char *_unrrdu_mrmapInfoL =
  ", one map per sample in input. The \"mmap\" nrrd has the same dimensional "
  "constraints as the \"mlut\" nrrd for \"unu mlut\".  This functionality "
  "is a generalization of \"unu 3op lerp\": it allows you to lerp through "
- "multiple nrrds, instead of just two.");
+ "multiple nrrds, instead of just two.\n "
+ "* Uses nrrdApplyMulti1DRegMap");
 
 int
 unrrdu_mrmapMain(int argc, const char **argv, char *me, hestParm *hparm) {

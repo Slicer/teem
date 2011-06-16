@@ -31,7 +31,8 @@ char *_unrrdu_saveInfoL =
  "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
  "inclusion into other PostScript documents.  As a stand-alone file, the "
  "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
- "inch margins.");
+ "inch margins.\n "
+ "* Uses various fields in the NrrdIOState passed to nrrdSave");
 
 int
 unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {

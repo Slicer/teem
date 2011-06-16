@@ -27,7 +27,8 @@
 char *_unrrdu_ccfindInfoL =
 (INFO
  ". This works on 1-byte and 2-byte integral values, as well as "
- "4-byte ints.");
+ "4-byte ints.\n "
+ "* Uses nrrdCCFind");
 
 int
 unrrdu_ccfindMain(int argc, const char **argv, char *me, hestParm *hparm) {

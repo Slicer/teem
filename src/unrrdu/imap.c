@@ -33,7 +33,8 @@ char *_unrrdu_imapInfoL =
  "location of the control point, and the remaining values "
  "give are the range of the map for that control point. "
  "The output value(s) is the result of linearly "
- "interpolating between value(s) from the map.");
+ "interpolating between value(s) from the map.\n "
+ "* Uses nrrdApply1DIrregMap");
 
 int
 unrrdu_imapMain(int argc, const char **argv, char *me, hestParm *hparm) {

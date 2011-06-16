@@ -28,7 +28,8 @@ char *_unrrdu_gammaInfoL =
 (INFO
  ". Just as in xv, the gamma value here is actually the "
  "reciprocal of the exponent actually used to transform "
- "the values.");
+ "the values.\n "
+ "* Uses nrrdArithGamma");
 
 int
 unrrdu_gammaMain(int argc, const char **argv, char *me, hestParm *hparm) {

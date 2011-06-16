@@ -30,7 +30,8 @@ char *_unrrdu_jhistoInfoL =
  "input nrrds, and each bin in the output records the "
  "number of corresponding positions in the inputs with "
  "a combination of values represented by the coordinates "
- "of the bin.");
+ "of the bin.\n "
+ "* Uses nrrdHistoJoint");
 
 int
 unrrdu_jhistoMain(int argc, const char **argv, char *me, hestParm *hparm) {

@@ -29,7 +29,8 @@ char *_unrrdu_axmergeInfoL =
  ". A more general version of \"unu axdelete\". "
  "The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
- "shifted downwards as needed.");
+ "shifted downwards as needed.\n "
+ "* Uses nrrdAxesMerge");
 
 int
 unrrdu_axmergeMain(int argc, const char **argv, char *me, hestParm *hparm) {

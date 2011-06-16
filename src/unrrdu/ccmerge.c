@@ -30,7 +30,8 @@ char *_unrrdu_ccmergeInfoL =
  "Merging of a CC is always done into its largest neighbor. "
  "Whether or not to merge can be constrained by one or more of: "
  "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
- "and number of neighbors (\"-n\"). ");
+ "and number of neighbors (\"-n\").\n "
+ "* Uses nrrdCCMerge");
 
 int
 unrrdu_ccmergeMain(int argc, const char **argv, char *me, hestParm *hparm) {

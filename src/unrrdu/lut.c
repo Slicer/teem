@@ -31,7 +31,8 @@ char *_unrrdu_lutInfoL =
  "has the same dimension as the input, or 2D, in which case "
  "the output has one more dimension than the input, and each "
  "value is mapped to a scanline (along axis 0) from the "
- "lookup table.");
+ "lookup table.\n "
+ "* Uses nrrdApply1DLut");
 
 int
 unrrdu_lutMain(int argc, const char **argv, char *me, hestParm *hparm) {

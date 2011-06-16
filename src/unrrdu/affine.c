@@ -33,7 +33,8 @@ char *_unrrdu_affineInfoL =
  "\"affine\" program. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).");
+ "that \"-\" can probably only be used once (reliably).\n "
+ "* Uses nrrdArithAffine or nrrdArithIterAffine");
 
 int
 unrrdu_affineMain(int argc, const char **argv, char *me, hestParm *hparm) {

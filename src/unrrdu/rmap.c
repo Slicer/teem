@@ -38,7 +38,8 @@ char *_unrrdu_rmapInfoL =
  "either case, the output is the result of linearly "
  "interpolating between map points, either scalar values "
  "(\"grayscale\"), or scanlines along axis 0 "
- "(\"color\").");
+ "(\"color\").\n "
+ "* Uses nrrdApply1DRegMap");
 
 int
 unrrdu_rmapMain(int argc, const char **argv, char *me, hestParm *hparm) {

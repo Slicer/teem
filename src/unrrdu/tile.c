@@ -32,7 +32,8 @@ char *_unrrdu_tileInfoL =
  "axis.  This reduces the dimension by one.  The three axis arguments all "
  "identify axes in the input array as is.  This provides, for example, "
  "a simple way of viewing the 128 slices along the slow axis of a 3-D volume "
- "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".");
+ "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".\n "
+ "* Uses nrrdTile2D");
 
 int
 unrrdu_tileMain(int argc, const char **argv, char *me, hestParm *hparm) {

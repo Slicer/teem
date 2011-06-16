@@ -27,7 +27,8 @@
 char *_unrrdu_axinfoInfoL =
 (INFO
  ". The only attributes which are set are those for which command-line "
- "options are given.");
+ "options are given.\n "
+ "* Uses no particular function; just sets fields in NrrdAxisInfo");
 
 int
 unrrdu_axinfoMain(int argc, const char **argv, char *me, hestParm *hparm) {

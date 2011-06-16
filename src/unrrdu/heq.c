@@ -31,7 +31,8 @@ char *_unrrdu_heqInfoL =
  "two (or more).  Or, use \"unu gamma\" to warp the values "
  "in the direction you know they need to go.  Either of "
  "these might work because extremely tall and narrow peaks "
- "in the equalization histogram will produce poor results.");
+ "in the equalization histogram will produce poor results.\n "
+ "* Uses nrrdHistoEq");
 
 int
 unrrdu_heqMain(int argc, const char **argv, char *me, hestParm *hparm) {

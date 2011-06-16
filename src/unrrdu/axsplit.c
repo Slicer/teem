@@ -28,7 +28,8 @@ char *_unrrdu_axsplitInfoL =
 (INFO
  ". More general version of \"unu axinsert\", since a given axis can "
  "be split into fast and slow axes of arbitrary size, as long as the "
- "product of the fast and slow sizes is the same as the original size.");
+ "product of the fast and slow sizes is the same as the original size.\n "
+ "* Uses nrrdAxesSplit");
 
 int
 unrrdu_axsplitMain(int argc, const char **argv, char *me, hestParm *hparm) {

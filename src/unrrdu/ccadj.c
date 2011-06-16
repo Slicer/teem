@@ -28,7 +28,8 @@ char *_unrrdu_ccadjInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\".  Output is unsigned char "
  "array containing 1 at locations (I,J) and (J,I) if CCs with ids I and J are "
- "adjacent, according to the chosen style of adjacency. ");
+ "adjacent, according to the chosen style of adjacency.\n "
+ "* Uses nrrdCCAdjacency");
 
 int
 unrrdu_ccadjMain(int argc, const char **argv, char *me, hestParm *hparm) {

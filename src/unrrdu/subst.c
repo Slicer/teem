@@ -31,7 +31,8 @@ char *_unrrdu_substInfoL =
  "and the the new value (to change to), in that order.  A plain text file "
  "makes this easy.  Unlike with \"unu lut\", \"unu rmap\", and \"unu imap\", "
  "the output type is the same as the input type, rather than the type of "
- "the lut or map. ");
+ "the lut or map.\n "
+ "* Uses nrrdApply1DSubstitution");
 
 int
 unrrdu_substMain(int argc, const char **argv, char *me, hestParm *hparm) {
