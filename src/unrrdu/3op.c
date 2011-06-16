@@ -29,7 +29,8 @@ char *_unrrdu_3opInfoL =
  ". Can have one, two, or three nrrds, but not zero. "
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).");
+ "that \"-\" can probably only be used once (reliably).\n "
+ "* Uses nrrdArithIterTernaryOp");
 
 int
 unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -124,6 +125,10 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNix()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
+
+  /* HEY: will need to add handling of RNG seed (as in 1op and 2op) 
+     if there are any 3ops involving random numbers */
+
   if (nrrdArithIterTernaryOp(nout, op, in1, in2, in3)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
