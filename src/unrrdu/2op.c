@@ -29,7 +29,8 @@ char *_unrrdu_2opInfoL =
  ". Either the first or second operand can be a float constant, "
  "but not both.  Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).");
+ "that \"-\" can probably only be used once (reliably).\n "
+ "* Uses nrrdArithIterBinaryOp");
 
 int
 unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -119,19 +120,27 @@ unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
     /* this will still leave a nrrd in the NrrdIter for nrrdIterNix()
        (called by hestParseFree() called be airMopOkay()) to clear up */
   }
-  if (nrrdBinaryOpNormalRandScaleAdd == op) {
-    if (airStrlen(seedS)) {
-      if (1 != sscanf(seedS, "%u", &seed)) {
-        fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
-        airMopError(mop);
-        return 1;
-      } else {
-        airSrandMT(seed);
-      }
+  /*
+  ** Used to only deal with RNG seed for particular op:
+  **   if (nrrdBinaryOpNormalRandScaleAdd == op) {
+  ** but then when nrrdBinaryOpRicianRand was added, then the seed wasn't being
+  ** used ==> BUG.  To be more future proof, we try to parse and use seed
+  ** whenever a non-empty string is given, and end up *ALWAYS* calling
+  ** airSrandMT, even for operations that have nothing to do with random
+  ** numbers.  Could also have a new array that indicates if an op involves
+  ** the RNG, but this would only make things more fragile.
+  */
+  if (airStrlen(seedS)) {
+    if (1 != sscanf(seedS, "%u", &seed)) {
+      fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
+      airMopError(mop);
+      return 1;
     } else {
-      /* got no request for specific seed */
-      airSrandMT(AIR_CAST(unsigned int, airTime()));
+      airSrandMT(seed);
     }
+  } else {
+    /* got no request for specific seed */
+    airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
   if (nrrdArithIterBinaryOp(nout, op, in1, in2)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

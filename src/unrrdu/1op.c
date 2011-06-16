@@ -24,7 +24,10 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Unary operation on a nrrd"
-char *_unrrdu_1opInfoL = (INFO);
+char *_unrrdu_1opInfoL = 
+  (INFO
+   ".\n "
+   "* Uses nrrdArithUnaryOp");
 
 int
 unrrdu_1opMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -94,20 +97,22 @@ unrrdu_1opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   } else {
     ntmp = nin;
   }
-  if (nrrdUnaryOpRand == op
-      || nrrdUnaryOpNormalRand == op) {
-    if (airStrlen(seedS)) {
-      if (1 != sscanf(seedS, "%u", &seed)) {
-        fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
-        airMopError(mop);
-        return 1;
-      } else {
-        airSrandMT(seed);
-      }
+  /* see note in 2op.c about the hazards of trying to be clever
+  ** about minimizing the seeding of the RNG 
+  ** if (nrrdUnaryOpRand == op
+  **     || nrrdUnaryOpNormalRand == op) {
+  */
+  if (airStrlen(seedS)) {
+    if (1 != sscanf(seedS, "%u", &seed)) {
+      fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
+      airMopError(mop);
+      return 1;
     } else {
-      /* got no request for specific seed */
-      airSrandMT(AIR_CAST(unsigned int, airTime()));
+      airSrandMT(seed);
     }
+  } else {
+    /* got no request for specific seed */
+    airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
