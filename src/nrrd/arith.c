@@ -136,6 +136,7 @@ static double _nrrdUnaryOpLog1p(double a)      {
   if (b == 1) {
     return a;
   } else {
+    /* HEY: where did this derivation come from? */
     return log(b)*a/(b-1);
   }
 }
