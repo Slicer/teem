@@ -1294,7 +1294,7 @@ NRRD_EXPORT int nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin);
 
 /******** FFT */
 /* fftNrrd.c */
-NRRD_EXPORT int nrrdFFTWEnabled;
+NRRD_EXPORT const int nrrdFFTWEnabled;
 NRRD_EXPORT int nrrdFFTWWisdomRead(FILE *file);
 NRRD_EXPORT int nrrdFFT(Nrrd *nout, const Nrrd *nin,
                         unsigned int *axes, unsigned int axesLen,

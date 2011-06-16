@@ -28,7 +28,7 @@
 
 #include <fftw3.h>
 
-int nrrdFFTWEnabled = AIR_TRUE;
+const int nrrdFFTWEnabled = AIR_TRUE;
 
 int
 nrrdFFTWWisdomRead(FILE *file) {
@@ -289,7 +289,7 @@ nrrdFFTWWisdomWrite(FILE *file) {
 /* we do NOT have the FFTW library to link against; have to
    supply the same symbols anyway */
 
-int nrrdFFTWEnabled = AIR_FALSE;
+const int nrrdFFTWEnabled = AIR_FALSE;
 
 int
 nrrdFFTWWisdomRead(FILE *file) {
