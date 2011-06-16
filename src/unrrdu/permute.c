@@ -23,7 +23,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Permute scan-line ordering of axes"
+#define INFO "Permute ordering of axes"
 char *_unrrdu_permuteInfoL =
 (INFO
  ". The permutation gives the new ordering of the old "

@@ -23,7 +23,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Interchange scan-line ordering of two axes"
+#define INFO "Interchange ordering of two axes"
 char *_unrrdu_swapInfoL = (INFO
                        ". Special case of \"unu\tpermute\".");
 
