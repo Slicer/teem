@@ -153,6 +153,8 @@ typedef struct tijk_type_t {
   const tijk_sym_fun *sym;
 } tijk_type;
 
+/* OBS: If you add a tijk_type, modify nrrdTijk.c:tijk_get_axis_type! */
+
 /* 2dTijk.c */
 TIJK_EXPORT const tijk_type *const tijk_2o2d_unsym;
 TIJK_EXPORT const tijk_type *const tijk_2o2d_sym;
@@ -368,18 +370,18 @@ TIJK_EXPORT int tijk_approx_heur_3d_f(float *ls, float *vs, float *res,
 TIJK_EXPORT const unsigned int tijk_esh_len[];
 TIJK_EXPORT const unsigned int tijk_max_esh_order;
 
-TIJK_EXPORT int tijk_eval_esh_basis_d(double *res, int order,
-                                      double theta, double phi);
-TIJK_EXPORT int tijk_eval_esh_basis_f(float *res, int order,
-                                      float theta, float phi);
+TIJK_EXPORT unsigned int tijk_eval_esh_basis_d(double *res, unsigned int order,
+                                               double theta, double phi);
+TIJK_EXPORT unsigned int tijk_eval_esh_basis_f(float *res, unsigned int order,
+                                               float theta, float phi);
 
-TIJK_EXPORT double tijk_eval_esh_d(double *coeffs, int order,
+TIJK_EXPORT double tijk_eval_esh_d(double *coeffs, unsigned int order,
                                    double theta, double phi);
-TIJK_EXPORT float tijk_eval_esh_f(float *coeffs, int order,
+TIJK_EXPORT float tijk_eval_esh_f(float *coeffs, unsigned int order,
                                   float theta, float phi);
 
-TIJK_EXPORT double tijk_esh_sp_d(double *A, double *B, int order);
-TIJK_EXPORT float  tijk_esh_sp_f(float  *A, float  *B, int order);
+TIJK_EXPORT double tijk_esh_sp_d(double *A, double *B, unsigned int order);
+TIJK_EXPORT float  tijk_esh_sp_f(float  *A, float  *B, unsigned int order);
 
 TIJK_EXPORT int tijk_3d_sym_to_esh_d(double *res, const double *ten,
                                      const tijk_type *type);
@@ -387,16 +389,39 @@ TIJK_EXPORT int tijk_3d_sym_to_esh_f(float *res, const float *ten,
                                      const tijk_type *type);
 
 TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_d(double *res,
-                                                  const double *sh, int order);
+                                                  const double *sh,
+                                                  unsigned int order);
 TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_f(float *res,
-                                                  const float *sh, int order);
+                                                  const float *sh,
+                                                  unsigned int order);
+
+TIJK_EXPORT void tijk_esh_convolve_d(double *out, const double *in,
+				     const double *kernel,
+                                     unsigned int order);
+TIJK_EXPORT void tijk_esh_convolve_f(float *out, const float *in,
+				     const float *kernel,
+                                     unsigned int order);
+
+TIJK_EXPORT void tijk_esh_deconvolve_d(double *out, const double *in,
+				       const double *kernel,
+                                       unsigned int order);
+TIJK_EXPORT void tijk_esh_deconvolve_f(float *out, const float *in,
+				       const float *kernel,
+                                       unsigned int order);
 
 /* fsTijk.c */
-TIJK_EXPORT int tijk_eval_efs_basis_d(double *res, int order, double phi);
-TIJK_EXPORT int tijk_eval_efs_basis_f(float *res, int order, float phi);
+/* for any given order, length is simply order+1; no need for a table */
+TIJK_EXPORT const unsigned int tijk_max_efs_order;
 
-TIJK_EXPORT double tijk_eval_efs_d(double *coeffs, int order, double phi);
-TIJK_EXPORT float tijk_eval_efs_f(float *coeffs, int order, float phi);
+TIJK_EXPORT unsigned int tijk_eval_efs_basis_d(double *res, unsigned int order,
+                                               double phi);
+TIJK_EXPORT unsigned int tijk_eval_efs_basis_f(float *res, unsigned int order,
+                                               float phi);
+
+TIJK_EXPORT double tijk_eval_efs_d(double *coeffs, unsigned int order,
+                                   double phi);
+TIJK_EXPORT float tijk_eval_efs_f(float *coeffs, unsigned int order,
+                                  float phi);
 
 TIJK_EXPORT int tijk_2d_sym_to_efs_d(double *res, const double *ten,
                                      const tijk_type *type);
@@ -404,9 +429,50 @@ TIJK_EXPORT int tijk_2d_sym_to_efs_f(float *res, const float *ten,
                                      const tijk_type *type);
 
 TIJK_EXPORT const tijk_type *tijk_efs_to_2d_sym_d(double *res,
-                                                  const double *fs, int order);
+                                                  const double *fs,
+                                                  unsigned int order);
 TIJK_EXPORT const tijk_type *tijk_efs_to_2d_sym_f(float *res,
-                                                  const float *fs, int order);
+                                                  const float *fs,
+                                                  unsigned int order);
+
+/* enumsTijk.c */
+
+/* tijk_class_* enum
+ *
+ * classes of objects Tijk deals with (e.g., tensors, SH series)
+ */
+enum {
+  tijk_class_unknown,
+  tijk_class_tensor,	/* 1: a tijk_type */
+  tijk_class_esh,	/* 2: even-order spherical harmonic */
+  tijk_class_efs,	/* 3: even-order fourier series */
+  tijk_class_last
+};
+#define TIJK_CLASS_MAX 3
+
+TIJK_EXPORT const airEnum *const tijk_class;
+
+/* nrrdTijk.c */
+
+TIJK_EXPORT int tijk_set_axis_tensor(Nrrd *nrrd, unsigned int axis,
+				     const tijk_type *type);
+
+TIJK_EXPORT int tijk_set_axis_esh(Nrrd *nrrd, unsigned int axis,
+				  unsigned int order);
+
+TIJK_EXPORT int tijk_set_axis_efs(Nrrd *nrrd, unsigned int axis,
+				  unsigned int order);
+
+typedef struct tijk_axis_info_t {
+  int class; /* class of Tijk object, from the tijk_class enum */
+  unsigned int masked; /* whether or not values are masked */
+  const tijk_type *type;
+  unsigned int order;
+} tijk_axis_info;
+
+TIJK_EXPORT int tijk_get_axis_type(tijk_axis_info *info,
+				   const Nrrd *nrrd, unsigned int axis);
+
 #ifdef __cplusplus
 }
 #endif

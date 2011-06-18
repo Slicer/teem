@@ -4,12 +4,14 @@ SET(TIJK_SOURCES
   2dTijk.c
   3dTijk.c
   approxTijk.c
-  miscTijk.c
-  shTijk.c
+  enumsTijk.c
   fsTijk.c
+  miscTijk.c
+  nrrdTijk.c
+  shTijk.c
   privateTijk.h
-  tijk.h
   shtables.h
+  tijk.h
   )
 
 ADD_TEEM_LIBRARY(tijk ${TIJK_SOURCES})

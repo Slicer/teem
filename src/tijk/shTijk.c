@@ -38,14 +38,13 @@ const unsigned int tijk_max_esh_order=8;
 const unsigned int tijk_esh_len[5]={1,6,15,28,45};
 
 #define TIJK_EVAL_ESH_BASIS(TYPE, SUF)                                  \
-  int                                                                   \
-  tijk_eval_esh_basis_##SUF(TYPE *res, int order, TYPE theta, TYPE phi) { \
+  unsigned int                                                          \
+  tijk_eval_esh_basis_##SUF(TYPE *res, unsigned int order,              \
+                            TYPE theta, TYPE phi) {                     \
     TYPE stheta=sin(theta);                                             \
     TYPE ctheta=cos(theta);                                             \
     TYPE stheta2=stheta*stheta, stheta4=stheta2*stheta2;                \
     TYPE ctheta2=ctheta*ctheta, ctheta4=ctheta2*ctheta2;                \
-    if (order<0)                                                        \
-      return -1;                                                        \
     res[0]=1.0/sqrt(4.0*AIR_PI);                                        \
     if (order<2)                                                        \
       return 0;                                                         \
@@ -107,7 +106,8 @@ TIJK_EVAL_ESH_BASIS(float, f)
 
 #define TIJK_EVAL_ESH(TYPE, SUF)                                       \
   TYPE                                                                 \
-  tijk_eval_esh_##SUF(TYPE *coeffs, int order, TYPE theta, TYPE phi) { \
+  tijk_eval_esh_##SUF(TYPE *coeffs, unsigned int order,                \
+                      TYPE theta, TYPE phi) {                          \
     TYPE basis[_TIJK_MAX_ESH_LEN];                                     \
     TYPE res=0.0;                                                      \
     unsigned int i;                                                    \
@@ -123,9 +123,9 @@ TIJK_EVAL_ESH(float, f)
 
 #define TIJK_ESH_SP(TYPE, SUF)                     \
   TYPE                                             \
-  tijk_esh_sp_##SUF(TYPE *A, TYPE *B, int order) { \
+  tijk_esh_sp_##SUF(TYPE *A, TYPE *B, unsigned int order) { \
     TYPE res=0.0;                                  \
-    if (order<=(int)tijk_max_esh_order) {          \
+    if (order<=tijk_max_esh_order) {               \
       unsigned int i;                              \
       for (i=0; i<tijk_esh_len[order/2]; i++) {    \
         res+=A[i]*B[i];                            \
@@ -172,7 +172,7 @@ TIJK_3D_SYM_TO_ESH(float, f)
 /* DOES NOT work in-place (with res==sh) */
 #define TIJK_ESH_TO_3D_SYM(TYPE, SUF)                              \
   const tijk_type*                                                 \
-  tijk_esh_to_3d_sym_##SUF(TYPE *res, const TYPE *sh, int order) { \
+  tijk_esh_to_3d_sym_##SUF(TYPE *res, const TYPE *sh, unsigned int order) { \
     const TYPE *m; /* conversion matrix */                         \
     const tijk_type *type;                                         \
     unsigned int i, j, n;                                          \
@@ -209,3 +209,35 @@ TIJK_3D_SYM_TO_ESH(float, f)
 
 TIJK_ESH_TO_3D_SYM(double, d)
 TIJK_ESH_TO_3D_SYM(float, f)
+
+/* Convolve in with kernel and write to out (in==out is permitted) */
+#define TIJK_ESH_CONVOLVE(TYPE, SUF)                              \
+  void tijk_esh_convolve_##SUF(TYPE *out, const TYPE *in,         \
+                               const TYPE *kernel, unsigned int order) { \
+    unsigned int o, idx=0;                                              \
+    for (o=0; o<=order/2; o++) {                                        \
+      while (idx<tijk_esh_len[o]) {                                     \
+        *(out++)=*(in++)*kernel[o];                                     \
+        idx++;                                                          \
+      }                                                                 \
+    }                                                                   \
+  }
+
+TIJK_ESH_CONVOLVE(double, d)
+TIJK_ESH_CONVOLVE(float, f)
+
+/* Deconvolve in with kernel and write to out (in==out is permitted) */
+#define TIJK_ESH_DECONVOLVE(TYPE, SUF)                            \
+  void tijk_esh_deconvolve_##SUF(TYPE *out, const TYPE *in,             \
+                                 const TYPE *kernel, unsigned int order) { \
+    unsigned int o, idx=0;                                              \
+    for (o=0; o<=order/2; o++) {                                        \
+      while (idx<tijk_esh_len[o]) {                                     \
+        *(out++)=*(in++)/kernel[o];                                     \
+        idx++;                                                          \
+      }                                                                 \
+    }                                                                   \
+  }
+
+TIJK_ESH_DECONVOLVE(double, d)
+TIJK_ESH_DECONVOLVE(float, f)

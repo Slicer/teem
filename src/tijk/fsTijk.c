@@ -24,17 +24,13 @@
 
 #include "tijk.h"
 
-static const unsigned int _tijk_max_fs_order=4;
+const unsigned int tijk_max_efs_order=4;
 /* for order 4, the maximum number of coefficients is 5 */
-#define _TIJK_MAX_FS_LEN 5
-/* number of coefficients for order i/2 */
-static const unsigned int _tijk_fs_len[3]={1,3,5};
+#define _TIJK_MAX_EFS_LEN 5
 
 #define TIJK_EVAL_EFS_BASIS(TYPE, SUF)                        \
-  int                                                         \
-  tijk_eval_efs_basis_##SUF(TYPE *res, int order, TYPE phi) { \
-    if (order<0)                                              \
-      return -1;                                              \
+  unsigned int                                                         \
+  tijk_eval_efs_basis_##SUF(TYPE *res, unsigned int order, TYPE phi) { \
     res[0]=0.5;                                               \
     if (order<2)                                              \
       return 0;                                               \
@@ -52,13 +48,13 @@ TIJK_EVAL_EFS_BASIS(float, f)
 
 #define TIJK_EVAL_EFS(TYPE, SUF)                             \
   TYPE                                                       \
-  tijk_eval_efs_##SUF(TYPE *coeffs, int order, TYPE phi) {   \
-    TYPE basis[_TIJK_MAX_FS_LEN];                            \
+  tijk_eval_efs_##SUF(TYPE *coeffs, unsigned int order, TYPE phi) {   \
+    TYPE basis[_TIJK_MAX_EFS_LEN];                                    \
     TYPE res=0.0;                                            \
     unsigned int i;                                          \
     if (order!=tijk_eval_efs_basis_##SUF(basis, order, phi)) \
       return 0; /* there has been an error. */               \
-    for (i=0; i<_tijk_fs_len[order/2]; i++)                  \
+    for (i=0; i<order+1; i++)                                \
       res+=basis[i]*coeffs[i];                               \
     return res;                                              \
   }
@@ -123,7 +119,7 @@ TIJK_2D_SYM_TO_EFS(float, f)
 
 #define TIJK_EFS_TO_2D_SYM(TYPE, SUF)                              \
   const tijk_type*                                                 \
-  tijk_efs_to_2d_sym_##SUF(TYPE *res, const TYPE *fs, int order) { \
+  tijk_efs_to_2d_sym_##SUF(TYPE *res, const TYPE *fs, unsigned int order) { \
     const double *m; /* conversion matrix */                       \
     const tijk_type *type;                                         \
     unsigned int i, j, n;                                          \
@@ -139,7 +135,7 @@ TIJK_2D_SYM_TO_EFS(float, f)
     default:                                                       \
       return NULL; /* cannot do the conversion */                  \
     }                                                              \
-    n=_tijk_fs_len[order/2];                                       \
+    n=order+1;                                                     \
     for (i=0; i<n; i++) {                                          \
       res[i]=0;                                                    \
       for (j=0; j<n; j++) {                                        \

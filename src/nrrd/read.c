@@ -307,12 +307,15 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
               me, (int)ftell(dataFile));
     }
   } else {
-    for (bi=1; bi<=nio->byteSkip; bi++) {
-      skipRet = fgetc(dataFile);
-      if (EOF == skipRet) {
-        biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
-                 me, bi, nio->byteSkip);
-        return 1;
+    if (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR)) {
+      /* we need to seek "manually" */
+      for (bi=1; bi<=nio->byteSkip; bi++) {
+	skipRet = fgetc(dataFile);
+	if (EOF == skipRet) {
+	  biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
+		   me, bi, nio->byteSkip);
+	  return 1;
+	}
       }
     }
   }

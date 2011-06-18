@@ -91,7 +91,7 @@ meetAirEnumAll() {
   /* moss: no airEnums */
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  /* tijk: no airEnums */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = tijk_class;
 #endif
 
   /* gage */
@@ -140,7 +140,9 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenTripleType;
   ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiGage;
 
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* elf: no airEnums */
+#endif
 
   /* pull */
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
