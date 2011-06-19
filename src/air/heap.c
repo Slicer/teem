@@ -1,6 +1,8 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+
   Copyright (C) 2010 Thomas Schultz
+
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
