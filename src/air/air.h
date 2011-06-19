@@ -1,6 +1,7 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2010 Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -213,6 +214,8 @@ AIR_EXPORT unsigned int airArrayLenIncr(airArray *a, int delta);
 AIR_EXPORT airArray *airArrayNix(airArray *a);
 AIR_EXPORT airArray *airArrayNuke(airArray *a);
 
+/* ---- BEGIN non-NrrdIO */
+
 /* heap.c: a (mostly) standard binary min-heap, built on top of airArray.
  * Additional non-standard functionality includes storing additional
  * data and addressing elements that are not at the top of the heap */
@@ -245,8 +248,6 @@ AIR_EXPORT int airHeapFind(const airHeap *h, unsigned int *ai,
 AIR_EXPORT int airHeapRemove(airHeap *h, unsigned int ai);
 AIR_EXPORT int airHeapUpdate(airHeap *h, unsigned int ai,
                              double newKey, const void *newData);
-
-/* ---- BEGIN non-NrrdIO */
 
 /* threadAir.c: simplistic wrapper functions for multi-threading  */
 /*
