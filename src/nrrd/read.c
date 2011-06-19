@@ -309,7 +309,8 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     }
   } else {
     if (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR)) {
-      /* we need to seek "manually" */
+      /* fseek failed, perhaps because we're reading stdin, so
+         we revert to consuming the input one byte at a time */
       for (bi=1; bi<=nio->byteSkip; bi++) {
         skipRet = fgetc(dataFile);
         if (EOF == skipRet) {
