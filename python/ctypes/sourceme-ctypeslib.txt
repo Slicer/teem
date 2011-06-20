@@ -30,7 +30,7 @@ python ${CTYPES}/scripts/h2xml.py `pwd`/teemincl/all.h -I teemincl -o teem.xml
 echo === DYLD_LIBRARY_PATH is obviously Mac specific, please fix
 setenv DYLD_LIBRARY_PATH ${TEEM}/lib
 python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o pre-teem.py -m stdio \
-        -r "(air|hest|biff|nrrd|ell|unrrdu|dye|moss|alan|gage|bane|limn|seek|hoover|echo|ten|mite|coil|push|pull|meet).*"
+        -r "(air|hest|biff|nrrd|ell|unrrdu|alan|moss|tijk|gage|dye|bane|limn|echo|hoover|seek|ten|elf|pull|coil|push|mite|meet).*"
 rm -rf teemincl
 
 
