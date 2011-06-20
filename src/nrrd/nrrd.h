@@ -1116,6 +1116,11 @@ NRRD_EXPORT int nrrdSample_nva(void *val, const Nrrd *nin,
 NRRD_EXPORT int nrrdSample_va(void *val, const Nrrd *nin,
                               ... /* size_t idx0, idx1, .., idx(dim-1) */ );
 NRRD_EXPORT int nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop);
+NRRD_EXPORT int nrrdCropAuto(Nrrd *nout, const Nrrd *nin, 
+                             size_t _min[NRRD_DIM_MAX],
+                             size_t _max[NRRD_DIM_MAX],
+                             const unsigned int *keep, unsigned int keepNum,
+                             int measr, double frac, int offset);
 
 /******** padding */
 /* superset.c */

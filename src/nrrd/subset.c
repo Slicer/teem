@@ -644,31 +644,25 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   return 0;
 }
 
-#if 0
 int
 nrrdCropAuto(Nrrd *nout, const Nrrd *nin, 
              size_t _min[NRRD_DIM_MAX], size_t _max[NRRD_DIM_MAX],
-             int _axkeep[NRRD_DIM_MAX],
+             const unsigned int *keep, unsigned int keepNum,
              int measr, double frac, int offset) {
   static const char me[]="nrrdCropAuto";
-  size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
-  int axkeep[NRRD_DIM_MAX];
+  size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], NN, II;
+  int cropdo[NRRD_DIM_MAX];
   airArray *mop;
   Nrrd *nperm, *nline;
-  unsigned int axIdx, keepNum;
-
-#define RECORD_MINMAX                           \
-  for (axIdx=0; axIdx<nin->dim; axIdx++) {      \
-    if (_min) {                                 \
-      _min[axIdx] = min[axIdx];                 \
-    }                                           \
-    if (_max) {                                 \
-      _max[axIdx] = max[axIdx];                 \
-    }                                           \
-  }
+  unsigned int axi;
+  double *line;
 
   if (!( nout && nin )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (keepNum && !keep) {
+    biffAddf(NRRD, "%s: non-zero keepNum %u but NULL keep", me, keepNum);
     return 1;
   }
   if (airEnumValCheck(nrrdMeasure, measr)) {
@@ -676,23 +670,31 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
              nrrdMeasure->name, measr);
     return 1;
   }
-
-  keepNum = 0;
-  for (axIdx=0; axIdx<nin->dim; axIdx++) {
-    if (_axkeep) {
-      axkeep[axIdx] = _axkeep[axIdx];
-      keepNum++;
-    } else {
-      axkeep[axIdx] = AIR_FALSE;
-    }
+  if (!( AIR_EXISTS(frac) && frac >= 0.0 && frac < 0.5 )) {
+    biffAddf(NRRD, "%s: frac %g not in interval [0.0,0.5)", me, frac);
+    return 1;
   }
-  if (keepNum == nin->dim) {
-    /* odd, every axis is to be preserved exactly, okay .. */
-    if (nrrdCopy(nout, nin)) {
-      biffAddf(NRRD, "%s: trouble copying (no cropping)", me);
+  for (axi=0; axi<nin->dim; axi++) {
+    cropdo[axi] = AIR_TRUE;
+  }
+  for (axi=0; axi<keepNum; axi++) {
+    if (!( keep[axi] < nin->dim )) {
+      biffAddf(NRRD, "%s: keep[%u] %u out of range [0,%u]", me,
+               axi, keep[axi], nin->dim-1);
       return 1;
     }
-    RECORD_MINMAX;
+    if (!cropdo[keep[axi]]) {
+      biffAddf(NRRD, "%s: keep[%u] %u redundant", me, axi, keep[axi]);
+      return 1;
+    }
+    cropdo[keep[axi]] = AIR_FALSE;
+  }
+  if (keepNum == nin->dim) {
+    /* weird- wanted to keep all axes and crop none; that's easy */
+    if (nrrdCopy(nout, nin)) {
+      biffAddf(NRRD, "%s: trouble copying for trivial case", me);
+      return 1;
+    }
     return 0;
   }
 
@@ -702,20 +704,92 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, nperm, (airMopper)nrrdNuke, airMopAlways);
   nline = nrrdNew();
   airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
-  for (axIdx=0; axIdx<nin->dim; axIdx++) {
-    if (axkeep[axIdx]) {
-      min[axIdx] = 0;
-      max[axIdx] = nin->axis[axIdx].size-1;
+  for (axi=0; axi<nin->dim; axi++) {
+    double wsum, part;
+    min[axi] = 0;
+    max[axi] = nin->axis[axi].size-1;
+    if (!cropdo[axi]) {
       continue;
     }
     /* else some analysis is required for this axis */
-    
+    /* NN is product of axes NOT being cropped */
+    NN = nrrdElementNumber(nin)/nin->axis[axi].size;
+    if (nrrdAxesSwap(nperm, nin, axi, nin->dim-1)
+        || nrrdReshape_va(nperm, nperm, 2, NN, nin->axis[axi].size)
+        || nrrdProject(nline, nperm, 0, measr, nrrdTypeDouble)) {
+      biffAddf(NRRD, "%s: trouble forming projection line", me);
+      airMopError(mop); return 1;
+    }
+    /* find sum of array */
+    line = AIR_CAST(double *, nline->data);
+    wsum = part = 0.0;
+    for (II=0; II<nin->axis[axi].size; II++) {
+      wsum += line[II];
+    }
+    /* sum bottom of array until hit fraction */
+    for (II=0; II<nin->axis[axi].size; II++) {
+      part += line[II];
+      if (part/wsum > frac) {
+        min[axi] = II;
+        break;
+      }
+    }
+    if (II == nin->axis[axi].size) {
+      biffAddf(NRRD, "%s: confusion on bottom of axis %u", me, axi);
+      airMopError(mop); return 1;
+    }
+    /* sum top of array until hit fraction */
+    part = 0.0;
+    for (II=nin->axis[axi].size; II>0; II--) {
+      part += line[II-1];
+      if (part/wsum > frac) {
+        max[axi] = II-1;
+        break;
+      }
+    }
+    if (II == 0) {
+      biffAddf(NRRD, "%s: confusion on top of axis %u", me, axi);
+      airMopError(mop); return 1;
+    }
+    /*
+    fprintf(stderr, "!%s: axis %u [%u,%u] --> ", me, axi, 
+            AIR_CAST(unsigned int, min[axi]),
+            AIR_CAST(unsigned int, max[axi]));
+    */
+    /* adjust based on offset */
+    if (offset > 0) {
+      if (min[axi] < AIR_CAST(size_t, offset)) {
+        /* desired outwards offset is more than cropping set */
+        min[axi] = 0;
+      } else {
+        min[axi] -= offset;
+      }
+      max[axi] += offset;
+      max[axi] = AIR_MIN(max[axi], nin->axis[axi].size-1);
+    }
+    /*
+    fprintf(stderr, "[%u,%u]\n", 
+            AIR_CAST(unsigned int, min[axi]),
+            AIR_CAST(unsigned int, max[axi]));
+    */
   }
 
-  RECORD_MINMAX;
+  /* can now do the crop */
+  if (nrrdCrop(nout, nin, min, max)) {
+    biffAddf(NRRD, "%s: trouble doing the crop", me);
+    return 1;
+  }
+  /* save the extents */
+  for (axi=0; axi<nin->dim; axi++) {
+    if (_min) {
+      _min[axi] = min[axi];
+    }
+    if (_max) {
+      _max[axi] = max[axi];
+    }
+  }
   airMopOkay(mop);
   return 0;
 }
-#endif
 
 /* ---- END non-NrrdIO */
