@@ -125,6 +125,7 @@ F(dice) \
 F(splice) \
 F(join) \
 F(crop) \
+F(acrop) \
 F(inset) \
 F(pad) \
 F(reshape) \

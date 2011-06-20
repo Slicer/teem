@@ -22,6 +22,7 @@ SET(UNRRDU_SOURCES
   cmedian.c
   convert.c
   crop.c
+  acrop.c
   data.c
   dhisto.c
   dice.c
