@@ -37,3 +37,4 @@ rm -rf teemincl
 echo === At this point GLK does emacs stuff to make pre-teem.py into what is
 echo === the currently svn committed teem.py
 echo === Obviously, this really needs to be automated...
+
