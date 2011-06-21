@@ -48,7 +48,7 @@ $(L).SEEN := true
 $(L).NEED = ten limn tijk ell biff air 
 $(L).PUBLIC_HEADERS = elf.h
 $(L).PRIVATE_HEADERS = 
-$(L).OBJS = glyphElf.o maximaElf.o
+$(L).OBJS = ballStickElf.o ESHEstimElf.o glyphElf.o maximaElf.o
 $(L).TESTS = 
 ####
 ####

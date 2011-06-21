@@ -241,3 +241,89 @@ TIJK_ESH_CONVOLVE(float, f)
 
 TIJK_ESH_DECONVOLVE(double, d)
 TIJK_ESH_DECONVOLVE(float, f)
+
+/* Make a deconvolution kernel that turns a given signal (rotationally
+ * symmetric in "compressed" form, i.e., one coefficient per SH order)
+ * into a rank-1 term of given order.
+ * Return 0 upon success
+ *        1 if order is unsupported
+ *        2 if any of the given signal values is zero
+ */
+#define TIJK_ESH_MAKE_KERNEL_RANK1(TYPE, SUF)                           \
+  int tijk_esh_make_kernel_rank1_##SUF(TYPE *kernel, const TYPE *signal, \
+                                       unsigned int order) {            \
+    unsigned int i;                                                     \
+    TYPE rank1[TIJK_TYPE_MAX_NUM], rank1sh[TIJK_TYPE_MAX_NUM];          \
+    TYPE v[3]={0.0,0.0,1.0};                                            \
+    /* Need to determine SH coefficients of a z-aligned rank-1 tensor */ \
+    const tijk_type *type = NULL;                                       \
+    switch (order) {                                                    \
+    case 2: type=tijk_2o3d_sym; break;                                  \
+    case 4: type=tijk_4o3d_sym; break;                                  \
+    case 6: type=tijk_6o3d_sym; break;                                  \
+    case 8: type=tijk_8o3d_sym; break;                                  \
+    default: return 1;                                                  \
+    }                                                                   \
+    (*type->sym->make_rank1_##SUF)(rank1, 1.0, v);                      \
+    tijk_3d_sym_to_esh_##SUF(rank1sh, rank1, type);                     \
+    for (i=0; i<1+order/2; i++)                                         \
+      if (signal[i]==0) {                                               \
+        return 2;                                                       \
+      }                                                                 \
+    kernel[0]=signal[0]/rank1sh[0];                                     \
+    if (order>=2) {                                                     \
+      kernel[1]=signal[1]/rank1sh[3];                                   \
+      if (order>=4) {                                                   \
+        kernel[2]=signal[2]/rank1sh[10];                                \
+        if (order>=6) {                                                 \
+          kernel[3]=signal[3]/rank1sh[21];                              \
+          if (order>=8) {                                               \
+            kernel[4]=signal[4]/rank1sh[36];                            \
+          }                                                             \
+        }                                                               \
+      }                                                                 \
+    }                                                                   \
+    return 0;                                                           \
+  }
+
+TIJK_ESH_MAKE_KERNEL_RANK1(double, d)
+TIJK_ESH_MAKE_KERNEL_RANK1(float, f)
+
+/* Make a deconvolution kernel that turns a given signal (rotationally
+ * symmetric in "compressed" form, i.e., one coefficient per SH order)
+ * into a truncated delta peak of given order.
+ * Return 0 upon success
+ *        1 if order is unsupported
+ *        2 if any of the given signal values is zero
+ */
+#define TIJK_ESH_MAKE_KERNEL_DELTA(TYPE, SUF)                           \
+  int tijk_esh_make_kernel_delta_##SUF(TYPE *kernel, const TYPE *signal, \
+                                       unsigned int order) {            \
+    /* we need a truncated delta peak of given order */                 \
+    TYPE deltash[TIJK_TYPE_MAX_NUM];                                    \
+    unsigned int i;                                                     \
+    if (order>tijk_max_esh_order || order%2!=0)                         \
+      return 1;                                                         \
+    for (i=0; i<1+order/2; i++)                                         \
+      if (signal[i]==0) {                                               \
+        return 2;                                                       \
+      }                                                                 \
+    tijk_eval_esh_basis_##SUF(deltash, order, 0, 0);                    \
+    kernel[0]=signal[0]/deltash[0];                                     \
+    if (order>=2) {                                                     \
+      kernel[1]=signal[1]/deltash[3];                                   \
+      if (order>=4) {                                                   \
+        kernel[2]=signal[2]/deltash[10];                                \
+        if (order>=6) {                                                 \
+          kernel[3]=signal[3]/deltash[21];                              \
+          if (order>=8) {                                               \
+            kernel[4]=signal[4]/deltash[36];                            \
+          }                                                             \
+        }                                                               \
+      }                                                                 \
+    }                                                                   \
+    return 0;                                                           \
+  }
+
+TIJK_ESH_MAKE_KERNEL_DELTA(double, d)
+TIJK_ESH_MAKE_KERNEL_DELTA(float, f)

@@ -153,7 +153,7 @@ int tijk_get_axis_type(tijk_axis_info *info,
   if (axis>=nrrd->dim) return 3;
   axinfo = nrrd->axis+axis;
   if (axinfo->label==NULL || strncmp(axinfo->label, "tijk_", 5)) {
-    info->class = tijk_class_unknown;
+    info->tclass = tijk_class_unknown;
     return 0;
   }
   labelp = axinfo->label+5;
@@ -163,7 +163,7 @@ int tijk_get_axis_type(tijk_axis_info *info,
   } else
     info->masked = 0;
   if (!strncmp(labelp, "esh_", 4)) {
-    info->class = tijk_class_esh;
+    info->tclass = tijk_class_esh;
     if (1!=sscanf(labelp+4, "%02u", &(info->order)) ||
         info->order>tijk_max_esh_order || info->order%2!=0)
       return 4;
@@ -172,7 +172,7 @@ int tijk_get_axis_type(tijk_axis_info *info,
     return 0;
   }
   if (!strncmp(labelp, "efs_", 4)) {
-    info->class = tijk_class_efs;
+    info->tclass = tijk_class_efs;
     if (1!=sscanf(labelp+4, "%02u", &(info->order)) ||
         info->order>tijk_max_efs_order || info->order%2!=0)
       return 4;
@@ -182,7 +182,7 @@ int tijk_get_axis_type(tijk_axis_info *info,
   }
   while (tijk_types[i]!=NULL) {
     if (!strcmp(labelp, tijk_types[i]->name)) {
-      info->class = tijk_class_tensor;
+      info->tclass = tijk_class_tensor;
       info->type = tijk_types[i];
       if (axinfo->size!=tijk_types[i]->num+info->masked)
         return 5;

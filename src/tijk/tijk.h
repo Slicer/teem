@@ -409,6 +409,17 @@ TIJK_EXPORT void tijk_esh_deconvolve_f(float *out, const float *in,
 				       const float *kernel,
                                        unsigned int order);
 
+TIJK_EXPORT int tijk_esh_make_kernel_rank1_f(float *kernel, const float *signal,
+                                             unsigned int order);
+TIJK_EXPORT int tijk_esh_make_kernel_rank1_d(double *kernel,
+                                             const double *signal,
+                                             unsigned int order);
+TIJK_EXPORT int tijk_esh_make_kernel_delta_f(float *kernel, const float *signal,
+                                             unsigned int order);
+TIJK_EXPORT int tijk_esh_make_kernel_delta_d(double *kernel,
+                                             const double *signal,
+                                             unsigned int order);
+
 /* fsTijk.c */
 /* for any given order, length is simply order+1; no need for a table */
 TIJK_EXPORT const unsigned int tijk_max_efs_order;
@@ -464,7 +475,7 @@ TIJK_EXPORT int tijk_set_axis_efs(Nrrd *nrrd, unsigned int axis,
 				  unsigned int order);
 
 typedef struct tijk_axis_info_t {
-  int class; /* class of Tijk object, from the tijk_class enum */
+  int tclass; /* class of Tijk object, from the tijk_class enum */
   unsigned int masked; /* whether or not values are masked */
   const tijk_type *type;
   unsigned int order;
