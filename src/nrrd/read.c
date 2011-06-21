@@ -493,13 +493,15 @@ nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
 /*
 ** _nrrdSplitName()
 **
-** splits a file name into a path and a base filename.  The directory
-** seperator is assumed to be '/'.  The division between the path
-** and the base is the last '/' in the file name.  The path is
-** everything prior to this, and base is everything after (so the
-** base does NOT start with '/').  If there is not a '/' in the name,
-** or if a '/' appears as the last character, then the path is set to
-** ".", and the name is copied into base.
+** splits a file name into a path and a base filename.  The path
+** separator is '/', but there is a hack (thanks Torsten Rohlfing)
+** which allows '\' to work on Windows.  The division between the path
+** and the base is the last path separator in the file name.  The path
+** is everything prior to this, and base is everything after (so the
+** base does NOT start with the path separator).  If there is not a
+** '/' in the name, or if a path separator appears as the last
+** character, then the path is set to ".", and the name is copied into
+** base.
 */
 void
 _nrrdSplitName(char **dirP, char **baseP, const char *name) {
@@ -512,6 +514,12 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
     *baseP = (char *)airFree(*baseP);
   }
   where = strrchr(name, '/');
+#ifdef _WIN32
+  /* Deal with Windows "\" path separators; thanks to Torsten Rohlfing */
+  if ( !where || (strrchr(name, '\\') > where) ) {
+    where = strrchr(name, '\\');
+  }
+#endif
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (where && airStrlen(where) > 1) {
