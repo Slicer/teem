@@ -81,6 +81,7 @@ air.XTERN += PTHREAD
 ## link lines, respectively.
 LEVMAR.LINK = -llevmar
 ten.XTERN += LEVMAR
+elf.XTERN += LEVMAR
 
 ## FFTW3: FFTW version 3
 ##
