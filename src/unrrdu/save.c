@@ -126,7 +126,7 @@ unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
     nrrdSwapEndian(nout);
   }
 
-  // if there are quotes around the filename, remove them....
+  /* if there are quotes around the filename, remove them.. */
   if (strstr(out, " ")) {
     start_index = 0;
     end_index = strlen(out)-1;
