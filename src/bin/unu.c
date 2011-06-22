@@ -82,6 +82,7 @@ main(int argc, const char **argv) {
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   hparm->columns = unrrduDefNumColumns;
+  hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {

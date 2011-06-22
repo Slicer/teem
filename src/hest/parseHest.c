@@ -991,7 +991,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
             opt[op].alloc = 3;
             if (nprm[op] != 
                 airParseStrS((char **)(*((void**)vP)), prms[op], " ", nprm[op],
-                             AIR_FALSE)) {
+                             parm->greedySingleString)) {
               sprintf(err, "%scouldn't parse %s\"%s\" as %d %s%s for %s",
                       ME, udflt[op] ? "(default) " : "", prms[op],
                       nprm[op], airTypeStr[type], 

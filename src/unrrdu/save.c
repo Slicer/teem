@@ -37,12 +37,13 @@ char *_unrrdu_saveInfoL =
 int
 unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *outData,
+  char *out, *err, *outData, *out_copy=NULL, *tmp,
     encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;
   int pret, enc[3], formatType;
+  size_t start_index, end_index;
 
   mop = airMopNew();
   nio = nrrdIoStateNew();
@@ -124,6 +125,25 @@ unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   if (AIR_ENDIAN != nio->endian) {
     nrrdSwapEndian(nout);
   }
+
+  // if there are quotes around the filename, remove them....
+  if (strstr(out, " ")) {
+    start_index = 0;
+    end_index = strlen(out)-1;
+    if (out[start_index] == '\"')
+      start_index++;
+    if (out[end_index] == '\"')
+      end_index--;
+    out_copy = malloc(end_index-start_index+2);
+    strncpy(out_copy,&out[start_index],end_index-start_index+1);
+    /* Based on the code in methodsHest.c, the quotes SHOULD be there, 
+        but we check to be safe */
+
+    tmp = out;
+    out = out_copy;
+    out_copy = tmp;
+  }
+
   if (airEndsWith(out, NRRD_EXT_NHDR)) {
     if (nio->format != nrrdFormatNRRD) {
       fprintf(stderr, "%s: WARNING: will use %s format\n", me,
@@ -137,6 +157,13 @@ unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }
 
   SAVE(out, nout, nio);
+
+  if ( out_copy ) {
+    tmp = out;
+    out = out_copy;
+    out_copy = tmp;
+    free(out_copy);
+  }
 
   airMopOkay(mop);
   return 0;
