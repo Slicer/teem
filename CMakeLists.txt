@@ -190,6 +190,25 @@ IF(Teem_LEVMAR)
   ENDIF(LEVMAR_FOUND)
 ENDIF(Teem_LEVMAR)
 
+# Look for fftw <http://www.fftw.org/>
+OPTION(Teem_FFTW3 "Build Teem with fftw library support." OFF)
+SET(Teem_FFTW3_LIB "")
+
+IF(Teem_FFTW3)
+  FIND_PACKAGE(FFTW3)
+
+  IF(FFTW3_FOUND)
+    ADD_DEFINITIONS(-DTEEM_FFTW3)
+    SET(Teem_FFTW3_LIB ${FFTW3_LIBRARIES})
+    SET(Teem_FFTW3_IPATH ${FFTW3_INCLUDE_DIR})
+  ELSE(FFTW3_FOUND)
+    # We need to set this as a cache variable, so that it will show up as
+    # being turned off in the cache.
+    MESSAGE("warning: Turning off Teem_FFTW3, because it wasn't found.")
+    SET(Teem_FFTW3 OFF CACHE BOOL "Build Teem with fftw library support." FORCE)
+  ENDIF(FFTW3_FOUND)
+ENDIF(Teem_FFTW3)
+
 #-----------------------------------------------------------------------------
 
 IF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
@@ -311,6 +330,10 @@ IF(Teem_LEVMAR)
   INCLUDE_DIRECTORIES(${Teem_LEVMAR_IPATH})
 ENDIF(Teem_LEVMAR)
 
+IF(Teem_FFTW3)
+  INCLUDE_DIRECTORIES(${Teem_FFTW3_IPATH})
+ENDIF(Teem_FFTW3)
+
 # All the source files
 SET(Teem_SOURCES)
 
@@ -366,6 +389,10 @@ ENDIF(Teem_ZLIB_LIB)
 IF(Teem_LEVMAR_LIB)
   TARGET_LINK_LIBRARIES(teem ${Teem_LEVMAR_LIB})
 ENDIF(Teem_LEVMAR_LIB)
+
+IF(Teem_FFTW3_LIB)
+  TARGET_LINK_LIBRARIES(teem ${Teem_FFTW3_LIB})
+ENDIF(Teem_FFTW3_LIB)
 
 IF(Teem_PTHREAD)
   TARGET_LINK_LIBRARIES(teem ${CMAKE_THREAD_LIBS_INIT})
