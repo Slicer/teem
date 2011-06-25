@@ -47,7 +47,7 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "\b\bo \"min\", \"max\": minimum, maximum\n "
              "\b\bo \"min_sm\": smoothed minimum function; "
              "min_sm(x, w, M) is like min(x,M) but for x > M-w (with w > 0) "
-             "there is a smooth transition from x to asymptotic to M"
+             "there is a smooth transition from x to asymptotic to M\n "
              "\b\bo \"max_sm\": smoothed maximum function; "
              "max_sm(m, w, x) is like max(M,x) but for x < m+w (with w > m) "
              "there is a smooth transition from x to asymptotic to m"
