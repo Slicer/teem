@@ -5,7 +5,7 @@ import pullDemo
 import ctypes
 
 npos = teem.nrrdNew()
-vol = pullDemo.volLoad(['fmob-c4h.nrrd:scalar:V'], './', 'ds:1,5', 1)
+vol = pullDemo.volLoad(['../../data/fmob-c4h.nrrd:scalar:V'], './', 'ds:1,5', 1)
 infoList = ['h-c:V:val:0:-1',
             'hgvec:V:gvec',
             'hhess:V:hess',
