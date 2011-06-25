@@ -68,7 +68,7 @@ def volLoad(vlist, cachePath, kssBlurStr, verbose):
 
 def volFree(vol):
     for i in range(len(vol)):
-        vol[i] = teem.meetPullVolNuke(vol[i])
+        vol[i] = teem.meetPullVolNix(vol[i])
 
 ##
 ## especParse: returns a length-4 list of the arguments to pass 
