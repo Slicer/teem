@@ -133,6 +133,25 @@ os.system("%s %s python %s %s -llibteem.dylib -o %s -m stdio -r \"(%s).*\"" % (d
 # generate teem.py 
 #
 
+substr = "_libraries['%s']" % os.path.join(TEEM, "lib", "libteem.dylib")
+
+flag_expr = False
+
+contents = open(pre_teem_py, "r").readlines()[8:]
+mod_contents = []
+for line in contents:
+    l = line.replace(substr, "libteem")
+    mod_contents.append(l)
+    if "alanBiffKey" in l :
+        flag_expr = True
+
+# in experimental libs not included, cleanup and fail
+if not flag_expr:
+    shutil.rmtree(TMP_DIR)
+    os.remove(teem_xml)
+    os.remove(pre_teem_py)
+    sys.exit("ERROR: experimental libs not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run teem-gen.py")
+
 header = [
 "##",
 "##  teem.py: automatically-generated ctypes python wrappers for Teem",
@@ -175,7 +194,7 @@ header = [
 "# see if this worked",
 "if not libteem._name:",
 "    print \"**\"",
-"    print \"**  teem.py couldn\'t find and load the \"libteem\" shared library.\"",
+"    print \"**  teem.py couldn\'t find and load the \\\"libteem\\\" shared library.\"",
 "    print \"**\"",
 "    print \"**  On Linux, try putting libteem.so in the current directory \"",
 "    print \"**  and edit teem.py to replace: \"",
@@ -219,12 +238,7 @@ for line in header:
     out.write(line)
     out.write(os.linesep)
 
-substr = "_libraries['%s']" % os.path.join(TEEM, "lib", "libteem.dylib")
-
-contents = open(pre_teem_py, "r").readlines()[8:]
-for line in contents:
-    out.write(line.replace(substr, "libteem"))
-
+out.writelines(mod_contents)
 out.write(os.linesep)
 
 for line in footer:
