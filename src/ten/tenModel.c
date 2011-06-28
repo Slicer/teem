@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,17 +29,30 @@ tenModelPrefixStr = "DWMRI_model:";
 
 static const tenModel *
 str2model(const char *str) {
-  const tenModel *ret = NULL;
+  const tenModel *ret;
 
-  if (!strcmp(str, TEN_MODEL_STR_ZERO))          ret = tenModelZero;
-  if (!strcmp(str, TEN_MODEL_STR_B0))            ret = tenModelB0;
-  if (!strcmp(str, TEN_MODEL_STR_BALL))          ret = tenModelBall;
-  if (!strcmp(str, TEN_MODEL_STR_1STICK))        ret = tenModel1Stick;
-  if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) ret = tenModelBall1StickEMD;
-  if (!strcmp(str, TEN_MODEL_STR_BALL1STICK))    ret = tenModelBall1Stick;
-  if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) ret = tenModelBall1Cylinder;
-  if (!strcmp(str, TEN_MODEL_STR_CYLINDER))      ret = tenModel1Cylinder;
-  if (!strcmp(str, TEN_MODEL_STR_TENSOR2))       ret = tenModel1Tensor2;
+  if (!strcmp(str, TEN_MODEL_STR_ZERO)) {
+    ret = tenModelZero;
+  } else if (!strcmp(str, TEN_MODEL_STR_B0)) {
+    ret = tenModelB0;
+  } else if (!strcmp(str, TEN_MODEL_STR_BALL)) {
+    ret = tenModelBall;
+  } else if (!strcmp(str, TEN_MODEL_STR_1STICK)) {
+    ret = tenModel1Stick;
+  } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) {
+    ret = tenModelBall1StickEMD;
+  } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICK)) {
+    ret = tenModelBall1Stick;
+  } else if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) {
+    ret = tenModelBall1Cylinder;
+  } else if (!strcmp(str, TEN_MODEL_STR_CYLINDER)) {
+    ret = tenModel1Cylinder;
+  } else if (!strcmp(str, TEN_MODEL_STR_TENSOR2)) {
+    ret = tenModel1Tensor2;
+  } else {
+    /* we don't currently have a tenModelUnknown */
+    ret = NULL;
+  }
   return ret;
 }
 

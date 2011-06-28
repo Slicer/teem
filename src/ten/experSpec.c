@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,9 +36,9 @@ _experAlloc(tenExperSpec* espec, unsigned int num) {
     return 1;
   }
   espec->imgNum = num;
-  espec->bval = AIR_CAST(double *, calloc(num, sizeof(double)));
-  espec->grad = AIR_CAST(double *, calloc(3*num, sizeof(double)));
-  /* espec->wght = AIR_CAST(double *, calloc(num, sizeof(double))); */
+  espec->bval = AIR_CALLOC(num, double);
+  espec->grad = AIR_CALLOC(3*num, double);
+  /* espec->wght = AIR_CALLOC(num, double); */
   if (!( espec->bval && espec->grad /* && espec->wght */ )) {
     biffAddf(TEN, "%s: couldn't allocate for %u images", me, num);
     return 1;
@@ -49,7 +50,7 @@ tenExperSpec*
 tenExperSpecNew(void) {
   tenExperSpec* espec;
 
-  espec = AIR_CAST(tenExperSpec*, calloc(1, sizeof(tenExperSpec)));
+  espec = AIR_CALLOC(1, tenExperSpec);
   espec->set = AIR_FALSE;
   espec->imgNum = 0;
   espec->bval = NULL;
@@ -195,7 +196,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
   }
 
   imgNum = ngrad->axis[1].size;
-  bval = AIR_CAST(double *, calloc(imgNum, sizeof(double)));
+  bval = AIR_CALLOC(imgNum, double);
   airMopAdd(mop, bval, airFree, airMopAlways);
   grad = AIR_CAST(double *, ngrad->data);
   for (ii=0; ii<imgNum; ii++) {
