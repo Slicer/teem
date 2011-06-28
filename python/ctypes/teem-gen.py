@@ -123,18 +123,22 @@ teem_libs = "air|hest|biff|nrrd|ell|unrrdu|alan|moss|tijk|gage|dye|bane|limn|ech
 
 system_type = platform.system()
 dll_path = ""
+ext = ""
+substr = ""
 if system_type == "Darwin":
     dll_path = "DYLD_LIBRARY_PATH=%s" % os.path.join(TEEM, "lib")
+    ext = "dylib"
+    substr = "_libraries['%s']" % os.path.join(TEEM, "lib", "libteem.dylib")
 else:
     dll_path = "LD_LIBRARY_PATH=%s" % os.path.join(TEEM, "lib")
+    ext = "so"
+    substr = "_libraries['libteem.so']"
 
-os.system("%s %s python %s %s -llibteem.dylib -o %s -m stdio -r \"(%s).*\"" % (dll_path, pypath_append, os.path.join(CTYPES, "scripts", "xml2py.py"), teem_xml, pre_teem_py, teem_libs))
+os.system("%s %s python %s %s -l libteem.%s -o %s -m stdio -r \"(%s).*\"" % (dll_path, pypath_append, os.path.join(CTYPES, "scripts", "xml2py.py"), teem_xml, ext,  pre_teem_py, teem_libs))
 
 #
 # generate teem.py 
 #
-
-substr = "_libraries['%s']" % os.path.join(TEEM, "lib", "libteem.dylib")
 
 flag_expr = False
 
