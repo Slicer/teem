@@ -156,7 +156,7 @@ if not flag_expr:
 header = [
 "##",
 "##  teem.py: automatically-generated ctypes python wrappers for Teem",
-"##  Copyright (C) 2010, 2009, Gordon Kindlmann",
+"##  Copyright (C) 2011, 2010, 2009  University of Chicago",
 "##",
 "##  Permission is hereby granted, free of charge, to any person obtaining",
 "##  a copy of this software and associated documentation files (the",
