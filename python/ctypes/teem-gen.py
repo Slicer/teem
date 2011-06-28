@@ -2,7 +2,8 @@
 
 ##
 ##  teem-gen.py: automatically-generated ctypes python wrappers for Teem
-##  Copyright (C) 2011 Sam Quinan, University of Chicago
+##  Copyright (C) 2011 University of Chicago
+##  created by Sam Quinan - samquinan@cs.uchicago.edu
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
 ##  a copy of this software and associated documentation files (the
