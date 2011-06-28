@@ -511,6 +511,12 @@ static double _nrrdTernaryOpMaxSmooth(double min, double width, double x) {
              : airErf((x-tran)*0.886226925452758/(min - tran))*(min - tran) + tran)
           : AIR_MAX(x, min)); /* transition in wrong place; revert to simple max() */
 }
+static double _nrrdTernaryOpLTSmooth(double a, double w, double b) {
+  return AIR_AFFINE(-1.0, airErf((b-a)/w), 1.0, 0.0, 1.0);
+}
+static double _nrrdTernaryOpGTSmooth(double a, double w, double b) {
+  return AIR_AFFINE(-1.0, airErf((a-b)/w), 1.0, 0.0, 1.0);
+}
 static double _nrrdTernaryOpClamp(double a, double b, double c) {
   return AIR_CLAMP(a, b, c);
 }
@@ -554,6 +560,8 @@ double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   _nrrdTernaryOpMinSmooth,
   _nrrdTernaryOpMax,
   _nrrdTernaryOpMaxSmooth,
+  _nrrdTernaryOpLTSmooth,
+  _nrrdTernaryOpGTSmooth,
   _nrrdTernaryOpClamp,
   _nrrdTernaryOpIfElse,
   _nrrdTernaryOpLerp,

@@ -685,17 +685,19 @@ enum {
   nrrdTernaryOpMinSmooth, /*  4 */
   nrrdTernaryOpMax,       /*  5 */
   nrrdTernaryOpMaxSmooth, /*  6 */
-  nrrdTernaryOpClamp,     /*  7 */
-  nrrdTernaryOpIfElse,    /*  8 */
-  nrrdTernaryOpLerp,      /*  9 */
-  nrrdTernaryOpExists,    /* 10 */
-  nrrdTernaryOpInOpen,    /* 11 */
-  nrrdTernaryOpInClosed,  /* 12 */
-  nrrdTernaryOpGaussian,  /* 13 */
-  nrrdTernaryOpRician,    /* 14 */
+  nrrdTernaryOpLTSmooth,  /*  7 */
+  nrrdTernaryOpGTSmooth,  /*  8 */
+  nrrdTernaryOpClamp,     /*  9 */
+  nrrdTernaryOpIfElse,    /* 10 */
+  nrrdTernaryOpLerp,      /* 11 */
+  nrrdTernaryOpExists,    /* 12 */
+  nrrdTernaryOpInOpen,    /* 13 */
+  nrrdTernaryOpInClosed,  /* 14 */
+  nrrdTernaryOpGaussian,  /* 15 */
+  nrrdTernaryOpRician,    /* 16 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  14
+#define NRRD_TERNARY_OP_MAX  16
 
 /*
 ******** nrrdFFTWPlanRigor
