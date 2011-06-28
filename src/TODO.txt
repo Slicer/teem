@@ -9,6 +9,10 @@ nrrd:
 rename nrrdFunc_nva() --> nrrdFunc()
 permit replacements for malloc/free (e.g. fftw_malloc, fftw_free)
 rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
+remove "minsm" as synonym for nrrdTernaryOpMinSmooth
+
+unu:
+unu dice -ff should change from using %d to %u
 ========
 
 unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
