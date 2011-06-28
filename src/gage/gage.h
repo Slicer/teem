@@ -894,15 +894,18 @@ typedef struct {
 typedef struct {
   unsigned int pvlNum,    /* number of perVolumes in the context for which
                              we represent the queries; this is also the
-                             allocated length of queryNum[ii] and query[ii] */
-    *queryNum;            /* queryNum[ii] is the number of queries for pvl[ii];
+                             allocated length of queryNum[] and query[ii] */
+    *queryNum;            /* queryNum[ii] is the number of queries for pvl[];
                              which is also (due to use of gageMultiItem)
                              the number of answer Nrrds for pvl[ii] */
   gageMultiItem ***query; /* query[ii] is array of gageMultiItem*s for pvl[ii],
                              each is query[ii][nn]; nn = 0..queryNum[ii]-1 */
   /* ======== OUTPUT ======*/
-  Nrrd *nidx;             /* nidx->data[ii] is the index into given npos
-                             to document which queries were inside */
+  Nrrd *nidx;             /* nidx->data[ii] is the index into given npos,
+                             to document the probe locations that successfully
+                             led to probing and answers, versus those that
+                             fell outside the domain (and hence generated 
+                             no saved results) */
 } gageMultiQuery;
 
 /* defaultsGage.c */
@@ -1107,7 +1110,7 @@ int gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
 gageMultiItem *gageMultiItemNix(gageMultiItem *gmi);
 gageMultiItem *gageMultiItemNuke(gageMultiItem *gmi);
 
-gageMultiQuery *gageMultiQueryNew(gageContext *gctx);
+gageMultiQuery *gageMultiQueryNew(const gageContext *gctx);
 int gageMultiQueryAdd_va(gageMultiQuery *gmq, unsigned int pvlIdx,
                         unsigned int queryNum,
                         ... /* queryNum gageMultiItem* */);
