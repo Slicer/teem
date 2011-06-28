@@ -5,6 +5,10 @@ for Teem 2.0:
 decide on a uniform way of indicating if a given external is available
 (e.g. airThreadCapable vs nrrdFFTWEnabled)
 
+hest:
+all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
+should start with hestDef, not just hest
+
 nrrd:
 rename nrrdFunc_nva() --> nrrdFunc()
 permit replacements for malloc/free (e.g. fftw_malloc, fftw_free)
