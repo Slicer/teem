@@ -150,11 +150,12 @@ mod_contents = []
 for line in contents:
     l = line.replace(substr, "libteem")
     mod_contents.append(l)
-    for lib in libs_destuctable:
-        lib_str = lib+"Present"
-        if lib_str in l:
-            libs_destuctable.remove(lib)
-            break
+    if "Present" in l:
+        for lib in libs_destuctable:
+            lib_str = lib+"Present"
+            if lib_str in l:
+                libs_destuctable.remove(lib)
+                break
 
 # in experimental libs not included, cleanup and fail
 if libs_destuctable: # empty sequence implicity false
