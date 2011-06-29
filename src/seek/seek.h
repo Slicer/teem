@@ -209,6 +209,7 @@ SEEK_EXPORT const int seekContour3DTopoHackEdge[256];
 SEEK_EXPORT const int seekContour3DTopoHackTriangle[256][16];
 
 /* methodsSeek.c */
+SEEK_EXPORT const int seekPresent;
 SEEK_EXPORT seekContext *seekContextNew(void);
 SEEK_EXPORT seekContext *seekContextNix(seekContext *sctx);
 

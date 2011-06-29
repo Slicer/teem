@@ -23,6 +23,9 @@
 #include "gage.h"
 #include "privateGage.h"
 
+const int
+gagePresent = 42;
+
 /*
 ******** gageZeroNormal[]
 **

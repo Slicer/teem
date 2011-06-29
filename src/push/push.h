@@ -264,6 +264,7 @@ typedef struct pushContext_t {
 } pushContext;
 
 /* defaultsPush.c */
+PUSH_EXPORT const int pushPresent;
 PUSH_EXPORT const char *pushBiffKey;
 
 /* methodsPush.c */

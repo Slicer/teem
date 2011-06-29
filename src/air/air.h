@@ -506,6 +506,7 @@ AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 AIR_EXPORT const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
+AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
 AIR_EXPORT FILE *airStdout(void);
 AIR_EXPORT FILE *airStdin(void);

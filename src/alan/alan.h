@@ -157,6 +157,7 @@ typedef struct alanContext_t {
 } alanContext;
 
 /* methodsAlan.c */
+ALAN_EXPORT const int alanPresent;
 ALAN_EXPORT const char *alanBiffKey;
 ALAN_EXPORT alanContext *alanContextNew();
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);

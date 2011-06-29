@@ -193,6 +193,7 @@ HEST_EXPORT char hestVarParamStopFlag;
 HEST_EXPORT char hestMultiFlagSep;
 
 /* methodsHest.c */
+HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
 HEST_EXPORT void hestOptAdd(hestOpt **optP, 

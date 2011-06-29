@@ -426,6 +426,7 @@ ECHO_EXPORT const airEnum *const echoType;
 ECHO_EXPORT const airEnum *const echoMatter;
 
 /* methodsEcho.c --------------------------------------- */
+ECHO_EXPORT const int echoPresent;
 ECHO_EXPORT const char *echoBiffKey;
 ECHO_EXPORT echoRTParm *echoRTParmNew();
 ECHO_EXPORT echoRTParm *echoRTParmNix(echoRTParm *parm);

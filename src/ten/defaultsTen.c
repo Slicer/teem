@@ -23,6 +23,9 @@
 #include "ten.h"
 #include "privateTen.h"
 
+const int
+tenPresent = 42;
+
 const char *
 tenBiffKey = "ten";
 

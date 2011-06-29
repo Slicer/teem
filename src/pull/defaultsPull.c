@@ -23,6 +23,9 @@
 #include "pull.h"
 #include "privatePull.h"
 
+const int
+pullPresent = 42;
+
 #if PULL_PHIST
 int pullPhistEnabled = 1;
 #else

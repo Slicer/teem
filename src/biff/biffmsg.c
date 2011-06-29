@@ -23,6 +23,11 @@
 
 #include "biff.h"
 
+/* ---- BEGIN non-NrrdIO */
+const int
+biffPresent = 42;
+/* ---- END non-NrrdIO */
+
 /* 
 ** with the Nov'09 re-write of biff, this sourcefile becomes the only
 ** place where a static buffer is used for message handling; this

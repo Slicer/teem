@@ -23,6 +23,14 @@
 
 #include "ell.h"
 
+/*
+** we use the name ellPresent (even though ell_present would be
+** properly consistent with the ell library name convention) because
+** we want to facilitate systematic testing of all libraries
+*/
+const int
+ellPresent = 42;
+
 const char *
 ell_biff_key = "ell";
 

@@ -23,6 +23,9 @@
 
 #include "alan.h"
 
+const int
+alanPresent = 42;
+
 const char *
 alanBiffKey = "alan";
 

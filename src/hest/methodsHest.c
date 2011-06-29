@@ -24,6 +24,9 @@
 #include "privateHest.h"
 #include <limits.h>
 
+const int
+hestPresent = 42;
+
 hestParm *
 hestParmNew() {
   hestParm *parm;

@@ -22,6 +22,9 @@
 
 #include "hoover.h"
 
+const int
+hooverPresent = 42;
+
 const char *
 hooverBiffKey = "hoover";
 int

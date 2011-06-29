@@ -64,6 +64,9 @@ typedef struct {
 } biffMsg;
 
 /* biffmsg.c */
+/* ---- BEGIN non-NrrdIO */
+BIFF_EXPORT const int biffPresent;
+/* ---- END non-NrrdIO */
 BIFF_EXPORT biffMsg *biffMsgNew(const char *key);
 BIFF_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
 BIFF_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);

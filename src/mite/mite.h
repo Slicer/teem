@@ -426,6 +426,7 @@ typedef struct miteThread_t {
 } miteThread;
 
 /* defaultsMite.c */
+MITE_EXPORT const int mitePresent;
 MITE_EXPORT const char *miteBiffKey;
 MITE_EXPORT double miteDefRefStep;
 MITE_EXPORT int miteDefRenorm;

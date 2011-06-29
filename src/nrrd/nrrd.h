@@ -739,6 +739,9 @@ NRRD_EXPORT const double nrrdTypeNumberOfValues[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
+/* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT const int nrrdPresent;
+/* ---- END non-NrrdIO */
 NRRD_EXPORT NrrdIoState *nrrdIoStateNew(void);
 NRRD_EXPORT void nrrdIoStateInit(NrrdIoState *nio);
 NRRD_EXPORT NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);

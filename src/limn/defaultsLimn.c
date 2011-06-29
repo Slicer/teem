@@ -22,6 +22,9 @@
 
 #include "limn.h"
 
+const int
+limnPresent = 42;
+
 const char *
 limnBiffKey = "limn";
 

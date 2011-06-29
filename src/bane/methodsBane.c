@@ -24,6 +24,9 @@
 #include "bane.h"
 #include "privateBane.h"
 
+const int
+banePresent = 42;
+
 void
 _baneAxisInit(baneAxis *axis) {
 

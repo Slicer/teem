@@ -23,6 +23,9 @@
 #include "mite.h"
 #include "privateMite.h"
 
+const int
+mitePresent = 42;
+
 const char *
 miteBiffKey = "mite";
 

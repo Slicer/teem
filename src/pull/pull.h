@@ -891,6 +891,7 @@ typedef struct pullContext_t {
 } pullContext;
 
 /* defaultsPull.c */
+PULL_EXPORT const int pullPresent;
 PULL_EXPORT int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
 

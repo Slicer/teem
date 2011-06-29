@@ -270,6 +270,9 @@ const int airMy32Bit = 0;
 
 /* ---- BEGIN non-NrrdIO */
 
+const int
+airPresent = 42;
+
 /*
 ******** airStderr, airStdout, airStdin
 **

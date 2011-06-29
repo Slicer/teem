@@ -331,6 +331,7 @@ BANE_EXPORT baneMeasr *baneMeasrNix(baneMeasr *measr);
 /* methodsBane.c */
 /* NOTE: this is NOT a complete API, like gage has.  Currently there
    is only API for things that have to be allocated internally */
+BANE_EXPORT const int banePresent;
 BANE_EXPORT baneHVolParm *baneHVolParmNew();
 BANE_EXPORT void baneHVolParmGKMSInit(baneHVolParm *hvp);
 BANE_EXPORT void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,

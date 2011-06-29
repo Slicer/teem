@@ -1207,6 +1207,7 @@ typedef struct tenModel_t {
 } tenModel;
 
 /* defaultsTen.c */
+TEN_EXPORT const int tenPresent;
 TEN_EXPORT const char *tenBiffKey;
 TEN_EXPORT const char tenDefFiberKernel[];
 TEN_EXPORT double tenDefFiberStepSize;

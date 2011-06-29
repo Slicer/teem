@@ -508,6 +508,7 @@ typedef struct limnSplineTypeSpec_t {
 } limnSplineTypeSpec;
 
 /* defaultsLimn.c */
+LIMN_EXPORT const int limnPresent;
 LIMN_EXPORT const char *limnBiffKey;
 LIMN_EXPORT int limnDefCameraAtRelative;
 LIMN_EXPORT int limnDefCameraOrthographic;

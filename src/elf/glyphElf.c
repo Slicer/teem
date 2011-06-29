@@ -22,6 +22,9 @@
 #include "elf.h"
 #include <teem/ten.h>
 
+const int
+elfPresent = 42;
+
 /* Glyphs for higher-order tensors */
 
 /* Helper routine to estimate normals in a triangle soup in which antipodal

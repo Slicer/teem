@@ -23,6 +23,9 @@
 
 #include "dye.h"
 
+const int
+dyePresent = 42;
+
 const char *
 dyeBiffKey = "dye";
 

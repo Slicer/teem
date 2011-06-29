@@ -40,6 +40,7 @@ extern "C" {
 #endif
 
 /* glyphElf.c */
+ELF_EXPORT const int elfPresent;
 ELF_EXPORT float elfGlyphHOME(limnPolyData *glyph, const char antipodal,
                               const float *ten, const tijk_type *type,
                               char *isdef, const char normalize);

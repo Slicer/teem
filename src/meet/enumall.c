@@ -22,6 +22,9 @@
 
 #include "meet.h"
 
+const int
+meetPresent = 42;
+
 const char *
 meetBiffKey = "meet";
 

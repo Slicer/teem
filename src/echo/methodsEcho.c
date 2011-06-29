@@ -23,6 +23,9 @@
 #include "echo.h"
 #include "privateEcho.h"
 
+const int
+echoPresent = 42;
+
 const char *
 echoBiffKey = "echo";
 

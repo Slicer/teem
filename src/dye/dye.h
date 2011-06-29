@@ -70,6 +70,7 @@ typedef struct {
 } dyeColor;
 
 /* methodsDye.c */
+DYE_EXPORT const int dyePresent;
 DYE_EXPORT const char *dyeBiffKey;
 DYE_EXPORT char dyeSpaceToStr[][AIR_STRLEN_SMALL];
 DYE_EXPORT int dyeStrToSpace(char *str);

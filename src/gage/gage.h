@@ -925,6 +925,7 @@ GAGE_EXPORT double gageDefStackNormalizeDerivBias;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */
+GAGE_EXPORT const int gagePresent;
 GAGE_EXPORT double gageZeroNormal[3];
 GAGE_EXPORT const airEnum *const gageErr;
 GAGE_EXPORT const airEnum *const gageKernel;

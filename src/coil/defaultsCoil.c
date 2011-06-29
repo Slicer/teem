@@ -22,6 +22,9 @@
 
 #include "coil.h"
 
+const int
+coilPresent = 42;
+
 const char *
 coilBiffKey = "coil";
 

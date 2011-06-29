@@ -23,6 +23,9 @@
 
 #include "tijk.h"
 
+const int
+tijkPresent = 42;
+
 /* Some basic component-wise operations that don't depend on tensor type */
 
 void

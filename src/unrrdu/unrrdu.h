@@ -184,6 +184,7 @@ unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
 UNRRDU_MAP(UNRRDU_DECLARE)
 
 /* flotsam.c */
+UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
 UNRRDU_EXPORT int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */

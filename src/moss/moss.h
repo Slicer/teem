@@ -91,6 +91,7 @@ MOSS_EXPORT int mossDefCenter;
 MOSS_EXPORT int mossVerbose;
 
 /* methodsMoss.c */
+MOSS_EXPORT const int mossPresent;
 MOSS_EXPORT mossSampler *mossSamplerNew();
 MOSS_EXPORT int mossSamplerFill(mossSampler *smplr, int fdiam, int ncol);
 MOSS_EXPORT void mossSamplerEmpty(mossSampler *smplr);

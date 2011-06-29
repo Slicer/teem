@@ -266,6 +266,7 @@ enum {
 #define HOOVER_ERR_MAX        10
 
 /* defaultsHoover.c */
+HOOVER_EXPORT const int hooverPresent;
 HOOVER_EXPORT const char *hooverBiffKey;
 HOOVER_EXPORT int hooverDefVolCentering;
 HOOVER_EXPORT int hooverDefImgCentering;

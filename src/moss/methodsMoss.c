@@ -23,6 +23,9 @@
 #include "moss.h"
 #include "privateMoss.h"
 
+const int
+mossPresent = 42;
+
 /*
 ******** mossSamplerNew()
 **

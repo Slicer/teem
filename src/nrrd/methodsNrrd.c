@@ -55,6 +55,11 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 }
 */
 
+/* ---- BEGIN non-NrrdIO */
+const int
+nrrdPresent = 42;
+/* ---- END non-NrrdIO */
+
 /* ------------------------------------------------------------ */
 
 void

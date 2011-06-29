@@ -23,6 +23,9 @@
 #include "seek.h"
 #include "privateSeek.h"
 
+const int
+seekPresent = 42;
+
 seekContext *
 seekContextNew(void) {
   seekContext *sctx;

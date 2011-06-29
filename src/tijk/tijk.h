@@ -175,6 +175,7 @@ TIJK_EXPORT const tijk_type *const tijk_6o3d_sym;
 TIJK_EXPORT const tijk_type *const tijk_8o3d_sym; /* still VERY incomplete! */
 
 /* miscTijk.c */
+TIJK_EXPORT const int tijkPresent;
 TIJK_EXPORT void tijk_add_d(double *res, const double *A,
                             const double *B, const tijk_type *type);
 TIJK_EXPORT void tijk_add_f(float *res, const float *A,

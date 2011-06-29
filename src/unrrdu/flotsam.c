@@ -25,6 +25,8 @@
 
 #include <ctype.h>
 
+const int
+unrrduPresent = 42;
 
 const char *
 unrrduBiffKey = "unrrdu";
