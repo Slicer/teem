@@ -17,6 +17,8 @@ remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 
 unu:
 unu dice -ff should change from using %d to %u
+
+dye: remove it assuming its smarts have been copied into nrrd
 ========
 
 unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
