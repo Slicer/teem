@@ -30,6 +30,8 @@ import os, sys, shutil, platform
 if len(sys.argv) != 3:
     sys.exit("program expexts arguments: 'ctypeslib-gccxml source dir' 'teem install dir' ")
 
+libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
+
 #
 # validate os 
 #
@@ -119,7 +121,8 @@ os.system("%s python %s %s -I %s -o %s" % (pypath_append, os.path.join(CTYPES, "
 # generate pre-teem.py 
 #
 pre_teem_py = os.path.join(os.getcwd(), "pre-teem.py")
-teem_libs = "air|hest|biff|nrrd|ell|unrrdu|alan|moss|tijk|gage|dye|bane|limn|echo|hoover|seek|ten|elf|pull|coil|push|mite|meet"
+
+teem_libs = '|'.join(libs_list)
 
 system_type = platform.system()
 dll_path = ""
@@ -140,22 +143,25 @@ os.system("%s %s python %s %s -l libteem.%s -o %s -m stdio -r \"(%s).*\"" % (dll
 # generate teem.py 
 #
 
-flag_expr = False
+libs_destuctable = list(libs_list)
 
 contents = open(pre_teem_py, "r").readlines()[8:]
 mod_contents = []
 for line in contents:
     l = line.replace(substr, "libteem")
     mod_contents.append(l)
-    if "alanBiffKey" in l :
-        flag_expr = True
+    for lib in libs_destuctable:
+        lib_str = lib+"Present"
+        if lib_str in l:
+            libs_destuctable.remove(lib)
+            break
 
 # in experimental libs not included, cleanup and fail
-if not flag_expr:
+if libs_destuctable: # empty sequence implicity false
     shutil.rmtree(TMP_DIR)
     os.remove(teem_xml)
-    os.remove(pre_teem_py)
-    sys.exit("ERROR: experimental libs not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run teem-gen.py")
+    #os.remove(pre_teem_py)
+    sys.exit("ERROR: experimental libs: %s not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run teem-gen.py" % ','.join(libs_destuctable))
 
 header = [
 "##",
