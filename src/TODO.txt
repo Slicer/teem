@@ -4,6 +4,12 @@ for Teem 2.0:
 
 decide on a uniform way of indicating if a given external is available
 (e.g. airThreadCapable vs nrrdFFTWEnabled)
+hey that's exactly what "meet" is for.  Except that libraries within
+Teem can't use it.
+
+air:
+change airArray implementation to re-allocate the array size
+by doubling/halving, rather than the linear increments used now
 
 hest:
 all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
@@ -102,14 +108,6 @@ leaf: do it
 DESTROY the airType* enum! I wasted quite awhile debugging a problem caused by:
   if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
 Do you see the problem?  Grrr.
-
-PLEASE figure out why I can't say
-
-   -t "unsigned char"
-
-to unu make, unu convert and the like.
-Does it have to do with airStrtokQuoting?
-Why not? I hate this crap.
 
 debug rendering of ML with windowed sinc
 
