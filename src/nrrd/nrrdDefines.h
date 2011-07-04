@@ -45,7 +45,7 @@ extern "C" {
 #define NRRD_EXT_EPS    ".eps"
 
 /* HEY: should this be renamed -> MAXNUM ? Would be more consistent
-   with other teem #define names */
+   with other Teem pound-define names */
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
                                       this is weird: it isn't the max
                                       of any of the NrrdKernels
