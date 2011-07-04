@@ -253,6 +253,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
+# (TEEM_LIB_LIST)
 SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu moss gage dye limn echo hoover seek ten pull mite meet)
 IF(BUILD_EXPERIMENTAL_LIBS)
   # This list of the "experimental" libraries must be kept in sync with:
