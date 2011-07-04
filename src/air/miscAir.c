@@ -102,9 +102,6 @@ airFree(void *ptr) {
 FILE *
 airFopen(const char *name, FILE *std, const char *mode) {
   FILE *ret;
-  char* name_copy=NULL;
-  int start_index=0;
-  int null_index=0;
 
   if (!strcmp(name, "-")) {
     ret = std;
@@ -114,23 +111,7 @@ airFopen(const char *name, FILE *std, const char *mode) {
     }
 #endif
   } else {
-    /* This mirrors code in methodsHest.c that adds quotes to 
-        filenames with spaces in them. */
-    if (strstr(name, " ")) {
-      null_index = strlen(name);
-      name_copy = malloc(null_index+1);
-      strcpy(name_copy,name);
-      /* Based on the code in methodsHest.c, the quotes SHOULD be there, 
-          but we check to be safe */
-      if (name_copy[0] == '\"')
-        start_index++;
-      if (name_copy[null_index-1] == '\"')
-        name_copy[null_index-1] = '\0';
-      ret = fopen(&name_copy[start_index], mode);
-      free(name_copy);
-    } else {
-      ret = fopen(name, mode);
-    }
+    ret = fopen(name, mode);
   }
   return ret;
 }
