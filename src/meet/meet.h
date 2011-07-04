@@ -26,34 +26,39 @@
 #include <stdio.h>
 #include <string.h>
 
+/* TEEM_LIB_LIST */
 #include <teem/air.h>
 #include <teem/hest.h>
 #include <teem/biff.h>
 #include <teem/nrrd.h>
 #include <teem/ell.h>
 #include <teem/unrrdu.h>
-#include <teem/dye.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/moss.h>
 #  include <teem/alan.h>
+#endif
+#include <teem/moss.h>
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/tijk.h>
 #endif
 #include <teem/gage.h>
+#include <teem/dye.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/bane.h>
 #endif
 #include <teem/limn.h>
-#include <teem/seek.h>
-#include <teem/hoover.h>
 #include <teem/echo.h>
+#include <teem/hoover.h>
+#include <teem/seek.h>
 #include <teem/ten.h>
-#include <teem/mite.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/coil.h>
-#  include <teem/push.h>
 #  include <teem/elf.h>
 #endif
 #include <teem/pull.h>
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+#  include <teem/coil.h>
+#  include <teem/push.h>
+#endif
+#include <teem/mite.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(meet_EXPORTS) || defined(teem_EXPORTS)
