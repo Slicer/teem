@@ -30,6 +30,7 @@ import os, sys, shutil, platform
 if len(sys.argv) != 3:
     sys.exit("program expexts arguments: 'ctypeslib-gccxml source dir' 'teem install dir' ")
 
+## (TEEM_LIB_LIST)
 libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
 
 #
