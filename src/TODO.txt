@@ -7,6 +7,9 @@ decide on a uniform way of indicating if a given external is available
 hey that's exactly what "meet" is for.  Except that libraries within
 Teem can't use it.
 
+do away with "experimental" libraries.  Too annoying to have 
+two totally different kinds of Teem installs.
+
 air:
 change airArray implementation to re-allocate the array size
 by doubling/halving, rather than the linear increments used now
@@ -17,7 +20,7 @@ should start with hestDef, not just hest
 
 nrrd:
 rename nrrdFunc_nva() --> nrrdFunc()
-permit replacements for malloc/free (e.g. fftw_malloc, fftw_free)
+permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
 rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
 remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 
