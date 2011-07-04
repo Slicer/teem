@@ -41,6 +41,7 @@ meetBiffKey = "meet";
 ** NOTE: the order here reflects the library ordering of the LIBS
 ** variable in teem/src/GNUMakefile, which is the canonical dependency
 ** ordering of the libraries.  Can manually check completeness by:
+** (TEEM_LIB_LIST)
 
 grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite}/?*.h | grep EXPORT | more
 
