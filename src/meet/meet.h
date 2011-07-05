@@ -80,8 +80,9 @@ extern "C" {
 /* enumall.c */
 MEET_EXPORT const int meetPresent;
 MEET_EXPORT const char *meetBiffKey;
-MEET_EXPORT const airEnum **meetAirEnumAll();
+MEET_EXPORT const airEnum **meetAirEnumAll(void);
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
+MEET_EXPORT int meetAirEnumAllCheck(void);
 
 /* meetGage.c */
 MEET_EXPORT gageKind *meetGageKindParse(const char *str);

@@ -198,3 +198,28 @@ meetAirEnumAllPrint(FILE *file) {
   free(AIR_CAST(void *, enm));
   return;
 }
+
+int
+meetAirEnumAllCheck(void) {
+  static const char me[]="meetAirEnumAllCheck";
+  const airEnum **enm, *ee;
+  char err[AIR_STRLEN_LARGE];
+  unsigned int ei;
+  airArray *mop;
+
+  mop = airMopNew();
+  enm = meetAirEnumAll();
+  airMopAdd(mop, enm, airFree, airMopAlways);
+  ei = 0;
+  while ((ee = enm[ei])) {
+    if (airEnumCheck(err, ee)) {
+      biffAddf(MEET, "%s: problem with enum %u", me, ei);
+      biffAddf(MEET, "%s", err); /* kind of a hack */
+      airMopError(mop);
+      return 1;
+    }
+    ei++;
+  }
+  airMopOkay(mop);
+  return 0;
+}
