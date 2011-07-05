@@ -73,6 +73,7 @@ _airEnumIndex(const airEnum *enm, int val) {
       }
     }
   } else {
+    /* HEY "AIR_IN_CL(1, val .." makes more sense, no? */
     ret = AIR_IN_CL(0, val, (int)(enm->M)) ? val : 0; /* HEY scrutinize cast */
   }
   return ret;
@@ -266,4 +267,138 @@ airEnumPrint(FILE *file, const airEnum *enm) {
     }
   }
   return;
+}
+
+/*
+******** airEnumCheck
+**
+** tries various things to check on the construction and internal
+** consistency of an airEnum; returns 1 if there is a problem, and 0
+** if all is well.  we're in air, so there's no biff, but we sprintf a
+** description of the error into "err", if given
+*/
+int
+airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
+  static const char me[]="airEnumCheck";
+  unsigned int ii;
+  size_t slen, ASL;
+
+  ASL = AIR_STRLEN_LARGE;
+  if (!enm) {
+    if (err) {
+      snprintf(err, ASL, "%s: got NULL enm", me);
+    }
+    return 1;
+  }
+  if (!enm->name) {
+    if (err) {
+      snprintf(err, ASL, "%s: enm->name NULL", me);
+    }
+    return 1;
+  }
+  if (0 == enm->M) {
+    if (err) {
+      snprintf(err, ASL, "%s(%s): enm->M zero; no values in enum",
+               me, enm->name);
+    }
+    return 1;
+  }
+  for (ii=0; ii<=enm->M; ii++) {
+    if (!enm->str[ii]) {
+      if (err) {
+        snprintf(err, ASL, "%s(%s): enm->str[%u] NULL", me, enm->name, ii);
+      }
+      return 1;
+    }
+    slen = airStrlen(enm->str[ii]);
+    if (!( slen >= 1 && slen < AIR_STRLEN_SMALL )) {
+      if (err) {
+        snprintf(err, ASL, "%s(%s): strlen(enm->str[%u] \"%s\") "
+                 _AIR_SIZE_T_CNV " not in range [1,%u)", me,
+                 enm->name, ii, enm->str[ii], slen, AIR_STRLEN_SMALL);
+      }
+      return 1;
+    }
+  }
+  if (enm->val) {
+    for (ii=1; ii<=enm->M; ii++) {
+      unsigned int jj;
+      if (enm->val[0] == enm->val[ii]) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): val[%u] %u same as "
+                   "unknown/invalid val[0] %u",
+                   me, enm->name, ii, enm->val[ii], enm->val[0]);
+        }
+        return 1;
+      }
+      for (jj=ii+1; jj<=enm->M; jj++) {
+        if (enm->val[jj] == enm->val[ii]) {
+          if (err) {
+            snprintf(err, ASL, "%s(%s): val[%u] %u same as val[%u] %u", me, 
+                     enm->name, ii, enm->val[ii], jj, enm->val[jj]);
+          }
+          return 1;
+        }
+      }
+    }
+  }
+  if (enm->desc) {
+    for (ii=0; ii<=enm->M; ii++) {
+      if (!enm->desc[ii]) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): enm->desc[%u] NULL", me, enm->name, ii);
+        }
+        return 1;
+      }
+      /* we don't really care about slen, but learning it will
+         hopefully produce some memory error if the array is not valid */
+      slen = airStrlen(enm->desc[ii]);
+      if (!( slen > 0 )) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): enm->desc[%u] empty", me, enm->name, ii);
+        }
+        return 1;
+      }
+    }
+  }
+  if (enm->strEqv) {
+    if (!enm->valEqv) {
+      if (err) {
+        snprintf(err, ASL, "%s(%s): non-NULL strEqv but NULL valEqv",
+                 me, enm->name);
+      }
+      return 1;
+    }
+    if (!( airStrlen(enm->strEqv[0]) )) {
+      if (err) {
+        snprintf(err, ASL, "%s(%s): strEqv[0] is NULL or empty",
+                 me, enm->name);
+      }
+      return 1;
+    }
+    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
+      if (airEnumValCheck(enm, enm->valEqv[ii])) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): valEqv[%u] %u (with strEqv[%u] \"%s\")"
+                   " not valid",
+                   me, enm->name, ii, enm->valEqv[ii], ii, enm->strEqv[ii]);
+        }
+        return 1;
+      }
+    }
+    for (ii=1; ii<=enm->M; ii++) {
+      int eval, rval;
+      eval = (enm->val ? enm->val[ii] : AIR_CAST(int, ii));
+      rval = airEnumVal(enm, enm->str[ii]);
+      if (eval != rval) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): ii %u->eval %d->str \"%s\"->%d != %d "
+                   "(i.e. canonical string didn't map to its own value)",
+                   me, enm->name, ii, eval, enm->str[ii], rval, eval);
+        }
+        return 1;
+      }
+    }
+  }
+  return 0;
 }

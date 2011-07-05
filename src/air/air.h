@@ -97,42 +97,46 @@ typedef unsigned long long airULLong;
 #define AIR_STRLEN_LARGE (512+1)
 #define AIR_STRLEN_HUGE  (1024+1)
 
-/* enum.c: enum value <--> string conversion utility */  
+/*
+******** airEnum struct
+** 
+** The airEnum provides the basic mechanism of mapping from a 
+** string to an int enum value, and back.
+*/
 typedef struct {
   const char *name;
                /* what are these things? */
   unsigned int M;
-               /* If "val" is NULL, the the valid enum values are from 1 
-                  to M (represented by strings str[1] through str[M]), and
-                  the unknown/invalid value is 0.  If "val" is non-NULL, the
-                  valid enum values are from val[1] to val[M] (but again, 
-                  represented by strings str[1] through str[M]), and the
-                  unknown/invalid value is val[0].  In both cases, str[0]
-                  is the string to represent an unknown/invalid value */
+               /* str[0]: string for the unknown/invalid value;
+                * str[1] .. str[M]: canonical strings for the enum values;
+                * "val" NULL: unknown/invalid = 0; 
+                *             valid values are 1 .. M
+                * "val" non-NULL: unknown/invalid = val[0]; 
+                *                 valid are val[1].. val[M]
+                */
   const char **str; 
-               /* "canonical" textual representation of the enum values */
+               /* see above */
   const int *val;
-               /* non-NULL iff valid values in the enum are not [1..M], and/or
-                  if value for unknown/invalid is not zero */
+               /* see above */
   const char **desc;
                /* desc[i] is a short description of the enum values represented
                   by str[i] (thereby starting with the unknown value), to be
                   used to by things like hest */
   const char **strEqv;  
-               /* All the variations in strings recognized in mapping from
-                  string to value (the values in valEqv).  This **MUST** be
-                  terminated by a zero-length string ("") so as to signify
-                  the end of the list.  This should not contain the string
-                  for unknown/invalid.  If "strEqv" is NULL, then mapping
-                  from string to value is done by traversing "str", and 
-                  "valEqv" is ignored. */
+               /* If non-NULL, all the variations in strings recognized in
+                  mapping from string to value (the values in valEqv).
+                  This **MUST** be terminated by a zero-length string ("") so
+                  as to signify the end of the list.  This should *not*
+                  contain the string for unknown/invalid.
+                  If "strEqv" is NULL, then mapping from string to value is
+                  done only by traversing "str", and "valEqv" is ignored. */
   const int *valEqv;
-               /* The values corresponding to the strings in strEqv; there
-                  should be one integer for each non-zero-length string in
-                  strEqv: strEqv[i] is a valid string representation for
-                  value valEqv[i]. This should not contain the value for
-                  unknown/invalid.  This "valEqv" is ignored if "strEqv" is
-                  NULL. */
+               /* If strEqv non-NULL, valEqv holds the values corresponding
+                  to the strings in strEqv, with one integer for each
+                  non-zero-length string in strEqv: strEqv[i] is a valid
+                  string representation for value valEqv[i]. This should *not*
+                  contain the value for unknown/invalid.
+                  This "valEqv" is ignored if "strEqv" is NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
 AIR_EXPORT int airEnumUnknown(const airEnum *enm);
@@ -144,7 +148,7 @@ AIR_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 AIR_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 AIR_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
-
+AIR_EXPORT int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
 
 /*
 ******** airEndian enum
