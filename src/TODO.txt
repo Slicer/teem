@@ -11,23 +11,26 @@ do away with "experimental" libraries.  Too annoying to have
 two totally different kinds of Teem installs.
 
 air:
-change airArray implementation to re-allocate the array size
+* change airArray implementation to re-allocate the array size
 by doubling/halving, rather than the linear increments used now
+* consider terminating airEnum->strEqv with NULL (just like argv)
+instead of with empty string ""
 
 hest:
-all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
+* all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
 
 nrrd:
-rename nrrdFunc_nva() --> nrrdFunc()
-permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
-rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
-remove "minsm" as synonym for nrrdTernaryOpMinSmooth
+* rename nrrdFunc_nva() --> nrrdFunc()
+* permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
+* rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
+* remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 
 unu:
-unu dice -ff should change from using %d to %u
+* unu dice -ff should change from using %d to %u
 
-dye: remove it assuming its smarts have been copied into nrrd
+dye:
+* remove it assuming its smarts have been copied into nrrd
 ========
 
 unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
