@@ -1,5 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images              
+# Copyright (c) 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -20,20 +21,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-PROJECT(TEEMTesting)
-
-IF(Teem_BINARY_DIR)
-  # We are building inside the tree
-  IF(NOT EXECUTABLE_OUTPUT_PATH)
-    SET (EXECUTABLE_OUTPUT_PATH ${Teem_BINARY_DIR} CACHE PATH
-         "Single output directory for building all testing executables.")
-    SET(C_TEST_PATH ${Teem_BINARY_DIR})
-  ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
-ENDIF(Teem_BINARY_DIR)
-
-ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
-
-ADD_SUBDIRECTORY(air)
-ADD_SUBDIRECTORY(biff)
-ADD_SUBDIRECTORY(nrrd)
-ADD_SUBDIRECTORY(meet)
+ADD_EXECUTABLE(enmallTest enmall.c)
+TARGET_LINK_LIBRARIES(enmallTest teem)
+ADD_TEST(enmall ${EXECUTABLE_OUTPUT_PATH}/enmallTest)
