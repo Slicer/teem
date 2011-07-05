@@ -170,7 +170,7 @@ const airEnum
 _echoType = {
   "object type",
   ECHO_TYPE_NUM,
-  _echoTypeStr,  NULL,
+  _echoTypeStr,  _echoTypeVal,
   _echoTypeDesc,
   _echoTypeStrEqv, _echoTypeValEqv,
   AIR_FALSE

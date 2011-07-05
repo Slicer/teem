@@ -392,7 +392,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
       rval = airEnumVal(enm, enm->str[ii]);
       if (eval != rval) {
         if (err) {
-          snprintf(err, ASL, "%s(%s): ii %u->eval %d->str \"%s\"->%d != %d "
+          snprintf(err, ASL, "%s(%s): ii=%u->eval=%d->str=\"%s\"->%d != %d "
                    "(i.e. canonical string didn't map to its own value)",
                    me, enm->name, ii, eval, enm->str[ii], rval, eval);
         }

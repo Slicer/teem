@@ -60,7 +60,6 @@ _miteStageOpStrEqv[] = {
 
 const int
 _miteStageOpValEqv[] = {
-  miteStageOpUnknown,
   miteStageOpMin,
   miteStageOpMax,
   miteStageOpAdd, miteStageOpAdd,
