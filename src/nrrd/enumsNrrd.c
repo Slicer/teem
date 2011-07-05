@@ -217,7 +217,6 @@ _nrrdEncodingTypeDesc[NRRD_ENCODING_TYPE_MAX+1] = {
 
 const char *
 _nrrdEncodingTypeStrEqv[] = {
-  "(unknown_encoding)",
   "raw",
   "txt", "text", "ascii",
   "hex",
@@ -228,7 +227,6 @@ _nrrdEncodingTypeStrEqv[] = {
 
 const int
 _nrrdEncodingTypeValEqv[] = {
-  nrrdEncodingTypeUnknown,
   nrrdEncodingTypeRaw,
   nrrdEncodingTypeAscii, nrrdEncodingTypeAscii, nrrdEncodingTypeAscii,
   nrrdEncodingTypeHex,
@@ -519,7 +517,11 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1] = {
   "encoding",
   "line skip",
   "byte skip",
-  "key/value",
+  "key/value", /* this is the one field for which the canonical string
+                  here is totally different from the field identifier in the
+                  NRRD file format (":=").  We include nrrdField_keyvalue
+                  in the enum because it is very useful to have a consistent
+                  way of identifying lines in the format */
   "sample units",
   "space units",
   "space origin",
@@ -592,7 +594,7 @@ _nrrdFieldStrEqv[] = {
   "encoding",
   "line skip", "lineskip",
   "byte skip", "byteskip",
-  /* nothing for keyvalue */
+  "key/value",  /* bogus, here to keep the airEnum complete */
   "sample units", "sampleunits",
   "space units", "spaceunits",
   "space origin", "spaceorigin",
@@ -629,7 +631,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_encoding,
   nrrdField_line_skip, nrrdField_line_skip,
   nrrdField_byte_skip, nrrdField_byte_skip,
-  /* nothing for keyvalue */
+  nrrdField_keyvalue,
   nrrdField_sample_units, nrrdField_sample_units,
   nrrdField_space_units, nrrdField_space_units,
   nrrdField_space_origin, nrrdField_space_origin,
@@ -704,7 +706,6 @@ _nrrdSpaceDesc[NRRD_SPACE_MAX+1] = {
 
 const char *
 _nrrdSpaceStrEqv[] = {
-  "(unknown_space)",
   "right-anterior-superior", "right anterior superior",
       "rightanteriorsuperior", "RAS",
   "left-anterior-superior", "left anterior superior",
@@ -719,7 +720,7 @@ _nrrdSpaceStrEqv[] = {
       "leftposteriorsuperiortime", "LPST",
   "scanner-xyz",
   "scanner-xyz-time", "scanner-xyzt", 
-  "3D-right-handed", "3D right handed", "3Drighthanded"
+  "3D-right-handed", "3D right handed", "3Drighthanded",
   "3D-left-handed", "3D left handed", "3Dlefthanded",
   "3D-right-handed-time", "3D right handed time",
       "3Drighthandedtime",
@@ -730,7 +731,6 @@ _nrrdSpaceStrEqv[] = {
 
 const int
 _nrrdSpaceValEqv[] = {
-  nrrdSpaceUnknown,
   nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
      nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
   nrrdSpaceLeftAnteriorSuperior, nrrdSpaceLeftAnteriorSuperior,
@@ -899,7 +899,6 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1] = {
 
 const char *
 _nrrdMeasureStrEqv[] = {
-  "(unknown_measure)",
   "min",
   "max",
   "mean",
@@ -931,7 +930,6 @@ _nrrdMeasureStrEqv[] = {
 
 const int
 _nrrdMeasureValEqv[] = {
-  nrrdMeasureUnknown,
   nrrdMeasureMin,
   nrrdMeasureMax,
   nrrdMeasureMean,
@@ -1058,6 +1056,7 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1] = {
   "square root",
   "cube root",
   "error function (integral of gaussian)",
+  "erf, mapped to range (0,1)",
   "smallest integer greater than or equal",
   "largest integer less than or equal",
   "round to closest integer (0.5 rounded to 1)",
