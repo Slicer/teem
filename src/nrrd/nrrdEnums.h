@@ -338,16 +338,6 @@ enum {
 #define NRRD_BASIC_INFO_NONE 0
 
 /*
-** the "endian" enum is actually in the air library, but it is very
-** convenient to have it incorporated into the nrrd enum framework for
-** the purposes of string<-->int conversion.  Unfortunately, the
-** little and big values are 1234 and 4321 respectively, so
-** NRRD_ENDIAN_MAX is not actually the highest valid value, but only
-** an indicator of how many valid values there are.
-*/
-#define NRRD_ENDIAN_MAX 2
-
-/*
 ******** nrrdField enum
 **
 ** the various fields we can parse in a NRRD header
