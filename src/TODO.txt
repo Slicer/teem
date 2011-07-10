@@ -61,7 +61,6 @@ decide if <LIB>_EXPORT should just be TEEM_EXPORT
 --------- teem 1.9 cut-off
 
 for cmake:
- - get some basic tests working (if only nrrdSanity)
  - build pv on windows
  - see if wild-card expansion works as expected on windows
  - make cmd-line utilities link with static libs
