@@ -27,9 +27,9 @@ const int
 pullPresent = 42;
 
 #if PULL_PHIST
-int pullPhistEnabled = 1;
+const int pullPhistEnabled = 1;
 #else
-int pullPhistEnabled = 0;
+const int pullPhistEnabled = 0;
 #endif
 
 const char *

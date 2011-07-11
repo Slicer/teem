@@ -74,8 +74,10 @@ extern "C" {
 /*
 ******** pullInfo enum
 **
-** all the things that might be learned via gage from some kind, that
-** can be used to control particle dynamics.
+** all the things that might be *learned* about the local neighborhood
+** that can be used to control particle dynamics.  This info was
+** originally learned only from gage, but now (according to value of
+** pullSource) can come from other kinds of information.
 **
 ** There are multiple scalars (and associated) derivatives that can
 ** be used for dynamics:
@@ -127,7 +129,10 @@ enum {
 #define PULL_INFO_MAX            22
 
 /*
-** the various properties of particles in the system 
+********* pullProp* enum: the various properties of particles in the system
+**
+** These are things that are not learned from the image data, but are
+** descriptions about the system and its current state of computation.
 **
 ** consider adding: dot between normalized directions of force and movmt 
 */
@@ -265,8 +270,8 @@ enum {
 #define PULL_SOURCE_MAX  2
 
 /*
-** the different kinds of computations and entitis that one could 
-** book-keeping and optimization purposes
+** the different kinds of computations and entities that one can
+** count, for book-keeping and optimization purposes
 */
 enum {
   pullCountUnknown,             /*  0 */
@@ -490,7 +495,8 @@ enum {
 /*
 ******** pullInitParm
 **
-** none of this is directly user-set
+** none of this is directly user-set; set with pullInit*Set function
+** (note that there is no pullInit* enum; these values are too diverse)
 */
 typedef struct {
   int method;               /* from pullInitMethod* enum */
@@ -505,7 +511,9 @@ typedef struct {
     samplesAlongScaleNum,   /* w/ PointPerVoxel,
                                # of samples along scale (distributed
                                uniformly in scale's *index* space*/
-    ppvZRange[2];           /* w/ PointPerVoxel,
+    ppvZRange[2];           /* (hack to permit seeding only in part of
+                               volume, when initialization is painfully
+                               the main bottleneck) w/ PointPerVoxel,
                                range of indices along Z to do seeding
                                by pointPerVoxel, or, {1,0} to do the
                                whole volume as normal */
@@ -520,7 +528,7 @@ typedef struct {
 /*
 ******** pullIterParm* enum
 **
-** parameters that related to iterations and their periods
+** parameters related to iterations and their periods
 */
 enum {
   pullIterParmUnknown,
@@ -604,7 +612,7 @@ enum {
      pullInfoLiveThresh at higher scales, set theta > 0, and the
      effective threshold will be base threshold + theta*scale.
      HOWEVER, the way this is implemented is a hack: 
-     probing the value is decremented by theta*scale */
+     the probed strength value is decremented by theta*scale */
   pullSysParmTheta,
 
   /* initial (time) step for dynamics */
@@ -618,12 +626,8 @@ enum {
 
   /* spatial width of bin, as multiple of pullSysParmRadiusSpace (the
      width along scale is set to pullSysParmRadiusScale). Can't be
-     lower than 1, but may need to be greater that 1 in order to not
-     run out of memory just to allocate the bin array.  This is a
-     problem with the current scheme of allocating a fixed array of
-     pre-allocated bins; future schemes may be less memory intensive.
-     The spatial axes are handled differently because there are usually
-     10-100 times more bins along each axis of space than along scale */
+     lower than 1, but may be usefully set greater that 1 to reduce
+     the total number of bins, especially if caching neighbor lists */
   pullSysParmBinWidthSpace,
   
   /* probability that we find the true neighbors of the particle, as
@@ -707,7 +711,7 @@ enum {
      close points already */
   pullFlagRestrictiveAddToBins,   
 
-  /* if non-zero, strength is a particle- image energy term that is
+  /* if non-zero, strength is a particle-image energy term that is
      minimized by motion along scale, which in turn requires extra
      probing to determine the strength gradient along scale. */
   pullFlagEnergyFromStrength,
@@ -892,7 +896,7 @@ typedef struct pullContext_t {
 
 /* defaultsPull.c */
 PULL_EXPORT const int pullPresent;
-PULL_EXPORT int pullPhistEnabled;
+PULL_EXPORT const int pullPhistEnabled;
 PULL_EXPORT const char *pullBiffKey;
 
 /* initPull.c */
