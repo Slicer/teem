@@ -605,7 +605,7 @@ I plan on shamelessly copying this, just like I shamelessly copied the
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 ** 
 */
-int
+int /*biff if (ret) */
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[]="nrrdLoad";
   FILE *file;

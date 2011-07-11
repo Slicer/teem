@@ -1124,7 +1124,7 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
 ** but that is really only for testing sufficiency of information 
 ** required to do the data reading.
 */
-int
+int /*biff if (ret) */
 nrrdCheck(const Nrrd *nrrd) {
   static const char me[]="nrrdCheck";
 
@@ -1145,7 +1145,7 @@ nrrdCheck(const Nrrd *nrrd) {
 ** the same size, so that if they aren't, some descriptive (error) message
 ** can be generated according to useBiff
 */
-int
+int /*biff?2 if (!ret) */
 nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   static const char me[]="nrrdSameSize";
   unsigned int ai;
@@ -1367,7 +1367,7 @@ _nrrdCheckEnums(void) {
 **
 ** biffMsg *msg is allowed to be NULL
 */
-int
+int /*biff if (!ret) */
 nrrdSanity(void) {
   static const char me[]="nrrdSanity";
   int aret, type;
