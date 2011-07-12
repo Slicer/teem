@@ -729,13 +729,13 @@ NRRD_EXPORT const airEnum *const nrrdFFTWPlanRigor;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-NRRD_EXPORT const char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
-NRRD_EXPORT const size_t nrrdTypeSize[];
-NRRD_EXPORT const double nrrdTypeMin[];
-NRRD_EXPORT const double nrrdTypeMax[];
-NRRD_EXPORT const int nrrdTypeIsIntegral[];
-NRRD_EXPORT const int nrrdTypeIsUnsigned[];
-NRRD_EXPORT const double nrrdTypeNumberOfValues[];
+NRRD_EXPORT const char nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL];
+NRRD_EXPORT const size_t nrrdTypeSize[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const double nrrdTypeMin[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const double nrrdTypeMax[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const int nrrdTypeIsIntegral[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1];
+NRRD_EXPORT const double nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
