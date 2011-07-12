@@ -25,7 +25,7 @@
 ##  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##
 
-import os, sys, shutil, platform
+import os, sys, shutil, platform, re, string
 
 if len(sys.argv) != 3:
     sys.exit("program expexts arguments: 'ctypeslib-gccxml source dir' 'teem install dir' ")
@@ -98,12 +98,27 @@ shutil.copytree(teem_include, TMP_DIR)
 all_h = os.path.join(TMP_DIR, "all.h")
 f_open = open (all_h, "w")
 
+defines = []
+
 Files = os.listdir(os.path.join(TMP_DIR, "teem"))
 for file in Files:
     if file.endswith(".h"):
         f_open.write("#include <teem/%s> %s" % (file, os.linesep))
+        #
+        # get #define statements from file
+        #
+        lines = open (os.path.join(TMP_DIR, "teem", file), "r").readlines()
+        expr1 = re.compile("^#define")
+        expr2 = re.compile("\\\\")
+        expr3 = re.compile("HAS_BEEN_INCLUDED")
+        expr4 = re.compile("##")
+        expr5 = re.compile("^#define [^ ]*\(")
+        expr6 = re.compile("NRRD_TYPE_BIGGEST")
+        for line in lines:
+            if (expr1.search(line) and not expr2.search(line) and not expr3.search(line) and not expr4.search(line) and not expr5.search(line) and not expr6.search(line)):
+                firstword, restwords = string.replace(string.replace(line[8:], "/*", "#" ), "*/", "").split(None,1)
+                defines.append("%s = %s" % (firstword, restwords))
 f_open.close()
-
 
 #
 # generate teem.xml 
@@ -252,6 +267,11 @@ for line in header:
     out.write(os.linesep)
 
 out.writelines(mod_contents)
+out.write(os.linesep)
+
+out.write("# define statements")
+out.write(os.linesep)
+out.writelines(defines)
 out.write(os.linesep)
 
 for line in footer:
