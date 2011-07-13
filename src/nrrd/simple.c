@@ -396,9 +396,9 @@ _nrrdContentGet(const Nrrd *nin) {
   static const char me[]="_nrrdContentGet";
   char *ret;
   
-  ret = ((nin && nin->content) ? 
-         airStrdup(nin->content) : 
-         airStrdup(nrrdStateUnknownContent));
+  ret = ((nin && nin->content)
+         ? airStrdup(nin->content)
+         : airStrdup(nrrdStateUnknownContent));
   if (!ret) {
     fprintf(stderr, "%s: PANIC: content strdup failed!\n", me);
     exit(1);

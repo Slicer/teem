@@ -565,7 +565,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 ** should be done? 
 */
 int
-nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
+nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
          unsigned int axis, int incrDim) {
   static const char me[]="nrrdJoin";
   unsigned int ni, ai, mindim, maxdim, outdim,
@@ -582,11 +582,11 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(numNin >= 1)) {
-    biffAddf(NRRD, "%s: numNin (%d) must be >= 1", me, numNin);
+  if (!(ninNum >= 1)) {
+    biffAddf(NRRD, "%s: ninNum (%d) must be >= 1", me, ninNum);
     return 1;
   }
-  for (ni=0; ni<numNin; ni++) {
+  for (ni=0; ni<ninNum; ni++) {
     if (!(nin[ni])) {
       biffAddf(NRRD, "%s: input nrrd #%d NULL", me, ni);
       return 1;
@@ -598,7 +598,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
   }
 
   mop = airMopNew();
-  ninperm = (Nrrd **)calloc(numNin, sizeof(Nrrd *));
+  ninperm = (Nrrd **)calloc(ninNum, sizeof(Nrrd *));
   if (!(ninperm)) {
     biffAddf(NRRD, "%s: couldn't calloc() temp nrrd array", me);
     airMopError(mop); return 1;
@@ -606,7 +606,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
   airMopAdd(mop, ninperm, airFree, airMopAlways);
 
   maxdim = mindim = nin[0]->dim;
-  for (ni=0; ni<numNin; ni++) {
+  for (ni=0; ni<ninNum; ni++) {
     mindim = AIR_MIN(mindim, nin[ni]->dim);
     maxdim = AIR_MAX(maxdim, nin[ni]->dim);
   }
@@ -663,7 +663,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
                       : axis));
     /* fprintf(stderr, "!%s: 1st permute[%d] = %d\n", me, ai, permute[ai]); */
   }
-  for (ni=0; ni<numNin; ni++) {
+  for (ni=0; ni<ninNum; ni++) {
     ninperm[ni] = nrrdNew();
     diffdim = outdim - nin[ni]->dim;
     /* fprintf(stderr, "!%s: ni = %d ---> diffdim = %d\n", me, ni, diffdim); */
@@ -715,7 +715,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
   /* make sure all parts are compatible in type and shape,
      determine length of final output along axis (outlen) */
   outlen = 0;
-  for (ni=0; ni<numNin; ni++) {
+  for (ni=0; ni<ninNum; ni++) {
     if (ninperm[ni]->type != ninperm[0]->type) {
       biffAddf(NRRD, "%s: type (%s) of part %d unlike first's (%s)",
                me, airEnumStr(nrrdType, ninperm[ni]->type),
@@ -770,8 +770,8 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int numNin,
     airMopError(mop); return 1;
   }
   airMopAdd(mop, ntmpperm, (airMopper)nrrdNuke, airMopAlways);
-  dataPerm = (char *)ntmpperm->data;
-  for (ni=0; ni<numNin; ni++) {
+  dataPerm = AIR_CAST(char *, ntmpperm->data);
+  for (ni=0; ni<ninNum; ni++) {
     /* here is where the actual joining happens */
     chunksize = nrrdElementNumber(ninperm[ni])*nrrdElementSize(ninperm[ni]);
     memcpy(dataPerm, ninperm[ni]->data, chunksize);
@@ -967,7 +967,6 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   /* all basic information already copied by nrrdCopy */
   return 0;
 }
-
 
 /*
 ******** nrrdReshape_nva()

@@ -1168,7 +1168,7 @@ NRRD_EXPORT int nrrdHistoAxis(Nrrd *nout, const Nrrd *nin,
                               unsigned int axis, size_t bins, int type);
 NRRD_EXPORT int nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                const NrrdRange *const *range,
-                               unsigned int numNin,
+                               unsigned int ninNum,
                                const Nrrd *nwght, const size_t *bins,
                                int type, const int *clamp);
 NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist,
