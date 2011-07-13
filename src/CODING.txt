@@ -28,7 +28,8 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
 Note:
 * NO TABS, EVER! (why: no two editors show them the same)
 * two spaces per level of indentation
-* function name starts new line (why: makes it trivial to use grep to
+* In function definition (and only in definition), the function name
+starts a new line (why: makes it trivial to use grep to
 identify which source file contains the function definition)
 * opening brace *not* on its own line
 * closing brace gets its own line, except for if/else
@@ -211,11 +212,12 @@ context and circumstances of errors.  The main function to use is
   biffAddf(LIBNAME, "%s: error message", me);
 where me identifies what function you're in:
   static const char me[]="functionName";
-It is standard, at the beginning of a function, to have a long list of
-checks and tests, all of which might fail with a biff error message, before
-getting on with the main purpose of the function.  It not a problem for the
-error checking to take up more space than the core functionality.  The
-error messages passed to biff shouldn't contain newlines.
+The error messages passed to biff shouldn't contain newlines.  It is
+standard, at the beginning of a function, to have a long list of checks and
+tests, all of which might fail with a biff error message, before getting on
+with the main purpose of the function.  Think of these as asserts() but
+more graceful and more informative.  It not a problem for the error
+checking to take up more space than the core functionality.
 
 * In any place where you have list all Teem libraries (which might happen
 in make files, documentation, symbol enumeration, etc), then always include
@@ -248,7 +250,8 @@ for Teem itself, but is essential for regenerating NrrdIO.
 
 ============ Other coding practices
 
-* If something can be const, make it const.
+* If a pointer argument to a function can be const, make it const.  In
+upcoming versions this may be applied to non-pointer arguments as well.
 
 * If something is logically an unsigned quantity (mainly, indices into
 arrays, or quantities of things), then make it unsigned.
@@ -271,12 +274,12 @@ the sake of code brevity when those variables won't change during the
 scope of the function.  Hopefully the struct is const, so the compiler
 can do the right thing.
 
-* use "return" correctly: no parens!  "exit" does have parens.
+* Wse "return" correctly: no parens!  "exit" does have parens.
 
 * If a pointer should be initialized to NULL, then set it to NULL; Don't
 assume that a pointer in a struct will be NULL following a calloc.
 
-Parts of the GNU style (http://www.gnu.org/prep/standards.html) which 
+* Parts of the GNU style (http://www.gnu.org/prep/standards.html) which 
 have been more or less followed in Teem:
 - avoid arbitrary limits on (memory) sizes of things (this is very hard)
 - be robust about handling of non-ASCII input where ASCII is expected
