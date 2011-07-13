@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /*
-** OPT_ADD_...
+** OPT_ADD_XXX
 **
 ** These macros are used for setting up command-line options for the various
 ** unu commands.  They define options which are common across many different
@@ -111,7 +111,7 @@ in the error messages.
       airMopError(mop); \
       return 1; \
     } else { \
-      /* ... like tears ... in rain. Time ... to die. */ \
+      /* . . . like tears . . . in rain. Time . . . to die. */ \
       exit(1); \
     } \
   }

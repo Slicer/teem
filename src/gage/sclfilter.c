@@ -93,7 +93,7 @@ gageScl3PFilter2(gageShape *shape,
     /* actually, there is no possible way in which it makes sense to
        try to measure a second derivative with only two samples, so
        all this "if (doD2)" code is basically bogus, but we'll keep it
-       around for generality ... */
+       around for generality . . . */
     /* x0y0z2 */
     hess[8] = D2_2(0,Z);                       /* h_zz */
   }

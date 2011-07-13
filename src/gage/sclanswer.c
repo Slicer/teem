@@ -84,12 +84,12 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     gmag = pvl->directAnswer[gageSclGradMag][0] = sqrt(ELL_3V_DOT(gvec, gvec));
   }
 
-  /* NB: it would seem that gageParmGradMagMin is completely ignored ... */
+  /* NB: it would seem that gageParmGradMagMin is completely ignored . . . */
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNormal)) {
     if (gmag) {
       ELL_3V_SCALE(norm, 1/gmag, gvec);
-      /* polishing ... 
+      /* polishing 
       len = sqrt(ELL_3V_DOT(norm, norm));
       ELL_3V_SCALE(norm, 1/len, norm);
       */

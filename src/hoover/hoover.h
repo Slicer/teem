@@ -242,7 +242,7 @@ typedef struct {
 } hooverContext;
 
 /*
-******** hooverErr... enum
+******** hooverErr* enum
 **
 ** possible returns from hooverRender.
 ** hooverErrNone: no error, all is well: 

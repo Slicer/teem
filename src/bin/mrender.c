@@ -59,7 +59,7 @@ typedef struct {
   /* we have a seperate copy of the kernel specs so that hest can
      set these, and then we'll gageKernelSet() them in the context
      in order to do the proper error checking- hest can't do the
-     error checking that we need... */
+     error checking that we need. */
   NrrdKernelSpec *ksp[GAGE_KERNEL_MAX+1];
   gageShape *shape;     /* used to document ItoW transform */
   gageContext *gctx0;   /* gage input and parent thread state */
@@ -424,7 +424,7 @@ kind, instead of being restricted to scalars
 ** together, be very sure that the generation of the strings on the
 ** two passes is identical.  Had a very troublesome memory error because
 ** I was using short version of the description string to determine
-** allocation, and then the long version in the second pass...
+** allocation, and then the long version in the second pass
 */
 char *
 mrendGage(char *prefix) {

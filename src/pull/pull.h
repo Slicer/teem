@@ -434,8 +434,8 @@ typedef struct {
                                   then we don't have a real gageContext,
                                   and we have to manage our own query */
   gageContext *gctx;           /* do own, and set based on info here */
-  gagePerVolume *gpvl,         /* stupid gage API ... */
-    **gpvlSS;                  /* stupid gage API ... */
+  gagePerVolume *gpvl,         /* stupid gage API . . . */
+    **gpvlSS;                  /* stupid gage API . . . */
   int seedOnly;                /* volume only required for seeding, for
                                   either pullInfoSeedThresh or
                                   pullInfoSeedPreThresh */

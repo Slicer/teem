@@ -151,7 +151,7 @@ airFclose(FILE *file) {
 ** To get fprintf behavior, pass "str" as NULL
 ** to get sprintf bahavior, pass "file" as NULL
 **
-** Someday I'll find/write a complete {f|s|}printf replacement ...
+** Someday I'll find/write a complete {f|s|}printf replacement 
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
@@ -175,7 +175,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   isD = p3 || p4 || p5;
   /* the code here says "isF" and "isD" as if it means "is float" or 
      "is double".  It really should be "is2" or "is3", as in, 
-     "is 2-character conversion sequence, or "is 3-character..." */
+     "is 2-character conv. seq., or "is 3-character conv. seq." */
   if (isF) {
     conv = p0 ? p0 : (p1 ? p1 : p2);
   }
@@ -364,7 +364,7 @@ airIndexULL(double min, double val, double max, airULLong N) {
   airULLong idx;
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   /* compile error on Win32-vs60: "error C2520: conversion from
-     unsigned __int64 to double not implemented, use signed __int64 ... */
+     unsigned __int64 to double not implemented, use signed __int64 */
   airLLong sidx;
   sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);

@@ -689,7 +689,7 @@ main(int argc, const char *argv[]) {
            consistent with the way that the grid sampling will be
            defined. So, we have to actually replicate work that is done
            by _gageProbeSpace() in converting from world to index space */
-        /* HEY: the way that idxSS is set is very strange ... */
+        /* HEY: the way that idxSS is set is very strange */
         for (vi=0; vi<numSS-1; vi++) {
           if (AIR_IN_CL(sbp->scale[vi], posSS, sbp->scale[vi+1])) {
             idxSS = vi + AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],

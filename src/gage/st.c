@@ -135,7 +135,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   /* manually set scale parameters */
   gk0->parm[0] = dScale;
   gk1->parm[0] = dScale;
-  ik0->parm[0] = 1.0;       /* this is more complicated ... */
+  ik0->parm[0] = 1.0;       /* this is more complicated . . . */
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageParmSet(ctx, gageParmRenormalize, AIR_TRUE);

@@ -349,7 +349,7 @@ gageUpdate(gageContext *ctx) {
     }
   }
 
-  /* start traversing the whole update graph ... */
+  /* start traversing the whole update graph . . . */
   if (ctx->verbose) {
     fprintf(stderr, "%s: hello ____________________ \n", me);
     fprintf(stderr, "    context flags:");
@@ -388,7 +388,7 @@ gageUpdate(gageContext *ctx) {
          new pvl to have unallocated iv3,iv2,iv1, if it was attached to a
          context which had already been probing, as was the case with
          _tenRegisterDoit.  So, with this hack we reallocate ALL caches
-         just because a new pervolume was attached ... */
+         just because a new pervolume was attached . . . */
       || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)) {
     if (_gageCacheSizeUpdate(ctx)) {
       biffAddf(GAGE, "%s: trouble", me); return 1;

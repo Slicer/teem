@@ -385,7 +385,7 @@ enum {
 ** Having separate parts is important for PostScript rendering, but
 ** the limnPolyData is more OpenGL oriented.
 **
-** Experimenting with *not* having airArrays here...
+** Experimenting with *not* having airArrays here . . .
 **
 ** There need to be per-attribute "xxxNum" variables because otherwise
 ** it is impossible to unambiguously manage both changes in the number
@@ -805,7 +805,7 @@ LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
 LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
 
-/* lpu{Flotsam,...}.c */
+/* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
 #define LIMN_LIST(C) &limnpu_##C##Cmd,
 /* F(clip) \ */

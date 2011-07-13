@@ -32,7 +32,7 @@ gagePresent = 42;
 ** this is the vector to supply when someone wants the normalized
 ** version of a vector with zero length.  We could be nasty and
 ** set this to {AIR_NAN, AIR_NAN, AIR_NAN}, but simply passing
-** NANs around can make things fantastically slow ...
+** NANs around can make things fantastically slow . . .
 */
 double
 gageZeroNormal[3] = {0,0,0};

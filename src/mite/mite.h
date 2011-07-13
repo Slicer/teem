@@ -187,7 +187,7 @@ typedef struct {
                             -1: normal points to higher values
                                (lower values more "inside")
                             Setting up the values this way allows for idioms
-                            like "if (muu->normalSide) ...", meaning, if the
+                            like "if (muu->normalSide) . . .", meaning, if the
                             lighting is one-sided */
     verbUi, verbVi;      /* pixel coordinate for which to turn on verbosity */
   airArray *umop;        /* for things allocated which are used across
@@ -223,7 +223,7 @@ enum {
 ** expressions that are evaluated for transfer function application,
 ** there is less need for this "shading" per se (phong shading can be
 ** expressed with multiplicative and additive transfer functions).
-** But its here for the time being...
+** But its here for the time being . . .
 */
 typedef struct {
   int method;                 /* from miteShadeMethod* enum */

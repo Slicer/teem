@@ -362,7 +362,7 @@ enum {
 ** axis.c (for per-axis info):
 **    _nrrdAxisInfoCopy()
 ** methodsNrrd.c:
-**    lots of functions, but you knew that ...
+**    lots of functions, but you knew that . . .
 */
 enum {
   nrrdField_unknown,
@@ -540,7 +540,7 @@ enum {
   nrrdMeasureLineIntercept,  /* 15: y-intercept of line of best fit */
   nrrdMeasureLineError,      /* 16: error of line fitting */
   /* 
-  ** the nrrduMeasureHisto... measures interpret the array as a
+  ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
   nrrdMeasureHistoMin,       /* 17 */

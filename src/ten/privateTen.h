@@ -31,7 +31,7 @@ extern "C" {
 unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
 
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
-** then some hacking was added ... 
+** then some hacking was added . . .
 */
 #define USAGE(info) \
   if (!argc) { \
@@ -53,7 +53,6 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
       airMopError(mop);                                         \
       return 2;                                                 \
     } else {                                                    \
-      /* ... like tears ... in rain. Time ... to die. */        \
       exit(1);                                                  \
     }                                                           \
   }

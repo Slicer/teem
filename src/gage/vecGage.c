@@ -257,8 +257,8 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
        0:d2v_x/dxdx   1:d2v_x/dxdy   2:d2v_x/dxdz
        3:d2v_x/dydx   4:d2v_x/dydy   5:d2v_x/dydz
        6:d2v_x/dzdx   7:d2v_x/dzdy   8:d2v_x/dzdz
-       9:d2v_y/dxdx       [...]
-           [...]
+       9:d2v_y/dxdx      [. . .]
+          [. . .]
        24:dv2_z/dzdx  25:d2v_z/dzdy  26:d2v_z/dzdz
     */
     if (ctx->verbose) {

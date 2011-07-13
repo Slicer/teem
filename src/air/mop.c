@@ -40,7 +40,7 @@ Again, got clobbered.  airSetNull(&((*vP)[0])) clobbered
 airFree(*vP).  So, I gave up on using airMopMem() for the individual
 elements, and am using simply airMopAdd(airFree).  The alternative
 was to change the airMopAdd()s in airMopMem() to _airMopAdd()s, but
-I didn't feel confident that this would be safe ...
+I didn't feel confident that this would be safe.
 
 -----------  SO: as a result of all that:
 

@@ -85,7 +85,7 @@ baneHVolCheck (Nrrd *hvol) {
   }
   /* 
   ** NOTE: For the time being, I'm giving up on enforcing a 
-  ** particular kind of histogram volume ...
+  ** particular kind of histogram volume
   if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
     biffAddf(BANE, "%s: expected \"%s\" on axis 0 label",
              me, baneMeasrGradMag->name);

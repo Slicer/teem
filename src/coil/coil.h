@@ -198,7 +198,7 @@ typedef struct coilContext_t {
                                       nextSlice == size[2] */
   double spacing[3];               /* sample spacings we'll use- we perhaps 
                                       should be using a gageShape, but this is
-                                      actually all we really need... */
+                                      actually all we really need . . . */
   Nrrd *nvol;                      /* an interleaved volume of (1st) the last
                                       filtering result, and (2nd) the update
                                       values from the current iteration */

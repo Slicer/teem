@@ -227,7 +227,7 @@ typedef struct {
 ** capability of tenGage is that because this is visualization, you
 ** can't easily control whether the measurement frame is applied, if
 ** known- in that sense the RGB info is uniquely different from the
-** other vector and tensor items that can be queried ... so after a
+** other vector and tensor items that can be queried . . . so after a
 ** brief appearance here the RGB evec coloring was removed.  The
 ** gagePerVolume->data field that it motivated has rightly remained.
 **
@@ -1717,7 +1717,7 @@ TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNew(void);
 TEN_EXPORT tenEMBimodalParm* tenEMBimodalParmNix(tenEMBimodalParm *biparm);
 TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
 
-/* tend{Flotsam,Anplot,Anvol,Evec,Eval,...}.c */
+/* tend{Flotsam,Anplot,Anvol,Evec,Eval,. . .}.c */
 #define TEND_DECLARE(C) TEN_EXPORT unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C) &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */

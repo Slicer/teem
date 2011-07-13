@@ -30,7 +30,7 @@ int airStrtokQuoting = AIR_FALSE;
 /*
 ******** airStrdup()
 **
-** because they didn't put strdup() in ANSI ...
+** because they didn't put strdup() in ANSI.
 ** This will return NULL if given NULL.
 */
 char *

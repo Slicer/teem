@@ -295,7 +295,7 @@ _echoRTRenderThreadBody(void *_arg) {
   echoRay ray;              /* (not a pointer) */
   echoThreadState *arg;
   echoCol_t *img, *chan;    /* current scanline of channel buffer array */
-  Nrrd *nraw;               /* copies of arguments to echoRTRender ... */
+  Nrrd *nraw;               /* copies of arguments to echoRTRender . . . */
   limnCamera *cam;
   echoScene *scene;
   echoRTParm *parm;

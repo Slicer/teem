@@ -54,7 +54,7 @@ extern "C" {
 ** the spacing between samples along the axis.  To have different
 ** filters for the same function, but along different axes, would be
 ** too messy.  [Sun Mar 9 13:32:22 EDT 2008: Actually, doing per-axis
-** kernels is looking more and more sensible all the time...] Thus,
+** kernels is looking more and more sensible all the time. . .] Thus,
 ** gage is not very useful as the engine for downsampling: it can't
 ** tell that along one axis samples should be blurred while they
 ** should be interpolated along another.  Rather, it assumes that the
@@ -94,8 +94,8 @@ enum {
   gageParmDefaultCenter,           /* int */
   gageParmStackUse,                /* int */
   gageParmStackNormalizeDeriv,     /* int; does NOT imply gageParmStackUse */
-  gageParmStackNormalizeDerivBias, /* double; does NOT imply ... */
-  gageParmStackNormalizeRecon,     /* int; does NOT imply gageParmStackUse */
+  gageParmStackNormalizeDerivBias, /* double; does NOT imply      "        */
+  gageParmStackNormalizeRecon,     /* int; does NOT imply         "        */
   gageParmOrientationFromSpacing,  /* int */
   gageParmLast
 };

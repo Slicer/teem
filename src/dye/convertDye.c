@@ -348,7 +348,7 @@ dyeConvert(dyeColor *col, int outSpace) {
     dyeColorSet(col, outSpace, o0, o1, o2);
   }
   else {
-    /* we have some work to do ... */
+    /* we have some work to do . . . */
     if (inSpace < dyeSpaceRGB && outSpace < dyeSpaceRGB) {
       /* its an easy HSV <-- RGB --> HSL conversion */
       if (!E) E |= dyeConvert(col, dyeSpaceRGB);

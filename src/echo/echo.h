@@ -52,7 +52,7 @@ extern "C" {
 
 #define ECHO echoBiffKey
 
-/* all position and transform information is kept as ...
+/* all position and transform information is kept as:
 ** 1: float
 ** 0: double
 */
@@ -280,7 +280,7 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   ECHO_OBJECT_MATTER;   /* ha! its not actually in every object, but in
                            those cases were we want to access it without
-                           knowing object type, then it will be there ... */
+                           knowing object type, then it will be there. */
 } echoObject;
 
 typedef struct {

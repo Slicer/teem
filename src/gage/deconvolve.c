@@ -156,7 +156,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
 /*
 *******************************
 ** all the following functionality should at some point be
-** pushed down to nrrd ...
+** pushed down to nrrd . . .
 */
 
 static void

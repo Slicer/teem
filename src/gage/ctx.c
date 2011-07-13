@@ -336,7 +336,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
   case gageParmDefaultCenter:
     ctx->parm.defaultCenter = AIR_CAST(int, val);
     /* no flag to set, I guess, although the value here effects the 
-       action of _gageShapeSet when called by gagePerVolumeAttach ... */
+       action of _gageShapeSet when called by gagePerVolumeAttach . . . */
     break;
   case gageParmStackUse:
     ctx->parm.stackUse = AIR_CAST(int, val);
@@ -564,7 +564,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
       }
       break;
     case 7:
-      /* this might come in handy for tenGage ... */
+      /* this might come in handy for tenGage . . . */
       for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
         pvl->iv3[cacheIdx + fddd*0] = pvl->lup(here, 0 + 7*ctx->off[cacheIdx]);
         pvl->iv3[cacheIdx + fddd*1] = pvl->lup(here, 1 + 7*ctx->off[cacheIdx]);

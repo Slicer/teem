@@ -41,7 +41,7 @@ baneMeasrNew(int type, double *parm) {
     biffAddf(BANE, "%s: baneMeasr %d invalid", me, type);
     return NULL;
   }
-  /* for now, parm is ignored ... */
+  /* for now, parm is ignored */
   measr = (baneMeasr*)calloc(1, sizeof(baneMeasr));
   if (!measr) {
     biffAddf(BANE, "%s: couldn't allocate baneMeasr!", me);

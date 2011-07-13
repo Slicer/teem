@@ -79,7 +79,6 @@
     break;                                \
   }
 
-/* NOTE: macros finally become annoying to Gordon... */
 void
 ell_3m_to_q_f(float q[4], const float m[9]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    3, 4, 5,    6, 7, 8);
@@ -147,7 +146,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
 /* 
 ** HEY: the first two lines of this replace ELL_4V_NORM(u, q, w).  The
 ** replacement was needed to avoid warnings about precision loss with
-** double->float converstion.  Macros are indeed problematic...
+** double->float converstion.  Macros are indeed problematic . . .
 */
 #define _ELL_Q_TO_4M(type)           \
   ELL_4V_GET(w, x, y, z, u);         \
@@ -168,7 +167,6 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
              0);                     \
   ELL_4V_SET(m+12, 0, 0, 0, 1)
 
-/* NOTE: this is ugly, macros really are annoying ... */
 void 
 ell_q_to_4m_f(float m[16], const float q[4]) {
   float u[4], w, x, y, z;

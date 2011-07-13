@@ -88,7 +88,7 @@ main(int argc, char *argv[]) {
   /* but wait: to play well with type checking, we have to use a stupid
      union to pass in the address of the array.  So, hack.v == &data, 
      but the types are right.  We don't do a cast because recent versions
-     of gcc will complain about breaking "strict-aliasing rules" ... */
+     of gcc will complain about breaking "strict-aliasing rules". */
   hack.c = &data;
   dataArr = airArrayNew(hack.v, NULL, sizeof(unsigned char), incr);
   if (!dataArr) {

@@ -138,7 +138,7 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
     ELL_3V_NORM(Ldir, Ldir, Ldist);
     Ldot = ELL_3V_DOT(Ldir, intx->norm);
     /* HEY: HACK: we have to general per-object-type flag that says,
-       this kind of object has no notion of in-versus-out facing ... */
+       this kind of object has no notion of in-versus-out facing . . . */
     if (echoTypeRectangle == intx->obj->type) {
       Ldot = AIR_ABS(Ldot);
     }
@@ -438,7 +438,7 @@ echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
   int side;
 
   /* at some point I thought this was important to avoid bias when
-     going through glass, but now I'm not so sure ... It is likely
+     going through glass, but now I'm not so sure . . . It is likely
      totally moot if jitter vectors are NOT reused between pixels. */
   if (ELL_3V_DOT(intx->norm, intx->view) > 0) {
     jitt = tstate->jitt + 2*echoJittableNormalA;

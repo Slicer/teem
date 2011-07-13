@@ -23,7 +23,7 @@
 
 #include "air.h"
 
-/* HEY: the whole matter of function returns has to be standardized ... */
+/* HEY: the whole matter of function returns has to be standardized. */
 
 int airThreadNoopWarning = AIR_TRUE;
 

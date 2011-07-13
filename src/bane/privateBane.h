@@ -52,7 +52,6 @@ unrrduCmd baneGkms_##name##Cmd = { #name, info, baneGkms_##name##Main }
       airMopError(mop); \
       return 2; \
     } else { \
-      /* ... like tears ... in rain. Time ... to die. */ \
       exit(1); \
     } \
   }

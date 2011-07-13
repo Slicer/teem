@@ -165,7 +165,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
        from both ends, but we control the rate of marching according
        to the distance to the ends.  So if min == mid == 0, then
        there is no marching up from below
-       HOWEVER: the mode of histogram would probably be better ... */
+       HOWEVER: the mode of histogram would probably be better. */
   }
   fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n",
           me, nhist->axis[0].min, nhist->axis[0].max, min, max, mid);

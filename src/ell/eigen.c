@@ -70,7 +70,7 @@ _ell_align3_d(double v[9]) {
     ELL_3V_SCALE(v+3*bi, -1, v+3*bi);
   }
   /* lob B */
-  /* we can't guarantee that dot(v+3*ai,v+3*bi) > 0 ... */
+  /* we can't guarantee that dot(v+3*ai,v+3*bi) > 0 . . . */
 }
 
 /*
@@ -381,7 +381,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9],
 ** returns info about singular values according to ellCubeRoot enum
 **
 ** HEY: I think this does the wrong thing when given a symmetric
-** matrix with negative eigenvalues...
+** matrix with negative eigenvalues . . .
 */
 int
 ell_3m_svd_d(double uu[9], double sval[3], double vv[9], 
@@ -405,7 +405,7 @@ ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
 /*
 ** NOTE: profiling showed that about a quarter of the execution time of
 ** ell_6ms_eigensolve_d() is spent here; so reconsider its need and
-** implementation... (fabs vs. AIR_ABS() made no difference)
+** implementation . . . (fabs vs. AIR_ABS() made no difference)
 */
 static void
 _maxI_sum_find(unsigned int maxI[2], double *sumon, double *sumoff,
@@ -466,7 +466,7 @@ _compar(const void *A_void, const void *B_void) {
 ** uses Jacobi iterations to find eigensystem of 6x6 symmetric matrix,
 ** given in sym[21], to within convergence threshold eps.  Puts
 ** eigenvalues, in descending order, in eval[6], and corresponding
-** eigenvectors in _evec+0, _evec+6, ..., _evec+30.  NOTE: you can
+** eigenvectors in _evec+0, _evec+6, . . ., _evec+30.  NOTE: you can
 ** pass a NULL _evec if eigenvectors aren't needed.
 ** 
 ** does NOT use biff

@@ -289,7 +289,7 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 **
 ** HEY: it is apparently not clear how to do error checking (aside from
 ** looking at a->data) when there was NO data previously allocated, and the
-** first index of the newly allocated data is zero...
+** first index of the newly allocated data is zero.
 */
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {

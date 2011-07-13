@@ -245,7 +245,7 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
   }
   /* this eventually calls _gageShapeSet(), which, for purely historical
      reasons, does the brunt of the error checking, some of which is almost
-     certainly redundant with checks above ... */
+     certainly redundant with checks above . . . */
   if (gageVolumeCheck(NULL, nrrd, kind)) {
     biffAddf(GAGE, "%s: trouble", me);
     return 1;

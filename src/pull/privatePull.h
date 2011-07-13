@@ -49,7 +49,7 @@ extern "C" {
 #define _PULL_NEWPNT_DIST 0.6
 
 /* scaling factor between point->neighDistMean and distance cap; higher
-   values allow for more adventurous explorations... */
+   values allow for more adventurous explorations . . . */
 #define _PULL_DIST_CAP_RSNORM 2.0
 
 /* travel distance limit in terms of voxelSizeSpace and voxelSizeScale */

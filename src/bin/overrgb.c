@@ -123,7 +123,7 @@ main(int argc, const char *argv[]) {
       /* no resampling needed, just copy */
       E = nrrdCopy(nbg, _nbg);
     } else {
-      /* have to resample background image to fit ... */
+      /* have to resample background image to fit. */
       /* because we're using the old resampler, we have to kill off any
          space direction information, which is incompatible with 
          setting per-axis min and max, as is required by the old resampler */
