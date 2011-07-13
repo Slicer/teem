@@ -20,7 +20,6 @@
 */
 
 #include "elf.h"
-#include <teem/ten.h>
 
 const int
 elfPresent = 42;

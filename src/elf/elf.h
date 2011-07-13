@@ -22,8 +22,12 @@
 #ifndef ELF_HAS_BEEN_INCLUDED
 #define ELF_HAS_BEEN_INCLUDED
 
-#include <teem/tijk.h>
+#include <teem/air.h>
+#include <teem/nrrd.h>
+#include <teem/ell.h>
 #include <teem/limn.h>
+#include <teem/tijk.h>
+#include <teem/ten.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(tijk_EXPORTS) || defined(teem_EXPORTS)
