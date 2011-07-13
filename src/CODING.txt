@@ -230,6 +230,22 @@ of the first .c files the header refers to (which .c is not fixed).
 The presence of this symbol provides a way to test which libraries
 are part of a given Teem shared library.
 
+* The stand-alond NrrdIO library for reading and writing NRRD files is
+created by automatic means from the Teem source tree.  To facilitate
+that transformation, there are some special comments that delimit
+code sections and particular lines.  These appear only the air, biff,
+and nrrd libraries; these are the source of all the NrrdIO source.
+Sections of code *not* needed for NrrdIO (in files that do supply other
+things needed for NrrdIO) are delimited by:
+/* ---- BEGIN non-NrrdIO */
+/* ---- END non-NrrdIO */
+Special lines that need different processing are tagged with
+/* NrrdIO-hack-001 */
+/* NrrdIO-hack-002 */
+...
+Respecting the placement and content of these comments is not important
+for Teem itself, but is essential for regenerating NrrdIO.
+
 ============ Other coding practices
 
 * If something can be const, make it const
