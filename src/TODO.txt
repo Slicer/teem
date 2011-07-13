@@ -10,6 +10,9 @@ Teem can't use it.
 do away with "experimental" libraries.  Too annoying to have 
 two totally different kinds of Teem installs.
 
+Extend const-correctness of function input not just to pointers, but
+to all values as well.
+
 air:
 * change airArray implementation to re-allocate the array size
 by doubling/halving, rather than the linear increments used now
