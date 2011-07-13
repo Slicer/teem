@@ -30,8 +30,8 @@
 
 #include <teem/air.h>
 #include <teem/biff.h>
-#include <teem/ell.h>
 #include <teem/nrrd.h>
+#include <teem/ell.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(gage_EXPORTS) || defined(teem_EXPORTS)
