@@ -1,6 +1,3 @@
-
-(This is currently a rough draft)
-
 This documents C coding conventions for Teem, and provides some rationale.
 Feedback on how to better implement the rationale is very welcome on the 
 teem-users mailing list; subscribe at:
@@ -170,6 +167,7 @@ size of each, and both include the void* cast)
 * Use AIR_CAST to cast things. The only exception is casting
 things to airMopper to pass to airMopAdd. (why: casts are inherently
 tricky, and sources of bugs, so their use should be easily grep-able)
+
 * Teem relies heavily on C enums to give human-readable names to integer
 values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
 strict conventions for setting these up:
