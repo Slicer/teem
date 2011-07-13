@@ -58,10 +58,10 @@ extern "C" {
 */
 #if 0
 typedef float echoPos_t;
-#define ECHO_POS_FLOAT 1
+#  define ECHO_POS_FLOAT 1
 #else 
 typedef double echoPos_t;
-#define ECHO_POS_FLOAT 0
+#  define ECHO_POS_FLOAT 0
 #endif
 
 
@@ -71,10 +71,10 @@ typedef double echoPos_t;
 */
 #if 1
 typedef float echoCol_t;
-#define echoCol_nt nrrdTypeFloat
+#  define echoCol_nt nrrdTypeFloat
 #else
 typedef double echoCol_t;
-#define echoCol_nt nrrdTypeDouble
+#  define echoCol_nt nrrdTypeDouble
 #endif
 
 #define ECHO_LIST_OBJECT_INCR 32

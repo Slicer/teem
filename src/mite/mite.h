@@ -25,8 +25,8 @@
 
 #include <teem/air.h>
 #include <teem/biff.h>
-#include <teem/ell.h>
 #include <teem/nrrd.h>
+#include <teem/ell.h>
 #include <teem/gage.h>
 #include <teem/limn.h>
 #include <teem/hoover.h>
@@ -59,16 +59,16 @@ extern "C" {
 
 #if 0
 typedef float mite_t;
-#define mite_nt nrrdTypeFloat
-#define mite_at airTypeFloat
-#define limnVTOQN limnVtoQN_f
-#define MITE_T_DOUBLE 0
+#  define mite_nt nrrdTypeFloat
+#  define mite_at airTypeFloat
+#  define limnVTOQN limnVtoQN_f
+#  define MITE_T_DOUBLE 0
 #else
 typedef double mite_t;
-#define mite_nt nrrdTypeDouble
-#define mite_at airTypeDouble
-#define limnVTOQN limnVtoQN_d
-#define MITE_T_DOUBLE 1
+#  define mite_nt nrrdTypeDouble
+#  define mite_at airTypeDouble
+#  define limnVTOQN limnVtoQN_d
+#  define MITE_T_DOUBLE 1
 #endif
 
 enum {

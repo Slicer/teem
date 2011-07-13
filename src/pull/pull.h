@@ -26,8 +26,8 @@
 #include <teem/air.h>
 #include <teem/hest.h>
 #include <teem/biff.h>
-#include <teem/ell.h>
 #include <teem/nrrd.h>
+#include <teem/ell.h>
 #include <teem/gage.h>
 #include <teem/limn.h>
 #include <teem/ten.h>

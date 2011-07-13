@@ -63,12 +63,12 @@ extern "C" {
 
 #ifdef TEEM_COIL_TYPE_DOUBLE
 typedef double coil_t;
-#define coil_nrrdType nrrdTypeDouble
-#define COIL_TYPE_FLOAT 0
+#  define coil_nrrdType nrrdTypeDouble
+#  define COIL_TYPE_FLOAT 0
 #else
 typedef float coil_t;
-#define coil_nrrdType nrrdTypeFloat
-#define COIL_TYPE_FLOAT 1
+#  define coil_nrrdType nrrdTypeFloat
+#  define COIL_TYPE_FLOAT 1
 #endif
 
 /*

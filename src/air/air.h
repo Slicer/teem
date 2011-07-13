@@ -75,17 +75,17 @@ extern "C" {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
-#define AIR_LLONG_FMT "%I64d"
-#define AIR_ULLONG_FMT "%I64u"
-#define AIR_LLONG(x) x##i64
-#define AIR_ULLONG(x) x##ui64
+#  define AIR_LLONG_FMT "%I64d"
+#  define AIR_ULLONG_FMT "%I64u"
+#  define AIR_LLONG(x) x##i64
+#  define AIR_ULLONG(x) x##ui64
 #else
 typedef signed long long airLLong;
 typedef unsigned long long airULLong;
-#define AIR_LLONG_FMT "%lld"
-#define AIR_ULLONG_FMT "%llu"
-#define AIR_LLONG(x) x##ll
-#define AIR_ULLONG(x) x##ull
+#  define AIR_LLONG_FMT "%lld"
+#  define AIR_ULLONG_FMT "%llu"
+#  define AIR_LLONG(x) x##ll
+#  define AIR_ULLONG(x) x##ull
 #endif
 
 /* This is annoying, thanks to windows */

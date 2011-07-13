@@ -98,12 +98,12 @@ enum {
 */
 #if 1
 typedef float alan_t;
-#define alan_nt nrrdTypeFloat
-#define ALAN_FLOAT 1
+#  define alan_nt nrrdTypeFloat
+#  define ALAN_FLOAT 1
 #else 
 typedef double alan_t;
-#define alan_nt nrrdTypeDouble
-#define ALAN_FLOAT 0
+#  define alan_nt nrrdTypeDouble
+#  define ALAN_FLOAT 0
 #endif
 
 typedef struct alanContext_t {
