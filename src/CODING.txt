@@ -248,7 +248,7 @@ for Teem itself, but is essential for regenerating NrrdIO.
 
 ============ Other coding practices
 
-* If something can be const, make it const
+* If something can be const, make it const.
 
 * If something is logically an unsigned quantity (mainly, indices into
 arrays, or quantities of things), then make it unsigned.

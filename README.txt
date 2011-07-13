@@ -44,6 +44,7 @@ http://teem.sourceforge.net/build.html
 * src/
   With one subdirectory for each of the teem libraries, all the 
   source for the libraries is in here.  See library listing below.
+  The src/CODING.txt file documents Teem coding conventions.
   * src/make
     Files related to compiling Teem with src/GNUmakefile, the old way
     of making Teem prior to CMake.  This is still unofficially in use.
