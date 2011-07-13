@@ -23,6 +23,8 @@
 #ifndef TIJK_HAS_BEEN_INCLUDED
 #define TIJK_HAS_BEEN_INCLUDED
 
+#include <teem/air.h>
+#include <teem/nrrd.h>
 #include <teem/ell.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
