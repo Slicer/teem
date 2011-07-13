@@ -57,11 +57,11 @@ extern "C" {
 ** unfortunate but greatly simplifying restriction that this type
 ** is used for all kinds of volumes, and all methods of filtering
 **
-** So: choose double by defining TEEM_COIL_TYPE_DOUBLE and float
-** otherwise.
+** 0: double
+** 1: float
 */
 
-#ifdef TEEM_COIL_TYPE_DOUBLE
+#if 0
 typedef double coil_t;
 #  define coil_nrrdType nrrdTypeDouble
 #  define COIL_TYPE_FLOAT 0
