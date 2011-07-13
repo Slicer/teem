@@ -6,7 +6,7 @@ Feedback on how to better implement the rationale is very welcome on the
 teem-users mailing list; subscribe at:
 http://lists.sourceforge.net/lists/listinfo/teem-users
 
-============ Code formatting
+============ Basic code formatting
 Example function:
 
 unsigned int
@@ -39,15 +39,15 @@ identify which source file contains the function definition)
 
 Other code formatting points:
 
-* If at all possible please keep lines to 78 characters, like the current line!
-A reference for this is the following line in the source header:
+* If at all possible please keep lines to 78 characters, like the current line.
+A reference for this is the following line appearing in the source headers:
   Teem: Tools to process and visualize scientific data and images              
 with spaces at the end to fill out to 78 characters. The exceptions to this
 are things like setting up a gageKind, or an airEnum, where long lines help
-preserve logical structure in finicky things. (why: its still common for 
+preserve logical structure in fragile things. (why: it is still common for 
 Teem to be edited in a xterm-style window)
 
-* In header files, when using conditions in the C pre-processor, put
+* In header files, when using conditionals in the C pre-processor, put
 spaces between the "#" (in the first column) and (for example) the
 "define", so that the logical structure is clearer, e.g:
 
@@ -63,16 +63,17 @@ typedef float coil_t;
 
 This is actually consequential; the current teem/python/ctypes/teem-gen.py
 (automated ctypes wrapper generator) will skip over "#  defines" and only
-reflect the setting of "#defines" in the python interface
+reflect the setting of "#defines" in the python interface.
 
 ============ Identifiers and their suffixes
 
-* All public symbols (functions and globals) must begin with "lib" or "_lib",
-where "lib" is the library name (air, hest, biff, etc).  All #defines must
-begin with "LIB" or "_LIB".  The leading underscore should only be used in
-exceptional circumstances, where there is compelling value in making accessible
-in the API some additional functionality or set of function arguments that
-would otherwise be hidden inside an implementation.
+* All public symbols (functions and globals) must begin with "lib" or
+"_lib", where "lib" is the library name (air, hest, biff, etc).  All
+#defines must begin with "LIB" or "_LIB" (the exception are the
+TEEM_VERSION #defines described below).  The leading underscore should only
+be used in exceptional circumstances, where there is compelling value in
+making accessible in the API some additional functionality or set of
+function arguments that would otherwise be hidden inside an implementation.
 
 * Every library has a LIB_EXPORT macro which serves the purpose of
 "extern" in a normal C header, but which also handles the windows
@@ -86,10 +87,6 @@ other exceptions are the ell and tijk library, in which everything is
 lower case, with _ separations (e.g. ell_cubic_root_triple).  In all
 libraries #defines and macros are all upper case, with _ separations
 (e.g. NRRD_INDEX_GEN, TIJK_TYPE_MAX_NUM)
-
-* Any functions that are not intending to be public should be "static"
-in their source files, so that nothing accidentally links against them.
-Static functions can use whatever name they want.  
 
 * All functions that use var-args must have a name that ends with "_va".
 There are currently some functions ending with "_nva" (for "no var-args"),
@@ -118,29 +115,90 @@ names also facilitates automated methods (still under development) for
 wrapping Teem struct foo in a real object-oriented language, with methods
 wrapping foo-related functions.
 
+============ Coding functions
+
+* Following the point about "object-oriented" code above, make an effort
+to logically associate functions with existing structs in a way that
+reflects how you would attach methods to objects.
+
+* In general, Teem functions put the *output* in the first (or first
+few) function arguments.  The remaining arguments are either parms
+then input, or input then parms. For example:
+
+  int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
+                       const int *axmap, int excludeBitflag);
+
+copies per-axis information TO nout FROM nin, subject to the other parms.
+
+* When passing an array to a Teem function with length known only
+at run-time (the array is passed as a pointer), the array and the 
+array length must be subsequent arguments, in that order.  The
+array length identifier should ideally be the array identifier,
+suffixed with "Num".  For example, "nin" and "ninNum" here:
+
+  int nrrdJoin(Nrrd *nout, const Nrrd *const *nin,
+               unsigned int ninNum, 
+               unsigned int axis, int incrDim);
+
+* In public headers, ONLY use "..." to indicate var-args arguments.
+That includes in comments; use ".." instead of "..." to refer to a
+range of things, and ". . ." for regular ellipses.  (why: to make it
+trivial to see which functions are var-args; they can be the hardest
+to debug).
+
+num
+
+* Any functions that are not intending to be public should be "static"
+in their source files, so that nothing accidentally links against them.
+Static functions can use whatever name they want.  
+
+* "parm" means "parameter", "parms" means "parameters"
+
 ============ Practices to keep Teem coherent and effective
 
-* Teem relies heavily on C enums to gives names to integer values
-(e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
-conventions for setting these up:
-** All enums start with an "unknown" value, with a name ending
-in "Unknown" or "_unknown", the numeric value of which is 0
-(with a small fixed set of special exceptions)
-** The numeric values of the enum values are set implicitly by
-the compiler to successive integers (which are commonly documented
-in the header files for debugging purposes), rather than explicitly
-set by hand in the code
-** All enums end with a flag "last" value, with a name ending 
-in "Last" or "_last"; (why: simple way to test bounds on 
-** None of the Teem enums are typecast to something distinct- the
-values are still just of type "int".  This is a loss of opportunity
-for some kinds of type checking, but is otherwise a win for
-simplicity- airEnums (also widely used in Teem) map between strings
-and ints, and can do so generally because the ints are type-cast to
-something that will be different for every enum.  Also, in many cases,
-which enum is in play is known only at run-time (e.g. the listing of
-of gageItems in a gage query in a volume for which the gageKind is
-known only at run-time).
+* air.h supplies TEEM_VERSION #defines that allow other software to know
+what version of Teem a given install is supplying.  These need to be
+updated with each release and patch.  Also, air/miscAir.c supplies const
+strings airTeemVersion (which is just set to TEEM_VERSION_STRING), and
+airTeemReleaseDate; airTeemReleaseDate has to be updated upon release or
+patch
+
+* Use AIR_CALLOC (preferrably) or AIR_MALLOC to allocate things
+(why: both explicitly indicate the number of elements, and the
+size of each, and both include the void* cast)
+
+* Use AIR_CAST to cast things. The only exception is casting
+things to airMopper to pass to airMopAdd. (why: casts are inherently
+tricky, and sources of bugs, so their use should be easily grep-able)
+* Teem relies heavily on C enums to give human-readable names to integer
+values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
+strict conventions for setting these up:
+** All enums start with an "unknown" value, with a name ending in "Unknown"
+or "_unknown", the numeric value of which is 0
+** The numeric values of the enum values are set implicitly by the compiler
+to successive integers (which are commonly documented in the header files
+for debugging purposes), rather than explicitly set by hand in the code
+(with a small fixed set of special exceptions, like airEndian)
+** All enums end with a flag "last" value, with a name ending in "Last" or
+"_last"; (why: simple way to test bounds on
+** None of the Teem enums are typecast to something distinct- the values
+are still just of type "int".  Thus, to collectively refer to the
+{fooBarUnknown, fooBarA, fooBarB, fooBarC ...} enum values, we use
+"fooBar*".  Not using a typecast is a loss of opportunity for some kinds of
+type checking, but is otherwise a big win for simplicity- airEnums (also
+widely used in Teem) map between strings and ints, and can do so generally
+because the ints are type-cast to something that will be different for
+every enum.  Also, in many cases, which enum is in play is known only at
+run-time (e.g. the listing of of gageItems in a gage query in a volume for
+which the gageKind is known only at run-time).
+
+* Anything that behaves and is used like a bool should be type "int".
+Teem coders are expected to know that in C non-zero IS true, and zero
+IS false, so for example "if (!ptr) { errorhandle(); }" is the
+preferred way to call errorhandle() if pointer ptr is NULL.  Thanks
+to the convention of starting enums with an "unknown" value, the
+unknown value is 0 (false), and all legit values are non-zero (true),
+and Teem code often sometimes assumes this.
 
 * All public airEnums are registered in a the meet library.  If you add
 a new airEnum, you need to also register it in the meetAirEnumAll() function
@@ -169,7 +227,10 @@ and always list the libraries in this dependency order (or its opposite):
   air hest biff nrrd ell unrrdu alan moss tijk gage dye bane
   limn echo hoover seek ten elf pull coil push mite meet
 
-* Use AIR_CALLOC (preferrably) or AIR_MALLOC to allocate things
+* All libraries "lib" contain a const int "libPresent", defined in one
+of the first .c files the header refers to (which .c is not fixed). 
+The presence of this symbol provides a way to test which libraries
+are part of a given Teem shared library.
 
 ============ Other coding practices
 
