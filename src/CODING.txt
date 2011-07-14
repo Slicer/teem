@@ -67,7 +67,7 @@ reflect the setting of "#defines" in the python interface.
 
 * All public symbols (functions and globals) must begin with "lib" or
 "_lib", where "lib" is the library name (air, hest, biff, etc).  All
-#defines must begin with "LIB" or "_LIB" (the exception are the
+#defines must begin with "LIB" or "_LIB" (the only exceptions are the
 TEEM_VERSION #defines described below).  The leading underscore should only
 be used in exceptional circumstances, where there is compelling value in
 making accessible in the API some additional functionality or set of
@@ -161,7 +161,7 @@ strings airTeemVersion (which is just set to TEEM_VERSION_STRING), and
 airTeemReleaseDate; airTeemReleaseDate has to be updated upon release or
 patch
 
-* Use AIR_CALLOC (preferrably) or AIR_MALLOC to allocate things
+* Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things
 (why: both explicitly indicate the number of elements, and the
 size of each, and both include the void* cast)
 
@@ -232,7 +232,7 @@ of the first .c files the header refers to (which .c is not fixed).
 The presence of this symbol provides a way to test which libraries
 are part of a given Teem shared library.
 
-* The stand-alond NrrdIO library for reading and writing NRRD files is
+* The stand-alone NrrdIO library for reading and writing NRRD files is
 created by automatic means from the Teem source tree.  To facilitate
 that transformation, there are some special comments that delimit
 code sections and particular lines.  These appear only the air, biff,
@@ -274,7 +274,7 @@ the sake of code brevity when those variables won't change during the
 scope of the function.  Hopefully the struct is const, so the compiler
 can do the right thing.
 
-* Wse "return" correctly: no parens!  "exit" does have parens.
+* Use "return" correctly: no parens!  "exit" does have parens.
 
 * If a pointer should be initialized to NULL, then set it to NULL; Don't
 assume that a pointer in a struct will be NULL following a calloc.
