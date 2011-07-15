@@ -167,13 +167,20 @@ contents = open(pre_teem_py, "r").readlines()[8:]
 mod_contents = []
 for line in contents:
     l = line.replace(substr, "libteem")
-    mod_contents.append(l)
-    if "Present" in l:
-        for lib in libs_destuctable:
-            lib_str = lib+"Present"
-            if lib_str in l:
-                libs_destuctable.remove(lib)
-                break
+    if not (("__darwin_size_t = c_ulong" in l) or ("size_t = __darwin_size_t" in l)):
+        l2 = l.replace("\'__darwin_size_t\',", "") #designed to remove defs from long list at end
+        l3 = l2.replace("\'size_t\',", "") #designed to remove defs from long list at end
+        l = l3
+        if not re.compile("_size_t").search(l3): # replace relies on the fact that size_t is never found in the same line as as airMyFmt_size_t
+            if not re.match("#", l3): # i.e. do not make changes in commented lines
+                l = l3.replace("size_t", "c_size_t")
+        mod_contents.append(l)
+        if "Present" in l:
+            for lib in libs_destuctable:
+                lib_str = lib+"Present"
+                if lib_str in l:
+                    libs_destuctable.remove(lib)
+                    break
 
 # in experimental libs not included, cleanup and fail
 if libs_destuctable: # empty sequence implicity false
