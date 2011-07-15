@@ -398,6 +398,34 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 }
 
 /*
+** _nrrdTypeNumberOfValues[]
+**
+** only meaningful for integral values, and only correct for
+** 32-bit values; tells the number of different integral values that
+** can be represented by the type
+**
+** HEY: this used to be public, but that was stopped when it was clear
+** that only the following function was using the array.  The reason
+** for the array is questionable, and the implementation below
+** should be re-evaluated.
+*/
+static const double
+_nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
+  0,                         /* unknown */
+  UCHAR_MAX+1,               /* char */
+  UCHAR_MAX+1,               /* unsigned char */
+  USHRT_MAX+1,               /* short */
+  USHRT_MAX+1,               /* unsigned short */
+  (double)UINT_MAX+1,        /* int */
+  (double)UINT_MAX+1,        /* unsigned int */
+  (double)NRRD_ULLONG_MAX+1, /* long long */
+  (double)NRRD_ULLONG_MAX+1, /* unsigned long long */
+  0,                         /* float */
+  0,                         /* double */
+  0                          /* punt */
+};
+
+/*
 ******** nrrdUnquantize()
 **
 ** try to recover floating point values from a quantized nrrd,
@@ -457,7 +485,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     return 1;
   }
   minIn = nrrdTypeMin[nin->type];
-  numValIn = nrrdTypeNumberOfValues[nin->type];
+  numValIn = _nrrdTypeNumberOfValues[nin->type];
   if (AIR_EXISTS(nin->oldMin) && AIR_EXISTS(nin->oldMax)) {
     minOut = nin->oldMin;
     maxOut = nin->oldMax;

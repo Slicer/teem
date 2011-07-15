@@ -735,7 +735,6 @@ NRRD_EXPORT const double nrrdTypeMin[NRRD_TYPE_MAX+1];
 NRRD_EXPORT const double nrrdTypeMax[NRRD_TYPE_MAX+1];
 NRRD_EXPORT const int nrrdTypeIsIntegral[NRRD_TYPE_MAX+1];
 NRRD_EXPORT const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1];
-NRRD_EXPORT const double nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */

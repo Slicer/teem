@@ -136,29 +136,6 @@ nrrdTypeMax[NRRD_TYPE_MAX+1] = {
 };
 
 /*
-******** nrrdTypeNumberOfValues[]
-**
-** only meaningful for integral values, and only correct for
-** 32-bit values; tells the number of different integral values that
-** can be represented by the type
-*/
-const double
-nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
-  0,                         /* unknown */
-  UCHAR_MAX+1,               /* char */
-  UCHAR_MAX+1,               /* unsigned char */
-  USHRT_MAX+1,               /* short */
-  USHRT_MAX+1,               /* unsigned short */
-  (double)UINT_MAX+1,        /* int */
-  (double)UINT_MAX+1,        /* unsigned int */
-  (double)NRRD_ULLONG_MAX+1, /* long long */
-  (double)NRRD_ULLONG_MAX+1, /* unsigned long long */
-  0,                         /* float */
-  0,                         /* double */
-  0                          /* punt */
-};
-
-/*
 ** _nrrdFieldValidInImage[]
 **
 ** these fields are valid embedded in PNM and PNG comments
