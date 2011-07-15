@@ -275,12 +275,6 @@ airStdin(void) {
   return stdin;
 }
 
-#if TEEM_32BIT == 1
-const char airMyFmt_size_t[] = "%u";
-#else
-const char airMyFmt_size_t[] = "%lu";
-#endif
-
 /*
 ******** AIR_INDEX(i,x,I,L,t)
 **

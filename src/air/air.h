@@ -523,7 +523,6 @@ AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
                                  airULLong N);
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
-AIR_EXPORT const char airMyFmt_size_t[];
 AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
 AIR_EXPORT double airTime();
 AIR_EXPORT void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
