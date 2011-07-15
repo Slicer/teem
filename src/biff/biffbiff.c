@@ -22,6 +22,7 @@
 */
 
 #include "biff.h"
+#include "privateBiff.h"
 
 static biffMsg **
 _bmsg=NULL;            /* master array of biffMsg pointers */
@@ -174,12 +175,12 @@ biffAdd(const char *key, const char *err) {
 }
 
 void
-biffAddVL(const char *key, const char *errfmt, va_list args) {
+_biffAddVL(const char *key, const char *errfmt, va_list args) {
   biffMsg *msg;
 
   _bmsgStart();
   msg = _bmsgAdd(key);
-  biffMsgAddVL(msg, errfmt, args);
+  _biffMsgAddVL(msg, errfmt, args);
   return;
 }
 
@@ -195,7 +196,7 @@ biffAddf(const char *key, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
-  biffAddVL(key, errfmt, args);
+  _biffAddVL(key, errfmt, args);
   va_end(args);
   return;
 }
@@ -213,9 +214,9 @@ biffAddf_e(biffMsg *msg, const char *key, const char *errfmt, ...) {
 
   va_start(args, errfmt);
   if (msg) {
-    biffMsgAddVL(msg, errfmt, args);
+    _biffMsgAddVL(msg, errfmt, args);
   } else {
-    biffAddVL(key, errfmt, args);
+    _biffAddVL(key, errfmt, args);
   }
   va_end(args);
   return;
@@ -242,7 +243,7 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
 
   va_start(args, errfmt);
   if (useBiff) {
-    biffAddVL(key, errfmt, args);
+    _biffAddVL(key, errfmt, args);
   }
   va_end(args);
   return;
@@ -413,8 +414,8 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
 }
 
 void
-biffMoveVL(const char *destKey, const char *srcKey,
-           const char *errfmt, va_list args) {
+_biffMoveVL(const char *destKey, const char *srcKey,
+            const char *errfmt, va_list args) {
   static const char me[]="biffMovev";
   biffMsg *dest, *src;
 
@@ -425,7 +426,7 @@ biffMoveVL(const char *destKey, const char *srcKey,
     fprintf(stderr, "%s: WARNING: key \"%s\" unknown\n", me, srcKey);
     return;
   }
-  biffMsgMoveVL(dest, src, errfmt, args);
+  _biffMsgMoveVL(dest, src, errfmt, args);
   return;
 }
 
@@ -435,7 +436,7 @@ biffMovef(const char *destKey, const char *srcKey,
   va_list args;
 
   va_start(args, errfmt);
-  biffMoveVL(destKey, srcKey, errfmt, args);
+  _biffMoveVL(destKey, srcKey, errfmt, args);
   va_end(args);
   return;
 }

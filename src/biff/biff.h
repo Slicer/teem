@@ -70,7 +70,6 @@ BIFF_EXPORT const int biffPresent;
 BIFF_EXPORT biffMsg *biffMsgNew(const char *key);
 BIFF_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
 BIFF_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);
-BIFF_EXPORT void biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args);
 BIFF_EXPORT void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf,2,3)))
@@ -80,8 +79,6 @@ BIFF_EXPORT void biffMsgClear(biffMsg *msg);
 BIFF_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
 BIFF_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src,
                              const char *err);
-BIFF_EXPORT void biffMsgMoveVL(biffMsg *dest, biffMsg *src,
-                               const char *errfmt, va_list args);
 BIFF_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
                                 const char *errfmt, ...)
 #ifdef __GNUC__
@@ -96,7 +93,6 @@ BIFF_EXPORT biffMsg *biffMsgNoop;
 
 /* biffbiff.c */
 BIFF_EXPORT void biffAdd(const char *key, const char *err);
-BIFF_EXPORT void biffAddVL(const char *key, const char *errfmt, va_list args);
 BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...)
 #ifdef __GNUC__
   __attribute__ ((format(printf,2,3)))
@@ -116,8 +112,6 @@ BIFF_EXPORT int biffCheck(const char *key);
 BIFF_EXPORT void biffDone(const char *key);
 BIFF_EXPORT void biffMove(const char *destKey, const char *err,
                           const char *srcKey);
-BIFF_EXPORT void biffMoveVL(const char *destKey, const char *srcKey,
-                            const char *errfmt, va_list args);
 BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
                             const char *errfmt, ...)
 #ifdef __GNUC__
