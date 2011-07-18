@@ -1186,7 +1186,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
         param_copy = malloc(end_index-start_index+2);
         strncpy(param_copy,&param[start_index],end_index-start_index+1);
         param_copy[end_index-start_index+1] = '\0';
-	strcpy(param,param_copy);
+        strcpy(param,param_copy);
         free(param_copy);
       }
     }
