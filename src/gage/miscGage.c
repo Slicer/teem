@@ -183,3 +183,79 @@ _gageErr = {
 };
 const airEnum *const
 gageErr = &_gageErr;
+
+const char *
+_gageItemPackPartStr[] = {
+  "(unknown_pack_part)",
+  "scalar",
+  "gradvec",
+  "gradmag",
+  "normal",
+  "hessian",
+  "hesseval0",
+  "hesseval1",
+  "hesseval2",
+  "hessevec0",
+  "hessevec1",
+  "hessevec2"
+};
+
+const char *
+_gageItemPackPartDesc[] = {
+  "unknown pack part",
+  "the base scalar F",
+  "gradient (vector) of F",
+  "magnitude of the gradient of F",
+  "normalized gradient (vector) of F",
+  "Hessian of F",
+  "1st eigenvalue of Hessian of F",
+  "2nd eigenvalue of Hessian of F",
+  "3rd eigenvalue of Hessian of F",
+  "1st eigenvector of Hessian of F",
+  "2nd eigenvector of Hessian of F",
+  "3rd eigenvector of Hessian of F"
+};
+
+const char *
+_gageItemPackPartStrEqv[] = {
+  "scalar", "scl",
+  "gradvec", "gvec",
+  "gradmag", "gmag",
+  "normal", "norm",
+  "hessian", "hess",
+  "hesseval0", "heval0",
+  "hesseval1", "heval1",
+  "hesseval2", "heval2",
+  "hessevec0", "hevec0",
+  "hessevec1", "hevec1",
+  "hessevec2", "hevec2",
+  ""
+};
+
+const int
+_gageItemPackPartValEqv[] = {
+  gageItemPackPartScalar,      gageItemPackPartScalar,      
+  gageItemPackPartGradVec,     gageItemPackPartGradVec,     
+  gageItemPackPartGradMag,     gageItemPackPartGradMag,     
+  gageItemPackPartNormal,      gageItemPackPartNormal,      
+  gageItemPackPartHessian,     gageItemPackPartHessian,     
+  gageItemPackPartHessEval0,   gageItemPackPartHessEval0,   
+  gageItemPackPartHessEval1,   gageItemPackPartHessEval1,   
+  gageItemPackPartHessEval2,   gageItemPackPartHessEval2,   
+  gageItemPackPartHessEvec0,   gageItemPackPartHessEvec0,   
+  gageItemPackPartHessEvec1,   gageItemPackPartHessEvec1,   
+  gageItemPackPartHessEvec2,   gageItemPackPartHessEvec2,   
+};
+
+const airEnum
+_gageItemPackPart_enum = {
+  "pack part",
+  GAGE_ITEM_PACK_PART_MAX,
+  _gageItemPackPartStr, NULL,
+  _gageItemPackPartDesc,
+  _gageItemPackPartStrEqv, _gageItemPackPartValEqv,
+  AIR_FALSE
+};
+const airEnum *const
+gageItemPackPart = &_gageItemPackPart_enum;
+

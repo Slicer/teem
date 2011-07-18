@@ -334,3 +334,23 @@ _gageKindScl = {
 };
 gageKind *const
 gageKindScl = &_gageKindScl;
+
+const gageItemPack 
+_gageItemPackSclValue = {
+  &_gageKindScl,
+  {gageSclUnknown,
+   gageSclValue,
+   gageSclGradVec,
+   gageSclGradMag,
+   gageSclNormal,
+   gageSclHessian,
+   gageSclHessEval0,
+   gageSclHessEval1,
+   gageSclHessEval2,
+   gageSclHessEvec0,
+   gageSclHessEvec1,
+   gageSclHessEvec2}
+};
+
+const gageItemPack *const
+gageItemPackSclValue = &_gageItemPackSclValue;

@@ -344,6 +344,28 @@ struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 
 /*
+******** gageItemPackPart* enum
+**
+** the different ways that some items can be related for a gagePack
+*/
+enum {
+  gageItemPackPartUnknown,     /*  0 */
+  gageItemPackPartScalar,      /*  1 */
+  gageItemPackPartGradVec,     /*  2 */
+  gageItemPackPartGradMag,     /*  3 */
+  gageItemPackPartNormal,      /*  4 */
+  gageItemPackPartHessian,     /*  5 */
+  gageItemPackPartHessEval0,   /*  6 */ 
+  gageItemPackPartHessEval1,   /*  7 */ 
+  gageItemPackPartHessEval2,   /*  8 */ 
+  gageItemPackPartHessEvec0,   /*  9 */ 
+  gageItemPackPartHessEvec1,   /* 10 */ 
+  gageItemPackPartHessEvec2,   /* 11 */ 
+  gageItemPackPartLast
+};
+#define GAGE_ITEM_PACK_PART_MAX   11
+
+/*
 ******** gageShape struct
 **
 ** just a container for all the information related to the "shape"
@@ -788,6 +810,21 @@ typedef struct {
 } gageItemSpec;
 
 /*
+******** gageItemPack struct
+**
+** A way of coherently representing a related set of gageItems. This
+** kind of inter-item relationship may eventually be part of the
+** definition of a gageKind.
+**
+** These are intended to be set up at compile-time, just like
+** (most of) the gageKinds.
+*/
+typedef struct {
+  const gageKind *kind;
+  int item[GAGE_ITEM_PACK_PART_MAX+1];
+} gageItemPack;
+
+/*
 ******** gageStackBlurParm struct
 **
 ** all parameters associated with blurring one volume to form a "stack"
@@ -929,6 +966,7 @@ GAGE_EXPORT const int gagePresent;
 GAGE_EXPORT double gageZeroNormal[3];
 GAGE_EXPORT const airEnum *const gageErr;
 GAGE_EXPORT const airEnum *const gageKernel;
+GAGE_EXPORT const airEnum *const gageItemPackPart;
 GAGE_EXPORT void gageParmReset(gageParm *parm);
 GAGE_EXPORT void gagePointReset(gagePoint *point);
 GAGE_EXPORT gageItemSpec *gageItemSpecNew(void);
@@ -969,6 +1007,7 @@ GAGE_EXPORT const airEnum *const gageScl;
    a dynamic kind generator like tenDwiGageKindNew(), which is
    most certainly not "const gageKind". */
 GAGE_EXPORT gageKind *const gageKindScl;
+GAGE_EXPORT const gageItemPack *const gageItemPackSclValue;
 
 /* vecGage.c (together with vecprint.c, these contain everything to
    implement the "vec" kind, and could be used as examples of what it

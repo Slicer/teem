@@ -101,6 +101,7 @@ meetAirEnumAll() {
   /* gage */
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageErr;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageKernel;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageItemPackPart;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
 
