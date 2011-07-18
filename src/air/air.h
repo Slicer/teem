@@ -466,6 +466,7 @@ AIR_EXPORT int airStrtokQuoting;
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 AIR_EXPORT unsigned int airStrntok(const char *s, const char *ct);
 AIR_EXPORT char *airStrtrans(char *s, char from, char to);
+AIR_EXPORT char *airStrcpy(char *dst, const char *src, size_t dstSize);
 AIR_EXPORT int airEndsWith(const char *s, const char *suff);
 AIR_EXPORT char *airUnescape(char *s);
 AIR_EXPORT char *airOneLinify(char *s);

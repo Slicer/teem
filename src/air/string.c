@@ -154,6 +154,41 @@ airStrtrans(char *s, char from, char to) {
 }
 
 /*
+******** airStrcpy
+**
+** Like strncpy but logic is different (and perhaps more useful), being:
+** "dst is allocated for dstSize chars. Copy what you can from src,
+** and always 0-terminate the rest.", 
+** instead of strncpy's "Copy at most n characters, blah blah blah, 
+** and you still have to 0-terminate the rest yourself" 
+**
+** E.g. with declaration buff[AIR_STRLEN_SMALL+1], you call
+** airStrcpy(buff, src, AIR_STRLEN_SMALL+1), and know that then
+** strlen(buff) <= AIR_STRLEN_SMALL.
+**
+** Returns NULL if there was a problem (NULL dst or src, or dstSize zero),
+** otherwise returns dst
+*/
+char *
+airStrcpy(char *dst, const char *src, size_t dstSize) {
+  size_t ii;
+  
+  if (!(dst && src && dstSize > 0)) {
+    return NULL;
+  }
+  if (1 == dstSize) {
+    dst[0] = '\0';
+    return dst;
+  }
+  /* else dstSize >= 2 */
+  for (ii=0; ii<=dstSize-2; ii++) {
+    dst[ii] = src[ii] ? src[ii] : '\0';
+  }
+  dst[dstSize-1] = '\0';
+  return dst;
+}
+
+/*
 ******** airEndsWith
 **
 ** if "s" ends with "suff", then returns 1, 0 otherwise
