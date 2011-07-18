@@ -93,6 +93,21 @@ typedef unsigned long long airULLong;
 #define AIR_PI 3.14159265358979323846
 #define AIR_E  2.71828182845904523536
 
+/*
+** These serve as conservative estimates on how large various strings
+** might end up being.  It would be theoretically better to completely
+** avoid the use of fixed-size buffers, but in many contexts the
+** implementation complexity of handling them reliably is distracts
+** from more urgent implementation goals.  In the mean time, these can 
+** be used safely as long as the lengths are used consistently.
+**
+** The possibly unfortunate convention that has become established in
+** Teem is code using these tends to NOT add the "+1", to explicitly
+** indicate the space for 0-termination, and instead assumes it is
+** part of the numbers below, even though this is at the cost of
+** confusion about how the maximal strlen() will be less than each of
+** these numbers. This will be addressed in Teem 2.0.
+*/
 #define AIR_STRLEN_SMALL (128+1)
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)

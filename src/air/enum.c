@@ -123,8 +123,7 @@ airEnumVal(const airEnum *enm, const char *str) {
     /* want strlen and not airStrlen here because the strEqv array
        should be terminated by a non-null empty string */
     for (ii=0; strlen(enm->strEqv[ii]); ii++) {
-      strncpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
-      test[AIR_STRLEN_SMALL-1] = '\0';
+      airStrcpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -136,8 +135,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   } else {
     /* enm->strEqv NULL */
     for (ii=1; ii<=enm->M; ii++) {
-      strncpy(test, enm->str[ii], AIR_STRLEN_SMALL);
-      test[AIR_STRLEN_SMALL-1] = '\0';
+      airStrcpy(test, enm->str[ii], AIR_STRLEN_SMALL);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -195,8 +193,7 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
       }
     }
   }
-  strncpy(ident, _ident, AIR_STRLEN_SMALL);
-  ident[AIR_STRLEN_SMALL-1] = '\0';
+  airStrcpy(ident, _ident, AIR_STRLEN_SMALL);
   if (!enm->sense) {
     airToLower(ident);
   }
@@ -276,11 +273,16 @@ airEnumPrint(FILE *file, const airEnum *enm) {
 ** consistency of an airEnum; returns 1 if there is a problem, and 0
 ** if all is well.  we're in air, so there's no biff, but we sprintf a
 ** description of the error into "err", if given
+**
+** The requirement that the strings have strlen <= AIR_STRLEN_SMALL-1
+** is a reflection of the cheap implementation of the airEnum 
+** functions in this file, rather than an actual restriction on what an 
+** airEnum could be.
 */
 int
 airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
   static const char me[]="airEnumCheck";
-  unsigned int ii;
+  unsigned int ii, jj;
   size_t slen, ASL;
 
   ASL = AIR_STRLEN_LARGE;
@@ -311,18 +313,43 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
       return 1;
     }
     slen = airStrlen(enm->str[ii]);
-    if (!( slen >= 1 && slen < AIR_STRLEN_SMALL )) {
+    if (!( slen >= 1 && slen <= AIR_STRLEN_SMALL-1 )) {
       if (err) {
         snprintf(err, ASL, "%s(%s): strlen(enm->str[%u] \"%s\") "
-                 _AIR_SIZE_T_CNV " not in range [1,%u)", me,
-                 enm->name, ii, enm->str[ii], slen, AIR_STRLEN_SMALL);
+                 _AIR_SIZE_T_CNV " not in range [1,%u]", me,
+                 enm->name, ii, enm->str[ii], slen, AIR_STRLEN_SMALL-1);
       }
       return 1;
+    }
+    /* make sure there are no duplicates among the strings,
+       including remapping the case in case of case insensitivity */
+    for (jj=ii+1; jj<=enm->M; jj++) {
+      if (!strcmp(enm->str[ii], enm->str[jj])) {
+        if (err) { 
+          snprintf(err, ASL, "%s(%s): str[%d] and [%u] both \"%s\"",
+                   me, enm->name, ii, jj, enm->str[jj]);
+        }
+        return 1;
+      }
+      if (!enm->sense) {
+        char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
+        strcpy(bb1, enm->str[ii]);
+        airToLower(bb1);
+        strcpy(bb2, enm->str[jj]);
+        airToLower(bb2);
+        if (!strcmp(bb1, bb2)) {
+          if (err) {
+            snprintf(err, ASL, "%s(%s): after case-lowering, "
+                     "str[%d] and [%u] both \"%s\"",
+                     me, enm->name, ii, jj, bb1);
+          }
+          return 1;
+        }
+      }
     }
   }
   if (enm->val) {
     for (ii=1; ii<=enm->M; ii++) {
-      unsigned int jj;
       if (enm->val[0] == enm->val[ii]) {
         if (err) {
           snprintf(err, ASL, "%s(%s): val[%u] %u same as "
@@ -362,6 +389,8 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     }
   }
   if (enm->strEqv) {
+    /* the strEqv array is one of the easiest ways to mess up an
+       airEnum definition; it deserves these tests and maybe more */
     if (!enm->valEqv) {
       if (err) {
         snprintf(err, ASL, "%s(%s): non-NULL strEqv but NULL valEqv",
@@ -376,7 +405,17 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
       }
       return 1;
     }
-    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
+    /* check length and see if any string maps to an invalid value */
+    for (ii=0; (slen = strlen(enm->strEqv[ii])); ii++) {
+      if (!( slen <= AIR_STRLEN_SMALL-1 )) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): strlen(enm->strEqv[%u] \"%s\") "
+                   _AIR_SIZE_T_CNV " not <= %u", me,
+                   enm->name, ii, enm->strEqv[ii], slen, AIR_STRLEN_SMALL-1);
+        }
+        return 1;
+      }
+      /* see if a string maps to an invalid value */
       if (airEnumValCheck(enm, enm->valEqv[ii])) {
         if (err) {
           snprintf(err, ASL, "%s(%s): valEqv[%u] %u (with strEqv[%u] \"%s\")"
@@ -386,6 +425,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
         return 1;
       }
     }
+    /* make sure eqv strings contain the canonical string */
     for (ii=1; ii<=enm->M; ii++) {
       int eval, rval;
       eval = (enm->val ? enm->val[ii] : AIR_CAST(int, ii));
@@ -397,6 +437,34 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
                    me, enm->name, ii, eval, enm->str[ii], rval, eval);
         }
         return 1;
+      }
+    }
+    /* make sure there are no duplicates among the strEqv,
+       including remapping the case in case of case insensitivity */
+    for (ii=0; strlen(enm->strEqv[ii]); ii++) {
+      for (jj=ii+1; strlen(enm->strEqv[jj]); jj++) {
+        if (!strcmp(enm->strEqv[ii], enm->strEqv[jj])) {
+          if (err) { 
+            snprintf(err, ASL, "%s(%s): strEqv[%d] and [%u] both \"%s\"",
+                     me, enm->name, ii, jj, enm->strEqv[jj]);
+          }
+          return 1;
+        }
+        if (!enm->sense) {
+          char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
+          strcpy(bb1, enm->strEqv[ii]);
+          airToLower(bb1);
+          strcpy(bb2, enm->strEqv[jj]);
+          airToLower(bb2);
+          if (!strcmp(bb1, bb2)) {
+            if (err) {
+              snprintf(err, ASL, "%s(%s): after case-lowering, "
+                       "strEqv[%d] and [%u] both \"%s\"",
+                       me, enm->name, ii, jj, bb1);
+            }
+            return 1;
+          }
+        }
       }
     }
   }
