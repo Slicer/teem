@@ -113,7 +113,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     if (nrrdMaybeAlloc_va(*nrrdP, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 2), AIR_CAST(size_t, 6))) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+      airStrcpy(err, nerr, AIR_STRLEN_HUGE);
       airMopError(mop);
       return 1;
     }

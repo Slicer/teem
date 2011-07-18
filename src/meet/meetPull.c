@@ -203,7 +203,7 @@ meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   if (meetPullVolParse(mpv, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    strncpy(err, ler, AIR_STRLEN_HUGE-1);
+    airStrcpy(err, ler, AIR_STRLEN_HUGE);
     airMopError(mop);
     return 1;
   }
@@ -634,7 +634,7 @@ meetHestPullInfoParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   if (meetPullInfoParse(minf, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    strncpy(err, ler, AIR_STRLEN_HUGE-1);
+    airStrcpy(err, ler, AIR_STRLEN_HUGE);
     airMopError(mop);
     return 1;
   }

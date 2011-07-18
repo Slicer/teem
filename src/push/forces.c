@@ -451,7 +451,7 @@ _pushHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *enspP = pushEnergySpecNew();
   if (pushEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PUSH);
-    strncpy(err, perr, AIR_STRLEN_HUGE-1);
+    airStrcpy(err, perr, AIR_STRLEN_HUGE);
     free(perr);
     return 1;
   }
