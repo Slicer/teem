@@ -910,7 +910,7 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
   if (limnPolyDataReadLMPD(*lpldP, file)) {
     airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
-    strncpy(err, nerr, AIR_STRLEN_HUGE-1);
+    airStrcpy(err, nerr, AIR_STRLEN_HUGE);
     airMopError(mop);
     return 1;
   }
