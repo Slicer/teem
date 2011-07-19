@@ -18,9 +18,11 @@ all:
 
 air:
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
-or take out the +1 from their definition and it into usage.
+or take out the +1 from their definition and it into usage: the 
+STRLEN is misleading as is.
 * change airArray implementation to re-allocate the array size
-by doubling/halving, rather than the linear increments used now
+multiplicatively (by some adjustable factor, default around 1.5 or 2.0),
+rather than the linear increments used now
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
 
@@ -47,7 +49,11 @@ Should investigate if calling per-item functions is faster than the
 bizarrely-long chain of if{}s that currently control item computation.
 
 dye:
-* remove it assuming its smarts have been copied into nrrd
+* remove it, assuming its smarts have been copied into nrrd
+
+push:
+* remove it, assuming its smarst have been moved into pull
+
 ========
 
 unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
