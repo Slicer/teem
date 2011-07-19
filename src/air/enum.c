@@ -123,7 +123,7 @@ airEnumVal(const airEnum *enm, const char *str) {
     /* want strlen and not airStrlen here because the strEqv array
        should be terminated by a non-null empty string */
     for (ii=0; strlen(enm->strEqv[ii]); ii++) {
-      airStrcpy(test, enm->strEqv[ii], AIR_STRLEN_SMALL);
+      airStrcpy(test, AIR_STRLEN_SMALL, enm->strEqv[ii]);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -135,7 +135,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   } else {
     /* enm->strEqv NULL */
     for (ii=1; ii<=enm->M; ii++) {
-      airStrcpy(test, enm->str[ii], AIR_STRLEN_SMALL);
+      airStrcpy(test, AIR_STRLEN_SMALL, enm->str[ii]);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -193,7 +193,7 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
       }
     }
   }
-  airStrcpy(ident, _ident, AIR_STRLEN_SMALL);
+  airStrcpy(ident, AIR_STRLEN_SMALL, _ident);
   if (!enm->sense) {
     airToLower(ident);
   }

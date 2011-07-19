@@ -704,7 +704,7 @@ _pullHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *enspP = pullEnergySpecNew();
   if (pullEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PULL);
-    airStrcpy(err, perr, AIR_STRLEN_HUGE);
+    airStrcpy(err, AIR_STRLEN_HUGE, perr);
     free(perr);
     return 1;
   }

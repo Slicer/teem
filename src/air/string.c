@@ -163,7 +163,7 @@ airStrtrans(char *s, char from, char to) {
 ** and you still have to 0-terminate the rest yourself" 
 **
 ** E.g. with declaration buff[AIR_STRLEN_SMALL], you call
-** airStrcpy(buff, src, AIR_STRLEN_SMALL), and know that then
+** airStrcpy(buff, AIR_STRLEN_SMALL, src), and know that then
 ** strlen(buff) <= AIR_STRLEN_SMALL-1. (see note in air.h about
 ** the meaning of the STRLEN #defines).
 **
@@ -171,7 +171,7 @@ airStrtrans(char *s, char from, char to) {
 ** otherwise returns dst
 */
 char *
-airStrcpy(char *dst, const char *src, size_t dstSize) {
+airStrcpy(char *dst, size_t dstSize, const char *src) {
   size_t ii;
   
   if (!(dst && src && dstSize > 0)) {

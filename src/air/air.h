@@ -481,7 +481,7 @@ AIR_EXPORT int airStrtokQuoting;
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 AIR_EXPORT unsigned int airStrntok(const char *s, const char *ct);
 AIR_EXPORT char *airStrtrans(char *s, char from, char to);
-AIR_EXPORT char *airStrcpy(char *dst, const char *src, size_t dstSize);
+AIR_EXPORT char *airStrcpy(char *dst, size_t dstSize, const char *src);
 AIR_EXPORT int airEndsWith(const char *s, const char *suff);
 AIR_EXPORT char *airUnescape(char *s);
 AIR_EXPORT char *airOneLinify(char *s);
@@ -912,7 +912,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
 
 /*
-******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV, 
+******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV
 **
 ** Format specifiers to use when printf/fprintf/sprintf-ing a value of
 ** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",

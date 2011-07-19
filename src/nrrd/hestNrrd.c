@@ -51,7 +51,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
     if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      airStrcpy(err, nerr, AIR_STRLEN_HUGE);
+      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
       airMopError(mop);
       return (strstr(err, "EOF") ? 2 : 1);
     }
@@ -90,7 +90,7 @@ _nrrdHestKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   *ksP = nrrdKernelSpecNew();
   if (nrrdKernelParse(&((*ksP)->kernel), (*ksP)->parm, str)) {
     nerr = biffGetDone(NRRD);
-    airStrcpy(err, nerr, AIR_STRLEN_HUGE);
+    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
     free(nerr);
     return 1;
   }
@@ -199,7 +199,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     if (2 != ret) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
-      airStrcpy(err, nerr, AIR_STRLEN_HUGE);
+      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
       airMopError(mop); return 1;
     } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
@@ -221,7 +221,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
            we'll let it fail again and pass back the error messages */
         if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
           nerr = biffGetDone(NRRD);
-          airStrcpy(err, nerr, AIR_STRLEN_HUGE);
+          airStrcpy(err, AIR_STRLEN_HUGE, nerr);
           airMopError(mop); return 1;
         } else {
           /* what the hell? */

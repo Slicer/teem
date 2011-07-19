@@ -223,8 +223,8 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "    N = {%g,%g,%g}\n",
     muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
   */
-  airStrcpy(muu->shadeStr, shadeStr, AIR_STRLEN_MED);
-  airStrcpy(muu->normalStr, normalStr, AIR_STRLEN_MED);
+  airStrcpy(muu->shadeStr, AIR_STRLEN_MED, shadeStr);
+  airStrcpy(muu->normalStr, AIR_STRLEN_MED, normalStr);
   if (0) {
     muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
     muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
