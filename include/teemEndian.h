@@ -27,6 +27,14 @@
 ** it is set to either 1234 or 4321
 */
 
+#if defined(__APPLE__)
+#  if defined(__BIG_ENDIAN__)
+#    define TEEM_ENDIAN 4321
+#  else
+#    define TEEM_ENDIAN 1234
+#  endif
+#endif
+
 #ifndef TEEM_ENDIAN
 #  error TEEM_ENDIAN not defined, see architecture-specific .mk file or check compilation options
 #elif TEEM_ENDIAN == 1234

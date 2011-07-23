@@ -26,6 +26,13 @@
 ** this can be sure that TEEM_32BIT is set, and can be sure that
 ** it is set to either 0 or 1
 */
+#if defined(__APPLE__)
+#  ifdef __LP64__
+#    define TEEM_32BIT 0
+#  else
+#    define TEEM_32BIT 1
+#  endif
+#endif
 
 #ifndef TEEM_32BIT
 #  error TEEM_32BIT not defined, see architecture-specific .mk file or check compilation options
