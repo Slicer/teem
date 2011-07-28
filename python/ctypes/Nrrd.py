@@ -59,19 +59,17 @@ def teemTypeToNumpyType(teem_type):
 class Nrrd:
     def __init__(self):
         self._ctypesobj = teem.nrrdNew()
-        self._owns_data = True
-        self._init = False
+        # self._init = False
         self.base_ref = None
-        self.module = teem # world's ugliest hack -- but it appears to work
+        self.teem = teem # world's ugliest hack -- but it appears to work
     
     def __del__(self):
-        if self._owns_data:
-            self.module.nrrdEmpty(self._ctypesobj)
-        # if memory referenced by numpy array and nix called, results in memory leak...
-        self.module.nrrdNix(self._ctypesobj)
-        if self.base_ref is not None:
-            self.base_ref = None
-        self.module = None
+        if self.base_ref == None:
+            self.teem.nrrdNuke(self._ctypesobj)
+        else:
+            self.teem.nrrdNix(self._ctypesobj)
+        self.base_ref = None
+        self.teem = None
                         
     def __get_array_interface(self):
         nrrd = self._ctypesobj.contents
@@ -87,8 +85,11 @@ class Nrrd:
     __array_interface__ = property(__get_array_interface)
                         
     def fromNDArray(self, array):
-        if self._init:
-            raise Exception("Invalid Operation: Nrrd object already contains data. Attempting to load new data would result in a memeory leak")
+        
+        if self.base_ref != None:
+            self.base_ref = None
+            teem.nrrdNix(self._ctypesobj)
+            self._ctypesobj = teem.nrrdNew()
         
         try:
             cTy, teemTy = ndarrayGetTypes(array)
@@ -129,8 +130,12 @@ class Nrrd:
                 teem.nrrdAxisInfoCopy(self._ctypesobj, array.base_ref._ctypesobj, None, teem.NRRD_AXIS_INFO_SIZE_BIT)
 
     def load(self, file, args=None):
-        if self._init:
-            raise Exception("Invalid Operation: Nrrd object already contains data. Attempting to load new data would result in a memeory leak")
+        
+        if self.base_ref != None:
+            self.base_ref = None
+            teem.nrrdNix(self._ctypesobj)
+            self._ctypesobj = teem.nrrdNew()
+        
         teem.nrrdLoad(self._ctypesobj, file, args)
         self._owns_data = True
         self.base_ref = None
@@ -138,9 +143,6 @@ class Nrrd:
 
     def save(self, file, args=None):
         teem.nrrdSave(file, self._ctypesobj, args)
-
-    def test(self):
-        print self._ctypesobj.contents
 
 
 
