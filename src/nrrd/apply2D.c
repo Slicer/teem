@@ -72,8 +72,9 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!(2 == nin->axis[0].size)) {
-    biffAddf(NRRD, "%s: input axis[0] must have size 2 (not " 
-             _AIR_SIZE_T_CNV ")", me, nin->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: input axis[0] must have size 2 (not %s)", me,
+             airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
   if (!(nin->dim > 1)) {

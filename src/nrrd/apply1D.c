@@ -149,11 +149,13 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       /* need to make sure the relevant sizes match */
       for (ax=0; ax<nin->dim; ax++) {
         if (nin->axis[ax].size != nmap->axis[mapAxis + 1 + ax].size) {
+          char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
           biffAddf(NRRD, "%s: input and mmap don't have compatible sizes: "
-                   "nin->axis[%d].size (" _AIR_SIZE_T_CNV ") "
-                   "!= nmap->axis[%d].size (" _AIR_SIZE_T_CNV "): ",
-                   me, ax, nin->axis[ax].size, 
-                   mapAxis + 1 + ax, nmap->axis[mapAxis + 1 + ax].size);
+                   "nin->axis[%d].size (%s) "
+                   "!= nmap->axis[%d].size (%s): ", me,
+                   ax, airSprintSize_t(stmp1, nin->axis[ax].size), 
+                   mapAxis + 1 + ax,
+                   airSprintSize_t(stmp2, nmap->axis[mapAxis + 1 + ax].size));
           return 1;
         }
       }
@@ -697,8 +699,10 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
     return 1;
   }
   if (!( nacl->axis[0].size == 2 && nacl->axis[1].size >= 2 )) {
-    biffAddf(NRRD, "%s: sizes (" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ") "
-             "not (2,>=2)", me, nacl->axis[0].size, nacl->axis[1].size);
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: sizes (%s,%s) not (2,>=2)", me,
+             airSprintSize_t(stmp1, nacl->axis[0].size),
+             airSprintSize_t(stmp2, nacl->axis[1].size));
     return 1;
   }
 
@@ -818,8 +822,9 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
     return 1;
   }
   if (!(aclLen >= 2)) {
-    biffAddf(NRRD, "%s: given acl length (" _AIR_SIZE_T_CNV 
-             ") is too small", me, aclLen);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: given acl length (%s) is too small", me,
+             airSprintSize_t(stmp, aclLen));
     return 1;
   }
   if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2, 
