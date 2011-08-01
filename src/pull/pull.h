@@ -75,9 +75,9 @@ extern "C" {
 ******** pullInfo enum
 **
 ** all the things that might be *learned* about the local neighborhood
-** that can be used to control particle dynamics.  This info was
-** originally learned only from gage, but now (according to value of
-** pullSource) can come from other kinds of information.
+** that are used as ingredients in the computation of particle motion.
+** This info was originally learned only from gage, but now (according
+** to value of pullSource) can come from other kinds of information.
 **
 ** There are multiple scalars (and associated) derivatives that can
 ** be used for dynamics:
@@ -132,7 +132,8 @@ enum {
 ********* pullProp* enum: the various properties of particles in the system
 **
 ** These are things that are not learned from the image data, but are
-** descriptions about the system and its current state of computation.
+** descriptions of a particle, its neighborhood of particles in the
+** system, and the current state of system computation.
 **
 ** consider adding: dot between normalized directions of force and movmt 
 */
