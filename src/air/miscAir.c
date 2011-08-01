@@ -249,6 +249,61 @@ const int airMy32Bit = 1;
 const int airMy32Bit = 0;
 #endif
 
+/*
+******** airSprintSize_t
+**
+** sprints a single size_t to a given string, side-stepping
+** non-standardized format specifier confusion with printf
+*/
+char *
+airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
+  char str[AIR_STRLEN_SMALL];
+  unsigned int si;
+
+  if (!_str) {
+    return NULL;
+  }
+  si = AIR_STRLEN_SMALL-1;
+  str[si] = '\0';
+  do {
+    str[--si] = AIR_CAST(int, val % 10) + '0';
+    val /= 10;
+  } while (val);
+  strcpy(_str, str + si);
+  return _str;
+}
+
+/*
+******** airSprintPtrdiff_t
+**
+** sprints a single ptrdiff_t to a given string, side-stepping
+** non-standardized format specifier confusion with printf
+*/
+char *
+airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
+  char str[AIR_STRLEN_SMALL];
+  unsigned int si;
+  int sign;
+
+  if (!_str) {
+    return NULL;
+  }
+  si = AIR_STRLEN_SMALL-1;
+  str[si] = '\0';
+  sign = (val < 0 ? -1 : 1);
+  do {
+    int dig;
+    dig = AIR_CAST(int, val % 10);
+    str[--si] = (dig > 0 ? dig + '0' : -dig + '0');
+    val /= 10;
+  } while (val);
+  if (-1 == sign) {
+    str[--si] = '-';
+  }
+  strcpy(_str, str + si);
+  return _str;
+}
+
 /* ---- BEGIN non-NrrdIO */
 
 const int

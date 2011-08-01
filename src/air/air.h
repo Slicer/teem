@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <float.h>
+#include <stddef.h>      /* for ptrdiff_t */
 
 /*
 ******** TEEM_VERSION 
@@ -108,7 +109,8 @@ typedef unsigned long long airULLong;
 ** confusion about how the maximal strlen() will be less than each of
 ** these numbers. This will be addressed in Teem 2.0.
 */
-#define AIR_STRLEN_SMALL (128+1)
+#define AIR_STRLEN_SMALL (128+1)  /* has to be big enough to hold a printed
+                                     value of size_t and ptrdiff_t */
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
 #define AIR_STRLEN_HUGE  (1024+1)
@@ -525,6 +527,8 @@ AIR_EXPORT void *airFree(void *ptr);
 AIR_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
+AIR_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
+AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t val);
 AIR_EXPORT const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
 AIR_EXPORT const int airPresent;
@@ -953,7 +957,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
 #  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
 #endif
-
+ 
 #ifdef __cplusplus
 }
 #endif

@@ -315,9 +315,11 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     slen = airStrlen(enm->str[ii]);
     if (!( slen >= 1 && slen <= AIR_STRLEN_SMALL-1 )) {
       if (err) {
+        char stmp[AIR_STRLEN_SMALL];
         snprintf(err, ASL, "%s(%s): strlen(enm->str[%u] \"%s\") "
-                 _AIR_SIZE_T_CNV " not in range [1,%u]", me,
-                 enm->name, ii, enm->str[ii], slen, AIR_STRLEN_SMALL-1);
+                 "%s not in range [1,%u]", me,
+                 enm->name, ii, enm->str[ii], 
+                 airSprintSize_t(stmp, slen), AIR_STRLEN_SMALL-1);
       }
       return 1;
     }
@@ -409,9 +411,10 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     for (ii=0; (slen = strlen(enm->strEqv[ii])); ii++) {
       if (!( slen <= AIR_STRLEN_SMALL-1 )) {
         if (err) {
+          char stmp[AIR_STRLEN_SMALL];
           snprintf(err, ASL, "%s(%s): strlen(enm->strEqv[%u] \"%s\") "
-                   _AIR_SIZE_T_CNV " not <= %u", me,
-                   enm->name, ii, enm->strEqv[ii], slen, AIR_STRLEN_SMALL-1);
+                   "%s not <= %u", me, enm->name, ii, enm->strEqv[ii],
+                   airSprintSize_t(stmp, slen), AIR_STRLEN_SMALL-1);
         }
         return 1;
       }
