@@ -123,7 +123,8 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     }
     axisDo[axes[axi]]++;
     if (2 == axisDo[axes[axi]]) {
-      biffAddf(NRRD, "%s: axis %u (axes[%u]) already transformed", me, axes[axi], axi);
+      biffAddf(NRRD, "%s: axis %u (axes[%u]) already transformed",
+               me, axes[axi], axi);
       return 1;
     }
   }
@@ -234,7 +235,8 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   }
   /* a reasonable assert: data buffer was allocated correctly */
   if (dataBef != nin->data) {
-    biffAddf(NRRD, "%s: pre-allocation error; nrrdConvert reallocated data", me);
+    biffAddf(NRRD, "%s: pre-allocation error; nrrdConvert reallocated data",
+             me);
     airMopError(mop); return 1;
   }
 
