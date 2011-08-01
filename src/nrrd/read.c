@@ -28,6 +28,8 @@
 #include <bzlib.h>
 #endif
 
+/* The "/ *Teem:" (without space) comments in here are an experiment */
+
 char _nrrdRelativePathFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
 char _nrrdLineSep[] = "\r\n";
@@ -605,7 +607,7 @@ I plan on shamelessly copying this, just like I shamelessly copied the
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 ** 
 */
-int /*biff if (ret) */
+int /*Teem: biff if (ret) */
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[]="nrrdLoad";
   FILE *file;
