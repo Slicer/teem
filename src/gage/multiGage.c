@@ -24,10 +24,9 @@
 #include "gage.h"
 #include "privateGage.h"
 
-/*
-** does Not use biff
-*/
-gageMultiItem *
+/* The "/ *Teem:" (without space) comments in here are an experiment */
+
+gageMultiItem * /*Teem: error if (!ret) */
 gageMultiItemNew(const gageKind *kind) {
   gageMultiItem *gmi = NULL;
 
@@ -41,7 +40,7 @@ gageMultiItemNew(const gageKind *kind) {
   return gmi;
 }
 
-gageMultiItem *
+gageMultiItem * /*Teem: no error */
 gageMultiItemNix(gageMultiItem *gmi) {
 
   if (gmi) {
@@ -51,7 +50,7 @@ gageMultiItemNix(gageMultiItem *gmi) {
   return NULL;
 }
 
-gageMultiItem *
+gageMultiItem * /*Teem: no error */
 gageMultiItemNuke(gageMultiItem *gmi) {
 
   if (gmi) {
@@ -60,71 +59,110 @@ gageMultiItemNuke(gageMultiItem *gmi) {
   return gageMultiItemNix(gmi);
 }
 
+int /*Teem: biff if (ret) */
+gageMultiItemSet(gageMultiItem *gmi, const int *item, unsigned int itemNum) {
+  static const char me[]="gageMultiItemSet";
+  unsigned int ii;
+
+  if (!(gmi && item)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!itemNum) {
+    biffAddf(GAGE, "%s: can't set zero items", me);
+    return 1;
+  }
+  gmi->item = airFree(gmi->item);
+  if (!( gmi->item = AIR_CALLOC(itemNum, int) )) {
+    biffAddf(GAGE, "%s: couldn't allocate %u ints for items", me, itemNum);
+    return 1;
+  }
+
+  for (ii=0; ii<itemNum; ii++) {
+    if (airEnumValCheck(gmi->kind->enm, item[ii])) {
+      biffAddf(GAGE, "%s: item[%u] %d not a valid %s value", me,
+               ii, item[ii], gmi->kind->enm->name);
+      return 1;
+    }
+    gmi->item[ii] = item[ii];
+    fprintf(stderr, "!%s: item[%u] = %d %s\n", me, ii, item[ii],
+            airEnumStr(gmi->kind->enm, item[ii]));
+  }
+  
+  return 0;
+}
+
 /*
 ******** gageMultiItemSet_va
 **
 ** How to set (in one call) the multiple items in a gageMultiItem.
-**
-** does use biff
+** These are the items for which the answers will be collected into
+** a single nrrd on output (maximizing memory locality).
 */
-int
+int /*Teem: biff if (ret) */
 gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
                     ... /* itemNum items */) {
   static const char me[]="gageMultiItemSet_va";
+  int *item;
   unsigned int ii;
   va_list ap;
+  airArray *mop;
 
   if (!gmi) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (!itemNum) {
-    biffAddf(GAGE, "%s: can't currently set zero items", me);
+    biffAddf(GAGE, "%s: can't set zero items", me);
     return 1;
   }
-  if (!( gmi->item = AIR_CALLOC(itemNum, int) )) {
+  if (!( item = AIR_CALLOC(itemNum, int) )) {
     biffAddf(GAGE, "%s: couldn't allocate %u ints for items", me, itemNum);
     return 1;
   }
+  mop = airMopNew();
+  airMopAdd(mop, item, airFree, airMopAlways);
   
-  /* consume and check items */
+  /* consume items from var args */
   va_start(ap, itemNum);
   for (ii=0; ii<itemNum; ii++) {
-    gmi->item[ii] = va_arg(ap, int);
+    item[ii] = va_arg(ap, int);
   }
   va_end(ap);
 
-  for (ii=0; ii<itemNum; ii++) {
-    if (airEnumValCheck(gmi->kind->enm, gmi->item[ii])) {
-      biffAddf(GAGE, "%s: item[%u] %d not a valid %s value", me,
-               ii, gmi->item[ii], gmi->kind->enm->name);
-      return 1;
-    }
+  if (gageMultiItemSet(gmi, item, itemNum)) {
+    biffAddf(GAGE, "%s: problem setting items", me);
+    airMopError(mop);
+    return 1;
   }
   
+  airMopOkay(mop);
   return 0;
 }
 
 /* ----------------------------------------------------------- */
 
-gageMultiQuery *
+gageMultiQuery * /*Teem: error if (!ret) */
 gageMultiQueryNew(const gageContext *gctx) {
   gageMultiQuery *gmq = NULL;
 
   if (gctx && (gmq = AIR_CALLOC(1, gageMultiQuery))) {
     gmq->pvlNum = gctx->pvlNum;
-    gmq->queryNum = AIR_CALLOC(gmq->pvlNum, unsigned int);
-    gmq->query = AIR_CALLOC(gmq->pvlNum, gageMultiItem **);
+    gmq->mitmNum = AIR_CALLOC(gmq->pvlNum, unsigned int);
+    gmq->mitm = AIR_CALLOC(gmq->pvlNum, gageMultiItem **);
     gmq->nidx = nrrdNew();
-    if (!( gmq->queryNum && gmq->query && gmq->nidx )) {
+    if (!( gmq->mitmNum && gmq->mitm && gmq->nidx )) {
       /* bail */
-      airFree(gmq->queryNum);
-      airFree(gmq->query);
+      airFree(gmq->mitmNum);
+      airFree(gmq->mitm);
       nrrdNuke(gmq->nidx);
-      airFree(gmq);
+      gmq = airFree(gmq);
     } else {
+      /* allocated everything ok */
       unsigned int qi;
-
+      for (qi=0; qi<gmq->pvlNum; qi++) {
+        gmq->mitm[qi] = NULL;
+      }
     }
   }
   return gmq;
@@ -133,14 +171,13 @@ gageMultiQueryNew(const gageContext *gctx) {
 /*
 ******** gageMultiQueryAdd_va
 **
-** add multi-items for one particular pvl
-**
-** does use biff
+** add multi-items for one particular pvl (pvlIdx)
 */
-int
-gageMultiQueryAdd_va(gageMultiQuery *gmq, unsigned int pvlIdx,
-                     unsigned int queryNum,
-                     ... /* queryNum gageMultiItem* */) {
+int /*Teem: biff if (ret) */
+gageMultiQueryAdd_va(gageContext *gctx, 
+                     gageMultiQuery *gmq, unsigned int pvlIdx,
+                     unsigned int mitmNum,
+                     ... /* mitmNum gageMultiItem* */) {
   static const char me[]="gageMultiQueryAdd_va";
   unsigned int qi;
   va_list ap;
@@ -155,20 +192,22 @@ gageMultiQueryAdd_va(gageMultiQuery *gmq, unsigned int pvlIdx,
     return 1;
   }
   
-  gmq->queryNum[pvlIdx] = queryNum;
-  gmq->query[pvlIdx] = AIR_CALLOC(queryNum, gageMultiItem*);
-  /* consume and check item s*/
-  va_start(ap, queryNum);
-  for (qi=0; qi<queryNum; qi++) {
-    gmq->query[pvlIdx][qi] = va_arg(ap, gageMultiItem*);
+  gmq->mitmNum[pvlIdx] = mitmNum;
+  gmq->mitm[pvlIdx] = AIR_CALLOC(mitmNum, gageMultiItem*);
+  /* consume and add items to context */
+  va_start(ap, mitmNum);
+  for (qi=0; qi<mitmNum; qi++) {
+    gmq->mitm[pvlIdx][qi] = va_arg(ap, gageMultiItem*);
   }
   va_end(ap);
+
+  AIR_UNUSED(gctx);
   
   return 0;
 }
 
-int
-gageMultiProbe(gageMultiQuery *gmq, gageContext *gctx,
+int /*Teem: biff if (ret) */
+gageMultiProbe(gageContext *gctx, gageMultiQuery *gmq,
                const Nrrd *npos) {
 
   AIR_UNUSED(gmq);
@@ -177,8 +216,8 @@ gageMultiProbe(gageMultiQuery *gmq, gageContext *gctx,
   return 0;
 }
 
-int
-gageMultiProbeSpace(gageMultiQuery *gmq, gageContext *gctx,
+int /*Teem: biff if (ret) */
+gageMultiProbeSpace(gageContext *gctx, gageMultiQuery *gmq,
                     const Nrrd *npos, int indexSpace, int clamp) {
 
   AIR_UNUSED(gmq);
@@ -189,16 +228,44 @@ gageMultiProbeSpace(gageMultiQuery *gmq, gageContext *gctx,
   return 0;
 }
 
-gageMultiQuery *
+int /*Teem: biff if (ret) */
+gageMultiStackProbe(gageContext *gctx, gageMultiQuery *gmq,
+                    const Nrrd *npos) {
+
+  AIR_UNUSED(gmq);
+  AIR_UNUSED(gctx);
+  AIR_UNUSED(npos);
+  return 0;
+}
+
+int /*Teem: biff if (ret) */
+gageMultiStackProbeSpace(gageContext *gctx, gageMultiQuery *gmq,
+                         const Nrrd *npos,
+                         int indexSpace, int clamp) {
+
+  AIR_UNUSED(gmq);
+  AIR_UNUSED(gctx);
+  AIR_UNUSED(npos);
+  AIR_UNUSED(indexSpace);
+  AIR_UNUSED(clamp);
+  return 0;
+}
+
+gageMultiQuery * /*Teem: no error */
 gageMultiQueryNix(gageMultiQuery *gmq) {
 
   AIR_UNUSED(gmq);
   return NULL;
 }
 
-gageMultiQuery *
+/*
+** here the difference between nix and nuke is where the
+** nans in gageMultiItem is freed?
+*/
+gageMultiQuery * /*Teem: no error */
 gageMultiQueryNuke(gageMultiQuery *gmq) {
 
   AIR_UNUSED(gmq);
   return NULL;
 }
+
