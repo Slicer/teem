@@ -402,7 +402,7 @@ void
 _nrrdSprintFieldInfo(char **strP, char *prefix,
                      const Nrrd *nrrd, NrrdIoState *nio, int field) {
   static const char me[]="_nrrdSprintFieldInfo";
-  char buff[AIR_STRLEN_MED], *fnb;
+  char buff[AIR_STRLEN_MED], *fnb, stmp[AIR_STRLEN_SMALL];
   double colvec[NRRD_SPACE_DIM_MAX];
   const char *fs;
   unsigned int ii, dd,
@@ -438,8 +438,8 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     break;
   case nrrdField_number:
     *strP = (char *)calloc(fslen + size_tStrlen, sizeof(char));
-    sprintf(*strP, "%s%s: " _AIR_SIZE_T_CNV, prefix, fs, 
-            nrrdElementNumber(nrrd));
+    sprintf(*strP, "%s%s: %s", prefix, fs, 
+            airSprintSize_t(stmp, nrrdElementNumber(nrrd)));
     break;
   case nrrdField_type:
     *strP = (char *)calloc(fslen + strlen(airEnumStr(nrrdType, nrrd->type)),
@@ -448,7 +448,8 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     break;
   case nrrdField_block_size:
     *strP = (char *)calloc(fslen + size_tStrlen, sizeof(char));
-    sprintf(*strP, "%s%s: " _AIR_SIZE_T_CNV, prefix, fs, nrrd->blockSize);
+    sprintf(*strP, "%s%s: %s", prefix, fs,
+            airSprintSize_t(stmp, nrrd->blockSize));
     break;
   case nrrdField_dimension:
     *strP = (char *)calloc(fslen + uintStrlen, sizeof(char));
@@ -468,7 +469,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*(size_tStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      sprintf(buff, " " _AIR_SIZE_T_CNV, nrrd->axis[ii].size);
+      sprintf(buff, " %s", airSprintSize_t(stmp, nrrd->axis[ii].size));
       strcat(*strP, buff);
     }
     break;
