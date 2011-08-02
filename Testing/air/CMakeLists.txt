@@ -28,3 +28,7 @@ ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/mtrandTest)
 ADD_EXECUTABLE(strtokTest strtok.c)
 TARGET_LINK_LIBRARIES(strtokTest teem)
 ADD_TEST(strtok ${EXECUTABLE_OUTPUT_PATH}/strtokTest)
+
+ADD_EXECUTABLE(pptestTest pptest.c)
+TARGET_LINK_LIBRARIES(pptestTest teem)
+ADD_TEST(pptest ${EXECUTABLE_OUTPUT_PATH}/pptestTest)
