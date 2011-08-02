@@ -41,7 +41,6 @@ main(int argc, char *argv[]) {
     printf("nrrdTypeIsIntegral: %d\n", nrrdTypeIsIntegral[tt]);
     printf("nrrdTypeMin: % 31.15f\n", nrrdTypeMin[tt]);
     printf("nrrdTypeMax: % 31.15f\n", nrrdTypeMax[tt]);
-    printf("nrrdTypeNumberOfValues: % 31.15f\n", nrrdTypeNumberOfValues[tt]);
   }
   printf("sizeof(size_t) = %d\n", (int)sizeof(size_t));
 
