@@ -41,6 +41,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     colLen;                  /* number of periods */
   unsigned int ai;
   char *src, *dest, *sliceCont;
+  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
 
   if (!(nin && nout && nslice)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -58,9 +59,9 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     return 1;
   }
   if (!( pos < nin->axis[axis].size )) {
-    biffAddf(NRRD, "%s: position " _AIR_SIZE_T_CNV 
-             " out of bounds (0 to " _AIR_SIZE_T_CNV ")", 
-             me, pos, nin->axis[axis].size-1);
+    biffAddf(NRRD, "%s: position %s out of bounds (0 to %s)", me,
+             airSprintSize_t(stmp1, pos),
+             airSprintSize_t(stmp2, nin->axis[axis].size-1));
     return 1;
   }
 
@@ -82,19 +83,18 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   }
   if (nrrdTypeBlock == nin->type) {
     if (!( nin->blockSize == nslice->blockSize )) {
-      biffAddf(NRRD, "%s: input's blockSize (" _AIR_SIZE_T_CNV 
-               ") != subvolume's blockSize (" _AIR_SIZE_T_CNV ")",
-               me, nin->blockSize, nslice->blockSize);
+      biffAddf(NRRD, "%s: input's blockSize (%s) != subvolume's (%s)", me,
+               airSprintSize_t(stmp1, nin->blockSize),
+               airSprintSize_t(stmp2, nslice->blockSize));
       return 1;
     }
   }
   for (ai=0; ai<nslice->dim; ai++) {
     if (!( nin->axis[ai + (ai >= axis)].size == nslice->axis[ai].size )) {
-      biffAddf(NRRD, "%s: input's axis %d size (" _AIR_SIZE_T_CNV
-               ") != slices axis %d size (" _AIR_SIZE_T_CNV ")",
+      biffAddf(NRRD, "%s: input ax %d size (%s) != slices ax %d size (%s)",
                me, ai + (ai >= axis),
-               nin->axis[ai + (ai >= axis)].size, ai, 
-               nslice->axis[ai].size);
+               airSprintSize_t(stmp1, nin->axis[ai + (ai >= axis)].size), ai, 
+               airSprintSize_t(stmp2, nslice->axis[ai].size));
       return 1;
     }
   }
@@ -132,8 +132,8 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
   }
   
   sliceCont = _nrrdContentGet(nslice);
-  if (nrrdContentSet_va(nout, func, nin, "%s,%d," _AIR_SIZE_T_CNV, 
-                        sliceCont, axis, pos)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s,%d,%s", sliceCont, axis,
+                        airSprintSize_t(stmp1, pos))) {
     biffAddf(NRRD, "%s:", me);
     free(sliceCont); return 1;
   }
@@ -164,7 +164,8 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
     szOut[NRRD_DIM_MAX],
     idxIn, idxOut,           /* linear indices for input and output */
     numLines;                /* number of scanlines in output nrrd */
-  char *dataIn, *dataOut, *subCont;
+  char *dataIn, *dataOut, *subCont, stmp1[AIR_STRLEN_SMALL],
+    stmp2[AIR_STRLEN_SMALL], stmp3[AIR_STRLEN_SMALL];
 
   /* errors */
   if (!(nout && nin && nsub && min)) {
@@ -196,19 +197,19 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   }
   if (nrrdTypeBlock == nin->type) {
     if (!( nin->blockSize == nsub->blockSize )) {
-      biffAddf(NRRD, "%s: input's blockSize (" _AIR_SIZE_T_CNV
-               ") != subvolume's blockSize (" _AIR_SIZE_T_CNV ")",
-               me, nin->blockSize, nsub->blockSize);
+      biffAddf(NRRD, "%s: input's blockSize (%s) != subvolume's (%s)", me,
+               airSprintSize_t(stmp1, nin->blockSize),
+               airSprintSize_t(stmp2, nsub->blockSize));
       return 1;
     }
   }
   for (ai=0; ai<nin->dim; ai++) {
     if (!( min[ai] + nsub->axis[ai].size - 1 <= nin->axis[ai].size - 1)) {
-      biffAddf(NRRD, "%s: axis %d range of inset indices [" _AIR_SIZE_T_CNV 
-               "," _AIR_SIZE_T_CNV  "] not within "
-               "input indices [0," _AIR_SIZE_T_CNV "]", me, ai,
-               min[ai], min[ai] + nsub->axis[ai].size - 1,
-               nin->axis[ai].size - 1);
+      biffAddf(NRRD, "%s: axis %d range of inset indices [%s,%s] not within "
+               "input indices [0,%s]", me, ai,
+               airSprintSize_t(stmp1, min[ai]),
+               airSprintSize_t(stmp2, min[ai] + nsub->axis[ai].size - 1),
+               airSprintSize_t(stmp3, nin->axis[ai].size - 1));
       return 1;
     }
   }
@@ -255,7 +256,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   
   strcpy(buff1, "[");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), min[ai]);
+    sprintf(buff2, "%s%s", (ai ? "," : ""), airSprintSize_t(stmp1, min[ai]));
     strcat(buff1, buff2);
   }
   strcat(buff1, "]");
@@ -327,6 +328,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     cOut[NRRD_DIM_MAX];      /* coords for line start, in output */
   va_list ap;
   char *dataIn, *dataOut;
+  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
   
   if (!(nout && nin && min && max)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -374,14 +376,14 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   for (ai=0; ai<nin->dim; ai++) {
     if (!( min[ai] <= 0 )) {
-      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV ") not <= 0",
-               me, ai, (size_t)min[ai]);
+      biffAddf(NRRD, "%s: axis %d min (%s) not <= 0", me, ai,
+               airSprintPtrdiff_t(stmp1, min[ai]));
       return 1;
     }
     if (!( (size_t)max[ai] >= szIn[ai]-1)) {
-      biffAddf(NRRD, "%s: axis %d max (" _AIR_SIZE_T_CNV
-               ") not >= size-1 (" _AIR_SIZE_T_CNV ")", 
-               me, ai, (size_t)max[ai], szIn[ai]-1);
+      biffAddf(NRRD, "%s: axis %d max (%s) not >= size-1 (%s)", me, ai,
+               airSprintPtrdiff_t(stmp1, max[ai]),
+               airSprintSize_t(stmp2, szIn[ai]-1));
       return 1;
     }
   }
@@ -475,8 +477,9 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   }
   strcpy(buff1, "");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s[" _AIR_PTRDIFF_T_CNV "," _AIR_PTRDIFF_T_CNV "]", 
-            (ai ? "x" : ""), min[ai], max[ai]);
+    sprintf(buff2, "%s[%s,%s]", (ai ? "x" : ""),
+            airSprintPtrdiff_t(stmp1, min[ai]),
+            airSprintPtrdiff_t(stmp2, max[ai]));
     strcat(buff1, buff2);
   }
   if (nrrdBoundaryPad == boundary) {
