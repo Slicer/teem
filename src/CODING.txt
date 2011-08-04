@@ -26,7 +26,7 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
 }
 
 Note:
-* NO TABS, EVER! (why: no two editors show them the same)
+* No tabs, ever. (why: no two editors show them the same)
 * two spaces per level of indentation
 * In function definition (and only in definition), the function name
 starts a new line (why: makes it trivial to use grep to
@@ -74,7 +74,7 @@ making accessible in the API some additional functionality or set of
 function arguments that would otherwise be hidden inside an implementation.
 
 * Every library has a LIB_EXPORT macro which serves the purpose of
-"extern" in a normal C header, but which also handles the windows
+"extern" in a normal C header, but which also handles the Windows
 __declspec weirdness.  These must be used and used consistently.
 
 * In most libraries, function names, struct names, enum value names,
@@ -160,13 +160,13 @@ strings airTeemVersion (which is just set to TEEM_VERSION_STRING), and
 airTeemReleaseDate; airTeemReleaseDate has to be updated upon release or
 patch
 
-* Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things
-(why: both explicitly indicate the number of elements, and the
-size of each, and both include the void* cast)
-
 * Use AIR_CAST to cast things. The only exception is casting
 things to airMopper to pass to airMopAdd. (why: casts are inherently
 tricky, and sources of bugs, so their use should be easily grep-able)
+
+* Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why:
+both explicitly indicate the number of elements, and the size of each,
+and both include the cast from void* to the required pointer type)
 
 * Teem relies heavily on C enums to give human-readable names to integer
 values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
@@ -229,7 +229,24 @@ and always list the libraries in this dependency order (or its opposite):
 * All libraries "lib" contain a const int "libPresent", defined in one
 of the first .c files the header refers to (which .c is not fixed). 
 The presence of this symbol provides a way to test which libraries
-are part of a given Teem shared library.
+are part of a given Teem shared library.  Tradition dictates that the
+libPresent variable is set to 42, but this is not necessary.
+
+* Teem uses size_t-type variables quite a bit, and also ptrdiff_t (at
+least in nrrdPad_nva and nrrdPad_va).  Sometimes these values have to
+passed {s,f,}printf, but ANSI C has no "format specifiers" for that
+(as with %d for int, %u for unsigned int).  Teem has used macros
+_AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting these is
+a complicated compile-time task that is completely
+architecture-dependent, and which also relies on TEEM_32BIT, which
+will be removed soon.  Ultimately, the nicest thing to do (but which
+will require significant work) would be to re-implement {s,f,}printf
+(or copy an implementation with suitable licensing).  Until then, we
+use airSprintSize_t and airSprintPtrdiff_t to sprint a single size_t
+or ptrdiff_t variable to a buffer string (typically char
+stmp[AIR_STRLEN_SMALL]) which is then handled via %s.  This is
+admittedly clumsy; it will be one of the first things to be fixed in
+Teem 2.0.
 
 * The stand-alone NrrdIO library for reading and writing NRRD files is
 created by automatic means from the Teem source tree.  To facilitate
