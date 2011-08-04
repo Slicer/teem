@@ -61,8 +61,7 @@ _bmsgStart(void) {
     fprintf(stderr, "%s: PANIC: couldn't allocate internal data\n", me);
     exit(1);
   }
-  /* airArrayPointerCB(_bmsgArr, NULL, biffMsgNix); */
-  /* HEY: not using any pointer callbacks here? */
+  airArrayPointerCB(_bmsgArr, NULL, (airMopper)biffMsgNix);
   return;
 }
 
