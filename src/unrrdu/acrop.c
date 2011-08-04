@@ -38,7 +38,6 @@ unrrdu_acropMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  unsigned int ai;
   int pret;
   airArray *mop;
 
