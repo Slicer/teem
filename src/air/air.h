@@ -109,11 +109,15 @@ typedef unsigned long long airULLong;
 ** confusion about how the maximal strlen() will be less than each of
 ** these numbers. This will be addressed in Teem 2.0.
 */
-#define AIR_STRLEN_SMALL (128+1)  /* has to be big enough to hold a printed
-                                     value of size_t and ptrdiff_t */
+#define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
+                                  - printed value of size_t and ptrdiff_t,
+                                  - line of text that should contain file
+                                    format "magic" 
+                                  */
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
-#define AIR_STRLEN_HUGE  (1024+1)
+#define AIR_STRLEN_HUGE (1024+1) /* has to be big enough to hold
+                                    a biff error message (one line of it) */
 
 /*
 ******** airEnum struct

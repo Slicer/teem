@@ -63,7 +63,7 @@ main(int argc, char *argv[]) {
   }
   myclose(file);
 
-  size = 3;
+  size = 30000;
   do {
     maxed = 0;
     file = myopen(fileS);
