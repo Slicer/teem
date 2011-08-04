@@ -118,9 +118,9 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!( nin->axis[0].size < AIR_STRLEN_SMALL )) {
-    biffAddf(TEN, "%s: sorry need nin->axis[0].size (" 
-             _AIR_SIZE_T_CNV ") < %d", 
-             me, nin->axis[0].size, AIR_STRLEN_SMALL);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: sorry need nin->axis[0].size (%s) < %d", me,
+             airSprintSize_t(stmp, nin->axis[0].size), AIR_STRLEN_SMALL);
     return 1;
   }
 

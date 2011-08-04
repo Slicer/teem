@@ -2278,9 +2278,9 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
   }
   
   if (strlen(ksp->kernel->name) > warnLen) {
-    biffAddf(NRRD, "%s: kernel name (len " _AIR_SIZE_T_CNV 
-             ") might lead to overflow", me,
-             strlen(ksp->kernel->name));
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: kernel name (len %s) might lead to overflow", me,
+             airSprintSize_t(stmp, strlen(ksp->kernel->name)));
     return 1;
   }
   strcpy(str, ksp->kernel->name);

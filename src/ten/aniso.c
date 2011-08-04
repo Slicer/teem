@@ -1134,10 +1134,12 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
     }
     if (nrrdElementNumber(nwght)
         != nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix) ) {
-      biffAddf(TEN, "%s: # elements in weight nrrd (" _AIR_SIZE_T_CNV 
-               ") != # tensors (" _AIR_SIZE_T_CNV ")", me,
-               nrrdElementNumber(nwght),
-               nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix));
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      size_t numten;
+      numten = nrrdElementNumber(nin)/nrrdKindSize(nrrdKind3DMaskedSymMatrix);
+      biffAddf(TEN, "%s: # elements in weight nrrd (%s) != # tensors (%s)", me,
+               airSprintSize_t(stmp1, nrrdElementNumber(nwght)),
+               airSprintSize_t(stmp2, numten));
       return 1;
     }
   }
