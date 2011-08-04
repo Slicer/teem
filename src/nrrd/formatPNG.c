@@ -88,9 +88,10 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
            || 2 == nrrd->axis[0].size
            || 3 == nrrd->axis[0].size
            || 4 == nrrd->axis[0].size )) {
+      char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: 1st axis size is " _AIR_SIZE_T_CNV 
-                    ", not 1, 2, 3, or 4", me, nrrd->axis[0].size); 
+                    "%s: 1st axis size is %s, not 1, 2, 3, or 4", me,
+                    airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;
     }
     /* else */
@@ -433,6 +434,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* calculate depth, width, height, and row size */
   depth = nrrd->type == nrrdTypeUChar ? 8 : 16;
   switch (nrrd->dim) {
+    char stmp[AIR_STRLEN_SMALL];
     case 2: /* g only */
     width = nrrd->axis[0].size;
     height = nrrd->axis[1].size;
@@ -458,8 +460,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       break;
       default:
       png_destroy_write_struct(&png, &info);
-      biffAddf(NRRD, "%s: nrrd->axis[0].size (" _AIR_SIZE_T_CNV 
-               ") not compatible with PNG", me, nrrd->axis[0].size);
+      biffAddf(NRRD, "%s: nrrd->axis[0].size (%s) not compatible with PNG", me,
+               airSprintSize_t(stmp, nrrd->axis[0].size));
       return 1;
       break;
     }
