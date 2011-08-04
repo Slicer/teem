@@ -71,9 +71,9 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
     return 1;
   }
   if (!( 3 == ngrad->axis[0].size && 2 == ngrad->dim )) {
-    biffAddf(TEN, "%s: need a 3xN 2-D array (not a " _AIR_SIZE_T_CNV 
-             "x? %u-D array)",
-             me, ngrad->axis[0].size, ngrad->dim);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: need a 3xN 2-D array (not a %sx? %u-D array)", me,
+             airSprintSize_t(stmp, ngrad->axis[0].size), ngrad->dim);
     return 1;
   }
   if (nrrdTypeDefault != type && type != ngrad->type) {
@@ -87,9 +87,9 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
     return 1;
   }
   if (!( minnum <= ngrad->axis[1].size )) {
-    biffAddf(TEN, "%s: have only " _AIR_SIZE_T_CNV " gradients, "
-             "need at least %d",
-             me, ngrad->axis[1].size, minnum);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: have only %s gradients, need at least %d", me,
+             airSprintSize_t(stmp, ngrad->axis[1].size), minnum);
     return 1;
   }
 

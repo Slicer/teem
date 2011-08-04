@@ -496,8 +496,9 @@ tenTripleConvert(Nrrd *nout, int dstType,
     return 1;
   }
   if (3 != nin->axis[0].size) {
-    biffAddf(TEN, "%s: need axis[0].size 3, not " _AIR_SIZE_T_CNV, me,
-             nin->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: need axis[0].size 3, not %s", me,
+             airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {

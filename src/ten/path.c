@@ -1063,7 +1063,9 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       }
     }
     if (tenInterpN_d(tenOut, tbuff, wght, ninLen, ptype, tip)) {
-      biffAddf(TEN, "%s: trouble on sample " _AIR_SIZE_T_CNV, me, II);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(TEN, "%s: trouble on sample %s", me,
+               airSprintSize_t(stmp, II));
       airMopError(mop); return 1;
     }
     for (tt=0; tt<7; tt++) {
