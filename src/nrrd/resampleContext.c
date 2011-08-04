@@ -1115,11 +1115,12 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       }
     }
     if (rsmc->verbose) {
-      fprintf(stderr, "%s(%u): lineNum = " _AIR_SIZE_T_CNV "\n",
-              me, passIdx, lineNum);
-      fprintf(stderr, "%s(%u): strideIn = " _AIR_SIZE_T_CNV 
-              ", stridOut = " _AIR_SIZE_T_CNV "\n", 
-              me, passIdx, strideIn, strideOut);
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      fprintf(stderr, "%s(%u): lineNum = %s\n", me, passIdx,
+              airSprintSize_t(stmp1, lineNum));
+      fprintf(stderr, "%s(%u): strideIn = %s, stridOut = %s\n", me, passIdx,
+              airSprintSize_t(stmp1, strideIn),
+              airSprintSize_t(stmp2, strideOut));
     }
     
     /* allocate output for this pass */

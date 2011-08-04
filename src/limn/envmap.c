@@ -141,13 +141,13 @@ limnEnvMapCheck(Nrrd *envMap) {
   if (!(3 == envMap->axis[0].size
         && 256 == envMap->axis[1].size
         && 256 == envMap->axis[2].size)) {
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
+      stmp3[AIR_STRLEN_SMALL];
     biffAddf(LIMN, "%s: dimension should be 3x256x256, not " 
-             _AIR_SIZE_T_CNV "x" 
-             _AIR_SIZE_T_CNV "x" 
-             _AIR_SIZE_T_CNV, me,
-             envMap->axis[0].size, 
-             envMap->axis[1].size, 
-             envMap->axis[2].size);
+             "%s x %s x %s", me,
+             airSprintSize_t(stmp1, envMap->axis[0].size),
+             airSprintSize_t(stmp2, envMap->axis[1].size), 
+             airSprintSize_t(stmp3, envMap->axis[2].size));
     return 1;
   }
   return 0;

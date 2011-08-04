@@ -88,9 +88,10 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     }
   } else {
     for (i=0; i<=2; i++) {
+      char stmp[AIR_STRLEN_SMALL];
       anyneed |= need = sz[i] - nin->axis[i].size;
-      fprintf(stderr, "%s: sz[%d] = " _AIR_SIZE_T_CNV " -> need = %d --> ", 
-              me, i, nin->axis[i].size, need);
+      fprintf(stderr, "%s: sz[%d] = %s -> need = %d --> ", me, i,
+              airSprintSize_t(stmp, nin->axis[i].size), need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> ", need);
       padMin[i] = 0 - (int)floor(need/2.0);
@@ -143,6 +144,7 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   need = 0;
   for (i=0; i<=2; i++) {
     if (nin->axis[i].size > sz[i]) {
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       need = 1;
       rsi->kernel[i] = dk->kernel;
       memcpy(rsi->parm[i], dk->parm, dk->kernel->numParm*sizeof(double));
@@ -156,9 +158,9 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       rsi->min[i] = nin->axis[i].min;
       rsi->max[i] = nin->axis[i].max;
       nin->axis[i].center = nrrdCenterNode;
-      fprintf(stderr, "%s: downsampling axis %d from " _AIR_SIZE_T_CNV 
-              " to " _AIR_SIZE_T_CNV " samples\n", 
-              me, i, nin->axis[i].size, rsi->samples[i]);
+      fprintf(stderr, "%s: downsampling axis %d from %s to %s samples\n",
+              me, i, airSprintSize_t(stmp1, nin->axis[i].size),
+              airSprintSize_t(stmp2, rsi->samples[i]));
     }
     else {
       rsi->kernel[i] = NULL;

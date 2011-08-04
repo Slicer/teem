@@ -253,9 +253,10 @@ miteNtxfCheck(const Nrrd *ntxf) {
     return 1;
   }
   if (airStrlen(rangeStr) != ntxf->axis[0].size) {
-    biffAddf(MITE, "%s: axis[0]'s size is " _AIR_SIZE_T_CNV 
-             ", but label specifies " _AIR_SIZE_T_CNV " values",
-             me, ntxf->axis[0].size, airStrlen(rangeStr));
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    biffAddf(MITE, "%s: axis[0]'s size %s, but label specifies %s values", me,
+             airSprintSize_t(stmp1, ntxf->axis[0].size),
+             airSprintSize_t(stmp2, airStrlen(rangeStr)));
     return 1;
   }
   for (rii=0; rii<airStrlen(rangeStr); rii++) {
@@ -294,9 +295,9 @@ miteNtxfCheck(const Nrrd *ntxf) {
       /* has to be right length for one of the quantization schemes */
       log2 = airLog2(ntxf->axis[axi].size);
       if (-1 == log2) {
-        biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not "
-                 _AIR_SIZE_T_CNV ")",
-                 me, domStr, ntxf->axis[axi].size);
+        char stmp[AIR_STRLEN_SMALL];
+        biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not %s)",
+                 me, domStr, airSprintSize_t(stmp, ntxf->axis[axi].size));
         return 1;
       } else {
         if (!( AIR_IN_CL(8, log2, 16) )) {
@@ -588,6 +589,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
         if (1 == isp.kind->table[isp.item].answerLength) {
           stage->qn = NULL;
         } else if (3 == isp.kind->table[isp.item].answerLength) {
+          char stmp[AIR_STRLEN_SMALL];
           log2 = airLog2(ntxf->axis[di].size);
           switch(log2) {
           case 8:  stage->qn = limnVtoQN_d[ limnQN8octa]; break;
@@ -600,9 +602,10 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
           case 15: stage->qn = limnVtoQN_d[limnQN15octa]; break;
           case 16: stage->qn = limnVtoQN_d[limnQN16octa]; break;
           default:
-            biffAddf(MITE, "%s: txf axis %d size " _AIR_SIZE_T_CNV 
-                     " not usable for vector txf domain variable %s", me,
-                     di, ntxf->axis[di].size, ntxf->axis[di].label);
+            biffAddf(MITE, "%s: txf axis %d size %s not usable for "
+                     "vector txf domain variable %s", me, di,
+                     airSprintSize_t(stmp, ntxf->axis[di].size),
+                     ntxf->axis[di].label);
             return 1;
             break;
           }
