@@ -137,8 +137,9 @@ baneInfoCheck (Nrrd *info, int wantDim) {
     return 1;
   }
   if (2 != info->axis[0].size) {
-    biffAddf(BANE, "%s: 1st axis needs size 2 (not " _AIR_SIZE_T_CNV ")", 
-             me, info->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(BANE, "%s: 1st axis needs size 2 (not %s)", me,
+             airSprintSize_t(stmp, info->axis[0].size));
     return 1;
   }
   return 0;
@@ -191,8 +192,9 @@ baneBcptsCheck (Nrrd *Bcpts) {
     return 1;
   }
   if (2 != Bcpts->axis[0].size) {
-    biffAddf(BANE, "%s: axis#0 needs size 2 (not " _AIR_SIZE_T_CNV ")",
-             me, Bcpts->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(BANE, "%s: axis#0 needs size 2 (not %s)", me,
+             airSprintSize_t(stmp, Bcpts->axis[0].size));
     return 1;
   }
   if (nrrdTypeFloat != Bcpts->type) {

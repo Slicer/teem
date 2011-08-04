@@ -45,8 +45,10 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
-    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 (not "
-            _AIR_SIZE_T_CNV ")", me, nin->dim, nin->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 "
+             "(not %s)", me, nin->dim,
+             airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
 
@@ -221,9 +223,9 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
-    biffAddf(TEN, "%s: need a 6xN 2-D array (not a " _AIR_SIZE_T_CNV 
-             "x? %d-D array)",
-             me, nbmat->axis[0].size, nbmat->dim);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: need a 6xN 2-D array (not a %s x? %d-D array)", me,
+             airSprintSize_t(stmp, nbmat->axis[0].size), nbmat->dim);
     return 1;
   }
   if (nrrdTypeDefault != type && type != nbmat->type) {
@@ -237,9 +239,9 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (!( minnum <= nbmat->axis[1].size )) {
-    biffAddf(TEN, "%s: have only " _AIR_SIZE_T_CNV " B-matrices, "
-             "need at least %d",
-             me, nbmat->axis[1].size, minnum);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: have only %s B-matrices, need at least %d", me,
+             airSprintSize_t(stmp, nbmat->axis[1].size), minnum);
     return 1;
   }
 

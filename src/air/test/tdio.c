@@ -84,8 +84,9 @@ main(int argc, char *argv[]) {
   size = (size_t)max*mult;
   data = airDioMalloc(size, fd);
   if (!data) {
-    fprintf(stderr, "%s: airDioMalloc(" _AIR_SIZE_T_CNV ") failed\n", me,
-            size);
+    char stmp[AIR_STRLEN_SMALL];
+    fprintf(stderr, "%s: airDioMalloc(%s) failed\n", me,
+            airSprintSize_t(stmp, size));
     airMopError(mop); return 1;
   }
   airMopAdd(mop, data, airFree, airMopAlways);

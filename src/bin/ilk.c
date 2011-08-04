@@ -125,9 +125,9 @@ main(int argc, const char *argv[]) {
   }
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_NCOL(nin)) {
-      fprintf(stderr, "%s: got %d background colors, image has "
-              _AIR_SIZE_T_CNV " colors\n", 
-              me, _bkgLen, MOSS_NCOL(nin));
+      char stmp[AIR_STRLEN_SMALL];
+      fprintf(stderr, "%s: got %d background colors, image has %s colors\n", 
+              me, _bkgLen, airSprintSize_t(stmp, MOSS_NCOL(nin)));
       airMopError(mop); return 1;
     } else {
       bkg = _bkg;

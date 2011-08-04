@@ -221,9 +221,10 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
       nrrd->data = malloc(needDataSize);
     }
     if (!nrrd->data) {
-      biffAddf(NRRD, "%s: couldn't allocate " _AIR_SIZE_T_CNV 
-               " things of size " _AIR_SIZE_T_CNV,
-               me, nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't allocate %s things of size %s", me,
+               airSprintSize_t(stmp1, nrrdElementNumber(nrrd)),
+               airSprintSize_t(stmp2, nrrdElementSize(nrrd)));
       return 1;
     }
   }
@@ -301,8 +302,9 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     bsize *= nrrdElementSize(nrrd);
     backHack = -nio->byteSkip - 1;
     if (fseek(dataFile, -((long)(bsize + backHack)), SEEK_END)) {
-      biffAddf(NRRD, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_CNV
-               ", SEEK_END)", me, bsize);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
+               airSprintSize_t(stmp, bsize));
       return 1;      
     }
     if (nrrdStateVerboseIO >= 2) {

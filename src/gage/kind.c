@@ -239,8 +239,9 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
     return 1;
   }
   if (1 == kind->baseDim && (kind->valLen != nrrd->axis[0].size)) {
-    biffAddf(GAGE, "%s: kind requires %u axis 0 values, not " 
-             _AIR_SIZE_T_CNV, me, kind->valLen, nrrd->axis[0].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(GAGE, "%s: kind requires %u axis 0 values, not %s", me,
+             kind->valLen, airSprintSize_t(stmp, nrrd->axis[0].size));
     return 1;
   }
   /* this eventually calls _gageShapeSet(), which, for purely historical

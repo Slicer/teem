@@ -76,9 +76,10 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       ret = 3;
     } else {
       /* else its no good */
+      char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: dim is 3, but 1st axis size is " _AIR_SIZE_T_CNV 
-                    ", not 1 or 3", me, nrrd->axis[0].size); 
+                    "%s: dim is 3, but 1st axis size is %s, not 1 or 3", me,
+                    airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;
     }
   } else {

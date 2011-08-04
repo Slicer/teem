@@ -68,9 +68,9 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
     return 1;
   }
   if (dwiLen != ngrad->axis[1].size) {
-    biffAddf(TEN, "%s: got %u DWIs, but " _AIR_SIZE_T_CNV 
-             " gradient directions", me,
-             dwiLen, ngrad->axis[1].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: got %u DWIs, but %s gradient directions", me,
+             dwiLen, airSprintSize_t(stmp, ngrad->axis[1].size));
     return 1;
   }
   for (ni=0; ni<dwiLen; ni++) {
@@ -1223,8 +1223,9 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   }
   */
   if (ninLen != _ngrad->axis[1].size) {
-    biffAddf(TEN, "%s: ninLen %u != # grads " _AIR_SIZE_T_CNV, 
-            me, ninLen, _ngrad->axis[1].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: ninLen %u != # grads %s", me, ninLen,
+             airSprintSize_t(stmp, _ngrad->axis[1].size));
     return 1;
   }
 

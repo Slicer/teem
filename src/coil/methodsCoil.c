@@ -128,9 +128,10 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   sy = nin->axis[1 + baseDim].size;
   sz = nin->axis[2 + baseDim].size;
   if (sz < numThreads) {
-    fprintf(stderr, "%s: wanted %d threads but volume only has "
-            _AIR_SIZE_T_CNV " slices, using " _AIR_SIZE_T_CNV 
-            " threads instead\n", me, numThreads, sz, sz);
+    char stmp[AIR_STRLEN_SMALL];
+    airSprintSize_t(stmp, sz);
+    fprintf(stderr, "%s: wanted %d threads but volume only has %s slices, "
+            "using %s threads instead\n", me, numThreads, stmp, stmp);
     numThreads = sz;
   }
   ELL_3V_SET(cctx->size, sx, sy, sz);
