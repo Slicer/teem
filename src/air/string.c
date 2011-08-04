@@ -355,6 +355,10 @@ airToUpper(char *str) {
 ** comprising the line are counted.  However, there is no pretension
 ** that on those platforms, "\n" by itself does not actually count as
 ** a newline.
+**
+** Finally, for those trafficking in legacy Mac text files (for which
+** the line termination is only "\r", the same applies- these are also
+** effectively treated the same as a newline.
 */
 unsigned int
 airOneLine(FILE *file, char *line, int size) {
@@ -368,7 +372,8 @@ airOneLine(FILE *file, char *line, int size) {
   for (i=0;
        (i <= size-2              /* room for line[i] and \0 after that */
         && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
-        && c != '\n');           /* char isn't newline */
+        && c != '\n'             /* char isn't newline */
+	&& c != '\r');           /* char isn't carriage return */
        ++i) {
     line[i] = c;
   }
@@ -377,27 +382,37 @@ airOneLine(FILE *file, char *line, int size) {
     /* for-loop terminated because we hit EOF */
     line[0] = '\0';
     return 0;
-  } else if ('\n' == c) {
-    /* for-loop terminated because we hit '\n' */
-    if (i >= 1 && '\r' == line[i-1]) {
-      /* newline was "\r\n" */
-      i--;
+  } else if ('\r' == c || '\n' == c) {
+    /* for-loop terminated because we hit '\n' or '\r' */
+    /* if it was '\r', see if next character is '\n' */
+    if ('\r' == c) {
+      c = getc(file);
+      if (EOF != c && '\n' != c) {
+	/* oops, we got something, and it was not a '\n'; put it back */
+        ungetc(c, file);
+      }
     }
     line[i] = '\0';
     return i+1;
   } else {
     /* for-loop terminated because we got to end of buffer (i == size-1) */
     c = getc(file);
-    /* but see if we were about to get a "\n" */
-    if ('\n' == c) {
-      if ('\r' == line[i-1]) {
-        /* newline was "\r\n" */
-        i--;
-      } 
+    /* but see if we were about to get '\r', "\r\n", or '\n' */
+    if ('\r' == c) {
+      int d;
+      d = getc(file);
+      if (EOF != d && '\n' != d) {
+	/* oops, put it back */
+        ungetc(d, file);
+      }
+      line[i] = '\0';
+      return i+1;
+    } else if ('\n' == c) {
       line[i] = '\0';
       return i+1;
     } else {
-      /* weren't about to get a "\n", we really did run out of buffer */
+      /* weren't about to get a line termination,
+	 we really did run out of buffer */
       if (EOF != c) {
         ungetc(c, file);  /* we're allowed one ungetc on ANY stream */
       }
