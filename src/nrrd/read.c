@@ -413,8 +413,16 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
     }
   }
   if (nrrdFormatUnknown == nio->format) {
-    biffAddf(NRRD, "%s: couldn't parse \"%s\" as magic or beginning of "
-             "any recognized format", me, nio->line);
+    char linestart[AIR_STRLEN_SMALL], stmp[AIR_STRLEN_SMALL];
+    airStrcpy(linestart, AIR_STRLEN_SMALL, nio->line);
+    if (strlen(linestart) != strlen(nio->line)) {
+      biffAddf(NRRD, "%s: couldn't parse (length %s) line starting "
+               "with \"%s\" as magic or beginning of any recognized format",
+               me, airSprintSize_t(stmp, strlen(nio->line)), linestart);
+    } else {
+      biffAddf(NRRD, "%s: couldn't parse \"%s\" as magic or beginning "
+               "of any recognized format", me, nio->line);
+    }
     airMopError(mop); return 1;
   }
   if (string && nrrdFormatNRRD != nio->format) {
