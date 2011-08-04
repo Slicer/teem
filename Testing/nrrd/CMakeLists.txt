@@ -25,6 +25,10 @@ ADD_EXECUTABLE(trandTest trand.c)
 TARGET_LINK_LIBRARIES(trandTest teem)
 ADD_TEST(trand ${EXECUTABLE_OUTPUT_PATH}/trandTest)
 
+ADD_EXECUTABLE(tloadTest tload.c)
+TARGET_LINK_LIBRARIES(tloadTest teem)
+ADD_TEST(tload ${EXECUTABLE_OUTPUT_PATH}/tloadTest)
+
 ADD_EXECUTABLE(sanityTest sanity.c)
 TARGET_LINK_LIBRARIES(sanityTest teem)
 ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/sanityTest)
