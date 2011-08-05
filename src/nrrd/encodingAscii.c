@@ -53,6 +53,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
   data = (char*)_data;
   I = 0;
   while (I < elNum) {
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     /* HEY: we can easily suffer here from a standard buffer overflow problem;
        this was a source of a mysterious unu crash:
          echo "0 0 0 0 1 0 0 0 0" \
@@ -65,8 +66,10 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
        motivated adding the memory corruption test; sadly once that has
        happened biffAddf also crashed */
     if (1 != fscanf(file, "%s", numbStr)) {
-      biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
-               " of " _AIR_SIZE_T_CNV, me, I+1, elNum);
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't parse element %s of %s", me,
+               airSprintSize_t(stmp1, I+1),
+               airSprintSize_t(stmp2, elNum));
       return 1;
     }
     if (file != _fileSave) {
@@ -83,18 +86,18 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
       /* sscanf supports putting value directly into this type */
       if (1 != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type], 
                                (void*)(data + I*nrrdElementSize(nrrd)))) {
-        biffAddf(NRRD, "%s: couldn't parse %s " _AIR_SIZE_T_CNV
-                 " of " _AIR_SIZE_T_CNV " (\"%s\")", me,
+        biffAddf(NRRD, "%s: couldn't parse %s %s of %s (\"%s\")", me,
                  airEnumStr(nrrdType, nrrd->type),
-                 I+1, elNum, nstr);
+                 airSprintSize_t(stmp1, I+1),
+                 airSprintSize_t(stmp2, elNum), nstr);
         return 1;
       }
     } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(nstr, "%d", &tmp)) {
-        biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
-                 " of " _AIR_SIZE_T_CNV " (\"%s\")",
-                 me, I+1, elNum, nstr);
+        biffAddf(NRRD, "%s: couldn't parse element %s of %s (\"%s\")", me,
+                 airSprintSize_t(stmp1, I+1),
+                 airSprintSize_t(stmp2, elNum), nstr);
         return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);

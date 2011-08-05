@@ -181,8 +181,9 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we supposedly have a line of numbers, see how many there are */
   if (!airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1)) {
-    biffAddf(NRRD, "%s: couldn't parse a single number on line "
-             _AIR_SIZE_T_CNV, me, line);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: couldn't parse a single number on line %s", me,
+             airSprintSize_t(stmp, line));
     UNSETTWO; return 1;
   }
   u.f = &fl;
@@ -196,8 +197,9 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
        be parsed from a single finite line of input text */
     airArrayLenSet(flArr, AIR_CAST(unsigned int, sx));
     if (!flArr->data) {
-      biffAddf(NRRD, "%s: couldn't alloc space for " _AIR_SIZE_T_CNV 
-               " values", me, sx);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't alloc space for %s values", me,
+               airSprintSize_t(stmp, sx));
       UNSETTWO; return 1;
     }
     if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
@@ -209,8 +211,9 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   flArr = airArrayNuke(flArr);
   if (1 == nrrd->dim && 1 != sx) {
-    biffAddf(NRRD, "%s: wanted 1-D nrrd, but got " _AIR_SIZE_T_CNV 
-             " values on 1st line", me, sx);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: wanted 1-D nrrd, but got %s values on 1st line", me,
+             airSprintSize_t(stmp, sx));
     UNSETTWO; return 1;
   }
   /* else sx == 1 when nrrd->dim == 1 */
@@ -226,15 +229,17 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (llen) {
     airArrayLenIncr(alArr, 1);
     if (!alArr->data) {
-      biffAddf(NRRD, "%s: couldn't create scanline of " _AIR_SIZE_T_CNV
-               " values", me, sx);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't create scanline of %s values", me,
+               airSprintSize_t(stmp, sx));
       UNSETTWO; return 1;
     }
     plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx));
     if (sx > plen) {
-      biffAddf(NRRD, "%s: could only parse %d values (not " 
-               _AIR_SIZE_T_CNV ") on line " _AIR_SIZE_T_CNV,
-               me, plen, sx, line);
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: could only parse %d values (not %s) on line %s",
+               me, plen, airSprintSize_t(stmp1, sx),
+               airSprintSize_t(stmp2, line));
       UNSETTWO; return 1;
     }
     sy++;

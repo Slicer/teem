@@ -117,10 +117,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       return 1;
     }
     if (sizeRed < sizeData + (-nio->byteSkip - 1)) {
-      biffAddf(NRRD, "%s: expected " _AIR_SIZE_T_CNV
-               " bytes and received only "
-               _AIR_SIZE_T_CNV " bytes", me,
-               AIR_CAST(size_t, sizeData + (-nio->byteSkip - 1)), sizeRed);
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: expected %s bytes but received only %s", me,
+               airSprintSize_t(stmp1, sizeData + (-nio->byteSkip - 1)),
+               airSprintSize_t(stmp2, sizeRed));
       return 1;
     }
     /* also handles nio->byteSkip == -N-1 signifying extra N bytes at end */
@@ -162,9 +162,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     }
     /* Check to see if we got out as much as we thought we should. */
     if (sizeRed != sizeData) {
-      biffAddf(NRRD, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
-               _AIR_SIZE_T_CNV " bytes",
-               me, sizeData, sizeRed);
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: expected %s bytes but received %s", me,
+               airSprintSize_t(stmp1, sizeData),
+               airSprintSize_t(stmp2, sizeRed));
       return 1;
     }
   }
@@ -260,9 +261,10 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   /* Check to see if we wrote out as much as we thought we should. */
   if (sizeWrit != sizeData) {
-    biffAddf(NRRD, "%s: expected to write " _AIR_SIZE_T_CNV 
-             " bytes, but only wrote " _AIR_SIZE_T_CNV,
-             me, sizeData, sizeWrit);
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: expected to write %s bytes, but only wrote %s", me,
+             airSprintSize_t(stmp1, sizeData),
+             airSprintSize_t(stmp2, sizeWrit));
     return 1;
   }
   

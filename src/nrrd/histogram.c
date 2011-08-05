@@ -57,7 +57,9 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     return 1;
   }
   if (!(bins > 0)) {
-    biffAddf(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: bins value (%s) invalid", me,
+             airSprintSize_t(stmp, bins));
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
@@ -84,8 +86,9 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
 
   if (nrrdMaybeAlloc_va(nout, type, 1, bins)) {
-    biffAddf(NRRD, "%s: failed to alloc histo array (len " _AIR_SIZE_T_CNV
-             ")", me, bins);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: failed to alloc histo array (len %s)", me,
+             airSprintSize_t(stmp, bins));
     return 1;
   }
   mop = airMopNew();
@@ -343,7 +346,9 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     return 1;
   }
   if (!(bins > 0)) {
-    biffAddf(NRRD, "%s: bins value (" _AIR_SIZE_T_CNV ") invalid", me, bins);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: bins value (%s) invalid", me,
+             airSprintSize_t(stmp, bins));
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
@@ -499,8 +504,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
       return 1;
     }
     if (!(bins[ai] >= 1)) {
-      biffAddf(NRRD, "%s: need bins[%u] >= 1 (not " _AIR_SIZE_T_CNV ")",
-               me, ai, bins[ai]);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: need bins[%u] >= 1 (not %s)", me, ai,
+               airSprintSize_t(stmp, bins[ai]));
       return 1;
     }
     if (ai && !nrrdSameSize(nin[0], nin[ai], AIR_TRUE)) {
@@ -554,8 +560,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                             + 11
                                             + 1, sizeof(char));
       if (nout->axis[ai].label) {
-        sprintf(nout->axis[ai].label, "histo(%s," _AIR_SIZE_T_CNV ")",
-                nin[ai]->content, bins[ai]);
+        char stmp[AIR_STRLEN_SMALL];
+        sprintf(nout->axis[ai].label, "histo(%s,%s)", nin[ai]->content,
+                airSprintSize_t(stmp, bins[ai]));
       } else {
         biffAddf(NRRD, "%s: couldn't allocate output label #%u", me, ai);
         return 1;
