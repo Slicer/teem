@@ -75,6 +75,8 @@ tenGlyphParmCheck(tenGlyphParm *parm,
   static const char me[]="tenGlyphParmCheck";
   int duh;
   size_t tenSize[3];
+  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
+    stmp3[AIR_STRLEN_SMALL], stmp4[AIR_STRLEN_SMALL], stmp5[AIR_STRLEN_SMALL];
 
   if (!(parm && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -113,9 +115,10 @@ tenGlyphParmCheck(tenGlyphParm *parm,
            && parm->nmask->axis[0].size == nten->axis[1].size
            && parm->nmask->axis[1].size == nten->axis[2].size
            && parm->nmask->axis[2].size == nten->axis[3].size )) {
-      biffAddf(TEN, "%s: mask isn't 3-D or doesn't have sizes ("
-               _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", me,
-               nten->axis[1].size, nten->axis[2].size, nten->axis[3].size);
+      biffAddf(TEN, "%s: mask isn't 3-D or doesn't have sizes (%s,%s,%s)", me,
+               airSprintSize_t(stmp1, nten->axis[1].size),
+               airSprintSize_t(stmp2, nten->axis[2].size),
+               airSprintSize_t(stmp3, nten->axis[3].size));
       return 1;
     }
     if (!(AIR_EXISTS(parm->maskThresh))) {
@@ -138,9 +141,9 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       return 1;
     }
     if (!( parm->slicePos < nten->axis[1+parm->sliceAxis].size )) {
-      biffAddf(TEN, "%s: slice pos " _AIR_SIZE_T_CNV 
-               " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
-               parm->slicePos, nten->axis[1+parm->sliceAxis].size-1);
+      biffAddf(TEN, "%s: slice pos %s not in valid range [0..%s]", me,
+               airSprintSize_t(stmp1, parm->slicePos),
+               airSprintSize_t(stmp2, nten->axis[1+parm->sliceAxis].size-1));
       return 1;
     }
     if (nslc) {
@@ -157,11 +160,13 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       }
       if (!( tenSize[0] == nslc->axis[0].size
              && tenSize[1] == nslc->axis[1].size )) {
-        biffAddf(TEN, "%s: axis %u slice of " 
-                 _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV 
-                 " volume is not " _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV , me,
-                 parm->sliceAxis, nten->axis[1].size, nten->axis[2].size,
-                 nten->axis[3].size, nslc->axis[0].size, nslc->axis[1].size);
+        biffAddf(TEN, "%s: axis %u slice of %sx%sx%s volume != %sx%s", me,
+                 parm->sliceAxis,
+                 airSprintSize_t(stmp1, nten->axis[1].size),
+                 airSprintSize_t(stmp2, nten->axis[2].size),
+                 airSprintSize_t(stmp3, nten->axis[3].size),
+                 airSprintSize_t(stmp4, nslc->axis[0].size),
+                 airSprintSize_t(stmp5, nslc->axis[1].size));
         return 1;
       }
     } else {
@@ -192,6 +197,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   limnLook *look; int lookIdx;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
+  char stmp[AIR_STRLEN_SMALL];
   /*
   int eret;
   double tmp1[3], tmp2[3];  
@@ -212,8 +218,8 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     }
     if (!( 2 == npos->dim && 3 == npos->axis[0].size
            && nten->axis[1].size == npos->axis[1].size )) {
-      biffAddf(TEN, "%s: npos isn't 2-D 3-by-" _AIR_SIZE_T_CNV " array", 
-               me, nten->axis[1].size);
+      biffAddf(TEN, "%s: npos isn't 2-D 3-by-%s array", me,
+               airSprintSize_t(stmp, nten->axis[1].size));
       airMopError(mop); return 1;
     }
     if (!( nrrdTypeFloat == nten->type && nrrdTypeFloat == npos->type )) {
