@@ -75,6 +75,7 @@ main(int argc, const char *argv[]) {
 
   char hackKeyStr[]="TEEM_VPROBE_HACK_ZI", *hackValStr;
   int otype, hackSet;
+  char stmp[4][AIR_STRLEN_SMALL];
 
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
@@ -374,16 +375,20 @@ main(int argc, const char *argv[]) {
   /* else, normal volume probing */
   if (ansLen > 1) {
     if (verbose) {
-      fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
-              " x " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV " output\n", 
-              me, ansLen, sox, soy, soz);
+      fprintf(stderr, "%s: creating %s x %s x %s x %s output\n", me,
+              airSprintSize_t(stmp[0], ansLen),
+              airSprintSize_t(stmp[1], sox),
+              airSprintSize_t(stmp[2], soy),
+              airSprintSize_t(stmp[3], soz));
     }
     if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 4,
                                    ansLen, sox, soy, soz);
   } else {
     if (verbose) {
-      fprintf(stderr, "%s: creating " _AIR_SIZE_T_CNV " x " _AIR_SIZE_T_CNV
-              " x " _AIR_SIZE_T_CNV " output\n", me, sox, soy, soz);
+      fprintf(stderr, "%s: creating %s x %s x %s output\n", me, 
+              airSprintSize_t(stmp[0], sox),
+              airSprintSize_t(stmp[1], soy),
+              airSprintSize_t(stmp[2], soz));
     }
     if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 3,
                                    sox, soy, soz);
@@ -425,8 +430,10 @@ main(int argc, const char *argv[]) {
       if (verbose > 1) {
         fprintf(stderr, "z = ");
       }
-      fprintf(stderr, " " _AIR_SIZE_T_CNV "/" _AIR_SIZE_T_CNV,
-              zi, soz-1); fflush(stderr);
+      fprintf(stderr, " %s/%s",
+              airSprintSize_t(stmp[0], zi),
+              airSprintSize_t(stmp[1], soz-1));
+      fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
       }
