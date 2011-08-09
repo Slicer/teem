@@ -33,6 +33,9 @@ starts a new line (why: makes it trivial to use grep to
 identify which source file contains the function definition)
 * opening brace *not* on its own line
 * closing brace gets its own line, except for if/else
+* braces around a branch even if there is only one statement
+(why: there will eventually be more than one statement, even 
+if only for debugging)
 * blank line between function variables and function code
 
 Other code formatting points:
