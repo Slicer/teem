@@ -82,10 +82,11 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
     return 1;
   }
   if (!(7 == nin->axis[0].size)) {
-    if (useBiff)
-      biffAddf(TEN, "%s: axis 0 has size " _AIR_SIZE_T_CNV
-               ", not 7", 
-               me, nin->axis[0].size);
+    if (useBiff) {
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(TEN, "%s: axis 0 has size %s, not 7", me,
+               airSprintSize_t(stmp, nin->axis[0].size));
+    }
     return 1;
   }
   return 0;
@@ -237,11 +238,12 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   if (!( nrrdTypeFloat == tnine->type &&
          4 == tnine->dim &&
          9 == tnine->axis[0].size )) {
+    char stmp[AIR_STRLEN_SMALL];
     biffAddf(TEN, "%s: type not %s (was %s) or dim not 4 (was %d) "
-             "or first axis size not 9 (was " _AIR_SIZE_T_CNV ")", me,
+             "or first axis size not 9 (was %s)", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
-             airEnumStr(nrrdType, tnine->type),
-             tnine->dim, tnine->axis[0].size);
+             airEnumStr(nrrdType, tnine->type), tnine->dim,
+             airSprintSize_t(stmp, tnine->axis[0].size));
     return 1;
   }
   sx = tnine->axis[1].size;
@@ -484,6 +486,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   float *out, *conf, *eval, *evec;
   int map[4];
   /* float teval[3], tevec[9], tmp1[3], tmp2[3]; */
+  char stmp[7][AIR_STRLEN_SMALL];
 
   if (!(nout && nconf && neval && nevec)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -518,26 +521,30 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
          sx == neval->axis[1].size &&
          sy == neval->axis[2].size &&
          sz == neval->axis[3].size )) {
-    biffAddf(TEN, "%s: second nrrd sizes wrong: (" 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ") not (3," 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")",
-             me, neval->axis[0].size, neval->axis[1].size,
-             neval->axis[2].size, neval->axis[3].size,
-             sx, sy, sz);
+    biffAddf(TEN, "%s: second nrrd sizes wrong: "
+             "(%s,%s,%s,%s) not (3,%s,%s,%s)", me,
+             airSprintSize_t(stmp[0], neval->axis[0].size),
+             airSprintSize_t(stmp[1], neval->axis[1].size),
+             airSprintSize_t(stmp[2], neval->axis[2].size),
+             airSprintSize_t(stmp[3], neval->axis[3].size),
+             airSprintSize_t(stmp[4], sx),
+             airSprintSize_t(stmp[5], sy),
+             airSprintSize_t(stmp[6], sz));
     return 1;
   }
   if (!( 9 == nevec->axis[0].size &&
          sx == nevec->axis[1].size &&
          sy == nevec->axis[2].size &&
          sz == nevec->axis[3].size )) {
-    biffAddf(TEN, "%s: third nrrd sizes wrong: (" 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ") not (9," 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")",
-             me, nevec->axis[0].size, nevec->axis[1].size,
-             nevec->axis[2].size, nevec->axis[3].size,
-             sx, sy, sz);
+    biffAddf(TEN, "%s: third nrrd sizes wrong: "
+             "(%s,%s,%s,%s) not (9,%s,%s,%s)", me,
+             airSprintSize_t(stmp[0], nevec->axis[0].size),
+             airSprintSize_t(stmp[1], nevec->axis[1].size),
+             airSprintSize_t(stmp[2], nevec->axis[2].size),
+             airSprintSize_t(stmp[3], nevec->axis[3].size),
+             airSprintSize_t(stmp[4], sx),
+             airSprintSize_t(stmp[5], sy),
+             airSprintSize_t(stmp[6], sz));
     return 1;
   }
 
@@ -591,6 +598,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
   Nrrd *nslice, *ncoeff[4];
   int ci[4];
   airArray *mop;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nout && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -609,9 +617,9 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
     return 1;
   }
   if (!( pos < nten->axis[1+axis].size )) {
-    biffAddf(TEN, "%s: slice position " _AIR_SIZE_T_CNV 
-            " not in valid range [0.." _AIR_SIZE_T_CNV "]", me,
-            pos, nten->axis[1+axis].size-1);
+    biffAddf(TEN, "%s: slice position %s not in valid range [0..%s]", me,
+             airSprintSize_t(stmp[0], pos),
+             airSprintSize_t(stmp[1], nten->axis[1+axis].size-1));
     return 1;
   }
 

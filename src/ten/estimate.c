@@ -1008,6 +1008,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
   unsigned int tt, allIdx;
   int axmap[4], E;
   airArray *mop;
+  char stmp[3][AIR_STRLEN_SMALL];
 
   if (!(tec && ndwi && nB0 && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -1046,9 +1047,10 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
         sizeX == nB0->axis[0].size &&
         sizeY == nB0->axis[1].size &&
         sizeZ == nB0->axis[2].size)) {
-    biffAddf(TEN, "%s: given B0 (%u-D) volume not 3-D " _AIR_SIZE_T_CNV
-            "x" _AIR_SIZE_T_CNV "x" _AIR_SIZE_T_CNV, me, nB0->dim,
-            sizeX, sizeY, sizeZ);
+    biffAddf(TEN, "%s: given B0 (%u-D) volume not 3-D %sx%sx%s", me, nB0->dim,
+             airSprintSize_t(stmp[0], sizeX),
+             airSprintSize_t(stmp[1], sizeY),
+             airSprintSize_t(stmp[2], sizeZ));
     return 1;
   }
   if (nrrdMaybeAlloc_va(ndwi, outType, 4,
@@ -1083,7 +1085,8 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
       dwi_f += tec->allNum;
     }
     if (E) {
-      biffAddf(TEN, "%s: failed at sample " _AIR_SIZE_T_CNV, me, II);
+      biffAddf(TEN, "%s: failed at sample %s", me,
+               airSprintSize_t(stmp[0], II));
       airMopError(mop); return 1;
     }
   }
@@ -1831,6 +1834,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   unsigned int dd;
   airArray *mop;
   int axmap[4];
+  char stmp[AIR_STRLEN_SMALL];
 
 #if 0
 #define NUM 800
@@ -1865,9 +1869,9 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
   }
   if (tec->allNum != ndwi->axis[0].size) {
     biffAddf(TEN, "%s: from %s info, expected %u values per sample, "
-             "but have " _AIR_SIZE_T_CNV " in volume", me,
+             "but have %s in volume", me,
              tec->_ngrad ? "gradient" : "B-matrix", tec->allNum,
-             ndwi->axis[0].size);
+             airSprintSize_t(stmp, ndwi->axis[0].size));
     return 1;
   }
   if (nrrdTypeBlock == ndwi->type) {
@@ -1973,7 +1977,8 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
       fprintf(stderr, "!%s: hello; II=%u\n", me, AIR_CAST(unsigned int, II));
     }
     if (tenEstimate1TensorSingle_d(tec, ten, all)) {
-      biffAddf(TEN, "%s: failed at sample " _AIR_SIZE_T_CNV, me, II);
+      biffAddf(TEN, "%s: failed at sample %s", me,
+               airSprintSize_t(stmp, II));
       airMopError(mop); return 1;
     }
     ins(nten->data, 0 + sizeTen*II, ten[0]);

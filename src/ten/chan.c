@@ -631,6 +631,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   double *emat, *bmat, *vbuf;
   NrrdRange *range;
   float te, d1, d2;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nten && ndwi && _nbmat)) {
     /* nerrP and _NB0P can be NULL */
@@ -647,16 +648,18 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   }
   if (knownB0) {
     if (!( ndwi->axis[0].size == 1 + _nbmat->axis[1].size )) {
-      biffAddf(TEN, "%s: (knownB0 == true) # input images (" _AIR_SIZE_T_CNV
-               ") != 1 + # B matrix rows (1+" _AIR_SIZE_T_CNV ")",
-               me, ndwi->axis[0].size, _nbmat->axis[1].size);
+      biffAddf(TEN, "%s: (knownB0 == true) # input images (%s) "
+               "!= 1 + # B matrix rows (1+%s)", me,
+               airSprintSize_t(stmp[0], ndwi->axis[0].size),
+               airSprintSize_t(stmp[1], _nbmat->axis[1].size));
       return 1;
     }
   } else {
     if (!( ndwi->axis[0].size == _nbmat->axis[1].size )) {
-      biffAddf(TEN, "%s: (knownB0 == false) # dwi (" _AIR_SIZE_T_CNV ") != "
-               "# B matrix rows (" _AIR_SIZE_T_CNV ")",
-               me, ndwi->axis[0].size, _nbmat->axis[1].size);
+      biffAddf(TEN, "%s: (knownB0 == false) # dwi (%s) "
+               "!= # B matrix rows (%s)", me,
+               airSprintSize_t(stmp[0], ndwi->axis[0].size),
+               airSprintSize_t(stmp[1], _nbmat->axis[1].size));
       return 1;
     }
   }
@@ -865,6 +868,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   airArray *mop;
   double *bmat;
   float *dwi, *ten, (*lup)(const void *, size_t I);
+  char stmp[6][AIR_STRLEN_SMALL];
   
   if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)
@@ -887,12 +891,14 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
         && sx == nten->axis[1].size
         && sy == nten->axis[2].size
         && sz == nten->axis[3].size)) {
-    biffAddf(TEN, "%s: dimensions of %u-D T2 volume (" 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV 
-             ") don't match tensor volume (" 
-             _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV ")", 
-             me, nT2->dim, sx, sy, sz, nten->axis[1].size,
-             nten->axis[2].size, nten->axis[3].size);
+    biffAddf(TEN, "%s: dimensions of %u-D T2 volume (%s,%s,%s) "
+             "don't match tensor volume (%s,%s,%s)", me, nT2->dim,
+             airSprintSize_t(stmp[0], sx),
+             airSprintSize_t(stmp[1], sy),
+             airSprintSize_t(stmp[2], sz),
+             airSprintSize_t(stmp[3], nten->axis[1].size),
+             airSprintSize_t(stmp[4], nten->axis[2].size),
+             airSprintSize_t(stmp[5], nten->axis[3].size));
     return 1;
   }
   if (nrrdMaybeAlloc_va(ndwi, nrrdTypeFloat, 4,
