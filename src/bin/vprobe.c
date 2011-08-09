@@ -466,9 +466,10 @@ main(int argc, const char *argv[]) {
              : gageProbe(ctx, x, y, z));
         if (E) {
           fprintf(stderr, 
-                  "%s: trouble at i=(" _AIR_SIZE_T_CNV "," _AIR_SIZE_T_CNV
-                  "," _AIR_SIZE_T_CNV ") -> f=(%g,%g,%g):\n%s\n(%d)\n",
-                  me, xi, yi, zi, x, y, z,
+                  "%s: trouble at i=(%s,%s,%s) -> f=(%g,%g,%g):\n%s\n(%d)\n",
+                  me, airSprintSize_t(stmp[0], xi),
+                  airSprintSize_t(stmp[1], yi),
+                  airSprintSize_t(stmp[2], zi), x, y, z,
                   ctx->errStr, ctx->errNum);
           airMopError(mop);
           return 1;
