@@ -229,16 +229,6 @@ if( NOT APPLE )
   ENDIF(CMAKE_WORDS_BIGENDIAN)
 endif( NOT APPLE )
 
-# Set compiler flags for 32 or 64 bit architecture (based on the size
-# of a void pointer).
-if( NOT APPLE )
-  IF(CMAKE_SIZEOF_VOID_P MATCHES  8)
-    ADD_DEFINITIONS(-DTEEM_32BIT=0)
-  ELSE(CMAKE_SIZEOF_VOID_P MATCHES 8)
-    ADD_DEFINITIONS(-DTEEM_32BIT=1)
-  ENDIF(CMAKE_SIZEOF_VOID_P MATCHES 8)
-endif( NOT APPLE )
-
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)

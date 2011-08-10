@@ -514,12 +514,11 @@ enum {
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
   airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
-  airInsane_32Bit,         /*  9: airMy32Bit is wrong */
-  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 12: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        12
+#define AIR_INSANE_MAX        11
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -534,7 +533,6 @@ AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 AIR_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
 AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t val);
-AIR_EXPORT const int airMy32Bit;
 /* ---- BEGIN non-NrrdIO */
 AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
@@ -700,7 +698,6 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_ENDIAN (airMyEndian)
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
-#define AIR_32BIT (airMy32Bit)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
@@ -777,7 +774,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** of the macro arg to an int* only works when the arg has the same
 ** size as an int.
 **
-** No cross-platform comparitive timings have been done to compare the
+** No cross-platform comparative timings have been done to compare the
 ** speed of !((x) - (x)) versus airExists() versus AIR_EXISTS_F()
 ** 
 ** This macro is endian-safe.

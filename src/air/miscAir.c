@@ -22,7 +22,6 @@
 */
 
 #include "air.h"
-#include <teem32bit.h>
 /* timer functions */
 #ifdef _WIN32
 #include <io.h>
@@ -242,12 +241,6 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   free(fmt);
   return ret;
 }
-
-#if TEEM_32BIT == 1
-const int airMy32Bit = 1;
-#else
-const int airMy32Bit = 0;
-#endif
 
 /*
 ******** airSprintSize_t

@@ -21,7 +21,6 @@
 */
 
 #include <teem/air.h>
-#include <teem32bit.h>
 
 int
 main(int argc, char *argv[]) {
@@ -38,7 +37,6 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "AIR_ENDIAN == %d\n", AIR_ENDIAN);
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
-    fprintf(stderr, "AIR_32BIT == %d\n", AIR_32BIT);
     fprintf(stderr, "sizeof(size_t) = %s\n",
             airSprintSize_t(stmp, sizeof(size_t)));
     fprintf(stderr, "sizeof(void*) = %s\n",

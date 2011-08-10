@@ -36,7 +36,7 @@ airSanity(void) {
   double nan, pinf, ninf;
   float nanF, pinfF, ninfF;
   unsigned int sign, exp, mant;
-  int tmpI, size;
+  int tmpI;
   char endian;
   unsigned char uc0, uc1;
   static int _airSanity=0;
@@ -131,23 +131,12 @@ airSanity(void) {
   }
   
   /* just make sure AIR_DIO is reasonably set 
-     (actually, this should be done by include/teem/need/dio.h) */
+     (actually, this should be done by include/teemDio.h) */
   switch (AIR_DIO) {
   case 0: break;
   case 1: break;
   default:
     return airInsane_dio;
-  }
-
-  /* run-time 32/64-bit check */
-  size = 0;
-  switch (AIR_32BIT) {
-  case 1: size = 4; break;
-  case 0: size = 8; break;
-  default: break;
-  }
-  if (size != sizeof(size_t)) {
-    return airInsane_32Bit;
   }
 
   _airSanity = 1;
@@ -165,7 +154,6 @@ _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "TEEM_QNANHIBIT is wrong",
   "airFPClass(AIR_QNAN,AIR_SNAN) wrong",
   "TEEM_DIO has invalid value",
-  "TEEM_32BIT is wrong",
   "unsigned char isn't 8 bits",
   "sizeof(float), sizeof(int) not both == 4",
   "sizeof(double), sizeof(airLLong) not both == 8",

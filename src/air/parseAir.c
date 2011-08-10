@@ -189,8 +189,8 @@ airParseStrULI(_PARSE_STR_ARGS(unsigned long int)) { _PARSE_STR_BODY("%lu") }
 ** challenges of (1) the format specifier (or conversion specifier)
 ** for size_t not being standard in sscanf, and (2) the desire to
 ** avoid requiring knowledge of whether the architecture is 32-vs-64
-** bit.  This arises with the removal (for Teem 1.11 of TEEM_32BIT and
-** _AIR_SIZE_T_CNV)
+** bit.  This arises with the removal (for Teem 1.11) of TEEM_32BIT and
+** _AIR_SIZE_T_CNV
 ** 
 ** The only consequence is for 64-bit windows, for which unsigned long
 ** in is only 32 bits, not the 64 bits of size_t, as it is on other

@@ -1392,11 +1392,6 @@ nrrdSanity(void) {
   
   aret = airSanity();
   if (aret != airInsane_not) {
-    if (airInsane_32Bit == aret) {
-      biffAddf(NRRD, "%s: (sizeof(size_t) == %u, not %u)", me, 
-               AIR_CAST(unsigned int, sizeof(size_t)),
-               AIR_32BIT ? 4 : 8);
-    }
     biffAddf(NRRD, "%s: airSanity() failed: %s", me,
              airInsaneErr(aret));
     return 0;

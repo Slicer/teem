@@ -37,13 +37,10 @@ ARCH_CFLAG = -W -Wall
 ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)
-  TEEM_32BIT = 0
-  # ARCH_CFLAG = -W -Wall -arch x86_64
-  ARCH_CFLAG = -W -Wall
+  ARCH_CFLAG = -W -Wall -arch x86_64
 else
   ifeq ($(SUBARCH),32)
-    TEEM_32BIT = 1
-  ARCH_CFLAG = -W -Wall
+  ARCH_CFLAG = -W -Wall -arch i386
   else
     $(error darwin sub-architecture "$(SUBARCH)" not recognized)
   endif

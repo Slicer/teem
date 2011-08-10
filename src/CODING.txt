@@ -241,8 +241,8 @@ passed {s,f,}printf, but ANSI C has no "format specifiers" for that
 (as with %d for int, %u for unsigned int).  Teem has used macros
 _AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting these is
 a complicated compile-time task that is completely
-architecture-dependent, and which also relies on TEEM_32BIT, which
-will be removed soon.  Ultimately, the nicest thing to do (but which
+architecture-dependent, and which also relied on TEEM_32BIT, which
+has been removed. Ultimately, the nicest thing to do (but which
 will require significant work) would be to re-implement {s,f,}printf
 (or copy an implementation with suitable licensing).  Until then, we
 use airSprintSize_t and airSprintPtrdiff_t to sprint a single size_t

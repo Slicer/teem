@@ -170,7 +170,7 @@ ODEST = $(TEEM_ROOT)/arch/$(TEEM_ARCH)/obj
 IPATH += -I$(IDEST)
 LPATH += -L$(LDEST)
 ifneq (undefined,$(origin TEEM_DEST))
-  # we still need this for the teem*.h headers (such as teem32bit.h)
+  # we still need this for the teem*.h headers (such as teemEndian.h)
   IPATH += -I$(TEEM_ROOT)/include
 endif
 
@@ -198,12 +198,6 @@ endif
 ## would otherwise come from CMake files
 CFLAGS += -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
-
-## The AIR_SIZE_T_FMT macro requires knowing TEEM_32BIT for all
-## source files wishing to use it, which might as well be all teem
-## source files.
-##
-CFLAGS += -DTEEM_32BIT=$(TEEM_32BIT)
 
 ## SGI's C pre-processor errors aren't fatal by default
 ##
