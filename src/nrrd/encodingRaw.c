@@ -40,8 +40,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
   char *data_c;
   size_t elementSize, maxChunkSize, remainder, chunkSize;
   size_t retTmp;
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-    stmp3[AIR_STRLEN_SMALL];
+  char stmp[3][AIR_STRLEN_SMALL];
 
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
@@ -59,8 +58,8 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     if (ret != bsize) {
       biffAddf(NRRD, "%s: airDioRead got read only %s of %sbytes "
                "(%g%% of expected)", me,
-               airSprintSize_t(stmp1, ret), 
-               airSprintSize_t(stmp2, bsize), 100.0*ret/bsize);
+               airSprintSize_t(stmp[0], ret), 
+               airSprintSize_t(stmp[1], bsize), 100.0*ret/bsize);
       return 1;
     }
   } else {
@@ -92,9 +91,9 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
       if (retTmp != chunkSize) {
         biffAddf(NRRD, "%s: fread got only %s %s-sized things, not %s "
                  "(%g%% of expected)", me,
-                 airSprintSize_t(stmp1, ret),
-                 airSprintSize_t(stmp2, nrrdElementSize(nrrd)),
-                 airSprintSize_t(stmp3, elementNum),
+                 airSprintSize_t(stmp[0], ret),
+                 airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
+                 airSprintSize_t(stmp[2], elementNum),
                  100.0*ret/elementNum);
         return 1;
       }
@@ -128,8 +127,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
   char *data_c;
   size_t elementSize, maxChunkSize, remainder, chunkSize;
   size_t retTmp;
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-    stmp3[AIR_STRLEN_SMALL];
+  char stmp[3][AIR_STRLEN_SMALL];
   
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
@@ -147,8 +145,8 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     if (ret != bsize) {
       biffAddf(NRRD, "%s: airDioWrite wrote only %s of %s bytes "
                "(%g%% of expected)", me,
-               airSprintSize_t(stmp1, ret),
-               airSprintSize_t(stmp2, bsize),
+               airSprintSize_t(stmp[0], ret),
+               airSprintSize_t(stmp[1], bsize),
                100.0*ret/bsize);
       return 1;
     }
@@ -181,9 +179,9 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
       if (retTmp != chunkSize) {
         biffAddf(NRRD, "%s: fwrite wrote only %s %s-sized things, not %s "
                  "(%g%% of expected)", me,
-                 airSprintSize_t(stmp1, ret),
-                 airSprintSize_t(stmp2, nrrdElementSize(nrrd)),
-                 airSprintSize_t(stmp3, elementNum),
+                 airSprintSize_t(stmp[0], ret),
+                 airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
+                 airSprintSize_t(stmp[2], elementNum),
                  100.0*ret/elementNum);
         return 1;
       }

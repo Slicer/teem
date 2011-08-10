@@ -55,7 +55,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   unsigned int ansLen, dim, aidx, baseDim, gridDim;
   size_t sizeOut[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX], II, NN;
   double (*ins)(void *v, size_t I, double d);
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(ctx && pvl && nout && _ngrid)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -144,8 +144,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
         fprintf(stderr, "z = ");
       }
       fprintf(stderr, " %s/%s",
-              airSprintSize_t(stmp1, coordOut[2]), 
-              airSprintSize_t(stmp2, sizeOut[2]));
+              airSprintSize_t(stmp[0], coordOut[2]), 
+              airSprintSize_t(stmp[1], sizeOut[2]));
       fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
@@ -171,7 +171,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
                           indexSpace, AIR_FALSE));
     if (E) {
       biffAddf(GAGE, "%s: trouble at II=%s =(%g,%g,%g,%g):\n%s\n(%d)\n", me,
-               airSprintSize_t(stmp1, II), 
+               airSprintSize_t(stmp[0], II), 
                pos[0], pos[1], pos[2], pos[3],
                ctx->errStr, ctx->errNum);
       airMopError(mop); return 1;
@@ -220,8 +220,7 @@ main(int argc, const char *argv[]) {
   unsigned int *skip, skipNum, pntPosNum;
   gageStackBlurParm *sbp;
   int otype;
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-    stmp3[AIR_STRLEN_SMALL], stmp4[AIR_STRLEN_SMALL];
+  char stmp[4][AIR_STRLEN_SMALL];
   
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
@@ -645,10 +644,10 @@ main(int argc, const char *argv[]) {
     rscl[2] = AIR_CAST(double, siz)/soz;
     if (verbose) {
       fprintf(stderr, "%s: creating %s x %s x %s x %s output\n", me,
-              airSprintSize_t(stmp1, ansLen),
-              airSprintSize_t(stmp2, sox),
-              airSprintSize_t(stmp3, soy),
-              airSprintSize_t(stmp4, soz));
+              airSprintSize_t(stmp[0], ansLen),
+              airSprintSize_t(stmp[1], sox),
+              airSprintSize_t(stmp[2], soy),
+              airSprintSize_t(stmp[3], soz));
       fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
               rscl[0], rscl[1], rscl[2]);
     }

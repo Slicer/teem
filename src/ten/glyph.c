@@ -75,8 +75,7 @@ tenGlyphParmCheck(tenGlyphParm *parm,
   static const char me[]="tenGlyphParmCheck";
   int duh;
   size_t tenSize[3];
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-    stmp3[AIR_STRLEN_SMALL], stmp4[AIR_STRLEN_SMALL], stmp5[AIR_STRLEN_SMALL];
+  char stmp[5][AIR_STRLEN_SMALL];
 
   if (!(parm && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -116,9 +115,9 @@ tenGlyphParmCheck(tenGlyphParm *parm,
            && parm->nmask->axis[1].size == nten->axis[2].size
            && parm->nmask->axis[2].size == nten->axis[3].size )) {
       biffAddf(TEN, "%s: mask isn't 3-D or doesn't have sizes (%s,%s,%s)", me,
-               airSprintSize_t(stmp1, nten->axis[1].size),
-               airSprintSize_t(stmp2, nten->axis[2].size),
-               airSprintSize_t(stmp3, nten->axis[3].size));
+               airSprintSize_t(stmp[0], nten->axis[1].size),
+               airSprintSize_t(stmp[1], nten->axis[2].size),
+               airSprintSize_t(stmp[2], nten->axis[3].size));
       return 1;
     }
     if (!(AIR_EXISTS(parm->maskThresh))) {
@@ -142,8 +141,8 @@ tenGlyphParmCheck(tenGlyphParm *parm,
     }
     if (!( parm->slicePos < nten->axis[1+parm->sliceAxis].size )) {
       biffAddf(TEN, "%s: slice pos %s not in valid range [0..%s]", me,
-               airSprintSize_t(stmp1, parm->slicePos),
-               airSprintSize_t(stmp2, nten->axis[1+parm->sliceAxis].size-1));
+               airSprintSize_t(stmp[0], parm->slicePos),
+               airSprintSize_t(stmp[1], nten->axis[1+parm->sliceAxis].size-1));
       return 1;
     }
     if (nslc) {
@@ -162,11 +161,11 @@ tenGlyphParmCheck(tenGlyphParm *parm,
              && tenSize[1] == nslc->axis[1].size )) {
         biffAddf(TEN, "%s: axis %u slice of %sx%sx%s volume != %sx%s", me,
                  parm->sliceAxis,
-                 airSprintSize_t(stmp1, nten->axis[1].size),
-                 airSprintSize_t(stmp2, nten->axis[2].size),
-                 airSprintSize_t(stmp3, nten->axis[3].size),
-                 airSprintSize_t(stmp4, nslc->axis[0].size),
-                 airSprintSize_t(stmp5, nslc->axis[1].size));
+                 airSprintSize_t(stmp[0], nten->axis[1].size),
+                 airSprintSize_t(stmp[1], nten->axis[2].size),
+                 airSprintSize_t(stmp[2], nten->axis[3].size),
+                 airSprintSize_t(stmp[3], nslc->axis[0].size),
+                 airSprintSize_t(stmp[4], nslc->axis[1].size));
         return 1;
       }
     } else {

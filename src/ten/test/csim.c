@@ -214,11 +214,10 @@ main(int argc, const char *argv[]) {
         sizeX == _ninB0->axis[0].size &&
         sizeY == _ninB0->axis[1].size &&
         sizeZ == _ninB0->axis[2].size)) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-      stmp3[AIR_STRLEN_SMALL];
+    char stmp[3][AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: given B0 (%u-D) volume not 3-D %sx%sx%s",
-            me, _ninB0->dim, airSprintSize_t(stmp1, sizeX),
-            airSprintSize_t(stmp2, sizeY), airSprintSize_t(stmp3, sizeZ));
+            me, _ninB0->dim, airSprintSize_t(stmp[0], sizeX),
+            airSprintSize_t(stmp[1], sizeY), airSprintSize_t(stmp[2], sizeZ));
     airMopError(mop); 
     return 1;
   }

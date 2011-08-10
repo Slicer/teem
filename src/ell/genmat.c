@@ -109,8 +109,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   static const char me[]="ell_Nm_mul";
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-    stmp3[AIR_STRLEN_SMALL], stmp4[AIR_STRLEN_SMALL];
+  char stmp[4][AIR_STRLEN_SMALL];
   
   if (!( nAB && !ell_Nm_check(nA, AIR_FALSE) 
          && !ell_Nm_check(nB, AIR_FALSE) )) {
@@ -126,10 +125,10 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   NN = nB->axis[0].size;
   if (MM != nB->axis[1].size) {
     biffAddf(ELL, "%s: size mismatch: %s-by-%s times %s-by-%s", me,
-             airSprintSize_t(stmp1, LL),
-             airSprintSize_t(stmp2, MM),
-             airSprintSize_t(stmp3, nB->axis[1].size),
-             airSprintSize_t(stmp4, NN));
+             airSprintSize_t(stmp[0], LL),
+             airSprintSize_t(stmp[1], MM),
+             airSprintSize_t(stmp[2], nB->axis[1].size),
+             airSprintSize_t(stmp[3], NN));
     return 1;
   }
   if (nrrdMaybeAlloc_va(nAB, nrrdTypeDouble, 2,
@@ -347,10 +346,10 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
   
   NN = nmat->axis[0].size;
   if (!( NN == nmat->axis[1].size )) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL];
     biffAddf(ELL, "%s: need a square matrix, not %s-by-%s", me,
-             airSprintSize_t(stmp1, nmat->axis[1].size),
-             airSprintSize_t(stmp2, NN));
+             airSprintSize_t(stmp[0], nmat->axis[1].size),
+             airSprintSize_t(stmp[1], NN));
     return 1;
   }
   if (nrrdMaybeAlloc_va(ninv, nrrdTypeDouble, 2,
