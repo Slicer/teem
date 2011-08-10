@@ -215,10 +215,15 @@ _nrrdReadNrrdParse_block_size(FILE *file, Nrrd *nrrd,
                               NrrdIoState *nio, int useBiff) {
   static const char me[]="_nrrdReadNrrdParse_block_size";
   char *info;
+  unsigned long int blsz;
 
   AIR_UNUSED(file);
   info = nio->line + nio->pos;
-  _PARSE_ONE_VAL(nrrd->blockSize, _AIR_SIZE_T_CNV, "size_t");
+  /* HEY: see comment in teem/src/air/parseAir.c:airParseStrZ()
+     about misgivings of this strategy for simple portability; old code:
+     _PARSE_ONE_VAL(nrrd->blockSize, _AIR_SIZE_T_CNV, "size_t"); */
+  _PARSE_ONE_VAL(blsz, "%lu", "unsigned long int");
+  nrrd->blockSize = AIR_CAST(size_t, blsz);
   /* because blockSize and type fields may appear in any order,
      we can't use _nrrdFieldCheck[] */
   return 0;
