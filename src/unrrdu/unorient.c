@@ -23,7 +23,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "make image orientation be axis-aligned"
+#define INFO "Make image orientation be axis-aligned"
 char *_unrrdu_unorientInfoL =
   (INFO
    ". Does various tricks.\n "
