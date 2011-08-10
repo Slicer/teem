@@ -780,6 +780,7 @@ int
 nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   static const char me[]="nrrdAlloc_nva";
   size_t num, esize;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nrrd && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -791,8 +792,8 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   }
   if (nrrdTypeBlock == type) {
     if (!(0 < nrrd->blockSize)) {
-      biffAddf(NRRD, "%s: given nrrd->blockSize " _AIR_SIZE_T_CNV " invalid", 
-               me, nrrd->blockSize);
+      biffAddf(NRRD, "%s: given nrrd->blockSize %s invalid", me,
+               airSprintSize_t(stmp[0], nrrd->blockSize));
       return 1;
     }
   }
@@ -811,9 +812,9 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
-    biffAddf(NRRD, "%s: calloc(" _AIR_SIZE_T_CNV ","
-             _AIR_SIZE_T_CNV ") failed",
-             me, num, esize);
+    biffAddf(NRRD, "%s: calloc(%s,%s) failed", me,
+             airSprintSize_t(stmp[0], num),
+             airSprintSize_t(stmp[1], esize));
     return 1 ;
   }
 
@@ -880,8 +881,9 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
       return 1;
     }
     if (!(0 < nrrd->blockSize)) {
-      biffAddf(NRRD, "%s: given nrrd->blockSize " 
-               _AIR_SIZE_T_CNV " invalid", me, nrrd->blockSize);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: given nrrd->blockSize %s invalid", me,
+               airSprintSize_t(stmp, nrrd->blockSize));
       return 1;
     }
     elementSizeWant = nrrd->blockSize;
@@ -971,11 +973,13 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 int
 nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
   static const char me[]="nrrdPPM";
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3,
                         AIR_CAST(size_t, 3), sx, sy)) {
-    biffAddf(NRRD, "%s: couldn't allocate " _AIR_SIZE_T_CNV
-             " x " _AIR_SIZE_T_CNV " 24-bit image", me, sx, sy);
+    biffAddf(NRRD, "%s: couldn't allocate %s x %s 24-bit image", me,
+             airSprintSize_t(stmp[0], sx),
+             airSprintSize_t(stmp[1], sy));
     return 1;
   }
   return 0;
@@ -991,11 +995,13 @@ nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
 int
 nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
   static const char me[]="nrrdPGM";
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2,
                         sx, sy)) {
-    biffAddf(NRRD, "%s: couldn't allocate " _AIR_SIZE_T_CNV
-             " x " _AIR_SIZE_T_CNV " 8-bit image", me, sx, sy);
+    biffAddf(NRRD, "%s: couldn't allocate %s x %s 8-bit image", me,
+             airSprintSize_t(stmp[0], sx),
+             airSprintSize_t(stmp[1], sy));
     return 1;
   }
   return 0;

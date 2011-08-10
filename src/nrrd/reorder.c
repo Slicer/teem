@@ -341,8 +341,9 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   len = AIR_CAST(unsigned int, nin->axis[axis].size);
   for (ai=0; ai<len; ai++) {
     if (!( perm[ai] < len )) {
-      biffAddf(NRRD, "%s: perm[%d] (" _AIR_SIZE_T_CNV
-               ") outside valid range [0,%d]", me, ai, perm[ai], len-1);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: perm[%d] (%s) outside valid range [0,%d]", me, ai,
+               airSprintSize_t(stmp, perm[ai]), len-1);
       return 1;
     }
   }
@@ -408,7 +409,8 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   if (len <= LONGEST_INTERESTING_AXIS) {
     strcpy(buff1, "");
     for (ai=0; ai<len; ai++) {
-      sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
+      char stmp[AIR_STRLEN_SMALL];
+      sprintf(buff2, "%s%s", (ai ? "," : ""), airSprintSize_t(stmp, perm[ai]));
       strcat(buff1, buff2);
     }
     if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
@@ -576,6 +578,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   Nrrd *ntmpperm,    /* axis-permuted version of output */
     **ninperm;
   airArray *mop;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   /* error checking */
   if (!(nout && nin)) {
@@ -724,15 +727,15 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
     }
     if (nrrdTypeBlock == ninperm[0]->type) {
       if (ninperm[ni]->blockSize != ninperm[0]->blockSize) {
-        biffAddf(NRRD, "%s: blockSize (" _AIR_SIZE_T_CNV 
-                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
-                 me, ninperm[ni]->blockSize, ni, ninperm[0]->blockSize);
+        biffAddf(NRRD, "%s: blockSize (%s) of part %d != first's (%s)", me,
+                 airSprintSize_t(stmp[0], ninperm[ni]->blockSize), ni,
+                 airSprintSize_t(stmp[1], ninperm[0]->blockSize));
         airMopError(mop); return 1;
       }
     }
     if (!nrrdElementSize(ninperm[ni])) {
-      biffAddf(NRRD, "%s: got wacky elements size (" _AIR_SIZE_T_CNV 
-               ") for part %d", me, nrrdElementSize(ninperm[ni]), ni);
+      biffAddf(NRRD, "%s: got wacky elements size (%s) for part %d", me,
+               airSprintSize_t(stmp[0], nrrdElementSize(ninperm[ni])), ni);
       airMopError(mop); return 1;
     }
     
@@ -740,10 +743,9 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
     for (ai=0; ai<outdim-1; ai++) {
       /* fprintf(stderr, "%03u ", (unsigned int)ninperm[ni]->axis[ai].size);*/
       if (ninperm[ni]->axis[ai].size != ninperm[0]->axis[ai].size) {
-        biffAddf(NRRD, "%s: axis %d size (" _AIR_SIZE_T_CNV 
-                 ") of part %d unlike first's (" _AIR_SIZE_T_CNV ")",
-                 me, ai, ninperm[ni]->axis[ai].size,
-                 ni, ninperm[0]->axis[ai].size);
+        biffAddf(NRRD, "%s: axis %d size (%s) of part %d != first's (%s)", me,
+                 ai, airSprintSize_t(stmp[0], ninperm[ni]->axis[ai].size),
+                 ni, airSprintSize_t(stmp[1], ninperm[0]->axis[ai].size));
         airMopError(mop); return 1;
       }
     }
@@ -830,11 +832,13 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!(sizeFast*sizeSlow == nin->axis[saxi].size)) {
-    biffAddf(NRRD, "%s: # samples along axis %d (" _AIR_SIZE_T_CNV
-             ") != product of fast and slow sizes (" _AIR_SIZE_T_CNV 
-             " * " _AIR_SIZE_T_CNV " = " _AIR_SIZE_T_CNV ")",
-             me, saxi, nin->axis[saxi].size,
-             sizeFast, sizeSlow, sizeFast*sizeSlow);
+    char stmp[4][AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: # samples along axis %d (%s) != "
+             "product of fast and slow sizes (%s * %s = %s)", me, saxi,
+             airSprintSize_t(stmp[0], nin->axis[saxi].size),
+             airSprintSize_t(stmp[1], sizeFast),
+             airSprintSize_t(stmp[2], sizeSlow),
+             airSprintSize_t(stmp[3], sizeFast*sizeSlow));
     return 1;
   }
   if (nout != nin) {
@@ -890,8 +894,9 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
     return 1;
   }
   if (1 != nin->axis[daxi].size) {
-    biffAddf(NRRD, "%s: size along axis %d is " _AIR_SIZE_T_CNV ", not 1",
-             me, daxi, nin->axis[daxi].size);
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(NRRD, "%s: size along axis %d is %s, not 1",  me, daxi,
+             airSprintSize_t(stmp, nin->axis[daxi].size));
     return 1;
   }
   if (nout != nin) {
@@ -979,6 +984,7 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
   char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t numOut;
   unsigned int ai;
+  char stmp[2][AIR_STRLEN_SMALL];
   
   if (!(nout && nin && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -998,9 +1004,9 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
     numOut *= size[ai];
   }
   if (numOut != nrrdElementNumber(nin)) {
-    biffAddf(NRRD, "%s: new sizes product (" _AIR_SIZE_T_CNV ") "
-             "!= # elements (" _AIR_SIZE_T_CNV ")",
-             me, numOut, nrrdElementNumber(nin));
+    biffAddf(NRRD, "%s: new sizes product (%s) != # elements (%s)", me,
+             airSprintSize_t(stmp[0], numOut),
+             airSprintSize_t(stmp[1], nrrdElementNumber(nin)));
     return 1;
   }
 
@@ -1022,7 +1028,8 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin,
 
   strcpy(buff1, "");
   for (ai=0; ai<dim; ai++) {
-    sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "x" : ""), size[ai]);
+    sprintf(buff2, "%s%s", (ai ? "x" : ""),
+            airSprintSize_t(stmp[0], size[ai]));
     strcat(buff1, buff2);
   }
   /* basic info copied by _nrrdCopy, but probably more than we 
@@ -1154,6 +1161,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   unsigned int dim;
   size_t size[NRRD_DIM_MAX], outElSz;
   int map[NRRD_DIM_MAX];
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1191,9 +1199,10 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   nout->type = type;
   outElSz = nrrdElementSize(nout);
   if (nin->blockSize % outElSz) {
-    biffAddf(NRRD, "%s: input blockSize (" _AIR_SIZE_T_CNV 
-             ") not multiple of output element size (" _AIR_SIZE_T_CNV  ")",
-             me, nin->blockSize, outElSz);
+    biffAddf(NRRD, "%s: input blockSize (%s) not multiple of output "
+             "element size (%s)", me,
+             airSprintSize_t(stmp[0], nin->blockSize),
+             airSprintSize_t(stmp[1], outElSz));
     return 1;
   }
   for (dim=0; dim<=nin->dim; dim++) {
@@ -1373,6 +1382,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   static const char me[]="nrrdUntile2D";
   int E;
   unsigned int ii, mapIdx, map[NRRD_DIM_MAX];
+  char stmp[2][AIR_STRLEN_SMALL];
   
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1394,15 +1404,15 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nin->axis[ax0].size != sizeFast*(nin->axis[ax0].size/sizeFast)) {
-    biffAddf(NRRD, "%s: sizeFast (" _AIR_SIZE_T_CNV ") doesn't divide into "
-             "axis %d size (" _AIR_SIZE_T_CNV ")",
-             me, sizeFast, ax0, nin->axis[ax0].size);
+    biffAddf(NRRD, "%s: sizeFast (%s) doesn't divide into axis %d size (%s)",
+             me, airSprintSize_t(stmp[0], sizeFast),
+             ax0, airSprintSize_t(stmp[1], nin->axis[ax0].size));
     return 1;
   }
   if (nin->axis[ax1].size != sizeSlow*(nin->axis[ax1].size/sizeSlow)) {
-    biffAddf(NRRD, "%s: sizeSlow (" _AIR_SIZE_T_CNV ") doesn't divide into "
-             "axis %d size (" _AIR_SIZE_T_CNV ")",
-             me, sizeSlow, ax1, nin->axis[ax1].size);
+    biffAddf(NRRD, "%s: sizeSlow (%s) doesn't divide into axis %d size (%s)",
+             me, airSprintSize_t(stmp[0], sizeSlow),
+             ax1, airSprintSize_t(stmp[1], nin->axis[ax1].size));
     return 1;
   }
 

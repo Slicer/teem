@@ -114,6 +114,7 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   const NrrdKernel *k;
   int center, p, np;
   unsigned int ai, minsmp;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
     biffAddf(NRRD, "%s: can't resample to or from type %s", me,
@@ -135,8 +136,8 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
     if (!k)
       continue;
     if (!(info->samples[ai] > 0)) {
-      biffAddf(NRRD, "%s: axis %d # samples (" _AIR_SIZE_T_CNV ") invalid", 
-               me, ai, info->samples[ai]);
+      biffAddf(NRRD, "%s: axis %d # samples (%s) invalid", me, ai,
+               airSprintSize_t(stmp[0], info->samples[ai]));
       return 1;
     }
     if (!( AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max) )) {
@@ -159,10 +160,10 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
     center = _nrrdCenter(nin->axis[ai].center);
     minsmp = nrrdCenterCell == center ? 1 : 2;
     if (!( nin->axis[ai].size >= minsmp && info->samples[ai] >= minsmp )) {
-      biffAddf(NRRD, "%s: axis %d # input samples (" _AIR_SIZE_T_CNV 
-               ") or output samples (" _AIR_SIZE_T_CNV ") "
-               " invalid for %s centering",
-               me, ai, nin->axis[ai].size, info->samples[ai],
+      biffAddf(NRRD, "%s: axis %d # input samples (%s) or output samples (%s) "
+               " invalid for %s centering", me, ai,
+               airSprintSize_t(stmp[0], nin->axis[ai].size), 
+               airSprintSize_t(stmp[1], info->samples[ai]),
                airEnumStr(nrrdCenter, center));
       return 1;
     }
@@ -653,9 +654,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
   for (ai=0; ai<(unsigned int)topRax; ai++) { /* HEY scrutinize casts */
     strideIn *= nin->axis[ai].size;
   }
-  /*
-  printf("%s: strideIn = " _AIR_SIZE_T_CNV "\n", me, strideIn);
-  */
+  /* printf("%s: strideIn = " _AIR_SIZE_T_CNV "\n", me, strideIn); */
 
   /* go! */
   for (pi=0; pi<passes; pi++) {
@@ -677,14 +676,12 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     /* for the rest of the loop body, d is the original "dimension"
        for the axis being resampled */
     ai = ax[pi][topRax];
-    /*
-    printf("%s(%d): numOut = " _AIR_SIZE_T_CNV "\n", me, pi, numOut);
-    printf("%s(%d): numLines = " _AIR_SIZE_T_CNV "\n", me, pi, numLines);
-    printf("%s(%d): stride: In=%d, Out=%d\n", me, pi, 
-           (int)strideIn, (int)strideOut);
-    printf("%s(%d): sizeIn = %d\n", me, pi, sizeIn);
-    printf("%s(%d): sizeOut = %d\n", me, pi, sizeOut);
-    */
+    /* printf("%s(%d): numOut = " _AIR_SIZE_T_CNV "\n", me, pi, numOut); */
+    /* printf("%s(%d): numLines = " _AIR_SIZE_T_CNV "\n", me, pi, numLines); */
+    /* printf("%s(%d): stride: In=%d, Out=%d\n", me, pi,  */
+    /*        (int)strideIn, (int)strideOut); */
+    /* printf("%s(%d): sizeIn = %d\n", me, pi, sizeIn); */
+    /* printf("%s(%d): sizeOut = %d\n", me, pi, sizeOut); */
 
     /* we can free the input to the previous pass 
        (if its not the given data) */
@@ -710,9 +707,9 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     /* allocate output volume */
     array[pi+1] = (nrrdResample_t*)calloc(numOut, sizeof(nrrdResample_t));
     if (!array[pi+1]) {
-      biffAddf(NRRD, "%s: couldn't create array of " _AIR_SIZE_T_CNV 
-               " nrrdResample_t's for output of pass %d",
-               me, numOut, pi);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't create array of %s nrrdResample_t's for "
+               "output of pass %d", me, airSprintSize_t(stmp, numOut), pi);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, array[pi+1], airFree, airMopAlways);
