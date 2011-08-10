@@ -107,7 +107,7 @@ enum {
                                  so that points can be quickly eliminated
                                  (e.g. prior to constraint satisfaction) */
   pullInfoSeedThresh,         /* 11: [1] scalar for thresholding seeding */
-  pullInfoLiveThresh,         /* 12: [1] scalar for thresholding extent 
+  pullInfoLiveThresh,         /* 12: [1] scalar for thresholding extant 
                                  particles, AND for future additions from
                                  population control */
   pullInfoLiveThresh2,        /* 13: [1] another pullInfoLiveThresh */
