@@ -256,7 +256,7 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
 ** be considered a glorified strdup(): it is the callers responsibility
 ** to free() this string later
 */
-char *
+char * /*Teem: allocates char* */     /* this comment is an experiment */
 biffGet(const char *key) {
   static const char me[]="biffGet";
   char *ret;
