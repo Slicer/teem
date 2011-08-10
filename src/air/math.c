@@ -36,6 +36,10 @@
 **
 ** which in turn is based on: N N Schraudolph, "A fast, compact approximation
 ** of the exponential function." Neural Computation, 1999, 11(4), 853-862.
+** http://cnl.salk.edu/~schraudo/pubs/Schraudolph99.pdf
+**
+** some possible code which does not depend on endian
+** http://www.machinedlearnings.com/2011/06/fast-approximate-logarithm-exponential.html
 */
 
 typedef union {
