@@ -28,11 +28,11 @@
 */
 
 #ifndef TEEM_QNANHIBIT
-#  error TEEM_QNANHIBIT not defined, see architecture-specific .mk file or check compilation options
+#  error TEEM_QNANHIBIT not defined
 #elif TEEM_QNANHIBIT == 1
 #  /* okay, its 1 */
 #elif TEEM_QNANHIBIT == 0
 #  /* okay, its 0 */
 #else
-#  error TEEM_QNANHIBIT not set to 0 or 1, see architecture-specific .mk file or check compilation options
+#  error TEEM_QNANHIBIT not set to 0 or 1
 #endif

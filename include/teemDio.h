@@ -28,11 +28,11 @@
 */
 
 #ifndef TEEM_DIO
-#  error TEEM_DIO not defined, see architecture-specific .mk file or check compilation options
+#  error TEEM_DIO not defined
 #elif TEEM_DIO == 1
 #  /* okay, its 1 */
 #elif TEEM_DIO == 0
 #  /* okay, its 0 */
 #else
-#  error TEEM_DIO not set to 1 or 0, see architecture-specific .mk file or check compilation options
+#  error TEEM_DIO not set to 1 or 0
 #endif
