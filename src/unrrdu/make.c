@@ -165,7 +165,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
              &encodingType, "raw",
              encInfo, NULL, nrrdEncodingType);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &endian,
-             airEnumStr(airEndian, airMyEndian),
+             airEnumStr(airEndian, airMyEndian()),
              "Endianness of data; relevent for any data with value "
              "representation bigger than 8 bits, with a non-ascii encoding: "
              "\"little\" for Intel and friends "

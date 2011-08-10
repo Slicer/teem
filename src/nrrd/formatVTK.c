@@ -275,7 +275,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (1 < nrrdElementSize(nrrd)
         && nio->encoding->endianMatters
-        && airMyEndian != airEndianBig) {
+        && airMyEndian() != airEndianBig) {
       /* encoding exposes endianness, and its big, but we aren't */
       nrrdSwapEndian(nrrd);
     }
@@ -393,7 +393,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   }
   if (1 < nrrdElementSize(nrrd)
       && nio->encoding->endianMatters
-      && airMyEndian != airEndianBig) {
+      && airMyEndian() != airEndianBig) {
     /* encoding exposes endianness, and we're not big, as req.d by VTK */
     nrrdSwapEndian(nrrd);
   }

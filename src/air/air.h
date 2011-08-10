@@ -187,7 +187,7 @@ enum {
 };
 /* endianAir.c */
 AIR_EXPORT const airEnum *const airEndian;
-AIR_EXPORT const int airMyEndian;
+AIR_EXPORT int airMyEndian();
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -695,7 +695,7 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** of AIR_ENDIAN etc is to make this information externally available,
 ** to anyone linking against libair (or libteem) and including air.h.
 */
-#define AIR_ENDIAN (airMyEndian)
+#define AIR_ENDIAN (airMyEndian())
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
 
@@ -737,19 +737,15 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** saved to memory and loaded back, may end up being different.  I
 ** have yet to produce this behavior, or convince myself it can't happen.
 **
-** The reason to #define AIR_EXISTS as airExists_d is that on some
+** The reason to #define AIR_EXISTS as airExists is that on some
 ** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
 ** the case on Windows and 64-bit irix6 (64 bit) with -Ofast.  If
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
-** There are two performance consequences of using airExists_d(x):
-** 1) Its a function call (but WIN32 can __inline it)
-** 2) (via AIR_EXISTS_D) It requires bit-wise operations on 64-bit
-** ints, which might be terribly slow.
-**
-** The reason for using airExists_d and not airExists_f is for
-** doubles > FLT_MAX: airExists_f would say these are infinity.
+** There is a performance consequence of using airExists(x), in that it 
+** is a function call, although (HEY) we should facilitat inline'ing it
+** for compilers that know how to.
 */
 #if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists(x))

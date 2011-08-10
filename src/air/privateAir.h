@@ -30,7 +30,7 @@ extern double _airSanityHelper(double val);
 /*
 ** _airFloat, _airDouble
 **
-** these unions facilitate converting amonst
+** these unions facilitate converting amongst
 ** i: unsigned integral type
 ** c: (sign,exp,frac) triples of unsigned integral components
 ** v: the floating point numbers these bit-patterns represent

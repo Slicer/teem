@@ -229,7 +229,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   if (png_get_valid(png, info, PNG_INFO_tRNS))
     png_set_tRNS_to_alpha(png);
   /* fix endianness for 16 bit formats */
-  if (depth > 8 && airMyEndian == airEndianLittle)
+  if (depth > 8 && airMyEndian() == airEndianLittle)
     png_set_swap(png);
 #if 0
   /* HEY GLK asks why is this commented out? */
@@ -544,7 +544,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* write header */
   png_write_info(png, info);
   /* fix endianness for 16 bit formats */
-  if (depth > 8 && airMyEndian == airEndianLittle) {
+  if (depth > 8 && airMyEndian() == airEndianLittle) {
     png_set_swap(png);
   }
   /* set up row pointers */

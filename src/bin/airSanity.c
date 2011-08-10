@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
     char stmp[AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: air sanity check passed.\n", me);
     fprintf(stderr, "\n");
-    fprintf(stderr, "AIR_ENDIAN == %d\n", AIR_ENDIAN);
+    fprintf(stderr, "airMyEndian() == %d\n", airMyEndian());
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
     fprintf(stderr, "sizeof(size_t) = %s\n",

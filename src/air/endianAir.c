@@ -25,15 +25,25 @@
 #include <teemEndian.h>
 
 /*
-******** int airMyEndian
+******** airMyEndian()
 **
-** it gets set to 1234 or 4321
+** determine at run-time if we are little (1234) or big (4321) endian
 */
-#if TEEM_ENDIAN == 1234
-const int airMyEndian = 1234;
-#else
-const int airMyEndian = 4321;
-#endif
+int
+airMyEndian(void) {
+  int tmpI, ret;
+  char endian;
+  
+  tmpI = 1;
+  endian = !(*((char*)(&tmpI)));
+  if (endian) {
+    ret = airEndianBig;
+  }
+  else {
+    ret = airEndianLittle;
+  }    
+  return ret;
+}
 
 const char *
 _airEndianStr[] = {

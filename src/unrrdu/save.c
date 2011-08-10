@@ -90,7 +90,7 @@ unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw",
              encInfo, NULL, NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
-             airEnumStr(airEndian, airMyEndian),
+             airEnumStr(airEndian, airMyEndian()),
              "Endianness to save data out as; \"little\" for Intel and "
              "friends; \"big\" for everyone else. "
              "Defaults to endianness of this machine",
@@ -121,7 +121,7 @@ unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
   } else if (nrrdEncodingTypeBzip2 == enc[0]) {
     nio->bzip2BlockSize = enc[1];
   }
-  if (AIR_ENDIAN != nio->endian) {
+  if (airMyEndian() != nio->endian) {
     nrrdSwapEndian(nout);
   }
 

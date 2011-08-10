@@ -612,7 +612,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     } else {
       /* we record our current architecture's endian because we're
          going to writing out data */
-      endi = AIR_ENDIAN;
+      endi = airMyEndian();
     }
     *strP = (char *)calloc(fslen + strlen(airEnumStr(airEndian, endi)),
                            sizeof(char));

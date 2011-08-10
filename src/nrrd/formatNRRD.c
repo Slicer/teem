@@ -458,7 +458,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     /* we positively know the endianness of data just read */
     if (1 < nrrdElementSize(nrrd)
         && nio->encoding->endianMatters
-        && nio->endian != AIR_ENDIAN) {
+        && nio->endian != airMyEndian()) {
       /* endianness exposed in encoding, and its wrong */
       if (2 <= nrrdStateVerboseIO) {
         fprintf(stderr, "(%s: fixing endianness ... ", me);
