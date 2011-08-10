@@ -435,16 +435,17 @@ enum {
   airTypeInt,       /*  2 */
   airTypeUInt,      /*  3 */
   airTypeLongInt,   /*  4 */
-  airTypeSize_t,    /*  5 */
-  airTypeFloat,     /*  6 */
-  airTypeDouble,    /*  7 */
-  airTypeChar,      /*  8 */
-  airTypeString,    /*  9 */
-  airTypeEnum,      /* 10 */
-  airTypeOther,     /* 11 */
+  airTypeULongInt,  /*  5 */
+  airTypeSize_t,    /*  6 */
+  airTypeFloat,     /*  7 */
+  airTypeDouble,    /*  8 */
+  airTypeChar,      /*  9 */
+  airTypeString,    /* 10 */
+  airTypeEnum,      /* 11 */
+  airTypeOther,     /* 12 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   11
+#define AIR_TYPE_MAX   12
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
@@ -919,44 +920,6 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_ROUNDUP_UI(x)   ((unsigned int)(floor((x)+0.5)))
 #define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
 
-/*
-******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV
-**
-** Format specifiers to use when printf/fprintf/sprintf-ing a value of
-** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
-** respectively.
-**
-** This is not a useful macro for the world at large- only for Teem
-** source files.  Why: we need to leave this as a bare string, so that
-** we can exploit C's implicit string concatenation in forming a
-** format string.  Therefore, unlike the definition of AIR_ENDIAN,
-** AIR_DIO, etc, _AIR_SIZE_T_CNV can NOT just refer to a const variable
-** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
-** ALL source files which want to use _AIR_SIZE_T_CNV, and to be safe,
-** that's all Teem files.  The converse is, since there is no
-** expectation that other projects which use Teem will be defining
-** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
-**
-** http://www.viva64.com/en/a/0050/ for size conventions.
-**
-** It appears that 32 bit APPLE uses ld for size_t and int for ptrdiff.
-*/
-#if TEEM_32BIT == 0
-#  ifdef _WIN64
-#    define _AIR_SIZE_T_CNV "%I64u"
-#  else
-#    define _AIR_SIZE_T_CNV "%lu"
-#  endif
-#elif TEEM_32BIT == 1
-#  ifdef __APPLE__
-#    define _AIR_SIZE_T_CNV "%lu"
-#  else
-#    define _AIR_SIZE_T_CNV "%u"
-#  endif
-#else
-#  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
-#endif
- 
 #ifdef __cplusplus
 }
 #endif
