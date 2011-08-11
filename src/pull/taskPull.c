@@ -27,7 +27,7 @@ pullTask *
 _pullTaskNew(pullContext *pctx, int threadIdx) {
   static const char me[]="_pullTaskNew";
   pullTask *task;
-  unsigned int ii, offset;
+  unsigned int ii;
 
   task = AIR_CALLOC(1, pullTask);
   if (!task) {
@@ -65,7 +65,6 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     }
   }
   /* now set up all pointers for per-task pullInfos */
-  offset = 0;
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     const pullVolume *vol;
     if (pctx->ispec[ii]) {

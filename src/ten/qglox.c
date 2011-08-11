@@ -460,7 +460,7 @@ _tenQGLInterpNEvec(double evecOut[9],
                    unsigned int NN,
                    tenInterpParm *tip) {
   static const char me[]="_tenQGLInterpNEvec";
-  double qOut[4], maxWght, len, odsum, dsum, rot[9];
+  double qOut[4], maxWght, len, /* odsum, */ dsum, rot[9];
   unsigned int ii, centerIdx=0, fix, qiter;
 
   if (!( evecOut && evecIn && tip )) {
@@ -472,7 +472,8 @@ _tenQGLInterpNEvec(double evecOut[9],
     ELL_3M_TRANSPOSE(rot, evecIn + 9*ii);
     ell_3m_to_q_d(tip->qIn + 4*ii, rot);
   }
-  odsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN);
+  /* HEY: what should this be used for?  variable odsum set but not used */
+  /* odsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN); */
 
   /* find quaternion with maximal weight, use it as is (decree that
      its the right representative), and then align rest with that.

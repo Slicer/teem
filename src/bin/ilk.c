@@ -166,6 +166,11 @@ main(int argc, const char *argv[]) {
       /* explicit # of samples */
       size[d] = (int)(scale[1 + 2*d]);
       break;
+    default:
+      /* error */
+      fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n",
+              me, (int)scale[0 + 2*d], d);
+      airMopError(mop); return 1;
     }
   }
 

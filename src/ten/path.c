@@ -423,11 +423,10 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
                        tenInterpParm *tip) {
   static const char me[]="_tenInterpGeoLoxRelaxOne";
   double *tdata, *odata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7],
-    len02, len24, tmp, tng[7], correct, half, update[7];
+    len02, len24, tmp, tng[7], correct, update[7];
   unsigned int jj, NN;
 
   NN = (ntdata->axis[1].size-1)/2;
-  half = (NN+1)/2;
 
   if (tip->verbose) {
     fprintf(stderr, "---- %u --> %u %u %u %u %u\n", ii,
@@ -864,8 +863,6 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     /* we have fast ways of doing interpolation
        between two tensors for these path types */
     for (ii=0; ii<num; ii++) {
-      double *oten;
-      oten = out + 7*ii;
       /* yes, this is often doing a lot of needless recomputations. */
       tenInterpTwo_d(out + 7*ii, tenA, tenB, 
                      ptype, (double)ii/(num-1), tip);

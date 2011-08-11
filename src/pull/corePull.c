@@ -297,6 +297,11 @@ _pullIterate(pullContext *pctx, int mode) {
     return 1;
     break;
   }
+  if (E) {
+    pctx->finished = AIR_TRUE;
+    biffAddf(PULL, "%s: trouble finishing iter %u", me, pctx->iter);
+    return 1;
+  }
 
   pctx->timeIteration = airTime() - time0;
 

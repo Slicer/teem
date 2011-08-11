@@ -76,7 +76,6 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   float *posOut, *tenOut, *enrOut;
   pushBin *bin;
   pushPoint *point;
-  double sclmin, sclmax, sclmean;
 
   pointNum = _pushPointTotal(pctx);
   E = AIR_FALSE;
@@ -103,8 +102,6 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
 
   pointRun = 0;
-  sclmean = 0;
-  sclmin = sclmax = AIR_NAN;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
@@ -282,7 +279,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       /* there's an effort here to get the forces and energies, which
          are actually computed in index space, to be correctly scaled
          into world space, but no promises that its right ... */
-      double enrIdx[4], enrWorld[4];
+      double enrIdx[4]={0,0,0,0}, enrWorld[4];
       unsigned int ci;
       double posWorld[4], posIdx[4], len, frcIdx[4], frcWorld[4];
       ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;

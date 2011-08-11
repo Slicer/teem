@@ -252,9 +252,9 @@ _pullInfoSetup(pullContext *pctx) {
         return 1;
       }
       if (pctx->ispec[ii]->constraint) {
-        pullVolume *cvol;
+        /* pullVolume *cvol; */
         pctx->constraint = ii;
-        cvol = pctx->vol[pctx->ispec[ii]->volIdx];
+        /* cvol = pctx->vol[pctx->ispec[ii]->volIdx]; */
       }
     }
   }

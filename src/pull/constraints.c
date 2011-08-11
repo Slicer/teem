@@ -541,8 +541,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   unsigned int iterMax;
   int wantLine, wantSurf, failLine, failSurf;
   double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4], 
-    pos3Orig[3], pos3Diff[3], travel, 
-    modeLine = AIR_NAN, modeSurf = AIR_NAN;
+    pos3Orig[3], pos3Diff[3], travel;
+  /* double modeLine = AIR_NAN, modeSurf = AIR_NAN; */
   
   ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
@@ -603,10 +603,12 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
         biffAddf(PULL, "%s: surf trouble", me);
         return 1;
       }
+      /*
       if (wantLine) {
         modeSurf = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
                                     NULL, NULL);
       }
+      */
       ELL_4V_COPY(posSurf, point->pos);
     }
     /* yes, the starting point of the line constraint is the 
@@ -618,10 +620,12 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
         biffAddf(PULL, "%s: line trouble", me);
         return 1;
       }
+      /*
       if (wantSurf) {
         modeLine = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
                                     NULL, NULL);
       }
+      */
       ELL_4V_COPY(posLine, point->pos);
     }
     if (wantSurf && wantLine) {

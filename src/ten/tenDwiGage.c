@@ -197,14 +197,14 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
   int fd;
-  tenDwiGageKindData *kindData;
+  /* tenDwiGageKindData *kindData; */
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
                                   gageScl3PFilter6, gageScl3PFilter8};
   unsigned int J, dwiNum;
 
   fd = 2*ctx->radius;
   dwi = pvl->directAnswer[tenDwiGageAll];
-  kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data);
+  /* kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data); */
   dwiNum = pvl->kind->valLen;
   if (!ctx->parm.k3pack) {
     fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
