@@ -753,8 +753,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   }
   kindData = AIR_CAST(tenDwiGageKindData *, kind->data);
   
-  pvlData = AIR_CAST(tenDwiGagePvlData *,
-                     malloc(sizeof(tenDwiGagePvlData)));
+  pvlData = AIR_CALLOC(1, tenDwiGagePvlData);
   if (!pvlData) {
     biffAddf(GAGE, "%s: couldn't allocate pvl data!", me);
     return NULL;
@@ -786,23 +785,15 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
       return NULL;
     }
   }
-  pvlData->vbuf = AIR_CAST(double *,
-                           calloc(kind->valLen, sizeof(double)));
-  pvlData->wght = AIR_CAST(unsigned int *,
-                           calloc(kind->valLen, sizeof(unsigned int)));
+  pvlData->vbuf = AIR_CALLOC(kind->valLen, double);
+  pvlData->wght = AIR_CALLOC(kind->valLen, unsigned int);
   /* HEY: this is where we act on the the assumption about
      having val[0] be T2 baseline and all subsequent val[i] be DWIs */
   pvlData->wght[0] = 1;
-  pvlData->qvals = AIR_CAST(double *,
-                            calloc(kind->valLen-1, sizeof(double)));
-  pvlData->qpoints = AIR_CAST(double *,
-                              calloc(kind->valLen-1,  3*sizeof(double)));
-  pvlData->dists = AIR_CAST(double *,
-                            calloc(segcount*(kind->valLen-1), 
-                                   sizeof(double)));
-  pvlData->weights = AIR_CAST(double *,
-                              calloc(segcount*(kind->valLen-1),
-                                     sizeof(double)));
+  pvlData->qvals = AIR_CALLOC(kind->valLen-1, double);
+  pvlData->qpoints = AIR_CALLOC(3*(kind->valLen-1),  double);
+  pvlData->dists = AIR_CALLOC(segcount*(kind->valLen-1), double);
+  pvlData->weights = AIR_CALLOC(segcount*(kind->valLen-1), double);
 
   if (kindData->ngrad->data) {
     pvlData->nten1EigenGrads = nrrdNew();
@@ -949,7 +940,7 @@ tenDwiGageKindData*
 tenDwiGageKindDataNew() {
   tenDwiGageKindData *ret;
   
-  ret = AIR_CAST(tenDwiGageKindData *, malloc(sizeof(tenDwiGageKindData)));
+  ret = AIR_CALLOC(1, tenDwiGageKindData);
   if (ret) {
     /* it may be that only one of these is actually filled */
     ret->ngrad = nrrdNew();
@@ -1005,7 +996,7 @@ gageKind *
 tenDwiGageKindNew() {
   gageKind *kind;
   
-  kind = AIR_CAST(gageKind *, malloc(sizeof(gageKind)));
+  kind = AIR_CALLOC(1, gageKind);
   if (kind) {
     memcpy(kind, &_tenDwiGageKindTmpl, sizeof(gageKind));
     kind->valLen = 0; /* still has to be set later */

@@ -84,7 +84,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     biffAddf(TEN, "%s: somehow got zero DWIs", me);
     airMopError(mop); return 1;
   }
-  ndwi = AIR_CAST(Nrrd **, calloc(dwiNum, sizeof(Nrrd *)));
+  ndwi = AIR_CALLOC(dwiNum, Nrrd *);
   airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
   bmat = AIR_CAST(double *, nbmat->data);
   dwiIdx = -1;

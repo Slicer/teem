@@ -2006,7 +2006,7 @@ _tenGagePvlDataNew(const struct gageKind_t *kind) {
   _tenGagePvlData *pvlData;
   
   AIR_UNUSED(kind);
-  pvlData = AIR_CAST(_tenGagePvlData *, calloc(1, sizeof(_tenGagePvlData)));
+  pvlData = AIR_CALLOC(1, _tenGagePvlData);
   if (pvlData) {
     pvlData->buffTen = NULL;
     pvlData->buffWght = NULL;
@@ -2024,10 +2024,10 @@ _tenGagePvlDataCopy(const struct gageKind_t *kind,
   AIR_UNUSED(kind);
   pvlDataOld = AIR_CAST(_tenGagePvlData *, _pvlDataOld);
   num = pvlDataOld->tip->allocLen;
-  pvlDataNew = AIR_CAST(_tenGagePvlData *, calloc(1, sizeof(_tenGagePvlData)));
+  pvlDataNew = AIR_CALLOC(1, _tenGagePvlData);
   if (pvlDataNew) {
-    pvlDataNew->buffTen = AIR_CAST(double *, calloc(7*num, sizeof(double)));
-    pvlDataNew->buffWght = AIR_CAST(double *, calloc(num, sizeof(double)));
+    pvlDataNew->buffTen = AIR_CALLOC(7*num, double);
+    pvlDataNew->buffWght = AIR_CALLOC(num, double);
     pvlDataNew->tip = tenInterpParmCopy(pvlDataOld->tip);
   }
   return pvlDataNew;
@@ -2063,8 +2063,8 @@ _tenGagePvlDataUpdate(const struct gageKind_t *kind,
     /* HEY: no error checking */
     pvlData->buffTen = airFree(pvlData->buffTen);
     pvlData->buffWght = airFree(pvlData->buffWght);
-    pvlData->buffTen = AIR_CAST(double *, calloc(7*num, sizeof(double)));
-    pvlData->buffWght = AIR_CAST(double *, calloc(num, sizeof(double)));
+    pvlData->buffTen = AIR_CALLOC(7*num, double);
+    pvlData->buffWght = AIR_CALLOC(num, double);
     tenInterpParmBufferAlloc(pvlData->tip, num);  
   }
   return 0;
