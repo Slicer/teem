@@ -410,7 +410,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
   
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, indxLine[3], ii;
+    unsigned int triNum, indxLine[3]={0,0,0}, ii;
     float pos[3][3], edgeA[3], edgeB[3], norm[3];
     
     switch (pld->type[primIdx]) {

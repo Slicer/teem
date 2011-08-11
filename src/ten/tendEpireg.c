@@ -34,7 +34,7 @@ char *_tend_epiregInfoL =
    "procedure based on blurring (optional), thresholding and "
    "connected component analysis. "
    "The registered DWIs are resampled with the "
-   "chosen kernel, with the seperate DWIs stacked along axis 0.");
+   "chosen kernel, with the separate DWIs stacked along axis 0.");
 
 int
 tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -53,7 +53,7 @@ tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
   double bvalue;
   
   hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
-             "all the diffusion-weighted images (DWIs), as seperate 3D nrrds, "
+             "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
              "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
              &ninLen, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "g", "grads", airTypeString, 1, 1, &gradS, NULL,
@@ -84,7 +84,7 @@ tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "Use \"0.0 0.0\" to say \"no blurring\"");
   hestOptAdd(&hopt, "t", "DWI thresh", airTypeFloat, 1, 1, &thr, "nan",
              "Threshold value to use on DWIs, "
-             "to do initial seperation of brain and non-brain.  By default, "
+             "to do initial separation of brain and non-brain.  By default, "
              "the threshold is determined automatically by histogram "
              "analysis. ");
   hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
@@ -108,7 +108,7 @@ tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
              "first number to use in numbered sequence of output files.");
   hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, "-",
-             "For seperate 3D DWI volume inputs: prefix for output filenames; "
+             "For separate 3D DWI volume inputs: prefix for output filenames; "
              "will save out one (registered) "
              "DWI for each input DWI, using the same type as the input. "
              "**OR**: For single 4D DWI input: output file name. ");

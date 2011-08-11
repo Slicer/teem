@@ -202,7 +202,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
 ** Doing the frobenius normalization proved successfull in avoiding the
 ** the creating of NaN eigenvalues when the coefficients of the matrix
 ** were really large (> 50000).  Also, when the matrix norm was really
-** small, the comparison to "epsilon" in ell_cubic mistook three seperate
+** small, the comparison to "epsilon" in ell_cubic mistook three separate
 ** roots for a single and a double, with this matrix in particular:
 **  1.7421892  0.0137642  0.0152975
 **  0.0137642  1.7565432 -0.0062296
@@ -250,7 +250,7 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
 void
 _ell_3m_evecs_d(double evec[9], double eval[3], int roots, 
                 const double m[9]) {
-  double n[9], e0, e1, e2, t /* , tmpv[3] */ ;
+  double n[9], e0=0, e1=0.0, e2=0.0, t /* , tmpv[3] */ ;
 
   ELL_3V_GET(e0, e1, e2, eval);
   /* if (ell_debug) {

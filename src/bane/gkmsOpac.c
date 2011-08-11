@@ -42,7 +42,7 @@ baneGkms_opacMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "boundary emphasis function mapping from \"position\" to "
              "opacity. Can be either:\n "
              "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
-             "\b\bo comma-seperated list of four floats, with no spaces: "
+             "\b\bo comma-separated list of four floats, with no spaces: "
              "\"s,w,c,a\", where\n "
              "s = shape of function, between 0.0 for box and "
              "1.0 for tent\n "

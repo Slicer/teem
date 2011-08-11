@@ -365,13 +365,13 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     } while (llen > 1);
     /* either
        0 == llen: we're at EOF (or end of nio->headerStringRead), or
-       1 == llen: we just read the empty line seperating header from data */
+       1 == llen: we just read the empty line separating header from data */
     if (0 == llen
         && !nio->headerStringRead
         && !nio->dataFNFormat
         && 0 == nio->dataFNArr->len) { 
       /* we're at EOF, we're not reading from a string, but there's
-         apparently no seperate data file */
+         apparently no separate data file */
       biffAddf(NRRD, "%s: hit end of header, but no \"%s\" given", me,
                airEnumStr(nrrdField, nrrdField_data_file));
       return 1;

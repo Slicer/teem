@@ -224,7 +224,7 @@ typedef struct {
 **
 ** all the information you might want for a point.
 **
-** This used to have seperate coordinate arrays for view, screen, and 
+** This used to have separate coordinate arrays for view, screen, and 
 ** device space, but these have been collapsed (in the interest of space)
 ** into coord, with obj->vertSpace indicating which space these are in.
 ** This also used to have a lookIdx (now just rgba[4]), and a partIdx

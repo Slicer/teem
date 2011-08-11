@@ -74,7 +74,7 @@ baneGkms_hvolMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "directional derivative.  No faster, less accurate.");
   hestOptAdd(&opt, "slow", NULL, airTypeInt, 0, 0, &slow, NULL,
              "Instead of allocating a floating point VGH volume and measuring "
-             "V,G,H once, measure V,G,H multiple times on seperate passes "
+             "V,G,H once, measure V,G,H multiple times on separate passes "
              "(slower, but needs less memory)");
   if (nrrdEncodingGzip->available()) {
     hestOptAdd(&opt, "gz", NULL, airTypeInt, 0, 0, &gz, NULL,

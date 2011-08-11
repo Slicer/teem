@@ -194,7 +194,7 @@ enum {
 ** the different materials that are supported.  This setting determines
 ** the interpretation of the vector of floats/doubles ("mat[]") that
 ** constitutes material information.  All objects have an rgba[] array
-** seperate from material information.  The Light material is currently only
+** separate from material information.  The Light material is currently only
 ** supported on rectangles.
 */
 enum {

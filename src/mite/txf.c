@@ -143,7 +143,7 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
       /* should be of form "<kind>:<item>" */
       col = strstr(kqstr, ":");
       if (!col) {
-        biffAddf(MITE, "%s: didn't see \":\" seperator between gage "
+        biffAddf(MITE, "%s: didn't see \":\" separator between gage "
                  "kind and item", me);
         airMopError(mop); return 1;
       }

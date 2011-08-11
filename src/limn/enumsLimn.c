@@ -80,7 +80,7 @@ _limnCameraPathTrackDesc[] = {
   "unknown limnCameraPathTrack",
   "track through eye points, quaternions for camera orientation",
   "track through look-at points, quaternions for camera orientation",
-  "track eye point, look-at point, and up vector with seperate splines"
+  "track eye point, look-at point, and up vector with separate splines"
 };
 
 const char *

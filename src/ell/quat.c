@@ -130,7 +130,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
 
 void 
 ell_q_to_3m_f(float m[9], const float q[4]) {
-  float u[4], w, x, y, z;
+  float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   w = AIR_CAST(float, ELL_4V_LEN(q));
   ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_3M(float);
@@ -138,7 +138,7 @@ ell_q_to_3m_f(float m[9], const float q[4]) {
 
 void 
 ell_q_to_3m_d(double m[9], const double q[4]) {
-  double u[4], w, x, y, z;
+  double u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   ELL_4V_NORM(u, q, w);
   _ELL_Q_TO_3M(double);
 }
@@ -169,7 +169,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
 
 void 
 ell_q_to_4m_f(float m[16], const float q[4]) {
-  float u[4], w, x, y, z;
+  float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   w = AIR_CAST(float, ELL_3V_LEN(q));
   ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_4M(float);
@@ -177,7 +177,7 @@ ell_q_to_4m_f(float m[16], const float q[4]) {
 
 void 
 ell_q_to_4m_d(double m[16], const double q[4]) {
-  double u[4], w, x, y, z;
+  double u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   ELL_4V_NORM(u, q, w);
   _ELL_Q_TO_4M(double);
 }

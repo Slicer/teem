@@ -184,7 +184,7 @@ hestCB unrrduHestPosCB = {
 ** 18 July 03: with new nrrdTypeDefault, this function becomes
 ** less of a hack, and more necessary, because the notion of an
 ** unknown but valid type (as a default type is) falls squarely
-** outside the nrrdType airEnum framework.  Added a seperate test
+** outside the nrrdType airEnum framework.  Added a separate test
 ** for "default", even though currently nrrdTypeUnknown is the same
 ** value as nrrdTypeDefault.
 */

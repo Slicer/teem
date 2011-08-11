@@ -23,7 +23,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Merge CCs with their neighbors, under various contraints"
+#define INFO "Merge CCs with their neighbors, under various constraints"
 char *_unrrdu_ccmergeInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\". "

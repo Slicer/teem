@@ -292,7 +292,7 @@ typedef struct NrrdIoState_t {
                                to whence this nrrd is "save"ed, MINUS the
                                trailing "/", so as to facilitate games with
                                header-relative data files */
-    *base,                  /* when "save"ing a nrrd into seperate
+    *base,                  /* when "save"ing a nrrd into separate
                                header and data, the name of the header
                                file (e.g. "output.nhdr") MINUS the ".nhdr".
                                This is massaged to produce a header-
@@ -430,7 +430,7 @@ typedef struct NrrdIoState_t {
 ** min,max of the nrrd in question).
 **
 ** This information has been removed from the Nrrd struct (as of Teem1.6) 
-** and put into this seperate entity because:
+** and put into this separate entity because:
 ** 1) when intended to be descriptive of a nrrd, it can't be guaranteed
 ** to be true across nrrd calls
 ** 2) when used as input parameters (e.g. to nrrdQuantize), its not

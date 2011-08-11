@@ -596,16 +596,16 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
               int looping) {
   static const char me[]="splitTriTrack";
   unsigned int len0, len1, *edgeData, *edgeLine, edgeIdx, triIdx,
-    maxTriPerVert, *triWithVert, *vertWithTri,
+    /* maxTriPerVert, *triWithVert, *vertWithTri, */
     sweepLen, loopEnd0, loopEnd1, loopStart0, loopStart1;
   int doBack0, doBack1;
   
   len0 = len1 = 0;
   edgeData = AIR_CAST(unsigned int*, edgeArr->data);
   edgeData += 5*startIdx;
-  maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size-1);
-  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
-  vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
+  /* maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size-1); */
+  /* triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data); */
+  /* vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data); */
   
   if (looping) {
     loopStart0 = (edgeData)[0];
@@ -908,7 +908,7 @@ static int
 doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
             airArray *edgeArr) {
   static const char me[]="doSplitting";
-  unsigned int edgeNum, edgeIdx, *edgeData,
+  unsigned int edgeIdx, *edgeData,
     *edgeLine=NULL, vertIdx, vertNum, splitNum, edgeDoneNum, listLen=0, 
     *track0, track0Len=0, *track1, *sweep, track1Len=0, maxTriPerVert;
   unsigned char *hitCount;
@@ -944,7 +944,6 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
   airMopAdd(mop, track1, airFree, airMopAlways);
   airMopAdd(mop, sweep, airFree, airMopAlways);
   
-  edgeNum = edgeArr->len;
   edgeData = AIR_CAST(unsigned int*, edgeArr->data);
   
   /* initialize hitCount */
@@ -1079,7 +1078,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
     trueTriNum,      /* correct total # triangles in all primitives */
     baseVertIdx,     /* first vertex for current primitive */
     maxTriPerVert,   /* max # of tris on single vertex */
-    *triWithVert,    /* 2D array ((1+maxTriPerVert) x pld->xyzwNum) 
+    /* *triWithVert,    2D array ((1+maxTriPerVert) x pld->xyzwNum) 
                         of per-vertex triangles */
     *vertWithTri,    /* 3D array (3 x maxTriPerPrim x pld->primNum)
                         of per-tri vertices (vertex indices), which is just
@@ -1089,7 +1088,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
     *okay,           /* the stack of triangles with okay (possibly fixed)
                         winding, but with some neighbors that may as yet
                         need fixing */
-    *split;          /* stack of 4-tuples about edges needing vertex splits:
+    *split;          /* stack of 5-tuples about edges needing vertex splits:
                         split[0, 1]: two neighboring triangles,
                         split[2, 3]: their shared vertices
                         split[4]: non-zero if this split has been processed */
@@ -1141,7 +1140,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
     airMopError(mop); return 1;
   }
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
-  triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
+  /* triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data); */
   
   maxTriPerVert = nTriWithVert->axis[0].size - 1;
   intxBuff = AIR_CAST(unsigned int*, calloc(maxTriPerVert,
@@ -1162,7 +1161,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
                         maxTriPerPrim);
   airMopAdd(mop, okayArr, (airMopper)airArrayNuke, airMopAlways);
   if (splitting) {
-    splitArr = airArrayNew(NULL, NULL, 5*sizeof(unsigned int),
+    splitArr = airArrayNew((void**)(&split), NULL, 5*sizeof(unsigned int),
                            maxTriPerPrim);
     /* split set as it is used */
   } else {
@@ -1266,7 +1265,7 @@ limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) {
 int
 limnPolyDataCCFind(limnPolyData *pld) { 
   static const char me[]="limnPolyDataCCFind";
-  unsigned int realTriNum, *triMap, *triWithVert, vertIdx, *ccSize,
+  unsigned int realTriNum, *triMap, *triWithVert, vertIdx,
     *indxOld, *indxNew, primNumOld, *icntOld, *icntNew, *baseIndx,
     primIdxNew, primNumNew, passIdx, eqvNum=0;
   unsigned char *typeOld, *typeNew;
@@ -1342,7 +1341,6 @@ limnPolyDataCCFind(limnPolyData *pld) {
     biffMovef(LIMN, NRRD, "%s: couldn't histogram CC map", me);
     airMopError(mop); return 1;
   }
-  ccSize = AIR_CAST(unsigned int*, nccSize->data);
   
   /* indxNumOld == indxNumNew */
   indxOld = pld->indx;

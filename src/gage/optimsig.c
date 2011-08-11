@@ -471,10 +471,9 @@ _errTotal(gageOptimSigParm *parm) {
 static int
 _gageSetup(gageOptimSigParm *parm) {
   static const char me[]="_gageSetup";
-  double kparm[NRRD_KERNEL_PARMS_NUM], time0;
+  double kparm[NRRD_KERNEL_PARMS_NUM];
   int E;
 
-  time0 = airTime();
   if (parm->gctx) {
     gageContextNix(parm->gctx);
   }

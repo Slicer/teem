@@ -434,7 +434,7 @@ nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
 ** dictate that all non-existent values are smaller than all existent
 ** values, regardless of their actual values (so +infinity < -42).  This
 ** is to make sure that we have comparison that won't confuse qsort(),
-** which underlies _nrrdMeasureMedian(), and to make it easier to seperate
+** which underlies _nrrdMeasureMedian(), and to make it easier to separate
 ** existant from non-existant values.
 */
 #define _VC_ARGS(type) const type *A, const type *B

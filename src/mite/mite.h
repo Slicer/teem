@@ -141,12 +141,12 @@ typedef struct {
      one or more vectors that are used for shading calculations.  These will
      be parsed from muu->shadeStr into mrr->shadeSpec, which in turn will 
      determine the pointer values of mtt->shade{Vec,Scl}{0,1}.
-     ENTIRELY SEPERATE FROM THIS, a "surface normal" can be specified in
+     ENTIRELY SEPARATE FROM THIS, a "surface normal" can be specified in
      muu->normalStr, which (if non-empty), will be parsed into mrr->normalSpec,
      which in turn will determine the pointer values of mtt->normal.  This
      normal is used for the miteVal quantities involving "N".  
      Both shading and normal specifications can be given, since they are
-     used in seperate computations.  If the user wants to do miteVal-based
+     used in separate computations.  If the user wants to do miteVal-based
      stuff with the same quantity specified in (say) a phong shading 
      specification, its up to them to verify that the normalStr and the
      shadeStr refer to the same vector.
@@ -276,14 +276,14 @@ typedef struct {
 ******** miteStageOp* enum
 **
 ** the kinds of things we can do per txf to modify the range
-** variables.  previously mite only supported seperable transfer
+** variables.  previously mite only supported separable transfer
 ** functions (i.e., multiplication only).  It is tempting to use all
 ** the operations available as nrrdBinaryOps, but that would lead to
 ** goofy ones like Mod and GreaterThan, which either require or create
 ** integral values which aren't of much use in transfer functions.
 ** More generality in how opacities and colors are assigned will
 ** likely be supported by some simple programmability, supported by
-** the likes of the funk library, which will be entirely seperate from
+** the likes of the funk library, which will be entirely separate from
 ** the miteStageOp mechanism.
 */
 enum {

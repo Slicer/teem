@@ -56,7 +56,7 @@ typedef struct {
     fromNaN;            /* what to convert non-existent value to */
   int whatq,            /* what to measure along the ray */
     measr;              /* how to reduce the ray samples to a scalar */
-  /* we have a seperate copy of the kernel specs so that hest can
+  /* we have a separate copy of the kernel specs so that hest can
      set these, and then we'll gageKernelSet() them in the context
      in order to do the proper error checking- hest can't do the
      error checking that we need. */

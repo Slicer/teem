@@ -1260,7 +1260,7 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
 }
 
 /*
-** Sat Jan 29 16:44:50 EST 2005: this used to "open the seperate
+** Sat Jan 29 16:44:50 EST 2005: this used to "open the separate
 ** datafile, and set the FILE* in nio->dataFile, which otherwise will
 ** stay NULL", but now we support multiple detached data files.  So.
 **

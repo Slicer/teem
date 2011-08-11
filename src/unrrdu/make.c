@@ -482,7 +482,7 @@ unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }
   if (airStrlen(_origStr)) {
     /* why this is necessary is a bit confusing to me, both the check for
-       enclosing quotes, and the need to use to a seperate variable (isn't
+       enclosing quotes, and the need to use to a separate variable (isn't
        hest doing memory management of addresses, not variables?) */
     if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
       _origStr[strlen(_origStr)-1] = 0;

@@ -30,7 +30,7 @@ char *_unrrdu_joinInfoL =
  "by side, or attach images onto volumes.  If there are many many "
  "files to name in the \"-i\" option, and using wildcards won't work, "
  "consider putting the list of "
- "filenames into a seperate text file (e.g. \"slices.txt\"), and then "
+ "filenames into a separate text file (e.g. \"slices.txt\"), and then "
  "name this file as a response file (e.g. \"-i @slices.txt\"). "
  "This command now allows you to set the same pieces of information that "
  "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "

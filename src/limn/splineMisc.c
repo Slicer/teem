@@ -294,10 +294,10 @@ limnSplineParse(char *_str) {
   mop = airMopNew();
   airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
 
-  /* find seperation between filename and "<splineInfo>:<splineType>[:B,C]" */
+  /* find separation between filename and "<splineInfo>:<splineType>[:B,C]" */
   col = strchr(str, ':');
   if (!col) {
-    biffAddf(LIMN, "%s: saw no colon seperator (between nrrd filename and "
+    biffAddf(LIMN, "%s: saw no colon separator (between nrrd filename and "
              "spline info) in \"%s\"", me, _str);
     airMopError(mop); return NULL;
   }
@@ -310,10 +310,10 @@ limnSplineParse(char *_str) {
     airMopError(mop); return NULL;
   }
   
-  /* find seperation between splineInfo and "<splineType>[:B,C]" */
+  /* find separation between splineInfo and "<splineType>[:B,C]" */
   col = strchr(tmpS, ':');
   if (!col) {
-    biffAddf(LIMN, "%s: saw no colon seperator (between spline info "
+    biffAddf(LIMN, "%s: saw no colon separator (between spline info "
              "and spline type) in \"%s\"", me, tmpS);
     airMopError(mop); return NULL;
   }

@@ -230,7 +230,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (!gageDeconvolveSeparableKnown(ksp)) {
-    biffAddf(GAGE, "%s: seperable deconv not known for %s kernel",
+    biffAddf(GAGE, "%s: separable deconv not known for %s kernel",
              me, ksp->kernel->name);
     return 1;
   }

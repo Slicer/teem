@@ -149,7 +149,7 @@ typedef struct alanContext_t {
   int changeCount;    /* # of contributions to averageChange */
                       /* to control update of averageChange and changeCount */
   airThreadMutex *changeMutex;  
-                      /* to synchronize seperate iterations of simulation */
+                      /* to synchronize separate iterations of simulation */
   airThreadBarrier *iterBarrier;
 
   /* OUTPUT ---------------------------- */

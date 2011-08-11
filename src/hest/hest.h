@@ -166,7 +166,7 @@ typedef struct {
                            the end of a flagged variable parameter option
                            (single or multiple) */
     multiFlagSep;       /* character in flag which signifies that there is
-                           a long and short version, and which seperates
+                           a long and short version, and which separates
                            the two.  Or, can be set to '\0' to disable this
                            behavior entirely. */
 } hestParm;

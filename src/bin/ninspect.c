@@ -295,7 +295,7 @@ main(int argc, const char *argv[]) {
              "how much to apply histogram equalization to projection images");
   hestOptAdd(&hopt, "o", "img out", airTypeString, 1, 1, &outS,
              NULL, "output image to save to.  Will try to use whatever "
-             "format is implied by extention, but will fall back to PPM.");
+             "format is implied by extension, but will fall back to PPM.");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -144,7 +144,7 @@ _bmsgAdd(const char *key) {
     /* have to add new biffMsg */
     ii = airArrayLenIncr(_bmsgArr, 1);
     if (!_bmsg) {
-      fprintf(stderr, "%s: PANIC: couldn't accomodate one more key\n", me);
+      fprintf(stderr, "%s: PANIC: couldn't accommodate one more key\n", me);
       exit(1);
     }
     msg = _bmsg[ii] = biffMsgNew(key);
