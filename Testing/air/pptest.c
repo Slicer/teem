@@ -45,7 +45,7 @@ main(int argc, const char *argv[]) {
   pd = -424242;
   sprintf(buff, "sz: %s, pd: %s", 
           airSprintSize_t(stmp1, sz), airSprintPtrdiff_t(stmp2, pd));
-  printf("%s %d\n", buff, airSprintSize_t(stmp1, strlen(buff)));
+  printf("%s %s\n", buff, airSprintSize_t(stmp1, strlen(buff)));
 
   exit(0);
 }

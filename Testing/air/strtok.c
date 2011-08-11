@@ -52,7 +52,7 @@ main(int argc, const char *argv[]) {
     "When", "it", "goes,", "'t", "is", "like", "the", "distance",
     "On", "the", "look", "of", "death.", ""};
   const char *sep = " \t\n_", *ww;
-  unsigned int wi, jj, sepLen, lineLen, wordNum;
+  unsigned int wi, sepLen, lineLen, wordNum;
   airArray *lineArr;
   char wordsp[AIR_STRLEN_MED], *line, *last=NULL;
 
@@ -61,7 +61,7 @@ main(int argc, const char *argv[]) {
   sepLen = airStrlen(sep);
 
   mop = airMopNew();
-  lineArr = airArrayNew(&line, &lineLen, sizeof(char), INCR);
+  lineArr = airArrayNew((void**)(&line), &lineLen, sizeof(char), INCR);
   airMopAdd(mop, lineArr, (airMopper)airArrayNuke, airMopAlways);
 
   /* initialize line with "" */

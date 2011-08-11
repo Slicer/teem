@@ -62,7 +62,8 @@ main(int argc, const char *argv[]) {
 
   AIR_UNUSED(argc);
   me = argv[0];
-  
+
+  mop = airMopNew();
   rng = airRandMTStateNew(0);
   airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
   for (jj=0; jj<NUM; jj++) {
