@@ -31,7 +31,11 @@
 ** Hennessy + Patterson "Computer Architecture, A Quantitative Approach"
 ** pages A-13 - A-17
 **
-** and some assorted web pages
+** and some assorted web pages, such as:
+** http://en.wikipedia.org/wiki/NaN#Encoding
+** which explains what Teem calls qnanhibit, and 
+** http://grouper.ieee.org/groups/754/email/msg04192.html
+** which includes some discussion on signal-vs-quiet nan
 */
 
 /* 

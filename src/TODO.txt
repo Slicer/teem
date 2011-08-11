@@ -15,6 +15,7 @@ pointers, but to all values as well.
 
 all:
 * scrutinize use of strncpy, consider using airStrcpy
+* remove '_'s from enum value names in non-elf non-tijk libraries
 
 air:
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
@@ -31,6 +32,7 @@ hest:
 should start with hestDef, not just hest
 
 nrrd:
+* add support for 16-bit floats (start with Milan's patch)
 * rename nrrdFunc_nva() --> nrrdFunc()
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
 * rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
@@ -52,7 +54,7 @@ dye:
 * remove it, assuming its smarts have been copied into nrrd
 
 push:
-* remove it, assuming its smarst have been moved into pull
+* remove it, assuming its smarts have been moved into pull
 
 ========
 
