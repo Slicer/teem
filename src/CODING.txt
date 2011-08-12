@@ -27,16 +27,18 @@ nrrdSpaceOriginGet(const Nrrd *nrrd,
 
 Note:
 * No tabs, ever. (why: no two editors show them the same)
-* two spaces per level of indentation
+* Two spaces per level of indentation
 * In function definition (and only in definition), the function name
-starts a new line (why: makes it trivial to use grep to
-identify which source file contains the function definition)
+starts a new line (why: makes it trivial to use grep or ack to
+identify which source file contains the function definition, as with
+"ack ^nrrdLoad")
 * opening brace *not* on its own line
 * closing brace gets its own line, except for if/else
 * braces around a branch even if there is only one statement
 (why: there will eventually be more than one statement, even 
 if only for debugging)
-* blank line between function variables and function code
+* single blank line between function variable declaration/initialiation 
+and function code
 
 Other code formatting points:
 
@@ -163,8 +165,9 @@ strings airTeemVersion (which is just set to TEEM_VERSION_STRING), and
 airTeemReleaseDate; airTeemReleaseDate has to be updated upon release or
 patch
 
-* Use AIR_CAST to cast things. The only exception is casting
-things to airMopper to pass to airMopAdd. (why: casts are inherently
+* Use AIR_CAST to cast things. The only exceptions are casting
+things to airMopper to pass to airMopAdd(), and casting to void** to
+pass to the first argument of airArrayNew(). (why: casts are inherently
 tricky, and sources of bugs, so their use should be easily grep-able)
 
 * Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why:
@@ -188,10 +191,24 @@ are still just of type "int".  Thus, to collectively refer to the
 "fooBar*".  Not using a typecast is a loss of opportunity for some kinds of
 type checking, but is otherwise a big win for simplicity- airEnums (also
 widely used in Teem) map between strings and ints, and can do so generally
-because the ints are type-cast to something that will be different for
+because the ints are not typed as something that will be different for
 every enum.  Also, in many cases, which enum is in play is known only at
 run-time (e.g. the listing of of gageItems in a gage query in a volume for
 which the gageKind is known only at run-time).
+
+* All public airEnums are registered in the "meet" library.  If you add
+a new airEnum, you need to also register it in the meetAirEnumAll() function
+in teem/src/meet/enumall.c.  Also, all public airEnums should be declared as
+  const airEnum *const enumName;
+
+* Whenever there is an lookup-table array (created at compile time) to
+accompany the values in a C enum (e.g. nrrdTypeIsIntegral[] array 
+indexed by values from nrrdType* enum):
+** initialize only one value per line
+** include with each line a comments that names the enum value
+(e.g. nrrdTypeFloat) for which this is the value (why: then it becomes
+trivial to use grep/ack to find things that need to be updated
+when the set of values in the enum is changed)
 
 * Anything that behaves and is used like a bool should be type "int".
 Teem coders are expected to know that in C non-zero IS true, and zero
@@ -200,11 +217,6 @@ preferred way to call errorhandle() if pointer ptr is NULL.  Thanks
 to the convention of starting enums with an "unknown" value, the
 unknown value is 0 (false), and all legit values are non-zero (true),
 and Teem code often assumes this.
-
-* All public airEnums are registered in the "meet" library.  If you add
-a new airEnum, you need to also register it in the meetAirEnumAll() function
-in teem/src/meet/enumall.c.  Also, all public airEnums should be declared as
-  const airEnum *const enumName;
 
 * Everywhere except air and hest, use the biff library for registering
 error messages.  The annoyances of biff (currently not thread-safe to
@@ -296,7 +308,7 @@ the sake of code brevity when those variables won't change during the
 scope of the function.  Hopefully the struct is const, so the compiler
 can do the right thing.
 
-* Use "return" correctly: no parens!  "exit" does have parens.
+* Use "return" correctly: no parens!  "exit()" does have parens.
 
 * If a pointer should be initialized to NULL, then set it to NULL; Don't
 assume that a pointer in a struct will be NULL following a calloc.
@@ -306,8 +318,8 @@ have been more or less followed in Teem:
 - avoid arbitrary limits on (memory) sizes of things (this is very hard)
 - be robust about handling of non-ASCII input where ASCII is expected
 - be super careful about handling of erroneous system call return,
-  and always err on the side of being anal in matters of error detection
-  and reporting.
+  and always err on the side of being paranoid/defensive in matters of
+  error detection and reporting.
 - check every single malloc/calloc for NULL return
 - for expressions split on multiple lines, split before an operator, not after
 - use parens on multi-line expressions to make them tidy
