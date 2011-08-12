@@ -30,18 +30,19 @@ as "extern" */
 
 const char
 nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
-  "%*d",  /* what else? sscanf: skip, printf: use "minimum precision" */
-  "%d",
-  "%u",
-  "%hd",
-  "%hu",
-  "%d",
-  "%u",
-  AIR_LLONG_FMT,
-  AIR_ULLONG_FMT,
-  "%f",
-  "%lf",
-  "%*d"  /* what else? */
+  "%*d",          /* nrrdTypeUnknown: what else?  the effect will be
+                    "skip" for sscanf, and "minimum precision" for printf */
+  "%d",           /* nrrdTypeChar: char */
+  "%u",           /* nrrdTypeUChar: unsigned char */
+  "%hd",          /* nrrdTypeShort: short */
+  "%hu",          /* nrrdTypeUShort: unsigned short */
+  "%d",           /* nrrdTypeInt: int */
+  "%u",           /* nrrdTypeUInt: unsigned int */
+  AIR_LLONG_FMT,  /* nrrdTypeLLong: long long */
+  AIR_ULLONG_FMT, /* nrrdTypeULLong: unsigned long long */
+  "%f",           /* nrrdTypeFloat: float */
+  "%lf",          /* nrrdTypeDouble: double */
+  "%*d"           /* nrrdTypeBlock: what else? */
 };
 
 /*
@@ -49,50 +50,50 @@ nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 */
 const size_t
 nrrdTypeSize[NRRD_TYPE_MAX+1] = {
-  0,  /* unknown */
-  1,  /* char */
-  1,  /* unsigned char */
-  2,  /* short */
-  2,  /* unsigned short */
-  4,  /* int */
-  4,  /* unsigned int */
-  8,  /* long long */
-  8,  /* unsigned long long */
-  4,  /* float */
-  8,  /* double */
-  0   /* effectively unknown; user has to set explicitly */
+  0,  /* nrrdTypeUnknown: unknown */
+  1,  /* nrrdTypeChar: char */
+  1,  /* nrrdTypeUChar: unsigned char */
+  2,  /* nrrdTypeShort: short */
+  2,  /* nrrdTypeUShort: unsigned short */
+  4,  /* nrrdTypeInt: int */
+  4,  /* nrrdTypeUInt: unsigned int */
+  8,  /* nrrdTypeLLong: long long */
+  8,  /* nrrdTypeULLong: unsigned long long */
+  4,  /* nrrdTypeFloat: float */
+  8,  /* nrrdTypeDouble: double */
+  0   /* nrrdTypeBlock: effectively unknown; user has to set explicitly */
 };
 
 const int 
 nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
-  0,  /* unknown */
-  1,  /* char */
-  1,  /* unsigned char */
-  1,  /* short */
-  1,  /* unsigned short */
-  1,  /* int */
-  1,  /* unsigned int */
-  1,  /* long long */
-  1,  /* unsigned long long */
-  0,  /* float */
-  0,  /* double */
-  1   /* for some reason we pretend that blocks are integers */
+  0,  /* nrrdTypeUnknown: unknown */
+  1,  /* nrrdTypeChar: char */
+  1,  /* nrrdTypeUChar: unsigned char */
+  1,  /* nrrdTypeShort: short */
+  1,  /* nrrdTypeUShort: unsigned short */
+  1,  /* nrrdTypeInt: int */
+  1,  /* nrrdTypeUInt: unsigned int */
+  1,  /* nrrdTypeLLong: long long */
+  1,  /* nrrdTypeULLong: unsigned long long */
+  0,  /* nrrdTypeFloat: float */
+  0,  /* nrrdTypeDouble: double */
+  1   /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
 };
 
 const int 
 nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
-  0,  /* unknown */
-  0,  /* char */
-  1,  /* unsigned char */
-  0,  /* short */
-  1,  /* unsigned short */
-  0,  /* int */
-  1,  /* unsigned int */
-  0,  /* long long */
-  1,  /* unsigned long long */
-  0,  /* float */
-  0,  /* double */
-  0   /* for some reason we pretend that blocks are signed */
+  0,  /* nrrdTypeUnknown: unknown */
+  0,  /* nrrdTypeChar: char */
+  1,  /* nrrdTypeUChar: unsigned char */
+  0,  /* nrrdTypeShort: short */
+  1,  /* nrrdTypeUShort: unsigned short */
+  0,  /* nrrdTypeInt: int */
+  1,  /* nrrdTypeUInt: unsigned int */
+  0,  /* nrrdTypeLLong: long long */
+  1,  /* nrrdTypeULLong: unsigned long long */
+  0,  /* nrrdTypeFloat: float */
+  0,  /* nrrdTypeDouble: double */
+  0   /* nrrdTypeBlock: for some reason we pretend that blocks are signed */
 };
 
 /*
@@ -107,32 +108,32 @@ nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
 */
 const double
 nrrdTypeMin[NRRD_TYPE_MAX+1] = {
-  0,                       /* unknown */
-  SCHAR_MIN,               /* char */
-  0,                       /* unsigned char */
-  SHRT_MIN,                /* short */
-  0,                       /* unsigned short */
-  INT_MIN,                 /* int */
-  0,                       /* unsigned int */
-  (double)NRRD_LLONG_MIN,  /* long long */
-  0,                       /* unsigned long long */
-  0,                       /* float */
-  0,                       /* double */
-  0                        /* punt */
+  0,                       /* nrrdTypeUnknown: unknown */
+  SCHAR_MIN,               /* nrrdTypeChar: char */
+  0,                       /* nrrdTypeUChar: unsigned char */
+  SHRT_MIN,                /* nrrdTypeShort: short */
+  0,                       /* nrrdTypeUShort: unsigned short */
+  INT_MIN,                 /* nrrdTypeInt: int */
+  0,                       /* nrrdTypeUInt: unsigned int */
+  (double)NRRD_LLONG_MIN,  /* nrrdTypeLLong: long long */
+  0,                       /* nrrdTypeULLong: unsigned long long */
+  0,                       /* nrrdTypeFloat: float */
+  0,                       /* nrrdTypeDouble: double */
+  0                        /* nrrdTypeBlock: punt */
 },
 nrrdTypeMax[NRRD_TYPE_MAX+1] = {
-  0,                       /* unknown */
-  SCHAR_MAX,               /* char */
-  UCHAR_MAX,               /* unsigned char */
-  SHRT_MAX,                /* short */
-  USHRT_MAX,               /* unsigned short */
-  INT_MAX,                 /* int */
-  UINT_MAX,                /* unsigned int */
-  (double)NRRD_LLONG_MAX,  /* long long */
-  (double)NRRD_ULLONG_MAX, /* unsigned long long */
-  0,                       /* float */
-  0,                       /* double */
-  0                        /* punt */
+  0,                       /* nrrdTypeUnknown: unknown */
+  SCHAR_MAX,               /* nrrdTypeChar: char */
+  UCHAR_MAX,               /* nrrdTypeUChar: unsigned char */
+  SHRT_MAX,                /* nrrdTypeShort: short */
+  USHRT_MAX,               /* nrrdTypeUShort: unsigned short */
+  INT_MAX,                 /* nrrdTypeInt: int */
+  UINT_MAX,                /* nrrdTypeUInt: unsigned int */
+  (double)NRRD_LLONG_MAX,  /* nrrdTypeLLong: long long */
+  (double)NRRD_ULLONG_MAX, /* nrrdTypeULLong: unsigned long long */
+  0,                       /* nrrdTypeFloat: float */
+  0,                       /* nrrdTypeDouble: double */
+  0                        /* nrrdTypeBlock: punt */
 };
 
 /*

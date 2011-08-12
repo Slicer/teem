@@ -97,7 +97,7 @@ enum {
 **
 ** all the different types, identified by integer
 **
-** 18 July 03: After some consternation, I decided to set
+** 18 July 03: After some consternation, GLK decided to set
 ** nrrdTypeUnknown and nrrdTypeDefault to the same thing, with the
 ** reasoning that the only times that nrrdTypeDefault is used is when
 ** controlling an *output* type (the type of "nout"), or rather,
