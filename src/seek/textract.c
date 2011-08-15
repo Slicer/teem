@@ -1220,7 +1220,7 @@ connectFace(seekContext *sctx, baggage *bag,
 
 static void
 intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
-  unsigned int xi, yi, sx, sy, si, six, siy, sixy;
+  unsigned int xi, yi, sx, sy, si;
   int i;
   
   sx = AIR_CAST(unsigned int, sctx->sx);
@@ -1229,9 +1229,6 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       si = xi + sx*yi;
-      six = xi + 1 + sx*yi;
-      siy = xi + sx*(yi+1);
-      sixy = xi + 1 + sx*(yi+1);
       /* take care of facevidx array */
       if (!bag->zi) { /* initialize, else copy over */
         sctx->facevidx[0 + 4*si] = -1;

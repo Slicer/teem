@@ -369,7 +369,7 @@ TIJK_EXPORT int tijk_approx_heur_3d_f(float *ls, float *vs, float *res,
                                       const tijk_approx_heur_parm *parm);
 
 /* shTijk.c */
-/* number of coefficients for order i/2 */
+/* at position i, number of coefficients for order 2*i */
 TIJK_EXPORT const unsigned int tijk_esh_len[];
 TIJK_EXPORT const unsigned int tijk_max_esh_order;
 

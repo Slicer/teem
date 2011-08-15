@@ -226,14 +226,13 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
               unsigned int xi, unsigned int yi, unsigned int ziOff,
               unsigned int dx, unsigned int dy, unsigned int dz) {
   static const char me[]="evecFlipProbe";
-  unsigned int sx, sy, sz, si;
+  unsigned int sx, sy, sz;
   double u, du, dot, wantDot, minDu, mode;
   double current[3], next[3], posNext[3], posA[3], posB[3], evecA[3], evecB[3];
   
   sx = AIR_CAST(unsigned int, sctx->sx);
   sy = AIR_CAST(unsigned int, sctx->sy);
   sz = AIR_CAST(unsigned int, sctx->sz);
-  si = xi + sx*yi;
   
   if (!(xi + dx < sx
         && yi + dy < sy
@@ -610,11 +609,10 @@ voxelGrads(double vgrad[8][3], double *val, int sx, int spi) {
 static void
 vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
            unsigned int xi, unsigned int yi) {
-  unsigned int sx, sy, si, spi, vi;
+  unsigned int sx, si, spi, vi;
   
   AIR_UNUSED(bag);
   sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
   si = xi + sx*yi;
   spi = (xi+1) + (sx+2)*(yi+1);
   
@@ -656,12 +654,11 @@ static void
 vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
             unsigned int xi, unsigned int yi) {
   /* static const char me[]="vvalSurfSet"; */
-  double eval[8][3], evec[8][3], grad[8][3], stng[8], maxStrength=0;
-  signed char flip[12], flipProd;
-  unsigned int sx, sy, si, vi, ei, vrti[8];
+  double evec[8][3], grad[8][3], stng[8], maxStrength=0;
+  signed char flip[12]={0,0,0,0,0,0,0,0,0,0,0,0}, flipProd;
+  unsigned int sx, si, vi, ei, vrti[8];
   
   sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
   si = xi + sx*yi;
   vrti[0] = 0 + 2*(xi + 0 + sx*(yi + 0));
   vrti[1] = 0 + 2*(xi + 1 + sx*(yi + 0));
@@ -678,7 +675,6 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
   for (vi=0; vi<8; vi++) {
     ELL_3V_COPY(grad[vi], sctx->grad + 3*vrti[vi]);
     ELL_3V_COPY(evec[vi], sctx->evec + 3*(bag->esIdx + 3*vrti[vi]));
-    ELL_3V_COPY(eval[vi], sctx->eval + 3*vrti[vi]);
     if (sctx->strengthUse) {
       stng[vi] = sctx->stng[vrti[vi]];
       if (!vi) {

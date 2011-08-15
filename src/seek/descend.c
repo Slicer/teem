@@ -373,8 +373,10 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     double optgradsqr = ELL_3V_DOT(optgrad,optgrad);
     unsigned int safetyct=0;
     const unsigned int maxct=30;
-    double tsqr[6], ten[6], norm;
-    double cf[7], cft[42]; /* derive relative to tensor values, 7x6 matrix */
+    double tsqr[6]={0,0,0,0,0,0}, /* only initialize to silence warning */
+      ten[6]={0,0,0,0,0,0}, norm=0;
+    double cf[7]={0,0,0,0,0,0,0}, /* only initialize to silence warning */
+      cft[42]; /* derive relative to tensor values, 7x6 matrix */
     double cfx[21]; /* spatial derivative of constraint functions, 7x3 matrix */
     double tx[18]; /* spatial derivative of tensor values, 6x3 matrix */
     double Hder[9], Hfront[9], Hback[9]; /* used to approximate Hessian der. */
