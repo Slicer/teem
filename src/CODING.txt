@@ -145,10 +145,10 @@ suffixed with "Num".  For example, "nin" and "ninNum" here:
                unsigned int axis, int incrDim);
 
 * In public headers, ONLY use "..." to indicate var-args arguments.
-That includes in comments; use ".." instead of "..." to refer to a
-range of things, and ". . ." for regular ellipses.  (why: to make it
-trivial to see which functions are var-args; they can be the hardest
-to debug).
+"..." should be used in comments (in public headers).  Use ".."
+instead of "..." to refer to a range of things, and ". . ." for
+regular ellipses in text.  (why: to make it trivial to see which
+functions are var-args; they can be the hardest to debug).
 
 * Any functions that are not intending to be public should be "static"
 in their source files, so that nothing accidentally links against them.
@@ -184,7 +184,7 @@ to successive integers (which are commonly documented in the header files
 for debugging purposes), rather than explicitly set by hand in the code
 (with a small fixed set of special exceptions, like airEndian)
 ** All enums end with a flag "last" value, with a name ending in "Last" or
-"_last"; (why: simple way to test bounds on
+"_last"; (why: simple way to test bounds on valid values)
 ** None of the Teem enums are typecast to something distinct- the values
 are still just of type "int".  Thus, to collectively refer to the
 {fooBarUnknown, fooBarA, fooBarB, fooBarC ...} enum values, we use
@@ -312,6 +312,12 @@ can do the right thing.
 
 * If a pointer should be initialized to NULL, then set it to NULL; Don't
 assume that a pointer in a struct will be NULL following a calloc.
+
+* New libraries should be added only when it is abundantly obvious
+that no existing library can contain the intended functionality.  By
+convention adopted in 2002, all Teem library names must be a WORD, not
+an acronym.  The language of the word need not be English (e.g. tijk,
+Dutch for ticking, the fabric of pillow and mattress covering)
 
 * Parts of the GNU style (http://www.gnu.org/prep/standards.html) which 
 have been more or less followed in Teem:
