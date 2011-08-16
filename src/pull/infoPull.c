@@ -44,7 +44,8 @@ _pullInfoLen[PULL_INFO_MAX+1] = {
   1, /* pullInfoLiveThresh3 */
   3, /* pullInfoTangent1 */
   3, /* pullInfoTangent2 */
-  1, /* pullInfoTangentMode */
+  3, /* pullInfoNegativeTangent1 */
+  3, /* pullInfoNegativeTangent2 */
   1, /* pullInfoIsovalue */
   3, /* pullInfoIsovalueGradient */
   9, /* pullInfoIsovalueHessian */
@@ -259,16 +260,14 @@ _pullInfoSetup(pullContext *pctx) {
     }
   }
   if (pctx->constraint) {
-    if (pctx->ispec[pullInfoTangentMode]) {
-      pctx->constraintDim = 1.5;
-    } else {
-      pctx->constraintDim = _pullConstraintDim(pctx, NULL, NULL);
-      if (!pctx->flag.allowCodimension3Constraints) {
-        if (!pctx->constraintDim) {
-          biffAddf(PULL, "%s: got constr dim 0.0", me);
-          return 1;
-        }
-      }
+    pctx->constraintDim = _pullConstraintDim(pctx);
+    if (-1 == pctx->constraintDim) {
+      biffAddf(PULL, "%s: problem learning constraint dimension", me);
+      return 1;
+    }
+    if (!pctx->flag.allowCodimension3Constraints && !pctx->constraintDim) {
+      biffAddf(PULL, "%s: got constr dim 0 but co-dim 3 not allowed", me);
+      return 1;
     }
     if (pctx->haveScale) {
       double *parmS, denS,
@@ -277,6 +276,7 @@ _pullInfoSetup(pullContext *pctx) {
       case pullInterTypeUnivariate:
       case pullInterTypeSeparable:
         /* assume repulsive along both r and s */
+        /* HEY this prevents using a negative gaussian along scale */
         pctx->targetDim = 1 + pctx->constraintDim;
         break;
       case pullInterTypeAdditive:
@@ -304,7 +304,7 @@ _pullInfoSetup(pullContext *pctx) {
     pctx->targetDim = 0;
   }
   if (pctx->verbose) {
-    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %g,%g\n", 
+    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n", 
            me, pctx->infoTotalLen, pctx->constraint,
            pctx->constraintDim, pctx->targetDim);
   }

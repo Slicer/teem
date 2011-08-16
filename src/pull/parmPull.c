@@ -324,7 +324,7 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
 ** I know they're there to be copied upon task creation to create the
 ** per-TASK volumes, but its easy to think that one is supposed to be
 ** doing something with them, or that changes to them will have some
-** effect ...
+** effect . . .
 */
 int
 pullVerboseSet(pullContext *pctx, int verbose) {

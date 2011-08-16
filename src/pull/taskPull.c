@@ -100,13 +100,13 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->addPointNum = 0;
   task->addPointArr = airArrayNew(AIR_CAST(void **, &(task->addPoint)),
                                   &(task->addPointNum), sizeof(pullPoint*),
-                                  /* not exactly the right semantics ... */
+                                  /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->nixPoint = NULL;
   task->nixPointNum = 0;
   task->nixPointArr = airArrayNew(AIR_CAST(void **, &(task->nixPoint)),
                                   &(task->nixPointNum), sizeof(pullPoint*),
-                                  /* not exactly the right semantics ... */
+                                  /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->returnPtr = NULL;
   task->stuckNum = 0;

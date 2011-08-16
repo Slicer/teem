@@ -24,6 +24,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/* #define PRAYING */
+
 /*
 typedef struct {
   double val, absval, grad[3];
@@ -132,7 +134,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
     }
   }
   if (iter > iterMax) {
-    *constrFailP = AIR_TRUE;
+    *constrFailP = pullConstraintFailIterMaxed;
   } else {
     *constrFailP = AIR_FALSE;
   }
@@ -199,7 +201,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
     NORMALIZE(dir, grad, len);
   }
   if (iter > iterMax) {
-    *constrFailP = AIR_TRUE;
+    *constrFailP = pullConstraintFailIterMaxed;
     return 0;
   }
   /* second phase: find the zero-crossing, looking between
@@ -245,7 +247,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
     }
   }
   if (iter > iterMax) {
-    *constrFailP = AIR_TRUE;
+    *constrFailP = pullConstraintFailIterMaxed;
   } else {
     *constrFailP = AIR_FALSE;
   }
@@ -256,15 +258,6 @@ constraintSatLapl(pullTask *task, pullPoint *point,
 
 
 /* ------------------------------------------- height (line xor surf) */
-
-#define MODEWARP(m, p)                          \
-  (m > 0                                        \
-   ? 1 - airIntPow(1-m, p)                      \
-   : airIntPow(m+1, p) - 1)
-
-#define MODENAVG(pnt, m)                                  \
-  ( ((pnt)->neighInterNum*(pnt)->neighMode + (m))/       \
-    (1 + (pnt)->neighInterNum) )
 
 static int
 probeHeight(pullTask *task, pullPoint *point, 
@@ -280,183 +273,291 @@ probeHeight(pullTask *task, pullPoint *point,
   return 0;
 }
 
+/*
+** creaseProj
+**
+** eigenvectors (with non-zero eigenvalues) of output proj are
+** tangents to the directions along which particle is allowed to move
+** *downward* (in height) for constraint satisfaction (according to
+** tangent 1 and tangent2)
+**
+** negproj is the same, but for points moving upwards (according to
+** negativetangent1 and negativetangent2)
+*/
 static void
 creaseProj(pullTask *task, pullPoint *point,
-           int tang1Use, int tang2Use, int modeUse,
+           int tang1Use, int tang2Use,
+           int negtang1Use, int negtang2Use,
            /* output */
-           double proj[9]) {
+           double posproj[9], double negproj[9]) {
 #ifdef PRAYING
   static const char me[]="creaseProj";
 #endif
+  double pp[9];
   double *tng;
 
+  ELL_3M_ZERO_SET(posproj);
   if (tang1Use) {
     tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
 #ifdef PRAYING
-    if (_pullPraying) {
-      printf("!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
-    }
+    printf("!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
 #endif
-    ELL_3MV_OUTER(proj, tng, tng);
-  } else {
-    ELL_3M_IDENTITY_SET(proj);
+    ELL_3MV_OUTER(pp, tng, tng);
+    ELL_3M_ADD2(posproj, posproj, pp);
   }
   if (tang2Use) {
-    double proj2[9];
     tng = point->info + task->pctx->infoIdx[pullInfoTangent2];
-    ELL_3MV_OUTER(proj2, tng, tng);
-    if (modeUse) {
-      double mode;
-      ELL_3M_ADD2(proj2, proj, proj2);
-      mode = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
-                              NULL, NULL);
-      if (point->neighInterNum) {
-        mode = MODENAVG(point, mode);
-        /* mode = pow((mode + 1)/2, 4)*2 - 1; */
-      }
-      mode = MODEWARP(mode, 5);
-      mode = AIR_AFFINE(-1, mode, 1, 0, 1);
-      ELL_3M_LERP(proj, mode, proj, proj2);
-    } else {
-      ELL_3M_ADD2(proj, proj, proj2);
-    }
+    ELL_3MV_OUTER(pp, tng, tng);
+    ELL_3M_ADD2(posproj, posproj, pp);
   }
+
+  ELL_3M_ZERO_SET(negproj);
+  if (negtang1Use) {
+    tng = point->info + task->pctx->infoIdx[pullInfoNegativeTangent1];
+    ELL_3MV_OUTER(pp, tng, tng);
+    ELL_3M_ADD2(negproj, negproj, pp);
+  }
+  if (negtang2Use) {
+    tng = point->info + task->pctx->infoIdx[pullInfoNegativeTangent2];
+    ELL_3MV_OUTER(pp, tng, tng);
+    ELL_3M_ADD2(negproj, negproj, pp);
+  }
+
   return;
 }
 
-#define PROBE(height, grad, hess, proj)                 \
-  if (probeHeight(task, point,                          \
-                  &(height), (grad), (hess))) {         \
-    biffAddf(PULL, "%s: trouble on iter %u", me, iter); \
-    return 1;                                           \
-  }                                                     \
-  creaseProj(task, point, tang1Use, tang2Use, modeUse, proj)
-#define SAVE(state, height, grad, hess, proj, pos) \
-  state[0] = height;                               \
-  ELL_3V_COPY(state + 1, grad);                    \
-  ELL_3M_COPY(state + 1 + 3, hess);                \
-  ELL_3M_COPY(state + 1 + 3 + 9, proj);            \
-  ELL_3V_COPY(state + 1 + 3 + 9 + 9, pos)
-#define RESTORE(height, grad, hess, proj, pos, state)   \
-  height = state[0];                                    \
-  ELL_3V_COPY(grad, state + 1);                         \
-  ELL_3M_COPY(hess, state + 1 + 3);                     \
-  ELL_3M_COPY(proj, state + 1 + 3 + 9);                 \
-  ELL_3V_COPY(pos, state + 1 + 3 + 9 + 9)
-#define NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj)             \
-  ELL_3MV_MUL(pgrad, proj, grad);                                     \
+/* HEY: body of probeHeight could really be expanded in here */
+#define PROBE(height, grad, hess, posproj, negproj)             \
+  if (probeHeight(task, point,                                  \
+                  &(height), (grad), (hess))) {                 \
+    biffAddf(PULL, "%s: trouble on iter %u", me, iter);         \
+    return 1;                                                   \
+  }                                                             \
+  creaseProj(task, point, tang1Use, tang2Use,                   \
+             negtang1Use, negtang2Use, posproj, negproj)
+#define SAVE(state, height, grad, hess, posproj, negproj, pos)   \
+  state[0] = height;                                             \
+  ELL_3V_COPY(state + 1, grad);                                  \
+  ELL_3M_COPY(state + 1 + 3, hess);                              \
+  ELL_3M_COPY(state + 1 + 3 + 9, posproj);                       \
+  ELL_3M_COPY(state + 1 + 3 + 9 + 9, negproj);                   \
+  ELL_3V_COPY(state + 1 + 3 + 9 + 9 + 9, pos)
+#define RESTORE(height, grad, hess, posproj, negproj, pos, state)   \
+  height = state[0];                                                \
+  ELL_3V_COPY(grad,    state + 1);                                  \
+  ELL_3M_COPY(hess,    state + 1 + 3);                              \
+  ELL_3M_COPY(posproj, state + 1 + 3 + 9);                          \
+  ELL_3M_COPY(negproj, state + 1 + 3 + 9 + 9);                      \
+  ELL_3V_COPY(pos,     state + 1 + 3 + 9 + 9 + 9)
+#define POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj)       \
+  ELL_3MV_MUL(pgrad, posproj, grad);                                  \
   ELL_3V_NORM(pdir, pgrad, plen);                                     \
   d1 = ELL_3V_DOT(grad, pdir);                                        \
   d2 = ELL_3MV_CONTR(hess, pdir)
+#define NEGNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj)       \
+  ELL_3MV_MUL(pgrad, negproj, grad);                                  \
+  ELL_3V_NORM(pdir, pgrad, plen);                                     \
+  d1 = -ELL_3V_DOT(grad, pdir);                                       \
+  d2 = -ELL_3MV_CONTR(hess, pdir)
+#define PRINT(prefix)                                        \
+  printf("-------------- probe results %s:\n-- val = %g\n", prefix, val);   \
+  printf("-- grad = %g %g %g\n", grad[0], grad[1], grad[2]); \
+  printf("-- hess = %g %g %g;  %g %g %g;  %g %g %g\n",       \
+         hess[0], hess[1], hess[2],                          \
+         hess[3], hess[4], hess[5],                          \
+         hess[6], hess[7], hess[8]);                         \
+  printf("-- posproj = %g %g %g;  %g %g %g;  %g %g %g\n",    \
+         posproj[0], posproj[1], posproj[2],                 \
+         posproj[3], posproj[4], posproj[5],                 \
+         posproj[6], posproj[7], posproj[8]);                \
+  printf("-- negproj = %g %g %g;  %g %g %g;  %g %g %g\n",    \
+         negproj[0], negproj[1], negproj[2],                 \
+         negproj[3], negproj[4], negproj[5],                 \
+         negproj[6], negproj[7], negproj[8])
+
 static int
 constraintSatHght(pullTask *task, pullPoint *point,
-                  int tang1Use, int tang2Use, int modeUse,
+                  int tang1Use, int tang2Use,
+                  int negtang1Use, int negtang2Use,
                   double stepMax, unsigned int iterMax,
                   int *constrFailP) {
   static const char me[]="constraintSatHght";
-  double val, grad[3], hess[9], proj[9],
-    state[1+3+9+9+3], hack, step,
+  double val, grad[3], hess[9], posproj[9], negproj[9],
+    state[1+3+9+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
 #ifdef PRAYING
   double _tmpv[3]={0,0,0};
 #endif
+  int havePos, haveNeg;
   unsigned int iter = 0;  /* 0: initial probe, 1..iterMax: probes in loop */
   /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
 
-  /*
-  if (_pullPraying) {
-    pullPoint *npnt;
-    printf("%s: starting at %g %g %g\n", me, 
-           point->pos[0], point->pos[1], point->pos[2]);
-    npnt = pullPointNew(task->pctx);
-    npnt->debug = AIR_TRUE;
-    ELL_4V_COPY(npnt->pos, point->pos);
-    _pullProbe(task, npnt);
-    pullBinsPointAdd(task->pctx, npnt);
-  }
-  */
+  havePos = tang1Use || tang2Use;
+  haveNeg = negtang1Use || negtang2Use;
 #ifdef PRAYING
-  if (_pullPraying) {
-    printf("!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
-           point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-    printf("!%s: tang2 %d mode %d, stepMax %g, iterMax %u\n", me,
-           tang2Use, modeUse, stepMax, iterMax);
-  }
+  printf("!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
+         point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+  printf("!%s: pt %d %d nt %d %d stepMax %g, iterMax %u\n", me,
+         tang1Use, tang2Use, negtang1Use, negtang2Use,
+         stepMax, iterMax);
 #endif
   _pullPointHistAdd(point, pullCondOld);
-  PROBE(val, grad, hess, proj);
+  PROBE(val, grad, hess, posproj, negproj);
 #ifdef PRAYING
-  if (_pullPraying) {
-    printf(" val = %g\n", val);
-    printf(" grad = %g %g %g\n", grad[0], grad[1], grad[2]);
-    printf(" hess = %g %g %g;  %g %g %g;  %g %g %g\n",
-           hess[0], hess[1], hess[2],
-           hess[3], hess[4], hess[5],
-           hess[6], hess[7], hess[8]);
-    printf(" proj = %g %g %g;  %g %g %g;  %g %g %g\n",
-           proj[0], proj[1], proj[2],
-           proj[3], proj[4], proj[5],
-           proj[6], proj[7], proj[8]);
-  }
+  PRINT("initial probe");
 #endif
-  SAVE(state, val, grad, hess, proj, point->pos);
+  SAVE(state, val, grad, hess, posproj, negproj, point->pos);
   hack = 1;
   for (iter=1; iter<=iterMax; iter++) {
-    NORM(d1, d2, pdir, plen, pgrad, grad, hess, proj);
-    if (!plen) {
-      /* this use to be a biff error, which got to be annoying */
-      *constrFailP = AIR_TRUE;
-      return 0;
-    }
-    step = (d2 <= 0 ? -plen : -d1/d2);
 #ifdef PRAYING
-    if (_pullPraying) {
-      printf("!%s: iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
+    printf("!%s: =============== begin iter %u\n", me, iter);
+#endif
+    /* HEY: no opportunistic increase of hack? */
+    if (havePos) {
+      POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj);
+      if (!plen) {
+        /* this use to be a biff error, which got to be annoying */
+        *constrFailP = pullConstraintFailProjGradZeroA;
+        return 0;
+      }
+      step = (d2 <= 0 ? -plen : -d1/d2);
+#ifdef PRAYING
+      printf("!%s: (+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
              iter, d2, -plen, -d1/d2, step);
-    }
 #endif
-    step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
-#ifdef PRAYING
-    if (_pullPraying) {
-      printf("       -> %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
-      ELL_3V_COPY(_tmpv, point->pos);
-    }
-#endif
-    ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
-#ifdef PRAYING
-    if (_pullPraying) {
-      ELL_3V_SUB(_tmpv, _tmpv, point->pos);
-      printf("        -> moved to %g %g %g %g\n", 
-             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-      printf("        (moved %g)\n", ELL_3V_LEN(_tmpv));
-    }
-#endif
-    _pullPointHistAdd(point, pullCondConstraintSatA);
-    /*
-    if (_pullPraying) {
-      pullPoint *npnt;
-      npnt = pullPointNew(task->pctx);
-      npnt->debug = AIR_TRUE;
-      ELL_4V_COPY(npnt->pos, point->pos);
-      _pullProbe(task, npnt);
-      pullBinsPointAdd(task->pctx, npnt);
-    }
-    */
-    PROBE(val, grad, hess, proj);
-    if (val <= state[0]) {
+      step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
       if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
-        /* we have converged! */
+        /* no further iteration needed; we're converged */
+#ifdef PRAYING
+        printf("     |step| %g < %g*%g = %g ==> converged!\n", AIR_ABS(step),
+                 stepMax, task->pctx->sysParm.constraintStepMin,
+                 stepMax*task->pctx->sysParm.constraintStepMin);
+#endif
+        if (!haveNeg) {
+          break;
+        } else {
+          goto nextstep;
+        }
+      }
+      /* else we have to take a significant step */
+#ifdef PRAYING
+      printf("       -> step %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
+      ELL_3V_COPY(_tmpv, point->pos);
+      printf("       ->  pos (%g,%g,%g,%g) += %g * %g * (%g,%g,%g)\n",
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+             hack, step, pdir[0], pdir[1], pdir[2]);
+#endif
+      ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
+#ifdef PRAYING
+      ELL_3V_SUB(_tmpv, _tmpv, point->pos);
+      printf("       -> moved to %g %g %g %g\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      printf("       (moved %g)\n", ELL_3V_LEN(_tmpv));
+#endif
+      _pullPointHistAdd(point, pullCondConstraintSatA);
+      PROBE(val, grad, hess, posproj, negproj);
+#ifdef PRAYING
+      printf("  (+) probed at (%g,%g,%g,%g)\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      PRINT("after move");
+      printf("  val(%g,%g,%g,%g)=%g %s state[0]=%g\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+             val, val <= state[0] ? "<=" : ">", state[0]);
+#endif
+      if (val <= state[0]) {
+        /* we made progress */
+#ifdef PRAYING
+        printf("  (+) progress!\n");
+#endif
+        SAVE(state, val, grad, hess, posproj, negproj, point->pos);
+        hack = 1;
+      } else { 
+        /* oops, we went uphill instead of down; try again */
+#ifdef PRAYING
+        printf("  val *increased*; backing hack from %g to %g\n",
+               hack, hack*task->pctx->sysParm.backStepScale);
+#endif
+        hack *= task->pctx->sysParm.backStepScale;
+        RESTORE(val, grad, hess, posproj, negproj, point->pos, state);
+#ifdef PRAYING
+        printf("  restored to pos (%g,%g,%g,%g)\n", 
+               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+#endif
+      }
+    }
+  nextstep:
+    if (haveNeg) {
+      /* HEY: copy and paste from above, minus fluff */
+      NEGNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj);
+      if (!plen && !haveNeg) {
+        /* this use to be a biff error, which got to be annoying */
+        *constrFailP = pullConstraintFailProjGradZeroA;
+        return 0;
+      }
+      step = (d2 <= 0 ? -plen : -d1/d2);
+#ifdef PRAYING
+      printf("!%s: -+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n", me,
+             iter, d2, -plen, -d1/d2, step);
+#endif
+      step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
+      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
+#ifdef PRAYING
+        printf("     |step| %g < %g*%g = %g ==> converged!\n", AIR_ABS(step),
+                 stepMax, task->pctx->sysParm.constraintStepMin,
+                 stepMax*task->pctx->sysParm.constraintStepMin);
+#endif
+        /* no further iteration needed; we're converged */
         break;
       }
-      SAVE(state, val, grad, hess, proj, point->pos);
-      hack = 1;
-    } else { /* oops, try again */
-      hack *= task->pctx->sysParm.backStepScale;
-      RESTORE(val, grad, hess, proj, point->pos, state);
+      /* else we have to take a significant step */
+#ifdef PRAYING
+      printf("       -> step %g, |pdir| = %g\n", step, ELL_3V_LEN(pdir));
+      ELL_3V_COPY(_tmpv, point->pos);
+      printf("       ->  pos (%g,%g,%g,%g) += %g * %g * (%g,%g,%g)\n",
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+             hack, step, pdir[0], pdir[1], pdir[2]);
+#endif
+      ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
+#ifdef PRAYING
+      ELL_3V_SUB(_tmpv, _tmpv, point->pos);
+      printf("       -> moved to %g %g %g %g\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      printf("       (moved %g)\n", ELL_3V_LEN(_tmpv));
+#endif
+      _pullPointHistAdd(point, pullCondConstraintSatA);
+      PROBE(val, grad, hess, posproj, negproj);
+#ifdef PRAYING
+      printf("  (-) probed at (%g,%g,%g,%g)\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      PRINT("after move");
+      printf("  val(%g,%g,%g,%g)=%g %s state[0]=%g\n", 
+             point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+             val, val >= state[0] ? ">=" : "<", state[0]);
+#endif
+      if (val >= state[0]) {
+        /* we made progress */
+#ifdef PRAYING
+        printf("  (-) progress!\n");
+#endif
+        SAVE(state, val, grad, hess, posproj, negproj, point->pos);
+        hack = 1;
+      } else { 
+        /* oops, we went uphill instead of down; try again */
+#ifdef PRAYING
+        printf("  val *increased*; backing hack from %g to %g\n",
+               hack, hack*task->pctx->sysParm.backStepScale);
+#endif
+        hack *= task->pctx->sysParm.backStepScale;
+        RESTORE(val, grad, hess, posproj, negproj, point->pos, state);
+#ifdef PRAYING
+        printf("  restored to pos (%g,%g,%g,%g)\n", 
+               point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+#endif
+      }
     }
   }
   if (iter > iterMax) {
-    *constrFailP = AIR_TRUE;
+    *constrFailP = pullConstraintFailIterMaxed;
   } else {
     *constrFailP = AIR_FALSE;
   }
@@ -467,82 +568,27 @@ constraintSatHght(pullTask *task, pullPoint *point,
   return 0;
 }
 #undef PROBE
-#undef NORM
+#undef POSNORM
+#undef NEGNORM
 #undef SAVE
 #undef RESTORE
 
 /* ------------------------------------------- */
 
-static int
-_wantLineOrSurf(int *wantLine, int *wantSurf, double *mode,
-                pullContext *pctx, pullTask *task, pullPoint *point) {
-  static const char me[]="_wantLineOrSurf";
-
-  *wantSurf = *wantLine = AIR_FALSE;
-  if (pctx->ispec[pullInfoTangentMode]) {
-    double md;
-    if (!(task && point)) {
-      /* rare use of biff for error that can only happen due to 
-         bugs in pull, rather than system-achievable configurations */
-      biffAddf(PULL, "%s: have mode, but got NULL task %p or point %p", me,
-               task, point);
-      return 1;
-    }
-    if (_pullProbe(task, point)) {
-      biffAddf(PULL, "%s: trouble", me);
-      return 1;
-    }
-    *mode = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
-                             NULL, NULL);
-    if (task->pctx->iter < 2) {
-      *wantSurf = (*mode < 0);
-      *wantLine = !(*wantSurf);
-    } else {
-      if (point->neighInterNum) {
-        *mode = MODENAVG(point, *mode);
-        /* mode = pow((mode + 1)/2, 4)*2 - 1; */
-      }
-      md = MODEWARP(*mode, 5);
-      md = (1 + md)/2;
-      if (md < 0.01) {
-        *wantSurf = AIR_TRUE;
-      } else if (md > 0.99) {
-        *wantLine = AIR_TRUE;
-      } else {
-        *wantSurf = *wantLine = AIR_TRUE;
-      }
-    }
-  } else {
-    *mode = AIR_NAN;
-    if (pctx->ispec[pullInfoTangent2]) {
-      *wantLine = AIR_TRUE;
-    } else if (pctx->ispec[pullInfoTangent1]) {
-      *wantSurf = AIR_TRUE;
-    }
-  }
-  if (!( pctx->flag.allowCodimension3Constraints
-         || *wantLine || *wantSurf )) {
-    biffAddf(PULL, "%s: confusion, should want line (%d) or surf (%d)", me,
-             *wantLine, *wantSurf);
-    return 1;
-  }
-  return 0;
-}
-
 /* HEY: have to make sure that scale position point->pos[3] 
 ** is not modified anywhere in here: constraints are ONLY spatial
+**
+** This uses biff, but only for showstopper problems
 */
 int
-_pullConstraintSatisfy(pullTask *task, pullPoint *point, 
+_pullConstraintSatisfy(pullTask *task, pullPoint *point,
+                       double travelMaxScale,
                        /* output */
                        int *constrFailP) {
   static const char me[]="_pullConstraintSatisfy";
   double stepMax;
   unsigned int iterMax;
-  int wantLine, wantSurf, failLine, failSurf;
-  double mode = AIR_NAN, oldPos[4], posLine[4], posSurf[4], 
-    pos3Orig[3], pos3Diff[3], travel;
-  /* double modeLine = AIR_NAN, modeSurf = AIR_NAN; */
+  double pos3Orig[3], pos3Diff[3], travel;
   
   ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
@@ -573,91 +619,15 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     }
     break;
   case pullInfoHeight:
-    /*
     if (constraintSatHght(task, point,
-                          (task->pctx->ispec[pullInfoTangent2]
-                           ? AIR_TRUE
-                           : AIR_FALSE),
-                          (task->pctx->ispec[pullInfoTangentMode]
-                           ? AIR_TRUE
-                           : AIR_FALSE),
-                          stepMax/2, 2*iterMax, constrFailP)) {
+                          !!task->pctx->ispec[pullInfoTangent1],
+                          !!task->pctx->ispec[pullInfoTangent2],
+                          !!task->pctx->ispec[pullInfoNegativeTangent1],
+                          !!task->pctx->ispec[pullInfoNegativeTangent2],
+                          stepMax, iterMax, constrFailP)) {
       biffAddf(PULL, "%s: trouble", me);
       return 1;
     }
-    */
-
-    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode,
-                        task->pctx, task, point)) {
-      biffAddf(PULL, "%s: trouble", me);
-      return 1;
-    }
-
-    ELL_4V_SET(posSurf, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-    ELL_4V_SET(posLine, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-    ELL_4V_COPY(oldPos, point->pos);
-    if (wantSurf) {
-      if (constraintSatHght(task, point,
-                            AIR_TRUE, AIR_FALSE,
-                            AIR_FALSE, stepMax, iterMax, &failSurf)) {
-        biffAddf(PULL, "%s: surf trouble", me);
-        return 1;
-      }
-      /*
-      if (wantLine) {
-        modeSurf = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
-                                    NULL, NULL);
-      }
-      */
-      ELL_4V_COPY(posSurf, point->pos);
-    }
-    /* yes, the starting point of the line constraint is the 
-       already-determined surface constraint */
-    if (wantLine) {
-      if (constraintSatHght(task, point,
-                            AIR_TRUE, AIR_TRUE,
-                            AIR_FALSE, stepMax, iterMax, &failLine)) {
-        biffAddf(PULL, "%s: line trouble", me);
-        return 1;
-      }
-      /*
-      if (wantSurf) {
-        modeLine = _pullPointScalar(task->pctx, point, pullInfoTangentMode,
-                                    NULL, NULL);
-      }
-      */
-      ELL_4V_COPY(posLine, point->pos);
-    }
-    if (wantSurf && wantLine) {
-      if (!failSurf && !failLine) {
-        ELL_4V_LERP(point->pos, (1+mode)/2, posLine, posSurf);
-        *constrFailP = AIR_FALSE;
-      } else if (!failSurf) {
-        ELL_4V_COPY(point->pos, posSurf);
-        /* ELL_4V_LERP(point->pos, (1+mode)/2, oldPos, posSurf); */
-        *constrFailP = AIR_FALSE;
-      } else   {
-        ELL_4V_COPY(point->pos, oldPos);
-        *constrFailP = AIR_TRUE;
-      }
-    } else if (wantSurf) {
-      ELL_4V_COPY(point->pos, posSurf);
-      *constrFailP = failSurf;
-    } else if (wantLine) {
-      ELL_4V_COPY(point->pos, posLine);
-      *constrFailP = failLine;
-    } else {
-      int failPoint;
-      /* want neither line nor surface, just the point minima */
-      if (constraintSatHght(task, point,
-                            AIR_FALSE, AIR_FALSE,
-                            AIR_FALSE, stepMax, iterMax, &failPoint)) {
-        biffAddf(PULL, "%s: point trouble", me);
-        return 1;
-      }
-      *constrFailP = failPoint;
-    }
-
     break;
   default:
     fprintf(stderr, "%s: constraint on %s (%d) unimplemented!!\n", me,
@@ -666,8 +636,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   }
   ELL_3V_SUB(pos3Diff, pos3Orig, point->pos);
   travel = ELL_3V_LEN(pos3Diff)/task->pctx->voxelSizeSpace;
-  if (travel > _PULL_CONSTRAINT_TRAVEL_MAX) {
-    *constrFailP = AIR_TRUE;
+  if (travel > travelMaxScale*_PULL_CONSTRAINT_TRAVEL_MAX) {
+    *constrFailP = pullConstraintFailTravel;
   }
   /*
   printf("!%s(%u) bye, fail = %d, %g %g %g\n", me,
@@ -680,29 +650,34 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
 #undef NORMALIZE
 
 /*
+** _pullConstraintTangent
+**
+** eigenvectors (with non-zero eigenvalues) of output proj are
+** (hopefully) approximate tangents to the manifold to which particles
+** are constrained.  It is *not* the local tangent of the directions
+** along which particles are allowed to move during constraint
+** satisfaction (that is given by creaseProj for creases)
+** 
 ** this can assume that probe() has just been called 
 */
 void
 _pullConstraintTangent(pullTask *task, pullPoint *point, 
                        /* output */
                        double proj[9]) {
-  double vec[4], nvec[3], outer[9], len, aproj[9];
+  double vec[4], nvec[3], outer[9], len, posproj[9], negproj[9];
 
-  ELL_3M_IDENTITY_SET(proj);
+  ELL_3M_IDENTITY_SET(proj); /* NOTE: we are starting with identity . . . */
   switch (task->pctx->constraint) {
   case pullInfoHeight:
     creaseProj(task, point,
-               (task->pctx->ispec[pullInfoTangent1]
-                ? AIR_TRUE
-                : AIR_FALSE),
-               (task->pctx->ispec[pullInfoTangent2]
-                ? AIR_TRUE
-                : AIR_FALSE),
-               (task->pctx->ispec[pullInfoTangentMode]
-                ? AIR_TRUE
-                : AIR_FALSE),
-               aproj);
-    ELL_3M_SUB(proj, proj, aproj);
+               !!task->pctx->ispec[pullInfoTangent1],
+               !!task->pctx->ispec[pullInfoTangent2],
+               !!task->pctx->ispec[pullInfoNegativeTangent1],
+               !!task->pctx->ispec[pullInfoNegativeTangent2],
+               posproj, negproj);
+    /* .. and subracting out output from creaseProj */
+    ELL_3M_SUB(proj, proj, posproj);
+    ELL_3M_SUB(proj, proj, negproj);
     break;
   case pullInfoHeightLaplacian:
   case pullInfoIsovalue:
@@ -714,6 +689,7 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
     }
     ELL_3V_NORM(nvec, vec, len);
     if (len) {
+      /* .. or and subracting out tensor product of normal with itself */
       ELL_3MV_OUTER(outer, nvec, nvec);
       ELL_3M_SUB(proj, proj, outer);
     }
@@ -724,47 +700,56 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 
 /*
 ** returns the *dimension* (not codimension) of the constraint manifold:
-** 0.0 for points
-** 1.0 for lines
-** 2.0 for surfaces
-** 1.5 for inbetween, to represent the weirdness between line/surf
+** 0 for points
+** 1 for lines
+** 2 for surfaces
 **
-** a zero return value represents a biff-able error
+** a -1 return value represents a biff-able error
 */
-double
-_pullConstraintDim(pullContext *pctx, pullTask *task, pullPoint *point) {
+int
+_pullConstraintDim(const pullContext *pctx) {
   static const char me[]="_pullConstraintDim";
-  int wantSurf, wantLine;
-  double ret, 
-    mode; /* although we never use it */
+  int ret, t1, t2, nt1, nt2;
   
   switch (pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
-    ret = 2.0;
+    ret = 2;
     break;
   case pullInfoIsovalue:
-    ret = 2.0;
+    ret = 2;
     break;
   case pullInfoHeight:
-    if (_wantLineOrSurf(&wantLine, &wantSurf, &mode, pctx, task, point)) {
-      biffAddf(PULL, "%s: trouble", me);
-      return 0.0;
-    }
-    if (wantSurf && wantLine) {
-      /* HEY: the logic here should ideally depend failSurf and failLine */
-      ret = 1.5;
-    } else if (wantSurf) {
-      ret = 2.0;
-    } else if (wantLine) {
-      ret = 1.0;
-    } else {
-      ret = 0.0;
+    t1 = !!pctx->ispec[pullInfoTangent1];
+    t2 = !!pctx->ispec[pullInfoTangent2];
+    nt1 = !!pctx->ispec[pullInfoNegativeTangent1];
+    nt2 = !!pctx->ispec[pullInfoNegativeTangent2];
+    switch (t1 + t2 + nt1 + nt2) {
+    case 0:
+    case 3:
+      ret = 0;
+      break;
+    case 1:
+      ret = 2;
+      break;
+    case 2:
+      ret = 1;
+      break;
+    default:
+      biffAddf(PULL, "%s: can't simultaneously use all tangents "
+               "(%s,%s,%s,%s) as this implies co-dimension of -1", me,
+               airEnumStr(pullInfo, pullInfoTangent1),
+               airEnumStr(pullInfo, pullInfoTangent2),
+               airEnumStr(pullInfo, pullInfoNegativeTangent1),
+               airEnumStr(pullInfo, pullInfoNegativeTangent2));
+      return -1;
     }
     break;
   default:
     biffAddf(PULL, "%s: constraint on %s (%d) unimplemented", me,
              airEnumStr(pullInfo, pctx->constraint), pctx->constraint);
-    return 0.0;
+    return -1;
   }
   return ret;
 }
+
+

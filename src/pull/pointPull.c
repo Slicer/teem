@@ -64,7 +64,6 @@ pullPointNew(pullContext *pctx) {
                                    PULL_POINT_NEIGH_INCR);
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDistMean = 0;
-  pnt->neighMode = AIR_NAN;
   ELL_10V_ZERO_SET(pnt->neighCovar);
   pnt->stability = 0;
   ELL_6V_ZERO_SET(pnt->neighTanCovar);
@@ -246,7 +245,8 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoLiveThresh3 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
-    0,                        /* pullInfoTangentMode */
+    0,                        /* pullInfoNegativeTangent1 */
+    0,                        /* pullInfoNegativeTangent2 */
     pullInfoIsovalueGradient, /* pullInfoIsovalue */
     0,                        /* pullInfoIsovalueGradient */
     0,                        /* pullInfoIsovalueHessian */
@@ -270,7 +270,8 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     0,                        /* pullInfoLiveThresh3 */
     0,                        /* pullInfoTangent1 */
     0,                        /* pullInfoTangent2 */
-    0,                        /* pullInfoTangentMode */
+    0,                        /* pullInfoNegativeTangent1 */
+    0,                        /* pullInfoNegativeTangent2 */
     pullInfoIsovalueHessian,  /* pullInfoIsovalue */
     0,                        /* pullInfoIsovalueGradient */
     0,                        /* pullInfoIsovalueHessian */
@@ -292,7 +293,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
     scale.  scale might make sense, but not zero.  This cost a few
     hours of tracking down the fact that the first zero-crossing
     detection phase of the lapl constraint was failing because the
-    laplacian was vacillating around hspec->zero, not 0.0 ...
+    laplacian was vacillating around hspec->zero, not 0.0 . . .
   if (pullInfoHeightLaplacian == sclInfo) {
     const pullInfoSpec *hspec;
     hspec = pctx->ispec[pullInfoHeight];
@@ -333,8 +334,8 @@ _pullProbe(pullTask *task, pullPoint *point) {
   static double *log=NULL;
   if (!logStarted) {
     if (81 == point->idtag) {
-      printf("\n\n%s: ###### HELLO begin logging ....\n\n\n", me);
-      /* knowing the logIdx at the end of logging ... */
+      printf("\n\n%s: ###### HELLO begin logging . . .\n\n\n", me);
+      /* knowing the logIdx at the end of logging . . . */
       nlog = nrrdNew();
       nrrdMaybeAlloc_va(nlog, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 25),
@@ -419,7 +420,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
 
   /* maybe is a little stupid to have the infos indexed this way, 
      since it means that we always have to loop through all indices,
-     but at least the compiler can unroll it... */
+     but at least the compiler can unroll it . . . */
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     unsigned int alen, aidx;
     const pullInfoSpec *ispec;
@@ -529,7 +530,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
     log += nlog->axis[0].size;
     logIdx++;
     if (1 == task->pctx->iter && 81 == point->idtag) {
-      printf("\n\n%s: ###### OKAY done logging (%u)....\n\n\n", me, logIdx);
+      printf("\n\n%s: ###### OKAY done logging (%u). . .\n\n\n", me, logIdx);
       nrrdSave("probelog.nrrd", nlog, NULL);
       nlog = nrrdNuke(nlog);
       logDone = AIR_TRUE;
@@ -660,7 +661,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
       break;
     case 2:
       if (!reject && pctx->constraint) {
-        if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
+        if (_pullConstraintSatisfy(pctx->task[0], point, 10, &constrFail)) {
           biffAddf(PULL, "%s: on pnt %u",
                    me, pointIdx);
           return 1;
@@ -785,7 +786,7 @@ _pullPointInitializeRandom(pullContext *pctx,
       case 2:
         /* Avoid doing constraint if the threshold has already failed */
         if (!reject && pctx->constraint) {
-          if (_pullConstraintSatisfy(pctx->task[0], point, &constrFail)) {
+          if (_pullConstraintSatisfy(pctx->task[0], point, 1.0, &constrFail)) {
             biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
             return 1;
           }
@@ -904,7 +905,7 @@ _pullPointSetup(pullContext *pctx) {
      with */
   
   if (pctx->verbose) {
-    printf("%s: beginning ... ", me);
+    printf("%s: beginning . . . ", me);
     fflush(stdout);
   }
   mop = airMopNew();
@@ -983,7 +984,7 @@ _pullPointSetup(pullContext *pctx) {
     break;
   }
   if (pctx->verbose) {
-    printf("!%s: initializing/seeding ...       ", me);
+    printf("!%s: initializing/seeding . . .       ", me);
     fflush(stdout);
   }
 
@@ -1074,7 +1075,7 @@ _pullPointSetup(pullContext *pctx) {
   }
   if (point) {
     /* we created a new test point, but it was never placed in the volume */
-    /* so, HACK: undo pullPointNew ... */
+    /* so, HACK: undo pullPointNew . . . */
     point = pullPointNix(point);
     pctx->idtagNext -= 1;
   }

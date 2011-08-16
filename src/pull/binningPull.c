@@ -330,7 +330,7 @@ _pullBinSetup(pullContext *pctx) {
     return 1;
   }
   if (pctx->verbose) {
-    printf("%s: trying to allocate %u bins ... \n", me, pctx->binNum);
+    printf("%s: trying to allocate %u bins . . . \n", me, pctx->binNum);
   }
   pctx->bin = AIR_CALLOC(pctx->binNum, pullBin);
   if (!( pctx->bin )) {
@@ -338,7 +338,7 @@ _pullBinSetup(pullContext *pctx) {
     return 1;
   }
   if (pctx->verbose) {
-    printf("%s: done allocating. Initializing ... \n", me);
+    printf("%s: done allocating. Initializing . . . \n", me);
   }
   for (ii=0; ii<pctx->binNum; ii++) {
     _pullBinInit(pctx->bin + ii);

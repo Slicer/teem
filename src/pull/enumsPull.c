@@ -65,7 +65,8 @@ _pullInfoStr[] = {
   "livethresh3",
   "tan1",
   "tan2",
-  "tanmode",
+  "negtan1",
+  "negtan2",
   "isoval",
   "isogradvec",
   "isohessian",
@@ -92,7 +93,8 @@ _pullInfoVal[] = {
   pullInfoLiveThresh3,        /* [1] */ 
   pullInfoTangent1,           /* [3] first tangent to constraint surf */
   pullInfoTangent2,           /* [3] second tangent to constraint surf */
-  pullInfoTangentMode,        /* [1] for morphing between co-dim 1 and 2 */
+  pullInfoNegativeTangent1,   /* [3] */
+  pullInfoNegativeTangent2,   /* [3] */
   pullInfoIsovalue,           /* [1] */
   pullInfoIsovalueGradient,   /* [3] */
   pullInfoIsovalueHessian,    /* [9] */
@@ -118,7 +120,8 @@ _pullInfoStrEqv[] = {
   "livethresh3", "lthr3",
   "tan1",
   "tan2",
-  "tanmode", "tmode",
+  "ntan1", "negtan1",
+  "ntan2", "negtan2",
   "isoval", "iso",
   "isogradvec", "isogvec",
   "isohessian", "isohess",
@@ -145,7 +148,8 @@ _pullInfoValEqv[] = {
   pullInfoLiveThresh3, pullInfoLiveThresh3,
   pullInfoTangent1,
   pullInfoTangent2,
-  pullInfoTangentMode, pullInfoTangentMode,
+  pullInfoNegativeTangent1, pullInfoNegativeTangent1,
+  pullInfoNegativeTangent2, pullInfoNegativeTangent2,
   pullInfoIsovalue, pullInfoIsovalue,
   pullInfoIsovalueGradient, pullInfoIsovalueGradient,
   pullInfoIsovalueHessian, pullInfoIsovalueHessian,
@@ -252,3 +256,26 @@ _pullCount = {
 const airEnum *const
 pullCount = &_pullCount;
 
+/* --------------------------------------------------------- */
+
+const char *
+_pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
+  "(unknown or no contraint fail)",
+  "projected gradient 0 (A)",
+  "projected gradient 0 (B)",
+  "iter max exceeded",
+  "travel exceeded"
+};
+
+const airEnum
+_pullConstraintFail = {
+  "constraint fail",
+  PULL_CONSTRAINT_FAIL_MAX,
+  _pullConstraintFailStr, NULL,
+  NULL, NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+pullConstraintFail = &_pullConstraintFail;
+
+  

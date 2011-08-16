@@ -117,7 +117,6 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
-extern int _pullPraying;
 extern double _pullPrayCorner[2][2][3];
 extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
@@ -137,11 +136,11 @@ extern double _pullEnergyInterParticle(pullContext *pctx,
 
 /* constraints.c */
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
+                                  double travelMaxScale,
                                   int *constrFailP);
 extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
                                    double proj[9]);
-extern double _pullConstraintDim(pullContext *pctx,
-                                 pullTask *task, pullPoint *point);
+extern int _pullConstraintDim(const pullContext *pctx);
 
 /* pointPull.c */
 extern double _pullPointScalar(const pullContext *pctx,

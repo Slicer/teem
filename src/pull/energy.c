@@ -651,7 +651,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   }
 
   _pstr = pstr = col+1;
-  /* code lifted from teem/src/nrrd/kernel.c, should probably refactor... */
+  /* code lifted from teem/src/nrrd/kernel.c, should probably refactor. . . */
   for (haveParm=0; haveParm<ensp->energy->parmNum; haveParm++) {
     if (!pstr) {
       break;

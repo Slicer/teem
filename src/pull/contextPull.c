@@ -64,11 +64,11 @@ pullContextNew(void) {
   pctx->idtagNext = 0;
   pctx->haveScale = AIR_FALSE;
   pctx->constraint = 0;
+  pctx->constraintDim = -1;
+  pctx->targetDim = -1;
   pctx->finished = AIR_FALSE;
   pctx->maxDistSpace = AIR_NAN;
   pctx->maxDistScale = AIR_NAN;
-  pctx->constraintDim = AIR_NAN;
-  pctx->targetDim = AIR_NAN;
   pctx->voxelSizeSpace = AIR_NAN;
   pctx->voxelSizeScale = AIR_NAN;
   pctx->eipScale = 1.0;
@@ -144,7 +144,7 @@ _pullMiscParmCheck(pullContext *pctx) {
              pctx->interType, pullInterType->name);
     return 1;
   }
-  /* HEY: error checking on energySpec's seems rather spotty ... */
+  /* HEY: error checking on energySpec's seems rather spotty . . . */
   if (pullEnergyUnknown == pctx->energySpecR->energy) {
     biffAddf(PULL, "%s: need to set space energy", me);
     return 1;
@@ -178,7 +178,7 @@ _pullMiscParmCheck(pullContext *pctx) {
 int
 _pullContextCheck(pullContext *pctx) {
   static const char me[]="_pullContextCheck";
-  unsigned int ii;
+  unsigned int ii, ccount;
   int gotIspec, gotConstr;
   const pullInfoSpec *lthr, *strn;
 
@@ -232,7 +232,6 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoLiveThresh:
       case pullInfoLiveThresh2:
       case pullInfoLiveThresh3:
-      case pullInfoTangentMode:
       case pullInfoIsovalue:
       case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
@@ -277,20 +276,27 @@ _pullContextCheck(pullContext *pctx) {
       return 1;
     }
   }
-  if (pctx->ispec[pullInfoTangentMode]) {
-    if (!( pctx->ispec[pullInfoTangent1]
-           && pctx->ispec[pullInfoTangent2] )) {
-      biffAddf(PULL, "%s: want %s but don't have %s and %s set", me, 
-               airEnumStr(pullInfo, pullInfoTangentMode),
-               airEnumStr(pullInfo, pullInfoTangent1),
-               airEnumStr(pullInfo, pullInfoTangent2));
+  if (pctx->ispec[pullInfoNegativeTangent2]) {
+    if (!pctx->ispec[pullInfoNegativeTangent1]) {
+      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+               airEnumStr(pullInfo, pullInfoNegativeTangent2),
+               airEnumStr(pullInfo, pullInfoNegativeTangent1));
       return 1;
     }
-    if (pctx->flag.allowCodimension3Constraints) {
-      biffAddf(PULL, "%s: can't use %s while allowing codim-3 constr",
-               me, airEnumStr(pullInfo, pullInfoTangentMode));
-      return 1;
-    }
+  }
+  ccount = 0;
+  ccount += !!(pctx->ispec[pullInfoTangent1]);
+  ccount += !!(pctx->ispec[pullInfoTangent2]);
+  ccount += !!(pctx->ispec[pullInfoNegativeTangent1]);
+  ccount += !!(pctx->ispec[pullInfoNegativeTangent2]);
+  if (4 == ccount) {
+    biffAddf(PULL, "%s: can't specify all 4 tangents together", me);
+    return 1;
+  }
+  if (3 == ccount && !pctx->flag.allowCodimension3Constraints) {
+    biffAddf(PULL, "%s: must turn on allowCodimension3Constraints "
+             "with 3 tangents", me);
+    return 1;
   }
   if (pctx->ispec[pullInfoHeight]) {
     if (!( pctx->ispec[pullInfoHeightGradient] )) {
@@ -306,13 +312,16 @@ _pullContextCheck(pullContext *pctx) {
                  airEnumStr(pullInfo, pullInfoHeightHessian));
         return 1;
       }
-      if (!pctx->ispec[pullInfoTangent1]) {
+      if (!( pctx->ispec[pullInfoTangent1]
+             || pctx->ispec[pullInfoNegativeTangent1] )) {
         if (!pctx->flag.allowCodimension3Constraints) {
-          biffAddf(PULL, "%s: want constrained %s but need at least %s set"
-                   " (maybe enable pullFlagAllowCodimension3Constraints?)",
+          biffAddf(PULL, "%s: want constrained %s but need (at least) "
+                   "%s or %s set (maybe enable "
+                   "pullFlagAllowCodimension3Constraints?)",
                    me,
                    airEnumStr(pullInfo, pullInfoHeight),
-                   airEnumStr(pullInfo, pullInfoTangent1));
+                   airEnumStr(pullInfo, pullInfoTangent1),
+                   airEnumStr(pullInfo, pullInfoNegativeTangent1));
           return 1;
         }
       }
@@ -490,10 +499,10 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
               double emin;
               tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
               emin = eval[2];
-              if (1.0 == pctx->constraintDim) {
+              if (1 == pctx->constraintDim) {
                 eval[1] = scaleRad*point->pos[3] + emin/2;
                 eval[2] = scaleRad*point->pos[3] + emin/2;
-              } if (2.0 == pctx->constraintDim) {
+              } if (2 == pctx->constraintDim) {
                 double eavg;
                 eavg = (2*eval[0] + eval[2])/3;
                 eval[0] = eavg;

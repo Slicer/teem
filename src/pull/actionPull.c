@@ -24,8 +24,6 @@
 #include "pull.h"
 #include "privatePull.h"
 
-int _pullPraying = 0;
-
 /*
 ** issues:
 ** does everything work on the first iteration
@@ -307,8 +305,6 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
 ** point->neighInterNum
 ** point->neighDistMean
 **
-** if task->pctx->ispec[pullInfoTangentMode]:
-**   point->neighMode 
 ** if pullProcessModeNeighLearn == task->processMode:
 **   point->neighCovar
 **   point->neighTanCovar
@@ -412,7 +408,6 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   energySum = 0;
   point->neighInterNum = 0;
   point->neighDistMean = 0.0;
-  point->neighMode = 0.0;
   if (pullProcessModeNeighLearn == task->processMode) {
     ELL_10V_ZERO_SET(point->neighCovar);
     point->stability = 0;
@@ -466,7 +461,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
          its not just a fluke zero-crossing of the potential profile */
-      double ndist, ww;
+      double ndist;
 
       point->neighInterNum++;
       if (nlist && ntrue) {
@@ -507,14 +502,6 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
           point->neighTanCovar[5] += outer[8];
         }
       }
-      if (task->pctx->ispec[pullInfoTangentMode]) {
-        double mm;
-        mm = _pullPointScalar(task->pctx, herPoint, pullInfoTangentMode,
-                              NULL, NULL);
-        ww = 1.0/spaDistSq;
-        point->neighMode += ww*mm;
-        modeWghtSum += ww;
-      }
       if (egradSum) {
         ELL_4V_INCR(egradSum, egrad);
       }
@@ -530,9 +517,6 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
     point->neighDistMean /= point->neighInterNum;
-    if (task->pctx->ispec[pullInfoTangentMode]) {
-      point->neighMode /= modeWghtSum;
-    }
     if (pullProcessModeNeighLearn == task->processMode) {
       double cnorm;
       ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
@@ -547,9 +531,6 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   } else {
     /* we had no neighbors at all */
     point->neighDistMean = 0.0; /* shouldn't happen in any normal case */
-    if (task->pctx->ispec[pullInfoTangentMode]) {
-      point->neighMode = AIR_NAN;
-    }
     /* point->neighCovar,neighTanCovar stay as initialized above */
   }
 
@@ -780,7 +761,7 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
 int
 _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                          int ignoreImage) {
-  static const char me[]="pullPointProcessDescent";
+  static const char me[]="_pullPointProcessDescent";
   double energyOld, energyNew, egrad[4], force[4], posOld[4];
   int stepBad, giveUp, hailMary;
  
@@ -813,15 +794,29 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   }
   */
   if (!ELL_4V_DOT(force, force)) {
-    /* this particle has no reason to go anywhere; we're done with it */
+    /* this particle has no reason to go anywhere; BUT we still have to
+       enforce constraint if we have one */
+    int constrFail;
+    if (task->pctx->constraint) {
+      if (_pullConstraintSatisfy(task, point, 100.0, &constrFail)) {
+        biffAddf(PULL, "%s: trouble", me);
+        return 1;
+      }
+    }
+    if (constrFail) {
+      biffAddf(PULL, "%s: couldn't satisfy constraint on unforced %u: %s",
+               me, point->idtag, airEnumStr(pullConstraintFail, constrFail));
+      return 1;
+    }
     point->energy = energyOld;
     return 0;
   }
   
   if (task->pctx->constraint
-      && task->pctx->ispec[pullInfoTangent1]) {
+      && (task->pctx->ispec[pullInfoTangent1]
+          || task->pctx->ispec[pullInfoNegativeTangent1])) {
     /* we have a constraint, so do something to get the force more
-       tangential to the constraint surface (only in the spatial axes) */
+       tangential to the constraint manifold (only in the spatial axes) */
     double proj[9], pfrc[3];
     _pullConstraintTangent(task, point, proj);
     ELL_3MV_MUL(pfrc, proj, force);
@@ -899,7 +894,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     task->pctx->count[pullCountTestStep] += 1;
     _pullPointHistAdd(point, pullCondEnergyTry);
     if (task->pctx->constraint) {
-      if (_pullConstraintSatisfy(task, point, &constrFail)) {
+      if (_pullConstraintSatisfy(task, point, 1.0, &constrFail)) {
         biffAddf(PULL, "%s: trouble", me);
         return 1;
       }
@@ -968,8 +963,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
              it, twice for good measure, so that things may be better next
              time around */
           if (task->pctx->constraint) {
-            if (_pullConstraintSatisfy(task, point, &constrFail)
-                || _pullConstraintSatisfy(task, point, &constrFail)) {
+            if (_pullConstraintSatisfy(task, point, 1.0, &constrFail)
+                || _pullConstraintSatisfy(task, point, 1.0, &constrFail)) {
               biffAddf(PULL, "%s: trouble", me);
               return 1;
             }
@@ -1072,6 +1067,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
       printf("."); fflush(stdout);
     }
     point = myBin->point[myPointIdx];
+    if (task->pctx->verbose > 2) {
+      printf("%s(%s) processing (bin %u)->point[%u] %u\n", me, 
+             airEnumStr(pullProcessMode, task->processMode),
+             myBinIdx,  myPointIdx, point->idtag);
+    }
     if (_pullPointProcess(task, myBin, point)) {
       biffAddf(PULL, "%s: on point %u of bin %u\n", me, 
                myPointIdx, myBinIdx);

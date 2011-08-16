@@ -166,7 +166,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
     int constrFail;
-    if (_pullConstraintSatisfy(task, newpnt, &constrFail)) {
+    if (_pullConstraintSatisfy(task, newpnt, 1.0, &constrFail)) {
       biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me,
                newpnt->idtag, point->idtag);
       pullPointNix(newpnt); return 1;
@@ -189,7 +189,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     }
   }
   /* do some descent, on this point only, which (HACK!) we do by 
-     changing the per-task process mode ... */
+     changing the per-task process mode . . . */
   task->processMode = pullProcessModeDescent;
   E = 0;
   for (iter=0; iter<task->pctx->iterParm.addDescent; iter++) {

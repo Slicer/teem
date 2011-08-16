@@ -58,6 +58,10 @@ _pullProcess(pullTask *task) {
       /* no more bins to process! */
       break;
     }
+    if (task->pctx->verbose > 1) {
+      printf("%s(%u): calling pullBinProcess(%u)\n", me, task->threadIdx,
+             binIdx);
+    }
     if (pullBinProcess(task, binIdx)) {
       biffAddf(PULL, "%s(%u): had trouble on bin %u", me,
                task->threadIdx, binIdx);
@@ -88,12 +92,12 @@ _pullWorker(void *_task) {
       }
       break;
     }
-    /* else there's work to do ... */    
+    /* else there's work to do . . . */    
     if (task->pctx->verbose > 1) {
       printf("%s(%u): starting to process\n", me, task->threadIdx);
     }
     if (_pullProcess(task)) {
-      /* HEY clearly not threadsafe to have errors ... */
+      /* HEY clearly not threadsafe to have errors . . . */
       biffAddf(PULL, "%s: thread %u trouble", me, task->threadIdx);
       task->pctx->finished = AIR_TRUE;
     }

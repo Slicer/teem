@@ -84,8 +84,8 @@ extern "C" {
 ** - Inside: just for nudging things to stay inside a mask
 ** - Height: value for computer-vision-y features of ridges, valleys,
 **   and edges.  Setting pullInfoHeight as a constraint does valley
-**   sampling (flip the sign to get ridges), based on Tangent1, Tangent2,
-**   and TangentMode.  Setting pullInfoHeightLaplacian as a constraint
+**   sampling (flip the sign to get ridges), based on the various
+**   "tangents" Setting pullInfoHeightLaplacian as a constraint
 *    does zero-crossing edge detection.
 ** - Isovalue: just for implicit surfaces f=0
 ** - Strength: some measure of feature strength, with the assumption
@@ -116,17 +116,17 @@ enum {
                                  for constraint satisfaction */
   pullInfoTangent2,           /* 16: [3] second tangent to motion allowed
                                  for constraint satisfaction */
-  pullInfoTangentMode,        /* 17: [1] for morphing between co-dim 1 and 2;
-                                 User must set scale so mode from -1 to 1
-                                 means co-dim 1 (surface) to 2 (line) */
-  pullInfoIsovalue,           /* 18: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 19: [3] */
-  pullInfoIsovalueHessian,    /* 20: [9] */
-  pullInfoStrength,           /* 21: [1] */
-  pullInfoQuality,            /* 22: [1] */
+  pullInfoNegativeTangent1,   /* 17: [3] like the tangents, but with a negated
+                                 objective function */
+  pullInfoNegativeTangent2,   /* 18: [3] second negative tangent */
+  pullInfoIsovalue,           /* 19: [1] for isosurface extraction */
+  pullInfoIsovalueGradient,   /* 20: [3] */
+  pullInfoIsovalueHessian,    /* 21: [9] */
+  pullInfoStrength,           /* 22: [1] */
+  pullInfoQuality,            /* 23: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            22
+#define PULL_INFO_MAX            23
 
 /*
 ********* pullProp* enum: the various properties of particles in the system
@@ -272,7 +272,7 @@ enum {
 
 /*
 ** the different kinds of computations and entities that one can
-** count, for book-keeping and optimization purposes
+** count, for book-keeping and meta-optimization purposes
 */
 enum {
   pullCountUnknown,             /*  0 */
@@ -338,10 +338,9 @@ typedef struct pullPoint_t {
   unsigned int neighPointNum;
   airArray *neighPointArr;    /* airArray around neighPoint and neighNum
                                  (no callbacks used here) */
-  double neighDistMean,       /* average of distance to neighboring
+  double neighDistMean;       /* average of distance to neighboring
                                  points with whom this point interacted,
                                  in rs-normalized space */
-    neighMode;                /* some average of mode of nearby points */
   float neighCovar[10],       /* unique coeffs in 4x4 covariance matrix of
                                  neighbors with whom this point interacted */
     neighTanCovar[6],         /* covariance of "tangent" info of neighbors */
@@ -683,7 +682,22 @@ typedef struct {
     energyDecreasePopCntlMin,
     energyIncreasePermit,
     fracNeighNixedMax;
-} pullSysParm;  
+} pullSysParm;
+
+/*
+******** pullConstraintFail* enum
+**
+** the various ways constriant satisfaction can fail
+*/
+enum {
+  pullConstraintFailUnknown,        /* 0 */
+  pullConstraintFailProjGradZeroA,  /* 1 */
+  pullConstraintFailProjGradZeroB,  /* 2 */
+  pullConstraintFailIterMaxed,      /* 3 */
+  pullConstraintFailTravel,         /* 4 */
+  pullConstraintFailLast
+};
+#define PULL_CONSTRAINT_FAIL_MAX       4
 
 /*
 ******** pullFlag* enum
@@ -828,29 +842,26 @@ typedef struct pullContext_t {
   unsigned int infoTotalLen,       /* total length of the info buffers needed,
                                       which determines size of allocated
                                       binPoint */
-    infoIdx[PULL_INFO_MAX+1];      /* index of answer within pullPoint->info */
-  unsigned int idtagNext;          /* next per-point igtag value */
+    infoIdx[PULL_INFO_MAX+1],      /* index of answer within pullPoint->info */
+    idtagNext;                     /* next per-point igtag value */
   int haveScale,                   /* non-zero iff one of the volumes is in
                                       scale-space */
     constraint,                    /* if non-zero, we have a constraint to
                                       satisfy, and this is its info number  */
+    constraintDim,                 /* dimension of *spatial* constraint
+                                      manifold we're working on; or
+                                      -1 if unknown/unset */
+    targetDim,                     /* dimension of total constraint manifold
+                                      which can be different than constraintDim
+                                      because of scale-space, and either 
+                                      repulsive (+1) or attractive (+0)
+                                      behavior along scale; or 
+                                      -1 if unknown/unset */
     finished;                      /* used to signal all threads to return */
   double maxDistSpace,             /* max dist of point-point interaction in 
                                       the spatial axes.*/
     maxDistScale,                  /* max dist of point-point interaction 
                                       along scale */
-    constraintDim,                 /* dimension (possibly non-integer) of
-                                      (spatial) constraint surface we're
-                                      working on, or 0 if no constraint, or
-                                      if we have a constraint, but we're using
-                                      tangent mode, so the constraint dim is
-                                      per-point */
-    targetDim,                     /* dimension (possibly non-integer) of
-                                      surface we'd like to be sampling, which
-                                      can be different than constraintDim
-                                      because of scale-space, and either 
-                                      repulsive (+1) or attractive (+0)
-                                      behavior along scale */
     voxelSizeSpace,                /* mean spatial voxel edge length, for
                                       limiting travel distance for descent
                                       and constraint satisfaction */
@@ -988,6 +999,7 @@ PULL_EXPORT const airEnum *const pullSource;
 PULL_EXPORT const airEnum *const pullProp;
 PULL_EXPORT const airEnum *const pullProcessMode;
 PULL_EXPORT const airEnum *const pullCount;
+PULL_EXPORT const airEnum *const pullConstraintFail;
 
 /* infoPull.c */
 PULL_EXPORT unsigned int pullPropLen(int prop);
