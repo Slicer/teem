@@ -7,8 +7,9 @@ decide on a uniform way of indicating if a given external is available
 hey that's exactly what "meet" is for.  Except that libraries within
 Teem can't use it.
 
-Do away with "experimental" libraries.  Too annoying to have 
-two totally different kinds of Teem installs.
+Do away with "experimental" libraries and applications.  Too annoying
+to have two totally different kinds of Teem installs, especially when
+it means that it would mean to different python wrappings.
 
 Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
