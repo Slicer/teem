@@ -24,6 +24,14 @@
 #include "biff.h"
 #include "privateBiff.h"
 
+/*
+** Until Teem has its own printf implementation, this will have to do;
+** it is imperfect because these are not functionally identical.
+*/
+#if defined(WIN32) || defined(_WIN32)
+#  define snprintf _snprintf
+#endif
+
 static biffMsg **
 _bmsg=NULL;            /* master array of biffMsg pointers */
 static unsigned int 
@@ -248,6 +256,7 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
   return;
 }
 
+
 /*
 ******** biffGet()
 **
@@ -274,11 +283,7 @@ biffGet(const char *key) {
       fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
       exit(1);
     }
-#if defined(WIN32) || defined(_WIN32)
-    _snprintf(ret, errlen, err, key);
-#else
     snprintf(ret, errlen, err, key);
-#endif
     return ret;
   }
 

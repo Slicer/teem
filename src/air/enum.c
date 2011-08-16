@@ -24,6 +24,14 @@
 #include "air.h"
 
 /*
+** Until Teem has its own printf implementation, this will have to do;
+** it is imperfect because these are not functionally identical.
+*/
+#if defined(WIN32) || defined(_WIN32)
+#  define snprintf _snprintf
+#endif
+
+/*
 ******** airEnumUnknown
 **
 ** return the value representing "unknown" in an enum
