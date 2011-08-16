@@ -646,8 +646,8 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
         yy = (pld->xyzw + 4*vertIdx)[1];
         rr = sqrt(xx*xx + yy*yy);
         if (rr) {
-          (pld->xyzw + 4*vertIdx)[0] *= AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr);
-          (pld->xyzw + 4*vertIdx)[1] *= AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr);
+          (pld->xyzw + 4*vertIdx)[0] *= AIR_CAST(float, AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
+          (pld->xyzw + 4*vertIdx)[1] *= AIR_CAST(float, AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
         }
       }
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
@@ -766,15 +766,15 @@ limnPolyDataSpiralSphere(limnPolyData *pld,
 }
 
 /* Geometry for an icosahedron */
-#define ICO_ONE 0.5257311121
-#define ICO_TAU 0.8506508084
+#define ICO_ONE 0.5257311121f
+#define ICO_TAU 0.8506508084f
 static float icovertices[36] = {
-  0.0, ICO_ONE, ICO_TAU,  0.0, -ICO_ONE, -ICO_TAU,
-  0.0, -ICO_ONE, ICO_TAU,  0.0, ICO_ONE, -ICO_TAU,
-  ICO_ONE, ICO_TAU, 0.0,  -ICO_ONE, -ICO_TAU, 0.0,
-  ICO_ONE, -ICO_TAU, 0.0, -ICO_ONE, ICO_TAU, 0.0,
-  ICO_TAU, 0.0, ICO_ONE,  -ICO_TAU, 0.0, -ICO_ONE,
-  -ICO_TAU, 0.0, ICO_ONE,  ICO_TAU, 0.0, -ICO_ONE
+  0.0f, ICO_ONE, ICO_TAU,  0.0f, -ICO_ONE, -ICO_TAU,
+  0.0f, -ICO_ONE, ICO_TAU,  0.0f, ICO_ONE, -ICO_TAU,
+  ICO_ONE, ICO_TAU, 0.0f,  -ICO_ONE, -ICO_TAU, 0.0f,
+  ICO_ONE, -ICO_TAU, 0.0f, -ICO_ONE, ICO_TAU, 0.0f,
+  ICO_TAU, 0.0f, ICO_ONE,  -ICO_TAU, 0.0f, -ICO_ONE,
+  -ICO_TAU, 0.0f, ICO_ONE,  ICO_TAU, 0.0f, -ICO_ONE
 };
 #undef ICO_ONE
 #undef ICO_TAU
@@ -863,8 +863,8 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       ELL_3V_ADD2(newverts+3*(vertNum+e), verts+3*(edges[2*e]),
                   verts+3*(edges[2*e+1]));
       /* project new vertex to unit sphere */
-      ELL_3V_NORM(newverts+3*(vertNum+e),newverts+3*(vertNum+e),norm);
-      ELL_3V_SCALE(newverts+3*(vertNum+e+1),-1.0, newverts+3*(vertNum+e));
+      ELL_3V_NORM_TT(newverts+3*(vertNum+e),float,newverts+3*(vertNum+e),norm);
+      ELL_3V_SCALE_TT(newverts+3*(vertNum+e+1),float,-1.0,newverts+3*(vertNum+e));
       /* split the edges such that anti-edge follows edge */
       newedges[4*e]=edges[2*e];
       newedges[4*e+1]=vertNum+e;

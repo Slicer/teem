@@ -211,7 +211,7 @@ meetAirEnumAllCheck(void) {
 
   mop = airMopNew();
   enm = meetAirEnumAll();
-  airMopAdd(mop, enm, airFree, airMopAlways);
+  airMopAdd(mop, (void*)enm, airFree, airMopAlways);
   ei = 0;
   while ((ee = enm[ei])) {
     if (airEnumCheck(err, ee)) {

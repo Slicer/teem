@@ -1666,31 +1666,31 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
   }
   /* add interpolated vertex */
   q=airArrayLenIncr(xyzwArr, 1);
-  ELL_4V_LERP(newpld->xyzw+4*q, alpha, pld->xyzw+4*disc, pld->xyzw+4*kept);
+  ELL_4V_LERP_TT(newpld->xyzw+4*q, float, alpha, pld->xyzw+4*disc, pld->xyzw+4*kept);
   if ((1 << limnPolyDataInfoRGBA) & bitflag) {
     airArrayLenIncr(rgbaArr, 1);
-    ELL_4V_LERP(newpld->rgba+4*q, alpha, pld->rgba+4*disc, pld->rgba+4*kept);
+    ELL_4V_LERP_TT(newpld->rgba+4*q, float, alpha, pld->rgba+4*disc, pld->rgba+4*kept);
   }
   if ((1 << limnPolyDataInfoNorm) & bitflag) {
     float fnorm[3];
     double len;
     /* take special care to treat non-orientable surface normals correctly */
     if (ELL_3V_DOT(pld->norm+3*disc, pld->norm+3*kept)<0) {
-      ELL_3V_SCALE(fnorm, -1.0, pld->norm+3*kept);
+      ELL_3V_SCALE_TT(fnorm, float, -1.0, pld->norm+3*kept);
     } else {
       ELL_3V_COPY(fnorm, pld->norm+3*kept);
     }
     airArrayLenIncr(normArr, 1);
-    ELL_3V_LERP(newpld->norm+3*q, alpha, pld->norm+3*disc, fnorm);
+    ELL_3V_LERP_TT(newpld->norm+3*q, float, alpha, pld->norm+3*disc, fnorm);
     /* re-normalize */
     len=ELL_3V_LEN(newpld->norm+3*q);
     if (len>1e-20) {
-      ELL_3V_SCALE(newpld->norm+3*q, 1.0/len, newpld->norm+3*q);
+      ELL_3V_SCALE_TT(newpld->norm+3*q, float, 1.0/len, newpld->norm+3*q);
     }
   }
   if ((1 << limnPolyDataInfoTex2) & bitflag) {
     airArrayLenIncr(tex2Arr, 1);
-    ELL_2V_LERP(newpld->tex2+2*q, alpha, pld->tex2+2*disc, pld->tex2+2*kept);
+    ELL_2V_LERP_TT(newpld->tex2+2*q, float, alpha, pld->tex2+2*disc, pld->tex2+2*kept);
   }
   /* add new vertex to linked list */
   p=airArrayLenIncr(llistArr, 1);

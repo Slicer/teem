@@ -105,6 +105,10 @@ extern "C" {
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
    (v3)[1] = AIR_LERP((w), (v1)[1], (v2)[1]))
 
+#define ELL_2V_LERP_TT(v3, TT, w, v1, v2)                      \
+  ((v3)[0] = AIR_CAST(TT, AIR_LERP((w), (v1)[0], (v2)[0])),    \
+   (v3)[1] = AIR_CAST(TT, AIR_LERP((w), (v1)[1], (v2)[1])))
+
 #define ELL_2V_ADD2(v3, v1, v2) \
   ((v3)[0] = (v1)[0] + (v2)[0], \
    (v3)[1] = (v1)[1] + (v2)[1])
@@ -194,6 +198,11 @@ extern "C" {
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
    (v3)[1] = AIR_LERP((w), (v1)[1], (v2)[1]), \
    (v3)[2] = AIR_LERP((w), (v1)[2], (v2)[2]))
+
+#define ELL_3V_LERP_TT(v3, TT, w, v1, v2)                      \
+  ((v3)[0] = AIR_CAST(TT, AIR_LERP((w), (v1)[0], (v2)[0])),    \
+   (v3)[1] = AIR_CAST(TT, AIR_LERP((w), (v1)[1], (v2)[1])),    \
+   (v3)[2] = AIR_CAST(TT, AIR_LERP((w), (v1)[2], (v2)[2])))
 
 #define ELL_3V_ADD2(v3, v1, v2) \
   ((v3)[0] = (v1)[0] + (v2)[0], \
