@@ -408,12 +408,12 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
         for (nb=idx[v]; nb<idx[v+1]; nb++) {
           ELL_4V_INCR(out+p, in+4*neighbors[nb]);
         }
-        ELL_4V_SCALE(out+p, 1.0/(idx[v+1]-idx[v]), out+p);
+        ELL_4V_SCALE_TT(out+p, float, 1.0/(idx[v+1]-idx[v]), out+p);
       }
-      ELL_4V_SET(b+p, out[p]-(alpha*orig[p]+(1-alpha)*in[p]),
-                 out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
-                 out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
-                 out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
+      ELL_4V_SET_TT(b+p, float, out[p]-(alpha*orig[p]+(1-alpha)*in[p]),
+                    out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
+                    out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
+                    out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
     }
     /* HC correction step */
     for (v=0; v<pld->xyzwNum; v++) {
@@ -423,8 +423,8 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
         for (nb=idx[v]; nb<idx[v+1]; nb++) {
           ELL_4V_INCR(avgb, b+4*neighbors[nb]);
         }
-        ELL_4V_SCALE(avgb, 1.0/(idx[v+1]-idx[v]), avgb);
-        ELL_4V_LERP(avgb, beta, b+p, avgb);
+        ELL_4V_SCALE_TT(avgb, float, 1.0/(idx[v+1]-idx[v]), avgb);
+        ELL_4V_LERP_TT(avgb, float, beta, b+p, avgb);
         ELL_4V_SUB(out+p,out+p,avgb);
       }
     }

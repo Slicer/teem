@@ -377,8 +377,7 @@ static int
 limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) { 
   static const char me[]="limnPolyDataVertexNormals_";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
-  float len;
-  double *matrix=NULL;
+  double len, *matrix=NULL;
   airArray *mop;
   
   infoBitFlag = limnPolyDataInfoBitFlag(pld);
@@ -487,7 +486,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
     double eval[3], evec[9];
     for (normIdx=0; normIdx<pld->normNum; normIdx++) {
       ell_3m_eigensolve_d(eval, evec, matrix+9*normIdx, AIR_TRUE);
-      ELL_3V_COPY(pld->norm + 3*normIdx, evec);
+      ELL_3V_COPY_TT(pld->norm + 3*normIdx, float, evec);
     }
   } else {
     for (normIdx=0; normIdx<pld->normNum; normIdx++) {

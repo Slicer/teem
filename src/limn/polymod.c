@@ -1669,7 +1669,7 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
   ELL_4V_LERP_TT(newpld->xyzw+4*q, float, alpha, pld->xyzw+4*disc, pld->xyzw+4*kept);
   if ((1 << limnPolyDataInfoRGBA) & bitflag) {
     airArrayLenIncr(rgbaArr, 1);
-    ELL_4V_LERP_TT(newpld->rgba+4*q, float, alpha, pld->rgba+4*disc, pld->rgba+4*kept);
+    ELL_4V_LERP_TT(newpld->rgba+4*q, unsigned char, alpha, pld->rgba+4*disc, pld->rgba+4*kept);
   }
   if ((1 << limnPolyDataInfoNorm) & bitflag) {
     float fnorm[3];
