@@ -60,6 +60,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   static const char me[]="gagePerVolumeNew";
   gagePerVolume *pvl;
   int ii;
+  airArray *mop;
 
   if (!( nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -69,11 +70,13 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
     biffAddf(GAGE, "%s: problem with given volume", me);
     return NULL;
   }
-  pvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
+  pvl = AIR_CALLOC(1, gagePerVolume);
   if (!pvl) {
     biffAddf(GAGE, "%s: couldn't alloc gagePerVolume", me);
     return NULL;
   }
+  mop = airMopNew();
+  airMopAdd(mop, pvl, airFree, airMopOnError);
   pvl->verbose = gageDefVerbose;
   pvl->kind = kind;
   GAGE_QUERY_RESET(pvl->query);
@@ -84,12 +87,13 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   }
   pvl->iv3 = pvl->iv2 = pvl->iv1 = NULL;
   pvl->lup = nrrdDLookup[nin->type];
-  pvl->answer = (double *)calloc(gageKindTotalAnswerLength(kind),
-                                 sizeof(double));
-  pvl->directAnswer = (double **)calloc(kind->itemMax+1, sizeof(double*));
+  pvl->answer = AIR_CALLOC(gageKindTotalAnswerLength(kind), double);
+  airMopAdd(mop, pvl->answer, airFree, airMopOnError);
+  pvl->directAnswer = AIR_CALLOC(kind->itemMax+1, double*);
+  airMopAdd(mop, pvl->directAnswer, airFree, airMopOnError);
   if (!(pvl->answer && pvl->directAnswer)) {
     biffAddf(GAGE, "%s: couldn't alloc answer and directAnswer arrays", me);
-    return NULL;
+    airMopError(mop); return NULL;
   }
   for (ii=1; ii<=kind->itemMax; ii++) {
     pvl->directAnswer[ii] = pvl->answer + gageKindAnswerOffset(kind, ii);
@@ -98,12 +102,13 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   if (kind->pvlDataNew) {
     if (!(pvl->data = kind->pvlDataNew(kind))) {
       biffAddf(GAGE, "%s: double creating gagePerVolume data", me);
-      return NULL;
+      airMopError(mop); return NULL;
     }
   } else {
     pvl->data = NULL;
   }
 
+  airMopOkay(mop);
   return pvl;
 }
 
@@ -118,30 +123,36 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   static const char me[]="gagePerVolumeCopy";
   gagePerVolume *nvl;
   int ii;
+  airArray *mop;
   
-  nvl = (gagePerVolume *)calloc(1, sizeof(gagePerVolume));
+  nvl = AIR_CALLOC(1, gagePerVolume);
   if (!nvl) {
     biffAddf(GAGE, "%s: couldn't create new pervolume", me);
     return NULL;
   }
+  mop = airMopNew();
+  airMopAdd(mop, nvl, airFree, airMopOnError);
   /* we should probably restrict ourselves to gage API calls, but given the
      constant state of gage construction, this seems much simpler.
      Pointers to per-pervolume-allocated arrays are fixed below */
   memcpy(nvl, pvl, sizeof(gagePerVolume));
-  nvl->iv3 = (double *)calloc(fd*fd*fd*nvl->kind->valLen, sizeof(double));
-  nvl->iv2 = (double *)calloc(fd*fd*nvl->kind->valLen, sizeof(double));
-  nvl->iv1 = (double *)calloc(fd*nvl->kind->valLen, sizeof(double));
-  nvl->answer = (double *)calloc(gageKindTotalAnswerLength(nvl->kind),
-                                 sizeof(double));
-  nvl->directAnswer = (double **)calloc(nvl->kind->itemMax+1,
-                                        sizeof(double*));
+  nvl->iv3 = AIR_CALLOC(fd*fd*fd*nvl->kind->valLen, double);
+  nvl->iv2 = AIR_CALLOC(fd*fd*nvl->kind->valLen, double);
+  nvl->iv1 = AIR_CALLOC(fd*nvl->kind->valLen, double);
+  airMopAdd(mop, nvl->iv3, airFree, airMopOnError);
+  airMopAdd(mop, nvl->iv2, airFree, airMopOnError);
+  airMopAdd(mop, nvl->iv1, airFree, airMopOnError);
+  nvl->answer = AIR_CALLOC(gageKindTotalAnswerLength(nvl->kind), double);
+  airMopAdd(mop, nvl->answer, airFree, airMopOnError);
+  nvl->directAnswer = AIR_CALLOC(nvl->kind->itemMax+1, double*);
+  airMopAdd(mop, nvl->directAnswer, airFree, airMopOnError);
   if (!( nvl->iv3 && nvl->iv2 && nvl->iv1
          && nvl->answer && nvl->directAnswer )) {
     biffAddf(GAGE, "%s: couldn't allocate all caches "
              "(fd=%u, valLen=%u, totAnsLen=%u, itemMax=%u)", me,
              fd, nvl->kind->valLen, gageKindTotalAnswerLength(nvl->kind),
              nvl->kind->itemMax);
-    return NULL;
+    airMopError(mop); return NULL;
   }
   for (ii=1; ii<=pvl->kind->itemMax; ii++) {
     nvl->directAnswer[ii] = nvl->answer + gageKindAnswerOffset(pvl->kind, ii);
@@ -149,12 +160,15 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   if (pvl->kind->pvlDataCopy) {
     if (!(nvl->data = pvl->kind->pvlDataCopy(pvl->kind, pvl->data))) {
       biffAddf(GAGE, "%s: double copying gagePerVolume data", me);
-      return NULL;
+      airMopError(mop); return NULL;
     }
+    /* HEY: pvlDataNix takes 2 arguments; so we ca't mop nvl->data,
+       so its a good thing that we created nvl->data last */
   } else {
     nvl->data = NULL;
   }
   
+  airMopOkay(mop);
   return nvl;
 }
 

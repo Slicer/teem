@@ -175,7 +175,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
   mop = airMopNew();
   skipArr = airArrayNew((void**)skipP, skipNumP, sizeof(unsigned int), 16);
   airMopAdd(mop, skipArr, (airMopper)airArrayNix, airMopAlways);
-  skipLut = AIR_CAST(unsigned int*, calloc(dwiNum, sizeof(unsigned int)));
+  skipLut = AIR_CALLOC(dwiNum, unsigned int);
   airMopAdd(mop, skipLut, airFree, airMopAlways);
   if (!skipLut) {
     biffAddf(TEN, "%s: couldn't allocate skip LUT", me);
@@ -679,16 +679,16 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     biffAddf(TEN, "%s: trouble computing estimation matrix", me);
     airMopError(mop); return 1;
   }
-  vbuf = (double*)calloc(knownB0 ? DD-1 : DD, sizeof(double));
-  dwi1 = (float*)calloc(DD, sizeof(float));
-  dwi2 = (float*)calloc(knownB0 ? DD : DD+1, sizeof(float));
+  vbuf = AIR_CALLOC(knownB0 ? DD-1 : DD, double);
+  dwi1 = AIR_CALLOC(DD, float);
+  dwi2 = AIR_CALLOC(knownB0 ? DD : DD+1, float);
+  airMopAdd(mop, vbuf, airFree, airMopAlways);
+  airMopAdd(mop, dwi1, airFree, airMopAlways);
+  airMopAdd(mop, dwi2, airFree, airMopAlways);
   if (!(vbuf && dwi1 && dwi2)) {
     biffAddf(TEN, "%s: couldn't allocate temp buffers", me);
     airMopError(mop); return 1;
   }
-  airMopAdd(mop, vbuf, airFree, airMopAlways);
-  airMopAdd(mop, dwi1, airFree, airMopAlways);
-  airMopAdd(mop, dwi2, airFree, airMopAlways);
   if (!AIR_EXISTS(thresh)) {
     airMopAdd(mop, ncrop=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     airMopAdd(mop, nhist=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

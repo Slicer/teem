@@ -327,10 +327,14 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   fprintf(stderr, "!%s(%d): dotLen = %d\n", me, d, dotLen);
   */
 
-  weight = (nrrdResample_t*)calloc(sizeOut*dotLen, sizeof(nrrdResample_t));
-  index = (int*)calloc(sizeOut*dotLen, sizeof(int));
-  if (!(weight && index)) {
-    biffAddf(NRRD, "%s: can't allocate weight and index arrays", me);
+  weight = AIR_CALLOC(sizeOut*dotLen, nrrdResample_t);
+  if (!weight) {
+    biffAddf(NRRD, "%s: can't allocate weight array", me);
+    *weightP = NULL; *indexP = NULL; return 0;
+  }
+  index = AIR_CALLOC(sizeOut*dotLen, int);
+  if (!index) {
+    biffAddf(NRRD, "%s: can't allocate index arrays", me);
     *weightP = NULL; *indexP = NULL; return 0;
   }
   

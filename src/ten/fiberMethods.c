@@ -56,7 +56,7 @@ tenFiberSingle *
 tenFiberSingleNew() {
   tenFiberSingle *ret;
 
-  ret = AIR_CAST(tenFiberSingle *, calloc(1, sizeof(tenFiberSingle)));
+  ret = AIR_CALLOC(1, tenFiberSingle);
   if (ret) {
     tenFiberSingleInit(ret);
   }
@@ -81,16 +81,19 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   static const char me[]="_tenFiberContextCommonNew";
   tenFiberContext *tfx;
   gageKind *kind;
+  airArray *mop;
 
-  if (!( tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext)) )) {
+  if (!( tfx = AIR_CALLOC(1, tenFiberContext) )) {
     biffAddf(TEN, "%s: couldn't allocate new context", me);
     return NULL;
   }
+  mop = airMopNew();
+  airMopAdd(mop, tfx, airFree, airMopOnError);
 
   if (useDwi) {
     Nrrd *ngrad=NULL, *nbmat=NULL;
     double bval=0;
-    unsigned int *skip, skipNum;
+    unsigned int *skip=NULL, skipNum;
 
     tfx->useDwi = AIR_TRUE;
     /* default fiber type */
@@ -98,19 +101,23 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, vol)) {
       biffAddf(TEN, "%s: trouble parsing DWI info", me );
-      return NULL;
+      airMopError(mop); return NULL;
     }
+    airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopOnError);
+    airMopAdd(mop, nbmat, (airMopper)nrrdNuke, airMopOnError);
+    airMopAdd(mop, skip, airFree, airMopOnError);
     if (skipNum) {
       biffAddf(TEN, "%s: sorry, can't do DWI skipping here", me);
-      return NULL;
+      airMopError(mop); return NULL;
     }
     kind = tenDwiGageKindNew();
+    airMopAdd(mop, kind, (airMopper)tenDwiGageKindNix, airMopOnError);
     if (tenDwiGageKindSet(kind,
                           thresh, soft, bval, valueMin,
                           ngrad, NULL,
                           ten1method, ten2method, 42)) {
       biffAddf(TEN, "%s: trouble setting DWI kind", me);
-      return NULL;
+      airMopError(mop); return NULL;
     }
   } else {
     /* it should be a tensor volume */
@@ -119,28 +126,31 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
     tfx->fiberType = tenFiberTypeUnknown;
     if (tenTensorCheck(vol, nrrdTypeUnknown, AIR_TRUE, AIR_TRUE)) {
       biffAddf(TEN, "%s: didn't get a tensor volume", me);
-      return NULL;
+      airMopError(mop); return NULL;
     }
     kind = tenGageKind;
   }
 
-  if ( !(tfx->gtx = gageContextNew())
-       || !(tfx->pvl = gagePerVolumeNew(tfx->gtx, vol, kind))
-       || (gagePerVolumeAttach(tfx->gtx, tfx->pvl)) ) {
+  tfx->gtx = gageContextNew();
+  airMopAdd(mop, tfx->gtx, (airMopper)gageContextNix, airMopOnError);
+  tfx->pvl = gagePerVolumeNew(tfx->gtx, vol, kind);
+  airMopAdd(mop, tfx->pvl, (airMopper)gagePerVolumeNix, airMopOnError);
+  if (!( tfx->gtx && tfx->pvl && !gagePerVolumeAttach(tfx->gtx, tfx->pvl) )) {
     biffMovef(TEN, GAGE, "%s: gage trouble", me);
-    free(tfx); return NULL;
+    airMopError(mop); return NULL;
   }
   
   tfx->nin = vol;
   tfx->ksp = nrrdKernelSpecNew();
+  airMopAdd(mop, tfx->ksp, (airMopper)nrrdKernelSpecNix, airMopOnError);
   if (nrrdKernelSpecParse(tfx->ksp, tenDefFiberKernel)) {
     biffMovef(TEN, NRRD, "%s: couldn't parse tenDefFiberKernel \"%s\"",
               me,  tenDefFiberKernel);
-    return NULL;
+    airMopError(mop); return NULL;
   }
   if (tenFiberKernelSet(tfx, tfx->ksp->kernel, tfx->ksp->parm)) {
     biffAddf(TEN, "%s: couldn't set default kernel", me);
-    return NULL;
+    airMopError(mop); return NULL;
   }
   tfx->fiberProbeItem = 0; /* unknown for any gageKind */
   /* looks to GK like GK says that we must set some stop criterion */
@@ -190,7 +200,8 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi,
   /* ... don't really see the point of initializing the ten2 stuff here;
      its properly done in tenFiberTraceSet() ... */
   tfx->radius = AIR_NAN;
-
+  
+  airMopOkay(mop);
   return tfx;
 }
 
@@ -828,7 +839,7 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
     fprintf(stderr, "!%s: sorry, can't copy DWI contexts; bye.\n", me);
     exit(1);
   }
-  tfx = (tenFiberContext *)calloc(1, sizeof(tenFiberContext));
+  tfx = AIR_CALLOC(1, tenFiberContext);
   memcpy(tfx, oldTfx, sizeof(tenFiberContext));
   tfx->ksp = nrrdKernelSpecCopy(oldTfx->ksp);
   tfx->gtx = gageContextCopy(oldTfx->gtx);

@@ -146,16 +146,16 @@ tend_epiregMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }
   airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
 
-  nout3D = (Nrrd **)calloc(ninLen, sizeof(Nrrd *));
+  nout3D = AIR_CALLOC(ninLen, Nrrd *);
+  airMopAdd(mop, nout3D, airFree, airMopAlways);
   nout4D = nrrdNew();
-  buff = (char *)calloc(airStrlen(outS) + 10, sizeof(char));
+  airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
+  buff = AIR_CALLOC(airStrlen(outS) + 10, char);
+  airMopAdd(mop, buff, airFree, airMopAlways);
   if (!( nout3D && nout4D && buff )) {
     fprintf(stderr, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
-  airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nout3D, airFree, airMopAlways);
-  airMopAdd(mop, buff, airFree, airMopAlways);
   for (ni=0; ni<ninLen; ni++) {
     nout3D[ni]=nrrdNew();
     airMopAdd(mop, nout3D[ni], (airMopper)nrrdNuke, airMopAlways);
