@@ -174,6 +174,49 @@ tricky, and sources of bugs, so their use should be easily grep-able)
 both explicitly indicate the number of elements, and the size of each,
 and both include the cast from void* to the required pointer type)
 
+* Use airMop functions to manage dynamically-allocated resources to 
+avoid memory leaks.  The idea is that as soon as something is allocated,
+the pointer to the something is passed to airMopAdd, along with the 
+callback function that should be called on that pointer to free the thing.
+You also tell airMopAdd the circumstances under which to call the
+callback: airMopOnError, airMopOnOkay (rarely used), airMopAlways.
+Using airMop allows one to centralize and simplify the management of
+a number of things, especially when the set of things being managed
+can vary depending on parameters or execution path. In C++, you'd use
+smart pointers.  An example is:
+   airArray *mop;
+   double *tmpbuff, *toreturn;
+   ...
+   mop = airMopNew();
+   tmpbuff = AIR_CALLOC(100, double);
+   airMopAdd(mop, tmpbuff, airFree, airMopAlways);
+   toreturn = AIR_CALLOC(100, double);
+   airMopAdd(mop, tmpbuff, airFree, airMopOnError);
+   if (!( tmpbuff && toreturn )) {
+     biffAddf(KEY, "%s: couldn't allocate things", me);
+     airMopError(mop); return NULL;
+   }
+   ...
+   airMopOkay(mop);
+   return toreturn;
+Note that you can safely pass NULL-pointers (pointers set to NULL 
+because of unsuccessful allocations) to airMopAdd, because airFree()
+can be safely called on NULL.  A sequence of allocations might look
+like this:
+   buffA = AIR_CALLOC(sizeA, double);
+   buffB = AIR_CALLOC(sizeB, double);
+   buffC = AIR_CALLOC(sizeC, double);
+   airMopAdd(mop, buffA, airFree, airMopAlways);
+   airMopAdd(mop, buffB, airFree, airMopAlways);
+   airMopAdd(mop, buffC, airFree, airMopAlways);
+or the airMopAdds can be interleaved, depending on clarity.
+
+* All Teem destructor-like functions (nrrdNuke, nrrdNix, limnPolyDataNix,
+gageContextNix, ...) should be no-ops on when passed NULL, if for no other
+reason that it facilitates the practice that you airMopAdd things as soon
+as they are created, even in a sequence of allocations, wherein some of
+them fail.
+
 * Teem relies heavily on C enums to give human-readable names to integer
 values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
 strict conventions for setting these up:
