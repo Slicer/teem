@@ -78,6 +78,7 @@ airMopNew() {
 */
 int
 airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
+  static const char me[]="airMopAdd";
   airMop *mops;
   unsigned int ii;
   
@@ -95,7 +96,11 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
     }
   }
   /* this is a new ptr */
-  ii = airArrayLenIncr(arr, 1);  /* HEY no error checking */
+  ii = airArrayLenIncr(arr, 1);
+  if (!arr->data) {
+    fprintf(stderr, "%s: PANIC: can't re-allocate mop array\n", me);
+    exit(1);
+  }
   mops = (airMop *)arr->data;
   mops[ii].ptr = ptr;
   mops[ii].mop = mop;
