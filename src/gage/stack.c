@@ -30,11 +30,15 @@
 #define BT 2.526917043979558
 #define AA 0.629078014852877
 
+#define TAU_OF_TEE(tee) (tee < BT ? AA*sqrt(tee) : 0.5365 + log(tee)/2)
+/* is it surprising that the transition is at tau = 1 ? */
+#define TEE_OF_TAU(tau) (tau < 1 ? tau*tau/(AA*AA) : exp(2*(tau - 0.5365)))
+
 double
 gageTauOfTee(double tee) {
   double tau;
 
-  tau = (tee < BT ? AA*sqrt(tee) : 0.5365 + log(tee)/2);
+  tau = TAU_OF_TEE(tee);
   return tau;
 }
 
@@ -42,25 +46,26 @@ double
 gageTeeOfTau(double tau) {
   double tee;
 
-  /* is it surprising that the transition is at tau = 1 ? */
-  tee = (tau < 1 ? tau*tau/(AA*AA) : exp(2*(tau - 0.5365)));
+  tee = TEE_OF_TAU(tau);
   return tee;
 }
-
-#undef BT
-#undef AA
 
 double
 gageSigOfTau(double tau) {
   
-  return sqrt(gageTeeOfTau(tau));
+  return sqrt(TEE_OF_TAU(tau));
 }
 
 double
 gageTauOfSig(double sig) {
 
-  return gageTauOfTee(sig*sig);
+  return TAU_OF_TEE(sig*sig);
 }
+
+#undef BT
+#undef AA
+#undef TAU_OF_TEE
+#undef TEE_OF_TAU
 
 double
 gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
