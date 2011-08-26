@@ -251,7 +251,7 @@ enum {
                            since gage doesn't know about the ten library,
                            where the 7-element tensor is based. */
   gageSclLaplacian,    /*  9: "l", Laplacian: Dxx + Dyy + Dzz: [1] */
-  gageSclHessFrob,     /* 10: "hf", Frobenius normal of Hessian: [1] */
+  gageSclHessFrob,     /* 10: "hf", Frobenius norm of Hessian: [1] */
   gageSclHessEval,     /* 11: "heval", Hessian's eigenvalues: [3] */
   gageSclHessEval0,    /* 12: "heval0", Hessian's 1st eigenvalue: [1] */
   gageSclHessEval1,    /* 13: "heval1", Hessian's 2nd eigenvalue: [1] */
