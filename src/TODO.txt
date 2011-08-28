@@ -22,9 +22,11 @@ air:
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the 
 STRLEN is misleading as is.
-* change airArray implementation to re-allocate the array size
+* important: change airArray implementation to re-allocate the array size
 multiplicatively (by some adjustable factor, default around 1.5 or 2.0),
-rather than the linear increments used now
+rather than the linear increments used now.  References:
+http://en.wikipedia.org/wiki/Dynamic_array
+http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
 
