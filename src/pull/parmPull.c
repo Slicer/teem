@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -79,6 +80,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
   flag->binSingle = AIR_FALSE;
   flag->allowCodimension3Constraints = AIR_FALSE;
+  flag->scaleIsTau = AIR_FALSE;
   return;
 }
 
@@ -311,6 +313,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagAllowCodimension3Constraints:
     pctx->flag.allowCodimension3Constraints = flag;
+    break;
+  case pullFlagScaleIsTau:
+    pctx->flag.scaleIsTau = flag;
     break;
   default:
     biffAddf(me, "%s: sorry, flag %d valid but not handled?", me, which);

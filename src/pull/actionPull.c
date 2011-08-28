@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -308,6 +309,7 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
 ** if pullProcessModeNeighLearn == task->processMode:
 **   point->neighCovar
 **   point->neighTanCovar
+**   point->neighNum
 **
 **  0=0  1=1   2=2   3=3
 **  (4)  4=5   5=6   6=7
@@ -411,6 +413,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (pullProcessModeNeighLearn == task->processMode) {
     ELL_10V_ZERO_SET(point->neighCovar);
     point->stability = 0;
+#if PULL_TANCOVAR
     if (task->pctx->ispec[pullInfoTangent1]) {
       double *tng;
       float outer[9];
@@ -423,6 +426,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       point->neighTanCovar[4] = outer[5];
       point->neighTanCovar[5] = outer[8];
     }
+#endif
   }
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
@@ -490,6 +494,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
         point->neighCovar[7] += outer[10];
         point->neighCovar[8] += outer[11];
         point->neighCovar[9] += outer[15];
+#if PULL_TANCOVAR
         if (task->pctx->ispec[pullInfoTangent1]) {
           double *tng;
           tng = herPoint->info + task->pctx->infoIdx[pullInfoTangent1];
@@ -501,6 +506,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
           point->neighTanCovar[4] += outer[5];
           point->neighTanCovar[5] += outer[8];
         }
+#endif
       }
       if (egradSum) {
         ELL_4V_INCR(egradSum, egrad);
@@ -513,29 +519,31 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
        + M[4]*M[4] + 2*M[5]*M[5] + 2*M[6]*M[6]                 \
        + M[7]*M[7] + 2*M[8]*M[8]                               \
        + M[9]*M[9])
+#define CTRACE(M) (M[0] + M[4] + M[7] + M[9])
 
   /* finish computing things averaged over neighbors */
   if (point->neighInterNum) {
     point->neighDistMean /= point->neighInterNum;
     if (pullProcessModeNeighLearn == task->processMode) {
-      double cnorm;
+      double Css, trc;
       ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
                     point->neighCovar);
-      /* HEY: this assumes that we have codim-3 features! */
-      cnorm = CNORM(point->neighCovar);
-      point->stability = cnorm ? point->neighCovar[9] : 0;
+      Css = point->neighCovar[9];
+      trc = CTRACE(point->neighCovar);
+      point->stability = (trc
+                          ? (task->pctx->targetDim * Css)/trc
+                          : 0.0);
+#if PULL_TANCOVAR
       /* using 1 + # neigh because this includes tan1 of point itself */
       ELL_6V_SCALE(point->neighTanCovar, 1.0f/(1 + point->neighInterNum),
                    point->neighTanCovar);
+#endif
     }
   } else {
     /* we had no neighbors at all */
     point->neighDistMean = 0.0; /* shouldn't happen in any normal case */
     /* point->neighCovar,neighTanCovar stay as initialized above */
   }
-
-#undef CNORM
-
   return energySum;
 }
 
@@ -804,9 +812,20 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
       }
     }
     if (constrFail) {
+      /*
       biffAddf(PULL, "%s: couldn't satisfy constraint on unforced %u: %s",
                me, point->idtag, airEnumStr(pullConstraintFail, constrFail));
       return 1;
+      */
+      fprintf(stderr, "%s: *** no constr sat on unfrced %u: %s (si# %u;%u)\n",
+              me, point->idtag, airEnumStr(pullConstraintFail, constrFail),
+              point->stuckIterNum, task->pctx->iterParm.stuckMax);
+      point->status |= PULL_STATUS_STUCK_BIT;
+      point->stuckIterNum += 1;
+      if (task->pctx->iterParm.stuckMax
+          && point->stuckIterNum > task->pctx->iterParm.stuckMax) {
+        point->status |= PULL_STATUS_NIXME_BIT;
+      }
     }
     point->energy = energyOld;
     return 0;
@@ -1007,6 +1026,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     point->stuckIterNum = 0;
   } else if (task->pctx->iterParm.stuckMax
              && point->stuckIterNum > task->pctx->iterParm.stuckMax) {
+    /* else if it is stuck then its up to us to set NIXME
+       based on point->stuckIterNum */
     point->status |= PULL_STATUS_NIXME_BIT;
   }
 

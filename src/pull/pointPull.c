@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -66,7 +67,9 @@ pullPointNew(pullContext *pctx) {
   pnt->neighDistMean = 0;
   ELL_10V_ZERO_SET(pnt->neighCovar);
   pnt->stability = 0;
+#if PULL_TANCOVAR
   ELL_6V_ZERO_SET(pnt->neighTanCovar);
+#endif
   pnt->neighInterNum = 0;
   pnt->stuckIterNum = 0;
 #if PULL_PHIST
@@ -281,6 +284,8 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
 
   infoIdx = pctx->infoIdx;
   ispec = pctx->ispec[sclInfo];
+  /* NB: this "scl" is not scale-space scale; its the scaling
+     of the scalar.  this is getting confusing ... */
   scl = point->info[infoIdx[sclInfo]];
   scl = (scl - ispec->zero)*ispec->scale;
   if (pullInfoLiveThresh == sclInfo
@@ -399,8 +404,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
         }
       */
       gret = gageStackProbeSpace(task->vol[ii]->gctx,
-                                 point->pos[0], point->pos[1],
-                                 point->pos[2], point->pos[3],
+                                 point->pos[0], point->pos[1], point->pos[2],
+                                 (task->pctx->flag.scaleIsTau
+                                  ? gageSigOfTau(point->pos[3])
+                                  : point->pos[3]),
                                  AIR_FALSE /* index-space */,
                                  AIR_TRUE /* clamp */);
     }
@@ -499,6 +506,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
                     point->neighCovar[5],
                     point->neighCovar[7]);
           break;
+#if PULL_TANCOVAR
         case pullPropNeighTanCovar:
           TEN_T_SET(point->info + aidx, 1.0f,
                     point->neighTanCovar[0],
@@ -508,6 +516,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
                     point->neighTanCovar[4],
                     point->neighTanCovar[5]);
           break;
+#endif
         case pullPropStability:
           point->info[aidx] = point->stability;
           break;
@@ -603,6 +612,9 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
     bidx = AIR_AFFINE(-0.5, aidx, pctx->initParm.samplesAlongScaleNum-0.5, 
                       0.0, scaleVol->scaleNum-1);
     point->pos[3] = gageStackItoW(scaleVol->gctx, bidx, &outside);
+    if (pctx->flag.scaleIsTau) {
+      point->pos[3] = gageTauOfSig(point->pos[3]);
+    }
     /*
     printf("!%s: pix %u -> a %g b %g -> wpos %g\n", me, 
            pix, aidx, bidx, point->pos[3]);
@@ -714,6 +726,9 @@ _pullPointInitializeRandom(pullContext *pctx,
       rnd = airDrandMT_r(rng);
       sridx = AIR_AFFINE(0.0, rnd, 1.0, 0, scaleVol->scaleNum-1);
       point->pos[3] = gageStackItoW(scaleVol->gctx, sridx, &outside);
+      if (pctx->flag.scaleIsTau) {
+        point->pos[3] = gageTauOfSig(point->pos[3]);
+      }
     } else {
       point->pos[3] = 0.0;
     }

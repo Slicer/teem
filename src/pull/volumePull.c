@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -398,16 +399,28 @@ _pullVolumeSetup(pullContext *pctx) {
       unsigned int si;
       numScale ++;
       sclMin = pctx->vol[ii]->scalePos[0];
+      if (pctx->flag.scaleIsTau) {
+        sclMin = gageTauOfSig(sclMin);
+      }
       sclMax = pctx->vol[ii]->scalePos[pctx->vol[ii]->scaleNum-1];
+      if (pctx->flag.scaleIsTau) {
+        sclMax = gageTauOfSig(sclMax);
+      }
       sclStep = 0;
       for (si=0; si<pctx->vol[ii]->scaleNum-1; si++) {
-        sclStep += (pctx->vol[ii]->scalePos[si+1]
-                    - pctx->vol[ii]->scalePos[si]);
+        double scl0, scl1;
+        scl1 = pctx->vol[ii]->scalePos[si+1];
+        scl0 = pctx->vol[ii]->scalePos[si];
+        if (pctx->flag.scaleIsTau) {
+          scl1 = gageTauOfSig(scl1);
+          scl0 = gageTauOfSig(scl0);
+        }
+        sclStep += (scl1 - scl0);
       }
       sclStep /= pctx->vol[ii]->scaleNum-1;
       pctx->voxelSizeScale += sclStep;
       if (!pctx->haveScale) {
-        pctx->bboxMin[3] = sclMin;
+        pctx->bboxMin[3] = sclMin; 
         pctx->bboxMax[3] = sclMax;
         pctx->haveScale = AIR_TRUE;
       } else {

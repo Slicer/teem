@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -496,18 +497,23 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
             ELL_3V_SCALE(eval, 1/maxeval, eval);
             tenMakeSingle_d(tout, 1, eval, evec);
             if (scaleRad && pctx->ispec[pullInfoHeight]->constraint) {
-              double emin;
+              double emin, sig;
+              if (pctx->flag.scaleIsTau) {
+                sig = gageSigOfTau(point->pos[3]);
+              } else {
+                sig = point->pos[3];
+              }
               tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
               emin = eval[2];
               if (1 == pctx->constraintDim) {
-                eval[1] = scaleRad*point->pos[3] + emin/2;
-                eval[2] = scaleRad*point->pos[3] + emin/2;
+                eval[1] = scaleRad*sig + emin/2;
+                eval[2] = scaleRad*sig + emin/2;
               } if (2 == pctx->constraintDim) {
                 double eavg;
                 eavg = (2*eval[0] + eval[2])/3;
                 eval[0] = eavg;
                 eval[1] = eavg;
-                eval[2] = scaleRad*point->pos[3] + emin/2;
+                eval[2] = scaleRad*sig + emin/2;
               }
               tenMakeSingle_d(tout, 1, eval, evec);
             }
@@ -565,16 +571,14 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   case pullPropStepEnergy:
   case pullPropStepConstr:
   case pullPropScale:
+  case pullPropStability:
     dim = 1;
     size[0] = pointNum;
     typeOut = nrrdTypeDouble;
     break;
   case pullPropIdtag:
-    dim = 1;
-    size[0] = pointNum;
-    typeOut = nrrdTypeUInt;
-    break;
   case pullPropIdCC:
+  case pullPropNeighInterNum:
     dim = 1;
     size[0] = pointNum;
     typeOut = nrrdTypeUInt;
@@ -645,6 +649,9 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
       case pullPropIdCC:
         out_ui[outIdx] = point->idCC;
         break;
+      case pullPropNeighInterNum:
+        out_ui[outIdx] = point->neighInterNum;
+        break;
       case pullPropStuck:
         out_uc[outIdx] = ((point->status & PULL_STATUS_STUCK_BIT)
                           ? point->stuckIterNum
@@ -660,7 +667,9 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         out_d[outIdx] = point->neighDistMean;
         break;
       case pullPropScale:
-        out_d[outIdx] = point->pos[3];
+        out_d[outIdx] = (pctx->flag.scaleIsTau
+                         ? gageSigOfTau(point->pos[3])
+                         : point->pos[3]);
         break;
       case pullPropNeighCovar:
         ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar); 
@@ -675,6 +684,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
                   point->neighCovar[7]);
         break;
       case pullPropNeighTanCovar:
+#if PULL_TANCOVAR
         TEN_T_SET(out_f + 7*outIdx, 1.0f,
                   point->neighTanCovar[0],
                   point->neighTanCovar[1],
@@ -682,6 +692,19 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
                   point->neighTanCovar[3],
                   point->neighTanCovar[4],
                   point->neighTanCovar[5]);
+#else
+        TEN_T_SET(out_f + 7*outIdx, 0.0f,
+                  0.0f, 0.0f, 0.0f,
+                  0.0f, 0.0f,
+                  0.0f);
+#endif
+        break;
+      case pullPropStability:
+        out_d[outIdx] = point->stability;
+        break;
+      default:
+        biffAddf(PULL, "%s: prop %d unrecognized", me, prop);
+        return 1;
         break;
       }
       ++outIdx;

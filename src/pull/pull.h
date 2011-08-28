@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -70,6 +71,7 @@ extern "C" {
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM 20000000 /* sanity check on max number bins */
 #define PULL_PHIST 0
+#define PULL_TANCOVAR 0
 
 /*
 ******** pullInfo enum
@@ -162,10 +164,11 @@ enum {
   pullPropNeighTanCovar,      /* 13: [6] covariance of "tangents" of neighbors,
                                  (e.g. pullInfoTangent1 for crease surfaces)
                                  including point itself */
-  pullPropStability,          /* 14: [1] some measure of NeighCovar */
+  pullPropNeighInterNum,      /* 14: [1] # neighbors last iter */
+  pullPropStability,          /* 15: [1] some measure of NeighCovar */
   pullPropLast
 };
-#define PULL_PROP_MAX            14
+#define PULL_PROP_MAX            15
 
 /*
 ** the components of a point's status that are set as a bitflag 
@@ -343,7 +346,9 @@ typedef struct pullPoint_t {
                                  in rs-normalized space */
   float neighCovar[10],       /* unique coeffs in 4x4 covariance matrix of
                                  neighbors with whom this point interacted */
+#if PULL_TANCOVAR
     neighTanCovar[6],         /* covariance of "tangent" info of neighbors */
+#endif
     stability;                /* the scalar stability measure */
   unsigned int neighInterNum, /* number of particles with which I had some
                                  non-zero interaction on last iteration */
@@ -354,8 +359,7 @@ typedef struct pullPoint_t {
   unsigned int phistNum;      /* number of positions stored */
   airArray *phistArr;         /* airArray around phist */
 #endif
-  unsigned int status;        /* bit-flag of status info, though right now
-                                 its just a boolean for having gotten stuck */
+  int status;                 /* bit-flag of status info */
   double pos[4],              /* position in space and scale */
     energy,                   /* energy accumulator for this iteration */
     force[4],                 /* force accumulator for this iteration */
@@ -758,6 +762,9 @@ enum {
      Typical uses of constraints are for extracting lines and surfaces */
   pullFlagAllowCodimension3Constraints,
 
+  /* what we call scale is not sigma but rather the tau of gage */
+  pullFlagScaleIsTau,
+
   pullFlagLast
 };
 
@@ -772,7 +779,8 @@ typedef struct {
     popCntlEnoughTest,
     noAdd,
     binSingle,
-    allowCodimension3Constraints;
+    allowCodimension3Constraints,
+    scaleIsTau;
 } pullFlag;
 
 /*

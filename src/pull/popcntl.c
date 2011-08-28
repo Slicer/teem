@@ -72,15 +72,12 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     unsigned int plenty;
     plenty = (1 == task->pctx->targetDim
               ? 3
-              : (1.5 == task->pctx->targetDim
-                 ? 5
-                 : (2 == task->pctx->targetDim
-                    ? 7
-                    : (2.5 == task->pctx->targetDim
-                       ? 10
-                       : (3 == task->pctx->targetDim
-                          ? 13
-                          : 0 /* shouldn't get here */)))));
+              : (2 == task->pctx->targetDim
+                 ? 7
+                 : (3 == task->pctx->targetDim
+                    ? 13 /* = 1 + 12 
+                            = 1 + coordination number of 3D sphere packing */
+                    : 0 /* shouldn't get here */)));
     /*
     if (0 == (point->idtag % 100)) {
       printf("%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
