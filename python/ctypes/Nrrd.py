@@ -35,7 +35,7 @@ def ndarrayGetTypes( array ):
     return typeTable[dt]
 
 def teemTypeToNumpyType(teem_type):
-    numpy_endianess_glyph = '<' if teem.airMyEndian.value == 1234 else '>'
+    numpy_endianess_glyph = '<' if teem.airMyEndian() == 1234 else '>'
     numpy_type_map = {
         teem.nrrdTypeChar: numpy_endianess_glyph + 'i1',
         teem.nrrdTypeUChar: numpy_endianess_glyph + 'u1',
@@ -103,14 +103,12 @@ class Nrrd:
             dims = list(array.shape)
             sizes = (ctypes.c_size_t * teem.NRRD_DIM_MAX)(*dims)
             teem.nrrdWrap_nva(self._ctypesobj, array_p, teemTy, ctypes.c_uint(array.ndim), sizes)
-            self._owns_data = False
             self.base_ref = array
         elif (array.flags.c_contiguous): # memory shared with array
             array_p = array.ctypes.data_as(c_type_p)
             dims = list(reversed(array.shape))
             sizes = (ctypes.c_size_t * teem.NRRD_DIM_MAX)(*dims)
             teem.nrrdWrap_nva(self._ctypesobj, array_p, teemTy, ctypes.c_uint(array.ndim), sizes)
-            self._owns_data = False
             self.base_ref = array
         else: # must make c_contiguous -- memory not shared with array, transfer full control to teem
             arr = numpy.ascontiguousarray(array, dtype=array.dtype.type)
@@ -121,7 +119,6 @@ class Nrrd:
             teem.nrrdWrap_nva(nrrd_tmp, array_p, teemTy, ctypes.c_uint(array.ndim), sizes)
             teem.nrrdCopy(self._ctypesobj, nrrd_tmp) # this call hangs with fmob-ch4.nrrd
             teem.nrrdNix(nrrd_tmp)
-            self._owns_data = True
             self.base_ref = None
         self._init = True
 
@@ -137,7 +134,6 @@ class Nrrd:
             self._ctypesobj = teem.nrrdNew()
         
         teem.nrrdLoad(self._ctypesobj, file, args)
-        self._owns_data = True
         self.base_ref = None
         self._init = True
 
@@ -150,7 +146,7 @@ class Nrrd:
 class ExtendedArray(numpy.ndarray):
     def __new__(cls, input_array, base_ref=None):
         if isinstance(input_array, Nrrd):
-            if input_array._owns_data:
+            if input_array.base_ref == None:
                 obj = numpy.asarray(input_array).view(cls)
                 obj.base_ref = input_array
             else:
