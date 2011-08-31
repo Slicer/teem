@@ -40,6 +40,7 @@ CREATE_EXEC(miter miter.c)
 CREATE_EXEC(vprobe vprobe.c)
 CREATE_EXEC(gprobe gprobe.c)
 CREATE_EXEC(unu unu.c)
+CREATE_EXEC(puller puller.c)
 CREATE_EXEC(tend tend.c)
 
 # NOTE: The BUILD_EXPERIMENTAL_LIBS-dependent inclusion of binaries has to be

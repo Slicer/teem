@@ -44,7 +44,14 @@
 #include <teem/pull.h>
 #include <teem/meet.h>
 
-const char *info = ("this might come in handy.");
+const char *info =
+  ("Command-line interface to the \"pull\" library. "
+   "Published research using this tool or the \"pull\" library "
+   "should cite the paper: \n "
+   "\t\tGordon L. Kindlmann, Ra{\\'u}l San Jos{\\'e} Est{\\'e}par, Stephen M. Smith,\n "
+   "\t\tCarl-Fredrik Westin. Sampling and Visualizing Creases with Scale-Space\n "
+   "\t\tParticles. IEEE Trans. on Visualization and Computer Graphics,\n "
+   "\t\t15(6):1415-1424 (2009).");
 
 #ifdef DEFT
 typedef struct {
