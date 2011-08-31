@@ -135,7 +135,9 @@ enum {
 **
 ** These are things that are not learned from the image data, but are
 ** descriptions of a particle, its neighborhood of particles in the
-** system, and the current state of system computation.
+** system, and the current state of system computation.  As of revision
+** 5080, these may refer to information *computed* from the per-particle
+** info, but which may not itself be saved as a field in pullPoint.
 **
 ** consider adding: dot between normalized directions of force and movmt 
 */
@@ -165,10 +167,12 @@ enum {
                                  (e.g. pullInfoTangent1 for crease surfaces)
                                  including point itself */
   pullPropNeighInterNum,      /* 14: [1] # neighbors last iter */
-  pullPropStability,          /* 15: [1] some measure of NeighCovar */
+  pullPropNeighCovarTrace,    /* 15: [1] trace of NeighCovar */
+  pullPropNeighCovarDet,      /* 16: [1] det of NeighCovar */
+  pullPropStability,          /* 17: [1] some measure of NeighCovar */
   pullPropLast
 };
-#define PULL_PROP_MAX            15
+#define PULL_PROP_MAX            17
 
 /*
 ** the components of a point's status that are set as a bitflag 

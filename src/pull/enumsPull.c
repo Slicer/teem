@@ -188,6 +188,8 @@ _pullPropStr[] = {
   "neighCovar",
   "neighCovar7Ten",
   "neighTanCovar",
+  "neighCovarTrace",
+  "neighCovarDet",
   "stability"
 };
 

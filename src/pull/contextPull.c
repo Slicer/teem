@@ -559,8 +559,8 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   int typeOut;
   size_t size[2];
   unsigned int dim, pointNum, pointIdx, binIdx, *out_ui, outIdx;
-  double *out_d;
-  float *out_f;
+  double *out_d, covar[16];
+  float *out_f, *pnc;
   unsigned char *out_uc;
   pullBin *bin;
   pullPoint *point;
@@ -571,6 +571,8 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   case pullPropStepEnergy:
   case pullPropStepConstr:
   case pullPropScale:
+  case pullPropNeighCovarTrace:
+  case pullPropNeighCovarDet:
   case pullPropStability:
     dim = 1;
     size[0] = pointNum;
@@ -671,17 +673,24 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
                          ? gageSigOfTau(point->pos[3])
                          : point->pos[3]);
         break;
+        /*
+          0:xx 1:xy 2:xz 3:xs
+          1    4:yy 5:yz 6:ys
+          2    5    7:zz 8:zs
+          3    6    8    9:ss
+        */
       case pullPropNeighCovar:
         ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar); 
         break;
       case pullPropNeighCovar7Ten:
+        pnc = point->neighCovar;
         TEN_T_SET(out_f + 7*outIdx, 1.0f,
-                  point->neighCovar[0],
-                  point->neighCovar[1],
-                  point->neighCovar[2],
-                  point->neighCovar[4],
-                  point->neighCovar[5],
-                  point->neighCovar[7]);
+                  pnc[0],
+                  pnc[1],
+                  pnc[2],
+                  pnc[4],
+                  pnc[5],
+                  pnc[7]);
         break;
       case pullPropNeighTanCovar:
 #if PULL_TANCOVAR
@@ -698,6 +707,23 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
                   0.0f, 0.0f,
                   0.0f);
 #endif
+        break;
+      case pullPropNeighCovarTrace:
+        out_d[outIdx] = pnc[0] + pnc[4] + pnc[7] + pnc[9];
+        break;
+      case pullPropNeighCovarDet:
+        if (pctx->haveScale) {
+          ELL_4V_SET(covar +  0, pnc[0], pnc[1], pnc[2], pnc[3]);
+          ELL_4V_SET(covar +  4, pnc[1], pnc[4], pnc[5], pnc[6]);
+          ELL_4V_SET(covar +  8, pnc[2], pnc[5], pnc[7], pnc[8]);
+          ELL_4V_SET(covar + 12, pnc[3], pnc[6], pnc[8], pnc[9]);
+          out_d[outIdx] = ELL_4M_DET(covar);
+        } else {
+          ELL_3V_SET(covar +  0, pnc[0], pnc[1], pnc[2]);
+          ELL_3V_SET(covar +  3, pnc[1], pnc[4], pnc[5]);
+          ELL_3V_SET(covar +  6, pnc[2], pnc[5], pnc[7]);
+          out_d[outIdx] = ELL_3M_DET(covar);
+        }          
         break;
       case pullPropStability:
         out_d[outIdx] = point->stability;
