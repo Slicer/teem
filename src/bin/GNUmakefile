@@ -50,7 +50,7 @@ $(L).SEEN := true
 ## 
 BINS = airSanity cubic nrrdSanity overrgb emap undos talkweb \
   unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
-  tend spots ninspect deconv
+  tend spots ninspect deconv puller
 
 ## _binD(bins): list of development locations for given bins
 ## _binI(bins): list of install locations for given bins
@@ -77,7 +77,8 @@ bin/clobber: bin/clean
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
 
 ## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED**
-## (yes, by hand, by you, Gordon!).  The calls to need() will work
+## (or not? since things here are depending on meet, and yet not all
+## Teem libraries are listed here).  The calls to need() will work
 ## correctly because we've gotten here only after going through all
 ## the other library makesfiles.  The arguments to need() are
 ## libraries for which we need a header and/or libraries we need to
@@ -104,6 +105,7 @@ gprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 deconv.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 pprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 spots.need      = $(call meneed,alan nrrd ell biff hest air)
+puller.need     = $(call meneed,meet pull ten gage nrrd ell biff hest air)
 
 ## Old: "We need some way of expressing the fact that a given binary
 ## (install and dev) depends on the usable of its top dependency."
@@ -133,6 +135,7 @@ $(call _binDI,ungantry)   : $(call used,$(ungantry.need))
 $(call _binDI,talkweb)    : $(call used,$(talkweb.need))
 $(call _binDI,tend)       : $(call used,$(tend.need))
 $(call _binDI,spots)      : $(call used,$(spots.need))
+$(call _binDI,puller)     : $(call used,$(puller.need))
 
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
