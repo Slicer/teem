@@ -39,6 +39,18 @@ identify which source file contains the function definition, as with
 if only for debugging)
 * single blank line between function variable declaration/initialiation 
 and function code
+* An slightly odd idiom that is sometimes used in Teem is using an int
+"E" to store error code, and use "if (!E) E |= " to stop execution
+as soon as there is an error, e.g.:
+  E = 0;
+  if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
+  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+  if (!E) E |= nrrdResampleBoundarySet(rsmc, sbp->boundary);
+  if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
+  if (!E) E |= nrrdResampleRenormalizeSet(rsmc, sbp->renormalize);
+  if (E) {
+     ... biff handling;
+  }
 
 Other code formatting points:
 
