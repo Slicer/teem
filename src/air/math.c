@@ -695,10 +695,10 @@ airBesselInExpScaled(int nn, double xx) {
   bip = bb = 0.0;
   bi = 1.0;
   /* HEY: GLK had to increase sqrt(40.0*an) to sqrt(100.0*an) to avoid
-     jagged discontinuities in in airBesselInExpScaled(n, 17*17); the
+     jagged discontinuities in (e.g.) airBesselInExpScaled(n, 17*17); the
      problem was detected because of glitches in the highest blurring
      levels for scale-space feature detection; but that didn't quite
-     work either; this has to be debugged */
+     work either; this will have to be debugged further! */
   top = 2*(an + AIR_CAST(int, sqrt(100.0*an)));
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;
