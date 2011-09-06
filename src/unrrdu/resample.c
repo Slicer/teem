@@ -256,7 +256,7 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
     E = AIR_FALSE;
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, defaultCenter);
-    if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+    if (!E) E |= nrrdResampleInputSet(rsmc, nin);
     for (ai=0; ai<nin->dim; ai++) {
       switch((int)scale[0 + 2*ai]) {
       case 0:

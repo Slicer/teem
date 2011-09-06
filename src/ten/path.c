@@ -739,7 +739,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
     E = AIR_FALSE;
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterNode);
-    if (!E) E |= nrrdResampleNrrdSet(rsmc, nsub);
+    if (!E) E |= nrrdResampleInputSet(rsmc, nsub);
     if (!E) E |= nrrdResampleKernelSet(rsmc, 0, NULL, NULL);
     if (!E) E |= nrrdResampleKernelSet(rsmc, 1, nrrdKernelTent, kparm);
     if (!E) E |= nrrdResampleSamplesSet(rsmc, 1, 2*NN + 1);

@@ -106,7 +106,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
   E = AIR_FALSE;
   if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell);
-  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+  if (!E) E |= nrrdResampleInputSet(rsmc, nin);
   for (ai=0; ai<3; ai++) {
     if (!E) E |= nrrdResampleKernelSet(rsmc, ai, kb0->kernel, kb0->parm);
     if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, nin->axis[ai].size);
@@ -219,7 +219,7 @@ main(int argc, const char *argv[]) {
   fprintf(stderr, "%s: post-blurring ... ", me);
   fflush(stderr);
   E = AIR_FALSE;
-  if (!E) E |= nrrdResampleNrrdSet(rsmc, nout);
+  if (!E) E |= nrrdResampleInputSet(rsmc, nout);
   for (ai=0; ai<3; ai++) {
     if (!E) E |= nrrdResampleKernelSet(rsmc, ai, kb1->kernel, kb1->parm);
     if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, nout->axis[ai].size);
