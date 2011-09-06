@@ -30,9 +30,11 @@ gageStackBlurParm *
 gageStackBlurParmNew() {
   gageStackBlurParm *parm;
 
-  parm = AIR_CAST(gageStackBlurParm *, calloc(1, sizeof(gageStackBlurParm)));
+  parm = AIR_CALLOC(1, gageStackBlurParm);
   if (parm) {
     parm->scale = NULL;
+    parm->sigmaMax = gageDefStackBlurSigmaMax;
+    parm->padValue = AIR_NAN;
     parm->kspec = NULL;
     parm->dataCheck = AIR_TRUE;
     parm->boundary = nrrdBoundaryUnknown;
@@ -108,10 +110,25 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
 int
 gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                            const NrrdKernelSpec *kspec,
-                           int boundary, int renormalize, int verbose) {
+                           int renormalize) {
   static const char me[]="gageStackBlurParmKernelSet";
 
   if (!( sbp && kspec )) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  nrrdKernelSpecNix(sbp->kspec);
+  sbp->kspec = nrrdKernelSpecCopy(kspec);
+  sbp->renormalize = renormalize;
+  return 0;
+}
+
+int
+gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
+                             int boundary, double padValue) {
+  static const char me[]="gageStackBlurParmBoundarySet";
+  
+  if (!sbp) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -120,10 +137,24 @@ gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
              boundary, nrrdBoundary->name);
     return 1;
   }
-  nrrdKernelSpecNix(sbp->kspec);
-  sbp->kspec = nrrdKernelSpecCopy(kspec);
+  if (nrrdBoundaryPad == boundary && !AIR_EXISTS(padValue)) {
+    biffAddf(GAGE, "%s: want boundary %s but padValue %g doesn't exist", me,
+             airEnumStr(nrrdBoundary, boundary), padValue);
+    return 1;
+  }
   sbp->boundary = boundary;
-  sbp->renormalize = renormalize;
+  sbp->padValue = padValue;
+  return 0;
+}
+
+int
+gageStackBlurParmVerboseSet(gageStackBlurParm *sbp, int verbose) {
+  static const char me[]="gageStackBlurParmVerboseSet";
+
+  if (!sbp) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
   sbp->verbose = verbose;
   return 0;
 }
@@ -234,7 +265,7 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
 **
 ** nblur has to already be allocated for "blNum" Nrrd*s, AND, they all
 ** have to point to valid (possibly empty) Nrrds, so they can hold the
-** results of blurring. 
+** results of blurring
 */
 int
 gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
@@ -245,6 +276,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   blurVal_t *blurVal;
   airArray *mop;
   int E;
+  Nrrd *ntmp;
 
   if (!(nblur && sbp && nin && kind)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -259,10 +291,13 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
+  /* may or may not be needed for iterative diffusion */
+  ntmp = nrrdNew();
+  airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
   if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
-  if (!E) E |= nrrdResampleNrrdSet(rsmc, nin);
+  if (!E) E |= nrrdResampleInputSet(rsmc, nin);
   if (kind->baseDim) {
     unsigned int bai;
     for (bai=0; bai<kind->baseDim; bai++) {
@@ -285,17 +320,60 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
     unsigned int kvpIdx;
     if (sbp->verbose) {
-      fprintf(stderr, "%s: resampling %u of %u (scale %g) ... ", me, blIdx,
+      fprintf(stderr, "%s: blurring %u / %u (scale %g) ... ", me, blIdx,
               sbp->num, sbp->scale[blIdx]);
       fflush(stderr);
+    } 
+    if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel
+        && sbp->scale[blIdx] > sbp->sigmaMax) {
+      double timeLeft, /* amount of diffusion time left to do */
+        timeStep,      /* length of diffusion time per blur */
+        timeDo;        /* amount of diffusion time just applied */
+      unsigned int passIdx = 0;
+      timeLeft = sbp->scale[blIdx]*sbp->scale[blIdx];
+      timeStep = (sbp->sigmaMax)*(sbp->sigmaMax);
+      if (sbp->verbose) {
+        fprintf(stderr, "\n");
+        fprintf(stderr, "%s: scale %g > sigmaMax %g\n", me, 
+                sbp->scale[blIdx], sbp->sigmaMax);
+        fprintf(stderr, "%s: diffusing for time %g in steps of %g\n", me,
+                timeLeft, timeStep);
+        fflush(stderr);
+      }
+      do {
+        if (!passIdx) {
+          if (!E) E |= nrrdResampleInputSet(rsmc, nin);
+        } else {
+          if (!E) E |= nrrdResampleInputSet(rsmc, ntmp);
+        }
+        timeDo = (timeLeft > timeStep
+                  ? timeStep
+                  : timeLeft);
+        sbp->kspec->parm[0] = sqrt(timeDo);
+        for (axi=0; axi<3; axi++) {
+          if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                             sbp->kspec->kernel,
+                                             sbp->kspec->parm);
+        }
+        if (sbp->verbose) {
+          fprintf(stderr, "  pass %u (timeLeft=%g => time=%g, sigma=%g) ...\n",
+                  passIdx, timeLeft, timeDo, sbp->kspec->parm[0]);
+        }
+        if (!E) E |= nrrdResampleExecute(rsmc, ntmp);
+        timeLeft -= timeDo;
+        passIdx++;
+      } while (!E && timeLeft > 0.0);
+      if (!E) E |= nrrdCopy(nblur[blIdx], ntmp);
+    } else {
+      /* do blurring in one shot as usual */
+      sbp->kspec->parm[0] = sbp->scale[blIdx];
+      for (axi=0; axi<3; axi++) {
+        if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                           sbp->kspec->kernel,
+                                           sbp->kspec->parm);
+      }
+      if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
     }
-    sbp->kspec->parm[0] = sbp->scale[blIdx];
-    for (axi=0; axi<3; axi++) {
-      if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                         sbp->kspec->kernel,
-                                         sbp->kspec->parm);
-    }
-    if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
     if (E) {
       if (sbp->verbose) {
         fprintf(stderr, "problem!\n");

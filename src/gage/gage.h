@@ -830,15 +830,23 @@ typedef struct {
 ** all parameters associated with blurring one volume to form a "stack"
 */
 typedef struct {
-  unsigned int num;            /* # of blurring scales == # volumes */
-  double *scale;
-  NrrdKernelSpec *kspec;       /* parm[0] will get over-written */
-  int dataCheck,               /* when checking given stack to see if its
-                                  the blurring of a volume, actually go in
-                                  and look at values of first (probably
-                                  the least blurred) volume */
-    boundary,
-    renormalize,
+  unsigned int num;      /* # of blurring scales == # volumes */
+  double *scale;         /* scale parameter for each blurred volume */
+  double sigmaMax,       /* nrrdKernelDiscreteGaussian is implemented with
+                            airBesselInExpScaled, which has numerical issues
+                            for very large kernel sizes.  Instead of doing
+                            the blurring in one step, the diffusion is done
+                            iteratively, with steps in diffusion time 
+                            of sigmaMax^2 */
+    padValue;            /* padding value for nrrdBoundaryPad */
+  NrrdKernelSpec *kspec; /* NOTE: parm[0] will get over-written as part
+                            of running the resampler at each scale */
+  int dataCheck,         /* when checking given stack to see if its the
+                            blurring of a volume, actually go in and look at
+                            values of first (probably the least blurred)
+                            volume */
+    boundary,            /* passed to nrrdResampleBoundarySet */
+    renormalize,         /* passed to nrrdResampleRenormalizeSet */
     verbose;
 } gageStackBlurParm;
 
@@ -964,6 +972,7 @@ GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
 GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT double gageDefStackNormalizeDerivBias;
+GAGE_EXPORT double gageDefStackBlurSigmaMax;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 
 /* miscGage.c */
@@ -1111,8 +1120,11 @@ GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
                                           int uniform, int optim);
 GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                                            const NrrdKernelSpec *kspec,
-                                           int boundary, int renormalize,
-                                           int verbose);
+                                           int renormalize);
+GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
+                                             int boundary, double padValue);
+GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,
+                                            int verbose);
 GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
                               const Nrrd *nin, const gageKind *kind);
