@@ -31,6 +31,18 @@ IF(Teem_BINARY_DIR)
   ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 ENDIF(Teem_BINARY_DIR)
 
+# Create a header file with the path to the data in it.  Note that we don't
+# have to make these paths "windows friendly" as it turns out windows can read
+# forward slashed paths.
+set(TESTING_DATA_PATH "${CMAKE_SOURCE_DIR}/data" CACHE PATH
+  "Path to testing data")
+mark_as_advanced(TESTING_DATA_PATH)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/test_data_paths.h.in"
+  "${CMAKE_BINARY_DIR}/include/test_data_paths.h"
+  )
+
 ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
 
 ADD_SUBDIRECTORY(air)

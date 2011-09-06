@@ -1,0 +1,30 @@
+#define TESTING_DATA_PATH "${TESTING_DATA_PATH}"
+
+#include <stdlib.h>
+#include <string.h>
+#include <teem/air.h>
+
+static char*
+testingGetPath(airArray* mop, const char* file_name) {
+  size_t path_len, file_name_len;
+  char* result;
+  /* You could add an environment variable override here */
+  /* if (getenv(TESTING_DATA_PATH)) */
+
+  /* concatenate the strings together and make sure the string allocation
+   * is put in the mop */
+  path_len = strlen(TESTING_DATA_PATH);
+  file_name_len = strlen(file_name);
+  /* Allocate enough for the two halves of the string, plus 1 for the /
+   * and one for the null terminator */
+  result = (char*)malloc(path_len + file_name_len + 2);
+  if (!result) {
+    return NULL;
+  }
+  airMopAdd(mop, result, airFree, airMopAlways);
+
+  airStrcpy(result, path_len + 1, TESTING_DATA_PATH);
+  result[path_len] = '/';
+  airStrcpy(result+path_len+1, file_name_len + 1, file_name);
+  return result;
+}
