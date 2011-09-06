@@ -175,22 +175,23 @@ pullInfo = &_pullInfo;
 const char *
 _pullPropStr[] = {
   "(unknown_prop)",
-  "idtag",
-  "idcc",
-  "energy",
-  "stepEnergy",
-  "stepConstr",
-  "stuck",
-  "position",
-  "force",
-  "neighDistMean",
-  "scale",
-  "neighCovar",
-  "neighCovar7Ten",
-  "neighTanCovar",
-  "neighCovarTrace",
-  "neighCovarDet",
-  "stability"
+  "idtag",            /* pullPropIdtag */
+  "idcc",             /* pullPropIdCC */
+  "energy",           /* pullPropEnergy */
+  "stepEnergy",       /* pullPropStepEnergy */
+  "stepConstr",       /* pullPropStepConstr */
+  "stuck",            /* pullPropStuck */
+  "position",         /* pullPropPosition */
+  "force",            /* pullPropForce */
+  "neighDistMean",    /* pullPropNeighDistMean */
+  "scale",            /* pullPropScale */
+  "neighCovar",       /* pullPropNeighCovar */
+  "neighCovar7Ten",   /* pullPropNeighCovar7Ten */
+  "neighTanCovar",    /* pullPropNeighTanCovar */
+  "internum",         /* pullPropNeighInterNum */
+  "neighCovarTrace",  /* pullPropNeighCovarTrace */
+  "neighCovarDet",    /* pullPropNeighCovarDet */
+  "stability"         /* pullPropStability */
 };
 
 static const airEnum
