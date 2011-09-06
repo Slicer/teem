@@ -214,6 +214,7 @@ meetAirEnumAllCheck(void) {
   airMopAdd(mop, (void*)enm, airFree, airMopAlways);
   ei = 0;
   while ((ee = enm[ei])) {
+    /* fprintf(stderr, "!%s: %u %s\n", me, ei, ee->name); */
     if (airEnumCheck(err, ee)) {
       biffAddf(MEET, "%s: problem with enum %u", me, ei);
       biffAddf(MEET, "%s", err); /* kind of a hack */
