@@ -44,7 +44,7 @@
 **    allocations of intermediate resampling results is preserved
 **    in the nrrdResampleContext).  To resample a second nrrd, 
 **    you'd only need:
-**    nrrdResampleNrrdSet(rsmc, nin2);
+**    nrrdResampleInputSet(rsmc, nin2);
 **    nrrdResampleExecute(rsmc, nout2);
 ** -- correct handling general orientation (space directions and
 **    space origin).  This was impossible in the old resampler
@@ -189,48 +189,60 @@ nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
   return 0;
 }
 
+#define NRRD_RESAMPLE_INPUT_SET_BODY \
+  unsigned int axIdx, kpIdx; \
+\
+  if (!( rsmc && nin )) { \
+    biffAddf(NRRD, "%s: got NULL pointer", me); \
+    return 1; \
+  } \
+  if (nrrdCheck(nin)) { \
+    biffAddf(NRRD, "%s: problems with given nrrd", me); \
+    return 1; \
+  } \
+  if (nrrdTypeBlock == nin->type) { \
+    biffAddf(NRRD, "%s: can't resample from type %s", me, \
+             airEnumStr(nrrdType, nrrdTypeBlock)); \
+    return 1; \
+  } \
+ \
+  rsmc->nin = nin; \
+  rsmc->flag[flagNrrd] = AIR_TRUE; \
+ \
+  /* per-axis information should be invalidated at this point, because \
+     if we defer the invalidation to later ...Update() calls, it will \
+     clobber the effects of intervening calls to the likes of  \
+     ...KernelSet(), ...SampleSet(), and so on */ \
+  if (rsmc->dim != nin->dim) { \
+    for (axIdx=0; axIdx<NRRD_DIM_MAX; axIdx++) { \
+      rsmc->axis[axIdx].center = nrrdCenterUnknown; \
+      rsmc->axis[axIdx].sizeIn = 0; \
+      rsmc->axis[axIdx].kernel = NULL; \
+      rsmc->axis[axIdx].kparm[0] = nrrdDefaultKernelParm0; \
+      for (kpIdx=1; kpIdx<NRRD_KERNEL_PARMS_NUM; kpIdx++) { \
+        rsmc->axis[axIdx].kparm[kpIdx] = AIR_NAN; \
+      } \
+      rsmc->axis[axIdx].samples = 0; \
+      rsmc->axis[axIdx].min = AIR_NAN; \
+      rsmc->axis[axIdx].max = AIR_NAN; \
+    } \
+  } \
+ \
+  return 0
+
+
 int
 nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
   static const char me[]="nrrdResampleNrrdSet";
-  unsigned int axIdx, kpIdx;
 
-  if (!( rsmc && nin )) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
-    return 1;
-  }
-  if (nrrdCheck(nin)) {
-    biffAddf(NRRD, "%s: problems with given nrrd", me);
-    return 1;
-  }
-  if (nrrdTypeBlock == nin->type) {
-    biffAddf(NRRD, "%s: can't resample from type %s", me,
-             airEnumStr(nrrdType, nrrdTypeBlock));
-    return 1;
-  }
+  NRRD_RESAMPLE_INPUT_SET_BODY;
+}
 
-  rsmc->nin = nin;
-  rsmc->flag[flagNrrd] = AIR_TRUE;
+int
+nrrdResampleInputSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
+  static const char me[]="nrrdResampleInputSet";
 
-  /* per-axis information should be invalidated at this point, because
-     if we defer the invalidation to later ...Update() calls, it will
-     clobber the effects of intervening calls to the likes of 
-     ...KernelSet(), ...SampleSet(), and so on */
-  if (rsmc->dim != nin->dim) {
-    for (axIdx=0; axIdx<NRRD_DIM_MAX; axIdx++) {
-      rsmc->axis[axIdx].center = nrrdCenterUnknown;
-      rsmc->axis[axIdx].sizeIn = 0;
-      rsmc->axis[axIdx].kernel = NULL;
-      rsmc->axis[axIdx].kparm[0] = nrrdDefaultKernelParm0;
-      for (kpIdx=1; kpIdx<NRRD_KERNEL_PARMS_NUM; kpIdx++) {
-        rsmc->axis[axIdx].kparm[kpIdx] = AIR_NAN;
-      }
-      rsmc->axis[axIdx].samples = 0;
-      rsmc->axis[axIdx].min = AIR_NAN;
-      rsmc->axis[axIdx].max = AIR_NAN;
-    }
-  }
-
-  return 0;
+  NRRD_RESAMPLE_INPUT_SET_BODY;
 }
 
 #define PER_AXIS_ERROR_CHECK                                            \
