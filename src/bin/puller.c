@@ -1099,13 +1099,11 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  fprintf(stderr, "!%s: calling meet multi functions\n", me);
   if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, 
-                           kSSblur, verbose)
-      || (fprintf(stderr, "!%s: bingo 0\n", me), 0)
+                           kSSblur, nrrdBoundaryBleed, AIR_NAN,
+                           verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
-      || (fprintf(stderr, "!%s: bingo 1\n", me), 0)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
     airMopAdd(mop, err = biffGetDone(MEET), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with volumes or infos:\n%s", me, err);

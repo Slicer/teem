@@ -332,14 +332,15 @@ meetPullVolLeech(meetPullVol *vol,
 /*
 ******** meetPullVolLoadMulti
 **
-** at this point the only per-pullVolume information required for
+** at this point the per-pullVolume information required for
 ** loading/creating the volumes, which is NOT in the meetPullVol, is
-** the cachePath and the kernel used for blurring at different scales,
+** the cachePath and the info we have to set in the gageStackBlurParm,
 ** so these have to be passed explicitly.
 */
 int
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
-                     char *cachePath, NrrdKernelSpec *kSSblur, int verbose) {
+                     char *cachePath, NrrdKernelSpec *kSSblur,
+                     int boundary, double padValue, int verbose) {
   static const char me[]="meetPullVolLoadMulti";
   char formatSS[AIR_STRLEN_LARGE];
   unsigned int mpvIdx;
@@ -399,8 +400,9 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
       if (gageStackBlurParmScaleSet(sbp, vol->numSS,
                                     vol->rangeSS[0], vol->rangeSS[1], 
                                     vol->uniformSS, vol->optimSS)
-          || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
-                                        AIR_TRUE, verbose)
+          || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+          || gageStackBlurParmBoundarySet(sbp, boundary, padValue)
+          || gageStackBlurParmVerboseSet(sbp, verbose)
           || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
                                  formatSS, AIR_TRUE, NULL,
                                  vol->nin, vol->kind)) {

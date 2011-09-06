@@ -159,6 +159,7 @@ MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
                                      char *cachePath, NrrdKernelSpec *kSSblur,
+                                     int boundary, double padValue,
                                      int verbose);
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     meetPullVol **mpv, unsigned int mpvNum,

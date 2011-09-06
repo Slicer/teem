@@ -233,8 +233,9 @@ main(int argc, const char *argv[]) {
     }
     if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
                                   SSuniform, SSoptim)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
-                                      AIR_TRUE, verbose)) {
+        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
+        || gageStackBlurParmVerboseSet(sbp, verbose)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with stack blur info:\n%s\n", me, err);
       airMopError(mop); return 1;

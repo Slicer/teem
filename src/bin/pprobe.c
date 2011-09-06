@@ -227,8 +227,9 @@ main(int argc, const char *argv[]) {
     }
     if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
                                   SSuniform, AIR_FALSE)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed, 
-                                      AIR_TRUE, verbose)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
+        || gageStackBlurParmVerboseSet(sbp, verbose)
         || gageStackBlur(ninSS, sbp, nin, kind)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);

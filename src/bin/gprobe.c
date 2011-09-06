@@ -391,8 +391,9 @@ main(int argc, const char *argv[]) {
     airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
     if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
                                   uniformSS, optimSS)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, nrrdBoundaryBleed,
-                                      AIR_TRUE, verbose)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
+        || gageStackBlurParmVerboseSet(sbp, verbose)
         || gageStackBlurManage(&ninSS, &recompute, sbp,
                                stackFnameFormat, AIR_TRUE, NULL,
                                nin, kind)) {
