@@ -5,7 +5,7 @@
 #include <teem/air.h>
 
 static char*
-testingGetPath(airArray* mop, const char* file_name) {
+testPathPrefix(airArray* mop, const char* file_name) {
   size_t path_len, file_name_len;
   char* result;
   /* You could add an environment variable override here */
@@ -15,14 +15,19 @@ testingGetPath(airArray* mop, const char* file_name) {
    * is put in the mop */
   path_len = strlen(TESTING_DATA_PATH);
   file_name_len = strlen(file_name);
-  /* Allocate enough for the two halves of the string, plus 1 for the /
+  /* Allocate enough for the two parts of the string, plus one for the /
    * and one for the null terminator */
-  result = (char*)malloc(path_len + file_name_len + 2);
+  result = AIR_CALLOC(path_len + file_name_len + 2, char);
   if (!result) {
     return NULL;
   }
   airMopAdd(mop, result, airFree, airMopAlways);
 
+  /*
+  strcat(result, TESTING_DATA_PATH);
+  strcat(result, "/");
+  strcat(result, file_name);
+  */
   airStrcpy(result, path_len + 1, TESTING_DATA_PATH);
   result[path_len] = '/';
   airStrcpy(result+path_len+1, file_name_len + 1, file_name);

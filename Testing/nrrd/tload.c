@@ -36,8 +36,7 @@ main(int argc, const char **argv) {
 
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
-  /* FIX ME; looking for teem/data/fmob-c4h.nrrd */
-  if (nrrdLoad(nin, testingGetPath( mop, "fmob-c4h.nrrd"), NULL)) {
+  if (nrrdLoad(nin, testPathPrefix(mop, "fmob-c4h.nrrd"), NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble reading data:\n%s", me, err);
