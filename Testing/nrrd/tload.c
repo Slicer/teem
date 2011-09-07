@@ -22,7 +22,7 @@
 */
 
 #include "teem/nrrd.h"
-#include <test_data_paths.h>
+#include <testDataPath.h>
 
 int
 main(int argc, const char **argv) {
