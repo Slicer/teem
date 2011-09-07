@@ -39,8 +39,8 @@ set(TESTING_DATA_PATH "${CMAKE_SOURCE_DIR}/data" CACHE PATH
 mark_as_advanced(TESTING_DATA_PATH)
 
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/test_data_paths.h.in"
-  "${CMAKE_BINARY_DIR}/include/test_data_paths.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/testDataPath.h.in"
+  "${CMAKE_BINARY_DIR}/include/testDataPath.h"
   )
 
 ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
