@@ -29,6 +29,7 @@ main(int argc, const char **argv) {
   const char *me;
   Nrrd *nin;
   airArray *mop;
+  char *fullname;
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -36,10 +37,12 @@ main(int argc, const char **argv) {
 
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdLoad(nin, testDataPathPrefix(mop, "fmob-c4h.nrrd"), NULL)) {
+  fullname = testDataPathPrefix(mop, "fmob-c4h.nrrd");
+  if (nrrdLoad(nin, fullname, NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble reading data:\n%s", me, err);
+    fprintf(stderr, "%s: trouble reading data \"%s\":\n%s",
+            me, fullname, err);
     airMopError(mop); return 1;
   }
 
