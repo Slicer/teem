@@ -532,7 +532,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       trc = CTRACE(point->neighCovar);
       point->stability = (trc
                           ? (task->pctx->targetDim * Css)/trc
-                          : 0.0);
+                          : 0.0f);
 #if PULL_TANCOVAR
       /* using 1 + # neigh because this includes tan1 of point itself */
       ELL_6V_SCALE(point->neighTanCovar, 1.0f/(1 + point->neighInterNum),
