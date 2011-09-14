@@ -635,6 +635,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      pnc = point->neighCovar;
       switch(prop) {
       case pullPropEnergy:
         out_d[outIdx] = point->energy;
@@ -683,7 +684,6 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar); 
         break;
       case pullPropNeighCovar7Ten:
-        pnc = point->neighCovar;
         TEN_T_SET(out_f + 7*outIdx, 1.0f,
                   pnc[0],
                   pnc[1],
