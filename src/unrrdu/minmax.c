@@ -65,14 +65,19 @@ unrrdu_minmaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int pret, blind8BitRange; 
   unsigned int ni, ninLen;
+#define B8DEF "false"
 
   mop = airMopNew();
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             "false", /* NOTE: not using nrrdStateBlind8BitRange here 
-                         for consistency with previous behavior */
+             B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here 
+                       for consistency with previous behavior */
              "whether to blindly assert the range of 8-bit data, "
              "without actually going through the data values, i.e. "
-             "uchar is always [0,255], signed char is [-128,127]");
+             "uchar is always [0,255], signed char is [-128,127]. "
+             "Note that even if you do not use this option, the default "
+             "(" B8DEF ") is potentialy over-riding the effect of "
+             "environment variable NRRD_STATE_BLIND_8_BIT_RANGE; "
+             "see \"unu env\"");
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
              "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
