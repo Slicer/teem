@@ -12,6 +12,7 @@ SET(NRRD_SOURCES
   comment.c
   convertNrrd.c
   defaultsNrrd.c
+  deringNrrd.c
   encoding.c
   encodingAscii.c
   encodingBzip2.c

@@ -1214,6 +1214,24 @@ NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
                                      int typeOut, const int *axisDo,
                                      double thresh, int insideHigher);
 
+/******** deringNrrd.c: deringing CT */
+typedef struct {
+  /* -------- INPUT */
+  const Nrrd *nin;             /* array to dering */
+  double center[2];            /* location of recon center in index space
+                                  of fastest two axes */
+  /* -------- INTERNAL */
+  int *flag;                   /* flags to organize execution */
+  Nrrd *nsliceOrig;            /* wrapped slice of nin, sneakily non-const */
+  Nrrd *nslice;                /* slice of nin, converted to double */
+} NrrdDeringContext;
+NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
+NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
+NRRD_EXPORT int nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin);
+NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
+                                    double cx, double cy);
+NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
+
 /*
 ******** nrrdResample_t typedef
 **
