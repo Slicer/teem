@@ -24,6 +24,7 @@ SET(UNRRDU_SOURCES
   crop.c
   acrop.c
   data.c
+  dering.c
   dhisto.c
   dice.c
   dist.c

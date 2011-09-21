@@ -114,6 +114,7 @@ F(convert) \
 F(resample) \
 F(fft) \
 F(cmedian) \
+F(dering) \
 F(dist) \
 F(minmax) \
 F(quantize) \
