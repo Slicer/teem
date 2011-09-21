@@ -141,9 +141,9 @@ NrrdResampleContext *
 nrrdResampleContextNew() {
   NrrdResampleContext *rsmc;
 
-  rsmc = (NrrdResampleContext *)calloc(1, sizeof(NrrdResampleContext));
+  rsmc = AIR_CALLOC(1, NrrdResampleContext);
   if (rsmc) {
-    rsmc->flag = (int*)calloc(1+FLAG_MAX, sizeof(int));
+    rsmc->flag = AIR_CALLOC(1+FLAG_MAX, int);
     nrrdResampleContextInit(rsmc);
   }
   return rsmc;
