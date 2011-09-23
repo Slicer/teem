@@ -39,9 +39,15 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   NrrdDeringContext *drc;
   double center[2];
+  int verbose;
+  unsigned int thetaNum;
 
   hestOptAdd(&opt, "c,center", "x y", airTypeDouble, 2, 2, center, NULL,
              "center of rings, in index space of fastest two axes");
+  hestOptAdd(&opt, "v,verbose", "v", airTypeInt, 1, 1, &verbose, "0",
+             "verbosity level");
+  hestOptAdd(&opt, "tn,thetanum", "# smpls", airTypeUInt, 1, 1, &thetaNum,
+             "20", "# of theta samples");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -58,8 +64,10 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   drc = nrrdDeringContextNew();
   airMopAdd(mop, drc, (airMopper)nrrdDeringContextNix, airMopAlways);
 
-  if (nrrdDeringInputSet(drc, nin)
+  if (nrrdDeringVerboseSet(drc, verbose)
+      || nrrdDeringInputSet(drc, nin)
       || nrrdDeringCenterSet(drc, center[0], center[1])
+      || nrrdDeringThetaNumSet(drc, thetaNum)
       || nrrdDeringExecute(drc, nout)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error deringing:\n%s", me, err);
