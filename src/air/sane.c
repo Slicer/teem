@@ -126,7 +126,7 @@ airSanity(void) {
         && airFP_POS_INF == airFPClass_f(pinfF)
         && airFP_NEG_INF == airFPClass_f(ninfF))) {
     /* really, this is verifying that assigning from a double to a 
-       float maintains the FPClass for non-existant values */
+       float maintains the FPClass for non-existent values */
     return airInsane_FltDblFPClass;
   }
   

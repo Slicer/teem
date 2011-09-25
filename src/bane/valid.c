@@ -44,7 +44,7 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
   if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0 &&
          AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
          AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
-    biffAddf(BANE, "%s: must have non-zero existant spacing for all 3 axes",
+    biffAddf(BANE, "%s: must have non-zero existent spacing for all 3 axes",
              me);
     return 1;
   }

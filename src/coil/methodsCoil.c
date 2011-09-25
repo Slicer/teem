@@ -147,7 +147,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     zsp = 1;
   } else {
     if ( !allExist ) {
-      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existant", 
+      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existent", 
                me, xsp, ysp, zsp);
       airMopError(mop); return 1;
     }

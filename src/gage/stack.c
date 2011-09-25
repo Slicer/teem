@@ -269,7 +269,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
        usefully setting the values on the boundary (the boundary which
        is required in the rest of the stack's iv3s in order to do the
        laplacian-based spline recon), and we can't have any
-       non-existant values creeping in.  We shouldn't need to do any
+       non-existent values creeping in.  We shouldn't need to do any
        kind of nrrdBoundaryBleed thing here, because the kernel
        weights really should be zero on the boundary. */
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {

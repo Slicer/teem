@@ -37,7 +37,7 @@ _alanStopDesc[ALAN_STOP_MAX+1] = {
   "unknown_stop",
   "there is no reason to stop",
   "hit the maximum number of iterations",
-  "got non-existant values",
+  "got non-existent values",
   "simulation converged",
   "simulation hit divergent instability"
 };
