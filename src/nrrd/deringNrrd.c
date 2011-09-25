@@ -227,9 +227,13 @@ deringDo(NrrdDeringContext *drc, unsigned int zi, Nrrd *nout) {
   }
   for (thIdx=0; thIdx<drc->thetaNum; thIdx++) {
     for (rrIdx=0; rrIdx<radNum; rrIdx++) {
-      ptxf[rrIdx + radNum*thIdx] /= (wght[rrIdx + radNum*thIdx]
-                                     ? wght[rrIdx + radNum*thIdx]
-                                     : 1);
+      double tmpW;
+      tmpW = wght[rrIdx + radNum*thIdx];
+      if (tmpW) {
+        ptxf[rrIdx + radNum*thIdx] /= tmpW;
+      } else {
+        ptxf[rrIdx + radNum*thIdx] = AIR_NAN;
+      }
     }
   }
   if (0) {
@@ -241,6 +245,7 @@ deringDo(NrrdDeringContext *drc, unsigned int zi, Nrrd *nout) {
   /* filter polar transform */
   /* dering nslice in-place */
   /* convert/copy nslice to output slice */
+  AIR_UNUSED(nout);
   
   airMopOkay(mop);
   return 0;
