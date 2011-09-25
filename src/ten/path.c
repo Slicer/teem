@@ -514,7 +514,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
   */
 
   if (!TEN_T_EXISTS(update)) {
-    biffAddf(TEN, "%s: computed non-existant update (step-size too big?)", me);
+    biffAddf(TEN, "%s: computed non-existent update (step-size too big?)", me);
     return 1;
   }
 

@@ -351,8 +351,8 @@ tenTripleConvertSingle_d(double dst[3], int dstType,
     direct = AIR_FALSE;
   }
 
-  /* warn if conversion created non-existant values from
-     existant input */
+  /* warn if conversion created non-existent values from
+     existent input */
   if (ELL_3V_EXISTS(src) && !ELL_3V_EXISTS(dst)) {
     fprintf(stderr, "%s: problem? (%s) %g %g %g <-%s- (%s) %g %g %g\n", me,
             airEnumStr(tenTripleType, dstType),

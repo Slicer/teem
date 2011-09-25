@@ -312,7 +312,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     if (!( TEN_T_EXISTS(tdata) )) {
       /* there's nothing we can do here */
       if (parm->verbose >= 2) {
-        fprintf(stderr, "%s: glyph %d/%d: non-existant data\n",
+        fprintf(stderr, "%s: glyph %d/%d: non-existent data\n",
                 me, idx, numGlyphs);
       }
       continue;

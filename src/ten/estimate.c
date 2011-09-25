@@ -331,7 +331,7 @@ tenEstimateValueMinSet(tenEstimateContext *tec, double valueMin) {
     return 1;
   }
   if (!(AIR_EXISTS(valueMin) && valueMin > 0.0)) {
-    biffAddf(TEN, "%s: given valueMin (%g) not existant and > 0.0",
+    biffAddf(TEN, "%s: given valueMin (%g) not existent and > 0.0",
             me, valueMin);
     return 1;
   }
@@ -1162,7 +1162,7 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
       if (jj < 6) {
         tec->ten[1+jj] = tmp;
         if (!AIR_EXISTS(tmp)) {
-          biffAddf(TEN, "%s: estimated non-existant tensor coef (%u) %g", 
+          biffAddf(TEN, "%s: estimated non-existent tensor coef (%u) %g", 
                    me, jj, tmp);
           return 1;
         }
@@ -1171,7 +1171,7 @@ _tenEstimate1Tensor_LLS(tenEstimateContext *tec) {
         tec->estimatedB0 = exp(tec->bValue*tmp);
         tec->estimatedB0 = AIR_MIN(FLT_MAX, tec->estimatedB0);
         if (!AIR_EXISTS(tec->estimatedB0)) {
-          biffAddf(TEN, "%s: estimated non-existant B0 %g (b=%g, tmp=%g)", 
+          biffAddf(TEN, "%s: estimated non-existent B0 %g (b=%g, tmp=%g)", 
                    me, tec->estimatedB0, tec->bValue, tmp);
           return 1;
         }

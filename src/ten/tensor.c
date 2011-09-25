@@ -169,7 +169,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   float *seven, *nine;
 
   if (!( nout && nin && AIR_EXISTS(thresh) )) {
-    biffAddf(TEN, "%s: got NULL pointer or non-existant threshold", me);
+    biffAddf(TEN, "%s: got NULL pointer or non-existent threshold", me);
     return 1;
   }
   if (nout == nin) {
