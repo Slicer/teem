@@ -27,7 +27,7 @@
 char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
  "prints to standard out the min and max values found in the input nrrd(s), "
- "and it also indicates if there are non-existant values.\n "
+ "and it also indicates if there are non-existent values.\n "
  "* Uses nrrdRangeNewSet");
 
 int

@@ -56,7 +56,7 @@ pushBinDone(pushBin *bin) {
 
 /* 
 ** bins on boundary now extend to infinity; so the only time this 
-** returns NULL (indicating error) is for non-existant positions
+** returns NULL (indicating error) is for non-existent positions
 */
 pushBin *
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
@@ -65,7 +65,7 @@ _pushBinLocate(pushContext *pctx, double *_posWorld) {
   unsigned int axi, eidx[3], binIdx;
 
   if (!ELL_3V_EXISTS(_posWorld)) {
-    biffAddf(PUSH, "%s: non-existant position (%g,%g,%g)", me,
+    biffAddf(PUSH, "%s: non-existent position (%g,%g,%g)", me,
              _posWorld[0], _posWorld[1], _posWorld[2]);
     return NULL;
   }
