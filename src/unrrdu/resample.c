@@ -46,8 +46,9 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm, older, E, defaultCenter, verbose,
-    overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE, offSet=AIR_FALSE;
+  int type, bb, pret, norenorm, neb, older, E, defaultCenter,
+    verbose, overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE,
+    offSet=AIR_FALSE;
   unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen;
   airArray *mop;
   float *scale;
@@ -124,6 +125,16 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "needed to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
+  hestOptAdd(&opt, "ne,nonexistent", "behavior", airTypeEnum, 1, 1,
+             &neb, "noop",
+             "When resampling floating-point values, how to handle "
+             "non-existent values within kernel support:\n "
+             "\b\bo \"noop\": do nothing; let them pollute result\n "
+             "\b\bo \"renorm\": ignore them and renormalize weights of "
+             "existent values\n "
+             "\b\bo \"wght\": ignore them and simply use weights of "
+             "existent values",
+             NULL, nrrdResampleNonExistent);
   hestOptAdd(&opt, "b,boundary", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
              "How to handle samples beyond the input bounds:\n "
              "\b\bo \"pad\": use some specified value\n "
@@ -300,6 +311,7 @@ unrrdu_resampleMain(int argc, const char **argv, char *me, hestParm *hparm) {
     if (!E) E |= nrrdResampleTypeOutSet(rsmc, type);
     if (!E) E |= nrrdResamplePadValueSet(rsmc, padVal);
     if (!E) E |= nrrdResampleRenormalizeSet(rsmc, !norenorm);
+    if (!E) E |= nrrdResampleNonExistentSet(rsmc, neb);
     if (!E) E |= nrrdResampleExecute(rsmc, nout);
     if (E) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
