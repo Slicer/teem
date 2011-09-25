@@ -104,7 +104,7 @@ _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
 
 /* 
 ** bins on boundary now extend to infinity; so the only time this 
-** returns NULL (indicating error) is for non-existant positions
+** returns NULL (indicating error) is for non-existent positions
 */
 pullBin *
 _pullBinLocate(pullContext *pctx, double *posWorld) {
@@ -112,7 +112,7 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
   unsigned int axi, eidx[4], binIdx;
 
   if (!ELL_4V_EXISTS(posWorld)) {
-    biffAddf(PULL, "%s: non-existant position (%g,%g,%g,%g)", me,
+    biffAddf(PULL, "%s: non-existent position (%g,%g,%g,%g)", me,
              posWorld[0], posWorld[1], posWorld[2], posWorld[3]);
     return NULL;
   }

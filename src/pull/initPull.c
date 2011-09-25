@@ -144,7 +144,7 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
     return 1;
   }
   if (!AIR_EXISTS(jitter)) {
-    biffAddf(PULL, "%s: got non-existant jitter %g", me, jitter);
+    biffAddf(PULL, "%s: got non-existent jitter %g", me, jitter);
     return 1;
   }
   
