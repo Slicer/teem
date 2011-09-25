@@ -121,7 +121,7 @@ _nrrdMeasureProduct(void *ans, int ansType,
   } else {
     P = AIR_NAN;
     /* the point of this is to ensure that that if there are NO
-       existant values, then the return is NaN */
+       existent values, then the return is NaN */
     for (ii=0; !AIR_EXISTS(P) && ii<len; ii++) {
       P = lup(line, ii);
     }
@@ -186,7 +186,7 @@ _nrrdMeasureMean(void *ans, int ansType,
       S = lup(line, ii);
     }
     if (AIR_EXISTS(S)) {
-      /* there was an existant value */
+      /* there was an existent value */
       count = 1;
       for (; ii<len; ii++) {
         val = lup(line, ii);
@@ -197,7 +197,7 @@ _nrrdMeasureMean(void *ans, int ansType,
       }
       M = S/count;
     } else {
-      /* there were NO existant values */
+      /* there were NO existent values */
       M = AIR_NAN;
     }
   }
@@ -275,7 +275,7 @@ _nrrdMeasureMedian(void *ans, int ansType,
     }
     
     if (AIR_EXISTS(M)) {
-      /* i is index AFTER first existant value */
+      /* i is index AFTER first existent value */
       ii--;
       len -= ii;
       mid = len/2;
@@ -568,7 +568,7 @@ _nrrdMeasureSkew(void *ans, int ansType,
     }
   }
   if (0 == vari) {
-    /* why not have an existant value ... */
+    /* why not have an existent value ... */
     nrrdDStore[ansType](ans, 0);
     return;
   }
@@ -580,7 +580,7 @@ _nrrdMeasureSkew(void *ans, int ansType,
 
 /*
 ** one thing which ALL the _nrrdMeasureHisto measures assume is that,
-** being a histogram, the input array will not have any non-existant
+** being a histogram, the input array will not have any non-existent
 ** values.  It can be floating point, because it is plausible to have
 ** some histogram composed of fractionally weighted hits, but there is
 ** no way that it is reasonable to have NaN in a bin, and it is extremely
@@ -591,13 +591,13 @@ _nrrdMeasureSkew(void *ans, int ansType,
 ** values are always ignored.
 **
 ** All the the  _nrrdMeasureHisto measures assume that if not both
-** axmin and axmax are existant, then (axmin,axmax) = (-0.5,len-0.5).
+** axmin and axmax are existent, then (axmin,axmax) = (-0.5,len-0.5).
 ** Exercise for the reader:  Show that
 **
 **    i == NRRD_POS(nrrdCenterCell, 0, len-1, len, i)
 **
 ** This justifies that fact that when axmin and axmax are not both
-** existant, then we can simply calculate the answer in index space,
+** existent, then we can simply calculate the answer in index space,
 ** and not have to do any shifting or scaling at the end to account
 ** for the fact that we assume (axmin,axmax) = (-0.5,len-0.5).
 */

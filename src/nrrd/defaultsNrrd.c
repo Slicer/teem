@@ -50,6 +50,7 @@ int nrrdDefaultResampleRound = AIR_TRUE;
 int nrrdDefaultResampleClamp = AIR_TRUE;
 int nrrdDefaultResampleCheap = AIR_FALSE;
 double nrrdDefaultResamplePadValue = 0.0;
+int nrrdDefaultResampleNonExistent = nrrdResampleNonExistentNoop;
 double nrrdDefaultKernelParm0 = 1.0; 
 /* ---- END non-NrrdIO */
 int nrrdDefaultCenter = nrrdCenterCell;

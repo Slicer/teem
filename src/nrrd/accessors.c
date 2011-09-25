@@ -435,7 +435,7 @@ nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
 ** values, regardless of their actual values (so +infinity < -42).  This
 ** is to make sure that we have comparison that won't confuse qsort(),
 ** which underlies _nrrdMeasureMedian(), and to make it easier to separate
-** existant from non-existant values.
+** existent from non-existent values.
 */
 #define _VC_ARGS(type) const type *A, const type *B
 #define _VC_FIXED (*A < *B ? -1 : (*A > *B ? 1 : 0))

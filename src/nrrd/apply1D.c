@@ -273,7 +273,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 ** we don't need a typeOut arg because nout has already been allocated
 ** as some specific type; we'll look at that.
 **
-** NOTE: non-existant values get passed through regular maps and luts
+** NOTE: non-existent values get passed through regular maps and luts
 ** "unchanged".  However, if the output type is integral, the results
 ** are probaby undefined.  HEY: there is currently no warning message
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
@@ -360,7 +360,7 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
           ... */
         }
       } else {
-        /* copy non-existant values from input to output */
+        /* copy non-existent values from input to output */
         for (i=0; i<entLen; i++) {
           outInsert(outData, i, val);
         }
@@ -385,7 +385,7 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
           outInsert(outData, i, mapLup(entData0, i));
         }
       } else {
-        /* copy non-existant values from input to output */
+        /* copy non-existent values from input to output */
         for (i=0; i<entLen; i++) {
           outInsert(outData, i, val);
         }
@@ -507,7 +507,7 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
 ** value in the input is mapped to a linear weighting of vectors 
 ** from the map; the vectors are the scanlines along axis 0.
 **
-** NB: this function makes NO provisions for non-existant input values.
+** NB: this function makes NO provisions for non-existent input values.
 ** There won't be any memory errors, but the results are undefined.
 **
 ** This allows map length to be simply 1.
@@ -578,12 +578,12 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
 ******** nrrd1DIrregMapCheck()
 **
 ** return zero only for the valid forms of 1D irregular map.
-** imap must be 2D, both sizes >= 2, non-block-type, no non-existant
-** values in range.  If the first point's position is non-existant,
+** imap must be 2D, both sizes >= 2, non-block-type, no non-existent
+** values in range.  If the first point's position is non-existent,
 ** than the first three points positions must be -inf, NaN, and +inf,
-** and none of the other points locations can be non-existant, and
+** and none of the other points locations can be non-existent, and
 ** they must increase monotonically.  There must be at least two
-** points with existant positions.
+** points with existent positions.
 */
 int
 nrrd1DIrregMapCheck(const Nrrd *nmap) {
@@ -635,14 +635,14 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
   } else {
     baseI = 3;
     if (!( mapLen >= 5 )) {
-      biffAddf(NRRD, "%s: length of map w/ non-existant locations must "
+      biffAddf(NRRD, "%s: length of map w/ non-existent locations must "
                "be >= 5 (not %d)", me, mapLen);
       return 1;
     }
     if (!( airFP_NEG_INF == airFPClass_d(mapLup(nmap->data, 0*entLen)) &&
            airFP_QNAN    == airFPClass_d(mapLup(nmap->data, 1*entLen)) &&
            airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2*entLen)) )) {
-      biffAddf(NRRD, "%s: 1st entry's position non-existant, but position "
+      biffAddf(NRRD, "%s: 1st entry's position non-existent, but position "
                "of 1st three entries (%g:%d,%g:%d,%g:%d) not "
                "-inf, NaN, and +inf", me,
                mapLup(nmap->data, 0*entLen), 
@@ -656,7 +656,7 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
   }
   for (i=baseI; i<mapLen; i++) {
     if (!AIR_EXISTS(mapLup(nmap->data, i*entLen))) {
-      biffAddf(NRRD, "%s: entry %d has non-existant position", me, i);
+      biffAddf(NRRD, "%s: entry %d has non-existent position", me, i);
       return 1;
     }
   }
@@ -712,9 +712,9 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
 /*
 ** _nrrd1DIrregMapDomain()
 **
-** ALLOCATES an array of doubles storing the existant control point
+** ALLOCATES an array of doubles storing the existent control point
 ** locations, and sets its length in *poslenP.  If there are the three
-** points with non-existant locations, these are ignored.
+** points with non-existent locations, these are ignored.
 **
 ** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
@@ -862,9 +862,9 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
 ** value(s) are linearly weighted according to the position of the
 ** input value among the control point locations.
 **
-** To allow "coloring" of non-existant values -inf, NaN, and +inf, if
+** To allow "coloring" of non-existent values -inf, NaN, and +inf, if
 ** the very first value of the map (the location of the first control
-** point) is non-existant, then the first three control point locations
+** point) is non-existent, then the first three control point locations
 ** must be -inf, NaN, and +inf, in that order, and the information
 ** about these points will be used for corresponding input values.
 ** Doing this makes everything slower, however, because airFPClass_f()
@@ -953,7 +953,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     fprintf(stderr, "!%s: (%d) val = % 31.15f\n", me, (int)I, val);
     */
     if (!AIR_EXISTS(val)) {
-      /* got a non-existant value */
+      /* got a non-existent value */
       if (baseI) {
         /* and we know how to deal with them */
         switch (airFPClass_d(val)) {
@@ -969,7 +969,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
           break;
         default:
           mapIdx = 0;
-          fprintf(stderr, "%s: PANIC: non-existant value/class %g/%d "
+          fprintf(stderr, "%s: PANIC: non-existent value/class %g/%d "
                   "not handled\n",
                   me, val, airFPClass_d(val));
           exit(1);
@@ -980,13 +980,13 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
         }
         continue;  /* we're done! (with this value) */
       } else {
-        /* we don't know how to properly deal with this non-existant value:
+        /* we don't know how to properly deal with this non-existent value:
            we use the first entry, and then fall through to code below */
         mapIdx = 0;
         mapIdxFrac = 0.0;
       }
     } else {
-      /* we have an existant value */
+      /* we have an existent value */
       if (rescale) {
         val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
       }

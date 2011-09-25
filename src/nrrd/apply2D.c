@@ -199,7 +199,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
 ** we don't need a typeOut arg because nout has already been allocated
 ** as some specific type; we'll look at that.
 **
-** NOTE: non-existant values get passed through regular maps and luts
+** NOTE: non-existent values get passed through regular maps and luts
 ** "unchanged".  However, if the output type is integral, the results
 ** are probaby undefined.  HEY: there is currently no warning message
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
@@ -270,7 +270,7 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
           outInsert(outData, i, mapLup(entData, i));
         }
       } else {
-        /* copy non-existant values from input to output */
+        /* copy non-existent values from input to output */
         for (i=0; i<entLen; i++) {
           outInsert(outData, i, val0 + val1);  /* HEY this is weird */
         }

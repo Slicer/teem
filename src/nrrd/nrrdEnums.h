@@ -417,7 +417,7 @@ enum {
 enum {
   nrrdHasNonExistFalse,     /* 0: no non-existent values were seen */
   nrrdHasNonExistTrue,      /* 1: some non-existent values were seen */
-  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existant values were seen */
+  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existent values were seen */
   nrrdHasNonExistUnknown,   /* 3 */
   nrrdHasNonExistLast
 };
@@ -703,6 +703,20 @@ enum {
   nrrdFFTWPlanRigorLast
 };
 #define NRRD_FFTW_PLAN_RIGOR_MAX  4
+
+/*
+******** nrrdResampleNonExistent
+**
+** different ways that nrrdResample should handle non-existent values
+*/
+enum {
+  nrrdResampleNonExistentUnknown,
+  nrrdResampleNonExistentNoop,         /* 1 */
+  nrrdResampleNonExistentRenormalize,  /* 2 */
+  nrrdResampleNonExistentWeight,       /* 3 */
+  nrrdResampleNonExistentLast
+};
+#define NRRD_RESAMPLE_NON_EXISTENT_MAX    3
 
 /* ---- END non-NrrdIO */
 

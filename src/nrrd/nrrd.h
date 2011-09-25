@@ -596,8 +596,9 @@ typedef struct {
                                should we clamp the values to the range of
                                 values for the output type, a concern only for
                                 integer outputs */
-    defaultCenter;           /* lacking known centering on input axis, what
+    defaultCenter,           /* lacking known centering on input axis, what
                                 centering to use when resampling */
+    nonExistent;             /* from nrrdResampleNonExistent enum */
   double padValue;           /* if padding, what value to pad with */
   /* ----------- input/internal ---------- */
   unsigned int dim,          /* dimension of nin (saved here to help
@@ -650,6 +651,7 @@ NRRD_EXPORT int nrrdDefaultResampleRound;
 NRRD_EXPORT int nrrdDefaultResampleClamp;
 NRRD_EXPORT int nrrdDefaultResampleCheap;
 NRRD_EXPORT double nrrdDefaultResamplePadValue;
+NRRD_EXPORT int nrrdDefaultResampleNonExistent;
 NRRD_EXPORT double nrrdDefaultKernelParm0;
 /* ---- END non-NrrdIO */
 NRRD_EXPORT int nrrdDefaultCenter;
@@ -725,6 +727,7 @@ NRRD_EXPORT const airEnum *const nrrdUnaryOp;
 NRRD_EXPORT const airEnum *const nrrdBinaryOp;
 NRRD_EXPORT const airEnum *const nrrdTernaryOp;
 NRRD_EXPORT const airEnum *const nrrdFFTWPlanRigor;
+NRRD_EXPORT const airEnum *const nrrdResampleNonExistent;
 /* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */
@@ -1266,6 +1269,8 @@ NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNew();
 NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNix(NrrdResampleContext *);
 NRRD_EXPORT int nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
                                              int center);
+NRRD_EXPORT int nrrdResampleNonExistentSet(NrrdResampleContext *rsmc,
+                                           int nonExistent);
 NRRD_EXPORT int nrrdResampleNrrdSet(NrrdResampleContext *rsmc,
                                     const Nrrd *nin);
 NRRD_EXPORT int nrrdResampleInputSet(NrrdResampleContext *rsmc,

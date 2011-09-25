@@ -1266,7 +1266,7 @@ _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
 ** This function will always (assuming type is valid) set the value of
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and it will return that value.  For lack of a more sophisticated
-** policy, blocks are currently always considered to be existant
+** policy, blocks are currently always considered to be existent
 ** values (because nrrdTypeIsIntegral[nrrdTypeBlock] is currently true).
 ** This function will ALWAYS determine the correct answer and set the
 ** value of nrrd->hasNonExist: it ignores the value of
@@ -1280,7 +1280,7 @@ _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
 ** as the expression of a conditional:
 **
 **   if (nrrdHasNonExistSet(nrrd)) {
-**     ... handle existance of non-existant values ...
+**     ... handle existance of non-existent values ...
 **   }
 */
 /*

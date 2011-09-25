@@ -157,7 +157,7 @@ nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
 }
 
 static int 
-deringDo(NrrdDeringContext *drc, unsigned int zi) {
+deringDo(NrrdDeringContext *drc, unsigned int zi, Nrrd *nout) {
   static const char me[]="deringDo";
   Nrrd *nsliceOrig,         /* wrapped slice of nin, sneakily non-const */
     *nslice,                /* slice of nin, converted to double */
@@ -180,6 +180,7 @@ deringDo(NrrdDeringContext *drc, unsigned int zi) {
   
   /* allocate slices */
   if (nrrdWrap_va(nsliceOrig,
+                  /* HEY: sneaky bypass of const-ness of drc->cdata */
                   AIR_CAST(void *, drc->cdata + zi*(drc->sliceSize)),
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,
@@ -205,7 +206,7 @@ deringDo(NrrdDeringContext *drc, unsigned int zi) {
   ptxf = AIR_CAST(float *, nptxf->data);
   wght = AIR_CAST(float *, nwght->data);
 
-  /* the skinny */
+  /* do the polar transform */
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
   sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
   slice = AIR_CAST(float *, nslice->data);
@@ -236,6 +237,10 @@ deringDo(NrrdDeringContext *drc, unsigned int zi) {
     sprintf(fname, "ptxf-%02u.nrrd", zi);
     nrrdSave(fname, nptxf, NULL);
   }
+
+  /* filter polar transform */
+  /* dering nslice in-place */
+  /* convert/copy nslice to output slice */
   
   airMopOkay(mop);
   return 0;
@@ -312,7 +317,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     if (drc->verbose) {
       fprintf(stderr, "%s: slice %u of %u ...\n", me, zi, sz);
     }
-    if (deringDo(drc, zi)) {
+    if (deringDo(drc, zi, nout)) {
       biffAddf(NRRD, "%s: trouble on slice %u", me, zi);
       return 1;
     }

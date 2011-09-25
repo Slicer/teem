@@ -27,7 +27,7 @@
 /*
 ** RETIRED: nrrdMinMaxSet()
 **
-** Sets nrrd->min and nrrd->max to the extremal (existant) values in
+** Sets nrrd->min and nrrd->max to the extremal (existent) values in
 ** the given nrrd, by calling the appropriate member of nrrdMinMaxExactFind[]
 **
 ** calling this function will result in nrrd->hasNonExist being set
@@ -63,7 +63,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 **    values are over-written
 ** 2) obeys the nrrdStateClever8BitMinMax global state to short-cut
 **    finding min and max for 8-bit data.  Values for nrrd->min or 
-**    nrrd->max which were existant to start with are untouched.
+**    nrrd->max which were existent to start with are untouched.
 ** 3) reports error if there are no existent values in nrrd (AIR_EXISTS()
 **    fails on every value)
 **
@@ -156,11 +156,11 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
   }
   if (nrrdStateDisallowIntegerNonExist 
       && !nrrdTypeIsIntegral[nin->type] && nrrdTypeIsIntegral[type]) {
-    /* there's a risk of non-existant values getting converted to
+    /* there's a risk of non-existent values getting converted to
        non-sensical integral values */
     if (nrrdHasNonExist(nin)) {
       biffAddf(NRRD, "%s: can't convert to integral values (%s) with "
-               "non-existant values in input", me,
+               "non-existent values in input", me,
                airEnumStr(nrrdType, type));
       return 1;
     }

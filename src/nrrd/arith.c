@@ -526,7 +526,7 @@ static double _nrrdTernaryOpIfElse(double a, double b, double c) {
 static double _nrrdTernaryOpLerp(double a, double b, double c) {
   /* we do something more than the simple lerp here because
      we want to facilitate usage as something which can get around
-     non-existant values (b and c as NaN or Inf) without
+     non-existent values (b and c as NaN or Inf) without
      getting polluted by them. */
 
   if (0.0 == a) {

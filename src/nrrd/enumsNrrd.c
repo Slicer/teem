@@ -1441,4 +1441,49 @@ _nrrdFFTWPlanRigor_enum = {
 const airEnum *const
 nrrdFFTWPlanRigor = &_nrrdFFTWPlanRigor_enum;
 
+/* ---------------------- nrrdResampleNonExistent -------------------- */
+
+const char *
+_nrrdResampleNonExistentStr[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
+  "(unknown_resample_non_existent)",
+  "noop",
+  "renormalize",
+  "weight"
+};
+
+const char *
+_nrrdResampleNonExistentDesc[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
+  "unknown resample non-existent",
+  "no-op; include non-existent values in convolution sum",
+  "use only existent values in kernel support and renormalize weights",
+  "use only existent values in kernel support and use weights as is"
+};
+
+const char *
+_nrrdResampleNonExistentStrEqv[] = {
+  "noop",
+  "renorm", "renormalize",
+  "wght", "weight",
+  ""
+};
+
+const int
+_nrrdResampleNonExistentValEqv[] = {
+  nrrdResampleNonExistentNoop,
+  nrrdResampleNonExistentRenormalize, nrrdResampleNonExistentRenormalize,
+  nrrdResampleNonExistentWeight, nrrdResampleNonExistentWeight
+};
+
+airEnum
+_nrrdResampleNonExistent_enum = {
+  "resample non-existent",
+  NRRD_RESAMPLE_NON_EXISTENT_MAX,
+  _nrrdResampleNonExistentStr, NULL,
+  _nrrdResampleNonExistentDesc,
+  _nrrdResampleNonExistentStrEqv, _nrrdResampleNonExistentValEqv, 
+  AIR_FALSE
+};
+const airEnum *const
+nrrdResampleNonExistent = &_nrrdResampleNonExistent_enum;
+
 /* ---- END non-NrrdIO */
