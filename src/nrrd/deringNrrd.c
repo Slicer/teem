@@ -24,15 +24,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-enum {
-  flagUnknown,         /*  0 */
-  flagInput,           /*  1 */
-  flagCenter,          /*  2 */
-  flagLast
-};
-#define FLAG_MAX           2
-
-
 NrrdDeringContext *
 nrrdDeringContextNew(void) {
   NrrdDeringContext *drc;
@@ -42,16 +33,12 @@ nrrdDeringContextNew(void) {
     return NULL;
   }
   drc->verbose = 0;
-  drc->radLen = AIR_NAN;
+  drc->linearInterp = AIR_FALSE;
   drc->nin = NULL;
   drc->center[0] = AIR_NAN;
   drc->center[1] = AIR_NAN;
+  drc->radiusScale = 1.0;
   drc->thetaNum = 0;
-  drc->flag = AIR_CALLOC(FLAG_MAX+1, int); /* will be set to zero=false */
-  if (!(drc->flag)) {
-    free(drc);
-    return NULL;
-  }
   
   return drc;
 }
@@ -60,7 +47,6 @@ NrrdDeringContext *
 nrrdDeringContextNix(NrrdDeringContext *drc) {
 
   if (drc) {
-    airFree(drc->flag);
     free(drc);
   }
   return NULL;
@@ -76,6 +62,19 @@ nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose) {
   }
   
   drc->verbose = verbose;
+  return 0;
+}
+
+int
+nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp) {
+  static const char me[]="nrrdDeringLinearInterpSet";
+
+  if (!drc) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  
+  drc->linearInterp = linterp;
   return 0;
 }
 
@@ -113,7 +112,6 @@ nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
     fprintf(stderr, "%s: sliceSize = %u\n", me,
             AIR_CAST(unsigned int, drc->sliceSize));
   }
-  drc->flag[flagInput] = AIR_TRUE;
 
   return 0;
 }
@@ -133,8 +131,25 @@ nrrdDeringCenterSet(NrrdDeringContext *drc, double cx, double cy) {
   
   drc->center[0] = cx;
   drc->center[1] = cy;
-  drc->flag[flagCenter] = AIR_TRUE;
 
+  return 0;
+}
+
+int
+nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc) {
+  static const char me[]="nrrdDeringRadiusScaleSet";
+
+  if (!drc) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( AIR_EXISTS(rsc) && rsc > 0.0 )) {
+    biffAddf(NRRD, "%s: need finite positive radius scale, not %g", me, rsc);
+    return 1;
+  }
+
+  drc->radiusScale = rsc;
+  
   return 0;
 }
 
@@ -156,60 +171,91 @@ nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
   return 0;
 }
 
-static int 
-deringDo(NrrdDeringContext *drc, unsigned int zi, Nrrd *nout) {
-  static const char me[]="deringDo";
+/*
+** per-thread state for deringing
+*/
+typedef struct {
+  double radMax;
+  size_t radNum;
+  airArray *mop;
   Nrrd *nsliceOrig,         /* wrapped slice of nin, sneakily non-const */
     *nslice,                /* slice of nin, converted to double */
     *nptxf,
     *nwght;
-  airArray *mop;
-  unsigned int sx, sy, xi, yi, radNum;
-  unsigned int rrIdx, thIdx;
-  float *slice=NULL, *ptxf=NULL, *wght=NULL;
+  float *slice, *ptxf, *wght;
+} deringBag;
 
-  mop = airMopNew();
-  nsliceOrig = nrrdNew();
-  airMopAdd(mop, nsliceOrig, (airMopper)nrrdNix /* not Nuke */, airMopAlways);
-  nslice = nrrdNew();
-  airMopAdd(mop, nslice, (airMopper)nrrdNuke, airMopAlways);
-  nptxf = nrrdNew();
-  airMopAdd(mop, nptxf, (airMopper)nrrdNuke, airMopAlways);
-  nwght = nrrdNew();
-  airMopAdd(mop, nwght, (airMopper)nrrdNuke, airMopAlways);
+deringBag *
+deringBagNew(NrrdDeringContext *drc, double radMax) {
+  deringBag *dbg;
+
+  dbg = AIR_CALLOC(1, deringBag);
+  dbg->radMax = radMax;
+  dbg->radNum = AIR_ROUNDUP(drc->radiusScale*radMax);
+
+  dbg->mop = airMopNew();
+  dbg->nsliceOrig = nrrdNew();
+  airMopAdd(dbg->mop, dbg->nsliceOrig, (airMopper)nrrdNix /* not Nuke! */,
+            airMopAlways);
+  dbg->nslice = nrrdNew();
+  airMopAdd(dbg->mop, dbg->nslice, (airMopper)nrrdNuke, airMopAlways);
+  dbg->nptxf = nrrdNew();
+  airMopAdd(dbg->mop, dbg->nptxf, (airMopper)nrrdNuke, airMopAlways);
+  dbg->nwght = nrrdNew();
+  airMopAdd(dbg->mop, dbg->nwght, (airMopper)nrrdNuke, airMopAlways);
   
-  /* allocate slices */
-  if (nrrdWrap_va(nsliceOrig,
+  return dbg;
+}
+
+deringBag *
+deringBagNix(deringBag *dbg) {
+
+  airMopOkay(dbg->mop);
+  airFree(dbg);
+  return NULL;
+}
+
+int
+deringArraySetup(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
+  static const char me[]="deringAlloc";
+
+  /* slice setup */
+  if (nrrdWrap_va(dbg->nsliceOrig,
                   /* HEY: sneaky bypass of const-ness of drc->cdata */
                   AIR_CAST(void *, drc->cdata + zi*(drc->sliceSize)),
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,
                   drc->nin->axis[1].size)
       || (nrrdTypeFloat == drc->nin->type
-          ? nrrdCopy(nslice, nsliceOrig)
-          : nrrdConvert(nslice, nsliceOrig, nrrdTypeFloat))) {
+          ? nrrdCopy(dbg->nslice, dbg->nsliceOrig)
+          : nrrdConvert(dbg->nslice, dbg->nsliceOrig, nrrdTypeFloat))) {
     biffAddf(NRRD, "%s: slice setup trouble", me);
-    airMopError(mop); return 1;
+    return 1;
   }
-
-  /* allocate polar transforms */
-  radNum = AIR_ROUNDUP(drc->radLen);
-  if (nrrdMaybeAlloc_va(nptxf, nrrdTypeFloat, 2,
-                        AIR_CAST(size_t, radNum),
+  dbg->slice = AIR_CAST(float *, dbg->nslice->data);
+  
+  /* polar transform setup */
+  if (nrrdMaybeAlloc_va(dbg->nptxf, nrrdTypeFloat, 2,
+                        dbg->radNum,
                         AIR_CAST(size_t, drc->thetaNum))
-      || nrrdMaybeAlloc_va(nwght, nrrdTypeFloat, 2,
-                           AIR_CAST(size_t, radNum),
+      || nrrdMaybeAlloc_va(dbg->nwght, nrrdTypeFloat, 2,
+                           dbg->radNum,
                            AIR_CAST(size_t, drc->thetaNum))) {
     biffAddf(NRRD, "%s: polar transform allocation problem", me);
-    airMopError(mop); return 1;
+    return 1;
   }
-  ptxf = AIR_CAST(float *, nptxf->data);
-  wght = AIR_CAST(float *, nwght->data);
+  dbg->ptxf = AIR_CAST(float *, dbg->nptxf->data);
+  dbg->wght = AIR_CAST(float *, dbg->nwght->data);
+  
+  return 0;
+}
 
-  /* do the polar transform */
+int
+deringPolarTxf(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
+  unsigned int sx, sy, xi, yi, rrIdx, thIdx;
+
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
   sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
-  slice = AIR_CAST(float *, nslice->data);
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       double dx, dy, rr, th;
@@ -217,37 +263,72 @@ deringDo(NrrdDeringContext *drc, unsigned int zi, Nrrd *nout) {
       dx = xi - drc->center[0];
       dy = yi - drc->center[1];
       rr = sqrt(dx*dx + dy*dy);
-      th = atan2(dy, dx);
-      rrIdx = airIndexClamp(0, rr, drc->radLen, radNum);
-      thIdx = airIndexClamp(-AIR_PI, th, AIR_PI, drc->thetaNum);
-      /* fixme */
-      ptxf[rrIdx + radNum*thIdx] += slice[xi + sx*yi];
-      wght[rrIdx + radNum*thIdx] += 1;
+      th = atan2(-dx, dy);
+      if (drc->linearInterp) {
+        float rrFrac, thFrac, val;
+        unsigned int bidx;
+        val = dbg->slice[xi + sx*yi];
+        rr *= drc->radiusScale;
+        rr = AIR_MAX(0, rr-0.5);
+        rrIdx = AIR_CAST(unsigned int, rr);
+        rrIdx = AIR_MIN(rrIdx, dbg->radNum-2);
+        rrFrac = rr - rrIdx;
+        th = (drc->thetaNum)*(1 + th/AIR_PI)/2;
+        th = AIR_MAX(0, th-0.5);
+        thIdx = AIR_CAST(unsigned int, th);
+        thIdx = AIR_MIN(thIdx, drc->thetaNum-2);
+        thFrac = th - thIdx;
+        bidx = rrIdx + dbg->radNum*thIdx;
+        dbg->ptxf[bidx                  ] += (1-rrFrac)*(1-thFrac)*val;
+        dbg->ptxf[bidx + 1              ] +=     rrFrac*(1-thFrac)*val;
+        dbg->ptxf[bidx     + dbg->radNum] += (1-rrFrac)*thFrac*val;
+        dbg->ptxf[bidx + 1 + dbg->radNum] +=     rrFrac*thFrac*val;
+        dbg->wght[bidx                  ] += (1-rrFrac)*(1-thFrac);
+        dbg->wght[bidx + 1              ] +=     rrFrac*(1-thFrac);
+        dbg->wght[bidx     + dbg->radNum] += (1-rrFrac)*thFrac;
+        dbg->wght[bidx + 1 + dbg->radNum] +=     rrFrac*thFrac;
+      } else {
+        rrIdx = airIndexClamp(0, rr, dbg->radMax, dbg->radNum);
+        thIdx = airIndexClamp(-AIR_PI, th, AIR_PI, drc->thetaNum);
+        dbg->ptxf[rrIdx + dbg->radNum*thIdx] += dbg->slice[xi + sx*yi];
+        dbg->wght[rrIdx + dbg->radNum*thIdx] += 1;
+      }
     }
   }
   for (thIdx=0; thIdx<drc->thetaNum; thIdx++) {
-    for (rrIdx=0; rrIdx<radNum; rrIdx++) {
+    for (rrIdx=0; rrIdx<dbg->radNum; rrIdx++) {
       double tmpW;
-      tmpW = wght[rrIdx + radNum*thIdx];
+      tmpW = dbg->wght[rrIdx + dbg->radNum*thIdx];
       if (tmpW) {
-        ptxf[rrIdx + radNum*thIdx] /= tmpW;
+        dbg->ptxf[rrIdx + dbg->radNum*thIdx] /= tmpW;
       } else {
-        ptxf[rrIdx + radNum*thIdx] = AIR_NAN;
+        dbg->ptxf[rrIdx + dbg->radNum*thIdx] = AIR_NAN;
       }
     }
   }
   if (0) {
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "ptxf-%02u.nrrd", zi);
-    nrrdSave(fname, nptxf, NULL);
+    nrrdSave(fname, dbg->nptxf, NULL);
   }
+  return 0;
+}
 
+int
+deringDo(NrrdDeringContext *drc, deringBag *dbg,
+         Nrrd *nout, unsigned int zi) {
+  static const char me[]="deringDo";
+
+  if (deringArraySetup(drc, dbg, zi)
+      || deringPolarTxf(drc, dbg, zi)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
   /* filter polar transform */
   /* dering nslice in-place */
   /* convert/copy nslice to output slice */
   AIR_UNUSED(nout);
-  
-  airMopOkay(mop);
+
   return 0;
 }
 
@@ -274,7 +355,9 @@ int
 nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
   static const char me[]="nrrdDeringExecute";
   unsigned int sx, sy, sz, zi;
-  double dx, dy, len;
+  double dx, dy, radLen, len;
+  deringBag *dbg;
+  airArray *mop;
   
   if (!( drc && nout )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -289,31 +372,34 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     biffAddf(NRRD, "%s: trouble initializing output with input", me);
     return 1;
   }
-
+  /* set radLen: radial length of polar transform of data */
+  radLen = 0;
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
   sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
-  
-  /* find radial length of polar transform of data */
-  drc->radLen = 0;
   dx = 0 - drc->center[0];
   dy = 0 - drc->center[1];
   len = sqrt(dx*dx + dy*dy);
-  drc->radLen = AIR_MAX(drc->radLen, len);
+  radLen = AIR_MAX(radLen, len);
   dx = sx-1 - drc->center[0];
   dy = 0 - drc->center[1];
   len = sqrt(dx*dx + dy*dy);
-  drc->radLen = AIR_MAX(drc->radLen, len);
+  radLen = AIR_MAX(radLen, len);
   dx = sx-1 - drc->center[0];
   dy = sy-1 - drc->center[1];
   len = sqrt(dx*dx + dy*dy);
-  drc->radLen = AIR_MAX(drc->radLen, len);
+  radLen = AIR_MAX(radLen, len);
   dx = 0 - drc->center[0];
   dy = sy-1 - drc->center[1];
   len = sqrt(dx*dx + dy*dy);
-  drc->radLen = AIR_MAX(drc->radLen, len);
+  radLen = AIR_MAX(radLen, len);
   if (drc->verbose) {
-    fprintf(stderr, "%s: drc->radLen = %g\n", me, drc->radLen);
+    fprintf(stderr, "%s: radLen = %g\n", me, radLen);
   }
+
+  /* create deringBag(s) */
+  mop = airMopNew();
+  dbg = deringBagNew(drc, radLen);
+  airMopAdd(mop, dbg, (airMopper)deringBagNix, airMopAlways);
   
   sz = (2 == drc->nin->dim
         ? 1
@@ -322,7 +408,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     if (drc->verbose) {
       fprintf(stderr, "%s: slice %u of %u ...\n", me, zi, sz);
     }
-    if (deringDo(drc, zi, nout)) {
+    if (deringDo(drc, dbg, nout, zi)) {
       biffAddf(NRRD, "%s: trouble on slice %u", me, zi);
       return 1;
     }
@@ -331,5 +417,6 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     }
   }
 
+  airMopOkay(mop);
   return 0;
 }

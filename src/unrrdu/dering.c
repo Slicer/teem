@@ -38,16 +38,20 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
 
   NrrdDeringContext *drc;
-  double center[2];
-  int verbose;
+  double center[2], radScale;
+  int verbose, linterp;
   unsigned int thetaNum;
 
   hestOptAdd(&opt, "c,center", "x y", airTypeDouble, 2, 2, center, NULL,
              "center of rings, in index space of fastest two axes");
   hestOptAdd(&opt, "v,verbose", "v", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
+  hestOptAdd(&opt, "li,linterp", "bool", airTypeBool, 1, 1, &linterp, "false",
+             "whether to use linear interpolation during polar transform");
   hestOptAdd(&opt, "tn,thetanum", "# smpls", airTypeUInt, 1, 1, &thetaNum,
              "20", "# of theta samples");
+  hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale,
+             "1,0", "scaling on radius in polar transform");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -65,8 +69,10 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, drc, (airMopper)nrrdDeringContextNix, airMopAlways);
 
   if (nrrdDeringVerboseSet(drc, verbose)
+      || nrrdDeringLinearInterpSet(drc, linterp)
       || nrrdDeringInputSet(drc, nin)
       || nrrdDeringCenterSet(drc, center[0], center[1])
+      || nrrdDeringRadiusScaleSet(drc, radScale)
       || nrrdDeringThetaNumSet(drc, thetaNum)
       || nrrdDeringExecute(drc, nout)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

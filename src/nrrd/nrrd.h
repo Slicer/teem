@@ -1220,23 +1220,25 @@ NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
 /******** deringNrrd.c: deringing CT */
 typedef struct {
   /* -------- INPUT */
-  int verbose;                 /* blah blah blah */
+  int verbose,                 /* blah blah blah */
+    linearInterp;              /* instead of nearest neighbor in polar txf */
   const Nrrd *nin;             /* array to dering */
-  double center[2];            /* location of recon center in index space
+  double center[2],            /* location of recon center in index space
                                   of fastest two axes */
+    radiusScale;               /* radius scaling to polar txf */
   unsigned int thetaNum;       /* number of samples in theta in polar txf */
   /* -------- INTERNAL */
-  double radLen;               /* radial length of polar transform */
   const char *cdata;           /* nin->data as char* */
   size_t sliceSize;            /* sizeof slice */
-  int *flag;                   /* flags to organize execution */
 } NrrdDeringContext;
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
 NRRD_EXPORT int nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose);
+NRRD_EXPORT int nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp);
 NRRD_EXPORT int nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin);
 NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
                                     double cx, double cy);
+NRRD_EXPORT int nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc);
 NRRD_EXPORT int nrrdDeringThetaNumSet(NrrdDeringContext *drc,
                                       unsigned int thetaNum);
 NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
