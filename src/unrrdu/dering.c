@@ -41,6 +41,10 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   double center[2], radScale;
   int verbose, linterp;
   unsigned int thetaNum;
+  NrrdKernelSpec *rkspec, *tkspec;
+
+  /* HEY is this needed? (to display -rk and -tk kernels) */
+  hparm->elideSingleOtherDefault = AIR_FALSE; 
 
   hestOptAdd(&opt, "c,center", "x y", airTypeDouble, 2, 2, center, NULL,
              "center of rings, in index space of fastest two axes");
@@ -51,7 +55,13 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "tn,thetanum", "# smpls", airTypeUInt, 1, 1, &thetaNum,
              "20", "# of theta samples");
   hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale,
-             "1,0", "scaling on radius in polar transform");
+             "1.0", "scaling on radius in polar transform");
+  hestOptAdd(&opt, "rk", "kern", airTypeOther, 1, 1, &rkspec, "gauss:3,4",
+             "kernel for high-pass filtering along radial direction",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&opt, "tk", "kern", airTypeOther, 1, 1, &tkspec, "box",
+             "kernel for blurring along theta direction.",
+             NULL, NULL, nrrdHestKernelSpec);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -74,6 +84,8 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
       || nrrdDeringCenterSet(drc, center[0], center[1])
       || nrrdDeringRadiusScaleSet(drc, radScale)
       || nrrdDeringThetaNumSet(drc, thetaNum)
+      || nrrdDeringRadialKernelSet(drc, rkspec->kernel, rkspec->parm)
+      || nrrdDeringThetaKernelSet(drc, tkspec->kernel, tkspec->parm)
       || nrrdDeringExecute(drc, nout)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error deringing:\n%s", me, err);
