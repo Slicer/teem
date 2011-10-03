@@ -27,6 +27,7 @@
 NrrdDeringContext *
 nrrdDeringContextNew(void) {
   NrrdDeringContext *drc;
+  unsigned int pi;
 
   drc = AIR_CALLOC(1, NrrdDeringContext);
   if (!drc) {
@@ -39,6 +40,11 @@ nrrdDeringContextNew(void) {
   drc->center[1] = AIR_NAN;
   drc->radiusScale = 1.0;
   drc->thetaNum = 0;
+  drc->rkernel = NULL;
+  drc->tkernel = NULL;
+  for (pi=0; pi<NRRD_KERNEL_PARMS_NUM; pi++) {
+    drc->rkparm[pi] = drc->tkparm[pi] = AIR_NAN;
+  }
   
   return drc;
 }
@@ -171,23 +177,71 @@ nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
   return 0;
 }
 
+int
+nrrdDeringRadialKernelSet(NrrdDeringContext *drc,
+                          const NrrdKernel *rkernel,
+                          const double rkparm[NRRD_KERNEL_PARMS_NUM]) {
+  static const char me[]="nrrdDeringRadialKernelSet";
+  unsigned int pi;
+
+  if (!( drc && rkernel && rkparm )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  drc->rkernel = rkernel;
+  for (pi=0; pi<NRRD_KERNEL_PARMS_NUM; pi++) {
+    drc->rkparm[pi] = rkparm[pi];
+  }
+
+  return 0;
+}
+
+int
+nrrdDeringThetaKernelSet(NrrdDeringContext *drc,
+                         const NrrdKernel *tkernel,
+                         const double tkparm[NRRD_KERNEL_PARMS_NUM]) {
+  static const char me[]="nrrdDeringThetaKernelSet";
+  unsigned int pi;
+
+  if (!( drc && tkernel && tkparm )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  drc->tkernel = tkernel;
+  for (pi=0; pi<NRRD_KERNEL_PARMS_NUM; pi++) {
+    drc->tkparm[pi] = tkparm[pi];
+  }
+
+  return 0;
+}
+
 /*
 ** per-thread state for deringing
 */
+#define PTXF_NUM 5
+#define ORIG 0
+#define WGHT 1
+#define BLRR 2
+#define DIFF 3
+#define RING 4
 typedef struct {
+  unsigned int zi;
   double radMax;
   size_t radNum;
   airArray *mop;
   Nrrd *nsliceOrig,         /* wrapped slice of nin, sneakily non-const */
     *nslice,                /* slice of nin, converted to double */
-    *nptxf,
-    *nwght;
-  float *slice, *ptxf, *wght;
+    *nptxf[PTXF_NUM];
+  double *slice, *ptxf, *wght, *ring;
+  NrrdResampleContext *rsmc[2];
 } deringBag;
 
-deringBag *
+static deringBag *
 deringBagNew(NrrdDeringContext *drc, double radMax) {
   deringBag *dbg;
+  unsigned int pi;
 
   dbg = AIR_CALLOC(1, deringBag);
   dbg->radMax = radMax;
@@ -199,15 +253,22 @@ deringBagNew(NrrdDeringContext *drc, double radMax) {
             airMopAlways);
   dbg->nslice = nrrdNew();
   airMopAdd(dbg->mop, dbg->nslice, (airMopper)nrrdNuke, airMopAlways);
-  dbg->nptxf = nrrdNew();
-  airMopAdd(dbg->mop, dbg->nptxf, (airMopper)nrrdNuke, airMopAlways);
-  dbg->nwght = nrrdNew();
-  airMopAdd(dbg->mop, dbg->nwght, (airMopper)nrrdNuke, airMopAlways);
-  
+  for (pi=0; pi<PTXF_NUM; pi++) {
+    dbg->nptxf[pi] = nrrdNew();
+    airMopAdd(dbg->mop, dbg->nptxf[pi], (airMopper)nrrdNuke, airMopAlways);
+  }
+
+  dbg->rsmc[0] = nrrdResampleContextNew();
+  airMopAdd(dbg->mop, dbg->rsmc[0], (airMopper)nrrdResampleContextNix,
+            airMopAlways);
+  dbg->rsmc[1] = nrrdResampleContextNew();
+  airMopAdd(dbg->mop, dbg->rsmc[1], (airMopper)nrrdResampleContextNix,
+            airMopAlways);
+
   return dbg;
 }
 
-deringBag *
+static deringBag *
 deringBagNix(deringBag *dbg) {
 
   airMopOkay(dbg->mop);
@@ -215,9 +276,64 @@ deringBagNix(deringBag *dbg) {
   return NULL;
 }
 
-int
-deringArraySetup(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
-  static const char me[]="deringAlloc";
+static int
+deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
+  static const char me[]="deringPtxfAlloc";
+  unsigned int pi, ri;
+  int E;
+
+  /* polar transform setup */
+  for (pi=0; pi<PTXF_NUM; pi++) {
+    if (nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 2,
+                          dbg->radNum,
+                          AIR_CAST(size_t, drc->thetaNum))) {
+      biffAddf(NRRD, "%s: polar transform allocation problem", me);
+      return 1;
+    }
+  }
+  dbg->ptxf = AIR_CAST(double *, dbg->nptxf[ORIG]->data);
+  dbg->wght = AIR_CAST(double *, dbg->nptxf[WGHT]->data);
+  dbg->ring = AIR_CAST(double *, dbg->nptxf[RING]->data);
+
+  E = AIR_FALSE;
+  for (ri=0; ri<2; ri++) {
+    char kstr[AIR_STRLEN_LARGE];
+    if (0 == ri) {
+      if (!E) E |= nrrdResampleInputSet(dbg->rsmc[0], dbg->nptxf[ORIG]);
+      nrrdKernelSprint(kstr, drc->rkernel, drc->rkparm);
+      if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 0,
+                                         drc->rkernel, drc->rkparm);
+      if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 1, NULL, NULL);
+    } else {
+      if (!E) E |= nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]);
+      nrrdKernelSprint(kstr, drc->tkernel, drc->tkparm);
+      if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 0, NULL, NULL);
+      if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 1,
+                                         drc->tkernel, drc->tkparm);
+    }
+    if (!E) E |= nrrdResampleDefaultCenterSet(dbg->rsmc[ri], nrrdCenterCell);
+    if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[ri], 0, dbg->radNum);
+    if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[ri], 1, drc->thetaNum);
+    if (!E) E |= nrrdResampleBoundarySet(dbg->rsmc[ri], nrrdBoundaryWrap);
+    if (!E) E |= nrrdResampleTypeOutSet(dbg->rsmc[ri], nrrdTypeDefault);
+    if (!E) E |= nrrdResampleRenormalizeSet(dbg->rsmc[ri], AIR_TRUE);
+    if (!E) E |= nrrdResampleNonExistentSet(dbg->rsmc[ri],
+                                            nrrdResampleNonExistentRenormalize);
+    if (!E) E |= nrrdResampleRangeFullSet(dbg->rsmc[ri], 0);
+    if (!E) E |= nrrdResampleRangeFullSet(dbg->rsmc[ri], 1);
+  }
+  if (E) {
+    biffAddf(NRRD, "%s: couldn't set up resampler", me);
+    return 1;
+  }
+  
+
+  return 0;
+}
+
+static int
+deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
+  static const char me[]="deringSliceGet";
 
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
@@ -226,70 +342,76 @@ deringArraySetup(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,
                   drc->nin->axis[1].size)
-      || (nrrdTypeFloat == drc->nin->type
+      || (nrrdTypeDouble == drc->nin->type
           ? nrrdCopy(dbg->nslice, dbg->nsliceOrig)
-          : nrrdConvert(dbg->nslice, dbg->nsliceOrig, nrrdTypeFloat))) {
+          : nrrdConvert(dbg->nslice, dbg->nsliceOrig, nrrdTypeDouble))) {
     biffAddf(NRRD, "%s: slice setup trouble", me);
     return 1;
   }
-  dbg->slice = AIR_CAST(float *, dbg->nslice->data);
-  
-  /* polar transform setup */
-  if (nrrdMaybeAlloc_va(dbg->nptxf, nrrdTypeFloat, 2,
-                        dbg->radNum,
-                        AIR_CAST(size_t, drc->thetaNum))
-      || nrrdMaybeAlloc_va(dbg->nwght, nrrdTypeFloat, 2,
-                           dbg->radNum,
-                           AIR_CAST(size_t, drc->thetaNum))) {
-    biffAddf(NRRD, "%s: polar transform allocation problem", me);
-    return 1;
-  }
-  dbg->ptxf = AIR_CAST(float *, dbg->nptxf->data);
-  dbg->wght = AIR_CAST(float *, dbg->nwght->data);
+  dbg->slice = AIR_CAST(double *, dbg->nslice->data);
+  dbg->zi = zi;
   
   return 0;
 }
 
-int
-deringPolarTxf(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
+#define EPS 0.000001
+
+static void
+deringXYtoRT(NrrdDeringContext *drc, deringBag *dbg,
+             unsigned int xi, unsigned int yi,
+             unsigned int *rrIdx, unsigned int *thIdx,
+             double *rrFrc, double *thFrc) {
+  double dx, dy, rr, th, rrScl, thScl;
+  dx = xi - drc->center[0];
+  dy = yi - drc->center[1];
+  rr = sqrt(dx*dx + dy*dy);
+  th = atan2(-dx, dy);
+  rrScl = AIR_AFFINE(-EPS, rr, dbg->radMax+EPS, 0.0, dbg->radNum-1);
+  *rrIdx = AIR_CAST(unsigned int, 0.5 + rrScl);
+  thScl = AIR_AFFINE(-AIR_PI-EPS, th, AIR_PI+EPS, 0.0, drc->thetaNum-1);
+  *thIdx = AIR_CAST(unsigned int, 0.5 + thScl);
+  if (rrFrc && thFrc) {
+    *rrFrc = rrScl - *rrIdx;
+    *thFrc = thScl - *thIdx;
+    if (*rrFrc < 0) {
+      *rrIdx -= 1;
+      *rrFrc += 1;
+    }
+    if (*thFrc < 0) {
+      *thIdx -= 1;
+      *thFrc += 1;
+    }
+  }
+  return;
+}
+
+static int
+deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
+  /* static const char me[]="deringPtxfDo"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
 
+  nrrdZeroSet(dbg->nptxf[ORIG]);
+  nrrdZeroSet(dbg->nptxf[WGHT]);
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
   sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
-      double dx, dy, rr, th;
-
-      dx = xi - drc->center[0];
-      dy = yi - drc->center[1];
-      rr = sqrt(dx*dx + dy*dy);
-      th = atan2(-dx, dy);
+      double rrFrc, thFrc, val;
       if (drc->linearInterp) {
-        float rrFrac, thFrac, val;
         unsigned int bidx;
-        val = dbg->slice[xi + sx*yi];
-        rr *= drc->radiusScale;
-        rr = AIR_MAX(0, rr-0.5);
-        rrIdx = AIR_CAST(unsigned int, rr);
-        rrIdx = AIR_MIN(rrIdx, dbg->radNum-2);
-        rrFrac = rr - rrIdx;
-        th = (drc->thetaNum)*(1 + th/AIR_PI)/2;
-        th = AIR_MAX(0, th-0.5);
-        thIdx = AIR_CAST(unsigned int, th);
-        thIdx = AIR_MIN(thIdx, drc->thetaNum-2);
-        thFrac = th - thIdx;
+        deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
         bidx = rrIdx + dbg->radNum*thIdx;
-        dbg->ptxf[bidx                  ] += (1-rrFrac)*(1-thFrac)*val;
-        dbg->ptxf[bidx + 1              ] +=     rrFrac*(1-thFrac)*val;
-        dbg->ptxf[bidx     + dbg->radNum] += (1-rrFrac)*thFrac*val;
-        dbg->ptxf[bidx + 1 + dbg->radNum] +=     rrFrac*thFrac*val;
-        dbg->wght[bidx                  ] += (1-rrFrac)*(1-thFrac);
-        dbg->wght[bidx + 1              ] +=     rrFrac*(1-thFrac);
-        dbg->wght[bidx     + dbg->radNum] += (1-rrFrac)*thFrac;
-        dbg->wght[bidx + 1 + dbg->radNum] +=     rrFrac*thFrac;
+        val = dbg->slice[xi + sx*yi];
+        dbg->ptxf[bidx                  ] += (1-rrFrc)*(1-thFrc)*val;
+        dbg->ptxf[bidx + 1              ] +=     rrFrc*(1-thFrc)*val;
+        dbg->ptxf[bidx     + dbg->radNum] += (1-rrFrc)*thFrc*val;
+        dbg->ptxf[bidx + 1 + dbg->radNum] +=     rrFrc*thFrc*val;
+        dbg->wght[bidx                  ] += (1-rrFrc)*(1-thFrc);
+        dbg->wght[bidx + 1              ] +=     rrFrc*(1-thFrc);
+        dbg->wght[bidx     + dbg->radNum] += (1-rrFrc)*thFrc;
+        dbg->wght[bidx + 1 + dbg->radNum] +=     rrFrc*thFrc;
       } else {
-        rrIdx = airIndexClamp(0, rr, dbg->radMax, dbg->radNum);
-        thIdx = airIndexClamp(-AIR_PI, th, AIR_PI, drc->thetaNum);
+        deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, NULL, NULL);
         dbg->ptxf[rrIdx + dbg->radNum*thIdx] += dbg->slice[xi + sx*yi];
         dbg->wght[rrIdx + dbg->radNum*thIdx] += 1;
       }
@@ -308,25 +430,86 @@ deringPolarTxf(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   }
   if (0) {
     char fname[AIR_STRLEN_SMALL];
-    sprintf(fname, "ptxf-%02u.nrrd", zi);
-    nrrdSave(fname, dbg->nptxf, NULL);
+    sprintf(fname, "wght-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nptxf[WGHT], NULL);
+  }
+
+  return 0;
+}
+
+static int
+deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg) {
+  static const char me[]="deringPtxfFilter";
+
+  AIR_UNUSED(drc);
+  if (nrrdResampleExecute(dbg->rsmc[0], dbg->nptxf[BLRR])
+      || nrrdArithBinaryOp(dbg->nptxf[DIFF], nrrdBinaryOpSubtract,
+                           dbg->nptxf[ORIG], dbg->nptxf[BLRR])
+      || nrrdResampleExecute(dbg->rsmc[1], dbg->nptxf[RING])) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
+  if (0) {
+    char fname[AIR_STRLEN_SMALL];
+    sprintf(fname, "orig-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nptxf[ORIG], NULL);
+    sprintf(fname, "blrr-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nptxf[BLRR], NULL);
+    sprintf(fname, "diff-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nptxf[DIFF], NULL);
+    sprintf(fname, "ring-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nptxf[RING], NULL);
+  }
+
+  return 0;
+}
+
+static int
+deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
+  /* static const char me[]="deringSubtract"; */
+  unsigned int sx, sy, xi, yi, rrIdx, thIdx;
+
+  sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
+  sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
+  for (yi=0; yi<sy; yi++) {
+    for (xi=0; xi<sx; xi++) {
+      double rrFrc, thFrc, val;
+      if (drc->linearInterp) {
+        unsigned int bidx;
+        deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
+        bidx = rrIdx + dbg->radNum*thIdx;
+        val = (dbg->ring[bidx                  ]*(1-rrFrc)*(1-thFrc) +
+               dbg->ring[bidx + 1              ]*rrFrc*(1-thFrc) +
+               dbg->ring[bidx     + dbg->radNum]*(1-rrFrc)*thFrc +
+               dbg->ring[bidx + 1 + dbg->radNum]*rrFrc*thFrc);
+        dbg->slice[xi + sx*yi] -= val;
+      } else {
+        deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, NULL, NULL);
+        dbg->slice[xi + sx*yi] -= dbg->ring[rrIdx + dbg->radNum*thIdx];
+      }
+    }
+  }
+  if (0) {
+    char fname[AIR_STRLEN_SMALL];
+    sprintf(fname, "drng-%02u.nrrd", dbg->zi);
+    nrrdSave(fname, dbg->nslice, NULL);
   }
   return 0;
 }
 
-int
+static int
 deringDo(NrrdDeringContext *drc, deringBag *dbg,
          Nrrd *nout, unsigned int zi) {
   static const char me[]="deringDo";
 
-  if (deringArraySetup(drc, dbg, zi)
-      || deringPolarTxf(drc, dbg, zi)) {
+  if (deringSliceGet(drc, dbg, zi)
+      || deringPtxfDo(drc, dbg)
+      || deringPtxfFilter(drc, dbg)
+      || deringSubtract(drc, dbg)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
-  /* filter polar transform */
-  /* dering nslice in-place */
-  /* convert/copy nslice to output slice */
+  /* HEY: convert/copy nslice to output slice */
   AIR_UNUSED(nout);
 
   return 0;
@@ -346,6 +529,10 @@ deringCheck(NrrdDeringContext *drc) {
   }
   if (!(drc->thetaNum)) {
     biffAddf(NRRD, "%s: no thetaNum set", me);
+    return 1;
+  }
+  if (!( drc->rkernel && drc->tkernel )) {
+    biffAddf(NRRD, "%s: R and T kernels not both set", me);
     return 1;
   }
   return 0;
@@ -400,6 +587,13 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
   mop = airMopNew();
   dbg = deringBagNew(drc, radLen);
   airMopAdd(mop, dbg, (airMopper)deringBagNix, airMopAlways);
+
+  if (deringPtxfAlloc(drc, dbg)) {
+    biffAddf(NRRD, "%s: trouble on setup", me);
+    return 1;
+  }
+
+  /* HEY: do histogram analysis to find safe clamping values */
   
   sz = (2 == drc->nin->dim
         ? 1

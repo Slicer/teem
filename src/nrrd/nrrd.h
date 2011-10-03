@@ -1227,6 +1227,10 @@ typedef struct {
                                   of fastest two axes */
     radiusScale;               /* radius scaling to polar txf */
   unsigned int thetaNum;       /* number of samples in theta in polar txf */
+  const NrrdKernel *rkernel;   /* kernel for radial high-pass filtering */
+  double rkparm[NRRD_KERNEL_PARMS_NUM];
+  const NrrdKernel *tkernel;   /* kernel for blurring along theta */
+  double tkparm[NRRD_KERNEL_PARMS_NUM];
   /* -------- INTERNAL */
   const char *cdata;           /* nin->data as char* */
   size_t sliceSize;            /* sizeof slice */
@@ -1241,6 +1245,12 @@ NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
 NRRD_EXPORT int nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc);
 NRRD_EXPORT int nrrdDeringThetaNumSet(NrrdDeringContext *drc,
                                       unsigned int thetaNum);
+NRRD_EXPORT int nrrdDeringRadialKernelSet(NrrdDeringContext *drc,
+                                   const NrrdKernel *rkernel,
+                                   const double rkparm[NRRD_KERNEL_PARMS_NUM]);
+NRRD_EXPORT int nrrdDeringThetaKernelSet(NrrdDeringContext *drc,
+                                   const NrrdKernel *tkernel,
+                                   const double tkparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
 
 /*
