@@ -41,6 +41,11 @@ nrrd:
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
 * rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
 * remove "minsm" as synonym for nrrdTernaryOpMinSmooth
+* resampler: why can't you set a kernel prior to setting input?
+[nrrd] nrrdDeringExecute: trouble on setup
+[nrrd] deringPtxfAlloc: couldn't set up resampler
+[nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
+
 
 unu:
 * unu dice -ff should change from using %d to %u
