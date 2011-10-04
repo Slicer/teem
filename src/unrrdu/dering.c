@@ -38,7 +38,7 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
 
   NrrdDeringContext *drc;
-  double center[2], radScale;
+  double center[2], radScale, clampPerc[2];
   int verbose, linterp;
   unsigned int thetaNum;
   NrrdKernelSpec *rkspec, *tkspec;
@@ -56,12 +56,19 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "20", "# of theta samples");
   hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale,
              "1.0", "scaling on radius in polar transform");
-  hestOptAdd(&opt, "rk", "kern", airTypeOther, 1, 1, &rkspec, "gauss:3,4",
+  hestOptAdd(&opt, "rk,radiuskernel", "kern", airTypeOther, 1, 1, &rkspec, 
+             "gauss:3,4",
              "kernel for high-pass filtering along radial direction",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&opt, "tk", "kern", airTypeOther, 1, 1, &tkspec, "box",
+  hestOptAdd(&opt, "tk,thetakernel", "kern", airTypeOther, 1, 1, &tkspec,
+             "box",
              "kernel for blurring along theta direction.",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&opt, "cp,clampperc", "lo hi", airTypeDouble, 2, 2, clampPerc,
+             "0.0 0.0",
+             "when clamping values as part of ring estimation, the "
+             "clamping range is set to exclude this percent of values "
+             "from the low and high end of the data range");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -86,6 +93,7 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
       || nrrdDeringThetaNumSet(drc, thetaNum)
       || nrrdDeringRadialKernelSet(drc, rkspec->kernel, rkspec->parm)
       || nrrdDeringThetaKernelSet(drc, tkspec->kernel, tkspec->parm)
+      || nrrdDeringClampPercSet(drc, clampPerc[0], clampPerc[1])
       || nrrdDeringExecute(drc, nout)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error deringing:\n%s", me, err);

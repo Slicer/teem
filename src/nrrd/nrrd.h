@@ -1225,8 +1225,14 @@ typedef struct {
   const Nrrd *nin;             /* array to dering */
   double center[2],            /* location of recon center in index space
                                   of fastest two axes */
+    clampPerc[2],              /* percentiles above 0.0 and below 1.0 at which
+                                  to clamp values (for ring estimation) from
+                                  below and above, respectively. Setting both
+                                  to zero means no such clamping */
     radiusScale;               /* radius scaling to polar txf */
-  unsigned int thetaNum;       /* number of samples in theta in polar txf */
+  unsigned int thetaNum,       /* number of samples in theta in polar txf */
+    clampHistoBins;            /* number of bins in histogram for computing
+                                  clamping in terms of percentiles */
   const NrrdKernel *rkernel;   /* kernel for radial high-pass filtering */
   double rkparm[NRRD_KERNEL_PARMS_NUM];
   const NrrdKernel *tkernel;   /* kernel for blurring along theta */
@@ -1234,6 +1240,8 @@ typedef struct {
   /* -------- INTERNAL */
   const char *cdata;           /* nin->data as char* */
   size_t sliceSize;            /* sizeof slice */
+  int clampDo;                 /* is there really is clamping to be done */
+  double clamp[2];             /* clamping values implied by clampPerc */
 } NrrdDeringContext;
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
@@ -1242,6 +1250,10 @@ NRRD_EXPORT int nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp);
 NRRD_EXPORT int nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin);
 NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
                                     double cx, double cy);
+NRRD_EXPORT int nrrdDeringClampPercSet(NrrdDeringContext *drc,
+                                       double lo, double hi);
+NRRD_EXPORT int nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc,
+                                            unsigned int bins);
 NRRD_EXPORT int nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc);
 NRRD_EXPORT int nrrdDeringThetaNumSet(NrrdDeringContext *drc,
                                       unsigned int thetaNum);

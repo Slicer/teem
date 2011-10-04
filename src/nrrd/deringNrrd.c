@@ -24,6 +24,9 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#define CLAMP_HIST_BINS_MIN 512
+#define CLAMP_PERC_MAX 30.0
+
 NrrdDeringContext *
 nrrdDeringContextNew(void) {
   NrrdDeringContext *drc;
@@ -38,13 +41,21 @@ nrrdDeringContextNew(void) {
   drc->nin = NULL;
   drc->center[0] = AIR_NAN;
   drc->center[1] = AIR_NAN;
+  drc->clampPerc[0] = 0.0;
+  drc->clampPerc[1] = 0.0;
   drc->radiusScale = 1.0;
   drc->thetaNum = 0;
+  drc->clampHistoBins = CLAMP_HIST_BINS_MIN*4;
   drc->rkernel = NULL;
   drc->tkernel = NULL;
   for (pi=0; pi<NRRD_KERNEL_PARMS_NUM; pi++) {
     drc->rkparm[pi] = drc->tkparm[pi] = AIR_NAN;
   }
+  drc->cdata = NULL;
+  drc->sliceSize = 0;
+  drc->clampDo = AIR_FALSE;
+  drc->clamp[0] = AIR_NAN;
+  drc->clamp[1] = AIR_NAN;
   
   return drc;
 }
@@ -137,6 +148,49 @@ nrrdDeringCenterSet(NrrdDeringContext *drc, double cx, double cy) {
   
   drc->center[0] = cx;
   drc->center[1] = cy;
+
+  return 0;
+}
+
+int
+nrrdDeringClampPercSet(NrrdDeringContext *drc,
+                       double lo, double hi) {
+  static const char me[]="nrrdDeringClampPercSet";
+  
+  if (!drc) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( AIR_EXISTS(lo) && AIR_EXISTS(hi) 
+         && lo >= 0 && lo < CLAMP_PERC_MAX
+         && hi >= 0 && hi < CLAMP_PERC_MAX)) {
+    biffAddf(NRRD, "%s: need finite lo and hi both in [0.0, %g), not %g, %g",
+             me, CLAMP_PERC_MAX, lo, hi);
+    return 1;
+  }
+  
+  drc->clampPerc[0] = lo;
+  drc->clampPerc[1] = hi;
+  
+  return 0;
+}
+
+int
+nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc,
+                            unsigned int bins) {
+  static const char me[]="nrrdDeringClampHistoBinsSet";
+
+  if (!drc) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( bins >= CLAMP_HIST_BINS_MIN )) {
+    biffAddf(NRRD, "%s: given bins %u not >= reasonable min %u", 
+             me, bins, CLAMP_HIST_BINS_MIN);
+    return 1;
+  }
+
+  drc->clampHistoBins = bins;
 
   return 0;
 }
@@ -354,6 +408,17 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   return 0;
 }
 
+int
+deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
+               Nrrd *nout, unsigned int zi) {
+  static const char me[]="deringSliceSet";
+
+  /* HEY finish */
+
+  return 0;
+}
+
+
 #define EPS 0.000001
 
 static void
@@ -402,6 +467,9 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
         bidx = rrIdx + dbg->radNum*thIdx;
         val = dbg->slice[xi + sx*yi];
+        if (drc->clampDo) {
+          val = AIR_CLAMP(drc->clamp[0], val, drc->clamp[1]);
+        }
         dbg->ptxf[bidx                  ] += (1-rrFrc)*(1-thFrc)*val;
         dbg->ptxf[bidx + 1              ] +=     rrFrc*(1-thFrc)*val;
         dbg->ptxf[bidx     + dbg->radNum] += (1-rrFrc)*thFrc*val;
@@ -449,7 +517,7 @@ deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
-  if (0) {
+  if (1) {
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "orig-%02u.nrrd", dbg->zi);
     nrrdSave(fname, dbg->nptxf[ORIG], NULL);
@@ -489,7 +557,7 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
       }
     }
   }
-  if (0) {
+  if (1) {
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "drng-%02u.nrrd", dbg->zi);
     nrrdSave(fname, dbg->nslice, NULL);
@@ -505,12 +573,11 @@ deringDo(NrrdDeringContext *drc, deringBag *dbg,
   if (deringSliceGet(drc, dbg, zi)
       || deringPtxfDo(drc, dbg)
       || deringPtxfFilter(drc, dbg)
-      || deringSubtract(drc, dbg)) {
+      || deringSubtract(drc, dbg)
+      || deringSliceSet(drc, dbg, nout, zi)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
-  /* HEY: convert/copy nslice to output slice */
-  AIR_UNUSED(nout);
 
   return 0;
 }
@@ -559,6 +626,9 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     biffAddf(NRRD, "%s: trouble initializing output with input", me);
     return 1;
   }
+
+  mop = airMopNew();
+
   /* set radLen: radial length of polar transform of data */
   radLen = 0;
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
@@ -583,8 +653,60 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     fprintf(stderr, "%s: radLen = %g\n", me, radLen);
   }
 
+  /* determine clamping, if any */
+  if (drc->clampPerc[0] > 0.0 || drc->clampPerc[1] > 0.0) {
+    Nrrd *nhist;
+    double *hist, total, sum;
+    unsigned int hi;
+    nhist = nrrdNew();
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdHisto(nhist, drc->nin, NULL, NULL, drc->clampHistoBins, 
+                  nrrdTypeDouble)) {
+      biffAddf(NRRD, "%s: trouble making histogram", me);
+      return 1;
+    }
+    hist = AIR_CAST(double *, nhist->data);
+    total = AIR_CAST(double, nrrdElementNumber(drc->nin));
+    sum = 0;
+    for (hi=0; hi<drc->clampHistoBins; hi++) {
+      sum += hist[hi];
+      if (sum >= drc->clampPerc[0]*total/100.0) {
+        drc->clamp[0] = AIR_AFFINE(0, hi, drc->clampHistoBins-1,
+                                   nhist->axis[0].min, nhist->axis[0].max);
+        break;
+      }
+    }
+    if (hi == drc->clampHistoBins) {
+      biffAddf(NRRD, "%s: failed to find lower %g-percentile value", me,
+               drc->clampPerc[0]);
+      return 1;
+    }
+    sum = 0;
+    for (hi=drc->clampHistoBins; hi; hi--) {
+      sum += hist[hi-1];
+      if (sum >= drc->clampPerc[1]*total/100.0) {
+        drc->clamp[1] = AIR_AFFINE(0, hi-1, drc->clampHistoBins-1,
+                                   nhist->axis[0].min, nhist->axis[0].max);
+        break;
+      }
+    }
+    if (!hi) {
+      biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me,
+               drc->clampPerc[1]);
+      return 1;
+    }
+    if (drc->verbose) {
+      fprintf(stderr, "%s: [%g,%g]-percentile value clamping --> [%g,%g]\n",
+              me, drc->clampPerc[0], drc->clampPerc[1], 
+              drc->clamp[0], drc->clamp[1]);
+    }
+    drc->clampDo = AIR_TRUE;
+  } else {
+    drc->clamp[0] = drc->clamp[1] = AIR_NAN;
+    drc->clampDo = AIR_FALSE;
+  }
+
   /* create deringBag(s) */
-  mop = airMopNew();
   dbg = deringBagNew(drc, radLen);
   airMopAdd(mop, dbg, (airMopper)deringBagNix, airMopAlways);
 
@@ -593,8 +715,6 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     return 1;
   }
 
-  /* HEY: do histogram analysis to find safe clamping values */
-  
   sz = (2 == drc->nin->dim
         ? 1
         : AIR_CAST(unsigned int, drc->nin->axis[2].size));
