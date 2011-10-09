@@ -1242,6 +1242,9 @@ typedef struct {
   size_t sliceSize;            /* sizeof slice */
   int clampDo;                 /* is there really is clamping to be done */
   double clamp[2];             /* clamping values implied by clampPerc */
+  /* -------- OUTPUT */
+  double ringMagnitude;        /* L2 norm of ring map; may be useful for
+                                  optimizing an (unknown) center location */
 } NrrdDeringContext;
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
