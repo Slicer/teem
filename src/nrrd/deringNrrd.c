@@ -27,6 +27,38 @@
 #define CLAMP_HIST_BINS_MIN 512
 #define CLAMP_PERC_MAX 30.0
 
+/* TODO: 
+ * 
+ * save output slice
+ *
+ * valgrind
+ *
+ * implement vertical seam
+ - (require even thetaNum)
+ - compute ptxf, and radial high-pass
+ - reshape rN x tN --> rN x (tN/2) x 2
+ - crop off top scanline
+ - blur along theta (with boundary bleed, value = 0)
+ - pad back top scanline, with 0s
+ - reshape back to rN x tN
+ *
+ * make it multi-threaded
+ *
+ * try fix for round object boundaries being confused for rings
+ - (relies on properties of discrete gauss for radial blurring)
+ - after initial ptxf
+ - make a few radial blurs (up to scale of radial high-pass)
+ - measuring scale-normalized |df/dr| on each one
+ - do non-maximal suppression along radius, zeroing out edges below some
+   percentile of gradient strength
+ - where the gradients are high on the most-blurring, and had similar
+   grad mag at smaller scales, that's a real edge: make a mask for this
+ - blur this along theta just like the ring map, then multiply w/ ring map
+ * 
+ * try fix for low-theta-frequency rings
+ * with high thetaNum, find mode along theta
+*/
+
 NrrdDeringContext *
 nrrdDeringContextNew(void) {
   NrrdDeringContext *drc;
@@ -56,7 +88,7 @@ nrrdDeringContextNew(void) {
   drc->clampDo = AIR_FALSE;
   drc->clamp[0] = AIR_NAN;
   drc->clamp[1] = AIR_NAN;
-  
+  drc->ringMagnitude = AIR_NAN;
   return drc;
 }
 
@@ -290,6 +322,7 @@ typedef struct {
     *nptxf[PTXF_NUM];
   double *slice, *ptxf, *wght, *ring;
   NrrdResampleContext *rsmc[2];
+  double ringMag;
 } deringBag;
 
 static deringBag *
@@ -318,6 +351,7 @@ deringBagNew(NrrdDeringContext *drc, double radMax) {
   dbg->rsmc[1] = nrrdResampleContextNew();
   airMopAdd(dbg->mop, dbg->rsmc[1], (airMopper)nrrdResampleContextNix,
             airMopAlways);
+  dbg->ringMag = 0.0;
 
   return dbg;
 }
@@ -413,7 +447,11 @@ deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
                Nrrd *nout, unsigned int zi) {
   static const char me[]="deringSliceSet";
 
-  /* HEY finish */
+  AIR_UNUSED(me);
+  AIR_UNUSED(drc);
+  AIR_UNUSED(dbg);
+  AIR_UNUSED(nout);
+  AIR_UNUSED(zi);
 
   return 0;
 }
@@ -533,6 +571,32 @@ deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg) {
 }
 
 static int
+deringRingMagMeasure(NrrdDeringContext *drc, deringBag *dbg) {
+  static const char me[]="deringRingMagMeasure";
+  airArray *mop;
+  Nrrd *ntmp[2];
+
+  AIR_UNUSED(drc);
+  mop = airMopNew();
+  ntmp[0] = nrrdNew();
+  airMopAdd(mop, ntmp[0], (airMopper)nrrdNuke, airMopAlways);
+  ntmp[1] = nrrdNew();
+  airMopAdd(mop, ntmp[1], (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdReshape_va(ntmp[0], dbg->nptxf[RING], 2,
+                     (dbg->nptxf[RING]->axis[0].size 
+                      * dbg->nptxf[RING]->axis[1].size),
+                     AIR_CAST(size_t, 1))
+      || nrrdProject(ntmp[1], ntmp[0], 0, nrrdMeasureL2, nrrdTypeDouble)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    airMopError(mop); return 1;
+  }
+  dbg->ringMag = *(AIR_CAST(double *, ntmp[1]->data));
+
+  airMopOkay(mop);
+  return 0;
+}
+
+static int
 deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
   /* static const char me[]="deringSubtract"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
@@ -573,6 +637,7 @@ deringDo(NrrdDeringContext *drc, deringBag *dbg,
   if (deringSliceGet(drc, dbg, zi)
       || deringPtxfDo(drc, dbg)
       || deringPtxfFilter(drc, dbg)
+      || deringRingMagMeasure(drc, dbg)
       || deringSubtract(drc, dbg)
       || deringSliceSet(drc, dbg, nout, zi)) {
     biffAddf(NRRD, "%s: trouble", me);
@@ -718,6 +783,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
   sz = (2 == drc->nin->dim
         ? 1
         : AIR_CAST(unsigned int, drc->nin->axis[2].size));
+  drc->ringMagnitude = 0.0;
   for (zi=0; zi<sz; zi++) {
     if (drc->verbose) {
       fprintf(stderr, "%s: slice %u of %u ...\n", me, zi, sz);
@@ -726,9 +792,13 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
       biffAddf(NRRD, "%s: trouble on slice %u", me, zi);
       return 1;
     }
+    drc->ringMagnitude += dbg->ringMag;
     if (drc->verbose) {
       fprintf(stderr, "%s: ... %u done\n", me, zi);
     }
+  }
+  if (drc->verbose) {
+    fprintf(stderr, "%s: ring magnitude = %g\n", me, drc->ringMagnitude);
   }
 
   airMopOkay(mop);
