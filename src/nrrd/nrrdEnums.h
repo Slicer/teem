@@ -532,30 +532,32 @@ enum {
   nrrdMeasureSum,            /* 7: sum of all values */
   nrrdMeasureL1,             /* 8 */
   nrrdMeasureL2,             /* 9 */
-  nrrdMeasureLinf,           /* 10 */
-  nrrdMeasureVariance,       /* 11 */
-  nrrdMeasureSD,             /* 12: standard deviation */
-  nrrdMeasureSkew,           /* 13: skew */
-  nrrdMeasureLineSlope,      /* 14: slope of line of best fit */
-  nrrdMeasureLineIntercept,  /* 15: y-intercept of line of best fit */
-  nrrdMeasureLineError,      /* 16: error of line fitting */
+  nrrdMeasureNormalizedL2,   /* 10 */
+  nrrdMeasureRootMeanSquare, /* 11 */
+  nrrdMeasureLinf,           /* 12 */
+  nrrdMeasureVariance,       /* 13 */
+  nrrdMeasureSD,             /* 14: standard deviation */
+  nrrdMeasureSkew,           /* 15: skew */
+  nrrdMeasureLineSlope,      /* 16: slope of line of best fit */
+  nrrdMeasureLineIntercept,  /* 17: y-intercept of line of best fit */
+  nrrdMeasureLineError,      /* 18: error of line fitting */
   /* 
   ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 17 */
-  nrrdMeasureHistoMax,       /* 18 */
-  nrrdMeasureHistoMean,      /* 19 */
-  nrrdMeasureHistoMedian,    /* 20 */
-  nrrdMeasureHistoMode,      /* 21 */
-  nrrdMeasureHistoProduct,   /* 22 */
-  nrrdMeasureHistoSum,       /* 23 */
-  nrrdMeasureHistoL2,        /* 24 */
-  nrrdMeasureHistoVariance,  /* 25 */
-  nrrdMeasureHistoSD,        /* 26 */
+  nrrdMeasureHistoMin,       /* 19 */
+  nrrdMeasureHistoMax,       /* 20 */
+  nrrdMeasureHistoMean,      /* 21 */
+  nrrdMeasureHistoMedian,    /* 22 */
+  nrrdMeasureHistoMode,      /* 23 */
+  nrrdMeasureHistoProduct,   /* 24 */
+  nrrdMeasureHistoSum,       /* 25 */
+  nrrdMeasureHistoL2,        /* 26 */
+  nrrdMeasureHistoVariance,  /* 27 */
+  nrrdMeasureHistoSD,        /* 28 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        26
+#define NRRD_MEASURE_MAX        28
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
@@ -564,7 +566,7 @@ enum {
      "intercept, slope, and error from line fitting\n " \
    "\b\bo \"sd\": standard deviation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
-   "\b\bo \"L1\", \"L2\", \"Linf\": different norms\n " \
+   "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": different norms\n " \
    "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
      "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
      "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
