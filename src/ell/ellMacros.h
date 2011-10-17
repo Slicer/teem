@@ -167,8 +167,8 @@ extern "C" {
    (m3)[3] = (m1)[2]*(m2)[1] + (m1)[3]*(m2)[3])
 
 #define ELL_2M_ROTATE_SET(m, th)                \
-  (ELL_3V_SET((m)+ 0,  cos(th) , -sin(th)),     \
-   ELL_3V_SET((m)+ 2, +sin(th) ,  cos(th)))
+  (ELL_2V_SET((m)+ 0,  cos(th) , -sin(th)),     \
+   ELL_2V_SET((m)+ 2, +sin(th) ,  cos(th)))
 
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:
