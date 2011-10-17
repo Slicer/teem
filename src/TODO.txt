@@ -49,6 +49,8 @@ nrrd:
 
 unu:
 * unu dice -ff should change from using %d to %u
+* unu resample should permit saying "resample this axis to N samples,
+and resample these other axes to whatever maintains aspect ratio"
 
 gage:
 * in a gageKinds, the airEnum for the items, and the assocaited table of
