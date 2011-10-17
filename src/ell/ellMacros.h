@@ -169,6 +169,10 @@ extern "C" {
 #define ELL_2M_ROTATE_SET(m, th)                \
   (ELL_2V_SET((m)+ 0,  cos(th) , -sin(th)),     \
    ELL_2V_SET((m)+ 2, +sin(th) ,  cos(th)))
+  
+#define ELL_2MV_MUL(v2, m, v1)                  \
+  ((v2)[0] = (m)[0]*(v1)[0] + (m)[1]*(v1)[1],   \
+   (v2)[1] = (m)[2]*(v1)[0] + (m)[3]*(v1)[1])
 
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:
