@@ -143,6 +143,12 @@ extern "C" {
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
 
+/*
+** the 2x2 matrix-related macros assume that the matrix indexing is:
+** 0  1
+** 2  3
+*/
+
 #define _ELL_2M_DET(a,b,c,d) ((a)*(d) - (b)*(c))
 
 #define ELL_2M_DET(m) _ELL_2M_DET((m)[0],(m)[1],(m)[2],(m)[3])
@@ -159,6 +165,10 @@ extern "C" {
                                                 \
    (m3)[2] = (m1)[2]*(m2)[0] + (m1)[3]*(m2)[2], \
    (m3)[3] = (m1)[2]*(m2)[1] + (m1)[3]*(m2)[3])
+
+#define ELL_2M_ROTATE_SET(m, th)                \
+  (ELL_3V_SET((m)+ 0,  cos(th) , -sin(th)),     \
+   ELL_3V_SET((m)+ 2, +sin(th) ,  cos(th)))
 
 /*
 ** the 3x3 matrix-related macros assume that the matrix indexing is:
