@@ -87,6 +87,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   /* initialize to descent because that's what's needed for the end of point
      initialization, when initial energy must be learned */
   task->processMode = pullProcessModeDescent;
+  task->probeSeedPreThreshOnly = AIR_FALSE;
   if (pctx->threadNum > 1) {
     task->thread = airThreadNew();
   }

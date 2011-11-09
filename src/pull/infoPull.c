@@ -163,6 +163,10 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
       return 1;
     }
   }
+  if (pctx->verbose) {
+    printf("%s: ispec %s from vol %s\n", me, 
+           airEnumStr(pullInfo, ispec->info), ispec->volName);
+  }
   needLen = pullInfoLen(ispec->info);
   if (pullSourceGage == ispec->source) {
     vi = _pullVolumeIndex(pctx, ispec->volName);
@@ -187,10 +191,19 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     /* very tricky: seedOnly is initialized to true for everything */
     if (pullInfoSeedThresh != ispec->info
         && pullInfoSeedPreThresh != ispec->info) {
-      /* if the info is neither seedthreh nor seedprethresh, then the
+      /* if the info is neither seedthresh nor seedprethresh, then the
          volume will have to be probed after the first iter, so turn
-         off seedOnly */
+         *off* seedOnly */
       pctx->vol[vi]->seedOnly = AIR_FALSE;
+    }
+    /* less tricky: turn on forSeedPreThresh as needed; 
+       its initialized to false */
+    if (pullInfoSeedPreThresh == ispec->info) {
+      pctx->vol[vi]->forSeedPreThresh = AIR_TRUE;
+      if (pctx->verbose) {
+        printf("%s: volume %u %s used for %s\n", me, vi, pctx->vol[vi]->name,
+               airEnumStr(pullInfo, pullInfoSeedPreThresh));
+      }
     }
     /* now set item in gage query */
     if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl,

@@ -334,6 +334,11 @@ _pullProbe(pullTask *task, pullPoint *point) {
   int edge;
 
 #if 0
+  static int opened=AIR_FALSE;
+  static FILE *flog;
+#endif
+
+#if 0
   static int logIdx=0, logDone=AIR_FALSE, logStarted=AIR_FALSE;
   static Nrrd *nlog;
   static double *log=NULL;
@@ -374,6 +379,12 @@ _pullProbe(pullTask *task, pullPoint *point) {
   for (ii=0; ii<task->pctx->volNum; ii++) {
     pullVolume *vol;
     vol = task->vol[ii];
+    if (task->probeSeedPreThreshOnly
+        && !(vol->forSeedPreThresh)) {
+      /* we're here *only* to probe SeedPreThresh, 
+         and this volume isn't used for that */
+      continue;
+    }
     if (task->pctx->iter && vol->seedOnly) {
       /* its after the 1st iteration (#0), and this vol is only for seeding */
       continue;
@@ -546,6 +557,19 @@ _pullProbe(pullTask *task, pullPoint *point) {
     }
   }
 #endif
+
+
+#if 0
+  if (!opened) {
+    flog = fopen("flog.txt", "w");
+    opened = AIR_TRUE;
+  }
+  if (opened) {
+    fprintf(flog, "%s(%u): spthr(%g,%g,%g,%g) = %g\n", me, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+            point->info[task->pctx->infoIdx[pullInfoSeedPreThresh]]);
+  }
+#endif
   
   return 0;
 }
@@ -623,10 +647,30 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
     point->pos[3] = 0;
   }
 
-  /* Do a tentative probe */
+  if (pctx->ispec[pullInfoSeedPreThresh]) {
+    /* we first do a special-purpose probe just for SeedPreThresh */
+    double seedv;
+    pctx->task[0]->probeSeedPreThreshOnly = AIR_TRUE;
+    if (_pullProbe(pctx->task[0], point)) {
+      biffAddf(PULL, "%s: pre-probing pointIdx %u of world", me, pointIdx);
+      return 1;
+    }
+    pctx->task[0]->probeSeedPreThreshOnly = AIR_FALSE;
+    seedv = _pullPointScalar(pctx, point, pullInfoSeedPreThresh, NULL, NULL);
+    if (seedv < 0) {
+      reject = AIR_TRUE;
+      /* HEY! this obviously need to be re-written */
+      goto finish;
+    }
+  }
+  /* else, we didn't have a SeedPreThresh, or we did, and we passed
+     it.  Now we REDO the probe, including possibly re-learning
+     SeedPreThresh, which is silly, but the idea is that this is a
+     small price compared to what has been saved by avoiding all the
+     gageProbe()s on volumes unrelated to SeedPreThresh */
   if (_pullProbe(pctx->task[0], point)) {
-   biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
-   return 1;
+    biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
+    return 1;
   }
 
   constrFail = AIR_FALSE;
@@ -685,6 +729,8 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
       break;
     }
   }
+
+ finish:
   /* Gather consensus */
   if (reject) {
     *createFailP = AIR_TRUE;

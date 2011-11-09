@@ -444,9 +444,10 @@ typedef struct {
   gageContext *gctx;           /* do own, and set based on info here */
   gagePerVolume *gpvl,         /* stupid gage API . . . */
     **gpvlSS;                  /* stupid gage API . . . */
-  int seedOnly;                /* volume only required for seeding, for
+  int seedOnly,                /* volume only required for seeding, for
                                   either pullInfoSeedThresh or
                                   pullInfoSeedPreThresh */
+    forSeedPreThresh;          /* we learn pullInfoSeedPreThresh from this */
 } pullVolume;
 
 /*
@@ -465,8 +466,10 @@ typedef struct pullTask_t {
                                    pointing into per-task per-volume gctxs
                                    (or into above per-task pullValAnswer),
                                    OR: NULL if that info is not being used */
-  int processMode;              /* what kind of point processing is being
+  int processMode,              /* what kind of point processing is being
                                    done by this task right now */
+    probeSeedPreThreshOnly;     /* hack-ish flag to communicate to _pullProbe
+                                   that we only care about SeedPreThresh */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
   airRandMTState *rng;          /* state for my RNG */

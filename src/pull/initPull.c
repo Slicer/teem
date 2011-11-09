@@ -79,7 +79,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
     }
     break;
   case pullInitMethodPointPerVoxel:
-    if (iparm->pointPerVoxel < -100 || iparm->pointPerVoxel > 10) {
+    if (iparm->pointPerVoxel < -501 || iparm->pointPerVoxel > 10) {
       biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
                iparm->pointPerVoxel);
       return 1;

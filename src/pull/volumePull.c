@@ -51,6 +51,7 @@ pullVolumeNew() {
     /* this is turned OFF in volumes that have infos that aren't seedthresh,
        see pullInfoSpecAdd() */
     vol->seedOnly = AIR_TRUE;
+    vol->forSeedPreThresh = AIR_FALSE;
   }
   return vol;
 }
@@ -314,6 +315,7 @@ _pullVolumeCopy(const pullVolume *volOrig) {
     return NULL;
   }
   volNew->seedOnly = volOrig->seedOnly;
+  volNew->forSeedPreThresh = volOrig->forSeedPreThresh;
   /* _pullVolumeSet just created a new (per-task) gageContext, and
      it will not learn the items from the info specs, so we have to
      add query here */
