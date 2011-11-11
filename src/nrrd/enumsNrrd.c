@@ -881,7 +881,7 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1] = {
   "L1 norm of values",
   "L2 norm of values",
   "L2 norm of values divided by # of values",
-  "Root of Mean of Squares"
+  "Root of Mean of Squares",
   "Linf norm of values",
   "variance of values",
   "standard deviation of values",
