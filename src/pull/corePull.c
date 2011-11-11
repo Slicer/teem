@@ -24,6 +24,9 @@
 #include "pull.h"
 #include "privatePull.h"
 
+int
+_pullVerbose = 0;
+
 #define _DECREASE(ell, enn) (           \
   2*((ell) - (enn))                     \
   / ( (AIR_ABS(ell) + AIR_ABS(enn))     \

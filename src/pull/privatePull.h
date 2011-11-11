@@ -25,8 +25,8 @@ extern "C" {
 #endif
 
 /*
-** These heuristics/parameters have been adjusted, and don't seem any
-** further tweaking in order to work for all the datasets used so far
+** These heuristics/parameters have been adjusted, and don't seem to need
+** any further tweaking in order to work for all the datasets used so far
 */
 
 /* size/allocation increment for per-bin airArray */
@@ -183,6 +183,7 @@ extern int _pullIterFinishDescent(pullContext *pctx);
 extern void _pullBinFinish(pullContext *pctx);
 
 /* corePull.c */
+extern int _pullVerbose;
 extern int _pullProcess(pullTask *task);
 extern void *_pullWorker(void *_task);
 extern int _pullIterate(pullContext *pctx, int mode);
