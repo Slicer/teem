@@ -431,3 +431,54 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
   
   return 0;
 }
+
+/* HEY this was written in a hurry; 
+** needs to be checked against parsing code */
+int
+pullInfoSpecSprint(char str[AIR_STRLEN_LARGE], 
+                   const pullContext *pctx, const pullInfoSpec *ispec) {
+  static const char me[]="pullInfoSpecSprint";
+  const pullVolume *pvol;
+  char stmp[AIR_STRLEN_LARGE];
+
+  if (!( str && pctx && ispec )) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  strcpy(str, "");
+  /* HEY: no bounds checking! */
+  strcat(str, airEnumStr(pullInfo, ispec->info));
+  if (ispec->constraint) {
+    strcat(str, "-c");
+  }
+  strcat(str, ":");
+  if (pullSourceGage == ispec->source) {
+    if (UINT_MAX == ispec->volIdx) {
+      biffAddf(PULL, "%s: never learned volIdx for \"%s\"", me,
+               ispec->volName);
+      return 1;
+    }
+    strcat(str, ispec->volName);
+    strcat(str, ":");
+    pvol = pctx->vol[ispec->volIdx];
+    strcat(str, airEnumStr(pvol->kind->enm, ispec->item));
+  } else if (pullSourceProp == ispec->source) {
+    strcat(str, airEnumStr(pullProp, ispec->prop));
+  } else {
+    biffAddf(PULL, "%s: unexplained source %d", me, ispec->source);
+    return 1;
+  }
+  if ( (pullSourceGage == ispec->source 
+        && 1 == pullInfoLen(ispec->info))
+       ||
+       (pullSourceProp == ispec->source 
+        && 1 == pullPropLen(ispec->prop)) ) {
+    sprintf(stmp, "%g", ispec->zero);
+    strcat(str, stmp);
+    strcat(str, ":");
+    sprintf(stmp, "%g", ispec->scale);
+    strcat(str, stmp);
+  }
+  return 0;
+}
+

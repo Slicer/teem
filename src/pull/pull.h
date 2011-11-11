@@ -1023,6 +1023,9 @@ PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx);
+PULL_EXPORT int pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
+                                   const pullContext *pctx,
+                                   const pullInfoSpec *ispec);
 
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
