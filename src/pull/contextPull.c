@@ -481,6 +481,9 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
             /* do this if using general symmetric tensor glyphs */
             TEN_M2T(tout, hess);
             tout[0] = 1.0;
+          } if (0) {
+            /* for spheres and only spheres */
+            TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
           } else {
             ell_3m_eigensolve_d(eval, evec, hess, 10);
             eval[0] = AIR_ABS(eval[0]);
