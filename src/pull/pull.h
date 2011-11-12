@@ -223,19 +223,20 @@ enum {
   pullEnergyTypeUnknown,             /* 0 */
   pullEnergyTypeSpring,              /* 1 */
   pullEnergyTypeGauss,               /* 2 */
-  pullEnergyTypeButterworth,         /* 3 */
-  pullEnergyTypeCotan,               /* 4 */
-  pullEnergyTypeCubic,               /* 5 */
-  pullEnergyTypeQuartic,             /* 6 */
-  pullEnergyTypeCubicWell,           /* 7 */
-  pullEnergyTypeBetterCubicWell,     /* 8 */
-  pullEnergyTypeQuarticWell,         /* 9 */
-  pullEnergyTypeHepticWell,          /* 10 */
-  pullEnergyTypeZero,                /* 11 */
-  pullEnergyTypeButterworthParabola, /* 12 */
+  pullEnergyTypeBspln,               /* 3 */
+  pullEnergyTypeButterworth,         /* 4 */
+  pullEnergyTypeCotan,               /* 5 */
+  pullEnergyTypeCubic,               /* 6 */
+  pullEnergyTypeQuartic,             /* 7 */
+  pullEnergyTypeCubicWell,           /* 8 */
+  pullEnergyTypeBetterCubicWell,     /* 9 */
+  pullEnergyTypeQuarticWell,         /* 10 */
+  pullEnergyTypeHepticWell,          /* 11 */
+  pullEnergyTypeZero,                /* 12 */
+  pullEnergyTypeButterworthParabola, /* 13 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX            12
+#define PULL_ENERGY_TYPE_MAX            13
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
@@ -962,6 +963,7 @@ PULL_EXPORT const airEnum *const pullEnergyType;
 PULL_EXPORT const pullEnergy *const pullEnergyUnknown;
 PULL_EXPORT const pullEnergy *const pullEnergySpring;
 PULL_EXPORT const pullEnergy *const pullEnergyGauss;
+PULL_EXPORT const pullEnergy *const pullEnergyBspln;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworth;
 PULL_EXPORT const pullEnergy *const pullEnergyCotan;
 PULL_EXPORT const pullEnergy *const pullEnergyCubic;

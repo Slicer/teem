@@ -64,6 +64,7 @@ pullInterType = &_pullInterType;
 
 #define SPRING    "spring"
 #define GAUSS     "gauss"
+#define BSPLN     "bspln"
 #define BUTTER    "butter"
 #define COTAN     "cotan"
 #define CUBIC     "cubic"
@@ -80,6 +81,7 @@ _pullEnergyTypeStr[PULL_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
   SPRING,
   GAUSS,
+  BSPLN,
   BUTTER,
   COTAN,
   CUBIC,
@@ -97,6 +99,7 @@ _pullEnergyTypeDesc[PULL_ENERGY_TYPE_MAX+1] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
   "Gaussian potential",
+  "uniform cubic B-spline basis function",
   "like a Gaussian, but a lot wider",
   "Cotangent-based potential (from Meyer et al. SMI '05)",
   "Cubic thing",
@@ -223,6 +226,53 @@ _pullEnergyGauss = {
 };
 const pullEnergy *const
 pullEnergyGauss = &_pullEnergyGauss;
+
+/* ----------------------------------------------------------------
+** ------------------------------ BSPLN --------------------------
+** ----------------------------------------------------------------
+** 0 parms
+*/
+/* HEY: copied from teem/src/nrrd/bsplKernel.c */
+#define BSPL(ret, t, x)                        \
+  if (x < 1) {                                 \
+    ret = (4 + 3*(-2 + x)*x*x)/6;              \
+  } else if (x < 2) {                          \
+    t = (-2 + x);                              \
+    ret = -t*t*t/6;                            \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+#define DBSPL(ret, t, x)                       \
+  if (x < 1) {                                 \
+    ret = (-4 + 3*x)*x/2;                      \
+  } else if (x < 2) {                          \
+    t = (-2 + x);                              \
+    ret = -t*t/2;                              \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+double
+_pullEnergyBsplnEval(double *denr, double dist, const double *parm) {
+  double tmp, ret;
+
+  AIR_UNUSED(parm);
+  dist *= 2;
+  DBSPL(*denr, tmp, dist);
+  *denr /= 2;
+  BSPL(ret, tmp, dist);
+  return ret;
+}
+
+const pullEnergy
+_pullEnergyBspln = {
+  BSPLN,
+  0,
+  _pullEnergyBsplnEval
+};
+const pullEnergy *const
+pullEnergyBspln = &_pullEnergyBspln;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ BUTTER --------------------------
@@ -537,16 +587,17 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1] = {
   &_pullEnergyUnknown,            /* 0 */
   &_pullEnergySpring,             /* 1 */
   &_pullEnergyGauss,              /* 2 */
-  &_pullEnergyButterworth,        /* 3 */
-  &_pullEnergyCotan,              /* 4 */
-  &_pullEnergyCubic,              /* 5 */
-  &_pullEnergyQuartic,            /* 6 */
-  &_pullEnergyCubicWell,          /* 7 */
-  &_pullEnergyBetterCubicWell,    /* 8 */
-  &_pullEnergyQuarticWell,        /* 9 */
-  &_pullEnergyHepticWell,         /* 10 */
-  &_pullEnergyZero,               /* 11 */
-  &_pullEnergyButterworthParabola /* 12 */
+  &_pullEnergyBspln,              /* 3 */
+  &_pullEnergyButterworth,        /* 4 */
+  &_pullEnergyCotan,              /* 5 */
+  &_pullEnergyCubic,              /* 6 */
+  &_pullEnergyQuartic,            /* 7 */
+  &_pullEnergyCubicWell,          /* 8 */
+  &_pullEnergyBetterCubicWell,    /* 9 */
+  &_pullEnergyQuarticWell,        /* 10 */
+  &_pullEnergyHepticWell,         /* 11 */
+  &_pullEnergyZero,               /* 12 */
+  &_pullEnergyButterworthParabola /* 13 */
 };
 
 pullEnergySpec *
