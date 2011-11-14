@@ -183,11 +183,10 @@ _pullEnergyInterParticle(pullContext *pctx, pullPoint *me, pullPoint *she,
   case pullInterTypeSeparable:
     enR = evalR(&denR, rr, parmR);
     enS = evalS(&denS, ss, parmS);
-    scaleSgn = airSgn(diff[3]);
     en = enR*enS;
     if (egrad) {
       ELL_3V_SCALE(egrad, denR*enS/(spaceRad*spaceDist), diff);
-      egrad[3] = enR*scaleSgn*denS/scaleRad;
+      egrad[3] = enR*airSgn(diff[3])*denS/scaleRad;
     }
     break;
   case pullInterTypeAdditive:
@@ -462,6 +461,40 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
     enr = _pullEnergyInterParticle(task->pctx, point, herPoint,
                                    spaDist, sclDist,
                                    egradSum ? egrad : NULL);
+#if 0
+    /* sanity checking on energy derivatives */
+    if (enr && egradSum) {
+      double _pos[4], tdf[4], ee[2], eps=0.000001, apegrad[4], quot[4];
+      unsigned int cord, pan;
+      ELL_4V_COPY(_pos, point->pos);
+      
+      for (cord=0; cord<=3; cord++) {
+        for (pan=0; pan<=1; pan++) {
+          point->pos[cord] = _pos[cord] + (!pan ? -1 : +1)*eps;
+          ELL_4V_SUB(tdf, point->pos, herPoint->pos);
+          ee[pan] = _pullEnergyInterParticle(task->pctx, point, herPoint,
+                                             ELL_3V_LEN(tdf), AIR_ABS(tdf[3]), NULL);
+        }
+        point->pos[cord] = _pos[cord];
+        apegrad[cord] = (ee[1] - ee[0])/(2*eps);
+        quot[cord] = apegrad[cord]/egrad[cord];
+      }
+      if ( AIR_ABS(1.0 - quot[0]) > 0.01 ||
+           AIR_ABS(1.0 - quot[1]) > 0.01 ||
+           AIR_ABS(1.0 - quot[2]) > 0.01 ||
+           (task->pctx->haveScale && AIR_ABS(1.0 - quot[3]) > 0.01) ) {
+        printf("!%s(%u<-%u): ---------- claim egrad (%g,%g,%g,%g)\n", me,
+               point->idtag, herPoint->idtag, egrad[0], egrad[1], egrad[2], egrad[3]);
+        printf("!%s(%u<-%u):            measr egrad (%g,%g,%g,%g)\n", me, 
+               point->idtag, herPoint->idtag, apegrad[0], apegrad[1], apegrad[2], apegrad[3]);
+        printf("!%s(%u<-%u):            quot (%g,%g,%g,%g)\n", me, 
+               point->idtag, herPoint->idtag, quot[0], quot[1], quot[2], quot[3]);
+      }
+      
+      ELL_4V_COPY(point->pos, _pos);
+    }
+#endif
+
     if (enr) {
       /* there is some non-zero energy due to her; and we assume that
          its not just a fluke zero-crossing of the potential profile */

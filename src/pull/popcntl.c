@@ -114,12 +114,10 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
   }
-  if (pullEnergyCubicWell == task->pctx->energySpecR->energy
-      || pullEnergyBetterCubicWell == task->pctx->energySpecR->energy
-      || pullEnergyQuarticWell == task->pctx->energySpecR->energy
-      || pullEnergyHepticWell == task->pctx->energySpecR->energy) {
-    newSpcDist = task->pctx->energySpecR->parm[0];
-  } else {
+  if (task->pctx->energySpecR->energy->well(&newSpcDist,
+                                            task->pctx->energySpecR->parm)) {
+    /* HEY: if we don't actually have a well, what is the point of
+       guessing a new distance? */
     newSpcDist = _PULL_NEWPNT_DIST;
   }
   /* compute offset (normalized) direction from current point location */
@@ -194,7 +192,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
                                           /* ignoreImage; actually it is
                                            this use which motivated the
-                                          creation of ignoreImage */
+                                           creation of ignoreImage */
                                           AIR_TRUE);
     if (newpnt->status & PULL_STATUS_STUCK_BIT) {
       if (task->pctx->verbose > 2) {

@@ -288,10 +288,11 @@ _pullInfoSetup(pullContext *pctx) {
         (*evalS)(double *, double, const double parm[PULL_ENERGY_PARM_NUM]);
       switch (pctx->interType) {
       case pullInterTypeUnivariate:
-      case pullInterTypeSeparable:
-        /* assume repulsive along both r and s */
-        /* HEY this prevents using a negative gaussian along scale */
         pctx->targetDim = 1 + pctx->constraintDim;
+        break;
+      case pullInterTypeSeparable:
+        /* HEY! need to check if this is true given enr and ens! */
+        pctx->targetDim = pctx->constraintDim;
         break;
       case pullInterTypeAdditive:
         parmS = pctx->energySpecS->parm;

@@ -124,6 +124,14 @@ _pullEnergyType = {
 const airEnum *const
 pullEnergyType = &_pullEnergyType;
 
+double
+_pullEnergyNoWell(double *wx, const double *parm) {
+
+  AIR_UNUSED(wx);
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
 /* ----------------------------------------------------------------
 ** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
@@ -143,6 +151,7 @@ pullEnergy
 _pullEnergyUnknown = {
   "unknown",
   0,
+  _pullEnergyNoWell,
   _pullEnergyUnknownEval
 };
 const pullEnergy *const
@@ -187,10 +196,17 @@ _pullEnergySpringEval(double *denr, double dist, const double *parm) {
   return enr;
 }
 
+int
+_pullEnergySpringWell(const double *parm) {
+
+  return (parm[0] > 0.0);
+}
+
 const pullEnergy
 _pullEnergySpring = {
   SPRING,
   1,
+  _pullEnergyNoWell, /* HEY: is this true? */
   _pullEnergySpringEval
 };
 const pullEnergy *const
@@ -222,6 +238,7 @@ const pullEnergy
 _pullEnergyGauss = {
   GAUSS,
   0,
+  _pullEnergyNoWell,
   _pullEnergyGaussEval
 };
 const pullEnergy *const
@@ -260,7 +277,7 @@ _pullEnergyBsplnEval(double *denr, double dist, const double *parm) {
   AIR_UNUSED(parm);
   dist *= 2;
   DBSPL(*denr, tmp, dist);
-  *denr /= 2;
+  *denr *= 2;
   BSPL(ret, tmp, dist);
   return ret;
 }
@@ -269,6 +286,7 @@ const pullEnergy
 _pullEnergyBspln = {
   BSPLN,
   0,
+  _pullEnergyNoWell,
   _pullEnergyBsplnEval
 };
 const pullEnergy *const
@@ -297,6 +315,7 @@ const pullEnergy
 _pullEnergyButterworth= {
   BUTTER,
   2,
+  _pullEnergyNoWell,
   _pullEnergyButterworthEval
 };
 const pullEnergy *const
@@ -323,6 +342,7 @@ const pullEnergy
 _pullEnergyCotan = {
   COTAN,
   0,
+  _pullEnergyNoWell,
   _pullEnergyCotanEval
 };
 const pullEnergy *const
@@ -352,6 +372,7 @@ const pullEnergy
 _pullEnergyCubic = {
   CUBIC,
   0,
+  _pullEnergyNoWell,
   _pullEnergyCubicEval
 };
 const pullEnergy *const
@@ -381,6 +402,7 @@ const pullEnergy
 _pullEnergyQuartic = {
   QUARTIC,
   0,
+  _pullEnergyNoWell,
   _pullEnergyQuarticEval
 };
 const pullEnergy *const
@@ -417,10 +439,18 @@ _pullEnergyCubicWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
+double
+_pullEnergyCubicWellWell(double *wx, const double *parm) {
+
+  *wx = parm[0];
+  return AIR_MIN(0.0, parm[1]);
+}
+
 const pullEnergy
 _pullEnergyCubicWell = {
   CWELL,
   2,
+  _pullEnergyCubicWellWell,
   _pullEnergyCubicWellEval
 };
 const pullEnergy *const
@@ -463,10 +493,18 @@ _pullEnergyBetterCubicWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
+double
+_pullEnergyBetterCubicWellWell(double *wx, const double *parm) {
+
+  *wx = parm[0];
+  return AIR_MIN(0.0, parm[1]);
+}
+
 const pullEnergy
 _pullEnergyBetterCubicWell = {
   BWELL,
   2,
+  _pullEnergyBetterCubicWellWell,
   _pullEnergyBetterCubicWellEval
 };
 const pullEnergy *const
@@ -491,10 +529,20 @@ _pullEnergyQuarticWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
+double
+_pullEnergyQuarticWellWell(double *wx, const double *parm) {
+  double t;
+
+  *wx = parm[0];
+  t = *wx - 1;
+  return t*t*t*t/(4*(*wx) - 1);
+}
+
 const pullEnergy
 _pullEnergyQuarticWell = {
   QWELL,
   1,
+  _pullEnergyQuarticWellWell,
   _pullEnergyQuarticWellEval
 };
 const pullEnergy *const
@@ -522,10 +570,20 @@ _pullEnergyHepticWellEval(double *denr, double x, const double *parm) {
   return enr;
 }
 
+double
+_pullEnergyHepticWellWell(double *wx, const double *parm) {
+  double t;
+
+  *wx = parm[0];
+  t = *wx - 1;
+  return t*t*t*t*t*t*t/(7*(*wx) - 1);
+}
+
 const pullEnergy
 _pullEnergyHepticWell = {
   HWELL,
   1,
+  _pullEnergyHepticWellWell,
   _pullEnergyHepticWellEval
 };
 const pullEnergy *const
@@ -549,6 +607,7 @@ const pullEnergy
 _pullEnergyZero = {
   ZERO,
   0,
+  _pullEnergyNoWell,
   _pullEnergyZeroEval
 };
 const pullEnergy *const
@@ -573,6 +632,7 @@ const pullEnergy
 _pullEnergyButterworthParabola = {
   BPARAB,
   3,
+  _pullEnergyNoWell,
   _pullEnergyBParabEval
 };
 const pullEnergy *const
@@ -665,8 +725,10 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
     /* the string is the name of some energy */
     ensp->energy = pullEnergyAll[etype];
     if (0 != ensp->energy->parmNum) {
-      biffAddf(PULL, "%s: need %u parms for %s energy, but got none", me,
-               ensp->energy->parmNum, ensp->energy->name);
+      biffAddf(PULL, "%s: need %u parm%s for %s energy, but got none", me,
+               ensp->energy->parmNum, 
+               (1 == ensp->energy->parmNum ? "" : "s"), 
+               ensp->energy->name);
       return 1;
     }
     /* the energy needs 0 parameters */

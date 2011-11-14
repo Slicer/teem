@@ -406,6 +406,7 @@ typedef struct pullBin_t {
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
+  double (*well)(double *wx, const double parm[PULL_ENERGY_PARM_NUM]);
   double (*eval)(double *denr, double dist,
                  const double parm[PULL_ENERGY_PARM_NUM]);
 } pullEnergy;
