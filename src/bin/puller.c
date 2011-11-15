@@ -76,6 +76,8 @@ typedef struct {
     *nidcc, *nstrn, *nqual, *ncovar, *ntcovar, *nstab, *nintern,
     *nstuck, *nfrcOld, *nfrcNew, *nposOld, *nposNew, *nrgb, *nccrgb,
     *ncval, *ncmap, *ncmapOut, *nblur;
+  NrrdResampleContext *rsmc;
+  const Nrrd *norig;
   NrrdRange *cvalRange;
   limnPolyData *phistLine, *phistTube;
   Deft::PolyData *phistSurf;
@@ -432,7 +434,7 @@ cc_cb(fltk::Widget *, pullBag *bag) {
     if (nrrdMaybeAlloc_va(bag->nccrgb, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 3),
                           AIR_CAST(size_t, bag->pctx->CCNum))) {
-      char *err = biffGetDone(NULL);
+      char *err = biffGetDone(NRRD);
       fprintf(stderr, "%s: problem alloc'ing cc rgb:\n%s", me, err);
       free(err);
     }
@@ -466,6 +468,35 @@ scaleGlyph_cb(fltk::Widget *, pullBag *bag) {
 }
 
 void
+reblur_cb(fltk::Widget *, pullBag *bag) {
+  static const char me[]="reblur_cb";
+  double kparm[NRRD_KERNEL_PARMS_NUM];
+  int E;
+
+  if (!bag->pctx->haveScale) {
+    return;
+  }
+  kparm[0] = bag->sclMean->value();
+  printf("!%s: sigma = %g\n", me, kparm[0]);
+  kparm[1] = 3;
+  E = 0;
+  for (unsigned int axi=0; axi<3; axi++) {
+    if (!E) E |= nrrdResampleKernelSet(bag->rsmc, axi,
+                                       nrrdKernelDiscreteGaussian,
+                                       kparm);
+  }
+  if (!E) E |= nrrdResampleExecute(bag->rsmc, bag->nblur);
+  if (E) {
+    char *err = biffGetDone(NRRD);
+    fprintf(stderr, "%s: problem resampling to scale %g:\n%s",
+            me, bag->sclMean->value(), err);
+    free(err);
+  }
+  outputShow(bag);
+  return;
+}
+
+void
 scale_cb(fltk::Widget *, pullBag *bag) {
   double sclMean, sclWind;
 
@@ -479,6 +510,7 @@ scale_cb(fltk::Widget *, pullBag *bag) {
     bag->sclMax = 0;
   }
   outputShow(bag);
+  return;
 }
 
 void
@@ -1179,6 +1211,25 @@ main(int argc, const char **argv) {
   bag.nccrgb = nrrdNew();
   bag.ncmapOut = nrrdNew();
   bag.nblur = nrrdNew();
+  bag.norig = vspec[0]->nin;
+  nrrdCopy(bag.nblur, bag.norig);  
+  bag.rsmc = nrrdResampleContextNew();
+  E = 0;
+  if (!E) E |= nrrdResampleDefaultCenterSet(bag.rsmc, nrrdDefaultCenter);
+  if (!E) E |= nrrdResampleInputSet(bag.rsmc, bag.norig);
+  for (unsigned int axi=0; axi<3; axi++) {
+    if (!E) E |= nrrdResampleSamplesSet(bag.rsmc, axi,
+                                        bag.norig->axis[axi].size);
+    if (!E) E |= nrrdResampleRangeFullSet(bag.rsmc, axi);
+  }
+  if (!E) E |= nrrdResampleBoundarySet(bag.rsmc, nrrdBoundaryBleed);
+  if (!E) E |= nrrdResampleTypeOutSet(bag.rsmc, nrrdTypeDefault);
+  if (!E) E |= nrrdResampleRenormalizeSet(bag.rsmc, AIR_TRUE);
+  if (E) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble setting up resampler:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
   /* bag.ncval is just a pointer to other nrrds */
   bag.cvalRange = nrrdRangeNew(AIR_NAN, AIR_NAN);
   ELL_3V_COPY(bag.scaleVec, scaleVec);
@@ -1302,6 +1353,9 @@ main(int argc, const char **argv) {
     bag.sclMean->value((ssrange[0] + ssrange[1])/2);
     bag.sclMean->fastUpdate(1);
     bag.sclMean->callback((fltk::Callback*)scale_cb, &bag);
+
+    fltk::Button *reblurButton = new fltk::Button(130, winy+4, 50, 20, "reblur");
+    reblurButton->callback((fltk::Callback*)reblur_cb, &bag);
     
     winy += incy;
     bag.sclWind = new Deft::Slider(0, winy, win->w(), incy=55, "scale window");
@@ -1375,7 +1429,7 @@ main(int argc, const char **argv) {
   /* -------------------------------------------------- */
   if (gageKindScl == vspec[0]->kind) {
     bag.contour = new Deft::Contour();
-    bag.contour->volumeSet(vspec[0]->nin);
+    bag.contour->volumeSet(bag.nblur);
     bag.contour->twoSided(true);
     bag.scene->objectAdd(bag.contour);
   } else {
@@ -1440,7 +1494,7 @@ main(int argc, const char **argv) {
   */
 
   /* -------------------------------------------------- */
-  Deft::Volume *vol = new Deft::Volume(vspec[0]->kind, vspec[0]->nin);
+  Deft::Volume *vol = new Deft::Volume(vspec[0]->kind, bag.nblur);
   fprintf(stderr, "!%s: vol = %p *********************\n", me, vol);
   Deft::TriPlane *triplane = new Deft::TriPlane(vol);
   /*
@@ -1469,23 +1523,6 @@ main(int argc, const char **argv) {
   nrrdKernelSpecSet(ksp, nrrdKernelBCCubicDD, kparm);
   triplane->kernel(gageKernel22, ksp);
   triplane->visible(false);
-
-  // HEY, WRONG: totally wrong place to be doing this
-  if (1) {
-    Deft::TensorGlyph *tgl[3];
-    tgl[0] = static_cast<Deft::TensorGlyph*>(triplane->glyph[0]);
-    tgl[1] = static_cast<Deft::TensorGlyph*>(triplane->glyph[1]);
-    tgl[2] = static_cast<Deft::TensorGlyph*>(triplane->glyph[2]);
-    tgl[0]->parmCopy(glyph);
-    tgl[1]->parmCopy(glyph);
-    tgl[2]->parmCopy(glyph);
-    Deft::TensorGlyphUI *triglyphUI = new Deft::TensorGlyphUI(tgl[0],
-                                                              bag.viewer);
-    triglyphUI->label("triplane glyphs");
-    triglyphUI->add(tgl[1]);
-    triglyphUI->add(tgl[2]);
-    triglyphUI->show();
-  }
 
   bag.scene->groupAdd(triplane);
 
@@ -1540,13 +1577,15 @@ main(int argc, const char **argv) {
   if (0) {
     Nrrd *nplot;
     nplot = nrrdNew();
-    if (pullEnergyPlot(pctx, nplot, 1, 0, 0, 512)) {
+    if (pullEnergyPlot(pctx, nplot, 1, 0, 0, 601)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble plotting:\n%s", me, err);
       airMopError(mop); return 1;
     }
     nrrdSave("eplot.nrrd", nplot, NULL);
     nplot = nrrdNuke(nplot);
+
+    pctx->nhinter = nrrdNew();
   }
 
   if (fog) {
