@@ -64,7 +64,10 @@ extern "C" {
 #define _PULL_NEWPNT_STRAY_DIST 1.3
 
 /* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
-   for discrete differencing needed to find the gradient of strength */
+   for discrete differencing needed to find the gradient (for 
+   moving along scale) and 2nd derivative (for learning gamma)
+   of strength
+*/
 #define _PULL_STRENGTH_ENERGY_DELTA_SCALE 0.0002
 
 /* maximum distance, in multiples of voxelSizeSpace, that a point is
@@ -130,7 +133,7 @@ extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
 extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
                                     pullPoint *point, int ignoreImage);
 extern double _pullEnergyInterParticle(pullContext *pctx,
-                                       pullPoint *me, pullPoint *she,
+                                       pullPoint *me, const pullPoint *she,
                                        double spaceDist, double scaleDist,
                                        double egrad[4]);
 

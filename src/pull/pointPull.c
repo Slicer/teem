@@ -297,7 +297,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   }
   if (pullInfoLiveThresh == sclInfo
       || pullInfoSeedThresh == sclInfo) {
-    scl -= (pctx->sysParm.theta)*(point->pos[3]);
+    scl -= (pctx->sysParm.theta)*(point->pos[3])*(point->pos[3]);
   }
   if (0 && _pullVerbose) {
     if (pullInfoSeedThresh == sclInfo) {

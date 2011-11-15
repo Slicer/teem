@@ -621,6 +621,13 @@ enum {
      from strength */
   pullSysParmGamma,
 
+  /* when learning a suitable gamma from data (via pullGammaLearn)
+     in the context of separable energy functions, how much to
+     scale the learned gamma. Making this greater than 1.0 helps
+     let the energy from strength overpower the slight repulsion
+     along scale that might exist by the separable phi construction. */
+  pullSysParmSeparableGammaLearnRescale,
+
   /* to be more selective for pullInfoSeedThresh and
      pullInfoLiveThresh at higher scales, set theta > 0, and the
      effective threshold will be base threshold + theta*scale.
@@ -687,7 +694,7 @@ enum {
 };
 
 typedef struct {
-  double alpha, beta, gamma, theta, wall,
+  double alpha, beta, gamma, separableGammaLearnRescale, theta, wall,
     radiusSpace, radiusScale, binWidthSpace,
     neighborTrueProb, probeProb,
     stepInitial, opporStepScale, backStepScale, constraintStepMin,
@@ -903,10 +910,12 @@ typedef struct pullContext_t {
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
-
+  Nrrd *nhinter;                   /* 2-D histogram of (r,s)-space relative
+                                      locations of interacting particles
+                                      (NOT thread safe) */
   FILE *logAdd;                    /* text-file record of all the particles
-                                      that have been added (certainly not
-                                      thread-safe) */
+                                      that have been added
+                                      (NOT thread-safe) */
 
   /* OUTPUT ---------------------------- */
 

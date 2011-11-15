@@ -239,6 +239,15 @@ _pullIterate(pullContext *pctx, int mode) {
     pctx->sysParm.energyIncreasePermit *= pctx->eipScale;
   }
 
+#if 0
+  /* zero-out/alloc hinter if need be */
+  if (pullProcessModeDescent == mode && pctx->nhinter) {
+    nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2,
+                      AIR_CAST(size_t, 601),
+                      AIR_CAST(size_t, 601));
+  }
+#endif 0
+
   /* tell all tasks what mode they're in */
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->processMode = mode;
@@ -312,6 +321,12 @@ _pullIterate(pullContext *pctx, int mode) {
   }
 
   pctx->timeIteration = airTime() - time0;
+
+#if 0
+  if (pullProcessModeDescent == mode && pctx->nhinter) {
+    nrrdSave("hinter.nrrd", pctx->nhinter, NULL);
+  }
+#endif
 
   return 0;
 }
