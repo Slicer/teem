@@ -78,7 +78,7 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "\"0" PSUFF "\" means the highest input value is used, "
              "which is also the default "
              "behavior (same as not using this option).");
-  hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "3000",
+  hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
              "number of bins in histogram of values, for determining min "
              "or max by percentiles.  This has to be large enough so that "
              "any errant very high or very low values do not compress the "
