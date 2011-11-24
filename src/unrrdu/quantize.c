@@ -73,7 +73,7 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
-             "a \"" PSUFF "\" suffix, this minimum is specified in terms of "
+             "a \"" PSUFF "\" suffix, this maximum is specified in terms of "
              "the percentage of samples in input that are higher. "
              "\"0" PSUFF "\" means the highest input value is used, "
              "which is also the default "
