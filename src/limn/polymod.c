@@ -2154,7 +2154,7 @@ registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb,
  */
 int
 limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
-                         unsigned int *maxnb, limnPolyData *pld) {
+                         unsigned int *maxnb, const limnPolyData *pld) {
   static const char me[]="limnPolyDataNeighborList";
   unsigned int i, j, m, estimate=0, *indx;
   size_t last;
@@ -2251,7 +2251,7 @@ limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
  */
 int
 limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
-                          limnPolyData *pld) {
+                          const limnPolyData *pld) {
   static const char me[]="limnPolyDataNeighborArray";
   unsigned int i, *nblist, m;
   /* get the neighbors as a linked list */
@@ -2290,7 +2290,7 @@ limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
  */
 int
 limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
-                              limnPolyData *pld) {
+                              const limnPolyData *pld) {
   static const char me[]="limnPolyDataNeighborArrayComp";
   unsigned int i, ct, *nblist;
   size_t len;

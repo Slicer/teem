@@ -695,11 +695,11 @@ LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
                                             const Nrrd *nmask);
 LIMN_EXPORT int limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
                                          unsigned int *maxnb,
-                                         limnPolyData *pld);
+                                         const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
-                                          limnPolyData *pld);
+                                          const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
-                                              limnPolyData *pld);
+                                              const limnPolyData *pld);
 
 /* polyfilter.c */
 LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
