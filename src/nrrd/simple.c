@@ -1504,15 +1504,27 @@ nrrdSanity(void) {
   tmpLLI = NRRD_LLONG_MAX;
   if (tmpLLI != NRRD_LLONG_MAX) {
     biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
-             AIR_ULLONG_FMT ")", me,
+             AIR_LLONG_FMT ")", me,
              NRRD_LLONG_MAX);
     return 0;
   }
+  /*
+  ** Actually, this is not a valid test: signed overflow is undefined in C
+  ** So for now we merely test (below) that long long ints can hold both
+  ** NRRD_LLONG_MAX and NRRD_LLONG_MIN
   tmpLLI += 1;
   if (NRRD_LLONG_MIN != tmpLLI) {
     biffAddf(NRRD, "%s: long long int min (" AIR_LLONG_FMT 
              ") or max (" AIR_LLONG_FMT ") incorrect", me,
              NRRD_LLONG_MIN, NRRD_LLONG_MAX);
+    return 0;
+  }
+  */
+  tmpLLI = NRRD_LLONG_MIN;
+  if (tmpLLI != NRRD_LLONG_MIN) {
+    biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MIN ("
+             AIR_LLONG_FMT ")", me,
+             NRRD_LLONG_MIN);
     return 0;
   }
   tmpULLI = NRRD_ULLONG_MAX;
