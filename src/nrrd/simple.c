@@ -1369,8 +1369,6 @@ _nrrdCheckEnums(void) {
 ** the architecture/etc which we're currently running on.  
 ** 
 ** returns 1 if all is okay, 0 if there is a problem
-**
-** biffMsg *msg is allowed to be NULL
 */
 int /*Teem: biff if (!ret) */
 nrrdSanity(void) {
