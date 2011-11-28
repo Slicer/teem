@@ -92,7 +92,7 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
     break;
   default:
     fprintf(stderr, "!%s: PANIC: didn't recognize parm %d\n", me, parm);
-    exit(1);
+    return 1;
   }
   return 0;
 }
@@ -185,7 +185,7 @@ nrrdIoStateGet(NrrdIoState *nio, int parm) {
     break;
   default:
     fprintf(stderr, "!%s: PANIC: didn't recognize parm %d\n", me, parm);
-    exit(1);
+    return -1;
   }
   return value;
 }

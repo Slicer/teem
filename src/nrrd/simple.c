@@ -68,7 +68,7 @@ nrrdSpaceDimension(int space) {
     break;
   default:
     fprintf(stderr, "%s: PANIC: nrrdSpace %d not implemented!\n", me, space);
-    exit(1);
+    ret = UINT_MAX; /* exit(1); */
     break;
   }
   return ret;
@@ -391,7 +391,7 @@ nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
 ** _nrrdContentGet
 **
 ** ALLOCATES a string for the content of a given nrrd
-** panics and exits if allocation failed
+** panics if allocation failed
 */
 char *
 _nrrdContentGet(const Nrrd *nin) {
@@ -403,7 +403,7 @@ _nrrdContentGet(const Nrrd *nin) {
          : airStrdup(nrrdStateUnknownContent));
   if (!ret) {
     fprintf(stderr, "%s: PANIC: content strdup failed!\n", me);
-    exit(1);
+    return NULL;
   }
   return ret;
 }

@@ -63,8 +63,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
             -spc LPS -orig "(0,0,0)" -dirs "(1,0,0) (0,1,0) (0,0,1)"
        This particular case is resolved by changing AIR_STRLEN_HUGE
        to AIR_STRLEN_HUGE*100, but the general problem remains.  This
-       motivated adding the memory corruption test; sadly once that has
-       happened biffAddf also crashed */
+       motivated adding the memory corruption test */
     if (1 != fscanf(file, "%s", numbStr)) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't parse element %s of %s", me,
@@ -73,8 +72,10 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
       return 1;
     }
     if (file != _fileSave) {
-      fprintf(stderr, "%s: sorry, memory corruption detected, bye.\n", me);
-      exit(1);
+      fprintf(stderr, "%s: PANIC memory corruption detected\n", me);
+      /* this may crash, hence the fprintf above to help debug */
+      biffAddf(NRRD, "%s: PANIC memory corruption detected", me);
+      return 1;
     }
     if (!strcmp(",", numbStr)) {
       /* its an isolated comma, not a value, pass over this */

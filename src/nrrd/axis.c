@@ -151,7 +151,7 @@ nrrdKindSize(int kind) {
     break;
   default:
     fprintf(stderr, "%s: PANIC: nrrdKind %d not implemented!\n", me, kind);
-    exit(1);
+    ret = UINT_MAX;
   }
 
   return ret;
