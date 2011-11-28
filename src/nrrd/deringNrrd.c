@@ -28,8 +28,6 @@
 #define CLAMP_PERC_MAX 30.0
 
 /* TODO: 
- * 
- * save output slice
  *
  * valgrind
  *
@@ -83,7 +81,8 @@ nrrdDeringContextNew(void) {
   for (pi=0; pi<NRRD_KERNEL_PARMS_NUM; pi++) {
     drc->rkparm[pi] = drc->tkparm[pi] = AIR_NAN;
   }
-  drc->cdata = NULL;
+  drc->cdataIn = NULL;
+  drc->cdataOut = NULL;
   drc->sliceSize = 0;
   drc->clampDo = AIR_FALSE;
   drc->clamp[0] = AIR_NAN;
@@ -153,7 +152,7 @@ nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
     fprintf(stderr, "%s: hi\n", me);
   }
   drc->nin = nin;
-  drc->cdata = AIR_CAST(const char *, nin->data);
+  drc->cdataIn = AIR_CAST(const char *, nin->data);
   drc->sliceSize = (nin->axis[0].size
                     * nin->axis[1].size
                     * nrrdElementSize(nin));
@@ -319,6 +318,7 @@ typedef struct {
   airArray *mop;
   Nrrd *nsliceOrig,         /* wrapped slice of nin, sneakily non-const */
     *nslice,                /* slice of nin, converted to double */
+    *nsliceOut,             /* (may be different type than nslice) */
     *nptxf[PTXF_NUM];
   double *slice, *ptxf, *wght, *ring;
   NrrdResampleContext *rsmc[2];
@@ -340,6 +340,9 @@ deringBagNew(NrrdDeringContext *drc, double radMax) {
             airMopAlways);
   dbg->nslice = nrrdNew();
   airMopAdd(dbg->mop, dbg->nslice, (airMopper)nrrdNuke, airMopAlways);
+  dbg->nsliceOut = nrrdNew();
+  airMopAdd(dbg->mop, dbg->nsliceOut, (airMopper)nrrdNix /* not Nuke! */,
+            airMopAlways);
   for (pi=0; pi<PTXF_NUM; pi++) {
     dbg->nptxf[pi] = nrrdNew();
     airMopAdd(dbg->mop, dbg->nptxf[pi], (airMopper)nrrdNuke, airMopAlways);
@@ -389,12 +392,18 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
     if (0 == ri) {
       if (!E) E |= nrrdResampleInputSet(dbg->rsmc[0], dbg->nptxf[ORIG]);
       nrrdKernelSprint(kstr, drc->rkernel, drc->rkparm);
+      if (drc->verbose > 1) {
+        fprintf(stderr, "%s: rsmc[0] axis 0 kernel: %s\n", me, kstr);
+      }
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 0,
                                          drc->rkernel, drc->rkparm);
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 1, NULL, NULL);
     } else {
       if (!E) E |= nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]);
       nrrdKernelSprint(kstr, drc->tkernel, drc->tkparm);
+      if (drc->verbose > 1) {
+        fprintf(stderr, "%s: rsmc[1] axis 1 kernel: %s\n", me, kstr);
+      }
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 0, NULL, NULL);
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 1,
                                          drc->tkernel, drc->tkparm);
@@ -425,8 +434,8 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
 
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
-                  /* HEY: sneaky bypass of const-ness of drc->cdata */
-                  AIR_CAST(void *, drc->cdata + zi*(drc->sliceSize)),
+                  /* HEY: sneaky bypass of const-ness of drc->cdataIn */
+                  AIR_CAST(void *, drc->cdataIn + zi*(drc->sliceSize)),
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,
                   drc->nin->axis[1].size)
@@ -447,15 +456,20 @@ deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
                Nrrd *nout, unsigned int zi) {
   static const char me[]="deringSliceSet";
 
-  AIR_UNUSED(me);
-  AIR_UNUSED(drc);
-  AIR_UNUSED(dbg);
-  AIR_UNUSED(nout);
-  AIR_UNUSED(zi);
+  if (nrrdWrap_va(dbg->nsliceOut,
+                  AIR_CAST(void *, drc->cdataOut + zi*(drc->sliceSize)),
+                  nout->type, 2, 
+                  nout->axis[0].size,
+                  nout->axis[1].size)
+      || (nrrdTypeDouble == nout->type
+          ? nrrdCopy(dbg->nsliceOut, dbg->nslice)
+          : nrrdConvert(dbg->nsliceOut, dbg->nslice, nout->type))) {
+    biffAddf(NRRD, "%s: slice output trouble", me);
+    return 1;
+  }
 
   return 0;
 }
-
 
 #define EPS 0.000001
 
@@ -544,27 +558,25 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
 }
 
 static int
-deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg) {
+deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[]="deringPtxfFilter";
 
   AIR_UNUSED(drc);
-  if (nrrdResampleExecute(dbg->rsmc[0], dbg->nptxf[BLRR])
+  if ((!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[0], dbg->nptxf[ORIG]))
+      || nrrdResampleExecute(dbg->rsmc[0], dbg->nptxf[BLRR])
       || nrrdArithBinaryOp(dbg->nptxf[DIFF], nrrdBinaryOpSubtract,
                            dbg->nptxf[ORIG], dbg->nptxf[BLRR])
+      || (!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]))
       || nrrdResampleExecute(dbg->rsmc[1], dbg->nptxf[RING])) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
-  if (1) {
-    char fname[AIR_STRLEN_SMALL];
-    sprintf(fname, "orig-%02u.nrrd", dbg->zi);
-    nrrdSave(fname, dbg->nptxf[ORIG], NULL);
-    sprintf(fname, "blrr-%02u.nrrd", dbg->zi);
-    nrrdSave(fname, dbg->nptxf[BLRR], NULL);
-    sprintf(fname, "diff-%02u.nrrd", dbg->zi);
-    nrrdSave(fname, dbg->nptxf[DIFF], NULL);
-    sprintf(fname, "ring-%02u.nrrd", dbg->zi);
-    nrrdSave(fname, dbg->nptxf[RING], NULL);
+  if (0) {
+    char fn[AIR_STRLEN_SMALL];
+    sprintf(fn, "orig-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[ORIG],NULL);
+    sprintf(fn, "blrr-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[BLRR],NULL);
+    sprintf(fn, "diff-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[DIFF],NULL);
+    sprintf(fn, "ring-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[RING],NULL);
   }
 
   return 0;
@@ -621,7 +633,7 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
       }
     }
   }
-  if (1) {
+  if (0) {
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "drng-%02u.nrrd", dbg->zi);
     nrrdSave(fname, dbg->nslice, NULL);
@@ -636,7 +648,7 @@ deringDo(NrrdDeringContext *drc, deringBag *dbg,
 
   if (deringSliceGet(drc, dbg, zi)
       || deringPtxfDo(drc, dbg)
-      || deringPtxfFilter(drc, dbg)
+      || deringPtxfFilter(drc, dbg, zi)
       || deringRingMagMeasure(drc, dbg)
       || deringSubtract(drc, dbg)
       || deringSliceSet(drc, dbg, nout, zi)) {
@@ -687,10 +699,12 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     return 1;
   }
 
+  /* initialize output */
   if (nrrdCopy(nout, drc->nin)) {
     biffAddf(NRRD, "%s: trouble initializing output with input", me);
     return 1;
   }
+  drc->cdataOut = AIR_CAST(char *, nout->data);
 
   mop = airMopNew();
 
@@ -761,8 +775,9 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
       return 1;
     }
     if (drc->verbose) {
-      fprintf(stderr, "%s: [%g,%g]-percentile value clamping --> [%g,%g]\n",
-              me, drc->clampPerc[0], drc->clampPerc[1], 
+      fprintf(stderr, "%s: [%g,%g]-%%ile clamping of [%g,%g] --> [%g,%g]\n",
+              me, drc->clampPerc[0], drc->clampPerc[1],
+              nhist->axis[0].min, nhist->axis[0].max,
               drc->clamp[0], drc->clamp[1]);
     }
     drc->clampDo = AIR_TRUE;
