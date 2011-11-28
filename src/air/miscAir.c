@@ -467,20 +467,6 @@ airDoneStr(double start, double here, double end, char *str) {
     }
   }
 
-  /* what the heck was all this for ? 
-  static int len = -1;
-
-  if (-1 == len) {
-    len = strlen(str);
-  }
-  else {
-    if (len != strlen(str)) {
-      printf("len(\\b\\b\\b\\b\\b\\b% 3d.%d%%) != %d\n", 
-              perc/10, perc%10, len);
-      exit(1);
-    }
-  }
-  */
   return(str);
 }
 
