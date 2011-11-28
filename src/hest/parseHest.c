@@ -1067,7 +1067,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
   if (!( err = AIR_CALLOC(big, char) )) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
-    exit(1);
+    /* exit(1); */
   }
   if (_errP) {
     /* if they care about the error string, than it is mopped only

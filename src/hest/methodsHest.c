@@ -189,7 +189,9 @@ hestOptCheck(hestOpt *opt, char **errP) {
   if (!( err = AIR_CALLOC(big, char) )) {
     fprintf(stderr, "%s PANIC: couldn't allocate error message "
             "buffer (size %d)\n", me, big);
-    exit(1);
+    if (errP)
+      *errP = NULL;
+    return 1;
   }
   parm = hestParmNew();
   if (_hestPanic(opt, err, parm)) {
