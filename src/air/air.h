@@ -120,6 +120,27 @@ typedef unsigned long long airULLong;
                                     a biff error message (one line of it) */
 
 /*
+******** airPtrPtrUnion
+**
+** union of addresses of pointers to various types, to deal with
+** strict aliasing warnings, especially with the first argument to
+** airArrayNew()
+*/
+typedef union {
+  unsigned char **uc;
+  signed char **sc;
+  char **c;
+  char ***cp;
+  unsigned short **us;
+  short **s;
+  unsigned int **ui;
+  int **i;
+  float **f;
+  double **d;
+  void **v;
+} airPtrPtrUnion;
+
+/*
 ******** airEnum struct
 ** 
 ** The airEnum provides the basic mechanism of mapping from a 

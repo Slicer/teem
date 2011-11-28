@@ -110,18 +110,21 @@ static int heapLenIncr (airHeap *h, int delta) {
  */
 airHeap *airHeapNew(size_t dataUnit, unsigned int incr) {
   airHeap *h;
+  airPtrPtrUnion appu;
   h = AIR_CALLOC(1, airHeap);
   if (h==NULL) {
     return NULL;
   }
 
-  h->key_a = airArrayNew((void**)&h->key, NULL, sizeof(double), incr);
+  appu.d = &h->key;
+  h->key_a = airArrayNew(appu.v, NULL, sizeof(double), incr);
   if (dataUnit>0) { /* data is optional */
-    h->data_a = airArrayNew((void**)&h->data, NULL, dataUnit, incr);
+    h->data_a = airArrayNew(&h->data, NULL, dataUnit, incr);
   }
-  h->idx_a = airArrayNew((void**)&h->idx, NULL, sizeof(unsigned int), incr);
-  h->invidx_a = airArrayNew((void**)&h->invidx, NULL, sizeof(unsigned int),
-                            incr);
+  appu.ui = &h->idx;
+  h->idx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
+  appu.ui = &h->invidx;
+  h->invidx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
   
   if (h->key_a==NULL || (dataUnit>0 && h->data_a==NULL) || h->idx_a==NULL ||
       h->invidx_a==NULL) { /* allocation failed (partly) */
