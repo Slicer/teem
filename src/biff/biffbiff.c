@@ -49,7 +49,7 @@ typedef union {
 /*
 ** _bmsgStart()
 **
-** allocates data structers needed by biff.  Panics and exit(1)s if 
+** allocates data structers needed by biff.  Panics if 
 ** anything goes wrong.
 **
 ** NOTE: Can be harmlessly called multiple times.
@@ -67,7 +67,7 @@ _bmsgStart(void) {
   _bmsgArr = airArrayNew(uu.v, &_bmsgNum, sizeof(biffMsg*), __INCR);
   if (!_bmsgArr) {
     fprintf(stderr, "%s: PANIC: couldn't allocate internal data\n", me);
-    exit(1);
+    /* exit(1); */
   }
   /* airArrayPointerCB(_bmsgArr, NULL, (airMopper)biffMsgNix);*/
   return;
@@ -98,7 +98,7 @@ _bmsgFind(const char *key) {
 
   if (!key) {
     fprintf(stderr, "%s: PANIC got NULL key", me);
-    exit(1);
+    return NULL; /* exit(1); */
   }
   msg = NULL;
   if (_bmsgNum) {
@@ -132,7 +132,7 @@ _bmsgFindIdx(biffMsg *msg) {
 **
 ** if given key already has a biffMsg in _bmsg, returns that.
 ** otherise, adds a new biffMsg for given key to _bmsg, and returns it
-** panics and exit(1)s if there is a problem
+** panics if there is a problem
 */
 static biffMsg *
 _bmsgAdd(const char *key) {
@@ -153,7 +153,7 @@ _bmsgAdd(const char *key) {
     ii = airArrayLenIncr(_bmsgArr, 1);
     if (!_bmsg) {
       fprintf(stderr, "%s: PANIC: couldn't accommodate one more key\n", me);
-      exit(1);
+      return NULL; /* exit(1); */
     }
     msg = _bmsg[ii] = biffMsgNew(key);
   }
@@ -281,7 +281,7 @@ biffGet(const char *key) {
     ret = AIR_CALLOC(errlen, char);
     if (!ret) {
       fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
-      exit(1);
+      return NULL; /* exit(1); */
     }
     snprintf(ret, errlen, err, key);
     return ret;
@@ -290,7 +290,7 @@ biffGet(const char *key) {
   ret = AIR_CALLOC(biffMsgStrlen(msg)+1, char);
   if (!ret) {
     fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
-    exit(1);
+    return NULL; /* exit(1); */
   }
   biffMsgStrSet(ret, msg);
   return ret;

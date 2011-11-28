@@ -45,7 +45,7 @@ biffMsgNew(const char *key) {
 
   if (!key) {
     fprintf(stderr, "%s: PANIC got NULL key\n", me);
-    exit(1);
+    return NULL; /* exit(1); */
   }
   msg = AIR_CALLOC(1, biffMsg);
   if (msg) {
@@ -63,7 +63,7 @@ biffMsgNew(const char *key) {
   }
   if (!( msg && msg->key && msg->errArr )) {
     fprintf(stderr, "%s: PANIC couldn't calloc new msg\n", me);
-    exit(1);
+    return NULL; /* exit(1); */
   }
   return msg;
 }
@@ -95,16 +95,16 @@ biffMsgAdd(biffMsg *msg, const char *err) {
   }
   if (!( msg && err )) {
     fprintf(stderr, "%s: PANIC got NULL msg (%p) or err (%p)\n", me, msg, err);
-    exit(1);
+    /* exit(1); */
   }
   idx = airArrayLenIncr(msg->errArr, 1);
   if (!msg->err) {
     fprintf(stderr, "%s: PANIC: couldn't add message to %s\n", me, msg->key);
-    exit(1);
+    /* exit(1); */
   }
   if (!( msg->err[idx] = airOneLinify(airStrdup(err)) )) {
     fprintf(stderr, "%s: PANIC: couldn't alloc message to %s\n", me, msg->key);
-    exit(1);
+    /* exit(1); */
   }
   return;
 }
@@ -173,7 +173,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
   }
   if (!( dest && src )) {
     fprintf(stderr, "%s: PANIC got NULL msg (%p %p)\n", me, dest, src);
-    exit(1);
+    /* exit(1); */
   }
   /* if src and dest are same, this degenerates to biffMsgAdd */
   if (dest == src && airStrlen(err)) {
@@ -184,7 +184,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
   buff = AIR_CALLOC(biffMsgLineLenMax(src)+1, char);
   if (!buff) {
     fprintf(stderr, "%s: PANIC: can't allocate buffer\n", me);
-    exit(1);
+    /* exit(1); */
   }
   for (ii=0; ii<src->errNum; ii++) {
     sprintf(buff, "[%s] %s", src->key, src->err[ii]);
@@ -234,7 +234,7 @@ biffMsgStrlen(const biffMsg *msg) {
   }
   if (!( msg )) {
     fprintf(stderr, "%s: PANIC got NULL msg %p\n", me, msg);
-    exit(1);
+    return 0; /* exit(1); */
   }
 
   len = 0;
@@ -257,7 +257,7 @@ biffMsgStrAlloc(const biffMsg *msg) {
   ret = AIR_CALLOC(len+1, char);
   if (!ret) {
     fprintf(stderr, "%s: PANIC couldn't alloc string", me);
-    exit(1);
+    return NULL; /* exit(1); */
   }
   return ret;
 }
@@ -278,7 +278,7 @@ biffMsgStrSet(char *ret, const biffMsg *msg) {
   buff = AIR_CALLOC(biffMsgLineLenMax(msg)+1, char);
   if (!buff) {
     fprintf(stderr, "%s: PANIC couldn't alloc buffer", me);
-    exit(1);
+    /* exit(1); */
   }
   strcpy(ret, "");
   for (ii=msg->errNum; ii>0; ii--) {
