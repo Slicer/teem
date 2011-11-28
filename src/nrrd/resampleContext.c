@@ -949,8 +949,9 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
       }
     }
     if (rsmc->verbose) {
-      fprintf(stderr, "%s: topRax = %u; botRax = %u\n", me,
-              rsmc->topRax, rsmc->botRax);
+      fprintf(stderr, "%s: topRax = %u (%d); botRax = %u (%d)\n", me,
+              rsmc->topRax, AIR_CAST(int, rsmc->topRax),
+              rsmc->botRax, AIR_CAST(int, rsmc->botRax));
     }
     
     /* figure out total number of passes needed, and construct the
@@ -974,27 +975,27 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
     }
     rsmc->permute[rsmc->dim] = rsmc->dim;  /* HEY: what is this for? */
 
-    toTop = AIR_CAST(unsigned int, -1);
-    for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
-      /* this will always "break" somewhere */
-      if (rsmc->topRax == rsmc->permute[axIdx]) {
-        toTop = axIdx;
-        break;
-      }
-    }
-    fromTop = rsmc->permute[rsmc->topRax];
-
-    if (rsmc->verbose) {
-      fprintf(stderr, "%s: passNum = %u; permute =\n     ",
-              me, rsmc->passNum);
-      for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
-        fprintf(stderr, "%u ", rsmc->permute[axIdx]);
-      }
-      fprintf(stderr, "\n");
-      fprintf(stderr, "%s: toTop = %u; fromTop = %u\n", me, toTop, fromTop);
-    }
-
     if (rsmc->passNum) {
+      toTop = AIR_CAST(unsigned int, -1);
+      for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+        /* this will always "break" somewhere */
+        if (rsmc->topRax == rsmc->permute[axIdx]) {
+          toTop = axIdx;
+          break;
+        }
+      }
+      fromTop = rsmc->permute[rsmc->topRax];
+      
+      if (rsmc->verbose) {
+        fprintf(stderr, "%s: passNum = %u; permute =\n     ",
+                me, rsmc->passNum);
+        for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
+          fprintf(stderr, "%u ", rsmc->permute[axIdx]);
+        }
+        fprintf(stderr, "\n");
+        fprintf(stderr, "%s: toTop = %u; fromTop = %u\n", me, toTop, fromTop);
+      }
+      
       /* create array of how the axes will be arranged in each pass ("ax"), 
          and create array of how big each axes is in each pass ("sz").
          The input to pass i will have axis layout described in ax[i] and
