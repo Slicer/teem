@@ -58,48 +58,18 @@ extern "C" {
                                       simplifies implementation. */
 
 /* 
-** For the 64-bit integer types (not standard except in C99), we try
-** to use the names for the _MIN and _MAX values which are used in C99
-** (as well as gcc) such as LLONG_MAX.
-** 
-** If these aren't defined, we try the ones used on SGI such as
-** LONGLONG_MAX.
-**
-** If these aren't defined either, we go wild and define something
-** ourselves (which just happen to be the values defined in C99), with
-** total disregard to what the architecture and compiler actually
-** support.  These values are tested, however, by nrrdSanity().
+** For the 64-bit integer types (not standard except in C99), we used
+** to try to use the names for the _MIN and _MAX values which are used
+** in C99 (as well as gcc) such as LLONG_MAX, or those used on SGI
+** such as LONGLONG_MAX.  However, since the tests (in nrrdSanity)
+** were re-written to detect overflow based on manipulation of
+** specific values, we might as well also define the _MIN and _MAX in
+** terms of explicit values (which agree with those defined by C99).
 */
 
-#ifdef LLONG_MAX
-#  define NRRD_LLONG_MAX LLONG_MAX
-#else
-#  ifdef LONGLONG_MAX
-#    define NRRD_LLONG_MAX LONGLONG_MAX
-#  else
-#    define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
-#  endif
-#endif
-
-#ifdef LLONG_MIN
-#  define NRRD_LLONG_MIN LLONG_MIN
-#else
-#  ifdef LONGLONG_MIN
-#    define NRRD_LLONG_MIN LONGLONG_MIN
-#  else
-#    define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
-#  endif
-#endif
-
-#ifdef ULLONG_MAX
-#  define NRRD_ULLONG_MAX ULLONG_MAX
-#else
-#  ifdef ULONGLONG_MAX
-#    define NRRD_ULLONG_MAX ULONGLONG_MAX
-#  else
-#    define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
-#  endif
-#endif
+#define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
+#define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
+#define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
 
 /*
 ** Chances are, you shouldn't mess with these

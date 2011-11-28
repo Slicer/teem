@@ -1498,42 +1498,28 @@ nrrdSanity(void) {
     return 0;
   }
   
-  /* nrrd-defined type min/max values */
-  tmpLLI = NRRD_LLONG_MAX;
-  if (tmpLLI != NRRD_LLONG_MAX) {
+  /* nrrd-defined min/max values for 64-bit integral types */
+  /* NOTE: because signed integral overflow is undefined in C, the tests for
+     signed long long no longer use overflow (and an assumption of two's
+     complement representation) to assess the correctness of NRRD_LLONG_MAX
+     and NRRD_LLONG_MIN.  We merely test that these values can be stored,
+     which we do via indirect (perhaps needlessly so) means.
+     (h/t Sean McBride for pointing this out) */
+  tmpLLI = _nrrdLLongMaxHelp(_nrrdLLongMaxHelp(_NRRD_LLONG_MAX_HELP));
+  if (!( tmpLLI > 0 && NRRD_LLONG_MAX == tmpLLI )) {
     biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
              AIR_LLONG_FMT ")", me,
              NRRD_LLONG_MAX);
     return 0;
   }
-  /*
-  ** Actually, this is not a valid test: signed overflow is undefined in C
-  ** So for now we merely test (below) that long long ints can hold both
-  ** NRRD_LLONG_MAX and NRRD_LLONG_MIN
-  tmpLLI += 1;
-  if (NRRD_LLONG_MIN != tmpLLI) {
-    biffAddf(NRRD, "%s: long long int min (" AIR_LLONG_FMT 
-             ") or max (" AIR_LLONG_FMT ") incorrect", me,
-             NRRD_LLONG_MIN, NRRD_LLONG_MAX);
-    return 0;
-  }
-  */
-  tmpLLI = NRRD_LLONG_MIN;
-  if (tmpLLI != NRRD_LLONG_MIN) {
+  tmpLLI = _nrrdLLongMinHelp(_nrrdLLongMinHelp(_NRRD_LLONG_MIN_HELP));
+  if (!( tmpLLI < 0 && NRRD_LLONG_MIN == tmpLLI )) {
     biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MIN ("
              AIR_LLONG_FMT ")", me,
              NRRD_LLONG_MIN);
     return 0;
   }
-  tmpULLI = NRRD_ULLONG_MAX;
-  if (tmpULLI != NRRD_ULLONG_MAX) {
-    biffAddf(NRRD, 
-             "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
-             AIR_ULLONG_FMT ")",
-             me, NRRD_ULLONG_MAX);
-    return 0;
-  }
-  tmpULLI += 1;
+  tmpULLI = _nrrdULLongMaxHelp(NRRD_ULLONG_MAX);
   if (tmpULLI != 0) {
     biffAddf(NRRD,
              "%s: unsigned long long int max (" AIR_ULLONG_FMT 

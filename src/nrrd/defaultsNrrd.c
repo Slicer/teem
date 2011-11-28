@@ -81,6 +81,20 @@ int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
    anyway, based on existing sementics nailed down by the format spec. */
 int nrrdStateKindNoop = AIR_FALSE;
 
+/* these are helper functions for min/max testing */
+airLLong
+_nrrdLLongMaxHelp(airLLong val) {
+  return val*2 + 1;
+}
+airLLong
+_nrrdLLongMinHelp(airLLong val) {
+  return val*2;
+}
+airULLong
+_nrrdULLongMaxHelp(airULLong val) {
+  return val + 1;
+}
+
 /* should the acceptance (or not) of malformed NRRD header fields 
    embedded in PNM or text comments be controlled here? */
 
