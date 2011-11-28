@@ -506,8 +506,7 @@ airTime() {
 void
 airBinaryPrintUInt(FILE *file, int digits, unsigned int N) {
 
-  digits = AIR_CLAMP(1, digits, 32);
-  for (digits=digits; digits>=1; digits--) {
+  for (digits=AIR_CLAMP(1, digits, 32); digits>=1; digits--) {
     fprintf(file, "%c", ((1<<(digits-1)) & N
                          ? '1' : '0'));
   }
