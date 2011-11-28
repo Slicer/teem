@@ -49,11 +49,14 @@ biffMsgNew(const char *key) {
   }
   msg = AIR_CALLOC(1, biffMsg);
   if (msg) {
+    airPtrPtrUnion appu;
+
     msg->key = airStrdup(key);
     msg->err = NULL;
     msg->errNum = 0;
-    msg->errArr = airArrayNew(AIR_CAST(void**, &(msg->err)),
-                              &(msg->errNum), sizeof(char*), _MSG_INCR);
+    appu.cp = &(msg->err);
+    msg->errArr = airArrayNew(appu.v, &(msg->errNum),
+                              sizeof(char*), _MSG_INCR);
     if (msg->errArr) {
       airArrayPointerCB(msg->errArr, NULL, airFree);
     }
