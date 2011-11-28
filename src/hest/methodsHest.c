@@ -147,7 +147,7 @@ hestOptAdd(hestOpt **optP,
   if (*optP)
     free(*optP);
   *optP = ret;
-  dummy = dummy;
+  AIR_UNUSED(dummy);
   return;
 }
 
