@@ -1238,7 +1238,8 @@ typedef struct {
   const NrrdKernel *tkernel;   /* kernel for blurring along theta */
   double tkparm[NRRD_KERNEL_PARMS_NUM];
   /* -------- INTERNAL */
-  const char *cdata;           /* nin->data as char* */
+  const char *cdataIn;         /* nin->data as char* */
+  char *cdataOut;              /* nout->data as char* */
   size_t sliceSize;            /* sizeof slice */
   int clampDo;                 /* is there really is clamping to be done */
   double clamp[2];             /* clamping values implied by clampPerc */
