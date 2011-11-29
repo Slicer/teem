@@ -382,22 +382,34 @@ airStdin(void) {
 unsigned int
 airIndex(double min, double val, double max, unsigned int N) {
   unsigned int idx;
-
-  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
-  idx -= (idx == N);
+  double mnm;
+  
+  mnm = max - min;
+  if (mnm) {
+    idx = AIR_CAST(unsigned int, N*(val - min)/mnm);
+    idx -= (idx == N);
+  } else {
+    idx = 0;
+  }
   return idx;
 }
 
 unsigned int
 airIndexClamp(double min, double val, double max, unsigned int N) {
   unsigned int idx;
+  double mnm;
 
   /* NOTE: now that unsigned types are used more widely in Teem, the
      clamping that used to happen after index generation now must
      happen prior to index generation */
-  val = AIR_MAX(min, val);
-  idx = AIR_CAST(unsigned int, N*(val - min)/(max - min));
-  idx = AIR_MIN(idx, N-1);
+  mnm = max - min;
+  if (mnm) {
+    val = AIR_MAX(min, val);
+    idx = AIR_CAST(unsigned int, N*(val - min)/mnm);
+    idx = AIR_MIN(idx, N-1);
+  } else {
+    idx = 0;
+  }
   return idx;
 }
 
