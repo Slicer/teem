@@ -30,8 +30,12 @@
 ** C++ apps which are linking against Teem will have problems!!!
 ** This was first seen on the mac.
 */
-int _nrrdCC_EqvIncr = 128;
 int _nrrdCC_verb = 0;
+int _nrrdCC_EqvIncr = 10000; /* HEY: this has to be big so that ccfind is not
+                                stuck constantly re-allocating the eqv array.
+                                This is will be one of the best places to
+                                test the new multiplicative reallocation
+                                strategy, planned for Teem 2.0 */
 
 int
 _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
