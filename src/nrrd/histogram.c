@@ -593,8 +593,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
           break;
         }
       }
-      coord[ai] = airIndex(range[ai]->min, val, range[ai]->max, 
-                           AIR_CAST(unsigned int, bins[ai]));
+      coord[ai] = airIndexClamp(range[ai]->min, val, range[ai]->max, 
+                                AIR_CAST(unsigned int, bins[ai]));
       /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
     if (skip) {
