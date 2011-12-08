@@ -329,12 +329,14 @@ _nrrdMeasureL1(void *ans, int ansType,
   lup = nrrdDLookup[lineType];                   \
   if (nrrdTypeIsIntegral[lineType]) {            \
     S = 0.0;                                     \
+    count = len;                                 \
     for (ii=0; ii<len; ii++) {                   \
       val = lup(line, ii);                       \
       S += val*val;                              \
     }                                            \
   } else {                                       \
     S = AIR_NAN;                                 \
+    count = 0;                                   \
     for (ii=0; !AIR_EXISTS(S) && ii<len; ii++) { \
       S = lup(line, ii);                         \
     }                                            \
