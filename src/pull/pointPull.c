@@ -36,6 +36,7 @@ pullPointNew(pullContext *pctx) {
   pullPoint *pnt;
   unsigned int ii;
   size_t pntSize;
+  pullPtrPtrUnion pppu;
   
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -59,14 +60,14 @@ pullPointNew(pullContext *pctx) {
   pnt->idCC = 0;
   pnt->neighPoint = NULL;
   pnt->neighPointNum = 0;
-  pnt->neighPointArr = airArrayNew(AIR_CAST(void**, &(pnt->neighPoint)),
-                                   &(pnt->neighPointNum),
+  pppu.points = &(pnt->neighPoint);
+  pnt->neighPointArr = airArrayNew(pppu.v, &(pnt->neighPointNum),
                                    sizeof(pullPoint *),
                                    PULL_POINT_NEIGH_INCR);
   pnt->neighPointArr->noReallocWhenSmaller = AIR_TRUE;
   pnt->neighDistMean = 0;
   ELL_10V_ZERO_SET(pnt->neighCovar);
-  pnt->stability = 0;
+  pnt->stability = 0.0;
 #if PULL_TANCOVAR
   ELL_6V_ZERO_SET(pnt->neighTanCovar);
 #endif
@@ -441,6 +442,20 @@ _pullProbe(pullTask *task, pullPoint *point) {
                task->vol[ii]->gctx->errNum, task->vol[ii]->gctx->errStr);
       return 1;
     }
+    /*
+    if (!edge 
+        && AIR_ABS(point->pos[1] - 67) < 1
+        && AIR_ABS(point->pos[2] - 67) < 1
+        && point->pos[3] > 3.13
+        && !!task->vol[ii]->gctx->edgeFrac) {
+      fprintf(stderr, "!%s(%u @ %g,%g,%g,%g): "
+              "vol[%u]->gctx->edgeFrac %g => edge bit on\n",
+              me, point->idtag, 
+              point->pos[0], point->pos[1],
+              point->pos[2], point->pos[3],
+              ii, task->vol[ii]->gctx->edgeFrac);
+    }
+    */
     edge |= !!task->vol[ii]->gctx->edgeFrac;
   }
   if (edge) {
@@ -613,7 +628,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   airRandMTState *rng;
   pullVolume *seedVol;
   gageShape *seedShape;
-  int reject, constrFail;
+  int reject, rejectEdge, constrFail;
   unsigned int k;
 
   seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
@@ -703,7 +718,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
 
   /* Check we pass pre-threshold */
   if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedPreThresh);
-
+  
   if (!pctx->flag.constraintBeforeSeedThresh) {
     /* we should be guaranteed to have a seed thresh info */
     if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedThresh);
@@ -715,7 +730,9 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   }
 
   if (!reject && pctx->constraint) {
-    if (_pullConstraintSatisfy(pctx->task[0], point, 10, &constrFail)) {
+    if (_pullConstraintSatisfy(pctx->task[0], point,
+                               10*_PULL_CONSTRAINT_TRAVEL_MAX,
+                               &constrFail)) {
       biffAddf(PULL, "%s: on pnt %u",
                me, pointIdx);
       return 1;
@@ -727,6 +744,21 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
       if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh);
       if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh2);
       if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh3);
+    }
+    if (pctx->flag.nixAtVolumeEdgeSpace
+        && (point->status & PULL_STATUS_EDGE_BIT)) {
+      rejectEdge = AIR_TRUE;
+    } else {
+      rejectEdge = AIR_FALSE;
+    }
+    reject |= rejectEdge;
+    if (pctx->verbose > 1) {
+      fprintf(stderr, "%s(%u): constr %d, seed %d, thresh %d %d %d, edge %d\n",
+              me, point->idtag, constrFail, 
+              _threshFail(pctx, point, pullInfoSeedThresh),
+              _threshFail(pctx, point, pullInfoLiveThresh),
+              _threshFail(pctx, point, pullInfoLiveThresh2),
+              _threshFail(pctx, point, pullInfoLiveThresh3), rejectEdge);
     }
   } else {
     constrFail = AIR_FALSE;
@@ -841,7 +873,9 @@ _pullPointInitializeRandom(pullContext *pctx,
 
     /* Avoid doing constraint if the threshold has already failed */
     if (!reject && pctx->constraint) {
-      if (_pullConstraintSatisfy(pctx->task[0], point, 1.0, &constrFail)) {
+      if (_pullConstraintSatisfy(pctx->task[0], point,
+                                 _PULL_CONSTRAINT_TRAVEL_MAX,
+                                 &constrFail)) {
         biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
         return 1;
       }
@@ -887,10 +921,23 @@ _pullPointInitializeGivenPos(pullContext *pctx,
                              /* output */
                              int *createFailP) {
   static const char me[]="_pullPointInitializeGivenPos";
-  int reject;
+  int reject, rejectEdge;
 
   /* Copy nrrd point into pullPoint */
   ELL_4V_COPY(point->pos, posData + 4*pointIdx);
+
+  /* 247.828 66.8817 67.0031 */
+  /*
+  if (AIR_ABS(247.828 - point->pos[0]) < 0.1 &&
+      AIR_ABS(66.8817 - point->pos[1]) < 0.1 &&
+      AIR_ABS(67.0031 - point->pos[2]) < 0.1) {
+    fprintf(stderr, "%s: --------- point %u at %g %g %g %g\n", me,
+            point->idtag,
+            point->pos[0], point->pos[1], 
+            point->pos[2], point->pos[3]);
+  }
+  */
+
   /* we're dictating positions, but still have to do initial probe,
      and possibly liveThresholding */
   if (_pullProbe(pctx->task[0], point)) {
@@ -900,13 +947,25 @@ _pullPointInitializeGivenPos(pullContext *pctx,
   reject = AIR_FALSE;
   if (pctx->flag.nixAtVolumeEdgeSpace
       && (point->status & PULL_STATUS_EDGE_BIT)) {
-    reject = AIR_TRUE;
+    rejectEdge = AIR_TRUE;
+  } else {
+    rejectEdge = AIR_FALSE;
   }
+  reject |= rejectEdge;
   if (pctx->initParm.liveThreshUse) {
     if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh);
     if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh2);
     if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh3);
   }
+  /*
+  if (reject) {
+    fprintf(stderr, "!%s(%u): edge %d thresh %d %d %d\n",
+            me, point->idtag, rejectEdge,
+            _threshFail(pctx, point, pullInfoLiveThresh),
+            _threshFail(pctx, point, pullInfoLiveThresh2),
+            _threshFail(pctx, point, pullInfoLiveThresh3));
+  }
+  */
   if (reject) {
     *createFailP = AIR_TRUE;
   } else {
@@ -1095,6 +1154,13 @@ _pullPointSetup(pullContext *pctx) {
         biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
         airMopError(mop); return 1;
       }
+      /*
+      if (4523 == point->idtag) {
+        fprintf(stderr, "!%s(%u): ----- added=%d at %g %g %g %g\n", 
+                me, point->idtag, added,
+                point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+      }
+      */
       if (added) {
         point = NULL;
       }
@@ -1131,6 +1197,15 @@ _pullPointSetup(pullContext *pctx) {
   if (pctx->verbose) {
     fprintf(stderr, "%s: initialized to %u points\n", me, pn);
   }
+  /*
+  if (1) {
+    Nrrd *ntmp;
+    ntmp = nrrdNew();
+    pullOutputGet(ntmp, NULL, NULL, NULL, 0.0, pctx);
+    nrrdSave("pos-in.nrrd", ntmp, NULL);
+    nrrdNuke(ntmp);
+  }
+  */
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,

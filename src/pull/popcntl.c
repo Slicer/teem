@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -161,7 +162,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
     int constrFail;
-    if (_pullConstraintSatisfy(task, newpnt, 1.0, &constrFail)) {
+    if (_pullConstraintSatisfy(task, newpnt,
+                               _PULL_CONSTRAINT_TRAVEL_MAX,
+                               &constrFail)) {
       biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me,
                newpnt->idtag, point->idtag);
       pullPointNix(newpnt); return 1;
@@ -310,7 +313,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
-  double enrWith, enrWithout, fracNixed;
+  double enrWith, enrNeigh, enrWithout, fracNixed;
 
   task->pctx->count[pullCountNixing] += 1;
 
@@ -335,13 +338,14 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
-  /* is energy lower without us around? */
-  enrWith = (_pullEnergyFromPoints(task, bin, point, NULL)
-             + _pointEnergyOfNeighbors(task, bin, point, &fracNixed));
+
   /* if many neighbors have been nixed, then system is far from convergence,
-     so the energy is a less meaningful description of the neighborhood,
-     and so its a bad idea to try to nix this point */
+     so energy is not a very meaningful guide to whether to nix this point
+     NOTE that we use this function to *learn* fracNixed */
+  enrNeigh = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
   if (fracNixed < task->pctx->sysParm.fracNeighNixedMax) {
+    /* is energy lower without us around? */
+    enrWith = enrNeigh + _pullEnergyFromPoints(task, bin, point, NULL);
     point->status |= PULL_STATUS_NIXME_BIT;    /* turn nixme on */
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
     if (enrWith <= enrWithout) {
@@ -354,6 +358,17 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
     /* else energy is certainly higher with the point, do nix it */
   }
   
+  return 0;
+}
+
+int
+_pullIterFinishNeighLearn(pullContext *pctx) {
+  static const char me[]="_pullIterFinishNeighLearn";
+
+  /* a no-op for now */
+  AIR_UNUSED(pctx);
+  AIR_UNUSED(me);
+
   return 0;
 }
 

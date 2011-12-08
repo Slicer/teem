@@ -156,9 +156,9 @@ _pullEnergyInterParticle(pullContext *pctx, pullPoint *me,
     }
     return 0;
   }
-#if 0
+#if PULL_HINTER
   if (pullProcessModeDescent == pctx->task[0]->processMode
-      && pctx->nhinter) {
+      && pctx->nhinter && pctx->nhinter->data) {
     unsigned int ri, si, sz;
     float *hint;
     hint = AIR_CAST(float *, pctx->nhinter->data);
@@ -180,7 +180,6 @@ _pullEnergyInterParticle(pullContext *pctx, pullPoint *me,
     en = evalR(&denR, rr, parmR);
     if (egrad) {
       denR *= 1.0/(spaceRad*spaceDist);
-      /* HEY: GLK wonders if this diff should be unit-length ?!? */
       ELL_3V_SCALE(egrad, denR, diff);
       egrad[3] = 0;
     }
@@ -408,7 +407,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   point->neighDistMean = 0.0;
   if (pullProcessModeNeighLearn == task->processMode) {
     ELL_10V_ZERO_SET(point->neighCovar);
-    point->stability = 0;
+    point->stability = 0.0;
 #if PULL_TANCOVAR
     if (task->pctx->ispec[pullInfoTangent1]) {
       double *tng;
@@ -626,7 +625,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
     } else {
       /* need strength and its gradient */
       /* randomize choice between forward and backward difference */
-      /* HEY: since you only need one bit of random, you could re-used
+      /* NOTE: since you only need one bit of random, you could re-used
          a random int and look through its bits to determine forw vs
          back differences, but this is probably not the bottleneck */
       sign = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
@@ -764,7 +763,7 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
     }
   }
   if (!AIR_EXISTS(energy)) {
-    fprintf(stderr, "!%s(%u): HEY! non-exist energy %g\n", me, point->idtag,
+    fprintf(stderr, "!%s(%u): oops- non-exist energy %g\n", me, point->idtag,
             energy);
   }
   return energy;
@@ -836,7 +835,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
        enforce constraint if we have one */
     int constrFail;
     if (task->pctx->constraint) {
-      if (_pullConstraintSatisfy(task, point, 100.0, &constrFail)) {
+      if (_pullConstraintSatisfy(task, point,
+                                 100.0*_PULL_CONSTRAINT_TRAVEL_MAX,
+                                 &constrFail)) {
         biffAddf(PULL, "%s: trouble", me);
         return 1;
       }
@@ -943,7 +944,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     task->pctx->count[pullCountTestStep] += 1;
     _pullPointHistAdd(point, pullCondEnergyTry);
     if (task->pctx->constraint) {
-      if (_pullConstraintSatisfy(task, point, 1.0, &constrFail)) {
+      if (_pullConstraintSatisfy(task, point,
+                                 _PULL_CONSTRAINT_TRAVEL_MAX,
+                                 &constrFail)) {
         biffAddf(PULL, "%s: trouble", me);
         return 1;
       }
@@ -1012,8 +1015,12 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
              it, twice for good measure, so that things may be better next
              time around */
           if (task->pctx->constraint) {
-            if (_pullConstraintSatisfy(task, point, 1.0, &constrFail)
-                || _pullConstraintSatisfy(task, point, 1.0, &constrFail)) {
+            if (_pullConstraintSatisfy(task, point,
+                                       _PULL_CONSTRAINT_TRAVEL_MAX,
+                                       &constrFail)
+                || _pullConstraintSatisfy(task, point,
+                                          _PULL_CONSTRAINT_TRAVEL_MAX,
+                                          &constrFail)) {
               biffAddf(PULL, "%s: trouble", me);
               return 1;
             }

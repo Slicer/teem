@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -45,7 +46,7 @@ extern "C" {
 #define _PULL_NEIGH_OFFSET_SUM_THRESH 0.2
 
 /* how far to place new points from isolated points (as a fraction of
-   radiusSpace), when not using cubic well energy */
+   radiusSpace), when not using an energy with an explicit well */
 #define _PULL_NEWPNT_DIST 0.6
 
 /* scaling factor between point->neighDistMean and distance cap; higher
@@ -82,10 +83,13 @@ extern "C" {
 #define _PULL_PROGRESS_POINT_NUM_MIN 100
 
 /* limit on number of times we allow random (non-ppv) seeding to fail */
-#define _PULL_RANDOM_SEED_TRY_MAX 4000
+#define _PULL_RANDOM_SEED_TRY_MAX 5000
 
 /* limit on stepEnergy */
 #define _PULL_STEP_ENERGY_MAX FLT_MAX
+
+/* resolution of histogram of (r,s) coords of interactions ("hinter") */
+#define _PULL_HINTER_SIZE 601
 
 /* initPull.c */
 extern void _pullInitParmInit(pullInitParm *initParm);
@@ -139,7 +143,7 @@ extern double _pullEnergyInterParticle(pullContext *pctx,
 
 /* constraints.c */
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
-                                  double travelMaxScale,
+                                  double travelMax,
                                   int *constrFailP);
 extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
                                    double proj[9]);
@@ -172,6 +176,7 @@ extern int _pullPointProcessAdding(pullTask *task, pullBin *bin,
                                    pullPoint *point);
 extern int _pullPointProcessNixing(pullTask *task, pullBin *bin,
                                    pullPoint *point);
+extern int _pullIterFinishNeighLearn(pullContext *pctx);
 extern int _pullIterFinishAdding(pullContext *pctx);
 extern int _pullIterFinishNixing(pullContext *pctx);
 extern void _pullNixTheNixed(pullContext *pctx);

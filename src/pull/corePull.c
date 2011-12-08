@@ -63,8 +63,8 @@ _pullProcess(pullTask *task) {
       break;
     }
     if (task->pctx->verbose > 1) {
-      printf("%s(%u): calling pullBinProcess(%u)\n", me, task->threadIdx,
-             binIdx);
+      fprintf(stderr, "%s(%u): calling pullBinProcess(%u)\n",
+              me, task->threadIdx, binIdx);
     }
     if (pullBinProcess(task, binIdx)) {
       biffAddf(PULL, "%s(%u): had trouble on bin %u", me,
@@ -85,20 +85,20 @@ _pullWorker(void *_task) {
 
   while (1) {
     if (task->pctx->verbose > 1) {
-      printf("%s(%u): waiting on barrier A\n",
-             me, task->threadIdx);
+      fprintf(stderr, "%s(%u): waiting on barrier A\n",
+              me, task->threadIdx);
     }
     /* pushFinish sets finished prior to the barriers */
     airThreadBarrierWait(task->pctx->iterBarrierA);
     if (task->pctx->finished) {
       if (task->pctx->verbose > 1) {
-        printf("%s(%u): done!\n", me, task->threadIdx);
+        fprintf(stderr, "%s(%u): done!\n", me, task->threadIdx);
       }
       break;
     }
     /* else there's work to do . . . */    
     if (task->pctx->verbose > 1) {
-      printf("%s(%u): starting to process\n", me, task->threadIdx);
+      fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
     }
     if (_pullProcess(task)) {
       /* HEY clearly not threadsafe to have errors . . . */
@@ -106,7 +106,7 @@ _pullWorker(void *_task) {
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
-      printf("%s(%u): waiting on barrier B\n",
+      fprintf(stderr, "%s(%u): waiting on barrier B\n",
              me, task->threadIdx);
     }
     airThreadBarrierWait(task->pctx->iterBarrierB);
@@ -121,7 +121,7 @@ pullStart(pullContext *pctx) {
   unsigned int tidx;
 
   if (pctx->verbose) {
-    printf("%s: hello %p\n", me, pctx);
+    fprintf(stderr, "%s: hello %p\n", me, pctx);
   }
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 
@@ -144,7 +144,7 @@ pullStart(pullContext *pctx) {
     /* start threads 1 and up running; they'll all hit iterBarrierA  */
     for (tidx=1; tidx<pctx->threadNum; tidx++) {
       if (pctx->verbose > 1) {
-        printf("%s: spawning thread %d\n", me, tidx);
+        fprintf(stderr, "%s: spawning thread %d\n", me, tidx);
       }
       airThreadStart(pctx->task[tidx]->thread, _pullWorker,
                      (void *)(pctx->task[tidx]));
@@ -155,7 +155,7 @@ pullStart(pullContext *pctx) {
     pctx->iterBarrierB = NULL;
   }
   if (pctx->verbose) {
-    printf("%s: setup for %u threads done\n", me, pctx->threadNum);
+    fprintf(stderr, "%s: setup for %u threads done\n", me, pctx->threadNum);
   }
 
   pctx->timeIteration = 0;
@@ -182,7 +182,7 @@ pullFinish(pullContext *pctx) {
   pctx->finished = AIR_TRUE;
   if (pctx->threadNum > 1) {
     if (pctx->verbose > 1) {
-      printf("%s: finishing workers\n", me);
+      fprintf(stderr, "%s: finishing workers\n", me);
     }
     airThreadBarrierWait(pctx->iterBarrierA);
     /* worker threads now pass barrierA and see that finished is AIR_TRUE,
@@ -239,25 +239,28 @@ _pullIterate(pullContext *pctx, int mode) {
     pctx->sysParm.energyIncreasePermit *= pctx->eipScale;
   }
 
-#if 0
+#if PULL_HINTER
   /* zero-out/alloc hinter if need be */
   if (pullProcessModeDescent == mode && pctx->nhinter) {
-    nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2,
-                      AIR_CAST(size_t, 601),
-                      AIR_CAST(size_t, 601));
+    if (nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2,
+                          AIR_CAST(size_t, _PULL_HINTER_SIZE),
+                          AIR_CAST(size_t, _PULL_HINTER_SIZE))) {
+      biffMovef(PULL, NRRD, "%s: setting up nhinter", me);
+      return 1;
+    }
   }
-#endif 0
+#endif
 
   /* tell all tasks what mode they're in */
   for (ti=0; ti<pctx->threadNum; ti++) {
     pctx->task[ti]->processMode = mode;
   }
   if (pctx->verbose) {
-    printf("%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
-           me, airEnumStr(pullProcessMode, mode),
-           pctx->iter, pctx->sysParm.energyIncreasePermit,
-           pullPointNumber(pctx), _pullEnergyTotal(pctx),
-           (pctx->flag.permuteOnRebin ? " (por)" : ""));
+    fprintf(stderr, "%s(%s): iter %d goes w/ eip %g, %u pnts, enr %g%s\n",
+            me, airEnumStr(pullProcessMode, mode),
+            pctx->iter, pctx->sysParm.energyIncreasePermit,
+            pullPointNumber(pctx), _pullEnergyTotal(pctx),
+            (pctx->flag.permuteOnRebin ? " (por)" : ""));
   }
 
   time0 = airTime();
@@ -290,7 +293,7 @@ _pullIterate(pullContext *pctx, int mode) {
   }
   if (pctx->verbose) {
     if (pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN) {
-      printf(".\n"); /* finishing line of period progress indicators */
+      fprintf(stderr, ".\n"); /* finishing line of progress indicators */
     }
   }
 
@@ -301,7 +304,7 @@ _pullIterate(pullContext *pctx, int mode) {
     E = _pullIterFinishDescent(pctx); /* includes rebinning */
     break;
   case pullProcessModeNeighLearn:
-    /* nothing extra to do */
+    E = _pullIterFinishNeighLearn(pctx);
     break;
   case pullProcessModeAdding:
     E = _pullIterFinishAdding(pctx);
@@ -322,9 +325,14 @@ _pullIterate(pullContext *pctx, int mode) {
 
   pctx->timeIteration = airTime() - time0;
 
-#if 0
+#if PULL_HINTER
   if (pullProcessModeDescent == mode && pctx->nhinter) {
-    nrrdSave("hinter.nrrd", pctx->nhinter, NULL);
+    char fname[AIR_STRLEN_SMALL];
+    sprintf(fname, "hinter-%05u.nrrd", pctx->iter);
+    if (nrrdSave(fname, pctx->nhinter, NULL)) {
+      biffMovef(PULL, NRRD, "%s: saving hinter to %s", me, fname);
+      return 1;
+    }
   }
 #endif
 
@@ -342,13 +350,13 @@ pullRun(pullContext *pctx) {
   unsigned firstIter;
   
   if (pctx->verbose) {
-    printf("%s: hello\n", me);
+    fprintf(stderr, "%s: hello\n", me);
   }
   time0 = airTime();
   firstIter = pctx->iter;
   if (pctx->verbose) {
-    printf("%s: doing priming iteration (iter now %u)\n", me,
-           pctx->iter);
+    fprintf(stderr, "%s: doing priming iteration (iter now %u)\n", me,
+            pctx->iter);
   }
   if (_pullIterate(pctx, pullProcessModeDescent)) {
     biffAddf(PULL, "%s: trouble on priming iter %u", me, pctx->iter);
@@ -357,7 +365,7 @@ pullRun(pullContext *pctx) {
   pctx->iter += 1;
   enrLast = enrNew = _pullEnergyTotal(pctx);
   if (pctx->verbose) {
-    printf("%s: starting system energy = %g\n", me, enrLast);
+    fprintf(stderr, "%s: starting system energy = %g\n", me, enrLast);
   }
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
@@ -399,11 +407,11 @@ pullRun(pullContext *pctx) {
       enrDecreaseAvg = (2*enrDecreaseAvg + enrDecrease)/3;
     }
     if (pctx->verbose) {
-      printf("%s: ___ done iter %u: "
-             "e=%g,%g, de=%g,%g (%g), s=%g,%g\n",
-             me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
-             pctx->sysParm.energyDecreaseMin,
-             _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
+      fprintf(stderr, "%s: ___ done iter %u: "
+              "e=%g,%g, de=%g,%g (%g), s=%g,%g\n",
+              me, pctx->iter, enrLast, enrNew, enrDecrease, enrDecreaseAvg,
+              pctx->sysParm.energyDecreaseMin,
+              _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->iterParm.popCntlPeriod) {
       if ((pctx->iterParm.popCntlPeriod - 1) 
@@ -412,8 +420,9 @@ pullRun(pullContext *pctx) {
           && (pctx->sysParm.alpha != 0 
               || !pctx->flag.noPopCntlWithZeroAlpha)) {
         if (pctx->verbose) {
-          printf("%s: ***** enr decrease %g < %g: trying pop cntl ***** \n",
-                 me, enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
+          fprintf(stderr, "%s: ***** enr decrease %g < %g: "
+                  "trying pop cntl ***** \n",
+                  me, enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
         }
         if (_pullIterate(pctx, pullProcessModeNeighLearn)
             || _pullIterate(pctx, pullProcessModeAdding)
@@ -425,16 +434,16 @@ pullRun(pullContext *pctx) {
         }
       } else {
         if (pctx->verbose > 2) {
-          printf("%s: ***** no pop cntl:\n", me);
-          printf("    iter=%u %% period=%u = %u != %u\n",
-                 pctx->iter, pctx->iterParm.popCntlPeriod,
-                 pctx->iter % pctx->iterParm.popCntlPeriod,
-                 pctx->iterParm.popCntlPeriod - 1);
-          printf("    en dec avg = %g >= %g\n",
-                 enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
-          printf("    npcwza %s && alpha = %g\n",
-                 pctx->flag.noPopCntlWithZeroAlpha ? "true" : "false",
-                 pctx->sysParm.alpha);
+          fprintf(stderr, "%s: ***** no pop cntl:\n", me);
+          fprintf(stderr, "    iter=%u %% period=%u = %u != %u\n",
+                  pctx->iter, pctx->iterParm.popCntlPeriod,
+                  pctx->iter % pctx->iterParm.popCntlPeriod,
+                  pctx->iterParm.popCntlPeriod - 1);
+          fprintf(stderr, "    en dec avg = %g >= %g\n",
+                  enrDecreaseAvg, pctx->sysParm.energyDecreasePopCntlMin);
+          fprintf(stderr, "    npcwza %s && alpha = %g\n",
+                  pctx->flag.noPopCntlWithZeroAlpha ? "true" : "false",
+                  pctx->sysParm.alpha);
         }
       }
     }
@@ -445,11 +454,12 @@ pullRun(pullContext *pctx) {
                  && AIR_IN_OP(0, enrDecreaseAvg,
                               pctx->sysParm.energyDecreaseMin));
     if (pctx->verbose) {
-      printf("%s: converged %d = (%d || (%d && %d)) && (0 < %g < %g)=%d\n",
-             me, converged, !pctx->iterParm.popCntlPeriod,
-             !pctx->addNum, !pctx->nixNum, 
-             enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
-             AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
+      fprintf(stderr, "%s: converged %d = (%d || (%d && %d)) "
+              "&& (0 < %g < %g)=%d\n",
+              me, converged, !pctx->iterParm.popCntlPeriod,
+              !pctx->addNum, !pctx->nixNum, 
+              enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
+              AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
     }
     if (converged && pctx->verbose) {
       printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 

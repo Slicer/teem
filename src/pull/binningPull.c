@@ -142,10 +142,12 @@ int
 _pullBinPointAdd(pullContext *pctx, pullBin *bin, pullPoint *point) {
   static const char me[]="_pullBinPointAdd";
   int pntI;
+  pullPtrPtrUnion pppu;
 
   AIR_UNUSED(pctx);
   if (!(bin->pointArr)) {
-    bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
+    pppu.points = &(bin->point);
+    bin->pointArr = airArrayNew(pppu.v, &(bin->pointNum),
                                 sizeof(pullPoint *), _PULL_BIN_INCR);
     if (!( bin->pointArr )) {
       biffAddf(PULL, "%s: couldn't create point array", me);

@@ -71,7 +71,8 @@ extern "C" {
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM 20000000 /* sanity check on max number bins */
 #define PULL_PHIST 0
-#define PULL_TANCOVAR 0
+#define PULL_HINTER 0
+#define PULL_TANCOVAR 1
 
 /*
 ******** pullInfo enum
@@ -369,7 +370,8 @@ typedef struct pullPoint_t {
     energy,                   /* energy accumulator for this iteration */
     force[4],                 /* force accumulator for this iteration */
     stepEnergy,               /* step size for energy minimization */
-    stepConstr,               /* step size for constraint satisfaction */
+    stepConstr,               /* step size for constraint satisfaction;
+                                 HEY: this doens't seem to be really used? */
     info[1];                  /* all information learned from gage that matters
                                  for particle dynamics.  This is sneakily
                                  allocated for *more*, depending on needs,
@@ -520,7 +522,7 @@ typedef struct {
                                are due to using differently shaped volumes */
   double jitter;            /* w/ PointPerVoxel,
                                how much to jitter index space positions */
-  unsigned int numInitial,  /* w/ Random, # pts to start with */
+  unsigned int numInitial,  /* w/ Random, # points to start with */
     samplesAlongScaleNum,   /* w/ PointPerVoxel,
                                # of samples along scale (distributed
                                uniformly in scale's *index* space*/
@@ -679,7 +681,7 @@ enum {
   pullSysParmEnergyDecreaseMin,
 
   /* convergence threshold for constraint satisfaction: finished if
-     stepsize goes below this times constraintVoxelSize */
+     stepsize goes below this times pctx->voxelSizeSpace */
   pullSysParmConstraintStepMin,
 
   /* spring constant on bbox wall */
@@ -910,9 +912,11 @@ typedef struct pullContext_t {
   pullTask **task;                 /* dynamically allocated array of tasks */
   airThreadBarrier *iterBarrierA;  /* barriers between iterations */
   airThreadBarrier *iterBarrierB;  /* barriers between iterations */
+#if PULL_HINTER
   Nrrd *nhinter;                   /* 2-D histogram of (r,s)-space relative
                                       locations of interacting particles
                                       (NOT thread safe) */
+#endif
   FILE *logAdd;                    /* text-file record of all the particles
                                       that have been added
                                       (NOT thread-safe) */
@@ -931,6 +935,31 @@ typedef struct pullContext_t {
   /* HEY: this should really be per-task, to be thread-safe!! */
     count[PULL_COUNT_MAX+1];       /* all possible kinds of counts */
 } pullContext;
+
+/*
+******** pullTraceSingle
+*/
+typedef struct {
+  double seedPos[4];    /* where was the seed point */
+  /* ------- output ------- */
+  Nrrd *nvert,          /* locations of tract vertices */
+    *nstrn,             /* 1-D array of strengths (if known) */
+    *nvelo;             /* 1-D list of velocities */
+  unsigned int seedIdx, /* which index in nvert is for seedpoint */
+    stepNum[2];         /* (same as in tenFiberContext) */
+  int speeding, nonstarter, calstop;
+} pullTraceSingle;
+
+/*
+******** pullPtrPtrUnion
+**
+** deal with "dereferencing type-punned pointer will
+** break strict-aliasing rules"
+*/
+typedef union {
+  pullPoint ***points; /* address of array of point pointers */
+  void **v;
+} pullPtrPtrUnion;
 
 /* defaultsPull.c */
 PULL_EXPORT const int pullPresent;
@@ -1019,6 +1048,8 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    const NrrdKernelSpec *kspSS);
 PULL_EXPORT const pullVolume *pullVolumeLookup(const pullContext *pctx,
                                                const char *volName);
+PULL_EXPORT int pullConstraintScaleRange(pullContext *pctx,
+                                         double ssrange[2]);
 
 /* enumsPull.c */
 PULL_EXPORT const airEnum *const pullInfo;
@@ -1061,6 +1092,14 @@ PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point,
 PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point, 
                                       /* output */
                                       pullBin **binUsed, int *added);
+
+/* constraints.c */
+PULL_EXPORT pullTraceSingle *pullTraceSingleNew(void);
+PULL_EXPORT pullTraceSingle *pullTraceSingleNix(pullTraceSingle *pts);
+PULL_EXPORT int pullScaleTrace(pullContext *pctx, pullTraceSingle *pts,
+                               int useStrength,
+                               double scaleDelta, double halfLenScale,
+                               double velocityMax, const double start[4]);
 
 /* actionPull.c */
 PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,

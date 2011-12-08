@@ -87,7 +87,9 @@ pullContextNew(void) {
   pctx->task = NULL;
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
-  pctx->nhinter  = NULL;
+#if PULL_HINTER
+  pctx->nhinter  = nrrdNew();
+#endif
   pctx->logAdd = NULL;
 
   pctx->timeIteration = 0;
@@ -125,6 +127,9 @@ pullContextNix(pullContext *pctx) {
     pctx->energySpecR = pullEnergySpecNix(pctx->energySpecR);
     pctx->energySpecS = pullEnergySpecNix(pctx->energySpecS);
     pctx->energySpecWin = pullEnergySpecNix(pctx->energySpecWin);
+#if PULL_HINTER
+    nrrdNuke(pctx->nhinter);
+#endif
     /* handled elsewhere: bin, task, iterBarrierA, iterBarrierB */
     airFree(pctx);
   }
@@ -464,6 +469,14 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           ELL_3V_SCALE(tvec, scaleMag*tpos[3], scaleDir);
           ELL_3V_ADD2(tpos, tpos, tvec);
         }
+        /*
+        if (4523 == point->idtag) {
+          fprintf(stderr, "!%s: point %u at index %u and pos %g %g %g %g\n",
+                  me, point->idtag, outIdx,
+                  (posOut + 4*outIdx)[0], (posOut + 4*outIdx)[1],
+                  (posOut + 4*outIdx)[2], (posOut + 4*outIdx)[3]);
+        }
+        */
       }
       if (nStrengthOut) {
         strnOut[outIdx] = _pullPointScalar(pctx, point, pullInfoStrength,
@@ -546,9 +559,15 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
         }
         TEN_T_SCALE(tout, scl, tout);
-        if (nTenOut) {
-          TEN_T_COPY(tenOut + 7*outIdx, tout);
+        TEN_T_COPY(tenOut + 7*outIdx, tout);
+        /*
+        if (4523 == point->idtag) {
+          fprintf(stderr, "!%s: point %u at index %u and ten (%g) %g %g %g %g %g %g\n",
+                  me, point->idtag, outIdx,
+                  tout[0], tout[1], tout[2], tout[3],
+                  tout[4], tout[5], tout[6]);
         }
+        */
       } /* if (nTenOut) */
       ++outIdx;
     }
