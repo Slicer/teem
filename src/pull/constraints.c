@@ -1041,7 +1041,7 @@ pullScaleTrace(pullContext *pctx, pullTraceSingle *pts,
   win = lentmp/20; /* HEY magic constant */
   if (win >= 4) {
     unsigned int schange;
-    double dv, dv0, rdv, dv1;
+    double dv, dv0=0.0, rdv, dv1;
     schange = 0;
     rdv = 0.0;
     for (tidx=0; tidx<lentmp-1; tidx++) {
@@ -1060,7 +1060,7 @@ pullScaleTrace(pullContext *pctx, pullTraceSingle *pts,
       }
     }
     dv1 = rdv;
-    pts->calstop = (1 == schange) && dv0 <= 0.0 && dv1 >= 0.0;
+    pts->calstop = (1 == schange) && dv0 < 0.0 && dv1 > 0.0;
   } else {
     pts->calstop = AIR_FALSE;
   }
