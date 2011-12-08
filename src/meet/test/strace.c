@@ -547,7 +547,7 @@ main(int argc, const char **argv) {
     nplot = nrrdNew();
     airMopAdd(mop, nplot, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdMaybeAlloc_va(nwild, nrrdTypeDouble, 2, 
-                          AIR_CAST(size_t, 1000),
+                          AIR_CAST(size_t, 1200),
                           AIR_CAST(size_t, 500))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble creating output:\n%s", me, err);
