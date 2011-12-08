@@ -28,6 +28,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   static const char me[]="_pullTaskNew";
   pullTask *task;
   unsigned int ii;
+  pullPtrPtrUnion pppu;
 
   task = AIR_CALLOC(1, pullTask);
   if (!task) {
@@ -99,14 +100,16 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
                                                    sizeof(pullPoint*)));
   task->addPoint = NULL;
   task->addPointNum = 0;
-  task->addPointArr = airArrayNew(AIR_CAST(void **, &(task->addPoint)),
-                                  &(task->addPointNum), sizeof(pullPoint*),
+  pppu.points = &(task->addPoint);
+  task->addPointArr = airArrayNew(pppu.v, &(task->addPointNum),
+                                  sizeof(pullPoint*),
                                   /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->nixPoint = NULL;
   task->nixPointNum = 0;
-  task->nixPointArr = airArrayNew(AIR_CAST(void **, &(task->nixPoint)),
-                                  &(task->nixPointNum), sizeof(pullPoint*),
+  pppu.points = &(task->nixPoint);
+  task->nixPointArr = airArrayNew(pppu.v, &(task->nixPointNum),
+                                  sizeof(pullPoint*),
                                   /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->returnPtr = NULL;
