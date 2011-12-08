@@ -57,7 +57,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
     biffAddf(PULL, "%s: init method %d not valid", me, iparm->method);
     return 1;
   }
-  CHECK(jitter, 0.0, 1.0);
+  CHECK(jitter, 0.0, 2.0);
   switch (iparm->method) {
   case pullInitMethodGivenPos:
     if (nrrdCheck(iparm->npos)) {
@@ -79,7 +79,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
     }
     break;
   case pullInitMethodPointPerVoxel:
-    if (iparm->pointPerVoxel < -501 || iparm->pointPerVoxel > 10) {
+    if (iparm->pointPerVoxel < -3001 || iparm->pointPerVoxel > 10) {
       biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
                iparm->pointPerVoxel);
       return 1;
