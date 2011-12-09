@@ -689,7 +689,7 @@ meetPullInfoAddMulti(pullContext *pctx,
         airMopError(mop); return 1;
       }
       if (!( ispec->item = airEnumVal(vol->kind->enm, minf[ii]->itemStr))) {
-        biffAddf(MEET, "%s: can't parse %s as item of %s kind (minf[%u])\n",
+        biffAddf(MEET, "%s: can't parse \"%s\" as item of %s kind (minf[%u])\n",
                  me, minf[ii]->itemStr, vol->kind->name, ii);
         airMopError(mop); return 1;
       }

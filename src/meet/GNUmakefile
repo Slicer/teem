@@ -48,7 +48,7 @@ $(L).SEEN := true
 $(L).NEED = air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite
 $(L).PUBLIC_HEADERS = meet.h
 $(L).OBJS = enumall.o meetGage.o meetPull.o
-$(L).TESTS = test/strace
+$(L).TESTS = test/strace test/tenums
 ####
 ####
 ####
