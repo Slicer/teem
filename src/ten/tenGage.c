@@ -139,6 +139,15 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   
   {tenGageHessian,                63,  2,  {0},                                                                  0,        0,     AIR_FALSE},
   {tenGageTraceHessian,            9,  2,  {tenGageHessian},                                                     0,        0,     AIR_FALSE},
+  {tenGageTraceHessianEval,        3,  2,  {tenGageTraceHessian},                                                0,        0,     AIR_FALSE},
+  {tenGageTraceHessianEval0,       1,  2,  {tenGageTraceHessianEval},                      tenGageTraceHessianEval,        0,     AIR_FALSE},
+  {tenGageTraceHessianEval1,       1,  2,  {tenGageTraceHessianEval},                      tenGageTraceHessianEval,        1,     AIR_FALSE},
+  {tenGageTraceHessianEval2,       1,  2,  {tenGageTraceHessianEval},                      tenGageTraceHessianEval,        2,     AIR_FALSE},
+  {tenGageTraceHessianEvec,        9,  2,  {tenGageTraceHessian},                                                0,        0,     AIR_FALSE},
+  {tenGageTraceHessianEvec0,       3,  2,  {tenGageTraceHessianEvec},                      tenGageTraceHessianEvec,        0,     AIR_FALSE},
+  {tenGageTraceHessianEvec1,       3,  2,  {tenGageTraceHessianEvec},                      tenGageTraceHessianEvec,        3,     AIR_FALSE},
+  {tenGageTraceHessianEvec2,       3,  2,  {tenGageTraceHessianEvec},                      tenGageTraceHessianEvec,        6,     AIR_FALSE},
+  {tenGageTraceHessianFrob,        1,  2,  {tenGageTraceHessian},                                                0,        0,     AIR_FALSE},
   {tenGageBHessian,                9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
   {tenGageDetHessian,              9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
   {tenGageSHessian,                9,  2,  {tenGageTensor, tenGageTensorGrad, tenGageHessian},                   0,        0,     AIR_FALSE},
@@ -154,6 +163,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageFAHessianEvec0,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        0,     AIR_FALSE},
   {tenGageFAHessianEvec1,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        3,     AIR_FALSE},
   {tenGageFAHessianEvec2,          3,  2,  {tenGageFAHessianEvec},                            tenGageFAHessianEvec,        6,     AIR_FALSE},
+  {tenGageFAHessianFrob,           1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
   {tenGageFARidgeSurfaceStrength,  1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
   {tenGageFAValleySurfaceStrength, 1,  2,  {tenGageConfidence, tenGageFAHessianEval},                            0,        0,     AIR_FALSE},
   {tenGageFALaplacian,             1,  2,  {tenGageFAHessian},                                                   0,        0,     AIR_FALSE},
@@ -186,6 +196,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageModeHessianEvec0,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        0,     AIR_FALSE},
   {tenGageModeHessianEvec1,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        3,     AIR_FALSE},
   {tenGageModeHessianEvec2,        3,  2,  {tenGageModeHessianEvec},                        tenGageModeHessianEvec,        6,     AIR_FALSE},
+  {tenGageModeHessianFrob,         1,  2,  {tenGageModeHessian},                                                 0,        0,     AIR_FALSE},
   
   {tenGageOmegaHessian,            9,  2,  {tenGageFA, tenGageMode, tenGageFAGradVec, tenGageModeGradVec,
                                             tenGageFAHessian, tenGageModeHessian},                               0,        0,     AIR_FALSE},
@@ -930,6 +941,18 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                       1.0, hessDtF);
     ELL_3M_SCALE(hessCbA, -1, pvl->directAnswer[tenGageTraceHessian]);
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceHessianEvec)) {
+    ell_3m_eigensolve_d(pvl->directAnswer[tenGageTraceHessianEval],
+                        pvl->directAnswer[tenGageTraceHessianEvec],
+                        pvl->directAnswer[tenGageTraceHessian], AIR_TRUE);
+  } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceHessianEval)) {
+    ell_3m_eigenvalues_d(pvl->directAnswer[tenGageTraceHessianEval],
+                         pvl->directAnswer[tenGageTraceHessian], AIR_TRUE);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageTraceHessianFrob)) {
+    pvl->directAnswer[tenGageTraceHessianFrob][0]
+      = ELL_3M_FROB(pvl->directAnswer[tenGageTraceHessian]);
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageBHessian)) {
     hessCbB = matTmp = pvl->directAnswer[tenGageBHessian];
     ELL_3M_ZERO_SET(matTmp);
@@ -1040,6 +1063,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAHessianEval)) {
     ell_3m_eigenvalues_d(pvl->directAnswer[tenGageFAHessianEval],
                          pvl->directAnswer[tenGageFAHessian], AIR_TRUE);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAHessianFrob)) {
+    pvl->directAnswer[tenGageFAHessianFrob][0]
+      = ELL_3M_FROB(pvl->directAnswer[tenGageFAHessian]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFARidgeSurfaceStrength)) {
     double ev;
@@ -1208,6 +1235,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   } else if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageModeHessianEval)) {
     ell_3m_eigenvalues_d(pvl->directAnswer[tenGageModeHessianEval],
                          pvl->directAnswer[tenGageModeHessian], AIR_TRUE);
+  }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageModeHessianFrob)) {
+    pvl->directAnswer[tenGageModeHessianFrob][0]
+      = ELL_3M_FROB(pvl->directAnswer[tenGageModeHessian]);
   }
   
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageOmegaHessian)) {
