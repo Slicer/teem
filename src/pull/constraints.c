@@ -277,13 +277,13 @@ probeHeight(pullTask *task, pullPoint *point,
 /*
 ** creaseProj
 **
-** eigenvectors (with non-zero eigenvalues) of output proj are
+** eigenvectors (with non-zero eigenvalues) of output posproj are
 ** tangents to the directions along which particle is allowed to move
 ** *downward* (in height) for constraint satisfaction (according to
-** tangent 1 and tangent2)
+** tangent 1 or tangents 1&2)
 **
 ** negproj is the same, but for points moving upwards (according to
-** negativetangent1 and negativetangent2)
+** negativetangent1 or negativetangent 1&2)
 */
 static void
 creaseProj(pullTask *task, pullPoint *point,
@@ -322,6 +322,12 @@ creaseProj(pullTask *task, pullPoint *point,
     tng = point->info + task->pctx->infoIdx[pullInfoNegativeTangent2];
     ELL_3MV_OUTER(pp, tng, tng);
     ELL_3M_ADD2(negproj, negproj, pp);
+  }
+
+  if (!tang1Use && !tang2Use && !negtang1Use && !negtang2Use) {
+    /* we must be after points, and so need freedom to go after them */
+    /* for now we do this via posproj not negproj; see haveNada below */
+    ELL_3M_IDENTITY_SET(posproj);
   }
 
   return;
@@ -390,18 +396,20 @@ constraintSatHght(pullTask *task, pullPoint *point,
 #if PRAYING
   double _tmpv[3]={0,0,0};
 #endif
-  int havePos, haveNeg;
+  int havePos, haveNeg, haveNada;
   unsigned int iter = 0;  /* 0: initial probe, 1..iterMax: probes in loop */
   /* http://en.wikipedia.org/wiki/Newton%27s_method_in_optimization */
 
   havePos = tang1Use || tang2Use;
   haveNeg = negtang1Use || negtang2Use;
+  haveNada = !havePos && !haveNeg;
   stpmin = task->pctx->voxelSizeSpace*task->pctx->sysParm.constraintStepMin;
 #if PRAYING
   fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
           point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-  fprintf(stderr, "!%s: pt %d %d nt %d %d stepMax %g, iterMax %u\n", me,
-          tang1Use, tang2Use, negtang1Use, negtang2Use,
+  fprintf(stderr, "!%s: pt %d %d nt %d %d (nada %d) "
+          "stepMax %g, iterMax %u\n", me,
+          tang1Use, tang2Use, negtang1Use, negtang2Use, haveNada,
           stepMax, iterMax);
   fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
           stpmin, task->pctx->voxelSizeSpace,
@@ -419,7 +427,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
     fprintf(stderr, "!%s: =============== begin iter %u\n", me, iter);
 #endif
     /* HEY: no opportunistic increase of hack? */
-    if (havePos) {
+    if (havePos || haveNada) {
       POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj);
       if (!plen) {
         /* this use to be a biff error, which got to be annoying */

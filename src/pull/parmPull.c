@@ -168,8 +168,8 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   /* HEY: no check on gamma? */
   /* no check on theta */
   CHECK(wall, 0.0, 100.0);
-  CHECK(radiusSpace, 0.000001, 25.0);
-  CHECK(radiusScale, 0.000001, 25.0);
+  CHECK(radiusSpace, 0.000001, 80.0);
+  CHECK(radiusScale, 0.000001, 80.0);
   CHECK(binWidthSpace, 1.0, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);

@@ -630,7 +630,7 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   gageShape *seedShape;
   int reject, rejectEdge, constrFail;
   unsigned int k;
-
+  
   seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
   seedShape = seedVol->gctx->shape; 
   rng = pctx->task[0]->rng;
@@ -1088,7 +1088,7 @@ _pullPointSetup(pullContext *pctx) {
     break;
   }
   if (pctx->verbose) {
-    printf("!%s: initializing/seeding . . .       ", me);
+    printf("%s: initializing/seeding . . .       ", me);
     fflush(stdout);
   }
 
