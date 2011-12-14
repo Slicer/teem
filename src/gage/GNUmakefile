@@ -54,7 +54,7 @@ $(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
 	vecGage.o vecprint.o st.o multiGage.o filter.o ctx.o \
 	stack.o stackBlur.o optimsig.o
 $(L).TESTS = test/ctfix test/demo test/vh test/aalias test/indx \
-        test/genoptsig
+        test/genoptsig test/ssc
 ####
 ####
 ####
