@@ -23,22 +23,48 @@
 #include "gage.h"
 #include "privateGage.h"
 
-/* these functions don't necessarily belong in gage, but we're putting
-   them here for the time being.  Being in gage means that vprobe and
-   pprobe don't need extra libraries to find them. */
-
-#define BT 2.526917043979558
-#define AA 0.629078014852877
-
-#define TAU_OF_TEE(tee) (tee < BT ? AA*sqrt(tee) : 0.5365 + log(tee)/2)
-/* is it surprising that the transition is at tau = 1 ? */
-#define TEE_OF_TAU(tau) (tau < 1 ? tau*tau/(AA*AA) : exp(2*(tau - 0.5365)))
-
+/*
+** based on: T. Lindeberg. "Effective Scale: A Natural Unit For
+** Measuring Scale-Space Lifetime" IEEE PAMI, 15:1068-1074 (1993)
+**
+** which includes tau(tee) as equation (29),
+** here taking A'' == 0 and B'' == 1, with
+** a0 and a1 as defined by eqs (22) and (23) 
+**
+** Used MiniMaxApproximation[] from Mathematica to get functions, but
+** the specific functions and their domains could certainly be
+** improved upon.  Also, the absence of conversions directly between
+** tau and sigma is quite unfortunate: going through tee loses 
+** precision and takes more time.
+*/
 double
 gageTauOfTee(double tee) {
   double tau;
 
-  tau = TAU_OF_TEE(tee);
+  if (tee < 0) {
+    tau = 0;
+  } else if (tee < 1.49807) {
+    /* mmtau0tweaked */
+    tau = (tee*(0.2756644487429131 + tee*(0.10594329088466668 + tee*(0.05514331911165778 + (0.021449249669475232 + 0.004417835440932558*tee)*tee))))/
+      (1.0 + tee*(-0.08684532328108877 + tee*(0.1792830876099199 + tee*(0.07468999631784223 + (0.012123550696192354 + 0.0021535864222409365*tee)*tee))));
+  } else if (tee < 4.96757) {
+    /* mmtau1 */
+    tau = (0.0076145275813930356 + tee*(0.24811886965997867 + tee*(0.048329025380584194 + 
+                                                                   tee*(0.04227260554167517 + (0.0084221516844712 + 0.0092075782656669*tee)*tee))))/
+      (1.0 + tee*(-0.43596678272093764 + tee*(0.38077975530585234 + tee*(-0.049133766853683175 + (0.030319379462443567 + 0.0034126333151669654*tee)*tee))));
+  } else if (tee < 15.4583) {
+    /* mmtau2 */
+    tau = (-0.2897145176074084 + tee*(1.3527948686285203 + tee*(-0.47099157589904095 + 
+           tee*(-0.16031981786376195 + (-0.004820970155881798 - 4.149777202275125e-6*tee)*tee))))/
+      (1.0 + tee*(0.3662508612514773 + tee*(-0.5357849572367938 + (-0.0805122462310566 - 0.0015558889784971902*tee)*tee)));
+  } else if (tee < 420.787) {
+    /* mmtau3 */
+    tau = (-4.2037874383990445e9 + tee*(2.838805157541766e9 + tee*(4.032410315406513e8 + tee*(5.392017876788518e6 + tee*(9135.49750298428 + tee)))))/
+      (tee*(2.326563899563907e9 + tee*(1.6920560224321905e8 + tee*(1.613645012626063e6 + (2049.748257887103 + 0.1617034516398788*tee)*tee))));
+  } else {
+    /* lindtau = eq (33) in paper */
+    tau = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
+  }
   return tau;
 }
 
@@ -46,26 +72,53 @@ double
 gageTeeOfTau(double tau) {
   double tee;
 
-  tee = TEE_OF_TAU(tau);
+  /* the number of branches here is not good; needs re-working */
+  if (tau < 0) {
+    tee = 0;
+  } else if (tau < 0.611262) {
+    /* mmtee0tweaked */
+    tee = (tau*(3.6275987317285265 + tau*(11.774700160760132 + tau*(4.52406587856803 + tau*(-14.125688866786549 + tau*(-0.725387283317479 + 3.5113122862478865*tau))))))/
+      (1.0 + tau*(4.955066250765395 + tau*(4.6850073321973404 + tau*(-6.407987550661679 + tau*(-6.398430668865182 + 5.213709282093169*tau)))));
+  } else if (tau < 1.31281) {
+    /* mmtee1 */
+    tee = (1.9887378739371435e49 + tau*(-2.681749984485673e50 + tau*(-4.23360463718195e50 + tau*(2.09694591123974e51 + tau*(-2.7561518523389087e51 + (1.661629137055526e51 - 4.471073383223687e50*tau)*tau)))))/
+      (1.0 + tau*(-5.920734745050949e50 + tau*(1.580953446553531e51 + tau*(-1.799463907469813e51 + tau*(1.0766702953985062e51 + tau*(-3.57278667155516e50 + 5.008335824520649e49*tau))))));
+  } else if (tau < 1.64767) {
+    /* mmtee2 */
+    tee = (7.929177830383403 + tau*(-26.12773195115971 + tau*(40.13296225515305 + tau*(-25.041659428733585 + 11.357596970027744*tau))))/
+      (1.0 + tau*(-2.3694595653302377 + tau*(7.324354882915464 + (-3.5335141717471314 + 0.4916661013041915*tau)*tau)));
+  } else if (tau < 1.88714) {
+    /* mmtee3 */
+    tee = (0.8334252264680793 + tau*(-0.2388940380698891 + (0.6057616935583752 - 0.01610044688317929*tau)*tau))/(1.0 + tau*(-0.7723301124908083 + (0.21283962841683607 - 0.020834957466407206*tau)*tau));
+  } else if (tau < 2.23845) {
+    /* mmtee4 */
+    tee = (0.6376900379835665 + tau*(0.3177131886056259 + (0.1844114646774132 + 0.2001613331260136*tau)*tau))/(1.0 + tau*(-0.6685635461372561 + (0.15860524381878136 - 0.013304300252332686*tau)*tau));
+  } else if (tau < 2.6065) {
+    /* mmtee5 */
+    tee = (1.3420027677612982 + (-0.939215712453483 + 0.9586140009249253*tau)*tau)/(1.0 + tau*(-0.6923014141351673 + (0.16834190074776287 - 0.014312833444962668*tau)*tau));
+  } else if (tau < 3.14419) {
+    /* mmtee6 */
+    tee = (tau*(190.2181493338235 + tau*(-120.16652155353106 + 60.*tau)))/(76.13355144582292 + tau*(-42.019121363472614 + (8.023304636521623 - 0.5281725039404653*tau)*tau));
+  } else {
+    /* lindtee = lindtau^{-1} */
+    double ee;
+    ee = exp(2.0*tau);
+    tee = 0.0063325739776461107152*(27.0*ee + 2*AIR_PI*AIR_PI + 3.0*sqrt(81.0*ee*ee + 12*ee*AIR_PI*AIR_PI));
+  }
   return tee;
 }
 
 double
 gageSigOfTau(double tau) {
   
-  return sqrt(TEE_OF_TAU(tau));
+  return sqrt(gageTeeOfTau(tau));
 }
 
 double
 gageTauOfSig(double sig) {
 
-  return TAU_OF_TEE(sig*sig);
+  return gageTauOfTee(sig*sig);
 }
-
-#undef BT
-#undef AA
-#undef TAU_OF_TEE
-#undef TEE_OF_TAU
 
 double
 gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
