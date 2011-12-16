@@ -1221,7 +1221,10 @@ NRRD_EXPORT int nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
 typedef struct {
   /* -------- INPUT */
   int verbose,                 /* blah blah blah */
-    linearInterp;              /* instead of nearest neighbor in polar txf */
+    linearInterp,              /* instead of nearest neighbor in polar txf */
+    verticalSeam;              /* dering left and right sides of image 
+                                  separately, asserting that there are no
+                                  rings along vertical line through center */
   const Nrrd *nin;             /* array to dering */
   double center[2],            /* location of recon center in index space
                                   of fastest two axes */
@@ -1250,7 +1253,10 @@ typedef struct {
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNew(void);
 NRRD_EXPORT NrrdDeringContext *nrrdDeringContextNix(NrrdDeringContext *drc);
 NRRD_EXPORT int nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose);
-NRRD_EXPORT int nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp);
+NRRD_EXPORT int nrrdDeringLinearInterpSet(NrrdDeringContext *drc,
+                                          int linterp);
+NRRD_EXPORT int nrrdDeringVerticalSeamSet(NrrdDeringContext *drc,
+                                          int vertSeam);
 NRRD_EXPORT int nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin);
 NRRD_EXPORT int nrrdDeringCenterSet(NrrdDeringContext *drc,
                                     double cx, double cy);

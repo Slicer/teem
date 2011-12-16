@@ -27,18 +27,11 @@
 #define CLAMP_HIST_BINS_MIN 512
 #define CLAMP_PERC_MAX 30.0
 
+#define DEBUG 0
+
 /* TODO: 
  *
  * valgrind
- *
- * implement vertical seam
- - (require even thetaNum)
- - compute ptxf, and radial high-pass
- - reshape rN x tN --> rN x (tN/2) x 2
- - crop off top scanline
- - blur along theta (with boundary bleed, value = 0)
- - pad back top scanline, with 0s
- - reshape back to rN x tN
  *
  * make it multi-threaded
  *
@@ -68,6 +61,7 @@ nrrdDeringContextNew(void) {
   }
   drc->verbose = 0;
   drc->linearInterp = AIR_FALSE;
+  drc->verticalSeam = AIR_FALSE;
   drc->nin = NULL;
   drc->center[0] = AIR_NAN;
   drc->center[1] = AIR_NAN;
@@ -123,6 +117,19 @@ nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp) {
   }
   
   drc->linearInterp = linterp;
+  return 0;
+}
+
+int
+nrrdDeringVerticalSeamSet(NrrdDeringContext *drc, int vertSeam) {
+  static const char me[]="nrrdDeringVerticalSeamSet";
+
+  if (!drc) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  
+  drc->verticalSeam = vertSeam;
   return 0;
 }
 
@@ -305,12 +312,15 @@ nrrdDeringThetaKernelSet(NrrdDeringContext *drc,
 /*
 ** per-thread state for deringing
 */
-#define PTXF_NUM 5
-#define ORIG 0
-#define WGHT 1
-#define BLRR 2
-#define DIFF 3
-#define RING 4
+#define ORIG     0
+#define WGHT     1
+#define BLRR     2
+#define DIFF     3
+#define RSHP     4
+#define CROP     5
+#define CBLR     6
+#define RING     7
+#define PTXF_NUM 8
 typedef struct {
   unsigned int zi;
   double radMax;
@@ -321,7 +331,8 @@ typedef struct {
     *nsliceOut,             /* (may be different type than nslice) */
     *nptxf[PTXF_NUM];
   double *slice, *ptxf, *wght, *ring;
-  NrrdResampleContext *rsmc[2];
+  NrrdResampleContext *rsmc[2]; /* rsmc[0]: radial blurring ORIG -> BLRR
+                                   rsmc[1]:  theta blurring DIFF -> RING */
   double ringMag;
 } deringBag;
 
@@ -375,9 +386,17 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
 
   /* polar transform setup */
   for (pi=0; pi<PTXF_NUM; pi++) {
-    if (nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 2,
-                          dbg->radNum,
-                          AIR_CAST(size_t, drc->thetaNum))) {
+    if (drc->verticalSeam && (CROP == pi || CBLR == pi)) {
+      E = nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 3,
+                            dbg->radNum,
+                            AIR_CAST(size_t, drc->thetaNum/2 - 1),
+                            AIR_CAST(size_t, 2));
+    } else {
+      E = nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 2,
+                            dbg->radNum,
+                            AIR_CAST(size_t, drc->thetaNum));
+    }
+    if (E) {
       biffAddf(NRRD, "%s: polar transform allocation problem", me);
       return 1;
     }
@@ -398,8 +417,14 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 0,
                                          drc->rkernel, drc->rkparm);
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[0], 1, NULL, NULL);
+      if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[0], 1, drc->thetaNum);
+      if (!E) E |= nrrdResampleBoundarySet(dbg->rsmc[0], nrrdBoundaryWrap);
     } else {
-      if (!E) E |= nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]);
+      if (drc->verticalSeam) {
+        if (!E) E |= nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[CROP]);
+      } else {
+        if (!E) E |= nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]);
+      }
       nrrdKernelSprint(kstr, drc->tkernel, drc->tkparm);
       if (drc->verbose > 1) {
         fprintf(stderr, "%s: rsmc[1] axis 1 kernel: %s\n", me, kstr);
@@ -407,11 +432,19 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 0, NULL, NULL);
       if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 1,
                                          drc->tkernel, drc->tkparm);
+      if (drc->verticalSeam) {
+        if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[1], 1, drc->thetaNum/2 - 1);
+        if (!E) E |= nrrdResampleKernelSet(dbg->rsmc[1], 2, NULL, NULL);
+        if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[1], 2, 2);
+        if (!E) E |= nrrdResampleBoundarySet(dbg->rsmc[1], nrrdBoundaryPad);
+        if (!E) E |= nrrdResamplePadValueSet(dbg->rsmc[1], 0.0);
+      } else {
+        if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[1], 1, drc->thetaNum);
+        if (!E) E |= nrrdResampleBoundarySet(dbg->rsmc[1], nrrdBoundaryWrap);
+      }
     }
     if (!E) E |= nrrdResampleDefaultCenterSet(dbg->rsmc[ri], nrrdCenterCell);
     if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[ri], 0, dbg->radNum);
-    if (!E) E |= nrrdResampleSamplesSet(dbg->rsmc[ri], 1, drc->thetaNum);
-    if (!E) E |= nrrdResampleBoundarySet(dbg->rsmc[ri], nrrdBoundaryWrap);
     if (!E) E |= nrrdResampleTypeOutSet(dbg->rsmc[ri], nrrdTypeDefault);
     if (!E) E |= nrrdResampleRenormalizeSet(dbg->rsmc[ri], AIR_TRUE);
     if (!E) E |= nrrdResampleNonExistentSet(dbg->rsmc[ri],
@@ -485,7 +518,7 @@ deringXYtoRT(NrrdDeringContext *drc, deringBag *dbg,
   th = atan2(-dx, dy);
   rrScl = AIR_AFFINE(-EPS, rr, dbg->radMax+EPS, 0.0, dbg->radNum-1);
   *rrIdx = AIR_CAST(unsigned int, 0.5 + rrScl);
-  thScl = AIR_AFFINE(-AIR_PI-EPS, th, AIR_PI+EPS, 0.0, drc->thetaNum-1);
+  thScl = AIR_AFFINE(-AIR_PI-EPS, th, AIR_PI+EPS, 0.0, drc->thetaNum);
   *thIdx = AIR_CAST(unsigned int, 0.5 + thScl);
   if (rrFrc && thFrc) {
     *rrFrc = rrScl - *rrIdx;
@@ -515,23 +548,27 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
     for (xi=0; xi<sx; xi++) {
       double rrFrc, thFrc, val;
       if (drc->linearInterp) {
-        unsigned int bidx;
+        unsigned int bidx, bidxPlus;
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
         bidx = rrIdx + dbg->radNum*thIdx;
+        bidxPlus = (thIdx < drc->thetaNum-1
+                    ? bidx + dbg->radNum
+                    : rrIdx);
         val = dbg->slice[xi + sx*yi];
         if (drc->clampDo) {
           val = AIR_CLAMP(drc->clamp[0], val, drc->clamp[1]);
         }
-        dbg->ptxf[bidx                  ] += (1-rrFrc)*(1-thFrc)*val;
-        dbg->ptxf[bidx + 1              ] +=     rrFrc*(1-thFrc)*val;
-        dbg->ptxf[bidx     + dbg->radNum] += (1-rrFrc)*thFrc*val;
-        dbg->ptxf[bidx + 1 + dbg->radNum] +=     rrFrc*thFrc*val;
-        dbg->wght[bidx                  ] += (1-rrFrc)*(1-thFrc);
-        dbg->wght[bidx + 1              ] +=     rrFrc*(1-thFrc);
-        dbg->wght[bidx     + dbg->radNum] += (1-rrFrc)*thFrc;
-        dbg->wght[bidx + 1 + dbg->radNum] +=     rrFrc*thFrc;
+        dbg->ptxf[bidx        ] += (1-rrFrc)*(1-thFrc)*val;
+        dbg->ptxf[bidx     + 1] +=     rrFrc*(1-thFrc)*val;
+        dbg->ptxf[bidxPlus    ] += (1-rrFrc)*thFrc*val;
+        dbg->ptxf[bidxPlus + 1] +=     rrFrc*thFrc*val;
+        dbg->wght[bidx        ] += (1-rrFrc)*(1-thFrc);
+        dbg->wght[bidx     + 1] +=     rrFrc*(1-thFrc);
+        dbg->wght[bidxPlus    ] += (1-rrFrc)*thFrc;
+        dbg->wght[bidxPlus + 1] +=     rrFrc*thFrc;
       } else {
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, NULL, NULL);
+        thIdx = thIdx % drc->thetaNum;
         dbg->ptxf[rrIdx + dbg->radNum*thIdx] += dbg->slice[xi + sx*yi];
         dbg->wght[rrIdx + dbg->radNum*thIdx] += 1;
       }
@@ -548,7 +585,7 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
       }
     }
   }
-  if (0) {
+  if (DEBUG) {
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "wght-%02u.nrrd", dbg->zi);
     nrrdSave(fname, dbg->nptxf[WGHT], NULL);
@@ -561,17 +598,46 @@ static int
 deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[]="deringPtxfFilter";
 
-  AIR_UNUSED(drc);
   if ((!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[0], dbg->nptxf[ORIG]))
       || nrrdResampleExecute(dbg->rsmc[0], dbg->nptxf[BLRR])
       || nrrdArithBinaryOp(dbg->nptxf[DIFF], nrrdBinaryOpSubtract,
-                           dbg->nptxf[ORIG], dbg->nptxf[BLRR])
-      || (!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]))
-      || nrrdResampleExecute(dbg->rsmc[1], dbg->nptxf[RING])) {
-    biffAddf(NRRD, "%s: trouble", me);
+                           dbg->nptxf[ORIG], dbg->nptxf[BLRR])) {
+    biffAddf(NRRD, "%s: trouble with radial blur", me);
     return 1;
   }
-  if (0) {
+  if (!drc->verticalSeam) {
+    if ((!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[DIFF]))
+        || nrrdResampleExecute(dbg->rsmc[1], dbg->nptxf[RING])) {
+      biffAddf(NRRD, "%s: trouble", me);
+      return 1;
+    }
+  } else {
+    size_t cmin[3], cmax[3];
+    ptrdiff_t pmin[3], pmax[3];
+    cmin[0] = 0; cmin[1] = 1;  cmin[2] = 0;
+    pmin[0] = 0; pmin[1] = -1; pmin[2] = 0;
+    pmax[0] = cmax[0] = dbg->radNum - 1;
+    cmax[1] = drc->thetaNum/2 - 1;
+    pmax[1] = drc->thetaNum/2 - 2; /* max sample # of cropped axis 1 */
+    pmax[2] = cmax[2] = 1;
+    if (nrrdAxesSplit(dbg->nptxf[RSHP], dbg->nptxf[DIFF], 1,
+                      drc->thetaNum/2, 2)
+        || nrrdCrop(dbg->nptxf[CROP], dbg->nptxf[RSHP], cmin, cmax)
+        || (!zi ? 0 : nrrdResampleInputSet(dbg->rsmc[1], dbg->nptxf[CROP]))
+        || nrrdResampleExecute(dbg->rsmc[1], dbg->nptxf[CBLR])
+        || nrrdPad_nva(dbg->nptxf[RSHP], dbg->nptxf[CBLR], pmin, pmax,
+                       nrrdBoundaryPad, 0)
+        || nrrdAxesMerge(dbg->nptxf[RING], dbg->nptxf[RSHP], 1)) {
+      biffAddf(NRRD, "%s: trouble with vertical seam", me);
+      return 1;
+    }
+    if (DEBUG) {
+      char fn[AIR_STRLEN_SMALL];
+      sprintf(fn, "rshp-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[RSHP],NULL);
+      sprintf(fn, "crop-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[CROP],NULL);
+    }
+  }
+  if (DEBUG) {
     char fn[AIR_STRLEN_SMALL];
     sprintf(fn, "orig-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[ORIG],NULL);
     sprintf(fn, "blrr-%02u.nrrd", dbg->zi); nrrdSave(fn, dbg->nptxf[BLRR],NULL);
@@ -619,24 +685,28 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
     for (xi=0; xi<sx; xi++) {
       double rrFrc, thFrc, val;
       if (drc->linearInterp) {
-        unsigned int bidx;
+        unsigned int bidx, bidxPlus;
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
         bidx = rrIdx + dbg->radNum*thIdx;
-        val = (dbg->ring[bidx                  ]*(1-rrFrc)*(1-thFrc) +
-               dbg->ring[bidx + 1              ]*rrFrc*(1-thFrc) +
-               dbg->ring[bidx     + dbg->radNum]*(1-rrFrc)*thFrc +
-               dbg->ring[bidx + 1 + dbg->radNum]*rrFrc*thFrc);
+        bidxPlus = (thIdx < drc->thetaNum-1
+                    ? bidx + dbg->radNum
+                    : rrIdx);
+        val = (dbg->ring[bidx        ]*(1-rrFrc)*(1-thFrc) +
+               dbg->ring[bidx     + 1]*rrFrc*(1-thFrc) +
+               dbg->ring[bidxPlus    ]*(1-rrFrc)*thFrc +
+               dbg->ring[bidxPlus + 1]*rrFrc*thFrc);
         dbg->slice[xi + sx*yi] -= val;
       } else {
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, NULL, NULL);
+        thIdx = thIdx % drc->thetaNum;
         dbg->slice[xi + sx*yi] -= dbg->ring[rrIdx + dbg->radNum*thIdx];
       }
     }
   }
-  if (0) {
+  if (DEBUG) {
     char fname[AIR_STRLEN_SMALL];
-    sprintf(fname, "drng-%02u.nrrd", dbg->zi);
-    nrrdSave(fname, dbg->nslice, NULL);
+    sprintf(fname, "ring2-%02u.nrrd", dbg->zi); nrrdSave(fname, dbg->nptxf[RING], NULL);
+    sprintf(fname, "drng-%02u.nrrd", dbg->zi); nrrdSave(fname, dbg->nslice, NULL);
   }
   return 0;
 }
@@ -677,6 +747,11 @@ deringCheck(NrrdDeringContext *drc) {
   }
   if (!( drc->rkernel && drc->tkernel )) {
     biffAddf(NRRD, "%s: R and T kernels not both set", me);
+    return 1;
+  }
+  if (drc->verticalSeam && !(0 == (drc->thetaNum % 2))) {
+    biffAddf(NRRD, "%s: need even thetaNum (not %u) if wanting verticalSeam", 
+             me, drc->thetaNum);
     return 1;
   }
   return 0;
