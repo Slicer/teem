@@ -473,7 +473,11 @@ _nrrdMeasureVariance(void *ans, int ansType,
       S = SS = AIR_NAN;
     }
   }
-  nrrdDStore[ansType](ans, SS - S*S);
+  /* HEY: the AIR_MAX is needed because precision errors 
+     can produce a negative value for SS - S*S; 
+     this may be a sign of the false economy of doing
+     the variance calculation in a single pass */
+  nrrdDStore[ansType](ans, AIR_MAX(0.0, SS - S*S));
 }
 
 void
@@ -785,7 +789,11 @@ _nrrdMeasureHistoVariance(void *ans, int ansType,
   }
   S /= count;
   SS /= count;
-  nrrdDStore[ansType](ans, SS - S*S);
+  /* HEY: the AIR_MAX is needed because precision errors 
+     can produce a negative value for SS - S*S; 
+     this may be a sign of the false economy of doing
+     the variance calculation in a single pass */
+  nrrdDStore[ansType](ans, AIR_MAX(0.0, SS - S*S));
 }
 
 void
