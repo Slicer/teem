@@ -39,6 +39,8 @@ str2model(const char *str) {
     ret = tenModelBall;
   } else if (!strcmp(str, TEN_MODEL_STR_1STICK)) {
     ret = tenModel1Stick;
+  } else if (!strcmp(str, TEN_MODEL_STR_1VECTOR2D)) {
+    ret = tenModel1Vector2D;
   } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) {
     ret = tenModelBall1StickEMD;
   } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICK)) {

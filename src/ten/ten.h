@@ -1662,6 +1662,9 @@ TEN_EXPORT const tenModel *const tenModelB0;
 /* modelBall.c */
 #define TEN_MODEL_STR_BALL "ball"
 TEN_EXPORT const tenModel *const tenModelBall;
+/* model1Vector2D.c */
+#define TEN_MODEL_STR_1VECTOR2D "1vector2d"
+TEN_EXPORT const tenModel *const tenModel1Vector2D;
 /* model1Stick.c */
 #define TEN_MODEL_STR_1STICK "1stick"
 TEN_EXPORT const tenModel *const tenModel1Stick;
