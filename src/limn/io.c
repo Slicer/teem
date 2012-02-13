@@ -546,7 +546,10 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
           E = nrrdWrap_va(nrrd, pld->norm, nrrdTypeFloat, 2, 3, pld->normNum);
           break;
         case limnPolyDataInfoTex2:
-          E = nrrdWrap_va(nrrd, pld->tex2, nrrdTypeFloat, 2, 2,pld->tex2Num);
+          E = nrrdWrap_va(nrrd, pld->tex2, nrrdTypeFloat, 2, 2, pld->tex2Num);
+          break;
+        case limnPolyDataInfoTang:
+          E = nrrdWrap_va(nrrd, pld->tang, nrrdTypeFloat, 2, 3, pld->tangNum);
           break;
         default:
           biffAddf(LIMN, "%s: info %d (%s) not handled", me, bit,
@@ -848,6 +851,11 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         wantType = nrrdTypeFloat;
         wantSize = 2;
         data = pld->tex2;
+        break;
+      case limnPolyDataInfoTang:
+        wantType = nrrdTypeFloat;
+        wantSize = 3;
+        data = pld->tang;
         break;
       default:
         biffAddf(LIMN, "%s: info %d (%s) not handled", me, info,

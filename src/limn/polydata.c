@@ -38,6 +38,8 @@ limnPolyDataNew(void) {
     pld->normNum = 0;
     pld->tex2 = NULL;
     pld->tex2Num = 0;
+    pld->tang = NULL;
+    pld->tangNum = 0;
     pld->indx = NULL;
     pld->indxNum = 0;
     pld->primNum = 0;
@@ -55,6 +57,7 @@ limnPolyDataNix(limnPolyData *pld) {
     airFree(pld->rgba);
     airFree(pld->norm);
     airFree(pld->tex2);
+    airFree(pld->tang);
     airFree(pld->indx);
     airFree(pld->type);
     airFree(pld->icnt);
@@ -110,6 +113,19 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     pld->tex2Num = vertNum;
   }
   
+  if (vertNum != pld->tangNum
+      && ((1 << limnPolyDataInfoTang) & infoBitFlag)) {
+    pld->tang = (float *)airFree(pld->tang);
+    if (vertNum) {
+      pld->tang = AIR_CALLOC(vertNum*3, float);
+      if (!pld->tang) {
+        biffAddf(LIMN, "%s: couldn't allocate %u tang", me, vertNum);
+        return 1;
+      }
+    }
+    pld->tangNum = vertNum;
+  }
+  
   return 0;
 }
 
@@ -127,6 +143,9 @@ limnPolyDataInfoBitFlag(const limnPolyData *pld) {
     }
     if (pld->tex2 && pld->tex2Num == pld->xyzwNum) {
       ret |= (1 << limnPolyDataInfoTex2);
+    }
+    if (pld->tang && pld->tangNum == pld->xyzwNum) {
+      ret |= (1 << limnPolyDataInfoTang);
     }
   }
   return ret;
@@ -201,6 +220,9 @@ limnPolyDataSize(const limnPolyData *pld) {
     if (pld->tex2) {
       ret += pld->tex2Num*sizeof(float)*2;
     }
+    if (pld->tang) {
+      ret += pld->tangNum*sizeof(float)*3;
+    }
     ret += pld->indxNum*sizeof(unsigned int);
     ret += pld->primNum*sizeof(signed char);
     ret += pld->primNum*sizeof(unsigned int);
@@ -230,6 +252,9 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   }
   if (pldA->tex2) {
     memcpy(pldB->tex2, pldA->tex2, pldA->tex2Num*sizeof(float)*2);
+  }
+  if (pldA->tang) {
+    memcpy(pldB->tang, pldA->tang, pldA->tangNum*sizeof(float)*3);
   }
   memcpy(pldB->indx, pldA->indx, pldA->indxNum*sizeof(unsigned int));
   memcpy(pldB->type, pldA->type, pldA->primNum*sizeof(signed char));
@@ -284,6 +309,10 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
       size = pldA->tex2Num*2;
       memcpy(pldB->tex2 + ii*size, pldA->tex2, size*sizeof(float));
     }
+    if (pldA->tang) {
+      size = pldA->tangNum*3;
+      memcpy(pldB->tang + ii*size, pldA->tang, size*sizeof(float));
+    }
   }
   return 0;
 }
@@ -297,12 +326,12 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
 void
 limnPolyDataTransform_f(limnPolyData *pld,
                         const float homat[16]) {
-  double hovec[4], mat[9], inv[9], norm[3], nmat[9];
+  double hovec[4], mat[9], inv[9], norm[3], tang[3], nmat[9], tlen;
   unsigned int vertIdx;
   
   if (pld && homat) {
+    ELL_34M_EXTRACT(mat, homat);
     if (pld->norm) {
-      ELL_34M_EXTRACT(mat, homat);
       ell_3m_inv_d(inv, mat);
       ELL_3M_TRANSPOSE(nmat, inv);
     } else {
@@ -313,7 +342,13 @@ limnPolyDataTransform_f(limnPolyData *pld,
       ELL_4V_COPY_TT(pld->xyzw + 4*vertIdx, float, hovec);
       if (pld->norm) {
         ELL_3MV_MUL(norm, nmat, pld->norm + 3*vertIdx);
+        ELL_3V_NORM(norm, norm, tlen);
         ELL_3V_COPY_TT(pld->norm + 3*vertIdx, float, norm);
+      }
+      if (pld->tang) { /* HEY: not tested */
+        ELL_3MV_MUL(tang, mat, pld->tang + 3*vertIdx);
+        ELL_3V_NORM(tang, tang, tlen);
+        ELL_3V_COPY_TT(pld->tang + 3*vertIdx, float, tang);
       }
     }
   }

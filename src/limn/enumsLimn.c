@@ -50,7 +50,8 @@ _limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
   "(unknown info)",
   "rgba",
   "norm",
-  "tex2d"
+  "tex2",
+  "tang"
 };
 
 const airEnum

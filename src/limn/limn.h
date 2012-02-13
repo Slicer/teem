@@ -369,9 +369,10 @@ enum {
   limnPolyDataInfoRGBA,       /* 1: RGBA 4-tuple */
   limnPolyDataInfoNorm,       /* 2: (x,y,z) unit-length 3-vector */
   limnPolyDataInfoTex2,       /* 3: (s,t) 2D texture coordinates */
+  limnPolyDataInfoTang,       /* 4: unit-length surface tangent 3-vector */
   limnPolyDataInfoLast
 };
-#define LIMN_POLY_DATA_INFO_MAX  3
+#define LIMN_POLY_DATA_INFO_MAX  4
 
 /*
 ******** limnPolyData
@@ -405,12 +406,14 @@ typedef struct {
   unsigned int normNum;  /* logical size of norm */
   float *tex2;           /* if non-NULL, tex2Num (s,t) 2D texture coords */
   unsigned int tex2Num;  /* logical size of tex2 */
+  float *tang;           /* if non-NULL, tangNum unit surface tangents */
+  unsigned int tangNum;  /* logical size of tang */
   
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
-  unsigned int *indx;    /* all indices (into vert[]) for all primitives,
+  unsigned int *indx;    /* all indices (into above arrays) for all primitives,
                             concatenated together into one array */
 
-  unsigned int primNum;  /* there are primNum primitives (tris or tristrips) */
+  unsigned int primNum;  /* there are primNum primitives (e.g. tristrips) */
   unsigned char *type;   /* prim ii is a type[ii] (limnPrimitive* enum) */
   unsigned int *icnt;    /* prim ii has icnt[ii] vertex indices */
 } limnPolyData;
@@ -639,6 +642,9 @@ LIMN_EXPORT void limnPolyDataColorSet(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
                                  unsigned int infoBitFlag,
                                  int sharpEdge);
+LIMN_EXPORT int limnPolyDataCubeTriangles(limnPolyData *pld,
+                                          unsigned int infoBitFlag,
+                                          int sharpEdge);
 LIMN_EXPORT int limnPolyDataOctahedron(limnPolyData *pld,
                                        unsigned int infoBitFlag,
                                        int sharpEdge);
@@ -678,6 +684,8 @@ LIMN_EXPORT int limnPolyDataIcoSphere(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
+LIMN_EXPORT int limnPolyDataSquare(limnPolyData *pld,
+                                   unsigned int infoBitFlag);
 
 /* polymod.c */
 LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut, 

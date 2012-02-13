@@ -30,7 +30,6 @@ limnPolyDataCube(limnPolyData *pld,
                  int sharpEdge) {
   static const char me[]="limnPolyDataCube";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  float cn;
   
   vertNum = sharpEdge ? 6*4 : 8;
   primNum = 1;
@@ -86,7 +85,6 @@ limnPolyDataCube(limnPolyData *pld,
     ELL_4V_SET(pld->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
   }
   
-  cn = AIR_CAST(float, sqrt(3.0));
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       ELL_3V_SET(pld->norm +  3*0,  0,  0, -1);
@@ -114,6 +112,8 @@ limnPolyDataCube(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*20,  0,  0,  1);
       ELL_3V_SET(pld->norm + 3*22,  0,  0,  1);
     } else {
+      float cn;
+      cn = AIR_CAST(float, sqrt(3.0));
       ELL_3V_SET(pld->norm + 3*0, -cn, -cn, -cn);
       ELL_3V_SET(pld->norm + 3*1, -cn,  cn, -cn);
       ELL_3V_SET(pld->norm + 3*2,  cn,  cn, -cn);
@@ -135,12 +135,221 @@ limnPolyDataCube(limnPolyData *pld,
 }
 
 int
+limnPolyDataCubeTriangles(limnPolyData *pld,
+                          unsigned int infoBitFlag,
+                          int sharpEdge) {
+  static const char me[]="limnPolyDataCubeTriangles";
+  unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
+  
+  vertNum = sharpEdge ? 6*4 : 8;
+  primNum = 1;
+  indxNum = 6*6;
+  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
+  }
+  pld->type[0] = limnPrimitiveTriangles;
+  pld->icnt[0] = indxNum;
+  
+  vertIdx = 0;
+  cnum = sharpEdge ? 3 : 1;
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,  -1,   1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,   1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,   1,   1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,   1,   1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,   1,  -1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,   1,  -1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,  -1,  -1,  1); vertIdx++;
+  }
+  for (ci=0; ci<cnum; ci++) {
+    ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,  -1,  1); vertIdx++;
+  }
+  
+  vertIdx = 0;
+  if (sharpEdge) {
+    ELL_3V_SET(pld->indx + vertIdx,  0,  6,  3); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx,  3,  6,  9); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx,  7, 12, 10); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 10, 12, 16); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 11, 15,  4); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx,  4, 15, 21); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 17, 14, 22); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 22, 14, 20); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx,  2,  5, 19); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 19,  5, 23); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 13,  8, 18); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 18,  8,  1); vertIdx += 3;
+  } else {
+    ELL_3V_SET(pld->indx + vertIdx, 0, 2, 1); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 1, 2, 3); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 2, 4, 3); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 3, 4, 5); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 3, 5, 1); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 1, 5, 7); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 5, 4, 7); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 7, 4, 6); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 7, 6, 1); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 1, 6, 0); vertIdx += 3;
+
+    ELL_3V_SET(pld->indx + vertIdx, 4, 2, 6); vertIdx += 3;
+    ELL_3V_SET(pld->indx + vertIdx, 2, 6, 0); vertIdx += 3;
+  }
+  
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    if (sharpEdge) {
+      ELL_3V_SET(pld->norm + 3*14,  0,  0, -1);
+      ELL_3V_SET(pld->norm + 3*17,  0,  0, -1);
+      ELL_3V_SET(pld->norm + 3*20,  0,  0, -1);
+      ELL_3V_SET(pld->norm + 3*22,  0,  0, -1);
+      ELL_3V_SET(pld->norm + 3* 4, -1,  0,  0);
+      ELL_3V_SET(pld->norm + 3*11, -1,  0,  0);
+      ELL_3V_SET(pld->norm + 3*15, -1,  0,  0);
+      ELL_3V_SET(pld->norm + 3*21, -1,  0,  0);
+      ELL_3V_SET(pld->norm + 3* 7,  0,  1,  0);
+      ELL_3V_SET(pld->norm + 3*10,  0,  1,  0);
+      ELL_3V_SET(pld->norm + 3*12,  0,  1,  0);
+      ELL_3V_SET(pld->norm + 3*16,  0,  1,  0);
+      ELL_3V_SET(pld->norm + 3* 1,  1,  0,  0);
+      ELL_3V_SET(pld->norm + 3* 8,  1,  0,  0);
+      ELL_3V_SET(pld->norm + 3*13,  1,  0,  0);
+      ELL_3V_SET(pld->norm + 3*18,  1,  0,  0);
+      ELL_3V_SET(pld->norm + 3* 2,  0, -1,  0);
+      ELL_3V_SET(pld->norm + 3* 5,  0, -1,  0);
+      ELL_3V_SET(pld->norm + 3*19,  0, -1,  0);
+      ELL_3V_SET(pld->norm + 3*23,  0, -1,  0);
+      ELL_3V_SET(pld->norm + 3* 0,  0,  0,  1);
+      ELL_3V_SET(pld->norm + 3* 3,  0,  0,  1);
+      ELL_3V_SET(pld->norm + 3* 6,  0,  0,  1);
+      ELL_3V_SET(pld->norm + 3* 9,  0,  0,  1);
+    } else {
+      float cn;
+      cn = AIR_CAST(float, 1.0/sqrt(3.0));
+      ELL_3V_SET(pld->norm + 3*0,  cn, -cn,  cn);
+      ELL_3V_SET(pld->norm + 3*1, -cn, -cn,  cn);
+      ELL_3V_SET(pld->norm + 3*2,  cn,  cn,  cn);
+      ELL_3V_SET(pld->norm + 3*3, -cn,  cn,  cn);
+      ELL_3V_SET(pld->norm + 3*4,  cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*5, -cn,  cn, -cn);
+      ELL_3V_SET(pld->norm + 3*6,  cn, -cn, -cn);
+      ELL_3V_SET(pld->norm + 3*7, -cn, -cn, -cn);
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    if (sharpEdge) {
+      ELL_2V_SET(pld->tex2 + 2*14,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2*17,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2*20,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2*22,  0,  0);
+      ELL_2V_SET(pld->tex2 + 2* 4,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2*11,  0,  0);
+      ELL_2V_SET(pld->tex2 + 2*15,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2*21,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2* 7,  0,  0);
+      ELL_2V_SET(pld->tex2 + 2*10,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2*12,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2*16,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2* 1,  0,  0);
+      ELL_2V_SET(pld->tex2 + 2* 8,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2*13,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2*18,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2* 2,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2* 5,  0,  0);
+      ELL_2V_SET(pld->tex2 + 2*19,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2*23,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2* 0,  1,  1);
+      ELL_2V_SET(pld->tex2 + 2* 3,  0,  1);
+      ELL_2V_SET(pld->tex2 + 2* 6,  1,  0);
+      ELL_2V_SET(pld->tex2 + 2* 9,  0,  0);
+    } else {
+      ELL_2V_SET(pld->tex2 + 2*0, 1, 1);
+      ELL_2V_SET(pld->tex2 + 2*1, 0, 1);
+      ELL_2V_SET(pld->tex2 + 2*2, 1, 0);
+      ELL_2V_SET(pld->tex2 + 2*3, 0, 0);
+      ELL_2V_SET(pld->tex2 + 2*4, 1, 0);
+      ELL_2V_SET(pld->tex2 + 2*5, 0, 0);
+      ELL_2V_SET(pld->tex2 + 2*6, 1, 1);
+      ELL_2V_SET(pld->tex2 + 2*7, 0, 1);
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    if (sharpEdge) {
+      ELL_3V_SET(pld->tang + 3*14,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*17,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*20,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*22,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 4,  0, -1,  0);
+      ELL_3V_SET(pld->tang + 3*11,  0, -1,  0);
+      ELL_3V_SET(pld->tang + 3*15,  0, -1,  0);
+      ELL_3V_SET(pld->tang + 3*21,  0, -1,  0);
+      ELL_3V_SET(pld->tang + 3* 7, -1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*10, -1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*12, -1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*16, -1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 1,  0,  1,  0);
+      ELL_3V_SET(pld->tang + 3* 8,  0,  1,  0);
+      ELL_3V_SET(pld->tang + 3*13,  0,  1,  0);
+      ELL_3V_SET(pld->tang + 3*18,  0,  1,  0);
+      ELL_3V_SET(pld->tang + 3* 2,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 5,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*19,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3*23,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 0,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 3,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 6,  1,  0,  0);
+      ELL_3V_SET(pld->tang + 3* 9,  1,  0,  0);
+    } else {
+      float sn;
+      sn = AIR_CAST(float, 1.0/sqrt(2.0));
+      ELL_3V_SET(pld->tang + 3*0, -sn,  sn,  0);
+      ELL_3V_SET(pld->tang + 3*1,  sn,  sn,  0);
+      ELL_3V_SET(pld->tang + 3*2, -sn, -sn,  0);
+      ELL_3V_SET(pld->tang + 3*3,  sn, -sn,  0);
+      ELL_3V_SET(pld->tang + 3*4, -sn, -sn,  0);
+      ELL_3V_SET(pld->tang + 3*5,  sn, -sn,  0);
+      ELL_3V_SET(pld->tang + 3*6, -sn,  sn,  0);
+      ELL_3V_SET(pld->tang + 3*7,  sn,  sn,  0);
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
+      ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
+    }
+  }
+  
+  return 0;
+}
+
+int
 limnPolyDataOctahedron(limnPolyData *pld,
                        unsigned int infoBitFlag,
                        int sharpEdge) {
   static const char me[]="limnPolyDataOctahedron";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  float cn;
   
   vertNum = sharpEdge ? 4*6 : 6;
   primNum = 1;
@@ -194,9 +403,10 @@ limnPolyDataOctahedron(limnPolyData *pld,
     ELL_3V_SET(pld->indx + vertIdx,  1,  5,  4); vertIdx += 3; /* 7 */
   }
   
-  cn = AIR_CAST(float, 1.0/sqrt(3));
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
+      float cn;
+      cn = AIR_CAST(float, 1.0/sqrt(3));
       /* 0 */
       ELL_3V_SET(pld->norm +  3*0,  cn,  cn,  cn);
       ELL_3V_SET(pld->norm +  3*8,  cn,  cn,  cn);
@@ -299,7 +509,9 @@ limnPolyDataCylinder(limnPolyData *pld,
   primIdx = 0;
   vertIdx = 0;
   /* fan on top */
+  /* fprintf(stderr, "!%s: fan on top:\n", me); */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    /* fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx, thetaIdx); */
     pld->indx[vertIdx++] = thetaIdx;
   }
   pld->type[primIdx] = limnPrimitiveTriangleFan;
@@ -307,18 +519,40 @@ limnPolyDataCylinder(limnPolyData *pld,
   primIdx++;
   
   /* single strip around */
+  /* fprintf(stderr, "!%s: strip around:\n", me); */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    /*
+    fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx,
+            (sharpEdge ? 1 : 0)*thetaRes + thetaIdx);
+    */
     pld->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes + thetaIdx;
+    /*
+    fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx,
+            (sharpEdge ? 2 : 1)*thetaRes + thetaIdx);
+    */
     pld->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes + thetaIdx;
   }
+  /*
+  fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx,
+          (sharpEdge ? 1 : 0)*thetaRes);
+  */
   pld->indx[vertIdx++] = (sharpEdge ? 1 : 0)*thetaRes;
+  /*
+  fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx,
+          (sharpEdge ? 2 : 1)*thetaRes);
+  */
   pld->indx[vertIdx++] = (sharpEdge ? 2 : 1)*thetaRes;
   pld->type[primIdx] = limnPrimitiveTriangleStrip;
   pld->icnt[primIdx] = 2*(thetaRes+1);
   primIdx++;
   
   /* fan on bottom */
+  /* fprintf(stderr, "!%s: fan on bottom:\n", me); */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+    /*
+    fprintf(stderr, "!%s:   indx[%u] = %u\n", me, vertIdx,
+            (sharpEdge ? 3 : 1)*thetaRes + thetaIdx);
+    */
     pld->indx[vertIdx++] = (sharpEdge ? 3 : 1)*thetaRes + thetaIdx;
   }
   pld->type[primIdx] = limnPrimitiveTriangleFan;
@@ -350,6 +584,49 @@ limnPolyDataCylinder(limnPolyData *pld,
                       cth, sth, sq2);
         ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1*thetaRes), float,
                       cth, sth, -sq2);
+      }
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    if (sharpEdge) {
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 1);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 0*thetaRes), theta, 0);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 1*thetaRes), theta, 0);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 2*thetaRes), theta, 1);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 3*thetaRes), theta, 1);
+      }
+    } else {
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 1);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 0*thetaRes), theta, 0);
+        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 1*thetaRes), theta, 1);
+      }
+    }
+  }
+  
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    float xx, yy, tang[3], tlen;
+    if (sharpEdge) {
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        xx = (pld->xyzw + 4*(thetaIdx + 0*thetaRes))[0];
+        yy = (pld->xyzw + 4*(thetaIdx + 0*thetaRes))[1];
+        ELL_3V_SET(tang, -yy, xx, 0.0);
+        ELL_3V_NORM_TT(tang, float, tang, tlen);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 0*thetaRes), tang);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 1*thetaRes), tang);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 2*thetaRes), tang);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 3*thetaRes), tang);
+      }
+    } else {
+      for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
+        xx = (pld->xyzw + 4*(thetaIdx + 0*thetaRes))[0];
+        yy = (pld->xyzw + 4*(thetaIdx + 0*thetaRes))[1];
+        ELL_3V_SET(tang, -yy, xx, 0.0);
+        ELL_3V_NORM_TT(tang, float, tang, tlen);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 0*thetaRes), tang);
+        ELL_3V_COPY(pld->tang + 3*(thetaIdx + 1*thetaRes), tang);
       }
     }
   }
@@ -597,7 +874,8 @@ limnPolyDataSuperquadric(limnPolyData *pld,
 int
 limnPolyDataSpiralBetterquadric(limnPolyData *pld,
                                 unsigned int infoBitFlag,
-                                float alpha, float beta, float cee, float minRad,
+                                float alpha, float beta, float cee,
+                                float minRad,
                                 unsigned int thetaRes, unsigned int phiRes) {
   static const char me[]="limnPolyDataSpiralBetterquadric";
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
@@ -650,28 +928,57 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
           (pld->xyzw + 4*vertIdx)[1] *= AIR_CAST(float, AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
         }
       }
-      if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+      if (((1 << limnPolyDataInfoNorm) & infoBitFlag)
+          || ((1 << limnPolyDataInfoTang) & infoBitFlag)) {
+        double norm[3], nlen;
         if (1 == alpha && 1 == beta) {
-          ELL_3V_COPY(pld->norm + 3*vertIdx, pld->xyzw + 4*vertIdx);
+          ELL_3V_COPY(norm, pld->xyzw + 4*vertIdx);
         } else {
           if (!vertIdx) {
-            ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, 1);
+            ELL_3V_SET(norm, 0.0, 0.0, 1.0);
           } else {
-            ELL_3V_SET_TT(pld->norm + 3*vertIdx, float,
-                          (2*airSgnPow(cost,2-alpha)
-                           * airSgnPow(sinp,2-beta)/beta),
-                          (2*airSgnPow(sint,2-alpha)
-                           * airSgnPow(sinp,2-beta)/beta),
-                          2*airSgnPow(cosp,2-beta)/beta);
+            ELL_3V_SET(norm, 
+                       (2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta),
+                       (2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta),
+                       2*airSgnPow(cosp,2-beta)/beta);
           }
         }
+        if ((nlen = ELL_3V_LEN(norm))) {
+          ELL_3V_SCALE(norm, 1.0/nlen, norm);
+        } else {
+          ELL_3V_SET(norm, 0.0, 0.0, 1.0);
+        }
+        if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+          ELL_3V_COPY_TT(pld->norm + 3*vertIdx, float, norm);
+        }
+        if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+          double tang[3], tlen;
+          ELL_3V_SET(tang, -norm[1], norm[0], 0.0);
+          if ((tlen = ELL_3V_LEN(tang))) {
+            ELL_3V_SCALE(tang, 1.0/tlen, tang);
+          } else {
+            ELL_3V_SET(tang, 1.0, 0.0, 0.0);
+          }
+          ELL_3V_COPY_TT(pld->tang + 3*vertIdx, float, tang);
+        }
+      }
+      if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+        ELL_2V_SET(pld->tex2 + 2*vertIdx, 
+                   AIR_AFFINE(0.0, theta, 2*AIR_PI, 0.0, 1.0),
+                   AIR_AFFINE(0.0, phi, AIR_PI, 0.0, 1.0));
       }
       ++vertIdx;
     }
   }
   ELL_4V_SET(pld->xyzw + 4*vertIdx, 0, 0, -1, 1);
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-    ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, -1);
+    ELL_3V_SET(pld->norm + 3*vertIdx, 0.0, 0.0, -1.0);
+  }
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    ELL_2V_SET(pld->tex2 + 2*vertIdx, 0.5, 1.0);
+  }
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    ELL_3V_SET(pld->tang + 3*vertIdx, 1.0, 0.0, 0.0);
   }
   ++vertIdx;
   
@@ -967,6 +1274,31 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       rgbap+=4; vertp+=3;
     }
   }
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    for (i=0; i<vertNum; i++) {
+      double rr, xyz[3], phi, theta;
+      ELL_3V_COPY(xyz, pld->xyzw + 4*i);
+      rr = sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1]);
+      phi = atan2(rr, xyz[2]);
+      theta = atan2(xyz[1], xyz[0]);
+      ELL_2V_SET_TT(pld->tex2 + 2*i, float, 
+                    AIR_AFFINE(-AIR_PI, theta, AIR_PI, 0.0, 1.0),
+                    AIR_AFFINE(0.0, phi, AIR_PI, 0.0, 1.0));
+    }
+  }
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    for (i=0; i<vertNum; i++) {
+      double rr, xyz[3], tang[3], len;
+      ELL_3V_COPY(xyz, pld->xyzw + 4*i);
+      rr = sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1]);
+      if (rr) {
+        ELL_3V_SET(tang, -xyz[1], xyz[0], 0.0);
+        ELL_3V_NORM_TT(pld->tang + 3*i, float, tang, len);
+      } else {
+        ELL_3V_SET(pld->tang + 3*i, 1.0f, 0.0f, 0.0f);
+      }
+    }
+  }
   
   /* We need to replace reference to edges in faces with references to
    * vertices. Make sure that they are ordered CCW */
@@ -1040,10 +1372,16 @@ limnPolyDataPlane(limnPolyData *pld,
       uu = AIR_CAST(float, AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
       ELL_4V_SET(pld->xyzw + 4*vertIdx, uu, vv, 0.0, 1.0);
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-        ELL_4V_SET(pld->norm + 3*vertIdx, 0.0, 0.0, 1.0, 0.0);
+        ELL_3V_SET(pld->norm + 3*vertIdx, 0.0, 0.0, 1.0);
       }
       if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
         ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
+      }
+      if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+        ELL_2V_SET(pld->tex2 + 2*vertIdx, (uu+1.0)/2.0, (vv+1.0)/2.0);
+      }
+      if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+        ELL_3V_SET(pld->tang + 3*vertIdx, 1.0, 0.0, 0.0);
       }
       ++vertIdx;
     }
@@ -1061,3 +1399,47 @@ limnPolyDataPlane(limnPolyData *pld,
   
   return 0;
 }
+
+int
+limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag) {
+  static const char me[]="limnPolyDataSquare";
+
+  if (limnPolyDataAlloc(pld, infoBitFlag, 4, 4, 1)) {
+    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    return 1;
+  }
+  ELL_4V_SET(pld->xyzw + 4*0, -1.0, -1.0, 0.0, 1.0);
+  ELL_4V_SET(pld->xyzw + 4*1,  1.0, -1.0, 0.0, 1.0);
+  ELL_4V_SET(pld->xyzw + 4*2, -1.0,  1.0, 0.0, 1.0);
+  ELL_4V_SET(pld->xyzw + 4*3,  1.0,  1.0, 0.0, 1.0);
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    ELL_3V_SET(pld->norm + 3*0, 0.0, 0.0, 1.0);
+    ELL_3V_SET(pld->norm + 3*1, 0.0, 0.0, 1.0);
+    ELL_3V_SET(pld->norm + 3*2, 0.0, 0.0, 1.0);
+    ELL_3V_SET(pld->norm + 3*3, 0.0, 0.0, 1.0);
+  }
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    ELL_4V_SET(pld->rgba + 4*0, 255, 255, 255, 255);
+    ELL_4V_SET(pld->rgba + 4*1, 255, 255, 255, 255);
+    ELL_4V_SET(pld->rgba + 4*2, 255, 255, 255, 255);
+    ELL_4V_SET(pld->rgba + 4*3, 255, 255, 255, 255);
+  }
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    ELL_2V_SET(pld->tex2 + 2*0, 0.0, 1.0);
+    ELL_2V_SET(pld->tex2 + 2*1, 1.0, 1.0);
+    ELL_2V_SET(pld->tex2 + 2*2, 0.0, 0.0);
+    ELL_2V_SET(pld->tex2 + 2*3, 1.0, 0.0);
+  }
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    ELL_3V_SET(pld->tang + 3*0, 1.0, 0.0, 0.0);
+    ELL_3V_SET(pld->tang + 3*1, 1.0, 0.0, 0.0);
+    ELL_3V_SET(pld->tang + 3*2, 1.0, 0.0, 0.0);
+    ELL_3V_SET(pld->tang + 3*3, 1.0, 0.0, 0.0);
+  }
+  pld->type[0] = limnPrimitiveTriangleStrip;
+  ELL_4V_SET(pld->indx, 0, 1, 2, 3);
+  pld->icnt[0] = 4;
+
+  return 0;
+}
+
