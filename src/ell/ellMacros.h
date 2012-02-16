@@ -94,6 +94,10 @@ extern "C" {
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))
 
+#define ELL_2V_SET_TT(v, TT, a, b) \
+  ((v)[0] = AIR_CAST(TT, (a)), \
+   (v)[1] = AIR_CAST(TT, (b)))
+
 #define ELL_2V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1])
 
@@ -127,6 +131,10 @@ extern "C" {
 
 #define ELL_2V_COPY(v2, v1) \
   ((v2)[0] = (v1)[0], (v2)[1] = (v1)[1])
+
+#define ELL_2V_COPY_TT(v2, TYPE, v1)  \
+  ((v2)[0] = AIR_CAST(TYPE, (v1)[0]), \
+   (v2)[1] = AIR_CAST(TYPE, (v1)[1]))
 
 #define ELL_2V_DOT(v1, v2) ((v1)[0]*(v2)[0] + (v1)[1]*(v2)[1])
 
