@@ -43,11 +43,11 @@
  */
 int elfKernelStick_f(float *kernel, unsigned int order, float bd,
                      float b0, int delta) {
-  float ebd=exp(bd);
-  float embd=exp(-bd);
-  float sbd=sqrt(bd);
-  float erfsbd=airErf(sbd);
-  float spi=sqrt(AIR_PI);
+  double ebd=exp(bd);
+  double embd=exp(-bd);
+  double sbd=sqrt(bd);
+  double erfsbd=airErf(sbd);
+  double spi=sqrt(AIR_PI);
   kernel[0]=b0*AIR_PI*erfsbd/sbd;
   if (order>=2) {
     kernel[1]=-b0/(4.0*bd*sbd)*embd*sqrt(5*AIR_PI)*
@@ -99,7 +99,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
                       const float *T, unsigned int order, int delta)
 {
   unsigned int C = tijk_esh_len[order/2], k, l;
-  float mean=0, _d=0;
+  float mean=0, _d=1e-20; /* small epsilon to avoid potential divide by zero */
   float *odfp = odf;
   float isovf0, isovf1, _fiso;
   float kernel[10]; /* should be tijk_max_esh_order/2+1,
