@@ -32,6 +32,9 @@
 extern "C" {
 #endif
 
+/* suffix string that indicates percentile-based min/max */
+#define MINMAX_PERC_SUFF "%"
+
 /*
 ** OPT_ADD_XXX
 **

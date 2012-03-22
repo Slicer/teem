@@ -23,9 +23,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-/* suffix string that indicates percentile-based min/max */
-#define PSUFF "%"
-
 #define INFO "Quantize values to 8, 16, or 32 bits"
 char *_unrrdu_quantizeInfoL = 
 (INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
@@ -33,9 +30,9 @@ char *_unrrdu_quantizeInfoL =
  "they are quantized, so there is no risk of getting 255 where you expect 0 "
  "(with unsigned char output, for example).  The min and max can be specified "
  "explicitly (as a regular number), or in terms of percentiles (a number "
- "suffixed with \"" PSUFF "\", no space in between).  This does only linear "
- "quantization.  See also \"unu convert\", \"unu 2op x\", and \"unu 3op "
- "clamp\".\n "
+ "suffixed with \"" MINMAX_PERC_SUFF "\", no space in between).  This does "
+ " only linear quantization.  See also \"unu convert\", \"unu 2op x\", "
+ "and \"unu 3op clamp\".\n "
  "* Uses nrrdQuantize");
 
 int
@@ -60,12 +57,14 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
              &_minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" PSUFF"\" suffix, this "
+             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF 
+             "\" suffix, this "
              "minimum is specified in terms of the percentage of samples in "
              "input that are lower. "
-             "\"0" PSUFF "\" means the lowest input value is used, "
-             "\"1" PSUFF "\" means that the 1% of the lowest values "
-             "are all mapped to zero. "
+             "\"0" MINMAX_PERC_SUFF "\" means the "
+             "lowest input value is used, "
+             "\"1" MINMAX_PERC_SUFF "\" means that the "
+             "1% of the lowest values are all mapped to zero. "
              "By default (not using this option), the lowest input value is "
              "used.");
   hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
@@ -73,10 +72,10 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
-             "a \"" PSUFF "\" suffix, this maximum is specified in terms of "
-             "the percentage of samples in input that are higher. "
-             "\"0" PSUFF "\" means the highest input value is used, "
-             "which is also the default "
+             "a \"" MINMAX_PERC_SUFF "\" suffix, this maximum is specified "
+             "in terms of the percentage of samples in input that are higher. "
+             "\"0" MINMAX_PERC_SUFF "\" means the highest input value is "
+             "used, which is also the default "
              "behavior (same as not using this option).");
   hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
              "number of bins in histogram of values, for determining min "
@@ -116,9 +115,9 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
       mmStr = maxStr;
       mmPerc = &maxPerc;
     }
-    if (airEndsWith(mmStr, PSUFF)) {
+    if (airEndsWith(mmStr, MINMAX_PERC_SUFF)) {
       *mmPerc = AIR_TRUE;
-      mmStr[strlen(mmStr)-strlen(PSUFF)] = '\0';
+      mmStr[strlen(mmStr)-strlen(MINMAX_PERC_SUFF)] = '\0';
     }
     if (1 != airSingleSscanf(mmStr, "%lf", mm)) {
       fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, 
