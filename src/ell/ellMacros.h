@@ -637,6 +637,8 @@ extern "C" {
 #define ELL_4V_SET(v, a, b, c, d) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c), (v)[3] = (d))
 
+#define ELL_4V_ZERO_SET(v)  ELL_4V_SET(v, 0, 0, 0, 0)
+
 #define ELL_4V_NAN_SET(v) ( \
   (v)[0] = AIR_NAN, \
   (v)[1] = AIR_NAN, \
