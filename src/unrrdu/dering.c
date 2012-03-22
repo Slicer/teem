@@ -37,9 +37,10 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   airArray *mop;
   int pret;
 
+  Nrrd *nmask;
   NrrdDeringContext *drc;
-  double center[2], radScale, clampPerc[2];
-  int verbose, linterp;
+  double center[2], radScale, clampPerc[2], backval;
+  int verbose, linterp, vertSeam;
   unsigned int thetaNum;
   NrrdKernelSpec *rkspec, *tkspec;
 
@@ -52,6 +53,9 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "verbosity level");
   hestOptAdd(&opt, "li,linterp", "bool", airTypeBool, 1, 1, &linterp, "false",
              "whether to use linear interpolation during polar transform");
+  hestOptAdd(&opt, "vs,vertseam", "bool", airTypeBool, 1, 1, &vertSeam, "false",
+             "whether to dering left and right sides separately "
+             "(requires an even value for -tn thetanum)");
   hestOptAdd(&opt, "tn,thetanum", "# smpls", airTypeUInt, 1, 1, &thetaNum,
              "20", "# of theta samples");
   hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale,
@@ -69,6 +73,17 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "when clamping values as part of ring estimation, the "
              "clamping range is set to exclude this percent of values "
              "from the low and high end of the data range");
+  hestOptAdd(&opt, "m,mask", "mask", airTypeOther, 1, 1, &nmask, "",
+             "optional: after deringing, output undergoes a lerp, "
+             "parameterized by this array, from the background value "
+             "(via \"-b\") where mask=0 to the original deringing "
+             "output where mask=1.  This lerp is effectively the same "
+             "as a \"unu 3op lerp\", so this should either be match the "
+             "input in size, or match its slices along the slowest axis.",
+             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "b,back", "val", airTypeDouble, 1, 1, &backval, "0.0",
+             "when using a mask (\"-m\"), the background value to "
+             "lerp with.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -82,11 +97,24 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
+  if (nmask) {
+    if (!(2 == nmask->dim
+          && nrrdTypeBlock != nmask->type
+          && nmask->axis[0].size == nin->axis[0].size
+          && nmask->axis[1].size == nin->axis[1].size)) {
+      fprintf(stderr, "%s: given mask not 2-D %u-by-%u array of scalar type",
+              me, AIR_CAST(unsigned int, nin->axis[0].size),
+              AIR_CAST(unsigned int, nin->axis[1].size));
+      airMopError(mop);
+      return 1;
+    }
+  }
+
   drc = nrrdDeringContextNew();
   airMopAdd(mop, drc, (airMopper)nrrdDeringContextNix, airMopAlways);
-
   if (nrrdDeringVerboseSet(drc, verbose)
       || nrrdDeringLinearInterpSet(drc, linterp)
+      || nrrdDeringVerticalSeamSet(drc, vertSeam)
       || nrrdDeringInputSet(drc, nin)
       || nrrdDeringCenterSet(drc, center[0], center[1])
       || nrrdDeringRadiusScaleSet(drc, radScale)
@@ -99,6 +127,32 @@ unrrdu_deringMain(int argc, const char **argv, char *me, hestParm *hparm) {
     fprintf(stderr, "%s: error deringing:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+
+  if (nmask) {
+    NrrdIter *nitout, *nitmask, *nitback;
+    Nrrd *ntmp;
+    nitout = nrrdIterNew();
+    airMopAdd(mop, nitout, (airMopper)nrrdIterNix, airMopAlways);
+    nitmask = nrrdIterNew();
+    airMopAdd(mop, nitmask, (airMopper)nrrdIterNix, airMopAlways);
+    nitback = nrrdIterNew();
+    airMopAdd(mop, nitback, (airMopper)nrrdIterNix, airMopAlways);
+    nrrdIterSetValue(nitback, backval);
+    
+    ntmp = nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+
+    nrrdIterSetNrrd(nitout, nout);
+    nrrdIterSetNrrd(nitmask, nmask);
+    if (nrrdArithIterTernaryOpSelect(ntmp, nrrdTernaryOpLerp,
+                                     nitmask, nitback, nitout, 2)
+        || nrrdCopy(nout, ntmp)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error masking:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
   }
 
   SAVE(out, nout, NULL);
