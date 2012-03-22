@@ -120,10 +120,10 @@ outputGet(pullBag *bag) {
       || pullPropGet(bag->nenr, pullPropEnergy, bag->pctx)
       || pullPropGet(bag->nidcc, pullPropIdCC, bag->pctx)
       || pullPropGet(bag->nstuck, pullPropStuck, bag->pctx)
-      /*
       || pullPropGet(bag->ncovar, pullPropNeighCovar7Ten, bag->pctx)
+#if PULL_TANCOVAR
       || pullPropGet(bag->ntcovar, pullPropNeighTanCovar, bag->pctx)
-      */
+#endif
       || pullPropGet(bag->nstab, pullPropStability, bag->pctx)
       || pullPropGet(bag->nintern, pullPropNeighInterNum, bag->pctx)
       || pullPropGet(bag->nFrcOut, pullPropForce, bag->pctx)
@@ -294,7 +294,7 @@ outputShow(pullBag *bag) {
     ccrgb = (float*)bag->nccrgb->data;
     /* ee = bag->cvalRange->min - (bag->icvalr[1] - bag->icvalr[0])/50;*/
     ee = bag->cvalRange->min;
-    if (bag->pctx->CCNum) {
+    if (bag->pctx->CCNum && ccrgb) {
       rgb[0 + 3*ii] = ccrgb[0 + 3*idcc[ii]];
       rgb[1 + 3*ii] = ccrgb[1 + 3*idcc[ii]];
       rgb[2 + 3*ii] = ccrgb[2 + 3*idcc[ii]];
@@ -337,6 +337,15 @@ outputShow(pullBag *bag) {
       } else {
         ten[0] = 1;
       }
+      /*
+      if (4589 == ii) {
+        fprintf(stderr, "!%s: point %u/%u at (%g,%g,%g)=(%g,%g,%g,%g) got ten[0] %g\n",
+                me, ii, nn, 
+                pos[0], pos[1], pos[1],
+                posOut[0], posOut[1], posOut[2], posOut[3], 
+                ten[0]);
+      }
+      */
       pos += 3;
       posOut += 4;
       ten += 7;
@@ -470,14 +479,20 @@ scaleGlyph_cb(fltk::Widget *, pullBag *bag) {
 void
 reblur_cb(fltk::Widget *, pullBag *bag) {
   static const char me[]="reblur_cb";
-  double kparm[NRRD_KERNEL_PARMS_NUM];
+  double kparm[NRRD_KERNEL_PARMS_NUM], scl;
   int E;
 
   if (!bag->pctx->haveScale) {
     return;
   }
-  kparm[0] = bag->sclMean->value();
-  printf("!%s: sigma = %g\n", me, kparm[0]);
+  scl = bag->sclMean->value();
+  if (bag->pctx->flag.scaleIsTau) {
+    kparm[0] = gageSigOfTau(scl);
+    printf("!%s: tau = %g ---> sigma = %g\n", me, scl, kparm[0]);
+  } else {
+    kparm[0] = scl;
+    printf("!%s: sigma = %g\n", me, kparm[0]);
+  }
   kparm[1] = 3;
   E = 0;
   for (unsigned int axi=0; axi<3; axi++) {
@@ -645,10 +660,10 @@ save_cb(fltk::Widget *, pullBag *bag) {
     ff = airFclose(ff);
     nrrdSave(fname, nPosSel, NULL);
   }
-  /*
   nrrdSave("covar-all.nrrd", bag->ncovar, NULL);
+#if PULL_TANCOVAR
   nrrdSave("tcovar-all.nrrd", bag->ntcovar, NULL);
-  */
+#endif
   nrrdSave("stab-all.nrrd", bag->nstab, NULL);
   nrrdSave("intern-all.nrrd", bag->nintern, NULL);
   if (bag->nstrn) {
@@ -1171,6 +1186,10 @@ main(int argc, const char **argv) {
       ssrange[1] = AIR_MAX(ssrange[1], vol->rangeSS[1]);
     }
   }
+  if (pctx->flag.scaleIsTau) {
+    ssrange[0] = gageTauOfSig(ssrange[0]);
+    ssrange[1] = gageTauOfSig(ssrange[1]);
+  }
   
 #ifdef DEFT
   /* -------------------------------------------------- */
@@ -1186,10 +1205,10 @@ main(int argc, const char **argv) {
   bag.nenr = nrrdNew();
   bag.nscl = nrrdNew();
   bag.nidcc = nrrdNew();
-  /*
   bag.ncovar = nrrdNew();
+#if PULL_TANCOVAR
   bag.ntcovar = nrrdNew();
-  */
+#endif
   bag.nstab = nrrdNew();
   bag.nintern = nrrdNew();
   if (pctx->ispec[pullInfoStrength]) {
@@ -1584,8 +1603,9 @@ main(int argc, const char **argv) {
     }
     nrrdSave("eplot.nrrd", nplot, NULL);
     nplot = nrrdNuke(nplot);
-
+#if PULL_HINTER
     pctx->nhinter = nrrdNew();
+#endif
   }
 
   if (fog) {
