@@ -399,8 +399,10 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
 }
 
 int
-nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  static const char me[]="nrrdArithIterBinaryOp";
+nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
+                            NrrdIter *inA, NrrdIter *inB,
+                            unsigned int which) {
+  static const char me[]="nrrdArithIterBinaryOpSelect";
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
@@ -416,11 +418,15 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
     biffAddf(NRRD, "%s: binary op %d invalid", me, op);
     return 1;
   }
-  nin = (_NRRD_ITER_NRRD(inA) 
+  if (!( 0 == which || 1 == which )) {
+    biffAddf(NRRD, "%s: which %u not 0 or 1", me, which);
+    return 1;
+  }
+  nin = (0 == which
          ? _NRRD_ITER_NRRD(inA) 
          : _NRRD_ITER_NRRD(inB));
   if (!nin) {
-    biffAddf(NRRD, "%s: can't operate on two fixed values", me);
+    biffAddf(NRRD, "%s: selected input %u is a fixed value", me, which);
     return 1;
   }
   type = nin->type;
@@ -466,6 +472,31 @@ nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   }
   free(contA);
   free(contB); 
+  return 0;
+}
+
+int
+nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
+  static const char me[]="nrrdArithIterBinaryOp";
+  unsigned int which;
+
+  if (!(nout && inA && inB)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  which = (_NRRD_ITER_NRRD(inA) 
+           ? 0
+           : (_NRRD_ITER_NRRD(inB)
+              ? 1
+              : 2));
+  if (2 == which) {
+    biffAddf(NRRD, "%s: can't operate on two fixed values", me);
+    return 1;
+  }
+  if (nrrdArithIterBinaryOpSelect(nout, op, inA, inB, which)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
   return 0;
 }
 
@@ -658,9 +689,10 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
 }
 
 int
-nrrdArithIterTernaryOp(Nrrd *nout, int op,
-                       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  static const char me[]="nrrdArithIterTernaryOp";
+nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
+                             NrrdIter *inA, NrrdIter *inB, NrrdIter *inC,
+                             unsigned int which) {
+  static const char me[]="nrrdArithIterTernaryOpSelect";
   char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
@@ -676,13 +708,17 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
     biffAddf(NRRD, "%s: ternary op %d invalid", me, op);
     return 1;
   }
-  nin = (_NRRD_ITER_NRRD(inA) 
+  if (!( 0 == which || 1 == which || 2 == which )) {
+    biffAddf(NRRD, "%s: which %u not valid, want 0, 1, or 2", me, which);
+    return 1;
+  }
+  nin = (0 == which
          ? _NRRD_ITER_NRRD(inA) 
-         : (_NRRD_ITER_NRRD(inB) 
+         : (1 == which
             ? _NRRD_ITER_NRRD(inB) 
             : _NRRD_ITER_NRRD(inC)));
   if (!nin) {
-    biffAddf(NRRD, "%s: can't operate on three fixed values", me);
+    biffAddf(NRRD, "%s: selected input %u is a fixed value", me, which);
     return 1;
   }
   type = nin->type;
@@ -737,6 +773,34 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op,
   free(contA);
   free(contB); 
   free(contC); 
+  return 0;
+}
+
+int
+nrrdArithIterTernaryOp(Nrrd *nout, int op,
+                       NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
+  static const char me[]="nrrdArithIterTernaryOp";
+  unsigned int which;
+
+  if (!(nout && inA && inB && inC)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  which = (_NRRD_ITER_NRRD(inA) 
+           ? 0
+           : (_NRRD_ITER_NRRD(inB) 
+              ? 1
+              : (_NRRD_ITER_NRRD(inC)
+                 ? 2
+                 : 3 )));
+  if (3 == which) {
+    biffAddf(NRRD, "%s: can't operate on 3 fixed values", me);
+    return 1;
+  }
+  if (nrrdArithIterTernaryOpSelect(nout, op, inA, inB, inC, which)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
   return 0;
 }
 

@@ -31,6 +31,11 @@
 
 /* TODO: 
  *
+ * make sure all outout values exist (test with d/xiao/todering/xing)
+ *
+ * permit controlling the extent of correction (don't subtract out 
+ * all the estimated ring signal)
+ * 
  * valgrind
  *
  * make it multi-threaded

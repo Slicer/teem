@@ -1192,9 +1192,16 @@ NRRD_EXPORT int nrrdArithAffine(Nrrd *nout, double minIn,
                                 int clamp);
 NRRD_EXPORT int nrrdArithIterBinaryOp(Nrrd *nout, int op,
                                       NrrdIter *inA, NrrdIter *inB);
+NRRD_EXPORT int nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
+                                            NrrdIter *inA, NrrdIter *inB,
+                                            unsigned int which);
 NRRD_EXPORT int nrrdArithIterTernaryOp(Nrrd *nout, int op,
                                        NrrdIter *inA, NrrdIter *inB,
                                        NrrdIter *inC);
+NRRD_EXPORT int nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
+                                             NrrdIter *inA, NrrdIter *inB,
+                                             NrrdIter *inC,
+                                             unsigned int which);
 NRRD_EXPORT int nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
                                     NrrdIter *in, NrrdIter *maxIn,
                                     NrrdIter *minOut, NrrdIter *maxOut,
