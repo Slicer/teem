@@ -1335,6 +1335,8 @@ TEN_EXPORT void tenRotateSingle_f(float tenOut[7],
 TEN_EXPORT int tenTensorCheck(const Nrrd *nin,
                               int wantType, int want4D, int useBiff);
 TEN_EXPORT int tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin);
+TEN_EXPORT int tenExpand2D(Nrrd *nout, const Nrrd *nin,
+                           double scale, double thresh);
 TEN_EXPORT int tenExpand(Nrrd *tnine, const Nrrd *tseven,
                          double scale, double thresh);
 TEN_EXPORT int tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine);

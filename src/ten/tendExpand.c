@@ -23,14 +23,17 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define INFO "Converts a 7-value DT volume to a 9-value DT volume"
+#define INFO "Converts masked non-redundant tensor images to redundant"
 char *_tend_expandInfoL =
   (INFO
-   ". The 7-value tensor is confidence value followed by the unique "
-   "tensor components (Dxx, Dxy, Dxz, Dyy, Dyz, Dzz).  The 9-value tensor "
-   "is the full matrix (Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz), "
-   "which is set to all zeros when the confidence is below the given "
-   "threshold.");
+   ". For images of 3D tensors, this converts from a 7-value tensor "
+   "starting with the confidence/mask value "
+   "(conf, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz) to "
+   "a 9-value tensor with the full matrix "
+   "(Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz). "
+   "This is set to all zeros when the confidence is below the given "
+   "threshold. For images of 2D tensors, the conversion is from "
+   "(conf, Dxx, Dxy, Dyy) to (Dxx, Dxy, Dxy, Dyy). " );
 
 int
 tend_expandMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -83,7 +86,9 @@ tend_expandMain(int argc, const char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
   }
-  if (tenExpand(nout, nin, scale, thresh)) {
+  if (4 == nin->axis[0].size
+      ? tenExpand2D(nout, nin, scale, thresh)
+      : tenExpand(nout, nin, scale, thresh)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
     airMopError(mop); return 1;

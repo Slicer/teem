@@ -163,6 +163,84 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
 }
 
 int
+tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
+  static const char me[]="tenExpand2D";
+  size_t N, I, sx, sy;
+  float *masked, *redund;
+
+  if (!( nout && nin && AIR_EXISTS(thresh) )) {
+    biffAddf(TEN, "%s: got NULL pointer or non-existent threshold", me);
+    return 1;
+  }
+  if (nout == nin) {
+    biffAddf(TEN, "%s: sorry, need different nrrds for input and output", me);
+    return 1;
+  }
+  /* HEY copy and paste and tweak of tenTensorCheck */
+  if (!nin) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (nin->type != nrrdTypeFloat) {
+    biffAddf(TEN, "%s: wanted type %s, got type %s", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nin->type));
+    return 1;
+  } else {
+    if (!(nin->type == nrrdTypeFloat || nin->type == nrrdTypeShort)) {
+      biffAddf(TEN, "%s: need data of type float or short", me);
+      return 1;
+    }
+  }
+  if (3 != nin->dim) {
+    biffAddf(TEN, "%s: given dimension is %u, not 3", me, nin->dim);
+    return 1;
+  }
+  if (!(4 == nin->axis[0].size)) {
+    char stmp[AIR_STRLEN_SMALL];
+    biffAddf(TEN, "%s: axis 0 has size %s, not 4", me,
+               airSprintSize_t(stmp, nin->axis[0].size));
+    return 1;
+  }
+
+  sx = nin->axis[1].size;
+  sy = nin->axis[2].size;
+  N = sx*sy;
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, 
+                        AIR_CAST(size_t, 4), sx, sy)) {
+    biffMovef(TEN, NRRD, "%s: trouble", me);
+    return 1;
+  }
+  for (I=0; I<=N-1; I++) {
+    masked = (float*)(nin->data) + I*4;
+    redund = (float*)(nout->data) + I*4;
+    if (masked[0] < thresh) {
+      ELL_4V_ZERO_SET(redund);
+      continue;
+    }
+    redund[0] = masked[1];
+    redund[1] = masked[2];
+    redund[2] = masked[2];
+    redund[3] = masked[3];
+    ELL_4V_SCALE(redund, AIR_CAST(float, scale), redund);
+  }
+  if (nrrdAxisInfoCopy(nout, nin, NULL,
+                       NRRD_AXIS_INFO_SIZE_BIT)) {
+    biffMovef(TEN, NRRD, "%s: trouble", me);
+    return 1;
+  }
+  /* by call above we just copied axis-0 kind, which might be wrong;
+     we actually know the output kind now, so we might as well set it */
+  nout->axis[0].kind = nrrdKind2DMatrix;
+  if (nrrdBasicInfoCopy(nout, nin,
+                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    biffAddf(TEN, "%s:", me);
+    return 1;
+  }
+  return 0;
+}
+
+int
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   static const char me[]="tenExpand";
   size_t N, I, sx, sy, sz;
@@ -666,6 +744,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
       biffMovef(TEN, NRRD, "%s: trouble collecting coefficients", me);
       airMopError(mop); return 1;
     }
+    nout->axis[0].kind = nrrdKind2DMaskedSymMatrix;
   }
 
   airMopOkay(mop);
