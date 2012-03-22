@@ -38,7 +38,7 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
   Nrrd *nout, *ntmp=NULL;
-  int op, type, E, pret;
+  int op, type, E, pret, which;
   airArray *mop;
 
   hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
@@ -86,6 +86,10 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "By default (not using this option), the types of the input "
              "nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd(&opt, "w,which", "arg", airTypeInt, 1, 1, &which, "-1",
+             "Which argument (0, 1, or 2) should be used to determine the "
+             "shape of the output nrrd. By default (not using this option), "
+             "the first non-constant argument is used. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -131,7 +135,10 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   /* HEY: will need to add handling of RNG seed (as in 1op and 2op) 
      if there are any 3ops involving random numbers */
 
-  if (nrrdArithIterTernaryOp(nout, op, in1, in2, in3)) {
+  if (-1 == which
+      ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
+      : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3,
+                                     AIR_CAST(unsigned int, which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);
