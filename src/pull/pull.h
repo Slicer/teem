@@ -303,6 +303,19 @@ enum {
 };
 #define PULL_COUNT_MAX             14
 
+/*
+** reasons for pullTraceSet to stop (or go nowhere)
+*/
+enum {
+  pullTraceStopUnknown,         /* 0 */
+  pullTraceStopSpeeding,        /* 1 */
+  pullTraceStopConstrFail,      /* 2 */
+  pullTraceStopBounds,          /* 3 */
+  pullTraceStopLength,          /* 4 */
+  pullTraceStopLast
+};
+#define PULL_TRACE_STOP_MAX        4
+
 /* 
 ** Defines how par-particle information can be learned.  This is
 ** typically via measurements in the image by gage, but other sources
@@ -502,8 +515,9 @@ typedef struct pullTask_t {
 enum {
   pullInitMethodUnknown,       /* 0 */
   pullInitMethodRandom,        /* 1 */
-  pullInitMethodPointPerVoxel, /* 2 */
-  pullInitMethodGivenPos,      /* 3 */
+  pullInitMethodHalton,        /* 2 */
+  pullInitMethodPointPerVoxel, /* 3 */
+  pullInitMethodGivenPos,      /* 4 */
   pullInitMethodLast
 };
 
@@ -522,7 +536,8 @@ typedef struct {
                                are due to using differently shaped volumes */
   double jitter;            /* w/ PointPerVoxel,
                                how much to jitter index space positions */
-  unsigned int numInitial,  /* w/ Random, # points to start with */
+  unsigned int numInitial,  /* w/ Random OR Halton, # points to start with */
+    startIndex,             /* w/ Halton, first index to use */
     samplesAlongScaleNum,   /* w/ PointPerVoxel,
                                # of samples along scale (distributed
                                uniformly in scale's *index* space*/
@@ -937,18 +952,29 @@ typedef struct pullContext_t {
 } pullContext;
 
 /*
-******** pullTraceSingle
+******** pullTrace
 */
 typedef struct {
   double seedPos[4];    /* where was the seed point */
   /* ------- output ------- */
   Nrrd *nvert,          /* locations of tract vertices */
-    *nstrn,             /* 1-D array of strengths (if known) */
+    *nstrn,             /* if non-NULL, 1-D array of strengths */
     *nvelo;             /* 1-D list of velocities */
   unsigned int seedIdx, /* which index in nvert is for seedpoint */
     stepNum[2];         /* (same as in tenFiberContext) */
-  int speeding, nonstarter, calstop;
-} pullTraceSingle;
+  int whyStop[2],       /* why backward/forward (0/1) tracing stopped
+                           (from pullTraceStop* enum) */
+    whyNowhere;         /* why trace never started (from pullTraceStop*) */
+} pullTrace;
+
+/*
+******** pullTraceMulti
+*/
+typedef struct {
+  pullTrace **trace;
+  unsigned int traceNum;
+  airArray *traceArr;
+} pullTraceMulti;
 
 /*
 ******** pullPtrPtrUnion
@@ -968,6 +994,8 @@ PULL_EXPORT const char *pullBiffKey;
 
 /* initPull.c */
 PULL_EXPORT int pullInitRandomSet(pullContext *pctx, unsigned int numInitial);
+PULL_EXPORT int pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
+                                  unsigned int start);
 PULL_EXPORT int pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
                                          unsigned int zSlcMin,
                                          unsigned int zSlcMax,
@@ -1093,13 +1121,25 @@ PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
                                       /* output */
                                       pullBin **binUsed, int *added);
 
-/* constraints.c */
-PULL_EXPORT pullTraceSingle *pullTraceSingleNew(void);
-PULL_EXPORT pullTraceSingle *pullTraceSingleNix(pullTraceSingle *pts);
-PULL_EXPORT int pullScaleTrace(pullContext *pctx, pullTraceSingle *pts,
-                               int useStrength,
-                               double scaleDelta, double halfLenScale,
-                               double velocityMax, const double start[4]);
+/* trace.c */
+PULL_EXPORT pullTrace *pullTraceNew(void);
+PULL_EXPORT pullTrace *pullTraceNix(pullTrace *pts);
+PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
+                             int recordStrength,
+                             double scaleDelta, double halfScaleWin,
+                             double velocityMax, unsigned int arrIncr,
+                             const double seedPos[4]);
+PULL_EXPORT pullTraceMulti *pullTraceMultiNew();
+PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc);
+PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
+                                                const pullTraceMulti *mtrc,
+                                                double winLenFrac);
+PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot,
+                                      const pullTraceMulti *mtrc,
+                                      const Nrrd *nfilt,
+                                      unsigned int trcIdxMin,
+                                      unsigned int trcNum);
+PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
 
 /* actionPull.c */
 PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,

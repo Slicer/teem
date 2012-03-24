@@ -775,6 +775,33 @@ _pullPointInitializePerVoxel(const pullContext *pctx,
   return 0;
 }
 
+static void
+_pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol,
+                 double wrld[4], const double unit[4]) {
+  /* static const char me[]="_pullUnitToWorld"; */
+
+  wrld[0] = AIR_AFFINE(0.0, unit[0], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
+  wrld[1] = AIR_AFFINE(0.0, unit[1], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
+  wrld[2] = AIR_AFFINE(0.0, unit[2], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
+  if (pctx->haveScale) {
+    double sridx;
+    int outside;
+    sridx = AIR_AFFINE(0.0, unit[3], 1.0, 0, scaleVol->scaleNum-1);
+    wrld[3] = gageStackItoW(scaleVol->gctx, sridx, &outside);
+    if (pctx->flag.scaleIsTau) {
+      wrld[3] = gageTauOfSig(wrld[3]);
+    }
+  } else {
+    wrld[3] = 0.0;
+  }
+  /*
+  fprintf(stderr, "!%s: (%g,%g,%g,%g) --> (%g,%g,%g,%g)\n", me,
+          unit[0], unit[1], unit[2], unit[3], 
+          wrld[0], wrld[1], wrld[2], wrld[3]);
+  */
+  return;
+}
+
 int
 _pullPointInitializeRandom(pullContext *pctx,
                            const unsigned int pointIdx,
@@ -789,27 +816,16 @@ _pullPointInitializeRandom(pullContext *pctx,
 
   /* Check that point is fit enough to be included */
   do {
+    double rpos[4];
+
     reject = AIR_FALSE;
     _pullPointHistInit(point);
     /* Populate tentative random point */
-    point->pos[0] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                               pctx->bboxMin[0], pctx->bboxMax[0]);
-    point->pos[1] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                               pctx->bboxMin[1], pctx->bboxMax[1]);
-    point->pos[2] = AIR_AFFINE(0.0, airDrandMT_r(rng), 1.0,
-                               pctx->bboxMin[2], pctx->bboxMax[2]);
+    ELL_3V_SET(rpos, airDrandMT_r(rng), airDrandMT_r(rng), airDrandMT_r(rng));
     if (pctx->haveScale) {
-      double sridx, rnd;
-      int outside;
-      rnd = airDrandMT_r(rng);
-      sridx = AIR_AFFINE(0.0, rnd, 1.0, 0, scaleVol->scaleNum-1);
-      point->pos[3] = gageStackItoW(scaleVol->gctx, sridx, &outside);
-      if (pctx->flag.scaleIsTau) {
-        point->pos[3] = gageTauOfSig(point->pos[3]);
-      }
-    } else {
-      point->pos[3] = 0.0;
+      rpos[3] = airDrandMT_r(rng);
     }
+    _pullUnitToWorld(pctx, scaleVol, point->pos, rpos);
     /*
     verbo = (AIR_ABS(-0.246015 - point->pos[0]) < 0.1 &&
              AIR_ABS(-144.78 - point->pos[0]) < 0.1 &&
@@ -910,6 +926,90 @@ _pullPointInitializeRandom(pullContext *pctx,
      biff error */
   *createFailP = AIR_FALSE;
 
+  return 0;
+}
+
+/* HEY: this started with copy-and-paste of _pullPointInitializeRandom
+** but become significantly simpler - a refactorization would be nice
+*/
+int
+_pullPointInitializeHalton(pullContext *pctx,
+                           const unsigned int pointIdx,
+                           pullPoint *point, pullVolume *scaleVol,
+                           /* output */
+                           int *createFailP) {
+  static const char me[]="_pullPointInitializeHalton";
+  int reject=AIR_FALSE, verbo;
+  double hpos[4];
+
+  _pullPointHistInit(point);
+  /* Populate tentative random point */
+  airHalton(hpos, pointIdx + pctx->initParm.startIndex, airPrimeList, 4);
+  _pullUnitToWorld(pctx, scaleVol, point->pos, hpos);
+  verbo = AIR_FALSE;
+  if (verbo) {
+    fprintf(stderr, "%s: verbo on for point %u at %g %g %g %g\n", me,
+            point->idtag, point->pos[0], point->pos[1],
+            point->pos[2], point->pos[3]);
+  }
+  _pullPointHistAdd(point, pullCondOld);
+  /* Do a tentative probe */
+  if (_pullProbe(pctx->task[0], point)) {
+    biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
+    return 1;
+  }
+
+  /* Check we pass pre-threshold */
+  if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedPreThresh);
+  
+  if (!pctx->flag.constraintBeforeSeedThresh) {
+    double seedv;
+    if (!reject && pctx->ispec[pullInfoSeedThresh]) {
+      seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh,
+                               NULL, NULL);
+      reject |= seedv < 0;
+    }
+    if (pctx->initParm.liveThreshUse) {
+      if (!reject && pctx->ispec[pullInfoLiveThresh]) {
+        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
+                                 NULL, NULL);
+        reject |= seedv < 0;
+      }
+      /* HEY copy & paste */
+      if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
+        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
+                                 NULL, NULL);
+        reject |= seedv < 0;
+      }
+      /* HEY copy & paste */
+      if (!reject && pctx->ispec[pullInfoLiveThresh3]) {
+        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
+                                 NULL, NULL);
+        reject |= seedv < 0;
+      }
+    }
+  }
+
+  /* Avoid doing constraint if the threshold has already failed */
+  if (!reject && pctx->constraint) {
+    int constrFail;
+    if (_pullConstraintSatisfy(pctx->task[0], point,
+                               _PULL_CONSTRAINT_TRAVEL_MAX,
+                               &constrFail)) {
+      biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
+      return 1;
+    }
+    reject |= constrFail;
+    /* post constraint-satisfaction, we certainly have to assert thresholds */
+    if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedThresh);
+    if (pctx->initParm.liveThreshUse) {
+      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh);
+      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh2);
+      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh3);
+    }
+  }
+
+  *createFailP = reject;
   return 0;
 }
 
@@ -1077,6 +1177,7 @@ _pullPointSetup(pullContext *pctx) {
     }
     break;
   case pullInitMethodRandom:
+  case pullInitMethodHalton:
     npos = NULL;
     posData = NULL;
     totalNumPoints = pctx->initParm.numInitial;
@@ -1128,6 +1229,10 @@ _pullPointSetup(pullContext *pctx) {
       E = _pullPointInitializeRandom(pctx, pointIdx, point, scaleVol,
                                      &createFail);
       break;
+    case pullInitMethodHalton:
+      E = _pullPointInitializeHalton(pctx, pointIdx, point, scaleVol,
+                                     &createFail);
+      break;
     case pullInitMethodPointPerVoxel:
       E = _pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
                                        &createFail);
@@ -1144,7 +1249,7 @@ _pullPointSetup(pullContext *pctx) {
     }
     
     if (createFail) {
-      /* We were not successful in creating a point */
+      /* We were not successful in creating a point; not an error */
       continue;
     }
     

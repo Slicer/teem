@@ -33,6 +33,9 @@ extern "C" {
 /* size/allocation increment for per-bin airArray */
 #define _PULL_BIN_INCR 32
 
+/* size/allocation increment for pullTrace airArray in pullTraceMulti */
+#define _PULL_TRACE_MULTI_INCR 1024
+
 /* this has to be big enough to do experiments where binning is turned off */
 #define _PULL_NEIGH_MAXNUM 4096
 

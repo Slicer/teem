@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -33,6 +33,7 @@ _pullInitParmInit(pullInitParm *initParm) {
   initParm->unequalShapesAllow = AIR_FALSE;
   initParm->jitter = 1.0;
   initParm->numInitial = 0;
+  initParm->startIndex = 0;
   initParm->samplesAlongScaleNum = 0;
   initParm->ppvZRange[0] = 1;
   initParm->ppvZRange[1] = 0;
@@ -95,12 +96,14 @@ _pullInitParmCheck(pullInitParm *iparm) {
     }
     break;
   case pullInitMethodRandom:
+  case pullInitMethodHalton:
     if (!( iparm->numInitial >= 1 )) {
       biffAddf(PULL, "%s: iparm->numInitial (%d) not >= 1\n", me,
                iparm->numInitial);
       return 1;
     }
     break;
+  /* no check needed on startIndex in case of pullInitMethodHalton */
   default:
     biffAddf(PULL, "%s: init method %d valid but not handled?", me,
              iparm->method);
@@ -125,6 +128,26 @@ pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
 
   pctx->initParm.method = pullInitMethodRandom;
   pctx->initParm.numInitial = numInitial;
+  return 0;
+}
+
+int
+pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
+                  unsigned int startIndex) {
+  static const char me[]="pullInitHaltonSet";
+
+  if (!pctx) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!numInitial) {
+    biffAddf(PULL, "%s: need non-zero numInitial", me);
+    return 1;
+  }
+
+  pctx->initParm.method = pullInitMethodHalton;
+  pctx->initParm.numInitial = numInitial;
+  pctx->initParm.startIndex = startIndex;
   return 0;
 }
 
