@@ -27,7 +27,7 @@
 int
 pullScaleTracePlotAdd(pullContext *pctx, Nrrd *nwild, Nrrd *nccd,
                       Nrrd *nmask, double mth, airArray *insideArr,
-                      double velHalf, pullTraceSingle *pts) {
+                      double velHalf, pullTrace *pts) {
   static const char me[]="pullScaleTracePlotAdd";
   double ssr[2], *pos, *velo, *wild, *ccd, *mask;
   unsigned int pnum, pidx, sizeS, sizeV;
@@ -105,7 +105,7 @@ pullScaleTracePlotAdd(pullContext *pctx, Nrrd *nwild, Nrrd *nccd,
        does sometime return a negative value */
     vidx = airIndexClamp(0.0, atan(velo[pidx]/velHalf), AIR_PI/2, sizeV);
     
-    if (pts->calstop) {
+    if (0 /* pts->calstop */) {
       ccd[sidx + sizeS*vidx] += 1;
     } else {
       wild[sidx + sizeS*vidx] += 1;
@@ -532,14 +532,14 @@ main(int argc, const char **argv) {
   if (1) {
     double *pos, seedPos[4], ssrange[2], scaleWin, scaleStep;
     unsigned int pidx, pnum;
-    pullTraceSingle *pts;
+    pullTrace *pts;
     Nrrd *nplot, *nwild, *nccd, *ninside;
     char doneStr[AIR_STRLEN_SMALL];
     airArray *insideArr;
     
     pos = AIR_CAST(double *, nPosOut->data);
-    pts = pullTraceSingleNew();
-    airMopAdd(mop, pts, (airMopper)pullTraceSingleNix, airMopAlways);
+    pts = pullTraceNew();
+    airMopAdd(mop, pts, (airMopper)pullTraceNix, airMopAlways);
     nwild = nrrdNew();
     airMopAdd(mop, nwild, (airMopper)nrrdNuke, airMopAlways);
     nccd = nrrdNew();
@@ -586,9 +586,10 @@ main(int argc, const char **argv) {
       fflush(stdout);
 
       ELL_4V_COPY(seedPos, pos + 4*pidx);
-      if (pullScaleTrace(pctx, pts, AIR_FALSE,
-                         scaleStep, scaleWin/2,
-                         sslim, seedPos)) {
+      if (pullTraceSet(pctx, pts, AIR_FALSE,
+                       scaleStep, scaleWin/2,
+                       sslim, AIR_CAST(unsigned int, sslim/scaleStep),
+                       seedPos)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble on point %u:\n%s", me, pidx, err);
         airMopError(mop); return 1;
