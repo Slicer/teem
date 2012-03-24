@@ -614,6 +614,11 @@ AIR_EXPORT double airRician(double mes, double tru, double sig);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
 AIR_EXPORT double airBesselInExpScaled(int n, double x);
+AIR_EXPORT double airVanDerCorput(unsigned int index, unsigned int base);
+AIR_EXPORT void airHalton(double *out, unsigned int index,
+                          const unsigned int *base, unsigned int num);
+#define AIR_PRIME_NUM 1000
+AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];
 /* ---- END non-NrrdIO */
 
 /* dio.c */
