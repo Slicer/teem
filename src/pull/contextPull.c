@@ -59,6 +59,7 @@ pullContextNew(void) {
   pctx->energySpecS = pullEnergySpecNew();
   pctx->energySpecWin = pullEnergySpecNew();
 
+  pctx->haltonOffset = 0;
   ELL_4V_SET(pctx->bboxMin, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_4V_SET(pctx->bboxMax, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pctx->infoTotalLen = 0; /* will be set later */
@@ -382,10 +383,11 @@ _pullContextCheck(pullContext *pctx) {
 ** tensor output at this point is a hack created for vis purposes
 */
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
-              const double _scaleVec[3], double scaleRad,
-              pullContext *pctx) {
-  static const char me[]="pullOutputGet";
+pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
+                    const double _scaleVec[3], double scaleRad,
+                    pullContext *pctx,
+                    unsigned int idtagMin, unsigned int idtagMax) {
+  static const char me[]="pullOutputGetFilter";
   unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
   double *posOut, *tenOut, *strnOut, scaleVec[3], scaleDir[3], scaleMag;
@@ -418,7 +420,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       scaleMag = 0;
     }
   }
-  pointNum = pullPointNumber(pctx);
+  pointNum = pullPointNumberFilter(pctx, idtagMin, idtagMax);
   E = AIR_FALSE;
   if (nPosOut) {
     E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2,
@@ -447,6 +449,11 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
     bin = pctx->bin + binIdx;
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
+      if (!( idtagMin <= point->idtag
+             && (0 == idtagMax
+                 || point->idtag <= idtagMax) )) {
+        continue;
+      }
       /** to find idtag of point at particular location **/
       /*
       if (AIR_ABS(514.113  - point->pos[0]) < 0.5 &&
@@ -575,6 +582,20 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
 
   return 0;
 }
+
+int
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
+              const double scaleVec[3], double scaleRad,
+              pullContext *pctx) {
+  static const char me[]="pullOutputGet";
+
+  if (pullOutputGetFilter(nPosOut, nTenOut, nStrengthOut, scaleVec, scaleRad, pctx, 0, 0)) {
+    biffAddf(PULL, "%s: trouble", me);
+    return 1;
+  }
+  return 0;
+}
+
 
 int
 pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {

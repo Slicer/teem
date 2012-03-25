@@ -136,7 +136,7 @@ pullStart(pullContext *pctx) {
     biffAddf(PULL, "%s: trouble setting up context", me);
     return 1;
   }
-
+  
   if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNew();
     pctx->iterBarrierA = airThreadBarrierNew(pctx->threadNum);

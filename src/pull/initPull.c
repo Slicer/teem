@@ -33,7 +33,7 @@ _pullInitParmInit(pullInitParm *initParm) {
   initParm->unequalShapesAllow = AIR_FALSE;
   initParm->jitter = 1.0;
   initParm->numInitial = 0;
-  initParm->startIndex = 0;
+  initParm->haltonStartIndex = 0;
   initParm->samplesAlongScaleNum = 0;
   initParm->ppvZRange[0] = 1;
   initParm->ppvZRange[1] = 0;
@@ -103,7 +103,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
       return 1;
     }
     break;
-  /* no check needed on startIndex in case of pullInitMethodHalton */
+  /* no check needed on haltonStartIndex */
   default:
     biffAddf(PULL, "%s: init method %d valid but not handled?", me,
              iparm->method);
@@ -147,7 +147,7 @@ pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
 
   pctx->initParm.method = pullInitMethodHalton;
   pctx->initParm.numInitial = numInitial;
-  pctx->initParm.startIndex = startIndex;
+  pctx->initParm.haltonStartIndex = startIndex;
   return 0;
 }
 

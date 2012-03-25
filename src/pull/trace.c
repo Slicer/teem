@@ -103,7 +103,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   ELL_4V_COPY(pts->seedPos, seedPos);
 
   mop = airMopNew();
-  point = pullPointNew(pctx);
+  point = pullPointNew(pctx); /* we'll want to decrement idtagNext later */
   airMopAdd(mop, point, (airMopper)pullPointNix, airMopAlways);
 
   ELL_4V_COPY(point->pos, seedPos);
@@ -122,6 +122,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   if (constrFail) {
     pts->whyNowhere = pullTraceStopConstrFail;
     airMopOkay(mop);
+    pctx->idtagNext -= 1; /* HACK */
     return 0;
   }
 
@@ -307,6 +308,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
 
   airMopOkay(mop);
+  pctx->idtagNext -= 1; /* HACK */
   return 0;
 }
 
@@ -341,8 +343,10 @@ pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc) {
     return 1;
   }
   if (!(trc->nvert->data && trc->nvert->axis[1].size >= 3)) {
+    /*  for now getting a stub trace is not an error
     biffAddf(PULL, "%s: got stub trace", me);
-    return 1;
+    return 1; */
+    return 0;
   }
   if (!(trc->nvelo->data && trc->nvelo->axis[0].size == trc->nvert->axis[1].size)) {
     biffAddf(PULL, "%s: velo data inconsistent", me);

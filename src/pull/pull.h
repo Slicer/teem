@@ -537,7 +537,7 @@ typedef struct {
   double jitter;            /* w/ PointPerVoxel,
                                how much to jitter index space positions */
   unsigned int numInitial,  /* w/ Random OR Halton, # points to start with */
-    startIndex,             /* w/ Halton, first index to use */
+    haltonStartIndex,       /* w/ Halton, first index to use */
     samplesAlongScaleNum,   /* w/ PointPerVoxel,
                                # of samples along scale (distributed
                                uniformly in scale's *index* space*/
@@ -870,7 +870,12 @@ typedef struct pullContext_t {
                                       pullInterTypeAdditive */
 
   /* INTERNAL -------------------------- */
-
+  
+  unsigned int haltonOffset;       /* with pullInitMethodHalton, add this to
+                                      the index to sequence generation, to
+                                      account for the points previously 
+                                      generated (which did not meet the 
+                                      constraint satisfaction) */
   double bboxMin[4], bboxMax[4];   /* scale-space bounding box of all volumes:
                                       region over which binning is defined.
                                       In 3-D space, the bbox is axis aligned,
@@ -1105,11 +1110,34 @@ PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
                               Nrrd *nStrengthOut,
                               const double scaleVec[3], double scaleRad,
                               pullContext *pctx);
+PULL_EXPORT int pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut,
+                                    Nrrd *nStrengthOut,
+                                    const double scaleVec[3], double scaleRad,
+                                    pullContext *pctx,
+                                    unsigned int idtagMin,
+                                    unsigned int idtagMax);
 PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
 
 /* pointPull.c */
+PULL_EXPORT int pullPointInitializePerVoxel(const pullContext *pctx,
+                                            const unsigned int pointIdx,
+                                            pullPoint *point,
+                                            pullVolume *scaleVol,
+                                            int *createFailP);
+PULL_EXPORT int pullPointInitializeRandomOrHalton(pullContext *pctx,
+                                                  const unsigned int pointIdx,
+                                                  pullPoint *point,
+                                                  pullVolume *scaleVol);
+PULL_EXPORT int pullPointInitializeGivenPos(pullContext *pctx,
+                                            const double *posData,
+                                            const unsigned int pointIdx,
+                                            pullPoint *point,
+                                            int *createFailP);
 PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);
+PULL_EXPORT unsigned int pullPointNumberFilter(const pullContext *pctx,
+                                               unsigned int idtagMin,
+                                               unsigned int idtagMax);
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
 

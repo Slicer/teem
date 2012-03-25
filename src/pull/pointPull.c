@@ -129,16 +129,35 @@ _pullPointHistAdd(pullPoint *point, int cond) {
 */
 
 unsigned int
-pullPointNumber(const pullContext *pctx) {
+pullPointNumberFilter(const pullContext *pctx,
+                      unsigned int idtagMin,
+                      unsigned int idtagMax) {
   unsigned int binIdx, pointNum;
   const pullBin *bin;
+  const pullPoint *point;
 
   pointNum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    unsigned int pointIdx;
     bin = pctx->bin + binIdx;
-    pointNum += bin->pointNum;
+    if (0 == idtagMin && 0 == idtagMax) {
+      pointNum += bin->pointNum;
+    } else {
+      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+        point = bin->point[pointIdx];
+        pointNum += (idtagMin <= point->idtag
+                     && (0 == idtagMax
+                         || point->idtag <= idtagMax));
+      }
+    }
   }
   return pointNum;
+}
+
+unsigned int
+pullPointNumber(const pullContext *pctx) {
+
+  return pullPointNumberFilter(pctx, 0, 0);
 }
 
 double
@@ -617,12 +636,12 @@ _threshFail(const pullContext *pctx, const pullPoint *point, int info) {
 }
 
 int
-_pullPointInitializePerVoxel(const pullContext *pctx,
-                             const unsigned int pointIdx,
-                             pullPoint *point, pullVolume *scaleVol,
-                             /* output */
-                             int *createFailP) {
-  static const char me[]="_pullPointInitializePerVoxel";
+pullPointInitializePerVoxel(const pullContext *pctx,
+                            const unsigned int pointIdx,
+                            pullPoint *point, pullVolume *scaleVol,
+                            /* output */
+                            int *createFailP) {
+  static const char me[]="pullPointInitializePerVoxel";
   unsigned int vidx[3], pix;
   double iPos[3];
   airRandMTState *rng;
@@ -803,27 +822,39 @@ _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol,
 }
 
 int
-_pullPointInitializeRandom(pullContext *pctx,
-                           const unsigned int pointIdx,
-                           pullPoint *point, pullVolume *scaleVol,
-                           /* output */
-                           int *createFailP) {
-  static const char me[]="_pullPointInitializeRandom";
-  int reject, threshFail, constrFail, verbo;
+pullPointInitializeRandomOrHalton(pullContext *pctx,
+                                  const unsigned int pointIdx,
+                                  pullPoint *point, pullVolume *scaleVol) {
+  static const char me[]="pullPointInitializeRandomOrHalton";
+  int reject, verbo;
   airRandMTState *rng;
   unsigned int threshFailCount = 0, constrFailCount = 0;
   rng = pctx->task[0]->rng;
 
-  /* Check that point is fit enough to be included */
   do {
     double rpos[4];
 
     reject = AIR_FALSE;
     _pullPointHistInit(point);
     /* Populate tentative random point */
-    ELL_3V_SET(rpos, airDrandMT_r(rng), airDrandMT_r(rng), airDrandMT_r(rng));
-    if (pctx->haveScale) {
-      rpos[3] = airDrandMT_r(rng);
+    if (pullInitMethodHalton == pctx->initParm.method) {
+      airHalton(rpos, (pointIdx + threshFailCount + constrFailCount 
+                       + pctx->haltonOffset + pctx->initParm.haltonStartIndex),
+                airPrimeList, 4);
+      /*
+      fprintf(stderr, "!%s(%u/%u): halton(%u=%u+%u+%u+%u+%u) => %g %g %g %g\n",
+              me, pointIdx, pctx->idtagNext,
+              (pointIdx + threshFailCount + constrFailCount +
+               pctx->haltonOffset + pctx->initParm.haltonStartIndex),
+              pointIdx, threshFailCount, constrFailCount,
+              pctx->haltonOffset, pctx->initParm.haltonStartIndex,
+              rpos[0], rpos[1], rpos[2], rpos[3]);
+      */
+    } else {
+      ELL_3V_SET(rpos, airDrandMT_r(rng), airDrandMT_r(rng), airDrandMT_r(rng));
+      if (pctx->haveScale) {
+        rpos[3] = airDrandMT_r(rng);
+      }
     }
     _pullUnitToWorld(pctx, scaleVol, point->pos, rpos);
     /*
@@ -843,184 +874,73 @@ _pullPointInitializeRandom(pullContext *pctx,
       biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
       return 1;
     }
-    /* Enforce constraints and thresholds */
-    threshFail = AIR_FALSE;
-
     /* Check we pass pre-threshold */
-    if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedPreThresh);
-    
-    if (!pctx->flag.constraintBeforeSeedThresh) {
-      double seedv;
-      if (!reject && pctx->ispec[pullInfoSeedThresh]) {
-        seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh,
-                                 NULL, NULL);
-        threshFailCount += (threshFail = (seedv < 0));
-      } else {
-        threshFail = AIR_FALSE;
-      }
-      reject |= threshFail;
-      if (pctx->initParm.liveThreshUse) {
-        if (!reject && pctx->ispec[pullInfoLiveThresh]) {
-          seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
-                                   NULL, NULL);
-          threshFailCount += (threshFail = (seedv < 0));
-        } else {
-          threshFail = AIR_FALSE;
-        }
-        /* HEY copy & paste */
-        if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
-          seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
-                                   NULL, NULL);
-          threshFailCount += (threshFail = (seedv < 0));
-        } else {
-          threshFail = AIR_FALSE;
-        }
-        /* HEY copy & paste */
-        if (!reject && pctx->ispec[pullInfoLiveThresh3]) {
-          seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
-                                   NULL, NULL);
-          threshFailCount += (threshFail = (seedv < 0));
-        } else {
-          threshFail = AIR_FALSE;
-        }
-      }
-      reject |= threshFail;
+#define THRESH_TEST(INFO) \
+    if (pctx->ispec[INFO] && _threshFail(pctx, point, INFO)) { \
+      threshFailCount++; \
+      reject = AIR_TRUE; \
+      goto reckoning; \
     }
-
-    /* Avoid doing constraint if the threshold has already failed */
-    if (!reject && pctx->constraint) {
+    THRESH_TEST(pullInfoSeedPreThresh);
+    if (!pctx->flag.constraintBeforeSeedThresh) {
+      THRESH_TEST(pullInfoSeedThresh);
+      if (pctx->initParm.liveThreshUse) {
+        THRESH_TEST(pullInfoLiveThresh);
+        THRESH_TEST(pullInfoLiveThresh2);
+        THRESH_TEST(pullInfoLiveThresh3);
+      }
+    }
+    
+    if (pctx->constraint) {
+      int constrFail;
       if (_pullConstraintSatisfy(pctx->task[0], point,
                                  _PULL_CONSTRAINT_TRAVEL_MAX,
                                  &constrFail)) {
         biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
         return 1;
       }
-      reject |= constrFail;
-      constrFailCount += constrFail;
-      /* post constraint-satisfaction, we certainly have to assert thresholds */
-      if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedThresh);
-      if (pctx->initParm.liveThreshUse) {
-        if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh);
-        if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh2);
-        if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh3);
+      if (constrFail) {
+        constrFailCount++;
+        reject = AIR_TRUE;
+        goto reckoning;
       }
-    } else {
-      constrFail = AIR_FALSE;
+      /* post constraint-satisfaction, we certainly have to assert thresholds */
+      THRESH_TEST(pullInfoSeedThresh);
+      if (pctx->initParm.liveThreshUse) {
+        THRESH_TEST(pullInfoLiveThresh);
+        THRESH_TEST(pullInfoLiveThresh2);
+        THRESH_TEST(pullInfoLiveThresh3);
+      }
     }
     
-    /* Gather consensus from tasks */
+  reckoning:
     if (reject) {
-      if (threshFailCount + constrFailCount > _PULL_RANDOM_SEED_TRY_MAX) {
+      if (threshFailCount + constrFailCount >= _PULL_RANDOM_SEED_TRY_MAX) {
         /* Very bad luck; we've too many times */
-        biffAddf(PULL, "%s: failed too often (%u times) placing %u "
-                 "(failed on thresh %s/%u, constr %s/%u)",
+        biffAddf(PULL, "%s: failed too often (%u times) placing point %u "
+                 "(%u fails on thresh, %u on constr)",
                  me, _PULL_RANDOM_SEED_TRY_MAX, pointIdx,
-                 threshFail ? "true" : "false", threshFailCount,
-                 constrFail ? "true" : "false", constrFailCount);
+                 threshFailCount, constrFailCount);
         return 1;
       }
     }
   } while (reject);
 
-  /* by design, either we succeed on placing a point, or we have a 
-     biff error */
-  *createFailP = AIR_FALSE;
+  if (pullInitMethodHalton == pctx->initParm.method) {
+    pctx->haltonOffset += threshFailCount + constrFailCount;
+  }
 
   return 0;
 }
 
-/* HEY: this started with copy-and-paste of _pullPointInitializeRandom
-** but become significantly simpler - a refactorization would be nice
-*/
 int
-_pullPointInitializeHalton(pullContext *pctx,
-                           const unsigned int pointIdx,
-                           pullPoint *point, pullVolume *scaleVol,
-                           /* output */
-                           int *createFailP) {
-  static const char me[]="_pullPointInitializeHalton";
-  int reject=AIR_FALSE, verbo;
-  double hpos[4];
-
-  _pullPointHistInit(point);
-  /* Populate tentative random point */
-  airHalton(hpos, pointIdx + pctx->initParm.startIndex, airPrimeList, 4);
-  _pullUnitToWorld(pctx, scaleVol, point->pos, hpos);
-  verbo = AIR_FALSE;
-  if (verbo) {
-    fprintf(stderr, "%s: verbo on for point %u at %g %g %g %g\n", me,
-            point->idtag, point->pos[0], point->pos[1],
-            point->pos[2], point->pos[3]);
-  }
-  _pullPointHistAdd(point, pullCondOld);
-  /* Do a tentative probe */
-  if (_pullProbe(pctx->task[0], point)) {
-    biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
-    return 1;
-  }
-
-  /* Check we pass pre-threshold */
-  if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedPreThresh);
-  
-  if (!pctx->flag.constraintBeforeSeedThresh) {
-    double seedv;
-    if (!reject && pctx->ispec[pullInfoSeedThresh]) {
-      seedv = _pullPointScalar(pctx, point, pullInfoSeedThresh,
-                               NULL, NULL);
-      reject |= seedv < 0;
-    }
-    if (pctx->initParm.liveThreshUse) {
-      if (!reject && pctx->ispec[pullInfoLiveThresh]) {
-        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh,
-                                 NULL, NULL);
-        reject |= seedv < 0;
-      }
-      /* HEY copy & paste */
-      if (!reject && pctx->ispec[pullInfoLiveThresh2]) {
-        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh2,
-                                 NULL, NULL);
-        reject |= seedv < 0;
-      }
-      /* HEY copy & paste */
-      if (!reject && pctx->ispec[pullInfoLiveThresh3]) {
-        seedv = _pullPointScalar(pctx, point, pullInfoLiveThresh3,
-                                 NULL, NULL);
-        reject |= seedv < 0;
-      }
-    }
-  }
-
-  /* Avoid doing constraint if the threshold has already failed */
-  if (!reject && pctx->constraint) {
-    int constrFail;
-    if (_pullConstraintSatisfy(pctx->task[0], point,
-                               _PULL_CONSTRAINT_TRAVEL_MAX,
-                               &constrFail)) {
-      biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
-      return 1;
-    }
-    reject |= constrFail;
-    /* post constraint-satisfaction, we certainly have to assert thresholds */
-    if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedThresh);
-    if (pctx->initParm.liveThreshUse) {
-      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh);
-      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh2);
-      if (!reject) reject |= _threshFail(pctx, point, pullInfoLiveThresh3);
-    }
-  }
-
-  *createFailP = reject;
-  return 0;
-}
-
-int
-_pullPointInitializeGivenPos(pullContext *pctx,
-                             const double *posData,
-                             const unsigned int pointIdx,
-                             pullPoint *point,
-                             /* output */
-                             int *createFailP) {
-  static const char me[]="_pullPointInitializeGivenPos";
+pullPointInitializeGivenPos(pullContext *pctx,
+                            const double *posData,
+                            const unsigned int pointIdx,
+                            pullPoint *point,
+                            /* output */
+                            int *createFailP) {
+  static const char me[]="pullPointInitializeGivenPos";
   int reject, rejectEdge;
 
   /* Copy nrrd point into pullPoint */
@@ -1226,20 +1146,17 @@ _pullPointSetup(pullContext *pctx) {
     E = 0;
     switch(pctx->initParm.method) {
     case pullInitMethodRandom:
-      E = _pullPointInitializeRandom(pctx, pointIdx, point, scaleVol,
-                                     &createFail);
-      break;
     case pullInitMethodHalton:
-      E = _pullPointInitializeHalton(pctx, pointIdx, point, scaleVol,
-                                     &createFail);
+      E = pullPointInitializeRandomOrHalton(pctx, pointIdx, point, scaleVol);
+      createFail = AIR_FALSE;
       break;
     case pullInitMethodPointPerVoxel:
-      E = _pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
-                                       &createFail);
+      E = pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
+                                      &createFail);
       break;
     case pullInitMethodGivenPos:
-      E = _pullPointInitializeGivenPos(pctx, posData, pointIdx, point,
-                                       &createFail);
+      E = pullPointInitializeGivenPos(pctx, posData, pointIdx, point,
+                                      &createFail);
       break;
     }
     if (E) {
@@ -1247,7 +1164,6 @@ _pullPointSetup(pullContext *pctx) {
                pointIdx, point->idtag);
       airMopError(mop); return 1;
     }
-    
     if (createFail) {
       /* We were not successful in creating a point; not an error */
       continue;
@@ -1300,7 +1216,8 @@ _pullPointSetup(pullContext *pctx) {
     airMopError(mop); return 1;
   }
   if (pctx->verbose) {
-    fprintf(stderr, "%s: initialized to %u points\n", me, pn);
+    fprintf(stderr, "%s: initialized to %u points (idtagNext = %u)\n",
+            me, pn, pctx->idtagNext);
   }
   /*
   if (1) {
