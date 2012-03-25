@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -714,7 +714,7 @@ main(int argc, const char **argv) {
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
     popCntlEnoughTest;
   int verbose;
-  int interType, allowCodimension3Constraints, scaleIsTau;
+  int interType, allowCodimension3Constraints, scaleIsTau, useHalton;
   unsigned int samplesAlongScaleNum, pointNumInitial, pointPerVoxel,
     ppvZRange[2], snap, iterMax, stuckIterMax, constraintIterMax,
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
@@ -909,7 +909,11 @@ main(int argc, const char **argv) {
 
   hestOptAdd(&hopt, "np", "# points", airTypeUInt, 1, 1,
              &pointNumInitial, "1000",
-             "number of points to start in simulation");
+             "number of points to start in system");
+  hestOptAdd(&hopt, "halton", NULL, airTypeInt, 0, 0, 
+             &useHalton, NULL,
+             "use Halton sequence initialization instead of "
+             "uniform random");
   hestOptAdd(&hopt, "ppv", "# pnts/vox", airTypeUInt, 1, 1,
              &pointPerVoxel, "0",
              "number of points per voxel to start in simulation "
@@ -1138,8 +1142,10 @@ main(int argc, const char **argv) {
     E = pullInitPointPerVoxelSet(pctx, pointPerVoxel,
                                  ppvZRange[0], ppvZRange[1], 
                                  samplesAlongScaleNum, jitter);
+  } else if (useHalton) {
+    E = pullInitHaltonSet(pctx, pointNumInitial, 0);
   } else {
-    E = pullInitRandomSet(pctx, pointNumInitial);
+    E = pullInitRandomSet(pctx, pointNumInitial); 
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
