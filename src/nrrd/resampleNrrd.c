@@ -50,7 +50,7 @@ two will have very different results!
 */
 
 int
-nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
+nrrdSimpleResample(Nrrd *nout, const Nrrd *nin,
                    const NrrdKernel *kernel, const double *parm,
                    const size_t *samples, const double *scalings) {
   static const char me[]="nrrdSimpleResample";
@@ -69,6 +69,7 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
   
   np = kernel->numParm;
   for (ai=0; ai<nin->dim; ai++) {
+    double axmin, axmax;
     info->kernel[ai] = kernel;
     if (samples) {
       info->samples[ai] = samples[ai];
@@ -84,10 +85,29 @@ nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
     for (p=0; p<np; p++)
       info->parm[ai][p] = parm[p];
     /* set the min/max for this axis if not already set to something */
-    if (!( AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max) ))
-      nrrdAxisInfoMinMaxSet(nin, ai, nrrdDefaultCenter);
-    info->min[ai] = nin->axis[ai].min;
-    info->max[ai] = nin->axis[ai].max;
+    if (!( AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max) )) {
+      /* HEY: started as copy/paste of body of nrrdAxisInfoMinMaxSet,
+         because we wanted to enable const-correctness, and this
+         function had previously been setting per-axis min/max in
+         *input* when it hasn't been already set */
+      double spacing;
+      center = _nrrdCenter2(nin->axis[ai].center, nrrdDefaultCenter);
+      spacing = nin->axis[ai].spacing;
+      if (!AIR_EXISTS(spacing))
+        spacing = nrrdDefaultSpacing;
+      if (nrrdCenterCell == center) {
+        axmin = 0;
+        axmax = spacing*nin->axis[ai].size;
+      } else {
+        axmin = 0;
+        axmax = spacing*(nin->axis[ai].size - 1);
+      }
+    } else {
+      axmin = nin->axis[ai].min;
+      axmax = nin->axis[ai].max;
+    }
+    info->min[ai] = axmin;
+    info->max[ai] = axmax;
   }
   /* we go with the defaults (enstated by _nrrdResampleInfoInit())
      for all the remaining fields */

@@ -1348,7 +1348,7 @@ NRRD_EXPORT int nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout);
 /* resampleNrrd.c */
 NRRD_EXPORT int nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
                                     const NrrdResampleInfo *info);
-NRRD_EXPORT int nrrdSimpleResample(Nrrd *nout, Nrrd *nin,
+NRRD_EXPORT int nrrdSimpleResample(Nrrd *nout, const Nrrd *nin,
                                    const NrrdKernel *kernel,
                                    const double *parm,
                                    const size_t *samples,
