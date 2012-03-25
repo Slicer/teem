@@ -122,6 +122,145 @@ pullScaleTracePlotAdd(pullContext *pctx, Nrrd *nwild, Nrrd *nccd,
 
   return 0;
 }
+#if 0
+    if (pullScaleTracePlotAdd(pctx, nwild, nccd,
+                              nmask, 0.5 /* mask thresh */, insideArr,
+                              shalf, pts)) {
+      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble on point %u:\n%s", me, pidx, err);
+      airMopError(mop); return 1;
+    }
+#endif
+
+int
+findAndTraceMorePoints(Nrrd *nplot,
+                      pullContext *pctx, pullVolume *scaleVol,
+                      double scaleStep, double scaleHalfLen,
+                      double speedLimit, unsigned int traceArrIncr,
+                      pullTraceMulti *mtrc,
+                      unsigned int pointNum) {
+  static const char me[]="findAndTraceMorePoints";
+  unsigned int pointsSoFar, idtagBase, pidx, addedNum;
+  pullTrace *trace;
+  pullPoint *point;
+  Nrrd *nPosOut;
+  airArray *mop;
+  double *pos;
+  char doneStr[AIR_STRLEN_SMALL];
+
+  mop = airMopNew();
+  pointsSoFar = pullPointNumber(pctx);
+  idtagBase = pctx->idtagNext;
+  point = NULL;
+  printf("%s: adding %u new points . . .       ", me, pointNum);
+  for (pidx=0; pidx<pointNum; pidx++) {
+    int added;
+    printf("%s", airDoneStr(0, pidx, pointNum, doneStr)); fflush(stdout);
+    if (!point) {
+      point = pullPointNew(pctx);
+    }
+    if (pullPointInitializeRandomOrHalton(pctx, pidx + pointsSoFar, point, scaleVol)) {
+      biffAddf(PULL, "%s: trouble trying point %u (id %u)", me,
+               pidx, point->idtag);
+      airMopError(mop); return 1;
+    }
+    if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
+      biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
+      airMopError(mop); return 1;
+    }
+    if (added) {
+      point = NULL;
+    }
+  }
+  printf("%s\n", airDoneStr(0, pidx, pointNum, doneStr));
+  if (point) {
+    /* we created a new test point, but it was never placed in the volume */
+    /* so, HACK: undo pullPointNew . . . */
+    point = pullPointNix(point);
+    pctx->idtagNext -= 1;
+  }
+
+  nPosOut = nrrdNew();
+  airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
+  if (pullOutputGetFilter(nPosOut, NULL, NULL, NULL, 0.0, pctx, idtagBase, 0)) {
+    biffAddf(PULL, "%s: trouble", me);
+    airMopError(mop); return 1;
+  }
+  pos = AIR_CAST(double *, nPosOut->data);
+  addedNum = nPosOut->axis[1].size;
+  printf("%s: tracing . . .       ", me);
+  for (pidx=0; pidx<addedNum; pidx++) {
+    double seedPos[4];
+    printf("%s", airDoneStr(0, pidx, addedNum, doneStr)); fflush(stdout);
+    trace = pullTraceNew();
+    ELL_4V_COPY(seedPos, pos + 4*pidx);
+    if (pullTraceSet(pctx, trace, AIR_FALSE,
+                     scaleStep, scaleHalfLen,
+                     speedLimit, traceArrIncr,
+                     seedPos)
+        || pullTraceMultiAdd(mtrc, trace)) {
+      biffAddf(PULL, "%s: trouble on point %u", me, pidx);
+      airMopError(mop); return 1;
+    }
+  }
+  printf("%s\n", airDoneStr(0, pidx, pointNum, doneStr));
+
+  if (pullTraceMultiPlotAdd(nplot, mtrc, NULL, 0, 0)) {
+    biffAddf(PULL, "%s: trouble plotting", me);
+    airMopError(mop); return 1;
+  }
+  
+  airMopOkay(mop);
+  return 0;
+}
+
+#define LOFF 1.000001
+
+int
+resamplePlot(Nrrd *nprob, const Nrrd *nplot) {
+  static const char me[]="resamplePlot";
+  unsigned int ii, nn;
+
+  double scls[2] = {0.5, 0.5}, kparm[2] = {2.0, 20.0};
+  const NrrdKernel *kern = nrrdKernelGaussian;
+
+  /*    
+  double scls[2] = {1.0, 1.0}, kparm[2] = {2.0, 4.0};
+  const NrrdKernel *kern = nrrdKernelGaussian;
+  */
+  double sum, *prob;
+
+  if (nrrdSimpleResample(nprob, nplot, kern, kparm, NULL, scls)) {
+    biffMovef(PULL, NRRD, "%s: trouble", me);
+    return 1;
+  }
+  sum = 0;
+  prob = AIR_CAST(double *, nprob->data);
+  nn = AIR_CAST(unsigned int, nrrdElementNumber(nprob));
+  for (ii=0; ii<nn; ii++) {
+    sum += log(LOFF+prob[ii]);
+  }
+  for (ii=0; ii<nn; ii++) {
+    prob[ii] = log(LOFF+prob[ii])/sum;
+  }
+  return 0;
+}
+
+double
+distanceProb(Nrrd *npp, Nrrd *nqq) {
+  double *pp, *qq, dist=0.0;
+  unsigned int ii, nn;
+
+  nn = AIR_CAST(unsigned int, nrrdElementNumber(npp));
+  pp = AIR_CAST(double *, npp->data);
+  qq = AIR_CAST(double *, nqq->data);
+  for (ii=0; ii<nn; ii++) {
+    if (qq[ii]) {
+      dist += fabs(pp[ii]*log2(0.0000001+pp[ii]/qq[ii]));
+    }
+  }
+  return dist;
+}
 
 const char *info = ("Endless hacking!");
 
@@ -140,6 +279,7 @@ main(int argc, const char **argv) {
   pullEnergySpec *enspR, *enspS, *enspWin;
   NrrdKernelSpec *k00, *k11, *k22, *kSSrecon, *kSSblur;
   pullContext *pctx;
+  pullVolume *scaleVol=NULL;
   int E=0, ret=0;
   unsigned int vspecNum, idefNum;
   double scaleVec[3], glyphScaleRad;
@@ -149,18 +289,18 @@ main(int argc, const char **argv) {
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
     popCntlEnoughTest;
   int verbose;
-  int interType, allowCodimension3Constraints, scaleIsTau;
+  int interType, allowCodimension3Constraints, scaleIsTau, useHalton;
   unsigned int samplesAlongScaleNum, pointNumInitial, pointPerVoxel,
     ppvZRange[2], snap, iterMax, stuckIterMax, constraintIterMax,
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
-    threadNum, eipHalfLife;
+    threadNum, eipHalfLife, 
+    tracePointNum, passNumMax;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
     radiusScale, alpha, beta, gamma, theta, wall, energyIncreasePermit,
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
-    neighborTrueProb, probeProb, fracNeighNixedMax;
+    neighborTrueProb, probeProb, fracNeighNixedMax, tpdThresh;
 
   double sstep, sswin, shalf, sslim;
-  Nrrd *nmask;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -265,6 +405,20 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "np", "# points", airTypeUInt, 1, 1,
              &pointNumInitial, "1000",
              "number of points to start in simulation");
+  hestOptAdd(&hopt, "halton", NULL, airTypeInt, 0, 0, 
+             &useHalton, NULL,
+             "use Halton sequence initialization instead of "
+             "uniform random");
+  hestOptAdd(&hopt, "tnp", "# points", airTypeUInt, 1, 1, 
+             &tracePointNum, "1000",
+             "number of points to add in each iteration of "
+             "estimation of plot");
+  hestOptAdd(&hopt, "pnm", "# passes", airTypeUInt, 1, 1,
+             &passNumMax, "10",
+             "max number of passes in plot estimation");
+  hestOptAdd(&hopt, "tpdt", "thresh", airTypeDouble, 1, 1, 
+             &tpdThresh, "1.0", "KL-distance threshold");
+
   hestOptAdd(&hopt, "ppv", "# pnts/vox", airTypeUInt, 1, 1,
              &pointPerVoxel, "0",
              "number of points per voxel to start in simulation "
@@ -404,9 +558,6 @@ main(int argc, const char **argv) {
              "velocity that will be half-way down vertical axis of plot");
   hestOptAdd(&hopt, "sl", "sslim", airTypeDouble, 1, 1, &sslim, "50.0",
              "velocity at which we give up tracking");
-  hestOptAdd(&hopt, "m", "nmask", airTypeOther, 1, 1, &nmask, "",
-             "mask for selecting trace points",
-             NULL, NULL, nrrdHestNrrd);
 
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
@@ -497,8 +648,10 @@ main(int argc, const char **argv) {
     E = pullInitPointPerVoxelSet(pctx, pointPerVoxel,
                                  ppvZRange[0], ppvZRange[1], 
                                  samplesAlongScaleNum, jitter);
+  } else if (useHalton) {
+    E = pullInitHaltonSet(pctx, pointNumInitial, 0);
   } else {
-    E = pullInitRandomSet(pctx, pointNumInitial);
+    E = pullInitRandomSet(pctx, pointNumInitial); 
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
@@ -522,6 +675,25 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
 
+  if (!pctx->constraint) {
+    fprintf(stderr, "%s: this programs requires a constraint\n", me);
+    airMopError(mop); return 1;
+  }
+  scaleVol = NULL;
+  {
+    unsigned int ii;
+    for (ii=0; ii<pctx->volNum; ii++) {
+      if (pctx->vol[ii]->ninScale) {
+        scaleVol = pctx->vol[ii];
+        break;
+      }
+    }
+  }
+  if (!scaleVol) {
+    fprintf(stderr, "%s: this program requires scale-space\n", me);
+    airMopError(mop); return 1;
+  }
+
   if (pullOutputGet(nPosOut, NULL, NULL, NULL, 0.0, pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble 3.1:\n%s", me, err);
@@ -529,23 +701,29 @@ main(int argc, const char **argv) {
   }
   nrrdSave(posOutS, nPosOut, NULL);
   
-  if (1) {
-    double *pos, seedPos[4], ssrange[2], scaleWin, scaleStep;
-    unsigned int pidx, pnum;
+  {
+    double *pos, seedPos[4], ssrange[2], scaleWin, scaleStep, dist;
+    unsigned int pidx, pnum, passIdx;
     pullTrace *pts;
-    Nrrd *nplot, *nwild, *nccd, *ninside;
+    pullTraceMulti *mtrc;
+    Nrrd *nplot, *nsplot, *nlsplot, *nwild, *nccd, *nfilt;
     char doneStr[AIR_STRLEN_SMALL];
-    airArray *insideArr;
     
     pos = AIR_CAST(double *, nPosOut->data);
-    pts = pullTraceNew();
-    airMopAdd(mop, pts, (airMopper)pullTraceNix, airMopAlways);
+    mtrc = pullTraceMultiNew();
+    airMopAdd(mop, mtrc, (airMopper)pullTraceMultiNix, airMopAlways);
     nwild = nrrdNew();
     airMopAdd(mop, nwild, (airMopper)nrrdNuke, airMopAlways);
     nccd = nrrdNew();
     airMopAdd(mop, nccd, (airMopper)nrrdNuke, airMopAlways);
     nplot = nrrdNew();
     airMopAdd(mop, nplot, (airMopper)nrrdNuke, airMopAlways);
+    nlsplot = nrrdNew();
+    airMopAdd(mop, nlsplot, (airMopper)nrrdNuke, airMopAlways);
+    nsplot = nrrdNew();
+    airMopAdd(mop, nsplot, (airMopper)nrrdNuke, airMopAlways);
+    nfilt = nrrdNew();
+    airMopAdd(mop, nfilt, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdMaybeAlloc_va(nwild, nrrdTypeDouble, 2, 
                           AIR_CAST(size_t, 1200),
                           AIR_CAST(size_t, 500))) {
@@ -561,7 +739,7 @@ main(int argc, const char **argv) {
     nwild->axis[0].min = ssrange[0];
     nwild->axis[0].max = ssrange[1];
     nwild->axis[1].min = 0.0;
-    nwild->axis[1].max = AIR_PI/2;
+    nwild->axis[1].max = 2*shalf;
     if (nrrdCopy(nccd, nwild)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble creating nccd:\n%s", me, err);
@@ -570,51 +748,72 @@ main(int argc, const char **argv) {
     scaleWin = sswin*(ssrange[1]-ssrange[0]);
     scaleStep = sstep*(ssrange[1]-ssrange[0]);
 
-    if (nmask) {
-      insideArr = airArrayNew(NULL, NULL, 4*sizeof(double), 3000);
-      ninside = nrrdNew();
-      airMopAdd(mop, ninside, (airMopper)nrrdNix, airMopAlways);
-    } else {
-      insideArr = NULL;
-      ninside = NULL;
-    }
-
-    printf("!%s: tracing . . .       ", me);
     pnum = nPosOut->axis[1].size;
+    printf("!%s: tracing initial %u points . . .       ", me, pnum);
     for (pidx=0; pidx<pnum; pidx++) {
-      printf("%s", airDoneStr(0, pidx, pnum, doneStr));
-      fflush(stdout);
-
+      printf("%s", airDoneStr(0, pidx, pnum, doneStr)); fflush(stdout);
+      pts = pullTraceNew();
       ELL_4V_COPY(seedPos, pos + 4*pidx);
       if (pullTraceSet(pctx, pts, AIR_FALSE,
                        scaleStep, scaleWin/2,
                        sslim, AIR_CAST(unsigned int, sslim/scaleStep),
-                       seedPos)) {
-        airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble on point %u:\n%s", me, pidx, err);
-        airMopError(mop); return 1;
-      }
-      if (pullScaleTracePlotAdd(pctx, nwild, nccd,
-                                nmask, 0.5 /* mask thresh */, insideArr,
-                                shalf, pts)) {
+                       seedPos)
+          || pullTraceMultiAdd(mtrc, pts)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble on point %u:\n%s", me, pidx, err);
         airMopError(mop); return 1;
       }
     }
-    if (nmask) {
-      if (nrrdWrap_va(ninside, insideArr->data, nrrdTypeDouble, 2,
-                      AIR_CAST(size_t, 4),
-                      AIR_CAST(size_t, insideArr->len))
-          || nrrdSave("pos-inside.nrrd", ninside, NULL)) {
-        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble saving inside points:\n%s", me, err);
-        airMopError(mop); return 1;
-      }
-    }
-
     printf("%s\n", airDoneStr(0, pidx, pnum, doneStr));
-    if (1) {
+    if (pullTraceMultiPlotAdd(nwild, mtrc, NULL, 0, 0) /*
+        || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
+        || pullTraceMultiPlotAdd(nccd, mtrc, nfilt, 0, 0) */) {
+      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    resamplePlot(nlsplot, nwild);
+
+    for (passIdx=0; (passNumMax ? passIdx<passNumMax : 1); passIdx++) {
+      double dd;
+      fprintf(stderr, "!%s: pass %u/%u ==================\n",
+              me, passIdx, passNumMax);
+      nrrdZeroSet(nccd);
+      if (findAndTraceMorePoints(nccd, pctx, scaleVol,
+                                 scaleStep, scaleWin/2,
+                                 sslim, AIR_CAST(unsigned int, sslim/scaleStep),
+                                 mtrc, tracePointNum)
+          || resamplePlot(nsplot, nccd)) {
+        airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble on pass %u:\n%s", me, passIdx, err);
+        airMopError(mop); return 1;
+      }
+      dd = tracePointNum*distanceProb(nsplot, nlsplot);
+      if (!passIdx) {
+        dist = dd;
+      } else {
+        dist = 0.5*(dist + dd);
+      }
+      fprintf(stderr, "%s: dd = %g -> dist = %g\n", me, dd, dist);
+      nrrdCopy(nlsplot, nsplot);
+      if (dist < tpdThresh) {
+        fprintf(stderr, "%s: converged: dist %g < thresh %g\n",
+                me, dist, tpdThresh);
+        break;
+      }
+    }
+    if (dist >=  tpdThresh) {
+      fprintf(stderr, "%s: WARNING did NOT converge: dist %g >= thresh %g\n",
+              me, dist, tpdThresh);
+    }
+    if (pullTraceMultiPlotAdd(nwild, mtrc, NULL, 0, 0)
+        || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
+        || pullTraceMultiPlotAdd(nccd, mtrc, nfilt, 0, 0)) {
+      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    {
       const Nrrd *nin[2];
       nin[0] = nwild;
       nin[1] = nccd;
