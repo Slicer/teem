@@ -231,6 +231,28 @@ pullProcessMode = &_pullProcessMode;
 /* --------------------------------------------------------- */
 
 const char *
+_pullTraceStopStr[] = {
+  "(unknown_trace_stop)",
+  "speeding",
+  "constrfail",
+  "bounds",
+  "length"
+};
+
+const airEnum
+_pullTraceStop = {
+  "trace stop",
+  PULL_TRACE_STOP_MAX,
+  _pullTraceStopStr,  NULL,
+  NULL, NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+pullTraceStop = &_pullTraceStop;
+
+/* --------------------------------------------------------- */
+
+const char *
 _pullCountStr[] = {
   "(unknown_countable)",
   "descent",

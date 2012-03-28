@@ -82,6 +82,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->binSingle = AIR_FALSE;
   flag->allowCodimension3Constraints = AIR_FALSE;
   flag->scaleIsTau = AIR_FALSE;
+  flag->startSkipsPoints = AIR_FALSE; /* must be false by default */
   return;
 }
 
@@ -320,6 +321,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagScaleIsTau:
     pctx->flag.scaleIsTau = flag;
+    break;
+  case pullFlagStartSkipsPoints:
+    pctx->flag.startSkipsPoints = flag;
     break;
   default:
     biffAddf(me, "%s: sorry, flag %d valid but not handled?", me, which);

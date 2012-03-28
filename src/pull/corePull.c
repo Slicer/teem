@@ -131,10 +131,15 @@ pullStart(pullContext *pctx) {
       || _pullVolumeSetup(pctx)
       || _pullInfoSetup(pctx) 
       || _pullTaskSetup(pctx)
-      || _pullBinSetup(pctx)
-      || _pullPointSetup(pctx)) {
-    biffAddf(PULL, "%s: trouble setting up context", me);
+      || _pullBinSetup(pctx)) {
+    biffAddf(PULL, "%s: trouble starting to set up context", me);
     return 1;
+  }
+  if (!(pctx->flag.startSkipsPoints)) {
+    if (_pullPointSetup(pctx)) {
+      biffAddf(PULL, "%s: trouble setting up points", me);
+      return 1;
+    }
   }
   
   if (pctx->threadNum > 1) {

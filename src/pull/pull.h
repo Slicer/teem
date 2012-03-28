@@ -798,6 +798,9 @@ enum {
   /* what we call scale is not sigma but rather the tau of gage */
   pullFlagScaleIsTau,
 
+  /* pullStart should skip initializing the points */
+  pullFlagStartSkipsPoints,
+
   pullFlagLast
 };
 
@@ -813,7 +816,8 @@ typedef struct {
     noAdd,
     binSingle,
     allowCodimension3Constraints,
-    scaleIsTau;
+    scaleIsTau,
+    startSkipsPoints;
 } pullFlag;
 
 /*
@@ -965,8 +969,7 @@ typedef struct {
   Nrrd *nvert,          /* locations of tract vertices */
     *nstrn,             /* if non-NULL, 1-D array of strengths */
     *nvelo;             /* 1-D list of velocities */
-  unsigned int seedIdx, /* which index in nvert is for seedpoint */
-    stepNum[2];         /* (same as in tenFiberContext) */
+  unsigned int seedIdx; /* which index in nvert is for seedpoint */
   int whyStop[2],       /* why backward/forward (0/1) tracing stopped
                            (from pullTraceStop* enum) */
     whyNowhere;         /* why trace never started (from pullTraceStop*) */
@@ -1089,6 +1092,7 @@ PULL_EXPORT const airEnum *const pullInfo;
 PULL_EXPORT const airEnum *const pullSource;
 PULL_EXPORT const airEnum *const pullProp;
 PULL_EXPORT const airEnum *const pullProcessMode;
+PULL_EXPORT const airEnum *const pullTraceStop;
 PULL_EXPORT const airEnum *const pullCount;
 PULL_EXPORT const airEnum *const pullConstraintFail;
 
@@ -1152,12 +1156,14 @@ PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
 /* trace.c */
 PULL_EXPORT pullTrace *pullTraceNew(void);
 PULL_EXPORT pullTrace *pullTraceNix(pullTrace *pts);
+PULL_EXPORT size_t pullTraceMultiSizeof(const pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
                              int recordStrength,
                              double scaleDelta, double halfScaleWin,
                              double velocityMax, unsigned int arrIncr,
                              const double seedPos[4]);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNew();
+PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc);
 PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
                                                 const pullTraceMulti *mtrc,
@@ -1167,7 +1173,8 @@ PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot,
                                       const Nrrd *nfilt,
                                       unsigned int trcIdxMin,
                                       unsigned int trcNum);
-PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
+PULL_EXPORT int pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc);
+PULL_EXPORT int pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file);
 
 /* actionPull.c */
 PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,

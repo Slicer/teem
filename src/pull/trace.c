@@ -36,7 +36,7 @@ pullTraceNew(void) {
     ret->nvert = nrrdNew();
     ret->nstrn = nrrdNew();
     ret->nvelo = nrrdNew();
-    ret->seedIdx = ret->stepNum[0] = ret->stepNum[1] = 0;
+    ret->seedIdx = 0;
     ret->whyStop[0] = ret->whyStop[1] = pullTraceStopUnknown;
     ret->whyNowhere = pullTraceStopUnknown;
   }
@@ -275,6 +275,8 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     }
     oidx++;
   }
+  /* the last index written to (before oidx++) was the seed index */
+  pts->seedIdx = oidx-1;
   lentmp = trceArr[1]->len;
   for (tidx=0; tidx<lentmp; tidx++) {
     ELL_4V_COPY(vert + 4*oidx, trce[1] + 4*tidx);
@@ -369,7 +371,7 @@ pullTraceMultiFilterConcaveDown(Nrrd *nfilt, const pullTraceMulti *mtrc,
   int *filt;
 
   if (!(nfilt && mtrc)) {
-    biffAddf(PULL, "%s: got NULL pointer", me);
+    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me, nfilt, mtrc);
     return 1;
   }
   if (!(AIR_EXISTS(winLenFrac) && AIR_IN_OP(0.0, winLenFrac, 1.0))) {
@@ -527,6 +529,32 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   return 0;
 }
 
+static size_t
+nsizeof(const Nrrd *nrrd) {
+  return (nrrd
+          ? nrrdElementSize(nrrd)*nrrdElementNumber(nrrd)
+          : 0);
+}
+
+size_t
+pullTraceMultiSizeof(const pullTraceMulti *mtrc) {
+  size_t ret;
+  unsigned int ti;
+
+  if (!mtrc) {
+    return 0;
+  }
+  ret = 0;
+  for (ti=0; ti<mtrc->traceNum; ti++) {
+    ret += sizeof(pullTrace);
+    ret += nsizeof(mtrc->trace[ti]->nvert);
+    ret += nsizeof(mtrc->trace[ti]->nstrn);
+    ret += nsizeof(mtrc->trace[ti]->nvelo);
+  }
+  ret += sizeof(pullTrace*)*(mtrc->traceArr->size);
+  return ret;
+}
+
 pullTraceMulti *
 pullTraceMultiNix(pullTraceMulti *mtrc) {
 
@@ -537,3 +565,196 @@ pullTraceMultiNix(pullTraceMulti *mtrc) {
   return NULL;
 }
 
+
+#define PULL_MTRC_MAGIC "PULLMTRC0001"
+#define DEMARK_STR "======"
+
+static int
+tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
+  static const char me[]="tracewrite";
+
+  fprintf(file, "%s %u\n", DEMARK_STR, ti);
+  ell_4v_print_d(file, trc->seedPos);
+#define WRITE(FF) \
+  if (trc->FF && trc->FF->data) { \
+    if (nrrdWrite(file, trc->FF, NULL)) { \
+      biffMovef(PULL, NRRD, "%s: trouble with " #FF , me); \
+      return 1; \
+    } \
+  } else { \
+    fprintf(file, "NULL"); \
+  } \
+  fprintf(file, "\n")
+  fprintf(file, "nrrds: vert strn velo = %d %d %d\n", 
+          trc->nvert && trc->nvert->data,
+          trc->nstrn && trc->nstrn->data,
+          trc->nvelo && trc->nvelo->data);
+  WRITE(nvert);
+  WRITE(nstrn);
+  WRITE(nvelo);
+  fprintf(file, "%u\n", trc->seedIdx);
+  fprintf(file, "%s %s %s\n",
+          airEnumStr(pullTraceStop, trc->whyStop[0]),
+          airEnumStr(pullTraceStop, trc->whyStop[1]),
+          airEnumStr(pullTraceStop, trc->whyNowhere));
+#undef WRITE
+  return 0;
+}
+
+int
+pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc) {
+  static const char me[]="pullTraceMultiWrite";
+  unsigned int ti;
+
+  if (!(file && mtrc)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  fprintf(file, "%s\n", PULL_MTRC_MAGIC);
+  fprintf(file, "%u traces\n", mtrc->traceNum);
+
+  for (ti=0; ti<mtrc->traceNum; ti++) {
+    if (tracewrite(file, mtrc->trace[ti], ti)) {
+      biffAddf(PULL, "%s: trace %u/%u", me, ti, mtrc->traceNum);
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int 
+traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
+  static const char me[]="traceread";
+  char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
+  unsigned int ti, lineLen;
+  int stops[3], hackhack, vertHN, strnHN, veloHN; /* HN == have nrrd */
+
+  sprintf(name, "separator");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (1 != sscanf(line, DEMARK_STR " %u", &ti)) {
+    biffAddf(PULL, "%s: \"%s\" doesn't look like %s line", me, line, name);
+    return 1;
+  }
+  if (ti != _ti) {
+    biffAddf(PULL, "%s: read trace index %u but wanted %u", me, ti, _ti);
+    return 1;
+  }
+  sprintf(name, "seed pos");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (4 != sscanf(line, "%lg %lg %lg %lg", trc->seedPos + 0,
+                  trc->seedPos + 1, trc->seedPos + 2, trc->seedPos + 3)) {
+    biffAddf(PULL, "%s: couldn't parse %s line \"%s\" as 4 doubles",
+             me, name, line);
+    return 1;
+  }
+  sprintf(name, "have nrrds");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (3 != sscanf(line, "nrrds: vert strn velo = %d %d %d",
+                  &vertHN, &strnHN, &veloHN)) {
+    biffAddf(PULL, "%s: couldn't parse %s line", me, name);
+    return 1;
+  }
+#define READ(FF) \
+  if (FF##HN) {                         \
+    if (nrrdRead(trc->n##FF, file, NULL)) {        \
+      biffMovef(PULL, NRRD, "%s: trouble with " #FF , me); \
+      return 1; \
+    } \
+    fgetc(file); \
+  } else {                                      \
+    airOneLine(file, line, AIR_STRLEN_MED); \
+  } 
+  /* HEY: adding this in seems to mysteriously break the code
+  hackhack = nrrdStateVerboseIO;
+  nrrdStateVerboseIO = 0;
+  */
+  READ(vert);
+  READ(strn);
+  READ(velo);
+  /* nrrdStateVerboseIO = hackhack; */
+
+  sprintf(name, "seed idx");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (1 != sscanf(line, "%u", &(trc->seedIdx))) {
+    biffAddf(PULL, "%s: didn't parse uint from %s line \"%s\"",
+             me, name, line);
+    return 1;
+  }
+  sprintf(name, "stops");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (3 != airParseStrE(stops, line, " ", 3, pullTraceStop)) {
+    biffAddf(PULL, "%s: didn't see 3 %s on %s line \"%s\"", me,
+             pullTraceStop->name, name, line);
+    return 1;
+  }
+
+  return 0;
+}
+int
+pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
+  static const char me[]="pullTraceMultiRead";
+  char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
+  unsigned int lineLen, ti, tnum;
+  pullTrace *trc;
+  
+  if (!(mtrc && file)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  airArrayLenSet(mtrc->traceArr, 0);
+  sprintf(name, "magic");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (strcmp(line, PULL_MTRC_MAGIC)) {
+    biffAddf(PULL, "%s: %s line \"%s\" not expected \"%s\"", 
+             me, name, line, PULL_MTRC_MAGIC);
+    return 1;
+  }
+  
+  sprintf(name, "# of traces");
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  if (!lineLen) {
+    biffAddf(PULL, "%s: didn't get %s line", me, name);
+    return 1;
+  }
+  if (1 != sscanf(line, "%u traces", &tnum)) {
+    biffAddf(PULL, "%s: \"%s\" doesn't look like %s line", me, line, name);
+    return 1;
+  }
+  for (ti=0; ti<tnum; ti++) {
+    trc = pullTraceNew();
+    if (traceread(trc, file, ti)) {
+      biffAddf(PULL, "%s: on trace %u/%u", me, ti, tnum);
+      return 1;
+    }
+    if (pullTraceMultiAdd(mtrc, trc)) {
+      biffAddf(PULL, "%s: adding trace %u/%u", me, ti, tnum);
+      return 1;
+    }
+  }
+  
+  return 0;
+}
