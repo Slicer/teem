@@ -24,6 +24,15 @@
 #include <teem/pull.h>
 #include "../meet.h"
 
+/*
+
+gcc -g  -W -Wall -arch x86_64   strace.c  -o strace -Wl,-prebind \
+   -I/Users/gk/teem-install/include \
+  -L/Users/gk/teem-install/lib/ \
+ -lteem  -lpng -lz -lpthread -lfftw3 -lm
+
+ */
+
 int
 pullScaleTracePlotAdd(pullContext *pctx, Nrrd *nwild, Nrrd *nccd,
                       Nrrd *nmask, double mth, airArray *insideArr,
@@ -195,6 +204,7 @@ findAndTraceMorePoints(Nrrd *nplot,
   printf("%s: tracing . . .       ", me);
   for (pidx=0; pidx<addedNum; pidx++) {
     double seedPos[4];
+    int added;
     printf("%s", airDoneStr(0, pidx, addedNum, doneStr)); fflush(stdout);
     trace = pullTraceNew();
     ELL_4V_COPY(seedPos, pos + 4*pidx);
@@ -202,9 +212,12 @@ findAndTraceMorePoints(Nrrd *nplot,
                      scaleStep, scaleHalfLen,
                      speedLimit, traceArrIncr,
                      seedPos)
-        || pullTraceMultiAdd(mtrc, trace)) {
+        || pullTraceMultiAdd(mtrc, trace, &added)) {
       biffAddf(PULL, "%s: trouble on point %u", me, pidx);
       airMopError(mop); return 1;
+    }
+    if (!added) {
+      trace = pullTraceNix(trace);
     }
   }
   printf("%s\n", airDoneStr(0, pidx, pointNum, doneStr));
@@ -780,6 +793,8 @@ main(int argc, const char **argv) {
     airMopAdd(mop, nsplot, (airMopper)nrrdNuke, airMopAlways);
     nprogA = nrrdNew();
     airMopAdd(mop, nprogA, (airMopper)nrrdNuke, airMopAlways);
+    nprogB = nrrdNew();
+    airMopAdd(mop, nprogB, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdCopy(nprogA, nplotA)
         || nrrdCopy(nprogB, nplotA)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -792,6 +807,7 @@ main(int argc, const char **argv) {
     pnum = nPosOut->axis[1].size;
     printf("!%s: tracing initial %u points . . .       ", me, pnum);
     for (pidx=0; pidx<pnum; pidx++) {
+      int added;
       printf("%s", airDoneStr(0, pidx, pnum, doneStr)); fflush(stdout);
       pts = pullTraceNew();
       ELL_4V_COPY(seedPos, pos + 4*pidx);
@@ -799,10 +815,13 @@ main(int argc, const char **argv) {
                        scaleStep, scaleWin/2,
                        sslim, AIR_CAST(unsigned int, sslim/scaleStep),
                        seedPos)
-          || pullTraceMultiAdd(mtrc, pts)) {
+          || pullTraceMultiAdd(mtrc, pts, &added)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble on point %u:\n%s", me, pidx, err);
         airMopError(mop); return 1;
+      }
+      if (!added) {
+        pts = pullTraceNix(pts);
       }
     }
     printf("%s\n", airDoneStr(0, pidx, pnum, doneStr));
