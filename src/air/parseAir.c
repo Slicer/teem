@@ -377,7 +377,10 @@ airParseStrE(int *out, const char *_s, const char *ct, unsigned int n, ...) {
         return i;
       }
       out[i] = airEnumVal(enm, tmp);
-      if (airEnumUnknown(enm) == out[i]) {
+      if (airEnumUnknown(enm) == out[i]
+          /* getting the unknown value is not a parse failure if the
+             string was actually the string for the unknown value! */
+          && strcmp(tmp, enm->str[0])) {
         airMopError(mop);
         return i;
       }
