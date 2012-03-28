@@ -312,9 +312,10 @@ enum {
   pullTraceStopConstrFail,      /* 2 */
   pullTraceStopBounds,          /* 3 */
   pullTraceStopLength,          /* 4 */
+  pullTraceStopStub,            /* 5 */
   pullTraceStopLast
 };
-#define PULL_TRACE_STOP_MAX        4
+#define PULL_TRACE_STOP_MAX        5
 
 /* 
 ** Defines how par-particle information can be learned.  This is
@@ -1164,7 +1165,8 @@ PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
                              const double seedPos[4]);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNew();
 PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
-PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc);
+PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc,
+                                  int *addedP);
 PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
                                                 const pullTraceMulti *mtrc,
                                                 double winLenFrac);

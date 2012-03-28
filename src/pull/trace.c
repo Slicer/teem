@@ -50,6 +50,7 @@ pullTraceNix(pullTrace *pts) {
     nrrdNuke(pts->nvert);
     nrrdNuke(pts->nstrn);
     nrrdNuke(pts->nvelo);
+    free(pts);
   }
   return NULL;
 }
@@ -243,6 +244,13 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   
   /* transfer trace halves to pts->nvert */
   vertNum = trceArr[0]->len + trceArr[1]->len;
+  if (0 == vertNum || 1 == vertNum || 2 == vertNum) {
+    pts->whyNowhere = pullTraceStopStub;
+    airMopOkay(mop);
+    pctx->idtagNext -= 1; /* HACK */
+    return 0;
+  }
+  
   if (nrrdMaybeAlloc_va(pts->nvert, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 4),
                         AIR_CAST(size_t, vertNum))
@@ -286,26 +294,30 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     oidx++;
   }
   lentmp = pts->nvelo->axis[0].size;
-  for (tidx=0; tidx<lentmp; tidx++) {
-    double *p0, *p1, *p2, diff[3];
-    if (!tidx) {
-      /* first */
-      p1 = vert + 4*tidx;
-      p2 = vert + 4*(tidx+1);
-      ELL_3V_SUB(diff, p2, p1);
-      velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p1[3]);
-    } else if (tidx < lentmp-1) {
-      /* middle */
-      p0 = vert + 4*(tidx-1);
-      p2 = vert + 4*(tidx+1);
-      ELL_3V_SUB(diff, p2, p0);
-      velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p0[3]);
-    } else {
-      /* last */
-      p0 = vert + 4*(tidx-1);
-      p1 = vert + 4*tidx;
-      ELL_3V_SUB(diff, p1, p0);
-      velo[tidx] = ELL_3V_LEN(diff)/(p1[3]-p0[3]);
+  if (1 == lentmp) {
+    velo[0] = 0.0;
+  } else {
+    for (tidx=0; tidx<lentmp; tidx++) {
+      double *p0, *p1, *p2, diff[3];
+      if (!tidx) {
+        /* first */
+        p1 = vert + 4*tidx;
+        p2 = vert + 4*(tidx+1);
+        ELL_3V_SUB(diff, p2, p1);
+        velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p1[3]);
+      } else if (tidx < lentmp-1) {
+        /* middle */
+        p0 = vert + 4*(tidx-1);
+        p2 = vert + 4*(tidx+1);
+        ELL_3V_SUB(diff, p2, p0);
+        velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p0[3]);
+      } else {
+        /* last */
+        p0 = vert + 4*(tidx-1);
+        p1 = vert + 4*tidx;
+        ELL_3V_SUB(diff, p1, p0);
+        velo[tidx] = ELL_3V_LEN(diff)/(p1[3]-p0[3]);
+      }
     }
   }
 
@@ -336,11 +348,11 @@ pullTraceMultiNew(void) {
 }
 
 int
-pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc) {
+pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP) {
   static const char me[]="pullTraceMultiAdd";
   unsigned int indx;
 
-  if (!(mtrc && trc)) {
+  if (!(mtrc && trc && addedP)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
@@ -348,12 +360,15 @@ pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc) {
     /*  for now getting a stub trace is not an error
     biffAddf(PULL, "%s: got stub trace", me);
     return 1; */
+    *addedP = AIR_FALSE;
     return 0;
   }
-  if (!(trc->nvelo->data && trc->nvelo->axis[0].size == trc->nvert->axis[1].size)) {
+  if (!(trc->nvelo->data
+        && trc->nvelo->axis[0].size == trc->nvert->axis[1].size)) {
     biffAddf(PULL, "%s: velo data inconsistent", me);
     return 1;
   }
+  *addedP = AIR_TRUE;
   indx = airArrayLenIncr(mtrc->traceArr, 1);
   if (!mtrc->trace) {
     biffAddf(PULL, "%s: alloc error", me);
@@ -506,6 +521,9 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
       continue;
     }
     trc = mtrc->trace[trcIdx];
+    if (pullTraceStopStub == trc->whyNowhere) {
+      continue;
+    }
     vert = AIR_CAST(double *, trc->nvert->data);
     velo = AIR_CAST(double *, trc->nvelo->data);
     pntNum = trc->nvert->axis[1].size;
@@ -745,14 +763,18 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
     return 1;
   }
   for (ti=0; ti<tnum; ti++) {
+    int added;
     trc = pullTraceNew();
     if (traceread(trc, file, ti)) {
       biffAddf(PULL, "%s: on trace %u/%u", me, ti, tnum);
       return 1;
     }
-    if (pullTraceMultiAdd(mtrc, trc)) {
+    if (pullTraceMultiAdd(mtrc, trc, &added)) {
       biffAddf(PULL, "%s: adding trace %u/%u", me, ti, tnum);
       return 1;
+    }
+    if (!added) {
+      trc = pullTraceNix(trc);
     }
   }
   

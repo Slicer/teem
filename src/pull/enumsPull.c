@@ -236,7 +236,8 @@ _pullTraceStopStr[] = {
   "speeding",
   "constrfail",
   "bounds",
-  "length"
+  "length",
+  "stub"
 };
 
 const airEnum
