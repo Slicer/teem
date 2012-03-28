@@ -152,14 +152,17 @@ findAndTraceMorePoints(Nrrd *nplot,
   pointsSoFar = pullPointNumber(pctx);
   idtagBase = pctx->idtagNext;
   point = NULL;
-  printf("%s: adding %u new points . . .       ", me, pointNum);
+  printf("%s: adding %u new points (to %u; %s) . . .       ",
+         me, pointNum, pointsSoFar, 
+         airPrettySprintSize_t(doneStr, pullTraceMultiSizeof(mtrc)));
   for (pidx=0; pidx<pointNum; pidx++) {
     int added;
     printf("%s", airDoneStr(0, pidx, pointNum, doneStr)); fflush(stdout);
     if (!point) {
       point = pullPointNew(pctx);
     }
-    if (pullPointInitializeRandomOrHalton(pctx, pidx + pointsSoFar, point, scaleVol)) {
+    if (pullPointInitializeRandomOrHalton(pctx, pidx + pointsSoFar,
+                                          point, scaleVol)) {
       biffAddf(PULL, "%s: trouble trying point %u (id %u)", me,
                pidx, point->idtag);
       airMopError(mop); return 1;
@@ -182,7 +185,8 @@ findAndTraceMorePoints(Nrrd *nplot,
 
   nPosOut = nrrdNew();
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
-  if (pullOutputGetFilter(nPosOut, NULL, NULL, NULL, 0.0, pctx, idtagBase, 0)) {
+  if (pullOutputGetFilter(nPosOut, NULL, NULL, NULL, 0.0,
+                          pctx, idtagBase, 0)) {
     biffAddf(PULL, "%s: trouble", me);
     airMopError(mop); return 1;
   }
@@ -221,7 +225,7 @@ resamplePlot(Nrrd *nprob, const Nrrd *nplot) {
   static const char me[]="resamplePlot";
   unsigned int ii, nn;
 
-  double scls[2] = {0.5, 0.5}, kparm[2] = {2.0, 20.0};
+  double scls[2] = {0.4, 0.4}, kparm[2] = {2.0, 20.0};
   const NrrdKernel *kern = nrrdKernelGaussian;
 
   /*    
@@ -271,15 +275,17 @@ main(int argc, const char **argv) {
   airArray *mop;
   const char *me;
 
-  char *err, *posOutS, *outS, *extraOutBaseS, *addLogS, *cachePathSS;
-  FILE *addLog;
+  char *err, *posOutS, *outS, *extraOutBaseS, *addLogS, *cachePathSS,
+    *tracesInS, *tracesOutS;
+  FILE *addLog, *tracesFile;
   meetPullVol **vspec;
   meetPullInfo **idef;
-  Nrrd *nPosIn=NULL, *nPosOut;
+  Nrrd *nPosIn=NULL, *nPosOut, *nplot, *nplotA, *nplotB, *nfilt;
   pullEnergySpec *enspR, *enspS, *enspWin;
   NrrdKernelSpec *k00, *k11, *k22, *kSSrecon, *kSSblur;
-  pullContext *pctx;
+  pullContext *pctx=NULL;
   pullVolume *scaleVol=NULL;
+  pullTraceMulti *mtrc=NULL;
   int E=0, ret=0;
   unsigned int vspecNum, idefNum;
   double scaleVec[3], glyphScaleRad;
@@ -300,7 +306,7 @@ main(int argc, const char **argv) {
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
     neighborTrueProb, probeProb, fracNeighNixedMax, tpdThresh;
 
-  double sstep, sswin, shalf, sslim;
+  double sstep, sswin, shalf, sslim, ssrange[2];
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -308,6 +314,18 @@ main(int argc, const char **argv) {
 
   nPosOut = nrrdNew();
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
+
+  mtrc = pullTraceMultiNew();
+  airMopAdd(mop, mtrc, (airMopper)pullTraceMultiNix, airMopAlways);
+
+  nplot = nrrdNew();
+  airMopAdd(mop, nplot, (airMopper)nrrdNuke, airMopAlways);
+  nplotA = nrrdNew();
+  airMopAdd(mop, nplotA, (airMopper)nrrdNuke, airMopAlways);
+  nplotB = nrrdNew();
+  airMopAdd(mop, nplotB, (airMopper)nrrdNuke, airMopAlways);
+  nfilt = nrrdNew();
+  airMopAdd(mop, nfilt, (airMopper)nrrdNuke, airMopAlways);
 
   hparm->respFileEnable = AIR_TRUE;
   me = argv[0];
@@ -418,6 +436,10 @@ main(int argc, const char **argv) {
              "max number of passes in plot estimation");
   hestOptAdd(&hopt, "tpdt", "thresh", airTypeDouble, 1, 1, 
              &tpdThresh, "1.0", "KL-distance threshold");
+  hestOptAdd(&hopt, "ti", "fname", airTypeString, 1, 1,
+             &tracesInS, "", "input file of pre-computed traces");
+  hestOptAdd(&hopt, "to", "fname", airTypeString, 1, 1,
+             &tracesOutS, "", "file for saving *computed* traces");
 
   hestOptAdd(&hopt, "ppv", "# pnts/vox", airTypeUInt, 1, 1,
              &pointPerVoxel, "0",
@@ -570,7 +592,7 @@ main(int argc, const char **argv) {
   */
   if (airStrlen(addLogS)) {
     if (!(addLog = airFopen(addLogS, stdout, "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing", me, addLogS);
+      fprintf(stderr, "%s: couldn't open %s for writing\n", me, addLogS);
       airMopError(mop); return 1;
     }
     airMopAdd(mop, addLog, (airMopper)airFclose, airMopAlways);
@@ -669,11 +691,54 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
 
+  if (airStrlen(tracesInS)) {
+    /* don't need to initialize points if we're reading a trace,
+       but annoyingly we do need the rest of the pull set up,
+       *JUST* so that we can read off the scale-space range
+       associated with the constraint */
+    pullFlagSet(pctx, pullFlagStartSkipsPoints, AIR_TRUE);
+  }
   if (pullStart(pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble starting system:\n%s", me, err);
     airMopError(mop); return 1;
   }
+
+  if (nrrdMaybeAlloc_va(nplotA, nrrdTypeDouble, 2, 
+                        AIR_CAST(size_t, 1000),
+                        AIR_CAST(size_t, 420))) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble creating output:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  if (pullConstraintScaleRange(pctx, ssrange)) {
+    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  fprintf(stderr, "!%s: ================== ssrange %g %g\n", me,
+          ssrange[0], ssrange[1]);
+  fprintf(stderr, "!%s: ======== mvol %u %g %g\n", me, vspec[0]->numSS,
+          vspec[0]->rangeSS[0], vspec[0]->rangeSS[1]);
+  nplotA->axis[0].min = ssrange[0];
+  nplotA->axis[0].max = ssrange[1];
+  nplotA->axis[1].min = 0.0;
+  nplotA->axis[1].max = 2*shalf;
+  nrrdCopy(nplotB, nplotA);
+  if (airStrlen(tracesInS)) {
+    if (!(tracesFile = airFopen(tracesInS, stdin, "rb"))) {
+      fprintf(stderr, "%s: couldn't open %s for reading\n", me, tracesInS);
+      airMopError(mop); return 1;
+    }
+    if (pullTraceMultiRead(mtrc, tracesFile)) {
+      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble reading:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    airFclose(tracesFile);
+    goto plotting;
+  }
+  /* else */
 
   if (!pctx->constraint) {
     fprintf(stderr, "%s: this programs requires a constraint\n", me);
@@ -700,49 +765,25 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
   nrrdSave(posOutS, nPosOut, NULL);
-  
+
   {
-    double *pos, seedPos[4], ssrange[2], scaleWin, scaleStep, dist;
+    double *pos, seedPos[4], scaleWin, scaleStep, dist;
     unsigned int pidx, pnum, passIdx;
     pullTrace *pts;
-    pullTraceMulti *mtrc;
-    Nrrd *nplot, *nsplot, *nlsplot, *nwild, *nccd, *nfilt;
+    Nrrd *nsplot, *nprogA, *nprogB, *nlsplot;
     char doneStr[AIR_STRLEN_SMALL];
     
     pos = AIR_CAST(double *, nPosOut->data);
-    mtrc = pullTraceMultiNew();
-    airMopAdd(mop, mtrc, (airMopper)pullTraceMultiNix, airMopAlways);
-    nwild = nrrdNew();
-    airMopAdd(mop, nwild, (airMopper)nrrdNuke, airMopAlways);
-    nccd = nrrdNew();
-    airMopAdd(mop, nccd, (airMopper)nrrdNuke, airMopAlways);
-    nplot = nrrdNew();
-    airMopAdd(mop, nplot, (airMopper)nrrdNuke, airMopAlways);
     nlsplot = nrrdNew();
     airMopAdd(mop, nlsplot, (airMopper)nrrdNuke, airMopAlways);
     nsplot = nrrdNew();
     airMopAdd(mop, nsplot, (airMopper)nrrdNuke, airMopAlways);
-    nfilt = nrrdNew();
-    airMopAdd(mop, nfilt, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdMaybeAlloc_va(nwild, nrrdTypeDouble, 2, 
-                          AIR_CAST(size_t, 1200),
-                          AIR_CAST(size_t, 500))) {
+    nprogA = nrrdNew();
+    airMopAdd(mop, nprogA, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdCopy(nprogA, nplotA)
+        || nrrdCopy(nprogB, nplotA)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble creating output:\n%s", me, err);
-      airMopError(mop); return 1;
-    }
-    if (pullConstraintScaleRange(pctx, ssrange)) {
-      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble:\n%s", me, err);
-      airMopError(mop); return 1;
-    }
-    nwild->axis[0].min = ssrange[0];
-    nwild->axis[0].max = ssrange[1];
-    nwild->axis[1].min = 0.0;
-    nwild->axis[1].max = 2*shalf;
-    if (nrrdCopy(nccd, nwild)) {
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble creating nccd:\n%s", me, err);
+      fprintf(stderr, "%s: trouble creating nprogs:\n%s", me, err);
       airMopError(mop); return 1;
     }
     scaleWin = sswin*(ssrange[1]-ssrange[0]);
@@ -765,25 +806,23 @@ main(int argc, const char **argv) {
       }
     }
     printf("%s\n", airDoneStr(0, pidx, pnum, doneStr));
-    if (pullTraceMultiPlotAdd(nwild, mtrc, NULL, 0, 0) /*
-        || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
-        || pullTraceMultiPlotAdd(nccd, mtrc, nfilt, 0, 0) */) {
+    if (pullTraceMultiPlotAdd(nprogA, mtrc, NULL, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
       airMopError(mop); return 1;
     }
-    resamplePlot(nlsplot, nwild);
+    resamplePlot(nlsplot, nprogA);
 
     for (passIdx=0; (passNumMax ? passIdx<passNumMax : 1); passIdx++) {
       double dd;
       fprintf(stderr, "!%s: pass %u/%u ==================\n",
               me, passIdx, passNumMax);
-      nrrdZeroSet(nccd);
-      if (findAndTraceMorePoints(nccd, pctx, scaleVol,
+      nrrdZeroSet(nprogB);
+      if (findAndTraceMorePoints(nprogB, pctx, scaleVol,
                                  scaleStep, scaleWin/2,
                                  sslim, AIR_CAST(unsigned int, sslim/scaleStep),
                                  mtrc, tracePointNum)
-          || resamplePlot(nsplot, nccd)) {
+          || resamplePlot(nsplot, nprogB)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble on pass %u:\n%s", me, passIdx, err);
         airMopError(mop); return 1;
@@ -806,17 +845,27 @@ main(int argc, const char **argv) {
       fprintf(stderr, "%s: WARNING did NOT converge: dist %g >= thresh %g\n",
               me, dist, tpdThresh);
     }
-    if (pullTraceMultiPlotAdd(nwild, mtrc, NULL, 0, 0)
+    if (airStrlen(tracesOutS) && !airStrlen(tracesInS)) {
+      tracesFile = airFopen(tracesOutS, stdout, "wb");
+      if (pullTraceMultiWrite(tracesFile, mtrc)) {
+        airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble writing:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
+      fclose(tracesFile);
+    }
+  plotting:
+    if (pullTraceMultiPlotAdd(nplotA, mtrc, NULL, 0, 0)
         || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
-        || pullTraceMultiPlotAdd(nccd, mtrc, nfilt, 0, 0)) {
+        || pullTraceMultiPlotAdd(nplotB, mtrc, nfilt, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
+      fprintf(stderr, "%s: trouble plotting:\n%s", me, err);
       airMopError(mop); return 1;
     }
     {
       const Nrrd *nin[2];
-      nin[0] = nwild;
-      nin[1] = nccd;
+      nin[0] = nplotA;
+      nin[1] = nplotB;
       if (nrrdJoin(nplot, nin, 2, 0, AIR_TRUE)) { 
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s", me, err);
