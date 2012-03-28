@@ -100,9 +100,11 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     }
 
     car = fgetc(file);
-    if (1 <= nrrdStateVerboseIO && EOF != car) {
-      fprintf(stderr, "%s: WARNING: finished reading raw data, "
-              "but file not at EOF\n", me);
+    if (EOF != car) {
+      if (1 <= nrrdStateVerboseIO) {
+        fprintf(stderr, "%s: WARNING: finished reading raw data, "
+                "but file not at EOF\n", me);
+      }
       ungetc(car, file);
     }
     if (2 <= nrrdStateVerboseIO && nio->byteSkip && stdin != file) {
