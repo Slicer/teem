@@ -694,15 +694,13 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   } else {                                      \
     airOneLine(file, line, AIR_STRLEN_MED); \
   } 
-  /* HEY: adding this in seems to mysteriously break the code
-  hackhack = nrrdStateVerboseIO;
+  hackhack = nrrdStateVerboseIO;  /* should be fixed in Teem v2 */
   nrrdStateVerboseIO = 0;
-  */
   READ(vert);
   READ(strn);
   READ(velo);
-  /* nrrdStateVerboseIO = hackhack; */
-
+  nrrdStateVerboseIO = hackhack;
+  
   sprintf(name, "seed idx");
   lineLen = airOneLine(file, line, AIR_STRLEN_MED);
   if (!lineLen) {
