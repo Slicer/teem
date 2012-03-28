@@ -267,6 +267,37 @@ airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
 }
 
 /*
+******** airPrettySprintSize_t
+**
+** sprints a single size_t in a way that is human readable as
+** bytes, kilobytes (KB), etc
+*/
+char *
+airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
+  static const char suff[][6] = {"bytes", "KB", "MB", "GB", "TB", "PB"};
+  unsigned int suffIdx, suffNum;
+  double dval;
+  
+  if (!str) {
+    return NULL;
+  }
+  suffIdx = 0;
+  dval = AIR_CAST(double, val);
+  suffNum = AIR_CAST(unsigned int, sizeof(suff)/sizeof(suff[0]));
+  while (suffIdx < suffNum-1) {  /* while we can go to a bigger suffix */
+    if (dval > 1024) {
+      dval /= 1024;
+      suffIdx++;
+    } else {
+      break;
+    }
+  }
+  sprintf(str, "%g %s", dval, suff[suffIdx]);
+  return str;
+}
+
+
+/*
 ******** airSprintPtrdiff_t
 **
 ** sprints a single ptrdiff_t to a given string, side-stepping

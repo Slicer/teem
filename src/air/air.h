@@ -553,7 +553,8 @@ AIR_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 AIR_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
-AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t val);
+AIR_EXPORT char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
+AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
 /* ---- BEGIN non-NrrdIO */
 AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
