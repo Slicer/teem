@@ -208,7 +208,7 @@ findAndTraceMorePoints(Nrrd *nplot,
     printf("%s", airDoneStr(0, pidx, addedNum, doneStr)); fflush(stdout);
     trace = pullTraceNew();
     ELL_4V_COPY(seedPos, pos + 4*pidx);
-    if (pullTraceSet(pctx, trace, AIR_FALSE,
+    if (pullTraceSet(pctx, trace, AIR_TRUE,
                      scaleStep, scaleHalfLen,
                      speedLimit, traceArrIncr,
                      seedPos)
@@ -320,6 +320,7 @@ main(int argc, const char **argv) {
     neighborTrueProb, probeProb, fracNeighNixedMax, tpdThresh;
 
   double sstep, sswin, shalf, sslim, ssrange[2];
+  unsigned int pres[2];
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -593,6 +594,8 @@ main(int argc, const char **argv) {
              "velocity that will be half-way down vertical axis of plot");
   hestOptAdd(&hopt, "sl", "sslim", airTypeDouble, 1, 1, &sslim, "50.0",
              "velocity at which we give up tracking");
+  hestOptAdd(&hopt, "pr", "sx sy", airTypeUInt, 2, 2, pres, "1000 420",
+             "resolution of the 2D plot");
 
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
@@ -718,8 +721,8 @@ main(int argc, const char **argv) {
   }
 
   if (nrrdMaybeAlloc_va(nplotA, nrrdTypeDouble, 2, 
-                        AIR_CAST(size_t, 1000),
-                        AIR_CAST(size_t, 420))) {
+                        AIR_CAST(size_t, pres[0]),
+                        AIR_CAST(size_t, pres[1]))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble creating output:\n%s", me, err);
     airMopError(mop); return 1;
@@ -811,7 +814,7 @@ main(int argc, const char **argv) {
       printf("%s", airDoneStr(0, pidx, pnum, doneStr)); fflush(stdout);
       pts = pullTraceNew();
       ELL_4V_COPY(seedPos, pos + 4*pidx);
-      if (pullTraceSet(pctx, pts, AIR_FALSE,
+      if (pullTraceSet(pctx, pts, AIR_TRUE,
                        scaleStep, scaleWin/2,
                        sslim, AIR_CAST(unsigned int, sslim/scaleStep),
                        seedPos)
