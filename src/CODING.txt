@@ -157,7 +157,7 @@ suffixed with "Num".  For example, "nin" and "ninNum" here:
                unsigned int axis, int incrDim);
 
 * In public headers, ONLY use "..." to indicate var-args arguments.
-"..." should be used in comments (in public headers).  Use ".."
+"..." should not be used in comments (in public headers).  Use ".."
 instead of "..." to refer to a range of things, and ". . ." for
 regular ellipses in text.  (why: to make it trivial to see which
 functions are var-args; they can be the hardest to debug).
