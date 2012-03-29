@@ -623,12 +623,17 @@ _pullProbe(pullTask *task, pullPoint *point) {
 
 static int
 _threshFail(const pullContext *pctx, const pullPoint *point, int info) {
+  /* static const char me[]="_threshFail"; */
   double val;
   int ret;
 
   if (pctx->ispec[info]) {
     val = _pullPointScalar(pctx, point, info, NULL, NULL);
     ret = (val < 0);
+    /*
+    fprintf(stderr, "%s(%s): val=%g -> ret=%d\n", me, 
+            airEnumStr(pullInfo, info), val, ret);
+    */
   } else {
     ret = AIR_FALSE;
   }
@@ -850,6 +855,10 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
               pctx->haltonOffset, pctx->initParm.haltonStartIndex,
               rpos[0], rpos[1], rpos[2], rpos[3]);
       */
+              /*
+      fprintf(stderr, "%g %g %g %g ",
+              rpos[0], rpos[1], rpos[2], rpos[3]);
+              */
     } else {
       ELL_3V_SET(rpos, airDrandMT_r(rng), airDrandMT_r(rng), airDrandMT_r(rng));
       if (pctx->haveScale) {
