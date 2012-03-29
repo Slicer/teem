@@ -783,7 +783,7 @@ main(int argc, const char **argv) {
   nrrdSave(posOutS, nPosOut, NULL);
 
   {
-    double *pos, seedPos[4], scaleWin, scaleStep, dist;
+    double *pos, seedPos[4], scaleWin, scaleStep, dist=0;
     unsigned int pidx, pnum, passIdx;
     pullTrace *pts;
     Nrrd *nsplot, *nprogA, *nprogB, *nlsplot;
