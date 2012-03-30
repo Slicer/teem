@@ -365,7 +365,10 @@ _pullProbe(pullTask *task, pullPoint *point) {
   static const char me[]="_pullProbe";
   unsigned int ii, gret=0;
   int edge;
-
+  /*
+  fprintf(stderr, "!%s: task->probeSeedPreThreshOnly = %d\n", me,
+          task->probeSeedPreThreshOnly);
+  */
 #if 0
   static int opened=AIR_FALSE;
   static FILE *flog;
@@ -805,8 +808,8 @@ _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol,
   /* static const char me[]="_pullUnitToWorld"; */
 
   wrld[0] = AIR_AFFINE(0.0, unit[0], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
-  wrld[1] = AIR_AFFINE(0.0, unit[1], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
-  wrld[2] = AIR_AFFINE(0.0, unit[2], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
+  wrld[1] = AIR_AFFINE(0.0, unit[1], 1.0, pctx->bboxMin[1], pctx->bboxMax[1]);
+  wrld[2] = AIR_AFFINE(0.0, unit[2], 1.0, pctx->bboxMin[2], pctx->bboxMax[2]);
   if (pctx->haveScale) {
     double sridx;
     int outside;
@@ -833,7 +836,8 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
   static const char me[]="pullPointInitializeRandomOrHalton";
   int reject, verbo;
   airRandMTState *rng;
-  unsigned int threshFailCount = 0, constrFailCount = 0;
+  unsigned int threshFailCount = 0, spthreshFailCount = 0, 
+    constrFailCount = 0;
   rng = pctx->task[0]->rng;
 
   do {
@@ -855,7 +859,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
               pctx->haltonOffset, pctx->initParm.haltonStartIndex,
               rpos[0], rpos[1], rpos[2], rpos[3]);
       */
-              /*
+                    /*
       fprintf(stderr, "%g %g %g %g ",
               rpos[0], rpos[1], rpos[2], rpos[3]);
               */
@@ -878,7 +882,23 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
               point->pos[2], point->pos[3]);
     }
     _pullPointHistAdd(point, pullCondOld);
-    /* Do a tentative probe */
+
+    /* HEY copy and paste */
+    if (pctx->ispec[pullInfoSeedPreThresh]) {
+      /* we first do a special-purpose probe just for SeedPreThresh */
+      pctx->task[0]->probeSeedPreThreshOnly = AIR_TRUE;
+      if (_pullProbe(pctx->task[0], point)) {
+        biffAddf(PULL, "%s: pre-probing pointIdx %u of world", me, pointIdx);
+        return 1;
+      }
+      pctx->task[0]->probeSeedPreThreshOnly = AIR_FALSE;
+      if (_threshFail(pctx, point, pullInfoSeedPreThresh)) {
+        threshFailCount++;
+        spthreshFailCount++;
+        reject = AIR_TRUE;
+        goto reckoning;
+      }
+    }
     if (_pullProbe(pctx->task[0], point)) {
       biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
       return 1;
@@ -890,7 +910,6 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
       reject = AIR_TRUE; \
       goto reckoning; \
     }
-    THRESH_TEST(pullInfoSeedPreThresh);
     if (!pctx->flag.constraintBeforeSeedThresh) {
       THRESH_TEST(pullInfoSeedThresh);
       if (pctx->initParm.liveThreshUse) {
@@ -926,10 +945,10 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
     if (reject) {
       if (threshFailCount + constrFailCount >= _PULL_RANDOM_SEED_TRY_MAX) {
         /* Very bad luck; we've too many times */
-        biffAddf(PULL, "%s: failed too often (%u times) placing point %u "
-                 "(%u fails on thresh, %u on constr)",
+        biffAddf(PULL, "%s: failed too often (%u times) placing point %u: "
+                 "%u fails on thresh (%u on pre-thresh), %u on constr",
                  me, _PULL_RANDOM_SEED_TRY_MAX, pointIdx,
-                 threshFailCount, constrFailCount);
+                 threshFailCount, spthreshFailCount, constrFailCount);
         return 1;
       }
     }
@@ -955,7 +974,6 @@ pullPointInitializeGivenPos(pullContext *pctx,
   /* Copy nrrd point into pullPoint */
   ELL_4V_COPY(point->pos, posData + 4*pointIdx);
 
-  /* 247.828 66.8817 67.0031 */
   /*
   if (AIR_ABS(247.828 - point->pos[0]) < 0.1 &&
       AIR_ABS(66.8817 - point->pos[1]) < 0.1 &&

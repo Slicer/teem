@@ -85,8 +85,8 @@ extern "C" {
    points is larger than this */
 #define _PULL_PROGRESS_POINT_NUM_MIN 100
 
-/* limit on number of times we allow random (non-ppv) seeding to fail */
-#define _PULL_RANDOM_SEED_TRY_MAX 500000
+/* limit on # times we allow random or halton (non-ppv) seeding to fail */
+#define _PULL_RANDOM_SEED_TRY_MAX 50000
 
 /* limit on stepEnergy */
 #define _PULL_STEP_ENERGY_MAX FLT_MAX
