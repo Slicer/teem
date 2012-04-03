@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -121,11 +121,11 @@ gagePointReset(gagePoint *point) {
 
   if (point) {
     unsigned int big;
-    /* learned: can't initialize the floating point to AIR_NAN, 
+    /* learned: can't initialize the floating point to AIR_NAN,
        non-dot-net windows compilers proclaim that QNAN == x
        for any existent x!!!  For some reason though, infinity
        is handled correctly */
-    ELL_4V_SET(point->frac, 
+    ELL_4V_SET(point->frac,
                AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
     big = AIR_CAST(unsigned int, -1);
     ELL_4V_SET(point->idx, big, big, big, big);
@@ -234,17 +234,17 @@ _gageItemPackPartStrEqv[] = {
 
 const int
 _gageItemPackPartValEqv[] = {
-  gageItemPackPartScalar,      gageItemPackPartScalar,      
-  gageItemPackPartGradVec,     gageItemPackPartGradVec,     
-  gageItemPackPartGradMag,     gageItemPackPartGradMag,     
-  gageItemPackPartNormal,      gageItemPackPartNormal,      
-  gageItemPackPartHessian,     gageItemPackPartHessian,     
-  gageItemPackPartHessEval0,   gageItemPackPartHessEval0,   
-  gageItemPackPartHessEval1,   gageItemPackPartHessEval1,   
-  gageItemPackPartHessEval2,   gageItemPackPartHessEval2,   
-  gageItemPackPartHessEvec0,   gageItemPackPartHessEvec0,   
-  gageItemPackPartHessEvec1,   gageItemPackPartHessEvec1,   
-  gageItemPackPartHessEvec2,   gageItemPackPartHessEvec2,   
+  gageItemPackPartScalar,      gageItemPackPartScalar,
+  gageItemPackPartGradVec,     gageItemPackPartGradVec,
+  gageItemPackPartGradMag,     gageItemPackPartGradMag,
+  gageItemPackPartNormal,      gageItemPackPartNormal,
+  gageItemPackPartHessian,     gageItemPackPartHessian,
+  gageItemPackPartHessEval0,   gageItemPackPartHessEval0,
+  gageItemPackPartHessEval1,   gageItemPackPartHessEval1,
+  gageItemPackPartHessEval2,   gageItemPackPartHessEval2,
+  gageItemPackPartHessEvec0,   gageItemPackPartHessEvec0,
+  gageItemPackPartHessEvec1,   gageItemPackPartHessEvec1,
+  gageItemPackPartHessEvec2,   gageItemPackPartHessEvec2,
 };
 
 const airEnum

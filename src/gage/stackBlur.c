@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -103,10 +103,10 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
       return 1;
     }
   }
-  
+
   return 0;
 }
-                          
+
 int
 gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                            const NrrdKernelSpec *kspec,
@@ -127,13 +127,13 @@ int
 gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
                              int boundary, double padValue) {
   static const char me[]="gageStackBlurParmBoundarySet";
-  
+
   if (!sbp) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   if (airEnumValCheck(nrrdBoundary, boundary)) {
-    biffAddf(GAGE, "%s: %d not a known %s", me, 
+    biffAddf(GAGE, "%s: %d not a known %s", me,
              boundary, nrrdBoundary->name);
     return 1;
   }
@@ -260,7 +260,7 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
 }
 
 /*
-** little helper function to do pre-blurring of a given nrrd 
+** little helper function to do pre-blurring of a given nrrd
 ** of the sort that might be useful for scale-space gage use
 **
 ** nblur has to already be allocated for "blNum" Nrrd*s, AND, they all
@@ -323,7 +323,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
       fprintf(stderr, "%s: blurring %u / %u (scale %g) ... ", me, blIdx,
               sbp->num, sbp->scale[blIdx]);
       fflush(stderr);
-    } 
+    }
     if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel
         && sbp->scale[blIdx] > sbp->sigmaMax) {
       double timeLeft, /* amount of diffusion time left to do */
@@ -334,7 +334,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
       timeStep = (sbp->sigmaMax)*(sbp->sigmaMax);
       if (sbp->verbose) {
         fprintf(stderr, "\n");
-        fprintf(stderr, "%s: scale %g > sigmaMax %g\n", me, 
+        fprintf(stderr, "%s: scale %g > sigmaMax %g\n", me,
                 sbp->scale[blIdx], sbp->sigmaMax);
         fprintf(stderr, "%s: diffusing for time %g in steps of %g\n", me,
                 timeLeft, timeStep);
@@ -408,7 +408,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
 ** pre-blurred volumes from the old data are being re-used
 */
 int
-gageStackBlurCheck(const Nrrd *const nblur[], 
+gageStackBlurCheck(const Nrrd *const nblur[],
                    gageStackBlurParm *sbp,
                    const Nrrd *nin, const gageKind *kind) {
   static const char me[]="gageStackBlurCheck";
@@ -477,7 +477,7 @@ gageStackBlurCheck(const Nrrd *const nblur[],
                "!= 0.0 not implemented", me, sbp->scale[0]);
       airMopOkay(mop); return 1;
       /* so the non-zero return here will be acted upon as though there
-         was a difference between the desired and the current stack, 
+         was a difference between the desired and the current stack,
          so things will be recomputed, which is conservative but costly */
     }
     lup = nrrdDLookup[nin->type];
@@ -568,7 +568,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
     } else {
       /* else precomputed blurrings could all be read, and did match */
       if (sbp->verbose) {
-        fprintf(stderr, "%s: will reuse %u %s pre-blurrings.\n", me, 
+        fprintf(stderr, "%s: will reuse %u %s pre-blurrings.\n", me,
                 sbp->num, format);
       }
       recompute = AIR_FALSE;
@@ -596,7 +596,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
 ** and saves output if recomputed
 */
 int
-gageStackBlurManage(Nrrd ***nblurP, int *recomputedP, 
+gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
                     gageStackBlurParm *sbp,
                     const char *format,
                     int saveIfComputed, NrrdEncoding *enc,
@@ -606,7 +606,7 @@ gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
   unsigned int ii;
   airArray *mop;
   int recomputed;
-  
+
   if (!( nblurP && sbp && nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
@@ -655,7 +655,7 @@ gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
       airMopError(mop); return 1;
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
