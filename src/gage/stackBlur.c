@@ -50,8 +50,9 @@ gageStackBlurParmNix(gageStackBlurParm *sbp) {
   if (sbp) {
     airFree(sbp->scale);
     nrrdKernelSpecNix(sbp->kspec);
+    free(sbp);
   }
-  return sbp;
+  return NULL;
 }
 
 int
@@ -459,13 +460,13 @@ gageStackBlurCheck(const Nrrd *const nblur[],
       if (!tmpval) {
         biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
                  _blurKey[kvpIdx], blIdx);
-        airMopOkay(mop); return 1;
+        airMopError(mop); return 1;
       }
       airMopAdd(mop, tmpval, airFree, airMopAlways);
       if (strcmp(tmpval, blurVal[blIdx].val[kvpIdx])) {
         biffAddf(GAGE, "%s: found key[%s] \"%s\" != wanted \"%s\"", me,
                  _blurKey[kvpIdx], tmpval, blurVal[blIdx].val[kvpIdx]);
-        airMopOkay(mop); return 1;
+        airMopError(mop); return 1;
       }
     }
   }
@@ -475,7 +476,7 @@ gageStackBlurCheck(const Nrrd *const nblur[],
     if (!(0.0 == sbp->scale[0])) {
       biffAddf(GAGE, "%s: sorry, dataCheck w/ scale[0] %g "
                "!= 0.0 not implemented", me, sbp->scale[0]);
-      airMopOkay(mop); return 1;
+      airMopError(mop); return 1;
       /* so the non-zero return here will be acted upon as though there
          was a difference between the desired and the current stack,
          so things will be recomputed, which is conservative but costly */
@@ -488,11 +489,12 @@ gageStackBlurCheck(const Nrrd *const nblur[],
       if (vin != vbl) {
         biffAddf(GAGE, "%s: value[%u] in nin %g != in nblur[0] %g\n", me,
                  AIR_CAST(unsigned int, II), vin, vbl);
-        airMopOkay(mop); return 1;
+        airMopError(mop); return 1;
       }
     }
   }
 
+  airMopOkay(mop);
   return 0;
 }
 
