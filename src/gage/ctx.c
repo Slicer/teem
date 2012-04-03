@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,7 +32,7 @@ gageContext *
 gageContextNew() {
   gageContext *ctx;
   int i;
-  
+
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
   if (ctx) {
     ctx->verbose = gageDefVerbose;
@@ -154,7 +154,7 @@ gageContextCopy(gageContext *ctx) {
 /*
 ******** gageContextNix()
 **
-** responsible for freeing and clearing up everything hanging off a 
+** responsible for freeing and clearing up everything hanging off a
 ** context so that things can be returned to the way they were prior
 ** to gageContextNew().
 **
@@ -195,7 +195,7 @@ gageContextNix(gageContext *ctx) {
 ** Does use biff.
 */
 int
-gageKernelSet(gageContext *ctx, 
+gageKernelSet(gageContext *ctx,
               int which, const NrrdKernel *k, const double *kparm) {
   static const char me[]="gageKernelSet";
   int numParm;
@@ -289,7 +289,7 @@ void
 gageParmSet(gageContext *ctx, int which, double val) {
   static const char me[]="gageParmSet";
   unsigned int pvlIdx;
-  
+
   switch (which) {
   case gageParmVerbose:
     ctx->verbose = AIR_CAST(int, val);
@@ -300,7 +300,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
       ctx->pvl[pvlIdx]->verbose = AIR_CAST(int, val);
       if (ctx->pvl[pvlIdx]->verbose > 3) {
-        fprintf(stderr, "%s: ctx->pvl[%u]->verbose now %d\n", me, pvlIdx, 
+        fprintf(stderr, "%s: ctx->pvl[%u]->verbose now %d\n", me, pvlIdx,
                 ctx->pvl[pvlIdx]->verbose);
       }
     }
@@ -335,7 +335,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
     break;
   case gageParmDefaultCenter:
     ctx->parm.defaultCenter = AIR_CAST(int, val);
-    /* no flag to set, I guess, although the value here effects the 
+    /* no flag to set, I guess, although the value here effects the
        action of _gageShapeSet when called by gagePerVolumeAttach . . . */
     break;
   case gageParmStackUse:
@@ -387,7 +387,7 @@ gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
 /*
 ******** gagePerVolumeAttach()
 **
-** attaches a pervolume to a context, which actually involves 
+** attaches a pervolume to a context, which actually involves
 ** very little work
 */
 int
@@ -406,11 +406,11 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
   }
 
   if (0 == ctx->pvlNum) {
-    /* the volume "shape" is context state that we set now, because unlike 
+    /* the volume "shape" is context state that we set now, because unlike
        everything else (handled by gageUpdate()), it does not effect
        the kind or amount of padding done */
     if (_gageShapeSet(ctx, ctx->shape, pvl->nin, pvl->kind->baseDim)) {
-      biffAddf(GAGE, "%s: trouble", me); 
+      biffAddf(GAGE, "%s: trouble", me);
       return 1;
     }
     ctx->flag[gageCtxFlagShape] = AIR_TRUE;
@@ -420,14 +420,14 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
        should match each other */
     shape = gageShapeNew();
     if (_gageShapeSet(ctx, shape, pvl->nin, pvl->kind->baseDim)) {
-      biffAddf(GAGE, "%s: trouble", me); 
+      biffAddf(GAGE, "%s: trouble", me);
       return 1;
     }
     if (!gageShapeEqual(ctx->shape, "existing context", shape, "new volume")) {
       biffAddf(GAGE, "%s: trouble", me);
       gageShapeNix(shape); return 1;
     }
-    gageShapeNix(shape); 
+    gageShapeNix(shape);
   }
   /* here we go */
   newidx = airArrayLenIncr(ctx->pvlArr, 1);
@@ -496,7 +496,7 @@ void
 gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="gageIv3Fill";
   int lx, ly, lz, hx, hy, hz, _xx, _yy, _zz;
-  unsigned int xx, yy, zz, 
+  unsigned int xx, yy, zz,
     fr, cacheIdx, dataIdx, fddd;
   unsigned int sx, sy, sz;
   char *data, *here;
@@ -507,7 +507,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   sz = ctx->shape->size[2];
   fr = ctx->radius;
   /* idx[0]-1: see Thu Jan 14 comment in filter.c */
-  lx = ctx->point.idx[0]-1 - (fr - 1); 
+  lx = ctx->point.idx[0]-1 - (fr - 1);
   ly = ctx->point.idx[1]-1 - (fr - 1);
   lz = ctx->point.idx[2]-1 - (fr - 1);
   hx = lx + 2*fr - 1;
@@ -523,7 +523,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
             lx, ly, lz, hx, hy, hz, fddd);
   }
   data = (char*)pvl->nin->data;
-  if (lx >= 0 && ly >= 0 && lz >= 0 
+  if (lx >= 0 && ly >= 0 && lz >= 0
       && hx < AIR_CAST(int, sx)
       && hy < AIR_CAST(int, sy)
       && hz < AIR_CAST(int, sz)) {
@@ -578,7 +578,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     default:
       for (cacheIdx=0; cacheIdx<fddd; cacheIdx++) {
         for (tup=0; tup<pvl->kind->valLen; tup++) {
-          pvl->iv3[cacheIdx + fddd*tup] = 
+          pvl->iv3[cacheIdx + fddd*tup] =
             pvl->lup(here, tup + pvl->kind->valLen*ctx->off[cacheIdx]);
         }
       }
@@ -587,7 +587,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     ctx->edgeFrac = 0;
   } else {
     unsigned int edgeNum;
-    /* the query requires samples which don't actually lie 
+    /* the query requires samples which don't actually lie
        within the volume- more care has to be taken */
     cacheIdx = 0;
     edgeNum = 0;
@@ -597,8 +597,8 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
         yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
           xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
-          edgeNum += ((AIR_CAST(int, zz) != _zz) 
-                      || (AIR_CAST(int, yy) != _yy) 
+          edgeNum += ((AIR_CAST(int, zz) != _zz)
+                      || (AIR_CAST(int, yy) != _yy)
                       || (AIR_CAST(int, xx) != _xx));
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
@@ -657,7 +657,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
        as they have just been set by _gageLocationSet() */
     return 1;
   }
-  
+
   /* if necessary, refill the iv3 cache */
   idxChanged = (oldIdx[0] != ctx->point.idx[0]
                 || oldIdx[1] != ctx->point.idx[1]
@@ -678,7 +678,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: oldIdx %u %u %u %u, point.idx %u %u %u %u --> %d\n",
             me, oldIdx[0], oldIdx[1], oldIdx[2], oldIdx[3],
-            ctx->point.idx[0], ctx->point.idx[1], 
+            ctx->point.idx[0], ctx->point.idx[1],
             ctx->point.idx[2], ctx->point.idx[3], idxChanged);
   }
   if (idxChanged) {
@@ -695,13 +695,13 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
            the stack recon */
         if (ctx->stackFw[pvlIdx]) {
           if (ctx->verbose > 2) {
-            fprintf(stderr, "%s: stackFw[%u] == %g -> iv3fill needed\n", me, 
+            fprintf(stderr, "%s: stackFw[%u] == %g -> iv3fill needed\n", me,
                     pvlIdx, ctx->stackFw[pvlIdx]);
           }
           gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         } else {
           if (ctx->verbose > 2) {
-            fprintf(stderr, "%s: stackFw[%u] == %g -> NO iv3fill\n", me, 
+            fprintf(stderr, "%s: stackFw[%u] == %g -> NO iv3fill\n", me,
                     pvlIdx, ctx->stackFw[pvlIdx]);
           }
         }
@@ -722,7 +722,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
     _gageStackBaseIv3Fill(ctx);
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: (stack) base pvl's value cache at "
-              "coords = %u,%u,%u:\n", me, 
+              "coords = %u,%u,%u:\n", me,
               ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
       ctx->pvl[baseIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[baseIdx]);
     }
@@ -740,7 +740,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
       ctx->pvl[pvlIdx]->kind->answer(ctx, ctx->pvl[pvlIdx]);
     }
   }
-  
+
   return 0;
 }
 
@@ -765,7 +765,7 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
 
   if (ctx->verbose > 3) {
     fprintf(stderr, "%s: hi; pos=(%g,%g,%g,%g) in %s space %s clamping\n", me,
-            xx, yy, zz, ss, indexSpace ? "index" : "world", 
+            xx, yy, zz, ss, indexSpace ? "index" : "world",
             clamp ? "WITH" : "w/out");
   }
   size = ctx->shape->size;
@@ -792,7 +792,7 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       unsigned int sidx;
       /* HEY: this is a stupid linear search! */
       if (ss < ctx->stackPos[0]) {
-        /* we'll extrapolate from stackPos[0] and [1]. um, actually the 
+        /* we'll extrapolate from stackPos[0] and [1]. um, actually the
          extrapolation is overkill because we're either going to clamp
          out-of-range scale index positions, or they'll cause a
          gageErrStackBounds error downstream */
@@ -849,6 +849,6 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
 int
 gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
                int indexSpace, int clamp) {
-  
+
   return _gageProbeSpace(ctx, xx, yy, zz, AIR_NAN, indexSpace, clamp);
 }
