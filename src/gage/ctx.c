@@ -23,6 +23,12 @@
 #include "gage.h"
 #include "privateGage.h"
 
+typedef union {
+  void **vd;
+  gagePerVolume ***pvl;
+} perVolumeUnion;
+
+
 /*
 ******** gageContextNew()
 **
@@ -31,6 +37,7 @@
 gageContext *
 gageContextNew() {
   gageContext *ctx;
+  perVolumeUnion pvu;
   int i;
 
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
@@ -42,7 +49,8 @@ gageContextNew() {
     }
     ctx->pvl = NULL;
     ctx->pvlNum = 0;
-    ctx->pvlArr = airArrayNew(AIR_CAST(void **, &(ctx->pvl)), &(ctx->pvlNum),
+    pvu.pvl = &(ctx->pvl);
+    ctx->pvlArr = airArrayNew(pvu.vd, &(ctx->pvlNum),
                               sizeof(gagePerVolume*),
                               GAGE_PERVOLUME_ARR_INCR);
     gageKernelReset(ctx); /* placed here for logic of kernel flag */
@@ -84,6 +92,7 @@ gageContextCopy(gageContext *ctx) {
   static const char me[]="gageContextCopy";
   gageContext *ntx;
   unsigned int fd, pvlIdx;
+  perVolumeUnion pvu;
   int ki;
 
   ntx = (gageContext*)calloc(1, sizeof(gageContext));
@@ -98,7 +107,8 @@ gageContextCopy(gageContext *ctx) {
   for (ki=gageKernelUnknown+1; ki<gageKernelLast; ki++) {
     ntx->ksp[ki] = nrrdKernelSpecCopy(ctx->ksp[ki]);
   }
-  ntx->pvlArr = airArrayNew(AIR_CAST(void **, &(ntx->pvl)), &(ntx->pvlNum),
+  pvu.pvl = &(ntx->pvl);
+  ntx->pvlArr = airArrayNew(pvu.vd, &(ntx->pvlNum),
                             sizeof(gagePerVolume*),
                             GAGE_PERVOLUME_ARR_INCR);
   airArrayLenSet(ntx->pvlArr, ctx->pvlNum);
