@@ -1,20 +1,21 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-
+  
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
   The terms of redistributing and/or modifying this software also
   include exceptions to the LGPL that facilitate static linking.
-
+  
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-
+  
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -24,21 +25,21 @@
 #include "privateGage.h"
 
 /* HEY copied from ten.h */
-#define TEN_M2T(t, m) ( \
-   (t)[1] = (m)[0], \
-   (t)[2] = ((m)[1]+(m)[3])/2.0, \
-   (t)[3] = ((m)[2]+(m)[6])/2.0, \
-   (t)[4] = (m)[4], \
-   (t)[5] = ((m)[5]+(m)[7])/2.0, \
-   (t)[6] = (m)[8]) 
-#define TEN_T_SCALE(a, s, b) ( \
-   (a)[0] = (b)[0],               \
-   (a)[1] = (s)*(b)[1],           \
-   (a)[2] = (s)*(b)[2],           \
-   (a)[3] = (s)*(b)[3],           \
-   (a)[4] = (s)*(b)[4],           \
-   (a)[5] = (s)*(b)[5],           \
-   (a)[6] = (s)*(b)[6])
+#define TEN_M2T(t, m) (                         \
+                       (t)[1] = (m)[0],         \
+                       (t)[2] = ((m)[1]+(m)[3])/2.0,    \
+                       (t)[3] = ((m)[2]+(m)[6])/2.0,    \
+                       (t)[4] = (m)[4],                 \
+                       (t)[5] = ((m)[5]+(m)[7])/2.0,    \
+                       (t)[6] = (m)[8]) 
+#define TEN_T_SCALE(a, s, b) (    \
+                              (a)[0] = (b)[0],  \
+                              (a)[1] = (s)*(b)[1],      \
+                              (a)[2] = (s)*(b)[2],      \
+                              (a)[3] = (s)*(b)[3],      \
+                              (a)[4] = (s)*(b)[4],      \
+                              (a)[5] = (s)*(b)[5],      \
+                              (a)[6] = (s)*(b)[6])
 
 void
 _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
@@ -55,7 +56,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   int fd, nidx, xi, yi, zi;
   double *fw, iv3wght[2*FD_MEDIAN_MAX*FD_MEDIAN_MAX*FD_MEDIAN_MAX],
     wghtSum, wght;
-
+  
   /* convenience pointers for work below */
   hess = pvl->directAnswer[gageSclHessian];
   gvec = pvl->directAnswer[gageSclGradVec];
@@ -83,15 +84,15 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* this is the true value of gradient magnitude */
     gmag = pvl->directAnswer[gageSclGradMag][0] = sqrt(ELL_3V_DOT(gvec, gvec));
   }
-
+  
   /* NB: it would seem that gageParmGradMagMin is completely ignored . . . */
-
+  
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNormal)) {
     if (gmag) {
       ELL_3V_SCALE(norm, 1/gmag, gvec);
       /* polishing 
-      len = sqrt(ELL_3V_DOT(norm, norm));
-      ELL_3V_SCALE(norm, 1/len, norm);
+         len = sqrt(ELL_3V_DOT(norm, norm));
+         ELL_3V_SCALE(norm, 1/len, norm);
       */
     } else {
       ELL_3V_COPY(norm, gageZeroNormal);
@@ -215,7 +216,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessMode)) {
     pvl->directAnswer[gageSclHessMode][0] = airMode3_d(heval);
   }
-
+  
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageScl2ndDD)) {
     ELL_3MV_MUL(tmpVec, hess, norm);
     pvl->directAnswer[gageScl2ndDD][0] = ELL_3V_DOT(norm, tmpVec);
@@ -229,7 +230,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       /* gten = nPerp * sHess * nPerp */
       ELL_3M_MUL(tmpMat, sHess, nPerp);
       ELL_3M_MUL(gten, nPerp, tmpMat);
-
+      
       if (ctx->verbose > 2) {
         fprintf(stderr, "%s: gten: \n", me);
         ell_3m_print_d(stderr, gten);
@@ -272,7 +273,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     N = curv;
     D = 2*N*N - T*T;
     /*
-    if (D < -0.0000001) {
+      if (D < -0.0000001) {
       fprintf(stderr, "%s: %g %g\n", me, T, N);
       fprintf(stderr, "%s: !!! D curv determinant % 22.10f < 0.0\n", me, D);
       fprintf(stderr, "%s: gten: \n", me);
