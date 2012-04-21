@@ -206,7 +206,8 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       free(biffGetDone(NRRD));
       ret = airSingleSscanf(str, "%lf", &val);
       if (_nrrdLooksLikeANumber(str)
-          || (1 == ret && !AIR_EXISTS(val))) {
+          || (1 == ret && (!AIR_EXISTS(val) 
+                           || AIR_ABS(AIR_PI - val) < 0.0001))) {
         /* either it patently looks like a number, or,
            it already parsed as a number and it is a special value */
         if (1 == ret) {

@@ -96,6 +96,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     if (strstr(tmp, "nan")) {
       val = AIR_NAN;
     }
+    if (strstr(tmp, "pi")) {
+      val = AIR_PI;
+    }
     else if (strstr(tmp, "-inf")) {
       val = AIR_NEG_INF;
     }
