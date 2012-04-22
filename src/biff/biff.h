@@ -85,6 +85,7 @@ BIFF_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
 __attribute__ ((format(printf,3,4)))
 #endif
 ;
+BIFF_EXPORT unsigned int biffMsgErrNum(const biffMsg *msg);
 BIFF_EXPORT unsigned int biffMsgStrlen(const biffMsg *msg);
 BIFF_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 BIFF_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);

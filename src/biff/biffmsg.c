@@ -219,6 +219,23 @@ biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...) {
 }
 
 /*
+******** biffMsgErrNum
+**
+** returns number of errors in a message
+*/
+unsigned int
+biffMsgErrNum(const biffMsg *msg) {
+
+  if (biffMsgNoop == msg) {
+    return 0;
+  }
+  if (!msg) {
+    return 0;
+  }
+  return msg->errNum;
+}
+
+/*
 ******** biffMsgStrlen
 **
 ** returns length of string (not including null termination, as usual) 
