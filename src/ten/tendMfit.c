@@ -47,7 +47,9 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "verbosity level");
   hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
              "which model to fit. Use optional \"b0+\" prefix to "
-             "indicate that the B0 image should also be saved.");
+             "indicate that the B0 image should also be saved "
+             "(independent of whether it was known or had to be "
+             "estimated, according to \"-knownB0\").");
   hestOptAdd(&hopt, "ns", "# starts", airTypeUInt, 1, 1, &starts, "1",
              "number of random starting points at which to initialize "
              "fitting");
@@ -64,9 +66,10 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "maximum allowable # iterations for fitting.");
   hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
              "Indicates if the B=0 non-diffusion-weighted reference image "
-             "is known (\"true\"), or if it has to be estimated along with "
+             "is known (\"true\") because it appears one or more times "
+             "amongst the DWIs, or, if it has to be estimated along with "
              "the other model parameters (\"false\")");
-  /*
+  /* (this is now specified as part of the "-m" model description)
   hestOptAdd(&hopt, "saveB0", "bool", airTypeBool, 1, 1, &saveB0, NULL,
              "Indicates if the B=0 non-diffusion-weighted value "
              "should be saved in output, regardless of whether it was "

@@ -1138,7 +1138,11 @@ typedef struct {
 typedef struct {
   int set;               /* has been set */
   unsigned imgNum;       /* total number of images, dwi or not */
-  double *bval,          /* all b values: imgNum doubles */
+  double *bval,          /* all b values: imgNum doubles.  
+                            NOTE: if dwi[i] is to be considered a "b0" value
+                            (for the various functions that have a knownB0 or
+                            similarly named flag), bval[i] must be 0.0; 
+                            regardless of the gradient length */
   /* *wght,                 all weights, but not yet used */
     *grad;               /* all gradients: 3 x imgNum doubles */
 } tenExperSpec;
@@ -1150,7 +1154,8 @@ typedef struct {
   double min, max;             /* bounds */
   int vec3;                    /* non-zero if this is a coefficient
                                   of a UNIT-LENGTH 3-vector */
-  unsigned int vecIdx;         /* if part of vector, index into it */
+  unsigned int vecIdx;         /* *if* this param is part of vector,
+                                  the index into it, i.e. 0, 1, or 2 */
 } tenModelParmDesc;
 
 #define TEN_MODEL_B0_MAX 10000    /* HEY: completely arbitrary! */
@@ -1160,19 +1165,26 @@ typedef struct {
 /*
 ******** struct tenModel
 **
-** container for information about how DWI values arise,
-** with functions that help in fitting and evaluating models
+** Container for *information* about how DWI values arise (i.e. model
+** parameters), with functions that help in fitting and evaluating
+** models.  A tenModel does not contain any vector of model parameter
+** values, it is only a description of those values (especially its
+** tenModelParmDesc vector), and utilities for computing with those
+** parameter values.
 **
-** NOTE: the current convention is to *always* have the non-DW
-** T2 image value ("B0") be the first parameter in the model.
-** The B0 value will probably be found by trivial means (i.e copied
-** from the image data), or by a different method than the rest
-** of the model parameters, but (1) its very handy to have in one
-** place all the information that, when combined with the 
-** tenExperSpec, gives you a DWI value, and (2) sometimes B0 does
-** have to be estimated at the same time as the rest of the model,
-** and it would be dumb to double the number of models to be able
-** to capture this.
+** NOTE: the current convention is to *always* have the non-DW T2
+** image value ("B0") be the first value in the parameter vector that
+** a tenModel is used to do describe.  The  B0 value will be found either
+** by trivial means (i.e copied from the image data), or by a different
+** method than the rest of the model parameters, but it is stored along with
+** the parameters because 
+** (1) its very handy to have in one place all the information that, when
+** combined with the tenExperSpec, gives you a DWI value, and 
+** (2) sometimes B0 does have to be estimated at the same time as the rest
+** of the model, so we thereby avoid doubling the number of models
+** to be able to support this.
+** On the other hand, the B0 value may not be stored along with the rest of
+** the parm vec in the case of saving out whole nrrd of parm vecs.
 */
 typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
@@ -1591,22 +1603,25 @@ TEN_EXPORT int tenEpiRegister4D(Nrrd *nout, Nrrd *nin, Nrrd *ngrad,
                                 const NrrdKernel *kern, double *kparm,
                                 int progress, int verbose);
 
-/* experspec.c */
+/* experSpec.c */
 TEN_EXPORT tenExperSpec* tenExperSpecNew(void);
 TEN_EXPORT int tenExperSpecGradSingleBValSet(tenExperSpec *espec,
-                                             unsigned int imgNum,
+                                             int insertB0,
                                              double bval,
-                                             const double *grad);
+                                             const double *grad, 
+                                             unsigned int gradNum);
 TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
-                                       unsigned int imgNum,
+                                       int insertB0,
                                        const double *bval,
-                                       const double *grad);
+                                       const double *grad,
+                                       unsigned int bgNum);
 /*
 TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
-                                           unsigned int imgNum,
+                                           int insertB0,
                                            const double *bval,
                                            const double *grad,
-                                           const double *wght);
+                                           const double *wght,
+                                           unsigned int bgwNum);
 */
 TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec,
                                            const Nrrd *ndwi);
@@ -1620,7 +1635,8 @@ TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi,
 /* tenModel.c */
 TEN_EXPORT const char *tenModelPrefixStr;
 TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0,
-                             int requirePrefix, const char *_str);
+                             int requirePrefix, const char *str);
+TEN_EXPORT int tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo);
 TEN_EXPORT int tenModelFromAxisLearn(const tenModel **model, int *plusB0,
                                      const NrrdAxisInfo *axinfo);
 TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,

@@ -61,23 +61,37 @@ tenExperSpecNew(void) {
 
 int
 tenExperSpecGradSingleBValSet(tenExperSpec *espec,
-                              unsigned int imgNum,
+                              int insertB0,
                               double bval,
-                              const double *grad) {
+                              const double *grad,
+                              unsigned int gradNum) {
   static const char me[]="tenExperSpecGradSingleBValSet";
-  unsigned int ii;
+  unsigned int ii, imgNum, ei;
 
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
+  if (insertB0 && !ELL_3V_LEN(grad + 3*0)) {
+    biffAddf(TEN, "%s: wanted insertB0 but gradients "
+             "already start with (0,0,0)", me);
+    return 1;
+  }
+  imgNum = gradNum + !!insertB0;
   if (_experAlloc(espec, imgNum)) {
     biffAddf(TEN, "%s: couldn't allocate", me);
     return 1;
   }
-  for (ii=0; ii<imgNum; ii++) {
-    espec->bval[ii] = bval;
-    ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
+  if (insertB0) {
+    espec->bval[0] = 0;
+    ELL_3V_SET(espec->grad + 3*0, 1, 0, 0);
+    ei = 1;
+  } else {
+    ei = 0;
+  }
+  for (ii=0; ii<imgNum; ei++, ii++) {
+    espec->bval[ei] = bval;
+    ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
 
@@ -86,23 +100,37 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
 
 int
 tenExperSpecGradBValSet(tenExperSpec *espec,
-                        unsigned int imgNum,
+                        int insertB0,
                         const double *bval,
-                        const double *grad) {
+                        const double *grad,
+                        unsigned int bgNum) {
   static const char me[]="tenExperSpecGradBValSet";
-  unsigned int ii;
+  unsigned int ii, imgNum, ei;
 
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
+  if (insertB0 && (!ELL_3V_LEN(grad + 3*0) || !bval[0])) {
+    biffAddf(TEN, "%s: wanted insertB0 but gradients "
+             "already start with (0,0,0) or bvals start with 0", me);
+    return 1;
+  }
+  imgNum = bgNum + !!insertB0;
   if (_experAlloc(espec, imgNum)) {
     biffAddf(TEN, "%s: couldn't allocate", me);
     return 1;
   }
-  for (ii=0; ii<imgNum; ii++) {
-    espec->bval[ii] = bval[ii];
-    ELL_3V_COPY(espec->grad + 3*ii, grad + 3*ii);
+  if (insertB0) {
+    espec->bval[0] = 0;
+    ELL_3V_SET(espec->grad + 3*0, 0, 0, 0);
+    ei = 1;
+  } else {
+    ei = 0;
+  }
+  for (ii=0; ii<imgNum; ei++, ii++) {
+    espec->bval[ei] = bval[ii];
+    ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
 
@@ -208,7 +236,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
       ELL_3V_SET(grad + 3*ii, 0, 0, -1);
     }
   }
-  if (tenExperSpecGradBValSet(espec, imgNum, bval, grad)) {
+  if (tenExperSpecGradBValSet(espec, AIR_FALSE, bval, grad, imgNum)) {
     biffAddf(TEN, "%s: trouble", me);
     airMopError(mop); return 1;
   }
@@ -317,10 +345,15 @@ tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
   return 0;
 }
 
+/*
+** learns B0 from DWIs by simple averaging of all the dwi[ii]
+** without any diffusion weighting, as indicated by espec->bval[ii],
+** or, returns AIR_NAN when there are no such dwi[ii]
+*/
 double
 tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   unsigned int ii, nb;
-  double b0; 
+  double ret, b0; 
   
   if (!( dwi && espec )) {
     return AIR_NAN;
@@ -334,7 +367,12 @@ tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
       ++nb;
     }
   }
-  return b0/nb;
+  if (nb) {
+    ret = b0/nb;
+  } else {
+    ret = AIR_NAN;
+  }
+  return ret;
 }
 
 double

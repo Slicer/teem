@@ -110,6 +110,15 @@ tenModelParse(const tenModel **model, int *plusB0,
 }
 
 int
+tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo) {
+  
+  /* HEY keep in synch with nrrdKind* code below */
+  return (nrrdKind3DSymMatrix == axinfo->kind
+          || nrrdKind3DMaskedSymMatrix == axinfo->kind
+          || airStrlen(axinfo->label));
+}
+
+int
 tenModelFromAxisLearn(const tenModel **modelP,
                       int *plusB0,
                       const NrrdAxisInfo *axinfo) {
@@ -122,6 +131,7 @@ tenModelFromAxisLearn(const tenModel **modelP,
   *plusB0 = AIR_FALSE;
   /* first try to learn model from axis "kind" */
   /* HEY should probably also support 3 vector for stick? */
+  /* HEY keep in synch with nrrdKind* code above */
   if (nrrdKind3DSymMatrix == axinfo->kind
       || nrrdKind3DMaskedSymMatrix == axinfo->kind) {
     *modelP = tenModel1Tensor2;
@@ -142,9 +152,10 @@ tenModelFromAxisLearn(const tenModel **modelP,
 }
 
 /*
-** if nB0 is given, and if parm vector is short by one (seems to be
-** missing B0), then use that instead.  Otherwise parm vector has to
-** be length that includes B0
+** If nB0 is given, then those B0 image values will be used. 
+** In this case, either the parm vector can be short by one (seems to be 
+** missing B0), or the parm vector includes B0, but these will be ignored
+** and over-written with the B0 values from nB0.
 **
 ** basic and axis info is derived from _nparm
 */
@@ -167,7 +178,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   airArray *mop;
   unsigned int gpsze, /* given parm size */
     ii;
-  int useB0, needPad, axmap[NRRD_DIM_MAX];
+  int useB0Img, needPad, axmap[NRRD_DIM_MAX];
   
   if (!(ndwi && espec && model /* _nB0 can be NULL */ && _nparm)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -187,7 +198,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
                me, gpsze, model->parmNum, model->name);
       return 1;
     }
-    useB0 = AIR_TRUE;
+    useB0Img = AIR_TRUE;
     needPad = AIR_TRUE;
   } else if (model->parmNum != gpsze) {
     biffAddf(TEN, "%s: mismatch between getting %u parms, "
@@ -197,7 +208,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   } else {
     /* model->parmNum == gpsze */
     needPad = AIR_FALSE;
-    useB0 = !!_nB0;
+    useB0Img = !!_nB0;
   }
 
   mop = airMopNew();
@@ -234,7 +245,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     ndpparm = ntmp;
   }
   /* put in B0 values if needed */
-  if (!useB0) {
+  if (!useB0Img) {
     nparm = ndpparm;
   } else {
     if (nrrdTypeDouble == _nB0->type) {

@@ -23,15 +23,15 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define INFO "Simulate DW images from a field of models"
+#define INFO "Simulate DW images from an image of models"
 char *_tend_msimInfoL =
   (INFO
    ".  The output will be in the same form as the input to \"tend estim\". "
    "The B-matrices (\"-B\") can be the output from \"tend bmat\", or the "
    "gradients can be given directly (\"-g\"); one of these is required. "
-   "Note that the input tensor field (\"-i\") is the basis of the output "
+   "Note that the input tensor image (\"-i\") is the basis of the output "
    "per-axis fields and image orientation.  NOTE: this includes the "
-   "measurement frame used in the input tensor field, which implies that "
+   "measurement frame used in the input tensor image, which implies that "
    "the given gradients or B-matrices are already expressed in that "
    "measurement frame. ");
 
@@ -44,9 +44,9 @@ tend_msimMain(int argc, const char **argv, char *me, hestParm *hparm) {
 
   tenExperSpec *espec;
   const tenModel *model;
-  int E, seed, keyValueSet, outType, plusB0;
+  int E, seed, keyValueSet, outType, plusB0, insertB0;
   Nrrd *nin, *nT2, *_ngrad, *ngrad, *nout;
-  char *outS;
+  char *outS, *modS;
   double bval, sigma;
 
   /* maybe this can go in tend.c, but for some reason its explicitly
@@ -60,11 +60,20 @@ tend_msimMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &_ngrad, NULL,
              "gradient list, one row per diffusion-weighted image", 
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "reference field", airTypeOther, 1, 1, &nT2, NULL,
-             "reference anatomical scan, with no diffusion weighting",
+  hestOptAdd(&hopt, "b0", "b0 image", airTypeOther, 1, 1, &nT2, "",
+             "reference non-diffusion-weighted (\"B0\") image, which "
+             "may be needed if it isn't part of give model param image",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "i", "model field", airTypeOther, 1, 1, &nin, "-",
-             "input model field", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "model image", airTypeOther, 1, 1, &nin, "-",
+             "input model image", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
+             "model with which to simulate DWIs, which must be specified if "
+             "it is not indicated by the first axis in input model image.");
+  hestOptAdd(&hopt, "ib0", "bool", airTypeBool, 1, 1, &insertB0, "false",
+             "insert a non-DW B0 image at the beginning of the experiment "
+             "specification (useful if the given gradient list doesn't "
+             "already have one) and hence also insert a B0 image at the "
+             "beginning of the output simulated DWIs");
   hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "1000",
              "b value for simulated scan");
   hestOptAdd(&hopt, "kvp", NULL, airTypeInt, 0, 0, &keyValueSet, NULL,
@@ -99,12 +108,38 @@ tend_msimMain(int argc, const char **argv, char *me, hestParm *hparm) {
       airMopError(mop); return 1;
     }
   }
+  plusB0 = AIR_FALSE;
+  if (airStrlen(modS)) {
+    if (tenModelParse(&model, &plusB0, AIR_FALSE, modS)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n",
+              me, modS, err);
+      airMopError(mop); return 1;
+    }
+  } else if (tenModelFromAxisLearnPossible(nin->axis + 0)) {
+    if (tenModelFromAxisLearn(&model, &plusB0, nin->axis + 0)) {
+      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing model frmo axis 0 of nin:\n%s\n",
+              me, err);
+      airMopError(mop); return 1;
+    }
+  } else {
+    fprintf(stderr, "%s: need model specified either via \"-m\" or input "
+            "model image axis 0\n", me);
+    airMopError(mop); return 1;
+  }
+  /* we have learned plusB0, but we don't actually need it; 
+     either: it describes the given model param image
+     (which is courteous but not necessary since the logic inside
+     tenModeSimulate will see this),
+     or: it is trying to say something about including B0 amongst
+     model parameters (which isn't actually meaningful in the 
+     context of simulated DWIs */
   E = 0;
   if (!E) E |= tenGradientCheck(ngrad, nrrdTypeDouble, 1);
-  if (!E) E |= tenExperSpecGradSingleBValSet(espec, ngrad->axis[1].size,
-                                             bval, ngrad->data);
-  if (!E) E |= tenModelFromAxisLearn(&model, &plusB0, nin->axis + 0);
-  /* why not do something with plusB0? */
+  if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0,
+                                             bval, ngrad->data,
+                                             ngrad->axis[1].size);
   if (!E) E |= tenModelSimulate(nout, outType, espec,
                                 model, nT2, nin, keyValueSet);
   if (E) {
