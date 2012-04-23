@@ -486,6 +486,7 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
   int gret, whyStop, buffIdx, fptsIdx, pansIdx, outIdx, oldStop, keepfiber;
   unsigned int i, pansLen;
   airArray *mop;
+  airPtrPtrUnion appu;
   
   if (!(tfx)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -590,7 +591,8 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
 
   for (tfx->halfIdx=0; tfx->halfIdx<=1; tfx->halfIdx++) {
     if (nval) {
-      pansArr[tfx->halfIdx] = airArrayNew((void**)&(pans[tfx->halfIdx]), NULL,
+      appu.d = &(pans[tfx->halfIdx]);
+      pansArr[tfx->halfIdx] = airArrayNew(appu.v, NULL,
                                           pansLen*sizeof(double),
                                           TEN_FIBER_INCR);
       airMopAdd(mop, pansArr[tfx->halfIdx],
@@ -600,7 +602,8 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
     }
     pansIdx = -1;
     if (nfiber) {
-      fptsArr[tfx->halfIdx] = airArrayNew((void**)&(fpts[tfx->halfIdx]), NULL,
+      appu.d = &(fpts[tfx->halfIdx]);
+      fptsArr[tfx->halfIdx] = airArrayNew(appu.v, NULL,
                                           3*sizeof(double), TEN_FIBER_INCR);
       airMopAdd(mop, fptsArr[tfx->halfIdx],
                 (airMopper)airArrayNuke, airMopAlways);
@@ -973,18 +976,24 @@ tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs,
   return 0;
 }
 
+typedef union {
+  tenFiberSingle **f;
+  void **v;
+} fiberunion;
+
 /* uses biff */
 tenFiberMulti *
 tenFiberMultiNew() {
   static const char me[]="tenFiberMultiNew";
   tenFiberMulti *ret;
+  fiberunion tfu;
 
   ret = AIR_CAST(tenFiberMulti *, calloc(1, sizeof(tenFiberMulti)));
   if (ret) {
     ret->fiber = NULL;
     ret->fiberNum = 0;
-    ret->fiberArr = airArrayNew(AIR_CAST(void **, &(ret->fiber)),
-                                &(ret->fiberNum),
+    tfu.f = &(ret->fiber);
+    ret->fiberArr = airArrayNew(tfu.v, &(ret->fiberNum),
                                 sizeof(tenFiberSingle), 512 /* incr */);
     if (ret->fiberArr) {
       airArrayStructCB(ret->fiberArr,

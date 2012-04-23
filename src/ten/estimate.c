@@ -199,6 +199,8 @@ tenEstimateContext *
 tenEstimateContextNew() {
   tenEstimateContext *tec;
   unsigned int fi;
+  airPtrPtrUnion appu;
+
 
   tec = AIR_CAST(tenEstimateContext *, malloc(sizeof(tenEstimateContext)));
   if (tec) {
@@ -210,7 +212,8 @@ tenEstimateContextNew() {
     tec->_ngrad = NULL;
     tec->_nbmat = NULL;
     tec->skipList = NULL;
-    tec->skipListArr = airArrayNew((void**)&(tec->skipList), NULL,
+    appu.ui = &(tec->skipList);
+    tec->skipListArr = airArrayNew(appu.v, NULL,
                                    2*sizeof(unsigned int), 128);
     tec->skipListArr->noReallocWhenSmaller = AIR_TRUE;
     tec->all_f = NULL;
