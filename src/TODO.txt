@@ -34,9 +34,15 @@ hest:
 * all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
 
+biff:
+* biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
+so that it matches biffMovef
+
 nrrd:
+* make the verbosity level a field in NrrdIoState, consider
+  removing nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
-* rename nrrdFunc_nva() --> nrrdFunc()
+* rename nrrd<Func>_nva() --> nrrd<Func>()
 * rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
 * rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
