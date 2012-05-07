@@ -537,27 +537,28 @@ enum {
   nrrdMeasureLinf,           /* 12 */
   nrrdMeasureVariance,       /* 13 */
   nrrdMeasureSD,             /* 14: standard deviation */
-  nrrdMeasureSkew,           /* 15: skew */
-  nrrdMeasureLineSlope,      /* 16: slope of line of best fit */
-  nrrdMeasureLineIntercept,  /* 17: y-intercept of line of best fit */
-  nrrdMeasureLineError,      /* 18: error of line fitting */
+  nrrdMeasureCV,             /* 15: coefficient of variation */
+  nrrdMeasureSkew,           /* 16: skew */
+  nrrdMeasureLineSlope,      /* 17: slope of line of best fit */
+  nrrdMeasureLineIntercept,  /* 18: y-intercept of line of best fit */
+  nrrdMeasureLineError,      /* 19: error of line fitting */
   /* 
   ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 19 */
-  nrrdMeasureHistoMax,       /* 20 */
-  nrrdMeasureHistoMean,      /* 21 */
-  nrrdMeasureHistoMedian,    /* 22 */
-  nrrdMeasureHistoMode,      /* 23 */
-  nrrdMeasureHistoProduct,   /* 24 */
-  nrrdMeasureHistoSum,       /* 25 */
-  nrrdMeasureHistoL2,        /* 26 */
-  nrrdMeasureHistoVariance,  /* 27 */
-  nrrdMeasureHistoSD,        /* 28 */
+  nrrdMeasureHistoMin,       /* 20 */
+  nrrdMeasureHistoMax,       /* 21 */
+  nrrdMeasureHistoMean,      /* 22 */
+  nrrdMeasureHistoMedian,    /* 23 */
+  nrrdMeasureHistoMode,      /* 24 */
+  nrrdMeasureHistoProduct,   /* 25 */
+  nrrdMeasureHistoSum,       /* 26 */
+  nrrdMeasureHistoL2,        /* 27 */
+  nrrdMeasureHistoVariance,  /* 28 */
+  nrrdMeasureHistoSD,        /* 29 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        28
+#define NRRD_MEASURE_MAX        29
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
@@ -565,6 +566,7 @@ enum {
    "\b\bo \"intc\", \"slope\", \"error\": " \
      "intercept, slope, and error from line fitting\n " \
    "\b\bo \"sd\": standard deviation\n " \
+   "\b\bo \"cv\": coefficient of variation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": different norms\n " \
    "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \

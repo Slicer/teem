@@ -30,6 +30,7 @@
              nrrdKernelHann     2      scale    cut-off
          nrrdKernelBlackman     2      scale    cut-off
          nrrdKernelBSpline3     0
+       nrrdKernelCatmullRom     0
 nrrdKernelBSpline3ApproxInverse 0
          nrrdKernelBSpline5     0
 nrrdKernelBSpline5ApproxInverse 0
@@ -808,6 +809,146 @@ _nrrdKernelDDBC = {
 };
 NrrdKernel *const
 nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
+
+/* ------------------------------------------------------------ */
+
+/* if you've got the definition already, why not use it */
+#define _CTMR(x) _BCCUBIC(x, 0.0, 0.5)
+
+double
+_nrrdCTMRInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+double
+_nrrdCTMRSup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2.0;
+}
+
+double
+_nrrdCTMR1_d(double x, const double *parm) {
+  
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _CTMR(x);
+}
+
+float
+_nrrdCTMR1_f(float x, const double *parm) {
+  
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _CTMR(x);
+}
+
+void
+_nrrdCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
+  double t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    f[i] = _CTMR(t);
+  }
+}
+
+void
+_nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
+  float t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    f[i] = _CTMR(t);
+  }
+}
+
+NrrdKernel
+_nrrdKernelCatmullRom = {
+  "catmull-rom",
+  0, _nrrdCTMRSup,  _nrrdCTMRInt,   
+  _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
+
+/* ------------------------------------------------------------ */
+
+/* if you've got the definition already, why not use it */
+#define _DCTMR(x) _DBCCUBIC(x, 0.0, 0.5)
+
+double
+_nrrdDCTMRInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+double
+_nrrdDCTMRSup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2.0;
+}
+
+double
+_nrrdDCTMR1_d(double x, const double *parm) {
+  int sgn;
+
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*_DCTMR(x);
+}
+
+float
+_nrrdDCTMR1_f(float x, const double *parm) {
+  int sgn;
+  
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*_DCTMR(x);
+}
+
+void
+_nrrdDCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
+  int sgn;
+  double t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DCTMR(t);
+  }
+}
+
+void
+_nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
+  int sgn;
+  float t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DCTMR(t);
+  }
+}
+
+NrrdKernel
+_nrrdKernelCatmullRomD = {
+  "catmull-romD",
+  0, _nrrdDCTMRSup,  _nrrdDCTMRInt,   
+  _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
 
 /* ------------------------------------------------------------ */
 
@@ -2008,6 +2149,10 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("cubicd", str))     return nrrdKernelBCCubicD;
   if (!strcmp("bccubicdd", str))  return nrrdKernelBCCubicDD;
   if (!strcmp("cubicdd", str))    return nrrdKernelBCCubicDD;
+  if (!strcmp("ctmr", str))       return nrrdKernelCatmullRom;
+  if (!strcmp("catmull-rom", str)) return nrrdKernelCatmullRom;
+  if (!strcmp("ctmrd", str))       return nrrdKernelCatmullRomD;
+  if (!strcmp("catmull-romd", str)) return nrrdKernelCatmullRomD;
   if (!strcmp("aquartic", str))   return nrrdKernelAQuartic;
   if (!strcmp("quartic", str))    return nrrdKernelAQuartic;
   if (!strcmp("aquarticd", str))  return nrrdKernelAQuarticD;

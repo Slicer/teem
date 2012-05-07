@@ -492,6 +492,60 @@ _nrrdMeasureSD(void *ans, int ansType,
 }
 
 void
+_nrrdMeasureCV(void *ans, int ansType,
+               const void *line, int lineType, size_t len, 
+               double axmin, double axmax) {
+  double val, S, M, (*lup)(const void*, size_t), diff, stdv;
+  size_t ii, count;
+
+  AIR_UNUSED(axmin);
+  AIR_UNUSED(axmax);
+  lup = nrrdDLookup[lineType];
+  if (nrrdTypeIsIntegral[lineType]) {
+    S = 0.0;
+    for (ii=0; ii<len; ii++) {
+      S += lup(line, ii);
+    }
+    M = S/len;
+    diff = 0.0;
+    for (ii=0; ii<len; ii++) {
+      val = lup(line, ii);
+      diff += (M-val)*(M-val);
+    }
+    stdv = sqrt(diff/len);
+  } else {
+    S = AIR_NAN;
+    for (ii=0; !AIR_EXISTS(S) && ii<len; ii++) {
+      S = lup(line, ii);
+    }
+    if (AIR_EXISTS(S)) {
+      /* there was an existent value */
+      count = 1;
+      for (; ii<len; ii++) {
+        val = lup(line, ii);
+        if (AIR_EXISTS(val)) {
+          count++;
+          S += val;
+        }
+      }
+      M = S/count;
+      diff = 0.0;
+      for (ii=0; ii<len; ii++) {
+        val = lup(line, ii);        
+        if (AIR_EXISTS(val)) {
+          diff += (M-val)*(M-val);
+        }
+      }
+      stdv = sqrt(diff/count);
+    } else {
+      /* there were NO existent values */
+      M = stdv = AIR_NAN;
+    }
+  }
+  nrrdDStore[ansType](ans, stdv/M);
+}
+
+void
 _nrrdMeasureLineFit(double *intc, double *slope,
                     const void *line, int lineType, size_t len, 
                     double axmin, double axmax) {
@@ -954,6 +1008,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureLinf,
   _nrrdMeasureVariance,
   _nrrdMeasureSD,
+  _nrrdMeasureCV,
   _nrrdMeasureSkew,
   _nrrdMeasureLineSlope,
   _nrrdMeasureLineIntercept,
@@ -999,6 +1054,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureLinf:
   case nrrdMeasureVariance:
   case nrrdMeasureSD:
+  case nrrdMeasureCV:
   case nrrdMeasureSkew:
   case nrrdMeasureLineSlope:
   case nrrdMeasureLineIntercept:

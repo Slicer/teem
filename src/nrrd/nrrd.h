@@ -1420,6 +1420,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBCCubic,      /* BC family of cubic polynomial splines */
   *const nrrdKernelBCCubicD,     /* 1st deriv. of BC cubic family */
   *const nrrdKernelBCCubicDD,    /* 2nd deriv. of BC cubic family */
+  *const nrrdKernelCatmullRom,   /* aka cubic:0,0.5 */
+  *const nrrdKernelCatmullRomD,  /* aka cubicd:0,0.5 */
   *const nrrdKernelAQuartic,     /* A family of quartic C2 interp. splines */
   *const nrrdKernelAQuarticD,    /* 1st deriv. of A quartic family */
   *const nrrdKernelAQuarticDD,   /* 2nd deriv. of A quartic family */
