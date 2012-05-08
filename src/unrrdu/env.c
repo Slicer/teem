@@ -27,7 +27,7 @@
 char *_unrrdu_envInfoL = (INFO
                           ". These environment variables provide a way of "
                           "setting global variables that can affect"
-                          " the way Nrrd operates.\n "
+                          " the way Nrrd (and unu) operates.\n "
                           "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
                           "nrrdGetenvInt, and nrrdGetenvUInt");
 
@@ -206,6 +206,27 @@ unrrdu_envMain(int argc, const char **argv, char *me, hestParm *hparm) {
                  "int variables are set via a string parse-able as a numeric "
                  "value."),
                 AIR_FALSE);
+  fprintf(stderr, "\n");
+
+  /* UNRRDU_QUIET_QUIT functionality implemented in privateUnrrdu.h */
+  _hestPrintStr(stderr, 0, 0, hparm->columns, 
+                ("In addition to the the \"NRRD_\" environment variables, "
+                 "there is this one, " UNRRDU_QUIET_QUIT_ENV ", which "
+                 "determines whether unu exits "
+                 "quietly (without error and usage info) when it fails "
+                 "because an input nrrd read immediately hit EOF (as "
+                 "happens when many unu invocations are piped together). "
+                 "This is currently detected by seeing if the error message "
+                 "ends with \n \"" UNRRDU_QUIET_QUIT_STR "\"."),
+                AIR_FALSE);
+  fprintf(stderr, "\n");
+
+  fprintf(stderr, "%s: ", UNRRDU_QUIET_QUIT_ENV);
+  if (getenv(UNRRDU_QUIET_QUIT_ENV)) {
+    fprintf(stderr, "is set (to what doesn't matter); quiet-quit enabled\n");
+  } else {
+    fprintf(stderr, "is NOT set; quiet-quit NOT enabled\n");
+  }
   fprintf(stderr, "\n");
 
   _unrrdu_envBool(stderr, 

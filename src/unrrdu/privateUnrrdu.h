@@ -35,6 +35,18 @@ extern "C" {
 /* suffix string that indicates percentile-based min/max */
 #define MINMAX_PERC_SUFF "%"
 
+/* handling of "quiet quit", to avoid having a string of piped unu 
+   commands generate multiple pages of unwelcome usage info */
+/* the environment variable to look for */
+#define UNRRDU_QUIET_QUIT_ENV "UNRRDU_QUIET_QUIT"
+/* the string to search for in the error message that signifies that
+   we should die quietly; this is clearly a hack because it depends on
+   the text of error messages set by a different library.  With more
+   work it could be made into less of a hack.  At worst the hack's
+   breakage will lead again to the many error messages that inspired
+   the hack in the first place , and will inspire fixing it again */
+#define UNRRDU_QUIET_QUIT_STR "[nrrd] _nrrdRead: immediately hit EOF"
+
 /*
 ** OPT_ADD_XXX
 **
@@ -98,27 +110,35 @@ in the error messages.
 ** NB: below is an unidiomatic use of hestMinNumArgs(), because of
 ** how unu's main invokes the "main" function of the different
 ** commands.  Normally the comparison is with argc-1, or argc-2
-** the case of cvs-like commands.
+** the case of cvs/svn-like commands.
 
 
   if ( (hparm->respFileEnable && !argc) || \
        (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { \
   */
 
-#define PARSE() \
-  if ((pret=hestParse(opt, argc, argv, &err, hparm))) { \
-    if (1 == pret || 2 == pret) { \
-      fprintf(stderr, "%s: %s\n", me, err); free(err); \
-      hestUsage(stderr, opt, me, hparm); \
-      hestGlossary(stderr, opt, hparm); \
-      airMopError(mop); \
-      return 1; \
-    } else { \
-      /* . . . like tears . . . in rain. Time . . . to die. */ \
-      exit(1); \
-    } \
+/*
+** NOTE: of all places it is inside the PARSE() macro that the
+** "quiet-quit" functionality is implemented; this is defensible
+** because all unu commands use PARSE
+*/
+#define PARSE()                                                         \
+  if ((pret=hestParse(opt, argc, argv, &err, hparm))) {                 \
+    if (1 == pret || 2 == pret) {                                       \
+      if (!(getenv(UNRRDU_QUIET_QUIT_ENV)                               \
+            && airEndsWith(err, UNRRDU_QUIET_QUIT_STR "\n"))) {         \
+        fprintf(stderr, "%s: %s\n", me, err); free(err);                \
+        hestUsage(stderr, opt, me, hparm);                              \
+        hestGlossary(stderr, opt, hparm);                               \
+      }                                                                 \
+      airMopError(mop);                                                 \
+      return 1;                                                         \
+    } else {                                                            \
+      /* . . . like tears . . . in rain. Time . . . to die. */          \
+      exit(1);                                                          \
+    }                                                                   \
   }
-
+  
 #define SAVE(outS, nout, io) \
   if (nrrdSave((outS), (nout), (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
