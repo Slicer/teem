@@ -998,6 +998,7 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuLg2 nrrdUnaryOpLog2
 #define nuLgt nrrdUnaryOpLog10
 #define nuL1p nrrdUnaryOpLog1p
+#define nuEm1 nrrdUnaryOpExpm1
 #define nuSqt nrrdUnaryOpSqrt
 #define nuCbt nrrdUnaryOpCbrt
 #define nuErf nrrdUnaryOpErf
@@ -1031,6 +1032,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1] = {
   "log2",
   "log10",
   "log1p",
+  "expm1",
   "sqrt",
   "cbrt",
   "erf",
@@ -1064,7 +1066,8 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1] = {
   "natural (base e) logarithm",
   "base 2 logarithm",
   "base 10 logarithm",
-  "ln(1+x), accurate for small x",
+  "accurate ln(1+x)",
+  "accurate exp(x)-1",
   "square root",
   "cube root",
   "error function (integral of gaussian)",
@@ -1098,6 +1101,7 @@ _nrrdUnaryOpStrEqv[] = {
   "log2",
   "log10",
   "ln1p", "log1p",
+  "expm1",
   "sqrt",
   "cbrt",
   "erf",
@@ -1132,6 +1136,7 @@ _nrrdUnaryOpValEqv[] = {
   nuLg2,
   nuLgt,
   nuL1p, nuL1p,
+  nuEm1,
   nuSqt,
   nuCbt,
   nuErf,

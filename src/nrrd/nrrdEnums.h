@@ -613,25 +613,26 @@ enum {
   nrrdUnaryOpLog2,       /* 11 */
   nrrdUnaryOpLog10,      /* 12 */
   nrrdUnaryOpLog1p,      /* 13 */
-  nrrdUnaryOpSqrt,       /* 14 */
-  nrrdUnaryOpCbrt,       /* 15 */
-  nrrdUnaryOpErf,        /* 16 */
-  nrrdUnaryOpNerf,       /* 17 */
-  nrrdUnaryOpCeil,       /* 18 */
-  nrrdUnaryOpFloor,      /* 19 */
-  nrrdUnaryOpRoundUp,    /* 20 */
-  nrrdUnaryOpRoundDown,  /* 21 */
-  nrrdUnaryOpAbs,        /* 22 */
-  nrrdUnaryOpSgn,        /* 23 */
-  nrrdUnaryOpExists,     /* 24 */
-  nrrdUnaryOpRand,       /* 25 */
-  nrrdUnaryOpNormalRand, /* 26 */
-  nrrdUnaryOpIf,         /* 27 */
-  nrrdUnaryOpZero,       /* 28 */
-  nrrdUnaryOpOne,        /* 29 */
+  nrrdUnaryOpExpm1,      /* 14 */
+  nrrdUnaryOpSqrt,       /* 15 */
+  nrrdUnaryOpCbrt,       /* 16 */
+  nrrdUnaryOpErf,        /* 17 */
+  nrrdUnaryOpNerf,       /* 18 */
+  nrrdUnaryOpCeil,       /* 19 */
+  nrrdUnaryOpFloor,      /* 20 */
+  nrrdUnaryOpRoundUp,    /* 21 */
+  nrrdUnaryOpRoundDown,  /* 22 */
+  nrrdUnaryOpAbs,        /* 23 */
+  nrrdUnaryOpSgn,        /* 24 */
+  nrrdUnaryOpExists,     /* 25 */
+  nrrdUnaryOpRand,       /* 26 */
+  nrrdUnaryOpNormalRand, /* 27 */
+  nrrdUnaryOpIf,         /* 28 */
+  nrrdUnaryOpZero,       /* 29 */
+  nrrdUnaryOpOne,        /* 30 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   29
+#define NRRD_UNARY_OP_MAX   30
 
 /*
 ******** nrrdBinaryOp enum

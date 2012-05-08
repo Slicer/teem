@@ -130,16 +130,42 @@ static double _nrrdUnaryOpExp(double a)        {return exp(a);}
 static double _nrrdUnaryOpLog(double a)        {return log(a);}
 static double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
 static double _nrrdUnaryOpLog10(double a)      {return log10(a);}
-static double _nrrdUnaryOpLog1p(double a)      {
+/* This code for log1p and expm1 comes from
+   http://www.plunk.org/~hatch/rightway.php which in turn references
+   http://www.cs.berkeley.edu/~wkahan/Math128/Sumnfp.pdf from the
+   great Kahan of IEEE 754 fame, but sadly that URL no longer works
+   (though the Math128 directory is still there, as other documents) */
+static double _nrrdUnaryOpLog1p(double a) {
   double b;
 
-  b = 1 + a;
-  if (b == 1) {
+  b = 1.0 + a;
+  if (b == 1.0) {
+    /* "a" was so close to zero that we had underflow when adding to 1,
+       resulting in something that is exactly equal to 1.  So, use the
+       first term of Taylor expansion of log(x+1) around 0 == x */
     return a;
-  } else {
-    /* HEY: where did this derivation come from? */
-    return log(b)*a/(b-1);
+  } 
+  /* else "a" was not so near zero; but GLK doesn't fully grasp
+     the design of this expression */
+  return log(b)*a/(b-1);
+}
+static double _nrrdUnaryOpExpm1(double x) {
+  double u;
+
+  u = exp(x);
+  if (u == 1.0) {
+    /* "x" was so close to 0.0 that exp return exactly 1; subtracting
+       1 from this will give a constant for a range of x's.  Instead,
+       use the Taylor expansion of exp(x)-1 around 0 == x */
+    return x;
+  } else if (u-1.0 == -1.0) {
+    /* "x" was close enough to -inf that exp returned something so close
+       to 0 that subtracting 1 resulted in exactly -1; return that */
+    return -1.0;
   }
+  /* else "x" was neither near 0.0 or -inf, but GLK doesn't fully grasp
+     the design of this expression */
+  return (u-1.0)*x/log(u);
 }
 static double _nrrdUnaryOpSqrt(double a)       {return sqrt(a);}
 static double _nrrdUnaryOpCbrt(double a)       {return airCbrt(a);}
@@ -188,6 +214,7 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpLog2,
   _nrrdUnaryOpLog10,
   _nrrdUnaryOpLog1p,
+  _nrrdUnaryOpExpm1,
   _nrrdUnaryOpSqrt,
   _nrrdUnaryOpCbrt,
   _nrrdUnaryOpErf,
