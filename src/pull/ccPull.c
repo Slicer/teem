@@ -173,8 +173,8 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
       point = bin->point[pointIdx];
       size[point->idCC]++;
       meas[point->idCC] += (measrInfo
-                            ? _pullPointScalar(pctx, point, measrInfo,
-                                               NULL, NULL)
+                            ? pullPointScalar(pctx, point, measrInfo,
+                                              NULL, NULL)
                             : 1);
     }
   }

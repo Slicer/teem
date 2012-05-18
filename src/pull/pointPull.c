@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -37,7 +37,7 @@ pullPointNew(pullContext *pctx) {
   unsigned int ii;
   size_t pntSize;
   pullPtrPtrUnion pppu;
-  
+
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return NULL;
@@ -51,7 +51,7 @@ pullPointNew(pullContext *pctx) {
   pntSize = sizeof(pullPoint) + sizeof(double)*(pctx->infoTotalLen - 1);
   pnt = AIR_CAST(pullPoint *, calloc(1, pntSize));
   if (!pnt) {
-    biffAddf(PULL, "%s: couldn't allocate point (info len %u)\n", me, 
+    biffAddf(PULL, "%s: couldn't allocate point (info len %u)\n", me,
              pctx->infoTotalLen - 1);
     return NULL;
   }
@@ -76,7 +76,7 @@ pullPointNew(pullContext *pctx) {
 #if PULL_PHIST
   pnt->phist = NULL;
   pnt->phistNum = 0;
-  pnt->phistArr = airArrayNew(AIR_CAST(void**, &(pnt->phist)), 
+  pnt->phistArr = airArrayNew(AIR_CAST(void**, &(pnt->phist)),
                               &(pnt->phistNum),
                               5*sizeof(double), 32);
 #endif
@@ -166,7 +166,7 @@ _pullEnergyTotal(const pullContext *pctx) {
   const pullBin *bin;
   const pullPoint *point;
   double sum;
-  
+
   sum = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
@@ -239,16 +239,16 @@ _pullStepConstrAverage(const pullContext *pctx) {
 }
 
 /*
-** convenience function for learning a scalar AND its gradient or hessian 
+** convenience function for learning a scalar AND its gradient or hessian
 **
 ** NOTE: this is where pullInfoSeedThresh and pullInfoLiveThresh are
 ** adjusted according to sysParm.theta (kind of a hack)
 */
 double
-_pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
-                 /* output */
-                 double grad[3], double hess[9]) {
-  static const char me[]="_pullPointScalar";
+pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
+                /* output */
+                double grad[3], double hess[9]) {
+  static const char me[]="pullPointScalar";
   double scl;
   const pullInfoSpec *ispec;
   int gradInfo[1+PULL_INFO_MAX] = {
@@ -311,17 +311,19 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   scl = (scl - ispec->zero)*ispec->scale;
   if (0 && _pullVerbose) {
     if (pullInfoSeedThresh == sclInfo) {
-      printf("!%s: seed thresh (%g - %g)*%g == %g\n", me, 
+      printf("!%s: seed thresh (%g - %g)*%g == %g\n", me,
              point->info[infoIdx[sclInfo]], ispec->zero, ispec->scale, scl);
     }
   }
+  /* HEY: this logic is confused and the implementation is confused;
+     this should be removed before release */
   if (pullInfoLiveThresh == sclInfo
       || pullInfoSeedThresh == sclInfo) {
     scl -= (pctx->sysParm.theta)*(point->pos[3])*(point->pos[3]);
   }
   if (0 && _pullVerbose) {
     if (pullInfoSeedThresh == sclInfo) {
-      printf("!%s:  ---> w/ theta %g -> %g\n", me, 
+      printf("!%s:  ---> w/ theta %g -> %g\n", me,
              pctx->sysParm.theta, scl);
     }
   }
@@ -343,7 +345,7 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   /*
   printf("%s = (%g - %g)*%g = %g*%g = %g = %g\n",
          airEnumStr(pullInfo, sclInfo),
-         point->info[infoIdx[sclInfo]], 
+         point->info[infoIdx[sclInfo]],
          ispec->zero, ispec->scale,
          point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
          (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
@@ -361,8 +363,8 @@ _pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
 }
 
 int
-_pullProbe(pullTask *task, pullPoint *point) {
-  static const char me[]="_pullProbe";
+pullProbe(pullTask *task, pullPoint *point) {
+  static const char me[]="pullProbe";
   unsigned int ii, gret=0;
   int edge;
   /*
@@ -393,7 +395,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
 #endif
 
   if (!ELL_4V_EXISTS(point->pos)) {
-    fprintf(stderr, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n", 
+    fprintf(stderr, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n",
             me, point->idtag, point->pos[0], point->pos[1],
             point->pos[2], point->pos[3]);
     biffAddf(PULL, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n",
@@ -417,7 +419,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
     vol = task->vol[ii];
     if (task->probeSeedPreThreshOnly
         && !(vol->forSeedPreThresh)) {
-      /* we're here *only* to probe SeedPreThresh, 
+      /* we're here *only* to probe SeedPreThresh,
          and this volume isn't used for that */
       continue;
     }
@@ -465,14 +467,14 @@ _pullProbe(pullTask *task, pullPoint *point) {
       return 1;
     }
     /*
-    if (!edge 
+    if (!edge
         && AIR_ABS(point->pos[1] - 67) < 1
         && AIR_ABS(point->pos[2] - 67) < 1
         && point->pos[3] > 3.13
         && !!task->vol[ii]->gctx->edgeFrac) {
       fprintf(stderr, "!%s(%u @ %g,%g,%g,%g): "
               "vol[%u]->gctx->edgeFrac %g => edge bit on\n",
-              me, point->idtag, 
+              me, point->idtag,
               point->pos[0], point->pos[1],
               point->pos[2], point->pos[3],
               ii, task->vol[ii]->gctx->edgeFrac);
@@ -486,7 +488,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
     point->status &= ~PULL_STATUS_EDGE_BIT;
   }
 
-  /* maybe is a little stupid to have the infos indexed this way, 
+  /* maybe is a little stupid to have the infos indexed this way,
      since it means that we always have to loop through all indices,
      but at least the compiler can unroll it . . . */
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
@@ -515,7 +517,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
                    ii, airEnumStr(pullInfo, ii),
                    airEnumStr(vol->kind->enm, isp->item), vol->name);
             for (vali=0; vali<alen; vali++) {
-              printf("!%s:    [%u]  %g\n", me, vali, 
+              printf("!%s:    [%u]  %g\n", me, vali,
                      task->ans[ii][vali]);
             }
           }
@@ -620,7 +622,7 @@ _pullProbe(pullTask *task, pullPoint *point) {
             point->info[task->pctx->infoIdx[pullInfoSeedPreThresh]]);
   }
 #endif
-  
+
   return 0;
 }
 
@@ -631,10 +633,10 @@ _threshFail(const pullContext *pctx, const pullPoint *point, int info) {
   int ret;
 
   if (pctx->ispec[info]) {
-    val = _pullPointScalar(pctx, point, info, NULL, NULL);
+    val = pullPointScalar(pctx, point, info, NULL, NULL);
     ret = (val < 0);
     /*
-    fprintf(stderr, "%s(%s): val=%g -> ret=%d\n", me, 
+    fprintf(stderr, "%s(%s): val=%g -> ret=%d\n", me,
             airEnumStr(pullInfo, info), val, ret);
     */
   } else {
@@ -657,9 +659,9 @@ pullPointInitializePerVoxel(const pullContext *pctx,
   gageShape *seedShape;
   int reject, rejectEdge, constrFail;
   unsigned int k;
-  
-  seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx]; 
-  seedShape = seedVol->gctx->shape; 
+
+  seedVol = pctx->vol[pctx->ispec[pullInfoSeedThresh]->volIdx];
+  seedShape = seedVol->gctx->shape;
   rng = pctx->task[0]->rng;
 
   /* Obtain voxel and indices from pointIdx */
@@ -692,7 +694,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
     printf("!%s: pointIdx %u -> vidx %u %u %u (%u)\n"
            "       -> iPos %g %g %g -> wPos %g %g %g\n",
            me, pointIdx, vidx[0], vidx[1], vidx[2], pix,
-           iPos[0], iPos[1], iPos[2], 
+           iPos[0], iPos[1], iPos[2],
            point->pos[0], point->pos[1], point->pos[2]);
   }
 
@@ -702,7 +704,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
     double aidx, bidx;
     /* pix should already be integer in [0, pctx->samplesAlongScaleNum-1)]. */
     aidx = pix + pctx->initParm.jitter*(airDrandMT_r(rng)-0.5);
-    bidx = AIR_AFFINE(-0.5, aidx, pctx->initParm.samplesAlongScaleNum-0.5, 
+    bidx = AIR_AFFINE(-0.5, aidx, pctx->initParm.samplesAlongScaleNum-0.5,
                       0.0, scaleVol->scaleNum-1);
     point->pos[3] = gageStackItoW(scaleVol->gctx, bidx, &outside);
     if (pctx->flag.scaleIsTau) {
@@ -719,7 +721,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
   if (pctx->ispec[pullInfoSeedPreThresh]) {
     /* we first do a special-purpose probe just for SeedPreThresh */
     pctx->task[0]->probeSeedPreThreshOnly = AIR_TRUE;
-    if (_pullProbe(pctx->task[0], point)) {
+    if (pullProbe(pctx->task[0], point)) {
       biffAddf(PULL, "%s: pre-probing pointIdx %u of world", me, pointIdx);
       return 1;
     }
@@ -735,7 +737,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
      SeedPreThresh, which is silly, but the idea is that this is a
      small price compared to what has been saved by avoiding all the
      gageProbe()s on volumes unrelated to SeedPreThresh */
-  if (_pullProbe(pctx->task[0], point)) {
+  if (pullProbe(pctx->task[0], point)) {
     biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
     return 1;
   }
@@ -745,7 +747,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
 
   /* Check we pass pre-threshold */
   if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedPreThresh);
-  
+
   if (!pctx->flag.constraintBeforeSeedThresh) {
     /* we should be guaranteed to have a seed thresh info */
     if (!reject) reject |= _threshFail(pctx, point, pullInfoSeedThresh);
@@ -781,7 +783,7 @@ pullPointInitializePerVoxel(const pullContext *pctx,
     reject |= rejectEdge;
     if (pctx->verbose > 1) {
       fprintf(stderr, "%s(%u): constr %d, seed %d, thresh %d %d %d, edge %d\n",
-              me, point->idtag, constrFail, 
+              me, point->idtag, constrFail,
               _threshFail(pctx, point, pullInfoSeedThresh),
               _threshFail(pctx, point, pullInfoLiveThresh),
               _threshFail(pctx, point, pullInfoLiveThresh2),
@@ -823,7 +825,7 @@ _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol,
   }
   /*
   fprintf(stderr, "!%s: (%g,%g,%g,%g) --> (%g,%g,%g,%g)\n", me,
-          unit[0], unit[1], unit[2], unit[3], 
+          unit[0], unit[1], unit[2], unit[3],
           wrld[0], wrld[1], wrld[2], wrld[3]);
   */
   return;
@@ -836,7 +838,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
   static const char me[]="pullPointInitializeRandomOrHalton";
   int reject, verbo;
   airRandMTState *rng;
-  unsigned int threshFailCount = 0, spthreshFailCount = 0, 
+  unsigned int threshFailCount = 0, spthreshFailCount = 0,
     constrFailCount = 0;
   rng = pctx->task[0]->rng;
 
@@ -847,7 +849,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
     _pullPointHistInit(point);
     /* Populate tentative random point */
     if (pullInitMethodHalton == pctx->initParm.method) {
-      airHalton(rpos, (pointIdx + threshFailCount + constrFailCount 
+      airHalton(rpos, (pointIdx + threshFailCount + constrFailCount
                        + pctx->haltonOffset + pctx->initParm.haltonStartIndex),
                 airPrimeList, 4);
       /*
@@ -887,7 +889,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
     if (pctx->ispec[pullInfoSeedPreThresh]) {
       /* we first do a special-purpose probe just for SeedPreThresh */
       pctx->task[0]->probeSeedPreThreshOnly = AIR_TRUE;
-      if (_pullProbe(pctx->task[0], point)) {
+      if (pullProbe(pctx->task[0], point)) {
         biffAddf(PULL, "%s: pre-probing pointIdx %u of world", me, pointIdx);
         return 1;
       }
@@ -899,7 +901,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         goto reckoning;
       }
     }
-    if (_pullProbe(pctx->task[0], point)) {
+    if (pullProbe(pctx->task[0], point)) {
       biffAddf(PULL, "%s: probing pointIdx %u of world", me, pointIdx);
       return 1;
     }
@@ -918,7 +920,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh3);
       }
     }
-    
+
     if (pctx->constraint) {
       int constrFail;
       if (_pullConstraintSatisfy(pctx->task[0], point,
@@ -940,7 +942,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh3);
       }
     }
-    
+
   reckoning:
     if (reject) {
       if (threshFailCount + constrFailCount >= _PULL_RANDOM_SEED_TRY_MAX) {
@@ -980,14 +982,14 @@ pullPointInitializeGivenPos(pullContext *pctx,
       AIR_ABS(67.0031 - point->pos[2]) < 0.1) {
     fprintf(stderr, "%s: --------- point %u at %g %g %g %g\n", me,
             point->idtag,
-            point->pos[0], point->pos[1], 
+            point->pos[0], point->pos[1],
             point->pos[2], point->pos[3]);
   }
   */
 
   /* we're dictating positions, but still have to do initial probe,
      and possibly liveThresholding */
-  if (_pullProbe(pctx->task[0], point)) {
+  if (pullProbe(pctx->task[0], point)) {
     biffAddf(PULL, "%s: probing pointIdx %u of npos", me, pointIdx);
     return 1;
   }
@@ -1026,7 +1028,7 @@ pullPointInitializeGivenPos(pullContext *pctx,
 ** _pullPointSetup sets:
 **
 ** This is only called by the master thread
-** 
+**
 ** this should set stuff to be like after an update stage and
 ** just before the rebinning
 */
@@ -1054,7 +1056,7 @@ _pullPointSetup(pullContext *pctx) {
      control, and we can't always guarantee that constraint manifolds
      will be well-sampled (with respect to pctx->radiusSpace) to start
      with */
-  
+
   if (pctx->verbose) {
     printf("%s: beginning . . . ", me);
     fflush(stdout);
@@ -1098,13 +1100,13 @@ _pullPointSetup(pullContext *pctx) {
       }
       zrn = pctx->initParm.ppvZRange[1] - pctx->initParm.ppvZRange[0] + 1;
       voxNum = seedShape->size[0]*seedShape->size[1]*zrn;
-      printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me, 
+      printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me,
              seedShape->size[0], seedShape->size[1],
              pctx->initParm.ppvZRange[0], pctx->initParm.ppvZRange[1],
              voxNum);
     } else {
       voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
-      printf("%s: vol size %u %u %u -> voxNum %u\n", me, 
+      printf("%s: vol size %u %u %u -> voxNum %u\n", me,
              seedShape->size[0], seedShape->size[1], seedShape->size[2],
              voxNum);
     }
@@ -1149,7 +1151,7 @@ _pullPointSetup(pullContext *pctx) {
       break;
     }
   }
-  
+
   /* Start adding points */
   tick = totalNumPoints/1000;
   point = NULL;
@@ -1195,7 +1197,7 @@ _pullPointSetup(pullContext *pctx) {
       /* We were not successful in creating a point; not an error */
       continue;
     }
-    
+
     /* else, the point is ready for binning */
     if (pctx->constraint) {
       if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
@@ -1204,7 +1206,7 @@ _pullPointSetup(pullContext *pctx) {
       }
       /*
       if (4523 == point->idtag) {
-        fprintf(stderr, "!%s(%u): ----- added=%d at %g %g %g %g\n", 
+        fprintf(stderr, "!%s(%u): ----- added=%d at %g %g %g %g\n",
                 me, point->idtag, added,
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
       }
@@ -1230,7 +1232,7 @@ _pullPointSetup(pullContext *pctx) {
     point = pullPointNix(point);
     pctx->idtagNext -= 1;
   }
-  
+
   /* Final check: do we have any points? */
   pn = pullPointNumber(pctx);
   if (!pn) {
@@ -1260,12 +1262,12 @@ _pullPointSetup(pullContext *pctx) {
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,
                                 calloc(pn, sizeof(unsigned int)));
   if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-    biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me, 
+    biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me,
              pctx->tmpPointPtr, pctx->tmpPointPerm);
     airMopError(mop); return 1;
   }
   pctx->tmpPointNum = pn;
-  
+
   /* now that all points have been added, set their energy to help
      inspect initial state */
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -1274,7 +1276,7 @@ _pullPointSetup(pullContext *pctx) {
       point = bin->point[pointIdx];
       point->energy = _pullPointEnergyTotal(pctx->task[0], bin, point,
                                             /* ignoreImage */
-                                            !pctx->haveScale, 
+                                            !pctx->haveScale,
                                             point->force);
     }
   }
@@ -1289,7 +1291,7 @@ _pullPointSetup(pullContext *pctx) {
 
 void
 _pullPointFinish(pullContext *pctx) {
-  
+
   airFree(pctx->tmpPointPtr);
   airFree(pctx->tmpPointPerm);
   return ;

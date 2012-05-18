@@ -153,10 +153,6 @@ extern void _pullConstraintTangent(pullTask *task, pullPoint *point,
 extern int _pullConstraintDim(const pullContext *pctx);
 
 /* pointPull.c */
-extern double _pullPointScalar(const pullContext *pctx,
-                               const pullPoint *point, int sclInfo,
-                               double grad[4], double hess[9]);
-
 #if PULL_PHIST
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond);
@@ -167,7 +163,6 @@ extern void _pullPointHistAdd(pullPoint *point, int cond);
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
 extern double _pullEnergyTotal(const pullContext *pctx);
-extern int _pullProbe(pullTask *task, pullPoint *point);
 extern void _pullPointStepEnergyScale(pullContext *pctx, double scale);
 extern int _pullPointSetup(pullContext *pctx);
 extern void _pullPointFinish(pullContext *pctx);

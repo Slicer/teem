@@ -162,8 +162,8 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
           ELL_4V_COPY(trce[0] + 4*tidx, point->pos);
           if (recordStrength) {
             tidx = airArrayLenIncr(hstrnArr[0], 1);
-            hstrn[0][0] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                           NULL, NULL);
+            hstrn[0][0] = pullPointScalar(pctx, point, pullInfoStrength,
+                                          NULL, NULL);
           }
         } else {
           /* re-set position from constraint sat of seed pos */
@@ -235,8 +235,8 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
       ELL_4V_COPY(trce[dirIdx] + 4*tidx, point->pos);
       if (recordStrength) {
         tidx = airArrayLenIncr(hstrnArr[dirIdx], 1);
-        hstrn[dirIdx][tidx] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                               NULL, NULL);
+        hstrn[dirIdx][tidx] = pullPointScalar(pctx, point, pullInfoStrength,
+                                              NULL, NULL);
       }
       step++;
     }

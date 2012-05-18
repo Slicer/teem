@@ -486,8 +486,8 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
         */
       }
       if (nStrengthOut) {
-        strnOut[outIdx] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                           NULL, NULL);
+        strnOut[outIdx] = pullPointScalar(pctx, point, pullInfoStrength,
+                                          NULL, NULL);
       }
       if (nTenOut) {
         double scl, tout[7];

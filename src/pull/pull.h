@@ -188,7 +188,7 @@ enum {
 #define PULL_STATUS_NEWBIE_BIT (1<< 2)
   pullStatusNixMe,               /* 3: nix me at the *end* of this iter,
                                     and don't look at me for energy 
-                                    during this iteraction */
+                                    during this iteration */
 #define PULL_STATUS_NIXME_BIT  (1<< 3)
   pullStatusEdge,                /* 4: at the spatial edge of one of the
                                     volumes: gage had to invent values for 
@@ -486,7 +486,7 @@ typedef struct pullTask_t {
                                    OR: NULL if that info is not being used */
   int processMode,              /* what kind of point processing is being
                                    done by this task right now */
-    probeSeedPreThreshOnly;     /* hack-ish flag to communicate to _pullProbe
+    probeSeedPreThreshOnly;     /* hack-ish flag to communicate to pullProbe
                                    that we only care about SeedPreThresh */
   airThread *thread;            /* my thread */
   unsigned int threadIdx;       /* which thread am I */
@@ -1139,12 +1139,16 @@ PULL_EXPORT int pullPointInitializeGivenPos(pullContext *pctx,
                                             const unsigned int pointIdx,
                                             pullPoint *point,
                                             int *createFailP);
+PULL_EXPORT double pullPointScalar(const pullContext *pctx,
+                                   const pullPoint *point, int sclInfo,
+                                   double grad[4], double hess[9]);
 PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);
 PULL_EXPORT unsigned int pullPointNumberFilter(const pullContext *pctx,
                                                unsigned int idtagMin,
                                                unsigned int idtagMax);
 PULL_EXPORT pullPoint *pullPointNew(pullContext *pctx);
 PULL_EXPORT pullPoint *pullPointNix(pullPoint *pnt);
+PULL_EXPORT int pullProbe(pullTask *task, pullPoint *point);
 
 /* binningPull.c */
 PULL_EXPORT int pullBinsPointAdd(pullContext *pctx, pullPoint *point,

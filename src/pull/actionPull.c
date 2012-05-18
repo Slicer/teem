@@ -601,7 +601,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
 
 #define MAYBEPROBE \
   if (!probed) { \
-    if (_pullProbe(task, point)) { \
+    if (pullProbe(task, point)) { \
       fprintf(stderr, "%s: problem probing!!!\n%s\n", me, biffGetDone(PULL)); \
     } \
     probed = AIR_TRUE; \
@@ -619,8 +619,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
     if (!egradSum) {
       /* just need the strength */
       MAYBEPROBE;
-      enr = _pullPointScalar(task->pctx, point, pullInfoStrength,
-                             NULL, NULL);
+      enr = pullPointScalar(task->pctx, point, pullInfoStrength,
+                            NULL, NULL);
       energy += -gamma*enr;
     } else {
       /* need strength and its gradient */
@@ -632,13 +632,13 @@ _energyFromImage(pullTask *task, pullPoint *point,
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
       deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;
       scl1 = (point->pos[3] += deltaScale);
-      _pullProbe(task, point);
-      str1 = _pullPointScalar(task->pctx, point, pullInfoStrength,
-                              NULL, NULL);
+      pullProbe(task, point);
+      str1 = pullPointScalar(task->pctx, point, pullInfoStrength,
+                             NULL, NULL);
       scl0 = (point->pos[3] -= deltaScale);
       MAYBEPROBE;
-      str0 = _pullPointScalar(task->pctx, point, pullInfoStrength,
-                              NULL, NULL);
+      str0 = pullPointScalar(task->pctx, point, pullInfoStrength,
+                             NULL, NULL);
       energy += -gamma*str0;
       egradSum[3] += -gamma*(str1 - str0)/(scl1 - scl0);
       /*
@@ -662,8 +662,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
       && !(task->pctx->ispec[pullInfoHeightLaplacian]
            && task->pctx->ispec[pullInfoHeightLaplacian]->constraint)) {
     MAYBEPROBE;
-    energy += _pullPointScalar(task->pctx, point, pullInfoHeight,
-                               grad3, NULL);
+    energy += pullPointScalar(task->pctx, point, pullInfoHeight,
+                              grad3, NULL);
     if (egradSum) {
       ELL_3V_INCR(egradSum, grad3);
     }
@@ -674,8 +674,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
        ==> set up a parabolic potential well around the isosurface */
     double val;
     MAYBEPROBE;
-    val = _pullPointScalar(task->pctx, point, pullInfoIsovalue,
-                           grad3, NULL);
+    val = pullPointScalar(task->pctx, point, pullInfoIsovalue,
+                          grad3, NULL);
     energy += val*val;
     if (egradSum) {
       ELL_3V_SCALE_INCR(egradSum, 2*val, grad3);
@@ -1217,17 +1217,17 @@ pullGammaLearn(pullContext *pctx) {
       double str[3], _ss, _gr;
       point = bin->point[pidx];
       point->pos[3] += deltaScale;
-      _pullProbe(task, point);
-      str[2] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                NULL, NULL);
+      pullProbe(task, point);
+      str[2] = pullPointScalar(pctx, point, pullInfoStrength,
+                               NULL, NULL);
       point->pos[3] -= 2*deltaScale;
-      _pullProbe(task, point);
-      str[0] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                NULL, NULL);
+      pullProbe(task, point);
+      str[0] = pullPointScalar(pctx, point, pullInfoStrength,
+                               NULL, NULL);
       point->pos[3] += deltaScale;
-      _pullProbe(task, point);
-      str[1] = _pullPointScalar(pctx, point, pullInfoStrength,
-                                NULL, NULL);
+      pullProbe(task, point);
+      str[1] = pullPointScalar(pctx, point, pullInfoStrength,
+                               NULL, NULL);
       _ss = (str[0] - 2*str[1] + str[2])/(deltaScale*deltaScale);
       if (_ss < 0.0) {
         _gr = (str[2] - str[0])/(2*deltaScale);

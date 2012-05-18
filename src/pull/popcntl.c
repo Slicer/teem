@@ -236,24 +236,24 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* now that newbie point is final test location, see if it meets 
      the live thresh, if there is one */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
+                             NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh2] /* HEY: copy & paste */
-      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2,
+                             NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh3] /* HEY: copy & paste */
-      && 0 > _pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
+                             NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
@@ -319,22 +319,22 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
 
   /* if there's a live thresh, do we meet it? */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh,
+                             NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh2]
-      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
+                             NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh3]
-      && 0 > _pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
-                              NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
+                             NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }

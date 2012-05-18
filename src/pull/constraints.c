@@ -40,13 +40,13 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
   
   ELL_3V_COPY(point->pos, pos);  / * NB: not touching point->pos[3] * /
   _pullPointHistAdd(point, cond);
-  if (_pullProbe(task, point)) {
+  if (pullProbe(task, point)) {
     biffAddf(PULL, "%s: on iter %u", me, iter);
     return 1;
   }
-  state->val = _pullPointScalar(task->pctx, point,
-                                pullInfoIsovalue,
-                                state->grad, NULL);
+  state->val = pullPointScalar(task->pctx, point,
+                               pullInfoIsovalue,
+                               state->grad, NULL);
   state->absval = AIR_ABS(state->val);
   return 0;
 }
@@ -73,12 +73,12 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
 
 
 
-#define PROBE(v, av, g)  if (_pullProbe(task, point)) {        \
+#define PROBE(v, av, g)  if (pullProbe(task, point)) {         \
       biffAddf(PULL, "%s: on iter %u", me, iter);              \
       return 1;                                                \
     }                                                          \
-    (v) = _pullPointScalar(task->pctx, point,                  \
-                           pullInfoIsovalue, (g), NULL);       \
+    (v) = pullPointScalar(task->pctx, point,                   \
+                          pullInfoIsovalue, (g), NULL);        \
     (av) = AIR_ABS(v)
 #define SAVE(state, aval, val, grad, pos)      \
   state[0] = aval;                             \
@@ -152,15 +152,15 @@ constraintSatIso(pullTask *task, pullPoint *point,
 
 
 
-#define PROBE(l)  if (_pullProbe(task, point)) {                   \
+#define PROBE(l)  if (pullProbe(task, point)) {                    \
       biffAddf(PULL, "%s: on iter %u", me, iter);                  \
       return 1;                                                    \
     }                                                              \
-    (l) = _pullPointScalar(task->pctx, point,                      \
-                           pullInfoHeightLaplacian, NULL, NULL);
+    (l) = pullPointScalar(task->pctx, point,                       \
+                          pullInfoHeightLaplacian, NULL, NULL);
 #define PROBEG(l, g) \
     PROBE(l);                                                      \
-    _pullPointScalar(task->pctx, point, pullInfoHeight, (g), NULL);
+    pullPointScalar(task->pctx, point, pullInfoHeight, (g), NULL);
   
 static int
 constraintSatLapl(pullTask *task, pullPoint *point,
@@ -266,11 +266,11 @@ probeHeight(pullTask *task, pullPoint *point,
             double *heightP, double grad[3], double hess[9]) {
   static const char me[]="probeHeight";
 
-  if (_pullProbe(task, point)) {
+  if (pullProbe(task, point)) {
     biffAddf(PULL, "%s: trouble", me);
     return 1;
   }                             
-  *heightP = _pullPointScalar(task->pctx, point, pullInfoHeight, grad, hess);
+  *heightP = pullPointScalar(task->pctx, point, pullInfoHeight, grad, hess);
   return 0;
 }
 
@@ -706,9 +706,9 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
   case pullInfoIsovalue:
     if (pullInfoHeightLaplacian == task->pctx->constraint) {
       /* using gradient of height as approx normal to laplacian 0-crossing */
-      _pullPointScalar(task->pctx, point, pullInfoHeight, vec, NULL);
+      pullPointScalar(task->pctx, point, pullInfoHeight, vec, NULL);
     } else {
-      _pullPointScalar(task->pctx, point, pullInfoIsovalue, vec, NULL);
+      pullPointScalar(task->pctx, point, pullInfoIsovalue, vec, NULL);
     }
     ELL_3V_NORM(nvec, vec, len);
     if (len) {
