@@ -325,6 +325,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     biffMovef(TEN, NRRD, "%s: couldn't copy axis or basic info", me);
     airMopError(mop); return 1;
   }
+  ndwi->axis[0].kind = nrrdKindList;
   
   airMopOkay(mop);
   return 0;

@@ -89,12 +89,12 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
   } else {
     ei = 0;
   }
-  for (ii=0; ii<imgNum; ei++, ii++) {
+  for (ii=0; ii<gradNum; ei++, ii++) {
     espec->bval[ei] = bval;
     ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
-
+  
   return 0;
 }
 
@@ -128,7 +128,7 @@ tenExperSpecGradBValSet(tenExperSpec *espec,
   } else {
     ei = 0;
   }
-  for (ii=0; ii<imgNum; ei++, ii++) {
+  for (ii=0; ii<bgNum; ei++, ii++) {
     espec->bval[ei] = bval[ii];
     ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
@@ -179,11 +179,18 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
       break;
     }
   }
-  if (0 != dwiax) {
-    biffAddf(TEN, "%s: need dwis (kind %s or %s) along axis 0, not %u", me,
+  if (ndwi->dim == dwiax) {
+    biffAddf(TEN, "%s: need dwis to have a kind %s or %s axis", me,
              airEnumStr(nrrdKind, nrrdKindList),
-             airEnumStr(nrrdKind, nrrdKindVector), dwiax);
+             airEnumStr(nrrdKind, nrrdKindVector));
     return 1;
+  } else {
+    if (0 != dwiax) {
+      biffAddf(TEN, "%s: need dwis (kind %s or %s) along axis 0, not %u", me,
+               airEnumStr(nrrdKind, nrrdKindList),
+               airEnumStr(nrrdKind, nrrdKindVector), dwiax);
+      return 1;
+    }
   }
   for (ii=dwiax+1; ii<ndwi->dim; ii++) {
     if (nrrdKindList == ndwi->axis[ii].kind

@@ -57,7 +57,7 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "do ML fitting, rather than least-squares, which also "
              "requires setting \"-sigma\"");
   hestOptAdd(&hopt, "sigma", "sigma", airTypeDouble, 1, 1, &sigma, "nan",
-             "Rician noise parameter");
+             "Gaussian/Rician noise parameter");
   hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &eps, "0.01",
              "convergence epsilon");
   hestOptAdd(&hopt, "mini", "min iters", airTypeUInt, 1, 1, &minIter, "3",
@@ -82,7 +82,7 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "all the diffusion-weighted images in one 4D nrrd",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output tensor volume");
+             "output parameter vector image");
   hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the per-sample "
              "fitting error.  By default, no such error is saved.");

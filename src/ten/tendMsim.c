@@ -54,7 +54,7 @@ tend_msimMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hparm->elideSingleOtherDefault = AIR_TRUE;
 
   hestOptAdd(&hopt, "sigma", "sigma", airTypeDouble, 1, 1, &sigma, "0.0",
-             "Rician noise parameter");
+             "Gaussian/Rician noise parameter");
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which creates noise");
   hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &_ngrad, NULL,
@@ -76,7 +76,7 @@ tend_msimMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "beginning of the output simulated DWIs");
   hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "1000",
              "b value for simulated scan");
-  hestOptAdd(&hopt, "kvp", NULL, airTypeInt, 0, 0, &keyValueSet, NULL,
+  hestOptAdd(&hopt, "kvp", "bool", airTypeBool, 1, 1, &keyValueSet, "true",
              "generate key/value pairs in the NRRD header corresponding "
              "to the input b-value and gradients.");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &outType, "float",
