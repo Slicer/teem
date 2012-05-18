@@ -35,6 +35,9 @@ extern "C" {
  define EVALN evalN_d       / * NrrdKernel method * /
 */
 
+/* the what to put in gctx->errStr when !generateErrStr */
+#define _GAGE_NON_ERR_STR "(error)"
+
 /* shape.c */
 extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
                          const Nrrd *nin, unsigned int baseDim);

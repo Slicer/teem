@@ -98,9 +98,11 @@ enum {
   gageParmStackNormalizeDerivBias, /* double; does NOT imply      "        */
   gageParmStackNormalizeRecon,     /* int; does NOT imply         "        */
   gageParmOrientationFromSpacing,  /* int */
+  gageParmGenerateErrStr,          /* int */
   gageParmLast
 };
 
+/* keep in synch with gageErr airEnum */
 enum {
   gageErrUnknown,            /* 0: nobody knows */
   gageErrNone,               /* 1: no error, actually, all's well */
@@ -110,9 +112,10 @@ enum {
                                    normalize them */
   gageErrStackSearch,        /* 5: for some reason couldn't find the index
                                    position of the probed stack location */
+  gageErrStackUnused,        /* 6: can't probe stack without parm.stackUse */
   gageErrLast
 };
-#define GAGE_ERR_MAX            5
+#define GAGE_ERR_MAX            6
 
 /*
 ******** gage{Ctx,Pvl}Flag.. enum
@@ -468,13 +471,16 @@ typedef struct gageParm_t {
                                  derivatives at filter stage (before answer
                                  stage) are renormalized based on the stack
                                  position */
-    orientationFromSpacing;   /* only meaningful if nrrd has per-axis spacing,
+    orientationFromSpacing,   /* only meaningful if nrrd has per-axis spacing,
                                  but not full orientation info. If zero, the
                                  volume is crammed into the bi-unit cube.
                                  If non-zero, gage treats the volume as if it
                                  had axis-aligned spaceDirection vectors, with
                                  the non-zero values determined by the given
                                  per-axis spacing. */
+    generateErrStr;           /* when errors happen, biff is never used, but
+                                 a descriptive error is sprintf into 
+                                 gctx->errStr as long as this is non-zero. */
 } gageParm;
 
 /*
@@ -686,7 +692,9 @@ typedef struct gageContext_t {
 
   /* errStr and errNum are for describing errors that happen in gageProbe():
      using biff is too heavy-weight for this, and the idea is that no ill
-     should occur if the error is repeatedly ignored.
+     should occur if the error is repeatedly ignored. Whether or not 
+     something is actually sprintf'ed into errStr is controlled by 
+     parm.generateErrStr.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
   char errStr[AIR_STRLEN_LARGE];
   int errNum;                 /* takes values from the gageErr enum */
@@ -975,6 +983,7 @@ GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT double gageDefStackNormalizeDerivBias;
 GAGE_EXPORT double gageDefStackBlurSigmaMax;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
+GAGE_EXPORT int gageDefGenerateErrStr;
 
 /* miscGage.c */
 GAGE_EXPORT const int gagePresent;

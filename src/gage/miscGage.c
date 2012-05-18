@@ -112,6 +112,7 @@ gageParmReset(gageParm *parm) {
     parm->stackNormalizeDeriv = gageDefStackNormalizeDeriv;
     parm->stackNormalizeDerivBias = gageDefStackNormalizeDerivBias;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
+    parm->generateErrStr = gageDefGenerateErrStr;
   }
   return;
 }
@@ -169,7 +170,8 @@ _gageErrStr[GAGE_ERR_MAX+1] = {
   "space bounds",
   "stack bounds",
   "stack integral",
-  "stack search"
+  "stack search",
+  "stack unused"
 };
 
 const airEnum

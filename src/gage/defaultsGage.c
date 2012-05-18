@@ -73,3 +73,8 @@ gageDefOrientationFromSpacing = AIR_FALSE;
    taken as if orientationFromSpacing were TRUE, the index space to
    world space mapping acted as if it were FALSE. Now, you have the
    choice and get consistent results in either case. */
+
+int
+gageDefGenerateErrStr = AIR_TRUE;
+/* Before Teem 1.11, error strings were always sprintf, and this
+   should stay the default behavior */

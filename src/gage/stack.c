@@ -418,8 +418,12 @@ gageStackProbe(gageContext *ctx,
     return 1;
   }
   if (!ctx->parm.stackUse) {
-    sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
-    ctx->errNum = 1;
+    if (ctx->parm.generateErrStr) {
+      sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
+    } else {
+      strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
+    }
+    ctx->errNum = gageErrStackUnused;
     return 1;
   }
   return _gageProbe(ctx, xi, yi, zi, stackIdx);
@@ -435,8 +439,12 @@ gageStackProbeSpace(gageContext *ctx,
     return 1;
   }
   if (!ctx->parm.stackUse) {
-    sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
-    ctx->errNum = 1;
+    if (ctx->parm.generateErrStr) {
+      sprintf(ctx->errStr, "%s: can't probe stack without parm.stackUse", me);
+    } else {
+      strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
+    }
+    ctx->errNum = gageErrStackUnused;
     return 1;
   }
   return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);

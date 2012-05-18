@@ -369,6 +369,9 @@ gageParmSet(gageContext *ctx, int which, double val) {
     ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
     /* affects future calls to _gageShapeSet */
     break;
+  case gageParmGenerateErrStr:
+    ctx->parm.generateErrStr = AIR_CAST(int, val);
+    break;
   default:
     fprintf(stderr, "\n%s: sorry, which = %d not valid\n\n", me, which);
     break;
@@ -819,7 +822,11 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
           }
         }
         if (sidx == ctx->pvlNum-2) {
-          sprintf(ctx->errStr, "%s: search failure for ss = %g", me, ss);
+          if (ctx->parm.generateErrStr) {
+            sprintf(ctx->errStr, "%s: search failure for ss = %g", me, ss);
+          } else {
+            strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
+          }
           ctx->errNum = gageErrStackSearch;
           return 1;
         }
