@@ -156,7 +156,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
 ** (mcde)
 ** parm vector:
 **   0    1    2   (3)
-** step   K  lerp
+** step   K  lerp (lerp=1: all laplacian)
 */
 void
 _coilKindScalarFilterModifiedCurvature(coil_t *delta,
