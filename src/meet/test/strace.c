@@ -321,6 +321,7 @@ main(int argc, const char **argv) {
 
   double sstep, sswin, shalf, sslim, ssrange[2];
   unsigned int pres[2];
+  char *trcListOutS=NULL;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -596,6 +597,8 @@ main(int argc, const char **argv) {
              "velocity at which we give up tracking");
   hestOptAdd(&hopt, "pr", "sx sy", airTypeUInt, 2, 2, pres, "1000 420",
              "resolution of the 2D plot");
+  hestOptAdd(&hopt, "tlo", "fname", airTypeString, 1, 1, &trcListOutS, "",
+             "output filename of list of all points in all traces");
 
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
@@ -877,6 +880,61 @@ main(int argc, const char **argv) {
       fclose(tracesFile);
     }
   plotting:
+    if (airStrlen(trcListOutS)) {
+      /* format: 
+      ** trcIdx  isSeed  X  Y  Z  S  f(velo)  strn qual
+      **   0        1    2  3  4  5    6       7     8  (9)
+      */
+      Nrrd *ntlo;
+      double *tlo;
+      size_t sx=9, totn=0, toti=0; 
+      pullTrace *trc;
+      pullPoint *lpnt;
+      unsigned int ti;
+      for (ti=0; ti<mtrc->traceNum; ti++) {
+        trc = mtrc->trace[ti];
+        totn += trc->nvelo->axis[0].size;
+      }
+      ntlo = nrrdNew();
+      lpnt = pullPointNew(pctx);
+      if (nrrdMaybeAlloc_va(ntlo, nrrdTypeDouble, 2, sx, totn)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: couldn't alloc output:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
+      airMopAdd(mop, ntlo, (airMopper)nrrdNuke, airMopAlways);
+      tlo = AIR_CAST(double *, ntlo->data);
+      for (ti=0; ti<mtrc->traceNum; ti++) {
+        unsigned int vi, vn;
+        double *vert, *velo, *strn, qual;
+        trc = mtrc->trace[ti];
+        vn = AIR_CAST(unsigned int, trc->nvelo->axis[0].size);
+        vert = AIR_CAST(double *, trc->nvert->data);
+        velo = AIR_CAST(double *, trc->nvelo->data);
+        strn = AIR_CAST(double *, trc->nstrn ? trc->nstrn->data : NULL);
+        for (vi=0; vi<vn; vi++) {
+          tlo[sx*toti + 0] = AIR_CAST(double, ti);
+          tlo[sx*toti + 1] = (vi == trc->seedIdx);
+          ELL_4V_COPY(tlo + sx*toti + 2, vert + 4*vi);
+          ELL_4V_COPY(lpnt->pos, vert + 4*vi);
+          if (pctx->ispec[pullInfoQuality]) {
+            pullProbe(pctx->task[0], lpnt);
+            qual = pullPointScalar(pctx, lpnt, pullInfoQuality, NULL, NULL);
+          } else {
+            qual = 0.0;
+          }
+          tlo[sx*toti + 6] = atan(velo[vi]/shalf)/(AIR_PI/2);
+          tlo[sx*toti + 7] = strn ? strn[vi] : 0.0;
+          tlo[sx*toti + 8] = qual;
+          toti++;
+        }
+      }
+      if (nrrdSave(trcListOutS, ntlo, NULL)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: couldn't save output:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
+    }
     if (pullTraceMultiPlotAdd(nplotA, mtrc, NULL, 0, 0)
         || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
         || pullTraceMultiPlotAdd(nplotB, mtrc, nfilt, 0, 0)) {
