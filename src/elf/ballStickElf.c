@@ -92,14 +92,16 @@ int elfKernelStick_f(float *kernel, unsigned int order, float bd,
  *  order - desired ESH order of odf
  *  delta - whether to use delta peak (set to 0 when using elfBallStickPredict)
  *
- * Returns 0 on success, 1 if order is not supported
+ * Returns 0 on success
+ *         1 if order is not supported
+ *         2 if all DWIs were larger than the B0 image
  */
 int elfBallStickODF_f(float *odf, float *fiso, float *d,
                       const elfSingleShellDWI *dwi,
                       const float *T, unsigned int order, int delta)
 {
   unsigned int C = tijk_esh_len[order/2], k, l;
-  float mean=0, _d=1e-20; /* small epsilon to avoid potential divide by zero */
+  float mean=0, _origd=1e-20, _d=_origd;
   float *odfp = odf;
   float isovf0, isovf1, _fiso;
   float kernel[10]; /* should be tijk_max_esh_order/2+1,
@@ -139,7 +141,8 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
   /* deconvolve */
   tijk_esh_deconvolve_f(odf, odf, kernel, order);
 
-  return 0;
+  if (_d==_origd) return 2;
+  else return 0;
 }
 
 /* elfBallStickPredict:
@@ -194,7 +197,7 @@ _levmarBallStickCB(double *pp, double *xx, int mm, int nn, void *_data) {
   double adc=exp(pp[0]);
   double dirs[3][3];
   int k;
-  double vfs[4]={1,0.0,0.0,0.0}, sumvfs;
+  double vfs[4]={0.0,0.0,0.0,0.0}, sumvfs;
 
   for (k=0; k<maxk; k++) {
     double stheta=sin(pp[2+3*k]);
@@ -203,10 +206,16 @@ _levmarBallStickCB(double *pp, double *xx, int mm, int nn, void *_data) {
 	       cos(pp[2+3*k]));
   }
 
-  for (k=0; k<maxk; k++)
-    vfs[k+1]=exp(pp[1+3*k]);
-  sumvfs=vfs[0]+vfs[1]+vfs[2]+vfs[3];
-  vfs[0]/=sumvfs; vfs[1]/=sumvfs; vfs[2]/=sumvfs; vfs[3]/=sumvfs;
+  for (k=0; k<maxk; k++) {
+    if (pp[1+3*k]>=0) vfs[k+1]=1.0-0.5*exp(-pp[1+3*k]);
+    else vfs[k+1]=0.5*exp(pp[1+3*k]);
+  }
+  sumvfs=vfs[1]+vfs[2]+vfs[3];
+  if (sumvfs>1.0) {
+    vfs[1]/=sumvfs; vfs[2]/=sumvfs; vfs[3]/=sumvfs;
+  } else {
+    vfs[0]=1.0-sumvfs;
+  }
 
   egrad = data->grads;
   for (ii=0; ii<nn; ii++) {
@@ -231,13 +240,19 @@ _levmarBallStickJacCB(double *p, double *jac, int m, int n, void *_data) {
   double stheta[3], ctheta[3], sphi[3], cphi[3];
 
   /* pre-compute volume fractions */
-  double _vfs[4]={1,0.0,0.0,0.0}, vfs[4], vfssum, svfssum;
-  for (k=0; k<maxk; k++)
-    _vfs[k+1]=exp(p[1+3*k]);
-  vfssum=_vfs[0]+_vfs[1]+_vfs[2]+_vfs[3];
+  double _vfs[4]={0.0,0.0,0.0,0.0}, vfs[4], vfssum, svfssum;
+  for (k=0; k<maxk; k++) {
+    if (p[1+3*k]>=0) _vfs[k+1]=1.0-0.5*exp(-p[1+3*k]);
+    else _vfs[k+1]=0.5*exp(p[1+3*k]);
+  }
+  vfssum=_vfs[1]+_vfs[2]+_vfs[3];
   svfssum=vfssum*vfssum;
-  for (k=0; k<maxk+1; k++) {
-    vfs[k]=_vfs[k]/vfssum;
+  if (vfssum>1.0) {
+    vfs[0]=0;
+    vfs[1]=_vfs[1]/vfssum; vfs[2]=_vfs[2]/vfssum; vfs[3]=_vfs[3]/vfssum;
+  } else {
+    vfs[0]=1.0-vfssum;
+    ELL_3V_COPY(vfs+1,_vfs+1);
   }
 
   /* directions */
@@ -263,11 +278,21 @@ _levmarBallStickJacCB(double *p, double *jac, int m, int n, void *_data) {
     for (k=0; k<maxk; k++) {
       int ik; /* inner loop over k */
       j[0]+=vfs[k+1]*pred[k+1]*(-data->b*adc*dps[k]*dps[k]);
-      j[1+3*k]=0;
-      for (ik=0; ik<maxk+1; ik++) {
-	j[1+3*k]+=_vfs[ik]*(pred[k+1]-pred[ik]);
+      if (vfssum<1.0) {
+        if (_vfs[k+1]>=0.5)
+          j[1+3*k]=(1.0-_vfs[k+1])*(-pred[0]+pred[k+1]);
+        else
+          j[1+3*k]=_vfs[k+1]*(-pred[0]+pred[k+1]);
+      } else {
+        j[1+3*k]=0;
+        for (ik=0; ik<maxk; ik++) {
+          j[1+3*k]+=_vfs[ik+1]*(pred[k+1]-pred[ik+1]);
+        }
+        if (_vfs[k+1]>=0.5)
+          j[1+3*k]*=(1.0-_vfs[k+1])/svfssum;
+        else
+          j[1+3*k]*=_vfs[k+1]/svfssum;
       }
-      j[1+3*k]*=_vfs[k+1]/svfssum;
       j[2+3*k]=vfs[k+1]*pred[k+1]*
 	(-2*data->b*adc*dps[k]*(egrad[0]*ctheta[k]*cphi[k]+
                                 egrad[1]*ctheta[k]*sphi[k]-
@@ -303,6 +328,7 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
   double opts[LM_OPTS_SZ]={LM_INIT_MU,1e-2,1e-8,1e-8,1e-8};
   double info[9];
   double sumfs;
+  double mind=1e-5, minvf=1e-3; /* some minimal values for stability */
 
   if (parms->fiberct==0 || parms->fiberct>3)
     return 1;
@@ -313,16 +339,22 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
     dwis[k]=dwi->dwis[k];
 
   /* set parameters for optimization */
-  lmparms[0]=log(parms->d);
-  lmparms[1]=log(parms->fs[1]/parms->fs[0]);
+  lmparms[0]=log(AIR_MAX(mind,parms->d));
+  parms->fs[1]=AIR_MAX(minvf,parms->fs[1]);
+  if (parms->fs[1]<0.5) lmparms[1]=log(2*parms->fs[1]);
+  else lmparms[1]=-log(2.0-2.0*parms->fs[1]);
   lmparms[2]=acos(parms->vs[2]);
   lmparms[3]=atan2(parms->vs[1],parms->vs[0]);
   if (parms->fiberct>1) {
-    lmparms[4]=log(parms->fs[2]/parms->fs[0]);
+    parms->fs[2]=AIR_MAX(minvf,parms->fs[2]);
+    if (parms->fs[2]<0.5) lmparms[4]=log(2*parms->fs[2]);
+    else lmparms[4]=-log(2.0-2.0*parms->fs[2]);
     lmparms[5]=acos(parms->vs[5]);
     lmparms[6]=atan2(parms->vs[4],parms->vs[3]);
     if (parms->fiberct>2) {
-      lmparms[7]=log(parms->fs[3]/parms->fs[0]);
+      parms->fs[3]=AIR_MAX(minvf,parms->fs[3]);
+      if (parms->fs[3]<0.5) lmparms[7]=log(2*parms->fs[3]);
+      else lmparms[7]=-log(2.0-2.0*parms->fs[3]);
       lmparms[8]=acos(parms->vs[8]);
       lmparms[9]=atan2(parms->vs[7],parms->vs[6]);
     }
@@ -332,17 +364,39 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
 		      lmparms, dwis,
 		      parmct, dwi->dwino, maxitr, opts, info,
 		      NULL, NULL, (void*)dwi);
+  if (lmret==-1 && (int)info[6]==4) {
+    /* try again with larger mu */
+    opts[0]*=10;
+    lmret = dlevmar_der(_levmarBallStickCB,_levmarBallStickJacCB,
+                        lmparms, dwis,
+                        parmct, dwi->dwino, maxitr, opts, info,
+                        NULL, NULL, (void*)dwi);
+  }
+
   free(dwis); /* no longer needed */
   
   /* output the results (whether or not levmar signalled an error) */
   parms->d = exp(lmparms[0]);
-  parms->fs[0] = 1.0;
-  parms->fs[1] = exp(lmparms[1]);
-  parms->fs[2] = parms->fiberct>1 ? exp(lmparms[4]) : 0.0;
-  parms->fs[3] = parms->fiberct>2 ? exp(lmparms[7]) : 0.0;
-  sumfs = parms->fs[0] + parms->fs[1] + parms->fs[2] + parms->fs[3];
-  if (sumfs>0) {
+  parms->fs[0] = 0.0;
+  if (lmparms[1]>=0) parms->fs[1]=1.0-0.5*exp(-lmparms[1]);
+  else parms->fs[1]=0.5*exp(lmparms[1]);
+  if (parms->fiberct>1) {
+    if (lmparms[4]>=0) parms->fs[2]=1.0-0.5*exp(-lmparms[4]);
+    else parms->fs[2]=0.5*exp(lmparms[4]);
+  } else {
+    parms->fs[2]=0.0;
+  }
+  if (parms->fiberct>2) {
+    if (lmparms[7]>=0) parms->fs[3]=1.0-0.5*exp(-lmparms[7]);
+    else parms->fs[3]=0.5*exp(lmparms[7]);
+  } else {
+    parms->fs[3]=0.0;
+  }
+  sumfs = parms->fs[1] + parms->fs[2] + parms->fs[3];
+  if (sumfs>1.0) {
     ELL_4V_SCALE(parms->fs, 1.0/sumfs, parms->fs);
+  } else {
+    parms->fs[0] = 1.0-sumfs;
   }
   for (k=0; k<parms->fiberct; k++) {
     double stheta = sin(lmparms[2+3*k]);
