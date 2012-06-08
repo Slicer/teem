@@ -114,7 +114,7 @@ unrrdu_cmedianMain(int argc, const char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE)
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     if (nrrdBasicInfoCopy(nout, nin,
                           NRRD_BASIC_INFO_DATA_BIT
                           | NRRD_BASIC_INFO_TYPE_BIT
