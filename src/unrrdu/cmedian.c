@@ -114,6 +114,22 @@ unrrdu_cmedianMain(int argc, const char **argv, char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE)
+    if (nrrdBasicInfoCopy(nout, nin,
+                          NRRD_BASIC_INFO_DATA_BIT
+                          | NRRD_BASIC_INFO_TYPE_BIT
+                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                             ? 0
+                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error copying basic info:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
   } else {
     if (nrrdCheapMedian(nout, nin, pad, mode, radius, wght, bins)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
