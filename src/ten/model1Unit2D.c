@@ -24,51 +24,30 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define PARM_NUM 8
+#define PARM_NUM 2
 static const tenModelParmDesc
 parmDesc[] = {
   /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, AIR_FALSE, 0},
-  /* 1 */ {"diffusivity", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, AIR_FALSE, 0},
-  /* 2 */ {"fraction", 0.0, 1.0, AIR_FALSE, AIR_FALSE, 0},
-  /* 3 */ {"length", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, AIR_FALSE, 0},
-  /* 4 */ {"radius", 0.0, TEN_MODEL_DIFF_MAX, AIR_FALSE, AIR_FALSE, 0},
-  /* 5 */ {"x", -1.0, 1.0, AIR_FALSE, AIR_TRUE, 0},
-  /* 6 */ {"y", -1.0, 1.0, AIR_FALSE, AIR_TRUE, 1},
-  /* 7 */ {"z", -1.0, 1.0, AIR_FALSE, AIR_TRUE, 2}
+  /* 1 */ {"th", 0, 2*AIR_PI, AIR_TRUE, AIR_FALSE, 0}
 };
 
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, diffBall, frac, length, radius, vec[3], ten[7],
-    ident[7] = {1, 1, 0, 0, 1, 0, 1};
+  double b0, theta, vec[3];
 
-  b0 = parm[0];
-  diffBall = parm[1];
-  frac = parm[2];
-  length = parm[3];
-  radius = parm[4];
-  vec[0] = parm[5];
-  vec[1] = parm[6];
-  vec[2] = parm[7];
-  TEN_T3V_OUTER(ten, vec);
-  TEN_T_SCALE_ADD2(ten, length - radius, ten, radius, ident);
+  b0 = parm[0];  /* not used */
+  theta = parm[1];
+  ELL_3V_SET(vec, cos(theta), sin(theta), 0.0);
   for (ii=0; ii<espec->imgNum; ii++) {
-    double diffCyl, dwiBall, dwiCyl, bb;
-    bb = espec->bval[ii];
-    diffCyl = TEN_T3V_CONTR(ten, espec->grad + 3*ii);
-    dwiCyl = exp(-bb*diffCyl);
-    dwiBall = exp(-bb*diffBall);
-    dwiSim[ii] = b0*AIR_LERP(frac, dwiBall, dwiCyl);
+    dwiSim[ii] = ELL_3V_DOT(vec, espec->grad + 3*ii);
   }
   return;
 }
 
 static char *
 parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
-  sprintf(str, "(%g) [(1-f) %g + (f=%g) %gX%g (%g,%g,%g)]", parm[0],
-          parm[1], parm[2], parm[3], parm[4],
-          parm[5], parm[6], parm[7]);
+  sprintf(str, "(%g) th=%g", parm[0], parm[1]);
   return str;
 }
 
@@ -81,15 +60,15 @@ _TEN_PARM_CONVERT_NOOP
 
 _TEN_SQE
 _TEN_SQE_GRAD_CENTDIFF
-_TEN_SQE_FIT(tenModelBall1Cylinder)
+_TEN_SQE_FIT(tenModel1Unit2D)
 
 _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
 tenModel
-_tenModelBall1Cylinder = {
-  TEN_MODEL_STR_BALL1CYLINDER,
+_tenModel1Unit2D = {
+  TEN_MODEL_STR_1UNIT2D,
   _TEN_MODEL_FIELDS
 };
-const tenModel *const tenModelBall1Cylinder = &_tenModelBall1Cylinder;
+const tenModel *const tenModel1Unit2D = &_tenModel1Unit2D;

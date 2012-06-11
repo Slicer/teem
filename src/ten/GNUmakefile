@@ -51,7 +51,8 @@ $(L).PRIVATE_HEADERS = privateTen.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
-	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o model1Vector2D.o \
+	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
+	model1Vector2D.o model1Unit2D.o model2Unit2D.o \
 	modelBall1Stick.o modelBall1StickEMD.o modelBall1Cylinder.o \
 	model1Cylinder.o model1Tensor2.o modelZero.o modelB0.o \
 	tendAbout.o \

@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,12 +24,11 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define DOF_NUM 0
 #define PARM_NUM 0
 static const tenModelParmDesc 
 parmDesc[] = {
   /* dummy to avoid compiler error */
-  {"dummy", 0.0, 0.0, AIR_FALSE, 0},
+  {"dummy", 0.0, 0.0, AIR_FALSE, AIR_FALSE, 0},
 };
 
 static void 
@@ -59,123 +59,74 @@ parmAlloc(void) {
 
 static void
 parmRand(double *parm, airRandMTState *rng, int knownB0) {
-
   AIR_UNUSED(parm);
   AIR_UNUSED(rng);
   AIR_UNUSED(knownB0);
-  return; 
 }
 
 static void
 parmStep(double *parm1, const double scl,
          const double *grad, const double *parm0) {
-
   AIR_UNUSED(parm1);
   AIR_UNUSED(scl);
   AIR_UNUSED(grad);
   AIR_UNUSED(parm0);
-  return;
 }
 
 static double
 parmDist(const double *parmA, const double *parmB) {
-  
   AIR_UNUSED(parmA);
   AIR_UNUSED(parmB);
-  return 0;
+  return 0.0;
 }
 
 static void
 parmCopy(double *parmA, const double *parmB) {
-
   AIR_UNUSED(parmA);
   AIR_UNUSED(parmB);
-  return;
 }
 
 static int
 parmConvert(double *parmDst, const double *parmSrc,
             const tenModel *modelSrc) {
-
   AIR_UNUSED(parmDst);
   AIR_UNUSED(parmSrc);
   AIR_UNUSED(modelSrc);
-  return 2;
+  return 0;
 }
 
-static double
-sqe(const double *parm, const tenExperSpec *espec,
-    double *dwiBuff, const double *dwiMeas, int knownB0) {
-
-  simulate(dwiBuff, parm, espec);
-  return _tenExperSpec_sqe(dwiMeas, dwiBuff, espec, knownB0);
-}
+_TEN_SQE
 
 static void
 sqeGrad(double *grad, const double *parm0,
         const tenExperSpec *espec,
         double *dwiBuff, const double *dwiMeas,
         int knownB0) {
-  
   AIR_UNUSED(grad);
   AIR_UNUSED(parm0);
   AIR_UNUSED(espec);
   AIR_UNUSED(dwiBuff);
   AIR_UNUSED(dwiMeas);
   AIR_UNUSED(knownB0);
-  return;
 }
 
-static double
-sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,
-       double *dwiBuff, const double *dwiMeas,
-       const double *parmInit, int knownB0,
-       unsigned int minIter, unsigned int maxIter, double convEps) {
-
-  AIR_UNUSED(parm);
-  AIR_UNUSED(convFrac);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiBuff);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(parmInit);
-  AIR_UNUSED(knownB0);
-  AIR_UNUSED(minIter);
-  AIR_UNUSED(maxIter);
-  AIR_UNUSED(convEps);
-  return 0;
-}
+_TEN_SQE_FIT(tenModelZero)
 
 _TEN_NLL
-
-static void
-nllGrad(double *grad, const double *parm,
-        const tenExperSpec *espec,
-        double *dwiBuff, const double *dwiMeas,
-        int rician, double sigma) {
-
-  AIR_UNUSED(grad);
-  AIR_UNUSED(parm);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiBuff);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(rician);
-  AIR_UNUSED(sigma);
-  return;
-}
+_TEN_NLL_GRAD_STUB
 
 static double
 nllFit(double *parm, const tenExperSpec *espec,
        const double *dwiMeas, const double *parmInit,
        int rician, double sigma, int knownB0) {
-
   AIR_UNUSED(parm);
-  AIR_UNUSED(parmInit);
   AIR_UNUSED(espec);
   AIR_UNUSED(dwiMeas);
+  AIR_UNUSED(parmInit);
   AIR_UNUSED(rician);
   AIR_UNUSED(sigma);
   AIR_UNUSED(knownB0);
-  return 0;
+  return AIR_NAN;
 }
 
 tenModel

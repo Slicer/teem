@@ -41,15 +41,19 @@ str2model(const char *str) {
     ret = tenModel1Stick;
   } else if (!strcmp(str, TEN_MODEL_STR_1VECTOR2D)) {
     ret = tenModel1Vector2D;
+  } else if (!strcmp(str, TEN_MODEL_STR_1UNIT2D)) {
+    ret = tenModel1Unit2D;
+  } else if (!strcmp(str, TEN_MODEL_STR_2UNIT2D)) {
+    ret = tenModel2Unit2D;
   } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICKEMD)) {
     ret = tenModelBall1StickEMD;
   } else if (!strcmp(str, TEN_MODEL_STR_BALL1STICK)) {
     ret = tenModelBall1Stick;
   } else if (!strcmp(str, TEN_MODEL_STR_BALL1CYLINDER)) {
     ret = tenModelBall1Cylinder;
-  } else if (!strcmp(str, TEN_MODEL_STR_CYLINDER)) {
+  } else if (!strcmp(str, TEN_MODEL_STR_1CYLINDER)) {
     ret = tenModel1Cylinder;
-  } else if (!strcmp(str, TEN_MODEL_STR_TENSOR2)) {
+  } else if (!strcmp(str, TEN_MODEL_STR_1TENSOR2)) {
     ret = tenModel1Tensor2;
   } else {
     /* we don't currently have a tenModelUnknown */
@@ -335,12 +339,13 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
 ** _tenModelSqeFitSingle
 **
 ** callable function (as opposed to tenModel method) for doing 
-** sqe fitting.  Requires PARM_NUM length buffers testParm and grad
+** sqe fitting.  Returns the sqe at the converged fit location
+** Requires PARM_NUM length buffers testParm and grad
 */
 double
 _tenModelSqeFitSingle(const tenModel *model, 
                       double *testParm, double *grad,
-                      double *parm, double *convFrac,
+                      double *parm, double *convFrac, unsigned int *itersTaken,
                       const tenExperSpec *espec,
                       double *dwiBuff, const double *dwiMeas,
                       const double *parmInit, int knownB0,
@@ -356,8 +361,8 @@ _tenModelSqeFitSingle(const tenModel *model,
   val = model->sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
   model->sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
 
-  opp = 2;
-  bak = 0.1;
+  opp = 1.2;  /* opportunistic step size increase */
+  bak = 0.2;  /* scaling back because of bad step */
   iter = 0;
   dist = convEps*8;
   do {
@@ -380,31 +385,33 @@ _tenModelSqeFitSingle(const tenModel *model,
             : (iter > maxIter) || dist < convEps);
   } while (!done);
   *convFrac = dist/convEps;
+  *itersTaken = iter;
   return val;
 }
 
 int
-tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
+tenModelSqeFit(Nrrd *nparm,
+               Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
                const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi,
                int knownB0, int saveB0, int typeOut,
                unsigned int minIter, unsigned int maxIter, 
                unsigned int starts, double convEps, airRandMTState *_rng) {
   static const char me[]="tenModelSqeFit";
-  double *ddwi, *dwibuff, sqe, sqeBest, convFrac,
+  double *ddwi, *dwibuff, sqe, sqeBest,
     *dparm, *dparmBest,
     (*ins)(void *v, size_t I, double d),
     (*lup)(const void *v, size_t I);
   airArray *mop;
-  unsigned int saveParmNum, dwiNum, ii, lablen;
+  unsigned int saveParmNum, dwiNum, ii, lablen, itersTaken;
   size_t szOut[NRRD_DIM_MAX], II, numSamp;
   int axmap[NRRD_DIM_MAX], erraxmap[NRRD_DIM_MAX];
   const char *dwi;
   char *parm;
   airRandMTState *rng;
-  Nrrd *nsqe;
-
-  /* nsqeP can be NULL */
+  Nrrd *nsqe, *nconv, *niter;
+  
+  /* nsqeP, nconvP, niterP can be NULL */
   if (!( nparm && model && espec && ndwi )) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -458,14 +465,40 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
     nsqe = *nsqeP;
     if (!nsqe) {
       nsqe = nrrdNew();
-      if (nrrdMaybeAlloc_nva(nsqe, typeOut, ndwi->dim-1, szOut+1)) {
-        biffMovef(TEN, NRRD, "%s: couldn't allocate error output", me);
-        airMopError(mop); return 1;
-      }
       *nsqeP = nsqe;
+    }
+    if (nrrdMaybeAlloc_nva(nsqe, typeOut, ndwi->dim-1, szOut+1)) {
+      biffMovef(TEN, NRRD, "%s: couldn't allocate error output", me);
+      airMopError(mop); return 1;
     }
   } else {
     nsqe = NULL;
+  }
+  if (nconvP) {
+    nconv = *nconvP;
+    if (!nconv) {
+      nconv = nrrdNew();
+      *nconvP = nconv;
+    }
+    if (nrrdMaybeAlloc_nva(nconv, nrrdTypeDouble, ndwi->dim-1, szOut+1)) {
+      biffMovef(TEN, NRRD, "%s: couldn't allocate conv output", me);
+      airMopError(mop); return 1;
+    }
+  } else {
+    nconv = NULL;
+  }
+  if (niterP) {
+    niter = *niterP;
+    if (!niter) {
+      niter = nrrdNew();
+      *niterP = niter;
+    }
+    if (nrrdMaybeAlloc_nva(niter, nrrdTypeUInt, ndwi->dim-1, szOut+1)) {
+      biffMovef(TEN, NRRD, "%s: couldn't allocate iter output", me);
+      airMopError(mop); return 1;
+    }
+  } else {
+    niter = NULL;
   }
   ddwi = AIR_CALLOC(espec->imgNum, double);
   dwibuff = AIR_CALLOC(espec->imgNum, double);
@@ -488,8 +521,10 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
   ins = nrrdDInsert[typeOut];
   parm = AIR_CAST(char *, nparm->data);
   dwi = AIR_CAST(char *, ndwi->data);
+  itersTaken = 0;
   for (II=0; II<numSamp; II++) {
-    unsigned int ss;
+    double cvf, convFrac;
+    unsigned int ss, itak;
     for (ii=0; ii<dwiNum; ii++) {
       ddwi[ii] = lup(dwi, ii);
     }
@@ -499,20 +534,29 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
       }
       model->rand(dparm, rng, knownB0);
-      sqe = model->sqeFit(dparm, &convFrac, espec, dwibuff, ddwi, 
+      sqe = model->sqeFit(dparm, &cvf, &itak,
+                          espec, dwibuff, ddwi, 
                           dparm, knownB0, minIter, maxIter, convEps);
       if (sqe < sqeBest) {
         sqeBest = sqe;
         model->copy(dparmBest, dparm);
+        itersTaken = itak;
+        convFrac = cvf;
       }
     }
     for (ii=0; ii<saveParmNum; ii++) {
       ins(parm, ii, saveB0 ? dparmBest[ii] : dparmBest[ii+1]);
     }
+    /* save things about fitting into nrrds */
     if (nsqeP) {
       ins(nsqe->data, II, sqeBest);
     }
-    /* possibly save sqeBest */
+    if (nconvP) {
+      nrrdDInsert[nrrdTypeDouble](nconv->data, II, convFrac);
+    }
+    if (niterP) {
+      nrrdDInsert[nrrdTypeUInt](niter->data, II, itersTaken);
+    }
     parm += saveParmNum*nrrdTypeSize[typeOut];
     dwi += espec->imgNum*nrrdTypeSize[ndwi->type];
   }
@@ -545,6 +589,40 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP,
                                 : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       biffMovef(TEN, NRRD,
                 "%s: couldn't copy axis or basic info to error out", me);
+      airMopError(mop); return 1;
+    }
+  }
+  if (nconvP) {
+    if (nrrdAxisInfoCopy(nconv, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
+        || nrrdBasicInfoCopy(nconv, ndwi,
+                             NRRD_BASIC_INFO_DATA_BIT
+                             | NRRD_BASIC_INFO_TYPE_BIT
+                             | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                             | NRRD_BASIC_INFO_DIMENSION_BIT
+                             | NRRD_BASIC_INFO_CONTENT_BIT
+                             | NRRD_BASIC_INFO_COMMENTS_BIT
+                             | (nrrdStateKeyValuePairsPropagate
+                                ? 0
+                                : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      biffMovef(TEN, NRRD,
+                "%s: couldn't copy axis or basic info to conv out", me);
+      airMopError(mop); return 1;
+    }
+  }
+  if (niterP) {
+    if (nrrdAxisInfoCopy(niter, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
+        || nrrdBasicInfoCopy(niter, ndwi,
+                             NRRD_BASIC_INFO_DATA_BIT
+                             | NRRD_BASIC_INFO_TYPE_BIT
+                             | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                             | NRRD_BASIC_INFO_DIMENSION_BIT
+                             | NRRD_BASIC_INFO_CONTENT_BIT
+                             | NRRD_BASIC_INFO_COMMENTS_BIT
+                             | (nrrdStateKeyValuePairsPropagate
+                                ? 0
+                                : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+      biffMovef(TEN, NRRD,
+                "%s: couldn't copy axis or basic info to iter out", me);
       airMopError(mop); return 1;
     }
   }

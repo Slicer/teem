@@ -1152,6 +1152,7 @@ typedef struct {
 typedef struct {
   char name[AIR_STRLEN_SMALL]; /* name */
   double min, max;             /* bounds */
+  int cyclic;                  /* non-zero if effectively min == max */
   int vec3;                    /* non-zero if this is a coefficient
                                   of a UNIT-LENGTH 3-vector */
   unsigned int vecIdx;         /* *if* this param is part of vector,
@@ -1174,7 +1175,7 @@ typedef struct {
 **
 ** NOTE: the current convention is to *always* have the non-DW T2
 ** image value ("B0") be the first value in the parameter vector that
-** a tenModel is used to do describe.  The  B0 value will be found either
+** a tenModel is used to do describe.  The B0 value will be found either
 ** by trivial means (i.e copied from the image data), or by a different
 ** method than the rest of the model parameters, but it is stored along with
 ** the parameters because 
@@ -1185,10 +1186,11 @@ typedef struct {
 ** to be able to support this.
 ** On the other hand, the B0 value may not be stored along with the rest of
 ** the parm vec in the case of saving out whole nrrd of parm vecs.
+** The "parmNum" field below therefore always includes the B0 value
 */
 typedef struct tenModel_t {
   char name[AIR_STRLEN_SMALL];
-  unsigned int dofNum, parmNum;
+  unsigned int parmNum;
   const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm,
@@ -1211,7 +1213,8 @@ typedef struct tenModel_t {
                   const tenExperSpec *espec,
                   double *dwiBuff, const double *dwiMeas,
                   int knownB0);
-  double (*sqeFit)(double *parm, double *convFrac, const tenExperSpec *espec, 
+  double (*sqeFit)(double *parm, double *convFrac, unsigned int *itersTaken,
+                   const tenExperSpec *espec, 
                    double *dwiBuff, const double *dwiMeas,
                    const double *parmInit, int knownB0,
                    unsigned int minIter, unsigned int maxIter,
@@ -1645,7 +1648,8 @@ TEN_EXPORT int tenModelSimulate(Nrrd *ndwi, int typeOut,
                                 const Nrrd *nB0, /* maybe NULL */
                                 const Nrrd *nparm,
                                 int keyValueSet);
-TEN_EXPORT int tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, 
+TEN_EXPORT int tenModelSqeFit(Nrrd *nparm,
+                              Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int knownB0, int saveB0, int typeOut,
@@ -1683,6 +1687,12 @@ TEN_EXPORT const tenModel *const tenModelBall;
 /* model1Vector2D.c */
 #define TEN_MODEL_STR_1VECTOR2D "1vector2d"
 TEN_EXPORT const tenModel *const tenModel1Vector2D;
+/* model1Unit2D.c */
+#define TEN_MODEL_STR_1UNIT2D "1unit2d"
+TEN_EXPORT const tenModel *const tenModel1Unit2D;
+/* model2Unit2D.c */
+#define TEN_MODEL_STR_2UNIT2D "2unit2d"
+TEN_EXPORT const tenModel *const tenModel2Unit2D;
 /* model1Stick.c */
 #define TEN_MODEL_STR_1STICK "1stick"
 TEN_EXPORT const tenModel *const tenModel1Stick;
@@ -1696,10 +1706,10 @@ TEN_EXPORT const tenModel *const tenModelBall1Stick;
 #define TEN_MODEL_STR_BALL1CYLINDER "ball1cylinder"
 TEN_EXPORT const tenModel *const tenModelBall1Cylinder;
 /* model1Cylinder.c */
-#define TEN_MODEL_STR_CYLINDER "1cylinder"
+#define TEN_MODEL_STR_1CYLINDER "1cylinder"
 TEN_EXPORT const tenModel *const tenModel1Cylinder;
 /* model1Tensor2.c: 2nd-order tensor (one of them), not two-tensor */
-#define TEN_MODEL_STR_TENSOR2 "1tensor2" 
+#define TEN_MODEL_STR_1TENSOR2 "1tensor2" 
 TEN_EXPORT const tenModel *const tenModel1Tensor2;
 
 /* mod.c */

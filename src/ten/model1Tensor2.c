@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,19 +26,18 @@
 
 /* NOTE: this model is a single 2nd-order tensor, not a two-tensor model */
 
-#define DOF_NUM 6
 #define PARM_NUM 7
 /* 1/sqrt(2) */
 #define OST 0.70710678118654752440
 static const tenModelParmDesc
 parmDesc[] = {
-  {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
-  {"Dxx", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0},
-  {"Dxy", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
-  {"Dxz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
-  {"Dyy", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0},
-  {"Dyz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, 0},
-  {"Dzz", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, 0}
+  /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, AIR_FALSE, 0},
+  /* 1 */ {"Dxx", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, AIR_FALSE, 0},
+  /* 2 */ {"Dxy", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, AIR_FALSE, 0},
+  /* 3 */ {"Dxz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, AIR_FALSE, 0},
+  /* 4 */ {"Dyy", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, AIR_FALSE, 0},
+  /* 5 */ {"Dyz", -TEN_MODEL_DIFF_MAX*OST, TEN_MODEL_DIFF_MAX*OST, AIR_FALSE, AIR_FALSE, 0},
+  /* 6 */ {"Dzz", -TEN_MODEL_DIFF_MAX,     TEN_MODEL_DIFF_MAX,     AIR_FALSE, AIR_FALSE, 0}
 };
 
 static void 
@@ -129,10 +129,9 @@ _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
-
 tenModel
 _tenModel1Tensor2 = {
-  TEN_MODEL_STR_TENSOR2,
+  TEN_MODEL_STR_1TENSOR2,
   _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModel1Tensor2 = &_tenModel1Tensor2;

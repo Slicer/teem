@@ -35,8 +35,8 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  Nrrd *nin, *nout, *nterr;
-  char *outS, *terrS, *modS;
+  Nrrd *nin, *nout, *nterr, *nconv, *niter;
+  char *outS, *terrS, *convS, *iterS, *modS;
   int knownB0, saveB0, verbose, mlfit, typeOut;
   unsigned int maxIter, minIter, starts;
   double sigma, eps;
@@ -86,6 +86,13 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
              "Giving a filename here allows you to save out the per-sample "
              "fitting error.  By default, no such error is saved.");
+  hestOptAdd(&hopt, "co", "filename", airTypeString, 1, 1, &convS, "",
+             "Giving a filename here allows you to save out the per-sample "
+             "convergence fraction.  By default, no such error is saved.");
+  hestOptAdd(&hopt, "io", "filename", airTypeString, 1, 1, &iterS, "",
+             "Giving a filename here allows you to save out the per-sample "
+             "number of iterations needed for fitting.  "
+             "By default, no such error is saved.");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -94,6 +101,8 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nterr = NULL;
+  nconv = NULL;
+  niter = NULL;
   espec = tenExperSpecNew();
   airMopAdd(mop, espec, (airMopper)tenExperSpecNix, airMopAlways);
   nout = nrrdNew();
@@ -110,6 +119,8 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }  
   if (tenModelSqeFit(nout, 
                      airStrlen(terrS) ? &nterr : NULL, 
+                     airStrlen(convS) ? &nconv : NULL, 
+                     airStrlen(iterS) ? &niter : NULL, 
                      model, espec, nin,
                      knownB0, saveB0, typeOut, 
                      minIter, maxIter, starts, eps, NULL)) {
@@ -119,7 +130,9 @@ tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
   }  
 
   if (nrrdSave(outS, nout, NULL)
-      || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))) {
+      || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))
+      || (airStrlen(convS) && nrrdSave(convS, nconv, NULL))
+      || (airStrlen(iterS) && nrrdSave(iterS, niter, NULL))) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing output:\n%s\n", me, err);
     airMopError(mop); return 1;

@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,11 +24,10 @@
 #include "ten.h"
 #include "privateTen.h"
 
-#define DOF_NUM 1
 #define PARM_NUM 1
 static const tenModelParmDesc
 parmDesc[] = {
-  /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, 0},
+  /* 0 */ {"B0", 0.0, TEN_MODEL_B0_MAX, AIR_FALSE, AIR_FALSE, 0},
 };
 
 static void 
@@ -53,72 +53,15 @@ _TEN_PARM_RAND
 _TEN_PARM_STEP
 _TEN_PARM_DIST
 _TEN_PARM_COPY
-
-static int
-parmConvert(double *parmDst, const double *parmSrc,
-            const tenModel *modelSrc) {
-  int ret;
-
-  ret = 0;
-  parmDst[0] = parmSrc[0];
-  if (modelSrc == tenModelBall) {
-    
-  } else if (modelSrc == tenModel1Stick) {
-
-  } else if (modelSrc == tenModelBall1Stick) {
-
-  } else if (modelSrc == tenModel1Cylinder) {
-
-  } else if (modelSrc == tenModel1Tensor2) {
-
-  } else {
-    unsigned int ii;
-    for (ii=0; ii<PARM_NUM; ii++) {
-      parmDst[ii] = AIR_NAN;
-    }
-    ret = 2;
-  }
-  return ret;
-}
+_TEN_PARM_CONVERT_NOOP
 
 _TEN_SQE
 _TEN_SQE_GRAD_CENTDIFF
 _TEN_SQE_FIT(tenModelB0)
 
 _TEN_NLL
-
-static void
-nllGrad(double *grad, const double *parm,
-        const tenExperSpec *espec,
-        double *dwiBuff, const double *dwiMeas,
-        int rician, double sigma) {
-
-  AIR_UNUSED(grad);
-  AIR_UNUSED(parm);
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiBuff);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(rician);
-  AIR_UNUSED(sigma);
-  return;
-}
-
-static double
-nllFit(double *parm, const tenExperSpec *espec,
-       const double *dwiMeas, const double *parmInit,
-       int rician, double sigma, int knownB0) {
-  unsigned int pp;
-
-  AIR_UNUSED(espec);
-  AIR_UNUSED(dwiMeas);
-  AIR_UNUSED(rician);
-  AIR_UNUSED(sigma);
-  AIR_UNUSED(knownB0);
-  for (pp=0; pp<PARM_NUM; pp++) {
-    parm[pp] = parmInit[pp];
-  }
-  return 0;
-}
+_TEN_NLL_GRAD_STUB
+_TEN_NLL_FIT_STUB
 
 tenModel
 _tenModelB0 = {

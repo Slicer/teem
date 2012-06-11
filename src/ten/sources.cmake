@@ -73,6 +73,8 @@ SET(TEN_SOURCES
   modelBall.c
   model1Stick.c
   model1Vector2D.c
+  model1Unit2D.c
+  model2Unit2D.c
   modelBall1StickEMD.c
   modelBall1Stick.c
   modelBall1Cylinder.c

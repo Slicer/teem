@@ -161,6 +161,7 @@ TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas,
 TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, 
                                         double *testParm, double *grad,
                                         double *parm, double *convFrac,
+                                        unsigned int *itersTaken,
                                         const tenExperSpec *espec,
                                         double *dwiBuff,
                                         const double *dwiMeas,
@@ -222,7 +223,17 @@ parmStep(double *parm1, const double scl,                               \
                                                                         \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
     parm1[ii] = scl*grad[ii] + parm0[ii];                               \
-    parm1[ii] = AIR_CLAMP(parmDesc[ii].min, parm1[ii], parmDesc[ii].max); \
+    if (parmDesc[ii].cyclic) {                                          \
+      double delta = parmDesc[ii].max - parmDesc[ii].min;               \
+      while (parm1[ii] > parmDesc[ii].max) {                            \
+        parm1[ii] -= delta;                                             \
+      }                                                                 \
+      while (parm1[ii] < parmDesc[ii].min) {                            \
+        parm1[ii] += delta;                                             \
+      }                                                                 \
+    } else {                                                            \
+      parm1[ii] = AIR_CLAMP(parmDesc[ii].min, parm1[ii], parmDesc[ii].max); \
+    }                                                                   \
     if (parmDesc[ii].vec3 && 2 == parmDesc[ii].vecIdx) {                \
       double len;                                                       \
       ELL_3V_NORM(parm1 + ii - 2, parm1 + ii - 2, len);                 \
@@ -234,12 +245,26 @@ parmStep(double *parm1, const double scl,                               \
 static double                                                           \
 parmDist(const double *parmA, const double *parmB) {                    \
   unsigned int ii;                                                      \
-  double dist, dd;                                                      \
+  double dist;                                                          \
                                                                         \
   dist = 0;                                                             \
   for (ii=0; ii<PARM_NUM; ii++) {                                       \
-    dd = (parmA[ii] - parmB[ii])/(parmDesc[ii].max - parmDesc[ii].min); \
-    dist += dd*dd;                                                      \
+  double dp1, delta;                                                    \
+    delta = parmDesc[ii].max - parmDesc[ii].min;                        \
+    dp1 = parmA[ii] - parmB[ii];                                        \
+    if (parmDesc[ii].cyclic) {                                          \
+      double dp2, dp3;                                                  \
+      dp2 = dp1 + delta;                                                \
+      dp3 = dp1 - delta;                                                \
+      dp1 *= dp1;                                                       \
+      dp2 *= dp2;                                                       \
+      dp3 *= dp3;                                                       \
+      dp1 = AIR_MIN(dp1, dp2);                                          \
+      dp1 = AIR_MIN(dp1, dp3);                                          \
+      dist += dp1/(delta*delta);                                        \
+    } else {                                                            \
+      dist += dp1*dp1/(delta*delta);                                    \
+    }                                                                   \
   }                                                                     \
   return sqrt(dist);                                                    \
 }
@@ -253,6 +278,20 @@ parmCopy(double *parmA, const double *parmB) {  \
     parmA[ii] = parmB[ii];                      \
   }                                             \
   return;                                       \
+}
+
+#define _TEN_PARM_CONVERT_NOOP                         \
+static int                                             \
+parmConvert(double *parmDst, const double *parmSrc,    \
+            const tenModel *modelSrc) {                \
+  unsigned int ii;                                     \
+                                                       \
+  AIR_UNUSED(modelSrc);                                \
+  parmDst[0] = parmSrc[0];                             \
+  for (ii=1; ii<PARM_NUM; ii++) {                      \
+    parmDst[ii] = AIR_NAN;                             \
+  }                                                    \
+  return 1;                                            \
 }
 
 #define _TEN_SQE                                                \
@@ -305,7 +344,8 @@ sqeGrad(double *grad, const double *parm0,                              \
 
 #define _TEN_SQE_FIT(model)                                             \
 static double                                                           \
-sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,       \
+sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,        \
+       const tenExperSpec *espec,                                       \
        double *dwiBuff, const double *dwiMeas,                          \
        const double *parmInit, int knownB0,                             \
        unsigned int minIter, unsigned int maxIter, double convEps) {    \
@@ -313,7 +353,7 @@ sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,       \
                                                                         \
   return _tenModelSqeFitSingle((model),                                 \
                                testparm, grad,                          \
-                               parm, convFrac,                          \
+                               parm, convFrac, itersTaken,              \
                                espec, dwiBuff, dwiMeas,                 \
                                parmInit, knownB0,                       \
                                minIter, maxIter, convEps);              \
@@ -321,7 +361,8 @@ sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,       \
 
 #define _TEN_SQE_FIT_STUB                                              \
 static double                                                          \
-sqeFit(double *parm, double *convFrac, const tenExperSpec *espec,      \
+sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,       \
+       const tenExperSpec *espec,                                      \
        double *dwiBuff, const double *dwiMeas,                         \
        const double *parmInit, int knownB0,                            \
        unsigned int minIter, unsigned int maxIter, double convEps) {   \
@@ -388,7 +429,7 @@ nllFit(double *parm, const tenExperSpec *espec,         \
 }
 
 #define _TEN_MODEL_FIELDS                                           \
-  DOF_NUM, PARM_NUM, parmDesc,                                      \
+  PARM_NUM, parmDesc,                                               \
   simulate,                                                         \
   parmSprint, parmAlloc, parmRand,                                  \
   parmStep, parmDist, parmCopy, parmConvert,                        \
