@@ -2,7 +2,7 @@
 
 ##
 ##  teem-gen.py: automatically-generated ctypes python wrappers for Teem
-##  Copyright (C) 2011 University of Chicago
+##  Copyright (C) 2012, 2011 University of Chicago
 ##  created by Sam Quinan - samquinan@cs.uchicago.edu
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
@@ -114,10 +114,16 @@ for file in Files:
         expr4 = re.compile("##")
         expr5 = re.compile("^#define [^ ]*\(")
         expr6 = re.compile("NRRD_TYPE_BIGGEST")
+        # this strips out NRRD_LLONG_MAX, NRRD_LLONG_MIN, and NRRD_ULLONG_MAX,
+        # which depend on macros AIR_LLONG and AIR_LLONG.  For some reason
+        # this cause a problem now (Thu Jun 14 11:49:14 CDT 2012) even though
+        # they haven't before, though these constants and macros are not new
+        expr7 = re.compile("LLONG")
         for line in lines:
             if (expr1.search(line) and not expr2.search(line) 
                 and not expr3.search(line) and not expr4.search(line)
-                and not expr5.search(line) and not expr6.search(line)):
+                and not expr5.search(line) and not expr6.search(line)
+                and not expr7.search(line)):
                 firstword, restwords = string.replace(string.replace(line[8:], "/*", "#" ), "*/", "").split(None,1)
                 defines.append("%s = %s" % (firstword, restwords))
 f_open.close()
@@ -192,7 +198,7 @@ if libs_destuctable: # empty sequence implicity false
 header = [
 "##",
 "##  teem.py: automatically-generated ctypes python wrappers for Teem",
-"##  Copyright (C) 2011, 2010, 2009  University of Chicago",
+"##  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago",
 "##",
 "##  Permission is hereby granted, free of charge, to any person obtaining",
 "##  a copy of this software and associated documentation files (the",
