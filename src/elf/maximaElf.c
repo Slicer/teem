@@ -34,7 +34,7 @@ elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
   elfMaximaContext *retval;
   limnPolyData *sphere;
   unsigned int vert;
-  if (type->dim!=3 || type->sym==NULL || type->order%2!=0)
+  if (type==NULL || type->dim!=3 || type->sym==NULL || type->order%2!=0)
     return NULL; /* elfMaxima cannot be used with this tensor type */
   sphere = limnPolyDataNew();
   limnPolyDataIcoSphere(sphere, 0, level);

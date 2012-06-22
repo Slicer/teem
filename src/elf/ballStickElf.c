@@ -121,7 +121,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
   /* guess d and fiso based on the data */
   for (k=0; k<dwi->dwino; k++) {
     float thisd = -log(dwi->dwis[k]/dwi->b0)/dwi->b;
-    if (thisd>_d) _d=thisd;
+    if (dwi->dwis[k]!=0 && thisd>_d) _d=thisd;
     mean += dwi->dwis[k];
   }
   mean /= dwi->dwino;
