@@ -2,7 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
+  Copyright (C) 2012, 2011, 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -2025,6 +2025,95 @@ limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
 int
 limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   return limnPolyDataClipMulti(pld, nval, &thresh);
+}
+
+/* limnPolyDataCompress:
+ * returns a "compressed" copy of the given limnPolyData pld that only
+ *  contains vertices that are referenced by some primitive
+ * returns NULL and adds a message to biff upon error
+ */
+limnPolyData *
+limnPolyDataCompress(const limnPolyData *pld) {
+  static const char me[]="limnPolyDataCompress";
+  limnPolyData *ret = NULL;
+  unsigned int infoBitFlag=0, vertNum=0, i, used_indxNum=0;
+  int *vertMap;
+  if (pld==NULL) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return NULL;
+  }
+  infoBitFlag=limnPolyDataInfoBitFlag(pld);
+  vertMap=(int*) calloc(pld->xyzwNum,sizeof(int));
+  if (vertMap==NULL) {
+    biffAddf(LIMN, "%s: could not allocate memory", me);
+    return NULL;
+  }
+  /* how many indices are actually used? */
+  for (i=0; i<pld->primNum; i++) {
+    used_indxNum+=pld->icnt[i];
+  }
+  /* loop over all indices and mark referenced vertices in vertMap */
+  for (i=0; i<used_indxNum; i++) {
+    vertMap[pld->indx[i]]=1;
+  }
+  /* turn vertMap into an index map */
+  for (i=0; i<pld->xyzwNum; i++) {
+    if (vertMap[i]==0)
+      vertMap[i]=-1;
+    else
+      vertMap[i]=vertNum++;
+  }
+  /* allocate new limnPolyData */
+  if (NULL == (ret=limnPolyDataNew()) ||
+      0!=limnPolyDataAlloc(ret, infoBitFlag, vertNum,
+                           used_indxNum, pld->primNum)) {
+    biffAddf(LIMN, "%s: Could not allocate result", me);
+    free(vertMap);
+    return NULL;
+  }
+  /* fill the newly allocated structure */
+  for (i=0; i<pld->xyzwNum; i++) {
+    if (vertMap[i]>=0) {
+      ELL_4V_COPY(ret->xyzw+4*vertMap[i], pld->xyzw+4*i);
+    }
+  }
+  if (ret->rgba!=NULL) {
+    for (i=0; i<pld->xyzwNum; i++) {
+      if (vertMap[i]>=0) {
+        ELL_4V_COPY(ret->rgba+4*vertMap[i], pld->rgba+4*i);
+      }
+    }
+  }
+  if (ret->norm!=NULL) {
+    for (i=0; i<pld->xyzwNum; i++) {
+      if (vertMap[i]>=0) {
+        ELL_3V_COPY(ret->norm+3*vertMap[i], pld->norm+3*i);
+      }
+    }
+  }
+  if (ret->tex2!=NULL) {
+    for (i=0; i<pld->xyzwNum; i++) {
+      if (vertMap[i]>=0) {
+        ELL_2V_COPY(ret->tex2+2*vertMap[i], pld->tex2+2*i);
+      }
+    }
+  }
+  if (ret->tang!=NULL) {
+    for (i=0; i<pld->xyzwNum; i++) {
+      if (vertMap[i]>=0) {
+        ELL_3V_COPY(ret->tang+3*vertMap[i], pld->tang+3*i);
+      }
+    }
+  }
+  for (i=0; i<used_indxNum; i++) {
+    ret->indx[i]=vertMap[pld->indx[i]];
+  }
+  memcpy(ret->type, pld->type, sizeof(char)*pld->primNum);
+  memcpy(ret->icnt, pld->icnt, sizeof(int)*pld->primNum);
+
+  free(vertMap);
+
+  return ret;
 }
 
 int

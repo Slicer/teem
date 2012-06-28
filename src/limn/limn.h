@@ -2,7 +2,7 @@
   Teem: Tools to process and visualize scientific data and images              
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  Copyright (C) 2011, 2010  Thomas Schultz
+  Copyright (C) 2012, 2011, 2010  Thomas Schultz
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
@@ -695,6 +695,7 @@ LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);
 LIMN_EXPORT int limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval,
                                       double *thresh);
+LIMN_EXPORT limnPolyData *limnPolyDataCompress(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);

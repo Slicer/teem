@@ -192,6 +192,8 @@ extern "C" {
 #define ELL_3V_SET(v, a, b, c) \
   ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
 
+#define ELL_3V_ZERO_SET(v)  ELL_3V_SET(v, 0, 0, 0)
+
 #define ELL_3V_SET_TT(v, TT, a, b, c) \
   ((v)[0] = AIR_CAST(TT, (a)), \
    (v)[1] = AIR_CAST(TT, (b)), \
