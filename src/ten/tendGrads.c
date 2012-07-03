@@ -91,7 +91,7 @@ tend_gradsMain(int argc, const char **argv, char *me, hestParm *hparm) {
              &(tgparm->expo_d), "1",
              "the exponent n that determines the potential energy 1/r^n.");
   hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
-             &(tgparm->minPotentialChange), "0.00001",
+             &(tgparm->minPotentialChange), "0.000000001",
              "low threshold on fractional change of potential at "
              "which point repulsion phase of algorithm terminates.");
   hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 

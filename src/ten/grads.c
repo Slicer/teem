@@ -381,6 +381,10 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
   static const char me[]="tenGradientBalance";
   double len, lastLen, improv;
   airRandMTState *rstate;
+  Nrrd *ncopy;
+  unsigned int iter, maxIter;
+  int done;
+  airArray *mop;
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2)) {
     biffAddf(TEN, "%s: got NULL pointer or invalid input", me);
@@ -390,21 +394,45 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
     biffMovef(TEN, NRRD, "%s: can't initialize output with input", me);
     return 1;
   }
-  
+
+  mop = airMopNew();
+  ncopy = nrrdNew();
+  airMopAdd(mop, ncopy, (airMopper)nrrdNuke, airMopAlways);
   rstate = airRandMTStateNew(tgparm->seed);
-  lastLen = 1.0;
-  do {
-    do {
-      len = party(nout, rstate);
-    } while (len > lastLen);
-    improv = lastLen - len;
-    lastLen = len;
-    fprintf(stderr, "%s: improvement: %g  (mean length = %g)\n",
-            me, improv, len);
-  } while (improv > tgparm->minMeanImprovement
-           && len > tgparm->minMean);
-  airRandMTStateNix(rstate);
+  airMopAdd(mop, rstate, (airMopper)airRandMTStateNix, airMopAlways);
+  /* HEY: factor of 100 is an approximate hack */
+  maxIter = 100*tgparm->maxIteration;
   
+  lastLen = 1.0;
+  done = AIR_FALSE;
+  do {
+    iter = 0;
+    do {
+      iter++;
+      len = party(nout, rstate);
+    } while (len > lastLen && iter < maxIter);
+    if (iter >= maxIter) {
+      fprintf(stderr, "%s: stopping at max iter %u\n", me, maxIter);
+      if (nrrdCopy(nout, ncopy)) {
+        biffMovef(TEN, NRRD, "%s: trouble copying", me);
+        airMopError(mop); return 1;
+      }
+      done = AIR_TRUE;
+    } else {
+      if (nrrdCopy(ncopy, nout)) {
+        biffMovef(TEN, NRRD, "%s: trouble copying", me);
+        airMopError(mop); return 1;
+      }
+      improv = lastLen - len;
+      lastLen = len;
+      fprintf(stderr, "%s: (iter %u) improvement: %g  (mean length = %g)\n",
+              me, iter, improv, len);
+      done = !(improv > tgparm->minMeanImprovement
+               && len > tgparm->minMean);
+    }
+  } while (!done);
+  
+  airMopOkay(mop);
   return 0;
 }
 
