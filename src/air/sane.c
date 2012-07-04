@@ -101,25 +101,25 @@ airSanity(void) {
 
   if (!( airFP_QNAN == airFPClass_f(AIR_NAN)
          && airFP_QNAN == airFPClass_f(AIR_QNAN)
-/*
-  Exclude the following platforms from the airFP_SNAN test.
-
- 1) APPLE builds due to a cross-compilation problem, and
- 2) Visual Studio builds for version newer than 2005 (not included)
- when building in 32bits. */
-
-#if defined(__APPLE__) || ( defined(_MSC_VER) && _MSC_VER >= 1400 ) 
-         /* don't compare airFP_SNAN */
-#else
-         && airFP_SNAN == airFPClass_f(AIR_SNAN) 
-#endif
+         /*
+           As of July 4 2012 GLK decides that the signalling NaN tests are
+           more trouble than they're worth: the signal-ness of the NaN is not
+           preserved in double-float conversion for some platforms (so
+           airFP_SNAN == airFPClass_d(AIR_SNAN) has never been enforced), and
+           there are more platforms for which (apparently) passing AIR_SNAN to
+           airFPClass_d changes it to a quiet NaN, which defeats the purpose
+           of the test.  To summarize, given that:
+           ** AIR_NAN and AIR_QNAN are checked here to be quiet NaN, after
+              casting to both float and double,
+           ** quiet NaN "hi bit" is tested above, and that
+           ** quiet and signalling NaN are mutually exclusive,
+           skipping the signalling NaN tests is unlikely to undermine knowing
+           the correctness of the compile-time representation of NaNs.  So the
+           following line is now commented out for all platforms.
+         */
+         /* && airFP_SNAN == airFPClass_f(AIR_SNAN) */
          && airFP_QNAN == airFPClass_d(AIR_NAN)
          && airFP_QNAN == airFPClass_d(AIR_QNAN) )) {
-    /* we don't bother checking for 
-       airFP_SNAN == airFPClass_d(AIR_SNAN) because
-       on some platforms the signal-ness of the NaN
-       is not preserved in double-float conversion */
-
     return airInsane_AIR_NAN;
   }
   if (!(airFP_QNAN == airFPClass_f(nanF)
