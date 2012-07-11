@@ -2116,6 +2116,82 @@ limnPolyDataCompress(const limnPolyData *pld) {
   return ret;
 }
 
+/* limnPolyDataJoin:
+ * concatenates the primitives in all num limnPolyDatas given in plds
+ *  and returns the result as a newly allocated limnPolyData
+ * the new limnPolyData will only have color/normals/texture coordinates
+ *  if _all_ input limnPolyDatas had the respective attribute
+ * returns NULL and adds a message to biff upon error
+ */
+limnPolyData *limnPolyDataJoin(const limnPolyData **plds,
+                               unsigned int num) {
+  static const char me[]="limnPolyDataJoin";
+  limnPolyData *ret = NULL;
+  unsigned int infoBitFlag=(1 << limnPolyDataInfoRGBA) |
+    (1 << limnPolyDataInfoNorm) |
+    (1 << limnPolyDataInfoTex2) |
+    (1 << limnPolyDataInfoTang); /* by default, assume we have all these */
+  unsigned int vertNum=0, indxNum=0, primNum=0;
+  unsigned int i;
+  if (plds==NULL) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return NULL;
+  }
+  /* loop over all input plds to find infoBitFlag and the total number of
+   * vertices / indices / primitives */
+  for (i=0; i<num; i++) {
+    if (plds[i]==NULL) {
+      biffAddf(LIMN, "%s: plds[%d] is a NULL pointer", me, i);
+      return NULL;
+    }
+    infoBitFlag &= limnPolyDataInfoBitFlag(plds[i]);
+    vertNum += plds[i]->xyzwNum;
+    indxNum += plds[i]->indxNum;
+    primNum += plds[i]->primNum;
+  }
+  if (NULL == (ret=limnPolyDataNew()) ||
+      0!=limnPolyDataAlloc(ret, infoBitFlag, vertNum, indxNum, primNum)) {
+    biffAddf(LIMN, "%s: Could not allocate result", me);
+    return NULL;
+  }
+  /* loop again over all input plds and fill the newly allocated structure */
+  vertNum=indxNum=primNum=0;
+  for (i=0; i<num; i++) {
+    unsigned int j, used_indxNum=0;
+    memcpy(ret->xyzw+4*vertNum, plds[i]->xyzw,
+           sizeof(float)*4*plds[i]->xyzwNum);
+    if (ret->rgba!=NULL) {
+      memcpy(ret->rgba+4*vertNum, plds[i]->rgba,
+             sizeof(unsigned char)*4*plds[i]->xyzwNum);
+    }
+    if (ret->norm!=NULL) {
+      memcpy(ret->norm+3*vertNum, plds[i]->norm,
+             sizeof(float)*3*plds[i]->xyzwNum);
+    }
+    if (ret->tex2!=NULL) {
+      memcpy(ret->tex2+2*vertNum, plds[i]->tex2,
+             sizeof(float)*2*plds[i]->xyzwNum);
+    }
+    if (ret->tang!=NULL) {
+      memcpy(ret->tang+3*vertNum, plds[i]->tang,
+             sizeof(float)*3*plds[i]->xyzwNum);
+    }
+    for (j=0; j<plds[i]->indxNum; j++) {
+      ret->indx[indxNum+j]=vertNum+plds[i]->indx[j];
+    }
+    for (j=0; j<plds[i]->primNum; j++) {
+      ret->type[primNum+j]=plds[i]->type[j];
+      ret->icnt[primNum+j]=plds[i]->icnt[j];
+      /* need to keep track of how many indices are actually used */
+      used_indxNum+=plds[i]->icnt[j];
+    }
+    vertNum+=plds[i]->xyzwNum;
+    indxNum+=used_indxNum;
+    primNum+=plds[i]->primNum;
+  }
+  return ret;
+}
+
 int
 limnPolyDataEdgeHalve(limnPolyData *pldOut, 
                       const limnPolyData *pldIn) {
