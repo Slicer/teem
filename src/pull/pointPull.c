@@ -1082,7 +1082,7 @@ _pullPointSetup(pullContext *pctx) {
   case pullInitMethodPointPerVoxel:
     npos = NULL;
     posData = NULL;
-    if (pctx->initParm.numInitial) {
+    if (pctx->initParm.numInitial && pctx->verbose) {
       printf("%s: pointPerVoxel %d overrides numInitial (%u)\n", me,
              pctx->initParm.pointPerVoxel, pctx->initParm.numInitial);
     }
@@ -1100,15 +1100,19 @@ _pullPointSetup(pullContext *pctx) {
       }
       zrn = pctx->initParm.ppvZRange[1] - pctx->initParm.ppvZRange[0] + 1;
       voxNum = seedShape->size[0]*seedShape->size[1]*zrn;
-      printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me,
-             seedShape->size[0], seedShape->size[1],
-             pctx->initParm.ppvZRange[0], pctx->initParm.ppvZRange[1],
-             voxNum);
+      if (pctx->verbose) {
+        printf("%s: vol size %u %u [%u,%u] -> voxNum %u\n", me,
+               seedShape->size[0], seedShape->size[1],
+               pctx->initParm.ppvZRange[0], pctx->initParm.ppvZRange[1],
+               voxNum);
+      }
     } else {
       voxNum = seedShape->size[0]*seedShape->size[1]*seedShape->size[2];
-      printf("%s: vol size %u %u %u -> voxNum %u\n", me,
-             seedShape->size[0], seedShape->size[1], seedShape->size[2],
-             voxNum);
+      if (pctx->verbose) {
+        printf("%s: vol size %u %u %u -> voxNum %u\n", me,
+               seedShape->size[0], seedShape->size[1], seedShape->size[2],
+               voxNum);
+      }
     }
 
     /* Compute total number of points */
