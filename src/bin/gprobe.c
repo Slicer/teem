@@ -46,7 +46,7 @@ printans(FILE *file, const double *ans, int len) {
 int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
           Nrrd *nout, int typeOut, Nrrd *_ngrid,
-          int indexSpace, int verbose) {
+          int indexSpace, int verbose, int clamp) {
   char me[]="gridProbe";
   Nrrd *ngrid;
   airArray *mop;
@@ -166,9 +166,9 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     */
     E = (ctx->stackPos
          ? gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
-                               indexSpace, AIR_FALSE)
+                               indexSpace, clamp)
          : gageProbeSpace(ctx, pos[0], pos[1], pos[2],
-                          indexSpace, AIR_FALSE));
+                          indexSpace, clamp));
     if (E) {
       biffAddf(GAGE, "%s: trouble at II=%s =(%g,%g,%g,%g):\n%s\n(%d)\n", me,
                airSprintSize_t(stmp[0], II), 
@@ -219,7 +219,7 @@ main(int argc, const char *argv[]) {
   airArray *mop;
   unsigned int *skip, skipNum, pntPosNum;
   gageStackBlurParm *sbp;
-  int otype;
+  int otype, clamp;
   char stmp[4][AIR_STRLEN_SMALL];
   
   me = argv[0];
@@ -270,6 +270,8 @@ main(int argc, const char *argv[]) {
              "contrive full orientation info");
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "RNG seed; mostly for debugging");
+  hestOptAdd(&hopt, "c", "bool", airTypeBool, 1, 1, &clamp, "false",
+             "clamp positions as part of probing");
 
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
@@ -481,10 +483,10 @@ main(int argc, const char *argv[]) {
     if (numSS
         ? gageStackProbeSpace(ctx,
                               pntPos[0], pntPos[1], pntPos[2], pntPos[3],
-                              probeSpaceIndex, AIR_FALSE)
+                              probeSpaceIndex, clamp)
         : gageProbeSpace(ctx,
                          pntPos[0], pntPos[1], pntPos[2],
-                         probeSpaceIndex, AIR_FALSE)) {
+                         probeSpaceIndex, clamp)) {
       fprintf(stderr, "%s: trouble probing: (errNum %d) %s\n", me,
               ctx->errNum, ctx->errStr);
       airMopError(mop); return 1;
@@ -514,9 +516,9 @@ main(int argc, const char *argv[]) {
 #define PROBE(x, y, z)                                                  \
       ((numSS                                                           \
         ? gageStackProbeSpace(ctx, x, y, z, posSS,                      \
-                              probeSpaceIndex, AIR_FALSE)               \
+                              probeSpaceIndex, clamp)                   \
         : gageProbeSpace(ctx, x, y, z, probeSpaceIndex,                 \
-                         AIR_FALSE)),answer[0])
+                         clamp)),answer[0])
       for (xo=0; xo<=2; xo++) {
         for (yo=0; yo<=2; yo++) {
           for (zo=0; zo<=2; zo++) {
@@ -586,10 +588,10 @@ main(int argc, const char *argv[]) {
     for (II=0; II<NN; II++) {
       if (numSS) {
         gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
-                            probeSpaceIndex, AIR_TRUE);
+                            probeSpaceIndex, clamp);
       } else {
         gageProbeSpace(ctx, pos[0], pos[1], pos[2],
-                       probeSpaceIndex, AIR_TRUE);
+                       probeSpaceIndex, clamp);
       }
       if (1 == ansLen) {
         ins(nout->data, II, *answer);
@@ -745,15 +747,17 @@ main(int argc, const char *argv[]) {
                 (_ngrid
                  ? probeSpaceIndex  /* user specifies grid space */
                  : AIR_TRUE),       /* copying vprobe index-space behavior */
-                verbose)) {
+                verbose, clamp)) {
     /* note hijacking of GAGE key */
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble probing on grid:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
   t1 = airTime();
-  fprintf(stderr, "probe rate = %g KHz\n",
-          (nrrdElementNumber(nout)/ansLen)/(1000.0*(t1-t0)));
+  if (verbose) {
+    fprintf(stderr, "probe rate = %g KHz\n",
+            (nrrdElementNumber(nout)/ansLen)/(1000.0*(t1-t0)));
+  }
   
   /* massage output some */
   nrrdContentSet_va(nout, "gprobe", nin, "%s", airEnumStr(kind->enm, what));
