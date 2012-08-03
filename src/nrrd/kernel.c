@@ -1444,9 +1444,9 @@ nrrdKernelC3QuinticDD = &_DDc3quint;
 /* 
 ** This is the unique, 6-sample support, hexic, C^4 kernel,
 ** with 1st and 3rd derivatives zero at origin, which integrates
-** to unity on [-2,2], with something like 4th order accuracy
-** (errors start showing up on 4th order polynomials)
-** It doesn't interpolate, but it actually rings once.
+** to unity on [-3,3], with 3rd order Taylor accuracy
+** (errors start showing up when reconstructing 4th order polynomials)
+** It doesn't interpolate, but its close, and it rings once.
 **
 ** this is awfully close to, but not quite the same as, 
 ** "tmf:-1,3,4" --> nrrdKernelTMF[0][4][4], which is only c^3 smooth?
