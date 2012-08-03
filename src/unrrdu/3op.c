@@ -52,7 +52,7 @@ unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "max_sm(m, w, x) is like max(M,x) but for x < m+w (with w > m) "
              "there is a smooth transition from x to asymptotic to m\n "
              "\b\bo \"lt_sm\": 1st less than 3rd, smoothed by 2nd\n "
-             "\b\bo \"gt_sm\": 1st great than 3rd, smoothed by 2nd\n "
+             "\b\bo \"gt_sm\": 1st greater than 3rd, smoothed by 2nd\n "
              "\b\bo \"clamp\": 2nd value is clamped to range between "
              "the 1st and the 3rd\n "
              "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
