@@ -1037,7 +1037,7 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "addlog", "fname", airTypeString, 1, 1, &addLogS, "",
              "name of file in which to log all particle additions");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output volume");
+             "filename for saving computed positions");
   hestOptAdd(&hopt, "eob", "base", airTypeString, 1, 1, &extraOutBaseS, "",
              "save extra info (besides position), and use this string as "
              "the base of the filenames.  Not using this means the extra "
