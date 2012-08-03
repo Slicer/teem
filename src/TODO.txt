@@ -39,6 +39,10 @@ biff:
 so that it matches biffMovef
 
 nrrd:
+* reconsider "hermite"/"herm" and the nrrdKernelHermiteFlag kernel it 
+  refers to.  Catmull-Rom is commonly thought of as a kind of hermite
+  spline interpolation, but now nrrdKernelHermiteFlag is a rather exotic
+  thing which acts like tent but signals special things for scale-space
 * make the verbosity level a field in NrrdIoState, consider
   removing nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
@@ -54,6 +58,8 @@ nrrd:
 
 
 unu:
+* the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
+of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
 * unu resample should permit saying "resample this axis to N samples,
 and resample these other axes to whatever maintains aspect ratio"
