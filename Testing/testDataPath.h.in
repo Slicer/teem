@@ -28,32 +28,36 @@
 #include <string.h>
 #include <teem/air.h>
 
+/*
+** testDataPathPrefix allocates and returns a string which is
+** the given "base" prefixed with the path to the test datasets,
+** including the "/" between the path and "base".  Caller is
+** responsible for freeing.
+**
+** Thanks to James Bigler for writing the first version of this.
+*/
 static char*
-testDataPathPrefix(airArray* mop, const char* file_name) {
-  size_t path_len, file_name_len;
+testDataPathPrefix(const char* base) {
+  size_t pathLen, baseLen;
   char* result;
   /* You could add an environment variable override here */
   /* if (getenv(TESTING_DATA_PATH)) */
 
-  /* concatenate the strings together and make sure the string allocation
-   * is put in the mop */
-  path_len = strlen(TESTING_DATA_PATH);
-  file_name_len = strlen(file_name);
+  /* concatenate the strings together */
+  pathLen = strlen(TESTING_DATA_PATH);
+  baseLen = strlen(base);
   /* Allocate enough for the two parts of the string, plus one for the /
    * and one for the null terminator */
-  result = AIR_CALLOC(path_len + file_name_len + 2, char);
-  if (!result) {
-    return NULL;
+  result = AIR_CALLOC(pathLen + baseLen + 2, char);
+  if (result) {
+    /*
+      strcat(result, TESTING_DATA_PATH);
+      strcat(result, "/");
+      strcat(result, base);
+    */
+    airStrcpy(result, pathLen + 1, TESTING_DATA_PATH);
+    result[pathLen] = '/';
+    airStrcpy(result+pathLen+1, baseLen + 1, base);
   }
-  airMopAdd(mop, result, airFree, airMopAlways);
-
-  /*
-  strcat(result, TESTING_DATA_PATH);
-  strcat(result, "/");
-  strcat(result, file_name);
-  */
-  airStrcpy(result, path_len + 1, TESTING_DATA_PATH);
-  result[path_len] = '/';
-  airStrcpy(result+path_len+1, file_name_len + 1, file_name);
   return result;
 }
