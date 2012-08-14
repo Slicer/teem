@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,35 +23,61 @@
 
 #include "teem/nrrd.h"
 
-#define BINS 1024
-#define HGHT 800
+/* 
+** Tests: 
+** airSrandMT
+** airNormalRand
+** nrrdNew
+** nrrdAlloc_va
+** nrrdHisto
+** nrrdHistoDraw
+** nrrdSave (to .pgm file)
+** nrrdNuke
+*/
+
+#define BINS 1000
+#define HGHT 1000
 
 int
-main(int argc, char **argv) {
-  Nrrd *nval, *nhist, *npgm;
-  double *val;
-  int i;
+main(int argc, const char *argv[]) {
+  const char *me;
+  size_t vi, ii, qvalLen;
+  Nrrd *nval, *nhist, *nimg;
+  double aa, bb, *val;
+  airArray *mop;
 
   AIR_UNUSED(argc);
-  AIR_UNUSED(argv);
-  nrrdAlloc_va(nval=nrrdNew(), nrrdTypeDouble, 1,
-               AIR_CAST(size_t, BINS*BINS));
-  val = (double *)nval->data;
+  me = argv[0];
+  mop = airMopNew();
 
-  airSrandMT((int)airTime());
-  for (i=0; i<BINS*BINS; i++) {
-    val[i] = airDrandMT();
+  qvalLen = 10*BINS;
+  nrrdAlloc_va(nval=nrrdNew(), nrrdTypeDouble, 1, 4*qvalLen);
+  airMopAdd(mop, nval, (airMopper)nrrdNuke, airMopAlways);
+  val = AIR_CAST(double*, nval->data);
+
+  airSrandMT(999);
+  vi = 0;
+  for (ii=0; ii<qvalLen; ii++) {
+    airNormalRand(&aa, NULL);
+    val[vi++] = aa;
+  }
+  for (ii=0; ii<qvalLen; ii++) {
+    airNormalRand(NULL, &bb);
+    val[vi++] = bb;
+  }
+  for (ii=0; ii<qvalLen; ii++) {
+    airNormalRand(&aa, &bb);
+    val[vi++] = aa;
+    val[vi++] = bb;
   }
   
   nrrdHisto(nhist=nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);
-  nrrdHistoDraw(npgm=nrrdNew(), nhist, HGHT, AIR_FALSE, 0.0);
-  nrrdSave("hist.pgm", npgm, NULL);
-  
-  printf("Saving hist.pgm\n");
-  
-  nrrdNuke(nval);
-  nrrdNuke(nhist);
-  nrrdNuke(npgm);
+  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+  nrrdHistoDraw(nimg=nrrdNew(), nhist, HGHT, AIR_TRUE, 0.0);
+  airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
 
+  nrrdSave("hist.pgm", nimg, NULL);
+  
+  airMopOkay(mop);
   return 0;
 }
