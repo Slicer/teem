@@ -25,6 +25,10 @@ ADD_EXECUTABLE(mtrandTest mtrand.c)
 TARGET_LINK_LIBRARIES(mtrandTest teem)
 ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/mtrandTest)
 
+ADD_EXECUTABLE(stringTest string.c)
+TARGET_LINK_LIBRARIES(stringTest teem)
+ADD_TEST(string ${EXECUTABLE_OUTPUT_PATH}/stringTest)
+
 ADD_EXECUTABLE(strtokTest strtok.c)
 TARGET_LINK_LIBRARIES(strtokTest teem)
 ADD_TEST(strtok ${EXECUTABLE_OUTPUT_PATH}/strtokTest)

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (c) 2011, 2010, 2009  University of Chicago
+  Copyright (c) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,8 +25,13 @@
 #include "teem/air.h"
 
 /*
-** make sure that airStrtok and airStrntok are working as expected,
-** but also exercises the airArray
+** Tests:
+** airStrtok
+** airStrntok
+**
+** Also uses:
+** airArrayNew, airArrayNuke, airArrayLenSet, airArrayLenIncr
+** airMopNew, airMopAdd, airMopError, airMopDone
 */
 
 #define INCR 10

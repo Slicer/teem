@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (c) 2011, 2010, 2009  University of Chicago
+  Copyright (c) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,27 +25,34 @@
 #include "teem/air.h"
 
 /*
-** the purpose of this test is currently limited to generating
-** warnings if the format specifications for size_t and ptrdiff_t are
-** incorrect.
-**
-** other tests relating to printing & parsing stirngs will go here later
+** Tests:
+** airSprintSize_t
+** airSprintPtrdiff_t
 */
 
 int
 main(int argc, const char *argv[]) {
+  const char *me;
   size_t sz;
   ptrdiff_t pd;
-  char buff[AIR_STRLEN_SMALL],
-    stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL];
 
   AIR_UNUSED(argc);
+  me = argv[0];
   
-  sz = 424242;
-  pd = -424242;
-  sprintf(buff, "sz: %s, pd: %s", 
-          airSprintSize_t(stmp1, sz), airSprintPtrdiff_t(stmp2, pd));
-  printf("%s %s\n", buff, airSprintSize_t(stmp1, strlen(buff)));
+  sz = 123456789;
+  airSprintSize_t(stmp, sz);
+  if (strcmp("123456789", stmp)) {
+    fprintf(stderr, "%s: airSprintSize_t: |%s|\n", me, stmp);
+    exit(1);
+  }
+
+  pd = -123456789;
+  airSprintPtrdiff_t(stmp, pd);
+  if (strcmp("-123456789", stmp)) {
+    fprintf(stderr, "%s: airSprintPtrdiff_t: |%s|\n", me, stmp);
+    exit(1);
+  }
 
   exit(0);
 }

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (c) 2011, 2010, 2009  University of Chicago
+  Copyright (c) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,10 +24,15 @@
 
 #include "teem/air.h"
 
-/*
-** the purpose of this test is to make sure that the airRandMT
-** RNG generates exactly the numbers we expect it to, for a variety
-** of seeds, so that anything using the RNG is reproducible 
+/* 
+** Tests: 
+** airRandMTStateNew
+** airRandMTStateNix
+** airSrandMT_r
+** airRandMT
+**
+** Also uses:
+** airMopNew, airMopAdd, airMopError, airMopDone
 */
 
 #define NUM 10
