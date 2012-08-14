@@ -157,37 +157,47 @@ airStrtrans(char *s, char from, char to) {
 ******** airStrcpy
 **
 ** Like strncpy but logic is different (and perhaps more useful), being:
-** "dst is allocated for dstSize chars. Copy what you can from src,
-** and always 0-terminate the rest.", 
+** "dst is allocated for dstSize chars. Copy as much of src as can 
+** "fit in dst, and always 0-terminate the resulting dst.", 
 ** instead of strncpy's "Copy at most n characters, blah blah blah, 
-** and you still have to 0-terminate the rest yourself" 
+** and you still have to 0-terminate the rest yourself".
 **
 ** E.g. with declaration buff[AIR_STRLEN_SMALL], you call
 ** airStrcpy(buff, AIR_STRLEN_SMALL, src), and know that then
 ** strlen(buff) <= AIR_STRLEN_SMALL-1. (see note in air.h about
 ** the meaning of the STRLEN #defines).
 **
-** Returns NULL if there was a problem (NULL dst or src, or dstSize zero),
+** Returns NULL if there was a problem (NULL dst or dstSize zero),
 ** otherwise returns dst
 */
 char *
 airStrcpy(char *dst, size_t dstSize, const char *src) {
-  size_t ii;
+  size_t ii, copyLen, srcLen;
   
-  if (!(dst && src && dstSize > 0)) {
+  if (!(dst && dstSize > 0)) {
     return NULL;
   }
-  if (1 == dstSize) {
+  srcLen = airStrlen(src);
+  if (1 == dstSize || !srcLen) {
     dst[0] = '\0';
     return dst;
   }
-  /* else dstSize >= 2 */
-  for (ii=0; ii<=dstSize-2; ii++) {
-    dst[ii] = src[ii] ? src[ii] : '\0';
+  /* else dstSize > 1  AND src is a non-empy string */
+  copyLen = AIR_MIN(dstSize-1, srcLen);
+  for (ii=0; ii<copyLen; ii++) {
+    dst[ii] = src[ii];
   }
-  dst[dstSize-1] = '\0';
+  dst[copyLen] = '\0';
   return dst;
 }
+
+/*
+char *
+airStrcat(char *dst, size_t dstSize, const char *suf) {
+  
+  
+}
+*/
 
 /*
 ******** airEndsWith
