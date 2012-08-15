@@ -24,7 +24,7 @@
 #include "privateTen.h"
 
 #if TEEM_LEVMAR
-#include <lm.h>
+#include <levmar.h>
 #endif
 
 /* --------------------------------------------------------------------- */
@@ -646,7 +646,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       pvlData->levmarUseFastExp = AIR_FALSE;
       lmret = dlevmar_bc_dif(_tenLevmarPeledCB, guess, pvlData->tec1->dwi,
                              PARAMS, pvlData->tec1->dwiNum, loBnd, upBnd,
-                             pvlData->levmarMaxIter, opts,
+                             NULL, pvlData->levmarMaxIter, opts,
                              pvlData->levmarInfo,
                              NULL, NULL, pvlData);
       if (-1 == lmret) {

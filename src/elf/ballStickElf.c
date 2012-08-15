@@ -22,7 +22,7 @@
 #include "elf.h"
 
 #if TEEM_LEVMAR
-#include <lm.h>
+#include <levmar.h>
 #endif
 
 /* Routines for estimating the ball-and-multi-stick model from single-shell
