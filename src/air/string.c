@@ -68,6 +68,23 @@ airStrlen(const char *s) {
 }
 
 /*
+******** airStrcmp
+**
+** just like strcmp, but safe to call with NULL strings
+*/
+int
+airStrcmp(const char *s1, const char *s2) {
+  int ret;
+
+  if (!( s1 && s2 )) {
+    ret = !!s1 - !!s2;
+  } else {
+    ret = strcmp(s1, s2);
+  }
+  return ret;
+}
+
+/*
 ******** airStrtok()
 **
 ** thread-safe strtok() replacement.  Use just like strtok(), but on

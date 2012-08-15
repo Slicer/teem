@@ -505,6 +505,7 @@ AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
 /* string.c */
 AIR_EXPORT char *airStrdup(const char *s);
 AIR_EXPORT size_t airStrlen(const char *s);
+AIR_EXPORT int airStrcmp(const char *s1, const char *s2);
 AIR_EXPORT int airStrtokQuoting;
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 AIR_EXPORT unsigned int airStrntok(const char *s, const char *ct);
