@@ -780,8 +780,14 @@ NRRD_EXPORT int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
                                    const size_t *size);
 NRRD_EXPORT int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
                                   ... /* size_t sx, sy, .., ax(dim-1) size */);
+/* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT int nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
+                            int onlyData,
+                            char explain[AIR_STRLEN_LARGE], int *err, 
+                            int useBiff);
 NRRD_EXPORT int nrrdPPM(Nrrd *, size_t sx, size_t sy);
 NRRD_EXPORT int nrrdPGM(Nrrd *, size_t sx, size_t sy);
+/* ---- END non-NrrdIO */
 
 /******** axis info related */
 /* axis.c */
@@ -808,6 +814,12 @@ NRRD_EXPORT void nrrdAxisInfoIdxRange(double *loP, double *hiP,
 NRRD_EXPORT void nrrdAxisInfoSpacingSet(Nrrd *nrrd, unsigned int ax);
 NRRD_EXPORT void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax,
                                        int defCenter);
+/* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT int nrrdAxisInfoCompare(const NrrdAxisInfo *axisA,
+                                    const NrrdAxisInfo *axisB,
+                                    char explain[AIR_STRLEN_LARGE],
+                                    int *err, int useBiff);
+/* ---- END non-NrrdIO */
 NRRD_EXPORT unsigned int nrrdDomainAxesGet(const Nrrd *nrrd,
                                            unsigned int axisIdx[NRRD_DIM_MAX]);
 NRRD_EXPORT unsigned int nrrdRangeAxesGet(const Nrrd *nrrd,
@@ -987,8 +999,13 @@ NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP,
                                                          void *maxP,
                                                          int *hasNonExistP,
                                                          const Nrrd *nrrd);
-NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *);
-NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *);
+NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
+                                                   const void *);
+NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *,
+                                                      const void *);
+NRRD_EXPORT int nrrdArrayCompare(int type, const void *valA, const void *valB,
+                                 size_t num, char explain[AIR_STRLEN_LARGE],
+                                 int *err, int useBiff);
 /* ---- END non-NrrdIO */
 
 

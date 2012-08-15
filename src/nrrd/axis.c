@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -898,6 +898,136 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
   
   return;
 }
+
+/* ---- BEGIN non-NrrdIO */
+
+/*
+** not using the value comparators in accessors.c because of their
+** slightly strange behavior WRT infinity (+inf < -42).  This code
+** may eventually warrant wider availability, for now its here but
+** accessible to nrrd files via privateNrrd.h
+*/
+int
+_nrrdDblcmp(double aa, double bb) {
+  int nna, nnb, ret;
+  
+  nna = AIR_EXISTS(aa) || !airIsNaN(aa);
+  nnb = AIR_EXISTS(bb) || !airIsNaN(bb);
+  if (nna && nnb) {
+    /* both either exist or are an infinity */
+    ret = (aa < bb
+           ? -1
+           : (aa > bb
+              ? 1
+              : 0));
+  } else {
+    /* one or the other is NaN */
+    ret = (nna < nnb
+           ? -1
+           : (nna > nnb
+              ? 1
+              : 0));
+  }
+  return ret;
+}
+
+int
+nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
+                    char explain[AIR_STRLEN_LARGE], int *err, int useBiff) {
+  static const char me[]="nrrdAxisInfoCompare";
+  int ret;
+  unsigned int saxi;
+
+  if (!err) {
+    /* can't even indicate error status, so can't do much */
+    return _NRRD_ERROR_RETURN;
+  }
+  if (!(axisA && axisB)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: NULL axes (got %p %p)",
+                  me, axisA, axisB);
+    *err = 1; return _NRRD_ERROR_RETURN;
+  }
+
+  if (explain) {
+    strcpy(explain, "");
+  }
+  if (axisA->size != axisB->size) {
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    ret = axisA->size < axisB->size ? -1 : 1;
+    if (explain) {
+      sprintf(explain, "axisA->size=%s %s axisB->size=%s",
+              airSprintSize_t(stmp1, axisA->size), 
+              ret < 0 ? "<" : ">",
+              airSprintSize_t(stmp2, axisB->size));
+    }
+    *err = 0; return ret;
+  }
+  
+  /* from here on out no new errors are possible */
+  *err = 0;
+  
+#define DOUBLE_COMPARE(VAL, STR)                                       \
+  ret = _nrrdDblcmp(axisA->VAL, axisB->VAL);                           \
+  if (ret) {                                                           \
+    if (explain) {                                                     \
+      sprintf(explain, "axisA->%s %f %s axisB->%s %f",                 \
+              STR, axisA->VAL, ret < 0 ? "<" : ">", STR, axisB->VAL);  \
+    }                                                                  \
+    return ret;                                                        \
+  }
+  
+  DOUBLE_COMPARE(spacing, "spacing");
+  DOUBLE_COMPARE(thickness, "thickness");
+  DOUBLE_COMPARE(min, "min");
+  DOUBLE_COMPARE(max, "max");
+  for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
+    char stmp[AIR_STRLEN_SMALL];
+    sprintf(stmp, "spaceDirection[%u]", saxi);
+    DOUBLE_COMPARE(spaceDirection[saxi], stmp);
+  }
+#undef DOUBLE_COMPARE
+
+  if (axisA->center != axisB->center) {
+    ret = axisA->center < axisB->center ? -1 : 1;
+    if (explain) {
+      sprintf(explain, "axisA->center %s %s axisB->center %s",
+              airEnumStr(nrrdCenter, axisA->center),
+              ret < 0 ? "<" : ">",
+              airEnumStr(nrrdCenter, axisB->center));
+    }
+    return ret;
+  }
+  if (axisA->kind != axisB->kind) {
+    ret = axisA->kind < axisB->kind ? -1 : 1;
+    if (explain) {
+      sprintf(explain, "axisA->kind %s %s axisB->kind %s",
+              airEnumStr(nrrdKind, axisA->kind),
+              ret < 0 ? "<" : ">",
+              airEnumStr(nrrdKind, axisB->kind));
+    }
+    return ret;
+  }
+  ret = airStrcmp(axisA->label, axisB->label);
+  if (ret) {
+    if (explain) {
+      /* can't print whole string because of fixed-size of explain */
+      sprintf(explain, "axisA->label %s axisB->label", ret < 0 ? "<" : ">");
+    }
+    return ret;
+  }
+  ret = airStrcmp(axisA->units, axisB->units);
+  if (ret) {
+    if (explain) {
+      /* can't print whole string because of fixed-size of explain */
+      sprintf(explain, "axisA->units %s axisB->units", ret < 0 ? "<" : ">");
+    }
+    return ret;
+  }
+  
+  /* if we've gotten this far, all fields were equal */
+  return 0;
+}
+/* ---- END non-NrrdIO */
 
 /*
 ******** nrrdDomainAxesGet
