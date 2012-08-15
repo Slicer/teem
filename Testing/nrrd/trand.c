@@ -22,6 +22,7 @@
 */
 
 #include "teem/nrrd.h"
+#include <testDataPath.h>
 
 /* 
 ** Tests: 
@@ -38,13 +39,20 @@
 #define BINS 1000
 #define HGHT 1000
 
+/* have to use PGM format for image because Teem might
+   not have been built with PNG */
+#define THISNAME "histo.pgm"
+#define CORRNAME "trandhisto.pgm"
+
 int
 main(int argc, const char *argv[]) {
   const char *me;
   size_t vi, ii, qvalLen;
-  Nrrd *nval, *nhist, *nimg;
+  Nrrd *nval, *nhist, *nimg, *nread, *ncorr;
   double aa, bb, *val;
   airArray *mop;
+  char *corrname, explain[AIR_STRLEN_LARGE];
+  int ret, cmperr;
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -70,13 +78,49 @@ main(int argc, const char *argv[]) {
     val[vi++] = aa;
     val[vi++] = bb;
   }
-  
-  nrrdHisto(nhist=nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);
-  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-  nrrdHistoDraw(nimg=nrrdNew(), nhist, HGHT, AIR_TRUE, 0.0);
-  airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
 
-  nrrdSave("hist.pgm", nimg, NULL);
+  nhist=nrrdNew();
+  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+  nimg=nrrdNew();
+  airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdHisto(nhist, nval, NULL, NULL, BINS, nrrdTypeInt)
+      || nrrdHistoDraw(nimg, nhist, HGHT, AIR_TRUE, 0.0)
+      || nrrdSave(THISNAME, nimg, NULL)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble producing histo:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+
+  nread = nrrdNew();
+  airMopAdd(mop, nread, (airMopper)nrrdNuke, airMopAlways);
+  ncorr = nrrdNew();
+  airMopAdd(mop, ncorr, (airMopper)nrrdNuke, airMopAlways);
+
+  corrname = testDataPathPrefix(CORRNAME);
+  airMopAdd(mop, corrname, airFree, airMopAlways);
+  if (nrrdLoad(ncorr, corrname, NULL)
+      || nrrdLoad(nread, THISNAME, NULL)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble reading:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+
+  ret = nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
+                    explain, &cmperr, AIR_TRUE /* useBiff */);
+  if (cmperr) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  if (ret) {
+    fprintf(stderr, "%s: new and correct images differ: %s\n", me, explain);
+    airMopError(mop); return 1;
+  } else {
+    printf("%s: all good\n", me);
+  }
   
   airMopOkay(mop);
   return 0;
