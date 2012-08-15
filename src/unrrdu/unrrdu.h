@@ -117,6 +117,7 @@ F(cmedian) \
 F(dering) \
 F(dist) \
 F(minmax) \
+F(diff) \
 F(quantize) \
 F(unquantize) \
 F(project) \
