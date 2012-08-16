@@ -272,6 +272,7 @@ main(int argc, const char **argv) {
     }
     cret = nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
                        explain, &cmperr, AIR_TRUE /* useBiff */);
+    nrrdSave("prbd.nrrd", nprbd, NULL);
     if (cmperr) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
