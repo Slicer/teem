@@ -53,38 +53,38 @@ main(int argc, const char **argv) {
     {},
   };
   const NrrdKernel *bkern[BLUR_KERN_NUM] = {
+    nrrdKernelTent,
     nrrdKernelBSpline3,
-    nrrdKernelBCCubic,
     nrrdKernelBSpline5,
-    nrrdKernelC4Hexic,
+    nrrdKernelBCCubic,
     nrrdKernelGaussian,
   };
   const NrrdKernel *bkernD[BLUR_KERN_NUM] = {
+    nrrdKernelForwDiff,
     nrrdKernelBSpline3D,
-    nrrdKernelBCCubicD,
     nrrdKernelBSpline5D,
-    nrrdKernelC4HexicD,
+    nrrdKernelBCCubicD,
     nrrdKernelGaussianD,
   };
   const NrrdKernel *bkernDD[BLUR_KERN_NUM] = {
+    nrrdKernelZero,
     nrrdKernelBSpline3DD,
-    nrrdKernelBCCubicDD,
     nrrdKernelBSpline5DD,
-    nrrdKernelC4HexicDD,
+    nrrdKernelBCCubicDD,
     nrrdKernelGaussianDD,
   };
   double bkparm[BLUR_KERN_NUM][NRRD_KERNEL_PARMS_NUM] = {
+    {1.0},
     {},
-    {1.0, 1.0, 0.0},
     {},
-    {1,0},
-    {2.0, 4.5}
+    {2.0, 1.0, 0.0},
+    {1.2, 5.0},
   };
   const double *ivalAns[INTERP_KERN_NUM], *bvalAns[BLUR_KERN_NUM],
     *bgrdAns[BLUR_KERN_NUM], *bhesAns[BLUR_KERN_NUM];
   int E;
-  unsigned int ki;
-
+  unsigned int sx, sy, sz, ki;
+  
   AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
@@ -108,6 +108,9 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
   dscl = AIR_CAST(double *, nscl->data);
+  sx = AIR_CAST(unsigned int, nscl->axis[0].size);
+  sy = AIR_CAST(unsigned int, nscl->axis[1].size);
+  sz = AIR_CAST(unsigned int, nscl->axis[2].size);
 
   for (ki=0; ki<INTERP_KERN_NUM; ki++) {
     gagePerVolume *gpvl;
@@ -136,19 +139,23 @@ main(int argc, const char **argv) {
   /* traverse all samples of volume, probing with the interpolating
      kernels, make sure we recover the original values */
   {
-    unsigned int sx, sy, sz, xi, yi, zi;
+    unsigned int xi, yi, zi;
     double pval[INTERP_KERN_NUM], err, rval;
-    sx = AIR_CAST(unsigned int, nscl->axis[0].size);
-    sy = AIR_CAST(unsigned int, nscl->axis[1].size);
-    sz = AIR_CAST(unsigned int, nscl->axis[2].size);
+    int pret;
     for (zi=0; zi<sz; zi++) {
       for (yi=0; yi<sy; yi++) {
         for (xi=0; xi<sx; xi++) {
           rval = dscl[xi + sx*(yi + sy*zi)];
           for (ki=0; ki<INTERP_KERN_NUM; ki++) {
-            gageProbeSpace(igctx[ki], xi, yi, zi,
-                           AIR_TRUE /* indexSpace */,
-                           AIR_FALSE /* clamp */);
+            pret = gageProbeSpace(igctx[ki], xi, yi, zi,
+                                  AIR_TRUE /* indexSpace */,
+                                  AIR_FALSE /* clamp */);
+            if (pret) {
+              fprintf(stderr, "%s: %s probe error(%d): %s\n", me,
+                      ikern[ki]->name, igctx[ki]->errNum, igctx[ki]->errStr);
+              
+              airMopError(mop); return 1;
+            }
             pval[ki] = *ivalAns[ki];
             err = AIR_ABS(rval - pval[ki]);
             if (err) {
@@ -163,6 +170,8 @@ main(int argc, const char **argv) {
     }
   }
 
+  /* set up contexts for non-interpolating (blurring) kernels,
+     and their first and second derivatives */
   for (ki=0; ki<BLUR_KERN_NUM; ki++) {
     gagePerVolume *gpvl;
     bgctx[ki] = gageContextNew();
@@ -195,6 +204,60 @@ main(int argc, const char **argv) {
     bvalAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclValue);
     bgrdAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclGradVec);
     bhesAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclHessian);
+  }
+
+  {
+    /* TODO: probe at some fixed list of locations,
+       comparing to correct values, gradients, and hessians */
+#define POS_NUM 12
+    double xp[POS_NUM], yp[POS_NUM], zp[POS_NUM],
+      pos[POS_NUM*POS_NUM*POS_NUM][3], *prbd,
+      offs[POS_NUM/2] = {0, 1.22222, 2.444444, 3.777777, 5.88888, 7.55555};
+    Nrrd *nprbd;
+    unsigned int ii, jj, kk, qlen = 1 + 3 + 9;
+    int pret;
+    for (ii=0; ii<POS_NUM/2; ii++) {
+      xp[ii] = yp[ii] = zp[ii] = offs[ii];
+      xp[POS_NUM-1-ii] = AIR_CAST(double, sx)-1.0-offs[ii];
+      yp[POS_NUM-1-ii] = AIR_CAST(double, sy)-1.0-offs[ii];
+      zp[POS_NUM-1-ii] = AIR_CAST(double, sz)-1.0-offs[ii];
+    }
+    for (kk=0; kk<POS_NUM; kk++) {
+      for (jj=0; jj<POS_NUM; jj++) {
+        for (ii=0; ii<POS_NUM; ii++) {
+          ELL_3V_SET(pos[ii + POS_NUM*(jj + POS_NUM*kk)],
+                     xp[ii], yp[jj], zp[kk]);
+        }
+      }
+    }
+    nprbd = nrrdNew();
+    airMopAdd(mop, nprbd, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdMaybeAlloc_va(nprbd, nrrdTypeDouble, 3,
+                          AIR_CAST(size_t, qlen),
+                          AIR_CAST(size_t, BLUR_KERN_NUM),
+                          AIR_CAST(size_t, POS_NUM*POS_NUM*POS_NUM))) {
+      char *err;
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble setting up prbd:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    prbd = AIR_CAST(double *, nprbd->data);
+    for (ii=0; ii<POS_NUM*POS_NUM*POS_NUM; ii++) {
+      for (ki=0; ki<BLUR_KERN_NUM; ki++) {
+        pret = gageProbeSpace(bgctx[ki], pos[ii][0], pos[ii][1], pos[ii][2],
+                              AIR_TRUE /* indexSpace */,
+                              AIR_FALSE /* clamp */);
+        if (pret) {
+          fprintf(stderr, "%s: %s probe error(%d): %s\n", me,
+                  bkern[ki]->name, bgctx[ki]->errNum, bgctx[ki]->errStr);
+          airMopError(mop); return 1;
+        }
+        prbd[0 + qlen*(ki + BLUR_KERN_NUM*(ii))] = bvalAns[ki][0];
+        ELL_3V_COPY(prbd + 1 + qlen*(ki + BLUR_KERN_NUM*(ii)), bgrdAns[ki]);
+        ELL_9V_COPY(prbd + 4 + qlen*(ki + BLUR_KERN_NUM*(ii)), bhesAns[ki]);
+      }
+    }
+    nrrdSave("tmp.nrrd", nprbd, NULL);
   }
 
   airMopOkay(mop);
