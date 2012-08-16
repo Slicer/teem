@@ -35,7 +35,7 @@ char *_unrrdu_diffInfoL =
 int
 unrrdu_diffMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err;
+  char *err;
   airArray *mop;
   int pret;
 
