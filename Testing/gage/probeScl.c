@@ -213,9 +213,22 @@ main(int argc, const char **argv) {
     double xp[POS_NUM], yp[POS_NUM], zp[POS_NUM],
       pos[POS_NUM*POS_NUM*POS_NUM][3], *prbd,
       offs[POS_NUM/2] = {0, 1.22222, 2.444444, 3.777777, 5.88888, 7.55555};
-    Nrrd *nprbd;
+    Nrrd *nprbd, *ncorr, explain[AIR_STRLEN_LARGE];
     unsigned int ii, jj, kk, qlen = 1 + 3 + 9;
-    int pret;
+    char *corrfn;
+    int cret, pret, cmperr;
+
+    corrfn = testDataPathPrefix("test/probeSclAns.nrrd");
+    airMopAdd(mop, corrfn, airFree, airMopAlways);
+    ncorr = nrrdNew();
+    airMopAdd(mop, ncorr, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdLoad(ncorr, corrfn, NULL)) {
+      char *err;
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble reading data \"%s\":\n%s",
+              me, corrfn, err);
+      airMopError(mop); return 1;
+    }
     for (ii=0; ii<POS_NUM/2; ii++) {
       xp[ii] = yp[ii] = zp[ii] = offs[ii];
       xp[POS_NUM-1-ii] = AIR_CAST(double, sx)-1.0-offs[ii];
@@ -257,7 +270,20 @@ main(int argc, const char **argv) {
         ELL_9V_COPY(prbd + 4 + qlen*(ki + BLUR_KERN_NUM*(ii)), bhesAns[ki]);
       }
     }
-    nrrdSave("tmp.nrrd", nprbd, NULL);
+    cret = nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
+                       explain, &cmperr, AIR_TRUE /* useBiff */);
+    if (cmperr) {
+      char *err;
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    if (cret) {
+      fprintf(stderr, "%s: probed values not correct: %s\n", me, explain);
+      airMopError(mop); return 1;
+    } else {
+      printf("%s: all good\n", me);
+    }
   }
 
   airMopOkay(mop);
