@@ -213,9 +213,9 @@ main(int argc, const char **argv) {
     double xp[POS_NUM], yp[POS_NUM], zp[POS_NUM],
       pos[POS_NUM*POS_NUM*POS_NUM][3], *prbd,
       offs[POS_NUM/2] = {0, 1.22222, 2.444444, 3.777777, 5.88888, 7.55555};
-    Nrrd *nprbd, *ncorr, explain[AIR_STRLEN_LARGE];
+    Nrrd *nprbd, *ncorr;
     unsigned int ii, jj, kk, qlen = 1 + 3 + 9;
-    char *corrfn;
+    char *corrfn, explain[AIR_STRLEN_LARGE];
     int cret, pret, cmperr;
 
     corrfn = testDataPathPrefix("test/probeSclAns.nrrd");
