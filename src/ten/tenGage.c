@@ -361,7 +361,7 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                           pvl->iv1 + valIdx*fd,
                           fw00, fw11, fw22,
                           ten + valIdx, tgrad + valIdx*3, thess + valIdx*9,
-                          pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                          pvl->needD);
     }
   } else {
     for (valIdx=0; valIdx<7; valIdx++) {
@@ -371,7 +371,7 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                        pvl->iv1 + valIdx*fd,
                        fw00, fw11, fw22,
                        ten + valIdx, tgrad + valIdx*3, thess + valIdx*9,
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                       pvl->needD);
     }
   }
   

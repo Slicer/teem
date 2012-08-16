@@ -38,14 +38,14 @@ gageContext *
 gageContextNew() {
   gageContext *ctx;
   perVolumeUnion pvu;
-  int i;
+  int ii;
 
   ctx = (gageContext*)calloc(1, sizeof(gageContext));
   if (ctx) {
     ctx->verbose = gageDefVerbose;
     gageParmReset(&ctx->parm);
-    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      ctx->ksp[i] = NULL;
+    for (ii=gageKernelUnknown+1; ii<gageKernelLast; ii++) {
+      ctx->ksp[ii] = NULL;
     }
     ctx->pvl = NULL;
     ctx->pvlNum = 0;
@@ -55,15 +55,17 @@ gageContextNew() {
                               GAGE_PERVOLUME_ARR_INCR);
     gageKernelReset(ctx); /* placed here for logic of kernel flag */
     ctx->shape = gageShapeNew();
-    for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
-      ctx->flag[i] = AIR_FALSE;
+    for (ii=gageCtxFlagUnknown+1; ii<gageCtxFlagLast; ii++) {
+      ctx->flag[ii] = AIR_FALSE;
     }
     ctx->stackPos = NULL;
     ctx->stackFsl = NULL;
     ctx->stackFw = NULL;
-    ctx->needD[0] = ctx->needD[1] = ctx->needD[2] = AIR_FALSE;
-    for (i=gageKernelUnknown+1; i<gageKernelLast; i++) {
-      ctx->needK[i] = AIR_FALSE;
+    for (ii=0; ii<=GAGE_DERIV_MAX; ii++) {
+      ctx->needD[ii] = AIR_FALSE;
+    }
+    for (ii=gageKernelUnknown+1; ii<gageKernelLast; ii++) {
+      ctx->needK[ii] = AIR_FALSE;
     }
     ctx->radius = 0;
     ctx->fsl = ctx->fw = NULL;
@@ -666,7 +668,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   ELL_4V_COPY(oldIdx, ctx->point.idx);
   oldNnz = ctx->point.stackFwNonZeroNum;
   if (_gageLocationSet(ctx, _xi, _yi, _zi, _si)) {
-    /* we're outside the volume; leave gageErrStr and gageErrNum set;
+    /* we're outside the volume; leave ctx->errNum and ctx->errStr set;
        as they have just been set by _gageLocationSet() */
     return 1;
   }

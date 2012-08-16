@@ -81,7 +81,9 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   pvl->verbose = gageDefVerbose;
   pvl->kind = kind;
   GAGE_QUERY_RESET(pvl->query);
-  pvl->needD[0] = pvl->needD[1] = pvl->needD[2] = AIR_FALSE;
+  for (ii=0; ii<=GAGE_DERIV_MAX; ii++) {
+    ctx->needD[ii] = AIR_FALSE;
+  }
   pvl->nin = nin;
   for (ii=gagePvlFlagUnknown+1; ii<gagePvlFlagLast; ii++) {
     pvl->flag[ii] = AIR_FALSE;

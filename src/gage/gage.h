@@ -51,6 +51,38 @@ extern "C" {
 #define GAGE gageBiffKey
 
 /*
+** GAGE_DERIV_MAX is the maximum derivative that gage knows how to
+** work with. The 0th derivative is the reonstructed value (no
+** derivative).  Many short arrays are allocated to 1 + this value
+**
+** MUST KEEP IN SYNC with GAGE_DV_* macros below
+*/
+#define GAGE_DERIV_MAX 2
+
+/*
+** Convenience macros for arrays declared like blah[GAGE_DERIV_MAX+1]
+** (so these need to be kept in sync with GAGE_DERIV_MAX above).  Note
+** that "DV" is short for "derivative vector".  With consistent use of
+** these, changes to GAGE_DERIV_MAX will either obviously break code
+** (in an easy to fix way) or there will be no change needed at all.
+**
+*/
+#define GAGE_DV_SET(v, d0, d1, d2) \
+  ((v)[0] = (d0),                  \
+   (v)[1] = (d1),                  \
+   (v)[2] = (d2))
+  
+#define GAGE_DV_EQUAL(a, b)        \
+  ((a)[0] == (b)[0] &&             \
+   (a)[1] == (b)[1] &&             \
+   (a)[2] == (b)[2])
+
+#define GAGE_DV_COPY(a, b)         \
+  ((a)[0] = (b)[0],                \
+   (a)[1] = (b)[1],                \
+   (a)[2] = (b)[2])
+
+/*
 ** the only extent to which gage treats different axes differently is
 ** the spacing between samples along the axis.  To have different
 ** filters for the same function, but along different axes, would be
@@ -154,6 +186,7 @@ enum {
 **
 ** these are the different kernels that might be used in gage, regardless
 ** of what kind of volume is being probed.
+** (synch with miscGage.c:gageKernel airEnum)
 */
 enum {
   gageKernelUnknown,    /*  0: nobody knows */
@@ -660,7 +693,7 @@ typedef struct gageContext_t {
 
   /* which value/derivatives need to be calculated for all pervolumes
      (doV, doD1, doD2) */
-  int needD[3];
+  int needD[GAGE_DERIV_MAX+1];
 
   /* which kernels are needed for all pvls.  needK[gageKernelStack]
      is currently not set by the update function that sets needK[] */
@@ -715,7 +748,7 @@ typedef struct gagePerVolume_t {
   int verbose;                /* verbosity */
   const struct gageKind_t *kind;  /* what kind of volume is this for */
   gageQuery query;            /* the query, recursively expanded */
-  int needD[3];               /* which derivatives need to be calculated for
+  int needD[GAGE_DERIV_MAX+1];/* which derivatives need to be calculated for
                                  the query (above) in this volume */
   const Nrrd *nin;            /* the volume to sample within */
   int flag[GAGE_PVL_FLAG_MAX+1];/* for the kind-specific flags .. */
@@ -1013,7 +1046,7 @@ typedef void (gageScl3PFilter_t)(gageShape *shape,
                                  double *iv3, double *iv2, double *iv1,
                                  double *fw00, double *fw11, double *fw22,
                                  double *val, double *gvec, double *hess,
-                                 int doV, int doD1, int doD2);
+                                 const int *needD);
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter2;
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter4;
 GAGE_EXPORT gageScl3PFilter_t gageScl3PFilter6;
@@ -1022,7 +1055,7 @@ GAGE_EXPORT void gageScl3PFilterN(gageShape *shape, int fd,
                                   double *iv3, double *iv2, double *iv1,
                                   double *fw00, double *fw11, double *fw22,
                                   double *val, double *gvec, double *hess,
-                                  int doV, int doD1, int doD2);
+                                  const int *needD);
 
 /* scl.c */
 GAGE_EXPORT const airEnum *const gageScl;

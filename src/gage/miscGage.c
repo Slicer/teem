@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -46,6 +47,8 @@ _gageKernelStr[] = {
   "20",
   "21",
   "22",
+  /* "33", */
+  /* "44", */
   "stack"
 };
 
@@ -58,6 +61,8 @@ _gageKernelDesc[] = {
   "kernel for reconstruction values when doing 2nd derivatives",
   "kernel for measuring 1st derivatives when doing 2nd derivatives",
   "kernel for measuring 2nd derivatives when doing 2nd derivatives",
+  /* "kernel for measuring 3rd derivatives when doing 3rd derivatives", */
+  /* "kernel for measuring 4th derivatives when doing 4th derivatives", */
   "kernel for reconstruction across a stack"
 };
 
@@ -69,6 +74,8 @@ _gageKernelStrEqv[] = {
   "20", "k20",
   "21", "k21",
   "22", "k22",
+  /* "33", "k33", */
+  /* "44", "k44", */
   "stack", "ss", "kss",
   ""
 };
@@ -81,6 +88,8 @@ _gageKernelValEqv[] = {
   gageKernel20, gageKernel20,
   gageKernel21, gageKernel21,
   gageKernel22, gageKernel22,
+  /* gageKernel33, gageKernel33, */
+  /* gageKernel44, gageKernel44, */
   gageKernelStack, gageKernelStack, gageKernelStack
 };
 

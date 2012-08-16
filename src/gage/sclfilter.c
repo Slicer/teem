@@ -48,7 +48,11 @@ gageScl3PFilter2(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 int doV, int doD1, int doD2) {
+                 const int *needD) {
+  int doV, doD1, doD2;
+  doV = needD[0];
+  doD1 = needD[1];
+  doD2 = needD[2];
 
   /* fw? + 2*?
        |     |  
@@ -163,7 +167,11 @@ gageScl3PFilter4(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 int doV, int doD1, int doD2) {
+                 const int *needD) {
+  int doV, doD1, doD2;
+  doV = needD[0];
+  doD1 = needD[1];
+  doD2 = needD[2];
 
   /* fw? + 4*?
        |     |  
@@ -324,9 +332,13 @@ gageScl3PFilter6(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 int doV, int doD1, int doD2) {
+                 const int *needD) {
   int i, j;
   double T;
+  int doV, doD1, doD2;
+  doV = needD[0];
+  doD1 = needD[1];
+  doD2 = needD[2];
 
 #define fd 6
 #include "scl3pfilterbody.c"
@@ -340,9 +352,13 @@ gageScl3PFilter8(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 int doV, int doD1, int doD2) {
+                 const int *needD) {
   int i, j;
   double T;
+  int doV, doD1, doD2;
+  doV = needD[0];
+  doD1 = needD[1];
+  doD2 = needD[2];
 
 #define fd 8
 #include "scl3pfilterbody.c"
@@ -356,9 +372,13 @@ gageScl3PFilterN(gageShape *shape, int fd,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
-                 int doV, int doD1, int doD2) {
+                 const int *needD) {
   int i, j;
   double T;
+  int doV, doD1, doD2;
+  doV = needD[0];
+  doD1 = needD[1];
+  doD2 = needD[2];
 
 #include "scl3pfilterbody.c"
 
@@ -388,7 +408,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                         pvl->directAnswer[gageSclValue],
                         pvl->directAnswer[gageSclGradVec],
                         pvl->directAnswer[gageSclHessian],
-                        pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                        pvl->needD);
   } else {
     gageScl3PFilterN(ctx->shape, fd,
                      pvl->iv3, pvl->iv2, pvl->iv1, 
@@ -396,7 +416,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                      pvl->directAnswer[gageSclValue],
                      pvl->directAnswer[gageSclGradVec],
                      pvl->directAnswer[gageSclHessian],
-                     pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                     pvl->needD);
   }
 
   return;

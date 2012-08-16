@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -58,14 +59,14 @@ void
 _gagePvlNeedDUpdate(gageContext *ctx) {
   static const char me[]="_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
-  int que, needD[3];
-  unsigned int pvlIdx;
+  int que, needD[GAGE_DERIV_MAX+1];
+  unsigned int pvlIdx, di;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     if (pvl->flag[gagePvlFlagQuery]) {
-      ELL_3V_SET(needD, 0, 0, 0);
+      GAGE_DV_SET(needD, 0, 0, 0);
       que = pvl->kind->itemMax+1;
       do {
         que--;
@@ -73,18 +74,20 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
           needD[pvl->kind->table[que].needDeriv] = 1;
         }
       } while (que);
-      if (!ELL_3V_EQUAL(needD, pvl->needD)) {
+      if (!GAGE_DV_EQUAL(needD, pvl->needD)) {
         if (ctx->verbose) {
-          fprintf(stderr, "%s: updating pvl[%d]'s needD to (%d,%d,%d)\n",
-                  me, pvlIdx, needD[0], needD[1], needD[2]);
+          fprintf(stderr, "%s: updating pvl[%d]'s needD to (", me, pvlIdx);
+          for (di=0; di<=GAGE_DERIV_MAX; di++) {
+            fprintf(stderr, "%s%d", di ? "," : "", needD[di]);
+          }
+          fprintf(stderr, "\n");
         }
-        ELL_3V_COPY(pvl->needD, needD);
+        GAGE_DV_COPY(pvl->needD, needD);
         pvl->flag[gagePvlFlagNeedD] = AIR_TRUE;
       }
     }
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
-
   return;
 }
 
@@ -95,23 +98,26 @@ void
 _gageNeedDUpdate(gageContext *ctx) {
   static const char me[]="_gageNeedDUpdate";
   gagePerVolume *pvl;
-  int needD[3];
-  unsigned int pvlIdx;
+  int needD[GAGE_DERIV_MAX+1];
+  unsigned int pvlIdx, di;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  ELL_3V_SET(needD, 0, 0, 0);
+  GAGE_DV_SET(needD, 0, 0, 0);
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
-    needD[0] |= pvl->needD[0];
-    needD[1] |= pvl->needD[1];
-    needD[2] |= pvl->needD[2];
-  }
-  if (!ELL_3V_EQUAL(needD, ctx->needD)) {
-    if (ctx->verbose) {
-      fprintf(stderr, "%s: updating ctx's needD to (%d,%d,%d)\n",
-              me, needD[0], needD[1], needD[2]);
+    for (di=0; di<=GAGE_DERIV_MAX; di++) {
+      needD[di] |= pvl->needD[di];
     }
-    ELL_3V_COPY(ctx->needD, needD);
+  }
+  if (!GAGE_DV_EQUAL(needD, ctx->needD)) {
+    if (ctx->verbose) {
+      fprintf(stderr, "%s: updating ctx's needD to (", me);
+      for (di=0; di<=GAGE_DERIV_MAX; di++) {
+        fprintf(stderr, "%s%d", di ? "," : "", needD[di]);
+      }
+      fprintf(stderr, "\n");
+    }
+    GAGE_DV_COPY(ctx->needD, needD);
     ctx->flag[gageCtxFlagNeedD] = AIR_TRUE;
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
@@ -122,35 +128,37 @@ _gageNeedDUpdate(gageContext *ctx) {
 /*
 ** ctx's needD & k3pack --> needK
 */
-void
+static int
 _gageNeedKUpdate(gageContext *ctx) {
   static const char me[]="_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
+  unsigned int di;
   
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     needK[kernIdx] = AIR_FALSE;
   }
-  if (ctx->needD[0]) {
+  if (!ctx->parm.k3pack) {
+    biffAddf(GAGE, "%s: sorry, only 3-pack filtering implemented now", me);
+    return 1;
+  }
+  di = 0;
+  if (ctx->needD[di]) {
     needK[gageKernel00] = AIR_TRUE;
   }
-  if (ctx->needD[1]) {
-    needK[gageKernel11] = AIR_TRUE;
-    if (ctx->parm.k3pack) {
-      needK[gageKernel00] = AIR_TRUE;
-    } else {
-      needK[gageKernel10] = AIR_TRUE;
-    }  
+  di += 1;
+  if (ctx->needD[di]) {
+    needK[gageKernel00] = needK[gageKernel11] = AIR_TRUE;
   }
-  if (ctx->needD[2]) {
-    needK[gageKernel22] = AIR_TRUE;
-    if (ctx->parm.k3pack) {
-      needK[gageKernel00] = AIR_TRUE;
-      needK[gageKernel11] = AIR_TRUE;
-    } else {
-      needK[gageKernel20] = AIR_TRUE;
-      needK[gageKernel21] = AIR_TRUE;
-    }  
+  di += 1;
+  if (ctx->needD[di]) {
+    needK[gageKernel00] = needK[gageKernel11] =
+      needK[gageKernel22] = AIR_TRUE;
+  }
+  if (GAGE_DERIV_MAX != di) {
+    biffAddf(GAGE, "%s: sorry, code needs updating for GAGE_DERIV_MAX %u", 
+             me, GAGE_DERIV_MAX);
+    return 1;
   }
   change = AIR_FALSE;
   for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
@@ -158,8 +166,12 @@ _gageNeedKUpdate(gageContext *ctx) {
   }
   if (change) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: changing needK to (%d,%d,%d,%d,%d,%d)\n",
-              me, needK[1], needK[2], needK[3], needK[4], needK[5], needK[6]);
+      fprintf(stderr, "%s: changing needK to (", me);
+      for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
+        fprintf(stderr, "%s%d", kernIdx > gageKernelUnknown+1 ? "," : "",
+                needK[kernIdx]);
+      }
+      fprintf(stderr, ")\n");
     }
     for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
       ctx->needK[kernIdx] = needK[kernIdx];
@@ -168,7 +180,7 @@ _gageNeedKUpdate(gageContext *ctx) {
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
 
-  return;
+  return 0;
 }
 
 /*
@@ -372,7 +384,9 @@ gageUpdate(gageContext *ctx) {
     _gagePvlFlagDown(ctx, gagePvlFlagNeedD);
   }
   if (ctx->flag[gageCtxFlagNeedD] || ctx->flag[gageCtxFlagK3Pack]) {
-    _gageNeedKUpdate(ctx);
+    if (_gageNeedKUpdate(ctx)) {
+      biffAddf(GAGE, "%s: trouble", me); return 1;
+    }
     ctx->flag[gageCtxFlagNeedD] = AIR_FALSE;
     ctx->flag[gageCtxFlagK3Pack] = AIR_FALSE;
   }

@@ -196,7 +196,7 @@ void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
-  int fd;
+  int fd, needD[3]={AIR_TRUE, AIR_FALSE, AIR_FALSE};
   /* tenDwiGageKindData *kindData; */
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
                                   gageScl3PFilter6, gageScl3PFilter8};
@@ -214,8 +214,10 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw11 = ctx->fw + fd*3*gageKernel11;
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* HEY: these will have to be updated if there is ever any use for
-     derivatives in DWIs: can't pass NULL pointers for gradient info,
-     and the needD[1] has to be passed */
+     derivatives in DWIs: can't pass NULL pointers for gradient info.
+     The unusual use of a hard-coded local needD is because there
+     currently isn't allocated space in the tenDwiGage kind (which is
+     unusual for its dynamic allocation) for DWI derivatives */
   if (fd <= 8) {
     for (J=0; J<dwiNum; J++) {
       filter[ctx->radius](ctx->shape, pvl->iv3 + J*fd*fd*fd,
@@ -223,7 +225,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                           pvl->iv1 + J*fd,
                           fw00, fw11, fw22,
                           dwi + J, NULL, NULL,
-                          pvl->needD[0], AIR_FALSE, AIR_FALSE);
+                          needD);
     }
   } else {
     for (J=0; J<dwiNum; J++) {
@@ -231,7 +233,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
                        pvl->iv2 + J*fd*fd, pvl->iv1 + J*fd,
                        fw00, fw11, fw22,
                        dwi + J, NULL, NULL,
-                       pvl->needD[0], AIR_FALSE, AIR_FALSE);
+                       needD);
     }
   }
 

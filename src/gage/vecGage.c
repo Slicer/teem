@@ -126,7 +126,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
                           pvl->iv1 + valIdx*fd,
                           fw00, fw11, fw22,
                           vec + valIdx, jac + valIdx*3, hes + valIdx*9,
-                          pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                          pvl->needD);
     }
   } else {
     for (valIdx=0; valIdx<3; valIdx++) {
@@ -136,7 +136,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
                        pvl->iv1 + valIdx*fd,
                        fw00, fw11, fw22,
                        vec + valIdx, jac + valIdx*3, hes + valIdx*9,
-                       pvl->needD[0], pvl->needD[1], pvl->needD[2]);
+                       pvl->needD);
     }
   }
 
