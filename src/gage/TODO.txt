@@ -1,3 +1,17 @@
+for third derivatives:
+ * have to update gageScl3PFilter_t and change arguments to not
+   itemize filter weights or derivative answers, involving
+   sclfilter.c, scl3pfilterbody.c,
+ * add gageSclJerk  (full third derivative)
+
+recovering the pre-ISBI12-optim work
+ * ctx.c: removal of gageIv3Fill
+ * iv3Gage.c: new home for new gageIv3Fill, which includes some
+   type-specific shortcuts
+ * stack.c: use of new stackIv3FillBody.c
+ * filter.c: some nrrdKernelHermiteFlag-specific smarts (line 386)
+ * gage.h: gageContext->hermiteNonZeroPvlIndex (line 649)
+
 figure out how to handle derivative renormalizating (for scale) at scale=0
 
 add flags for explicitly specifying gmax, hmax, vrange
