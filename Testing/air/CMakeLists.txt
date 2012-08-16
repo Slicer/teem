@@ -21,6 +21,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+ADD_EXECUTABLE(miscAirTest miscAir.c)
+TARGET_LINK_LIBRARIES(miscAirTest teem)
+ADD_TEST(misc ${EXECUTABLE_OUTPUT_PATH}/miscAirTest)
+
 ADD_EXECUTABLE(mtrandTest mtrand.c)
 TARGET_LINK_LIBRARIES(mtrandTest teem)
 ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/mtrandTest)
