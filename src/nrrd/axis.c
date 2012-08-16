@@ -931,6 +931,14 @@ _nrrdDblcmp(double aa, double bb) {
   return ret;
 }
 
+/*
+******** nrrdAxisInfoCompare
+**
+** compares all fields in the NrrdAxisInfoCompare
+**
+** NOTE: the structure of this code is very similar to that of 
+** nrrdCompare, and any improvements here should be reflected there
+*/
 int
 nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
                     char explain[AIR_STRLEN_LARGE], int *err, int useBiff) {

@@ -62,7 +62,9 @@ nrrdKernelC4HexicApproxInverse  0
 
 /* ------------------------------------------------------------ */
 
-/* the "zero" kernel is here more as a template than for anything else */
+/* the "zero" kernel is here more as a template than for anything else
+   (as well as when you need the derivative of nrrdKernelForwDiff or
+   any other piece-wise constant kernels) */
 
 #define _ZERO(x) 0
 

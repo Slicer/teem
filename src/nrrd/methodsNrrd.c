@@ -975,6 +975,9 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** walks through all fields of the two nrrds to see if they contain
 ** the same information.  So, this doesn't compare any pointer values,
 ** only the contents of things.
+**
+** NOTE: the structure of this code is very similar to that of
+** nrrdAxisInfoCompare, and any improvements here should be reflected there
 */
 int
 nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
