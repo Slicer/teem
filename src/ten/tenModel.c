@@ -523,12 +523,12 @@ tenModelSqeFit(Nrrd *nparm,
   dwi = AIR_CAST(char *, ndwi->data);
   itersTaken = 0;
   for (II=0; II<numSamp; II++) {
-    double cvf, convFrac;
+    double cvf, convFrac=0;
     unsigned int ss, itak;
     for (ii=0; ii<dwiNum; ii++) {
       ddwi[ii] = lup(dwi, ii);
     }
-    sqeBest = DBL_MAX;
+    sqeBest = DBL_MAX; /* forces at least one improvement */
     for (ss=0; ss<starts; ss++) {
       if (knownB0) {
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
@@ -537,7 +537,7 @@ tenModelSqeFit(Nrrd *nparm,
       sqe = model->sqeFit(dparm, &cvf, &itak,
                           espec, dwibuff, ddwi, 
                           dparm, knownB0, minIter, maxIter, convEps);
-      if (sqe < sqeBest) {
+      if (sqe <= sqeBest) {
         sqeBest = sqe;
         model->copy(dparmBest, dparm);
         itersTaken = itak;
