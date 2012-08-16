@@ -1,8 +1,15 @@
+should really work on gage tests before more re-architecting
+
 for third derivatives:
  * have to update gageScl3PFilter_t and change arguments to not
    itemize filter weights or derivative answers, involving
    sclfilter.c, scl3pfilterbody.c,
  * add gageSclJerk  (full third derivative)
+ * considering third-deriv-abort directory:
+   NO: it does make sense to talk about second derivatives with a
+   2-support kernel: the small kernel still has second derivatives,
+   even if its constant zero.  With tent, for example, the mixed
+   partials will still be non-zero
 
 recovering the pre-ISBI12-optim work
  * ctx.c: removal of gageIv3Fill
