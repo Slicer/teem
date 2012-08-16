@@ -1,3 +1,5 @@
+add testing of loading a uchar volume, converting to different nrrdTypes,
+  and then probing them, should get same answers (test gageIv3Fill)
 add scale-space scalar test
 add (non-SS)    vector test
 add scale-space vector test
