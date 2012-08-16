@@ -42,7 +42,7 @@
 /* have to use PGM format for image because Teem might
    not have been built with PNG */
 #define THISNAME "histo.pgm"
-#define CORRNAME "trandhisto.pgm"
+#define CORRNAME "test/trandhisto.pgm"
 
 int
 main(int argc, const char *argv[]) {
