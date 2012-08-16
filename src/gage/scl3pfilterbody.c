@@ -30,14 +30,14 @@
        |     |  
        |     +- along which axis (0:x, 1:y, 2:z)
        |
-       + what information (0:value, 1:1st deriv, 2:2nd deriv)
+       + what information (0:value, 1:1st deriv, 2:2nd deriv, ...)
 
      ivX: 3D cube cache of original volume values
-          (its scanlines are along the X axis)
+          (its scanlines are along the "X" or fastest spatial axis)
      ivY: 2D square cache of intermediate filter results
-          (its scanlines are along the Y axis)
+          (its scanlines are along the "Y" or medium spatial axis)
      ivZ: 1D linear cache of intermediate filter results
-          (it is a scanline along the Z axis)
+          (it is a scanline along the "Z" or slowest spatial axis)
   */
 
 #define DOT_N(ANS, a, b) \

@@ -35,8 +35,11 @@
 */
 
 /*
-** Teem trivia: "3P" stands for "3-pack", the kind of kernel set used
-** (k00, k11, and k22).  6-pack filtering is still unimplemented.
+** Teem trivia: "3P" stands for "3-pack", the kind of kernel set used (k00,
+** k11, and k22).  6-pack filtering is still unimplemented. The name
+** "3-pack" persists even with the possibility of higher derivatives, and
+** what would be called 10-pack filtering (ability to specify and use all
+** 10 kinds of spatial kernels) is also still unimplemented.
 */
 
 #define X 0

@@ -463,13 +463,15 @@ typedef struct gageParm_t {
                                  appropriate for the task for which
                                  the kernel is being set:
                                  reconstruction: 1.0, derivatives: 0.0 */
-  int k3pack;                 /* non-zero (true) iff we do not use
-                                 kernels for gageKernelIJ with I != J.
-                                 So, we use the value reconstruction
-                                 kernel (gageKernel00) for 1st and 2nd
-                                 derivative reconstruction, and so on.
-                                 This is faster because we can re-use
-                                 results from low-order convolutions. */
+  int k3pack;                 /* non-zero (true) iff we do not use kernels
+                                 gageKernelIJ with I != J. So, we use the
+                                 value reconstruction kernel (gageKernel00)
+                                 for 1st and 2nd derivative reconstruction,
+                                 and so on. This is faster because we can
+                                 re-use results from low-order convolutions.
+                                 The name "3pack" will likely persist even
+                                 with 3rd dervatives, for which "4pack" would
+                                 make more sense (for 00, 11, 22, 33) */
   double gradMagCurvMin,      /* punt on computing curvature information if
                                  gradient magnitude is less than this. Yes,
                                  this is scalar-kind-specific, but there's
@@ -705,11 +707,13 @@ typedef struct gageContext_t {
      nrrdKernelHermiteFlag. */
   unsigned int radius;
 
-  /* filter sample locations (all axes): logically a fd x 3 array */
+  /* filter sample locations (all axes): logically a fd x 3 array 
+     (and its 3 because gage works on 3D fields, not because of
+     the number of derivatives supported) */
   double *fsl;
 
   /* filter weights (all axes, all kernels): logically a
-     fdx3xGAGE_KERNEL_MAX+1 array */
+     fd x 3 x GAGE_KERNEL_MAX+1 (fast-to-slow) array */
   double *fw;
 
   /* offsets to other fd^3 samples needed to fill 3D intermediate
@@ -802,7 +806,7 @@ typedef struct gageKind_t {
                                        dynamically allocated */
   char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
   const airEnum *enm;               /* such as gageScl.  NB: the "unknown"
-                                       value in the enum should be 0. */
+                                       value in the enum *must* be 0. */
   unsigned int baseDim,             /* dimension that x,y,z axes start on
                                        (e.g. 0 for scalars, 1 for vectors) */
     valLen;                         /* number of scalars per data point,
@@ -858,8 +862,11 @@ typedef struct {
 ** kind of inter-item relationship may eventually be part of the
 ** definition of a gageKind.
 **
-** These are intended to be set up at compile-time, just like
-** (most of) the gageKinds.
+** These are intended to be set up at compile-time, just like nearly all
+** the gageKinds.
+**
+** This is not to be confused with the gageMultiItem, which is a list
+** of items, set at run-time, to learn from a given volume.
 */
 typedef struct {
   const gageKind *kind;
@@ -948,11 +955,14 @@ typedef struct {
 /*
 ******** gageMultiItem
 **
-** used (along with gageMultiQuery) to represent a list of items that
-** we want to learn from a single pervolume, at every point given in a
-** Nrrd of probe positions.  The answers for those items are
-** concatenated along axis 0 of the single output Nrrd "nans", which
-** for simplicity of access is stored within here as well.
+** used (along with gageMultiQuery) to represent (at run-time) a list of
+** items that we want to learn from a single pervolume, at every point
+** given in a Nrrd of probe positions.  The answers for those items are
+** concatenated along axis 0 of the single output Nrrd "nans", which for
+** simplicity of access is stored within here as well.
+**
+** This is not to be confused with the gageItemPack, which is structured
+** set of consistently inter-related items (set at compile time).
 */
 typedef struct {
   const gageKind *kind;    /* the kind of volume for these items */

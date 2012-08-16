@@ -76,5 +76,6 @@ gageDefOrientationFromSpacing = AIR_FALSE;
 
 int
 gageDefGenerateErrStr = AIR_TRUE;
-/* Before Teem 1.11, error strings were always sprintf, and this
-   should stay the default behavior */
+/* Before Teem 1.11, error strings were always sprintf, which can easily
+   become a bottleneck in some situations, but this should still stay
+   the default behavior */

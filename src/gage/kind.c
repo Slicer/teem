@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -70,9 +71,10 @@ gageKindCheck(const gageKind *kind) {
     }
     if (!(AIR_IN_CL(0, item->needDeriv, GAGE_DERIV_MAX))) {
       biffAddf(GAGE,
-               "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d",
+               "%s: \"%s\"-kind \"%s\" (item %d) has invalid needDeriv %d "
+               "(not in [0,%u])\n",
                me, kind->name, airEnumStr(kind->enm, ii),
-               ii, item->needDeriv);
+               ii, item->needDeriv, GAGE_DERIV_MAX);
       return 1;
     }
     for (pi=0; pi<GAGE_ITEM_PREREQ_MAXNUM; pi++) {
