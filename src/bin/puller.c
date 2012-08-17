@@ -992,20 +992,20 @@ main(int argc, const char **argv) {
              "(decrease) in energy dips below this");
   hestOptAdd(&hopt, "edpcmin", "frac", airTypeDouble, 1, 1, 
              &energyDecreasePopCntlMin, "0.01",
-	     "population control is triggered when energy improvement "
-	     "goes below this threshold");
+             "population control is triggered when energy improvement "
+             "goes below this threshold");
   hestOptAdd(&hopt, "fnnm", "frac", airTypeDouble, 1, 1, 
              &fracNeighNixedMax, "0.25",
              "don't nix if this fraction (or more) of neighbors "
              "have been nixed");
   hestOptAdd(&hopt, "pcp", "period", airTypeUInt, 1, 1, 
-	     &popCntlPeriod, "20",
-	     "# iters to wait between attempts at population control");
+             &popCntlPeriod, "20",
+             "# iters to wait between attempts at population control");
   hestOptAdd(&hopt, "iad", "# iters", airTypeUInt, 1, 1, 
-	     &addDescent, "10",
-	     "# iters to run descent on tentative new points during PC");
+             &addDescent, "10",
+             "# iters to run descent on tentative new points during PC");
   hestOptAdd(&hopt, "icb", "# iters", airTypeUInt, 1, 1, 
-	     &iterCallback, "1",
+             &iterCallback, "1",
              "periodicity of calling rendering callback");
 
   hestOptAdd(&hopt, "ac3c", "ac3c", airTypeBool, 1, 1, 
