@@ -30,7 +30,7 @@ char *_unrrdu_2opInfoL =
  "but not both.  Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
  "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterBinaryOp");
+ "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
 
 int
 unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
@@ -38,7 +38,7 @@ unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
   char *out, *err, *seedS;
   NrrdIter *in1, *in2;
   Nrrd *nout, *ntmp=NULL;
-  int op, type, E, pret;
+  int op, type, E, pret, which;
   airArray *mop;
   unsigned int seed;
 
@@ -83,6 +83,10 @@ unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "output type. By default (not using this option), the types of "
              "the input nrrds are left unchanged.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd(&opt, "w,which", "arg", airTypeInt, 1, 1, &which, "-1",
+             "Which argument (0 or 1) should be used to determine the "
+             "shape of the output nrrd. By default (not using this option), "
+             "the first non-constant argument is used. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -142,7 +146,10 @@ unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
     /* got no request for specific seed */
     airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
-  if (nrrdArithIterBinaryOp(nout, op, in1, in2)) {
+  if (-1 == which
+      ? nrrdArithIterBinaryOp(nout, op, in1, in2)
+      : nrrdArithIterBinaryOpSelect(nout, op, in1, in2,
+                                    AIR_CAST(unsigned int, which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);
     airMopError(mop);
