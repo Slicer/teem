@@ -50,7 +50,9 @@ airEnumUnknown(const airEnum *enm) {
 ******** airEnumLast
 **
 ** return the highest value representing a known value
-*/
+**
+** commenting out since as of Aug 16 2012 nothing is using this
+
 int
 airEnumLast(const airEnum *enm) {
   
@@ -60,6 +62,7 @@ airEnumLast(const airEnum *enm) {
     return enm->M;
   }
 }
+*/
 
 /*
 ** _airEnumIndex()
