@@ -30,7 +30,7 @@ char *_unrrdu_3opInfoL =
  "Use \"-\" for an operand to signify "
  "a nrrd to be read from stdin (a pipe).  Note, however, "
  "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterTernaryOp");
+ "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
 
 int
 unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
