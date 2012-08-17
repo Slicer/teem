@@ -145,6 +145,8 @@ then input, or input then parms. For example:
                        const int *axmap, int excludeBitflag);
 
 copies per-axis information TO nout FROM nin, subject to the other parms.
+The rationale is that having the output first is like having the
+destination of an assignment on the left-hand side e.g. "nout = copy(nin)"
 
 * When passing an array to a Teem function with length known only
 at run-time (the array is passed as a pointer), the array and the 
