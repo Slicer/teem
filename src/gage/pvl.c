@@ -165,7 +165,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
       biffAddf(GAGE, "%s: double copying gagePerVolume data", me);
       airMopError(mop); return NULL;
     }
-    /* HEY: pvlDataNix takes 2 arguments; so we ca't mop nvl->data,
+    /* HEY: pvlDataNix takes 2 arguments; so we can't mop nvl->data,
        so its a good thing that we created nvl->data last */
   } else {
     nvl->data = NULL;
