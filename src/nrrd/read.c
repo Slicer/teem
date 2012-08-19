@@ -581,36 +581,6 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 **             | read.c/_nrrdCalloc
 **          | formatNRRD.c/nrrdSwapEndian
 **          | miscAir.c/airFclose
-
-1) its in the same file.  ElementDataFile is "LOCAL"
-
-2) its in a list of files. ElementDataFile is "LIST", and what follows
-in the header is a list of files, one filename per line.  By default,
-there is one slice per sample on the slowest axis, but you can do
-otherwise with, for example, "LIST 3", which means that there will be
-a 3D slab per file.
-
-3) slices in numbered files. ElementDataFile is, for example,
-"file%03d.blah <min> <max> <step>", where the first part is a
-printf-style string containing a format sequence for an integer value,
-and <min>, <max>, and <step> are integer values that specify the min,
-max, and increment value for naming the numbered slices.  Note that if
-you use something like "file%d.blah", you automatically get the
-correct ordering between "file2.blah" and "file10.blah".
-
-I plan on shamelessly copying this, just like I shamelessly copied the
-"byte skip: -1" feature from MetaIO.  The minor differences are:
-
-- the datafile is "LOCAL" by default, as in, no "data file: " field is
-  given in the NRRD.  This is the current behavior for attached
-  headers.
-
-- When using the pattern for numbered files, the final <step> value
-  will be optional, and by default 1.
-
-- This will work for multiple compressed files.
-
-
 **
 ** (more documentation here)
 **
