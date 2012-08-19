@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -1081,7 +1081,6 @@ NRRD_EXPORT int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdQuantize(Nrrd *nout, const Nrrd *nin,
                              const NrrdRange *range, unsigned int bits);
-
 NRRD_EXPORT int nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nhistP,
                             unsigned int bins,
