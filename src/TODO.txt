@@ -43,6 +43,8 @@ nrrd:
   refers to.  Catmull-Rom is commonly thought of as a kind of hermite
   spline interpolation, but now nrrdKernelHermiteFlag is a rather exotic
   thing which acts like tent but signals special things for scale-space
+* the percentile-based bounds specification now supported in e.g 
+  "unu histo" and "unu quantize" should be migrated down to the nrrd library
 * make the verbosity level a field in NrrdIoState, consider
   removing nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
