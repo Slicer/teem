@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -532,15 +532,6 @@ airTime() {
 #endif
 }
 
-void
-airBinaryPrintUInt(FILE *file, int digits, unsigned int N) {
-
-  for (digits=AIR_CLAMP(1, digits, 32); digits>=1; digits--) {
-    fprintf(file, "%c", ((1<<(digits-1)) & N
-                         ? '1' : '0'));
-  }
-}
-
 const char
 airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown)",
@@ -574,128 +565,6 @@ airTypeSize[AIR_TYPE_MAX+1] = {
   sizeof(int),
   0   /* we don't know anything about type "other" */
 };
-
-int
-airILoad(void *v, int t) {
-
-  switch(t) {
-  case airTypeBool:   return *((int*)v); break;
-  case airTypeInt:    return *((int*)v); break;
-  case airTypeUInt:   return (int)*((unsigned int*)v); break;
-  case airTypeLongInt:return (int)*((long int*)v); break;
-  case airTypeULongInt:return (int)*((unsigned long int*)v); break;
-  case airTypeSize_t: return (int)*((size_t*)v); break;
-  case airTypeFloat:  return (int)*((float*)v); break;
-  case airTypeDouble: return (int)*((double*)v); break;
-  case airTypeChar:   return *((char*)v); break;
-  default: return 0; break;
-  }
-}
-
-int
-airIStore(void *v, int t, int i) {
-
-  switch(t) {
-  case airTypeBool:   return (*((int*)v) = !!i); break;
-  case airTypeInt:    return (*((int*)v) = i); break;
-  case airTypeUInt:   return (int)(*((unsigned int*)v) = i); break;
-  case airTypeLongInt:return (int)(*((long int*)v) = i); break;
-  case airTypeULongInt:return (int)(*((unsigned long int*)v) = i); break;
-  case airTypeSize_t: return (int)(*((size_t*)v) = i); break;
-  case airTypeFloat:  return (int)(*((float*)v) = (float)(i)); break;
-  case airTypeDouble: return (int)(*((double*)v) = (double)(i)); break;
-  case airTypeChar:   return (*((char*)v) = (char)(i)); break;
-  default: return 0; break;
-  }
-}
-
-float
-airFLoad(void *v, int t) {
-
-  switch(t) {
-  case airTypeBool:   return AIR_CAST(float, *((int*)v)); break;
-  case airTypeInt:    return AIR_CAST(float, *((int*)v)); break;
-  case airTypeUInt:   return AIR_CAST(float, *((unsigned int*)v)); break;
-  case airTypeLongInt:return AIR_CAST(float, *((long int*)v)); break;
-  case airTypeULongInt:return AIR_CAST(float, *((unsigned long int*)v)); break;
-  case airTypeSize_t: return AIR_CAST(float, *((size_t*)v)); break;
-  case airTypeFloat:  return *((float*)v); break;
-  case airTypeDouble: return AIR_CAST(float, *((double*)v)); break;
-  case airTypeChar:   return *((char*)v); break;
-  default: return 0; break;
-  }
-}
-
-float
-airFStore(void *v, int t, float f) {
-
-  switch(t) {
-  case airTypeBool:
-    return AIR_CAST(float, *((int*)v) = (int)f);
-    break;
-  case airTypeInt:
-    return AIR_CAST(float, *((int*)v) = (int)f);
-    break;
-  case airTypeUInt:
-    return AIR_CAST(float, *((unsigned int*)v) = (unsigned int)f);
-    break;
-  case airTypeLongInt:
-    return AIR_CAST(float, *((long int*)v) = (long int)f);
-    break;
-  case airTypeULongInt:
-    return AIR_CAST(float, *((unsigned long int*)v) = (unsigned long int)f);
-    break;
-  case airTypeSize_t:
-    return AIR_CAST(float, *((size_t*)v) = (size_t)f);
-    break;
-  case airTypeFloat: 
-    return (*((float*)v) = f);
-    break;
-  case airTypeDouble:
-    return AIR_CAST(float, (*((double*)v) = (double)f));
-    break;
-  case airTypeChar:
-    return (*((char*)v) = (char)f);
-    break;
-  default:
-    return 0;
-    break;
-  }
-}
-
-double
-airDLoad(void *v, int t) {
-
-  switch(t) {
-  case airTypeBool:   return AIR_CAST(double,*((int*)v)); break;
-  case airTypeInt:    return AIR_CAST(double,*((int*)v)); break;
-  case airTypeUInt:   return AIR_CAST(double,*((unsigned int*)v)); break;
-  case airTypeLongInt:return AIR_CAST(double,*((long int*)v)); break;
-  case airTypeULongInt:return AIR_CAST(double,*((unsigned long int*)v)); break;
-  case airTypeSize_t: return AIR_CAST(double, *((size_t*)v)); break;
-  case airTypeFloat:  return AIR_CAST(double,*((float*)v)); break;
-  case airTypeDouble: return *((double*)v); break;
-  case airTypeChar:   return AIR_CAST(double,*((char*)v)); break;
-  default: return 0; break;
-  }
-}
-
-double
-airDStore(void *v, int t, double d) {
-
-  switch(t) {
-  case airTypeBool:   return AIR_CAST(double,(*((int*)v) = (int)d)); break;
-  case airTypeInt:    return AIR_CAST(double,(*((int*)v) = (int)d)); break;
-  case airTypeUInt:   return AIR_CAST(double,(*((unsigned int*)v) = (unsigned int)d)); break;
-  case airTypeLongInt:return AIR_CAST(double,(*((long int*)v) = (long int)d)); break;
-  case airTypeULongInt:return AIR_CAST(double,(*((unsigned long int*)v) = (unsigned long int)d)); break;
-  case airTypeSize_t: return AIR_CAST(double,(*((size_t*)v) = (size_t)d)); break;
-  case airTypeFloat:  return AIR_CAST(double,(*((float*)v) = (float)d)); break;
-  case airTypeDouble: return (*((double*)v) = d); break;
-  case airTypeChar:   return AIR_CAST(double,(*((char*)v) = (char)d)); break;
-  default: return 0; break;
-  }
-}
 
 /*
 ******** airEqvSettle()

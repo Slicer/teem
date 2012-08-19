@@ -570,15 +570,8 @@ AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
 AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
 AIR_EXPORT double airTime();
-AIR_EXPORT void airBinaryPrintUInt(FILE *file, int digits, unsigned int N);
 AIR_EXPORT const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 AIR_EXPORT const size_t airTypeSize[AIR_TYPE_MAX+1];
-AIR_EXPORT int airILoad(void *v, int t);
-AIR_EXPORT float airFLoad(void *v, int t);
-AIR_EXPORT double airDLoad(void *v, int t);
-AIR_EXPORT int airIStore(void *v, int t, int i);
-AIR_EXPORT float airFStore(void *v, int t, float f);
-AIR_EXPORT double airDStore(void *v, int t, double d);
 AIR_EXPORT void airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k);
 AIR_EXPORT unsigned int airEqvMap(airArray *eqvArr,
                                   unsigned int *map, unsigned int len);

@@ -674,6 +674,49 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr,
   return 0;
 }
 
+/* 
+** this function moved from air/miscAir; the usage below
+** is its only usage in Teem
+*/
+static int
+airIStore(void *v, int t, int i) {
+
+  switch(t) {
+  case airTypeBool:   return (*((int*)v) = !!i); break;
+  case airTypeInt:    return (*((int*)v) = i); break;
+  case airTypeUInt:   return (int)(*((unsigned int*)v) = i); break;
+  case airTypeLongInt:return (int)(*((long int*)v) = i); break;
+  case airTypeULongInt:return (int)(*((unsigned long int*)v) = i); break;
+  case airTypeSize_t: return (int)(*((size_t*)v) = i); break;
+  case airTypeFloat:  return (int)(*((float*)v) = (float)(i)); break;
+  case airTypeDouble: return (int)(*((double*)v) = (double)(i)); break;
+  case airTypeChar:   return (*((char*)v) = (char)(i)); break;
+  default: return 0; break;
+  }
+}
+
+/* 
+** this function moved from air/miscAir; the usage below
+** is its only usage in Teem
+*/
+double
+airDLoad(void *v, int t) {
+
+  switch(t) {
+  case airTypeBool:   return AIR_CAST(double,*((int*)v)); break;
+  case airTypeInt:    return AIR_CAST(double,*((int*)v)); break;
+  case airTypeUInt:   return AIR_CAST(double,*((unsigned int*)v)); break;
+  case airTypeLongInt:return AIR_CAST(double,*((long int*)v)); break;
+  case airTypeULongInt:return AIR_CAST(double,*((unsigned long int*)v)); break;
+  case airTypeSize_t: return AIR_CAST(double, *((size_t*)v)); break;
+  case airTypeFloat:  return AIR_CAST(double,*((float*)v)); break;
+  case airTypeDouble: return *((double*)v); break;
+  case airTypeChar:   return AIR_CAST(double,*((char*)v)); break;
+  default: return 0; break;
+  }
+}
+
+
 int
 _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
                hestOpt *opt,
