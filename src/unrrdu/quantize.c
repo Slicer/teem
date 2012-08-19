@@ -40,7 +40,7 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  char *_minStr, *_maxStr, *minStr, *maxStr, *mmStr;
+  char *_minStr, *_maxStr, *minStr, *maxStr;
   int pret, blind8BitRange, minPerc=AIR_FALSE, maxPerc=AIR_FALSE, *mmPerc;
   unsigned int bits, mmIdx, hbins;
   double min, max, minval, maxval, *mm=NULL;
@@ -106,6 +106,7 @@ unrrdu_quantizeMain(int argc, const char **argv, char *me, hestParm *hparm) {
   /* parse min and max */
   min = max = AIR_NAN;
   for (mmIdx=0; mmIdx<=1; mmIdx++) {
+    char *mmStr;
     if (0 == mmIdx) {
       mm = &min;
       mmStr = minStr;
