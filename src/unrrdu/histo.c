@@ -35,9 +35,9 @@ unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
-  char *_minStr, *_maxStr, *minStr, *maxStr, *mmStr;
+  char *_minStr, *_maxStr, *minStr, *maxStr;
   int type, pret, blind8BitRange,
-    minPerc=AIR_FALSE, maxPerc=AIR_FALSE, *mmPerc;
+    minPerc=AIR_FALSE, maxPerc=AIR_FALSE;
   unsigned int bins, mmIdx;
   double min, max, minval, maxval, *mm=NULL;
   NrrdRange *range;
@@ -53,7 +53,8 @@ unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
              &_minStr, "nan",
-             "Value at low end of histogram, given explicitly as a regular number, "
+             "Value at low end of histogram, given explicitly as a "
+             "regular number, "
              "*or*, if the number is given with a \"" MINMAX_PERC_SUFF 
              "\" suffix, this "
              "minimum is specified in terms of the percentage of samples in "
@@ -83,18 +84,16 @@ unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  nout = nrrdNew();
-  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
   /* HEY COPY AND PASTE from quantize.c */
   minStr = airStrdup(_minStr);
   airMopAdd(mop, minStr, airFree, airMopAlways);
   maxStr = airStrdup(_maxStr);
   airMopAdd(mop, maxStr, airFree, airMopAlways);
-
   /* parse min and max */
   min = max = AIR_NAN;
   for (mmIdx=0; mmIdx<=1; mmIdx++) {
+    char *mmStr;
+    int *mmPerc;
     if (0 == mmIdx) {
       mm = &min;
       mmStr = minStr;
@@ -178,6 +177,9 @@ unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {
     maxval = max;
   }
 
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+
   /* If the input nrrd never specified min and max, then they'll be
      AIR_NAN, and nrrdRangeSafeSet will find them, and will do so
      according to blind8BitRange */
@@ -185,9 +187,9 @@ unrrdu_histoMain(int argc, const char **argv, char *me, hestParm *hparm) {
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdHisto(nout, nin, range, nwght, bins, type)) {
-    err = biffGet(NRRD);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error calculating histogram:\n%s", me, err);
-    free(err);
+    airMopError(mop);
     return 1;
   }
 
