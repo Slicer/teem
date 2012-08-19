@@ -34,22 +34,42 @@ unrrdu_histaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bins, pret, blind8BitRange;
-  unsigned int axis;
-  double min, max;
+  char *_minStr, *_maxStr, *minStr, *maxStr;
+  int type, pret, blind8BitRange,
+    minPerc=AIR_FALSE, maxPerc=AIR_FALSE;
+  unsigned int axis, bins, mmIdx;
+  double min, max, minval, maxval, *mm=NULL;
   airArray *mop;
   NrrdRange *range;
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
-  hestOptAdd(&opt, "b,bin", "bins", airTypeInt, 1, 1, &bins, NULL,
+  hestOptAdd(&opt, "b,bin", "bins", airTypeUInt, 1, 1, &bins, NULL,
              "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
-  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
-             "Value at low end of histogram. Defaults to lowest value "
-             "found in input nrrd.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
-             "Value at high end of histogram. Defaults to highest value "
-             "found in input nrrd.");
+  /* HEY copy and paste from unrrdu/quantize.c */
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
+             &_minStr, "nan",
+             "The value to map to zero, given explicitly as a regular number, "
+             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF 
+             "\" suffix, this "
+             "minimum is specified in terms of the percentage of samples in "
+             "input that are lower. "
+             "\"0" MINMAX_PERC_SUFF "\" means the "
+             "lowest input value is used, "
+             "\"1" MINMAX_PERC_SUFF "\" means that the "
+             "1% of the lowest values are all mapped to zero. "
+             "By default (not using this option), the lowest input value is "
+             "used.");
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
+             &_maxStr, "nan",
+             "The value to map to the highest unsigned integral value, given "
+             "explicitly as a regular number, "
+             "*or*, if the number is given with "
+             "a \"" MINMAX_PERC_SUFF "\" suffix, this maximum is specified "
+             "in terms of the percentage of samples in input that are higher. "
+             "\"0" MINMAX_PERC_SUFF "\" means the highest input value is "
+             "used, which is also the default "
+             "behavior (same as not using this option).");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "Whether to know the range of 8-bit data blindly "
@@ -64,10 +84,103 @@ unrrdu_histaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  /* HEY COPY AND PASTE from unrrdu/quantize.c */
+  minStr = airStrdup(_minStr);
+  airMopAdd(mop, minStr, airFree, airMopAlways);
+  maxStr = airStrdup(_maxStr);
+  airMopAdd(mop, maxStr, airFree, airMopAlways);
+  /* parse min and max */
+  min = max = AIR_NAN;
+  for (mmIdx=0; mmIdx<=1; mmIdx++) {
+    char *mmStr;
+    int *mmPerc;
+    if (0 == mmIdx) {
+      mm = &min;
+      mmStr = minStr;
+      mmPerc = &minPerc;
+    } else {
+      mm = &max;
+      mmStr = maxStr;
+      mmPerc = &maxPerc;
+    }
+    if (airEndsWith(mmStr, MINMAX_PERC_SUFF)) {
+      *mmPerc = AIR_TRUE;
+      mmStr[strlen(mmStr)-strlen(MINMAX_PERC_SUFF)] = '\0';
+    }
+    if (1 != airSingleSscanf(mmStr, "%lf", mm)) {
+      fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, 
+              !mmIdx ? _minStr : _maxStr,
+              !mmIdx ? "minimum" : "maximum");
+      airMopError(mop);
+      return 1;
+    }
+  }
+
+  if (minPerc || maxPerc) {
+    /* have to compute histogram to find real min or max */
+    Nrrd *nhist;
+    double *hist, sum, total;
+    unsigned int hi, hbins;
+
+    hbins = bins*10; /* HEY magic */
+    nhist = nrrdNew();
+    airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdHisto(nhist, nin, NULL, NULL, hbins, nrrdTypeDouble)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble making histogram:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    hist = AIR_CAST(double *, nhist->data);
+    total = AIR_CAST(double, nrrdElementNumber(nin));
+    if (minPerc) {
+      sum = 0;
+      for (hi=0; hi<hbins; hi++) {
+        sum += hist[hi];
+        if (sum >= min*total/100.0) {
+          minval = AIR_AFFINE(0, hi, hbins-1,
+                              nhist->axis[0].min, nhist->axis[0].max);
+          break;
+        }
+      }
+      if (hi == hbins) {
+        biffAddf(NRRD, "%s: failed to find lower %g-percentile value",
+                 me, min);
+        airMopError(mop);
+        return 1;
+      }
+      /* fprintf(stderr, "!%s: %g-%% min = %g\n", me, min, minval); */
+    } else {
+      minval = min;
+    }
+    if (maxPerc) {
+      sum = 0;
+      for (hi=hbins; hi; hi--) {
+        sum += hist[hi-1];
+        if (sum >= max*total/100.0) {
+          maxval = AIR_AFFINE(0, hi-1, hbins-1,
+                              nhist->axis[0].min, nhist->axis[0].max);
+          break;
+        }
+      }
+      if (!hi) {
+        biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me,
+                 max);
+        return 1;
+      }
+      /* fprintf(stderr, "!%s: %g-%% max = %g\n", me, max, maxval); */
+    } else {
+      maxval = max;
+    }
+  } else {
+    minval = min;
+    maxval = max;
+  }
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  range = nrrdRangeNew(min, max);
+  range = nrrdRangeNew(minval, maxval);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
