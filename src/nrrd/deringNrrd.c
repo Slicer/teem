@@ -489,7 +489,7 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   return 0;
 }
 
-int
+static int
 deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
                Nrrd *nout, unsigned int zi) {
   static const char me[]="deringSliceSet";
