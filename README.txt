@@ -1,6 +1,6 @@
 =============== 
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -99,7 +99,7 @@ http://teem.sourceforge.net/build.html
 
 Teem is a coordinated collection of libraries, with a stable
 dependency graph.  Below is a listing of the libraries (with
-indication of the libraries upon which it depends).  TEEM_LIB_LIST
+indication of the libraries upon which it depends).  (TEEM_LIB_LIST)
 
 * air: Basic utility functions, used throughout Teem
 
