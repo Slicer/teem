@@ -25,6 +25,7 @@
 #ifndef AIR_HAS_BEEN_INCLUDED
 #define AIR_HAS_BEEN_INCLUDED
 
+/* NrrdIO-hack-005 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -32,7 +33,9 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <float.h>
+/* ---- BEGIN non-NrrdIO */
 #include <stddef.h>      /* for ptrdiff_t */
+/* ---- END non-NrrdIO */
 
 /*
 ******** TEEM_VERSION 
@@ -63,7 +66,6 @@
 extern "C" {
 #endif
 
-/* NrrdIO-hack-001 */
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(air_EXPORTS) || defined(teem_EXPORTS)
 #    define AIR_EXPORT extern __declspec(dllexport)
@@ -90,9 +92,11 @@ typedef unsigned long long airULLong;
 #  define AIR_ULLONG(x) x##ull
 #endif
 
+/* ---- BEGIN non-NrrdIO */
 /* This is annoying, thanks to windows */
 #define AIR_PI 3.14159265358979323846
 #define AIR_E  2.71828182845904523536
+/* ---- END non-NrrdIO */
 
 /*
 ** These serve as conservative estimates on how large various strings
@@ -190,7 +194,9 @@ AIR_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 AIR_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 AIR_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
+/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
+/* ---- END non-NrrdIO */
 
 /*
 ******** airEndian enum
@@ -504,7 +510,9 @@ AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
 /* string.c */
 AIR_EXPORT char *airStrdup(const char *s);
 AIR_EXPORT size_t airStrlen(const char *s);
+/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT int airStrcmp(const char *s1, const char *s2);
+/* ---- END non-NrrdIO */
 AIR_EXPORT int airStrtokQuoting;
 AIR_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 AIR_EXPORT unsigned int airStrntok(const char *s, const char *ct);
@@ -553,9 +561,9 @@ AIR_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 AIR_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
+/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
 AIR_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
-/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
 AIR_EXPORT FILE *airStdout(void);

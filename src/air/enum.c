@@ -47,24 +47,6 @@ airEnumUnknown(const airEnum *enm) {
 }
 
 /*
-******** airEnumLast
-**
-** return the highest value representing a known value
-**
-** commenting out since as of Aug 16 2012 nothing is using this
-
-int
-airEnumLast(const airEnum *enm) {
-  
-  if (enm && enm->val) {
-    return enm->val[enm->M];
-  } else {
-    return enm->M;
-  }
-}
-*/
-
-/*
 ** _airEnumIndex()
 **
 ** given an enum "enm" and value "val", return the index into enm->str[] 
@@ -277,6 +259,7 @@ airEnumPrint(FILE *file, const airEnum *enm) {
   return;
 }
 
+/* ---- BEGIN non-NrrdIO */
 /*
 ******** airEnumCheck
 **
@@ -484,3 +467,4 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
   }
   return 0;
 }
+/* ---- END non-NrrdIO */

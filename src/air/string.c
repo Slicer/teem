@@ -67,6 +67,7 @@ airStrlen(const char *s) {
   return ret;
 }
 
+/* ---- BEGIN non-NrrdIO */
 /*
 ******** airStrcmp
 **
@@ -84,6 +85,7 @@ airStrcmp(const char *s1, const char *s2) {
   return ret;
 }
 
+/* ---- END non-NrrdIO */
 /*
 ******** airStrtok()
 **

@@ -667,7 +667,7 @@ NRRD_EXPORT int nrrdStateDisallowIntegerNonExist;
 /* ---- END non-NrrdIO */
 NRRD_EXPORT int nrrdStateAlwaysSetContent;
 NRRD_EXPORT int nrrdStateDisableContent;
-NRRD_EXPORT char *nrrdStateUnknownContent;
+NRRD_EXPORT const char *nrrdStateUnknownContent;
 NRRD_EXPORT int nrrdStateGrayscaleImage3D;
 NRRD_EXPORT int nrrdStateKeyValueReturnInternalPointers;
 NRRD_EXPORT int nrrdStateKindNoop;
@@ -875,8 +875,10 @@ NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
 NRRD_EXPORT int nrrdSpaceVecExists(int sdim,
                                    double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
+/* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT void nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdZeroSet(Nrrd *nout);
+/* ---- END non-NrrdIO */
 
 /******** comments related */
 /* comment.c */

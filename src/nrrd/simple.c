@@ -377,6 +377,7 @@ nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
   return;
 }
 
+/* ---- BEGIN non-NrrdIO */
 void
 nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
   int di;
@@ -386,6 +387,7 @@ nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
   }
   return;
 }
+/* ---- END non-NrrdIO */
 
 /*
 ** _nrrdContentGet
@@ -1552,6 +1554,7 @@ nrrdSanity(void) {
   return 1;
 }
 
+/* ---- BEGIN non-NrrdIO */
 void
 nrrdZeroSet(Nrrd *nout) {
 
@@ -1560,4 +1563,4 @@ nrrdZeroSet(Nrrd *nout) {
   }
   return;
 }
-
+/* ---- END non-NrrdIO */

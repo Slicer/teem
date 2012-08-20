@@ -898,7 +898,6 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
   
   return;
 }
-
 /* ---- BEGIN non-NrrdIO */
 
 /*
