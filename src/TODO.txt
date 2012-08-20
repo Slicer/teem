@@ -72,8 +72,11 @@ nrrd:
 [nrrd] nrrdDeringExecute: trouble on setup
 [nrrd] deringPtxfAlloc: couldn't set up resampler
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
+* for nrrdCropAuto: consider adding some minimum remaining size requirement,
+  in addition to offset
 
 unu:
+* unu acrop should export crop bounds in a way that unu crop can use them
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
