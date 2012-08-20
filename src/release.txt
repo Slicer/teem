@@ -3,6 +3,12 @@ GLK's list of things to do for each release.  This started with an
 early version of Teem and has been only partially maintained since
 then; consider it a work-in-progress ...
 
+-4.5) fix all 
+"dereferencing type-punned pointer will break strict-aliasing rules"
+warnings on a modern linux system
+
+-4) Make sure the CMake and GNUMake agree on source files per-library
+
 -3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
  is up-to-date
 
@@ -42,7 +48,7 @@ is one way of putting files onto the web server
 
 1) Check namespace safety
   a) Make sure all library symbols are properly prefixed:
-  See make/release-nm-check.csh and make/release-def-check.csh
+  run make/release-nm-check.csh and make/release-def-check.csh
 
 2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,

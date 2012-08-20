@@ -17,6 +17,7 @@ pointers, but to all values as well.
 all:
 * scrutinize use of strncpy, consider using airStrcpy
 * remove '_'s from enum value names in non-elf non-tijk libraries
+* decide if <LIB>_EXPORT should just be TEEM_EXPORT
 
 air:
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
@@ -29,10 +30,24 @@ http://en.wikipedia.org/wiki/Dynamic_array
 http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
+* consider having something like a teemContext, which might be:
+ - the destination of thread-safe generating of error messages
+ - a place for doing progress indication in multi-threaded callers
+ - storage for other things that are current globals.
+The problem is that such a thing would have to be an argument
+to a great many functions (or else it itself would be a global),
+and then how do you know which functions should take it?
 
 hest:
 * all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
+* air/hest: remove the airType* enum. The following sort of code looks
+correct but is completely wrong
+  if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
+because "airTypeFloat" is there instead of "nrrdTypeFloat".  All
+things airType were created for the sake of hest. Instead of taking an
+airType enum value for hestOptAdd, hestOptAdd can take a string
+(e.g. "uchar", "float", "enum", "callback" for airTypeOther). 
 
 biff:
 * biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
@@ -43,10 +58,11 @@ nrrd:
   refers to.  Catmull-Rom is commonly thought of as a kind of hermite
   spline interpolation, but now nrrdKernelHermiteFlag is a rather exotic
   thing which acts like tent but signals special things for scale-space
+* add to nrrdKernel: fields for "what is my derivative" and
+  "when parsing from string, parm[0] is needed vs parm[0] defaults to 1.0"
 * the percentile-based bounds specification now supported in e.g 
   "unu histo" and "unu quantize" should be migrated down to the nrrd library
-* make the verbosity level a field in NrrdIoState, consider
-  removing nrrdStateVerboseIO
+* make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
 * rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
@@ -57,7 +73,6 @@ nrrd:
 [nrrd] nrrdDeringExecute: trouble on setup
 [nrrd] deringPtxfAlloc: couldn't set up resampler
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
-
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
@@ -83,28 +98,18 @@ push:
 
 ========
 
-unu rmap -i /Users/gk/prof/class/33710-SciVis/project2/elev-rsmp.png \
-  -m bbody.txt -blind8 false -max 193 -o tmp.nrrd
-why the f-ing NaNs?
-
+** The items below have accumulated over time, but the importance of them
+** for Teem 2.0 or any other relase should be re-evaluated.
 
 large-scale fix: when using sizeof with memcpy or memset, should be using
 the variable name itself instead of type as argument to sizeof()
-
-fix all 
-"dereferencing type-punned pointer will break strict-aliasing rules"
-warnings on a modern linux system
-
-Make sure the CMake and GNUMake agree on source files per-library
-
-decide if <LIB>_EXPORT should just be TEEM_EXPORT
-
---------- teem 1.9 cut-off
 
 for cmake:
  - build pv on windows
  - see if wild-card expansion works as expected on windows
  - make cmd-line utilities link with static libs
+
+unrrdu: standardize hest framework for doing unu/gkms/tend style programs
 
 [portable54-250:~/d/parepi/6] gk%
 tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
@@ -119,23 +124,8 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 gage: re-modularize to facilitate probing bricked data
 
 make system really botched: change the size of the tenFiberContext
-(added a field or two), do a make ten/install, then cd ../push; rm -f test/pusher
-make install; make; and you'll STILL get memory errors due to seeing 
-library/object files which use the older context size.  Do a top-level
-make clobber, and then things work.  This is crap.
-I think the problem is that development object files of push were not
-recompiled when they should have been- doing a make clobber; make in push
-solved the problem...
-(noted earlier:)
-- HUGE PROBLEM: change limn.h, cd ../ten, make, nothing to be done WRONG
-- HUGE PROBLEM: make a change in nrrdEnums.h, which unrrdu/project.c 
-  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
-  so unu doesn't get updated correctly!
-- HUGE PROBLEM: add a macro in ELL, make install in ell,
-  cd limn, make ../limn/test/tiso, doesn't see new header
-  and fails at link-time with "<new macro> symbol undefined"
-- want seperate directories for static and shared libraries
-- want bin/dev and bin/install targets
+(added a field or two), do a make ten/install, 
+then cd ../push; rm -f test/pusher
 
 air: make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
@@ -146,42 +136,25 @@ bin/unu: valgrid parsing of encoding stuff
 fix "gkms pvg": try to reproduce problem with mouse data
 
 gage changes into bane:
-teem\src\bane\hvol.c(167) : warning C4700: local variable 'hist' used
-  without having been initialized
 - try gkms hvol with three explicit ranges
 - remove excess NULL pointer checks between answer and answer wrapper
 - valgrind
-
-finish big changes
-- ADD gkms back into teem bins!
+- ADD gkms back into teem bins
 
 ell: debug SVD of things based on negative eigenvalues
  - add flag to say: always positive sv's, or always right-handed rotations
 
 leaf: do it
 
-DESTROY the airType* enum! I wasted quite awhile debugging a problem caused by:
-  if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
-Do you see the problem?  Grrr.
-
 debug rendering of ML with windowed sinc
 
-hest: add # commenting
-
-SEGFAULT:  in muse/usr/sci/data/Medical/cat-array/bisti/rend
-gkms hvol -s a:-1200,6000 a:0,3100 a:-1000,1000 -i CFC.nrrd -o CFC-hvol.nrrd 
+hest: add commenting via # or something else
 
 bane: finish updating tutorial
 
 dye: see if dyeColorParse should allocate the thing and return it
 
-FAQ on teem coding standards
-Banks's policy.txt:
- - documenting cross-code assumptions and dependencies
-
 image registration tool for small translational errors
-
-air: make floating point stuff more like C++: lots of per-arch #defines
 
 make: figure out shared libraries on cygwin.
 make: Test that shared libraries work everywhere they should.
@@ -189,8 +162,6 @@ make: Test that shared libraries work everywhere they should.
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
 requires general data structures for 2-D graphics primatives...
-
-unrrdu: standardize hest framework for doing unu/gkms/tend style programs
 
 dye: colormaps
 
@@ -210,3 +181,21 @@ ikits Vis03: A Constraint-based Technique for Haptic Volume Exploration
 fout Eurovis 05: High-Quality Rendering of Compressed Volume Data Formats
 callahan TVCG May/June 05: Hardware-Assisted Visibility Sorting for Unstructured Volume Rendering
 jorik blaas vis05 fiber paper
+
+(less of an issue now that CMake is in use) make install; make; and
+you'll STILL get memory errors due to seeing library/object files
+which use the older context size.  Do a top-level make clobber, and
+then things work.  This is crap.  I think the problem is that
+development object files of push were not recompiled when they should
+have been- doing a make clobber; make in push solved the problem...
+Examples of this:
+- change limn.h, cd ../ten, make, nothing to be done WRONG
+- ake a change in nrrdEnums.h, which unrrdu/project.c 
+  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
+  so unu doesn't get updated correctly!
+- add a macro in ELL, make install in ell,
+  cd limn, make ../limn/test/tiso, doesn't see new header
+  and fails at link-time with "<new macro> symbol undefined"
+- want seperate directories for static and shared libraries
+- want bin/dev and bin/install targets
+
