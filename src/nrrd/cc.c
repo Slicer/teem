@@ -639,7 +639,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
             int valDir, unsigned int maxSize, unsigned int maxNeighbor,
             unsigned int conny) {
   static const char me[]="nrrdCCMerge", func[]="ccmerge";
-  char *valcnt;
+  const char *valcnt;
   unsigned int _i, i, j, bigi=0, numid, *size, *sizeId,
     *nn,  /* number of neighbors */
     *val=NULL, *hit,
