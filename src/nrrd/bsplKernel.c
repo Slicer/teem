@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -122,7 +122,7 @@ _bspl3d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline3 = {
   "bspl3",
   BSPL_DECL(3, 0)
@@ -199,7 +199,7 @@ _bspl3d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline3D = {
   "bspl3d",
   BSPL_DECL(3, 1)
@@ -276,7 +276,7 @@ _bspl3d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline3DD = {
   "bspl3dd",
   BSPL_DECL(3, 2)
@@ -375,7 +375,7 @@ _bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline3ApproxInverse = {
   "bspl3ai", 0,
   _bspl3_ANI_sup, _bspl3_ANI_int,
@@ -470,7 +470,7 @@ _bspl5d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline5 = {
   "bspl5",
   BSPL_DECL(5, 0)
@@ -549,7 +549,7 @@ _bspl5d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline5D = {
   "bspl5d",
   BSPL_DECL(5, 1)
@@ -624,7 +624,7 @@ _bspl5d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline5DD = {
   "bspl5dd",
   BSPL_DECL(5, 2)
@@ -722,7 +722,7 @@ _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBSpline5ApproxInverse = {
   "bspl5ai", 0,
   _bspl5_ANI_sup, _bspl5_ANI_int,

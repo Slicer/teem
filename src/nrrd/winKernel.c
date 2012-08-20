@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +25,7 @@
 
 #define _SINC(x) (sin(AIR_PI*x)/(AIR_PI*x))
 
-double
+static double
 _nrrdWindSincInt(const double *parm) {
 
   AIR_UNUSED(parm);
@@ -34,7 +34,7 @@ _nrrdWindSincInt(const double *parm) {
   return 1.0;
 }
 
-double
+static double
 _nrrdDWindSincInt(const double *parm) {
 
   AIR_UNUSED(parm);
@@ -42,7 +42,7 @@ _nrrdDWindSincInt(const double *parm) {
   return 0.0;
 }
 
-double
+static double
 _nrrdWindSincSup(const double *parm) {
   double S;
 
@@ -55,7 +55,7 @@ _nrrdWindSincSup(const double *parm) {
 #define POW3(S) ((S)*(S)*(S))
 
 #define WS_1_F(name, mac, spow)                               \
-float                                                         \
+static float                                                  \
 _nrrd##name##_1_f(float x, const double *parm) {              \
   float R, S;                                                 \
                                                               \
@@ -65,7 +65,7 @@ _nrrd##name##_1_f(float x, const double *parm) {              \
 }
 
 #define WS_N_F(name, mac, spow)                                     \
-void                                                                \
+static void                                                         \
 _nrrd##name##_N_f(float *f, const float *x, size_t len,             \
                   const double *parm) {                             \
   float S, R, t;                                                    \
@@ -79,7 +79,7 @@ _nrrd##name##_N_f(float *f, const float *x, size_t len,             \
 }
 
 #define WS_1_D(name, mac, spow)                   \
-double                                            \
+static double                                     \
 _nrrd##name##_1_d(double x, const double *parm) { \
   double R, S;                                    \
                                                   \
@@ -89,7 +89,7 @@ _nrrd##name##_1_d(double x, const double *parm) { \
 }
 
 #define WS_N_D(name, mac, spow)                                     \
-void                                                                \
+static void                                                         \
 _nrrd##name##_N_d(double *f, const double *x, size_t len,           \
                   const double *parm) {                             \
   double S, R, t;                                                   \
@@ -117,7 +117,7 @@ WS_1_F(Hann, _HANN, POW1)
 WS_N_F(Hann, _HANN, POW1)
 WS_N_D(Hann, _HANN, POW1)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelHann = {
   "hann",
   2, _nrrdWindSincSup,  _nrrdWindSincInt,   
@@ -141,7 +141,7 @@ WS_1_F(DHann, _DHANN, POW2)
 WS_N_F(DHann, _DHANN, POW2)
 WS_N_D(DHann, _DHANN, POW2)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDHann = {
   "hannD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
@@ -170,7 +170,7 @@ WS_1_F(DDHann, _DDHANN, POW3)
 WS_N_F(DDHann, _DDHANN, POW3)
 WS_N_D(DDHann, _DDHANN, POW3)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDDHann = {
   "hannDD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
@@ -193,7 +193,7 @@ WS_1_F(Black, _BLACK, POW1)
 WS_N_F(Black, _BLACK, POW1)
 WS_N_D(Black, _BLACK, POW1)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBlackman = {
   "blackman",
   2, _nrrdWindSincSup,  _nrrdWindSincInt,   
@@ -222,7 +222,7 @@ WS_1_F(DBlack, _DBLACK, POW2)
 WS_N_F(DBlack, _DBLACK, POW2)
 WS_N_D(DBlack, _DBLACK, POW2)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDBlack = {
   "blackmanD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
@@ -256,7 +256,7 @@ WS_1_F(DDBlack, _DDBLACK, POW3)
 WS_N_F(DDBlack, _DDBLACK, POW3)
 WS_N_D(DDBlack, _DDBLACK, POW3)
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDDBlack = {
   "blackDD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
