@@ -34,6 +34,8 @@ rm -f tab.txt
 
 -0.5) regenerate teem/python/ctypes/teem.py
 
+-0.25) regenerate NrrdIO
+
 0) Bring documentation up-to-date with source tree
 make sure all the unrrdu pages agree with unu usage info
 cd ~/teem
@@ -68,6 +70,7 @@ cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
 
+(HEY update this to use svn, not cvs!)
 cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co NrrdIO
 cd NrrdIO
 find . -name CVS  -exec rm -rf {} \;
