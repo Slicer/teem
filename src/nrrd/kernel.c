@@ -36,6 +36,7 @@ nrrdKernelBSpline3ApproxInverse 0
 nrrdKernelBSpline5ApproxInverse 0
              nrrdKernelZero     1      scale
               nrrdKernelBox     1      scale
+  nrrdKernelBoxSupportDebug     1      radius (half-support)
             nrrdKernelCheap     1      scale
       nrrdKernelHermiteFlag     0
              nrrdKernelTent     1      scale
@@ -50,6 +51,10 @@ nrrdKernelC4HexicApproxInverse  0
  nrrdKernelDiscreteGaussian     2      sigma    cut-off
         nrrdKernelTMF[][][]     1       a
 
+** Note that when parm[0] is named "scale", that parameter is optional,
+** and the default is 1.0, when given in string form
+** E.g. "tent" is understand as "tent:1".
+** But "gauss:4" does not mean "gauss:1,4"
 */
 
 /* learned: if you copy/paste the macros for these kernels into 
@@ -206,6 +211,65 @@ _nrrdKernelBox = {
 };
 NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
+
+/* ------------------------------------------------------------ */
+
+double
+_nrrdBoxSDInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+double
+_nrrdBoxSDSup(const double *parm) {
+  
+  return parm[0]/2;
+}
+
+double
+_nrrdBoxSD1_d(double x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _BOX(x);
+}
+
+float
+_nrrdBoxSD1_f(float x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _BOX(x));
+}
+
+void
+_nrrdBoxSDN_d(double *f, const double *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    double t;
+    t = AIR_ABS(x[i]);
+    f[i] = _BOX(t);
+  }
+}
+
+void
+_nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    float t;
+    t = AIR_ABS(x[i]);
+    f[i] = AIR_CAST(float, _BOX(t));
+  }
+}
+
+NrrdKernel
+_nrrdKernelBoxSupportDebug = {
+  "box",
+  1, _nrrdBoxSDSup, _nrrdBoxSDInt,  
+  _nrrdBoxSD1_f,  _nrrdBoxSDN_f,  _nrrdBoxSD1_d,  _nrrdBoxSDN_d
+};
+NrrdKernel *const
+nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
 
 /* ------------------------------------------------------------ */
 
@@ -2135,6 +2199,7 @@ _nrrdKernelStrToKern(char *str) {
   
   if (!strcmp("zero", str))       return nrrdKernelZero;
   if (!strcmp("box", str))        return nrrdKernelBox;
+  if (!strcmp("boxsd", str))      return nrrdKernelBoxSupportDebug;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
   if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteFlag;
   if (!strcmp("hermite", str))    return nrrdKernelHermiteFlag;
@@ -2329,9 +2394,10 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     if (*kernelP == nrrdKernelGaussian ||
         *kernelP == nrrdKernelGaussianD ||
         *kernelP == nrrdKernelGaussianDD ||
-        *kernelP == nrrdKernelDiscreteGaussian) {
-      /* for Gaussians or DiscreteGaussian, we need all the parameters
-         given explicitly */
+        *kernelP == nrrdKernelDiscreteGaussian ||
+        *kernelP == nrrdKernelBoxSupportDebug) {
+      /* for Gaussians, DiscreteGaussian, nrrdKernelBoxSupportDebug,
+         we need all the parameters given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
       /*  For everything else (note that TMF kernels are handled

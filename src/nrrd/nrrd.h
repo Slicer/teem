@@ -1428,6 +1428,12 @@ NRRD_EXPORT NrrdKernel
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
+  *const nrrdKernelBoxSupportDebug, /* box kernel but with an adjustable
+                                       support, not for changing the shape of
+                                       the kernel (as with nrrdKernelBox), but
+                                       for exercising functions (like nrrd's
+                                       resampling or gage's probing) that 
+                                       depend on kernel support */
   *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
   *const nrrdKernelHermiteFlag,  /* NOT a kernel, a flag for gage behavior */
   *const nrrdKernelTent,         /* tent filter (linear interpolation) */
