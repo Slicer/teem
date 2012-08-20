@@ -41,68 +41,8 @@ sftp kindlmann,teem@web.sourceforge.net
 is one way of putting files onto the web server
 
 1) Check namespace safety
-  a) Make sure all library symbols are properly prefixed.
-  On a 32-bit Mac, this should return nothing:
-
-  cd ~/teem/arch/darwin.32/lib
-  nm libteem.a \
-   | grep -v "libteem.a(" \
-   | grep -v "         U " \
-   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ t\  \
-   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ s\  \
-   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ d\  \
-   | grep -v \\\?\\\?\\\?\\\?\\\?\\\?\\\?\\\?\ b\  \
-   | grep -v " _air"    | grep -v " __air" \
-   | grep -v " _hest"   | grep -v " __hest" \
-   | grep -v " _biff"   | grep -v " __biff" \
-   | grep -v " _nrrd"   | grep -v " __nrrd" \
-   | grep -v " _ell"    | grep -v " __ell" \
-   | grep -v " _unrrdu" | grep -v " __unrrdu" \
-   | grep -v " _alan"   | grep -v " __alan" \
-   | grep -v " _moss"   | grep -v " __moss" \
-   | grep -v " _tijk"   | grep -v " __tijk" \
-   | grep -v " _gage"   | grep -v " __gage" \
-   | grep -v " _dye"    | grep -v " __dye" \
-   | grep -v " _bane"   | grep -v " __bane" \
-   | grep -v " _limn"   | grep -v " __limn" \
-   | grep -v " _echo"   | grep -v " __echo" \
-   | grep -v " _hoover" | grep -v " __hoover" \
-   | grep -v " _seek"   | grep -v " __seek" \
-   | grep -v " _ten"    | grep -v " __ten" \
-   | grep -v " _elf"    | grep -v " __elf" \
-   | grep -v " _mite"   | grep -v " __mite" \
-   | grep -v " _pull"   | grep -v " __pull" \
-   | grep -v " _coil"   | grep -v " __coil" \
-   | grep -v " _push"   | grep -v " __push" \
-   | grep -v " _mite"   | grep -v " __mite" \
-   | grep -v " _meet"   | grep -v " __meet" \
-   | uniq
-
-  cd ../../include
-  grep "#define" teem/*.h | grep -v _export \
-   | grep -v " AIR"    | grep -v " _AIR" \
-   | grep -v " HEST"   | grep -v " _HEST" \
-   | grep -v " BIFF"   | grep -v " _BIFF" \
-   | grep -v " NRRD"   | grep -v " _NRRD" \
-   | grep -v " ELL"    | grep -v " _ELL" \
-   | grep -v " UNRRDU" | grep -v " _UNRRDU" \
-   | grep -v " ALAN"   | grep -v " _ALAN" | grep -v " alan" \
-   | grep -v " MOSS"   | grep -v " _MOSS" \
-   | grep -v " TIJK"   | grep -v " _TIJK" \
-   | grep -v " GAGE"   | grep -v " _GAGE" \
-   | grep -v " DYE"    | grep -v " _DYE" \
-   | grep -v " BANE"   | grep -v " _BANE" \
-   | grep -v " LIMN"   | grep -v " _LIMN" | grep -v " limn" \
-   | grep -v " ECHO"   | grep -v " _ECHO" | grep -v " echo" \
-   | grep -v " HOOVER" | grep -v " _HOOVER" \
-   | grep -v " SEEK"   | grep -v " _SEEK" \
-   | grep -v " TEN"    | grep -v " _TEN" \
-   | grep -v " ELF"    | grep -v " _ELF" \
-   | grep -v " PULL"   | grep -v " _PULL" \
-   | grep -v " COIL"   | grep -v " _COIL" | grep -v " coil" \
-   | grep -v " PUSH"   | grep -v " _PUSH" \
-   | grep -v " MITE"   | grep -v " _MITE" | grep -v "mite_" \
-   | grep -v " MEET"   | grep -v " _MEET" 
+  a) Make sure all library symbols are properly prefixed:
+  See make/release-nm-check.csh and make/release-def-check.csh
 
 2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
