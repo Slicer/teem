@@ -541,7 +541,8 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong 
+                                  (no longer checking on problematic SNAN) */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
   airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
   airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */

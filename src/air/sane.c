@@ -152,7 +152,7 @@ _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "AIR_EXISTS(NaN) was true",
   "air_FPClass_f() wrong after double->float assignment",
   "TEEM_QNANHIBIT is wrong",
-  "airFPClass(AIR_QNAN,AIR_SNAN) wrong",
+  "airFPClass(AIR_QNAN) wrong",
   "TEEM_DIO has invalid value",
   "unsigned char isn't 8 bits",
   "sizeof(float), sizeof(int) not both == 4",
