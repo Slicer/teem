@@ -26,30 +26,30 @@
 /*   
 ** summary of information about how the kernel parameter vector is set:
 
-                             numParm  parm[0]   parm[1]   parm[2]
-             nrrdKernelHann     2      scale    cut-off
-         nrrdKernelBlackman     2      scale    cut-off
-         nrrdKernelBSpline3     0
-       nrrdKernelCatmullRom     0
-nrrdKernelBSpline3ApproxInverse 0
-         nrrdKernelBSpline5     0
-nrrdKernelBSpline5ApproxInverse 0
-             nrrdKernelZero     1      scale
-              nrrdKernelBox     1      scale
-  nrrdKernelBoxSupportDebug     1      radius (half-support)
-            nrrdKernelCheap     1      scale
-      nrrdKernelHermiteFlag     0
-             nrrdKernelTent     1      scale
-         nrrdKernelForwDiff     1      scale
-         nrrdKernelCentDiff     1      scale
-          nrrdKernelBCCubic     3      scale       B        C
-         nrrdKernelAQuartic     2      scale       A
-        nrrdKernelC3Quintic     1      scale
-          nrrdKernelC4Hexic     1      scale
-nrrdKernelC4HexicApproxInverse  0
-         nrrdKernelGaussian     2      sigma    cut-off
- nrrdKernelDiscreteGaussian     2      sigma    cut-off
-        nrrdKernelTMF[][][]     1       a
+                                 numParm  parm[0]   parm[1]   parm[2]
+                 nrrdKernelHann    2      scale    cut-off
+             nrrdKernelBlackman    2      scale    cut-off
+             nrrdKernelBSpline3    0
+           nrrdKernelCatmullRom    0
+nrrdKernelBSpline3ApproxInverse    0
+             nrrdKernelBSpline5    0
+nrrdKernelBSpline5ApproxInverse    0
+                 nrrdKernelZero    1      scale
+                  nrrdKernelBox    1      scale
+      nrrdKernelBoxSupportDebug    1      radius (half-support)
+                nrrdKernelCheap    1      scale
+nrrdKernelHermiteScaleSpaceFlag    0
+                 nrrdKernelTent    1      scale
+             nrrdKernelForwDiff    1      scale
+             nrrdKernelCentDiff    1      scale
+              nrrdKernelBCCubic    3      scale       B        C
+             nrrdKernelAQuartic    2      scale       A
+            nrrdKernelC3Quintic    1      scale
+              nrrdKernelC4Hexic    1      scale
+ nrrdKernelC4HexicApproxInverse    0
+             nrrdKernelGaussian    2      sigma    cut-off
+     nrrdKernelDiscreteGaussian    2      sigma    cut-off
+            nrrdKernelTMF[][][]    1       a
 
 ** Note that when parm[0] is named "scale", that parameter is optional,
 ** and the default is 1.0, when given in string form
@@ -473,14 +473,16 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
+/* HEY: should just re-use fields from nrrdKernelTent, instead
+   of creating new functions */
 static NrrdKernel
-_nrrdKernelHermiteFlag = {
+_nrrdKernelHermiteScaleSpaceFlag = {
   "hermiteFlag",
   0, _nrrdHermiteSup,_nrrdHermiteInt, 
   _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
 NrrdKernel *const
-nrrdKernelHermiteFlag = &_nrrdKernelHermiteFlag;
+nrrdKernelHermiteScaleSpaceFlag = &_nrrdKernelHermiteScaleSpaceFlag;
 
 /* ------------------------------------------------------------ */
 
@@ -2201,9 +2203,9 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("box", str))        return nrrdKernelBox;
   if (!strcmp("boxsd", str))      return nrrdKernelBoxSupportDebug;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
-  if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteFlag;
-  if (!strcmp("hermite", str))    return nrrdKernelHermiteFlag;
-  if (!strcmp("herm", str))       return nrrdKernelHermiteFlag;
+  if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteScaleSpaceFlag;
+  if (!strcmp("hermite", str))    return nrrdKernelHermiteScaleSpaceFlag;
+  if (!strcmp("herm", str))       return nrrdKernelHermiteScaleSpaceFlag;
   if (!strcmp("tent", str))       return nrrdKernelTent;
   if (!strcmp("tentd", str))      return nrrdKernelForwDiff;
   if (!strcmp("forwdiff", str))   return nrrdKernelForwDiff;
