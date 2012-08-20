@@ -211,14 +211,6 @@ airStrcpy(char *dst, size_t dstSize, const char *src) {
 }
 
 /*
-char *
-airStrcat(char *dst, size_t dstSize, const char *suf) {
-  
-  
-}
-*/
-
-/*
 ******** airEndsWith
 **
 ** if "s" ends with "suff", then returns 1, 0 otherwise
